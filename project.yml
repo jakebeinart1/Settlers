@@ -1,0 +1,46 @@
+name: Settlers
+options:
+  bundleIdPrefix: com.jakebeinart.settlers
+  deploymentTarget:
+    iOS: "17.0"
+configs:
+  Debug: debug
+  Release: release
+packages:
+  CatanEngine:
+    path: Packages/CatanEngine
+  CatanAI:
+    path: Packages/CatanAI
+targets:
+  Settlers:
+    type: application
+    platform: iOS
+    sources: [Settlers]
+    settings:
+      base:
+        SWIFT_VERSION: "6.0"
+        PRODUCT_BUNDLE_IDENTIFIER: com.jakebeinart.settlers
+        TARGETED_DEVICE_FAMILY: "1"
+        SUPPORTS_MACCATALYST: false
+    dependencies:
+      - package: CatanEngine
+      - package: CatanAI
+    info:
+      path: Settlers/Info.plist
+      properties:
+        UILaunchScreen: {}
+        UISupportedInterfaceOrientations:
+          - UIInterfaceOrientationPortrait
+        UISupportedInterfaceOrientations~ipad:
+          - UIInterfaceOrientationPortrait
+          - UIInterfaceOrientationLandscapeLeft
+          - UIInterfaceOrientationLandscapeRight
+schemes:
+  Settlers:
+    build:
+      targets:
+        Settlers: all
+    test:
+      targets: []
+    run:
+      config: Debug
