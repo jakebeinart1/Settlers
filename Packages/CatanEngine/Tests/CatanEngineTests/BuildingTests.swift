@@ -15,6 +15,20 @@ import Testing
     #expect(!Building.canBuildRoad(farEdge, for: p0, in: state))
 }
 
+@Test func roadCannotBeBuiltOnAnEdgeAnotherPlayerAlreadyOwns() {
+    var state = GameSetup.newGame(board: BoardGenerator.standard())
+    let p0 = PlayerID(index: 0)
+    let vertex = state.board.onBoardVertices.sorted().first!
+    let edge = state.board.edgesTouching(vertex).first!
+
+    // p1 already owns this edge; p0 also has a settlement touching it, so
+    // without the occupancy check p0's build would otherwise look legal.
+    state.players[1].roads.insert(edge)
+    state.players[0].settlements.insert(vertex)
+
+    #expect(!Building.canBuildRoad(edge, for: p0, in: state))
+}
+
 @Test func settlementRespectsDistanceRuleAndRoadConnection() {
     var state = GameSetup.newGame(board: BoardGenerator.standard())
     state.phase = .mainTurn(playerIndex: 0)

@@ -17,7 +17,8 @@ public enum Building {
     public static func canBuildRoad(_ edge: EdgeID, for player: PlayerID, in state: GameState) -> Bool {
         guard state.board.onBoardEdges.contains(edge) else { return false }
         guard let owner = state.players.first(where: { $0.id == player }) else { return false }
-        guard !owner.roads.contains(edge) else { return false }
+        let allRoads = Set(state.players.flatMap { $0.roads })
+        guard !allRoads.contains(edge) else { return false }
 
         let (a, b) = state.board.vertices(of: edge)
         let touchesOwnBuilding = owner.settlements.contains(a) || owner.settlements.contains(b)
