@@ -2,16 +2,38 @@
 /// deterministic; `RulesEngine.apply(.rollDice, ...)` generates the actual
 /// random roll and calls this internally.
 public enum MainPhase {
-    /// Applies resource production for `roll` (2-12; 7 produces nothing -
-    /// robber handling is a later task). For each tile matching `roll` that
-    /// isn't under the robber, every player with a settlement (1x) or city
-    /// (2x) touching that tile earns that tile's resource, subject to bank
-    /// depletion: if only one player demands a resource, they get whatever's
-    /// left in the bank; if multiple players demand it and the bank can't
-    /// cover the combined demand, no one gets that resource from this roll.
+    /// Applies resource production for `roll` (2-12). Rolling a 7 produces
+    /// nothing; instead it routes into the robber sequence - any player
+    /// holding more than 7 cards must discard (`.discarding(pending:)`), or,
+    /// if nobody must discard, the roller moves the robber immediately
+    /// (`.movingRobber(playerIndex:)`). Otherwise, for each tile matching
+    /// `roll` that isn't under the robber, every player with a settlement
+    /// (1x) or city (2x) touching that tile earns that tile's resource,
+    /// subject to bank depletion: if only one player demands a resource,
+    /// they get whatever's left in the bank; if multiple players demand it
+    /// and the bank can't cover the combined demand, no one gets that
+    /// resource from this roll.
     public static func rollDice(state: inout GameState, roll: Int) {
         state.lastDiceRoll = roll
-        guard roll != 7 else { return }
+        guard roll != 7 else {
+            let rollerIndex: Int
+            if case .rollDice(let playerIndex) = state.phase {
+                rollerIndex = playerIndex
+            } else if case .mainTurn(let playerIndex) = state.phase {
+                rollerIndex = playerIndex
+            } else {
+                rollerIndex = 0
+            }
+            state.robberMoverIndex = rollerIndex
+
+            let pending = Robber.playersWhoMustDiscard(state)
+            if pending.isEmpty {
+                state.phase = .movingRobber(playerIndex: rollerIndex)
+            } else {
+                state.phase = .discarding(pending: pending)
+            }
+            return
+        }
 
         var demand: [Resource: [(playerIndex: Int, amount: Int)]] = [:]
         for tile in state.board.tiles {

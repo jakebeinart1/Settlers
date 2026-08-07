@@ -49,6 +49,37 @@ public enum RulesEngine {
             guard case .rollDice = move else { throw MoveError.wrongPhase }
             let roll = Int.random(in: 1...6) + Int.random(in: 1...6)
             MainPhase.rollDice(state: &state, roll: roll)
+            if roll != 7 {
+                state.phase = .mainTurn(playerIndex: playerIndex)
+            }
+            // A roll of 7 routes into .discarding or .movingRobber, already
+            // set by MainPhase.rollDice.
+
+        case .discarding(let pending):
+            guard pending.contains(player) else { throw MoveError.notYourTurn }
+            guard case .discard(let discarded) = move else { throw MoveError.wrongPhase }
+            guard let playerIndex = state.players.firstIndex(where: { $0.id == player }) else {
+                throw MoveError.other("unknown player")
+            }
+            let total = discarded.values.reduce(0, +)
+            guard total == Robber.discardCount(for: state.players[playerIndex]) else {
+                throw MoveError.illegalPlacement
+            }
+            try deduct(discarded, from: &state, playerIndex: playerIndex)
+
+            var remainingPending = pending
+            remainingPending.remove(player)
+            if remainingPending.isEmpty {
+                state.phase = .movingRobber(playerIndex: state.robberMoverIndex ?? playerIndex)
+                state.robberMoverIndex = nil
+            } else {
+                state.phase = .discarding(pending: remainingPending)
+            }
+
+        case .movingRobber(let playerIndex):
+            guard player.index == playerIndex else { throw MoveError.notYourTurn }
+            guard case .moveRobber(let target, let stealFrom) = move else { throw MoveError.wrongPhase }
+            try Robber.apply(move: target, stealFrom: stealFrom, by: player, to: &state)
             state.phase = .mainTurn(playerIndex: playerIndex)
 
         case .mainTurn(let playerIndex):

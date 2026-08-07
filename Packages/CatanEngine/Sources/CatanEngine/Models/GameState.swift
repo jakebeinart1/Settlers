@@ -9,6 +9,11 @@ public struct GameState: Codable, Sendable {
     public var largestArmyPlayer: PlayerID?
     public var pendingTradeOffers: [TradeOffer]
     public var log: [String]
+    /// The index of the player who rolled a 7, carried across an intervening
+    /// `.discarding` phase so `.movingRobber(playerIndex:)` names the roller
+    /// (not whichever player happened to discard last). `nil` outside that
+    /// 7-roll sequence.
+    public var robberMoverIndex: Int?
 
     public init(
         board: Board,
@@ -20,7 +25,8 @@ public struct GameState: Codable, Sendable {
         longestRoadPlayer: PlayerID? = nil,
         largestArmyPlayer: PlayerID? = nil,
         pendingTradeOffers: [TradeOffer] = [],
-        log: [String] = []
+        log: [String] = [],
+        robberMoverIndex: Int? = nil
     ) {
         self.board = board
         self.players = players
@@ -32,6 +38,7 @@ public struct GameState: Codable, Sendable {
         self.largestArmyPlayer = largestArmyPlayer
         self.pendingTradeOffers = pendingTradeOffers
         self.log = log
+        self.robberMoverIndex = robberMoverIndex
     }
 
     /// Total victory points for `id`: building/dev-card VPs from `Player`,
