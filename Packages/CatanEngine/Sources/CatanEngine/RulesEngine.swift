@@ -64,7 +64,15 @@ public enum RulesEngine {
                 }
             }
             for offer in state.pendingTradeOffers where offer.from != player.id {
-                moves.append(.respondToTrade(offerID: offer.id, accept: true))
+                // Accepting is only actually legal if the responder currently
+                // holds what's wanted and the proposer still holds what they
+                // offered (either side may have spent/traded cards since the
+                // offer was made) - `Trading.respond` re-validates both and
+                // throws otherwise, so `legalMoves` must match.
+                if canAfford(offer.want, player: player)
+                    && canAfford(offer.give, player: state.players.first(where: { $0.id == offer.from })!) {
+                    moves.append(.respondToTrade(offerID: offer.id, accept: true))
+                }
                 moves.append(.respondToTrade(offerID: offer.id, accept: false))
             }
             // Pragmatic proposal enumeration: for each resource the player
@@ -178,26 +186,37 @@ public enum RulesEngine {
                 try deduct(Building.roadCost, from: &state, playerIndex: playerIndex)
                 state.players[playerIndex].roads.insert(edge)
                 state.longestRoadPlayer = LongestRoad.compute(for: state)
+                WinCondition.checkForWinner(&state)
 
             case .buildSettlement(let vertex):
                 guard Building.canBuildSettlement(vertex, for: player, in: state) else { throw MoveError.illegalPlacement }
                 try deduct(Building.settlementCost, from: &state, playerIndex: playerIndex)
                 state.players[playerIndex].settlements.insert(vertex)
+                WinCondition.checkForWinner(&state)
 
             case .buildCity(let vertex):
                 guard Building.canBuildCity(vertex, for: player, in: state) else { throw MoveError.illegalPlacement }
                 try deduct(Building.cityCost, from: &state, playerIndex: playerIndex)
                 state.players[playerIndex].settlements.remove(vertex)
                 state.players[playerIndex].cities.insert(vertex)
+                WinCondition.checkForWinner(&state)
 
             case .buyDevCard:
                 try DevCards.buy(by: player, state: &state)
+                // A bought VP card counts toward victory points immediately
+                // (it's the "playing" of a knight/road-building/etc. card
+                // that's deferred a turn, not VP cards being counted), so a
+                // win can trigger right here even though the card can't be
+                // "played".
+                WinCondition.checkForWinner(&state)
 
             case .playKnight(let moveRobberTo, let stealFrom):
                 try DevCards.playKnight(moveRobberTo: moveRobberTo, stealFrom: stealFrom, by: player, state: &state)
+                WinCondition.checkForWinner(&state)
 
             case .playRoadBuilding(let e1, let e2):
                 try DevCards.playRoadBuilding(e1, e2, by: player, state: &state)
+                WinCondition.checkForWinner(&state)
 
             case .playYearOfPlenty(let r1, let r2):
                 try DevCards.playYearOfPlenty(r1, r2, by: player, state: &state)
