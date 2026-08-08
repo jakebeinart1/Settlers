@@ -26,22 +26,15 @@ public enum Robber {
         guard robberTo != state.board.robberTile else { throw MoveError.illegalPlacement }
 
         if let victimID = stealFrom {
-            guard let victimIndex = state.players.firstIndex(where: { $0.id == victimID }) else {
+            guard victimID != player else { throw MoveError.illegalPlacement }
+            guard eligibleVictims(for: robberTo, thief: player, in: state).contains(victimID) else {
                 throw MoveError.illegalPlacement
             }
-            let victim = state.players[victimIndex]
-            let victimBorders = HexGeometry.corners(of: robberTo).contains { vertex in
-                victim.settlements.contains(vertex) || victim.cities.contains(vertex)
-            }
-            guard victimBorders else { throw MoveError.illegalPlacement }
-            guard totalResources(victim) > 0 else { throw MoveError.illegalPlacement }
-
-            guard let thiefIndex = state.players.firstIndex(where: { $0.id == player }) else {
-                throw MoveError.illegalPlacement
-            }
+            let victimIndex = state.players.firstIndex(where: { $0.id == victimID })!
+            let thiefIndex = state.players.firstIndex(where: { $0.id == player })!
 
             var pool: [Resource] = []
-            for (resource, count) in victim.resources {
+            for (resource, count) in state.players[victimIndex].resources {
                 pool.append(contentsOf: repeatElement(resource, count: count))
             }
             let stolen = pool.randomElement()!
@@ -50,6 +43,20 @@ public enum Robber {
         }
 
         state.board.robberTile = robberTo
+    }
+
+    /// Players eligible to be stolen from once the robber sits on `tile`:
+    /// everyone but `thief` with a settlement/city on one of `tile`'s
+    /// corners and at least one resource card. Shared by `apply` (to
+    /// validate a proposed `stealFrom`) and `RulesEngine.legalMoves` (to
+    /// enumerate every legal `.moveRobber` target/victim pairing).
+    public static func eligibleVictims(for tile: HexCoordinate, thief: PlayerID, in state: GameState) -> [PlayerID] {
+        let corners = HexGeometry.corners(of: tile)
+        return state.players.compactMap { candidate in
+            guard candidate.id != thief, totalResources(candidate) > 0 else { return nil }
+            let borders = corners.contains { candidate.settlements.contains($0) || candidate.cities.contains($0) }
+            return borders ? candidate.id : nil
+        }
     }
 
     private static func totalResources(_ player: Player) -> Int {

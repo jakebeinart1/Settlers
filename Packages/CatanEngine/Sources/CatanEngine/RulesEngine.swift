@@ -28,6 +28,30 @@ public enum RulesEngine {
             }
             return moves
 
+        case .discarding(let pending):
+            // No single "acting player" is embedded in this phase - any
+            // player in `pending` may discard whenever they're ready - so
+            // this returns the union of every legal `.discard` combination
+            // across all of them.
+            var moves: [GameMove] = []
+            for pid in pending {
+                guard let playerIndex = state.players.firstIndex(where: { $0.id == pid }) else { continue }
+                let player = state.players[playerIndex]
+                let count = Robber.discardCount(for: player)
+                moves.append(contentsOf: discardCombinations(holding: player.resources, count: count).map { .discard($0) })
+            }
+            return moves
+
+        case .movingRobber(let playerIndex):
+            let thief = state.players[playerIndex].id
+            var moves: [GameMove] = []
+            for tile in state.board.tiles.map(\.coordinate) where tile != state.board.robberTile {
+                moves.append(.moveRobber(tile, stealFrom: nil))
+                moves.append(contentsOf: Robber.eligibleVictims(for: tile, thief: thief, in: state)
+                    .map { .moveRobber(tile, stealFrom: $0) })
+            }
+            return moves
+
         default:
             // Later tasks extend this switch for the other phases.
             return []
@@ -61,6 +85,7 @@ public enum RulesEngine {
             guard let playerIndex = state.players.firstIndex(where: { $0.id == player }) else {
                 throw MoveError.other("unknown player")
             }
+            guard discarded.values.allSatisfy({ $0 >= 0 }) else { throw MoveError.illegalPlacement }
             let total = discarded.values.reduce(0, +)
             guard total == Robber.discardCount(for: state.players[playerIndex]) else {
                 throw MoveError.illegalPlacement
@@ -80,6 +105,7 @@ public enum RulesEngine {
             guard player.index == playerIndex else { throw MoveError.notYourTurn }
             guard case .moveRobber(let target, let stealFrom) = move else { throw MoveError.wrongPhase }
             try Robber.apply(move: target, stealFrom: stealFrom, by: player, to: &state)
+            state.robberMoverIndex = nil
             state.phase = .mainTurn(playerIndex: playerIndex)
 
         case .mainTurn(let playerIndex):
@@ -130,5 +156,32 @@ public enum RulesEngine {
             state.players[playerIndex].resources[resource, default: 0] -= amount
             state.bank[resource, default: 0] += amount
         }
+    }
+
+    /// Every way to pick exactly `count` cards from `holding` (a resource ->
+    /// count map), one resource type at a time via backtracking. Used to
+    /// enumerate legal `.discard` combinations - small enough hands (at most
+    /// ~18 cards over 5 resource types) that this never blows up.
+    private static func discardCombinations(holding: [Resource: Int], count: Int) -> [[Resource: Int]] {
+        let resources = Resource.allCases
+        var results: [[Resource: Int]] = []
+
+        func backtrack(index: Int, remaining: Int, chosen: [Resource: Int]) {
+            if remaining == 0 {
+                results.append(chosen)
+                return
+            }
+            guard index < resources.count else { return }
+            let resource = resources[index]
+            let maxTake = min(remaining, holding[resource] ?? 0)
+            for take in 0...maxTake {
+                var next = chosen
+                if take > 0 { next[resource] = take }
+                backtrack(index: index + 1, remaining: remaining - take, chosen: next)
+            }
+        }
+
+        backtrack(index: 0, remaining: count, chosen: [:])
+        return results
     }
 }
