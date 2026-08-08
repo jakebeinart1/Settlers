@@ -14,6 +14,11 @@ public struct GameState: Codable, Sendable {
     /// (not whichever player happened to discard last). `nil` outside that
     /// 7-roll sequence.
     public var robberMoverIndex: Int?
+    /// Dev cards each player has bought during the *current* turn, keyed by
+    /// owner. A card counted here cannot yet be played (standard rule: a
+    /// card is only playable starting the turn after it's bought). Cleared
+    /// for everyone on `.endTurn`.
+    public var devCardsBoughtThisTurn: [PlayerID: [DevCardType]]
 
     public init(
         board: Board,
@@ -26,7 +31,8 @@ public struct GameState: Codable, Sendable {
         largestArmyPlayer: PlayerID? = nil,
         pendingTradeOffers: [TradeOffer] = [],
         log: [String] = [],
-        robberMoverIndex: Int? = nil
+        robberMoverIndex: Int? = nil,
+        devCardsBoughtThisTurn: [PlayerID: [DevCardType]] = [:]
     ) {
         self.board = board
         self.players = players
@@ -39,6 +45,7 @@ public struct GameState: Codable, Sendable {
         self.pendingTradeOffers = pendingTradeOffers
         self.log = log
         self.robberMoverIndex = robberMoverIndex
+        self.devCardsBoughtThisTurn = devCardsBoughtThisTurn
     }
 
     /// Total victory points for `id`: building/dev-card VPs from `Player`,

@@ -1,0 +1,130 @@
+import Testing
+@testable import CatanEngine
+
+@Test func buyingDevCardDeductsCostAndDraws() {
+    var state = GameSetup.newGame(board: BoardGenerator.standard())
+    state.players[0].resources = [.ore: 1, .wool: 1, .grain: 1]
+    let deckSizeBefore = state.devCardDeck.count
+    try! DevCards.buy(by: PlayerID(index: 0), state: &state)
+    #expect(state.players[0].resources[.ore] == 0)
+    #expect(state.players[0].devCards.count == 1)
+    #expect(state.devCardDeck.count == deckSizeBefore - 1)
+}
+
+@Test func cannotPlayDevCardBoughtThisTurn() {
+    var state = GameSetup.newGame(board: BoardGenerator.standard())
+    state.players[0].resources = [.ore: 1, .wool: 1, .grain: 1]
+    try! DevCards.buy(by: PlayerID(index: 0), state: &state)
+    #expect(!RulesEngine.legalMoves(for: state).contains { if case .playKnight = $0 { return true }; return false })
+}
+
+@Test func thirdKnightGrantsLargestArmy() {
+    var state = GameSetup.newGame(board: BoardGenerator.standard())
+    state.players[0].devCards = [.knight, .knight, .knight]
+    state.players[0].playedKnights = 2
+    let tile = state.board.tiles.first!.coordinate
+    try! DevCards.playKnight(moveRobberTo: tile, stealFrom: nil, by: PlayerID(index: 0), state: &state)
+    #expect(state.players[0].playedKnights == 3)
+    #expect(state.largestArmyPlayer == PlayerID(index: 0))
+}
+
+@Test func playingKnightMovesRobberAndConsumesCard() {
+    var state = GameSetup.newGame(board: BoardGenerator.standard())
+    state.players[0].devCards = [.knight]
+    let tile = state.board.tiles.map(\.coordinate).first { $0 != state.board.robberTile }!
+    try! DevCards.playKnight(moveRobberTo: tile, stealFrom: nil, by: PlayerID(index: 0), state: &state)
+    #expect(state.board.robberTile == tile)
+    #expect(state.players[0].devCards.isEmpty)
+    #expect(state.players[0].playedKnights == 1)
+}
+
+@Test func roadBuildingBuildsTwoFreeRoads() throws {
+    var state = GameSetup.newGame(board: BoardGenerator.standard())
+    state.players[0].devCards = [.roadBuilding]
+    let vertex = state.board.onBoardVertices.sorted().first!
+    state.players[0].settlements.insert(vertex)
+    let e1 = state.board.edgesTouching(vertex).first!
+    let (a, b) = state.board.vertices(of: e1)
+    let midVertex = (a == vertex) ? b : a
+    let e2 = state.board.edgesTouching(midVertex).first { $0 != e1 }!
+    state.players[0].resources = [:] // free - no resources needed
+
+    try DevCards.playRoadBuilding(e1, e2, by: PlayerID(index: 0), state: &state)
+
+    #expect(state.players[0].roads.contains(e1))
+    #expect(state.players[0].roads.contains(e2))
+    #expect(state.players[0].devCards.isEmpty)
+}
+
+@Test func roadBuildingThrowsIfEitherEdgeIsIllegal() {
+    var state = GameSetup.newGame(board: BoardGenerator.standard())
+    state.players[0].devCards = [.roadBuilding]
+    let vertex = state.board.onBoardVertices.sorted().first!
+    state.players[0].settlements.insert(vertex)
+    let e1 = state.board.edgesTouching(vertex).first!
+
+    // e2 is a legal on-board edge but does not connect to player 0's
+    // network - the second road should fail and neither should be built.
+    let farVertex = state.board.onBoardVertices.sorted().last!
+    let e2 = state.board.edgesTouching(farVertex).first { $0 != e1 }!
+
+    #expect(throws: MoveError.illegalPlacement) {
+        try DevCards.playRoadBuilding(e1, e2, by: PlayerID(index: 0), state: &state)
+    }
+    #expect(state.players[0].roads.isEmpty)
+    #expect(state.players[0].devCards == [.roadBuilding]) // card not consumed
+}
+
+@Test func yearOfPlentyGrantsTwoResourcesCappedByBank() {
+    var state = GameSetup.newGame(board: BoardGenerator.standard())
+    state.players[0].devCards = [.yearOfPlenty]
+    state.bank[.ore] = 0 // bank is out of ore
+
+    try! DevCards.playYearOfPlenty(.ore, .grain, by: PlayerID(index: 0), state: &state)
+
+    #expect((state.players[0].resources[.ore] ?? 0) == 0) // capped - bank had none
+    #expect((state.players[0].resources[.grain] ?? 0) == 1)
+    #expect(state.players[0].devCards.isEmpty)
+}
+
+@Test func monopolyTransfersAllMatchingCardsFromEveryOtherPlayer() {
+    var state = GameSetup.newGame(board: BoardGenerator.standard())
+    state.players[0].devCards = [.monopoly]
+    state.players[1].resources = [.wool: 3]
+    state.players[2].resources = [.wool: 1, .brick: 2]
+    state.players[3].resources = [:]
+
+    try! DevCards.playMonopoly(.wool, by: PlayerID(index: 0), state: &state)
+
+    #expect((state.players[0].resources[.wool] ?? 0) == 4)
+    #expect((state.players[1].resources[.wool] ?? 0) == 0)
+    #expect((state.players[2].resources[.wool] ?? 0) == 0)
+    #expect((state.players[2].resources[.brick] ?? 0) == 2) // untouched
+    #expect(state.players[0].devCards.isEmpty)
+}
+
+@Test func buyingIsLimitedByDeckSize() {
+    var state = GameSetup.newGame(board: BoardGenerator.standard())
+    state.devCardDeck = []
+    state.players[0].resources = [.ore: 1, .wool: 1, .grain: 1]
+
+    #expect(throws: (any Error).self) {
+        try DevCards.buy(by: PlayerID(index: 0), state: &state)
+    }
+    #expect(state.players[0].devCards.isEmpty)
+    #expect((state.players[0].resources[.ore] ?? 0) == 1) // untouched - cost not deducted
+}
+
+@Test func devCardsBoughtThisTurnBecomePlayableAfterEndTurn() {
+    var state = GameSetup.newGame(board: BoardGenerator.standard())
+    state.phase = .mainTurn(playerIndex: 0)
+    state.players[0].resources = [.ore: 1, .wool: 1, .grain: 1]
+    // Force a knight to the top of the deck so we know what was bought.
+    state.devCardDeck = [.knight] + state.devCardDeck.filter { $0 != .knight }
+    try! RulesEngine.apply(.buyDevCard, by: PlayerID(index: 0), to: &state)
+    #expect(!DevCards.canPlay(.knight, by: PlayerID(index: 0), in: state))
+
+    try! RulesEngine.apply(.endTurn, by: PlayerID(index: 0), to: &state)
+    #expect(state.devCardsBoughtThisTurn.isEmpty)
+    #expect(DevCards.canPlay(.knight, by: PlayerID(index: 0), in: state))
+}

@@ -26,6 +26,36 @@ public enum RulesEngine {
                     .filter { Building.canBuildCity($0, for: player.id, in: state) }
                     .map { .buildCity($0) })
             }
+            if canAfford(Building.devCardCost, player: player) && !state.devCardDeck.isEmpty {
+                moves.append(.buyDevCard)
+            }
+            if DevCards.canPlay(.knight, by: player.id, in: state) {
+                for tile in state.board.tiles.map(\.coordinate) where tile != state.board.robberTile {
+                    moves.append(.playKnight(moveRobberTo: tile, stealFrom: nil))
+                    moves.append(contentsOf: Robber.eligibleVictims(for: tile, thief: player.id, in: state)
+                        .map { .playKnight(moveRobberTo: tile, stealFrom: $0) })
+                }
+            }
+            if DevCards.canPlay(.roadBuilding, by: player.id, in: state) {
+                let legalEdges = state.board.onBoardEdges.filter { Building.canBuildRoad($0, for: player.id, in: state) }
+                for e1 in legalEdges {
+                    var afterE1 = state
+                    afterE1.players[playerIndex].roads.insert(e1)
+                    for e2 in state.board.onBoardEdges where e2 != e1 && Building.canBuildRoad(e2, for: player.id, in: afterE1) {
+                        moves.append(.playRoadBuilding(e1, e2))
+                    }
+                }
+            }
+            if DevCards.canPlay(.yearOfPlenty, by: player.id, in: state) {
+                for r1 in Resource.allCases {
+                    for r2 in Resource.allCases {
+                        moves.append(.playYearOfPlenty(r1, r2))
+                    }
+                }
+            }
+            if DevCards.canPlay(.monopoly, by: player.id, in: state) {
+                moves.append(contentsOf: Resource.allCases.map { .playMonopoly($0) })
+            }
             return moves
 
         case .discarding(let pending):
@@ -129,12 +159,28 @@ public enum RulesEngine {
                 state.players[playerIndex].settlements.remove(vertex)
                 state.players[playerIndex].cities.insert(vertex)
 
+            case .buyDevCard:
+                try DevCards.buy(by: player, state: &state)
+
+            case .playKnight(let moveRobberTo, let stealFrom):
+                try DevCards.playKnight(moveRobberTo: moveRobberTo, stealFrom: stealFrom, by: player, state: &state)
+
+            case .playRoadBuilding(let e1, let e2):
+                try DevCards.playRoadBuilding(e1, e2, by: player, state: &state)
+
+            case .playYearOfPlenty(let r1, let r2):
+                try DevCards.playYearOfPlenty(r1, r2, by: player, state: &state)
+
+            case .playMonopoly(let resource):
+                try DevCards.playMonopoly(resource, by: player, state: &state)
+
             case .endTurn:
+                state.devCardsBoughtThisTurn = [:]
                 let nextIndex = (playerIndex + 1) % state.players.count
                 state.phase = .rollDice(playerIndex: nextIndex)
 
             default:
-                // Trading and dev cards are later tasks.
+                // Trading is a later task.
                 throw MoveError.wrongPhase
             }
 
@@ -146,11 +192,11 @@ public enum RulesEngine {
 
     // MARK: - Helpers
 
-    private static func canAfford(_ cost: [Resource: Int], player: Player) -> Bool {
+    static func canAfford(_ cost: [Resource: Int], player: Player) -> Bool {
         cost.allSatisfy { resource, amount in (player.resources[resource] ?? 0) >= amount }
     }
 
-    private static func deduct(_ cost: [Resource: Int], from state: inout GameState, playerIndex: Int) throws {
+    static func deduct(_ cost: [Resource: Int], from state: inout GameState, playerIndex: Int) throws {
         guard canAfford(cost, player: state.players[playerIndex]) else { throw MoveError.insufficientResources }
         for (resource, amount) in cost {
             state.players[playerIndex].resources[resource, default: 0] -= amount
