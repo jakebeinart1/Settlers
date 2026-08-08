@@ -1,0 +1,109 @@
+import Testing
+import Foundation
+@testable import CatanEngine
+
+@Suite struct TradingTests {
+
+    @Test func fourToOneBankTradeWithNoPort() throws {
+        var state = GameSetup.newGame(board: BoardGenerator.standard())
+        state.players[0].resources = [.brick: 4]
+        try Trading.bankTrade(give: [.brick: 4], get: [.ore: 1], by: PlayerID(index: 0), state: &state)
+        #expect(state.players[0].resources[.brick] == 0)
+        #expect(state.players[0].resources[.ore] == 1)
+    }
+
+    @Test func threeToOneBankTradeWithGenericPort() throws {
+        var state = GameSetup.newGame(board: BoardGenerator.standard())
+        guard let port = state.board.ports.first(where: { $0.kind == .generic }) else {
+            Issue.record("no generic port on standard board")
+            return
+        }
+        state.players[0].settlements = [port.vertexA]
+        state.players[0].resources = [.brick: 3]
+        try Trading.bankTrade(give: [.brick: 3], get: [.ore: 1], by: PlayerID(index: 0), state: &state)
+        #expect(state.players[0].resources[.brick] == 0)
+        #expect(state.players[0].resources[.ore] == 1)
+    }
+
+    @Test func twoToOneBankTradeWithMatchingResourcePort() throws {
+        var state = GameSetup.newGame(board: BoardGenerator.standard())
+        guard case .resource(let resource)? = state.board.ports.first(where: {
+            if case .resource = $0.kind { return true }
+            return false
+        })?.kind, let port = state.board.ports.first(where: { $0.kind == .resource(resource) }) else {
+            Issue.record("no resource port on standard board")
+            return
+        }
+        state.players[0].settlements = [port.vertexA]
+        state.players[0].resources = [resource: 2]
+        let other: Resource = Resource.allCases.first { $0 != resource }!
+        try Trading.bankTrade(give: [resource: 2], get: [other: 1], by: PlayerID(index: 0), state: &state)
+        #expect(state.players[0].resources[resource] == 0)
+        #expect(state.players[0].resources[other] == 1)
+    }
+
+    @Test func bankTradeRejectedWhenRatioWrong() {
+        var state = GameSetup.newGame(board: BoardGenerator.standard())
+        state.players[0].resources = [.brick: 3]
+        #expect(throws: (any Error).self) {
+            try Trading.bankTrade(give: [.brick: 3], get: [.ore: 1], by: PlayerID(index: 0), state: &state)
+        }
+    }
+
+    @Test func bankTradeRejectedWhenBankLacksResource() {
+        var state = GameSetup.newGame(board: BoardGenerator.standard())
+        state.players[0].resources = [.brick: 4]
+        state.bank[.ore] = 0
+        #expect(throws: (any Error).self) {
+            try Trading.bankTrade(give: [.brick: 4], get: [.ore: 1], by: PlayerID(index: 0), state: &state)
+        }
+    }
+
+    @Test func proposeAndAcceptTradeSwapsCardsBetweenPlayers() throws {
+        var state = GameSetup.newGame(board: BoardGenerator.standard())
+        state.players[0].resources = [.brick: 2]
+        state.players[1].resources = [.ore: 1]
+        let offer = TradeOffer(id: UUID(), from: PlayerID(index: 0), give: [.brick: 1], want: [.ore: 1])
+        try Trading.proposeTrade(offer, state: &state)
+        try Trading.respond(offerID: offer.id, accept: true, by: PlayerID(index: 1), state: &state)
+        #expect(state.players[0].resources[.ore] == 1)
+        #expect(state.players[0].resources[.brick] == 1)
+        #expect(state.players[1].resources[.brick] == 1)
+        #expect(state.players[1].resources[.ore] == 0)
+        #expect(state.pendingTradeOffers.isEmpty)
+    }
+
+    @Test func proposeAndRejectLeavesResourcesUntouched() throws {
+        var state = GameSetup.newGame(board: BoardGenerator.standard())
+        state.players[0].resources = [.brick: 2]
+        state.players[1].resources = [.ore: 1]
+        let offer = TradeOffer(id: UUID(), from: PlayerID(index: 0), give: [.brick: 1], want: [.ore: 1])
+        try Trading.proposeTrade(offer, state: &state)
+        try Trading.respond(offerID: offer.id, accept: false, by: PlayerID(index: 1), state: &state)
+        #expect(state.players[0].resources[.brick] == 2)
+        #expect(state.players[1].resources[.ore] == 1)
+        #expect(state.pendingTradeOffers.isEmpty)
+    }
+
+    @Test func proposeTradeFailsIfProposerLacksGiveCards() {
+        var state = GameSetup.newGame(board: BoardGenerator.standard())
+        state.players[0].resources = [.brick: 0]
+        let offer = TradeOffer(id: UUID(), from: PlayerID(index: 0), give: [.brick: 1], want: [.ore: 1])
+        #expect(throws: (any Error).self) {
+            try Trading.proposeTrade(offer, state: &state)
+        }
+    }
+
+    @Test func acceptFailsIfResponderLacksWantedCards() throws {
+        var state = GameSetup.newGame(board: BoardGenerator.standard())
+        state.players[0].resources = [.brick: 2]
+        state.players[1].resources = [:]
+        let offer = TradeOffer(id: UUID(), from: PlayerID(index: 0), give: [.brick: 1], want: [.ore: 1])
+        try Trading.proposeTrade(offer, state: &state)
+        #expect(throws: (any Error).self) {
+            try Trading.respond(offerID: offer.id, accept: true, by: PlayerID(index: 1), state: &state)
+        }
+        // Offer should still be pending since the accept failed.
+        #expect(state.pendingTradeOffers.contains { $0.id == offer.id })
+    }
+}

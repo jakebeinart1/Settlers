@@ -56,6 +56,17 @@ public enum RulesEngine {
             if DevCards.canPlay(.monopoly, by: player.id, in: state) {
                 moves.append(contentsOf: Resource.allCases.map { .playMonopoly($0) })
             }
+            for resource in Resource.allCases {
+                let rate = Trading.bestRate(for: resource, player: player.id, state: state)
+                guard (player.resources[resource] ?? 0) >= rate else { continue }
+                for other in Resource.allCases where other != resource && (state.bank[other] ?? 0) >= 1 {
+                    moves.append(.bankTrade(give: [resource: rate], get: [other: 1]))
+                }
+            }
+            for offer in state.pendingTradeOffers where offer.from != player.id {
+                moves.append(.respondToTrade(offerID: offer.id, accept: true))
+                moves.append(.respondToTrade(offerID: offer.id, accept: false))
+            }
             return moves
 
         case .discarding(let pending):
@@ -139,6 +150,14 @@ public enum RulesEngine {
             state.phase = .mainTurn(playerIndex: playerIndex)
 
         case .mainTurn(let playerIndex):
+            // Trade responses come from whichever player the offer is
+            // directed at, not necessarily the active turn player, so this
+            // is handled before the "is it your turn" guard below.
+            if case .respondToTrade(let offerID, let accept) = move {
+                try Trading.respond(offerID: offerID, accept: accept, by: player, state: &state)
+                return
+            }
+
             guard player.index == playerIndex else { throw MoveError.notYourTurn }
 
             switch move {
@@ -174,13 +193,19 @@ public enum RulesEngine {
             case .playMonopoly(let resource):
                 try DevCards.playMonopoly(resource, by: player, state: &state)
 
+            case .bankTrade(let give, let get):
+                try Trading.bankTrade(give: give, get: get, by: player, state: &state)
+
+            case .proposeTrade(let offer):
+                guard offer.from == player else { throw MoveError.notYourTurn }
+                try Trading.proposeTrade(offer, state: &state)
+
             case .endTurn:
                 state.devCardsBoughtThisTurn = [:]
                 let nextIndex = (playerIndex + 1) % state.players.count
                 state.phase = .rollDice(playerIndex: nextIndex)
 
             default:
-                // Trading is a later task.
                 throw MoveError.wrongPhase
             }
 
