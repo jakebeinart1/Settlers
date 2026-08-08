@@ -30,6 +30,12 @@ public enum Trading {
         guard let playerIndex = state.players.firstIndex(where: { $0.id == player }) else {
             throw MoveError.other("unknown player")
         }
+        // Every entry must be a strictly-positive count of an actual
+        // exchange - zero/negative amounts would let `-=`/`+=` below run
+        // backwards and mint or steal resources for free.
+        guard give.values.allSatisfy({ $0 > 0 }), get.values.allSatisfy({ $0 > 0 }) else {
+            throw MoveError.illegalPlacement
+        }
         let giveTotal = give.values.reduce(0, +)
         let getTotal = get.values.reduce(0, +)
         guard giveTotal > 0, getTotal > 0 else { throw MoveError.illegalPlacement }
@@ -39,7 +45,6 @@ public enum Trading {
         // exactly the total requested at those rates.
         var convertedTotal = 0
         for (resource, amount) in give {
-            guard amount > 0 else { continue }
             let rate = bestRate(for: resource, player: player, state: state)
             guard amount % rate == 0 else { throw MoveError.illegalPlacement }
             convertedTotal += amount / rate
@@ -69,6 +74,11 @@ public enum Trading {
         guard let proposer = state.players.first(where: { $0.id == offer.from }) else {
             throw MoveError.other("unknown player")
         }
+        // Strictly-positive amounts only - see `bankTrade` for why a
+        // zero/negative entry is dangerous, not just meaningless.
+        guard offer.give.values.allSatisfy({ $0 > 0 }), offer.want.values.allSatisfy({ $0 > 0 }) else {
+            throw MoveError.illegalPlacement
+        }
         guard RulesEngine.canAfford(offer.give, player: proposer) else {
             throw MoveError.insufficientResources
         }
@@ -83,12 +93,20 @@ public enum Trading {
         guard let offer = state.pendingTradeOffers.first(where: { $0.id == offerID }) else {
             throw MoveError.invalidTradeTarget
         }
+        guard responder != offer.from else { throw MoveError.invalidTradeTarget }
         guard let proposerIndex = state.players.firstIndex(where: { $0.id == offer.from }),
               let responderIndex = state.players.firstIndex(where: { $0.id == responder }) else {
             throw MoveError.other("unknown player")
         }
 
         if accept {
+            // Re-check both sides' current holdings at acceptance time: the
+            // proposer's cards were only validated when the offer was made,
+            // and `pendingTradeOffers` survives `endTurn`, so the proposer
+            // may have since spent what they offered.
+            guard RulesEngine.canAfford(offer.give, player: state.players[proposerIndex]) else {
+                throw MoveError.insufficientResources
+            }
             guard RulesEngine.canAfford(offer.want, player: state.players[responderIndex]) else {
                 throw MoveError.insufficientResources
             }

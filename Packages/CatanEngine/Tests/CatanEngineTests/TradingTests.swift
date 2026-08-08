@@ -106,4 +106,132 @@ import Foundation
         // Offer should still be pending since the accept failed.
         #expect(state.pendingTradeOffers.contains { $0.id == offer.id })
     }
+
+    // MARK: - Review fix: positive-amount validation
+
+    @Test func bankTradeRejectsNegativeGiveAmount() {
+        var state = GameSetup.newGame(board: BoardGenerator.standard())
+        state.players[0].resources = [.brick: 0, .grain: 20]
+        let bankBrickBefore = state.bank[.brick]
+        #expect(throws: (any Error).self) {
+            // Would otherwise net the player +4 brick and +2 ore for 8 grain,
+            // by exploiting the negative `.brick` entry in the mutation loop.
+            try Trading.bankTrade(give: [.brick: -4, .grain: 8], get: [.ore: 2], by: PlayerID(index: 0), state: &state)
+        }
+        #expect(state.players[0].resources[.brick] == 0)
+        #expect(state.players[0].resources[.grain] == 20)
+        #expect(state.bank[.brick] == bankBrickBefore)
+    }
+
+    @Test func bankTradeRejectsNegativeGetAmount() {
+        var state = GameSetup.newGame(board: BoardGenerator.standard())
+        state.players[0].resources = [.brick: 4]
+        #expect(throws: (any Error).self) {
+            try Trading.bankTrade(give: [.brick: 4], get: [.ore: -1], by: PlayerID(index: 0), state: &state)
+        }
+        #expect(state.players[0].resources[.brick] == 4)
+    }
+
+    @Test func proposeTradeRejectsNegativeAmounts() {
+        var state = GameSetup.newGame(board: BoardGenerator.standard())
+        state.players[0].resources = [.brick: 5]
+        let offer = TradeOffer(id: UUID(), from: PlayerID(index: 0), give: [.brick: -1], want: [.ore: 1])
+        #expect(throws: (any Error).self) {
+            try Trading.proposeTrade(offer, state: &state)
+        }
+        #expect(state.pendingTradeOffers.isEmpty)
+    }
+
+    // MARK: - Review fix: responder cannot be the proposer
+
+    @Test func respondRejectsWhenResponderIsProposer() throws {
+        var state = GameSetup.newGame(board: BoardGenerator.standard())
+        state.players[0].resources = [.brick: 2]
+        let offer = TradeOffer(id: UUID(), from: PlayerID(index: 0), give: [.brick: 1], want: [.ore: 1])
+        try Trading.proposeTrade(offer, state: &state)
+        #expect(throws: (any Error).self) {
+            try Trading.respond(offerID: offer.id, accept: true, by: PlayerID(index: 0), state: &state)
+        }
+        #expect(state.pendingTradeOffers.contains { $0.id == offer.id })
+    }
+
+    // MARK: - Review fix: proposer's cards re-validated at acceptance time
+
+    @Test func acceptFailsIfProposerNoLongerHoldsGiveCards() throws {
+        var state = GameSetup.newGame(board: BoardGenerator.standard())
+        state.players[0].resources = [.brick: 1]
+        state.players[1].resources = [.ore: 1]
+        let offer = TradeOffer(id: UUID(), from: PlayerID(index: 0), give: [.brick: 1], want: [.ore: 1])
+        try Trading.proposeTrade(offer, state: &state)
+
+        // Proposer spends the offered brick elsewhere before the offer is
+        // answered (e.g. a bank trade), simulating cards spent in between.
+        state.players[0].resources[.brick] = 0
+
+        #expect(throws: (any Error).self) {
+            try Trading.respond(offerID: offer.id, accept: true, by: PlayerID(index: 1), state: &state)
+        }
+        #expect(state.players[0].resources[.brick] == 0)
+        #expect(state.players[1].resources[.ore] == 1)
+        // Offer remains pending since acceptance failed.
+        #expect(state.pendingTradeOffers.contains { $0.id == offer.id })
+    }
+
+    // MARK: - Review fix: RulesEngine.apply integration coverage
+
+    @Test func rulesEngineAppliesBankTrade() throws {
+        var state = GameSetup.newGame(board: BoardGenerator.standard())
+        state.phase = .mainTurn(playerIndex: 0)
+        state.players[0].resources = [.brick: 4]
+        try RulesEngine.apply(.bankTrade(give: [.brick: 4], get: [.ore: 1]), by: PlayerID(index: 0), to: &state)
+        #expect(state.players[0].resources[.brick] == 0)
+        #expect(state.players[0].resources[.ore] == 1)
+    }
+
+    @Test func rulesEngineAppliesProposeTrade() throws {
+        var state = GameSetup.newGame(board: BoardGenerator.standard())
+        state.phase = .mainTurn(playerIndex: 0)
+        state.players[0].resources = [.brick: 2]
+        let offer = TradeOffer(id: UUID(), from: PlayerID(index: 0), give: [.brick: 1], want: [.ore: 1])
+        try RulesEngine.apply(.proposeTrade(offer), by: PlayerID(index: 0), to: &state)
+        #expect(state.pendingTradeOffers.contains { $0.id == offer.id })
+    }
+
+    @Test func rulesEngineProposeTradeRejectsWrongProposer() {
+        var state = GameSetup.newGame(board: BoardGenerator.standard())
+        state.phase = .mainTurn(playerIndex: 0)
+        state.players[1].resources = [.brick: 2]
+        let offer = TradeOffer(id: UUID(), from: PlayerID(index: 1), give: [.brick: 1], want: [.ore: 1])
+        #expect(throws: (any Error).self) {
+            try RulesEngine.apply(.proposeTrade(offer), by: PlayerID(index: 0), to: &state)
+        }
+    }
+
+    @Test func rulesEngineAllowsNonActivePlayerToRespondToTrade() throws {
+        var state = GameSetup.newGame(board: BoardGenerator.standard())
+        state.phase = .mainTurn(playerIndex: 0)
+        state.players[0].resources = [.brick: 2]
+        state.players[1].resources = [.ore: 1]
+        let offer = TradeOffer(id: UUID(), from: PlayerID(index: 0), give: [.brick: 1], want: [.ore: 1])
+        try RulesEngine.apply(.proposeTrade(offer), by: PlayerID(index: 0), to: &state)
+
+        // Player 1 is not the active turn player (player 0 is), but must
+        // still be able to respond to a trade directed at them.
+        try RulesEngine.apply(.respondToTrade(offerID: offer.id, accept: true), by: PlayerID(index: 1), to: &state)
+        #expect(state.players[0].resources[.ore] == 1)
+        #expect(state.players[1].resources[.brick] == 1)
+        #expect(state.pendingTradeOffers.isEmpty)
+    }
+
+    @Test func rulesEngineStillRejectsUnrelatedOutOfTurnMoves() {
+        var state = GameSetup.newGame(board: BoardGenerator.standard())
+        state.phase = .mainTurn(playerIndex: 0)
+        state.players[1].resources = [.brick: 4]
+        // Player 1 is not active; a non-trade move from them must still be
+        // rejected, confirming the `.respondToTrade` bypass didn't loosen
+        // the turn guard for anything else.
+        #expect(throws: (any Error).self) {
+            try RulesEngine.apply(.bankTrade(give: [.brick: 4], get: [.ore: 1]), by: PlayerID(index: 1), to: &state)
+        }
+    }
 }

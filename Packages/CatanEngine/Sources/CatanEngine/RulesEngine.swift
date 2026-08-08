@@ -67,6 +67,18 @@ public enum RulesEngine {
                 moves.append(.respondToTrade(offerID: offer.id, accept: true))
                 moves.append(.respondToTrade(offerID: offer.id, accept: false))
             }
+            // Pragmatic proposal enumeration: for each resource the player
+            // has a surplus of (more than one card), offer trading exactly
+            // one of it to each other player for each resource type - not
+            // exhaustive over quantities/combinations, just enough for bots
+            // to have real proposals to consider.
+            for (resource, amount) in player.resources where amount > 1 {
+                for other in state.players where other.id != player.id {
+                    for wanted in Resource.allCases where wanted != resource {
+                        moves.append(.proposeTrade(TradeOffer(from: player.id, give: [resource: 1], want: [wanted: 1])))
+                    }
+                }
+            }
             return moves
 
         case .discarding(let pending):
