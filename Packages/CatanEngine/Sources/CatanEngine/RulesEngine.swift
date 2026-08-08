@@ -69,8 +69,9 @@ public enum RulesEngine {
                 // offered (either side may have spent/traded cards since the
                 // offer was made) - `Trading.respond` re-validates both and
                 // throws otherwise, so `legalMoves` must match.
-                if canAfford(offer.want, player: player)
-                    && canAfford(offer.give, player: state.players.first(where: { $0.id == offer.from })!) {
+                if let proposer = state.players.first(where: { $0.id == offer.from }),
+                   canAfford(offer.want, player: player),
+                   canAfford(offer.give, player: proposer) {
                     moves.append(.respondToTrade(offerID: offer.id, accept: true))
                 }
                 moves.append(.respondToTrade(offerID: offer.id, accept: false))

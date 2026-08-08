@@ -223,6 +223,47 @@ import Foundation
         #expect(state.pendingTradeOffers.isEmpty)
     }
 
+    // MARK: - Task 8 review fix: legalMoves must not advertise an unaffordable accept
+
+    @Test func legalMovesExcludesAcceptWhenResponderCannotAffordWantedCards() {
+        var state = GameSetup.newGame(board: BoardGenerator.standard())
+        state.phase = .mainTurn(playerIndex: 1)
+        state.players[0].resources = [.brick: 2]
+        state.players[1].resources = [:] // can't afford the .ore the offer wants
+        let offer = TradeOffer(id: UUID(), from: PlayerID(index: 0), give: [.brick: 1], want: [.ore: 1])
+        state.pendingTradeOffers = [offer]
+
+        let moves = RulesEngine.legalMoves(for: state)
+        #expect(!moves.contains { if case .respondToTrade(offer.id, true) = $0 { return true }; return false })
+        #expect(moves.contains { if case .respondToTrade(offer.id, false) = $0 { return true }; return false })
+    }
+
+    @Test func legalMovesExcludesAcceptWhenProposerNoLongerAffordsGiveCards() {
+        var state = GameSetup.newGame(board: BoardGenerator.standard())
+        state.phase = .mainTurn(playerIndex: 1)
+        state.players[0].resources = [.brick: 0] // proposer already spent the offered brick
+        state.players[1].resources = [.ore: 1]
+        let offer = TradeOffer(id: UUID(), from: PlayerID(index: 0), give: [.brick: 1], want: [.ore: 1])
+        state.pendingTradeOffers = [offer]
+
+        let moves = RulesEngine.legalMoves(for: state)
+        #expect(!moves.contains { if case .respondToTrade(offer.id, true) = $0 { return true }; return false })
+        #expect(moves.contains { if case .respondToTrade(offer.id, false) = $0 { return true }; return false })
+    }
+
+    @Test func legalMovesIncludesAcceptWhenBothSidesCanAfford() {
+        var state = GameSetup.newGame(board: BoardGenerator.standard())
+        state.phase = .mainTurn(playerIndex: 1)
+        state.players[0].resources = [.brick: 1]
+        state.players[1].resources = [.ore: 1]
+        let offer = TradeOffer(id: UUID(), from: PlayerID(index: 0), give: [.brick: 1], want: [.ore: 1])
+        state.pendingTradeOffers = [offer]
+
+        let moves = RulesEngine.legalMoves(for: state)
+        #expect(moves.contains { if case .respondToTrade(offer.id, true) = $0 { return true }; return false })
+        #expect(moves.contains { if case .respondToTrade(offer.id, false) = $0 { return true }; return false })
+    }
+
     @Test func rulesEngineStillRejectsUnrelatedOutOfTurnMoves() {
         var state = GameSetup.newGame(board: BoardGenerator.standard())
         state.phase = .mainTurn(playerIndex: 0)
