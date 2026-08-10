@@ -24,6 +24,12 @@ public struct BoardView: View {
     /// highlight set happens to be empty (e.g. edges during a settlement
     /// placement).
     public let isPlacementModeActive: Bool
+    /// While `isTileTargetingActive`, tiles in this set (the legal robber
+    /// destinations) are outlined so they read as tappable; every other tile
+    /// is dimmed. Mirrors `highlightedVertices`/`highlightedEdges` for the
+    /// inline robber-move flow (see `GameView`).
+    public let highlightedTiles: Set<HexCoordinate>
+    public let isTileTargetingActive: Bool
 
     public init(
         state: GameState,
@@ -32,7 +38,9 @@ public struct BoardView: View {
         onTapTile: @escaping (HexCoordinate) -> Void,
         highlightedVertices: Set<VertexID> = [],
         highlightedEdges: Set<EdgeID> = [],
-        isPlacementModeActive: Bool = false
+        isPlacementModeActive: Bool = false,
+        highlightedTiles: Set<HexCoordinate> = [],
+        isTileTargetingActive: Bool = false
     ) {
         self.state = state
         self.onTapVertex = onTapVertex
@@ -41,6 +49,8 @@ public struct BoardView: View {
         self.highlightedVertices = highlightedVertices
         self.highlightedEdges = highlightedEdges
         self.isPlacementModeActive = isPlacementModeActive
+        self.highlightedTiles = highlightedTiles
+        self.isTileTargetingActive = isTileTargetingActive
     }
 
     private var board: Board { state.board }
@@ -57,11 +67,20 @@ public struct BoardView: View {
                 Canvas { context, _ in
                     for tile in board.tiles {
                         TileDrawing.drawTile(tile, geometry: geometry, in: context)
+                        if isTileTargetingActive {
+                            let path = TileDrawing.hexPath(for: tile.coordinate, geometry: geometry)
+                            if highlightedTiles.contains(tile.coordinate) {
+                                context.stroke(path, with: .color(.yellow), lineWidth: 3)
+                            } else {
+                                context.fill(path, with: .color(.black.opacity(0.45)))
+                            }
+                        }
                     }
                     for port in board.ports {
                         TileDrawing.drawPort(port, geometry: geometry, board: board, boardCenter: boardCenter, in: context)
                     }
-                    TileDrawing.drawRobber(at: board.robberTile, geometry: geometry, in: context)
+                    let robberTileNumber = board.tiles.first { $0.coordinate == board.robberTile }?.numberToken
+                    TileDrawing.drawRobber(at: board.robberTile, number: robberTileNumber, geometry: geometry, in: context)
                 }
                 .contentShape(Rectangle())
                 .gesture(tileTapGesture(geometry: geometry))

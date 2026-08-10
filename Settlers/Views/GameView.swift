@@ -10,15 +10,18 @@ public enum PlacementMode: Equatable {
     case city
 }
 
-/// The real, composed game screen: `PlayerHUDView` up top (unchanged
-/// layout), `BoardView` filling the middle over a water-blue background,
-/// `GameLogView`, two uniform bottom rows (build actions, then trade/turn
-/// actions) over a lighter-blue panel, and `TradeSheetView`/
-/// `RobberTargetView`/`DiscardView` as sheets driven by
-/// `viewModel.state.phase` (or by the dev-card panel, for the knight and
-/// road-building sub-flows). A transient notification overlay surfaces bot
-/// trade offers and build/dev-card/longest-road/largest-army events on top
-/// of everything else.
+/// The real, composed game screen, top to bottom: `BotHUDRow` (the 3 bot
+/// chips only), `BoardView` filling the middle over a water-blue background,
+/// `GameLogView`, `HumanPlayerPanel` (the human's own spacious info panel),
+/// then the dice chip and a single uniform action row (Build/Trade/Dev
+/// Cards/turn action) over a lighter-blue panel. `TradeSheetView`/
+/// `DiscardView` are sheets driven by `viewModel.state.phase`; the mandatory
+/// post-7-roll robber move happens inline on this same `BoardView` (see
+/// `isMandatoryRobberActive`) rather than as a sheet, while the knight-card
+/// robber sub-flow (from the dev-card panel) still uses `RobberTargetView`
+/// as a sheet. A transient notification overlay surfaces bot trade offers
+/// and build/dev-card/longest-road/largest-army events on top of everything
+/// else.
 public struct GameView: View {
     public let viewModel: GameViewModel
 
@@ -37,6 +40,17 @@ public struct GameView: View {
     /// applied together as `.playRoadBuilding(first, second)`.
     @State private var roadBuildingFirstEdge: EdgeID?
     @State private var isRoadBuildingActive = false
+
+    /// Mandatory robber-move sub-flow, inline on the main board: once the
+    /// human taps a legal tile, it's held here while an eligible victim (if
+    /// any) is picked from the inline picker in `bottomPanel`; committing
+    /// (or a tile with no eligible victims) applies `.moveRobber` directly.
+    @State private var robberTargetTile: HexCoordinate?
+
+    /// Drives the dice chip's brief scale/rotate pulse on a new roll -
+    /// bumped in `onChange(of: state.lastDiceRoll)`.
+    @State private var diceScale: CGFloat = 1.0
+    @State private var diceRotation: Double = 0
 
     // MARK: - Notifications
     //
@@ -59,16 +73,18 @@ public struct GameView: View {
     public var body: some View {
         ZStack {
             VStack(spacing: 8) {
-                PlayerHUDView(state: state)
+                BotHUDRow(state: state)
 
                 BoardView(
                     state: state,
                     onTapVertex: handleTapVertex,
                     onTapEdge: handleTapEdge,
-                    onTapTile: { _ in },
+                    onTapTile: handleTapTile,
                     highlightedVertices: highlightedVertices,
                     highlightedEdges: highlightedEdges,
-                    isPlacementModeActive: isPlacementModeActive
+                    isPlacementModeActive: isPlacementModeActive || isMandatoryRobberActive,
+                    highlightedTiles: highlightedTilesForRobber,
+                    isTileTargetingActive: isMandatoryRobberActive
                 )
                 .frame(maxHeight: .infinity)
                 .clipShape(RoundedRectangle(cornerRadius: 12))
@@ -87,6 +103,8 @@ public struct GameView: View {
 
                 GameLogView(log: state.log)
                     .frame(height: 90)
+
+                HumanPlayerPanel(state: state)
 
                 bottomPanel
             }
@@ -125,10 +143,6 @@ public struct GameView: View {
                 showKnightRobberSheet = false
             }
         }
-        .sheet(isPresented: isMandatoryRobberPresented) {
-            RobberTargetView(viewModel: viewModel, mode: .mandatory)
-                .interactiveDismissDisabled(true)
-        }
         .sheet(isPresented: isDiscardPresented) {
             DiscardView(viewModel: viewModel)
                 .interactiveDismissDisabled(true)
@@ -151,17 +165,47 @@ public struct GameView: View {
         .onChange(of: state.pendingTradeOffers.map(\.id)) { _, _ in
             handleTradeOffersChange()
         }
+        .onChange(of: state.lastDiceRoll) { _, newValue in
+            guard newValue != nil else { return }
+            animateDiceRoll()
+        }
+        .onChange(of: isMandatoryRobberActive) { _, isActive in
+            if !isActive { robberTargetTile = nil }
+        }
     }
 
-    // MARK: - Bottom panel: two uniform rows over a lighter water panel
+    /// Brief scale + rotation pulse so a dice roll reads as an event rather
+    /// than the chip's text just changing - a quick overshoot-and-settle
+    /// spring rather than anything more elaborate (e.g. cycling through
+    /// intermediate die faces), per the "tasteful and brief beats elaborate
+    /// and janky" guidance for this pass.
+    private func animateDiceRoll() {
+        diceScale = 0.6
+        diceRotation = -12
+        withAnimation(.spring(response: 0.28, dampingFraction: 0.45)) {
+            diceScale = 1.3
+            diceRotation = 10
+        }
+        withAnimation(.spring(response: 0.3, dampingFraction: 0.65).delay(0.16)) {
+            diceScale = 1.0
+            diceRotation = 0
+        }
+    }
+
+    // MARK: - Bottom panel: dice chip + one uniform action row (or the
+    // inline robber-targeting panel while a mandatory robber move is
+    // pending) over a lighter water panel
 
     private var bottomPanel: some View {
         VStack(spacing: 8) {
             if let roll = state.lastDiceRoll {
                 diceChip(roll)
             }
-            BuildMenuView(viewModel: viewModel, placementMode: $placementMode)
-            tradeRow
+            if isMandatoryRobberActive {
+                robberTargetingPanel
+            } else {
+                actionRow
+            }
         }
         .padding(8)
         .background(
@@ -180,14 +224,17 @@ public struct GameView: View {
         .padding(.horizontal, 10)
         .padding(.vertical, 4)
         .background(Color.black.opacity(0.35), in: Capsule())
+        .scaleEffect(diceScale)
+        .rotationEffect(.degrees(diceRotation))
     }
 
-    /// Row 2: Trade / Dev Cards / turn action (Roll Dice or End Turn),
-    /// always showing all three slots so the row never jumps around as
-    /// phase changes - buttons that don't apply right now disable+dim
-    /// instead of disappearing.
-    private var tradeRow: some View {
+    /// Build / Trade / Dev Cards / turn action (Roll Dice or End Turn), all
+    /// in one uniform row - always showing all four slots so the row never
+    /// jumps around as phase changes; options that don't apply right now
+    /// disable+dim instead of disappearing.
+    private var actionRow: some View {
         HStack(spacing: 10) {
+            BuildMenuView(viewModel: viewModel, placementMode: $placementMode)
             UniformActionButton(
                 title: "Trade", systemImage: "arrow.left.arrow.right",
                 isEnabled: isTradeAvailable
@@ -201,6 +248,44 @@ public struct GameView: View {
                 showDevCardPanel = true
             }
             turnActionButton
+        }
+    }
+
+    /// Replaces `actionRow` while `isMandatoryRobberActive`: instructs the
+    /// human to tap a highlighted tile on the board above, then - once a
+    /// tile with eligible victims is picked - an inline row of victim
+    /// buttons (plus Cancel, to re-pick the tile) right here instead of a
+    /// separate modal.
+    private var robberTargetingPanel: some View {
+        VStack(spacing: 8) {
+            if let robberTargetTile {
+                Text("Steal from:")
+                    .font(.subheadline.bold())
+                    .foregroundStyle(CatanTheme.onWaterText)
+                HStack(spacing: 10) {
+                    ForEach(robberVictims, id: \.self) { victim in
+                        UniformActionButton(
+                            title: CatanTheme.playerLabel(for: victim),
+                            systemImage: "person.fill.questionmark",
+                            isEnabled: true
+                        ) {
+                            performRobberMove(tile: robberTargetTile, victim: victim)
+                        }
+                    }
+                    UniformActionButton(title: "Cancel", systemImage: "xmark", isEnabled: true) {
+                        self.robberTargetTile = nil
+                    }
+                }
+            } else {
+                Text("🏜️ Move the Robber — tap a highlighted tile above")
+                    .font(.subheadline.bold())
+                    .foregroundStyle(CatanTheme.onWaterText)
+            }
+            if let errorMessage {
+                Text(errorMessage)
+                    .font(.caption2)
+                    .foregroundStyle(.red)
+            }
         }
     }
 
@@ -232,20 +317,6 @@ public struct GameView: View {
 
     // MARK: - Sheet presentation bindings
 
-    /// `.sheet(isPresented:)` needs a `Binding`, but presentation here is
-    /// entirely a function of `state.phase`; the `set` is a no-op since
-    /// applying the robber/discard move itself advances `state.phase` and
-    /// naturally dismisses the sheet on the next render.
-    private var isMandatoryRobberPresented: Binding<Bool> {
-        Binding(
-            get: {
-                if case .movingRobber(let playerIndex) = state.phase { return playerIndex == human.index }
-                return false
-            },
-            set: { _ in }
-        )
-    }
-
     private var isDiscardPresented: Binding<Bool> {
         Binding(
             get: {
@@ -270,6 +341,49 @@ public struct GameView: View {
             break // Handled inside DevCardPanelView itself.
         }
         showDevCardPanel = false
+    }
+
+    // MARK: - Inline robber-move flow (mandatory post-7-roll case)
+
+    /// True exactly while the human owes a mandatory robber move -
+    /// `state.phase == .movingRobber(human.index)`. Drives `BoardView` into
+    /// tile-targeting mode and swaps `bottomPanel`'s action row for
+    /// `robberTargetingPanel`.
+    private var isMandatoryRobberActive: Bool {
+        if case .movingRobber(let playerIndex) = state.phase { return playerIndex == human.index }
+        return false
+    }
+
+    /// Every tile except the robber's current one - the only illegal target
+    /// per `Robber.apply`/`RulesEngine.legalMoves`.
+    private var highlightedTilesForRobber: Set<HexCoordinate> {
+        guard isMandatoryRobberActive else { return [] }
+        return Set(state.board.tiles.map(\.coordinate)).subtracting([state.board.robberTile])
+    }
+
+    private var robberVictims: [PlayerID] {
+        guard let robberTargetTile else { return [] }
+        return Robber.eligibleVictims(for: robberTargetTile, thief: human, in: state)
+    }
+
+    private func handleTapTile(_ tile: HexCoordinate) {
+        guard isMandatoryRobberActive, tile != state.board.robberTile else { return }
+        let victims = Robber.eligibleVictims(for: tile, thief: human, in: state)
+        if victims.isEmpty {
+            performRobberMove(tile: tile, victim: nil)
+        } else {
+            robberTargetTile = tile
+        }
+    }
+
+    private func performRobberMove(tile: HexCoordinate, victim: PlayerID?) {
+        do {
+            try viewModel.apply(.moveRobber(tile, stealFrom: victim))
+            errorMessage = nil
+        } catch {
+            errorMessage = "\(error)"
+        }
+        robberTargetTile = nil
     }
 
     // MARK: - Board tap routing

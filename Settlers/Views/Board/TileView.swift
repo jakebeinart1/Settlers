@@ -39,12 +39,23 @@ enum TileDrawing {
         context.draw(context.resolve(text), at: point, anchor: .center)
     }
 
-    static func drawRobber(at tileCoordinate: HexCoordinate, geometry: HexGeometry, in context: GraphicsContext) {
+    /// Draws the robber over `tileCoordinate`. `number` is the tile's own
+    /// number token (if any), redrawn in white on top of the robber icon so
+    /// it stays legible - previously the robber's opaque fill fully covered
+    /// the number token `drawTile` already painted underneath it.
+    static func drawRobber(at tileCoordinate: HexCoordinate, number: Int?, geometry: HexGeometry, in context: GraphicsContext) {
         let center = geometry.center(of: tileCoordinate)
         let radius = geometry.size * 0.28
         let path = Path(ellipseIn: CGRect(x: center.x - radius, y: center.y - radius, width: radius * 2, height: radius * 2))
         context.fill(path, with: .color(CatanTheme.robber))
         context.stroke(path, with: .color(.white.opacity(0.6)), lineWidth: 1)
+
+        if let number {
+            let text = Text("\(number)")
+                .font(.system(size: radius * 0.85, weight: .bold, design: .rounded))
+                .foregroundColor(.white)
+            context.draw(context.resolve(text), at: center, anchor: .center)
+        }
     }
 
     /// Draws a small port icon pushed outward from `boardCenter`, along the

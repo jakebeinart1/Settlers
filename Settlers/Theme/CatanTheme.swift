@@ -76,4 +76,12 @@ public enum CatanTheme {
     /// `panelBackground` - `.secondary`'s default gray is too dark against
     /// these mid-tone blues to read comfortably.
     public static let onWaterText = Color(white: 0.95)
+
+    /// `PlayerHUDView`'s chip backgrounds. Originally near-black grays
+    /// (`Color(white: 0.20/0.12)`), which read as too dark to comfortably
+    /// scan at a glance; these sit in the same blue family as
+    /// `waterBackground`/`panelBackground` but noticeably lighter, so the
+    /// chips read as part of the same water theme while staying legible.
+    public static let hudChipBackground = Color(red: 0.18, green: 0.40, blue: 0.60)
+    public static let hudChipBackgroundActive = Color(red: 0.25, green: 0.52, blue: 0.74)
 }
