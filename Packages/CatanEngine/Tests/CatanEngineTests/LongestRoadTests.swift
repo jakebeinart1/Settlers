@@ -105,6 +105,37 @@ import Testing
     #expect(LongestRoad.compute(for: state) == nil)
 }
 
+/// Regression test: `RulesEngine.apply` used to leave `longestRoadPlayer`
+/// stale after `.buildSettlement`/`.buildCity` (only `.buildRoad`
+/// recomputed it), so a settlement dropped onto the middle of an opponent's
+/// road chain - severing it below the 5-segment minimum - wouldn't take the
+/// bonus away until *someone* happened to build a road later. It must update
+/// immediately, as part of the settlement build itself.
+@Test func buildingSettlementOnOpponentRoadRecomputesLongestRoadImmediately() throws {
+    var state = GameSetup.newGame(board: BoardGenerator.standard())
+    state.phase = .mainTurn(playerIndex: 1)
+    let p0 = PlayerID(index: 0)
+
+    let path = fiveEdgeChain(on: state.board)
+    for edge in path { state.players[0].roads.insert(edge) }
+    state.longestRoadPlayer = LongestRoad.compute(for: state)
+    #expect(state.longestRoadPlayer == p0)
+
+    // Player 1 builds a settlement on a vertex in the middle of player 0's
+    // chain, cutting it below the 5-edge minimum. `canBuildSettlement`
+    // requires the vertex to touch one of the builder's own roads outside
+    // setup, so give player 1 a road on whichever edge at that vertex isn't
+    // already part of player 0's chain.
+    let midVertex = state.board.vertices(of: path[2]).0
+    let ownEdge = state.board.edgesTouching(midVertex).first { !path.contains($0) }!
+    state.players[1].roads.insert(ownEdge)
+    state.players[1].resources = [.lumber: 1, .brick: 1, .grain: 1, .wool: 1]
+
+    try RulesEngine.apply(.buildSettlement(midVertex), by: PlayerID(index: 1), to: &state)
+
+    #expect(state.longestRoadPlayer != p0)
+}
+
 private func fiveEdgeChain(on board: Board) -> [EdgeID] {
     var visited: Set<VertexID> = [board.onBoardVertices.sorted().first!]
     return chainEdges(from: board.onBoardVertices.sorted().first!, length: 5, on: board, avoiding: &visited)

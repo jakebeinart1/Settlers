@@ -82,10 +82,8 @@ public enum RulesEngine {
             // exhaustive over quantities/combinations, just enough for bots
             // to have real proposals to consider.
             for (resource, amount) in player.resources where amount > 1 {
-                for other in state.players where other.id != player.id {
-                    for wanted in Resource.allCases where wanted != resource {
-                        moves.append(.proposeTrade(TradeOffer(from: player.id, give: [resource: 1], want: [wanted: 1])))
-                    }
+                for wanted in Resource.allCases where wanted != resource {
+                    moves.append(.proposeTrade(TradeOffer(from: player.id, give: [resource: 1], want: [wanted: 1])))
                 }
             }
             return moves
@@ -209,6 +207,7 @@ public enum RulesEngine {
                 guard Building.canBuildSettlement(vertex, for: player, in: state) else { throw MoveError.illegalPlacement }
                 try deduct(Building.settlementCost, from: &state, playerIndex: playerIndex)
                 state.players[playerIndex].settlements.insert(vertex)
+                state.longestRoadPlayer = LongestRoad.compute(for: state)
                 WinCondition.checkForWinner(&state)
                 state.log.append("\(playerLabel(playerIndex)) built a settlement")
 
@@ -217,6 +216,7 @@ public enum RulesEngine {
                 try deduct(Building.cityCost, from: &state, playerIndex: playerIndex)
                 state.players[playerIndex].settlements.remove(vertex)
                 state.players[playerIndex].cities.insert(vertex)
+                state.longestRoadPlayer = LongestRoad.compute(for: state)
                 WinCondition.checkForWinner(&state)
                 state.log.append("\(playerLabel(playerIndex)) built a city")
 

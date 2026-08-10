@@ -62,9 +62,18 @@ public struct GameState: Codable, Sendable {
 
 public enum GameSetup {
     /// Creates a fresh 4-player game (human at index 0, bots at 1-3) on
-    /// `board`, with a full standard bank and dev card deck, ready to begin
-    /// the setup phase at player 0's first placement.
+    /// `board`, with a full standard bank and a shuffled dev card deck,
+    /// ready to begin the setup phase at player 0's first placement. Uses
+    /// the system RNG; see the `rng:` overload below for deterministic
+    /// (e.g. test) callers.
     public static func newGame(board: Board) -> GameState {
+        var rng = SystemRandomNumberGenerator()
+        return newGame(board: board, rng: &rng)
+    }
+
+    /// Same as `newGame(board:)` but with an injectable RNG, so the dev card
+    /// shuffle can be made deterministic (e.g. for tests).
+    public static func newGame(board: Board, rng: inout some RandomNumberGenerator) -> GameState {
         let players = (0..<4).map { Player(id: PlayerID(index: $0)) }
 
         var bank: [Resource: Int] = [:]
@@ -78,6 +87,7 @@ public enum GameSetup {
         devCardDeck.append(contentsOf: repeatElement(.roadBuilding, count: 2))
         devCardDeck.append(contentsOf: repeatElement(.yearOfPlenty, count: 2))
         devCardDeck.append(contentsOf: repeatElement(.monopoly, count: 2))
+        devCardDeck.shuffle(using: &rng)
 
         return GameState(
             board: board,

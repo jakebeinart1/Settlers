@@ -5,8 +5,6 @@ import CatanEngine
 @Test func botAlwaysReturnsALegalMove() {
     var state = GameSetup.newGame(board: BoardGenerator.standard())
     let bot = Bot(personality: .balanced)
-    let rng = SeededGenerator(seed: 99)
-    _ = rng
     for _ in 0..<500 {
         if case .gameOver = state.phase { break }
         let player = activePlayer(state.phase)
@@ -17,7 +15,7 @@ import CatanEngine
     }
 }
 
-// activePlayer/SeededGenerator duplicated here from CatanEngineTests (small, test-only, acceptable duplication
+// activePlayer duplicated here from CatanEngineTests (small, test-only, acceptable duplication
 // across package test targets since they can't share test code without a shared test-support library).
 
 /// `GameMove` isn't `Equatable` (its cases carry `[Resource: Int]`
@@ -65,15 +63,5 @@ private func activePlayer(_ phase: GamePhase) -> PlayerID {
         return PlayerID(index: i)
     case .discarding(let pending): return pending.first!
     case .gameOver: fatalError("game over")
-    }
-}
-
-/// Deterministic RNG so this test is reproducible.
-struct SeededGenerator: RandomNumberGenerator {
-    var state: UInt64
-    init(seed: UInt64) { state = seed &+ 0x9E3779B97F4A7C15 }
-    mutating func next() -> UInt64 {
-        state ^= state << 13; state ^= state >> 7; state ^= state << 17
-        return state
     }
 }

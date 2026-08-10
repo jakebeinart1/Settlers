@@ -138,7 +138,10 @@ import Testing
     var state = GameSetup.newGame(board: BoardGenerator.standard())
     state.phase = .mainTurn(playerIndex: 0)
     state.players[0].resources = [.ore: 1, .wool: 1, .grain: 1]
-    // Force a knight to the top of the deck so we know what was bought.
+    // The deck is shuffled by `GameSetup.newGame`, so explicitly reorder it
+    // here to force a knight to the top - otherwise which card gets bought
+    // (and thus what `canPlay(.knight, ...)` should report) would be
+    // shuffle-dependent.
     state.devCardDeck = [.knight] + state.devCardDeck.filter { $0 != .knight }
     try! RulesEngine.apply(.buyDevCard, by: PlayerID(index: 0), to: &state)
     #expect(!DevCards.canPlay(.knight, by: PlayerID(index: 0), in: state))

@@ -19,14 +19,18 @@ public struct BuildMenuView: View {
 
     @State private var errorMessage: String?
 
-    private var legalMoves: [GameMove] { RulesEngine.legalMoves(for: viewModel.state) }
-
-    private var canBuildRoad: Bool { legalMoves.contains { if case .buildRoad = $0 { true } else { false } } }
-    private var canBuildSettlement: Bool { legalMoves.contains { if case .buildSettlement = $0 { true } else { false } } }
-    private var canBuildCity: Bool { legalMoves.contains { if case .buildCity = $0 { true } else { false } } }
-    private var canBuyDevCard: Bool { legalMoves.contains { if case .buyDevCard = $0 { true } else { false } } }
-
     public var body: some View {
+        // Computed once per render and reused for all four affordability
+        // checks below - `RulesEngine.legalMoves` is expensive (in
+        // particular the road-building-card branch, which is O(edges^2)
+        // with a full state copy per outer edge), so calling it separately
+        // per button quadruples that cost for no benefit.
+        let legalMoves = RulesEngine.legalMoves(for: viewModel.state)
+        let canBuildRoad = legalMoves.contains { if case .buildRoad = $0 { true } else { false } }
+        let canBuildSettlement = legalMoves.contains { if case .buildSettlement = $0 { true } else { false } }
+        let canBuildCity = legalMoves.contains { if case .buildCity = $0 { true } else { false } }
+        let canBuyDevCard = legalMoves.contains { if case .buyDevCard = $0 { true } else { false } }
+
         VStack(spacing: 4) {
             if let errorMessage {
                 Text(errorMessage)
