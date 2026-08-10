@@ -26,19 +26,19 @@ import Testing
     // naive "sum all of the player's edges" bug would wrongly compute 6
     // here too, tying (or beating) player 0's genuine 6-length chain, so
     // this distinguishes correct branch-aware DFS from that bug.
-    let center = board.onBoardVertices.first { $0.touchingTiles.count == 3 && !straightVisited.contains($0) }!
+    let center = board.onBoardVertices.sorted().first { $0.touchingTiles.count == 3 && !straightVisited.contains($0) }!
     var branchVisited: Set<VertexID> = [center]
-    for neighbor in board.adjacentVertices(of: center) {
+    for neighbor in board.adjacentVertices(of: center).sorted() {
         guard !branchVisited.contains(neighbor) else { continue }
         branchVisited.insert(neighbor)
-        let firstEdge = board.edgesTouching(center).first {
+        let firstEdge = board.edgesTouching(center).sorted(by: edgeOrder).first {
             board.vertices(of: $0).0 == neighbor || board.vertices(of: $0).1 == neighbor
         }!
         state.players[1].roads.insert(firstEdge)
 
-        if let next = board.adjacentVertices(of: neighbor).first(where: { $0 != center && !branchVisited.contains($0) }) {
+        if let next = board.adjacentVertices(of: neighbor).sorted().first(where: { $0 != center && !branchVisited.contains($0) }) {
             branchVisited.insert(next)
-            let secondEdge = board.edgesTouching(neighbor).first {
+            let secondEdge = board.edgesTouching(neighbor).sorted(by: edgeOrder).first {
                 board.vertices(of: $0).0 == next || board.vertices(of: $0).1 == next
             }!
             state.players[1].roads.insert(secondEdge)
@@ -127,7 +127,7 @@ import Testing
     // setup, so give player 1 a road on whichever edge at that vertex isn't
     // already part of player 0's chain.
     let midVertex = state.board.vertices(of: path[2]).0
-    let ownEdge = state.board.edgesTouching(midVertex).first { !path.contains($0) }!
+    let ownEdge = state.board.edgesTouching(midVertex).sorted(by: edgeOrder).first { !path.contains($0) }!
     state.players[1].roads.insert(ownEdge)
     state.players[1].resources = [.lumber: 1, .brick: 1, .grain: 1, .wool: 1]
 
@@ -149,10 +149,20 @@ private func chainEdges(from start: VertexID, length: Int, on board: Board, avoi
     var chain: [EdgeID] = []
     var current = start
     while chain.count < length {
-        let next = board.adjacentVertices(of: current).first { !visited.contains($0) }!
-        chain.append(board.edgesTouching(current).first { board.vertices(of: $0).0 == next || board.vertices(of: $0).1 == next }!)
+        let next = board.adjacentVertices(of: current).sorted().first { !visited.contains($0) }!
+        chain.append(board.edgesTouching(current).sorted(by: edgeOrder).first { board.vertices(of: $0).0 == next || board.vertices(of: $0).1 == next }!)
         visited.insert(next)
         current = next
     }
     return chain
+}
+
+/// `EdgeID` isn't `Comparable`, so this provides a stable total order (by
+/// endpoint vertices, which are `Comparable`) for sorting the arrays
+/// `adjacentVertices`/`edgesTouching` return before picking `.first` -
+/// otherwise the choice would depend on `Set<EdgeID>`'s per-process hash-seed
+/// iteration order and these tests' expected chains would vary run to run.
+private func edgeOrder(_ lhs: EdgeID, _ rhs: EdgeID) -> Bool {
+    if lhs.a != rhs.a { return lhs.a < rhs.a }
+    return lhs.b < rhs.b
 }
