@@ -191,7 +191,7 @@ public struct Bot: Sendable {
         // plenty/monopoly) never competes for the same resources as a build,
         // so it's always worth weighing independently; aggressive bots lean
         // into it harder (mostly via knight plays).
-        consider(DevCardHeuristics.choosePlay(state: state, player: player), score: 2.5 + personality.aggressiveness * 2.0)
+        consider(DevCardHeuristics.choosePlay(state: state, player: player, personality: personality), score: 2.5 + personality.aggressiveness * 2.0)
 
         let buildMove = BuildPlanner.chooseBuild(for: state, player: player, personality: personality)
         consider(buildMove, score: 3.0)

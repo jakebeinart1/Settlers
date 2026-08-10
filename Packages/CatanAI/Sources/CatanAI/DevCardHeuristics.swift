@@ -38,7 +38,11 @@ public enum DevCardHeuristics {
     ///
     /// Returns `nil` if no play is clearly worthwhile; callers must still
     /// match the result against `RulesEngine.legalMoves` before using it.
-    public static func choosePlay(state: GameState, player: PlayerID) -> GameMove? {
+    /// `personality` decides target priority the same way `TradeHeuristics`
+    /// does (settlement-first vs. city-first), so a `.cautious` bot's
+    /// Year-of-Plenty/Monopoly reasoning actually reflects its own
+    /// city-upgrade preference rather than always assuming `.balanced`.
+    public static func choosePlay(state: GameState, player: PlayerID, personality: BotPersonality) -> GameMove? {
         guard let me = state.players.first(where: { $0.id == player }) else { return nil }
 
         if DevCards.canPlay(.knight, by: player, in: state) {
@@ -53,7 +57,7 @@ public enum DevCardHeuristics {
             }
         }
 
-        let targets = buildTargets(personality: .balanced)
+        let targets = buildTargets(personality: personality)
         // Individual missing resource units (a target needing 2 ore and
         // 1 grain contributes [.ore, .ore, .grain]) for whichever target has
         // the fewest, i.e. our nearest build.
@@ -63,7 +67,13 @@ public enum DevCardHeuristics {
                 return Array(repeating: resource, count: deficit)
             }
         }
-        let nearest = targets.min { missingUnits($0).count < missingUnits($1).count }
+        // Only targets we're actually still missing something for are
+        // candidates - a target we can already afford outright isn't
+        // "blocked" and shouldn't out-rank a genuinely blocked one just for
+        // having a smaller (zero) deficit.
+        let nearest = targets
+            .filter { !missingUnits($0).isEmpty }
+            .min { missingUnits($0).count < missingUnits($1).count }
 
         if DevCards.canPlay(.yearOfPlenty, by: player, in: state), let nearest {
             let missing = missingUnits(nearest)
