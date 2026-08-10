@@ -17,7 +17,7 @@ public struct GameLogView: View {
                     ForEach(Array(log.enumerated()), id: \.offset) { index, entry in
                         Text(entry)
                             .font(.caption2)
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(Color(white: 0.75))
                             .frame(maxWidth: .infinity, alignment: .leading)
                             .id(index)
                     }

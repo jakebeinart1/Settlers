@@ -62,4 +62,19 @@ public enum CatanTheme {
     public static let coolNumber = Color(red: 0.15, green: 0.15, blue: 0.15)
     public static let tileBorder = Color.black.opacity(0.35)
     public static let portIcon = Color.white
+
+    /// Deep water-blue fill behind `BoardView`'s hex board, so the tiles
+    /// read as an island sitting in the sea rather than floating on the
+    /// app's plain dark background.
+    public static let waterBackground = Color(red: 0.06, green: 0.22, blue: 0.42)
+
+    /// Lighter blue fill behind the bottom build/trade button rows -
+    /// distinguishes the "shore"/UI area from the deeper `waterBackground`
+    /// behind the board while keeping the same blue family.
+    public static let panelBackground = Color(red: 0.13, green: 0.32, blue: 0.52)
+
+    /// Readable light text for use on both `waterBackground` and
+    /// `panelBackground` - `.secondary`'s default gray is too dark against
+    /// these mid-tone blues to read comfortably.
+    public static let onWaterText = Color(white: 0.95)
 }

@@ -21,9 +21,11 @@
 		687BD8586D01E4597A1C7A32 /* BoardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E89E14D5D0ACBB92DF7729B3 /* BoardView.swift */; };
 		6BE4D5162E62A51ADA6A2599 /* GameStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = E093DA361796607C17A17777 /* GameStore.swift */; };
 		71E36B2F286888830989FBC7 /* MainMenuView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 27BDAD47ABBB94D7F73976E5 /* MainMenuView.swift */; };
+		7C6DE692003AADCF472F3156 /* GameNotificationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C88C47C798FB554E87B1964 /* GameNotificationView.swift */; };
 		82772E4A5ECBA817A966B46B /* GameView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6F0C19DF5E22050B860A7094 /* GameView.swift */; };
 		88CF824C3335F34CF54E08E2 /* PlayerHUDView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77BA2122016739392CF5DF22 /* PlayerHUDView.swift */; };
 		99947B57A6CAC22F69C19013 /* BuildMenuView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9D934856D49715249B654BB8 /* BuildMenuView.swift */; };
+		A52DE65EAB4B73DDC069B9C4 /* UniformActionButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = EB84FA44FD54CDA0A43C7C12 /* UniformActionButton.swift */; };
 		AF899EB36C3533A4C9F0472D /* HexGeometry.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7581395190BC539D01AEA19A /* HexGeometry.swift */; };
 		B6FC9BE50ABFF3D68CF98B29 /* SettlersApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8164AC90317469202817676F /* SettlersApp.swift */; };
 		C8EBD90EAF2F47466F8B5A2C /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CB7D94876E201553696FE24C /* ContentView.swift */; };
@@ -32,6 +34,7 @@
 
 /* Begin PBXFileReference section */
 		27BDAD47ABBB94D7F73976E5 /* MainMenuView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainMenuView.swift; sourceTree = "<group>"; };
+		2C88C47C798FB554E87B1964 /* GameNotificationView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = GameNotificationView.swift; sourceTree = "<group>"; };
 		308CF67C2387FEFFC96B8E11 /* DevCardPanelView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DevCardPanelView.swift; sourceTree = "<group>"; };
 		4B89EE635B1E470682ED1D4B /* CatanTheme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CatanTheme.swift; sourceTree = "<group>"; };
 		52C0B1D44B650E22AEBC8366 /* EndGameView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EndGameView.swift; sourceTree = "<group>"; };
@@ -51,6 +54,7 @@
 		E093DA361796607C17A17777 /* GameStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameStore.swift; sourceTree = "<group>"; };
 		E674366C1C13D0BBB8CCC2B2 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		E89E14D5D0ACBB92DF7729B3 /* BoardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BoardView.swift; sourceTree = "<group>"; };
+		EB84FA44FD54CDA0A43C7C12 /* UniformActionButton.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = UniformActionButton.swift; sourceTree = "<group>"; };
 		EC9BE64D33337CB59DE2D79D /* TileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TileView.swift; sourceTree = "<group>"; };
 		F7F6D403F344C1035A2A95F3 /* CatanAI */ = {isa = PBXFileReference; lastKnownFileType = folder; name = CatanAI; path = Packages/CatanAI; sourceTree = SOURCE_ROOT; };
 		FE0DA5E89A67A40E86345C91 /* CatanEngine */ = {isa = PBXFileReference; lastKnownFileType = folder; name = CatanEngine; path = Packages/CatanEngine; sourceTree = SOURCE_ROOT; };
@@ -115,6 +119,8 @@
 				77D0CDCBDE70309F20226B95 /* RobberTargetView.swift */,
 				59FA604A66C9EDE652E3F86D /* TradeSheetView.swift */,
 				F6183DBFAB2A72B76407A553 /* Board */,
+				EB84FA44FD54CDA0A43C7C12 /* UniformActionButton.swift */,
+				2C88C47C798FB554E87B1964 /* GameNotificationView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -207,8 +213,8 @@
 			mainGroup = CECA12E5B63AC7E137DA5D26;
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
-				79295BA541DA23B55DDD70A2 /* XCLocalSwiftPackageReference "Packages/CatanAI" */,
-				A7BC5D58624CFA7690F42A67 /* XCLocalSwiftPackageReference "Packages/CatanEngine" */,
+				79295BA541DA23B55DDD70A2 /* XCLocalSwiftPackageReference "CatanAI" */,
+				A7BC5D58624CFA7690F42A67 /* XCLocalSwiftPackageReference "CatanEngine" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = CDA17F264B64B62FC09DBFB9 /* Products */;
@@ -254,6 +260,8 @@
 				B6FC9BE50ABFF3D68CF98B29 /* SettlersApp.swift in Sources */,
 				0BBF451A08F935DC2BB22743 /* TileView.swift in Sources */,
 				0B69B38FB17F6340FF1BE2A4 /* TradeSheetView.swift in Sources */,
+				A52DE65EAB4B73DDC069B9C4 /* UniformActionButton.swift in Sources */,
+				7C6DE692003AADCF472F3156 /* GameNotificationView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -439,11 +447,11 @@
 /* End XCConfigurationList section */
 
 /* Begin XCLocalSwiftPackageReference section */
-		79295BA541DA23B55DDD70A2 /* XCLocalSwiftPackageReference "Packages/CatanAI" */ = {
+		79295BA541DA23B55DDD70A2 /* XCLocalSwiftPackageReference "CatanAI" */ = {
 			isa = XCLocalSwiftPackageReference;
 			relativePath = Packages/CatanAI;
 		};
-		A7BC5D58624CFA7690F42A67 /* XCLocalSwiftPackageReference "Packages/CatanEngine" */ = {
+		A7BC5D58624CFA7690F42A67 /* XCLocalSwiftPackageReference "CatanEngine" */ = {
 			isa = XCLocalSwiftPackageReference;
 			relativePath = Packages/CatanEngine;
 		};

@@ -52,6 +52,8 @@ public struct BoardView: View {
             let ownership = Ownership(players: state.players)
 
             ZStack {
+                CatanTheme.waterBackground
+
                 Canvas { context, _ in
                     for tile in board.tiles {
                         TileDrawing.drawTile(tile, geometry: geometry, in: context)

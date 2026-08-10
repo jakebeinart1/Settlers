@@ -69,16 +69,18 @@ public struct DevCardPanelView: View {
                     HStack {
                         Text(label(for: row.type))
                         Text("x\(row.held)")
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(Color(white: 0.75))
                         if row.new > 0 {
                             Text("\(row.new) NEW")
                                 .font(.caption2.bold())
+                                .foregroundStyle(.black)
                                 .padding(.horizontal, 4)
                                 .padding(.vertical, 1)
-                                .background(Color.yellow.opacity(0.3), in: Capsule())
+                                .background(Color.yellow.opacity(0.85), in: Capsule())
                         }
                         Spacer()
                     }
+                    .foregroundStyle(.white)
                     .padding(6)
                     .background(RoundedRectangle(cornerRadius: 6).fill(Color(white: 0.16)))
                 }

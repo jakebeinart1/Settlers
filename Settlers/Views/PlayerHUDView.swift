@@ -2,10 +2,13 @@ import SwiftUI
 import CatanEngine
 
 /// Top HUD strip: one compact chip per player showing name/personality,
-/// resource-card count, victory points, and longest-road/largest-army
-/// badges. The human's chip additionally breaks its hand down by resource
-/// (bots' hands stay a single face-down count, matching what a human player
-/// would actually be able to see across the table).
+/// resource breakdown, development-card count, and victory-point/longest-
+/// road/largest-army tags. All four players' resource hands are shown in
+/// full (an intentional simplification for a casual single-device game -
+/// everyone's sitting at the same table anyway) while dev cards stay a
+/// count-only badge for every player, since which specific cards a player
+/// holds is the one piece of information that's legitimately hidden even in
+/// a casual game.
 public struct PlayerHUDView: View {
     public let state: GameState
 
@@ -36,9 +39,20 @@ public struct PlayerHUDView: View {
                 Text(isHuman ? "You" : "\(personalityLabel(for: player.id))")
                     .font(.caption.bold())
                     .lineLimit(1)
-                Spacer(minLength: 0)
-                Text("\(state.victoryPoints(for: player.id)) VP")
-                    .font(.caption2.bold())
+            }
+
+            // Short labels ("Road"/"Army" rather than "Longest Road"/"Largest
+            // Army") so a tag stays legible inside a chip that's only
+            // ~90pt wide at 4-across - the icon plus a one-word label is
+            // still identifiable at a glance without wrapping.
+            HStack(spacing: 4) {
+                tag(text: "\(state.victoryPoints(for: player.id)) VP", icon: "star.fill", tint: .yellow)
+                if state.longestRoadPlayer == player.id {
+                    tag(text: "Road", icon: "road.lanes", tint: .orange)
+                }
+                if state.largestArmyPlayer == player.id {
+                    tag(text: "Army", icon: "shield.fill", tint: .red)
+                }
             }
 
             HStack(spacing: 4) {
@@ -46,27 +60,24 @@ public struct PlayerHUDView: View {
                     .font(.caption2)
                 Text("\(totalResources(player))")
                     .font(.caption2)
-
-                if state.longestRoadPlayer == player.id {
-                    badge("road.lanes", tint: .orange)
-                }
-                if state.largestArmyPlayer == player.id {
-                    badge("shield.fill", tint: .red)
-                }
+                Image(systemName: "sparkles.rectangle.stack.fill")
+                    .font(.caption2)
+                Text("\(player.devCards.count)")
+                    .font(.caption2)
             }
+            .foregroundStyle(CatanTheme.onWaterText)
 
-            if isHuman {
-                HStack(spacing: 6) {
-                    ForEach(Resource.allCases, id: \.self) { resource in
-                        let count = player.resources[resource] ?? 0
-                        if count > 0 {
-                            VStack(spacing: 1) {
-                                Circle()
-                                    .fill(CatanTheme.color(for: resource))
-                                    .frame(width: 8, height: 8)
-                                Text("\(count)")
-                                    .font(.system(size: 9, weight: .semibold))
-                            }
+            HStack(spacing: 6) {
+                ForEach(Resource.allCases, id: \.self) { resource in
+                    let count = player.resources[resource] ?? 0
+                    if count > 0 {
+                        VStack(spacing: 1) {
+                            Circle()
+                                .fill(CatanTheme.color(for: resource))
+                                .frame(width: 8, height: 8)
+                            Text("\(count)")
+                                .font(.system(size: 9, weight: .semibold))
+                                .foregroundStyle(CatanTheme.onWaterText)
                         }
                     }
                 }
@@ -84,10 +95,23 @@ public struct PlayerHUDView: View {
         )
     }
 
-    private func badge(_ systemName: String, tint: Color) -> some View {
-        Image(systemName: systemName)
-            .font(.system(size: 10, weight: .bold))
-            .foregroundStyle(tint)
+    /// Small labeled pill - icon + short text - used for the VP/longest-road/
+    /// largest-army indicators so they read as a single family of tags
+    /// rather than a bare icon the viewer has to already know how to decode.
+    private func tag(text: String, icon: String, tint: Color) -> some View {
+        HStack(spacing: 2) {
+            Image(systemName: icon)
+                .font(.system(size: 9, weight: .bold))
+            Text(text)
+                .font(.system(size: 9, weight: .bold))
+                .lineLimit(1)
+                .fixedSize()
+        }
+        .foregroundStyle(.white)
+        .padding(.horizontal, 5)
+        .padding(.vertical, 2)
+        .background(tint.opacity(0.85), in: Capsule())
+        .fixedSize()
     }
 
     private func totalResources(_ player: Player) -> Int {

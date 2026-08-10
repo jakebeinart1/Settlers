@@ -38,51 +38,32 @@ public struct BuildMenuView: View {
                     .foregroundStyle(.red)
             }
             HStack(spacing: 10) {
-                buildButton(
+                UniformActionButton(
                     title: "Road", systemImage: "line.diagonal",
                     isEnabled: canBuildRoad, isArmed: placementMode == .road
                 ) {
                     placementMode = (placementMode == .road) ? nil : .road
                 }
-                buildButton(
+                UniformActionButton(
                     title: "Settlement", systemImage: "house.fill",
                     isEnabled: canBuildSettlement, isArmed: placementMode == .settlement
                 ) {
                     placementMode = (placementMode == .settlement) ? nil : .settlement
                 }
-                buildButton(
+                UniformActionButton(
                     title: "City", systemImage: "building.2.fill",
                     isEnabled: canBuildCity, isArmed: placementMode == .city
                 ) {
                     placementMode = (placementMode == .city) ? nil : .city
                 }
-                buildButton(
+                UniformActionButton(
                     title: "Dev Card", systemImage: "rectangle.stack.fill",
-                    isEnabled: canBuyDevCard, isArmed: false
+                    isEnabled: canBuyDevCard
                 ) {
                     perform(.buyDevCard)
                 }
             }
         }
-    }
-
-    private func buildButton(title: String, systemImage: String, isEnabled: Bool, isArmed: Bool, action: @escaping () -> Void) -> some View {
-        Button(action: action) {
-            VStack(spacing: 2) {
-                Image(systemName: systemImage)
-                    .font(.title3)
-                Text(title)
-                    .font(.caption2)
-            }
-            .frame(maxWidth: .infinity)
-            .padding(.vertical, 6)
-            .background(
-                RoundedRectangle(cornerRadius: 8)
-                    .fill(isArmed ? Color.yellow.opacity(0.35) : Color(white: 0.18))
-            )
-        }
-        .disabled(!isEnabled)
-        .opacity(isEnabled ? 1 : 0.4)
     }
 
     private func perform(_ move: GameMove) {
