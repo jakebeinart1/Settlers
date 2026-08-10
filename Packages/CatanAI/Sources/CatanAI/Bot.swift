@@ -25,7 +25,7 @@ public struct Bot: Sendable {
             return .rollDice
 
         case .mainTurn:
-            return BuildPlanner.chooseBuild(for: state, player: player, personality: personality) ?? .endTurn
+            return decideMainTurn(legal: legal, state: state, player: player)
 
         case .discarding:
             return decideDiscard(legal: legal, state: state, player: player)
@@ -134,51 +134,108 @@ public struct Bot: Sendable {
 
     private func decideRobber(legal: [GameMove], state: GameState, player: PlayerID) -> GameMove {
         guard !legal.isEmpty else { return .endTurn }
-        guard let me = state.players.first(where: { $0.id == player }) else { return legal[0] }
 
-        // Value of parking the robber on `tile`: opponent building weight
-        // there, heavily penalized if it would also sit on our own.
-        func tileScore(_ tile: HexCoordinate) -> Int {
-            let vertices = state.board.onBoardVertices.filter { $0.touchingTiles.contains(tile) }
-            var opponentValue = 0
-            var touchesOwn = false
-            for vertex in vertices {
-                for other in state.players where other.id != player {
-                    if other.cities.contains(vertex) { opponentValue += 2 }
-                    else if other.settlements.contains(vertex) { opponentValue += 1 }
-                }
-                if me.settlements.contains(vertex) || me.cities.contains(vertex) { touchesOwn = true }
-            }
-            return touchesOwn ? opponentValue - 100 : opponentValue
+        // `RobberHeuristics` only decides intent (maximize disruption to the
+        // leading opponent) - it doesn't know which victims are actually
+        // eligible to steal from (e.g. it may name a leader holding zero
+        // resource cards), so match its suggestion against `legal` and fall
+        // back to the best legal victim on the same tile if the exact
+        // suggested pairing isn't available.
+        let (tile, victim) = RobberHeuristics.chooseRobberTarget(state: state, player: player)
+        if let exact = matchLegal(.moveRobber(tile, stealFrom: victim), in: legal) {
+            return exact
         }
 
-        var bestTile: HexCoordinate?
-        var bestTileScore = Int.min
-        for move in legal {
-            guard case .moveRobber(let tile, _) = move else { continue }
-            let score = tileScore(tile)
-            if score > bestTileScore {
-                bestTileScore = score
-                bestTile = tile
-            }
+        let sameTile = legal.filter { move in
+            guard case .moveRobber(let t, _) = move else { return false }
+            return t == tile
         }
-        guard let bestTile else { return legal[0] }
+        guard !sameTile.isEmpty else { return legal[0] }
 
-        let candidates = legal.filter { move in
-            guard case .moveRobber(let tile, _) = move else { return false }
-            return tile == bestTile
-        }
-
-        // Among moves on the chosen tile, steal from whichever eligible
-        // victim holds the most resources; fall back to the no-steal option.
         func resourceCount(_ victim: PlayerID?) -> Int {
             guard let victim, let owner = state.players.first(where: { $0.id == victim }) else { return -1 }
             return owner.resources.values.reduce(0, +)
         }
-
-        return candidates.max { a, b in
+        return sameTile.max { a, b in
             guard case .moveRobber(_, let va) = a, case .moveRobber(_, let vb) = b else { return false }
             return resourceCount(va) < resourceCount(vb)
-        } ?? candidates[0]
+        } ?? sameTile[0]
+    }
+
+    // MARK: - Main turn (build / trade / dev card)
+
+    /// Weighs candidate moves across every category legal during a main
+    /// turn - building, accepting a pending trade, playing a dev card,
+    /// buying a dev card, and proposing a trade - scored so that `personality`
+    /// shifts which category wins close calls, then returns whichever
+    /// scores highest (or `.endTurn` if nothing clears the bar).
+    private func decideMainTurn(legal: [GameMove], state: GameState, player: PlayerID) -> GameMove {
+        var best: (move: GameMove, score: Double)?
+
+        func consider(_ desired: GameMove?, score: Double) {
+            guard let desired, let matched = matchLegal(desired, in: legal) else { return }
+            if best == nil || score > best!.score {
+                best = (matched, score)
+            }
+        }
+
+        // Accepting a good pending trade is usually as valuable as a solid
+        // build - score it in the same range, nudged by trade willingness.
+        for offer in state.pendingTradeOffers where offer.from != player {
+            if TradeHeuristics.evaluate(offer: offer, receiver: player, state: state, personality: personality) {
+                consider(.respondToTrade(offerID: offer.id, accept: true), score: 2.0 + personality.tradeWillingness * 3.0)
+            }
+        }
+
+        // Playing an owned dev card (knight/road building/year of
+        // plenty/monopoly) never competes for the same resources as a build,
+        // so it's always worth weighing independently; aggressive bots lean
+        // into it harder (mostly via knight plays).
+        consider(DevCardHeuristics.choosePlay(state: state, player: player), score: 2.5 + personality.aggressiveness * 2.0)
+
+        let buildMove = BuildPlanner.chooseBuild(for: state, player: player, personality: personality)
+        consider(buildMove, score: 3.0)
+
+        // Buying/proposing a trade are fallbacks considered only once a
+        // build wasn't clearly worth it (buying is already scored as part of
+        // `BuildPlanner`'s own candidates when it *is* worthwhile).
+        if buildMove == nil {
+            if DevCardHeuristics.shouldBuyDevCard(state: state, player: player) {
+                consider(.buyDevCard, score: 1.6 + personality.aggressiveness * 0.5)
+            }
+            for offer in TradeHeuristics.proposeTrades(state: state, player: player, personality: personality) {
+                consider(.proposeTrade(offer), score: 1.0 + personality.tradeWillingness)
+            }
+        }
+
+        return best?.move ?? .endTurn
+    }
+
+    /// Finds the member of `legal` that structurally matches `desired`
+    /// (comparing payloads, since `GameMove` isn't `Equatable` and a
+    /// `TradeOffer`'s freshly-generated `id` wouldn't match the legal
+    /// instance's `id` anyway). Ensures every move this file hands back
+    /// really is a member of `RulesEngine.legalMoves(for:)`, never a
+    /// heuristic's raw suggestion.
+    private func matchLegal(_ desired: GameMove, in legal: [GameMove]) -> GameMove? {
+        for candidate in legal {
+            switch (desired, candidate) {
+            case (.buildRoad(let x), .buildRoad(let y)) where x == y: return candidate
+            case (.buildSettlement(let x), .buildSettlement(let y)) where x == y: return candidate
+            case (.buildCity(let x), .buildCity(let y)) where x == y: return candidate
+            case (.buyDevCard, .buyDevCard): return candidate
+            case (.playKnight(let mx, let sx), .playKnight(let my, let sy)) where mx == my && sx == sy: return candidate
+            case (.playRoadBuilding(let x1, let x2), .playRoadBuilding(let y1, let y2)) where x1 == y1 && x2 == y2: return candidate
+            case (.playYearOfPlenty(let x1, let x2), .playYearOfPlenty(let y1, let y2)) where x1 == y1 && x2 == y2: return candidate
+            case (.playMonopoly(let x), .playMonopoly(let y)) where x == y: return candidate
+            case (.moveRobber(let tx, let sx), .moveRobber(let ty, let sy)) where tx == ty && sx == sy: return candidate
+            case (.bankTrade(let gx, let ax), .bankTrade(let gy, let ay)) where gx == gy && ax == ay: return candidate
+            case (.proposeTrade(let x), .proposeTrade(let y)) where x.from == y.from && x.give == y.give && x.want == y.want: return candidate
+            case (.respondToTrade(let ox, let ax), .respondToTrade(let oy, let ay)) where ox == oy && ax == ay: return candidate
+            case (.endTurn, .endTurn): return candidate
+            default: continue
+            }
+        }
+        return nil
     }
 }

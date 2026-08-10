@@ -1,6 +1,8 @@
-/// Tunable knobs that differentiate bot play styles. Task 10 will consume
-/// these more fully (trade/dev-card/robber heuristics); for now `BuildPlanner`
-/// and `Bot`'s setup placement already lean on `expansionBias`.
+/// Tunable knobs that differentiate bot play styles. Consumed by
+/// `BuildPlanner`/`Bot`'s setup placement (`expansionBias`), and by
+/// `RobberHeuristics`/`TradeHeuristics`/`DevCardHeuristics`/`Bot.decide`
+/// (all three, weighting how a bot targets the robber, trades, and plays
+/// dev cards).
 public struct BotPersonality: Sendable {
     /// How eagerly this bot pursues aggressive plays (robber targeting,
     /// knight usage) - higher favors hurting opponents over playing it safe.
@@ -19,6 +21,12 @@ public struct BotPersonality: Sendable {
     }
 
     public static let balanced = BotPersonality(aggressiveness: 0.5, tradeWillingness: 0.5, expansionBias: 0.5)
-    public static let aggressive = BotPersonality(aggressiveness: 0.85, tradeWillingness: 0.4, expansionBias: 0.7)
-    public static let cautious = BotPersonality(aggressiveness: 0.2, tradeWillingness: 0.6, expansionBias: 0.35)
+    /// High robber-disruption weight and low trade willingness (won't give
+    /// opponents an easy deal), prioritizes new settlements over city
+    /// upgrades (`expansionBias >= 0.5`).
+    public static let aggressive = BotPersonality(aggressiveness: 0.9, tradeWillingness: 0.2, expansionBias: 0.75)
+    /// Low aggressiveness (picks robber/knight fights less often), high
+    /// trade willingness (readily deals for what it needs), prioritizes
+    /// city upgrades over new settlements (`expansionBias < 0.5`).
+    public static let cautious = BotPersonality(aggressiveness: 0.15, tradeWillingness: 0.8, expansionBias: 0.3)
 }

@@ -44,7 +44,15 @@ private func movesMatch(_ a: GameMove, _ b: GameMove) -> Bool {
     case (.moveRobber(let tx, let sx), .moveRobber(let ty, let sy)): return tx == ty && sx == sy
     case (.discard(let x), .discard(let y)): return x == y
     case (.bankTrade(let gx, let ax), .bankTrade(let gy, let ay)): return gx == gy && ax == ay
-    case (.proposeTrade(let x), .proposeTrade(let y)): return x.id == y.id && x.from == y.from && x.give == y.give && x.want == y.want
+    // Deliberately ignores `id`: `RulesEngine.legalMoves` mints a fresh
+    // random UUID for every `.proposeTrade` candidate on *each* call (see
+    // `TradeOffer.init`'s `id: UUID = UUID()` default), so two independent
+    // calls over the same `state` - one to compute `legal` above, one made
+    // internally by `Bot.decide` - never share ids for the same underlying
+    // offer. The id carries no meaning for legality, only `from`/`give`/
+    // `want` do, so comparing it here was always a latent false-negative
+    // bug, just unreachable before `Bot.decide` could return `.proposeTrade`.
+    case (.proposeTrade(let x), .proposeTrade(let y)): return x.from == y.from && x.give == y.give && x.want == y.want
     case (.respondToTrade(let ox, let ax), .respondToTrade(let oy, let ay)): return ox == oy && ax == ay
     case (.endTurn, .endTurn): return true
     default: return false
