@@ -34,9 +34,14 @@ public struct Bot: Sendable {
             return decideRobber(legal: legal, state: state, player: player)
 
         case .gameOver:
-            // `decide` is never expected to be called in this phase - fall
-            // back to whatever `legalMoves` offers (typically nothing).
-            return legal.first ?? .endTurn
+            // `RulesEngine.legalMoves` always returns `[]` for `.gameOver`
+            // (see its `default: return []` case), so `legal.first ?? .endTurn`
+            // would silently hand back `.endTurn` - a move that is NOT a
+            // member of `legalMoves(for:)` here, breaking `decide`'s
+            // contract. `decide` is never expected to be called once the
+            // game is over, so fail loudly instead of returning a plausible
+            // but illegal move.
+            preconditionFailure("Bot.decide should never be called when the game is over")
         }
     }
 
@@ -94,7 +99,21 @@ public struct Bot: Sendable {
             guard discarded.values.reduce(0, +) == requiredCount else { return false }
             return discarded.allSatisfy { resource, amount in (me.resources[resource] ?? 0) >= amount }
         }
-        guard !mine.isEmpty else { return legal.first ?? .endTurn }
+        // `mine` should never be empty: `RulesEngine`'s discard-combination
+        // enumeration (`discardCombinations` in RulesEngine.swift) can always
+        // produce at least one way to discard exactly `requiredCount` cards
+        // from a hand that holds >= `requiredCount` cards (discard is a
+        // subset of the hand itself), and `requiredCount` (half the hand,
+        // rounded down) is by construction never more than what `me` holds.
+        // If this ever fires, that invariant broke - falling back to
+        // `legal.first` here would silently return a DIFFERENT pending
+        // player's `.discard` combination (still a member of the union
+        // `legal`, but not guaranteed to satisfy `player`'s own required
+        // count/holdings), which `RulesEngine.apply` would then reject as
+        // illegal. Fail loudly instead.
+        guard !mine.isEmpty else {
+            preconditionFailure("no legal discard combination found for \(player) holding \(me.resources)")
+        }
 
         // Prefer discarding from whichever resources this player holds the
         // most of, keeping their remaining hand as diverse as possible.
