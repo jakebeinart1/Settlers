@@ -20,6 +20,17 @@ struct ContentView: View {
                 Text("Bot thinking…")
             }
 
+            // Task 13 manual verification: render the live board so its
+            // tiles/pieces can be checked visually against the human/bot
+            // placements made below. Real board UI arrives in Task 15.
+            BoardView(
+                state: viewModel.state,
+                onTapVertex: { _ in },
+                onTapEdge: { _ in },
+                onTapTile: { _ in }
+            )
+            .frame(height: 360)
+
             Button("New Game") {
                 viewModel.startNewGame(randomizedBoard: true)
                 print("New game started, phase: \(viewModel.state.phase)")
