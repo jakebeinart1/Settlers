@@ -114,9 +114,11 @@ public struct GameView: View {
         }
         .sheet(isPresented: isMandatoryRobberPresented) {
             RobberTargetView(viewModel: viewModel, mode: .mandatory)
+                .interactiveDismissDisabled(true)
         }
         .sheet(isPresented: isDiscardPresented) {
             DiscardView(viewModel: viewModel)
+                .interactiveDismissDisabled(true)
         }
     }
 

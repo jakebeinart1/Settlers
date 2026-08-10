@@ -29,12 +29,15 @@ public struct DevCardPanelView: View {
 
     private var human: Player? { viewModel.state.players.first { $0.id == viewModel.humanPlayer } }
 
-    /// Playable dev card types (VP cards are never "played"), in a fixed
-    /// display order, paired with (heldCount, newCount).
+    /// All dev card types the human may hold, in a fixed display order,
+    /// paired with (heldCount, newCount). Victory Point cards are included
+    /// so they're visible in the panel, but are never tappable/playable
+    /// (see `isPlayable` below - `DevCards.canPlay` doesn't special-case
+    /// them, so this view excludes `.victoryPoint` explicitly).
     private var rows: [(type: DevCardType, held: Int, new: Int)] {
         guard let human else { return [] }
         let boughtThisTurn = viewModel.state.devCardsBoughtThisTurn[viewModel.humanPlayer] ?? []
-        return [DevCardType.knight, .roadBuilding, .yearOfPlenty, .monopoly].compactMap { type in
+        return [DevCardType.knight, .roadBuilding, .yearOfPlenty, .monopoly, .victoryPoint].compactMap { type in
             let held = human.devCards.filter { $0 == type }.count
             guard held > 0 else { return nil }
             let new = boughtThisTurn.filter { $0 == type }.count
@@ -55,7 +58,11 @@ public struct DevCardPanelView: View {
                     .foregroundStyle(.secondary)
             }
             ForEach(rows, id: \.type) { row in
-                let isPlayable = DevCards.canPlay(row.type, by: viewModel.humanPlayer, in: viewModel.state)
+                // `DevCards.canPlay` is generic across types and doesn't know
+                // Victory Point cards are never played; exclude them here so
+                // they never render as tappable.
+                let isPlayable = row.type != .victoryPoint
+                    && DevCards.canPlay(row.type, by: viewModel.humanPlayer, in: viewModel.state)
                 Button {
                     play(row.type)
                 } label: {
