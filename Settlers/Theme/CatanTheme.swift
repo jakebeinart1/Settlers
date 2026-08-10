@@ -16,6 +16,22 @@ public enum CatanTheme {
 
     public static let desert = Color(red: 0.87, green: 0.80, blue: 0.60) // sand beige
 
+    /// One SF Symbol per resource, standing in for a hand-drawn colonist.io-
+    /// style icon set (Task 13/16 follow-up: the trade UI previously showed
+    /// resource *names* only). Paired with `color(for:)` wherever a resource
+    /// needs a compact, at-a-glance identity - e.g. `TradeSheetView`'s give/
+    /// want pickers - rather than a full custom vector icon set, which is
+    /// deferred (see the design doc's "Open Items for Later").
+    public static func symbolName(for resource: Resource) -> String {
+        switch resource {
+        case .brick: return "cube.fill" // clay brick
+        case .lumber: return "tree.fill"
+        case .ore: return "mountain.2.fill"
+        case .grain: return "basket.fill" // wheat harvest
+        case .wool: return "cloud.fill" // sheep's wool
+        }
+    }
+
     public static func color(for kind: TileKind) -> Color {
         switch kind {
         case .resource(let resource): return color(for: resource)

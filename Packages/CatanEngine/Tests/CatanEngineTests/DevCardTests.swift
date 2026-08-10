@@ -87,6 +87,25 @@ import Testing
     #expect(state.players[0].devCards.isEmpty)
 }
 
+/// Regression test: `RulesEngine.legalMoves` enumerates r1/r2 independently
+/// for `.playYearOfPlenty` (see RulesEngine.swift), so picking the same
+/// resource twice (e.g. "take 2 lumber") is a legal move. Applying it used
+/// to crash with "Dictionary literal contains duplicate keys" because the
+/// log line built `[r1: 1, r2: 1]` as a literal, which is fatal when r1 ==
+/// r2 - only reachable via `RulesEngine.apply` (not `DevCards.playYearOfPlenty`
+/// directly), since that's where the log line lived.
+@Test func yearOfPlentyWithSameResourceTwiceDoesNotCrash() {
+    var state = GameSetup.newGame(board: BoardGenerator.standard())
+    state.phase = .mainTurn(playerIndex: 0)
+    state.players[0].devCards = [.yearOfPlenty]
+
+    try! RulesEngine.apply(.playYearOfPlenty(.lumber, .lumber), by: PlayerID(index: 0), to: &state)
+
+    #expect((state.players[0].resources[.lumber] ?? 0) == 2)
+    #expect(state.players[0].devCards.isEmpty)
+    #expect(state.log.last?.contains("2 lumber") == true)
+}
+
 @Test func monopolyTransfersAllMatchingCardsFromEveryOtherPlayer() {
     var state = GameSetup.newGame(board: BoardGenerator.standard())
     state.players[0].devCards = [.monopoly]

@@ -89,3 +89,4 @@ Bots run their decision logic (`CatanAI`) against a read-only snapshot of `GameS
 - Expansions.
 - Real-device / TestFlight distribution.
 - Multiplayer/online.
+- Full hand-drawn/vector resource icon set (the "crisp vector resource icons... colonist.io-like" constraint). Task 16 added SF Symbol stand-ins (`CatanTheme.symbolName(for:)`) to the trade sheet's give/want pickers so resources are no longer text-only there, but tiles are still flat-color fills with no per-resource icon, and a true custom vector icon set (matching colonist.io's actual art) was judged out of proportion for a v1 polish pass.

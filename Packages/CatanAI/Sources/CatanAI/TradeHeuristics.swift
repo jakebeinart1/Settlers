@@ -93,7 +93,26 @@ public enum TradeHeuristics {
             return []
         }
 
-        return [TradeOffer(from: player, give: [give: 1], want: [mostNeeded: 1])]
+        // Don't re-propose an offer that's functionally identical to one of
+        // this player's own offers still sitting in `pendingTradeOffers`.
+        // Nothing removes a pending offer except an explicit accept/reject
+        // response (`Trading.respond`) - it survives `endTurn` - and as long
+        // as `me.resources`/the build target haven't changed, this method
+        // would otherwise keep generating a "new" offer (fresh `UUID`, same
+        // give/want) forever: once every other bot has already declined to
+        // accept it, nothing else in this state ever changes to make them
+        // reconsider. That both starves `Bot.decideMainTurn` into never
+        // reaching `.endTurn` on its own (see `GameViewModel
+        // .runBotTurnIfNeeded`'s `sameBotActionCap` backstop) and piles up
+        // unbounded duplicate offers in persisted `GameState`.
+        let give1 = [give: 1]
+        let want1 = [mostNeeded: 1]
+        let alreadyPending = state.pendingTradeOffers.contains { offer in
+            offer.from == player && offer.give == give1 && offer.want == want1
+        }
+        guard !alreadyPending else { return [] }
+
+        return [TradeOffer(from: player, give: give1, want: want1)]
     }
 
     private static func totalDeficit(_ cost: [Resource: Int], holding: [Resource: Int]) -> Int {

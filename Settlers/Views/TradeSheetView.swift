@@ -69,7 +69,7 @@ public struct TradeSheetView: View {
         Section("Give") {
             Picker("Resource", selection: $bankGiveResource) {
                 ForEach(Resource.allCases, id: \.self) { resource in
-                    Text(resource.rawValue.capitalized).tag(resource)
+                    resourceLabel(resource).tag(resource)
                 }
             }
             Text("Rate: \(bankRate) : 1")
@@ -79,7 +79,7 @@ public struct TradeSheetView: View {
         Section("Want") {
             Picker("Resource", selection: $bankWantResource) {
                 ForEach(Resource.allCases.filter { $0 != bankGiveResource }, id: \.self) { resource in
-                    Text(resource.rawValue.capitalized).tag(resource)
+                    resourceLabel(resource).tag(resource)
                 }
             }
             Stepper("Quantity: \(bankMultiplier)", value: $bankMultiplier, in: 1...5)
@@ -103,25 +103,27 @@ public struct TradeSheetView: View {
         Section("Give") {
             ForEach(Resource.allCases, id: \.self) { resource in
                 Stepper(
-                    "\(resource.rawValue.capitalized): \(give[resource] ?? 0)",
                     value: Binding(
                         get: { give[resource] ?? 0 },
                         set: { give[resource] = $0 == 0 ? nil : $0 }
                     ),
                     in: 0...(human?.resources[resource] ?? 0)
-                )
+                ) {
+                    resourceStepperLabel(resource, count: give[resource] ?? 0)
+                }
             }
         }
         Section("Want") {
             ForEach(Resource.allCases, id: \.self) { resource in
                 Stepper(
-                    "\(resource.rawValue.capitalized): \(want[resource] ?? 0)",
                     value: Binding(
                         get: { want[resource] ?? 0 },
                         set: { want[resource] = $0 == 0 ? nil : $0 }
                     ),
                     in: 0...10
-                )
+                ) {
+                    resourceStepperLabel(resource, count: want[resource] ?? 0)
+                }
             }
         }
         Section {
@@ -130,6 +132,28 @@ public struct TradeSheetView: View {
                 perform(.proposeTrade(offer))
             }
             .disabled(give.isEmpty || want.isEmpty)
+        }
+    }
+
+    // MARK: - Resource labels
+
+    /// Icon + name, used in the bank-mode pickers.
+    private func resourceLabel(_ resource: Resource) -> some View {
+        Label {
+            Text(resource.rawValue.capitalized)
+        } icon: {
+            Image(systemName: CatanTheme.symbolName(for: resource))
+                .foregroundStyle(CatanTheme.color(for: resource))
+        }
+    }
+
+    /// Icon + name + current quantity, used as a `Stepper`'s label.
+    private func resourceStepperLabel(_ resource: Resource, count: Int) -> some View {
+        Label {
+            Text("\(resource.rawValue.capitalized): \(count)")
+        } icon: {
+            Image(systemName: CatanTheme.symbolName(for: resource))
+                .foregroundStyle(CatanTheme.color(for: resource))
         }
     }
 

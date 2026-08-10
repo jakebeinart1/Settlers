@@ -34,3 +34,53 @@ import CatanEngine
     let offer = TradeOffer(from: PlayerID(index: 1), give: [.lumber: 1], want: [.lumber: 1])
     #expect(!TradeHeuristics.evaluate(offer: offer, receiver: PlayerID(index: 0), state: state, personality: .aggressive))
 }
+
+/// Regression test for the trade-loop hang flagged during Task 12/16:
+/// `proposeTrades` used to hand back a functionally-identical offer (same
+/// give/want, fresh `UUID`) every single call as long as the player's
+/// resources/build target didn't change - which never happens on its own
+/// once every other bot has already declined it, since nothing besides an
+/// explicit accept/reject response ever removes a pending offer (see
+/// `Trading.respond`/`GameState.pendingTradeOffers`). That both starves
+/// `Bot.decideMainTurn` out of ever reaching `.endTurn` and piles up
+/// unbounded duplicate offers in `GameState`.
+@Test func proposeTradesSkipsWhenIdenticalOfferAlreadyPending() {
+    var state = GameSetup.newGame(board: BoardGenerator.standard())
+    let player = PlayerID(index: 0)
+    // One lumber short of a settlement (the nearest build target), with a
+    // wool surplus to trade away.
+    state.players[0].resources = [.brick: 1, .lumber: 0, .grain: 1, .wool: 3, .ore: 0]
+
+    let first = TradeHeuristics.proposeTrades(state: state, player: player, personality: .balanced)
+    #expect(first.count == 1)
+    #expect(first.first?.give == [.wool: 1])
+    #expect(first.first?.want == [.lumber: 1])
+
+    // Nobody has accepted or rejected it yet - it's still sitting in
+    // `pendingTradeOffers`, exactly as it would be on the next call to
+    // `Bot.decide` within the same stuck turn.
+    state.pendingTradeOffers = first
+
+    let second = TradeHeuristics.proposeTrades(state: state, player: player, personality: .balanced)
+    #expect(second.isEmpty)
+}
+
+/// Companion to the above at the `Bot` level: once proposing is suppressed
+/// by the dedupe above and nothing else is worth doing, `decideMainTurn`
+/// must actually converge on `.endTurn` rather than relying solely on
+/// `GameViewModel`'s view-layer `sameBotActionCap` backstop.
+@Test func botEndsTurnRatherThanReproposingAnIdenticalPendingOffer() {
+    var state = GameSetup.newGame(board: BoardGenerator.standard())
+    state.phase = .mainTurn(playerIndex: 1)
+    let player = PlayerID(index: 1)
+    state.players[1].resources = [.brick: 1, .lumber: 0, .grain: 1, .wool: 3, .ore: 0]
+    state.pendingTradeOffers = [TradeOffer(from: player, give: [.wool: 1], want: [.lumber: 1])]
+
+    let bot = Bot(personality: .balanced)
+    let move = bot.decide(for: state, player: player)
+
+    guard case .endTurn = move else {
+        Issue.record("expected .endTurn, got \(move)")
+        return
+    }
+}

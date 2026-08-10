@@ -206,6 +206,20 @@ public struct Bot: Sendable {
             for offer in TradeHeuristics.proposeTrades(state: state, player: player, personality: personality) {
                 consider(.proposeTrade(offer), score: 1.0 + personality.tradeWillingness)
             }
+
+            // Lowest-priority fallback: actively decline a pending offer
+            // this bot doesn't want, once nothing more valuable is
+            // available. `Trading.respond` is the only thing that ever
+            // removes an offer from `state.pendingTradeOffers` - an offer
+            // nobody wants and nobody explicitly rejects would otherwise sit
+            // there for the rest of the game (surviving every `endTurn`),
+            // so a bot that's otherwise out of better moves cleans one up
+            // rather than reaching `.endTurn` with it still pending.
+            for offer in state.pendingTradeOffers where offer.from != player {
+                if !TradeHeuristics.evaluate(offer: offer, receiver: player, state: state, personality: personality) {
+                    consider(.respondToTrade(offerID: offer.id, accept: false), score: 0.1)
+                }
+            }
         }
 
         return best?.move ?? .endTurn

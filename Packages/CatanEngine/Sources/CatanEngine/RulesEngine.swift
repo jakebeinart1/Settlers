@@ -246,7 +246,17 @@ public enum RulesEngine {
 
             case .playYearOfPlenty(let r1, let r2):
                 try DevCards.playYearOfPlenty(r1, r2, by: player, state: &state)
-                state.log.append("\(playerLabel(playerIndex)) played year of plenty and took \(resourceDescription([r1: 1, r2: 1]))")
+                // r1 and r2 may be the same resource (e.g. "take 2 lumber"
+                // is a legal choice - see the legalMoves generation above,
+                // which enumerates r1/r2 independently). Building the log
+                // line's resource map via a dictionary literal `[r1: 1, r2:
+                // 1]` would crash with "duplicate keys" whenever r1 == r2,
+                // so tally into a dictionary instead, which merges the two
+                // increments correctly either way.
+                var taken: [Resource: Int] = [:]
+                taken[r1, default: 0] += 1
+                taken[r2, default: 0] += 1
+                state.log.append("\(playerLabel(playerIndex)) played year of plenty and took \(resourceDescription(taken))")
 
             case .playMonopoly(let resource):
                 try DevCards.playMonopoly(resource, by: player, state: &state)

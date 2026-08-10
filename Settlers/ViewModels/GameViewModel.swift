@@ -50,16 +50,49 @@ public final class GameViewModel {
     /// "thinking" rather than instant.
     ///
     /// `sameBotActionCap` guards against a bot never producing `.endTurn`:
-    /// manual verification (see task-12-report.md) found `Bot.decide` can
-    /// legitimately keep proposing the same trade offer forever once it has
-    /// a resource surplus but no affordable build (`TradeHeuristics
-    /// .proposeTrades` returns an identical offer every call, and nothing
-    /// in `Bot.decideMainTurn` tracks "already proposed this turn"), which
-    /// would otherwise hang this loop - and the app - indefinitely. Once the
-    /// same bot has acted this many times in a row without the active
-    /// player changing, force `.endTurn` for it instead of trusting
-    /// `Bot.decide` again.
+    /// manual verification (see task-12-report.md) found `Bot.decide` could
+    /// keep proposing the same trade offer forever once it had a resource
+    /// surplus but no affordable build. Task 16 fixed the root cause in
+    /// `CatanAI` (`TradeHeuristics.proposeTrades` now skips proposing an
+    /// offer that's functionally identical to one of the player's own
+    /// offers already sitting in `pendingTradeOffers`, and `Bot
+    /// .decideMainTurn` actively rejects a pending offer it doesn't want
+    /// once nothing more valuable is available, so unwanted offers don't
+    /// linger forever either) - `Bot.decide` now genuinely converges on
+    /// `.endTurn` on its own in this situation. This cap stays as a
+    /// defensive backstop in case some other, not-yet-seen path through
+    /// `Bot.decide` fails to converge; once the same bot has acted this
+    /// many times in a row without the active player changing, force
+    /// `.endTurn` for it instead of trusting `Bot.decide` again.
+    /// `isProcessingBotTurns` makes this method non-reentrant. Found during
+    /// Task 16 simulator verification: `apply(_:)` spawns a fresh
+    /// `Task { await runBotTurnIfNeeded() }` after *every* human move -
+    /// including a human's own `.discard` response while other bots are
+    /// still resolving theirs from the same 7-roll (`.discarding` can have
+    /// several players pending at once, human included). That let two
+    /// invocations of this loop run concurrently against the same shared
+    /// `state`: one captures `botPlayer` from `nextBotPlayer()`, sleeps
+    /// 600ms, and by the time it wakes and calls `bot.decide(for: state,
+    /// player: botPlayer)`, the *other* invocation may have already
+    /// resolved that same player's pending action (e.g. their discard) -
+    /// `Bot.decide`'s `.discarding` branch doesn't re-check membership in
+    /// `pending` before deciding, so it would recompute against
+    /// `RulesEngine.legalMoves(for:)`'s now-empty set of moves for that
+    /// player and crash with `Bot.decideDiscard`'s "no legal discard
+    /// combination found" `preconditionFailure` - reproduced via a
+    /// disposable headless harness matching the exact crash log verbatim
+    /// (see task-16-report.md). A second call arriving while a loop is
+    /// already in flight is a safe no-op: the in-flight loop re-derives
+    /// `nextBotPlayer()` fresh every iteration, so it naturally picks up
+    /// whatever new bot work the human's move created without needing a
+    /// second concurrent copy of this loop.
+    private var isProcessingBotTurns = false
+
     public func runBotTurnIfNeeded() async {
+        guard !isProcessingBotTurns else { return }
+        isProcessingBotTurns = true
+        defer { isProcessingBotTurns = false }
+
         let sameBotActionCap = 25
         var currentBot: PlayerID?
         var actionsForCurrentBot = 0
