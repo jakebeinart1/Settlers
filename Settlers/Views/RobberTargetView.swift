@@ -2,24 +2,16 @@ import SwiftUI
 import CatanEngine
 
 /// Modal for choosing where to move the robber (and, if it lands on a tile
-/// bordered by an opponent, who to steal from). Used both as the mandatory
-/// modal after a 7-roll (`mode: .mandatory`, phase `.movingRobber`) and as
-/// the knight dev-card sub-flow (`mode: .knightCard`, from
-/// `DevCardPanelView`) - the only difference is which `GameMove` case
-/// committing the pick produces.
+/// bordered by an opponent, who to steal from). This is the knight dev-card
+/// sub-flow, presented as a sheet from `DevCardPanelView`. (The mandatory
+/// post-7-roll robber move is handled inline on the main game board, not by
+/// this view.)
 public struct RobberTargetView: View {
-    public enum Mode: Equatable {
-        case mandatory
-        case knightCard
-    }
-
     public let viewModel: GameViewModel
-    public let mode: Mode
     public var onComplete: () -> Void = {}
 
-    public init(viewModel: GameViewModel, mode: Mode, onComplete: @escaping () -> Void = {}) {
+    public init(viewModel: GameViewModel, onComplete: @escaping () -> Void = {}) {
         self.viewModel = viewModel
-        self.mode = mode
         self.onComplete = onComplete
     }
 
@@ -77,13 +69,7 @@ public struct RobberTargetView: View {
     }
 
     private func commit(tile: HexCoordinate, victim: PlayerID?) {
-        let move: GameMove
-        switch mode {
-        case .mandatory:
-            move = .moveRobber(tile, stealFrom: victim)
-        case .knightCard:
-            move = .playKnight(moveRobberTo: tile, stealFrom: victim)
-        }
+        let move = GameMove.playKnight(moveRobberTo: tile, stealFrom: victim)
         do {
             try viewModel.apply(move)
             errorMessage = nil

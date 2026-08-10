@@ -11,6 +11,7 @@
 		076DBD0E74CFC2372A8A8AA9 /* GameViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0A975D333BC9759A83497B5 /* GameViewModel.swift */; };
 		0B69B38FB17F6340FF1BE2A4 /* TradeSheetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 59FA604A66C9EDE652E3F86D /* TradeSheetView.swift */; };
 		0BBF451A08F935DC2BB22743 /* TileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC9BE64D33337CB59DE2D79D /* TileView.swift */; };
+		180BF3B62D9F57B9098CF113 /* GameNotificationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8D2F3345CD48C2B771647300 /* GameNotificationView.swift */; };
 		1CE9F2891BE97F0B0CC630BB /* EndGameView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 52C0B1D44B650E22AEBC8366 /* EndGameView.swift */; };
 		2E5F92427B07DC72628BAD38 /* CatanEngine in Frameworks */ = {isa = PBXBuildFile; productRef = EF131C34CF36EF855DAF17D0 /* CatanEngine */; };
 		376A1FAA626C73D4346100D3 /* DevCardPanelView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 308CF67C2387FEFFC96B8E11 /* DevCardPanelView.swift */; };
@@ -21,27 +22,27 @@
 		687BD8586D01E4597A1C7A32 /* BoardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E89E14D5D0ACBB92DF7729B3 /* BoardView.swift */; };
 		6BE4D5162E62A51ADA6A2599 /* GameStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = E093DA361796607C17A17777 /* GameStore.swift */; };
 		71E36B2F286888830989FBC7 /* MainMenuView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 27BDAD47ABBB94D7F73976E5 /* MainMenuView.swift */; };
-		7C6DE692003AADCF472F3156 /* GameNotificationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C88C47C798FB554E87B1964 /* GameNotificationView.swift */; };
 		82772E4A5ECBA817A966B46B /* GameView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6F0C19DF5E22050B860A7094 /* GameView.swift */; };
 		88CF824C3335F34CF54E08E2 /* PlayerHUDView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77BA2122016739392CF5DF22 /* PlayerHUDView.swift */; };
 		99947B57A6CAC22F69C19013 /* BuildMenuView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9D934856D49715249B654BB8 /* BuildMenuView.swift */; };
-		A52DE65EAB4B73DDC069B9C4 /* UniformActionButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = EB84FA44FD54CDA0A43C7C12 /* UniformActionButton.swift */; };
+		9BAEB85A2B5C4ABDD88D14F3 /* UniformActionButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9E07877542F256DEA51B11B /* UniformActionButton.swift */; };
+		AA5F82F23D1E9E98AC20C58E /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1B782178D710BCD61E1E4ED /* SettingsView.swift */; };
 		AF899EB36C3533A4C9F0472D /* HexGeometry.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7581395190BC539D01AEA19A /* HexGeometry.swift */; };
 		B6FC9BE50ABFF3D68CF98B29 /* SettlersApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8164AC90317469202817676F /* SettlersApp.swift */; };
 		C8EBD90EAF2F47466F8B5A2C /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CB7D94876E201553696FE24C /* ContentView.swift */; };
 		DC409C7F453D10AFAB02F531 /* DiscardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7F4B17DF7D0930D104C87C70 /* DiscardView.swift */; };
-		A1B2C3D4E5F60708090A0B01 /* PieceColor.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F60708090A0B02 /* PieceColor.swift */; };
-		A1B2C3D4E5F60708090A0B03 /* PieceShapeStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F60708090A0B04 /* PieceShapeStyle.swift */; };
-		A1B2C3D4E5F60708090A0B05 /* SettingsStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F60708090A0B06 /* SettingsStore.swift */; };
-		A1B2C3D4E5F60708090A0B07 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F60708090A0B08 /* SettingsView.swift */; };
+		E0931707EB32E9A37343202E /* PieceShapeStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 011091132C21AA7B73B451C1 /* PieceShapeStyle.swift */; };
+		EFC8C65A4F3507FF74F14EB1 /* SettingsStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 84A9951FD853638EE14548E7 /* SettingsStore.swift */; };
+		FF6AE67EDDC60E13BE9349D7 /* PieceColor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 576DA6DFEC88389BEF65A3E5 /* PieceColor.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		011091132C21AA7B73B451C1 /* PieceShapeStyle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PieceShapeStyle.swift; sourceTree = "<group>"; };
 		27BDAD47ABBB94D7F73976E5 /* MainMenuView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainMenuView.swift; sourceTree = "<group>"; };
-		2C88C47C798FB554E87B1964 /* GameNotificationView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = GameNotificationView.swift; sourceTree = "<group>"; };
 		308CF67C2387FEFFC96B8E11 /* DevCardPanelView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DevCardPanelView.swift; sourceTree = "<group>"; };
 		4B89EE635B1E470682ED1D4B /* CatanTheme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CatanTheme.swift; sourceTree = "<group>"; };
 		52C0B1D44B650E22AEBC8366 /* EndGameView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EndGameView.swift; sourceTree = "<group>"; };
+		576DA6DFEC88389BEF65A3E5 /* PieceColor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PieceColor.swift; sourceTree = "<group>"; };
 		59FA604A66C9EDE652E3F86D /* TradeSheetView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TradeSheetView.swift; sourceTree = "<group>"; };
 		6F0C19DF5E22050B860A7094 /* GameView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameView.swift; sourceTree = "<group>"; };
 		7581395190BC539D01AEA19A /* HexGeometry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HexGeometry.swift; sourceTree = "<group>"; };
@@ -49,23 +50,22 @@
 		77D0CDCBDE70309F20226B95 /* RobberTargetView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RobberTargetView.swift; sourceTree = "<group>"; };
 		7F4B17DF7D0930D104C87C70 /* DiscardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiscardView.swift; sourceTree = "<group>"; };
 		8164AC90317469202817676F /* SettlersApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettlersApp.swift; sourceTree = "<group>"; };
+		84A9951FD853638EE14548E7 /* SettingsStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsStore.swift; sourceTree = "<group>"; };
+		8D2F3345CD48C2B771647300 /* GameNotificationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameNotificationView.swift; sourceTree = "<group>"; };
 		9D934856D49715249B654BB8 /* BuildMenuView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BuildMenuView.swift; sourceTree = "<group>"; };
 		A6BA8687D2F0172D56EF14CA /* GameLogView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameLogView.swift; sourceTree = "<group>"; };
 		AAE31202C59C388953152F18 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		B0A975D333BC9759A83497B5 /* GameViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameViewModel.swift; sourceTree = "<group>"; };
+		B1B782178D710BCD61E1E4ED /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		B5BF359507B1F781FDA749F5 /* Settlers.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = Settlers.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		B9E07877542F256DEA51B11B /* UniformActionButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UniformActionButton.swift; sourceTree = "<group>"; };
 		CB7D94876E201553696FE24C /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		E093DA361796607C17A17777 /* GameStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameStore.swift; sourceTree = "<group>"; };
 		E674366C1C13D0BBB8CCC2B2 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		E89E14D5D0ACBB92DF7729B3 /* BoardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BoardView.swift; sourceTree = "<group>"; };
-		EB84FA44FD54CDA0A43C7C12 /* UniformActionButton.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = UniformActionButton.swift; sourceTree = "<group>"; };
 		EC9BE64D33337CB59DE2D79D /* TileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TileView.swift; sourceTree = "<group>"; };
 		F7F6D403F344C1035A2A95F3 /* CatanAI */ = {isa = PBXFileReference; lastKnownFileType = folder; name = CatanAI; path = Packages/CatanAI; sourceTree = SOURCE_ROOT; };
 		FE0DA5E89A67A40E86345C91 /* CatanEngine */ = {isa = PBXFileReference; lastKnownFileType = folder; name = CatanEngine; path = Packages/CatanEngine; sourceTree = SOURCE_ROOT; };
-		A1B2C3D4E5F60708090A0B02 /* PieceColor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PieceColor.swift; sourceTree = "<group>"; };
-		A1B2C3D4E5F60708090A0B04 /* PieceShapeStyle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PieceShapeStyle.swift; sourceTree = "<group>"; };
-		A1B2C3D4E5F60708090A0B06 /* SettingsStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsStore.swift; sourceTree = "<group>"; };
-		A1B2C3D4E5F60708090A0B08 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -109,8 +109,8 @@
 			isa = PBXGroup;
 			children = (
 				4B89EE635B1E470682ED1D4B /* CatanTheme.swift */,
-				A1B2C3D4E5F60708090A0B02 /* PieceColor.swift */,
-				A1B2C3D4E5F60708090A0B04 /* PieceShapeStyle.swift */,
+				576DA6DFEC88389BEF65A3E5 /* PieceColor.swift */,
+				011091132C21AA7B73B451C1 /* PieceShapeStyle.swift */,
 			);
 			path = Theme;
 			sourceTree = "<group>";
@@ -123,15 +123,15 @@
 				7F4B17DF7D0930D104C87C70 /* DiscardView.swift */,
 				52C0B1D44B650E22AEBC8366 /* EndGameView.swift */,
 				A6BA8687D2F0172D56EF14CA /* GameLogView.swift */,
+				8D2F3345CD48C2B771647300 /* GameNotificationView.swift */,
 				6F0C19DF5E22050B860A7094 /* GameView.swift */,
 				27BDAD47ABBB94D7F73976E5 /* MainMenuView.swift */,
 				77BA2122016739392CF5DF22 /* PlayerHUDView.swift */,
 				77D0CDCBDE70309F20226B95 /* RobberTargetView.swift */,
+				B1B782178D710BCD61E1E4ED /* SettingsView.swift */,
 				59FA604A66C9EDE652E3F86D /* TradeSheetView.swift */,
+				B9E07877542F256DEA51B11B /* UniformActionButton.swift */,
 				F6183DBFAB2A72B76407A553 /* Board */,
-				EB84FA44FD54CDA0A43C7C12 /* UniformActionButton.swift */,
-				2C88C47C798FB554E87B1964 /* GameNotificationView.swift */,
-				A1B2C3D4E5F60708090A0B08 /* SettingsView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -157,7 +157,7 @@
 			isa = PBXGroup;
 			children = (
 				E093DA361796607C17A17777 /* GameStore.swift */,
-				A1B2C3D4E5F60708090A0B06 /* SettingsStore.swift */,
+				84A9951FD853638EE14548E7 /* SettingsStore.swift */,
 			);
 			path = Persistence;
 			sourceTree = "<group>";
@@ -225,8 +225,8 @@
 			mainGroup = CECA12E5B63AC7E137DA5D26;
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
-				79295BA541DA23B55DDD70A2 /* XCLocalSwiftPackageReference "CatanAI" */,
-				A7BC5D58624CFA7690F42A67 /* XCLocalSwiftPackageReference "CatanEngine" */,
+				79295BA541DA23B55DDD70A2 /* XCLocalSwiftPackageReference "Packages/CatanAI" */,
+				A7BC5D58624CFA7690F42A67 /* XCLocalSwiftPackageReference "Packages/CatanEngine" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = CDA17F264B64B62FC09DBFB9 /* Products */;
@@ -262,22 +262,22 @@
 				DC409C7F453D10AFAB02F531 /* DiscardView.swift in Sources */,
 				1CE9F2891BE97F0B0CC630BB /* EndGameView.swift in Sources */,
 				036F9F5CECECED3C65CF1B98 /* GameLogView.swift in Sources */,
+				180BF3B62D9F57B9098CF113 /* GameNotificationView.swift in Sources */,
 				6BE4D5162E62A51ADA6A2599 /* GameStore.swift in Sources */,
 				82772E4A5ECBA817A966B46B /* GameView.swift in Sources */,
 				076DBD0E74CFC2372A8A8AA9 /* GameViewModel.swift in Sources */,
 				AF899EB36C3533A4C9F0472D /* HexGeometry.swift in Sources */,
 				71E36B2F286888830989FBC7 /* MainMenuView.swift in Sources */,
+				FF6AE67EDDC60E13BE9349D7 /* PieceColor.swift in Sources */,
+				E0931707EB32E9A37343202E /* PieceShapeStyle.swift in Sources */,
 				88CF824C3335F34CF54E08E2 /* PlayerHUDView.swift in Sources */,
 				4AFAA2705C338AB5552F1966 /* RobberTargetView.swift in Sources */,
+				EFC8C65A4F3507FF74F14EB1 /* SettingsStore.swift in Sources */,
+				AA5F82F23D1E9E98AC20C58E /* SettingsView.swift in Sources */,
 				B6FC9BE50ABFF3D68CF98B29 /* SettlersApp.swift in Sources */,
 				0BBF451A08F935DC2BB22743 /* TileView.swift in Sources */,
 				0B69B38FB17F6340FF1BE2A4 /* TradeSheetView.swift in Sources */,
-				A52DE65EAB4B73DDC069B9C4 /* UniformActionButton.swift in Sources */,
-				7C6DE692003AADCF472F3156 /* GameNotificationView.swift in Sources */,
-				A1B2C3D4E5F60708090A0B01 /* PieceColor.swift in Sources */,
-				A1B2C3D4E5F60708090A0B03 /* PieceShapeStyle.swift in Sources */,
-				A1B2C3D4E5F60708090A0B05 /* SettingsStore.swift in Sources */,
-				A1B2C3D4E5F60708090A0B07 /* SettingsView.swift in Sources */,
+				9BAEB85A2B5C4ABDD88D14F3 /* UniformActionButton.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -463,11 +463,11 @@
 /* End XCConfigurationList section */
 
 /* Begin XCLocalSwiftPackageReference section */
-		79295BA541DA23B55DDD70A2 /* XCLocalSwiftPackageReference "CatanAI" */ = {
+		79295BA541DA23B55DDD70A2 /* XCLocalSwiftPackageReference "Packages/CatanAI" */ = {
 			isa = XCLocalSwiftPackageReference;
 			relativePath = Packages/CatanAI;
 		};
-		A7BC5D58624CFA7690F42A67 /* XCLocalSwiftPackageReference "CatanEngine" */ = {
+		A7BC5D58624CFA7690F42A67 /* XCLocalSwiftPackageReference "Packages/CatanEngine" */ = {
 			isa = XCLocalSwiftPackageReference;
 			relativePath = Packages/CatanEngine;
 		};

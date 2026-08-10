@@ -139,7 +139,7 @@ public struct GameView: View {
             }
         }
         .sheet(isPresented: $showKnightRobberSheet) {
-            RobberTargetView(viewModel: viewModel, mode: .knightCard) {
+            RobberTargetView(viewModel: viewModel) {
                 showKnightRobberSheet = false
             }
         }
