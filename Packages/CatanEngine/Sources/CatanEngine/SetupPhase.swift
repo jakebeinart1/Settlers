@@ -36,6 +36,7 @@ enum SetupPhase {
             if isBackwardPass {
                 grantInitialResources(for: vertex, playerIndex: playerIndex, state: &state)
             }
+            state.log.append("\(RulesEngine.playerLabel(playerIndex)) placed a settlement")
 
         case .placeInitialRoad(let edge):
             guard let pendingVertex = unroadedSettlement(of: state.players[playerIndex], board: state.board) else {
@@ -45,6 +46,7 @@ enum SetupPhase {
                 throw MoveError.illegalPlacement
             }
             state.players[playerIndex].roads.insert(edge)
+            state.log.append("\(RulesEngine.playerLabel(playerIndex)) placed a road")
             advancePhase(state: &state, justCompletedIndex: playerIndex)
 
         default:

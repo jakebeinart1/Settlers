@@ -82,26 +82,43 @@ enum TileDrawing {
 }
 
 /// An invisible, generously-sized tap target over a board vertex, for
-/// building settlements/cities.
+/// building settlements/cities. During placement mode (`isEnabled: false`),
+/// non-highlighted targets ignore taps entirely; a highlighted target draws a
+/// glowing ring so the legal placements read as tappable.
 struct VertexTapTarget: View {
     let position: CGPoint
+    var isHighlighted: Bool = false
+    var isEnabled: Bool = true
     let onTap: () -> Void
 
     private let touchDiameter: CGFloat = 32
 
     var body: some View {
-        Circle()
-            .fill(Color.white.opacity(0.001))
-            .frame(width: touchDiameter, height: touchDiameter)
-            .position(position)
-            .onTapGesture(perform: onTap)
+        ZStack {
+            if isHighlighted {
+                Circle()
+                    .strokeBorder(Color.yellow, lineWidth: 3)
+                    .background(Circle().fill(Color.yellow.opacity(0.35)))
+                    .frame(width: touchDiameter, height: touchDiameter)
+            }
+            Circle()
+                .fill(Color.white.opacity(0.001))
+                .frame(width: touchDiameter, height: touchDiameter)
+        }
+        .position(position)
+        .allowsHitTesting(isEnabled)
+        .opacity(isEnabled ? 1 : 0.4)
+        .onTapGesture(perform: onTap)
     }
 }
 
 /// An invisible tap target capsule along a board edge, for building roads.
+/// See `VertexTapTarget` for the highlight/enabled semantics.
 struct EdgeTapTarget: View {
     let start: CGPoint
     let end: CGPoint
+    var isHighlighted: Bool = false
+    var isEnabled: Bool = true
     let onTap: () -> Void
 
     private let touchWidth: CGFloat = 20
@@ -111,12 +128,21 @@ struct EdgeTapTarget: View {
         let angle = atan2(end.y - start.y, end.x - start.x)
         let midpoint = CGPoint(x: (start.x + end.x) / 2, y: (start.y + end.y) / 2)
 
-        Capsule()
-            .fill(Color.white.opacity(0.001))
-            .frame(width: length, height: touchWidth)
-            .rotationEffect(.radians(angle))
-            .position(midpoint)
-            .onTapGesture(perform: onTap)
+        ZStack {
+            if isHighlighted {
+                Capsule()
+                    .fill(Color.yellow.opacity(0.55))
+                    .frame(width: length, height: touchWidth * 0.6)
+            }
+            Capsule()
+                .fill(Color.white.opacity(0.001))
+                .frame(width: length, height: touchWidth)
+        }
+        .rotationEffect(.radians(angle))
+        .position(midpoint)
+        .allowsHitTesting(isEnabled)
+        .opacity(isEnabled ? 1 : 0.4)
+        .onTapGesture(perform: onTap)
     }
 }
 

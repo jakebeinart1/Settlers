@@ -3,11 +3,22 @@ import CatanEngine
 
 /// Throwaway exploratory wiring to manually confirm `GameViewModel` drives
 /// the human/bot turn loop end-to-end (setup placements -> bot turns).
-/// Replaced by the real UI in Task 15.
+/// Replaced by the real UI in Task 15. `GameView` (Task 14) is the real
+/// composed screen; toggle `useRealGameView` to preview it here ahead of
+/// Task 15's actual app wiring (main menu, game-over screen).
 struct ContentView: View {
     @State private var viewModel = GameViewModel()
+    private let useRealGameView = true
 
     var body: some View {
+        if useRealGameView {
+            GameView(viewModel: viewModel)
+        } else {
+            legacyExploratoryView
+        }
+    }
+
+    private var legacyExploratoryView: some View {
         VStack(spacing: 16) {
             Text("Settlers")
                 .font(.largeTitle.bold())

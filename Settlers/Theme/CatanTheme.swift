@@ -34,6 +34,12 @@ public enum CatanTheme {
         }
     }
 
+    /// Human-readable seat label, matching `RulesEngine`'s internal
+    /// `state.log` phrasing ("You" for the human seat, "Player N" for bots).
+    public static func playerLabel(for player: PlayerID) -> String {
+        player.index == 0 ? "You" : "Player \(player.index)"
+    }
+
     public static let robber = Color(red: 0.15, green: 0.15, blue: 0.17)
     public static let numberTokenBackground = Color(red: 0.97, green: 0.94, blue: 0.85)
     public static let hotNumber = Color(red: 0.80, green: 0.10, blue: 0.10) // 6 & 8, in red

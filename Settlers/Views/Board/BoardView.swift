@@ -10,17 +10,37 @@ public struct BoardView: View {
     public let onTapVertex: (VertexID) -> Void
     public let onTapEdge: (EdgeID) -> Void
     public let onTapTile: (HexCoordinate) -> Void
+    /// When non-empty, only these vertices are tappable (highlighted with a
+    /// glow ring); every other vertex is dimmed and ignores taps. `nil` sets
+    /// (the default `[]` for both) mean "no vertex/edge placement mode" -
+    /// see `highlightedEdges` for the edge equivalent. The two are
+    /// independent so, e.g., a settlement placement can highlight vertices
+    /// while leaving edges untouched.
+    public let highlightedVertices: Set<VertexID>
+    /// Same as `highlightedVertices`, for edges (road placement).
+    public let highlightedEdges: Set<EdgeID>
+    /// True while any placement mode (vertex or edge) is active, so
+    /// non-highlighted tap targets can be disabled/dimmed even when their own
+    /// highlight set happens to be empty (e.g. edges during a settlement
+    /// placement).
+    public let isPlacementModeActive: Bool
 
     public init(
         state: GameState,
         onTapVertex: @escaping (VertexID) -> Void,
         onTapEdge: @escaping (EdgeID) -> Void,
-        onTapTile: @escaping (HexCoordinate) -> Void
+        onTapTile: @escaping (HexCoordinate) -> Void,
+        highlightedVertices: Set<VertexID> = [],
+        highlightedEdges: Set<EdgeID> = [],
+        isPlacementModeActive: Bool = false
     ) {
         self.state = state
         self.onTapVertex = onTapVertex
         self.onTapEdge = onTapEdge
         self.onTapTile = onTapTile
+        self.highlightedVertices = highlightedVertices
+        self.highlightedEdges = highlightedEdges
+        self.isPlacementModeActive = isPlacementModeActive
     }
 
     private var board: Board { state.board }
@@ -52,6 +72,8 @@ public struct BoardView: View {
                     EdgeTapTarget(
                         start: geometry.vertexPosition(a, board: board),
                         end: geometry.vertexPosition(b, board: board),
+                        isHighlighted: highlightedEdges.contains(edge),
+                        isEnabled: !isPlacementModeActive || highlightedEdges.contains(edge),
                         onTap: { onTapEdge(edge) }
                     )
                 }
@@ -59,6 +81,8 @@ public struct BoardView: View {
                 ForEach(sortedVertices, id: \.self) { vertex in
                     VertexTapTarget(
                         position: geometry.vertexPosition(vertex, board: board),
+                        isHighlighted: highlightedVertices.contains(vertex),
+                        isEnabled: !isPlacementModeActive || highlightedVertices.contains(vertex),
                         onTap: { onTapVertex(vertex) }
                     )
                 }
