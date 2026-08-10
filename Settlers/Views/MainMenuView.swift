@@ -16,6 +16,7 @@ public struct MainMenuView: View {
     }
 
     @State private var randomizedBoard = false
+    @State private var isShowingSettings = false
 
     private var hasSavedGame: Bool {
         GameStore.shared.load() != nil
@@ -24,6 +25,22 @@ public struct MainMenuView: View {
     public var body: some View {
         ZStack {
             Color(white: 0.08).ignoresSafeArea()
+
+            VStack {
+                HStack {
+                    Spacer()
+                    Button {
+                        isShowingSettings = true
+                    } label: {
+                        Image(systemName: "gearshape.fill")
+                            .font(.system(size: 20))
+                            .foregroundStyle(.white.opacity(0.6))
+                    }
+                }
+                .padding(.horizontal, 20)
+                .padding(.top, 12)
+                Spacer(minLength: 0)
+            }
 
             VStack(spacing: 28) {
                 Spacer()
@@ -71,6 +88,9 @@ public struct MainMenuView: View {
             }
         }
         .foregroundStyle(.white)
+        .sheet(isPresented: $isShowingSettings) {
+            SettingsView(onDismiss: { isShowingSettings = false })
+        }
     }
 
     private var titleBlock: some View {

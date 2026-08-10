@@ -39,15 +39,14 @@ public enum CatanTheme {
         }
     }
 
-    /// One distinguishable color per seat: human is blue, bots are
-    /// red/orange/white (index 0...3, matching `PlayerID.index`).
+    /// One distinguishable color per seat, customizable per-player from
+    /// `SettingsView` (defaults: human=blue, bot1=red, bot2=orange,
+    /// bot3=cream/white, matching `PieceColor.defaultColor(forSeatIndex:)`).
+    /// Centralized here so every call site - `BoardView`, `PlayerHUDView`,
+    /// `EndGameView`, etc. - automatically reflects the player's choice.
+    @MainActor
     public static func color(for player: PlayerID) -> Color {
-        switch player.index {
-        case 0: return Color(red: 0.16, green: 0.45, blue: 0.91) // human: blue
-        case 1: return Color(red: 0.86, green: 0.20, blue: 0.20) // bot: red
-        case 2: return Color(red: 0.94, green: 0.55, blue: 0.13) // bot: orange
-        default: return Color(red: 0.95, green: 0.95, blue: 0.95) // bot: white
-        }
+        SettingsStore.shared.color(forSeatIndex: player.index).color
     }
 
     /// Human-readable seat label, matching `RulesEngine`'s internal

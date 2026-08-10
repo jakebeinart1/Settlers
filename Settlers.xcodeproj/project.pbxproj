@@ -30,6 +30,10 @@
 		B6FC9BE50ABFF3D68CF98B29 /* SettlersApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8164AC90317469202817676F /* SettlersApp.swift */; };
 		C8EBD90EAF2F47466F8B5A2C /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CB7D94876E201553696FE24C /* ContentView.swift */; };
 		DC409C7F453D10AFAB02F531 /* DiscardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7F4B17DF7D0930D104C87C70 /* DiscardView.swift */; };
+		A1B2C3D4E5F60708090A0B01 /* PieceColor.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F60708090A0B02 /* PieceColor.swift */; };
+		A1B2C3D4E5F60708090A0B03 /* PieceShapeStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F60708090A0B04 /* PieceShapeStyle.swift */; };
+		A1B2C3D4E5F60708090A0B05 /* SettingsStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F60708090A0B06 /* SettingsStore.swift */; };
+		A1B2C3D4E5F60708090A0B07 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F60708090A0B08 /* SettingsView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -58,6 +62,10 @@
 		EC9BE64D33337CB59DE2D79D /* TileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TileView.swift; sourceTree = "<group>"; };
 		F7F6D403F344C1035A2A95F3 /* CatanAI */ = {isa = PBXFileReference; lastKnownFileType = folder; name = CatanAI; path = Packages/CatanAI; sourceTree = SOURCE_ROOT; };
 		FE0DA5E89A67A40E86345C91 /* CatanEngine */ = {isa = PBXFileReference; lastKnownFileType = folder; name = CatanEngine; path = Packages/CatanEngine; sourceTree = SOURCE_ROOT; };
+		A1B2C3D4E5F60708090A0B02 /* PieceColor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PieceColor.swift; sourceTree = "<group>"; };
+		A1B2C3D4E5F60708090A0B04 /* PieceShapeStyle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PieceShapeStyle.swift; sourceTree = "<group>"; };
+		A1B2C3D4E5F60708090A0B06 /* SettingsStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsStore.swift; sourceTree = "<group>"; };
+		A1B2C3D4E5F60708090A0B08 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -101,6 +109,8 @@
 			isa = PBXGroup;
 			children = (
 				4B89EE635B1E470682ED1D4B /* CatanTheme.swift */,
+				A1B2C3D4E5F60708090A0B02 /* PieceColor.swift */,
+				A1B2C3D4E5F60708090A0B04 /* PieceShapeStyle.swift */,
 			);
 			path = Theme;
 			sourceTree = "<group>";
@@ -121,6 +131,7 @@
 				F6183DBFAB2A72B76407A553 /* Board */,
 				EB84FA44FD54CDA0A43C7C12 /* UniformActionButton.swift */,
 				2C88C47C798FB554E87B1964 /* GameNotificationView.swift */,
+				A1B2C3D4E5F60708090A0B08 /* SettingsView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -146,6 +157,7 @@
 			isa = PBXGroup;
 			children = (
 				E093DA361796607C17A17777 /* GameStore.swift */,
+				A1B2C3D4E5F60708090A0B06 /* SettingsStore.swift */,
 			);
 			path = Persistence;
 			sourceTree = "<group>";
@@ -262,6 +274,10 @@
 				0B69B38FB17F6340FF1BE2A4 /* TradeSheetView.swift in Sources */,
 				A52DE65EAB4B73DDC069B9C4 /* UniformActionButton.swift in Sources */,
 				7C6DE692003AADCF472F3156 /* GameNotificationView.swift in Sources */,
+				A1B2C3D4E5F60708090A0B01 /* PieceColor.swift in Sources */,
+				A1B2C3D4E5F60708090A0B03 /* PieceShapeStyle.swift in Sources */,
+				A1B2C3D4E5F60708090A0B05 /* SettingsStore.swift in Sources */,
+				A1B2C3D4E5F60708090A0B07 /* SettingsView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
