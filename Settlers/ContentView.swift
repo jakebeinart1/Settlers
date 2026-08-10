@@ -2,15 +2,18 @@ import SwiftUI
 import CatanEngine
 
 /// App root: branches between `MainMenuView`, `GameView`, and `EndGameView`
-/// based on `viewModel.state.phase` and whether a game is "in progress"
-/// (a save exists on disk, or the player tapped New Game/Resume this
-/// session — tracked by `hasStartedThisSession` since `GameViewModel.init()`
-/// always holds *some* `GameState`, even a fresh unstarted one, so `state`
-/// alone can't distinguish "never played" from "played and about to
-/// resume").
+/// based on `viewModel.state.phase` and whether a game is "in progress" this
+/// session (the player tapped New Game or Resume) — tracked by
+/// `hasStartedThisSession`, which always starts `false` so the app lands on
+/// `MainMenuView` on every cold launch, even when a save exists on disk
+/// (`GameViewModel.init()` already loaded it into `viewModel.state`, but the
+/// player still has to explicitly tap "Resume Game" to enter it - mirrors a
+/// typical mobile game always opening to its title screen, and matters
+/// because jumping straight into a resumed game would otherwise run its bot
+/// turns before the player ever saw the menu).
 struct ContentView: View {
     @State private var viewModel = GameViewModel()
-    @State private var hasStartedThisSession = GameStore.shared.load() != nil
+    @State private var hasStartedThisSession = false
 
     var body: some View {
         Group {
@@ -28,16 +31,16 @@ struct ContentView: View {
                     },
                     onResume: {
                         hasStartedThisSession = true
+                        // Resuming into a save left mid-bot-turn needs the bot
+                        // loop kicked off explicitly - `GameViewModel.apply(_:)`
+                        // only spawns it after a *human* move, and a resumed
+                        // save never had one. A fresh game from "New Game"
+                        // always starts on the human's own setup turn, so it
+                        // doesn't need this.
+                        Task { await viewModel.runBotTurnIfNeeded() }
                     }
                 )
             }
-        }
-        .task {
-            // Resuming into a save left mid-bot-turn needs the bot loop
-            // kicked off explicitly - `GameViewModel.apply(_:)` only spawns
-            // it after a *human* move, and a cold launch resuming into a
-            // bot's turn never had one.
-            await viewModel.runBotTurnIfNeeded()
         }
     }
 }
