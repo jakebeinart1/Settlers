@@ -31,6 +31,7 @@ enum TileDrawing {
         let radius = size * 0.32
         let circle = Path(ellipseIn: CGRect(x: point.x - radius, y: point.y - radius, width: radius * 2, height: radius * 2))
         context.fill(circle, with: .color(CatanTheme.numberTokenBackground))
+        context.stroke(circle, with: .color(.black), lineWidth: 1.5)
 
         let isHot = number == 6 || number == 8
         let text = Text("\(number)")

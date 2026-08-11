@@ -109,7 +109,7 @@ public struct MainMenuView: View {
                 .font(.system(size: 48, weight: .heavy, design: .rounded))
                 .tracking(4)
 
-            Text("Britannia, Rome, China & Mongolia go to war")
+            Text("Rome, Greece, Egypt & the Aztec go to war")
                 .font(.subheadline)
                 .foregroundStyle(.white.opacity(0.6))
         }

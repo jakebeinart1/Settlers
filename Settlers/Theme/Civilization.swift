@@ -1,49 +1,59 @@
 import SwiftUI
 import CatanEngine
 
-/// One of the four playable empires - fixed per seat (not user-customizable,
-/// unlike `PieceColor`) so every game features the same four civilizations
-/// with the same generals, and their settlements/cities
-/// read as that civilization's own architecture rather than a generic
-/// house/marker. Roads stay a plain colored bar (`RoadShape`) - the
-/// civilization identity comes through in the buildings, the seat's default
-/// color, and the HUD's general/empire naming.
+/// One of the four playable empires - fixed per seat (not user-customizable)
+/// so every game features the same four civilizations with the same
+/// generals. Both the settlement/city look (`CivilizationBadge`: a flat
+/// circle in this civilization's color with its emblem glyph, matching the
+/// board's flat, straight-bordered, black-outlined style - detailed
+/// isometric/illustrated building art was tried and dropped because it
+/// either needed real size to stay legible or didn't rotate cleanly for
+/// roads) and the *color* (`accentColor`) are fixed per civilization rather
+/// than user-chosen: with exactly one civilization per seat, the
+/// civilization already uniquely identifies the owner, so a constant color
+/// works as the ownership cue without needing a separate customizable
+/// per-player color layer on top of it.
+///
+/// Roads stay the plain `RoadShape` bar filled with `accentColor` for the
+/// same reason real building art didn't work for them: a hex board's roads
+/// run at several different angles, and anything with a fixed "up" looks
+/// wrong rotated to most of them.
 public enum Civilization: String, CaseIterable, Sendable {
-    case britannia
     case rome
-    case china
-    case mongolia
+    case greece
+    case egypt
+    case aztec
 
     /// Fixed seat assignment: 0 = human, 1-3 = bots, matching
     /// `GameViewModel`'s personality assignment order.
     public static func forSeat(_ index: Int) -> Civilization {
         switch index {
-        case 0: return .britannia
-        case 1: return .rome
-        case 2: return .china
-        default: return .mongolia
+        case 0: return .rome
+        case 1: return .greece
+        case 2: return .egypt
+        default: return .aztec
         }
     }
 
     public var displayName: String {
         switch self {
-        case .britannia: return "Britannia"
         case .rome: return "Rome"
-        case .china: return "China"
-        case .mongolia: return "Mongolia"
+        case .greece: return "Greece"
+        case .egypt: return "Egypt"
+        case .aztec: return "Aztec"
         }
     }
 
     /// The general leading this civilization's bot seat - shown in place of
-    /// "Bot (Balanced)"-style labels. The human's own seat (Britannia) still
-    /// just reads "You" everywhere (see `CatanTheme.playerLabel`), so this
-    /// name is only ever surfaced for bot seats in practice.
+    /// "Bot (Balanced)"-style labels. The human's own seat still just reads
+    /// "You" everywhere (see `CatanTheme.playerLabel`), so this name is only
+    /// ever surfaced for bot seats in practice.
     public var generalName: String {
         switch self {
-        case .britannia: return "Wellington"
         case .rome: return "Caesar"
-        case .china: return "Sun Tzu"
-        case .mongolia: return "Genghis Khan"
+        case .greece: return "Alexander"
+        case .egypt: return "Ramesses"
+        case .aztec: return "Moctezuma"
         }
     }
 
@@ -52,30 +62,24 @@ public enum Civilization: String, CaseIterable, Sendable {
     /// faction at a glance, not just a color.
     public var emblemSymbol: String {
         switch self {
-        case .britannia: return "shield.lefthalf.filled"
-        case .rome: return "laurel.leading"
-        case .china: return "flame.fill"
-        case .mongolia: return "wind"
+        case .rome: return "shield.lefthalf.filled"
+        case .greece: return "laurel.leading"
+        case .egypt: return "sun.max.fill"
+        case .aztec: return "flame.fill"
         }
     }
 
-    @MainActor
-    public func settlementShape() -> AnyShape {
+    /// This civilization's fixed material color, tested against the board's
+    /// water-blue background before being locked in. Used for
+    /// `CivilizationBadge`, the road bar, HUD dots/tags, and everywhere else
+    /// `CatanTheme.color(for: player)` is read.
+    public var accentColor: Color {
         switch self {
-        case .britannia: return AnyShape(BritanniaKeepShape())
-        case .rome: return AnyShape(RomanColumnShape())
-        case .china: return AnyShape(PagodaShape(tiers: 1))
-        case .mongolia: return AnyShape(YurtShape())
+        case .rome: return Color(red: 0.84, green: 0.54, blue: 0.29) // terracotta
+        case .greece: return Color(red: 0.80, green: 0.81, blue: 0.80) // white/grey marble
+        case .egypt: return Color(red: 0.77, green: 0.58, blue: 0.31) // sandstone
+        case .aztec: return Color(red: 0.43, green: 0.61, blue: 0.79) // slate blue
         }
     }
 
-    @MainActor
-    public func cityShape() -> AnyShape {
-        switch self {
-        case .britannia: return AnyShape(BritanniaCastleShape())
-        case .rome: return AnyShape(RomanTempleShape())
-        case .china: return AnyShape(PagodaShape(tiers: 2))
-        case .mongolia: return AnyShape(YurtCampShape())
-        }
-    }
 }

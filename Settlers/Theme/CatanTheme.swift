@@ -39,14 +39,15 @@ public enum CatanTheme {
         }
     }
 
-    /// One distinguishable color per seat, customizable per-player from
-    /// `SettingsView` (defaults: human=blue, bot1=red, bot2=orange,
-    /// bot3=cream/white, matching `PieceColor.defaultColor(forSeatIndex:)`).
-    /// Centralized here so every call site - `BoardView`, `PlayerHUDView`,
-    /// `EndGameView`, etc. - automatically reflects the player's choice.
-    @MainActor
+    /// One distinguishable color per seat - that seat's fixed civilization
+    /// material color (see `Civilization.accentColor`), not user-
+    /// customizable: with exactly one civilization per seat, the
+    /// civilization already uniquely identifies the owner, so its own
+    /// material color doubles as the ownership cue. Centralized here so
+    /// every call site - `BoardView`, `PlayerHUDView`, `EndGameView`, etc. -
+    /// stays in sync automatically.
     public static func color(for player: PlayerID) -> Color {
-        SettingsStore.shared.color(forSeatIndex: player.index).color
+        Civilization.forSeat(player.index).accentColor
     }
 
     /// Human-readable seat label: "You" for the human seat, otherwise that
@@ -61,7 +62,10 @@ public enum CatanTheme {
     public static let numberTokenBackground = Color(red: 0.97, green: 0.94, blue: 0.85)
     public static let hotNumber = Color(red: 0.80, green: 0.10, blue: 0.10) // 6 & 8, in red
     public static let coolNumber = Color(red: 0.15, green: 0.15, blue: 0.15)
-    public static let tileBorder = Color.black.opacity(0.35)
+    // Crisp, fully-opaque straight border between tiles (was a soft 35%-
+    // opacity line) - flatter and cleaner, matching a plain flat-2D board
+    // rather than any beveled/3D look.
+    public static let tileBorder = Color.black.opacity(0.75)
     public static let portIcon = Color.white
 
     /// Deep water-blue fill behind `BoardView`'s hex board, so the tiles

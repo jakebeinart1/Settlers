@@ -151,13 +151,9 @@ public struct BoardView: View {
         ForEach(sortedVertices, id: \.self) { vertex in
             if let owner = ownership.owner(ofSettlementOrCity: vertex) {
                 let position = geometry.vertexPosition(vertex, board: board)
-                let size = geometry.size * (owner.isCity ? 0.62 : 0.5)
+                let size = geometry.size * (owner.isCity ? 0.62 : 0.48)
                 let civilization = Civilization.forSeat(owner.player.index)
-                let shape: AnyShape = owner.isCity ? civilization.cityShape() : civilization.settlementShape()
-                shape
-                    .fill(CatanTheme.color(for: owner.player))
-                    .overlay(shape.stroke(.black.opacity(0.6), lineWidth: 1))
-                    .frame(width: size, height: size)
+                CivilizationBadge(civilization: civilization, isCity: owner.isCity, size: size)
                     .position(position)
                     .allowsHitTesting(false)
             }
@@ -175,6 +171,13 @@ public struct BoardView: View {
                 let angle = atan2(end.y - start.y, end.x - start.x)
                 let midpoint = CGPoint(x: (start.x + end.x) / 2, y: (start.y + end.y) / 2)
 
+                // Tried using each civilization's actual wall/path artwork
+                // here too, rotated to the edge's angle - it doesn't work:
+                // those source pieces are each a different, mostly-square
+                // aspect ratio, and force-fitting one into a long thin
+                // rotated bar just shows a cropped, misaligned slice of it
+                // rather than a coherent road. A flat civilization-colored
+                // bar reads far more cleanly at this size and angle range.
                 RoadShape()
                     .fill(CatanTheme.color(for: owner))
                     .overlay(RoadShape().stroke(.black.opacity(0.6), lineWidth: 1))
