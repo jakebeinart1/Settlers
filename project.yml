@@ -28,6 +28,7 @@ targets:
     info:
       path: Settlers/Info.plist
       properties:
+        CFBundleDisplayName: Empires
         UILaunchScreen: {}
         UISupportedInterfaceOrientations:
           - UIInterfaceOrientationPortrait

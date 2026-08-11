@@ -1,7 +1,9 @@
 import SwiftUI
 import CatanEngine
 
-/// Title screen: flat colonist.io-style branding for "Settlers", a
+/// Title screen: flat colonist.io-style branding for "Empires" (the app's
+/// display name - the underlying Xcode project/module is still named
+/// `Settlers`, a deliberately untouched implementation detail), a
 /// randomized-board toggle, "New Game", and (only when a save exists)
 /// "Resume Game". `onStart` receives the randomized-board toggle's value
 /// when the player taps "New Game"; `ContentView` is responsible for
@@ -103,11 +105,11 @@ public struct MainMenuView: View {
                 }
             }
 
-            Text("SETTLERS")
+            Text("EMPIRES")
                 .font(.system(size: 48, weight: .heavy, design: .rounded))
                 .tracking(4)
 
-            Text("A Catan-style game")
+            Text("Britannia, Rome, China & Mongolia go to war")
                 .font(.subheadline)
                 .foregroundStyle(.white.opacity(0.6))
         }

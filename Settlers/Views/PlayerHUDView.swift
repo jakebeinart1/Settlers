@@ -68,6 +68,12 @@ public struct HumanPlayerPanel: View {
                         .frame(width: 14, height: 14)
                     Text("You")
                         .font(.headline)
+                    Image(systemName: Civilization.forSeat(human.index).emblemSymbol)
+                        .font(.caption)
+                        .foregroundStyle(CatanTheme.onWaterText.opacity(0.8))
+                    Text(Civilization.forSeat(human.index).displayName)
+                        .font(.caption)
+                        .foregroundStyle(CatanTheme.onWaterText.opacity(0.8))
                     Spacer()
                     PlayerChip.tag(text: "\(state.victoryPoints(for: human)) VP", icon: "star.fill", tint: .yellow)
                     if state.longestRoadPlayer == human {
@@ -214,15 +220,22 @@ enum PlayerChip {
         let isActive = isActivePlayer(player.id, in: state)
         let handSize = player.resources.values.reduce(0, +)
 
+        let civilization = Civilization.forSeat(player.id.index)
+
         VStack(alignment: .leading, spacing: 4) {
             HStack(spacing: 4) {
                 Circle()
                     .fill(CatanTheme.color(for: player.id))
                     .frame(width: 10, height: 10)
-                Text(isHuman ? "You" : personalityLabel(for: player.id))
+                Image(systemName: civilization.emblemSymbol)
+                    .font(.system(size: 9))
+                Text(isHuman ? "You" : civilization.generalName)
                     .font(.caption.bold())
                     .lineLimit(1)
             }
+            Text(civilization.displayName)
+                .font(.system(size: 9))
+                .foregroundStyle(CatanTheme.onWaterText.opacity(0.8))
 
             // Short labels ("Road"/"Army" rather than "Longest Road"/"Largest
             // Army") so a tag stays legible inside a chip that's only
@@ -307,17 +320,6 @@ enum PlayerChip {
         }
     }
 
-    /// Mirrors `GameViewModel`'s bot-personality assignment (1 -> balanced,
-    /// 2 -> aggressive, 3 -> cautious) so the HUD can label bot chips without
-    /// depending on `GameViewModel`/`CatanAI` directly.
-    static func personalityLabel(for id: PlayerID) -> String {
-        switch id.index {
-        case 1: return "Bot (Balanced)"
-        case 2: return "Bot (Aggressive)"
-        case 3: return "Bot (Cautious)"
-        default: return "Bot"
-        }
-    }
 }
 
 #Preview {

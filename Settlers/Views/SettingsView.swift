@@ -25,8 +25,8 @@ public struct SettingsView: View {
 
                 ScrollView {
                     VStack(alignment: .leading, spacing: 28) {
+                        civilizationSection
                         colorSection
-                        shapeSection
                     }
                     .padding(.horizontal, 24)
                     .padding(.top, 8)
@@ -105,48 +105,49 @@ public struct SettingsView: View {
         .background(RoundedRectangle(cornerRadius: 10).fill(Color(white: 0.14)))
     }
 
-    // MARK: - Shape style
+    // MARK: - Civilizations
 
-    private var shapeSection: some View {
+    /// Each seat's settlement/city architecture is tied to its (fixed)
+    /// civilization rather than a free-form shape choice - shown here
+    /// read-only, next to the color picker, so it's clear why the board's
+    /// buildings look the way they do per seat.
+    private var civilizationSection: some View {
         VStack(alignment: .leading, spacing: 16) {
-            Text("Piece Shape")
+            Text("Civilizations")
                 .font(.headline)
                 .foregroundStyle(.white.opacity(0.8))
 
-            HStack(spacing: 16) {
-                ForEach(PieceShapeStyle.allCases, id: \.self) { style in
-                    shapeStyleThumbnail(style)
+            VStack(spacing: 10) {
+                ForEach(0..<4, id: \.self) { seatIndex in
+                    civilizationRow(seatIndex: seatIndex)
                 }
             }
         }
     }
 
-    private func shapeStyleThumbnail(_ style: PieceShapeStyle) -> some View {
-        let isSelected = store.pieceShapeStyle == style
-        return Button {
-            store.pieceShapeStyle = style
-        } label: {
-            VStack(spacing: 10) {
-                style.settlementShape()
-                    .fill(CatanTheme.color(for: PlayerID(index: 0)))
-                    .overlay(style.settlementShape().stroke(.black.opacity(0.6), lineWidth: 1))
-                    .frame(width: 36, height: 36)
+    private func civilizationRow(seatIndex: Int) -> some View {
+        let civilization = Civilization.forSeat(seatIndex)
+        let player = PlayerID(index: seatIndex)
+        return HStack(spacing: 12) {
+            civilization.settlementShape()
+                .fill(store.color(forSeatIndex: seatIndex).color)
+                .overlay(civilization.settlementShape().stroke(.black.opacity(0.6), lineWidth: 1))
+                .frame(width: 30, height: 30)
 
-                Text(style.displayName)
+            VStack(alignment: .leading, spacing: 2) {
+                Text(civilization.displayName)
                     .font(.subheadline.bold())
+                Text(seatIndex == 0 ? "You" : civilization.generalName)
+                    .font(.caption)
+                    .foregroundStyle(.white.opacity(0.6))
             }
-            .frame(maxWidth: .infinity)
-            .padding(.vertical, 16)
-            .background(
-                RoundedRectangle(cornerRadius: 10)
-                    .fill(Color(white: 0.14))
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 10)
-                            .strokeBorder(isSelected ? CatanTheme.color(for: Resource.brick) : .clear, lineWidth: 2)
-                    )
-            )
+
+            Spacer()
+            Image(systemName: civilization.emblemSymbol)
+                .foregroundStyle(.white.opacity(0.5))
         }
-        .buttonStyle(.plain)
+        .padding(12)
+        .background(RoundedRectangle(cornerRadius: 10).fill(Color(white: 0.14)))
     }
 
     private var resetButton: some View {

@@ -132,8 +132,8 @@ public struct BoardView: View {
             if let owner = ownership.owner(ofSettlementOrCity: vertex) {
                 let position = geometry.vertexPosition(vertex, board: board)
                 let size = geometry.size * (owner.isCity ? 0.62 : 0.5)
-                let shapeStyle = SettingsStore.shared.pieceShapeStyle
-                let shape: AnyShape = owner.isCity ? shapeStyle.cityShape() : shapeStyle.settlementShape()
+                let civilization = Civilization.forSeat(owner.player.index)
+                let shape: AnyShape = owner.isCity ? civilization.cityShape() : civilization.settlementShape()
                 shape
                     .fill(CatanTheme.color(for: owner.player))
                     .overlay(shape.stroke(.black.opacity(0.6), lineWidth: 1))

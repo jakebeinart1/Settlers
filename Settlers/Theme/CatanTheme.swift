@@ -49,10 +49,12 @@ public enum CatanTheme {
         SettingsStore.shared.color(forSeatIndex: player.index).color
     }
 
-    /// Human-readable seat label, matching `RulesEngine`'s internal
-    /// `state.log` phrasing ("You" for the human seat, "Player N" for bots).
+    /// Human-readable seat label: "You" for the human seat, otherwise that
+    /// seat's civilization general (e.g. "Caesar") - see `Civilization
+    /// .forSeat`. Replaces the old generic "Player N" now that every bot
+    /// seat has a fixed empire identity.
     public static func playerLabel(for player: PlayerID) -> String {
-        player.index == 0 ? "You" : "Player \(player.index)"
+        player.index == 0 ? "You" : Civilization.forSeat(player.index).generalName
     }
 
     public static let robber = Color(red: 0.15, green: 0.15, blue: 0.17)

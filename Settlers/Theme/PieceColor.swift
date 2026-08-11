@@ -34,15 +34,17 @@ public enum PieceColor: String, Codable, CaseIterable, Sendable {
         rawValue.capitalized
     }
 
-    /// The default palette assignment for a seat index (0 = human), matching
-    /// `CatanTheme`'s original hardcoded human=blue, bot1=red, bot2=orange,
-    /// bot3=white/cream scheme.
+    /// The default palette assignment for a seat index (0 = human), chosen
+    /// to suit that seat's fixed `Civilization` (see `Civilization.forSeat`):
+    /// Britannia=blue, Rome=red, China=green, Mongolia=orange. Still just a
+    /// default - `SettingsView` lets the color be changed independently of
+    /// the (fixed) civilization.
     public static func defaultColor(forSeatIndex index: Int) -> PieceColor {
         switch index {
         case 0: return .blue
         case 1: return .red
-        case 2: return .orange
-        default: return .cream
+        case 2: return .green
+        default: return .orange
         }
     }
 }

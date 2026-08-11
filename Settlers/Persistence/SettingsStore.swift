@@ -2,8 +2,9 @@ import Foundation
 import Observation
 import CatanEngine
 
-/// Persists the player-facing rendering preferences set from `SettingsView`:
-/// each seat's `PieceColor` and the board-wide `PieceShapeStyle`. Backed by
+/// Persists the player-facing rendering preference set from `SettingsView`:
+/// each seat's `PieceColor` (settlement/city/road shapes are fixed per seat
+/// by `Civilization.forSeat`, not user-customizable). Backed by
 /// `UserDefaults` rather than a JSON file (unlike `GameStore`) since this is
 /// small keyed preference data, not a `GameState`-sized blob.
 ///
@@ -17,7 +18,6 @@ public final class SettingsStore {
 
     private enum Keys {
         static let playerColors = "settings.playerColors"
-        static let pieceShapeStyle = "settings.pieceShapeStyle"
     }
 
     private let defaults: UserDefaults
@@ -30,10 +30,6 @@ public final class SettingsStore {
         didSet { persistPlayerColors() }
     }
 
-    public var pieceShapeStyle: PieceShapeStyle {
-        didSet { defaults.set(pieceShapeStyle.rawValue, forKey: Keys.pieceShapeStyle) }
-    }
-
     init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
 
@@ -43,12 +39,6 @@ public final class SettingsStore {
                 return PieceColor.defaultColor(forSeatIndex: index)
             }
             return color
-        }
-
-        if let rawShape = defaults.string(forKey: Keys.pieceShapeStyle), let shape = PieceShapeStyle(rawValue: rawShape) {
-            self.pieceShapeStyle = shape
-        } else {
-            self.pieceShapeStyle = .classic
         }
     }
 
@@ -69,7 +59,6 @@ public final class SettingsStore {
 
     public func resetToDefaults() {
         playerColors = (0..<4).map(PieceColor.defaultColor(forSeatIndex:))
-        pieceShapeStyle = .classic
     }
 
     private func persistPlayerColors() {
