@@ -265,7 +265,13 @@ enum PlayerChip {
             // ~110pt wide at 3-across - the icon plus a one-word label is
             // still identifiable at a glance without wrapping.
             HStack(spacing: 4) {
-                tag(text: "\(state.victoryPoints(for: player.id)) VP", icon: "star.fill", tint: .yellow)
+                // Bots' VP badge only counts what's actually public
+                // (buildings + longest road/largest army) - a held but
+                // unplayed Victory Point dev card is hidden information in
+                // real Catan too, same as which specific cards make up
+                // their hand, so it shouldn't silently show up in their
+                // total before they'd ever reveal it.
+                tag(text: "\(publicVictoryPoints(for: player, state: state)) VP", icon: "star.fill", tint: .yellow)
                 if state.longestRoadPlayer == player.id {
                     tag(text: "Road", icon: "road.lanes", tint: .orange)
                 }
@@ -342,6 +348,20 @@ enum PlayerChip {
         .padding(.vertical, 2)
         .background(tint.opacity(0.85), in: Capsule())
         .fixedSize()
+    }
+
+    /// VP that's actually public knowledge for `player`: buildings plus the
+    /// longest-road/largest-army bonuses (all visible on the board/HUD
+    /// already), deliberately excluding held-but-unplayed Victory Point dev
+    /// cards - `GameState.victoryPoints(for:)` includes those, which is
+    /// correct for `player`'s *own* total (shown in `HumanPlayerPanel`, who
+    /// obviously knows their own hand) but would leak hidden information if
+    /// shown for an opponent, same as which specific cards they're holding.
+    static func publicVictoryPoints(for player: Player, state: GameState) -> Int {
+        var total = player.settlements.count + player.cities.count * 2
+        if state.longestRoadPlayer == player.id { total += 2 }
+        if state.largestArmyPlayer == player.id { total += 2 }
+        return total
     }
 
     static func isActivePlayer(_ id: PlayerID, in state: GameState) -> Bool {

@@ -17,11 +17,19 @@ public final class GameViewModel {
     /// What happened to the most recent trade the human proposed - `nil`
     /// until the first one. `TradePopupView` reads this right after calling
     /// `apply(.proposeTrade(...))` to show the human whether anyone
-    /// actually took the offer, since (unlike a real table) a bot's
-    /// accept/reject otherwise happens silently.
-    public enum TradeOutcome: Equatable {
-        case accepted(by: PlayerID)
-        case declined
+    /// actually took the offer (and what *every* bot individually decided,
+    /// not just whoever ended up taking it), since a bot's accept/reject
+    /// otherwise happens silently.
+    public struct TradeOutcome: Equatable {
+        /// Every bot's individual accept/reject answer, in seat order.
+        public let decisions: [(bot: PlayerID, accepted: Bool)]
+        public let acceptedBy: PlayerID?
+
+        public static func == (lhs: TradeOutcome, rhs: TradeOutcome) -> Bool {
+            lhs.acceptedBy == rhs.acceptedBy
+                && lhs.decisions.map(\.bot) == rhs.decisions.map(\.bot)
+                && lhs.decisions.map(\.accepted) == rhs.decisions.map(\.accepted)
+        }
     }
     public private(set) var lastTradeOutcome: TradeOutcome?
 
@@ -72,17 +80,23 @@ public final class GameViewModel {
     /// answer won't change on its own without some other state change, so
     /// leaving it pending indefinitely would just be a silent dead offer).
     private func resolveHumanProposedTrade(_ offer: TradeOffer) {
+        var decisions: [(bot: PlayerID, accepted: Bool)] = []
+        var acceptedBy: PlayerID?
         for botIndex in 1..<state.players.count {
             let bot = PlayerID(index: botIndex)
-            guard TradeHeuristics.evaluate(offer: offer, receiver: bot, state: state, personality: personality(for: bot)) else { continue }
-            try? RulesEngine.apply(.respondToTrade(offerID: offer.id, accept: true), by: bot, to: &state)
-            lastTradeOutcome = .accepted(by: bot)
-            return
+            let accepts = TradeHeuristics.evaluate(offer: offer, receiver: bot, state: state, personality: personality(for: bot))
+            decisions.append((bot, accepts))
+            if accepts, acceptedBy == nil {
+                acceptedBy = bot
+            }
         }
-        if state.players.count > 1 {
+
+        if let acceptedBy {
+            try? RulesEngine.apply(.respondToTrade(offerID: offer.id, accept: true), by: acceptedBy, to: &state)
+        } else if state.players.count > 1 {
             try? RulesEngine.apply(.respondToTrade(offerID: offer.id, accept: false), by: PlayerID(index: 1), to: &state)
         }
-        lastTradeOutcome = .declined
+        lastTradeOutcome = TradeOutcome(decisions: decisions, acceptedBy: acceptedBy)
     }
 
     /// Runs bot turns in a loop for as long as the active player (or, during

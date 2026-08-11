@@ -6,9 +6,18 @@ import CatanEngine
 /// readability; these operate directly on a `GraphicsContext` rather than
 /// being SwiftUI `View`s, since `Canvas` draws imperatively.
 enum TileDrawing {
-    static func hexPath(for tile: HexCoordinate, geometry: HexGeometry) -> Path {
+    /// `scale` shrinks the hex toward its own center (1.0 = full size, the
+    /// tap-target/vertex-alignment size every other caller - highlighting,
+    /// `BoardView`'s vertex/edge math - still uses). Only `drawTile` itself
+    /// passes a smaller scale, for the actual resource-colored fill.
+    static func hexPath(for tile: HexCoordinate, geometry: HexGeometry, scale: CGFloat = 1.0) -> Path {
         var path = Path()
-        let corners = (0..<6).map { geometry.corner(of: tile, index: $0) }
+        let center = geometry.center(of: tile)
+        let corners = (0..<6).map { index -> CGPoint in
+            let corner = geometry.corner(of: tile, index: index)
+            guard scale != 1.0 else { return corner }
+            return CGPoint(x: center.x + (corner.x - center.x) * scale, y: center.y + (corner.y - center.y) * scale)
+        }
         path.move(to: corners[0])
         for corner in corners.dropFirst() {
             path.addLine(to: corner)
@@ -17,10 +26,21 @@ enum TileDrawing {
         return path
     }
 
+    /// Each tile draws as two layers - a full-size hex filled with the
+    /// board's "frame" color (`CatanTheme.desert`, the same sand/manila
+    /// tone the desert tile itself uses), then a smaller resource-colored
+    /// hex centered on top - so a visible manila gap shows between every
+    /// pair of tiles, like the physical board's beige grout between
+    /// pieces, instead of tiles butting directly against each other.
+    /// Number tokens, roads, settlements, and tap targets all still align
+    /// to the full-size hex geometry - only this visual fill shrinks.
     static func drawTile(_ tile: Tile, geometry: HexGeometry, in context: GraphicsContext) {
-        let path = hexPath(for: tile.coordinate, geometry: geometry)
-        context.fill(path, with: .color(CatanTheme.color(for: tile.kind)))
-        context.stroke(path, with: .color(CatanTheme.tileBorder), lineWidth: 1.5)
+        let framePath = hexPath(for: tile.coordinate, geometry: geometry)
+        context.fill(framePath, with: .color(CatanTheme.desert))
+
+        let fillPath = hexPath(for: tile.coordinate, geometry: geometry, scale: 0.86)
+        context.fill(fillPath, with: .color(CatanTheme.color(for: tile.kind)))
+        context.stroke(fillPath, with: .color(CatanTheme.tileBorder), lineWidth: 1.5)
 
         if let number = tile.numberToken {
             drawNumberToken(number, at: geometry.center(of: tile.coordinate), size: geometry.size, in: context)

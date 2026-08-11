@@ -29,10 +29,33 @@ import CatanEngine
     var state = GameSetup.newGame(board: BoardGenerator.standard())
     state.players[0].resources = [.brick: 1, .lumber: 0, .grain: 1, .wool: 1, .ore: 0]
 
-    // A roughly break-even trade: a cautious (highly trade-willing) bot
-    // should take it; a low-willingness bot should not.
+    // An exactly break-even trade (give X for X): nobody should take it,
+    // trade-willing or not - the acceptance threshold is clamped at 0
+    // (see `evaluate`'s doc) precisely so a highly trade-willing
+    // personality still never accepts a non-positive trade.
     let offer = TradeOffer(from: PlayerID(index: 1), give: [.lumber: 1], want: [.lumber: 1])
     #expect(!TradeHeuristics.evaluate(offer: offer, receiver: PlayerID(index: 0), state: state, personality: .aggressive))
+    #expect(!TradeHeuristics.evaluate(offer: offer, receiver: PlayerID(index: 0), state: state, personality: .cautious))
+}
+
+/// Never accepts a trade that's a genuine net *loss* - regression test for
+/// the bug where `threshold = 0.5 - tradeWillingness` went negative for
+/// `.cautious` (tradeWillingness 0.8 -> threshold -0.3), letting it accept
+/// a real loss as long as it wasn't too big a one.
+@Test func neverAcceptsANetLossEvenAtHighTradeWillingness() {
+    var state = GameSetup.newGame(board: BoardGenerator.standard())
+    // Lumber is the sole blocker of the nearest target (settlement); wool
+    // is already fully covered everywhere, so giving wool away for lumber
+    // is a big net gain (the control case)...
+    state.players[0].resources = [.brick: 1, .lumber: 0, .grain: 1, .wool: 3, .ore: 0]
+    let favorable = TradeOffer(from: PlayerID(index: 1), give: [.lumber: 1], want: [.wool: 1])
+    #expect(TradeHeuristics.evaluate(offer: favorable, receiver: PlayerID(index: 0), state: state, personality: .cautious))
+
+    // ...but reversed (giving up the lumber we actually need for wool we
+    // don't) is a real loss, and should be rejected regardless of how
+    // trade-willing the personality is.
+    let unfavorable = TradeOffer(from: PlayerID(index: 1), give: [.wool: 1], want: [.lumber: 1])
+    #expect(!TradeHeuristics.evaluate(offer: unfavorable, receiver: PlayerID(index: 0), state: state, personality: .cautious))
 }
 
 /// Regression test for the trade-loop hang flagged during Task 12/16:

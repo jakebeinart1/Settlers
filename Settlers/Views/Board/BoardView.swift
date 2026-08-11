@@ -65,7 +65,12 @@ public struct BoardView: View {
 
     public var body: some View {
         GeometryReader { proxy in
-            let geometry = Self.fittedGeometry(for: board, in: CGRect(origin: .zero, size: proxy.size), padding: 24)
+            // Padding has to leave room for the port badges, which sit
+            // outside the outermost hex corners by roughly half a tile's
+            // size (see `TileDrawing.drawPort`) - shrinking this too far
+            // would clip them at the frame edge, so this is a modest bump
+            // over the old 24pt rather than using all the visual slack.
+            let geometry = Self.fittedGeometry(for: board, in: CGRect(origin: .zero, size: proxy.size), padding: 16)
             let boardCenter = Self.boardCenter(for: board, geometry: geometry)
             let ownership = Ownership(players: state.players)
 

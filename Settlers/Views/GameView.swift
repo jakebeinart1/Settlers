@@ -163,6 +163,12 @@ public struct GameView: View {
     @State private var diceScale: CGFloat = 1.0
     @State private var diceRotation: Double = 0
 
+    /// Drives a slow glow pulse on the "Roll Dice" button so it's obvious
+    /// that's the one thing to do right now - starts as soon as that button
+    /// appears (see its `.onAppear` below) and just stops mattering once
+    /// the phase moves on and a different button takes its place.
+    @State private var rollDicePulse = false
+
     /// Queued incoming bot trade offers, shown one at a time via
     /// `IncomingTradeCardView`. Seeded/grown by diffing
     /// `state.pendingTradeOffers` on each render.
@@ -450,8 +456,22 @@ public struct GameView: View {
     private var turnActionButton: some View {
         switch state.phase {
         case .rollDice(let playerIndex) where playerIndex == human.index:
-            UniformActionButton(title: "Roll Dice", systemImage: "die.face.5.fill", isEnabled: true) {
+            UniformActionButton(title: "Roll Dice", systemImage: "die.face.5.fill", isEnabled: true, isArmed: true) {
                 perform(.rollDice)
+            }
+            .overlay(
+                RoundedRectangle(cornerRadius: 8)
+                    .strokeBorder(Color.yellow, lineWidth: rollDicePulse ? 3 : 1)
+                    .opacity(rollDicePulse ? 1 : 0.35)
+            )
+            .onAppear {
+                rollDicePulse = false
+                withAnimation(.easeInOut(duration: 0.9).repeatForever(autoreverses: true)) {
+                    rollDicePulse = true
+                }
+            }
+            .onDisappear {
+                rollDicePulse = false
             }
         case .mainTurn(let playerIndex) where playerIndex == human.index:
             UniformActionButton(title: "End Turn", systemImage: "arrow.uturn.right.circle.fill", isEnabled: true) {

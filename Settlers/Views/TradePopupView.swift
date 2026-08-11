@@ -145,23 +145,37 @@ public struct TradePopupView: View {
 
     // MARK: - Trade proposal outcome
 
+    /// Every bot's individual accept/reject answer, not just whoever ended
+    /// up taking the offer - so it's clear this wasn't a black box.
     private func proposalOutcomeBanner(_ outcome: GameViewModel.TradeOutcome) -> some View {
-        let (text, color, icon): (String, Color, String) = switch outcome {
-        case .accepted(let bot):
-            ("\(CatanTheme.playerLabel(for: bot)) accepted!", .green, "checkmark.circle.fill")
-        case .declined:
-            ("No one accepted that trade.", .red, "xmark.circle.fill")
+        let headline = outcome.acceptedBy.map { "\(CatanTheme.playerLabel(for: $0)) accepted!" }
+            ?? "No one accepted that trade."
+        let headlineColor: Color = outcome.acceptedBy != nil ? .green : .red
+
+        return VStack(alignment: .leading, spacing: 6) {
+            HStack(spacing: 6) {
+                Image(systemName: outcome.acceptedBy != nil ? "checkmark.circle.fill" : "xmark.circle.fill")
+                Text(headline)
+                    .font(.caption.bold())
+            }
+            .foregroundStyle(headlineColor)
+
+            HStack(spacing: 10) {
+                ForEach(outcome.decisions, id: \.bot) { decision in
+                    HStack(spacing: 3) {
+                        Image(systemName: decision.accepted ? "checkmark" : "xmark")
+                            .font(.system(size: 9, weight: .bold))
+                            .foregroundStyle(decision.accepted ? .green : .red)
+                        Text(CatanTheme.playerLabel(for: decision.bot))
+                            .font(.caption2)
+                    }
+                }
+            }
         }
-        return HStack(spacing: 6) {
-            Image(systemName: icon)
-            Text(text)
-                .font(.caption.bold())
-        }
-        .foregroundStyle(.white)
         .padding(.horizontal, 10)
-        .padding(.vertical, 7)
-        .frame(maxWidth: .infinity)
-        .background(color.opacity(0.85), in: RoundedRectangle(cornerRadius: 10))
+        .padding(.vertical, 8)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Color.black.opacity(0.25), in: RoundedRectangle(cornerRadius: 10))
         .transition(.opacity.combined(with: .move(edge: .top)))
     }
 
@@ -212,29 +226,34 @@ public struct TradePopupView: View {
 
             HStack(spacing: 12) {
                 bankResourceTile(suggestion.give, count: suggestion.giveCount)
-
                 Image(systemName: "arrow.right")
                     .font(.caption.bold())
                     .foregroundStyle(.secondary)
-
-                Menu {
-                    ForEach(Resource.allCases.filter { $0 != suggestion.give }, id: \.self) { resource in
-                        Button {
-                            bankGetOverride = resource
-                        } label: {
-                            Label(resource.rawValue.capitalized, systemImage: CatanTheme.symbolName(for: resource))
-                        }
-                    }
-                } label: {
-                    HStack(spacing: 4) {
-                        bankResourceTile(suggestion.get, count: suggestion.getCount)
-                        Image(systemName: "chevron.up.chevron.down")
-                            .font(.system(size: 9, weight: .bold))
-                            .foregroundStyle(.secondary)
-                    }
-                }
-
+                bankResourceTile(suggestion.get, count: suggestion.getCount)
+                    .overlay(RoundedRectangle(cornerRadius: 8).strokeBorder(.white, lineWidth: 2))
                 Spacer(minLength: 0)
+            }
+
+            // Every other resource, tap to choose what to receive instead -
+            // a visible row of chips (matching how Give/Want are picked
+            // above) rather than a dropdown menu, so the choice itself is
+            // obvious rather than hidden behind a tap.
+            Text("Choose what to receive")
+                .font(.caption2)
+                .foregroundStyle(.secondary)
+            HStack(spacing: 8) {
+                ForEach(Resource.allCases.filter { $0 != suggestion.give }, id: \.self) { resource in
+                    Button {
+                        bankGetOverride = resource
+                    } label: {
+                        bankResourceTile(resource, count: nil)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 8)
+                                    .strokeBorder(resource == suggestion.get ? bankGold : .clear, lineWidth: 2)
+                            )
+                    }
+                    .buttonStyle(.plain)
+                }
             }
 
             Button {
@@ -254,12 +273,14 @@ public struct TradePopupView: View {
         .animation(.spring(response: 0.3, dampingFraction: 0.8), value: suggestion.giveCount)
     }
 
-    private func bankResourceTile(_ resource: Resource, count: Int) -> some View {
+    private func bankResourceTile(_ resource: Resource, count: Int?) -> some View {
         VStack(spacing: 1) {
             Image(systemName: CatanTheme.symbolName(for: resource))
                 .font(.callout)
-            Text("\(count)")
-                .font(.system(size: 11, weight: .bold))
+            if let count {
+                Text("\(count)")
+                    .font(.system(size: 11, weight: .bold))
+            }
         }
         .foregroundStyle(.white)
         .frame(width: 34, height: 34)

@@ -75,6 +75,24 @@ import Testing
     #expect(state.bank[resource(of: tile)] == 1)
 }
 
+/// Direct regression test that production is scoped to *exactly* the tiles
+/// a settlement touches - a settlement on a vertex nowhere near the rolled
+/// tile must get nothing from that roll, even if some other tile sharing
+/// its number token exists elsewhere on the board.
+@Test func settlementNotTouchingTheRolledTileGetsNothing() {
+    var state = GameSetup.newGame(board: BoardGenerator.standard())
+    let tile = resourceTile(in: state.board, notUnderRobber: true)
+    let touchingVertices = Set(HexGeometry.corners(of: tile.coordinate))
+
+    let farTile = state.board.tiles.first { $0.coordinate != tile.coordinate }!
+    let farVertex = HexGeometry.corners(of: farTile.coordinate).first { !touchingVertices.contains($0) }!
+    state.players[0].settlements.insert(farVertex)
+
+    MainPhase.rollDice(state: &state, roll: tile.numberToken!)
+
+    #expect(state.players[0].resources.values.reduce(0, +) == 0)
+}
+
 private func resource(of tile: Tile) -> Resource {
     guard case .resource(let resource) = tile.kind else { fatalError("expected a resource tile") }
     return resource

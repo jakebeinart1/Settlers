@@ -49,8 +49,14 @@ public enum TradeHeuristics {
     /// Accepts `offer` if what `receiver` would gain (`offer.give`) is worth
     /// more to their current build plan than what they'd give up
     /// (`offer.want`), with the bar lowered the more trade-willing their
-    /// personality is (a very willing bot accepts even a mild net loss; a
-    /// reluctant one demands a clear net gain).
+    /// personality is - but never low enough to accept a net loss: a very
+    /// trade-willing bot takes even a slightly-favorable deal (netGain just
+    /// above 0), a reluctant one demands a clearly favorable one, but
+    /// nobody accepts a trade that actually leaves them worse off.
+    /// (`0.5 - tradeWillingness` used to go negative for high-willingness
+    /// personalities - e.g. -0.3 for `.cautious` - which meant they'd
+    /// accept a real net loss as long as it wasn't too big a one; clamping
+    /// the threshold at 0 was the fix.)
     public static func evaluate(offer: TradeOffer, receiver: PlayerID, state: GameState, personality: BotPersonality) -> Bool {
         guard let receiverPlayer = state.players.first(where: { $0.id == receiver }) else { return false }
 
@@ -62,7 +68,7 @@ public enum TradeHeuristics {
         }
 
         let netGain = gainValue - costValue
-        let threshold = 0.5 - personality.tradeWillingness
+        let threshold = max(0, 0.5 - personality.tradeWillingness)
         return netGain > threshold
     }
 
