@@ -29,6 +29,29 @@ import Testing
     #expect(!Building.canBuildRoad(edge, for: p0, in: state))
 }
 
+@Test func roadCannotExtendThroughAnOpponentsSettlement() {
+    var state = GameSetup.newGame(board: BoardGenerator.standard())
+    let p0 = PlayerID(index: 0)
+    let vertexA = state.board.onBoardVertices.sorted().first!
+    let edgeAB = state.board.edgesTouching(vertexA).first!
+    let (x, y) = state.board.vertices(of: edgeAB)
+    let vertexB = (x == vertexA) ? y : x
+    let edgeBC = state.board.edgesTouching(vertexB).first { $0 != edgeAB }!
+
+    state.players[0].settlements.insert(vertexA)
+    state.players[0].roads.insert(edgeAB)
+
+    // p0's road already reaches vertexB, so continuing past it would look
+    // legal under the old "touches any own road" check.
+    #expect(Building.canBuildRoad(edgeBC, for: p0, in: state))
+
+    // Once p1 settles vertexB, it cuts p0's network there - matches real
+    // Catan rules (an opponent's settlement/city blocks through-connectivity)
+    // - so the same edge is no longer buildable for p0.
+    state.players[1].settlements.insert(vertexB)
+    #expect(!Building.canBuildRoad(edgeBC, for: p0, in: state))
+}
+
 @Test func settlementRespectsDistanceRuleAndRoadConnection() {
     var state = GameSetup.newGame(board: BoardGenerator.standard())
     state.phase = .mainTurn(playerIndex: 0)

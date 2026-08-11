@@ -1,13 +1,103 @@
 import SwiftUI
 import CatanEngine
 
-/// Which kind of build placement the human has armed via `BuildMenuView`.
+/// Which kind of build placement the human has armed via `BuildPopupView`.
 /// While non-nil, `BoardView` is put into placement mode: only legal targets
 /// for that move are tappable, everything else dims out.
 public enum PlacementMode: Equatable {
     case road
     case settlement
     case city
+
+    var label: String {
+        switch self {
+        case .road: return "Road"
+        case .settlement: return "Settlement"
+        case .city: return "City"
+        }
+    }
+}
+
+/// Reports each player's HUD chip/panel frame (in the `"game"` coordinate
+/// space `GameView` establishes) so a resource-production flight animation
+/// can land on the right spot - see `PlayerHUDView`'s chips/panel, which tag
+/// themselves via this key.
+struct PlayerFrameKey: PreferenceKey {
+    static var defaultValue: [PlayerID: CGRect] { [:] }
+    static func reduce(value: inout [PlayerID: CGRect], nextValue: () -> [PlayerID: CGRect]) {
+        value.merge(nextValue(), uniquingKeysWith: { $1 })
+    }
+}
+
+/// Reports the board's own frame (same coordinate space as `PlayerFrameKey`)
+/// as the flight animation's launch point.
+private struct BoardFrameKey: PreferenceKey {
+    static var defaultValue: CGRect { .zero }
+    static func reduce(value: inout CGRect, nextValue: () -> CGRect) {
+        value = nextValue()
+    }
+}
+
+/// One resource unit (or stack) animating from the board to a player's HUD
+/// spot after a dice roll - see `GameView.animateProduction(for:)`.
+private struct ResourceFlight: Identifiable {
+    let id = UUID()
+    let resource: Resource
+    let count: Int
+    let start: CGPoint
+    let end: CGPoint
+}
+
+/// Small badge that flies from `flight.start` to `flight.end` and fades out,
+/// calling `onComplete` once its animation has fully played - `GameView`
+/// uses that to drop it from `resourceFlights`.
+private struct ResourceFlightBadge: View {
+    let flight: ResourceFlight
+    let onComplete: () -> Void
+
+    @State private var position: CGPoint
+    @State private var opacity: Double = 1
+    @State private var scale: CGFloat = 0.6
+
+    init(flight: ResourceFlight, onComplete: @escaping () -> Void) {
+        self.flight = flight
+        self.onComplete = onComplete
+        _position = State(initialValue: flight.start)
+    }
+
+    var body: some View {
+        HStack(spacing: 2) {
+            Image(systemName: CatanTheme.symbolName(for: flight.resource))
+                .font(.system(size: 11, weight: .bold))
+            if flight.count > 1 {
+                Text("\(flight.count)")
+                    .font(.system(size: 10, weight: .bold))
+            }
+        }
+        .foregroundStyle(.white)
+        .padding(6)
+        .background(CatanTheme.color(for: flight.resource), in: Circle())
+        .overlay(Circle().strokeBorder(.white.opacity(0.7), lineWidth: 1))
+        .shadow(radius: 3)
+        .scaleEffect(scale)
+        .position(position)
+        .opacity(opacity)
+        .onAppear {
+            withAnimation(.easeOut(duration: 0.15)) {
+                scale = 1
+            }
+            withAnimation(.easeInOut(duration: 0.65)) {
+                position = flight.end
+            }
+            withAnimation(.easeIn(duration: 0.2).delay(0.5)) {
+                opacity = 0
+            }
+            Task {
+                try? await Task.sleep(for: .milliseconds(750))
+                onComplete()
+            }
+        }
+    }
 }
 
 /// The real, composed game screen, top to bottom: `BotHUDRow` (the 3 bot
@@ -34,6 +124,7 @@ public struct GameView: View {
 
     @State private var placementMode: PlacementMode?
     @State private var showTradePopup = false
+    @State private var showBuildPopup = false
     @State private var devCardPopupType: DevCardType?
     @State private var errorMessage: String?
 
@@ -63,6 +154,25 @@ public struct GameView: View {
     @State private var incomingOfferQueue: [TradeOffer] = []
     @State private var seenTradeOfferIDs: Set<UUID> = []
 
+    /// Bookkeeping for the roll production animation: tiles matching the
+    /// most recent roll (briefly outlined on the board), the in-flight
+    /// resource badges themselves, and the last count of `state.log` we've
+    /// already scanned (so a growth of exactly the lines added since then
+    /// can be checked for a "rolled N" line without re-scanning the whole
+    /// log every render).
+    @State private var rollHighlightTiles: Set<HexCoordinate> = []
+    @State private var resourceFlights: [ResourceFlight] = []
+    @State private var lastSeenLogCount = 0
+    @State private var resourcesSnapshot: [PlayerID: [Resource: Int]] = [:]
+
+    /// Player HUD chip/panel frames and the board's own frame, both in the
+    /// `"game"` coordinate space this view establishes - populated via
+    /// `PlayerFrameKey`/`BoardFrameKey` preferences from `PlayerHUDView`'s
+    /// chips/panel and the board container below, purely to give
+    /// `animateProduction(for:)` launch/landing points.
+    @State private var playerAnchors: [PlayerID: CGRect] = [:]
+    @State private var boardFrame: CGRect = .zero
+
     private var state: GameState { viewModel.state }
     private var human: PlayerID { viewModel.humanPlayer }
 
@@ -83,7 +193,13 @@ public struct GameView: View {
                         highlightedEdges: highlightedEdges,
                         isPlacementModeActive: isPlacementModeActive || isRobberTargetingActive,
                         highlightedTiles: highlightedTilesForRobber,
-                        isTileTargetingActive: isRobberTargetingActive
+                        isTileTargetingActive: isRobberTargetingActive,
+                        rollHighlightTiles: rollHighlightTiles
+                    )
+                    .background(
+                        GeometryReader { geo in
+                            Color.clear.preference(key: BoardFrameKey.self, value: geo.frame(in: .named("game")))
+                        }
                     )
 
                     if let roll = state.lastDiceRoll {
@@ -120,6 +236,13 @@ public struct GameView: View {
             }
             .padding(8)
 
+            ForEach(resourceFlights) { flight in
+                ResourceFlightBadge(flight: flight) {
+                    resourceFlights.removeAll { $0.id == flight.id }
+                }
+            }
+            .allowsHitTesting(false)
+
             if viewModel.isBotThinking {
                 VStack {
                     Text("Bot thinking…")
@@ -132,6 +255,10 @@ public struct GameView: View {
                     Spacer()
                 }
                 .allowsHitTesting(false)
+            }
+
+            if showBuildPopup {
+                BuildPopupView(viewModel: viewModel, placementMode: $placementMode, onDismiss: { showBuildPopup = false })
             }
 
             if showTradePopup {
@@ -151,13 +278,18 @@ public struct GameView: View {
                     onCancel: { self.devCardPopupType = nil }
                 )
             }
+
+            if isDiscardPresented {
+                DiscardPopupView(viewModel: viewModel)
+            }
         }
-        .sheet(isPresented: isDiscardPresented) {
-            DiscardView(viewModel: viewModel)
-                .interactiveDismissDisabled(true)
-        }
+        .coordinateSpace(name: "game")
+        .onPreferenceChange(PlayerFrameKey.self) { playerAnchors = $0 }
+        .onPreferenceChange(BoardFrameKey.self) { boardFrame = $0 }
         .onAppear {
             seenTradeOfferIDs = Set(state.pendingTradeOffers.map(\.id))
+            lastSeenLogCount = state.log.count
+            resourcesSnapshot = currentResourcesByPlayer()
         }
         .onChange(of: state.pendingTradeOffers.map(\.id)) { _, _ in
             handleTradeOffersChange()
@@ -165,6 +297,9 @@ public struct GameView: View {
         .onChange(of: state.lastDiceRoll) { _, newValue in
             guard newValue != nil else { return }
             animateDiceRoll()
+        }
+        .onChange(of: state.log.count) { _, newCount in
+            handleLogGrowth(newCount: newCount)
         }
         .onChange(of: isRobberTargetingActive) { _, isActive in
             if !isActive { robberTargetTile = nil }
@@ -224,10 +359,23 @@ public struct GameView: View {
 
     /// Build / Trade / turn action (Roll Dice or End Turn) - dev cards are
     /// played by tapping their tile in `HumanPlayerPanel` now, so this row
-    /// only needs three slots.
+    /// only needs three slots. Build opens `BuildPopupView` (matching
+    /// Trade's popup-card look) unless a placement mode is already armed, in
+    /// which case tapping the button just cancels it directly.
     private var actionRow: some View {
         HStack(spacing: 10) {
-            BuildMenuView(viewModel: viewModel, placementMode: $placementMode)
+            UniformActionButton(
+                title: placementMode == nil ? "Build" : placementMode!.label,
+                systemImage: placementMode == nil ? "hammer.fill" : "hammer.circle.fill",
+                isEnabled: true,
+                isArmed: placementMode != nil
+            ) {
+                if placementMode != nil {
+                    placementMode = nil
+                } else {
+                    showBuildPopup = true
+                }
+            }
             UniformActionButton(
                 title: "Trade", systemImage: "arrow.left.arrow.right",
                 isEnabled: isTradeAvailable
@@ -297,16 +445,11 @@ public struct GameView: View {
         }
     }
 
-    // MARK: - Sheet presentation bindings
+    // MARK: - Popup presentation conditions
 
-    private var isDiscardPresented: Binding<Bool> {
-        Binding(
-            get: {
-                if case .discarding(let pending) = state.phase { return pending.contains(human) }
-                return false
-            },
-            set: { _ in }
-        )
+    private var isDiscardPresented: Bool {
+        if case .discarding(let pending) = state.phase { return pending.contains(human) }
+        return false
     }
 
     // MARK: - Dev card sub-flows
@@ -529,6 +672,65 @@ public struct GameView: View {
             errorMessage = "\(error)"
         }
         incomingOfferQueue.removeAll { $0.id == offer.id }
+    }
+
+    // MARK: - Roll production animation
+
+    /// Watches `state.log` growth purely to notice "X rolled N" lines (the
+    /// exact phrasing `RulesEngine.apply(.rollDice, ...)` appends - a small,
+    /// disclosed coupling to log wording, same tradeoff `GameView`'s old
+    /// notification-classifier made) so a roll can be animated regardless of
+    /// whether the human or a bot rolled it. `resourcesSnapshot` is always
+    /// refreshed afterward so the *next* roll's diff isn't polluted by
+    /// builds/trades/discards that happened in between.
+    private func handleLogGrowth(newCount: Int) {
+        defer {
+            lastSeenLogCount = newCount
+            resourcesSnapshot = currentResourcesByPlayer()
+        }
+        guard newCount > lastSeenLogCount, newCount <= state.log.count else { return }
+        guard state.log[lastSeenLogCount..<newCount].contains(where: { $0.contains(" rolled ") }),
+              let roll = state.lastDiceRoll else { return }
+        animateProduction(for: roll)
+    }
+
+    private func currentResourcesByPlayer() -> [PlayerID: [Resource: Int]] {
+        Dictionary(uniqueKeysWithValues: state.players.map { ($0.id, $0.resources) })
+    }
+
+    /// Briefly outlines every tile matching `roll` (mirrors `MainPhase
+    /// .rollDice`'s own "which tiles produce" rule: matches the roll and
+    /// isn't under the robber) and, for each player whose hand grew since
+    /// `resourcesSnapshot`, spawns a small flying badge per gained resource
+    /// from the board to that player's HUD spot - purely a presentation
+    /// flourish over `MainPhase`'s already-applied production, not a second
+    /// source of truth for it.
+    private func animateProduction(for roll: Int) {
+        let producingTiles = state.board.tiles.filter { $0.numberToken == roll && $0.coordinate != state.board.robberTile }
+        guard !producingTiles.isEmpty else { return }
+
+        withAnimation(.easeIn(duration: 0.15)) {
+            rollHighlightTiles = Set(producingTiles.map(\.coordinate))
+        }
+        Task {
+            try? await Task.sleep(for: .milliseconds(900))
+            withAnimation(.easeOut(duration: 0.3)) {
+                rollHighlightTiles = []
+            }
+        }
+
+        guard boardFrame != .zero else { return }
+        let origin = CGPoint(x: boardFrame.midX, y: boardFrame.midY)
+        for player in state.players {
+            guard let anchor = playerAnchors[player.id], anchor != .zero else { continue }
+            let destination = CGPoint(x: anchor.midX, y: anchor.midY)
+            let before = resourcesSnapshot[player.id] ?? [:]
+            for resource in Resource.allCases {
+                let gained = (player.resources[resource] ?? 0) - (before[resource] ?? 0)
+                guard gained > 0 else { continue }
+                resourceFlights.append(ResourceFlight(resource: resource, count: gained, start: origin, end: destination))
+            }
+        }
     }
 }
 

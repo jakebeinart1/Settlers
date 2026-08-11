@@ -125,6 +125,11 @@ public struct HumanPlayerPanel: View {
                 RoundedRectangle(cornerRadius: 12)
                     .strokeBorder(isActive ? CatanTheme.color(for: human) : .clear, lineWidth: 2)
             )
+            .background(
+                GeometryReader { geo in
+                    Color.clear.preference(key: PlayerFrameKey.self, value: [human: geo.frame(in: .named("game"))])
+                }
+            )
         }
     }
 }
@@ -145,11 +150,15 @@ private struct DevCardHUDTile: View {
             VStack(spacing: 2) {
                 Image(systemName: icon)
                     .font(.callout)
+                Text(name)
+                    .font(.system(size: 8, weight: .bold))
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.7)
                 Text("x\(held)")
                     .font(.system(size: 10, weight: .bold))
             }
             .foregroundStyle(.white)
-            .frame(width: 34, height: 36)
+            .frame(width: 50, height: 48)
             .background(RoundedRectangle(cornerRadius: 8).fill(color.gradient))
             .overlay(RoundedRectangle(cornerRadius: 8).strokeBorder(.white.opacity(0.4), lineWidth: 1))
             .overlay(alignment: .topTrailing) {
@@ -172,6 +181,16 @@ private struct DevCardHUDTile: View {
         case .yearOfPlenty: return "sparkles"
         case .monopoly: return "crown.fill"
         case .victoryPoint: return "star.fill"
+        }
+    }
+
+    private var name: String {
+        switch type {
+        case .knight: return "Knight"
+        case .roadBuilding: return "Road"
+        case .yearOfPlenty: return "Plenty"
+        case .monopoly: return "Monopoly"
+        case .victoryPoint: return "VP"
         }
     }
 
@@ -249,6 +268,11 @@ enum PlayerChip {
         .overlay(
             RoundedRectangle(cornerRadius: 10)
                 .strokeBorder(isActive ? CatanTheme.color(for: player.id) : .clear, lineWidth: 2)
+        )
+        .background(
+            GeometryReader { geo in
+                Color.clear.preference(key: PlayerFrameKey.self, value: [player.id: geo.frame(in: .named("game"))])
+            }
         )
     }
 

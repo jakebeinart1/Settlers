@@ -14,17 +14,36 @@ public enum Building {
 
     /// Roads must sit on an unoccupied on-board edge and connect to the
     /// player's existing road/settlement/city network.
+    ///
+    /// An opponent's settlement/city at a vertex cuts the road network there
+    /// (matches real Catan rules): reaching a vertex through your own road
+    /// only counts as connectivity if that vertex isn't occupied by another
+    /// player's building - otherwise you could keep extending a road straight
+    /// through/past an opponent's settlement. Ending a road *at* that vertex
+    /// is still fine (that's a distance-rule/city question elsewhere, not a
+    /// road-building one); what's blocked is treating it as a through-point
+    /// for a *further* road on the other side.
     public static func canBuildRoad(_ edge: EdgeID, for player: PlayerID, in state: GameState) -> Bool {
         guard state.board.onBoardEdges.contains(edge) else { return false }
         guard let owner = state.players.first(where: { $0.id == player }) else { return false }
         let allRoads = Set(state.players.flatMap { $0.roads })
         guard !allRoads.contains(edge) else { return false }
 
+        let opponentBuildings = state.players
+            .filter { $0.id != player }
+            .flatMap { $0.settlements.union($0.cities) }
+        let opponentOccupied = Set(opponentBuildings)
+
         let (a, b) = state.board.vertices(of: edge)
         let touchesOwnBuilding = owner.settlements.contains(a) || owner.settlements.contains(b)
             || owner.cities.contains(a) || owner.cities.contains(b)
-        let touchesOwnRoad = state.board.edgesTouching(a).contains { owner.roads.contains($0) }
-            || state.board.edgesTouching(b).contains { owner.roads.contains($0) }
+
+        func connectsThroughOwnRoad(at vertex: VertexID) -> Bool {
+            guard !opponentOccupied.contains(vertex) else { return false }
+            return state.board.edgesTouching(vertex).contains { owner.roads.contains($0) }
+        }
+        let touchesOwnRoad = connectsThroughOwnRoad(at: a) || connectsThroughOwnRoad(at: b)
+
         return touchesOwnBuilding || touchesOwnRoad
     }
 

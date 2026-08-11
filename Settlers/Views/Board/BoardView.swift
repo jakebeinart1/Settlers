@@ -30,6 +30,12 @@ public struct BoardView: View {
     /// inline robber-move flow (see `GameView`).
     public let highlightedTiles: Set<HexCoordinate>
     public let isTileTargetingActive: Bool
+    /// Tiles matching the most recent dice roll, briefly outlined right
+    /// after a roll - purely a visual cue for where production came from,
+    /// distinct from `highlightedTiles`' robber-targeting purpose (both can
+    /// technically be active at once, though in practice a mandatory robber
+    /// move only follows a 7, which never has producing tiles to highlight).
+    public let rollHighlightTiles: Set<HexCoordinate>
 
     public init(
         state: GameState,
@@ -40,7 +46,8 @@ public struct BoardView: View {
         highlightedEdges: Set<EdgeID> = [],
         isPlacementModeActive: Bool = false,
         highlightedTiles: Set<HexCoordinate> = [],
-        isTileTargetingActive: Bool = false
+        isTileTargetingActive: Bool = false,
+        rollHighlightTiles: Set<HexCoordinate> = []
     ) {
         self.state = state
         self.onTapVertex = onTapVertex
@@ -51,6 +58,7 @@ public struct BoardView: View {
         self.isPlacementModeActive = isPlacementModeActive
         self.highlightedTiles = highlightedTiles
         self.isTileTargetingActive = isTileTargetingActive
+        self.rollHighlightTiles = rollHighlightTiles
     }
 
     private var board: Board { state.board }
@@ -74,6 +82,10 @@ public struct BoardView: View {
                             } else {
                                 context.fill(path, with: .color(.black.opacity(0.45)))
                             }
+                        }
+                        if rollHighlightTiles.contains(tile.coordinate) {
+                            let path = TileDrawing.hexPath(for: tile.coordinate, geometry: geometry)
+                            context.stroke(path, with: .color(.white), lineWidth: 4)
                         }
                     }
                     for port in board.ports {

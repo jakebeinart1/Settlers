@@ -67,7 +67,7 @@ public struct TradePopupView: View {
             Text("Give")
                 .font(.caption.bold())
                 .foregroundStyle(.secondary)
-            slotRow(counts: give, emptyText: "Tap a card from your hand below") { resource in
+            ResourceSlotRow(counts: give, emptyText: "Tap a card from your hand below") { resource in
                 give[resource] = (give[resource] ?? 0) - 1
                 if give[resource] == 0 { give[resource] = nil }
             }
@@ -75,7 +75,7 @@ public struct TradePopupView: View {
             Text("Want")
                 .font(.caption.bold())
                 .foregroundStyle(.secondary)
-            slotRow(counts: want, emptyText: "Tap a resource below to ask for it") { resource in
+            ResourceSlotRow(counts: want, emptyText: "Tap a resource below to ask for it") { resource in
                 want[resource] = (want[resource] ?? 0) - 1
                 if want[resource] == 0 { want[resource] = nil }
             }
@@ -102,25 +102,6 @@ public struct TradePopupView: View {
         }
     }
 
-    /// One slot row (Give or Want): a chip per resource currently in that
-    /// slot, tap to remove one back out.
-    private func slotRow(counts: [Resource: Int], emptyText: String, onTap: @escaping (Resource) -> Void) -> some View {
-        HStack(spacing: 8) {
-            let entries = Resource.allCases.filter { (counts[$0] ?? 0) > 0 }
-            if entries.isEmpty {
-                Text(emptyText)
-                    .font(.caption2)
-                    .foregroundStyle(.secondary)
-            } else {
-                ForEach(entries, id: \.self) { resource in
-                    resourceChip(resource, count: counts[resource] ?? 0) { onTap(resource) }
-                }
-            }
-            Spacer(minLength: 0)
-        }
-        .frame(minHeight: 40)
-    }
-
     /// Your hand, minus whatever's already moved into Give - tap a resource
     /// to move one more unit into the Give slot (only enabled while you
     /// still hold an un-given unit of it).
@@ -129,7 +110,7 @@ public struct TradePopupView: View {
             ForEach(Resource.allCases, id: \.self) { resource in
                 let owned = human?.resources[resource] ?? 0
                 let remaining = owned - (give[resource] ?? 0)
-                resourceChip(resource, count: remaining, isEnabled: remaining > 0) {
+                ResourceChip(resource: resource, count: remaining, isEnabled: remaining > 0) {
                     give[resource] = (give[resource] ?? 0) + 1
                 }
             }
@@ -141,29 +122,11 @@ public struct TradePopupView: View {
     private var wantPalette: some View {
         HStack(spacing: 8) {
             ForEach(Resource.allCases, id: \.self) { resource in
-                resourceChip(resource, count: nil) {
+                ResourceChip(resource: resource, count: nil) {
                     want[resource] = (want[resource] ?? 0) + 1
                 }
             }
         }
-    }
-
-    private func resourceChip(_ resource: Resource, count: Int?, isEnabled: Bool = true, action: @escaping () -> Void) -> some View {
-        Button(action: action) {
-            VStack(spacing: 2) {
-                Image(systemName: CatanTheme.symbolName(for: resource))
-                    .font(.callout)
-                if let count {
-                    Text("\(count)")
-                        .font(.system(size: 11, weight: .bold))
-                }
-            }
-            .foregroundStyle(.white)
-            .frame(width: 36, height: 36)
-            .background(CatanTheme.color(for: resource), in: RoundedRectangle(cornerRadius: 8))
-        }
-        .disabled(!isEnabled)
-        .opacity(isEnabled ? 1 : 0.35)
     }
 
     // MARK: - Bank trade (unchanged logic, restyled)
