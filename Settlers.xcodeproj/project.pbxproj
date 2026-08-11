@@ -17,6 +17,7 @@
 		5A3814A3A6D971002FE6368B /* CatanAI in Frameworks */ = {isa = PBXBuildFile; productRef = 86D26250D0551805B74D0B0B /* CatanAI */; };
 		687BD8586D01E4597A1C7A32 /* BoardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E89E14D5D0ACBB92DF7729B3 /* BoardView.swift */; };
 		6BE4D5162E62A51ADA6A2599 /* GameStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = E093DA361796607C17A17777 /* GameStore.swift */; };
+		717C7599DB05DB7CF59E852F /* CivilizationPieceShapes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0AC74C3A12A7CDE5AE1B1546 /* CivilizationPieceShapes.swift */; };
 		71E36B2F286888830989FBC7 /* MainMenuView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 27BDAD47ABBB94D7F73976E5 /* MainMenuView.swift */; };
 		7678F2D966C6DDD39D673266 /* IncomingTradeCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F34A579755CFBDEAF52EBB70 /* IncomingTradeCardView.swift */; };
 		82772E4A5ECBA817A966B46B /* GameView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6F0C19DF5E22050B860A7094 /* GameView.swift */; };
@@ -36,6 +37,7 @@
 
 /* Begin PBXFileReference section */
 		06E9063445AF048FF3A65C5A /* DevCardPopupView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DevCardPopupView.swift; sourceTree = "<group>"; };
+		0AC74C3A12A7CDE5AE1B1546 /* CivilizationPieceShapes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CivilizationPieceShapes.swift; sourceTree = "<group>"; };
 		27BDAD47ABBB94D7F73976E5 /* MainMenuView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainMenuView.swift; sourceTree = "<group>"; };
 		4B89EE635B1E470682ED1D4B /* CatanTheme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CatanTheme.swift; sourceTree = "<group>"; };
 		52C0B1D44B650E22AEBC8366 /* EndGameView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EndGameView.swift; sourceTree = "<group>"; };
@@ -160,6 +162,7 @@
 			children = (
 				E89E14D5D0ACBB92DF7729B3 /* BoardView.swift */,
 				8E616D996C5EBA2DBFC75D9D /* CivilizationBadge.swift */,
+				0AC74C3A12A7CDE5AE1B1546 /* CivilizationPieceShapes.swift */,
 				7581395190BC539D01AEA19A /* HexGeometry.swift */,
 				EC9BE64D33337CB59DE2D79D /* TileView.swift */,
 			);
@@ -253,6 +256,7 @@
 				3B62B3E810E58200F2983839 /* CatanTheme.swift in Sources */,
 				DBA70E71EA1FD506BEBF2C4A /* Civilization.swift in Sources */,
 				82F087D94201BDEDFBBB4BA8 /* CivilizationBadge.swift in Sources */,
+				717C7599DB05DB7CF59E852F /* CivilizationPieceShapes.swift in Sources */,
 				C8EBD90EAF2F47466F8B5A2C /* ContentView.swift in Sources */,
 				998F740F246A9D43D5465A2E /* DevCardPopupView.swift in Sources */,
 				2963FFF4A45E734FACE3E93A /* DiscardPopupView.swift in Sources */,

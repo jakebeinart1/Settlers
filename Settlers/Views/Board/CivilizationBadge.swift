@@ -1,33 +1,32 @@
 import SwiftUI
 
-/// A small, flat marker for a settlement/city on the board - replaces the
-/// detailed isometric/illustrated building art (Rome's arch, Egypt's
-/// pyramid, etc.) that kept needing real size to stay legible. This is
-/// deliberately simple instead: a solid circle in the civilization's own
-/// color, a thin black outline (matching the flat, straight-bordered board
-/// style), and that civilization's emblem glyph in white - reads clearly
-/// even tiny, same as the number tokens' own black-outlined circles. A city
-/// is the same badge, just bigger, with an extra white ring so the upgrade
-/// from settlement -> city is visible even at a glance.
+/// A small, flat marker for a settlement/city on the board - replaces both
+/// the detailed isometric/illustrated building art (needed real size to
+/// stay legible) and a plain circle-with-glyph badge (read as too generic,
+/// not enough like an actual building) tried before this. Each civilization
+/// gets its own bold, single-silhouette shape (`CivilizationPieceShapes`) -
+/// Egypt's pyramid, Aztec's ziggurat, Greece's temple front, Rome's arch -
+/// filled with that civilization's own color and a thin black outline,
+/// matching the board's flat, straight-bordered, black-outlined style. A
+/// city is the same silhouette, just bigger, with an added white ring so
+/// the upgrade from settlement -> city is visible at a glance.
 struct CivilizationBadge: View {
     let civilization: Civilization
     let isCity: Bool
     let size: CGFloat
 
     var body: some View {
+        let shape = civilization.pieceShape()
+
         ZStack {
-            Circle()
-                .fill(civilization.accentColor)
             if isCity {
-                Circle()
-                    .strokeBorder(.white, lineWidth: max(1.5, size * 0.07))
-                    .padding(size * 0.1)
+                shape
+                    .stroke(.white, lineWidth: max(2, size * 0.16))
+                    .padding(size * 0.06)
             }
-            Circle()
-                .strokeBorder(.black, lineWidth: 1.5)
-            Image(systemName: civilization.emblemSymbol)
-                .font(.system(size: size * 0.42, weight: .bold))
-                .foregroundStyle(.white)
+            shape
+                .fill(civilization.accentColor)
+                .overlay(shape.stroke(.black, lineWidth: 1.5))
         }
         .frame(width: size, height: size)
     }
