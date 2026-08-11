@@ -84,3 +84,29 @@ import CatanEngine
         return
     }
 }
+
+/// Bots previously never fell back to the bank/port at all, only trading
+/// with other players - a bot sitting on a lopsided surplus with no willing
+/// trade partner would just stall. One brick short... no, one wool short of
+/// a settlement, with a 5-brick surplus (well over the no-port 4:1 rate):
+/// `bestBankTrade` should offer up brick for the missing wool.
+@Test func bestBankTradeConvertsSurplusTowardTheNearestBuild() {
+    var state = GameSetup.newGame(board: BoardGenerator.standard())
+    let player = PlayerID(index: 0)
+    state.players[0].resources = [.brick: 5, .lumber: 1, .grain: 1, .wool: 0, .ore: 0]
+
+    let trade = TradeHeuristics.bestBankTrade(state: state, player: player, personality: .balanced)
+    #expect(trade?.give == .brick)
+    #expect(trade?.get == .wool)
+    #expect(trade?.rate == 4) // no port owned (no settlements yet)
+}
+
+/// Nothing to convert into: already holds everything the nearest target
+/// needs, so there's no "most needed" resource to trade for.
+@Test func bestBankTradeIsNilWhenNothingIsBlockingTheNearestBuild() {
+    var state = GameSetup.newGame(board: BoardGenerator.standard())
+    let player = PlayerID(index: 0)
+    state.players[0].resources = [.brick: 1, .lumber: 1, .grain: 1, .wool: 1, .ore: 0]
+
+    #expect(TradeHeuristics.bestBankTrade(state: state, player: player, personality: .balanced) == nil)
+}

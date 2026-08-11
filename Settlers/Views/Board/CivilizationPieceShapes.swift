@@ -7,8 +7,13 @@ import SwiftUI
 // circle-with-glyph badges didn't land - these read as an actual building
 // silhouette without needing real size to do it.
 
-/// Egypt: a triangle with a small base band underneath, so it reads as a
-/// pyramid sitting on ground rather than a bare geometric triangle.
+/// Egypt: a triangle with a small base band underneath (so it reads as a
+/// pyramid sitting on ground, not a bare geometric triangle) plus a few
+/// horizontal "stone course" lines - added as thin closed sub-rectangles
+/// spanning the triangle's actual width at that height, rather than a
+/// second stroke color: since the whole shape fills one flat color, a thin
+/// band's own top/bottom edges read as a horizontal line once the shape is
+/// outlined, without `CivilizationBadge` needing to know about it.
 struct EgyptPyramidGlyph: Shape {
     func path(in rect: CGRect) -> Path {
         var path = Path()
@@ -22,26 +27,40 @@ struct EgyptPyramidGlyph: Shape {
         path.closeSubpath()
 
         path.addRect(CGRect(x: rect.minX, y: bodyBottom, width: rect.width, height: baseHeight))
+
+        let courseCount = 3
+        let lineThickness = max(1, rect.height * 0.02)
+        for i in 1...courseCount {
+            let y = peakY + (bodyBottom - peakY) * CGFloat(i) / CGFloat(courseCount + 1)
+            let halfWidth = (rect.width / 2) * (y - peakY) / (bodyBottom - peakY)
+            path.addRect(CGRect(x: rect.midX - halfWidth, y: y - lineThickness / 2, width: halfWidth * 2, height: lineThickness))
+        }
         return path
     }
 }
 
 /// Aztec: a 3-tier stepped ziggurat, widest at the base and narrowing going
-/// up (each tier above sits inset from the one below it).
+/// up (each tier above sits inset from the one below it), crowned with a
+/// small temple block at the peak.
 struct AztecZigguratGlyph: Shape {
     func path(in rect: CGRect) -> Path {
         var path = Path()
+        let templeHeight = rect.height * 0.14
+        let bodyTop = rect.minY + templeHeight
         let tiers = 3
-        let tierHeight = rect.height / CGFloat(tiers)
+        let tierHeight = (rect.maxY - bodyTop) / CGFloat(tiers)
         for tier in 0..<tiers {
             // tier 0 is the top (narrowest); tier (tiers-1) is the bottom
             // (widest) - inset shrinks as tier increases, i.e. as you go
             // down toward the base.
             let stepsFromTop = CGFloat(tiers - 1 - tier)
             let inset = rect.width * 0.5 * (stepsFromTop / CGFloat(tiers))
-            let top = rect.minY + CGFloat(tier) * tierHeight
+            let top = bodyTop + CGFloat(tier) * tierHeight
             path.addRect(CGRect(x: rect.minX + inset, y: top, width: rect.width - inset * 2, height: tierHeight))
         }
+
+        let templeWidth = rect.width * 0.22
+        path.addRect(CGRect(x: rect.midX - templeWidth / 2, y: rect.minY, width: templeWidth, height: templeHeight))
         return path
     }
 }

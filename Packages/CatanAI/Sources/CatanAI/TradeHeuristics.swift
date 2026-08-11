@@ -73,12 +73,7 @@ public enum TradeHeuristics {
     /// blocking (nothing to trade for) or there's no surplus to give up.
     public static func proposeTrades(state: GameState, player: PlayerID, personality: BotPersonality) -> [TradeOffer] {
         guard let me = state.players.first(where: { $0.id == player }) else { return [] }
-
-        // The "current build plan" is whichever target has the smallest
-        // total deficit - i.e. the one this player is closest to affording.
-        guard let target = buildTargets(personality: personality).min(by: { a, b in
-            totalDeficit(a.cost, holding: me.resources) < totalDeficit(b.cost, holding: me.resources)
-        }) else { return [] }
+        guard let target = nearestBlockedTarget(personality: personality, holding: me.resources) else { return [] }
 
         let deficits = target.cost.compactMap { resource, amount -> (Resource, Int)? in
             let need = amount - (me.resources[resource] ?? 0)
@@ -113,6 +108,53 @@ public enum TradeHeuristics {
         guard !alreadyPending else { return [] }
 
         return [TradeOffer(from: player, give: give1, want: want1)]
+    }
+
+    /// A one-shot bank/port trade that would help `player`'s current
+    /// nearest build target, if a good one exists - bots previously only
+    /// ever traded with other players; a real player would readily fall
+    /// back to the bank (or a port) to unblock a build when no one else
+    /// offers a good deal, so this gives bots the same option. Gives up
+    /// whichever *other* resource `player` holds the largest surplus of
+    /// (and doesn't itself still owe toward this same target), at
+    /// whatever rate `Trading.bestRate` gets them (2:1/3:1 port, or 4:1
+    /// with no port) - never a resource this target still needs.
+    public static func bestBankTrade(state: GameState, player: PlayerID, personality: BotPersonality) -> (give: Resource, get: Resource, rate: Int)? {
+        guard let me = state.players.first(where: { $0.id == player }) else { return nil }
+        guard let target = nearestBlockedTarget(personality: personality, holding: me.resources) else { return nil }
+
+        let deficits = target.cost.compactMap { resource, amount -> (Resource, Int)? in
+            let need = amount - (me.resources[resource] ?? 0)
+            return need > 0 ? (resource, need) : nil
+        }
+        guard let mostNeeded = deficits.max(by: { $0.1 < $1.1 })?.0 else { return nil }
+
+        let candidates = Resource.allCases
+            .filter { $0 != mostNeeded && (target.cost[$0] ?? 0) <= (me.resources[$0] ?? 0) }
+            .compactMap { resource -> (resource: Resource, rate: Int)? in
+                let rate = Trading.bestRate(for: resource, player: player, state: state)
+                guard (me.resources[resource] ?? 0) >= rate else { return nil }
+                return (resource, rate)
+            }
+
+        guard let best = candidates.max(by: { (me.resources[$0.resource] ?? 0) < (me.resources[$1.resource] ?? 0) }) else { return nil }
+        return (give: best.resource, get: mostNeeded, rate: best.rate)
+    }
+
+    /// The build target `proposeTrades`/`bestBankTrade` should be trading
+    /// toward: whichever target has the smallest total deficit *among
+    /// those still actually missing something*. Excluding already-
+    /// affordable targets matters: without it, an already-affordable cheap
+    /// target (a road needing nothing further) has a deficit of zero and
+    /// would win outright over a settlement genuinely blocked by one
+    /// missing card, even though the settlement is the real thing worth
+    /// trading for - `BuildPlanner`/`RulesEngine.legalMoves` already offer
+    /// the affordable target directly, so trading logic has nothing useful
+    /// to add there.
+    private static func nearestBlockedTarget(personality: BotPersonality, holding: [Resource: Int]) -> (cost: [Resource: Int], weight: Double)? {
+        buildTargets(personality: personality)
+            .filter { totalDeficit($0.cost, holding: holding) > 0 }
+            .min { totalDeficit($0.cost, holding: holding) < totalDeficit($1.cost, holding: holding) }
     }
 
     private static func totalDeficit(_ cost: [Resource: Int], holding: [Resource: Int]) -> Int {

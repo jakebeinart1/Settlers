@@ -19,7 +19,7 @@ public struct Bot: Sendable {
 
         switch state.phase {
         case .setupForward, .setupBackward:
-            return decideSetupPlacement(legal: legal, state: state)
+            return decideSetupPlacement(legal: legal, state: state, player: player)
 
         case .rollDice:
             return .rollDice
@@ -47,15 +47,22 @@ public struct Bot: Sendable {
 
     // MARK: - Setup placement
 
-    private func decideSetupPlacement(legal: [GameMove], state: GameState) -> GameMove {
+    private func decideSetupPlacement(legal: [GameMove], state: GameState, player: PlayerID) -> GameMove {
         guard !legal.isEmpty else { return .endTurn }
+
+        // Empty for the very first placement (nothing built yet); once a
+        // first settlement exists, scoring the second one against it
+        // pushes toward covering new resource types rather than just
+        // re-maximizing pips on ones already covered (see
+        // `PlacementHeuristics.score`'s `alreadyCovered` doc).
+        let alreadyCovered = coveredResources(for: player, in: state)
 
         if case .placeInitialSettlement = legal[0] {
             var best = legal[0]
             var bestScore = -Double.infinity
             for move in legal {
                 guard case .placeInitialSettlement(let vertex) = move else { continue }
-                let score = PlacementHeuristics.score(vertex: vertex, board: state.board)
+                let score = PlacementHeuristics.score(vertex: vertex, board: state.board, alreadyCovered: alreadyCovered)
                 if score > bestScore {
                     bestScore = score
                     best = move
@@ -72,8 +79,8 @@ public struct Bot: Sendable {
             guard case .placeInitialRoad(let edge) = move else { continue }
             let (a, b) = state.board.vertices(of: edge)
             let score = max(
-                PlacementHeuristics.score(vertex: a, board: state.board),
-                PlacementHeuristics.score(vertex: b, board: state.board)
+                PlacementHeuristics.score(vertex: a, board: state.board, alreadyCovered: alreadyCovered),
+                PlacementHeuristics.score(vertex: b, board: state.board, alreadyCovered: alreadyCovered)
             )
             if score > bestScore {
                 bestScore = score
@@ -81,6 +88,22 @@ public struct Bot: Sendable {
             }
         }
         return best
+    }
+
+    /// The resource types touching any settlement/city `player` already
+    /// owns - empty before their first setup placement.
+    private func coveredResources(for player: PlayerID, in state: GameState) -> Set<Resource> {
+        guard let me = state.players.first(where: { $0.id == player }) else { return [] }
+        var resources = Set<Resource>()
+        for vertex in me.settlements.union(me.cities) {
+            for coordinate in vertex.touchingTiles {
+                guard let tile = state.board.tiles.first(where: { $0.coordinate == coordinate }) else { continue }
+                if case .resource(let resource) = tile.kind {
+                    resources.insert(resource)
+                }
+            }
+        }
+        return resources
     }
 
     // MARK: - Discarding
@@ -202,6 +225,18 @@ public struct Bot: Sendable {
         if buildMove == nil {
             if DevCardHeuristics.shouldBuyDevCard(state: state, player: player) {
                 consider(.buyDevCard, score: 1.6 + personality.aggressiveness * 0.5)
+            }
+            // Fall back to the bank/port when no build is affordable yet and
+            // no other player's offering a good deal - previously bots only
+            // ever traded with each other, so a bot sitting on a lopsided
+            // surplus (e.g. plenty of brick, zero wool) with no willing
+            // trade partner would just stall every turn instead of
+            // converting what it already has.
+            if let bankTrade = TradeHeuristics.bestBankTrade(state: state, player: player, personality: personality) {
+                consider(
+                    .bankTrade(give: [bankTrade.give: bankTrade.rate], get: [bankTrade.get: 1]),
+                    score: 1.9 + personality.expansionBias * 0.3
+                )
             }
             for offer in TradeHeuristics.proposeTrades(state: state, player: player, personality: personality) {
                 consider(.proposeTrade(offer), score: 1.0 + personality.tradeWillingness)
