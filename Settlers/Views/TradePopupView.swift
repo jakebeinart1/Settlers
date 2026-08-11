@@ -129,30 +129,44 @@ public struct TradePopupView: View {
         }
     }
 
-    // MARK: - Bank trade (unchanged logic, restyled)
+    // MARK: - Bank trade
 
-    private var bankRate: Int {
-        Trading.bestRate(for: bankGiveResource, player: viewModel.humanPlayer, state: viewModel.state)
+    private func rate(for resource: Resource) -> Int {
+        Trading.bestRate(for: resource, player: viewModel.humanPlayer, state: viewModel.state)
+    }
+
+    private var bankRate: Int { rate(for: bankGiveResource) }
+
+    private var bankGiveTotal: Int { bankRate * bankMultiplier }
+
+    private var canAffordBankTrade: Bool {
+        (human?.resources[bankGiveResource] ?? 0) >= bankGiveTotal
     }
 
     @ViewBuilder
     private var bankTradeCard: some View {
         VStack(alignment: .leading, spacing: 10) {
-            HStack {
-                Text("Give")
-                    .font(.caption.bold())
-                    .foregroundStyle(.secondary)
-                Picker("Give", selection: $bankGiveResource) {
-                    ForEach(Resource.allCases, id: \.self) { resource in
-                        Label(resource.rawValue.capitalized, systemImage: CatanTheme.symbolName(for: resource))
-                            .tag(resource)
-                    }
+            Text("Give")
+                .font(.caption.bold())
+                .foregroundStyle(.secondary)
+            // Every resource's own rate shown right on its picker row - a
+            // port you're standing on (2:1 for its resource, or 3:1 for a
+            // generic port) is visible immediately, without having to pick
+            // each resource one at a time to discover it.
+            Picker("Give", selection: $bankGiveResource) {
+                ForEach(Resource.allCases, id: \.self) { resource in
+                    Label("\(resource.rawValue.capitalized) (\(rate(for: resource)):1)", systemImage: CatanTheme.symbolName(for: resource))
+                        .tag(resource)
                 }
-                .labelsHidden()
-                Spacer()
-                Text("\(bankRate) : 1")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
+            }
+            .labelsHidden()
+            .onChange(of: bankGiveResource) { _, newValue in
+                // Give/Want must be different resources - if they'd now
+                // collide, bump Want to the next one instead of leaving a
+                // stale selection that's no longer in the Want picker's list.
+                if bankWantResource == newValue {
+                    bankWantResource = Resource.allCases.first { $0 != newValue } ?? bankWantResource
+                }
             }
 
             HStack {
@@ -170,17 +184,18 @@ public struct TradePopupView: View {
                     .fixedSize()
             }
 
-            Text("Give \(bankRate * bankMultiplier) \(bankGiveResource.rawValue) for \(bankMultiplier) \(bankWantResource.rawValue)")
+            Text("Give \(bankGiveTotal) \(bankGiveResource.rawValue) for \(bankMultiplier) \(bankWantResource.rawValue)")
                 .font(.caption2)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(canAffordBankTrade ? Color.secondary : Color.red)
 
             Button("Trade with Bank") {
                 perform(.bankTrade(
-                    give: [bankGiveResource: bankRate * bankMultiplier],
+                    give: [bankGiveResource: bankGiveTotal],
                     get: [bankWantResource: bankMultiplier]
                 ))
             }
             .buttonStyle(.borderedProminent)
+            .disabled(!canAffordBankTrade)
             .frame(maxWidth: .infinity)
         }
     }

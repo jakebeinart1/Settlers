@@ -40,8 +40,36 @@ public final class GameViewModel {
     /// itself was rejected.
     public func apply(_ move: GameMove) throws {
         try RulesEngine.apply(move, by: humanPlayer, to: &state)
+        if case .proposeTrade(let offer) = move, offer.from == humanPlayer {
+            resolveHumanProposedTrade(offer)
+        }
         try? GameStore.shared.save(state)
         Task { await runBotTurnIfNeeded() }
+    }
+
+    /// Bots only ever get to accept/reject a pending offer as part of their
+    /// *own* `mainTurn` (see `RulesEngine.legalMoves`'s `.respondToTrade`
+    /// generation) - fine for a trade proposed *during* another bot's turn,
+    /// since the bot loop cycles through every seat every turn anyway, but
+    /// an offer the human proposes on their own turn would otherwise just
+    /// sit in `pendingTradeOffers` doing nothing until the human ends their
+    /// turn (and even then, `Bot.decide` picks one move at a time, so
+    /// responding to it isn't guaranteed to happen before `endTurn`). Real
+    /// Catan trades resolve live, so evaluate every bot against the offer
+    /// right here: the first bot that would accept does, immediately;
+    /// otherwise the offer is withdrawn (a bot's `TradeHeuristics.evaluate`
+    /// answer won't change on its own without some other state change, so
+    /// leaving it pending indefinitely would just be a silent dead offer).
+    private func resolveHumanProposedTrade(_ offer: TradeOffer) {
+        for botIndex in 1..<state.players.count {
+            let bot = PlayerID(index: botIndex)
+            guard TradeHeuristics.evaluate(offer: offer, receiver: bot, state: state, personality: personality(for: bot)) else { continue }
+            try? RulesEngine.apply(.respondToTrade(offerID: offer.id, accept: true), by: bot, to: &state)
+            return
+        }
+        if state.players.count > 1 {
+            try? RulesEngine.apply(.respondToTrade(offerID: offer.id, accept: false), by: PlayerID(index: 1), to: &state)
+        }
     }
 
     /// Runs bot turns in a loop for as long as the active player (or, during
