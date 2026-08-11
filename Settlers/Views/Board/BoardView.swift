@@ -97,6 +97,26 @@ public struct BoardView: View {
                 .contentShape(Rectangle())
                 .gesture(tileTapGesture(geometry: geometry))
 
+                // Invisible per-tile anchors, reported in the shared "game"
+                // coordinate space `GameView` establishes - purely so the
+                // dice-roll resource-flight animation can launch each flying
+                // badge from the actual producing tile's on-screen spot
+                // rather than a single shared origin.
+                ForEach(board.tiles, id: \.coordinate) { tile in
+                    Color.clear
+                        .frame(width: 1, height: 1)
+                        .position(geometry.center(of: tile.coordinate))
+                        .background(
+                            GeometryReader { tileGeo in
+                                Color.clear.preference(
+                                    key: TileCenterKey.self,
+                                    value: [tile.coordinate: tileGeo.frame(in: .named("game")).origin]
+                                )
+                            }
+                        )
+                        .allowsHitTesting(false)
+                }
+
                 roadViews(geometry: geometry, ownership: ownership)
                 buildingViews(geometry: geometry, ownership: ownership)
 

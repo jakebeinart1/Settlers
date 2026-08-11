@@ -30,11 +30,23 @@ struct PlayerFrameKey: PreferenceKey {
 }
 
 /// Reports the board's own frame (same coordinate space as `PlayerFrameKey`)
-/// as the flight animation's launch point.
+/// - used as the roll-production flight animation's fallback launch point
+/// when a producing tile's own center (`TileCenterKey`) isn't available yet.
 private struct BoardFrameKey: PreferenceKey {
     static var defaultValue: CGRect { .zero }
     static func reduce(value: inout CGRect, nextValue: () -> CGRect) {
         value = nextValue()
+    }
+}
+
+/// Reports each board tile's on-screen center (same coordinate space as
+/// `PlayerFrameKey`/`BoardFrameKey`), from `BoardView`, so the roll-
+/// production flight animation can launch each flying resource badge from
+/// the actual tile that produced it.
+struct TileCenterKey: PreferenceKey {
+    static var defaultValue: [HexCoordinate: CGPoint] { [:] }
+    static func reduce(value: inout [HexCoordinate: CGPoint], nextValue: () -> [HexCoordinate: CGPoint]) {
+        value.merge(nextValue(), uniquingKeysWith: { $1 })
     }
 }
 
@@ -172,6 +184,7 @@ public struct GameView: View {
     /// `animateProduction(for:)` launch/landing points.
     @State private var playerAnchors: [PlayerID: CGRect] = [:]
     @State private var boardFrame: CGRect = .zero
+    @State private var tileCenters: [HexCoordinate: CGPoint] = [:]
 
     private var state: GameState { viewModel.state }
     private var human: PlayerID { viewModel.humanPlayer }
@@ -286,6 +299,7 @@ public struct GameView: View {
         .coordinateSpace(name: "game")
         .onPreferenceChange(PlayerFrameKey.self) { playerAnchors = $0 }
         .onPreferenceChange(BoardFrameKey.self) { boardFrame = $0 }
+        .onPreferenceChange(TileCenterKey.self) { tileCenters = $0 }
         .onAppear {
             seenTradeOfferIDs = Set(state.pendingTradeOffers.map(\.id))
             lastSeenLogCount = state.log.count
@@ -701,10 +715,15 @@ public struct GameView: View {
     /// Briefly outlines every tile matching `roll` (mirrors `MainPhase
     /// .rollDice`'s own "which tiles produce" rule: matches the roll and
     /// isn't under the robber) and, for each player whose hand grew since
-    /// `resourcesSnapshot`, spawns a small flying badge per gained resource
-    /// from the board to that player's HUD spot - purely a presentation
-    /// flourish over `MainPhase`'s already-applied production, not a second
-    /// source of truth for it.
+    /// `resourcesSnapshot`, spawns a small flying badge per gained resource -
+    /// launched from the specific producing tile's own on-screen spot
+    /// (`tileCenters`), not just the board's center, so a card visibly
+    /// "comes from" the tile that produced it. The *totals* still come from
+    /// diffing actual resource counts (correct even when the bank couldn't
+    /// cover full demand); tile position is only used to decide where each
+    /// unit of that already-correct total visually launches from - purely a
+    /// presentation flourish over `MainPhase`'s already-applied production,
+    /// not a second source of truth for it.
     private func animateProduction(for roll: Int) {
         let producingTiles = state.board.tiles.filter { $0.numberToken == roll && $0.coordinate != state.board.robberTile }
         guard !producingTiles.isEmpty else { return }
@@ -719,17 +738,47 @@ public struct GameView: View {
             }
         }
 
-        guard boardFrame != .zero else { return }
-        let origin = CGPoint(x: boardFrame.midX, y: boardFrame.midY)
+        let boardOrigin = boardFrame == .zero ? nil : CGPoint(x: boardFrame.midX, y: boardFrame.midY)
+
         for player in state.players {
             guard let anchor = playerAnchors[player.id], anchor != .zero else { continue }
             let destination = CGPoint(x: anchor.midX, y: anchor.midY)
             let before = resourcesSnapshot[player.id] ?? [:]
+
             for resource in Resource.allCases {
-                let gained = (player.resources[resource] ?? 0) - (before[resource] ?? 0)
-                guard gained > 0 else { continue }
-                resourceFlights.append(ResourceFlight(resource: resource, count: gained, start: origin, end: destination))
+                var remaining = (player.resources[resource] ?? 0) - (before[resource] ?? 0)
+                guard remaining > 0 else { continue }
+
+                // Which of this roll's producing tiles of this resource does
+                // the player actually touch? (Usually one; a randomized
+                // board could repeat a resource on two tiles sharing the
+                // rolled number, or the bank could have partly covered a
+                // multi-tile demand - either way, split the already-correct
+                // total across them rather than assuming a single source.)
+                let sourceTiles = producingTiles.filter { $0.kind == .resource(resource) }
+                let touchedSourceTiles = sourceTiles.filter { touchesTile($0.coordinate, player: player) }
+                let tilesToUse = touchedSourceTiles.isEmpty ? sourceTiles : touchedSourceTiles
+                guard !tilesToUse.isEmpty else { continue }
+
+                let share = max(1, remaining / tilesToUse.count)
+                for tile in tilesToUse {
+                    guard remaining > 0 else { break }
+                    guard let origin = tileCenters[tile.coordinate] ?? boardOrigin else { continue }
+                    let amount = min(share, remaining)
+                    resourceFlights.append(ResourceFlight(resource: resource, count: amount, start: origin, end: destination))
+                    remaining -= amount
+                }
             }
+        }
+    }
+
+    /// Whether `player` has a settlement or city on any vertex touching
+    /// `coordinate` - used only to attribute a roll's already-computed
+    /// resource gain back to the right tile for the flight animation.
+    private func touchesTile(_ coordinate: HexCoordinate, player: Player) -> Bool {
+        state.board.onBoardVertices.contains { vertex in
+            vertex.touchingTiles.contains(coordinate)
+                && (player.settlements.contains(vertex) || player.cities.contains(vertex))
         }
     }
 }
