@@ -78,18 +78,21 @@ private struct ResourceFlightBadge: View {
     }
 
     var body: some View {
-        HStack(spacing: 2) {
-            Image(systemName: CatanTheme.symbolName(for: flight.resource))
-                .font(.system(size: 11, weight: .bold))
+        // Just the resource's own color as a plain dot - no icon - matching
+        // how resources are shown everywhere else that favors a quick
+        // glance (the HUD's hand rows, trade offer cards) over needing to
+        // read a symbol while it's mid-flight.
+        ZStack {
+            Circle()
+                .fill(CatanTheme.color(for: flight.resource))
+                .overlay(Circle().strokeBorder(.white.opacity(0.7), lineWidth: 1))
             if flight.count > 1 {
                 Text("\(flight.count)")
                     .font(.system(size: 10, weight: .bold))
+                    .foregroundStyle(.white)
             }
         }
-        .foregroundStyle(.white)
-        .padding(6)
-        .background(CatanTheme.color(for: flight.resource), in: Circle())
-        .overlay(Circle().strokeBorder(.white.opacity(0.7), lineWidth: 1))
+        .frame(width: 18, height: 18)
         .shadow(radius: 3)
         .scaleEffect(scale)
         .position(position)
@@ -597,9 +600,26 @@ public struct GameView: View {
 
     // MARK: - Highlighting
 
+    /// True during setup exactly when it's the *human's* turn to place -
+    /// `legalMoves` reflects whichever player is actually active, so
+    /// without this check the board would highlight legal spots for a
+    /// bot's own setup placement too, which the human can't act on anyway.
+    private var isHumanSetupTurn: Bool {
+        switch state.phase {
+        case .setupForward(let index), .setupBackward(let index):
+            return index == human.index
+        default:
+            return false
+        }
+    }
+
     private var isPlacementModeActive: Bool {
         switch state.phase {
         case .setupForward, .setupBackward:
+            // Stays "active" (gating taps to only the highlighted set) even
+            // during a bot's own setup turn, when that set is empty (see
+            // `isHumanSetupTurn`) - so every vertex/edge is simply
+            // untappable then, rather than ungating everything.
             return true
         case .mainTurn:
             return placementMode != nil || isRoadBuildingActive
@@ -611,6 +631,7 @@ public struct GameView: View {
     private var highlightedVertices: Set<VertexID> {
         switch state.phase {
         case .setupForward, .setupBackward:
+            guard isHumanSetupTurn else { return [] }
             return Set(legalMoves.compactMap { if case .placeInitialSettlement(let v) = $0 { v } else { nil } })
         case .mainTurn:
             switch placementMode {
@@ -629,6 +650,7 @@ public struct GameView: View {
     private var highlightedEdges: Set<EdgeID> {
         switch state.phase {
         case .setupForward, .setupBackward:
+            guard isHumanSetupTurn else { return [] }
             return Set(legalMoves.compactMap { if case .placeInitialRoad(let e) = $0 { e } else { nil } })
         case .mainTurn:
             if isRoadBuildingActive {

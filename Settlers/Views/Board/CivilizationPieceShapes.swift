@@ -96,23 +96,31 @@ struct GreeceTempleGlyph: Shape {
     }
 }
 
-/// Rome: a rounded archway on a small base band - distinct from Greece's
-/// flat-topped temple so the two "classical column" civilizations don't
-/// read as the same shape.
-struct RomeArchGlyph: Shape {
+/// Medieval Britannia: a square keep with three crenellations along the top
+/// and a small pennant on a pole - a castle tower silhouette, distinct from
+/// Greece's flat-topped temple and Rome's arch (which this replaced).
+struct MedievalKeepGlyph: Shape {
     func path(in rect: CGRect) -> Path {
         var path = Path()
-        let baseHeight = rect.height * 0.12
-        let archBottom = rect.maxY - baseHeight
-        let radius = rect.width / 2
-        let archCenter = CGPoint(x: rect.midX, y: rect.minY + radius)
+        let wallTop = rect.minY + rect.height * 0.34
+        let merlonHeight = rect.height * 0.16
+        let merlonWidth = rect.width / 5
 
-        path.addArc(center: archCenter, radius: radius, startAngle: .degrees(180), endAngle: .degrees(0), clockwise: false)
-        path.addLine(to: CGPoint(x: rect.maxX, y: archBottom))
-        path.addLine(to: CGPoint(x: rect.minX, y: archBottom))
+        path.addRect(CGRect(x: rect.minX, y: wallTop, width: rect.width, height: rect.maxY - wallTop))
+
+        for i in [0, 2, 4] {
+            let x = rect.minX + merlonWidth * CGFloat(i)
+            path.addRect(CGRect(x: x, y: wallTop - merlonHeight, width: merlonWidth, height: merlonHeight))
+        }
+
+        // Pennant on a pole above the center merlon.
+        let poleX = rect.midX
+        path.move(to: CGPoint(x: poleX, y: wallTop - merlonHeight))
+        path.addLine(to: CGPoint(x: poleX, y: rect.minY))
+        path.addLine(to: CGPoint(x: poleX + rect.width * 0.24, y: rect.minY + rect.height * 0.08))
+        path.addLine(to: CGPoint(x: poleX, y: rect.minY + rect.height * 0.17))
         path.closeSubpath()
 
-        path.addRect(CGRect(x: rect.minX, y: archBottom, width: rect.width, height: baseHeight))
         return path
     }
 }
@@ -122,7 +130,7 @@ extension Civilization {
     @MainActor
     func pieceShape() -> AnyShape {
         switch self {
-        case .rome: return AnyShape(RomeArchGlyph())
+        case .medieval: return AnyShape(MedievalKeepGlyph())
         case .greece: return AnyShape(GreeceTempleGlyph())
         case .egypt: return AnyShape(EgyptPyramidGlyph())
         case .aztec: return AnyShape(AztecZigguratGlyph())

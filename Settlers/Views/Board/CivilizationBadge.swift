@@ -5,8 +5,9 @@ import SwiftUI
 /// stay legible) and a plain circle-with-glyph badge (read as too generic,
 /// not enough like an actual building) tried before this. Each civilization
 /// gets its own bold, single-silhouette shape (`CivilizationPieceShapes`) -
-/// Egypt's pyramid, Aztec's ziggurat, Greece's temple front, Rome's arch -
-/// filled with that civilization's own color and a thin black outline,
+/// Egypt's pyramid, Aztec's ziggurat, Greece's temple front, Britannia's
+/// castle keep - filled with that civilization's own color and a thin black
+/// outline,
 /// matching the board's flat, straight-bordered, black-outlined style. A
 /// city is the same silhouette, just bigger, with an added white ring so
 /// the upgrade from settlement -> city is visible at a glance.

@@ -19,7 +19,7 @@ import CatanEngine
 /// run at several different angles, and anything with a fixed "up" looks
 /// wrong rotated to most of them.
 public enum Civilization: String, CaseIterable, Sendable {
-    case rome
+    case medieval
     case greece
     case egypt
     case aztec
@@ -28,7 +28,7 @@ public enum Civilization: String, CaseIterable, Sendable {
     /// `GameViewModel`'s personality assignment order.
     public static func forSeat(_ index: Int) -> Civilization {
         switch index {
-        case 0: return .rome
+        case 0: return .medieval
         case 1: return .greece
         case 2: return .egypt
         default: return .aztec
@@ -37,7 +37,7 @@ public enum Civilization: String, CaseIterable, Sendable {
 
     public var displayName: String {
         switch self {
-        case .rome: return "Rome"
+        case .medieval: return "Britannia"
         case .greece: return "Greece"
         case .egypt: return "Egypt"
         case .aztec: return "Aztec"
@@ -50,7 +50,7 @@ public enum Civilization: String, CaseIterable, Sendable {
     /// ever surfaced for bot seats in practice.
     public var generalName: String {
         switch self {
-        case .rome: return "Caesar"
+        case .medieval: return "Charlemagne"
         case .greece: return "Alexander"
         case .egypt: return "Ramesses"
         case .aztec: return "Moctezuma"
@@ -62,7 +62,7 @@ public enum Civilization: String, CaseIterable, Sendable {
     /// faction at a glance, not just a color.
     public var emblemSymbol: String {
         switch self {
-        case .rome: return "shield.lefthalf.filled"
+        case .medieval: return "shield.lefthalf.filled"
         case .greece: return "laurel.leading"
         case .egypt: return "sun.max.fill"
         case .aztec: return "flame.fill"
@@ -75,7 +75,7 @@ public enum Civilization: String, CaseIterable, Sendable {
     /// `CatanTheme.color(for: player)` is read.
     public var accentColor: Color {
         switch self {
-        case .rome: return Color(red: 0.84, green: 0.54, blue: 0.29) // terracotta
+        case .medieval: return Color(red: 0.56, green: 0.35, blue: 0.68) // purple
         case .greece: return Color(red: 0.80, green: 0.81, blue: 0.80) // white/grey marble
         case .egypt: return Color(red: 0.77, green: 0.58, blue: 0.31) // sandstone
         case .aztec: return Color(red: 0.43, green: 0.61, blue: 0.79) // slate blue

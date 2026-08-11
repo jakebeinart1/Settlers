@@ -14,6 +14,17 @@ public final class GameViewModel {
     public let humanPlayer = PlayerID(index: 0)
     public private(set) var isBotThinking: Bool = false
 
+    /// What happened to the most recent trade the human proposed - `nil`
+    /// until the first one. `TradePopupView` reads this right after calling
+    /// `apply(.proposeTrade(...))` to show the human whether anyone
+    /// actually took the offer, since (unlike a real table) a bot's
+    /// accept/reject otherwise happens silently.
+    public enum TradeOutcome: Equatable {
+        case accepted(by: PlayerID)
+        case declined
+    }
+    public private(set) var lastTradeOutcome: TradeOutcome?
+
     public init() {
         if let saved = GameStore.shared.load() {
             state = saved
@@ -65,11 +76,13 @@ public final class GameViewModel {
             let bot = PlayerID(index: botIndex)
             guard TradeHeuristics.evaluate(offer: offer, receiver: bot, state: state, personality: personality(for: bot)) else { continue }
             try? RulesEngine.apply(.respondToTrade(offerID: offer.id, accept: true), by: bot, to: &state)
+            lastTradeOutcome = .accepted(by: bot)
             return
         }
         if state.players.count > 1 {
             try? RulesEngine.apply(.respondToTrade(offerID: offer.id, accept: false), by: PlayerID(index: 1), to: &state)
         }
+        lastTradeOutcome = .declined
     }
 
     /// Runs bot turns in a loop for as long as the active player (or, during

@@ -41,13 +41,20 @@ public struct IncomingTradeCardView: View {
             }
             .frame(width: 26, height: 26)
 
-            VStack(alignment: .leading, spacing: 2) {
+            VStack(alignment: .leading, spacing: 3) {
                 Text("\(CatanTheme.playerLabel(for: offer.from)) wants to trade")
                     .font(.caption.bold())
-                Text("Give \(describe(offer.give)) → Get \(describe(offer.want))")
-                    .font(.caption2)
-                    .foregroundStyle(.secondary)
-                    .lineLimit(2)
+                // Colored dots instead of a resource-name sentence - reads
+                // at a glance instead of having to parse "3 brick, 1 wool"
+                // as text, matching how resources are shown everywhere else
+                // (HUD hand rows, the trade builder's own chips).
+                HStack(spacing: 6) {
+                    resourceDots(offer.give)
+                    Image(systemName: "arrow.right")
+                        .font(.system(size: 9, weight: .bold))
+                        .foregroundStyle(.secondary)
+                    resourceDots(offer.want)
+                }
             }
 
             Spacer(minLength: 4)
@@ -97,11 +104,20 @@ public struct IncomingTradeCardView: View {
         }
     }
 
-    private func describe(_ resources: [Resource: Int]) -> String {
-        resources
-            .filter { $0.value > 0 }
-            .sorted { $0.key.rawValue < $1.key.rawValue }
-            .map { "\($0.value) \($0.key.rawValue)" }
-            .joined(separator: ", ")
+    /// One colored dot + count per held resource, sorted consistently -
+    /// the same visual language `HumanPlayerPanel`'s hand row and
+    /// `TradePopupView`'s chips already use, instead of a text sentence.
+    private func resourceDots(_ resources: [Resource: Int]) -> some View {
+        HStack(spacing: 5) {
+            ForEach(Resource.allCases.filter { (resources[$0] ?? 0) > 0 }, id: \.self) { resource in
+                HStack(spacing: 3) {
+                    Circle()
+                        .fill(CatanTheme.color(for: resource))
+                        .frame(width: 10, height: 10)
+                    Text("\(resources[resource] ?? 0)")
+                        .font(.system(size: 11, weight: .bold))
+                }
+            }
+        }
     }
 }

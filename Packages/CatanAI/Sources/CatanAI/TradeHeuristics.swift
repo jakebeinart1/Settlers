@@ -67,10 +67,13 @@ public enum TradeHeuristics {
     }
 
     /// Proposes at most one trade this turn: if `player` is blocked on their
-    /// nearest build target by a shortage of one resource, offers a
-    /// currently-surplus resource for one card of whichever resource is
-    /// scarcest relative to that target. Returns `[]` if nothing is
-    /// blocking (nothing to trade for) or there's no surplus to give up.
+    /// nearest build target by a shortage of one resource, offers up
+    /// whichever card is worth *least* to them right now for one of
+    /// whichever resource is scarcest relative to that target - and only if
+    /// that's a genuinely self-favorable deal (see the value check below).
+    /// Returns `[]` if nothing is blocking (nothing to trade for), there's
+    /// no real surplus to give up, or the only surplus available isn't
+    /// actually worth less to us than what we'd get back.
     public static func proposeTrades(state: GameState, player: PlayerID, personality: BotPersonality) -> [TradeOffer] {
         guard let me = state.players.first(where: { $0.id == player }) else { return [] }
         guard let target = nearestBlockedTarget(personality: personality, holding: me.resources) else { return [] }
@@ -81,10 +84,26 @@ public enum TradeHeuristics {
         }
         guard let mostNeeded = deficits.max(by: { $0.1 < $1.1 })?.0 else { return [] }
 
-        // Must genuinely be a surplus (more than one card) - `RulesEngine`
-        // only ever enumerates `.proposeTrade` as legal for resources held
-        // in that quantity, so anything less would never match a legal move.
-        guard let give = me.resources.filter({ $0.key != mostNeeded && $0.value > 1 }).max(by: { $0.value < $1.value })?.key else {
+        // Give up whichever resource is worth *least* to us right now (not
+        // just whichever we happen to hold the most of - quantity and
+        // marginal value aren't the same thing: holding 3 ore isn't
+        // "surplus" if ore is what's blocking our next build). Must
+        // genuinely be a surplus (more than one card) - `RulesEngine` only
+        // ever enumerates `.proposeTrade` as legal for resources held in
+        // that quantity, so anything less would never match a legal move.
+        guard let give = me.resources
+            .filter({ $0.key != mostNeeded && $0.value > 1 })
+            .min(by: { resourceValue($0.key, for: me, personality: personality) < resourceValue($1.key, for: me, personality: personality) })?
+            .key
+        else { return [] }
+
+        // Only propose a trade that's clearly in *our own* favor - what
+        // we're asking for has to be worth more to us than what we're
+        // giving up, using the same value function `evaluate` judges
+        // incoming offers by. Without this, a bot could offer away
+        // something it actually needs more than what it's asking for,
+        // handing the recipient the better end of the deal for no reason.
+        guard resourceValue(mostNeeded, for: me, personality: personality) > resourceValue(give, for: me, personality: personality) else {
             return []
         }
 

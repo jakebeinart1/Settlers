@@ -6,8 +6,15 @@ import CatanEngine
 /// hand sits in a tray at the bottom, tapping a hand icon moves one unit
 /// into the "Give" slot above it; tapping a resource in the "Want" palette
 /// adds one unit to the "Want" slot. Tapping an item already in a slot moves
-/// it back out. A Bank/Port toggle switches the same card into a bank-trade
-/// layout (unchanged trade logic from before, just restyled).
+/// it back out.
+///
+/// There's no separate "Bank/Port mode" to switch into anymore - as soon as
+/// Give holds a single resource in a bank/port-eligible multiple (4 with no
+/// port, 3 on a generic port, 2 on that resource's own port), a bank/port
+/// trade card appears automatically below "Propose to Bots", offering to
+/// execute that same give pile as a bank trade instead. It defaults its
+/// "get" side to whatever's already in Want (falling back to any other
+/// resource), with a small menu to change it.
 public struct TradePopupView: View {
     public let viewModel: GameViewModel
     public let onDismiss: () -> Void
@@ -19,30 +26,27 @@ public struct TradePopupView: View {
 
     @State private var give: [Resource: Int] = [:]
     @State private var want: [Resource: Int] = [:]
-    @State private var isBankMode = false
-    @State private var bankGiveResource: Resource = .brick
-    @State private var bankWantResource: Resource = .lumber
-    @State private var bankMultiplier = 1
+    @State private var bankGetOverride: Resource?
     @State private var errorMessage: String?
+    @State private var proposalOutcome: GameViewModel.TradeOutcome?
 
     private var human: Player? { viewModel.state.players.first { $0.id == viewModel.humanPlayer } }
 
     public var body: some View {
         PopupCard(onDismiss: onDismiss) {
             VStack(spacing: 14) {
-                HStack {
-                    Text("Trade")
-                        .font(.headline)
-                    Spacer()
-                    Toggle("Trade Bank/Port", isOn: $isBankMode.animation())
-                        .toggleStyle(.button)
-                        .font(.caption)
+                Text("Trade")
+                    .font(.headline)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+
+                playerTradeCard
+
+                if let proposalOutcome {
+                    proposalOutcomeBanner(proposalOutcome)
                 }
 
-                if isBankMode {
-                    bankTradeCard
-                } else {
-                    playerTradeCard
+                if let bankSuggestion {
+                    bankSuggestionCard(bankSuggestion)
                 }
 
                 if let errorMessage {
@@ -95,6 +99,16 @@ public struct TradePopupView: View {
             Button("Propose to Bots") {
                 let offer = TradeOffer(from: viewModel.humanPlayer, give: give, want: want)
                 perform(.proposeTrade(offer))
+                // A bot's response is resolved synchronously inside
+                // `apply` (see `GameViewModel.resolveHumanProposedTrade`) -
+                // by the time `perform` returns above, `lastTradeOutcome`
+                // already reflects this exact proposal, as long as it
+                // didn't fail (`errorMessage` would be set instead, and
+                // `lastTradeOutcome` would still be stale from an earlier
+                // proposal - don't show that as if it were this one's).
+                if errorMessage == nil {
+                    proposalOutcome = viewModel.lastTradeOutcome
+                }
             }
             .buttonStyle(.borderedProminent)
             .disabled(give.isEmpty || want.isEmpty)
@@ -129,75 +143,127 @@ public struct TradePopupView: View {
         }
     }
 
-    // MARK: - Bank trade
+    // MARK: - Trade proposal outcome
+
+    private func proposalOutcomeBanner(_ outcome: GameViewModel.TradeOutcome) -> some View {
+        let (text, color, icon): (String, Color, String) = switch outcome {
+        case .accepted(let bot):
+            ("\(CatanTheme.playerLabel(for: bot)) accepted!", .green, "checkmark.circle.fill")
+        case .declined:
+            ("No one accepted that trade.", .red, "xmark.circle.fill")
+        }
+        return HStack(spacing: 6) {
+            Image(systemName: icon)
+            Text(text)
+                .font(.caption.bold())
+        }
+        .foregroundStyle(.white)
+        .padding(.horizontal, 10)
+        .padding(.vertical, 7)
+        .frame(maxWidth: .infinity)
+        .background(color.opacity(0.85), in: RoundedRectangle(cornerRadius: 10))
+        .transition(.opacity.combined(with: .move(edge: .top)))
+    }
+
+    // MARK: - Automatic bank/port suggestion
 
     private func rate(for resource: Resource) -> Int {
         Trading.bestRate(for: resource, player: viewModel.humanPlayer, state: viewModel.state)
     }
 
-    private var bankRate: Int { rate(for: bankGiveResource) }
-
-    private var bankGiveTotal: Int { bankRate * bankMultiplier }
-
-    private var canAffordBankTrade: Bool {
-        (human?.resources[bankGiveResource] ?? 0) >= bankGiveTotal
+    private struct BankSuggestion {
+        let give: Resource
+        let giveCount: Int
+        let rate: Int
+        let get: Resource
+        var getCount: Int { giveCount / rate }
     }
 
-    @ViewBuilder
-    private var bankTradeCard: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            Text("Give")
-                .font(.caption.bold())
-                .foregroundStyle(.secondary)
-            // Every resource's own rate shown right on its picker row - a
-            // port you're standing on (2:1 for its resource, or 3:1 for a
-            // generic port) is visible immediately, without having to pick
-            // each resource one at a time to discover it.
-            Picker("Give", selection: $bankGiveResource) {
-                ForEach(Resource.allCases, id: \.self) { resource in
-                    Label("\(resource.rawValue.capitalized) (\(rate(for: resource)):1)", systemImage: CatanTheme.symbolName(for: resource))
-                        .tag(resource)
-                }
-            }
-            .labelsHidden()
-            .onChange(of: bankGiveResource) { _, newValue in
-                // Give/Want must be different resources - if they'd now
-                // collide, bump Want to the next one instead of leaving a
-                // stale selection that's no longer in the Want picker's list.
-                if bankWantResource == newValue {
-                    bankWantResource = Resource.allCases.first { $0 != newValue } ?? bankWantResource
-                }
-            }
+    /// Non-nil exactly when Give is a single resource in a quantity that's
+    /// an exact multiple of that resource's bank/port rate - the only case
+    /// a bank/port trade could actually execute this Give pile as-is.
+    private var bankSuggestion: BankSuggestion? {
+        guard give.count == 1, let (resource, count) = give.first else { return nil }
+        let rate = rate(for: resource)
+        guard count > 0, count % rate == 0 else { return nil }
 
-            HStack {
-                Text("Want")
+        let overrideChoice = bankGetOverride != resource ? bankGetOverride : nil
+        let get = overrideChoice
+            ?? want.keys.first { $0 != resource }
+            ?? Resource.allCases.first { $0 != resource }
+        guard let get else { return nil }
+        return BankSuggestion(give: resource, giveCount: count, rate: rate, get: get)
+    }
+
+    private func bankSuggestionCard(_ suggestion: BankSuggestion) -> some View {
+        let bankGold = Color(red: 0.85, green: 0.68, blue: 0.32)
+
+        return VStack(alignment: .leading, spacing: 10) {
+            HStack(spacing: 6) {
+                Image(systemName: "building.columns.fill")
+                Text("Bank / Port trade available")
+                    .font(.caption.bold())
+                Spacer()
+                Text("\(suggestion.rate):1")
+                    .font(.caption2.bold())
+                    .foregroundStyle(.secondary)
+            }
+            .foregroundStyle(bankGold)
+
+            HStack(spacing: 12) {
+                bankResourceTile(suggestion.give, count: suggestion.giveCount)
+
+                Image(systemName: "arrow.right")
                     .font(.caption.bold())
                     .foregroundStyle(.secondary)
-                Picker("Want", selection: $bankWantResource) {
-                    ForEach(Resource.allCases.filter { $0 != bankGiveResource }, id: \.self) { resource in
-                        Label(resource.rawValue.capitalized, systemImage: CatanTheme.symbolName(for: resource))
-                            .tag(resource)
+
+                Menu {
+                    ForEach(Resource.allCases.filter { $0 != suggestion.give }, id: \.self) { resource in
+                        Button {
+                            bankGetOverride = resource
+                        } label: {
+                            Label(resource.rawValue.capitalized, systemImage: CatanTheme.symbolName(for: resource))
+                        }
+                    }
+                } label: {
+                    HStack(spacing: 4) {
+                        bankResourceTile(suggestion.get, count: suggestion.getCount)
+                        Image(systemName: "chevron.up.chevron.down")
+                            .font(.system(size: 9, weight: .bold))
+                            .foregroundStyle(.secondary)
                     }
                 }
-                .labelsHidden()
-                Stepper("x\(bankMultiplier)", value: $bankMultiplier, in: 1...5)
-                    .fixedSize()
+
+                Spacer(minLength: 0)
             }
 
-            Text("Give \(bankGiveTotal) \(bankGiveResource.rawValue) for \(bankMultiplier) \(bankWantResource.rawValue)")
-                .font(.caption2)
-                .foregroundStyle(canAffordBankTrade ? Color.secondary : Color.red)
-
-            Button("Trade with Bank") {
-                perform(.bankTrade(
-                    give: [bankGiveResource: bankGiveTotal],
-                    get: [bankWantResource: bankMultiplier]
-                ))
+            Button {
+                perform(.bankTrade(give: [suggestion.give: suggestion.giveCount], get: [suggestion.get: suggestion.getCount]))
+                bankGetOverride = nil
+            } label: {
+                Text("Trade with Bank/Port")
+                    .frame(maxWidth: .infinity)
             }
             .buttonStyle(.borderedProminent)
-            .disabled(!canAffordBankTrade)
-            .frame(maxWidth: .infinity)
+            .tint(bankGold)
         }
+        .padding(12)
+        .background(RoundedRectangle(cornerRadius: 12).fill(bankGold.opacity(0.16)))
+        .overlay(RoundedRectangle(cornerRadius: 12).strokeBorder(bankGold.opacity(0.5), lineWidth: 1))
+        .transition(.opacity.combined(with: .scale(scale: 0.97)))
+        .animation(.spring(response: 0.3, dampingFraction: 0.8), value: suggestion.giveCount)
+    }
+
+    private func bankResourceTile(_ resource: Resource, count: Int) -> some View {
+        VStack(spacing: 1) {
+            Image(systemName: CatanTheme.symbolName(for: resource))
+                .font(.callout)
+            Text("\(count)")
+                .font(.system(size: 11, weight: .bold))
+        }
+        .foregroundStyle(.white)
+        .frame(width: 34, height: 34)
+        .background(CatanTheme.color(for: resource), in: RoundedRectangle(cornerRadius: 8))
     }
 
     private func perform(_ move: GameMove) {
