@@ -11,17 +11,20 @@ public enum PlacementMode: Equatable {
 }
 
 /// The real, composed game screen, top to bottom: `BotHUDRow` (the 3 bot
-/// chips only), `BoardView` filling the middle over a water-blue background,
-/// `GameLogView`, `HumanPlayerPanel` (the human's own spacious info panel),
-/// then the dice chip and a single uniform action row (Build/Trade/Dev
-/// Cards/turn action) over a lighter-blue panel. `TradeSheetView`/
-/// `DiscardView` are sheets driven by `viewModel.state.phase`; the mandatory
-/// post-7-roll robber move happens inline on this same `BoardView` (see
-/// `isMandatoryRobberActive`) rather than as a sheet, while the knight-card
-/// robber sub-flow (from the dev-card panel) still uses `RobberTargetView`
-/// as a sheet. A transient notification overlay surfaces bot trade offers
-/// and build/dev-card/longest-road/largest-army events on top of everything
-/// else.
+/// chips only), `BoardView` filling the middle - with the dice pinned to its
+/// bottom-left corner - `HumanPlayerPanel` (the human's own spacious info
+/// panel, now with a dev-card strip alongside the resources), then a single
+/// uniform Build/Trade/turn-action row. Everything sits over one continuous
+/// water-blue background rather than separate boxed panels - there's no
+/// persistent log or toast feed anymore; the HUD (VP/tags/resource/dev-card
+/// counts) already reflects every state change live.
+///
+/// `TradePopupView`/`DevCardPopupView`/`DiscardView` are popups/sheets driven
+/// by view state; the mandatory post-7-roll robber move *and* the voluntary
+/// knight-card robber move both happen inline on this same `BoardView` (see
+/// `isRobberTargetingActive`) rather than as a separate modal. Incoming bot
+/// trade offers surface as a small `IncomingTradeCardView` above the action
+/// row with a 5-second accept window.
 public struct GameView: View {
     public let viewModel: GameViewModel
 
@@ -30,9 +33,8 @@ public struct GameView: View {
     }
 
     @State private var placementMode: PlacementMode?
-    @State private var showTradeSheet = false
-    @State private var showDevCardPanel = false
-    @State private var showKnightRobberSheet = false
+    @State private var showTradePopup = false
+    @State private var devCardPopupType: DevCardType?
     @State private var errorMessage: String?
 
     /// Road-building sub-flow: `nil` when inactive; once armed, the first
@@ -41,30 +43,24 @@ public struct GameView: View {
     @State private var roadBuildingFirstEdge: EdgeID?
     @State private var isRoadBuildingActive = false
 
-    /// Mandatory robber-move sub-flow, inline on the main board: once the
-    /// human taps a legal tile, it's held here while an eligible victim (if
-    /// any) is picked from the inline picker in `bottomPanel`; committing
-    /// (or a tile with no eligible victims) applies `.moveRobber` directly.
+    /// Robber-move sub-flow, inline on the main board - covers both the
+    /// mandatory post-7-roll move (`isMandatoryRobberActive`) and the
+    /// voluntary knight-card move (`isKnightRobberActive`): once the human
+    /// taps a legal tile, it's held here while an eligible victim (if any)
+    /// is picked from the inline picker in `bottomPanel`; committing (or a
+    /// tile with no eligible victims) applies the matching move directly.
     @State private var robberTargetTile: HexCoordinate?
+    @State private var isKnightRobberActive = false
 
     /// Drives the dice chip's brief scale/rotate pulse on a new roll -
     /// bumped in `onChange(of: state.lastDiceRoll)`.
     @State private var diceScale: CGFloat = 1.0
     @State private var diceRotation: Double = 0
 
-    // MARK: - Notifications
-    //
-    // UI-layer-only, built by diffing `state.log`/`state.longestRoadPlayer`/
-    // `state.largestArmyPlayer`/`state.pendingTradeOffers` on each render
-    // rather than adding a structured event feed to `CatanEngine` - the log
-    // strings (and the two "who holds this" fields) already carry everything
-    // these need, so matching substrings here keeps the change UI-only
-    // instead of touching `RulesEngine`'s many log call sites for what is,
-    // in the end, a presentation concern.
-    @State private var notifications: [GameNotification] = []
-    @State private var lastSeenLogCount = 0
-    @State private var lastLongestRoadPlayer: PlayerID?
-    @State private var lastLargestArmyPlayer: PlayerID?
+    /// Queued incoming bot trade offers, shown one at a time via
+    /// `IncomingTradeCardView`. Seeded/grown by diffing
+    /// `state.pendingTradeOffers` on each render.
+    @State private var incomingOfferQueue: [TradeOffer] = []
     @State private var seenTradeOfferIDs: Set<UUID> = []
 
     private var state: GameState { viewModel.state }
@@ -72,20 +68,29 @@ public struct GameView: View {
 
     public var body: some View {
         ZStack {
+            CatanTheme.waterBackground.ignoresSafeArea()
+
             VStack(spacing: 8) {
                 BotHUDRow(state: state)
 
-                BoardView(
-                    state: state,
-                    onTapVertex: handleTapVertex,
-                    onTapEdge: handleTapEdge,
-                    onTapTile: handleTapTile,
-                    highlightedVertices: highlightedVertices,
-                    highlightedEdges: highlightedEdges,
-                    isPlacementModeActive: isPlacementModeActive || isMandatoryRobberActive,
-                    highlightedTiles: highlightedTilesForRobber,
-                    isTileTargetingActive: isMandatoryRobberActive
-                )
+                ZStack(alignment: .bottomLeading) {
+                    BoardView(
+                        state: state,
+                        onTapVertex: handleTapVertex,
+                        onTapEdge: handleTapEdge,
+                        onTapTile: handleTapTile,
+                        highlightedVertices: highlightedVertices,
+                        highlightedEdges: highlightedEdges,
+                        isPlacementModeActive: isPlacementModeActive || isRobberTargetingActive,
+                        highlightedTiles: highlightedTilesForRobber,
+                        isTileTargetingActive: isRobberTargetingActive
+                    )
+
+                    if let roll = state.lastDiceRoll {
+                        diceChip(roll)
+                            .padding(10)
+                    }
+                }
                 .frame(maxHeight: .infinity)
                 .clipShape(RoundedRectangle(cornerRadius: 12))
 
@@ -101,18 +106,19 @@ public struct GameView: View {
                         .foregroundStyle(.red)
                 }
 
-                GameLogView(log: state.log)
-                    .frame(height: 90)
+                HumanPlayerPanel(state: state, onTapDevCard: { devCardPopupType = $0 })
 
-                HumanPlayerPanel(state: state)
+                if let currentOffer = incomingOfferQueue.first {
+                    IncomingTradeCardView(
+                        offer: currentOffer,
+                        onAccept: { respond(to: currentOffer, accept: true) },
+                        onReject: { respond(to: currentOffer, accept: false) }
+                    )
+                }
 
                 bottomPanel
             }
             .padding(8)
-
-            GameNotificationOverlay(notifications: notifications)
-                .allowsHitTesting(!notifications.isEmpty)
-                .frame(maxHeight: .infinity, alignment: .top)
 
             if viewModel.isBotThinking {
                 VStack {
@@ -127,20 +133,23 @@ public struct GameView: View {
                 }
                 .allowsHitTesting(false)
             }
-        }
-        .sheet(isPresented: $showTradeSheet) {
-            TradeSheetView(viewModel: viewModel)
-        }
-        .sheet(isPresented: $showDevCardPanel) {
-            NavigationStack {
-                DevCardPanelView(viewModel: viewModel, onPlay: handleDevCardPlay)
-                    .padding()
-                    .navigationTitle("Development Cards")
+
+            if showTradePopup {
+                TradePopupView(viewModel: viewModel, onDismiss: { showTradePopup = false })
             }
-        }
-        .sheet(isPresented: $showKnightRobberSheet) {
-            RobberTargetView(viewModel: viewModel) {
-                showKnightRobberSheet = false
+
+            if let devCardPopupType {
+                DevCardPopupView(
+                    type: devCardPopupType,
+                    onPlayBoardCard: handleDevCardPlay,
+                    onPlayYearOfPlenty: { first, second in
+                        performDevCard(.playYearOfPlenty(first, second))
+                    },
+                    onPlayMonopoly: { resource in
+                        performDevCard(.playMonopoly(resource))
+                    },
+                    onCancel: { self.devCardPopupType = nil }
+                )
             }
         }
         .sheet(isPresented: isDiscardPresented) {
@@ -148,19 +157,7 @@ public struct GameView: View {
                 .interactiveDismissDisabled(true)
         }
         .onAppear {
-            lastSeenLogCount = state.log.count
-            lastLongestRoadPlayer = state.longestRoadPlayer
-            lastLargestArmyPlayer = state.largestArmyPlayer
             seenTradeOfferIDs = Set(state.pendingTradeOffers.map(\.id))
-        }
-        .onChange(of: state.log.count) { _, newCount in
-            handleLogChange(newCount: newCount)
-        }
-        .onChange(of: state.longestRoadPlayer) { _, newValue in
-            handleLongestRoadChange(newValue)
-        }
-        .onChange(of: state.largestArmyPlayer) { _, newValue in
-            handleLargestArmyChange(newValue)
         }
         .onChange(of: state.pendingTradeOffers.map(\.id)) { _, _ in
             handleTradeOffersChange()
@@ -169,7 +166,7 @@ public struct GameView: View {
             guard newValue != nil else { return }
             animateDiceRoll()
         }
-        .onChange(of: isMandatoryRobberActive) { _, isActive in
+        .onChange(of: isRobberTargetingActive) { _, isActive in
             if !isActive { robberTargetTile = nil }
         }
     }
@@ -192,16 +189,27 @@ public struct GameView: View {
         }
     }
 
-    // MARK: - Bottom panel: dice chip + one uniform action row (or the
-    // inline robber-targeting panel while a mandatory robber move is
-    // pending) over a lighter water panel
+    private func diceChip(_ roll: Int) -> some View {
+        HStack(spacing: 4) {
+            Image(systemName: "die.face.\(min(max(roll, 1), 6)).fill")
+            Text("Rolled \(roll)")
+                .font(.caption.bold())
+        }
+        .foregroundStyle(.white)
+        .padding(.horizontal, 10)
+        .padding(.vertical, 4)
+        .background(Color.black.opacity(0.45), in: Capsule())
+        .scaleEffect(diceScale)
+        .rotationEffect(.degrees(diceRotation))
+    }
+
+    // MARK: - Bottom panel: one uniform action row (or the inline
+    // robber-targeting panel while a robber move is pending) over a
+    // lighter water panel
 
     private var bottomPanel: some View {
         VStack(spacing: 8) {
-            if let roll = state.lastDiceRoll {
-                diceChip(roll)
-            }
-            if isMandatoryRobberActive {
+            if isRobberTargetingActive {
                 robberTargetingPanel
             } else {
                 actionRow
@@ -214,24 +222,9 @@ public struct GameView: View {
         )
     }
 
-    private func diceChip(_ roll: Int) -> some View {
-        HStack(spacing: 4) {
-            Image(systemName: "die.face.\(min(max(roll, 1), 6)).fill")
-            Text("Rolled \(roll)")
-                .font(.caption.bold())
-        }
-        .foregroundStyle(.white)
-        .padding(.horizontal, 10)
-        .padding(.vertical, 4)
-        .background(Color.black.opacity(0.35), in: Capsule())
-        .scaleEffect(diceScale)
-        .rotationEffect(.degrees(diceRotation))
-    }
-
-    /// Build / Trade / Dev Cards / turn action (Roll Dice or End Turn), all
-    /// in one uniform row - always showing all four slots so the row never
-    /// jumps around as phase changes; options that don't apply right now
-    /// disable+dim instead of disappearing.
+    /// Build / Trade / turn action (Roll Dice or End Turn) - dev cards are
+    /// played by tapping their tile in `HumanPlayerPanel` now, so this row
+    /// only needs three slots.
     private var actionRow: some View {
         HStack(spacing: 10) {
             BuildMenuView(viewModel: viewModel, placementMode: $placementMode)
@@ -239,19 +232,13 @@ public struct GameView: View {
                 title: "Trade", systemImage: "arrow.left.arrow.right",
                 isEnabled: isTradeAvailable
             ) {
-                showTradeSheet = true
-            }
-            UniformActionButton(
-                title: "Dev Cards", systemImage: "rectangle.stack.badge.person.crop",
-                isEnabled: isDevCardPanelAvailable
-            ) {
-                showDevCardPanel = true
+                showTradePopup = true
             }
             turnActionButton
         }
     }
 
-    /// Replaces `actionRow` while `isMandatoryRobberActive`: instructs the
+    /// Replaces `actionRow` while `isRobberTargetingActive`: instructs the
     /// human to tap a highlighted tile on the board above, then - once a
     /// tile with eligible victims is picked - an inline row of victim
     /// buttons (plus Cancel, to re-pick the tile) right here instead of a
@@ -294,11 +281,6 @@ public struct GameView: View {
         return false
     }
 
-    private var isDevCardPanelAvailable: Bool {
-        if case .mainTurn(let index) = state.phase, index == human.index { return true }
-        return false
-    }
-
     @ViewBuilder
     private var turnActionButton: some View {
         switch state.phase {
@@ -332,18 +314,25 @@ public struct GameView: View {
     private func handleDevCardPlay(_ type: DevCardType) {
         switch type {
         case .knight:
-            showKnightRobberSheet = true
+            robberTargetTile = nil
+            isKnightRobberActive = true
         case .roadBuilding:
             roadBuildingFirstEdge = nil
             isRoadBuildingActive = true
             placementMode = nil
         case .yearOfPlenty, .monopoly, .victoryPoint:
-            break // Handled inside DevCardPanelView itself.
+            break // Handled inline by `DevCardPopupView` itself.
         }
-        showDevCardPanel = false
+        devCardPopupType = nil
     }
 
-    // MARK: - Inline robber-move flow (mandatory post-7-roll case)
+    private func performDevCard(_ move: GameMove) {
+        perform(move)
+        devCardPopupType = nil
+    }
+
+    // MARK: - Inline robber-move flow (mandatory post-7-roll case and the
+    // voluntary knight-card case share this same on-board flow)
 
     /// True exactly while the human owes a mandatory robber move -
     /// `state.phase == .movingRobber(human.index)`. Drives `BoardView` into
@@ -354,10 +343,16 @@ public struct GameView: View {
         return false
     }
 
+    /// True while the human has confirmed playing a Knight card from
+    /// `DevCardPopupView` and is picking where to move the robber.
+    private var isRobberTargetingActive: Bool {
+        isMandatoryRobberActive || isKnightRobberActive
+    }
+
     /// Every tile except the robber's current one - the only illegal target
     /// per `Robber.apply`/`RulesEngine.legalMoves`.
     private var highlightedTilesForRobber: Set<HexCoordinate> {
-        guard isMandatoryRobberActive else { return [] }
+        guard isRobberTargetingActive else { return [] }
         return Set(state.board.tiles.map(\.coordinate)).subtracting([state.board.robberTile])
     }
 
@@ -367,7 +362,7 @@ public struct GameView: View {
     }
 
     private func handleTapTile(_ tile: HexCoordinate) {
-        guard isMandatoryRobberActive, tile != state.board.robberTile else { return }
+        guard isRobberTargetingActive, tile != state.board.robberTile else { return }
         let victims = Robber.eligibleVictims(for: tile, thief: human, in: state)
         if victims.isEmpty {
             performRobberMove(tile: tile, victim: nil)
@@ -377,13 +372,17 @@ public struct GameView: View {
     }
 
     private func performRobberMove(tile: HexCoordinate, victim: PlayerID?) {
+        let move: GameMove = isKnightRobberActive
+            ? .playKnight(moveRobberTo: tile, stealFrom: victim)
+            : .moveRobber(tile, stealFrom: victim)
         do {
-            try viewModel.apply(.moveRobber(tile, stealFrom: victim))
+            try viewModel.apply(move)
             errorMessage = nil
         } catch {
             errorMessage = "\(error)"
         }
         robberTargetTile = nil
+        isKnightRobberActive = false
     }
 
     // MARK: - Board tap routing
@@ -505,77 +504,31 @@ public struct GameView: View {
         }
     }
 
-    // MARK: - Notification triggers
+    // MARK: - Incoming trade offers
 
-    private func handleLogChange(newCount: Int) {
-        defer { lastSeenLogCount = newCount }
-        guard newCount > lastSeenLogCount, newCount <= state.log.count else { return }
-        for line in state.log[lastSeenLogCount..<newCount] {
-            if let notification = classify(logLine: line) {
-                enqueue(notification)
-            }
-        }
-    }
-
-    /// Matches the exact log phrasing `RulesEngine`/`SetupPhase` append (see
-    /// their `state.log.append(...)` call sites) - a small, disclosed
-    /// coupling to log wording in exchange for not touching `CatanEngine`.
-    private func classify(logLine line: String) -> GameNotification? {
-        if line.contains("built a road") || line.contains("placed a road") {
-            return GameNotification(text: line, systemImage: "line.diagonal", tint: .brown)
-        }
-        if line.contains("built a settlement") || line.contains("placed a settlement") {
-            return GameNotification(text: line, systemImage: "house.fill", tint: .green)
-        }
-        if line.contains("built a city") {
-            return GameNotification(text: line, systemImage: "building.2.fill", tint: .indigo)
-        }
-        if line.contains("played a knight") || line.contains("played road building")
-            || line.contains("played year of plenty") || line.contains("played monopoly") {
-            return GameNotification(text: line, systemImage: "rectangle.stack.fill", tint: .purple)
-        }
-        return nil
-    }
-
-    private func handleLongestRoadChange(_ newValue: PlayerID?) {
-        defer { lastLongestRoadPlayer = newValue }
-        guard let newValue, newValue != lastLongestRoadPlayer else { return }
-        enqueue(GameNotification(
-            text: "\(CatanTheme.playerLabel(for: newValue)) now has the Longest Road",
-            systemImage: "road.lanes", tint: .orange
-        ))
-    }
-
-    private func handleLargestArmyChange(_ newValue: PlayerID?) {
-        defer { lastLargestArmyPlayer = newValue }
-        guard let newValue, newValue != lastLargestArmyPlayer else { return }
-        enqueue(GameNotification(
-            text: "\(CatanTheme.playerLabel(for: newValue)) now has the Largest Army",
-            systemImage: "shield.fill", tint: .red
-        ))
-    }
-
+    /// Grows `incomingOfferQueue` with any bot-proposed offer not already
+    /// seen - `IncomingTradeCardView` shows `incomingOfferQueue.first`, so
+    /// multiple simultaneous offers queue and show one at a time. Offers
+    /// that disappear from `state.pendingTradeOffers` (accepted/rejected/
+    /// withdrawn elsewhere) are dropped from the queue too.
     private func handleTradeOffersChange() {
+        let liveIDs = Set(state.pendingTradeOffers.map(\.id))
+        incomingOfferQueue.removeAll { !liveIDs.contains($0.id) }
+
         for offer in state.pendingTradeOffers where offer.from != human && !seenTradeOfferIDs.contains(offer.id) {
             seenTradeOfferIDs.insert(offer.id)
-            enqueue(GameNotification(
-                text: "\(CatanTheme.playerLabel(for: offer.from)) wants to trade",
-                systemImage: "arrow.left.arrow.right", tint: .blue,
-                onTap: { showTradeSheet = true }
-            ))
+            incomingOfferQueue.append(offer)
         }
     }
 
-    private func enqueue(_ notification: GameNotification) {
-        withAnimation {
-            notifications.append(notification)
+    private func respond(to offer: TradeOffer, accept: Bool) {
+        do {
+            try viewModel.apply(.respondToTrade(offerID: offer.id, accept: accept))
+            errorMessage = nil
+        } catch {
+            errorMessage = "\(error)"
         }
-        Task {
-            try? await Task.sleep(for: .seconds(4))
-            withAnimation {
-                notifications.removeAll { $0.id == notification.id }
-            }
-        }
+        incomingOfferQueue.removeAll { $0.id == offer.id }
     }
 }
 

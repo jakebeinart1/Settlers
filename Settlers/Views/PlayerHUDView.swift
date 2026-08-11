@@ -29,40 +29,56 @@ public struct BotHUDRow: View {
 }
 
 /// Spacious bottom panel showing the human's full standing - name, VP/road/
-/// army tags, dev-card count, and a prominent per-resource dot breakdown -
-/// in its own dedicated space distinct from the compact bot chips above,
-/// rather than squeezed into a same-sized top chip alongside them.
+/// army tags, a prominent per-resource dot breakdown, and (since dev cards
+/// no longer get their own menu/button) a row of playable dev-card tiles
+/// right alongside the resources - tapping one calls `onTapDevCard` so
+/// `GameView` can open `DevCardPopupView` for it.
 public struct HumanPlayerPanel: View {
     public let state: GameState
+    public let onTapDevCard: (DevCardType) -> Void
 
-    public init(state: GameState) {
+    public init(state: GameState, onTapDevCard: @escaping (DevCardType) -> Void) {
         self.state = state
+        self.onTapDevCard = onTapDevCard
     }
 
     private let human = PlayerID(index: 0)
+
+    /// Held dev card types (with count + "new"/unplayable-this-turn count),
+    /// in a fixed display order - mirrors the old `DevCardPanelView.rows`.
+    private var devCardRows: [(type: DevCardType, held: Int, new: Int)] {
+        guard let player = state.players.first(where: { $0.id == human }) else { return [] }
+        let boughtThisTurn = state.devCardsBoughtThisTurn[human] ?? []
+        return [DevCardType.knight, .roadBuilding, .yearOfPlenty, .monopoly, .victoryPoint].compactMap { type in
+            let held = player.devCards.filter { $0 == type }.count
+            guard held > 0 else { return nil }
+            let new = boughtThisTurn.filter { $0 == type }.count
+            return (type, held, new)
+        }
+    }
 
     public var body: some View {
         if let player = state.players.first(where: { $0.id == human }) {
             let isActive = PlayerChip.isActivePlayer(human, in: state)
 
-            HStack(spacing: 12) {
-                VStack(alignment: .leading, spacing: 4) {
-                    HStack(spacing: 6) {
-                        Circle()
-                            .fill(CatanTheme.color(for: human))
-                            .frame(width: 14, height: 14)
-                        Text("You")
-                            .font(.headline)
-                        Spacer()
-                        PlayerChip.tag(text: "\(state.victoryPoints(for: human)) VP", icon: "star.fill", tint: .yellow)
-                        if state.longestRoadPlayer == human {
-                            PlayerChip.tag(text: "Longest Road", icon: "road.lanes", tint: .orange)
-                        }
-                        if state.largestArmyPlayer == human {
-                            PlayerChip.tag(text: "Largest Army", icon: "shield.fill", tint: .red)
-                        }
+            VStack(alignment: .leading, spacing: 8) {
+                HStack(spacing: 6) {
+                    Circle()
+                        .fill(CatanTheme.color(for: human))
+                        .frame(width: 14, height: 14)
+                    Text("You")
+                        .font(.headline)
+                    Spacer()
+                    PlayerChip.tag(text: "\(state.victoryPoints(for: human)) VP", icon: "star.fill", tint: .yellow)
+                    if state.longestRoadPlayer == human {
+                        PlayerChip.tag(text: "Longest Road", icon: "road.lanes", tint: .orange)
                     }
+                    if state.largestArmyPlayer == human {
+                        PlayerChip.tag(text: "Largest Army", icon: "shield.fill", tint: .red)
+                    }
+                }
 
+                HStack(alignment: .center, spacing: 12) {
                     HStack(spacing: 10) {
                         ForEach(Resource.allCases, id: \.self) { resource in
                             let count = player.resources[resource] ?? 0
@@ -76,17 +92,27 @@ public struct HumanPlayerPanel: View {
                             }
                             .opacity(count > 0 ? 1 : 0.35)
                         }
-
-                        Spacer(minLength: 4)
-
-                        VStack(spacing: 2) {
-                            Image(systemName: "rectangle.stack.fill")
-                                .font(.callout)
-                            Text("\(player.devCards.count)")
-                                .font(.system(size: 13, weight: .bold))
-                        }
-                        .foregroundStyle(CatanTheme.onWaterText)
                     }
+
+                    if !devCardRows.isEmpty {
+                        Divider()
+                            .frame(height: 30)
+                            .overlay(Color.white.opacity(0.25))
+
+                        ScrollView(.horizontal, showsIndicators: false) {
+                            HStack(spacing: 6) {
+                                ForEach(devCardRows, id: \.type) { row in
+                                    let isPlayable = row.type != .victoryPoint
+                                        && DevCards.canPlay(row.type, by: human, in: state)
+                                    DevCardHUDTile(type: row.type, held: row.held, new: row.new, isPlayable: isPlayable) {
+                                        onTapDevCard(row.type)
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    Spacer(minLength: 0)
                 }
             }
             .padding(10)
@@ -103,6 +129,63 @@ public struct HumanPlayerPanel: View {
     }
 }
 
+/// HUD-scale dev card tile - a shrunk version of the old `DevCardPanelView`
+/// card, small enough to sit inline next to the resource dots. Tappable
+/// only while `isPlayable` (mirrors `DevCards.canPlay`, with Victory Point
+/// cards always excluded since they're never played).
+private struct DevCardHUDTile: View {
+    let type: DevCardType
+    let held: Int
+    let new: Int
+    let isPlayable: Bool
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            VStack(spacing: 2) {
+                Image(systemName: icon)
+                    .font(.callout)
+                Text("x\(held)")
+                    .font(.system(size: 10, weight: .bold))
+            }
+            .foregroundStyle(.white)
+            .frame(width: 34, height: 36)
+            .background(RoundedRectangle(cornerRadius: 8).fill(color.gradient))
+            .overlay(RoundedRectangle(cornerRadius: 8).strokeBorder(.white.opacity(0.4), lineWidth: 1))
+            .overlay(alignment: .topTrailing) {
+                if new > 0 {
+                    Circle()
+                        .fill(Color.yellow)
+                        .frame(width: 8, height: 8)
+                        .offset(x: 2, y: -2)
+                }
+            }
+        }
+        .disabled(!isPlayable)
+        .opacity(isPlayable ? 1 : 0.5)
+    }
+
+    private var icon: String {
+        switch type {
+        case .knight: return "shield.fill"
+        case .roadBuilding: return "road.lanes"
+        case .yearOfPlenty: return "sparkles"
+        case .monopoly: return "crown.fill"
+        case .victoryPoint: return "star.fill"
+        }
+    }
+
+    private var color: Color {
+        switch type {
+        case .knight: return .red
+        case .roadBuilding: return .brown
+        case .yearOfPlenty: return .green
+        case .monopoly: return .purple
+        case .victoryPoint: return Color(red: 0.85, green: 0.65, blue: 0.1)
+        }
+    }
+}
+
 /// Shared chip rendering + active-player logic used by `BotHUDRow` (and, for
 /// its tag pills, `HumanPlayerPanel`).
 @MainActor
@@ -110,6 +193,7 @@ enum PlayerChip {
     @ViewBuilder
     static func body(for player: Player, state: GameState, isHuman: Bool) -> some View {
         let isActive = isActivePlayer(player.id, in: state)
+        let handSize = player.resources.values.reduce(0, +)
 
         VStack(alignment: .leading, spacing: 4) {
             HStack(spacing: 4) {
@@ -135,29 +219,26 @@ enum PlayerChip {
                 }
             }
 
-            HStack(spacing: 4) {
-                Image(systemName: "sparkles.rectangle.stack.fill")
-                    .font(.caption2)
-                Text("\(player.devCards.count) cards")
-                    .font(.caption2.bold())
-            }
-            .foregroundStyle(CatanTheme.onWaterText)
-
-            HStack(spacing: 6) {
-                ForEach(Resource.allCases, id: \.self) { resource in
-                    let count = player.resources[resource] ?? 0
-                    if count > 0 {
-                        VStack(spacing: 1) {
-                            Circle()
-                                .fill(CatanTheme.color(for: resource))
-                                .frame(width: 8, height: 8)
-                            Text("\(count)")
-                                .font(.system(size: 10, weight: .bold))
-                                .foregroundStyle(CatanTheme.onWaterText)
-                        }
-                    }
+            HStack(spacing: 10) {
+                // Opponents' specific resources are hidden information in
+                // real Catan - only the *count* of cards they're holding is
+                // public knowledge, so bot chips show a hand-size badge
+                // rather than the per-resource-type breakdown `HumanPlayerPanel`
+                // shows for your own hand.
+                HStack(spacing: 4) {
+                    Image(systemName: "hand.raised.fill")
+                        .font(.caption2)
+                    Text("\(handSize) cards")
+                        .font(.caption2.bold())
+                }
+                HStack(spacing: 4) {
+                    Image(systemName: "sparkles.rectangle.stack.fill")
+                        .font(.caption2)
+                    Text("\(player.devCards.count) dev")
+                        .font(.caption2.bold())
                 }
             }
+            .foregroundStyle(CatanTheme.onWaterText)
         }
         .padding(8)
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -218,7 +299,7 @@ enum PlayerChip {
 #Preview {
     VStack {
         BotHUDRow(state: GameSetup.newGame(board: BoardGenerator.standard()))
-        HumanPlayerPanel(state: GameSetup.newGame(board: BoardGenerator.standard()))
+        HumanPlayerPanel(state: GameSetup.newGame(board: BoardGenerator.standard()), onTapDevCard: { _ in })
     }
     .padding()
     .background(Color.black)

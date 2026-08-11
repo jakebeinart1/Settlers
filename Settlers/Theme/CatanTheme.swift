@@ -19,7 +19,7 @@ public enum CatanTheme {
     /// One SF Symbol per resource, standing in for a hand-drawn colonist.io-
     /// style icon set (Task 13/16 follow-up: the trade UI previously showed
     /// resource *names* only). Paired with `color(for:)` wherever a resource
-    /// needs a compact, at-a-glance identity - e.g. `TradeSheetView`'s give/
+    /// needs a compact, at-a-glance identity - e.g. `TradePopupView`'s give/
     /// want pickers - rather than a full custom vector icon set, which is
     /// deferred (see the design doc's "Open Items for Later").
     public static func symbolName(for resource: Resource) -> String {
