@@ -95,17 +95,17 @@ private struct ResourceFlightBadge: View {
         .position(position)
         .opacity(opacity)
         .onAppear {
-            withAnimation(.easeOut(duration: 0.15)) {
+            withAnimation(.easeOut(duration: 0.2)) {
                 scale = 1
             }
-            withAnimation(.easeInOut(duration: 0.65)) {
+            withAnimation(.easeInOut(duration: 1.3)) {
                 position = flight.end
             }
-            withAnimation(.easeIn(duration: 0.2).delay(0.5)) {
+            withAnimation(.easeIn(duration: 0.3).delay(1.0)) {
                 opacity = 0
             }
             Task {
-                try? await Task.sleep(for: .milliseconds(750))
+                try? await Task.sleep(for: .milliseconds(1350))
                 onComplete()
             }
         }
@@ -732,7 +732,7 @@ public struct GameView: View {
             rollHighlightTiles = Set(producingTiles.map(\.coordinate))
         }
         Task {
-            try? await Task.sleep(for: .milliseconds(900))
+            try? await Task.sleep(for: .milliseconds(1500))
             withAnimation(.easeOut(duration: 0.3)) {
                 rollHighlightTiles = []
             }

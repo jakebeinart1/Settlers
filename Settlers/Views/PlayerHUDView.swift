@@ -75,14 +75,30 @@ public struct HumanPlayerPanel: View {
                         .font(.caption)
                         .foregroundStyle(CatanTheme.onWaterText.opacity(0.8))
                     Spacer()
-                    // Roads built and knights played are public information
-                    // in real Catan (roads sit visibly on the board; a
-                    // knight has to be played face-up to move the robber),
-                    // shown here the same bare icon+count way as every bot
-                    // chip's stat row.
-                    PlayerChip.statBadge(icon: "road.lanes", value: player.roads.count)
-                    PlayerChip.statBadge(icon: "shield.fill", value: player.playedKnights)
-                    PlayerChip.tag(text: "\(state.victoryPoints(for: human)) VP", icon: "star.fill", tint: .yellow)
+                    // Roads built, knights played, and VP are all public
+                    // information in real Catan (roads sit visibly on the
+                    // board; a knight has to be played face-up to move the
+                    // robber) - sized up from the bot chips' compact stats,
+                    // since this is your own panel and has the room for it.
+                    HStack(spacing: 4) {
+                        Image(systemName: "road.lanes")
+                        Text("\(player.roads.count)")
+                    }
+                    .font(.subheadline.bold())
+                    HStack(spacing: 4) {
+                        Image(systemName: "shield.fill")
+                        Text("\(player.playedKnights)")
+                    }
+                    .font(.subheadline.bold())
+                    HStack(spacing: 4) {
+                        Image(systemName: "star.fill")
+                        Text("\(state.victoryPoints(for: human)) VP")
+                    }
+                    .font(.subheadline.bold())
+                    .foregroundStyle(.white)
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 4)
+                    .background(Color.yellow.opacity(0.85), in: Capsule())
                     if state.longestRoadPlayer == human {
                         PlayerChip.tag(text: "Longest Road", icon: "road.lanes", tint: .orange)
                     }
@@ -258,21 +274,25 @@ enum PlayerChip {
                 }
             }
 
-            HStack(spacing: 8) {
-                // Opponents' specific resources are hidden information in
-                // real Catan - only the *count* of cards they're holding is
-                // public knowledge, so bot chips show a hand-size badge
-                // rather than the per-resource-type breakdown `HumanPlayerPanel`
-                // shows for your own hand. Roads built and knights played
-                // are both fully public in real Catan too (roads are
-                // visible on the board itself, and knights have to be
-                // played face-up to move the robber) - shown here as plain
-                // icon+count pairs, no word labels, so all four stats fit
-                // this ~110pt-wide chip without wrapping.
-                statBadge(icon: "hand.raised.fill", value: handSize)
-                statBadge(icon: "sparkles.rectangle.stack.fill", value: player.devCards.count)
-                statBadge(icon: "road.lanes", value: player.roads.count)
-                statBadge(icon: "shield.fill", value: player.playedKnights)
+            // Opponents' specific resources are hidden information in real
+            // Catan - only the *count* of cards they're holding is public
+            // knowledge, so bot chips show a hand-size badge rather than
+            // the per-resource-type breakdown `HumanPlayerPanel` shows for
+            // your own hand. Roads built and knights played are both fully
+            // public in real Catan too (roads are visible on the board
+            // itself, and knights have to be played face-up to move the
+            // robber) - shown here as plain icon+count pairs, no word
+            // labels. Two rows of two rather than one row of four: four
+            // across ran wider than this ~110pt-wide chip and got clipped.
+            VStack(alignment: .leading, spacing: 3) {
+                HStack(spacing: 10) {
+                    statBadge(icon: "hand.raised.fill", value: handSize)
+                    statBadge(icon: "sparkles.rectangle.stack.fill", value: player.devCards.count)
+                }
+                HStack(spacing: 10) {
+                    statBadge(icon: "road.lanes", value: player.roads.count)
+                    statBadge(icon: "shield.fill", value: player.playedKnights)
+                }
             }
             .foregroundStyle(CatanTheme.onWaterText)
         }

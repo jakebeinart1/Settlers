@@ -34,7 +34,7 @@ public struct TradePopupView: View {
                     Text("Trade")
                         .font(.headline)
                     Spacer()
-                    Toggle("Bank / Port", isOn: $isBankMode.animation())
+                    Toggle("Trade Bank/Port", isOn: $isBankMode.animation())
                         .toggleStyle(.button)
                         .font(.caption)
                 }
