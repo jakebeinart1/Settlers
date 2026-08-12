@@ -157,14 +157,6 @@ public struct GameView: View {
     /// the tallest of the three, since it's shown whenever none of the
     /// others are active.
     @State private var infoBannerHeight: CGFloat = 56
-    /// `bottomPanel`'s content swaps between `actionRow` (~73pt) and
-    /// `robberTargetingPanel`, which is itself shorter with no tile picked
-    /// yet (~30pt) and taller once one is (~95pt, the tallest of the
-    /// three - seeded here) - each swap resized the board (the flexible
-    /// element above it) to compensate, which read as a brief zoom every
-    /// time a knight was played. Measured all three before picking this
-    /// seed, same as the banner/dice slots.
-    @State private var bottomPanelHeight: CGFloat = 95
 
     private var state: GameState { viewModel.state }
     private var human: PlayerID { viewModel.humanPlayer }
@@ -415,16 +407,21 @@ public struct GameView: View {
     // lighter water panel
 
     private var bottomPanel: some View {
-        StableHeightSlot(height: $bottomPanelHeight) {
-            VStack(spacing: 8) {
-                if isRobberTargetingActive {
-                    robberTargetingPanel
-                } else {
-                    actionRow
-                }
+        // Deliberately *not* a `StableHeightSlot` (unlike the banner/dice
+        // rows above) - reserving its tallest possible state (the robber
+        // victim-picker, ~95pt) permanently would mean paying that cost
+        // during ordinary play too, where the plain action row only needs
+        // ~73pt, and that's the vast majority of the game. A brief resize
+        // during the comparatively rare robber-targeting flow is the
+        // better trade against a permanently smaller board.
+        VStack(spacing: 8) {
+            if isRobberTargetingActive {
+                robberTargetingPanel
+            } else {
+                actionRow
             }
-            .padding(8)
         }
+        .padding(8)
         .frame(maxWidth: .infinity)
         .background(
             RoundedRectangle(cornerRadius: 10)
