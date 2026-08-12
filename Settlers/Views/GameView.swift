@@ -157,6 +157,14 @@ public struct GameView: View {
     /// the tallest of the three, since it's shown whenever none of the
     /// others are active.
     @State private var infoBannerHeight: CGFloat = 56
+    /// `bottomPanel`'s content swaps between `actionRow` (~73pt) and
+    /// `robberTargetingPanel`, which is itself shorter with no tile picked
+    /// yet (~30pt) and taller once one is (~95pt, the tallest of the
+    /// three - seeded here) - each swap resized the board (the flexible
+    /// element above it) to compensate, which read as a brief zoom every
+    /// time a knight was played. Measured all three before picking this
+    /// seed, same as the banner/dice slots.
+    @State private var bottomPanelHeight: CGFloat = 95
 
     private var state: GameState { viewModel.state }
     private var human: PlayerID { viewModel.humanPlayer }
@@ -173,7 +181,7 @@ public struct GameView: View {
             // actually wanted, instead of uniformly.
             VStack(spacing: 0) {
                 BotHUDRow(state: state)
-                    .padding(.bottom, 8)
+                    .padding(.bottom, 6)
 
                 // Its own row, below the opponent chips and above the
                 // board, rather than pinned over the board's bottom-left
@@ -196,7 +204,7 @@ public struct GameView: View {
                         Color.clear.frame(height: 0)
                     }
                 }
-                .padding(.bottom, 8)
+                .padding(.bottom, 6)
 
                 BoardView(
                     state: state,
@@ -327,6 +335,31 @@ public struct GameView: View {
         .onChange(of: isRobberTargetingActive) { _, isActive in
             if !isActive { robberTargetTile = nil }
         }
+        // A trade offer is only really "live" during the turn it showed
+        // up in - once the active player changes, it's stale from the
+        // human's perspective (they had their window and it passed), even
+        // though the offer itself may still sit in `state.pendingTradeOffers`
+        // for a bot to pick up on some later turn of its own. Clearing only
+        // the local queue here (not the engine-level offer) keeps that bot-
+        // to-bot path working untouched.
+        .onChange(of: activePlayerIndex) { _, _ in
+            incomingOfferQueue.removeAll()
+        }
+    }
+
+    /// The seat whose turn it currently is, or `nil` during `.discarding`
+    /// (no single active player) or once the game's over. Used purely to
+    /// notice when the turn has genuinely moved on, as opposed to every
+    /// phase transition within the same player's turn (e.g. rollDice ->
+    /// mainTurn, or mainTurn -> movingRobber -> mainTurn after a 7).
+    private var activePlayerIndex: Int? {
+        switch state.phase {
+        case .setupForward(let index), .setupBackward(let index),
+             .rollDice(let index), .mainTurn(let index), .movingRobber(let index):
+            return index
+        case .discarding, .gameOver:
+            return nil
+        }
     }
 
     /// Brief scale + rotation pulse so a dice roll reads as an event rather
@@ -382,14 +415,17 @@ public struct GameView: View {
     // lighter water panel
 
     private var bottomPanel: some View {
-        VStack(spacing: 8) {
-            if isRobberTargetingActive {
-                robberTargetingPanel
-            } else {
-                actionRow
+        StableHeightSlot(height: $bottomPanelHeight) {
+            VStack(spacing: 8) {
+                if isRobberTargetingActive {
+                    robberTargetingPanel
+                } else {
+                    actionRow
+                }
             }
+            .padding(8)
         }
-        .padding(8)
+        .frame(maxWidth: .infinity)
         .background(
             RoundedRectangle(cornerRadius: 10)
                 .fill(CatanTheme.panelBackground)
@@ -730,7 +766,18 @@ public struct GameView: View {
         let liveIDs = Set(state.pendingTradeOffers.map(\.id))
         incomingOfferQueue.removeAll { !liveIDs.contains($0.id) }
 
-        for offer in state.pendingTradeOffers where offer.from != human && !seenTradeOfferIDs.contains(offer.id) {
+        // Only ever surface an offer the human could actually accept right
+        // now - one between two bots that doesn't involve resources the
+        // human holds shouldn't interrupt them at all; bots still trade
+        // freely amongst themselves either way, this only affects what
+        // reaches this queue.
+        let humanResources = state.players.first(where: { $0.id == human })?.resources ?? [:]
+        func humanCanAfford(_ offer: TradeOffer) -> Bool {
+            offer.want.allSatisfy { resource, amount in (humanResources[resource] ?? 0) >= amount }
+        }
+
+        for offer in state.pendingTradeOffers
+        where offer.from != human && !seenTradeOfferIDs.contains(offer.id) && humanCanAfford(offer) {
             seenTradeOfferIDs.insert(offer.id)
             incomingOfferQueue.append(offer)
         }

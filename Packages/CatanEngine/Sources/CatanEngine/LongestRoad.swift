@@ -16,6 +16,18 @@ public enum LongestRoad {
         return nil
     }
 
+    /// Public wrapper around `longestPath(for:in:)` - the length (in edges)
+    /// of `player`'s own longest continuous road right now, same figure
+    /// `compute(for:)` compares across players to award the bonus. UI
+    /// layers read this for each player's "roads" stat, rather than a raw
+    /// `player.roads.count` (total segments built), since the latter
+    /// doesn't answer "how close is this player to/holding longest road" -
+    /// a heavily-forked network can have many more segments built than its
+    /// actual longest stretch.
+    public static func length(for player: Player, in state: GameState) -> Int {
+        longestPath(for: player, in: state)
+    }
+
     /// The longest simple path through `player`'s road-edge graph, cut at
     /// any vertex owned by an opposing settlement/city (the road can't
     /// continue through an opponent's building, but the segments up to it

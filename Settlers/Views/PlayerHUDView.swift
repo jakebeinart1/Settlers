@@ -108,9 +108,13 @@ public struct HumanPlayerPanel: View {
                     }
                     .font(.subheadline.bold())
                     .fixedSize()
+                    // Longest continuous stretch (what the 2VP bonus is
+                    // actually based on), not total segments built - a
+                    // forked network can have far more segments than its
+                    // longest single run.
                     HStack(spacing: 4) {
                         Image(systemName: "road.lanes")
-                        Text("\(player.roads.count)")
+                        Text("\(LongestRoad.length(for: player, in: state))")
                     }
                     .font(.subheadline.bold())
                     .fixedSize()
@@ -389,14 +393,19 @@ enum PlayerChip {
                     statBadge(icon: "sparkles.rectangle.stack.fill", value: player.devCards.count)
                 }
                 HStack(spacing: 10) {
-                    statBadge(icon: "road.lanes", value: player.roads.count)
+                    // Longest continuous stretch, not total segments built -
+                    // see HumanPlayerPanel's matching stat for why.
+                    statBadge(icon: "road.lanes", value: LongestRoad.length(for: player, in: state))
                     statBadge(icon: "shield.fill", value: player.playedKnights)
                 }
             }
             .foregroundStyle(CatanTheme.onWaterText)
         }
-        .padding(12)
-        .frame(maxWidth: .infinity, minHeight: 108, alignment: .topLeading)
+        // Trimmed from 108/12 - the board needed more room and this chip
+        // had slack in it (its content never actually needed the full old
+        // minimum).
+        .padding(10)
+        .frame(maxWidth: .infinity, minHeight: 98, alignment: .topLeading)
         .background(
             RoundedRectangle(cornerRadius: 12)
                 .fill(isActive ? CatanTheme.hudChipBackgroundActive : CatanTheme.hudChipBackground)
