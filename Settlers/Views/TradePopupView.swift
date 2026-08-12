@@ -41,7 +41,9 @@ public struct TradePopupView: View {
 
                 playerTradeCard
 
-                if let proposalOutcome {
+                if let pendingConfirmation = viewModel.pendingTradeConfirmation {
+                    pendingConfirmationBanner(pendingConfirmation)
+                } else if let proposalOutcome {
                     proposalOutcomeBanner(proposalOutcome)
                 }
 
@@ -98,15 +100,18 @@ public struct TradePopupView: View {
 
             Button("Propose to Bots") {
                 let offer = TradeOffer(from: viewModel.humanPlayer, give: give, want: want)
+                proposalOutcome = nil
                 perform(.proposeTrade(offer))
-                // A bot's response is resolved synchronously inside
+                // Every bot's willingness is evaluated synchronously inside
                 // `apply` (see `GameViewModel.resolveHumanProposedTrade`) -
-                // by the time `perform` returns above, `lastTradeOutcome`
-                // already reflects this exact proposal, as long as it
-                // didn't fail (`errorMessage` would be set instead, and
-                // `lastTradeOutcome` would still be stale from an earlier
-                // proposal - don't show that as if it were this one's).
-                if errorMessage == nil {
+                // by the time `perform` returns above, either
+                // `pendingTradeConfirmation` is set (some bot would accept -
+                // `pendingConfirmationBanner` takes over below, and this
+                // proposal isn't actually applied until the human confirms
+                // it there) or, if nobody would, `lastTradeOutcome` already
+                // reflects that immediately. Neither applies if the
+                // proposal itself failed (`errorMessage` set instead).
+                if errorMessage == nil, viewModel.pendingTradeConfirmation == nil {
                     proposalOutcome = viewModel.lastTradeOutcome
                 }
             }
@@ -141,6 +146,57 @@ public struct TradePopupView: View {
                 }
             }
         }
+    }
+
+    // MARK: - Trade confirmation
+
+    /// A bot said yes - shown instead of `proposalOutcomeBanner` until the
+    /// human actually goes through with it (or backs out), so accepting a
+    /// trade always takes an explicit confirmation rather than the swap
+    /// just happening the instant a bot agrees. See
+    /// `GameViewModel.pendingTradeConfirmation`.
+    private func pendingConfirmationBanner(_ pending: GameViewModel.PendingTradeConfirmation) -> some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack(spacing: 6) {
+                Image(systemName: "checkmark.circle.fill")
+                Text("\(CatanTheme.playerLabel(for: pending.acceptedBy)) will accept this trade")
+                    .font(.caption.bold())
+            }
+            .foregroundStyle(.green)
+
+            HStack(spacing: 10) {
+                ForEach(pending.decisions, id: \.bot) { decision in
+                    HStack(spacing: 3) {
+                        Image(systemName: decision.accepted ? "checkmark" : "xmark")
+                            .font(.system(size: 9, weight: .bold))
+                            .foregroundStyle(decision.accepted ? .green : .red)
+                        Text(CatanTheme.playerLabel(for: decision.bot))
+                            .font(.caption2)
+                    }
+                }
+            }
+
+            HStack(spacing: 10) {
+                Button("Decline") {
+                    viewModel.declinePendingTrade()
+                    proposalOutcome = viewModel.lastTradeOutcome
+                }
+                .buttonStyle(.bordered)
+
+                Button("Confirm Trade") {
+                    viewModel.confirmPendingTrade()
+                    proposalOutcome = viewModel.lastTradeOutcome
+                }
+                .buttonStyle(.borderedProminent)
+                .tint(.green)
+            }
+            .frame(maxWidth: .infinity)
+        }
+        .padding(.horizontal, 10)
+        .padding(.vertical, 8)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Color.black.opacity(0.25), in: RoundedRectangle(cornerRadius: 10))
+        .transition(.opacity.combined(with: .move(edge: .top)))
     }
 
     // MARK: - Trade proposal outcome

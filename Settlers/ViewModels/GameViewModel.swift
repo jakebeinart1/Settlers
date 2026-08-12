@@ -1,3 +1,4 @@
+import Foundation
 import Observation
 import CatanEngine
 import CatanAI
@@ -32,6 +33,22 @@ public final class GameViewModel {
         }
     }
     public private(set) var lastTradeOutcome: TradeOutcome?
+
+    /// A bot that *would* accept the human's most recent proposal, held here
+    /// instead of being applied immediately - `TradePopupView` shows this as
+    /// a "Bot X will accept - Confirm?" banner and only actually executes
+    /// the swap once the human taps through via `confirmPendingTrade()`
+    /// (or backs out via `declinePendingTrade()`). `nil` whenever there's
+    /// nothing awaiting confirmation - either no proposal is in flight, or
+    /// the most recent one found no willing bot (see `resolveHumanProposedTrade`,
+    /// which resolves that case immediately since there's nothing to
+    /// confirm).
+    public struct PendingTradeConfirmation {
+        public let offerID: UUID
+        public let acceptedBy: PlayerID
+        public let decisions: [(bot: PlayerID, accepted: Bool)]
+    }
+    public private(set) var pendingTradeConfirmation: PendingTradeConfirmation?
 
     public init() {
         if let saved = GameStore.shared.load() {
@@ -102,10 +119,18 @@ public final class GameViewModel {
     /// turn (and even then, `Bot.decide` picks one move at a time, so
     /// responding to it isn't guaranteed to happen before `endTurn`). Real
     /// Catan trades resolve live, so evaluate every bot against the offer
-    /// right here: the first bot that would accept does, immediately;
-    /// otherwise the offer is withdrawn (a bot's `TradeHeuristics.evaluate`
-    /// answer won't change on its own without some other state change, so
-    /// leaving it pending indefinitely would just be a silent dead offer).
+    /// right here.
+    ///
+    /// A willing bot's accept is *not* applied yet, though - it's held in
+    /// `pendingTradeConfirmation` for the human to actually go through with
+    /// via `confirmPendingTrade()` (or back out of via
+    /// `declinePendingTrade()`), rather than the swap just happening the
+    /// instant some bot says yes with no chance to reconsider. If nobody
+    /// would accept, there's nothing to confirm, so that case still
+    /// resolves immediately - the offer is withdrawn right here (a bot's
+    /// `TradeHeuristics.evaluate` answer won't change on its own without
+    /// some other state change, so leaving it pending indefinitely would
+    /// just be a silent dead offer).
     private func resolveHumanProposedTrade(_ offer: TradeOffer) {
         var decisions: [(bot: PlayerID, accepted: Bool)] = []
         var acceptedBy: PlayerID?
@@ -119,11 +144,53 @@ public final class GameViewModel {
         }
 
         if let acceptedBy {
-            try? RulesEngine.apply(.respondToTrade(offerID: offer.id, accept: true), by: acceptedBy, to: &state)
-        } else if state.players.count > 1 {
-            try? RulesEngine.apply(.respondToTrade(offerID: offer.id, accept: false), by: PlayerID(index: 1), to: &state)
+            pendingTradeConfirmation = PendingTradeConfirmation(offerID: offer.id, acceptedBy: acceptedBy, decisions: decisions)
+            lastTradeOutcome = nil
+        } else {
+            pendingTradeConfirmation = nil
+            if state.players.count > 1 {
+                try? RulesEngine.apply(.respondToTrade(offerID: offer.id, accept: false), by: PlayerID(index: 1), to: &state)
+            }
+            lastTradeOutcome = TradeOutcome(decisions: decisions, acceptedBy: nil)
         }
-        lastTradeOutcome = TradeOutcome(decisions: decisions, acceptedBy: acceptedBy)
+    }
+
+    /// Goes through with a trade a bot said it would accept - see
+    /// `pendingTradeConfirmation`. A no-op if there's nothing pending (e.g.
+    /// called twice, or after `declinePendingTrade()` already cleared it).
+    public func confirmPendingTrade() {
+        guard let pending = pendingTradeConfirmation else { return }
+        pendingTradeConfirmation = nil
+
+        // The offer sits pending (unresolved) the whole time the human has
+        // this confirmation up, which leaves a narrow window for it to have
+        // been resolved some other way in the meantime - e.g. left dangling
+        // across a full turn cycle, during which the accepting bot's own
+        // legal moves could include responding to it directly. Confirming
+        // a since-vanished offer should read as "nothing to confirm
+        // anymore", not silently claim success.
+        guard state.pendingTradeOffers.contains(where: { $0.id == pending.offerID }) else {
+            lastTradeOutcome = nil
+            return
+        }
+        try? RulesEngine.apply(.respondToTrade(offerID: pending.offerID, accept: true), by: pending.acceptedBy, to: &state)
+        lastTradeOutcome = TradeOutcome(decisions: pending.decisions, acceptedBy: pending.acceptedBy)
+        try? GameStore.shared.save(state)
+    }
+
+    /// Backs out of a trade a bot would have accepted, without executing
+    /// it - withdraws the offer the same way a bot's own reject does, just
+    /// applied on the willing bot's behalf since they're the one whose
+    /// legal `.respondToTrade(accept: false)` actually removes it from
+    /// `pendingTradeOffers`. See `confirmPendingTrade` for why the offer's
+    /// continued presence is re-checked rather than assumed.
+    public func declinePendingTrade() {
+        guard let pending = pendingTradeConfirmation else { return }
+        pendingTradeConfirmation = nil
+        guard state.pendingTradeOffers.contains(where: { $0.id == pending.offerID }) else { return }
+        try? RulesEngine.apply(.respondToTrade(offerID: pending.offerID, accept: false), by: pending.acceptedBy, to: &state)
+        lastTradeOutcome = TradeOutcome(decisions: pending.decisions, acceptedBy: nil)
+        try? GameStore.shared.save(state)
     }
 
     /// Runs bot turns in a loop for as long as the active player (or, during

@@ -78,8 +78,18 @@ public struct BoardView: View {
                 CatanTheme.waterBackground
 
                 Canvas { context, _ in
+                    // Two passes rather than one: every tile's fill has to
+                    // finish drawing *before* any tile's highlight ring
+                    // does, or a later tile in `board.tiles`' iteration
+                    // order paints its own manila frame right over the
+                    // shared-edge half of an earlier tile's ring - the roll
+                    // highlight looked "inconsistent" because whether that
+                    // happened (and which side got clipped) depended on
+                    // draw order relative to that tile's neighbors.
                     for tile in board.tiles {
                         TileDrawing.drawTile(tile, geometry: geometry, in: context)
+                    }
+                    for tile in board.tiles {
                         if isTileTargetingActive {
                             let path = TileDrawing.hexPath(for: tile.coordinate, geometry: geometry)
                             if highlightedTiles.contains(tile.coordinate) {
@@ -89,8 +99,14 @@ public struct BoardView: View {
                             }
                         }
                         if rollHighlightTiles.contains(tile.coordinate) {
-                            let path = TileDrawing.hexPath(for: tile.coordinate, geometry: geometry)
-                            context.stroke(path, with: .color(.white), lineWidth: 4)
+                            // Inset slightly (matches the resource-fill hex,
+                            // not the full manila frame) so the ring sits
+                            // cleanly within the tile's own fill rather than
+                            // straddling the ambiguous seam with its
+                            // neighbors - also bumped up from 4pt to 6pt,
+                            // large enough to read clearly at a glance.
+                            let path = TileDrawing.hexPath(for: tile.coordinate, geometry: geometry, scale: 0.93)
+                            context.stroke(path, with: .color(.white), lineWidth: 6)
                         }
                     }
                     for port in board.ports {
@@ -122,7 +138,7 @@ public struct BoardView: View {
                         .allowsHitTesting(false)
                 }
 
-                roadViews(geometry: geometry, ownership: ownership)
+                roadViews(geometry: geometry)
                 buildingViews(geometry: geometry, ownership: ownership)
 
                 ForEach(sortedEdges, id: \.self) { edge in
@@ -156,7 +172,13 @@ public struct BoardView: View {
         ForEach(sortedVertices, id: \.self) { vertex in
             if let owner = ownership.owner(ofSettlementOrCity: vertex) {
                 let position = geometry.vertexPosition(vertex, board: board)
-                let size = geometry.size * (owner.isCity ? 0.62 : 0.48)
+                // Settlements bumped up from 0.48 - they read as too small
+                // next to a city, especially once `CivilizationBadge` added
+                // the etched detail/pennant (which need real size to stay
+                // legible). Cities nudged up too, so the settlement -> city
+                // size jump stays clearly noticeable rather than shrinking
+                // once settlements got closer to their old size.
+                let size = geometry.size * (owner.isCity ? 0.68 : 0.58)
                 let civilization = Civilization.forSeat(owner.player.index)
                 CivilizationBadge(civilization: civilization, isCity: owner.isCity, size: size)
                     .position(position)
@@ -165,40 +187,75 @@ public struct BoardView: View {
         }
     }
 
+    /// Tried using each civilization's actual wall/path artwork here too,
+    /// rotated to each edge's angle - it doesn't work: those source pieces
+    /// are each a different, mostly-square aspect ratio, and force-fitting
+    /// one into a long thin rotated bar just shows a cropped, misaligned
+    /// slice of it rather than a coherent road. A flat civilization-colored
+    /// bar reads far more cleanly at this size and angle range.
+    ///
+    /// Drawn per *player* rather than per edge: each of a player's road
+    /// segments still starts life as the same rounded-rect bar as before,
+    /// but every segment is geometrically unioned into one combined `Path`
+    /// (`Path.union`) before it's ever filled or bordered, so two segments
+    /// sharing a vertex merge into one shape instead of two separate
+    /// bordered rectangles butting against each other - the black border
+    /// only ever traces the *outside* of a player's whole connected road
+    /// network, never a seam at an internal joint. Same two-layer
+    /// bigger-shape-then-smaller-shape trick `TileDrawing.drawTile` uses
+    /// for the manila gap between tiles: a wider black union filled first,
+    /// then a narrower colored union on top leaves a uniform border ring
+    /// showing only around the true outline.
     @ViewBuilder
-    private func roadViews(geometry: HexGeometry, ownership: Ownership) -> some View {
-        ForEach(sortedEdges, id: \.self) { edge in
-            if let owner = ownership.owner(ofRoad: edge) {
-                let (a, b) = board.vertices(of: edge)
-                let start = geometry.vertexPosition(a, board: board)
-                let end = geometry.vertexPosition(b, board: board)
-                let length = hypot(end.x - start.x, end.y - start.y)
-                let angle = atan2(end.y - start.y, end.x - start.x)
-                let midpoint = CGPoint(x: (start.x + end.x) / 2, y: (start.y + end.y) / 2)
+    private func roadViews(geometry: HexGeometry) -> some View {
+        ForEach(state.players, id: \.id) { player in
+            if !player.roads.isEmpty {
+                let overlap = geometry.size * 0.05
+                let borderHeight = geometry.size * 0.22 + geometry.size * 0.07
+                let fillHeight = geometry.size * 0.22
+                let borderPath = unionedRoadPath(for: player.roads, geometry: geometry, height: borderHeight, overlap: overlap)
+                let fillPath = unionedRoadPath(for: player.roads, geometry: geometry, height: fillHeight, overlap: overlap)
 
-                // Tried using each civilization's actual wall/path artwork
-                // here too, rotated to the edge's angle - it doesn't work:
-                // those source pieces are each a different, mostly-square
-                // aspect ratio, and force-fitting one into a long thin
-                // rotated bar just shows a cropped, misaligned slice of it
-                // rather than a coherent road. A flat civilization-colored
-                // bar reads far more cleanly at this size and angle range.
-                //
-                // Drawn at the edge's full length (plus a hair of overlap,
-                // rather than the old 80%) with only a slight corner
-                // rounding (not a full capsule) so consecutive roads at a
-                // shared vertex butt up against each other and read as one
-                // continuous snaking line instead of a chain of separate
-                // pills with a gap at every joint.
-                RoadShape()
-                    .fill(CatanTheme.color(for: owner))
-                    .overlay(RoadShape().stroke(.black.opacity(0.6), lineWidth: 1))
-                    .frame(width: length + geometry.size * 0.05, height: geometry.size * 0.22)
-                    .rotationEffect(.radians(angle))
-                    .position(midpoint)
-                    .allowsHitTesting(false)
+                ZStack {
+                    borderPath.fill(.black.opacity(0.6))
+                    fillPath.fill(CatanTheme.color(for: player.id))
+                }
+                .allowsHitTesting(false)
             }
         }
+    }
+
+    /// The union of every edge in `edges`, each first built as the same
+    /// rounded-rect bar `RoadShape` always used, positioned/rotated onto
+    /// its actual board edge via `roadSegmentPath` - see `roadViews` for
+    /// why this needs to be a true geometric union rather than separately
+    /// filled/bordered shapes.
+    private func unionedRoadPath(for edges: Set<EdgeID>, geometry: HexGeometry, height: CGFloat, overlap: CGFloat) -> Path {
+        var result = Path()
+        for edge in edges {
+            let (a, b) = board.vertices(of: edge)
+            let start = geometry.vertexPosition(a, board: board)
+            let end = geometry.vertexPosition(b, board: board)
+            let segment = roadSegmentPath(from: start, to: end, height: height, overlap: overlap)
+            result = result.isEmpty ? segment : result.union(segment)
+        }
+        return result
+    }
+
+    /// One road edge's bar, built in its own local (unrotated, centered-at-
+    /// origin) coordinate space via `RoadShape` and then transformed onto
+    /// its actual position/angle between `start` and `end` - kept as a
+    /// standalone `Path` (rather than a positioned/rotated `View`, the old
+    /// approach) specifically so `unionedRoadPath` can combine several of
+    /// these with `Path.union` before any fill/stroke happens.
+    private func roadSegmentPath(from start: CGPoint, to end: CGPoint, height: CGFloat, overlap: CGFloat) -> Path {
+        let length = hypot(end.x - start.x, end.y - start.y) + overlap
+        let angle = atan2(end.y - start.y, end.x - start.x)
+        let midpoint = CGPoint(x: (start.x + end.x) / 2, y: (start.y + end.y) / 2)
+        let localRect = CGRect(x: -length / 2, y: -height / 2, width: length, height: height)
+        let transform = CGAffineTransform(rotationAngle: angle)
+            .concatenating(CGAffineTransform(translationX: midpoint.x, y: midpoint.y))
+        return RoadShape().path(in: localRect).applying(transform)
     }
 
     // MARK: - Gestures
@@ -285,15 +342,15 @@ private struct BuildingOwner {
     let isCity: Bool
 }
 
-/// Precomputed vertex/edge -> owner lookups, built once per render from
-/// `state.players` rather than re-scanning all players per vertex/edge.
+/// Precomputed vertex -> owner lookup, built once per render from
+/// `state.players` rather than re-scanning all players per vertex. Roads no
+/// longer need an equivalent lookup here - `roadViews` reads `player.roads`
+/// directly, once per player, to build each player's unioned road path.
 private struct Ownership {
     private let buildings: [VertexID: BuildingOwner]
-    private let roads: [EdgeID: PlayerID]
 
     init(players: [Player]) {
         var buildings: [VertexID: BuildingOwner] = [:]
-        var roads: [EdgeID: PlayerID] = [:]
         for player in players {
             for vertex in player.settlements {
                 buildings[vertex] = BuildingOwner(player: player.id, isCity: false)
@@ -301,20 +358,12 @@ private struct Ownership {
             for vertex in player.cities {
                 buildings[vertex] = BuildingOwner(player: player.id, isCity: true)
             }
-            for edge in player.roads {
-                roads[edge] = player.id
-            }
         }
         self.buildings = buildings
-        self.roads = roads
     }
 
     func owner(ofSettlementOrCity vertex: VertexID) -> BuildingOwner? {
         buildings[vertex]
-    }
-
-    func owner(ofRoad edge: EdgeID) -> PlayerID? {
-        roads[edge]
     }
 }
 
