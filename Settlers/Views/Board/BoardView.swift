@@ -89,24 +89,12 @@ public struct BoardView: View {
                     for tile in board.tiles {
                         TileDrawing.drawTile(tile, geometry: geometry, in: context)
                     }
-                    for tile in board.tiles {
-                        if isTileTargetingActive {
-                            let path = TileDrawing.hexPath(for: tile.coordinate, geometry: geometry)
-                            if highlightedTiles.contains(tile.coordinate) {
-                                context.stroke(path, with: .color(.yellow), lineWidth: 3)
-                            } else {
-                                context.fill(path, with: .color(.black.opacity(0.45)))
-                            }
-                        }
-                        if rollHighlightTiles.contains(tile.coordinate) {
-                            // Inset slightly (matches the resource-fill hex,
-                            // not the full manila frame) so the ring sits
-                            // cleanly within the tile's own fill rather than
-                            // straddling the ambiguous seam with its
-                            // neighbors - also bumped up from 4pt to 6pt,
-                            // large enough to read clearly at a glance.
-                            let path = TileDrawing.hexPath(for: tile.coordinate, geometry: geometry, scale: 0.93)
-                            context.stroke(path, with: .color(.white), lineWidth: 6)
+                    for tile in board.tiles where isTileTargetingActive {
+                        let path = TileDrawing.hexPath(for: tile.coordinate, geometry: geometry)
+                        if highlightedTiles.contains(tile.coordinate) {
+                            context.stroke(path, with: .color(.yellow), lineWidth: 3)
+                        } else {
+                            context.fill(path, with: .color(.black.opacity(0.45)))
                         }
                     }
                     for port in board.ports {
@@ -139,6 +127,28 @@ public struct BoardView: View {
                 }
 
                 roadViews(geometry: geometry)
+
+                // Drawn as its own layer, above roads (which the base tile
+                // `Canvas` sits behind - a rolled tile's own ring used to be
+                // drawn as part of that same `Canvas`, so any road crossing
+                // near the tile's edge could visually cut into it) but below
+                // buildings, so the ring never covers a settlement/city sitting
+                // right on the tile's corner.
+                if !rollHighlightTiles.isEmpty {
+                    Canvas { context, _ in
+                        for tile in board.tiles where rollHighlightTiles.contains(tile.coordinate) {
+                            // Inset slightly (matches the resource-fill hex,
+                            // not the full manila frame) so the ring sits
+                            // cleanly within the tile's own fill rather than
+                            // straddling the ambiguous seam with its
+                            // neighbors.
+                            let path = TileDrawing.hexPath(for: tile.coordinate, geometry: geometry, scale: 0.93)
+                            context.stroke(path, with: .color(.white), lineWidth: 6)
+                        }
+                    }
+                    .allowsHitTesting(false)
+                }
+
                 buildingViews(geometry: geometry, ownership: ownership)
 
                 ForEach(sortedEdges, id: \.self) { edge in

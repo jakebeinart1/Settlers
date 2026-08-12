@@ -80,16 +80,25 @@ public struct HumanPlayerPanel: View {
                     // board; a knight has to be played face-up to move the
                     // robber) - sized up from the bot chips' compact stats,
                     // since this is your own panel and has the room for it.
+                    // `.fixedSize()` on all three: this row (name, roads,
+                    // knights, VP, tags) can run wider than the panel once
+                    // longest-road/largest-army tags join it, and without
+                    // this these badges - the VP capsule especially - would
+                    // get squeezed by the surrounding HStack until their
+                    // `Text` wrapped ("3 VP" onto two lines) instead of
+                    // just staying their natural single-line size.
                     HStack(spacing: 4) {
                         Image(systemName: "road.lanes")
                         Text("\(player.roads.count)")
                     }
                     .font(.subheadline.bold())
+                    .fixedSize()
                     HStack(spacing: 4) {
                         Image(systemName: "shield.fill")
                         Text("\(player.playedKnights)")
                     }
                     .font(.subheadline.bold())
+                    .fixedSize()
                     HStack(spacing: 4) {
                         Image(systemName: "star.fill")
                         Text("\(state.victoryPoints(for: human)) VP")
@@ -99,6 +108,7 @@ public struct HumanPlayerPanel: View {
                     .padding(.horizontal, 8)
                     .padding(.vertical, 4)
                     .background(Color.yellow.opacity(0.85), in: Capsule())
+                    .fixedSize()
                     if state.longestRoadPlayer == human {
                         PlayerChip.tag(text: "Longest Road", icon: "road.lanes", tint: .orange)
                     }
