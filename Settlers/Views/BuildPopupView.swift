@@ -80,13 +80,14 @@ public struct BuildPopupView: View {
                 Spacer(minLength: 8)
                 HStack(spacing: 4) {
                     ForEach(Resource.allCases.filter { (cost[$0] ?? 0) > 0 }, id: \.self) { resource in
-                        HStack(spacing: 2) {
-                            Image(systemName: CatanTheme.symbolName(for: resource))
-                                .font(.caption2)
+                        HStack(spacing: 3) {
+                            Circle()
+                                .fill(CatanTheme.color(for: resource))
+                                .frame(width: 10, height: 10)
                             Text("\(cost[resource] ?? 0)")
                                 .font(.caption2.bold())
+                                .foregroundStyle(CatanTheme.color(for: resource))
                         }
-                        .foregroundStyle(CatanTheme.color(for: resource))
                     }
                 }
             }

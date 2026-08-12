@@ -305,11 +305,17 @@ enum PlayerChip {
                 .font(.system(size: 10, design: .serif))
                 .foregroundStyle(CatanTheme.onWaterText.opacity(0.8))
 
-            // Short labels ("Road"/"Army" rather than "Longest Road"/"Largest
-            // Army") so a tag stays legible inside a chip that's only
-            // ~110pt wide at 3-across - the icon plus a one-word label is
-            // still identifiable at a glance without wrapping.
-            HStack(spacing: 4) {
+            // One tag per row rather than side by side: each `tag()` is
+            // `.fixedSize()` (so its own text never wraps), which means a
+            // row holding all 3 at once (VP + Road + Army) could demand
+            // more width than this chip's fair equal-share of the outer
+            // `HStack` (3 chips across) - and since a `.fixedSize()` view's
+            // width isn't negotiable, that forced the *other* chips to
+            // shrink instead. Stacking them keeps every row down to a
+            // single tag's width, which always fits; the chip just grows a
+            // little taller instead of wider when a bot holds both bonuses,
+            // and taller doesn't affect its siblings at all.
+            VStack(alignment: .leading, spacing: 3) {
                 // Bots' VP badge only counts what's actually public
                 // (buildings + longest road/largest army) - a held but
                 // unplayed Victory Point dev card is hidden information in

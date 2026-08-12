@@ -79,9 +79,13 @@ public struct DevCardPopupView: View {
             Text(label)
                 .font(.caption2)
                 .foregroundStyle(.secondary)
+            // Just the color dot per option, no name text - matches the
+            // rest of the app's one consistent way to identify a resource.
             Picker(label, selection: selection) {
                 ForEach(Resource.allCases, id: \.self) { resource in
-                    Label(resource.rawValue.capitalized, systemImage: CatanTheme.symbolName(for: resource))
+                    Circle()
+                        .fill(CatanTheme.color(for: resource))
+                        .frame(width: 16, height: 16)
                         .tag(resource)
                 }
             }

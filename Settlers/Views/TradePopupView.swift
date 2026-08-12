@@ -299,7 +299,7 @@ public struct TradePopupView: View {
                     .font(.caption.bold())
                     .foregroundStyle(.secondary)
                 bankResourceTile(suggestion.get, count: suggestion.getCount)
-                    .overlay(RoundedRectangle(cornerRadius: 8).strokeBorder(.white, lineWidth: 2))
+                    .overlay(Circle().strokeBorder(.white, lineWidth: 2))
                 Spacer(minLength: 0)
             }
 
@@ -317,7 +317,7 @@ public struct TradePopupView: View {
                     } label: {
                         bankResourceTile(resource, count: nil)
                             .overlay(
-                                RoundedRectangle(cornerRadius: 8)
+                                Circle()
                                     .strokeBorder(resource == suggestion.get ? bankGold : .clear, lineWidth: 2)
                             )
                     }
@@ -343,17 +343,16 @@ public struct TradePopupView: View {
     }
 
     private func bankResourceTile(_ resource: Resource, count: Int?) -> some View {
-        VStack(spacing: 1) {
-            Image(systemName: CatanTheme.symbolName(for: resource))
-                .font(.callout)
+        ZStack {
+            Circle()
+                .fill(CatanTheme.color(for: resource))
             if let count {
                 Text("\(count)")
-                    .font(.system(size: 11, weight: .bold))
+                    .font(.system(size: 12, weight: .bold))
+                    .foregroundStyle(.white)
             }
         }
-        .foregroundStyle(.white)
         .frame(width: 34, height: 34)
-        .background(CatanTheme.color(for: resource), in: RoundedRectangle(cornerRadius: 8))
     }
 
     private func perform(_ move: GameMove) {

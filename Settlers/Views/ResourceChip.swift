@@ -1,10 +1,13 @@
 import SwiftUI
 import CatanEngine
 
-/// Shared little "resource chip" button - icon, optional count badge,
-/// resource-colored rounded square - used by every give/want/discard-style
-/// popup (`TradePopupView`, `DiscardPopupView`) so their hand trays/slots
-/// look and behave the same.
+/// Shared little "resource chip" button - just the resource-colored dot
+/// (plus an optional count overlaid on it) - used by every give/want/
+/// discard-style popup (`TradePopupView`, `DiscardPopupView`) so their hand
+/// trays/slots look and behave the same. No icon, no resource name
+/// anywhere - the color alone is the app's one consistent way to identify
+/// a resource at a glance, matching `HumanPlayerPanel`'s resource row and
+/// `IncomingTradeCardView`'s offer dots.
 struct ResourceChip: View {
     let resource: Resource
     let count: Int?
@@ -13,17 +16,16 @@ struct ResourceChip: View {
 
     var body: some View {
         Button(action: action) {
-            VStack(spacing: 2) {
-                Image(systemName: CatanTheme.symbolName(for: resource))
-                    .font(.callout)
+            ZStack {
+                Circle()
+                    .fill(CatanTheme.color(for: resource))
                 if let count {
                     Text("\(count)")
-                        .font(.system(size: 11, weight: .bold))
+                        .font(.system(size: 13, weight: .bold))
+                        .foregroundStyle(.white)
                 }
             }
-            .foregroundStyle(.white)
             .frame(width: 36, height: 36)
-            .background(CatanTheme.color(for: resource), in: RoundedRectangle(cornerRadius: 8))
         }
         .disabled(!isEnabled)
         .opacity(isEnabled ? 1 : 0.35)
