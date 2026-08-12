@@ -140,6 +140,22 @@ struct GreeceTempleGlyph: Shape {
 
 /// Greece's etch detail: a small stroked triangle nested inside the
 /// pediment, reading as a relief carving rather than a bare flat gable.
+/// A solid backing wall spanning the gap the temple's 4 columns stand in
+/// (same `columnTop`/`columnBottom` span `GreeceTempleGlyph` uses) - without
+/// it, the space *between* columns wasn't part of the fill at all, so it
+/// read as see-through (the board tile color showing straight through the
+/// temple). Drawn behind `pieceShape()` in white, so it reads as an actual
+/// back wall rather than a gap.
+private struct GreeceBackWallGlyph: Shape {
+    func path(in rect: CGRect) -> Path {
+        let pedimentHeight = rect.height * 0.32
+        let baseHeight = rect.height * 0.15
+        let columnTop = rect.minY + pedimentHeight
+        let columnBottom = rect.maxY - baseHeight
+        return Path(CGRect(x: rect.minX, y: columnTop, width: rect.width, height: columnBottom - columnTop))
+    }
+}
+
 private struct GreecePedimentEtchGlyph: Shape {
     func path(in rect: CGRect) -> Path {
         var path = Path()
@@ -327,6 +343,18 @@ private struct NorseEtchGlyph: Shape {
 }
 
 extension Civilization {
+    /// An optional solid backing shape drawn behind `pieceShape()`, filled
+    /// white - only Greece needs one (see `GreeceBackWallGlyph`), so this
+    /// is `nil` everywhere else rather than every civilization needing its
+    /// own no-op case.
+    @MainActor
+    func backingFill() -> AnyShape? {
+        switch self {
+        case .greece: return AnyShape(GreeceBackWallGlyph())
+        default: return nil
+        }
+    }
+
     /// This civilization's flat piece silhouette, drawn by `CivilizationBadge`.
     @MainActor
     func pieceShape() -> AnyShape {

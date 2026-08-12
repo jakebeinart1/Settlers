@@ -216,9 +216,18 @@ public struct BoardView: View {
     /// for the manila gap between tiles: a wider black union filled first,
     /// then a narrower colored union on top leaves a uniform border ring
     /// showing only around the true outline.
+    /// Rendered in ascending road-count order, so whoever has more roads
+    /// draws *last* (on top) wherever two different players' networks
+    /// happen to touch the same vertex - a player with two roads meeting
+    /// there (part of a longer connected chain) reads better sitting over
+    /// a neighbor with just one isolated segment there than the reverse.
+    /// A per-player approximation rather than tracking it per contested
+    /// vertex (which the current whole-network-per-player `Path.union`
+    /// approach doesn't cleanly support) - fine in practice since draw
+    /// order only matters at all where two players' roads actually meet.
     @ViewBuilder
     private func roadViews(geometry: HexGeometry) -> some View {
-        ForEach(state.players, id: \.id) { player in
+        ForEach(state.players.sorted { $0.roads.count < $1.roads.count }, id: \.id) { player in
             if !player.roads.isEmpty {
                 // Border margin bumped from a fixed 0.07 addition (barely
                 // visible at typical board scale, especially once

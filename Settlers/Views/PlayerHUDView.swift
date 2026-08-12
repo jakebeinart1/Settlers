@@ -192,25 +192,34 @@ private struct DevCardHUDTile: View {
 
     var body: some View {
         Button(action: action) {
-            VStack(spacing: 3) {
+            // Shrunk from 58x56 - at the old height, this row of tiles
+            // (56pt) was noticeably taller than the resource-dot row next
+            // to it (~42pt: a 20pt circle + a bold 16pt count), so buying a
+            // dev card visibly grew the whole panel every time one first
+            // appeared, which shoved everything below it (build/trade
+            // buttons) down and could push the resource numbers themselves
+            // out of view on a shorter screen. Closer to that ~42pt now,
+            // via smaller icon/text and tighter spacing rather than
+            // dropping the name label entirely.
+            VStack(spacing: 1) {
                 Image(systemName: icon)
-                    .font(.title3)
+                    .font(.callout)
                 Text(name)
-                    .font(.system(size: 9.5, weight: .bold))
+                    .font(.system(size: 8, weight: .bold))
                     .lineLimit(1)
                     .minimumScaleFactor(0.7)
                 Text("x\(held)")
-                    .font(.system(size: 11.5, weight: .bold))
+                    .font(.system(size: 10, weight: .bold))
             }
             .foregroundStyle(.white)
-            .frame(width: 58, height: 56)
-            .background(RoundedRectangle(cornerRadius: 9).fill(color.gradient))
-            .overlay(RoundedRectangle(cornerRadius: 9).strokeBorder(.white.opacity(0.4), lineWidth: 1))
+            .frame(width: 48, height: 44)
+            .background(RoundedRectangle(cornerRadius: 8).fill(color.gradient))
+            .overlay(RoundedRectangle(cornerRadius: 8).strokeBorder(.white.opacity(0.4), lineWidth: 1))
             .overlay(alignment: .topTrailing) {
                 if new > 0 {
                     Circle()
                         .fill(Color.yellow)
-                        .frame(width: 9, height: 9)
+                        .frame(width: 8, height: 8)
                         .offset(x: 2, y: -2)
                 }
             }

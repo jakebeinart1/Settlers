@@ -22,6 +22,7 @@ struct CivilizationBadge: View {
     var body: some View {
         let shape = civilization.pieceShape()
         let etch = civilization.etchDetail()
+        let backing = civilization.backingFill()
         let strokeWidth = max(1, size * 0.045)
 
         VStack(spacing: 0) {
@@ -34,6 +35,12 @@ struct CivilizationBadge: View {
             }
 
             ZStack {
+                // Behind the main silhouette, e.g. Greece's back wall
+                // between its columns - without it, that gap wasn't part
+                // of the fill at all and read as see-through.
+                if let backing {
+                    backing.fill(.white)
+                }
                 shape
                     .fill(civilization.accentColor)
                     .overlay(shape.stroke(.black, lineWidth: strokeWidth))
