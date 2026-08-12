@@ -173,7 +173,7 @@ public struct GameView: View {
             // actually wanted, instead of uniformly.
             VStack(spacing: 0) {
                 BotHUDRow(state: state)
-                    .padding(.bottom, 6)
+                    .padding(.bottom, 4)
 
                 // Its own row, below the opponent chips and above the
                 // board, rather than pinned over the board's bottom-left
@@ -196,7 +196,7 @@ public struct GameView: View {
                         Color.clear.frame(height: 0)
                     }
                 }
-                .padding(.bottom, 6)
+                .padding(.bottom, 4)
 
                 BoardView(
                     state: state,
@@ -421,7 +421,7 @@ public struct GameView: View {
                 actionRow
             }
         }
-        .padding(8)
+        .padding(6)
         .frame(maxWidth: .infinity)
         .background(
             RoundedRectangle(cornerRadius: 10)

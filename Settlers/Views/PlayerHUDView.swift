@@ -61,25 +61,32 @@ public struct HumanPlayerPanel: View {
         if let player = state.players.first(where: { $0.id == human }) {
             let isActive = PlayerChip.isActivePlayer(human, in: state)
 
-            VStack(alignment: .leading, spacing: 10) {
-                HStack(spacing: 8) {
+            // Trimmed considerably from its original sizing (spacing,
+            // padding, and every font/glyph below) - this panel is fixed
+            // chrome around the flexible board (`.frame(maxHeight:
+            // .infinity)`), so every point it doesn't need is a point the
+            // board doesn't get. "Slimmer" here, not shorter on
+            // information - the same content still shows, just at a more
+            // compact scale.
+            VStack(alignment: .leading, spacing: 6) {
+                HStack(spacing: 6) {
                     Circle()
                         .fill(CatanTheme.color(for: human))
-                        .frame(width: 17, height: 17)
+                        .frame(width: 13, height: 13)
                     // `.lineLimit(1)` + `.fixedSize()` - without these,
                     // "You" and the civilization name (e.g. "Japan") were
                     // the ones that gave way when the row got crowded,
                     // wrapping mid-word onto a second line instead of
                     // staying put.
                     Text("You")
-                        .font(.system(size: 21, weight: .bold, design: .serif))
+                        .font(.system(size: 16, weight: .bold, design: .serif))
                         .lineLimit(1)
                         .fixedSize()
                     Image(systemName: Civilization.forSeat(human.index).emblemSymbol)
-                        .font(.subheadline)
+                        .font(.caption)
                         .foregroundStyle(CatanTheme.onWaterText.opacity(0.8))
                     Text(Civilization.forSeat(human.index).displayName)
-                        .font(.system(size: 14, design: .serif))
+                        .font(.system(size: 11, design: .serif))
                         .foregroundStyle(CatanTheme.onWaterText.opacity(0.8))
                         .lineLimit(1)
                         .fixedSize()
@@ -102,41 +109,41 @@ public struct HumanPlayerPanel: View {
                 // never clip anything, it just becomes swipeable on the
                 // rare hand that needs it.
                 ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: 8) {
+                    HStack(spacing: 6) {
                         // Total resource-card count, at a glance, without
                         // having to add up the 5 individual dots below -
                         // same card-stack glyph the bot chips use for the
                         // same number.
-                        HStack(spacing: 4) {
+                        HStack(spacing: 3) {
                             Image(systemName: "rectangle.stack.fill")
                             Text("\(player.resources.values.reduce(0, +))")
                         }
-                        .font(.subheadline.bold())
+                        .font(.caption.bold())
                         .fixedSize()
                         // Longest continuous stretch (what the 2VP bonus is
                         // actually based on), not total segments built - a
                         // forked network can have far more segments than
                         // its longest single run.
-                        HStack(spacing: 4) {
+                        HStack(spacing: 3) {
                             Image(systemName: "road.lanes")
                             Text("\(LongestRoad.length(for: player, in: state))")
                         }
-                        .font(.subheadline.bold())
+                        .font(.caption.bold())
                         .fixedSize()
-                        HStack(spacing: 4) {
+                        HStack(spacing: 3) {
                             Image(systemName: "shield.fill")
                             Text("\(player.playedKnights)")
                         }
-                        .font(.subheadline.bold())
+                        .font(.caption.bold())
                         .fixedSize()
-                        HStack(spacing: 4) {
+                        HStack(spacing: 3) {
                             Image(systemName: "star.fill")
                             Text("\(state.victoryPoints(for: human)) VP")
                         }
-                        .font(.subheadline.bold())
+                        .font(.caption.bold())
                         .foregroundStyle(.white)
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 4)
+                        .padding(.horizontal, 6)
+                        .padding(.vertical, 3)
                         .background(Color.yellow.opacity(0.85), in: Capsule())
                         .fixedSize()
                         if state.longestRoadPlayer == human {
@@ -154,7 +161,7 @@ public struct HumanPlayerPanel: View {
                 // shifted the resource row up/down depending on whether any
                 // dev cards were held - pinning both to the top keeps the
                 // resource row's position stable regardless.
-                HStack(alignment: .top, spacing: 16) {
+                HStack(alignment: .top, spacing: 10) {
                     // `.fixedSize()` here too (same reason as the roads/
                     // knights/VP row above): without it, once the dev-card
                     // `ScrollView` next to it wanted more room than was
@@ -166,15 +173,15 @@ public struct HumanPlayerPanel: View {
                     // one actually meant to give way here (it already
                     // scrolls for overflow); resources should always show
                     // in full.
-                    HStack(spacing: 14) {
+                    HStack(spacing: 10) {
                         ForEach(Resource.allCases, id: \.self) { resource in
                             let count = player.resources[resource] ?? 0
-                            VStack(spacing: 3) {
+                            VStack(spacing: 2) {
                                 Circle()
                                     .fill(CatanTheme.color(for: resource))
-                                    .frame(width: 20, height: 20)
+                                    .frame(width: 15, height: 15)
                                 Text("\(count)")
-                                    .font(.system(size: 16, weight: .bold))
+                                    .font(.system(size: 12, weight: .bold))
                                     .foregroundStyle(CatanTheme.onWaterText)
                             }
                             .opacity(count > 0 ? 1 : 0.35)
@@ -184,7 +191,7 @@ public struct HumanPlayerPanel: View {
 
                     if !devCardRows.isEmpty {
                         Divider()
-                            .frame(height: 38)
+                            .frame(height: 30)
                             .overlay(Color.white.opacity(0.25))
 
                         ScrollView(.horizontal, showsIndicators: false) {
@@ -225,7 +232,7 @@ public struct HumanPlayerPanel: View {
                     Spacer(minLength: 0)
                 }
             }
-            .padding(14)
+            .padding(8)
             .frame(maxWidth: .infinity, alignment: .leading)
             .background(
                 RoundedRectangle(cornerRadius: 12)
@@ -252,27 +259,24 @@ private struct DevCardHUDTile: View {
 
     var body: some View {
         Button(action: action) {
-            // Shrunk from 58x56 - at the old height, this row of tiles
-            // (56pt) was noticeably taller than the resource-dot row next
-            // to it (~42pt: a 20pt circle + a bold 16pt count), so buying a
-            // dev card visibly grew the whole panel every time one first
-            // appeared, which shoved everything below it (build/trade
-            // buttons) down and could push the resource numbers themselves
-            // out of view on a shorter screen. Closer to that ~42pt now,
-            // via smaller icon/text and tighter spacing rather than
-            // dropping the name label entirely.
+            // Shrunk again (48x44 -> 40x34) alongside the rest of this
+            // panel's trim pass - kept in step with the resource-dot row
+            // next to it (now ~32pt: a 15pt circle + a bold 12pt count) for
+            // the same reason as the original shrink: a taller tile row
+            // than its neighbor visibly grows the whole panel the instant
+            // a dev card first appears.
             VStack(spacing: 1) {
                 Image(systemName: icon)
-                    .font(.callout)
+                    .font(.caption)
                 Text(name)
-                    .font(.system(size: 8, weight: .bold))
+                    .font(.system(size: 7, weight: .bold))
                     .lineLimit(1)
                     .minimumScaleFactor(0.7)
                 Text("x\(held)")
-                    .font(.system(size: 10, weight: .bold))
+                    .font(.system(size: 9, weight: .bold))
             }
             .foregroundStyle(.white)
-            .frame(width: 48, height: 44)
+            .frame(width: 40, height: 34)
             .background(RoundedRectangle(cornerRadius: 8).fill(color.gradient))
             .overlay(RoundedRectangle(cornerRadius: 8).strokeBorder(.white.opacity(0.4), lineWidth: 1))
             .overlay(alignment: .topTrailing) {
@@ -407,11 +411,11 @@ enum PlayerChip {
             }
             .foregroundStyle(CatanTheme.onWaterText)
         }
-        // Trimmed from 108/12 - the board needed more room and this chip
-        // had slack in it (its content never actually needed the full old
-        // minimum).
-        .padding(10)
-        .frame(maxWidth: .infinity, minHeight: 98, alignment: .topLeading)
+        // Trimmed twice now (108/12 -> 98/10 -> this) - the board needs
+        // more room than this chip does, and it had slack to give up both
+        // times.
+        .padding(7)
+        .frame(maxWidth: .infinity, minHeight: 84, alignment: .topLeading)
         .background(
             RoundedRectangle(cornerRadius: 12)
                 .fill(isActive ? CatanTheme.hudChipBackgroundActive : CatanTheme.hudChipBackground)
