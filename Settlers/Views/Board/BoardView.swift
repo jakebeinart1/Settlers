@@ -183,10 +183,17 @@ public struct BoardView: View {
                 // rotated bar just shows a cropped, misaligned slice of it
                 // rather than a coherent road. A flat civilization-colored
                 // bar reads far more cleanly at this size and angle range.
+                //
+                // Drawn at the edge's full length (plus a hair of overlap,
+                // rather than the old 80%) with only a slight corner
+                // rounding (not a full capsule) so consecutive roads at a
+                // shared vertex butt up against each other and read as one
+                // continuous snaking line instead of a chain of separate
+                // pills with a gap at every joint.
                 RoadShape()
                     .fill(CatanTheme.color(for: owner))
                     .overlay(RoadShape().stroke(.black.opacity(0.6), lineWidth: 1))
-                    .frame(width: length * 0.8, height: geometry.size * 0.22)
+                    .frame(width: length + geometry.size * 0.05, height: geometry.size * 0.22)
                     .rotationEffect(.radians(angle))
                     .position(midpoint)
                     .allowsHitTesting(false)

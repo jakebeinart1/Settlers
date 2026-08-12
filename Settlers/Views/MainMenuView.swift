@@ -31,12 +31,22 @@ public struct MainMenuView: View {
             VStack {
                 HStack {
                     Spacer()
+                    // A labeled pill rather than a bare icon - a lone
+                    // gearshape glyph in a dark corner was easy to miss
+                    // entirely as the one place to pick your civilization
+                    // before starting a game.
                     Button {
                         isShowingSettings = true
                     } label: {
-                        Image(systemName: "gearshape.fill")
-                            .font(.system(size: 20))
-                            .foregroundStyle(.white.opacity(0.6))
+                        HStack(spacing: 6) {
+                            Image(systemName: "gearshape.fill")
+                            Text("Settings")
+                        }
+                        .font(.subheadline.bold())
+                        .foregroundStyle(.white.opacity(0.85))
+                        .padding(.horizontal, 14)
+                        .padding(.vertical, 8)
+                        .background(Color.white.opacity(0.12), in: Capsule())
                     }
                 }
                 .padding(.horizontal, 20)

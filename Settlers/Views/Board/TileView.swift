@@ -34,19 +34,19 @@ enum TileDrawing {
     /// pieces, instead of tiles butting directly against each other.
     /// Number tokens, roads, settlements, and tap targets all still align
     /// to the full-size hex geometry - only this visual fill shrinks.
+    ///
+    /// Neither layer is stroked: an outlined frame hex read as a stray gray
+    /// grid line running through the manila gap between every pair of
+    /// tiles, and an outlined fill hex read as a hard black hexagon border
+    /// on every tile (most noticeably the desert, where nothing else
+    /// competes with it) - a plain fill-to-fill boundary between the two
+    /// tones already reads clearly enough on its own.
     static func drawTile(_ tile: Tile, geometry: HexGeometry, in context: GraphicsContext) {
-        // The frame hex is stroked as well as filled now (previously fill-
-        // only), so the manila "grout" between tiles reads as a crisp,
-        // consistent band everywhere - including the outer edge of the
-        // island, where it used to fade unevenly into the water via raw
-        // anti-aliasing with nothing defining its outer boundary.
         let framePath = hexPath(for: tile.coordinate, geometry: geometry)
         context.fill(framePath, with: .color(CatanTheme.desert))
-        context.stroke(framePath, with: .color(CatanTheme.desertEdge), lineWidth: 1)
 
         let fillPath = hexPath(for: tile.coordinate, geometry: geometry, scale: 0.86)
         context.fill(fillPath, with: .color(CatanTheme.color(for: tile.kind)))
-        context.stroke(fillPath, with: .color(CatanTheme.tileBorder), lineWidth: 1.5)
 
         if let number = tile.numberToken {
             drawNumberToken(number, at: geometry.center(of: tile.coordinate), size: geometry.size, in: context)
@@ -195,10 +195,13 @@ struct EdgeTapTarget: View {
     }
 }
 
-/// Rounded rectangle for a road, drawn along an edge's axis via
-/// `rotationEffect` in the caller.
+/// Rectangle for a road, drawn along an edge's axis via `rotationEffect` in
+/// the caller. Only lightly rounded (not the full-capsule pill this used to
+/// be) so that consecutive roads sharing a vertex - now drawn edge-to-edge,
+/// see `BoardView.roadViews` - butt up cleanly into one continuous line
+/// instead of each segment necking down to a rounded point at the joint.
 struct RoadShape: Shape {
     func path(in rect: CGRect) -> Path {
-        Path(roundedRect: rect, cornerRadius: rect.height / 2)
+        Path(roundedRect: rect, cornerRadius: rect.height * 0.18)
     }
 }

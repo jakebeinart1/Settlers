@@ -142,6 +142,13 @@ public struct GameView: View {
     @State private var showBuildPopup = false
     @State private var devCardPopupType: DevCardType?
     @State private var errorMessage: String?
+    /// Mid-game access to `SettingsView` (civilization picker) - there was
+    /// previously no way to reach it once a game started, only from
+    /// `MainMenuView`'s gear icon before "New Game". Changes still only take
+    /// effect on the *next* new game (see `SettingsView`'s own docs), but
+    /// being able to see/adjust them without abandoning the current game is
+    /// worth the small top-corner button.
+    @State private var isShowingSettings = false
 
     /// Road-building sub-flow: `nil` when inactive; once armed, the first
     /// tapped edge is held here while the second is picked, then both are
@@ -203,7 +210,18 @@ public struct GameView: View {
             CatanTheme.waterBackground.ignoresSafeArea()
 
             VStack(spacing: 8) {
-                BotHUDRow(state: state)
+                ZStack(alignment: .topTrailing) {
+                    BotHUDRow(state: state)
+                        .padding(.trailing, 30)
+
+                    Button {
+                        isShowingSettings = true
+                    } label: {
+                        Image(systemName: "gearshape.fill")
+                            .font(.system(size: 18))
+                            .foregroundStyle(.white.opacity(0.7))
+                    }
+                }
 
                 ZStack(alignment: .bottomLeading) {
                     BoardView(
@@ -326,6 +344,9 @@ public struct GameView: View {
         }
         .onChange(of: isRobberTargetingActive) { _, isActive in
             if !isActive { robberTargetTile = nil }
+        }
+        .sheet(isPresented: $isShowingSettings) {
+            SettingsView(onDismiss: { isShowingSettings = false })
         }
     }
 

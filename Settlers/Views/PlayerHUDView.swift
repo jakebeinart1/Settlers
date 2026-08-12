@@ -107,7 +107,13 @@ public struct HumanPlayerPanel: View {
                     }
                 }
 
-                HStack(alignment: .center, spacing: 16) {
+                // `.top` rather than `.center`: dev card tiles (56pt tall)
+                // and the resource dots (~43pt tall) have different
+                // intrinsic heights, so centering them against each other
+                // shifted the resource row up/down depending on whether any
+                // dev cards were held - pinning both to the top keeps the
+                // resource row's position stable regardless.
+                HStack(alignment: .top, spacing: 16) {
                     HStack(spacing: 14) {
                         ForEach(Resource.allCases, id: \.self) { resource in
                             let count = player.resources[resource] ?? 0

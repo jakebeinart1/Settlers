@@ -15,11 +15,6 @@ public enum CatanTheme {
     }
 
     public static let desert = Color(red: 0.87, green: 0.80, blue: 0.60) // sand beige
-    /// Slightly deeper sand tone stroked around each tile's full-size frame
-    /// hex, so the manila "grout" band between tiles - and the island's
-    /// outer coastline - reads as a crisp, even edge instead of a raw fill
-    /// boundary that anti-aliases unevenly against the water.
-    public static let desertEdge = Color(red: 0.74, green: 0.65, blue: 0.44)
 
     /// One SF Symbol per resource, standing in for a hand-drawn colonist.io-
     /// style icon set (Task 13/16 follow-up: the trade UI previously showed
@@ -78,10 +73,6 @@ public enum CatanTheme {
     public static let numberTokenEdge = Color(red: 0.42, green: 0.30, blue: 0.16)
     public static let hotNumber = Color(red: 0.80, green: 0.10, blue: 0.10) // 6 & 8, in red
     public static let coolNumber = Color(red: 0.15, green: 0.15, blue: 0.15)
-    // Crisp border between tiles - deep umber-brown rather than flat black,
-    // so the hex grid reads as defined without the harsher cutout look a
-    // pure black stroke gave every tile edge.
-    public static let tileBorder = Color(red: 0.30, green: 0.20, blue: 0.11).opacity(0.85)
     public static let portIcon = Color.white
 
     /// Deep water-blue fill behind `BoardView`'s hex board, so the tiles
