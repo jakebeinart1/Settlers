@@ -124,6 +124,17 @@ public struct HumanPlayerPanel: View {
                 // dev cards were held - pinning both to the top keeps the
                 // resource row's position stable regardless.
                 HStack(alignment: .top, spacing: 16) {
+                    // `.fixedSize()` here too (same reason as the roads/
+                    // knights/VP row above): without it, once the dev-card
+                    // `ScrollView` next to it wanted more room than was
+                    // available, this HStack was the one that gave way -
+                    // it has nothing else protecting its size - and got
+                    // squeezed until resources on the right (grain, wool)
+                    // ran past the panel's edge and off-screen entirely,
+                    // not just visually compressed. The `ScrollView` is the
+                    // one actually meant to give way here (it already
+                    // scrolls for overflow); resources should always show
+                    // in full.
                     HStack(spacing: 14) {
                         ForEach(Resource.allCases, id: \.self) { resource in
                             let count = player.resources[resource] ?? 0
@@ -138,6 +149,7 @@ public struct HumanPlayerPanel: View {
                             .opacity(count > 0 ? 1 : 0.35)
                         }
                     }
+                    .fixedSize()
 
                     if !devCardRows.isEmpty {
                         Divider()

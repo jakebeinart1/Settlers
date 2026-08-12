@@ -239,6 +239,24 @@ public struct GameView: View {
                         .foregroundStyle(.yellow)
                 }
 
+                // Incoming bot trade offers get this exact spot, right
+                // above `HumanPlayerPanel` - a floating overlay positioned
+                // from the panel's tracked frame was tried instead (to
+                // avoid this inline slot changing the VStack's total
+                // height, which nudges the flexible board a little smaller
+                // while it's showing), but that let the card overlap the
+                // board above it instead. Inline here, its own transition
+                // (a fade + slide) is the "flash" as it appears - a minor
+                // board-size nudge is the trade-off for not overlapping
+                // anything.
+                if let currentOffer = incomingOfferQueue.first {
+                    IncomingTradeCardView(
+                        offer: currentOffer,
+                        onAccept: { respond(to: currentOffer, accept: true) },
+                        onReject: { respond(to: currentOffer, accept: false) }
+                    )
+                }
+
                 if let errorMessage {
                     Text(errorMessage)
                         .font(.caption2)
@@ -250,38 +268,6 @@ public struct GameView: View {
                 bottomPanel
             }
             .padding(8)
-
-            // Floats above `HumanPlayerPanel` instead of sitting inline in
-            // the `VStack` above - inline, its appearance/disappearance
-            // changed the total content height, and since the board is the
-            // one flexible-sized element absorbing that (`.frame(maxHeight:
-            // .infinity)`), every offer shrank the board and shoved the
-            // resource panel up. Positioned from `playerAnchors[human]`
-            // (the same frame `HumanPlayerPanel` already reports for the
-            // resource-flight animation) so it tracks the panel's actual
-            // on-screen top edge without affecting anyone's layout.
-            if let humanFrame = playerAnchors[human] {
-                // Zero-height anchor pinned to the panel's top edge, with
-                // the card overlaid `.bottom`-aligned to it - since both
-                // bottom edges line up and the anchor itself has no height,
-                // the card's own body extends upward from that edge
-                // automatically, whatever its height happens to be, instead
-                // of needing to know that height in advance to offset by.
-                Color.clear
-                    .frame(width: humanFrame.width, height: 0)
-                    .position(x: humanFrame.midX, y: humanFrame.minY - 8)
-                    .overlay(alignment: .bottom) {
-                        if let currentOffer = incomingOfferQueue.first {
-                            IncomingTradeCardView(
-                                offer: currentOffer,
-                                onAccept: { respond(to: currentOffer, accept: true) },
-                                onReject: { respond(to: currentOffer, accept: false) }
-                            )
-                            .frame(width: humanFrame.width)
-                        }
-                    }
-                    .allowsHitTesting(incomingOfferQueue.first != nil)
-            }
 
             ForEach(resourceFlights) { flight in
                 ResourceFlightBadge(flight: flight) {
