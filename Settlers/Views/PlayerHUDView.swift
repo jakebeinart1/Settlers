@@ -214,11 +214,6 @@ public struct HumanPlayerPanel: View {
                 RoundedRectangle(cornerRadius: 12)
                     .strokeBorder(isActive ? CatanTheme.color(for: human) : .clear, lineWidth: 2)
             )
-            .background(
-                GeometryReader { geo in
-                    Color.clear.preference(key: PlayerFrameKey.self, value: [human: geo.frame(in: .named("game"))])
-                }
-            )
         }
     }
 }
@@ -398,11 +393,6 @@ enum PlayerChip {
         .overlay(
             RoundedRectangle(cornerRadius: 12)
                 .strokeBorder(isActive ? CatanTheme.color(for: player.id) : .clear, lineWidth: 2)
-        )
-        .background(
-            GeometryReader { geo in
-                Color.clear.preference(key: PlayerFrameKey.self, value: [player.id: geo.frame(in: .named("game"))])
-            }
         )
     }
 

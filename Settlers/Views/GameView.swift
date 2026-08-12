@@ -18,103 +18,6 @@ public enum PlacementMode: Equatable {
     }
 }
 
-/// Reports each player's HUD chip/panel frame (in the `"game"` coordinate
-/// space `GameView` establishes) so a resource-production flight animation
-/// can land on the right spot - see `PlayerHUDView`'s chips/panel, which tag
-/// themselves via this key.
-struct PlayerFrameKey: PreferenceKey {
-    static var defaultValue: [PlayerID: CGRect] { [:] }
-    static func reduce(value: inout [PlayerID: CGRect], nextValue: () -> [PlayerID: CGRect]) {
-        value.merge(nextValue(), uniquingKeysWith: { $1 })
-    }
-}
-
-/// Reports the board's own frame (same coordinate space as `PlayerFrameKey`)
-/// - used as the roll-production flight animation's fallback launch point
-/// when a producing tile's own center (`TileCenterKey`) isn't available yet.
-private struct BoardFrameKey: PreferenceKey {
-    static var defaultValue: CGRect { .zero }
-    static func reduce(value: inout CGRect, nextValue: () -> CGRect) {
-        value = nextValue()
-    }
-}
-
-/// Reports each board tile's on-screen center (same coordinate space as
-/// `PlayerFrameKey`/`BoardFrameKey`), from `BoardView`, so the roll-
-/// production flight animation can launch each flying resource badge from
-/// the actual tile that produced it.
-struct TileCenterKey: PreferenceKey {
-    static var defaultValue: [HexCoordinate: CGPoint] { [:] }
-    static func reduce(value: inout [HexCoordinate: CGPoint], nextValue: () -> [HexCoordinate: CGPoint]) {
-        value.merge(nextValue(), uniquingKeysWith: { $1 })
-    }
-}
-
-/// One resource unit (or stack) animating from the board to a player's HUD
-/// spot after a dice roll - see `GameView.animateProduction(for:)`.
-private struct ResourceFlight: Identifiable {
-    let id = UUID()
-    let resource: Resource
-    let count: Int
-    let start: CGPoint
-    let end: CGPoint
-}
-
-/// Small badge that flies from `flight.start` to `flight.end` and fades out,
-/// calling `onComplete` once its animation has fully played - `GameView`
-/// uses that to drop it from `resourceFlights`.
-private struct ResourceFlightBadge: View {
-    let flight: ResourceFlight
-    let onComplete: () -> Void
-
-    @State private var position: CGPoint
-    @State private var opacity: Double = 1
-    @State private var scale: CGFloat = 0.6
-
-    init(flight: ResourceFlight, onComplete: @escaping () -> Void) {
-        self.flight = flight
-        self.onComplete = onComplete
-        _position = State(initialValue: flight.start)
-    }
-
-    var body: some View {
-        // Just the resource's own color as a plain dot - no icon - matching
-        // how resources are shown everywhere else that favors a quick
-        // glance (the HUD's hand rows, trade offer cards) over needing to
-        // read a symbol while it's mid-flight.
-        ZStack {
-            Circle()
-                .fill(CatanTheme.color(for: flight.resource))
-                .overlay(Circle().strokeBorder(.white.opacity(0.7), lineWidth: 1))
-            if flight.count > 1 {
-                Text("\(flight.count)")
-                    .font(.system(size: 10, weight: .bold))
-                    .foregroundStyle(.white)
-            }
-        }
-        .frame(width: 18, height: 18)
-        .shadow(radius: 3)
-        .scaleEffect(scale)
-        .position(position)
-        .opacity(opacity)
-        .onAppear {
-            withAnimation(.easeOut(duration: 0.2)) {
-                scale = 1
-            }
-            withAnimation(.easeInOut(duration: 1.3)) {
-                position = flight.end
-            }
-            withAnimation(.easeIn(duration: 0.3).delay(1.0)) {
-                opacity = 0
-            }
-            Task {
-                try? await Task.sleep(for: .milliseconds(1350))
-                onComplete()
-            }
-        }
-    }
-}
-
 /// The real, composed game screen, top to bottom: `BotHUDRow` (the 3 bot
 /// chips only), `BoardView` filling the middle - with the dice pinned to its
 /// bottom-left corner - `HumanPlayerPanel` (the human's own spacious info
@@ -128,9 +31,13 @@ private struct ResourceFlightBadge: View {
 /// by view state; the mandatory post-7-roll robber move *and* the voluntary
 /// knight-card robber move both happen inline on this same `BoardView` (see
 /// `isRobberTargetingActive`) rather than as a separate modal. Incoming bot
-/// trade offers surface as a small `IncomingTradeCardView` floating just
-/// above `HumanPlayerPanel` (an overlay positioned from `playerAnchors`,
-/// not laid out inline - see its call site) with a 5-second accept window.
+/// trade offers surface as a small `IncomingTradeCardView` right above
+/// `HumanPlayerPanel`, with a 5-second accept window.
+///
+/// A roll used to also spawn small resource badges flying from each
+/// producing tile to the gaining player's HUD spot - dropped in favor of
+/// just the dice chip and the board's own roll-matching tile highlight,
+/// which already say the same thing with far less visual noise to track.
 public struct GameView: View {
     public let viewModel: GameViewModel
 
@@ -176,25 +83,18 @@ public struct GameView: View {
     @State private var incomingOfferQueue: [TradeOffer] = []
     @State private var seenTradeOfferIDs: Set<UUID> = []
 
-    /// Bookkeeping for the roll production animation: tiles matching the
-    /// most recent roll (briefly outlined on the board), the in-flight
-    /// resource badges themselves, and the last count of `state.log` we've
-    /// already scanned (so a growth of exactly the lines added since then
-    /// can be checked for a "rolled N" line without re-scanning the whole
-    /// log every render).
+    /// Tiles matching the most recent roll, briefly outlined on the board -
+    /// and the last count of `state.log` already scanned for one, so a
+    /// growth of exactly the lines added since then can be checked for a
+    /// "rolled N" line without re-scanning the whole log every render.
     @State private var rollHighlightTiles: Set<HexCoordinate> = []
-    @State private var resourceFlights: [ResourceFlight] = []
     @State private var lastSeenLogCount = 0
-    @State private var resourcesSnapshot: [PlayerID: [Resource: Int]] = [:]
 
-    /// Player HUD chip/panel frames and the board's own frame, both in the
-    /// `"game"` coordinate space this view establishes - populated via
-    /// `PlayerFrameKey`/`BoardFrameKey` preferences from `PlayerHUDView`'s
-    /// chips/panel and the board container below, purely to give
-    /// `animateProduction(for:)` launch/landing points.
-    @State private var playerAnchors: [PlayerID: CGRect] = [:]
-    @State private var boardFrame: CGRect = .zero
-    @State private var tileCenters: [HexCoordinate: CGPoint] = [:]
+    /// The dice chip's own small history line - up to the 3 rolls before
+    /// the current one, oldest last, shown in a faded caption so someone
+    /// glancing at the screen mid-conversation can catch up on recent rolls
+    /// without the drama of a live animation demanding their attention.
+    @State private var rollHistory: [Int] = []
 
     private var state: GameState { viewModel.state }
     private var human: PlayerID { viewModel.humanPlayer }
@@ -218,11 +118,6 @@ public struct GameView: View {
                         highlightedTiles: highlightedTilesForRobber,
                         isTileTargetingActive: isRobberTargetingActive,
                         rollHighlightTiles: rollHighlightTiles
-                    )
-                    .background(
-                        GeometryReader { geo in
-                            Color.clear.preference(key: BoardFrameKey.self, value: geo.frame(in: .named("game")))
-                        }
                     )
 
                     if let roll = state.lastDiceRoll {
@@ -269,13 +164,6 @@ public struct GameView: View {
             }
             .padding(8)
 
-            ForEach(resourceFlights) { flight in
-                ResourceFlightBadge(flight: flight) {
-                    resourceFlights.removeAll { $0.id == flight.id }
-                }
-            }
-            .allowsHitTesting(false)
-
             if viewModel.isBotThinking {
                 VStack {
                     Text("Bot thinking…")
@@ -316,20 +204,18 @@ public struct GameView: View {
                 DiscardPopupView(viewModel: viewModel)
             }
         }
-        .coordinateSpace(name: "game")
-        .onPreferenceChange(PlayerFrameKey.self) { playerAnchors = $0 }
-        .onPreferenceChange(BoardFrameKey.self) { boardFrame = $0 }
-        .onPreferenceChange(TileCenterKey.self) { tileCenters = $0 }
         .onAppear {
             seenTradeOfferIDs = Set(state.pendingTradeOffers.map(\.id))
             lastSeenLogCount = state.log.count
-            resourcesSnapshot = currentResourcesByPlayer()
         }
         .onChange(of: state.pendingTradeOffers.map(\.id)) { _, _ in
             handleTradeOffersChange()
         }
-        .onChange(of: state.lastDiceRoll) { _, newValue in
+        .onChange(of: state.lastDiceRoll) { oldValue, newValue in
             guard newValue != nil else { return }
+            if let oldValue {
+                rollHistory = ([oldValue] + rollHistory).prefix(3).map { $0 }
+            }
             animateDiceRoll()
         }
         .onChange(of: state.log.count) { _, newCount in
@@ -358,18 +244,34 @@ public struct GameView: View {
         }
     }
 
+    /// Bigger and plainer than before (no more flying resource badges to
+    /// share attention with) - the current roll is the one thing this
+    /// needs to say clearly, so it gets a large number front and center.
+    /// `rollHistory` (up to the 3 rolls before this one) sits underneath in
+    /// a small, faded line - enough to catch someone back up at a glance
+    /// without competing with the current roll for attention.
     private func diceChip(_ roll: Int) -> some View {
-        HStack(spacing: 4) {
-            Image(systemName: "die.face.\(min(max(roll, 1), 6)).fill")
-            Text("Rolled \(roll)")
-                .font(.caption.bold())
+        VStack(alignment: .leading, spacing: 3) {
+            HStack(spacing: 6) {
+                Image(systemName: "die.face.\(min(max(roll, 1), 6)).fill")
+                    .font(.title2)
+                Text("\(roll)")
+                    .font(.system(size: 30, weight: .heavy, design: .rounded))
+            }
+            .foregroundStyle(.white)
+            .padding(.horizontal, 14)
+            .padding(.vertical, 6)
+            .background(Color.black.opacity(0.5), in: Capsule())
+            .scaleEffect(diceScale)
+            .rotationEffect(.degrees(diceRotation))
+
+            if !rollHistory.isEmpty {
+                Text(rollHistory.map(String.init).joined(separator: "   "))
+                    .font(.caption2)
+                    .foregroundStyle(.white.opacity(0.45))
+                    .padding(.leading, 14)
+            }
         }
-        .foregroundStyle(.white)
-        .padding(.horizontal, 10)
-        .padding(.vertical, 4)
-        .background(Color.black.opacity(0.45), in: Capsule())
-        .scaleEffect(diceScale)
-        .rotationEffect(.degrees(diceRotation))
     }
 
     // MARK: - Bottom panel: one uniform action row (or the inline
@@ -741,43 +643,26 @@ public struct GameView: View {
         incomingOfferQueue.removeAll { $0.id == offer.id }
     }
 
-    // MARK: - Roll production animation
+    // MARK: - Roll tile highlight
 
     /// Watches `state.log` growth purely to notice "X rolled N" lines (the
     /// exact phrasing `RulesEngine.apply(.rollDice, ...)` appends - a small,
     /// disclosed coupling to log wording, same tradeoff `GameView`'s old
-    /// notification-classifier made) so a roll can be animated regardless of
-    /// whether the human or a bot rolled it. `resourcesSnapshot` is always
-    /// refreshed afterward so the *next* roll's diff isn't polluted by
-    /// builds/trades/discards that happened in between.
+    /// notification-classifier made) so the producing tiles can be
+    /// highlighted regardless of whether the human or a bot rolled it.
     private func handleLogGrowth(newCount: Int) {
-        defer {
-            lastSeenLogCount = newCount
-            resourcesSnapshot = currentResourcesByPlayer()
-        }
+        defer { lastSeenLogCount = newCount }
         guard newCount > lastSeenLogCount, newCount <= state.log.count else { return }
         guard state.log[lastSeenLogCount..<newCount].contains(where: { $0.contains(" rolled ") }),
               let roll = state.lastDiceRoll else { return }
-        animateProduction(for: roll)
-    }
-
-    private func currentResourcesByPlayer() -> [PlayerID: [Resource: Int]] {
-        Dictionary(uniqueKeysWithValues: state.players.map { ($0.id, $0.resources) })
+        highlightProducingTiles(for: roll)
     }
 
     /// Briefly outlines every tile matching `roll` (mirrors `MainPhase
     /// .rollDice`'s own "which tiles produce" rule: matches the roll and
-    /// isn't under the robber) and, for each player whose hand grew since
-    /// `resourcesSnapshot`, spawns a small flying badge per gained resource -
-    /// launched from the specific producing tile's own on-screen spot
-    /// (`tileCenters`), not just the board's center, so a card visibly
-    /// "comes from" the tile that produced it. The *totals* still come from
-    /// diffing actual resource counts (correct even when the bank couldn't
-    /// cover full demand); tile position is only used to decide where each
-    /// unit of that already-correct total visually launches from - purely a
-    /// presentation flourish over `MainPhase`'s already-applied production,
-    /// not a second source of truth for it.
-    private func animateProduction(for roll: Int) {
+    /// isn't under the robber) so it's clear at a glance where this roll's
+    /// production came from.
+    private func highlightProducingTiles(for roll: Int) {
         let producingTiles = state.board.tiles.filter { $0.numberToken == roll && $0.coordinate != state.board.robberTile }
         guard !producingTiles.isEmpty else { return }
 
@@ -789,49 +674,6 @@ public struct GameView: View {
             withAnimation(.easeOut(duration: 0.3)) {
                 rollHighlightTiles = []
             }
-        }
-
-        let boardOrigin = boardFrame == .zero ? nil : CGPoint(x: boardFrame.midX, y: boardFrame.midY)
-
-        for player in state.players {
-            guard let anchor = playerAnchors[player.id], anchor != .zero else { continue }
-            let destination = CGPoint(x: anchor.midX, y: anchor.midY)
-            let before = resourcesSnapshot[player.id] ?? [:]
-
-            for resource in Resource.allCases {
-                var remaining = (player.resources[resource] ?? 0) - (before[resource] ?? 0)
-                guard remaining > 0 else { continue }
-
-                // Which of this roll's producing tiles of this resource does
-                // the player actually touch? (Usually one; a randomized
-                // board could repeat a resource on two tiles sharing the
-                // rolled number, or the bank could have partly covered a
-                // multi-tile demand - either way, split the already-correct
-                // total across them rather than assuming a single source.)
-                let sourceTiles = producingTiles.filter { $0.kind == .resource(resource) }
-                let touchedSourceTiles = sourceTiles.filter { touchesTile($0.coordinate, player: player) }
-                let tilesToUse = touchedSourceTiles.isEmpty ? sourceTiles : touchedSourceTiles
-                guard !tilesToUse.isEmpty else { continue }
-
-                let share = max(1, remaining / tilesToUse.count)
-                for tile in tilesToUse {
-                    guard remaining > 0 else { break }
-                    guard let origin = tileCenters[tile.coordinate] ?? boardOrigin else { continue }
-                    let amount = min(share, remaining)
-                    resourceFlights.append(ResourceFlight(resource: resource, count: amount, start: origin, end: destination))
-                    remaining -= amount
-                }
-            }
-        }
-    }
-
-    /// Whether `player` has a settlement or city on any vertex touching
-    /// `coordinate` - used only to attribute a roll's already-computed
-    /// resource gain back to the right tile for the flight animation.
-    private func touchesTile(_ coordinate: HexCoordinate, player: Player) -> Bool {
-        state.board.onBoardVertices.contains { vertex in
-            vertex.touchingTiles.contains(coordinate)
-                && (player.settlements.contains(vertex) || player.cities.contains(vertex))
         }
     }
 }
