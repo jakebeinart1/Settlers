@@ -362,7 +362,7 @@ public struct TradePopupView: View {
             give = [:]
             want = [:]
         } catch {
-            errorMessage = "\(error)"
+            errorMessage = error.localizedDescription
         }
     }
 }

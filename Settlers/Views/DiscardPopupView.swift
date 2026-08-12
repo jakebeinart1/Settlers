@@ -92,7 +92,7 @@ public struct DiscardPopupView: View {
             errorMessage = nil
             discard = [:]
         } catch {
-            errorMessage = "\(error)"
+            errorMessage = error.localizedDescription
         }
     }
 }

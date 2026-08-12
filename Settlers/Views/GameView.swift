@@ -18,6 +18,41 @@ public enum PlacementMode: Equatable {
     }
 }
 
+private struct SlotHeightKey: PreferenceKey {
+    static var defaultValue: CGFloat { 0 }
+    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
+        value = max(value, nextValue())
+    }
+}
+
+/// Reserves the tallest height its content has ever measured instead of
+/// collapsing to zero when nothing's shown - inserting/removing a banner
+/// row (the road-building hint, an incoming trade card, a build/move error)
+/// changed the `VStack`'s total content height, and since the board is the
+/// one flexible element absorbing that change (`.frame(maxHeight:
+/// .infinity)`), every appearance/disappearance nudged the board's own
+/// size - most noticeably every time a bot's trade offer showed up.
+/// `content` should render `Color.clear` (or similar) for its "nothing to
+/// show" case rather than being wrapped in an `if`, so this can measure and
+/// reserve a stable height regardless of which state is current.
+private struct StableHeightSlot<Content: View>: View {
+    @Binding var height: CGFloat
+    @ViewBuilder var content: () -> Content
+
+    var body: some View {
+        content()
+            .background(
+                GeometryReader { geo in
+                    Color.clear.preference(key: SlotHeightKey.self, value: geo.size.height)
+                }
+            )
+            .onPreferenceChange(SlotHeightKey.self) { measured in
+                if measured > height { height = measured }
+            }
+            .frame(height: height > 0 ? height : nil, alignment: .top)
+    }
+}
+
 /// The real, composed game screen, top to bottom: `BotHUDRow` (the 3 bot
 /// chips only), the dice chip (once there's been a roll) left-aligned in
 /// its own row, `BoardView` filling the middle, `HumanPlayerPanel` (the
@@ -97,6 +132,12 @@ public struct GameView: View {
     /// without the drama of a live animation demanding their attention.
     @State private var rollHistory: [Int] = []
 
+    /// Reserved heights for the road-building hint / incoming trade card /
+    /// error message rows - see `StableHeightSlot`.
+    @State private var roadBannerHeight: CGFloat = 0
+    @State private var tradeCardHeight: CGFloat = 0
+    @State private var errorRowHeight: CGFloat = 0
+
     private var state: GameState { viewModel.state }
     private var human: PlayerID { viewModel.humanPlayer }
 
@@ -136,34 +177,45 @@ public struct GameView: View {
                 .frame(maxHeight: .infinity)
                 .clipShape(RoundedRectangle(cornerRadius: 12))
 
-                if isRoadBuildingActive {
-                    Text(roadBuildingFirstEdge == nil ? "Road Building: pick the first free road" : "Road Building: pick the second free road")
-                        .font(.caption)
-                        .foregroundStyle(.yellow)
+                StableHeightSlot(height: $roadBannerHeight) {
+                    if isRoadBuildingActive {
+                        Text(roadBuildingFirstEdge == nil ? "Road Building: pick the first free road" : "Road Building: pick the second free road")
+                            .font(.caption)
+                            .foregroundStyle(.yellow)
+                    } else {
+                        Color.clear
+                    }
                 }
 
                 // Incoming bot trade offers get this exact spot, right
                 // above `HumanPlayerPanel` - a floating overlay positioned
-                // from the panel's tracked frame was tried instead (to
-                // avoid this inline slot changing the VStack's total
-                // height, which nudges the flexible board a little smaller
-                // while it's showing), but that let the card overlap the
-                // board above it instead. Inline here, its own transition
-                // (a fade + slide) is the "flash" as it appears - a minor
-                // board-size nudge is the trade-off for not overlapping
-                // anything.
-                if let currentOffer = incomingOfferQueue.first {
-                    IncomingTradeCardView(
-                        offer: currentOffer,
-                        onAccept: { respond(to: currentOffer, accept: true) },
-                        onReject: { respond(to: currentOffer, accept: false) }
-                    )
+                // from the panel's tracked frame was tried instead, but that
+                // let the card overlap the board above it. Wrapped in
+                // `StableHeightSlot` so the board genuinely never moves when
+                // one shows up - it used to nudge the board a little smaller
+                // every single time, which is far more noticeable over a
+                // whole game than the board being a few points shorter all
+                // the time to make room for it.
+                StableHeightSlot(height: $tradeCardHeight) {
+                    if let currentOffer = incomingOfferQueue.first {
+                        IncomingTradeCardView(
+                            offer: currentOffer,
+                            onAccept: { respond(to: currentOffer, accept: true) },
+                            onReject: { respond(to: currentOffer, accept: false) }
+                        )
+                    } else {
+                        Color.clear
+                    }
                 }
 
-                if let errorMessage {
-                    Text(errorMessage)
-                        .font(.caption2)
-                        .foregroundStyle(.red)
+                StableHeightSlot(height: $errorRowHeight) {
+                    if let errorMessage {
+                        Text(errorMessage)
+                            .font(.caption2)
+                            .foregroundStyle(.red)
+                    } else {
+                        Color.clear
+                    }
                 }
 
                 HumanPlayerPanel(state: state, onTapDevCard: { devCardPopupType = $0 })
@@ -480,7 +532,7 @@ public struct GameView: View {
             try viewModel.apply(move)
             errorMessage = nil
         } catch {
-            errorMessage = "\(error)"
+            errorMessage = error.localizedDescription
         }
         robberTargetTile = nil
         isKnightRobberActive = false
@@ -533,7 +585,7 @@ public struct GameView: View {
             try viewModel.apply(.playRoadBuilding(first, edge))
             errorMessage = nil
         } catch {
-            errorMessage = "\(error)"
+            errorMessage = error.localizedDescription
         }
         roadBuildingFirstEdge = nil
         isRoadBuildingActive = false
@@ -620,7 +672,7 @@ public struct GameView: View {
             try viewModel.apply(move)
             errorMessage = nil
         } catch {
-            errorMessage = "\(error)"
+            errorMessage = error.localizedDescription
         }
     }
 
@@ -646,7 +698,7 @@ public struct GameView: View {
             try viewModel.apply(.respondToTrade(offerID: offer.id, accept: accept))
             errorMessage = nil
         } catch {
-            errorMessage = "\(error)"
+            errorMessage = error.localizedDescription
         }
         incomingOfferQueue.removeAll { $0.id == offer.id }
     }

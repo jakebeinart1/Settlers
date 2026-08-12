@@ -105,7 +105,7 @@ public struct BuildPopupView: View {
             try viewModel.apply(move)
             errorMessage = nil
         } catch {
-            errorMessage = "\(error)"
+            errorMessage = error.localizedDescription
         }
     }
 }

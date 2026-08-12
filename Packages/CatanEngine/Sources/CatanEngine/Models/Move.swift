@@ -42,3 +42,22 @@ public enum MoveError: Error, Sendable, Equatable {
     case invalidTradeTarget
     case other(String)
 }
+
+/// Human-readable messages for every case, rather than leaving UI layers to
+/// interpolate the error directly (`"\(error)"`, which - with no
+/// `CustomStringConvertible`/`LocalizedError` conformance - just prints the
+/// bare case name, e.g. a literal "wrongPhase" shown to the player). Callers
+/// should read `error.localizedDescription`, which on Apple platforms
+/// resolves through this conformance.
+extension MoveError: LocalizedError {
+    public var errorDescription: String? {
+        switch self {
+        case .notYourTurn: return "It's not your turn."
+        case .illegalPlacement: return "That's not a legal move."
+        case .insufficientResources: return "You don't have enough resources for that."
+        case .wrongPhase: return "You can't do that right now."
+        case .invalidTradeTarget: return "That trade isn't available."
+        case .other(let message): return message
+        }
+    }
+}
