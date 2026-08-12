@@ -210,14 +210,20 @@ public struct BoardView: View {
     private func roadViews(geometry: HexGeometry) -> some View {
         ForEach(state.players, id: \.id) { player in
             if !player.roads.isEmpty {
+                // Border margin bumped from a fixed 0.07 addition (barely
+                // visible at typical board scale, especially once
+                // `Path.union` softened it further at every joint) to a
+                // proportionally bigger, near-opaque ring - it needs to
+                // read unmistakably as a border around the whole connected
+                // shape, not just a faint edge.
                 let overlap = geometry.size * 0.05
-                let borderHeight = geometry.size * 0.22 + geometry.size * 0.07
-                let fillHeight = geometry.size * 0.22
+                let fillHeight = geometry.size * 0.20
+                let borderHeight = geometry.size * 0.30
                 let borderPath = unionedRoadPath(for: player.roads, geometry: geometry, height: borderHeight, overlap: overlap)
                 let fillPath = unionedRoadPath(for: player.roads, geometry: geometry, height: fillHeight, overlap: overlap)
 
                 ZStack {
-                    borderPath.fill(.black.opacity(0.6))
+                    borderPath.fill(.black.opacity(0.9))
                     fillPath.fill(CatanTheme.color(for: player.id))
                 }
                 .allowsHitTesting(false)
@@ -226,18 +232,36 @@ public struct BoardView: View {
     }
 
     /// The union of every edge in `edges`, each first built as the same
-    /// rounded-rect bar `RoadShape` always used, positioned/rotated onto
-    /// its actual board edge via `roadSegmentPath` - see `roadViews` for
-    /// why this needs to be a true geometric union rather than separately
-    /// filled/bordered shapes.
+    /// rectangular bar `RoadShape` always used, positioned/rotated onto its
+    /// actual board edge via `roadSegmentPath` - see `roadViews` for why
+    /// this needs to be a true geometric union rather than separately
+    /// filled/bordered shapes. A plain rectangle union alone still isn't
+    /// enough, though: two straight bars meeting at an angle leave a
+    /// wedge-shaped gap on the outside of the bend (each bar's end is cut
+    /// perpendicular to *its own* axis, not angled to the bisector between
+    /// the two) - a classic "miter join" problem, confirmed by rendering
+    /// this in isolation and seeing the exact notch. The fix is the
+    /// standard one: union in a filled circle at every vertex a road in
+    /// this set touches, which closes that gap regardless of angle (a
+    /// "round join") and, as a side effect, gives dead-end tips a clean
+    /// rounded cap too.
     private func unionedRoadPath(for edges: Set<EdgeID>, geometry: HexGeometry, height: CGFloat, overlap: CGFloat) -> Path {
         var result = Path()
+        var vertices: Set<VertexID> = []
         for edge in edges {
             let (a, b) = board.vertices(of: edge)
             let start = geometry.vertexPosition(a, board: board)
             let end = geometry.vertexPosition(b, board: board)
             let segment = roadSegmentPath(from: start, to: end, height: height, overlap: overlap)
             result = result.isEmpty ? segment : result.union(segment)
+            vertices.insert(a)
+            vertices.insert(b)
+        }
+        let radius = height / 2
+        for vertex in vertices {
+            let center = geometry.vertexPosition(vertex, board: board)
+            let circle = Path(ellipseIn: CGRect(x: center.x - radius, y: center.y - radius, width: radius * 2, height: radius * 2))
+            result = result.union(circle)
         }
         return result
     }
