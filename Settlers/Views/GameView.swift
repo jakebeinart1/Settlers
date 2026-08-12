@@ -141,9 +141,20 @@ public struct GameView: View {
 
     /// Reserved heights for the road-building hint / incoming trade card /
     /// error message rows - see `StableHeightSlot`.
-    @State private var roadBannerHeight: CGFloat = 0
-    @State private var tradeCardHeight: CGFloat = 0
-    @State private var errorRowHeight: CGFloat = 0
+    // Seeded with each row's actual measured height (see chat: rendered
+    // faithful reproductions of every one of these and read off their real
+    // sizes) rather than 0 - `StableHeightSlot` still grows to fit if real
+    // content ever needs more, but starting from a real estimate means
+    // there's no gap between "app just launched" and "something has
+    // measured once" for the board to flicker through. That gap - not the
+    // measure-after-the-fact approach itself - was the actual hole in the
+    // previous fix: every quantity here was 0 until the first real
+    // occurrence, and a bare `Color.clear` placeholder (now fixed
+    // separately) was what turned that brief 0 into a collapsed board.
+    @State private var diceRowHeight: CGFloat = 64
+    @State private var roadBannerHeight: CGFloat = 16
+    @State private var tradeCardHeight: CGFloat = 56
+    @State private var errorRowHeight: CGFloat = 32
 
     private var state: GameState { viewModel.state }
     private var human: PlayerID { viewModel.humanPlayer }
@@ -161,11 +172,19 @@ public struct GameView: View {
                 // trade card and other inline banners also come and go,
                 // constantly nudging or getting crowded by them, and (once
                 // the current-roll number got bigger) started overlapping
-                // board content too.
-                if let roll = state.lastDiceRoll {
-                    HStack {
-                        diceChip(roll)
-                        Spacer(minLength: 0)
+                // board content too. Wrapped in `StableHeightSlot` for the
+                // same reason as the banners below: `state.lastDiceRoll` is
+                // nil until the very first roll of the game, so without
+                // this, that first roll would itself shift the board by
+                // inserting this row for the first time.
+                StableHeightSlot(height: $diceRowHeight) {
+                    if let roll = state.lastDiceRoll {
+                        HStack {
+                            diceChip(roll)
+                            Spacer(minLength: 0)
+                        }
+                    } else {
+                        Color.clear.frame(height: 0)
                     }
                 }
 
