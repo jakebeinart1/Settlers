@@ -66,14 +66,25 @@ public struct HumanPlayerPanel: View {
                     Circle()
                         .fill(CatanTheme.color(for: human))
                         .frame(width: 17, height: 17)
+                    // `.lineLimit(1)` + `.fixedSize()` on both name texts -
+                    // this row (name, civilization, card count, roads,
+                    // knights, VP, tags) can run wider than the panel, and
+                    // without protecting these two specifically, "You" and
+                    // the civilization name (e.g. "Japan") were the ones
+                    // that gave way: squeezed until they wrapped mid-word
+                    // onto a second line instead of just staying put.
                     Text("You")
                         .font(.system(size: 21, weight: .bold, design: .serif))
+                        .lineLimit(1)
+                        .fixedSize()
                     Image(systemName: Civilization.forSeat(human.index).emblemSymbol)
                         .font(.subheadline)
                         .foregroundStyle(CatanTheme.onWaterText.opacity(0.8))
                     Text(Civilization.forSeat(human.index).displayName)
                         .font(.system(size: 14, design: .serif))
                         .foregroundStyle(CatanTheme.onWaterText.opacity(0.8))
+                        .lineLimit(1)
+                        .fixedSize()
                     Spacer()
                     // Roads built, knights played, and VP are all public
                     // information in real Catan (roads sit visibly on the

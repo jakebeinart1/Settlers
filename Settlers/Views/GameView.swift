@@ -19,8 +19,9 @@ public enum PlacementMode: Equatable {
 }
 
 /// The real, composed game screen, top to bottom: `BotHUDRow` (the 3 bot
-/// chips only), `BoardView` filling the middle - with the dice pinned to its
-/// bottom-left corner - `HumanPlayerPanel` (the human's own spacious info
+/// chips only), the dice chip (once there's been a roll) left-aligned in
+/// its own row, `BoardView` filling the middle, `HumanPlayerPanel` (the
+/// human's own spacious info
 /// panel, now with a dev-card strip alongside the resources), then a single
 /// uniform Build/Trade/turn-action row. Everything sits over one continuous
 /// water-blue background rather than separate boxed panels - there's no
@@ -106,25 +107,32 @@ public struct GameView: View {
             VStack(spacing: 8) {
                 BotHUDRow(state: state)
 
-                ZStack(alignment: .bottomLeading) {
-                    BoardView(
-                        state: state,
-                        onTapVertex: handleTapVertex,
-                        onTapEdge: handleTapEdge,
-                        onTapTile: handleTapTile,
-                        highlightedVertices: highlightedVertices,
-                        highlightedEdges: highlightedEdges,
-                        isPlacementModeActive: isPlacementModeActive || isRobberTargetingActive,
-                        highlightedTiles: highlightedTilesForRobber,
-                        isTileTargetingActive: isRobberTargetingActive,
-                        rollHighlightTiles: rollHighlightTiles
-                    )
-
-                    if let roll = state.lastDiceRoll {
+                // Its own row, below the opponent chips and above the
+                // board, rather than pinned over the board's bottom-left
+                // corner - overlaid there, it sat right where the incoming
+                // trade card and other inline banners also come and go,
+                // constantly nudging or getting crowded by them, and (once
+                // the current-roll number got bigger) started overlapping
+                // board content too.
+                if let roll = state.lastDiceRoll {
+                    HStack {
                         diceChip(roll)
-                            .padding(10)
+                        Spacer(minLength: 0)
                     }
                 }
+
+                BoardView(
+                    state: state,
+                    onTapVertex: handleTapVertex,
+                    onTapEdge: handleTapEdge,
+                    onTapTile: handleTapTile,
+                    highlightedVertices: highlightedVertices,
+                    highlightedEdges: highlightedEdges,
+                    isPlacementModeActive: isPlacementModeActive || isRobberTargetingActive,
+                    highlightedTiles: highlightedTilesForRobber,
+                    isTileTargetingActive: isRobberTargetingActive,
+                    rollHighlightTiles: rollHighlightTiles
+                )
                 .frame(maxHeight: .infinity)
                 .clipShape(RoundedRectangle(cornerRadius: 12))
 
