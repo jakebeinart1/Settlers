@@ -87,6 +87,16 @@ public struct HumanPlayerPanel: View {
                     // get squeezed by the surrounding HStack until their
                     // `Text` wrapped ("3 VP" onto two lines) instead of
                     // just staying their natural single-line size.
+                    // Total resource-card count, at a glance, without
+                    // having to add up the 5 individual dots below - same
+                    // card-stack glyph the bot chips use for the same
+                    // number.
+                    HStack(spacing: 4) {
+                        Image(systemName: "rectangle.stack.fill")
+                        Text("\(player.resources.values.reduce(0, +))")
+                    }
+                    .font(.subheadline.bold())
+                    .fixedSize()
                     HStack(spacing: 4) {
                         Image(systemName: "road.lanes")
                         Text("\(player.roads.count)")
@@ -159,7 +169,29 @@ public struct HumanPlayerPanel: View {
                         ScrollView(.horizontal, showsIndicators: false) {
                             HStack(spacing: 6) {
                                 ForEach(devCardRows, id: \.type) { row in
+                                    // `DevCards.canPlay` only checks
+                                    // ownership, not phase - a dev card
+                                    // (knight included) is only actually
+                                    // playable during your own `.mainTurn`,
+                                    // i.e. after rolling. Without this
+                                    // check the tile looked tappable before
+                                    // rolling too, and for Knight
+                                    // specifically that let you walk
+                                    // through the whole "move the robber"
+                                    // flow before the engine's own phase
+                                    // guard ever got a chance to reject it -
+                                    // the other three dev cards apply
+                                    // immediately on tap and so at least
+                                    // surfaced an error, which is why this
+                                    // read as "only Knight can be played
+                                    // before rolling" rather than "none of
+                                    // them actually can".
+                                    let isMainTurn: Bool = {
+                                        if case .mainTurn(let idx) = state.phase { return idx == human.index }
+                                        return false
+                                    }()
                                     let isPlayable = row.type != .victoryPoint
+                                        && isMainTurn
                                         && DevCards.canPlay(row.type, by: human, in: state)
                                     DevCardHUDTile(type: row.type, held: row.held, new: row.new, isPlayable: isPlayable) {
                                         onTapDevCard(row.type)
@@ -343,7 +375,11 @@ enum PlayerChip {
             // across ran wider than this ~110pt-wide chip and got clipped.
             VStack(alignment: .leading, spacing: 3) {
                 HStack(spacing: 10) {
-                    statBadge(icon: "hand.raised.fill", value: handSize)
+                    // A card-stack glyph rather than a raised-hand one - a
+                    // stack of cards reads immediately as "how many
+                    // resource cards this player is holding", where the
+                    // hand icon needed a beat to parse.
+                    statBadge(icon: "rectangle.stack.fill", value: handSize)
                     statBadge(icon: "sparkles.rectangle.stack.fill", value: player.devCards.count)
                 }
                 HStack(spacing: 10) {
