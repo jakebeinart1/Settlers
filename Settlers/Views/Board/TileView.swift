@@ -141,6 +141,12 @@ struct VertexTapTarget: View {
     let onTap: () -> Void
 
     private let touchDiameter: CGFloat = 32
+    /// Smaller than `touchDiameter` on purpose - the yellow glow ring
+    /// (shown for every legal placement, most noticeably setup's two
+    /// rounds of settlements) read as oversized at the full 32pt tap-target
+    /// size. The invisible tap circle underneath stays at the full size so
+    /// the actual hit target doesn't shrink, only what's visibly drawn.
+    private let highlightDiameter: CGFloat = 22
 
     var body: some View {
         ZStack {
@@ -148,7 +154,7 @@ struct VertexTapTarget: View {
                 Circle()
                     .strokeBorder(Color.yellow, lineWidth: 3)
                     .background(Circle().fill(Color.yellow.opacity(0.35)))
-                    .frame(width: touchDiameter, height: touchDiameter)
+                    .frame(width: highlightDiameter, height: highlightDiameter)
             }
             Circle()
                 .fill(Color.white.opacity(0.001))
