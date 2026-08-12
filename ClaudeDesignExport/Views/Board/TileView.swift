@@ -35,14 +35,8 @@ enum TileDrawing {
     /// Number tokens, roads, settlements, and tap targets all still align
     /// to the full-size hex geometry - only this visual fill shrinks.
     static func drawTile(_ tile: Tile, geometry: HexGeometry, in context: GraphicsContext) {
-        // The frame hex is stroked as well as filled now (previously fill-
-        // only), so the manila "grout" between tiles reads as a crisp,
-        // consistent band everywhere - including the outer edge of the
-        // island, where it used to fade unevenly into the water via raw
-        // anti-aliasing with nothing defining its outer boundary.
         let framePath = hexPath(for: tile.coordinate, geometry: geometry)
         context.fill(framePath, with: .color(CatanTheme.desert))
-        context.stroke(framePath, with: .color(CatanTheme.desertEdge), lineWidth: 1)
 
         let fillPath = hexPath(for: tile.coordinate, geometry: geometry, scale: 0.86)
         context.fill(fillPath, with: .color(CatanTheme.color(for: tile.kind)))
@@ -57,7 +51,7 @@ enum TileDrawing {
         let radius = size * 0.32
         let circle = Path(ellipseIn: CGRect(x: point.x - radius, y: point.y - radius, width: radius * 2, height: radius * 2))
         context.fill(circle, with: .color(CatanTheme.numberTokenBackground))
-        context.stroke(circle, with: .color(CatanTheme.numberTokenEdge), lineWidth: 1.25)
+        context.stroke(circle, with: .color(.black), lineWidth: 1.5)
 
         let isHot = number == 6 || number == 8
         let text = Text("\(number)")
@@ -87,11 +81,7 @@ enum TileDrawing {
 
     /// Draws a small port icon pushed outward from `boardCenter`, along the
     /// midpoint of the port's two shoreline vertices, so it reads as sitting
-    /// just offshore rather than on top of the board. Two "dock" lines run
-    /// from the badge back to each of those two shoreline vertices,
-    /// tracing the actual edge the port trades through - previously the
-    /// badge just floated near the coast with nothing pinning it to a
-    /// specific edge, ambiguous whenever two ports sat close together.
+    /// just offshore rather than on top of the board.
     static func drawPort(_ port: CatanEngine.Port, geometry: HexGeometry, board: Board, boardCenter: CGPoint, in context: GraphicsContext) {
         let a = geometry.vertexPosition(port.vertexA, board: board)
         let b = geometry.vertexPosition(port.vertexB, board: board)
@@ -100,16 +90,9 @@ enum TileDrawing {
         var direction = CGVector(dx: midpoint.x - boardCenter.x, dy: midpoint.y - boardCenter.y)
         let length = max(sqrt(direction.dx * direction.dx + direction.dy * direction.dy), 0.001)
         direction = CGVector(dx: direction.dx / length, dy: direction.dy / length)
-        let iconPoint = CGPoint(x: midpoint.x + direction.dx * geometry.size * 0.4, y: midpoint.y + direction.dy * geometry.size * 0.4)
+        let iconPoint = CGPoint(x: midpoint.x + direction.dx * geometry.size * 0.45, y: midpoint.y + direction.dy * geometry.size * 0.45)
 
-        var dockPath = Path()
-        dockPath.move(to: a)
-        dockPath.addLine(to: iconPoint)
-        dockPath.move(to: b)
-        dockPath.addLine(to: iconPoint)
-        context.stroke(dockPath, with: .color(CatanTheme.portIcon.opacity(0.85)), style: StrokeStyle(lineWidth: 2.5, lineCap: .round))
-
-        let radius = geometry.size * 0.24
+        let radius = geometry.size * 0.22
         let circle = Path(ellipseIn: CGRect(x: iconPoint.x - radius, y: iconPoint.y - radius, width: radius * 2, height: radius * 2))
         let fillColor: Color
         let label: String
@@ -122,7 +105,7 @@ enum TileDrawing {
             label = "2:1"
         }
         context.fill(circle, with: .color(fillColor))
-        context.stroke(circle, with: .color(.white), lineWidth: 2)
+        context.stroke(circle, with: .color(.white), lineWidth: 1.5)
         let text = Text(label)
             .font(.system(size: radius * 0.75, weight: .bold))
             .foregroundColor(.white)

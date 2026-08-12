@@ -61,18 +61,18 @@ public struct HumanPlayerPanel: View {
         if let player = state.players.first(where: { $0.id == human }) {
             let isActive = PlayerChip.isActivePlayer(human, in: state)
 
-            VStack(alignment: .leading, spacing: 10) {
-                HStack(spacing: 8) {
+            VStack(alignment: .leading, spacing: 8) {
+                HStack(spacing: 6) {
                     Circle()
                         .fill(CatanTheme.color(for: human))
-                        .frame(width: 17, height: 17)
+                        .frame(width: 14, height: 14)
                     Text("You")
-                        .font(.system(size: 21, weight: .bold, design: .serif))
+                        .font(.headline)
                     Image(systemName: Civilization.forSeat(human.index).emblemSymbol)
-                        .font(.subheadline)
+                        .font(.caption)
                         .foregroundStyle(CatanTheme.onWaterText.opacity(0.8))
                     Text(Civilization.forSeat(human.index).displayName)
-                        .font(.system(size: 14, design: .serif))
+                        .font(.caption)
                         .foregroundStyle(CatanTheme.onWaterText.opacity(0.8))
                     Spacer()
                     // Roads built, knights played, and VP are all public
@@ -107,16 +107,16 @@ public struct HumanPlayerPanel: View {
                     }
                 }
 
-                HStack(alignment: .center, spacing: 16) {
-                    HStack(spacing: 14) {
+                HStack(alignment: .center, spacing: 12) {
+                    HStack(spacing: 10) {
                         ForEach(Resource.allCases, id: \.self) { resource in
                             let count = player.resources[resource] ?? 0
-                            VStack(spacing: 3) {
+                            VStack(spacing: 2) {
                                 Circle()
                                     .fill(CatanTheme.color(for: resource))
-                                    .frame(width: 20, height: 20)
+                                    .frame(width: 16, height: 16)
                                 Text("\(count)")
-                                    .font(.system(size: 16, weight: .bold))
+                                    .font(.system(size: 13, weight: .bold))
                                     .foregroundStyle(CatanTheme.onWaterText)
                             }
                             .opacity(count > 0 ? 1 : 0.35)
@@ -125,7 +125,7 @@ public struct HumanPlayerPanel: View {
 
                     if !devCardRows.isEmpty {
                         Divider()
-                            .frame(height: 38)
+                            .frame(height: 30)
                             .overlay(Color.white.opacity(0.25))
 
                         ScrollView(.horizontal, showsIndicators: false) {
@@ -144,7 +144,7 @@ public struct HumanPlayerPanel: View {
                     Spacer(minLength: 0)
                 }
             }
-            .padding(14)
+            .padding(10)
             .frame(maxWidth: .infinity, alignment: .leading)
             .background(
                 RoundedRectangle(cornerRadius: 12)
@@ -176,25 +176,25 @@ private struct DevCardHUDTile: View {
 
     var body: some View {
         Button(action: action) {
-            VStack(spacing: 3) {
+            VStack(spacing: 2) {
                 Image(systemName: icon)
-                    .font(.title3)
+                    .font(.callout)
                 Text(name)
-                    .font(.system(size: 9.5, weight: .bold))
+                    .font(.system(size: 8, weight: .bold))
                     .lineLimit(1)
                     .minimumScaleFactor(0.7)
                 Text("x\(held)")
-                    .font(.system(size: 11.5, weight: .bold))
+                    .font(.system(size: 10, weight: .bold))
             }
             .foregroundStyle(.white)
-            .frame(width: 58, height: 56)
-            .background(RoundedRectangle(cornerRadius: 9).fill(color.gradient))
-            .overlay(RoundedRectangle(cornerRadius: 9).strokeBorder(.white.opacity(0.4), lineWidth: 1))
+            .frame(width: 50, height: 48)
+            .background(RoundedRectangle(cornerRadius: 8).fill(color.gradient))
+            .overlay(RoundedRectangle(cornerRadius: 8).strokeBorder(.white.opacity(0.4), lineWidth: 1))
             .overlay(alignment: .topTrailing) {
                 if new > 0 {
                     Circle()
                         .fill(Color.yellow)
-                        .frame(width: 9, height: 9)
+                        .frame(width: 8, height: 8)
                         .offset(x: 2, y: -2)
                 }
             }
@@ -245,20 +245,19 @@ enum PlayerChip {
 
         let civilization = Civilization.forSeat(player.id.index)
 
-        VStack(alignment: .leading, spacing: 5) {
-            HStack(spacing: 5) {
+        VStack(alignment: .leading, spacing: 4) {
+            HStack(spacing: 4) {
                 Circle()
                     .fill(CatanTheme.color(for: player.id))
-                    .frame(width: 11, height: 11)
+                    .frame(width: 10, height: 10)
                 Image(systemName: civilization.emblemSymbol)
-                    .font(.system(size: 10))
+                    .font(.system(size: 9))
                 Text(isHuman ? "You" : civilization.generalName)
-                    .font(.system(size: 14, weight: .bold, design: .serif))
+                    .font(.caption.bold())
                     .lineLimit(1)
-                    .minimumScaleFactor(0.55)
             }
             Text(civilization.displayName)
-                .font(.system(size: 10, design: .serif))
+                .font(.system(size: 9))
                 .foregroundStyle(CatanTheme.onWaterText.opacity(0.8))
 
             // Short labels ("Road"/"Army" rather than "Longest Road"/"Largest
@@ -303,14 +302,14 @@ enum PlayerChip {
             }
             .foregroundStyle(CatanTheme.onWaterText)
         }
-        .padding(12)
-        .frame(maxWidth: .infinity, minHeight: 108, alignment: .topLeading)
+        .padding(8)
+        .frame(maxWidth: .infinity, alignment: .leading)
         .background(
-            RoundedRectangle(cornerRadius: 12)
+            RoundedRectangle(cornerRadius: 10)
                 .fill(isActive ? CatanTheme.hudChipBackgroundActive : CatanTheme.hudChipBackground)
         )
         .overlay(
-            RoundedRectangle(cornerRadius: 12)
+            RoundedRectangle(cornerRadius: 10)
                 .strokeBorder(isActive ? CatanTheme.color(for: player.id) : .clear, lineWidth: 2)
         )
         .background(
@@ -324,11 +323,11 @@ enum PlayerChip {
     /// (hand size / dev cards / roads / knights played) where four of these
     /// need to fit across one narrow chip.
     static func statBadge(icon: String, value: Int) -> some View {
-        HStack(spacing: 4) {
+        HStack(spacing: 3) {
             Image(systemName: icon)
-                .font(.caption)
+                .font(.caption2)
             Text("\(value)")
-                .font(.caption.bold())
+                .font(.caption2.bold())
         }
     }
 
@@ -336,17 +335,17 @@ enum PlayerChip {
     /// largest-army indicators so they read as a single family of tags
     /// rather than a bare icon the viewer has to already know how to decode.
     static func tag(text: String, icon: String, tint: Color) -> some View {
-        HStack(spacing: 3) {
+        HStack(spacing: 2) {
             Image(systemName: icon)
-                .font(.system(size: 10, weight: .bold))
+                .font(.system(size: 9, weight: .bold))
             Text(text)
-                .font(.system(size: 10, weight: .bold))
+                .font(.system(size: 9, weight: .bold))
                 .lineLimit(1)
                 .fixedSize()
         }
         .foregroundStyle(.white)
-        .padding(.horizontal, 6)
-        .padding(.vertical, 3)
+        .padding(.horizontal, 5)
+        .padding(.vertical, 2)
         .background(tint.opacity(0.85), in: Capsule())
         .fixedSize()
     }

@@ -36,7 +36,6 @@ public struct EndGameView: View {
 
                 Button {
                     GameStore.shared.clear()
-                    CivilizationAssignmentStore.shared.clear()
                     onNewGame()
                 } label: {
                     Text("New Game")

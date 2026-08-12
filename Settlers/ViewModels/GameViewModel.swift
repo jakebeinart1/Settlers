@@ -36,6 +36,14 @@ public final class GameViewModel {
     public init() {
         if let saved = GameStore.shared.load() {
             state = saved
+            // A resumed game keeps whichever civilizations it was dealt,
+            // read back from disk rather than re-randomized - falls back to
+            // a fresh draw if the assignment file is missing/corrupt (e.g.
+            // a save from before this file existed) so the board still has
+            // *some* consistent lineup instead of `CivilizationAssignment`'s
+            // bare default.
+            CivilizationAssignment.current = CivilizationAssignmentStore.shared.load()
+                ?? Self.drawAssignment(from: CivilizationSettingsStore.shared.load())
         } else {
             state = GameSetup.newGame(board: BoardGenerator.standard())
         }
@@ -47,7 +55,26 @@ public final class GameViewModel {
             ? BoardGenerator.randomized(seed: UInt64.random(in: .min ... .max))
             : BoardGenerator.standard()
         state = GameSetup.newGame(board: board)
+
+        let assignment = Self.drawAssignment(from: CivilizationSettingsStore.shared.load())
+        CivilizationAssignment.current = assignment
+        try? CivilizationAssignmentStore.shared.save(assignment)
+
         try? GameStore.shared.save(state)
+    }
+
+    /// Seat 0 = the player's chosen civilization; seats 1-3 = 3 distinct
+    /// random draws from their included bot roster (falling back to every
+    /// other civilization if, somehow, fewer than 3 are included - e.g. a
+    /// corrupt settings value that skipped `SettingsView`'s minimum-3
+    /// enforcement).
+    private static func drawAssignment(from settings: CivilizationSettings) -> [Civilization] {
+        var botPool = settings.includedBotCivilizations.subtracting([settings.yourCivilization])
+        if botPool.count < CivilizationSettings.minimumIncludedBots {
+            botPool = Set(Civilization.allCases).subtracting([settings.yourCivilization])
+        }
+        let bots = Array(botPool).shuffled().prefix(3)
+        return [settings.yourCivilization] + bots
     }
 
     /// Applies a human move, persists the result, and lets any subsequent
