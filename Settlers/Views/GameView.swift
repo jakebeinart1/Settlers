@@ -61,9 +61,9 @@ private struct StableHeightSlot<Content: View>: View {
 }
 
 /// The real, composed game screen, top to bottom: `BotHUDRow` (the 3 bot
-/// chips only), the dice chip (once there's been a roll) left-aligned in
-/// its own row, `BoardView` filling the middle, `HumanPlayerPanel` (the
-/// human's own spacious info
+/// chips only), `BoardView` filling the middle - with the dice chip (once
+/// there's been a roll) overlaid on its top-left corner - `HumanPlayerPanel`
+/// (the human's own spacious info
 /// panel, now with a dev-card strip alongside the resources), then a single
 /// uniform Build/Trade/turn-action row. Everything sits over one continuous
 /// water-blue background rather than separate boxed panels - there's no
@@ -151,7 +151,6 @@ public struct GameView: View {
     // previous fix: every quantity here was 0 until the first real
     // occurrence, and a bare `Color.clear` placeholder (now fixed
     // separately) was what turned that brief 0 into a collapsed board.
-    @State private var diceRowHeight: CGFloat = 64
     /// Shared by the road-building hint, incoming trade card, and error
     /// message - seeded at the trade card's own measured height (56pt),
     /// the tallest of the three, since it's shown whenever none of the
@@ -173,43 +172,35 @@ public struct GameView: View {
             // actually wanted, instead of uniformly.
             VStack(spacing: 0) {
                 BotHUDRow(state: state)
-                    .padding(.bottom, 4)
+                    .padding(.bottom, 3)
 
-                // Its own row, below the opponent chips and above the
-                // board, rather than pinned over the board's bottom-left
-                // corner - overlaid there, it sat right where the incoming
-                // trade card and other inline banners also come and go,
-                // constantly nudging or getting crowded by them, and (once
-                // the current-roll number got bigger) started overlapping
-                // board content too. Wrapped in `StableHeightSlot` for the
-                // same reason as the banners below: `state.lastDiceRoll` is
-                // nil until the very first roll of the game, so without
-                // this, that first roll would itself shift the board by
-                // inserting this row for the first time.
-                StableHeightSlot(height: $diceRowHeight) {
+                // Back to overlaying the board's top-left corner (not its
+                // own row) - that reclaims the whole row's height for the
+                // board. It used to sit in the bottom-left corner
+                // specifically, which is where it kept colliding with the
+                // incoming trade card and other inline banners below the
+                // board; the top-left corner is never where any of that
+                // renders, so nothing to collide with up here even though
+                // it's overlapping board content.
+                ZStack(alignment: .topLeading) {
+                    BoardView(
+                        state: state,
+                        onTapVertex: handleTapVertex,
+                        onTapEdge: handleTapEdge,
+                        onTapTile: handleTapTile,
+                        highlightedVertices: highlightedVertices,
+                        highlightedEdges: highlightedEdges,
+                        isPlacementModeActive: isPlacementModeActive || isRobberTargetingActive,
+                        highlightedTiles: highlightedTilesForRobber,
+                        isTileTargetingActive: isRobberTargetingActive,
+                        rollHighlightTiles: rollHighlightTiles
+                    )
+
                     if let roll = state.lastDiceRoll {
-                        HStack {
-                            diceChip(roll)
-                            Spacer(minLength: 0)
-                        }
-                    } else {
-                        Color.clear.frame(height: 0)
+                        diceChip(roll)
+                            .padding(8)
                     }
                 }
-                .padding(.bottom, 4)
-
-                BoardView(
-                    state: state,
-                    onTapVertex: handleTapVertex,
-                    onTapEdge: handleTapEdge,
-                    onTapTile: handleTapTile,
-                    highlightedVertices: highlightedVertices,
-                    highlightedEdges: highlightedEdges,
-                    isPlacementModeActive: isPlacementModeActive || isRobberTargetingActive,
-                    highlightedTiles: highlightedTilesForRobber,
-                    isTileTargetingActive: isRobberTargetingActive,
-                    rollHighlightTiles: rollHighlightTiles
-                )
                 .frame(maxHeight: .infinity)
                 .clipShape(RoundedRectangle(cornerRadius: 12))
 

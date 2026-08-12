@@ -414,8 +414,8 @@ enum PlayerChip {
         // Trimmed twice now (108/12 -> 98/10 -> this) - the board needs
         // more room than this chip does, and it had slack to give up both
         // times.
-        .padding(7)
-        .frame(maxWidth: .infinity, minHeight: 84, alignment: .topLeading)
+        .padding(6)
+        .frame(maxWidth: .infinity, minHeight: 78, alignment: .topLeading)
         .background(
             RoundedRectangle(cornerRadius: 12)
                 .fill(isActive ? CatanTheme.hudChipBackgroundActive : CatanTheme.hudChipBackground)
