@@ -155,27 +155,55 @@ public final class GameViewModel {
         }
     }
 
+    /// Why `confirmPendingTrade()` didn't go through, when it didn't -
+    /// `.succeeded` is the only case where the cards actually moved.
+    /// Distinguishing these matters because `try?` swallowing
+    /// `Trading.respond`'s failure used to make a failed confirm look
+    /// identical to a successful one from the UI's perspective: tapping
+    /// "Confirm Trade" would just silently do nothing, no error, no
+    /// changed cards, no indication why.
+    public enum TradeConfirmationResult {
+        case succeeded
+        /// The offer itself is gone - e.g. left pending across a full turn
+        /// cycle, during which the accepting bot's own legal moves could
+        /// include responding to it directly some other way.
+        case offerNoLongerAvailable
+        /// The offer's still there, but either side has since spent what
+        /// made it work - most likely the human building something with
+        /// the very cards they'd offered, in the gap between proposing and
+        /// confirming.
+        case resourcesNoLongerAvailable
+    }
+
     /// Goes through with a trade a bot said it would accept - see
-    /// `pendingTradeConfirmation`. A no-op if there's nothing pending (e.g.
-    /// called twice, or after `declinePendingTrade()` already cleared it).
-    public func confirmPendingTrade() {
-        guard let pending = pendingTradeConfirmation else { return }
+    /// `pendingTradeConfirmation`. Returns `.succeeded` if there was
+    /// nothing pending at all too (e.g. called twice, or after
+    /// `declinePendingTrade()` already cleared it) - only a genuine
+    /// attempt that didn't move any cards reports a failure reason.
+    @discardableResult
+    public func confirmPendingTrade() -> TradeConfirmationResult {
+        guard let pending = pendingTradeConfirmation else { return .succeeded }
         pendingTradeConfirmation = nil
 
-        // The offer sits pending (unresolved) the whole time the human has
-        // this confirmation up, which leaves a narrow window for it to have
-        // been resolved some other way in the meantime - e.g. left dangling
-        // across a full turn cycle, during which the accepting bot's own
-        // legal moves could include responding to it directly. Confirming
-        // a since-vanished offer should read as "nothing to confirm
-        // anymore", not silently claim success.
         guard state.pendingTradeOffers.contains(where: { $0.id == pending.offerID }) else {
             lastTradeOutcome = nil
-            return
+            return .offerNoLongerAvailable
         }
-        try? RulesEngine.apply(.respondToTrade(offerID: pending.offerID, accept: true), by: pending.acceptedBy, to: &state)
+        do {
+            try RulesEngine.apply(.respondToTrade(offerID: pending.offerID, accept: true), by: pending.acceptedBy, to: &state)
+        } catch {
+            // Withdraw the now-stuck offer on the willing bot's behalf
+            // rather than leaving it pending forever with nothing left to
+            // confirm it with - same "reject" applied `declinePendingTrade`
+            // uses.
+            try? RulesEngine.apply(.respondToTrade(offerID: pending.offerID, accept: false), by: pending.acceptedBy, to: &state)
+            lastTradeOutcome = TradeOutcome(decisions: pending.decisions, acceptedBy: nil)
+            try? GameStore.shared.save(state)
+            return .resourcesNoLongerAvailable
+        }
         lastTradeOutcome = TradeOutcome(decisions: pending.decisions, acceptedBy: pending.acceptedBy)
         try? GameStore.shared.save(state)
+        return .succeeded
     }
 
     /// Backs out of a trade a bot would have accepted, without executing

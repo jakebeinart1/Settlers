@@ -184,8 +184,21 @@ public struct TradePopupView: View {
                 .buttonStyle(.bordered)
 
                 Button("Confirm Trade") {
-                    viewModel.confirmPendingTrade()
-                    proposalOutcome = viewModel.lastTradeOutcome
+                    // A failed confirm used to just silently do nothing -
+                    // no error, no changed cards, no indication why - since
+                    // `try?` swallowed the underlying failure. Now it's
+                    // reported like any other failed move.
+                    switch viewModel.confirmPendingTrade() {
+                    case .succeeded:
+                        errorMessage = nil
+                        proposalOutcome = viewModel.lastTradeOutcome
+                    case .offerNoLongerAvailable:
+                        errorMessage = "That trade is no longer available."
+                        proposalOutcome = viewModel.lastTradeOutcome
+                    case .resourcesNoLongerAvailable:
+                        errorMessage = "That trade could no longer go through - resources changed since you proposed it."
+                        proposalOutcome = viewModel.lastTradeOutcome
+                    }
                 }
                 .buttonStyle(.borderedProminent)
                 .tint(.green)
