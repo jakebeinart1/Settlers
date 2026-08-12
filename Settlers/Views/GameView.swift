@@ -165,8 +165,15 @@ public struct GameView: View {
         ZStack {
             CatanTheme.waterBackground.ignoresSafeArea()
 
-            VStack(spacing: 8) {
+            // `spacing: 0` rather than a uniform 8pt everywhere - board,
+            // banner slot, and `HumanPlayerPanel` need to sit genuinely
+            // flush against each other (no gap at all), while the rows
+            // above the board still want *some* visual separation. Spacing
+            // is added explicitly with `.padding(.bottom:)` only where it's
+            // actually wanted, instead of uniformly.
+            VStack(spacing: 0) {
                 BotHUDRow(state: state)
+                    .padding(.bottom, 8)
 
                 // Its own row, below the opponent chips and above the
                 // board, rather than pinned over the board's bottom-left
@@ -189,6 +196,7 @@ public struct GameView: View {
                         Color.clear.frame(height: 0)
                     }
                 }
+                .padding(.bottom, 8)
 
                 BoardView(
                     state: state,
@@ -249,11 +257,15 @@ public struct GameView: View {
                     }
                 }
 
+                // No top padding here - this needs to sit genuinely flush
+                // against the banner slot above it (board -> banner ->
+                // here reads as one continuous stack, not three separate
+                // boxes with gaps between them).
                 HumanPlayerPanel(state: state, onTapDevCard: { devCardPopupType = $0 })
 
                 bottomPanel
+                    .padding(.top, 8)
             }
-            .padding(8)
 
             if viewModel.isBotThinking {
                 VStack {
