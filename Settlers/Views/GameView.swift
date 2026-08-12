@@ -437,6 +437,12 @@ public struct GameView: View {
     private var actionRow: some View {
         HStack(spacing: 10) {
             UniformActionButton(
+                title: "Trade", systemImage: "arrow.left.arrow.right",
+                isEnabled: isTradeAvailable
+            ) {
+                showTradePopup = true
+            }
+            UniformActionButton(
                 title: placementMode == nil ? "Build" : placementMode!.label,
                 systemImage: placementMode == nil ? "hammer.fill" : "hammer.circle.fill",
                 isEnabled: true,
@@ -447,12 +453,6 @@ public struct GameView: View {
                 } else {
                     showBuildPopup = true
                 }
-            }
-            UniformActionButton(
-                title: "Trade", systemImage: "arrow.left.arrow.right",
-                isEnabled: isTradeAvailable
-            ) {
-                showTradePopup = true
             }
             turnActionButton
         }
