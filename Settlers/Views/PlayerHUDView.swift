@@ -66,13 +66,11 @@ public struct HumanPlayerPanel: View {
                     Circle()
                         .fill(CatanTheme.color(for: human))
                         .frame(width: 17, height: 17)
-                    // `.lineLimit(1)` + `.fixedSize()` on both name texts -
-                    // this row (name, civilization, card count, roads,
-                    // knights, VP, tags) can run wider than the panel, and
-                    // without protecting these two specifically, "You" and
-                    // the civilization name (e.g. "Japan") were the ones
-                    // that gave way: squeezed until they wrapped mid-word
-                    // onto a second line instead of just staying put.
+                    // `.lineLimit(1)` + `.fixedSize()` - without these,
+                    // "You" and the civilization name (e.g. "Japan") were
+                    // the ones that gave way when the row got crowded,
+                    // wrapping mid-word onto a second line instead of
+                    // staying put.
                     Text("You")
                         .font(.system(size: 21, weight: .bold, design: .serif))
                         .lineLimit(1)
@@ -85,60 +83,68 @@ public struct HumanPlayerPanel: View {
                         .foregroundStyle(CatanTheme.onWaterText.opacity(0.8))
                         .lineLimit(1)
                         .fixedSize()
-                    Spacer()
-                    // Roads built, knights played, and VP are all public
-                    // information in real Catan (roads sit visibly on the
-                    // board; a knight has to be played face-up to move the
-                    // robber) - sized up from the bot chips' compact stats,
-                    // since this is your own panel and has the room for it.
-                    // `.fixedSize()` on all three: this row (name, roads,
-                    // knights, VP, tags) can run wider than the panel once
-                    // longest-road/largest-army tags join it, and without
-                    // this these badges - the VP capsule especially - would
-                    // get squeezed by the surrounding HStack until their
-                    // `Text` wrapped ("3 VP" onto two lines) instead of
-                    // just staying their natural single-line size.
-                    // Total resource-card count, at a glance, without
-                    // having to add up the 5 individual dots below - same
-                    // card-stack glyph the bot chips use for the same
-                    // number.
-                    HStack(spacing: 4) {
-                        Image(systemName: "rectangle.stack.fill")
-                        Text("\(player.resources.values.reduce(0, +))")
-                    }
-                    .font(.subheadline.bold())
-                    .fixedSize()
-                    // Longest continuous stretch (what the 2VP bonus is
-                    // actually based on), not total segments built - a
-                    // forked network can have far more segments than its
-                    // longest single run.
-                    HStack(spacing: 4) {
-                        Image(systemName: "road.lanes")
-                        Text("\(LongestRoad.length(for: player, in: state))")
-                    }
-                    .font(.subheadline.bold())
-                    .fixedSize()
-                    HStack(spacing: 4) {
-                        Image(systemName: "shield.fill")
-                        Text("\(player.playedKnights)")
-                    }
-                    .font(.subheadline.bold())
-                    .fixedSize()
-                    HStack(spacing: 4) {
-                        Image(systemName: "star.fill")
-                        Text("\(state.victoryPoints(for: human)) VP")
-                    }
-                    .font(.subheadline.bold())
-                    .foregroundStyle(.white)
-                    .padding(.horizontal, 8)
-                    .padding(.vertical, 4)
-                    .background(Color.yellow.opacity(0.85), in: Capsule())
-                    .fixedSize()
-                    if state.longestRoadPlayer == human {
-                        PlayerChip.tag(text: "Longest Road", icon: "road.lanes", tint: .orange)
-                    }
-                    if state.largestArmyPlayer == human {
-                        PlayerChip.tag(text: "Largest Army", icon: "shield.fill", tint: .red)
+                    Spacer(minLength: 0)
+                }
+
+                // Roads built (well, longest stretch - see below), knights
+                // played, and VP are all public information in real Catan
+                // (roads sit visibly on the board; a knight has to be
+                // played face-up to move the robber). Its own horizontally
+                // scrolling row, separate from the identity row above -
+                // these badges plus the longest-road/largest-army tags
+                // (each `.fixedSize()`, so none of them ever wrap) could
+                // add up to more than the screen's width, and packed into
+                // the identity row above (which also has "You"/the
+                // civilization name protected the same way) that meant
+                // something had to run off the right edge with no way to
+                // reach it - exactly what happened once both bonus tags
+                // were showing at once. A dedicated scrollable row can
+                // never clip anything, it just becomes swipeable on the
+                // rare hand that needs it.
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 8) {
+                        // Total resource-card count, at a glance, without
+                        // having to add up the 5 individual dots below -
+                        // same card-stack glyph the bot chips use for the
+                        // same number.
+                        HStack(spacing: 4) {
+                            Image(systemName: "rectangle.stack.fill")
+                            Text("\(player.resources.values.reduce(0, +))")
+                        }
+                        .font(.subheadline.bold())
+                        .fixedSize()
+                        // Longest continuous stretch (what the 2VP bonus is
+                        // actually based on), not total segments built - a
+                        // forked network can have far more segments than
+                        // its longest single run.
+                        HStack(spacing: 4) {
+                            Image(systemName: "road.lanes")
+                            Text("\(LongestRoad.length(for: player, in: state))")
+                        }
+                        .font(.subheadline.bold())
+                        .fixedSize()
+                        HStack(spacing: 4) {
+                            Image(systemName: "shield.fill")
+                            Text("\(player.playedKnights)")
+                        }
+                        .font(.subheadline.bold())
+                        .fixedSize()
+                        HStack(spacing: 4) {
+                            Image(systemName: "star.fill")
+                            Text("\(state.victoryPoints(for: human)) VP")
+                        }
+                        .font(.subheadline.bold())
+                        .foregroundStyle(.white)
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 4)
+                        .background(Color.yellow.opacity(0.85), in: Capsule())
+                        .fixedSize()
+                        if state.longestRoadPlayer == human {
+                            PlayerChip.tag(text: "Longest Road", icon: "road.lanes", tint: .orange)
+                        }
+                        if state.largestArmyPlayer == human {
+                            PlayerChip.tag(text: "Largest Army", icon: "shield.fill", tint: .red)
+                        }
                     }
                 }
 
