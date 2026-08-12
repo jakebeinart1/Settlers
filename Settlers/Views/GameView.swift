@@ -32,9 +32,16 @@ private struct SlotHeightKey: PreferenceKey {
 /// one flexible element absorbing that change (`.frame(maxHeight:
 /// .infinity)`), every appearance/disappearance nudged the board's own
 /// size - most noticeably every time a bot's trade offer showed up.
-/// `content` should render `Color.clear` (or similar) for its "nothing to
-/// show" case rather than being wrapped in an `if`, so this can measure and
-/// reserve a stable height regardless of which state is current.
+/// `content` should render `Color.clear.frame(height: 0)` for its "nothing
+/// to show" case rather than being wrapped in an `if`, so this can measure
+/// and reserve a stable height regardless of which state is current. The
+/// `.frame(height: 0)` is required, not optional decoration: a bare
+/// `Color.clear` has no intrinsic size and greedily fills all available
+/// space in a `VStack`, which - before this slot has measured a real
+/// height yet - competes with the board's own `.frame(maxHeight: .infinity)`
+/// for the same flexible space and squeezes it down to a fraction of the
+/// screen. (Shipped once without this, caught immediately after - see the
+/// call sites below for the concrete fix.)
 private struct StableHeightSlot<Content: View>: View {
     @Binding var height: CGFloat
     @ViewBuilder var content: () -> Content
@@ -183,7 +190,17 @@ public struct GameView: View {
                             .font(.caption)
                             .foregroundStyle(.yellow)
                     } else {
-                        Color.clear
+                        // `.frame(height: 0)` is load-bearing here, not
+                        // decoration: a bare `Color.clear` has no intrinsic
+                        // size and greedily fills all available space in a
+                        // `VStack` - on first launch, before any slot has
+                        // measured a real height yet, that made this
+                        // "nothing to show" placeholder compete with the
+                        // board for the same flexible space and squeeze it
+                        // down to a fraction of the screen. Caught by
+                        // rendering the exact structure in isolation - see
+                        // chat - after it shipped once already.
+                        Color.clear.frame(height: 0)
                     }
                 }
 
@@ -204,7 +221,17 @@ public struct GameView: View {
                             onReject: { respond(to: currentOffer, accept: false) }
                         )
                     } else {
-                        Color.clear
+                        // `.frame(height: 0)` is load-bearing here, not
+                        // decoration: a bare `Color.clear` has no intrinsic
+                        // size and greedily fills all available space in a
+                        // `VStack` - on first launch, before any slot has
+                        // measured a real height yet, that made this
+                        // "nothing to show" placeholder compete with the
+                        // board for the same flexible space and squeeze it
+                        // down to a fraction of the screen. Caught by
+                        // rendering the exact structure in isolation - see
+                        // chat - after it shipped once already.
+                        Color.clear.frame(height: 0)
                     }
                 }
 
@@ -214,7 +241,17 @@ public struct GameView: View {
                             .font(.caption2)
                             .foregroundStyle(.red)
                     } else {
-                        Color.clear
+                        // `.frame(height: 0)` is load-bearing here, not
+                        // decoration: a bare `Color.clear` has no intrinsic
+                        // size and greedily fills all available space in a
+                        // `VStack` - on first launch, before any slot has
+                        // measured a real height yet, that made this
+                        // "nothing to show" placeholder compete with the
+                        // board for the same flexible space and squeeze it
+                        // down to a fraction of the screen. Caught by
+                        // rendering the exact structure in isolation - see
+                        // chat - after it shipped once already.
+                        Color.clear.frame(height: 0)
                     }
                 }
 
