@@ -1,7 +1,7 @@
 import SwiftUI
 import CatanEngine
 
-/// Small card that slides in above the action row when a bot proposes a
+/// Small card that slides in above `HumanPlayerPanel` when a bot proposes a
 /// trade to the human - replaces the old "wants to trade" toast (which just
 /// jumped to the trade sheet) with a self-contained Accept/Reject card and a
 /// 5-second countdown ring. The countdown only runs while the card is

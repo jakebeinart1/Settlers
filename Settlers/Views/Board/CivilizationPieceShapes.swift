@@ -190,28 +190,39 @@ struct MedievalKeepGlyph: Shape {
 struct ColumbiaCapitolGlyph: Shape {
     func path(in rect: CGRect) -> Path {
         var path = Path()
-        path.addRect(svgRect(0, 96, 100, 4, in: rect))
-        path.addRect(svgRect(8, 60, 84, 36, in: rect))
-        path.addRect(svgRect(40, 44, 20, 16, in: rect))
-        path.move(to: svgPoint(40, 44, in: rect))
-        path.addQuadCurve(to: svgPoint(60, 44, in: rect), control: svgPoint(50, 18, in: rect))
+        // Body, drum, and dome all widened/heightened from the original
+        // pass, and the dome's own arc pulled up much taller (control point
+        // well above the frame instead of only halfway up, plus a pole
+        // reaching the very top that overlaps down into the dome so it
+        // reads as one connected spire rather than a floating cap) - the
+        // original left most of the upper half of the bounding box empty
+        // (just a thin disconnected pole), so next to the other
+        // civilizations' silhouettes (which all reach clear to the top
+        // edge) it read as noticeably smaller despite sharing the same
+        // badge size. Verified by rendering both side by side before
+        // shipping - see chat.
+        path.addRect(svgRect(0, 92, 100, 8, in: rect))
+        path.addRect(svgRect(4, 50, 92, 42, in: rect))
+        path.addRect(svgRect(30, 36, 40, 14, in: rect))
+        path.move(to: svgPoint(30, 36, in: rect))
+        path.addQuadCurve(to: svgPoint(70, 36, in: rect), control: svgPoint(50, -14, in: rect))
         path.closeSubpath()
-        path.addRect(svgRect(47, 30, 6, 4, in: rect))
-        path.addRect(svgRect(49, 34, 2, 10, in: rect))
+        path.addRect(svgRect(47, 0, 6, 20, in: rect))
         return path
     }
 }
 
 /// Columbia's etch detail: the portico's four columns plus the entrance
-/// doorway, all stroked outlines over the filled capitol silhouette.
+/// doorway, all stroked outlines over the filled capitol silhouette -
+/// rescaled to match `ColumbiaCapitolGlyph`'s bigger body.
 private struct ColumbiaEtchGlyph: Shape {
     func path(in rect: CGRect) -> Path {
         EtchRectsGlyph(rects: [
-            (14, 64, 6, 28),
-            (30, 64, 6, 28),
-            (64, 64, 6, 28),
-            (80, 64, 6, 28),
-            (44, 80, 12, 16),
+            (12, 56, 6, 34),
+            (28, 56, 6, 34),
+            (66, 56, 6, 34),
+            (82, 56, 6, 34),
+            (44, 74, 12, 16),
         ]).path(in: rect)
     }
 }

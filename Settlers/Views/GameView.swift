@@ -128,8 +128,9 @@ private struct ResourceFlightBadge: View {
 /// by view state; the mandatory post-7-roll robber move *and* the voluntary
 /// knight-card robber move both happen inline on this same `BoardView` (see
 /// `isRobberTargetingActive`) rather than as a separate modal. Incoming bot
-/// trade offers surface as a small `IncomingTradeCardView` above the action
-/// row with a 5-second accept window.
+/// trade offers surface as a small `IncomingTradeCardView` floating just
+/// above `HumanPlayerPanel` (an overlay positioned from `playerAnchors`,
+/// not laid out inline - see its call site) with a 5-second accept window.
 public struct GameView: View {
     public let viewModel: GameViewModel
 
@@ -246,17 +247,41 @@ public struct GameView: View {
 
                 HumanPlayerPanel(state: state, onTapDevCard: { devCardPopupType = $0 })
 
-                if let currentOffer = incomingOfferQueue.first {
-                    IncomingTradeCardView(
-                        offer: currentOffer,
-                        onAccept: { respond(to: currentOffer, accept: true) },
-                        onReject: { respond(to: currentOffer, accept: false) }
-                    )
-                }
-
                 bottomPanel
             }
             .padding(8)
+
+            // Floats above `HumanPlayerPanel` instead of sitting inline in
+            // the `VStack` above - inline, its appearance/disappearance
+            // changed the total content height, and since the board is the
+            // one flexible-sized element absorbing that (`.frame(maxHeight:
+            // .infinity)`), every offer shrank the board and shoved the
+            // resource panel up. Positioned from `playerAnchors[human]`
+            // (the same frame `HumanPlayerPanel` already reports for the
+            // resource-flight animation) so it tracks the panel's actual
+            // on-screen top edge without affecting anyone's layout.
+            if let humanFrame = playerAnchors[human] {
+                // Zero-height anchor pinned to the panel's top edge, with
+                // the card overlaid `.bottom`-aligned to it - since both
+                // bottom edges line up and the anchor itself has no height,
+                // the card's own body extends upward from that edge
+                // automatically, whatever its height happens to be, instead
+                // of needing to know that height in advance to offset by.
+                Color.clear
+                    .frame(width: humanFrame.width, height: 0)
+                    .position(x: humanFrame.midX, y: humanFrame.minY - 8)
+                    .overlay(alignment: .bottom) {
+                        if let currentOffer = incomingOfferQueue.first {
+                            IncomingTradeCardView(
+                                offer: currentOffer,
+                                onAccept: { respond(to: currentOffer, accept: true) },
+                                onReject: { respond(to: currentOffer, accept: false) }
+                            )
+                            .frame(width: humanFrame.width)
+                        }
+                    }
+                    .allowsHitTesting(incomingOfferQueue.first != nil)
+            }
 
             ForEach(resourceFlights) { flight in
                 ResourceFlightBadge(flight: flight) {

@@ -268,10 +268,17 @@ enum PlayerChip {
                     .frame(width: 11, height: 11)
                 Image(systemName: civilization.emblemSymbol)
                     .font(.system(size: 10))
+                // Fixed size, no `minimumScaleFactor` - that let each name
+                // shrink independently to fit the same chip width, so
+                // "Ragnar" (6 characters) stayed near full size while
+                // "Charlemagne" (11) shrank dramatically to fit, and the
+                // three bot names never actually matched each other. A
+                // consistent size for everyone, truncating with an ellipsis
+                // in the rare case a name still doesn't fit, reads far more
+                // uniform than every name being a different size.
                 Text(isHuman ? "You" : civilization.generalName)
-                    .font(.system(size: 14, weight: .bold, design: .serif))
+                    .font(.system(size: 12, weight: .bold, design: .serif))
                     .lineLimit(1)
-                    .minimumScaleFactor(0.55)
             }
             Text(civilization.displayName)
                 .font(.system(size: 10, design: .serif))
