@@ -152,9 +152,11 @@ public struct GameView: View {
     // occurrence, and a bare `Color.clear` placeholder (now fixed
     // separately) was what turned that brief 0 into a collapsed board.
     @State private var diceRowHeight: CGFloat = 64
-    @State private var roadBannerHeight: CGFloat = 16
-    @State private var tradeCardHeight: CGFloat = 56
-    @State private var errorRowHeight: CGFloat = 32
+    /// Shared by the road-building hint, incoming trade card, and error
+    /// message - seeded at the trade card's own measured height (56pt),
+    /// the tallest of the three, since it's shown whenever none of the
+    /// others are active.
+    @State private var infoBannerHeight: CGFloat = 56
 
     private var state: GameState { viewModel.state }
     private var human: PlayerID { viewModel.humanPlayer }
@@ -203,59 +205,32 @@ public struct GameView: View {
                 .frame(maxHeight: .infinity)
                 .clipShape(RoundedRectangle(cornerRadius: 12))
 
-                StableHeightSlot(height: $roadBannerHeight) {
+                // The road-building hint, an incoming trade card, and a
+                // build/move error used to each get their own
+                // `StableHeightSlot`, stacked - three separately-reserved
+                // rows, each with its own `VStack` spacing above and below,
+                // even though at most one is ever showing at a time in
+                // practice. That accumulated dead space both ate into the
+                // board's own room (less left for its `.frame(maxHeight:
+                // .infinity)` to claim) and left a visible gap between
+                // whichever one *was* showing and `HumanPlayerPanel` below
+                // it. One shared slot now, showing whichever of the three
+                // applies (road-building hint first, since it means you're
+                // mid-action; then a trade offer; then an error) - only
+                // one row's worth of space is ever reserved or spaced
+                // around, board included.
+                StableHeightSlot(height: $infoBannerHeight) {
                     if isRoadBuildingActive {
                         Text(roadBuildingFirstEdge == nil ? "Road Building: pick the first free road" : "Road Building: pick the second free road")
                             .font(.caption)
                             .foregroundStyle(.yellow)
-                    } else {
-                        // `.frame(height: 0)` is load-bearing here, not
-                        // decoration: a bare `Color.clear` has no intrinsic
-                        // size and greedily fills all available space in a
-                        // `VStack` - on first launch, before any slot has
-                        // measured a real height yet, that made this
-                        // "nothing to show" placeholder compete with the
-                        // board for the same flexible space and squeeze it
-                        // down to a fraction of the screen. Caught by
-                        // rendering the exact structure in isolation - see
-                        // chat - after it shipped once already.
-                        Color.clear.frame(height: 0)
-                    }
-                }
-
-                // Incoming bot trade offers get this exact spot, right
-                // above `HumanPlayerPanel` - a floating overlay positioned
-                // from the panel's tracked frame was tried instead, but that
-                // let the card overlap the board above it. Wrapped in
-                // `StableHeightSlot` so the board genuinely never moves when
-                // one shows up - it used to nudge the board a little smaller
-                // every single time, which is far more noticeable over a
-                // whole game than the board being a few points shorter all
-                // the time to make room for it.
-                StableHeightSlot(height: $tradeCardHeight) {
-                    if let currentOffer = incomingOfferQueue.first {
+                    } else if let currentOffer = incomingOfferQueue.first {
                         IncomingTradeCardView(
                             offer: currentOffer,
                             onAccept: { respond(to: currentOffer, accept: true) },
                             onReject: { respond(to: currentOffer, accept: false) }
                         )
-                    } else {
-                        // `.frame(height: 0)` is load-bearing here, not
-                        // decoration: a bare `Color.clear` has no intrinsic
-                        // size and greedily fills all available space in a
-                        // `VStack` - on first launch, before any slot has
-                        // measured a real height yet, that made this
-                        // "nothing to show" placeholder compete with the
-                        // board for the same flexible space and squeeze it
-                        // down to a fraction of the screen. Caught by
-                        // rendering the exact structure in isolation - see
-                        // chat - after it shipped once already.
-                        Color.clear.frame(height: 0)
-                    }
-                }
-
-                StableHeightSlot(height: $errorRowHeight) {
-                    if let errorMessage {
+                    } else if let errorMessage {
                         Text(errorMessage)
                             .font(.caption2)
                             .foregroundStyle(.red)
