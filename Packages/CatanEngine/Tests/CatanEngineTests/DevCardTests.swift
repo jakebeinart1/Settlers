@@ -28,6 +28,42 @@ import Testing
     #expect(state.largestArmyPlayer == PlayerID(index: 0))
 }
 
+/// Mirrors `LongestRoad`'s tie-keeps-current-holder rule: two players tied
+/// at the same knight count don't hand the bonus to either one unless one of
+/// them already held it.
+@Test func tiedKnightCountsKeepCurrentLargestArmyHolder() {
+    var state = GameSetup.newGame(board: BoardGenerator.standard())
+    let p0 = PlayerID(index: 0)
+    state.players[0].playedKnights = 3
+    state.players[1].playedKnights = 3
+    state.largestArmyPlayer = p0
+
+    #expect(state.players[0].playedKnights == state.players[1].playedKnights)
+    // Recompute the same way `DevCards.playKnight` does, without needing an
+    // actual fourth knight card in hand for this check.
+    state.players[0].devCards = [.knight]
+    let tile = state.board.tiles.map(\.coordinate).first { $0 != state.board.robberTile }!
+    try! DevCards.playKnight(moveRobberTo: tile, stealFrom: nil, by: p0, state: &state)
+    #expect(state.players[0].playedKnights == 4)
+    #expect(state.largestArmyPlayer == p0)
+}
+
+/// A tie between two players NEITHER of whom currently holds Largest Army
+/// awards no one - same "no current holder + tie" rule `LongestRoad` uses.
+@Test func newTieBetweenTwoPlayersAwardsNoOne() {
+    var state = GameSetup.newGame(board: BoardGenerator.standard())
+    let p1 = PlayerID(index: 1)
+    state.players[1].playedKnights = 2
+    state.players[1].devCards = [.knight]
+    state.players[2].playedKnights = 3
+    let tile = state.board.tiles.map(\.coordinate).first { $0 != state.board.robberTile }!
+
+    try! DevCards.playKnight(moveRobberTo: tile, stealFrom: nil, by: p1, state: &state)
+
+    #expect(state.players[1].playedKnights == 3)
+    #expect(state.largestArmyPlayer == nil)
+}
+
 @Test func playingKnightMovesRobberAndConsumesCard() {
     var state = GameSetup.newGame(board: BoardGenerator.standard())
     state.players[0].devCards = [.knight]

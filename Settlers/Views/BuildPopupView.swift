@@ -31,6 +31,7 @@ public struct BuildPopupView: View {
         let canBuildSettlement = legalMoves.contains { if case .buildSettlement = $0 { true } else { false } }
         let canBuildCity = legalMoves.contains { if case .buildCity = $0 { true } else { false } }
         let canBuyDevCard = legalMoves.contains { if case .buyDevCard = $0 { true } else { false } }
+        let devCardsRemaining = viewModel.state.devCardDeck.count
 
         PopupCard(onDismiss: onDismiss) {
             VStack(spacing: 12) {
@@ -50,7 +51,19 @@ public struct BuildPopupView: View {
                         placementMode = .city
                         onDismiss()
                     }
-                    buildRow(title: "Dev Card", icon: "rectangle.stack.fill", color: .purple, cost: Building.devCardCost, isEnabled: canBuyDevCard) {
+                    buildRow(
+                        title: "Dev Card",
+                        icon: "rectangle.stack.fill",
+                        color: .purple,
+                        cost: Building.devCardCost,
+                        isEnabled: canBuyDevCard,
+                        // Otherwise a player who can afford the cost but hits
+                        // the empty deck sees the row go dim with no
+                        // explanation - easy to mistake for a bug rather than
+                        // the standard 25-card deck (14 knight/5 VP/2 each of
+                        // the other three) running out.
+                        subtitle: devCardsRemaining == 0 ? "Deck is empty" : "\(devCardsRemaining) left"
+                    ) {
                         perform(.buyDevCard)
                     }
                 }
@@ -69,14 +82,21 @@ public struct BuildPopupView: View {
         }
     }
 
-    private func buildRow(title: String, icon: String, color: Color, cost: [Resource: Int], isEnabled: Bool, action: @escaping () -> Void) -> some View {
+    private func buildRow(title: String, icon: String, color: Color, cost: [Resource: Int], isEnabled: Bool, subtitle: String? = nil, action: @escaping () -> Void) -> some View {
         Button(action: action) {
             HStack(spacing: 10) {
                 Image(systemName: icon)
                     .font(.callout)
                     .frame(width: 22)
-                Text(title)
-                    .font(.subheadline.bold())
+                VStack(alignment: .leading, spacing: 1) {
+                    Text(title)
+                        .font(.subheadline.bold())
+                    if let subtitle {
+                        Text(subtitle)
+                            .font(.caption2)
+                            .foregroundStyle(.white.opacity(0.7))
+                    }
+                }
                 Spacer(minLength: 8)
                 HStack(spacing: 4) {
                     ForEach(Resource.allCases.filter { (cost[$0] ?? 0) > 0 }, id: \.self) { resource in

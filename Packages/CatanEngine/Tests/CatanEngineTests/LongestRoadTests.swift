@@ -105,6 +105,31 @@ import Testing
     #expect(LongestRoad.compute(for: state) == nil)
 }
 
+/// A player's own road network can be split into disconnected fragments
+/// (e.g. two separate 4-edge stretches on opposite sides of the board, with
+/// no path between them). Real Catan only awards the bonus for a single
+/// unbroken stretch, so the two fragments must NOT be summed together (8,
+/// which would clear the 5-edge minimum) - each fragment is scored on its
+/// own, and 4 < 5 means neither qualifies.
+@Test func fragmentedRoadNetworkDoesNotSumAcrossDisconnectedPieces() {
+    var state = GameSetup.newGame(board: BoardGenerator.standard())
+    let board = state.board
+
+    let start0 = board.onBoardVertices.sorted().first!
+    var visited0: Set<VertexID> = [start0]
+    let fragmentA = chainEdges(from: start0, length: 4, on: board, avoiding: &visited0)
+    for edge in fragmentA { state.players[0].roads.insert(edge) }
+
+    let start1 = board.onBoardVertices.sorted().last!
+    var visited1: Set<VertexID> = [start1]
+    let fragmentB = chainEdges(from: start1, length: 4, on: board, avoiding: &visited1)
+    for edge in fragmentB { state.players[0].roads.insert(edge) }
+
+    #expect(state.players[0].roads.count == 8)
+    #expect(LongestRoad.length(for: state.players[0], in: state) == 4)
+    #expect(LongestRoad.compute(for: state) == nil)
+}
+
 /// Regression test: `RulesEngine.apply` used to leave `longestRoadPlayer`
 /// stale after `.buildSettlement`/`.buildCity` (only `.buildRoad`
 /// recomputed it), so a settlement dropped onto the middle of an opponent's

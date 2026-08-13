@@ -79,18 +79,28 @@ public struct DevCardPopupView: View {
             Text(label)
                 .font(.caption2)
                 .foregroundStyle(.secondary)
-            // Just the color dot per option, no name text - matches the
-            // rest of the app's one consistent way to identify a resource.
-            Picker(label, selection: selection) {
+            // `Picker(.menu)` only reliably renders `Text` as its collapsed
+            // button label - a bare `Circle()` (what this used to use, tagged
+            // per-option) renders fine inside the dropdown list but shows up
+            // blank as the button itself, which read as "the card I'm
+            // choosing is missing". `Menu` has no such built-in "show the
+            // selected value" behavior, so it never hits that renderer - we
+            // draw the selected swatch ourselves as the label instead.
+            Menu {
                 ForEach(Resource.allCases, id: \.self) { resource in
-                    Circle()
-                        .fill(CatanTheme.color(for: resource))
-                        .frame(width: 16, height: 16)
-                        .tag(resource)
+                    Button {
+                        selection.wrappedValue = resource
+                    } label: {
+                        Label(resource.rawValue.capitalized, systemImage: "circle.fill")
+                            .foregroundStyle(CatanTheme.color(for: resource))
+                    }
                 }
+            } label: {
+                Circle()
+                    .fill(CatanTheme.color(for: selection.wrappedValue))
+                    .frame(width: 20, height: 20)
+                    .overlay(Circle().strokeBorder(.white.opacity(0.4), lineWidth: 1))
             }
-            .labelsHidden()
-            .pickerStyle(.menu)
         }
     }
 
