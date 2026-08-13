@@ -149,10 +149,10 @@ public struct HumanPlayerPanel: View {
                         .background(Color.yellow.opacity(0.85), in: Capsule())
                         .fixedSize()
                         if state.longestRoadPlayer == human {
-                            PlayerChip.tag(text: "Longest Road", icon: "road.lanes", tint: .orange)
+                            PlayerChip.miniBadge(icon: "road.lanes", tint: .orange)
                         }
                         if state.largestArmyPlayer == human {
-                            PlayerChip.tag(text: "Largest Army", icon: "shield.fill", tint: .red)
+                            PlayerChip.miniBadge(icon: "shield.fill", tint: .red)
                         }
                     }
                 }
@@ -357,17 +357,16 @@ enum PlayerChip {
                 .font(.system(size: 10, design: .serif))
                 .foregroundStyle(CatanTheme.onWaterText.opacity(0.8))
 
-            // One tag per row rather than side by side: each `tag()` is
-            // `.fixedSize()` (so its own text never wraps), which means a
-            // row holding all 3 at once (VP + Road + Army) could demand
-            // more width than this chip's fair equal-share of the outer
-            // `HStack` (3 chips across) - and since a `.fixedSize()` view's
-            // width isn't negotiable, that forced the *other* chips to
-            // shrink instead. Stacking them keeps every row down to a
-            // single tag's width, which always fits; the chip just grows a
-            // little taller instead of wider when a bot holds both bonuses,
-            // and taller doesn't affect its siblings at all.
-            VStack(alignment: .leading, spacing: 3) {
+            // Longest Road/Largest Army used to spell themselves out
+            // ("Road"/"Army") as their own `tag()` pills, each stacked on
+            // its own row below the VP pill - between the two, that could
+            // grow a chip three rows tall. Now that they're bare
+            // `miniBadge` dots (a fixed 16pt each, no text to negotiate
+            // width for), all three fit on one row without risking the
+            // "wider than this chip's fair share" problem the stacking used
+            // to guard against, so the chip stays a consistent height
+            // whether a bot holds zero, one, or both bonuses.
+            HStack(spacing: 4) {
                 // Bots' VP badge only counts what's actually public
                 // (buildings + longest road/largest army) - a held but
                 // unplayed Victory Point dev card is hidden information in
@@ -376,10 +375,10 @@ enum PlayerChip {
                 // total before they'd ever reveal it.
                 tag(text: "\(publicVictoryPoints(for: player, state: state)) VP", icon: "star.fill", tint: .yellow)
                 if state.longestRoadPlayer == player.id {
-                    tag(text: "Road", icon: "road.lanes", tint: .orange)
+                    miniBadge(icon: "road.lanes", tint: .orange)
                 }
                 if state.largestArmyPlayer == player.id {
-                    tag(text: "Army", icon: "shield.fill", tint: .red)
+                    miniBadge(icon: "shield.fill", tint: .red)
                 }
             }
 
@@ -455,6 +454,21 @@ enum PlayerChip {
         .padding(.vertical, 3)
         .background(tint.opacity(0.85), in: Capsule())
         .fixedSize()
+    }
+
+    /// A little colored dot carrying just the bonus's icon, no spelled-out
+    /// label - used for Longest Road/Largest Army instead of `tag()`'s full
+    /// text pill. There are only two possible dots (road/army) and their
+    /// tint alone already distinguishes them from the VP pill and each
+    /// other, so the label was pure width with no added clarity; dropping it
+    /// keeps these from competing for space with everything else in the row
+    /// they sit in.
+    static func miniBadge(icon: String, tint: Color) -> some View {
+        Image(systemName: icon)
+            .font(.system(size: 9, weight: .bold))
+            .foregroundStyle(.white)
+            .frame(width: 16, height: 16)
+            .background(tint.opacity(0.85), in: Circle())
     }
 
     /// VP that's actually public knowledge for `player`: buildings plus the

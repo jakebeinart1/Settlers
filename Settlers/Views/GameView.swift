@@ -139,23 +139,21 @@ public struct GameView: View {
     /// without the drama of a live animation demanding their attention.
     @State private var rollHistory: [Int] = []
 
-    /// Reserved heights for the road-building hint / incoming trade card /
-    /// error message rows - see `StableHeightSlot`.
-    // Seeded with each row's actual measured height (see chat: rendered
-    // faithful reproductions of every one of these and read off their real
-    // sizes) rather than 0 - `StableHeightSlot` still grows to fit if real
-    // content ever needs more, but starting from a real estimate means
-    // there's no gap between "app just launched" and "something has
-    // measured once" for the board to flicker through. That gap - not the
-    // measure-after-the-fact approach itself - was the actual hole in the
-    // previous fix: every quantity here was 0 until the first real
-    // occurrence, and a bare `Color.clear` placeholder (now fixed
+    /// Reserved height for the road-building hint / error message row - see
+    /// `StableHeightSlot`.
+    // Seeded with the row's actual measured height (see chat: rendered a
+    // faithful reproduction and read off its real size) rather than 0 -
+    // `StableHeightSlot` still grows to fit if real content ever needs more,
+    // but starting from a real estimate means there's no gap between "app
+    // just launched" and "something has measured once" for the board to
+    // flicker through. That gap - not the measure-after-the-fact approach
+    // itself - was the actual hole in the previous fix: this was 0 until the
+    // first real occurrence, and a bare `Color.clear` placeholder (now fixed
     // separately) was what turned that brief 0 into a collapsed board.
-    /// Shared by the road-building hint, incoming trade card, and error
-    /// message - seeded at the trade card's own measured height (56pt),
-    /// the tallest of the three, since it's shown whenever none of the
-    /// others are active.
-    @State private var infoBannerHeight: CGFloat = 56
+    /// Shared by the road-building hint and the error message, the only two
+    /// occupants now that the incoming-trade card lives in `bottomPanel`
+    /// instead - seeded at one caption line's height (~20pt).
+    @State private var infoBannerHeight: CGFloat = 20
 
     private var state: GameState { viewModel.state }
     private var human: PlayerID { viewModel.humanPlayer }
@@ -201,34 +199,30 @@ public struct GameView: View {
                             .padding(8)
                     }
                 }
-                .frame(maxHeight: .infinity)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .clipShape(RoundedRectangle(cornerRadius: 12))
+                // Bottom-right corner, mirroring the dice chip's top-left
+                // spot - the bank's resource-card total and the dev-card
+                // deck's remaining count, the same two piles a physical
+                // Catan board keeps face-down next to the board itself.
+                .overlay(alignment: .bottomTrailing) {
+                    deckCountChip
+                        .padding(8)
+                }
 
-                // The road-building hint, an incoming trade card, and a
-                // build/move error used to each get their own
-                // `StableHeightSlot`, stacked - three separately-reserved
-                // rows, each with its own `VStack` spacing above and below,
-                // even though at most one is ever showing at a time in
-                // practice. That accumulated dead space both ate into the
-                // board's own room (less left for its `.frame(maxHeight:
-                // .infinity)` to claim) and left a visible gap between
-                // whichever one *was* showing and `HumanPlayerPanel` below
-                // it. One shared slot now, showing whichever of the three
-                // applies (road-building hint first, since it means you're
-                // mid-action; then a trade offer; then an error) - only
-                // one row's worth of space is ever reserved or spaced
-                // around, board included.
+                // The road-building hint and a build/move error share one
+                // slot (see `StableHeightSlot`) - the incoming-trade card
+                // used to live here too, but a bot can only ever propose one
+                // while it's *not* the human's turn (see `bottomPanel`'s own
+                // comment), the same window where the action row below has
+                // nothing real to do anyway - so it now takes over that row
+                // directly instead of adding a whole extra reserved banner
+                // just for itself.
                 StableHeightSlot(height: $infoBannerHeight) {
                     if isRoadBuildingActive {
                         Text(roadBuildingFirstEdge == nil ? "Road Building: pick the first free road" : "Road Building: pick the second free road")
                             .font(.caption)
                             .foregroundStyle(.yellow)
-                    } else if let currentOffer = incomingOfferQueue.first {
-                        IncomingTradeCardView(
-                            offer: currentOffer,
-                            onAccept: { respond(to: currentOffer, accept: true) },
-                            onReject: { respond(to: currentOffer, accept: false) }
-                        )
                     } else if let errorMessage {
                         Text(errorMessage)
                             .font(.caption2)
@@ -393,6 +387,30 @@ public struct GameView: View {
         }
     }
 
+    /// Bottom-right counterpart to `diceChip`: the bank's total resource
+    /// cards left and the development-card deck's remaining count - both
+    /// finite, shared piles in real Catan (95 resource cards across 5 types,
+    /// 25 development cards), so seeing them tick down explains things like
+    /// "why can't I buy a dev card anymore" at a glance instead of a
+    /// silently-disabled button.
+    private var deckCountChip: some View {
+        VStack(alignment: .trailing, spacing: 3) {
+            HStack(spacing: 5) {
+                Image(systemName: "rectangle.stack.fill")
+                Text("\(state.bank.values.reduce(0, +))")
+            }
+            HStack(spacing: 5) {
+                Image(systemName: "sparkles.rectangle.stack.fill")
+                Text("\(state.devCardDeck.count)")
+            }
+        }
+        .font(.system(size: 15, weight: .heavy, design: .rounded))
+        .foregroundStyle(.white)
+        .padding(.horizontal, 10)
+        .padding(.vertical, 6)
+        .background(Color.black.opacity(0.5), in: RoundedRectangle(cornerRadius: 10))
+    }
+
     // MARK: - Bottom panel: one uniform action row (or the inline
     // robber-targeting panel while a robber move is pending) over a
     // lighter water panel
@@ -408,6 +426,19 @@ public struct GameView: View {
         VStack(spacing: 8) {
             if isRobberTargetingActive {
                 robberTargetingPanel
+            } else if let currentOffer = incomingOfferQueue.first {
+                // A bot only ever proposes a trade during its own turn (see
+                // `TradeHeuristics.proposeTrades`'s call site), which is
+                // exactly the window where Build/Trade/Roll-or-End are all
+                // inert for the human anyway - so this bar doing double duty
+                // as the incoming-offer card instead of a separate row above
+                // it costs nothing real: there's never a legal action this
+                // is standing in front of.
+                IncomingTradeCardView(
+                    offer: currentOffer,
+                    onAccept: { respond(to: currentOffer, accept: true) },
+                    onReject: { respond(to: currentOffer, accept: false) }
+                )
             } else {
                 actionRow
             }
