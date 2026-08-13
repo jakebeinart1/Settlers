@@ -200,7 +200,7 @@ public struct GameView: View {
                     // within whatever height it's given, so this nudges the
                     // whole hex grid down slightly rather than requiring the
                     // chips to shrink or move.
-                    .padding(.top, 10)
+                    .padding(.top, 18)
 
                     if let roll = state.lastDiceRoll {
                         diceChip(roll)

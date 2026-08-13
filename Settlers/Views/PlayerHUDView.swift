@@ -241,8 +241,12 @@ public struct HumanPlayerPanel: View {
                     .fill(isActive ? CatanTheme.hudChipBackgroundActive : CatanTheme.hudChipBackground)
             )
             .overlay(
+                // Same treatment as the bot chips (`PlayerChip.body`):
+                // always outlined in your own piece color, just a heavier
+                // line while it's your turn rather than the only time a
+                // border shows at all.
                 RoundedRectangle(cornerRadius: 12)
-                    .strokeBorder(isActive ? CatanTheme.color(for: human) : .clear, lineWidth: 2)
+                    .strokeBorder(CatanTheme.color(for: human), lineWidth: isActive ? 2.5 : 1.25)
             )
         }
     }
@@ -420,8 +424,14 @@ enum PlayerChip {
                 .fill(isActive ? CatanTheme.hudChipBackgroundActive : CatanTheme.hudChipBackground)
         )
         .overlay(
+            // Always outlined in the seat's own color now, not just while
+            // active - that color is already how every piece of theirs on
+            // the board reads as belonging to them, so the chip should say
+            // the same thing at a glance even on someone else's turn. Active
+            // still gets called out, just by a heavier line rather than by
+            // being the only one with a border at all.
             RoundedRectangle(cornerRadius: 12)
-                .strokeBorder(isActive ? CatanTheme.color(for: player.id) : .clear, lineWidth: 2)
+                .strokeBorder(CatanTheme.color(for: player.id), lineWidth: isActive ? 2.5 : 1.25)
         )
     }
 
