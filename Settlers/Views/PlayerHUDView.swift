@@ -399,25 +399,33 @@ enum PlayerChip {
             // sit at fixed spacing on the left, which (since neither the
             // chip's own width nor this VStack's is driven by these two
             // short badges) left a slab of dead space down the right side
-            // of every chip. A trailing `Spacer` in each row pins the second
-            // badge to the chip's right edge instead, so the pair actually
-            // spans the box it's sitting in.
+            // of every chip. A plain trailing `Spacer` fixed that but
+            // overcorrected - it snapped the second badge all the way to
+            // the chip's far edge, leaving a single lopsided gap in the
+            // middle instead of even spacing. Giving each badge an equal-
+            // width `.frame(maxWidth: .infinity, alignment: .leading)`
+            // column instead reads as one consistent two-column grid: the
+            // second badge starts right at the row's midpoint every time,
+            // in both rows, rather than wherever its own icon+number
+            // happens to end.
             VStack(alignment: .leading, spacing: 4) {
-                HStack {
+                HStack(spacing: 0) {
                     // A card-stack glyph rather than a raised-hand one - a
                     // stack of cards reads immediately as "how many
                     // resource cards this player is holding", where the
                     // hand icon needed a beat to parse.
                     statBadge(icon: "rectangle.stack.fill", value: handSize)
-                    Spacer(minLength: 0)
+                        .frame(maxWidth: .infinity, alignment: .leading)
                     statBadge(icon: "sparkles.rectangle.stack.fill", value: player.devCards.count)
+                        .frame(maxWidth: .infinity, alignment: .leading)
                 }
-                HStack {
+                HStack(spacing: 0) {
                     // Longest continuous stretch, not total segments built -
                     // see HumanPlayerPanel's matching stat for why.
                     statBadge(icon: "road.lanes", value: LongestRoad.length(for: player, in: state))
-                    Spacer(minLength: 0)
+                        .frame(maxWidth: .infinity, alignment: .leading)
                     statBadge(icon: "shield.fill", value: player.playedKnights)
+                        .frame(maxWidth: .infinity, alignment: .leading)
                 }
             }
             .frame(maxWidth: .infinity)
