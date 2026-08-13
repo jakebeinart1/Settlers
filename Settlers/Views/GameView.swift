@@ -193,6 +193,14 @@ public struct GameView: View {
                         isTileTargetingActive: isRobberTargetingActive,
                         rollHighlightTiles: rollHighlightTiles
                     )
+                    // A hair of top clearance - the outermost hex row's own
+                    // ports (top-right in particular) sat close enough to
+                    // the top edge to graze the dice/deck chips overlaid up
+                    // there. `BoardView` re-fits and re-centers itself
+                    // within whatever height it's given, so this nudges the
+                    // whole hex grid down slightly rather than requiring the
+                    // chips to shrink or move.
+                    .padding(.top, 10)
 
                     if let roll = state.lastDiceRoll {
                         diceChip(roll)
