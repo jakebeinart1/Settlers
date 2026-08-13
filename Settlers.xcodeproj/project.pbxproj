@@ -219,6 +219,10 @@
 				BuildIndependentTargetsInParallel = YES;
 				LastUpgradeCheck = 1430;
 				TargetAttributes = {
+					E5FEB50E6F076B965B326021 = {
+						DevelopmentTeam = KDM65HE483;
+						ProvisioningStyle = Automatic;
+					};
 				};
 			};
 			buildConfigurationList = FBE78AE31A4130FD5D6293C5 /* Build configuration list for PBXProject "Settlers" */;
@@ -416,6 +420,8 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = KDM65HE483;
 				INFOPLIST_FILE = Settlers/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -434,6 +440,8 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = KDM65HE483;
 				INFOPLIST_FILE = Settlers/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",

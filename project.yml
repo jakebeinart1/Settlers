@@ -22,6 +22,8 @@ targets:
         PRODUCT_BUNDLE_IDENTIFIER: com.jakebeinart.settlers
         TARGETED_DEVICE_FAMILY: "1"
         SUPPORTS_MACCATALYST: false
+        DEVELOPMENT_TEAM: KDM65HE483
+        CODE_SIGN_STYLE: Automatic
     dependencies:
       - package: CatanEngine
       - package: CatanAI
