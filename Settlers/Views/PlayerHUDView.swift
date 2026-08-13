@@ -169,13 +169,19 @@ public struct HumanPlayerPanel: View {
                         // resource dots are the row's only content - tight
                         // fixed spacing left them bunched at the leading
                         // edge with the rest of the panel's width sitting
-                        // empty. Giving each dot an equal-width flexible
-                        // column instead spreads all 5 evenly across the
-                        // panel, the same fix as the bot chips' stat badges.
-                        HStack(spacing: 0) {
+                        // empty. Stretching each dot into its own equal-width
+                        // flexible column (matching the bot chips' stat-badge
+                        // fix) technically filled the width, but blew the
+                        // group apart into 5 disconnected icons scattered
+                        // edge to edge - it read worse, not better. Centering
+                        // the whole cluster instead put it back together, but
+                        // sat oddly disconnected from the left-aligned name/
+                        // VP rows above it - wider spacing keeps it as one
+                        // still-grouped hand of cards, left-aligned like
+                        // everything else in the panel.
+                        HStack(spacing: 22) {
                             ForEach(Resource.allCases, id: \.self) { resource in
                                 resourceDot(resource, count: player.resources[resource] ?? 0)
-                                    .frame(maxWidth: .infinity)
                             }
                         }
                     } else {
