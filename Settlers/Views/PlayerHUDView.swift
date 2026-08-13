@@ -164,32 +164,43 @@ public struct HumanPlayerPanel: View {
                 // dev cards were held - pinning both to the top keeps the
                 // resource row's position stable regardless.
                 HStack(alignment: .top, spacing: 10) {
-                    // `.fixedSize()` here too (same reason as the roads/
-                    // knights/VP row above): without it, once the dev-card
-                    // `ScrollView` next to it wanted more room than was
-                    // available, this HStack was the one that gave way -
-                    // it has nothing else protecting its size - and got
-                    // squeezed until resources on the right (grain, wool)
-                    // ran past the panel's edge and off-screen entirely,
-                    // not just visually compressed. The `ScrollView` is the
-                    // one actually meant to give way here (it already
-                    // scrolls for overflow); resources should always show
-                    // in full.
-                    HStack(spacing: 13) {
-                        ForEach(Resource.allCases, id: \.self) { resource in
-                            let count = player.resources[resource] ?? 0
-                            VStack(spacing: 3) {
-                                Circle()
-                                    .fill(CatanTheme.color(for: resource))
-                                    .frame(width: 18, height: 18)
-                                Text("\(count)")
-                                    .font(.system(size: 14, weight: .bold))
-                                    .foregroundStyle(CatanTheme.onWaterText)
+                    if devCardRows.isEmpty {
+                        // No dev cards to share the row with, so the 5
+                        // resource dots are the row's only content - tight
+                        // fixed spacing left them bunched at the leading
+                        // edge with the rest of the panel's width sitting
+                        // empty. Giving each dot an equal-width flexible
+                        // column instead spreads all 5 evenly across the
+                        // panel, the same fix as the bot chips' stat badges.
+                        HStack(spacing: 0) {
+                            ForEach(Resource.allCases, id: \.self) { resource in
+                                resourceDot(resource, count: player.resources[resource] ?? 0)
+                                    .frame(maxWidth: .infinity)
                             }
-                            .opacity(count > 0 ? 1 : 0.35)
                         }
+                    } else {
+                        // `.fixedSize()` here (same reason as the roads/
+                        // knights/VP row above): without it, once the dev-card
+                        // `ScrollView` next to it wanted more room than was
+                        // available, this HStack was the one that gave way -
+                        // it has nothing else protecting its size - and got
+                        // squeezed until resources on the right (grain, wool)
+                        // ran past the panel's edge and off-screen entirely,
+                        // not just visually compressed. The `ScrollView` is
+                        // the one actually meant to give way here (it already
+                        // scrolls for overflow); resources should always show
+                        // in full. Once there's a dev-card row to share space
+                        // with, the resource dots go back to their natural
+                        // tight spacing rather than spreading out - stretching
+                        // them here would just shove the dev cards further
+                        // right for no benefit.
+                        HStack(spacing: 13) {
+                            ForEach(Resource.allCases, id: \.self) { resource in
+                                resourceDot(resource, count: player.resources[resource] ?? 0)
+                            }
+                        }
+                        .fixedSize()
                     }
-                    .fixedSize()
 
                     if !devCardRows.isEmpty {
                         Divider()
@@ -249,6 +260,21 @@ public struct HumanPlayerPanel: View {
                     .strokeBorder(CatanTheme.color(for: human), lineWidth: isActive ? 2.5 : 1.25)
             )
         }
+    }
+
+    /// One resource's colored dot + held count, dimmed when `count` is 0 -
+    /// factored out so both the spread-out (no dev cards) and tight (dev
+    /// cards present) layouts above render identical dots.
+    private func resourceDot(_ resource: Resource, count: Int) -> some View {
+        VStack(spacing: 3) {
+            Circle()
+                .fill(CatanTheme.color(for: resource))
+                .frame(width: 18, height: 18)
+            Text("\(count)")
+                .font(.system(size: 14, weight: .bold))
+                .foregroundStyle(CatanTheme.onWaterText)
+        }
+        .opacity(count > 0 ? 1 : 0.35)
     }
 }
 
