@@ -395,23 +395,32 @@ enum PlayerChip {
             // itself, and knights have to be played face-up to move the
             // robber) - shown here as plain icon+count pairs, no word
             // labels. Two rows of two rather than one row of four: four
-            // across ran wider than this ~110pt-wide chip and got clipped.
-            VStack(alignment: .leading, spacing: 3) {
-                HStack(spacing: 10) {
+            // across ran wider than this chip. Each row's pair used to just
+            // sit at fixed spacing on the left, which (since neither the
+            // chip's own width nor this VStack's is driven by these two
+            // short badges) left a slab of dead space down the right side
+            // of every chip. A trailing `Spacer` in each row pins the second
+            // badge to the chip's right edge instead, so the pair actually
+            // spans the box it's sitting in.
+            VStack(alignment: .leading, spacing: 4) {
+                HStack {
                     // A card-stack glyph rather than a raised-hand one - a
                     // stack of cards reads immediately as "how many
                     // resource cards this player is holding", where the
                     // hand icon needed a beat to parse.
                     statBadge(icon: "rectangle.stack.fill", value: handSize)
+                    Spacer(minLength: 0)
                     statBadge(icon: "sparkles.rectangle.stack.fill", value: player.devCards.count)
                 }
-                HStack(spacing: 10) {
+                HStack {
                     // Longest continuous stretch, not total segments built -
                     // see HumanPlayerPanel's matching stat for why.
                     statBadge(icon: "road.lanes", value: LongestRoad.length(for: player, in: state))
+                    Spacer(minLength: 0)
                     statBadge(icon: "shield.fill", value: player.playedKnights)
                 }
             }
+            .frame(maxWidth: .infinity)
             .foregroundStyle(CatanTheme.onWaterText)
         }
         // Trimmed twice now (108/12 -> 98/10 -> this) - the board needs
