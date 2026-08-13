@@ -201,11 +201,12 @@ public struct GameView: View {
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .clipShape(RoundedRectangle(cornerRadius: 12))
-                // Bottom-right corner, mirroring the dice chip's top-left
-                // spot - the bank's resource-card total and the dev-card
-                // deck's remaining count, the same two piles a physical
-                // Catan board keeps face-down next to the board itself.
-                .overlay(alignment: .bottomTrailing) {
+                // Top-right corner, the same `.padding(8)` as the dice chip
+                // so the two sit flush on one shared top line - the bank's
+                // per-resource remaining counts and the dev-card deck's
+                // remaining count, the same two piles a physical Catan board
+                // keeps face-down next to the board itself.
+                .overlay(alignment: .topTrailing) {
                     deckCountChip
                         .padding(8)
                 }
@@ -387,24 +388,38 @@ public struct GameView: View {
         }
     }
 
-    /// Bottom-right counterpart to `diceChip`: the bank's total resource
-    /// cards left and the development-card deck's remaining count - both
-    /// finite, shared piles in real Catan (95 resource cards across 5 types,
+    /// Top-right counterpart to `diceChip`: the bank's remaining count for
+    /// each individual resource, plus the development-card deck's remaining
+    /// count - both finite, shared piles in real Catan (19 of each resource,
     /// 25 development cards), so seeing them tick down explains things like
     /// "why can't I buy a dev card anymore" at a glance instead of a
-    /// silently-disabled button.
+    /// silently-disabled button. Broken out per-resource rather than one
+    /// summed total, since "the bank is out of ore" and "the bank is out of
+    /// brick" are different, useful pieces of information a single number
+    /// would hide.
     private var deckCountChip: some View {
-        VStack(alignment: .trailing, spacing: 3) {
-            HStack(spacing: 5) {
-                Image(systemName: "rectangle.stack.fill")
-                Text("\(state.bank.values.reduce(0, +))")
+        HStack(spacing: 8) {
+            ForEach(Resource.allCases, id: \.self) { resource in
+                VStack(spacing: 1) {
+                    Circle()
+                        .fill(CatanTheme.color(for: resource))
+                        .frame(width: 10, height: 10)
+                    Text("\(state.bank[resource] ?? 0)")
+                        .font(.system(size: 11, weight: .bold, design: .rounded))
+                }
             }
-            HStack(spacing: 5) {
+
+            Divider()
+                .frame(height: 22)
+                .overlay(Color.white.opacity(0.3))
+
+            VStack(spacing: 1) {
                 Image(systemName: "sparkles.rectangle.stack.fill")
+                    .font(.system(size: 10))
                 Text("\(state.devCardDeck.count)")
+                    .font(.system(size: 11, weight: .bold, design: .rounded))
             }
         }
-        .font(.system(size: 15, weight: .heavy, design: .rounded))
         .foregroundStyle(.white)
         .padding(.horizontal, 10)
         .padding(.vertical, 6)
