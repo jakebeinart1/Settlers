@@ -9,16 +9,17 @@
 /* Begin PBXBuildFile section */
 		076DBD0E74CFC2372A8A8AA9 /* GameViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0A975D333BC9759A83497B5 /* GameViewModel.swift */; };
 		0BBF451A08F935DC2BB22743 /* TileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC9BE64D33337CB59DE2D79D /* TileView.swift */; };
+		1B2E8933650EFB5E3A65F60D /* PlayerNameStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = A7D42223DB45BEF77F97D3F6 /* PlayerNameStore.swift */; };
 		1CE9F2891BE97F0B0CC630BB /* EndGameView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 52C0B1D44B650E22AEBC8366 /* EndGameView.swift */; };
 		2963FFF4A45E734FACE3E93A /* DiscardPopupView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 64A459436E4814B4E4BE3728 /* DiscardPopupView.swift */; };
+		2CC361595DA16ED4B8153B23 /* CivilizationAssignmentStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = C112C5D5A27EC971416706D0 /* CivilizationAssignmentStore.swift */; };
 		2E5F92427B07DC72628BAD38 /* CatanEngine in Frameworks */ = {isa = PBXBuildFile; productRef = EF131C34CF36EF855DAF17D0 /* CatanEngine */; };
+		38C27CDC3380AB32A2AA53C6 /* CivilizationSettingsStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5C25923598FA6B7BCAF62C5A /* CivilizationSettingsStore.swift */; };
 		3B62B3E810E58200F2983839 /* CatanTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4B89EE635B1E470682ED1D4B /* CatanTheme.swift */; };
 		5754F9C1356C779A5553C1BD /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = AAE31202C59C388953152F18 /* Assets.xcassets */; };
 		5A3814A3A6D971002FE6368B /* CatanAI in Frameworks */ = {isa = PBXBuildFile; productRef = 86D26250D0551805B74D0B0B /* CatanAI */; };
 		687BD8586D01E4597A1C7A32 /* BoardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E89E14D5D0ACBB92DF7729B3 /* BoardView.swift */; };
 		6BE4D5162E62A51ADA6A2599 /* GameStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = E093DA361796607C17A17777 /* GameStore.swift */; };
-		C932509DEEFE4E79A38E44B4 /* CivilizationSettingsStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = DCB5CEE7004E484697C6DE4F /* CivilizationSettingsStore.swift */; };
-		8FBFE4758C1F4F71AFE286C4 /* CivilizationAssignmentStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 084308FA31BF4598833D5CDC /* CivilizationAssignmentStore.swift */; };
 		717C7599DB05DB7CF59E852F /* CivilizationPieceShapes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0AC74C3A12A7CDE5AE1B1546 /* CivilizationPieceShapes.swift */; };
 		71E36B2F286888830989FBC7 /* MainMenuView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 27BDAD47ABBB94D7F73976E5 /* MainMenuView.swift */; };
 		7678F2D966C6DDD39D673266 /* IncomingTradeCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F34A579755CFBDEAF52EBB70 /* IncomingTradeCardView.swift */; };
@@ -43,6 +44,7 @@
 		27BDAD47ABBB94D7F73976E5 /* MainMenuView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainMenuView.swift; sourceTree = "<group>"; };
 		4B89EE635B1E470682ED1D4B /* CatanTheme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CatanTheme.swift; sourceTree = "<group>"; };
 		52C0B1D44B650E22AEBC8366 /* EndGameView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EndGameView.swift; sourceTree = "<group>"; };
+		5C25923598FA6B7BCAF62C5A /* CivilizationSettingsStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CivilizationSettingsStore.swift; sourceTree = "<group>"; };
 		5DA573A3A82A8F2F109FA437 /* TradePopupView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TradePopupView.swift; sourceTree = "<group>"; };
 		64A459436E4814B4E4BE3728 /* DiscardPopupView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiscardPopupView.swift; sourceTree = "<group>"; };
 		6F0C19DF5E22050B860A7094 /* GameView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameView.swift; sourceTree = "<group>"; };
@@ -50,18 +52,18 @@
 		77BA2122016739392CF5DF22 /* PlayerHUDView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerHUDView.swift; sourceTree = "<group>"; };
 		8164AC90317469202817676F /* SettlersApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettlersApp.swift; sourceTree = "<group>"; };
 		8E616D996C5EBA2DBFC75D9D /* CivilizationBadge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CivilizationBadge.swift; sourceTree = "<group>"; };
+		A7D42223DB45BEF77F97D3F6 /* PlayerNameStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerNameStore.swift; sourceTree = "<group>"; };
 		AAE31202C59C388953152F18 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		B0A975D333BC9759A83497B5 /* GameViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameViewModel.swift; sourceTree = "<group>"; };
 		B1B782178D710BCD61E1E4ED /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		B5BF359507B1F781FDA749F5 /* Settlers.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = Settlers.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		B9E07877542F256DEA51B11B /* UniformActionButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UniformActionButton.swift; sourceTree = "<group>"; };
 		BF75252617AEEC3F4190D703 /* ResourceChip.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ResourceChip.swift; sourceTree = "<group>"; };
+		C112C5D5A27EC971416706D0 /* CivilizationAssignmentStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CivilizationAssignmentStore.swift; sourceTree = "<group>"; };
 		C47D8E51CEBC82766DDDF936 /* Civilization.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Civilization.swift; sourceTree = "<group>"; };
 		CB7D94876E201553696FE24C /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		DDF1F85E001A7B74407061E4 /* BuildPopupView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BuildPopupView.swift; sourceTree = "<group>"; };
 		E093DA361796607C17A17777 /* GameStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameStore.swift; sourceTree = "<group>"; };
-		DCB5CEE7004E484697C6DE4F /* CivilizationSettingsStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CivilizationSettingsStore.swift; sourceTree = "<group>"; };
-		084308FA31BF4598833D5CDC /* CivilizationAssignmentStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CivilizationAssignmentStore.swift; sourceTree = "<group>"; };
 		E674366C1C13D0BBB8CCC2B2 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		E89E14D5D0ACBB92DF7729B3 /* BoardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BoardView.swift; sourceTree = "<group>"; };
 		EC9BE64D33337CB59DE2D79D /* TileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TileView.swift; sourceTree = "<group>"; };
@@ -156,9 +158,10 @@
 		DDD30CC330747A1D1304A1D7 /* Persistence */ = {
 			isa = PBXGroup;
 			children = (
+				C112C5D5A27EC971416706D0 /* CivilizationAssignmentStore.swift */,
+				5C25923598FA6B7BCAF62C5A /* CivilizationSettingsStore.swift */,
 				E093DA361796607C17A17777 /* GameStore.swift */,
-				DCB5CEE7004E484697C6DE4F /* CivilizationSettingsStore.swift */,
-				084308FA31BF4598833D5CDC /* CivilizationAssignmentStore.swift */,
+				A7D42223DB45BEF77F97D3F6 /* PlayerNameStore.swift */,
 			);
 			path = Persistence;
 			sourceTree = "<group>";
@@ -261,10 +264,10 @@
 				BD0B5D0BC26E3BE5C8A462FD /* BuildPopupView.swift in Sources */,
 				3B62B3E810E58200F2983839 /* CatanTheme.swift in Sources */,
 				DBA70E71EA1FD506BEBF2C4A /* Civilization.swift in Sources */,
+				2CC361595DA16ED4B8153B23 /* CivilizationAssignmentStore.swift in Sources */,
 				82F087D94201BDEDFBBB4BA8 /* CivilizationBadge.swift in Sources */,
 				717C7599DB05DB7CF59E852F /* CivilizationPieceShapes.swift in Sources */,
-				C932509DEEFE4E79A38E44B4 /* CivilizationSettingsStore.swift in Sources */,
-				8FBFE4758C1F4F71AFE286C4 /* CivilizationAssignmentStore.swift in Sources */,
+				38C27CDC3380AB32A2AA53C6 /* CivilizationSettingsStore.swift in Sources */,
 				C8EBD90EAF2F47466F8B5A2C /* ContentView.swift in Sources */,
 				998F740F246A9D43D5465A2E /* DevCardPopupView.swift in Sources */,
 				2963FFF4A45E734FACE3E93A /* DiscardPopupView.swift in Sources */,
@@ -276,6 +279,7 @@
 				7678F2D966C6DDD39D673266 /* IncomingTradeCardView.swift in Sources */,
 				71E36B2F286888830989FBC7 /* MainMenuView.swift in Sources */,
 				88CF824C3335F34CF54E08E2 /* PlayerHUDView.swift in Sources */,
+				1B2E8933650EFB5E3A65F60D /* PlayerNameStore.swift in Sources */,
 				982B80C1DDE6B39264765604 /* ResourceChip.swift in Sources */,
 				AA5F82F23D1E9E98AC20C58E /* SettingsView.swift in Sources */,
 				B6FC9BE50ABFF3D68CF98B29 /* SettlersApp.swift in Sources */,
@@ -412,8 +416,6 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
-				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = KDM65HE483;
 				INFOPLIST_FILE = Settlers/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -432,8 +434,6 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
-				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = KDM65HE483;
 				INFOPLIST_FILE = Settlers/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",

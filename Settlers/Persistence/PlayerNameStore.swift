@@ -1,0 +1,29 @@
+import Foundation
+
+/// The player's own display name, shown in place of the generic "You"
+/// wherever `CatanTheme.playerLabel(for:)` is read (bot trade offers, the
+/// robber victim picker, the end-game standings, etc.) - edited from
+/// `SettingsView`. A single `UserDefaults` string rather than folding into
+/// `CivilizationSettings`: it's an unrelated, independently-editable field,
+/// and keeping it separate means no `Codable` migration story for the
+/// existing `CivilizationSettings` blob.
+public struct PlayerNameStore: Sendable {
+    public static let shared = PlayerNameStore()
+
+    private let key = "playerDisplayName"
+
+    init() {}
+
+    /// The saved name, or `""` if none has been set yet (or it was cleared)
+    /// - callers fall back to "You" for an empty name, this store doesn't
+    /// bake that fallback in itself.
+    public func load() -> String {
+        UserDefaults.standard.string(forKey: key) ?? ""
+    }
+
+    /// Trims whitespace before saving - an all-whitespace "name" should read
+    /// as "no custom name set" (falls back to "You"), not as a blank label.
+    public func save(_ name: String) {
+        UserDefaults.standard.set(name.trimmingCharacters(in: .whitespacesAndNewlines), forKey: key)
+    }
+}

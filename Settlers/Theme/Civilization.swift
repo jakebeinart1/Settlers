@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 import CatanEngine
 
 /// One of eight playable empires. Exactly one occupies each of the 4 seats
@@ -89,8 +90,18 @@ public enum Civilization: String, CaseIterable, Sendable, Codable {
     /// This civilization's fixed material color, tested against the board's
     /// water-blue background before being locked in. Used for
     /// `CivilizationBadge`, the road bar, HUD dots/tags, and everywhere else
-    /// `CatanTheme.color(for: player)` is read.
+    /// `CatanTheme.color(for: player)` is read. Several of the original
+    /// material tones (Greece's grey marble, Aztec/Columbia's slate
+    /// blue-grey, Norse's steel blue) read as near-identical washed-out
+    /// grays once shrunk down to a HUD dot/outline - `Self.vivid` bumps
+    /// every one of them uniformly rather than hand-picking 8 new RGB
+    /// triples, so the board pieces and the HUD both get the same
+    /// slightly-punchier version of the same fixed per-civilization color.
     public var accentColor: Color {
+        Self.vivid(baseAccentColor)
+    }
+
+    private var baseAccentColor: Color {
         switch self {
         case .medieval: return Color(red: 0.56, green: 0.35, blue: 0.68) // purple
         case .greece: return Color(red: 0.80, green: 0.81, blue: 0.80) // white/grey marble
@@ -101,6 +112,20 @@ public enum Civilization: String, CaseIterable, Sendable, Codable {
         case .japan: return Color(red: 0.37, green: 0.55, blue: 0.46) // jade
         case .norse: return Color(red: 0.49, green: 0.58, blue: 0.64) // steel blue
         }
+    }
+
+    /// A slightly more saturated, slightly brighter version of `color`,
+    /// same hue - converts to HSB, boosts saturation and brightness by a
+    /// fixed proportion (clamped to 1), converts back. Used uniformly on
+    /// every civilization's `baseAccentColor` rather than tuning each RGB
+    /// triple by hand, so the whole roster gets a consistent nudge instead
+    /// of an inconsistent one.
+    private static func vivid(_ color: Color) -> Color {
+        var hue: CGFloat = 0, saturation: CGFloat = 0, brightness: CGFloat = 0, alpha: CGFloat = 0
+        UIColor(color).getHue(&hue, saturation: &saturation, brightness: &brightness, alpha: &alpha)
+        let boostedSaturation = min(1, saturation * 1.35 + 0.06)
+        let boostedBrightness = min(1, brightness * 1.08)
+        return Color(hue: Double(hue), saturation: Double(boostedSaturation), brightness: Double(boostedBrightness), opacity: Double(alpha))
     }
 
 }

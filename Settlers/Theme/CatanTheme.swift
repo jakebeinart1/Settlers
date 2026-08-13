@@ -34,12 +34,15 @@ public enum CatanTheme {
         Civilization.forSeat(player.index).accentColor
     }
 
-    /// Human-readable seat label: "You" for the human seat, otherwise that
-    /// seat's civilization general (e.g. "Caesar") - see `Civilization
-    /// .forSeat`. Replaces the old generic "Player N" now that every bot
-    /// seat has a fixed empire identity.
+    /// Human-readable seat label: the player's own custom name (set in
+    /// Settings) for the human seat, falling back to "You" if none is set,
+    /// otherwise that seat's civilization general (e.g. "Caesar") - see
+    /// `Civilization.forSeat`. Replaces the old generic "Player N" now that
+    /// every bot seat has a fixed empire identity.
     public static func playerLabel(for player: PlayerID) -> String {
-        player.index == 0 ? "You" : Civilization.forSeat(player.index).generalName
+        guard player.index == 0 else { return Civilization.forSeat(player.index).generalName }
+        let name = PlayerNameStore.shared.load()
+        return name.isEmpty ? "You" : name
     }
 
     /// City marker's pennant-on-a-pole flag, flown above a `CivilizationBadge`

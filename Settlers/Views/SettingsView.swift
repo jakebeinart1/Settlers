@@ -15,6 +15,7 @@ public struct SettingsView: View {
     }
 
     @State private var settings = CivilizationSettingsStore.shared.load()
+    @State private var playerName = PlayerNameStore.shared.load()
 
     private var otherCivilizations: [Civilization] {
         Civilization.allCases.filter { $0 != settings.yourCivilization }
@@ -35,6 +36,7 @@ public struct SettingsView: View {
 
                 ScrollView {
                     VStack(alignment: .leading, spacing: 28) {
+                        yourNameSection
                         yourCivilizationSection
                         botRosterSection
                     }
@@ -64,6 +66,34 @@ public struct SettingsView: View {
         }
         .padding(.horizontal, 24)
         .padding(.top, 20)
+    }
+
+    // MARK: - Your name
+
+    /// The name shown everywhere `CatanTheme.playerLabel(for:)` is read for
+    /// the human seat - bot trade offers, the robber victim picker, the
+    /// end-game standings, and the "You" row of your own HUD panel. Saves
+    /// on every keystroke via `onChange` rather than only on dismiss/blur -
+    /// there's no separate "Done" step in this screen for a text field to
+    /// wait for, and `PlayerNameStore.save` is cheap enough (one
+    /// `UserDefaults` write) that debouncing isn't worth the complexity.
+    private var yourNameSection: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            Text("Your Name")
+                .font(.headline)
+                .foregroundStyle(.white.opacity(0.8))
+
+            TextField("You", text: $playerName)
+                .textFieldStyle(.plain)
+                .font(.subheadline.bold())
+                .foregroundStyle(.white)
+                .padding(12)
+                .background(RoundedRectangle(cornerRadius: 10).fill(Color(white: 0.14)))
+                .autocorrectionDisabled()
+                .onChange(of: playerName) { _, newValue in
+                    PlayerNameStore.shared.save(newValue)
+                }
+        }
     }
 
     // MARK: - Your civilization

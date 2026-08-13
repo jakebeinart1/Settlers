@@ -76,11 +76,13 @@ public struct HumanPlayerPanel: View {
                         .fill(CatanTheme.color(for: human))
                         .frame(width: 15, height: 15)
                     // `.lineLimit(1)` + `.fixedSize()` - without these,
-                    // "You" and the civilization name (e.g. "Japan") were
+                    // this and the civilization name (e.g. "Japan") were
                     // the ones that gave way when the row got crowded,
                     // wrapping mid-word onto a second line instead of
-                    // staying put.
-                    Text("You")
+                    // staying put. `CatanTheme.playerLabel` rather than a
+                    // literal "You" - reads the custom name set in Settings,
+                    // falling back to "You" if none is set.
+                    Text(CatanTheme.playerLabel(for: human))
                         .font(.system(size: 18, weight: .bold, design: .serif))
                         .lineLimit(1)
                         .fixedSize()
@@ -385,7 +387,7 @@ enum PlayerChip {
                 // consistent size for everyone, truncating with an ellipsis
                 // in the rare case a name still doesn't fit, reads far more
                 // uniform than every name being a different size.
-                Text(isHuman ? "You" : civilization.generalName)
+                Text(isHuman ? CatanTheme.playerLabel(for: player.id) : civilization.generalName)
                     .font(.system(size: 12, weight: .bold, design: .serif))
                     .lineLimit(1)
             }
