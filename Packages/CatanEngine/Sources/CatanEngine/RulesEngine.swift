@@ -4,8 +4,21 @@ public enum RulesEngine {
         case .setupForward, .setupBackward:
             return SetupPhase.legalMoves(for: state)
 
-        case .rollDice:
-            return [.rollDice]
+        case .rollDice(let playerIndex):
+            var moves: [GameMove] = [.rollDice]
+            // Knight is the one development card the official rules let you
+            // play before rolling (e.g. to move the robber off your own
+            // tile before the dice can hit it) - every other card is only
+            // enumerated in `.mainTurn`, after the roll.
+            let player = state.players[playerIndex]
+            if DevCards.canPlay(.knight, by: player.id, in: state) {
+                for tile in state.board.tiles.map(\.coordinate) where tile != state.board.robberTile {
+                    moves.append(.playKnight(moveRobberTo: tile, stealFrom: nil))
+                    moves.append(contentsOf: Robber.eligibleVictims(for: tile, thief: player.id, in: state)
+                        .map { .playKnight(moveRobberTo: tile, stealFrom: $0) })
+                }
+            }
+            return moves
 
         case .mainTurn(let playerIndex):
             let player = state.players[playerIndex]
@@ -130,6 +143,21 @@ public enum RulesEngine {
 
         case .rollDice(let playerIndex):
             guard player.index == playerIndex else { throw MoveError.notYourTurn }
+
+            // Knight is the one card playable before rolling - handle it
+            // here and stay in `.rollDice` so the player still has to roll
+            // afterward.
+            if case .playKnight(let moveRobberTo, let stealFrom) = move {
+                try DevCards.playKnight(moveRobberTo: moveRobberTo, stealFrom: stealFrom, by: player, state: &state)
+                WinCondition.checkForWinner(&state)
+                if let victim = stealFrom {
+                    state.log.append("\(playerLabel(playerIndex)) played a knight and stole a card from \(playerLabel(victim.index))")
+                } else {
+                    state.log.append("\(playerLabel(playerIndex)) played a knight")
+                }
+                return
+            }
+
             guard case .rollDice = move else { throw MoveError.wrongPhase }
             let roll = Int.random(in: 1...6) + Int.random(in: 1...6)
             MainPhase.rollDice(state: &state, roll: roll)

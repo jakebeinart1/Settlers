@@ -136,6 +136,23 @@ public final class GameViewModel {
         var acceptedBy: PlayerID?
         for botIndex in 1..<state.players.count {
             let bot = PlayerID(index: botIndex)
+            // `TradeHeuristics.evaluate` only judges whether the offer is a
+            // *good deal* for the bot - it has no idea whether the bot
+            // actually holds enough of `offer.want` to go through with it,
+            // so a bot could "accept" cards it doesn't have. Confirming
+            // that (correctly) then failed inside `Trading.respond`'s own
+            // affordability check, but by then the pending-confirmation
+            // banner had already told the human this bot would accept -
+            // intermittent (only bit when the bot happened to be short on
+            // whatever was asked for), and looked like the trade just
+            // silently didn't happen. Checking affordability here, before
+            // ever offering the bot as a candidate, keeps `acceptedBy`
+            // truthful to what `confirmPendingTrade()` can actually deliver.
+            guard let botPlayer = state.players.first(where: { $0.id == bot }),
+                  offer.want.allSatisfy({ resource, amount in (botPlayer.resources[resource] ?? 0) >= amount }) else {
+                decisions.append((bot, false))
+                continue
+            }
             let accepts = TradeHeuristics.evaluate(offer: offer, receiver: bot, state: state, personality: personality(for: bot))
             decisions.append((bot, accepts))
             if accepts, acceptedBy == nil {

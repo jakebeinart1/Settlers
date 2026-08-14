@@ -170,6 +170,39 @@ import Testing
     #expect((state.players[0].resources[.ore] ?? 0) == 1) // untouched - cost not deducted
 }
 
+/// Knight is the one dev card the official rules let you play before
+/// rolling (e.g. to move the robber off your own tile before the dice can
+/// hit it) - `.rollDice` must enumerate and accept `.playKnight` and stay
+/// in `.rollDice` afterward so the player still has to roll.
+@Test func knightCanBePlayedBeforeRolling() throws {
+    var state = GameSetup.newGame(board: BoardGenerator.standard())
+    state.phase = .rollDice(playerIndex: 0)
+    state.players[0].devCards = [.knight]
+    let tile = state.board.tiles.map(\.coordinate).first { $0 != state.board.robberTile }!
+
+    #expect(RulesEngine.legalMoves(for: state).contains { if case .playKnight = $0 { return true }; return false })
+
+    try RulesEngine.apply(.playKnight(moveRobberTo: tile, stealFrom: nil), by: PlayerID(index: 0), to: &state)
+
+    #expect(state.board.robberTile == tile)
+    #expect(state.players[0].devCards.isEmpty)
+    #expect(state.players[0].playedKnights == 1)
+    #expect(state.phase == .rollDice(playerIndex: 0)) // still owes the roll
+}
+
+/// The other three dev cards remain unplayable before rolling - only
+/// Knight gets the pre-roll exception.
+@Test func nonKnightCardsAreNotOfferedBeforeRolling() {
+    var state = GameSetup.newGame(board: BoardGenerator.standard())
+    state.phase = .rollDice(playerIndex: 0)
+    state.players[0].devCards = [.roadBuilding, .yearOfPlenty, .monopoly]
+
+    let moves = RulesEngine.legalMoves(for: state)
+    #expect(!moves.contains { if case .playRoadBuilding = $0 { return true }; return false })
+    #expect(!moves.contains { if case .playYearOfPlenty = $0 { return true }; return false })
+    #expect(!moves.contains { if case .playMonopoly = $0 { return true }; return false })
+}
+
 @Test func devCardsBoughtThisTurnBecomePlayableAfterEndTurn() {
     var state = GameSetup.newGame(board: BoardGenerator.standard())
     state.phase = .mainTurn(playerIndex: 0)

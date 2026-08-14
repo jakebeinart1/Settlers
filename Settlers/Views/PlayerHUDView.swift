@@ -219,28 +219,33 @@ public struct HumanPlayerPanel: View {
                             HStack(spacing: 6) {
                                 ForEach(devCardRows, id: \.type) { row in
                                     // `DevCards.canPlay` only checks
-                                    // ownership, not phase - a dev card
-                                    // (knight included) is only actually
-                                    // playable during your own `.mainTurn`,
-                                    // i.e. after rolling. Without this
-                                    // check the tile looked tappable before
-                                    // rolling too, and for Knight
-                                    // specifically that let you walk
-                                    // through the whole "move the robber"
-                                    // flow before the engine's own phase
-                                    // guard ever got a chance to reject it -
-                                    // the other three dev cards apply
-                                    // immediately on tap and so at least
-                                    // surfaced an error, which is why this
-                                    // read as "only Knight can be played
-                                    // before rolling" rather than "none of
-                                    // them actually can".
-                                    let isMainTurn: Bool = {
-                                        if case .mainTurn(let idx) = state.phase { return idx == human.index }
-                                        return false
+                                    // ownership, not phase - a dev card is
+                                    // only actually playable during your own
+                                    // turn, and (per the official rules)
+                                    // Knight is the one card that's playable
+                                    // before rolling too - the other three
+                                    // only during `.mainTurn`, after the
+                                    // roll. Without a phase check here the
+                                    // tile looked tappable at other times as
+                                    // well, and for Knight specifically that
+                                    // let you walk through the whole "move
+                                    // the robber" flow before the engine's
+                                    // own phase guard ever got a chance to
+                                    // reject it - the other three dev cards
+                                    // apply immediately on tap and so at
+                                    // least surfaced an error, which is why
+                                    // this read as "only Knight can be
+                                    // played at the wrong time" rather than
+                                    // "none of them actually can".
+                                    let isMyTurnToPlay: Bool = {
+                                        switch state.phase {
+                                        case .mainTurn(let idx): return idx == human.index
+                                        case .rollDice(let idx): return row.type == .knight && idx == human.index
+                                        default: return false
+                                        }
                                     }()
                                     let isPlayable = row.type != .victoryPoint
-                                        && isMainTurn
+                                        && isMyTurnToPlay
                                         && DevCards.canPlay(row.type, by: human, in: state)
                                     DevCardHUDTile(type: row.type, held: row.held, new: row.new, isPlayable: isPlayable) {
                                         onTapDevCard(row.type)
