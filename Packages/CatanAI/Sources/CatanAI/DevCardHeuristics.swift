@@ -97,7 +97,14 @@ public enum DevCardHeuristics {
         return nil
     }
 
-    private static func opponentTotal(_ resource: Resource, state: GameState, player: PlayerID) -> Int {
-        state.players.filter { $0.id != player }.reduce(0) { $0 + ($1.resources[resource] ?? 0) }
+    /// Total holdings of `resource` across every opponent, weighted by how
+    /// threatening each holder is relative to the average opponent (see
+    /// `ThreatAssessment`) - so Monopoly is picked to hurt whoever's most
+    /// dangerous, not just whoever happens to be sitting on the biggest
+    /// raw pile.
+    private static func opponentTotal(_ resource: Resource, state: GameState, player: PlayerID) -> Double {
+        state.players.filter { $0.id != player }.reduce(0.0) { partial, opponent in
+            partial + Double(opponent.resources[resource] ?? 0) * ThreatAssessment.relativeWeight(for: opponent.id, excluding: player, in: state)
+        }
     }
 }
