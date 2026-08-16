@@ -36,9 +36,12 @@ public enum BuildPlanner {
         switch move {
         case .buildSettlement(let vertex):
             // A new settlement is close to always worth it - weight
-            // production heavily and scale up by expansion appetite.
+            // production heavily and scale up by expansion appetite. Also
+            // adds a bonus for denying a threatening opponent's near-term
+            // expansion spot, if this vertex is one.
             let production = PlacementHeuristics.score(vertex: vertex, board: state.board)
-            return 3.0 + production * (0.5 + personality.expansionBias)
+            let denial = denialBonus(vertex: vertex, state: state, player: player)
+            return 3.0 + production * (0.5 + personality.expansionBias) + denial
 
         case .buildCity(let vertex):
             // Upgrading doubles production on that vertex's tiles, so it's
@@ -48,17 +51,26 @@ public enum BuildPlanner {
 
         case .buildRoad(let edge):
             // Roads are cheap groundwork; value them modestly, with a bonus
-            // for opening up a newly-reachable high-value settlement spot -
-            // plus a large bonus if this exact road would hand *us* the
-            // longest-road bonus (2 VP) right now, since that's otherwise
-            // never factored into road value at all.
+            // for opening up a newly-reachable high-value settlement spot,
+            // a bonus for blocking a threatening opponent's network, plus a
+            // large bonus if this exact road would hand *us* the
+            // longest-road bonus (2 VP) right now - larger still if it
+            // would take that bonus away from a currently-threatening
+            // holder, not just claim it fresh.
             let (a, b) = state.board.vertices(of: edge)
             let reachable = [a, b].flatMap { state.board.adjacentVertices(of: $0) }
             let bestReachable = reachable
                 .map { PlacementHeuristics.score(vertex: $0, board: state.board) }
                 .max() ?? 0
-            let longestRoadBonus = claimsLongestRoad(edge, for: player, in: state) ? 2.5 : 0.0
-            return 0.5 + personality.expansionBias + bestReachable * 0.2 + longestRoadBonus
+            let blockingBonus = blocksOpponentNetwork(edge, state: state, player: player)
+            var longestRoadBonus = 0.0
+            if claimsLongestRoad(edge, for: player, in: state) {
+                let holderWeight = state.longestRoadPlayer
+                    .map { holder in ThreatAssessment.relativeWeight(for: holder, excluding: player, in: state) }
+                    ?? 1.0
+                longestRoadBonus = 2.5 * (state.longestRoadPlayer == nil ? 1.0 : holderWeight)
+            }
+            return 0.5 + personality.expansionBias + bestReachable * 0.2 + blockingBonus + longestRoadBonus
 
         case .buyDevCard:
             // A flat, personality-nudged value: knights help aggressive
@@ -88,6 +100,82 @@ public enum BuildPlanner {
         default:
             return nil
         }
+    }
+
+    /// Vacant, currently-legal (per the distance rule) vertices `opponentID`
+    /// could plausibly reach with one more road from their existing
+    /// settlements/cities/roads - a proxy for "their near-term expansion
+    /// options", used to value denying opponents a spot as well as taking
+    /// one for ourselves. Internal rather than private so
+    /// `BuildPlannerTests` can exercise it directly.
+    ///
+    /// A vertex directly adjacent to one of `opponentID`'s own buildings is
+    /// never itself a candidate - the distance rule makes it illegal for
+    /// anyone, including its owner - but roads (unlike settlements) aren't
+    /// subject to the distance rule, so `opponentID` could still road out to
+    /// it and beyond. The real frontier is therefore two hops out: one road
+    /// segment to that (otherwise unbuildable) adjacent vertex, then one
+    /// more to a vertex that's actually vacant and legal.
+    static func opponentFrontier(for opponentID: PlayerID, in state: GameState) -> Set<VertexID> {
+        guard let opponent = state.players.first(where: { $0.id == opponentID }) else { return [] }
+
+        var touched = opponent.settlements.union(opponent.cities)
+        for edge in opponent.roads {
+            let (a, b) = state.board.vertices(of: edge)
+            touched.insert(a)
+            touched.insert(b)
+        }
+
+        let oneHopOut = Set(touched.flatMap { state.board.adjacentVertices(of: $0) })
+        let occupied = Set(state.players.flatMap { $0.settlements.union($0.cities) })
+
+        var frontier = Set<VertexID>()
+        for vertex in oneHopOut {
+            for candidate in state.board.adjacentVertices(of: vertex) {
+                guard !touched.contains(candidate), !occupied.contains(candidate) else { continue }
+                let tooClose = state.board.adjacentVertices(of: candidate).contains { occupied.contains($0) }
+                guard !tooClose else { continue }
+                frontier.insert(candidate)
+            }
+        }
+        return frontier
+    }
+
+    /// Bonus for `vertex` sitting in a high-threat opponent's near-term
+    /// expansion frontier - taking it denies them a spot, worth close to
+    /// (but less than) the production value of taking it for ourselves,
+    /// scaled by how threatening that opponent is relative to the average
+    /// opponent.
+    private static func denialBonus(vertex: VertexID, state: GameState, player: PlayerID) -> Double {
+        var bonus = 0.0
+        for opponent in state.players where opponent.id != player {
+            guard opponentFrontier(for: opponent.id, in: state).contains(vertex) else { continue }
+            let production = PlacementHeuristics.score(vertex: vertex, board: state.board)
+            bonus += production * 0.4 * ThreatAssessment.relativeWeight(for: opponent.id, excluding: player, in: state)
+        }
+        return bonus
+    }
+
+    /// Bonus for `edge` touching a threatening opponent's existing
+    /// road/settlement/city network - building it here denies them that
+    /// extension, scaled by how threatening they are relative to the
+    /// average opponent.
+    private static func blocksOpponentNetwork(_ edge: EdgeID, state: GameState, player: PlayerID) -> Double {
+        let (a, b) = state.board.vertices(of: edge)
+        var bonus = 0.0
+        for opponent in state.players where opponent.id != player {
+            guard !opponent.roads.contains(edge) else { continue }
+            let opponentRoadVertices = opponent.roads.flatMap { roadEdge -> [VertexID] in
+                let (ra, rb) = state.board.vertices(of: roadEdge)
+                return [ra, rb]
+            }
+            let touchesOpponentNetwork = [a, b].contains { vertex in
+                opponent.settlements.contains(vertex) || opponent.cities.contains(vertex) || opponentRoadVertices.contains(vertex)
+            }
+            guard touchesOpponentNetwork else { continue }
+            bonus += 1.0 * ThreatAssessment.relativeWeight(for: opponent.id, excluding: player, in: state)
+        }
+        return bonus
     }
 
     /// Whether adding `edge` to `player`'s roads would make `player` the
