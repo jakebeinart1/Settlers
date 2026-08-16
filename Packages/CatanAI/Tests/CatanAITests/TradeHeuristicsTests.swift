@@ -124,6 +124,47 @@ import CatanEngine
     #expect(trade?.rate == 4) // no port owned (no settlements yet)
 }
 
+/// A marginally-favorable deal is accepted from an average opponent but
+/// rejected from a dramatically more threatening one, since accepting hands
+/// them resources - see `evaluate`'s threat-shift doc. Uses `.aggressive`
+/// (low trade willingness) so the *baseline* threshold is already nonzero
+/// (`0.5 - 0.2 = 0.3`) - with `.balanced`/`.cautious` the baseline is
+/// already clamped to `0`, and this scenario is built around crossing a
+/// nonzero baseline, not the zero-baseline floor `neverAcceptsANetLoss...`
+/// already covers.
+@Test func evaluateRequiresABetterDealFromAHighThreatProposer() {
+    var state = GameSetup.newGame(board: BoardGenerator.standard())
+    let receiver = PlayerID(index: 0)
+    let proposer = PlayerID(index: 1)
+
+    // Ore is only needed by the city (short 2, with grain also short 2 -
+    // keeping its "closeness" low) and not at all by the devCard target
+    // (already holds the 1 ore it needs) - giving a small-but-positive
+    // value (~0.83) rather than the large one wool/grain would carry via
+    // the settlement target. Wool is given up in return, already fully
+    // covered everywhere, so it carries zero value - netGain ~0.83, above
+    // the 0.3 baseline threshold but comfortably below the ~1.3 threshold
+    // an above-average-threat proposer would need to clear.
+    state.players[0].resources = [.brick: 1, .lumber: 1, .grain: 0, .wool: 1, .ore: 1]
+    let offer = TradeOffer(from: proposer, give: [.ore: 1], want: [.wool: 1])
+
+    // Baseline: proposer is an average opponent (nobody has built anything
+    // yet), so `relativeWeight` falls back to `1.0` and this reads the same
+    // as before threat-weighting existed.
+    let baselineAccept = TradeHeuristics.evaluate(offer: offer, receiver: receiver, state: state, personality: .aggressive)
+    #expect(baselineAccept)
+
+    // Now make the proposer dramatically more threatening than the other
+    // opponents - the same marginal deal should flip to a rejection.
+    var withThreat = state
+    let vertex = state.board.onBoardVertices.sorted().first!
+    withThreat.players[1].settlements.insert(vertex)
+    withThreat.players[1].cities.insert(vertex)
+    withThreat.players[1].devCards = Array(repeating: DevCardType.knight, count: 10)
+    let underThreat = TradeHeuristics.evaluate(offer: offer, receiver: receiver, state: withThreat, personality: .aggressive)
+    #expect(!underThreat)
+}
+
 /// Nothing to convert into: already holds everything the nearest target
 /// needs, so there's no "most needed" resource to trade for.
 @Test func bestBankTradeIsNilWhenNothingIsBlockingTheNearestBuild() {

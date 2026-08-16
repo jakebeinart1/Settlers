@@ -57,6 +57,17 @@ public enum TradeHeuristics {
     /// personalities - e.g. -0.3 for `.cautious` - which meant they'd
     /// accept a real net loss as long as it wasn't too big a one; clamping
     /// the threshold at 0 was the fix.)
+    ///
+    /// The threshold also shifts with how threatening `offer.from` is
+    /// relative to `receiver`'s other opponents (see `ThreatAssessment`) -
+    /// accepting hands them resources, so a proposal from an above-average
+    /// threat needs a correspondingly better deal to clear the bar. Added
+    /// rather than multiplied onto the base threshold: most personalities'
+    /// base threshold is already `0` (any net gain clears it), where a
+    /// multiplicative scale would have no effect at all - an additive shift
+    /// still raises the bar for a high-threat proposer even then, while
+    /// staying clamped at `0` overall so a below-average-threat proposer
+    /// never gets talked into a trade that's a real net loss.
     public static func evaluate(offer: TradeOffer, receiver: PlayerID, state: GameState, personality: BotPersonality) -> Bool {
         guard let receiverPlayer = state.players.first(where: { $0.id == receiver }) else { return false }
 
@@ -68,7 +79,10 @@ public enum TradeHeuristics {
         }
 
         let netGain = gainValue - costValue
-        let threshold = max(0, 0.5 - personality.tradeWillingness)
+        let proposerWeight = ThreatAssessment.relativeWeight(for: offer.from, excluding: receiver, in: state)
+        let baseThreshold = 0.5 - personality.tradeWillingness
+        let threatShift = (proposerWeight - 1.0) * 0.5
+        let threshold = max(0, baseThreshold + threatShift)
         return netGain > threshold
     }
 
