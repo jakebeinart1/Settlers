@@ -2,24 +2,21 @@ import CatanEngine
 
 /// Picks where to park the robber and (optionally) who to steal from.
 public enum RobberHeuristics {
-    /// Chooses the tile that maximizes disruption to the leading opponent
-    /// (highest total VP among everyone but `player`), while avoiding tiles
-    /// that touch the bot's own settlements/cities whenever an alternative
-    /// tile exists. Returns the chosen tile plus whichever player occupying
-    /// it is the best victim to name (the leader if they're there, else
-    /// whichever occupant holds the most resources, else `nil`).
+    /// Chooses the tile that maximizes disruption to opponents, weighted by
+    /// each occupant's relative threat (see `ThreatAssessment`) and scaled
+    /// by how aggressively this bot leans into robber play, while avoiding
+    /// tiles that touch the bot's own settlements/cities whenever an
+    /// alternative tile exists. Returns the chosen tile plus whichever
+    /// occupant is the best victim to name (the highest-threat occupant, or
+    /// whoever holds the most resources if threat is a tie).
     ///
     /// This only decides intent - callers (e.g. `Bot.decide`) are
     /// responsible for matching the result against `RulesEngine.legalMoves`,
     /// since a desired victim may not actually be eligible to steal from
     /// (e.g. holds zero resource cards).
-    public static func chooseRobberTarget(state: GameState, player: PlayerID) -> (HexCoordinate, PlayerID?) {
+    public static func chooseRobberTarget(state: GameState, player: PlayerID, personality: BotPersonality) -> (HexCoordinate, PlayerID?) {
         let candidateTiles = state.board.tiles.map(\.coordinate).filter { $0 != state.board.robberTile }
         guard !candidateTiles.isEmpty else { return (state.board.robberTile, nil) }
-
-        let leader = state.players
-            .filter { $0.id != player }
-            .max { state.victoryPoints(for: $0.id) < state.victoryPoints(for: $1.id) }
 
         func verticesTouching(_ tile: HexCoordinate) -> [VertexID] {
             state.board.onBoardVertices.filter { $0.touchingTiles.contains(tile) }
@@ -31,14 +28,15 @@ public enum RobberHeuristics {
         }
 
         // Disruption score for `tile`: opponent building weight there,
-        // strongly favoring the leader's buildings over other opponents'.
-        func disruption(_ tile: HexCoordinate) -> Int {
-            var value = 0
+        // scaled by each occupant's threat relative to the average
+        // opponent and by how aggressively this bot leans into robber play.
+        func disruption(_ tile: HexCoordinate) -> Double {
+            var value = 0.0
             for vertex in verticesTouching(tile) {
                 for other in state.players where other.id != player {
-                    let weight = (other.id == leader?.id) ? 3 : 1
-                    if other.cities.contains(vertex) { value += 2 * weight }
-                    else if other.settlements.contains(vertex) { value += 1 * weight }
+                    let weight = 1.0 + ThreatAssessment.relativeWeight(for: other.id, excluding: player, in: state) * personality.aggressiveness * 2.0
+                    if other.cities.contains(vertex) { value += 2.0 * weight }
+                    else if other.settlements.contains(vertex) { value += 1.0 * weight }
                 }
             }
             return value
@@ -54,9 +52,12 @@ public enum RobberHeuristics {
         let occupants = state.players.filter { occupant in
             occupant.id != player && verticesTouching(bestTile).contains { occupant.settlements.contains($0) || occupant.cities.contains($0) }
         }
-        let victim = occupants.first(where: { $0.id == leader?.id })
-            ?? occupants.max(by: { $0.resources.values.reduce(0, +) < $1.resources.values.reduce(0, +) })
+        let threatRanking = ThreatAssessment.scores(excluding: player, in: state)
+        let victim = threatRanking
+            .first { ranked in occupants.contains { $0.id == ranked.player } }
+            .map { $0.player }
+            ?? occupants.max(by: { $0.resources.values.reduce(0, +) < $1.resources.values.reduce(0, +) })?.id
 
-        return (bestTile, victim?.id)
+        return (bestTile, victim)
     }
 }

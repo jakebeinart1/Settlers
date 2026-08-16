@@ -164,7 +164,7 @@ public struct Bot: Sendable {
         // resource cards), so match its suggestion against `legal` and fall
         // back to the best legal victim on the same tile if the exact
         // suggested pairing isn't available.
-        let (tile, victim) = RobberHeuristics.chooseRobberTarget(state: state, player: player)
+        let (tile, victim) = RobberHeuristics.chooseRobberTarget(state: state, player: player, personality: personality)
         if let exact = matchLegal(.moveRobber(tile, stealFrom: victim), in: legal) {
             return exact
         }

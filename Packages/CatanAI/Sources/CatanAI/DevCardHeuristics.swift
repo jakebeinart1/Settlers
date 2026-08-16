@@ -52,7 +52,7 @@ public enum DevCardHeuristics {
             }
             let claimsLargestArmy = me.playedKnights + 1 >= 3 && state.largestArmyPlayer != player
             if robberOnOwnTile || claimsLargestArmy {
-                let (tile, victim) = RobberHeuristics.chooseRobberTarget(state: state, player: player)
+                let (tile, victim) = RobberHeuristics.chooseRobberTarget(state: state, player: player, personality: personality)
                 return .playKnight(moveRobberTo: tile, stealFrom: victim)
             }
         }
