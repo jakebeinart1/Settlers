@@ -19,4 +19,11 @@ Taking the UI into Claude Design for fresh visual direction, starting narrow.
 ## 2. Bot strength
 Make the bot opponents play meaningfully better.
 
-- [ ] TBD — scope out specific weaknesses/next steps.
+- [x] Added `ThreatAssessment` (`Packages/CatanAI/Sources/CatanAI/ThreatAssessment.swift`)
+      — a per-opponent threat score (VP + production + hidden dev cards +
+      proximity to Largest Army/Longest Road) — and wired it, proportionally
+      via `relativeWeight`, into robber targeting, settlement/road
+      placement (denies threatening opponents' frontier spots, blocks their
+      road network), trade acceptance (raises the bar for high-threat
+      proposers), and Monopoly targeting. See
+      `docs/superpowers/specs/2026-08-16-bot-threat-assessment-design.md`.
