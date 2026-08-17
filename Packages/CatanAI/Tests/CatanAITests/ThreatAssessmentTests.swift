@@ -7,13 +7,26 @@ import CatanEngine
 /// `board`, for tests that need one without hand-writing coordinates. Copied
 /// from `BuildPlannerTests.swift` since Swift Testing files don't share
 /// private helpers across files.
+///
+/// Neighbor order is sorted rather than `board.adjacentVertices`' raw order
+/// (backed by a `Set`, so its iteration order isn't stable across process
+/// runs) - without this, which neighbor the walk tries first varies run to
+/// run, occasionally wandering into a shorter dead-end branch instead of a
+/// path that reaches `length` (this is what made
+/// `scoreSkipsLongestRoadSwingBonusWhenFarBehindTheHolder`'s `length: 7`
+/// call intermittently come up short). Sorting makes the walk - and
+/// therefore whether it reaches `length` at all - the same every run.
 private func buildChain(from board: Board, length: Int) -> [EdgeID] {
     var edges: [EdgeID] = []
     var visited = Set<VertexID>()
     var current = board.onBoardVertices.sorted().first!
     visited.insert(current)
     for _ in 0..<length {
-        guard let next = board.adjacentVertices(of: current).first(where: { !visited.contains($0) }) else { break }
+        guard let next = board.adjacentVertices(of: current).sorted().first(where: { !visited.contains($0) }) else { break }
+        // Exactly one edge connects `current` and `next` in a valid board
+        // graph, so which order `edgesTouching` enumerates in doesn't
+        // affect which edge this finds - only the neighbor pick above
+        // (which determines the walked *path*) needed sorting.
         guard let edge = board.edgesTouching(current).first(where: { edge in
             let (a, b) = board.vertices(of: edge)
             return a == next || b == next

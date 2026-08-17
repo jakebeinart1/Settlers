@@ -5,13 +5,24 @@ import CatanEngine
 /// Walks `length` edges out from an arbitrary starting vertex, greedily
 /// picking an unvisited neighbor each step - a real connected road chain on
 /// `board`, for tests that need one without hand-writing coordinates.
+/// Neighbor order is sorted rather than `board.adjacentVertices`' raw order
+/// (backed by a `Set`, so its iteration order isn't stable across process
+/// runs) - without this, which neighbor the walk tries first varies run to
+/// run, occasionally wandering into a shorter dead-end branch instead of a
+/// path that reaches `length` (see the flaky `ThreatAssessmentTests`
+/// failure this was pulled out to fix). Sorting makes the walk - and
+/// therefore whether it reaches `length` at all - the same every run.
 private func buildChain(from board: Board, length: Int) -> [EdgeID] {
     var edges: [EdgeID] = []
     var visited = Set<VertexID>()
     var current = board.onBoardVertices.sorted().first!
     visited.insert(current)
     for _ in 0..<length {
-        guard let next = board.adjacentVertices(of: current).first(where: { !visited.contains($0) }) else { break }
+        guard let next = board.adjacentVertices(of: current).sorted().first(where: { !visited.contains($0) }) else { break }
+        // Exactly one edge connects `current` and `next` in a valid board
+        // graph, so which order `edgesTouching` enumerates in doesn't
+        // affect which edge this finds - only the neighbor pick above
+        // (which determines the walked *path*) needed sorting.
         guard let edge = board.edgesTouching(current).first(where: { edge in
             let (a, b) = board.vertices(of: edge)
             return a == next || b == next
@@ -167,6 +178,58 @@ private func buildChain(from board: Board, length: Int) -> [EdgeID] {
     let withoutOpponentNearby = BuildPlanner.score(.buildSettlement(candidate), for: noOpponent, player: player, personality: .balanced)!
 
     #expect(withOpponentNearby > withoutOpponentNearby)
+}
+
+/// A road's "leads to a good future settlement spot" bonus should only
+/// count vertices that could actually ever become a settlement - not ones
+/// already occupied. Regression test for bots stacking up roads that lead
+/// nowhere (player feedback: "sporadic road building with no plan to build
+/// settlements") - `bestReachable` previously scored a reachable vertex by
+/// raw production alone, so a road pointing at an opponent's already-built
+/// settlement on a great tile scored just as high as one pointing at a
+/// genuinely open spot with the same production, even though the former can
+/// never be settled.
+@Test func buildRoadScoreExcludesReachableVertexThatIsAlreadyOccupied() {
+    var state = GameSetup.newGame(board: BoardGenerator.standard())
+    let player = PlayerID(index: 0)
+
+    let hub = state.board.onBoardVertices.sorted().first!
+    let hubNeighbors = state.board.adjacentVertices(of: hub).sorted()
+    guard hubNeighbors.count >= 2 else {
+        Issue.record("test board too small")
+        return
+    }
+    // `edge` connects hub to one neighbor; the *other* neighbors of hub are
+    // reachable from `edge` (via hub) without being one of `edge`'s own two
+    // vertices - isolates this from the blocking-bonus path, which only
+    // looks at `edge`'s own endpoints.
+    let otherEnd = hubNeighbors[0]
+    guard let edge = state.board.edgesTouching(hub).first(where: { e in
+        let (a, b) = state.board.vertices(of: e)
+        return (a == hub && b == otherEnd) || (a == otherEnd && b == hub)
+    }) else {
+        Issue.record("test board too small")
+        return
+    }
+
+    // Occupy whichever reachable vertex (other than `edge`'s own endpoints)
+    // currently has the *highest* production - the one `bestReachable`
+    // actually picks - so removing it is guaranteed to change the result
+    // rather than risk landing on an already-second-best vertex.
+    let reachable = [hub, otherEnd].flatMap { state.board.adjacentVertices(of: $0) }.filter { $0 != hub && $0 != otherEnd }
+    guard let argmax = reachable.max(by: {
+        PlacementHeuristics.score(vertex: $0, board: state.board) < PlacementHeuristics.score(vertex: $1, board: state.board)
+    }) else {
+        Issue.record("test board too small")
+        return
+    }
+
+    let vacantScore = BuildPlanner.score(.buildRoad(edge), for: state, player: player, personality: .balanced)!
+
+    state.players[1].settlements.insert(argmax)
+    let occupiedScore = BuildPlanner.score(.buildRoad(edge), for: state, player: player, personality: .balanced)!
+
+    #expect(occupiedScore < vacantScore)
 }
 
 @Test func buildRoadScoreIsHigherWhenItBlocksAHighThreatOpponentsNetwork() {

@@ -58,7 +58,7 @@ public enum BuildPlanner {
             // would take that bonus away from a currently-threatening
             // holder, not just claim it fresh.
             let (a, b) = state.board.vertices(of: edge)
-            let reachable = [a, b].flatMap { state.board.adjacentVertices(of: $0) }
+            let reachable = [a, b].flatMap { state.board.adjacentVertices(of: $0) }.filter { isBuildableVertex($0, in: state) }
             let bestReachable = reachable
                 .map { PlacementHeuristics.score(vertex: $0, board: state.board) }
                 .max() ?? 0
@@ -100,6 +100,20 @@ public enum BuildPlanner {
         default:
             return nil
         }
+    }
+
+    /// Whether `vertex` could ever legally hold a settlement right now -
+    /// not already occupied by anyone, and not within the distance-rule
+    /// radius of an existing settlement/city. A road's "leads to a good
+    /// future spot" bonus (`bestReachable` in `.buildRoad`'s scoring) must
+    /// only count vertices this is true for - otherwise a road pointing at
+    /// an opponent's already-built settlement on a great tile scores just
+    /// as high as one pointing at a genuinely open spot, even though the
+    /// former can never actually be settled.
+    private static func isBuildableVertex(_ vertex: VertexID, in state: GameState) -> Bool {
+        let occupied = Set(state.players.flatMap { $0.settlements.union($0.cities) })
+        guard !occupied.contains(vertex) else { return false }
+        return !state.board.adjacentVertices(of: vertex).contains { occupied.contains($0) }
     }
 
     /// Vacant, currently-legal (per the distance rule) vertices `opponentID`
