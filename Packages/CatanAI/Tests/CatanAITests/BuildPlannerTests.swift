@@ -232,7 +232,108 @@ private func buildChain(from board: Board, length: Int) -> [EdgeID] {
     #expect(occupiedScore < vacantScore)
 }
 
-@Test func buildRoadScoreIsHigherWhenItBlocksAHighThreatOpponentsNetwork() {
+/// Regression test for bot feedback: bots were building roads that lead
+/// nowhere new - `bestReachable` credited a vertex just for being adjacent
+/// to the candidate edge, even when that same vertex was already reachable
+/// via a single more road from somewhere else in the player's *existing*
+/// network. A bots-only simulation confirmed this: ~19% of all road builds
+/// opened no new territory, claimed no Longest Road, and blocked no
+/// opponent - purely redundant/parallel paths that happened to end near a
+/// good vertex.
+@Test func newlyReachableVerticesExcludesOneAlreadyReachableViaExistingNetwork() {
+    var state = GameSetup.newGame(board: BoardGenerator.standard())
+    let player = PlayerID(index: 0)
+
+    guard let target = state.board.onBoardVertices.first(where: { state.board.adjacentVertices(of: $0).count >= 2 }) else {
+        Issue.record("test board too small")
+        return
+    }
+    let neighbors = state.board.adjacentVertices(of: target).sorted()
+    guard neighbors.count >= 2 else {
+        Issue.record("test board too small")
+        return
+    }
+    let q = neighbors[0]
+    let m = neighbors[1]
+
+    // A brand-new, unrelated candidate edge touching `m` (a neighbor of
+    // `target`) - reaches `target` because it's geometrically adjacent to
+    // `m`, regardless of whether the player's network is anywhere near it.
+    guard let candidateEdge = state.board.edgesTouching(m).first(where: { e in
+        let (x, y) = state.board.vertices(of: e)
+        return x != target && y != target
+    }) else {
+        Issue.record("test board too small")
+        return
+    }
+
+    // With no network at all, `target` is genuinely new territory.
+    #expect(BuildPlanner.newlyReachableVertices(for: candidateEdge, player: player, in: state).contains(target))
+
+    // Player's existing network reaches `q` (a *different* neighbor of
+    // `target`) via an edge that doesn't itself touch `target` - `target`
+    // is therefore already one more road away from the player's current
+    // network, before `candidateEdge` is even considered.
+    guard let roadToQ = state.board.edgesTouching(q).first(where: { e in
+        let (x, y) = state.board.vertices(of: e)
+        return x != target && y != target
+    }) else {
+        Issue.record("test board too small")
+        return
+    }
+    state.players[0].roads = [roadToQ]
+
+    #expect(!BuildPlanner.newlyReachableVertices(for: candidateEdge, player: player, in: state).contains(target))
+}
+
+/// The blocking bonus should key off denying the opponent a vertex they
+/// could actually reach *next* (their `immediateFrontier`) - not merely
+/// sharing a vertex with wherever their network already sits. A bots-only
+/// simulation found that touching any of an opponent's existing road
+/// endpoints (regardless of whether it denied them anything real) was
+/// enough to justify a road, which is exactly the "roads that don't make
+/// sense" pattern reported: two networks can innocently border each other
+/// on a crowded board with nothing actually being contested there.
+@Test func buildRoadScoreIsHigherWhenItDeniesAHighThreatOpponentsImmediateFrontier() {
+    var state = GameSetup.newGame(board: BoardGenerator.standard())
+    let player = PlayerID(index: 0)
+    let opponentVertex = state.board.onBoardVertices.sorted().first!
+    state.players[1].settlements.insert(opponentVertex)
+    // A settlement alone has no `immediateFrontier` (every vertex touching
+    // it is distance-rule-illegal) - a road extending outward is needed so
+    // there's a real, legal "next" vertex to deny.
+    guard let roadOut = state.board.edgesTouching(opponentVertex).first else {
+        Issue.record("test board too small")
+        return
+    }
+    state.players[1].roads = [roadOut]
+
+    let frontier = BuildPlanner.immediateFrontier(for: PlayerID(index: 1), in: state)
+    guard let frontierVertex = frontier.sorted().first,
+          let candidateEdge = state.board.edgesTouching(frontierVertex).first(where: { e in
+              let (x, y) = state.board.vertices(of: e)
+              return x != opponentVertex && y != opponentVertex
+          })
+    else {
+        Issue.record("test board too small")
+        return
+    }
+
+    let deniesFrontier = BuildPlanner.score(.buildRoad(candidateEdge), for: state, player: player, personality: .balanced)!
+
+    var noOpponent = state
+    noOpponent.players[1].settlements.removeAll()
+    noOpponent.players[1].roads.removeAll()
+    let noOpponentNearby = BuildPlanner.score(.buildRoad(candidateEdge), for: noOpponent, player: player, personality: .balanced)!
+
+    #expect(deniesFrontier > noOpponentNearby)
+}
+
+/// The mirror case: an edge that merely touches an opponent's *existing*
+/// settlement vertex directly (nothing left to deny there - they already
+/// hold it) shouldn't score any differently than if that opponent didn't
+/// exist at all.
+@Test func buildRoadScoreIsUnaffectedByMerelyTouchingAnOpponentsOwnVertex() {
     var state = GameSetup.newGame(board: BoardGenerator.standard())
     let player = PlayerID(index: 0)
     let opponentVertex = state.board.onBoardVertices.sorted().first!
@@ -249,7 +350,7 @@ private func buildChain(from board: Board, length: Int) -> [EdgeID] {
     noOpponent.players[1].settlements.removeAll()
     let notTouchingOpponent = BuildPlanner.score(.buildRoad(candidateEdge), for: noOpponent, player: player, personality: .balanced)!
 
-    #expect(touchingOpponent > notTouchingOpponent)
+    #expect(touchingOpponent == notTouchingOpponent)
 }
 
 @Test func longestRoadClaimBonusIsLargerWhenTakingItFromAHighThreatHolder() {
@@ -274,3 +375,4 @@ private func buildChain(from board: Board, length: Int) -> [EdgeID] {
 
     #expect(holderScore > baselineScore)
 }
+
