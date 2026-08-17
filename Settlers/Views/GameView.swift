@@ -177,13 +177,6 @@ public struct GameView: View {
             // actually wanted, instead of uniformly.
             VStack(spacing: 0) {
                 BotHUDRow(state: state)
-                    // Leading room for `pauseButton`, overlaid in this same
-                    // corner at the outer `ZStack` level - keeps the button
-                    // out of `BotHUDRow` itself (reused elsewhere, e.g.
-                    // `PlayerHUDView`'s own preview, with no pause concept)
-                    // while still sharing its row instead of adding a whole
-                    // extra row just for one button.
-                    .padding(.leading, 44)
                     .padding(.bottom, 3)
 
                 // Back to overlaying the board's top-left corner (not its
@@ -227,10 +220,15 @@ public struct GameView: View {
                 // so the two sit flush on one shared top line - the bank's
                 // per-resource remaining counts and the dev-card deck's
                 // remaining count, the same two piles a physical Catan board
-                // keeps face-down next to the board itself.
+                // keeps face-down next to the board itself. `pauseButton`
+                // stacks directly beneath, in the same corner rather than
+                // top-left (out of the way of `BotHUDRow`'s chips).
                 .overlay(alignment: .topTrailing) {
-                    deckCountChip
-                        .padding(8)
+                    VStack(alignment: .trailing, spacing: 6) {
+                        deckCountChip
+                        pauseButton
+                    }
+                    .padding(8)
                 }
 
                 // The road-building hint and a build/move error share one
@@ -315,10 +313,6 @@ public struct GameView: View {
                 DiscardPopupView(viewModel: viewModel)
             }
         }
-        .overlay(alignment: .topLeading) {
-            pauseButton
-                .padding(.top, 2)
-        }
         .confirmationDialog("Game Menu", isPresented: $isShowingPauseMenu, titleVisibility: .visible) {
             Button("Restart Game", role: .destructive) {
                 viewModel.startNewGame(randomizedBoard: false)
@@ -393,12 +387,11 @@ public struct GameView: View {
         }
     }
 
-    /// Top-left corner button, sharing `BotHUDRow`'s row rather than a row
-    /// of its own (see that row's `.padding(.leading, 44)`). Opens the
-    /// Resume/Restart/Main Menu `confirmationDialog` - the actual pause is
-    /// implicit: nothing in `GameViewModel` runs on a timer, so simply
-    /// showing the dialog blocks further input until it's dismissed one way
-    /// or another.
+    /// Stacked directly beneath `deckCountChip` in the board's top-trailing
+    /// corner (see that overlay). Opens the Resume/Restart/Main Menu
+    /// `confirmationDialog` - the actual pause is implicit: nothing in
+    /// `GameViewModel` runs on a timer, so simply showing the dialog blocks
+    /// further input until it's dismissed one way or another.
     private var pauseButton: some View {
         Button {
             isShowingPauseMenu = true
@@ -409,7 +402,6 @@ public struct GameView: View {
                 .frame(width: 32, height: 32)
                 .background(Color.black.opacity(0.5), in: Circle())
         }
-        .padding(.leading, 8)
     }
 
     /// Bigger and plainer than before (no more flying resource badges to
