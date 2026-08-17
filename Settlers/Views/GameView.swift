@@ -83,11 +83,18 @@ private struct StableHeightSlot<Content: View>: View {
 /// which already say the same thing with far less visual noise to track.
 public struct GameView: View {
     public let viewModel: GameViewModel
+    /// Called when the player confirms "Main Menu" from the pause menu -
+    /// `ContentView` is responsible for actually switching screens (mirrors
+    /// `EndGameView`'s own exit-to-menu callback), since the current game
+    /// stays saved either way and `GameView` has no notion of "menu" itself.
+    public let onExitToMenu: () -> Void
 
-    public init(viewModel: GameViewModel) {
+    public init(viewModel: GameViewModel, onExitToMenu: @escaping () -> Void) {
         self.viewModel = viewModel
+        self.onExitToMenu = onExitToMenu
     }
 
+    @State private var isShowingPauseMenu = false
     @State private var placementMode: PlacementMode?
     @State private var showTradePopup = false
     @State private var showBuildPopup = false
@@ -170,6 +177,13 @@ public struct GameView: View {
             // actually wanted, instead of uniformly.
             VStack(spacing: 0) {
                 BotHUDRow(state: state)
+                    // Leading room for `pauseButton`, overlaid in this same
+                    // corner at the outer `ZStack` level - keeps the button
+                    // out of `BotHUDRow` itself (reused elsewhere, e.g.
+                    // `PlayerHUDView`'s own preview, with no pause concept)
+                    // while still sharing its row instead of adding a whole
+                    // extra row just for one button.
+                    .padding(.leading, 44)
                     .padding(.bottom, 3)
 
                 // Back to overlaying the board's top-left corner (not its
@@ -301,6 +315,19 @@ public struct GameView: View {
                 DiscardPopupView(viewModel: viewModel)
             }
         }
+        .overlay(alignment: .topLeading) {
+            pauseButton
+                .padding(.top, 2)
+        }
+        .confirmationDialog("Game Menu", isPresented: $isShowingPauseMenu, titleVisibility: .visible) {
+            Button("Restart Game", role: .destructive) {
+                viewModel.startNewGame(randomizedBoard: false)
+            }
+            Button("Main Menu", role: .destructive) {
+                onExitToMenu()
+            }
+            Button("Resume", role: .cancel) {}
+        }
         .onAppear {
             seenTradeOfferIDs = Set(state.pendingTradeOffers.map(\.id))
             lastSeenLogCount = state.log.count
@@ -364,6 +391,25 @@ public struct GameView: View {
             diceScale = 1.0
             diceRotation = 0
         }
+    }
+
+    /// Top-left corner button, sharing `BotHUDRow`'s row rather than a row
+    /// of its own (see that row's `.padding(.leading, 44)`). Opens the
+    /// Resume/Restart/Main Menu `confirmationDialog` - the actual pause is
+    /// implicit: nothing in `GameViewModel` runs on a timer, so simply
+    /// showing the dialog blocks further input until it's dismissed one way
+    /// or another.
+    private var pauseButton: some View {
+        Button {
+            isShowingPauseMenu = true
+        } label: {
+            Image(systemName: "line.3.horizontal")
+                .font(.subheadline.bold())
+                .foregroundStyle(.white)
+                .frame(width: 32, height: 32)
+                .background(Color.black.opacity(0.5), in: Circle())
+        }
+        .padding(.leading, 8)
     }
 
     /// Bigger and plainer than before (no more flying resource badges to
@@ -871,5 +917,5 @@ public struct GameView: View {
 }
 
 #Preview {
-    GameView(viewModel: GameViewModel())
+    GameView(viewModel: GameViewModel(), onExitToMenu: {})
 }

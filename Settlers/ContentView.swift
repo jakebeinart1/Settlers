@@ -22,7 +22,7 @@ struct ContentView: View {
                     hasStartedThisSession = false
                 }
             } else if hasStartedThisSession {
-                GameView(viewModel: viewModel)
+                GameView(viewModel: viewModel, onExitToMenu: { hasStartedThisSession = false })
             } else {
                 MainMenuView(
                     onStart: { randomizedBoard in
