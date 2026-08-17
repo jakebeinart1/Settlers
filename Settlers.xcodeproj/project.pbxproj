@@ -16,6 +16,7 @@
 		2E5F92427B07DC72628BAD38 /* CatanEngine in Frameworks */ = {isa = PBXBuildFile; productRef = EF131C34CF36EF855DAF17D0 /* CatanEngine */; };
 		38C27CDC3380AB32A2AA53C6 /* CivilizationSettingsStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5C25923598FA6B7BCAF62C5A /* CivilizationSettingsStore.swift */; };
 		3B62B3E810E58200F2983839 /* CatanTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4B89EE635B1E470682ED1D4B /* CatanTheme.swift */; };
+		4B7A4365E5DA00917A7E06FF /* GameLogStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 494D7E69889970F3FA1C24AB /* GameLogStore.swift */; };
 		5754F9C1356C779A5553C1BD /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = AAE31202C59C388953152F18 /* Assets.xcassets */; };
 		5A3814A3A6D971002FE6368B /* CatanAI in Frameworks */ = {isa = PBXBuildFile; productRef = 86D26250D0551805B74D0B0B /* CatanAI */; };
 		687BD8586D01E4597A1C7A32 /* BoardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E89E14D5D0ACBB92DF7729B3 /* BoardView.swift */; };
@@ -35,13 +36,16 @@
 		BD0B5D0BC26E3BE5C8A462FD /* BuildPopupView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDF1F85E001A7B74407061E4 /* BuildPopupView.swift */; };
 		C8EBD90EAF2F47466F8B5A2C /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CB7D94876E201553696FE24C /* ContentView.swift */; };
 		CB58570AE806ACE6BFC462C1 /* TradePopupView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5DA573A3A82A8F2F109FA437 /* TradePopupView.swift */; };
+		D16CC8C90FB7F755636F3397 /* GameStatsStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 16777953197BE2BC34CCFE6B /* GameStatsStore.swift */; };
 		DBA70E71EA1FD506BEBF2C4A /* Civilization.swift in Sources */ = {isa = PBXBuildFile; fileRef = C47D8E51CEBC82766DDDF936 /* Civilization.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		06E9063445AF048FF3A65C5A /* DevCardPopupView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DevCardPopupView.swift; sourceTree = "<group>"; };
 		0AC74C3A12A7CDE5AE1B1546 /* CivilizationPieceShapes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CivilizationPieceShapes.swift; sourceTree = "<group>"; };
+		16777953197BE2BC34CCFE6B /* GameStatsStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameStatsStore.swift; sourceTree = "<group>"; };
 		27BDAD47ABBB94D7F73976E5 /* MainMenuView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainMenuView.swift; sourceTree = "<group>"; };
+		494D7E69889970F3FA1C24AB /* GameLogStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameLogStore.swift; sourceTree = "<group>"; };
 		4B89EE635B1E470682ED1D4B /* CatanTheme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CatanTheme.swift; sourceTree = "<group>"; };
 		52C0B1D44B650E22AEBC8366 /* EndGameView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EndGameView.swift; sourceTree = "<group>"; };
 		5C25923598FA6B7BCAF62C5A /* CivilizationSettingsStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CivilizationSettingsStore.swift; sourceTree = "<group>"; };
@@ -160,6 +164,8 @@
 			children = (
 				C112C5D5A27EC971416706D0 /* CivilizationAssignmentStore.swift */,
 				5C25923598FA6B7BCAF62C5A /* CivilizationSettingsStore.swift */,
+				494D7E69889970F3FA1C24AB /* GameLogStore.swift */,
+				16777953197BE2BC34CCFE6B /* GameStatsStore.swift */,
 				E093DA361796607C17A17777 /* GameStore.swift */,
 				A7D42223DB45BEF77F97D3F6 /* PlayerNameStore.swift */,
 			);
@@ -276,6 +282,8 @@
 				998F740F246A9D43D5465A2E /* DevCardPopupView.swift in Sources */,
 				2963FFF4A45E734FACE3E93A /* DiscardPopupView.swift in Sources */,
 				1CE9F2891BE97F0B0CC630BB /* EndGameView.swift in Sources */,
+				4B7A4365E5DA00917A7E06FF /* GameLogStore.swift in Sources */,
+				D16CC8C90FB7F755636F3397 /* GameStatsStore.swift in Sources */,
 				6BE4D5162E62A51ADA6A2599 /* GameStore.swift in Sources */,
 				82772E4A5ECBA817A966B46B /* GameView.swift in Sources */,
 				076DBD0E74CFC2372A8A8AA9 /* GameViewModel.swift in Sources */,

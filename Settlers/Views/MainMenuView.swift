@@ -96,6 +96,8 @@ public struct MainMenuView: View {
                     }
                 }
 
+                statsRow
+
                 Spacer()
             }
         }
@@ -103,6 +105,41 @@ public struct MainMenuView: View {
         .sheet(isPresented: $isShowingSettings) {
             SettingsView(onDismiss: { isShowingSettings = false })
         }
+    }
+
+    /// A compact row of running personal stats (win rate, average game
+    /// length, average final VP) below the New Game/Resume buttons -
+    /// hidden entirely before a first game has finished, since there's
+    /// nothing meaningful to show yet.
+    @ViewBuilder
+    private var statsRow: some View {
+        let stats = GameStatsStore.shared.load()
+        if stats.gamesPlayed > 0 {
+            HStack(spacing: 20) {
+                statTile(value: "\(stats.gamesPlayed)", label: "Played")
+                statTile(value: "\(Int((stats.winRate * 100).rounded()))%", label: "Win Rate")
+                statTile(value: formattedDuration(stats.averageDurationSeconds), label: "Avg Time")
+                statTile(value: String(format: "%.1f", stats.averageFinalVP), label: "Avg VP")
+            }
+            .padding(.horizontal, 40)
+        }
+    }
+
+    private func statTile(value: String, label: String) -> some View {
+        VStack(spacing: 2) {
+            Text(value)
+                .font(.headline.bold())
+            Text(label)
+                .font(.caption2)
+                .foregroundStyle(.white.opacity(0.6))
+        }
+        .frame(maxWidth: .infinity)
+    }
+
+    private func formattedDuration(_ seconds: Double) -> String {
+        let minutes = Int(seconds / 60)
+        if minutes < 60 { return "\(minutes)m" }
+        return "\(minutes / 60)h \(minutes % 60)m"
     }
 
     private var titleBlock: some View {

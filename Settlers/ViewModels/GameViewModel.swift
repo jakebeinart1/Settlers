@@ -50,9 +50,20 @@ public final class GameViewModel {
     }
     public private(set) var pendingTradeConfirmation: PendingTradeConfirmation?
 
+    /// The `GameLogStore` file this session's moves are being appended to,
+    /// and when this session started tracking the current game - both
+    /// (re)set alongside `state` in `init()`/`startNewGame(randomizedBoard:)`.
+    /// A game resumed from `GameStore` after an app relaunch starts a *new*
+    /// log segment and a fresh duration clock rather than continuing the
+    /// pre-relaunch one - see the design doc's Non-goals for why that's an
+    /// accepted simplification rather than a bug.
+    private var currentGameLogID: UUID
+    private var gameStartedAt: Date
+
     public init() {
+        let initialState: GameState
         if let saved = GameStore.shared.load() {
-            state = saved
+            initialState = saved
             // A resumed game keeps whichever civilizations it was dealt,
             // read back from disk rather than re-randomized - falls back to
             // a fresh draw if the assignment file is missing/corrupt (e.g.
@@ -62,8 +73,15 @@ public final class GameViewModel {
             CivilizationAssignment.current = CivilizationAssignmentStore.shared.load()
                 ?? Self.drawAssignment(from: CivilizationSettingsStore.shared.load())
         } else {
-            state = GameSetup.newGame(board: BoardGenerator.standard())
+            initialState = GameSetup.newGame(board: BoardGenerator.standard())
         }
+        // `@Observable` requires every stored property assigned before
+        // `self` (including `self.state`) can be read - `GameLogStore`
+        // reads `initialState` (the local), never `self.state`, to stay
+        // fully assign-before-read through this initializer.
+        state = initialState
+        currentGameLogID = GameLogStore.shared.startNewGame(initialState: initialState)
+        gameStartedAt = Date()
     }
 
     /// Starts a fresh game, discarding whatever `state` currently holds.
@@ -72,12 +90,38 @@ public final class GameViewModel {
             ? BoardGenerator.randomized(seed: UInt64.random(in: .min ... .max))
             : BoardGenerator.standard()
         state = GameSetup.newGame(board: board)
+        currentGameLogID = GameLogStore.shared.startNewGame(initialState: state)
+        gameStartedAt = Date()
 
         let assignment = Self.drawAssignment(from: CivilizationSettingsStore.shared.load())
         CivilizationAssignment.current = assignment
         try? CivilizationAssignmentStore.shared.save(assignment)
 
         try? GameStore.shared.save(state)
+    }
+
+    /// Applies `move` through `RulesEngine` exactly like a direct call
+    /// would, plus logs it to `GameLogStore` and - the first time `state`
+    /// transitions into `.gameOver` - finalizes the log and records the
+    /// outcome into `GameStatsStore`. Every `RulesEngine.apply` call in this
+    /// file routes through here instead of calling it directly, so no path
+    /// (human move, bot move, or an auto-resolved trade response) can skip
+    /// logging.
+    private func applyLogged(_ move: GameMove, by player: PlayerID) throws {
+        let wasGameOver: Bool
+        if case .gameOver = state.phase { wasGameOver = true } else { wasGameOver = false }
+
+        try RulesEngine.apply(move, by: player, to: &state)
+        GameLogStore.shared.appendMove(gameID: currentGameLogID, player: player, move: move)
+
+        if !wasGameOver, case .gameOver(let winner) = state.phase {
+            GameLogStore.shared.finalizeGame(gameID: currentGameLogID, winner: winner)
+            GameStatsStore.shared.recordGameEnd(
+                won: winner == humanPlayer,
+                finalVP: state.victoryPoints(for: humanPlayer),
+                duration: Date().timeIntervalSince(gameStartedAt)
+            )
+        }
     }
 
     /// Seat 0 = the player's chosen civilization; seats 1-3 = 3 distinct
@@ -102,7 +146,7 @@ public final class GameViewModel {
     /// and only `RulesEngine.apply`'s own errors indicate the human's move
     /// itself was rejected.
     public func apply(_ move: GameMove) throws {
-        try RulesEngine.apply(move, by: humanPlayer, to: &state)
+        try applyLogged(move, by: humanPlayer)
         if case .proposeTrade(let offer) = move, offer.from == humanPlayer {
             resolveHumanProposedTrade(offer)
         }
@@ -166,7 +210,7 @@ public final class GameViewModel {
         } else {
             pendingTradeConfirmation = nil
             if state.players.count > 1 {
-                try? RulesEngine.apply(.respondToTrade(offerID: offer.id, accept: false), by: PlayerID(index: 1), to: &state)
+                try? applyLogged(.respondToTrade(offerID: offer.id, accept: false), by: PlayerID(index: 1))
             }
             lastTradeOutcome = TradeOutcome(decisions: decisions, acceptedBy: nil)
         }
@@ -207,13 +251,13 @@ public final class GameViewModel {
             return .offerNoLongerAvailable
         }
         do {
-            try RulesEngine.apply(.respondToTrade(offerID: pending.offerID, accept: true), by: pending.acceptedBy, to: &state)
+            try applyLogged(.respondToTrade(offerID: pending.offerID, accept: true), by: pending.acceptedBy)
         } catch {
             // Withdraw the now-stuck offer on the willing bot's behalf
             // rather than leaving it pending forever with nothing left to
             // confirm it with - same "reject" applied `declinePendingTrade`
             // uses.
-            try? RulesEngine.apply(.respondToTrade(offerID: pending.offerID, accept: false), by: pending.acceptedBy, to: &state)
+            try? applyLogged(.respondToTrade(offerID: pending.offerID, accept: false), by: pending.acceptedBy)
             lastTradeOutcome = TradeOutcome(decisions: pending.decisions, acceptedBy: nil)
             try? GameStore.shared.save(state)
             return .resourcesNoLongerAvailable
@@ -233,7 +277,7 @@ public final class GameViewModel {
         guard let pending = pendingTradeConfirmation else { return }
         pendingTradeConfirmation = nil
         guard state.pendingTradeOffers.contains(where: { $0.id == pending.offerID }) else { return }
-        try? RulesEngine.apply(.respondToTrade(offerID: pending.offerID, accept: false), by: pending.acceptedBy, to: &state)
+        try? applyLogged(.respondToTrade(offerID: pending.offerID, accept: false), by: pending.acceptedBy)
         lastTradeOutcome = TradeOutcome(decisions: pending.decisions, acceptedBy: nil)
         try? GameStore.shared.save(state)
     }
@@ -313,7 +357,7 @@ public final class GameViewModel {
                 let bot = Bot(personality: personality(for: botPlayer))
                 move = bot.decide(for: state, player: botPlayer)
             }
-            try? RulesEngine.apply(move, by: botPlayer, to: &state)
+            try? applyLogged(move, by: botPlayer)
             try? GameStore.shared.save(state)
         }
         isBotThinking = false
