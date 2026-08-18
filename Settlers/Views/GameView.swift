@@ -75,7 +75,7 @@ private struct StableHeightSlot<Content: View>: View {
 /// knight-card robber move both happen inline on this same `BoardView` (see
 /// `isRobberTargetingActive`) rather than as a separate modal. Incoming bot
 /// trade offers surface as a small `IncomingTradeCardView` right above
-/// `HumanPlayerPanel`, with a 5-second accept window.
+/// `HumanPlayerPanel`, with a 6-second accept window.
 ///
 /// A roll used to also spawn small resource badges flying from each
 /// producing tile to the gaining player's HUD spot - dropped in favor of
@@ -278,31 +278,6 @@ public struct GameView: View {
         .onChange(of: isRobberTargetingActive) { _, isActive in
             if !isActive { robberTargetTile = nil }
         }
-        // A trade offer is only really "live" during the turn it showed
-        // up in - once the active player changes, it's stale from the
-        // human's perspective (they had their window and it passed), even
-        // though the offer itself may still sit in `state.pendingTradeOffers`
-        // for a bot to pick up on some later turn of its own. Clearing only
-        // the local queue here (not the engine-level offer) keeps that bot-
-        // to-bot path working untouched.
-        .onChange(of: activePlayerIndex) { _, _ in
-            incomingOfferQueue.removeAll()
-        }
-    }
-
-    /// The seat whose turn it currently is, or `nil` during `.discarding`
-    /// (no single active player) or once the game's over. Used purely to
-    /// notice when the turn has genuinely moved on, as opposed to every
-    /// phase transition within the same player's turn (e.g. rollDice ->
-    /// mainTurn, or mainTurn -> movingRobber -> mainTurn after a 7).
-    private var activePlayerIndex: Int? {
-        switch state.phase {
-        case .setupForward(let index), .setupBackward(let index),
-             .rollDice(let index), .mainTurn(let index), .movingRobber(let index):
-            return index
-        case .discarding, .gameOver:
-            return nil
-        }
     }
 
     /// Brief scale + rotation pulse so a dice roll reads as an event rather
@@ -482,13 +457,17 @@ public struct GameView: View {
             if isRobberTargetingActive {
                 robberTargetingPanel
             } else if let currentOffer = incomingOfferQueue.first {
-                // A bot only ever proposes a trade during its own turn (see
-                // `TradeHeuristics.proposeTrades`'s call site), which is
-                // exactly the window where Build/Trade/Roll-or-End are all
-                // inert for the human anyway - so this bar doing double duty
-                // as the incoming-offer card instead of a separate row above
-                // it costs nothing real: there's never a legal action this
-                // is standing in front of.
+                // Takes over this row for as long as the offer stays live
+                // (its own up-to-6s countdown, or until accepted/rejected) -
+                // including into the human's *own* turn if the proposing
+                // bot's turn ended before it resolved, since that's the
+                // only UI that can ever resolve a pending incoming offer
+                // (`TradePopupView` only ever proposes new trades, it
+                // doesn't surface existing `pendingTradeOffers`). Briefly
+                // gating Build/Trade/Roll-or-End behind resolving this first
+                // is an acceptable trade for that - it self-clears within
+                // the same window the fairness delay in
+                // `GameViewModel.waitForFairAcceptWindow` is built around.
                 IncomingTradeCardView(
                     offer: currentOffer,
                     onAccept: { respond(to: currentOffer, accept: true) },
