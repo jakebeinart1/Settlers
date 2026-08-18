@@ -8,13 +8,19 @@ import CatanEngine
 /// adds one unit to the "Want" slot. Tapping an item already in a slot moves
 /// it back out.
 ///
-/// There's no separate "Bank/Port mode" to switch into anymore - as soon as
-/// Give holds a single resource in a bank/port-eligible multiple (4 with no
-/// port, 3 on a generic port, 2 on that resource's own port), a bank/port
-/// trade card appears automatically below "Propose to Bots", offering to
-/// execute that same give pile as a bank trade instead. It defaults its
-/// "get" side to whatever's already in Want (falling back to any other
-/// resource), with a small menu to change it.
+/// There's no separate "Bank/Port mode" to switch into - Give/Want double
+/// as the bank trade's give/get piles too. As soon as they form a legal
+/// bank trade (every Give resource is a multiple of its own best rate, and
+/// the total converts exactly to Want's total - see `isValidBankTrade`), a
+/// "Trade with Bank" button lights up next to "Propose to Bots"; it stays in
+/// place either way so nothing shifts, and it fires `.bankTrade` with the
+/// same Give/Want dictionaries a player-to-player proposal would use,
+/// including mixed-resource piles (e.g. 4 brick + 4 wood -> 1 ore + 1 wheat)
+/// since `Trading.bankTrade` already validates and settles those per-
+/// resource. Below that, one fixed-height status slot always occupies the
+/// same space whether it's showing nothing, a pending-confirmation banner,
+/// an outcome banner, or an error - so a bot accepting/declining never
+/// reflows the rest of the card (see `statusRegion`).
 public struct TradePopupView: View {
     public let viewModel: GameViewModel
     public let onDismiss: () -> Void
@@ -26,9 +32,14 @@ public struct TradePopupView: View {
 
     @State private var give: [Resource: Int] = [:]
     @State private var want: [Resource: Int] = [:]
-    @State private var bankGetOverride: Resource?
     @State private var errorMessage: String?
     @State private var proposalOutcome: GameViewModel.TradeOutcome?
+
+    private static let bankGold = Color(red: 0.85, green: 0.68, blue: 0.32)
+    /// Tall enough to fit `pendingConfirmationBanner`, the largest of the
+    /// three things that can occupy `statusRegion` - reserved unconditionally
+    /// so the card never grows/shrinks when a bot responds.
+    private static let statusRegionHeight: CGFloat = 104
 
     private var human: Player? { viewModel.state.players.first { $0.id == viewModel.humanPlayer } }
 
@@ -41,15 +52,7 @@ public struct TradePopupView: View {
 
                 playerTradeCard
 
-                if let pendingConfirmation = viewModel.pendingTradeConfirmation {
-                    pendingConfirmationBanner(pendingConfirmation)
-                } else if let proposalOutcome {
-                    proposalOutcomeBanner(proposalOutcome)
-                }
-
-                if let bankSuggestion {
-                    bankSuggestionCard(bankSuggestion)
-                }
+                statusRegion
 
                 if let errorMessage {
                     Text(errorMessage)
@@ -61,7 +64,7 @@ public struct TradePopupView: View {
                     .buttonStyle(.bordered)
             }
             .padding(16)
-            .frame(maxWidth: 340)
+            .frame(maxWidth: 360)
         }
     }
 
@@ -98,25 +101,36 @@ public struct TradePopupView: View {
                 .foregroundStyle(.secondary)
             wantPalette
 
-            Button("Propose to Bots") {
-                let offer = TradeOffer(from: viewModel.humanPlayer, give: give, want: want)
-                proposalOutcome = nil
-                perform(.proposeTrade(offer))
-                // Every bot's willingness is evaluated synchronously inside
-                // `apply` (see `GameViewModel.resolveHumanProposedTrade`) -
-                // by the time `perform` returns above, either
-                // `pendingTradeConfirmation` is set (some bot would accept -
-                // `pendingConfirmationBanner` takes over below, and this
-                // proposal isn't actually applied until the human confirms
-                // it there) or, if nobody would, `lastTradeOutcome` already
-                // reflects that immediately. Neither applies if the
-                // proposal itself failed (`errorMessage` set instead).
-                if errorMessage == nil, viewModel.pendingTradeConfirmation == nil {
-                    proposalOutcome = viewModel.lastTradeOutcome
+            bankHint
+
+            HStack(spacing: 10) {
+                Button("Propose to Bots") {
+                    let offer = TradeOffer(from: viewModel.humanPlayer, give: give, want: want)
+                    proposalOutcome = nil
+                    perform(.proposeTrade(offer))
+                    // Every bot's willingness is evaluated synchronously inside
+                    // `apply` (see `GameViewModel.resolveHumanProposedTrade`) -
+                    // by the time `perform` returns above, either
+                    // `pendingTradeConfirmation` is set (some bot would accept -
+                    // `pendingConfirmationBanner` takes over below, and this
+                    // proposal isn't actually applied until the human confirms
+                    // it there) or, if nobody would, `lastTradeOutcome` already
+                    // reflects that immediately. Neither applies if the
+                    // proposal itself failed (`errorMessage` set instead).
+                    if errorMessage == nil, viewModel.pendingTradeConfirmation == nil {
+                        proposalOutcome = viewModel.lastTradeOutcome
+                    }
                 }
+                .buttonStyle(.borderedProminent)
+                .disabled(give.isEmpty || want.isEmpty)
+
+                Button("Trade with Bank") {
+                    perform(.bankTrade(give: give, get: want))
+                }
+                .buttonStyle(.borderedProminent)
+                .tint(Self.bankGold)
+                .disabled(!isValidBankTrade)
             }
-            .buttonStyle(.borderedProminent)
-            .disabled(give.isEmpty || want.isEmpty)
             .frame(maxWidth: .infinity)
         }
     }
@@ -137,7 +151,8 @@ public struct TradePopupView: View {
     }
 
     /// All five resources, tap to add one more unit into the Want slot (no
-    /// ownership constraint - you're asking someone else for it).
+    /// ownership constraint - you're asking someone else, or the bank, for
+    /// it).
     private var wantPalette: some View {
         HStack(spacing: 8) {
             ForEach(Resource.allCases, id: \.self) { resource in
@@ -148,7 +163,22 @@ public struct TradePopupView: View {
         }
     }
 
-    // MARK: - Trade confirmation
+    // MARK: - Status region (fixed height - see doc comment above)
+
+    @ViewBuilder
+    private var statusRegion: some View {
+        Group {
+            if let pendingConfirmation = viewModel.pendingTradeConfirmation {
+                pendingConfirmationBanner(pendingConfirmation)
+            } else if let proposalOutcome {
+                proposalOutcomeBanner(proposalOutcome)
+            } else {
+                Color.clear
+            }
+        }
+        .frame(maxWidth: .infinity)
+        .frame(height: Self.statusRegionHeight, alignment: .top)
+    }
 
     /// A bot said yes - shown instead of `proposalOutcomeBanner` until the
     /// human actually goes through with it (or backs out), so accepting a
@@ -209,10 +239,7 @@ public struct TradePopupView: View {
         .padding(.vertical, 8)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(Color.black.opacity(0.25), in: RoundedRectangle(cornerRadius: 10))
-        .transition(.opacity.combined(with: .move(edge: .top)))
     }
-
-    // MARK: - Trade proposal outcome
 
     /// Every bot's individual accept/reject answer, not just whoever ended
     /// up taking the offer - so it's clear this wasn't a black box.
@@ -245,114 +272,56 @@ public struct TradePopupView: View {
         .padding(.vertical, 8)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(Color.black.opacity(0.25), in: RoundedRectangle(cornerRadius: 10))
-        .transition(.opacity.combined(with: .move(edge: .top)))
     }
 
-    // MARK: - Automatic bank/port suggestion
+    // MARK: - Bank trade
 
     private func rate(for resource: Resource) -> Int {
         Trading.bestRate(for: resource, player: viewModel.humanPlayer, state: viewModel.state)
     }
 
-    private struct BankSuggestion {
-        let give: Resource
-        let giveCount: Int
-        let rate: Int
-        let get: Resource
-        var getCount: Int { giveCount / rate }
-    }
-
-    /// Non-nil exactly when Give is a single resource in a quantity that's
-    /// an exact multiple of that resource's bank/port rate - the only case
-    /// a bank/port trade could actually execute this Give pile as-is.
-    private var bankSuggestion: BankSuggestion? {
-        guard give.count == 1, let (resource, count) = give.first else { return nil }
-        let rate = rate(for: resource)
-        guard count > 0, count % rate == 0 else { return nil }
-
-        let overrideChoice = bankGetOverride != resource ? bankGetOverride : nil
-        let get = overrideChoice
-            ?? want.keys.first { $0 != resource }
-            ?? Resource.allCases.first { $0 != resource }
-        guard let get else { return nil }
-        return BankSuggestion(give: resource, giveCount: count, rate: rate, get: get)
-    }
-
-    private func bankSuggestionCard(_ suggestion: BankSuggestion) -> some View {
-        let bankGold = Color(red: 0.85, green: 0.68, blue: 0.32)
-
-        return VStack(alignment: .leading, spacing: 10) {
-            HStack(spacing: 6) {
-                Image(systemName: "building.columns.fill")
-                Text("Bank / Port trade available")
-                    .font(.caption.bold())
-                Spacer()
-                Text("\(suggestion.rate):1")
-                    .font(.caption2.bold())
-                    .foregroundStyle(.secondary)
-            }
-            .foregroundStyle(bankGold)
-
-            HStack(spacing: 12) {
-                bankResourceTile(suggestion.give, count: suggestion.giveCount)
-                Image(systemName: "arrow.right")
-                    .font(.caption.bold())
-                    .foregroundStyle(.secondary)
-                bankResourceTile(suggestion.get, count: suggestion.getCount)
-                    .overlay(Circle().strokeBorder(.white, lineWidth: 2))
-                Spacer(minLength: 0)
-            }
-
-            // Every other resource, tap to choose what to receive instead -
-            // a visible row of chips (matching how Give/Want are picked
-            // above) rather than a dropdown menu, so the choice itself is
-            // obvious rather than hidden behind a tap.
-            Text("Choose what to receive")
-                .font(.caption2)
-                .foregroundStyle(.secondary)
-            HStack(spacing: 8) {
-                ForEach(Resource.allCases.filter { $0 != suggestion.give }, id: \.self) { resource in
-                    Button {
-                        bankGetOverride = resource
-                    } label: {
-                        bankResourceTile(resource, count: nil)
-                            .overlay(
-                                Circle()
-                                    .strokeBorder(resource == suggestion.get ? bankGold : .clear, lineWidth: 2)
-                            )
-                    }
-                    .buttonStyle(.plain)
-                }
-            }
-
-            Button {
-                perform(.bankTrade(give: [suggestion.give: suggestion.giveCount], get: [suggestion.get: suggestion.getCount]))
-                bankGetOverride = nil
-            } label: {
-                Text("Trade with Bank/Port")
-                    .frame(maxWidth: .infinity)
-            }
-            .buttonStyle(.borderedProminent)
-            .tint(bankGold)
+    /// True exactly when the current Give/Want piles are a legal bank/port
+    /// trade as-is: every Give resource is offered in a whole multiple of
+    /// its own best rate, and those multiples convert to exactly Want's
+    /// total - the same rule `Trading.bankTrade` itself enforces, mirrored
+    /// here so the button can reflect it before it's tapped. Supports mixed
+    /// Give/Want piles (e.g. 4 brick + 4 wood -> 1 ore + 1 wheat) since it
+    /// checks each resource independently rather than requiring Give to be
+    /// a single resource.
+    private var isValidBankTrade: Bool {
+        guard !give.isEmpty, !want.isEmpty else { return false }
+        var convertedTotal = 0
+        for (resource, amount) in give {
+            let r = rate(for: resource)
+            guard r > 0, amount % r == 0 else { return false }
+            convertedTotal += amount / r
         }
-        .padding(12)
-        .background(RoundedRectangle(cornerRadius: 12).fill(bankGold.opacity(0.16)))
-        .overlay(RoundedRectangle(cornerRadius: 12).strokeBorder(bankGold.opacity(0.5), lineWidth: 1))
-        .transition(.opacity.combined(with: .scale(scale: 0.97)))
-        .animation(.spring(response: 0.3, dampingFraction: 0.8), value: suggestion.giveCount)
+        return convertedTotal == want.values.reduce(0, +)
     }
 
-    private func bankResourceTile(_ resource: Resource, count: Int?) -> some View {
-        ZStack {
-            Circle()
-                .fill(CatanTheme.color(for: resource))
-            if let count {
-                Text("\(count)")
-                    .font(.system(size: 12, weight: .bold))
-                    .foregroundStyle(.white)
-            }
+    /// A single-line, fixed-height hint under the palettes - shows the
+    /// player's current best rates while Give is empty, then tracks whether
+    /// the pile in progress is a legal bank trade yet. Always rendered (never
+    /// conditionally inserted/removed) so its own presence never shifts the
+    /// buttons below it.
+    private var bankHint: some View {
+        Text(bankHintText)
+            .font(.caption2)
+            .foregroundStyle(isValidBankTrade ? Self.bankGold : .secondary)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .frame(minHeight: 14)
+    }
+
+    private var bankHintText: String {
+        if give.isEmpty {
+            let rates = Resource.allCases.map { "\($0.rawValue.capitalized) \(rate(for: $0)):1" }
+            return "Bank rates: " + rates.joined(separator: " \u{00B7} ")
         }
-        .frame(width: 34, height: 34)
+        if isValidBankTrade {
+            let total = want.values.reduce(0, +)
+            return "Ready to trade with the bank for \(total) card\(total == 1 ? "" : "s")."
+        }
+        return "For a bank trade, each Give resource must be a multiple of its rate, matching Want's total."
     }
 
     private func perform(_ move: GameMove) {

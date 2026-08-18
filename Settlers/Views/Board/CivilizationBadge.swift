@@ -37,9 +37,17 @@ struct CivilizationBadge: View {
             ZStack {
                 // Behind the main silhouette, e.g. Greece's back wall
                 // between its columns - without it, that gap wasn't part
-                // of the fill at all and read as see-through.
+                // of the fill at all and read as see-through. Filled with
+                // the piece's own accent color (not plain white) so the
+                // wall matches the rest of the piece instead of reading as
+                // a lighter patch behind the columns, and stroked the same
+                // as the silhouette so the wall's left/right edges - the
+                // only edges nothing else in the shape already borders -
+                // get an outline too.
                 if let backing {
-                    backing.fill(.white)
+                    backing
+                        .fill(civilization.accentColor)
+                        .overlay(backing.stroke(.black, lineWidth: strokeWidth))
                 }
                 shape
                     .fill(civilization.accentColor)

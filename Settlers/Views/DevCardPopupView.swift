@@ -30,9 +30,15 @@ public struct DevCardPopupView: View {
         self.onCancel = onCancel
     }
 
-    @State private var yopFirst: Resource = .brick
-    @State private var yopSecond: Resource = .brick
-    @State private var monopolyResource: Resource = .brick
+    // Picks are counted dictionaries (like `TradePopupView`'s Give/Want)
+    // rather than plain `Resource?`/`(Resource, Resource)` state, so the
+    // same `ResourceSlotRow`/`ResourceChip` "dots" the trade view uses for
+    // Give/Want can display and un-pick them the same way - tap a dot below
+    // to add, tap it in the chosen row to take it back out. Year of Plenty
+    // allows picking the same resource twice, which a dictionary of counts
+    // represents naturally; Monopoly just caps its own dictionary at 1.
+    @State private var yopPicks: [Resource: Int] = [:]
+    @State private var monopolyPicks: [Resource: Int] = [:]
 
     public var body: some View {
         PopupCard(onDismiss: onCancel) {
@@ -56,14 +62,16 @@ public struct DevCardPopupView: View {
                         .foregroundStyle(.secondary)
                     confirmRow(title: "Play Road Building") { onPlayBoardCard(.roadBuilding) }
                 case .yearOfPlenty:
-                    HStack(spacing: 10) {
-                        resourcePicker("First", selection: $yopFirst)
-                        resourcePicker("Second", selection: $yopSecond)
+                    resourcePickerCard(title: "Choose 2 resources", picks: $yopPicks, limit: 2)
+                    confirmRow(title: "Play Year of Plenty", isEnabled: totalPicks(yopPicks) == 2) {
+                        let picked = expand(yopPicks)
+                        onPlayYearOfPlenty(picked[0], picked[1])
                     }
-                    confirmRow(title: "Play Year of Plenty") { onPlayYearOfPlenty(yopFirst, yopSecond) }
                 case .monopoly:
-                    resourcePicker("Resource", selection: $monopolyResource)
-                    confirmRow(title: "Play Monopoly") { onPlayMonopoly(monopolyResource) }
+                    resourcePickerCard(title: "Choose 1 resource", picks: $monopolyPicks, limit: 1)
+                    confirmRow(title: "Play Monopoly", isEnabled: totalPicks(monopolyPicks) == 1) {
+                        onPlayMonopoly(expand(monopolyPicks)[0])
+                    }
                 case .victoryPoint:
                     Text("Victory Point cards are never played - they just count toward your total.")
                         .font(.caption)
@@ -71,45 +79,54 @@ public struct DevCardPopupView: View {
                 }
             }
             .padding(16)
+            .frame(maxWidth: 340)
         }
     }
 
-    private func resourcePicker(_ label: String, selection: Binding<Resource>) -> some View {
-        VStack(spacing: 4) {
-            Text(label)
-                .font(.caption2)
+    // MARK: - Resource picker (Year of Plenty / Monopoly)
+
+    /// Same chosen-slot-plus-palette shape as `TradePopupView`'s Give/Want:
+    /// a `ResourceSlotRow` showing what's picked so far (tap a dot there to
+    /// un-pick it), then a row of all five resources to tap and add - capped
+    /// at `limit` total picks so Monopoly can't take more than one and Year
+    /// of Plenty can't take more than two.
+    private func resourcePickerCard(title: String, picks: Binding<[Resource: Int]>, limit: Int) -> some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text(title)
+                .font(.caption.bold())
                 .foregroundStyle(.secondary)
-            // `Picker(.menu)` only reliably renders `Text` as its collapsed
-            // button label - a bare `Circle()` (what this used to use, tagged
-            // per-option) renders fine inside the dropdown list but shows up
-            // blank as the button itself, which read as "the card I'm
-            // choosing is missing". `Menu` has no such built-in "show the
-            // selected value" behavior, so it never hits that renderer - we
-            // draw the selected swatch ourselves as the label instead.
-            Menu {
+            ResourceSlotRow(counts: picks.wrappedValue, emptyText: "Tap a resource below") { resource in
+                picks.wrappedValue[resource] = (picks.wrappedValue[resource] ?? 0) - 1
+                if picks.wrappedValue[resource] == 0 { picks.wrappedValue[resource] = nil }
+            }
+            HStack(spacing: 8) {
                 ForEach(Resource.allCases, id: \.self) { resource in
-                    Button {
-                        selection.wrappedValue = resource
-                    } label: {
-                        Label(resource.rawValue.capitalized, systemImage: "circle.fill")
-                            .foregroundStyle(CatanTheme.color(for: resource))
+                    let canAdd = totalPicks(picks.wrappedValue) < limit
+                    ResourceChip(resource: resource, count: nil, isEnabled: canAdd) {
+                        picks.wrappedValue[resource] = (picks.wrappedValue[resource] ?? 0) + 1
                     }
                 }
-            } label: {
-                Circle()
-                    .fill(CatanTheme.color(for: selection.wrappedValue))
-                    .frame(width: 20, height: 20)
-                    .overlay(Circle().strokeBorder(.white.opacity(0.4), lineWidth: 1))
             }
         }
     }
 
-    private func confirmRow(title: String, action: @escaping () -> Void) -> some View {
+    private func totalPicks(_ picks: [Resource: Int]) -> Int {
+        picks.values.reduce(0, +)
+    }
+
+    /// Flattens a counted-picks dictionary back into a plain list, e.g.
+    /// `[.brick: 2]` -> `[.brick, .brick]`.
+    private func expand(_ picks: [Resource: Int]) -> [Resource] {
+        picks.flatMap { resource, count in Array(repeating: resource, count: count) }
+    }
+
+    private func confirmRow(title: String, isEnabled: Bool = true, action: @escaping () -> Void) -> some View {
         HStack(spacing: 10) {
             Button("Cancel", role: .cancel, action: onCancel)
                 .buttonStyle(.bordered)
             Button(title, action: action)
                 .buttonStyle(.borderedProminent)
+                .disabled(!isEnabled)
         }
     }
 
