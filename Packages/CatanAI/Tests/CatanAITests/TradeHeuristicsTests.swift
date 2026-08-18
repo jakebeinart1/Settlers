@@ -174,3 +174,25 @@ import CatanEngine
 
     #expect(TradeHeuristics.bestBankTrade(state: state, player: player, personality: .balanced) == nil)
 }
+
+/// Regression test for player feedback: bots accepted trades "too easily" -
+/// most personalities' base threshold used to collapse straight to `0`
+/// (any net-positive deal, however razor-thin, cleared the old bar), rather
+/// than requiring a genuinely meaningful benefit. This specific case has
+/// netGain ~0.417: below `.aggressive`'s *old* threshold's complement
+/// (0.5 - 0.2 = 0.3, so it used to clear it) but above its *new* floor
+/// (max(0.4, 0.7 - 0.2*0.6) = 0.58, so it no longer does) - a marginal deal
+/// that flips from accept to reject under the fix.
+@Test func evaluateRequiresAMeaningfulBenefitNotJustAnyPositiveMargin() {
+    var state = GameSetup.newGame(board: BoardGenerator.standard())
+    let receiver = PlayerID(index: 0)
+    let proposer = PlayerID(index: 1)
+
+    // Settlement/devCard both already satisfied for ore/grain (1 each
+    // held) - only City still wants more of either, so ore and grain's
+    // values come solely from City's own (asymmetric) closeness there.
+    state.players[0].resources = [.brick: 1, .lumber: 1, .grain: 1, .wool: 1, .ore: 1]
+    let offer = TradeOffer(from: proposer, give: [.ore: 1], want: [.grain: 1])
+
+    #expect(!TradeHeuristics.evaluate(offer: offer, receiver: receiver, state: state, personality: .aggressive))
+}

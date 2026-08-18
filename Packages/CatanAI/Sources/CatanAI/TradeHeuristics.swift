@@ -46,28 +46,22 @@ public enum TradeHeuristics {
         return value
     }
 
-    /// Accepts `offer` if what `receiver` would gain (`offer.give`) is worth
-    /// more to their current build plan than what they'd give up
-    /// (`offer.want`), with the bar lowered the more trade-willing their
-    /// personality is - but never low enough to accept a net loss: a very
-    /// trade-willing bot takes even a slightly-favorable deal (netGain just
-    /// above 0), a reluctant one demands a clearly favorable one, but
-    /// nobody accepts a trade that actually leaves them worse off.
-    /// (`0.5 - tradeWillingness` used to go negative for high-willingness
-    /// personalities - e.g. -0.3 for `.cautious` - which meant they'd
-    /// accept a real net loss as long as it wasn't too big a one; clamping
-    /// the threshold at 0 was the fix.)
+    /// Accepts `offer` if what `receiver` would gain (`offer.give`) clears a
+    /// real, meaningfully-positive bar over what they'd give up
+    /// (`offer.want`) - the bar shifts with how trade-willing their
+    /// personality is (a more reluctant bot demands more), but every
+    /// personality requires *some* genuine benefit, not just any margin
+    /// above break-even. (A flat `0.5 - tradeWillingness`, clamped only at
+    /// `0`, used to mean most personalities accepted literally any
+    /// net-positive deal, however razor-thin - "bots accept trades too
+    /// easily" - since `tradeWillingness >= 0.5` collapsed the bar straight
+    /// to `0`. `max(0.4, 0.7 - tradeWillingness * 0.6)` keeps a floor no
+    /// personality's willingness can erase.)
     ///
     /// The threshold also shifts with how threatening `offer.from` is
     /// relative to `receiver`'s other opponents (see `ThreatAssessment`) -
     /// accepting hands them resources, so a proposal from an above-average
-    /// threat needs a correspondingly better deal to clear the bar. Added
-    /// rather than multiplied onto the base threshold: most personalities'
-    /// base threshold is already `0` (any net gain clears it), where a
-    /// multiplicative scale would have no effect at all - an additive shift
-    /// still raises the bar for a high-threat proposer even then, while
-    /// staying clamped at `0` overall so a below-average-threat proposer
-    /// never gets talked into a trade that's a real net loss.
+    /// threat needs a correspondingly better deal to clear the bar.
     public static func evaluate(offer: TradeOffer, receiver: PlayerID, state: GameState, personality: BotPersonality) -> Bool {
         guard let receiverPlayer = state.players.first(where: { $0.id == receiver }) else { return false }
 
@@ -80,7 +74,7 @@ public enum TradeHeuristics {
 
         let netGain = gainValue - costValue
         let proposerWeight = ThreatAssessment.relativeWeight(for: offer.from, excluding: receiver, in: state)
-        let baseThreshold = 0.5 - personality.tradeWillingness
+        let baseThreshold = max(0.4, 0.7 - personality.tradeWillingness * 0.6)
         let threatShift = (proposerWeight - 1.0) * 0.5
         let threshold = max(0, baseThreshold + threatShift)
         return netGain > threshold

@@ -456,7 +456,7 @@ public struct GameView: View {
         VStack(spacing: 8) {
             if isRobberTargetingActive {
                 robberTargetingPanel
-            } else if let currentOffer = incomingOfferQueue.first {
+            } else if let currentOffer = currentIncomingOffer {
                 // Takes over this row for as long as the offer stays live
                 // (its own up-to-6s countdown, or until accepted/rejected) -
                 // including into the human's *own* turn if the proposing
@@ -823,17 +823,49 @@ public struct GameView: View {
         // now - one between two bots that doesn't involve resources the
         // human holds shouldn't interrupt them at all; bots still trade
         // freely amongst themselves either way, this only affects what
-        // reaches this queue.
-        let humanResources = state.players.first(where: { $0.id == human })?.resources ?? [:]
-        func humanCanAfford(_ offer: TradeOffer) -> Bool {
-            offer.want.allSatisfy { resource, amount in (humanResources[resource] ?? 0) >= amount }
-        }
-
+        // reaches this queue. This is just the ingestion-time gate, not the
+        // whole story - see `currentIncomingOffer`, which re-checks
+        // continuously, since either side's resources (not just the
+        // human's) can change while an offer sits queued.
         for offer in state.pendingTradeOffers
-        where offer.from != human && !seenTradeOfferIDs.contains(offer.id) && humanCanAfford(offer) {
+        where offer.from != human && !seenTradeOfferIDs.contains(offer.id) && isOfferCurrentlyFulfillable(offer) {
             seenTradeOfferIDs.insert(offer.id)
             incomingOfferQueue.append(offer)
         }
+    }
+
+    /// The first queued offer that's still genuinely acceptable *right
+    /// now* - a pure, non-mutating scan re-evaluated on every render (this
+    /// view's `body` already re-renders on any relevant resource change,
+    /// since it reads `state.players` throughout), so a stale offer
+    /// disappears immediately rather than only the next time
+    /// `handleTradeOffersChange` happens to run. Skips past (rather than
+    /// removing) anything stale - `handleTradeOffersChange` is what
+    /// actually prunes the underlying queue, on its own trigger.
+    ///
+    /// Regression fix: the queue used to only check affordability once, at
+    /// the moment an offer first appeared - after that, neither the human
+    /// spending the wanted cards on something else, nor the *proposing*
+    /// bot spending what it offered (`offer.give`) before the human got to
+    /// it, ever un-queued an offer that had gone stale. Tapping Accept on
+    /// one then either silently failed via `Trading.respond`'s own
+    /// affordability re-check, or (worse) looked like it accepted nothing.
+    private var currentIncomingOffer: TradeOffer? {
+        incomingOfferQueue.first { isOfferCurrentlyFulfillable($0) }
+    }
+
+    /// Whether `offer` could actually go through right now - the human
+    /// currently holds `offer.want`, *and* the proposer still holds
+    /// `offer.give` (mirrors `Trading.respond`'s own re-check, so a card
+    /// shown to the human is always one `Trading.respond` will actually
+    /// honor).
+    private func isOfferCurrentlyFulfillable(_ offer: TradeOffer) -> Bool {
+        guard let proposer = state.players.first(where: { $0.id == offer.from }),
+              let responder = state.players.first(where: { $0.id == human })
+        else { return false }
+        let humanCanAfford = offer.want.allSatisfy { resource, amount in (responder.resources[resource] ?? 0) >= amount }
+        let proposerCanAfford = offer.give.allSatisfy { resource, amount in (proposer.resources[resource] ?? 0) >= amount }
+        return humanCanAfford && proposerCanAfford
     }
 
     private func respond(to offer: TradeOffer, accept: Bool) {
