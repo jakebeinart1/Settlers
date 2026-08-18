@@ -47,13 +47,24 @@ public struct IncomingTradeCardView: View {
                 // Colored dots instead of a resource-name sentence - reads
                 // at a glance instead of having to parse "3 brick, 1 wool"
                 // as text, matching how resources are shown everywhere else
-                // (HUD hand rows, the trade builder's own chips).
-                HStack(spacing: 6) {
-                    resourceDots(offer.give)
+                // (HUD hand rows, the trade builder's own chips). Explicit
+                // "Give"/"Get" labels (from the human's own perspective,
+                // since they're the one deciding) rather than a bare arrow
+                // between two dot groups - which of `offer.give`/`.want`
+                // meant "you give" vs. "you get" wasn't obvious at a
+                // glance.
+                HStack(spacing: 5) {
+                    Text("Give")
+                        .font(.system(size: 9, weight: .semibold))
+                        .foregroundStyle(.secondary)
+                    resourceDots(offer.want)
                     Image(systemName: "arrow.right")
                         .font(.system(size: 9, weight: .bold))
                         .foregroundStyle(.secondary)
-                    resourceDots(offer.want)
+                    Text("Get")
+                        .font(.system(size: 9, weight: .semibold))
+                        .foregroundStyle(.secondary)
+                    resourceDots(offer.give)
                 }
             }
 
