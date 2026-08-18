@@ -16,6 +16,7 @@ public struct SettingsView: View {
 
     @State private var settings = CivilizationSettingsStore.shared.load()
     @State private var playerName = PlayerNameStore.shared.load()
+    @State private var isShowingResetStatsConfirmation = false
 
     private var otherCivilizations: [Civilization] {
         Civilization.allCases.filter { $0 != settings.yourCivilization }
@@ -39,6 +40,7 @@ public struct SettingsView: View {
                         yourNameSection
                         yourCivilizationSection
                         botRosterSection
+                        resetStatsSection
                     }
                     .padding(.horizontal, 24)
                     .padding(.top, 8)
@@ -49,6 +51,18 @@ public struct SettingsView: View {
             }
         }
         .foregroundStyle(.white)
+        .confirmationDialog(
+            "Reset all stats?",
+            isPresented: $isShowingResetStatsConfirmation,
+            titleVisibility: .visible
+        ) {
+            Button("Reset Stats", role: .destructive) {
+                GameStatsStore.shared.clear()
+            }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("This clears your games played, win rate, and average VP/time. It can't be undone.")
+        }
     }
 
     private var header: some View {
@@ -165,6 +179,28 @@ public struct SettingsView: View {
                     .buttonStyle(.plain)
                 }
             }
+        }
+    }
+
+    // MARK: - Reset stats
+
+    private var resetStatsSection: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            Text("Stats")
+                .font(.headline)
+                .foregroundStyle(.white.opacity(0.8))
+
+            Button {
+                isShowingResetStatsConfirmation = true
+            } label: {
+                Text("Reset Stats")
+                    .font(.subheadline.bold())
+                    .foregroundStyle(.white)
+                    .frame(maxWidth: .infinity)
+                    .padding(12)
+                    .background(RoundedRectangle(cornerRadius: 10).fill(Color(white: 0.14)))
+            }
+            .buttonStyle(.plain)
         }
     }
 

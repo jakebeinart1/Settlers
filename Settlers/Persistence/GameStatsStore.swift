@@ -63,4 +63,10 @@ public struct GameStatsStore: Sendable {
         try? FileManager.default.createDirectory(at: directoryURL, withIntermediateDirectories: true)
         try? data.write(to: fileURL, options: .atomic)
     }
+
+    /// Wipes all recorded stats back to zero - `SettingsView`'s "Reset
+    /// Stats" action.
+    public func clear() {
+        try? FileManager.default.removeItem(at: fileURL)
+    }
 }
