@@ -16,7 +16,6 @@ public final class GameViewModel {
     /// "Randomize Seat" was on when `startNewGame` was called. Persisted via
     /// `HumanSeatStore` so a resumed game keeps the same seat.
     public private(set) var humanPlayer: PlayerID
-    public private(set) var isBotThinking: Bool = false
 
     /// What happened to the most recent trade the human proposed - `nil`
     /// until the first one. `TradePopupView` reads this right after calling
@@ -388,7 +387,6 @@ public final class GameViewModel {
         var actionsForCurrentBot = 0
 
         while let botPlayer = nextBotPlayer() {
-            isBotThinking = true
             try? await Task.sleep(for: .milliseconds(600))
 
             if botPlayer == currentBot {
@@ -412,7 +410,6 @@ public final class GameViewModel {
             try? applyLogged(move, by: botPlayer)
             try? GameStore.shared.save(state)
         }
-        isBotThinking = false
     }
 
     /// The bot that should act next, or `nil` if it's the human's turn or

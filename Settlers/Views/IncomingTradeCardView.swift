@@ -4,9 +4,12 @@ import CatanEngine
 /// Small card that slides in above `HumanPlayerPanel` when a bot proposes a
 /// trade to the human - replaces the old "wants to trade" toast (which just
 /// jumped to the trade sheet) with a self-contained Accept/Reject card and a
-/// 5-second countdown ring. The countdown only runs while the card is
-/// untouched; tapping anywhere on the card (to read it) pauses the timer so
-/// reviewing an offer never causes it to auto-decline out from under you.
+/// 10-second countdown ring (was 5s - every offer that reaches this card is
+/// already one the human can actually fulfill, see `GameView
+/// .handleTradeOffersChange`'s `humanCanAfford` filter, so it's worth a real
+/// look rather than a snap decision). The countdown only runs while the card
+/// is untouched; tapping anywhere on the card (to read it) pauses the timer
+/// so reviewing an offer never causes it to auto-decline out from under you.
 /// Timing out untouched counts as a Reject (`respondToTrade(accept: false)`).
 public struct IncomingTradeCardView: View {
     public let offer: TradeOffer
@@ -19,8 +22,8 @@ public struct IncomingTradeCardView: View {
         self.onReject = onReject
     }
 
-    private let totalSeconds: Double = 5
-    @State private var remaining: Double = 5
+    private let totalSeconds: Double = 10
+    @State private var remaining: Double = 10
     @State private var isPaused = false
     /// A monotonically increasing tick source (0.1s) rather than a single
     /// `Task.sleep(for: totalSeconds)`, so pausing on tap genuinely halts

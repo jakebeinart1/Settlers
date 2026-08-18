@@ -223,10 +223,6 @@ public struct GameView: View {
                     .padding(.top, 8)
             }
 
-            if viewModel.isBotThinking {
-                botThinkingOverlay
-            }
-
             if showBuildPopup {
                 BuildPopupView(viewModel: viewModel, placementMode: $placementMode, onDismiss: { showBuildPopup = false })
             }
@@ -329,8 +325,10 @@ public struct GameView: View {
 
     /// The board itself plus its overlaid chips (dice roll top-left,
     /// bank/deck counts + `pauseButton` top-right) - pulled out of `body`
-    /// into its own property for the same type-checker-timeout reason as
-    /// `botThinkingOverlay` below.
+    /// into its own property since `body`'s single expression got large
+    /// enough to push the SwiftUI type-checker over its time limit;
+    /// splitting large ViewBuilder bodies into named subexpressions like
+    /// this is the standard fix.
     private var boardArea: some View {
         // Back to overlaying the board's top-left corner (not its own row)
         // - that reclaims the whole row's height for the board. It used to
@@ -381,26 +379,6 @@ public struct GameView: View {
             }
             .padding(8)
         }
-    }
-
-    /// Pulled out of `body` into its own property (rather than inline) -
-    /// `body`'s single expression got large enough that adding one more
-    /// argument to a nested view call elsewhere in it (`HumanPlayerPanel`'s
-    /// new `human:` parameter) pushed the type-checker over its time limit.
-    /// Splitting large ViewBuilder bodies into named subexpressions like
-    /// this is the standard fix.
-    private var botThinkingOverlay: some View {
-        VStack {
-            Text("Bot thinking…")
-                .font(.caption.bold())
-                .padding(.horizontal, 12)
-                .padding(.vertical, 6)
-                .background(Color.black.opacity(0.7), in: Capsule())
-                .foregroundStyle(.white)
-                .padding(.top, 8)
-            Spacer()
-        }
-        .allowsHitTesting(false)
     }
 
     /// Stacked directly beneath `deckCountChip` in the board's top-trailing
