@@ -4,13 +4,16 @@ import CatanEngine
 /// Small card that slides in above `HumanPlayerPanel` when a bot proposes a
 /// trade to the human - replaces the old "wants to trade" toast (which just
 /// jumped to the trade sheet) with a self-contained Accept/Reject card and a
-/// 10-second countdown ring (was 5s - every offer that reaches this card is
-/// already one the human can actually fulfill, see `GameView
-/// .handleTradeOffersChange`'s `humanCanAfford` filter, so it's worth a real
-/// look rather than a snap decision). The countdown only runs while the card
-/// is untouched; tapping anywhere on the card (to read it) pauses the timer
-/// so reviewing an offer never causes it to auto-decline out from under you.
-/// Timing out untouched counts as a Reject (`respondToTrade(accept: false)`).
+/// 6-second countdown ring. Every offer that reaches this card is already
+/// one the human can actually fulfill (see `GameView
+/// .handleTradeOffersChange`'s `humanCanAfford` filter), and
+/// `GameViewModel.waitForFairAcceptWindow` holds any other bot back from
+/// accepting the same offer for a randomized 2-4s, so 6s leaves real
+/// decide-and-tap time even in the worst case. The countdown only runs
+/// while the card is untouched; tapping anywhere on the card (to read it)
+/// pauses the timer so reviewing an offer never causes it to auto-decline
+/// out from under you. Timing out untouched counts as a Reject
+/// (`respondToTrade(accept: false)`).
 public struct IncomingTradeCardView: View {
     public let offer: TradeOffer
     public let onAccept: () -> Void
@@ -22,8 +25,8 @@ public struct IncomingTradeCardView: View {
         self.onReject = onReject
     }
 
-    private let totalSeconds: Double = 10
-    @State private var remaining: Double = 10
+    private let totalSeconds: Double = 6
+    @State private var remaining: Double = 6
     @State private var isPaused = false
     /// A monotonically increasing tick source (0.1s) rather than a single
     /// `Task.sleep(for: totalSeconds)`, so pausing on tap genuinely halts

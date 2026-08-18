@@ -60,6 +60,18 @@ public final class GameViewModel {
     /// rather than a bug.
     private var currentGameLogID: UUID
 
+    /// When each currently-pending trade offer was first proposed -
+    /// `TradeOffer` itself carries no timestamp, so this is tracked
+    /// separately. Used by `runBotTurnIfNeeded` to hold off a bot accepting
+    /// someone else's offer for a randomized 2-4s (real Catan only lets you
+    /// act on your own turn, but a bot's turn arriving right after the
+    /// proposal - with none of the human's read-and-decide time - would
+    /// otherwise let it snap up an offer shown to the human before they've
+    /// had any real chance at it). Populated in `applyLogged` on every
+    /// `.proposeTrade`; pruned there too once an offer leaves
+    /// `state.pendingTradeOffers` (accepted, rejected, or otherwise gone).
+    private var offerProposedAt: [UUID: Date] = [:]
+
     /// Foreground time banked so far this game (from previous active spans,
     /// each ended by `appWillResignActive`), plus `activeSince` (when the
     /// current active span began, `nil` while backgrounded) - together these
@@ -158,6 +170,12 @@ public final class GameViewModel {
 
         try RulesEngine.apply(move, by: player, to: &state)
         GameLogStore.shared.appendMove(gameID: currentGameLogID, player: player, move: move)
+
+        if case .proposeTrade(let offer) = move {
+            offerProposedAt[offer.id] = Date()
+        }
+        let stillPending = Set(state.pendingTradeOffers.map(\.id))
+        offerProposedAt = offerProposedAt.filter { stillPending.contains($0.key) }
 
         if !wasGameOver, case .gameOver(let winner) = state.phase {
             GameLogStore.shared.finalizeGame(gameID: currentGameLogID, winner: winner)
@@ -407,9 +425,28 @@ public final class GameViewModel {
                 let bot = Bot(personality: personality(for: botPlayer))
                 move = bot.decide(for: state, player: botPlayer)
             }
+            await waitForFairAcceptWindow(before: move)
             try? applyLogged(move, by: botPlayer)
             try? GameStore.shared.save(state)
         }
+    }
+
+    /// Holds off applying `move` if it's a bot accepting someone *else's*
+    /// still-open trade offer, until a randomized 2-4s have passed since
+    /// that offer was first proposed (see `offerProposedAt`'s doc) - real
+    /// Catan only lets you act on your own turn, and without this, a bot
+    /// whose turn happens to fall right after the proposal could snap up an
+    /// offer the human's card is still showing, with none of the human's
+    /// read-and-decide time. A no-op for every other move (declines,
+    /// proposals, builds, etc. all go through immediately).
+    private func waitForFairAcceptWindow(before move: GameMove) async {
+        guard case .respondToTrade(let offerID, true) = move,
+              let proposedAt = offerProposedAt[offerID]
+        else { return }
+        let targetDelay = Double.random(in: 2...4)
+        let elapsed = Date().timeIntervalSince(proposedAt)
+        guard elapsed < targetDelay else { return }
+        try? await Task.sleep(for: .seconds(targetDelay - elapsed))
     }
 
     /// The bot that should act next, or `nil` if it's the human's turn or
