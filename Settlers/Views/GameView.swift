@@ -176,60 +176,10 @@ public struct GameView: View {
             // is added explicitly with `.padding(.bottom:)` only where it's
             // actually wanted, instead of uniformly.
             VStack(spacing: 0) {
-                BotHUDRow(state: state)
+                BotHUDRow(state: state, human: human)
                     .padding(.bottom, 3)
 
-                // Back to overlaying the board's top-left corner (not its
-                // own row) - that reclaims the whole row's height for the
-                // board. It used to sit in the bottom-left corner
-                // specifically, which is where it kept colliding with the
-                // incoming trade card and other inline banners below the
-                // board; the top-left corner is never where any of that
-                // renders, so nothing to collide with up here even though
-                // it's overlapping board content.
-                ZStack(alignment: .topLeading) {
-                    BoardView(
-                        state: state,
-                        onTapVertex: handleTapVertex,
-                        onTapEdge: handleTapEdge,
-                        onTapTile: handleTapTile,
-                        highlightedVertices: highlightedVertices,
-                        highlightedEdges: highlightedEdges,
-                        isPlacementModeActive: isPlacementModeActive || isRobberTargetingActive,
-                        highlightedTiles: highlightedTilesForRobber,
-                        isTileTargetingActive: isRobberTargetingActive,
-                        rollHighlightTiles: rollHighlightTiles
-                    )
-                    // A hair of top clearance - the outermost hex row's own
-                    // ports (top-right in particular) sat close enough to
-                    // the top edge to graze the dice/deck chips overlaid up
-                    // there. `BoardView` re-fits and re-centers itself
-                    // within whatever height it's given, so this nudges the
-                    // whole hex grid down slightly rather than requiring the
-                    // chips to shrink or move.
-                    .padding(.top, 18)
-
-                    if let roll = state.lastDiceRoll {
-                        diceChip(roll)
-                            .padding(8)
-                    }
-                }
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .clipShape(RoundedRectangle(cornerRadius: 12))
-                // Top-right corner, the same `.padding(8)` as the dice chip
-                // so the two sit flush on one shared top line - the bank's
-                // per-resource remaining counts and the dev-card deck's
-                // remaining count, the same two piles a physical Catan board
-                // keeps face-down next to the board itself. `pauseButton`
-                // stacks directly beneath, in the same corner rather than
-                // top-left (out of the way of `BotHUDRow`'s chips).
-                .overlay(alignment: .topTrailing) {
-                    VStack(alignment: .trailing, spacing: 6) {
-                        deckCountChip
-                        pauseButton
-                    }
-                    .padding(8)
-                }
+                boardArea
 
                 // The road-building hint and a build/move error share one
                 // slot (see `StableHeightSlot`) - the incoming-trade card
@@ -267,24 +217,14 @@ public struct GameView: View {
                 // against the banner slot above it (board -> banner ->
                 // here reads as one continuous stack, not three separate
                 // boxes with gaps between them).
-                HumanPlayerPanel(state: state, onTapDevCard: { devCardPopupType = $0 })
+                HumanPlayerPanel(state: state, human: human, onTapDevCard: { devCardPopupType = $0 })
 
                 bottomPanel
                     .padding(.top, 8)
             }
 
             if viewModel.isBotThinking {
-                VStack {
-                    Text("Bot thinking…")
-                        .font(.caption.bold())
-                        .padding(.horizontal, 12)
-                        .padding(.vertical, 6)
-                        .background(Color.black.opacity(0.7), in: Capsule())
-                        .foregroundStyle(.white)
-                        .padding(.top, 8)
-                    Spacer()
-                }
-                .allowsHitTesting(false)
+                botThinkingOverlay
             }
 
             if showBuildPopup {
@@ -315,7 +255,7 @@ public struct GameView: View {
         }
         .confirmationDialog("Game Menu", isPresented: $isShowingPauseMenu, titleVisibility: .visible) {
             Button("Restart Game", role: .destructive) {
-                viewModel.startNewGame(randomizedBoard: false)
+                viewModel.startNewGame(randomizedBoard: false, randomizeSeat: false)
             }
             Button("Main Menu", role: .destructive) {
                 onExitToMenu()
@@ -385,6 +325,82 @@ public struct GameView: View {
             diceScale = 1.0
             diceRotation = 0
         }
+    }
+
+    /// The board itself plus its overlaid chips (dice roll top-left,
+    /// bank/deck counts + `pauseButton` top-right) - pulled out of `body`
+    /// into its own property for the same type-checker-timeout reason as
+    /// `botThinkingOverlay` below.
+    private var boardArea: some View {
+        // Back to overlaying the board's top-left corner (not its own row)
+        // - that reclaims the whole row's height for the board. It used to
+        // sit in the bottom-left corner specifically, which is where it
+        // kept colliding with the incoming trade card and other inline
+        // banners below the board; the top-left corner is never where any
+        // of that renders, so nothing to collide with up here even though
+        // it's overlapping board content.
+        ZStack(alignment: .topLeading) {
+            BoardView(
+                state: state,
+                onTapVertex: handleTapVertex,
+                onTapEdge: handleTapEdge,
+                onTapTile: handleTapTile,
+                highlightedVertices: highlightedVertices,
+                highlightedEdges: highlightedEdges,
+                isPlacementModeActive: isPlacementModeActive || isRobberTargetingActive,
+                highlightedTiles: highlightedTilesForRobber,
+                isTileTargetingActive: isRobberTargetingActive,
+                rollHighlightTiles: rollHighlightTiles
+            )
+            // A hair of top clearance - the outermost hex row's own ports
+            // (top-right in particular) sat close enough to the top edge to
+            // graze the dice/deck chips overlaid up there. `BoardView`
+            // re-fits and re-centers itself within whatever height it's
+            // given, so this nudges the whole hex grid down slightly rather
+            // than requiring the chips to shrink or move.
+            .padding(.top, 18)
+
+            if let roll = state.lastDiceRoll {
+                diceChip(roll)
+                    .padding(8)
+            }
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .clipShape(RoundedRectangle(cornerRadius: 12))
+        // Top-right corner, the same `.padding(8)` as the dice chip so the
+        // two sit flush on one shared top line - the bank's per-resource
+        // remaining counts and the dev-card deck's remaining count, the
+        // same two piles a physical Catan board keeps face-down next to the
+        // board itself. `pauseButton` stacks directly beneath, in the same
+        // corner rather than top-left (out of the way of `BotHUDRow`'s
+        // chips).
+        .overlay(alignment: .topTrailing) {
+            VStack(alignment: .trailing, spacing: 6) {
+                deckCountChip
+                pauseButton
+            }
+            .padding(8)
+        }
+    }
+
+    /// Pulled out of `body` into its own property (rather than inline) -
+    /// `body`'s single expression got large enough that adding one more
+    /// argument to a nested view call elsewhere in it (`HumanPlayerPanel`'s
+    /// new `human:` parameter) pushed the type-checker over its time limit.
+    /// Splitting large ViewBuilder bodies into named subexpressions like
+    /// this is the standard fix.
+    private var botThinkingOverlay: some View {
+        VStack {
+            Text("Bot thinking…")
+                .font(.caption.bold())
+                .padding(.horizontal, 12)
+                .padding(.vertical, 6)
+                .background(Color.black.opacity(0.7), in: Capsule())
+                .foregroundStyle(.white)
+                .padding(.top, 8)
+            Spacer()
+        }
+        .allowsHitTesting(false)
     }
 
     /// Stacked directly beneath `deckCountChip` in the board's top-trailing

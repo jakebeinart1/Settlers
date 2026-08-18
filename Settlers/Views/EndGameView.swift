@@ -9,14 +9,14 @@ import CatanEngine
 /// `ContentView` via `onNewGame`.
 public struct EndGameView: View {
     public let state: GameState
+    public let human: PlayerID
     public let onNewGame: () -> Void
 
-    public init(state: GameState, onNewGame: @escaping () -> Void) {
+    public init(state: GameState, human: PlayerID, onNewGame: @escaping () -> Void) {
         self.state = state
+        self.human = human
         self.onNewGame = onNewGame
     }
-
-    private let human = PlayerID(index: 0)
 
     private var winner: PlayerID? {
         if case .gameOver(let winner) = state.phase { return winner }
@@ -108,6 +108,7 @@ public struct EndGameView: View {
 #Preview {
     EndGameView(
         state: GameSetup.newGame(board: BoardGenerator.standard()),
+        human: PlayerID(index: 0),
         onNewGame: {}
     )
 }

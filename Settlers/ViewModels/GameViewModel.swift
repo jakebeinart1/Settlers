@@ -12,7 +12,10 @@ import CatanAI
 @Observable
 public final class GameViewModel {
     public private(set) var state: GameState
-    public let humanPlayer = PlayerID(index: 0)
+    /// Which seat the human occupies this game - always index 0 unless
+    /// "Randomize Seat" was on when `startNewGame` was called. Persisted via
+    /// `HumanSeatStore` so a resumed game keeps the same seat.
+    public private(set) var humanPlayer: PlayerID
     public private(set) var isBotThinking: Bool = false
 
     /// What happened to the most recent trade the human proposed - `nil`
@@ -62,30 +65,38 @@ public final class GameViewModel {
 
     public init() {
         let initialState: GameState
+        let seat: PlayerID
         if let saved = GameStore.shared.load() {
             initialState = saved
-            // A resumed game keeps whichever civilizations it was dealt,
-            // read back from disk rather than re-randomized - falls back to
-            // a fresh draw if the assignment file is missing/corrupt (e.g.
-            // a save from before this file existed) so the board still has
-            // *some* consistent lineup instead of `CivilizationAssignment`'s
-            // bare default.
+            // A resumed game keeps whichever seat/civilizations it was
+            // dealt, read back from disk rather than re-randomized - falls
+            // back to seat 0 / a fresh civilization draw if either file is
+            // missing/corrupt (e.g. a save from before these existed) so
+            // the game still has *some* consistent lineup instead of the
+            // bare defaults.
+            seat = HumanSeatStore.shared.load()
             CivilizationAssignment.current = CivilizationAssignmentStore.shared.load()
-                ?? Self.drawAssignment(from: CivilizationSettingsStore.shared.load())
+                ?? Self.drawAssignment(from: CivilizationSettingsStore.shared.load(), humanSeat: seat)
         } else {
             initialState = GameSetup.newGame(board: BoardGenerator.standard())
+            seat = PlayerID(index: 0)
         }
+        CivilizationAssignment.humanSeat = seat
         // `@Observable` requires every stored property assigned before
         // `self` (including `self.state`) can be read - `GameLogStore`
         // reads `initialState` (the local), never `self.state`, to stay
         // fully assign-before-read through this initializer.
         state = initialState
+        humanPlayer = seat
         currentGameLogID = GameLogStore.shared.startNewGame(initialState: initialState)
         gameStartedAt = Date()
     }
 
     /// Starts a fresh game, discarding whatever `state` currently holds.
-    public func startNewGame(randomizedBoard: Bool) {
+    /// `randomizeSeat` picks a random seat (0-3) for the human instead of
+    /// always seat 0 - covers both draft order and regular turn order,
+    /// since both are driven by the same seat rotation in this engine.
+    public func startNewGame(randomizedBoard: Bool, randomizeSeat: Bool) {
         let board = randomizedBoard
             ? BoardGenerator.randomized(seed: UInt64.random(in: .min ... .max))
             : BoardGenerator.standard()
@@ -93,7 +104,11 @@ public final class GameViewModel {
         currentGameLogID = GameLogStore.shared.startNewGame(initialState: state)
         gameStartedAt = Date()
 
-        let assignment = Self.drawAssignment(from: CivilizationSettingsStore.shared.load())
+        humanPlayer = randomizeSeat ? PlayerID(index: Int.random(in: 0...3)) : PlayerID(index: 0)
+        CivilizationAssignment.humanSeat = humanPlayer
+        HumanSeatStore.shared.save(humanPlayer)
+
+        let assignment = Self.drawAssignment(from: CivilizationSettingsStore.shared.load(), humanSeat: humanPlayer)
         CivilizationAssignment.current = assignment
         try? CivilizationAssignmentStore.shared.save(assignment)
 
@@ -124,18 +139,19 @@ public final class GameViewModel {
         }
     }
 
-    /// Seat 0 = the player's chosen civilization; seats 1-3 = 3 distinct
-    /// random draws from their included bot roster (falling back to every
-    /// other civilization if, somehow, fewer than 3 are included - e.g. a
-    /// corrupt settings value that skipped `SettingsView`'s minimum-3
-    /// enforcement).
-    private static func drawAssignment(from settings: CivilizationSettings) -> [Civilization] {
+    /// `humanSeat` = the player's chosen civilization; the other 3 seats
+    /// (in seat order) = 3 distinct random draws from their included bot
+    /// roster (falling back to every other civilization if, somehow, fewer
+    /// than 3 are included - e.g. a corrupt settings value that skipped
+    /// `SettingsView`'s minimum-3 enforcement).
+    private static func drawAssignment(from settings: CivilizationSettings, humanSeat: PlayerID) -> [Civilization] {
         var botPool = settings.includedBotCivilizations.subtracting([settings.yourCivilization])
         if botPool.count < CivilizationSettings.minimumIncludedBots {
             botPool = Set(Civilization.allCases).subtracting([settings.yourCivilization])
         }
-        let bots = Array(botPool).shuffled().prefix(3)
-        return [settings.yourCivilization] + bots
+        var assignment = Array(Array(botPool).shuffled().prefix(3))
+        assignment.insert(settings.yourCivilization, at: humanSeat.index)
+        return assignment
     }
 
     /// Applies a human move, persists the result, and lets any subsequent
@@ -384,11 +400,17 @@ public final class GameViewModel {
         }
     }
 
+    /// Ranked by seat order *among the 3 bot seats* (not raw seat index) -
+    /// with "Randomize Seat" on, the human can occupy any of the 4 seats,
+    /// and this keeps the same balanced/aggressive/cautious mix regardless
+    /// of which one, rather than that mix silently shrinking to 2 bots
+    /// whenever the human isn't sitting in seat 0.
     private func personality(for player: PlayerID) -> BotPersonality {
-        switch player.index {
-        case 1: return .balanced
-        case 2: return .aggressive
-        case 3: return .cautious
+        let botSeatsInOrder = (0...3).filter { $0 != humanPlayer.index }
+        switch botSeatsInOrder.firstIndex(of: player.index) {
+        case 0: return .balanced
+        case 1: return .aggressive
+        case 2: return .cautious
         default: return .balanced
         }
     }

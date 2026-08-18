@@ -145,9 +145,15 @@ public enum Civilization: String, CaseIterable, Sendable, Codable {
 /// `@MainActor` down through every nonisolated helper property that reads
 /// `Civilization.forSeat`/`CatanTheme.color(for: player:)` indirectly.
 public enum CivilizationAssignment {
-    /// Seat 0 = human, matching `GameViewModel.humanPlayer`. Defaults to the
-    /// original fixed lineup so anything that reads this before
-    /// `GameViewModel` has run (previews, tests) still gets a sensible
-    /// answer instead of a crash. Only `GameViewModel` ever writes here.
+    /// The human's seat within `current` - defaults to seat 0 (the fixed
+    /// assumption before "Randomize Seat" existed), but not necessarily
+    /// index 0 once that toggle picks a different one. Kept in step with
+    /// `GameViewModel.humanPlayer`; only `GameViewModel` ever writes here.
+    public nonisolated(unsafe) static var humanSeat: PlayerID = PlayerID(index: 0)
+
+    /// Defaults to the original fixed lineup (human at seat 0) so anything
+    /// that reads this before `GameViewModel` has run (previews, tests)
+    /// still gets a sensible answer instead of a crash. Only
+    /// `GameViewModel` ever writes here.
     public nonisolated(unsafe) static var current: [Civilization] = [.medieval, .greece, .egypt, .aztec]
 }

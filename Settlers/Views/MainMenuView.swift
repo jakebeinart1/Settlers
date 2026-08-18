@@ -4,20 +4,26 @@ import CatanEngine
 /// Title screen: flat colonist.io-style branding for "Empires" (the app's
 /// display name - the underlying Xcode project/module is still named
 /// `Settlers`, a deliberately untouched implementation detail), a
-/// randomized-board toggle, "New Game", and (only when a save exists)
-/// "Resume Game". `onStart` receives the randomized-board toggle's value
-/// when the player taps "New Game"; `ContentView` is responsible for
-/// actually calling `GameViewModel.startNewGame(randomizedBoard:)`.
+/// randomized-board toggle, a randomize-seat toggle, "New Game", and (only
+/// when a save exists) "Resume Game". `onStart` receives both toggles'
+/// values when the player taps "New Game"; `ContentView` is responsible for
+/// actually calling
+/// `GameViewModel.startNewGame(randomizedBoard:randomizeSeat:)`.
 public struct MainMenuView: View {
-    public let onStart: (Bool) -> Void
+    public let onStart: (Bool, Bool) -> Void
     public let onResume: () -> Void
 
-    public init(onStart: @escaping (Bool) -> Void, onResume: @escaping () -> Void) {
+    public init(onStart: @escaping (Bool, Bool) -> Void, onResume: @escaping () -> Void) {
         self.onStart = onStart
         self.onResume = onResume
     }
 
     @State private var randomizedBoard = false
+    // Off by default rather than on: always going first is what prompted
+    // this toggle, but changing the *default* experience for existing
+    // players without asking felt like a bigger call than adding the
+    // option - this stays opt-in until there's a reason to flip it.
+    @State private var randomizeSeat = false
     @State private var isShowingSettings = false
 
     private var hasSavedGame: Bool {
@@ -69,8 +75,15 @@ public struct MainMenuView: View {
                     .tint(CatanTheme.color(for: Resource.wool))
                     .padding(.horizontal, 40)
 
+                    Toggle(isOn: $randomizeSeat) {
+                        Text("Randomize Seat")
+                            .foregroundStyle(.white)
+                    }
+                    .tint(CatanTheme.color(for: Resource.wool))
+                    .padding(.horizontal, 40)
+
                     Button {
-                        onStart(randomizedBoard)
+                        onStart(randomizedBoard, randomizeSeat)
                     } label: {
                         Text("New Game")
                             .font(.title3.bold())
@@ -168,5 +181,5 @@ public struct MainMenuView: View {
 }
 
 #Preview {
-    MainMenuView(onStart: { _ in }, onResume: {})
+    MainMenuView(onStart: { _, _ in }, onResume: {})
 }

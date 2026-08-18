@@ -18,16 +18,23 @@ struct ContentView: View {
     var body: some View {
         Group {
             if case .gameOver = viewModel.state.phase, hasStartedThisSession {
-                EndGameView(state: viewModel.state) {
+                EndGameView(state: viewModel.state, human: viewModel.humanPlayer) {
                     hasStartedThisSession = false
                 }
             } else if hasStartedThisSession {
                 GameView(viewModel: viewModel, onExitToMenu: { hasStartedThisSession = false })
             } else {
                 MainMenuView(
-                    onStart: { randomizedBoard in
-                        viewModel.startNewGame(randomizedBoard: randomizedBoard)
+                    onStart: { randomizedBoard, randomizeSeat in
+                        viewModel.startNewGame(randomizedBoard: randomizedBoard, randomizeSeat: randomizeSeat)
                         hasStartedThisSession = true
+                        // With "Randomize Seat" on, seat 0 (where setup
+                        // always starts) may now be a bot rather than the
+                        // human - without this, nothing would ever kick off
+                        // its first move. Harmless when the human *is* seat
+                        // 0: `runBotTurnIfNeeded` is a fast no-op whenever
+                        // it's already the human's turn.
+                        Task { await viewModel.runBotTurnIfNeeded() }
                     },
                     onResume: {
                         hasStartedThisSession = true

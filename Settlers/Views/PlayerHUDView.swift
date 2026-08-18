@@ -12,12 +12,12 @@ import CatanEngine
 /// information that's legitimately hidden even in a casual game.
 public struct BotHUDRow: View {
     public let state: GameState
+    public let human: PlayerID
 
-    public init(state: GameState) {
+    public init(state: GameState, human: PlayerID) {
         self.state = state
+        self.human = human
     }
-
-    private let human = PlayerID(index: 0)
 
     public var body: some View {
         HStack(spacing: 8) {
@@ -35,14 +35,14 @@ public struct BotHUDRow: View {
 /// `GameView` can open `DevCardPopupView` for it.
 public struct HumanPlayerPanel: View {
     public let state: GameState
+    public let human: PlayerID
     public let onTapDevCard: (DevCardType) -> Void
 
-    public init(state: GameState, onTapDevCard: @escaping (DevCardType) -> Void) {
+    public init(state: GameState, human: PlayerID, onTapDevCard: @escaping (DevCardType) -> Void) {
         self.state = state
+        self.human = human
         self.onTapDevCard = onTapDevCard
     }
-
-    private let human = PlayerID(index: 0)
 
     /// Held dev card types (with count + "new"/unplayable-this-turn count),
     /// in a fixed display order - mirrors the old `DevCardPanelView.rows`.
@@ -567,8 +567,8 @@ enum PlayerChip {
 
 #Preview {
     VStack {
-        BotHUDRow(state: GameSetup.newGame(board: BoardGenerator.standard()))
-        HumanPlayerPanel(state: GameSetup.newGame(board: BoardGenerator.standard()), onTapDevCard: { _ in })
+        BotHUDRow(state: GameSetup.newGame(board: BoardGenerator.standard()), human: PlayerID(index: 0))
+        HumanPlayerPanel(state: GameSetup.newGame(board: BoardGenerator.standard()), human: PlayerID(index: 0), onTapDevCard: { _ in })
     }
     .padding()
     .background(Color.black)
