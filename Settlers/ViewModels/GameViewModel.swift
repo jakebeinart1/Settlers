@@ -53,15 +53,45 @@ public final class GameViewModel {
     }
     public private(set) var pendingTradeConfirmation: PendingTradeConfirmation?
 
-    /// The `GameLogStore` file this session's moves are being appended to,
-    /// and when this session started tracking the current game - both
+    /// The `GameLogStore` file this session's moves are being appended to -
     /// (re)set alongside `state` in `init()`/`startNewGame(randomizedBoard:)`.
     /// A game resumed from `GameStore` after an app relaunch starts a *new*
-    /// log segment and a fresh duration clock rather than continuing the
-    /// pre-relaunch one - see the design doc's Non-goals for why that's an
-    /// accepted simplification rather than a bug.
+    /// log segment rather than continuing the pre-relaunch one - see the
+    /// design doc's Non-goals for why that's an accepted simplification
+    /// rather than a bug.
     private var currentGameLogID: UUID
-    private var gameStartedAt: Date
+
+    /// Foreground time banked so far this game (from previous active spans,
+    /// each ended by `appWillResignActive`), plus `activeSince` (when the
+    /// current active span began, `nil` while backgrounded) - together these
+    /// track actual time spent *playing*, for `GameStatsStore`'s "average
+    /// game time" stat, rather than wall-clock time since the game started,
+    /// which would also count time the app spent backgrounded/locked.
+    private var accumulatedActiveDuration: TimeInterval = 0
+    private var activeSince: Date?
+
+    /// The full elapsed foreground time this game, as of right now.
+    private var currentGameDuration: TimeInterval {
+        accumulatedActiveDuration + (activeSince.map { Date().timeIntervalSince($0) } ?? 0)
+    }
+
+    /// Resumes the active-time clock - called from `ContentView` on
+    /// `scenePhase` becoming `.active`. A no-op if already active (e.g. the
+    /// very first call after a game starts, when nothing has resigned
+    /// active yet to clear `activeSince`).
+    public func appDidBecomeActive() {
+        guard activeSince == nil else { return }
+        activeSince = Date()
+    }
+
+    /// Banks the current active span - called from `ContentView` on
+    /// `scenePhase` becoming `.inactive`/`.background`, so that time doesn't
+    /// silently keep counting while the app isn't actually on screen.
+    public func appWillResignActive() {
+        guard let activeSince else { return }
+        accumulatedActiveDuration += Date().timeIntervalSince(activeSince)
+        self.activeSince = nil
+    }
 
     public init() {
         let initialState: GameState
@@ -89,7 +119,7 @@ public final class GameViewModel {
         state = initialState
         humanPlayer = seat
         currentGameLogID = GameLogStore.shared.startNewGame(initialState: initialState)
-        gameStartedAt = Date()
+        activeSince = Date()
     }
 
     /// Starts a fresh game, discarding whatever `state` currently holds.
@@ -102,7 +132,8 @@ public final class GameViewModel {
             : BoardGenerator.standard()
         state = GameSetup.newGame(board: board)
         currentGameLogID = GameLogStore.shared.startNewGame(initialState: state)
-        gameStartedAt = Date()
+        accumulatedActiveDuration = 0
+        activeSince = Date()
 
         humanPlayer = randomizeSeat ? PlayerID(index: Int.random(in: 0...3)) : PlayerID(index: 0)
         CivilizationAssignment.humanSeat = humanPlayer
@@ -133,8 +164,13 @@ public final class GameViewModel {
             GameLogStore.shared.finalizeGame(gameID: currentGameLogID, winner: winner)
             GameStatsStore.shared.recordGameEnd(
                 won: winner == humanPlayer,
-                finalVP: state.victoryPoints(for: humanPlayer),
-                duration: Date().timeIntervalSince(gameStartedAt)
+                // The winning move can push a player past the 10-VP
+                // threshold in one jump (e.g. a knight simultaneously
+                // claiming Largest Army) - real, legal, and not a bug, but
+                // 10 is what "won" means, so that's what the stat reflects,
+                // not whatever the actual final tally happened to land on.
+                finalVP: min(state.victoryPoints(for: humanPlayer), 10),
+                duration: currentGameDuration
             )
         }
     }

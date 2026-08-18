@@ -14,6 +14,7 @@ import CatanEngine
 struct ContentView: View {
     @State private var viewModel = GameViewModel()
     @State private var hasStartedThisSession = false
+    @Environment(\.scenePhase) private var scenePhase
 
     var body: some View {
         Group {
@@ -47,6 +48,16 @@ struct ContentView: View {
                         Task { await viewModel.runBotTurnIfNeeded() }
                     }
                 )
+            }
+        }
+        // Drives `GameViewModel`'s active-time tracking for the "average
+        // game time" stat - only foreground time should count, not time
+        // spent backgrounded/locked while a game sits mid-turn.
+        .onChange(of: scenePhase) { _, newPhase in
+            switch newPhase {
+            case .active: viewModel.appDidBecomeActive()
+            case .inactive, .background: viewModel.appWillResignActive()
+            @unknown default: viewModel.appWillResignActive()
             }
         }
     }
