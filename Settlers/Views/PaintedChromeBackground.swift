@@ -49,12 +49,12 @@ struct PaintedChromeBackground: View {
             .clipShape(RoundedRectangle(cornerRadius: cornerRadius))
             .overlay(
                 RoundedRectangle(cornerRadius: cornerRadius)
-                    .strokeBorder(Self.gold, lineWidth: 2.5)
+                    .strokeBorder(Self.gold, lineWidth: 1.25)
             )
             .overlay(
                 RoundedRectangle(cornerRadius: cornerRadius)
-                    .inset(by: 2.5)
-                    .strokeBorder(Self.innerRed, lineWidth: 1.25)
+                    .inset(by: 1.25)
+                    .strokeBorder(Self.innerRed, lineWidth: 1.75)
             )
     }
 }

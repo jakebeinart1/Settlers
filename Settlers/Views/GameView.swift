@@ -379,8 +379,11 @@ public struct GameView: View {
             // graze the dice/deck chips overlaid up there. `BoardView`
             // re-fits and re-centers itself within whatever height it's
             // given, so this nudges the whole hex grid down slightly rather
-            // than requiring the chips to shrink or move.
-            .padding(.top, 18)
+            // than requiring the chips to shrink or move. Bumped again from
+            // 18 for a bit more breathing room below the top HUD row (see
+            // chat) - purely spacing, doesn't affect board scale/tap
+            // targets, which are still derived from the same `geometry`.
+            .padding(.top, 30)
 
             if let roll = state.lastDiceRoll {
                 diceChip(roll)
@@ -438,8 +441,8 @@ public struct GameView: View {
                     .font(.system(size: 32, weight: .heavy, design: .rounded))
             }
             .foregroundStyle(.white)
-            .padding(.horizontal, 14)
-            .padding(.vertical, 12)
+            .padding(.horizontal, 10)
+            .padding(.vertical, 8)
             .background(PaintedChromeBackground(textureImageName: "dice-fill", cornerRadius: 12))
             .scaleEffect(diceScale)
             .rotationEffect(.degrees(diceRotation))

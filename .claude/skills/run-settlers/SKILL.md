@@ -66,12 +66,14 @@ glob it or read it back from the `xcodebuild` output above.) That's it -
 Jake opens it from the home screen himself; `devicectl` doesn't need a
 separate launch step for a manual install like this.
 
-**`devicectl device install` intermittently fails on the first try** with
-`ERROR: The device disconnected immediately after connecting.
-(com.apple.dt.CoreDeviceError error 4000)` even though the device is
-genuinely available - seen twice in one session, both times a plain retry
-a few seconds later succeeded with no other change. Retry once before
-treating it as a real connectivity problem.
+**`devicectl device install` intermittently fails on the first try** even
+though the device is genuinely available - seen several times across
+sessions with two different transient errors (`The device disconnected
+immediately after connecting` / `CoreDeviceError 4000`, and separately
+`Could not get service com.apple.remote.installcoordination_proxy` /
+`CoreDeviceError 3002`). Every time, a plain retry a few seconds later
+succeeded with no other change. Retry once (a simple `... || (sleep 5 &&
+...)` works fine) before treating it as a real connectivity problem.
 
 If `devicectl list devices` ever shows the iPhone as genuinely
 unreachable (not `available`), only then ask Jake to check the cable /
