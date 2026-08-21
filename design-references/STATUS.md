@@ -267,3 +267,26 @@ Three more rounds of feedback after the pass above:
   building-piece icons (stretches/distorts proportions vs. the square `approved/pieces` references) -
   use the new `generate_icon.py` (same reference-image + chromakey approach, but square `1024x1024`
   and takes an explicit output path instead of auto-versioning) for those instead.
+
+## Aug 21 tile restyle: anime/cel-shaded instead of painterly
+
+Jake felt the tile textures (even after the "paint splotch" uniform-crop fix earlier this session) were
+still an oil-painting style he didn't want - he was after the reference board's brighter, more saturated,
+**anime/cel-shaded cartoon** look (flat color masses with clean cel-shading and crisp line-art accents,
+like Genshin Impact terrain textures), not brushstroke-textured painting at all, even a "clean" one.
+
+Regenerated all 6 resource tiles (`forest`, `grain`, `pasture`, `clay`, `mountain`, `desert`) via
+`generate_tile.py` with a prompt built around "anime cel-shaded cartoon illustration style... flat clean
+color shading... NO oil-paint brushstrokes, NO visible canvas texture, NO impasto... crisp clean line art
+accents". Ran the results back through `find_uniform_tile_crop.py` (same as the earlier paint-splotch fix)
+to pull a seamless low-variance sub-region, since the tile still gets stretched into a hex's bounding box
+by `TileDrawing.drawTile` and needs to read as one solid color.
+
+**Bug found and fixed**: `grain` and `clay`'s first generation (`v1.png`) baked its own hexagon-grid
+pattern into the texture (visible seam lines cutting across at an angle no matter where the crop window
+landed), because the "top-down aerial tile texture" framing in the prompt read literally as "Catan hex
+tiles" rather than "a generic ground texture". Regenerated `v2.png` for just those two with an explicit
+"NO grid lines, NO hexagon shapes, NO tile seams... one continuous unbroken field" instruction, which
+produced a clean continuous texture that crops without visible seams. Lesson for next time: when asking
+for a "board tile texture," be explicit that the *ground material* should have no grid of its own -
+the hex shape comes from the app's rendering, not the source art.
