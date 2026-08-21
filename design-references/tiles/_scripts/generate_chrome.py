@@ -6,12 +6,25 @@ directly.
 
 The API's landscape preset is 1536x1024 (1.5:1) - narrower than the wide
 short banners this app actually needs (~2.4:1 for action buttons, ~5.6:1 for
-the bank/dev-card chip). Rather than stretching or content-cropping after
-the fact, the PROMPT is responsible for confining the actual ornamented
-design to a horizontal band vertically centered in the 1536x1024 canvas,
-sized to the requested aspect ratio, with plain/transparent magenta above
-and below it - this script then crops exactly to that band, so the crop
-only ever removes intentionally-empty margin, never content.
+the bank/dev-card chip). The PROMPT asks the model to confine the actual
+ornamented design to a horizontal band vertically centered in the 1536x1024
+canvas, matching the target aspect ratio, with plain/transparent magenta
+above and below - but the model doesn't always hit that exactly or
+consistently between separate calls (e.g. one button's plaque ending up
+noticeably shorter than another's, despite both requesting the same
+aspect). Every consumer of these assets uses `.scaledToFill()` + clip, which
+scales the WHOLE canvas including any such margin to cover its container -
+so an inconsistent margin becomes an inconsistent visible gap around the
+plaque once composited, not just wasted canvas.
+
+To make this robust against the model not hitting the requested band
+exactly, this script doesn't trust the prompt alone: after chromakey, it
+tight-crops to the actual alpha content bounding box first (so the saved
+asset's canvas always has zero dead margin, regardless of what the model
+generated around it), then - only if that bbox doesn't already match
+`target_aspect` - crops *further inward* to hit it exactly. It only ever
+crops, never pads, so the final asset is guaranteed 100% content, edge to
+edge, no matter how far off the raw generation was.
 
 Usage:
   python3 generate_chrome.py <ref1.png>[,<ref2.png>,...] "<prompt>" <out_path.png> <target_aspect>
@@ -88,20 +101,32 @@ def main():
     verify_transparency(out_path)
 
     from PIL import Image
-    im = Image.open(out_path)
-    w, h = im.size
-    target_h = round(w / target_aspect)
-    if target_h > h:
-        # Target is taller (relatively) than the source canvas - crop width instead.
-        target_w = round(h * target_aspect)
-        left = (w - target_w) // 2
-        box = (left, 0, left + target_w, h)
-    else:
-        top = (h - target_h) // 2
-        box = (0, top, w, top + target_h)
-    cropped = im.crop(box)
+    im = Image.open(out_path).convert("RGBA")
+
+    # Tight-crop to the actual content bbox and STOP - never trust the
+    # prompt to have hit the requested target_aspect exactly, and never
+    # crop further inward to force it once cropped tight, since the
+    # design's corner ornament lives right at that bbox's edges and a
+    # second aspect-driven crop would eat into it (the actual bug this is
+    # fixing: three separately-generated plaques each left a different
+    # amount of dead margin, so cropping each ~exactly to target_aspect
+    # from the ORIGINAL 1536x1024 canvas left a different amount of that
+    # dead margin baked into each final asset - a small but inconsistent
+    # gap around the plaque once `.scaledToFill()` scaled that dead margin
+    # to cover the button along with everything else). The achieved
+    # aspect after this tight crop is printed but not enforced - a few
+    # percent off `target_aspect` costs a little extra even/symmetric
+    # `.scaledToFill()` crop at render time, which is harmless; dead
+    # margin baked into the asset is not.
+    bbox = im.getchannel("A").getbbox()
+    if bbox is None:
+        raise SystemExit(f"{out_path}: fully transparent after chromakey, nothing to crop")
+    safety = 3
+    bbox = (bbox[0] + safety, bbox[1] + safety, bbox[2] - safety, bbox[3] - safety)
+    cropped = im.crop(bbox)
     cropped.save(out_path)
-    print(f"cropped to {cropped.size[0]}x{cropped.size[1]} (target aspect {target_aspect})")
+    achieved_aspect = cropped.size[0] / cropped.size[1]
+    print(f"tight-cropped to content bbox: {cropped.size[0]}x{cropped.size[1]} (aspect {achieved_aspect:.2f}, requested {target_aspect})")
 
 
 if __name__ == "__main__":

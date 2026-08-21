@@ -24,7 +24,7 @@ OpenRouter key spend so far: ~$2.02 of $10 budget.
 | `dice-frame.png` | Background frame behind the dice readout only - see "UI chrome aspect-ratio pass" below for why the bank chip got its own asset instead of sharing this one |
 | `bank-frame.png` | Background frame behind the bank/dev-card count chip (top-right) |
 | `port-frame.png` | Decorative ring behind the functional port-ratio badge (that badge's own color-coding is untouched) |
-| `button-frame-trade.png` / `-build.png` / `-turn.png` | Backgrounds for the 3 fixed action-row buttons only — every other use of that same button component keeps a plain background, since there's no fixed frame to paint ahead of time for open-ended labels (robber-victim picks, Cancel, dynamic Road/Settlement/City) |
+| `button-fill-trade.png` / `-build.png` / `-turn.png` | Plain repeating texture swatches (no border baked in) for the 3 fixed action-row buttons' fill only - the gold pill border is drawn natively (`Capsule().strokeBorder(...)`) by `UniformActionButton`, not part of the image. See "Aug 21 button-border pivot" below for why. |
 
 All piece and UI-chrome images above have **verified real alpha transparency** (generated on a solid
 magenta background, chroma-keyed out with an HSV-based key that also suppresses edge fringing, then
@@ -118,6 +118,41 @@ Feedback from actually playing on-device turned up a real bug and three quality 
   re-checked per-asset since - read back actual pixel alpha values (`im.getchannel("A")`, corner/edge
   samples) for a specific asset before trusting a blanket claim about the whole set, especially for an
   asset (like this one) that predates the chromakey pipeline being standardized.
+
+## Aug 21 button-border pivot
+
+The "UI chrome aspect-ratio pass" fix above (regenerate at the button's real aspect) turned out not to be
+the end of it. Two more rounds of feedback on the 3 action buttons (Trade/Build/turn-action):
+
+1. **Inconsistent gap.** Each of the 3 separately-generated `button-frame-*` plaques left a *different*
+   amount of dead transparent margin inside its own canvas despite an identical prompt/target aspect -
+   `.scaledToFill()` scales the whole canvas including that margin to cover the button, so an inconsistent
+   margin became an inconsistent visible gap between buttons (Build looked right, Trade/Turn didn't).
+2. **Fixing #1 broke it worse.** Tight-cropping each asset to its actual alpha content bbox (removing the
+   dead margin) revealed the model's *natural* proportions for this ornate notched-corner plaque design are
+   ~3.2-3.7:1 - it doesn't reliably hit a requested ~2.3:1 no matter how the prompt is worded (tried three
+   times, at 1.75/2.3/2.4, always landed back around 3.2-3.7). The real button is ~2.3:1. Forcing a further
+   crop down to that from the tight bbox ate directly into the notched corners (nothing left of them),
+   and *not* forcing it meant `.scaledToFill()` cropped so much width off the real (narrow) button that the
+   gold border vanished on the sides entirely, leaving flat unbordered color - worse than the original bug.
+
+Root cause: an ornate thick plaque with notched corners is fundamentally the wrong shape family for a
+button this narrow, and no amount of prompt-tuning was going to make an image-based border reliable here.
+Re-examined the reference at this exact spot (`master-reference-full-screen.png`, the bottom action row)
+and it isn't the thick notched-plaque style used elsewhere (dice/bank chip) at all - it's a plain **thin
+gold pill/stadium border**, which is inherently tolerant of aspect mismatches (a uniform-width border
+around a capsule has no distinct corner feature to lose).
+
+Fix: stopped trying to bake the border into an image entirely. `button-fill-{trade,build,turn}.png` are now
+plain, borderless repeating texture swatches (cropped from the interior of the earlier generations, well
+clear of any border pixels); `UniformActionButton` fills a `Capsule()` with that texture
+(`.scaledToFill()` + `.clipShape(Capsule())` - safe now, since a uniform texture has no border to lose to
+cropping) and draws the gold border natively with `Capsule().strokeBorder(...)`. A native vector stroke is
+correct at *any* aspect ratio by construction - this class of bug can't recur for these 3 buttons again.
+**Takeaway for next time**: prefer a native SwiftUI shape/stroke over a whole bordered-image asset whenever
+the container's aspect ratio isn't fixed/known ahead of time; reserve full painted plaque assets (dice
+chip, bank chip, port frame) for spots where the container's proportions are stable enough to actually
+match a single generation.
 
 ## Other pending work
 

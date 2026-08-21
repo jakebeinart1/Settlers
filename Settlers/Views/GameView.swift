@@ -564,7 +564,7 @@ public struct GameView: View {
             UniformActionButton(
                 title: "Trade", systemImage: "arrow.left.arrow.right",
                 isEnabled: isTradeAvailable,
-                backgroundImageName: "button-frame-trade"
+                backgroundImageName: "button-fill-trade"
             ) {
                 showTradePopup = true
             }
@@ -573,7 +573,7 @@ public struct GameView: View {
                 systemImage: placementMode == nil ? "hammer.fill" : "hammer.circle.fill",
                 isEnabled: true,
                 isArmed: placementMode != nil,
-                backgroundImageName: "button-frame-build"
+                backgroundImageName: "button-fill-build"
             ) {
                 if placementMode != nil {
                     placementMode = nil
@@ -632,7 +632,7 @@ public struct GameView: View {
     private var turnActionButton: some View {
         switch state.phase {
         case .rollDice(let playerIndex) where playerIndex == human.index:
-            UniformActionButton(title: "Roll Dice", systemImage: "die.face.5.fill", isEnabled: true, isArmed: true, backgroundImageName: "button-frame-turn") {
+            UniformActionButton(title: "Roll Dice", systemImage: "die.face.5.fill", isEnabled: true, isArmed: true, backgroundImageName: "button-fill-turn") {
                 perform(.rollDice)
             }
             .overlay(
@@ -650,11 +650,11 @@ public struct GameView: View {
                 rollDicePulse = false
             }
         case .mainTurn(let playerIndex) where playerIndex == human.index:
-            UniformActionButton(title: "End Turn", systemImage: "arrow.uturn.right.circle.fill", isEnabled: true, backgroundImageName: "button-frame-turn") {
+            UniformActionButton(title: "End Turn", systemImage: "arrow.uturn.right.circle.fill", isEnabled: true, backgroundImageName: "button-fill-turn") {
                 perform(.endTurn)
             }
         default:
-            UniformActionButton(title: "Turn", systemImage: "hourglass", isEnabled: false, backgroundImageName: "button-frame-turn") {}
+            UniformActionButton(title: "Turn", systemImage: "hourglass", isEnabled: false, backgroundImageName: "button-fill-turn") {}
         }
     }
 

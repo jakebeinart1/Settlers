@@ -12,13 +12,13 @@ public struct UniformActionButton: View {
     public let systemImage: String
     public let isEnabled: Bool
     public let isArmed: Bool
-    /// Asset name of a painted button-frame background (see
+    /// Asset name of a painted, border-less fill texture (see
     /// design-references/STATUS.md) for the 3 fixed action-row roles
     /// (Trade/Build/turn-action), which always mean the same thing and so
-    /// always get the same frame. `nil` for every other use of this same
+    /// always get the same texture. `nil` for every other use of this same
     /// button (robber-victim picks, Cancel, dynamic Road/Settlement/City
     /// labels) - those keep the plain flat background, since there's no
-    /// fixed frame per label to paint ahead of time.
+    /// fixed texture per label to paint ahead of time.
     public let backgroundImageName: String?
     public let action: () -> Void
 
@@ -53,15 +53,39 @@ public struct UniformActionButton: View {
         if isArmed {
             RoundedRectangle(cornerRadius: 8).fill(Color.yellow.opacity(0.35))
         } else if let backgroundImageName {
-            // `.scaledToFill()` + clip, not a 9-slice `capInsets` stretch -
-            // stretching warped the frame's corner ornamentation whenever
-            // the button's real proportions didn't match the source
-            // image's, which is what read as "cut off"/rough. Fill+clip
-            // can only crop evenly, never distort.
-            Image(backgroundImageName)
-                .resizable()
-                .scaledToFill()
-                .clipShape(RoundedRectangle(cornerRadius: 8))
+            // The gold pill border is drawn natively here, not baked into
+            // the image - a whole ornate bordered plaque asset (tried
+            // first) has a fixed aspect ratio, and this button's real
+            // on-screen proportions never landed close enough to any
+            // single generated aspect to avoid either cropping the border
+            // away on some buttons or leaving inconsistent dead margin on
+            // others (see chat / design-references/STATUS.md). A native
+            // `Capsule` stroke is correct at any size by construction, so
+            // the image asset only needs to be a plain repeating texture
+            // swatch - nothing in it can ever go "missing".
+            Capsule()
+                .fill(.clear)
+                .background(
+                    Image(backgroundImageName)
+                        .resizable()
+                        .scaledToFill()
+                )
+                .clipShape(Capsule())
+                .overlay(
+                    Capsule()
+                        .strokeBorder(
+                            LinearGradient(
+                                colors: [
+                                    Color(red: 0.95, green: 0.8, blue: 0.4),
+                                    Color(red: 0.78, green: 0.56, blue: 0.16),
+                                    Color(red: 0.95, green: 0.8, blue: 0.4),
+                                ],
+                                startPoint: .top,
+                                endPoint: .bottom
+                            ),
+                            lineWidth: 2.5
+                        )
+                )
         } else {
             RoundedRectangle(cornerRadius: 8).fill(Color(white: 0.18))
         }
