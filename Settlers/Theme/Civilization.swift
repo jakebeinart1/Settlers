@@ -123,25 +123,22 @@ public enum Civilization: String, CaseIterable, Sendable, Codable {
     /// Asset catalog name of this civilization's painted piece art -
     /// restyled from each civilization's own original piece design (not a
     /// different landmark), rendered with the same rugged painterly
-    /// shadow/texture quality as Britannia's castle. `nil` where that
-    /// specific tier's art doesn't exist yet, in which case
-    /// `CivilizationBadge` falls back to the vector shape for just that
-    /// tier - settlement and city are tracked independently since they
-    /// were produced in separate passes. See design-references/STATUS.md.
+    /// shadow/texture quality as Britannia's castle. All 8 civilizations
+    /// now have both tiers painted (see design-references/STATUS.md) - the
+    /// vector-shape fallback in `CivilizationBadge` has no live caller
+    /// anymore, but is kept as a safety net rather than deleted.
     public func paintedPieceImageName(isCity: Bool) -> String? {
         let base: String
-        let hasCityArt: Bool
         switch self {
-        case .medieval: base = "civ-britannia"; hasCityArt = true
-        case .greece: base = "civ-greece"; hasCityArt = true
-        case .rome: base = "civ-rome"; hasCityArt = true
-        case .columbia: base = "civ-columbia"; hasCityArt = true
-        case .egypt: base = "civ-egypt"; hasCityArt = false
-        case .aztec: base = "civ-aztec"; hasCityArt = false
-        case .japan: base = "civ-japan"; hasCityArt = false
-        case .norse: base = "civ-norse"; hasCityArt = false
+        case .medieval: base = "civ-britannia"
+        case .greece: base = "civ-greece"
+        case .rome: base = "civ-rome"
+        case .columbia: base = "civ-columbia"
+        case .egypt: base = "civ-egypt"
+        case .aztec: base = "civ-aztec"
+        case .japan: base = "civ-japan"
+        case .norse: base = "civ-norse"
         }
-        if isCity && !hasCityArt { return nil }
         return base + (isCity ? "-city" : "-settlement")
     }
 

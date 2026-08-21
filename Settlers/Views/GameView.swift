@@ -94,7 +94,9 @@ public struct GameView: View {
         self.onExitToMenu = onExitToMenu
     }
 
-    @State private var isShowingPauseMenu = false
+    // `-qaShowPauseMenu`: same escape hatch as `-qaAutoStart` (see
+    // `ContentView`) - lets QA screenshot the pause menu without a real tap.
+    @State private var isShowingPauseMenu = ProcessInfo.processInfo.arguments.contains("-qaShowPauseMenu")
     @State private var placementMode: PlacementMode?
     @State private var showTradePopup = false
     @State private var showBuildPopup = false
@@ -248,15 +250,25 @@ public struct GameView: View {
             if isDiscardPresented {
                 DiscardPopupView(viewModel: viewModel)
             }
-        }
-        .confirmationDialog("Game Menu", isPresented: $isShowingPauseMenu, titleVisibility: .visible) {
-            Button("Restart Game", role: .destructive) {
-                viewModel.startNewGame(randomizedBoard: false, randomizeSeat: false)
+
+            if isShowingPauseMenu {
+                // A themed `PopupCard` (the same card every other popup in
+                // this app uses), not the native `confirmationDialog` this
+                // replaced - a plain system action sheet was the one piece
+                // of chrome in the whole game that didn't match the painted
+                // gold-trim theme at all.
+                PauseMenuView(
+                    onResume: { isShowingPauseMenu = false },
+                    onRestart: {
+                        isShowingPauseMenu = false
+                        viewModel.startNewGame(randomizedBoard: false, randomizeSeat: false)
+                    },
+                    onMainMenu: {
+                        isShowingPauseMenu = false
+                        onExitToMenu()
+                    }
+                )
             }
-            Button("Main Menu", role: .destructive) {
-                onExitToMenu()
-            }
-            Button("Resume", role: .cancel) {}
         }
         .onAppear {
             seenTradeOfferIDs = Set(state.pendingTradeOffers.map(\.id))
@@ -380,19 +392,26 @@ public struct GameView: View {
     /// without competing with the current roll for attention.
     private func diceChip(_ roll: Int) -> some View {
         VStack(alignment: .leading, spacing: 3) {
-            HStack(spacing: 6) {
-                Image(systemName: "die.face.\(min(max(roll, 1), 6)).fill")
-                    .font(.title2)
+            HStack(spacing: 8) {
+                // A real die-face tile, not the old SF Symbol - that read as
+                // a thin outline rather than an actual square against the
+                // reference's bold ivory tile (see chat).
+                DieFaceView(value: roll, size: 34)
                 Text("\(roll)")
-                    .font(.system(size: 30, weight: .heavy, design: .rounded))
+                    .font(.system(size: 32, weight: .heavy, design: .rounded))
             }
             .foregroundStyle(.white)
             .padding(.horizontal, 14)
-            .padding(.vertical, 6)
+            .padding(.vertical, 12)
             .background(
                 // `.scaledToFill()` + clip, not a 9-slice stretch - see
                 // `UniformActionButton`'s matching comment for why.
-                Image("dice-frame").resizable().scaledToFill().clipShape(Capsule())
+                // `RoundedRectangle`, not `Capsule` - a capsule forces full
+                // rounding at whatever height the content ends up (was
+                // pinching the frame's own notched-corner ornament down to
+                // nothing); a fixed corner radius keeps the same square,
+                // gold-cornered look as the other chrome pieces.
+                Image("dice-frame").resizable().scaledToFill().clipShape(RoundedRectangle(cornerRadius: 12))
             )
             .scaleEffect(diceScale)
             .rotationEffect(.degrees(diceRotation))
@@ -403,6 +422,47 @@ public struct GameView: View {
                     .foregroundStyle(.white.opacity(0.45))
                     .padding(.leading, 14)
             }
+        }
+    }
+
+    /// A physical six-sided die face - a rounded ivory square with black pip
+    /// dots in the standard layout - used by `diceChip` in place of the old
+    /// `Image(systemName: "die.face.N.fill")`, which read as a thin outline
+    /// rather than an actual square at the size it was shown.
+    private struct DieFaceView: View {
+        let value: Int
+        let size: CGFloat
+
+        /// Fractional (x, y) pip centers within the tile, standard 6-face
+        /// die layout, shared across every count via one 3x3 grid.
+        private static let pipLayouts: [Int: [(CGFloat, CGFloat)]] = [
+            1: [(0.5, 0.5)],
+            2: [(0.25, 0.25), (0.75, 0.75)],
+            3: [(0.25, 0.25), (0.5, 0.5), (0.75, 0.75)],
+            4: [(0.25, 0.25), (0.75, 0.25), (0.25, 0.75), (0.75, 0.75)],
+            5: [(0.25, 0.25), (0.75, 0.25), (0.5, 0.5), (0.25, 0.75), (0.75, 0.75)],
+            6: [(0.25, 0.22), (0.75, 0.22), (0.25, 0.5), (0.75, 0.5), (0.25, 0.78), (0.75, 0.78)],
+        ]
+
+        var body: some View {
+            let pips = Self.pipLayouts[min(max(value, 1), 6)] ?? []
+            let pipSize = size * 0.16
+
+            RoundedRectangle(cornerRadius: size * 0.22)
+                .fill(CatanTheme.onWaterText.opacity(0.95))
+                .overlay(
+                    RoundedRectangle(cornerRadius: size * 0.22)
+                        .strokeBorder(.black.opacity(0.55), lineWidth: max(1, size * 0.045))
+                )
+                .overlay(
+                    ForEach(Array(pips.enumerated()), id: \.offset) { _, pip in
+                        Circle()
+                            .fill(.black.opacity(0.82))
+                            .frame(width: pipSize, height: pipSize)
+                            .position(x: pip.0 * size, y: pip.1 * size)
+                    }
+                )
+                .frame(width: size, height: size)
         }
     }
 

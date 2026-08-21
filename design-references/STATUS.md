@@ -18,11 +18,8 @@ OpenRouter key spend so far: ~$2.02 of $10 budget.
 
 | File(s) | What it is |
 |---|---|
-| `tile-forest.png`, `tile-grain.png`, `tile-pasture.png`, `tile-mountain.png`, `tile-clay.png`, `tile-desert.png` | Board tile textures — bold, high-contrast brush strokes (confirmed to survive shrinking to real ~100pt tile size, unlike the first attempt) |
-| `britannia-settlement.png` / `-city.png` | Britannia — castle, purple |
-| `greece-settlement.png` / `-city.png` | Greece — the Parthenon, teal |
-| `rome-settlement.png` / `-city.png` | Rome — the Colosseum, terracotta-red |
-| `columbia-settlement.png` / `-city.png` | Columbia — the US Capitol dome, navy |
+| `tile-forest.png`, `tile-grain.png`, `tile-pasture.png`, `tile-mountain.png`, `tile-clay.png`, `tile-desert.png` | Board tile textures — a tight single-brushstroke crop of each original painted canvas (see "Aug 21 bugfix/redesign pass" below), not the whole multi-tone canvas |
+| `{civ}-settlement.png` / `-city.png` (all 8 civs) | See "Piece art status" below for the per-civ table |
 | `menu-icon.png` | Pause/menu button |
 | `dice-frame.png` | Background frame behind the dice readout only - see "UI chrome aspect-ratio pass" below for why the bank chip got its own asset instead of sharing this one |
 | `bank-frame.png` | Background frame behind the bank/dev-card count chip (top-right) |
@@ -81,6 +78,38 @@ intentionally-blank margin, never content):
   into an exact square, which stretches non-uniformly rather than cropping. The 195x155 (1.26:1) source was
   being visibly squished into a circle. Regenerated as a true 1:1 square via `generate_icon.py` instead.
 - `menu-icon` (scaledToFit into a 32x32 square, close to square already) was left alone.
+
+## Aug 21 bugfix/redesign pass
+
+Feedback from actually playing on-device turned up a real bug and three quality issues:
+
+- **Wrong pieces (bug, now fixed).** `Settlers/Assets.xcassets`'s `civ-*.imageset` PNGs had gone stale -
+  11 of 12 were byte-different from `approved/pieces/`, so the board was showing an old landmark-based
+  piece design (twin-tower castle, Capitol dome, ...) instead of the current restyled-original set. Also,
+  4 civs (Aztec/Egypt/Japan/Norse) had no city imageset at all and `Civilization.hasCityArt` still hardcoded
+  `false` for them, even though painted city art exists for all 8 - so those civs' cities always fell back
+  to the flat vector shape regardless. Fixed by re-syncing all 16 PNGs into the asset catalog and removing
+  the `hasCityArt` flag entirely (`paintedPieceImageName` now always returns a name). **Worth a recurring
+  check**: nothing currently guards against `approved/pieces/` and `Assets.xcassets` drifting apart again -
+  a future pass should probably script a diff check instead of relying on someone noticing visually.
+- **Dice widget.** The reference shows an actual bold ivory die tile (rounded square, black pips) roughly
+  as tall as the digit next to it; the app was using a small SF Symbol at `.title2` inside a `Capsule()`
+  with only 6pt vertical padding, which read as a thin outline in a squat pill rather than a die. Replaced
+  the SF Symbol with `GameView.DieFaceView` (a real square: `RoundedRectangle` + positioned `Circle` pips,
+  standard 6-face layout), gave the chip more vertical padding, and swapped `Capsule` for a fixed
+  `RoundedRectangle` corner radius (a capsule pinches the frame's notched-corner ornament to nothing at
+  short heights). `dice-frame` regenerated once more at ~1.66:1 to match the taller content.
+- **Tile "paint splotches."** Each hex draws the *entire* tile PNG stretched into its bounding box (see
+  `TileDrawing.drawTile`), not a repeating pattern - so the source canvases' big multi-tone brushstroke
+  patches (bright highlight streaks next to darker base color) showed up as visible blotches on the board,
+  not a solid resource color. Fixed without new generation: `tiles/_scripts/find_uniform_tile_crop.py`
+  scans a source image for a tight low-variance sub-region (one consistent brushstroke, no patch boundary)
+  and crops it out; that crop replaced `approved/tiles/tile-*.png` in place - the original full-canvas
+  versions are only in git history now, not a separate file, if a bigger patch is ever needed again.
+- **Pause menu.** Was a native `confirmationDialog` - a plain system action sheet, the one piece of chrome
+  that didn't match the painted theme at all. Replaced with `PauseMenuView`, built on the same `PopupCard`
+  every other popup (Trade/Build/DevCard/Discard) already uses, plus an inline "are you sure" step before
+  Restart/Main Menu since those are now easier to tap by accident inside a themed card than a system sheet.
 
 ## Other pending work
 

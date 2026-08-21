@@ -11,6 +11,19 @@ always available, good for screenshots) and Jake's real iPhone (what he
 actually plays on - use this when he asks to "install"/"reinstall"/"put it
 on my phone").
 
+**The project is XcodeGen-managed (`project.yml`) - after adding or
+removing a Swift file, run `xcodegen generate` before building.** The
+`.xcodeproj` doesn't pick up new files from the folder on its own; skipping
+this step produces a confusing `cannot find 'X' in scope` build error even
+though the file is right there on disk and imports look correct.
+
+```bash
+cd "/Users/jakeb/Documents/Catan Game" && xcodegen generate
+```
+
+(Only needed when the file list changes - editing an existing file's
+contents doesn't need a regenerate.)
+
 ## Real device (preferred when Jake asks to install/reinstall)
 
 **`xcrun xctrace list devices` often reports the iPhone as "offline" even
