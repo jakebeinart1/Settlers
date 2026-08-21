@@ -75,7 +75,10 @@ public struct BoardView: View {
             let ownership = Ownership(players: state.players)
 
             ZStack {
-                CatanTheme.waterBackground
+                // No opaque fill here anymore - `GameView`'s scenic
+                // background painting shows through the gaps around the
+                // hex cluster and behind the ports, the way it does behind
+                // the rest of the board screen. See design-references/STATUS.md.
 
                 Canvas { context, _ in
                     // Two passes rather than one: every tile's fill has to

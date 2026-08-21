@@ -364,3 +364,26 @@ all the way white" - rather than pick another independent cream value, added `Co
 toward white via `UIColor` RGB extraction) and defined `CatanTheme.numberTokenBackground = desert.lightened(by: 0.5)`,
 so it derives from `desert` and moves with it automatically - the fix for exactly the kind of manual-sync
 drift the `CatanTheme.desert`/gap-color note above flagged just one round earlier.
+
+## Aug 21 scenic background: replacing the flat waterBackground color
+
+Jake wanted the board's flat dark-blue backdrop (`CatanTheme.waterBackground`) replaced with real scenic
+art like the reference mockup's own background painting - mountains, a pagoda, a walled island city, a
+junk ship - but blended toward the cleaner, softer linework and lighting of Studio Ghibli and "Frieren:
+Beyond Journey's End" rather than the reference's heavier oil-painted texture.
+
+Generated with `generate_screen.py`, using the master reference as an image-to-image composition/style
+anchor and an explicit "background environment painting only - NO UI elements, NO game board, NO
+hexagons, NO cards, NO text" instruction (the live app draws all of that itself; baking any of it into the
+art would fight the real HUD). One generation landed well - saved as `full-screen/v1.png`, promoted to
+`approved/board-background.png` and `Assets.xcassets/board-background.imageset` - a `GeometryReader` +
+`.scaledToFill()` + `.clipped()` full-bleed `Image` behind `GameView`'s whole `ZStack`, replacing the old
+`CatanTheme.waterBackground.ignoresSafeArea()` fill.
+
+**Bug caught before calling it done**: the background was only visible in the small slivers of screen
+above and below the board - `BoardView` itself had its *own* opaque `CatanTheme.waterBackground` fill
+inside its `GeometryReader`/`ZStack`, painted independently of `GameView`'s, which fully covered the new
+art everywhere the board sat (i.e. almost the entire screen). Removed that inner fill entirely now that
+there's real art behind it. Every HUD chip/panel (`BotHUDRow`, `HumanPlayerPanel`, the dice/deck chips,
+Trade/Build/Turn buttons) already paints its own solid background color, so legibility over the busier art
+needed no further changes - confirmed by screenshot, not just assumed.

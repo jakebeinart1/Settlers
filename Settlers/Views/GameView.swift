@@ -170,7 +170,20 @@ public struct GameView: View {
 
     public var body: some View {
         ZStack {
-            CatanTheme.waterBackground.ignoresSafeArea()
+            // The scenic Ghibli/Frieren-influenced seaside painting behind
+            // everything, replacing the old flat waterBackground color -
+            // see design-references/STATUS.md. Every HUD chip/panel drawn
+            // on top of it (BotHUDRow, HumanPlayerPanel, the dice/deck
+            // chips) already fills its own solid background color, so
+            // legibility isn't affected by swapping what's behind them.
+            GeometryReader { geo in
+                Image("board-background")
+                    .resizable()
+                    .scaledToFill()
+                    .frame(width: geo.size.width, height: geo.size.height)
+                    .clipped()
+            }
+            .ignoresSafeArea()
 
             // `spacing: 0` rather than a uniform 8pt everywhere - board,
             // banner slot, and `HumanPlayerPanel` need to sit genuinely
