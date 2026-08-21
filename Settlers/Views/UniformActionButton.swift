@@ -33,14 +33,14 @@ public struct UniformActionButton: View {
 
     public var body: some View {
         Button(action: action) {
-            VStack(spacing: 4) {
+            VStack(spacing: 2) {
                 Image(systemName: systemImage)
-                    .font(.title2)
+                    .font(.title3)
                 Text(title)
-                    .font(.caption)
+                    .font(.caption2)
             }
             .frame(maxWidth: .infinity)
-            .padding(.vertical, 12)
+            .padding(.vertical, 6)
             .background(background)
             .foregroundStyle(.white)
         }
