@@ -387,3 +387,26 @@ art everywhere the board sat (i.e. almost the entire screen). Removed that inner
 there's real art behind it. Every HUD chip/panel (`BotHUDRow`, `HumanPlayerPanel`, the dice/deck chips,
 Trade/Build/Turn buttons) already paints its own solid background color, so legibility over the busier art
 needed no further changes - confirmed by screenshot, not just assumed.
+
+## Aug 21 background composition tuning: mountains + ship placement
+
+Jake liked the new background but wanted the mountain range more prominent above the board, and the junk
+ship visible peeking above the top-left player card instead of buried lower on the canvas where it's
+invisible behind opaque HUD panels - "don't want to overwhelm the player but want some elements to be
+seen." Same constraint each time: **keep the exact art style identical**, change composition only.
+
+Iterated with `generate_screen.py` using the *previous* generation itself as the image-to-image reference
+each round (not the original master reference) - the most reliable way to hold style/palette/rendering
+technique fixed while only asking for a layout change: `v1`→`v2` pushed the mountain range taller/more
+central and moved the ship from lower-left toward upper-left; `v2`→`v3` tried moving the ship into the top
+12% of the canvas, which mapped in-app to directly behind the first player card (only a stray mast-tip
+pixel survived) - the open sky band above the top HUD row turns out to be much thinner than it looks
+(barely the status-bar height); `v3`→`v4` pushed the ship into the top ~6% specifically, which finally
+landed it visibly above the card without touching it - confirmed by screenshotting and reading a tight crop
+of the actual top-left device region on the phone's real resolution, not just eyeballing the full painting.
+
+**Lesson**: when composition needs to land in a *specific* visible-vs-hidden screen region, don't reason
+about the source painting's percentages in the abstract - crop and inspect the actual rendered app
+screenshot at that exact region before deciding a placement worked. The first attempt (`v3`, top 12%)
+looked like it should have cleared the card by a comfortable margin measured against the full canvas, but
+the real HUD card starts much higher up the screen than that math suggested.
