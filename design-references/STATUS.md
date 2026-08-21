@@ -154,6 +154,18 @@ the container's aspect ratio isn't fixed/known ahead of time; reserve full paint
 chip, bank chip, port frame) for spots where the container's proportions are stable enough to actually
 match a single generation.
 
+## Aug 21 piece-size pass
+
+Feedback: settlements/cities read as too small on the board, Rome especially so. Checked actual pixel
+content vs. canvas size (`im.getchannel("A").getbbox()`) across all 16 piece PNGs and found the real bug:
+wildly inconsistent dead transparent margin baked into each canvas - `CivilizationBadge` renders via
+`.scaledToFit()` into a fixed `size x size` box, so any margin directly shrinks the visible piece.
+`rome-settlement.png` was the worst offender, filling only 65% width x 59% height of its own canvas (most
+other pieces were near 90-100%) - exactly matching "Rome is extra small." Tight-cropped all 16 to their
+actual alpha content bbox (4px safety margin), which fixed the inconsistency directly. Separately, also
+bumped `BoardView`'s own size multipliers (`geometry.size * ...`) from 0.58/0.68 to 0.68/0.80
+(settlement/city) for the general "make them bigger" ask on top of that.
+
 ## Other pending work
 
 1. **HUD player card (the colored info panel per player)** — deliberately not reskinned. It has 9 places

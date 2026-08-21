@@ -162,13 +162,14 @@ public struct BoardView: View {
         ForEach(sortedVertices, id: \.self) { vertex in
             if let owner = ownership.owner(ofSettlementOrCity: vertex) {
                 let position = geometry.vertexPosition(vertex, board: board)
-                // Settlements bumped up from 0.48 - they read as too small
-                // next to a city, especially once `CivilizationBadge` added
-                // the etched detail/pennant (which need real size to stay
-                // legible). Cities nudged up too, so the settlement -> city
-                // size jump stays clearly noticeable rather than shrinking
-                // once settlements got closer to their old size.
-                let size = geometry.size * (owner.isCity ? 0.68 : 0.58)
+                // Settlements bumped up from 0.48, then again from 0.58 -
+                // pieces read as too small on the actual board, especially
+                // once `CivilizationBadge` added the etched detail/pennant
+                // (which need real size to stay legible). Cities nudged up
+                // too, so the settlement -> city size jump stays clearly
+                // noticeable rather than shrinking once settlements got
+                // closer to their old size.
+                let size = geometry.size * (owner.isCity ? 0.80 : 0.68)
                 let civilization = Civilization.forSeat(owner.player.index)
                 CivilizationBadge(civilization: civilization, isCity: owner.isCity, size: size)
                     .position(position)
