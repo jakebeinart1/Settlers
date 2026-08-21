@@ -14,7 +14,7 @@ public enum CatanTheme {
         }
     }
 
-    public static let desert = Color(red: 0.87, green: 0.80, blue: 0.60) // sand beige
+    public static let desert = Color(red: 0.914, green: 0.749, blue: 0.416) // sand beige - matches tile-desert.png exactly (233,191,106)
 
     public static func color(for kind: TileKind) -> Color {
         switch kind {

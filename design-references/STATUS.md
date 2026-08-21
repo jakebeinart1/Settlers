@@ -316,3 +316,26 @@ image they keep pointing back at is the actual spec. If a regeneration technical
 user says "no, not that" while re-sending the *same* reference image, the real ask is "match this
 image," not "try harder at the label." Pass the reference image itself into the generation call
 (`input_references`) rather than re-describing it, once that option exists.
+
+## Aug 21 tile color tuning: forest, desert, and the frame/gap color
+
+Two individual color notes after the take-2 regeneration above:
+- **Forest** came out too dark/muddy-olive on the first try. Overcorrected once (too saturated/neon
+  "kelly green") before landing on a natural, moderately-saturated pine-forest green
+  (`generate_tile.py forest "...RGB around 50,120,55...NOT neon/kelly/grass green...think deep pine
+  forest, not lime" ...`) - final average ~(44,94,37).
+- **Desert** needed to match a specific close-up crop Jake sent of the reference board's desert tile
+  exactly (not just "tan" in the abstract) - passed that crop image as a *second* `input_references` entry
+  alongside the full board reference, with its sampled RGB (223,187,112) spelled out in the prompt too.
+  Landed at (233,191,106), a close match.
+
+**Frame/gap color bug**: `TileDrawing.drawTile` (`Views/Board/TileView.swift`) fills a full-size hex with
+`CatanTheme.desert` *underneath* every tile's shrunk resource texture, so that flat color - not an image -
+is what shows as the manila "grout" between tiles on the whole board. It's a hardcoded `Color(red:green:
+blue:)` in `Theme/CatanTheme.swift`, completely independent of the `tile-desert.png` asset, so tuning the
+desert tile's color doesn't automatically move the gap color - they only look consistent by manual
+coincidence, which had already been asked for as "the gaps need to be the exact same color as the desert
+tile." Fixed by resampling the new `tile-desert.png`'s actual average RGB `(233,191,106)` and hardcoding
+that as `CatanTheme.desert`'s value with a comment noting where it needs to stay in sync. If the desert
+tile's color is tuned again, `CatanTheme.desert` needs a matching update - it will NOT pick it up
+automatically.
