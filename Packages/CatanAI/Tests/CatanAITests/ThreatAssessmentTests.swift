@@ -217,3 +217,32 @@ private func buildChain(from board: Board, length: Int) -> [EdgeID] {
     let lowWeight = ThreatAssessment.relativeWeight(for: PlayerID(index: 2), excluding: PlayerID(index: 0), in: state)
     #expect(lowWeight >= 0.4)
 }
+
+@Test func ownStandingIsOneWhenAllScoresAreZero() {
+    let state = GameSetup.newGame(board: BoardGenerator.standard())
+    #expect(ThreatAssessment.ownStanding(for: PlayerID(index: 0), in: state) == 1.0)
+}
+
+@Test func ownStandingIsAboveOneWhenAheadOfTheField() {
+    var state = GameSetup.newGame(board: BoardGenerator.standard())
+    let vertex = state.board.onBoardVertices.sorted().first!
+    state.players[0].settlements.insert(vertex)
+    state.players[0].cities.insert(vertex)
+
+    let standing = ThreatAssessment.ownStanding(for: PlayerID(index: 0), in: state)
+    #expect(standing > 1.0)
+}
+
+@Test func ownStandingIsBelowOneWhenBehindTheField() {
+    var state = GameSetup.newGame(board: BoardGenerator.standard())
+    let vertex = state.board.onBoardVertices.sorted().first!
+    // Every *other* player is ahead - player 0 (whose standing we're
+    // checking) has nothing.
+    state.players[1].settlements.insert(vertex)
+    state.players[1].cities.insert(vertex)
+    let secondVertex = state.board.onBoardVertices.sorted()[1]
+    state.players[2].settlements.insert(secondVertex)
+
+    let standing = ThreatAssessment.ownStanding(for: PlayerID(index: 0), in: state)
+    #expect(standing < 1.0)
+}

@@ -203,6 +203,53 @@ import Testing
     #expect(!moves.contains { if case .playMonopoly = $0 { return true }; return false })
 }
 
+/// Standard rule: at most one development card may be played per turn.
+/// Playing a knight, then still holding an unrelated playable card (bought
+/// on an earlier turn, so not blocked by the separate "not this turn"
+/// rule), must not offer a second `.play*` move the same turn.
+@Test func onlyOneDevCardMayBePlayedPerTurn() {
+    var state = GameSetup.newGame(board: BoardGenerator.standard())
+    state.players[0].devCards = [.knight, .monopoly]
+    let tile = state.board.tiles.map(\.coordinate).first { $0 != state.board.robberTile }!
+
+    try! DevCards.playKnight(moveRobberTo: tile, stealFrom: nil, by: PlayerID(index: 0), state: &state)
+
+    #expect(state.players[0].devCards == [.monopoly]) // still holds it...
+    #expect(!DevCards.canPlay(.monopoly, by: PlayerID(index: 0), in: state)) // ...but can't play it this turn
+    #expect(throws: MoveError.illegalPlacement) {
+        try DevCards.playMonopoly(.wool, by: PlayerID(index: 0), state: &state)
+    }
+}
+
+/// A knight played before rolling (the one pre-roll exception) still
+/// counts against the same turn's one-card limit once the turn reaches
+/// `.mainTurn`.
+@Test func knightPlayedBeforeRollingBlocksAnotherCardThatSameTurn() throws {
+    var state = GameSetup.newGame(board: BoardGenerator.standard())
+    state.phase = .rollDice(playerIndex: 0)
+    state.players[0].devCards = [.knight, .yearOfPlenty]
+    let tile = state.board.tiles.map(\.coordinate).first { $0 != state.board.robberTile }!
+
+    try RulesEngine.apply(.playKnight(moveRobberTo: tile, stealFrom: nil), by: PlayerID(index: 0), to: &state)
+    state.phase = .mainTurn(playerIndex: 0) // simulate the roll that would normally follow
+
+    #expect(!RulesEngine.legalMoves(for: state).contains { if case .playYearOfPlenty = $0 { return true }; return false })
+}
+
+/// The one-card-per-turn limit resets on `.endTurn`, same as the
+/// bought-this-turn restriction.
+@Test func devCardPlayLimitResetsAfterEndTurn() {
+    var state = GameSetup.newGame(board: BoardGenerator.standard())
+    state.phase = .mainTurn(playerIndex: 0)
+    state.players[0].devCards = [.knight]
+    let tile = state.board.tiles.map(\.coordinate).first { $0 != state.board.robberTile }!
+    try! DevCards.playKnight(moveRobberTo: tile, stealFrom: nil, by: PlayerID(index: 0), state: &state)
+    #expect(state.devCardPlayedThisTurn == PlayerID(index: 0))
+
+    try! RulesEngine.apply(.endTurn, by: PlayerID(index: 0), to: &state)
+    #expect(state.devCardPlayedThisTurn == nil)
+}
+
 @Test func devCardsBoughtThisTurnBecomePlayableAfterEndTurn() {
     var state = GameSetup.newGame(board: BoardGenerator.standard())
     state.phase = .mainTurn(playerIndex: 0)

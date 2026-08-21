@@ -28,25 +28,29 @@ enum TileDrawing {
 
     /// Each tile draws as two layers - a full-size hex filled with the
     /// board's "frame" color (`CatanTheme.desert`, the same sand/manila
-    /// tone the desert tile itself uses), then a smaller resource-colored
+    /// tone the desert tile itself uses), then a smaller resource-textured
     /// hex centered on top - so a visible manila gap shows between every
     /// pair of tiles, like the physical board's beige grout between
     /// pieces, instead of tiles butting directly against each other.
     /// Number tokens, roads, settlements, and tap targets all still align
     /// to the full-size hex geometry - only this visual fill shrinks.
     ///
-    /// Neither layer is stroked: an outlined frame hex read as a stray gray
-    /// grid line running through the manila gap between every pair of
-    /// tiles, and an outlined fill hex read as a hard black hexagon border
-    /// on every tile (most noticeably the desert, where nothing else
-    /// competes with it) - a plain fill-to-fill boundary between the two
-    /// tones already reads clearly enough on its own.
+    /// The frame layer is a plain color fill (unstroked, for the same
+    /// reason as before - an outlined frame hex read as a stray gray grid
+    /// line in the manila gap). The resource layer is the painted tile
+    /// texture from Assets.xcassets (`CatanTheme.textureImageName(for:)`),
+    /// clipped to the hex path and drawn to fill its bounding box - see
+    /// `design-references/STATUS.md` for where these textures came from.
     static func drawTile(_ tile: Tile, geometry: HexGeometry, in context: GraphicsContext) {
         let framePath = hexPath(for: tile.coordinate, geometry: geometry)
         context.fill(framePath, with: .color(CatanTheme.desert))
 
         let fillPath = hexPath(for: tile.coordinate, geometry: geometry, scale: 0.86)
-        context.fill(fillPath, with: .color(CatanTheme.color(for: tile.kind)))
+        let resolvedTexture = context.resolve(Image(CatanTheme.textureImageName(for: tile.kind)))
+        context.drawLayer { layerContext in
+            layerContext.clip(to: fillPath)
+            layerContext.draw(resolvedTexture, in: fillPath.boundingRect)
+        }
 
         if let number = tile.numberToken {
             drawNumberToken(number, at: geometry.center(of: tile.coordinate), size: geometry.size, in: context)
@@ -110,6 +114,15 @@ enum TileDrawing {
         context.stroke(dockPath, with: .color(CatanTheme.portIcon.opacity(0.85)), style: StrokeStyle(lineWidth: 2.5, lineCap: .round))
 
         let radius = geometry.size * 0.24
+        // The painted gold-ring badge frame sits behind the actual
+        // functional circle (still colored by port kind, still stroked) -
+        // decorative only, so the resource-color coding that circle
+        // carries (which port trades which resource, at a glance) stays
+        // exactly as legible as before. See design-references/STATUS.md.
+        let frameRadius = radius * 1.35
+        let resolvedFrame = context.resolve(Image("port-frame"))
+        context.draw(resolvedFrame, in: CGRect(x: iconPoint.x - frameRadius, y: iconPoint.y - frameRadius, width: frameRadius * 2, height: frameRadius * 2))
+
         let circle = Path(ellipseIn: CGRect(x: iconPoint.x - radius, y: iconPoint.y - radius, width: radius * 2, height: radius * 2))
         let fillColor: Color
         let label: String

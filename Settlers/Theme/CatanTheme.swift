@@ -23,6 +23,23 @@ public enum CatanTheme {
         }
     }
 
+    /// Asset catalog name of the painted tile texture for `kind` - see
+    /// `design-references/STATUS.md` for how these were produced (an
+    /// OpenRouter/GPT-Image-2 generation matched to a real crop of the
+    /// approved "Avatar" full-screen mockup, one solid dominant color with
+    /// a subtle painterly canvas texture, no illustrated scenery). Used by
+    /// `TileDrawing.drawTile` in place of a flat `color(for:)` fill.
+    public static func textureImageName(for kind: TileKind) -> String {
+        switch kind {
+        case .resource(.lumber): return "tile-forest"
+        case .resource(.grain): return "tile-grain"
+        case .resource(.wool): return "tile-pasture"
+        case .resource(.ore): return "tile-mountain"
+        case .resource(.brick): return "tile-clay"
+        case .desert: return "tile-desert"
+        }
+    }
+
     /// One distinguishable color per seat - that seat's fixed civilization
     /// material color (see `Civilization.accentColor`), not user-
     /// customizable: with exactly one civilization per seat, the

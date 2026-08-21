@@ -165,6 +165,33 @@ import CatanEngine
     #expect(!underThreat)
 }
 
+/// Same marginal deal as above, but this time the *receiver* (not the
+/// proposer) is the one built up into a commanding lead over the rest of
+/// the field - trading with winning in mind means a bot that's already well
+/// ahead has less reason to hand a trailing opponent resources for a
+/// merely-okay deal, so the same net gain that clears the bar at an average
+/// standing should fail to clear it here.
+@Test func evaluateRequiresABetterDealWhenReceiverIsComfortablyAhead() {
+    var state = GameSetup.newGame(board: BoardGenerator.standard())
+    let receiver = PlayerID(index: 0)
+    let proposer = PlayerID(index: 1)
+
+    state.players[0].resources = [.brick: 1, .lumber: 1, .grain: 0, .wool: 1, .ore: 1]
+    let offer = TradeOffer(from: proposer, give: [.ore: 1], want: [.wool: 1])
+
+    let baselineAccept = TradeHeuristics.evaluate(offer: offer, receiver: receiver, state: state, personality: .aggressive)
+    #expect(baselineAccept)
+
+    var receiverAhead = state
+    let vertex = state.board.onBoardVertices.sorted().first!
+    receiverAhead.players[0].settlements.insert(vertex)
+    receiverAhead.players[0].cities.insert(vertex)
+    receiverAhead.players[0].devCards = Array(repeating: DevCardType.knight, count: 20)
+
+    let aheadAccept = TradeHeuristics.evaluate(offer: offer, receiver: receiver, state: receiverAhead, personality: .aggressive)
+    #expect(!aheadAccept)
+}
+
 /// Nothing to convert into: already holds everything the nearest target
 /// needs, so there's no "most needed" resource to trade for.
 @Test func bestBankTradeIsNilWhenNothingIsBlockingTheNearestBuild() {

@@ -19,6 +19,12 @@ public struct GameState: Codable, Sendable {
     /// card is only playable starting the turn after it's bought). Cleared
     /// for everyone on `.endTurn`.
     public var devCardsBoughtThisTurn: [PlayerID: [DevCardType]]
+    /// The player who has already played a development card this turn, if
+    /// any - standard rule: at most one development card may be played per
+    /// turn (a knight played before rolling, in `.rollDice`, counts against
+    /// the same turn's limit). `nil` once no card has been played yet this
+    /// turn; cleared for everyone on `.endTurn`.
+    public var devCardPlayedThisTurn: PlayerID?
 
     public init(
         board: Board,
@@ -32,7 +38,8 @@ public struct GameState: Codable, Sendable {
         pendingTradeOffers: [TradeOffer] = [],
         log: [String] = [],
         robberMoverIndex: Int? = nil,
-        devCardsBoughtThisTurn: [PlayerID: [DevCardType]] = [:]
+        devCardsBoughtThisTurn: [PlayerID: [DevCardType]] = [:],
+        devCardPlayedThisTurn: PlayerID? = nil
     ) {
         self.board = board
         self.players = players
@@ -46,6 +53,7 @@ public struct GameState: Codable, Sendable {
         self.log = log
         self.robberMoverIndex = robberMoverIndex
         self.devCardsBoughtThisTurn = devCardsBoughtThisTurn
+        self.devCardPlayedThisTurn = devCardPlayedThisTurn
     }
 
     /// Total victory points for `id`: building/dev-card VPs from `Player`,

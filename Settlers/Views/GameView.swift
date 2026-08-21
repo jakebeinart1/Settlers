@@ -365,11 +365,10 @@ public struct GameView: View {
         Button {
             isShowingPauseMenu = true
         } label: {
-            Image(systemName: "line.3.horizontal")
-                .font(.subheadline.bold())
-                .foregroundStyle(.white)
+            Image("menu-icon")
+                .resizable()
+                .scaledToFit()
                 .frame(width: 32, height: 32)
-                .background(Color.black.opacity(0.5), in: Circle())
         }
     }
 
@@ -390,7 +389,11 @@ public struct GameView: View {
             .foregroundStyle(.white)
             .padding(.horizontal, 14)
             .padding(.vertical, 6)
-            .background(Color.black.opacity(0.5), in: Capsule())
+            .background(
+                // `.scaledToFill()` + clip, not a 9-slice stretch - see
+                // `UniformActionButton`'s matching comment for why.
+                Image("dice-frame").resizable().scaledToFill().clipShape(Capsule())
+            )
             .scaleEffect(diceScale)
             .rotationEffect(.degrees(diceRotation))
 
@@ -438,7 +441,9 @@ public struct GameView: View {
         .foregroundStyle(.white)
         .padding(.horizontal, 10)
         .padding(.vertical, 6)
-        .background(Color.black.opacity(0.5), in: RoundedRectangle(cornerRadius: 10))
+        .background(
+            Image("dice-frame").resizable().scaledToFill().clipShape(RoundedRectangle(cornerRadius: 10))
+        )
     }
 
     // MARK: - Bottom panel: one uniform action row (or the inline
@@ -494,7 +499,8 @@ public struct GameView: View {
         HStack(spacing: 10) {
             UniformActionButton(
                 title: "Trade", systemImage: "arrow.left.arrow.right",
-                isEnabled: isTradeAvailable
+                isEnabled: isTradeAvailable,
+                backgroundImageName: "button-frame-trade"
             ) {
                 showTradePopup = true
             }
@@ -502,7 +508,8 @@ public struct GameView: View {
                 title: placementMode == nil ? "Build" : placementMode!.label,
                 systemImage: placementMode == nil ? "hammer.fill" : "hammer.circle.fill",
                 isEnabled: true,
-                isArmed: placementMode != nil
+                isArmed: placementMode != nil,
+                backgroundImageName: "button-frame-build"
             ) {
                 if placementMode != nil {
                     placementMode = nil
@@ -561,7 +568,7 @@ public struct GameView: View {
     private var turnActionButton: some View {
         switch state.phase {
         case .rollDice(let playerIndex) where playerIndex == human.index:
-            UniformActionButton(title: "Roll Dice", systemImage: "die.face.5.fill", isEnabled: true, isArmed: true) {
+            UniformActionButton(title: "Roll Dice", systemImage: "die.face.5.fill", isEnabled: true, isArmed: true, backgroundImageName: "button-frame-turn") {
                 perform(.rollDice)
             }
             .overlay(
@@ -579,11 +586,11 @@ public struct GameView: View {
                 rollDicePulse = false
             }
         case .mainTurn(let playerIndex) where playerIndex == human.index:
-            UniformActionButton(title: "End Turn", systemImage: "arrow.uturn.right.circle.fill", isEnabled: true) {
+            UniformActionButton(title: "End Turn", systemImage: "arrow.uturn.right.circle.fill", isEnabled: true, backgroundImageName: "button-frame-turn") {
                 perform(.endTurn)
             }
         default:
-            UniformActionButton(title: "Turn", systemImage: "hourglass", isEnabled: false) {}
+            UniformActionButton(title: "Turn", systemImage: "hourglass", isEnabled: false, backgroundImageName: "button-frame-turn") {}
         }
     }
 

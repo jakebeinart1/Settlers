@@ -14,7 +14,18 @@ public struct Bot: Sendable {
     }
 
     /// Always returns a member of `RulesEngine.legalMoves(for: state)`.
+    /// Convenience overload for callers (the real game, most tests) that
+    /// don't need a reproducible tie-break - see the `rng:` overload below
+    /// for one that does.
     public func decide(for state: GameState, player: PlayerID) -> GameMove {
+        var rng = SystemRandomNumberGenerator()
+        return decide(for: state, player: player, rng: &rng)
+    }
+
+    /// Same as `decide(for:player:)`, but with an injectable RNG so build
+    /// near-ties (see `BuildPlanner.chooseBuild`'s `tieMargin`) can be made
+    /// deterministic - e.g. for tests that need a reproducible pick.
+    public func decide(for state: GameState, player: PlayerID, rng: inout some RandomNumberGenerator) -> GameMove {
         let legal = RulesEngine.legalMoves(for: state)
 
         switch state.phase {
@@ -25,7 +36,7 @@ public struct Bot: Sendable {
             return .rollDice
 
         case .mainTurn:
-            return decideMainTurn(legal: legal, state: state, player: player)
+            return decideMainTurn(legal: legal, state: state, player: player, rng: &rng)
 
         case .discarding:
             return decideDiscard(legal: legal, state: state, player: player)
@@ -192,7 +203,7 @@ public struct Bot: Sendable {
     /// buying a dev card, and proposing a trade - scored so that `personality`
     /// shifts which category wins close calls, then returns whichever
     /// scores highest (or `.endTurn` if nothing clears the bar).
-    private func decideMainTurn(legal: [GameMove], state: GameState, player: PlayerID) -> GameMove {
+    private func decideMainTurn(legal: [GameMove], state: GameState, player: PlayerID, rng: inout some RandomNumberGenerator) -> GameMove {
         var best: (move: GameMove, score: Double)?
 
         func consider(_ desired: GameMove?, score: Double) {
@@ -216,7 +227,7 @@ public struct Bot: Sendable {
         // into it harder (mostly via knight plays).
         consider(DevCardHeuristics.choosePlay(state: state, player: player, personality: personality), score: 2.5 + personality.aggressiveness * 2.0)
 
-        let buildMove = BuildPlanner.chooseBuild(for: state, player: player, personality: personality)
+        let buildMove = BuildPlanner.chooseBuild(for: state, player: player, personality: personality, rng: &rng)
         consider(buildMove, score: 3.0)
 
         // Buying/proposing a trade are fallbacks considered only once a

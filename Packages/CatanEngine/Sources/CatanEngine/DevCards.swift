@@ -31,6 +31,7 @@ public enum DevCards {
         guard canPlay(.knight, by: player, in: state) else { throw MoveError.illegalPlacement }
         try Robber.apply(move: moveRobberTo, stealFrom: stealFrom, by: player, to: &state)
         consumeCard(.knight, from: player, state: &state)
+        state.devCardPlayedThisTurn = player
 
         guard let playerIndex = state.players.firstIndex(where: { $0.id == player }) else {
             throw MoveError.other("unknown player")
@@ -64,6 +65,7 @@ public enum DevCards {
         state.players[playerIndex].roads.insert(e2)
 
         consumeCard(.roadBuilding, from: player, state: &state)
+        state.devCardPlayedThisTurn = player
         state.longestRoadPlayer = LongestRoad.compute(for: state)
     }
 
@@ -84,6 +86,7 @@ public enum DevCards {
             state.players[playerIndex].resources[resource, default: 0] += 1
         }
         consumeCard(.yearOfPlenty, from: player, state: &state)
+        state.devCardPlayedThisTurn = player
     }
 
     /// Every other player hands over all of their `resource` cards to
@@ -100,12 +103,17 @@ public enum DevCards {
             state.players[playerIndex].resources[resource, default: 0] += amount
         }
         consumeCard(.monopoly, from: player, state: &state)
+        state.devCardPlayedThisTurn = player
     }
 
-    /// Whether `player` holds a card of `type` that wasn't bought this
-    /// turn. Used both by the play functions and by `RulesEngine.legalMoves`
-    /// to decide which `.play*` moves to enumerate.
+    /// Whether `player` holds a card of `type` that wasn't bought this turn,
+    /// and `player` hasn't already played a development card this turn
+    /// (standard rule: at most one per turn - a knight played before rolling
+    /// counts against the same turn's limit, since `devCardPlayedThisTurn`
+    /// only clears on `.endTurn`). Used both by the play functions and by
+    /// `RulesEngine.legalMoves` to decide which `.play*` moves to enumerate.
     public static func canPlay(_ type: DevCardType, by player: PlayerID, in state: GameState) -> Bool {
+        guard state.devCardPlayedThisTurn == nil else { return false }
         guard let p = state.players.first(where: { $0.id == player }) else { return false }
         let owned = p.devCards.filter { $0 == type }.count
         let boughtThisTurn = (state.devCardsBoughtThisTurn[player] ?? []).filter { $0 == type }.count

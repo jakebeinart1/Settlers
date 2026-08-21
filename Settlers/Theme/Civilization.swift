@@ -120,6 +120,31 @@ public enum Civilization: String, CaseIterable, Sendable, Codable {
     /// every civilization's `baseAccentColor` rather than tuning each RGB
     /// triple by hand, so the whole roster gets a consistent nudge instead
     /// of an inconsistent one.
+    /// Asset catalog name of this civilization's painted piece art -
+    /// restyled from each civilization's own original piece design (not a
+    /// different landmark), rendered with the same rugged painterly
+    /// shadow/texture quality as Britannia's castle. `nil` where that
+    /// specific tier's art doesn't exist yet, in which case
+    /// `CivilizationBadge` falls back to the vector shape for just that
+    /// tier - settlement and city are tracked independently since they
+    /// were produced in separate passes. See design-references/STATUS.md.
+    public func paintedPieceImageName(isCity: Bool) -> String? {
+        let base: String
+        let hasCityArt: Bool
+        switch self {
+        case .medieval: base = "civ-britannia"; hasCityArt = true
+        case .greece: base = "civ-greece"; hasCityArt = true
+        case .rome: base = "civ-rome"; hasCityArt = true
+        case .columbia: base = "civ-columbia"; hasCityArt = true
+        case .egypt: base = "civ-egypt"; hasCityArt = false
+        case .aztec: base = "civ-aztec"; hasCityArt = false
+        case .japan: base = "civ-japan"; hasCityArt = false
+        case .norse: base = "civ-norse"; hasCityArt = false
+        }
+        if isCity && !hasCityArt { return nil }
+        return base + (isCity ? "-city" : "-settlement")
+    }
+
     private static func vivid(_ color: Color) -> Color {
         var hue: CGFloat = 0, saturation: CGFloat = 0, brightness: CGFloat = 0, alpha: CGFloat = 0
         UIColor(color).getHue(&hue, saturation: &saturation, brightness: &brightness, alpha: &alpha)

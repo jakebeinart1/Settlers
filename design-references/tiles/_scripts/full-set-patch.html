@@ -1,0 +1,63 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@600;700&display=swap" rel="stylesheet">
+<style>
+  html,body{margin:0;padding:0;background:#0b1a2b;}
+  .stage{ position:relative; width:800px; height:700px; }
+  .field{ position:absolute; left:50%; top:50%; width:0; height:0; }
+  .hex-wrap{ position:absolute; width:220px; height:190.5px; left:50%; top:50%; }
+  .border{ position:absolute; inset:0; clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%); background:#d8c496; }
+  .art{ position:absolute; inset:5px; clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%); background-size:120% 120%; background-position:center; }
+  .token{ position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); width:52px; height:52px; border-radius:50%;
+    background: radial-gradient(circle at 35% 30%, #fffaf0, #f2e6c4 80%);
+    box-shadow: 0 3px 6px rgba(0,0,0,.45), inset 0 0 0 3px #7a1f22;
+    display:flex; align-items:center; justify-content:center;
+    font-family:'Fraunces', serif; font-weight:700; font-size:24px; color:#7a1f22; z-index:2;}
+  .token.hot{ color:#a8281c; }
+  .token.desert{ background:none; box-shadow:none; }
+</style>
+</head>
+<body>
+  <div class="stage">
+    <div class="field">
+      <div class="hex-wrap" style="transform:translate(-50%,-50%);">
+        <div class="border"></div>
+        <div class="art" style="background-image:url('../forest/v4-match.png');"></div>
+        <div class="token">5</div>
+      </div>
+      <div class="hex-wrap" style="transform:translate(calc(-50% + 165px), calc(-50% + 95.25px));">
+        <div class="border"></div>
+        <div class="art" style="background-image:url('../grain/v2-match.png');"></div>
+        <div class="token hot">6</div>
+      </div>
+      <div class="hex-wrap" style="transform:translate(calc(-50% + 165px), calc(-50% - 95.25px));">
+        <div class="border"></div>
+        <div class="art" style="background-image:url('../pasture/v1-match.png');"></div>
+        <div class="token">9</div>
+      </div>
+      <div class="hex-wrap" style="transform:translate(-50%, calc(-50% - 190.5px));">
+        <div class="border"></div>
+        <div class="art" style="background-image:url('../mountain/v1-match.png');"></div>
+        <div class="token">4</div>
+      </div>
+      <div class="hex-wrap" style="transform:translate(calc(-50% - 165px), calc(-50% - 95.25px));">
+        <div class="border"></div>
+        <div class="art" style="background-image:url('../clay/v1-match.png');"></div>
+        <div class="token">11</div>
+      </div>
+      <div class="hex-wrap" style="transform:translate(calc(-50% - 165px), calc(-50% + 95.25px));">
+        <div class="border"></div>
+        <div class="art" style="background-image:url('../grain/v2-match.png');"></div>
+        <div class="token hot">8</div>
+      </div>
+      <div class="hex-wrap" style="transform:translate(-50%, calc(-50% + 190.5px));">
+        <div class="border"></div>
+        <div class="art" style="background-image:url('../desert/v1-match.png');"></div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

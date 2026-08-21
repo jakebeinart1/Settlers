@@ -20,12 +20,27 @@ struct CivilizationBadge: View {
     let size: CGFloat
 
     var body: some View {
+        // Painted landmark art (a real famous building - the Colosseum,
+        // the Capitol dome, ...) for whichever civilizations have it so
+        // far; everything else still falls back to the vector silhouette
+        // below until its own art exists. See design-references/STATUS.md.
+        if let imageName = civilization.paintedPieceImageName(isCity: isCity) {
+            Image(imageName)
+                .resizable()
+                .scaledToFit()
+                .frame(width: size, height: size)
+        } else {
+            vectorBadge
+        }
+    }
+
+    private var vectorBadge: some View {
         let shape = civilization.pieceShape()
         let etch = civilization.etchDetail()
         let backing = civilization.backingFill()
         let strokeWidth = max(1, size * 0.045)
 
-        VStack(spacing: 0) {
+        return VStack(spacing: 0) {
             if isCity {
                 PennantGlyph()
                     .fill(CatanTheme.cityPennantGold)

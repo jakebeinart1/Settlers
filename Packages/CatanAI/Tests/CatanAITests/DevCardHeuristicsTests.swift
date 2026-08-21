@@ -51,3 +51,61 @@ private func makeAmbiguousYearOfPlentyState() -> GameState {
     let move = DevCardHeuristics.choosePlay(state: state, player: player, personality: .balanced)
     #expect(move.map { "\($0)" } == "\(GameMove.playMonopoly(.wool))")
 }
+
+/// Regression test for bot feedback: with a real shot at Largest Army (two
+/// knights already played, one more in hand - enough to reach 3, and
+/// nobody's ahead of us), the bot must actually play the knight rather than
+/// only ever doing so reactively when the robber happens to sit on its own
+/// tile. Largest Army has to be *pursued* to ever be held, not stumbled
+/// into.
+@Test func choosePlayPursuesLargestArmyWithARealShotEvenWithoutRobberOnOwnTile() {
+    var state = GameSetup.newGame(board: BoardGenerator.standard())
+    let player = PlayerID(index: 0)
+    state.players[0].playedKnights = 1
+    state.players[0].devCards = [.knight, .knight]
+    // Robber is nowhere near player 0's holdings - the only reason to play
+    // here is the army race itself.
+    state.players[0].settlements = []
+    state.players[0].cities = []
+
+    let move = DevCardHeuristics.choosePlay(state: state, player: player, personality: .balanced)
+    guard case .playKnight = move else {
+        Issue.record("expected a knight play, got \(String(describing: move))")
+        return
+    }
+}
+
+/// A bot with no realistic path to 3 knights (only one ever obtainable)
+/// shouldn't burn its one dev-card play chasing a bonus it can't reach.
+@Test func choosePlayDoesNotPursueLargestArmyWithoutARealShot() {
+    var state = GameSetup.newGame(board: BoardGenerator.standard())
+    let player = PlayerID(index: 0)
+    state.players[0].playedKnights = 0
+    state.players[0].devCards = [.knight] // ceiling of 1 - can never reach 3
+    state.players[0].settlements = []
+    state.players[0].cities = []
+
+    let move = DevCardHeuristics.choosePlay(state: state, player: player, personality: .balanced)
+    #expect(move == nil)
+}
+
+/// Once a rival already holds Largest Army with a commanding lead our
+/// current hand can't plausibly overtake, and the deck still has plenty of
+/// cards left (no endgame urgency), there's no rush to burn the knight now -
+/// holding it a bit longer costs nothing and keeps options open.
+@Test func choosePlayDoesNotRushLargestArmyAgainstAFarAheadHolderMidGame() {
+    var state = GameSetup.newGame(board: BoardGenerator.standard())
+    let player = PlayerID(index: 0)
+    let holder = PlayerID(index: 1)
+    state.players[0].playedKnights = 1
+    state.players[0].devCards = [.knight, .knight] // ceiling 3, ties the holder at best
+    state.players[1].playedKnights = 4
+    state.largestArmyPlayer = holder
+    state.players[0].settlements = []
+    state.players[0].cities = []
+    // Plenty of deck left - no last-call pressure.
+    #expect(state.devCardDeck.count > 5)
+
+    let move = DevCardHeuristics.choosePlay(state: state, player: player, personality: .balanced)
+    #expect(move == nil)
+}

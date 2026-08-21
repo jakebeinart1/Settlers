@@ -62,6 +62,15 @@ public enum TradeHeuristics {
     /// relative to `receiver`'s other opponents (see `ThreatAssessment`) -
     /// accepting hands them resources, so a proposal from an above-average
     /// threat needs a correspondingly better deal to clear the bar.
+    ///
+    /// It also shifts with `receiver`'s own standing in the game
+    /// (`ThreatAssessment.ownStanding`) - trading is only ever evaluated
+    /// with winning in mind, not just "is this deal fair": a bot that's
+    /// behind the field has real reason to take a genuinely fair trade to
+    /// catch up, so the bar drops a little; a bot with a comfortable lead
+    /// has less reason to hand any opponent resources over a merely-okay
+    /// deal, since helping someone else catch up costs more than a fair
+    /// trade is worth, so the bar rises a little.
     public static func evaluate(offer: TradeOffer, receiver: PlayerID, state: GameState, personality: BotPersonality) -> Bool {
         guard let receiverPlayer = state.players.first(where: { $0.id == receiver }) else { return false }
 
@@ -74,9 +83,11 @@ public enum TradeHeuristics {
 
         let netGain = gainValue - costValue
         let proposerWeight = ThreatAssessment.relativeWeight(for: offer.from, excluding: receiver, in: state)
+        let ownStanding = ThreatAssessment.ownStanding(for: receiver, in: state)
         let baseThreshold = max(0.4, 0.7 - personality.tradeWillingness * 0.6)
         let threatShift = (proposerWeight - 1.0) * 0.5
-        let threshold = max(0, baseThreshold + threatShift)
+        let standingShift = (ownStanding - 1.0) * 0.25
+        let threshold = max(0, baseThreshold + threatShift + standingShift)
         return netGain > threshold
     }
 

@@ -12,13 +12,22 @@ public struct UniformActionButton: View {
     public let systemImage: String
     public let isEnabled: Bool
     public let isArmed: Bool
+    /// Asset name of a painted button-frame background (see
+    /// design-references/STATUS.md) for the 3 fixed action-row roles
+    /// (Trade/Build/turn-action), which always mean the same thing and so
+    /// always get the same frame. `nil` for every other use of this same
+    /// button (robber-victim picks, Cancel, dynamic Road/Settlement/City
+    /// labels) - those keep the plain flat background, since there's no
+    /// fixed frame per label to paint ahead of time.
+    public let backgroundImageName: String?
     public let action: () -> Void
 
-    public init(title: String, systemImage: String, isEnabled: Bool, isArmed: Bool = false, action: @escaping () -> Void) {
+    public init(title: String, systemImage: String, isEnabled: Bool, isArmed: Bool = false, backgroundImageName: String? = nil, action: @escaping () -> Void) {
         self.title = title
         self.systemImage = systemImage
         self.isEnabled = isEnabled
         self.isArmed = isArmed
+        self.backgroundImageName = backgroundImageName
         self.action = action
     }
 
@@ -32,13 +41,29 @@ public struct UniformActionButton: View {
             }
             .frame(maxWidth: .infinity)
             .padding(.vertical, 6)
-            .background(
-                RoundedRectangle(cornerRadius: 8)
-                    .fill(isArmed ? Color.yellow.opacity(0.35) : Color(white: 0.18))
-            )
+            .background(background)
             .foregroundStyle(.white)
         }
         .disabled(!isEnabled)
         .opacity(isEnabled ? 1 : 0.4)
+    }
+
+    @ViewBuilder
+    private var background: some View {
+        if isArmed {
+            RoundedRectangle(cornerRadius: 8).fill(Color.yellow.opacity(0.35))
+        } else if let backgroundImageName {
+            // `.scaledToFill()` + clip, not a 9-slice `capInsets` stretch -
+            // stretching warped the frame's corner ornamentation whenever
+            // the button's real proportions didn't match the source
+            // image's, which is what read as "cut off"/rough. Fill+clip
+            // can only crop evenly, never distort.
+            Image(backgroundImageName)
+                .resizable()
+                .scaledToFill()
+                .clipShape(RoundedRectangle(cornerRadius: 8))
+        } else {
+            RoundedRectangle(cornerRadius: 8).fill(Color(white: 0.18))
+        }
     }
 }

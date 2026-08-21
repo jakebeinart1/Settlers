@@ -353,6 +353,168 @@ private func buildChain(from board: Board, length: Int) -> [EdgeID] {
     #expect(touchingOpponent == notTouchingOpponent)
 }
 
+/// Real-player advice: don't buy development cards forever, since only one
+/// can be played per turn - a bot already holding several unplayed ones
+/// should value another less than a bot holding none.
+@Test func buyDevCardScoreDecreasesWithEachUnplayedCardAlreadyHeld() {
+    var state = GameSetup.newGame(board: BoardGenerator.standard())
+    let player = PlayerID(index: 0)
+
+    let noneHeld = BuildPlanner.score(.buyDevCard, for: state, player: player, personality: .balanced)!
+
+    state.players[0].devCards = [.roadBuilding, .monopoly]
+    let twoHeld = BuildPlanner.score(.buyDevCard, for: state, player: player, personality: .balanced)!
+
+    #expect(twoHeld < noneHeld)
+}
+
+/// Victory-point cards are never played, so sitting on one shouldn't make
+/// buying another card look any less appealing - only cards that compete
+/// for next turn's one-play slot should count against it.
+@Test func buyDevCardScoreIgnoresHeldVictoryPointCards() {
+    var state = GameSetup.newGame(board: BoardGenerator.standard())
+    let player = PlayerID(index: 0)
+
+    let noneHeld = BuildPlanner.score(.buyDevCard, for: state, player: player, personality: .balanced)!
+
+    state.players[0].devCards = [.victoryPoint, .victoryPoint]
+    let vpHeld = BuildPlanner.score(.buyDevCard, for: state, player: player, personality: .balanced)!
+
+    #expect(vpHeld == noneHeld)
+}
+
+/// Regression test for bot feedback: roads read as "sporadic ... not
+/// directed toward anything ... building in circles". A road that measurably
+/// closes the distance to the player's own `expansionTarget` should outscore
+/// an otherwise-identical road that doesn't - the mechanism that keeps a
+/// bot's road-building aimed at one place across turns instead of
+/// flip-flopping to whatever's marginally reachable each turn.
+@Test func buildRoadScoreIsHigherWhenItClosesDistanceToTheExpansionTarget() {
+    var state = GameSetup.newGame(board: BoardGenerator.standard())
+    let player = PlayerID(index: 0)
+
+    // Try each on-board vertex as the hub until one has both a target and
+    // two of its own edges sitting at genuinely different distances from
+    // it - the standard board's real geometry (which vertex ends up a
+    // 2-way corner vs. a 3-way junction) isn't worth hard-coding here.
+    for hub in state.board.onBoardVertices.sorted() {
+        var candidate = state
+        candidate.players[0].settlements = [hub]
+
+        guard let target = BuildPlanner.expansionTarget(for: player, in: candidate), target != hub else { continue }
+
+        // Simple BFS distance-to-target over the board's vertex graph,
+        // mirroring `BuildPlanner`'s own (private) `vertexDistances`.
+        var distances: [VertexID: Int] = [target: 0]
+        var frontier: Set<VertexID> = [target]
+        var hop = 0
+        while !frontier.isEmpty {
+            hop += 1
+            let next = Set(frontier.flatMap { candidate.board.adjacentVertices(of: $0) }).subtracting(distances.keys)
+            for vertex in next { distances[vertex] = hop }
+            frontier = next
+        }
+        func farVertexDistance(_ edge: EdgeID) -> Int {
+            let (a, b) = candidate.board.vertices(of: edge)
+            return distances[a == hub ? b : a] ?? Int.max
+        }
+        let rankedEdges = candidate.board.edgesTouching(hub).sorted { farVertexDistance($0) < farVertexDistance($1) }
+        guard let towardTarget = rankedEdges.first, let awayFromTarget = rankedEdges.last,
+              farVertexDistance(towardTarget) < farVertexDistance(awayFromTarget)
+        else { continue }
+
+        let towardBonus = BuildPlanner.committedPathBonus(edge: towardTarget, player: player, state: candidate)
+        let awayBonus = BuildPlanner.committedPathBonus(edge: awayFromTarget, player: player, state: candidate)
+
+        #expect(towardBonus > awayBonus)
+        return
+    }
+    Issue.record("no vertex on the test board yielded a usable toward/away edge pair")
+}
+
+/// `chooseBuild` should pick deterministically when one move clearly
+/// outscores the rest - no amount of re-rolling the RNG should ever surface
+/// a dominated candidate.
+@Test func chooseBuildIsDeterministicWhenOneMoveClearlyDominates() {
+    var state = GameSetup.newGame(board: BoardGenerator.standard())
+    state.phase = .mainTurn(playerIndex: 0)
+    let player = PlayerID(index: 0)
+    // Player has no road network yet, so no settlement/city/road is legal
+    // (both require connecting to an existing road) - buying a dev card is
+    // the only affordable, legal build move, so there's no real tie to
+    // break regardless of which candidates the RNG might otherwise favor.
+    state.players[0].resources = [.ore: 1, .wool: 1, .grain: 1]
+
+    var seenMoves = Set<String>()
+    for seed: UInt64 in 0..<20 {
+        var rng = SeededRNG(seed: seed)
+        guard let move = BuildPlanner.chooseBuild(for: state, player: player, personality: .balanced, rng: &rng) else {
+            Issue.record("expected a build move")
+            continue
+        }
+        seenMoves.insert("\(move)")
+    }
+    #expect(seenMoves.count == 1)
+}
+
+/// A private, seedable RNG for deterministic test runs - `SystemRandomNumberGenerator`
+/// can't be seeded, so `chooseBuild`'s `rng:` parameter needs a substitute
+/// here to get reproducible picks.
+private struct SeededRNG: RandomNumberGenerator {
+    private var state: UInt64
+    init(seed: UInt64) { state = seed &+ 0x9E3779B97F4A7C15 }
+    mutating func next() -> UInt64 {
+        state ^= state << 13
+        state ^= state >> 7
+        state ^= state << 17
+        return state
+    }
+}
+
+/// Regression test for bot feedback: "every road built to protect that 2+
+/// status that no one challenges is a waste." Already holding Longest Road
+/// with a comfortable lead (nobody within striking distance), extending the
+/// chain further shouldn't get a defensive bonus - nothing is actually being
+/// defended.
+@Test func longestRoadDefenseBonusIsAbsentWhenLeadIsUncontested() {
+    var state = GameSetup.newGame(board: BoardGenerator.standard())
+    let player = PlayerID(index: 0)
+    let chain = buildChain(from: state.board, length: 6)
+    #expect(chain.count == 6, "test board too small to build a 6-edge chain")
+    state.players[0].roads = Set(chain.prefix(5)) // length 5, already qualifies
+    state.longestRoadPlayer = player
+    // No opponent has any roads at all - the lead is completely uncontested.
+
+    let extendingEdge = chain[5]
+    let bonus = BuildPlanner.longestRoadDefenseBonus(edge: extendingEdge, player: player, state: state)
+    #expect(bonus == 0)
+}
+
+/// The mirror case: a rival's own chain has caught up to within one segment
+/// of ours - extending our lead here is genuinely defending the bonus, and
+/// should score higher than the uncontested case above.
+@Test func longestRoadDefenseBonusAppliesWhenARivalIsCloseBehind() {
+    var state = GameSetup.newGame(board: BoardGenerator.standard())
+    let player = PlayerID(index: 0)
+    let chain = buildChain(from: state.board, length: 6)
+    #expect(chain.count == 6, "test board too small to build a 6-edge chain")
+    state.players[0].roads = Set(chain.prefix(5)) // length 5
+    state.longestRoadPlayer = player
+
+    let extendingEdge = chain[5]
+    let uncontestedBonus = BuildPlanner.longestRoadDefenseBonus(edge: extendingEdge, player: player, state: state)
+    #expect(uncontestedBonus == 0)
+
+    // Give the rival a same-board chain of length 4 - one behind, real
+    // pressure to stay ahead.
+    let rivalChain = buildChain(from: state.board, length: 4)
+    state.players[1].roads = Set(rivalChain)
+
+    let contestedBonus = BuildPlanner.longestRoadDefenseBonus(edge: extendingEdge, player: player, state: state)
+
+    #expect(contestedBonus > uncontestedBonus)
+}
+
 @Test func longestRoadClaimBonusIsLargerWhenTakingItFromAHighThreatHolder() {
     var state = GameSetup.newGame(board: BoardGenerator.standard())
     let player = PlayerID(index: 0)

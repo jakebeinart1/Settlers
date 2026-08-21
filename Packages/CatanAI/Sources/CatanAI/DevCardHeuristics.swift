@@ -51,7 +51,7 @@ public enum DevCardHeuristics {
                     && (me.settlements.contains(vertex) || me.cities.contains(vertex))
             }
             let claimsLargestArmy = me.playedKnights + 1 >= 3 && state.largestArmyPlayer != player
-            if robberOnOwnTile || claimsLargestArmy {
+            if robberOnOwnTile || claimsLargestArmy || pursuingLargestArmy(state: state, player: player, me: me) {
                 let (tile, victim) = RobberHeuristics.chooseRobberTarget(state: state, player: player, personality: personality)
                 return .playKnight(moveRobberTo: tile, stealFrom: victim)
             }
@@ -95,6 +95,39 @@ public enum DevCardHeuristics {
         }
 
         return nil
+    }
+
+    /// Whether `player` should spend this turn's one dev-card play on a
+    /// knight purely to build toward Largest Army - not because the robber
+    /// happens to sit on our own tile, and not because this exact play
+    /// would already claim it (`claimsLargestArmy` in `choosePlay` covers
+    /// that). Largest Army is a bonus you have to hold *at game end*, not a
+    /// one-off event, so a bot sitting on unplayed knights with a real shot
+    /// needs to actually spend them down over several turns rather than
+    /// only ever playing one reactively when robbed onto its own tile -
+    /// otherwise it can stockpile knights all game and never seriously
+    /// contest the bonus.
+    ///
+    /// "A real shot" means our maximum reachable knight count (already
+    /// played, plus every knight currently in hand - including ones bought
+    /// this turn that aren't playable yet, since they will be by the time
+    /// we'd need them) could plausibly reach or pass whoever's ahead of us
+    /// in the race: the current holder if there is one, otherwise the
+    /// furthest-along opponent. Once the deck is nearly out, there's no more
+    /// runway to grow that ceiling further, so any real contender should
+    /// stop sitting on knights and start spending them - last call before
+    /// the game can't hand out any more of them.
+    private static func pursuingLargestArmy(state: GameState, player: PlayerID, me: Player) -> Bool {
+        guard state.largestArmyPlayer != player else { return false } // already holding it - nothing to pursue
+        let myCeiling = me.playedKnights + me.devCards.filter { $0 == .knight }.count
+        guard myCeiling >= 3 else { return false } // not a real contender either way
+
+        let aheadOfUs = state.largestArmyPlayer
+            .flatMap { holder in state.players.first(where: { $0.id == holder })?.playedKnights }
+            ?? (state.players.filter { $0.id != player }.map(\.playedKnights).max() ?? 0)
+
+        let deckNearlyOut = state.devCardDeck.count <= 5
+        return myCeiling > aheadOfUs || deckNearlyOut
     }
 
     /// Total holdings of `resource` across every opponent, weighted by how

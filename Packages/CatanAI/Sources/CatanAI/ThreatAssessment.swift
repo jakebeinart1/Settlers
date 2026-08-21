@@ -91,4 +91,33 @@ public enum ThreatAssessment {
 
         return min(3.0, max(0.4, targetScore / average))
     }
+
+    /// How `player` is doing relative to the average of every other player -
+    /// same underlying score as `relativeWeight`, but for judging your own
+    /// standing in the game rather than an opponent's threat level. `1.0` is
+    /// "exactly average"; above that is ahead of the field, below is behind.
+    /// Clamped to `[0.2, 3.0]` for the same reason `relativeWeight` clamps -
+    /// a single early-game outlier shouldn't produce an extreme swing.
+    /// Consumers (e.g. `TradeHeuristics`) use this to play with "winning in
+    /// mind": a bot that's behind has more reason to take a genuinely fair
+    /// deal to catch up, while a bot with a comfortable lead has less reason
+    /// to hand an opponent resources for a merely-okay trade, since helping
+    /// them catch up costs more than the deal itself is worth.
+    public static func ownStanding(for player: PlayerID, in state: GameState) -> Double {
+        let others = scores(excluding: player, in: state)
+        guard !others.isEmpty else { return 1.0 }
+
+        let average = others.reduce(0.0) { $0 + $1.score } / Double(others.count)
+        let myScore = score(for: player, in: state)
+        // Unlike `relativeWeight` (which compares one opponent to the
+        // *other* opponents' average, and bails to a neutral `1.0` when
+        // that average is still `0`, since it's judging someone else's
+        // early outlier against a genuinely empty field), a `0` average
+        // here doesn't mean there's no signal - `player`'s own score can
+        // still be meaningfully ahead of a field that hasn't built anything
+        // yet, and that's real information worth keeping.
+        guard average > 0 else { return myScore > 0 ? 3.0 : 1.0 }
+
+        return min(3.0, max(0.2, myScore / average))
+    }
 }
