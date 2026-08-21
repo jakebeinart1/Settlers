@@ -188,6 +188,26 @@ native gold `strokeBorder` + a thin inset dark-maroon accent line, color sampled
 `bank-fill.png` is the same borderless-crop treatment as `dice-fill.png`/`button-fill-*.png`. Port frame and
 menu icon are unrelated (a filled ring/circle, not a bordered rectangle) and weren't touched.
 
+## Aug 21 piece outline thickness (Aztec/Rome/Greece)
+
+Feedback: piece outlines/detail linework read as too thin on Aztec, Rome, and Greece specifically (Japan,
+Norse, Egypt, Britannia, and Columbia were already fine). Fixed deterministically rather than
+re-generating - `tiles/_scripts/thicken_piece_lines.py` finds near-black pixels within a piece's own alpha
+shape (covers both the outer silhouette border and interior detail lines - doorways, arches - since they're
+the same "black ink" in this style), runs a binary opening first to drop stray anti-aliased specks inside
+shaded areas (without it, dilation was amplifying single-pixel noise into visible blobs), then dilates the
+real linework inward by a radius proportional to the piece's own canvas size (`~0.0052 * min(w, h)`, floor
+2px) - dilation is intersected with the original alpha mask, so growth can only thicken the stroke, never
+extend the silhouette's outer edge or bleed into the transparent background.
+
+**Only applied to the 6 flagged files** (`aztec-/rome-/greece-{settlement,city}.png`), not all 16 - an
+early test pass at the same formula on `japan-settlement.png` (already "good") visibly degraded its wide
+roof edge into a jagged staircase (a curved/gently-sloped edge is more sensitive to a disk structuring
+element's blockiness than the flagged pieces' already-more-angular silhouettes), so the extend-to-everyone
+option got reverted (`git checkout`) rather than shipped. If a future pass wants that generalized
+"thicker everywhere" look, `thicken_piece_lines.py` is reusable, but expect to hand-check each result -
+don't assume a formula calibrated on one piece transfers cleanly to a differently-shaped one.
+
 ## Other pending work
 
 1. **HUD player card (the colored info panel per player)** — deliberately not reskinned. It has 9 places
