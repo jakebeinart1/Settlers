@@ -53,26 +53,29 @@ public struct UniformActionButton: View {
         if isArmed {
             RoundedRectangle(cornerRadius: 8).fill(Color.yellow.opacity(0.35))
         } else if let backgroundImageName {
-            // The gold pill border is drawn natively here, not baked into
-            // the image - a whole ornate bordered plaque asset (tried
-            // first) has a fixed aspect ratio, and this button's real
-            // on-screen proportions never landed close enough to any
-            // single generated aspect to avoid either cropping the border
-            // away on some buttons or leaving inconsistent dead margin on
-            // others (see chat / design-references/STATUS.md). A native
-            // `Capsule` stroke is correct at any size by construction, so
-            // the image asset only needs to be a plain repeating texture
-            // swatch - nothing in it can ever go "missing".
-            Capsule()
+            // The gold border is drawn natively here, not baked into the
+            // image - a whole ornate bordered plaque asset (tried first)
+            // has a fixed aspect ratio, and this button's real on-screen
+            // proportions never landed close enough to any single
+            // generated aspect to avoid either cropping the border away on
+            // some buttons or leaving inconsistent dead margin on others
+            // (see chat / design-references/STATUS.md). A native
+            // `RoundedRectangle` stroke is correct at any size by
+            // construction, so the image asset only needs to be a plain
+            // repeating texture swatch - nothing in it can ever go
+            // "missing". A fixed corner radius (not `Capsule`, which reads
+            // as a full oval/pill rather than a button) so it matches the
+            // squared-off look of the rest of this app's chrome.
+            RoundedRectangle(cornerRadius: 10)
                 .fill(.clear)
                 .background(
                     Image(backgroundImageName)
                         .resizable()
                         .scaledToFill()
                 )
-                .clipShape(Capsule())
+                .clipShape(RoundedRectangle(cornerRadius: 10))
                 .overlay(
-                    Capsule()
+                    RoundedRectangle(cornerRadius: 10)
                         .strokeBorder(
                             LinearGradient(
                                 colors: [
