@@ -208,6 +208,27 @@ option got reverted (`git checkout`) rather than shipped. If a future pass wants
 "thicker everywhere" look, `thicken_piece_lines.py` is reusable, but expect to hand-check each result -
 don't assume a formula calibrated on one piece transfers cleanly to a differently-shaped one.
 
+## Aug 21 follow-up: Rome/Aztec even thicker, Japan settlement size, Britannia opacity
+
+Three more rounds of feedback after the pass above:
+
+- **Rome/Aztec needed noticeably more** than the first thickening pass gave them - ran
+  `thicken_piece_lines.py` a second time on top of the already-thickened files (rome +4/+3,
+  aztec +6/+5 city/settlement) rather than starting over, since dilation composes fine.
+- **Japan's settlement read as small** even though its art is already tightly cropped to 100% canvas fill
+  (nothing left to gain by re-cropping) - it's just a visually lighter/more compact shape (a single
+  flat-roofed pagoda tier) than e.g. Britannia's turreted castle at the same nominal size. Added
+  `Civilization.pieceSizeCorrection(isCity:)`, a per-piece multiplier on top of `BoardView`'s uniform
+  settlement/city size (default `1.0` for everything except Japan settlement, `1.18`) - the intended escape
+  hatch for exactly this "already-tight art, still reads small due to its own shape" case, rather than
+  bumping the uniform multiplier for every civ to compensate for one.
+- **Britannia city/settlement were genuinely see-through** - checked actual alpha values (not just visual
+  impression) and found 64-72% of their opaque pixels had partial alpha (mean ~170/255 instead of 255,
+  unlike every other piece, which sit at a clean 255) - a real bug, not a style choice, likely predating the
+  chromakey pipeline being standardized (same category as the `menu-icon` no-alpha-channel bug earlier in
+  this file). Fixed by binarizing alpha at a 40/255 threshold (>40 -> fully opaque, else fully transparent)
+  for just these 2 files, matching the hard-edged convention every other piece already has.
+
 ## Other pending work
 
 1. **HUD player card (the colored info panel per player)** — deliberately not reskinned. It has 9 places

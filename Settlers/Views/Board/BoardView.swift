@@ -169,8 +169,8 @@ public struct BoardView: View {
                 // too, so the settlement -> city size jump stays clearly
                 // noticeable rather than shrinking once settlements got
                 // closer to their old size.
-                let size = geometry.size * (owner.isCity ? 0.80 : 0.68)
                 let civilization = Civilization.forSeat(owner.player.index)
+                let size = geometry.size * (owner.isCity ? 0.80 : 0.68) * civilization.pieceSizeCorrection(isCity: owner.isCity)
                 CivilizationBadge(civilization: civilization, isCity: owner.isCity, size: size)
                     .position(position)
                     .allowsHitTesting(false)

@@ -142,6 +142,24 @@ public enum Civilization: String, CaseIterable, Sendable, Codable {
         return base + (isCity ? "-city" : "-settlement")
     }
 
+    /// Per-piece size correction on top of `BoardView`'s uniform
+    /// settlement/city multiplier - `1.0` (no correction) for every
+    /// piece except where one civ's own art reads smaller than the rest
+    /// of the roster at the same nominal size despite already being
+    /// tightly cropped to its own canvas (nothing left to fix by
+    /// re-cropping - see design-references/STATUS.md). Japan's
+    /// settlement (a single flat-roofed pagoda tier) is visually
+    /// lighter/more compact than e.g. Britannia's turreted castle or
+    /// Aztec's stepped temple at the same tier, so it gets a deliberate
+    /// bump here rather than distorting the uniform multiplier for
+    /// every other civ to compensate for one shape.
+    public func pieceSizeCorrection(isCity: Bool) -> CGFloat {
+        switch (self, isCity) {
+        case (.japan, false): return 1.18
+        default: return 1.0
+        }
+    }
+
     private static func vivid(_ color: Color) -> Color {
         var hue: CGFloat = 0, saturation: CGFloat = 0, brightness: CGFloat = 0, alpha: CGFloat = 0
         UIColor(color).getHue(&hue, saturation: &saturation, brightness: &brightness, alpha: &alpha)
