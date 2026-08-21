@@ -440,38 +440,7 @@ public struct GameView: View {
             .foregroundStyle(.white)
             .padding(.horizontal, 14)
             .padding(.vertical, 12)
-            .background(
-                // The gold border is drawn natively, not baked into the
-                // image - same fix as `UniformActionButton`'s background
-                // (see that file's comment / design-references/STATUS.md):
-                // `dice-frame.png`'s baked-in border didn't crop evenly at
-                // this chip's real aspect, leaving a flush border left/right
-                // but none top/bottom. `dice-fill.png` is the same texture
-                // with the border removed, so `.scaledToFill()` has no
-                // border left to lose unevenly - only the always-even
-                // native `strokeBorder` reads as a border now.
-                RoundedRectangle(cornerRadius: 12)
-                    .fill(.clear)
-                    .background(
-                        Image("dice-fill").resizable().scaledToFill()
-                    )
-                    .clipShape(RoundedRectangle(cornerRadius: 12))
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 12)
-                            .strokeBorder(
-                                LinearGradient(
-                                    colors: [
-                                        Color(red: 0.95, green: 0.8, blue: 0.4),
-                                        Color(red: 0.78, green: 0.56, blue: 0.16),
-                                        Color(red: 0.95, green: 0.8, blue: 0.4),
-                                    ],
-                                    startPoint: .top,
-                                    endPoint: .bottom
-                                ),
-                                lineWidth: 2.5
-                            )
-                    )
-            )
+            .background(PaintedChromeBackground(textureImageName: "dice-fill", cornerRadius: 12))
             .scaleEffect(diceScale)
             .rotationEffect(.degrees(diceRotation))
 
@@ -560,13 +529,7 @@ public struct GameView: View {
         .foregroundStyle(.white)
         .padding(.horizontal, 10)
         .padding(.vertical, 6)
-        .background(
-            // Its own frame, not `dice-frame` - this chip is much wider and
-            // shorter than the dice capsule, and reusing one frame image
-            // for both meant whichever shape didn't match got its ornament
-            // cropped almost entirely away. See design-references/STATUS.md.
-            Image("bank-frame").resizable().scaledToFill().clipShape(RoundedRectangle(cornerRadius: 10))
-        )
+        .background(PaintedChromeBackground(textureImageName: "bank-fill", cornerRadius: 10))
     }
 
     // MARK: - Bottom panel: one uniform action row (or the inline

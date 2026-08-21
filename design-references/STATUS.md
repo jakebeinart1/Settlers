@@ -21,10 +21,8 @@ OpenRouter key spend so far: ~$2.02 of $10 budget.
 | `tile-forest.png`, `tile-grain.png`, `tile-pasture.png`, `tile-mountain.png`, `tile-clay.png`, `tile-desert.png` | Board tile textures — a tight single-brushstroke crop of each original painted canvas (see "Aug 21 bugfix/redesign pass" below), not the whole multi-tone canvas |
 | `{civ}-settlement.png` / `-city.png` (all 8 civs) | See "Piece art status" below for the per-civ table |
 | `menu-icon.png` | Pause/menu button |
-| `dice-frame.png` | Background frame behind the dice readout only - see "UI chrome aspect-ratio pass" below for why the bank chip got its own asset instead of sharing this one |
-| `bank-frame.png` | Background frame behind the bank/dev-card count chip (top-right) |
 | `port-frame.png` | Decorative ring behind the functional port-ratio badge (that badge's own color-coding is untouched) |
-| `button-fill-trade.png` / `-build.png` / `-turn.png` | Plain repeating texture swatches (no border baked in) for the 3 fixed action-row buttons' fill only - the gold pill border is drawn natively (`Capsule().strokeBorder(...)`) by `UniformActionButton`, not part of the image. See "Aug 21 button-border pivot" below for why. |
+| `dice-fill.png`, `bank-fill.png`, `button-fill-trade.png` / `-build.png` / `-turn.png` | Plain borderless repeating texture swatches for the 5 "painted plaque" chrome spots (dice chip, bank/dev-card chip, Trade/Build/turn-action buttons) - the gold + thin inset red border is drawn natively by the shared `PaintedChromeBackground` view, not part of any image. See "Aug 21 unified painted-chrome border" below. `dice-frame.png`/`bank-frame.png`/`button-frame-*.png` (the old bordered versions) are retired - only their `-fill`/`-fill-*` successors are actually wired in now. |
 
 All piece and UI-chrome images above have **verified real alpha transparency** (generated on a solid
 magenta background, chroma-keyed out with an HSV-based key that also suppresses edge fringing, then
@@ -178,6 +176,17 @@ overlay on `boardArea`, not part of `BoardView`'s own layout, so this couldn't h
 either way, but confirmed via screenshot diff anyway. `bank-frame.png` (the top-right chip) has the same
 baked-in-border shape and hasn't shown this symptom yet, but is built the same fragile way - worth
 proactively converting it the same way if it ever does, rather than waiting to be asked twice.
+
+## Aug 21 unified painted-chrome border
+
+Followed up on the note above: converted `bank-frame` (the top-right chip) to the same native-border
+approach right away rather than waiting for it to visibly break, and factored the whole pattern out of
+`UniformActionButton`/`GameView.diceChip` into one shared `PaintedChromeBackground` view (texture fill +
+native gold `strokeBorder` + a thin inset dark-maroon accent line, color sampled from the original
+`dice-frame.png` generation's own baked-in accent rather than picked by eye) so all 5 painted-chrome spots
+(Trade/Build/turn-action buttons, dice chip, bank chip) render identically and can't drift apart again.
+`bank-fill.png` is the same borderless-crop treatment as `dice-fill.png`/`button-fill-*.png`. Port frame and
+menu icon are unrelated (a filled ring/circle, not a bordered rectangle) and weren't touched.
 
 ## Other pending work
 

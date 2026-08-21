@@ -20,6 +20,7 @@
 		4DF1B0D807C52C188BCD9DC8 /* HumanSeatStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 34F357D5B05179379CDC1EF1 /* HumanSeatStore.swift */; };
 		5754F9C1356C779A5553C1BD /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = AAE31202C59C388953152F18 /* Assets.xcassets */; };
 		5A3814A3A6D971002FE6368B /* CatanAI in Frameworks */ = {isa = PBXBuildFile; productRef = 86D26250D0551805B74D0B0B /* CatanAI */; };
+		5FD5B98FFB1669F9BE80F1DC /* PaintedChromeBackground.swift in Sources */ = {isa = PBXBuildFile; fileRef = 44E440B9CD11BDC249491106 /* PaintedChromeBackground.swift */; };
 		687BD8586D01E4597A1C7A32 /* BoardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E89E14D5D0ACBB92DF7729B3 /* BoardView.swift */; };
 		6BE4D5162E62A51ADA6A2599 /* GameStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = E093DA361796607C17A17777 /* GameStore.swift */; };
 		717C7599DB05DB7CF59E852F /* CivilizationPieceShapes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0AC74C3A12A7CDE5AE1B1546 /* CivilizationPieceShapes.swift */; };
@@ -49,6 +50,7 @@
 		27BDAD47ABBB94D7F73976E5 /* MainMenuView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainMenuView.swift; sourceTree = "<group>"; };
 		34F357D5B05179379CDC1EF1 /* HumanSeatStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HumanSeatStore.swift; sourceTree = "<group>"; };
 		3DEF882E04681ED8D7F0236D /* PauseMenuView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PauseMenuView.swift; sourceTree = "<group>"; };
+		44E440B9CD11BDC249491106 /* PaintedChromeBackground.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PaintedChromeBackground.swift; sourceTree = "<group>"; };
 		494D7E69889970F3FA1C24AB /* GameLogStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameLogStore.swift; sourceTree = "<group>"; };
 		4B89EE635B1E470682ED1D4B /* CatanTheme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CatanTheme.swift; sourceTree = "<group>"; };
 		52C0B1D44B650E22AEBC8366 /* EndGameView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EndGameView.swift; sourceTree = "<group>"; };
@@ -136,6 +138,7 @@
 				6F0C19DF5E22050B860A7094 /* GameView.swift */,
 				F34A579755CFBDEAF52EBB70 /* IncomingTradeCardView.swift */,
 				27BDAD47ABBB94D7F73976E5 /* MainMenuView.swift */,
+				44E440B9CD11BDC249491106 /* PaintedChromeBackground.swift */,
 				3DEF882E04681ED8D7F0236D /* PauseMenuView.swift */,
 				77BA2122016739392CF5DF22 /* PlayerHUDView.swift */,
 				BF75252617AEEC3F4190D703 /* ResourceChip.swift */,
@@ -297,6 +300,7 @@
 				4DF1B0D807C52C188BCD9DC8 /* HumanSeatStore.swift in Sources */,
 				7678F2D966C6DDD39D673266 /* IncomingTradeCardView.swift in Sources */,
 				71E36B2F286888830989FBC7 /* MainMenuView.swift in Sources */,
+				5FD5B98FFB1669F9BE80F1DC /* PaintedChromeBackground.swift in Sources */,
 				A031947AF71F6676E8C6F700 /* PauseMenuView.swift in Sources */,
 				88CF824C3335F34CF54E08E2 /* PlayerHUDView.swift in Sources */,
 				1B2E8933650EFB5E3A65F60D /* PlayerNameStore.swift in Sources */,

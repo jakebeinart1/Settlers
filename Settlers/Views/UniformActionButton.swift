@@ -62,42 +62,13 @@ public struct UniformActionButton: View {
         if isArmed {
             RoundedRectangle(cornerRadius: 8).fill(Color.yellow.opacity(0.35))
         } else if let backgroundImageName {
-            // The gold border is drawn natively here, not baked into the
-            // image - a whole ornate bordered plaque asset (tried first)
-            // has a fixed aspect ratio, and this button's real on-screen
-            // proportions never landed close enough to any single
-            // generated aspect to avoid either cropping the border away on
-            // some buttons or leaving inconsistent dead margin on others
-            // (see chat / design-references/STATUS.md). A native
-            // `RoundedRectangle` stroke is correct at any size by
-            // construction, so the image asset only needs to be a plain
-            // repeating texture swatch - nothing in it can ever go
-            // "missing". A fixed corner radius (not `Capsule`, which reads
-            // as a full oval/pill rather than a button) so it matches the
-            // squared-off look of the rest of this app's chrome.
-            RoundedRectangle(cornerRadius: 10)
-                .fill(.clear)
-                .background(
-                    Image(backgroundImageName)
-                        .resizable()
-                        .scaledToFill()
-                )
-                .clipShape(RoundedRectangle(cornerRadius: 10))
-                .overlay(
-                    RoundedRectangle(cornerRadius: 10)
-                        .strokeBorder(
-                            LinearGradient(
-                                colors: [
-                                    Color(red: 0.95, green: 0.8, blue: 0.4),
-                                    Color(red: 0.78, green: 0.56, blue: 0.16),
-                                    Color(red: 0.95, green: 0.8, blue: 0.4),
-                                ],
-                                startPoint: .top,
-                                endPoint: .bottom
-                            ),
-                            lineWidth: 2.5
-                        )
-                )
+            // See `PaintedChromeBackground` - the gold (+ thin inset red)
+            // border is drawn natively there, not baked into the image, so
+            // it's correct at any aspect ratio by construction. A fixed
+            // corner radius (not `Capsule`, which reads as a full oval/pill
+            // rather than a button) matches the squared-off look of the
+            // rest of this app's chrome.
+            PaintedChromeBackground(textureImageName: backgroundImageName, cornerRadius: 10)
         } else {
             RoundedRectangle(cornerRadius: 8).fill(Color(white: 0.18))
         }
