@@ -35,15 +35,18 @@ enum TileDrawing {
     /// Number tokens, roads, settlements, and tap targets all still align
     /// to the full-size hex geometry - only this visual fill shrinks.
     ///
-    /// The frame layer is a plain color fill (unstroked, for the same
-    /// reason as before - an outlined frame hex read as a stray gray grid
-    /// line in the manila gap). The resource layer is the painted tile
-    /// texture from Assets.xcassets (`CatanTheme.textureImageName(for:)`),
-    /// clipped to the hex path and drawn to fill its bounding box - see
-    /// `design-references/STATUS.md` for where these textures came from.
+    /// The frame layer is a plain color fill, now with a very thin gray
+    /// outline (subtle enough not to read as a stray grid line in the
+    /// manila gap - kept faint on purpose). The resource layer is the
+    /// painted tile texture from Assets.xcassets
+    /// (`CatanTheme.textureImageName(for:)`), clipped to the hex path and
+    /// drawn to fill its bounding box, then gets its own thin gray outline
+    /// too - see `design-references/STATUS.md` for where these textures
+    /// came from.
     static func drawTile(_ tile: Tile, geometry: HexGeometry, in context: GraphicsContext) {
         let framePath = hexPath(for: tile.coordinate, geometry: geometry)
         context.fill(framePath, with: .color(CatanTheme.desert))
+        context.stroke(framePath, with: .color(.black.opacity(0.18)), lineWidth: 1)
 
         let fillPath = hexPath(for: tile.coordinate, geometry: geometry, scale: 0.86)
         let resolvedTexture = context.resolve(Image(CatanTheme.textureImageName(for: tile.kind)))
@@ -51,6 +54,7 @@ enum TileDrawing {
             layerContext.clip(to: fillPath)
             layerContext.draw(resolvedTexture, in: fillPath.boundingRect)
         }
+        context.stroke(fillPath, with: .color(.black.opacity(0.22)), lineWidth: 1)
 
         if let number = tile.numberToken {
             drawNumberToken(number, at: geometry.center(of: tile.coordinate), size: geometry.size, in: context)
@@ -60,7 +64,11 @@ enum TileDrawing {
     private static func drawNumberToken(_ number: Int, at point: CGPoint, size: CGFloat, in context: GraphicsContext) {
         let radius = size * 0.32
         let circle = Path(ellipseIn: CGRect(x: point.x - radius, y: point.y - radius, width: radius * 2, height: radius * 2))
-        context.fill(circle, with: .color(CatanTheme.numberTokenBackground))
+
+        context.drawLayer { layerContext in
+            layerContext.addFilter(.shadow(color: .black.opacity(0.5), radius: radius * 0.18, x: 0, y: radius * 0.14))
+            layerContext.fill(circle, with: .color(CatanTheme.numberTokenBackground))
+        }
         context.stroke(circle, with: .color(CatanTheme.numberTokenEdge), lineWidth: 1.25)
 
         let isHot = number == 6 || number == 8
