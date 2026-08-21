@@ -66,6 +66,13 @@ glob it or read it back from the `xcodebuild` output above.) That's it -
 Jake opens it from the home screen himself; `devicectl` doesn't need a
 separate launch step for a manual install like this.
 
+**`devicectl device install` intermittently fails on the first try** with
+`ERROR: The device disconnected immediately after connecting.
+(com.apple.dt.CoreDeviceError error 4000)` even though the device is
+genuinely available - seen twice in one session, both times a plain retry
+a few seconds later succeeded with no other change. Retry once before
+treating it as a real connectivity problem.
+
 If `devicectl list devices` ever shows the iPhone as genuinely
 unreachable (not `available`), only then ask Jake to check the cable /
 Wi-Fi / that the phone is unlocked - don't ask preemptively just because

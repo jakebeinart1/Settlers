@@ -110,6 +110,14 @@ Feedback from actually playing on-device turned up a real bug and three quality 
   that didn't match the painted theme at all. Replaced with `PauseMenuView`, built on the same `PopupCard`
   every other popup (Trade/Build/DevCard/Discard) already uses, plus an inline "are you sure" step before
   Restart/Main Menu since those are now easier to tap by accident inside a themed card than a system sheet.
+- **`menu-icon` (found right after this pass shipped).** Despite the blanket claim above that "all piece
+  and UI-chrome images have verified real alpha transparency," `menu-icon.png` was plain opaque RGB - no
+  alpha channel at all - so its cream canvas showed as a visible white/cream square behind the ring at real
+  size, and the ring touched the bottom canvas edge with no margin (read as clipped, not fully round).
+  Regenerated properly. **Lesson**: that verified-transparency claim was written once for a batch and never
+  re-checked per-asset since - read back actual pixel alpha values (`im.getchannel("A")`, corner/edge
+  samples) for a specific asset before trusting a blanket claim about the whole set, especially for an
+  asset (like this one) that predates the chromakey pipeline being standardized.
 
 ## Other pending work
 
