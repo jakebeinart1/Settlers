@@ -10,7 +10,8 @@ OpenRouter key spend so far: ~$2.02 of $10 budget.
 
 - `approved/` — the actual current deliverables. Everything in here is wired into the app or ready to be.
 - `archive/` — every superseded attempt, kept for history, not in active use.
-- `tiles/_scripts/` — the two reusable generation tools (`generate_tile.py`, `generate_screen.py`) plus
+- `tiles/_scripts/` — the reusable generation tools (`generate_tile.py` for hex tiles, `generate_screen.py`
+  for portrait full-screen concept art, `generate_icon.py` for square building-piece icons) plus
   `full-set-patch.html`/`.png`, a live preview of all 6 approved tiles composited into a real hex patch.
 
 ## In the app right now (`approved/`)
@@ -44,21 +45,20 @@ layered on. Shape stays recognizable as the original; only the rendering quality
 | Civilization | Settlement | City |
 |---|---|---|
 | Britannia | Painted (castle) | Painted (castle, grander) |
-| Greece | Painted (white marble column temple) | Painted (from earlier landmark pass - Parthenon) |
-| Rome | Painted (flat wide colonnade, redone per feedback) | Painted (from earlier landmark pass - Colosseum; may not match the new "restyle original" direction, worth a look) |
-| Columbia | Painted (blue obelisk/tower) | Painted (from earlier landmark pass - Capitol dome; same caveat as Rome) |
-| Egypt | Painted (striped pyramid) | Not made yet - vector fallback |
-| Aztec | Painted (step-pyramid w/ staircase + carved detail, redone per feedback) | Not made yet - vector fallback |
-| Japan | Painted (3-tier pagoda, redone per feedback) | Not made yet - vector fallback |
-| Norse | Painted (longhouse) | Not made yet - vector fallback |
+| Greece | Painted (flat pictogram, 2-column house shape, matches greece-city; redone per feedback) | Painted (flat pictogram, bold outline) |
+| Rome | Painted (2-arch colosseum ruin, bold outline, rugged texture; redone per feedback) | Painted (4-arch colosseum ruin, bold outline, rugged texture; redone per feedback) |
+| Columbia | Painted (blue obelisk/tower) | Painted (Capitol dome) |
+| Egypt | Painted (cropped top tiers of the pyramid, Aztec-style crop logic; redone per feedback) | Painted (tiered pyramid) |
+| Aztec | Painted (step-pyramid w/ staircase + carved detail, redone per feedback) | Painted (step-pyramid) |
+| Japan | Painted (3-tier pagoda, redone per feedback) | Painted (pagoda) |
+| Norse | Painted (longhouse) | Painted (longhouse, grander, flattened dragon-head roof finials; redone per feedback) |
 
-`Civilization.paintedPieceImageName(isCity:)` looks up settlement/city independently per civ, so each
-tier falls back to the vector shape (`CivilizationPieceShapes.swift`) only where its own art doesn't
-exist yet - not an all-or-nothing swap per civilization.
+`Civilization.paintedPieceImageName(isCity:)` looks up settlement/city independently per civ. All 8
+civilizations now have both tiers painted in this restyled-original approach.
 
-**Not deleting the vector-shape system yet** - it's still the real fallback for 4 civs' city tier. Once
-all 8 have city art in this same restyled-original approach, that's the point to remove
-`CivilizationPieceShapes.swift` for good.
+**Vector-shape system (`CivilizationPieceShapes.swift`) no longer has any active fallback use** - every
+civ/tier now has real painted art. Not yet deleted; worth a follow-up pass to confirm nothing still
+references it before removing it for good.
 
 ## Other pending work
 
@@ -89,3 +89,12 @@ all 8 have city art in this same restyled-original approach, that's the point to
   it's meant to just be a shape reference. `generate_screen.py` accepts a comma-separated list of
   reference image paths for this - the original piece first, then Britannia (or whatever the style
   reference is) second.
+- Watch for "over-rendering": a piece with many small individually-outlined details (lots of arches,
+  columns, tiles) reads as busier/less bold than the rest of the family even if its outline is
+  technically the same width, because the fine internal linework competes with the outer border.
+  Fixed by explicitly capping the count of large interior shapes (e.g. "exactly 3 arches, no columns
+  between them") rather than just asking for a thicker outline.
+- `generate_screen.py` always requests a portrait `1024x1536` canvas, which is wrong for square
+  building-piece icons (stretches/distorts proportions vs. the square `approved/pieces` references) -
+  use the new `generate_icon.py` (same reference-image + chromakey approach, but square `1024x1024`
+  and takes an explicit output path instead of auto-versioning) for those instead.
