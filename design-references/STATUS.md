@@ -405,6 +405,25 @@ pixel survived) - the open sky band above the top HUD row turns out to be much t
 landed it visibly above the card without touching it - confirmed by screenshotting and reading a tight crop
 of the actual top-left device region on the phone's real resolution, not just eyeballing the full painting.
 
+**Round 2 - wide-angle framing**: comparing his phone screenshot against the master reference side by side,
+Jake wanted the composition itself more like the reference's spacious, wide-angle feel - pagoda AND island
+city both clearly visible flanking the board, mountains further back as a calmer distant backdrop, instead
+of the tighter/closer crop `v4` had. `v4`→`v5` pulled the mountains back, shrank the pagoda/city and pushed
+them toward the true edges, opened up more calm water in the middle - a real improvement, confirmed by
+screenshot. That regeneration also re-centered the ship horizontally without being asked to (it had
+previously been pinned left-of-center in `v4`), landing it dead behind the dynamic-island/status-bar pill
+cutout at the exact horizontal center - invisible again, for a *different* reason than round 1's "too far
+down" issue. `v5`→`v6` fixed the vertical placement (top 3%) but the ship was still centered and still
+hidden behind the pill. `v6`→`v7` finally pinned it back to ~25% across (left-of-center, clear of the
+notch) while holding every other pixel fixed via the "everything else must stay pixel-identical" phrasing -
+that phrasing earns its keep across every one of these single-element tweaks; each round only asks the
+model to change the one thing actually being iterated on.
+
+**Lesson**: an image-to-image regeneration that doesn't explicitly pin down every element's position can
+silently drift ones you didn't ask to change - the ship recentered itself as a side effect of two rounds
+asking only about the mountains/landmarks. When chaining several single-property tweaks, worth a quick
+recheck of the *other* elements too, not just the one just asked about.
+
 **Lesson**: when composition needs to land in a *specific* visible-vs-hidden screen region, don't reason
 about the source painting's percentages in the abstract - crop and inspect the actual rendered app
 screenshot at that exact region before deciding a placement worked. The first attempt (`v3`, top 12%)
