@@ -52,6 +52,7 @@ public struct EndGameView: View {
             }
         }
         .foregroundStyle(.white)
+        .fontDesign(.serif)
     }
 
     @ViewBuilder
@@ -62,20 +63,20 @@ public struct EndGameView: View {
                     Text("🎉")
                         .font(.system(size: 64))
                     Text("You Win!")
-                        .font(.system(size: 40, weight: .heavy, design: .rounded))
+                        .font(.system(size: 40, weight: .heavy, design: .serif))
                         .foregroundStyle(CatanTheme.color(for: Resource.grain))
                 } else {
                     Text("Game Over")
                         .font(.title2.bold())
                         .foregroundStyle(.white.opacity(0.7))
                     Text(CatanTheme.playerLabel(for: winner) + " wins")
-                        .font(.system(size: 36, weight: .heavy, design: .rounded))
+                        .font(.system(size: 36, weight: .heavy, design: .serif))
                         .foregroundStyle(CatanTheme.color(for: winner))
                 }
             }
         } else {
             Text("Game Over")
-                .font(.system(size: 36, weight: .heavy, design: .rounded))
+                .font(.system(size: 36, weight: .heavy, design: .serif))
         }
     }
 

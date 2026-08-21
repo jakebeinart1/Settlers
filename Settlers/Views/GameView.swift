@@ -271,6 +271,16 @@ public struct GameView: View {
                 )
             }
         }
+        // Serif everywhere on the board screen - HUD, popups, buttons,
+        // pause menu - to match the reference's painted-book serif type
+        // instead of the system San Francisco default. Every popup above
+        // lives inside this same ZStack, so one modifier here covers them
+        // all; `Text` drawn directly into `Canvas` (the hex numbers, robber
+        // number, port ratio labels in `TileDrawing`) doesn't inherit this
+        // environment value the normal way and needs its own explicit
+        // `design: .serif` on each `Font.system(...)` call instead - see
+        // `TileView.swift`.
+        .fontDesign(.serif)
         .onAppear {
             seenTradeOfferIDs = Set(state.pendingTradeOffers.map(\.id))
             lastSeenLogCount = state.log.count
@@ -438,7 +448,7 @@ public struct GameView: View {
                 // reference's bold ivory tile (see chat).
                 DieFaceView(value: roll, size: 34)
                 Text("\(roll)")
-                    .font(.system(size: 32, weight: .heavy, design: .rounded))
+                    .font(.system(size: 32, weight: .heavy, design: .serif))
             }
             .foregroundStyle(.white)
             .padding(.horizontal, 10)
@@ -514,7 +524,7 @@ public struct GameView: View {
                         .fill(CatanTheme.color(for: resource))
                         .frame(width: 10, height: 10)
                     Text("\(state.bank[resource] ?? 0)")
-                        .font(.system(size: 11, weight: .bold, design: .rounded))
+                        .font(.system(size: 11, weight: .bold, design: .serif))
                 }
             }
 
@@ -526,7 +536,7 @@ public struct GameView: View {
                 Image(systemName: "sparkles.rectangle.stack.fill")
                     .font(.system(size: 10))
                 Text("\(state.devCardDeck.count)")
-                    .font(.system(size: 11, weight: .bold, design: .rounded))
+                    .font(.system(size: 11, weight: .bold, design: .serif))
             }
         }
         .foregroundStyle(.white)

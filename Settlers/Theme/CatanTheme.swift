@@ -69,7 +69,14 @@ public enum CatanTheme {
     public static let cityPennantGold = Color(red: 0.831, green: 0.686, blue: 0.216)
 
     public static let robber = Color(red: 0.15, green: 0.15, blue: 0.17)
-    public static let numberTokenBackground = Color(red: 0.97, green: 0.94, blue: 0.85)
+    /// A lightened tint of `desert` itself (blended halfway to white) rather
+    /// than an independently-picked cream - so the number token face reads
+    /// as "the same sand, just paler" instead of a color family of its own,
+    /// and moving `desert` moves this along with it instead of the two
+    /// silently drifting apart (see the `CatanTheme.desert`/gap-color sync
+    /// note above - same failure mode, fixed by deriving instead of
+    /// duplicating).
+    public static let numberTokenBackground = desert.lightened(by: 0.5)
     /// Warm umber ring around each number token - swapped in for a flat
     /// black stroke, which read as a harsh cutout against the token's cream
     /// face; this stays dark enough for definition while matching the
@@ -101,4 +108,20 @@ public enum CatanTheme {
     /// chips read as part of the same water theme while staying legible.
     public static let hudChipBackground = Color(red: 0.18, green: 0.40, blue: 0.60)
     public static let hudChipBackgroundActive = Color(red: 0.25, green: 0.52, blue: 0.74)
+}
+
+extension Color {
+    /// Blends this color toward white by `amount` (0 = unchanged, 1 = pure
+    /// white) - used to derive `CatanTheme.numberTokenBackground` from
+    /// `CatanTheme.desert` itself instead of picking an independent cream.
+    func lightened(by amount: CGFloat) -> Color {
+        let uiColor = UIColor(self)
+        var r: CGFloat = 0, g: CGFloat = 0, b: CGFloat = 0, a: CGFloat = 0
+        uiColor.getRed(&r, green: &g, blue: &b, alpha: &a)
+        return Color(
+            red: r + (1 - r) * amount,
+            green: g + (1 - g) * amount,
+            blue: b + (1 - b) * amount
+        )
+    }
 }

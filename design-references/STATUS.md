@@ -339,3 +339,28 @@ tile." Fixed by resampling the new `tile-desert.png`'s actual average RGB `(233,
 that as `CatanTheme.desert`'s value with a comment noting where it needs to stay in sync. If the desert
 tile's color is tuned again, `CatanTheme.desert` needs a matching update - it will NOT pick it up
 automatically.
+
+## Aug 21 board-wide serif type + number-token background tint
+
+Jake pointed at the reference's serif numerals/labels (its actual body copy, not just a display face) and
+asked for the same across the whole board screen, numbers included. No custom font file was needed - SwiftUI
+ships a real serif system font (New York) selectable via `.fontDesign(.serif)`, and applying it once as a
+view modifier on `GameView`'s root `ZStack` cascades to every popup (`TradePopupView`, `BuildPopupView`,
+`DiscardPopupView`, `DevCardPopupView`, `PauseMenuView`, `IncomingTradeCardView`) since they're all plain
+children of that same ZStack, not separate `.sheet`s - one line covered the whole board, HUD, and every
+in-game popup. `EndGameView` is presented separately from `ContentView`, outside that tree, so it needed
+its own `.fontDesign(.serif)`.
+
+**Caveat that cost a moment of confusion**: text drawn directly into a `Canvas`'s `GraphicsContext` (the
+hex number tokens, the robber's number, port ratio labels - all in `TileDrawing`, `Views/Board/TileView.swift`)
+does NOT pick up an ancestor's `.fontDesign` environment value the normal SwiftUI way; each of those
+`Text(...).font(.system(size:weight:design:))` calls needed the design set explicitly to `.serif`.
+Also had to hunt down every already-explicit `design: .rounded` project-wide (`grep -rn "design: \.rounded"`)
+since an explicit design on a `Font.system` call always wins over the inherited environment one, even
+after the `.fontDesign(.serif)` modifier was added.
+
+**Number token background**: Jake wanted it "a slightly closer to white version of the desert color, not
+all the way white" - rather than pick another independent cream value, added `Color.lightened(by:)` (blends
+toward white via `UIColor` RGB extraction) and defined `CatanTheme.numberTokenBackground = desert.lightened(by: 0.5)`,
+so it derives from `desert` and moves with it automatically - the fix for exactly the kind of manual-sync
+drift the `CatanTheme.desert`/gap-color note above flagged just one round earlier.

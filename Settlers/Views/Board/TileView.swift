@@ -73,7 +73,7 @@ enum TileDrawing {
 
         let isHot = number == 6 || number == 8
         let text = Text("\(number)")
-            .font(.system(size: radius * 1.15, weight: .bold, design: .rounded))
+            .font(.system(size: radius * 1.15, weight: .bold, design: .serif))
             .foregroundColor(isHot ? CatanTheme.hotNumber : CatanTheme.coolNumber)
         context.draw(context.resolve(text), at: point, anchor: .center)
     }
@@ -91,7 +91,7 @@ enum TileDrawing {
 
         if let number {
             let text = Text("\(number)")
-                .font(.system(size: radius * 0.85, weight: .bold, design: .rounded))
+                .font(.system(size: radius * 0.85, weight: .bold, design: .serif))
                 .foregroundColor(.white)
             context.draw(context.resolve(text), at: center, anchor: .center)
         }
@@ -145,7 +145,7 @@ enum TileDrawing {
         context.fill(circle, with: .color(fillColor))
         context.stroke(circle, with: .color(.white), lineWidth: 2)
         let text = Text(label)
-            .font(.system(size: radius * 0.75, weight: .bold))
+            .font(.system(size: radius * 0.75, weight: .bold, design: .serif))
             .foregroundColor(.white)
         context.draw(context.resolve(text), at: iconPoint, anchor: .center)
     }
