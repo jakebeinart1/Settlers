@@ -36,6 +36,15 @@ public struct UniformActionButton: View {
             VStack(spacing: 2) {
                 Image(systemName: systemImage)
                     .font(.title3)
+                    // Fixed height, not just the font's natural size - SF
+                    // Symbols aren't all drawn to the same optical height at
+                    // a given point size (e.g. "die.face.5.fill" renders
+                    // shorter than "hammer.fill" or "arrow.left.arrow.right"
+                    // at `.title3`), so without this the Roll Dice button's
+                    // whole VStack - and so the whole button, background
+                    // included - came out visibly shorter than Trade/Build
+                    // just from using a different icon.
+                    .frame(height: 22)
                 Text(title)
                     .font(.caption2)
             }

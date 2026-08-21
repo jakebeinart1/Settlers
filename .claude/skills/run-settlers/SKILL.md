@@ -109,8 +109,22 @@ with no simulated taps at all:
 xcrun simctl launch <SIM_UDID> com.jakebeinart.settlers -qaAutoStart
 ```
 
-This only fires when that literal argument is passed - it can never
-affect a real player.
+Two more of the same pattern, both in `GameView.swift`, combinable with
+`-qaAutoStart` and each other:
+
+- `-qaShowPauseMenu` - opens the pause menu immediately (no real tap on the
+  hamburger icon needed) for screenshotting it.
+- `-qaFastForwardToRollDice` - autoplays the human's own initial setup
+  placements (via the same `Bot` logic real bot seats use) so the
+  `.rollDice` action-row state ("Roll Dice" button, dice chip) can be
+  screenshotted without two rounds of real board taps first. This one needs
+  real wall-clock time to finish - `runBotTurnIfNeeded` sleeps 600ms between
+  each bot action, and setup is ~12-16 individual moves across 4 seats -
+  wait at least 10-12s after launch before screenshotting, not the usual
+  ~3s.
+
+All three only fire when their literal argument is passed - none of them
+can affect a real player.
 
 ## Verifying a change actually rendered
 

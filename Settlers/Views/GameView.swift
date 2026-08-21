@@ -1,5 +1,6 @@
 import SwiftUI
 import CatanEngine
+import CatanAI
 
 /// Which kind of build placement the human has armed via `BuildPopupView`.
 /// While non-nil, `BoardView` is put into placement mode: only legal targets
@@ -274,6 +275,9 @@ public struct GameView: View {
             seenTradeOfferIDs = Set(state.pendingTradeOffers.map(\.id))
             lastSeenLogCount = state.log.count
         }
+        .task {
+            await qaFastForwardToRollDiceIfRequested()
+        }
         .onChange(of: state.pendingTradeOffers.map(\.id)) { _, _ in
             handleTradeOffersChange()
         }
@@ -289,6 +293,36 @@ public struct GameView: View {
         }
         .onChange(of: isRobberTargetingActive) { _, isActive in
             if !isActive { robberTargetTile = nil }
+        }
+    }
+
+    /// `-qaFastForwardToRollDice`: same escape hatch pattern as
+    /// `-qaAutoStart`/`-qaShowPauseMenu` - autoplays the human's own initial
+    /// setup placements (using the same `Bot` logic real bot seats use) so
+    /// QA can screenshot the `.rollDice` action row without two rounds of
+    /// real board taps first. Capped at 12 moves (setup is always exactly 4
+    /// human moves - 2 settlements + 2 roads - so this is a generous safety
+    /// margin, not a real budget) and silently gives up if something legal
+    /// isn't found, rather than looping forever. Never fires without the
+    /// literal launch argument, so this can't affect a real player.
+    private func qaFastForwardToRollDiceIfRequested() async {
+        guard ProcessInfo.processInfo.arguments.contains("-qaFastForwardToRollDice") else { return }
+        let bot = Bot(personality: .balanced)
+        for _ in 0..<20 {
+            switch viewModel.state.phase {
+            case .rollDice(let playerIndex) where playerIndex == human.index:
+                return
+            case .setupForward(let playerIndex), .setupBackward(let playerIndex) where playerIndex == human.index:
+                // `viewModel.apply` always applies as the human seat, so
+                // only the human's own setup turns can be driven this way -
+                // any interleaved bot turns fall through to the
+                // `runBotTurnIfNeeded()` below, same as a real game.
+                let move = bot.decide(for: viewModel.state, player: human)
+                try? viewModel.apply(move)
+            default:
+                break
+            }
+            await viewModel.runBotTurnIfNeeded()
         }
     }
 
