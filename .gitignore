@@ -6,3 +6,4 @@ DerivedData/
 .swiftpm/
 *.xcarchive
 .claude/
+__pycache__/

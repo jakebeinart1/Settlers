@@ -13,7 +13,12 @@ import CatanEngine
 /// turns before the player ever saw the menu).
 struct ContentView: View {
     @State private var viewModel = GameViewModel()
-    @State private var hasStartedThisSession = false
+    // `-qaAutoStart`: a launch-argument escape hatch so `simctl launch ...
+    // -qaAutoStart` can land directly on the board for visual QA
+    // (screenshotting UI chrome, etc.) without a real tap on `MainMenuView`
+    // - never set in normal use, so this can't change anything for a real
+    // player.
+    @State private var hasStartedThisSession = ProcessInfo.processInfo.arguments.contains("-qaAutoStart")
     @Environment(\.scenePhase) private var scenePhase
 
     var body: some View {

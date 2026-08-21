@@ -442,7 +442,11 @@ public struct GameView: View {
         .padding(.horizontal, 10)
         .padding(.vertical, 6)
         .background(
-            Image("dice-frame").resizable().scaledToFill().clipShape(RoundedRectangle(cornerRadius: 10))
+            // Its own frame, not `dice-frame` - this chip is much wider and
+            // shorter than the dice capsule, and reusing one frame image
+            // for both meant whichever shape didn't match got its ornament
+            // cropped almost entirely away. See design-references/STATUS.md.
+            Image("bank-frame").resizable().scaledToFill().clipShape(RoundedRectangle(cornerRadius: 10))
         )
     }
 

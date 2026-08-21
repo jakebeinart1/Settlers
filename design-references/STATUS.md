@@ -24,7 +24,8 @@ OpenRouter key spend so far: ~$2.02 of $10 budget.
 | `rome-settlement.png` / `-city.png` | Rome — the Colosseum, terracotta-red |
 | `columbia-settlement.png` / `-city.png` | Columbia — the US Capitol dome, navy |
 | `menu-icon.png` | Pause/menu button |
-| `dice-frame.png` | Background frame behind the dice readout and the bank-count chip |
+| `dice-frame.png` | Background frame behind the dice readout only - see "UI chrome aspect-ratio pass" below for why the bank chip got its own asset instead of sharing this one |
+| `bank-frame.png` | Background frame behind the bank/dev-card count chip (top-right) |
 | `port-frame.png` | Decorative ring behind the functional port-ratio badge (that badge's own color-coding is untouched) |
 | `button-frame-trade.png` / `-build.png` / `-turn.png` | Backgrounds for the 3 fixed action-row buttons only — every other use of that same button component keeps a plain background, since there's no fixed frame to paint ahead of time for open-ended labels (robber-victim picks, Cancel, dynamic Road/Settlement/City) |
 
@@ -59,6 +60,27 @@ civilizations now have both tiers painted in this restyled-original approach.
 **Vector-shape system (`CivilizationPieceShapes.swift`) no longer has any active fallback use** - every
 civ/tier now has real painted art. Not yet deleted; worth a follow-up pass to confirm nothing still
 references it before removing it for good.
+
+## UI chrome aspect-ratio pass
+
+The fill+clip approach (see process notes) never distorts, but it does crop whatever doesn't match the
+container's real on-screen aspect ratio - and several chrome pieces were generated at aspect ratios far
+off from where they actually render, so their gold corner ornamentation was getting cropped away (read as
+"cut off"). Fixed by measuring each container's real aspect ratio from the SwiftUI layout code and
+regenerating art to match, via a new `generate_chrome.py` (landscape 1536x1024 canvas, prompted to confine
+the ornamented design to a vertically-centered band at the target aspect so the crop only ever removes
+intentionally-blank margin, never content):
+
+- `button-frame-trade/-build/-turn`: were 1.58:1, real buttons are ~2.4:1 (three equal columns in the
+  bottom action row) - regenerated wider/shorter.
+- `dice-frame` was reused for both the dice capsule (~1.9:1, minor mismatch) and the bank/dev-card chip
+  (~4.2:1, severe mismatch - a 5-resource-wide strip barely 34pt tall) from the same 1.63:1 source. Split
+  into two assets: `dice-frame.png` re-tuned to ~1.9:1 for the capsule, and a new `bank-frame.png` at
+  ~4.2:1 for the chip. `GameView.deckCountChip` now points at `bank-frame`.
+- `port-frame` wasn't cropped at all - `TileView.drawPort` draws it via `Canvas.draw(image, in: CGRect)`
+  into an exact square, which stretches non-uniformly rather than cropping. The 195x155 (1.26:1) source was
+  being visibly squished into a circle. Regenerated as a true 1:1 square via `generate_icon.py` instead.
+- `menu-icon` (scaledToFit into a 32x32 square, close to square already) was left alone.
 
 ## Other pending work
 
