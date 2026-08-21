@@ -298,19 +298,22 @@ public struct GameView: View {
 
     /// `-qaFastForwardToRollDice`: same escape hatch pattern as
     /// `-qaAutoStart`/`-qaShowPauseMenu` - autoplays the human's own initial
-    /// setup placements (using the same `Bot` logic real bot seats use) so
-    /// QA can screenshot the `.rollDice` action row without two rounds of
-    /// real board taps first. Capped at 12 moves (setup is always exactly 4
-    /// human moves - 2 settlements + 2 roads - so this is a generous safety
-    /// margin, not a real budget) and silently gives up if something legal
-    /// isn't found, rather than looping forever. Never fires without the
-    /// literal launch argument, so this can't affect a real player.
+    /// setup placements (using the same `Bot` logic real bot seats use),
+    /// then rolls the dice too, so QA can screenshot the dice chip/`.rollDice`
+    /// action row without two rounds of real board taps and a real tap on
+    /// Roll Dice first. Capped at 20 moves (setup is always exactly 4 human
+    /// moves - 2 settlements + 2 roads - plus the roll itself, so this is a
+    /// generous safety margin, not a real budget) and silently gives up if
+    /// something legal isn't found, rather than looping forever. Never fires
+    /// without the literal launch argument, so this can't affect a real
+    /// player.
     private func qaFastForwardToRollDiceIfRequested() async {
         guard ProcessInfo.processInfo.arguments.contains("-qaFastForwardToRollDice") else { return }
         let bot = Bot(personality: .balanced)
         for _ in 0..<20 {
             switch viewModel.state.phase {
             case .rollDice(let playerIndex) where playerIndex == human.index:
+                try? viewModel.apply(.rollDice)
                 return
             case .setupForward(let playerIndex), .setupBackward(let playerIndex) where playerIndex == human.index:
                 // `viewModel.apply` always applies as the human seat, so
@@ -438,14 +441,36 @@ public struct GameView: View {
             .padding(.horizontal, 14)
             .padding(.vertical, 12)
             .background(
-                // `.scaledToFill()` + clip, not a 9-slice stretch - see
-                // `UniformActionButton`'s matching comment for why.
-                // `RoundedRectangle`, not `Capsule` - a capsule forces full
-                // rounding at whatever height the content ends up (was
-                // pinching the frame's own notched-corner ornament down to
-                // nothing); a fixed corner radius keeps the same square,
-                // gold-cornered look as the other chrome pieces.
-                Image("dice-frame").resizable().scaledToFill().clipShape(RoundedRectangle(cornerRadius: 12))
+                // The gold border is drawn natively, not baked into the
+                // image - same fix as `UniformActionButton`'s background
+                // (see that file's comment / design-references/STATUS.md):
+                // `dice-frame.png`'s baked-in border didn't crop evenly at
+                // this chip's real aspect, leaving a flush border left/right
+                // but none top/bottom. `dice-fill.png` is the same texture
+                // with the border removed, so `.scaledToFill()` has no
+                // border left to lose unevenly - only the always-even
+                // native `strokeBorder` reads as a border now.
+                RoundedRectangle(cornerRadius: 12)
+                    .fill(.clear)
+                    .background(
+                        Image("dice-fill").resizable().scaledToFill()
+                    )
+                    .clipShape(RoundedRectangle(cornerRadius: 12))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 12)
+                            .strokeBorder(
+                                LinearGradient(
+                                    colors: [
+                                        Color(red: 0.95, green: 0.8, blue: 0.4),
+                                        Color(red: 0.78, green: 0.56, blue: 0.16),
+                                        Color(red: 0.95, green: 0.8, blue: 0.4),
+                                    ],
+                                    startPoint: .top,
+                                    endPoint: .bottom
+                                ),
+                                lineWidth: 2.5
+                            )
+                    )
             )
             .scaleEffect(diceScale)
             .rotationEffect(.degrees(diceRotation))

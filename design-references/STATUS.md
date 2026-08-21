@@ -166,6 +166,19 @@ actual alpha content bbox (4px safety margin), which fixed the inconsistency dir
 bumped `BoardView`'s own size multipliers (`geometry.size * ...`) from 0.58/0.68 to 0.68/0.80
 (settlement/city) for the general "make them bigger" ask on top of that.
 
+## Aug 21 dice-chip border evenness
+
+Same underlying bug class as the "Aug 21 button-border pivot" above, on the dice chip specifically:
+`dice-frame.png`'s border was baked into the image, and at the chip's real aspect the
+`.scaledToFill()` crop landed unevenly - flush left/right, none top/bottom. Fixed the same way: split out
+`dice-fill.png` (a borderless crop of the same texture) and draw the gold border natively
+(`RoundedRectangle.strokeBorder(...)`) in `GameView.diceChip`, which is even by construction regardless of
+aspect. Padding was left untouched so the chip's own footprint doesn't change size - it's a `ZStack`
+overlay on `boardArea`, not part of `BoardView`'s own layout, so this couldn't have shifted the board
+either way, but confirmed via screenshot diff anyway. `bank-frame.png` (the top-right chip) has the same
+baked-in-border shape and hasn't shown this symptom yet, but is built the same fragile way - worth
+proactively converting it the same way if it ever does, rather than waiting to be asked twice.
+
 ## Other pending work
 
 1. **HUD player card (the colored info panel per player)** — deliberately not reskinned. It has 9 places
