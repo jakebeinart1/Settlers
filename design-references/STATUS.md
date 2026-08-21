@@ -290,3 +290,29 @@ tiles" rather than "a generic ground texture". Regenerated `v2.png` for just tho
 produced a clean continuous texture that crops without visible seams. Lesson for next time: when asking
 for a "board tile texture," be explicit that the *ground material* should have no grid of its own -
 the hex shape comes from the app's rendering, not the source art.
+
+## Aug 21 tile restyle, take 2: match the reference exactly, not "anime"
+
+Jake's "anime drawing" phrasing above led to an overcorrection - the cel-shaded/Genshin-Impact-style
+regeneration was too illustrated (visible trees/wheat-stalks/rocks drawn into the texture, very high
+saturation). What he actually wanted, shown by pointing straight at
+`approved/reference/master-reference-full-screen.png` again: the reference board's own tile look - a flat,
+moderately-saturated, single dominant color per resource with a **subtle fine canvas/linen grain texture**
+running through it (barely-there, like a soft painted wash), and explicitly *no* drawn scene elements at
+all (no trees, no wheat stalks, no rocks/cracks) and *no* bright cel-shaded cartoon look either. "A little
+drawing texture, as if the drawing was done and not just a single solid color" - the texture is meant to
+read as "this was painted," not as illustrated content.
+
+Regenerated all 6 with `generate_tile.py`, extended with an optional trailing `ref1.png,ref2.png,...` arg
+(same `input_references` image-to-image mechanism as `generate_screen.py`) so the prompt could point
+directly at `master-reference-full-screen.png` as a style reference instead of describing the look in
+words - much more reliable than iterating on adjectives. Center-cropped each 1024x1024 result to 512x512
+(no seams/artifacts to route around this time - the whole canvas came out uniform). Colors: clay
+warm burnt-orange, grain golden mustard, forest deep olive-green, pasture lighter yellow-green, mountain
+cool gray, desert warm sandy-tan (deliberately close to grain but paler/more muted, matching the reference).
+
+**Lesson**: when a user says "anime" or names a style, don't take the label at face value - the reference
+image they keep pointing back at is the actual spec. If a regeneration technically fits the label but the
+user says "no, not that" while re-sending the *same* reference image, the real ask is "match this
+image," not "try harder at the label." Pass the reference image itself into the generation call
+(`input_references`) rather than re-describing it, once that option exists.
