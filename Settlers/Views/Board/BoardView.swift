@@ -172,6 +172,10 @@ public struct BoardView: View {
                 let civilization = Civilization.forSeat(owner.player.index)
                 let size = geometry.size * (owner.isCity ? 0.80 : 0.68) * civilization.pieceSizeCorrection(isCity: owner.isCity)
                 CivilizationBadge(civilization: civilization, isCity: owner.isCity, size: size)
+                    // A small grounding shadow - pieces sat perfectly flat
+                    // against the tile texture before, with nothing to
+                    // separate them from the board underneath.
+                    .shadow(color: .black.opacity(0.45), radius: 1.5, x: 0, y: size * 0.05)
                     .position(position)
                     .allowsHitTesting(false)
             }
@@ -226,6 +230,9 @@ public struct BoardView: View {
                     borderPath.fill(.black.opacity(0.9))
                     fillPath.fill(CatanTheme.color(for: player.id))
                 }
+                // Same small grounding shadow as `CivilizationBadge` -
+                // consistent depth cue across every piece on the board.
+                .shadow(color: .black.opacity(0.4), radius: 1.2, x: 0, y: geometry.size * 0.015)
                 .allowsHitTesting(false)
             }
         }

@@ -420,7 +420,7 @@ public struct GameView: View {
             Image("menu-icon")
                 .resizable()
                 .scaledToFit()
-                .frame(width: 32, height: 32)
+                .frame(width: 40, height: 40)
         }
     }
 
