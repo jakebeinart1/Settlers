@@ -99,7 +99,9 @@ public struct GameView: View {
     // `ContentView`) - lets QA screenshot the pause menu without a real tap.
     @State private var isShowingPauseMenu = ProcessInfo.processInfo.arguments.contains("-qaShowPauseMenu")
     @State private var placementMode: PlacementMode?
-    @State private var showTradePopup = false
+    // `-qaShowTradePopup`: same escape hatch pattern - lets QA screenshot
+    // the trade popup without a real tap.
+    @State private var showTradePopup = ProcessInfo.processInfo.arguments.contains("-qaShowTradePopup")
     @State private var showBuildPopup = false
     @State private var devCardPopupType: DevCardType?
     @State private var errorMessage: String?
