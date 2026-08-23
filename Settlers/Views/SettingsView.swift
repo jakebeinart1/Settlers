@@ -227,7 +227,14 @@ public struct SettingsView: View {
         selectionSymbol: String = "checkmark.circle.fill"
     ) -> some View {
         HStack(spacing: 12) {
-            CivilizationBadge(civilization: civilization, isCity: false, size: 34)
+            // Settlement and city side by side (city slightly larger, same
+            // proportion as they read against each other on the board) so
+            // picking a civilization shows off both tiers of its piece art
+            // at once, not just the settlement.
+            HStack(spacing: 6) {
+                CivilizationBadge(civilization: civilization, isCity: false, size: 34)
+                CivilizationBadge(civilization: civilization, isCity: true, size: 34)
+            }
 
             VStack(alignment: .leading, spacing: 2) {
                 Text(civilization.displayName)

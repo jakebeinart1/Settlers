@@ -160,6 +160,22 @@ public enum Civilization: String, CaseIterable, Sendable, Codable {
         }
     }
 
+    /// A darker, fixed-saturation/brightness tint of `accentColor`, used as
+    /// this civilization's HUD card background (`PlayerChip`,
+    /// `HumanPlayerPanel`) so each player's card carries their own color
+    /// instead of every card sharing one flat blue. Deriving from
+    /// `accentColor`'s hue rather than choosing 8 new RGB triples keeps a
+    /// card visibly "that civ's color" without a second palette to keep in
+    /// sync; pinning saturation/brightness instead of scaling `accentColor`
+    /// directly keeps every civ's card at the same legibility level for the
+    /// white HUD text on top, regardless of how bright or muted (e.g.
+    /// Greece's marble grey) that civ's own accent happens to be.
+    public func cardBackgroundColor(active: Bool) -> Color {
+        var hue: CGFloat = 0, saturation: CGFloat = 0, brightness: CGFloat = 0, alpha: CGFloat = 0
+        UIColor(accentColor).getHue(&hue, saturation: &saturation, brightness: &brightness, alpha: &alpha)
+        return Color(hue: Double(hue), saturation: active ? 0.6 : 0.55, brightness: active ? 0.46 : 0.33, opacity: 1)
+    }
+
     private static func vivid(_ color: Color) -> Color {
         var hue: CGFloat = 0, saturation: CGFloat = 0, brightness: CGFloat = 0, alpha: CGFloat = 0
         UIColor(color).getHue(&hue, saturation: &saturation, brightness: &brightness, alpha: &alpha)

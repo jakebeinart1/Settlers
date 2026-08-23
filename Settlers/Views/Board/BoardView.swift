@@ -173,7 +173,7 @@ public struct BoardView: View {
                 // noticeable rather than shrinking once settlements got
                 // closer to their old size.
                 let civilization = Civilization.forSeat(owner.player.index)
-                let size = geometry.size * (owner.isCity ? 0.80 : 0.68) * civilization.pieceSizeCorrection(isCity: owner.isCity)
+                let size = geometry.size * (owner.isCity ? 0.87 : 0.68) * civilization.pieceSizeCorrection(isCity: owner.isCity)
                 CivilizationBadge(civilization: civilization, isCity: owner.isCity, size: size)
                     // A small grounding shadow - pieces sat perfectly flat
                     // against the tile texture before, with nothing to

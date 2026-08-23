@@ -179,12 +179,31 @@ public struct GameView: View {
             // chips) already fills its own solid background color, so
             // legibility isn't affected by swapping what's behind them.
             GeometryReader { geo in
+                // Fit the painting to a *shorter* target height than the
+                // screen (see `backgroundZoomOut` below), then pin that
+                // shorter block to the top - `.scaledToFill()` always picks
+                // the smallest scale that still covers its target frame, so
+                // handing it a shorter target height means a smaller overall
+                // scale, which shows more of the painting on every axis (a
+                // deliberate "zoom out a touch" versus a plain full-bleed
+                // fill, which was cropping in tight enough to lose most of
+                // the sky/mountains and the far side of the painting).
+                // Pinning to `.top` (rather than the default vertical
+                // center) means the shortfall at the bottom - the painting's
+                // own water/foreground, not the sky - lands behind the
+                // opaque bottom UI (HumanPlayerPanel + action row), never a
+                // visible gap. `waterBackground` behind it is just a safety
+                // net in case that math is ever off on some other device's
+                // aspect ratio - it matches the painting's own water tone.
+                let backgroundZoomOut: CGFloat = 0.90
                 Image("board-background")
                     .resizable()
                     .scaledToFill()
-                    .frame(width: geo.size.width, height: geo.size.height)
+                    .frame(width: geo.size.width, height: geo.size.height * backgroundZoomOut, alignment: .leading)
                     .clipped()
+                    .frame(width: geo.size.width, height: geo.size.height, alignment: .top)
             }
+            .background(CatanTheme.waterBackground)
             .ignoresSafeArea()
 
             // `spacing: 0` rather than a uniform 8pt everywhere - board,
@@ -194,7 +213,12 @@ public struct GameView: View {
             // is added explicitly with `.padding(.bottom:)` only where it's
             // actually wanted, instead of uniformly.
             VStack(spacing: 0) {
+                // Horizontal margin here (not on `boardArea` below, which
+                // stays exactly as wide as it's always been - see chat) so
+                // the cards read as sitting a little off the screen's edge
+                // rather than flush against it, same as the reference.
                 BotHUDRow(state: state, human: human)
+                    .padding(.horizontal, 12)
                     .padding(.bottom, 3)
 
                 boardArea
@@ -236,8 +260,10 @@ public struct GameView: View {
                 // here reads as one continuous stack, not three separate
                 // boxes with gaps between them).
                 HumanPlayerPanel(state: state, human: human, onTapDevCard: { devCardPopupType = $0 })
+                    .padding(.horizontal, 12)
 
                 bottomPanel
+                    .padding(.horizontal, 12)
                     .padding(.top, 8)
             }
 
@@ -405,10 +431,11 @@ public struct GameView: View {
             // re-fits and re-centers itself within whatever height it's
             // given, so this nudges the whole hex grid down slightly rather
             // than requiring the chips to shrink or move. Bumped again from
-            // 18 for a bit more breathing room below the top HUD row (see
-            // chat) - purely spacing, doesn't affect board scale/tap
-            // targets, which are still derived from the same `geometry`.
-            .padding(.top, 30)
+            // 18, then again from 30 to sit a bit lower in the space between
+            // the HUD row and the human panel - purely spacing, doesn't
+            // affect board scale/tap targets, which are still derived from
+            // the same `geometry`.
+            .padding(.top, 50)
 
             if let roll = state.lastDiceRoll {
                 diceChip(roll)
@@ -466,7 +493,10 @@ public struct GameView: View {
                     .font(.system(size: 32, weight: .heavy, design: .serif))
             }
             .foregroundStyle(.white)
-            .padding(.horizontal, 10)
+            // Bumped from 10 - "7" (and other single digits) sat close
+            // enough to the chip's own right edge/border to read as clipped,
+            // especially once the digit's serif tail is included.
+            .padding(.horizontal, 14)
             .padding(.vertical, 8)
             .background(PaintedChromeBackground(textureImageName: "dice-fill", cornerRadius: 12))
             .scaleEffect(diceScale)

@@ -260,17 +260,34 @@ public struct HumanPlayerPanel: View {
             }
             .padding(11)
             .frame(maxWidth: .infinity, alignment: .leading)
-            .background(
-                RoundedRectangle(cornerRadius: 12)
-                    .fill(isActive ? CatanTheme.hudChipBackgroundActive : CatanTheme.hudChipBackground)
-            )
-            .overlay(
+            .background(TintedTextureBackground(tint: Civilization.forSeat(human.index).cardBackgroundColor(active: isActive)))
+            .overlay(alignment: .bottomTrailing) {
+                // A specialized watermark just for the human's own panel -
+                // a small painted silhouette (mountains + pagodas, matching
+                // the board background's own style) tucked bottom-trailing
+                // in the panel's own empty margin (below the left-aligned
+                // content), the way the reference's player card carries its
+                // own bit of scenery instead of a flat color. Bot chips
+                // don't get this - they're small, share a row, and change
+                // occupant (civ) every game, where a baked scenic image
+                // would either look cramped or need per-civ variants; this
+                // one card is always "you" and has the room for it.
+                Image("human-card-motif")
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+                    .frame(width: 150, height: 150)
+                    .opacity(0.45)
+                    .allowsHitTesting(false)
+            }
+            .clipShape(RoundedRectangle(cornerRadius: 12))
+            .playerCardBorder(
                 // Same treatment as the bot chips (`PlayerChip.body`):
                 // always outlined in your own piece color, just a heavier
                 // line while it's your turn rather than the only time a
                 // border shows at all.
-                RoundedRectangle(cornerRadius: 12)
-                    .strokeBorder(CatanTheme.color(for: human), lineWidth: isActive ? 2.5 : 1.25)
+                color: CatanTheme.color(for: human),
+                cornerRadius: 12,
+                lineWidth: isActive ? 3.25 : 2.5
             )
         }
     }
@@ -384,16 +401,17 @@ enum PlayerChip {
                     .frame(width: 11, height: 11)
                 Image(systemName: civilization.emblemSymbol)
                     .font(.system(size: 10))
-                // Fixed size, no `minimumScaleFactor` - that let each name
-                // shrink independently to fit the same chip width, so
-                // "Ragnar" (6 characters) stayed near full size while
-                // "Charlemagne" (11) shrank dramatically to fit, and the
-                // three bot names never actually matched each other. A
-                // consistent size for everyone, truncating with an ellipsis
-                // in the rare case a name still doesn't fit, reads far more
-                // uniform than every name being a different size.
+                // No `minimumScaleFactor` - that let each name shrink
+                // independently to fit the same chip width, so "Ragnar" (6
+                // characters) stayed near full size while "Charlemagne" (11)
+                // shrank dramatically to fit, and the three bot names never
+                // actually matched each other. A consistent size for
+                // everyone instead - sized down from an earlier 12pt to fit
+                // the roster's longest names ("Charlemagne", "Washington")
+                // without ellipsis-truncating on a 3-bot-wide HUD row, where
+                // each chip only gets a third of the screen's width.
                 Text(isHuman ? CatanTheme.playerLabel(for: player.id) : civilization.generalName)
-                    .font(.system(size: 12, weight: .bold, design: .serif))
+                    .font(.system(size: 10, weight: .bold, design: .serif))
                     .lineLimit(1)
             }
             Text(civilization.displayName)
@@ -475,19 +493,18 @@ enum PlayerChip {
         // times.
         .padding(6)
         .frame(maxWidth: .infinity, minHeight: 78, alignment: .topLeading)
-        .background(
-            RoundedRectangle(cornerRadius: 12)
-                .fill(isActive ? CatanTheme.hudChipBackgroundActive : CatanTheme.hudChipBackground)
-        )
-        .overlay(
+        .background(TintedTextureBackground(tint: civilization.cardBackgroundColor(active: isActive)))
+        .clipShape(RoundedRectangle(cornerRadius: 12))
+        .playerCardBorder(
             // Always outlined in the seat's own color now, not just while
             // active - that color is already how every piece of theirs on
             // the board reads as belonging to them, so the chip should say
             // the same thing at a glance even on someone else's turn. Active
             // still gets called out, just by a heavier line rather than by
             // being the only one with a border at all.
-            RoundedRectangle(cornerRadius: 12)
-                .strokeBorder(CatanTheme.color(for: player.id), lineWidth: isActive ? 2.5 : 1.25)
+            color: CatanTheme.color(for: player.id),
+            cornerRadius: 12,
+            lineWidth: isActive ? 3.25 : 2.5
         )
     }
 

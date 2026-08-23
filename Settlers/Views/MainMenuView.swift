@@ -24,7 +24,10 @@ public struct MainMenuView: View {
     // players without asking felt like a bigger call than adding the
     // option - this stays opt-in until there's a reason to flip it.
     @State private var randomizeSeat = false
-    @State private var isShowingSettings = false
+    // `-qaShowSettings`: same escape-hatch pattern as `-qaShowPauseMenu` -
+    // opens straight to `SettingsView` for screenshotting it, no real tap on
+    // the gear icon needed.
+    @State private var isShowingSettings = ProcessInfo.processInfo.arguments.contains("-qaShowSettings")
 
     private var hasSavedGame: Bool {
         GameStore.shared.load() != nil

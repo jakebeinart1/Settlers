@@ -90,8 +90,13 @@ enum TileDrawing {
         context.stroke(path, with: .color(.white.opacity(0.6)), lineWidth: 1)
 
         if let number {
+            // Same font size `drawNumberToken` uses for every other tile
+            // (`geometry.size * 0.32` radius * `1.15`) - not `radius * 0.85`
+            // here, which reads off the robber's own (deliberately smaller)
+            // token-circle radius instead and made this one number visibly
+            // shrink the moment the robber sat on it.
             let text = Text("\(number)")
-                .font(.system(size: radius * 0.85, weight: .bold, design: .serif))
+                .font(.system(size: geometry.size * 0.32 * 1.15, weight: .bold, design: .serif))
                 .foregroundColor(.white)
             context.draw(context.resolve(text), at: center, anchor: .center)
         }
