@@ -38,8 +38,28 @@ public struct TradePopupView: View {
     private static let bankGold = Color(red: 0.85, green: 0.68, blue: 0.32)
     /// Tall enough to fit `pendingConfirmationBanner`, the largest of the
     /// three things that can occupy `statusRegion` - reserved unconditionally
-    /// so the card never grows/shrinks when a bot responds.
-    private static let statusRegionHeight: CGFloat = 104
+    /// so the card never grows/shrinks when a bot responds. Bumped from the
+    /// original 104 (measured against the actual rendered banner - see
+    /// chat) - that was sized for `pendingConfirmationBanner`'s old compact
+    /// side-by-side Decline/Confirm Trade pair; once those became full-width
+    /// stacked `GoldRowButton`s (to fix the mid-word wrapping bug - see
+    /// `GoldRowButton.swift`'s doc comment), the banner grew taller than
+    /// this reserved slot without this constant following it, so the
+    /// un-clipped overflow visually landed on top of - and hid - "Confirm
+    /// Trade" itself (reproduced via `-qaShowPendingTradeConfirmation`).
+    /// Kept close to the banner's real height rather than padded generously
+    /// - `PopupCard`'s own scroll-when-tall fix (see its doc comment) is
+    /// what actually protects against overflow now, so there's no need to
+    /// over-reserve here at the cost of pushing "Close" further down/
+    /// off-screen than it needs to be. Bumped from 165 once accepting bots
+    /// in `pendingConfirmationBanner` grew from a single name-only row to a
+    /// two-line "X: message" row each - worst case is all 3 bots accepting,
+    /// each a 2-line row. Bumped from 210 once that row's text grew from
+    /// `.caption2` to `.subheadline` (see `tradeMessageRow`) - the smaller
+    /// value under-reserved the new row height enough that `PopupCard`'s
+    /// scroll-when-tall clipping ate the normal gap before "Close",
+    /// crowding it flush against "Confirm Trade" (see chat).
+    private static let statusRegionHeight: CGFloat = 260
 
     private var human: Player? { viewModel.state.players.first { $0.id == viewModel.humanPlayer } }
 
@@ -60,8 +80,7 @@ public struct TradePopupView: View {
                         .foregroundStyle(.red)
                 }
 
-                Button("Close", action: onDismiss)
-                    .buttonStyle(.bordered)
+                GoldRowButton(title: "Close", systemImage: "xmark", action: onDismiss)
             }
             .padding(16)
             .frame(maxWidth: 360)
@@ -103,8 +122,17 @@ public struct TradePopupView: View {
 
             bankHint
 
-            HStack(spacing: 10) {
-                Button("Propose to Bots") {
+            // Stacked full-width rows, not side-by-side - `GoldRowButton`'s
+            // icon+title row is wider than a plain `.borderedProminent`
+            // button (see chat: "Trade with Bank" wrapped to 3 lines split
+            // two-up in this popup's ~330pt width), so every multi-word
+            // button pair in this popup stacks instead of sharing a row.
+            VStack(spacing: 10) {
+                GoldRowButton(
+                    title: "Propose to Bots",
+                    systemImage: "person.2.fill",
+                    isEnabled: !give.isEmpty && !want.isEmpty
+                ) {
                     let offer = TradeOffer(from: viewModel.humanPlayer, give: give, want: want)
                     proposalOutcome = nil
                     perform(.proposeTrade(offer))
@@ -121,17 +149,17 @@ public struct TradePopupView: View {
                         proposalOutcome = viewModel.lastTradeOutcome
                     }
                 }
-                .buttonStyle(.borderedProminent)
-                .disabled(give.isEmpty || want.isEmpty)
 
-                Button("Trade with Bank") {
+                GoldRowButton(
+                    title: "Trade with Bank",
+                    systemImage: "building.columns.fill",
+                    iconColor: Self.bankGold,
+                    titleColor: Self.bankGold,
+                    isEnabled: isValidBankTrade
+                ) {
                     perform(.bankTrade(give: give, get: want))
                 }
-                .buttonStyle(.borderedProminent)
-                .tint(Self.bankGold)
-                .disabled(!isValidBankTrade)
             }
-            .frame(maxWidth: .infinity)
         }
     }
 
@@ -186,34 +214,38 @@ public struct TradePopupView: View {
     /// just happening the instant a bot agrees. See
     /// `GameViewModel.pendingTradeConfirmation`.
     private func pendingConfirmationBanner(_ pending: GameViewModel.PendingTradeConfirmation) -> some View {
-        VStack(alignment: .leading, spacing: 8) {
-            HStack(spacing: 6) {
-                Image(systemName: "checkmark.circle.fill")
-                Text("\(CatanTheme.playerLabel(for: pending.acceptedBy)) will accept this trade")
-                    .font(.caption.bold())
-            }
-            .foregroundStyle(.green)
-
-            HStack(spacing: 10) {
-                ForEach(pending.decisions, id: \.bot) { decision in
-                    HStack(spacing: 3) {
-                        Image(systemName: decision.accepted ? "checkmark" : "xmark")
-                            .font(.system(size: 9, weight: .bold))
-                            .foregroundStyle(decision.accepted ? .green : .red)
-                        Text(CatanTheme.playerLabel(for: decision.bot))
-                            .font(.caption2)
+        VStack(alignment: .leading, spacing: 6) {
+            // One row per bot, every bot with its own message (see
+            // `GameViewModel.tradeResponseMessage` - a bot always has
+            // something to say, whether it took the deal or not). An
+            // accepting bot's row is tappable to switch `selectedBot`; a
+            // rejecting bot's row is plain, non-interactive text. No
+            // `lineLimit` on the message itself - it wraps rather than
+            // truncating, and `PopupCard`'s own scroll-when-tall handling
+            // (see its doc comment) covers the rare case that pushes the
+            // card past `statusRegionHeight`.
+            ForEach(pending.decisions, id: \.bot) { decision in
+                if decision.accepted {
+                    Button {
+                        viewModel.selectTradePartner(decision.bot)
+                    } label: {
+                        tradeMessageRow(decision, systemImage: "checkmark.circle.fill")
+                            .foregroundStyle(decision.bot == pending.selectedBot ? .green : .secondary)
                     }
+                    .buttonStyle(.plain)
+                } else {
+                    tradeMessageRow(decision, systemImage: "xmark")
+                        .foregroundStyle(.red.opacity(0.7))
                 }
             }
 
-            HStack(spacing: 10) {
-                Button("Decline") {
+            VStack(spacing: 10) {
+                GoldRowButton(title: "Decline", systemImage: "xmark", action: {
                     viewModel.declinePendingTrade()
                     proposalOutcome = viewModel.lastTradeOutcome
-                }
-                .buttonStyle(.bordered)
+                })
 
-                Button("Confirm Trade") {
+                GoldRowButton(title: "Confirm Trade", systemImage: "checkmark", iconColor: .green, titleColor: .green, action: {
                     // A failed confirm used to just silently do nothing -
                     // no error, no changed cards, no indication why - since
                     // `try?` swallowed the underlying failure. Now it's
@@ -229,11 +261,8 @@ public struct TradePopupView: View {
                         errorMessage = "That trade could no longer go through - resources changed since you proposed it."
                         proposalOutcome = viewModel.lastTradeOutcome
                     }
-                }
-                .buttonStyle(.borderedProminent)
-                .tint(.green)
+                })
             }
-            .frame(maxWidth: .infinity)
         }
         .padding(.horizontal, 10)
         .padding(.vertical, 8)
@@ -241,8 +270,10 @@ public struct TradePopupView: View {
         .background(Color.black.opacity(0.25), in: RoundedRectangle(cornerRadius: 10))
     }
 
-    /// Every bot's individual accept/reject answer, not just whoever ended
-    /// up taking the offer - so it's clear this wasn't a black box.
+    /// Every bot's individual accept/reject answer *and* its own message,
+    /// not just whoever ended up taking the offer (or, if nobody did, a
+    /// bare "no one accepted") - so a fully-declined proposal still comes
+    /// back with real reactions instead of a silent wall of rejections.
     private func proposalOutcomeBanner(_ outcome: GameViewModel.TradeOutcome) -> some View {
         let headline = outcome.acceptedBy.map { "\(CatanTheme.playerLabel(for: $0)) accepted!" }
             ?? "No one accepted that trade."
@@ -256,22 +287,36 @@ public struct TradePopupView: View {
             }
             .foregroundStyle(headlineColor)
 
-            HStack(spacing: 10) {
-                ForEach(outcome.decisions, id: \.bot) { decision in
-                    HStack(spacing: 3) {
-                        Image(systemName: decision.accepted ? "checkmark" : "xmark")
-                            .font(.system(size: 9, weight: .bold))
-                            .foregroundStyle(decision.accepted ? .green : .red)
-                        Text(CatanTheme.playerLabel(for: decision.bot))
-                            .font(.caption2)
-                    }
-                }
+            ForEach(outcome.decisions, id: \.bot) { decision in
+                tradeMessageRow(decision, systemImage: decision.accepted ? "checkmark.circle.fill" : "xmark")
+                    .foregroundStyle(decision.accepted ? .green : .red.opacity(0.7))
             }
         }
         .padding(.horizontal, 10)
         .padding(.vertical, 8)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(Color.black.opacity(0.25), in: RoundedRectangle(cornerRadius: 10))
+    }
+
+    /// One bot's name + message, shared between `pendingConfirmationBanner`
+    /// (still awaiting confirmation) and `proposalOutcomeBanner` (already
+    /// resolved) - only the leading icon and the color applied by the
+    /// caller differ between an accept and a reject.
+    private func tradeMessageRow(_ decision: (bot: PlayerID, accepted: Bool, message: String), systemImage: String) -> some View {
+        HStack(alignment: .top, spacing: 6) {
+            Image(systemName: systemImage)
+                .font(.subheadline)
+            // `.subheadline` - bumped up from `.caption2`. `TradeMessages`'s
+            // pools are capped at 38 characters (see `TradeMessages`'s own
+            // doc comment) specifically so a line fits on one row at this
+            // size within the popup's width, no `lineLimit`/shrink needed.
+            VStack(alignment: .leading, spacing: 1) {
+                Text("\(CatanTheme.playerLabel(for: decision.bot)):")
+                    .font(.subheadline.bold())
+                Text(decision.message)
+                    .font(.subheadline)
+            }
+        }
     }
 
     // MARK: - Bank trade
@@ -299,17 +344,23 @@ public struct TradePopupView: View {
         return convertedTotal == want.values.reduce(0, +)
     }
 
-    /// A single-line, fixed-height hint under the palettes - shows the
-    /// player's current best rates while Give is empty, then tracks whether
-    /// the pile in progress is a legal bank trade yet. Always rendered (never
+    /// A fixed-height hint under the palettes - shows the player's current
+    /// best rates while Give is empty, then tracks whether the pile in
+    /// progress is a legal bank trade yet. Always rendered (never
     /// conditionally inserted/removed) so its own presence never shifts the
-    /// buttons below it.
+    /// buttons below it - reserved at *two* lines' height, not one: the
+    /// default "Bank rates: Brick 4:1 · Lumber 4:1 · ..." text (all 5
+    /// resources) reliably wraps to 2 lines at this card's width, so a
+    /// single-line reservation left the buttons below hopping up a hair the
+    /// instant that text was replaced by a shorter one-line message (the
+    /// "ready to trade" / "must be a multiple of its rate" hints) - see chat.
     private var bankHint: some View {
         Text(bankHintText)
             .font(.caption2)
             .foregroundStyle(isValidBankTrade ? Self.bankGold : .secondary)
+            .multilineTextAlignment(.leading)
             .frame(maxWidth: .infinity, alignment: .leading)
-            .frame(minHeight: 14)
+            .frame(minHeight: 32, alignment: .top)
     }
 
     private var bankHintText: String {

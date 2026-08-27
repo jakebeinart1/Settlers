@@ -24,14 +24,17 @@ public final class GameViewModel {
     /// not just whoever ended up taking it), since a bot's accept/reject
     /// otherwise happens silently.
     public struct TradeOutcome: Equatable {
-        /// Every bot's individual accept/reject answer, in seat order.
-        public let decisions: [(bot: PlayerID, accepted: Bool)]
+        /// Every bot's individual accept/reject answer, in seat order, each
+        /// with its own flavor line - a bot always has *something* to say
+        /// about a proposal, whether it took the deal or not.
+        public let decisions: [(bot: PlayerID, accepted: Bool, message: String)]
         public let acceptedBy: PlayerID?
 
         public static func == (lhs: TradeOutcome, rhs: TradeOutcome) -> Bool {
             lhs.acceptedBy == rhs.acceptedBy
                 && lhs.decisions.map(\.bot) == rhs.decisions.map(\.bot)
                 && lhs.decisions.map(\.accepted) == rhs.decisions.map(\.accepted)
+                && lhs.decisions.map(\.message) == rhs.decisions.map(\.message)
         }
     }
     public private(set) var lastTradeOutcome: TradeOutcome?
@@ -47,8 +50,13 @@ public final class GameViewModel {
     /// confirm).
     public struct PendingTradeConfirmation {
         public let offerID: UUID
-        public let acceptedBy: PlayerID
-        public let decisions: [(bot: PlayerID, accepted: Bool)]
+        /// Which accepting bot the trade will actually go through with if
+        /// confirmed - defaults to the first bot that accepted (so a
+        /// single-accepter trade needs no extra tap), but the human can
+        /// switch it to any other accepting bot via `selectTradePartner`
+        /// before confirming.
+        public let selectedBot: PlayerID
+        public let decisions: [(bot: PlayerID, accepted: Bool, message: String)]
     }
     public private(set) var pendingTradeConfirmation: PendingTradeConfirmation?
 
@@ -244,11 +252,57 @@ public final class GameViewModel {
     /// `TradeHeuristics.evaluate` answer won't change on its own without
     /// some other state change, so leaving it pending indefinitely would
     /// just be a silent dead offer).
+    /// QA-only: seeds `pendingTradeConfirmation` directly with every bot
+    /// accepting, without a real trade offer behind it - lets
+    /// `-qaShowPendingTradeConfirmation` screenshot
+    /// `TradePopupView.pendingConfirmationBanner` (the "a bot will accept"
+    /// step) at its worst case (every bot seat shown, not just one) without
+    /// scripting an actual bot-accepted trade through the simulator, which
+    /// would depend on `TradeHeuristics` agreeing to something. Confirm/
+    /// Decline still call through to the real `respondToTrade` move, which
+    /// will legitimately fail against this bogus `offerID` - fine, this
+    /// exists to screenshot the banner's layout, not to be played through.
+    /// QA-only: forces `state.phase` straight to a human win, for
+    /// screenshotting `EndGameView` (see `-qaShowEndGame` in `ContentView`)
+    /// without actually playing a game out to 10 VP.
+    public func qaForceHumanWin() {
+        state.phase = .gameOver(winner: humanPlayer)
+    }
+
+    public func qaSeedPendingTradeConfirmation() {
+        let bots = state.players.map(\.id).filter { $0 != humanPlayer }
+        guard let selectedBot = bots.first else { return }
+        let offerID = UUID()
+        pendingTradeConfirmation = PendingTradeConfirmation(
+            offerID: offerID,
+            selectedBot: selectedBot,
+            decisions: bots.map { ($0, true, tradeResponseMessage(for: $0, offerID: offerID, accepted: true)) }
+        )
+    }
+
+    /// The flavor line a bot's accept/reject decision carries, themed to
+    /// its empire (see `TradeMessages`) - every bot gets one regardless of
+    /// which way it went, so a proposal nobody accepts still comes back
+    /// with real reactions instead of a silent wall of rejections. Only
+    /// needs the offer's `id` (not the full `TradeOffer`) since
+    /// `TradeMessages` only ever keys off that for its deterministic pick.
+    private func tradeResponseMessage(for bot: PlayerID, offerID: UUID, accepted: Bool) -> String {
+        let empire = Civilization.forSeat(bot.index).tradeMessagesEmpire
+        return TradeMessages.response(offer: TradeOffer(id: offerID, from: bot, give: [:], want: [:]), empire: empire, accepted: accepted)
+    }
+
     private func resolveHumanProposedTrade(_ offer: TradeOffer) {
-        var decisions: [(bot: PlayerID, accepted: Bool)] = []
-        var acceptedBy: PlayerID?
-        for botIndex in 1..<state.players.count {
-            let bot = PlayerID(index: botIndex)
+        var decisions: [(bot: PlayerID, accepted: Bool, message: String)] = []
+        var firstAccepter: PlayerID?
+        // Every *other* seat, not `1..<state.players.count` - that range
+        // silently assumed the human always sits in seat 0, which
+        // `startNewGame(randomizeSeat: true)` breaks (`humanPlayer` can be
+        // any of seats 0-3). With the human elsewhere, the old range
+        // evaluated the human's own seat as if it were a bot deciding on
+        // their own proposal (showing the human's own name in the
+        // confirmation banner) and skipped whichever real bot sat in seat
+        // 0 entirely.
+        for bot in state.players.map(\.id) where bot != humanPlayer {
             // `TradeHeuristics.evaluate` only judges whether the offer is a
             // *good deal* for the bot - it has no idea whether the bot
             // actually holds enough of `offer.want` to go through with it,
@@ -259,30 +313,51 @@ public final class GameViewModel {
             // intermittent (only bit when the bot happened to be short on
             // whatever was asked for), and looked like the trade just
             // silently didn't happen. Checking affordability here, before
-            // ever offering the bot as a candidate, keeps `acceptedBy`
-            // truthful to what `confirmPendingTrade()` can actually deliver.
+            // ever offering the bot as a candidate, keeps the accepting
+            // bots truthful to what `confirmPendingTrade()` can actually
+            // deliver.
             guard let botPlayer = state.players.first(where: { $0.id == bot }),
                   offer.want.allSatisfy({ resource, amount in (botPlayer.resources[resource] ?? 0) >= amount }) else {
-                decisions.append((bot, false))
+                decisions.append((bot, false, tradeResponseMessage(for: bot, offerID: offer.id, accepted: false)))
                 continue
             }
             let accepts = TradeHeuristics.evaluate(offer: offer, receiver: bot, state: state, personality: personality(for: bot))
-            decisions.append((bot, accepts))
-            if accepts, acceptedBy == nil {
-                acceptedBy = bot
+            let message = tradeResponseMessage(for: bot, offerID: offer.id, accepted: accepts)
+            decisions.append((bot, accepts, message))
+            if accepts, firstAccepter == nil {
+                firstAccepter = bot
             }
         }
 
-        if let acceptedBy {
-            pendingTradeConfirmation = PendingTradeConfirmation(offerID: offer.id, acceptedBy: acceptedBy, decisions: decisions)
+        if let firstAccepter {
+            pendingTradeConfirmation = PendingTradeConfirmation(offerID: offer.id, selectedBot: firstAccepter, decisions: decisions)
             lastTradeOutcome = nil
         } else {
             pendingTradeConfirmation = nil
-            if state.players.count > 1 {
-                try? applyLogged(.respondToTrade(offerID: offer.id, accept: false), by: PlayerID(index: 1))
+            // Withdraw the now-universally-rejected offer on any bot's
+            // behalf, since a bot's own legal `.respondToTrade(accept:
+            // false)` is what actually removes it from
+            // `pendingTradeOffers` - `decisions.first?.bot` rather than the
+            // old hardcoded `PlayerID(index: 1)`, which broke identically to
+            // the loop above whenever the human sat in seat 1
+            // (`randomizeSeat`): `Trading.respond` requires `responder !=
+            // offer.from`, so applying as the human (`== offer.from`) threw,
+            // `try?` swallowed it, and the offer was left stuck in
+            // `pendingTradeOffers` forever.
+            if let anyBot = decisions.first?.bot {
+                try? applyLogged(.respondToTrade(offerID: offer.id, accept: false), by: anyBot)
             }
             lastTradeOutcome = TradeOutcome(decisions: decisions, acceptedBy: nil)
         }
+    }
+
+    /// Switches which accepting bot `pendingTradeConfirmation` will confirm
+    /// against - a no-op if `bot` didn't actually accept (or nothing's
+    /// pending), since the human can only choose among bots that said yes.
+    public func selectTradePartner(_ bot: PlayerID) {
+        guard let pending = pendingTradeConfirmation else { return }
+        guard pending.decisions.contains(where: { $0.bot == bot && $0.accepted }) else { return }
+        pendingTradeConfirmation = PendingTradeConfirmation(offerID: pending.offerID, selectedBot: bot, decisions: pending.decisions)
     }
 
     /// Why `confirmPendingTrade()` didn't go through, when it didn't -
@@ -320,18 +395,18 @@ public final class GameViewModel {
             return .offerNoLongerAvailable
         }
         do {
-            try applyLogged(.respondToTrade(offerID: pending.offerID, accept: true), by: pending.acceptedBy)
+            try applyLogged(.respondToTrade(offerID: pending.offerID, accept: true), by: pending.selectedBot)
         } catch {
             // Withdraw the now-stuck offer on the willing bot's behalf
             // rather than leaving it pending forever with nothing left to
             // confirm it with - same "reject" applied `declinePendingTrade`
             // uses.
-            try? applyLogged(.respondToTrade(offerID: pending.offerID, accept: false), by: pending.acceptedBy)
+            try? applyLogged(.respondToTrade(offerID: pending.offerID, accept: false), by: pending.selectedBot)
             lastTradeOutcome = TradeOutcome(decisions: pending.decisions, acceptedBy: nil)
             try? GameStore.shared.save(state)
             return .resourcesNoLongerAvailable
         }
-        lastTradeOutcome = TradeOutcome(decisions: pending.decisions, acceptedBy: pending.acceptedBy)
+        lastTradeOutcome = TradeOutcome(decisions: pending.decisions, acceptedBy: pending.selectedBot)
         try? GameStore.shared.save(state)
         return .succeeded
     }
@@ -346,7 +421,7 @@ public final class GameViewModel {
         guard let pending = pendingTradeConfirmation else { return }
         pendingTradeConfirmation = nil
         guard state.pendingTradeOffers.contains(where: { $0.id == pending.offerID }) else { return }
-        try? applyLogged(.respondToTrade(offerID: pending.offerID, accept: false), by: pending.acceptedBy)
+        try? applyLogged(.respondToTrade(offerID: pending.offerID, accept: false), by: pending.selectedBot)
         lastTradeOutcome = TradeOutcome(decisions: pending.decisions, acceptedBy: nil)
         try? GameStore.shared.save(state)
     }

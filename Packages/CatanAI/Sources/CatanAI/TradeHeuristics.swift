@@ -87,8 +87,46 @@ public enum TradeHeuristics {
         let baseThreshold = max(0.4, 0.7 - personality.tradeWillingness * 0.6)
         let threatShift = (proposerWeight - 1.0) * 0.5
         let standingShift = (ownStanding - 1.0) * 0.25
-        let threshold = max(0, baseThreshold + threatShift + standingShift)
+
+        // A proposer who's already landed one trade this turn and is back
+        // shopping for another gets more suspicious with each repeat - a
+        // real opponent would notice a partner working the table, not just
+        // judge every offer from them in isolation. Resets every turn (see
+        // `RulesEngine`'s `.endTurn` handling), so it never carries a grudge
+        // past the turn it was earned on.
+        let priorAcceptsThisTurn = state.tradesAcceptedThisTurn[offer.from] ?? 0
+        let suspicionShift = Double(priorAcceptsThisTurn) * 0.35
+
+        // A deal that would hand the proposer an immediate settlement/city
+        // the instant it's accepted deserves real scrutiny beyond "is this
+        // good for me" - the previous math only ever valued the receiver's
+        // own resource need, so a proposer sitting one card short of a
+        // build could complete it via a string of individually-plausible
+        // one-for-one trades that nobody weighed against what it was
+        // actually handing the opponent.
+        let unlockShift = enablesImmediateBuild(offer: offer, state: state) ? 0.6 : 0.0
+
+        let threshold = max(0, baseThreshold + threatShift + standingShift + suspicionShift + unlockShift)
         return netGain > threshold
+    }
+
+    /// Whether accepting `offer` (from the proposer's side: losing `give`,
+    /// gaining `want`) would take the proposer from unable to afford a
+    /// settlement/city to able to, right now. Only checks the two
+    /// high-value builds - a road or dev card slipping through is a much
+    /// smaller swing, not worth raising every trade's bar over.
+    private static func enablesImmediateBuild(offer: TradeOffer, state: GameState) -> Bool {
+        guard let proposer = state.players.first(where: { $0.id == offer.from }) else { return false }
+
+        var resulting = proposer.resources
+        for (resource, amount) in offer.give { resulting[resource, default: 0] -= amount }
+        for (resource, amount) in offer.want { resulting[resource, default: 0] += amount }
+
+        return [Building.settlementCost, Building.cityCost].contains { cost in
+            let currentlyAffordable = cost.allSatisfy { (proposer.resources[$0.key] ?? 0) >= $0.value }
+            let becomesAffordable = cost.allSatisfy { (resulting[$0.key] ?? 0) >= $0.value }
+            return !currentlyAffordable && becomesAffordable
+        }
     }
 
     /// Proposes at most one trade this turn: if `player` is blocked on their

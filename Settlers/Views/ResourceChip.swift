@@ -1,13 +1,17 @@
 import SwiftUI
 import CatanEngine
 
-/// Shared little "resource chip" button - just the resource-colored dot
-/// (plus an optional count overlaid on it) - used by every give/want/
-/// discard-style popup (`TradePopupView`, `DiscardPopupView`) so their hand
+/// Shared little "resource chip" button - just the resource-colored
+/// rounded square (plus an optional count overlaid on it) - used by every
+/// give/want/discard-style popup (`TradePopupView`, `DiscardPopupView`,
+/// `DevCardPopupView`'s Monopoly/Year of Plenty picker) so their hand
 /// trays/slots look and behave the same. No icon, no resource name
 /// anywhere - the color alone is the app's one consistent way to identify
 /// a resource at a glance, matching `HumanPlayerPanel`'s resource row and
-/// `IncomingTradeCardView`'s offer dots.
+/// `IncomingTradeCardView`'s offer dots. A rounded square, not a circle -
+/// matches the resource swatches everywhere else in the app (main menu
+/// title block, the board's own resource counts, `BuildPopupView`'s cost
+/// dots) - see the "rounded squares over circles" ask in chat.
 struct ResourceChip: View {
     let resource: Resource
     let count: Int?
@@ -17,7 +21,7 @@ struct ResourceChip: View {
     var body: some View {
         Button(action: action) {
             ZStack {
-                Circle()
+                RoundedRectangle(cornerRadius: 7)
                     .fill(CatanTheme.color(for: resource))
                 if let count {
                     Text("\(count)")

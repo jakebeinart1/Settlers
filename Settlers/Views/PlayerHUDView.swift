@@ -186,6 +186,7 @@ public struct HumanPlayerPanel: View {
                                 resourceDot(resource, count: player.resources[resource] ?? 0)
                             }
                         }
+                        .padding(.leading, 6)
                     } else {
                         // `.fixedSize()` here (same reason as the roads/
                         // knights/VP row above): without it, once the dev-card
@@ -207,6 +208,7 @@ public struct HumanPlayerPanel: View {
                                 resourceDot(resource, count: player.resources[resource] ?? 0)
                             }
                         }
+                        .padding(.leading, 6)
                         .fixedSize()
                     }
 
@@ -279,7 +281,7 @@ public struct HumanPlayerPanel: View {
                     .opacity(0.45)
                     .allowsHitTesting(false)
             }
-            .clipShape(RoundedRectangle(cornerRadius: 12))
+            .clipShape(FrameCornerRect(cornerRadius: 12, notchScale: 1.0))
             .playerCardBorder(
                 // Same treatment as the bot chips (`PlayerChip.body`):
                 // always outlined in your own piece color, just a heavier
@@ -292,12 +294,15 @@ public struct HumanPlayerPanel: View {
         }
     }
 
-    /// One resource's colored dot + held count, dimmed when `count` is 0 -
-    /// factored out so both the spread-out (no dev cards) and tight (dev
-    /// cards present) layouts above render identical dots.
+    /// One resource's colored square + held count, dimmed when `count` is 0
+    /// - factored out so both the spread-out (no dev cards) and tight (dev
+    /// cards present) layouts above render identical squares. A rounded
+    /// square rather than a circle - matches the resource swatches in
+    /// `MainMenuView`'s title block, per Jake's ask to keep the same shape
+    /// language on the board's own resource counts instead of a dot.
     private func resourceDot(_ resource: Resource, count: Int) -> some View {
         VStack(spacing: 3) {
-            Circle()
+            RoundedRectangle(cornerRadius: 3)
                 .fill(CatanTheme.color(for: resource))
                 .frame(width: 18, height: 18)
             Text("\(count)")
@@ -494,7 +499,7 @@ enum PlayerChip {
         .padding(6)
         .frame(maxWidth: .infinity, minHeight: 78, alignment: .topLeading)
         .background(TintedTextureBackground(tint: civilization.cardBackgroundColor(active: isActive)))
-        .clipShape(RoundedRectangle(cornerRadius: 12))
+        .clipShape(FrameCornerRect(cornerRadius: 12, notchScale: 1.0))
         .playerCardBorder(
             // Always outlined in the seat's own color now, not just while
             // active - that color is already how every piece of theirs on

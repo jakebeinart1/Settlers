@@ -210,6 +210,58 @@ import CatanEngine
 /// (0.5 - 0.2 = 0.3, so it used to clear it) but above its *new* floor
 /// (max(0.4, 0.7 - 0.2*0.6) = 0.58, so it no longer does) - a marginal deal
 /// that flips from accept to reject under the fix.
+/// Regression test for player feedback: a proposer sitting one card short of
+/// a settlement could complete it via a trade that looked individually
+/// reasonable to the receiver, because `evaluate` only ever weighed "is this
+/// good for me" and never noticed it was also handing the opponent an
+/// immediate build. Same offer/receiver/personality as the passing baseline
+/// in `evaluateRequiresABetterDealFromAHighThreatProposer` (netGain ~0.83,
+/// baseline threshold 0.58) - only the proposer's resources differ, so the
+/// unlock check alone is what flips accept to reject.
+@Test func evaluateRejectsATradeThatWouldHandTheProposerAnImmediateBuild() {
+    var state = GameSetup.newGame(board: BoardGenerator.standard())
+    let receiver = PlayerID(index: 0)
+    let proposer = PlayerID(index: 1)
+
+    state.players[0].resources = [.brick: 1, .lumber: 1, .grain: 0, .wool: 1, .ore: 1]
+    let offer = TradeOffer(from: proposer, give: [.ore: 1], want: [.wool: 1])
+
+    // Control: proposer is nowhere near affording a settlement even after
+    // this trade (missing brick/lumber/grain too) - accepted, same as the
+    // existing baseline test.
+    var farFromBuild = state
+    farFromBuild.players[1].resources = [.brick: 0, .lumber: 0, .grain: 0, .wool: 0, .ore: 1]
+    #expect(TradeHeuristics.evaluate(offer: offer, receiver: receiver, state: farFromBuild, personality: .aggressive))
+
+    // Same offer, but the proposer already holds everything else a
+    // settlement needs and is only short the wool this trade would hand
+    // them - accepting completes their settlement on the spot.
+    var oneCardFromBuild = state
+    oneCardFromBuild.players[1].resources = [.brick: 1, .lumber: 1, .grain: 1, .wool: 0, .ore: 1]
+    #expect(!TradeHeuristics.evaluate(offer: offer, receiver: receiver, state: oneCardFromBuild, personality: .aggressive))
+}
+
+/// Regression test for player feedback: a proposer sitting on a surplus of
+/// one resource could work the whole table with a string of individually-
+/// plausible one-for-one offers, each evaluated as if it were the only trade
+/// happening that turn. Same offer/personality as the baseline above
+/// (netGain ~0.83, threshold 0.58) - a single prior acceptance this turn
+/// (+0.35 suspicion, threshold 0.93) is already enough to flip it.
+@Test func evaluateSuspicionShiftRejectsARepeatTradeFromTheSameProposerThisTurn() {
+    var state = GameSetup.newGame(board: BoardGenerator.standard())
+    let receiver = PlayerID(index: 0)
+    let proposer = PlayerID(index: 1)
+
+    state.players[0].resources = [.brick: 1, .lumber: 1, .grain: 0, .wool: 1, .ore: 1]
+    let offer = TradeOffer(from: proposer, give: [.ore: 1], want: [.wool: 1])
+
+    #expect(TradeHeuristics.evaluate(offer: offer, receiver: receiver, state: state, personality: .aggressive))
+
+    var afterOneAccept = state
+    afterOneAccept.tradesAcceptedThisTurn[proposer] = 1
+    #expect(!TradeHeuristics.evaluate(offer: offer, receiver: receiver, state: afterOneAccept, personality: .aggressive))
+}
+
 @Test func evaluateRequiresAMeaningfulBenefitNotJustAnyPositiveMargin() {
     var state = GameSetup.newGame(board: BoardGenerator.standard())
     let receiver = PlayerID(index: 0)

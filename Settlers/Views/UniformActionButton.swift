@@ -33,22 +33,33 @@ public struct UniformActionButton: View {
 
     public var body: some View {
         Button(action: action) {
-            VStack(spacing: 2) {
+            // `maxHeight: .infinity` (below) - lets this button visually
+            // grow (background/border included, icon+text staying
+            // centered) to fill whatever height its container gives it,
+            // rather than always sitting at its own natural ~49pt with
+            // empty space left around it. `GameView.actionRow` floors its
+            // own row height to match the tallest robber-flow state
+            // (`robberTargetingPanel`'s "Steal from:" step) so the board
+            // never resizes across that flow - without this, that floor
+            // just showed as dead gap under otherwise-normal-sized buttons
+            // (see chat: Jake wanted the buttons themselves bigger and
+            // flush, not padding).
+            VStack(spacing: 5) {
                 Image(systemName: systemImage)
-                    .font(.title3)
+                    .font(.title2)
                     // Fixed height, not just the font's natural size - SF
                     // Symbols aren't all drawn to the same optical height at
                     // a given point size (e.g. "die.face.5.fill" renders
                     // shorter than "hammer.fill" or "arrow.left.arrow.right"
-                    // at `.title3`), so without this the Roll Dice button's
+                    // at `.title2`), so without this the Roll Dice button's
                     // whole VStack - and so the whole button, background
                     // included - came out visibly shorter than Trade/Build
                     // just from using a different icon.
-                    .frame(height: 22)
+                    .frame(height: 26)
                 Text(title)
-                    .font(.caption2)
+                    .font(.footnote.bold())
             }
-            .frame(maxWidth: .infinity)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
             .padding(.vertical, 6)
             .background(background)
             .foregroundStyle(.white)
@@ -59,16 +70,31 @@ public struct UniformActionButton: View {
 
     @ViewBuilder
     private var background: some View {
-        if isArmed {
-            RoundedRectangle(cornerRadius: 8).fill(Color.yellow.opacity(0.35))
-        } else if let backgroundImageName {
+        if let backgroundImageName {
             // See `PaintedChromeBackground` - the gold (+ thin inset red)
             // border is drawn natively there, not baked into the image, so
             // it's correct at any aspect ratio by construction. A fixed
             // corner radius (not `Capsule`, which reads as a full oval/pill
             // rather than a button) matches the squared-off look of the
             // rest of this app's chrome.
+            //
+            // `isArmed` (Roll Dice's pulsing glow) used to swap this whole
+            // painted-plaque background out for a plain `RoundedRectangle`
+            // yellow tint - that dropped the notched border/texture Roll
+            // Dice otherwise shares with Trade/Build/End Turn, so armed and
+            // unarmed read as two different button styles. Layering the
+            // glow on top (clipped to the same notched shape the border
+            // itself traces) instead keeps the painted-plaque look and adds
+            // the highlight, rather than replacing one with the other.
             PaintedChromeBackground(textureImageName: backgroundImageName, cornerRadius: 10)
+                .overlay {
+                    if isArmed {
+                        FrameCornerRect(cornerRadius: 10)
+                            .fill(Color.yellow.opacity(0.35))
+                    }
+                }
+        } else if isArmed {
+            RoundedRectangle(cornerRadius: 8).fill(Color.yellow.opacity(0.35))
         } else {
             RoundedRectangle(cornerRadius: 8).fill(Color(white: 0.18))
         }

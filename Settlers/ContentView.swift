@@ -55,6 +55,17 @@ struct ContentView: View {
                 )
             }
         }
+        .onAppear {
+            // `-qaShowEndGame`: same escape-hatch pattern as `-qaAutoStart`
+            // - forces a human win via `qaForceHumanWin()` so `EndGameView`
+            // can be screenshotted without actually playing a game out to
+            // 10 VP. Combine with `-qaAutoStart` (which this alone doesn't
+            // imply) so `hasStartedThisSession` is already `true` and the
+            // `gameOver` branch above actually renders.
+            if ProcessInfo.processInfo.arguments.contains("-qaShowEndGame") {
+                viewModel.qaForceHumanWin()
+            }
+        }
         // Drives `GameViewModel`'s active-time tracking for the "average
         // game time" stat - only foreground time should count, not time
         // spent backgrounded/locked while a game sits mid-turn.

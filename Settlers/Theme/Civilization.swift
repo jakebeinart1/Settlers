@@ -1,6 +1,7 @@
 import SwiftUI
 import UIKit
 import CatanEngine
+import CatanAI
 
 /// One of eight playable empires. Exactly one occupies each of the 4 seats
 /// per game - which one is fixed for the *duration of a game* but no longer
@@ -39,6 +40,13 @@ public enum Civilization: String, CaseIterable, Sendable, Codable {
     /// a `#Preview` that never runs `GameViewModel`'s startup path.
     public static func forSeat(_ index: Int) -> Civilization {
         CivilizationAssignment.current[index]
+    }
+
+    /// This civilization as `TradeMessages` sees it - `CatanAI` is
+    /// UI-agnostic and can't import `Civilization` itself, so its own
+    /// `Empire` enum mirrors these same raw values 1:1 instead.
+    public var tradeMessagesEmpire: TradeMessages.Empire {
+        TradeMessages.Empire(rawValue: rawValue)!
     }
 
     public var displayName: String {
@@ -144,18 +152,31 @@ public enum Civilization: String, CaseIterable, Sendable, Codable {
 
     /// Per-piece size correction on top of `BoardView`'s uniform
     /// settlement/city multiplier - `1.0` (no correction) for every
-    /// piece except where one civ's own art reads smaller than the rest
-    /// of the roster at the same nominal size despite already being
-    /// tightly cropped to its own canvas (nothing left to fix by
-    /// re-cropping - see design-references/STATUS.md). Japan's
-    /// settlement (a single flat-roofed pagoda tier) is visually
+    /// piece except where one civ's own art reads smaller (or, below,
+    /// larger) than the rest of the roster at the same nominal size
+    /// despite already being tightly cropped to its own canvas (nothing
+    /// left to fix by re-cropping - see design-references/STATUS.md).
+    /// Japan's settlement (a single flat-roofed pagoda tier) is visually
     /// lighter/more compact than e.g. Britannia's turreted castle or
     /// Aztec's stepped temple at the same tier, so it gets a deliberate
-    /// bump here rather than distorting the uniform multiplier for
-    /// every other civ to compensate for one shape.
+    /// bump here rather than distorting the uniform multiplier for every
+    /// other civ to compensate for one shape.
+    ///
+    /// Rome's settlement and Greece's city read noticeably larger than
+    /// the rest of the roster at the same nominal size - measured by
+    /// comparing each piece's actual painted-pixel coverage of its own
+    /// square frame after `scaledToFit` (bounding-box aspect * ink
+    /// density within it), the real apples-to-apples "how big does this
+    /// look" number across pieces with different source canvases: both
+    /// sit ~1.5-2 standard deviations above the roster's average frame
+    /// coverage (Rome settlement +14.6pt, Greece city +20.4pt, the
+    /// single biggest outlier of the 16), matching what Jake flagged by
+    /// eye. Trimmed down here rather than re-cropping the source art.
     public func pieceSizeCorrection(isCity: Bool) -> CGFloat {
         switch (self, isCity) {
         case (.japan, false): return 1.18
+        case (.rome, false): return 0.92
+        case (.greece, true): return 0.90
         default: return 1.0
         }
     }

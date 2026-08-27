@@ -67,21 +67,13 @@ public struct PauseMenuView: View {
     }
 
     private func menuButton(title: String, icon: String, isDestructive: Bool, action: @escaping () -> Void) -> some View {
-        Button(action: action) {
-            HStack {
-                Image(systemName: icon)
-                Text(title)
-                Spacer()
-            }
-            .font(.subheadline.bold())
-            .foregroundStyle(isDestructive ? Color.red : CatanTheme.onWaterText)
-            .padding(.horizontal, 14)
-            .padding(.vertical, 10)
-            .background(
-                RoundedRectangle(cornerRadius: 10)
-                    .fill(.white.opacity(isDestructive ? 0.06 : 0.1))
-            )
-        }
+        GoldRowButton(
+            title: title,
+            systemImage: icon,
+            iconColor: isDestructive ? .red : .white,
+            titleColor: isDestructive ? .red : .white,
+            action: action
+        )
     }
 
     /// Shared layout for the two destructive actions' "are you sure" step -
@@ -96,14 +88,13 @@ public struct PauseMenuView: View {
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)
 
-            HStack(spacing: 10) {
-                Button("Cancel", action: onCancel)
-                    .buttonStyle(.bordered)
-                Button(confirmTitle, role: .destructive, action: onConfirm)
-                    .buttonStyle(.borderedProminent)
-                    .tint(.red)
+            // Stacked, not side-by-side - this 280pt-wide card is too narrow
+            // to fit two `GoldRowButton`s' icon+title rows next to each
+            // other without "Main Menu" wrapping (see chat).
+            VStack(spacing: 10) {
+                GoldRowButton(title: "Cancel", systemImage: "xmark", action: onCancel)
+                GoldRowButton(title: confirmTitle, systemImage: "exclamationmark.triangle.fill", iconColor: .red, titleColor: .red, action: onConfirm)
             }
-            .frame(maxWidth: .infinity)
         }
         .padding(20)
         .frame(maxWidth: 280)

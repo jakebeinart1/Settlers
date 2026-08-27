@@ -25,7 +25,9 @@
 		6BE4D5162E62A51ADA6A2599 /* GameStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = E093DA361796607C17A17777 /* GameStore.swift */; };
 		717C7599DB05DB7CF59E852F /* CivilizationPieceShapes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0AC74C3A12A7CDE5AE1B1546 /* CivilizationPieceShapes.swift */; };
 		71E36B2F286888830989FBC7 /* MainMenuView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 27BDAD47ABBB94D7F73976E5 /* MainMenuView.swift */; };
+		73E0287081669C06B076C233 /* GoldRowButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 773974AAADA7CAFE9AC538F0 /* GoldRowButton.swift */; };
 		7678F2D966C6DDD39D673266 /* IncomingTradeCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F34A579755CFBDEAF52EBB70 /* IncomingTradeCardView.swift */; };
+		7BDC46C7A08FF9DD3B032B36 /* CornerAccent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6704DBBD9FA192F71D8ED7D3 /* CornerAccent.swift */; };
 		82772E4A5ECBA817A966B46B /* GameView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6F0C19DF5E22050B860A7094 /* GameView.swift */; };
 		82F087D94201BDEDFBBB4BA8 /* CivilizationBadge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8E616D996C5EBA2DBFC75D9D /* CivilizationBadge.swift */; };
 		88CF824C3335F34CF54E08E2 /* PlayerHUDView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77BA2122016739392CF5DF22 /* PlayerHUDView.swift */; };
@@ -57,8 +59,10 @@
 		5C25923598FA6B7BCAF62C5A /* CivilizationSettingsStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CivilizationSettingsStore.swift; sourceTree = "<group>"; };
 		5DA573A3A82A8F2F109FA437 /* TradePopupView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TradePopupView.swift; sourceTree = "<group>"; };
 		64A459436E4814B4E4BE3728 /* DiscardPopupView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiscardPopupView.swift; sourceTree = "<group>"; };
+		6704DBBD9FA192F71D8ED7D3 /* CornerAccent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CornerAccent.swift; sourceTree = "<group>"; };
 		6F0C19DF5E22050B860A7094 /* GameView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameView.swift; sourceTree = "<group>"; };
 		7581395190BC539D01AEA19A /* HexGeometry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HexGeometry.swift; sourceTree = "<group>"; };
+		773974AAADA7CAFE9AC538F0 /* GoldRowButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GoldRowButton.swift; sourceTree = "<group>"; };
 		77BA2122016739392CF5DF22 /* PlayerHUDView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerHUDView.swift; sourceTree = "<group>"; };
 		8164AC90317469202817676F /* SettlersApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettlersApp.swift; sourceTree = "<group>"; };
 		8E616D996C5EBA2DBFC75D9D /* CivilizationBadge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CivilizationBadge.swift; sourceTree = "<group>"; };
@@ -132,10 +136,12 @@
 			isa = PBXGroup;
 			children = (
 				DDF1F85E001A7B74407061E4 /* BuildPopupView.swift */,
+				6704DBBD9FA192F71D8ED7D3 /* CornerAccent.swift */,
 				06E9063445AF048FF3A65C5A /* DevCardPopupView.swift */,
 				64A459436E4814B4E4BE3728 /* DiscardPopupView.swift */,
 				52C0B1D44B650E22AEBC8366 /* EndGameView.swift */,
 				6F0C19DF5E22050B860A7094 /* GameView.swift */,
+				773974AAADA7CAFE9AC538F0 /* GoldRowButton.swift */,
 				F34A579755CFBDEAF52EBB70 /* IncomingTradeCardView.swift */,
 				27BDAD47ABBB94D7F73976E5 /* MainMenuView.swift */,
 				44E440B9CD11BDC249491106 /* PaintedChromeBackground.swift */,
@@ -288,6 +294,7 @@
 				717C7599DB05DB7CF59E852F /* CivilizationPieceShapes.swift in Sources */,
 				38C27CDC3380AB32A2AA53C6 /* CivilizationSettingsStore.swift in Sources */,
 				C8EBD90EAF2F47466F8B5A2C /* ContentView.swift in Sources */,
+				7BDC46C7A08FF9DD3B032B36 /* CornerAccent.swift in Sources */,
 				998F740F246A9D43D5465A2E /* DevCardPopupView.swift in Sources */,
 				2963FFF4A45E734FACE3E93A /* DiscardPopupView.swift in Sources */,
 				1CE9F2891BE97F0B0CC630BB /* EndGameView.swift in Sources */,
@@ -296,6 +303,7 @@
 				6BE4D5162E62A51ADA6A2599 /* GameStore.swift in Sources */,
 				82772E4A5ECBA817A966B46B /* GameView.swift in Sources */,
 				076DBD0E74CFC2372A8A8AA9 /* GameViewModel.swift in Sources */,
+				73E0287081669C06B076C233 /* GoldRowButton.swift in Sources */,
 				AF899EB36C3533A4C9F0472D /* HexGeometry.swift in Sources */,
 				4DF1B0D807C52C188BCD9DC8 /* HumanSeatStore.swift in Sources */,
 				7678F2D966C6DDD39D673266 /* IncomingTradeCardView.swift in Sources */,

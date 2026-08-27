@@ -25,6 +25,13 @@ public struct GameState: Codable, Sendable {
     /// the same turn's limit). `nil` once no card has been played yet this
     /// turn; cleared for everyone on `.endTurn`.
     public var devCardPlayedThisTurn: PlayerID?
+    /// How many trades each proposer has had *accepted* (by anyone) since
+    /// the current turn began, keyed by proposer. Lets trade evaluation
+    /// notice a proposer who's already landed one deal this turn and is now
+    /// shopping around for more - real players get suspicious of a partner
+    /// who keeps coming back, bots previously had no way to. Cleared for
+    /// everyone on `.endTurn`, same as `devCardsBoughtThisTurn`.
+    public var tradesAcceptedThisTurn: [PlayerID: Int]
 
     public init(
         board: Board,
@@ -39,7 +46,8 @@ public struct GameState: Codable, Sendable {
         log: [String] = [],
         robberMoverIndex: Int? = nil,
         devCardsBoughtThisTurn: [PlayerID: [DevCardType]] = [:],
-        devCardPlayedThisTurn: PlayerID? = nil
+        devCardPlayedThisTurn: PlayerID? = nil,
+        tradesAcceptedThisTurn: [PlayerID: Int] = [:]
     ) {
         self.board = board
         self.players = players
@@ -54,6 +62,7 @@ public struct GameState: Codable, Sendable {
         self.robberMoverIndex = robberMoverIndex
         self.devCardsBoughtThisTurn = devCardsBoughtThisTurn
         self.devCardPlayedThisTurn = devCardPlayedThisTurn
+        self.tradesAcceptedThisTurn = tradesAcceptedThisTurn
     }
 
     /// Total victory points for `id`: building/dev-card VPs from `Player`,

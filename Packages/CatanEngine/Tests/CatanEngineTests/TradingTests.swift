@@ -85,6 +85,41 @@ import Foundation
         #expect(state.pendingTradeOffers.isEmpty)
     }
 
+    @Test func acceptingATradeIncrementsTheProposersAcceptedCountAndRejectingDoesNot() throws {
+        var state = GameSetup.newGame(board: BoardGenerator.standard())
+        state.players[0].resources = [.brick: 2]
+        state.players[1].resources = [.ore: 2]
+        let proposer = PlayerID(index: 0)
+
+        let first = TradeOffer(id: UUID(), from: proposer, give: [.brick: 1], want: [.ore: 1])
+        try Trading.proposeTrade(first, state: &state)
+        try Trading.respond(offerID: first.id, accept: true, by: PlayerID(index: 1), state: &state)
+        #expect(state.tradesAcceptedThisTurn[proposer] == 1)
+
+        let second = TradeOffer(id: UUID(), from: proposer, give: [.brick: 1], want: [.ore: 1])
+        try Trading.proposeTrade(second, state: &state)
+        try Trading.respond(offerID: second.id, accept: false, by: PlayerID(index: 1), state: &state)
+        // A rejection doesn't add to the count - only genuinely-landed
+        // trades should raise the next bot's suspicion.
+        #expect(state.tradesAcceptedThisTurn[proposer] == 1)
+    }
+
+    @Test func endTurnClearsTradesAcceptedThisTurn() throws {
+        var state = GameSetup.newGame(board: BoardGenerator.standard())
+        state.phase = .mainTurn(playerIndex: 0)
+        state.players[0].resources = [.brick: 1]
+        state.players[1].resources = [.ore: 1]
+        let proposer = PlayerID(index: 0)
+
+        let offer = TradeOffer(id: UUID(), from: proposer, give: [.brick: 1], want: [.ore: 1])
+        try Trading.proposeTrade(offer, state: &state)
+        try Trading.respond(offerID: offer.id, accept: true, by: PlayerID(index: 1), state: &state)
+        #expect(state.tradesAcceptedThisTurn[proposer] == 1)
+
+        try RulesEngine.apply(.endTurn, by: proposer, to: &state)
+        #expect(state.tradesAcceptedThisTurn.isEmpty)
+    }
+
     @Test func proposeTradeFailsIfProposerLacksGiveCards() {
         var state = GameSetup.newGame(board: BoardGenerator.standard())
         state.players[0].resources = [.brick: 0]

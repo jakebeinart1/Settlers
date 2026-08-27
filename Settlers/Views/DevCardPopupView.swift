@@ -121,12 +121,12 @@ public struct DevCardPopupView: View {
     }
 
     private func confirmRow(title: String, isEnabled: Bool = true, action: @escaping () -> Void) -> some View {
-        HStack(spacing: 10) {
-            Button("Cancel", role: .cancel, action: onCancel)
-                .buttonStyle(.bordered)
-            Button(title, action: action)
-                .buttonStyle(.borderedProminent)
-                .disabled(!isEnabled)
+        // Stacked, not side-by-side - "Play Monopoly"/"Play Year of Plenty"
+        // wrapped mid-word when squeezed into half this popup's width
+        // alongside Cancel (see chat).
+        VStack(spacing: 10) {
+            GoldRowButton(title: "Cancel", systemImage: "xmark", action: onCancel)
+            GoldRowButton(title: title, systemImage: "checkmark", iconColor: color, isEnabled: isEnabled, action: action)
         }
     }
 
@@ -163,7 +163,13 @@ public struct DevCardPopupView: View {
 
 /// Shared themed card chrome for the popups that replaced sheets in this
 /// pass (`DevCardPopupView`, `TradePopupView`): a dimmed scrim behind a
-/// rounded card, tap-outside-to-dismiss via the scrim.
+/// rounded card, tap-outside-to-dismiss via the scrim. No scroll mechanism -
+/// an earlier version of this scrolled/capped tall content (added when
+/// `TradePopupView`'s "a bot will accept" banner briefly overflowed its
+/// reserved space - see `TradePopupView.statusRegionHeight`'s own doc
+/// comment), but that overflow was the actual bug, not something to scroll
+/// around; every popup's content is sized to always fit on screen as-is, so
+/// there's nothing here that needs to scroll (per Jake's ask).
 public struct PopupCard<Content: View>: View {
     public let onDismiss: () -> Void
     @ViewBuilder public let content: Content

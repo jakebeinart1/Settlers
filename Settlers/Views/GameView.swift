@@ -102,8 +102,14 @@ public struct GameView: View {
     // `-qaShowTradePopup`: same escape hatch pattern - lets QA screenshot
     // the trade popup without a real tap.
     @State private var showTradePopup = ProcessInfo.processInfo.arguments.contains("-qaShowTradePopup")
-    @State private var showBuildPopup = false
-    @State private var devCardPopupType: DevCardType?
+    // `-qaShowBuildPopup`: same escape hatch pattern - lets QA screenshot
+    // the build popup without a real tap.
+    @State private var showBuildPopup = ProcessInfo.processInfo.arguments.contains("-qaShowBuildPopup")
+    // `-qaShowMonopolyPopup`: same escape hatch pattern - lets QA screenshot
+    // the Monopoly resource-picker step of the dev-card popup (Year of
+    // Plenty shares the same picker layout, just with a 2-pick limit
+    // instead of 1, so one flag covers both visually).
+    @State private var devCardPopupType: DevCardType? = ProcessInfo.processInfo.arguments.contains("-qaShowMonopolyPopup") ? .monopoly : nil
     @State private var errorMessage: String?
 
     /// Road-building sub-flow: `nil` when inactive; once armed, the first
@@ -325,9 +331,54 @@ public struct GameView: View {
         .onAppear {
             seenTradeOfferIDs = Set(state.pendingTradeOffers.map(\.id))
             lastSeenLogCount = state.log.count
+            // `-qaShowPendingTradeConfirmation`: same escape hatch pattern
+            // as `-qaShowTradePopup` - opens the trade popup straight into
+            // its "a bot will accept" confirmation step for QA
+            // screenshotting, since that step depends on state
+            // (`GameViewModel.pendingTradeConfirmation`) a real tap can't
+            // reliably reach in the simulator.
+            if ProcessInfo.processInfo.arguments.contains("-qaShowPendingTradeConfirmation") {
+                showTradePopup = true
+                viewModel.qaSeedPendingTradeConfirmation()
+            }
+            // `-qaShowRobberTargeting`: same escape hatch pattern - arms
+            // `isKnightRobberActive` directly so `robberTargetingPanel` can
+            // be screenshotted without a real Knight card/7-roll.
+            if ProcessInfo.processInfo.arguments.contains("-qaShowRobberTargeting") {
+                isKnightRobberActive = true
+            }
         }
         .task {
             await qaFastForwardToRollDiceIfRequested()
+            // `-qaShowIncomingOffer`: same escape hatch pattern - seeds
+            // `incomingOfferQueue` with a bogus but always-fulfillable offer
+            // (empty give/want, so `isOfferCurrentlyFulfillable` is
+            // vacuously true regardless of anyone's actual resources) so
+            // `IncomingTradeCardView` can be screenshotted without a real
+            // bot proposing one. Runs after
+            // `qaFastForwardToRollDiceIfRequested`, not in `onAppear` - that
+            // fast-forward's own moves fire `state.pendingTradeOffers`
+            // changes, and `handleTradeOffersChange`'s
+            // `onChange(of: state.pendingTradeOffers...)` handler purges any
+            // queued offer that isn't backed by a real one, wiping this
+            // fake one out again almost immediately if seeded any earlier.
+            if ProcessInfo.processInfo.arguments.contains("-qaShowIncomingOffer") {
+                incomingOfferQueue = [TradeOffer(from: PlayerID(index: 1), give: [:], want: [:])]
+            }
+            // `-qaShowRobberVictimPicker`: same escape hatch pattern, one
+            // step further than `-qaShowRobberTargeting` - arms
+            // `robberTargetTile` too (to the first tile that actually has an
+            // eligible victim, found by scanning the real post-setup board
+            // state) so the "Steal from:" step can be screenshotted, not
+            // just the "tap a tile" message before it. Runs after
+            // `qaFastForwardToRollDiceIfRequested` (needs real settlements
+            // on the board to find a victim from) rather than in `onAppear`.
+            if ProcessInfo.processInfo.arguments.contains("-qaShowRobberVictimPicker") {
+                isKnightRobberActive = true
+                robberTargetTile = state.board.tiles
+                    .map(\.coordinate)
+                    .first { !Robber.eligibleVictims(for: $0, thief: human, in: state).isEmpty }
+            }
         }
         .onChange(of: state.pendingTradeOffers.map(\.id)) { _, _ in
             handleTradeOffersChange()
@@ -498,7 +549,7 @@ public struct GameView: View {
             // especially once the digit's serif tail is included.
             .padding(.horizontal, 14)
             .padding(.vertical, 8)
-            .background(PaintedChromeBackground(textureImageName: "dice-fill", cornerRadius: 12))
+            .background(PaintedChromeBackground(textureImageName: "dice-fill", cornerRadius: 12, notchScale: 1.0))
             .scaleEffect(diceScale)
             .rotationEffect(.degrees(diceRotation))
 
@@ -565,7 +616,11 @@ public struct GameView: View {
         HStack(spacing: 8) {
             ForEach(Resource.allCases, id: \.self) { resource in
                 VStack(spacing: 1) {
-                    Circle()
+                    // Rounded square, not a circle - matches the resource
+                    // swatches in `MainMenuView`'s title block and
+                    // `HumanPlayerPanel.resourceDot`, per Jake's ask to keep
+                    // one consistent shape for "a resource" across the app.
+                    RoundedRectangle(cornerRadius: 2)
                         .fill(CatanTheme.color(for: resource))
                         .frame(width: 10, height: 10)
                     Text("\(state.bank[resource] ?? 0)")
@@ -585,9 +640,11 @@ public struct GameView: View {
             }
         }
         .foregroundStyle(.white)
-        .padding(.horizontal, 10)
+        // Widened from 10 - Jake wanted more breathing room on either side
+        // of the resource-count digits than the tight original fit gave.
+        .padding(.horizontal, 18)
         .padding(.vertical, 6)
-        .background(PaintedChromeBackground(textureImageName: "bank-fill", cornerRadius: 10))
+        .background(PaintedChromeBackground(textureImageName: "bank-fill", cornerRadius: 10, notchScale: 1.0))
     }
 
     // MARK: - Bottom panel: one uniform action row (or the inline
@@ -595,13 +652,21 @@ public struct GameView: View {
     // lighter water panel
 
     private var bottomPanel: some View {
-        // Deliberately *not* a `StableHeightSlot` (unlike the banner/dice
-        // rows above) - reserving its tallest possible state (the robber
-        // victim-picker, ~95pt) permanently would mean paying that cost
-        // during ordinary play too, where the plain action row only needs
-        // ~73pt, and that's the vast majority of the game. A brief resize
-        // during the comparatively rare robber-targeting flow is the
-        // better trade against a permanently smaller board.
+        // `actionRow`, every `robberTargetingPanel` state, and
+        // `IncomingTradeCardView` all share the same plain static height
+        // floor (`actionRowHeight`, applied at each one's own call
+        // site/root, not here) - not a measured/reserved slot. Two earlier
+        // attempts at a *dynamically measured* shared height here (see git
+        // history) both backfired: reserving one height across all three
+        // let whichever state was rare-but-tall permanently inflate it (a
+        // `StableHeightSlot` only ever grows), and even narrowing that down
+        // still left a visible dead gap under the ordinary action row -
+        // both read as regressions, worse than the small resize during a
+        // robber move/incoming offer they were meant to fix (see chat). A
+        // plain hardcoded constant, sized to the tallest of the real
+        // measured heights and used nowhere else, doesn't have either
+        // failure mode - there's nothing left to over-measure or grow
+        // unexpectedly.
         VStack(spacing: 8) {
             if isRobberTargetingActive {
                 robberTargetingPanel
@@ -624,6 +689,7 @@ public struct GameView: View {
                 )
             } else {
                 actionRow
+                    .frame(height: Self.actionRowHeight)
             }
         }
         .padding(6)
@@ -670,6 +736,30 @@ public struct GameView: View {
     /// tile with eligible victims is picked - an inline row of victim
     /// buttons (plus Cancel, to re-pick the tile) right here instead of a
     /// separate modal.
+    ///
+    /// `.frame(height: Self.actionRowHeight)` - an *exact* height, not
+    /// `minHeight` - matters here: `UniformActionButton` fills whatever
+    /// height it's given (see its own doc comment), so a `minHeight` on
+    /// this container doesn't just pad short states up to the floor - it
+    /// makes the whole row read as flexible to the outer `VStack` in
+    /// `GameView.body`, which then splits its own leftover space between
+    /// this row *and* `boardArea` (both now "wanting" more) instead of
+    /// giving all of it to the board - the button row (and `actionRow`,
+    /// same fix at its own call site) ballooned to take up most of the
+    /// screen the first time this shipped (see chat). An exact height
+    /// reports a fixed size upward, so `boardArea` stays the only flexible
+    /// element, while `UniformActionButton` still fills that fixed height
+    /// internally rather than leaving dead space in it.
+    ///
+    /// `actionRowHeight` itself is set to the tallest of the three
+    /// robber-flow states this and `actionRow` (also fixed to it, at its
+    /// own call site) can be in - the "Steal from:" label + victim-button
+    /// row here, measured at 75.33pt, is the tallest; the "tap a tile"
+    /// message (38pt) and `actionRow` itself (49.33pt, measured
+    /// independently) are both shorter - see chat. Fixing all three to the
+    /// same value means `bottomPanel`/`boardArea` never resize across a
+    /// whole robber move (Knight card through the final steal), not just
+    /// the first step of it.
     private var robberTargetingPanel: some View {
         VStack(spacing: 8) {
             if let robberTargetTile {
@@ -701,7 +791,17 @@ public struct GameView: View {
                     .foregroundStyle(.red)
             }
         }
+        .frame(height: Self.actionRowHeight)
     }
+
+    /// Shared floor for `actionRow` and every state of `robberTargetingPanel`
+    /// - see `robberTargetingPanel`'s doc comment. The tallest of the three
+    /// real measured heights (75.33pt, the "Steal from:" victim-picker
+    /// state). Also duplicated (same literal, own doc comment) on
+    /// `IncomingTradeCardView`'s own root frame, since that view lives in a
+    /// separate file and takes over this same `bottomPanel` row - keep both
+    /// in sync if this ever changes.
+    private static let actionRowHeight: CGFloat = 75.33
 
     private var isTradeAvailable: Bool {
         if case .mainTurn(let index) = state.phase, index == human.index { return true }
@@ -716,7 +816,12 @@ public struct GameView: View {
                 perform(.rollDice)
             }
             .overlay(
-                RoundedRectangle(cornerRadius: 8)
+                // Traces the same notched shape the button's own border
+                // does (`FrameCornerRect`, not a plain `RoundedRectangle`) -
+                // otherwise this pulse ring sits just outside the button's
+                // actual notched outline as a mismatched plain rounded
+                // rectangle instead of following it.
+                FrameCornerRect(cornerRadius: 10)
                     .strokeBorder(Color.yellow, lineWidth: rollDicePulse ? 3 : 1)
                     .opacity(rollDicePulse ? 1 : 0.35)
             )

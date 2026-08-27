@@ -302,6 +302,7 @@ public enum RulesEngine {
             case .endTurn:
                 state.devCardsBoughtThisTurn = [:]
                 state.devCardPlayedThisTurn = nil
+                state.tradesAcceptedThisTurn = [:]
                 let nextIndex = (playerIndex + 1) % state.players.count
                 state.phase = .rollDice(playerIndex: nextIndex)
                 state.log.append("\(playerLabel(playerIndex)) ended their turn")

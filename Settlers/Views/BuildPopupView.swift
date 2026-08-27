@@ -74,8 +74,7 @@ public struct BuildPopupView: View {
                         .foregroundStyle(.red)
                 }
 
-                Button("Close", action: onDismiss)
-                    .buttonStyle(.bordered)
+                GoldRowButton(title: "Close", systemImage: "xmark", action: onDismiss)
             }
             .padding(16)
             .frame(maxWidth: 320)
@@ -83,25 +82,19 @@ public struct BuildPopupView: View {
     }
 
     private func buildRow(title: String, icon: String, color: Color, cost: [Resource: Int], isEnabled: Bool, subtitle: String? = nil, action: @escaping () -> Void) -> some View {
-        Button(action: action) {
-            HStack(spacing: 10) {
-                Image(systemName: icon)
-                    .font(.callout)
-                    .frame(width: 22)
-                VStack(alignment: .leading, spacing: 1) {
-                    Text(title)
-                        .font(.subheadline.bold())
-                    if let subtitle {
-                        Text(subtitle)
-                            .font(.caption2)
-                            .foregroundStyle(.white.opacity(0.7))
-                    }
-                }
-                Spacer(minLength: 8)
+        GoldRowButton(
+            title: title,
+            subtitle: subtitle,
+            systemImage: icon,
+            iconColor: color,
+            isEnabled: isEnabled,
+            trailing: {
                 HStack(spacing: 4) {
                     ForEach(Resource.allCases.filter { (cost[$0] ?? 0) > 0 }, id: \.self) { resource in
                         HStack(spacing: 3) {
-                            Circle()
+                            // Rounded square, not a circle - matches the
+                            // resource swatches everywhere else in the app.
+                            RoundedRectangle(cornerRadius: 2)
                                 .fill(CatanTheme.color(for: resource))
                                 .frame(width: 10, height: 10)
                             Text("\(cost[resource] ?? 0)")
@@ -110,14 +103,9 @@ public struct BuildPopupView: View {
                         }
                     }
                 }
-            }
-            .foregroundStyle(.white)
-            .padding(.horizontal, 12)
-            .padding(.vertical, 10)
-            .background(color.opacity(isEnabled ? 0.55 : 0.25), in: RoundedRectangle(cornerRadius: 10))
-        }
-        .disabled(!isEnabled)
-        .opacity(isEnabled ? 1 : 0.5)
+            },
+            action: action
+        )
     }
 
     private func perform(_ move: GameMove) {

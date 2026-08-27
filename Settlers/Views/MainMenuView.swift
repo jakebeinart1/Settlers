@@ -18,12 +18,14 @@ public struct MainMenuView: View {
         self.onResume = onResume
     }
 
-    @State private var randomizedBoard = false
-    // Off by default rather than on: always going first is what prompted
-    // this toggle, but changing the *default* experience for existing
-    // players without asking felt like a bigger call than adding the
-    // option - this stays opt-in until there's a reason to flip it.
-    @State private var randomizeSeat = false
+    // `@AppStorage` rather than plain `@State` - Jake plays with both on
+    // every game and doesn't want to re-toggle them each launch, so the
+    // choice persists (UserDefaults) instead of resetting every time
+    // `MainMenuView` appears. Defaulting both to `true` (a change from the
+    // toggles' original off-by-default) is exactly that persisted choice
+    // for a first launch too, per Jake's ask.
+    @AppStorage("randomizedBoardSetting") private var randomizedBoard = true
+    @AppStorage("randomizeSeatSetting") private var randomizeSeat = true
     // `-qaShowSettings`: same escape-hatch pattern as `-qaShowPauseMenu` -
     // opens straight to `SettingsView` for screenshotting it, no real tap on
     // the gear icon needed.
@@ -35,7 +37,33 @@ public struct MainMenuView: View {
 
     public var body: some View {
         ZStack {
-            Color(white: 0.08).ignoresSafeArea()
+            // The same painted seaside world behind the game board, shown
+            // much less cropped than `GameView`'s own 0.90-zoom top-pinned
+            // crop - `scaledToFit` here so the whole calm scene (sky,
+            // mountains, islands, the ship) is visible at once rather than a
+            // tight close-up, which read as too busy/detailed for a title
+            // screen that's mostly just two buttons. A dark top-to-bottom
+            // scrim over it keeps the wordmark and buttons legible against
+            // the painting's own bright sky and water.
+            GeometryReader { geo in
+                Image("board-background")
+                    .resizable()
+                    .scaledToFill()
+                    .frame(width: geo.size.width, height: geo.size.height)
+                    .clipped()
+            }
+            .ignoresSafeArea()
+
+            LinearGradient(
+                colors: [
+                    Color.black.opacity(0.55),
+                    Color.black.opacity(0.25),
+                    Color.black.opacity(0.55),
+                ],
+                startPoint: .top,
+                endPoint: .bottom
+            )
+            .ignoresSafeArea()
 
             VStack {
                 HStack {
@@ -52,10 +80,10 @@ public struct MainMenuView: View {
                             Text("Settings")
                         }
                         .font(.subheadline.bold())
-                        .foregroundStyle(.white.opacity(0.85))
+                        .foregroundStyle(.white)
                         .padding(.horizontal, 14)
                         .padding(.vertical, 8)
-                        .background(Color.white.opacity(0.12), in: Capsule())
+                        .background(PaintedChromeBackground(fill: .color(Color(white: 0.18)), cornerRadius: 10, notchScale: 0.6))
                     }
                 }
                 .padding(.horizontal, 20)
@@ -85,29 +113,19 @@ public struct MainMenuView: View {
                     .tint(CatanTheme.color(for: Resource.wool))
                     .padding(.horizontal, 40)
 
-                    Button {
+                    GoldRowButton(
+                        title: "New Game",
+                        systemImage: "plus.circle.fill",
+                        iconColor: CatanTheme.color(for: Resource.brick)
+                    ) {
                         onStart(randomizedBoard, randomizeSeat)
-                    } label: {
-                        Text("New Game")
-                            .font(.title3.bold())
-                            .frame(maxWidth: .infinity)
                     }
-                    .buttonStyle(.borderedProminent)
-                    .tint(CatanTheme.color(for: Resource.brick))
-                    .controlSize(.large)
                     .padding(.horizontal, 40)
 
                     if hasSavedGame {
-                        Button {
+                        GoldRowButton(title: "Resume Game", systemImage: "play.fill") {
                             onResume()
-                        } label: {
-                            Text("Resume Game")
-                                .font(.title3.bold())
-                                .frame(maxWidth: .infinity)
                         }
-                        .buttonStyle(.bordered)
-                        .tint(.white)
-                        .controlSize(.large)
                         .padding(.horizontal, 40)
                     }
                 }

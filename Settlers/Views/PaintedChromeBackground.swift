@@ -20,13 +20,47 @@ import SwiftUI
 /// proportions were checked for real, so this is now the default way to
 /// build one of these instead of something to reach for after the fact.
 struct PaintedChromeBackground: View {
-    /// Asset name of a *borderless* repeating texture swatch - a plain
-    /// crop of the interior of the original painted frame art, well clear
-    /// of any border pixels (`dice-fill`, `bank-fill`, `button-fill-*`).
-    let textureImageName: String
-    let cornerRadius: CGFloat
+    /// What fills the frame's interior: either a painted texture swatch (the
+    /// original use, below) or a flat color - added for the popup/menu row
+    /// buttons (`GoldRowButton`), which want the same gold-hairline border
+    /// as the bottom action row but have no per-label painted asset to fill
+    /// with (there's no fixed small set of these the way Trade/Build/turn-
+    /// action are - every popup row and menu button would need its own
+    /// texture painted ahead of time). A flat fill keeps the border/notch
+    /// treatment identical either way, just swapping what's inside it.
+    enum Fill {
+        /// Asset name of a *borderless* repeating texture swatch - a plain
+        /// crop of the interior of the original painted frame art, well
+        /// clear of any border pixels (`dice-fill`, `bank-fill`,
+        /// `button-fill-*`).
+        case texture(String)
+        case color(Color)
+    }
 
-    private static let gold = LinearGradient(
+    let fill: Fill
+    let cornerRadius: CGFloat
+    /// Relative notch size passed straight through to `FrameCornerRect` -
+    /// 1.0 (the bottom action buttons' own size) by default; the dice/bank
+    /// chips pass a smaller value so their notch reads as noticeably
+    /// smaller than the buttons', not just the same notch on a smaller chip.
+    var notchScale: CGFloat = 1.0
+
+    /// Convenience initializer for the original texture-only call sites -
+    /// keeps every existing `PaintedChromeBackground(textureImageName:...)`
+    /// call unchanged.
+    init(textureImageName: String, cornerRadius: CGFloat, notchScale: CGFloat = 1.0) {
+        self.fill = .texture(textureImageName)
+        self.cornerRadius = cornerRadius
+        self.notchScale = notchScale
+    }
+
+    init(fill: Fill, cornerRadius: CGFloat, notchScale: CGFloat = 1.0) {
+        self.fill = fill
+        self.cornerRadius = cornerRadius
+        self.notchScale = notchScale
+    }
+
+    static let gold = LinearGradient(
         colors: [
             Color(red: 0.95, green: 0.8, blue: 0.4),
             Color(red: 0.78, green: 0.56, blue: 0.16),
@@ -43,29 +77,39 @@ struct PaintedChromeBackground: View {
     static let hairlineWidth: CGFloat = 1
     private static let goldWidth: CGFloat = 1.25
 
+    /// The staircase-notched corner shape, shared by the fill clip and every
+    /// ring of the border below - so the fill's own edge and the border
+    /// tracing it always agree exactly, notch included.
+    private var frame: FrameCornerRect { FrameCornerRect(cornerRadius: cornerRadius, notchScale: notchScale) }
+
     var body: some View {
-        RoundedRectangle(cornerRadius: cornerRadius)
+        frame
             .fill(.clear)
-            .background(
-                Image(textureImageName)
-                    .resizable()
-                    .scaledToFill()
-            )
-            .clipShape(RoundedRectangle(cornerRadius: cornerRadius))
+            .background(fillView)
+            .clipShape(frame)
             .overlay(
-                RoundedRectangle(cornerRadius: cornerRadius)
-                    .strokeBorder(Self.hairline, lineWidth: Self.hairlineWidth)
+                frame.strokeBorder(Self.hairline, lineWidth: Self.hairlineWidth)
             )
             .overlay(
-                RoundedRectangle(cornerRadius: cornerRadius)
-                    .inset(by: Self.hairlineWidth)
+                frame.inset(by: Self.hairlineWidth)
                     .strokeBorder(Self.gold, lineWidth: Self.goldWidth)
             )
             .overlay(
-                RoundedRectangle(cornerRadius: cornerRadius)
-                    .inset(by: Self.hairlineWidth + Self.goldWidth)
+                frame.inset(by: Self.hairlineWidth + Self.goldWidth)
                     .strokeBorder(Self.hairline, lineWidth: Self.hairlineWidth)
             )
+    }
+
+    @ViewBuilder
+    private var fillView: some View {
+        switch fill {
+        case .texture(let name):
+            Image(name)
+                .resizable()
+                .scaledToFill()
+        case .color(let color):
+            color
+        }
     }
 
     /// The same shiny embossed-line look as the `gold` gradient above, just
@@ -166,19 +210,21 @@ extension View {
     /// textured-fill background - they only want the border half of the
     /// treatment, layered over their own existing solid-color fill.
     func playerCardBorder(color: Color, cornerRadius: CGFloat, lineWidth: CGFloat, hairlineWidth: CGFloat = PaintedChromeBackground.hairlineWidth) -> some View {
-        self
+        // Same small single-step notch as the dice/bank chips (see
+        // `PaintedChromeBackground.notchScale`) - Jake wants player cards
+        // grouped visually with those, not with the bigger notch on the
+        // bottom action buttons.
+        let frame = FrameCornerRect(cornerRadius: cornerRadius, notchScale: 1.0)
+        return self
             .overlay(
-                RoundedRectangle(cornerRadius: cornerRadius)
-                    .strokeBorder(PaintedChromeBackground.hairline, lineWidth: hairlineWidth)
+                frame.strokeBorder(PaintedChromeBackground.hairline, lineWidth: hairlineWidth)
             )
             .overlay(
-                RoundedRectangle(cornerRadius: cornerRadius)
-                    .inset(by: hairlineWidth)
+                frame.inset(by: hairlineWidth)
                     .strokeBorder(PaintedChromeBackground.playerGradient(color), lineWidth: lineWidth)
             )
             .overlay(
-                RoundedRectangle(cornerRadius: cornerRadius)
-                    .inset(by: hairlineWidth + lineWidth)
+                frame.inset(by: hairlineWidth + lineWidth)
                     .strokeBorder(PaintedChromeBackground.hairline, lineWidth: hairlineWidth)
             )
     }
