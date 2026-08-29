@@ -104,6 +104,22 @@ public enum Trading {
         }
     }
 
+    /// Whether both sides can still honour `offer` right now.
+    ///
+    /// Either side may have spent or traded the cards since the offer was
+    /// made, so an offer that was legal when proposed can stop being so
+    /// without anyone responding to it. `respond` re-validates the same two
+    /// conditions and throws otherwise, and `RulesEngine.legalMoves` gates on
+    /// them - so any UI deciding whether to still show an offer has to agree
+    /// with this, and should ask rather than re-deriving it.
+    public static func bothSidesCanHonour(_ offer: TradeOffer, responder: PlayerID, state: GameState) -> Bool {
+        guard let proposer = state.players.first(where: { $0.id == offer.from }),
+              let responderPlayer = state.players.first(where: { $0.id == responder })
+        else { return false }
+        return RulesEngine.canAfford(offer.want, player: responderPlayer)
+            && RulesEngine.canAfford(offer.give, player: proposer)
+    }
+
     /// Adds `offer` to `state.pendingTradeOffers`, after verifying the
     /// proposer actually holds the cards they're offering to give.
     public static func proposeTrade(_ offer: TradeOffer, state: inout GameState) throws {

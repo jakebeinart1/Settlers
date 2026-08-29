@@ -357,35 +357,12 @@ private struct DevCardHUDTile: View {
         .opacity(isPlayable ? 1 : 0.5)
     }
 
-    private var icon: String {
-        switch type {
-        case .knight: return "shield.fill"
-        case .roadBuilding: return "road.lanes"
-        case .yearOfPlenty: return "sparkles"
-        case .monopoly: return "crown.fill"
-        case .victoryPoint: return "star.fill"
-        }
-    }
-
-    private var name: String {
-        switch type {
-        case .knight: return "Knight"
-        case .roadBuilding: return "Road"
-        case .yearOfPlenty: return "Plenty"
-        case .monopoly: return "Monopoly"
-        case .victoryPoint: return "VP"
-        }
-    }
-
-    private var color: Color {
-        switch type {
-        case .knight: return .red
-        case .roadBuilding: return .brown
-        case .yearOfPlenty: return .green
-        case .monopoly: return .purple
-        case .victoryPoint: return Color(red: 0.85, green: 0.65, blue: 0.1)
-        }
-    }
+    // Shared with `DevCardPopupView` via `DevCardStyle` - these were three
+    // byte-identical switches in both files, so a card could have been one
+    // colour in this strip and another in the popup the strip opens.
+    private var icon: String { DevCardStyle.icon(for: type) }
+    private var name: String { DevCardStyle.shortName(for: type) }
+    private var color: Color { DevCardStyle.color(for: type) }
 }
 
 /// Shared chip rendering + active-player logic used by `BotHUDRow` (and, for
@@ -439,7 +416,7 @@ enum PlayerChip {
                 // real Catan too, same as which specific cards make up
                 // their hand, so it shouldn't silently show up in their
                 // total before they'd ever reveal it.
-                tag(text: "\(publicVictoryPoints(for: player, state: state)) VP", icon: "star.fill", tint: .yellow)
+                tag(text: "\(state.publicVictoryPoints(for: player.id)) VP", icon: "star.fill", tint: .yellow)
                 if state.longestRoadPlayer == player.id {
                     miniBadge(icon: "road.lanes", tint: .orange)
                 }
@@ -557,20 +534,6 @@ enum PlayerChip {
             .foregroundStyle(.white)
             .frame(width: 16, height: 16)
             .background(tint.opacity(0.85), in: Circle())
-    }
-
-    /// VP that's actually public knowledge for `player`: buildings plus the
-    /// longest-road/largest-army bonuses (all visible on the board/HUD
-    /// already), deliberately excluding held-but-unplayed Victory Point dev
-    /// cards - `GameState.victoryPoints(for:)` includes those, which is
-    /// correct for `player`'s *own* total (shown in `HumanPlayerPanel`, who
-    /// obviously knows their own hand) but would leak hidden information if
-    /// shown for an opponent, same as which specific cards they're holding.
-    static func publicVictoryPoints(for player: Player, state: GameState) -> Int {
-        var total = player.settlements.count + player.cities.count * 2
-        if state.longestRoadPlayer == player.id { total += 2 }
-        if state.largestArmyPlayer == player.id { total += 2 }
-        return total
     }
 
     static func isActivePlayer(_ id: PlayerID, in state: GameState) -> Bool {

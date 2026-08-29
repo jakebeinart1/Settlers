@@ -135,11 +135,14 @@ import Testing
     state.phase = .mainTurn(playerIndex: 0)
     state.players[0].devCards = [.yearOfPlenty]
 
-    try! RulesEngine.apply(.playYearOfPlenty(.lumber, .lumber), by: PlayerID(index: 0), to: &state)
+    let events = try! RulesEngine.apply(.playYearOfPlenty(.lumber, .lumber), by: PlayerID(index: 0), to: &state)
 
     #expect((state.players[0].resources[.lumber] ?? 0) == 2)
     #expect(state.players[0].devCards.isEmpty)
-    #expect(state.log.last?.contains("2 lumber") == true)
+    // Asserted on the event rather than a log sentence: taking the same
+    // resource twice is the case a `[r1: 1, r2: 1]` dictionary literal would
+    // have crashed on, so it is worth pinning that both cards land.
+    #expect(events.contains(.playedYearOfPlenty(PlayerID(index: 0), taken: [.lumber: 2])))
 }
 
 @Test func monopolyTransfersAllMatchingCardsFromEveryOtherPlayer() {

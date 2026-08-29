@@ -155,12 +155,23 @@ public enum RulesEngine {
         }
     }
 
-    public static func apply(_ move: GameMove, by player: PlayerID, to state: inout GameState) throws {
+    /// Applies `move` and returns what happened, as structured events.
+    ///
+    /// Events are RETURNED rather than accumulated in `GameState`. The engine
+    /// used to append a prose sentence to `state.log` on every move, which
+    /// made the state 127x more expensive to copy (measured), forced the
+    /// engine to guess which seat was human in order to write "You", and left
+    /// the UI substring-matching that prose to drive a visual effect. A caller
+    /// that wants a transcript keeps these; a search or self-play harness
+    /// discards them and pays nothing. See `GameEvent`.
+    @discardableResult
+    public static func apply(_ move: GameMove, by player: PlayerID, to state: inout GameState) throws -> [GameEvent] {
+        var events: [GameEvent] = []
         switch state.phase {
         case .setupForward, .setupBackward:
             switch move {
             case .placeInitialSettlement, .placeInitialRoad:
-                try SetupPhase.apply(move, by: player, to: &state)
+                events += try SetupPhase.apply(move, by: player, to: &state)
             default:
                 throw MoveError.wrongPhase
             }
@@ -172,14 +183,12 @@ public enum RulesEngine {
             // here and stay in `.rollDice` so the player still has to roll
             // afterward.
             if case .playKnight(let moveRobberTo, let stealFrom) = move {
-                try DevCards.playKnight(moveRobberTo: moveRobberTo, stealFrom: stealFrom, by: player, state: &state)
+                let stolen = try DevCards.playKnight(
+                    moveRobberTo: moveRobberTo, stealFrom: stealFrom, by: player, state: &state)
                 WinCondition.checkForWinner(&state)
-                if let victim = stealFrom {
-                    state.log.append("\(playerLabel(playerIndex)) played a knight and stole a card from \(playerLabel(victim.index))")
-                } else {
-                    state.log.append("\(playerLabel(playerIndex)) played a knight")
-                }
-                return
+                events.append(.playedKnight(player, from: stealFrom, stealing: stolen))
+                events += winEvent(state)
+                return events
             }
 
             guard case .rollDice = move else { throw MoveError.wrongPhase }
@@ -194,7 +203,7 @@ public enum RulesEngine {
             }
             // A roll of 7 routes into .discarding or .movingRobber, already
             // set by MainPhase.rollDice.
-            state.log.append("\(playerLabel(playerIndex)) rolled \(roll)")
+            events.append(.rolled(player, total: roll))
 
         case .discarding(let pending):
             guard pending.contains(player) else { throw MoveError.notYourTurn }
@@ -208,7 +217,7 @@ public enum RulesEngine {
                 throw MoveError.illegalPlacement
             }
             try deduct(discarded, from: &state, playerIndex: playerIndex)
-            state.log.append("\(playerLabel(playerIndex)) discarded \(total) card\(total == 1 ? "" : "s")")
+            events.append(.discarded(player, count: total))
 
             var remainingPending = pending
             remainingPending.remove(player)
@@ -222,14 +231,10 @@ public enum RulesEngine {
         case .movingRobber(let playerIndex):
             guard player.index == playerIndex else { throw MoveError.notYourTurn }
             guard case .moveRobber(let target, let stealFrom) = move else { throw MoveError.wrongPhase }
-            try Robber.apply(move: target, stealFrom: stealFrom, by: player, to: &state)
+            let stolen = try Robber.apply(move: target, stealFrom: stealFrom, by: player, to: &state)
             state.robberMoverIndex = nil
             state.phase = .mainTurn(playerIndex: playerIndex)
-            if let victim = stealFrom {
-                state.log.append("\(playerLabel(playerIndex)) moved the robber and stole a card from \(playerLabel(victim.index))")
-            } else {
-                state.log.append("\(playerLabel(playerIndex)) moved the robber")
-            }
+            events.append(.movedRobber(player, from: stealFrom, stealing: stolen))
 
         case .mainTurn(let playerIndex):
             // Trade responses come from whichever player the offer is
@@ -239,13 +244,12 @@ public enum RulesEngine {
                 let offer = state.pendingTradeOffers.first(where: { $0.id == offerID })
                 try Trading.respond(offerID: offerID, accept: accept, by: player, state: &state)
                 if let offer {
-                    if accept {
-                        state.log.append("\(playerLabel(player.index)) traded \(resourceDescription(offer.want)) for \(resourceDescription(offer.give)) with \(playerLabel(offer.from.index))")
-                    } else {
-                        state.log.append("\(playerLabel(player.index)) rejected a trade from \(playerLabel(offer.from.index))")
-                    }
+                    events.append(accept
+                        ? .acceptedTrade(player, from: offer.from, gave: offer.want, got: offer.give)
+                        : .rejectedTrade(player, from: offer.from))
                 }
-                return
+                events += winEvent(state)
+                return events
             }
 
             guard player.index == playerIndex else { throw MoveError.notYourTurn }
@@ -257,7 +261,7 @@ public enum RulesEngine {
                 state.players[playerIndex].roads.insert(edge)
                 state.longestRoadPlayer = LongestRoad.compute(for: state)
                 WinCondition.checkForWinner(&state)
-                state.log.append("\(playerLabel(playerIndex)) built a road")
+                events.append(.builtRoad(player))
 
             case .buildSettlement(let vertex):
                 guard Building.canBuildSettlement(vertex, for: player, in: state) else { throw MoveError.illegalPlacement }
@@ -265,7 +269,7 @@ public enum RulesEngine {
                 state.players[playerIndex].settlements.insert(vertex)
                 state.longestRoadPlayer = LongestRoad.compute(for: state)
                 WinCondition.checkForWinner(&state)
-                state.log.append("\(playerLabel(playerIndex)) built a settlement")
+                events.append(.builtSettlement(player))
 
             case .buildCity(let vertex):
                 guard Building.canBuildCity(vertex, for: player, in: state) else { throw MoveError.illegalPlacement }
@@ -274,7 +278,7 @@ public enum RulesEngine {
                 state.players[playerIndex].cities.insert(vertex)
                 state.longestRoadPlayer = LongestRoad.compute(for: state)
                 WinCondition.checkForWinner(&state)
-                state.log.append("\(playerLabel(playerIndex)) built a city")
+                events.append(.builtCity(player))
 
             case .buyDevCard:
                 try DevCards.buy(by: player, state: &state)
@@ -284,21 +288,18 @@ public enum RulesEngine {
                 // win can trigger right here even though the card can't be
                 // "played".
                 WinCondition.checkForWinner(&state)
-                state.log.append("\(playerLabel(playerIndex)) bought a development card")
+                events.append(.boughtDevCard(player))
 
             case .playKnight(let moveRobberTo, let stealFrom):
-                try DevCards.playKnight(moveRobberTo: moveRobberTo, stealFrom: stealFrom, by: player, state: &state)
+                let stolen = try DevCards.playKnight(
+                    moveRobberTo: moveRobberTo, stealFrom: stealFrom, by: player, state: &state)
                 WinCondition.checkForWinner(&state)
-                if let victim = stealFrom {
-                    state.log.append("\(playerLabel(playerIndex)) played a knight and stole a card from \(playerLabel(victim.index))")
-                } else {
-                    state.log.append("\(playerLabel(playerIndex)) played a knight")
-                }
+                events.append(.playedKnight(player, from: stealFrom, stealing: stolen))
 
             case .playRoadBuilding(let e1, let e2):
                 try DevCards.playRoadBuilding(e1, e2, by: player, state: &state)
                 WinCondition.checkForWinner(&state)
-                state.log.append("\(playerLabel(playerIndex)) played road building")
+                events.append(.playedRoadBuilding(player))
 
             case .playYearOfPlenty(let r1, let r2):
                 try DevCards.playYearOfPlenty(r1, r2, by: player, state: &state)
@@ -312,20 +313,20 @@ public enum RulesEngine {
                 var taken: [Resource: Int] = [:]
                 taken[r1, default: 0] += 1
                 taken[r2, default: 0] += 1
-                state.log.append("\(playerLabel(playerIndex)) played year of plenty and took \(resourceDescription(taken))")
+                events.append(.playedYearOfPlenty(player, taken: taken))
 
             case .playMonopoly(let resource):
-                try DevCards.playMonopoly(resource, by: player, state: &state)
-                state.log.append("\(playerLabel(playerIndex)) played monopoly on \(resource.rawValue)")
+                let collected = try DevCards.playMonopoly(resource, by: player, state: &state)
+                events.append(.playedMonopoly(player, resource: resource, gained: collected))
 
             case .bankTrade(let give, let get):
                 try Trading.bankTrade(give: give, get: get, by: player, state: &state)
-                state.log.append("\(playerLabel(playerIndex)) traded \(resourceDescription(give)) for \(resourceDescription(get)) with the bank")
+                events.append(.tradedWithBank(player, gave: give, got: get))
 
             case .proposeTrade(let offer):
                 guard offer.from == player else { throw MoveError.notYourTurn }
                 try Trading.proposeTrade(offer, state: &state)
-                state.log.append("\(playerLabel(playerIndex)) proposed a trade: \(resourceDescription(offer.give)) for \(resourceDescription(offer.want))")
+                events.append(.proposedTrade(player, give: offer.give, want: offer.want))
 
             case .endTurn:
                 state.devCardsBoughtThisTurn = [:]
@@ -341,50 +342,36 @@ public enum RulesEngine {
                 state.pendingTradeOffers.removeAll()
                 let nextIndex = (playerIndex + 1) % state.players.count
                 state.phase = .rollDice(playerIndex: nextIndex)
-                state.log.append("\(playerLabel(playerIndex)) ended their turn")
+                events.append(.endedTurn(player))
 
             default:
                 throw MoveError.wrongPhase
             }
 
         default:
-            // Later tasks extend this switch for the other phases.
             throw MoveError.wrongPhase
         }
+        events += winEvent(state)
+        return events
+    }
+
+    /// A `.gameWon` event, but only on the transition into `.gameOver`.
+    /// `apply` calls this at each of its exits; emitting it from one place
+    /// keeps every path consistent, including the two that return early.
+    private static func winEvent(_ state: GameState) -> [GameEvent] {
+        guard case .gameOver(let winner) = state.phase else { return [] }
+        return [.gameWon(winner)]
     }
 
     // MARK: - Helpers
 
-    /// Seat label used in `state.log` entries: "Player 1" through "Player 4",
-    /// numbered from one so it reads naturally.
+    /// Whether `player` holds at least `cost`.
     ///
-    /// It deliberately does NOT say "You" for any seat. It used to say that
-    /// for index 0, on the assumption the human always sits there - but
-    /// "Randomize Seat" is on by default and picks any of the four, so in
-    /// three games out of four the engine's own log called a *bot* "You" and
-    /// the human "Player N". This is the third copy of that assumption found
-    /// in the codebase; the other two were in the app layer and were fixed
-    /// individually, and this one survived because it lives in another module.
-    ///
-    /// The engine has no notion of which seat is human and should not acquire
-    /// one to answer a presentation question. The UI already resolves a seat
-    /// to a real display name through `CatanTheme.playerLabel(for:)`.
-    static func playerLabel(_ index: Int) -> String {
-        "Player \(index + 1)"
-    }
-
-    /// Renders a resource-count map as a short comma-separated string, e.g.
-    /// "1 lumber, 2 ore", for `state.log` entries. Sorted by resource name so
-    /// output is deterministic.
-    static func resourceDescription(_ resources: [Resource: Int]) -> String {
-        resources
-            .filter { $0.value > 0 }
-            .sorted { $0.key.rawValue < $1.key.rawValue }
-            .map { "\($0.value) \($0.key.rawValue)" }
-            .joined(separator: ", ")
-    }
-
-    static func canAfford(_ cost: [Resource: Int], player: Player) -> Bool {
+    /// Public because it was otherwise re-implemented by hand at seven call
+    /// sites across the engine, the AI and the views - each an opportunity for
+    /// one of them to drift from the rule the engine actually enforces, which
+    /// is exactly how the bank-trade bug shipped.
+    public static func canAfford(_ cost: [Resource: Int], player: Player) -> Bool {
         cost.allSatisfy { resource, amount in (player.resources[resource] ?? 0) >= amount }
     }
 

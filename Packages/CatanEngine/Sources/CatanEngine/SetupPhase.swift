@@ -13,7 +13,7 @@ enum SetupPhase {
         }
     }
 
-    static func apply(_ move: GameMove, by player: PlayerID, to state: inout GameState) throws {
+    static func apply(_ move: GameMove, by player: PlayerID, to state: inout GameState) throws -> [GameEvent] {
         guard let playerIndex = currentPlayerIndex(state.phase) else {
             throw MoveError.wrongPhase
         }
@@ -36,7 +36,7 @@ enum SetupPhase {
             if isBackwardPass {
                 grantInitialResources(for: vertex, playerIndex: playerIndex, state: &state)
             }
-            state.log.append("\(RulesEngine.playerLabel(playerIndex)) placed a settlement")
+            return [.placedInitialSettlement(player)]
 
         case .placeInitialRoad(let edge):
             guard let pendingVertex = unroadedSettlement(of: state.players[playerIndex], board: state.board) else {
@@ -46,8 +46,8 @@ enum SetupPhase {
                 throw MoveError.illegalPlacement
             }
             state.players[playerIndex].roads.insert(edge)
-            state.log.append("\(RulesEngine.playerLabel(playerIndex)) placed a road")
             advancePhase(state: &state, justCompletedIndex: playerIndex)
+            return [.placedInitialRoad(player)]
 
         default:
             throw MoveError.wrongPhase

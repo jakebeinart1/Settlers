@@ -1,0 +1,6 @@
+# Test-only overrides, matching Packages/*/Tests. `try!` and `as!` are correct
+# practice in a test: an unexpected throw or a wrong type should fail the test
+# loudly and immediately rather than be handled.
+disabled_rules:
+  - force_try
+  - force_cast

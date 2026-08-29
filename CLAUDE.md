@@ -43,7 +43,7 @@ Verified 2026-08-29 on Xcode 26.5, Swift 6.3.2, XcodeGen 2.46.0, SwiftLint 0.65.
 gitleaks 8.30.1.
 
 ```bash
-# Tests - all 174 of them (104 CatanEngine + 70 CatanAI). Run from the repo root.
+# Tests. Counts move; run them rather than trusting a number written here.
 swift test --package-path Packages/CatanEngine     # ~5s warm
 swift test --package-path Packages/CatanAI         # ~55-175s; this one dominates everything
 

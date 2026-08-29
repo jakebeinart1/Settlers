@@ -25,7 +25,10 @@ public struct GameState: Codable, Sendable {
     public var longestRoadPlayer: PlayerID?
     public var largestArmyPlayer: PlayerID?
     public var pendingTradeOffers: [TradeOffer]
-    public var log: [String]
+    // NOTE: `log: [String]` used to live here. It was removed - see `GameEvent`.
+    // It grew about one entry per move (roughly six thousand by the end of a
+    // long game) inside a value type that search, simulation and every save
+    // copy wholesale, and nothing in the engine ever read it back.
     /// The index of the player who rolled a 7, carried across an intervening
     /// `.discarding` phase so `.movingRobber(playerIndex:)` names the roller
     /// (not whichever player happened to discard last). `nil` outside that
@@ -60,7 +63,6 @@ public struct GameState: Codable, Sendable {
         longestRoadPlayer: PlayerID? = nil,
         largestArmyPlayer: PlayerID? = nil,
         pendingTradeOffers: [TradeOffer] = [],
-        log: [String] = [],
         robberMoverIndex: Int? = nil,
         devCardsBoughtThisTurn: [PlayerID: [DevCardType]] = [:],
         devCardPlayedThisTurn: PlayerID? = nil,
@@ -79,7 +81,6 @@ public struct GameState: Codable, Sendable {
         self.longestRoadPlayer = longestRoadPlayer
         self.largestArmyPlayer = largestArmyPlayer
         self.pendingTradeOffers = pendingTradeOffers
-        self.log = log
         self.robberMoverIndex = robberMoverIndex
         self.devCardsBoughtThisTurn = devCardsBoughtThisTurn
         self.devCardPlayedThisTurn = devCardPlayedThisTurn
@@ -127,7 +128,6 @@ public struct GameState: Codable, Sendable {
         longestRoadPlayer = try container.decodeIfPresent(PlayerID.self, forKey: .longestRoadPlayer)
         largestArmyPlayer = try container.decodeIfPresent(PlayerID.self, forKey: .largestArmyPlayer)
         pendingTradeOffers = try container.decodeIfPresent([TradeOffer].self, forKey: .pendingTradeOffers) ?? []
-        log = try container.decodeIfPresent([String].self, forKey: .log) ?? []
         robberMoverIndex = try container.decodeIfPresent(Int.self, forKey: .robberMoverIndex)
         devCardsBoughtThisTurn = try container
             .decodeIfPresent([PlayerID: [DevCardType]].self, forKey: .devCardsBoughtThisTurn) ?? [:]
@@ -136,9 +136,27 @@ public struct GameState: Codable, Sendable {
             .decodeIfPresent([PlayerID: Int].self, forKey: .tradesAcceptedThisTurn) ?? [:]
     }
 
-    /// Total victory points for `id`: building/dev-card VPs from `Player`,
-    /// plus the +2 longest-road/largest-army bonuses tracked here since they
-    /// depend on cross-player comparison.
+    /// Victory points that are public knowledge for `id`: buildings plus the
+    /// longest-road and largest-army bonuses, all of them visible on the
+    /// board. Deliberately excludes held-but-unplayed victory-point cards,
+    /// which are hidden information exactly like the rest of a hand.
+    ///
+    /// This lives here rather than in the HUD that displays it. A second
+    /// victory-point formula in a view is a formula that can drift from the
+    /// engine's - and the two differ only by the term that decides whether
+    /// hidden information leaks, which is the worst possible thing to
+    /// maintain in two places.
+    public func publicVictoryPoints(for id: PlayerID) -> Int {
+        guard let player = players.first(where: { $0.id == id }) else { return 0 }
+        var total = player.settlements.count + player.cities.count * 2
+        if longestRoadPlayer == id { total += 2 }
+        if largestArmyPlayer == id { total += 2 }
+        return total
+    }
+
+    /// Total victory points for `id`, INCLUDING hidden victory-point cards.
+    /// Correct for a player's own total; use `publicVictoryPoints(for:)` for
+    /// anything an opponent can see.
     public func victoryPoints(for id: PlayerID) -> Int {
         guard let player = players.first(where: { $0.id == id }) else { return 0 }
         var total = player.victoryPoints
