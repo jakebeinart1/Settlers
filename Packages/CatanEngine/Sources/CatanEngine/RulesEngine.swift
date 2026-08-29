@@ -126,16 +126,16 @@ public enum RulesEngine {
             return moves
 
         case .discarding(let pending):
-            // No single "acting player" is embedded in this phase - any
-            // player in `pending` may discard whenever they're ready - so
-            // this returns the union of every legal `.discard` combination
-            // across all of them.
+            // No single "acting player" is embedded in this phase - any player
+            // in `pending` may discard whenever they are ready - so this
+            // returns the union across all of them. Prefer
+            // `legalMoves(for:seat:)` unless you genuinely want the union: a
+            // discard here is only legal for the seat whose hand it was
+            // computed from, so anything that picks from this list and applies
+            // it as one seat can pick another seat's move and be rejected.
             var moves: [GameMove] = []
             for pid in pending.sorted() {
-                guard let playerIndex = state.players.firstIndex(where: { $0.id == pid }) else { continue }
-                let player = state.players[playerIndex]
-                let count = Robber.discardCount(for: player)
-                moves.append(contentsOf: discardCombinations(holding: player.resources, count: count).map { .discard($0) })
+                moves.append(contentsOf: discardMoves(for: pid, in: state))
             }
             return moves
 
@@ -153,6 +153,35 @@ public enum RulesEngine {
             // Later tasks extend this switch for the other phases.
             return []
         }
+    }
+
+    /// The moves `seat` may legally make right now.
+    ///
+    /// Prefer this over `legalMoves(for:)` anywhere a specific player is about
+    /// to choose. The unscoped version returns a *union* in `.discarding` -
+    /// every pending player's combinations together - because no single seat
+    /// owns that phase. A policy picking from the union can pick a discard
+    /// computed from a different hand, and `apply` then rejects it. `Bot`
+    /// worked around that with its own filter; anything else that tried,
+    /// including a uniform-random policy, hit it immediately.
+    ///
+    /// An action list that includes moves the actor cannot make is also simply
+    /// wrong as an action space: it teaches a learner that illegal moves are
+    /// options.
+    public static func legalMoves(for state: GameState, seat: PlayerID) -> [GameMove] {
+        if case .discarding(let pending) = state.phase {
+            guard pending.contains(seat) else { return [] }
+            return discardMoves(for: seat, in: state)
+        }
+        return legalMoves(for: state)
+    }
+
+    /// Every discard `pid` could legally make, from their own hand.
+    private static func discardMoves(for pid: PlayerID, in state: GameState) -> [GameMove] {
+        guard let index = state.players.firstIndex(where: { $0.id == pid }) else { return [] }
+        let player = state.players[index]
+        let count = Robber.discardCount(for: player)
+        return discardCombinations(holding: player.resources, count: count).map { .discard($0) }
     }
 
     /// Applies `move` and returns what happened, as structured events.

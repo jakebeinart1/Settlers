@@ -125,10 +125,12 @@ gate_ai_tests()     { ( cd Packages/CatanAI && swift test --enable-code-coverage
 
 # --- 5. Coverage floors ---------------------------------------------------
 # Floors sit ~1 point under the measured figure. See scripts/coverage.sh for
-# the ratchet policy. Measured 2026-08-29: engine 96.20%, AI 91.12%.
+# the ratchet policy: the floor never goes down without a commit message
+# saying what was deleted and why, and rises when headroom exceeds 2 points.
+# Measured 2026-08-30: engine 95.36%, AI 92.04% - the AI floor rises to 91.
 gate_coverage() {
   ./scripts/coverage.sh Packages/CatanEngine 95 --reuse \
-    && ./scripts/coverage.sh Packages/CatanAI 90 --reuse
+    && ./scripts/coverage.sh Packages/CatanAI 91 --reuse
 }
 
 # --- 6. Secrets -----------------------------------------------------------
