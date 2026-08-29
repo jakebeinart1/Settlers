@@ -24,19 +24,28 @@ public enum RulesEngine {
             let player = state.players[playerIndex]
             var moves: [GameMove] = [.endTurn]
 
+            // Every enumeration below sorts before mapping. `onBoardEdges`,
+            // `onBoardVertices` and `player.settlements` are all `Set`s, and
+            // Swift seeds set iteration order per process - so without this,
+            // `legalMoves` returns the same moves in a different order on
+            // every launch, and any bot that breaks a tie by picking the
+            // first-best candidate plays a different game from the same seed.
             if canAfford(Building.roadCost, player: player) {
                 moves.append(contentsOf: state.board.onBoardEdges
                     .filter { Building.canBuildRoad($0, for: player.id, in: state) }
+                    .sorted()
                     .map { .buildRoad($0) })
             }
             if canAfford(Building.settlementCost, player: player) {
                 moves.append(contentsOf: state.board.onBoardVertices
                     .filter { Building.canBuildSettlement($0, for: player.id, in: state) }
+                    .sorted()
                     .map { .buildSettlement($0) })
             }
             if canAfford(Building.cityCost, player: player) {
                 moves.append(contentsOf: player.settlements
                     .filter { Building.canBuildCity($0, for: player.id, in: state) }
+                    .sorted()
                     .map { .buildCity($0) })
             }
             if canAfford(Building.devCardCost, player: player) && !state.devCardDeck.isEmpty {
@@ -50,13 +59,24 @@ public enum RulesEngine {
                 }
             }
             if DevCards.canPlay(.roadBuilding, by: player.id, in: state) {
-                let legalEdges = state.board.onBoardEdges.filter { Building.canBuildRoad($0, for: player.id, in: state) }
+                let legalEdges = state.board.onBoardEdges
+                    .filter { Building.canBuildRoad($0, for: player.id, in: state) }
+                    .sorted()
+                let allEdges = state.board.onBoardEdges.sorted()
+                // The second edge is judged against a board where the first is
+                // already placed, so the pair is legal *in sequence*. Mutating
+                // one player's road set and restoring it beats the previous
+                // `var afterE1 = state` (a full `GameState` copy - board, all
+                // four players, both decks - once per candidate first edge),
+                // which made this branch the most expensive thing in the
+                // engine at ~10.8ms per call with a Road Building card in hand.
+                var probe = state
                 for e1 in legalEdges {
-                    var afterE1 = state
-                    afterE1.players[playerIndex].roads.insert(e1)
-                    for e2 in state.board.onBoardEdges where e2 != e1 && Building.canBuildRoad(e2, for: player.id, in: afterE1) {
+                    probe.players[playerIndex].roads.insert(e1)
+                    for e2 in allEdges where e2 != e1 && Building.canBuildRoad(e2, for: player.id, in: probe) {
                         moves.append(.playRoadBuilding(e1, e2))
                     }
+                    probe.players[playerIndex].roads.remove(e1)
                 }
             }
             if DevCards.canPlay(.yearOfPlenty, by: player.id, in: state) {
@@ -94,9 +114,13 @@ public enum RulesEngine {
             // one of it to each other player for each resource type - not
             // exhaustive over quantities/combinations, just enough for bots
             // to have real proposals to consider.
-            for (resource, amount) in player.resources where amount > 1 {
+            // Driven off `Resource.allCases`, not `player.resources` - the
+            // dictionary's iteration order is per-process, and these offers
+            // would otherwise be enumerated in a different order each launch.
+            for resource in Resource.allCases where (player.resources[resource] ?? 0) > 1 {
                 for wanted in Resource.allCases where wanted != resource {
-                    moves.append(.proposeTrade(TradeOffer(from: player.id, give: [resource: 1], want: [wanted: 1])))
+                    moves.append(.proposeTrade(
+                        TradeOffer.enumerated(from: player.id, give: [resource: 1], want: [wanted: 1])))
                 }
             }
             return moves
@@ -107,7 +131,7 @@ public enum RulesEngine {
             // this returns the union of every legal `.discard` combination
             // across all of them.
             var moves: [GameMove] = []
-            for pid in pending {
+            for pid in pending.sorted() {
                 guard let playerIndex = state.players.firstIndex(where: { $0.id == pid }) else { continue }
                 let player = state.players[playerIndex]
                 let count = Robber.discardCount(for: player)
@@ -159,7 +183,11 @@ public enum RulesEngine {
             }
 
             guard case .rollDice = move else { throw MoveError.wrongPhase }
-            let roll = Int.random(in: 1...6) + Int.random(in: 1...6)
+            // Two independent d6 off the state's own generator, not the global
+            // RNG - so a recorded move list replays to the same dice and a
+            // seeded self-play run reproduces exactly. See `RandomSource`.
+            let roll = Int.random(in: 1...6, using: &state.rng)
+                + Int.random(in: 1...6, using: &state.rng)
             MainPhase.rollDice(state: &state, roll: roll)
             if roll != 7 {
                 state.phase = .mainTurn(playerIndex: playerIndex)
@@ -303,6 +331,14 @@ public enum RulesEngine {
                 state.devCardsBoughtThisTurn = [:]
                 state.devCardPlayedThisTurn = nil
                 state.tradesAcceptedThisTurn = [:]
+                // An offer only ever left `pendingTradeOffers` when somebody
+                // explicitly responded to it, so unanswered offers accumulated
+                // across turns - a 93-deep backlog was observed in a single
+                // game. That let an offer be accepted turns after it was made,
+                // and inflated the branching factor of every subsequent
+                // `legalMoves` call for free. A trade offer is a within-turn
+                // negotiation; it does not outlive the turn that made it.
+                state.pendingTradeOffers.removeAll()
                 let nextIndex = (playerIndex + 1) % state.players.count
                 state.phase = .rollDice(playerIndex: nextIndex)
                 state.log.append("\(playerLabel(playerIndex)) ended their turn")

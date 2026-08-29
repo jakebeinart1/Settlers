@@ -84,7 +84,11 @@ enum SetupPhase {
         for vertex in occupied {
             tooClose.formUnion(state.board.adjacentVertices(of: vertex))
         }
-        return state.board.onBoardVertices.filter { !occupied.contains($0) && !tooClose.contains($0) }
+        // Sorted for the same reason as `Board.edgesTouching`: this feeds
+        // `legalMoves` directly, and `onBoardVertices` is a `Set`.
+        return state.board.onBoardVertices
+            .filter { !occupied.contains($0) && !tooClose.contains($0) }
+            .sorted()
     }
 
     /// Grants resources from every tile adjacent to `vertex` to the given

@@ -1,4 +1,21 @@
 public struct GameState: Codable, Sendable {
+    /// Wire-format version of a persisted state. Bump this whenever a change
+    /// to the stored shape needs `init(from:)` below to do something other
+    /// than fall back to a default, and branch on it there. Saves written
+    /// before versioning existed decode as `0`.
+    public static let currentSchemaVersion = 1
+
+    /// The schema version this value was decoded from (or
+    /// `currentSchemaVersion` for a freshly created game). Persisted so a
+    /// future decoder can tell what it is looking at instead of guessing.
+    public var schemaVersion: Int
+
+    /// Seeded generator for every random outcome the rules produce - dice
+    /// rolls and robber steals. Stored here rather than passed in so that a
+    /// resumed save continues the same sequence and a recorded move list
+    /// replays exactly. See `RandomSource`.
+    public var rng: RandomSource
+
     public var board: Board
     public var players: [Player]
     public var phase: GamePhase
@@ -47,8 +64,12 @@ public struct GameState: Codable, Sendable {
         robberMoverIndex: Int? = nil,
         devCardsBoughtThisTurn: [PlayerID: [DevCardType]] = [:],
         devCardPlayedThisTurn: PlayerID? = nil,
-        tradesAcceptedThisTurn: [PlayerID: Int] = [:]
+        tradesAcceptedThisTurn: [PlayerID: Int] = [:],
+        rng: RandomSource = RandomSource(seed: UInt64.random(in: .min ... .max)),
+        schemaVersion: Int = GameState.currentSchemaVersion
     ) {
+        self.rng = rng
+        self.schemaVersion = schemaVersion
         self.board = board
         self.players = players
         self.phase = phase
@@ -63,6 +84,56 @@ public struct GameState: Codable, Sendable {
         self.devCardsBoughtThisTurn = devCardsBoughtThisTurn
         self.devCardPlayedThisTurn = devCardPlayedThisTurn
         self.tradesAcceptedThisTurn = tradesAcceptedThisTurn
+    }
+
+    /// Decodes a saved game, tolerating fields that a *older* save predates.
+    ///
+    /// ## Why this is hand-written rather than synthesized
+    /// Swift's synthesized `init(from:)` calls `decode` (not
+    /// `decodeIfPresent`) for every non-optional property, so a save written
+    /// before a property existed fails to decode entirely. `GameStore.load()`
+    /// swallows that with `try?` and returns `nil`, and the app then starts a
+    /// brand-new game with no message - i.e. **adding one field to this
+    /// struct silently deleted every player's in-progress game.** That had
+    /// already happened once in the field, when `tradesAcceptedThisTurn` was
+    /// added.
+    ///
+    /// Every property that a game can meaningfully resume without is read
+    /// with `decodeIfPresent` and a default, so adding the *next* field is a
+    /// one-line change here instead of a data-loss event. Only `board`,
+    /// `players` and `phase` are genuinely required: a save missing any of
+    /// those describes no recoverable game, so it throws and the caller can
+    /// report a corrupt save rather than pretending there was none.
+    ///
+    /// `encode(to:)` is deliberately left synthesized - it always writes the
+    /// current shape, so only the read side needs to be permissive.
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+
+        board = try container.decode(Board.self, forKey: .board)
+        players = try container.decode([Player].self, forKey: .players)
+        phase = try container.decode(GamePhase.self, forKey: .phase)
+
+        schemaVersion = try container.decodeIfPresent(Int.self, forKey: .schemaVersion) ?? 0
+        // A pre-v1 save carries no generator. Seeding a fresh one keeps the
+        // resumed game playable; it cannot make that game replayable, because
+        // the moves already applied were rolled off the old global RNG.
+        rng = try container.decodeIfPresent(RandomSource.self, forKey: .rng)
+            ?? RandomSource(seed: UInt64.random(in: .min ... .max))
+
+        bank = try container.decodeIfPresent([Resource: Int].self, forKey: .bank) ?? [:]
+        devCardDeck = try container.decodeIfPresent([DevCardType].self, forKey: .devCardDeck) ?? []
+        lastDiceRoll = try container.decodeIfPresent(Int.self, forKey: .lastDiceRoll)
+        longestRoadPlayer = try container.decodeIfPresent(PlayerID.self, forKey: .longestRoadPlayer)
+        largestArmyPlayer = try container.decodeIfPresent(PlayerID.self, forKey: .largestArmyPlayer)
+        pendingTradeOffers = try container.decodeIfPresent([TradeOffer].self, forKey: .pendingTradeOffers) ?? []
+        log = try container.decodeIfPresent([String].self, forKey: .log) ?? []
+        robberMoverIndex = try container.decodeIfPresent(Int.self, forKey: .robberMoverIndex)
+        devCardsBoughtThisTurn = try container
+            .decodeIfPresent([PlayerID: [DevCardType]].self, forKey: .devCardsBoughtThisTurn) ?? [:]
+        devCardPlayedThisTurn = try container.decodeIfPresent(PlayerID.self, forKey: .devCardPlayedThisTurn)
+        tradesAcceptedThisTurn = try container
+            .decodeIfPresent([PlayerID: Int].self, forKey: .tradesAcceptedThisTurn) ?? [:]
     }
 
     /// Total victory points for `id`: building/dev-card VPs from `Player`,
@@ -88,8 +159,21 @@ public enum GameSetup {
         return newGame(board: board, rng: &rng)
     }
 
+    /// Creates a fully reproducible game: `seed` fixes both the dev card
+    /// shuffle and every dice roll and robber steal the game will go on to
+    /// produce. Two calls with the same board and seed, played by the same
+    /// policies, yield an identical move sequence - which is what makes
+    /// headless self-play, A/B comparison of bot changes, and bisecting a
+    /// failing simulation possible at all.
+    public static func newGame(board: Board, seed: UInt64) -> GameState {
+        var rng = RandomSource(seed: seed)
+        return newGame(board: board, rng: &rng)
+    }
+
     /// Same as `newGame(board:)` but with an injectable RNG, so the dev card
-    /// shuffle can be made deterministic (e.g. for tests).
+    /// shuffle can be made deterministic (e.g. for tests). The in-game
+    /// generator is seeded *from* `rng`, so a deterministic caller gets a
+    /// deterministic game and not merely a deterministic opening deck.
     public static func newGame(board: Board, rng: inout some RandomNumberGenerator) -> GameState {
         let players = (0..<4).map { Player(id: PlayerID(index: $0)) }
 
@@ -111,7 +195,8 @@ public enum GameSetup {
             players: players,
             phase: .setupForward(playerIndex: 0),
             bank: bank,
-            devCardDeck: devCardDeck
+            devCardDeck: devCardDeck,
+            rng: RandomSource(seed: rng.next())
         )
     }
 }

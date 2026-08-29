@@ -26,19 +26,45 @@ public enum Trading {
     /// Trades `give` for `get` with the bank, at `player`'s best rate for
     /// each given resource. Validates the ratio and that the bank can cover
     /// what's requested.
-    public static func bankTrade(give: [Resource: Int], get: [Resource: Int], by player: PlayerID, state: inout GameState) throws {
+    /// Why `give` → `get` is not a legal bank trade for `player`, or `nil` if
+    /// it is legal. Pure - it reads state and decides nothing else.
+    ///
+    /// ## Why this is separate from `bankTrade`
+    /// The trade popup used to mirror this rule with its own copy of the
+    /// ratio arithmetic in order to decide whether to enable the "Trade with
+    /// Bank" button. The copy checked the rates but **not whether the bank
+    /// still held the requested resource**, so with a depleted bank the
+    /// button went gold, the hint read "Ready to trade", and the tap came
+    /// back "You don't have enough resources for that" - which is a lie
+    /// about whose resources are missing, and reads as the button being
+    /// broken. (That is the bug reported against commit `8add51f`, which
+    /// shipped a QA hook after testing only a full-bank 4:1 trade.) Resources
+    /// genuinely run out once cities are producing, so it is not exotic.
+    ///
+    /// Exposing the engine's own answer means the button and the move can no
+    /// longer disagree, and the caller gets an error specific enough to
+    /// explain itself.
+    public static func bankTradeProblem(give: [Resource: Int],
+                                        get: [Resource: Int],
+                                        by player: PlayerID,
+                                        state: GameState) -> MoveError? {
         guard let playerIndex = state.players.firstIndex(where: { $0.id == player }) else {
-            throw MoveError.other("unknown player")
+            return .other("unknown player")
         }
         // Every entry must be a strictly-positive count of an actual
-        // exchange - zero/negative amounts would let `-=`/`+=` below run
-        // backwards and mint or steal resources for free.
+        // exchange - zero/negative amounts would let the `-=`/`+=` in
+        // `bankTrade` run backwards and mint or steal resources for free.
         guard give.values.allSatisfy({ $0 > 0 }), get.values.allSatisfy({ $0 > 0 }) else {
-            throw MoveError.illegalPlacement
+            return .illegalPlacement
         }
         let giveTotal = give.values.reduce(0, +)
         let getTotal = get.values.reduce(0, +)
-        guard giveTotal > 0, getTotal > 0 else { throw MoveError.illegalPlacement }
+        guard giveTotal > 0, getTotal > 0 else { return .illegalPlacement }
+
+        // Trading a resource for itself is always a strict loss and is never
+        // something a player means to do, but the rate arithmetic alone
+        // happily accepts it (8 brick for 2 brick balances at 4:1).
+        guard Set(give.keys).isDisjoint(with: get.keys) else { return .illegalPlacement }
 
         // Each given resource must be offered in a quantity that's a whole
         // multiple of its own best rate, and the total given must convert to
@@ -46,17 +72,27 @@ public enum Trading {
         var convertedTotal = 0
         for (resource, amount) in give {
             let rate = bestRate(for: resource, player: player, state: state)
-            guard amount % rate == 0 else { throw MoveError.illegalPlacement }
+            guard amount % rate == 0 else { return .illegalPlacement }
             convertedTotal += amount / rate
         }
-        guard convertedTotal == getTotal else { throw MoveError.illegalPlacement }
+        guard convertedTotal == getTotal else { return .illegalPlacement }
 
         guard RulesEngine.canAfford(give, player: state.players[playerIndex]) else {
-            throw MoveError.insufficientResources
+            return .insufficientResources
         }
-        for (resource, amount) in get {
-            guard (state.bank[resource] ?? 0) >= amount else { throw MoveError.insufficientResources }
+        for resource in Resource.allCases where (get[resource] ?? 0) > 0 {
+            guard (state.bank[resource] ?? 0) >= (get[resource] ?? 0) else {
+                return .bankCannotSupply(resource)
+            }
         }
+        return nil
+    }
+
+    public static func bankTrade(give: [Resource: Int], get: [Resource: Int], by player: PlayerID, state: inout GameState) throws {
+        if let problem = bankTradeProblem(give: give, get: get, by: player, state: state) {
+            throw problem
+        }
+        let playerIndex = state.players.firstIndex(where: { $0.id == player })!
 
         for (resource, amount) in give {
             state.players[playerIndex].resources[resource, default: 0] -= amount
