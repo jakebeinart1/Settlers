@@ -58,11 +58,27 @@ private func botSeed(fromBoardSeed seed: UInt64) -> UInt64 { seed &* 31 &+ 7 }
 
 // MARK: - stderr
 
-/// Diagnostics channel. Kept separate from `print` so nothing non-reproducible
-/// can leak into the comparable output.
+/// Diagnostics channel. Kept separate from the results channel so nothing
+/// non-reproducible can leak into the comparable output.
 private enum Stderr {
     static func write(_ message: String) {
         FileHandle.standardError.write(Data((message + "\n").utf8))
+    }
+}
+
+/// Results channel, written through a `FileHandle` rather than `print`.
+///
+/// Two reasons, and the second is the portable one. `print` goes to libc
+/// `stdout`, which is fully buffered when redirected to a file - which is
+/// exactly how this is meant to be run - so a run interrupted or trapped part
+/// way loses every game it had already recorded, and progress is invisible for
+/// the whole run. The obvious fix, `setvbuf(stdout, ...)`, does not compile on
+/// Linux under Swift 6: there `stdout` is a mutable global and referencing it
+/// is a concurrency error. `FileHandle` writes immediately and behaves the
+/// same on both platforms.
+private enum Stdout {
+    static func write(_ message: String) {
+        FileHandle.standardOutput.write(Data((message + "\n").utf8))
     }
 }
 
@@ -294,14 +310,6 @@ private func textLine(_ result: GameResult) -> String {
 // These are `private` because `Options` is: a top-level `let` in main.swift
 // is a module-scope declaration, and Swift refuses to expose one whose type is
 // less visible than it is.
-// Line-buffer stdout. `print` is fully buffered when redirected to a file,
-// which is exactly how this is meant to be run (`> shard.jsonl`, sharded, for
-// tens of minutes). Two consequences without this: progress is invisible for
-// the whole run, and `applyOrDie`'s trap on an engine invariant exits without
-// flushing - destroying the JSONL for every game already played, which is
-// precisely the record needed to find the seed that broke.
-setvbuf(stdout, nil, _IOLBF, 0)
-
 private let options = parseOptions(CommandLine.arguments)
 private let bots = options.personalityNames.map { Bot(personality: personality(named: $0)) }
 private let clock = ContinuousClock()
@@ -309,7 +317,7 @@ private let started = clock.now
 
 for offset in 0..<options.games {
     let result = playGame(seed: options.firstSeed &+ UInt64(offset), bots: bots)
-    print(options.jsonl ? jsonLine(result) : textLine(result))
+    Stdout.write(options.jsonl ? jsonLine(result) : textLine(result))
 }
 
 // Sampled ONCE. Reading `clock.now` twice took `seconds` from the first read
