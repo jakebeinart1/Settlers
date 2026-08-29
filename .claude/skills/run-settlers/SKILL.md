@@ -26,7 +26,7 @@ read back out of `xcodebuild`, and the bundle id is read out of the built `Info.
 | **QA launch arguments** | **RUN AND PROVEN 2026-08-29.** `-qaAutoStart -qaShowBuildPopup` and `-qaAutoStart -qaShowPauseMenu` both rendered their popup. `-qaShowEndGame` measured in both combinations (see the table). |
 | **Real iPhone: build** | **NEVER SUCCEEDED.** Two separate blockers, both live as of 2026-08-29. See "The device path is blocked" below. |
 | **Real iPhone: install / launch** | **NEVER RUN** on this machine — the build has never produced a signed `.app` to install. The `devicectl` retry advice below is **inherited from Jake's sessions and has not been reproduced by Alex.** |
-| **Release configuration** | **NEVER BUILT GREEN here, and RED ON `main` AS OF e95d1e5.** `-configuration Release` fails to compile while Debug and every gate are green — see "Release does not compile" below. `scripts/gate.sh --with-app` builds **Debug only** (`scripts/gate.sh:155`), so this hole is structural, not a one-off. |
+| **Release configuration** | **RUN AND PROVEN.** Was red on `e95d1e5` (`#if DEBUG` methods called from unguarded sites) while every gate stayed green, because the gate built Debug only. Both are fixed: the call sites are guarded and `scripts/gate.sh` compiles Release on every run. |
 
 ## Hard preconditions: if one is missing, STOP and say which. Do not improvise.
 
@@ -264,7 +264,7 @@ puts itself into the state, and the tooling only photographs.
 
 ```bash
 "$REPO/scripts/gate.sh"              # 8 gates
-"$REPO/scripts/gate.sh" --with-app   # + compile the app target (Debug)
+"$REPO/scripts/gate.sh"              # Release app build included; --debug-app adds Debug
 ```
 
 The gate is the merge gate here, because branch protection is unavailable on this repository
@@ -280,7 +280,7 @@ change needs both.
   UI test target. Interaction is checked by Alex on the phone, or not at all.
 - **`xcodebuild test -scheme Settlers` runs nothing.** `project.yml` has `test: targets: []`.
   All 174 tests live in the two SPM packages and run via `swift test` / `scripts/gate.sh`.
-- **Debug only.** Both this ladder and `gate.sh --with-app` build Debug, so a Release-only
+- **This ladder builds Debug** (the `-qa*` flags are `#if DEBUG`), so a Release-only
   break is invisible to every gate in this repo — and one is standing on `main` right now
   (see the trap above). A green gate is not evidence the app compiles for release.
 - **Simulator ≠ device.** Nothing here says anything about touch latency, thermals, memory

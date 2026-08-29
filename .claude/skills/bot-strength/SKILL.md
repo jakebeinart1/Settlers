@@ -128,6 +128,13 @@ larger than most heuristic changes are ever going to be.
 **Budget accordingly: one board seed is four games.** 1,248 games per arm is
 312 board seeds.
 
+**"Arm" means the rotation, not the seat.** Arm 1 is the candidate rotating
+through all four seats against three anchors; arm 2 is the control - an
+*unmodified anchor* rotating through all four seats against three anchors. Arm
+2 should come out at 25% and running it is not optional: if it does not, the
+rig is wrong (a rotation not applied, a crash scoring as a loss, the wrong
+binary in a shard) and arm 1's number is meaningless.
+
 ### 4. Size the sample to the effect, before running
 
 For two independent proportions at `alpha = 0.05` two-sided and `power = 0.80`:
@@ -181,7 +188,7 @@ that changes the *anchor's* behaviour (a trade heuristic does; a placement
 heuristic mostly does not). The extra cost of being conservative is about
 twenty minutes.
 
-Single-process, all of these are ~4x longer (measured 0.45-0.51 games/sec).
+Single-process, all of these are ~4x longer (measured 0.45-0.56 games/sec).
 Either way, **the cost of adequate power here is minutes, not days** - which
 removes the only honest excuse for running 50 games and reporting a win rate.
 

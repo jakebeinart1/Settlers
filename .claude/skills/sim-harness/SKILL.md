@@ -26,7 +26,7 @@ measures it the only way that works: two separate processes, byte-compared.
 | **The executable exists, builds and plays games** | **RUN AND PROVEN 2026-08-29.** `Packages/CatanAI/Sources/sim/main.swift`, wired as `.executableTarget(name: "sim", ...)` in `Packages/CatanAI/Package.swift`. Builds clean under `-Xswiftc -warnings-as-errors` and under `swiftlint --strict`. |
 | **Cross-process reproducibility** | **PROVEN 2026-08-29.** Seeds 1000-1009, Release, run in two separate processes: both files `sha256 2dcfd1fb48dceb8adf381bcb8ffe571a5b6d53544656911a0543eca2dcd50c8c`, `cmp` silent. |
 | **Agreement with the existing determinism guard** | **PROVEN 2026-08-29.** All five fingerprints pinned in `Packages/CatanAI/Tests/CatanAITests/SeededGameFingerprintTests.swift` are reproduced exactly by the harness: seed 1 `7cc7aee7b0c9c4d9`, 42 `30f84fa73e61c1d7`, 7 `b338b8f0b41989bb`, 1234 `a4085aa0b3710e51`, 99 `526167e40f10ea2a`. The harness deliberately uses the same seat lineup, the same bot-RNG derivation and the same canonicalization so that test doubles as an external check on it. |
-| **Throughput** | **MEASURED 2026-08-29** on an 18-core Apple Silicon Mac. **Release, one process: 0.45-0.51 games/sec** (10 games in 22.45s, then 19.48s). **Debug: 0.12 games/sec** (5 games in 41.56s) - about 4x slower, never measure on it. **Release, 10 shards in parallel: 1.76 games/sec** (100 games in 56.79s, 642% CPU). |
+| **Throughput** | **MEASURED 2026-08-29** on an 18-core Apple Silicon Mac. **Release, one process: 0.45-0.56 games/sec** (four timed runs of 10 games: 22.45s, 19.48s, 19.05s, 17.96s). **Debug: 0.12 games/sec** (5 games in 41.56s) - about 4x slower, never measure on it. **Release, 10 shards in parallel: 1.76 games/sec** (100 games in 56.79s, 642% CPU). |
 | **Game shape** | **MEASURED over 350 games** across two seat lineups (seeds 1000-1009, 2000-2099, 3000-3039, 5000-5199): every game finished with a winner, 212-824 moves, mean 462. The 3000-move cap has never been hit. |
 | **Sharding into ONE shared output file** | **RAN ONCE, 100/100 lines intact and parseable, but NOT proven safe.** See the trap below - use one file per shard. |
 | **Running on Linux / in CI** | **NEVER RUN.** CI builds the whole package, so the sim target will start compiling on `ubuntu-latest` the moment this is pushed. It imports only `CatanEngine`, `CatanAI` and `Foundation`, so it should be fine, and "should be" is not "was". |
@@ -114,7 +114,7 @@ so the order cannot drift:
 ```
 
 - **`winner`** is a seat index, or `null` if the 3000-move cap tripped. A
-  `null` is a bug report, not a draw - real games finish in 269-824 moves.
+  `null` is a bug report, not a draw - real games finish in 212-824 moves.
 - **`vp`** is final victory points **per seat in seat order**, from
   `GameState.victoryPoints(for:)`, so it includes the +2 longest-road and +2
   largest-army bonuses. The winner's entry can exceed 10 (seen: 11).

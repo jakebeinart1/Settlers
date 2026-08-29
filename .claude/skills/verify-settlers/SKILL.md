@@ -6,12 +6,13 @@ description: The dev-loop verification ladder for the Settlers ("Empires") iOS a
 # Verify Settlers
 
 **"It builds" is a compile claim. "It works" is a runtime claim, and no compiler
-emits one.** This repo has no UI test - `xcodebuild test -scheme Settlers` was
-literally empty until this week - so above the two SPM packages nothing executes
-a line of the app until a person launches it. An app that compiles, lints,
-passes 178 tests and clears both coverage floors can still fail to install,
-crash inside `GameViewModel.init()`, or paint a blank screen, and every gate in
-`scripts/gate.sh` stays green while it does.
+emits one.** This repo has no UI test at all, and until 2026-08-29 it had no app
+tests either - `project.yml` said `test: targets: []`, so `xcodebuild test
+-scheme Settlers` ran literally nothing. An app that compiles, lints, passes
+every test (176 package tests at `4b99aff`; the count moves) and clears both
+coverage floors can still fail to install, crash inside `GameViewModel.init()`,
+or paint a blank screen, and every gate in `scripts/gate.sh` stays green while
+it does.
 
 **The last rung is deliberately not automated.** Rungs 1-5 can all be green on a
 white screen: the bundle installed, the process is alive, no crash report
@@ -23,7 +24,7 @@ it has no right to give.
 
 | Path | Status |
 |---|---|
-| **`scripts/verify.sh` full, all six rungs** | **RUN AND PROVEN 2026-08-29, exit 0**, on `iPhone 17 Pro` (`175016BD-5123-479A-AC91-4E852DF2FE06`), against `4b99aff`. Gate green in 130s (`swiftlint --strict` 0s, packages W=E 10s, CatanEngine tests 11s, CatanAI tests 86s, coverage CatanEngine **95.50%** / CatanAI **91.52%**, gitleaks 1s, app build Release 21s); then Debug built, uninstalled, installed, launched as pid 11383, alive after 6s, no crash report, screenshot taken **and read** - the Empires main menu with "Randomized Board" / "Randomize Seat" and "New Game". |
+| **`scripts/verify.sh` full, all six rungs** | **RUN AND PROVEN 2026-08-29, exit 0, twice** - once against `4b99aff` in an isolated worktree and once in the live tree - on `iPhone 17 Pro` (`175016BD-5123-479A-AC91-4E852DF2FE06`). Live run: gate green in ~100s (xcodegen drift, `swiftlint --strict`, packages W=E 4s, CatanEngine tests 5s, CatanAI tests 77s, coverage CatanEngine **95.16%** / CatanAI **91.32%**, gitleaks 1s, app tests 6s, app build Release 8s); then Debug built, uninstalled, installed, launched as pid 85991, alive after 6s, no crash report, screenshot taken **and read** - the Empires main menu with "Randomized Board" / "Randomize Seat" and "New Game". |
 | **`scripts/verify.sh --skip-gate`** | **RUN AND PROVEN 2026-08-29, exit 0.** Same ladder minus rung 2, ~90s instead of ~4min. The summary line reads `SKIP`, loudly. |
 | **The crash-report diff (rung 5) firing on a real crash** | **NEVER SEEN RED.** The `Settlers[-.]` filter and the `comm -13` diff are correct by construction and were exercised on a clean run, but no crash has been produced to prove they catch one. Treat a green rung 5 as "nothing appeared", not as "a crash would have been caught". |
 | **`kill -0 $PID` (rung 5)** | **RUN AND PROVEN 2026-08-29.** Simulator processes are ordinary host processes owned by this user, so the signal-0 liveness test is valid from the host shell. pid 84107 answered. |

@@ -97,10 +97,10 @@ private func playSeededGame(seed: UInt64) -> (fingerprint: String, moves: Int, w
         Bot(personality: .balanced), Bot(personality: .aggressive),
         Bot(personality: .cautious), Bot(personality: .balanced),
     ]
-    // The bot's own tie-breaks are seeded too. `Bot.decide(for:player:)` - the
-    // overload without an RNG - builds a fresh `SystemRandomNumberGenerator`
-    // on every call, so it can never be reproducible; a measurement harness
-    // must use this overload.
+    // The bot's own tie-breaks are seeded too, via the `rng:` overload used
+    // below. `Bot.decide(for:player:)` - the overload WITHOUT an rng - builds
+    // a fresh `SystemRandomNumberGenerator` on every call, so it can never be
+    // reproducible and a measurement harness must never use it.
     var botRNG = RandomSource(seed: seed &* 31 &+ 7)
     var trace: [String] = []
 

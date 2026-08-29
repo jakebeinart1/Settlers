@@ -37,7 +37,7 @@
 # reaching the compiler. Hence the `shell: bash` default below.
 #
 # The iOS app build is deliberately NOT here. It needs macOS, takes ~2 minutes,
-# and the pre-push gate already compiles it on request (`gate.sh --with-app`).
+# and the pre-push gate compiles it in Release on every run.
 
 name: CI
 
