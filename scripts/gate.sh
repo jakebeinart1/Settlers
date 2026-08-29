@@ -141,7 +141,21 @@ gate_secrets() {
   fi
 }
 
-# --- 7. The app target ----------------------------------------------------
+# --- 7. The app target's own tests ----------------------------------------
+# `xcodebuild test -scheme Settlers` used to answer "Scheme Settlers is not
+# currently configured for the test action" - the scheme's test target list was
+# literally empty, so 6,700 lines of app code had no tests and any gate built on
+# that command would have been a false green. The scheme is wired now.
+gate_app_tests() {
+  local sim; sim="$(first_iphone_simulator)"
+  if [[ -z "$sim" ]]; then return 200; fi
+  xcodebuild test -project Settlers.xcodeproj -scheme Settlers \
+    -destination "platform=iOS Simulator,id=$sim" 2>&1 \
+    | grep -E "error:|✘|Test run with|TEST SUCCEEDED|TEST FAILED" | sort -u
+  return "${PIPESTATUS[0]}"
+}
+
+# --- 8. The app target ----------------------------------------------------
 # Compiled in RELEASE, and not optional.
 #
 # This gate started out Debug-only and opt-in, and that combination let a real
@@ -150,15 +164,18 @@ gate_secrets() {
 # entirely - and every gate stayed green over it, because nothing here ever
 # built the configuration that would ship. Debug and Release are different
 # programs the moment a `#if` enters the codebase.
-gate_app_build() {
-  local sim
-  sim="$(xcrun simctl list devices available -j 2>/dev/null \
+first_iphone_simulator() {
+  xcrun simctl list devices available -j 2>/dev/null \
     | python3 -c 'import json,sys
 d=json.load(sys.stdin)["devices"]
 for runtime, devices in d.items():
     for dev in devices:
         if "iPhone" in dev["name"]:
-            print(dev["udid"]); raise SystemExit' 2>/dev/null)"
+            print(dev["udid"]); raise SystemExit' 2>/dev/null
+}
+
+gate_app_build() {
+  local sim; sim="$(first_iphone_simulator)"
   if [[ -z "$sim" ]]; then return 200; fi
   xcodebuild -project Settlers.xcodeproj -scheme Settlers \
     -destination "platform=iOS Simulator,id=$sim" \
@@ -193,6 +210,7 @@ maybe "CatanEngine tests"       gate_engine_tests
 maybe "CatanAI tests"           gate_ai_tests
 maybe "coverage floors"         gate_coverage
 maybe "gitleaks"                gate_secrets
+maybe "app tests"               gate_app_tests
 maybe "app build (Release)"     gate_app_build Release
 if [[ $WITH_DEBUG_APP -eq 1 ]]; then
   maybe "app build (Debug)"     gate_app_build Debug

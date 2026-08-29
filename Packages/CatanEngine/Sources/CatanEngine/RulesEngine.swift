@@ -365,7 +365,13 @@ public enum RulesEngine {
 
     // MARK: - Helpers
 
-    static func canAfford(_ cost: [Resource: Int], player: Player) -> Bool {
+    /// Whether `player` holds at least `cost`.
+    ///
+    /// Public because it was otherwise re-implemented by hand at seven call
+    /// sites across the engine, the AI and the views - each an opportunity for
+    /// one of them to drift from the rule the engine actually enforces, which
+    /// is exactly how the bank-trade bug shipped.
+    public static func canAfford(_ cost: [Resource: Int], player: Player) -> Bool {
         cost.allSatisfy { resource, amount in (player.resources[resource] ?? 0) >= amount }
     }
 

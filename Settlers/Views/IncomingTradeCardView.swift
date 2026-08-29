@@ -137,7 +137,7 @@ public struct IncomingTradeCardView: View {
         // smaller natural size inside a taller invisible box - see
         // `GameView.robberTargetingPanel`'s doc comment for why that
         // ordering matters.
-        .frame(height: 75.33)
+        .frame(height: BottomRowMetrics.height)
         .background(CatanTheme.hudChipBackgroundActive, in: RoundedRectangle(cornerRadius: 12))
         // The proposing bot's own civ color, not the old flat white hairline
         // - `CatanTheme.color(for:)` is the same color used for that bot's

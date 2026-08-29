@@ -66,12 +66,36 @@ targets:
           - UIInterfaceOrientationPortrait
           - UIInterfaceOrientationLandscapeLeft
           - UIInterfaceOrientationLandscapeRight
+  # The app target had NO tests at all - 6,700 lines, 0% covered, and all
+  # three bugs known to have shipped lived in it. `swift test` only reaches
+  # the two SPM packages; nothing could ever reach `GameViewModel` or the
+  # persistence stores.
+  SettlersTests:
+    type: bundle.unit-test
+    platform: iOS
+    sources: [SettlersTests]
+    settings:
+      base:
+        SWIFT_VERSION: "6.0"
+        SWIFT_TREAT_WARNINGS_AS_ERRORS: YES
+        GENERATE_INFOPLIST_FILE: YES
+    dependencies:
+      - target: Settlers
+
 schemes:
   Settlers:
     build:
       targets:
         Settlers: all
+        SettlersTests: [test]
     test:
-      targets: []
+      # Was `targets: []`, which made `xcodebuild test -scheme Settlers`
+      # report "Scheme is not currently configured for the test action" -
+      # so any gate built on it would have been a false green.
+      targets:
+        - SettlersTests
+      gatherCoverageData: true
+      coverageTargets:
+        - Settlers
     run:
       config: Debug

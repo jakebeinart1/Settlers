@@ -139,6 +139,27 @@ public struct GameState: Codable, Sendable {
     /// Total victory points for `id`: building/dev-card VPs from `Player`,
     /// plus the +2 longest-road/largest-army bonuses tracked here since they
     /// depend on cross-player comparison.
+    /// Victory points that are public knowledge for `id`: buildings plus the
+    /// longest-road and largest-army bonuses, all of them visible on the
+    /// board. Deliberately excludes held-but-unplayed victory-point cards,
+    /// which are hidden information exactly like the rest of a hand.
+    ///
+    /// This lives here rather than in the HUD that displays it. A second
+    /// victory-point formula in a view is a formula that can drift from the
+    /// engine's - and the two differ only by the term that decides whether
+    /// hidden information leaks, which is the worst possible thing to
+    /// maintain in two places.
+    public func publicVictoryPoints(for id: PlayerID) -> Int {
+        guard let player = players.first(where: { $0.id == id }) else { return 0 }
+        var total = player.settlements.count + player.cities.count * 2
+        if longestRoadPlayer == id { total += 2 }
+        if largestArmyPlayer == id { total += 2 }
+        return total
+    }
+
+    /// Total victory points for `id`, INCLUDING hidden victory-point cards.
+    /// Correct for a player's own total; use `publicVictoryPoints(for:)` for
+    /// anything an opponent can see.
     public func victoryPoints(for id: PlayerID) -> Int {
         guard let player = players.first(where: { $0.id == id }) else { return 0 }
         var total = player.victoryPoints

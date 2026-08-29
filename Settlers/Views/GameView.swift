@@ -820,7 +820,7 @@ public struct GameView: View {
     /// `IncomingTradeCardView`'s own root frame, since that view lives in a
     /// separate file and takes over this same `bottomPanel` row - keep both
     /// in sync if this ever changes.
-    private static let actionRowHeight: CGFloat = 75.33
+    private static let actionRowHeight: CGFloat = BottomRowMetrics.height
 
     private var isTradeAvailable: Bool {
         if case .mainTurn(let index) = state.phase, index == human.index { return true }
@@ -1134,13 +1134,15 @@ public struct GameView: View {
     /// `offer.give` (mirrors `Trading.respond`'s own re-check, so a card
     /// shown to the human is always one `Trading.respond` will actually
     /// honor).
+    /// Whether an offer is still honourable by both sides, per the engine.
+    ///
+    /// This used to re-derive the two affordability checks by hand. The engine
+    /// enforces the same pair in `Trading.respond` and gates on them in
+    /// `legalMoves`, so a local copy could only ever agree by luck - and the
+    /// one other place a view re-derived a trade rule is where the reported
+    /// bank-trade bug lived.
     private func isOfferCurrentlyFulfillable(_ offer: TradeOffer) -> Bool {
-        guard let proposer = state.players.first(where: { $0.id == offer.from }),
-              let responder = state.players.first(where: { $0.id == human })
-        else { return false }
-        let humanCanAfford = offer.want.allSatisfy { resource, amount in (responder.resources[resource] ?? 0) >= amount }
-        let proposerCanAfford = offer.give.allSatisfy { resource, amount in (proposer.resources[resource] ?? 0) >= amount }
-        return humanCanAfford && proposerCanAfford
+        Trading.bothSidesCanHonour(offer, responder: human, state: state)
     }
 
     private func respond(to offer: TradeOffer, accept: Bool) {

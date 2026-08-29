@@ -130,35 +130,10 @@ public struct DevCardPopupView: View {
         }
     }
 
-    private var icon: String {
-        switch type {
-        case .knight: return "shield.fill"
-        case .roadBuilding: return "road.lanes"
-        case .yearOfPlenty: return "sparkles"
-        case .monopoly: return "crown.fill"
-        case .victoryPoint: return "star.fill"
-        }
-    }
-
-    private var color: Color {
-        switch type {
-        case .knight: return .red
-        case .roadBuilding: return .brown
-        case .yearOfPlenty: return .green
-        case .monopoly: return .purple
-        case .victoryPoint: return Color(red: 0.85, green: 0.65, blue: 0.1)
-        }
-    }
-
-    private var title: String {
-        switch type {
-        case .knight: return "Knight"
-        case .roadBuilding: return "Road Building"
-        case .yearOfPlenty: return "Year of Plenty"
-        case .monopoly: return "Monopoly"
-        case .victoryPoint: return "Victory Point"
-        }
-    }
+    // See `DevCardStyle` - shared with the HUD's dev-card strip.
+    private var icon: String { DevCardStyle.icon(for: type) }
+    private var color: Color { DevCardStyle.color(for: type) }
+    private var title: String { DevCardStyle.fullName(for: type) }
 }
 
 /// Shared themed card chrome for the popups that replaced sheets in this

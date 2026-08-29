@@ -51,19 +51,4 @@ public enum GameEvent: Codable, Sendable, Hashable {
     case rejectedTrade(PlayerID, from: PlayerID)
     case endedTurn(PlayerID)
     case gameWon(PlayerID)
-
-    /// The seat this event is about.
-    public var actor: PlayerID {
-        switch self {
-        case .placedInitialSettlement(let p), .placedInitialRoad(let p),
-             .rolled(let p, _), .discarded(let p, _),
-             .builtRoad(let p), .builtSettlement(let p), .builtCity(let p),
-             .boughtDevCard(let p), .movedRobber(let p, _, _), .playedKnight(let p, _, _),
-             .playedRoadBuilding(let p), .playedYearOfPlenty(let p, _),
-             .playedMonopoly(let p, _, _), .tradedWithBank(let p, _, _),
-             .proposedTrade(let p, _, _), .acceptedTrade(let p, _, _, _),
-             .rejectedTrade(let p, _), .endedTurn(let p), .gameWon(let p):
-            return p
-        }
-    }
 }
