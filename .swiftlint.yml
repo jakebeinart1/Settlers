@@ -1,0 +1,74 @@
+# SwiftLint configuration.
+#
+# The thresholds below are pinned just ABOVE today's worst offenders rather than
+# at SwiftLint's defaults. A gate that is red on the day it is installed gets
+# ignored, and an ignored gate is worse than no gate because it stops anyone
+# looking for coverage. These start green and ratchet DOWN as the code improves.
+#
+# Worst offenders as of 2026-08-29 (mostly RulesEngine.swift and GameView.swift):
+#   cyclomatic 43 · function body 143 · line 191 · file 1174 · type body 627
+#
+# `excluded:` paths resolve relative to THIS FILE's directory, which is why this
+# config has to live at the repo root - placed anywhere else the exclusions
+# silently match nothing and the run comes back with a different count.
+excluded:
+  # SwiftPM generates `runner.swift` under .build. SwiftLint walks the
+  # filesystem rather than git, so without these the violation count depends on
+  # whether you happen to have built recently - a fresh CI checkout and a local
+  # run would legitimately disagree. That non-determinism is worse than either
+  # number.
+  - Packages/CatanEngine/.build
+  - Packages/CatanAI/.build
+  - .build
+  - .ci-derived
+  # Tracked, but not a build target: `project.yml` compiles only `Settlers/`.
+  # These are stale design-handoff copies awaiting deletion.
+  - ClaudeDesignExport
+  - BuildingsDesignExport
+
+disabled_rules:
+  - trailing_comma
+  - todo
+
+identifier_name:
+  # The default minimum rejects `r`, `g`, `b`, `q`, `x` - all of which are the
+  # clearest possible names in hex-grid and colour maths.
+  min_length: 1
+  max_length: 60
+  allowed_symbols: ["_"]
+
+type_name:
+  max_length: 60
+
+line_length:
+  warning: 200
+  error: 260
+  ignores_comments: true
+  ignores_urls: true
+
+function_body_length:
+  warning: 150
+  error: 200
+
+type_body_length:
+  warning: 700
+  error: 900
+
+file_length:
+  warning: 1250
+  error: 1600
+
+cyclomatic_complexity:
+  warning: 45
+  error: 60
+
+large_tuple:
+  warning: 4
+  error: 6
+
+function_parameter_count:
+  warning: 7
+  error: 9
+
+nesting:
+  type_level: 2

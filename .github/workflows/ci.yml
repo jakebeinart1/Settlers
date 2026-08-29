@@ -1,0 +1,119 @@
+# Continuous Integration for Settlers ("Empires").
+#
+# WHAT THIS IS FOR, precisely. Branch protection is unavailable on this
+# repository - `gh api repos/jakebeinart1/Settlers/branches/main/protection`
+# answers 403 "Upgrade to GitHub Pro or make this repository public", and Alex
+# is not an admin on it in any case. So this workflow CANNOT block a merge and
+# should not be described as if it does. The blocking gate is the pre-push hook
+# (scripts/install-hooks.sh -> scripts/gate.sh), which refuses locally.
+#
+# CI's job here is the one thing a developer machine structurally cannot do:
+# prove the tests pass on a clean checkout, with no .build, no DerivedData, no
+# locally-installed tool, and no stale generated file.
+#
+# WHY THE PACKAGE TESTS RUN ON UBUNTU. GitHub bills macOS runners at a 10x
+# minute multiplier: the 2,000 minutes included on a private repo buy 2,000
+# Linux minutes or 200 macOS ones. Alex has been here before - on 2026-07-27 the
+# allowance ran out mid-month across BridgeRead and GlobalConquest and every
+# workflow began failing in about two seconds having run zero steps, which took
+# the daily news job with it. Both repos moved their gates to pre-push hooks
+# that same afternoon. Reintroducing a per-push macOS job would relitigate that
+# decision at ten times the price.
+#
+# CatanEngine and CatanAI import only Foundation and Testing - no UIKit, no
+# SwiftUI, no Darwin, no Objective-C - and have zero external dependencies, so
+# they should build and test on Linux. The `platforms:` line in Package.swift
+# sets minimum *Apple* versions and does not exclude Linux.
+#
+# VERIFIED 2026-08-29, run 33273621617: both packages build with
+# `-warnings-as-errors` and all 174 tests pass in the `swift:6.1` container on
+# `ubuntu-latest`. The job takes ~4 minutes, SwiftLint ~30 seconds, so a run
+# costs about 4.5 billable minutes. The same work on a macOS runner would bill
+# roughly 45, which is the difference between ~440 runs a month against the
+# included allowance and ~44.
+#
+# The one earlier failure was NOT a Linux incompatibility: the swift image
+# defaults to dash, which has no `set -o pipefail`, so the step aborted before
+# reaching the compiler. Hence the `shell: bash` default below.
+#
+# The iOS app build is deliberately NOT here. It needs macOS, takes ~2 minutes,
+# and the pre-push gate already compiles it on request (`gate.sh --with-app`).
+
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+# A superseded run tells you nothing and still spends minutes.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  packages:
+    name: Engine + AI (Linux)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    container: swift:6.1
+    defaults:
+      run:
+        # The swift image's default shell is dash, which has no `pipefail` -
+        # without this, `set -euo pipefail` aborts the step with "Illegal
+        # option -o pipefail" before a single Swift command runs, which reads
+        # like a Linux incompatibility and is not one.
+        shell: bash
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Build with warnings as errors
+        run: |
+          set -euo pipefail
+          for package in Packages/CatanEngine Packages/CatanAI; do
+            echo "::group::build $package"
+            swift build --package-path "$package" -Xswiftc -warnings-as-errors
+            echo "::endgroup::"
+          done
+
+      - name: Test
+        run: |
+          set -euo pipefail
+          for package in Packages/CatanEngine Packages/CatanAI; do
+            echo "::group::test $package"
+            swift test --package-path "$package"
+            echo "::endgroup::"
+          done
+
+  lint:
+    name: SwiftLint
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    container: ghcr.io/realm/swiftlint:latest
+    steps:
+      - uses: actions/checkout@v5
+      # --strict promotes warnings to errors. The config is tuned so this is
+      # green today; see the header of .swiftlint.yml for why the thresholds sit
+      # where they do.
+      - run: swiftlint lint --strict --reporter github-actions-logging
+
+  generated-project:
+    name: project.yml drift
+    runs-on: macos-latest
+    timeout-minutes: 10
+    # Only on demand: this is the one job that needs macOS (XcodeGen ships as a
+    # macOS binary), and the pre-push gate already checks drift on every push.
+    # Kept so it can be run deliberately after changing project.yml.
+    if: github.event_name == 'workflow_dispatch'
+    steps:
+      - uses: actions/checkout@v5
+      - run: brew install xcodegen
+      - name: Regenerating must not change the committed project
+        run: |
+          set -euo pipefail
+          xcodegen generate
+          if ! git diff --exit-code --stat Settlers.xcodeproj; then
+            echo "::error::Settlers.xcodeproj is stale. Run 'xcodegen generate' and commit."
+            exit 1
+          fi

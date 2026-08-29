@@ -19,7 +19,7 @@ import SwiftUI
 /// decision in chat.
 struct GoldRowButton<Trailing: View>: View {
     let title: String
-    var subtitle: String? = nil
+    var subtitle: String?
     let systemImage: String
     var iconColor: Color = .white
     var titleColor: Color = .white

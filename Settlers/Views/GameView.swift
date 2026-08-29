@@ -157,9 +157,7 @@ public struct GameView: View {
     /// without the drama of a live animation demanding their attention.
     @State private var rollHistory: [Int] = []
 
-    /// Reserved height for the road-building hint / error message row - see
-    /// `StableHeightSlot`.
-    // Seeded with the row's actual measured height (see chat: rendered a
+    // Seeded with the row's actual measured height (rendered a
     // faithful reproduction and read off its real size) rather than 0 -
     // `StableHeightSlot` still grows to fit if real content ever needs more,
     // but starting from a real estimate means there's no gap between "app
@@ -168,9 +166,10 @@ public struct GameView: View {
     // itself - was the actual hole in the previous fix: this was 0 until the
     // first real occurrence, and a bare `Color.clear` placeholder (now fixed
     // separately) was what turned that brief 0 into a collapsed board.
-    /// Shared by the road-building hint and the error message, the only two
-    /// occupants now that the incoming-trade card lives in `bottomPanel`
-    /// instead - seeded at one caption line's height (~20pt).
+    /// Reserved height for the road-building hint / error message row - see
+    /// `StableHeightSlot`. Shared by the road-building hint and the error
+    /// message, the only two occupants now that the incoming-trade card lives
+    /// in `bottomPanel` instead - seeded at one caption line's height (~20pt).
     @State private var infoBannerHeight: CGFloat = 20
 
     private var state: GameState { viewModel.state }
@@ -417,7 +416,17 @@ public struct GameView: View {
             case .rollDice(let playerIndex) where playerIndex == human.index:
                 try? viewModel.apply(.rollDice)
                 return
-            case .setupForward(let playerIndex), .setupBackward(let playerIndex) where playerIndex == human.index:
+            // The `where` clause has to be repeated on BOTH patterns. Swift
+            // applies it only to the pattern it directly follows, so the
+            // previous single-clause spelling left `.setupForward` matching
+            // *any* seat - including a bot's setup turn, which then ran
+            // `bot.decide` for the human and applied a move the engine
+            // rejected as out-of-turn. A `try?` swallowed the error, so the
+            // hook looked like it worked while quietly doing nothing on those
+            // iterations. The compiler warns about this; `-warnings-as-errors`
+            // is what surfaced it.
+            case .setupForward(let playerIndex) where playerIndex == human.index,
+                 .setupBackward(let playerIndex) where playerIndex == human.index:
                 // `viewModel.apply` always applies as the human seat, so
                 // only the human's own setup turns can be driven this way -
                 // any interleaved bot turns fall through to the

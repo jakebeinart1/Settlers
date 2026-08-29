@@ -26,7 +26,7 @@ public struct DiscardPopupView: View {
     public var body: some View {
         // No dismiss-by-tapping-outside here (`onDismiss: {}`) - discarding
         // is mandatory, matching the old sheet's `interactiveDismissDisabled`.
-        PopupCard(onDismiss: {}) {
+        PopupCard(onDismiss: {}, content: {
             VStack(spacing: 14) {
                 VStack(spacing: 2) {
                     Text("Discard \(selectedCount) of \(requiredCount)")
@@ -68,7 +68,7 @@ public struct DiscardPopupView: View {
             }
             .padding(16)
             .frame(maxWidth: 320)
-        }
+        })
     }
 
     /// Your hand, minus whatever's already moved into the discard slot -

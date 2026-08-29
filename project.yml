@@ -19,6 +19,16 @@ targets:
     settings:
       base:
         SWIFT_VERSION: "6.0"
+        # A warning nobody has to act on is a warning everybody stops reading.
+        # This is not hypothetical here: the two warnings standing when this was
+        # turned on were a single real bug - a `where` clause in GameView's QA
+        # fast-forward bound to only the last pattern, so `.setupForward`
+        # matched every seat and drove a human move on a bot's setup turn. The
+        # error it produced was swallowed by a `try?`, so nothing ever surfaced
+        # it. Swift 6 language mode already implies complete concurrency
+        # checking, so this is the remaining lever.
+        SWIFT_TREAT_WARNINGS_AS_ERRORS: YES
+        GCC_TREAT_WARNINGS_AS_ERRORS: YES
         PRODUCT_BUNDLE_IDENTIFIER: com.jakebeinart.settlers
         TARGETED_DEVICE_FAMILY: "1"
         SUPPORTS_MACCATALYST: false
