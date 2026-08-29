@@ -175,6 +175,7 @@ public final class GameViewModel {
         // existed.
         pendingTradeConfirmation = nil
         lastTradeOutcome = nil
+        lastEvents = []
         offerProposedAt = [:]
         accumulatedActiveDuration = 0
         activeSince = Date()
@@ -212,7 +213,7 @@ public final class GameViewModel {
             return id
         }()
 
-        try RulesEngine.apply(move, by: player, to: &state)
+        lastEvents = try RulesEngine.apply(move, by: player, to: &state)
         GameLogStore.shared.appendMove(gameID: gameLogID, player: player, move: move)
 
         if case .proposeTrade(let offer) = move {
@@ -552,6 +553,20 @@ public final class GameViewModel {
     /// `Task` handle keeps this correct no matter which of the four call sites
     /// spawned the loop.
     public private(set) var gameGeneration = 0
+
+    /// What the engine reported for the most recently applied move.
+    ///
+    /// `RulesEngine.apply` returns structured `GameEvent`s now instead of
+    /// appending prose to `GameState`. Views observe this rather than
+    /// substring-matching sentences: `GameView`'s roll highlight used to look
+    /// for `" rolled "` in the log, so rewording one sentence would silently
+    /// have broken a visual effect.
+    ///
+    /// This is the last batch only, not a transcript. Nothing on screen needs
+    /// history today, and keeping one here would reintroduce the unbounded
+    /// growth that removing `GameState.log` just eliminated. `GameLogStore`
+    /// is where a durable record belongs.
+    public private(set) var lastEvents: [GameEvent] = []
 
     /// True when a save file was present at launch but could not be decoded.
     /// Surfaced by `ContentView` so a lost game is reported rather than

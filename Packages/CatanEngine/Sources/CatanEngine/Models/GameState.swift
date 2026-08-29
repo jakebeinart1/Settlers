@@ -25,7 +25,10 @@ public struct GameState: Codable, Sendable {
     public var longestRoadPlayer: PlayerID?
     public var largestArmyPlayer: PlayerID?
     public var pendingTradeOffers: [TradeOffer]
-    public var log: [String]
+    // NOTE: `log: [String]` used to live here. It was removed - see `GameEvent`.
+    // It grew about one entry per move (roughly six thousand by the end of a
+    // long game) inside a value type that search, simulation and every save
+    // copy wholesale, and nothing in the engine ever read it back.
     /// The index of the player who rolled a 7, carried across an intervening
     /// `.discarding` phase so `.movingRobber(playerIndex:)` names the roller
     /// (not whichever player happened to discard last). `nil` outside that
@@ -60,7 +63,6 @@ public struct GameState: Codable, Sendable {
         longestRoadPlayer: PlayerID? = nil,
         largestArmyPlayer: PlayerID? = nil,
         pendingTradeOffers: [TradeOffer] = [],
-        log: [String] = [],
         robberMoverIndex: Int? = nil,
         devCardsBoughtThisTurn: [PlayerID: [DevCardType]] = [:],
         devCardPlayedThisTurn: PlayerID? = nil,
@@ -79,7 +81,6 @@ public struct GameState: Codable, Sendable {
         self.longestRoadPlayer = longestRoadPlayer
         self.largestArmyPlayer = largestArmyPlayer
         self.pendingTradeOffers = pendingTradeOffers
-        self.log = log
         self.robberMoverIndex = robberMoverIndex
         self.devCardsBoughtThisTurn = devCardsBoughtThisTurn
         self.devCardPlayedThisTurn = devCardPlayedThisTurn
@@ -127,7 +128,6 @@ public struct GameState: Codable, Sendable {
         longestRoadPlayer = try container.decodeIfPresent(PlayerID.self, forKey: .longestRoadPlayer)
         largestArmyPlayer = try container.decodeIfPresent(PlayerID.self, forKey: .largestArmyPlayer)
         pendingTradeOffers = try container.decodeIfPresent([TradeOffer].self, forKey: .pendingTradeOffers) ?? []
-        log = try container.decodeIfPresent([String].self, forKey: .log) ?? []
         robberMoverIndex = try container.decodeIfPresent(Int.self, forKey: .robberMoverIndex)
         devCardsBoughtThisTurn = try container
             .decodeIfPresent([PlayerID: [DevCardType]].self, forKey: .devCardsBoughtThisTurn) ?? [:]

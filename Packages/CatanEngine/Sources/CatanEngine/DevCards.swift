@@ -22,14 +22,15 @@ public enum DevCards {
     /// consumes the played knight and increments `player.playedKnights`,
     /// recomputing `largestArmyPlayer` (first to 3 knights; ties keep the
     /// current holder, matching longest-road tie handling).
+    @discardableResult
     public static func playKnight(
         moveRobberTo: HexCoordinate,
         stealFrom: PlayerID?,
         by player: PlayerID,
         state: inout GameState
-    ) throws {
+    ) throws -> Resource? {
         guard canPlay(.knight, by: player, in: state) else { throw MoveError.illegalPlacement }
-        try Robber.apply(move: moveRobberTo, stealFrom: stealFrom, by: player, to: &state)
+        let stolen = try Robber.apply(move: moveRobberTo, stealFrom: stealFrom, by: player, to: &state)
         consumeCard(.knight, from: player, state: &state)
         state.devCardPlayedThisTurn = player
 
@@ -38,6 +39,7 @@ public enum DevCards {
         }
         state.players[playerIndex].playedKnights += 1
         state.largestArmyPlayer = computeLargestArmy(for: state)
+        return stolen
     }
 
     /// Builds `e1` then `e2` for free (skips resource cost, but each edge
@@ -90,20 +92,24 @@ public enum DevCards {
     }
 
     /// Every other player hands over all of their `resource` cards to
-    /// `player`.
-    public static func playMonopoly(_ resource: Resource, by player: PlayerID, state: inout GameState) throws {
+    /// `player`. Returns how many were collected.
+    @discardableResult
+    public static func playMonopoly(_ resource: Resource, by player: PlayerID, state: inout GameState) throws -> Int {
         guard canPlay(.monopoly, by: player, in: state) else { throw MoveError.illegalPlacement }
         guard let playerIndex = state.players.firstIndex(where: { $0.id == player }) else {
             throw MoveError.other("unknown player")
         }
+        var collected = 0
         for index in state.players.indices where state.players[index].id != player {
             let amount = state.players[index].resources[resource] ?? 0
             guard amount > 0 else { continue }
             state.players[index].resources[resource, default: 0] -= amount
             state.players[playerIndex].resources[resource, default: 0] += amount
+            collected += amount
         }
         consumeCard(.monopoly, from: player, state: &state)
         state.devCardPlayedThisTurn = player
+        return collected
     }
 
     /// Whether `player` holds a card of `type` that wasn't bought this turn,

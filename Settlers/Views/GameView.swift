@@ -149,12 +149,9 @@ public struct GameView: View {
     @State private var incomingOfferQueue: [TradeOffer] = []
     @State private var seenTradeOfferIDs: Set<UUID> = []
 
-    /// Tiles matching the most recent roll, briefly outlined on the board -
-    /// and the last count of `state.log` already scanned for one, so a
-    /// growth of exactly the lines added since then can be checked for a
-    /// "rolled N" line without re-scanning the whole log every render.
+    /// Tiles matching the most recent roll, briefly outlined on the board.
+    /// Driven by the engine's `.rolled` event - see `handleEvents`.
     @State private var rollHighlightTiles: Set<HexCoordinate> = []
-    @State private var lastSeenLogCount = 0
 
     /// The dice chip's own small history line - up to the 3 rolls before
     /// the current one, oldest last, shown in a faded caption so someone
@@ -341,7 +338,6 @@ public struct GameView: View {
         .fontDesign(.serif)
         .onAppear {
             seenTradeOfferIDs = Set(state.pendingTradeOffers.map(\.id))
-            lastSeenLogCount = state.log.count
             // `-qaShowPendingTradeConfirmation`: same escape hatch pattern
             // as `-qaShowTradePopup` - opens the trade popup straight into
             // its "a bot will accept" confirmation step for QA
@@ -403,8 +399,8 @@ public struct GameView: View {
             }
             animateDiceRoll()
         }
-        .onChange(of: state.log.count) { _, newCount in
-            handleLogGrowth(newCount: newCount)
+        .onChange(of: viewModel.lastEvents) { _, events in
+            handleEvents(events)
         }
         .onChange(of: isRobberTargetingActive) { _, isActive in
             if !isActive { robberTargetTile = nil }
@@ -1159,17 +1155,18 @@ public struct GameView: View {
 
     // MARK: - Roll tile highlight
 
-    /// Watches `state.log` growth purely to notice "X rolled N" lines (the
-    /// exact phrasing `RulesEngine.apply(.rollDice, ...)` appends - a small,
-    /// disclosed coupling to log wording, same tradeoff `GameView`'s old
-    /// notification-classifier made) so the producing tiles can be
-    /// highlighted regardless of whether the human or a bot rolled it.
-    private func handleLogGrowth(newCount: Int) {
-        defer { lastSeenLogCount = newCount }
-        guard newCount > lastSeenLogCount, newCount <= state.log.count else { return }
-        guard state.log[lastSeenLogCount..<newCount].contains(where: { $0.contains(" rolled ") }),
-              let roll = state.lastDiceRoll else { return }
-        highlightProducingTiles(for: roll)
+    /// Highlights the producing tiles whenever a roll happens, whoever rolled.
+    ///
+    /// This used to watch `state.log` grow and look for the substring
+    /// `" rolled "` - the exact sentence the engine happened to append - so
+    /// rewording that sentence would have silently killed the highlight, and
+    /// nothing would have failed to say so. Matching `.rolled` cannot break
+    /// that way, and the roll total arrives in the event rather than being
+    /// read back out of state.
+    private func handleEvents(_ events: [GameEvent]) {
+        for case .rolled(_, let total) in events {
+            highlightProducingTiles(for: total)
+        }
     }
 
     /// Briefly outlines every tile matching `roll` (mirrors `MainPhase

@@ -17,12 +17,16 @@ public enum Robber {
     /// `robberTo` must differ from the current robber tile; a non-nil
     /// `stealFrom` must name a player with a settlement/city touching
     /// `robberTo` and at least one resource card.
+    /// Returns the resource actually stolen, or `nil` if nothing was taken.
+    /// Only the engine knows which card the robber drew, so it has to say -
+    /// otherwise a recorded game cannot report it and a replay cannot check it.
+    @discardableResult
     public static func apply(
         move robberTo: HexCoordinate,
         stealFrom: PlayerID?,
         by player: PlayerID,
         to state: inout GameState
-    ) throws {
+    ) throws -> Resource? {
         guard robberTo != state.board.robberTile else { throw MoveError.illegalPlacement }
 
         if let victimID = stealFrom {
@@ -48,9 +52,12 @@ public enum Robber {
             let stolen = pool.randomElement(using: &state.rng)!
             state.players[victimIndex].resources[stolen, default: 0] -= 1
             state.players[thiefIndex].resources[stolen, default: 0] += 1
+            state.board.robberTile = robberTo
+            return stolen
         }
 
         state.board.robberTile = robberTo
+        return nil
     }
 
     /// Players eligible to be stolen from once the robber sits on `tile`:
