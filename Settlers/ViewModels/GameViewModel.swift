@@ -175,7 +175,7 @@ public final class GameViewModel {
         // existed.
         pendingTradeConfirmation = nil
         lastTradeOutcome = nil
-        lastEvents = []
+        eventBatch = EventBatch(sequence: eventBatch.sequence + 1, events: [])
         offerProposedAt = [:]
         accumulatedActiveDuration = 0
         activeSince = Date()
@@ -213,7 +213,9 @@ public final class GameViewModel {
             return id
         }()
 
-        lastEvents = try RulesEngine.apply(move, by: player, to: &state)
+        eventBatch = EventBatch(
+            sequence: eventBatch.sequence,
+            events: eventBatch.events + (try RulesEngine.apply(move, by: player, to: &state)))
         GameLogStore.shared.appendMove(gameID: gameLogID, player: player, move: move)
 
         if case .proposeTrade(let offer) = move {
@@ -282,6 +284,7 @@ public final class GameViewModel {
     /// and only `RulesEngine.apply`'s own errors indicate the human's move
     /// itself was rejected.
     public func apply(_ move: GameMove) throws {
+        beginEventBatch()
         try applyLogged(move, by: humanPlayer)
         if case .proposeTrade(let offer) = move, offer.from == humanPlayer {
             resolveHumanProposedTrade(offer)
@@ -458,6 +461,7 @@ public final class GameViewModel {
     /// attempt that didn't move any cards reports a failure reason.
     @discardableResult
     public func confirmPendingTrade() -> TradeConfirmationResult {
+        beginEventBatch()
         guard let pending = pendingTradeConfirmation else { return .succeeded }
         pendingTradeConfirmation = nil
 
@@ -489,6 +493,7 @@ public final class GameViewModel {
     /// `pendingTradeOffers`. See `confirmPendingTrade` for why the offer's
     /// continued presence is re-checked rather than assumed.
     public func declinePendingTrade() {
+        beginEventBatch()
         guard let pending = pendingTradeConfirmation else { return }
         pendingTradeConfirmation = nil
         guard state.pendingTradeOffers.contains(where: { $0.id == pending.offerID }) else { return }
@@ -554,7 +559,8 @@ public final class GameViewModel {
     /// spawned the loop.
     public private(set) var gameGeneration = 0
 
-    /// What the engine reported for the most recently applied move.
+    /// Everything the engine reported during the most recent user-visible
+    /// operation, stamped with a sequence number.
     ///
     /// `RulesEngine.apply` returns structured `GameEvent`s now instead of
     /// appending prose to `GameState`. Views observe this rather than
@@ -562,11 +568,29 @@ public final class GameViewModel {
     /// for `" rolled "` in the log, so rewording one sentence would silently
     /// have broken a visual effect.
     ///
-    /// This is the last batch only, not a transcript. Nothing on screen needs
-    /// history today, and keeping one here would reintroduce the unbounded
-    /// growth that removing `GameState.log` just eliminated. `GameLogStore`
-    /// is where a durable record belongs.
-    public private(set) var lastEvents: [GameEvent] = []
+    /// ## Why a batch with a sequence, and not just the last array
+    /// One operation can apply several moves without yielding - resolving a
+    /// human's trade proposal applies one rejection per unwilling bot - so a
+    /// value overwritten per move would show SwiftUI only the last of them.
+    /// Worse, two *identical* consecutive batches compare equal and produce no
+    /// `onChange` at all, so an observer would silently miss them. Events are
+    /// accumulated across the whole operation and the sequence guarantees the
+    /// change is always observable.
+    ///
+    /// This is the current operation only, not a transcript - keeping history
+    /// here would reintroduce the unbounded growth that removing
+    /// `GameState.log` just eliminated. `GameLogStore` holds the durable record.
+    public struct EventBatch: Equatable {
+        public let sequence: Int
+        public let events: [GameEvent]
+    }
+    public private(set) var eventBatch = EventBatch(sequence: 0, events: [])
+
+    /// Starts a new batch. Called at the top of each operation that a view
+    /// would react to as one thing.
+    private func beginEventBatch() {
+        eventBatch = EventBatch(sequence: eventBatch.sequence + 1, events: [])
+    }
 
     /// True when a save file was present at launch but could not be decoded.
     /// Surfaced by `ContentView` so a lost game is reported rather than
@@ -607,6 +631,7 @@ public final class GameViewModel {
                 move = bot.decide(for: state, player: botPlayer)
             }
             await waitForFairAcceptWindow(before: move)
+            beginEventBatch()
             try? applyLogged(move, by: botPlayer)
             try? GameStore.shared.save(state)
         }

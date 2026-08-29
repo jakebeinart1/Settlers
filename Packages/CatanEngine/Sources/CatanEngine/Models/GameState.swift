@@ -136,9 +136,6 @@ public struct GameState: Codable, Sendable {
             .decodeIfPresent([PlayerID: Int].self, forKey: .tradesAcceptedThisTurn) ?? [:]
     }
 
-    /// Total victory points for `id`: building/dev-card VPs from `Player`,
-    /// plus the +2 longest-road/largest-army bonuses tracked here since they
-    /// depend on cross-player comparison.
     /// Victory points that are public knowledge for `id`: buildings plus the
     /// longest-road and largest-army bonuses, all of them visible on the
     /// board. Deliberately excludes held-but-unplayed victory-point cards,

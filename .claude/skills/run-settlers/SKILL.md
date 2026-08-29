@@ -263,7 +263,7 @@ puts itself into the state, and the tooling only photographs.
 ## Before saying a change works
 
 ```bash
-"$REPO/scripts/gate.sh"              # 8 gates
+"$REPO/scripts/gate.sh"              # 9 gates
 "$REPO/scripts/gate.sh"              # Release app build included; --debug-app adds Debug
 ```
 
@@ -281,7 +281,7 @@ change needs both.
 - **`xcodebuild test -scheme Settlers` runs nothing.** `project.yml` has `test: targets: []`.
   All 174 tests live in the two SPM packages and run via `swift test` / `scripts/gate.sh`.
 - **This ladder builds Debug** (the `-qa*` flags are `#if DEBUG`), so a Release-only
-  break is invisible to every gate in this repo — and one is standing on `main` right now
+  break was invisible to every gate in this repo until Release compilation became mandatory in `scripts/gate.sh`
   (see the trap above). A green gate is not evidence the app compiles for release.
 - **Simulator ≠ device.** Nothing here says anything about touch latency, thermals, memory
   pressure, or safe-area behaviour on real hardware.

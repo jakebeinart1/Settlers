@@ -15,7 +15,7 @@
 # them the way gate.sh does:
 #
 #   1. project file regenerated  - a new .swift file is invisible until this runs
-#   2. scripts/gate.sh           - the 8 compile/lint/test/coverage gates
+#   2. scripts/gate.sh           - the 9 compile/lint/test/coverage gates
 #   3. build Debug + FRESH install - uninstall BEFORE install, always
 #   4. launch, capture the PID
 #   5. settle, diff the crash reports, `kill -0` the PID

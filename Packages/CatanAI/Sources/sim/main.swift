@@ -294,6 +294,14 @@ private func textLine(_ result: GameResult) -> String {
 // These are `private` because `Options` is: a top-level `let` in main.swift
 // is a module-scope declaration, and Swift refuses to expose one whose type is
 // less visible than it is.
+// Line-buffer stdout. `print` is fully buffered when redirected to a file,
+// which is exactly how this is meant to be run (`> shard.jsonl`, sharded, for
+// tens of minutes). Two consequences without this: progress is invisible for
+// the whole run, and `applyOrDie`'s trap on an engine invariant exits without
+// flushing - destroying the JSONL for every game already played, which is
+// precisely the record needed to find the seed that broke.
+setvbuf(stdout, nil, _IOLBF, 0)
+
 private let options = parseOptions(CommandLine.arguments)
 private let bots = options.personalityNames.map { Bot(personality: personality(named: $0)) }
 private let clock = ContinuousClock()
@@ -304,7 +312,13 @@ for offset in 0..<options.games {
     print(options.jsonl ? jsonLine(result) : textLine(result))
 }
 
-let elapsed = Double((clock.now - started).components.seconds)
-    + Double((clock.now - started).components.attoseconds) / 1e18
+// Sampled ONCE. Reading `clock.now` twice took `seconds` from the first read
+// and `attoseconds` from the second, so a pair straddling a whole-second
+// boundary reported a figure a full second out - and this is the number the
+// sim-harness and bot-strength skills quote as measured throughput and use to
+// budget how long an evaluation arm takes.
+let duration = clock.now - started
+let elapsed = Double(duration.components.seconds)
+    + Double(duration.components.attoseconds) / 1e18
 Stderr.write(String(format: "sim: %d games in %.2fs (%.1f games/sec)",
                     options.games, elapsed, Double(options.games) / elapsed))

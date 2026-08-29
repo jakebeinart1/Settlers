@@ -28,6 +28,12 @@ public enum Robber {
         to state: inout GameState
     ) throws -> Resource? {
         guard robberTo != state.board.robberTile else { throw MoveError.illegalPlacement }
+        // Moved once, here, before the optional steal. It was briefly assigned
+        // at both exits instead; only one ever ran, but any future early
+        // `return` inside the steal branch would then have left the robber on
+        // its old tile with the theft already applied - a silently corrupt
+        // board that nothing would report.
+        state.board.robberTile = robberTo
 
         if let victimID = stealFrom {
             guard victimID != player else { throw MoveError.illegalPlacement }
@@ -52,11 +58,9 @@ public enum Robber {
             let stolen = pool.randomElement(using: &state.rng)!
             state.players[victimIndex].resources[stolen, default: 0] -= 1
             state.players[thiefIndex].resources[stolen, default: 0] += 1
-            state.board.robberTile = robberTo
             return stolen
         }
 
-        state.board.robberTile = robberTo
         return nil
     }
 

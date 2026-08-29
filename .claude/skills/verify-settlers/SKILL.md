@@ -238,7 +238,7 @@ protect you from your own build directory is one edit away from breaking.
 - **The app-target test bundle is brand new and does not change this.** As of
   2026-08-29 `SettlersTests` is being added on this branch (`project.yml`
   gains `type: bundle.unit-test` and the scheme's `test: targets:` stops being
-  empty). Those are unit tests over `GameViewModel` and the persistence stores.
+  empty). Those are unit tests over the persistence stores only - `GameStoreTests` and `GameStatsStoreTests`. There is still NO test over `GameViewModel`, which is the file `project.yml` names as the motivating gap.
   They are a real improvement and they still never render a pixel.
 - **One screenshot, one screen.** The ladder photographs the launch screen.
   Everything reachable only by tapping is out of scope; use the `-qa*` flags

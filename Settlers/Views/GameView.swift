@@ -399,8 +399,8 @@ public struct GameView: View {
             }
             animateDiceRoll()
         }
-        .onChange(of: viewModel.lastEvents) { _, events in
-            handleEvents(events)
+        .onChange(of: viewModel.eventBatch) { _, batch in
+            handleEvents(batch.events)
         }
         .onChange(of: isRobberTargetingActive) { _, isActive in
             if !isActive { robberTargetTile = nil }

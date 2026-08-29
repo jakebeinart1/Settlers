@@ -156,14 +156,6 @@ gate_app_tests() {
 }
 
 # --- 8. The app target ----------------------------------------------------
-# Compiled in RELEASE, and not optional.
-#
-# This gate started out Debug-only and opt-in, and that combination let a real
-# break through within hours: two `qa*` methods were put behind `#if DEBUG`
-# while their call sites were not, so the app stopped compiling for release
-# entirely - and every gate stayed green over it, because nothing here ever
-# built the configuration that would ship. Debug and Release are different
-# programs the moment a `#if` enters the codebase.
 first_iphone_simulator() {
   xcrun simctl list devices available -j 2>/dev/null \
     | python3 -c 'import json,sys
@@ -174,6 +166,14 @@ for runtime, devices in d.items():
             print(dev["udid"]); raise SystemExit' 2>/dev/null
 }
 
+# Compiled in RELEASE, and not optional.
+#
+# This gate started out Debug-only and opt-in, and that combination let a real
+# break through within hours: two `qa*` methods were put behind `#if DEBUG`
+# while their call sites were not, so the app stopped compiling for release
+# entirely - and every gate stayed green over it, because nothing here ever
+# built the configuration that would ship. Debug and Release are different
+# programs the moment a `#if` enters the codebase.
 gate_app_build() {
   local sim; sim="$(first_iphone_simulator)"
   if [[ -z "$sim" ]]; then return 200; fi

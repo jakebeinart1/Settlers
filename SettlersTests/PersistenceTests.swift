@@ -10,21 +10,51 @@ import Foundation
 /// save that could not be decoded vanished with no message, and every cold
 /// launch wrote a junk game-log file that then evicted real games.
 ///
-/// ## A caveat worth knowing
+/// ## A caveat, and what is done about it
 /// The stores are singletons that resolve their own directory from
-/// `FileManager`, so these tests read and write the *simulator's* real app
-/// container rather than a temporary directory. That is survivable - the
-/// container is per-simulator and disposable - but it means a test must clean
-/// up after itself and must not assume it starts from an empty state. Making
-/// the directory injectable would fix that properly and is worth doing; it is
-/// a change to all seven stores, so it is not bundled in here.
+/// `FileManager`, so these tests read and write the *simulator's real app
+/// container* rather than a temporary directory. `gate.sh` runs them on every
+/// push, so without care a routine gate run would delete whatever game the
+/// developer had in progress on that simulator and zero their lifetime stats -
+/// silently, and in the stats' case unrecoverably.
+///
+/// So every suite here snapshots the files it touches and restores them
+/// afterwards, whatever the outcome. Making the directory injectable is the
+/// real fix and would remove the need for this; it is a change to all seven
+/// stores, so it is noted rather than bundled in here.
+private enum StoreFile {
+    static func url(_ name: String, in directory: FileManager.SearchPathDirectory) -> URL {
+        FileManager.default.urls(for: directory, in: .userDomainMask)[0]
+            .appendingPathComponent(name)
+    }
+
+    /// Runs `body` with `url` saved aside and put back afterwards, including
+    /// restoring its absence if it did not exist.
+    static func preserving<T>(_ url: URL, _ body: () throws -> T) rethrows -> T {
+        let saved = try? Data(contentsOf: url)
+        defer {
+            if let saved {
+                try? FileManager.default.createDirectory(
+                    at: url.deletingLastPathComponent(), withIntermediateDirectories: true)
+                try? saved.write(to: url)
+            } else {
+                try? FileManager.default.removeItem(at: url)
+            }
+        }
+        return try body()
+    }
+}
+
 @Suite(.serialized)
 struct GameStoreTests {
 
+    private static let saveURL = StoreFile.url("catan_save.json", in: .applicationSupportDirectory)
+
     private func withCleanSave<T>(_ body: () throws -> T) rethrows -> T {
-        GameStore.shared.clear()
-        defer { GameStore.shared.clear() }
-        return try body()
+        try StoreFile.preserving(Self.saveURL) {
+            GameStore.shared.clear()
+            return try body()
+        }
     }
 
     @Test func loadReportsNoneWhenNothingHasBeenSaved() {
@@ -105,24 +135,35 @@ struct GameStoreTests {
 @Suite(.serialized)
 struct GameStatsStoreTests {
 
+    private static let statsURL = StoreFile.url("game_stats.json", in: .applicationSupportDirectory)
+
+    /// Lifetime stats are not recoverable once cleared, so they are put back.
+    private func withCleanStats(_ body: () -> Void) {
+        StoreFile.preserving(Self.statsURL) {
+            GameStatsStore.shared.clear()
+            body()
+        }
+    }
+
     @Test func recordingAGameUpdatesTheRunningTotals() {
-        GameStatsStore.shared.clear()
-        defer { GameStatsStore.shared.clear() }
+        withCleanStats {
+            GameStatsStore.shared.recordGameEnd(won: true, finalVP: 10, duration: 300)
+            GameStatsStore.shared.recordGameEnd(won: false, finalVP: 7, duration: 500)
 
-        GameStatsStore.shared.recordGameEnd(won: true, finalVP: 10, duration: 300)
-        GameStatsStore.shared.recordGameEnd(won: false, finalVP: 7, duration: 500)
-
-        let stats = GameStatsStore.shared.load()
-        #expect(stats.gamesPlayed == 2)
-        #expect(stats.gamesWon == 1)
-        #expect(stats.winRate == 0.5)
-        #expect(stats.averageFinalVP == 8.5)
-        #expect(stats.averageDurationSeconds == 400)
+            let stats = GameStatsStore.shared.load()
+            #expect(stats.gamesPlayed == 2)
+            #expect(stats.gamesWon == 1)
+            #expect(stats.winRate == 0.5)
+            #expect(stats.averageFinalVP == 8.5)
+            #expect(stats.averageDurationSeconds == 400)
+        }
     }
 
     @Test func statsStartEmptyAfterAReset() {
-        GameStatsStore.shared.recordGameEnd(won: true, finalVP: 10, duration: 1)
-        GameStatsStore.shared.clear()
-        #expect(GameStatsStore.shared.load().gamesPlayed == 0)
+        withCleanStats {
+            GameStatsStore.shared.recordGameEnd(won: true, finalVP: 10, duration: 1)
+            GameStatsStore.shared.clear()
+            #expect(GameStatsStore.shared.load().gamesPlayed == 0)
+        }
     }
 }
