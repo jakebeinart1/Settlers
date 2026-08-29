@@ -97,20 +97,25 @@ public struct GameView: View {
 
     // `-qaShowPauseMenu`: same escape hatch as `-qaAutoStart` (see
     // `ContentView`) - lets QA screenshot the pause menu without a real tap.
-    @State private var isShowingPauseMenu = ProcessInfo.processInfo.arguments.contains("-qaShowPauseMenu")
+    @State private var isShowingPauseMenu = QALaunchFlag.showPauseMenu.isSet
     @State private var placementMode: PlacementMode?
     // `-qaShowTradePopup`: same escape hatch pattern - lets QA screenshot
     // the trade popup without a real tap.
-    @State private var showTradePopup = ProcessInfo.processInfo.arguments.contains("-qaShowTradePopup")
+    @State private var showTradePopup = QALaunchFlag.showTradePopup.isSet
     // `-qaShowBuildPopup`: same escape hatch pattern - lets QA screenshot
     // the build popup without a real tap.
-    @State private var showBuildPopup = ProcessInfo.processInfo.arguments.contains("-qaShowBuildPopup")
+    @State private var showBuildPopup = QALaunchFlag.showBuildPopup.isSet
     // `-qaShowMonopolyPopup`: same escape hatch pattern - lets QA screenshot
     // the Monopoly resource-picker step of the dev-card popup (Year of
     // Plenty shares the same picker layout, just with a 2-pick limit
     // instead of 1, so one flag covers both visually).
-    @State private var devCardPopupType: DevCardType? = ProcessInfo.processInfo.arguments.contains("-qaShowMonopolyPopup") ? .monopoly : nil
+    @State private var devCardPopupType: DevCardType? = QALaunchFlag.showMonopolyPopup.isSet ? .monopoly : nil
     @State private var errorMessage: String?
+
+    // The same keys `MainMenuView` writes, so Restart plays the game the
+    // player actually asked for rather than a fixed default.
+    @AppStorage("randomizedBoardSetting") private var randomizedBoardSetting = true
+    @AppStorage("randomizeSeatSetting") private var randomizeSeatSetting = true
 
     /// Road-building sub-flow: `nil` when inactive; once armed, the first
     /// tapped edge is held here while the second is picked, then both are
@@ -308,7 +313,14 @@ public struct GameView: View {
                     onResume: { isShowingPauseMenu = false },
                     onRestart: {
                         isShowingPauseMenu = false
-                        viewModel.startNewGame(randomizedBoard: false, randomizeSeat: false)
+                        // Reuse the player's own menu choices. These were
+                        // hardcoded to `false`, so Restart silently handed back
+                        // the fixed standard board with the human in seat 0 -
+                        // discarding both toggles, which default to on.
+                        viewModel.startNewGame(
+                            randomizedBoard: randomizedBoardSetting,
+                            randomizeSeat: randomizeSeatSetting
+                        )
                     },
                     onMainMenu: {
                         isShowingPauseMenu = false
@@ -336,14 +348,14 @@ public struct GameView: View {
             // screenshotting, since that step depends on state
             // (`GameViewModel.pendingTradeConfirmation`) a real tap can't
             // reliably reach in the simulator.
-            if ProcessInfo.processInfo.arguments.contains("-qaShowPendingTradeConfirmation") {
+            if QALaunchFlag.showPendingTradeConfirmation.isSet {
                 showTradePopup = true
                 viewModel.qaSeedPendingTradeConfirmation()
             }
             // `-qaShowRobberTargeting`: same escape hatch pattern - arms
             // `isKnightRobberActive` directly so `robberTargetingPanel` can
             // be screenshotted without a real Knight card/7-roll.
-            if ProcessInfo.processInfo.arguments.contains("-qaShowRobberTargeting") {
+            if QALaunchFlag.showRobberTargeting.isSet {
                 isKnightRobberActive = true
             }
         }
@@ -361,7 +373,7 @@ public struct GameView: View {
             // `onChange(of: state.pendingTradeOffers...)` handler purges any
             // queued offer that isn't backed by a real one, wiping this
             // fake one out again almost immediately if seeded any earlier.
-            if ProcessInfo.processInfo.arguments.contains("-qaShowIncomingOffer") {
+            if QALaunchFlag.showIncomingOffer.isSet {
                 incomingOfferQueue = [TradeOffer(from: PlayerID(index: 1), give: [:], want: [:])]
             }
             // `-qaShowRobberVictimPicker`: same escape hatch pattern, one
@@ -372,7 +384,7 @@ public struct GameView: View {
             // just the "tap a tile" message before it. Runs after
             // `qaFastForwardToRollDiceIfRequested` (needs real settlements
             // on the board to find a victim from) rather than in `onAppear`.
-            if ProcessInfo.processInfo.arguments.contains("-qaShowRobberVictimPicker") {
+            if QALaunchFlag.showRobberVictimPicker.isSet {
                 isKnightRobberActive = true
                 robberTargetTile = state.board.tiles
                     .map(\.coordinate)
@@ -409,7 +421,7 @@ public struct GameView: View {
     /// without the literal launch argument, so this can't affect a real
     /// player.
     private func qaFastForwardToRollDiceIfRequested() async {
-        guard ProcessInfo.processInfo.arguments.contains("-qaFastForwardToRollDice") else { return }
+        guard QALaunchFlag.fastForwardToRollDice.isSet else { return }
         let bot = Bot(personality: .balanced)
         for _ in 0..<20 {
             switch viewModel.state.phase {

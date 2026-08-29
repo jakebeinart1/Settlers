@@ -13,12 +13,13 @@ import CatanEngine
 /// turns before the player ever saw the menu).
 struct ContentView: View {
     @State private var viewModel = GameViewModel()
+    @State private var isShowingUnreadableSaveAlert = false
     // `-qaAutoStart`: a launch-argument escape hatch so `simctl launch ...
     // -qaAutoStart` can land directly on the board for visual QA
     // (screenshotting UI chrome, etc.) without a real tap on `MainMenuView`
     // - never set in normal use, so this can't change anything for a real
     // player.
-    @State private var hasStartedThisSession = ProcessInfo.processInfo.arguments.contains("-qaAutoStart")
+    @State private var hasStartedThisSession = QALaunchFlag.autoStart.isSet
     @Environment(\.scenePhase) private var scenePhase
 
     var body: some View {
@@ -29,6 +30,15 @@ struct ContentView: View {
                 }
             } else if hasStartedThisSession {
                 GameView(viewModel: viewModel, onExitToMenu: { hasStartedThisSession = false })
+                    // Rebuild the whole view on a restart so its `@State` goes
+                    // with the old game. `GameView` holds sixteen pieces of
+                    // per-game interaction state - armed knight targeting, a
+                    // half-finished road-building pair, the incoming-offer
+                    // queue, the roll-history ring - and `startNewGame` resets
+                    // the model but cannot touch any of it. Restarting while a
+                    // Knight was armed dropped you into a brand-new board
+                    // already in robber-targeting mode with no action row.
+                    .id(viewModel.gameGeneration)
             } else {
                 MainMenuView(
                     onStart: { randomizedBoard, randomizeSeat in
@@ -55,14 +65,25 @@ struct ContentView: View {
                 )
             }
         }
+        // A save that exists but will not decode is reported, not swallowed.
+        // Silently starting a fresh game in that case is how a player loses a
+        // game in progress and is told nothing at all - which is exactly what
+        // happened in the field when a new field was added to `GameState`.
+        .alert("Couldn't open your saved game", isPresented: $isShowingUnreadableSaveAlert) {
+            Button("OK", role: .cancel) {}
+        } message: {
+            Text("A save was found but couldn't be read, so a new game is ready instead. "
+                 + "The file has been left in place.")
+        }
         .onAppear {
+            isShowingUnreadableSaveAlert = viewModel.saveWasUnreadable
             // `-qaShowEndGame`: same escape-hatch pattern as `-qaAutoStart`
             // - forces a human win via `qaForceHumanWin()` so `EndGameView`
             // can be screenshotted without actually playing a game out to
             // 10 VP. Combine with `-qaAutoStart` (which this alone doesn't
             // imply) so `hasStartedThisSession` is already `true` and the
             // `gameOver` branch above actually renders.
-            if ProcessInfo.processInfo.arguments.contains("-qaShowEndGame") {
+            if QALaunchFlag.showEndGame.isSet {
                 viewModel.qaForceHumanWin()
             }
         }

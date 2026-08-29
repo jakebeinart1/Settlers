@@ -40,6 +40,7 @@ public struct SettingsView: View {
                         yourNameSection
                         yourCivilizationSection
                         botRosterSection
+                        gameLogsSection
                         resetStatsSection
                     }
                     .padding(.horizontal, 24)
@@ -178,6 +179,48 @@ public struct SettingsView: View {
                     }
                     .buttonStyle(.plain)
                 }
+            }
+        }
+    }
+
+    // MARK: - Game logs
+
+    /// Share the recorded games off the device.
+    ///
+    /// Every finished game leaves a JSON Lines file behind - the starting
+    /// position, who was in each seat, and the ordered move list - which is
+    /// what makes a game replayable after the fact and what any future work on
+    /// the bots would learn from. There was previously no way to get one off a
+    /// phone at all: the files sat in Application Support, invisible to the
+    /// Files app, in a container that only a development-signed install can be
+    /// downloaded from. They are now in Documents, and this shares them
+    /// directly.
+    @ViewBuilder
+    private var gameLogsSection: some View {
+        let logs = GameLogStore.shared.logFiles()
+        VStack(alignment: .leading, spacing: 16) {
+            Text("Game Logs")
+                .font(.headline)
+                .foregroundStyle(.white.opacity(0.8))
+
+            if logs.isEmpty {
+                Text("No games recorded yet. A log is written once a game's first move is played.")
+                    .font(.caption)
+                    .foregroundStyle(.white.opacity(0.55))
+            } else {
+                ShareLink(items: logs) {
+                    Text("Share \(logs.count) Recorded Game\(logs.count == 1 ? "" : "s")")
+                        .font(.subheadline.bold())
+                        .foregroundStyle(.white)
+                        .frame(maxWidth: .infinity)
+                        .padding(12)
+                        .background(RoundedRectangle(cornerRadius: 10).fill(Color(white: 0.14)))
+                }
+                .buttonStyle(.plain)
+
+                Text("Also reachable from the Files app under On My iPhone › Empires › GameLogs.")
+                    .font(.caption2)
+                    .foregroundStyle(.white.opacity(0.45))
             }
         }
     }

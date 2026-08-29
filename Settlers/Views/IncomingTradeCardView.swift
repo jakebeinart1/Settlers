@@ -155,8 +155,12 @@ public struct IncomingTradeCardView: View {
         .overlay(RoundedRectangle(cornerRadius: 12).inset(by: 1).strokeBorder(CatanTheme.color(for: offer.from), lineWidth: 2))
         .foregroundStyle(.white)
         .contentShape(Rectangle())
+        // Tap to hold the countdown while reading, tap again to let it run.
+        // It used to only ever set this to `true` - nothing anywhere set it
+        // back - so one tap stopped the timer permanently and left the tick
+        // task spinning at 10 Hz doing nothing until the card went away.
         .onTapGesture {
-            isPaused = true
+            isPaused.toggle()
         }
         .onAppear(perform: startTicking)
         .onDisappear { tickTask?.cancel() }

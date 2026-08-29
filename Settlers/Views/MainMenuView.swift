@@ -29,10 +29,10 @@ public struct MainMenuView: View {
     // `-qaShowSettings`: same escape-hatch pattern as `-qaShowPauseMenu` -
     // opens straight to `SettingsView` for screenshotting it, no real tap on
     // the gear icon needed.
-    @State private var isShowingSettings = ProcessInfo.processInfo.arguments.contains("-qaShowSettings")
+    @State private var isShowingSettings = QALaunchFlag.showSettings.isSet
 
     private var hasSavedGame: Bool {
-        GameStore.shared.load() != nil
+        GameStore.shared.hasSave()
     }
 
     public var body: some View {
