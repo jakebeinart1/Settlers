@@ -25,11 +25,16 @@
 # they should build and test on Linux. The `platforms:` line in Package.swift
 # sets minimum *Apple* versions and does not exclude Linux.
 #
-# UNVERIFIED AS OF 2026-08-29: this has not actually been run on Linux yet -
-# there is no container runtime on the dev machine to try it locally. The first
-# run of this workflow is the experiment. If it fails, move this job to
-# `macos-26` and change the trigger to workflow_dispatch, because at 10x it is
-# worth roughly five runs a month rather than unlimited.
+# VERIFIED 2026-08-29, run 33273621617: both packages build with
+# `-warnings-as-errors` and all 174 tests pass in the `swift:6.1` container on
+# `ubuntu-latest`. The job takes ~4 minutes, SwiftLint ~30 seconds, so a run
+# costs about 4.5 billable minutes. The same work on a macOS runner would bill
+# roughly 45, which is the difference between ~440 runs a month against the
+# included allowance and ~44.
+#
+# The one earlier failure was NOT a Linux incompatibility: the swift image
+# defaults to dash, which has no `set -o pipefail`, so the step aborted before
+# reaching the compiler. Hence the `shell: bash` default below.
 #
 # The iOS app build is deliberately NOT here. It needs macOS, takes ~2 minutes,
 # and the pre-push gate already compiles it on request (`gate.sh --with-app`).
