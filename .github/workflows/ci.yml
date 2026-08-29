@@ -53,6 +53,13 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     container: swift:6.1
+    defaults:
+      run:
+        # The swift image's default shell is dash, which has no `pipefail` -
+        # without this, `set -euo pipefail` aborts the step with "Illegal
+        # option -o pipefail" before a single Swift command runs, which reads
+        # like a Linux incompatibility and is not one.
+        shell: bash
     steps:
       - uses: actions/checkout@v5
 
