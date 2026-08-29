@@ -33,11 +33,19 @@ public enum Robber {
             let victimIndex = state.players.firstIndex(where: { $0.id == victimID })!
             let thiefIndex = state.players.firstIndex(where: { $0.id == player })!
 
+            // Built by iterating `Resource.allCases` rather than the victim's
+            // `resources` dictionary: dictionary iteration order is seeded
+            // per-process by Swift, so pooling straight from it would make the
+            // stolen card vary between runs even with an identical generator
+            // state - the pool order has to be stable for the draw to be.
             var pool: [Resource] = []
-            for (resource, count) in state.players[victimIndex].resources {
+            for resource in Resource.allCases {
+                let count = state.players[victimIndex].resources[resource] ?? 0
                 pool.append(contentsOf: repeatElement(resource, count: count))
             }
-            let stolen = pool.randomElement()!
+            // Safe to force-unwrap: `eligibleVictims` above already required
+            // the victim to hold at least one card.
+            let stolen = pool.randomElement(using: &state.rng)!
             state.players[victimIndex].resources[stolen, default: 0] -= 1
             state.players[thiefIndex].resources[stolen, default: 0] += 1
         }

@@ -24,7 +24,16 @@ public struct Board: Codable, Sendable {
         vertex.touchingTiles
     }
 
-    /// The vertices directly connected to `vertex` by an on-board edge.
+    // Both accessors below derive from `onBoardEdges`, which is a `Set` -
+    // and Swift seeds set iteration order per process, so an unsorted result
+    // here would come back in a different order on every launch. That order
+    // reaches move enumeration (`SetupPhase.legalMoves` maps straight over
+    // `edgesTouching`), so leaving it unsorted makes a bot's tie-breaks - and
+    // therefore the whole game - differ between runs of the same seed. Both
+    // return at most 3 elements, so the sort is not a meaningful cost.
+
+    /// The vertices directly connected to `vertex` by an on-board edge, in a
+    /// stable order.
     public func adjacentVertices(of vertex: VertexID) -> [VertexID] {
         var result: [VertexID] = []
         for edge in onBoardEdges {
@@ -34,12 +43,12 @@ public struct Board: Codable, Sendable {
                 result.append(edge.a)
             }
         }
-        return result
+        return result.sorted()
     }
 
-    /// The on-board edges incident to `vertex`.
+    /// The on-board edges incident to `vertex`, in a stable order.
     public func edgesTouching(_ vertex: VertexID) -> [EdgeID] {
-        onBoardEdges.filter { $0.a == vertex || $0.b == vertex }
+        onBoardEdges.filter { $0.a == vertex || $0.b == vertex }.sorted()
     }
 
     public func vertices(of edge: EdgeID) -> (VertexID, VertexID) {

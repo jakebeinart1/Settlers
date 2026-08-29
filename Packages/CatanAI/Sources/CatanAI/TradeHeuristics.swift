@@ -141,11 +141,7 @@ public enum TradeHeuristics {
         guard let me = state.players.first(where: { $0.id == player }) else { return [] }
         guard let target = nearestBlockedTarget(personality: personality, holding: me.resources) else { return [] }
 
-        let deficits = target.cost.compactMap { resource, amount -> (Resource, Int)? in
-            let need = amount - (me.resources[resource] ?? 0)
-            return need > 0 ? (resource, need) : nil
-        }
-        guard let mostNeeded = deficits.max(by: { $0.1 < $1.1 })?.0 else { return [] }
+        guard let mostNeeded = mostNeededResource(for: target, holding: me.resources) else { return [] }
 
         // Give up whichever resource is worth *least* to us right now (not
         // just whichever we happen to hold the most of - quantity and
@@ -154,11 +150,20 @@ public enum TradeHeuristics {
         // genuinely be a surplus (more than one card) - `RulesEngine` only
         // ever enumerates `.proposeTrade` as legal for resources held in
         // that quantity, so anything less would never match a legal move.
-        guard let give = me.resources
-            .filter({ $0.key != mostNeeded && $0.value > 1 })
-            .min(by: { resourceValue($0.key, for: me, personality: personality) < resourceValue($1.key, for: me, personality: personality) })?
-            .key
-        else { return [] }
+        //
+        // Selected by walking `Resource.allCases` rather than `min(by:)` over
+        // the resources dictionary. Two resources frequently tie on value, and
+        // `min(by:)` then returns whichever the dictionary happened to iterate
+        // first - an order Swift seeds per process, so the same bot in the
+        // same position offered a different card on every launch. Comparing
+        // against `Resource.allCases` order breaks ties the same way every
+        // time, which is what lets a seeded game reproduce move for move.
+        let giveCandidates = Resource.allCases.filter { $0 != mostNeeded && (me.resources[$0] ?? 0) > 1 }
+        guard let give = giveCandidates.min(by: {
+            let (lhs, rhs) = (resourceValue($0, for: me, personality: personality),
+                              resourceValue($1, for: me, personality: personality))
+            return lhs == rhs ? false : lhs < rhs
+        }) else { return [] }
 
         // Only propose a trade that's clearly in *our own* favor - what
         // we're asking for has to be worth more to us than what we're
@@ -189,7 +194,10 @@ public enum TradeHeuristics {
         }
         guard !alreadyPending else { return [] }
 
-        return [TradeOffer(from: player, give: give1, want: want1)]
+        // Content-derived id, matching how `RulesEngine.legalMoves` enumerates
+        // the same candidate - so the offer the bot proposes is identical to
+        // the legal move it matched against, rather than a fresh random id.
+        return [TradeOffer.enumerated(from: player, give: give1, want: want1)]
     }
 
     /// A one-shot bank/port trade that would help `player`'s current
@@ -205,11 +213,7 @@ public enum TradeHeuristics {
         guard let me = state.players.first(where: { $0.id == player }) else { return nil }
         guard let target = nearestBlockedTarget(personality: personality, holding: me.resources) else { return nil }
 
-        let deficits = target.cost.compactMap { resource, amount -> (Resource, Int)? in
-            let need = amount - (me.resources[resource] ?? 0)
-            return need > 0 ? (resource, need) : nil
-        }
-        guard let mostNeeded = deficits.max(by: { $0.1 < $1.1 })?.0 else { return nil }
+        guard let mostNeeded = mostNeededResource(for: target, holding: me.resources) else { return nil }
 
         let candidates = Resource.allCases
             .filter { $0 != mostNeeded && (target.cost[$0] ?? 0) <= (me.resources[$0] ?? 0) }
@@ -221,6 +225,31 @@ public enum TradeHeuristics {
 
         guard let best = candidates.max(by: { (me.resources[$0.resource] ?? 0) < (me.resources[$1.resource] ?? 0) }) else { return nil }
         return (give: best.resource, get: mostNeeded, rate: best.rate)
+    }
+
+    /// The resource `holding` is furthest short of for `target`'s cost, or
+    /// `nil` if the target is already affordable.
+    ///
+    /// Deficits are walked in `Resource.allCases` order rather than by
+    /// iterating `target.cost` directly. `cost` is a `[Resource: Int]`
+    /// dictionary, so iterating it yields a per-process order, and when two
+    /// resources are short by the same amount - which is the common case for
+    /// a settlement, needing one each of four resources - `max(by:)` returned
+    /// a different winner on every launch. That made the same bot in the same
+    /// position ask for a different card run to run, which is enough on its
+    /// own to stop a seeded game reproducing.
+    ///
+    /// Extracted because `proposeTrades` and `bestBankTrade` both derived this
+    /// the same way and would otherwise have to be kept in sync by hand.
+    private static func mostNeededResource(for target: (cost: [Resource: Int], weight: Double),
+                                           holding: [Resource: Int]) -> Resource? {
+        var best: (resource: Resource, need: Int)?
+        for resource in Resource.allCases {
+            let need = (target.cost[resource] ?? 0) - (holding[resource] ?? 0)
+            guard need > 0 else { continue }
+            if best == nil || need > best!.need { best = (resource, need) }
+        }
+        return best?.resource
     }
 
     /// The build target `proposeTrades`/`bestBankTrade` should be trading

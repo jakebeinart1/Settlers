@@ -333,16 +333,17 @@ public struct TradePopupView: View {
     /// Give/Want piles (e.g. 4 brick + 4 wood -> 1 ore + 1 wheat) since it
     /// checks each resource independently rather than requiring Give to be
     /// a single resource.
-    private var isValidBankTrade: Bool {
-        guard !give.isEmpty, !want.isEmpty else { return false }
-        var convertedTotal = 0
-        for (resource, amount) in give {
-            let r = rate(for: resource)
-            guard r > 0, amount % r == 0 else { return false }
-            convertedTotal += amount / r
-        }
-        return convertedTotal == want.values.reduce(0, +)
+    /// Asks the engine rather than re-deriving the rule here. The previous
+    /// local copy checked the exchange rates but not the bank's stock, so a
+    /// trade the engine would reject still lit the button up and produced a
+    /// misleading error on tap - see `Trading.bankTradeProblem`.
+    private var bankTradeProblem: MoveError? {
+        guard !give.isEmpty, !want.isEmpty else { return .illegalPlacement }
+        return Trading.bankTradeProblem(give: give, get: want,
+                                        by: viewModel.humanPlayer, state: viewModel.state)
     }
+
+    private var isValidBankTrade: Bool { bankTradeProblem == nil }
 
     /// A fixed-height hint under the palettes - shows the player's current
     /// best rates while Give is empty, then tracks whether the pile in
@@ -368,11 +369,18 @@ public struct TradePopupView: View {
             let rates = Resource.allCases.map { "\($0.rawValue.capitalized) \(rate(for: $0)):1" }
             return "Bank rates: " + rates.joined(separator: " \u{00B7} ")
         }
-        if isValidBankTrade {
+        switch bankTradeProblem {
+        case nil:
             let total = want.values.reduce(0, +)
             return "Ready to trade with the bank for \(total) card\(total == 1 ? "" : "s")."
+        case .bankCannotSupply(let resource):
+            // Name the real obstacle. This case used to surface as "you don't
+            // have enough resources", which is about the player's hand and is
+            // the opposite of what has actually gone wrong.
+            return "The bank has no \(resource.rawValue) left. Ask for something else."
+        default:
+            return "For a bank trade, each Give resource must be a multiple of its rate, matching Want's total."
         }
-        return "For a bank trade, each Give resource must be a multiple of its rate, matching Want's total."
     }
 
     private func perform(_ move: GameMove) {
