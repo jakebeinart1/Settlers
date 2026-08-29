@@ -1,0 +1,6 @@
+# Test-only overrides. `try!` and `as!` are correct practice in a test: an
+# unexpected throw or a wrong type should fail the test loudly and immediately,
+# not be handled. All 42 `force_try` violations in this repo are in test files.
+disabled_rules:
+  - force_try
+  - force_cast

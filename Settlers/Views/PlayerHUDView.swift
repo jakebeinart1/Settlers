@@ -276,7 +276,7 @@ public struct HumanPlayerPanel: View {
                 // one card is always "you" and has the room for it.
                 Image("human-card-motif")
                     .resizable()
-                    .aspectRatio(contentMode: .fit)
+                    .scaledToFit()
                     .frame(width: 150, height: 150)
                     .opacity(0.45)
                     .allowsHitTesting(false)

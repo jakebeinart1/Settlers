@@ -35,8 +35,11 @@ public enum RobberHeuristics {
             for vertex in verticesTouching(tile) {
                 for other in state.players where other.id != player {
                     let weight = 1.0 + ThreatAssessment.relativeWeight(for: other.id, excluding: player, in: state) * personality.aggressiveness * 2.0
-                    if other.cities.contains(vertex) { value += 2.0 * weight }
-                    else if other.settlements.contains(vertex) { value += 1.0 * weight }
+                    if other.cities.contains(vertex) {
+                        value += 2.0 * weight
+                    } else if other.settlements.contains(vertex) {
+                        value += 1.0 * weight
+                    }
                 }
             }
             return value

@@ -1,0 +1,205 @@
+#!/usr/bin/env bash
+#
+# Run every gate and print ONE verdict per gate.
+#
+# WHY THIS IS THE GATE, and not GitHub Actions. Branch protection is
+# unavailable on this repository: `gh api repos/jakebeinart1/Settlers/branches/main/protection`
+# answers 403 "Upgrade to GitHub Pro or make this repository public", and Alex
+# is not an admin on it either. So a CI check here can never *block* a merge -
+# it is advisory by construction. A pre-push hook running this script is the
+# only thing in the setup that can actually refuse. CI stays as a clean-room
+# second opinion, which is a real but different job.
+#
+# THE RULES, inherited from BridgeRead's scripts/gate.sh, which earned each one:
+#
+#  1. Every gate reports PASS/FAIL from its own EXIT CODE. Nothing here parses a
+#     tool's output to decide whether it passed. Reading `... | tail -3` from a
+#     test runner is how a red suite gets reported green.
+#  2. A gate that cannot run reports SKIP *in the summary*, never nothing.
+#     "I did not check" and "I checked and it was fine" have to look different,
+#     or the script is back to lying.
+#  3. It does not stop at the first failure. Knowing three gates are red is
+#     worth more than discovering them one push at a time.
+#  4. Cheapest first, so the common failure is also the fastest.
+#
+# Usage:
+#   scripts/gate.sh              # everything except the app build (~50s)
+#   scripts/gate.sh --with-app   # also compile the iOS app target (~2 min)
+#   scripts/gate.sh --range A..B # scan only this commit range for secrets
+
+set -uo pipefail
+
+REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+cd "$REPO_ROOT"
+
+WITH_APP=0
+SECRET_RANGE=""
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --with-app) WITH_APP=1; shift ;;
+    --range)    SECRET_RANGE="${2:-}"; shift 2 ;;
+    *) echo "unknown argument: $1" >&2; exit 2 ;;
+  esac
+done
+
+RESULTS=()
+FAILED=0
+
+# Runs one gate, records its verdict, and never aborts the script.
+run_gate() {
+  local name="$1"; shift
+  local start; start=$SECONDS
+  printf '\n\033[1m▸ %s\033[0m\n' "$name"
+  if "$@"; then
+    RESULTS+=("PASS  $name  ($((SECONDS - start))s)")
+  else
+    RESULTS+=("FAIL  $name  ($((SECONDS - start))s)")
+    FAILED=1
+  fi
+}
+
+# Records a gate that could not run. Deliberately distinct from PASS.
+skip_gate() {
+  RESULTS+=("SKIP  $1  -- $2")
+}
+
+# --- 1. Generated-project drift ------------------------------------------
+# The .xcodeproj is generated from project.yml and both are committed. If they
+# disagree, whoever builds next silently gets a different project than the one
+# under review.
+#
+# The check RESTORES whatever it found, on every path. An earlier version
+# regenerated in place, so a drifting tree was silently rewritten as a side
+# effect of running the gate - the working tree would differ afterwards, and a
+# `git checkout --` to undo the "fix" would take any legitimate edit to
+# project.yml with it. A read-only check has to actually be read-only.
+gate_xcodegen_drift() {
+  if ! command -v xcodegen > /dev/null 2>&1; then return 200; fi
+
+  local pbxproj="Settlers.xcodeproj/project.pbxproj"
+  local snapshot; snapshot="$(mktemp)"
+  cp "$pbxproj" "$snapshot"
+
+  local before after status=0
+  before="$(shasum -a 256 "$pbxproj" | cut -d' ' -f1)"
+  if ! xcodegen generate --quiet > /dev/null 2>&1; then
+    cp "$snapshot" "$pbxproj"; rm -f "$snapshot"
+    echo "  xcodegen failed to generate from project.yml"
+    return 1
+  fi
+  after="$(shasum -a 256 "$pbxproj" | cut -d' ' -f1)"
+
+  if [[ "$before" != "$after" ]]; then
+    echo "  project.pbxproj is stale relative to project.yml."
+    echo "  Run 'xcodegen generate' and commit the result."
+    status=1
+  else
+    echo "  project.pbxproj matches project.yml"
+  fi
+
+  cp "$snapshot" "$pbxproj"
+  rm -f "$snapshot"
+  return $status
+}
+
+# --- 2. Lint --------------------------------------------------------------
+gate_swiftlint() {
+  if ! command -v swiftlint > /dev/null 2>&1; then return 200; fi
+  swiftlint lint --strict --quiet
+}
+
+# --- 3. Compile the packages with warnings as errors ----------------------
+gate_packages_build() {
+  ( cd Packages/CatanEngine && swift build -Xswiftc -warnings-as-errors ) \
+    && ( cd Packages/CatanAI && swift build -Xswiftc -warnings-as-errors )
+}
+
+# --- 4. The test suites ---------------------------------------------------
+# Coverage is enabled here so the profile exists for the coverage gate below;
+# collecting it during the run this gate already pays for is free, whereas
+# re-running the suite to measure it doubled the slowest stage of the gate.
+gate_engine_tests() { ( cd Packages/CatanEngine && swift test --enable-code-coverage ); }
+gate_ai_tests()     { ( cd Packages/CatanAI && swift test --enable-code-coverage ); }
+
+# --- 5. Coverage floors ---------------------------------------------------
+# Floors sit ~1 point under the measured figure. See scripts/coverage.sh for
+# the ratchet policy. Measured 2026-08-29: engine 96.20%, AI 91.12%.
+gate_coverage() {
+  ./scripts/coverage.sh Packages/CatanEngine 95 --reuse \
+    && ./scripts/coverage.sh Packages/CatanAI 90 --reuse
+}
+
+# --- 6. Secrets -----------------------------------------------------------
+gate_secrets() {
+  if ! command -v gitleaks > /dev/null 2>&1; then return 200; fi
+  if [[ -n "$SECRET_RANGE" ]]; then
+    gitleaks detect --no-banner --redact --log-opts="$SECRET_RANGE"
+  else
+    gitleaks detect --no-banner --redact
+  fi
+}
+
+# --- 7. The app target (opt-in: it is the slow one) -----------------------
+gate_app_build() {
+  local sim
+  sim="$(xcrun simctl list devices available -j 2>/dev/null \
+    | python3 -c 'import json,sys
+d=json.load(sys.stdin)["devices"]
+for runtime, devices in d.items():
+    for dev in devices:
+        if "iPhone" in dev["name"]:
+            print(dev["udid"]); raise SystemExit' 2>/dev/null)"
+  if [[ -z "$sim" ]]; then return 200; fi
+  xcodebuild -project Settlers.xcodeproj -scheme Settlers \
+    -destination "platform=iOS Simulator,id=$sim" \
+    -configuration Debug build 2>&1 \
+    | grep -E "error:|BUILD SUCCEEDED|BUILD FAILED" | sort -u
+  # Read xcodebuild's own status, not grep's - a pipeline returns the LAST
+  # command's exit code, so `xcodebuild | grep` reports whether grep matched.
+  return "${PIPESTATUS[0]}"
+}
+
+# --- run ------------------------------------------------------------------
+maybe() {
+  local name="$1"; shift
+  local start=$SECONDS
+  printf '\n\033[1m▸ %s\033[0m\n' "$name"
+  "$@"
+  local status=$?
+  if [[ $status -eq 200 ]]; then
+    RESULTS+=("SKIP  $name  -- required tool not installed")
+  elif [[ $status -eq 0 ]]; then
+    RESULTS+=("PASS  $name  ($((SECONDS - start))s)")
+  else
+    RESULTS+=("FAIL  $name  ($((SECONDS - start))s)")
+    FAILED=1
+  fi
+}
+
+maybe "xcodegen drift"          gate_xcodegen_drift
+maybe "swiftlint --strict"      gate_swiftlint
+maybe "packages build (W=E)"    gate_packages_build
+maybe "CatanEngine tests"       gate_engine_tests
+maybe "CatanAI tests"           gate_ai_tests
+maybe "coverage floors"         gate_coverage
+maybe "gitleaks"                gate_secrets
+if [[ $WITH_APP -eq 1 ]]; then
+  maybe "app build (W=E)"       gate_app_build
+else
+  skip_gate "app build (W=E)" "not requested; pass --with-app"
+fi
+
+printf '\n\033[1m─── summary ───\033[0m\n'
+for line in "${RESULTS[@]}"; do
+  case "$line" in
+    PASS*) printf '\033[32m%s\033[0m\n' "$line" ;;
+    FAIL*) printf '\033[31m%s\033[0m\n' "$line" ;;
+    *)     printf '\033[33m%s\033[0m\n' "$line" ;;
+  esac
+done
+
+if [[ $FAILED -ne 0 ]]; then
+  printf '\n\033[31mgate: FAILED\033[0m\n'
+  exit 1
+fi
+printf '\n\033[32mgate: passed\033[0m\n'

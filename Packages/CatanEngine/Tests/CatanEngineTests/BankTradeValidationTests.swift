@@ -69,8 +69,11 @@ private func stateWithHumanHolding(_ hand: [Resource: Int], bank: [Resource: Int
             let predicted = Trading.bankTradeProblem(give: [.brick: 4], get: [.ore: 1],
                                                      by: player, state: state)
             var applyThrew: MoveError?
-            do { try Trading.bankTrade(give: [.brick: 4], get: [.ore: 1], by: player, state: &state) }
-            catch let error as MoveError { applyThrew = error }
+            do {
+                try Trading.bankTrade(give: [.brick: 4], get: [.ore: 1], by: player, state: &state)
+            } catch let error as MoveError {
+                applyThrew = error
+            }
 
             let detail = "validation said \(String(describing: predicted)) but applying gave "
                 + "\(String(describing: applyThrew)) for hand \(hand) bank \(bank)"
