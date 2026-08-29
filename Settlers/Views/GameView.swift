@@ -348,10 +348,12 @@ public struct GameView: View {
             // screenshotting, since that step depends on state
             // (`GameViewModel.pendingTradeConfirmation`) a real tap can't
             // reliably reach in the simulator.
+            #if DEBUG
             if QALaunchFlag.showPendingTradeConfirmation.isSet {
                 showTradePopup = true
                 viewModel.qaSeedPendingTradeConfirmation()
             }
+            #endif
             // `-qaShowRobberTargeting`: same escape hatch pattern - arms
             // `isKnightRobberActive` directly so `robberTargetingPanel` can
             // be screenshotted without a real Knight card/7-roll.

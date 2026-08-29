@@ -14,12 +14,30 @@ public enum RobberHeuristics {
     /// responsible for matching the result against `RulesEngine.legalMoves`,
     /// since a desired victim may not actually be eligible to steal from
     /// (e.g. holds zero resource cards).
-    public static func chooseRobberTarget(state: GameState, player: PlayerID, personality: BotPersonality) -> (HexCoordinate, PlayerID?) {
+    public static func chooseRobberTarget(
+        state: GameState,
+        player: PlayerID,
+        personality: BotPersonality,
+        weights: BotWeights = .default
+    ) -> (HexCoordinate, PlayerID?) {
         let candidateTiles = state.board.tiles.map(\.coordinate).filter { $0 != state.board.robberTile }
         guard !candidateTiles.isEmpty else { return (state.board.robberTile, nil) }
 
+        /// The corners of `tile`, in a stable order.
+        ///
+        /// The `.sorted()` is load-bearing, and for a subtler reason than the
+        /// usual one. `onBoardVertices` is a `Set`, so this filter yields its
+        /// results in an order Swift seeds per process - and `disruption`
+        /// below *sums a Double* over exactly this sequence. Floating-point
+        /// addition is not associative, so the same corners added in a
+        /// different order can produce results differing in the last bit. That
+        /// is enough to flip `max(by:)` between two tiles that are supposed to
+        /// tie, which made the bot pick a different robber target on a
+        /// different launch of the same seeded game - the last remaining
+        /// source of cross-process non-determinism, and invisible to any test
+        /// that compares two runs inside one process.
         func verticesTouching(_ tile: HexCoordinate) -> [VertexID] {
-            state.board.onBoardVertices.filter { $0.touchingTiles.contains(tile) }
+            state.board.onBoardVertices.filter { $0.touchingTiles.contains(tile) }.sorted()
         }
 
         func touchesOwn(_ tile: HexCoordinate) -> Bool {
@@ -34,7 +52,10 @@ public enum RobberHeuristics {
             var value = 0.0
             for vertex in verticesTouching(tile) {
                 for other in state.players where other.id != player {
-                    let weight = 1.0 + ThreatAssessment.relativeWeight(for: other.id, excluding: player, in: state) * personality.aggressiveness * 2.0
+                    let threat = ThreatAssessment.relativeWeight(for: other.id, excluding: player, in: state, weights: weights)
+                    let weight = 1.0 + threat * personality.aggressiveness * weights.robberThreatWeightScale
+                    // 2-to-1 is the rule that a city produces double a
+                    // settlement, so it isn't a tunable weight.
                     if other.cities.contains(vertex) {
                         value += 2.0 * weight
                     } else if other.settlements.contains(vertex) {
@@ -55,7 +76,7 @@ public enum RobberHeuristics {
         let occupants = state.players.filter { occupant in
             occupant.id != player && verticesTouching(bestTile).contains { occupant.settlements.contains($0) || occupant.cities.contains($0) }
         }
-        let threatRanking = ThreatAssessment.scores(excluding: player, in: state)
+        let threatRanking = ThreatAssessment.scores(excluding: player, in: state, weights: weights)
         let victim = threatRanking
             .first { ranked in occupants.contains { $0.id == ranked.player } }
             .map { $0.player }

@@ -2,10 +2,12 @@
 #
 # Run every gate and print ONE verdict per gate.
 #
-# WHY THIS IS THE GATE, and not GitHub Actions. Branch protection is
-# unavailable on this repository: `gh api repos/jakebeinart1/Settlers/branches/main/protection`
-# answers 403 "Upgrade to GitHub Pro or make this repository public", and Alex
-# is not an admin on it either. So a CI check here can never *block* a merge -
+# WHY THIS IS THE GATE, and not GitHub Actions. Branch protection is out of
+# reach on this repository twice over: `gh api
+# repos/jakebeinart1/Settlers/branches/main/protection` answers 404 here
+# because `permissions.admin` is false for this account, and on Alex's own
+# private repos the same call answers 403 "Upgrade to GitHub Pro or make this
+# repository public". So a CI check here can never *block* a merge -
 # it is advisory by construction. A pre-push hook running this script is the
 # only thing in the setup that can actually refuse. CI stays as a clean-room
 # second opinion, which is a real but different job.
@@ -23,8 +25,8 @@
 #  4. Cheapest first, so the common failure is also the fastest.
 #
 # Usage:
-#   scripts/gate.sh              # everything except the app build (~50s)
-#   scripts/gate.sh --with-app   # also compile the iOS app target (~2 min)
+#   scripts/gate.sh              # the full gate, ~70s warm
+#   scripts/gate.sh --debug-app  # also compile the app in Debug
 #   scripts/gate.sh --range A..B # scan only this commit range for secrets
 
 set -uo pipefail
@@ -32,11 +34,11 @@ set -uo pipefail
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$REPO_ROOT"
 
-WITH_APP=0
+WITH_DEBUG_APP=0
 SECRET_RANGE=""
 while [[ $# -gt 0 ]]; do
   case "$1" in
-    --with-app) WITH_APP=1; shift ;;
+    --debug-app) WITH_DEBUG_APP=1; shift ;;
     --range)    SECRET_RANGE="${2:-}"; shift 2 ;;
     *) echo "unknown argument: $1" >&2; exit 2 ;;
   esac
@@ -139,7 +141,15 @@ gate_secrets() {
   fi
 }
 
-# --- 7. The app target (opt-in: it is the slow one) -----------------------
+# --- 7. The app target ----------------------------------------------------
+# Compiled in RELEASE, and not optional.
+#
+# This gate started out Debug-only and opt-in, and that combination let a real
+# break through within hours: two `qa*` methods were put behind `#if DEBUG`
+# while their call sites were not, so the app stopped compiling for release
+# entirely - and every gate stayed green over it, because nothing here ever
+# built the configuration that would ship. Debug and Release are different
+# programs the moment a `#if` enters the codebase.
 gate_app_build() {
   local sim
   sim="$(xcrun simctl list devices available -j 2>/dev/null \
@@ -152,7 +162,7 @@ for runtime, devices in d.items():
   if [[ -z "$sim" ]]; then return 200; fi
   xcodebuild -project Settlers.xcodeproj -scheme Settlers \
     -destination "platform=iOS Simulator,id=$sim" \
-    -configuration Debug build 2>&1 \
+    -configuration "${1:-Release}" build 2>&1 \
     | grep -E "error:|BUILD SUCCEEDED|BUILD FAILED" | sort -u
   # Read xcodebuild's own status, not grep's - a pipeline returns the LAST
   # command's exit code, so `xcodebuild | grep` reports whether grep matched.
@@ -183,10 +193,11 @@ maybe "CatanEngine tests"       gate_engine_tests
 maybe "CatanAI tests"           gate_ai_tests
 maybe "coverage floors"         gate_coverage
 maybe "gitleaks"                gate_secrets
-if [[ $WITH_APP -eq 1 ]]; then
-  maybe "app build (W=E)"       gate_app_build
+maybe "app build (Release)"     gate_app_build Release
+if [[ $WITH_DEBUG_APP -eq 1 ]]; then
+  maybe "app build (Debug)"     gate_app_build Debug
 else
-  skip_gate "app build (W=E)" "not requested; pass --with-app"
+  skip_gate "app build (Debug)" "not requested; pass --debug-app"
 fi
 
 printf '\n\033[1m─── summary ───\033[0m\n'

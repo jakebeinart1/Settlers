@@ -5,10 +5,10 @@ import CatanEngine
 public enum DevCardHeuristics {
     /// Same target list/order `TradeHeuristics` uses, so dev-card play
     /// reasons about "my current build plan" consistently with trading.
-    private static func buildTargets(personality: BotPersonality) -> [[Resource: Int]] {
+    private static func buildTargets(personality: BotPersonality, weights: BotWeights) -> [[Resource: Int]] {
         let settlement = Building.settlementCost
         let city = Building.cityCost
-        return personality.expansionBias >= 0.5
+        return personality.expansionBias >= weights.cityFirstExpansionBiasPivot
             ? [settlement, city, Building.roadCost]
             : [city, settlement, Building.roadCost]
     }
@@ -29,12 +29,13 @@ public enum DevCardHeuristics {
 
     /// Picks the single best dev card play available right now, if any:
     /// - Knight: to shake the robber off one of our own tiles, or to claim
-    ///   largest army (playing it would reach the 3-knight minimum and
-    ///   nobody currently holds it, or we already lead).
+    ///   largest army (playing it would reach `largestArmyKnightThreshold`
+    ///   and nobody currently holds it, or we already lead).
     /// - Year of Plenty: when the two granted cards would fully cover the
     ///   remaining deficit on our nearest build target.
-    /// - Monopoly: when opponents collectively hold a meaningful stash
-    ///   (3+) of a resource we're short on for our nearest build target.
+    /// - Monopoly: when opponents collectively hold at least
+    ///   `monopolyMinimumStash` (threat-weighted) of a resource we're short
+    ///   on for our nearest build target.
     ///
     /// Returns `nil` if no play is clearly worthwhile; callers must still
     /// match the result against `RulesEngine.legalMoves` before using it.
@@ -42,7 +43,12 @@ public enum DevCardHeuristics {
     /// does (settlement-first vs. city-first), so a `.cautious` bot's
     /// Year-of-Plenty/Monopoly reasoning actually reflects its own
     /// city-upgrade preference rather than always assuming `.balanced`.
-    public static func choosePlay(state: GameState, player: PlayerID, personality: BotPersonality) -> GameMove? {
+    public static func choosePlay(
+        state: GameState,
+        player: PlayerID,
+        personality: BotPersonality,
+        weights: BotWeights = .default
+    ) -> GameMove? {
         guard let me = state.players.first(where: { $0.id == player }) else { return nil }
 
         if DevCards.canPlay(.knight, by: player, in: state) {
@@ -50,20 +56,31 @@ public enum DevCardHeuristics {
                 vertex.touchingTiles.contains(state.board.robberTile)
                     && (me.settlements.contains(vertex) || me.cities.contains(vertex))
             }
-            let claimsLargestArmy = me.playedKnights + 1 >= 3 && state.largestArmyPlayer != player
-            if robberOnOwnTile || claimsLargestArmy || pursuingLargestArmy(state: state, player: player, me: me) {
-                let (tile, victim) = RobberHeuristics.chooseRobberTarget(state: state, player: player, personality: personality)
+            let claimsLargestArmy = me.playedKnights + 1 >= weights.largestArmyKnightThreshold
+                && state.largestArmyPlayer != player
+            let pursuing = pursuingLargestArmy(state: state, player: player, me: me, weights: weights)
+            if robberOnOwnTile || claimsLargestArmy || pursuing {
+                let (tile, victim) = RobberHeuristics.chooseRobberTarget(
+                    state: state, player: player, personality: personality, weights: weights
+                )
                 return .playKnight(moveRobberTo: tile, stealFrom: victim)
             }
         }
 
-        let targets = buildTargets(personality: personality)
+        let targets = buildTargets(personality: personality, weights: weights)
         // Individual missing resource units (a target needing 2 ore and
         // 1 grain contributes [.ore, .ore, .grain]) for whichever target has
         // the fewest, i.e. our nearest build.
+        // Driven off `Resource.allCases`, not the cost dictionary. The caller
+        // takes `missing[0]` and `missing[1]` for Year of Plenty's two cards,
+        // and a dictionary yields its pairs in a per-process order - so the
+        // same position asked for the same two resources in a different order
+        // on a different launch. Both orderings are legal and grant the same
+        // cards, so this never changed the game, but it did make the recorded
+        // move sequence differ run to run.
         func missingUnits(_ cost: [Resource: Int]) -> [Resource] {
-            cost.flatMap { resource, amount -> [Resource] in
-                let deficit = max(0, amount - (me.resources[resource] ?? 0))
+            Resource.allCases.flatMap { resource -> [Resource] in
+                let deficit = max(0, (cost[resource] ?? 0) - (me.resources[resource] ?? 0))
                 return Array(repeating: resource, count: deficit)
             }
         }
@@ -85,11 +102,18 @@ public enum DevCardHeuristics {
         }
 
         if DevCards.canPlay(.monopoly, by: player, in: state), let nearest {
-            let neededResources = Set(missingUnits(nearest))
+            // Walked in `Resource.allCases` order rather than as a `Set`:
+            // `max(by:)` keeps the first of equal elements, so a tie between
+            // two equally-stocked resources was decided by Swift's
+            // per-process hash seed.
+            let needed = Set(missingUnits(nearest))
+            let neededResources = Resource.allCases.filter { needed.contains($0) }
             let bestTarget = neededResources.max { resource1, resource2 in
-                opponentTotal(resource1, state: state, player: player) < opponentTotal(resource2, state: state, player: player)
+                opponentTotal(resource1, state: state, player: player, weights: weights)
+                    < opponentTotal(resource2, state: state, player: player, weights: weights)
             }
-            if let bestTarget, opponentTotal(bestTarget, state: state, player: player) >= 3 {
+            if let bestTarget,
+               opponentTotal(bestTarget, state: state, player: player, weights: weights) >= weights.monopolyMinimumStash {
                 return .playMonopoly(bestTarget)
             }
         }
@@ -117,16 +141,22 @@ public enum DevCardHeuristics {
     /// runway to grow that ceiling further, so any real contender should
     /// stop sitting on knights and start spending them - last call before
     /// the game can't hand out any more of them.
-    private static func pursuingLargestArmy(state: GameState, player: PlayerID, me: Player) -> Bool {
+    private static func pursuingLargestArmy(
+        state: GameState,
+        player: PlayerID,
+        me: Player,
+        weights: BotWeights
+    ) -> Bool {
         guard state.largestArmyPlayer != player else { return false } // already holding it - nothing to pursue
         let myCeiling = me.playedKnights + me.devCards.filter { $0 == .knight }.count
-        guard myCeiling >= 3 else { return false } // not a real contender either way
+        // Not a real contender either way.
+        guard myCeiling >= weights.largestArmyKnightThreshold else { return false }
 
         let aheadOfUs = state.largestArmyPlayer
             .flatMap { holder in state.players.first(where: { $0.id == holder })?.playedKnights }
             ?? (state.players.filter { $0.id != player }.map(\.playedKnights).max() ?? 0)
 
-        let deckNearlyOut = state.devCardDeck.count <= 5
+        let deckNearlyOut = state.devCardDeck.count <= weights.devDeckNearlyOutCount
         return myCeiling > aheadOfUs || deckNearlyOut
     }
 
@@ -135,9 +165,15 @@ public enum DevCardHeuristics {
     /// `ThreatAssessment`) - so Monopoly is picked to hurt whoever's most
     /// dangerous, not just whoever happens to be sitting on the biggest
     /// raw pile.
-    private static func opponentTotal(_ resource: Resource, state: GameState, player: PlayerID) -> Double {
+    private static func opponentTotal(
+        _ resource: Resource,
+        state: GameState,
+        player: PlayerID,
+        weights: BotWeights
+    ) -> Double {
         state.players.filter { $0.id != player }.reduce(0.0) { partial, opponent in
-            partial + Double(opponent.resources[resource] ?? 0) * ThreatAssessment.relativeWeight(for: opponent.id, excluding: player, in: state)
+            let threat = ThreatAssessment.relativeWeight(for: opponent.id, excluding: player, in: state, weights: weights)
+            return partial + Double(opponent.resources[resource] ?? 0) * threat
         }
     }
 }

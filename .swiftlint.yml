@@ -21,10 +21,9 @@ excluded:
   - Packages/CatanAI/.build
   - .build
   - .ci-derived
-  # Tracked, but not a build target: `project.yml` compiles only `Settlers/`.
-  # These are stale design-handoff copies awaiting deletion.
-  - ClaudeDesignExport
-  - BuildingsDesignExport
+  # Xcode writes generated sources here when -derivedDataPath points into
+  # the repo; its GeneratedAssetSymbols.swift fails trailing_newline.
+  - DerivedData
 
 disabled_rules:
   - trailing_comma

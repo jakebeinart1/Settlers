@@ -83,9 +83,15 @@ struct ContentView: View {
             // 10 VP. Combine with `-qaAutoStart` (which this alone doesn't
             // imply) so `hasStartedThisSession` is already `true` and the
             // `gameOver` branch above actually renders.
+            // The guard has to be here as well as on the method: `isSet` is
+            // false in release, but that is a runtime answer and the call
+            // still has to compile, and the method it names does not exist
+            // outside DEBUG.
+            #if DEBUG
             if QALaunchFlag.showEndGame.isSet {
                 viewModel.qaForceHumanWin()
             }
+            #endif
         }
         // Drives `GameViewModel`'s active-time tracking for the "average
         // game time" stat - only foreground time should count, not time

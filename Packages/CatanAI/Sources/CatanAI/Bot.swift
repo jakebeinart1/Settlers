@@ -9,8 +9,17 @@ import CatanEngine
 public struct Bot: Sendable {
     public let personality: BotPersonality
 
-    public init(personality: BotPersonality) {
+    /// The tuning constants every heuristic this bot consults scores with.
+    /// Separate from `personality`: a personality is a handful of dials
+    /// describing a *play style* and is part of the game's presentation
+    /// (which opponent you are facing), while these are the full numeric
+    /// policy underneath and exist to be swept or trained. Defaulted so
+    /// callers that don't care never see them.
+    public let weights: BotWeights
+
+    public init(personality: BotPersonality, weights: BotWeights = .default) {
         self.personality = personality
+        self.weights = weights
     }
 
     /// Always returns a member of `RulesEngine.legalMoves(for: state)`.
@@ -73,7 +82,9 @@ public struct Bot: Sendable {
             var bestScore = -Double.infinity
             for move in legal {
                 guard case .placeInitialSettlement(let vertex) = move else { continue }
-                let score = PlacementHeuristics.score(vertex: vertex, board: state.board, alreadyCovered: alreadyCovered)
+                let score = PlacementHeuristics.score(
+                    vertex: vertex, board: state.board, alreadyCovered: alreadyCovered, weights: weights
+                )
                 if score > bestScore {
                     bestScore = score
                     best = move
@@ -90,8 +101,8 @@ public struct Bot: Sendable {
             guard case .placeInitialRoad(let edge) = move else { continue }
             let (a, b) = state.board.vertices(of: edge)
             let score = max(
-                PlacementHeuristics.score(vertex: a, board: state.board, alreadyCovered: alreadyCovered),
-                PlacementHeuristics.score(vertex: b, board: state.board, alreadyCovered: alreadyCovered)
+                PlacementHeuristics.score(vertex: a, board: state.board, alreadyCovered: alreadyCovered, weights: weights),
+                PlacementHeuristics.score(vertex: b, board: state.board, alreadyCovered: alreadyCovered, weights: weights)
             )
             if score > bestScore {
                 bestScore = score
@@ -175,7 +186,9 @@ public struct Bot: Sendable {
         // resource cards), so match its suggestion against `legal` and fall
         // back to the best legal victim on the same tile if the exact
         // suggested pairing isn't available.
-        let (tile, victim) = RobberHeuristics.chooseRobberTarget(state: state, player: player, personality: personality)
+        let (tile, victim) = RobberHeuristics.chooseRobberTarget(
+            state: state, player: player, personality: personality, weights: weights
+        )
         if let exact = matchLegal(.moveRobber(tile, stealFrom: victim), in: legal) {
             return exact
         }
@@ -216,8 +229,14 @@ public struct Bot: Sendable {
         // Accepting a good pending trade is usually as valuable as a solid
         // build - score it in the same range, nudged by trade willingness.
         for offer in state.pendingTradeOffers where offer.from != player {
-            if TradeHeuristics.evaluate(offer: offer, receiver: player, state: state, personality: personality) {
-                consider(.respondToTrade(offerID: offer.id, accept: true), score: 2.0 + personality.tradeWillingness * 3.0)
+            if TradeHeuristics.evaluate(
+                offer: offer, receiver: player, state: state, personality: personality, weights: weights
+            ) {
+                consider(
+                    .respondToTrade(offerID: offer.id, accept: true),
+                    score: weights.acceptTradeMoveBase
+                        + personality.tradeWillingness * weights.acceptTradeMoveWillingnessScale
+                )
             }
         }
 
@@ -225,17 +244,26 @@ public struct Bot: Sendable {
         // plenty/monopoly) never competes for the same resources as a build,
         // so it's always worth weighing independently; aggressive bots lean
         // into it harder (mostly via knight plays).
-        consider(DevCardHeuristics.choosePlay(state: state, player: player, personality: personality), score: 2.5 + personality.aggressiveness * 2.0)
+        consider(
+            DevCardHeuristics.choosePlay(state: state, player: player, personality: personality, weights: weights),
+            score: weights.playDevCardMoveBase + personality.aggressiveness * weights.playDevCardMoveAggressionScale
+        )
 
-        let buildMove = BuildPlanner.chooseBuild(for: state, player: player, personality: personality, rng: &rng)
-        consider(buildMove, score: 3.0)
+        let buildMove = BuildPlanner.chooseBuild(
+            for: state, player: player, personality: personality, rng: &rng, weights: weights
+        )
+        consider(buildMove, score: weights.buildMoveScore)
 
         // Buying/proposing a trade are fallbacks considered only once a
         // build wasn't clearly worth it (buying is already scored as part of
         // `BuildPlanner`'s own candidates when it *is* worthwhile).
         if buildMove == nil {
             if DevCardHeuristics.shouldBuyDevCard(state: state, player: player) {
-                consider(.buyDevCard, score: 1.6 + personality.aggressiveness * 0.5)
+                consider(
+                    .buyDevCard,
+                    score: weights.buyDevCardMoveBase
+                        + personality.aggressiveness * weights.buyDevCardMoveAggressionScale
+                )
             }
             // Fall back to the bank/port when no build is affordable yet and
             // no other player's offering a good deal - previously bots only
@@ -243,14 +271,18 @@ public struct Bot: Sendable {
             // surplus (e.g. plenty of brick, zero wool) with no willing
             // trade partner would just stall every turn instead of
             // converting what it already has.
-            if let bankTrade = TradeHeuristics.bestBankTrade(state: state, player: player, personality: personality) {
+            if let bankTrade = TradeHeuristics.bestBankTrade(
+                state: state, player: player, personality: personality, weights: weights
+            ) {
                 consider(
                     .bankTrade(give: [bankTrade.give: bankTrade.rate], get: [bankTrade.get: 1]),
-                    score: 1.9 + personality.expansionBias * 0.3
+                    score: weights.bankTradeMoveBase + personality.expansionBias * weights.bankTradeMoveExpansionScale
                 )
             }
-            for offer in TradeHeuristics.proposeTrades(state: state, player: player, personality: personality) {
-                consider(.proposeTrade(offer), score: 1.0 + personality.tradeWillingness)
+            for offer in TradeHeuristics.proposeTrades(
+                state: state, player: player, personality: personality, weights: weights
+            ) {
+                consider(.proposeTrade(offer), score: weights.proposeTradeMoveBase + personality.tradeWillingness)
             }
 
             // Lowest-priority fallback: actively decline a pending offer
@@ -262,8 +294,10 @@ public struct Bot: Sendable {
             // so a bot that's otherwise out of better moves cleans one up
             // rather than reaching `.endTurn` with it still pending.
             for offer in state.pendingTradeOffers where offer.from != player {
-                if !TradeHeuristics.evaluate(offer: offer, receiver: player, state: state, personality: personality) {
-                    consider(.respondToTrade(offerID: offer.id, accept: false), score: 0.1)
+                if !TradeHeuristics.evaluate(
+                    offer: offer, receiver: player, state: state, personality: personality, weights: weights
+                ) {
+                    consider(.respondToTrade(offerID: offer.id, accept: false), score: weights.declineTradeMoveScore)
                 }
             }
         }

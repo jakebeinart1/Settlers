@@ -70,8 +70,15 @@ enum SetupPhase {
     /// sub-turn that still needs its accompanying road. Each setup turn
     /// places a settlement then immediately its road, so at most one such
     /// settlement exists at a time.
+    ///
+    /// Sorted before `.first`: `settlements` is a `Set`, so picking "the
+    /// first" match is picking whichever one Swift's per-process hash order
+    /// happened to yield. Only one match is reachable during setup - the
+    /// distance rule guarantees it - so this is not a live bug, but it is the
+    /// same shape as several that were, and it sits on the setup path where a
+    /// divergence would desynchronise an entire seeded game from move one.
     private static func unroadedSettlement(of player: Player, board: Board) -> VertexID? {
-        player.settlements.first { vertex in
+        player.settlements.sorted().first { vertex in
             !board.edgesTouching(vertex).contains { player.roads.contains($0) }
         }
     }
