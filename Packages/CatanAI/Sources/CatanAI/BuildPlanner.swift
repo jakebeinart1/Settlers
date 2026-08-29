@@ -3,19 +3,6 @@ import CatanEngine
 /// Chooses the best build-type move (road/settlement/city/dev card) available
 /// on a bot's turn, if any is worth taking.
 public enum BuildPlanner {
-    /// The minimum score a candidate must clear to be worth taking over
-    /// simply ending the turn (banking resources for something better).
-    private static let worthItThreshold = 1.5
-
-    /// How close a candidate's score has to be to the best one to be treated
-    /// as a genuine toss-up rather than clearly worse. Real players don't
-    /// deliberate the same way over "obviously the best move" vs. "several
-    /// reasonable options" - a wide scoring gap means one move is just
-    /// better and should always win, while a near-tie is the kind of close
-    /// call a human might decide either way. Only ties within this margin
-    /// get randomized; anything outside it is picked deterministically.
-    private static let tieMargin = 0.35
-
     /// Scores every legal build move for `player` in `state` and returns
     /// one of the highest-scoring ones, or `nil` if nothing clears
     /// `worthItThreshold` (in which case the caller should fall back to
@@ -33,18 +20,20 @@ public enum BuildPlanner {
         for state: GameState,
         player: PlayerID,
         personality: BotPersonality,
-        rng: inout some RandomNumberGenerator
+        rng: inout some RandomNumberGenerator,
+        weights: BotWeights = .default
     ) -> GameMove? {
         let legal = RulesEngine.legalMoves(for: state)
         var scored: [(move: GameMove, score: Double)] = []
 
         for move in legal {
-            guard let score = score(move, for: state, player: player, personality: personality) else { continue }
+            guard let score = score(move, for: state, player: player, personality: personality, weights: weights)
+            else { continue }
             scored.append((move, score))
         }
 
-        guard let topScore = scored.map(\.score).max(), topScore >= worthItThreshold else { return nil }
-        let tied = scored.filter { $0.score >= topScore - tieMargin }
+        guard let topScore = scored.map(\.score).max(), topScore >= weights.worthItThreshold else { return nil }
+        let tied = scored.filter { $0.score >= topScore - weights.tieMargin }
         return tied.randomElement(using: &rng)?.move
     }
 
@@ -53,22 +42,31 @@ public enum BuildPlanner {
     /// rather than private so `BuildPlannerTests` can compare scores
     /// directly instead of only inferring them through `chooseBuild`'s
     /// final pick.
-    static func score(_ move: GameMove, for state: GameState, player: PlayerID, personality: BotPersonality) -> Double? {
+    static func score(
+        _ move: GameMove,
+        for state: GameState,
+        player: PlayerID,
+        personality: BotPersonality,
+        weights: BotWeights = .default
+    ) -> Double? {
         switch move {
         case .buildSettlement(let vertex):
             // A new settlement is close to always worth it - weight
             // production heavily and scale up by expansion appetite. Also
             // adds a bonus for denying a threatening opponent's near-term
             // expansion spot, if this vertex is one.
-            let production = PlacementHeuristics.score(vertex: vertex, board: state.board)
-            let denial = denialBonus(vertex: vertex, state: state, player: player)
-            return 3.0 + production * (0.5 + personality.expansionBias) + denial
+            let production = PlacementHeuristics.score(vertex: vertex, board: state.board, weights: weights)
+            let denial = denialBonus(vertex: vertex, state: state, player: player, weights: weights)
+            let appetite = weights.settlementProductionBase + personality.expansionBias
+            return weights.settlementBase + production * appetite + denial
 
         case .buildCity(let vertex):
             // Upgrading doubles production on that vertex's tiles, so it's
             // valuable roughly in proportion to its existing production.
-            let production = PlacementHeuristics.score(vertex: vertex, board: state.board)
-            return 2.5 + production * (0.4 + personality.expansionBias * 0.5)
+            let production = PlacementHeuristics.score(vertex: vertex, board: state.board, weights: weights)
+            let appetite = weights.cityProductionBase
+                + personality.expansionBias * weights.cityProductionExpansionScale
+            return weights.cityBase + production * appetite
 
         case .buildRoad(let edge):
             // Roads are cheap groundwork; value them modestly, with a bonus
@@ -80,17 +78,20 @@ public enum BuildPlanner {
             // holder, not just claim it fresh.
             let reachable = newlyReachableVertices(for: edge, player: player, in: state)
             let bestReachable = reachable
-                .map { PlacementHeuristics.score(vertex: $0, board: state.board) }
+                .map { PlacementHeuristics.score(vertex: $0, board: state.board, weights: weights) }
                 .max() ?? 0
-            let blockingBonus = blocksOpponentNetwork(edge, state: state, player: player)
+            let blockingBonus = blocksOpponentNetwork(edge, state: state, player: player, weights: weights)
             var longestRoadBonus = 0.0
             if claimsLongestRoad(edge, for: player, in: state) {
                 let holderWeight = state.longestRoadPlayer
-                    .map { holder in ThreatAssessment.relativeWeight(for: holder, excluding: player, in: state) }
+                    .map { holder in
+                        ThreatAssessment.relativeWeight(for: holder, excluding: player, in: state, weights: weights)
+                    }
                     ?? 1.0
-                longestRoadBonus = 2.5 * (state.longestRoadPlayer == nil ? 1.0 : holderWeight)
+                longestRoadBonus = weights.longestRoadClaimBonus
+                    * (state.longestRoadPlayer == nil ? 1.0 : holderWeight)
             } else if state.longestRoadPlayer == player {
-                longestRoadBonus = longestRoadDefenseBonus(edge: edge, player: player, state: state)
+                longestRoadBonus = longestRoadDefenseBonus(edge: edge, player: player, state: state, weights: weights)
             } else if let playerIndex = state.players.firstIndex(where: { $0.id == player }) {
                 // Not the qualifying edge itself, and not already held (in
                 // which case there's nothing left to pursue) - but real
@@ -104,8 +105,9 @@ public enum BuildPlanner {
                 var simulated = state
                 simulated.players[playerIndex].roads.insert(edge)
                 let ownLengthAfter = LongestRoad.length(for: simulated.players[playerIndex], in: simulated)
-                if ownLengthAfter >= 3 {
-                    longestRoadBonus = 0.3 * Double(ownLengthAfter - 2)
+                if ownLengthAfter >= weights.longestRoadPursuitMinLength {
+                    let segmentsAboveZeroPoint = ownLengthAfter - weights.longestRoadPursuitZeroLength
+                    longestRoadBonus = weights.longestRoadPursuitScale * Double(segmentsAboveZeroPoint)
                 }
             }
             // A road going somewhere specific reads as planned; one that
@@ -113,8 +115,10 @@ public enum BuildPlanner {
             // that measurably close the distance to a single, consistently
             // chosen expansion target rather than scattering across
             // whichever vertex looks marginally reachable this turn.
-            let pathBonus = committedPathBonus(edge: edge, player: player, state: state)
-            return 0.5 + personality.expansionBias + bestReachable * 0.2 + blockingBonus + longestRoadBonus + pathBonus
+            let pathBonus = committedPathBonus(edge: edge, player: player, state: state, weights: weights)
+            return weights.roadBase + personality.expansionBias
+                + bestReachable * weights.roadReachableScale
+                + blockingBonus + longestRoadBonus + pathBonus
 
         case .buyDevCard:
             // A flat, personality-nudged value: knights help aggressive
@@ -129,7 +133,7 @@ public enum BuildPlanner {
             // hand. Checking against the holder's real count (not just
             // "someone holds it") matters: if they're already at 5 played
             // knights, reaching 3 ourselves wouldn't take it from them.
-            var value = 1.6 + personality.aggressiveness * 0.5
+            var value = weights.buildDevCardBase + personality.aggressiveness * weights.buildDevCardAggressionScale
             if let me = state.players.first(where: { $0.id == player }) {
                 // Diminishing returns for hoarding: only one development
                 // card can be played per turn (`DevCards.canPlay`), so a
@@ -140,15 +144,15 @@ public enum BuildPlanner {
                 // next turn's one-card slot the way a knight/road-building/
                 // year-of-plenty/monopoly card does.
                 let unplayedPlayable = me.devCards.filter { $0 != .victoryPoint }.count
-                value -= Double(unplayedPlayable) * 0.35
+                value -= Double(unplayedPlayable) * weights.devCardHoardingPenalty
 
                 if state.largestArmyPlayer != player {
                     let wouldReach = me.playedKnights + 1
                     let holderCount = state.largestArmyPlayer
                         .flatMap { holder in state.players.first(where: { $0.id == holder })?.playedKnights }
                         ?? 0
-                    if wouldReach >= 3, wouldReach > holderCount {
-                        value += 1.0
+                    if wouldReach >= weights.largestArmyKnightThreshold, wouldReach > holderCount {
+                        value += weights.buildDevCardLargestArmyBonus
                     }
                 }
             }
@@ -253,12 +257,18 @@ public enum BuildPlanner {
     /// (but less than) the production value of taking it for ourselves,
     /// scaled by how threatening that opponent is relative to the average
     /// opponent.
-    private static func denialBonus(vertex: VertexID, state: GameState, player: PlayerID) -> Double {
+    private static func denialBonus(
+        vertex: VertexID,
+        state: GameState,
+        player: PlayerID,
+        weights: BotWeights
+    ) -> Double {
         var bonus = 0.0
         for opponent in state.players where opponent.id != player {
             guard opponentFrontier(for: opponent.id, in: state).contains(vertex) else { continue }
-            let production = PlacementHeuristics.score(vertex: vertex, board: state.board)
-            bonus += production * 0.4 * ThreatAssessment.relativeWeight(for: opponent.id, excluding: player, in: state)
+            let production = PlacementHeuristics.score(vertex: vertex, board: state.board, weights: weights)
+            let threat = ThreatAssessment.relativeWeight(for: opponent.id, excluding: player, in: state, weights: weights)
+            bonus += production * weights.settlementDenialScale * threat
         }
         return bonus
     }
@@ -273,20 +283,26 @@ public enum BuildPlanner {
     /// bots-only simulation as a real source of roads that "don't make
     /// sense" (touching some opponent road segment with nothing actually at
     /// stake there).
-    private static func blocksOpponentNetwork(_ edge: EdgeID, state: GameState, player: PlayerID) -> Double {
+    private static func blocksOpponentNetwork(
+        _ edge: EdgeID,
+        state: GameState,
+        player: PlayerID,
+        weights: BotWeights
+    ) -> Double {
         let (a, b) = state.board.vertices(of: edge)
         var bonus = 0.0
         for opponent in state.players where opponent.id != player {
             guard !opponent.roads.contains(edge) else { continue }
             let deniesFrontier = [a, b].contains { immediateFrontier(for: opponent.id, in: state).contains($0) }
             guard deniesFrontier else { continue }
-            bonus += 1.0 * ThreatAssessment.relativeWeight(for: opponent.id, excluding: player, in: state)
+            let threat = ThreatAssessment.relativeWeight(for: opponent.id, excluding: player, in: state, weights: weights)
+            bonus += weights.roadBlockingBonus * threat
         }
         return bonus
     }
 
     /// The single best vertex `player` could aim their road network toward
-    /// right now: the highest-scoring buildable vertex within `maxHops`
+    /// right now: the highest-scoring buildable vertex within `expansionTargetMaxHops`
     /// roads of their existing network (settlements/cities/roads), with
     /// production discounted by distance so a mediocre-but-close spot can
     /// beat a great-but-far one. Recomputed fresh from `state` every call -
@@ -295,8 +311,8 @@ public enum BuildPlanner {
     /// aiming the same direction instead of flip-flopping; that consistency
     /// (not any stored plan) is what `committedPathBonus` relies on. `nil`
     /// once `player` has no network yet (setup phase) or no buildable
-    /// vertex is reachable within `maxHops`.
-    static func expansionTarget(for player: PlayerID, in state: GameState, maxHops: Int = 4) -> VertexID? {
+    /// vertex is reachable within `expansionTargetMaxHops`.
+    static func expansionTarget(for player: PlayerID, in state: GameState, weights: BotWeights = .default) -> VertexID? {
         guard let me = state.players.first(where: { $0.id == player }) else { return nil }
         var networkVertices = me.settlements.union(me.cities)
         for edge in me.roads {
@@ -310,10 +326,21 @@ public enum BuildPlanner {
         var frontier = networkVertices
         var best: (vertex: VertexID, score: Double)?
         var hop = 1
-        while hop <= maxHops && !frontier.isEmpty {
+        while hop <= weights.expansionTargetMaxHops && !frontier.isEmpty {
             let next = Set(frontier.flatMap { state.board.adjacentVertices(of: $0) }).subtracting(visited)
-            for vertex in next where isBuildableVertex(vertex, in: state) {
-                let discounted = PlacementHeuristics.score(vertex: vertex, board: state.board) - Double(hop) * 0.5
+            // Sorted, because the winner below is chosen by a strict `>` and
+            // ties here are the common case, not a rare one:
+            // `PlacementHeuristics.score` takes only a handful of discrete
+            // values, so several frontier vertices routinely score the same.
+            // Iterating a `Set` meant whichever one Swift's per-process hash
+            // seed happened to yield first won - and that choice feeds
+            // `committedPathBonus`, so it reaches every road score, then
+            // `chooseBuild`'s tie pool, and desynchronises the RNG stream for
+            // the rest of the game. One flipped tie cascades into a different
+            // game from the same seed.
+            for vertex in next.sorted() where isBuildableVertex(vertex, in: state) {
+                let production = PlacementHeuristics.score(vertex: vertex, board: state.board, weights: weights)
+                let discounted = production - Double(hop) * weights.expansionTargetHopPenalty
                 if best == nil || discounted > best!.score {
                     best = (vertex, discounted)
                 }
@@ -353,8 +380,13 @@ public enum BuildPlanner {
     /// isolated from `.buildRoad`'s other bonuses (bestReachable/blocking/
     /// longest-road), which can otherwise swamp the difference on a real
     /// board.
-    static func committedPathBonus(edge: EdgeID, player: PlayerID, state: GameState) -> Double {
-        guard let target = expansionTarget(for: player, in: state),
+    static func committedPathBonus(
+        edge: EdgeID,
+        player: PlayerID,
+        state: GameState,
+        weights: BotWeights = .default
+    ) -> Double {
+        guard let target = expansionTarget(for: player, in: state, weights: weights),
               let me = state.players.first(where: { $0.id == player })
         else { return 0 }
 
@@ -370,7 +402,9 @@ public enum BuildPlanner {
         let (a, b) = state.board.vertices(of: edge)
         let edgeDistance = min(distances[a] ?? Int.max, distances[b] ?? Int.max)
         guard edgeDistance < networkDistance else { return 0 }
-        return 1.0 / Double(edgeDistance + 1)
+        // The `+ 1` is structural, not a weight: it keeps an edge that lands
+        // exactly on the target (distance 0) from dividing by zero.
+        return weights.committedPathScale / Double(edgeDistance + 1)
     }
 
     /// Bonus for `edge` extending `player`'s road chain while they already
@@ -382,7 +416,12 @@ public enum BuildPlanner {
     /// than private so `BuildPlannerTests` can compare it directly, isolated
     /// from `.buildRoad`'s other bonuses (bestReachable/blocking/path),
     /// which can otherwise swamp the difference on a real board.
-    static func longestRoadDefenseBonus(edge: EdgeID, player: PlayerID, state: GameState) -> Double {
+    static func longestRoadDefenseBonus(
+        edge: EdgeID,
+        player: PlayerID,
+        state: GameState,
+        weights: BotWeights = .default
+    ) -> Double {
         guard let playerIndex = state.players.firstIndex(where: { $0.id == player }) else { return 0 }
         let me = state.players[playerIndex]
         let ownLength = LongestRoad.length(for: me, in: state)
@@ -390,12 +429,12 @@ public enum BuildPlanner {
             .filter { $0.id != player }
             .map { LongestRoad.length(for: $0, in: state) }
             .max() ?? 0
-        guard ownLength - closestRivalLength <= 1 else { return 0 }
+        guard ownLength - closestRivalLength <= weights.longestRoadDefenseLeadGap else { return 0 }
 
         var simulated = state
         simulated.players[playerIndex].roads.insert(edge)
         let ownLengthAfter = LongestRoad.length(for: simulated.players[playerIndex], in: simulated)
-        return ownLengthAfter > ownLength ? 1.2 : 0
+        return ownLengthAfter > ownLength ? weights.longestRoadDefenseBonus : 0
     }
 
     /// Whether adding `edge` to `player`'s roads would make `player` the

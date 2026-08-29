@@ -24,7 +24,12 @@ public enum PlacementHeuristics {
     /// already got - a real placement priority `alreadyCovered: []`'s
     /// default (used for the first placement, and any other single-vertex
     /// scoring elsewhere) doesn't capture at all.
-    public static func score(vertex: VertexID, board: Board, alreadyCovered: Set<Resource> = []) -> Double {
+    public static func score(
+        vertex: VertexID,
+        board: Board,
+        alreadyCovered: Set<Resource> = [],
+        weights: BotWeights = .default
+    ) -> Double {
         let coordinates = board.neighborTiles(of: vertex)
         let tiles = coordinates.compactMap { coordinate in
             board.tiles.first { $0.coordinate == coordinate }
@@ -40,18 +45,18 @@ public enum PlacementHeuristics {
             if case .resource(let resource) = tile.kind {
                 resources.insert(resource)
                 if !alreadyCovered.isEmpty, !alreadyCovered.contains(resource) {
-                    newResourceBonus += pips * 0.3
+                    newResourceBonus += pips * weights.newResourcePipBonus
                 }
             }
         }
 
-        let diversityBonus = Double(resources.count) * 0.5
+        let diversityBonus = Double(resources.count) * weights.resourceDiversityBonus
 
         let portBonus: Double
         if let port = board.ports.first(where: { $0.vertexA == vertex || $0.vertexB == vertex }) {
             switch port.kind {
-            case .generic: portBonus = 0.5
-            case .resource: portBonus = 1.0
+            case .generic: portBonus = weights.genericPortBonus
+            case .resource: portBonus = weights.resourcePortBonus
             }
         } else {
             portBonus = 0

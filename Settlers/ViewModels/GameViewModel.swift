@@ -66,7 +66,13 @@ public final class GameViewModel {
     /// log segment rather than continuing the pre-relaunch one - see the
     /// design doc's Non-goals for why that's an accepted simplification
     /// rather than a bug.
-    private var currentGameLogID: UUID
+    /// `nil` until the game's first move is actually applied.
+    ///
+    /// This used to be created eagerly in `init()`, which writes a file
+    /// immediately - so every cold launch left a ~20-40 KB start-only log
+    /// behind even if the player just looked at the menu and quit, and those
+    /// orphans then competed with real games for the retention budget.
+    private var currentGameLogID: UUID?
 
     /// When each currently-pending trade offer was first proposed -
     /// `TradeOffer` itself carries no timestamp, so this is tracked
@@ -115,7 +121,9 @@ public final class GameViewModel {
     public init() {
         let initialState: GameState
         let seat: PlayerID
-        if let saved = GameStore.shared.load() {
+        var saveWasUnreadable = false
+        switch GameStore.shared.load() {
+        case .loaded(let saved):
             initialState = saved
             // A resumed game keeps whichever seat/civilizations it was
             // dealt, read back from disk rather than re-randomized - falls
@@ -126,7 +134,14 @@ public final class GameViewModel {
             seat = HumanSeatStore.shared.load()
             CivilizationAssignment.current = CivilizationAssignmentStore.shared.load()
                 ?? Self.drawAssignment(from: CivilizationSettingsStore.shared.load(), humanSeat: seat)
-        } else {
+        case .unreadable:
+            // A save exists but will not decode. Start a fresh game so the app
+            // still launches, but say so rather than pretending there was
+            // never a game - and leave the file alone so it can be recovered.
+            saveWasUnreadable = true
+            initialState = GameSetup.newGame(board: BoardGenerator.standard())
+            seat = PlayerID(index: 0)
+        case .none:
             initialState = GameSetup.newGame(board: BoardGenerator.standard())
             seat = PlayerID(index: 0)
         }
@@ -137,7 +152,8 @@ public final class GameViewModel {
         // fully assign-before-read through this initializer.
         state = initialState
         humanPlayer = seat
-        currentGameLogID = GameLogStore.shared.startNewGame(initialState: initialState)
+        currentGameLogID = nil
+        self.saveWasUnreadable = saveWasUnreadable
         activeSince = Date()
     }
 
@@ -150,7 +166,16 @@ public final class GameViewModel {
             ? BoardGenerator.randomized(seed: UInt64.random(in: .min ... .max))
             : BoardGenerator.standard()
         state = GameSetup.newGame(board: board)
-        currentGameLogID = GameLogStore.shared.startNewGame(initialState: state)
+        currentGameLogID = nil
+        // Invalidate any bot loop still sleeping against the previous game.
+        gameGeneration &+= 1
+        // Per-game negotiation state, which used to survive a restart: a
+        // confirmation banner left open before Restart carried into the new
+        // game, where confirming it failed against an offer that no longer
+        // existed.
+        pendingTradeConfirmation = nil
+        lastTradeOutcome = nil
+        offerProposedAt = [:]
         accumulatedActiveDuration = 0
         activeSince = Date()
 
@@ -176,8 +201,19 @@ public final class GameViewModel {
         let wasGameOver: Bool
         if case .gameOver = state.phase { wasGameOver = true } else { wasGameOver = false }
 
+        // Open the log on the first real move rather than at launch, so a
+        // session that never plays leaves nothing behind. `stateBeforeMove` is
+        // captured first: the `start` line has to describe the position the
+        // move list is relative to, not the one after the first move.
+        let stateBeforeMove = state
+        let gameLogID = currentGameLogID ?? {
+            let id = GameLogStore.shared.startNewGame(initialState: stateBeforeMove, roster: seatRoster())
+            currentGameLogID = id
+            return id
+        }()
+
         try RulesEngine.apply(move, by: player, to: &state)
-        GameLogStore.shared.appendMove(gameID: currentGameLogID, player: player, move: move)
+        GameLogStore.shared.appendMove(gameID: gameLogID, player: player, move: move)
 
         if case .proposeTrade(let offer) = move {
             offerProposedAt[offer.id] = Date()
@@ -186,7 +222,7 @@ public final class GameViewModel {
         offerProposedAt = offerProposedAt.filter { stillPending.contains($0.key) }
 
         if !wasGameOver, case .gameOver(let winner) = state.phase {
-            GameLogStore.shared.finalizeGame(gameID: currentGameLogID, winner: winner)
+            GameLogStore.shared.finalizeGame(gameID: gameLogID, winner: winner)
             GameStatsStore.shared.recordGameEnd(
                 won: winner == humanPlayer,
                 // The winning move can push a player past the 10-VP
@@ -198,6 +234,28 @@ public final class GameViewModel {
                 duration: currentGameDuration
             )
         }
+    }
+
+    /// Who is sitting in each seat this game, for the log's `start` line.
+    ///
+    /// Both halves are otherwise unrecoverable from the log: the human's seat
+    /// lives in a single `UserDefaults` integer that the next new game
+    /// overwrites, and a bot's personality is derived from seat order relative
+    /// to that seat rather than stored anywhere.
+    private func seatRoster() -> GameLogStore.SeatRoster {
+        var personalities: [Int: String] = [:]
+        var civilizations: [Int: String] = [:]
+        for player in state.players {
+            let index = player.id.index
+            civilizations[index] = Civilization.forSeat(index).displayName
+            guard player.id != humanPlayer else { continue }
+            personalities[index] = personalityName(for: player.id)
+        }
+        return GameLogStore.SeatRoster(
+            humanSeat: humanPlayer,
+            botPersonalities: personalities,
+            civilizations: civilizations
+        )
     }
 
     /// `humanSeat` = the player's chosen civilization; the other 3 seats
@@ -252,24 +310,35 @@ public final class GameViewModel {
     /// `TradeHeuristics.evaluate` answer won't change on its own without
     /// some other state change, so leaving it pending indefinitely would
     /// just be a silent dead offer).
-    /// QA-only: seeds `pendingTradeConfirmation` directly with every bot
-    /// accepting, without a real trade offer behind it - lets
-    /// `-qaShowPendingTradeConfirmation` screenshot
-    /// `TradePopupView.pendingConfirmationBanner` (the "a bot will accept"
-    /// step) at its worst case (every bot seat shown, not just one) without
-    /// scripting an actual bot-accepted trade through the simulator, which
-    /// would depend on `TradeHeuristics` agreeing to something. Confirm/
-    /// Decline still call through to the real `respondToTrade` move, which
-    /// will legitimately fail against this bogus `offerID` - fine, this
-    /// exists to screenshot the banner's layout, not to be played through.
-    /// QA-only: forces `state.phase` straight to a human win, for
-    /// screenshotting `EndGameView` (see `-qaShowEndGame` in `ContentView`)
-    /// without actually playing a game out to 10 VP.
-    public func qaForceHumanWin() {
+    #if DEBUG
+    // Both methods below exist only to put a screen into a state worth
+    // photographing. They are compiled out of release builds and are no longer
+    // `public`: `qaForceHumanWin` in particular mutates `phase` directly rather
+    // than going through `applyLogged`, so the "win" it produces is invisible
+    // to the game log and to `GameStatsStore`. That is correct for a
+    // screenshot and wrong for anything else, and while it sat on the public
+    // API surface nothing said so at the call site.
+    //
+    // (The two doc comments here were previously stacked above the same
+    // function, so `qaForceHumanWin` carried the description of its
+    // neighbour - a symptom of edit-by-append.)
+
+    /// Forces `state.phase` straight to a human win, for screenshotting
+    /// `EndGameView` (see `QALaunchFlag.showEndGame`) without playing a game
+    /// out to 10 VP. Deliberately records no log entry and no stats.
+    func qaForceHumanWin() {
         state.phase = .gameOver(winner: humanPlayer)
     }
 
-    public func qaSeedPendingTradeConfirmation() {
+    /// Seeds `pendingTradeConfirmation` with every bot accepting, without a
+    /// real offer behind it - lets `QALaunchFlag.showPendingTradeConfirmation`
+    /// screenshot `TradePopupView.pendingConfirmationBanner` at its worst case
+    /// (every bot seat shown) without scripting a real bot-accepted trade,
+    /// which would depend on `TradeHeuristics` agreeing to something.
+    /// Confirm/Decline still call the real `respondToTrade`, which will
+    /// legitimately fail against this bogus `offerID` - this exists to
+    /// photograph the banner's layout, not to be played through.
+    func qaSeedPendingTradeConfirmation() {
         let bots = state.players.map(\.id).filter { $0 != humanPlayer }
         guard let selectedBot = bots.first else { return }
         let offerID = UUID()
@@ -279,6 +348,7 @@ public final class GameViewModel {
             decisions: bots.map { ($0, true, tradeResponseMessage(for: $0, offerID: offerID, accepted: true)) }
         )
     }
+    #endif
 
     /// The flavor line a bot's accept/reject decision carries, themed to
     /// its empire (see `TradeMessages`) - every bot gets one regardless of
@@ -470,17 +540,38 @@ public final class GameViewModel {
     /// second concurrent copy of this loop.
     private var isProcessingBotTurns = false
 
+    /// Bumped by `startNewGame`. A bot loop already in flight compares this
+    /// against the value it started with and stops if they differ.
+    ///
+    /// The re-entrancy guard above stops two loops running at once, but it
+    /// does not stop a loop outliving the game it belongs to. `startNewGame`
+    /// replaces `state` wholesale, and a loop parked in its 600 ms sleep wakes
+    /// up afterwards, re-derives the next bot from the NEW state, and starts
+    /// playing a board the human has not seen yet - writing those moves into
+    /// the new game's log. Cancelling by generation rather than by holding a
+    /// `Task` handle keeps this correct no matter which of the four call sites
+    /// spawned the loop.
+    public private(set) var gameGeneration = 0
+
+    /// True when a save file was present at launch but could not be decoded.
+    /// Surfaced by `ContentView` so a lost game is reported rather than
+    /// silently replaced by a new one.
+    public private(set) var saveWasUnreadable = false
+
     public func runBotTurnIfNeeded() async {
         guard !isProcessingBotTurns else { return }
         isProcessingBotTurns = true
         defer { isProcessingBotTurns = false }
 
+        let generation = gameGeneration
         let sameBotActionCap = 25
         var currentBot: PlayerID?
         var actionsForCurrentBot = 0
 
         while let botPlayer = nextBotPlayer() {
             try? await Task.sleep(for: .milliseconds(600))
+            // The game may have been restarted while this loop slept.
+            guard generation == gameGeneration else { return }
 
             if botPlayer == currentBot {
                 actionsForCurrentBot += 1
@@ -551,12 +642,27 @@ public final class GameViewModel {
     /// of which one, rather than that mix silently shrinking to 2 bots
     /// whenever the human isn't sitting in seat 0.
     private func personality(for player: PlayerID) -> BotPersonality {
+        Self.botRoster[personalityIndex(for: player)].preset
+    }
+
+    /// The same assignment, as a name for the game log. Both read the one
+    /// table below so a seat's recorded personality cannot drift from the one
+    /// it is actually played with.
+    private func personalityName(for player: PlayerID) -> String {
+        Self.botRoster[personalityIndex(for: player)].name
+    }
+
+    /// Bot seats take these in order, so the same balanced/aggressive/cautious
+    /// mix is dealt regardless of which seat the human ended up in.
+    private static let botRoster: [(name: String, preset: BotPersonality)] = [
+        ("balanced", .balanced),
+        ("aggressive", .aggressive),
+        ("cautious", .cautious),
+    ]
+
+    private func personalityIndex(for player: PlayerID) -> Int {
         let botSeatsInOrder = (0...3).filter { $0 != humanPlayer.index }
-        switch botSeatsInOrder.firstIndex(of: player.index) {
-        case 0: return .balanced
-        case 1: return .aggressive
-        case 2: return .cautious
-        default: return .balanced
-        }
+        guard let seat = botSeatsInOrder.firstIndex(of: player.index) else { return 0 }
+        return min(seat, Self.botRoster.count - 1)
     }
 }

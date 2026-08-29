@@ -8,14 +8,17 @@ public enum TradeHeuristics {
     /// score higher below) over roads/dev cards. `expansionBias` decides
     /// whether a settlement or a city upgrade is this player's likelier
     /// next move.
-    private static func buildTargets(personality: BotPersonality) -> [(cost: [Resource: Int], weight: Double)] {
-        let settlement = (Building.settlementCost, 3.0)
-        let city = (Building.cityCost, 2.5)
-        let devCard = (Building.devCardCost, 1.5)
-        let road = (Building.roadCost, 1.0)
+    private static func buildTargets(
+        personality: BotPersonality,
+        weights: BotWeights
+    ) -> [(cost: [Resource: Int], weight: Double)] {
+        let settlement = (Building.settlementCost, weights.tradeTargetSettlementWeight)
+        let city = (Building.cityCost, weights.tradeTargetCityWeight)
+        let devCard = (Building.devCardCost, weights.tradeTargetDevCardWeight)
+        let road = (Building.roadCost, weights.tradeTargetRoadWeight)
         // Cautious bots (low expansionBias) prioritize upgrading to cities;
         // aggressive/balanced bots prioritize planting new settlements.
-        return personality.expansionBias >= 0.5
+        return personality.expansionBias >= weights.cityFirstExpansionBiasPivot
             ? [settlement, city, devCard, road]
             : [city, settlement, devCard, road]
     }
@@ -25,9 +28,14 @@ public enum TradeHeuristics {
     /// build target: a resource that's the *only* thing standing between
     /// this player and a build is worth far more than one they already have
     /// plenty of, or one that isn't blocking anything.
-    private static func resourceValue(_ resource: Resource, for player: Player, personality: BotPersonality) -> Double {
+    private static func resourceValue(
+        _ resource: Resource,
+        for player: Player,
+        personality: BotPersonality,
+        weights: BotWeights
+    ) -> Double {
         var value = 0.0
-        for target in buildTargets(personality: personality) {
+        for target in buildTargets(personality: personality, weights: weights) {
             guard let needed = target.cost[resource], needed > 0 else { continue }
             let have = player.resources[resource] ?? 0
             let deficit = max(0, needed - have)
@@ -55,7 +63,7 @@ public enum TradeHeuristics {
     /// `0`, used to mean most personalities accepted literally any
     /// net-positive deal, however razor-thin - "bots accept trades too
     /// easily" - since `tradeWillingness >= 0.5` collapsed the bar straight
-    /// to `0`. `max(0.4, 0.7 - tradeWillingness * 0.6)` keeps a floor no
+    /// to `0`. The `acceptThresholdFloor` weight keeps a floor no
     /// personality's willingness can erase.)
     ///
     /// The threshold also shifts with how threatening `offer.from` is
@@ -71,22 +79,33 @@ public enum TradeHeuristics {
     /// has less reason to hand any opponent resources over a merely-okay
     /// deal, since helping someone else catch up costs more than a fair
     /// trade is worth, so the bar rises a little.
-    public static func evaluate(offer: TradeOffer, receiver: PlayerID, state: GameState, personality: BotPersonality) -> Bool {
+    public static func evaluate(
+        offer: TradeOffer,
+        receiver: PlayerID,
+        state: GameState,
+        personality: BotPersonality,
+        weights: BotWeights = .default
+    ) -> Bool {
         guard let receiverPlayer = state.players.first(where: { $0.id == receiver }) else { return false }
 
         let gainValue = offer.give.reduce(0.0) { partial, entry in
-            partial + resourceValue(entry.key, for: receiverPlayer, personality: personality) * Double(entry.value)
+            let unit = resourceValue(entry.key, for: receiverPlayer, personality: personality, weights: weights)
+            return partial + unit * Double(entry.value)
         }
         let costValue = offer.want.reduce(0.0) { partial, entry in
-            partial + resourceValue(entry.key, for: receiverPlayer, personality: personality) * Double(entry.value)
+            let unit = resourceValue(entry.key, for: receiverPlayer, personality: personality, weights: weights)
+            return partial + unit * Double(entry.value)
         }
 
         let netGain = gainValue - costValue
-        let proposerWeight = ThreatAssessment.relativeWeight(for: offer.from, excluding: receiver, in: state)
-        let ownStanding = ThreatAssessment.ownStanding(for: receiver, in: state)
-        let baseThreshold = max(0.4, 0.7 - personality.tradeWillingness * 0.6)
-        let threatShift = (proposerWeight - 1.0) * 0.5
-        let standingShift = (ownStanding - 1.0) * 0.25
+        let proposerWeight = ThreatAssessment.relativeWeight(for: offer.from, excluding: receiver, in: state, weights: weights)
+        let ownStanding = ThreatAssessment.ownStanding(for: receiver, in: state, weights: weights)
+        let baseThreshold = max(
+            weights.acceptThresholdFloor,
+            weights.acceptThresholdBase - personality.tradeWillingness * weights.acceptThresholdWillingnessScale
+        )
+        let threatShift = (proposerWeight - 1.0) * weights.acceptThreatShiftScale
+        let standingShift = (ownStanding - 1.0) * weights.acceptStandingShiftScale
 
         // A proposer who's already landed one trade this turn and is back
         // shopping for another gets more suspicious with each repeat - a
@@ -95,7 +114,7 @@ public enum TradeHeuristics {
         // `RulesEngine`'s `.endTurn` handling), so it never carries a grudge
         // past the turn it was earned on.
         let priorAcceptsThisTurn = state.tradesAcceptedThisTurn[offer.from] ?? 0
-        let suspicionShift = Double(priorAcceptsThisTurn) * 0.35
+        let suspicionShift = Double(priorAcceptsThisTurn) * weights.acceptSuspicionShiftPerTrade
 
         // A deal that would hand the proposer an immediate settlement/city
         // the instant it's accepted deserves real scrutiny beyond "is this
@@ -104,7 +123,7 @@ public enum TradeHeuristics {
         // build could complete it via a string of individually-plausible
         // one-for-one trades that nobody weighed against what it was
         // actually handing the opponent.
-        let unlockShift = enablesImmediateBuild(offer: offer, state: state) ? 0.6 : 0.0
+        let unlockShift = enablesImmediateBuild(offer: offer, state: state) ? weights.acceptUnlockShift : 0.0
 
         let threshold = max(0, baseThreshold + threatShift + standingShift + suspicionShift + unlockShift)
         return netGain > threshold
@@ -137,9 +156,15 @@ public enum TradeHeuristics {
     /// Returns `[]` if nothing is blocking (nothing to trade for), there's
     /// no real surplus to give up, or the only surplus available isn't
     /// actually worth less to us than what we'd get back.
-    public static func proposeTrades(state: GameState, player: PlayerID, personality: BotPersonality) -> [TradeOffer] {
+    public static func proposeTrades(
+        state: GameState,
+        player: PlayerID,
+        personality: BotPersonality,
+        weights: BotWeights = .default
+    ) -> [TradeOffer] {
         guard let me = state.players.first(where: { $0.id == player }) else { return [] }
-        guard let target = nearestBlockedTarget(personality: personality, holding: me.resources) else { return [] }
+        guard let target = nearestBlockedTarget(personality: personality, holding: me.resources, weights: weights)
+        else { return [] }
 
         guard let mostNeeded = mostNeededResource(for: target, holding: me.resources) else { return [] }
 
@@ -160,8 +185,8 @@ public enum TradeHeuristics {
         // time, which is what lets a seeded game reproduce move for move.
         let giveCandidates = Resource.allCases.filter { $0 != mostNeeded && (me.resources[$0] ?? 0) > 1 }
         guard let give = giveCandidates.min(by: {
-            let (lhs, rhs) = (resourceValue($0, for: me, personality: personality),
-                              resourceValue($1, for: me, personality: personality))
+            let (lhs, rhs) = (resourceValue($0, for: me, personality: personality, weights: weights),
+                              resourceValue($1, for: me, personality: personality, weights: weights))
             return lhs == rhs ? false : lhs < rhs
         }) else { return [] }
 
@@ -171,7 +196,8 @@ public enum TradeHeuristics {
         // incoming offers by. Without this, a bot could offer away
         // something it actually needs more than what it's asking for,
         // handing the recipient the better end of the deal for no reason.
-        guard resourceValue(mostNeeded, for: me, personality: personality) > resourceValue(give, for: me, personality: personality) else {
+        guard resourceValue(mostNeeded, for: me, personality: personality, weights: weights)
+            > resourceValue(give, for: me, personality: personality, weights: weights) else {
             return []
         }
 
@@ -209,9 +235,15 @@ public enum TradeHeuristics {
     /// (and doesn't itself still owe toward this same target), at
     /// whatever rate `Trading.bestRate` gets them (2:1/3:1 port, or 4:1
     /// with no port) - never a resource this target still needs.
-    public static func bestBankTrade(state: GameState, player: PlayerID, personality: BotPersonality) -> (give: Resource, get: Resource, rate: Int)? {
+    public static func bestBankTrade(
+        state: GameState,
+        player: PlayerID,
+        personality: BotPersonality,
+        weights: BotWeights = .default
+    ) -> (give: Resource, get: Resource, rate: Int)? {
         guard let me = state.players.first(where: { $0.id == player }) else { return nil }
-        guard let target = nearestBlockedTarget(personality: personality, holding: me.resources) else { return nil }
+        guard let target = nearestBlockedTarget(personality: personality, holding: me.resources, weights: weights)
+        else { return nil }
 
         guard let mostNeeded = mostNeededResource(for: target, holding: me.resources) else { return nil }
 
@@ -262,8 +294,12 @@ public enum TradeHeuristics {
     /// trading for - `BuildPlanner`/`RulesEngine.legalMoves` already offer
     /// the affordable target directly, so trading logic has nothing useful
     /// to add there.
-    private static func nearestBlockedTarget(personality: BotPersonality, holding: [Resource: Int]) -> (cost: [Resource: Int], weight: Double)? {
-        buildTargets(personality: personality)
+    private static func nearestBlockedTarget(
+        personality: BotPersonality,
+        holding: [Resource: Int],
+        weights: BotWeights
+    ) -> (cost: [Resource: Int], weight: Double)? {
+        buildTargets(personality: personality, weights: weights)
             .filter { totalDeficit($0.cost, holding: holding) > 0 }
             .min { totalDeficit($0.cost, holding: holding) < totalDeficit($1.cost, holding: holding) }
     }

@@ -43,6 +43,7 @@
 		CB58570AE806ACE6BFC462C1 /* TradePopupView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5DA573A3A82A8F2F109FA437 /* TradePopupView.swift */; };
 		D16CC8C90FB7F755636F3397 /* GameStatsStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 16777953197BE2BC34CCFE6B /* GameStatsStore.swift */; };
 		DBA70E71EA1FD506BEBF2C4A /* Civilization.swift in Sources */ = {isa = PBXBuildFile; fileRef = C47D8E51CEBC82766DDDF936 /* Civilization.swift */; };
+		EA3F8948081A29B415CD8B67 /* QALaunchFlag.swift in Sources */ = {isa = PBXBuildFile; fileRef = 59A80CE9867E891B09A3F0E5 /* QALaunchFlag.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -56,6 +57,7 @@
 		494D7E69889970F3FA1C24AB /* GameLogStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameLogStore.swift; sourceTree = "<group>"; };
 		4B89EE635B1E470682ED1D4B /* CatanTheme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CatanTheme.swift; sourceTree = "<group>"; };
 		52C0B1D44B650E22AEBC8366 /* EndGameView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EndGameView.swift; sourceTree = "<group>"; };
+		59A80CE9867E891B09A3F0E5 /* QALaunchFlag.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QALaunchFlag.swift; sourceTree = "<group>"; };
 		5C25923598FA6B7BCAF62C5A /* CivilizationSettingsStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CivilizationSettingsStore.swift; sourceTree = "<group>"; };
 		5DA573A3A82A8F2F109FA437 /* TradePopupView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TradePopupView.swift; sourceTree = "<group>"; };
 		64A459436E4814B4E4BE3728 /* DiscardPopupView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiscardPopupView.swift; sourceTree = "<group>"; };
@@ -114,6 +116,7 @@
 				AAE31202C59C388953152F18 /* Assets.xcassets */,
 				CB7D94876E201553696FE24C /* ContentView.swift */,
 				E674366C1C13D0BBB8CCC2B2 /* Info.plist */,
+				59A80CE9867E891B09A3F0E5 /* QALaunchFlag.swift */,
 				8164AC90317469202817676F /* SettlersApp.swift */,
 				DDD30CC330747A1D1304A1D7 /* Persistence */,
 				7A3FE361B8B55261C4EC9E28 /* Theme */,
@@ -312,6 +315,7 @@
 				A031947AF71F6676E8C6F700 /* PauseMenuView.swift in Sources */,
 				88CF824C3335F34CF54E08E2 /* PlayerHUDView.swift in Sources */,
 				1B2E8933650EFB5E3A65F60D /* PlayerNameStore.swift in Sources */,
+				EA3F8948081A29B415CD8B67 /* QALaunchFlag.swift in Sources */,
 				982B80C1DDE6B39264765604 /* ResourceChip.swift in Sources */,
 				AA5F82F23D1E9E98AC20C58E /* SettingsView.swift in Sources */,
 				B6FC9BE50ABFF3D68CF98B29 /* SettlersApp.swift in Sources */,
@@ -449,6 +453,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = KDM65HE483;
 				GCC_TREAT_WARNINGS_AS_ERRORS = YES;
 				INFOPLIST_FILE = Settlers/Info.plist;
@@ -456,6 +461,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
+				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.jakebeinart.settlers;
 				SDKROOT = iphoneos;
 				SUPPORTS_MACCATALYST = NO;
@@ -471,6 +477,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = KDM65HE483;
 				GCC_TREAT_WARNINGS_AS_ERRORS = YES;
 				INFOPLIST_FILE = Settlers/Info.plist;
@@ -478,6 +485,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
+				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.jakebeinart.settlers;
 				SDKROOT = iphoneos;
 				SUPPORTS_MACCATALYST = NO;

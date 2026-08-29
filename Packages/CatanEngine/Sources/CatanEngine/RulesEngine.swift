@@ -355,10 +355,22 @@ public enum RulesEngine {
 
     // MARK: - Helpers
 
-    /// Human-readable label for a seat, used in `state.log` entries: "You"
-    /// for the human seat (index 0), "Player N" for bots.
+    /// Seat label used in `state.log` entries: "Player 1" through "Player 4",
+    /// numbered from one so it reads naturally.
+    ///
+    /// It deliberately does NOT say "You" for any seat. It used to say that
+    /// for index 0, on the assumption the human always sits there - but
+    /// "Randomize Seat" is on by default and picks any of the four, so in
+    /// three games out of four the engine's own log called a *bot* "You" and
+    /// the human "Player N". This is the third copy of that assumption found
+    /// in the codebase; the other two were in the app layer and were fixed
+    /// individually, and this one survived because it lives in another module.
+    ///
+    /// The engine has no notion of which seat is human and should not acquire
+    /// one to answer a presentation question. The UI already resolves a seat
+    /// to a real display name through `CatanTheme.playerLabel(for:)`.
     static func playerLabel(_ index: Int) -> String {
-        index == 0 ? "You" : "Player \(index)"
+        "Player \(index + 1)"
     }
 
     /// Renders a resource-count map as a short comma-separated string, e.g.
