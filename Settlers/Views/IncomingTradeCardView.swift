@@ -3,18 +3,23 @@ import CatanEngine
 import CatanAI
 
 /// Small card that slides in above `HumanPlayerPanel` when a bot proposes a
-/// trade to the human - replaces the old "wants to trade" toast (which just
-/// jumped to the trade sheet) with a self-contained Accept/Reject card and a
-/// 6-second countdown ring. Every offer that reaches this card is already
-/// one the human can actually fulfill (see `GameView
-/// .handleTradeOffersChange`'s `humanCanAfford` filter), and
-/// `GameViewModel.waitForFairAcceptWindow` holds any other bot back from
-/// accepting the same offer for a randomized 2-4s, so 6s leaves real
-/// decide-and-tap time even in the worst case. The countdown only runs
-/// while the card is untouched; tapping anywhere on the card (to read it)
-/// pauses the timer so reviewing an offer never causes it to auto-decline
-/// out from under you. Timing out untouched counts as a Reject
-/// (`respondToTrade(accept: false)`).
+/// trade to the human - a self-contained Accept/Reject card, replacing the old
+/// "wants to trade" toast that just jumped to the trade sheet.
+///
+/// Every offer reaching this card is one the human can actually fulfil (see
+/// `GameView.handleTradeOffersChange`'s affordability filter), and
+/// `GameViewModel.waitForFairAcceptWindow` holds other bots back from
+/// snapping up the same offer for a randomized 2-4s.
+///
+/// ## It no longer answers for you
+/// This used to run a hardcoded six-second countdown and auto-Reject on
+/// expiry, with a ring showing the time left. Six seconds is not a decision
+/// window - a bot proposes, you read who it is and what it wants, and it
+/// declines while you are still reading - and a trade you did not answer is
+/// not a trade you declined. The timeout is now
+/// `PacingSettings.incomingOfferTimeoutSeconds`, shipping as 0, meaning wait
+/// indefinitely. Tapping the card still pauses any countdown that has been
+/// deliberately turned back on.
 public struct IncomingTradeCardView: View {
     public let offer: TradeOffer
     public let onAccept: () -> Void
@@ -26,8 +31,17 @@ public struct IncomingTradeCardView: View {
         self.onReject = onReject
     }
 
-    private let totalSeconds: Double = 6
-    @State private var remaining: Double = 6
+    /// Seconds before the card answers for you. **Zero means never**, which is
+    /// the shipped default.
+    ///
+    /// This was a hardcoded 6. Six seconds is not a decision window - a bot
+    /// proposes, you read who it is and what it wants, and the card
+    /// auto-declines while you are still reading. It was reported as offers
+    /// vanishing before they could be answered. A trade you did not answer is
+    /// not a trade you declined, so the timer is off unless someone
+    /// deliberately turns it on in `pacing.yml`.
+    private var totalSeconds: Double { PacingSettingsStore.current.incomingOfferTimeoutSeconds }
+    @State private var remaining: Double = 0
     @State private var isPaused = false
     /// A monotonically increasing tick source (0.1s) rather than a single
     /// `Task.sleep(for: totalSeconds)`, so pausing on tap genuinely halts
@@ -40,13 +54,24 @@ public struct IncomingTradeCardView: View {
                 Circle()
                     .stroke(Color.white.opacity(0.25), lineWidth: 3)
                 Circle()
-                    .trim(from: 0, to: remaining / totalSeconds)
+                    .trim(from: 0, to: totalSeconds > 0 ? remaining / totalSeconds : 1)
                     .stroke(Color.yellow, style: StrokeStyle(lineWidth: 3, lineCap: .round))
                     .rotationEffect(.degrees(-90))
-                Image(systemName: "arrow.left.arrow.right")
-                    .font(.caption2)
+                if totalSeconds > 0 {
+                    // The number, not just a draining arc. An arc alone says
+                    // "something is running out" without saying how long you
+                    // have, which is most of what makes a timed decision
+                    // stressful rather than informative.
+                    Text("\(Int(remaining.rounded(.up)))")
+                        .font(.system(size: 13, weight: .bold, design: .rounded))
+                        .monospacedDigit()
+                        .foregroundStyle(.white)
+                } else {
+                    Image(systemName: "arrow.left.arrow.right")
+                        .font(.caption2)
+                }
             }
-            .frame(width: 26, height: 26)
+            .frame(width: 32, height: 32)
 
             VStack(alignment: .leading, spacing: 4) {
                 // The bot's own pitch line instead of a flat "X wants to
@@ -71,10 +96,40 @@ public struct IncomingTradeCardView: View {
                 // still truncated at a 0.75 floor), so 0.5 is kept as the
                 // proven-safe floor from `.subheadline` testing rather than
                 // narrowing the cap further and losing more of the joke.
-                Text(TradeMessages.pitch(offer: offer, empire: Civilization.forSeat(offer.from.index).tradeMessagesEmpire))
-                    .font(.headline)
-                    .lineLimit(1)
-                    .minimumScaleFactor(0.5)
+                // The proposer's NAME leads, then their pitch. The pitch alone
+                // was the whole headline, and with no speaker attached a line
+                // like "Even Zeus approves this trade." reads as ambient
+                // commentary about something that already happened - an FYI
+                // you cannot act on - rather than as a player asking you for
+                // something. The card then looks like a notification that
+                // confusingly sprouted Accept and Reject buttons.
+                //
+                // Naming the speaker is what makes it a request, and the
+                // request is what the two buttons are for.
+                // Concatenated into ONE `Text`, not an `HStack` of two.
+                // `minimumScaleFactor` shrinks a single text to fit; across two
+                // views in a stack it cannot, so the pitch truncated mid-word
+                // ("...or a bette...") while the name sat at full size. As one
+                // string the whole line scales together and stays whole.
+                //
+                // The name is white rather than the seat's own colour: several
+                // civilization colours are dark navy or near-black, which on
+                // this card's blue ground read as greyed-out - the speaker
+                // looked disabled. The ring on the left already carries colour.
+                // `.subheadline`, not `.headline`. The line now carries the
+                // proposer's name as well as their pitch, and the row lost
+                // width to 44pt answer buttons - at headline size that
+                // combination truncated mid-word ("...approve. Tr..."), which
+                // is worse than slightly smaller text on a line whose whole job
+                // is to say who wants what.
+                (
+                    Text("\(CatanTheme.playerLabel(for: offer.from)): ").font(.subheadline.bold())
+                        + Text(TradeMessages.pitch(offer: offer,
+                                                   empire: Civilization.forSeat(offer.from.index).tradeMessagesEmpire))
+                        .font(.subheadline)
+                )
+                .lineLimit(1)
+                .minimumScaleFactor(0.5)
                 // Colored dots instead of a resource-name sentence - reads
                 // at a glance instead of having to parse "3 brick, 1 wool"
                 // as text, matching how resources are shown everywhere else
@@ -105,23 +160,15 @@ public struct IncomingTradeCardView: View {
 
             Spacer(minLength: 4)
 
-            Button {
-                onReject()
-            } label: {
-                Image(systemName: "xmark")
-                    .font(.footnote.bold())
-                    .padding(7)
-                    .background(Color.red.opacity(0.85), in: Circle())
-                    .foregroundStyle(.white)
-            }
-            Button {
-                onAccept()
-            } label: {
-                Image(systemName: "checkmark")
-                    .font(.footnote.bold())
-                    .padding(7)
-                    .background(Color.green.opacity(0.85), in: Circle())
-                    .foregroundStyle(.white)
+            // 44pt targets, 16pt apart. They were 7pt of padding around a
+            // footnote glyph - roughly 28pt - sitting 8pt apart, which is
+            // under Apple's 44pt minimum and close enough together to make
+            // rejecting a trade you meant to accept an easy slip. This is a
+            // two-way decision with no undo, so the two buttons should not be
+            // adjacent thumb-sized targets.
+            HStack(spacing: 16) {
+                answerButton(systemImage: "xmark", tint: .red, action: onReject)
+                answerButton(systemImage: "checkmark", tint: .green, action: onAccept)
             }
         }
         .padding(8)
@@ -167,8 +214,32 @@ public struct IncomingTradeCardView: View {
         .transition(.move(edge: .bottom).combined(with: .opacity))
     }
 
+    private func answerButton(systemImage: String, tint: Color, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            Image(systemName: systemImage)
+                .font(.headline.bold())
+                .foregroundStyle(.white)
+                .frame(width: Self.answerButtonDiameter, height: Self.answerButtonDiameter)
+                .background(tint.opacity(0.9), in: Circle())
+                .overlay(Circle().strokeBorder(.white.opacity(0.35), lineWidth: 1))
+        }
+        .buttonStyle(.plain)
+    }
+
+    /// Apple's minimum comfortable touch target.
+    private static let answerButtonDiameter: CGFloat = 44
+
     private func startTicking() {
         tickTask?.cancel()
+        // No countdown at all when the timeout is off - not a very long one.
+        // A ticking task that never fires still spins at 10 Hz for as long as
+        // the card is up, and the ring would drain toward an answer that is
+        // never given.
+        guard totalSeconds > 0 else {
+            remaining = 0
+            return
+        }
+        remaining = totalSeconds
         tickTask = Task {
             while remaining > 0 {
                 try? await Task.sleep(for: .milliseconds(100))

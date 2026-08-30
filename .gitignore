@@ -8,3 +8,8 @@ DerivedData/
 .claude/*
 !.claude/skills/
 __pycache__/
+
+# Local code-signing override - see Settlers/Signing.xcconfig.
+# Deliberately never committed: it carries one developer's team and bundle
+# id, and committing it would change signing for everyone else.
+Settlers/Signing.local.xcconfig

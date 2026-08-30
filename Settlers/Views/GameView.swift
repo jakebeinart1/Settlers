@@ -97,7 +97,7 @@ public struct GameView: View {
 
     // `-qaShowPauseMenu`: same escape hatch as `-qaAutoStart` (see
     // `ContentView`) - lets QA screenshot the pause menu without a real tap.
-    @State private var isShowingPauseMenu = QALaunchFlag.showPauseMenu.isSet
+    @State var isShowingPauseMenu = QALaunchFlag.showPauseMenu.isSet
     @State private var placementMode: PlacementMode?
     // `-qaShowTradePopup`: same escape hatch pattern - lets QA screenshot
     // the trade popup without a real tap.
@@ -134,8 +134,8 @@ public struct GameView: View {
 
     /// Drives the dice chip's brief scale/rotate pulse on a new roll -
     /// bumped in `onChange(of: state.lastDiceRoll)`.
-    @State private var diceScale: CGFloat = 1.0
-    @State private var diceRotation: Double = 0
+    @State var diceScale: CGFloat = 1.0
+    @State var diceRotation: Double = 0
 
     /// Drives a slow glow pulse on the "Roll Dice" button so it's obvious
     /// that's the one thing to do right now - starts as soon as that button
@@ -157,7 +157,7 @@ public struct GameView: View {
     /// the current one, oldest last, shown in a faded caption so someone
     /// glancing at the screen mid-conversation can catch up on recent rolls
     /// without the drama of a live animation demanding their attention.
-    @State private var rollHistory: [Int] = []
+    @State var rollHistory: [Int] = []
 
     // Seeded with the row's actual measured height (rendered a
     // faithful reproduction and read off its real size) rather than 0 -
@@ -174,7 +174,7 @@ public struct GameView: View {
     /// in `bottomPanel` instead - seeded at one caption line's height (~20pt).
     @State private var infoBannerHeight: CGFloat = 20
 
-    private var state: GameState { viewModel.state }
+    var state: GameState { viewModel.state }
     private var human: PlayerID { viewModel.humanPlayer }
 
     public var body: some View {
@@ -360,11 +360,22 @@ public struct GameView: View {
         .task {
             await qaFastForwardToRollDiceIfRequested()
             // `-qaShowIncomingOffer`: same escape hatch pattern - seeds
-            // `incomingOfferQueue` with a bogus but always-fulfillable offer
-            // (empty give/want, so `isOfferCurrentlyFulfillable` is
-            // vacuously true regardless of anyone's actual resources) so
-            // `IncomingTradeCardView` can be screenshotted without a real
-            // bot proposing one. Runs after
+            // `incomingOfferQueue` so `IncomingTradeCardView` can be
+            // screenshotted without waiting for a real bot to propose one.
+            //
+            // The offer carries REAL resources. It used to be `give: [:],
+            // want: [:]`, chosen so `isOfferCurrentlyFulfillable` was
+            // vacuously true - but the card renders its give/get dots from
+            // those dictionaries, so every screenshot taken through this flag
+            // showed "Give -> Get" with nothing between them. A fixture that
+            // renders differently from the thing it stands in for is worse
+            // than no fixture: it sent a real reader hunting a rendering bug
+            // that did not exist.
+            //
+            // The proposer is the first seat that is NOT the human, rather
+            // than a hardcoded seat 1: with Randomize Seat on, seat 1 is the
+            // human one game in four, and the card then showed an offer from
+            // the player to themselves. Runs after
             // `qaFastForwardToRollDiceIfRequested`, not in `onAppear` - that
             // fast-forward's own moves fire `state.pendingTradeOffers`
             // changes, and `handleTradeOffersChange`'s
@@ -372,7 +383,24 @@ public struct GameView: View {
             // queued offer that isn't backed by a real one, wiping this
             // fake one out again almost immediately if seeded any earlier.
             if QALaunchFlag.showIncomingOffer.isSet {
-                incomingOfferQueue = [TradeOffer(from: PlayerID(index: 1), give: [:], want: [:])]
+                // Built from what the two seats actually hold, so the card
+                // renders real cards AND survives `currentIncomingOffer`'s
+                // continuous fulfillability re-check - a fixed pair like
+                // "1 ore for 2 grain" is filtered out the moment the human
+                // does not happen to hold two grain, which is most of the time
+                // this early, and the card then never appears at all.
+                let bot = viewModel.state.players.first { $0.id != viewModel.humanPlayer }
+                let humanHand = viewModel.state.players.first { $0.id == viewModel.humanPlayer }
+                if let bot,
+                   let wanted = Resource.allCases.first(where: { (humanHand?.resources[$0] ?? 0) > 0 }),
+                   let offered = Resource.allCases.first(where: { (bot.resources[$0] ?? 0) > 0 }) {
+                    incomingOfferQueue = [TradeOffer(from: bot.id, give: [offered: 1], want: [wanted: 1])]
+                } else {
+                    // Neither side holds anything yet; fall back to the old
+                    // vacuously-fulfillable offer so the flag still shows a
+                    // card rather than silently doing nothing.
+                    incomingOfferQueue = [TradeOffer(from: bot?.id ?? PlayerID(index: 0), give: [:], want: [:])]
+                }
             }
             // `-qaShowRobberVictimPicker`: same escape hatch pattern, one
             // step further than `-qaShowRobberTargeting` - arms
@@ -474,6 +502,25 @@ public struct GameView: View {
     /// enough to push the SwiftUI type-checker over its time limit;
     /// splitting large ViewBuilder bodies into named subexpressions like
     /// this is the standard fix.
+    /// Height the top chips occupy, reported by the chips themselves.
+    ///
+    /// Seeded at the last hand-tuned value so the very first frame - drawn
+    /// before any preference has been reported - is not visibly wrong.
+    @State private var topChipInset: CGFloat = 38
+
+    /// The chip band's own height, reported by the chip.
+    ///
+    /// Measured on `deckCountChip` alone, not on the whole top-trailing stack:
+    /// the pause button beneath it sits in the board's top-right corner, where
+    /// a hex grid has no tiles, so reserving its height would cost the board
+    /// space for a collision that cannot happen. Measuring the stack did
+    /// exactly that and pushed the board most of the way off screen.
+    private var chipHeightReader: some View {
+        GeometryReader { proxy in
+            Color.clear.preference(key: TopChipHeightKey.self, value: proxy.size.height)
+        }
+    }
+
     private var boardArea: some View {
         // Back to overlaying the board's top-left corner (not its own row)
         // - that reclaims the whole row's height for the board. It used to
@@ -495,17 +542,20 @@ public struct GameView: View {
                 isTileTargetingActive: isRobberTargetingActive,
                 rollHighlightTiles: rollHighlightTiles
             )
-            // A hair of top clearance - the outermost hex row's own ports
-            // (top-right in particular) sat close enough to the top edge to
-            // graze the dice/deck chips overlaid up there. `BoardView`
-            // re-fits and re-centers itself within whatever height it's
-            // given, so this nudges the whole hex grid down slightly rather
-            // than requiring the chips to shrink or move. Bumped again from
-            // 18, then again from 30 to sit a bit lower in the space between
-            // the HUD row and the human panel - purely spacing, doesn't
-            // affect board scale/tap targets, which are still derived from
-            // the same `geometry`.
-            .padding(.top, 50)
+            // Clears the dice and bank/deck chips that float over this area.
+            //
+            // MEASURED, not guessed. This was a constant that grew 18 -> 30 ->
+            // 50 -> 38 as port badges kept surfacing under the bank chip, and
+            // every one of those revisions was someone eyeballing a screenshot
+            // - which is why it kept coming back. The chips are `.overlay`s on
+            // this whole area, so they float above the board wherever it is;
+            // the only number that is correct by construction is the height
+            // they actually occupy, so the board asks them.
+            //
+            // It self-corrects for the cases a constant never could: a larger
+            // Dynamic Type setting, a fourth digit in the bank counts, or
+            // anything else that makes the chip taller.
+            .padding(.top, topChipInset)
 
             if let roll = state.lastDiceRoll {
                 diceChip(roll)
@@ -524,146 +574,16 @@ public struct GameView: View {
         .overlay(alignment: .topTrailing) {
             VStack(alignment: .trailing, spacing: 6) {
                 deckCountChip
+                    .background(chipHeightReader)
                 pauseButton
             }
             .padding(8)
         }
-    }
-
-    /// Stacked directly beneath `deckCountChip` in the board's top-trailing
-    /// corner (see that overlay). Opens the Resume/Restart/Main Menu
-    /// `confirmationDialog` - the actual pause is implicit: nothing in
-    /// `GameViewModel` runs on a timer, so simply showing the dialog blocks
-    /// further input until it's dismissed one way or another.
-    private var pauseButton: some View {
-        Button {
-            isShowingPauseMenu = true
-        } label: {
-            Image("menu-icon")
-                .resizable()
-                .scaledToFit()
-                .frame(width: 40, height: 40)
+        .onPreferenceChange(TopChipHeightKey.self) { measured in
+            // The chip's own height, plus the 8pt inset it is padded by and an
+            // 8pt breathing gap below it.
+            topChipInset = measured + 16
         }
-    }
-
-    /// Bigger and plainer than before (no more flying resource badges to
-    /// share attention with) - the current roll is the one thing this
-    /// needs to say clearly, so it gets a large number front and center.
-    /// `rollHistory` (up to the 3 rolls before this one) sits underneath in
-    /// a small, faded line - enough to catch someone back up at a glance
-    /// without competing with the current roll for attention.
-    private func diceChip(_ roll: Int) -> some View {
-        VStack(alignment: .leading, spacing: 3) {
-            HStack(spacing: 8) {
-                // A real die-face tile, not the old SF Symbol - that read as
-                // a thin outline rather than an actual square against the
-                // reference's bold ivory tile (see chat).
-                DieFaceView(value: roll, size: 34)
-                Text("\(roll)")
-                    .font(.system(size: 32, weight: .heavy, design: .serif))
-            }
-            .foregroundStyle(.white)
-            // Bumped from 10 - "7" (and other single digits) sat close
-            // enough to the chip's own right edge/border to read as clipped,
-            // especially once the digit's serif tail is included.
-            .padding(.horizontal, 14)
-            .padding(.vertical, 8)
-            .background(PaintedChromeBackground(textureImageName: "dice-fill", cornerRadius: 12, notchScale: 1.0))
-            .scaleEffect(diceScale)
-            .rotationEffect(.degrees(diceRotation))
-
-            if !rollHistory.isEmpty {
-                Text(rollHistory.map(String.init).joined(separator: "   "))
-                    .font(.caption2)
-                    .foregroundStyle(.white.opacity(0.45))
-                    .padding(.leading, 14)
-            }
-        }
-    }
-
-    /// A physical six-sided die face - a rounded ivory square with black pip
-    /// dots in the standard layout - used by `diceChip` in place of the old
-    /// `Image(systemName: "die.face.N.fill")`, which read as a thin outline
-    /// rather than an actual square at the size it was shown.
-    private struct DieFaceView: View {
-        let value: Int
-        let size: CGFloat
-
-        /// Fractional (x, y) pip centers within the tile, standard 6-face
-        /// die layout, shared across every count via one 3x3 grid.
-        private static let pipLayouts: [Int: [(CGFloat, CGFloat)]] = [
-            1: [(0.5, 0.5)],
-            2: [(0.25, 0.25), (0.75, 0.75)],
-            3: [(0.25, 0.25), (0.5, 0.5), (0.75, 0.75)],
-            4: [(0.25, 0.25), (0.75, 0.25), (0.25, 0.75), (0.75, 0.75)],
-            5: [(0.25, 0.25), (0.75, 0.25), (0.5, 0.5), (0.25, 0.75), (0.75, 0.75)],
-            6: [(0.25, 0.22), (0.75, 0.22), (0.25, 0.5), (0.75, 0.5), (0.25, 0.78), (0.75, 0.78)],
-        ]
-
-        var body: some View {
-            let pips = Self.pipLayouts[min(max(value, 1), 6)] ?? []
-            let pipSize = size * 0.16
-
-            RoundedRectangle(cornerRadius: size * 0.22)
-                .fill(CatanTheme.onWaterText.opacity(0.95))
-                .overlay(
-                    RoundedRectangle(cornerRadius: size * 0.22)
-                        .strokeBorder(.black.opacity(0.55), lineWidth: max(1, size * 0.045))
-                )
-                .overlay(
-                    ForEach(Array(pips.enumerated()), id: \.offset) { _, pip in
-                        Circle()
-                            .fill(.black.opacity(0.82))
-                            .frame(width: pipSize, height: pipSize)
-                            .position(x: pip.0 * size, y: pip.1 * size)
-                    }
-                )
-                .frame(width: size, height: size)
-        }
-    }
-
-    /// Top-right counterpart to `diceChip`: the bank's remaining count for
-    /// each individual resource, plus the development-card deck's remaining
-    /// count - both finite, shared piles in real Catan (19 of each resource,
-    /// 25 development cards), so seeing them tick down explains things like
-    /// "why can't I buy a dev card anymore" at a glance instead of a
-    /// silently-disabled button. Broken out per-resource rather than one
-    /// summed total, since "the bank is out of ore" and "the bank is out of
-    /// brick" are different, useful pieces of information a single number
-    /// would hide.
-    private var deckCountChip: some View {
-        HStack(spacing: 8) {
-            ForEach(Resource.allCases, id: \.self) { resource in
-                VStack(spacing: 1) {
-                    // Rounded square, not a circle - matches the resource
-                    // swatches in `MainMenuView`'s title block and
-                    // `HumanPlayerPanel.resourceDot`, per Jake's ask to keep
-                    // one consistent shape for "a resource" across the app.
-                    RoundedRectangle(cornerRadius: 2)
-                        .fill(CatanTheme.color(for: resource))
-                        .frame(width: 10, height: 10)
-                    Text("\(state.bank[resource] ?? 0)")
-                        .font(.system(size: 11, weight: .bold, design: .serif))
-                }
-            }
-
-            Divider()
-                .frame(height: 22)
-                .overlay(Color.white.opacity(0.3))
-
-            VStack(spacing: 1) {
-                Image(systemName: "sparkles.rectangle.stack.fill")
-                    .font(.system(size: 10))
-                Text("\(state.devCardDeck.count)")
-                    .font(.system(size: 11, weight: .bold, design: .serif))
-            }
-        }
-        .foregroundStyle(.white)
-        // Widened from 10 - Jake wanted more breathing room on either side
-        // of the resource-count digits than the tight original fit gave.
-        .padding(.horizontal, 18)
-        .padding(.vertical, 6)
-        .background(PaintedChromeBackground(textureImageName: "bank-fill", cornerRadius: 10, notchScale: 1.0))
     }
 
     // MARK: - Bottom panel: one uniform action row (or the inline
@@ -728,7 +648,7 @@ public struct GameView: View {
         HStack(spacing: 10) {
             UniformActionButton(
                 title: "Trade", systemImage: "arrow.left.arrow.right",
-                isEnabled: isTradeAvailable,
+                isEnabled: isHumanMainTurn,
                 backgroundImageName: "button-fill-trade"
             ) {
                 showTradePopup = true
@@ -736,7 +656,14 @@ public struct GameView: View {
             UniformActionButton(
                 title: placementMode == nil ? "Build" : placementMode!.label,
                 systemImage: placementMode == nil ? "hammer.fill" : "hammer.circle.fill",
-                isEnabled: true,
+                // `|| placementMode != nil` deliberately, not just
+                // `isHumanMainTurn`: while a placement is armed this button is
+                // the only way to cancel it, so disabling it mid-placement
+                // would strand the player in targeting mode. In practice a
+                // placement can only be armed during the human's main turn
+                // anyway, so this is belt-and-braces rather than a real second
+                // condition.
+                isEnabled: isHumanMainTurn || placementMode != nil,
                 isArmed: placementMode != nil,
                 backgroundImageName: "button-fill-build"
             ) {
@@ -822,9 +749,22 @@ public struct GameView: View {
     /// in sync if this ever changes.
     private static let actionRowHeight: CGFloat = BottomRowMetrics.height
 
-    private var isTradeAvailable: Bool {
-        if case .mainTurn(let index) = state.phase, index == human.index { return true }
-        return false
+    /// True exactly when the game is waiting for the human to take a main-turn
+    /// action - the only phase in which building, trading or buying a
+    /// development card is legal.
+    ///
+    /// Asked through `GamePhase.isMainTurn(of:)` rather than unpacking the
+    /// phase here, because this question had six hand-written copies in this
+    /// file and they did not agree: **the Build button had no copy at all.**
+    /// It was hardcoded `isEnabled: true`, so it stayed lit through the setup
+    /// phase, where the only legal moves are placing a settlement and a road.
+    /// Tapping it there opened a popup with every row disabled, on top of the
+    /// board the player was being asked to tap.
+    ///
+    /// Named for what it *is* rather than for one of its callers - it was
+    /// `isTradeAvailable`, which is why nobody thought to give Build one.
+    private var isHumanMainTurn: Bool {
+        state.phase.isMainTurn(of: human.index)
     }
 
     @ViewBuilder
@@ -1034,6 +974,13 @@ public struct GameView: View {
             guard isHumanSetupTurn else { return [] }
             return Set(legalMoves.compactMap { if case .placeInitialSettlement(let v) = $0 { v } else { nil } })
         case .mainTurn:
+            // The setup arms above guard on whose turn it is; these did not.
+            // `legalMoves` is the UNSCOPED overload, which returns the ACTING
+            // player's moves whoever asks (see `RulesEngine.legalMoves`'s doc),
+            // so with a placement mode still armed as the turn passed to a bot,
+            // the board lit up that BOT's legal settlement spots as if they
+            // were the human's.
+            guard isHumanMainTurn else { return [] }
             switch placementMode {
             case .settlement:
                 return Set(legalMoves.compactMap { if case .buildSettlement(let v) = $0 { v } else { nil } })
@@ -1053,6 +1000,8 @@ public struct GameView: View {
             guard isHumanSetupTurn else { return [] }
             return Set(legalMoves.compactMap { if case .placeInitialRoad(let e) = $0 { e } else { nil } })
         case .mainTurn:
+            // Same missing guard as `highlightedVertices` - see the note there.
+            guard isHumanMainTurn else { return [] }
             if isRoadBuildingActive {
                 if let first = roadBuildingFirstEdge {
                     return Set(legalMoves.compactMap {
@@ -1183,7 +1132,7 @@ public struct GameView: View {
             rollHighlightTiles = Set(producingTiles.map(\.coordinate))
         }
         Task {
-            try? await Task.sleep(for: .milliseconds(1500))
+            try? await Task.sleep(for: .seconds(PacingSettingsStore.current.rollHighlightSeconds))
             withAnimation(.easeOut(duration: 0.3)) {
                 rollHighlightTiles = []
             }

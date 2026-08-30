@@ -40,6 +40,27 @@ public enum CatanTheme {
         }
     }
 
+    /// The painted card icon for a resource, as held in a hand.
+    ///
+    /// Distinct from `textureImageName(for:)`, and deliberately so: that is
+    /// terrain seen from above, for a hex on the board. This is the commodity
+    /// itself - a stack of bricks, a sheaf of wheat - on a gold-rimmed hex, for
+    /// a card in a tray. A hex on the board and a card in your hand are
+    /// different objects and want different art.
+    ///
+    /// The art is named for the commodity and the engine for the terrain, so
+    /// the two vocabularies are reconciled exactly here and nowhere else:
+    /// lumber is a forest, grain is wheat, wool is a sheep.
+    public static func iconImageName(for resource: Resource) -> String {
+        switch resource {
+        case .brick: return "resource-brick"
+        case .lumber: return "resource-lumber"
+        case .ore: return "resource-ore"
+        case .grain: return "resource-grain"
+        case .wool: return "resource-wool"
+        }
+    }
+
     /// One distinguishable color per seat - that seat's fixed civilization
     /// material color (see `Civilization.accentColor`), not user-
     /// customizable: with exactly one civilization per seat, the
@@ -67,6 +88,16 @@ public enum CatanTheme {
     /// (see `CivilizationBadge`) with something that reads as an actual
     /// upgrade rather than just a highlight.
     public static let cityPennantGold = Color(red: 0.831, green: 0.686, blue: 0.216)
+
+    /// The gold in the resource-card art's own rim, sampled from it.
+    ///
+    /// Separate from `cityPennantGold` on purpose: that is a flag flown on the
+    /// board and is deliberately more saturated so it reads at hex size. This
+    /// one has to sit directly against the painted rim of
+    /// `iconImageName(for:)` without looking like a near-miss, which a
+    /// slightly different gold does more loudly than a clearly different
+    /// colour would.
+    public static let chipGold = Color(red: 0.855, green: 0.671, blue: 0.372)
 
     public static let robber = Color(red: 0.15, green: 0.15, blue: 0.17)
     /// A lightened tint of `desert` itself (blended halfway to white) rather

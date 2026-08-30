@@ -2,9 +2,12 @@ import SwiftUI
 import CatanEngine
 
 /// The hex-board play surface: draws all tiles, number tokens, the robber,
-/// and ports via `Canvas`, overlays settlements/cities/roads as animated
-/// `Shape`s colored by owning player, and overlays invisible tap targets at
-/// every on-board vertex/edge (plus the tiles themselves) for building.
+/// and ports via `Canvas`, layers invisible tap targets over every on-board
+/// vertex/edge (plus the tiles themselves) for building, and draws
+/// settlements/cities/roads as animated `Shape`s colored by owning player on
+/// top of all of it. The stacking order is deliberate and load-bearing: the
+/// tap targets' placement highlights belong *under* the pieces - see the
+/// comment on that layer in `body`.
 public struct BoardView: View {
     public let state: GameState
     public let onTapVertex: (VertexID) -> Void
@@ -65,12 +68,15 @@ public struct BoardView: View {
 
     public var body: some View {
         GeometryReader { proxy in
-            // Padding has to leave room for the port badges, which sit
-            // outside the outermost hex corners by roughly half a tile's
-            // size (see `TileDrawing.drawPort`) - shrinking this too far
-            // would clip them at the frame edge, so this is a modest bump
-            // over the old 24pt rather than using all the visual slack.
-            let geometry = Self.fittedGeometry(for: board, in: CGRect(origin: .zero, size: proxy.size), padding: 16)
+            // A plain cosmetic margin, and nothing more. It used to be 16pt
+            // standing in for the port badges' overhang, because
+            // `fittedGeometry` measured only the tile corners and something had
+            // to cover what was drawn outside them. That guess is now
+            // redundant: the fit measures the badges and reserves the vertex
+            // rings itself, so leaving 16 here reserved the same space a second
+            // time and visibly shrank the board.
+            let geometry = Self.fittedGeometry(for: board, in: CGRect(origin: .zero, size: proxy.size),
+                                               padding: Self.boardPadding)
             let boardCenter = Self.boardCenter(for: board, geometry: geometry)
             let ownership = Ownership(players: state.players)
 
@@ -109,6 +115,47 @@ public struct BoardView: View {
                 .contentShape(Rectangle())
                 .gesture(tileTapGesture(geometry: geometry))
 
+                // Placement targets sit BELOW the pieces, not above them.
+                // Their yellow highlights are a hint about what you may do
+                // next; the pieces are the game state itself, and a hint must
+                // never repaint state. Drawn last (the previous order), the
+                // three legal road edges radiating from a just-placed
+                // settlement laid three `Color.yellow.opacity(0.55)` capsules
+                // across it - stacked, that is ~0.91 effective alpha, so the
+                // piece read as a solid yellow blob for as long as the road
+                // placement stayed armed and then "changed colour" the instant
+                // the road went down and the highlights cleared. Reported as
+                // "it's the wrong colour and then it switches colours" during
+                // setup.
+                //
+                // Hit testing is unaffected by the move: every piece layer
+                // above these is `.allowsHitTesting(false)`, so taps fall
+                // straight through to the targets, and the tile `Canvas`'s own
+                // gesture is still further below. A highlight can now be partly
+                // covered by a piece, which is the correct direction - a legal
+                // vertex never holds a building and a legal edge never holds a
+                // road, so only the rounded joint of an adjacent road ever
+                // overlaps one.
+                ForEach(sortedEdges, id: \.self) { edge in
+                    let (a, b) = board.vertices(of: edge)
+                    EdgeTapTarget(
+                        start: geometry.vertexPosition(a, board: board),
+                        end: geometry.vertexPosition(b, board: board),
+                        isHighlighted: highlightedEdges.contains(edge),
+                        isEnabled: !isPlacementModeActive || highlightedEdges.contains(edge),
+                        onTap: { onTapEdge(edge) }
+                    )
+                }
+
+                ForEach(sortedVertices, id: \.self) { vertex in
+                    VertexTapTarget(
+                        position: geometry.vertexPosition(vertex, board: board),
+                        isHighlighted: highlightedVertices.contains(vertex),
+                        isEnabled: !isPlacementModeActive || highlightedVertices.contains(vertex),
+                        onTap: { onTapVertex(vertex) }
+                    )
+                }
+
                 roadViews(geometry: geometry)
 
                 // Drawn as its own layer, above roads (which the base tile
@@ -133,26 +180,6 @@ public struct BoardView: View {
                 }
 
                 buildingViews(geometry: geometry, ownership: ownership)
-
-                ForEach(sortedEdges, id: \.self) { edge in
-                    let (a, b) = board.vertices(of: edge)
-                    EdgeTapTarget(
-                        start: geometry.vertexPosition(a, board: board),
-                        end: geometry.vertexPosition(b, board: board),
-                        isHighlighted: highlightedEdges.contains(edge),
-                        isEnabled: !isPlacementModeActive || highlightedEdges.contains(edge),
-                        onTap: { onTapEdge(edge) }
-                    )
-                }
-
-                ForEach(sortedVertices, id: \.self) { vertex in
-                    VertexTapTarget(
-                        position: geometry.vertexPosition(vertex, board: board),
-                        isHighlighted: highlightedVertices.contains(vertex),
-                        isEnabled: !isPlacementModeActive || highlightedVertices.contains(vertex),
-                        onTap: { onTapVertex(vertex) }
-                    )
-                }
             }
             .animation(.spring(), value: BoardSnapshot(state: state))
         }
@@ -325,9 +352,33 @@ public struct BoardView: View {
 
     // MARK: - Geometry fitting
 
-    /// Sizes and centers a `HexGeometry` so the whole board fits within
-    /// `rect`, inset by `padding` on all sides. Measures the board's extent
-    /// at `size: 1` first, then scales to fit.
+    /// Sizes and centers a `HexGeometry` so **everything drawn on the board**
+    /// fits within `rect`, inset by `padding` on all sides.
+    ///
+    /// ## What "everything" means, and why it used to be wrong
+    /// This measured the tile corners only. But ports are drawn *offshore* -
+    /// pushed out past the shoreline along their edge's normal - so the board
+    /// was scaled so the hexes fitted exactly and the port badges hung over the
+    /// edges and were clipped, worst at the top and bottom where the margin is
+    /// tightest. The fix is to measure what is actually drawn rather than to
+    /// shrink the board by a guessed percentage: a fixed 10% would be wrong on
+    /// the next screen size, and right here only by luck.
+    ///
+    /// Two extents are added to the tile bounds:
+    ///
+    /// - **Ports**, measured in hex-size units through the same
+    ///   `TileDrawing.portIconPoint` the renderer uses, so the two cannot drift.
+    /// - **Vertex placement rings**, which are a *fixed point size* rather than
+    ///   a multiple of the hex, so they cannot go into the scale calculation -
+    ///   they come off the available space instead.
+    /// Cosmetic margin left around the board, in points.
+    ///
+    /// A `static` so `BoardFitTests` can assert against the value that actually
+    /// ships. When the test hardcoded its own 4, it proved a property of a
+    /// number it supplied itself: changing the shipped value to 0 left every
+    /// assertion passing while the real board clipped.
+    static let boardPadding: CGFloat = 4
+
     static func fittedGeometry(for board: Board, in rect: CGRect, padding: CGFloat) -> HexGeometry {
         let probe = HexGeometry(origin: .zero, size: 1)
         var minX = CGFloat.greatestFiniteMagnitude
@@ -349,9 +400,55 @@ public struct BoardView: View {
             return HexGeometry(origin: CGPoint(x: rect.midX, y: rect.midY), size: 20)
         }
 
+        // Port badges, at the same unit scale. `portIconPoint` needs a board
+        // centre; at size 1 that is the mean of the tile centres, exactly as
+        // `boardCenter(for:geometry:)` computes it at real scale.
+        let probeCenters = board.tiles.map { probe.center(of: $0.coordinate) }
+        let probeCenter = CGPoint(
+            x: probeCenters.map(\.x).reduce(0, +) / CGFloat(max(probeCenters.count, 1)),
+            y: probeCenters.map(\.y).reduce(0, +) / CGFloat(max(probeCenters.count, 1)))
+        let badge = TileDrawing.portFrameRadiusFactor
+        for port in board.ports {
+            let icon = TileDrawing.portIconPoint(a: probe.vertexPosition(port.vertexA, board: board),
+                                              b: probe.vertexPosition(port.vertexB, board: board),
+                                              boardCenter: probeCenter, size: 1)
+            minX = min(minX, icon.x - badge)
+            maxX = max(maxX, icon.x + badge)
+            minY = min(minY, icon.y - badge)
+            maxY = max(maxY, icon.y + badge)
+        }
+
         let availableWidth = max(rect.width - padding * 2, 1)
         let availableHeight = max(rect.height - padding * 2, 1)
-        let size = min(availableWidth / (maxX - minX), availableHeight / (maxY - minY))
+
+        // Vertex placement rings are a FIXED point size, so they cannot go into
+        // a scale computed in hex-size units - their extent in those units
+        // depends on the very size being solved for. Two passes settle it:
+        // solve ignoring them, convert the ring to units at that size, fold it
+        // into the tile bounds, solve again.
+        //
+        // Folding rather than reserving matters. Reserving a flat 11pt on every
+        // side, as this first did, takes it even on the sides where a port
+        // badge already sticks out four times further and the ring is nowhere
+        // near the outer edge - which is board size given away for nothing. The
+        // ring only ever binds on a stretch of coast with no port on it.
+        func fit(_ boundsMinX: CGFloat, _ boundsMaxX: CGFloat,
+                 _ boundsMinY: CGFloat, _ boundsMaxY: CGFloat) -> CGFloat {
+            min(availableWidth / (boundsMaxX - boundsMinX), availableHeight / (boundsMaxY - boundsMinY))
+        }
+
+        let firstPass = fit(minX, maxX, minY, maxY)
+        let ringInUnits = firstPass > 0 ? TileDrawing.vertexRingRadius / firstPass : 0
+        for tile in board.tiles {
+            for index in 0..<6 {
+                let corner = probe.corner(of: tile.coordinate, index: index)
+                minX = min(minX, corner.x - ringInUnits)
+                maxX = max(maxX, corner.x + ringInUnits)
+                minY = min(minY, corner.y - ringInUnits)
+                maxY = max(maxY, corner.y + ringInUnits)
+            }
+        }
+        let size = fit(minX, maxX, minY, maxY)
 
         let boardCenterX = (minX + maxX) / 2 * size
         let boardCenterY = (minY + maxY) / 2 * size

@@ -338,6 +338,19 @@ public final class GameViewModel {
     // function, so `qaForceHumanWin` carried the description of its
     // neighbour - a symptom of edit-by-append.)
 
+    /// Replaces the whole position and the human's seat, for tests.
+    ///
+    /// `#if DEBUG` alongside the QA hooks because it exists for the same
+    /// reason: it puts the model into a state that would otherwise take a
+    /// played-out game to reach. Tests use it to construct exact trade
+    /// positions - a bot offer the human can afford, one they cannot, one the
+    /// proposer can no longer honour - which is how `openIncomingOffer` is
+    /// pinned in both directions.
+    func replaceStateForTesting(_ newState: GameState, humanSeat: PlayerID) {
+        humanPlayer = humanSeat
+        session = Self.makeSession(state: newState, humanSeat: humanSeat)
+    }
+
     /// Forces `state.phase` straight to a human win, for screenshotting
     /// `EndGameView` (see `QALaunchFlag.showEndGame`) without playing a game
     /// out to 10 VP. Deliberately records no log entry and no stats.
@@ -646,7 +659,28 @@ public final class GameViewModel {
         // in `GameSession`, which a headless harness runs too - so what is
         // measured offline is what is played here.
         while case .seat = session.nextActor() {
-            try? await Task.sleep(for: .milliseconds(600))
+            // Stop while the human has a trade decision on screen.
+            //
+            // This is why an incoming offer used to flash: the card is a live
+            // projection of `pendingTradeOffers`, the proposing bot took its
+            // next action about a second later, and `endTurn` clears every
+            // pending offer - so the card appeared and vanished before it could
+            // be read, let alone answered.
+            //
+            // **`return`, not a parked continuation.** Parking here would hold
+            // `isProcessingBotTurns` for the whole wait, and that flag is what
+            // the restart path guards on - so the human's own move would find
+            // the loop "already running" and do nothing, and `startNewGame`
+            // would bump `gameGeneration` without ever resuming the
+            // continuation, leaving the flag stuck true and the new game's bots
+            // frozen forever. Returning lets `defer` clear it, and the restart
+            // already exists: answering the offer goes through `apply`, which
+            // ends in `Task { await runBotTurnIfNeeded() }`.
+            if openIncomingOffer != nil { return }
+
+            // Pacing, not thinking: the bots decide instantly and this is the
+            // only reason a turn is watchable. Configured in `pacing.yml`.
+            try? await Task.sleep(for: .seconds(PacingSettingsStore.current.secondsPerBotAction))
             // The game may have been restarted while this loop slept.
             guard generation == gameGeneration else { return }
 
@@ -726,25 +760,41 @@ public final class GameViewModel {
         try? await Task.sleep(for: .seconds(targetDelay - elapsed))
     }
 
+    /// A bot-proposed offer the human could accept right now, if there is one.
+    ///
+    /// Derived from `state` rather than mirrored from the view, because the bot
+    /// loop has to gate on it and the loop cannot see the view's state. Same
+    /// engine predicate the card itself uses, so the two cannot disagree about
+    /// whether an offer is live.
+    var openIncomingOffer: TradeOffer? {
+        state.pendingTradeOffers.first {
+            $0.from != humanPlayer && Trading.bothSidesCanHonour($0, responder: humanPlayer, state: state)
+        }
+    }
+
     /// The bot that should act next, or `nil` if it's the human's turn or
     /// the game is over. `.discarding` has no single active player, so this
     /// picks any one bot still in `pending`; it's re-derived each loop
     /// iteration so it naturally advances to the next pending bot (or to
     /// `nil` once only the human remains).
     private func nextBotPlayer() -> PlayerID? {
-        switch state.phase {
-        case .setupForward(let playerIndex),
-             .setupBackward(let playerIndex),
-             .rollDice(let playerIndex),
-             .mainTurn(let playerIndex),
-             .movingRobber(let playerIndex):
-            let player = PlayerID(index: playerIndex)
+        // Asked through `GamePhase.awaitingSeatIndex` rather than unpacking the
+        // five seat-carrying cases again - this was one of the copies that
+        // accessor was added to retire.
+        if let seat = state.phase.awaitingSeatIndex {
+            let player = PlayerID(index: seat)
             return player == humanPlayer ? nil : player
-        case .discarding(let pending):
-            return pending.first { $0 != humanPlayer }
-        case .gameOver:
-            return nil
         }
+        // The two cases `awaitingSeatIndex` returns nil for. `.discarding` is
+        // genuinely multi-seat, so pick any bot still owing one; re-derived
+        // each loop iteration, so it advances naturally to the next.
+        if case .discarding(let pending) = state.phase {
+            // Sorted: `pending` is a `Set`, and Swift seeds hash order per
+            // process, so `.first` on it would pick a different bot between
+            // launches.
+            return pending.sorted().first { $0 != humanPlayer }
+        }
+        return nil
     }
 
     /// Ranked by seat order *among the 3 bot seats* (not raw seat index) -

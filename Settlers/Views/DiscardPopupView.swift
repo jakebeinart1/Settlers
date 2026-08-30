@@ -40,7 +40,7 @@ public struct DiscardPopupView: View {
                     .font(.caption.bold())
                     .foregroundStyle(.secondary)
                     .frame(maxWidth: .infinity, alignment: .leading)
-                ResourceSlotRow(counts: discard, emptyText: "Tap a card from your hand below") { resource in
+                ResourceSlotRow(counts: discard) { resource in
                     discard[resource] = (discard[resource] ?? 0) - 1
                     if discard[resource] == 0 { discard[resource] = nil }
                 }

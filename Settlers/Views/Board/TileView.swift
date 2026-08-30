@@ -78,23 +78,61 @@ enum TileDrawing {
         context.draw(context.resolve(text), at: point, anchor: .center)
     }
 
-    /// Draws the robber over `tileCoordinate`. `number` is the tile's own
-    /// number token (if any), redrawn in white on top of the robber icon so
-    /// it stays legible - previously the robber's opaque fill fully covered
-    /// the number token `drawTile` already painted underneath it.
+    /// How far out to push a port badge, in hex-size units, measured along the
+    /// edge's outward normal.
+    ///
+    /// Sized so the badge clears a vertex's placement ring. The badge's frame
+    /// radius is `size * 0.324` and a ring is 11pt in radius, so with the badge
+    /// pushed `d` out from an edge midpoint, its distance to either of that
+    /// edge's vertices is `hypot(size/2, d)` - the edge is `size` long on a
+    /// pointy-top grid. At the ~40pt hex this board draws at, the previous 0.4
+    /// left about a point of daylight in the best case and none once the
+    /// centre-ray skew pulled the badge sideways. 0.55 leaves roughly three.
+    static let portOffset: CGFloat = 0.55
+
+    /// Radius of a vertex's placement ring - half `VertexTapTarget`'s
+    /// `highlightDiameter` of 22.
+    ///
+    /// Used twice: dock lines start this far from a vertex so they meet the
+    /// ring's edge instead of vanishing under it, and
+    /// `BoardView.fittedGeometry` reserves it around the board, since the ring
+    /// is a fixed point size and does not shrink with the hex.
+    static let vertexRingRadius: CGFloat = 11
+
+    /// Draws the robber over `tileCoordinate`, and darkens the tile it is
+    /// sitting on.
+    ///
+    /// ## Why the tile is darkened rather than just marked
+    /// The robber used to be a plain near-black disc with a thin white ring,
+    /// and on a fully painted board that reads as a hole in the artwork rather
+    /// than as a piece - it was reported as "I don't see the robber". A marker
+    /// also only says *where* it is, when the thing a player needs to know is
+    /// *what it does*: that hex produces nothing while the robber sits there.
+    ///
+    /// So the tile gets a scrim and the marker gets a gold rim matching the
+    /// board's other chrome. The scrim carries the meaning at a glance and the
+    /// marker carries the position; the number token is still redrawn on top so
+    /// the hex stays identifiable.
     static func drawRobber(at tileCoordinate: HexCoordinate, number: Int?, geometry: HexGeometry, in context: GraphicsContext) {
+        // Blocked-tile scrim, inset slightly so the tile's own border still
+        // reads and neighbouring tiles are not visually joined to it.
+        let scrim = hexPath(for: tileCoordinate, geometry: geometry, scale: 0.97)
+        context.fill(scrim, with: .color(.black.opacity(0.45)))
+
         let center = geometry.center(of: tileCoordinate)
-        let radius = geometry.size * 0.28
-        let path = Path(ellipseIn: CGRect(x: center.x - radius, y: center.y - radius, width: radius * 2, height: radius * 2))
-        context.fill(path, with: .color(CatanTheme.robber))
-        context.stroke(path, with: .color(.white.opacity(0.6)), lineWidth: 1)
+        let radius = geometry.size * 0.32
+        let disc = Path(ellipseIn: CGRect(x: center.x - radius, y: center.y - radius,
+                                          width: radius * 2, height: radius * 2))
+        context.fill(disc, with: .color(CatanTheme.robber))
+        // Gold, not white: every other frame on this board is gold-rimmed, and
+        // a lone white ring read as a UI artefact rather than a game piece.
+        context.stroke(disc, with: .color(CatanTheme.cityPennantGold), lineWidth: geometry.size * 0.05)
 
         if let number {
             // Same font size `drawNumberToken` uses for every other tile
-            // (`geometry.size * 0.32` radius * `1.15`) - not `radius * 0.85`
-            // here, which reads off the robber's own (deliberately smaller)
-            // token-circle radius instead and made this one number visibly
-            // shrink the moment the robber sat on it.
+            // (`geometry.size * 0.32` radius * `1.15`) - not this disc's own
+            // radius, which made the one number under the robber visibly
+            // shrink relative to its neighbours.
             let text = Text("\(number)")
                 .font(.system(size: geometry.size * 0.32 * 1.15, weight: .bold, design: .serif))
                 .foregroundColor(.white)
@@ -102,41 +140,76 @@ enum TileDrawing {
         }
     }
 
-    /// Draws a small port icon pushed outward from `boardCenter`, along the
-    /// midpoint of the port's two shoreline vertices, so it reads as sitting
-    /// just offshore rather than on top of the board. Two "dock" lines run
-    /// from the badge back to each of those two shoreline vertices,
-    /// tracing the actual edge the port trades through - previously the
-    /// badge just floated near the coast with nothing pinning it to a
-    /// specific edge, ambiguous whenever two ports sat close together.
+    /// Where a port's badge is drawn: out from the midpoint of its two
+    /// shoreline vertices, along that edge's OUTWARD NORMAL.
+    ///
+    /// The normal, not the direction from the board's centre. Those two only
+    /// coincide for an edge that happens to face radially; everywhere else the
+    /// centre-to-midpoint ray meets the edge at an angle, so the badge slid
+    /// sideways along the shore and ended up nearer one of its two vertices
+    /// than the other. That is what made some ports look misplaced, and pulled
+    /// badges into the vertex placement rings during setup, when every vertex
+    /// is ringed at once.
+    ///
+    /// Shared with `BoardView.fittedGeometry`, which has to know how far
+    /// outside the tiles anything is drawn in order to leave room for it. Two
+    /// copies of this would let the board be scaled to fit a layout the
+    /// renderer no longer uses.
+    static func portIconPoint(a: CGPoint, b: CGPoint, boardCenter: CGPoint, size: CGFloat) -> CGPoint {
+        let midpoint = CGPoint(x: (a.x + b.x) / 2, y: (a.y + b.y) / 2)
+        let edge = CGVector(dx: b.x - a.x, dy: b.y - a.y)
+        let edgeLength = max(sqrt(edge.dx * edge.dx + edge.dy * edge.dy), 0.001)
+        // Either perpendicular would do; take the one pointing away from the
+        // board, since a port sits offshore.
+        var outward = CGVector(dx: -edge.dy / edgeLength, dy: edge.dx / edgeLength)
+        let awayFromBoard = CGVector(dx: midpoint.x - boardCenter.x, dy: midpoint.y - boardCenter.y)
+        if outward.dx * awayFromBoard.dx + outward.dy * awayFromBoard.dy < 0 {
+            outward = CGVector(dx: -outward.dx, dy: -outward.dy)
+        }
+        return CGPoint(x: midpoint.x + outward.dx * size * portOffset,
+                       y: midpoint.y + outward.dy * size * portOffset)
+    }
+
+    /// Radius of the painted badge frame, in hex-size units - the outermost
+    /// thing drawn for a port, and therefore what the board must leave room
+    /// for.
+    static let portFrameRadiusFactor: CGFloat = 0.24 * 1.35
+
+    /// Draws a port badge offshore of the edge it trades through, with two
+    /// dock lines running back to that edge's two shoreline vertices - so the
+    /// badge is pinned to a specific edge rather than floating near the coast,
+    /// which was ambiguous wherever two ports sat close together.
     static func drawPort(_ port: CatanEngine.Port, geometry: HexGeometry, board: Board, boardCenter: CGPoint, in context: GraphicsContext) {
         let a = geometry.vertexPosition(port.vertexA, board: board)
         let b = geometry.vertexPosition(port.vertexB, board: board)
-        let midpoint = CGPoint(x: (a.x + b.x) / 2, y: (a.y + b.y) / 2)
+        let iconPoint = portIconPoint(a: a, b: b, boardCenter: boardCenter, size: geometry.size)
 
-        var direction = CGVector(dx: midpoint.x - boardCenter.x, dy: midpoint.y - boardCenter.y)
-        let length = max(sqrt(direction.dx * direction.dx + direction.dy * direction.dy), 0.001)
-        direction = CGVector(dx: direction.dx / length, dy: direction.dy / length)
-        let iconPoint = CGPoint(x: midpoint.x + direction.dx * geometry.size * 0.4, y: midpoint.y + direction.dy * geometry.size * 0.4)
-
+        // The dock lines start clear of the vertex rings rather than at the
+        // vertices themselves, so a line never runs underneath the ring it is
+        // pointing at. They still trace the real edge the port trades through.
         var dockPath = Path()
-        dockPath.move(to: a)
-        dockPath.addLine(to: iconPoint)
-        dockPath.move(to: b)
-        dockPath.addLine(to: iconPoint)
+        for shorelineVertex in [a, b] {
+            let toIcon = CGVector(dx: iconPoint.x - shorelineVertex.x, dy: iconPoint.y - shorelineVertex.y)
+            let span = max(sqrt(toIcon.dx * toIcon.dx + toIcon.dy * toIcon.dy), 0.001)
+            let start = CGPoint(x: shorelineVertex.x + toIcon.dx / span * vertexRingRadius,
+                                y: shorelineVertex.y + toIcon.dy / span * vertexRingRadius)
+            dockPath.move(to: start)
+            dockPath.addLine(to: iconPoint)
+        }
         context.stroke(dockPath, with: .color(CatanTheme.portIcon.opacity(0.85)), style: StrokeStyle(lineWidth: 2.5, lineCap: .round))
 
         let radius = geometry.size * 0.24
-        // The painted gold-ring badge frame sits behind the actual
-        // functional circle (still colored by port kind, still stroked) -
-        // decorative only, so the resource-color coding that circle
-        // carries (which port trades which resource, at a glance) stays
-        // exactly as legible as before. See design-references/STATUS.md.
-        let frameRadius = radius * 1.35
+        // The painted gold-ring badge frame sits behind the actual functional
+        // circle (still coloured by port kind, still stroked) - decorative
+        // only, so the resource-colour coding that circle carries stays exactly
+        // as legible. See design-references/STATUS.md.
+        let frameRadius = geometry.size * portFrameRadiusFactor
         let resolvedFrame = context.resolve(Image("port-frame"))
-        context.draw(resolvedFrame, in: CGRect(x: iconPoint.x - frameRadius, y: iconPoint.y - frameRadius, width: frameRadius * 2, height: frameRadius * 2))
+        context.draw(resolvedFrame, in: CGRect(x: iconPoint.x - frameRadius, y: iconPoint.y - frameRadius,
+                                               width: frameRadius * 2, height: frameRadius * 2))
 
-        let circle = Path(ellipseIn: CGRect(x: iconPoint.x - radius, y: iconPoint.y - radius, width: radius * 2, height: radius * 2))
+        let circle = Path(ellipseIn: CGRect(x: iconPoint.x - radius, y: iconPoint.y - radius,
+                                            width: radius * 2, height: radius * 2))
         let fillColor: Color
         let label: String
         switch port.kind {
