@@ -2,16 +2,6 @@ import CatanEngine
 
 /// Scores candidate settlement vertices for setup and later expansion.
 public enum PlacementHeuristics {
-    /// Pip count (number of ways to roll each number token) - the standard
-    /// Catan production-value weighting.
-    private static let pipsByNumber: [Int: Double] = [
-        6: 5, 8: 5,
-        5: 4, 9: 4,
-        4: 3, 10: 3,
-        3: 2, 11: 2,
-        2: 1, 12: 1,
-    ]
-
     /// Pip-count-weighted production value of `vertex`, summed across its
     /// up-to-3 adjacent tiles, plus a resource-diversity bonus (rewards
     /// touching more distinct resource types), a port-access bonus (rewards
@@ -40,7 +30,7 @@ public enum PlacementHeuristics {
         var newResourceBonus = 0.0
         for tile in tiles {
             guard let number = tile.numberToken else { continue }
-            let pips = pipsByNumber[number] ?? 0
+            let pips = Double(DiceOdds.pips(for: number))
             production += pips
             if case .resource(let resource) = tile.kind {
                 resources.insert(resource)

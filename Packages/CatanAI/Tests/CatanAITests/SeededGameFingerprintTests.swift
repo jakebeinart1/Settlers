@@ -99,28 +99,36 @@ private func fingerprint(_ moves: [String]) -> String {
 }
 
 private func playSeededGame(seed: UInt64) -> (fingerprint: String, moves: Int, winner: PlayerID?) {
-    var state = GameSetup.newGame(board: BoardGenerator.randomized(seed: seed), seed: seed)
-    let bots = [
-        Bot(personality: .balanced), Bot(personality: .aggressive),
-        Bot(personality: .cautious), Bot(personality: .balanced),
+    let state = GameSetup.newGame(board: BoardGenerator.randomized(seed: seed), seed: seed)
+    let seatPolicies: [any Policy] = [
+        HeuristicPolicy(personality: .balanced, id: "heuristic-balanced"),
+        HeuristicPolicy(personality: .aggressive, id: "heuristic-aggressive"),
+        HeuristicPolicy(personality: .cautious, id: "heuristic-cautious"),
+        HeuristicPolicy(personality: .balanced, id: "heuristic-balanced"),
     ]
-    // The bot's own tie-breaks are seeded too, via the `rng:` overload used
-    // below. `Bot.decide(for:player:)` - the overload WITHOUT an rng - builds
-    // a fresh `SystemRandomNumberGenerator` on every call, so it can never be
-    // reproducible and a measurement harness must never use it.
-    var botRNG = RandomSource(seed: seed &* 31 &+ 7)
+    var seats: [PlayerID: any Policy] = [:]
+    for (index, policy) in seatPolicies.enumerated() { seats[state.players[index].id] = policy }
+
+    // Driven through `GameSession`, not by calling the bots directly.
+    // This test and the `sim` harness both used to run private loops, so the
+    // sequence pinned here was one no player ever actually experienced: it saw
+    // the unscoped action list and had no runaway backstop, while the app had
+    // both. A fingerprint of a loop nobody plays does not protect the game.
+    //
+    // `GameSession` seeds its own policy RNG from `policySeed`; the value below
+    // is the same derivation the harness uses so the two play identical games.
+    var session = GameSession(state: state, policies: seats, policySeed: seed &* 31 &+ 7)
     var trace: [String] = []
 
     for _ in 0..<3000 {
-        if case .gameOver(let winner) = state.phase {
-            return (fingerprint(trace), trace.count, winner)
-        }
-        guard let actor = actingPlayer(state) else { break }
-        let move = bots[actor.index].decide(for: state, player: actor, rng: &botRNG)
-        trace.append("P\(actor.index):\(canonical(move))")
-        try! RulesEngine.apply(move, by: actor, to: &state)
+        guard case .seat = session.nextActor() else { break }
+        guard let step = try! session.step() else { break }
+        trace.append("P\(step.actor.index):\(canonical(step.move))")
     }
-    return (fingerprint(trace), trace.count, nil)
+
+    var winner: PlayerID?
+    if case .gameOver(let who) = session.state.phase { winner = who }
+    return (fingerprint(trace), trace.count, winner)
 }
 
 @Test func seededSelfPlayReproducesExactly() {
