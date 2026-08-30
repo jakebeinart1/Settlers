@@ -39,6 +39,13 @@
 /// which is why it is written down here rather than done now. A flat 8,815 is
 /// a perfectly ordinary policy-head width in the meantime.
 ///
+/// ## Not the same numbering as a prompt's move list
+/// `StateEncoding.promptDescription` also numbers moves, but 0-based *within
+/// one observation's* `legalMoves` - single digits, meaningless elsewhere.
+/// This numbering is global and permanent. Feeding a number from one into the
+/// other yields a legal-looking move nobody chose; cross over via
+/// `observation.legalMoves[n]` and `index(of:pendingOffers:)`.
+///
 /// ## Two indices depend on state, deliberately
 /// `respondToTrade` names an offer by `UUID`, which cannot be numbered in
 /// advance, so it is indexed by *position* in `pendingTradeOffers`. Pass the
