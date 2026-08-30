@@ -130,7 +130,7 @@ gate_ai_tests()     { ( cd Packages/CatanAI && swift test --enable-code-coverage
 # Measured 2026-08-30: engine 95.36%, AI 92.04% - the AI floor rises to 91.
 gate_coverage() {
   ./scripts/coverage.sh Packages/CatanEngine 95 --reuse \
-    && ./scripts/coverage.sh Packages/CatanAI 91 --reuse
+    && ./scripts/coverage.sh Packages/CatanAI 95 --reuse
 }
 
 # --- 6. Secrets -----------------------------------------------------------
