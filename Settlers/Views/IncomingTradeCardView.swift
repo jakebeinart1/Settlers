@@ -57,10 +57,21 @@ public struct IncomingTradeCardView: View {
                     .trim(from: 0, to: totalSeconds > 0 ? remaining / totalSeconds : 1)
                     .stroke(Color.yellow, style: StrokeStyle(lineWidth: 3, lineCap: .round))
                     .rotationEffect(.degrees(-90))
-                Image(systemName: "arrow.left.arrow.right")
-                    .font(.caption2)
+                if totalSeconds > 0 {
+                    // The number, not just a draining arc. An arc alone says
+                    // "something is running out" without saying how long you
+                    // have, which is most of what makes a timed decision
+                    // stressful rather than informative.
+                    Text("\(Int(remaining.rounded(.up)))")
+                        .font(.system(size: 13, weight: .bold, design: .rounded))
+                        .monospacedDigit()
+                        .foregroundStyle(.white)
+                } else {
+                    Image(systemName: "arrow.left.arrow.right")
+                        .font(.caption2)
+                }
             }
-            .frame(width: 26, height: 26)
+            .frame(width: 32, height: 32)
 
             VStack(alignment: .leading, spacing: 4) {
                 // The bot's own pitch line instead of a flat "X wants to
@@ -105,11 +116,17 @@ public struct IncomingTradeCardView: View {
                 // civilization colours are dark navy or near-black, which on
                 // this card's blue ground read as greyed-out - the speaker
                 // looked disabled. The ring on the left already carries colour.
+                // `.subheadline`, not `.headline`. The line now carries the
+                // proposer's name as well as their pitch, and the row lost
+                // width to 44pt answer buttons - at headline size that
+                // combination truncated mid-word ("...approve. Tr..."), which
+                // is worse than slightly smaller text on a line whose whole job
+                // is to say who wants what.
                 (
-                    Text("\(CatanTheme.playerLabel(for: offer.from)): ").font(.headline.bold())
+                    Text("\(CatanTheme.playerLabel(for: offer.from)): ").font(.subheadline.bold())
                         + Text(TradeMessages.pitch(offer: offer,
                                                    empire: Civilization.forSeat(offer.from.index).tradeMessagesEmpire))
-                        .font(.headline)
+                        .font(.subheadline)
                 )
                 .lineLimit(1)
                 .minimumScaleFactor(0.5)
@@ -143,23 +160,15 @@ public struct IncomingTradeCardView: View {
 
             Spacer(minLength: 4)
 
-            Button {
-                onReject()
-            } label: {
-                Image(systemName: "xmark")
-                    .font(.footnote.bold())
-                    .padding(7)
-                    .background(Color.red.opacity(0.85), in: Circle())
-                    .foregroundStyle(.white)
-            }
-            Button {
-                onAccept()
-            } label: {
-                Image(systemName: "checkmark")
-                    .font(.footnote.bold())
-                    .padding(7)
-                    .background(Color.green.opacity(0.85), in: Circle())
-                    .foregroundStyle(.white)
+            // 44pt targets, 16pt apart. They were 7pt of padding around a
+            // footnote glyph - roughly 28pt - sitting 8pt apart, which is
+            // under Apple's 44pt minimum and close enough together to make
+            // rejecting a trade you meant to accept an easy slip. This is a
+            // two-way decision with no undo, so the two buttons should not be
+            // adjacent thumb-sized targets.
+            HStack(spacing: 16) {
+                answerButton(systemImage: "xmark", tint: .red, action: onReject)
+                answerButton(systemImage: "checkmark", tint: .green, action: onAccept)
             }
         }
         .padding(8)
@@ -204,6 +213,21 @@ public struct IncomingTradeCardView: View {
         .onDisappear { tickTask?.cancel() }
         .transition(.move(edge: .bottom).combined(with: .opacity))
     }
+
+    private func answerButton(systemImage: String, tint: Color, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            Image(systemName: systemImage)
+                .font(.headline.bold())
+                .foregroundStyle(.white)
+                .frame(width: Self.answerButtonDiameter, height: Self.answerButtonDiameter)
+                .background(tint.opacity(0.9), in: Circle())
+                .overlay(Circle().strokeBorder(.white.opacity(0.35), lineWidth: 1))
+        }
+        .buttonStyle(.plain)
+    }
+
+    /// Apple's minimum comfortable touch target.
+    private static let answerButtonDiameter: CGFloat = 44
 
     private func startTicking() {
         tickTask?.cancel()

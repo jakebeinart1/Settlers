@@ -53,6 +53,7 @@
 		CB58570AE806ACE6BFC462C1 /* TradePopupView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5DA573A3A82A8F2F109FA437 /* TradePopupView.swift */; };
 		D16CC8C90FB7F755636F3397 /* GameStatsStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 16777953197BE2BC34CCFE6B /* GameStatsStore.swift */; };
 		DBA70E71EA1FD506BEBF2C4A /* Civilization.swift in Sources */ = {isa = PBXBuildFile; fileRef = C47D8E51CEBC82766DDDF936 /* Civilization.swift */; };
+		DC62266DFBF7B3987969DA87 /* IncomingOfferHoldTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6BF5BC6D6577182E9829230A /* IncomingOfferHoldTests.swift */; };
 		E3A6D0C733055C91F0E356FE /* BoardFitTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A53ECD05D7E8073C7BEDC19 /* BoardFitTests.swift */; };
 		EA3F8948081A29B415CD8B67 /* QALaunchFlag.swift in Sources */ = {isa = PBXBuildFile; fileRef = 59A80CE9867E891B09A3F0E5 /* QALaunchFlag.swift */; };
 /* End PBXBuildFile section */
@@ -89,6 +90,7 @@
 		64B237C01DFEE60CA454FFCB /* BoardChips.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BoardChips.swift; sourceTree = "<group>"; };
 		6704DBBD9FA192F71D8ED7D3 /* CornerAccent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CornerAccent.swift; sourceTree = "<group>"; };
 		68A4D0016F665BB8F904F4DD /* PersistenceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PersistenceTests.swift; sourceTree = "<group>"; };
+		6BF5BC6D6577182E9829230A /* IncomingOfferHoldTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IncomingOfferHoldTests.swift; sourceTree = "<group>"; };
 		6F0C19DF5E22050B860A7094 /* GameView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameView.swift; sourceTree = "<group>"; };
 		7581395190BC539D01AEA19A /* HexGeometry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HexGeometry.swift; sourceTree = "<group>"; };
 		773974AAADA7CAFE9AC538F0 /* GoldRowButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GoldRowButton.swift; sourceTree = "<group>"; };
@@ -151,6 +153,7 @@
 				26C8E728C5FF85E8400CFE1A /* .swiftlint.yml */,
 				7A53ECD05D7E8073C7BEDC19 /* BoardFitTests.swift */,
 				56E4A8873ADD3D6574E7A3D3 /* BoardLayeringTests.swift */,
+				6BF5BC6D6577182E9829230A /* IncomingOfferHoldTests.swift */,
 				0CF1180D4C0DC2200606374E /* PacingSettingsTests.swift */,
 				68A4D0016F665BB8F904F4DD /* PersistenceTests.swift */,
 			);
@@ -422,6 +425,7 @@
 			files = (
 				E3A6D0C733055C91F0E356FE /* BoardFitTests.swift in Sources */,
 				0C001867D26CBDBAA67CDC72 /* BoardLayeringTests.swift in Sources */,
+				DC62266DFBF7B3987969DA87 /* IncomingOfferHoldTests.swift in Sources */,
 				56AB3F44A7694184D577A6F3 /* PacingSettingsTests.swift in Sources */,
 				8F8382E69A373BB264240262 /* PersistenceTests.swift in Sources */,
 			);

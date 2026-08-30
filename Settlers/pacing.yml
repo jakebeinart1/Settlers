@@ -19,7 +19,10 @@ secondsPerBotAction: 1.1
 # How long the dice-roll highlight stays on the tiles that produced.
 rollHighlightSeconds: 1.5
 
-# How long an incoming trade offer waits before auto-declining itself.
-# 0 means wait for you, indefinitely - an offer that answers itself is not a
-# decision. This was effectively 6 seconds, which was the reported bug.
-incomingOfferTimeoutSeconds: 0
+# How long you get to answer an incoming trade offer, shown as a countdown on
+# the card itself. The bots are held for the whole of it - nobody moves while
+# you are deciding - so this is your reading time, not a race.
+#
+# 0 means wait indefinitely. 15 is long enough to read who is asking and what
+# for; the previous 6 was not, and it expired while you were still reading.
+incomingOfferTimeoutSeconds: 15
