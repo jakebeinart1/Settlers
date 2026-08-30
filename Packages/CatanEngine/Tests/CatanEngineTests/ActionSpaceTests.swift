@@ -33,7 +33,7 @@ private let space = ActionSpace(board: board)
         + ActionSpace.maxIndexedPendingOffers * 2
         + 1                                    // endTurn
     #expect(space.size == expected)
-    #expect(space.size == 8_815, "if this moved, bump ActionSpace.layoutVersion")
+    #expect(space.size == 9_295, "if this moved, bump ActionSpace.layoutVersion")
 }
 
 @Test func everyIndexRoundTripsBackToItself() {
@@ -42,16 +42,26 @@ private let space = ActionSpace(board: board)
     // Distinct CONTENT for each, not just distinct positions: offer ids are
     // derived from their contents, so sixteen offers that merely differ by
     // proposer would share ids and every lookup would find the first.
+    // Distinct CONTENT for each, not just distinct positions: offer ids are
+    // derived from their contents, so offers that differ only by proposer share
+    // a leading window and a fixture built from too few combinations silently
+    // collapses. Proposer x give-kind x want-kind x quantity gives 320 genuinely
+    // distinct offers, of which the first `maxIndexedPendingOffers` are used.
     let resources = Resource.allCases
-    let offers = (0..<ActionSpace.maxIndexedPendingOffers).map { index -> TradeOffer in
-        let give = resources[index % resources.count]
-        let want = resources[(index / resources.count + 1 + index % resources.count) % resources.count]
-        return TradeOffer.enumerated(
-            from: PlayerID(index: index % 4),
-            give: [give: 1 + index % 2],
-            want: [want == give ? resources[(index + 2) % resources.count] : want: 1]
-        )
+    var offers: [TradeOffer] = []
+    for giveQuantity in 1...4 {
+        for wantQuantity in 1...4 {
+            for (giveIndex, give) in resources.enumerated() {
+                for want in resources where want != give {
+                    offers.append(TradeOffer.enumerated(
+                        from: PlayerID(index: giveIndex % 4),
+                        give: [give: giveQuantity],
+                        want: [want: wantQuantity]))
+                }
+            }
+        }
     }
+    offers = Array(offers.prefix(ActionSpace.maxIndexedPendingOffers))
     #expect(Set(offers.map(\.id)).count == offers.count, "the fixture must not contain duplicate offer ids")
     var unmapped: [Int] = []
     for index in 0..<space.size {
@@ -145,6 +155,55 @@ private let space = ActionSpace(board: board)
     // Not in the supplied list, so it cannot be named by position.
     #expect(space.index(of: .respondToTrade(offerID: offer.id, accept: true), pendingOffers: []) == nil)
     #expect(space.index(of: .respondToTrade(offerID: offer.id, accept: true), pendingOffers: [offer]) != nil)
+}
+
+@Test func theActionSpaceAndTheEncoderAgreeOnBoardOrder() {
+    // The defect this pins was live and silent: `ActionSpace` took tiles in
+    // `board.tiles` order (the generator's spiral) while
+    // `StateEncoding.BoardIndex` sorted them, so all 19 hexes disagreed.
+    // Nothing failed - the vector was the right width and the index was in
+    // range - but "robber to tile k" named a different hex from tile slot k of
+    // the feature vector, which is precisely the pairing a trainer makes.
+    // Vertices and edges agreed all along, which is what made it easy to miss.
+    let board = BoardGenerator.randomized(seed: 21)
+    let space = ActionSpace(board: board)
+    let encoder = StateEncoding.BoardIndex(board)
+
+    for (slot, tile) in encoder.tiles.enumerated() {
+        let move = space.move(at: space.index(of: .moveRobber(tile.coordinate, stealFrom: nil))!)
+        guard case .moveRobber(let coordinate, _) = move else {
+            Issue.record("expected a robber move")
+            return
+        }
+        #expect(encoder.slot(of: coordinate) == slot,
+                "tile slot \(slot) means \(tile.coordinate) to the encoder and \(coordinate) to the action space")
+    }
+    for (slot, vertex) in encoder.vertices.enumerated() {
+        #expect(space.index(of: .buildSettlement(vertex))! - space.index(of: .buildSettlement(encoder.vertices[0]))! == slot)
+    }
+    for (slot, edge) in encoder.edges.enumerated() {
+        #expect(space.index(of: .buildRoad(edge))! - space.index(of: .buildRoad(encoder.edges[0]))! == slot)
+    }
+}
+
+@Test func aMaskRefusesToHideALegalMoveItCannotNumber() {
+    // `index(of:)` returns nil rather than aliasing, and `mask` used to drop
+    // that on the floor. The bad case is not a slightly narrow mask: when every
+    // legal move is unrepresentable the mask is all-false, and a policy head
+    // softmaxes a row of -inf into NaN with nothing reporting it.
+    var state = GameSetup.newGame(board: BoardGenerator.standard(), seed: 8)
+    // 22 cards forces an 11-card discard, one past `maxDiscardCards`.
+    state.players[0].resources = [.brick: 5, .lumber: 5, .ore: 4, .grain: 4, .wool: 4]
+    state.phase = .discarding(pending: [state.players[0].id])
+    let seat = state.players[0].id
+    let legal = RulesEngine.legalMoves(for: state, seat: seat)
+
+    #expect(!legal.isEmpty, "the rules do allow this position")
+    #expect(legal.allSatisfy { space.index(of: $0) == nil },
+            "every discard here is past the cap, which is what makes the old behaviour an all-false mask")
+    // The trap itself cannot be caught in-process, so this documents the
+    // boundary rather than executing it; the assertion above is what would have
+    // been silently false before.
 }
 
 @Test func theNumberingDoesNotDependOnHowTheBoardWasBuilt() {

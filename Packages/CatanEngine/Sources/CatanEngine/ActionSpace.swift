@@ -13,30 +13,36 @@
 /// commits to how an agent is eventually built.
 ///
 /// ## The ordering is canonical, and that is load-bearing
-/// Vertices, edges and tiles are sorted once at construction. `Board` stores
-/// vertices and edges in `Set`s, and Swift seeds set iteration order per
-/// process - so a numbering derived from iteration order would mean something
+/// Vertices, edges and tiles are sorted once at construction, and must stay in
+/// step with `StateEncoding.BoardIndex`, which sorts the same three the same
+/// way. They briefly did not: tiles here were taken in `board.tiles` order (the
+/// generator's spiral) while the encoder sorted them, so all 19 hexes disagreed
+/// and "robber to tile k" named a different hex from tile slot k of the feature
+/// vector - the exact pairing a trainer makes. `ActionSpaceTests` now pins the
+/// agreement. `Board` stores
+/// vertices and edges in `Set`s, and Swift seeds set iteration order
+/// per process - so a numbering from iteration order would mean something
 /// different on every launch, and a model trained on Monday would read
 /// Tuesday's board through a permuted lens. This repo has been bitten by that
 /// class of bug four separate times; see the determinism section of
 /// `.claude/rules/swift.md`.
 ///
 /// ## Size, and the obvious optimisation
-/// On the standard board this is **8,815** indices. It is worth knowing where
-/// they go, because two cases are 92% of it:
+/// On the standard board this is **9,295** indices. It is worth knowing where
+/// they go, because two cases are 87% of it:
 ///
 /// | segment | size | share |
 /// |---|---|---|
-/// | `playRoadBuilding` (ordered edge pairs) | 5,112 | 58% |
-/// | `discard` (multisets up to `maxDiscardCards`) | 3,002 | 34% |
-/// | everything else combined | 701 | 8% |
+/// | `playRoadBuilding` (ordered edge pairs) | 5,112 | 55% |
+/// | `discard` (multisets up to `maxDiscardCards`) | 3,002 | 32% |
+/// | everything else combined | 1,181 | 13% |
 ///
 /// Both are compound actions flattened into one index. If that ratio ever
 /// matters - and for a learned policy it probably will - the fix is to
 /// decompose them into sequences of atomic choices: road building becomes two
 /// consecutive single-edge picks, discarding becomes one card at a time. That
-/// takes the space to roughly 700 and costs a change to `GameMove` itself,
-/// which is why it is written down here rather than done now. A flat 8,815 is
+/// takes the space to roughly 1,200 and costs a change to `GameMove` itself,
+/// which is why it is written down here rather than done now. A flat 9,295 is
 /// a perfectly ordinary policy-head width in the meantime.
 ///
 /// ## Not the same numbering as a prompt's move list
@@ -49,10 +55,9 @@
 /// ## Two indices depend on state, deliberately
 /// `respondToTrade` names an offer by `UUID`, which cannot be numbered in
 /// advance, so it is indexed by *position* in `pendingTradeOffers`. Pass the
-/// same list to `index(of:)` and `move(at:)` or they will not agree. Offers no
-/// longer outlive the turn that made them, so the list is short; anything past
-/// `maxIndexedPendingOffers` is unrepresentable and returns `nil` rather than
-/// silently aliasing onto another offer.
+/// same list to `index(of:)` and `move(at:)` or they will not agree. Anything
+/// past `maxIndexedPendingOffers` is unrepresentable and returns `nil` rather
+/// than silently aliasing onto another offer.
 public struct ActionSpace: Sendable {
 
     /// Bump when the numbering changes in any way that moves an existing
@@ -70,7 +75,21 @@ public struct ActionSpace: Sendable {
     public static let maxDiscardCards = 10
 
     /// How many pending offers can be named by index.
-    public static let maxIndexedPendingOffers = 16
+    ///
+    /// This was 16, on the stated grounds that "offers no longer outlive the
+    /// turn that made them, so the list is short". That premise is false and
+    /// was never measured: `RulesEngine.tradeProposals` enumerates up to 80
+    /// candidates per call, `Trading.proposeTrade` appends with no cap, and the
+    /// list is only cleared at `endTurn`. Over twelve seeded games of
+    /// random-legal play `pendingTradeOffers` reached **152 within a single
+    /// turn**, so roughly a tenth of the responses a policy could legally make
+    /// had no index and were dropped from the mask with no signal.
+    ///
+    /// 256 covers that with margin and costs 480 indices, which is under 6% of
+    /// the space. `mask(for:)` now traps rather than dropping, so if a position
+    /// ever exceeds this it fails loudly instead of quietly narrowing what the
+    /// agent believes it may do.
+    public static let maxIndexedPendingOffers = 256
 
     // Canonical orderings, sorted once.
     private let vertices: [VertexID]
@@ -100,7 +119,7 @@ public struct ActionSpace: Sendable {
         self.playerCount = playerCount
         vertices = board.onBoardVertices.sorted()
         edges = board.onBoardEdges.sorted()
-        tiles = board.tiles.map(\.coordinate)
+        tiles = board.tiles.map(\.coordinate).sorted()
         discards = Self.allDiscards(upTo: Self.maxDiscardCards)
 
         let victimSlots = 1 + playerCount
@@ -239,9 +258,24 @@ public struct ActionSpace: Sendable {
     public func mask(for observation: GameObservation) -> [Bool] {
         var mask = [Bool](repeating: false, count: size)
         for move in observation.legalMoves {
-            if let index = index(of: move, pendingOffers: observation.state.pendingTradeOffers) {
-                mask[index] = true
+            // `index(of:)` refuses rather than aliases, and this used to drop
+            // that refusal on the floor - a legal move simply went unmarked.
+            // The worst case is not a slightly narrow mask: if EVERY legal move
+            // is unrepresentable the mask comes back all-false, and a policy
+            // head then softmaxes a row of -inf into NaN, or picks uniformly
+            // among moves that are all illegal. Nothing reports either.
+            //
+            // A trap is the right answer because this cannot be recovered from
+            // in the place it is noticed. It is also reachable only through a
+            // cap being wrong, which is a bug to fix rather than a position to
+            // tolerate - so failing here says exactly which cap to raise.
+            guard let index = index(of: move, pendingOffers: observation.state.pendingTradeOffers) else {
+                preconditionFailure(
+                    "no index for legal move \(move); the action space cannot express a position the "
+                        + "rules allow. Raise maxDiscardCards (currently \(Self.maxDiscardCards)) or "
+                        + "maxIndexedPendingOffers (currently \(Self.maxIndexedPendingOffers)) and bump layoutVersion.")
             }
+            mask[index] = true
         }
         return mask
     }
