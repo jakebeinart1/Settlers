@@ -58,6 +58,30 @@ import Foundation
     #expect(settings == PacingSettings.default)
 }
 
+@Test func anOutOfRangeValueIsRejected() {
+    // The subtler half of the same failure an unknown key causes. A number
+    // that parses but does nothing useful still leaves you convinced the
+    // setting is broken - and `secondsPerBotAction: 0` does not merely do
+    // nothing, it restores the exact symptom this file exists to cure by
+    // letting the bot loop spin as fast as the CPU allows.
+    for line in ["secondsPerBotAction: 0",
+                 "secondsPerBotAction: -1",
+                 "secondsPerBotAction: 999",
+                 "rollHighlightSeconds: -1",
+                 "incomingOfferTimeoutSeconds: -5"] {
+        #expect(throws: PacingSettingsStore.LoadError.self, "\(line) should be rejected") {
+            try PacingSettingsStore.parse(line)
+        }
+    }
+}
+
+@Test func zeroIsAcceptedOnlyWhereItMeansSomething() throws {
+    // Zero is the documented "never" for the offer timeout, so it must parse
+    // there even though it is rejected everywhere else.
+    let settings = try PacingSettingsStore.parse("incomingOfferTimeoutSeconds: 0")
+    #expect(settings.incomingOfferTimeoutSeconds == 0)
+}
+
 @Test func theShippedFileParsesAndIsSane() throws {
     // The bundled file is what actually runs. `PacingSettingsStore.current`
     // traps on a bad one, so this is the test that stops a bad edit reaching a

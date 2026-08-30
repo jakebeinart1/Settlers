@@ -39,7 +39,7 @@ private let boards: [(String, Board)] = [
 @Test func everythingDrawnStaysInsideTheFrame() {
     for (boardName, board) in boards {
         for rect in candidateRects {
-            let geometry = BoardView.fittedGeometry(for: board, in: rect, padding: 4)
+            let geometry = BoardView.fittedGeometry(for: board, in: rect, padding: BoardView.boardPadding)
             let center = BoardView.boardCenter(for: board, geometry: geometry)
 
             // Port badges - the outermost thing on the board, and what every
@@ -75,7 +75,7 @@ private let boards: [(String, Board)] = [
     // against exactly this, so it needs a test rather than a comment.
     for (boardName, board) in boards {
         let rect = CGRect(x: 0, y: 0, width: 402, height: 300)
-        let geometry = BoardView.fittedGeometry(for: board, in: rect, padding: 4)
+        let geometry = BoardView.fittedGeometry(for: board, in: rect, padding: BoardView.boardPadding)
         let center = BoardView.boardCenter(for: board, geometry: geometry)
         let badge = geometry.size * TileDrawing.portFrameRadiusFactor
         let ring = TileDrawing.vertexRingRadius
@@ -104,7 +104,7 @@ private let boards: [(String, Board)] = [
     // reasonably close to the frame on the binding axis.
     let rect = CGRect(x: 0, y: 0, width: 402, height: 300)
     let board = BoardGenerator.standard()
-    let geometry = BoardView.fittedGeometry(for: board, in: rect, padding: 4)
+    let geometry = BoardView.fittedGeometry(for: board, in: rect, padding: BoardView.boardPadding)
     let center = BoardView.boardCenter(for: board, geometry: geometry)
     let badge = geometry.size * TileDrawing.portFrameRadiusFactor
 

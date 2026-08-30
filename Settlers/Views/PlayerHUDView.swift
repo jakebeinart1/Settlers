@@ -239,12 +239,15 @@ public struct HumanPlayerPanel: View {
                                     // this read as "only Knight can be
                                     // played at the wrong time" rather than
                                     // "none of them actually can".
+                                    // A knight may also be played before the
+                                    // roll, which is the one thing that stops
+                                    // this being a plain `isMainTurn(of:)`.
                                     let isMyTurnToPlay: Bool = {
-                                        switch state.phase {
-                                        case .mainTurn(let idx): return idx == human.index
-                                        case .rollDice(let idx): return row.type == .knight && idx == human.index
-                                        default: return false
+                                        if state.phase.isMainTurn(of: human.index) { return true }
+                                        if case .rollDice(let idx) = state.phase {
+                                            return row.type == .knight && idx == human.index
                                         }
+                                        return false
                                     }()
                                     let isPlayable = row.type != .victoryPoint
                                         && isMyTurnToPlay
@@ -537,15 +540,12 @@ enum PlayerChip {
     }
 
     static func isActivePlayer(_ id: PlayerID, in state: GameState) -> Bool {
-        switch state.phase {
-        case .setupForward(let index), .setupBackward(let index),
-             .rollDice(let index), .mainTurn(let index), .movingRobber(let index):
-            return PlayerID(index: index) == id
-        case .discarding(let pending):
-            return pending.contains(id)
-        case .gameOver:
-            return false
-        }
+        // See `GamePhase.awaitingSeatIndex` - this was a byte-for-byte copy of
+        // the switch it replaces.
+        if let seat = state.phase.awaitingSeatIndex { return PlayerID(index: seat) == id }
+        // The only phase where more than one seat is active at once.
+        if case .discarding(let pending) = state.phase { return pending.contains(id) }
+        return false
     }
 
 }

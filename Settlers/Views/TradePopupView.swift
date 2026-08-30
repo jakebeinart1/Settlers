@@ -63,10 +63,30 @@ public struct TradePopupView: View {
         PopupCard(onDismiss: onDismiss, alignment: .top) {
             VStack(spacing: 14) {
                 header
-                modePicker
-                tradeBuilder
-                actionButton
-                statusRegion
+                // While a bot's answer is on screen the builder is hidden
+                // rather than pushed below it. Two reasons, one of them a bug:
+                //
+                // The bug: this popup does NOT scroll. `PopupCard` says so
+                // explicitly - an earlier version scrolled and that was
+                // reverted because the overflow was the actual defect, not
+                // something to scroll around. A previous revision here removed
+                // the fixed 260pt status reservation on the stated grounds
+                // that "PopupCard scrolls when tall", which was never true, and
+                // with three bots accepting, "Close" went off the bottom edge
+                // with no way to reach it.
+                //
+                // The reason it is also better: a player looking at three bots'
+                // answers is deciding on an offer, not composing one. The
+                // builder is noise at that moment, and reserving 260pt of blank
+                // space for a banner that is absent most of the time was most
+                // of why this card read as empty.
+                if isShowingBotResponse {
+                    statusRegion
+                } else {
+                    modePicker
+                    tradeBuilder
+                    actionButton
+                }
 
                 if let errorMessage {
                     Text(errorMessage)
@@ -333,13 +353,16 @@ public struct TradePopupView: View {
                 ResourceChip(resource: resource, count: staged > 0 ? staged : nil,
                              isEnabled: unspent > 0 || staged > 0,
                              isSelected: staged > 0) {
-                    // Tapping one already asked for cycles it back off, which
-                    // is the only way to take it back now that the row is
-                    // gated - there is no separate remove affordance.
-                    if unspent > 0 {
-                        want[resource] = staged + 1
+                    // A card already asked for always REMOVES one on tap, and
+                    // an unasked one adds. Previously a tap added while any
+                    // bundle was unspent and only removed once none were, so
+                    // undoing a mis-tap gave you a second of the thing you did
+                    // not want - and the only escape was Clear, which also
+                    // threw away the cards you had staged to pay with.
+                    if staged > 0 {
+                        want[resource] = staged == 1 ? nil : staged - 1
                     } else {
-                        want[resource] = nil
+                        want[resource] = 1
                     }
                 }
             }
@@ -393,15 +416,16 @@ public struct TradePopupView: View {
 
     // MARK: - Status region
 
-    /// Shows a bot's answer, or nothing.
+    /// Shows a bot's answer.
     ///
-    /// This used to reserve 260pt unconditionally so the card never resized
-    /// when a bot replied. That is a quarter of the popup's height held empty
-    /// for something that is absent most of the time, and it is most of why
-    /// the panel read as mostly blank. `PopupCard` scrolls when tall (see its
-    /// doc comment), which is what actually prevents the overflow the
-    /// reservation was originally guarding - so the space is now taken only
-    /// when there is something in it.
+    /// Only ever rendered in place of the builder (see `body`), never below
+    /// it - this popup cannot scroll, so anything that does not fit is simply
+    /// unreachable.
+    /// Whether a bot's answer is occupying the card.
+    private var isShowingBotResponse: Bool {
+        viewModel.pendingTradeConfirmation != nil || proposalOutcome != nil
+    }
+
     @ViewBuilder
     private var statusRegion: some View {
         if let pendingConfirmation = viewModel.pendingTradeConfirmation {
@@ -550,15 +574,15 @@ public struct TradePopupView: View {
             // opposite of what has gone wrong.
             return "The bank has no \(resource.rawValue) left. Ask for something else."
         case .insufficientResources:
-            // Reachable whenever the staged pile outruns the hand - see
-            // `handTray`. Without its own case this fell through to the rate
-            // explanation below, which tells the player to fix a ratio that is
-            // already correct.
             return "You do not hold that many cards to give."
-        default:
-            let bundles = give.reduce(0) { $0 + $1.value / max(rate(for: $1.key), 1) }
+        case .illegalPlacement:
+            // What `Trading` returns when the piles do not balance.
             let asked = want.values.reduce(0, +)
-            return "That buys \(bundles) card\(bundles == 1 ? "" : "s"), but you asked for \(asked)."
+            return "That buys \(bundlesStaged) card\(bundlesStaged == 1 ? "" : "s"), but you asked for \(asked)."
+        case .some(let problem):
+            // Anything else is not about rates, and saying it is would be the
+            // same misreport `.bankCannotSupply` was split out to fix.
+            return problem.localizedDescription
         }
     }
 

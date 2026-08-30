@@ -34,10 +34,18 @@ struct ResourceChip: View {
     var size: CGFloat = ResourceChip.defaultSize
     let action: () -> Void
 
-    /// Big enough that the painted art is readable rather than a smudge. The
-    /// old flat squares were 36pt, which is fine for a solid colour and far
-    /// too small for a sheaf of wheat.
-    static let defaultSize: CGFloat = 52
+    /// Big enough that the painted art is readable rather than a smudge - the
+    /// old flat squares were 36pt, fine for a solid colour and far too small
+    /// for a sheaf of wheat - and small enough that five fit across the
+    /// narrowest phone this ships to.
+    ///
+    /// That upper bound is real, not theoretical. `TradePopupView`'s content
+    /// is `.padding(16)` inside `PopupCard`'s `.padding(.horizontal, 32)`, so
+    /// on a 375pt-wide device (iPhone SE, 13 mini) a five-chip row gets
+    /// 375 - 64 - 32 = 279pt. With 8pt gaps that allows `(279 - 32) / 5` =
+    /// 49.4pt. The chip frame is rigid, so anything larger overflows the card
+    /// silently - it looked fine only because the simulator in use was 402pt.
+    static let defaultSize: CGFloat = 46
 
     var body: some View {
         Button(action: action) {
@@ -127,7 +135,10 @@ struct ResourceSlotRow: View {
         HStack(spacing: 8) {
             ForEach(Resource.allCases, id: \.self) { resource in
                 let staged = counts[resource] ?? 0
-                ResourceChip(resource: resource, count: staged,
+                // No badge at all when nothing is staged, matching the bank
+                // rows. Stamping "0" on five cards directly above the hand row
+                // made the staged rows read as a claim about the hand.
+                ResourceChip(resource: resource, count: staged > 0 ? staged : nil,
                              isEnabled: staged > 0, isSelected: staged > 0) {
                     onTap(resource)
                 }

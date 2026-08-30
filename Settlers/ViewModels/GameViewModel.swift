@@ -734,19 +734,23 @@ public final class GameViewModel {
     /// iteration so it naturally advances to the next pending bot (or to
     /// `nil` once only the human remains).
     private func nextBotPlayer() -> PlayerID? {
-        switch state.phase {
-        case .setupForward(let playerIndex),
-             .setupBackward(let playerIndex),
-             .rollDice(let playerIndex),
-             .mainTurn(let playerIndex),
-             .movingRobber(let playerIndex):
-            let player = PlayerID(index: playerIndex)
+        // Asked through `GamePhase.awaitingSeatIndex` rather than unpacking the
+        // five seat-carrying cases again - this was one of the copies that
+        // accessor was added to retire.
+        if let seat = state.phase.awaitingSeatIndex {
+            let player = PlayerID(index: seat)
             return player == humanPlayer ? nil : player
-        case .discarding(let pending):
-            return pending.first { $0 != humanPlayer }
-        case .gameOver:
-            return nil
         }
+        // The two cases `awaitingSeatIndex` returns nil for. `.discarding` is
+        // genuinely multi-seat, so pick any bot still owing one; re-derived
+        // each loop iteration, so it advances naturally to the next.
+        if case .discarding(let pending) = state.phase {
+            // Sorted: `pending` is a `Set`, and Swift seeds hash order per
+            // process, so `.first` on it would pick a different bot between
+            // launches.
+            return pending.sorted().first { $0 != humanPlayer }
+        }
+        return nil
     }
 
     /// Ranked by seat order *among the 3 bot seats* (not raw seat index) -

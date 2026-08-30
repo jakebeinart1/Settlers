@@ -75,7 +75,8 @@ public struct BoardView: View {
             // redundant: the fit measures the badges and reserves the vertex
             // rings itself, so leaving 16 here reserved the same space a second
             // time and visibly shrank the board.
-            let geometry = Self.fittedGeometry(for: board, in: CGRect(origin: .zero, size: proxy.size), padding: 4)
+            let geometry = Self.fittedGeometry(for: board, in: CGRect(origin: .zero, size: proxy.size),
+                                               padding: Self.boardPadding)
             let boardCenter = Self.boardCenter(for: board, geometry: geometry)
             let ownership = Ownership(players: state.players)
 
@@ -370,6 +371,14 @@ public struct BoardView: View {
     /// - **Vertex placement rings**, which are a *fixed point size* rather than
     ///   a multiple of the hex, so they cannot go into the scale calculation -
     ///   they come off the available space instead.
+    /// Cosmetic margin left around the board, in points.
+    ///
+    /// A `static` so `BoardFitTests` can assert against the value that actually
+    /// ships. When the test hardcoded its own 4, it proved a property of a
+    /// number it supplied itself: changing the shipped value to 0 left every
+    /// assertion passing while the real board clipped.
+    static let boardPadding: CGFloat = 4
+
     static func fittedGeometry(for board: Board, in rect: CGRect, padding: CGFloat) -> HexGeometry {
         let probe = HexGeometry(origin: .zero, size: 1)
         var minX = CGFloat.greatestFiniteMagnitude

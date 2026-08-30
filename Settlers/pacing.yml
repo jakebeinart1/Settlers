@@ -4,8 +4,10 @@
 # do it. The game loop itself has no notion of time; every pause below is
 # added deliberately on top of it, so changing these cannot change who wins.
 #
-# Parsing is strict on purpose: an unknown key, a non-numeric value or a line
-# that is not `key: value` stops the app at launch rather than being ignored.
+# Parsing is strict on purpose. An unknown key, a non-numeric value, a value
+# outside its allowed range, or a line that is not `key: value` stops the app
+# at launch rather than being ignored - the file is read during startup
+# specifically so a bad edit fails immediately rather than mid-game.
 # A setting you edited that quietly did nothing is worse than a loud failure.
 
 # Minimum wall-clock time one bot action takes.

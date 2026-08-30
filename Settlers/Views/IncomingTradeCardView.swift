@@ -3,18 +3,23 @@ import CatanEngine
 import CatanAI
 
 /// Small card that slides in above `HumanPlayerPanel` when a bot proposes a
-/// trade to the human - replaces the old "wants to trade" toast (which just
-/// jumped to the trade sheet) with a self-contained Accept/Reject card and a
-/// 6-second countdown ring. Every offer that reaches this card is already
-/// one the human can actually fulfill (see `GameView
-/// .handleTradeOffersChange`'s `humanCanAfford` filter), and
-/// `GameViewModel.waitForFairAcceptWindow` holds any other bot back from
-/// accepting the same offer for a randomized 2-4s, so 6s leaves real
-/// decide-and-tap time even in the worst case. The countdown only runs
-/// while the card is untouched; tapping anywhere on the card (to read it)
-/// pauses the timer so reviewing an offer never causes it to auto-decline
-/// out from under you. Timing out untouched counts as a Reject
-/// (`respondToTrade(accept: false)`).
+/// trade to the human - a self-contained Accept/Reject card, replacing the old
+/// "wants to trade" toast that just jumped to the trade sheet.
+///
+/// Every offer reaching this card is one the human can actually fulfil (see
+/// `GameView.handleTradeOffersChange`'s affordability filter), and
+/// `GameViewModel.waitForFairAcceptWindow` holds other bots back from
+/// snapping up the same offer for a randomized 2-4s.
+///
+/// ## It no longer answers for you
+/// This used to run a hardcoded six-second countdown and auto-Reject on
+/// expiry, with a ring showing the time left. Six seconds is not a decision
+/// window - a bot proposes, you read who it is and what it wants, and it
+/// declines while you are still reading - and a trade you did not answer is
+/// not a trade you declined. The timeout is now
+/// `PacingSettings.incomingOfferTimeoutSeconds`, shipping as 0, meaning wait
+/// indefinitely. Tapping the card still pauses any countdown that has been
+/// deliberately turned back on.
 public struct IncomingTradeCardView: View {
     public let offer: TradeOffer
     public let onAccept: () -> Void
