@@ -373,6 +373,25 @@ public enum StateEncoding {
         (0..<seatCount).map { PlayerID(index: (seat.index + $0) % seatCount) }
     }
 
+    /// The seats that actually exist in `state`, rotated so `seat` is first.
+    ///
+    /// A three-player game has no seat 3, and the fixed-width rotation above
+    /// would name one - which `player(_:in:)` traps on. This returns only real
+    /// seats; the fixed-width blocks are padded to `seatCount` with zeros by
+    /// their callers.
+    ///
+    /// Padding rather than shrinking is deliberate. `featureCount` must mean
+    /// the same thing in every position forever or a trained model reads the
+    /// wrong number out of every slot after the first, silently - which is the
+    /// whole argument for `layoutVersion`. An absent seat reading as all-zero
+    /// is also exactly how a concealed seat already reads under
+    /// `.publicCountsOnly`, so no new meaning is introduced.
+    public static func seatOrder(from seat: PlayerID, in state: GameState) -> [PlayerID] {
+        let present = state.players.count
+        guard present > 0 else { return [] }
+        return (0..<present).map { PlayerID(index: (seat.index + $0) % present) }
+    }
+
     /// The one-hot slot for a phase. Fixed order; changing it is a
     /// `layoutVersion` bump.
     public static func phaseSlot(_ phase: GamePhase) -> Int {
@@ -477,9 +496,14 @@ public extension StateEncoding {
         values.reserveCapacity(featureCount)
 
         appendGlobal(observation, index: index, into: &values)
-        for seat in seatOrder(from: observation.seat) {
+        let order = seatOrder(from: observation.seat, in: observation.state)
+        for seat in order {
             appendSeat(seat, observation, policy: policy, into: &values)
         }
+        // Empty chairs. A three-player game leaves the fourth seat's block
+        // zeroed rather than shortening the vector - see `seatOrder(from:in:)`.
+        values.append(contentsOf:
+            repeatElement(0, count: (seatCount - order.count) * perPlayerFeatureCount))
         appendTiles(index, into: &values)
         appendBoardOwnership(observation, index: index, into: &values)
 
@@ -616,7 +640,8 @@ public extension StateEncoding {
     private static func appendBoardOwnership(_ observation: GameObservation,
                                              index: BoardIndex,
                                              into values: inout [Float]) {
-        let seated = seatOrder(from: observation.seat).map { player($0, in: observation.state) }
+        let seated = seatOrder(from: observation.seat, in: observation.state)
+            .map { player($0, in: observation.state) }
         for vertex in index.vertices {
             for owner in seated {
                 values.append(owner.settlements.contains(vertex) ? 1 : 0)
@@ -707,7 +732,7 @@ public extension StateEncoding {
             portLine(state.board, index: index),
             bankLine(state),
         ]
-        lines.append(contentsOf: seatOrder(from: observation.seat).map {
+        lines.append(contentsOf: seatOrder(from: observation.seat, in: observation.state).map {
             seatLine($0, observation, index: index, policy: policy)
         })
         lines.append(contentsOf: offerLines(state))

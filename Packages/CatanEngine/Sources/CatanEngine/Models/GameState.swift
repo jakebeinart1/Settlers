@@ -3,12 +3,30 @@ public struct GameState: Codable, Sendable {
     /// to the stored shape needs `init(from:)` below to do something other
     /// than fall back to a default, and branch on it there. Saves written
     /// before versioning existed decode as `0`.
-    public static let currentSchemaVersion = 1
+    /// Bumped to 2 when `victoryPointTarget` was added.
+    ///
+    /// The field decodes with `decodeIfPresent ?? WinCondition.standardTarget`,
+    /// so a v1 save still loads and plays to ten - which is what it was
+    /// started at. The version is here so a future reader can tell the
+    /// difference between "this game chose ten" and "this game predates the
+    /// choice", not because the decoder needs it.
+    public static let currentSchemaVersion = 2
 
     /// The schema version this value was decoded from (or
     /// `currentSchemaVersion` for a freshly created game). Persisted so a
     /// future decoder can tell what it is looking at instead of guessing.
     public var schemaVersion: Int
+
+    /// Victory points needed to win THIS game.
+    ///
+    /// Lives beside the position rather than in a preference store because it
+    /// is a rule the engine owns: `WinCondition` reads it, and a resumed or
+    /// replayed game has to end where the original did. A global would make
+    /// `checkForWinner` depend on process state rather than on the position -
+    /// the same class of defect as the four `Set`-ordering bugs - and a
+    /// twelve-point game resumed after a relaunch would silently revert to
+    /// ten.
+    public var victoryPointTarget: Int
 
     /// Seeded generator for every random outcome the rules produce - dice
     /// rolls and robber steals. Stored here rather than passed in so that a
@@ -68,10 +86,12 @@ public struct GameState: Codable, Sendable {
         devCardPlayedThisTurn: PlayerID? = nil,
         tradesAcceptedThisTurn: [PlayerID: Int] = [:],
         rng: RandomSource = RandomSource(seed: UInt64.random(in: .min ... .max)),
-        schemaVersion: Int = GameState.currentSchemaVersion
+        schemaVersion: Int = GameState.currentSchemaVersion,
+        victoryPointTarget: Int = WinCondition.standardTarget
     ) {
         self.rng = rng
         self.schemaVersion = schemaVersion
+        self.victoryPointTarget = victoryPointTarget
         self.board = board
         self.players = players
         self.phase = phase
@@ -116,6 +136,11 @@ public struct GameState: Codable, Sendable {
         phase = try container.decode(GamePhase.self, forKey: .phase)
 
         schemaVersion = try container.decodeIfPresent(Int.self, forKey: .schemaVersion) ?? 0
+        // Absent in every v1 save. Those games were started under the fixed
+        // ten-point rule, so ten is not merely a safe default - it is the
+        // value they actually played to.
+        victoryPointTarget = try container.decodeIfPresent(Int.self, forKey: .victoryPointTarget)
+            ?? WinCondition.standardTarget
         // A pre-v1 save carries no generator. Seeding a fresh one keeps the
         // resumed game playable; it cannot make that game replayable, because
         // the moves already applied were rolled off the old global RNG.
@@ -183,17 +208,32 @@ public enum GameSetup {
     /// policies, yield an identical move sequence - which is what makes
     /// headless self-play, A/B comparison of bot changes, and bisecting a
     /// failing simulation possible at all.
-    public static func newGame(board: Board, seed: UInt64) -> GameState {
+    public static func newGame(board: Board, seed: UInt64,
+                               playerCount: Int = GameSetup.standardPlayerCount,
+                               victoryPointTarget: Int = WinCondition.standardTarget) -> GameState {
         var rng = RandomSource(seed: seed)
-        return newGame(board: board, rng: &rng)
+        return newGame(board: board, rng: &rng,
+                       playerCount: playerCount, victoryPointTarget: victoryPointTarget)
     }
+
+    /// Seats a standard game. Three and four are the sizes this board's
+    /// resource and development-card counts are balanced for; the bank and
+    /// the deck are unchanged between them, exactly as in the physical game.
+    public static let standardPlayerCount = 4
+    public static let supportedPlayerCounts = 3...4
 
     /// Same as `newGame(board:)` but with an injectable RNG, so the dev card
     /// shuffle can be made deterministic (e.g. for tests). The in-game
     /// generator is seeded *from* `rng`, so a deterministic caller gets a
     /// deterministic game and not merely a deterministic opening deck.
-    public static func newGame(board: Board, rng: inout some RandomNumberGenerator) -> GameState {
-        let players = (0..<4).map { Player(id: PlayerID(index: $0)) }
+    public static func newGame(board: Board, rng: inout some RandomNumberGenerator,
+                               playerCount: Int = GameSetup.standardPlayerCount,
+                               victoryPointTarget: Int = WinCondition.standardTarget) -> GameState {
+        precondition(supportedPlayerCounts.contains(playerCount),
+                     "playerCount \(playerCount) is outside \(supportedPlayerCounts)")
+        precondition(WinCondition.supportedTargets.contains(victoryPointTarget),
+                     "victoryPointTarget \(victoryPointTarget) is outside \(WinCondition.supportedTargets)")
+        let players = (0..<playerCount).map { Player(id: PlayerID(index: $0)) }
 
         var bank: [Resource: Int] = [:]
         for resource in Resource.allCases {
@@ -214,7 +254,8 @@ public enum GameSetup {
             phase: .setupForward(playerIndex: 0),
             bank: bank,
             devCardDeck: devCardDeck,
-            rng: RandomSource(seed: rng.next())
+            rng: RandomSource(seed: rng.next()),
+            victoryPointTarget: victoryPointTarget
         )
     }
 }

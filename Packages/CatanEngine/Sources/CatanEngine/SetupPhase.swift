@@ -115,10 +115,14 @@ enum SetupPhase {
     private static func advancePhase(state: inout GameState, justCompletedIndex: Int) {
         switch state.phase {
         case .setupForward:
-            if justCompletedIndex < 3 {
+            // The last chair is the last SEAT, not seat 3. This was hardcoded,
+            // so a three-player game handed setup to a fourth player who does
+            // not exist and crashed on the next `state.players[playerIndex]`.
+            let lastSeat = state.players.count - 1
+            if justCompletedIndex < lastSeat {
                 state.phase = .setupForward(playerIndex: justCompletedIndex + 1)
             } else {
-                state.phase = .setupBackward(playerIndex: 3)
+                state.phase = .setupBackward(playerIndex: lastSeat)
             }
         case .setupBackward:
             if justCompletedIndex > 0 {
