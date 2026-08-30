@@ -604,9 +604,16 @@ public final class GameViewModel {
     /// Builds the session for a game: a policy per bot seat, none for the
     /// human's, so `step()` stops and hands control back when it is their turn.
     ///
-    /// The policy RNG is seeded from the position's own generator, so a
-    /// resumed save continues the same sequence of bot tie-breaks it would
-    /// have had rather than restarting it.
+    /// The policy RNG is seeded by drawing once from the position's own
+    /// generator, so two sessions built from the same position get the same
+    /// bot tie-breaks.
+    ///
+    /// It does **not** survive a save. `policyRNG` lives in `GameSession`, not
+    /// in `GameState`, so nothing persists it: a resumed game restarts the
+    /// tie-break sequence from draw zero rather than continuing where it left
+    /// off. That is invisible in play - the bots are equally good either way -
+    /// but it means a saved game is not replayable move-for-move, and the fix
+    /// is to move the policy seed into `GameState` alongside `rng`.
     private static func makeSession(state: GameState, humanSeat: PlayerID) -> GameSession {
         var policies: [PlayerID: any Policy] = [:]
         for player in state.players where player.id != humanSeat {
@@ -647,8 +654,27 @@ public final class GameViewModel {
             await waitForFairAcceptWindow(before: move)
             guard generation == gameGeneration else { return }
             beginEventBatch()
-            guard let step = try? session.commit(seat: seat, move: move) else { break }
-            recordAppliedMove(step)
+            // Captured before the move lands: `recordAppliedMove` opens the
+            // game log on the first move, and the `start` line has to describe
+            // the position the move list is relative to. `applyLogged` has
+            // always done this; this path did not, so any game whose first move
+            // was a bot's - three in four, with Randomize Seat on - wrote a log
+            // that no longer replayed.
+            let stateBeforeMove = state
+            let step: GameSession.Step
+            do {
+                step = try session.commit(seat: seat, move: move)
+            } catch {
+                // A policy chose a move the rules reject: the two disagree,
+                // which is a bug rather than a position to recover from. It was
+                // previously a bare `try?`, so the loop simply stopped and the
+                // game sat frozen on a bot's turn with nothing said. Note also
+                // that `decideNext()` has already advanced `policyRNG`, so a
+                // replay of this seed diverges from here regardless.
+                assertionFailure("bot \(seat.index) played an illegal \(move): \(error)")
+                break
+            }
+            recordAppliedMove(step, stateBeforeMove: stateBeforeMove)
             try? GameStore.shared.save(state)
         }
     }
@@ -658,9 +684,9 @@ public final class GameViewModel {
     /// `applyLogged` exists for moves decided out here; a bot's move is
     /// applied inside the session, so the logging, stats and trade-offer
     /// housekeeping it would have done has to happen on this side instead.
-    private func recordAppliedMove(_ step: GameSession.Step) {
+    private func recordAppliedMove(_ step: GameSession.Step, stateBeforeMove: GameState) {
         let gameLogID = currentGameLogID ?? {
-            let id = GameLogStore.shared.startNewGame(initialState: state, roster: seatRoster())
+            let id = GameLogStore.shared.startNewGame(initialState: stateBeforeMove, roster: seatRoster())
             currentGameLogID = id
             return id
         }()

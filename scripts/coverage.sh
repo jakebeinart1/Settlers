@@ -72,6 +72,24 @@ BINARY="$XCTEST_BUNDLE/Contents/MacOS/$(basename "$XCTEST_BUNDLE" .xctest)"
 # cwd is the package directory by this point.
 OWN_SOURCES="$PWD/Sources"
 
+# llvm-cov treats an unmatched source filter as a warning and reports over
+# EVERY linked file instead, exiting 0. The filter is a request, not a
+# guarantee, so the guarantee is asserted here: count the files it kept and
+# fail if the restriction silently did not apply.
+FILES_COUNTED="$(
+  xcrun llvm-cov export \
+    -instr-profile "$PROFDATA" \
+    -ignore-filename-regex='(Tests/|\.build/)' \
+    "$BINARY" \
+    "$OWN_SOURCES" \
+  | python3 -c 'import json,sys; print(len(json.load(sys.stdin)["data"][0]["files"]))'
+)"
+OWN_SWIFT_FILES="$(find "$OWN_SOURCES" -name '*.swift' | wc -l | tr -d ' ')"
+if [[ "$FILES_COUNTED" -gt "$OWN_SWIFT_FILES" ]]; then
+  echo "coverage: source filter did not apply - measured $FILES_COUNTED files but $PACKAGE_DIR/Sources holds $OWN_SWIFT_FILES" >&2
+  exit 1
+fi
+
 ACTUAL="$(
   xcrun llvm-cov export \
     -summary-only \

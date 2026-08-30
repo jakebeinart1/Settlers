@@ -118,7 +118,17 @@ public struct GameSession: Sendable {
             // Sorted so the choice does not depend on `Set` iteration order,
             // which Swift seeds per process.
             let ordered = pending.sorted()
-            guard let first = ordered.first else { return .awaitingExternalSeat(state.players[0].id) }
+            // An empty pending set means nobody owes a discard, so the phase
+            // should already have ended - both transitions into `.discarding`
+            // guard against it. This used to return `.awaitingExternalSeat` for
+            // seat 0, which is the engine guessing that seat 0 is the human:
+            // the fifth copy of an assumption that has produced a real bug
+            // every previous time (the log called a bot "You" in three games
+            // out of four). The engine has no way to know where the human
+            // sits, so it must not answer as though it did.
+            guard let first = ordered.first else {
+                preconditionFailure("reached .discarding with nobody pending; the phase should have ended")
+            }
             // Prefer a seat this session drives, so a human who owes a discard
             // does not block the bots who also owe one.
             seat = ordered.first(where: { policies[$0] != nil }) ?? first

@@ -147,8 +147,8 @@ private func sampledPositions() -> [GameState] {
     let state = position(boardSeed: 42, driverSeed: 11, moves: 150)
     let start = StateEncoding.globalFeatureCount
     let width = StateEncoding.perPlayerFeatureCount
-    // Public VP sits after the 14 holdings slots and the trades-this-turn slot.
-    let publicVPOffset = 15
+    // Public VP is the second standing slot, right after trades-this-turn.
+    let publicVPOffset = StateEncoding.holdingsFeatureCount + 1
 
     for index in 0..<StateEncoding.seatCount {
         let seat = PlayerID(index: index)
@@ -370,9 +370,12 @@ private func sampledPositions() -> [GameState] {
 
     let start = StateEncoding.globalFeatureCount
     let width = StateEncoding.perPlayerFeatureCount
-    // Slots 0-4 are the hand by kind and 6-10 the dev cards by type; slot 5 and
-    // slot 11 are the public counts that must survive.
-    let hiddenOffsets = Set(Array(0...4) + Array(6...10))
+    // The hand by kind, then the dev cards by type. The public hand size and
+    // dev card count sit between and after them and must survive.
+    let kinds = StateEncoding.resourceKindCount
+    let handOffsets: [Int] = Array(0..<kinds)
+    let devOffsets: [Int] = Array((kinds + 1)..<(kinds + 1 + StateEncoding.devCardKindCount))
+    let hiddenOffsets = Set(handOffsets + devOffsets)
 
     for slot in 0..<StateEncoding.seatCount {
         for offset in 0..<width {

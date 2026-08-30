@@ -35,7 +35,7 @@ import Foundation
 // identical - same canonicalization, same hash, same bot RNG derivation - to
 // `Packages/CatanAI/Tests/CatanAITests/SeededGameFingerprintTests.swift`, so
 // that suite's five pinned constants double as an external check on this
-// harness. `sim --seed 1 --games 1 --jsonl` must print `7cc7aee7b0c9c4d9`.
+// harness. `sim --seed 1 --games 1 --jsonl` must print `01a87510183024b1`.
 //
 // ## stdout is data, stderr is diagnostics
 // Timing and progress go to stderr so that two runs over the same seeds are

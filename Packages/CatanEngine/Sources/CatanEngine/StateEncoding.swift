@@ -89,6 +89,12 @@ public enum StateEncoding {
     public static let edgeCount = 72
     /// One slot per `GamePhase` case, in `phaseSlot(_:)` order.
     public static let phaseCount = 7
+    /// Width of every per-resource slot group. Read off the enum rather than
+    /// written as 5, so a sixth resource cannot leave a block width behind -
+    /// which would shift every slot after it while still compiling.
+    public static let resourceKindCount = Resource.allCases.count
+    /// Width of every per-dev-card slot group, for the same reason.
+    public static let devCardKindCount = DevCardType.allCases.count
 
     // MARK: - Normalisation maxima
     //
@@ -137,19 +143,42 @@ public enum StateEncoding {
 
     // MARK: - Layout block widths
 
+    /// Slots for the last dice roll: its normalised value, and a flag saying
+    /// whether there has been one at all. The flag is not redundant - without
+    /// it "not rolled yet" and "rolled a 2" both encode as 0, and a learner
+    /// cannot tell the start of a turn from a bad one.
+    public static let diceFeatureCount = 2
+
+    /// Global single-scalar slots: dev cards left in the deck, and pending
+    /// trade offers.
+    public static let globalScalarCount = 2
+
     /// Slots describing the position as a whole, before any per-seat block:
-    /// phase one-hot (7), last roll value + present flag (2), bank stock (5),
-    /// dev deck remaining (1), pending offer count (1), robber tile one-hot
-    /// over the canonical tile order (19).
-    public static let globalFeatureCount = phaseCount + 2 + 5 + 1 + 1 + tileCount
+    /// phase one-hot, last roll, bank stock, the two scalars above, and a
+    /// robber one-hot over the canonical tile order.
+    public static let globalFeatureCount =
+        phaseCount + diceFeatureCount + resourceKindCount + globalScalarCount + tileCount
 
-    /// Slots per seat. See `appendHoldings`/`appendStanding`/`appendPorts` for
-    /// the slot-by-slot breakdown; the sum is 14 + 11 + 6.
-    public static let perPlayerFeatureCount = 31
+    /// Holdings slots per seat: hand by resource (HIDDEN), hand size, unplayed
+    /// dev cards by type (HIDDEN), unplayed dev card count, dev cards bought
+    /// this turn, whether a dev card has been played this turn.
+    public static let holdingsFeatureCount = resourceKindCount + 1 + devCardKindCount + 1 + 1 + 1
 
-    /// Slots per board tile: resource one-hot (5), desert flag (1), pip
-    /// probability (1).
-    public static let perTileFeatureCount = 7
+    /// Standing slots per seat: trades accepted this turn, public VP,
+    /// settlements, cities, roads built, knights played, longest continuous
+    /// road, holds longest road, holds largest army, is the seat to move, owes
+    /// a discard.
+    public static let standingFeatureCount = 11
+
+    /// Port slots per seat: a generic 3:1 flag plus one 2:1 flag per resource.
+    public static let portFeatureCount = 1 + resourceKindCount
+
+    /// Slots per seat.
+    public static let perPlayerFeatureCount =
+        holdingsFeatureCount + standingFeatureCount + portFeatureCount
+
+    /// Slots per board tile: resource one-hot, desert flag, pip probability.
+    public static let perTileFeatureCount = resourceKindCount + 1 + 1
 
     /// Slots per board vertex: settlement + city flags for each seat, in
     /// egocentric seat order.

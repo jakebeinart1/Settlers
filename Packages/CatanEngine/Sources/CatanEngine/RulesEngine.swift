@@ -186,7 +186,16 @@ public enum RulesEngine {
         return moves
     }
 
-    /// The moves `seat` may legally make right now.
+    /// The moves `seat` may legally make right now - **when `seat` is the
+    /// player the phase is waiting on.**
+    ///
+    /// The qualifier is real. Only `.discarding` is genuinely per-seat; in
+    /// every other phase this returns the *acting* player's moves whoever
+    /// asks, so calling it for a seat that is not up hands back a list `apply`
+    /// will reject with `.notYourTurn`. `GameSession` only ever asks for the
+    /// acting seat, so nothing is wrong today - but the previous one-line
+    /// summary read as a promise that any seat could be queried, which would
+    /// be a natural thing for a future agent or evaluator to rely on.
     ///
     /// Prefer this over `legalMoves(for:)` anywhere a specific player is about
     /// to choose. The unscoped version returns a *union* in `.discarding` -
