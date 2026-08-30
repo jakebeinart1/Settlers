@@ -312,6 +312,39 @@ private func sampledPositions() -> [GameState] {
     #expect(text.contains("you"))
 }
 
+@Test func simultaneousOffersGetDistinctHandles() {
+    // Regression guard. The first spelling of the handle printed six hex
+    // characters of the offer's UUID, which looked fine on a position with one
+    // offer and collapsed on a real one: `TradeOffer.enumerated` walks an
+    // FNV-1a hash and keeps one byte per descriptor character, so offers from
+    // the same proposer share nearly the whole leading window, and eight of
+    // twenty-three offers rendered as the identical handle `0c62bf`. An
+    // ambiguous handle means `accept <handle>` names two different trades.
+    var state = position(boardSeed: 42, driverSeed: 11, moves: 150)
+    let proposer = PlayerID(index: 1)
+    state.pendingTradeOffers = Resource.allCases.flatMap { give in
+        Resource.allCases.filter { $0 != give }.map { want in
+            TradeOffer.enumerated(from: proposer, give: [give: 1], want: [want: 1])
+        }
+    }
+    #expect(state.pendingTradeOffers.count == 20)
+
+    let index = StateEncoding.BoardIndex(state.board)
+    let handles = state.pendingTradeOffers.map {
+        StateEncoding.label(for: .respondToTrade(offerID: $0.id, accept: true),
+                            index: index,
+                            pendingOffers: state.pendingTradeOffers)
+    }
+    #expect(Set(handles).count == handles.count, "two simultaneous offers share a handle")
+
+    // And each handle has to appear in the OFFERS block, or the reader has a
+    // name for something it was never shown.
+    let text = StateEncoding.promptDescription(observe(state, as: PlayerID(index: 0)))
+    for slot in state.pendingTradeOffers.indices {
+        #expect(text.contains("#\(slot) from=P\(proposer.index)"), "offer #\(slot) is missing from OFFERS")
+    }
+}
+
 @Test func concealingHandsRemovesOnlyOpponentCardKinds() {
     let state = position(boardSeed: 42, driverSeed: 11, moves: 150)
     let observation = observe(state, as: PlayerID(index: 0))
@@ -361,19 +394,131 @@ private func sampledPositions() -> [GameState] {
 /// The baseline is a `JSONEncoder` dump of the same `GameState`, which is what
 /// a naive implementation would put in a context window.
 @Test func promptDescriptionIsFarCheaperThanAJSONDump() throws {
-    let state = position(boardSeed: 42, driverSeed: 11, moves: 150)
-    let observation = observe(state, as: PlayerID(index: 0))
+    // Compared position by position - the same `GameState` rendered both ways -
+    // because the two grow for different reasons. The JSON grows with pieces on
+    // the board; the text grows with the length of the legal-move list, which
+    // peaks in a `.mainTurn` with a fat hand where enumerated trade proposals
+    // alone run past a hundred moves. Pitting one's worst case against the
+    // other's best would compare two different positions and prove nothing.
+    var worstRatio = Double.greatestFiniteMagnitude
+    var worstDetail = ""
 
-    let text = StateEncoding.promptDescription(observation)
-    let json = try JSONEncoder().encode(state)
+    for state in sampledPositions() + [richMainTurnPosition()] {
+        let json = try JSONEncoder().encode(state).count
+        for index in 0..<StateEncoding.seatCount {
+            let observation = observe(state, as: PlayerID(index: index))
+            let text = StateEncoding.promptDescription(observation).count
+            let ratio = Double(json) / Double(text)
+            guard ratio < worstRatio else { continue }
+            worstRatio = ratio
+            worstDetail = "\(text) chars (~\(text / charactersPerToken) tokens) for "
+                + "\(observation.legalMoves.count) moves, vs \(json) chars of JSON "
+                + "(~\(json / charactersPerToken) tokens)"
+        }
+    }
 
-    // ~4 characters per token is the usual rule of thumb for English-ish text
-    // with numbers; precise enough for a budget, not for billing.
-    let charactersPerToken = 4
-    print("promptDescription: \(text.count) chars (~\(text.count / charactersPerToken) tokens), "
-        + "\(observation.legalMoves.count) legal moves")
-    print("GameState JSON:    \(json.count) chars (~\(json.count / charactersPerToken) tokens)")
+    print("worst prompt/JSON ratio: \(String(format: "%.1f", worstRatio))x - \(worstDetail)")
+    #expect(worstRatio > 4, "the text rendering has lost its 4x advantage over a JSON dump")
+}
 
-    #expect(json.count > 20_000, "the JSON baseline moved; the comparison below needs rechecking")
-    #expect(text.count * 4 < json.count, "the text rendering has lost its cost advantage over a JSON dump")
+/// ~4 characters per token is the usual rule of thumb for English-ish text with
+/// numbers; precise enough for a context budget, not for billing.
+private let charactersPerToken = 4
+
+/// A `.mainTurn` position with hands fat enough that move enumeration produces
+/// its worst case - the size a per-turn context budget actually has to cover.
+/// Uniformly-random play almost never accumulates a hand this large, so the
+/// sampled positions alone would flatter the measurement.
+private func richMainTurnPosition() -> GameState {
+    var state = position(boardSeed: 42, driverSeed: 11, moves: 150)
+    if case .mainTurn = state.phase {} else { state.phase = .mainTurn(playerIndex: 0) }
+    for index in state.players.indices {
+        for resource in Resource.allCases { state.players[index].resources[resource] = 4 }
+    }
+    return state
+}
+
+// MARK: - Cross-process stability
+
+/// Pins the encoding of one hand-built position, the way
+/// `SeededGameFingerprintTests` pins a move sequence.
+///
+/// ## Why a pinned constant rather than a second encode
+/// Swift seeds `Set` and `Dictionary` iteration order **once per process**, so
+/// encoding the same value twice inside one test agrees with itself no matter
+/// how much hash order leaks into the result - that mistake was made in this
+/// repo before, on the RNG, and read as convincing evidence. A constant checked
+/// in from an earlier process is the only in-suite check that spans processes:
+/// every test run gets a fresh hash seed, so a `Set` walk reaching the vector
+/// fails this test rather than merely flaking.
+///
+/// The position is built by hand from `BoardGenerator.standard()` and the
+/// prompt is taken with an empty move list on purpose. Both keep the fingerprint
+/// a function of `StateEncoding` and the board alone - a fixture played out
+/// through `RulesEngine` would repin every time move enumeration changed, and a
+/// guard that gets repinned routinely guards nothing.
+///
+/// **If this fails after a deliberate layout change, bump `layoutVersion` and
+/// repin.** If it fails after a change that was not meant to touch the layout,
+/// something is reading a `Set`.
+@Test func aFixedPositionEncodesToAPinnedFingerprint() {
+    let state = handBuiltPosition()
+
+    var digest: UInt64 = 0xCBF2_9CE4_8422_2325
+    for index in 0..<StateEncoding.seatCount {
+        let observation = GameObservation(seat: PlayerID(index: index), state: state, legalMoves: [])
+        for value in StateEncoding.features(observation) {
+            digest = fnv1a(digest, value.bitPattern)
+        }
+        for byte in StateEncoding.promptDescription(observation).utf8 {
+            digest = fnv1a(digest, UInt32(byte))
+        }
+    }
+
+    #expect(digest == 0xAC5F_7823_A93F_19ED, "encoding changed; got \(String(digest, radix: 16))")
+}
+
+private func fnv1a(_ hash: UInt64, _ value: UInt32) -> UInt64 {
+    var result = hash
+    for shift in stride(from: 0, to: 32, by: 8) {
+        result = (result ^ UInt64(UInt8(truncatingIfNeeded: value >> UInt32(shift)))) &* 0x0000_0100_0000_01B3
+    }
+    return result
+}
+
+/// A position assembled directly rather than played into: fixed board, fixed
+/// holdings, every field the layout reads set to something non-default so the
+/// fingerprint above would notice a slot going missing.
+private func handBuiltPosition() -> GameState {
+    let board = BoardGenerator.standard()
+    let index = StateEncoding.BoardIndex(board)
+
+    var players: [Player] = []
+    for seat in 0..<StateEncoding.seatCount {
+        players.append(Player(
+            id: PlayerID(index: seat),
+            resources: [.brick: seat, .lumber: 2, .ore: 1, .grain: seat + 1, .wool: 3],
+            devCards: [.knight, .victoryPoint, .monopoly].prefix(seat % 3 + 1).map { $0 },
+            playedKnights: seat,
+            settlements: [index.vertices[seat * 5], index.vertices[seat * 5 + 2]],
+            cities: [index.vertices[seat * 5 + 30]],
+            roads: Set(index.edges[(seat * 4)..<(seat * 4 + 3)])
+        ))
+    }
+
+    return GameState(
+        board: board,
+        players: players,
+        phase: .mainTurn(playerIndex: 1),
+        bank: [.brick: 12, .lumber: 9, .ore: 19, .grain: 4, .wool: 7],
+        devCardDeck: Array(repeating: .knight, count: 11),
+        lastDiceRoll: 8,
+        longestRoadPlayer: PlayerID(index: 2),
+        largestArmyPlayer: PlayerID(index: 3),
+        pendingTradeOffers: [TradeOffer.enumerated(from: PlayerID(index: 1), give: [.wool: 2], want: [.ore: 1])],
+        devCardsBoughtThisTurn: [PlayerID(index: 1): [.knight]],
+        devCardPlayedThisTurn: PlayerID(index: 2),
+        tradesAcceptedThisTurn: [PlayerID(index: 3): 2],
+        rng: RandomSource(seed: 1)
+    )
 }

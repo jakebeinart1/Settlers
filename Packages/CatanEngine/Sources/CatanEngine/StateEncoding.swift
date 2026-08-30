@@ -632,10 +632,8 @@ public extension StateEncoding {
     /// changing it does not change the field set, so it is not a version bump.
     static let movesPerLine = 6
 
-    /// Characters of a trade offer's UUID used as its handle in the text. Six
-    /// is enough to tell simultaneous offers apart by eye; the numbered move
-    /// list is the actual addressing mechanism, so a collision would be
-    /// cosmetic rather than ambiguous.
+    /// Hex characters in the fallback handle for a trade offer that is not in
+    /// the pending list. See `offerHandle(_:among:)`.
     static let offerHandleLength = 6
 
     /// The position as a compact text block for a language model's context.
@@ -765,14 +763,26 @@ public extension StateEncoding {
         return parts
     }
 
-    /// `OFFERS 1: a1b2c3 from=P1 give=br2 want=or1`, or nothing when none are
-    /// pending. Sorted by handle so the block does not depend on the order the
-    /// offers happened to be appended in.
+    /// `OFFERS 2: #0 from=P1 give=br2 want=or1 | #1 ...`, or nothing when none
+    /// are pending.
+    ///
+    /// Numbered by position in `state.pendingTradeOffers` - an array, so the
+    /// order is already stable - and `accept`/`reject` quote the same numbers.
+    ///
+    /// ## Why numbers rather than a slice of the offer's UUID
+    /// The first spelling of this printed six hex characters of the id, which
+    /// is ambiguous in practice and not merely in theory. `TradeOffer.enumerated`
+    /// derives its id by walking an FNV-1a hash over a descriptor string and
+    /// keeping one byte per input character, so two offers from the same
+    /// proposer share almost the whole leading window: a real 23-offer position
+    /// rendered eight of them as the identical handle `0c62bf`. Positional
+    /// numbering cannot collide, is shorter, and matches how
+    /// `ActionSpace.index(of:pendingOffers:)` addresses the same offers.
     private static func offerLines(_ state: GameState) -> [String] {
         guard !state.pendingTradeOffers.isEmpty else { return [] }
-        let entries = state.pendingTradeOffers
-            .map { "\(handle(for: $0)) from=P\($0.from.index) give=\(bundle($0.give)) want=\(bundle($0.want))" }
-            .sorted()
+        let entries = state.pendingTradeOffers.enumerated().map { slot, offer in
+            "#\(slot) from=P\(offer.from.index) give=\(bundle(offer.give)) want=\(bundle(offer.want))"
+        }
         return ["OFFERS \(entries.count): " + entries.joined(separator: " | ")]
     }
 
@@ -788,7 +798,10 @@ public extension StateEncoding {
         // space of 8,815 that is almost entirely illegal right now.
         var lines = ["MOVES \(observation.legalMoves.count) - reply with one number, 0-based, "
             + "indexing this list only"]
-        let labels = observation.legalMoves.enumerated().map { "\($0.offset) \(label(for: $0.element, index: index))" }
+        let offers = observation.state.pendingTradeOffers
+        let labels = observation.legalMoves.enumerated().map {
+            "\($0.offset) \(label(for: $0.element, index: index, pendingOffers: offers))"
+        }
         for start in stride(from: 0, to: labels.count, by: movesPerLine) {
             lines.append("  " + labels[start..<Swift.min(start + movesPerLine, labels.count)].joined(separator: " | "))
         }
@@ -798,7 +811,12 @@ public extension StateEncoding {
     // MARK: Labels
 
     /// A move in one short phrase, addressing the board by canonical index.
-    static func label(for move: GameMove, index: BoardIndex) -> String {
+    ///
+    /// `pendingOffers` lets `accept`/`reject` name their offer by its position
+    /// in that list, the way the `OFFERS` block does. Omitting it still
+    /// produces an unambiguous label - see `offerHandle(_:among:)` - it is just
+    /// longer and does not line up with anything the reader has been shown.
+    static func label(for move: GameMove, index: BoardIndex, pendingOffers: [TradeOffer] = []) -> String {
         switch move {
         case .placeInitialSettlement(let vertex): return "setupSett v\(index.slot(of: vertex))"
         case .placeInitialRoad(let edge): return "setupRoad e\(index.slot(of: edge))"
@@ -820,7 +838,7 @@ public extension StateEncoding {
         case .bankTrade(let give, let get): return "bank \(bundle(give))>\(bundle(get))"
         case .proposeTrade(let offer): return "offer \(bundle(offer.give))>\(bundle(offer.want))"
         case .respondToTrade(let offerID, let accept):
-            return "\(accept ? "accept" : "reject") \(shortened(offerID))"
+            return "\(accept ? "accept" : "reject") \(offerHandle(offerID, among: pendingOffers))"
         case .endTurn: return "endTurn"
         }
     }
@@ -916,9 +934,19 @@ public extension StateEncoding {
         return labels
     }
 
-    private static func handle(for offer: TradeOffer) -> String { shortened(offer.id) }
-
-    private static func shortened(_ id: UUID) -> String {
-        String(id.uuidString.replacingOccurrences(of: "-", with: "").prefix(offerHandleLength)).lowercased()
+    /// How the text names a pending trade offer: `#2` when the offer is in
+    /// `pendingOffers`, otherwise a digest of its whole id.
+    ///
+    /// The fallback hashes all of the id rather than quoting a prefix of it,
+    /// because `TradeOffer.enumerated`'s ids are strongly correlated in their
+    /// leading bytes (see `offerLines`) and a prefix is therefore not a handle
+    /// at all. It returns a label rather than trapping: this is a rendering
+    /// path, and a caller labelling one move without the state to go with it
+    /// should get something readable, not a crash.
+    static func offerHandle(_ id: UUID, among pendingOffers: [TradeOffer]) -> String {
+        if let slot = pendingOffers.firstIndex(where: { $0.id == id }) { return "#\(slot)" }
+        var digest: UInt64 = 0xCBF2_9CE4_8422_2325
+        for byte in id.uuidString.utf8 { digest = (digest ^ UInt64(byte)) &* 0x0000_0100_0000_01B3 }
+        return "offer:" + String(digest, radix: 16).suffix(offerHandleLength)
     }
 }
