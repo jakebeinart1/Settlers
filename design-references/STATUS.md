@@ -110,6 +110,10 @@ Feedback from actually playing on-device turned up a real bug and three quality 
   that didn't match the painted theme at all. Replaced with `PauseMenuView`, built on the same `PopupCard`
   every other popup (Trade/Build/DevCard/Discard) already uses, plus an inline "are you sure" step before
   Restart/Main Menu since those are now easier to tap by accident inside a themed card than a system sheet.
+  **Superseded:** `PauseMenuView` no longer exists - it was absorbed into `InGameSettingsView` (Surface B of
+  `docs/superpowers/specs/2026-08-30-settings-surfaces-acceptance-criteria.md`), a full painted screen that
+  adds AI turn speed and the incoming-offer timer above the same three actions. The "are you sure" step
+  survives as `ConfirmationPopupCard` in `SettingsChrome.swift`, still on `PopupCard`.
 - **`menu-icon` (found right after this pass shipped).** Despite the blanket claim above that "all piece
   and UI-chrome images have verified real alpha transparency," `menu-icon.png` was plain opaque RGB - no
   alpha channel at all - so its cream canvas showed as a visible white/cream square behind the ring at real
@@ -348,7 +352,7 @@ Jake pointed at the reference's serif numerals/labels (its actual body copy, not
 asked for the same across the whole board screen, numbers included. No custom font file was needed - SwiftUI
 ships a real serif system font (New York) selectable via `.fontDesign(.serif)`, and applying it once as a
 view modifier on `GameView`'s root `ZStack` cascades to every popup (`TradePopupView`, `BuildPopupView`,
-`DiscardPopupView`, `DevCardPopupView`, `PauseMenuView`, `IncomingTradeCardView`) since they're all plain
+`DiscardPopupView`, `DevCardPopupView`, `InGameSettingsView`, `IncomingTradeCardView`) since they're all plain
 children of that same ZStack, not separate `.sheet`s - one line covered the whole board, HUD, and every
 in-game popup. `EndGameView` is presented separately from `ContentView`, outside that tree, so it needed
 its own `.fontDesign(.serif)`.

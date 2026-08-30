@@ -647,6 +647,16 @@ public final class GameViewModel {
     /// silently replaced by a new one.
     public private(set) var saveWasUnreadable = false
 
+    /// True while `InGameSettingsView` is on screen. The bot loop stops on it
+    /// for the same reason it stops on `openIncomingOffer`: a surface the
+    /// player is reading must not have the game move underneath it (spec
+    /// B3.4). Without this, opening the settings mid-bot-turn left the bots
+    /// playing on behind the screen, and the player came back to a position
+    /// they had not seen reached.
+    ///
+    /// Written by `GameView`, which mirrors its own presentation state here.
+    public var isSettingsSurfaceOpen = false
+
     public func runBotTurnIfNeeded() async {
         guard !isProcessingBotTurns else { return }
         isProcessingBotTurns = true
@@ -678,9 +688,20 @@ public final class GameViewModel {
             // ends in `Task { await runBotTurnIfNeeded() }`.
             if openIncomingOffer != nil { return }
 
+            // Same `return`-don't-park reasoning as the offer check above:
+            // parking here would hold `isProcessingBotTurns` for as long as
+            // the settings screen stayed open, and the restart already exists
+            // - `GameView` kicks `runBotTurnIfNeeded()` again on dismissal.
+            if isSettingsSurfaceOpen { return }
+
             // Pacing, not thinking: the bots decide instantly and this is the
-            // only reason a turn is watchable. Configured in `pacing.yml`.
-            try? await Task.sleep(for: .seconds(PacingSettingsStore.current.secondsPerBotAction))
+            // only reason a turn is watchable.
+            //
+            // Read from the singleton on every iteration rather than captured
+            // once before the loop: that is the whole of B1.2 - a speed the
+            // player changes mid-turn has to reach the very next action, not
+            // the next game.
+            try? await Task.sleep(for: .seconds(PacingPreferences.shared.aiTurnSpeed.secondsPerBotAction))
             // The game may have been restarted while this loop slept.
             guard generation == gameGeneration else { return }
 

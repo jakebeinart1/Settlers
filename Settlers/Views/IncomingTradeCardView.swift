@@ -11,15 +11,15 @@ import CatanAI
 /// `GameViewModel.waitForFairAcceptWindow` holds other bots back from
 /// snapping up the same offer for a randomized 2-4s.
 ///
-/// ## It no longer answers for you
+/// ## It no longer answers for you in six seconds
 /// This used to run a hardcoded six-second countdown and auto-Reject on
 /// expiry, with a ring showing the time left. Six seconds is not a decision
 /// window - a bot proposes, you read who it is and what it wants, and it
 /// declines while you are still reading - and a trade you did not answer is
-/// not a trade you declined. The timeout is now
-/// `PacingSettings.incomingOfferTimeoutSeconds`, shipping as 0, meaning wait
-/// indefinitely. Tapping the card still pauses any countdown that has been
-/// deliberately turned back on.
+/// not a trade you declined. The window is now the player's own choice
+/// (`PacingPreferences.incomingOfferTimer`, In-Game Settings), defaulting to
+/// 15s and offering "No Limit". Tapping the card pauses whatever countdown is
+/// running.
 public struct IncomingTradeCardView: View {
     public let offer: TradeOffer
     public let onAccept: () -> Void
@@ -31,16 +31,23 @@ public struct IncomingTradeCardView: View {
         self.onReject = onReject
     }
 
-    /// Seconds before the card answers for you. **Zero means never**, which is
-    /// the shipped default.
+    /// Seconds this card is counting down from. **Zero means never** - what
+    /// the player's "No Limit" choice resolves to.
     ///
-    /// This was a hardcoded 6. Six seconds is not a decision window - a bot
-    /// proposes, you read who it is and what it wants, and the card
-    /// auto-declines while you are still reading. It was reported as offers
-    /// vanishing before they could be answered. A trade you did not answer is
-    /// not a trade you declined, so the timer is off unless someone
-    /// deliberately turns it on in `pacing.yml`.
-    private var totalSeconds: Double { PacingSettingsStore.current.incomingOfferTimeoutSeconds }
+    /// Read from `PacingPreferences` once, in `startTicking`, and held for the
+    /// life of the card rather than recomputed on every render. It is the
+    /// denominator of the ring below, and the player can now change the
+    /// setting *while an offer is on screen* (In-Game Settings sits over the
+    /// board, and the bots are held for the whole time it is open): a computed
+    /// property let that change land mid-countdown, so the arc jumped, and
+    /// switching to "No Limit" hid the number while the already-running tick
+    /// task carried on to auto-decline the offer anyway. Capturing means a
+    /// change applies to the next offer, which is the only coherent answer.
+    ///
+    /// It was a hardcoded 6 once: offers vanished before they could be
+    /// answered, which is what got reported, and 15s is the default that
+    /// replaced it.
+    @State private var totalSeconds: Double = 0
     @State private var remaining: Double = 0
     @State private var isPaused = false
     /// A monotonically increasing tick source (0.1s) rather than a single
@@ -231,6 +238,7 @@ public struct IncomingTradeCardView: View {
 
     private func startTicking() {
         tickTask?.cancel()
+        totalSeconds = PacingPreferences.shared.incomingOfferTimer.seconds
         // No countdown at all when the timeout is off - not a very long one.
         // A ticking task that never fires still spins at 10 Hz for as long as
         // the card is up, and the ring would drain toward an answer that is

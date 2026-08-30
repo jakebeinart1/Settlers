@@ -30,7 +30,9 @@ enum QALaunchFlag: String, CaseIterable {
     case showEndGame = "-qaShowEndGame"
     /// Opens the settings sheet over the main menu.
     case showSettings = "-qaShowSettings"
-    /// Opens the pause menu.
+    /// Opens `InGameSettingsView`, which absorbed the old pause menu. The flag
+    /// keeps its original spelling so the run-settlers skill's documented list
+    /// of hooks stays accurate.
     case showPauseMenu = "-qaShowPauseMenu"
     /// Opens the trade popup.
     case showTradePopup = "-qaShowTradePopup"

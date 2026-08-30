@@ -96,8 +96,11 @@ public struct GameView: View {
     }
 
     // `-qaShowPauseMenu`: same escape hatch as `-qaAutoStart` (see
-    // `ContentView`) - lets QA screenshot the pause menu without a real tap.
-    @State var isShowingPauseMenu = QALaunchFlag.showPauseMenu.isSet
+    // `ContentView`) - lets QA screenshot the in-game settings screen without
+    // a real tap. The flag keeps its original name because the run-settlers
+    // skill documents it under that name; what it opens is now
+    // `InGameSettingsView`, which absorbed the old pause menu.
+    @State var isShowingInGameSettings = QALaunchFlag.showPauseMenu.isSet
     @State private var placementMode: PlacementMode?
     // `-qaShowTradePopup`: same escape hatch pattern - lets QA screenshot
     // the trade popup without a real tap.
@@ -300,16 +303,17 @@ public struct GameView: View {
                 DiscardPopupView(viewModel: viewModel)
             }
 
-            if isShowingPauseMenu {
-                // A themed `PopupCard` (the same card every other popup in
-                // this app uses), not the native `confirmationDialog` this
-                // replaced - a plain system action sheet was the one piece
-                // of chrome in the whole game that didn't match the painted
-                // gold-trim theme at all.
-                PauseMenuView(
-                    onResume: { isShowingPauseMenu = false },
+            if isShowingInGameSettings {
+                // Surface B of the settings spec - pacing and the trade timer
+                // above the Resume/Restart/Main Menu actions this used to be.
+                // A full painted screen rather than the native
+                // `confirmationDialog` it originally was: a plain system
+                // action sheet was the one piece of chrome in the whole game
+                // that didn't match the painted gold-trim theme at all.
+                InGameSettingsView(
+                    onResume: { isShowingInGameSettings = false },
                     onRestart: {
-                        isShowingPauseMenu = false
+                        isShowingInGameSettings = false
                         // Reuse the player's own menu choices. These were
                         // hardcoded to `false`, so Restart silently handed back
                         // the fixed standard board with the human in seat 0 -
@@ -320,7 +324,7 @@ public struct GameView: View {
                         )
                     },
                     onMainMenu: {
-                        isShowingPauseMenu = false
+                        isShowingInGameSettings = false
                         onExitToMenu()
                     }
                 )
@@ -336,6 +340,20 @@ public struct GameView: View {
         // `design: .serif` on each `Font.system(...)` call instead - see
         // `TileView.swift`.
         .fontDesign(.serif)
+        // Mirrors this view's own presentation state into the view model, which
+        // is what the bot loop stops on (spec B3.4 - the game must not advance
+        // behind a surface the player is reading). `initial: true` covers the
+        // `-qaShowPauseMenu` launch, which starts with the screen already up
+        // and would otherwise never fire a change. The dismissal kick is
+        // guarded on an actual open -> closed transition so a normal launch
+        // doesn't fire a second, redundant `runBotTurnIfNeeded` alongside the
+        // `.task` below.
+        .onChange(of: isShowingInGameSettings, initial: true) { wasOpen, isOpen in
+            viewModel.isSettingsSurfaceOpen = isOpen
+            if wasOpen && !isOpen {
+                Task { await viewModel.runBotTurnIfNeeded() }
+            }
+        }
         .onAppear {
             seenTradeOfferIDs = Set(state.pendingTradeOffers.map(\.id))
             // `-qaShowPendingTradeConfirmation`: same escape hatch pattern
@@ -1132,7 +1150,7 @@ public struct GameView: View {
             rollHighlightTiles = Set(producingTiles.map(\.coordinate))
         }
         Task {
-            try? await Task.sleep(for: .seconds(PacingSettingsStore.current.rollHighlightSeconds))
+            try? await Task.sleep(for: .seconds(PacingPreferences.rollHighlightSeconds))
             withAnimation(.easeOut(duration: 0.3)) {
                 rollHighlightTiles = []
             }

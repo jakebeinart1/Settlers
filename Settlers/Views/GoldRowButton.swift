@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// Full-width row button for popups/menus (`PauseMenuView`, `BuildPopupView`,
+/// Full-width row button for popups/menus (`InGameSettingsView`, `BuildPopupView`,
 /// `TradePopupView`, `DevCardPopupView`, `MainMenuView`): the same
 /// `PaintedChromeBackground` gold-hairline border/notched-corner chrome as
 /// `UniformActionButton` in the bottom action row, but laid out as a
@@ -24,6 +24,12 @@ struct GoldRowButton<Trailing: View>: View {
     var iconColor: Color = .white
     var titleColor: Color = .white
     var isEnabled: Bool = true
+    /// The plaque's interior. Defaults to the flat dark swatch every popup row
+    /// has always used, so no existing call site changes; `InGameSettingsView`
+    /// tints its three Game Control rows (green resume, blue restart, red
+    /// quit) so the destructive one is distinguishable at a glance rather than
+    /// only by the colour of a 16pt glyph.
+    var fill: PaintedChromeBackground.Fill = .color(Color(white: 0.18))
     @ViewBuilder var trailing: () -> Trailing
     let action: () -> Void
 
@@ -50,7 +56,7 @@ struct GoldRowButton<Trailing: View>: View {
             .padding(.horizontal, 12)
             .padding(.vertical, 10)
             .background(
-                PaintedChromeBackground(fill: .color(Color(white: 0.18)), cornerRadius: 10)
+                PaintedChromeBackground(fill: fill, cornerRadius: 10)
             )
         }
         .disabled(!isEnabled)
@@ -66,6 +72,7 @@ extension GoldRowButton where Trailing == EmptyView {
         iconColor: Color = .white,
         titleColor: Color = .white,
         isEnabled: Bool = true,
+        fill: PaintedChromeBackground.Fill = .color(Color(white: 0.18)),
         action: @escaping () -> Void
     ) {
         self.init(
@@ -75,6 +82,7 @@ extension GoldRowButton where Trailing == EmptyView {
             iconColor: iconColor,
             titleColor: titleColor,
             isEnabled: isEnabled,
+            fill: fill,
             trailing: { EmptyView() },
             action: action
         )

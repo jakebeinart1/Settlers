@@ -35,6 +35,13 @@ struct PaintedChromeBackground: View {
         /// `button-fill-*`).
         case texture(String)
         case color(Color)
+        /// A flat tint with the same painted wave motif the player HUD cards
+        /// use blended over it (`TintedTextureBackground`) - added for the
+        /// settings surfaces, whose selected choice and tinted Game Control
+        /// rows want to read as *painted* green/blue/red/gold rather than as
+        /// flat swatches, and for which (like every other popup row) there is
+        /// no fixed small set of labels worth painting an asset each for.
+        case tintedTexture(Color)
     }
 
     let fill: Fill
@@ -109,6 +116,11 @@ struct PaintedChromeBackground: View {
                 .scaledToFill()
         case .color(let color):
             color
+        case .tintedTexture(let color):
+            // A narrower crop than the HUD cards' 0.15: these plaques are
+            // wider and shorter than a player card, so the same fraction
+            // stretched the motif into a few broad arcs instead of a weave.
+            TintedTextureBackground(tint: color, cropWidthFraction: 0.10)
         }
     }
 

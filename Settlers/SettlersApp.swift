@@ -3,18 +3,12 @@ import SwiftUI
 @main
 struct SettlersApp: App {
 
-    init() {
-        // Forces the pacing config to be read and validated now.
-        //
-        // `PacingSettingsStore.current` is a lazy global that traps on a
-        // malformed `pacing.yml`. Left to itself, its first read is whenever
-        // the bot loop or the roll highlight happens to run - so a bad edit
-        // would take the app down mid-game, after someone had started one.
-        // The entire case for trapping rather than falling back to defaults is
-        // that it fails at the earliest possible moment, and that is only true
-        // if something reads it at the earliest possible moment.
-        _ = PacingSettingsStore.current
-    }
+    // There used to be an `init()` here forcing `PacingSettingsStore.current`
+    // to be read, because that lazy global trapped on a malformed bundled
+    // `pacing.yml` and the case for trapping rested on failing at the earliest
+    // possible moment. Pacing is now `PacingPreferences` - two named enums in
+    // `UserDefaults` with no text form to get wrong and nothing to validate -
+    // so there is no bad state left for a startup read to surface.
 
     var body: some Scene {
         WindowGroup {
