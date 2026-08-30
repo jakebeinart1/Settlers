@@ -76,7 +76,12 @@ import CatanEngine
 
     let first = TradeHeuristics.proposeTrades(state: state, player: player, personality: .balanced)
     #expect(first.count == 1)
-    #expect(first.first?.give == [.wool: 1])
+    // Two wool, not one: holding three of a resource it does not need clears
+    // `generousOfferSurplusThreshold`, so the bot offers the better deal
+    // rather than the minimum. Trade proposals used to be hardcoded
+    // one-for-one, which meant a bot could never express a two-for-one - and
+    // that is most of how Catan is actually negotiated.
+    #expect(first.first?.give == [.wool: 2])
     #expect(first.first?.want == [.lumber: 1])
 
     // Nobody has accepted or rejected it yet - it's still sitting in
@@ -97,7 +102,10 @@ import CatanEngine
     state.phase = .mainTurn(playerIndex: 1)
     let player = PlayerID(index: 1)
     state.players[1].resources = [.brick: 1, .lumber: 0, .grain: 1, .wool: 3, .ore: 0]
-    state.pendingTradeOffers = [TradeOffer(from: player, give: [.wool: 1], want: [.lumber: 1])]
+    // The pending offer has to be the one the bot would actually compose now
+    // (two wool for a lumber), or the dedupe does not recognise it and the
+    // bot proposes again instead of ending its turn.
+    state.pendingTradeOffers = [TradeOffer(from: player, give: [.wool: 2], want: [.lumber: 1])]
 
     let bot = Bot(personality: .balanced)
     let move = bot.decide(for: state, player: player)

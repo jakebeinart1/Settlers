@@ -109,20 +109,7 @@ public enum RulesEngine {
                 }
                 moves.append(.respondToTrade(offerID: offer.id, accept: false))
             }
-            // Pragmatic proposal enumeration: for each resource the player
-            // has a surplus of (more than one card), offer trading exactly
-            // one of it to each other player for each resource type - not
-            // exhaustive over quantities/combinations, just enough for bots
-            // to have real proposals to consider.
-            // Driven off `Resource.allCases`, not `player.resources` - the
-            // dictionary's iteration order is per-process, and these offers
-            // would otherwise be enumerated in a different order each launch.
-            for resource in Resource.allCases where (player.resources[resource] ?? 0) > 1 {
-                for wanted in Resource.allCases where wanted != resource {
-                    moves.append(.proposeTrade(
-                        TradeOffer.enumerated(from: player.id, give: [resource: 1], want: [wanted: 1])))
-                }
-            }
+            moves.append(contentsOf: tradeProposals(for: player))
             return moves
 
         case .discarding(let pending):
@@ -153,6 +140,50 @@ public enum RulesEngine {
             // Later tasks extend this switch for the other phases.
             return []
         }
+    }
+
+    /// How many of one resource an enumerated proposal may offer or ask for.
+    ///
+    /// Two, not one. The enumeration previously offered exactly one card for
+    /// exactly one card, which meant a bot could not express "two ore for a
+    /// wheat" - and lopsided trades are most of how Catan is actually
+    /// negotiated. An agent whose action space cannot represent a two-for-one
+    /// is not playing Catan badly; it is playing a different game.
+    ///
+    /// It stops at two deliberately. Going to three roughly doubles the
+    /// enumeration again for offers real players rarely make, and this list is
+    /// recomputed on the hot path - `GameView` reads it while rendering. Three
+    /// or more, and multi-resource bundles, remain legal to *apply*:
+    /// `Trading.proposeTrade` validates any positive offer the proposer can
+    /// afford, so a human, or a policy that composes its own offers rather
+    /// than picking from this list, can still make them. This bounds what is
+    /// enumerated, not what is possible.
+    public static let maxEnumeratedTradeQuantity = 2
+
+    /// Trade proposals worth putting in front of a chooser.
+    ///
+    /// Bounded at `maxEnumeratedTradeQuantity` per side and one resource type
+    /// per side: 5 give types x 4 want types x 2 x 2 = 80 at the absolute
+    /// most, and far fewer in practice since the proposer must hold what they
+    /// offer.
+    private static func tradeProposals(for player: Player) -> [GameMove] {
+        var moves: [GameMove] = []
+        // Driven off `Resource.allCases`, not `player.resources` - dictionary
+        // iteration order is seeded per process, and these would otherwise be
+        // enumerated in a different order on every launch.
+        for give in Resource.allCases {
+            let held = player.resources[give] ?? 0
+            guard held > 1 else { continue }
+            for giveCount in 1...min(maxEnumeratedTradeQuantity, held - 1) {
+                for want in Resource.allCases where want != give {
+                    for wantCount in 1...maxEnumeratedTradeQuantity {
+                        moves.append(.proposeTrade(TradeOffer.enumerated(
+                            from: player.id, give: [give: giveCount], want: [want: wantCount])))
+                    }
+                }
+            }
+        }
+        return moves
     }
 
     /// The moves `seat` may legally make right now.

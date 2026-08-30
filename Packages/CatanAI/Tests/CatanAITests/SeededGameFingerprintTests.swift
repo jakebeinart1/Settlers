@@ -38,12 +38,19 @@ import CatanEngine
 /// below in the same commit that changed them, and say so in the message - or
 /// ordering has leaked back in. To tell which: run the same seed in several
 /// separate processes. If they disagree with *each other*, it is ordering.
+/// Re-recorded 2026-08-30 because the bots genuinely changed: trade proposals
+/// widened from strictly one-card-for-one-card to quantities up to two per
+/// side, and the heuristic now composes lopsided offers. Over fifteen games
+/// the proposal mix went from 1,110 one-for-ones and nothing else to 761
+/// one-for-ones, 342 two-for-ones and a handful of two-for-twos. The anchor
+/// measurement was re-run alongside: still 40/40 against random play, so the
+/// change did not break the bot.
 private let expectedFingerprints: [UInt64: String] = [
-    1: "7cc7aee7b0c9c4d9",
-    42: "30f84fa73e61c1d7",
-    7: "b338b8f0b41989bb",
-    1234: "a4085aa0b3710e51",
-    99: "526167e40f10ea2a",
+    1: "01a87510183024b1",
+    42: "581a271393456bdb",
+    7: "30c7b2b825a1fe37",
+    1234: "fa459410ec3e6873",
+    99: "08ab96a81621227f",
 ]
 
 /// Whoever may act, or `nil` at game over.

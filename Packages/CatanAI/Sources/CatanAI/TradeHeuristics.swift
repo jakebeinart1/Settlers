@@ -213,17 +213,38 @@ public enum TradeHeuristics {
         // reaching `.endTurn` on its own (see `GameViewModel
         // .runBotTurnIfNeeded`'s `sameBotActionCap` backstop) and piles up
         // unbounded duplicate offers in persisted `GameState`.
-        let give1 = [give: 1]
-        let want1 = [mostNeeded: 1]
+        // How much to ask for, and how much to offer.
+        //
+        // This used to be hardcoded one-for-one, which meant a bot could never
+        // express "two ore for a wheat" - and a lopsided offer is most of how
+        // Catan is actually negotiated. Widening the enumeration in
+        // `RulesEngine` alone changed nothing, because the bot composes its
+        // own offer and then matches it against that list; the quantities have
+        // to be decided here.
+        //
+        // Ask for what the target actually needs, up to the enumeration's
+        // limit - asking for one card when two are missing just means coming
+        // back again. Offer two only when genuinely rich in the give resource:
+        // a bot down to its last spare card offering two of them is not
+        // generous, it is desperate, and it hands the receiver the better half
+        // of a deal it needed to win.
+        let deficit = max(0, (target.cost[mostNeeded] ?? 0) - (me.resources[mostNeeded] ?? 0))
+        let wantCount = min(max(1, deficit), RulesEngine.maxEnumeratedTradeQuantity)
+        let held = me.resources[give] ?? 0
+        let generous = held >= weights.generousOfferSurplusThreshold
+        let giveCount = min(generous ? 2 : 1, max(1, held - 1), RulesEngine.maxEnumeratedTradeQuantity)
+
+        let giveTable = [give: giveCount]
+        let wantTable = [mostNeeded: wantCount]
         let alreadyPending = state.pendingTradeOffers.contains { offer in
-            offer.from == player && offer.give == give1 && offer.want == want1
+            offer.from == player && offer.give == giveTable && offer.want == wantTable
         }
         guard !alreadyPending else { return [] }
 
         // Content-derived id, matching how `RulesEngine.legalMoves` enumerates
         // the same candidate - so the offer the bot proposes is identical to
         // the legal move it matched against, rather than a fresh random id.
-        return [TradeOffer.enumerated(from: player, give: give1, want: want1)]
+        return [TradeOffer.enumerated(from: player, give: giveTable, want: wantTable)]
     }
 
     /// A one-shot bank/port trade that would help `player`'s current
