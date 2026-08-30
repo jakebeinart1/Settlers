@@ -646,7 +646,9 @@ public final class GameViewModel {
         // in `GameSession`, which a headless harness runs too - so what is
         // measured offline is what is played here.
         while case .seat = session.nextActor() {
-            try? await Task.sleep(for: .milliseconds(600))
+            // Pacing, not thinking: the bots decide instantly and this is the
+            // only reason a turn is watchable. Configured in `pacing.yml`.
+            try? await Task.sleep(for: .seconds(PacingSettingsStore.current.secondsPerBotAction))
             // The game may have been restarted while this loop slept.
             guard generation == gameGeneration else { return }
 

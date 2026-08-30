@@ -1,0 +1,23 @@
+# How long the app waits, in seconds. Edit and rebuild.
+#
+# None of this affects how the bots PLAY - only how long you get to watch them
+# do it. The game loop itself has no notion of time; every pause below is
+# added deliberately on top of it, so changing these cannot change who wins.
+#
+# Parsing is strict on purpose: an unknown key, a non-numeric value or a line
+# that is not `key: value` stops the app at launch rather than being ignored.
+# A setting you edited that quietly did nothing is worse than a loud failure.
+
+# Minimum wall-clock time one bot action takes.
+# A floor, not a fixed cost - the bots decide far faster than this.
+# A seat can take up to 25 actions in a turn, so 1.0 means a 25s worst-case
+# turn. 0.6 was the original hardcoded value.
+secondsPerBotAction: 1.1
+
+# How long the dice-roll highlight stays on the tiles that produced.
+rollHighlightSeconds: 1.5
+
+# How long an incoming trade offer waits before auto-declining itself.
+# 0 means wait for you, indefinitely - an offer that answers itself is not a
+# decision. This was effectively 6 seconds, which was the reported bug.
+incomingOfferTimeoutSeconds: 0
