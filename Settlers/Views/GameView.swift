@@ -329,6 +329,21 @@ public struct GameView: View {
                     }
                 )
             }
+
+            // Last in the stack, so it covers every popup as well as the
+            // board. A hot-seat handoff has to hide a trade popup or an open
+            // discard sheet just as much as it hides the hand behind them.
+            if viewModel.needsHandoff, let owed = viewModel.seatOwedATurn {
+                HandoffCoverView(
+                    seat: owed,
+                    handSize: viewModel.state.players
+                        .first { $0.id == owed }?.resources.values.reduce(0, +) ?? 0
+                ) {
+                    clearSeatInteractionState()
+                    viewModel.claimDeviceForSeatOwedATurn()
+                }
+                .zIndex(100)
+            }
         }
         // Serif everywhere on the board screen - HUD, popups, buttons,
         // pause menu - to match the reference's painted-book serif type
@@ -1120,6 +1135,27 @@ public struct GameView: View {
             errorMessage = error.localizedDescription
         }
         incomingOfferQueue.removeAll { $0.id == offer.id }
+    }
+
+    /// Drops everything the previous player had half-done.
+    ///
+    /// These sixteen pieces of `@State` belong to the seat that armed them: an
+    /// armed placement mode, the first edge of a road-building pair, a robber
+    /// target, an open popup, the set of trade offers this seat has already
+    /// been shown. `ContentView`'s `.id(viewModel.gameGeneration)` resets them
+    /// on restart only, so without this the incoming player inherits the
+    /// outgoing player's half-finished move - and can complete it, as their
+    /// own, on their own turn.
+    private func clearSeatInteractionState() {
+        placementMode = nil
+        roadBuildingFirstEdge = nil
+        robberTargetTile = nil
+        showTradePopup = false
+        showBuildPopup = false
+        devCardPopupType = nil
+        incomingOfferQueue = []
+        seenTradeOfferIDs = Set(state.pendingTradeOffers.map(\.id))
+        errorMessage = nil
     }
 
     // MARK: - Roll tile highlight

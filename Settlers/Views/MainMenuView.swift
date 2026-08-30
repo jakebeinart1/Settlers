@@ -3,33 +3,37 @@ import CatanEngine
 
 /// Title screen: flat colonist.io-style branding for "Empires" (the app's
 /// display name - the underlying Xcode project/module is still named
-/// `Settlers`, a deliberately untouched implementation detail), a
-/// randomized-board toggle, a randomize-seat toggle, "New Game", and (only
-/// when a save exists) "Resume Game". `onStart` receives both toggles'
-/// values when the player taps "New Game"; `ContentView` is responsible for
-/// actually calling
-/// `GameViewModel.startNewGame(randomizedBoard:randomizeSeat:)`.
+/// `Settlers`, a deliberately untouched implementation detail), "New Game",
+/// and (only when a save exists) "Resume Game".
+///
+/// ## Why "New Game" no longer starts a game
+/// It used to start one immediately, from two toggles that lived here:
+/// "Randomized Board" and "Randomize Seat". Both are match contract - they
+/// change what the board is and who plays when - and the settings spec's rule
+/// for where a setting goes puts every such control on New Game Setup, not on
+/// menu chrome. They now live on `NewGameSetupView` alongside the rest of the
+/// contract (seat composition, names, civilizations, match length), and this
+/// button presents that screen. `onStart` receives the finished `MatchSetup`
+/// only once the player has pressed Start there.
 public struct MainMenuView: View {
-    public let onStart: (Bool, Bool) -> Void
+    public let onStart: (MatchSetup) -> Void
     public let onResume: () -> Void
 
-    public init(onStart: @escaping (Bool, Bool) -> Void, onResume: @escaping () -> Void) {
+    public init(onStart: @escaping (MatchSetup) -> Void, onResume: @escaping () -> Void) {
         self.onStart = onStart
         self.onResume = onResume
     }
 
-    // `@AppStorage` rather than plain `@State` - Jake plays with both on
-    // every game and doesn't want to re-toggle them each launch, so the
-    // choice persists (UserDefaults) instead of resetting every time
-    // `MainMenuView` appears. Defaulting both to `true` (a change from the
-    // toggles' original off-by-default) is exactly that persisted choice
-    // for a first launch too, per Jake's ask.
-    @AppStorage("randomizedBoardSetting") private var randomizedBoard = true
-    @AppStorage("randomizeSeatSetting") private var randomizeSeat = true
     // `-qaShowSettings`: same escape-hatch pattern as `-qaShowPauseMenu` -
     // opens straight to `SettingsView` for screenshotting it, no real tap on
     // the gear icon needed.
     @State private var isShowingSettings = QALaunchFlag.showSettings.isSet
+    // The three `-qaShowNewGame*` flags do the same for `NewGameSetupView`,
+    // each seeding a different state of it (see `QALaunchFlag`).
+    @State private var isShowingNewGame = QALaunchFlag.showNewGame.isSet
+        || QALaunchFlag.showNewGameInvalid.isSet
+        || QALaunchFlag.showNewGameOverwrite.isSet
+        || QALaunchFlag.showNewGameCivilizationPicker.isSet
 
     private var hasSavedGame: Bool {
         GameStore.shared.hasSave()
@@ -99,26 +103,12 @@ public struct MainMenuView: View {
                 Spacer()
 
                 VStack(spacing: 16) {
-                    Toggle(isOn: $randomizedBoard) {
-                        Text("Randomized Board")
-                            .foregroundStyle(.white)
-                    }
-                    .tint(CatanTheme.color(for: Resource.wool))
-                    .padding(.horizontal, 40)
-
-                    Toggle(isOn: $randomizeSeat) {
-                        Text("Randomize Seat")
-                            .foregroundStyle(.white)
-                    }
-                    .tint(CatanTheme.color(for: Resource.wool))
-                    .padding(.horizontal, 40)
-
                     GoldRowButton(
                         title: "New Game",
                         systemImage: "plus.circle.fill",
                         iconColor: CatanTheme.color(for: Resource.brick)
                     ) {
-                        onStart(randomizedBoard, randomizeSeat)
+                        isShowingNewGame = true
                     }
                     .padding(.horizontal, 40)
 
@@ -138,6 +128,21 @@ public struct MainMenuView: View {
         .foregroundStyle(.white)
         .sheet(isPresented: $isShowingSettings) {
             SettingsView(onDismiss: { isShowingSettings = false })
+        }
+        // Full screen rather than a sheet: the setup screen is taller than a
+        // phone, carries its own bottom action bar, and a sheet's drag-to-
+        // dismiss would sit directly over a scroll view full of text fields.
+        .fullScreenCover(isPresented: $isShowingNewGame) {
+            NewGameSetupView(
+                onStart: { setup in
+                    // Dismissed first: `onStart` replaces this whole view with
+                    // the board, and tearing down a presenter while its cover
+                    // is still up leaves the cover orphaned on screen.
+                    isShowingNewGame = false
+                    onStart(setup)
+                },
+                onCancel: { isShowingNewGame = false }
+            )
         }
     }
 
@@ -202,5 +207,5 @@ public struct MainMenuView: View {
 }
 
 #Preview {
-    MainMenuView(onStart: { _, _ in }, onResume: {})
+    MainMenuView(onStart: { _ in }, onResume: {})
 }

@@ -120,9 +120,9 @@ xcrun simctl io "$SIM" screenshot "$DD/verify.png"
 echo "now READ $DD/verify.png"
 ```
 
-## The `-qa*` launch arguments — all twelve
+## The `-qa*` launch arguments — all eighteen
 
-Jake's version of this skill said there were three. There are twelve. Each is a plain
+Jake's version of this skill said there were three. There are eighteen. Each is a plain
 `ProcessInfo` argument check that is never set in normal use, so none can affect a real
 player. Find them all with:
 
@@ -144,6 +144,12 @@ grep -rnoE '"\-qa[A-Za-z]+"' --include="*.swift" "$REPO/Settlers" | sort -u
 | `-qaShowRobberVictimPicker` | `GameView.swift` | One step further: the "Steal from:" victim picker. |
 | `-qaShowIncomingOffer` | `GameView.swift` | `IncomingTradeCardView`, seeded with a fake always-fulfillable offer. |
 | `-qaFastForwardToRollDice` | `GameView.swift` | Plays the human's own setup placements, then rolls, so the `.rollDice` action row is reachable. **Applies real moves** (writes the save and the game log) and **needs 10-12s**, not 4. |
+| `-qaShowNewGame` | `MainMenuView.swift` / `NewGameSetupView.swift` | `NewGameSetupView` over the main menu, on a startable two-human/two-AI fixture (green ready plaque, Start enabled). **Must NOT be combined with `-qaAutoStart`.** |
+| `-qaShowNewGameInvalid` | `NewGameSetupView.swift` | Same screen, seat 2's name whitespace-only — the amber problem plaque and a disabled Start. |
+| `-qaShowNewGameOverwrite` | `NewGameSetupView.swift` | Same screen with the "Replace your saved game?" confirmation already raised. Pair with a real save (run `-qaAutoStart -qaFastForwardToRollDice` first) to also get the amber saved-game plaque behind it. |
+| `-qaShowNewGameCivilizationPicker` | `NewGameSetupView.swift` | Same screen with seat 2's civilization grid open — the only way to see a taken civilization greyed out. |
+| `-qaNewGameThreeSeats` | `NewGameSetupView.swift` | **Modifier**, combines with any of the four above: shrinks the fixture to a three-player table. |
+| `-qaScrollNewGameToBottom` | `NewGameSetupView.swift` | **Modifier**, combines with any of the four above: opens the screen scrolled to the bottom. The screen is ~1,100pt of content, so Match Settings and the status plaques are below the fold on every phone and `simctl` cannot drag them into view. |
 
 **`-qaAutoStart` is load-bearing for nine of these.** `GameView` only renders once
 `hasStartedThisSession` is true, so every flag read inside `GameView.swift` is inert on its
@@ -151,7 +157,7 @@ own. Measured on 2026-08-29: `-qaShowEndGame` alone left the app sitting on the 
 `-qaAutoStart -qaShowEndGame` rendered the win screen. If a flag "does nothing", check this
 before suspecting the flag.
 
-**Debug only, as of 2026-08-29.** The twelve reads are being consolidated into
+**Debug only, as of 2026-08-29.** All eighteen reads are consolidated into
 `Settlers/QALaunchFlag.swift`, whose `isSet` is wrapped in `#if DEBUG` — so in a Release
 build the flags are inert whatever you pass. If that file exists, do not try to screenshot a
 Release build with them.

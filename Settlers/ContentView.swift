@@ -30,6 +30,16 @@ struct ContentView: View {
                 }
             } else if hasStartedThisSession {
                 GameView(viewModel: viewModel, onExitToMenu: { hasStartedThisSession = false })
+                #if DEBUG
+                    .task {
+                        // `-qaTwoHumans`: turns the loaded game into a hot-seat
+                        // one so the handoff cover is photographable. There is
+                        // no touch injection here, so a two-human game cannot
+                        // otherwise be reached from a launch.
+                        guard QALaunchFlag.twoHumans.isSet else { return }
+                        viewModel.qaMakeHotSeat()
+                    }
+                #endif
                     // Rebuild the whole view on a restart so its `@State` goes
                     // with the old game. `GameView` holds sixteen pieces of
                     // per-game interaction state - armed knight targeting, a
@@ -41,17 +51,7 @@ struct ContentView: View {
                     .id(viewModel.gameGeneration)
             } else {
                 MainMenuView(
-                    onStart: { randomizedBoard, randomizeSeat in
-                        viewModel.startNewGame(randomizedBoard: randomizedBoard, randomizeSeat: randomizeSeat)
-                        hasStartedThisSession = true
-                        // With "Randomize Seat" on, seat 0 (where setup
-                        // always starts) may now be a bot rather than the
-                        // human - without this, nothing would ever kick off
-                        // its first move. Harmless when the human *is* seat
-                        // 0: `runBotTurnIfNeeded` is a fast no-op whenever
-                        // it's already the human's turn.
-                        Task { await viewModel.runBotTurnIfNeeded() }
-                    },
+                    onStart: startNewGame,
                     onResume: {
                         hasStartedThisSession = true
                         // Resuming into a save left mid-bot-turn needs the bot
@@ -103,6 +103,24 @@ struct ContentView: View {
             @unknown default: viewModel.appWillResignActive()
             }
         }
+    }
+
+    /// Starts the match `NewGameSetupView` handed back.
+    ///
+    /// The setup screen never touches the game or the stores itself (A6.5 -
+    /// leaving it without starting must change nothing), so committing the
+    /// contract happens here: `startNewGame(setup:)` writes it to
+    /// `MatchSetupStore` as the prefill for next time (A6.4) and to
+    /// `GameStore` as the game itself.
+    private func startNewGame(_ setup: MatchSetup) {
+        viewModel.startNewGame(setup: setup)
+        hasStartedThisSession = true
+        // With seat order randomized, seat 0 (where setup always starts) may
+        // be a bot rather than the human - without this, nothing would ever
+        // kick off its first move. Harmless when the human *is* seat 0:
+        // `runBotTurnIfNeeded` is a fast no-op whenever it's already the
+        // human's turn.
+        Task { await viewModel.runBotTurnIfNeeded() }
     }
 }
 

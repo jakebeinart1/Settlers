@@ -22,10 +22,75 @@ public final class GameViewModel {
     private var session: GameSession
 
     public var state: GameState { session.state }
-    /// Which seat the human occupies this game - always index 0 unless
-    /// "Randomize Seat" was on when `startNewGame` was called. Persisted via
-    /// `HumanSeatStore` so a resumed game keeps the same seat.
-    public private(set) var humanPlayer: PlayerID
+    /// Every seat a person is playing, one to four of them.
+    ///
+    /// A `Set`, because membership is the question almost every caller asks -
+    /// "is this seat a bot?" A count could not express "humans in seats 0 and
+    /// 2", and a `[SeatKind]` array would reintroduce the bare index that
+    /// `PlayerID` exists to hide.
+    public private(set) var humanSeats: Set<PlayerID>
+
+    /// Human seats in a stable order.
+    ///
+    /// Sorted, always. `Set` iteration order is seeded per process in Swift, so
+    /// anything derived from it that reaches a decision differs between
+    /// launches - this repo has been bitten by that four separate times.
+    public var sortedHumanSeats: [PlayerID] { humanSeats.sorted() }
+
+    /// Which human is holding the phone right now, in a hot-seat game.
+    ///
+    /// `nil` until a seat is claimed, which is what makes relaunch correct
+    /// without a second flag: a force-quit hot-seat game has nobody at the
+    /// device, so the handoff cover is shown before any hand is drawn.
+    public private(set) var seatAtDevice: PlayerID?
+
+    /// The seat whose hand is on screen and whose taps are being applied.
+    ///
+    /// Kept as a computed property with the old name deliberately. Of its
+    /// call sites, most ask "who is acting right now" rather than "which seats
+    /// are people" - the trade popup's hand, the discard popup, the move that
+    /// `apply` records - and for those the answer is unchanged. With one human
+    /// seat and nobody claimed, this is byte-identical to the old stored
+    /// property, so the single-human path did not move.
+    ///
+    /// Force-unwrapped through `first!` because a game with no human seat is
+    /// not a game this app can present: `MatchSetup.validationProblem` refuses
+    /// to start one, and failing loudly here beats inventing seat 0.
+    public var humanPlayer: PlayerID {
+        if let seatAtDevice, humanSeats.contains(seatAtDevice) { return seatAtDevice }
+        guard let first = sortedHumanSeats.first else {
+            preconditionFailure("a game must have at least one human seat")
+        }
+        return first
+    }
+
+    /// True when the phone has to change hands before play continues.
+    ///
+    /// Derived rather than fired as an event at each transition. An event
+    /// needs a firing site everywhere control can pass to a person - end turn,
+    /// a discard resolving, the bot loop finishing, a resumed save, a restart -
+    /// and the bug is always the site nobody remembered. `GameView` already
+    /// carries scars from exactly that: `GamePhase.awaitingSeatIndex` exists
+    /// because six hand-written copies of "is it my turn" disagreed.
+    public var needsHandoff: Bool {
+        guard humanSeats.count > 1 else { return false }
+        guard let owed = state.phase.awaitingSeatIndex.map({ PlayerID(index: $0) }),
+              humanSeats.contains(owed) else { return false }
+        return owed != seatAtDevice
+    }
+
+    /// The human the game is waiting on, if it is waiting on one.
+    public var seatOwedATurn: PlayerID? {
+        guard let owed = state.phase.awaitingSeatIndex.map({ PlayerID(index: $0) }),
+              humanSeats.contains(owed) else { return nil }
+        return owed
+    }
+
+    /// Hands the device to whoever the game is waiting on.
+    public func claimDeviceForSeatOwedATurn() {
+        guard let owed = seatOwedATurn else { return }
+        seatAtDevice = owed
+    }
 
     /// What happened to the most recent trade the human proposed - `nil`
     /// until the first one. `TradePopupView` reads this right after calling
@@ -161,7 +226,8 @@ public final class GameViewModel {
         // reads `initialState` (the local), never `self.state`, to stay
         // fully assign-before-read through this initializer.
         session = Self.makeSession(state: initialState, humanSeat: seat)
-        humanPlayer = seat
+        humanSeats = [seat]
+        seatAtDevice = seat
         currentGameLogID = nil
         self.saveWasUnreadable = saveWasUnreadable
         activeSince = Date()
@@ -190,8 +256,10 @@ public final class GameViewModel {
         accumulatedActiveDuration = 0
         activeSince = Date()
 
-        humanPlayer = randomizeSeat ? PlayerID(index: Int.random(in: 0...3)) : PlayerID(index: 0)
-        session = Self.makeSession(state: fresh, humanSeat: humanPlayer)
+        humanSeats = [randomizeSeat ? PlayerID(index: Int.random(in: 0...3)) : PlayerID(index: 0)]
+        seatAtDevice = sortedHumanSeats.first
+        CivilizationAssignment.humanNames = [:]
+        session = Self.makeSession(state: fresh, humanSeats: humanSeats)
         CivilizationAssignment.humanSeat = humanPlayer
         HumanSeatStore.shared.save(humanPlayer)
 
@@ -200,6 +268,86 @@ public final class GameViewModel {
         try? CivilizationAssignmentStore.shared.save(assignment)
 
         try? GameStore.shared.save(state)
+    }
+
+    /// Starts a game from a full `MatchSetup` - the New Game screen's output.
+    ///
+    /// The older two-flag entry point above remains for the paths that have
+    /// not moved yet; it builds the same thing with one human and stored
+    /// preferences.
+    public func startNewGame(setup: MatchSetup) {
+        precondition(setup.isStartable, "refusing to start an invalid match: \(setup.validationProblem ?? "")")
+
+        // Seat order is randomised by shuffling which CONFIGURED seat lands in
+        // which chair, rather than by moving the human to a random index. That
+        // keeps every player with the civilization and name they chose - the
+        // thing that gets randomised is who goes first.
+        var chairs = setup.seats
+        if setup.randomizeSeatOrder { chairs.shuffle() }
+
+        let board = setup.randomizedBoard
+            ? BoardGenerator.randomized(seed: UInt64.random(in: .min ... .max))
+            : BoardGenerator.standard()
+        let fresh = GameSetup.newGame(board: board,
+                                      seed: UInt64.random(in: .min ... .max),
+                                      playerCount: chairs.count,
+                                      victoryPointTarget: setup.victoryPointTarget)
+
+        resetPerGameState()
+
+        var seats: Set<PlayerID> = []
+        var names: [PlayerID: String] = [:]
+        var civilizations: [Civilization] = []
+        var taken = Set(chairs.compactMap(\.civilization))
+        let pool = CivilizationSettingsStore.shared.load().includedBotCivilizations
+
+        for (chair, configured) in chairs.enumerated() {
+            let id = PlayerID(index: chair)
+            if configured.isHuman {
+                seats.insert(id)
+                names[id] = configured.name.trimmingCharacters(in: .whitespacesAndNewlines)
+            }
+            // A seat left on Random draws now, from the eligible pool, avoiding
+            // anything already spoken for - distinctness is a construction
+            // invariant here rather than something checked afterwards, because
+            // the seat colour IS the civilization's colour and a duplicate
+            // makes the board unreadable.
+            if let chosen = configured.civilization {
+                civilizations.append(chosen)
+            } else {
+                let available = Civilization.allCases
+                    .filter { !taken.contains($0) && pool.contains($0) }
+                    .sorted { $0.rawValue < $1.rawValue }
+                let drawn = available.randomElement()
+                    ?? Civilization.allCases.first { !taken.contains($0) }!
+                taken.insert(drawn)
+                civilizations.append(drawn)
+            }
+        }
+
+        humanSeats = seats
+        seatAtDevice = seats.count == 1 ? seats.first : nil
+        session = Self.makeSession(state: fresh, humanSeats: seats)
+
+        CivilizationAssignment.humanSeat = humanPlayer
+        CivilizationAssignment.humanNames = names
+        CivilizationAssignment.current = civilizations
+        HumanSeatStore.shared.save(humanPlayer)
+        try? CivilizationAssignmentStore.shared.save(civilizations)
+        MatchSetupStore.shared.save(setup)
+        try? GameStore.shared.save(state)
+    }
+
+    /// The bookkeeping every new game clears, whichever entry point started it.
+    private func resetPerGameState() {
+        currentGameLogID = nil
+        gameGeneration &+= 1
+        pendingTradeConfirmation = nil
+        lastTradeOutcome = nil
+        eventBatch = EventBatch(sequence: eventBatch.sequence + 1, events: [])
+        offerProposedAt = [:]
+        accumulatedActiveDuration = 0
+        activeSince = Date()
     }
 
     /// Applies `move` through `RulesEngine` exactly like a direct call
@@ -262,7 +410,7 @@ public final class GameViewModel {
         for player in state.players {
             let index = player.id.index
             civilizations[index] = Civilization.forSeat(index).displayName
-            guard player.id != humanPlayer else { continue }
+            guard !humanSeats.contains(player.id) else { continue }
             personalities[index] = personalityName(for: player.id)
         }
         return GameLogStore.SeatRoster(
@@ -347,8 +495,32 @@ public final class GameViewModel {
     /// proposer can no longer honour - which is how `openIncomingOffer` is
     /// pinned in both directions.
     func replaceStateForTesting(_ newState: GameState, humanSeat: PlayerID) {
-        humanPlayer = humanSeat
-        session = Self.makeSession(state: newState, humanSeat: humanSeat)
+        replaceStateForTesting(newState, humanSeats: [humanSeat])
+    }
+
+    /// Multi-seat overload, for hot-seat tests.
+    func replaceStateForTesting(_ newState: GameState, humanSeats seats: Set<PlayerID>) {
+        precondition(!seats.isEmpty, "a game must have at least one human seat")
+        humanSeats = seats
+        seatAtDevice = seats.sorted().first
+        session = Self.makeSession(state: newState, humanSeats: seats)
+    }
+
+    /// Turns the loaded game into a two-human hot-seat game, for
+    /// screenshotting `HandoffCoverView` (see `QALaunchFlag.twoHumans`).
+    ///
+    /// Seats 0 and 1 become people and nobody is at the device, which is
+    /// exactly the state a relaunched hot-seat game is in - so the cover shows
+    /// before any hand is drawn.
+    func qaMakeHotSeat() {
+        let seats: Set<PlayerID> = [PlayerID(index: 0), PlayerID(index: 1)]
+        humanSeats = seats
+        seatAtDevice = nil
+        CivilizationAssignment.humanNames = [
+            PlayerID(index: 0): "Alex",
+            PlayerID(index: 1): "Sam",
+        ]
+        session = Self.makeSession(state: state, humanSeats: seats)
     }
 
     /// Forces `state.phase` straight to a human win, for screenshotting
@@ -369,7 +541,7 @@ public final class GameViewModel {
     /// legitimately fail against this bogus `offerID` - this exists to
     /// photograph the banner's layout, not to be played through.
     func qaSeedPendingTradeConfirmation() {
-        let bots = state.players.map(\.id).filter { $0 != humanPlayer }
+        let bots = state.players.map(\.id).filter { !humanSeats.contains($0) }
         guard let selectedBot = bots.first else { return }
         let offerID = UUID()
         pendingTradeConfirmation = PendingTradeConfirmation(
@@ -402,7 +574,7 @@ public final class GameViewModel {
         // their own proposal (showing the human's own name in the
         // confirmation banner) and skipped whichever real bot sat in seat
         // 0 entirely.
-        for bot in state.players.map(\.id) where bot != humanPlayer {
+        for bot in state.players.map(\.id) where !humanSeats.contains(bot) {
             // `TradeHeuristics.evaluate` only judges whether the offer is a
             // *good deal* for the bot - it has no idea whether the bot
             // actually holds enough of `offer.want` to go through with it,
@@ -628,9 +800,20 @@ public final class GameViewModel {
     /// but it means a saved game is not replayable move-for-move, and the fix
     /// is to move the policy seed into `GameState` alongside `rng`.
     private static func makeSession(state: GameState, humanSeat: PlayerID) -> GameSession {
+        makeSession(state: state, humanSeats: [humanSeat])
+    }
+
+    /// Seats every player that is NOT a person with a bot policy.
+    ///
+    /// `GameSession` drives a seat only if it has a policy; a seat without one
+    /// returns `.awaitingExternalSeat` and the loop stops for it. That is
+    /// already how the single human works, so one to four humans needs no
+    /// engine change - only that this hands out policies by set membership
+    /// rather than by inequality with one seat.
+    private static func makeSession(state: GameState, humanSeats: Set<PlayerID>) -> GameSession {
         var policies: [PlayerID: any Policy] = [:]
-        for player in state.players where player.id != humanSeat {
-            let index = personalityIndex(for: player.id, humanSeat: humanSeat)
+        for player in state.players where !humanSeats.contains(player.id) {
+            let index = personalityIndex(for: player.id, humanSeats: humanSeats)
             let entry = botRoster[index]
             policies[player.id] = HeuristicPolicy(personality: entry.preset, id: "heuristic-\(entry.name)")
         }
@@ -789,7 +972,8 @@ public final class GameViewModel {
     /// whether an offer is live.
     var openIncomingOffer: TradeOffer? {
         state.pendingTradeOffers.first {
-            $0.from != humanPlayer && Trading.bothSidesCanHonour($0, responder: humanPlayer, state: state)
+            !humanSeats.contains($0.from)
+                && Trading.bothSidesCanHonour($0, responder: humanPlayer, state: state)
         }
     }
 
@@ -818,13 +1002,19 @@ public final class GameViewModel {
     ]
 
     private func personalityIndex(for player: PlayerID) -> Int {
-        Self.personalityIndex(for: player, humanSeat: humanPlayer)
+        Self.personalityIndex(for: player, humanSeats: humanSeats)
     }
 
     /// Bot seats take the roster in order, so the same balanced/aggressive/
     /// cautious mix is dealt regardless of which seat the human ended up in.
-    private static func personalityIndex(for player: PlayerID, humanSeat: PlayerID) -> Int {
-        let botSeatsInOrder = (0...3).filter { $0 != humanSeat.index }
+    private static func personalityIndex(for player: PlayerID, humanSeats: Set<PlayerID>) -> Int {
+        // Ranked among the BOT seats, not by raw seat index, so the
+        // balanced/aggressive/cautious mix is the same wherever the humans
+        // happen to sit. `0...3` was also wrong for a three-player table; the
+        // bot seats are derived from the humans now, not from a fixed range.
+        let humanIndices = Set(humanSeats.map(\.index))
+        let botSeatsInOrder = (0..<GameSetup.supportedPlayerCounts.upperBound)
+            .filter { !humanIndices.contains($0) }
         guard let seat = botSeatsInOrder.firstIndex(of: player.index) else { return 0 }
         return min(seat, botRoster.count - 1)
     }

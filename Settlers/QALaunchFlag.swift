@@ -30,6 +30,36 @@ enum QALaunchFlag: String, CaseIterable {
     case showEndGame = "-qaShowEndGame"
     /// Opens the settings sheet over the main menu.
     case showSettings = "-qaShowSettings"
+    /// Opens `NewGameSetupView` over the main menu, on a fixture with two human
+    /// seats and two AI seats - a startable configuration, so the screen shows
+    /// its green ready plaque and an enabled Start.
+    case showNewGame = "-qaShowNewGame"
+    /// Starts a two-human hot-seat game so the handoff cover can be
+    /// photographed. Combine with `-qaAutoStart`.
+    case twoHumans = "-qaTwoHumans"
+    /// Same screen, on a fixture whose second human seat has a whitespace-only
+    /// name - so the amber problem plaque and the disabled Start can be
+    /// photographed too. Without this the invalid state is unreachable, because
+    /// nothing can type into the field.
+    case showNewGameInvalid = "-qaShowNewGameInvalid"
+    /// Same screen and fixture as `showNewGame`, with the "this replaces your
+    /// saved game" confirmation already raised.
+    case showNewGameOverwrite = "-qaShowNewGameOverwrite"
+    /// Same screen and fixture as `showNewGame`, with seat 2's civilization
+    /// picker open - the only way to photograph a taken civilization showing as
+    /// unavailable (A3.3) and the whole eight-empire grid fitting without
+    /// scrolling (A3.4).
+    case showNewGameCivilizationPicker = "-qaShowNewGameCivilizationPicker"
+    /// Combines with any of the above: shrinks the fixture to a three-player
+    /// table through `MatchSetup.resize`, so the missing fourth seat and the
+    /// note explaining it can be photographed.
+    case newGameThreeSeats = "-qaNewGameThreeSeats"
+    /// Combines with any of the three above: opens the setup screen already
+    /// scrolled to the bottom. The screen is about 1,100pt of content against a
+    /// 852pt phone, so Match Settings, the status plaque and the saved-game
+    /// warning are all below the fold and there is no way to drag them into
+    /// view - `simctl` has no touch injection.
+    case scrollNewGameToBottom = "-qaScrollNewGameToBottom"
     /// Opens `InGameSettingsView`, which absorbed the old pause menu. The flag
     /// keeps its original spelling so the run-settlers skill's documented list
     /// of hooks stays accurate.
