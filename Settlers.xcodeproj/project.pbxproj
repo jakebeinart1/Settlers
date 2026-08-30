@@ -9,18 +9,24 @@
 /* Begin PBXBuildFile section */
 		076DBD0E74CFC2372A8A8AA9 /* GameViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0A975D333BC9759A83497B5 /* GameViewModel.swift */; };
 		0BBF451A08F935DC2BB22743 /* TileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC9BE64D33337CB59DE2D79D /* TileView.swift */; };
+		0C001867D26CBDBAA67CDC72 /* BoardLayeringTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56E4A8873ADD3D6574E7A3D3 /* BoardLayeringTests.swift */; };
+		17B209D17F882202517AC5D8 /* BoardChips.swift in Sources */ = {isa = PBXBuildFile; fileRef = 64B237C01DFEE60CA454FFCB /* BoardChips.swift */; };
 		1B2E8933650EFB5E3A65F60D /* PlayerNameStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = A7D42223DB45BEF77F97D3F6 /* PlayerNameStore.swift */; };
 		1CE9F2891BE97F0B0CC630BB /* EndGameView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 52C0B1D44B650E22AEBC8366 /* EndGameView.swift */; };
+		24FC8C659DCFE86E74A09ED9 /* PacingSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDCE34AA83132D3E2E52FD54 /* PacingSettings.swift */; };
 		2963FFF4A45E734FACE3E93A /* DiscardPopupView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 64A459436E4814B4E4BE3728 /* DiscardPopupView.swift */; };
 		2CC361595DA16ED4B8153B23 /* CivilizationAssignmentStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = C112C5D5A27EC971416706D0 /* CivilizationAssignmentStore.swift */; };
 		2E5F92427B07DC72628BAD38 /* CatanEngine in Frameworks */ = {isa = PBXBuildFile; productRef = EF131C34CF36EF855DAF17D0 /* CatanEngine */; };
+		2E913E84A3B818F511831F11 /* pacing.yml in Resources */ = {isa = PBXBuildFile; fileRef = C8D386EE52C160E1D7CD9969 /* pacing.yml */; };
 		38C27CDC3380AB32A2AA53C6 /* CivilizationSettingsStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5C25923598FA6B7BCAF62C5A /* CivilizationSettingsStore.swift */; };
 		3B62B3E810E58200F2983839 /* CatanTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4B89EE635B1E470682ED1D4B /* CatanTheme.swift */; };
 		3DB00133F0A18C5A4E8710E7 /* DevCardStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3E45A27E8D8AA6CC2D8717A /* DevCardStyle.swift */; };
 		4B7A4365E5DA00917A7E06FF /* GameLogStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 494D7E69889970F3FA1C24AB /* GameLogStore.swift */; };
 		4DF1B0D807C52C188BCD9DC8 /* HumanSeatStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 34F357D5B05179379CDC1EF1 /* HumanSeatStore.swift */; };
+		56AB3F44A7694184D577A6F3 /* PacingSettingsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0CF1180D4C0DC2200606374E /* PacingSettingsTests.swift */; };
 		5754F9C1356C779A5553C1BD /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = AAE31202C59C388953152F18 /* Assets.xcassets */; };
 		5A3814A3A6D971002FE6368B /* CatanAI in Frameworks */ = {isa = PBXBuildFile; productRef = 86D26250D0551805B74D0B0B /* CatanAI */; };
+		5F1562C8224CA0BCBDBEE123 /* PacingSettingsStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 78E586C22D356BA6991340D9 /* PacingSettingsStore.swift */; };
 		5FD5B98FFB1669F9BE80F1DC /* PaintedChromeBackground.swift in Sources */ = {isa = PBXBuildFile; fileRef = 44E440B9CD11BDC249491106 /* PaintedChromeBackground.swift */; };
 		687BD8586D01E4597A1C7A32 /* BoardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E89E14D5D0ACBB92DF7729B3 /* BoardView.swift */; };
 		6BE4D5162E62A51ADA6A2599 /* GameStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = E093DA361796607C17A17777 /* GameStore.swift */; };
@@ -36,6 +42,7 @@
 		982B80C1DDE6B39264765604 /* ResourceChip.swift in Sources */ = {isa = PBXBuildFile; fileRef = BF75252617AEEC3F4190D703 /* ResourceChip.swift */; };
 		998F740F246A9D43D5465A2E /* DevCardPopupView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 06E9063445AF048FF3A65C5A /* DevCardPopupView.swift */; };
 		9BAEB85A2B5C4ABDD88D14F3 /* UniformActionButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9E07877542F256DEA51B11B /* UniformActionButton.swift */; };
+		9C6AB72E4AC52714E00EDD3A /* TopChipHeightKey.swift in Sources */ = {isa = PBXBuildFile; fileRef = AFE46EFA5240D8C313A1994C /* TopChipHeightKey.swift */; };
 		A031947AF71F6676E8C6F700 /* PauseMenuView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DEF882E04681ED8D7F0236D /* PauseMenuView.swift */; };
 		AA5F82F23D1E9E98AC20C58E /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1B782178D710BCD61E1E4ED /* SettingsView.swift */; };
 		AA96483ED82E09AF4488D6CB /* .swiftlint.yml in Resources */ = {isa = PBXBuildFile; fileRef = 26C8E728C5FF85E8400CFE1A /* .swiftlint.yml */; };
@@ -46,6 +53,7 @@
 		CB58570AE806ACE6BFC462C1 /* TradePopupView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5DA573A3A82A8F2F109FA437 /* TradePopupView.swift */; };
 		D16CC8C90FB7F755636F3397 /* GameStatsStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 16777953197BE2BC34CCFE6B /* GameStatsStore.swift */; };
 		DBA70E71EA1FD506BEBF2C4A /* Civilization.swift in Sources */ = {isa = PBXBuildFile; fileRef = C47D8E51CEBC82766DDDF936 /* Civilization.swift */; };
+		E3A6D0C733055C91F0E356FE /* BoardFitTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A53ECD05D7E8073C7BEDC19 /* BoardFitTests.swift */; };
 		EA3F8948081A29B415CD8B67 /* QALaunchFlag.swift in Sources */ = {isa = PBXBuildFile; fileRef = 59A80CE9867E891B09A3F0E5 /* QALaunchFlag.swift */; };
 /* End PBXBuildFile section */
 
@@ -62,6 +70,7 @@
 /* Begin PBXFileReference section */
 		06E9063445AF048FF3A65C5A /* DevCardPopupView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DevCardPopupView.swift; sourceTree = "<group>"; };
 		0AC74C3A12A7CDE5AE1B1546 /* CivilizationPieceShapes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CivilizationPieceShapes.swift; sourceTree = "<group>"; };
+		0CF1180D4C0DC2200606374E /* PacingSettingsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PacingSettingsTests.swift; sourceTree = "<group>"; };
 		16777953197BE2BC34CCFE6B /* GameStatsStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameStatsStore.swift; sourceTree = "<group>"; };
 		26C8E728C5FF85E8400CFE1A /* .swiftlint.yml */ = {isa = PBXFileReference; lastKnownFileType = text.yaml; path = .swiftlint.yml; sourceTree = "<group>"; };
 		27BDAD47ABBB94D7F73976E5 /* MainMenuView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainMenuView.swift; sourceTree = "<group>"; };
@@ -71,21 +80,26 @@
 		494D7E69889970F3FA1C24AB /* GameLogStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameLogStore.swift; sourceTree = "<group>"; };
 		4B89EE635B1E470682ED1D4B /* CatanTheme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CatanTheme.swift; sourceTree = "<group>"; };
 		52C0B1D44B650E22AEBC8366 /* EndGameView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EndGameView.swift; sourceTree = "<group>"; };
+		56E4A8873ADD3D6574E7A3D3 /* BoardLayeringTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BoardLayeringTests.swift; sourceTree = "<group>"; };
 		59A80CE9867E891B09A3F0E5 /* QALaunchFlag.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QALaunchFlag.swift; sourceTree = "<group>"; };
 		5C25923598FA6B7BCAF62C5A /* CivilizationSettingsStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CivilizationSettingsStore.swift; sourceTree = "<group>"; };
 		5DA573A3A82A8F2F109FA437 /* TradePopupView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TradePopupView.swift; sourceTree = "<group>"; };
 		64A459436E4814B4E4BE3728 /* DiscardPopupView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiscardPopupView.swift; sourceTree = "<group>"; };
+		64B237C01DFEE60CA454FFCB /* BoardChips.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BoardChips.swift; sourceTree = "<group>"; };
 		6704DBBD9FA192F71D8ED7D3 /* CornerAccent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CornerAccent.swift; sourceTree = "<group>"; };
 		68A4D0016F665BB8F904F4DD /* PersistenceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PersistenceTests.swift; sourceTree = "<group>"; };
 		6F0C19DF5E22050B860A7094 /* GameView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameView.swift; sourceTree = "<group>"; };
 		7581395190BC539D01AEA19A /* HexGeometry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HexGeometry.swift; sourceTree = "<group>"; };
 		773974AAADA7CAFE9AC538F0 /* GoldRowButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GoldRowButton.swift; sourceTree = "<group>"; };
 		77BA2122016739392CF5DF22 /* PlayerHUDView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerHUDView.swift; sourceTree = "<group>"; };
+		78E586C22D356BA6991340D9 /* PacingSettingsStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PacingSettingsStore.swift; sourceTree = "<group>"; };
+		7A53ECD05D7E8073C7BEDC19 /* BoardFitTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BoardFitTests.swift; sourceTree = "<group>"; };
 		8164AC90317469202817676F /* SettlersApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettlersApp.swift; sourceTree = "<group>"; };
 		8E616D996C5EBA2DBFC75D9D /* CivilizationBadge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CivilizationBadge.swift; sourceTree = "<group>"; };
 		A3E45A27E8D8AA6CC2D8717A /* DevCardStyle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DevCardStyle.swift; sourceTree = "<group>"; };
 		A7D42223DB45BEF77F97D3F6 /* PlayerNameStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerNameStore.swift; sourceTree = "<group>"; };
 		AAE31202C59C388953152F18 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		AFE46EFA5240D8C313A1994C /* TopChipHeightKey.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TopChipHeightKey.swift; sourceTree = "<group>"; };
 		B0A975D333BC9759A83497B5 /* GameViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameViewModel.swift; sourceTree = "<group>"; };
 		B1B782178D710BCD61E1E4ED /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		B26D9133BC8A526E79680726 /* SettlersTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = SettlersTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -94,7 +108,9 @@
 		BF75252617AEEC3F4190D703 /* ResourceChip.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ResourceChip.swift; sourceTree = "<group>"; };
 		C112C5D5A27EC971416706D0 /* CivilizationAssignmentStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CivilizationAssignmentStore.swift; sourceTree = "<group>"; };
 		C47D8E51CEBC82766DDDF936 /* Civilization.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Civilization.swift; sourceTree = "<group>"; };
+		C8D386EE52C160E1D7CD9969 /* pacing.yml */ = {isa = PBXFileReference; lastKnownFileType = text.yaml; path = pacing.yml; sourceTree = "<group>"; };
 		CB7D94876E201553696FE24C /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		CDCE34AA83132D3E2E52FD54 /* PacingSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PacingSettings.swift; sourceTree = "<group>"; };
 		DDF1F85E001A7B74407061E4 /* BuildPopupView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BuildPopupView.swift; sourceTree = "<group>"; };
 		E093DA361796607C17A17777 /* GameStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameStore.swift; sourceTree = "<group>"; };
 		E674366C1C13D0BBB8CCC2B2 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
@@ -131,6 +147,9 @@
 			isa = PBXGroup;
 			children = (
 				26C8E728C5FF85E8400CFE1A /* .swiftlint.yml */,
+				7A53ECD05D7E8073C7BEDC19 /* BoardFitTests.swift */,
+				56E4A8873ADD3D6574E7A3D3 /* BoardLayeringTests.swift */,
+				0CF1180D4C0DC2200606374E /* PacingSettingsTests.swift */,
 				68A4D0016F665BB8F904F4DD /* PersistenceTests.swift */,
 			);
 			path = SettlersTests;
@@ -142,6 +161,7 @@
 				AAE31202C59C388953152F18 /* Assets.xcassets */,
 				CB7D94876E201553696FE24C /* ContentView.swift */,
 				E674366C1C13D0BBB8CCC2B2 /* Info.plist */,
+				C8D386EE52C160E1D7CD9969 /* pacing.yml */,
 				59A80CE9867E891B09A3F0E5 /* QALaunchFlag.swift */,
 				8164AC90317469202817676F /* SettlersApp.swift */,
 				DDD30CC330747A1D1304A1D7 /* Persistence */,
@@ -165,6 +185,7 @@
 		B0748839A83B816591CA6267 /* Views */ = {
 			isa = PBXGroup;
 			children = (
+				64B237C01DFEE60CA454FFCB /* BoardChips.swift */,
 				DDF1F85E001A7B74407061E4 /* BuildPopupView.swift */,
 				6704DBBD9FA192F71D8ED7D3 /* CornerAccent.swift */,
 				06E9063445AF048FF3A65C5A /* DevCardPopupView.swift */,
@@ -179,6 +200,7 @@
 				77BA2122016739392CF5DF22 /* PlayerHUDView.swift */,
 				BF75252617AEEC3F4190D703 /* ResourceChip.swift */,
 				B1B782178D710BCD61E1E4ED /* SettingsView.swift */,
+				AFE46EFA5240D8C313A1994C /* TopChipHeightKey.swift */,
 				5DA573A3A82A8F2F109FA437 /* TradePopupView.swift */,
 				B9E07877542F256DEA51B11B /* UniformActionButton.swift */,
 				F6183DBFAB2A72B76407A553 /* Board */,
@@ -214,6 +236,8 @@
 				16777953197BE2BC34CCFE6B /* GameStatsStore.swift */,
 				E093DA361796607C17A17777 /* GameStore.swift */,
 				34F357D5B05179379CDC1EF1 /* HumanSeatStore.swift */,
+				CDCE34AA83132D3E2E52FD54 /* PacingSettings.swift */,
+				78E586C22D356BA6991340D9 /* PacingSettingsStore.swift */,
 				A7D42223DB45BEF77F97D3F6 /* PlayerNameStore.swift */,
 			);
 			path = Persistence;
@@ -327,6 +351,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				5754F9C1356C779A5553C1BD /* Assets.xcassets in Resources */,
+				2E913E84A3B818F511831F11 /* pacing.yml in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -345,6 +370,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				17B209D17F882202517AC5D8 /* BoardChips.swift in Sources */,
 				687BD8586D01E4597A1C7A32 /* BoardView.swift in Sources */,
 				BD0B5D0BC26E3BE5C8A462FD /* BuildPopupView.swift in Sources */,
 				3B62B3E810E58200F2983839 /* CatanTheme.swift in Sources */,
@@ -369,6 +395,8 @@
 				4DF1B0D807C52C188BCD9DC8 /* HumanSeatStore.swift in Sources */,
 				7678F2D966C6DDD39D673266 /* IncomingTradeCardView.swift in Sources */,
 				71E36B2F286888830989FBC7 /* MainMenuView.swift in Sources */,
+				24FC8C659DCFE86E74A09ED9 /* PacingSettings.swift in Sources */,
+				5F1562C8224CA0BCBDBEE123 /* PacingSettingsStore.swift in Sources */,
 				5FD5B98FFB1669F9BE80F1DC /* PaintedChromeBackground.swift in Sources */,
 				A031947AF71F6676E8C6F700 /* PauseMenuView.swift in Sources */,
 				88CF824C3335F34CF54E08E2 /* PlayerHUDView.swift in Sources */,
@@ -378,6 +406,7 @@
 				AA5F82F23D1E9E98AC20C58E /* SettingsView.swift in Sources */,
 				B6FC9BE50ABFF3D68CF98B29 /* SettlersApp.swift in Sources */,
 				0BBF451A08F935DC2BB22743 /* TileView.swift in Sources */,
+				9C6AB72E4AC52714E00EDD3A /* TopChipHeightKey.swift in Sources */,
 				CB58570AE806ACE6BFC462C1 /* TradePopupView.swift in Sources */,
 				9BAEB85A2B5C4ABDD88D14F3 /* UniformActionButton.swift in Sources */,
 			);
@@ -387,6 +416,9 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				E3A6D0C733055C91F0E356FE /* BoardFitTests.swift in Sources */,
+				0C001867D26CBDBAA67CDC72 /* BoardLayeringTests.swift in Sources */,
+				56AB3F44A7694184D577A6F3 /* PacingSettingsTests.swift in Sources */,
 				8F8382E69A373BB264240262 /* PersistenceTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
