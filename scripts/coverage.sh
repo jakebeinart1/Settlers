@@ -18,9 +18,18 @@
 # to run. A one-point gap is roughly ten times that wobble, which keeps the gate
 # from flapping without making it a rubber stamp.
 #
-# WHAT IS MEASURED. Only the package's own `Sources/`. Test files are excluded:
-# including them inflates the number (test code is by definition fully executed)
-# and would let coverage "improve" by writing more tests that assert nothing.
+# WHAT IS MEASURED. Only the package's own `Sources/`. Two exclusions, for
+# different reasons:
+#   - Test files, because including them inflates the number (test code is by
+#     definition fully executed) and would let coverage "improve" by writing
+#     more tests that assert nothing.
+#   - Dependencies. A test binary links them too, so CatanAI's figure was being
+#     computed over CatanEngine's sources as well - and those read 0% here
+#     because they are covered by the engine's own suite, in a different
+#     binary. This header claimed "only the package's own Sources" long before
+#     the code did it; adding two well-tested engine files moved the AI number
+#     from 91% to 75% and looked exactly like a 16-point regression in code
+#     that had actually gained coverage.
 
 set -euo pipefail
 
@@ -53,12 +62,41 @@ fi
 
 BINARY="$XCTEST_BUNDLE/Contents/MacOS/$(basename "$XCTEST_BUNDLE" .xctest)"
 
+# Restricted to THIS package's own sources, passed as a positional source
+# filter. A test binary links its dependencies too, so without this the figure
+# for CatanAI is computed over CatanEngine's files as well - and those sit at
+# 0% here because they are covered by the *engine's* suite, in a different
+# binary. That contamination is not academic: adding two well-tested engine
+# files (ActionSpace, StateEncoding) dropped this number from 91% to 75% and
+# read as a 16-point regression in code that had in fact gained coverage.
+# cwd is the package directory by this point.
+OWN_SOURCES="$PWD/Sources"
+
+# llvm-cov treats an unmatched source filter as a warning and reports over
+# EVERY linked file instead, exiting 0. The filter is a request, not a
+# guarantee, so the guarantee is asserted here: count the files it kept and
+# fail if the restriction silently did not apply.
+FILES_COUNTED="$(
+  xcrun llvm-cov export \
+    -instr-profile "$PROFDATA" \
+    -ignore-filename-regex='(Tests/|\.build/)' \
+    "$BINARY" \
+    "$OWN_SOURCES" \
+  | python3 -c 'import json,sys; print(len(json.load(sys.stdin)["data"][0]["files"]))'
+)"
+OWN_SWIFT_FILES="$(find "$OWN_SOURCES" -name '*.swift' | wc -l | tr -d ' ')"
+if [[ "$FILES_COUNTED" -gt "$OWN_SWIFT_FILES" ]]; then
+  echo "coverage: source filter did not apply - measured $FILES_COUNTED files but $PACKAGE_DIR/Sources holds $OWN_SWIFT_FILES" >&2
+  exit 1
+fi
+
 ACTUAL="$(
   xcrun llvm-cov export \
     -summary-only \
     -instr-profile "$PROFDATA" \
     -ignore-filename-regex='(Tests/|\.build/)' \
     "$BINARY" \
+    "$OWN_SOURCES" \
   | python3 -c 'import json,sys; t=json.load(sys.stdin)["data"][0]["totals"]; print("%.2f" % t["lines"]["percent"])'
 )"
 

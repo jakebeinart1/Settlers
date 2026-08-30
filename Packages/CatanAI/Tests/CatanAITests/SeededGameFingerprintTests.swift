@@ -38,12 +38,19 @@ import CatanEngine
 /// below in the same commit that changed them, and say so in the message - or
 /// ordering has leaked back in. To tell which: run the same seed in several
 /// separate processes. If they disagree with *each other*, it is ordering.
+/// Re-recorded 2026-08-30 because the bots genuinely changed: trade proposals
+/// widened from strictly one-card-for-one-card to quantities up to two per
+/// side, and the heuristic now composes lopsided offers. Over fifteen games
+/// the proposal mix went from 1,110 one-for-ones and nothing else to 761
+/// one-for-ones, 342 two-for-ones and a handful of two-for-twos. The anchor
+/// measurement was re-run alongside: still 40/40 against random play, so the
+/// change did not break the bot.
 private let expectedFingerprints: [UInt64: String] = [
-    1: "7cc7aee7b0c9c4d9",
-    42: "30f84fa73e61c1d7",
-    7: "b338b8f0b41989bb",
-    1234: "a4085aa0b3710e51",
-    99: "526167e40f10ea2a",
+    1: "01a87510183024b1",
+    42: "581a271393456bdb",
+    7: "30c7b2b825a1fe37",
+    1234: "fa459410ec3e6873",
+    99: "08ab96a81621227f",
 ]
 
 /// Whoever may act, or `nil` at game over.
@@ -92,28 +99,36 @@ private func fingerprint(_ moves: [String]) -> String {
 }
 
 private func playSeededGame(seed: UInt64) -> (fingerprint: String, moves: Int, winner: PlayerID?) {
-    var state = GameSetup.newGame(board: BoardGenerator.randomized(seed: seed), seed: seed)
-    let bots = [
-        Bot(personality: .balanced), Bot(personality: .aggressive),
-        Bot(personality: .cautious), Bot(personality: .balanced),
+    let state = GameSetup.newGame(board: BoardGenerator.randomized(seed: seed), seed: seed)
+    let seatPolicies: [any Policy] = [
+        HeuristicPolicy(personality: .balanced, id: "heuristic-balanced"),
+        HeuristicPolicy(personality: .aggressive, id: "heuristic-aggressive"),
+        HeuristicPolicy(personality: .cautious, id: "heuristic-cautious"),
+        HeuristicPolicy(personality: .balanced, id: "heuristic-balanced"),
     ]
-    // The bot's own tie-breaks are seeded too, via the `rng:` overload used
-    // below. `Bot.decide(for:player:)` - the overload WITHOUT an rng - builds
-    // a fresh `SystemRandomNumberGenerator` on every call, so it can never be
-    // reproducible and a measurement harness must never use it.
-    var botRNG = RandomSource(seed: seed &* 31 &+ 7)
+    var seats: [PlayerID: any Policy] = [:]
+    for (index, policy) in seatPolicies.enumerated() { seats[state.players[index].id] = policy }
+
+    // Driven through `GameSession`, not by calling the bots directly.
+    // This test and the `sim` harness both used to run private loops, so the
+    // sequence pinned here was one no player ever actually experienced: it saw
+    // the unscoped action list and had no runaway backstop, while the app had
+    // both. A fingerprint of a loop nobody plays does not protect the game.
+    //
+    // `GameSession` seeds its own policy RNG from `policySeed`; the value below
+    // is the same derivation the harness uses so the two play identical games.
+    var session = GameSession(state: state, policies: seats, policySeed: seed &* 31 &+ 7)
     var trace: [String] = []
 
     for _ in 0..<3000 {
-        if case .gameOver(let winner) = state.phase {
-            return (fingerprint(trace), trace.count, winner)
-        }
-        guard let actor = actingPlayer(state) else { break }
-        let move = bots[actor.index].decide(for: state, player: actor, rng: &botRNG)
-        trace.append("P\(actor.index):\(canonical(move))")
-        try! RulesEngine.apply(move, by: actor, to: &state)
+        guard case .seat = session.nextActor() else { break }
+        guard let step = try! session.step() else { break }
+        trace.append("P\(step.actor.index):\(canonical(step.move))")
     }
-    return (fingerprint(trace), trace.count, nil)
+
+    var winner: PlayerID?
+    if case .gameOver(let who) = session.state.phase { winner = who }
+    return (fingerprint(trace), trace.count, winner)
 }
 
 @Test func seededSelfPlayReproducesExactly() {

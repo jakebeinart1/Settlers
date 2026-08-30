@@ -46,7 +46,12 @@ private func playSeededGame(boardSeed: UInt64, driverSeed: UInt64)
 
         guard let actor = actingPlayer(state) else { return (start, moves, nil) }
 
-        let legal = RulesEngine.legalMoves(for: state)
+        // Seat-scoped. The unscoped list is a union across pending players in
+        // `.discarding`, so a driver picking from it can choose a discard
+        // computed from another seat's hand - which `apply` then rejects, and
+        // which this driver used to hit only when the random sequence happened
+        // to reach a seven.
+        let legal = RulesEngine.legalMoves(for: state, seat: actor)
         guard let move = legal.randomElement(using: &driver) else { return (start, moves, nil) }
         moves.append((actor, move))
         do { try RulesEngine.apply(move, by: actor, to: &state) } catch { return (start, moves, nil) }
@@ -143,12 +148,12 @@ private func playSeededGame(boardSeed: UInt64, driverSeed: UInt64)
 
     for _ in 0..<250 {
         if case .gameOver = state.phase { break }
-        let first = RulesEngine.legalMoves(for: state)
-        let second = RulesEngine.legalMoves(for: state)
+        guard let actor = actingPlayer(state) else { break }
+        let first = RulesEngine.legalMoves(for: state, seat: actor)
+        let second = RulesEngine.legalMoves(for: state, seat: actor)
         #expect(first == second, "legalMoves returned different results for the same state")
 
-        guard let actor = actingPlayer(state),
-              let move = first.randomElement(using: &driver) else { break }
+        guard let move = first.randomElement(using: &driver) else { break }
         try! RulesEngine.apply(move, by: actor, to: &state)
     }
 }

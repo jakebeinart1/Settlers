@@ -109,33 +109,20 @@ public enum RulesEngine {
                 }
                 moves.append(.respondToTrade(offerID: offer.id, accept: false))
             }
-            // Pragmatic proposal enumeration: for each resource the player
-            // has a surplus of (more than one card), offer trading exactly
-            // one of it to each other player for each resource type - not
-            // exhaustive over quantities/combinations, just enough for bots
-            // to have real proposals to consider.
-            // Driven off `Resource.allCases`, not `player.resources` - the
-            // dictionary's iteration order is per-process, and these offers
-            // would otherwise be enumerated in a different order each launch.
-            for resource in Resource.allCases where (player.resources[resource] ?? 0) > 1 {
-                for wanted in Resource.allCases where wanted != resource {
-                    moves.append(.proposeTrade(
-                        TradeOffer.enumerated(from: player.id, give: [resource: 1], want: [wanted: 1])))
-                }
-            }
+            moves.append(contentsOf: tradeProposals(for: player))
             return moves
 
         case .discarding(let pending):
-            // No single "acting player" is embedded in this phase - any
-            // player in `pending` may discard whenever they're ready - so
-            // this returns the union of every legal `.discard` combination
-            // across all of them.
+            // No single "acting player" is embedded in this phase - any player
+            // in `pending` may discard whenever they are ready - so this
+            // returns the union across all of them. Prefer
+            // `legalMoves(for:seat:)` unless you genuinely want the union: a
+            // discard here is only legal for the seat whose hand it was
+            // computed from, so anything that picks from this list and applies
+            // it as one seat can pick another seat's move and be rejected.
             var moves: [GameMove] = []
             for pid in pending.sorted() {
-                guard let playerIndex = state.players.firstIndex(where: { $0.id == pid }) else { continue }
-                let player = state.players[playerIndex]
-                let count = Robber.discardCount(for: player)
-                moves.append(contentsOf: discardCombinations(holding: player.resources, count: count).map { .discard($0) })
+                moves.append(contentsOf: discardMoves(for: pid, in: state))
             }
             return moves
 
@@ -153,6 +140,88 @@ public enum RulesEngine {
             // Later tasks extend this switch for the other phases.
             return []
         }
+    }
+
+    /// How many of one resource an enumerated proposal may offer or ask for.
+    ///
+    /// Two, not one. The enumeration previously offered exactly one card for
+    /// exactly one card, which meant a bot could not express "two ore for a
+    /// wheat" - and lopsided trades are most of how Catan is actually
+    /// negotiated. An agent whose action space cannot represent a two-for-one
+    /// is not playing Catan badly; it is playing a different game.
+    ///
+    /// It stops at two deliberately. Going to three roughly doubles the
+    /// enumeration again for offers real players rarely make, and this list is
+    /// recomputed on the hot path - `GameView` reads it while rendering. Three
+    /// or more, and multi-resource bundles, remain legal to *apply*:
+    /// `Trading.proposeTrade` validates any positive offer the proposer can
+    /// afford, so a human, or a policy that composes its own offers rather
+    /// than picking from this list, can still make them. This bounds what is
+    /// enumerated, not what is possible.
+    public static let maxEnumeratedTradeQuantity = 2
+
+    /// Trade proposals worth putting in front of a chooser.
+    ///
+    /// Bounded at `maxEnumeratedTradeQuantity` per side and one resource type
+    /// per side: 5 give types x 4 want types x 2 x 2 = 80 at the absolute
+    /// most, and far fewer in practice since the proposer must hold what they
+    /// offer.
+    private static func tradeProposals(for player: Player) -> [GameMove] {
+        var moves: [GameMove] = []
+        // Driven off `Resource.allCases`, not `player.resources` - dictionary
+        // iteration order is seeded per process, and these would otherwise be
+        // enumerated in a different order on every launch.
+        for give in Resource.allCases {
+            let held = player.resources[give] ?? 0
+            guard held > 1 else { continue }
+            for giveCount in 1...min(maxEnumeratedTradeQuantity, held - 1) {
+                for want in Resource.allCases where want != give {
+                    for wantCount in 1...maxEnumeratedTradeQuantity {
+                        moves.append(.proposeTrade(TradeOffer.enumerated(
+                            from: player.id, give: [give: giveCount], want: [want: wantCount])))
+                    }
+                }
+            }
+        }
+        return moves
+    }
+
+    /// The moves `seat` may legally make right now - **when `seat` is the
+    /// player the phase is waiting on.**
+    ///
+    /// The qualifier is real. Only `.discarding` is genuinely per-seat; in
+    /// every other phase this returns the *acting* player's moves whoever
+    /// asks, so calling it for a seat that is not up hands back a list `apply`
+    /// will reject with `.notYourTurn`. `GameSession` only ever asks for the
+    /// acting seat, so nothing is wrong today - but the previous one-line
+    /// summary read as a promise that any seat could be queried, which would
+    /// be a natural thing for a future agent or evaluator to rely on.
+    ///
+    /// Prefer this over `legalMoves(for:)` anywhere a specific player is about
+    /// to choose. The unscoped version returns a *union* in `.discarding` -
+    /// every pending player's combinations together - because no single seat
+    /// owns that phase. A policy picking from the union can pick a discard
+    /// computed from a different hand, and `apply` then rejects it. `Bot`
+    /// worked around that with its own filter; anything else that tried,
+    /// including a uniform-random policy, hit it immediately.
+    ///
+    /// An action list that includes moves the actor cannot make is also simply
+    /// wrong as an action space: it teaches a learner that illegal moves are
+    /// options.
+    public static func legalMoves(for state: GameState, seat: PlayerID) -> [GameMove] {
+        if case .discarding(let pending) = state.phase {
+            guard pending.contains(seat) else { return [] }
+            return discardMoves(for: seat, in: state)
+        }
+        return legalMoves(for: state)
+    }
+
+    /// Every discard `pid` could legally make, from their own hand.
+    private static func discardMoves(for pid: PlayerID, in state: GameState) -> [GameMove] {
+        guard let index = state.players.firstIndex(where: { $0.id == pid }) else { return [] }
+        let player = state.players[index]
+        let count = Robber.discardCount(for: player)
+        return discardCombinations(holding: player.resources, count: count).map { .discard($0) }
     }
 
     /// Applies `move` and returns what happened, as structured events.

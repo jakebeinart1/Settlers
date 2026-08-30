@@ -242,6 +242,13 @@ public struct BotWeights: Codable, Sendable, Equatable {
     public var buildDevCardLargestArmyBonus: Double = 1.0
 
     // MARK: - Trade
+
+    /// How many of a resource a bot must hold before it will offer two of them
+    /// for one of something else. Below this it offers one for one: a bot down
+    /// to its last spare card offering two is not being generous, it is
+    /// handing over the better half of a deal it needed.
+    public var generousOfferSurplusThreshold = 3
+
     //
     // Consumed by `TradeHeuristics`, which values each resource against the
     // receiving player's nearest build target rather than treating all

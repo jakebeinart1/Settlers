@@ -11,7 +11,17 @@ import CatanAI
 @MainActor
 @Observable
 public final class GameViewModel {
-    public private(set) var state: GameState
+    /// The one loop. Bots are decided by policies inside this session, and
+    /// the human's own moves go through `applyExternal`, so the app and any
+    /// headless harness advance the game through identical code. They used to
+    /// be two loops: this one had sleeps, a re-entrancy guard, an action cap
+    /// and its own trade resolution, none of which a harness ever executed -
+    /// so the bots being measured were not the bots being played.
+    ///
+    /// Pacing stays out here. `GameSession` has no notion of elapsed time.
+    private var session: GameSession
+
+    public var state: GameState { session.state }
     /// Which seat the human occupies this game - always index 0 unless
     /// "Randomize Seat" was on when `startNewGame` was called. Persisted via
     /// `HumanSeatStore` so a resumed game keeps the same seat.
@@ -150,7 +160,7 @@ public final class GameViewModel {
         // `self` (including `self.state`) can be read - `GameLogStore`
         // reads `initialState` (the local), never `self.state`, to stay
         // fully assign-before-read through this initializer.
-        state = initialState
+        session = Self.makeSession(state: initialState, humanSeat: seat)
         humanPlayer = seat
         currentGameLogID = nil
         self.saveWasUnreadable = saveWasUnreadable
@@ -165,7 +175,7 @@ public final class GameViewModel {
         let board = randomizedBoard
             ? BoardGenerator.randomized(seed: UInt64.random(in: .min ... .max))
             : BoardGenerator.standard()
-        state = GameSetup.newGame(board: board)
+        let fresh = GameSetup.newGame(board: board)
         currentGameLogID = nil
         // Invalidate any bot loop still sleeping against the previous game.
         gameGeneration &+= 1
@@ -181,6 +191,7 @@ public final class GameViewModel {
         activeSince = Date()
 
         humanPlayer = randomizeSeat ? PlayerID(index: Int.random(in: 0...3)) : PlayerID(index: 0)
+        session = Self.makeSession(state: fresh, humanSeat: humanPlayer)
         CivilizationAssignment.humanSeat = humanPlayer
         HumanSeatStore.shared.save(humanPlayer)
 
@@ -215,7 +226,7 @@ public final class GameViewModel {
 
         eventBatch = EventBatch(
             sequence: eventBatch.sequence,
-            events: eventBatch.events + (try RulesEngine.apply(move, by: player, to: &state)))
+            events: eventBatch.events + (try session.applyExternal(move, by: player).events))
         GameLogStore.shared.appendMove(gameID: gameLogID, player: player, move: move)
 
         if case .proposeTrade(let offer) = move {
@@ -331,7 +342,9 @@ public final class GameViewModel {
     /// `EndGameView` (see `QALaunchFlag.showEndGame`) without playing a game
     /// out to 10 VP. Deliberately records no log entry and no stats.
     func qaForceHumanWin() {
-        state.phase = .gameOver(winner: humanPlayer)
+        var forced = session.state
+        forced.phase = .gameOver(winner: humanPlayer)
+        session.replace(state: forced)
     }
 
     /// Seeds `pendingTradeConfirmation` with every bot accepting, without a
@@ -588,6 +601,30 @@ public final class GameViewModel {
 
     /// Starts a new batch. Called at the top of each operation that a view
     /// would react to as one thing.
+    /// Builds the session for a game: a policy per bot seat, none for the
+    /// human's, so `step()` stops and hands control back when it is their turn.
+    ///
+    /// The policy RNG is seeded by drawing once from the position's own
+    /// generator, so two sessions built from the same position get the same
+    /// bot tie-breaks.
+    ///
+    /// It does **not** survive a save. `policyRNG` lives in `GameSession`, not
+    /// in `GameState`, so nothing persists it: a resumed game restarts the
+    /// tie-break sequence from draw zero rather than continuing where it left
+    /// off. That is invisible in play - the bots are equally good either way -
+    /// but it means a saved game is not replayable move-for-move, and the fix
+    /// is to move the policy seed into `GameState` alongside `rng`.
+    private static func makeSession(state: GameState, humanSeat: PlayerID) -> GameSession {
+        var policies: [PlayerID: any Policy] = [:]
+        for player in state.players where player.id != humanSeat {
+            let index = personalityIndex(for: player.id, humanSeat: humanSeat)
+            let entry = botRoster[index]
+            policies[player.id] = HeuristicPolicy(personality: entry.preset, id: "heuristic-\(entry.name)")
+        }
+        var seedSource = state.rng
+        return GameSession(state: state, policies: policies, policySeed: seedSource.next())
+    }
+
     private func beginEventBatch() {
         eventBatch = EventBatch(sequence: eventBatch.sequence + 1, events: [])
     }
@@ -603,37 +640,71 @@ public final class GameViewModel {
         defer { isProcessingBotTurns = false }
 
         let generation = gameGeneration
-        let sameBotActionCap = 25
-        var currentBot: PlayerID?
-        var actionsForCurrentBot = 0
 
-        while let botPlayer = nextBotPlayer() {
+        // The loop is now only pacing and persistence. Choosing the move,
+        // deciding whose turn it is and the runaway-action backstop all live
+        // in `GameSession`, which a headless harness runs too - so what is
+        // measured offline is what is played here.
+        while case .seat = session.nextActor() {
             try? await Task.sleep(for: .milliseconds(600))
             // The game may have been restarted while this loop slept.
             guard generation == gameGeneration else { return }
 
-            if botPlayer == currentBot {
-                actionsForCurrentBot += 1
-            } else {
-                currentBot = botPlayer
-                actionsForCurrentBot = 1
-            }
-
-            // Only `.mainTurn` allows an unbounded number of actions before
-            // the phase moves on (build, trade, play dev cards, repeat) -
-            // `.movingRobber`/`.discarding` each resolve in a single move
-            // per player, so the cap only ever needs to bite here.
-            let move: GameMove
-            if actionsForCurrentBot > sameBotActionCap, case .mainTurn = state.phase {
-                move = .endTurn
-            } else {
-                let bot = Bot(personality: personality(for: botPlayer))
-                move = bot.decide(for: state, player: botPlayer)
-            }
+            guard let (seat, move) = session.decideNext() else { break }
             await waitForFairAcceptWindow(before: move)
+            guard generation == gameGeneration else { return }
             beginEventBatch()
-            try? applyLogged(move, by: botPlayer)
+            // Captured before the move lands: `recordAppliedMove` opens the
+            // game log on the first move, and the `start` line has to describe
+            // the position the move list is relative to. `applyLogged` has
+            // always done this; this path did not, so any game whose first move
+            // was a bot's - three in four, with Randomize Seat on - wrote a log
+            // that no longer replayed.
+            let stateBeforeMove = state
+            let step: GameSession.Step
+            do {
+                step = try session.commit(seat: seat, move: move)
+            } catch {
+                // A policy chose a move the rules reject: the two disagree,
+                // which is a bug rather than a position to recover from. It was
+                // previously a bare `try?`, so the loop simply stopped and the
+                // game sat frozen on a bot's turn with nothing said. Note also
+                // that `decideNext()` has already advanced `policyRNG`, so a
+                // replay of this seed diverges from here regardless.
+                assertionFailure("bot \(seat.index) played an illegal \(move): \(error)")
+                break
+            }
+            recordAppliedMove(step, stateBeforeMove: stateBeforeMove)
             try? GameStore.shared.save(state)
+        }
+    }
+
+    /// Mirrors `applyLogged`'s bookkeeping for a move the session chose.
+    ///
+    /// `applyLogged` exists for moves decided out here; a bot's move is
+    /// applied inside the session, so the logging, stats and trade-offer
+    /// housekeeping it would have done has to happen on this side instead.
+    private func recordAppliedMove(_ step: GameSession.Step, stateBeforeMove: GameState) {
+        let gameLogID = currentGameLogID ?? {
+            let id = GameLogStore.shared.startNewGame(initialState: stateBeforeMove, roster: seatRoster())
+            currentGameLogID = id
+            return id
+        }()
+        GameLogStore.shared.appendMove(gameID: gameLogID, player: step.actor, move: step.move)
+        eventBatch = EventBatch(sequence: eventBatch.sequence, events: eventBatch.events + step.events)
+
+        if case .proposeTrade(let offer) = step.move { offerProposedAt[offer.id] = Date() }
+        let stillPending = Set(state.pendingTradeOffers.map(\.id))
+        offerProposedAt = offerProposedAt.filter { stillPending.contains($0.key) }
+
+        if case .gameOver(let winner) = state.phase, currentGameLogID != nil {
+            GameLogStore.shared.finalizeGame(gameID: gameLogID, winner: winner)
+            GameStatsStore.shared.recordGameEnd(
+                won: winner == humanPlayer,
+                finalVP: min(state.victoryPoints(for: humanPlayer), 10),
+                duration: currentGameDuration
+            )
+            currentGameLogID = nil
         }
     }
 
@@ -701,8 +772,14 @@ public final class GameViewModel {
     ]
 
     private func personalityIndex(for player: PlayerID) -> Int {
-        let botSeatsInOrder = (0...3).filter { $0 != humanPlayer.index }
+        Self.personalityIndex(for: player, humanSeat: humanPlayer)
+    }
+
+    /// Bot seats take the roster in order, so the same balanced/aggressive/
+    /// cautious mix is dealt regardless of which seat the human ended up in.
+    private static func personalityIndex(for player: PlayerID, humanSeat: PlayerID) -> Int {
+        let botSeatsInOrder = (0...3).filter { $0 != humanSeat.index }
         guard let seat = botSeatsInOrder.firstIndex(of: player.index) else { return 0 }
-        return min(seat, Self.botRoster.count - 1)
+        return min(seat, botRoster.count - 1)
     }
 }

@@ -35,7 +35,7 @@ import Foundation
 // identical - same canonicalization, same hash, same bot RNG derivation - to
 // `Packages/CatanAI/Tests/CatanAITests/SeededGameFingerprintTests.swift`, so
 // that suite's five pinned constants double as an external check on this
-// harness. `sim --seed 1 --games 1 --jsonl` must print `7cc7aee7b0c9c4d9`.
+// harness. `sim --seed 1 --games 1 --jsonl` must print `01a87510183024b1`.
 //
 // ## stdout is data, stderr is diagnostics
 // Timing and progress go to stderr so that two runs over the same seeds are
@@ -98,29 +98,41 @@ private func fail(_ message: String) -> Never {
 private struct Options {
     var games: Int = 1
     var firstSeed: UInt64 = 1
-    var personalityNames: [String] = ["balanced", "aggressive", "cautious", "balanced"]
+    var seatNames: [String] = ["balanced", "aggressive", "cautious", "balanced"]
     var jsonl: Bool = false
 
     static let usage = """
-        usage: sim [--games N] [--seed S] [--personalities a,b,c,d] [--jsonl]
-          --games N            number of consecutive seeds to play (default 1)
-          --seed S             first board seed; seeds S ..< S+N are played (default 1)
-          --personalities LIST four comma-separated names from: balanced, aggressive, cautious
-                               (default balanced,aggressive,cautious,balanced)
-          --jsonl              one JSON object per game on stdout; without it, a text table
+        usage: sim [--games N] [--seed S] [--seats a,b,c,d] [--jsonl]
+          --games N     number of consecutive seeds to play (default 1)
+          --seed S      first board seed; seeds S ..< S+N are played (default 1)
+          --seats LIST  four comma-separated policy names, one per seat
+                        heuristics: balanced, aggressive, cautious
+                        anchors:    greedy, random
+                        (default balanced,aggressive,cautious,balanced)
+                        --personalities is accepted as an alias
+          --jsonl       one JSON object per game on stdout; without it, a text table
         """
 }
 
-/// Maps a personality name to the `BotPersonality` constant it refers to.
-/// Unknown names abort rather than falling back to `.balanced`, because a
-/// typo'd arm silently played by the default opponent is the exact way a
-/// bogus strength claim gets made.
-private func personality(named name: String) -> BotPersonality {
+/// Maps a seat name to the policy that plays it.
+///
+/// The anchors are here as first-class seats, not as a special mode, because
+/// an anchored measurement is the ordinary case: a win rate against other
+/// heuristics is 25% by construction and says nothing about strength. Naming
+/// `greedy` or `random` on the command line is how a run gets a scale.
+///
+/// Unknown names abort rather than falling back to `.balanced`: a typo'd arm
+/// silently played by the default opponent is the exact way a bogus strength
+/// claim gets made.
+private func policy(named name: String) -> any Policy {
     switch name {
-    case "balanced": return .balanced
-    case "aggressive": return .aggressive
-    case "cautious": return .cautious
-    default: fail("unknown personality '\(name)'; expected balanced, aggressive or cautious")
+    case "balanced": return HeuristicPolicy(personality: .balanced, id: "heuristic-balanced")
+    case "aggressive": return HeuristicPolicy(personality: .aggressive, id: "heuristic-aggressive")
+    case "cautious": return HeuristicPolicy(personality: .cautious, id: "heuristic-cautious")
+    case "greedy": return GreedyPolicy()
+    case "random": return RandomPolicy()
+    default:
+        fail("unknown seat '\(name)'; expected balanced, aggressive, cautious, greedy or random")
     }
 }
 
@@ -145,8 +157,9 @@ private func parseOptions(_ arguments: [String]) -> Options {
         case "--seed":
             guard let seed = UInt64(nextValue(for: "--seed")) else { fail("--seed must be a non-negative integer") }
             options.firstSeed = seed
-        case "--personalities":
-            options.personalityNames = nextValue(for: "--personalities").split(separator: ",").map(String.init)
+        case "--seats", "--personalities":
+            let flag = arguments[index]
+            options.seatNames = nextValue(for: flag).split(separator: ",").map(String.init)
         case "--jsonl":
             options.jsonl = true
         case "--help", "-h":
@@ -158,8 +171,8 @@ private func parseOptions(_ arguments: [String]) -> Options {
         index += 1
     }
 
-    guard options.personalityNames.count == seatCount else {
-        fail("--personalities needs exactly \(seatCount) names, got \(options.personalityNames.count)")
+    guard options.seatNames.count == seatCount else {
+        fail("--seats needs exactly \(seatCount) names, got \(options.seatNames.count)")
     }
     return options
 }
@@ -223,64 +236,46 @@ private struct GameResult {
     let fingerprint: String
 }
 
-/// Whoever may act, or `nil` at game over. `.discarding` carries a `Set` of
-/// pending players, so it is sorted before taking the first - taking `.first`
-/// of the set directly would pick a per-process-arbitrary seat.
-private func actingPlayer(_ state: GameState) -> PlayerID? {
-    switch state.phase {
-    case .setupForward(let i), .setupBackward(let i),
-         .rollDice(let i), .mainTurn(let i), .movingRobber(let i):
-        return state.players[i].id
-    case .discarding(let pending):
-        return pending.sorted().first
-    case .gameOver:
-        return nil
-    }
-}
-
-/// Applies one bot move, or stops the whole run.
-///
-/// `Bot.decide` promises to return a member of `RulesEngine.legalMoves(for:)`,
-/// so a throw here is a broken invariant rather than a data point. Swallowing
-/// it would produce a JSONL record that looks like a finished game and is not
-/// one, which is the worst possible outcome for a measurement tool - so the
-/// process dies, naming the seed and the move that broke it. (`try!` would do
-/// the same thing with a useless message, and is banned outside test files:
-/// `force_try` is only disabled under `Packages/*/Tests/.swiftlint.yml`.)
-private func applyOrDie(_ move: GameMove, by actor: PlayerID, to state: inout GameState, seed: UInt64) {
-    do {
-        try RulesEngine.apply(move, by: actor, to: &state)
-    } catch {
-        fatalError("seed \(seed): P\(actor.index) played an illegal \(Rendering.canonical(move)): \(error)")
-    }
-}
-
 /// Plays one complete game on a randomized board derived from `seed`, with
-/// `bots[i]` seated at index `i`.
+/// `policies[i]` seated at index `i`.
 ///
-/// Conceptually: build the seeded state, then loop - ask whoever is to act for
-/// a move, record its canonical rendering, apply it - until the phase becomes
-/// `.gameOver` or the move cap trips.
-private func playGame(seed: UInt64, bots: [Bot]) -> GameResult {
-    var state = GameSetup.newGame(board: BoardGenerator.randomized(seed: seed), seed: seed)
-    var botRNG = RandomSource(seed: botSeed(fromBoardSeed: seed))
+/// Conceptually: build the seeded state, hand every seat to a `GameSession`,
+/// then step it - recording the canonical rendering of each applied move -
+/// until the game ends or the move cap trips.
+///
+/// **It runs through `GameSession` rather than calling the policies directly,
+/// and that is the entire point.** This harness used to drive `Bot.decide` in
+/// its own loop while the app drove one of its own, so the bots being measured
+/// here were not the bots being played there: this loop saw the unscoped
+/// action list and had no runaway backstop, and the app had both. Any strength
+/// number produced by a private loop describes only that loop.
+private func playGame(seed: UInt64, policies: [any Policy]) -> GameResult {
+    let state = GameSetup.newGame(board: BoardGenerator.randomized(seed: seed), seed: seed)
+    var seats: [PlayerID: any Policy] = [:]
+    for (index, policy) in policies.enumerated() { seats[state.players[index].id] = policy }
+    var session = GameSession(state: state, policies: seats,
+                              policySeed: botSeed(fromBoardSeed: seed))
     var trace: [String] = []
 
     for _ in 0..<maxMovesPerGame {
-        if case .gameOver = state.phase { break }
-        guard let actor = actingPlayer(state) else { break }
-        let move = bots[actor.index].decide(for: state, player: actor, rng: &botRNG)
-        trace.append("P\(actor.index):\(Rendering.canonical(move))")
-        applyOrDie(move, by: actor, to: &state, seed: seed)
+        guard case .seat = session.nextActor() else { break }
+        let step: GameSession.Step?
+        do {
+            step = try session.step()
+        } catch {
+            fatalError("seed \(seed): a policy played an illegal move: \(error)")
+        }
+        guard let step else { break }
+        trace.append("P\(step.actor.index):\(Rendering.canonical(step.move))")
     }
 
     var winner: PlayerID?
-    if case .gameOver(let who) = state.phase { winner = who }
+    if case .gameOver(let who) = session.state.phase { winner = who }
     return GameResult(
         seed: seed,
         moves: trace.count,
         winner: winner,
-        victoryPoints: state.players.map { state.victoryPoints(for: $0.id) },
+        victoryPoints: session.state.players.map { session.state.victoryPoints(for: $0.id) },
         fingerprint: Rendering.fingerprint(trace)
     )
 }
@@ -311,12 +306,12 @@ private func textLine(_ result: GameResult) -> String {
 // is a module-scope declaration, and Swift refuses to expose one whose type is
 // less visible than it is.
 private let options = parseOptions(CommandLine.arguments)
-private let bots = options.personalityNames.map { Bot(personality: personality(named: $0)) }
+private let seats = options.seatNames.map { policy(named: $0) }
 private let clock = ContinuousClock()
 private let started = clock.now
 
 for offset in 0..<options.games {
-    let result = playGame(seed: options.firstSeed &+ UInt64(offset), bots: bots)
+    let result = playGame(seed: options.firstSeed &+ UInt64(offset), policies: seats)
     Stdout.write(options.jsonl ? jsonLine(result) : textLine(result))
 }
 
