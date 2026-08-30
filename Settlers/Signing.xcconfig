@@ -1,0 +1,28 @@
+// Who this build is signed by, and what it is called.
+//
+// ─────────────────────────────────────────────────────────────────────────
+//  NOTE FOR JAKE — you should not have to touch this file.
+//
+//  The defaults below are exactly what the project always used: your team
+//  (KDM65HE483) and com.jakebeinart.settlers. Pull, build, run — nothing
+//  changes for you.
+//
+//  It exists because a second developer cannot sign with your team, and the
+//  old fix was to edit project.yml directly, which would have arrived in
+//  your PRs as a change to your signing setup. Instead, anyone who needs a
+//  different team drops a `Signing.local.xcconfig` next to this file and it
+//  overrides the two values. That file is gitignored, so it never reaches
+//  you and never appears in a diff.
+//
+//  If you ever DO need to change your own team or bundle id, change it here
+//  and it applies to everyone who has not overridden it.
+// ─────────────────────────────────────────────────────────────────────────
+
+SETTLERS_DEVELOPMENT_TEAM = KDM65HE483
+SETTLERS_BUNDLE_ID = com.jakebeinart.settlers
+
+// Optional, and deliberately last: assignments in an included file win over
+// the ones above it. The `?` means "include it if it exists" - a normal
+// `#include` of a missing file is a hard build error, which would break the
+// build for everyone who has not created one.
+#include? "Signing.local.xcconfig"
