@@ -95,7 +95,7 @@ public struct DevCardPopupView: View {
             Text(title)
                 .font(.caption.bold())
                 .foregroundStyle(.secondary)
-            ResourceSlotRow(counts: picks.wrappedValue, emptyText: "Tap a resource below") { resource in
+            ResourceSlotRow(counts: picks.wrappedValue) { resource in
                 picks.wrappedValue[resource] = (picks.wrappedValue[resource] ?? 0) - 1
                 if picks.wrappedValue[resource] == 0 { picks.wrappedValue[resource] = nil }
             }
@@ -149,13 +149,26 @@ public struct PopupCard<Content: View>: View {
     public let onDismiss: () -> Void
     @ViewBuilder public let content: Content
 
-    public init(onDismiss: @escaping () -> Void, @ViewBuilder content: () -> Content) {
+    /// Where the card sits in the screen.
+    ///
+    /// `.center` for anything whose height is fixed. `.top` for a popup whose
+    /// content can change height while it is open: centred, growing by 100pt
+    /// moves the card 50pt UP, so every control the player is looking at -
+    /// including the control they just tapped - slides under their finger. The
+    /// trade popup switches between two modes of different heights and did
+    /// exactly that, which read as the tab highlight bobbing vertically.
+    public var alignment: Alignment = .center
+
+    public init(onDismiss: @escaping () -> Void,
+                alignment: Alignment = .center,
+                @ViewBuilder content: () -> Content) {
         self.onDismiss = onDismiss
+        self.alignment = alignment
         self.content = content()
     }
 
     public var body: some View {
-        ZStack {
+        ZStack(alignment: alignment) {
             Color.black.opacity(0.45)
                 .ignoresSafeArea()
                 .onTapGesture(perform: onDismiss)
@@ -171,6 +184,9 @@ public struct PopupCard<Content: View>: View {
                 )
                 .foregroundStyle(CatanTheme.onWaterText)
                 .padding(.horizontal, 32)
+                // Only bites when top-aligned; keeps the card clear of the
+                // status bar and the bot HUD row.
+                .padding(.top, alignment == .top ? 96 : 0)
                 .shadow(radius: 20)
         }
         .transition(.opacity.combined(with: .scale(scale: 0.96)))
