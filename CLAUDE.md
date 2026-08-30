@@ -57,9 +57,14 @@ xcodebuild -project Settlers.xcodeproj -scheme Settlers \
 
 **Forbidden, and why - each of these has produced a false green here:**
 
-- **`xcodebuild test -scheme Settlers` runs NOTHING.** `project.yml` sets `test: targets: []`,
-  so it exits with `error: Scheme Settlers is not currently configured for the test action.`
-  There is no UI test target and no app-target test bundle. All tests are SPM tests.
+- **`swift test` reaches the two SPM packages ONLY.** It cannot see `GameViewModel`, the
+  persistence stores, or anything else in the app target. App-target tests are a real
+  bundle now - `SettlersTests` (`project.yml:80`), wired into the scheme's test action with
+  coverage (`project.yml:92-104`) and run by `scripts/gate.sh:164` on every gate:
+  `xcodebuild test -project Settlers.xcodeproj -scheme Settlers -destination '...'`.
+  This previously read "`xcodebuild test -scheme Settlers` runs NOTHING", which was true
+  when `test: targets: []` and is now false. Left uncorrected it tells the next reader that
+  app-layer behaviour cannot be tested, which is exactly backwards.
 - **`swift test` from the repo root fails** - there is no root `Package.swift`. Use
   `--package-path` (above) or `cd` into the package.
 - **Never pipe `xcodebuild` (or any test runner) through `tail`/`head`/`grep`.** A shell
@@ -108,8 +113,11 @@ mistake is cheap to repeat.
   Worse in the file-list direction: a new `.swift` file on disk that has not been generated
   in fails with `cannot find 'X' in scope`, naming the *symbol*, not the file, which sends
   people hunting an import bug that does not exist.
-- **`test: targets: []` means the app scheme's test action is empty.** Reading "tests passed"
-  out of an `xcodebuild test` invocation here is reading a message about nothing.
+- **An empty `test: targets:` makes "tests passed" a message about nothing.** That was
+  literally true here - the app scheme once had `targets: []`, so `xcodebuild test` reported
+  success having run zero tests. It is fixed (`project.yml:92-104`), and the lesson is kept
+  because the failure is silent: a test action with no targets does not error, it passes.
+  If the app suite's count ever drops toward zero, check the scheme before the tests.
 - **"Seat 0 is the human" was copied into several places and is not fully dead.** Jake's
   `8710045` ("Randomize Seat") fixed the copies in `CatanTheme.playerLabel`,
   `GameViewModel.drawAssignment`, `GameViewModel.personality(for:)`, `ContentView`'s bot-loop

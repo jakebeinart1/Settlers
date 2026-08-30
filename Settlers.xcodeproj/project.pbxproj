@@ -13,6 +13,7 @@
 		17B209D17F882202517AC5D8 /* BoardChips.swift in Sources */ = {isa = PBXBuildFile; fileRef = 64B237C01DFEE60CA454FFCB /* BoardChips.swift */; };
 		1B2E8933650EFB5E3A65F60D /* PlayerNameStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = A7D42223DB45BEF77F97D3F6 /* PlayerNameStore.swift */; };
 		1CE9F2891BE97F0B0CC630BB /* EndGameView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 52C0B1D44B650E22AEBC8366 /* EndGameView.swift */; };
+		232A932B1BF064663A7161C3 /* CivilizationMappingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B98093256E41FC724D7E6C36 /* CivilizationMappingTests.swift */; };
 		24FC8C659DCFE86E74A09ED9 /* PacingSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDCE34AA83132D3E2E52FD54 /* PacingSettings.swift */; };
 		2963FFF4A45E734FACE3E93A /* DiscardPopupView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 64A459436E4814B4E4BE3728 /* DiscardPopupView.swift */; };
 		2CC361595DA16ED4B8153B23 /* CivilizationAssignmentStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = C112C5D5A27EC971416706D0 /* CivilizationAssignmentStore.swift */; };
@@ -107,6 +108,7 @@
 		B1B782178D710BCD61E1E4ED /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		B26D9133BC8A526E79680726 /* SettlersTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = SettlersTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		B5BF359507B1F781FDA749F5 /* Settlers.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = Settlers.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		B98093256E41FC724D7E6C36 /* CivilizationMappingTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CivilizationMappingTests.swift; sourceTree = "<group>"; };
 		B9E07877542F256DEA51B11B /* UniformActionButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UniformActionButton.swift; sourceTree = "<group>"; };
 		BF75252617AEEC3F4190D703 /* ResourceChip.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ResourceChip.swift; sourceTree = "<group>"; };
 		C112C5D5A27EC971416706D0 /* CivilizationAssignmentStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CivilizationAssignmentStore.swift; sourceTree = "<group>"; };
@@ -153,6 +155,7 @@
 				26C8E728C5FF85E8400CFE1A /* .swiftlint.yml */,
 				7A53ECD05D7E8073C7BEDC19 /* BoardFitTests.swift */,
 				56E4A8873ADD3D6574E7A3D3 /* BoardLayeringTests.swift */,
+				B98093256E41FC724D7E6C36 /* CivilizationMappingTests.swift */,
 				6BF5BC6D6577182E9829230A /* IncomingOfferHoldTests.swift */,
 				0CF1180D4C0DC2200606374E /* PacingSettingsTests.swift */,
 				68A4D0016F665BB8F904F4DD /* PersistenceTests.swift */,
@@ -425,6 +428,7 @@
 			files = (
 				E3A6D0C733055C91F0E356FE /* BoardFitTests.swift in Sources */,
 				0C001867D26CBDBAA67CDC72 /* BoardLayeringTests.swift in Sources */,
+				232A932B1BF064663A7161C3 /* CivilizationMappingTests.swift in Sources */,
 				DC62266DFBF7B3987969DA87 /* IncomingOfferHoldTests.swift in Sources */,
 				56AB3F44A7694184D577A6F3 /* PacingSettingsTests.swift in Sources */,
 				8F8382E69A373BB264240262 /* PersistenceTests.swift in Sources */,

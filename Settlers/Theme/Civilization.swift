@@ -45,8 +45,25 @@ public enum Civilization: String, CaseIterable, Sendable, Codable {
     /// This civilization as `TradeMessages` sees it - `CatanAI` is
     /// UI-agnostic and can't import `Civilization` itself, so its own
     /// `Empire` enum mirrors these same raw values 1:1 instead.
+    /// The `TradeMessages` pool this civilization speaks from.
+    ///
+    /// An exhaustive `switch`, not `Empire(rawValue: rawValue)!`. The two enums
+    /// live in different modules and can be edited independently, so the
+    /// force-unwrap turned "somebody renamed a case in `CatanAI`" into a crash
+    /// at the moment a bot tries to speak - which is mid-game, on a device,
+    /// with no compiler warning beforehand. Written this way the compiler
+    /// refuses to build until the new case is mapped.
     public var tradeMessagesEmpire: TradeMessages.Empire {
-        TradeMessages.Empire(rawValue: rawValue)!
+        switch self {
+        case .medieval: return .medieval
+        case .greece: return .greece
+        case .egypt: return .egypt
+        case .aztec: return .aztec
+        case .columbia: return .columbia
+        case .rome: return .rome
+        case .japan: return .japan
+        case .norse: return .norse
+        }
     }
 
     public var displayName: String {

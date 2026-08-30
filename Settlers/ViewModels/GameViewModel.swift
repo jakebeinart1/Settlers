@@ -555,7 +555,7 @@ public final class GameViewModel {
     /// still resolving theirs from the same 7-roll (`.discarding` can have
     /// several players pending at once, human included). That let two
     /// invocations of this loop run concurrently against the same shared
-    /// `state`: one captures `botPlayer` from `nextBotPlayer()`, sleeps
+    /// `state`: one captures the acting bot, sleeps
     /// 600ms, and by the time it wakes and calls `bot.decide(for: state,
     /// player: botPlayer)`, the *other* invocation may have already
     /// resolved that same player's pending action (e.g. their discard) -
@@ -567,7 +567,7 @@ public final class GameViewModel {
     /// disposable headless harness matching the exact crash log verbatim
     /// (see task-16-report.md). A second call arriving while a loop is
     /// already in flight is a safe no-op: the in-flight loop re-derives
-    /// `nextBotPlayer()` fresh every iteration, so it naturally picks up
+    /// `session.nextActor()` fresh every iteration, so it naturally picks up
     /// whatever new bot work the human's move created without needing a
     /// second concurrent copy of this loop.
     private var isProcessingBotTurns = false
@@ -770,31 +770,6 @@ public final class GameViewModel {
         state.pendingTradeOffers.first {
             $0.from != humanPlayer && Trading.bothSidesCanHonour($0, responder: humanPlayer, state: state)
         }
-    }
-
-    /// The bot that should act next, or `nil` if it's the human's turn or
-    /// the game is over. `.discarding` has no single active player, so this
-    /// picks any one bot still in `pending`; it's re-derived each loop
-    /// iteration so it naturally advances to the next pending bot (or to
-    /// `nil` once only the human remains).
-    private func nextBotPlayer() -> PlayerID? {
-        // Asked through `GamePhase.awaitingSeatIndex` rather than unpacking the
-        // five seat-carrying cases again - this was one of the copies that
-        // accessor was added to retire.
-        if let seat = state.phase.awaitingSeatIndex {
-            let player = PlayerID(index: seat)
-            return player == humanPlayer ? nil : player
-        }
-        // The two cases `awaitingSeatIndex` returns nil for. `.discarding` is
-        // genuinely multi-seat, so pick any bot still owing one; re-derived
-        // each loop iteration, so it advances naturally to the next.
-        if case .discarding(let pending) = state.phase {
-            // Sorted: `pending` is a `Set`, and Swift seeds hash order per
-            // process, so `.first` on it would pick a different bot between
-            // launches.
-            return pending.sorted().first { $0 != humanPlayer }
-        }
-        return nil
     }
 
     /// Ranked by seat order *among the 3 bot seats* (not raw seat index) -

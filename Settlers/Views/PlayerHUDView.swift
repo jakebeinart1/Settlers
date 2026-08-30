@@ -3,13 +3,20 @@ import CatanEngine
 
 /// Top HUD strip: one compact chip per **bot** player (the human gets their
 /// own, more spacious panel at the bottom of the screen - see
-/// `HumanPlayerPanel`) showing name/personality, resource breakdown,
-/// development-card count, and victory-point/longest-road/largest-army tags.
-/// Every player's resource hand is shown in full (an intentional
-/// simplification for a casual single-device game - everyone's sitting at
-/// the same table anyway) while dev cards stay a count-only badge for every
-/// player, since which specific cards a player holds is the one piece of
-/// information that's legitimately hidden even in a casual game.
+/// `HumanPlayerPanel`) showing name/personality, hand size, development-card
+/// count, and victory-point/longest-road/largest-army tags.
+///
+/// **An opponent's chip shows only what is public in real Catan**: how many
+/// cards they hold, not which; public victory points, so an unplayed VP card
+/// stays hidden; roads, which are visible on the board; and played knights,
+/// which are played face-up. `PlayerChip`'s own comments spell each out. Only
+/// `HumanPlayerPanel` shows a per-resource breakdown, and only for its owner.
+///
+/// This doc previously said the opposite - "every player's resource hand is
+/// shown in full", described as a deliberate simplification. That has not been
+/// true for some time; the code below it was already correct. It mattered
+/// enough to fix because it is exactly the claim someone would rely on when
+/// deciding how much work hiding a second human's hand would be.
 public struct BotHUDRow: View {
     public let state: GameState
     public let human: PlayerID
