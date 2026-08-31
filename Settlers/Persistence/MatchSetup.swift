@@ -69,7 +69,7 @@ public struct MatchSetup: Codable, Equatable, Sendable {
             return "A game needs \(GameSetup.supportedPlayerCounts.lowerBound) or "
                 + "\(GameSetup.supportedPlayerCounts.upperBound) players."
         }
-        guard humanSeats.contains(where: { _ in true }) else {
+        guard !humanSeats.isEmpty else {
             return "At least one seat must be a human player."
         }
         if let unnamed = humanSeats.first(where: { $0.name.trimmed.isEmpty }) {
@@ -148,8 +148,21 @@ private extension String {
     var trimmed: String { trimmingCharacters(in: .whitespacesAndNewlines) }
 }
 
-/// Persists the setup the current game was started with, and the one to
-/// prefill the New Game screen with next time.
+/// Persists two different things, and the difference between them matters.
+///
+/// - `save`/`load` hold the **prefill**: the configuration the player last laid
+///   out on the New Game screen, in the order they laid it out, so the screen
+///   opens on it next time (A6.4).
+/// - `saveActiveMatch`/`loadActiveMatch` hold the **realised match**: the same
+///   seats renumbered into the turn order actually drawn, so seat *i* of that
+///   value is `PlayerID(index: i)` in the game on disk.
+///
+/// They are separate because "Random" seating shuffles the chairs, after which
+/// the prefill's indices no longer say who is sitting where. Only the realised
+/// record can answer "which seats are people, and what are they called" when a
+/// hot-seat game is resumed after a relaunch - and without it that question was
+/// answered by `HumanSeatStore`, which holds a single seat, so every human seat
+/// but the lowest silently came back as a bot.
 ///
 /// `UserDefaults`, matching every other preference store here. It is small,
 /// it is not sensitive, and a lost setup costs one screen of re-entry.
@@ -161,16 +174,41 @@ public final class MatchSetupStore: @unchecked Sendable {
     public var defaults: UserDefaults = .standard
 
     private let key = "matchSetup"
+    private let activeKey = "activeMatchSetup"
 
-    public func load() -> MatchSetup? {
+    public func load() -> MatchSetup? { decode(forKey: key) }
+
+    public func save(_ setup: MatchSetup) { encode(setup, forKey: key) }
+
+    /// The chair layout the game currently on disk is being played on.
+    public func loadActiveMatch() -> MatchSetup? { decode(forKey: activeKey) }
+
+    public func saveActiveMatch(_ setup: MatchSetup) { encode(setup, forKey: activeKey) }
+
+    /// Forgets who was sitting where, without touching the prefill. Used by the
+    /// one-human entry point, whose game is fully described by
+    /// `HumanSeatStore`'s single seat.
+    public func clearActiveMatch() { defaults.removeObject(forKey: activeKey) }
+
+    /// Clears both records. The prefill goes with them deliberately: this is
+    /// called when the game is thrown away, and a prefill for a match nobody is
+    /// playing is exactly as stale as the match record beside it.
+    public func clear() {
+        defaults.removeObject(forKey: key)
+        defaults.removeObject(forKey: activeKey)
+    }
+
+    private func decode(forKey key: String) -> MatchSetup? {
         guard let data = defaults.data(forKey: key) else { return nil }
+        // A decode failure here means a `MatchSetup` shape this build no longer
+        // reads. There is nobody to report it to and no better answer than
+        // "nothing stored": the screen falls back to its defaults, and the only
+        // cost is one screen of re-entry.
         return try? JSONDecoder().decode(MatchSetup.self, from: data)
     }
 
-    public func save(_ setup: MatchSetup) {
+    private func encode(_ setup: MatchSetup, forKey key: String) {
         guard let data = try? JSONEncoder().encode(setup) else { return }
         defaults.set(data, forKey: key)
     }
-
-    public func clear() { defaults.removeObject(forKey: key) }
 }

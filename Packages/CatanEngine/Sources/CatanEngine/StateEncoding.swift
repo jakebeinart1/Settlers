@@ -637,21 +637,33 @@ public extension StateEncoding {
 
     /// Vertex block then edge block, both in egocentric seat order: 8 slots per
     /// vertex (settlement, city) x 4 seats, then 4 slots per edge (road).
+    ///
+    /// A three-player game pads the missing seat's slots to zero **inside each
+    /// vertex and each edge**, not at the end of the block. That placement is
+    /// the whole point: slot *k* of a vertex has to mean "the k-th seat in
+    /// egocentric order owns this vertex" in every position forever, so the
+    /// absent chair's two slots must sit where that chair's slots always sit.
+    /// Padding at the end of the block would keep the width right and shift the
+    /// meaning of every slot after the first vertex - silently, which is the
+    /// exact defect `layoutVersion` exists to make impossible.
     private static func appendBoardOwnership(_ observation: GameObservation,
                                              index: BoardIndex,
                                              into values: inout [Float]) {
         let seated = seatOrder(from: observation.seat, in: observation.state)
             .map { player($0, in: observation.state) }
+        let emptyChairs = seatCount - seated.count
         for vertex in index.vertices {
             for owner in seated {
                 values.append(owner.settlements.contains(vertex) ? 1 : 0)
                 values.append(owner.cities.contains(vertex) ? 1 : 0)
             }
+            values.append(contentsOf: repeatElement(0, count: emptyChairs * 2))
         }
         for edge in index.edges {
             for owner in seated {
                 values.append(owner.roads.contains(edge) ? 1 : 0)
             }
+            values.append(contentsOf: repeatElement(0, count: emptyChairs))
         }
     }
 

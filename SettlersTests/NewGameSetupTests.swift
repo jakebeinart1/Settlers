@@ -313,4 +313,48 @@ private var startableTable: MatchSetup {
             #expect(store.load() == nil)
         }
     }
+
+    /// The realised match is a *second* record, not the prefill under another
+    /// name. With "Random" seating the two differ - the prefill keeps the order
+    /// the player laid out, the realised record keeps the order drawn - and
+    /// only the realised one can answer "which chairs are people" on a
+    /// relaunch. Sharing one key would have made a shuffled game unresumable.
+    @Test func theRealisedMatchIsStoredSeparatelyFromThePrefill() {
+        withStore { store in
+            var realised = startableTable
+            realised.seats.reverse()
+            for index in realised.seats.indices { realised.seats[index].index = index }
+
+            store.save(startableTable)
+            store.saveActiveMatch(realised)
+
+            #expect(store.load() == startableTable, "the prefill must keep the player's own layout")
+            #expect(store.loadActiveMatch() == realised, "the realised match must keep the order drawn")
+        }
+    }
+
+    /// The one-human entry point clears the roster without touching the
+    /// prefill, so a solo game after a hot-seat game does not resume with the
+    /// previous match's people still seated.
+    @Test func clearingTheRealisedMatchLeavesThePrefillAlone() {
+        withStore { store in
+            store.save(startableTable)
+            store.saveActiveMatch(startableTable)
+            store.clearActiveMatch()
+
+            #expect(store.loadActiveMatch() == nil)
+            #expect(store.load() == startableTable)
+        }
+    }
+
+    /// A hot-seat roster has to survive the round trip whole - both seats and
+    /// both names - because that is the only record of who is playing.
+    @Test func aTwoHumanRosterRoundTripsWithItsNames() {
+        withStore { store in
+            store.saveActiveMatch(startableTable)
+            let restored = store.loadActiveMatch()
+            #expect(restored?.humanSeats.map(\.index) == [0, 1])
+            #expect(restored?.humanSeats.map(\.name) == ["Alex", "Sam"])
+        }
+    }
 }

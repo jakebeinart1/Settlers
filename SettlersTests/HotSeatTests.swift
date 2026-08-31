@@ -91,6 +91,59 @@ private func hotSeatGame(humans: Set<Int>, seats: Int = 4, phaseSeat: Int = 0) -
     #expect(model.sortedHumanSeats.map(\.index) == [1, 2, 3])
 }
 
+// MARK: - The discard phase, which has no single seat
+
+/// `replaceStateForTesting` parks the phone with the lowest human seat, which
+/// is the state a hot-seat game is in when the 7 is rolled on that seat's turn.
+@MainActor
+private func discardingGame(humans: Set<Int>, pending: Set<Int>) -> GameViewModel {
+    let model = GameViewModel()
+    var state = GameSetup.newGame(board: BoardGenerator.standard(), seed: 4)
+    state.phase = .discarding(pending: Set(pending.map { PlayerID(index: $0) }))
+    model.replaceStateForTesting(state, humanSeats: Set(humans.map { PlayerID(index: $0) }))
+    return model
+}
+
+/// `GamePhase.awaitingSeatIndex` answers `nil` for `.discarding`, so a handoff
+/// derived from it alone never fired here - and the game deadlocked outright.
+/// After a 7, the human holding the phone discarded, the second human stayed
+/// pending, no cover appeared, `humanPlayer` never moved, and the discard sheet
+/// (gated on `humanPlayer` being pending) simply went away.
+@MainActor
+@Test func aSecondHumanOwedADiscardIsHandedThePhone() {
+    let model = discardingGame(humans: [0, 1], pending: [0, 1])
+    // The holder discards first - nobody is asked to pass a phone they still
+    // have to use.
+    #expect(model.seatOwedATurn?.index == 0)
+    #expect(!model.needsHandoff)
+
+    // Seat 0 has now discarded; only seat 1 still owes one.
+    var settled = model.state
+    settled.phase = .discarding(pending: [PlayerID(index: 1)])
+    model.replaceStateForTesting(settled, humanSeats: [PlayerID(index: 0), PlayerID(index: 1)])
+
+    #expect(model.seatOwedATurn?.index == 1, "the remaining discarder must be findable")
+    #expect(model.needsHandoff, "the phone has to reach the player who still owes a discard")
+    model.claimDeviceForSeatOwedATurn()
+    #expect(model.humanPlayer.index == 1, "the discard sheet follows `humanPlayer`, so it must move")
+}
+
+/// A bot owing a discard is the session's problem, not the phone's.
+@MainActor
+@Test func aBotOwingADiscardAsksForNoHandoff() {
+    let model = discardingGame(humans: [0, 1], pending: [2])
+    #expect(model.seatOwedATurn == nil)
+    #expect(!model.needsHandoff)
+}
+
+/// The solo path is untouched: one human is never asked to pass anything.
+@MainActor
+@Test func aSoloHumanOwingADiscardIsNotAskedToPassThePhone() {
+    let model = discardingGame(humans: [0], pending: [0, 2])
+    #expect(!model.needsHandoff)
+    #expect(model.humanPlayer.index == 0)
+}
+
 @MainActor
 @Test func aThreeSeatHotSeatGameWorks() {
     let model = hotSeatGame(humans: [0, 1], seats: 3, phaseSeat: 1)

@@ -120,9 +120,9 @@ xcrun simctl io "$SIM" screenshot "$DD/verify.png"
 echo "now READ $DD/verify.png"
 ```
 
-## The `-qa*` launch arguments — all eighteen
+## The `-qa*` launch arguments — all nineteen
 
-Jake's version of this skill said there were three. There are eighteen. Each is a plain
+Jake's version of this skill said there were three. There are nineteen. Each is a plain
 `ProcessInfo` argument check that is never set in normal use, so none can affect a real
 player. Find them all with:
 
@@ -149,15 +149,16 @@ grep -rnoE '"\-qa[A-Za-z]+"' --include="*.swift" "$REPO/Settlers" | sort -u
 | `-qaShowNewGameOverwrite` | `NewGameSetupView.swift` | Same screen with the "Replace your saved game?" confirmation already raised. Pair with a real save (run `-qaAutoStart -qaFastForwardToRollDice` first) to also get the amber saved-game plaque behind it. |
 | `-qaShowNewGameCivilizationPicker` | `NewGameSetupView.swift` | Same screen with seat 2's civilization grid open — the only way to see a taken civilization greyed out. |
 | `-qaNewGameThreeSeats` | `NewGameSetupView.swift` | **Modifier**, combines with any of the four above: shrinks the fixture to a three-player table. |
+| `-qaTwoHumans` | `ContentView.swift` | Turns the loaded game into a two-human hot-seat game (seats 0 and 1, nobody at the device) so `HandoffCoverView` is photographable. **Needs `-qaAutoStart`**; there is no touch injection, so a hot-seat game cannot otherwise be reached from a launch. |
 | `-qaScrollNewGameToBottom` | `NewGameSetupView.swift` | **Modifier**, combines with any of the four above: opens the screen scrolled to the bottom. The screen is ~1,100pt of content, so Match Settings and the status plaques are below the fold on every phone and `simctl` cannot drag them into view. |
 
-**`-qaAutoStart` is load-bearing for nine of these.** `GameView` only renders once
+**`-qaAutoStart` is load-bearing for ten of these.** `GameView` only renders once
 `hasStartedThisSession` is true, so every flag read inside `GameView.swift` is inert on its
-own. Measured on 2026-08-29: `-qaShowEndGame` alone left the app sitting on the main menu;
+own — and so is `-qaTwoHumans`, which `ContentView` reads in the same branch. Measured on 2026-08-29: `-qaShowEndGame` alone left the app sitting on the main menu;
 `-qaAutoStart -qaShowEndGame` rendered the win screen. If a flag "does nothing", check this
 before suspecting the flag.
 
-**Debug only, as of 2026-08-29.** All eighteen reads are consolidated into
+**Debug only, as of 2026-08-29.** All nineteen reads are consolidated into
 `Settlers/QALaunchFlag.swift`, whose `isSet` is wrapped in `#if DEBUG` — so in a Release
 build the flags are inert whatever you pass. If that file exists, do not try to screenshot a
 Release build with them.

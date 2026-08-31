@@ -73,14 +73,31 @@ public final class GameViewModel {
     /// carries scars from exactly that: `GamePhase.awaitingSeatIndex` exists
     /// because six hand-written copies of "is it my turn" disagreed.
     public var needsHandoff: Bool {
-        guard humanSeats.count > 1 else { return false }
-        guard let owed = state.phase.awaitingSeatIndex.map({ PlayerID(index: $0) }),
-              humanSeats.contains(owed) else { return false }
+        guard humanSeats.count > 1, let owed = seatOwedATurn else { return false }
         return owed != seatAtDevice
     }
 
     /// The human the game is waiting on, if it is waiting on one.
+    ///
+    /// `.discarding` is handled separately because `GamePhase.awaitingSeatIndex`
+    /// answers `nil` for it - correctly, since the phase is genuinely
+    /// multi-seat and no single chair owns it. Reading only `awaitingSeatIndex`
+    /// deadlocked a hot-seat game outright: after a 7, the player holding the
+    /// phone discarded, the other human stayed in `pending`, and because
+    /// `awaitingSeatIndex` was `nil` no handoff cover appeared and
+    /// `humanPlayer` never moved - so the discard sheet (which is gated on
+    /// `humanPlayer` being pending) went away, while `GameSession.nextActor()`
+    /// sat on `.awaitingExternalSeat` for a seat with no way to act.
     public var seatOwedATurn: PlayerID? {
+        if case .discarding(let pending) = state.phase {
+            // Sorted: `pending` is a `Set` and Swift seeds hash order per
+            // process, so `.first` on it would pick a different seat between
+            // launches. The holder of the phone goes first when they owe one,
+            // so nobody is asked to pass a phone they still have to use.
+            let owing = pending.sorted().filter { humanSeats.contains($0) }
+            if let seatAtDevice, owing.contains(seatAtDevice) { return seatAtDevice }
+            return owing.first
+        }
         guard let owed = state.phase.awaitingSeatIndex.map({ PlayerID(index: $0) }),
               humanSeats.contains(owed) else { return nil }
         return owed
@@ -221,13 +238,22 @@ public final class GameViewModel {
             seat = PlayerID(index: 0)
         }
         CivilizationAssignment.humanSeat = seat
+        // Hot-seat composition, if the game being resumed recorded one.
+        // `HumanSeatStore` holds a single seat and cannot express "people in
+        // seats 0 and 2", so on its own it turned every human seat but the
+        // lowest into a bot on the next launch, and lost their names.
+        let roster = Self.restoredRoster(for: initialState, fallback: seat)
+        CivilizationAssignment.humanNames = roster.names
         // `@Observable` requires every stored property assigned before
         // `self` (including `self.state`) can be read - `GameLogStore`
         // reads `initialState` (the local), never `self.state`, to stay
         // fully assign-before-read through this initializer.
-        session = Self.makeSession(state: initialState, humanSeat: seat)
-        humanSeats = [seat]
-        seatAtDevice = seat
+        session = Self.makeSession(state: initialState, humanSeats: roster.seats)
+        humanSeats = roster.seats
+        // Nobody is holding a force-quit phone, so a hot-seat game resumes
+        // behind the handoff cover rather than showing whoever's hand happens
+        // to be up. A solo game has nobody to pass to and claims immediately.
+        seatAtDevice = roster.seats.count == 1 ? roster.seats.first : nil
         currentGameLogID = nil
         self.saveWasUnreadable = saveWasUnreadable
         activeSince = Date()
@@ -242,23 +268,22 @@ public final class GameViewModel {
             ? BoardGenerator.randomized(seed: UInt64.random(in: .min ... .max))
             : BoardGenerator.standard()
         let fresh = GameSetup.newGame(board: board)
-        currentGameLogID = nil
-        // Invalidate any bot loop still sleeping against the previous game.
-        gameGeneration &+= 1
-        // Per-game negotiation state, which used to survive a restart: a
-        // confirmation banner left open before Restart carried into the new
-        // game, where confirming it failed against an offer that no longer
-        // existed.
-        pendingTradeConfirmation = nil
-        lastTradeOutcome = nil
-        eventBatch = EventBatch(sequence: eventBatch.sequence + 1, events: [])
-        offerProposedAt = [:]
-        accumulatedActiveDuration = 0
-        activeSince = Date()
+        // Per-game bookkeeping, including the negotiation state that used to
+        // survive a restart: a confirmation banner left open before Restart
+        // carried into the new game, where confirming it failed against an
+        // offer that no longer existed. Shared with `startNewGame(setup:)` so
+        // the two entry points cannot drift over what a new game clears.
+        resetPerGameState()
 
         humanSeats = [randomizeSeat ? PlayerID(index: Int.random(in: 0...3)) : PlayerID(index: 0)]
         seatAtDevice = sortedHumanSeats.first
         CivilizationAssignment.humanNames = [:]
+        // This entry point builds a one-human game, so any hot-seat roster from
+        // the previous match must not outlive it - a resumed game reading a
+        // stale roster would seat people who are no longer playing. Cleared
+        // rather than rewritten: with no record, `restoredRoster` falls back to
+        // `HumanSeatStore`'s single seat, which is exactly what this builds.
+        MatchSetupStore.shared.clearActiveMatch()
         session = Self.makeSession(state: fresh, humanSeats: humanSeats)
         CivilizationAssignment.humanSeat = humanPlayer
         HumanSeatStore.shared.save(humanPlayer)
@@ -335,7 +360,77 @@ public final class GameViewModel {
         HumanSeatStore.shared.save(humanPlayer)
         try? CivilizationAssignmentStore.shared.save(civilizations)
         MatchSetupStore.shared.save(setup)
+        // The realised chair layout, which is what a relaunch has to read back.
+        // `setup` is the player's own layout and its indices are pre-shuffle;
+        // only this records who actually sits where. Without it a resumed
+        // hot-seat game restored a single human seat from `HumanSeatStore` and
+        // handed every other person's chair to a bot.
+        MatchSetupStore.shared.saveActiveMatch(
+            Self.realisedMatch(chairs: chairs, civilizations: civilizations, from: setup))
         try? GameStore.shared.save(state)
+    }
+
+    /// The configured seats renumbered into the chairs they were dealt, with
+    /// every civilization now decided - the record a resumed game reads.
+    private static func realisedMatch(chairs: [MatchSetup.Seat],
+                                      civilizations: [Civilization],
+                                      from setup: MatchSetup) -> MatchSetup {
+        MatchSetup(
+            seats: chairs.enumerated().map { chair, configured in
+                MatchSetup.Seat(index: chair,
+                                isHuman: configured.isHuman,
+                                name: configured.name.trimmingCharacters(in: .whitespacesAndNewlines),
+                                civilization: civilizations[chair])
+            },
+            victoryPointTarget: setup.victoryPointTarget,
+            randomizedBoard: setup.randomizedBoard,
+            randomizeSeatOrder: setup.randomizeSeatOrder
+        )
+    }
+
+    /// Restarts the match the player configured, rather than a fixed default.
+    ///
+    /// The In-Game Settings screen's Restart used to call the two-flag entry
+    /// point, which always builds a four-seat, ten-point, one-human game - so a
+    /// three-player hot-seat game played to eight came back as something else
+    /// entirely, silently. The stored prefill is the player's own layout and is
+    /// the right thing to replay; the flags are only reached when there is no
+    /// stored setup at all (a save from before this screen existed).
+    public func restartCurrentMatch(fallbackRandomizedBoard: Bool, fallbackRandomizeSeat: Bool) {
+        guard let previous = MatchSetupStore.shared.load(), previous.isStartable else {
+            startNewGame(randomizedBoard: fallbackRandomizedBoard, randomizeSeat: fallbackRandomizeSeat)
+            return
+        }
+        startNewGame(setup: previous)
+    }
+
+    /// Who is playing the game being resumed, and what they are called.
+    ///
+    /// Read from `MatchSetupStore.loadActiveMatch()`, which records the chairs
+    /// as they were actually dealt. The record is checked against the state on
+    /// disk before it is trusted - a stored roster whose seat count disagrees
+    /// with the saved game belongs to a different match, and following it would
+    /// name seats that do not exist. In that case, and for a game started
+    /// before the record existed, this falls back to the single seat
+    /// `HumanSeatStore` holds, which is exactly the old behaviour.
+    private static func restoredRoster(for state: GameState,
+                                       fallback: PlayerID) -> (seats: Set<PlayerID>, names: [PlayerID: String]) {
+        guard let active = MatchSetupStore.shared.loadActiveMatch(),
+              active.seats.count == state.players.count,
+              !active.humanSeats.isEmpty
+        else { return ([fallback], [:]) }
+
+        var seats: Set<PlayerID> = []
+        var names: [PlayerID: String] = [:]
+        for chair in active.humanSeats {
+            let id = PlayerID(index: chair.index)
+            seats.insert(id)
+            if !chair.name.isEmpty { names[id] = chair.name }
+        }
+        // One human with no custom name is the pre-hot-seat world exactly:
+        // `CatanTheme.playerLabel` falls through to `PlayerNameStore`/"You".
+        if seats.count == 1 { names = [:] }
+        return (seats, names)
     }
 
     /// The bookkeeping every new game clears, whichever entry point started it.
