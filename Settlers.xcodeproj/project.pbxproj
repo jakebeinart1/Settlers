@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		026232B4459AF297E5949F67 /* NewGameEndToEndTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D04CF1402F3DF884C2B45746 /* NewGameEndToEndTests.swift */; };
 		076DBD0E74CFC2372A8A8AA9 /* GameViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0A975D333BC9759A83497B5 /* GameViewModel.swift */; };
 		0BBF451A08F935DC2BB22743 /* TileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC9BE64D33337CB59DE2D79D /* TileView.swift */; };
 		0C001867D26CBDBAA67CDC72 /* BoardLayeringTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56E4A8873ADD3D6574E7A3D3 /* BoardLayeringTests.swift */; };
@@ -127,6 +128,7 @@
 		C34E239F6C210A9578B2BF3B /* InGameSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InGameSettingsView.swift; sourceTree = "<group>"; };
 		C47D8E51CEBC82766DDDF936 /* Civilization.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Civilization.swift; sourceTree = "<group>"; };
 		CB7D94876E201553696FE24C /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		D04CF1402F3DF884C2B45746 /* NewGameEndToEndTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewGameEndToEndTests.swift; sourceTree = "<group>"; };
 		DDF1F85E001A7B74407061E4 /* BuildPopupView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BuildPopupView.swift; sourceTree = "<group>"; };
 		E093DA361796607C17A17777 /* GameStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameStore.swift; sourceTree = "<group>"; };
 		E674366C1C13D0BBB8CCC2B2 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
@@ -170,6 +172,7 @@
 				B98093256E41FC724D7E6C36 /* CivilizationMappingTests.swift */,
 				00588364F7AD8B7D5AF440EA /* HotSeatTests.swift */,
 				6BF5BC6D6577182E9829230A /* IncomingOfferHoldTests.swift */,
+				D04CF1402F3DF884C2B45746 /* NewGameEndToEndTests.swift */,
 				A28295223E4575E24BB3C67E /* NewGameSetupTests.swift */,
 				859E263A00119BF52F19D867 /* PacingPreferencesTests.swift */,
 				68A4D0016F665BB8F904F4DD /* PersistenceTests.swift */,
@@ -453,6 +456,7 @@
 				232A932B1BF064663A7161C3 /* CivilizationMappingTests.swift in Sources */,
 				A61AF82693BF86DFF2883096 /* HotSeatTests.swift in Sources */,
 				DC62266DFBF7B3987969DA87 /* IncomingOfferHoldTests.swift in Sources */,
+				026232B4459AF297E5949F67 /* NewGameEndToEndTests.swift in Sources */,
 				698F2E8917D7405D7AAC8061 /* NewGameSetupTests.swift in Sources */,
 				9D2C2CFA8309AE51A7322BB1 /* PacingPreferencesTests.swift in Sources */,
 				8F8382E69A373BB264240262 /* PersistenceTests.swift in Sources */,
