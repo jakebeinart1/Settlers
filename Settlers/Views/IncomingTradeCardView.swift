@@ -24,8 +24,19 @@ public struct IncomingTradeCardView: View {
     public let offer: TradeOffer
     public let onAccept: () -> Void
     public let onReject: () -> Void
+    /// Halts the countdown without the player having to tap the card.
+    ///
+    /// The only pause condition used to be a tap, so the timer kept draining
+    /// behind `InGameSettingsView` - a later sibling in the same `ZStack`,
+    /// which never removes this view from the hierarchy - and auto-declined a
+    /// real offer behind the very screen whose own copy says nothing moves
+    /// while you decide, and which a player most plausibly opened in order to
+    /// lengthen that timer.
+    public var isHeld: Bool = false
 
-    public init(offer: TradeOffer, onAccept: @escaping () -> Void, onReject: @escaping () -> Void) {
+    public init(offer: TradeOffer, isHeld: Bool = false,
+                onAccept: @escaping () -> Void, onReject: @escaping () -> Void) {
+        self.isHeld = isHeld
         self.offer = offer
         self.onAccept = onAccept
         self.onReject = onReject
@@ -252,7 +263,7 @@ public struct IncomingTradeCardView: View {
             while remaining > 0 {
                 try? await Task.sleep(for: .milliseconds(100))
                 if Task.isCancelled { return }
-                guard !isPaused else { continue }
+                guard !isPaused, !isHeld else { continue }
                 remaining = max(0, remaining - 0.1)
             }
             onReject()

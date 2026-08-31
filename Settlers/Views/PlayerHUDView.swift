@@ -29,7 +29,7 @@ public struct BotHUDRow: View {
     public var body: some View {
         HStack(spacing: 8) {
             ForEach(state.players.filter { $0.id != human }, id: \.id) { player in
-                PlayerChip.body(for: player, state: state, isHuman: false)
+                PlayerChip.body(for: player, state: state)
             }
         }
     }
@@ -380,7 +380,7 @@ private struct DevCardHUDTile: View {
 @MainActor
 enum PlayerChip {
     @ViewBuilder
-    static func body(for player: Player, state: GameState, isHuman: Bool) -> some View {
+    static func body(for player: Player, state: GameState) -> some View {
         let isActive = isActivePlayer(player.id, in: state)
         let handSize = player.resources.values.reduce(0, +)
 
@@ -402,7 +402,15 @@ enum PlayerChip {
                 // the roster's longest names ("Charlemagne", "Washington")
                 // without ellipsis-truncating on a 3-bot-wide HUD row, where
                 // each chip only gets a third of the screen's width.
-                Text(isHuman ? CatanTheme.playerLabel(for: player.id) : civilization.generalName)
+                // Always the resolved label, never a hardcoded general name.
+                // The caller passed `isHuman: false` for every seat that is
+                // not at the device, which was correct when the only other
+                // seats were bots - and in a hot-seat game it meant a second
+                // person's chip read "Ragnar" while the handoff cover and the
+                // end-game standings both correctly called them "Sam".
+                // `playerLabel` already returns the general's name for a
+                // genuine bot, so this is right in both cases.
+                Text(CatanTheme.playerLabel(for: player.id))
                     .font(.system(size: 10, weight: .bold, design: .serif))
                     .lineLimit(1)
             }

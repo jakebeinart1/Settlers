@@ -339,7 +339,11 @@ public struct GameView: View {
             // Last in the stack, so it covers every popup as well as the
             // board. A hot-seat handoff has to hide a trade popup or an open
             // discard sheet just as much as it hides the hand behind them.
-            if viewModel.needsHandoff, let owed = viewModel.seatOwedATurn {
+            // `?? humanPlayer` because `needsHandoff` is now also true when
+            // nobody holds the phone and no human is owed a turn - a resumed
+            // game during a bot's move. The cover names whoever will play next.
+            if viewModel.needsHandoff {
+                let owed = viewModel.seatOwedATurn ?? viewModel.humanPlayer
                 HandoffCoverView(
                     seat: owed,
                     handSize: viewModel.state.players
@@ -662,6 +666,8 @@ public struct GameView: View {
                 // `GameViewModel.waitForFairAcceptWindow` is built around.
                 IncomingTradeCardView(
                     offer: currentOffer,
+                    // Same signal the bot loop already holds on.
+                    isHeld: isShowingInGameSettings,
                     onAccept: { respond(to: currentOffer, accept: true) },
                     onReject: { respond(to: currentOffer, accept: false) }
                 )

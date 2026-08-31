@@ -32,11 +32,23 @@ struct HandoffCoverView: View {
             // translucent ground would defeat the entire point, so this is the
             // board art at full opacity with a dark wash over it rather than a
             // scrim over the live board.
-            Image("board-background")
-                .resizable()
-                .scaledToFill()
-                .overlay(Color.black.opacity(0.72))
-                .ignoresSafeArea()
+            // Clamped to the screen with a `GeometryReader`, exactly as
+            // `MainMenuView`, `EndGameView` and `GameView` all do. Without the
+            // clamp, `scaledToFill` reports the aspect-filled image's own
+            // height - 810pt against a 667pt screen on a 16:9 phone - the
+            // stack centres inside that, and "I'm Ready" lays out below the
+            // bottom edge. Since this view also swallows every touch and a
+            // force quit resumes straight back into it, that made hot-seat
+            // play unreachable AND unrecoverable on an iPhone SE.
+            GeometryReader { geo in
+                Image("board-background")
+                    .resizable()
+                    .scaledToFill()
+                    .frame(width: geo.size.width, height: geo.size.height)
+                    .clipped()
+                    .overlay(Color.black.opacity(0.72))
+            }
+            .ignoresSafeArea()
 
             VStack(spacing: 22) {
                 Spacer()

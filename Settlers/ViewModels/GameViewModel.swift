@@ -64,6 +64,17 @@ public final class GameViewModel {
         return first
     }
 
+    /// Whether any seat is played by a bot.
+    ///
+    /// An all-human table is a supported configuration (spec A1.4), and in one
+    /// the player-trade path has nobody to answer it: `resolveHumanProposedTrade`
+    /// iterates an empty bot set, so the proposal is answered by nobody, leaves
+    /// an offer in `pendingTradeOffers` that no seat can see - `openIncomingOffer`
+    /// excludes offers a human proposed - and reports "No one accepted that
+    /// trade." over an empty list. The trade UI asks this rather than offering
+    /// a button that cannot work.
+    public var hasBotSeats: Bool { humanSeats.count < state.players.count }
+
     /// True when the phone has to change hands before play continues.
     ///
     /// Derived rather than fired as an event at each transition. An event
@@ -73,7 +84,15 @@ public final class GameViewModel {
     /// carries scars from exactly that: `GamePhase.awaitingSeatIndex` exists
     /// because six hand-written copies of "is it my turn" disagreed.
     public var needsHandoff: Bool {
-        guard humanSeats.count > 1, let owed = seatOwedATurn else { return false }
+        guard humanSeats.count > 1 else { return false }
+        // No human is owed a turn - a bot is thinking, or the game is over.
+        // Cover anyway if nobody has claimed the phone. That is reachable on
+        // the ordinary path, not only at game start: saves are written after
+        // every bot move, so a force quit mid-bot-turn resumes here, and
+        // without this no cover appeared while `humanPlayer` fell back to the
+        // lowest human seat and drew that player's full hand to whoever picked
+        // the phone up.
+        guard let owed = seatOwedATurn else { return seatAtDevice == nil }
         return owed != seatAtDevice
     }
 
@@ -427,10 +446,41 @@ public final class GameViewModel {
             seats.insert(id)
             if !chair.name.isEmpty { names[id] = chair.name }
         }
-        // One human with no custom name is the pre-hot-seat world exactly:
-        // `CatanTheme.playerLabel` falls through to `PlayerNameStore`/"You".
-        if seats.count == 1 { names = [:] }
+        // A solo seat's name is KEPT. Discarding it here threw away the name
+        // the player typed on the New Game screen on every relaunch, so the
+        // game silently reverted to the App Settings preference - the prefill
+        // becoming the running value, which X1.2 forbids, in the most common
+        // configuration of all. The loop above already skips empty names, so a
+        // player who typed nothing still falls through to
+        // `PlayerNameStore`/"You" exactly as before.
         return (seats, names)
+    }
+
+    /// Records the finished game against lifetime statistics - **solo games
+    /// only**.
+    ///
+    /// A hot-seat game must not touch them, and not merely because "your win
+    /// rate" is ill-defined when four people share a phone. `apply` applies
+    /// every move as the seat holding the device, so the winner of a hot-seat
+    /// game IS the phone's owner by construction: recording them would drive a
+    /// shared device to a permanent 100% win rate, resettable only by wiping
+    /// every statistic. Spec C4.4.
+    ///
+    /// The victory-point cap follows the game's own target rather than a
+    /// hardcoded ten. The winning move can push a player past the threshold in
+    /// one jump - a knight that simultaneously claims Largest Army - which is
+    /// legal and not worth recording as a bigger score, but in a twelve-point
+    /// game the threshold is twelve, and capping at ten filed every Epic win
+    /// as a ten.
+    var shouldRecordLifetimeStatistics: Bool { humanSeats.count == 1 }
+
+    private func recordGameEndIfSolo(winner: PlayerID) {
+        guard shouldRecordLifetimeStatistics else { return }
+        GameStatsStore.shared.recordGameEnd(
+            won: winner == humanPlayer,
+            finalVP: min(state.victoryPoints(for: humanPlayer), state.victoryPointTarget),
+            duration: currentGameDuration
+        )
     }
 
     /// The bookkeeping every new game clears, whichever entry point started it.
@@ -480,16 +530,7 @@ public final class GameViewModel {
 
         if !wasGameOver, case .gameOver(let winner) = state.phase {
             GameLogStore.shared.finalizeGame(gameID: gameLogID, winner: winner)
-            GameStatsStore.shared.recordGameEnd(
-                won: winner == humanPlayer,
-                // The winning move can push a player past the 10-VP
-                // threshold in one jump (e.g. a knight simultaneously
-                // claiming Largest Army) - real, legal, and not a bug, but
-                // 10 is what "won" means, so that's what the stat reflects,
-                // not whatever the actual final tally happened to land on.
-                finalVP: min(state.victoryPoints(for: humanPlayer), 10),
-                duration: currentGameDuration
-            )
+            recordGameEndIfSolo(winner: winner)
         }
     }
 
@@ -539,6 +580,16 @@ public final class GameViewModel {
     /// itself was rejected.
     public func apply(_ move: GameMove) throws {
         beginEventBatch()
+        // A bot negotiation belongs to the turn that started it. Left standing
+        // across `endTurn`, the next player's Trade screen opened on the
+        // previous player's banner - which REPLACES the builder, so they could
+        // not compose a trade until they declined somebody else's offer, which
+        // then failed with `.offerNoLongerAvailable` because `RulesEngine`
+        // drops pending offers at `endTurn` anyway.
+        if case .endTurn = move {
+            pendingTradeConfirmation = nil
+            lastTradeOutcome = nil
+        }
         try applyLogged(move, by: humanPlayer)
         if case .proposeTrade(let offer) = move, offer.from == humanPlayer {
             resolveHumanProposedTrade(offer)
@@ -600,6 +651,10 @@ public final class GameViewModel {
         seatAtDevice = seats.sorted().first
         session = Self.makeSession(state: newState, humanSeats: seats)
     }
+
+    /// Drops the device claim, reproducing a relaunch where nobody is holding
+    /// the phone yet. Tests only.
+    func qaClearSeatAtDeviceForTesting() { seatAtDevice = nil }
 
     /// Turns the loaded game into a two-human hot-seat game, for
     /// screenshotting `HandoffCoverView` (see `QALaunchFlag.twoHumans`).
@@ -1032,11 +1087,7 @@ public final class GameViewModel {
 
         if case .gameOver(let winner) = state.phase, currentGameLogID != nil {
             GameLogStore.shared.finalizeGame(gameID: gameLogID, winner: winner)
-            GameStatsStore.shared.recordGameEnd(
-                won: winner == humanPlayer,
-                finalVP: min(state.victoryPoints(for: humanPlayer), 10),
-                duration: currentGameDuration
-            )
+            recordGameEndIfSolo(winner: winner)
             currentGameLogID = nil
         }
     }

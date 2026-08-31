@@ -37,8 +37,13 @@ import CatanEngine
 }
 
 @Test func aShortGameEndsSooner() throws {
-    // The victory target has to reach the bots' games, not just the engine's
-    // win check - and a shorter target should visibly shorten a real game.
+    // A shorter target ends a real game sooner. Note carefully what this does
+    // NOT show: the bots do not yet reason about the target, so an 8-point
+    // game's trace is a prefix of the 12-point one - identical play, stopped
+    // earlier. This asserts the engine's win check reaches a bot-driven game,
+    // which is worth pinning; making the BOTS value the target is deferred
+    // (see A4.4 in the acceptance-criteria spec) because it is a
+    // bot-strength change needing a measured evaluation, not a settings one.
     func moves(target: Int) throws -> Int {
         let state = GameSetup.newGame(board: BoardGenerator.randomized(seed: 7),
                                       seed: 7, victoryPointTarget: target)

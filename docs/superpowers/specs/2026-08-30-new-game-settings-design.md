@@ -1,6 +1,6 @@
 # Empires — New Game Settings Stage
 
-**Spec version:** 1.0 · **Date:** 2026-08-30 · **Status:** ready to implement
+**Spec version:** 1.1 · **Date:** 2026-08-30 · **Status:** ready to implement
 **Repo:** `Settlers` (app "Empires"), branch off `main`, PR to Jake.
 
 > **Verification note on the source material.** Two claims carried into this stage from prior work are **wrong** and have been corrected here from source:
@@ -8,6 +8,23 @@
 > 2. **`GameViewModel.humanPlayer` has 35 references across 6 files**, not ~60 across 9: `ContentView.swift`, `GameViewModel.swift`, `Theme/Civilization.swift` (a doc comment only), `Views/TradePopupView.swift`, `Views/GameView.swift`, `Views/DiscardPopupView.swift`. `PlayerHUDView`, `EndGameView` and `GameLogStore` take a seat as a parameter and never read the global.
 >
 > A third correction matters for scope: **bot chips already hide hands.** `PlayerChip.body` renders `state.publicVictoryPoints(for:)` (`PlayerHUDView.swift:422`), a hand-*size* badge (`:459`) and a dev-card count — never the per-resource breakdown. The class doc at `PlayerHUDView.swift:8-12` claiming "Every player's resource hand is shown in full" is stale; the code is truth. Hiding a non-device human's hand therefore costs one filter change, not a new view.
+
+---
+
+## Amendments after implementation
+
+Recorded rather than silently corrected, because this document was written before the code and a
+reader needs to know where it now diverges.
+
+- **Three-player tables were built.** Listed as a non-goal here; the supplied design carried a Table
+  Size control, and shipping a toggle that did nothing would have been worse than doing the work.
+  `GameSetup.supportedPlayerCounts` is `3...4`.
+- **`GameSetupStore` never shipped under that name.** The consolidated per-game value is
+  `MatchSetup` with `MatchSetupStore`, in `Settlers/Persistence/MatchSetup.swift`.
+- **Five QA flags named here do not exist.** The authoritative list is the enum in
+  `Settlers/QALaunchFlag.swift`, mirrored in `.claude/skills/run-settlers/SKILL.md`.
+- **A4.4 (the AI honouring the victory target) is not implemented** and is now marked deferred in
+  the acceptance-criteria document. It is a bot-strength change, not a settings change.
 
 ---
 
