@@ -61,8 +61,9 @@ private struct StableHeightSlot<Content: View>: View {
     }
 }
 
-/// The real, composed game screen, top to bottom: `BotHUDRow` (the 3 bot
-/// chips only), `BoardView` filling the middle - with the dice chip (once
+/// The real, composed game screen, top to bottom: `BotHUDRow` (a chip for
+/// every seat except the one holding the phone - bots, and other people in a
+/// hot-seat game), `BoardView` filling the middle - with the dice chip (once
 /// there's been a roll) overlaid on its top-left corner - `HumanPlayerPanel`
 /// (the human's own spacious info
 /// panel, now with a dev-card strip alongside the resources), then a single
@@ -76,7 +77,8 @@ private struct StableHeightSlot<Content: View>: View {
 /// knight-card robber move both happen inline on this same `BoardView` (see
 /// `isRobberTargetingActive`) rather than as a separate modal. Incoming bot
 /// trade offers surface as a small `IncomingTradeCardView` right above
-/// `HumanPlayerPanel`, with a 6-second accept window.
+/// `HumanPlayerPanel`, with a countdown set by `PacingPreferences` and
+/// defaulting to 15 seconds - or none at all, if the player chose No Limit.
 ///
 /// A roll used to also spawn small resource badges flying from each
 /// producing tile to the gaining player's HUD spot - dropped in favor of

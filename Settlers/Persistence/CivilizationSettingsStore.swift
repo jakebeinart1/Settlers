@@ -1,7 +1,8 @@
 import Foundation
 
 /// The player's durable civilization preferences - which civilization they
-/// play as, and which others are eligible to be drawn for the 3 bot seats.
+/// play as, and which others are eligible to be drawn for any seat left on
+/// Random - bot or human.
 /// Edited from `SettingsView`; read by `GameViewModel.startNewGame` each
 /// time a fresh game is set up (an in-progress game's actual seat
 /// assignment is separate - see `CivilizationAssignmentStore`).
@@ -18,7 +19,8 @@ public struct CivilizationSettings: Codable, Equatable, Sendable {
     )
 
     /// The minimum number of bot civilizations that must stay included -
-    /// there are exactly 3 bot seats, so fewer than 3 candidates would
+    /// a four-seat table can need three drawn civilizations, so fewer than 3
+    /// candidates would
     /// leave a seat with nothing distinct to draw.
     public static let minimumIncludedBots = 3
 }

@@ -28,10 +28,31 @@ public struct BotHUDRow: View {
 
     public var body: some View {
         HStack(spacing: 8) {
-            ForEach(state.players.filter { $0.id != human }, id: \.id) { player in
+            ForEach(Self.seatsShownAsOpponents(in: state, deviceSeat: human), id: \.id) { player in
                 PlayerChip.body(for: player, state: state)
             }
         }
+    }
+
+    /// Seats rendered as opponent chips - hand SIZE, public victory points,
+    /// roads and played knights, never the per-resource breakdown.
+    ///
+    /// Extracted from `body` so it can be tested. It is the app's entire
+    /// hidden-information boundary, and the test that covered it was vacuous:
+    /// it filtered the device seat out of a list and then asserted the list did
+    /// not contain it. An audit demonstrated that three mutations destroying
+    /// hand-hiding left the whole suite green.
+    public static func seatsShownAsOpponents(in state: GameState, deviceSeat: PlayerID) -> [Player] {
+        state.players.filter { $0.id != deviceSeat }
+    }
+
+    /// Seats whose full per-resource hand is drawn. **Exactly one**, always:
+    /// whoever is holding the phone. Anything else is a hidden-information
+    /// leak, and it is silent - nothing throws, nothing logs, one person just
+    /// sees another person's cards.
+    public static func seatsShowingFullHand(in state: GameState, deviceSeat: PlayerID) -> Set<PlayerID> {
+        let opponents = Set(seatsShownAsOpponents(in: state, deviceSeat: deviceSeat).map(\.id))
+        return Set(state.players.map(\.id)).subtracting(opponents)
     }
 }
 

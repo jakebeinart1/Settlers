@@ -1,9 +1,10 @@
 import SwiftUI
 
 /// The painted chrome the settings surfaces are built from: an ornamented
-/// section header, an info plaque, and a segmented choice row.
+/// section header, an info plaque, a segmented choice row, and a confirmation
+/// card.
 ///
-/// Factored out of `InGameSettingsView` because the same three pieces are what
+/// Factored out of `InGameSettingsView` because the same pieces are what
 /// any settings surface in this app needs, and because the alternative is what
 /// `SettingsView` currently is - a screen assembled from system controls that
 /// renders grey-on-grey and is the one screen in the app that does not look

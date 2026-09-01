@@ -1,4 +1,5 @@
 import Testing
+import Foundation
 import CatanEngine
 @testable import Settlers
 
@@ -15,8 +16,36 @@ import CatanEngine
 /// reading the code, which is exactly the kind of claim that turns out to be
 /// wrong. These drive the real entry point instead.
 
+/// Starts a real game, with the developer's own saved game and match setup put
+/// back afterwards.
+///
+/// `startNewGame` writes through `GameStore`, `MatchSetupStore` and
+/// `HumanSeatStore`, all of which resolve the SIMULATOR'S REAL APP CONTAINER -
+/// and `gate.sh` runs this suite on every push. Without this, a routine gate
+/// run silently destroyed whatever game was in progress on that simulator,
+/// twenty-nine times per run. `PersistenceTests` carries the same guard and the
+/// same note: making the stores' directory injectable is the real fix, and it
+/// is a change to all seven stores.
 @MainActor
 private func started(_ setup: MatchSetup) -> GameViewModel {
+    let container = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
+    let save = container.appendingPathComponent("catan_save.json")
+    let savedGame = try? Data(contentsOf: save)
+    let savedSetup = UserDefaults.standard.data(forKey: "matchSetup")
+    let savedSeat = UserDefaults.standard.object(forKey: "humanSeat")
+    defer {
+        if let savedGame { try? savedGame.write(to: save) } else { try? FileManager.default.removeItem(at: save) }
+        if let savedSetup {
+            UserDefaults.standard.set(savedSetup, forKey: "matchSetup")
+        } else {
+            UserDefaults.standard.removeObject(forKey: "matchSetup")
+        }
+        if let savedSeat {
+            UserDefaults.standard.set(savedSeat, forKey: "humanSeat")
+        } else {
+            UserDefaults.standard.removeObject(forKey: "humanSeat")
+        }
+    }
     let model = GameViewModel()
     model.startNewGame(setup: setup)
     return model

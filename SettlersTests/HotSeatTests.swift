@@ -63,15 +63,43 @@ private func hotSeatGame(humans: Set<Int>, seats: Int = 4, phaseSeat: Int = 0) -
 }
 
 @MainActor
-@Test func everySeatButTheOneAtTheDeviceIsAnOpponent() {
-    // The hand-hiding property itself: `BotHUDRow` renders everyone except
-    // `humanPlayer` as a chip, and a chip shows hand SIZE only. So the set of
-    // seats whose hands are concealed must be every seat but the current one -
-    // including the other humans.
+@Test func exactlyOneSeatEverShowsItsFullHand() {
+    // The app's whole hidden-information boundary, asserted against the
+    // function the view actually calls.
+    //
+    // The previous version of this test was vacuous: it filtered the device
+    // seat out of a list and then asserted the list did not contain it. An
+    // audit showed that three separate mutations destroying hand-hiding left
+    // all 78 tests green, which is the worst possible property for a test to
+    // have - it made the most safety-critical behaviour on the branch look
+    // covered while covering nothing.
+    for humans in [[0], [0, 1], [0, 1, 2], [0, 1, 2, 3]] {
+        for device in humans {
+            let model = hotSeatGame(humans: Set(humans), phaseSeat: device)
+            model.claimDeviceForSeatOwedATurn()
+            let shown = BotHUDRow.seatsShowingFullHand(in: model.state, deviceSeat: model.humanPlayer)
+
+            #expect(shown == [model.humanPlayer],
+                    "\(humans.count) humans, device at \(device): full hands shown for \(shown.map(\.index).sorted())")
+            #expect(shown.count == 1, "more than one hand on screen is a leak")
+
+            // Specifically: no OTHER person's hand, which is the case bots
+            // never exercised.
+            for other in model.humanSeats where other != model.humanPlayer {
+                #expect(!shown.contains(other),
+                        "seat \(other.index)'s hand is visible to seat \(model.humanPlayer.index)")
+            }
+        }
+    }
+}
+
+@MainActor
+@Test func everyOtherSeatIsRenderedAsAnOpponent() {
+    // The complement: nobody is silently dropped from the HUD either.
     let model = hotSeatGame(humans: [0, 1, 2, 3], phaseSeat: 0)
-    let concealed = model.state.players.map(\.id).filter { $0 != model.humanPlayer }
-    #expect(concealed.count == 3)
-    #expect(!concealed.contains(model.humanPlayer))
+    let opponents = BotHUDRow.seatsShownAsOpponents(in: model.state, deviceSeat: model.humanPlayer)
+    #expect(opponents.count == model.state.players.count - 1)
+    #expect(!opponents.map(\.id).contains(model.humanPlayer))
 }
 
 @MainActor

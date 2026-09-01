@@ -2,7 +2,7 @@ import SwiftUI
 import CatanEngine
 
 /// The civilization picker: choose your own civilization, and which of the
-/// other 7 are in the mix for the 3 bot seats. Both write straight to
+/// other 7 are in the mix for any seat left on Random. Both write straight to
 /// `CivilizationSettingsStore` on change and only take effect on the next
 /// "New Game" - the in-progress game (if any) keeps whatever it was dealt
 /// when it started (see `CivilizationAssignmentStore`). Matches
@@ -155,7 +155,7 @@ public struct SettingsView: View {
                 .font(.headline)
                 .foregroundStyle(.white.opacity(0.8))
 
-            Text("Who's in the mix for the 3 bot seats - drawn at random each new game. At least \(CivilizationSettings.minimumIncludedBots) must stay checked.")
+            Text("Who's in the mix for any seat left on Random - drawn when a game starts. At least \(CivilizationSettings.minimumIncludedBots) must stay checked.")
                 .font(.caption)
                 .foregroundStyle(.white.opacity(0.5))
 

@@ -139,8 +139,16 @@ public struct GameState: Codable, Sendable {
         // Absent in every v1 save. Those games were started under the fixed
         // ten-point rule, so ten is not merely a safe default - it is the
         // value they actually played to.
-        victoryPointTarget = try container.decodeIfPresent(Int.self, forKey: .victoryPointTarget)
+        // Range-checked on the way in, not only at construction. A save
+        // carrying 0 - corruption, or a future version widening the range -
+        // would otherwise make the very next build declare seat 0 the winner.
+        // Unreachable through the UI, which is exactly why it needs the guard
+        // here rather than a precondition somebody remembers to write.
+        let decodedTarget = try container.decodeIfPresent(Int.self, forKey: .victoryPointTarget)
             ?? WinCondition.standardTarget
+        victoryPointTarget = WinCondition.supportedTargets.contains(decodedTarget)
+            ? decodedTarget
+            : WinCondition.standardTarget
         // A pre-v1 save carries no generator. Seeding a fresh one keeps the
         // resumed game playable; it cannot make that game replayable, because
         // the moves already applied were rolled off the old global RNG.

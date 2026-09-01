@@ -1123,7 +1123,7 @@ public final class GameViewModel {
         }
     }
 
-    /// Ranked by seat order *among the 3 bot seats* (not raw seat index) -
+    /// Ranked by seat order *among the bot seats* (not raw seat index) -
     /// with "Randomize Seat" on, the human can occupy any of the 4 seats,
     /// and this keeps the same balanced/aggressive/cautious mix regardless
     /// of which one, rather than that mix silently shrinking to 2 bots
