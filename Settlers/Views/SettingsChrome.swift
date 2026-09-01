@@ -156,6 +156,8 @@ struct PaintedChoiceRow<Option: Hashable>: View {
     let options: [Option]
     let title: (Option) -> String
     let selection: Option
+    /// Tighter vertical padding, for screens that have to fit many of these.
+    var isCompact: Bool = false
     let onSelect: (Option) -> Void
 
     var body: some View {
@@ -179,7 +181,11 @@ struct PaintedChoiceRow<Option: Hashable>: View {
                 .lineLimit(1)
                 .minimumScaleFactor(0.75)
                 .frame(maxWidth: .infinity)
-                .padding(.vertical, 13)
+                // 13 suits the In-Game Settings screen, which holds two of
+                // these on a mostly empty page. The New Game screen holds ten
+                // and has to fit the whole configuration above the fold, so it
+                // asks for the compact height.
+                .padding(.vertical, isCompact ? 9 : 13)
                 .background {
                     if isSelected {
                         // Inset by a point so this chip's own gold hairline sits

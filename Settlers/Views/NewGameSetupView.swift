@@ -93,13 +93,11 @@ struct NewGameSetupView: View {
             VStack(spacing: 0) {
                 ScrollViewReader { proxy in
                     ScrollView {
-                        VStack(spacing: 18) {
+                        VStack(spacing: 12) {
                             titleBlock
                             tableSizeSection
                             seatsSection
                             matchSettingsSection
-                            statusPlaque
-                            if hasSavedGame { savedGameWarning }
                         }
                         .padding(.horizontal, Self.screenInset)
                         .padding(.top, 8)
@@ -151,20 +149,17 @@ struct NewGameSetupView: View {
 
     // MARK: - Title
 
+    /// Title only. The subtitle explained what the screen is to somebody who
+    /// can already see four seat cards and a Start button, and cost ~30pt of
+    /// the height that the match settings needed.
     private var titleBlock: some View {
-        VStack(spacing: 6) {
-            HStack(spacing: 12) {
-                titleOrnament
-                Text("New Game")
-                    .font(.system(size: 30, weight: .bold, design: .serif))
-                    .lineLimit(1)
-                    .minimumScaleFactor(0.8)
-                titleOrnament
-            }
-            Text("Configure players, civilizations, and match rules.")
-                .font(.system(size: 14, design: .serif))
-                .foregroundStyle(.white.opacity(0.6))
-                .multilineTextAlignment(.center)
+        HStack(spacing: 12) {
+            titleOrnament
+            Text("New Game")
+                .font(.system(size: 26, weight: .bold, design: .serif))
+                .lineLimit(1)
+                .minimumScaleFactor(0.8)
+            titleOrnament
         }
     }
 
@@ -176,9 +171,13 @@ struct NewGameSetupView: View {
 
     // MARK: - Table size (A1.1)
 
+    /// Inline label rather than an ornamented section header of its own - one
+    /// control does not need a section, and the header cost ~40pt.
     private var tableSizeSection: some View {
-        VStack(spacing: 12) {
-            SettingsSectionHeader(title: "Table Size")
+        HStack(spacing: 12) {
+            Text("Table")
+                .font(.system(size: 13, weight: .semibold, design: .serif))
+                .foregroundStyle(.white.opacity(0.75))
             PaintedChoiceRow(
                 options: Array(GameSetup.supportedPlayerCounts),
                 title: { "\($0) Players" },
@@ -205,11 +204,12 @@ struct NewGameSetupView: View {
         VStack(spacing: 12) {
             SettingsSectionHeader(title: "Players & Civilizations")
             seatGrid
+            // Only the refusal. The standing note explained that seat 4 is
+            // optional, which the "Optional" pill on that card already says,
+            // and it occupied ~45pt permanently to do it.
             if let refusal {
-                plaque(icon: "exclamationmark.triangle.fill", text: refusal, tint: Self.problemTint, accent: Self.problemAccent)
-            } else {
-                SettingsInfoPlaque(text: "Seat \(GameSetup.supportedPlayerCounts.upperBound) is optional in a "
-                                   + "\(GameSetup.supportedPlayerCounts.lowerBound)-player game.")
+                plaque(icon: "exclamationmark.triangle.fill", text: refusal,
+                       tint: Self.problemTint, accent: Self.problemAccent)
             }
         }
     }
@@ -262,7 +262,7 @@ struct NewGameSetupView: View {
     // MARK: - Match settings (A4, A5)
 
     private var matchSettingsSection: some View {
-        VStack(spacing: 16) {
+        VStack(spacing: 10) {
             SettingsSectionHeader(title: "Match Settings")
             matchLengthRow
             boardRow
@@ -280,12 +280,13 @@ struct NewGameSetupView: View {
             help: .matchLength,
             helpText: "How many victory points win the game. The bots play toward the same target, "
                 + "and a saved game resumes at the target it started with.",
-            caption: "First to \(setup.victoryPointTarget) victory points wins."
+            caption: nil
         ) {
             PaintedChoiceRow(
                 options: MatchLength.allCases,
                 title: \.displayName,
                 selection: MatchLength(rawValue: setup.victoryPointTarget) ?? .standard,
+                isCompact: true,
                 onSelect: { setup.victoryPointTarget = $0.rawValue }
             )
         }
@@ -303,6 +304,7 @@ struct NewGameSetupView: View {
                 options: [false, true],
                 title: { $0 ? "Randomized" : "Standard" },
                 selection: setup.randomizedBoard,
+                isCompact: true,
                 onSelect: { setup.randomizedBoard = $0 }
             )
         }
@@ -313,18 +315,21 @@ struct NewGameSetupView: View {
     /// not yet decided, which is the other half of that criterion.
     private var seatingRow: some View {
         labelledChoice(
-            label: "Seating / Turn Order",
+            label: "Turn Order",
             help: .seating,
             helpText: "As Shown plays the seats in the order laid out above. Random shuffles who goes "
                 + "first — you still play the civilization and name you picked.",
-            caption: setup.randomizeSeatOrder
-                ? "Turn order is drawn when the game starts."
-                : "Seats play in the order shown above."
+            // No standing caption: "As Shown" and "Random" already say it, and
+            // this is the last row on the screen, so a caption here is the one
+            // thing that gets clipped by the pinned bar. The fuller
+            // explanation is still a tap away on the info button.
+            caption: nil
         ) {
             PaintedChoiceRow(
                 options: [false, true],
                 title: { $0 ? "Random" : "As Shown" },
                 selection: setup.randomizeSeatOrder,
+                isCompact: true,
                 onSelect: { setup.randomizeSeatOrder = $0 }
             )
         }
@@ -344,11 +349,14 @@ struct NewGameSetupView: View {
         case standard = 10
         case epic = 12
 
+        /// The number is IN the chip, not in a caption underneath it.
+        /// "Standard" alone does not tell a player what they are playing to,
+        /// and a caption per row cost more height than the screen had.
         var displayName: String {
             switch self {
-            case .quick: return "Quick"
-            case .standard: return "Standard"
-            case .epic: return "Epic"
+            case .quick: return "8 VP"
+            case .standard: return "10 VP"
+            case .epic: return "12 VP"
             }
         }
     }
@@ -364,19 +372,29 @@ struct NewGameSetupView: View {
         caption: String?,
         @ViewBuilder control: () -> Control
     ) -> some View {
-        VStack(alignment: .leading, spacing: 8) {
-            HStack(spacing: 7) {
-                Text(label)
-                    .font(.system(size: 16, weight: .semibold, design: .serif))
+        // Label beside the control, not stacked above it, and no standing
+        // caption. Stacked with a caption each row cost ~110pt, so the three of
+        // them plus a section header pushed Board, Seating and the status line
+        // off the bottom of the screen - on the screen whose entire job is to
+        // show you the configuration. `caption` is kept in the signature and
+        // shown only while help is closed for rows that genuinely need one.
+        VStack(alignment: .leading, spacing: 6) {
+            HStack(alignment: .center, spacing: 8) {
+                VStack(alignment: .leading, spacing: 1) {
+                    Text(label)
+                        .font(.system(size: 13, weight: .semibold, design: .serif))
+                        .lineLimit(2)
+                        .minimumScaleFactor(0.75)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+                .frame(width: 104, alignment: .leading)
                 helpButton(label: label, topic: help)
-                Spacer(minLength: 0)
-            }
-            control()
-            if let caption, openHelp != help {
-                footnote(caption)
+                control()
             }
             if openHelp == help {
                 footnote(helpText)
+            } else if let caption {
+                footnote(caption)
             }
         }
     }
@@ -410,6 +428,12 @@ struct NewGameSetupView: View {
         if let problem = setup.validationProblem {
             plaque(icon: "exclamationmark.triangle.fill", text: problem,
                    tint: Self.problemTint, accent: Self.problemAccent)
+        } else if hasSavedGame {
+            // Amber, not green: this configuration is valid AND starting it
+            // destroys a game in progress. Two facts, one line, and the colour
+            // carries which one matters more.
+            plaque(icon: "exclamationmark.triangle.fill", text: readySummary,
+                   tint: Self.warningTint, accent: Self.warningAccent)
         } else {
             plaque(icon: "checkmark.circle", text: readySummary,
                    tint: Self.readyTint, accent: Self.readyAccent)
@@ -420,11 +444,17 @@ struct NewGameSetupView: View {
     /// the seat count because distinctness is an invariant of a startable setup
     /// (A3.2), not an aspiration - a seat left on Random draws from what is
     /// still free.
+    /// One line, because it lives in the pinned bar and every point it takes
+    /// comes off the configuration above it. Two stacked plaques - the summary
+    /// and the saved-game warning - pushed Board and Turn Order back off the
+    /// screen, which is the problem this move was meant to solve.
     private var readySummary: String {
         let humans = setup.humanSeats.count
         let bots = setup.aiSeats.count
-        return "Ready to start • \(humans) Human\(humans == 1 ? "" : "s") • \(bots) AI"
-            + " • \(setup.seats.count) unique civilizations"
+        let composition = "\(humans) Human\(humans == 1 ? "" : "s") • \(bots) AI"
+        return hasSavedGame
+            ? "Ready • \(composition) • replaces your saved game"
+            : "Ready to start • \(composition)"
     }
 
     private var savedGameWarning: some View {
@@ -444,11 +474,15 @@ struct NewGameSetupView: View {
             Text(text)
                 .font(.system(size: 14, design: .serif))
                 .foregroundStyle(.white.opacity(0.92))
-                .fixedSize(horizontal: false, vertical: true)
+                // One line, shrinking rather than wrapping. This plaque sits in
+                // the pinned bar, so a second line is 28pt taken directly off
+                // the configuration it is describing.
+                .lineLimit(1)
+                .minimumScaleFactor(0.7)
             Spacer(minLength: 0)
         }
         .padding(.horizontal, 14)
-        .padding(.vertical, 10)
+        .padding(.vertical, 9)
         .frame(maxWidth: .infinity)
         .background(PaintedChromeBackground(fill: .tintedTexture(tint), cornerRadius: 10, notchScale: 0.6))
     }
@@ -468,11 +502,23 @@ struct NewGameSetupView: View {
     /// Pinned outside the `ScrollView`, because the screen is taller than a
     /// phone and an action bar that has to be scrolled to is an action bar that
     /// gets lost.
+    /// Pinned, and it carries the status line.
+    ///
+    /// The status used to sit at the end of the scroll view, roughly 900pt down,
+    /// while Start was pinned outside it - so an invalid configuration showed a
+    /// dimmed button with the reason nowhere on screen. A6.1 asks for the
+    /// reason to be stated; stating it where the player cannot see it satisfies
+    /// the letter and not the point. Here it is always visible, and always next
+    /// to the button it is about.
     private var bottomBar: some View {
         VStack(spacing: 0) {
             Rectangle()
                 .fill(SettingsChrome.ornamentGold.opacity(0.4))
                 .frame(height: 1)
+
+            statusPlaque
+                .padding(.horizontal, Self.screenInset)
+                .padding(.top, 8)
 
             HStack(spacing: 12) {
                 UniformActionButton(

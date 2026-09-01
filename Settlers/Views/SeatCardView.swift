@@ -52,13 +52,18 @@ struct SeatCardView: View {
     static let undrawnGeneralName = "Noble Strategist"
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
+        // Tight on purpose. Four of these have to fit above the fold alongside
+        // the table size, the match settings and the status line, and at the
+        // original spacing the whole configuration did not fit on a phone - the
+        // match settings sat entirely below the fold on the screen whose job is
+        // to show you the configuration.
+        VStack(alignment: .leading, spacing: 6) {
             header
             rolePicker
             identityBlock
             civilizationBlock
         }
-        .padding(10)
+        .padding(8)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(TintedTextureBackground(tint: cardTint, cropWidthFraction: 0.12))
         .clipShape(FrameCornerRect(cornerRadius: Self.cornerRadius))
@@ -128,6 +133,7 @@ struct SeatCardView: View {
             options: [true, false],
             title: { $0 ? "Human" : "AI" },
             selection: seat.isHuman,
+            isCompact: true,
             onSelect: onSetHuman
         )
     }
@@ -141,8 +147,12 @@ struct SeatCardView: View {
     /// card left a visible gap under its shorter label.
     @ViewBuilder
     private var identityBlock: some View {
+        // No caption. A text field with an "Enter name" prompt does not need a
+        // label reading "Name", and an AI seat's general is identified by the
+        // civilization row directly beneath it. Three captions per card is
+        // ~96pt across the grid, which is most of what pushed the match
+        // settings off screen.
         VStack(alignment: .leading, spacing: 4) {
-            fieldLabel(seat.isHuman ? "Name" : "AI Opponent")
             if seat.isHuman {
                 nameField
             } else {
@@ -155,7 +165,7 @@ struct SeatCardView: View {
         }
     }
 
-    private static let identityRowHeight: CGFloat = 36
+    private static let identityRowHeight: CGFloat = 32
 
     private var nameField: some View {
         TextField("", text: nameBinding, prompt: Text("Enter name").foregroundColor(.white.opacity(0.35)))
@@ -186,7 +196,6 @@ struct SeatCardView: View {
 
     private var civilizationBlock: some View {
         VStack(alignment: .leading, spacing: 4) {
-            fieldLabel("Civilization")
             Button(action: onEditCivilization) {
                 HStack(spacing: 7) {
                     Image(systemName: seat.civilization?.emblemSymbol ?? "die.face.5.fill")
@@ -201,7 +210,7 @@ struct SeatCardView: View {
                         .foregroundStyle(.white.opacity(0.7))
                 }
                 .padding(.horizontal, 10)
-                .padding(.vertical, 9)
+                .padding(.vertical, 7)
                 .background(PaintedChromeBackground(fill: .tintedTexture(dropdownTint), cornerRadius: 8, notchScale: 0.45))
             }
             .buttonStyle(.plain)
@@ -209,11 +218,6 @@ struct SeatCardView: View {
         }
     }
 
-    private func fieldLabel(_ text: String) -> some View {
-        Text(text)
-            .font(.system(size: 11, design: .serif))
-            .foregroundStyle(.white.opacity(0.6))
-    }
 }
 
 #Preview {
