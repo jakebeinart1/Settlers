@@ -58,8 +58,10 @@ private struct MatrixGame {
                 Issue.record("\(label): expected a policy decision")
                 return
             }
-            let legal = RulesEngine.legalMoves(for: session.state, seat: decision.seat)
-            #expect(legal.contains(decision.move), "\(label): policy chose illegal move \(decision.move)")
+            // `commit` is the authority on legality. A queued live-trade
+            // response is intentionally narrower than the active seat's full
+            // phase list, so recomputing `RulesEngine.legalMoves` here asks a
+            // different question and falsely labels that response illegal.
             _ = try session.commit(seat: decision.seat, move: decision.move)
             moves += 1
         }

@@ -36,22 +36,39 @@ public struct Bot: Sendable {
     /// deterministic - e.g. for tests that need a reproducible pick.
     public func decide(for state: GameState, player: PlayerID, rng: inout some RandomNumberGenerator) -> GameMove {
         let legal = RulesEngine.legalMoves(for: state)
+        return decide(for: state, player: player, legalMoves: legal, rng: &rng)
+    }
 
+    /// Chooses from the caller's seat-scoped action list.
+    ///
+    /// `Policy` observations may deliberately narrow the engine's complete
+    /// list—for example, an out-of-turn trade responder may only accept or
+    /// reject. Recomputing here bypassed that mask and let the adapter return
+    /// actions the session had never offered it.
+    public func decide(
+        for state: GameState,
+        player: PlayerID,
+        legalMoves legal: [GameMove],
+        rng: inout some RandomNumberGenerator
+    ) -> GameMove {
+        precondition(!legal.isEmpty, "asked to decide with no legal moves")
+
+        let chosen: GameMove
         switch state.phase {
         case .setupForward, .setupBackward:
-            return decideSetupPlacement(legal: legal, state: state, player: player)
+            chosen = decideSetupPlacement(legal: legal, state: state, player: player)
 
         case .rollDice:
-            return .rollDice
+            chosen = legal.contains(.rollDice) ? .rollDice : legal[0]
 
         case .mainTurn:
-            return decideMainTurn(legal: legal, state: state, player: player, rng: &rng)
+            chosen = decideMainTurn(legal: legal, state: state, player: player, rng: &rng)
 
         case .discarding:
-            return decideDiscard(legal: legal, state: state, player: player)
+            chosen = decideDiscard(legal: legal, state: state, player: player)
 
         case .movingRobber:
-            return decideRobber(legal: legal, state: state, player: player)
+            chosen = decideRobber(legal: legal, state: state, player: player)
 
         case .gameOver:
             // `RulesEngine.legalMoves` always returns `[]` for `.gameOver`
@@ -63,6 +80,8 @@ public struct Bot: Sendable {
             // but illegal move.
             preconditionFailure("Bot.decide should never be called when the game is over")
         }
+        precondition(legal.contains(chosen), "Bot returned a move outside the supplied action mask")
+        return chosen
     }
 
     // MARK: - Setup placement
@@ -217,6 +236,9 @@ public struct Bot: Sendable {
     /// shifts which category wins close calls, then returns whichever
     /// scores highest (or `.endTurn` if nothing clears the bar).
     private func decideMainTurn(legal: [GameMove], state: GameState, player: PlayerID, rng: inout some RandomNumberGenerator) -> GameMove {
+        if let response = decideScopedTradeResponse(legal: legal, state: state, player: player) {
+            return response
+        }
         var best: (move: GameMove, score: Double)?
 
         func consider(_ desired: GameMove?, score: Double) {
@@ -303,6 +325,27 @@ public struct Bot: Sendable {
         }
 
         return best?.move ?? .endTurn
+    }
+
+    /// Answers an out-of-turn negotiation whose action mask contains only
+    /// responses. Build planning still sees the full position and may find an
+    /// affordable build, but that build is intentionally not available while
+    /// another player's offer is being resolved.
+    private func decideScopedTradeResponse(
+        legal: [GameMove],
+        state: GameState,
+        player: PlayerID
+    ) -> GameMove? {
+        guard legal.allSatisfy({ if case .respondToTrade = $0 { true } else { false } }) else { return nil }
+        for offer in state.pendingTradeOffers where offer.from != player {
+            let accept = GameMove.respondToTrade(offerID: offer.id, accept: true)
+            if legal.contains(accept), TradeHeuristics.evaluate(
+                offer: offer, receiver: player, state: state, personality: personality, weights: weights
+            ) {
+                return accept
+            }
+        }
+        return legal.first { if case .respondToTrade(_, false) = $0 { true } else { false } }
     }
 
     /// Finds the member of `legal` that structurally matches `desired`

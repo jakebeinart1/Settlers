@@ -1,3 +1,5 @@
+import Foundation
+
 /// What an agent is shown when it is asked to move.
 ///
 /// One type, deliberately, so that every consumer of the game - the bot that
@@ -17,6 +19,7 @@
 /// shadows Apple's `Observation` module, and any app type marked `@Observable`
 /// that also imports this package then fails to compile with
 /// "'Observable' is not a member type of struct 'CatanEngine.Observation'".
+
 public struct GameObservation: Sendable {
     /// The seat being asked to move.
     public let seat: PlayerID
@@ -73,6 +76,20 @@ public struct GameSession: Sendable {
     /// changing how a bot breaks ties cannot shift the dice.
     public private(set) var policyRNG: RandomSource
 
+    /// An out-of-turn policy response to the offer just proposed.
+    ///
+    /// Catan trades are live negotiations: waiting until the responder's own
+    /// turn makes every bot-to-bot offer disappear when the proposer ends its
+    /// turn. The response is queued here so the app and simulator execute the
+    /// same next action and both can log it as an ordinary `Step`.
+    private var queuedTradeResponse: (seat: PlayerID, move: GameMove)?
+    /// Whether the active seat already opened one negotiation this turn.
+    /// A rejection removes the offer from state, so without this memory the
+    /// policy immediately walks through near-identical deals until the runaway
+    /// cap forces the turn to end. One proposal is a meaningful turn; twenty-
+    /// five variations are a stalled policy loop.
+    private var proposedTradeThisTurn = false
+
     /// A single seat may act only this many times in one `.mainTurn` before
     /// being forced to end it.
     ///
@@ -86,6 +103,7 @@ public struct GameSession: Sendable {
         self.state = state
         self.policies = policies
         self.policyRNG = RandomSource(seed: policySeed)
+        restorePendingTradeBookkeeping()
     }
 
     /// One applied move.
@@ -108,6 +126,7 @@ public struct GameSession: Sendable {
     }
 
     public func nextActor() -> NextActor {
+        if let queuedTradeResponse { return .seat(queuedTradeResponse.seat) }
         let seat: PlayerID
         switch state.phase {
         case .setupForward(let index), .setupBackward(let index),
@@ -148,12 +167,20 @@ public struct GameSession: Sendable {
     /// so a decision taken must be committed**, or the sequence diverges from
     /// a replay of the same seed.
     public mutating func decideNext() -> (seat: PlayerID, move: GameMove)? {
+        if let queuedTradeResponse { return queuedTradeResponse }
         guard case .seat(let seat) = nextActor(), let policy = policies[seat] else { return nil }
 
         // Seat-scoped: the unscoped list is a union in `.discarding`.
-        let legal = RulesEngine.legalMoves(for: state, seat: seat)
+        let legal = RulesEngine.legalMoves(for: state, seat: seat).filter {
+            guard case .proposeTrade = $0 else { return true }
+            return !proposedTradeThisTurn
+        }
         let observation = GameObservation(seat: seat, state: state, legalMoves: legal)
         let chosen = policy.decide(observation, rng: &policyRNG)
+        precondition(
+            legal.contains(chosen),
+            "policy \(policy.id) returned a move outside its action mask"
+        )
 
         if actionsThisTurn >= Self.maxActionsPerTurn, case .mainTurn = state.phase {
             return (seat, .endTurn)
@@ -164,7 +191,14 @@ public struct GameSession: Sendable {
     /// Applies a move a policy chose.
     public mutating func commit(seat: PlayerID, move: GameMove) throws -> Step {
         let events = try RulesEngine.apply(move, by: seat, to: &state)
+        if queuedTradeResponse?.seat == seat, queuedTradeResponse?.move == move {
+            queuedTradeResponse = nil
+        }
         recordAction(by: seat, move: move)
+        if case .proposeTrade(let offer) = move {
+            proposedTradeThisTurn = true
+            queueAutomatedResponse(to: offer)
+        }
         return Step(actor: seat, move: move, events: events)
     }
 
@@ -194,6 +228,7 @@ public struct GameSession: Sendable {
         state = newState
         currentTurnSeat = nil
         actionsThisTurn = 0
+        restorePendingTradeBookkeeping()
     }
 
     /// Runs until the game ends or an external seat has to act.
@@ -216,7 +251,9 @@ public struct GameSession: Sendable {
     private var actionsThisTurn = 0
 
     private mutating func recordAction(by seat: PlayerID, move: GameMove) {
+        if case .respondToTrade = move { return }
         if seat == currentTurnSeat, case .endTurn = move {
+            proposedTradeThisTurn = false
             currentTurnSeat = nil
             actionsThisTurn = 0
         } else if seat == currentTurnSeat {
@@ -225,5 +262,54 @@ public struct GameSession: Sendable {
             currentTurnSeat = seat
             actionsThisTurn = 1
         }
+    }
+
+    // MARK: - Live policy trades
+
+    /// Reconstructs the session-only half of a negotiation after loading or
+    /// replacing state. The offer itself is durable in `GameState`; the queued
+    /// responder and one-proposal guard are derived from it so force-quitting
+    /// between proposal and response cannot change how the turn continues.
+    private mutating func restorePendingTradeBookkeeping() {
+        queuedTradeResponse = nil
+        proposedTradeThisTurn = false
+        guard let offer = state.pendingTradeOffers.first else { return }
+        proposedTradeThisTurn = state.phase.awaitingSeatIndex == offer.from.index
+        queueAutomatedResponse(to: offer)
+    }
+
+    private mutating func queueAutomatedResponse(to offer: TradeOffer) {
+        let externalCanAnswer = state.players.map(\.id).contains {
+            policies[$0] == nil && $0 != offer.from
+                && Trading.bothSidesCanHonour(offer, responder: $0, state: state)
+        }
+        guard !externalCanAnswer else { return }
+
+        let responders = state.players.map(\.id).sorted().filter {
+            $0 != offer.from && policies[$0] != nil
+        }
+        var firstRejection: (PlayerID, GameMove)?
+        for seat in responders {
+            guard let move = tradeDecision(for: seat, offer: offer) else { continue }
+            if firstRejection == nil { firstRejection = (seat, move) }
+            if case .respondToTrade(_, true) = move {
+                queuedTradeResponse = (seat, move)
+                return
+            }
+        }
+        queuedTradeResponse = firstRejection
+    }
+
+    private mutating func tradeDecision(for seat: PlayerID, offer: TradeOffer) -> GameMove? {
+        guard let policy = policies[seat] else { return nil }
+        let reject = GameMove.respondToTrade(offerID: offer.id, accept: false)
+        var legal = [reject]
+        if Trading.bothSidesCanHonour(offer, responder: seat, state: state) {
+            legal.insert(.respondToTrade(offerID: offer.id, accept: true), at: 0)
+        }
+        let observation = GameObservation(seat: seat, state: state, legalMoves: legal)
+        let chosen = policy.decide(observation, rng: &policyRNG)
+        precondition(legal.contains(chosen), "policy \(policy.id) returned a non-response to an open trade")
+        return chosen
     }
 }

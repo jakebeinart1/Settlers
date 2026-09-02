@@ -21,7 +21,12 @@ public struct HeuristicPolicy: Policy {
     }
 
     public func decide(_ observation: GameObservation, rng: inout RandomSource) -> GameMove {
-        bot.decide(for: observation.state, player: observation.seat, rng: &rng)
+        bot.decide(
+            for: observation.state,
+            player: observation.seat,
+            legalMoves: observation.legalMoves,
+            rng: &rng
+        )
     }
 }
 

@@ -14,12 +14,12 @@ private func playToCompletion(
     seed: UInt64,
     policies: [Int: any Policy],
     limit: Int = 20_000
-) -> PlayerID? {
+) throws -> PlayerID? {
     let state = GameSetup.newGame(board: BoardGenerator.randomized(seed: seed), seed: seed)
     var mapped: [PlayerID: any Policy] = [:]
     for (index, policy) in policies { mapped[state.players[index].id] = policy }
     var session = GameSession(state: state, policies: mapped, policySeed: seed &* 31 &+ 7)
-    guard case .gameOver(let winner) = (try? session.run(limit: limit)) else { return nil }
+    guard case .gameOver(let winner) = try session.run(limit: limit) else { return nil }
     return winner
 }
 
@@ -30,7 +30,7 @@ private func playToCompletion(
     // across pending players in `.discarding`, and applying another seat's
     // discard threw immediately.
     for seed: UInt64 in [1, 2, 3] {
-        let winner = playToCompletion(seed: seed, policies: [
+        let winner = try playToCompletion(seed: seed, policies: [
             0: RandomPolicy(), 1: RandomPolicy(), 2: RandomPolicy(), 3: RandomPolicy(),
         ])
         #expect(winner != nil, "seed \(seed): random-legal play must reach a winner without an illegal move")
@@ -45,6 +45,38 @@ private func playToCompletion(
     #expect(RandomPolicy().id == "random")
 }
 
+@Test func heuristicHonoursATradeResponseOnlyActionMask() {
+    var state = GameSetup.newGame(board: BoardGenerator.standard(), seed: 4)
+    state.phase = .mainTurn(playerIndex: 0)
+    let responder = state.players[1].id
+    let offer = TradeOffer.enumerated(from: state.players[0].id, give: [.brick: 1], want: [.ore: 1])
+    state.pendingTradeOffers = [offer]
+    let reject = GameMove.respondToTrade(offerID: offer.id, accept: false)
+    let observation = GameObservation(seat: responder, state: state, legalMoves: [reject])
+    var rng = RandomSource(seed: 1)
+
+    let move = HeuristicPolicy(personality: .balanced, id: "masked").decide(observation, rng: &rng)
+
+    #expect(move == reject)
+}
+
+@Test func heuristicHonoursANarrowedRollPhaseActionMask() {
+    var state = GameSetup.newGame(board: BoardGenerator.standard(), seed: 4)
+    state.phase = .rollDice(playerIndex: 0)
+    let player = state.players[0].id
+    let knight = GameMove.playKnight(moveRobberTo: state.board.tiles[0].coordinate, stealFrom: nil)
+    var rng = RandomSource(seed: 1)
+
+    let move = Bot(personality: .balanced).decide(
+        for: state,
+        player: player,
+        legalMoves: [knight],
+        rng: &rng
+    )
+
+    #expect(move == knight)
+}
+
 /// The anchor measurement: one heuristic bot against three that play legally
 /// and think not at all.
 ///
@@ -52,7 +84,7 @@ private func playToCompletion(
 /// is deliberately far below the observed result - measured at 200/200 across
 /// all four seats - because this test exists to catch the heuristic becoming
 /// *broken*, not to pin a number that honest tuning might move.
-@Test func theHeuristicBotBeatsRandomPlayFromEverySeat() {
+@Test func theHeuristicBotBeatsRandomPlayFromEverySeat() throws {
     var wins = 0
     var played = 0
     for offset in 0..<12 {
@@ -63,7 +95,7 @@ private func playToCompletion(
                 ? HeuristicPolicy(personality: .balanced, id: "heuristic-balanced")
                 : RandomPolicy()
         }
-        guard let winner = playToCompletion(seed: UInt64(4000 + offset), policies: policies) else { continue }
+        guard let winner = try playToCompletion(seed: UInt64(4000 + offset), policies: policies) else { continue }
         played += 1
         if winner.index == seat { wins += 1 }
     }
@@ -78,19 +110,23 @@ private func playToCompletion(
 /// won. Rotating the seat matters: seat order confers a real advantage in
 /// Catan, so a single-seat measurement cannot separate skill from turn order.
 private func winRate(hero: @autoclosure () -> any Policy, foil: @autoclosure () -> any Policy,
-                     games: Int) -> (wins: Int, played: Int) {
+                     games: Int) throws -> (wins: Int, played: Int) {
     var wins = 0
+    var played = 0
     for offset in 0..<games {
         let seat = offset % 4
         var policies: [Int: any Policy] = [:]
         for index in 0..<4 { policies[index] = index == seat ? hero() : foil() }
-        let winner = playToCompletion(seed: UInt64(7000 + offset), policies: policies)
-        if winner?.index == seat { wins += 1 }
+        let winner = try playToCompletion(seed: UInt64(7000 + offset), policies: policies)
+        if let winner {
+            played += 1
+            if winner.index == seat { wins += 1 }
+        }
     }
     // Games that hit the move cap count as losses rather than being dropped:
     // failing to finish is a property of the policy being measured, and
     // discarding them would flatter whichever side stalls more.
-    return (wins, games)
+    return (wins, played)
 }
 
 /// The strength ladder: random < greedy < heuristic.
@@ -114,15 +150,17 @@ private func winRate(hero: @autoclosure () -> any Policy, foil: @autoclosure () 
 /// to catch the ladder *inverting* - a change that makes the heuristic worse
 /// than a policy that cannot trade is a serious regression - not to pin a
 /// number that honest tuning should be free to move.
-@Test func theGreedyAnchorSitsBetweenRandomAndTheHeuristic() {
-    let againstRandom = winRate(hero: GreedyPolicy(), foil: RandomPolicy(), games: 12)
+@Test func theGreedyAnchorSitsBetweenRandomAndTheHeuristic() throws {
+    let againstRandom = try winRate(hero: GreedyPolicy(), foil: RandomPolicy(), games: 12)
+    #expect(againstRandom.played == 12, "every greedy-vs-random game must finish")
     let randomDetail = "greedy won \(againstRandom.wins)/\(againstRandom.played) against random; "
         + "25% is the no-skill null, so at or below it means the anchor has stopped playing Catan"
     #expect(againstRandom.wins >= 4, "\(randomDetail)")
 
-    let heuristicAgainstGreedy = winRate(
+    let heuristicAgainstGreedy = try winRate(
         hero: HeuristicPolicy(personality: .balanced, id: "heuristic-balanced"),
         foil: GreedyPolicy(), games: 12)
+    #expect(heuristicAgainstGreedy.played == 12, "every heuristic-vs-greedy game must finish")
     let greedyDetail = "the heuristic won \(heuristicAgainstGreedy.wins)/"
         + "\(heuristicAgainstGreedy.played) against greedy; it must stay clearly ahead of a "
         + "policy that never trades"
@@ -136,11 +174,11 @@ private func winRate(hero: @autoclosure () -> any Policy, foil: @autoclosure () 
 /// what a random-anchored arm measures is a timeout rather than a loss. Four
 /// greedy seats finished 20 out of 20, median 368 moves. An anchor whose games
 /// mostly do not end is not measuring play.
-@Test func greedySeatsActuallyFinishTheirGames() {
+@Test func greedySeatsActuallyFinishTheirGames() throws {
     var finished = 0
     for seed: UInt64 in [11, 12, 13, 14, 15, 16] {
         let policies = (0..<4).reduce(into: [Int: any Policy]()) { $0[$1] = GreedyPolicy() }
-        if playToCompletion(seed: seed, policies: policies) != nil { finished += 1 }
+        if try playToCompletion(seed: seed, policies: policies) != nil { finished += 1 }
     }
     #expect(finished == 6, "greedy games must reach a winner; \(finished)/6 did")
 }
@@ -159,4 +197,146 @@ private func winRate(hero: @autoclosure () -> any Policy, foil: @autoclosure () 
     let chosen = GreedyPolicy().decide(
         GameObservation(seat: state.players[0].id, state: state, legalMoves: moves), rng: &rng)
     #expect(chosen == .respondToTrade(offerID: offer.id, accept: false))
+}
+
+@Test func aBotProposalIsAnsweredBeforeTheProposerContinues() throws {
+    var state = GameSetup.newGame(board: BoardGenerator.standard(), seed: 18)
+    state.phase = .mainTurn(playerIndex: 0)
+    state.players[0].resources[.brick] = 1
+    state.players[1].resources[.ore] = 1
+    let offer = TradeOffer.enumerated(
+        from: state.players[0].id,
+        give: [.brick: 1],
+        want: [.ore: 1]
+    )
+    let accepter = FirstLegalResponsePolicy(id: "accept-first")
+    var session = GameSession(
+        state: state,
+        policies: [state.players[0].id: GreedyPolicy(), state.players[1].id: accepter],
+        policySeed: 7
+    )
+
+    _ = try session.commit(seat: state.players[0].id, move: .proposeTrade(offer))
+    #expect(session.nextActor() == .seat(state.players[1].id))
+    let applied = try session.step()
+    let response = try #require(applied)
+
+    #expect(response.actor == state.players[1].id)
+    #expect(response.move == .respondToTrade(offerID: offer.id, accept: true))
+    #expect(session.state.pendingTradeOffers.isEmpty)
+    #expect(session.state.players[0].resources[.ore] == 1)
+    #expect(session.state.players[1].resources[.brick] == 1)
+}
+
+@Test func anExternalResponderKeepsTheOfferForTheUI() throws {
+    var state = GameSetup.newGame(board: BoardGenerator.standard(), seed: 18)
+    state.phase = .mainTurn(playerIndex: 0)
+    state.players[0].resources[.brick] = 1
+    state.players[1].resources[.ore] = 1
+    let offer = TradeOffer.enumerated(
+        from: state.players[0].id,
+        give: [.brick: 1],
+        want: [.ore: 1]
+    )
+    var session = GameSession(
+        state: state,
+        policies: [state.players[0].id: GreedyPolicy()],
+        policySeed: 7
+    )
+
+    _ = try session.commit(seat: state.players[0].id, move: .proposeTrade(offer))
+
+    #expect(session.nextActor() == .seat(state.players[0].id))
+    #expect(session.state.pendingTradeOffers == [offer])
+}
+
+@Test func aResumedBotProposalStillReceivesAResponse() throws {
+    var state = GameSetup.newGame(board: BoardGenerator.standard(), seed: 18)
+    state.phase = .mainTurn(playerIndex: 0)
+    state.players[0].resources[.brick] = 1
+    state.players[1].resources[.ore] = 1
+    let offer = TradeOffer.enumerated(
+        from: state.players[0].id,
+        give: [.brick: 1],
+        want: [.ore: 1]
+    )
+    state.pendingTradeOffers = [offer]
+
+    var resumed = GameSession(
+        state: state,
+        policies: [
+            state.players[0].id: FirstProposalPolicy(),
+            state.players[1].id: GreedyPolicy(),
+        ],
+        policySeed: 7
+    )
+
+    #expect(resumed.nextActor() == .seat(state.players[1].id))
+    let applied = try resumed.step()
+    let response = try #require(applied)
+    #expect(response.move == .respondToTrade(offerID: offer.id, accept: false))
+    #expect(resumed.decideNext()?.move == .endTurn)
+}
+
+@Test func replacingStateRestoresAPendingBotResponse() {
+    var pending = GameSetup.newGame(board: BoardGenerator.standard(), seed: 18)
+    pending.phase = .mainTurn(playerIndex: 0)
+    pending.players[0].resources[.brick] = 1
+    pending.players[1].resources[.ore] = 1
+    let offer = TradeOffer.enumerated(
+        from: pending.players[0].id,
+        give: [.brick: 1],
+        want: [.ore: 1]
+    )
+    pending.pendingTradeOffers = [offer]
+    var session = GameSession(
+        state: GameSetup.newGame(board: BoardGenerator.standard(), seed: 19),
+        policies: [pending.players[0].id: GreedyPolicy(), pending.players[1].id: GreedyPolicy()],
+        policySeed: 7
+    )
+
+    session.replace(state: pending)
+
+    #expect(session.nextActor() == .seat(pending.players[1].id))
+}
+
+private struct FirstLegalResponsePolicy: Policy {
+    let id: String
+
+    func decide(_ observation: GameObservation, rng: inout RandomSource) -> GameMove {
+        observation.legalMoves.first!
+    }
+}
+
+@Test func aRejectedOfferIsNotRepeatedInTheSameTurn() throws {
+    var state = GameSetup.newGame(board: BoardGenerator.standard(), seed: 21)
+    state.phase = .mainTurn(playerIndex: 0)
+    state.players[0].resources = [.brick: 2]
+    state.players[1].resources = [.ore: 2]
+    let proposer = FirstProposalPolicy()
+    var session = GameSession(
+        state: state,
+        policies: [state.players[0].id: proposer, state.players[1].id: GreedyPolicy()],
+        policySeed: 9
+    )
+
+    let proposed = session.decideNext()
+    let proposal = try #require(proposed)
+    #expect({ if case .proposeTrade = proposal.move { true } else { false } }())
+    _ = try session.commit(seat: proposal.seat, move: proposal.move)
+    let rejected = session.decideNext()
+    let rejection = try #require(rejected)
+    #expect({ if case .respondToTrade(_, false) = rejection.move { true } else { false } }())
+    _ = try session.commit(seat: rejection.seat, move: rejection.move)
+
+    #expect(session.decideNext()?.move == .endTurn)
+}
+
+private struct FirstProposalPolicy: Policy {
+    let id = "first-proposal"
+
+    func decide(_ observation: GameObservation, rng: inout RandomSource) -> GameMove {
+        observation.legalMoves.first { if case .proposeTrade = $0 { true } else { false } }
+            ?? .endTurn
+    }
 }

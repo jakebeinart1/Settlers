@@ -27,3 +27,16 @@ Make the bot opponents play meaningfully better.
       road network), trade acceptance (raises the bar for high-threat
       proposers), and Monopoly targeting. See
       `docs/superpowers/specs/2026-08-16-bot-threat-assessment-design.md`.
+- [x] Established a reproducible, seat-rotated baseline against the frozen
+      Greedy anchor; added per-seat behavior metrics; and fixed bot-to-bot
+      proposals so another policy answers before the proposer continues. See
+      `docs/AI_summaries/2026-09-02-ai-baseline-and-personality-audit.md`.
+- [ ] Make Balanced, Aggressive, and Cautious observably distinct on
+      predeclared held-out metrics. They currently have overlapping behavior,
+      so their names are tuning intent rather than demonstrated personalities.
+- [ ] Calibrate genuine difficulty tiers against frozen anchors before adding
+      a difficulty control to New Game. Personality and difficulty are
+      separate axes and must remain separate in both evaluation and UI.
+- [ ] Compare heuristic/search, RL/self-play, LLM, and hybrid prototypes through
+      the shared `GameObservation`/`ActionSpace` seam. Do not select an
+      algorithm from intuition or from another game's results.

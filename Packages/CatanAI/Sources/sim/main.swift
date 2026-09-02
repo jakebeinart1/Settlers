@@ -35,7 +35,7 @@ import Foundation
 // identical - same canonicalization, same hash, same bot RNG derivation - to
 // `Packages/CatanAI/Tests/CatanAITests/SeededGameFingerprintTests.swift`, so
 // that suite's five pinned constants double as an external check on this
-// harness. `sim --seed 1 --games 1 --jsonl` must print `01a87510183024b1`.
+// harness. `sim --seed 1 --games 1 --jsonl` must print `603739cf6086264d`.
 //
 // ## stdout is data, stderr is diagnostics
 // Timing and progress go to stderr so that two runs over the same seeds are
@@ -99,10 +99,11 @@ private struct Options {
     var games: Int = 1
     var firstSeed: UInt64 = 1
     var seatNames: [String] = ["balanced", "aggressive", "cautious", "balanced"]
+    var buildID = "working-tree"
     var jsonl: Bool = false
 
     static let usage = """
-        usage: sim [--games N] [--seed S] [--seats a,b,c,d] [--jsonl]
+        usage: sim [--games N] [--seed S] [--seats a,b,c,d] [--build-id ID] [--jsonl]
           --games N     number of consecutive seeds to play (default 1)
           --seed S      first board seed; seeds S ..< S+N are played (default 1)
           --seats LIST  four comma-separated policy names, one per seat
@@ -110,6 +111,8 @@ private struct Options {
                         anchors:    greedy, random
                         (default balanced,aggressive,cautious,balanced)
                         --personalities is accepted as an alias
+          --build-id ID provenance label written into every result
+                        (default working-tree; letters, digits, dot, dash, underscore)
           --jsonl       one JSON object per game on stdout; without it, a text table
         """
 }
@@ -160,6 +163,13 @@ private func parseOptions(_ arguments: [String]) -> Options {
         case "--seats", "--personalities":
             let flag = arguments[index]
             options.seatNames = nextValue(for: flag).split(separator: ",").map(String.init)
+        case "--build-id":
+            let value = nextValue(for: "--build-id")
+            let allowed = CharacterSet.alphanumerics.union(CharacterSet(charactersIn: "._-"))
+            guard !value.isEmpty, value.unicodeScalars.allSatisfy(allowed.contains) else {
+                fail("--build-id may contain only letters, digits, dot, dash and underscore")
+            }
+            options.buildID = value
         case "--jsonl":
             options.jsonl = true
         case "--help", "-h":
@@ -229,11 +239,14 @@ private enum Rendering {
 
 /// Everything one finished game contributes to a measurement.
 private struct GameResult {
+    let buildID: String
+    let policyIDs: [String]
     let seed: UInt64
     let moves: Int
     let winner: PlayerID?
     let victoryPoints: [Int]
     let fingerprint: String
+    let behavior: [PolicyBehaviorMetrics]
 }
 
 /// Plays one complete game on a randomized board derived from `seed`, with
@@ -249,13 +262,14 @@ private struct GameResult {
 /// here were not the bots being played there: this loop saw the unscoped
 /// action list and had no runaway backstop, and the app had both. Any strength
 /// number produced by a private loop describes only that loop.
-private func playGame(seed: UInt64, policies: [any Policy]) -> GameResult {
+private func playGame(seed: UInt64, policies: [any Policy], buildID: String) -> GameResult {
     let state = GameSetup.newGame(board: BoardGenerator.randomized(seed: seed), seed: seed)
     var seats: [PlayerID: any Policy] = [:]
     for (index, policy) in policies.enumerated() { seats[state.players[index].id] = policy }
     var session = GameSession(state: state, policies: seats,
                               policySeed: botSeed(fromBoardSeed: seed))
     var trace: [String] = []
+    var behavior = Array(repeating: PolicyBehaviorMetrics(), count: seatCount)
 
     for _ in 0..<maxMovesPerGame {
         guard case .seat = session.nextActor() else { break }
@@ -267,16 +281,20 @@ private func playGame(seed: UInt64, policies: [any Policy]) -> GameResult {
         }
         guard let step else { break }
         trace.append("P\(step.actor.index):\(Rendering.canonical(step.move))")
+        behavior[step.actor.index].observe(step.events, for: step.actor)
     }
 
     var winner: PlayerID?
     if case .gameOver(let who) = session.state.phase { winner = who }
     return GameResult(
+        buildID: buildID,
+        policyIDs: policies.map(\.id),
         seed: seed,
         moves: trace.count,
         winner: winner,
         victoryPoints: session.state.players.map { session.state.victoryPoints(for: $0.id) },
-        fingerprint: Rendering.fingerprint(trace)
+        fingerprint: Rendering.fingerprint(trace),
+        behavior: behavior
     )
 }
 
@@ -289,8 +307,23 @@ private func playGame(seed: UInt64, policies: [any Policy]) -> GameResult {
 private func jsonLine(_ result: GameResult) -> String {
     let winner = result.winner.map { "\($0.index)" } ?? "null"
     let points = result.victoryPoints.map(String.init).joined(separator: ",")
-    return "{\"seed\":\(result.seed),\"moves\":\(result.moves),\"winner\":\(winner),"
-        + "\"vp\":[\(points)],\"fingerprint\":\"\(result.fingerprint)\"}"
+    let policies = result.policyIDs.map { "\"\($0)\"" }.joined(separator: ",")
+    return "{\"schemaVersion\":2,\"buildID\":\"\(result.buildID)\",\"policies\":[\(policies)],"
+        + "\"seed\":\(result.seed),\"moves\":\(result.moves),\"winner\":\(winner),"
+        + "\"vp\":[\(points)],\"fingerprint\":\"\(result.fingerprint)\","
+        + "\"behavior\":\(behaviorJSON(result.behavior))}"
+}
+
+private func behaviorJSON(_ metrics: [PolicyBehaviorMetrics]) -> String {
+    "[" + metrics.map { metric in
+        "{\"roadsBuilt\":\(metric.roadsBuilt),\"settlementsBuilt\":\(metric.settlementsBuilt),"
+            + "\"citiesBuilt\":\(metric.citiesBuilt),\"developmentCardsBought\":\(metric.developmentCardsBought),"
+            + "\"knightsPlayed\":\(metric.knightsPlayed),\"robberMoves\":\(metric.robberMoves),"
+            + "\"bankTrades\":\(metric.bankTrades),\"tradesProposed\":\(metric.tradesProposed),"
+            + "\"resolvedTradeAcceptances\":\(metric.resolvedTradeAcceptances),"
+            + "\"resolvedTradeRejections\":\(metric.resolvedTradeRejections),"
+            + "\"turnsEnded\":\(metric.turnsEnded)}"
+    }.joined(separator: ",") + "]"
 }
 
 /// The human-readable form, for eyeballing a handful of games.
@@ -311,7 +344,11 @@ private let clock = ContinuousClock()
 private let started = clock.now
 
 for offset in 0..<options.games {
-    let result = playGame(seed: options.firstSeed &+ UInt64(offset), policies: seats)
+    let result = playGame(
+        seed: options.firstSeed &+ UInt64(offset),
+        policies: seats,
+        buildID: options.buildID
+    )
     Stdout.write(options.jsonl ? jsonLine(result) : textLine(result))
 }
 
