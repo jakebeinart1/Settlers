@@ -1,8 +1,11 @@
 # AI baseline and personality audit
 
-Date: 2026-09-02  
-Candidate branch: `codex/ai-baselines`  
-Frozen pre-change anchor: commit `2437cbf`  
+Date: 2026-09-02
+
+Candidate source commit: `a987a25` (`codex/ai-baselines`)
+
+Frozen pre-change system: commit `2437cbf`
+
 Frozen simulator SHA-256: `442da017e6a7111974c53b467b4a0b7ff1380c53d9e6438ee5cb541dd5e8733c`
 Candidate simulator SHA-256: `41e9186043a5d0cc246597b2b900f8b7a2cf7938560f61ae05d9c3d06c92615a`
 

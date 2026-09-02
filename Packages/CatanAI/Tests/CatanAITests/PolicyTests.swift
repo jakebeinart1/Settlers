@@ -123,9 +123,8 @@ private func winRate(hero: @autoclosure () -> any Policy, foil: @autoclosure () 
             if winner.index == seat { wins += 1 }
         }
     }
-    // Games that hit the move cap count as losses rather than being dropped:
-    // failing to finish is a property of the policy being measured, and
-    // discarding them would flatter whichever side stalls more.
+    // Callers assert the completion count separately so a timeout cannot be
+    // mistaken for a decisive loss or silently disappear from the evidence.
     return (wins, played)
 }
 
