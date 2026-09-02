@@ -322,29 +322,35 @@ private func jsonLine(_ result: GameResult) -> String {
 }
 
 private func behaviorJSON(_ metrics: [PolicyBehaviorMetrics]) -> String {
-    "[" + metrics.map { metric in
-        "{\"roadsBuilt\":\(metric.roadsBuilt),\"settlementsBuilt\":\(metric.settlementsBuilt),"
-            + "\"citiesBuilt\":\(metric.citiesBuilt),\"developmentCardsBought\":\(metric.developmentCardsBought),"
-            + "\"knightsPlayed\":\(metric.knightsPlayed),\"robberMoves\":\(metric.robberMoves),"
-            + "\"bankTrades\":\(metric.bankTrades),\"tradesProposed\":\(metric.tradesProposed),"
-            + "\"resolvedTradeAcceptances\":\(metric.resolvedTradeAcceptances),"
-            + "\"resolvedTradeRejections\":\(metric.resolvedTradeRejections),"
-            + "\"turnsEnded\":\(metric.turnsEnded),"
-            + "\"settlementCityOpportunities\":\(metric.settlementCityOpportunities),"
-            + "\"settlementsChosenInMixedBuildOpportunities\":\(metric.settlementsChosenInMixedBuildOpportunities),"
-            + "\"citiesChosenInMixedBuildOpportunities\":\(metric.citiesChosenInMixedBuildOpportunities),"
-            + "\"developmentCardBuildOpportunities\":\(metric.developmentCardBuildOpportunities),"
-            + "\"developmentCardsChosenOverPermanentBuild\":\(metric.developmentCardsChosenOverPermanentBuild),"
-            + "\"tradeResponseOpportunities\":\(metric.tradeResponseOpportunities),"
-            + "\"tradeResponsesAccepted\":\(metric.tradeResponsesAccepted),"
-            + "\"proposalCardsGiven\":\(metric.proposalCardsGiven),"
-            + "\"proposalCardsRequested\":\(metric.proposalCardsRequested),"
-            + "\"playableKnightOpportunities\":\(metric.playableKnightOpportunities),"
-            + "\"knightsChosenWhenPlayable\":\(metric.knightsChosenWhenPlayable),"
-            + "\"differentiatedRobberTargetOpportunities\":\(metric.differentiatedRobberTargetOpportunities),"
-            + "\"highestPublicVPRobberTargets\":\(metric.highestPublicVPRobberTargets),"
-            + "\"tradeProposalOpportunities\":\(metric.tradeProposalOpportunities)}"
-    }.joined(separator: ",") + "]"
+    let objects = metrics.map(behaviorObjectJSON)
+    return "[\(objects.joined(separator: ","))]"
+}
+
+/// Keep each fragment small enough for the Linux Swift compiler to type-check
+/// reliably. The same chained interpolation compiled on macOS but exceeded the
+/// compiler's expression-complexity limit in CI.
+private func behaviorObjectJSON(_ metric: PolicyBehaviorMetrics) -> String {
+    let production = "{\"roadsBuilt\":\(metric.roadsBuilt),\"settlementsBuilt\":\(metric.settlementsBuilt),"
+        + "\"citiesBuilt\":\(metric.citiesBuilt),\"developmentCardsBought\":\(metric.developmentCardsBought),"
+        + "\"knightsPlayed\":\(metric.knightsPlayed),\"robberMoves\":\(metric.robberMoves),"
+        + "\"bankTrades\":\(metric.bankTrades),\"tradesProposed\":\(metric.tradesProposed),"
+        + "\"resolvedTradeAcceptances\":\(metric.resolvedTradeAcceptances),"
+        + "\"resolvedTradeRejections\":\(metric.resolvedTradeRejections),\"turnsEnded\":\(metric.turnsEnded),"
+    let buildChoices = "\"settlementCityOpportunities\":\(metric.settlementCityOpportunities),"
+        + "\"settlementsChosenInMixedBuildOpportunities\":\(metric.settlementsChosenInMixedBuildOpportunities),"
+        + "\"citiesChosenInMixedBuildOpportunities\":\(metric.citiesChosenInMixedBuildOpportunities),"
+        + "\"developmentCardBuildOpportunities\":\(metric.developmentCardBuildOpportunities),"
+        + "\"developmentCardsChosenOverPermanentBuild\":\(metric.developmentCardsChosenOverPermanentBuild),"
+    let tradeChoices = "\"tradeResponseOpportunities\":\(metric.tradeResponseOpportunities),"
+        + "\"tradeResponsesAccepted\":\(metric.tradeResponsesAccepted),"
+        + "\"proposalCardsGiven\":\(metric.proposalCardsGiven),"
+        + "\"proposalCardsRequested\":\(metric.proposalCardsRequested),"
+    let tacticalChoices = "\"playableKnightOpportunities\":\(metric.playableKnightOpportunities),"
+        + "\"knightsChosenWhenPlayable\":\(metric.knightsChosenWhenPlayable),"
+        + "\"differentiatedRobberTargetOpportunities\":\(metric.differentiatedRobberTargetOpportunities),"
+        + "\"highestPublicVPRobberTargets\":\(metric.highestPublicVPRobberTargets),"
+        + "\"tradeProposalOpportunities\":\(metric.tradeProposalOpportunities)}"
+    return production + buildChoices + tradeChoices + tacticalChoices
 }
 
 /// The human-readable form, for eyeballing a handful of games.
