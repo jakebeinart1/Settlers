@@ -6,11 +6,11 @@ import CatanEngine
 public struct GameStore: Sendable {
     public static let shared = GameStore()
 
-    private let fileURL: URL
+    let fileURL: URL
 
-    private init() {
+    init(fileURL: URL? = nil) {
         let baseURL = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
-        fileURL = baseURL.appendingPathComponent("catan_save.json")
+        self.fileURL = fileURL ?? baseURL.appendingPathComponent("catan_save.json")
     }
 
     /// What was on disk.
@@ -60,7 +60,8 @@ public struct GameStore: Sendable {
     }
 
     /// Removes the save file, if present.
-    public func clear() {
-        try? FileManager.default.removeItem(at: fileURL)
+    public func clear() throws {
+        guard hasSave() else { return }
+        try FileManager.default.removeItem(at: fileURL)
     }
 }

@@ -194,6 +194,19 @@ import Foundation
     #expect(restored.victoryPointTarget == 8, "a short game resumed must not revert to ten")
 }
 
+@Test func aSaveWithAnInvalidTargetIsRejectedAsCorrupt() throws {
+    let state = GameSetup.newGame(board: BoardGenerator.standard(), seed: 5)
+    var json = try JSONSerialization.jsonObject(
+        with: JSONEncoder().encode(state)
+    ) as! [String: Any]
+    json["victoryPointTarget"] = 0
+    let corrupted = try JSONSerialization.data(withJSONObject: json)
+
+    #expect(throws: DecodingError.self) {
+        try JSONDecoder().decode(GameState.self, from: corrupted)
+    }
+}
+
 @Test func aThreeSeatGameSurvivesASaveAndReload() throws {
     let original = GameSetup.newGame(board: BoardGenerator.standard(), seed: 8, playerCount: 3)
     let restored = try JSONDecoder().decode(GameState.self, from: try JSONEncoder().encode(original))

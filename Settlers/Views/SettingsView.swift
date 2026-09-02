@@ -1,12 +1,8 @@
 import SwiftUI
 import CatanEngine
 
-/// The civilization picker: choose your own civilization, and which of the
-/// other 7 are in the mix for any seat left on Random. Both write straight to
-/// `CivilizationSettingsStore` on change and only take effect on the next
-/// "New Game" - the in-progress game (if any) keeps whatever it was dealt
-/// when it started (see `CivilizationAssignmentStore`). Matches
-/// `MainMenuView`'s flat, dark, colonist.io-style look.
+/// Surface C: next-match defaults and durable history. Nothing edited here is
+/// the source of truth for a running match.
 public struct SettingsView: View {
     public let onDismiss: () -> Void
 
@@ -16,17 +12,10 @@ public struct SettingsView: View {
 
     @State private var settings = CivilizationSettingsStore.shared.load()
     @State private var playerName = PlayerNameStore.shared.load()
+    @State private var stats = GameStatsStore.shared.load()
     @State private var isShowingResetStatsConfirmation = false
-
-    private var otherCivilizations: [Civilization] {
-        Civilization.allCases.filter { $0 != settings.yourCivilization }
-    }
-
-    /// Below this many included bots, `SettingsView` won't let the player
-    /// uncheck any more - see `CivilizationSettings.minimumIncludedBots`.
-    private var isAtMinimumRoster: Bool {
-        settings.includedBotCivilizations.count <= CivilizationSettings.minimumIncludedBots
-    }
+    @State private var isShowingGameLogs = false
+    @State private var poolRefusal: String?
 
     public var body: some View {
         ZStack {
@@ -39,7 +28,7 @@ public struct SettingsView: View {
                     VStack(alignment: .leading, spacing: 28) {
                         yourNameSection
                         yourCivilizationSection
-                        botRosterSection
+                        randomPoolSection
                         gameLogsSection
                         resetStatsSection
                     }
@@ -59,10 +48,14 @@ public struct SettingsView: View {
         ) {
             Button("Reset Stats", role: .destructive) {
                 GameStatsStore.shared.clear()
+                stats = GameStats()
             }
             Button("Cancel", role: .cancel) {}
         } message: {
             Text("This clears your games played, win rate, and average VP/time. It can't be undone.")
+        }
+        .sheet(isPresented: $isShowingGameLogs) {
+            GameLogListView(onDismiss: { isShowingGameLogs = false })
         }
     }
 
@@ -119,6 +112,10 @@ public struct SettingsView: View {
                 .font(.headline)
                 .foregroundStyle(.white.opacity(0.8))
 
+            Text("Used for your seat the next time you configure a new game.")
+                .font(.caption)
+                .foregroundStyle(.white.opacity(0.5))
+
             VStack(spacing: 10) {
                 ForEach(Civilization.allCases, id: \.self) { civilization in
                     Button {
@@ -138,44 +135,39 @@ public struct SettingsView: View {
 
     private func selectYourCivilization(_ civilization: Civilization) {
         settings.yourCivilization = civilization
-        // Your own civilization can't also be drawn for a bot seat.
-        settings.includedBotCivilizations.remove(civilization)
-        if settings.includedBotCivilizations.count < CivilizationSettings.minimumIncludedBots {
-            let topUp = Civilization.allCases.filter { $0 != civilization && !settings.includedBotCivilizations.contains($0) }
-            settings.includedBotCivilizations.formUnion(topUp.prefix(CivilizationSettings.minimumIncludedBots - settings.includedBotCivilizations.count))
-        }
         persist()
     }
 
-    // MARK: - Bot roster
+    // MARK: - Random civilization pool
 
-    private var botRosterSection: some View {
+    private var randomPoolSection: some View {
         VStack(alignment: .leading, spacing: 16) {
-            Text("Bot Roster")
+            Text("Random Civilization Pool")
                 .font(.headline)
                 .foregroundStyle(.white.opacity(0.8))
 
-            Text("Who's in the mix for any seat left on Random - drawn when a game starts. At least \(CivilizationSettings.minimumIncludedBots) must stay checked.")
+            Text("Every seat left on Random draws only from this pool. Keep at least \(CivilizationSettings.minimumEligibleCivilizations) available.")
                 .font(.caption)
                 .foregroundStyle(.white.opacity(0.5))
 
+            if let poolRefusal {
+                Text(poolRefusal)
+                    .font(.caption.bold())
+                    .foregroundStyle(.orange)
+            }
+
             VStack(spacing: 10) {
-                ForEach(otherCivilizations, id: \.self) { civilization in
-                    let isIncluded = settings.includedBotCivilizations.contains(civilization)
-                    // Once at the minimum roster size, the still-checked
-                    // rows can't be unchecked further - dim them so that's
-                    // visible rather than just silently ignoring the tap.
-                    let isLockedIn = isIncluded && isAtMinimumRoster
+                ForEach(Civilization.allCases, id: \.self) { civilization in
+                    let isIncluded = settings.eligibleRandomCivilizations.contains(civilization)
 
                     Button {
-                        toggleBotRoster(civilization)
+                        toggleRandomPool(civilization)
                     } label: {
                         civilizationRow(
                             civilization,
                             subtitle: civilization.generalName,
                             isSelected: isIncluded
                         )
-                        .opacity(isLockedIn ? 0.5 : 1)
                     }
                     .buttonStyle(.plain)
                 }
@@ -185,43 +177,27 @@ public struct SettingsView: View {
 
     // MARK: - Game logs
 
-    /// Share the recorded games off the device.
-    ///
-    /// Every finished game leaves a JSON Lines file behind - the starting
-    /// position, who was in each seat, and the ordered move list - which is
-    /// what makes a game replayable after the fact and what any future work on
-    /// the bots would learn from. There was previously no way to get one off a
-    /// phone at all: the files sat in Application Support, invisible to the
-    /// Files app, in a container that only a development-signed install can be
-    /// downloaded from. They are now in Documents, and this shares them
-    /// directly.
     @ViewBuilder
     private var gameLogsSection: some View {
-        let logs = GameLogStore.shared.logFiles()
         VStack(alignment: .leading, spacing: 16) {
             Text("Game Logs")
                 .font(.headline)
                 .foregroundStyle(.white.opacity(0.8))
 
-            if logs.isEmpty {
-                Text("No games recorded yet. A log is written once a game's first move is played.")
-                    .font(.caption)
-                    .foregroundStyle(.white.opacity(0.55))
-            } else {
-                ShareLink(items: logs) {
-                    Text("Share \(logs.count) Recorded Game\(logs.count == 1 ? "" : "s")")
-                        .font(.subheadline.bold())
-                        .foregroundStyle(.white)
-                        .frame(maxWidth: .infinity)
-                        .padding(12)
-                        .background(RoundedRectangle(cornerRadius: 10).fill(Color(white: 0.14)))
-                }
-                .buttonStyle(.plain)
-
-                Text("Also reachable from the Files app under On My iPhone › Empires › GameLogs.")
-                    .font(.caption2)
-                    .foregroundStyle(.white.opacity(0.45))
+            Text("A recording begins with the first move. Unreadable files are identified without hiding healthy games.")
+                .font(.caption)
+                .foregroundStyle(.white.opacity(0.55))
+            Button {
+                isShowingGameLogs = true
+            } label: {
+                Text("View Recorded Games")
+                    .font(.subheadline.bold())
+                    .foregroundStyle(.white)
+                    .frame(maxWidth: .infinity)
+                    .padding(12)
+                    .background(RoundedRectangle(cornerRadius: 10).fill(Color(white: 0.14)))
             }
+            .buttonStyle(.plain)
         }
     }
 
@@ -232,6 +208,13 @@ public struct SettingsView: View {
             Text("Stats")
                 .font(.headline)
                 .foregroundStyle(.white.opacity(0.8))
+
+            HStack(spacing: 8) {
+                stat(value: "\(stats.gamesPlayed)", label: "Played")
+                stat(value: "\(Int((stats.winRate * 100).rounded()))%", label: "Win Rate")
+                stat(value: formattedDuration(stats.averageDurationSeconds), label: "Avg Time")
+                stat(value: String(format: "%.1f", stats.averageFinalVP), label: "Avg VP")
+            }
 
             Button {
                 isShowingResetStatsConfirmation = true
@@ -247,18 +230,30 @@ public struct SettingsView: View {
         }
     }
 
-    private func toggleBotRoster(_ civilization: Civilization) {
-        if settings.includedBotCivilizations.contains(civilization) {
-            guard !isAtMinimumRoster else { return }
-            settings.includedBotCivilizations.remove(civilization)
-        } else {
-            settings.includedBotCivilizations.insert(civilization)
-        }
+    private func toggleRandomPool(_ civilization: Civilization) {
+        let isIncluded = settings.eligibleRandomCivilizations.contains(civilization)
+        poolRefusal = settings.setRandomEligibility(civilization, isEligible: !isIncluded)
+        guard poolRefusal == nil else { return }
         persist()
     }
 
     private func persist() {
         CivilizationSettingsStore.shared.save(settings)
+    }
+
+    private func stat(value: String, label: String) -> some View {
+        VStack(spacing: 2) {
+            Text(value).font(.subheadline.bold())
+            Text(label).font(.caption2).foregroundStyle(.white.opacity(0.55))
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 8)
+        .background(RoundedRectangle(cornerRadius: 8).fill(Color(white: 0.14)))
+    }
+
+    private func formattedDuration(_ seconds: Double) -> String {
+        let minutes = Int(seconds / 60)
+        return minutes < 60 ? "\(minutes)m" : "\(minutes / 60)h \(minutes % 60)m"
     }
 
     // MARK: - Shared row

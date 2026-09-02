@@ -11,6 +11,16 @@ import CatanAI
 @MainActor
 @Observable
 public final class GameViewModel {
+    let gameStore: GameStore
+    let civilizationStore: CivilizationAssignmentStore
+    let matchSetupStore: MatchSetupStore
+    private let gameLogStore: GameLogStore
+
+    /// A recoverable persistence problem that the app must present to the
+    /// player. Gameplay stays in memory, but the UI never claims it is safely
+    /// resumable when a write failed.
+    public internal(set) var persistenceErrorMessage: String?
+    public private(set) var gameLogWarning: String?
     /// The one loop. Bots are decided by policies inside this session, and
     /// the human's own moves go through `applyExternal`, so the app and any
     /// headless harness advance the game through identical code. They used to
@@ -128,61 +138,13 @@ public final class GameViewModel {
         seatAtDevice = owed
     }
 
-    /// What happened to the most recent trade the human proposed - `nil`
-    /// until the first one. `TradePopupView` reads this right after calling
-    /// `apply(.proposeTrade(...))` to show the human whether anyone
-    /// actually took the offer (and what *every* bot individually decided,
-    /// not just whoever ended up taking it), since a bot's accept/reject
-    /// otherwise happens silently.
-    public struct TradeOutcome: Equatable {
-        /// Every bot's individual accept/reject answer, in seat order, each
-        /// with its own flavor line - a bot always has *something* to say
-        /// about a proposal, whether it took the deal or not.
-        public let decisions: [(bot: PlayerID, accepted: Bool, message: String)]
-        public let acceptedBy: PlayerID?
-
-        public static func == (lhs: TradeOutcome, rhs: TradeOutcome) -> Bool {
-            lhs.acceptedBy == rhs.acceptedBy
-                && lhs.decisions.map(\.bot) == rhs.decisions.map(\.bot)
-                && lhs.decisions.map(\.accepted) == rhs.decisions.map(\.accepted)
-                && lhs.decisions.map(\.message) == rhs.decisions.map(\.message)
-        }
-    }
+    public typealias TradeOutcome = TradeOutcomeState
     public private(set) var lastTradeOutcome: TradeOutcome?
 
-    /// A bot that *would* accept the human's most recent proposal, held here
-    /// instead of being applied immediately - `TradePopupView` shows this as
-    /// a "Bot X will accept - Confirm?" banner and only actually executes
-    /// the swap once the human taps through via `confirmPendingTrade()`
-    /// (or backs out via `declinePendingTrade()`). `nil` whenever there's
-    /// nothing awaiting confirmation - either no proposal is in flight, or
-    /// the most recent one found no willing bot (see `resolveHumanProposedTrade`,
-    /// which resolves that case immediately since there's nothing to
-    /// confirm).
-    public struct PendingTradeConfirmation {
-        public let offerID: UUID
-        /// Which accepting bot the trade will actually go through with if
-        /// confirmed - defaults to the first bot that accepted (so a
-        /// single-accepter trade needs no extra tap), but the human can
-        /// switch it to any other accepting bot via `selectTradePartner`
-        /// before confirming.
-        public let selectedBot: PlayerID
-        public let decisions: [(bot: PlayerID, accepted: Bool, message: String)]
-    }
+    public typealias PendingTradeConfirmation = PendingTradeConfirmationState
     public private(set) var pendingTradeConfirmation: PendingTradeConfirmation?
 
-    /// The `GameLogStore` file this session's moves are being appended to -
-    /// (re)set alongside `state` in `init()`/`startNewGame(randomizedBoard:)`.
-    /// A game resumed from `GameStore` after an app relaunch starts a *new*
-    /// log segment rather than continuing the pre-relaunch one - see the
-    /// design doc's Non-goals for why that's an accepted simplification
-    /// rather than a bug.
-    /// `nil` until the game's first move is actually applied.
-    ///
-    /// This used to be created eagerly in `init()`, which writes a file
-    /// immediately - so every cold launch left a ~20-40 KB start-only log
-    /// behind even if the player just looked at the menu and quit, and those
-    /// orphans then competed with real games for the retention budget.
+    /// The durable log for this game, restored across process relaunches.
     private var currentGameLogID: UUID?
 
     /// When each currently-pending trade offer was first proposed -
@@ -229,12 +191,25 @@ public final class GameViewModel {
         self.activeSince = nil
     }
 
-    public init() {
+    public init(
+        gameStore: GameStore = .shared,
+        civilizationStore: CivilizationAssignmentStore = .shared,
+        matchSetupStore: MatchSetupStore = .shared,
+        gameLogStore: GameLogStore = .shared
+    ) {
+        self.gameStore = gameStore
+        self.civilizationStore = civilizationStore
+        self.matchSetupStore = matchSetupStore
+        self.gameLogStore = gameLogStore
+        persistenceErrorMessage = nil
+        gameLogWarning = nil
         let initialState: GameState
         let seat: PlayerID
         var saveWasUnreadable = false
-        switch GameStore.shared.load() {
+        var resumedSavedGame = false
+        switch gameStore.load() {
         case .loaded(let saved):
+            resumedSavedGame = true
             initialState = saved
             // A resumed game keeps whichever seat/civilizations it was
             // dealt, read back from disk rather than re-randomized - falls
@@ -243,7 +218,7 @@ public final class GameViewModel {
             // the game still has *some* consistent lineup instead of the
             // bare defaults.
             seat = HumanSeatStore.shared.load()
-            CivilizationAssignment.current = CivilizationAssignmentStore.shared.load()
+            CivilizationAssignment.current = civilizationStore.load()
                 ?? Self.drawAssignment(from: CivilizationSettingsStore.shared.load(), humanSeat: seat)
         case .unreadable:
             // A save exists but will not decode. Start a fresh game so the app
@@ -261,7 +236,7 @@ public final class GameViewModel {
         // `HumanSeatStore` holds a single seat and cannot express "people in
         // seats 0 and 2", so on its own it turned every human seat but the
         // lowest into a bot on the next launch, and lost their names.
-        let roster = Self.restoredRoster(for: initialState, fallback: seat)
+        let roster = Self.restoredRoster(for: initialState, fallback: seat, store: matchSetupStore)
         CivilizationAssignment.humanNames = roster.names
         // `@Observable` requires every stored property assigned before
         // `self` (including `self.state`) can be read - `GameLogStore`
@@ -273,7 +248,13 @@ public final class GameViewModel {
         // behind the handoff cover rather than showing whoever's hand happens
         // to be up. A solo game has nobody to pass to and claims immediately.
         seatAtDevice = roster.seats.count == 1 ? roster.seats.first : nil
-        currentGameLogID = nil
+        do {
+            currentGameLogID = resumedSavedGame ? try gameLogStore.activeGameID() : nil
+            if !resumedSavedGame { try gameLogStore.abandonActiveGame() }
+        } catch {
+            currentGameLogID = nil
+            gameLogWarning = error.localizedDescription
+        }
         self.saveWasUnreadable = saveWasUnreadable
         activeSince = Date()
     }
@@ -302,16 +283,14 @@ public final class GameViewModel {
         // stale roster would seat people who are no longer playing. Cleared
         // rather than rewritten: with no record, `restoredRoster` falls back to
         // `HumanSeatStore`'s single seat, which is exactly what this builds.
-        MatchSetupStore.shared.clearActiveMatch()
+        matchSetupStore.clearActiveMatch()
         session = Self.makeSession(state: fresh, humanSeats: humanSeats)
         CivilizationAssignment.humanSeat = humanPlayer
         HumanSeatStore.shared.save(humanPlayer)
 
         let assignment = Self.drawAssignment(from: CivilizationSettingsStore.shared.load(), humanSeat: humanPlayer)
         CivilizationAssignment.current = assignment
-        try? CivilizationAssignmentStore.shared.save(assignment)
-
-        try? GameStore.shared.save(state)
+        persistLegacyMatch(assignment: assignment)
     }
 
     /// Starts a game from a full `MatchSetup` - the New Game screen's output.
@@ -321,79 +300,117 @@ public final class GameViewModel {
     /// preferences.
     public func startNewGame(setup: MatchSetup) {
         precondition(setup.isStartable, "refusing to start an invalid match: \(setup.validationProblem ?? "")")
+        let match = Self.prepareMatch(from: setup)
+        guard persist(match, configuredAs: setup) else { return }
+        resetPerGameState()
+        install(match)
+    }
 
-        // Seat order is randomised by shuffling which CONFIGURED seat lands in
-        // which chair, rather than by moving the human to a random index. That
-        // keeps every player with the civilization and name they chose - the
-        // thing that gets randomised is who goes first.
-        var chairs = setup.seats
-        if setup.randomizeSeatOrder { chairs.shuffle() }
+    struct PreparedMatch {
+        let chairs: [MatchSetup.Seat]
+        let state: GameState
+        let humanSeats: Set<PlayerID>
+        let humanNames: [PlayerID: String]
+        let civilizations: [Civilization]
+    }
 
+    private static func prepareMatch(from setup: MatchSetup) -> PreparedMatch {
+        let chairs = orderedChairs(from: setup)
+        let state = makeInitialState(for: setup, playerCount: chairs.count)
+        let roster = humanRoster(in: chairs)
+        let pool = CivilizationSettingsStore.shared.load().eligibleRandomCivilizations
+        let civilizations = resolveRandomCivilizations(
+            configured: chairs.map(\.civilization), eligiblePool: pool)
+        return PreparedMatch(chairs: chairs,
+                             state: state,
+                             humanSeats: roster.seats,
+                             humanNames: roster.names,
+                             civilizations: civilizations)
+    }
+
+    /// Shuffles configured players as units so names and civilizations stay
+    /// attached to their owners while only chair order changes.
+    private static func orderedChairs(from setup: MatchSetup) -> [MatchSetup.Seat] {
+        guard setup.randomizeSeatOrder else { return setup.seats }
+        return setup.seats.shuffled()
+    }
+
+    private static func makeInitialState(for setup: MatchSetup, playerCount: Int) -> GameState {
         let board = setup.randomizedBoard
             ? BoardGenerator.randomized(seed: UInt64.random(in: .min ... .max))
             : BoardGenerator.standard()
-        let fresh = GameSetup.newGame(board: board,
-                                      seed: UInt64.random(in: .min ... .max),
-                                      playerCount: chairs.count,
-                                      victoryPointTarget: setup.victoryPointTarget)
+        return GameSetup.newGame(board: board,
+                                 seed: UInt64.random(in: .min ... .max),
+                                 playerCount: playerCount,
+                                 victoryPointTarget: setup.victoryPointTarget)
+    }
 
-        resetPerGameState()
-
+    private static func humanRoster(
+        in chairs: [MatchSetup.Seat]
+    ) -> (seats: Set<PlayerID>, names: [PlayerID: String]) {
         var seats: Set<PlayerID> = []
         var names: [PlayerID: String] = [:]
-        var civilizations: [Civilization] = []
-        var taken = Set(chairs.compactMap(\.civilization))
-        let pool = CivilizationSettingsStore.shared.load().includedBotCivilizations
-
         for (chair, configured) in chairs.enumerated() {
             let id = PlayerID(index: chair)
             if configured.isHuman {
                 seats.insert(id)
                 names[id] = configured.name.trimmingCharacters(in: .whitespacesAndNewlines)
             }
-            // A seat left on Random draws now, from the eligible pool, avoiding
-            // anything already spoken for - distinctness is a construction
-            // invariant here rather than something checked afterwards, because
-            // the seat colour IS the civilization's colour and a duplicate
-            // makes the board unreadable.
-            if let chosen = configured.civilization {
-                civilizations.append(chosen)
-            } else {
-                let available = Civilization.allCases
-                    .filter { !taken.contains($0) && pool.contains($0) }
-                    .sorted { $0.rawValue < $1.rawValue }
-                let drawn = available.randomElement()
-                    ?? Civilization.allCases.first { !taken.contains($0) }!
-                taken.insert(drawn)
-                civilizations.append(drawn)
-            }
         }
+        return (seats, names)
+    }
 
-        humanSeats = seats
-        seatAtDevice = seats.count == 1 ? seats.first : nil
-        session = Self.makeSession(state: fresh, humanSeats: seats)
+    private func install(_ match: PreparedMatch) {
+        humanSeats = match.humanSeats
+        seatAtDevice = match.humanSeats.count == 1 ? match.humanSeats.first : nil
+        session = Self.makeSession(state: match.state, humanSeats: match.humanSeats)
 
         CivilizationAssignment.humanSeat = humanPlayer
-        CivilizationAssignment.humanNames = names
-        CivilizationAssignment.current = civilizations
-        HumanSeatStore.shared.save(humanPlayer)
-        try? CivilizationAssignmentStore.shared.save(civilizations)
-        MatchSetupStore.shared.save(setup)
-        // The realised chair layout, which is what a relaunch has to read back.
-        // `setup` is the player's own layout and its indices are pre-shuffle;
-        // only this records who actually sits where. Without it a resumed
-        // hot-seat game restored a single human seat from `HumanSeatStore` and
-        // handed every other person's chair to a bot.
-        MatchSetupStore.shared.saveActiveMatch(
-            Self.realisedMatch(chairs: chairs, civilizations: civilizations, from: setup))
-        try? GameStore.shared.save(state)
+        CivilizationAssignment.humanNames = match.humanNames
+        CivilizationAssignment.current = match.civilizations
+    }
+
+    private func persistLegacyMatch(assignment: [Civilization]) {
+        do {
+            try civilizationStore.save(assignment)
+            try gameStore.save(state)
+            persistenceErrorMessage = nil
+        } catch {
+            persistenceErrorMessage = "The game is running, but it could not be saved for later."
+        }
+    }
+
+    private func persistCurrentState() {
+        do {
+            try gameStore.save(state)
+            persistenceErrorMessage = nil
+        } catch {
+            persistenceErrorMessage = "Your move was made, but the game could not be saved for later."
+        }
+    }
+
+    public func dismissPersistenceError() {
+        persistenceErrorMessage = nil
+    }
+
+    public func clearCompletedMatch() -> Bool {
+        do {
+            try gameStore.clear()
+            try civilizationStore.clear()
+            matchSetupStore.clearActiveMatch()
+            persistenceErrorMessage = nil
+            return true
+        } catch {
+            persistenceErrorMessage = "The finished game could not be cleared. Please try again."
+            return false
+        }
     }
 
     /// The configured seats renumbered into the chairs they were dealt, with
     /// every civilization now decided - the record a resumed game reads.
-    private static func realisedMatch(chairs: [MatchSetup.Seat],
-                                      civilizations: [Civilization],
-                                      from setup: MatchSetup) -> MatchSetup {
+    static func realisedMatch(chairs: [MatchSetup.Seat],
+                              civilizations: [Civilization],
+                              from setup: MatchSetup) -> MatchSetup {
         MatchSetup(
             seats: chairs.enumerated().map { chair, configured in
                 MatchSetup.Seat(index: chair,
@@ -416,7 +433,7 @@ public final class GameViewModel {
     /// the right thing to replay; the flags are only reached when there is no
     /// stored setup at all (a save from before this screen existed).
     public func restartCurrentMatch(fallbackRandomizedBoard: Bool, fallbackRandomizeSeat: Bool) {
-        guard let previous = MatchSetupStore.shared.load(), previous.isStartable else {
+        guard case .loaded(let previous) = matchSetupStore.load(), previous.isStartable else {
             startNewGame(randomizedBoard: fallbackRandomizedBoard, randomizeSeat: fallbackRandomizeSeat)
             return
         }
@@ -432,9 +449,12 @@ public final class GameViewModel {
     /// name seats that do not exist. In that case, and for a game started
     /// before the record existed, this falls back to the single seat
     /// `HumanSeatStore` holds, which is exactly the old behaviour.
-    private static func restoredRoster(for state: GameState,
-                                       fallback: PlayerID) -> (seats: Set<PlayerID>, names: [PlayerID: String]) {
-        guard let active = MatchSetupStore.shared.loadActiveMatch(),
+    private static func restoredRoster(
+        for state: GameState,
+        fallback: PlayerID,
+        store: MatchSetupStore
+    ) -> (seats: Set<PlayerID>, names: [PlayerID: String]) {
+        guard case .loaded(let active) = store.loadActiveMatch(),
               active.seats.count == state.players.count,
               !active.humanSeats.isEmpty
         else { return ([fallback], [:]) }
@@ -486,6 +506,7 @@ public final class GameViewModel {
     /// The bookkeeping every new game clears, whichever entry point started it.
     private func resetPerGameState() {
         currentGameLogID = nil
+        recordLogOperation { try gameLogStore.abandonActiveGame() }
         gameGeneration &+= 1
         pendingTradeConfirmation = nil
         lastTradeOutcome = nil
@@ -511,16 +532,14 @@ public final class GameViewModel {
         // captured first: the `start` line has to describe the position the
         // move list is relative to, not the one after the first move.
         let stateBeforeMove = state
-        let gameLogID = currentGameLogID ?? {
-            let id = GameLogStore.shared.startNewGame(initialState: stateBeforeMove, roster: seatRoster())
-            currentGameLogID = id
-            return id
-        }()
+        let gameLogID = openGameLogIfNeeded(initialState: stateBeforeMove)
 
         eventBatch = EventBatch(
             sequence: eventBatch.sequence,
             events: eventBatch.events + (try session.applyExternal(move, by: player).events))
-        GameLogStore.shared.appendMove(gameID: gameLogID, player: player, move: move)
+        recordLogOperation {
+            if let gameLogID { try gameLogStore.appendMove(gameID: gameLogID, player: player, move: move) }
+        }
 
         if case .proposeTrade(let offer) = move {
             offerProposedAt[offer.id] = Date()
@@ -529,10 +548,31 @@ public final class GameViewModel {
         offerProposedAt = offerProposedAt.filter { stillPending.contains($0.key) }
 
         if !wasGameOver, case .gameOver(let winner) = state.phase {
-            GameLogStore.shared.finalizeGame(gameID: gameLogID, winner: winner)
+            recordLogOperation {
+                if let gameLogID { try gameLogStore.finalizeGame(gameID: gameLogID, winner: winner) }
+            }
             recordGameEndIfSolo(winner: winner)
+            currentGameLogID = nil
         }
     }
+
+    private func openGameLogIfNeeded(initialState: GameState) -> UUID? {
+        if let currentGameLogID { return currentGameLogID }
+        do {
+            let id = try gameLogStore.startNewGame(initialState: initialState, roster: seatRoster())
+            currentGameLogID = id
+            return id
+        } catch {
+            gameLogWarning = error.localizedDescription
+            return nil
+        }
+    }
+
+    private func recordLogOperation(_ operation: () throws -> Void) {
+        do { try operation() } catch { gameLogWarning = error.localizedDescription }
+    }
+
+    public func dismissGameLogWarning() { gameLogWarning = nil }
 
     /// Who is sitting in each seat this game, for the log's `start` line.
     ///
@@ -550,25 +590,51 @@ public final class GameViewModel {
             personalities[index] = personalityName(for: player.id)
         }
         return GameLogStore.SeatRoster(
-            humanSeat: humanPlayer,
+            humanSeats: humanSeats,
+            humanNames: Dictionary(uniqueKeysWithValues: CivilizationAssignment.humanNames.map {
+                ($0.key.index, $0.value)
+            }),
             botPersonalities: personalities,
             civilizations: civilizations
         )
     }
 
-    /// `humanSeat` = the player's chosen civilization; the other 3 seats
-    /// (in seat order) = 3 distinct random draws from their included bot
-    /// roster (falling back to every other civilization if, somehow, fewer
-    /// than 3 are included - e.g. a corrupt settings value that skipped
-    /// `SettingsView`'s minimum-3 enforcement).
-    private static func drawAssignment(from settings: CivilizationSettings, humanSeat: PlayerID) -> [Civilization] {
-        var botPool = settings.includedBotCivilizations.subtracting([settings.yourCivilization])
-        if botPool.count < CivilizationSettings.minimumIncludedBots {
-            botPool = Set(Civilization.allCases).subtracting([settings.yourCivilization])
+    /// Resolves every Random chair strictly inside the selected pool.
+    ///
+    /// Exhaustion is a violated settings invariant, not permission to use a
+    /// civilization the player excluded. Failing here exposes corrupt input;
+    /// silently widening the pool made the Surface C control untruthful.
+    static func resolveRandomCivilizations(
+        configured: [Civilization?],
+        eligiblePool: Set<Civilization>
+    ) -> [Civilization] {
+        var taken = Set(configured.compactMap { $0 })
+        precondition(taken.count == configured.compactMap { $0 }.count,
+                     "configured seats must have distinct civilizations")
+
+        return configured.map { chosen in
+            guard let chosen else {
+                let available = eligiblePool
+                    .filter { !taken.contains($0) }
+                    .sorted { $0.rawValue < $1.rawValue }
+                precondition(!available.isEmpty,
+                             "Random civilization pool cannot fill every configured seat")
+                let drawn = available.randomElement()!
+                taken.insert(drawn)
+                return drawn
+            }
+            return chosen
         }
-        var assignment = Array(Array(botPool).shuffled().prefix(3))
-        assignment.insert(settings.yourCivilization, at: humanSeat.index)
-        return assignment
+    }
+
+    /// `humanSeat` gets the preference; every other seat draws from the exact
+    /// eligible pool after excluding that assignment.
+    private static func drawAssignment(from settings: CivilizationSettings, humanSeat: PlayerID) -> [Civilization] {
+        var configured = [Civilization?](repeating: nil, count: GameSetup.standardPlayerCount)
+        configured[humanSeat.index] = settings.yourCivilization
+        return resolveRandomCivilizations(
+            configured: configured,
+            eligiblePool: settings.eligibleRandomCivilizations)
     }
 
     /// Applies a human move, persists the result, and lets any subsequent
@@ -594,7 +660,7 @@ public final class GameViewModel {
         if case .proposeTrade(let offer) = move, offer.from == humanPlayer {
             resolveHumanProposedTrade(offer)
         }
-        try? GameStore.shared.save(state)
+        persistCurrentState()
         Task { await runBotTurnIfNeeded() }
     }
 
@@ -826,11 +892,11 @@ public final class GameViewModel {
             // uses.
             try? applyLogged(.respondToTrade(offerID: pending.offerID, accept: false), by: pending.selectedBot)
             lastTradeOutcome = TradeOutcome(decisions: pending.decisions, acceptedBy: nil)
-            try? GameStore.shared.save(state)
+            persistCurrentState()
             return .resourcesNoLongerAvailable
         }
         lastTradeOutcome = TradeOutcome(decisions: pending.decisions, acceptedBy: pending.selectedBot)
-        try? GameStore.shared.save(state)
+        persistCurrentState()
         return .succeeded
     }
 
@@ -847,7 +913,7 @@ public final class GameViewModel {
         guard state.pendingTradeOffers.contains(where: { $0.id == pending.offerID }) else { return }
         try? applyLogged(.respondToTrade(offerID: pending.offerID, accept: false), by: pending.selectedBot)
         lastTradeOutcome = TradeOutcome(decisions: pending.decisions, acceptedBy: nil)
-        try? GameStore.shared.save(state)
+        persistCurrentState()
     }
 
     /// Runs bot turns in a loop for as long as the active player (or, during
@@ -907,31 +973,7 @@ public final class GameViewModel {
     /// spawned the loop.
     public private(set) var gameGeneration = 0
 
-    /// Everything the engine reported during the most recent user-visible
-    /// operation, stamped with a sequence number.
-    ///
-    /// `RulesEngine.apply` returns structured `GameEvent`s now instead of
-    /// appending prose to `GameState`. Views observe this rather than
-    /// substring-matching sentences: `GameView`'s roll highlight used to look
-    /// for `" rolled "` in the log, so rewording one sentence would silently
-    /// have broken a visual effect.
-    ///
-    /// ## Why a batch with a sequence, and not just the last array
-    /// One operation can apply several moves without yielding - resolving a
-    /// human's trade proposal applies one rejection per unwilling bot - so a
-    /// value overwritten per move would show SwiftUI only the last of them.
-    /// Worse, two *identical* consecutive batches compare equal and produce no
-    /// `onChange` at all, so an observer would silently miss them. Events are
-    /// accumulated across the whole operation and the sequence guarantees the
-    /// change is always observable.
-    ///
-    /// This is the current operation only, not a transcript - keeping history
-    /// here would reintroduce the unbounded growth that removing
-    /// `GameState.log` just eliminated. `GameLogStore` holds the durable record.
-    public struct EventBatch: Equatable {
-        public let sequence: Int
-        public let events: [GameEvent]
-    }
+    public typealias EventBatch = GameEventBatch
     public private(set) var eventBatch = EventBatch(sequence: 0, events: [])
 
     /// Starts a new batch. Called at the top of each operation that a view
@@ -1063,7 +1105,7 @@ public final class GameViewModel {
                 break
             }
             recordAppliedMove(step, stateBeforeMove: stateBeforeMove)
-            try? GameStore.shared.save(state)
+            persistCurrentState()
         }
     }
 
@@ -1073,12 +1115,10 @@ public final class GameViewModel {
     /// applied inside the session, so the logging, stats and trade-offer
     /// housekeeping it would have done has to happen on this side instead.
     private func recordAppliedMove(_ step: GameSession.Step, stateBeforeMove: GameState) {
-        let gameLogID = currentGameLogID ?? {
-            let id = GameLogStore.shared.startNewGame(initialState: stateBeforeMove, roster: seatRoster())
-            currentGameLogID = id
-            return id
-        }()
-        GameLogStore.shared.appendMove(gameID: gameLogID, player: step.actor, move: step.move)
+        let gameLogID = openGameLogIfNeeded(initialState: stateBeforeMove)
+        recordLogOperation {
+            if let gameLogID { try gameLogStore.appendMove(gameID: gameLogID, player: step.actor, move: step.move) }
+        }
         eventBatch = EventBatch(sequence: eventBatch.sequence, events: eventBatch.events + step.events)
 
         if case .proposeTrade(let offer) = step.move { offerProposedAt[offer.id] = Date() }
@@ -1086,7 +1126,9 @@ public final class GameViewModel {
         offerProposedAt = offerProposedAt.filter { stillPending.contains($0.key) }
 
         if case .gameOver(let winner) = state.phase, currentGameLogID != nil {
-            GameLogStore.shared.finalizeGame(gameID: gameLogID, winner: winner)
+            recordLogOperation {
+                if let gameLogID { try gameLogStore.finalizeGame(gameID: gameLogID, winner: winner) }
+            }
             recordGameEndIfSolo(winner: winner)
             currentGameLogID = nil
         }

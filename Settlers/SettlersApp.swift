@@ -3,12 +3,13 @@ import SwiftUI
 @main
 struct SettlersApp: App {
 
-    // There used to be an `init()` here forcing `PacingSettingsStore.current`
-    // to be read, because that lazy global trapped on a malformed bundled
-    // `pacing.yml` and the case for trapping rested on failing at the earliest
-    // possible moment. Pacing is now `PacingPreferences` - two named enums in
-    // `UserDefaults` with no text form to get wrong and nothing to validate -
-    // so there is no bad state left for a startup read to surface.
+    init() {
+        UITestBootstrap.resetPersistentStateIfRequested()
+    }
+
+    // Startup used to force-read the retired YAML pacing configuration. The
+    // initializer now has one Debug-only purpose: establish a clean process
+    // boundary before native UI tests construct ContentView.
 
     var body: some Scene {
         WindowGroup {

@@ -143,6 +143,7 @@ public struct BoardView: View {
                         end: geometry.vertexPosition(b, board: board),
                         isHighlighted: highlightedEdges.contains(edge),
                         isEnabled: !isPlacementModeActive || highlightedEdges.contains(edge),
+                        accessibilityIdentifier: AccessibilityID.Board.edge(edge),
                         onTap: { onTapEdge(edge) }
                     )
                 }
@@ -152,6 +153,7 @@ public struct BoardView: View {
                         position: geometry.vertexPosition(vertex, board: board),
                         isHighlighted: highlightedVertices.contains(vertex),
                         isEnabled: !isPlacementModeActive || highlightedVertices.contains(vertex),
+                        accessibilityIdentifier: AccessibilityID.Board.vertex(vertex),
                         onTap: { onTapVertex(vertex) }
                     )
                 }

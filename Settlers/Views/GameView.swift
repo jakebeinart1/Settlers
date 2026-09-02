@@ -357,6 +357,8 @@ public struct GameView: View {
                 .zIndex(100)
             }
         }
+        .accessibilityElement(children: .contain)
+        .accessibilityIdentifier(AccessibilityID.Screen.game)
         // Serif everywhere on the board screen - HUD, popups, buttons,
         // pause menu - to match the reference's painted-book serif type
         // instead of the system San Francisco default. Every popup above

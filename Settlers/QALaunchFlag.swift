@@ -1,16 +1,14 @@
 import Foundation
 
 /// The launch arguments that put the app straight into a particular screen or
-/// state, so it can be screenshotted without simulating taps.
+/// state, so visual QA can reach expensive or nondeterministic situations
+/// without playing hundreds of moves first.
 ///
 /// ## Why launch arguments at all
-/// There is no way to drive a SwiftUI app on the simulator from outside it.
-/// `simctl` has no touch injection; SwiftUI renders as one opaque canvas to
-/// the accessibility APIs, so there is no element tree to click into by name;
-/// and driving the Simulator window with synthetic mouse events is both
-/// unreliable (window coordinates do not map onto device points) and dangerous
-/// (a click can land on whatever Mac window happens to be frontmost). So the
-/// app puts itself into the state instead, and the tooling only photographs.
+/// `simctl` has no touch injection, while synthetic mouse coordinates are
+/// unreliable. Native XCUITests drive ordinary accessible controls and prove
+/// the core player journeys. These flags complement them by constructing rare
+/// states such as a finished game or a specific trade card deterministically.
 ///
 /// ## Why these are collected here rather than read inline
 /// They used to be twelve separate `ProcessInfo.processInfo.arguments.contains`
@@ -54,11 +52,9 @@ enum QALaunchFlag: String, CaseIterable {
     /// table through `MatchSetup.resize`, so the missing fourth seat and the
     /// note explaining it can be photographed.
     case newGameThreeSeats = "-qaNewGameThreeSeats"
-    /// Combines with any of the three above: opens the setup screen already
-    /// scrolled to the bottom. The screen is about 1,100pt of content against a
-    /// 852pt phone, so Match Settings, the status plaque and the saved-game
-    /// warning are all below the fold and there is no way to drag them into
-    /// view - `simctl` has no touch injection.
+    /// Combines with the New Game flags and opens a tall-device layout at its
+    /// bottom for focused screenshots. Short devices use the compact layout,
+    /// where the complete configuration and Start action fit at once.
     case scrollNewGameToBottom = "-qaScrollNewGameToBottom"
     /// Opens `InGameSettingsView`, which absorbed the old pause menu. The flag
     /// keeps its original spelling so the run-settlers skill's documented list

@@ -79,6 +79,8 @@ public struct InGameSettingsView: View {
             if isConfirmingRestart { restartConfirmation }
             if isConfirmingMainMenu { mainMenuConfirmation }
         }
+        .accessibilityElement(children: .contain)
+        .accessibilityIdentifier(AccessibilityID.Screen.inGameSettings)
         .foregroundStyle(.white)
         // Serif everywhere, matching the board screen's painted-book type.
         .fontDesign(.serif)
@@ -270,6 +272,7 @@ public struct InGameSettingsView: View {
                     backgroundImageName: "button-fill-trade",
                     action: onResume
                 )
+                .accessibilityIdentifier(AccessibilityID.InGameSettings.close)
                 UniformActionButton(
                     title: "Resume Game",
                     systemImage: "play.fill",

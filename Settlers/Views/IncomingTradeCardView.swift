@@ -185,8 +185,18 @@ public struct IncomingTradeCardView: View {
             // two-way decision with no undo, so the two buttons should not be
             // adjacent thumb-sized targets.
             HStack(spacing: 16) {
-                answerButton(systemImage: "xmark", tint: .red, action: onReject)
-                answerButton(systemImage: "checkmark", tint: .green, action: onAccept)
+                answerButton(
+                    systemImage: "xmark",
+                    tint: .red,
+                    identifier: AccessibilityID.IncomingTrade.reject,
+                    action: onReject
+                )
+                answerButton(
+                    systemImage: "checkmark",
+                    tint: .green,
+                    identifier: AccessibilityID.IncomingTrade.accept,
+                    action: onAccept
+                )
             }
         }
         .padding(8)
@@ -232,7 +242,12 @@ public struct IncomingTradeCardView: View {
         .transition(.move(edge: .bottom).combined(with: .opacity))
     }
 
-    private func answerButton(systemImage: String, tint: Color, action: @escaping () -> Void) -> some View {
+    private func answerButton(
+        systemImage: String,
+        tint: Color,
+        identifier: String,
+        action: @escaping () -> Void
+    ) -> some View {
         Button(action: action) {
             Image(systemName: systemImage)
                 .font(.headline.bold())
@@ -242,6 +257,7 @@ public struct IncomingTradeCardView: View {
                 .overlay(Circle().strokeBorder(.white.opacity(0.35), lineWidth: 1))
         }
         .buttonStyle(.plain)
+        .accessibilityIdentifier(identifier)
     }
 
     /// Apple's minimum comfortable touch target.

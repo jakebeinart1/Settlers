@@ -38,6 +38,7 @@ struct SeatCardView: View {
     let onSetHuman: (Bool) -> Void
     let onRename: (String) -> Void
     let onEditCivilization: () -> Void
+    var isShortScreen = false
 
     /// A2.5: a name has a maximum length, enforced at input rather than by
     /// truncating at display. Twelve characters is what fits the 142.5pt field
@@ -57,13 +58,13 @@ struct SeatCardView: View {
         // original spacing the whole configuration did not fit on a phone - the
         // match settings sat entirely below the fold on the screen whose job is
         // to show you the configuration.
-        VStack(alignment: .leading, spacing: 6) {
+        VStack(alignment: .leading, spacing: isShortScreen ? 3 : 6) {
             header
             rolePicker
             identityBlock
             civilizationBlock
         }
-        .padding(8)
+        .padding(isShortScreen ? 6 : 8)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(TintedTextureBackground(tint: cardTint, cropWidthFraction: 0.12))
         .clipShape(FrameCornerRect(cornerRadius: Self.cornerRadius))
@@ -160,12 +161,12 @@ struct SeatCardView: View {
                     .font(.system(size: 16, weight: .semibold, design: .serif))
                     .lineLimit(1)
                     .minimumScaleFactor(0.65)
-                    .frame(maxWidth: .infinity, minHeight: Self.identityRowHeight, alignment: .leading)
+                    .frame(maxWidth: .infinity, minHeight: identityRowHeight, alignment: .leading)
             }
         }
     }
 
-    private static let identityRowHeight: CGFloat = 32
+    private var identityRowHeight: CGFloat { isShortScreen ? 26 : 32 }
 
     private var nameField: some View {
         TextField("", text: nameBinding, prompt: Text("Enter name").foregroundColor(.white.opacity(0.35)))
@@ -176,7 +177,7 @@ struct SeatCardView: View {
             .textInputAutocapitalization(.words)
             .submitLabel(.done)
             .padding(.horizontal, 9)
-            .frame(height: Self.identityRowHeight)
+            .frame(height: identityRowHeight)
             .background(PaintedChromeBackground(fill: .color(Self.fieldFill), cornerRadius: 8, notchScale: 0.45))
     }
 
@@ -210,7 +211,7 @@ struct SeatCardView: View {
                         .foregroundStyle(.white.opacity(0.7))
                 }
                 .padding(.horizontal, 10)
-                .padding(.vertical, 7)
+                .padding(.vertical, isShortScreen ? 4 : 7)
                 .background(PaintedChromeBackground(fill: .tintedTexture(dropdownTint), cornerRadius: 8, notchScale: 0.45))
             }
             .buttonStyle(.plain)

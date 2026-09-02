@@ -27,6 +27,7 @@ extension GameView {
                 .scaledToFit()
                 .frame(width: 40, height: 40)
         }
+        .accessibilityIdentifier(AccessibilityID.Game.settings)
     }
 
     /// Bigger and plainer than before (no more flying resource badges to

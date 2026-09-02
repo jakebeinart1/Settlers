@@ -9,11 +9,11 @@ import CatanEngine
 public struct CivilizationAssignmentStore: Sendable {
     public static let shared = CivilizationAssignmentStore()
 
-    private let fileURL: URL
+    let fileURL: URL
 
-    private init() {
+    init(fileURL: URL? = nil) {
         let baseURL = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
-        fileURL = baseURL.appendingPathComponent("catan_civilizations.json")
+        self.fileURL = fileURL ?? baseURL.appendingPathComponent("catan_civilizations.json")
     }
 
     public func save(_ assignment: [Civilization]) throws {
@@ -41,7 +41,8 @@ public struct CivilizationAssignmentStore: Sendable {
         return assignment
     }
 
-    public func clear() {
-        try? FileManager.default.removeItem(at: fileURL)
+    public func clear() throws {
+        guard FileManager.default.fileExists(atPath: fileURL.path) else { return }
+        try FileManager.default.removeItem(at: fileURL)
     }
 }

@@ -14,6 +14,8 @@ import CatanEngine
 struct ContentView: View {
     @State private var viewModel = GameViewModel()
     @State private var isShowingUnreadableSaveAlert = false
+    @State private var isShowingPersistenceError = false
+    @State private var isShowingGameLogWarning = false
     // `-qaAutoStart`: a launch-argument escape hatch so `simctl launch ...
     // -qaAutoStart` can land directly on the board for visual QA
     // (screenshotting UI chrome, etc.) without a real tap on `MainMenuView`
@@ -26,16 +28,15 @@ struct ContentView: View {
         Group {
             if case .gameOver = viewModel.state.phase, hasStartedThisSession {
                 EndGameView(state: viewModel.state, human: viewModel.humanPlayer) {
-                    hasStartedThisSession = false
+                    if viewModel.clearCompletedMatch() { hasStartedThisSession = false }
                 }
             } else if hasStartedThisSession {
                 GameView(viewModel: viewModel, onExitToMenu: { hasStartedThisSession = false })
                 #if DEBUG
                     .task {
                         // `-qaTwoHumans`: turns the loaded game into a hot-seat
-                        // one so the handoff cover is photographable. There is
-                        // no touch injection here, so a two-human game cannot
-                        // otherwise be reached from a launch.
+                        // one so the handoff cover is deterministic for visual
+                        // QA and native interaction tests.
                         guard QALaunchFlag.twoHumans.isSet else { return }
                         viewModel.qaMakeHotSeat()
                     }
@@ -74,6 +75,23 @@ struct ContentView: View {
         } message: {
             Text("A save was found but couldn't be read, so a new game is ready instead. "
                  + "The file has been left in place.")
+        }
+        .alert("Couldn't save the game", isPresented: $isShowingPersistenceError) {
+            Button("OK", role: .cancel) { viewModel.dismissPersistenceError() }
+        } message: {
+            Text(viewModel.persistenceErrorMessage ?? "The game could not be saved.")
+        }
+        .onChange(of: viewModel.persistenceErrorMessage) { _, message in
+            isShowingPersistenceError = message != nil
+        }
+        .alert("Game recording is unavailable", isPresented: $isShowingGameLogWarning) {
+            Button("OK", role: .cancel) { viewModel.dismissGameLogWarning() }
+        } message: {
+            Text((viewModel.gameLogWarning ?? "The game log could not be updated.")
+                + " Gameplay can continue, but this session's diagnostic record may be incomplete.")
+        }
+        .onChange(of: viewModel.gameLogWarning) { _, message in
+            isShowingGameLogWarning = message != nil
         }
         .onAppear {
             isShowingUnreadableSaveAlert = viewModel.saveWasUnreadable
@@ -114,6 +132,7 @@ struct ContentView: View {
     /// `GameStore` as the game itself.
     private func startNewGame(_ setup: MatchSetup) {
         viewModel.startNewGame(setup: setup)
+        guard viewModel.persistenceErrorMessage == nil else { return }
         hasStartedThisSession = true
         // With seat order randomized, seat 0 (where setup always starts) may
         // be a bot rather than the human - without this, nothing would ever

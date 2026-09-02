@@ -237,6 +237,7 @@ struct VertexTapTarget: View {
     let position: CGPoint
     var isHighlighted: Bool = false
     var isEnabled: Bool = true
+    let accessibilityIdentifier: String
     let onTap: () -> Void
 
     private let touchDiameter: CGFloat = 32
@@ -263,6 +264,11 @@ struct VertexTapTarget: View {
         .allowsHitTesting(isEnabled)
         .opacity(isEnabled ? 1 : 0.4)
         .onTapGesture(perform: onTap)
+        .accessibilityElement(children: .ignore)
+        .accessibilityIdentifier(accessibilityIdentifier)
+        .accessibilityLabel("Build settlement")
+        .accessibilityAddTraits(.isButton)
+        .disabled(!isEnabled)
     }
 }
 
@@ -273,6 +279,7 @@ struct EdgeTapTarget: View {
     let end: CGPoint
     var isHighlighted: Bool = false
     var isEnabled: Bool = true
+    let accessibilityIdentifier: String
     let onTap: () -> Void
 
     private let touchWidth: CGFloat = 20
@@ -297,6 +304,11 @@ struct EdgeTapTarget: View {
         .allowsHitTesting(isEnabled)
         .opacity(isEnabled ? 1 : 0.4)
         .onTapGesture(perform: onTap)
+        .accessibilityElement(children: .ignore)
+        .accessibilityIdentifier(accessibilityIdentifier)
+        .accessibilityLabel("Build road")
+        .accessibilityAddTraits(.isButton)
+        .disabled(!isEnabled)
     }
 }
 

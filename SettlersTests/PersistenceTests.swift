@@ -52,7 +52,7 @@ struct GameStoreTests {
 
     private func withCleanSave<T>(_ body: () throws -> T) rethrows -> T {
         try StoreFile.preserving(Self.saveURL) {
-            GameStore.shared.clear()
+            try GameStore.shared.clear()
             return try body()
         }
     }

@@ -146,9 +146,14 @@ public struct GameState: Codable, Sendable {
         // here rather than a precondition somebody remembers to write.
         let decodedTarget = try container.decodeIfPresent(Int.self, forKey: .victoryPointTarget)
             ?? WinCondition.standardTarget
-        victoryPointTarget = WinCondition.supportedTargets.contains(decodedTarget)
-            ? decodedTarget
-            : WinCondition.standardTarget
+        guard WinCondition.supportedTargets.contains(decodedTarget) else {
+            throw DecodingError.dataCorruptedError(
+                forKey: .victoryPointTarget,
+                in: container,
+                debugDescription: "Unsupported victory-point target: \(decodedTarget)"
+            )
+        }
+        victoryPointTarget = decodedTarget
         // A pre-v1 save carries no generator. Seeding a fresh one keeps the
         // resumed game playable; it cannot make that game replayable, because
         // the moves already applied were rolled off the old global RNG.

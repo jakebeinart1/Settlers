@@ -64,10 +64,9 @@ public struct EndGameView: View {
                     systemImage: "arrow.counterclockwise",
                     iconColor: CatanTheme.color(for: Resource.brick)
                 ) {
-                    GameStore.shared.clear()
-                    CivilizationAssignmentStore.shared.clear()
                     onNewGame()
                 }
+                .accessibilityIdentifier(AccessibilityID.GameOver.newGame)
                 .padding(.horizontal, 40)
 
                 Spacer()

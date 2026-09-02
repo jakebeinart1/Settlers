@@ -272,7 +272,7 @@ private var startableTable: MatchSetup {
 
     @Test func nothingSavedReadsAsNoStoredSetup() {
         withStore { store in
-            #expect(store.load() == nil)
+            #expect(store.load() == .none)
         }
     }
 
@@ -285,9 +285,9 @@ private var startableTable: MatchSetup {
             table.victoryPointTarget = 8
             table.randomizedBoard = false
             table.randomizeSeatOrder = false
-            store.save(table)
+            try! store.save(table)
 
-            #expect(store.load() == table)
+            #expect(store.load() == .loaded(table))
         }
     }
 
@@ -298,9 +298,9 @@ private var startableTable: MatchSetup {
             var table = startableTable
             table.seats[2].isHuman = true
             table.seats[2].name = "Jake"
-            store.save(table)
+            try! store.save(table)
 
-            let loaded = store.load()
+            let loaded = store.load().value
             #expect(loaded?.humanSeats.count == 3)
             #expect(loaded?.seats[2].name == "Jake")
         }
@@ -308,9 +308,9 @@ private var startableTable: MatchSetup {
 
     @Test func clearingRemovesTheStoredSetup() {
         withStore { store in
-            store.save(startableTable)
+            try! store.save(startableTable)
             store.clear()
-            #expect(store.load() == nil)
+            #expect(store.load() == .none)
         }
     }
 
@@ -325,11 +325,11 @@ private var startableTable: MatchSetup {
             realised.seats.reverse()
             for index in realised.seats.indices { realised.seats[index].index = index }
 
-            store.save(startableTable)
-            store.saveActiveMatch(realised)
+            try! store.save(startableTable)
+            try! store.saveActiveMatch(realised)
 
-            #expect(store.load() == startableTable, "the prefill must keep the player's own layout")
-            #expect(store.loadActiveMatch() == realised, "the realised match must keep the order drawn")
+            #expect(store.load() == .loaded(startableTable), "the prefill must keep the player's own layout")
+            #expect(store.loadActiveMatch() == .loaded(realised), "the realised match must keep the order drawn")
         }
     }
 
@@ -338,12 +338,12 @@ private var startableTable: MatchSetup {
     /// previous match's people still seated.
     @Test func clearingTheRealisedMatchLeavesThePrefillAlone() {
         withStore { store in
-            store.save(startableTable)
-            store.saveActiveMatch(startableTable)
+            try! store.save(startableTable)
+            try! store.saveActiveMatch(startableTable)
             store.clearActiveMatch()
 
-            #expect(store.loadActiveMatch() == nil)
-            #expect(store.load() == startableTable)
+            #expect(store.loadActiveMatch() == .none)
+            #expect(store.load() == .loaded(startableTable))
         }
     }
 
@@ -351,8 +351,8 @@ private var startableTable: MatchSetup {
     /// both names - because that is the only record of who is playing.
     @Test func aTwoHumanRosterRoundTripsWithItsNames() {
         withStore { store in
-            store.saveActiveMatch(startableTable)
-            let restored = store.loadActiveMatch()
+            try! store.saveActiveMatch(startableTable)
+            let restored = store.loadActiveMatch().value
             #expect(restored?.humanSeats.map(\.index) == [0, 1])
             #expect(restored?.humanSeats.map(\.name) == ["Alex", "Sam"])
         }

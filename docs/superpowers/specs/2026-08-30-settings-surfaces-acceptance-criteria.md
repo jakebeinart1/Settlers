@@ -306,7 +306,7 @@ Recorded so the design pass does not budget space for them:
 | Which seats are Human vs AI | A — New Game | Yes | At least one Human |
 | Human seat names | A — New Game | Yes | **Required**, unique, prefilled from C1 |
 | Seat civilizations | A — New Game | Yes | Distinct across all four seats |
-| Victory target | A — New Game | Yes | Also governs AI evaluation |
+| Victory target | A — New Game | Yes | AI target-aware evaluation is deferred |
 | Randomized board | A — New Game | Board itself is saved | |
 | Seat order / randomize seats | A — New Game | Resulting order saved | |
 | AI turn speed | B — In-Game | No | Immediate effect |

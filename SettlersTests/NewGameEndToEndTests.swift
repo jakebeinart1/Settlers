@@ -170,3 +170,37 @@ private func setup(seats: Int, humans: [Int], target: Int,
     }
     #expect(winner.index == 0)
 }
+
+@MainActor
+@Test func failedReplacementKeepsTheRunningGameAndItsLogLink() throws {
+    let root = FileManager.default.temporaryDirectory
+        .appendingPathComponent("FailedReplacement.\(UUID().uuidString)")
+    try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
+    defer { try? FileManager.default.removeItem(at: root) }
+
+    let gameURL = root.appendingPathComponent("save.json")
+    let defaults = try #require(UserDefaults(suiteName: "FailedReplacement.\(UUID().uuidString)"))
+    let setupStore = MatchSetupStore()
+    setupStore.defaults = defaults
+    let logStore = GameLogStore(directoryURL: root.appendingPathComponent("logs"), maxKeptLogs: 10)
+    let model = GameViewModel(
+        gameStore: GameStore(fileURL: gameURL),
+        civilizationStore: CivilizationAssignmentStore(fileURL: root.appendingPathComponent("civs.json")),
+        matchSetupStore: setupStore,
+        gameLogStore: logStore
+    )
+    let firstMove = try #require(RulesEngine.legalMoves(for: model.state, seat: model.humanPlayer).first)
+    try model.apply(firstMove)
+    let originalPhase = model.state.phase
+    let activeLogID = try logStore.activeGameID()
+    let originalLogID = try #require(activeLogID)
+
+    try FileManager.default.removeItem(at: gameURL)
+    try FileManager.default.createDirectory(at: gameURL, withIntermediateDirectories: false)
+    model.startNewGame(setup: setup(seats: 3, humans: [0], target: 8))
+    let retainedLogID = try logStore.activeGameID()
+
+    #expect(model.persistenceErrorMessage != nil)
+    #expect(model.state.phase == originalPhase)
+    #expect(retainedLogID == originalLogID)
+}

@@ -112,8 +112,25 @@ struct ConfirmationPopupCard: View {
     let title: String
     let message: String
     let confirmTitle: String
+    let confirmIdentifier: String?
     let onConfirm: () -> Void
     let onCancel: () -> Void
+
+    init(
+        title: String,
+        message: String,
+        confirmTitle: String,
+        confirmIdentifier: String? = nil,
+        onConfirm: @escaping () -> Void,
+        onCancel: @escaping () -> Void
+    ) {
+        self.title = title
+        self.message = message
+        self.confirmTitle = confirmTitle
+        self.confirmIdentifier = confirmIdentifier
+        self.onConfirm = onConfirm
+        self.onCancel = onCancel
+    }
 
     var body: some View {
         // Tapping outside cancels - the non-destructive way out, matching
@@ -131,6 +148,7 @@ struct ConfirmationPopupCard: View {
                     GoldRowButton(title: "Cancel", systemImage: "xmark", action: onCancel)
                     GoldRowButton(title: confirmTitle, systemImage: "exclamationmark.triangle.fill",
                                   iconColor: .red, titleColor: .red, action: onConfirm)
+                        .accessibilityIdentifier(confirmIdentifier ?? "")
                 }
             }
             .padding(20)
@@ -185,7 +203,7 @@ struct PaintedChoiceRow<Option: Hashable>: View {
                 // these on a mostly empty page. The New Game screen holds ten
                 // and has to fit the whole configuration above the fold, so it
                 // asks for the compact height.
-                .padding(.vertical, isCompact ? 9 : 13)
+                .padding(.vertical, isCompact ? 6 : 13)
                 .background {
                     if isSelected {
                         // Inset by a point so this chip's own gold hairline sits

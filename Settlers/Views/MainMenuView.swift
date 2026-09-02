@@ -89,6 +89,7 @@ public struct MainMenuView: View {
                         .padding(.vertical, 8)
                         .background(PaintedChromeBackground(fill: .color(Color(white: 0.18)), cornerRadius: 10, notchScale: 0.6))
                     }
+                    .accessibilityIdentifier(AccessibilityID.MainMenu.settings)
                 }
                 .padding(.horizontal, 20)
                 .padding(.top, 12)
@@ -110,12 +111,14 @@ public struct MainMenuView: View {
                     ) {
                         isShowingNewGame = true
                     }
+                    .accessibilityIdentifier(AccessibilityID.MainMenu.newGame)
                     .padding(.horizontal, 40)
 
                     if hasSavedGame {
                         GoldRowButton(title: "Resume Game", systemImage: "play.fill") {
                             onResume()
                         }
+                        .accessibilityIdentifier(AccessibilityID.MainMenu.resume)
                         .padding(.horizontal, 40)
                     }
                 }
@@ -125,6 +128,8 @@ public struct MainMenuView: View {
                 Spacer()
             }
         }
+        .accessibilityElement(children: .contain)
+        .accessibilityIdentifier(AccessibilityID.Screen.mainMenu)
         .foregroundStyle(.white)
         .sheet(isPresented: $isShowingSettings) {
             SettingsView(onDismiss: { isShowingSettings = false })

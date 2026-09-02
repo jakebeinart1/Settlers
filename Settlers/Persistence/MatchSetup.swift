@@ -176,14 +176,26 @@ public final class MatchSetupStore: @unchecked Sendable {
     private let key = "matchSetup"
     private let activeKey = "activeMatchSetup"
 
-    public func load() -> MatchSetup? { decode(forKey: key) }
+    public enum LoadResult: Equatable {
+        case none
+        case loaded(MatchSetup)
+        case unreadable
 
-    public func save(_ setup: MatchSetup) { encode(setup, forKey: key) }
+        public var value: MatchSetup? {
+            guard case .loaded(let setup) = self else { return nil }
+            return setup
+        }
+    }
+
+    public func load() -> LoadResult { decode(forKey: key) }
+
+    public func save(_ setup: MatchSetup) throws { try encode(setup, forKey: key) }
 
     /// The chair layout the game currently on disk is being played on.
-    public func loadActiveMatch() -> MatchSetup? { decode(forKey: activeKey) }
 
-    public func saveActiveMatch(_ setup: MatchSetup) { encode(setup, forKey: activeKey) }
+    public func loadActiveMatch() -> LoadResult { decode(forKey: activeKey) }
+
+    public func saveActiveMatch(_ setup: MatchSetup) throws { try encode(setup, forKey: activeKey) }
 
     /// Forgets who was sitting where, without touching the prefill. Used by the
     /// one-human entry point, whose game is fully described by
@@ -198,17 +210,25 @@ public final class MatchSetupStore: @unchecked Sendable {
         defaults.removeObject(forKey: activeKey)
     }
 
-    private func decode(forKey key: String) -> MatchSetup? {
-        guard let data = defaults.data(forKey: key) else { return nil }
-        // A decode failure here means a `MatchSetup` shape this build no longer
-        // reads. There is nobody to report it to and no better answer than
-        // "nothing stored": the screen falls back to its defaults, and the only
-        // cost is one screen of re-entry.
-        return try? JSONDecoder().decode(MatchSetup.self, from: data)
+    func data(forActiveMatch: Bool) -> Data? {
+        defaults.data(forKey: forActiveMatch ? activeKey : key)
     }
 
-    private func encode(_ setup: MatchSetup, forKey key: String) {
-        guard let data = try? JSONEncoder().encode(setup) else { return }
-        defaults.set(data, forKey: key)
+    func restore(_ data: Data?, forActiveMatch: Bool) {
+        let targetKey = forActiveMatch ? activeKey : key
+        if let data { defaults.set(data, forKey: targetKey) } else { defaults.removeObject(forKey: targetKey) }
+    }
+
+    private func decode(forKey key: String) -> LoadResult {
+        guard let data = defaults.data(forKey: key) else { return .none }
+        do {
+            return .loaded(try JSONDecoder().decode(MatchSetup.self, from: data))
+        } catch {
+            return .unreadable
+        }
+    }
+
+    private func encode(_ setup: MatchSetup, forKey key: String) throws {
+        defaults.set(try JSONEncoder().encode(setup), forKey: key)
     }
 }

@@ -81,6 +81,7 @@ struct HandoffCoverView: View {
                 Spacer()
 
                 GoldRowButton(title: "I'm Ready", systemImage: "hand.tap.fill", action: onReady)
+                    .accessibilityIdentifier(AccessibilityID.Handoff.ready)
                     .padding(.horizontal, 28)
                     .padding(.bottom, 40)
             }

@@ -49,6 +49,7 @@ struct NewGameSetupView: View {
     /// looked away has no way to get back.
     @State private var refusal: String?
     @State private var openHelp: HelpTopic?
+    @State private var isShowingUnreadableSetupAlert: Bool
 
     /// Read once, at init. Both are App Settings *preferences* - they prefill
     /// this screen (A2.3, A3.7, C1.1, C2.1) and are never the value the game
@@ -71,7 +72,9 @@ struct NewGameSetupView: View {
         preferredName = name
         preferredCivilization = civilization
         hasSavedGame = GameStore.shared.hasSave()
-        _setup = State(initialValue: Self.initialSetup(preferredName: name, preferredCivilization: civilization))
+        let initial = Self.initialSetup(preferredName: name, preferredCivilization: civilization)
+        _setup = State(initialValue: initial.setup)
+        _isShowingUnreadableSetupAlert = State(initialValue: initial.wasUnreadable)
         #if DEBUG
         _isConfirmingOverwrite = State(initialValue: QALaunchFlag.showNewGameOverwrite.isSet)
         _pickingCivilizationForSeat = State(
@@ -87,40 +90,51 @@ struct NewGameSetupView: View {
     private static let seatGutter: CGFloat = 10
 
     var body: some View {
-        ZStack {
-            SettingsChrome.screenBackground.ignoresSafeArea()
+        GeometryReader { geometry in
+            let isShortScreen = geometry.size.height < 750
+            ZStack {
+                SettingsChrome.screenBackground.ignoresSafeArea()
 
-            VStack(spacing: 0) {
-                ScrollViewReader { proxy in
-                    ScrollView {
-                        VStack(spacing: 12) {
-                            titleBlock
-                            tableSizeSection
-                            seatsSection
-                            matchSettingsSection
+                VStack(spacing: 0) {
+                    ScrollViewReader { proxy in
+                        ScrollView {
+                            configuration(isShortScreen: isShortScreen)
+                                .id(Self.footerAnchor)
                         }
-                        .padding(.horizontal, Self.screenInset)
-                        .padding(.top, 8)
-                        .padding(.bottom, 24)
-                        .id(Self.footerAnchor)
+                        .scrollDismissesKeyboard(.interactively)
+                        #if DEBUG
+                        .task { await qaScrollToFooter(proxy) }
+                        #endif
                     }
-                    // The screen is taller than a phone and half of it is text
-                    // fields, so a keyboard that will not go away would hide the
-                    // action bar entirely.
-                    .scrollDismissesKeyboard(.interactively)
-                    #if DEBUG
-                    .task { await qaScrollToFooter(proxy) }
-                    #endif
+
+                    bottomBar(isShortScreen: isShortScreen)
                 }
 
-                bottomBar
+                if let seatIndex = pickingCivilizationForSeat { civilizationPicker(for: seatIndex) }
+                if isConfirmingOverwrite { overwriteConfirmation }
             }
-
-            if let seatIndex = pickingCivilizationForSeat { civilizationPicker(for: seatIndex) }
-            if isConfirmingOverwrite { overwriteConfirmation }
         }
+        .accessibilityElement(children: .contain)
+        .accessibilityIdentifier(AccessibilityID.Screen.newGame)
         .foregroundStyle(.white)
         .fontDesign(.serif)
+        .alert("Couldn't open your previous setup", isPresented: $isShowingUnreadableSetupAlert) {
+            Button("OK", role: .cancel) {}
+        } message: {
+            Text("The saved setup could not be read. It was left untouched, and safe defaults are shown instead.")
+        }
+    }
+
+    private func configuration(isShortScreen: Bool) -> some View {
+        VStack(spacing: isShortScreen ? 6 : 12) {
+            titleBlock
+            tableSizeSection
+            seatsSection(isShortScreen: isShortScreen)
+            matchSettingsSection
+        }
+        .padding(.horizontal, Self.screenInset)
+        .padding(.top, isShortScreen ? 2 : 8)
+        .padding(.bottom, isShortScreen ? 4 : 24)
     }
 
     // MARK: - Prefill (A6.4, X4.2)
@@ -133,18 +147,51 @@ struct NewGameSetupView: View {
     /// longer supports or a victory target this screen has no button for, and
     /// `MatchSetup.resize` traps on the former. Both fall back rather than
     /// opening a screen whose controls disagree with the value behind them.
-    private static func initialSetup(preferredName: String, preferredCivilization: Civilization) -> MatchSetup {
+    private static func initialSetup(
+        preferredName: String,
+        preferredCivilization: Civilization
+    ) -> (setup: MatchSetup, wasUnreadable: Bool) {
         #if DEBUG
-        if let fixture = qaFixture() { return fixture }
+        if let fixture = qaFixture() { return (fixture, false) }
         #endif
-        guard var saved = MatchSetupStore.shared.load(),
-              GameSetup.supportedPlayerCounts.contains(saved.seats.count) else {
-            return .default(preferredName: preferredName, preferredCivilization: preferredCivilization)
+        let fallback = MatchSetup.default(preferredName: preferredName,
+                                          preferredCivilization: preferredCivilization)
+        guard case .loaded(var saved) = MatchSetupStore.shared.load() else {
+            if case .unreadable = MatchSetupStore.shared.load() { return (fallback, true) }
+            return (fallback, false)
+        }
+        guard GameSetup.supportedPlayerCounts.contains(saved.seats.count) else {
+            return (fallback, true)
         }
         if MatchLength(rawValue: saved.victoryPointTarget) == nil {
             saved.victoryPointTarget = WinCondition.standardTarget
         }
-        return saved
+        applyAppPreferences(
+            to: &saved,
+            preferredName: preferredName,
+            preferredCivilization: preferredCivilization
+        )
+        return (saved, false)
+    }
+
+    /// App Settings are defaults for the next match, not merely for the first
+    /// match ever created. Preserve the rest of the previous layout while
+    /// moving an occupied preferred civilization instead of creating a
+    /// duplicate that would silently disable Start.
+    private static func applyAppPreferences(
+        to setup: inout MatchSetup,
+        preferredName: String,
+        preferredCivilization: Civilization
+    ) {
+        guard let humanIndex = setup.seats.firstIndex(where: \.isHuman) else { return }
+        let previousCivilization = setup.seats[humanIndex].civilization
+        if let occupiedIndex = setup.seats.firstIndex(where: {
+            $0.index != setup.seats[humanIndex].index && $0.civilization == preferredCivilization
+        }) {
+            setup.seats[occupiedIndex].civilization = previousCivilization
+        }
+        setup.seats[humanIndex].name = preferredName
+        setup.seats[humanIndex].civilization = preferredCivilization
     }
 
     // MARK: - Title
@@ -200,10 +247,10 @@ struct NewGameSetupView: View {
 
     // MARK: - Seats (A1, A2, A3)
 
-    private var seatsSection: some View {
-        VStack(spacing: 12) {
+    private func seatsSection(isShortScreen: Bool) -> some View {
+        VStack(spacing: isShortScreen ? 5 : 12) {
             SettingsSectionHeader(title: "Players & Civilizations")
-            seatGrid
+            seatGrid(isShortScreen: isShortScreen)
             // Only the refusal. The standing note explained that seat 4 is
             // optional, which the "Optional" pill on that card already says,
             // and it occupied ~45pt permanently to do it.
@@ -214,7 +261,7 @@ struct NewGameSetupView: View {
         }
     }
 
-    private var seatGrid: some View {
+    private func seatGrid(isShortScreen: Bool) -> some View {
         LazyVGrid(
             columns: [GridItem(.flexible(), spacing: Self.seatGutter), GridItem(.flexible())],
             spacing: Self.seatGutter
@@ -225,7 +272,8 @@ struct NewGameSetupView: View {
                     isOptional: seat.index == GameSetup.supportedPlayerCounts.upperBound - 1,
                     onSetHuman: { setSeat(seat.index, human: $0) },
                     onRename: { setup.seats[seat.index].name = $0 },
-                    onEditCivilization: { pickingCivilizationForSeat = seat.index }
+                    onEditCivilization: { pickingCivilizationForSeat = seat.index },
+                    isShortScreen: isShortScreen
                 )
             }
         }
@@ -278,8 +326,8 @@ struct NewGameSetupView: View {
         labelledChoice(
             label: "Match Length",
             help: .matchLength,
-            helpText: "How many victory points win the game. The bots play toward the same target, "
-                + "and a saved game resumes at the target it started with.",
+            helpText: "The game ends when a player reaches this many victory points. "
+                + "A saved game resumes at the target it started with.",
             caption: nil
         ) {
             PaintedChoiceRow(
@@ -510,7 +558,7 @@ struct NewGameSetupView: View {
     /// reason to be stated; stating it where the player cannot see it satisfies
     /// the letter and not the point. Here it is always visible, and always next
     /// to the button it is about.
-    private var bottomBar: some View {
+    private func bottomBar(isShortScreen: Bool) -> some View {
         VStack(spacing: 0) {
             Rectangle()
                 .fill(SettingsChrome.ornamentGold.opacity(0.4))
@@ -518,7 +566,7 @@ struct NewGameSetupView: View {
 
             statusPlaque
                 .padding(.horizontal, Self.screenInset)
-                .padding(.top, 8)
+                .padding(.top, isShortScreen ? 4 : 8)
 
             HStack(spacing: 12) {
                 UniformActionButton(
@@ -528,6 +576,7 @@ struct NewGameSetupView: View {
                     backgroundImageName: "button-fill-trade",
                     action: onCancel
                 )
+                .accessibilityIdentifier(AccessibilityID.NewGame.cancel)
                 .frame(width: Self.cancelWidth)
                 UniformActionButton(
                     title: "Start New Game",
@@ -536,12 +585,13 @@ struct NewGameSetupView: View {
                     backgroundImageName: "button-fill-turn",
                     action: startTapped
                 )
+                .accessibilityIdentifier(AccessibilityID.NewGame.start)
             }
             // `UniformActionButton` grows to whatever height it is given
             // (`maxHeight: .infinity`), so the row has to state one.
-            .frame(height: 62)
+            .frame(height: isShortScreen ? 48 : 62)
             .padding(.horizontal, Self.screenInset)
-            .padding(.vertical, 12)
+            .padding(.vertical, isShortScreen ? 6 : 12)
         }
         .background(SettingsChrome.screenBackground)
     }
@@ -572,6 +622,7 @@ struct NewGameSetupView: View {
             title: "Replace your saved game?",
             message: "You have a game in progress. Starting a new one throws it away, and it cannot be recovered.",
             confirmTitle: "Start New Game",
+            confirmIdentifier: AccessibilityID.NewGame.confirmOverwrite,
             onConfirm: { onStart(setup) },
             onCancel: { isConfirmingOverwrite = false }
         )
