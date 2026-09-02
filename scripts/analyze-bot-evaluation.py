@@ -31,6 +31,41 @@ METRICS = (
     "resolvedTradeAcceptances",
     "resolvedTradeRejections",
     "turnsEnded",
+    "settlementCityOpportunities",
+    "settlementsChosenInMixedBuildOpportunities",
+    "citiesChosenInMixedBuildOpportunities",
+    "developmentCardBuildOpportunities",
+    "developmentCardsChosenOverPermanentBuild",
+    "tradeResponseOpportunities",
+    "tradeResponsesAccepted",
+    "proposalCardsGiven",
+    "proposalCardsRequested",
+    "playableKnightOpportunities",
+    "knightsChosenWhenPlayable",
+    "differentiatedRobberTargetOpportunities",
+    "highestPublicVPRobberTargets",
+    "tradeProposalOpportunities",
+)
+
+RATES = (
+    (
+        "city choice when city and settlement were legal",
+        "citiesChosenInMixedBuildOpportunities",
+        "settlementCityOpportunities",
+    ),
+    (
+        "development-card choice when a permanent build was legal",
+        "developmentCardsChosenOverPermanentBuild",
+        "developmentCardBuildOpportunities",
+    ),
+    ("trade acceptance", "tradeResponsesAccepted", "tradeResponseOpportunities"),
+    ("knight use when playable", "knightsChosenWhenPlayable", "playableKnightOpportunities"),
+    (
+        "highest-public-VP robber target when targets differed",
+        "highestPublicVPRobberTargets",
+        "differentiatedRobberTargetOpportunities",
+    ),
+    ("player-trade proposal", "tradesProposed", "tradeProposalOpportunities"),
 )
 
 
@@ -95,9 +130,9 @@ def load(
                     row["behavior"][seat]
                 except (json.JSONDecodeError, KeyError, IndexError, TypeError) as error:
                     raise SystemExit(f"{path}:{line_number}: invalid simulator record: {error}")
-                if row.get("schemaVersion") != 2 or row.get("buildID") != build_id:
+                if row.get("schemaVersion") != 3 or row.get("buildID") != build_id:
                     raise SystemExit(
-                        f"{path}:{line_number}: expected schema 2/build {build_id!r}, "
+                        f"{path}:{line_number}: expected schema 3/build {build_id!r}, "
                         f"got {row.get('schemaVersion')!r}/{row.get('buildID')!r}"
                     )
                 policies = row.get("policies")
@@ -171,6 +206,14 @@ def main() -> None:
         ]
         mean, margin = mean_interval(seed_means)
         print(f"| `{metric}` | {mean:.3f} | ±{margin:.3f} |")
+    print()
+    print("| Opportunity-normalized behavior | Rate | Opportunities |")
+    print("| --- | ---: | ---: |")
+    for label, numerator, denominator in RATES:
+        successes = sum(row["behavior"][seat][numerator] for seat, row in rows)
+        opportunities = sum(row["behavior"][seat][denominator] for seat, row in rows)
+        rate = f"{successes / opportunities:.1%}" if opportunities else "not observed"
+        print(f"| {label} | {rate} | {opportunities} |")
 
 
 if __name__ == "__main__":

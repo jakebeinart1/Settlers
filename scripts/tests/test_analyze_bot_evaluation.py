@@ -18,7 +18,7 @@ def record(seat: int, seed: int = 10, build_id: str = "test-build") -> dict:
     policies = ["greedy"] * 4
     policies[seat] = "heuristic-balanced"
     return {
-        "schemaVersion": 2,
+        "schemaVersion": 3,
         "buildID": build_id,
         "policies": policies,
         "seed": seed,
@@ -65,7 +65,7 @@ class EvaluationInputTests(unittest.TestCase):
     def test_rejects_wrong_build_provenance(self) -> None:
         paths = self.valid_paths()
         paths[1] = self.write_shard(1, [record(1, build_id="other")])
-        with self.assertRaisesRegex(SystemExit, "expected schema 2/build"):
+        with self.assertRaisesRegex(SystemExit, "expected schema 3/build"):
             self.load(paths)
 
     def test_rejects_wrong_policy_provenance(self) -> None:

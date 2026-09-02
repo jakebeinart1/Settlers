@@ -76,13 +76,20 @@ public struct GameSession: Sendable {
     /// changing how a bot breaks ties cannot shift the dice.
     public private(set) var policyRNG: RandomSource
 
+    /// Exact policy evaluations performed by the most recent decision or
+    /// commit operation. A proposal may ask several responders before one
+    /// acceptance wins; all answers matter to evaluators, not only the one
+    /// eventually committed. Replaced on each operation, so app callers that
+    /// ignore telemetry never accumulate a game-sized history.
+    public private(set) var lastPolicyDecisions: [Decision] = []
+
     /// An out-of-turn policy response to the offer just proposed.
     ///
     /// Catan trades are live negotiations: waiting until the responder's own
     /// turn makes every bot-to-bot offer disappear when the proposer ends its
     /// turn. The response is queued here so the app and simulator execute the
     /// same next action and both can log it as an ordinary `Step`.
-    private var queuedTradeResponse: (seat: PlayerID, move: GameMove)?
+    private var queuedTradeResponse: Decision?
     /// Whether the active seat already opened one negotiation this turn.
     /// A rejection removes the offer from state, so without this memory the
     /// policy immediately walks through near-identical deals until the runaway
@@ -111,6 +118,15 @@ public struct GameSession: Sendable {
         public let actor: PlayerID
         public let move: GameMove
         public let events: [GameEvent]
+    }
+
+    /// One policy choice together with the exact action mask it received.
+    /// Evaluation consumers need the mask to distinguish preference from
+    /// opportunity; ordinary app callers can keep using `decideNext()`.
+    public struct Decision: Sendable {
+        public let seat: PlayerID
+        public let move: GameMove
+        public let observation: GameObservation
     }
 
     /// Who acts next, or why nobody can.
@@ -167,7 +183,18 @@ public struct GameSession: Sendable {
     /// so a decision taken must be committed**, or the sequence diverges from
     /// a replay of the same seed.
     public mutating func decideNext() -> (seat: PlayerID, move: GameMove)? {
-        if let queuedTradeResponse { return queuedTradeResponse }
+        guard let decision = decideNextDetailed() else { return nil }
+        return (decision.seat, decision.move)
+    }
+
+    /// Rich form of `decideNext()` for evaluators and trainers.
+    /// Advances policy RNG exactly once, like the compact API.
+    public mutating func decideNextDetailed() -> Decision? {
+        lastPolicyDecisions = []
+        if let queuedTradeResponse {
+            lastPolicyDecisions = [queuedTradeResponse]
+            return queuedTradeResponse
+        }
         guard case .seat(let seat) = nextActor(), let policy = policies[seat] else { return nil }
 
         // Seat-scoped: the unscoped list is a union in `.discarding`.
@@ -183,13 +210,18 @@ public struct GameSession: Sendable {
         )
 
         if actionsThisTurn >= Self.maxActionsPerTurn, case .mainTurn = state.phase {
-            return (seat, .endTurn)
+            let decision = Decision(seat: seat, move: .endTurn, observation: observation)
+            lastPolicyDecisions = [decision]
+            return decision
         }
-        return (seat, chosen)
+        let decision = Decision(seat: seat, move: chosen, observation: observation)
+        lastPolicyDecisions = [decision]
+        return decision
     }
 
     /// Applies a move a policy chose.
     public mutating func commit(seat: PlayerID, move: GameMove) throws -> Step {
+        lastPolicyDecisions = []
         let events = try RulesEngine.apply(move, by: seat, to: &state)
         if queuedTradeResponse?.seat == seat, queuedTradeResponse?.move == move {
             queuedTradeResponse = nil
@@ -217,6 +249,7 @@ public struct GameSession: Sendable {
     /// move passes through here.
     @discardableResult
     public mutating func applyExternal(_ move: GameMove, by seat: PlayerID) throws -> Step {
+        lastPolicyDecisions = []
         let events = try RulesEngine.apply(move, by: seat, to: &state)
         recordAction(by: seat, move: move)
         return Step(actor: seat, move: move, events: events)
@@ -225,6 +258,7 @@ public struct GameSession: Sendable {
     /// Replaces the position wholesale - loading a save, or a QA fixture.
     /// Resets the turn bookkeeping, which describes the game being replaced.
     public mutating func replace(state newState: GameState) {
+        lastPolicyDecisions = []
         state = newState
         currentTurnSeat = nil
         actionsThisTurn = 0
@@ -293,23 +327,51 @@ public struct GameSession: Sendable {
             guard let move = tradeDecision(for: seat, offer: offer) else { continue }
             if firstRejection == nil { firstRejection = (seat, move) }
             if case .respondToTrade(_, true) = move {
-                queuedTradeResponse = (seat, move)
+                queuedTradeResponse = Decision(
+                    seat: seat,
+                    move: move,
+                    observation: tradeObservation(for: seat, offer: offer)
+                )
+                removeQueuedDecisionFromCurrentTelemetry()
                 return
             }
         }
-        queuedTradeResponse = firstRejection
+        if let firstRejection {
+            queuedTradeResponse = Decision(
+                seat: firstRejection.0,
+                move: firstRejection.1,
+                observation: tradeObservation(for: firstRejection.0, offer: offer)
+            )
+            removeQueuedDecisionFromCurrentTelemetry()
+        }
     }
 
     private mutating func tradeDecision(for seat: PlayerID, offer: TradeOffer) -> GameMove? {
         guard let policy = policies[seat] else { return nil }
+        let observation = tradeObservation(for: seat, offer: offer)
+        let chosen = policy.decide(observation, rng: &policyRNG)
+        precondition(observation.legalMoves.contains(chosen), "policy \(policy.id) returned a non-response to an open trade")
+        lastPolicyDecisions.append(Decision(seat: seat, move: chosen, observation: observation))
+        return chosen
+    }
+
+    private func tradeObservation(for seat: PlayerID, offer: TradeOffer) -> GameObservation {
         let reject = GameMove.respondToTrade(offerID: offer.id, accept: false)
         var legal = [reject]
         if Trading.bothSidesCanHonour(offer, responder: seat, state: state) {
             legal.insert(.respondToTrade(offerID: offer.id, accept: true), at: 0)
         }
-        let observation = GameObservation(seat: seat, state: state, legalMoves: legal)
-        let chosen = policy.decide(observation, rng: &policyRNG)
-        precondition(legal.contains(chosen), "policy \(policy.id) returned a non-response to an open trade")
-        return chosen
+        return GameObservation(seat: seat, state: state, legalMoves: legal)
+    }
+
+    /// The queued reply is reported when it becomes the next decision. The
+    /// other replies were evaluated but discarded, so they are reported by
+    /// the proposal commit. Splitting them prevents double-counting while
+    /// still preserving a queued reply reconstructed from a save.
+    private mutating func removeQueuedDecisionFromCurrentTelemetry() {
+        guard let queuedTradeResponse else { return }
+        lastPolicyDecisions.removeAll {
+            $0.seat == queuedTradeResponse.seat && $0.move == queuedTradeResponse.move
+        }
     }
 }

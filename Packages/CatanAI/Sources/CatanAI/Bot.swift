@@ -304,7 +304,11 @@ public struct Bot: Sendable {
             for offer in TradeHeuristics.proposeTrades(
                 state: state, player: player, personality: personality, weights: weights
             ) {
-                consider(.proposeTrade(offer), score: weights.proposeTradeMoveBase + personality.tradeWillingness)
+                consider(
+                    .proposeTrade(offer),
+                    score: weights.proposeTradeMoveBase
+                        + personality.tradeWillingness * weights.proposeTradeMoveWillingnessScale
+                )
             }
 
             // Lowest-priority fallback: actively decline a pending offer

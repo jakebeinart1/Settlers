@@ -273,13 +273,20 @@ private func playGame(seed: UInt64, policies: [any Policy], buildID: String) -> 
 
     for _ in 0..<maxMovesPerGame {
         guard case .seat = session.nextActor() else { break }
+        guard let decision = session.decideNextDetailed() else { break }
+        for evaluated in session.lastPolicyDecisions {
+            behavior[evaluated.seat.index].observeDecision(evaluated.observation, chosen: evaluated.move)
+        }
         let step: GameSession.Step?
         do {
-            step = try session.step()
+            step = try session.commit(seat: decision.seat, move: decision.move)
         } catch {
             fatalError("seed \(seed): a policy played an illegal move: \(error)")
         }
         guard let step else { break }
+        for evaluated in session.lastPolicyDecisions {
+            behavior[evaluated.seat.index].observeDecision(evaluated.observation, chosen: evaluated.move)
+        }
         trace.append("P\(step.actor.index):\(Rendering.canonical(step.move))")
         behavior[step.actor.index].observe(step.events, for: step.actor)
     }
@@ -308,7 +315,7 @@ private func jsonLine(_ result: GameResult) -> String {
     let winner = result.winner.map { "\($0.index)" } ?? "null"
     let points = result.victoryPoints.map(String.init).joined(separator: ",")
     let policies = result.policyIDs.map { "\"\($0)\"" }.joined(separator: ",")
-    return "{\"schemaVersion\":2,\"buildID\":\"\(result.buildID)\",\"policies\":[\(policies)],"
+    return "{\"schemaVersion\":3,\"buildID\":\"\(result.buildID)\",\"policies\":[\(policies)],"
         + "\"seed\":\(result.seed),\"moves\":\(result.moves),\"winner\":\(winner),"
         + "\"vp\":[\(points)],\"fingerprint\":\"\(result.fingerprint)\","
         + "\"behavior\":\(behaviorJSON(result.behavior))}"
@@ -322,7 +329,21 @@ private func behaviorJSON(_ metrics: [PolicyBehaviorMetrics]) -> String {
             + "\"bankTrades\":\(metric.bankTrades),\"tradesProposed\":\(metric.tradesProposed),"
             + "\"resolvedTradeAcceptances\":\(metric.resolvedTradeAcceptances),"
             + "\"resolvedTradeRejections\":\(metric.resolvedTradeRejections),"
-            + "\"turnsEnded\":\(metric.turnsEnded)}"
+            + "\"turnsEnded\":\(metric.turnsEnded),"
+            + "\"settlementCityOpportunities\":\(metric.settlementCityOpportunities),"
+            + "\"settlementsChosenInMixedBuildOpportunities\":\(metric.settlementsChosenInMixedBuildOpportunities),"
+            + "\"citiesChosenInMixedBuildOpportunities\":\(metric.citiesChosenInMixedBuildOpportunities),"
+            + "\"developmentCardBuildOpportunities\":\(metric.developmentCardBuildOpportunities),"
+            + "\"developmentCardsChosenOverPermanentBuild\":\(metric.developmentCardsChosenOverPermanentBuild),"
+            + "\"tradeResponseOpportunities\":\(metric.tradeResponseOpportunities),"
+            + "\"tradeResponsesAccepted\":\(metric.tradeResponsesAccepted),"
+            + "\"proposalCardsGiven\":\(metric.proposalCardsGiven),"
+            + "\"proposalCardsRequested\":\(metric.proposalCardsRequested),"
+            + "\"playableKnightOpportunities\":\(metric.playableKnightOpportunities),"
+            + "\"knightsChosenWhenPlayable\":\(metric.knightsChosenWhenPlayable),"
+            + "\"differentiatedRobberTargetOpportunities\":\(metric.differentiatedRobberTargetOpportunities),"
+            + "\"highestPublicVPRobberTargets\":\(metric.highestPublicVPRobberTargets),"
+            + "\"tradeProposalOpportunities\":\(metric.tradeProposalOpportunities)}"
     }.joined(separator: ",") + "]"
 }
 

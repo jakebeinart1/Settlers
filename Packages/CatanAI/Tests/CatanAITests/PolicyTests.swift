@@ -339,3 +339,24 @@ private struct FirstProposalPolicy: Policy {
             ?? .endTurn
     }
 }
+
+@Test func telemetryKeepsEveryEvaluatedTradeReplyWithoutCountingTheCommittedReplyTwice() throws {
+    var state = GameSetup.newGame(board: BoardGenerator.standard(), seed: 23)
+    state.phase = .mainTurn(playerIndex: 0)
+    state.players[0].resources = [.brick: 2]
+    let offer = TradeOffer(from: state.players[0].id, give: [.brick: 1], want: [.ore: 1])
+    var policies: [PlayerID: any Policy] = [:]
+    for player in state.players { policies[player.id] = GreedyPolicy() }
+    var session = GameSession(state: state, policies: policies, policySeed: 9)
+
+    _ = try session.commit(seat: state.players[0].id, move: .proposeTrade(offer))
+
+    #expect(session.lastPolicyDecisions.map(\.seat) == state.players.dropFirst(2).map(\.id))
+    #expect(session.lastPolicyDecisions.allSatisfy { decision in
+        decision.move == .respondToTrade(offerID: offer.id, accept: false)
+            && decision.observation.legalMoves == [.respondToTrade(offerID: offer.id, accept: false)]
+    })
+    let queued = session.decideNextDetailed()
+    #expect(queued?.seat == state.players[1].id)
+    #expect(session.lastPolicyDecisions.map(\.seat) == [state.players[1].id])
+}

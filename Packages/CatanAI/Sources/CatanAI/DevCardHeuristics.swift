@@ -59,7 +59,9 @@ public enum DevCardHeuristics {
             let claimsLargestArmy = me.playedKnights + 1 >= weights.largestArmyKnightThreshold
                 && state.largestArmyPlayer != player
             let pursuing = pursuingLargestArmy(state: state, player: player, me: me, weights: weights)
-            if robberOnOwnTile || claimsLargestArmy || pursuing {
+            let proactivePressure = personality.aggressiveness
+                >= weights.proactiveKnightAggressivenessThreshold
+            if robberOnOwnTile || claimsLargestArmy || pursuing || proactivePressure {
                 let (tile, victim) = RobberHeuristics.chooseRobberTarget(
                     state: state, player: player, personality: personality, weights: weights
                 )
