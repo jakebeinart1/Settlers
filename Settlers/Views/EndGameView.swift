@@ -10,11 +10,15 @@ import CatanEngine
 public struct EndGameView: View {
     public let state: GameState
     public let human: PlayerID
+    public let playerLabel: (PlayerID) -> String
     public let onNewGame: () -> Void
 
-    public init(state: GameState, human: PlayerID, onNewGame: @escaping () -> Void) {
+    public init(state: GameState, human: PlayerID,
+                playerLabel: @escaping (PlayerID) -> String = CatanTheme.playerLabel,
+                onNewGame: @escaping () -> Void) {
         self.state = state
         self.human = human
+        self.playerLabel = playerLabel
         self.onNewGame = onNewGame
     }
 
@@ -95,7 +99,7 @@ public struct EndGameView: View {
                     Text("Game Over")
                         .font(.title2.bold())
                         .foregroundStyle(.white.opacity(0.7))
-                    Text((CatanTheme.playerLabel(for: winner) + " wins").uppercased())
+                    Text((playerLabel(winner) + " wins").uppercased())
                         .font(.system(size: 36, weight: .black, design: .serif))
                         .tracking(2)
                         .foregroundStyle(CatanTheme.color(for: winner))
@@ -118,7 +122,7 @@ public struct EndGameView: View {
                     RoundedRectangle(cornerRadius: 3)
                         .fill(CatanTheme.color(for: player.id))
                         .frame(width: 14, height: 14)
-                    Text(CatanTheme.playerLabel(for: player.id))
+                    Text(playerLabel(player.id))
                         .fontWeight(player.id == winner ? .bold : .regular)
                     Spacer()
                     Text("\(state.victoryPoints(for: player.id)) VP")

@@ -37,6 +37,7 @@ extension GameViewModel {
         let realised = Self.realisedMatch(
             chairs: match.chairs,
             civilizations: match.civilizations,
+            opponentProfiles: match.opponentProfiles,
             from: setup
         )
         try matchSetupStore.save(setup)

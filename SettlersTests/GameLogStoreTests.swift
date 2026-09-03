@@ -40,6 +40,8 @@ import Testing
             let roster = GameLogStore.SeatRoster(
                 humanSeats: [PlayerID(index: 0), PlayerID(index: 2)],
                 humanNames: [0: "Alex", 2: "Jake"],
+                botProfiles: [1: "rome", 3: "norse"],
+                botProfileNames: [1: "Augustus", 3: "Ragnar"],
                 botPersonalities: [1: "balanced", 3: "aggressive"],
                 civilizations: [0: "Greece", 1: "Rome", 2: "Japan", 3: "Norse"]
             )
@@ -57,9 +59,23 @@ import Testing
 
             let detail = try store.detail(for: summary)
             #expect(detail.roster.humanNames == [0: "Alex", 2: "Jake"])
+            #expect(detail.roster.botProfiles == [1: "rome", 3: "norse"])
+            #expect(detail.roster.botProfileNames == [1: "Augustus", 3: "Ragnar"])
             #expect(detail.events.count == 1)
             #expect(detail.events[0].player == PlayerID(index: 0))
         }
+    }
+
+    @Test func versionTwoRosterWithoutProfilesStillDecodes() throws {
+        let json = #"{"humanSeat":{"index":0},"humanSeats":[{"index":0}],"humanNames":{},"botPersonalities":{"1":"balanced"},"civilizations":{"0":"Greece","1":"Rome"}}"#
+
+        let roster = try JSONDecoder().decode(
+            GameLogStore.SeatRoster.self, from: Data(json.utf8)
+        )
+
+        #expect(roster.botProfiles.isEmpty)
+        #expect(roster.botProfileNames.isEmpty)
+        #expect(roster.botPersonalities == [1: "balanced"])
     }
 
     @Test func crashTruncatedFinalLineKeepsAllCompleteEvents() throws {

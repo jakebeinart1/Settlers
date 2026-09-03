@@ -66,7 +66,10 @@ struct GameLogDetailView: View {
             ForEach(0..<detail.summary.playerCount, id: \.self) { seat in
                 let civilization = detail.roster.civilizations[seat] ?? "Unknown civilization"
                 let humanName = detail.roster.humanNames[seat]
-                let role = humanName ?? detail.roster.botPersonalities[seat] ?? "Human"
+                let role = humanName
+                    ?? detail.roster.botProfileNames[seat]
+                    ?? detail.roster.botPersonalities[seat]
+                    ?? "Human"
                 Text("Seat \(seat + 1) · \(civilization) · \(role)")
                     .font(.subheadline)
             }

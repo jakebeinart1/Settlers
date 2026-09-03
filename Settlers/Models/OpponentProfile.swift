@@ -1,0 +1,67 @@
+import Foundation
+import CatanAI
+
+/// Stable persisted/logged identity for a measured strategic style.
+/// `BotPersonality` is a bag of tuning values; persisting those values would
+/// turn every tuning edit into a migration and would not say which contract
+/// they were intended to implement.
+public enum OpponentStrategy: String, Codable, CaseIterable, Sendable {
+    case balanced
+    case aggressive
+    case cautious
+
+    public var personality: BotPersonality {
+        switch self {
+        case .balanced: return .balanced
+        case .aggressive: return .aggressive
+        case .cautious: return .cautious
+        }
+    }
+}
+
+/// The stable identity and behavior contract for one computer opponent.
+///
+/// A civilization is not merely paint: it names the general and selects the
+/// dialogue voice. A strategic personality controls decisions. Keeping those
+/// axes together in one catalog entry means the same opponent cannot silently
+/// become a different policy because a human moved to another chair.
+///
+/// Difficulty is deliberately absent. The current personalities are measured
+/// play styles, not calibrated strength tiers. When a real strength ladder
+/// exists, difficulty can be composed alongside this profile without changing
+/// the opponent's identity or voice.
+public struct OpponentProfile: Codable, Sendable, Equatable, Identifiable {
+    public let id: String
+    public let name: String
+    public let civilization: Civilization
+    public let strategy: OpponentStrategy
+
+    public var dialogueVoice: TradeMessages.Empire { civilization.tradeMessagesEmpire }
+    public var strategicPersonality: BotPersonality { strategy.personality }
+
+    /// One canonical profile per playable civilization.
+    ///
+    /// The mapping is explicit rather than inferred from enum order or seat
+    /// order. Reordering either collection therefore cannot change behavior.
+    public static let catalog: [OpponentProfile] = [
+        OpponentProfile(id: "charlemagne", name: "Charlemagne", civilization: .medieval, strategy: .balanced),
+        OpponentProfile(id: "alexander", name: "Alexander", civilization: .greece, strategy: .aggressive),
+        OpponentProfile(id: "ramesses", name: "Ramesses", civilization: .egypt, strategy: .cautious),
+        OpponentProfile(id: "moctezuma", name: "Moctezuma", civilization: .aztec, strategy: .aggressive),
+        OpponentProfile(id: "washington", name: "Washington", civilization: .columbia, strategy: .balanced),
+        OpponentProfile(id: "augustus", name: "Augustus", civilization: .rome, strategy: .aggressive),
+        OpponentProfile(id: "tokugawa", name: "Tokugawa", civilization: .japan, strategy: .cautious),
+        OpponentProfile(id: "ragnar", name: "Ragnar", civilization: .norse, strategy: .balanced),
+    ]
+
+    private static let byCivilization = Dictionary(
+        uniqueKeysWithValues: catalog.map { ($0.civilization, $0) }
+    )
+
+    public static func forCivilization(_ civilization: Civilization) -> OpponentProfile {
+        guard let profile = byCivilization[civilization] else {
+            preconditionFailure("Every civilization must have one opponent profile")
+        }
+        return profile
+    }
+}

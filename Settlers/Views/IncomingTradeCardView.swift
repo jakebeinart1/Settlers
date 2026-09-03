@@ -24,6 +24,7 @@ public struct IncomingTradeCardView: View {
     public let offer: TradeOffer
     public let onAccept: () -> Void
     public let onReject: () -> Void
+    public let playerLabel: (PlayerID) -> String
     /// Halts the countdown without the player having to tap the card.
     ///
     /// The only pause condition used to be a tap, so the timer kept draining
@@ -35,9 +36,11 @@ public struct IncomingTradeCardView: View {
     public var isHeld: Bool = false
 
     public init(offer: TradeOffer, isHeld: Bool = false,
+                playerLabel: @escaping (PlayerID) -> String = CatanTheme.playerLabel,
                 onAccept: @escaping () -> Void, onReject: @escaping () -> Void) {
         self.isHeld = isHeld
         self.offer = offer
+        self.playerLabel = playerLabel
         self.onAccept = onAccept
         self.onReject = onReject
     }
@@ -141,7 +144,7 @@ public struct IncomingTradeCardView: View {
                 // is worse than slightly smaller text on a line whose whole job
                 // is to say who wants what.
                 (
-                    Text("\(CatanTheme.playerLabel(for: offer.from)): ").font(.subheadline.bold())
+                    Text("\(playerLabel(offer.from)): ").font(.subheadline.bold())
                         + Text(TradeMessages.pitch(offer: offer,
                                                    empire: Civilization.forSeat(offer.from.index).tradeMessagesEmpire))
                         .font(.subheadline)

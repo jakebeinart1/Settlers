@@ -509,7 +509,7 @@ public struct TradePopupView: View {
     /// if nobody did, a bare "no one accepted") - so a fully-declined proposal
     /// still comes back with real reactions instead of a silent wall.
     private func proposalOutcomeBanner(_ outcome: GameViewModel.TradeOutcome) -> some View {
-        let headline = outcome.acceptedBy.map { "\(CatanTheme.playerLabel(for: $0)) accepted!" }
+        let headline = outcome.acceptedBy.map { "\(viewModel.playerLabel(for: $0)) accepted!" }
             ?? "No one accepted that trade."
         let headlineColor: Color = outcome.acceptedBy != nil ? .green : .red
 
@@ -542,7 +542,7 @@ public struct TradePopupView: View {
             // doc comment) so a line fits on one row at this size within the
             // popup's width, with no `lineLimit` or shrinking needed.
             VStack(alignment: .leading, spacing: 1) {
-                Text("\(CatanTheme.playerLabel(for: decision.bot)):")
+                Text("\(viewModel.playerLabel(for: decision.bot)):")
                     .font(.subheadline.bold())
                 Text(decision.message)
                     .font(.subheadline)

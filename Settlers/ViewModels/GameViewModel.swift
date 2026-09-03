@@ -40,6 +40,14 @@ public final class GameViewModel {
     /// `PlayerID` exists to hide.
     public private(set) var humanSeats: Set<PlayerID>
 
+    /// The realized bot identity at each non-human chair.
+    ///
+    /// Stored directly instead of recomputing from seat order so policy,
+    /// dialogue and logging all read the same assignment. The civilization
+    /// assignment is durable, so these profiles reconstruct identically after
+    /// relaunch without adding another persistence file.
+    public private(set) var opponentProfiles: [PlayerID: OpponentProfile]
+
     /// Human seats in a stable order.
     ///
     /// Sorted, always. `Set` iteration order is seeded per process in Swift, so
@@ -203,8 +211,10 @@ public final class GameViewModel {
         self.gameLogStore = gameLogStore
         persistenceErrorMessage = nil
         gameLogWarning = nil
+        let activeMatchResult = matchSetupStore.loadActiveMatch()
         let initialState: GameState
         let seat: PlayerID
+        let assignment: [Civilization]
         var saveWasUnreadable = false
         var resumedSavedGame = false
         switch gameStore.load() {
@@ -218,8 +228,10 @@ public final class GameViewModel {
             // the game still has *some* consistent lineup instead of the
             // bare defaults.
             seat = HumanSeatStore.shared.load()
-            CivilizationAssignment.current = civilizationStore.load()
-                ?? Self.drawAssignment(from: CivilizationSettingsStore.shared.load(), humanSeat: seat)
+            assignment = Self.restoredCivilizations(
+                for: saved, humanSeat: seat,
+                civilizationStore: civilizationStore, matchSetupStore: matchSetupStore
+            )
         case .unreadable:
             // A save exists but will not decode. Start a fresh game so the app
             // still launches, but say so rather than pretending there was
@@ -227,10 +239,13 @@ public final class GameViewModel {
             saveWasUnreadable = true
             initialState = GameSetup.newGame(board: BoardGenerator.standard())
             seat = PlayerID(index: 0)
+            assignment = Array(Civilization.allCases.prefix(initialState.players.count))
         case .none:
             initialState = GameSetup.newGame(board: BoardGenerator.standard())
             seat = PlayerID(index: 0)
+            assignment = Array(Civilization.allCases.prefix(initialState.players.count))
         }
+        CivilizationAssignment.current = assignment
         CivilizationAssignment.humanSeat = seat
         // Hot-seat composition, if the game being resumed recorded one.
         // `HumanSeatStore` holds a single seat and cannot express "people in
@@ -242,8 +257,15 @@ public final class GameViewModel {
         // `self` (including `self.state`) can be read - `GameLogStore`
         // reads `initialState` (the local), never `self.state`, to stay
         // fully assign-before-read through this initializer.
-        session = Self.makeSession(state: initialState, humanSeats: roster.seats)
+        let profiles = Self.opponentProfiles(
+            for: initialState, humanSeats: roster.seats,
+            civilizations: assignment,
+            realizedSeats: activeMatchResult.value?.seats,
+            preserveLegacySeatOrder: true
+        )
+        session = Self.makeSession(state: initialState, opponentProfiles: profiles)
         humanSeats = roster.seats
+        opponentProfiles = profiles
         // Nobody is holding a force-quit phone, so a hot-seat game resumes
         // behind the handoff cover rather than showing whoever's hand happens
         // to be up. A solo game has nobody to pass to and claims immediately.
@@ -257,6 +279,9 @@ public final class GameViewModel {
         }
         self.saveWasUnreadable = saveWasUnreadable
         activeSince = Date()
+        if resumedSavedGame, activeMatchResult == .unreadable {
+            persistenceErrorMessage = "The game was restored, but its saved player setup could not be read."
+        }
     }
 
     /// Starts a fresh game, discarding whatever `state` currently holds.
@@ -284,12 +309,15 @@ public final class GameViewModel {
         // rather than rewritten: with no record, `restoredRoster` falls back to
         // `HumanSeatStore`'s single seat, which is exactly what this builds.
         matchSetupStore.clearActiveMatch()
-        session = Self.makeSession(state: fresh, humanSeats: humanSeats)
         CivilizationAssignment.humanSeat = humanPlayer
         HumanSeatStore.shared.save(humanPlayer)
 
         let assignment = Self.drawAssignment(from: CivilizationSettingsStore.shared.load(), humanSeat: humanPlayer)
         CivilizationAssignment.current = assignment
+        opponentProfiles = Self.opponentProfiles(
+            for: fresh, humanSeats: humanSeats, civilizations: assignment
+        )
+        session = Self.makeSession(state: fresh, opponentProfiles: opponentProfiles)
         persistLegacyMatch(assignment: assignment)
     }
 
@@ -299,9 +327,13 @@ public final class GameViewModel {
     /// not moved yet; it builds the same thing with one human and stored
     /// preferences.
     public func startNewGame(setup: MatchSetup) {
+        startNewGame(setup: setup, configuredAs: setup)
+    }
+
+    private func startNewGame(setup: MatchSetup, configuredAs prefill: MatchSetup) {
         precondition(setup.isStartable, "refusing to start an invalid match: \(setup.validationProblem ?? "")")
         let match = Self.prepareMatch(from: setup)
-        guard persist(match, configuredAs: setup) else { return }
+        guard persist(match, configuredAs: prefill) else { return }
         resetPerGameState()
         install(match)
     }
@@ -312,6 +344,7 @@ public final class GameViewModel {
         let humanSeats: Set<PlayerID>
         let humanNames: [PlayerID: String]
         let civilizations: [Civilization]
+        let opponentProfiles: [PlayerID: OpponentProfile]
     }
 
     private static func prepareMatch(from setup: MatchSetup) -> PreparedMatch {
@@ -321,11 +354,16 @@ public final class GameViewModel {
         let pool = CivilizationSettingsStore.shared.load().eligibleRandomCivilizations
         let civilizations = resolveRandomCivilizations(
             configured: chairs.map(\.civilization), eligiblePool: pool)
+        let profiles = opponentProfiles(
+            for: state, humanSeats: roster.seats, civilizations: civilizations,
+            realizedSeats: chairs
+        )
         return PreparedMatch(chairs: chairs,
                              state: state,
                              humanSeats: roster.seats,
                              humanNames: roster.names,
-                             civilizations: civilizations)
+                             civilizations: civilizations,
+                             opponentProfiles: profiles)
     }
 
     /// Shuffles configured players as units so names and civilizations stay
@@ -363,7 +401,8 @@ public final class GameViewModel {
     private func install(_ match: PreparedMatch) {
         humanSeats = match.humanSeats
         seatAtDevice = match.humanSeats.count == 1 ? match.humanSeats.first : nil
-        session = Self.makeSession(state: match.state, humanSeats: match.humanSeats)
+        opponentProfiles = match.opponentProfiles
+        session = Self.makeSession(state: match.state, opponentProfiles: match.opponentProfiles)
 
         CivilizationAssignment.humanSeat = humanPlayer
         CivilizationAssignment.humanNames = match.humanNames
@@ -410,13 +449,15 @@ public final class GameViewModel {
     /// every civilization now decided - the record a resumed game reads.
     static func realisedMatch(chairs: [MatchSetup.Seat],
                               civilizations: [Civilization],
+                              opponentProfiles: [PlayerID: OpponentProfile],
                               from setup: MatchSetup) -> MatchSetup {
         MatchSetup(
             seats: chairs.enumerated().map { chair, configured in
                 MatchSetup.Seat(index: chair,
                                 isHuman: configured.isHuman,
                                 name: configured.name.trimmingCharacters(in: .whitespacesAndNewlines),
-                                civilization: civilizations[chair])
+                                civilization: civilizations[chair],
+                                opponentProfile: opponentProfiles[PlayerID(index: chair)])
             },
             victoryPointTarget: setup.victoryPointTarget,
             randomizedBoard: setup.randomizedBoard,
@@ -437,7 +478,16 @@ public final class GameViewModel {
             startNewGame(randomizedBoard: fallbackRandomizedBoard, randomizeSeat: fallbackRandomizeSeat)
             return
         }
-        startNewGame(setup: previous)
+        // Restart means replay this table, not draw different opponents. The
+        // active record contains the resolved Random civilizations and actual
+        // shuffled chairs; the prefill remains what the New Game screen should
+        // show next time.
+        if case .loaded(var active) = matchSetupStore.loadActiveMatch(), active.isStartable {
+            active.randomizeSeatOrder = false
+            startNewGame(setup: active, configuredAs: previous)
+        } else {
+            startNewGame(setup: previous)
+        }
     }
 
     /// Who is playing the game being resumed, and what they are called.
@@ -582,11 +632,15 @@ public final class GameViewModel {
     /// to that seat rather than stored anywhere.
     private func seatRoster() -> GameLogStore.SeatRoster {
         var personalities: [Int: String] = [:]
+        var profiles: [Int: String] = [:]
+        var profileNames: [Int: String] = [:]
         var civilizations: [Int: String] = [:]
         for player in state.players {
             let index = player.id.index
             civilizations[index] = Civilization.forSeat(index).displayName
             guard !humanSeats.contains(player.id) else { continue }
+            profiles[index] = opponentProfile(for: player.id)?.id
+            profileNames[index] = opponentProfile(for: player.id)?.name
             personalities[index] = personalityName(for: player.id)
         }
         return GameLogStore.SeatRoster(
@@ -594,6 +648,8 @@ public final class GameViewModel {
             humanNames: Dictionary(uniqueKeysWithValues: CivilizationAssignment.humanNames.map {
                 ($0.key.index, $0.value)
             }),
+            botProfiles: profiles,
+            botProfileNames: profileNames,
             botPersonalities: personalities,
             civilizations: civilizations
         )
@@ -629,7 +685,7 @@ public final class GameViewModel {
 
     /// `humanSeat` gets the preference; every other seat draws from the exact
     /// eligible pool after excluding that assignment.
-    private static func drawAssignment(from settings: CivilizationSettings, humanSeat: PlayerID) -> [Civilization] {
+    static func drawAssignment(from settings: CivilizationSettings, humanSeat: PlayerID) -> [Civilization] {
         var configured = [Civilization?](repeating: nil, count: GameSetup.standardPlayerCount)
         configured[humanSeat.index] = settings.yourCivilization
         return resolveRandomCivilizations(
@@ -715,7 +771,17 @@ public final class GameViewModel {
         precondition(!seats.isEmpty, "a game must have at least one human seat")
         humanSeats = seats
         seatAtDevice = seats.sorted().first
-        session = Self.makeSession(state: newState, humanSeats: seats)
+        // Do not read the process-global assignment here. Swift Testing runs
+        // test functions concurrently, and another fixture may be exercising
+        // a three-seat table while this one installs four seats. The old
+        // helper did not need the mapping; profiles do, so give tests their
+        // own deterministic complete assignment.
+        let civilizations = Array(Civilization.allCases.prefix(newState.players.count))
+        CivilizationAssignment.current = civilizations
+        opponentProfiles = Self.opponentProfiles(
+            for: newState, humanSeats: seats, civilizations: civilizations
+        )
+        session = Self.makeSession(state: newState, opponentProfiles: opponentProfiles)
     }
 
     /// Drops the device claim, reproducing a relaunch where nobody is holding
@@ -736,7 +802,10 @@ public final class GameViewModel {
             PlayerID(index: 0): "Alex",
             PlayerID(index: 1): "Sam",
         ]
-        session = Self.makeSession(state: state, humanSeats: seats)
+        opponentProfiles = Self.opponentProfiles(
+            for: state, humanSeats: seats, civilizations: CivilizationAssignment.current
+        )
+        session = Self.makeSession(state: state, opponentProfiles: opponentProfiles)
     }
 
     /// Forces `state.phase` straight to a human win, for screenshotting
@@ -991,23 +1060,24 @@ public final class GameViewModel {
     /// off. That is invisible in play - the bots are equally good either way -
     /// but it means a saved game is not replayable move-for-move, and the fix
     /// is to move the policy seed into `GameState` alongside `rng`.
-    private static func makeSession(state: GameState, humanSeat: PlayerID) -> GameSession {
-        makeSession(state: state, humanSeats: [humanSeat])
-    }
-
-    /// Seats every player that is NOT a person with a bot policy.
+    /// Seats every realized opponent profile with its configured policy.
     ///
     /// `GameSession` drives a seat only if it has a policy; a seat without one
     /// returns `.awaitingExternalSeat` and the loop stops for it. That is
     /// already how the single human works, so one to four humans needs no
     /// engine change - only that this hands out policies by set membership
     /// rather than by inequality with one seat.
-    private static func makeSession(state: GameState, humanSeats: Set<PlayerID>) -> GameSession {
+    private static func makeSession(
+        state: GameState,
+        opponentProfiles: [PlayerID: OpponentProfile]
+    ) -> GameSession {
         var policies: [PlayerID: any Policy] = [:]
-        for player in state.players where !humanSeats.contains(player.id) {
-            let index = personalityIndex(for: player.id, humanSeats: humanSeats)
-            let entry = botRoster[index]
-            policies[player.id] = HeuristicPolicy(personality: entry.preset, id: "heuristic-\(entry.name)")
+        for player in state.players {
+            guard let profile = opponentProfiles[player.id] else { continue }
+            policies[player.id] = HeuristicPolicy(
+                personality: profile.strategicPersonality,
+                id: "heuristic-\(profile.strategy.rawValue)"
+            )
         }
         var seedSource = state.rng
         return GameSession(state: state, policies: policies, policySeed: seedSource.next())
@@ -1165,45 +1235,4 @@ public final class GameViewModel {
         }
     }
 
-    /// Ranked by seat order *among the bot seats* (not raw seat index) -
-    /// with "Randomize Seat" on, the human can occupy any of the 4 seats,
-    /// and this keeps the same balanced/aggressive/cautious mix regardless
-    /// of which one, rather than that mix silently shrinking to 2 bots
-    /// whenever the human isn't sitting in seat 0.
-    private func personality(for player: PlayerID) -> BotPersonality {
-        Self.botRoster[personalityIndex(for: player)].preset
-    }
-
-    /// The same assignment, as a name for the game log. Both read the one
-    /// table below so a seat's recorded personality cannot drift from the one
-    /// it is actually played with.
-    private func personalityName(for player: PlayerID) -> String {
-        Self.botRoster[personalityIndex(for: player)].name
-    }
-
-    /// Bot seats take these in order, so the same balanced/aggressive/cautious
-    /// mix is dealt regardless of which seat the human ended up in.
-    private static let botRoster: [(name: String, preset: BotPersonality)] = [
-        ("balanced", .balanced),
-        ("aggressive", .aggressive),
-        ("cautious", .cautious),
-    ]
-
-    private func personalityIndex(for player: PlayerID) -> Int {
-        Self.personalityIndex(for: player, humanSeats: humanSeats)
-    }
-
-    /// Bot seats take the roster in order, so the same balanced/aggressive/
-    /// cautious mix is dealt regardless of which seat the human ended up in.
-    private static func personalityIndex(for player: PlayerID, humanSeats: Set<PlayerID>) -> Int {
-        // Ranked among the BOT seats, not by raw seat index, so the
-        // balanced/aggressive/cautious mix is the same wherever the humans
-        // happen to sit. `0...3` was also wrong for a three-player table; the
-        // bot seats are derived from the humans now, not from a fixed range.
-        let humanIndices = Set(humanSeats.map(\.index))
-        let botSeatsInOrder = (0..<GameSetup.supportedPlayerCounts.upperBound)
-            .filter { !humanIndices.contains($0) }
-        guard let seat = botSeatsInOrder.firstIndex(of: player.index) else { return 0 }
-        return min(seat, botRoster.count - 1)
-    }
 }

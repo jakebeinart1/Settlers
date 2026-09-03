@@ -38,8 +38,11 @@ Make the bot opponents play meaningfully better.
 - [ ] Define and validate a reliable consolidation metric; city-versus-
       settlement opportunities were too rare, and offer acceptance did not
       separate enough to support either player-facing claim.
-- [ ] Replace bot-seat-order personality assignment with stable opponent
-      profiles that compose civilization, general, strategy, and dialogue.
+- [x] Replaced bot-seat-order personality assignment with stable, realized
+      opponent profiles that compose civilization, general, strategy, and
+      dialogue; active matches snapshot profiles across relaunch/restart and
+      logs record both profile identity and measured strategy. See
+      `docs/AI_summaries/2026-09-02-opponent-profile-decision-log.md`.
 - [ ] Calibrate genuine difficulty tiers against frozen anchors before adding
       a difficulty control to New Game. Personality and difficulty are
       separate axes and must remain separate in both evaluation and UI.
