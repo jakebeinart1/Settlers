@@ -77,8 +77,8 @@ private func sampledPositions() -> [GameState] {
         + StateEncoding.vertexCount * StateEncoding.perVertexFeatureCount
         + StateEncoding.edgeCount * StateEncoding.perEdgeFeatureCount
     #expect(StateEncoding.featureCount == expected)
-    #expect(StateEncoding.featureCount == 1013, "featureCount changed - did layoutVersion?")
-    #expect(StateEncoding.layoutVersion == 2, "layout changed without the required version bump")
+    #expect(StateEncoding.featureCount == 5182, "featureCount changed - did layoutVersion?")
+    #expect(StateEncoding.layoutVersion == 3, "layout changed without the required version bump")
 }
 
 @Test func globalBlockDistinguishesVictoryPointTargets() {
@@ -105,6 +105,67 @@ private func sampledPositions() -> [GameState] {
         #expect(encodedTargets == [Float(8) / 12, Float(10) / 12, 1],
                 "\(seatCount)-seat target slots do not carry the match contract")
     }
+}
+
+@Test func numericVectorDistinguishesTheObserversAbsoluteChair() {
+    var first = GameSetup.newGame(board: BoardGenerator.standard(), seed: 18)
+    var second = first
+    first.phase = .mainTurn(playerIndex: 0)
+    second.phase = .mainTurn(playerIndex: 1)
+
+    let fromSeatZero = StateEncoding.features(observe(first, as: PlayerID(index: 0)))
+    let fromSeatOne = StateEncoding.features(observe(second, as: PlayerID(index: 1)))
+
+    #expect(fromSeatZero != fromSeatOne,
+            "absolute-victim action indices require the vector to identify the observer's chair")
+}
+
+@Test func numericVectorDistinguishesPendingOfferTerms() {
+    var brickForOre = GameSetup.newGame(board: BoardGenerator.standard(), seed: 19)
+    var woolForGrain = brickForOre
+    brickForOre.pendingTradeOffers = [
+        TradeOffer(from: PlayerID(index: 1), give: [.brick: 1], want: [.ore: 1]),
+    ]
+    woolForGrain.pendingTradeOffers = [
+        TradeOffer(from: PlayerID(index: 1), give: [.wool: 1], want: [.grain: 1]),
+    ]
+
+    let first = StateEncoding.features(observe(brickForOre, as: PlayerID(index: 0)))
+    let second = StateEncoding.features(observe(woolForGrain, as: PlayerID(index: 0)))
+
+    #expect(first != second,
+            "a response policy must see the give/want terms behind each indexed offer")
+}
+
+@Test func numericVectorDistinguishesShorelinePortTopology() throws {
+    let base = BoardGenerator.standard()
+    let vertices = base.onBoardVertices.sorted()
+    let firstVertex = try #require(vertices.first)
+    let secondVertex = try #require(vertices.dropFirst().first)
+    let genericBoard = replacingPorts(
+        in: base,
+        with: [CatanEngine.Port(vertexA: firstVertex, vertexB: secondVertex, kind: .generic)]
+    )
+    let oreBoard = replacingPorts(
+        in: base,
+        with: [CatanEngine.Port(vertexA: firstVertex, vertexB: secondVertex, kind: .resource(.ore))]
+    )
+    let generic = GameSetup.newGame(board: genericBoard, seed: 20)
+    let ore = GameSetup.newGame(board: oreBoard, seed: 20)
+
+    #expect(StateEncoding.features(observe(generic, as: PlayerID(index: 0)))
+            != StateEncoding.features(observe(ore, as: PlayerID(index: 0))),
+            "a settlement policy must see which future trade rate a shoreline vertex grants")
+}
+
+private func replacingPorts(in board: Board, with ports: [CatanEngine.Port]) -> Board {
+    Board(
+        tiles: board.tiles,
+        ports: ports,
+        onBoardVertices: board.onBoardVertices,
+        onBoardEdges: board.onBoardEdges,
+        robberTile: board.robberTile
+    )
 }
 
 @Test func publicVictoryPointProgressIsRelativeToTheMatchTarget() {
@@ -533,11 +594,10 @@ private func richMainTurnPosition() -> GameState {
         }
     }
 
-    // Layout v2 intentionally adds the match victory target to the global
-    // vector, scales public VP by that target, and names it in the prompt.
-    // Re-recorded from the hand-built standard-target fixture after those
-    // three contract changes; no board ordering or hidden-state policy moved.
-    #expect(digest == 0x85F1_02D3_0632_88FD, "encoding changed; got \(String(digest, radix: 16))")
+    // Layout v3 adds observer identity, exact pending-offer terms, and static
+    // shoreline port topology. Re-recorded only after tests proved all three
+    // previously indistinguishable positions now differ.
+    #expect(digest == 0x486C_49AC_F8E4_F195, "encoding changed; got \(String(digest, radix: 16))")
 }
 
 private func fnv1a(_ hash: UInt64, _ value: UInt32) -> UInt64 {

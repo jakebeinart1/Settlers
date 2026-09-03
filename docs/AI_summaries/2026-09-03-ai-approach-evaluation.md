@@ -197,3 +197,15 @@ victims remain masked). Only then should the simulator export records with:
 The exporter must fail if a legal or chosen move has no index, and a validator
 must reconstruct every sparse mask and verify the chosen action is legal before
 training sees a byte.
+
+### P2 contract resolution
+
+`StateEncoding` layout v3 resolves those three blockers before any exporter is
+allowed to exist. It has 5,182 fixed features: exact rows for all 256 indexed
+pending-offer positions, six static port-kind slots on every canonical vertex,
+and an absolute observer-chair one-hot plus table-size scalar. Three regression
+tests were observed failing against v2 before the implementation and now pass;
+the cross-process encoding fingerprint was deliberately repinned after the
+version bump. Three-player states retain the same width and use the same
+four-chair action space, so nonexistent victims are represented only as masked
+actions rather than by a second model shape.

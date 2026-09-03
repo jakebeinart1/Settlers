@@ -56,8 +56,8 @@ public enum StateEncoding {
     /// of feature slots. Change the arrangement and the artifact reads the
     /// wrong number out of every slot after the first insertion point.
     ///
-    /// The dangerous version of that failure is the silent one. Pad a
-    /// 1012-wide model up to 1050, or truncate 1050 down to 1012, and
+    /// The dangerous version of that failure is the silent one. Pad an
+    /// old-layout model to a new width, or truncate the new vector, and
     /// everything still runs: no shape error, no exception, no crash. The model
     /// simply plays badly. "The bots got worse" is among the most expensive
     /// things to diagnose in this repo, because it looks exactly like a tuning
@@ -72,7 +72,7 @@ public enum StateEncoding {
     /// and for any change to the *field set* `promptDescription` emits - a
     /// few-shot prompt built against the old shape stops matching. Purely
     /// cosmetic changes to separators or spacing do not need a bump.
-    public static let layoutVersion = 2
+    public static let layoutVersion = 3
 
     // MARK: - Board shape this layout is defined against
 
@@ -154,11 +154,26 @@ public enum StateEncoding {
     /// offers, and the victory-point target for this match.
     public static let globalScalarCount = 3
 
+    /// Absolute observer chair plus table size. Most of the vector is
+    /// egocentric, but robber-victim actions use absolute `PlayerID` slots; a
+    /// learner needs this bridge or identical-looking inputs demand different
+    /// victim indices from different chairs.
+    public static let observerContextFeatureCount = seatCount + 1
+
+    /// Presence, absolute proposer chair, give bundle, and want bundle for one
+    /// pending offer. Offer position is the meaning of a response action's
+    /// global index, so every indexed position gets a fixed-width row.
+    public static let pendingOfferFeatureCount = 1 + seatCount + 2 * resourceKindCount
+    public static let pendingOfferSlotCount = ActionSpace.maxIndexedPendingOffers
+
     /// Slots describing the position as a whole, before any per-seat block:
     /// phase one-hot, last roll, bank stock, the three scalars above, and a
     /// robber one-hot over the canonical tile order.
     public static let globalFeatureCount =
-        phaseCount + diceFeatureCount + resourceKindCount + globalScalarCount + tileCount
+        phaseCount + diceFeatureCount + resourceKindCount + globalScalarCount
+        + observerContextFeatureCount
+        + pendingOfferSlotCount * pendingOfferFeatureCount
+        + tileCount
 
     /// Holdings slots per seat: hand by resource (HIDDEN), hand size, unplayed
     /// dev cards by type (HIDDEN), unplayed dev card count, dev cards bought
@@ -181,9 +196,9 @@ public enum StateEncoding {
     /// Slots per board tile: resource one-hot, desert flag, pip probability.
     public static let perTileFeatureCount = resourceKindCount + 1 + 1
 
-    /// Slots per board vertex: settlement + city flags for each seat, in
-    /// egocentric seat order.
-    public static let perVertexFeatureCount = 2 * seatCount
+    /// Slots per board vertex: settlement + city flags for each seat, followed
+    /// by the static port kind available at that vertex.
+    public static let perVertexFeatureCount = 2 * seatCount + portFeatureCount
 
     /// Slots per board edge: road ownership for each seat, in egocentric seat
     /// order.
@@ -192,8 +207,8 @@ public enum StateEncoding {
     /// The length of every vector `features(_:)` returns, for every position,
     /// in every phase, forever - until `layoutVersion` changes.
     ///
-    /// 1013 = 36 global + 4 x 31 per-seat + 19 x 7 per-tile
-    ///      + 54 x 8 per-vertex + 72 x 4 per-edge.
+    /// 5182 = 3881 global + 4 x 31 per-seat + 19 x 7 per-tile
+    ///      + 54 x 14 per-vertex + 72 x 4 per-edge.
     public static let featureCount =
         globalFeatureCount
         + seatCount * perPlayerFeatureCount
@@ -472,11 +487,11 @@ public extension StateEncoding {
     ///
     /// | Offset | Width | Block |
     /// |---|---|---|
-    /// | 0 | 36 | global: phase one-hot, last roll, bank, deck, offers, target, robber |
-    /// | 36 | 4 x 31 | per seat, observer first |
-    /// | 160 | 19 x 7 | per tile, ascending coordinate |
-    /// | 293 | 54 x 8 | per vertex, ascending `VertexID` |
-    /// | 725 | 72 x 4 | per edge, ascending `EdgeID` |
+    /// | 0 | 3881 | global: phase, dice, bank, deck, target, observer, offers, robber |
+    /// | 3881 | 4 x 31 | per seat, observer first |
+    /// | 4005 | 19 x 7 | per tile, ascending coordinate |
+    /// | 4138 | 54 x 14 | per vertex ownership and port topology |
+    /// | 4894 | 72 x 4 | per edge, ascending `EdgeID` |
     ///
     /// ## Why every value is normalised
     /// A trainer fed 19 bank cards beside 10 victory points beside a 0/1 flag
@@ -518,10 +533,8 @@ public extension StateEncoding {
 
     // MARK: Blocks
 
-    /// Global block, 36 slots: phase one-hot (7), last roll normalised + a flag
-    /// saying whether there was one (2), bank stock per resource (5), dev cards
-    /// left in the deck (1), pending trade offers (1), match target (1), and
-    /// robber tile one-hot (19).
+    /// Global block: phase, dice, bank, deck/offer counts, match target,
+    /// observer chair, table size, exact pending-offer rows, and robber tile.
     private static func appendGlobal(_ observation: GameObservation, index: BoardIndex, into values: inout [Float]) {
         let state = observation.state
         values.append(contentsOf: oneHot(phaseSlot(state.phase), width: phaseCount))
@@ -536,7 +549,29 @@ public extension StateEncoding {
         values.append(normalised(state.devCardDeck.count, max: devCardDeckSize))
         values.append(normalised(state.pendingTradeOffers.count, max: pendingTradeOfferSoftCap))
         values.append(normalised(state.victoryPointTarget, max: victoryPointTargetMaximum))
+        values.append(contentsOf: oneHot(observation.seat.index, width: seatCount))
+        values.append(normalised(state.players.count, max: seatCount))
+        appendPendingOffers(state.pendingTradeOffers, into: &values)
         values.append(contentsOf: oneHot(index.slot(of: state.board.robberTile), width: tileCount))
+    }
+
+    private static func appendPendingOffers(_ offers: [TradeOffer], into values: inout [Float]) {
+        precondition(offers.count <= pendingOfferSlotCount,
+                     "\(offers.count) pending offers exceed layout capacity \(pendingOfferSlotCount)")
+        for offer in offers {
+            values.append(1)
+            values.append(contentsOf: oneHot(offer.from.index, width: seatCount))
+            appendBundle(offer.give, into: &values)
+            appendBundle(offer.want, into: &values)
+        }
+        let emptySlots = pendingOfferSlotCount - offers.count
+        values.append(contentsOf: repeatElement(0, count: emptySlots * pendingOfferFeatureCount))
+    }
+
+    private static func appendBundle(_ bundle: [Resource: Int], into values: inout [Float]) {
+        for resource in Resource.allCases {
+            values.append(normalised(bundle[resource] ?? 0, max: resourceCardsPerKind))
+        }
     }
 
     /// One seat's 31 slots: 14 holdings, 11 standing, 6 port access.
@@ -606,9 +641,9 @@ public extension StateEncoding {
 
     /// Port access, 6 slots: a generic 3:1 flag then one 2:1 flag per resource.
     ///
-    /// Derived rather than left for a learner to infer from vertex ownership
-    /// plus a port table the vector does not contain. Ports are static for a
-    /// game but decide whether a spare-ore position is worth anything.
+    /// Derived rather than forcing a learner to repeatedly combine vertex
+    /// ownership with the static topology block. Ports decide whether a
+    /// spare-ore position is worth anything, so current access is explicit.
     private static func appendPorts(of seated: Player, state: GameState, into values: inout [Float]) {
         let owned = seated.settlements.union(seated.cities)
         var generic: Float = 0
@@ -638,8 +673,8 @@ public extension StateEncoding {
         }
     }
 
-    /// Vertex block then edge block, both in egocentric seat order: 8 slots per
-    /// vertex (settlement, city) x 4 seats, then 4 slots per edge (road).
+    /// Vertex block then edge block. Each vertex carries 8 egocentric ownership
+    /// slots plus 6 static port-kind slots; each edge carries 4 road slots.
     ///
     /// A three-player game pads the missing seat's slots to zero **inside each
     /// vertex and each edge**, not at the end of the block. That placement is
@@ -661,12 +696,28 @@ public extension StateEncoding {
                 values.append(owner.cities.contains(vertex) ? 1 : 0)
             }
             values.append(contentsOf: repeatElement(0, count: emptyChairs * 2))
+            appendPort(at: vertex, on: observation.state.board, into: &values)
         }
         for edge in index.edges {
             for owner in seated {
                 values.append(owner.roads.contains(edge) ? 1 : 0)
             }
             values.append(contentsOf: repeatElement(0, count: emptyChairs))
+        }
+    }
+
+    private static func appendPort(at vertex: VertexID, on board: Board, into values: inout [Float]) {
+        guard let kind = board.ports.first(where: { $0.vertexA == vertex || $0.vertexB == vertex })?.kind else {
+            values.append(contentsOf: repeatElement(0, count: portFeatureCount))
+            return
+        }
+        switch kind {
+        case .generic:
+            values.append(1)
+            values.append(contentsOf: repeatElement(0, count: resourceKindCount))
+        case .resource(let portResource):
+            values.append(0)
+            for resource in Resource.allCases { values.append(resource == portResource ? 1 : 0) }
         }
     }
 
