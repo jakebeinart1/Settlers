@@ -15,7 +15,10 @@ targets:
   Settlers:
     type: application
     platform: iOS
-    sources: [Settlers]
+    sources:
+      - path: Settlers
+        excludes:
+          - Signing.local.xcconfig
     settings:
       base:
         SWIFT_VERSION: "6.0"
