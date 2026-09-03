@@ -123,6 +123,8 @@ A setting belongs to exactly one surface. Apply these in order:
   target becomes Standard (10 VP) and Start remains available.
 - Given an existing four-player 12-point checkpoint, then it still loads at
   12 points rather than being rejected or silently replaced.
+- Given that legacy match is restarted, then the new match uses Standard
+  (10 VP) rather than recreating the unreachable combination or crashing.
 - ~~Given a target of 8, when a bot evaluates its position, then its notion of proximity to winning uses 8.~~
   **Deferred - see A4.4.**
 

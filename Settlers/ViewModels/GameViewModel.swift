@@ -453,7 +453,14 @@ public final class GameViewModel {
             return
         }
         active.randomizeSeatOrder = false
-        startNewGame(setup: active, configuredAs: matchSetupStore.load().value ?? active)
+        // A legacy checkpoint may remain resumable even after its exact rules
+        // combination stops being offered for new matches. Restart creates a
+        // new match, so normalize it through today's New Game contract instead
+        // of trapping on `isStartable` or recreating an unwinnable table.
+        active.normalizeNewGameOptions()
+        var prefill = matchSetupStore.load().value ?? active
+        prefill.normalizeNewGameOptions()
+        startNewGame(setup: active, configuredAs: prefill)
     }
 
     /// Personal totals belong only to solo games; durable completion accounting

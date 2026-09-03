@@ -421,7 +421,7 @@ had been bought. That is terminal scoring saturation, not a cap chosen too low.
 The Easy runtime and its tests were therefore removed before merge. No held-out
 seed bank was consumed, no difficulty selector was added, and the shipping
 heuristic is unchanged. The reusable configuration-aware simulator, analyzer,
-locked protocol, and negative result remain. Product New Game now offers Epic
+locked anchor-calibration protocol, and negative result remain. Product New Game now offers Epic
 only with three players; the engine still accepts old four-player Epic saves
 and keeps 4p/12 available to the simulator as a stress configuration.
 

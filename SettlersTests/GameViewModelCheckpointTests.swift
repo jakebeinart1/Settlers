@@ -318,6 +318,51 @@ struct GameViewModelCheckpointTests {
         #expect(resumed.state == committed)
         #expect(resumed.playerLabel(for: resumed.humanPlayer) == "Alex")
     }
+
+    @Test func restartingALegacyFourPlayerEpicMatchUsesAReachableTarget() throws {
+        let fixture = try CheckpointModelFixture()
+        let state = GameSetup.newGame(
+            board: BoardGenerator.standard(), seed: 8112,
+            playerCount: 4, victoryPointTarget: 12
+        )
+        let civilizations = Array(Civilization.allCases.prefix(4))
+        let human = PlayerID(index: 0)
+        let profiles = GameViewModel.opponentProfiles(
+            for: state, humanSeats: [human], civilizations: civilizations
+        )
+        let setup = MatchSetup(
+            seats: (0..<4).map { index in
+                MatchSetup.Seat(
+                    index: index,
+                    isHuman: index == 0,
+                    name: index == 0 ? "Alex" : "",
+                    civilization: civilizations[index],
+                    opponentProfile: profiles[PlayerID(index: index)]
+                )
+            },
+            victoryPointTarget: 12,
+            randomizedBoard: false,
+            randomizeSeatOrder: false
+        )
+        let session = GameViewModel.makeSession(state: state, opponentProfiles: profiles)
+        var match = MatchCheckpoint(id: UUID(), initialState: state, setup: setup)
+        try match.attachSession(session.checkpoint)
+        let store = MatchCheckpointStore(
+            fileURL: fixture.root.appendingPathComponent("match_checkpoint.json")
+        )
+        try store.commit(MatchCheckpointDocument(activeMatch: match), replacingRevision: nil)
+
+        let resumed = fixture.makeModel()
+        #expect(resumed.state.victoryPointTarget == 12,
+                "the legacy match must remain resumable at its original target")
+
+        resumed.restartCurrentMatch(fallbackRandomizedBoard: true, fallbackRandomizeSeat: true)
+
+        #expect(resumed.state.victoryPointTarget == WinCondition.standardTarget)
+        #expect(resumed.checkpointDocument?.activeMatch?.setup.victoryPointTarget
+                == WinCondition.standardTarget)
+        #expect(resumed.savedGameAvailability.canResume)
+    }
 }
 
 @MainActor
