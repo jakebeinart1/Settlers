@@ -51,13 +51,16 @@ conditional robber-target spreads are too small to support personality claims.
 Settlement-versus-city choices occurred only 4–9 times per arm, so that metric
 is underpowered and must not be interpreted.
 
-Using each shared board seed as the independent cluster, Aggressive's knight-
-use difference from Balanced is **+26.3 percentage points** (bootstrap 95% CI
-**+23.9 to +28.8**). Cautious's player-trade-proposal difference is **+22.9
-points** (95% CI **+21.3 to +24.4**). The control comparisons cross zero:
-Aggressive proposals −0.3 points [−1.7, +1.0], Cautious knight use −0.9 points
-[−3.0, +1.2]. This is the intended two-axis separation, not a general increase
-in every action associated with a label.
+Using each shared board seed as the independent bootstrap cluster and pooling
+the opportunity counts shown above, Aggressive's knight-use difference from
+Balanced is **+26.9 percentage points** (bootstrap 95% CI **+24.4 to +29.5**).
+Cautious's player-trade-proposal difference is **+23.1 points** (95% CI
+**+21.5 to +24.7**). The control comparisons cross zero: Aggressive proposals
+−0.3 points [−1.6, +1.1], Cautious knight use −0.6 points [−2.5, +1.3]. These
+figures are emitted directly by the checked-in paired analyzer; the earlier
+figures were hand-combined seed summaries and did not exactly equal the pooled
+rates in the table. The conclusion is unchanged: this is intentional two-axis
+separation, not a general increase in every action associated with a label.
 
 ## Strength-regression results
 
@@ -83,10 +86,11 @@ Greedy anchor, not evidence of a strength ordering and not a difficulty ladder.
 
 ## Remaining personality work
 
-1. Add a reusable paired behavior-difference analyzer with seed-cluster
-   intervals instead of relying on separate arm summaries.
-2. Define a robust consolidation opportunity; city-versus-settlement is too
-   rare to measure directly.
+1. The reusable paired behavior-difference analyzer is now checked in; use
+   `--baseline-policy` and `--baseline-files` so comparisons cannot mix seed or
+   chair sets.
+2. City capture rate is now the validated consolidation metric; see
+   `2026-09-02-consolidation-metric-results.md`.
 3. Run blind replay/live-play recognition before exposing style labels.
 4. Stable opponent profiles are now implemented; see
    `2026-09-02-opponent-profile-decision-log.md`.

@@ -86,6 +86,60 @@ class EvaluationInputTests(unittest.TestCase):
         self.assertLessEqual(lower, observed)
         self.assertGreaterEqual(upper, observed)
 
+    def test_metric_presence_supports_archived_schemas_without_new_fields(self) -> None:
+        rows = [(0, {"behavior": [{"old": 1}]})]
+
+        self.assertTrue(MODULE.has_metric(rows, "old"))
+        self.assertFalse(MODULE.has_metric(rows, "new"))
+
+    def test_paired_rate_difference_requires_the_same_seed_and_chair_keys(self) -> None:
+        candidate = self.metric_rows(successes=3, opportunities=4)
+        baseline = self.metric_rows(successes=1, opportunities=4)
+        baseline[-1][1]["seed"] = 99
+
+        with self.assertRaisesRegex(ValueError, "same seed/chair pairs"):
+            MODULE.paired_rate_difference(
+                candidate, baseline, "chosen", "opportunities"
+            )
+
+    def test_paired_rate_difference_reports_pooled_rates_and_cluster_interval(self) -> None:
+        candidate = self.metric_rows(successes=3, opportunities=4)
+        baseline = self.metric_rows(successes=1, opportunities=4)
+
+        result = MODULE.paired_rate_difference(
+            candidate, baseline, "chosen", "opportunities"
+        )
+
+        self.assertEqual(result.candidate_successes, 12)
+        self.assertEqual(result.candidate_opportunities, 16)
+        self.assertEqual(result.baseline_successes, 4)
+        self.assertEqual(result.baseline_opportunities, 16)
+        self.assertAlmostEqual(result.difference, 0.5)
+        self.assertAlmostEqual(result.lower, 0.5)
+        self.assertAlmostEqual(result.upper, 0.5)
+
+    def test_paired_rate_difference_refuses_an_arm_with_no_opportunities(self) -> None:
+        candidate = self.metric_rows(successes=0, opportunities=0)
+        baseline = self.metric_rows(successes=1, opportunities=4)
+
+        with self.assertRaisesRegex(ValueError, "no opportunities"):
+            MODULE.paired_rate_difference(
+                candidate, baseline, "chosen", "opportunities"
+            )
+
+    @staticmethod
+    def metric_rows(successes: int, opportunities: int) -> list[tuple[int, dict]]:
+        rows: list[tuple[int, dict]] = []
+        for seat in range(4):
+            rows.append((seat, {
+                "seed": 10,
+                "behavior": [
+                    {"chosen": successes, "opportunities": opportunities}
+                    for _ in range(4)
+                ],
+            }))
+        return rows
+
 
 if __name__ == "__main__":
     unittest.main()

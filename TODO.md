@@ -35,9 +35,12 @@ Make the bot opponents play meaningfully better.
       Aggressive uses playable knights more often; Cautious proposes a player
       trade before paying the bank more often. See
       `docs/AI_summaries/2026-09-02-personality-separation-results.md`.
-- [ ] Define and validate a reliable consolidation metric; city-versus-
-      settlement opportunities were too rare, and offer acceptance did not
-      separate enough to support either player-facing claim.
+- [x] Defined and validated city capture rate as the consolidation metric;
+      Cautious chose a legal city +6.5 points more often than Balanced on
+      held-out, chair-rotated games (95% CI +3.1 to +10.3). The narrower
+      city-versus-settlement and city-versus-outward-build metrics were
+      explicitly rejected as too sparse. See
+      `docs/AI_summaries/2026-09-02-consolidation-metric-results.md`.
 - [x] Replaced bot-seat-order personality assignment with stable, realized
       opponent profiles that compose civilization, general, strategy, and
       dialogue; active matches snapshot profiles across relaunch/restart and

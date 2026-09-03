@@ -56,6 +56,34 @@ import Testing
     #expect(metrics.developmentCardsChosenOverPermanentBuild == 0)
 }
 
+@Test func consolidationMetricRecordsEveryDecisionWhereACityIsBuildable() {
+    let state = GameSetup.newGame(board: BoardGenerator.standard(), seed: 8)
+    let seat = state.players[0].id
+    let vertices = state.board.onBoardVertices.sorted()
+    let edges = state.board.onBoardEdges.sorted()
+    var metrics = PolicyBehaviorMetrics()
+
+    metrics.observeDecision(
+        GameObservation(
+            seat: seat,
+            state: state,
+            legalMoves: [.buildCity(vertices[0]), .buildRoad(edges[0]), .endTurn]
+        ),
+        chosen: .buildCity(vertices[0])
+    )
+    metrics.observeDecision(
+        GameObservation(
+            seat: seat,
+            state: state,
+            legalMoves: [.buildCity(vertices[0]), .endTurn]
+        ),
+        chosen: .buildCity(vertices[0])
+    )
+
+    #expect(metrics.cityBuildOpportunities == 2)
+    #expect(metrics.citiesChosenWhenBuildable == 2)
+}
+
 @Test func decisionMetricsRecordTradeResponsesAndProposalShape() {
     let state = GameSetup.newGame(board: BoardGenerator.standard(), seed: 11)
     let seat = state.players[1].id
