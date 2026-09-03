@@ -24,12 +24,68 @@ extension GameViewModel {
         }
 
         do {
+            try preserveRecoverySnapshot(snapshots)
+        } catch {
+            persistenceErrorMessage = "A recovery copy could not be saved. Your original game was not replaced."
+            return false
+        }
+
+        do {
             try write(match, configuredAs: setup)
             persistenceErrorMessage = nil
             return true
         } catch {
             rollback(snapshots, originalError: error)
             return false
+        }
+    }
+
+    /// The legacy new-game entry point must obey the same preservation rule.
+    func preserveRecoveryBeforeLegacyReplacement() -> Bool {
+        guard savedGameAvailability.recoveryMessage != nil else { return true }
+        do {
+            try preserveRecoverySnapshot(persistenceSnapshots())
+            return true
+        } catch {
+            persistenceErrorMessage = "A recovery copy could not be saved. Your original game was not replaced."
+            return false
+        }
+    }
+
+    /// Raw bytes, not decoded/re-encoded values: the damaged data is precisely
+    /// what recovery needs. The completion note is written last. Any failure
+    /// aborts replacement; an incomplete backup never licenses an overwrite.
+    private func preserveRecoverySnapshot(_ snapshots: MatchPersistenceSnapshots) throws {
+        guard let reason = savedGameAvailability.recoveryMessage else { return }
+        let activeLog = try snapshot(of: gameLogStore.activeGameIDURL)
+        let directory = gameStore.fileURL.deletingLastPathComponent()
+            .appendingPathComponent("Recovery").appendingPathComponent(UUID().uuidString)
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        try restore(snapshots.game, to: directory.appendingPathComponent("save.json"))
+        try restore(snapshots.civilizations, to: directory.appendingPathComponent("civilizations.json"))
+        if let data = snapshots.prefill {
+            try data.write(to: directory.appendingPathComponent("configured-match.json"), options: .atomic)
+        }
+        if let data = snapshots.active {
+            try data.write(to: directory.appendingPathComponent("active-match.json"), options: .atomic)
+        }
+        try restore(activeLog, to: directory.appendingPathComponent("active-game-id"))
+        try Data(String(humanSeatStore.load().index).utf8).write(
+            to: directory.appendingPathComponent("legacy-human-seat.txt"), options: .atomic)
+        try preserveRecordings(in: directory)
+        try Data(reason.utf8).write(to: directory.appendingPathComponent("complete.txt"), options: .atomic)
+    }
+
+    /// Retention pruning may later evict the original log. Keep raw recordings
+    /// beside the recovery state so its saved log pointer remains useful.
+    private func preserveRecordings(in archive: URL) throws {
+        let files = try gameLogStore.logFiles()
+        guard !files.isEmpty else { return }
+        let directory = archive.appendingPathComponent("recordings")
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        for file in files {
+            try Data(contentsOf: file).write(
+                to: directory.appendingPathComponent(file.lastPathComponent), options: .atomic)
         }
     }
 

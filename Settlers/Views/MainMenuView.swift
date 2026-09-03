@@ -18,8 +18,11 @@ import CatanEngine
 public struct MainMenuView: View {
     public let onStart: (MatchSetup) -> Void
     public let onResume: () -> Void
+    public let canResumeSavedGame: Bool
 
-    public init(onStart: @escaping (MatchSetup) -> Void, onResume: @escaping () -> Void) {
+    public init(canResumeSavedGame: Bool, onStart: @escaping (MatchSetup) -> Void,
+                onResume: @escaping () -> Void) {
+        self.canResumeSavedGame = canResumeSavedGame
         self.onStart = onStart
         self.onResume = onResume
     }
@@ -34,10 +37,6 @@ public struct MainMenuView: View {
         || QALaunchFlag.showNewGameInvalid.isSet
         || QALaunchFlag.showNewGameOverwrite.isSet
         || QALaunchFlag.showNewGameCivilizationPicker.isSet
-
-    private var hasSavedGame: Bool {
-        GameStore.shared.hasSave()
-    }
 
     public var body: some View {
         ZStack {
@@ -114,7 +113,7 @@ public struct MainMenuView: View {
                     .accessibilityIdentifier(AccessibilityID.MainMenu.newGame)
                     .padding(.horizontal, 40)
 
-                    if hasSavedGame {
+                    if canResumeSavedGame {
                         GoldRowButton(title: "Resume Game", systemImage: "play.fill") {
                             onResume()
                         }
@@ -212,5 +211,5 @@ public struct MainMenuView: View {
 }
 
 #Preview {
-    MainMenuView(onStart: { _ in }, onResume: {})
+    MainMenuView(canResumeSavedGame: false, onStart: { _ in }, onResume: {})
 }
