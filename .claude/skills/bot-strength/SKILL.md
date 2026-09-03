@@ -329,10 +329,14 @@ skipped:
 
 ## Honest limits (do not overpromise)
 
-- **No complete two-arm calibration is recorded in this file.** Historical
-  four-player candidate-arm probes are real regression evidence, but they omit
-  the separately built all-anchor control arm. No measured three-player
-  strength evidence appears here yet.
+- **One complete two-arm calibration now exists, and it failed its locked
+  gate.** The 2026-09-03 run covered all 12 supported player-count, victory-point,
+  and board-mode cells with complete chair rotation and an all-Greedy control.
+  Balanced beat Greedy in every cell, but one cell missed the predeclared
+  20-point margin and several 12-point cells were not fully decisive. See
+  `docs/AI_summaries/2026-09-03-ai-approach-evaluation.md`. This validates the
+  measurement rig and rejects Greedy as a product Easy tier; it does not create
+  a shippable difficulty ladder.
 - **The measurement is self-play only.** Every occupied seat is a bot. It says
   nothing about how the bots feel to a human, whether they are fun, or whether
   they are appropriately difficult - which is what Alex will actually be asked
