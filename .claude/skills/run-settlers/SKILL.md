@@ -119,9 +119,9 @@ xcrun simctl io "$SIM" screenshot "$DD/verify.png"
 echo "now READ $DD/verify.png"
 ```
 
-## The `-qa*` launch arguments — all nineteen
+## The `-qa*` launch arguments
 
-Jake's version of this skill said there were three. There are nineteen. Each is a plain
+Each is a plain
 `ProcessInfo` argument check that is never set in normal use, so none can affect a real
 player. Find them all with:
 
@@ -133,6 +133,7 @@ grep -rnoE '"\-qa[A-Za-z]+"' --include="*.swift" "$REPO/Settlers" | sort -u
 |---|---|---|
 | `-qaAutoStart` | `ContentView.swift` | Skips `MainMenuView`, lands on the board. **Prerequisite for every GameView flag below.** |
 | `-qaShowEndGame` | `ContentView.swift` | `EndGameView` ("YOU WIN!") via a forced human win. |
+| `-qaPlayToEnd` | `ContentView.swift` | Plays every seat without presentation delays through the real app session, persistence, statistics, and game log until `EndGameView` renders. Needs `-qaAutoStart`. |
 | `-qaShowSettings` | `MainMenuView.swift` | `SettingsView` over the main menu. **The one flag that must NOT be combined with `-qaAutoStart`.** |
 | `-qaShowPauseMenu` | `GameView.swift` | The "Game Menu" pause sheet. |
 | `-qaShowTradePopup` | `GameView.swift` | `TradePopupView`. |
@@ -141,7 +142,7 @@ grep -rnoE '"\-qa[A-Za-z]+"' --include="*.swift" "$REPO/Settlers" | sort -u
 | `-qaShowPendingTradeConfirmation` | `GameView.swift` | The trade popup's "a bot will accept" banner, seeded directly. |
 | `-qaShowRobberTargeting` | `GameView.swift` | The "tap a tile" robber targeting panel. |
 | `-qaShowRobberVictimPicker` | `GameView.swift` | One step further: the "Steal from:" victim picker. |
-| `-qaShowIncomingOffer` | `GameView.swift` | `IncomingTradeCardView`, seeded with a fake always-fulfillable offer. |
+| `-qaShowIncomingOffer` | `GameView.swift` | `IncomingTradeCardView`, backed by a real pending engine offer and conserved deterministic hands. |
 | `-qaFastForwardToRollDice` | `GameView.swift` | Plays the human's own setup placements, then rolls, so the `.rollDice` action row is reachable. **Applies real moves** (writes the save and the game log) and **needs 10-12s**, not 4. |
 | `-qaShowNewGame` | `MainMenuView.swift` / `NewGameSetupView.swift` | `NewGameSetupView` over the main menu, on a startable two-human/two-AI fixture (green ready plaque, Start enabled). **Must NOT be combined with `-qaAutoStart`.** |
 | `-qaShowNewGameInvalid` | `NewGameSetupView.swift` | Same screen, seat 2's name whitespace-only — the amber problem plaque and a disabled Start. |
@@ -151,13 +152,13 @@ grep -rnoE '"\-qa[A-Za-z]+"' --include="*.swift" "$REPO/Settlers" | sort -u
 | `-qaTwoHumans` | `ContentView.swift` | Turns the loaded game into a two-human hot-seat game (seats 0 and 1, nobody at the device) so `HandoffCoverView` is photographable. **Needs `-qaAutoStart`.** |
 | `-qaScrollNewGameToBottom` | `NewGameSetupView.swift` | **Legacy modifier** retained for fixture compatibility. The compact screen now fits without requiring this scroll position. |
 
-**`-qaAutoStart` is load-bearing for ten of these.** `GameView` only renders once
+**`-qaAutoStart` is load-bearing for eleven of these.** `GameView` only renders once
 `hasStartedThisSession` is true, so every flag read inside `GameView.swift` is inert on its
 own — and so is `-qaTwoHumans`, which `ContentView` reads in the same branch. Measured on 2026-08-29: `-qaShowEndGame` alone left the app sitting on the main menu;
 `-qaAutoStart -qaShowEndGame` rendered the win screen. If a flag "does nothing", check this
 before suspecting the flag.
 
-**Debug only, as of 2026-08-29.** All nineteen reads are consolidated into
+**Debug only.** All reads are consolidated into
 `Settlers/QALaunchFlag.swift`, whose `isSet` is wrapped in `#if DEBUG` — so in a Release
 build the flags are inert whatever you pass. If that file exists, do not try to screenshot a
 Release build with them.

@@ -3,7 +3,7 @@ public enum TileKind: Codable, Sendable, Equatable {
     case desert
 }
 
-public struct Tile: Codable, Sendable {
+public struct Tile: Codable, Sendable, Equatable {
     public let coordinate: HexCoordinate
     public let kind: TileKind
     /// The number token (2-12, no 7) that produces resources on this tile.

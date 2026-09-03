@@ -1,4 +1,4 @@
-public struct Board: Codable, Sendable {
+public struct Board: Codable, Sendable, Equatable {
     public let tiles: [Tile]
     public let ports: [Port]
     public let onBoardVertices: Set<VertexID>

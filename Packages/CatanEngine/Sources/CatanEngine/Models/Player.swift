@@ -2,7 +2,7 @@ public enum BuildingKind: Codable, Sendable {
     case settlement, city
 }
 
-public struct Player: Codable, Sendable {
+public struct Player: Codable, Sendable, Equatable {
     public let id: PlayerID
     public var resources: [Resource: Int]
     public var devCards: [DevCardType]

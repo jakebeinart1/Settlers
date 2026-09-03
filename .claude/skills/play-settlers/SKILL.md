@@ -62,6 +62,8 @@ after the interaction whenever the visual result matters.
 
 ## What this cannot do
 
-Native UI coverage is intentionally focused; it does not yet play a complete
-match, exercise every trade/robber/discard branch, or replace human visual
-judgment. Device signing details live in `run-settlers`.
+Native UI coverage includes one automated, UI-hosted complete match through
+the real session, save, statistics, game-log, end-game, and return-to-menu path.
+It still does not tap every move of a human-length match, exercise every
+trade/robber/discard branch, or replace human visual judgment. Device signing
+details live in `run-settlers`.

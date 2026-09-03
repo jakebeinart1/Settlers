@@ -7,7 +7,7 @@ public enum PortKind: Codable, Sendable, Equatable {
 
 /// A trading port, anchored to the two adjacent shoreline vertices where a
 /// settlement/city must sit to use it.
-public struct Port: Codable, Sendable {
+public struct Port: Codable, Sendable, Equatable {
     public let vertexA: VertexID
     public let vertexB: VertexID
     public let kind: PortKind

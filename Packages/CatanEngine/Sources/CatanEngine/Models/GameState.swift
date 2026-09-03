@@ -1,4 +1,4 @@
-public struct GameState: Codable, Sendable {
+public struct GameState: Codable, Sendable, Equatable {
     /// Wire-format version of a persisted state. Bump this whenever a change
     /// to the stored shape needs `init(from:)` below to do something other
     /// than fall back to a default, and branch on it there. Saves written

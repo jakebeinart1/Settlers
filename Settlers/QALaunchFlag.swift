@@ -26,6 +26,8 @@ enum QALaunchFlag: String, CaseIterable {
     case autoStart = "-qaAutoStart"
     /// Forces a human win and shows `EndGameView`.
     case showEndGame = "-qaShowEndGame"
+    /// Plays every seat through the production session until a real winner.
+    case playToEnd = "-qaPlayToEnd"
     /// Opens the settings sheet over the main menu.
     case showSettings = "-qaShowSettings"
     /// Opens `NewGameSetupView` over the main menu, on a fixture with two human
@@ -70,7 +72,7 @@ enum QALaunchFlag: String, CaseIterable {
     case showPendingTradeConfirmation = "-qaShowPendingTradeConfirmation"
     /// Arms voluntary knight robber targeting.
     case showRobberTargeting = "-qaShowRobberTargeting"
-    /// Seeds a fake incoming offer card.
+    /// Seeds a real pending offer with deterministic conserved hands.
     case showIncomingOffer = "-qaShowIncomingOffer"
     /// Arms a robber tile that has an eligible victim, to reach the victim picker.
     case showRobberVictimPicker = "-qaShowRobberVictimPicker"

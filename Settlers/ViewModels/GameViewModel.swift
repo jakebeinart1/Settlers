@@ -15,6 +15,7 @@ public final class GameViewModel {
     let civilizationStore: CivilizationAssignmentStore
     let matchSetupStore: MatchSetupStore
     private let gameLogStore: GameLogStore
+    private let gameStatsStore: GameStatsStore
 
     /// A recoverable persistence problem that the app must present to the
     /// player. Gameplay stays in memory, but the UI never claims it is safely
@@ -203,12 +204,14 @@ public final class GameViewModel {
         gameStore: GameStore = .shared,
         civilizationStore: CivilizationAssignmentStore = .shared,
         matchSetupStore: MatchSetupStore = .shared,
-        gameLogStore: GameLogStore = .shared
+        gameLogStore: GameLogStore = .shared,
+        gameStatsStore: GameStatsStore = .shared
     ) {
         self.gameStore = gameStore
         self.civilizationStore = civilizationStore
         self.matchSetupStore = matchSetupStore
         self.gameLogStore = gameLogStore
+        self.gameStatsStore = gameStatsStore
         persistenceErrorMessage = nil
         gameLogWarning = nil
         let activeMatchResult = matchSetupStore.loadActiveMatch()
@@ -546,7 +549,7 @@ public final class GameViewModel {
 
     private func recordGameEndIfSolo(winner: PlayerID) {
         guard shouldRecordLifetimeStatistics else { return }
-        GameStatsStore.shared.recordGameEnd(
+        gameStatsStore.recordGameEnd(
             won: winner == humanPlayer,
             finalVP: min(state.victoryPoints(for: humanPlayer), state.victoryPointTarget),
             duration: currentGameDuration
@@ -742,18 +745,6 @@ public final class GameViewModel {
     /// some other state change, so leaving it pending indefinitely would
     /// just be a silent dead offer).
     #if DEBUG
-    // Both methods below exist only to put a screen into a state worth
-    // photographing. They are compiled out of release builds and are no longer
-    // `public`: `qaForceHumanWin` in particular mutates `phase` directly rather
-    // than going through `applyLogged`, so the "win" it produces is invisible
-    // to the game log and to `GameStatsStore`. That is correct for a
-    // screenshot and wrong for anything else, and while it sat on the public
-    // API surface nothing said so at the call site.
-    //
-    // (The two doc comments here were previously stacked above the same
-    // function, so `qaForceHumanWin` carried the description of its
-    // neighbour - a symptom of edit-by-append.)
-
     /// Replaces the whole position and the human's seat, for tests.
     ///
     /// `#if DEBUG` alongside the QA hooks because it exists for the same
@@ -815,6 +806,25 @@ public final class GameViewModel {
         var forced = session.state
         forced.phase = .gameOver(winner: humanPlayer)
         session.replace(state: forced)
+    }
+
+    /// Plays through production session, log, stats, and save bookkeeping without UI delays.
+    func qaPlayToEnd() {
+        for seat in humanSeats {
+            session.policies[seat] = HeuristicPolicy(personality: .balanced, id: "qa-human")
+        }
+        for _ in 0..<10_000 {
+            if case .gameOver = state.phase { return }
+            do {
+                guard let (seat, move) = session.decideNext() else {
+                    preconditionFailure("QA complete match stopped before game over")
+                }
+                try applyPolicyMove(move, by: seat)
+            } catch {
+                preconditionFailure("QA complete match failed: \(error)")
+            }
+        }
+        preconditionFailure("QA complete match exceeded 10,000 moves")
     }
 
     /// Seeds `pendingTradeConfirmation` with every bot accepting, without a
@@ -885,7 +895,6 @@ public final class GameViewModel {
                 firstAccepter = bot
             }
         }
-
         if let firstAccepter {
             pendingTradeConfirmation = PendingTradeConfirmation(offerID: offer.id, selectedBot: firstAccepter, decisions: decisions)
             lastTradeOutcome = nil
@@ -1153,17 +1162,8 @@ public final class GameViewModel {
             guard let (seat, move) = session.decideNext() else { break }
             await waitForFairAcceptWindow(before: move)
             guard generation == gameGeneration else { return }
-            beginEventBatch()
-            // Captured before the move lands: `recordAppliedMove` opens the
-            // game log on the first move, and the `start` line has to describe
-            // the position the move list is relative to. `applyLogged` has
-            // always done this; this path did not, so any game whose first move
-            // was a bot's - three in four, with Randomize Seat on - wrote a log
-            // that no longer replayed.
-            let stateBeforeMove = state
-            let step: GameSession.Step
             do {
-                step = try session.commit(seat: seat, move: move)
+                try applyPolicyMove(move, by: seat)
             } catch {
                 // A policy chose a move the rules reject: the two disagree,
                 // which is a bug rather than a position to recover from. It was
@@ -1174,9 +1174,16 @@ public final class GameViewModel {
                 assertionFailure("bot \(seat.index) played an illegal \(move): \(error)")
                 break
             }
-            recordAppliedMove(step, stateBeforeMove: stateBeforeMove)
-            persistCurrentState()
         }
+    }
+
+    /// One policy move plus the production bookkeeping shared by paced and QA loops.
+    private func applyPolicyMove(_ move: GameMove, by seat: PlayerID) throws {
+        beginEventBatch()
+        let stateBeforeMove = state
+        let step = try session.commit(seat: seat, move: move)
+        recordAppliedMove(step, stateBeforeMove: stateBeforeMove)
+        persistCurrentState()
     }
 
     /// Mirrors `applyLogged`'s bookkeeping for a move the session chose.
