@@ -171,8 +171,9 @@ gate_secrets() {
 # literally empty, so 6,700 lines of app code had no tests and any gate built on
 # that command would have been a false green. The scheme is wired now.
 gate_app_tests() {
-  local sim; sim="$(first_iphone_simulator)"
+  local sim; sim="$(qa_iphone_simulator)"
   if [[ -z "$sim" ]]; then return 200; fi
+  echo "  QA simulator: $sim"
   xcodebuild test -project Settlers.xcodeproj -scheme Settlers \
     -destination "platform=iOS Simulator,id=$sim" 2>&1 \
     | grep -E "error:|✘|Test run with|TEST SUCCEEDED|TEST FAILED" | sort -u
@@ -180,14 +181,8 @@ gate_app_tests() {
 }
 
 # --- 8. The app target ----------------------------------------------------
-first_iphone_simulator() {
-  xcrun simctl list devices available -j 2>/dev/null \
-    | python3 -c 'import json,sys
-d=json.load(sys.stdin)["devices"]
-for runtime, devices in d.items():
-    for dev in devices:
-        if "iPhone" in dev["name"]:
-            print(dev["udid"]); raise SystemExit' 2>/dev/null
+qa_iphone_simulator() {
+  python3 "$REPO_ROOT/scripts/select-qa-simulator.py"
 }
 
 # Compiled in RELEASE, and not optional.
@@ -199,7 +194,7 @@ for runtime, devices in d.items():
 # built the configuration that would ship. Debug and Release are different
 # programs the moment a `#if` enters the codebase.
 gate_app_build() {
-  local sim; sim="$(first_iphone_simulator)"
+  local sim; sim="$(qa_iphone_simulator)"
   if [[ -z "$sim" ]]; then return 200; fi
   xcodebuild -project Settlers.xcodeproj -scheme Settlers \
     -destination "platform=iOS Simulator,id=$sim" \
