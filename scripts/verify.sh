@@ -135,15 +135,9 @@ fi
 announce "3. build Debug + fresh install"
 mkdir -p "$DERIVED"
 
-# Discover the simulator; never paste a UDID into a script. UDIDs differ per
-# machine and change when Xcode installs a runtime. Prefer an already-Booted
-# device: booting costs ~15s and a warm simulator wedges less often.
-SIM="$(xcrun simctl list devices available -j | python3 -c '
-import json, sys
-devices = [d for runtime in json.load(sys.stdin)["devices"].values()
-             for d in runtime if "iPhone" in d["name"]]
-booted = [d for d in devices if d["state"] == "Booted"]
-print((booted or devices)[0]["udid"])' 2>/dev/null)"
+# UI tests and this fresh-install ladder erase app data. Always use the named
+# Empires QA simulator (created when absent), never a developer's play device.
+SIM="$(python3 scripts/select-qa-simulator.py)"
 [[ -n "$SIM" ]] || die "3. build Debug + fresh install (no iPhone simulator available)"
 echo "  simulator $SIM"
 xcrun simctl boot "$SIM" 2> /dev/null   # already-booted exits non-zero; not an error

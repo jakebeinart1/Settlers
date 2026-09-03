@@ -51,16 +51,10 @@ set -euo pipefail
 #    and is correct on any machine that has cloned this repo.
 REPO="$(git rev-parse --show-toplevel)"
 
-# 2) DISCOVER A SIMULATOR. Prefer one that is already Booted (booting costs ~15s
-#    and a warm simulator is also less likely to wedge), else take the first
-#    available iPhone. Never paste a UDID into a script: they differ per machine
-#    and change when Xcode installs a new runtime.
-SIM="$(xcrun simctl list devices available -j | python3 -c '
-import json, sys
-devices = [d for runtime in json.load(sys.stdin)["devices"].values()
-             for d in runtime if "iPhone" in d["name"]]
-booted = [d for d in devices if d["state"] == "Booted"]
-print((booted or devices)[0]["udid"])')"
+# 2) Use the dedicated QA simulator because this recipe uninstalls the app.
+#    For a user's manual-play device, install in place and omit uninstall/reset
+#    flags so their saved game survives. Never run this destructive recipe there.
+SIM="$(python3 "$REPO/scripts/select-qa-simulator.py")"
 xcrun simctl boot "$SIM" 2>/dev/null || true   # already-booted is not an error
 open -a Simulator                              # so the screenshot has something to photograph
 

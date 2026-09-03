@@ -90,9 +90,14 @@ scripts/gate.sh                     # 10 gates. CatanAI and native UI tests domi
 scripts/gate.sh --debug-app         # + also compile the app in Debug (Release always runs).
 ```
 
-Gates, cheapest first: xcodegen drift · `swiftlint --strict` · both packages built with
-`-warnings-as-errors` · CatanEngine tests · CatanAI tests · coverage floors (CatanEngine
-**96.20%** vs floor 95, CatanAI **91.41%** vs floor 90) · gitleaks · **app build in Release**.
+App/UI tests run on the dedicated `Empires QA` simulator selected by
+`scripts/select-qa-simulator.py`. They erase that app container deliberately;
+never replace this with "first available" or "first booted", which wiped the
+manual-play simulator during an ordinary gate on 2026-09-03.
+
+Gates, cheapest first: xcodegen drift · `swiftlint --strict` · evaluation-tool tests · both
+packages built with `-warnings-as-errors` · CatanEngine tests · CatanAI tests · training
+export validation · coverage floors · gitleaks · app/UI tests · **app build in Release**.
 
 Three properties it is built around, and that any change to it must preserve:
 
