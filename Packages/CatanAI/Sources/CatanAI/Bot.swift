@@ -94,7 +94,7 @@ public struct Bot: Sendable {
         // pushes toward covering new resource types rather than just
         // re-maximizing pips on ones already covered (see
         // `PlacementHeuristics.score`'s `alreadyCovered` doc).
-        let alreadyCovered = PlacementHeuristics.coveredResources(for: player, in: state)
+        let alreadyCovered = coveredResources(for: player, in: state)
 
         if case .placeInitialSettlement = legal[0] {
             var best = legal[0]
@@ -118,11 +118,10 @@ public struct Bot: Sendable {
         var bestScore = -Double.infinity
         for move in legal {
             guard case .placeInitialRoad(let edge) = move else { continue }
-            let score = PlacementHeuristics.score(
-                initialRoad: edge,
-                board: state.board,
-                alreadyCovered: alreadyCovered,
-                weights: weights
+            let (a, b) = state.board.vertices(of: edge)
+            let score = max(
+                PlacementHeuristics.score(vertex: a, board: state.board, alreadyCovered: alreadyCovered, weights: weights),
+                PlacementHeuristics.score(vertex: b, board: state.board, alreadyCovered: alreadyCovered, weights: weights)
             )
             if score > bestScore {
                 bestScore = score
@@ -130,6 +129,22 @@ public struct Bot: Sendable {
             }
         }
         return best
+    }
+
+    /// The resource types touching any settlement/city `player` already
+    /// owns - empty before their first setup placement.
+    private func coveredResources(for player: PlayerID, in state: GameState) -> Set<Resource> {
+        guard let me = state.players.first(where: { $0.id == player }) else { return [] }
+        var resources = Set<Resource>()
+        for vertex in me.settlements.union(me.cities) {
+            for coordinate in vertex.touchingTiles {
+                guard let tile = state.board.tiles.first(where: { $0.coordinate == coordinate }) else { continue }
+                if case .resource(let resource) = tile.kind {
+                    resources.insert(resource)
+                }
+            }
+        }
+        return resources
     }
 
     // MARK: - Discarding

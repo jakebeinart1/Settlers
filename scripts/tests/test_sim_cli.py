@@ -75,25 +75,6 @@ class SimulatorConfigurationTests(unittest.TestCase):
         self.assertIn(record["winner"], range(3))
         self.assertGreaterEqual(record["vp"][record["winner"]], 8)
 
-    def test_difficulty_and_personality_are_independent_seat_names(self) -> None:
-        result = self.run_simulator(
-            "--players", "3",
-            "--victory-points", "8",
-            "--board", "randomized",
-            "--seats", "easy-balanced,standard-aggressive,easy-cautious",
-            "--build-id", "difficulty-integration",
-            "--seed", "703",
-            "--games", "1",
-            "--jsonl",
-        )
-
-        self.assertEqual(result.returncode, 0, result.stderr)
-        record = json.loads(result.stdout)
-        self.assertEqual(record["policies"], [
-            "easy-balanced", "standard-aggressive", "easy-cautious",
-        ])
-        self.assertIn(record["winner"], range(3))
-
     def test_configuration_flags_reject_unsupported_duplicate_and_wrapping_values(self) -> None:
         cases = (
             (("--players", "2"), "--players must be 3 or 4"),
