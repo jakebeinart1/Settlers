@@ -21,6 +21,8 @@ public struct PolicyBehaviorMetrics: Codable, Sendable, Equatable {
     public private(set) var settlementCityOpportunities = 0
     public private(set) var settlementsChosenInMixedBuildOpportunities = 0
     public private(set) var citiesChosenInMixedBuildOpportunities = 0
+    public private(set) var cityBuildOpportunities = 0
+    public private(set) var citiesChosenWhenBuildable = 0
     public private(set) var developmentCardBuildOpportunities = 0
     public private(set) var developmentCardsChosenOverPermanentBuild = 0
     public private(set) var tradeResponseOpportunities = 0
@@ -61,6 +63,11 @@ public struct PolicyBehaviorMetrics: Codable, Sendable, Equatable {
             settlementCityOpportunities += 1
             if case .buildSettlement = chosen { settlementsChosenInMixedBuildOpportunities += 1 }
             if case .buildCity = chosen { citiesChosenInMixedBuildOpportunities += 1 }
+        }
+
+        if hasCity {
+            cityBuildOpportunities += 1
+            if case .buildCity = chosen { citiesChosenWhenBuildable += 1 }
         }
 
         let hasPermanentBuild = observation.legalMoves.contains { move in

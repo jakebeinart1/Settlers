@@ -47,7 +47,7 @@ The checked-in analyzer consumes the simulator output and selects only the
 candidate chair from each shard:
 
 ```bash
-python3 scripts/analyze-bot-evaluation.py --name balanced \
+python3 scripts/analyze-bot-evaluation.py --name balanced --schema-version 3 \
   --build-id sha256-41e9186043a5d0cc246597b2b900f8b7a2cf7938560f61ae05d9c3d06c92615a \
   --candidate-policy heuristic-balanced \
   --foil-policy greedy \

@@ -315,7 +315,7 @@ private func jsonLine(_ result: GameResult) -> String {
     let winner = result.winner.map { "\($0.index)" } ?? "null"
     let points = result.victoryPoints.map(String.init).joined(separator: ",")
     let policies = result.policyIDs.map { "\"\($0)\"" }.joined(separator: ",")
-    return "{\"schemaVersion\":3,\"buildID\":\"\(result.buildID)\",\"policies\":[\(policies)],"
+    return "{\"schemaVersion\":4,\"buildID\":\"\(result.buildID)\",\"policies\":[\(policies)],"
         + "\"seed\":\(result.seed),\"moves\":\(result.moves),\"winner\":\(winner),"
         + "\"vp\":[\(points)],\"fingerprint\":\"\(result.fingerprint)\","
         + "\"behavior\":\(behaviorJSON(result.behavior))}"
@@ -339,6 +339,8 @@ private func behaviorObjectJSON(_ metric: PolicyBehaviorMetrics) -> String {
     let buildChoices = "\"settlementCityOpportunities\":\(metric.settlementCityOpportunities),"
         + "\"settlementsChosenInMixedBuildOpportunities\":\(metric.settlementsChosenInMixedBuildOpportunities),"
         + "\"citiesChosenInMixedBuildOpportunities\":\(metric.citiesChosenInMixedBuildOpportunities),"
+        + "\"cityBuildOpportunities\":\(metric.cityBuildOpportunities),"
+        + "\"citiesChosenWhenBuildable\":\(metric.citiesChosenWhenBuildable),"
         + "\"developmentCardBuildOpportunities\":\(metric.developmentCardBuildOpportunities),"
         + "\"developmentCardsChosenOverPermanentBuild\":\(metric.developmentCardsChosenOverPermanentBuild),"
     let tradeChoices = "\"tradeResponseOpportunities\":\(metric.tradeResponseOpportunities),"
