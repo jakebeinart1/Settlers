@@ -352,6 +352,8 @@ private struct FirstProposalPolicy: Policy {
     _ = try session.commit(seat: state.players[0].id, move: .proposeTrade(offer))
 
     #expect(session.lastPolicyDecisions.map(\.seat) == state.players.dropFirst(2).map(\.id))
+    #expect(session.lastPolicyDecisions.map(\.evaluationIndex) == [1, 2])
+    #expect(session.policyEvaluationCount == 3)
     #expect(session.lastPolicyDecisions.allSatisfy { decision in
         decision.move == .respondToTrade(offerID: offer.id, accept: false)
             && decision.observation.legalMoves == [.respondToTrade(offerID: offer.id, accept: false)]
@@ -359,4 +361,6 @@ private struct FirstProposalPolicy: Policy {
     let queued = session.decideNextDetailed()
     #expect(queued?.seat == state.players[1].id)
     #expect(session.lastPolicyDecisions.map(\.seat) == [state.players[1].id])
+    #expect(session.lastPolicyDecisions.map(\.evaluationIndex) == [0])
+    #expect(session.policyEvaluationCount == 3)
 }

@@ -1,7 +1,7 @@
 # AI approach evaluation and prototype order
 
 Date: 2026-09-03
-Status: short-horizon P1 configuration rejected; P2 is next
+Status: short-horizon P1 rejected; P2 data pipeline complete, learned model next
 
 ## Decision
 
@@ -156,7 +156,7 @@ separate paired evaluation and Release/device timing. P2 is the next experiment
 because it tests the data contract and can provide a learned value estimate,
 not because search has been conclusively ruled out.
 
-## Next gate
+## P2 entry gate
 
 Proceed to P2: export versioned, masked training examples from deterministic
 self-play, validate replay/provenance, and train a deliberately small imitation
@@ -194,9 +194,10 @@ victims remain masked). Only then should the simulator export records with:
 - sparse legal action indices representing the full mask;
 - the chosen global action index.
 
-The exporter must fail if a legal or chosen move has no index, and a validator
-must reconstruct every sparse mask and verify the chosen action is legal before
-training sees a byte.
+The exporter must fail if a legal or chosen move has no index. A structural
+validator must reject malformed sparse masks and chosen actions outside them
+before training sees a byte; independent mask reconstruction would require
+exporting replayable game state and is not claimed by this compact format.
 
 ### P2 contract resolution
 
@@ -209,3 +210,51 @@ the cross-process encoding fingerprint was deliberately repinned after the
 version bump. Three-player states retain the same width and use the same
 four-chair action space, so nonexistent victims are represented only as masked
 actions rather than by a second model shape.
+
+## P2 partial result — deterministic export and lower-bound baseline
+
+The simulator now optionally writes one `TrainingExample` JSONL record per
+policy evaluation while keeping its ordinary game stream unchanged. The Swift
+constructor enforces the live state/action contract. A separate Python
+validator enforces the serialized schema, provenance, feature bounds,
+contiguous evaluations, winner-derived outcomes, and chosen-action membership
+in the serialized legal mask. It cannot independently reconstruct the complete
+legal mask from the deliberately compact feature vector. One 512-decision game exported
+in two separate processes was byte-identical in full (5,685,786 bytes), not
+merely equal after parsing.
+
+The held-out baseline used 20 complete Release self-play games, seeds
+53000–53019, with the measured Balanced/Aggressive/Cautious/Balanced roster:
+
+- 11,687 validated examples total;
+- 9,036 examples from 16 whole-game training seeds;
+- 2,651 examples from four disjoint whole-game test seeds;
+- 1,525 held-out decisions with more than one legal action.
+
+The phase-conditioned masked action prior reached **31.5% top-1 imitation
+accuracy**, versus **14.1% expected accuracy** for uniform choice over each
+position's legal moves, and selected zero illegal actions by construction. This
+proves that the action indices, masks, labels, and whole-seed split carry a
+learnable signal. It is not a game-strength result.
+
+The linear value baseline reduced held-out mean absolute error from **0.773**
+for the training-set constant mean to **0.626**, but its **69.8% sign accuracy
+was worse than the 74.0% majority-sign comparator**. It is therefore not fit to
+guide search. The result is useful precisely because it blocks a weak value
+estimate from being promoted on the basis of loss alone.
+
+The checkpoint format records schema/layout versions, explicit hidden-information
+policy, build and dataset provenance, teacher-policy counts, exact training
+seeds, hyperparameters, phase/action counts, and value weights. Its loader
+rejects incompatible layouts, provenance, information policy, or weight width.
+Two fits over the same corpus produced byte-identical metrics and checkpoints;
+the corrected checkpoint SHA-256 is
+`dd9bd0ab1f3f2344ea8fc91badab57d26ab55f100727841d32b30c6e8bc57578`.
+Raw datasets and checkpoints remain generated artifacts outside git.
+
+This is only the lower-bound portion of P2. It does not yet establish on-device
+checkpoint conversion, inference latency, calibration, or paired game strength,
+and it does not pass the value-model quality gate.
+The next experiment should add a small state-conditioned masked policy/value
+network using this exact contract, then measure offline calibration and actual
+paired game strength before any difficulty or shipping claim.

@@ -1,6 +1,6 @@
 ---
 name: sim-harness
-description: Headless seeded self-play for the Empires bots - `Packages/CatanAI/Sources/sim`, an SPM executable that plays N all-bot games from a seed range and writes one JSON Lines record per game (seed, moves, winner, per-seat VP, move-sequence fingerprint). Use whenever the question needs many games rather than one screen: "how often do the bots actually win", "did that heuristic change anything", "run a thousand games", "reproduce that crash", "is this deterministic", or when the complaint is "the bots feel dumb", "the game drags on forever", "this only happens sometimes", "I can't reproduce it", "my change made no difference". `Bot.decide(for:player:)` - the overload WITHOUT an rng - constructs a fresh `SystemRandomNumberGenerator` on every single call (`Bot.swift:29-32`), so it can never be reproducible and a measurement harness must never touch it. Prove reproducibility across SEPARATE PROCESSES, never twice inside one.
+description: Headless seeded self-play and versioned training-data export for the Empires bots. Use for multi-game behavior/strength measurements, deterministic reproduction, or producing masked policy/value examples. The no-RNG `Bot.decide` overload can never be reproducible; prove reproducibility across separate processes, never twice inside one.
 ---
 
 # Sim harness
@@ -127,6 +127,40 @@ so the order cannot drift:
 **stdout is data, stderr is diagnostics.** The `sim: N games in Xs (Y
 games/sec)` line goes to stderr. That split is what makes step 3's byte
 comparison possible at all, so do not "helpfully" move timing onto stdout.
+
+## Training-data mode
+
+`--training-jsonl` writes a separate record for every policy decision while
+ordinary game JSONL stays on stdout. Never point it at an existing file: the
+harness refuses to overwrite so two incompatible runs cannot be mixed.
+
+```bash
+"$SIM" --games 20 --seed 53000 --jsonl \
+  --build-id policy-baseline-v1 \
+  --training-information reveal-all \
+  --training-jsonl /tmp/examples.jsonl > /tmp/games.jsonl
+python3 scripts/validate-training-data.py \
+  --build-id policy-baseline-v1 --information-policy revealAll /tmp/examples.jsonl
+python3 scripts/train-policy-baseline.py \
+  --build-id policy-baseline-v1 \
+  --information-policy revealAll \
+  --model-output /tmp/checkpoint.json /tmp/examples.jsonl
+```
+
+Each example carries the dataset schema, state/action layout versions, build
+and policy provenance, seed and decision index, observer/table identity, 5,182
+features, sparse legal-action indices, chosen global action, and final
+seat-relative outcome. The validator checks the serialized contract, including
+layout/provenance, feature bounds, contiguous decision indices, winner-derived
+outcomes, and that the chosen action belongs to the serialized legal mask. The
+Swift constructor remains the authority for recomputing the mask from live game
+state; compact feature vectors intentionally cannot reconstruct that state.
+
+The baseline is deliberately modest and dependency-free: phase-conditioned
+action counts behind the legal mask, plus a linear value estimator. It proves
+the pipeline and supplies lower-bound metrics; it is not a shipping bot or a
+strength result. Splitting is by whole game seed, never by decision, because
+adjacent states from one trajectory in train and test would be leakage.
 
 ## Trap: the RNG overload that can never be reproducible
 
