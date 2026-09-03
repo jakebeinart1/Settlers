@@ -90,3 +90,11 @@ the store. This proves the winning transition, not yet a whole match using the
 new persistence path. Production integration must preserve GameSession's
 policy RNG and negotiation bookkeeping; replacing the session after every
 persisted move would incorrectly reset those counters.
+
+The engine now exposes a Codable session checkpoint covering policy RNG,
+evaluation count, queued trade decision, proposal guard, and action counters.
+Restoration checks schema and policy identities without re-evaluating a pending
+response. Three new engine tests cover continuing the same move sequence,
+preserving a sampled response, and rejecting a changed policy roster; the full
+181-test engine suite passes. App-document wiring and hostile-checkpoint
+validation remain pending, so this does not yet change production resume.

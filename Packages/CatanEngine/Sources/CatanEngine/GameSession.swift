@@ -20,7 +20,7 @@ import Foundation
 /// that also imports this package then fails to compile with
 /// "'Observable' is not a member type of struct 'CatanEngine.Observation'".
 
-public struct GameObservation: Sendable {
+public struct GameObservation: Codable, Sendable {
     /// The seat being asked to move.
     public let seat: PlayerID
     public let state: GameState
@@ -117,6 +117,48 @@ public struct GameSession: Sendable {
         restorePendingTradeBookkeeping()
     }
 
+    /// Session-only progress is persisted alongside the board, not rebuilt by
+    /// re-evaluating policies. In particular a queued trade answer already used
+    /// randomness and must not be sampled again on resume.
+    public struct Checkpoint: Codable, Sendable {
+        let version: Int
+        public let state: GameState
+        let policyIDs: [PlayerID: String]
+        let policyRNG: RandomSource
+        let policyEvaluationCount: Int
+        let queuedTradeResponse: Decision?
+        let proposedTradeThisTurn: Bool
+        let currentTurnSeat: PlayerID?
+        let actionsThisTurn: Int
+    }
+
+    public enum CheckpointError: Error { case incompatibleCheckpoint }
+
+    public var checkpoint: Checkpoint {
+        Checkpoint(version: 1, state: state, policyIDs: policies.mapValues { $0.id },
+                   policyRNG: policyRNG, policyEvaluationCount: policyEvaluationCount,
+                   queuedTradeResponse: queuedTradeResponse, proposedTradeThisTurn: proposedTradeThisTurn,
+                   currentTurnSeat: currentTurnSeat, actionsThisTurn: actionsThisTurn)
+    }
+
+    /// Callers supply the same policy implementations/configurations identified
+    /// by the saved IDs. Executable policies are not serialized into save files.
+    /// Last-operation telemetry is transient; queued-decision telemetry is not.
+    public init(checkpoint: Checkpoint, policies: [PlayerID: any Policy]) throws {
+        guard checkpoint.version == 1, checkpoint.policyIDs == policies.mapValues({ $0.id }),
+              checkpoint.policyEvaluationCount >= 0, checkpoint.actionsThisTurn >= 0 else {
+            throw CheckpointError.incompatibleCheckpoint
+        }
+        self.state = checkpoint.state
+        self.policies = policies
+        self.policyRNG = checkpoint.policyRNG
+        self.policyEvaluationCount = checkpoint.policyEvaluationCount
+        self.queuedTradeResponse = checkpoint.queuedTradeResponse
+        self.proposedTradeThisTurn = checkpoint.proposedTradeThisTurn
+        self.currentTurnSeat = checkpoint.currentTurnSeat
+        self.actionsThisTurn = checkpoint.actionsThisTurn
+    }
+
     /// One applied move.
     public struct Step: Sendable {
         public let actor: PlayerID
@@ -127,7 +169,7 @@ public struct GameSession: Sendable {
     /// One policy choice together with the exact action mask it received.
     /// Evaluation consumers need the mask to distinguish preference from
     /// opportunity; ordinary app callers can keep using `decideNext()`.
-    public struct Decision: Sendable {
+    public struct Decision: Codable, Sendable {
         public let evaluationIndex: Int
         public let seat: PlayerID
         public let move: GameMove
