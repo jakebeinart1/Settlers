@@ -82,6 +82,10 @@ public struct GameSession: Sendable {
     /// eventually committed. Replaced on each operation, so app callers that
     /// ignore telemetry never accumulate a game-sized history.
     public private(set) var lastPolicyDecisions: [Decision] = []
+    /// Monotonic index assigned at the policy call site. A training exporter
+    /// can therefore detect omissions and duplicates instead of renumbering a
+    /// partial list into something that appears complete.
+    public private(set) var policyEvaluationCount = 0
 
     /// An out-of-turn policy response to the offer just proposed.
     ///
@@ -124,6 +128,7 @@ public struct GameSession: Sendable {
     /// Evaluation consumers need the mask to distinguish preference from
     /// opportunity; ordinary app callers can keep using `decideNext()`.
     public struct Decision: Sendable {
+        public let evaluationIndex: Int
         public let seat: PlayerID
         public let move: GameMove
         public let observation: GameObservation
@@ -210,11 +215,11 @@ public struct GameSession: Sendable {
         )
 
         if actionsThisTurn >= Self.maxActionsPerTurn, case .mainTurn = state.phase {
-            let decision = Decision(seat: seat, move: .endTurn, observation: observation)
+            let decision = recordedDecision(seat: seat, move: .endTurn, observation: observation)
             lastPolicyDecisions = [decision]
             return decision
         }
-        let decision = Decision(seat: seat, move: chosen, observation: observation)
+        let decision = recordedDecision(seat: seat, move: chosen, observation: observation)
         lastPolicyDecisions = [decision]
         return decision
     }
@@ -262,6 +267,7 @@ public struct GameSession: Sendable {
         state = newState
         currentTurnSeat = nil
         actionsThisTurn = 0
+        policyEvaluationCount = 0
         restorePendingTradeBookkeeping()
     }
 
@@ -322,37 +328,44 @@ public struct GameSession: Sendable {
         let responders = state.players.map(\.id).sorted().filter {
             $0 != offer.from && policies[$0] != nil
         }
-        var firstRejection: (PlayerID, GameMove)?
+        var firstRejection: Decision?
         for seat in responders {
-            guard let move = tradeDecision(for: seat, offer: offer) else { continue }
-            if firstRejection == nil { firstRejection = (seat, move) }
-            if case .respondToTrade(_, true) = move {
-                queuedTradeResponse = Decision(
-                    seat: seat,
-                    move: move,
-                    observation: tradeObservation(for: seat, offer: offer)
-                )
+            guard let decision = tradeDecision(for: seat, offer: offer) else { continue }
+            if firstRejection == nil { firstRejection = decision }
+            if case .respondToTrade(_, true) = decision.move {
+                queuedTradeResponse = decision
                 removeQueuedDecisionFromCurrentTelemetry()
                 return
             }
         }
         if let firstRejection {
-            queuedTradeResponse = Decision(
-                seat: firstRejection.0,
-                move: firstRejection.1,
-                observation: tradeObservation(for: firstRejection.0, offer: offer)
-            )
+            queuedTradeResponse = firstRejection
             removeQueuedDecisionFromCurrentTelemetry()
         }
     }
 
-    private mutating func tradeDecision(for seat: PlayerID, offer: TradeOffer) -> GameMove? {
+    private mutating func tradeDecision(for seat: PlayerID, offer: TradeOffer) -> Decision? {
         guard let policy = policies[seat] else { return nil }
         let observation = tradeObservation(for: seat, offer: offer)
         let chosen = policy.decide(observation, rng: &policyRNG)
         precondition(observation.legalMoves.contains(chosen), "policy \(policy.id) returned a non-response to an open trade")
-        lastPolicyDecisions.append(Decision(seat: seat, move: chosen, observation: observation))
-        return chosen
+        let decision = recordedDecision(seat: seat, move: chosen, observation: observation)
+        lastPolicyDecisions.append(decision)
+        return decision
+    }
+
+    private mutating func recordedDecision(
+        seat: PlayerID,
+        move: GameMove,
+        observation: GameObservation
+    ) -> Decision {
+        defer { policyEvaluationCount += 1 }
+        return Decision(
+            evaluationIndex: policyEvaluationCount,
+            seat: seat,
+            move: move,
+            observation: observation
+        )
     }
 
     private func tradeObservation(for seat: PlayerID, offer: TradeOffer) -> GameObservation {

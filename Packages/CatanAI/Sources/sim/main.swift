@@ -101,9 +101,13 @@ private struct Options {
     var seatNames: [String] = ["balanced", "aggressive", "cautious", "balanced"]
     var buildID = "working-tree"
     var jsonl: Bool = false
+    var trainingOutput: String?
+    var trainingInformationPolicy: HiddenInformationPolicy = .revealAll
 
     static let usage = """
         usage: sim [--games N] [--seed S] [--seats a,b,c,d] [--build-id ID] [--jsonl]
+                   [--training-jsonl PATH]
+                   [--training-information reveal-all|public-counts]
           --games N     number of consecutive seeds to play (default 1)
           --seed S      first board seed; seeds S ..< S+N are played (default 1)
           --seats LIST  four comma-separated policy names, one per seat
@@ -114,6 +118,10 @@ private struct Options {
           --build-id ID provenance label written into every result
                         (default working-tree; letters, digits, dot, dash, underscore)
           --jsonl       one JSON object per game on stdout; without it, a text table
+          --training-jsonl PATH
+                        write one versioned masked policy/value example per decision
+          --training-information MODE
+                        opponent holdings in training features (default reveal-all)
         """
 }
 
@@ -172,6 +180,15 @@ private func parseOptions(_ arguments: [String]) -> Options {
             options.buildID = value
         case "--jsonl":
             options.jsonl = true
+        case "--training-jsonl":
+            options.trainingOutput = nextValue(for: "--training-jsonl")
+        case "--training-information":
+            let value = nextValue(for: "--training-information")
+            switch value {
+            case "reveal-all": options.trainingInformationPolicy = .revealAll
+            case "public-counts": options.trainingInformationPolicy = .publicCountsOnly
+            default: fail("--training-information must be reveal-all or public-counts")
+            }
         case "--help", "-h":
             Stderr.write(Options.usage)
             exit(0)
@@ -183,6 +200,9 @@ private func parseOptions(_ arguments: [String]) -> Options {
 
     guard options.seatNames.count == seatCount else {
         fail("--seats needs exactly \(seatCount) names, got \(options.seatNames.count)")
+    }
+    if options.trainingOutput != nil, options.buildID == "working-tree" {
+        fail("--training-jsonl requires an explicit non-placeholder --build-id")
     }
     return options
 }
@@ -247,6 +267,13 @@ private struct GameResult {
     let victoryPoints: [Int]
     let fingerprint: String
     let behavior: [PolicyBehaviorMetrics]
+    let decisions: [RecordedDecision]
+    let policyEvaluationCount: Int
+}
+
+private struct RecordedDecision {
+    let decision: GameSession.Decision
+    let policyID: String
 }
 
 /// Plays one complete game on a randomized board derived from `seed`, with
@@ -262,7 +289,12 @@ private struct GameResult {
 /// here were not the bots being played there: this loop saw the unscoped
 /// action list and had no runaway backstop, and the app had both. Any strength
 /// number produced by a private loop describes only that loop.
-private func playGame(seed: UInt64, policies: [any Policy], buildID: String) -> GameResult {
+private func playGame(
+    seed: UInt64,
+    policies: [any Policy],
+    buildID: String,
+    recordTraining: Bool
+) -> GameResult {
     let state = GameSetup.newGame(board: BoardGenerator.randomized(seed: seed), seed: seed)
     var seats: [PlayerID: any Policy] = [:]
     for (index, policy) in policies.enumerated() { seats[state.players[index].id] = policy }
@@ -270,6 +302,7 @@ private func playGame(seed: UInt64, policies: [any Policy], buildID: String) -> 
                               policySeed: botSeed(fromBoardSeed: seed))
     var trace: [String] = []
     var behavior = Array(repeating: PolicyBehaviorMetrics(), count: seatCount)
+    var decisions: [RecordedDecision] = []
 
     for _ in 0..<maxMovesPerGame {
         guard case .seat = session.nextActor() else { break }
@@ -277,6 +310,7 @@ private func playGame(seed: UInt64, policies: [any Policy], buildID: String) -> 
         for evaluated in session.lastPolicyDecisions {
             behavior[evaluated.seat.index].observeDecision(evaluated.observation, chosen: evaluated.move)
         }
+        record(session.lastPolicyDecisions, policies: policies, enabled: recordTraining, into: &decisions)
         let step: GameSession.Step?
         do {
             step = try session.commit(seat: decision.seat, move: decision.move)
@@ -287,6 +321,7 @@ private func playGame(seed: UInt64, policies: [any Policy], buildID: String) -> 
         for evaluated in session.lastPolicyDecisions {
             behavior[evaluated.seat.index].observeDecision(evaluated.observation, chosen: evaluated.move)
         }
+        record(session.lastPolicyDecisions, policies: policies, enabled: recordTraining, into: &decisions)
         trace.append("P\(step.actor.index):\(Rendering.canonical(step.move))")
         behavior[step.actor.index].observe(step.events, for: step.actor)
     }
@@ -301,8 +336,22 @@ private func playGame(seed: UInt64, policies: [any Policy], buildID: String) -> 
         winner: winner,
         victoryPoints: session.state.players.map { session.state.victoryPoints(for: $0.id) },
         fingerprint: Rendering.fingerprint(trace),
-        behavior: behavior
+        behavior: behavior,
+        decisions: decisions,
+        policyEvaluationCount: session.policyEvaluationCount
     )
+}
+
+private func record(
+    _ evaluated: [GameSession.Decision],
+    policies: [any Policy],
+    enabled: Bool,
+    into decisions: inout [RecordedDecision]
+) {
+    guard enabled else { return }
+    decisions.append(contentsOf: evaluated.map {
+        RecordedDecision(decision: $0, policyID: policies[$0.seat.index].id)
+    })
 }
 
 // MARK: - Output
@@ -362,6 +411,76 @@ private func textLine(_ result: GameResult) -> String {
     return "seed \(result.seed)  moves \(result.moves)  winner \(winner)  vp \(points)  \(result.fingerprint)"
 }
 
+private final class TrainingWriter {
+    private let finalURL: URL
+    private let temporaryURL: URL
+    private let handle: FileHandle
+    private let encoder: JSONEncoder
+    private let informationPolicy: HiddenInformationPolicy
+    private var isFinished = false
+
+    init(path: String, informationPolicy: HiddenInformationPolicy) {
+        precondition(!path.isEmpty, "--training-jsonl path cannot be empty")
+        precondition(!FileManager.default.fileExists(atPath: path),
+                     "refusing to overwrite existing training data at \(path)")
+        finalURL = URL(fileURLWithPath: path)
+        temporaryURL = finalURL.deletingLastPathComponent()
+            .appendingPathComponent(".\(finalURL.lastPathComponent).\(UUID().uuidString).tmp")
+        precondition(FileManager.default.createFile(atPath: temporaryURL.path, contents: nil),
+                     "could not create temporary training output beside \(path)")
+        guard let handle = FileHandle(forWritingAtPath: temporaryURL.path) else {
+            preconditionFailure("could not open temporary training output beside \(path)")
+        }
+        self.handle = handle
+        self.informationPolicy = informationPolicy
+        encoder = JSONEncoder()
+        encoder.outputFormatting = [.sortedKeys, .withoutEscapingSlashes]
+    }
+
+    deinit {
+        guard !isFinished else { return }
+        // Best-effort cleanup only: `finish()` owns the checked close and
+        // atomic publication path. A crash may leave a visibly temporary file,
+        // never a valid-looking final dataset.
+        try? handle.close()
+        try? FileManager.default.removeItem(at: temporaryURL)
+    }
+
+    func write(_ result: GameResult) {
+        guard let winner = result.winner else {
+            preconditionFailure("training data requires a decisive game for seed \(result.seed)")
+        }
+        precondition(result.decisions.count == result.policyEvaluationCount,
+                     "captured \(result.decisions.count) of \(result.policyEvaluationCount) policy evaluations")
+        for recorded in result.decisions {
+            let decision = recorded.decision
+            let example = TrainingExample(
+                buildID: result.buildID,
+                seed: result.seed,
+                decisionIndex: decision.evaluationIndex,
+                policyID: recorded.policyID,
+                hiddenInformationPolicy: informationPolicy,
+                observation: decision.observation,
+                chosenMove: decision.move,
+                winner: winner
+            )
+            do {
+                handle.write(try encoder.encode(example))
+                handle.write(Data("\n".utf8))
+            } catch {
+                preconditionFailure("could not encode training example: \(error)")
+            }
+        }
+    }
+
+    func finish() throws {
+        try handle.synchronize()
+        try handle.close()
+        try FileManager.default.moveItem(at: temporaryURL, to: finalURL)
+        isFinished = true
+    }
+}
+
 // MARK: - Run
 
 // These are `private` because `Options` is: a top-level `let` in main.swift
@@ -371,13 +490,18 @@ private let options = parseOptions(CommandLine.arguments)
 private let seats = options.seatNames.map { policy(named: $0) }
 private let clock = ContinuousClock()
 private let started = clock.now
+private let trainingWriter = options.trainingOutput.map {
+    TrainingWriter(path: $0, informationPolicy: options.trainingInformationPolicy)
+}
 
 for offset in 0..<options.games {
     let result = playGame(
         seed: options.firstSeed &+ UInt64(offset),
         policies: seats,
-        buildID: options.buildID
+        buildID: options.buildID,
+        recordTraining: trainingWriter != nil
     )
+    trainingWriter?.write(result)
     Stdout.write(options.jsonl ? jsonLine(result) : textLine(result))
 }
 
@@ -391,3 +515,8 @@ let elapsed = Double(duration.components.seconds)
     + Double(duration.components.attoseconds) / 1e18
 Stderr.write(String(format: "sim: %d games in %.2fs (%.1f games/sec)",
                     options.games, elapsed, Double(options.games) / elapsed))
+do {
+    try trainingWriter?.finish()
+} catch {
+    fatalError("could not publish training data: \(error)")
+}
