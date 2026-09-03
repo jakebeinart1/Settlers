@@ -1,7 +1,7 @@
 # AI approach evaluation and prototype order
 
 Date: 2026-09-03
-Status: short-horizon P1 rejected; P2 data pipeline complete, learned model next
+Status: short-horizon P1 and first P2 learned policy rejected
 
 ## Decision
 
