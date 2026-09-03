@@ -156,7 +156,10 @@ private struct Options {
           --board MODE  standard fixed layout or seeded randomized layout
                         (default randomized)
           --seats LIST  comma-separated policy names, exactly one per player
-                        heuristics: balanced, aggressive, cautious
+                        shipping aliases: balanced, aggressive, cautious
+                        experimental tiers: easy-balanced, easy-aggressive,
+                          easy-cautious, standard-balanced,
+                          standard-aggressive, standard-cautious
                         anchors:    greedy, random
                         (four-seat default balanced,aggressive,cautious,balanced;
                         a three-seat run uses the first three)
@@ -186,11 +189,25 @@ private func policy(named name: String) -> any Policy {
     case "balanced": return HeuristicPolicy(personality: .balanced, id: "heuristic-balanced")
     case "aggressive": return HeuristicPolicy(personality: .aggressive, id: "heuristic-aggressive")
     case "cautious": return HeuristicPolicy(personality: .cautious, id: "heuristic-cautious")
+    case "easy-balanced": return difficultyPolicy(.easy, .balanced, id: name)
+    case "easy-aggressive": return difficultyPolicy(.easy, .aggressive, id: name)
+    case "easy-cautious": return difficultyPolicy(.easy, .cautious, id: name)
+    case "standard-balanced": return difficultyPolicy(.standard, .balanced, id: name)
+    case "standard-aggressive": return difficultyPolicy(.standard, .aggressive, id: name)
+    case "standard-cautious": return difficultyPolicy(.standard, .cautious, id: name)
     case "greedy": return GreedyPolicy()
     case "random": return RandomPolicy()
     default:
-        fail("unknown seat '\(name)'; expected balanced, aggressive, cautious, greedy or random")
+        fail("unknown seat '\(name)'; see --seats in usage")
     }
+}
+
+private func difficultyPolicy(
+    _ difficulty: AIDifficulty,
+    _ personality: BotPersonality,
+    id: String
+) -> DifficultyPolicy {
+    DifficultyPolicy(personality: personality, difficulty: difficulty, id: id)
 }
 
 /// Reads `CommandLine.arguments` into `Options`, aborting on anything it does

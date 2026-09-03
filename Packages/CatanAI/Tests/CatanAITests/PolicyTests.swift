@@ -45,6 +45,136 @@ private func playToCompletion(
     #expect(RandomPolicy().id == "random")
 }
 
+@Test func standardDifficultyIsExactlyTheShippingHeuristic() {
+    let state = GameSetup.newGame(board: BoardGenerator.randomized(seed: 91), seed: 91)
+    let seat = state.players[0].id
+    let observation = GameObservation(
+        seat: seat,
+        state: state,
+        legalMoves: RulesEngine.legalMoves(for: state, seat: seat)
+    )
+    var expectedRNG = RandomSource(seed: 117)
+    var actualRNG = expectedRNG
+
+    let expected = HeuristicPolicy(personality: .aggressive, id: "shipping").decide(
+        observation, rng: &expectedRNG)
+    let actual = DifficultyPolicy(
+        personality: .aggressive,
+        difficulty: .standard,
+        id: "standard-aggressive"
+    ).decide(observation, rng: &actualRNG)
+
+    #expect(actual == expected)
+    #expect(actualRNG == expectedRNG, "Standard must not add an RNG draw or silently change replay")
+}
+
+@Test func standardDifficultyPreservesAWholeShippingGameTrajectory() throws {
+    let state = GameSetup.newGame(board: BoardGenerator.randomized(seed: 92), seed: 92)
+    let shipping = Dictionary(uniqueKeysWithValues: state.players.map {
+        ($0.id, HeuristicPolicy(personality: .balanced, id: "shipping") as any Policy)
+    })
+    let standard = Dictionary(uniqueKeysWithValues: state.players.map {
+        ($0.id, DifficultyPolicy(
+            personality: .balanced,
+            difficulty: .standard,
+            id: "standard-balanced"
+        ) as any Policy)
+    })
+    var expected = GameSession(state: state, policies: shipping, policySeed: 92 &* 31 &+ 7)
+    var actual = GameSession(state: state, policies: standard, policySeed: 92 &* 31 &+ 7)
+
+    for _ in 0..<3_000 {
+        #expect(actual.nextActor() == expected.nextActor())
+        guard case .seat = expected.nextActor() else {
+            #expect(actual.state == expected.state)
+            #expect(actual.policyRNG == expected.policyRNG)
+            return
+        }
+        let expectedCandidate = expected.decideNext()
+        let actualCandidate = actual.decideNext()
+        let expectedDecision = try #require(expectedCandidate)
+        let actualDecision = try #require(actualCandidate)
+        #expect(actualDecision.seat == expectedDecision.seat)
+        #expect(actualDecision.move == expectedDecision.move)
+        _ = try expected.commit(seat: expectedDecision.seat, move: expectedDecision.move)
+        _ = try actual.commit(seat: actualDecision.seat, move: actualDecision.move)
+        #expect(actual.state == expected.state)
+        #expect(actual.policyRNG == expected.policyRNG)
+    }
+
+    Issue.record("shipping and Standard trajectories did not finish within 3,000 moves")
+}
+
+@Test func easyDifficultyMakesPlausibleSpatialMistakesWithoutChangingMoveKind() {
+    let state = GameSetup.newGame(board: BoardGenerator.standard(), seed: 12)
+    let seat = state.players[0].id
+    let legal = RulesEngine.legalMoves(for: state, seat: seat)
+    let observation = GameObservation(seat: seat, state: state, legalMoves: legal)
+    let standard = DifficultyPolicy(
+        personality: .balanced,
+        difficulty: .standard,
+        id: "standard-balanced"
+    )
+    let easy = DifficultyPolicy(
+        personality: .balanced,
+        difficulty: .easy,
+        id: "easy-balanced"
+    )
+    var sawDifferentTarget = false
+
+    for seed: UInt64 in 1...32 {
+        var standardRNG = RandomSource(seed: seed)
+        var easyRNG = RandomSource(seed: seed)
+        let preferred = standard.decide(observation, rng: &standardRNG)
+        let chosen = easy.decide(observation, rng: &easyRNG)
+
+        #expect(legal.contains(chosen))
+        guard case .placeInitialSettlement(let chosenVertex) = chosen else {
+            Issue.record("Easy changed the action category instead of softening the target")
+            continue
+        }
+        if chosen != preferred {
+            sawDifferentTarget = true
+            guard case .placeInitialSettlement(let preferredVertex) = preferred else {
+                Issue.record("Standard returned an unexpected setup move")
+                continue
+            }
+            let preferredScore = PlacementHeuristics.score(vertex: preferredVertex, board: state.board)
+            let chosenScore = PlacementHeuristics.score(vertex: chosenVertex, board: state.board)
+            #expect(chosenScore < preferredScore, "An Easy lapse must be a real, bounded downgrade")
+        }
+    }
+
+    #expect(sawDifferentTarget, "Easy never exercised its bounded spatial lapse")
+}
+
+@Test func easyDifficultyPreservesPersonalityBearingTradeDecisions() {
+    var state = GameSetup.newGame(board: BoardGenerator.standard(), seed: 4)
+    state.phase = .mainTurn(playerIndex: 0)
+    let responder = state.players[1].id
+    state.players[1].resources[.ore] = 1
+    let offer = TradeOffer.enumerated(from: state.players[0].id, give: [.brick: 1], want: [.ore: 1])
+    state.pendingTradeOffers = [offer]
+    let legal: [GameMove] = [
+        .respondToTrade(offerID: offer.id, accept: true),
+        .respondToTrade(offerID: offer.id, accept: false),
+    ]
+    let observation = GameObservation(seat: responder, state: state, legalMoves: legal)
+    var expectedRNG = RandomSource(seed: 7)
+    var actualRNG = expectedRNG
+
+    let expected = HeuristicPolicy(personality: .cautious, id: "shipping").decide(
+        observation, rng: &expectedRNG)
+    let actual = DifficultyPolicy(
+        personality: .cautious,
+        difficulty: .easy,
+        id: "easy-cautious"
+    ).decide(observation, rng: &actualRNG)
+
+    #expect(actual == expected)
+    #expect(actualRNG == expectedRNG, "A trade decision is personality behavior, not an Easy mistake site")
+}
+
 @Test func heuristicHonoursATradeResponseOnlyActionMask() {
     var state = GameSetup.newGame(board: BoardGenerator.standard(), seed: 4)
     state.phase = .mainTurn(playerIndex: 0)

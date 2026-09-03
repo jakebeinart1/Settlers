@@ -395,3 +395,86 @@ new development seeds and then once on untouched held-out seeds.
 The artifact root is intentionally not committed: the JSONL is reproducible
 measurement output, while this document preserves the protocol, verdict,
 aggregate results, and integrity identifiers that the source branch must carry.
+
+## Easy candidate protocol — locked before development measurement
+
+Difficulty and personality are separate axes. The candidate keeps the current
+personality-aware heuristic as Standard. Easy asks that same heuristic for its
+intent, then on half of eligible decisions substitutes the best strictly
+lower-scored target of the **same** spatial move kind. Only initial settlement,
+initial road, road, settlement, and city targets are eligible. Trading, trade
+responses, robber targeting, dev-card use, discards, rolling, ending a turn,
+and the heuristic's move-category choice are unchanged. This is meant to model
+a coherent player making positional mistakes, not a policy taking random legal
+actions.
+
+The lapse denominator is the only development parameter. It may be changed
+while using the development bank, then is frozen before held-out evaluation.
+The 80000-series anchor-calibration seeds are context only and may not tune it.
+
+| Players | VP | Board | Development seeds | Held-out v1 seeds |
+| ---: | ---: | --- | --- | --- |
+| 3 | 8 | standard | 100000–100011 | 200000–200039 |
+| 3 | 8 | randomized | 100012–100023 | 200040–200079 |
+| 3 | 10 | standard | 100024–100035 | 200080–200119 |
+| 3 | 10 | randomized | 100036–100047 | 200120–200159 |
+| 3 | 12 | standard | 100048–100059 | 200160–200199 |
+| 3 | 12 | randomized | 100060–100071 | 200200–200239 |
+| 4 | 8 | standard | 100072–100083 | 200240–200279 |
+| 4 | 8 | randomized | 100084–100095 | 200280–200319 |
+| 4 | 10 | standard | 100096–100107 | 200320–200359 |
+| 4 | 10 | randomized | 100108–100119 | 200360–200399 |
+| 4 | 12 | standard | 100120–100131 | 200400–200439 |
+| 4 | 12 | randomized | 100132–100143 | 200440–200479 |
+
+If held-out v1 causes a policy change, that bank is consumed; v2 begins at
+201000 with the same offsets. There is no optional stopping or reusing a bank
+whose result has been seen.
+
+### Development ladder
+
+1. First two seeds per cell: prove Standard output equals the frozen shipping
+   policy, prove Easy output matches across separate processes, and finish a
+   mixed-personality Easy game in every cell.
+2. First four seeds per cell with full chair rotation: reject immediately for
+   an illegal move, timeout, reversed strength direction, or reversed
+   personality axis. Confidence intervals are not interpreted at this size.
+3. All 12 seeds per cell: require 100% decisive games below 1,500 moves,
+   Standard minus Easy at least +10 points, Easy minus Random at least +5
+   points, and at least +5 points on the intended Aggressive knight-use and
+   Cautious player-trade axes. No cross-axis shift may exceed 15 points.
+4. Freeze source and Release-binary hashes. Only then consume held-out v1.
+
+Strength comparisons rotate the evaluated policy through every occupied chair.
+Standard faces all-Easy Balanced; its control is all-Easy Balanced. Easy and
+Random each face identical Standard Balanced foils, avoiding an all-Random
+table that may not finish. Personality arms put one Easy Aggressive or Easy
+Cautious seat against all-Easy Balanced and compare it with an all-Easy
+Balanced control.
+
+### Held-out promotion gate
+
+Every criterion must pass independently in all 12 cells; a pooled average
+cannot rescue one unsupported game configuration:
+
+1. every strength, personality, and mixed-roster game is decisive below 1,500
+   moves;
+2. the all-Easy rotation control is exactly 33.3% for three seats or 25% for
+   four;
+3. Standard minus Easy is at least +15 points and its seed-cluster bootstrap
+   95% interval is wholly positive;
+4. Easy minus Random is at least +10 points with a wholly positive interval,
+   while Easy wins at least 15% against Standard foils with three seats and
+   10% with four;
+5. Easy Aggressive exceeds Easy Balanced knight use when playable by at least
+   10 points with a wholly positive interval;
+6. Easy Cautious exceeds Easy Balanced player-trade proposal rate by at least
+   10 points with a wholly positive interval;
+7. Aggressive's proposal-rate interval and Cautious's knight-use interval each
+   remain within ±10 points; and
+8. each personality rate has at least 250 opportunities per arm and cell, or
+   the result is inconclusive rather than silently promoted.
+
+Passing this statistical gate licenses the two labels for product playtesting,
+not a claim that either feels fun. Alex still has to play complete games
+against both tiers before the selector can be called finished.

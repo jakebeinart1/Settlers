@@ -2,6 +2,21 @@ import CatanEngine
 
 /// Scores candidate settlement vertices for setup and later expansion.
 public enum PlacementHeuristics {
+    /// Resource types touching settlements or cities this player already
+    /// owns. Setup uses this to make the second settlement complement the
+    /// first; keeping it here prevents every policy adapter from deriving a
+    /// subtly different view of the same placement context.
+    static func coveredResources(for player: PlayerID, in state: GameState) -> Set<Resource> {
+        guard let owner = state.players.first(where: { $0.id == player }) else { return [] }
+        return Set(owner.settlements.union(owner.cities).flatMap { vertex in
+            state.board.neighborTiles(of: vertex).compactMap { coordinate in
+                guard let tile = state.board.tiles.first(where: { $0.coordinate == coordinate }),
+                      case .resource(let resource) = tile.kind else { return nil }
+                return resource
+            }
+        })
+    }
+
     /// Pip-count-weighted production value of `vertex`, summed across its
     /// up-to-3 adjacent tiles, plus a resource-diversity bonus (rewards
     /// touching more distinct resource types), a port-access bonus (rewards
@@ -53,5 +68,19 @@ public enum PlacementHeuristics {
         }
 
         return production + diversityBonus + portBonus + newResourceBonus
+    }
+
+    /// Future-settlement value at the stronger endpoint of an initial road.
+    static func score(
+        initialRoad edge: EdgeID,
+        board: Board,
+        alreadyCovered: Set<Resource>,
+        weights: BotWeights
+    ) -> Double {
+        let (first, second) = board.vertices(of: edge)
+        return max(
+            score(vertex: first, board: board, alreadyCovered: alreadyCovered, weights: weights),
+            score(vertex: second, board: board, alreadyCovered: alreadyCovered, weights: weights)
+        )
     }
 }
