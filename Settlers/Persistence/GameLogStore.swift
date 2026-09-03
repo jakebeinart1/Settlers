@@ -25,6 +25,7 @@ public struct GameLogEvent: Sendable, Equatable {
 }
 
 public struct GameLogDetail: Sendable, Equatable {
+    public let initialState: GameState
     public let summary: GameLogSummary
     public let roster: GameLogStore.SeatRoster
     public let events: [GameLogEvent]
@@ -274,7 +275,7 @@ public struct GameLogStore: Sendable {
             humanSeats: roster.humanSeats, winner: end?.winner,
             moveCount: moves.count, civilizations: roster.civilizations,
             isComplete: end != nil && !parsed.ignoredTruncatedLine)
-        return GameLogDetail(summary: summary, roster: roster, events: moves)
+        return GameLogDetail(initialState: initialState, summary: summary, roster: roster, events: moves)
     }
 
     private func entries(in fileURL: URL) throws -> (entries: [Entry], ignoredTruncatedLine: Bool) {

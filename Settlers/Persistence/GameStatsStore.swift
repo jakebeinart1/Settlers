@@ -49,6 +49,24 @@ public struct GameStatsStore: Sendable {
         return (try? JSONDecoder().decode(GameStats.self, from: data)) ?? GameStats()
     }
 
+    /// Migration must never turn corrupt historical totals into an empty
+    /// baseline. Absence is zero; read/decode failures leave migration blocked.
+    func loadForMigration() throws -> GameStats {
+        let data: Data
+        do {
+            data = try Data(contentsOf: fileURL)
+        } catch let error as CocoaError where error.code == .fileReadNoSuchFile {
+            return GameStats()
+        }
+        let statistics = try JSONDecoder().decode(GameStats.self, from: data)
+        guard statistics.gamesPlayed >= 0, statistics.gamesWon >= 0,
+              statistics.gamesWon <= statistics.gamesPlayed, statistics.totalFinalVP >= 0,
+              statistics.totalDurationSeconds.isFinite, statistics.totalDurationSeconds >= 0 else {
+            throw CocoaError(.fileReadCorruptFile)
+        }
+        return statistics
+    }
+
     /// Folds one finished game's outcome into the running totals and saves.
     /// Best-effort - swallows write errors, matching every other store in
     /// this file (a lost stats update should never surface as a gameplay

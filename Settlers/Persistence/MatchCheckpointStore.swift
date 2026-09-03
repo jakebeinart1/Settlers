@@ -82,6 +82,18 @@ struct MatchCheckpointDocument: Codable, Equatable, Sendable {
         self.activeMatch = activeMatch
     }
 
+    /// Legacy totals cannot reveal whether a terminal save was already counted.
+    /// Preserve them exactly, and mark that save handled rather than guessing
+    /// an extra increment. The migration revision is still the initial commit.
+    init(migratedMatch: MatchCheckpoint, legacyStatistics: GameStats) throws {
+        self.init(activeMatch: migratedMatch)
+        if case .gameOver = migratedMatch.state.phase {
+            try recordCompletion(duration: migratedMatch.elapsedSeconds)
+        }
+        statistics = legacyStatistics
+        revision = 0
+    }
+
     /// Build an unpublished candidate. The caller commits it before exposing
     /// its state; failures leave this document unchanged. A winning move and
     /// its accounting receipt belong to the same revision.

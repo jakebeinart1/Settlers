@@ -119,3 +119,12 @@ returned exactly revision/moves/settlements `0,0,0` before and `1,1,1` after.
 The probe uses its own per-run Application Support directory and never reads,
 resets, or replaces the player save. This proves process interruption around
 atomic replacement; it does not claim power-loss durability.
+
+Migration preparation now reads historical totals strictly, preserves them as
+a baseline, and reconstructs any supplied active recording to verify exact
+agreement with the save. Tests cover unchanged source bytes, corrupt totals,
+and a recording one move ahead of its saved board. Preparation writes no
+legacy artifacts. A legacy terminal save gets a receipt without adding to the
+baseline, since old totals cannot establish whether it was already counted.
+Caller-side selection of the active recording, archival of original bytes,
+and production adoption still require integration tests before rollout.
