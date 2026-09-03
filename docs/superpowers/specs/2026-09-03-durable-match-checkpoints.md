@@ -128,3 +128,13 @@ legacy artifacts. A legacy terminal save gets a receipt without adding to the
 baseline, since old totals cannot establish whether it was already counted.
 Caller-side selection of the active recording, archival of original bytes,
 and production adoption still require integration tests before rollout.
+
+Replacing or clearing the active match now queues its full recording in the
+same revision. Queued recordings are replay-validated on commit and reload,
+and their IDs cannot be reused by a new match. The corruption regression was
+observed failing when a displaced recording's moves were removed while its
+final board remained unchanged; validation now rejects that document. Fourteen
+hosted persistence tests pass, including two consecutive replacements across
+reload and clearing a genuine seeded winner while preserving its receipt and
+totals. Export acknowledgement/retention and production wiring remain pending;
+these queued histories are not yet a user-visible archive.

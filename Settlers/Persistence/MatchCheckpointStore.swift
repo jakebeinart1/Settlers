@@ -75,6 +75,7 @@ struct MatchCheckpointDocument: Codable, Equatable, Sendable {
     private(set) var activeMatch: MatchCheckpoint?
     private(set) var statistics = GameStats()
     private(set) var completions: [UUID: Completion] = [:]
+    private(set) var pendingExports: [UUID: MatchCheckpoint] = [:]
 
     init(activeMatch: MatchCheckpoint?, revision: Int = 0) {
         self.schemaVersion = Self.currentSchemaVersion
@@ -120,6 +121,24 @@ struct MatchCheckpointDocument: Codable, Equatable, Sendable {
         return next
     }
 
+    /// Switching or clearing the table retains the displaced recording in the
+    /// same atomic revision. Export failure must never make New Game lose it.
+    func replacingActiveMatch(with match: MatchCheckpoint?) throws -> Self {
+        guard revision < Int.max else { throw MatchCheckpointStore.StoreError.staleRevision }
+        if let match {
+            guard match.id != activeMatch?.id, pendingExports[match.id] == nil,
+                  completions[match.id] == nil else {
+                throw MatchCheckpointStore.StoreError.inconsistentHistory
+            }
+            try match.validateHistory()
+        }
+        var next = self
+        if let activeMatch { next.pendingExports[activeMatch.id] = activeMatch }
+        next.activeMatch = match
+        next.revision += 1
+        return next
+    }
+
     /// Freeze one receipt and its totals in the same document as the terminal
     /// state. Repeating completion after an unacknowledged commit is a no-op.
     mutating func recordCompletion(duration: TimeInterval) throws {
@@ -147,6 +166,19 @@ struct MatchCheckpointDocument: Codable, Equatable, Sendable {
         guard revision < Int.max else { throw MatchCheckpointStore.StoreError.staleRevision }
         statistics = GameStats()
         revision += 1
+    }
+
+    /// Archived histories remain authoritative until exported. Validate them
+    /// just like the active match; a valid active board cannot excuse a damaged
+    /// recording or an archive key referring to a different match identity.
+    func validateHistories() throws {
+        try activeMatch?.validateHistory()
+        for id in pendingExports.keys.sorted(by: { $0.uuidString < $1.uuidString }) {
+            guard let match = pendingExports[id], match.id == id, id != activeMatch?.id else {
+                throw MatchCheckpointStore.StoreError.inconsistentHistory
+            }
+            try match.validateHistory()
+        }
     }
 }
 
@@ -182,7 +214,7 @@ struct MatchCheckpointStore {
         guard document.schemaVersion == MatchCheckpointDocument.currentSchemaVersion else {
             throw StoreError.unsupportedSchema
         }
-        try document.activeMatch?.validateHistory()
+        try document.validateHistories()
         return document
     }
 
@@ -194,7 +226,7 @@ struct MatchCheckpointStore {
               document.revision == (expected.map { $0 + 1 } ?? 0) else {
             throw StoreError.staleRevision
         }
-        try document.activeMatch?.validateHistory()
+        try document.validateHistories()
         let data = try JSONEncoder().encode(document)
         try FileManager.default.createDirectory(
             at: fileURL.deletingLastPathComponent(), withIntermediateDirectories: true)

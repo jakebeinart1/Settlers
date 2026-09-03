@@ -59,6 +59,7 @@
 		83C2D6F2A6B7F67093D579CB /* AccessibilityID.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2FA5615D7AB20666AEB04B43 /* AccessibilityID.swift */; };
 		88CF824C3335F34CF54E08E2 /* PlayerHUDView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77BA2122016739392CF5DF22 /* PlayerHUDView.swift */; };
 		895E3168C84B21B63AD67E4E /* SettingsChrome.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8BC4427BD3E30FD0F5F9E9CC /* SettingsChrome.swift */; };
+		8A95329505542BBE6D3491A9 /* CheckpointLifecycleTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 293F3C9F45563859C6C2E3F3 /* CheckpointLifecycleTests.swift */; };
 		8F8382E69A373BB264240262 /* PersistenceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68A4D0016F665BB8F904F4DD /* PersistenceTests.swift */; };
 		982B80C1DDE6B39264765604 /* ResourceChip.swift in Sources */ = {isa = PBXBuildFile; fileRef = BF75252617AEEC3F4190D703 /* ResourceChip.swift */; };
 		98B3554C6CC7406230B6569A /* CivilizationPickerPopup.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2A0891F71DC44CCE94EEE19 /* CivilizationPickerPopup.swift */; };
@@ -120,6 +121,7 @@
 		1F6B7C1967EDFFBBD8873DAC /* PacingPreferences.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PacingPreferences.swift; sourceTree = "<group>"; };
 		26C8E728C5FF85E8400CFE1A /* .swiftlint.yml */ = {isa = PBXFileReference; lastKnownFileType = text.yaml; path = .swiftlint.yml; sourceTree = "<group>"; };
 		27BDAD47ABBB94D7F73976E5 /* MainMenuView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainMenuView.swift; sourceTree = "<group>"; };
+		293F3C9F45563859C6C2E3F3 /* CheckpointLifecycleTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CheckpointLifecycleTests.swift; sourceTree = "<group>"; };
 		2FA5615D7AB20666AEB04B43 /* AccessibilityID.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccessibilityID.swift; sourceTree = "<group>"; };
 		34F357D5B05179379CDC1EF1 /* HumanSeatStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HumanSeatStore.swift; sourceTree = "<group>"; };
 		3A2D1519676D42C401001336 /* NewGameSetupView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewGameSetupView.swift; sourceTree = "<group>"; };
@@ -231,6 +233,7 @@
 				B8A660BA455654D7EF99604A /* AppSettingsTests.swift */,
 				7A53ECD05D7E8073C7BEDC19 /* BoardFitTests.swift */,
 				56E4A8873ADD3D6574E7A3D3 /* BoardLayeringTests.swift */,
+				293F3C9F45563859C6C2E3F3 /* CheckpointLifecycleTests.swift */,
 				DBA8BCB46AF42E87EB22D98E /* CheckpointMigrationTests.swift */,
 				B98093256E41FC724D7E6C36 /* CivilizationMappingTests.swift */,
 				5281B8CED614C244F7E533EE /* CompleteMatchTests.swift */,
@@ -602,6 +605,7 @@
 				6FB745378D21899B29284FC8 /* AppSettingsTests.swift in Sources */,
 				E3A6D0C733055C91F0E356FE /* BoardFitTests.swift in Sources */,
 				0C001867D26CBDBAA67CDC72 /* BoardLayeringTests.swift in Sources */,
+				8A95329505542BBE6D3491A9 /* CheckpointLifecycleTests.swift in Sources */,
 				2351A47641190EB4F53F128E /* CheckpointMigrationTests.swift in Sources */,
 				232A932B1BF064663A7161C3 /* CivilizationMappingTests.swift in Sources */,
 				243CAFAAB0A24DF9C30ABFF7 /* CompleteMatchTests.swift in Sources */,

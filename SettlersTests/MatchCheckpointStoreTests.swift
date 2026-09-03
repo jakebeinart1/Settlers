@@ -89,6 +89,18 @@ import CatanAI
         #expect(next.statistics.gamesWon == 1)
         #expect(next.completions.count == 1)
         try next.activeMatch?.validateHistory()
+
+        let cleared = try next.replacingActiveMatch(with: nil)
+        try store.commit(cleared, replacingRevision: next.revision)
+        let afterClear = try #require(try store.load())
+        #expect(afterClear.activeMatch == nil)
+        #expect(afterClear.statistics == next.statistics)
+        #expect(afterClear.completions == next.completions)
+        let match = try #require(next.activeMatch)
+        #expect(afterClear.pendingExports[match.id] == match)
+        #expect(throws: MatchCheckpointStore.StoreError.self) {
+            try afterClear.replacingActiveMatch(with: match)
+        }
     }
 
     private func winningMove() throws -> (GameState, GameSession.Step) {
