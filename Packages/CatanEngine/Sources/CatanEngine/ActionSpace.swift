@@ -65,7 +65,7 @@ public struct ActionSpace: Sendable {
     /// the failure is silent: it plays badly rather than erroring. Anything
     /// that persists a trained artifact must record this and refuse a
     /// mismatch.
-    public static let layoutVersion = 1
+    public static let layoutVersion = 2
 
     /// Largest discard this numbering can express. A player discards half of
     /// what they hold above seven, so reaching eleven means holding
@@ -140,7 +140,7 @@ public struct ActionSpace: Sendable {
             discards.count,                          // discard
             resources * (resources - 1) * Self.bankRates.count,
             resources * (resources - 1)
-                * RulesEngine.maxEnumeratedTradeQuantity * RulesEngine.maxEnumeratedTradeQuantity,
+                * RulesEngine.maxGenerousGiveQuantity * RulesEngine.maxEnumeratedTradeQuantity,
             Self.maxIndexedPendingOffers * 2,        // respondToTrade
             1,                                       // endTurn
         ]
@@ -343,22 +343,24 @@ public struct ActionSpace: Sendable {
     }
 
     private func proposeSlot(give: [Resource: Int], want: [Resource: Int]) -> Int? {
-        let quantity = RulesEngine.maxEnumeratedTradeQuantity
+        let giveQuantity = RulesEngine.maxGenerousGiveQuantity
+        let wantQuantity = RulesEngine.maxEnumeratedTradeQuantity
         guard give.count == 1, want.count == 1,
               let giveEntry = give.first, let wantEntry = want.first,
               giveEntry.key != wantEntry.key,
-              (1...quantity).contains(giveEntry.value), (1...quantity).contains(wantEntry.value)
+              (1...giveQuantity).contains(giveEntry.value), (1...wantQuantity).contains(wantEntry.value)
         else { return nil }
         let pair = resourceIndex(giveEntry.key) * (Resource.allCases.count - 1)
             + otherIndex(wantEntry.key, excluding: giveEntry.key)
-        return (pair * quantity + (giveEntry.value - 1)) * quantity + (wantEntry.value - 1)
+        return (pair * giveQuantity + (giveEntry.value - 1)) * wantQuantity + (wantEntry.value - 1)
     }
 
     private func proposal(_ local: Int) -> ([Resource: Int], [Resource: Int]) {
-        let quantity = RulesEngine.maxEnumeratedTradeQuantity
-        let wantCount = local % quantity + 1
-        let giveCount = (local / quantity) % quantity + 1
-        let pair = local / (quantity * quantity)
+        let giveQuantity = RulesEngine.maxGenerousGiveQuantity
+        let wantQuantity = RulesEngine.maxEnumeratedTradeQuantity
+        let wantCount = local % wantQuantity + 1
+        let giveCount = (local / wantQuantity) % giveQuantity + 1
+        let pair = local / (giveQuantity * wantQuantity)
         let span = Resource.allCases.count - 1
         let give = Resource.allCases[pair / span]
         return ([give: giveCount], [other(pair % span, excluding: give): wantCount])

@@ -29,11 +29,11 @@ private let space = ActionSpace(board: board)
         + discardMultisets
         + resources * (resources - 1) * ActionSpace.bankRates.count
         + resources * (resources - 1)
-            * RulesEngine.maxEnumeratedTradeQuantity * RulesEngine.maxEnumeratedTradeQuantity
+            * RulesEngine.maxGenerousGiveQuantity * RulesEngine.maxEnumeratedTradeQuantity
         + ActionSpace.maxIndexedPendingOffers * 2
         + 1                                    // endTurn
     #expect(space.size == expected)
-    #expect(space.size == 9_295, "if this moved, bump ActionSpace.layoutVersion")
+    #expect(space.size == 9_335, "if this moved, bump ActionSpace.layoutVersion")
 }
 
 @Test func everyIndexRoundTripsBackToItself() {

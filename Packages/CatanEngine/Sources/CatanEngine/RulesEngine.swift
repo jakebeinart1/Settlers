@@ -160,12 +160,30 @@ public enum RulesEngine {
     /// enumerated, not what is possible.
     public static let maxEnumeratedTradeQuantity = 2
 
+    /// How many of one resource a *generous* proposal (see
+    /// `TradeHeuristics`'s unlock-override) may offer, wider than
+    /// `maxEnumeratedTradeQuantity` on the give side only. Fixed at 3 - one more
+    /// than a bot would ever need to beat its own worst bank rate (4:1, no
+    /// port), which is the bound that actually matters: a generous offer only
+    /// exists to be a genuinely better deal than paying the bank, and above
+    /// that ceiling it never can be. The want side stays at
+    /// `maxEnumeratedTradeQuantity`; nothing asks for more.
+    public static let maxGenerousGiveQuantity = 3
+
+    /// How many trade offers one player may propose in a single turn before
+    /// `GameSession` stops offering `.proposeTrade` as a legal move for them.
+    /// Three, not one: a declined offer should get a genuinely different retry
+    /// (see `TradeHeuristics.proposeTrades`), not silence for the rest of the
+    /// turn, but a policy that just keeps trying forever crowds out every other
+    /// move and never reaches `.endTurn` on its own.
+    public static let maxTradeProposalsPerTurn = 3
+
     /// Trade proposals worth putting in front of a chooser.
     ///
-    /// Bounded at `maxEnumeratedTradeQuantity` per side and one resource type
-    /// per side: 5 give types x 4 want types x 2 x 2 = 80 at the absolute
-    /// most, and far fewer in practice since the proposer must hold what they
-    /// offer.
+    /// Bounded at `maxGenerousGiveQuantity` on the give side and
+    /// `maxEnumeratedTradeQuantity` on the want side, one resource type per
+    /// side: 5 give types x 4 want types x 3 x 2 = 120 at the absolute most, and
+    /// far fewer in practice since the proposer must hold what they offer.
     private static func tradeProposals(for player: Player) -> [GameMove] {
         var moves: [GameMove] = []
         // Driven off `Resource.allCases`, not `player.resources` - dictionary
@@ -174,7 +192,7 @@ public enum RulesEngine {
         for give in Resource.allCases {
             let held = player.resources[give] ?? 0
             guard held > 1 else { continue }
-            for giveCount in 1...min(maxEnumeratedTradeQuantity, held - 1) {
+            for giveCount in 1...min(maxGenerousGiveQuantity, held - 1) {
                 for want in Resource.allCases where want != give {
                     for wantCount in 1...maxEnumeratedTradeQuantity {
                         moves.append(.proposeTrade(TradeOffer.enumerated(

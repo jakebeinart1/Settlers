@@ -335,4 +335,16 @@ import Foundation
         try RulesEngine.apply(.endTurn, by: proposer, to: &state)
         #expect(state.declinedTradeOffersThisTurn.isEmpty)
     }
+
+    @Test func legalMovesIncludeGiveCountsUpToTheGenerousCeiling() {
+        var state = GameSetup.newGame(board: BoardGenerator.standard())
+        state.players[0].resources = [.lumber: 5, .ore: 1]
+        state.phase = .mainTurn(playerIndex: 0)
+        let legal = RulesEngine.legalMoves(for: state, seat: state.players[0].id)
+        let giveThree = legal.contains {
+            if case .proposeTrade(let offer) = $0 { return offer.give == [.lumber: 3] }
+            return false
+        }
+        #expect(giveThree)
+    }
 }
