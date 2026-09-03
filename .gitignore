@@ -2,6 +2,7 @@
 *.xcuserstate
 xcuserdata/
 DerivedData/
+.ci-derived/
 .build/
 .swiftpm/
 *.xcarchive

@@ -222,6 +222,23 @@ public struct BotWeights: Codable, Sendable, Equatable {
     /// opportunistic.
     public var committedPathScale: Double = 1.0
 
+    /// Bonus per already-built road already leading toward a candidate
+    /// `expansionTarget`, so a branch the bot has already invested in beats
+    /// a marginally-better-scoring branch it hasn't started - real Catan
+    /// strategy (and the JSettlers literature: Guhe & Lascarides 2014 names
+    /// "frequently switching the high-level strategy" as a known defect of
+    /// a from-scratch-every-turn planner) commits to one direction rather
+    /// than re-optimizing from zero each turn. Confirmed via a real played
+    /// game (12-point win, 2026-09-03): bots' road networks averaged 3
+    /// branch junctions and 8-9 dead-end tips across only 13 roads each -
+    /// a target with no memory of the previous turn's choice, recomputed
+    /// symmetrically outward from every network vertex, has no reason to
+    /// prefer extending an already-invested branch over starting a fresh
+    /// one that happens to score a fraction higher. Higher makes bots more
+    /// stubborn about a direction once they've started it; `0` restores the
+    /// old memoryless behavior.
+    public var expansionContinuityScale: Double = 0.4
+
     /// Flat value of buying a development card, as a *build* candidate.
     /// Higher makes bots spend spare ore/grain/wool on cards.
     public var buildDevCardBase: Double = 1.6

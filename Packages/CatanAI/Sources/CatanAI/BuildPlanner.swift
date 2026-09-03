@@ -315,10 +315,22 @@ public enum BuildPlanner {
     static func expansionTarget(for player: PlayerID, in state: GameState, weights: BotWeights = .default) -> VertexID? {
         guard let me = state.players.first(where: { $0.id == player }) else { return nil }
         var networkVertices = me.settlements.union(me.cities)
+        // `investment[v]` counts the player's own already-built roads
+        // touching `v` - carried forward through the hop search below (a
+        // vertex discovered via a heavily-invested source inherits its
+        // parent's count) so `expansionContinuityScale` can reward
+        // candidates that extend a branch the bot has already committed
+        // roads to, not just whichever frontier vertex scores marginally
+        // highest this turn. Settlements/cities with no roads yet start at
+        // `0`, same as any other network vertex - there's nothing to be
+        // continuous *with* before the first road exists.
+        var investment: [VertexID: Int] = [:]
         for edge in me.roads {
             let (a, b) = state.board.vertices(of: edge)
             networkVertices.insert(a)
             networkVertices.insert(b)
+            investment[a, default: 0] += 1
+            investment[b, default: 0] += 1
         }
         guard !networkVertices.isEmpty else { return nil }
 
@@ -328,6 +340,7 @@ public enum BuildPlanner {
         var hop = 1
         while hop <= weights.expansionTargetMaxHops && !frontier.isEmpty {
             let next = Set(frontier.flatMap { state.board.adjacentVertices(of: $0) }).subtracting(visited)
+            var nextInvestment: [VertexID: Int] = [:]
             // Sorted, because the winner below is chosen by a strict `>` and
             // ties here are the common case, not a rare one:
             // `PlacementHeuristics.score` takes only a handful of discrete
@@ -338,13 +351,27 @@ public enum BuildPlanner {
             // `chooseBuild`'s tie pool, and desynchronises the RNG stream for
             // the rest of the game. One flipped tie cascades into a different
             // game from the same seed.
-            for vertex in next.sorted() where isBuildableVertex(vertex, in: state) {
+            for vertex in next.sorted() {
+                // Inherit the highest investment among this vertex's
+                // already-visited neighbors in `frontier` - the branch it's
+                // reachable from with the most existing roads already
+                // pointing at it, not summed across every possible parent
+                // (summing would make a vertex reachable from two mediocre
+                // branches beat one reachable from a single strong one).
+                let inherited = state.board.adjacentVertices(of: vertex)
+                    .filter { frontier.contains($0) }
+                    .compactMap { investment[$0] }
+                    .max() ?? 0
+                nextInvestment[vertex] = inherited
+                guard isBuildableVertex(vertex, in: state) else { continue }
                 let production = PlacementHeuristics.score(vertex: vertex, board: state.board, weights: weights)
-                let discounted = production - Double(hop) * weights.expansionTargetHopPenalty
+                let continuity = Double(inherited) * weights.expansionContinuityScale
+                let discounted = production - Double(hop) * weights.expansionTargetHopPenalty + continuity
                 if best == nil || discounted > best!.score {
                     best = (vertex, discounted)
                 }
             }
+            investment.merge(nextInvestment) { _, new in new }
             visited.formUnion(next)
             frontier = next
             hop += 1

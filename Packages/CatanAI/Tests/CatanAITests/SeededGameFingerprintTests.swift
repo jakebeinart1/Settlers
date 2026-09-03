@@ -64,11 +64,21 @@ import CatanEngine
 /// Release processes. The held-out, chair-rotated run remained fully decisive
 /// and the Greedy-anchor intervals still overlap (Balanced 83.1% [77.5, 88.1],
 /// Aggressive 81.9% [75.0, 88.1], Cautious 81.2% [75.6, 86.9]).
+///
+/// Re-recorded 2026-09-03 (seed 1234 only - the other four were unaffected)
+/// because `BuildPlanner.expansionTarget` now carries a continuity bonus for
+/// candidates reachable via a branch the bot has already built roads
+/// toward (`expansionContinuityScale`), fixing bot road networks that read
+/// as an aimless web - a real 12-point game measured 3 branch junctions and
+/// 8-9 dead-end tips across only 13 roads per bot, because the target was
+/// recomputed from scratch every turn with no preference for continuing the
+/// direction already invested in. The new value agreed across three
+/// separate debug-process runs before being pinned here.
 private let expectedFingerprints: [UInt64: String] = [
     1: "d7fdc2d2721c1585",
     42: "a82a8c729629fefe",
     7: "1fb2872d10dcb596",
-    1234: "1fda336942d04a99",
+    1234: "d04ed9631f61d82f",
     99: "59a97a1b4b8825c8",
 ]
 
