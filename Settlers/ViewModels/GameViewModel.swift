@@ -14,6 +14,7 @@ public final class GameViewModel {
     let gameStore: GameStore
     let civilizationStore: CivilizationAssignmentStore
     let matchSetupStore: MatchSetupStore
+    let humanSeatStore: HumanSeatStore
     private let gameLogStore: GameLogStore
     private let gameStatsStore: GameStatsStore
 
@@ -210,6 +211,8 @@ public final class GameViewModel {
         self.gameStore = gameStore
         self.civilizationStore = civilizationStore
         self.matchSetupStore = matchSetupStore
+        let humanSeatStore = HumanSeatStore(defaults: matchSetupStore.defaults)
+        self.humanSeatStore = humanSeatStore
         self.gameLogStore = gameLogStore
         self.gameStatsStore = gameStatsStore
         persistenceErrorMessage = nil
@@ -230,7 +233,7 @@ public final class GameViewModel {
             // missing/corrupt (e.g. a save from before these existed) so
             // the game still has *some* consistent lineup instead of the
             // bare defaults.
-            seat = HumanSeatStore.shared.load()
+            seat = humanSeatStore.load()
             assignment = Self.restoredCivilizations(
                 for: saved, humanSeat: seat,
                 civilizationStore: civilizationStore, matchSetupStore: matchSetupStore
@@ -313,7 +316,7 @@ public final class GameViewModel {
         // `HumanSeatStore`'s single seat, which is exactly what this builds.
         matchSetupStore.clearActiveMatch()
         CivilizationAssignment.humanSeat = humanPlayer
-        HumanSeatStore.shared.save(humanPlayer)
+        humanSeatStore.save(humanPlayer)
 
         let assignment = Self.drawAssignment(from: CivilizationSettingsStore.shared.load(), humanSeat: humanPlayer)
         CivilizationAssignment.current = assignment

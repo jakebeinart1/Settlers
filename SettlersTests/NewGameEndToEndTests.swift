@@ -10,45 +10,38 @@ import CatanEngine
 /// check the thing a player cares about - that choosing three seats, two
 /// humans and a short game yields a three-seat, two-human, eight-point game.
 ///
-/// This is the gap the screenshots could not close. There is no touch
-/// injection on this machine, so every screen state was reached by a launch
-/// flag; "pressing Start starts the match you configured" was verified by
-/// reading the code, which is exactly the kind of claim that turns out to be
-/// wrong. These drive the real entry point instead.
+/// These exercise the app entry point with isolated persistence. Native UI
+/// tests separately prove that tapping Start reaches that entry point; these
+/// tests check the resulting rules and roster rather than just the pixels.
 
-/// Starts a real game, with the developer's own saved game and match setup put
-/// back afterwards.
-///
-/// `startNewGame` writes through `GameStore`, `MatchSetupStore` and
-/// `HumanSeatStore`, all of which resolve the SIMULATOR'S REAL APP CONTAINER -
-/// and `gate.sh` runs this suite on every push. Without this, a routine gate
-/// run silently destroyed whatever game was in progress on that simulator,
-/// twenty-nine times per run. `PersistenceTests` carries the same guard and the
-/// same note: making the stores' directory injectable is the real fix, and it
-/// is a change to all seven stores.
 @MainActor
-private func started(_ setup: MatchSetup) -> GameViewModel {
-    let container = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
-    let save = container.appendingPathComponent("catan_save.json")
-    let savedGame = try? Data(contentsOf: save)
-    let savedSetup = UserDefaults.standard.data(forKey: "matchSetup")
-    let savedSeat = UserDefaults.standard.object(forKey: "humanSeat")
-    defer {
-        if let savedGame { try? savedGame.write(to: save) } else { try? FileManager.default.removeItem(at: save) }
-        if let savedSetup {
-            UserDefaults.standard.set(savedSetup, forKey: "matchSetup")
-        } else {
-            UserDefaults.standard.removeObject(forKey: "matchSetup")
-        }
-        if let savedSeat {
-            UserDefaults.standard.set(savedSeat, forKey: "humanSeat")
-        } else {
-            UserDefaults.standard.removeObject(forKey: "humanSeat")
-        }
+private final class IsolatedStartedMatch {
+    let model: GameViewModel
+    private let root: URL
+    private let defaultsName: String
+
+    init(setup: MatchSetup) {
+        root = FileManager.default.temporaryDirectory
+            .appendingPathComponent("NewGameEndToEndTests.\(UUID().uuidString)")
+        defaultsName = "NewGameEndToEndTests.\(UUID().uuidString)"
+        let defaults = UserDefaults(suiteName: defaultsName)!
+        let setupStore = MatchSetupStore()
+        setupStore.defaults = defaults
+        model = GameViewModel(
+            gameStore: GameStore(fileURL: root.appendingPathComponent("save.json")),
+            civilizationStore: CivilizationAssignmentStore(fileURL: root.appendingPathComponent("civs.json")),
+            matchSetupStore: setupStore,
+            gameLogStore: GameLogStore(directoryURL: root.appendingPathComponent("logs"), maxKeptLogs: 2),
+            gameStatsStore: GameStatsStore(fileURL: root.appendingPathComponent("stats.json"))
+        )
+        model.startNewGame(setup: setup)
     }
-    let model = GameViewModel()
-    model.startNewGame(setup: setup)
-    return model
+
+    deinit {
+        // Temporary fixture cleanup must not mask the test's actual failure.
+        try? FileManager.default.removeItem(at: root)
+        UserDefaults.standard.removePersistentDomain(forName: defaultsName)
+    }
 }
 
 private func setup(seats: Int, humans: [Int], target: Int,
@@ -66,9 +59,26 @@ private func setup(seats: Int, humans: [Int], target: Int,
     )
 }
 
+@Suite struct ConfigurationIsolationTests {
+    @MainActor
+    @Test func isolatedConfigurationDoesNotChangeTheRealHumanSeatPreference() {
+        let defaults = UserDefaults.standard
+        let key = "humanSeatIndex"
+        let original = defaults.object(forKey: key)
+        defer {
+            if let original { defaults.set(original, forKey: key) } else { defaults.removeObject(forKey: key) }
+        }
+        let otherSeat = ((original as? Int ?? 0) + 1) % 3
+        let match = IsolatedStartedMatch(setup: setup(seats: 3, humans: [otherSeat], target: 8))
+        #expect(match.model.humanPlayer.index == otherSeat)
+        #expect(defaults.object(forKey: key) as? Int == original as? Int)
+    }
+}
+
 @MainActor
 @Test func startingAMatchProducesTheTableThatWasConfigured() {
-    let model = started(setup(seats: 3, humans: [0, 1], target: 8))
+    let match = IsolatedStartedMatch(setup: setup(seats: 3, humans: [0, 1], target: 8))
+    let model = match.model
 
     #expect(model.state.players.count == 3, "three seats were configured")
     #expect(model.humanSeats.count == 2, "two people were configured")
@@ -82,9 +92,12 @@ private func setup(seats: Int, humans: [Int], target: Int,
     for seats in 3...4 {
         for humanCount in 1...seats {
             for target in [8, 10, 12] {
-                let model = started(setup(seats: seats,
-                                          humans: Array(0..<humanCount),
-                                          target: target))
+                let match = IsolatedStartedMatch(setup: setup(
+                    seats: seats,
+                    humans: Array(0..<humanCount),
+                    target: target
+                ))
+                let model = match.model
                 #expect(model.state.players.count == seats)
                 #expect(model.humanSeats.count == humanCount)
                 #expect(model.state.victoryPointTarget == target)
@@ -99,10 +112,12 @@ private func setup(seats: Int, humans: [Int], target: Int,
 @Test func aSoloGameIsDrivenByBotsAndAFullTableIsNot() {
     // The property that makes seat composition mean anything: seats without a
     // person get a policy, seats with one do not.
-    let solo = started(setup(seats: 4, humans: [0], target: 10))
+    let soloMatch = IsolatedStartedMatch(setup: setup(seats: 4, humans: [0], target: 10))
+    let solo = soloMatch.model
     #expect(solo.humanSeats.count == 1)
 
-    let full = started(setup(seats: 4, humans: [0, 1, 2, 3], target: 10))
+    let fullMatch = IsolatedStartedMatch(setup: setup(seats: 4, humans: [0, 1, 2, 3], target: 10))
+    let full = fullMatch.model
     #expect(full.humanSeats.count == 4)
 
     // A hot-seat game opens on the handoff cover, and that is deliberate.
@@ -126,7 +141,8 @@ private func setup(seats: Int, humans: [Int], target: Int,
     var config = setup(seats: 4, humans: [0, 1], target: 10)
     config.seats[0].name = "Alex"
     config.seats[1].name = "Sam"
-    let model = started(config)
+    let match = IsolatedStartedMatch(setup: config)
+    let model = match.model
 
     #expect(CatanTheme.playerLabel(for: PlayerID(index: 0)) == "Alex")
     #expect(CatanTheme.playerLabel(for: PlayerID(index: 1)) == "Sam")
@@ -138,7 +154,9 @@ private func setup(seats: Int, humans: [Int], target: Int,
 @MainActor
 @Test func chosenCivilizationsAreTheOnesDealt() {
     let wanted: [Int: Civilization] = [0: .norse, 1: .egypt, 2: .japan, 3: .rome]
-    _ = started(setup(seats: 4, humans: [0], target: 10, civilizations: wanted))
+    let match = IsolatedStartedMatch(
+        setup: setup(seats: 4, humans: [0], target: 10, civilizations: wanted))
+    _ = match.model
     for (seat, civilization) in wanted {
         #expect(Civilization.forSeat(seat) == civilization,
                 "seat \(seat) should be playing \(civilization.displayName)")
@@ -150,7 +168,8 @@ private func setup(seats: Int, humans: [Int], target: Int,
     var config = setup(seats: 4, humans: [0], target: 10)
     config.seats[1].civilization = nil
     config.seats[2].civilization = nil
-    _ = started(config)
+    let match = IsolatedStartedMatch(setup: config)
+    _ = match.model
 
     let dealt = (0..<4).map { Civilization.forSeat($0) }
     #expect(Set(dealt).count == 4, "the seat colour IS the civilization's colour; duplicates are unreadable")
@@ -160,7 +179,8 @@ private func setup(seats: Int, humans: [Int], target: Int,
 @Test func aShortGameEndsAtItsOwnTarget() {
     // The end-to-end version of the engine's win-condition test: configure a
     // short match through the real entry point, then reach the target.
-    let model = started(setup(seats: 4, humans: [0], target: 8))
+    let match = IsolatedStartedMatch(setup: setup(seats: 4, humans: [0], target: 8))
+    let model = match.model
     var state = model.state
     state.players[0].settlements = Set(state.board.onBoardVertices.sorted().prefix(8))
     WinCondition.checkForWinner(&state)
