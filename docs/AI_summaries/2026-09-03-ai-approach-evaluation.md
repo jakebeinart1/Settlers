@@ -255,6 +255,29 @@ Raw datasets and checkpoints remain generated artifacts outside git.
 This is only the lower-bound portion of P2. It does not yet establish on-device
 checkpoint conversion, inference latency, calibration, or paired game strength,
 and it does not pass the value-model quality gate.
-The next experiment should add a small state-conditioned masked policy/value
-network using this exact contract, then measure offline calibration and actual
-paired game strength before any difficulty or shipping claim.
+## P2 state-conditioned screening result — rejected
+
+A deterministic 64-feature signed-hash projection was trained over the same
+whole-game split as a deliberately small state-conditioned policy/value
+experiment. It improved held-out policy imitation from **31.5% to 42.4%**
+top-1 accuracy, with zero illegal selections and calibration error **0.061**.
+Its value estimate still failed the comparator: **0.637 MAE** beat the constant
+mean's 0.773, while **67.7% sign accuracy** remained below the 74.0% majority
+sign baseline.
+
+Offline imitation did not translate into play. Against three frozen greedy
+anchors over ten seeds and all four seat rotations, the projected policy went
+**0/40**. It proposed a player trade in 50.6% of proposal opportunities, played
+a knight in only 0.2% of 1,831 playable-knight opportunities, and built just
+0.175 settlements and 0.075 cities per game. The adapter initially exposed a
+separate identity bug by reconstructing indexed trade proposals with a
+different UUID; returning the original legal move fixed that experiment-only
+crash, after which all 40 games completed decisively.
+
+The candidate is rejected and its runtime/training implementation is not kept
+in the product branch. The useful result is the evaluation boundary: improved
+teacher imitation is insufficient evidence of Catan strength, and the present
+teacher corpus strongly overrepresents locally plausible actions that do not
+produce a winning long-horizon policy. A future learned candidate needs either
+search/value targets or self-play improvement, and must pass actual
+seat-rotated gameplay screening before any on-device integration work.
