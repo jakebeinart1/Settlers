@@ -31,6 +31,24 @@ final class MainMenuFlowTests: XCTestCase {
         XCTAssertTrue(app.otherElements["screen.game"].waitForExistence(timeout: 5))
     }
 
+    func testEpicLengthIsOnlyOfferedAtAThreePlayerTable() {
+        continueAfterFailure = false
+        let app = launchResetApp()
+
+        app.buttons["main-menu.new-game"].tap()
+        XCTAssertTrue(app.otherElements["screen.new-game"].waitForExistence(timeout: 2))
+        XCTAssertFalse(app.buttons["12 VP"].exists)
+
+        app.buttons["3 Players"].tap()
+        XCTAssertTrue(app.buttons["12 VP"].waitForExistence(timeout: 2))
+        app.buttons["12 VP"].tap()
+
+        app.buttons["4 Players"].tap()
+        XCTAssertFalse(app.buttons["12 VP"].exists)
+        XCTAssertTrue(app.buttons["new-game.start"].isEnabled,
+                      "growing the table must normalize Epic to a playable length")
+    }
+
     func testOpeningSettlementRequiresAnAdjacentRoad() {
         continueAfterFailure = false
         let app = launchResetApp()

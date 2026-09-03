@@ -172,6 +172,7 @@ struct NewGameSetupView: View {
         if MatchLength(rawValue: saved.victoryPointTarget) == nil {
             saved.victoryPointTarget = WinCondition.standardTarget
         }
+        saved.normalizeNewGameOptions()
         applyAppPreferences(
             to: &saved,
             preferredName: preferredName,
@@ -333,11 +334,14 @@ struct NewGameSetupView: View {
             label: "Match Length",
             help: .matchLength,
             helpText: "The game ends when a player reaches this many victory points. "
-                + "A saved game resumes at the target it started with.",
+                + "A saved game resumes at the target it started with. "
+                + "Epic (12 VP) is available at three-player tables.",
             caption: nil
         ) {
             PaintedChoiceRow(
-                options: MatchLength.allCases,
+                options: MatchLength.allCases.filter {
+                    MatchSetup.newGameVictoryPointTargets(for: setup.seats.count).contains($0.rawValue)
+                },
                 title: \.displayName,
                 selection: MatchLength(rawValue: setup.victoryPointTarget) ?? .standard,
                 isCompact: true,
@@ -397,7 +401,8 @@ struct NewGameSetupView: View {
 
     /// A4.1's named set. Deliberately a subset of `WinCondition.supportedTargets`
     /// (8...12): nine and eleven are legal for the engine but are not lengths
-    /// anybody asks for by name, and three chips is what fits 335pt.
+    /// anybody asks for by name. Epic is shown only for a three-player table;
+    /// `MatchSetup` owns that product rule so the view cannot drift from Start.
     private enum MatchLength: Int, CaseIterable {
         case quick = 8
         case standard = 10

@@ -33,7 +33,7 @@ enum MatchCheckpointMigration {
     static func prepare(session: GameSession.Checkpoint, setup: MatchSetup,
                         statistics: GameStatsStore, activeLog: GameLogDetail?) throws -> MatchCheckpointDocument {
         try session.validate()
-        guard setup.isStartable, setup.seats.count == session.state.players.count,
+        guard setup.isValidMatch, setup.seats.count == session.state.players.count,
               setup.victoryPointTarget == session.state.victoryPointTarget else {
             throw MigrationError.incompatibleRoster
         }

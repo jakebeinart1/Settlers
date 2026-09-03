@@ -66,7 +66,7 @@ struct MatchCheckpoint: Codable, Equatable, Sendable {
     /// Reject disagreement rather than restoring names or rules for a
     /// different table onto an otherwise replayable board.
     private func validateSetup() throws {
-        guard setup.isStartable,
+        guard setup.isValidMatch,
               setup.seats.count == state.players.count,
               setup.seats.count == initialState.players.count,
               setup.victoryPointTarget == state.victoryPointTarget,

@@ -224,7 +224,7 @@ public struct GameLogStore: Sendable {
     }
 
     private func exportRoster(for setup: MatchSetup) throws -> SeatRoster {
-        guard setup.isStartable, setup.seats.allSatisfy({ $0.civilization != nil }),
+        guard setup.isValidMatch, setup.seats.allSatisfy({ $0.civilization != nil }),
               setup.aiSeats.allSatisfy({ $0.opponentProfile?.civilization == $0.civilization }) else {
             throw MatchCheckpointStore.StoreError.inconsistentHistory
         }

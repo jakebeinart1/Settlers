@@ -102,15 +102,15 @@ import Testing
 }
 
 struct AppMatchCase: Sendable, CustomTestStringConvertible {
-    // Sampled coverage, not every combination: both table sizes and all UI
-    // targets meet both board/order modes, including noncontiguous human seats.
-    // Engine-supported 9/11-point targets are not offered by the setup screen.
-    private static let playerSelectableTargets = [8, 10, 12]
+    // Sampled coverage, not every combination: both table sizes and every
+    // target offered at that size meet both board/order modes, including
+    // noncontiguous human seats. Existing four-player 12-point checkpoints
+    // remain valid, but the New Game screen does not create another one.
 
     static let supportedMatrix: [AppMatchCase] = {
         (0...1).flatMap { variant in
             GameSetup.supportedPlayerCounts.flatMap { playerCount in
-                playerSelectableTargets.enumerated().map { targetIndex, target in
+                MatchSetup.newGameVictoryPointTargets(for: playerCount).enumerated().map { targetIndex, target in
                     AppMatchCase(
                         playerCount: playerCount,
                         humanSeatIndices: humanSeats(
