@@ -88,27 +88,20 @@ public struct InGameSettingsView: View {
 
     // MARK: - Title
 
+    /// No flanking diamond ornaments - Jake's ask, 2026-09-03, along with the
+    /// matching ornament on `NewGameSetupView`'s title and both screens'
+    /// section headers.
     private var titleBlock: some View {
         VStack(spacing: 6) {
-            HStack(spacing: 12) {
-                titleOrnament
-                Text("In-Game Settings")
-                    .font(.system(size: 29, weight: .bold, design: .serif))
-                    .lineLimit(1)
-                    .minimumScaleFactor(0.8)
-                titleOrnament
-            }
+            Text("In-Game Settings")
+                .font(.system(size: 29, weight: .bold, design: .serif))
+                .lineLimit(1)
+                .minimumScaleFactor(0.8)
             Text("Adjust presentation and control the current game.")
                 .font(.system(size: 14, design: .serif))
                 .foregroundStyle(.white.opacity(0.6))
                 .multilineTextAlignment(.center)
         }
-    }
-
-    private var titleOrnament: some View {
-        Image(systemName: "diamond.fill")
-            .font(.system(size: 11))
-            .foregroundStyle(SettingsChrome.ornamentGold)
     }
 
     // MARK: - Pacing (B1)

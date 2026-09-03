@@ -52,3 +52,39 @@ Make the bot opponents play meaningfully better.
 - [ ] Compare heuristic/search, RL/self-play, LLM, and hybrid prototypes through
       the shared `GameObservation`/`ActionSpace` seam. Do not select an
       algorithm from intuition or from another game's results.
+
+## 3. Main menu / game log rework
+
+- [ ] Trim the main menu — drop the Settings entry there; most of what it
+      exposes is already reachable later (in-game settings, etc.), so a
+      separate top-level Settings screen is redundant.
+- [ ] Pull the plain-text game log out of the current in-game Settings screen
+      and give it its own visual replay view instead of (or alongside) the
+      text log.
+- [ ] New feature: a visual game log / replay — shows the board and lets you
+      scrub a slider from game start to finish to see how the board state
+      (and score) evolved, rather than reading a log of text events.
+- [ ] Surface this same replay view from the end-of-game win/lose screen
+      (e.g. a "View Game Log" button) so you can review how the game played
+      out right after it ends.
+- [ ] Opponent event messages: besides trade offers, bots should be able to
+      send you a message when your move screws them over mid-game (cut off
+      on the road, longest road taken from them, a settlement/city built
+      that hurts their spot, etc.). Triggers: an opponent gets cut off from
+      a road spot, Longest Road changes hands, a settlement is built, a
+      city is built. Surfaced in a message window opened via the same
+      button as the pause menu (bottom-right), so you can see opponent
+      reactions to events as the game goes.
+
+## 4. Creative bot trade offers
+
+- [ ] Bots should get more creative/aggressive with trade offers instead of
+      giving up after one decline — if a first offer is turned down, a bot
+      can float another (different ratio, different give/want) rather than
+      falling back straight to the bank or dropping the plan.
+- [ ] Bots should be willing to be generous/sacrifice value when the trade
+      unlocks their best play, even at worse than 3:1 — e.g. a bot sitting
+      on 3 ore and missing exactly one resource for a settlement (its best
+      available move) should offer those 3 ore for the 1 it needs, even
+      without a 3:1 port, rather than only proposing trades at or better
+      than bank rate.

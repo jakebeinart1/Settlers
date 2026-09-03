@@ -137,6 +137,31 @@ public struct MainMenuView: View {
 
                 Spacer()
             }
+
+            // An in-place overlay rather than `.fullScreenCover`, and with no
+            // transition - Jake's ask, 2026-09-03: a modal cover always plays
+            // UIKit's slide-up presentation animation, which cannot be turned
+            // off from the modifier itself. Layering the screen directly into
+            // this ZStack (last, so it's on top) instead swaps straight to it
+            // with no animation at all. `NewGameSetupView` already draws its
+            // own full-bleed background and ignores the safe area, so it
+            // still reads as a full screen rather than a sheet.
+            if isShowingNewGame {
+                NewGameSetupView(
+                    hasSavedGame: requiresSaveReplacementConfirmation,
+                    setupLoadResult: newGameSetupLoadResult,
+                    onStart: { setup in
+                        // Dismissed first: `onStart` replaces this whole view
+                        // with the board, and tearing down a presenter while
+                        // its cover is still up leaves the cover orphaned on
+                        // screen.
+                        isShowingNewGame = false
+                        onStart(setup)
+                    },
+                    onCancel: { isShowingNewGame = false }
+                )
+                .transition(.identity)
+            }
         }
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier(AccessibilityID.Screen.mainMenu)
@@ -144,23 +169,6 @@ public struct MainMenuView: View {
         .sheet(isPresented: $isShowingSettings) {
             SettingsView(onDismiss: { isShowingSettings = false }, statistics: statistics,
                          onResetStatistics: onResetStatistics)
-        }
-        // Full screen rather than a sheet: the setup screen is taller than a
-        // phone, carries its own bottom action bar, and a sheet's drag-to-
-        // dismiss would sit directly over a scroll view full of text fields.
-        .fullScreenCover(isPresented: $isShowingNewGame) {
-            NewGameSetupView(
-                hasSavedGame: requiresSaveReplacementConfirmation,
-                setupLoadResult: newGameSetupLoadResult,
-                onStart: { setup in
-                    // Dismissed first: `onStart` replaces this whole view with
-                    // the board, and tearing down a presenter while its cover
-                    // is still up leaves the cover orphaned on screen.
-                    isShowingNewGame = false
-                    onStart(setup)
-                },
-                onCancel: { isShowingNewGame = false }
-            )
         }
     }
 

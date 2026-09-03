@@ -12,14 +12,24 @@ import SwiftUI
 /// ## The 375pt arithmetic, which is what actually sizes everything here
 /// The tightest screen this has to survive is 375pt (iPhone SE / 13 mini); the
 /// 402pt simulator does not exercise it. `NewGameSetupView` insets the screen
-/// by 20pt each side and puts a 10pt gutter between the columns, so a card is
-/// (375 - 40 - 10) / 2 = 162.5pt wide, and 142.5pt inside its own 10pt padding.
-/// Every measurement below is chosen against 142.5pt:
+/// by 20pt each side and puts a 14pt gutter between the columns (10pt before
+/// Jake's ask, 2026-09-03, for more breathing room between cards), so a card
+/// is (375 - 40 - 14) / 2 = 160.5pt wide, and 144.5pt inside its own 8pt
+/// padding. Every measurement below is chosen against that:
 ///
-/// - Header: 22pt badge + 5 + 6pt dot + 5 + "Seat 4" at 13pt serif (~38pt) + an
-///   "Optional" pill (~48pt) = ~124pt, leaving ~18pt of slack.
-/// - Civilization row: 13pt glyph + 7 + "Britannia" at 14pt serif (~62pt) +
-///   chevron + 20pt padding = ~115pt.
+/// - Header: 6pt dot + 5 + "Seat 4" at 15pt serif (~44pt) + an "Optional"
+///   pill (~48pt) = ~103pt, leaving ~41pt of slack (was ~18pt before the
+///   numbered circle badge in front of the dot was dropped, Jake's ask,
+///   2026-09-03 - it duplicated the seat number the text already states).
+/// - Civilization row: 13pt glyph + 7 + "Britannia" at 15pt serif (~66pt) +
+///   chevron + 20pt padding = ~120pt.
+///
+/// Every text size on the card - header, Human/AI toggle, name field,
+/// general name, civilization row - is the same 15pt (`bodyTextSize`),
+/// except the "Optional" pill, a badge rather than a content line (Jake's
+/// ask, 2026-09-03). The Human/AI box's vertical padding is pulled from the
+/// civilization row's own so the two boxes come out the same height
+/// (`civilizationRowVerticalPadding`), also Jake's ask.
 ///
 /// `lineLimit(1)` + `minimumScaleFactor` is the backstop for a larger Dynamic
 /// Type setting, not the mechanism - the layout is meant to fit at 1x.
@@ -38,6 +48,17 @@ struct SeatCardView: View {
     let onSetHuman: (Bool) -> Void
     let onRename: (String) -> Void
     let onEditCivilization: () -> Void
+    /// Raises `SeatNumberPickerPopup` for this seat. Only reachable when
+    /// `seatOrderIsRandom` is false - the header renders as a plain locked
+    /// label instead of a button while it's true, so this is never called
+    /// then (Jake's ask, 2026-09-03).
+    var onEditSeatNumber: () -> Void = {}
+    /// Whether `NewGameSetupView`'s Turn Order is set to Random - when it is,
+    /// none of the four cards' positions is the actual play order, so the
+    /// header shows a locked "Seat: ?" instead of a number the player could
+    /// edit, which would misleadingly imply a fixed turn order (Jake's ask,
+    /// 2026-09-03).
+    var seatOrderIsRandom = false
     var isShortScreen = false
 
     /// A2.5: a name has a maximum length, enforced at input rather than by
@@ -48,9 +69,22 @@ struct SeatCardView: View {
 
     /// The AI's name when its seat draws its civilization at random: there is
     /// no general to name yet, because the empire is not decided until the game
-    /// starts. A neutral standing title rather than "Random General", which
-    /// reads as the general's actual name.
-    static let undrawnGeneralName = "Noble Strategist"
+    /// starts. "Random Player" - not just "Random", which read ambiguously
+    /// next to the civilization row's own "Random" label right below it
+    /// (Jake's ask, 2026-09-03) - and not a standing title like "Noble
+    /// Strategist", which read as the general's actual name.
+    static let undrawnGeneralName = "Random Player"
+
+    /// One text size for every label in the card - header, Human/AI toggle,
+    /// name field, general name, civilization row - so nothing reads as
+    /// bigger or smaller than its neighbour. The "Optional" pill is the one
+    /// deliberate exception (Jake's ask, 2026-09-03): it is a badge, not a
+    /// line of the card's own content. Was 15pt in the first pass at this,
+    /// which Jake still read as too large - dropped to 13pt, his second ask
+    /// the same day. Internal, not private: `NewGameSetupView`'s Match
+    /// Settings rows reuse it (his third ask) so the two sit at one size by
+    /// construction rather than by two literals coincidentally agreeing.
+    static let bodyTextSize: CGFloat = 13
 
     var body: some View {
         // Tight on purpose. Four of these have to fit above the fold alongside
@@ -92,33 +126,57 @@ struct SeatCardView: View {
 
     // MARK: - Header
 
+    /// No numbered circle badge - it duplicated the "Seat N" text right next
+    /// to it, and once that text can also read "?" (turn order set to
+    /// Random), a badge still pinned to the fixed seat number would
+    /// contradict the very label it sits beside (Jake's ask, 2026-09-03).
+    ///
+    /// "Seat: N" is a tappable dropdown - opening `SeatNumberPickerPopup` to
+    /// swap this seat's turn-order position with another's - whenever the
+    /// position is actually fixed (Turn Order "As Shown"). Under Random it
+    /// is a plain locked "Seat: ?": no position is decided yet, so there is
+    /// nothing here to edit (Jake's ask, 2026-09-03).
     private var header: some View {
-        HStack(spacing: 5) {
-            numberBadge
+        HStack(spacing: 4) {
             Circle()
                 .fill(seatColor)
                 .frame(width: 6, height: 6)
-            Text("Seat \(seat.index + 1)")
-                .font(.system(size: 13, weight: .semibold, design: .serif))
-                .lineLimit(1)
-                .minimumScaleFactor(0.75)
+            if seatOrderIsRandom {
+                Text("Seat: ?")
+                    .font(.system(size: Self.bodyTextSize, weight: .semibold, design: .serif))
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.75)
+            } else {
+                Button(action: onEditSeatNumber) {
+                    HStack(spacing: 2) {
+                        Text("Seat: \(seat.index + 1)")
+                            .font(.system(size: Self.bodyTextSize, weight: .semibold, design: .serif))
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.75)
+                        Image(systemName: "chevron.down")
+                            .font(.system(size: 8, weight: .semibold))
+                            .foregroundStyle(.white.opacity(0.7))
+                    }
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel("Seat \(seat.index + 1), edit turn order")
+            }
             Spacer(minLength: 2)
             if isOptional { optionalPill }
         }
     }
 
-    private var numberBadge: some View {
-        Text("\(seat.index + 1)")
-            .font(.system(size: 12, weight: .bold, design: .serif))
-            .frame(width: 22, height: 22)
-            .overlay(Circle().strokeBorder(seatColor, lineWidth: 1.25))
-    }
-
+    /// Tightened (10pt font down from 9, 4pt horizontal padding down from 6,
+    /// no vertical padding change) after "Random Seat" - longer than "Seat
+    /// N" - started losing the race for header width against this pill on
+    /// seat 4, the only card both showing it and needing the longer label,
+    /// so its `Text` alone hit `minimumScaleFactor` and rendered visibly
+    /// smaller than the other three cards' headers (Jake's ask, 2026-09-03).
     private var optionalPill: some View {
         Text("Optional")
-            .font(.system(size: 9, weight: .semibold, design: .serif))
+            .font(.system(size: 8, weight: .semibold, design: .serif))
             .foregroundStyle(SettingsChrome.ornamentGold)
-            .padding(.horizontal, 6)
+            .padding(.horizontal, 4)
             .padding(.vertical, 3)
             .overlay(Capsule().strokeBorder(SettingsChrome.ornamentGold.opacity(0.7), lineWidth: 1))
             .fixedSize()
@@ -126,15 +184,20 @@ struct SeatCardView: View {
 
     // MARK: - Human / AI (A1.2)
 
-    /// The same painted segmented control the match-settings rows use. Refusing
-    /// the last human seat (A1.3) is `NewGameSetupView`'s job, not this row's:
-    /// the rule is about the *table*, and a card cannot see the other three.
+    /// The same painted segmented control the match-settings rows use.
+    /// Matches `civilizationBlock`'s own vertical padding rather than the
+    /// default compact padding, so the Human/AI box comes out the same
+    /// height as the civilization box beneath it (Jake's ask, 2026-09-03).
+    /// Refusing the last human seat (A1.3) is `NewGameSetupView`'s job, not
+    /// this row's: the rule is about the *table*, and a card cannot see the
+    /// other three.
     private var rolePicker: some View {
         PaintedChoiceRow(
             options: [true, false],
             title: { $0 ? "Human" : "AI" },
             selection: seat.isHuman,
-            isCompact: true,
+            verticalPadding: civilizationRowVerticalPadding,
+            fontSize: Self.bodyTextSize,
             onSelect: onSetHuman
         )
     }
@@ -158,9 +221,15 @@ struct SeatCardView: View {
                 nameField
             } else {
                 Text(seat.civilization?.generalName ?? Self.undrawnGeneralName)
-                    .font(.system(size: 16, weight: .semibold, design: .serif))
+                    .font(.system(size: Self.bodyTextSize, weight: .semibold, design: .serif))
                     .lineLimit(1)
                     .minimumScaleFactor(0.65)
+                    // Left padding to match `nameField`'s own horizontal
+                    // inset (9pt) just above it in a human seat's card - the
+                    // AI general's name sat flush against the card edge
+                    // while the human's name field didn't (Jake's ask,
+                    // 2026-09-03).
+                    .padding(.leading, 9)
                     .frame(maxWidth: .infinity, minHeight: identityRowHeight, alignment: .leading)
             }
         }
@@ -168,10 +237,15 @@ struct SeatCardView: View {
 
     private var identityRowHeight: CGFloat { isShortScreen ? 26 : 32 }
 
+    /// Shared by `rolePicker` and `civilizationBlock` so the Human/AI box and
+    /// the civilization box come out the same height (Jake's ask,
+    /// 2026-09-03).
+    private var civilizationRowVerticalPadding: CGFloat { isShortScreen ? 4 : 7 }
+
     private var nameField: some View {
         TextField("", text: nameBinding, prompt: Text("Enter name").foregroundColor(.white.opacity(0.35)))
             .textFieldStyle(.plain)
-            .font(.system(size: 15, weight: .semibold, design: .serif))
+            .font(.system(size: Self.bodyTextSize, weight: .semibold, design: .serif))
             .foregroundStyle(.white)
             .autocorrectionDisabled()
             .textInputAutocapitalization(.words)
@@ -199,19 +273,44 @@ struct SeatCardView: View {
         VStack(alignment: .leading, spacing: 4) {
             Button(action: onEditCivilization) {
                 HStack(spacing: 7) {
-                    Image(systemName: seat.civilization?.emblemSymbol ?? "die.face.5.fill")
+                    // A question mark, not a die - a die reads as "roll for
+                    // it during the game", when this is actually an
+                    // as-yet-undrawn choice that stays fixed once picked
+                    // (Jake's ask, 2026-09-03).
+                    //
+                    // Fixed height AND width, not just the font's natural
+                    // size - SF Symbols aren't all drawn to the same optical
+                    // height at a given point size (`UniformActionButton` hit
+                    // the same thing with "die.face.5.fill"), so without a
+                    // pinned height an undrawn seat's `questionmark.circle.fill`
+                    // came out a visibly different height from a drawn seat's
+                    // emblem, growing the whole button (Jake's ask,
+                    // 2026-09-03, fixed same day). The width pin is the
+                    // second half of that fix, found only by reproducing on
+                    // the simulator and swapping civilizations between seats:
+                    // each emblem's natural width also differs (e.g.
+                    // "bolt.fill" is narrower than "mountain.2.fill"), which
+                    // left the `Text` below a different amount of leftover
+                    // row width per civilization - close enough to its own
+                    // fit that `minimumScaleFactor` occasionally engaged by a
+                    // sliver for one civ and not its neighbour, reading as
+                    // "this box's text is bigger than that one's" even though
+                    // both specify the exact same point size. Pinning the
+                    // icon's width removes the variable rather than chasing
+                    // its symptom.
+                    Image(systemName: seat.civilization?.emblemSymbol ?? "questionmark.circle.fill")
                         .font(.system(size: 13))
+                        .frame(width: 18, height: 15)
                     Text(seat.civilization?.displayName ?? "Random")
-                        .font(.system(size: 14, weight: .semibold, design: .serif))
+                        .font(.system(size: Self.bodyTextSize, weight: .semibold, design: .serif))
                         .lineLimit(1)
-                        .minimumScaleFactor(0.7)
                     Spacer(minLength: 4)
                     Image(systemName: "chevron.down")
                         .font(.system(size: 11, weight: .semibold))
                         .foregroundStyle(.white.opacity(0.7))
                 }
                 .padding(.horizontal, 10)
-                .padding(.vertical, isShortScreen ? 4 : 7)
+                .padding(.vertical, civilizationRowVerticalPadding)
                 .background(PaintedChromeBackground(fill: .tintedTexture(dropdownTint), cornerRadius: 8, notchScale: 0.45))
             }
             .buttonStyle(.plain)

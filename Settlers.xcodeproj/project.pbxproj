@@ -79,6 +79,7 @@
 		B6FC9BE50ABFF3D68CF98B29 /* SettlersApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8164AC90317469202817676F /* SettlersApp.swift */; };
 		B8F04BFB1D846B3A961ACA9F /* CheckpointExportTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1EAE8607EB0452626F9A092E /* CheckpointExportTests.swift */; };
 		BC78EDCB2E4661BF7A5AA715 /* SaveRecoveryFlowTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C267D2BD50E26FCD707474EF /* SaveRecoveryFlowTests.swift */; };
+		BC863FBB0B69046B3989938A /* SeatNumberPickerPopup.swift in Sources */ = {isa = PBXBuildFile; fileRef = D9D4E1C56EC91FE0C881DA59 /* SeatNumberPickerPopup.swift */; };
 		BD0B5D0BC26E3BE5C8A462FD /* BuildPopupView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDF1F85E001A7B74407061E4 /* BuildPopupView.swift */; };
 		C834783EE1638B259EFA3035 /* MatchCheckpointStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FDDC6BE523633D50F2BBE0CF /* MatchCheckpointStoreTests.swift */; };
 		C8EBD90EAF2F47466F8B5A2C /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CB7D94876E201553696FE24C /* ContentView.swift */; };
@@ -195,6 +196,7 @@
 		D9213F426A0E166A3E30E84B /* SettlersUITests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = SettlersUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		D98DF10D73632B7243DC205C /* GameLogListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameLogListView.swift; sourceTree = "<group>"; };
 		D9B3F03CB1B60C2FDB672854 /* MainMenuFlowTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainMenuFlowTests.swift; sourceTree = "<group>"; };
+		D9D4E1C56EC91FE0C881DA59 /* SeatNumberPickerPopup.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SeatNumberPickerPopup.swift; sourceTree = "<group>"; };
 		DBA8BCB46AF42E87EB22D98E /* CheckpointMigrationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CheckpointMigrationTests.swift; sourceTree = "<group>"; };
 		DDF1F85E001A7B74407061E4 /* BuildPopupView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BuildPopupView.swift; sourceTree = "<group>"; };
 		E093DA361796607C17A17777 /* GameStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameStore.swift; sourceTree = "<group>"; };
@@ -343,6 +345,7 @@
 				77BA2122016739392CF5DF22 /* PlayerHUDView.swift */,
 				BF75252617AEEC3F4190D703 /* ResourceChip.swift */,
 				7B3D502345F41546FE4903CE /* SeatCardView.swift */,
+				D9D4E1C56EC91FE0C881DA59 /* SeatNumberPickerPopup.swift */,
 				8BC4427BD3E30FD0F5F9E9CC /* SettingsChrome.swift */,
 				B1B782178D710BCD61E1E4ED /* SettingsView.swift */,
 				AFE46EFA5240D8C313A1994C /* TopChipHeightKey.swift */,
@@ -596,6 +599,7 @@
 				982B80C1DDE6B39264765604 /* ResourceChip.swift in Sources */,
 				08572217A242A44981A040EB /* SavedGameAvailability.swift in Sources */,
 				A0509BA422B4A4CCC2E73976 /* SeatCardView.swift in Sources */,
+				BC863FBB0B69046B3989938A /* SeatNumberPickerPopup.swift in Sources */,
 				895E3168C84B21B63AD67E4E /* SettingsChrome.swift in Sources */,
 				AA5F82F23D1E9E98AC20C58E /* SettingsView.swift in Sources */,
 				B6FC9BE50ABFF3D68CF98B29 /* SettlersApp.swift in Sources */,

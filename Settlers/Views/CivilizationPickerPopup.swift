@@ -119,7 +119,11 @@ struct CivilizationPickerPopup: View {
         GoldRowButton(
             title: "Random",
             subtitle: "Drawn at the start from the civilizations still free",
-            systemImage: "die.face.5.fill",
+            // A question mark, not a die - matches `SeatCardView`'s own
+            // undrawn-civilization icon (Jake's ask, 2026-09-03): a die reads
+            // as "rolled for during the game", when this is actually a
+            // one-time draw at the start that then stays fixed.
+            systemImage: "questionmark.circle.fill",
             iconColor: SettingsChrome.ornamentGold,
             trailing: {
                 if selection == nil {

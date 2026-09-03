@@ -20,14 +20,19 @@ enum SettingsChrome {
     /// light in its mid-stop to carry a word of text).
     static let ornamentGold = Color(red: 0.89, green: 0.63, blue: 0.22)
 
-    /// Fill of the segmented control's selected option - the painted bronze
-    /// the reference mockup uses, dark enough that near-white text on top of
-    /// it still reads. Brighter than it looks written down: the wave texture
-    /// is blended over it at 60% in `.overlay` mode, which pulls the rendered
-    /// result about a third darker than the flat swatch (measured against the
-    /// first simulator screenshot, where the flat 0.55/0.39/0.07 came out
-    /// olive rather than gold).
-    static let selectedOptionFill = Color(red: 0.68, green: 0.49, blue: 0.10)
+    /// Fill of the segmented control's selected option - satin gold
+    /// (`#D4AF37`), dark enough that near-white text on top of it still
+    /// reads. Went through two wrong swatches, both Jake's ask, 2026-09-03:
+    /// a bronze (0.68/0.49/0.10) that read as brown - low blue, low
+    /// luminance, pulled it toward wood/leather - and then `ornamentGold`
+    /// itself (0.89/0.63/0.22), which still read as orange rather than gold
+    /// because its green channel sits too far below red (G/R = 0.71). Gold
+    /// wants green much closer to red - `#D4AF37`'s G/R is 0.83 - so this
+    /// value is its own constant rather than reusing `ornamentGold`, which
+    /// stays as-is for headers/hairlines/borders where nobody has flagged it.
+    /// The wave texture is blended over it at 60% in `.overlay` mode, which
+    /// pulls the rendered result about a third darker than the flat swatch.
+    static let selectedOptionFill = Color(red: 0.831, green: 0.686, blue: 0.216)
 
     /// Fill of the plaques on these screens: darker than `Color(white: 0.18)`
     /// (the popup rows' swatch) so the gold hairline around it is the brightest
@@ -38,20 +43,27 @@ enum SettingsChrome {
     static let screenBackground = Color(red: 0.047, green: 0.102, blue: 0.180)
 }
 
-/// A section title in gold, flanked by diamond ornaments, with a hairline rule
-/// running out to both edges - the reference art's chapter-heading treatment.
+/// A section title with a hairline rule running out to both edges - the
+/// reference art's chapter-heading treatment, minus the diamond ornaments
+/// that used to flank the title (Jake's ask, 2026-09-03: removed from both
+/// this header and the two screens' own title ornaments, on New Game Setup
+/// and In-Game Settings).
 struct SettingsSectionHeader: View {
     let title: String
+    /// Gold by default; New Game Setup's "Players & Civilizations" and
+    /// "Match Settings" pass `.white` (Jake's ask, 2026-09-03). Per-call
+    /// rather than a global change to `ornamentGold`, since In-Game
+    /// Settings' section titles (Pacing, Trade Offer Timer, Game Control)
+    /// were not part of that ask.
+    var titleColor: Color = SettingsChrome.ornamentGold
 
     var body: some View {
         HStack(spacing: 8) {
             rule
-            diamond
             Text(title)
                 .font(.system(size: 19, weight: .bold, design: .serif))
-                .foregroundStyle(SettingsChrome.ornamentGold)
+                .foregroundStyle(titleColor)
                 .fixedSize()
-            diamond
             rule
         }
     }
@@ -63,12 +75,6 @@ struct SettingsSectionHeader: View {
             .fill(SettingsChrome.ornamentGold.opacity(0.45))
             .frame(maxWidth: .infinity)
             .frame(height: 1)
-    }
-
-    private var diamond: some View {
-        Image(systemName: "diamond")
-            .font(.system(size: 9, weight: .semibold))
-            .foregroundStyle(SettingsChrome.ornamentGold)
     }
 }
 
@@ -176,6 +182,16 @@ struct PaintedChoiceRow<Option: Hashable>: View {
     let selection: Option
     /// Tighter vertical padding, for screens that have to fit many of these.
     var isCompact: Bool = false
+    /// Overrides `isCompact`'s fixed 6pt/13pt when a caller needs to match
+    /// another control's height exactly - `SeatCardView`'s Human/AI row
+    /// passes the civilization row's own padding here so the two boxes come
+    /// out the same height (Jake's ask, 2026-09-03).
+    var verticalPadding: CGFloat?
+    /// Overrides the fixed 15pt option text size - `SeatCardView`'s Human/AI
+    /// row passes its own `bodyTextSize` here so that text is guaranteed
+    /// identical to every other label on the card rather than coincidentally
+    /// matching a hardcoded value here (Jake's ask, 2026-09-03).
+    var fontSize: CGFloat = 15
     let onSelect: (Option) -> Void
 
     var body: some View {
@@ -194,7 +210,7 @@ struct PaintedChoiceRow<Option: Hashable>: View {
             onSelect(option)
         } label: {
             Text(title(option))
-                .font(.system(size: 15, weight: isSelected ? .bold : .regular, design: .serif))
+                .font(.system(size: fontSize, weight: isSelected ? .bold : .regular, design: .serif))
                 .foregroundStyle(isSelected ? Color(white: 0.98) : Color.white.opacity(0.75))
                 .lineLimit(1)
                 .minimumScaleFactor(0.75)
@@ -203,7 +219,7 @@ struct PaintedChoiceRow<Option: Hashable>: View {
                 // these on a mostly empty page. The New Game screen holds ten
                 // and has to fit the whole configuration above the fold, so it
                 // asks for the compact height.
-                .padding(.vertical, isCompact ? 6 : 13)
+                .padding(.vertical, verticalPadding ?? (isCompact ? 6 : 13))
                 .background {
                     if isSelected {
                         // Inset by a point so this chip's own gold hairline sits

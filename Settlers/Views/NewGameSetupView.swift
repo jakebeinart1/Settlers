@@ -42,6 +42,10 @@ struct NewGameSetupView: View {
     @State private var setup: MatchSetup
     /// Which seat's civilization picker is open, or `nil`.
     @State private var pickingCivilizationForSeat: Int?
+    /// Which seat's turn-order picker is open, or `nil`. Only reachable when
+    /// Turn Order is "As Shown" - `SeatCardView`'s header is a locked label,
+    /// not a button, while it's Random (Jake's ask, 2026-09-03).
+    @State private var pickingSeatNumberForSeat: Int?
     @State private var isConfirmingOverwrite = false
     /// The reason the last seat edit was refused (A1.3), shown in place of the
     /// standing note under the grid. Cleared by the next edit rather than on a
@@ -91,19 +95,36 @@ struct NewGameSetupView: View {
     /// content on a 375pt iPhone SE / 13 mini, which is the width every layout
     /// decision below (and in `SeatCardView`) is sized against.
     private static let screenInset: CGFloat = 20
-    /// Gap between the two seat columns and between the two seat rows.
-    private static let seatGutter: CGFloat = 10
+    /// Gap between the two seat columns and between the two seat rows. 14pt
+    /// rather than 10pt (Jake's ask, 2026-09-03: the cards read as too large/
+    /// cramped) - the number-badge removal in `SeatCardView` freed up enough
+    /// header height that the grid can give some of it back as breathing
+    /// room between cards instead.
+    private static let seatGutter: CGFloat = 14
 
     var body: some View {
         GeometryReader { geometry in
             let isShortScreen = geometry.size.height < 750
+            // Explicit, not `.frame(maxWidth: .infinity)` on each card - two
+            // flexible siblings in an `HStack` are not guaranteed pixel-equal
+            // width by construction, only "each gets as much as it asks for,
+            // divided fairly" - and content that reports even a hair more
+            // ideal width (a `fixedSize` `Text`, a longer accessibility
+            // label) can tip that division unevenly. Measured, reproducibly:
+            // two seat cards with byte-identical content ("Aztec"/"Aztec")
+            // still rendered the right one's text larger than the left's,
+            // which only a genuine width difference between the two columns
+            // could produce. A width computed once here and applied with
+            // `.frame(width:)` (not `maxWidth:`) removes the ambiguity
+            // instead of negotiating around it (Jake's ask, 2026-09-03).
+            let seatCardWidth = (geometry.size.width - 2 * Self.screenInset - Self.seatGutter) / 2
             ZStack {
-                SettingsChrome.screenBackground.ignoresSafeArea()
+                paintedBackground
 
                 VStack(spacing: 0) {
                     ScrollViewReader { proxy in
                         ScrollView {
-                            configuration(isShortScreen: isShortScreen)
+                            configuration(isShortScreen: isShortScreen, seatCardWidth: seatCardWidth)
                                 .id(Self.footerAnchor)
                         }
                         .scrollDismissesKeyboard(.interactively)
@@ -116,6 +137,7 @@ struct NewGameSetupView: View {
                 }
 
                 if let seatIndex = pickingCivilizationForSeat { civilizationPicker(for: seatIndex) }
+                if let seatIndex = pickingSeatNumberForSeat { seatNumberPicker(for: seatIndex) }
                 if isConfirmingOverwrite { overwriteConfirmation }
             }
         }
@@ -130,11 +152,38 @@ struct NewGameSetupView: View {
         }
     }
 
-    private func configuration(isShortScreen: Bool) -> some View {
+    /// The same painted seaside world + dark scrim `MainMenuView` sits on,
+    /// rather than the flat navy `SettingsChrome.screenBackground` this
+    /// screen used before - Jake's ask, 2026-09-03, that the two screens read
+    /// as one continuous flow rather than the New Game screen dropping into
+    /// separate "settings-app" chrome the moment New Game is tapped.
+    private var paintedBackground: some View {
+        ZStack {
+            GeometryReader { geo in
+                Image("board-background")
+                    .resizable()
+                    .scaledToFill()
+                    .frame(width: geo.size.width, height: geo.size.height)
+                    .clipped()
+            }
+            LinearGradient(
+                colors: [
+                    Color.black.opacity(0.55),
+                    Color.black.opacity(0.25),
+                    Color.black.opacity(0.55),
+                ],
+                startPoint: .top,
+                endPoint: .bottom
+            )
+        }
+        .ignoresSafeArea()
+    }
+
+    private func configuration(isShortScreen: Bool, seatCardWidth: CGFloat) -> some View {
         VStack(spacing: isShortScreen ? 6 : 12) {
             titleBlock
             tableSizeSection
-            seatsSection(isShortScreen: isShortScreen)
+            seatsSection(isShortScreen: isShortScreen, seatCardWidth: seatCardWidth)
             matchSettingsSection
         }
         .padding(.horizontal, Self.screenInset)
@@ -204,22 +253,14 @@ struct NewGameSetupView: View {
 
     /// Title only. The subtitle explained what the screen is to somebody who
     /// can already see four seat cards and a Start button, and cost ~30pt of
-    /// the height that the match settings needed.
+    /// the height that the match settings needed. No flanking diamond
+    /// ornaments - Jake's ask, 2026-09-03, along with the matching ornaments
+    /// on `InGameSettingsView`'s title and both screens' section headers.
     private var titleBlock: some View {
-        HStack(spacing: 12) {
-            titleOrnament
-            Text("New Game")
-                .font(.system(size: 26, weight: .bold, design: .serif))
-                .lineLimit(1)
-                .minimumScaleFactor(0.8)
-            titleOrnament
-        }
-    }
-
-    private var titleOrnament: some View {
-        Image(systemName: "diamond.fill")
-            .font(.system(size: 11))
-            .foregroundStyle(SettingsChrome.ornamentGold)
+        Text("New Game")
+            .font(.system(size: 26, weight: .bold, design: .serif))
+            .lineLimit(1)
+            .minimumScaleFactor(0.8)
     }
 
     // MARK: - Table size (A1.1)
@@ -253,10 +294,10 @@ struct NewGameSetupView: View {
 
     // MARK: - Seats (A1, A2, A3)
 
-    private func seatsSection(isShortScreen: Bool) -> some View {
+    private func seatsSection(isShortScreen: Bool, seatCardWidth: CGFloat) -> some View {
         VStack(spacing: isShortScreen ? 5 : 12) {
-            SettingsSectionHeader(title: "Players & Civilizations")
-            seatGrid(isShortScreen: isShortScreen)
+            SettingsSectionHeader(title: "Players & Civilizations", titleColor: .white)
+            seatGrid(isShortScreen: isShortScreen, seatCardWidth: seatCardWidth)
             // Only the refusal. The standing note explained that seat 4 is
             // optional, which the "Optional" pill on that card already says,
             // and it occupied ~45pt permanently to do it.
@@ -267,22 +308,61 @@ struct NewGameSetupView: View {
         }
     }
 
-    private func seatGrid(isShortScreen: Bool) -> some View {
-        LazyVGrid(
-            columns: [GridItem(.flexible(), spacing: Self.seatGutter), GridItem(.flexible())],
-            spacing: Self.seatGutter
-        ) {
-            ForEach(setup.seats) { seat in
-                SeatCardView(
-                    seat: seat,
-                    isOptional: seat.index == GameSetup.supportedPlayerCounts.upperBound - 1,
-                    onSetHuman: { setSeat(seat.index, human: $0) },
-                    onRename: { setup.seats[seat.index].name = $0 },
-                    onEditCivilization: { pickingCivilizationForSeat = seat.index },
-                    isShortScreen: isShortScreen
-                )
+    /// Two rows of `HStack`, not `LazyVGrid` - Jake's ask, 2026-09-03. Lazy
+    /// grids defer each row's layout pass, and that deferral was producing a
+    /// measurable, reproducible size difference (confirmed pixel-for-pixel
+    /// against a device screenshot: the bottom row's `minimumScaleFactor`
+    /// text rendered visibly larger than the top row's, both at the
+    /// identical explicit point size) between rows that are otherwise laid
+    /// out identically. Four cards is a fixed, tiny count with nothing to
+    /// gain from laziness, so a plain `HStack` per row - computed eagerly,
+    /// in one pass - removes that inconsistency, but not the one below it.
+    ///
+    /// Each card also gets an explicit `seatCardWidth` (see `body`) rather
+    /// than `.frame(maxWidth: .infinity)`: two flexible `HStack` siblings are
+    /// not guaranteed pixel-equal width, and with identical content in both
+    /// columns ("Aztec" in both) the right one still measurably rendered
+    /// larger than the left. An explicit, precomputed, identical width for
+    /// every card removes the ambiguity instead of negotiating around it.
+    private func seatGrid(isShortScreen: Bool, seatCardWidth: CGFloat) -> some View {
+        VStack(spacing: Self.seatGutter) {
+            ForEach(seatRows.indices, id: \.self) { rowIndex in
+                HStack(spacing: Self.seatGutter) {
+                    ForEach(seatRows[rowIndex]) { seat in
+                        seatCard(for: seat, isShortScreen: isShortScreen)
+                            .frame(width: seatCardWidth)
+                    }
+                    // An odd seat count (3 players) leaves the last row with
+                    // one card; a spacer holds the second column's width so
+                    // that lone card doesn't stretch to fill the row.
+                    if seatRows[rowIndex].count < 2 {
+                        Color.clear.frame(width: seatCardWidth)
+                    }
+                }
             }
         }
+    }
+
+    /// `setup.seats` chunked into rows of two, in seat order - what
+    /// `LazyVGrid`'s two-column layout produced implicitly, made explicit so
+    /// `seatGrid` can lay each row out with a plain `HStack`.
+    private var seatRows: [[MatchSetup.Seat]] {
+        stride(from: 0, to: setup.seats.count, by: 2).map {
+            Array(setup.seats[$0..<min($0 + 2, setup.seats.count)])
+        }
+    }
+
+    private func seatCard(for seat: MatchSetup.Seat, isShortScreen: Bool) -> some View {
+        SeatCardView(
+            seat: seat,
+            isOptional: seat.index == GameSetup.supportedPlayerCounts.upperBound - 1,
+            onSetHuman: { setSeat(seat.index, human: $0) },
+            onRename: { setup.seats[seat.index].name = $0 },
+            onEditCivilization: { pickingCivilizationForSeat = seat.index },
+            onEditSeatNumber: { pickingSeatNumberForSeat = seat.index },
+            seatOrderIsRandom: setup.randomizeSeatOrder,
+            isShortScreen: isShortScreen
+        )
     }
 
     /// A1.2, and A1.3's refusal. The last human seat cannot become AI, because
@@ -313,11 +393,49 @@ struct NewGameSetupView: View {
         )
     }
 
+    private func seatNumberPicker(for seatIndex: Int) -> some View {
+        SeatNumberPickerPopup(
+            seatIndex: seatIndex,
+            seatCount: setup.seats.count,
+            onSelect: { number in
+                setSeatNumber(seatIndex, to: number)
+                pickingSeatNumberForSeat = nil
+            },
+            onCancel: { pickingSeatNumberForSeat = nil }
+        )
+    }
+
+    /// Swaps this seat's turn-order position with whichever seat currently
+    /// holds `number` (Jake's ask, 2026-09-03: picking a number "trades
+    /// places" rather than leaving two cards claiming it or one orphaned).
+    ///
+    /// Swaps *content* (who's sitting there), never `.index` itself:
+    /// `validationProblem` requires `hasOrderedSeatIndices` - every seat's
+    /// `index` must equal its array position - so array position *is* turn
+    /// order here, and every other seat mutation in this file already
+    /// addresses seats by that same position (`setup.seats[seat.index]`).
+    /// Reassigning `.index` values instead would silently break every one of
+    /// those call sites.
+    private func setSeatNumber(_ seatIndex: Int, to number: Int) {
+        let targetIndex = number - 1
+        guard targetIndex != seatIndex, setup.seats.indices.contains(targetIndex) else { return }
+        let moved = setup.seats[seatIndex]
+        let displaced = setup.seats[targetIndex]
+        setup.seats[seatIndex].isHuman = displaced.isHuman
+        setup.seats[seatIndex].name = displaced.name
+        setup.seats[seatIndex].civilization = displaced.civilization
+        setup.seats[seatIndex].opponentProfile = displaced.opponentProfile
+        setup.seats[targetIndex].isHuman = moved.isHuman
+        setup.seats[targetIndex].name = moved.name
+        setup.seats[targetIndex].civilization = moved.civilization
+        setup.seats[targetIndex].opponentProfile = moved.opponentProfile
+    }
+
     // MARK: - Match settings (A4, A5)
 
     private var matchSettingsSection: some View {
         VStack(spacing: 10) {
-            SettingsSectionHeader(title: "Match Settings")
+            SettingsSectionHeader(title: "Match Settings", titleColor: .white)
             matchLengthRow
             boardRow
             seatingRow
@@ -341,6 +459,7 @@ struct NewGameSetupView: View {
                 title: \.displayName,
                 selection: MatchLength(rawValue: setup.victoryPointTarget) ?? .standard,
                 isCompact: true,
+                fontSize: SeatCardView.bodyTextSize,
                 onSelect: { setup.victoryPointTarget = $0.rawValue }
             )
         }
@@ -359,6 +478,7 @@ struct NewGameSetupView: View {
                 title: { $0 ? "Randomized" : "Standard" },
                 selection: setup.randomizedBoard,
                 isCompact: true,
+                fontSize: SeatCardView.bodyTextSize,
                 onSelect: { setup.randomizedBoard = $0 }
             )
         }
@@ -384,6 +504,7 @@ struct NewGameSetupView: View {
                 title: { $0 ? "Random" : "As Shown" },
                 selection: setup.randomizeSeatOrder,
                 isCompact: true,
+                fontSize: SeatCardView.bodyTextSize,
                 onSelect: { setup.randomizeSeatOrder = $0 }
             )
         }
@@ -599,7 +720,10 @@ struct NewGameSetupView: View {
             .padding(.horizontal, Self.screenInset)
             .padding(.vertical, isShortScreen ? 6 : 12)
         }
-        .background(SettingsChrome.screenBackground)
+        // Matches the scrim's darkest stop rather than the old flat navy, so
+        // the pinned bar reads as part of the same painted background instead
+        // of a solid-colour strip stitched onto the bottom of it.
+        .background(Color.black.opacity(0.55))
     }
 
     /// Cancel is fixed and narrow so Start gets the rest: at 375pt that is
