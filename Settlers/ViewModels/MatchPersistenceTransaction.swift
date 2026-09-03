@@ -44,7 +44,7 @@ extension GameViewModel {
         try civilizationStore.save(match.civilizations)
         try matchSetupStore.saveActiveMatch(realised)
         try gameStore.save(match.state)
-        HumanSeatStore.shared.save(match.humanSeats.sorted().first!)
+        humanSeatStore.save(match.humanSeats.sorted().first!)
     }
 
     private func persistenceSnapshots() throws -> MatchPersistenceSnapshots {
