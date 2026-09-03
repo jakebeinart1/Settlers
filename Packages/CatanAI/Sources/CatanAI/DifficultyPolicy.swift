@@ -15,9 +15,8 @@ public enum AIDifficulty: String, Codable, CaseIterable, Sendable {
 ///
 /// Standard delegates directly, including its exact RNG stream. Easy first
 /// asks that same bot for intent, then occasionally softens only the target of
-/// a settlement or city target. Road planning, trade judgement, robber intent,
-/// dev-card use, discards, and the chosen move category remain the
-/// personality's decision.
+/// a spatial placement/build. Trade judgement, robber intent, dev-card use,
+/// discards, and the chosen move category remain the personality's decision.
 public struct DifficultyPolicy: Policy {
     public let id: String
     private let difficulty: AIDifficulty
@@ -147,6 +146,13 @@ private enum EasySpatialLapse {
                 alreadyCovered: covered,
                 weights: weights
             )
+        case .placeInitialRoad(let edge):
+            return PlacementHeuristics.score(
+                initialRoad: edge,
+                board: observation.state.board,
+                alreadyCovered: covered,
+                weights: weights
+            )
         default:
             preconditionFailure("non-spatial move reached Easy spatial scoring")
         }
@@ -155,6 +161,8 @@ private enum EasySpatialLapse {
     private static func sameSpatialKind(_ candidate: GameMove, _ preferred: GameMove) -> Bool {
         switch (candidate, preferred) {
         case (.placeInitialSettlement, .placeInitialSettlement),
+             (.placeInitialRoad, .placeInitialRoad),
+             (.buildRoad, .buildRoad),
              (.buildSettlement, .buildSettlement),
              (.buildCity, .buildCity):
             return true
