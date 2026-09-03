@@ -401,6 +401,7 @@ public enum RulesEngine {
                 state.devCardsBoughtThisTurn = [:]
                 state.devCardPlayedThisTurn = nil
                 state.tradesAcceptedThisTurn = [:]
+                state.declinedTradeOffersThisTurn = [:]
                 // An offer only ever left `pendingTradeOffers` when somebody
                 // explicitly responded to it, so unanswered offers accumulated
                 // across turns - a 93-deep backlog was observed in a single

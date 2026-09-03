@@ -171,6 +171,8 @@ public enum Trading {
                 state.players[proposerIndex].resources[resource, default: 0] += amount
             }
             state.tradesAcceptedThisTurn[offer.from, default: 0] += 1
+        } else {
+            state.declinedTradeOffersThisTurn[offer.from, default: []].append(offer)
         }
 
         state.pendingTradeOffers.removeAll { $0.id == offerID }
