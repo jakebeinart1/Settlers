@@ -54,7 +54,7 @@ public struct DifficultyPolicy: Policy {
 private enum EasySpatialLapse {
     /// A development parameter, not a product promise. It may move only on
     /// development seeds and must be frozen before held-out calibration.
-    static let lapseDenominator = 1
+    static let lapseDenominator = 2
 
     static func choose(
         insteadOf preferred: GameMove,
@@ -70,10 +70,7 @@ private enum EasySpatialLapse {
             weights: weights
         )
         guard !alternatives.isEmpty else { return preferred }
-        if lapseDenominator > 1,
-           Int.random(in: 0..<lapseDenominator, using: &rng) != 0 {
-            return preferred
-        }
+        guard Int.random(in: 0..<lapseDenominator, using: &rng) == 0 else { return preferred }
         return alternatives[0]
     }
 

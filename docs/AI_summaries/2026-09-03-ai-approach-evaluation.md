@@ -400,9 +400,8 @@ aggregate results, and integrity identifiers that the source branch must carry.
 
 Difficulty and personality are separate axes. The candidate keeps the current
 personality-aware heuristic as Standard. Easy asks that same heuristic for its
-intent, then on eligible decisions substitutes the best strictly lower-scored
-target of the **same** spatial move kind. The development-tunable frequency is
-recorded with each candidate below. Only initial settlement,
+intent, then on half of eligible decisions substitutes the best strictly
+lower-scored target of the **same** spatial move kind. Only initial settlement,
 initial road, road, settlement, and city targets are eligible. Trading, trade
 responses, robber targeting, dev-card use, discards, rolling, ending a turn,
 and the heuristic's move-category choice are unchanged. This is meant to model
@@ -431,30 +430,6 @@ The 80000-series anchor-calibration seeds are context only and may not tune it.
 If held-out v1 causes a policy change, that bank is consumed; v2 begins at
 201000 with the same offsets. There is no optional stopping or reusing a bank
 whose result has been seen.
-
-### Development candidate log
-
-**v1 — rejected.** Commit `71215da`, lapse denominator 2 (half of eligible
-spatial choices), Release binary SHA-256
-`049863ee63a33664f6ca584701400c51f944a97670849f3ccfbd8a5e2586ca7c`.
-The first four development seeds per cell produced 1,008/1,008 decisive games
-with a maximum of 1,056 moves. Aggressive knight-use separation was +20.2 to
-+35.5 points and Cautious player-trade separation was +17.7 to +35.7 points,
-while the cross axes stayed within the predeclared ±15-point band. The
-strength screen failed: Standard minus Easy was -8.3 points in both the
-three-player randomized 8-point and three-player standard 12-point cells, and
-several other cells were indistinguishable at this sample. v1 was therefore
-rejected before promotion rather than rationalized from its pooled result.
-
-The 252-shard raw checksum-manifest SHA-256 is
-`e8efcfd1e7fce47faec82659162ef7324a4c84959c8adfecf0a0cc66e2ea767b`;
-the 48-report checksum-manifest SHA-256 is
-`fdd81ba6c237bd224f9f4697dcfc9d528dacf5f8fcf805600bd7735d6b3c0ec3`.
-Artifacts remain under `/private/tmp/empires-easy-development-v1-71215da`.
-
-**v2 — under development.** The lapse denominator is 1: every eligible
-spatial decision uses the best strictly lower-scored same-kind target when one
-exists. No held-out seed has been consumed.
 
 ### Development ladder
 
