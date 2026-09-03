@@ -1,10 +1,69 @@
 import Foundation
 import Testing
 @testable import CatanEngine
+import CatanAI
 @testable import Settlers
 
 @MainActor @Suite struct MatchCheckpointStoreTests {
     enum Interruption: Error { case simulatedProcessExit }
+
+    @Test func winningMoveCommitsStateHistoryAndStatisticsInOneRevision() throws {
+        let root = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: root) } // Test-owned directory only.
+        let store = MatchCheckpointStore(fileURL: root.appendingPathComponent("checkpoint.json"))
+        let (before, step) = try winningMove()
+        let setup = MatchSetup(
+            seats: before.players.map { player in
+                MatchSetup.Seat(index: player.id.index, isHuman: player.id == step.actor,
+                                name: "Player \(player.id.index)", civilization: Civilization.allCases[player.id.index])
+            }, victoryPointTarget: before.victoryPointTarget, randomizedBoard: false, randomizeSeatOrder: false)
+        let original = MatchCheckpointDocument(activeMatch: MatchCheckpoint(id: UUID(), initialState: before, setup: setup))
+        let next = try original.applying(step.move, by: step.actor, elapsedSeconds: 123)
+        try store.commit(original, replacingRevision: nil)
+        try store.commit(next, replacingRevision: original.revision)
+        #expect(try store.load() == next)
+        #expect(next.activeMatch?.state.phase == .gameOver(winner: step.actor))
+        #expect(next.activeMatch?.moves.count == 1)
+        #expect(next.revision == 1)
+        #expect(next.statistics.gamesPlayed == 1)
+        #expect(next.statistics.gamesWon == 1)
+        #expect(next.completions.count == 1)
+        try next.activeMatch?.validateHistory()
+    }
+
+    private func winningMove() throws -> (GameState, GameSession.Step) {
+        let initial = GameSetup.newGame(board: BoardGenerator.standard(), seed: 471)
+        var policies: [PlayerID: any Policy] = [:]
+        for player in initial.players {
+            policies[player.id] = HeuristicPolicy(personality: .balanced, id: "checkpoint-fixture")
+        }
+        var session = GameSession(state: initial, policies: policies, policySeed: 99)
+        for _ in 0..<10_000 {
+            let before = session.state
+            let step = try #require(try session.step())
+            if case .gameOver = session.state.phase { return (before, step) }
+        }
+        throw Interruption.simulatedProcessExit // Failure, not a fabricated terminal fixture.
+    }
+
+    @Test func applyingAMoveProducesOneRevisionWithoutChangingThePreviousDocument() throws {
+        let initial = GameSetup.newGame(board: BoardGenerator.standard(), seed: 471)
+        let setup = MatchSetup.default(preferredName: "Alex", preferredCivilization: Civilization.allCases[0])
+        let original = MatchCheckpointDocument(activeMatch: MatchCheckpoint(
+            id: UUID(), initialState: initial, setup: setup))
+        let actor = PlayerID(index: 0)
+        let move = try #require(RulesEngine.legalMoves(for: initial, seat: actor).first)
+
+        let next = try original.applying(move, by: actor, elapsedSeconds: 12)
+
+        #expect(original.activeMatch?.state == initial)
+        #expect(original.revision == 0)
+        #expect(next.revision == 1)
+        #expect(next.activeMatch?.moves.count == 1)
+        #expect(next.activeMatch?.elapsedSeconds == 12)
+        #expect(next.activeMatch?.state.players[0].settlements.count == 1)
+        #expect(next.statistics == GameStats())
+    }
 
     @Test func resettingStatisticsDoesNotRecountTheCurrentCompletedMatch() throws {
         var terminal = GameSetup.newGame(board: BoardGenerator.standard(), seed: 471)

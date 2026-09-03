@@ -79,5 +79,14 @@ scoped SwiftLint is clean. These are synthetic terminal fixtures for accounting,
 not evidence of full gameplay or operating-system process termination.
 
 This is not production persistence yet. Pending: semantic/roster validation,
-receipt validation and active duration, candidate-session integration, migration/export,
+receipt validation and lifecycle duration checkpoints, candidate-session integration, migration/export,
 separate-process termination, performance measurement, and full release gate.
+
+The candidate transition now applies a real engine move to an unpublished
+copy, records elapsed active time, and creates its completion receipt in that
+same revision when it wins. Seven hosted tests pass, including a winning
+position reached through seeded self-play and then committed/reloaded through
+the store. This proves the winning transition, not yet a whole match using the
+new persistence path. Production integration must preserve GameSession's
+policy RNG and negotiation bookkeeping; replacing the session after every
+persisted move would incorrectly reset those counters.

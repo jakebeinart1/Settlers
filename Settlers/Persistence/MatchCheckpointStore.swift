@@ -14,6 +14,7 @@ struct MatchCheckpoint: Codable, Equatable, Sendable {
     let setup: MatchSetup
     private(set) var state: GameState
     private(set) var moves: [RecordedMove] = []
+    private(set) var elapsedSeconds: TimeInterval = 0
 
     init(id: UUID, initialState: GameState, setup: MatchSetup) {
         self.id = id
@@ -27,6 +28,13 @@ struct MatchCheckpoint: Codable, Equatable, Sendable {
         try RulesEngine.apply(move, by: actor, to: &candidate)
         state = candidate
         moves.append(RecordedMove(actor: actor, move: move))
+    }
+
+    mutating func recordElapsedTime(_ seconds: TimeInterval) throws {
+        guard seconds.isFinite, seconds >= elapsedSeconds else {
+            throw MatchCheckpointStore.StoreError.invalidDuration
+        }
+        elapsedSeconds = seconds
     }
 
     /// The engine, not a duplicated move interpreter, validates the history.
@@ -53,7 +61,7 @@ struct MatchCheckpointDocument: Codable, Equatable, Sendable {
     static let currentSchemaVersion = 1
     let schemaVersion: Int
     private(set) var revision: Int
-    let activeMatch: MatchCheckpoint?
+    private(set) var activeMatch: MatchCheckpoint?
     private(set) var statistics = GameStats()
     private(set) var completions: [UUID: Completion] = [:]
 
@@ -61,6 +69,22 @@ struct MatchCheckpointDocument: Codable, Equatable, Sendable {
         self.schemaVersion = Self.currentSchemaVersion
         self.revision = revision
         self.activeMatch = activeMatch
+    }
+
+    /// Build an unpublished candidate. The caller commits it before exposing
+    /// its state; failures leave this document unchanged. A winning move and
+    /// its accounting receipt belong to the same revision.
+    func applying(_ move: GameMove, by actor: PlayerID, elapsedSeconds: TimeInterval) throws -> Self {
+        guard var match = activeMatch, revision < Int.max else {
+            throw MatchCheckpointStore.StoreError.staleRevision
+        }
+        try match.recordElapsedTime(elapsedSeconds)
+        try match.apply(move, by: actor)
+        var next = self
+        next.activeMatch = match
+        if case .gameOver = match.state.phase { try next.recordCompletion(duration: elapsedSeconds) }
+        next.revision = revision + 1
+        return next
     }
 
     /// Freeze one receipt and its totals in the same document as the terminal
@@ -98,7 +122,9 @@ struct MatchCheckpointDocument: Codable, Equatable, Sendable {
 /// generations of state and roster. This is not a power-loss durability claim.
 @MainActor
 struct MatchCheckpointStore {
-    enum StoreError: Error { case unsupportedSchema, staleRevision, inconsistentHistory, invalidCompletion }
+    enum StoreError: Error {
+        case unsupportedSchema, staleRevision, inconsistentHistory, invalidCompletion, invalidDuration
+    }
     enum CommitStage: Sendable { case beforeReplace, afterReplace }
 
     let fileURL: URL
