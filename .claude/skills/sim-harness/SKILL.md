@@ -26,12 +26,12 @@ measures it the only way that works: two separate processes, byte-compared.
 | **The executable exists, builds and plays games** | **RUN AND PROVEN 2026-08-29.** `Packages/CatanAI/Sources/sim/main.swift`, wired as `.executableTarget(name: "sim", ...)` in `Packages/CatanAI/Package.swift`. Builds clean under `-Xswiftc -warnings-as-errors` and under `swiftlint --strict`. |
 | **Cross-process reproducibility** | **PROVEN 2026-08-29.** Seeds 1000-1009, Release, run in two separate processes: both files `sha256 2dcfd1fb48dceb8adf381bcb8ffe571a5b6d53544656911a0543eca2dcd50c8c`, `cmp` silent. |
 | **Agreement with the existing determinism guard** | **PROVEN 2026-09-03.** All five fingerprints pinned in `Packages/CatanAI/Tests/CatanAITests/SeededGameFingerprintTests.swift` are reproduced exactly by the harness: seed 1 `d7fdc2d2721c1585`, 42 `a82a8c729629fefe`, 7 `1fb2872d10dcb596`, 1234 `1fda336942d04a99`, 99 `59a97a1b4b8825c8`. The harness deliberately uses the same seat lineup, the same bot-RNG derivation and the same canonicalization so that test doubles as an external check on it. |
-| **Evaluation configuration matrix** | **RUN AND PROVEN 2026-09-03.** `scripts/tests/test_sim_cli.py` invokes the Release executable for every 3/4-player × 8/10/12-VP × standard/randomized-board combination. Every case reaches a winner, reports schema-5 configuration provenance, and emits arrays matching the configured table size. The test also proves the default invocation remains the historical four-player, 10-VP, randomized-board trajectory. |
+| **Evaluation configuration matrix** | **RUN AND PROVEN 2026-09-03.** `scripts/tests/test_sim_cli.py` invokes the Release executable for every 3/4-player × 8/10/12-VP × standard/randomized-board combination. These are engine/evaluation smoke cases; four-player 12 VP is no longer a product New Game option after longer runs proved it can saturate without a winner. Every sampled CLI case reaches a winner, reports schema-5 configuration provenance, and emits arrays matching the configured table size. The default invocation remains the historical four-player, 10-VP, randomized-board trajectory. |
 | **Throughput** | **MEASURED 2026-08-29** on an 18-core Apple Silicon Mac. **Release, one process: 0.45-0.56 games/sec** (four timed runs of 10 games: 22.45s, 19.48s, 19.05s, 17.96s). **Debug: 0.12 games/sec** (5 games in 41.56s) - about 4x slower, never measure on it. **Release, 10 shards in parallel: 1.76 games/sec** (100 games in 56.79s, 642% CPU). |
-| **Game shape** | **MEASURED over 350 games** across two seat lineups (seeds 1000-1009, 2000-2099, 3000-3039, 5000-5199): every game finished with a winner, 212-824 moves, mean 462. The 3000-move cap has never been hit. |
+| **Game shape** | **MEASURED over 350 historical default-length games** across two seat lineups (seeds 1000-1009, 2000-2099, 3000-3039, 5000-5199): every game finished with a winner, 212-824 moves, mean 462. Later 12-point calibration runs did hit the 3,000-move cap; never generalize the default-game range to a new policy or target. |
 | **Sharding into ONE shared output file** | **RAN ONCE, 100/100 lines intact and parseable, but NOT proven safe.** See the trap below - use one file per shard. |
 | **Running on Linux / in CI** | **NEVER RUN.** CI builds the whole package, so the sim target will start compiling on `ubuntu-latest` the moment this is pushed. It imports only `CatanEngine`, `CatanAI` and `Foundation`, so it should be fine, and "should be" is not "was". |
-| **Any strength claim from this output** | **NEVER MADE.** The harness produces games; turning games into a defensible claim is a separate method - see the **bot-strength** skill, which has also never been run here. |
+| **Strength evaluation using this output** | **RUN 2026-09-03, AND THE CANDIDATES FAILED.** The harness supplied a locked two-arm anchor calibration and four Easy development screens. Turning JSONL into a claim remains the separate **bot-strength** method; raw wins alone are not evidence. |
 
 ## Hard preconditions
 
@@ -123,7 +123,8 @@ so the order cannot drift:
   pairing keys so equal numeric seeds from different arms cannot be
   mistaken for the same generated game.
 - **`winner`** is a seat index, or `null` if the 3000-move cap tripped. A
-  `null` is a bug report, not a draw - real games finish in 212-824 moves.
+  `null` is a failed-completion result, not a draw. Historical default-length
+  games finished in 212-824 moves; 12-point stress runs have exceeded the cap.
 - **`vp`** is final victory points **per seat in seat order**, from
   `GameState.victoryPoints(for:)`, so it includes the +2 longest-road and +2
   largest-army bonuses. The winner's entry can exceed 10 (seen: 11).
@@ -285,7 +286,7 @@ true and the floors move.
   answered.
 - **The executable is integration-tested, but fingerprints still matter.**
   `scripts/tests/test_sim_cli.py` builds and invokes Release `sim`, checks strict
-  CLI failures, runs all twelve configurations, and validates a real training
+  CLI failures, runs all twelve engine/evaluation configurations, and validates a real training
   export. If you change move rendering or policy flow, still run step 4 against
   the independently pinned fingerprints and compare separate processes.
 - **Never run on Linux.** See the table.

@@ -31,10 +31,10 @@ provides.
 
 | Path | Status |
 |---|---|
-| **The complete two-arm method** | **NOT YET RUN.** Four-player candidate arms have used held-out seeds, complete chair rotation, the committed Greedy anchor, and clustered intervals. They did not include the separately built all-anchor control arm required below, so they are useful regression evidence rather than a complete calibrated-difficulty result. See `docs/AI_summaries/2026-09-02-personality-separation-results.md`. |
+| **The complete two-arm method** | **RUN AND FAILED ITS LOCKED GATE 2026-09-03.** A frozen Release binary ran candidate and all-Greedy control arms with complete chair rotation in all 12 declared evaluation cells. Balanced beat Greedy everywhere, but one cell missed the 20-point margin and 12-point cells exposed non-completion. See `docs/AI_summaries/2026-09-03-ai-approach-evaluation.md`. |
 | **The four-player harness underneath** | **RUN AND PROVEN 2026-08-29** - see **sim-harness**. Reproducible across processes, cross-checked against the five pinned fingerprints, ~0.5 games/sec per process and ~1.76 games/sec across 10 shards. These timings are not three-player measurements. |
 | **Seat advantage, four identical `balanced` bots** | **MEASURED 2026-08-29, 200 games** (seeds 5000-5199): 21.0 / 20.0 / 27.5 / 31.5 percent by seat, an 11.5-point spread, `chi2 = 7.16, df = 3, p = 0.067`. **Suggestive, not established** - and that is the point. See "Rotate the seats" below. |
-| **Three-player strength or seat advantage** | **UNMEASURED.** The three-player values below are arithmetic for planning a future run, not empirical evidence about the bots or seats. |
+| **Three-player strength or seat advantage** | **MEASURED ONLY INSIDE THE FAILED CALIBRATION.** Full chair rotation established the exact 33.3% all-Greedy control null in each decisive cell. It did not create a shippable tier or a standalone seat-advantage estimate. The power tables below remain planning arithmetic. |
 | **A frozen anchor opponent** | **EXISTS IN SOURCE.** `GreedyPolicy` is the committed, intentionally untuned middle anchor and `RandomPolicy` is the floor. A comparison still has to build and hash the exact anchor binary once; a source type called "anchor" does not freeze the executable used by a run. |
 | **The variance reduction paired/CRN evaluation actually buys here** | **UNMEASURED.** Pairing on board seed reduces the required sample by roughly `(1 - rho)`, where `rho` is the per-seed correlation between arms - and `rho` has never been computed for this game. Every sample size below is therefore the **unpaired ceiling**. Measure `rho` from your first run; do not assume a discount you have not earned. |
 | **Comparing two weight sets in one run** | **NOT POSSIBLE TODAY.** The harness exposes policy names but not arbitrary weights, so two weight arms remain two separate binaries. The analyzer now accepts independent candidate/baseline build IDs and refuses mismatched seed/chair/configuration keys. |
@@ -330,8 +330,10 @@ skipped:
 ## Honest limits (do not overpromise)
 
 - **One complete two-arm calibration now exists, and it failed its locked
-  gate.** The 2026-09-03 run covered all 12 supported player-count, victory-point,
-  and board-mode cells with complete chair rotation and an all-Greedy control.
+  gate.** The 2026-09-03 run covered all 12 declared player-count,
+  victory-point, and board-mode evaluation cells with complete chair rotation
+  and an all-Greedy control. Four-player 12-point is now a simulator stress
+  case rather than a product New Game option.
   Balanced beat Greedy in every cell, but one cell missed the predeclared
   20-point margin and several 12-point cells were not fully decisive. See
   `docs/AI_summaries/2026-09-03-ai-approach-evaluation.md`. This validates the

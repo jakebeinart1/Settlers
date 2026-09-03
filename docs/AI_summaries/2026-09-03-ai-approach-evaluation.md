@@ -1,7 +1,7 @@
 # AI approach evaluation and prototype order
 
 Date: 2026-09-03
-Status: short-horizon P1 and first P2 learned policy rejected
+Status: short-horizon P1, first P2 learned policy, and first Easy prototype rejected
 
 ## Decision
 
@@ -70,7 +70,8 @@ Keep only if all are true:
 - repeated calls with the same observation and RNG are identical across
   processes;
 - p95 decision latency is measured at budgets suitable for a local device;
-- every supported 3/4-player, 8/10/12-point configuration completes;
+- every product configuration completes (3p at 8/10/12; 4p at 8/10), with
+  four-player 12-point retained only as an engine stress case;
 - a paired frozen-anchor evaluation shows either useful strength signal or a
   clear diagnostic about what the evaluator/search horizon lacks.
 
@@ -287,7 +288,9 @@ seat-rotated gameplay screening before any on-device integration work.
 The first difficulty experiment is an **anchor-validation screen**, not a UI
 label and not a five-point strength claim. It asks whether the shipping
 Balanced heuristic is materially stronger than the frozen Greedy anchor in
-every rules configuration the New Game screen supports. Greedy remains an
+every declared evaluation cell. The matrix was locked before four-player
+12-point play was removed from New Game; those two cells are now engine stress
+cases, not product configurations. Greedy remains an
 evaluation anchor; this protocol does not approve presenting it as an Easy
 personality because Greedy intentionally never trades and therefore erases a
 player-visible personality axis.
@@ -335,7 +338,7 @@ difference. The predeclared keep criteria are instead a large-separation gate:
 4. in every cell, the point advantage is at least 20 percentage points.
 
 The seeds are never used to tune a candidate. Passing establishes that the two
-policies form distinct strength anchors across supported rules. It does not
+policies form distinct strength anchors across the declared matrix. It does not
 establish that either is fun for a human or authorize a difficulty selector.
 The next tier candidate must preserve personality, use a new held-out seed
 range, and pass the same per-cell structure before product integration.
@@ -395,3 +398,36 @@ new development seeds and then once on untouched held-out seeds.
 The artifact root is intentionally not committed: the JSONL is reproducible
 measurement output, while this document preserves the protocol, verdict,
 aggregate results, and integrity identifiers that the source branch must carry.
+
+## Easy prototype result — rejected and removed
+
+Four development variants tested a personality-preserving Easy policy that
+kept the shipping heuristic's move category and substituted an inferior
+settlement or city site. The final candidate (`851e245`) was measured over
+**3,024 games** across the full evaluation matrix; **3,022 were decisive**.
+Standard beat Easy by at least ten percentage points in every cell, and Easy
+preserved the intended personality axes: Aggressive knight use improved by
+26.0–34.3 points and Cautious trade proposals by 21.5–35.1 points, while both
+cross-axis shifts stayed inside the declared ±15-point limit.
+
+The candidate nevertheless failed its locked gate. Easy did not clear Random
+by five points in three four-player cells (0.0 at standard-board 8 and 10 VP;
+4.2 at standard-board 12 VP). More importantly, two four-player 12-point games
+hit the 3,000-action cap and a third required 2,008 actions, above the
+predeclared 1,500 ceiling. Replaying seed 100129 with a diagnostic 10,000-action
+cap left the same 11/11/11/10 score and no winner after every development card
+had been bought. That is terminal scoring saturation, not a cap chosen too low.
+
+The Easy runtime and its tests were therefore removed before merge. No held-out
+seed bank was consumed, no difficulty selector was added, and the shipping
+heuristic is unchanged. The reusable configuration-aware simulator, analyzer,
+locked protocol, and negative result remain. Product New Game now offers Epic
+only with three players; the engine still accepts old four-player Epic saves
+and keeps 4p/12 available to the simulator as a stress configuration.
+
+Final-candidate provenance: source `851e245`; Release simulator SHA-256
+`9c40ee1df1191002666c4cc3c0238d57bce5f9c349cc365afef239bb6a1e724a`;
+3,024-game artifact root
+`/private/tmp/empires-easy-development-v4-851e245-full` with 48 analyzer
+reports. The 10,000-action diagnostic was a separate temporary executable and
+was not retained in source.
