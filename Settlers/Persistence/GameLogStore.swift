@@ -305,7 +305,7 @@ public struct GameLogStore: Sendable {
         directoryURL.appendingPathComponent("\(gameID.uuidString).jsonl")
     }
 
-    private var activeGameIDURL: URL { directoryURL.appendingPathComponent("active-game-id") }
+    var activeGameIDURL: URL { directoryURL.appendingPathComponent("active-game-id") }
 
     private func write(_ entry: Entry, gameID: UUID) throws {
         let data: Data

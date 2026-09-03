@@ -26,12 +26,13 @@ struct ContentView: View {
 
     var body: some View {
         Group {
-            if case .gameOver = viewModel.state.phase, hasStartedThisSession {
+            if case .gameOver = viewModel.state.phase, hasStartedThisSession,
+               viewModel.savedGameAvailability.recoveryMessage == nil {
                 EndGameView(state: viewModel.state, human: viewModel.humanPlayer,
                             playerLabel: viewModel.playerLabel) {
                     if viewModel.clearCompletedMatch() { hasStartedThisSession = false }
                 }
-            } else if hasStartedThisSession {
+            } else if hasStartedThisSession, viewModel.savedGameAvailability.recoveryMessage == nil {
                 GameView(viewModel: viewModel, onExitToMenu: { hasStartedThisSession = false })
                 #if DEBUG
                     .task {
@@ -57,8 +58,10 @@ struct ContentView: View {
                     .id(viewModel.gameGeneration)
             } else {
                 MainMenuView(
+                    canResumeSavedGame: viewModel.savedGameAvailability.canResume,
                     onStart: startNewGame,
                     onResume: {
+                        guard viewModel.savedGameAvailability.canResume else { return }
                         hasStartedThisSession = true
                         // Resuming into a save left mid-bot-turn needs the bot
                         // loop kicked off explicitly - `GameViewModel.apply(_:)`
@@ -78,8 +81,8 @@ struct ContentView: View {
         .alert("Couldn't open your saved game", isPresented: $isShowingUnreadableSaveAlert) {
             Button("OK", role: .cancel) {}
         } message: {
-            Text("A save was found but couldn't be read, so a new game is ready instead. "
-                 + "The file has been left in place.")
+            Text(viewModel.savedGameAvailability.recoveryMessage
+                 ?? "Your saved game cannot be resumed. The original files have been left in place.")
         }
         .alert("Couldn't save the game", isPresented: $isShowingPersistenceError) {
             Button("OK", role: .cancel) { viewModel.dismissPersistenceError() }

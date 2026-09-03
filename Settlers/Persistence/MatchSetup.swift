@@ -64,6 +64,13 @@ public struct MatchSetup: Codable, Equatable, Sendable {
 
     // MARK: - Validity
 
+    /// Restoration uses array positions for identities and stored indices for
+    /// human seats. Reject disagreement rather than sorting or renumbering it,
+    /// which could silently assign a saved person's chair to a different player.
+    var hasOrderedSeatIndices: Bool {
+        seats.map(\.index).elementsEqual(seats.indices)
+    }
+
     /// Why this setup cannot start a game, or `nil` if it can.
     ///
     /// One function rather than a scatter of `isValid` flags, because the
@@ -74,6 +81,9 @@ public struct MatchSetup: Codable, Equatable, Sendable {
         guard GameSetup.supportedPlayerCounts.contains(seats.count) else {
             return "A game needs \(GameSetup.supportedPlayerCounts.lowerBound) or "
                 + "\(GameSetup.supportedPlayerCounts.upperBound) players."
+        }
+        guard hasOrderedSeatIndices else {
+            return "Seat indices must match their table positions."
         }
         guard !humanSeats.isEmpty else {
             return "At least one seat must be a human player."
@@ -228,7 +238,12 @@ public final class MatchSetupStore: @unchecked Sendable {
     private func decode(forKey key: String) -> LoadResult {
         guard let data = defaults.data(forKey: key) else { return .none }
         do {
-            return .loaded(try JSONDecoder().decode(MatchSetup.self, from: data))
+            let setup = try JSONDecoder().decode(MatchSetup.self, from: data)
+            // A prefill may still need a name, so full startability is not a
+            // decoding requirement. Index integrity is: consumers must never
+            // receive conflicting seat identities. Keep rejected bytes intact.
+            guard setup.hasOrderedSeatIndices else { return .unreadable }
+            return .loaded(setup)
         } catch {
             return .unreadable
         }

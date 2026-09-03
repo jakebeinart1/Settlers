@@ -44,17 +44,28 @@ public struct GameStore: Sendable {
     /// Reads the saved game, distinguishing "nothing saved" from "saved but
     /// unreadable". Never throws - a bad save must not stop the app launching.
     public func load() -> LoadResult {
-        guard let data = try? Data(contentsOf: fileURL) else { return .none }
-        guard let state = try? JSONDecoder().decode(GameState.self, from: data) else { return .unreadable }
-        return .loaded(state)
+        let data: Data
+        do {
+            data = try Data(contentsOf: fileURL)
+        } catch let error as CocoaError where error.code == .fileReadNoSuchFile {
+            return .none
+        } catch {
+            // Permission, filesystem and file-type failures are not absence.
+            // Treating them as a fresh install permits destructive replacement.
+            return .unreadable
+        }
+        do {
+            return .loaded(try JSONDecoder().decode(GameState.self, from: data))
+        } catch {
+            return .unreadable
+        }
     }
 
     /// Whether a save file exists at all, without decoding it.
     ///
-    /// The main menu asks this on every render to decide whether to offer
-    /// "Resume Game". It used to answer by running `load() != nil`, i.e. a
-    /// full read and `JSONDecoder` pass over a 17-40 KB state, on the main
-    /// thread, every time the menu's body was evaluated - to produce a boolean.
+    /// Used for overwrite confirmation and deletion, not resume eligibility.
+    /// The menu uses the model's validated load result: an existing corrupt
+    /// file needs protection, but must never enable Resume.
     public func hasSave() -> Bool {
         FileManager.default.fileExists(atPath: fileURL.path)
     }
