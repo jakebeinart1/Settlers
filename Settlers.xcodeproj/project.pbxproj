@@ -37,6 +37,7 @@
 		5754F9C1356C779A5553C1BD /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = AAE31202C59C388953152F18 /* Assets.xcassets */; };
 		57EA5B6AC6CBD8DF633CAEC0 /* PacingPreferences.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1F6B7C1967EDFFBBD8873DAC /* PacingPreferences.swift */; };
 		58CF19E0BF339B5D32B7D233 /* PreMergeAuditRegressionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11D7DF8A5B6CAC4647065878 /* PreMergeAuditRegressionTests.swift */; };
+		59EC0F6616F1257C0CD7A951 /* MatchCheckpointStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = A91C26F52123725EF8FFF41C /* MatchCheckpointStore.swift */; };
 		5A3814A3A6D971002FE6368B /* CatanAI in Frameworks */ = {isa = PBXBuildFile; productRef = 86D26250D0551805B74D0B0B /* CatanAI */; };
 		5FD5B98FFB1669F9BE80F1DC /* PaintedChromeBackground.swift in Sources */ = {isa = PBXBuildFile; fileRef = 44E440B9CD11BDC249491106 /* PaintedChromeBackground.swift */; };
 		6550ED481CBA2A0062722CCD /* NewGameSetupView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A2D1519676D42C401001336 /* NewGameSetupView.swift */; };
@@ -72,6 +73,7 @@
 		B6FC9BE50ABFF3D68CF98B29 /* SettlersApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8164AC90317469202817676F /* SettlersApp.swift */; };
 		BC78EDCB2E4661BF7A5AA715 /* SaveRecoveryFlowTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C267D2BD50E26FCD707474EF /* SaveRecoveryFlowTests.swift */; };
 		BD0B5D0BC26E3BE5C8A462FD /* BuildPopupView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDF1F85E001A7B74407061E4 /* BuildPopupView.swift */; };
+		C834783EE1638B259EFA3035 /* MatchCheckpointStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FDDC6BE523633D50F2BBE0CF /* MatchCheckpointStoreTests.swift */; };
 		C8EBD90EAF2F47466F8B5A2C /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CB7D94876E201553696FE24C /* ContentView.swift */; };
 		CB58570AE806ACE6BFC462C1 /* TradePopupView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5DA573A3A82A8F2F109FA437 /* TradePopupView.swift */; };
 		D16CC8C90FB7F755636F3397 /* GameStatsStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 16777953197BE2BC34CCFE6B /* GameStatsStore.swift */; };
@@ -113,6 +115,7 @@
 		16777953197BE2BC34CCFE6B /* GameStatsStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameStatsStore.swift; sourceTree = "<group>"; };
 		1E21004FB7C5F5948BEC71A9 /* SavedGameAvailability.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SavedGameAvailability.swift; sourceTree = "<group>"; };
 		1F6B7C1967EDFFBBD8873DAC /* PacingPreferences.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PacingPreferences.swift; sourceTree = "<group>"; };
+		20950E57920F7E96A1DFB2F1 /* Signing.local.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Signing.local.xcconfig; sourceTree = "<group>"; };
 		26C8E728C5FF85E8400CFE1A /* .swiftlint.yml */ = {isa = PBXFileReference; lastKnownFileType = text.yaml; path = .swiftlint.yml; sourceTree = "<group>"; };
 		27BDAD47ABBB94D7F73976E5 /* MainMenuView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainMenuView.swift; sourceTree = "<group>"; };
 		2FA5615D7AB20666AEB04B43 /* AccessibilityID.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccessibilityID.swift; sourceTree = "<group>"; };
@@ -155,6 +158,7 @@
 		A28295223E4575E24BB3C67E /* NewGameSetupTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewGameSetupTests.swift; sourceTree = "<group>"; };
 		A3E45A27E8D8AA6CC2D8717A /* DevCardStyle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DevCardStyle.swift; sourceTree = "<group>"; };
 		A7D42223DB45BEF77F97D3F6 /* PlayerNameStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerNameStore.swift; sourceTree = "<group>"; };
+		A91C26F52123725EF8FFF41C /* MatchCheckpointStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MatchCheckpointStore.swift; sourceTree = "<group>"; };
 		AAE31202C59C388953152F18 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		ACBC9F02C56C7D94404C8B98 /* GameViewModel+OpponentProfiles.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "GameViewModel+OpponentProfiles.swift"; sourceTree = "<group>"; };
 		AF68AEB9AD0DD219D7E84E99 /* MatchSetup.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MatchSetup.swift; sourceTree = "<group>"; };
@@ -189,6 +193,7 @@
 		EED095DCE8ECB10CAA5F77E5 /* Signing.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Signing.xcconfig; sourceTree = "<group>"; };
 		F34A579755CFBDEAF52EBB70 /* IncomingTradeCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IncomingTradeCardView.swift; sourceTree = "<group>"; };
 		F7F6D403F344C1035A2A95F3 /* CatanAI */ = {isa = PBXFileReference; lastKnownFileType = folder; name = CatanAI; path = Packages/CatanAI; sourceTree = SOURCE_ROOT; };
+		FDDC6BE523633D50F2BBE0CF /* MatchCheckpointStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MatchCheckpointStoreTests.swift; sourceTree = "<group>"; };
 		FE0DA5E89A67A40E86345C91 /* CatanEngine */ = {isa = PBXFileReference; lastKnownFileType = folder; name = CatanEngine; path = Packages/CatanEngine; sourceTree = SOURCE_ROOT; };
 /* End PBXFileReference section */
 
@@ -226,6 +231,7 @@
 				50C4CFF8E5798600294998A8 /* GameLogStoreTests.swift */,
 				00588364F7AD8B7D5AF440EA /* HotSeatTests.swift */,
 				6BF5BC6D6577182E9829230A /* IncomingOfferHoldTests.swift */,
+				FDDC6BE523633D50F2BBE0CF /* MatchCheckpointStoreTests.swift */,
 				D04CF1402F3DF884C2B45746 /* NewGameEndToEndTests.swift */,
 				A28295223E4575E24BB3C67E /* NewGameSetupTests.swift */,
 				52A8BE17AC12F2C0246905CE /* OpponentProfileIntegrationTests.swift */,
@@ -246,6 +252,7 @@
 				E674366C1C13D0BBB8CCC2B2 /* Info.plist */,
 				59A80CE9867E891B09A3F0E5 /* QALaunchFlag.swift */,
 				8164AC90317469202817676F /* SettlersApp.swift */,
+				20950E57920F7E96A1DFB2F1 /* Signing.local.xcconfig */,
 				EED095DCE8ECB10CAA5F77E5 /* Signing.xcconfig */,
 				25B5E3DBBCE1D49A3ECAD4F0 /* Models */,
 				DDD30CC330747A1D1304A1D7 /* Persistence */,
@@ -359,6 +366,7 @@
 				16777953197BE2BC34CCFE6B /* GameStatsStore.swift */,
 				E093DA361796607C17A17777 /* GameStore.swift */,
 				34F357D5B05179379CDC1EF1 /* HumanSeatStore.swift */,
+				A91C26F52123725EF8FFF41C /* MatchCheckpointStore.swift */,
 				AF68AEB9AD0DD219D7E84E99 /* MatchSetup.swift */,
 				1F6B7C1967EDFFBBD8873DAC /* PacingPreferences.swift */,
 				A7D42223DB45BEF77F97D3F6 /* PlayerNameStore.swift */,
@@ -553,6 +561,7 @@
 				49B07B4241AC2D9627186F1A /* InGameSettingsView.swift in Sources */,
 				7678F2D966C6DDD39D673266 /* IncomingTradeCardView.swift in Sources */,
 				71E36B2F286888830989FBC7 /* MainMenuView.swift in Sources */,
+				59EC0F6616F1257C0CD7A951 /* MatchCheckpointStore.swift in Sources */,
 				AFE5AF1DD01C4ED5F64A92D5 /* MatchPersistenceTransaction.swift in Sources */,
 				35341D68F2859E467628A0CC /* MatchSetup.swift in Sources */,
 				6550ED481CBA2A0062722CCD /* NewGameSetupView.swift in Sources */,
@@ -589,6 +598,7 @@
 				1D2F66F3FE62DEFCBDD373E2 /* GameLogStoreTests.swift in Sources */,
 				A61AF82693BF86DFF2883096 /* HotSeatTests.swift in Sources */,
 				DC62266DFBF7B3987969DA87 /* IncomingOfferHoldTests.swift in Sources */,
+				C834783EE1638B259EFA3035 /* MatchCheckpointStoreTests.swift in Sources */,
 				026232B4459AF297E5949F67 /* NewGameEndToEndTests.swift in Sources */,
 				698F2E8917D7405D7AAC8061 /* NewGameSetupTests.swift in Sources */,
 				FA9E6540100EF009A969A54A /* OpponentProfileIntegrationTests.swift in Sources */,
