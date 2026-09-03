@@ -401,13 +401,12 @@ aggregate results, and integrity identifiers that the source branch must carry.
 Difficulty and personality are separate axes. The candidate keeps the current
 personality-aware heuristic as Standard. Easy asks that same heuristic for its
 intent, then on eligible decisions substitutes the best strictly lower-scored
-target of the **same** spatial move kind. The development-tunable frequency is
-recorded with each candidate below. Only initial settlement,
-initial road, road, settlement, and city targets are eligible. Trading, trade
-responses, robber targeting, dev-card use, discards, rolling, ending a turn,
-and the heuristic's move-category choice are unchanged. This is meant to model
-a coherent player making positional mistakes, not a policy taking random legal
-actions.
+target of the **same** settlement/city move kind. The development-tunable
+frequency and eligible set are recorded with each candidate below. Trading,
+road planning, trade responses, robber targeting, dev-card use, discards,
+rolling, ending a turn, and the heuristic's move-category choice are
+unchanged. This is meant to model a coherent player making positional
+mistakes, not a policy taking random legal actions.
 
 The lapse denominator is the only development parameter. It may be changed
 while using the development bank, then is frozen before held-out evaluation.
@@ -452,9 +451,25 @@ the 48-report checksum-manifest SHA-256 is
 `fdd81ba6c237bd224f9f4697dcfc9d528dacf5f8fcf805600bd7735d6b3c0ec3`.
 Artifacts remain under `/private/tmp/empires-easy-development-v1-71215da`.
 
-**v2 — under development.** The lapse denominator is 1: every eligible
-spatial decision uses the best strictly lower-scored same-kind target when one
-exists. No held-out seed has been consumed.
+**v2 — rejected.** Commit `0a40756`, lapse denominator 1 over initial
+settlements, initial roads, roads, settlements, and cities. Its 336-game
+strength screen was fully decisive and removed every reversed cell, but one
+four-player standard-board 12-point game took 1,684 moves, violating the
+predeclared 1,500-move ceiling. Standard's advantage was also zero in the
+four-player randomized 8-point cell and below ten points in three more cells.
+Release binary SHA-256
+`d08adc7671483dd4f998a0996e354ce67279327c4dcdffe5d27462e8b67a7b2d`;
+raw checksum-manifest SHA-256
+`1d2726ba9998bf0dd04fefd76a2e13b237a66a23a68f126cdbc98ecc8627e215`;
+12-report checksum-manifest SHA-256
+`849100e317580065da1eb8f90449b0495f900943353fbe30147fd222e0bbf809`.
+Artifacts remain under
+`/private/tmp/empires-easy-development-v2-0a40756-screen`.
+
+**v3 — under development.** The denominator remains 1, but road choices are
+no longer eligible. Easy takes the strongest strictly inferior initial
+settlement, settlement, or city site and retains the heuristic's road plan so
+the handicap cannot strand its network. No held-out seed has been consumed.
 
 ### Development ladder
 

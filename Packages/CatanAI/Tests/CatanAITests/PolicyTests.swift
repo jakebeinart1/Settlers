@@ -148,6 +148,44 @@ private func playToCompletion(
     #expect(sawDifferentTarget, "Easy never exercised its bounded spatial lapse")
 }
 
+@Test func easyDifficultyKeepsTheHeuristicsRoadPlan() throws {
+    var state = GameSetup.newGame(board: BoardGenerator.standard(), seed: 12)
+    let seat = state.players[0].id
+    let settlementObservation = GameObservation(
+        seat: seat,
+        state: state,
+        legalMoves: RulesEngine.legalMoves(for: state, seat: seat)
+    )
+    var setupRNG = RandomSource(seed: 8)
+    let settlement = HeuristicPolicy(personality: .balanced, id: "shipping").decide(
+        settlementObservation,
+        rng: &setupRNG
+    )
+    _ = try RulesEngine.apply(settlement, by: seat, to: &state)
+    let roadObservation = GameObservation(
+        seat: seat,
+        state: state,
+        legalMoves: RulesEngine.legalMoves(for: state, seat: seat)
+    )
+
+    for seed: UInt64 in 1...32 {
+        var expectedRNG = RandomSource(seed: seed)
+        var actualRNG = expectedRNG
+        let expected = HeuristicPolicy(personality: .balanced, id: "shipping").decide(
+            roadObservation,
+            rng: &expectedRNG
+        )
+        let actual = DifficultyPolicy(
+            personality: .balanced,
+            difficulty: .easy,
+            id: "easy-balanced"
+        ).decide(roadObservation, rng: &actualRNG)
+
+        #expect(actual == expected, "Easy should weaken site selection, not strand its road network")
+        #expect(actualRNG == expectedRNG)
+    }
+}
+
 @Test func easyDifficultyPreservesPersonalityBearingTradeDecisions() {
     var state = GameSetup.newGame(board: BoardGenerator.standard(), seed: 4)
     state.phase = .mainTurn(playerIndex: 0)
