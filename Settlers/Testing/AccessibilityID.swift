@@ -40,6 +40,10 @@ enum AccessibilityID {
 
     enum Game {
         static let settings = "game.settings"
+
+        static func humanResource(_ resource: Resource) -> String {
+            "human-resource.\(resource.rawValue)"
+        }
     }
 
     enum InGameSettings {
