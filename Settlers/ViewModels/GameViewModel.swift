@@ -434,6 +434,15 @@ public final class GameViewModel {
         }
     }
 
+    #if DEBUG
+    /// QA-only: writes the current in-memory state to disk immediately.
+    /// `replaceStateForTesting` (which every QA fixture, e.g.
+    /// `qaSeedIncomingTrade`, goes through) does not persist on its own, so
+    /// a UI test that needs a seeded fixture to survive a real process
+    /// relaunch has to force it explicitly.
+    func qaPersistCurrentState() { persistCurrentState() }
+    #endif
+
     public func dismissPersistenceError() {
         persistenceErrorMessage = nil
     }

@@ -390,7 +390,24 @@ public struct GameView: View {
             }
         }
         .onAppear {
-            seenTradeOfferIDs = Set(state.pendingTradeOffers.map(\.id))
+            // NOT `seenTradeOfferIDs = Set(state.pendingTradeOffers.map(\.id))`
+            // - that blindly marked every currently-pending offer as already
+            // shown, including one that was pending but had never actually
+            // been displayed as a card yet (a bot proposed it, then the app
+            // was closed/backgrounded before the human saw it). Since
+            // `handleTradeOffersChange`'s ingestion loop skips anything in
+            // `seenTradeOfferIDs`, that offer could never be queued, so its
+            // card could never appear - yet `GameViewModel.openIncomingOffer`
+            // (the bot loop's own gate, a live computed property with no
+            // such bookkeeping) still saw it as unanswered and parked the
+            // bot loop on it forever. A real deadlock with nothing on screen
+            // to explain it - reported as "the game just stops advancing",
+            // reproduced by `GameplayBoundaryFlowTests.
+            // testIncomingOfferSurvivesAppRelaunch`. Calling the real
+            // ingestion path here instead correctly queues anything
+            // genuinely still unanswered (and correctly leaves out anything
+            // not currently fulfillable, same as every other call site).
+            handleTradeOffersChange()
             // `-qaShowPendingTradeConfirmation`: same escape hatch pattern
             // as `-qaShowTradePopup` - opens the trade popup straight into
             // its "a bot will accept" confirmation step for QA
@@ -419,6 +436,10 @@ public struct GameView: View {
             if QALaunchFlag.showIncomingOffer.isSet {
                 #if DEBUG
                 incomingOfferQueue = [viewModel.qaSeedIncomingTrade()]
+                // So a UI test can `app.terminate()` right after this and
+                // still find the offer pending on the next launch - see
+                // `qaPersistCurrentState`'s doc comment.
+                viewModel.qaPersistCurrentState()
                 #endif
             }
             // `-qaShowRobberVictimPicker`: same escape hatch pattern, one
@@ -1153,6 +1174,19 @@ public struct GameView: View {
         showBuildPopup = false
         devCardPopupType = nil
         incomingOfferQueue = []
+        // This has the same class of bug as `.onAppear` did (see its fix
+        // above and `GameplayBoundaryFlowTests.
+        // testIncomingOfferSurvivesAppRelaunch`) - blindly marking every
+        // currently-pending offer as seen can permanently swallow one the
+        // incoming seat was never actually shown. Left as-is here rather
+        // than applying the same fix blind: this runs *before*
+        // `claimDeviceForSeatOwedATurn()` updates `seatAtDevice`, so `human`
+        // (and therefore `isOfferCurrentlyFulfillable`) would still resolve
+        // to the *outgoing* seat if this called `handleTradeOffersChange()`
+        // directly - re-deriving the queue against the wrong player's
+        // resources. Only single-human play (Jake's own setup) was
+        // reproduced and verified; the hot-seat handoff path needs its own
+        // repro and fix, not a copy-paste of this one.
         seenTradeOfferIDs = Set(state.pendingTradeOffers.map(\.id))
         errorMessage = nil
     }

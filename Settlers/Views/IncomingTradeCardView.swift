@@ -103,21 +103,6 @@ public struct IncomingTradeCardView: View {
                 // should appear regardless" ask. Replaces the title outright
                 // rather than adding a line, so the card's fixed height
                 // never has to grow to fit it.
-                // `.headline` - bumped up from `.subheadline`, readable at a
-                // glance rather than squinted at. Room for it comes from two
-                // places: the ring/buttons/spacing in this row were already
-                // trimmed down (see below), and every line in
-                // `TradeMessages`'s pools is capped at 38 characters
-                // (`TradeMessagesTests.everyLineFitsTheIncomingCardsCharacterBudget`)
-                // specifically so this text fits at full size without
-                // relying on `minimumScaleFactor` to make room for it.
-                // `minimumScaleFactor` is a real, load-bearing backstop
-                // here (not just a rounding-error safety net) - the 38-char
-                // cap alone wasn't tight enough to guarantee every line
-                // fits `.headline` at full size (measured: a 37-char line
-                // still truncated at a 0.75 floor), so 0.5 is kept as the
-                // proven-safe floor from `.subheadline` testing rather than
-                // narrowing the cap further and losing more of the joke.
                 // The proposer's NAME leads, then their pitch. The pitch alone
                 // was the whole headline, and with no speaker attached a line
                 // like "Even Zeus approves this trade." reads as ambient
@@ -128,30 +113,31 @@ public struct IncomingTradeCardView: View {
                 //
                 // Naming the speaker is what makes it a request, and the
                 // request is what the two buttons are for.
-                // Concatenated into ONE `Text`, not an `HStack` of two.
-                // `minimumScaleFactor` shrinks a single text to fit; across two
-                // views in a stack it cannot, so the pitch truncated mid-word
-                // ("...or a bette...") while the name sat at full size. As one
-                // string the whole line scales together and stays whole.
                 //
                 // The name is white rather than the seat's own colour: several
                 // civilization colours are dark navy or near-black, which on
                 // this card's blue ground read as greyed-out - the speaker
                 // looked disabled. The ring on the left already carries colour.
-                // `.subheadline`, not `.headline`. The line now carries the
-                // proposer's name as well as their pitch, and the row lost
-                // width to 44pt answer buttons - at headline size that
-                // combination truncated mid-word ("...approve. Tr..."), which
-                // is worse than slightly smaller text on a line whose whole job
-                // is to say who wants what.
-                (
-                    Text("\(playerLabel(offer.from)): ").font(.subheadline.bold())
+                //
+                // `.headline`, at full, unshrunk size - reported too small at
+                // `.subheadline` with a `minimumScaleFactor(0.5)` floor,
+                // and `.headline` alone was tried once before and reverted
+                // because a long name+pitch combo truncated mid-word even
+                // at that 0.5 floor ("...approve. Tr..."). `MarqueeText`
+                // below is what breaks that tradeoff: it lays the line out
+                // at its natural, unshrunk width and only scrolls
+                // (ticker-style, looping) when that width doesn't fit the
+                // row, instead of shrinking or truncating it. Short
+                // lines - the common case, `TradeMessages`'s pools cap
+                // every pitch at 38 characters - sit still at full size;
+                // only a long name+pitch combo moves.
+                MarqueeText(
+                    Text("\(playerLabel(offer.from)): ").font(.headline.bold())
                         + Text(TradeMessages.pitch(offer: offer,
                                                    empire: Civilization.forSeat(offer.from.index).tradeMessagesEmpire))
-                        .font(.subheadline)
+                        .font(.headline)
                 )
-                .lineLimit(1)
-                .minimumScaleFactor(0.5)
+                .frame(height: 22)
                 // Colored dots instead of a resource-name sentence - reads
                 // at a glance instead of having to parse "3 brick, 1 wool"
                 // as text, matching how resources are shown everywhere else
@@ -203,7 +189,14 @@ public struct IncomingTradeCardView: View {
                 )
             }
         }
-        .padding(8)
+        // Vertical padding only, 8 -> 4. The card's height is fixed
+        // below (`BottomRowMetrics.height`), so this padding is the only
+        // thing eating into the room the pitch line's VStack has to
+        // render at full size before `minimumScaleFactor` shrinks it -
+        // trimming it here, not the horizontal padding, is what was
+        // asked for. Horizontal stays at 8, unchanged.
+        .padding(.horizontal, 8)
+        .padding(.vertical, 4)
         // Fixed to the same height as `GameView.actionRow`/
         // `robberTargetingPanel` (`GameView.actionRowHeight`, 75.33pt,
         // duplicated here rather than shared across files for one
@@ -312,5 +305,98 @@ public struct IncomingTradeCardView: View {
                 }
             }
         }
+    }
+}
+
+/// A single-line `Text` that scrolls horizontally (ticker-style, looping)
+/// instead of shrinking or truncating when it doesn't fit its row.
+///
+/// Built for `IncomingTradeCardView`'s bot-pitch line: shrinking it
+/// (`minimumScaleFactor`) read too small, and the alternative -
+/// truncating - reads worse (a joke cut off mid-word). Scrolling avoids
+/// both: the text always renders at its real, full size, and only moves
+/// when it doesn't fit. A line that already fits its row is left
+/// completely still - no animation, no cost.
+///
+/// Two copies of the text sit side by side with a gap and slide left
+/// together; the loop resets the instant the first copy has scrolled
+/// fully past, at which point the second copy is already sitting exactly
+/// where the first started, so the reset is invisible rather than a
+/// visible jump.
+private struct MarqueeText: View {
+    private let text: Text
+    /// Points per second the text moves. Picked by eye against how long
+    /// this card actually stays on screen (`PacingPreferences`'s
+    /// incoming-offer timer defaults to 15s) - fast enough that even a
+    /// long line completes a full pass with room to spare, slow enough to
+    /// still read while moving.
+    private static let scrollSpeed: CGFloat = 65
+    private static let gap: CGFloat = 24
+
+    @State private var textWidth: CGFloat = 0
+    @State private var containerWidth: CGFloat = 0
+    @State private var offset: CGFloat = 0
+    @State private var isAnimating = false
+
+    init(_ text: Text) {
+        self.text = text
+    }
+
+    var body: some View {
+        GeometryReader { geo in
+            layout
+                .offset(x: offset)
+                .onAppear {
+                    containerWidth = geo.size.width
+                    startIfNeeded()
+                }
+        }
+        .clipped()
+        .onChange(of: textWidth) { _, _ in startIfNeeded() }
+    }
+
+    /// Renders a second copy only once the first has reported a width
+    /// wider than the row - `textWidth` starts at 0, so the very first
+    /// layout pass is always the single-copy, static case.
+    @ViewBuilder
+    private var layout: some View {
+        if textWidth > containerWidth, containerWidth > 0 {
+            HStack(spacing: Self.gap) {
+                measuredText
+                measuredText
+            }
+        } else {
+            measuredText
+        }
+    }
+
+    private var measuredText: some View {
+        text
+            .lineLimit(1)
+            .fixedSize()
+            .background(
+                GeometryReader { textGeo in
+                    Color.clear
+                        .preference(key: MarqueeWidthKey.self, value: textGeo.size.width)
+                }
+            )
+            .onPreferenceChange(MarqueeWidthKey.self) { textWidth = $0 }
+    }
+
+    private func startIfNeeded() {
+        guard !isAnimating, textWidth > containerWidth, containerWidth > 0 else { return }
+        isAnimating = true
+        let distance = textWidth + Self.gap
+        let duration = Double(distance / Self.scrollSpeed)
+        withAnimation(.linear(duration: duration).repeatForever(autoreverses: false)) {
+            offset = -distance
+        }
+    }
+}
+
+private struct MarqueeWidthKey: PreferenceKey {
+    static let defaultValue: CGFloat = 0
+    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
+        value = max(value, nextValue())
     }
 }

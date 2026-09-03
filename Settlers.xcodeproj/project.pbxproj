@@ -108,7 +108,6 @@
 		11D7DF8A5B6CAC4647065878 /* PreMergeAuditRegressionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreMergeAuditRegressionTests.swift; sourceTree = "<group>"; };
 		16777953197BE2BC34CCFE6B /* GameStatsStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameStatsStore.swift; sourceTree = "<group>"; };
 		1F6B7C1967EDFFBBD8873DAC /* PacingPreferences.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PacingPreferences.swift; sourceTree = "<group>"; };
-		20950E57920F7E96A1DFB2F1 /* Signing.local.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Signing.local.xcconfig; sourceTree = "<group>"; };
 		26C8E728C5FF85E8400CFE1A /* .swiftlint.yml */ = {isa = PBXFileReference; lastKnownFileType = text.yaml; path = .swiftlint.yml; sourceTree = "<group>"; };
 		27BDAD47ABBB94D7F73976E5 /* MainMenuView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainMenuView.swift; sourceTree = "<group>"; };
 		2FA5615D7AB20666AEB04B43 /* AccessibilityID.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccessibilityID.swift; sourceTree = "<group>"; };
@@ -238,7 +237,6 @@
 				E674366C1C13D0BBB8CCC2B2 /* Info.plist */,
 				59A80CE9867E891B09A3F0E5 /* QALaunchFlag.swift */,
 				8164AC90317469202817676F /* SettlersApp.swift */,
-				20950E57920F7E96A1DFB2F1 /* Signing.local.xcconfig */,
 				EED095DCE8ECB10CAA5F77E5 /* Signing.xcconfig */,
 				25B5E3DBBCE1D49A3ECAD4F0 /* Models */,
 				DDD30CC330747A1D1304A1D7 /* Persistence */,

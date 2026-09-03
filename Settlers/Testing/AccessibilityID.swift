@@ -59,6 +59,11 @@ enum AccessibilityID {
         static let accept = "incoming-trade.accept"
     }
 
+    enum Trade {
+        static func giveChip(_ resource: Resource) -> String { "trade.give.\(resource.rawValue)" }
+        static func wantChip(_ resource: Resource) -> String { "trade.want.\(resource.rawValue)" }
+    }
+
     enum GameOver {
         static let newGame = "game-over.new-game"
     }

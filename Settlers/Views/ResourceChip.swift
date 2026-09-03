@@ -1,80 +1,76 @@
 import SwiftUI
 import CatanEngine
 
-/// Shared "resource chip" button - the painted resource card, with an optional
-/// count badge - used by every give/want/discard-style popup
+/// Shared "resource chip" button - a resource-colored rounded square with the
+/// count printed underneath - used by every give/want/discard-style popup
 /// (`TradePopupView`, `DiscardPopupView`, `DevCardPopupView`'s
 /// Monopoly/Year of Plenty picker) so their trays and slots look and behave
 /// the same.
 ///
-/// ## Why this stopped being a colored square
-/// It used to be a flat `RoundedRectangle` filled with
-/// `CatanTheme.color(for:)` and nothing else - no icon, no name - on the
-/// reasoning that "the color alone is the app's one consistent way to identify
-/// a resource". That reasoning only holds for someone who already knows the
-/// mapping. A new player looking at a grey square and an olive square has no
-/// way to learn that one is ore and the other is wool, and the trade popup -
-/// where you are being asked to give something away - is the worst place in
-/// the app to have to guess.
+/// ## Why this is a flat square again, not painted hex art
+/// It spent a while as painted resource-card artwork (bricks, a sheaf of
+/// wheat, ...) on a gold-rimmed hexagon, specifically so a new player could
+/// identify a resource without already knowing "grey means ore." That
+/// tradeoff is a real one - a flat color square asks the player to have
+/// learned the mapping - but Jake asked for it back explicitly: these
+/// popups should match the resource squares already on the board itself
+/// (`PlayerHUDView.resourceDot`, the human's own hand row), not introduce a
+/// second, different-shaped vocabulary for what is the same information.
+/// Consistency with the one row the player checks every turn won this over
+/// the new-player-legibility case for these transient pickers.
 ///
-/// It also made the popups look nothing like the board they sit on top of,
-/// which is fully painted.
-///
-/// The count is a corner badge rather than centred text so it stays legible
-/// over artwork and does not cover the thing it is counting - and so a
-/// two-digit hand does not have to shrink the number to fit.
+/// The count sits below the square as its own `Text`, matching
+/// `resourceDot` exactly, rather than a corner badge - a badge was needed
+/// only to stay legible over painted artwork; over a flat color it is not,
+/// and matching the board's own layout is the point.
 struct ResourceChip: View {
     let resource: Resource
     let count: Int?
     var isEnabled: Bool = true
-    /// Lit with a gold glow. Marks a card that is actually part of the offer,
-    /// which is what distinguishes a staged slot row from the palette below
-    /// it - the rows are otherwise the same five cards.
+    /// A gold ring around the square. Marks a card that is actually part of
+    /// the offer, which is what distinguishes a staged slot row from the
+    /// palette below it - the rows are otherwise the same five cards.
+    ///
+    /// A stroked outline was rejected once before, on the painted-hex
+    /// version, because the art's hexagon didn't stay in register with a
+    /// drawn hex path. That problem is gone now that the shape being
+    /// stroked is the `RoundedRectangle` actually being drawn, not
+    /// artwork inset inside one - so a plain stroke is the simplest thing
+    /// that works.
     var isSelected: Bool = false
     var size: CGFloat = ResourceChip.defaultSize
     let action: () -> Void
 
-    /// Big enough that the painted art is readable rather than a smudge - the
-    /// old flat squares were 36pt, fine for a solid colour and far too small
-    /// for a sheaf of wheat - and small enough that five fit across the
-    /// narrowest phone this ships to.
-    ///
-    /// That upper bound is real, not theoretical. `TradePopupView`'s content
-    /// is `.padding(16)` inside `PopupCard`'s `.padding(.horizontal, 32)`, so
-    /// on a 375pt-wide device (iPhone SE, 13 mini) a five-chip row gets
-    /// 375 - 64 - 32 = 279pt. With 8pt gaps that allows `(279 - 32) / 5` =
-    /// 49.4pt. The chip frame is rigid, so anything larger overflows the card
-    /// silently - it looked fine only because the simulator in use was 402pt.
-    static let defaultSize: CGFloat = 46
+    /// Bigger than the 18pt swatch `PlayerHUDView.resourceDot` uses on the
+    /// board - these are tap targets, not a read-only glance, and 18pt is
+    /// well under Apple's comfortable-touch guidance. 32pt keeps the same
+    /// silhouette while staying under the 49.4pt-per-chip ceiling a
+    /// five-across row has on the narrowest phone this ships to (see the
+    /// arithmetic this replaced, in git history of this file, for how that
+    /// ceiling was measured).
+    static let defaultSize: CGFloat = 32
 
     var body: some View {
         Button(action: action) {
-            Image(CatanTheme.iconImageName(for: resource))
-                .resizable()
-                .interpolation(.high)
-                .scaledToFit()
-                .frame(width: size, height: size)
-                .overlay(alignment: .bottomTrailing) {
-                    if let count {
-                        CountBadge(count: count, diameter: size * 0.42)
-                            .offset(x: size * 0.04, y: size * 0.02)
-                    }
-                }
-                // A glow, not a ring. A drawn outline has to stay in register
-                // with the artwork's own hexagon, and it did not: the art is a
-                // flat-top hexagon inset inside a square image, so a hexagon
-                // path fitted to the frame sat visibly rotated against it. A
-                // shadow follows the alpha channel, so it traces whatever
-                // shape the art actually is and cannot drift out of register.
-                .shadow(color: isSelected ? CatanTheme.chipGold : .clear, radius: 5)
-                .shadow(color: isSelected ? CatanTheme.chipGold.opacity(0.7) : .clear, radius: 10)
-                // Cards are never dimmed or desaturated to say "you have none
-                // of these" - the count badge already says it, and every way of
-                // fading tried here failed on this popup's saturated blue
-                // ground: transparency tinted the card blue, and darkening
-                // turned brick a muddy purple. Full colour, always; the badge
-                // carries the number.
-                .accessibilityLabel(Text(accessibilityText))
+            VStack(spacing: 3) {
+                RoundedRectangle(cornerRadius: 4)
+                    .fill(CatanTheme.color(for: resource))
+                    .frame(width: size, height: size)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 4)
+                            .strokeBorder(CatanTheme.chipGold, lineWidth: isSelected ? 3 : 0)
+                    )
+                // Reserves the same line whether or not there is a count,
+                // via a non-empty placeholder held at zero opacity - so a
+                // bare-palette chip (`count: nil`) and a counted one sit at
+                // identical heights in the same row instead of the row's
+                // baseline jumping card to card.
+                Text(count.map { "\($0)" } ?? "0")
+                    .font(.system(size: 14, weight: .bold))
+                    .foregroundStyle(CatanTheme.onWaterText)
+                    .opacity(count == nil ? 0 : 1)
+            }
+            .accessibilityLabel(Text(accessibilityText))
         }
         .disabled(!isEnabled)
         // Gentle: a heavily faded card takes on the blue behind it. A card you
@@ -83,34 +79,12 @@ struct ResourceChip: View {
         .opacity(isEnabled ? 1 : 0.6)
     }
 
-    /// Spoken form, because the art carries the meaning visually and
-    /// VoiceOver would otherwise read an image filename.
+    /// Spoken form - VoiceOver reads the color square as decorative
+    /// otherwise, so the resource name has to come from here.
     private var accessibilityText: String {
         let name = resource.rawValue.capitalized
         guard let count else { return name }
         return "\(count) \(name)"
-    }
-}
-
-/// The little dark disc a chip's count sits in.
-///
-/// Its own type because it is drawn over painted artwork of five different
-/// dominant colours, so it needs an opaque ground and a rim of its own to stay
-/// readable - plain white text directly on the art fails over wheat gold.
-private struct CountBadge: View {
-    let count: Int
-    let diameter: CGFloat
-
-    var body: some View {
-        Text("\(count)")
-            .font(.system(size: diameter * 0.62, weight: .heavy, design: .rounded))
-            .foregroundStyle(.white)
-            .monospacedDigit()
-            .minimumScaleFactor(0.6)
-            .frame(width: diameter, height: diameter)
-            .background(Circle().fill(Color(red: 0.06, green: 0.09, blue: 0.13)))
-            .overlay(Circle().strokeBorder(CatanTheme.chipGold.opacity(0.85), lineWidth: diameter * 0.07))
-            .shadow(color: .black.opacity(0.5), radius: 1.5, y: 1)
     }
 }
 
