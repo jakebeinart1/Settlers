@@ -43,15 +43,53 @@ struct MatchCheckpoint: Codable, Equatable, Sendable {
 /// Versioned authority under construction; production migration is deliberately
 /// not enabled until accounting and interruption tests cover the whole commit.
 struct MatchCheckpointDocument: Codable, Equatable, Sendable {
+    struct Completion: Codable, Equatable, Sendable {
+        let winner: PlayerID
+        let humanSeat: PlayerID?
+        let finalVP: Int
+        let duration: TimeInterval
+    }
+
     static let currentSchemaVersion = 1
     let schemaVersion: Int
-    let revision: Int
+    private(set) var revision: Int
     let activeMatch: MatchCheckpoint?
+    private(set) var statistics = GameStats()
+    private(set) var completions: [UUID: Completion] = [:]
 
     init(activeMatch: MatchCheckpoint?, revision: Int = 0) {
         self.schemaVersion = Self.currentSchemaVersion
         self.revision = revision
         self.activeMatch = activeMatch
+    }
+
+    /// Freeze one receipt and its totals in the same document as the terminal
+    /// state. Repeating completion after an unacknowledged commit is a no-op.
+    mutating func recordCompletion(duration: TimeInterval) throws {
+        guard let match = activeMatch, case .gameOver(let winner) = match.state.phase,
+              duration.isFinite, duration >= 0, revision < Int.max else {
+            throw MatchCheckpointStore.StoreError.invalidCompletion
+        }
+        guard completions[match.id] == nil else { return }
+        let humans = match.setup.humanSeats
+        let human = humans.count == 1 ? PlayerID(index: humans[0].index) : nil
+        let points = human.map { min(match.state.victoryPoints(for: $0), match.state.victoryPointTarget) } ?? 0
+        completions[match.id] = Completion(winner: winner, humanSeat: human, finalVP: points, duration: duration)
+        if let human {
+            statistics.gamesPlayed += 1
+            statistics.gamesWon += winner == human ? 1 : 0
+            statistics.totalFinalVP += points
+            statistics.totalDurationSeconds += duration
+        }
+        revision += 1
+    }
+
+    /// Reset the displayed totals, not the durable knowledge of which matches
+    /// were processed. Otherwise reopening the last winner undoes the reset.
+    mutating func resetStatistics() throws {
+        guard revision < Int.max else { throw MatchCheckpointStore.StoreError.staleRevision }
+        statistics = GameStats()
+        revision += 1
     }
 }
 
@@ -60,7 +98,7 @@ struct MatchCheckpointDocument: Codable, Equatable, Sendable {
 /// generations of state and roster. This is not a power-loss durability claim.
 @MainActor
 struct MatchCheckpointStore {
-    enum StoreError: Error { case unsupportedSchema, staleRevision, inconsistentHistory }
+    enum StoreError: Error { case unsupportedSchema, staleRevision, inconsistentHistory, invalidCompletion }
     enum CommitStage: Sendable { case beforeReplace, afterReplace }
 
     let fileURL: URL
@@ -91,7 +129,9 @@ struct MatchCheckpointStore {
 
     func commit(_ document: MatchCheckpointDocument, replacingRevision expected: Int?) throws {
         let current = try load()
+        if current == document { return } // Commit succeeded before its acknowledgement was lost.
         guard current?.revision == expected,
+              expected.map({ $0 >= 0 && $0 < Int.max }) ?? true,
               document.revision == (expected.map { $0 + 1 } ?? 0) else {
             throw StoreError.staleRevision
         }

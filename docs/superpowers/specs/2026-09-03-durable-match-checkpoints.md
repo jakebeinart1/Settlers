@@ -71,9 +71,13 @@ None of these requirements is complete merely because this document exists.
 The app-hosted `MatchCheckpointStoreTests` suite currently proves document
 round-trip, exception injection immediately before/after atomic replacement,
 and rejection of a deliberately mismatched move history. The mismatch test
-was observed failing before replay validation was implemented. Three tests
-(four parameter cases) pass; scoped SwiftLint is clean.
+was observed failing before replay validation was implemented. Completion
+receipts and totals now share the document: tests cover a post-write/pre-ack
+exception, reload/retry, hot-seat exclusion, frozen completion duration, and
+stats reset without erasing receipts. Five tests (seven parameter cases) pass;
+scoped SwiftLint is clean. These are synthetic terminal fixtures for accounting,
+not evidence of full gameplay or operating-system process termination.
 
 This is not production persistence yet. Pending: semantic/roster validation,
-accounting and duration, candidate-session integration, migration/export,
+receipt validation and active duration, candidate-session integration, migration/export,
 separate-process termination, performance measurement, and full release gate.
