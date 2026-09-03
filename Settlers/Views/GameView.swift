@@ -1120,10 +1120,10 @@ public struct GameView: View {
         do {
             try viewModel.apply(.respondToTrade(offerID: offer.id, accept: accept))
             errorMessage = nil
+            incomingOfferQueue.removeAll { $0.id == offer.id }
         } catch {
             errorMessage = error.localizedDescription
         }
-        incomingOfferQueue.removeAll { $0.id == offer.id }
     }
 
     /// Drops everything the previous player had half-done.

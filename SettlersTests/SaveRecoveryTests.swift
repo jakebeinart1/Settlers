@@ -37,7 +37,10 @@ struct SaveRecoveryTests {
         let fixture = try RecoveryFixture()
         let initial = fixture.makeModel()
         initial.startNewGame(setup: fixture.validSetup)
-        var malformed = try #require(fixture.setupStore.loadActiveMatch().value)
+        // Seed an actual legacy save; production no longer writes sidecars.
+        try fixture.gameStore.save(initial.state)
+        var malformed = try #require(initial.checkpointDocument?.activeMatch?.setup)
+        try FileManager.default.removeItem(at: initial.checkpointStore.fileURL)
         for (offset, index) in indices.enumerated() { malformed.seats[offset].index = index }
         try fixture.setupStore.saveActiveMatch(malformed)
         let original = try Data(contentsOf: fixture.gameStore.fileURL)

@@ -10,7 +10,7 @@ import CatanEngine
 
 @MainActor
 private func hotSeat(humans: Set<Int>, seats: Int = 4, phaseSeat: Int = 0) -> GameViewModel {
-    let model = GameViewModel()
+    let model = isolatedGameViewModel()
     var state = GameSetup.newGame(board: BoardGenerator.standard(), seed: 3, playerCount: seats)
     state.phase = .mainTurn(playerIndex: phaseSeat)
     model.replaceStateForTesting(state, humanSeats: Set(humans.map { PlayerID(index: $0) }))
@@ -71,7 +71,7 @@ private func hotSeat(humans: Set<Int>, seats: Int = 4, phaseSeat: Int = 0) -> Ga
 
 @MainActor
 @Test func aSoloPlayersNameSurvivesARelaunch() {
-    let model = GameViewModel()
+    let model = isolatedGameViewModel()
     var config = MatchSetup(
         seats: (0..<4).map {
             MatchSetup.Seat(index: $0, isHuman: $0 == 0,
@@ -90,7 +90,7 @@ private func hotSeat(humans: Set<Int>, seats: Int = 4, phaseSeat: Int = 0) -> Ga
 
 @MainActor
 @Test func anEpicWinIsNotFiledAsATen() {
-    let model = GameViewModel()
+    let model = isolatedGameViewModel()
     let config = MatchSetup(
         seats: (0..<4).map {
             MatchSetup.Seat(index: $0, isHuman: $0 == 0, name: $0 == 0 ? "A" : "",

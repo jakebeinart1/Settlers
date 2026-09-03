@@ -12,7 +12,7 @@ import CatanEngine
 /// because jumping straight into a resumed game would otherwise run its bot
 /// turns before the player ever saw the menu).
 struct ContentView: View {
-    @State private var viewModel = GameViewModel()
+    let viewModel: GameViewModel
     @State private var isShowingUnreadableSaveAlert = false
     @State private var isShowingPersistenceError = false
     @State private var isShowingGameLogWarning = false
@@ -70,7 +70,11 @@ struct ContentView: View {
                         // always starts on the human's own setup turn, so it
                         // doesn't need this.
                         Task { await viewModel.runBotTurnIfNeeded() }
-                    }
+                    },
+                    statistics: viewModel.statistics,
+                    requiresSaveReplacementConfirmation: viewModel.requiresSaveReplacementConfirmation,
+                    newGameSetupLoadResult: viewModel.newGameSetupLoadResult,
+                    onResetStatistics: viewModel.resetStatistics
                 )
             }
         }
@@ -85,6 +89,11 @@ struct ContentView: View {
                  ?? "Your saved game cannot be resumed. The original files have been left in place.")
         }
         .alert("Couldn't save the game", isPresented: $isShowingPersistenceError) {
+            Button("Reload saved game") {
+                if viewModel.retryPersistence(), hasStartedThisSession {
+                    Task { await viewModel.runBotTurnIfNeeded() }
+                }
+            }
             Button("OK", role: .cancel) { viewModel.dismissPersistenceError() }
         } message: {
             Text(viewModel.persistenceErrorMessage ?? "The game could not be saved.")
@@ -114,6 +123,9 @@ struct ContentView: View {
             // still has to compile, and the method it names does not exist
             // outside DEBUG.
             #if DEBUG
+            if QALaunchFlag.autoStart.isSet, viewModel.savedGameAvailability == .absent {
+                viewModel.startNewGame(randomizedBoard: false, randomizeSeat: false)
+            }
             if QALaunchFlag.showEndGame.isSet {
                 viewModel.qaForceHumanWin()
             }
@@ -124,7 +136,9 @@ struct ContentView: View {
         // spent backgrounded/locked while a game sits mid-turn.
         .onChange(of: scenePhase) { _, newPhase in
             switch newPhase {
-            case .active: viewModel.appDidBecomeActive()
+            case .active:
+                viewModel.appDidBecomeActive()
+                if hasStartedThisSession { Task { await viewModel.runBotTurnIfNeeded() } }
             case .inactive, .background: viewModel.appWillResignActive()
             @unknown default: viewModel.appWillResignActive()
             }
@@ -152,5 +166,5 @@ struct ContentView: View {
 }
 
 #Preview {
-    ContentView()
+    ContentView(viewModel: GameViewModel())
 }

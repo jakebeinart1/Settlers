@@ -34,7 +34,7 @@ import Testing
         #expect(initialState.players.count == match.playerCount)
         #expect(initialState.victoryPointTarget == match.victoryPointTarget)
         #expect((initialState.board == BoardGenerator.standard()) == !match.randomizedBoard)
-        let activeSetup = try #require(setupStore.loadActiveMatch().value)
+        let activeSetup = try #require(model.checkpointDocument?.activeMatch?.setup)
         #expect(activeSetup.seats.count == match.playerCount)
         #expect(activeSetup.humanSeats.count == match.humanCount)
         #expect(activeSetup.victoryPointTarget == match.victoryPointTarget)
@@ -68,7 +68,7 @@ import Testing
         #expect(summary.winner == winner)
         #expect(summary.moveCount > 100)
         #expect(try logStore.activeGameID() == nil)
-        let stats = statsStore.load()
+        let stats = model.statistics
         if match.humanCount == 1 {
             #expect(stats.gamesPlayed == 1)
             #expect(stats.gamesWon == (winner == model.humanPlayer ? 1 : 0))
@@ -97,7 +97,7 @@ import Testing
         #expect(restored.humanSeats == realisedHumanSeats)
         #expect(CivilizationAssignment.humanNames == realisedNames)
         #expect(restored.opponentProfiles == realisedProfiles)
-        #expect(setupStore.loadActiveMatch().value == activeSetup)
+        #expect(restored.checkpointDocument?.activeMatch?.setup == activeSetup)
     }
 }
 
