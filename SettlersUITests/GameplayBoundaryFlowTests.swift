@@ -74,6 +74,18 @@ final class GameplayBoundaryFlowTests: XCTestCase {
         XCTAssertFalse(app.buttons["main-menu.resume"].exists)
     }
 
+    func testRealAutomatedMatchReachesGameOverAndClearsItsSave() {
+        continueAfterFailure = false
+        let app = launch(arguments: ["-qaAutoStart", "-qaPlayToEnd"])
+
+        let newGame = app.buttons["game-over.new-game"]
+        XCTAssertTrue(newGame.waitForExistence(timeout: Self.completeMatchTimeoutSeconds))
+        newGame.tap()
+
+        XCTAssertTrue(app.otherElements["screen.main-menu"].waitForExistence(timeout: 2))
+        XCTAssertFalse(app.buttons["main-menu.resume"].exists)
+    }
+
     private func launch(arguments: [String]) -> XCUIApplication {
         let app = XCUIApplication()
         app.launchArguments = ["-ui-testing", "-ui-testing-reset"] + arguments
@@ -102,6 +114,7 @@ final class GameplayBoundaryFlowTests: XCTestCase {
     /// settings held the countdown rather than merely racing its deadline.
     private static let holdPastDefaultTimerSeconds: TimeInterval = 16
     private static let timerTestTimeoutSeconds: TimeInterval = holdPastDefaultTimerSeconds + 1
+    private static let completeMatchTimeoutSeconds: TimeInterval = 60
 
     private enum ResourceName: String, CaseIterable {
         case brick, lumber, ore, grain, wool

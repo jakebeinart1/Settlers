@@ -35,6 +35,10 @@ struct ContentView: View {
                 GameView(viewModel: viewModel, onExitToMenu: { hasStartedThisSession = false })
                 #if DEBUG
                     .task {
+                        if QALaunchFlag.playToEnd.isSet {
+                            viewModel.qaPlayToEnd()
+                            return
+                        }
                         // `-qaTwoHumans`: turns the loaded game into a hot-seat
                         // one so the handoff cover is deterministic for visual
                         // QA and native interaction tests.

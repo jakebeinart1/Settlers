@@ -18,6 +18,7 @@
 		1CE9F2891BE97F0B0CC630BB /* EndGameView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 52C0B1D44B650E22AEBC8366 /* EndGameView.swift */; };
 		1D2F66F3FE62DEFCBDD373E2 /* GameLogStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50C4CFF8E5798600294998A8 /* GameLogStoreTests.swift */; };
 		232A932B1BF064663A7161C3 /* CivilizationMappingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B98093256E41FC724D7E6C36 /* CivilizationMappingTests.swift */; };
+		243CAFAAB0A24DF9C30ABFF7 /* CompleteMatchTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5281B8CED614C244F7E533EE /* CompleteMatchTests.swift */; };
 		2963FFF4A45E734FACE3E93A /* DiscardPopupView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 64A459436E4814B4E4BE3728 /* DiscardPopupView.swift */; };
 		2CC361595DA16ED4B8153B23 /* CivilizationAssignmentStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = C112C5D5A27EC971416706D0 /* CivilizationAssignmentStore.swift */; };
 		2D421855CBD3F4FB9CC6B077 /* InGameSettingsFlowTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A425B1FE3B37FECA7840481 /* InGameSettingsFlowTests.swift */; };
@@ -118,6 +119,7 @@
 		494D7E69889970F3FA1C24AB /* GameLogStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameLogStore.swift; sourceTree = "<group>"; };
 		4B89EE635B1E470682ED1D4B /* CatanTheme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CatanTheme.swift; sourceTree = "<group>"; };
 		50C4CFF8E5798600294998A8 /* GameLogStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameLogStoreTests.swift; sourceTree = "<group>"; };
+		5281B8CED614C244F7E533EE /* CompleteMatchTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompleteMatchTests.swift; sourceTree = "<group>"; };
 		52A8BE17AC12F2C0246905CE /* OpponentProfileIntegrationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OpponentProfileIntegrationTests.swift; sourceTree = "<group>"; };
 		52C0B1D44B650E22AEBC8366 /* EndGameView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EndGameView.swift; sourceTree = "<group>"; };
 		56E4A8873ADD3D6574E7A3D3 /* BoardLayeringTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BoardLayeringTests.swift; sourceTree = "<group>"; };
@@ -213,6 +215,7 @@
 				7A53ECD05D7E8073C7BEDC19 /* BoardFitTests.swift */,
 				56E4A8873ADD3D6574E7A3D3 /* BoardLayeringTests.swift */,
 				B98093256E41FC724D7E6C36 /* CivilizationMappingTests.swift */,
+				5281B8CED614C244F7E533EE /* CompleteMatchTests.swift */,
 				50C4CFF8E5798600294998A8 /* GameLogStoreTests.swift */,
 				00588364F7AD8B7D5AF440EA /* HotSeatTests.swift */,
 				6BF5BC6D6577182E9829230A /* IncomingOfferHoldTests.swift */,
@@ -570,6 +573,7 @@
 				E3A6D0C733055C91F0E356FE /* BoardFitTests.swift in Sources */,
 				0C001867D26CBDBAA67CDC72 /* BoardLayeringTests.swift in Sources */,
 				232A932B1BF064663A7161C3 /* CivilizationMappingTests.swift in Sources */,
+				243CAFAAB0A24DF9C30ABFF7 /* CompleteMatchTests.swift in Sources */,
 				1D2F66F3FE62DEFCBDD373E2 /* GameLogStoreTests.swift in Sources */,
 				A61AF82693BF86DFF2883096 /* HotSeatTests.swift in Sources */,
 				DC62266DFBF7B3987969DA87 /* IncomingOfferHoldTests.swift in Sources */,

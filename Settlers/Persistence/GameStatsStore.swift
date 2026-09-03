@@ -40,6 +40,8 @@ public struct GameStatsStore: Sendable {
         fileURL = baseURL.appendingPathComponent("game_stats.json")
     }
 
+    init(fileURL: URL) { self.fileURL = fileURL }
+
     /// The saved stats, or an empty `GameStats()` (zero games played) if
     /// none has been recorded yet or the file is missing/corrupt.
     public func load() -> GameStats {
