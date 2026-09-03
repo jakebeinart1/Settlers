@@ -348,6 +348,10 @@ public struct HumanPlayerPanel: View {
                 .foregroundStyle(CatanTheme.onWaterText)
         }
         .opacity(count > 0 ? 1 : 0.35)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel("\(resource.rawValue.capitalized) cards")
+        .accessibilityValue("\(count)")
+        .accessibilityIdentifier(AccessibilityID.Game.humanResource(resource))
     }
 }
 

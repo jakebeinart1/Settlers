@@ -64,6 +64,7 @@ public struct IncomingTradeCardView: View {
     @State private var totalSeconds: Double = 0
     @State private var remaining: Double = 0
     @State private var isPaused = false
+    @State private var isExternallyHeld = false
     /// A monotonically increasing tick source (0.1s) rather than a single
     /// `Task.sleep(for: totalSeconds)`, so pausing on tap genuinely halts
     /// the countdown instead of just hiding a timer that fires anyway.
@@ -240,7 +241,13 @@ public struct IncomingTradeCardView: View {
         .onTapGesture {
             isPaused.toggle()
         }
-        .onAppear(perform: startTicking)
+        .onAppear {
+            isExternallyHeld = isHeld
+            startTicking()
+        }
+        .onChange(of: isHeld) { _, held in
+            isExternallyHeld = held
+        }
         .onDisappear { tickTask?.cancel() }
         .transition(.move(edge: .bottom).combined(with: .opacity))
     }
@@ -282,7 +289,7 @@ public struct IncomingTradeCardView: View {
             while remaining > 0 {
                 try? await Task.sleep(for: .milliseconds(100))
                 if Task.isCancelled { return }
-                guard !isPaused, !isHeld else { continue }
+                guard !isPaused, !isExternallyHeld else { continue }
                 remaining = max(0, remaining - 0.1)
             }
             onReject()

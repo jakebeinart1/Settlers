@@ -412,48 +412,14 @@ public struct GameView: View {
         }
         .task {
             await qaFastForwardToRollDiceIfRequested()
-            // `-qaShowIncomingOffer`: same escape hatch pattern - seeds
-            // `incomingOfferQueue` so `IncomingTradeCardView` can be
-            // screenshotted without waiting for a real bot to propose one.
-            //
-            // The offer carries REAL resources. It used to be `give: [:],
-            // want: [:]`, chosen so `isOfferCurrentlyFulfillable` was
-            // vacuously true - but the card renders its give/get dots from
-            // those dictionaries, so every screenshot taken through this flag
-            // showed "Give -> Get" with nothing between them. A fixture that
-            // renders differently from the thing it stands in for is worse
-            // than no fixture: it sent a real reader hunting a rendering bug
-            // that did not exist.
-            //
-            // The proposer is the first seat that is NOT the human, rather
-            // than a hardcoded seat 1: with Randomize Seat on, seat 1 is the
-            // human one game in four, and the card then showed an offer from
-            // the player to themselves. Runs after
-            // `qaFastForwardToRollDiceIfRequested`, not in `onAppear` - that
-            // fast-forward's own moves fire `state.pendingTradeOffers`
-            // changes, and `handleTradeOffersChange`'s
-            // `onChange(of: state.pendingTradeOffers...)` handler purges any
-            // queued offer that isn't backed by a real one, wiping this
-            // fake one out again almost immediately if seeded any earlier.
+            // Seed a real engine-backed offer after any fast-forwarding. The
+            // UI test accepts and rejects this exact pending offer and checks
+            // the human hand, so a card that merely disappears on an engine
+            // error can no longer produce a green result.
             if QALaunchFlag.showIncomingOffer.isSet {
-                // Built from what the two seats actually hold, so the card
-                // renders real cards AND survives `currentIncomingOffer`'s
-                // continuous fulfillability re-check - a fixed pair like
-                // "1 ore for 2 grain" is filtered out the moment the human
-                // does not happen to hold two grain, which is most of the time
-                // this early, and the card then never appears at all.
-                let bot = viewModel.state.players.first { $0.id != viewModel.humanPlayer }
-                let humanHand = viewModel.state.players.first { $0.id == viewModel.humanPlayer }
-                if let bot,
-                   let wanted = Resource.allCases.first(where: { (humanHand?.resources[$0] ?? 0) > 0 }),
-                   let offered = Resource.allCases.first(where: { (bot.resources[$0] ?? 0) > 0 }) {
-                    incomingOfferQueue = [TradeOffer(from: bot.id, give: [offered: 1], want: [wanted: 1])]
-                } else {
-                    // Neither side holds anything yet; fall back to the old
-                    // vacuously-fulfillable offer so the flag still shows a
-                    // card rather than silently doing nothing.
-                    incomingOfferQueue = [TradeOffer(from: bot?.id ?? PlayerID(index: 0), give: [:], want: [:])]
-                }
+                #if DEBUG
+                incomingOfferQueue = [viewModel.qaSeedIncomingTrade()]
+                #endif
             }
             // `-qaShowRobberVictimPicker`: same escape hatch pattern, one
             // step further than `-qaShowRobberTargeting` - arms

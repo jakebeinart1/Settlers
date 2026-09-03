@@ -78,6 +78,7 @@
 		EA3F8948081A29B415CD8B67 /* QALaunchFlag.swift in Sources */ = {isa = PBXBuildFile; fileRef = 59A80CE9867E891B09A3F0E5 /* QALaunchFlag.swift */; };
 		ED932E191F8F655CD1CF15F1 /* GameLogListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D98DF10D73632B7243DC205C /* GameLogListView.swift */; };
 		EDDC6F3EE75F97F9C0A3A1CA /* GameplayBoundaryFlowTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 95CF01E3C9518CFFC7C0AF1F /* GameplayBoundaryFlowTests.swift */; };
+		F196BA189817672BCD58FBA7 /* GameViewModel+QATrade.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7E281605A981DE27D853BE66 /* GameViewModel+QATrade.swift */; };
 		FA9E6540100EF009A969A54A /* OpponentProfileIntegrationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 52A8BE17AC12F2C0246905CE /* OpponentProfileIntegrationTests.swift */; };
 		FF9AA750533D6758843BC13D /* GameLogDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E93C9C15AFA0812F0FF8E052 /* GameLogDetailView.swift */; };
 /* End PBXBuildFile section */
@@ -137,6 +138,7 @@
 		7A425B1FE3B37FECA7840481 /* InGameSettingsFlowTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InGameSettingsFlowTests.swift; sourceTree = "<group>"; };
 		7A53ECD05D7E8073C7BEDC19 /* BoardFitTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BoardFitTests.swift; sourceTree = "<group>"; };
 		7B3D502345F41546FE4903CE /* SeatCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SeatCardView.swift; sourceTree = "<group>"; };
+		7E281605A981DE27D853BE66 /* GameViewModel+QATrade.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "GameViewModel+QATrade.swift"; sourceTree = "<group>"; };
 		8164AC90317469202817676F /* SettlersApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettlersApp.swift; sourceTree = "<group>"; };
 		859E263A00119BF52F19D867 /* PacingPreferencesTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PacingPreferencesTests.swift; sourceTree = "<group>"; };
 		85B6069622A8A50F3F60184A /* OpponentProfile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OpponentProfile.swift; sourceTree = "<group>"; };
@@ -257,6 +259,7 @@
 			isa = PBXGroup;
 			children = (
 				2FA5615D7AB20666AEB04B43 /* AccessibilityID.swift */,
+				7E281605A981DE27D853BE66 /* GameViewModel+QATrade.swift */,
 				5CF7C06392E2A4F1B15C8411 /* UITestBootstrap.swift */,
 			);
 			path = Testing;
@@ -527,6 +530,7 @@
 				6BE4D5162E62A51ADA6A2599 /* GameStore.swift in Sources */,
 				82772E4A5ECBA817A966B46B /* GameView.swift in Sources */,
 				98BA6BD782CD84C83F73A13D /* GameViewModel+OpponentProfiles.swift in Sources */,
+				F196BA189817672BCD58FBA7 /* GameViewModel+QATrade.swift in Sources */,
 				076DBD0E74CFC2372A8A8AA9 /* GameViewModel.swift in Sources */,
 				73E0287081669C06B076C233 /* GoldRowButton.swift in Sources */,
 				4EAF11010AEF6B6B6C568A37 /* HandoffCoverView.swift in Sources */,
