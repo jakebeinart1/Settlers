@@ -96,5 +96,11 @@ evaluation count, queued trade decision, proposal guard, and action counters.
 Restoration checks schema and policy identities without re-evaluating a pending
 response. Three new engine tests cover continuing the same move sequence,
 preserving a sampled response, and rejecting a changed policy roster; the full
-181-test engine suite passes. App-document wiring and hostile-checkpoint
-validation remain pending, so this does not yet change production resume.
+181-test engine suite passes. Hostile-checkpoint validation remains pending.
+
+App documents now include the actual candidate session checkpoint, and reject
+a snapshot whose board disagrees with recorded history. Nine hosted tests pass.
+One entire seeded match wrote every move and reloaded its session every 25
+moves, finishing with one completion receipt and exact final state in 22.611s
+on the simulator. This is a functional storage-path test, not a phone latency
+benchmark or proof of production GameViewModel wiring, which remains pending.

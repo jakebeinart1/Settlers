@@ -15,6 +15,7 @@ struct MatchCheckpoint: Codable, Equatable, Sendable {
     private(set) var state: GameState
     private(set) var moves: [RecordedMove] = []
     private(set) var elapsedSeconds: TimeInterval = 0
+    private(set) var sessionCheckpoint: GameSession.Checkpoint?
 
     init(id: UUID, initialState: GameState, setup: MatchSetup) {
         self.id = id
@@ -28,6 +29,12 @@ struct MatchCheckpoint: Codable, Equatable, Sendable {
         try RulesEngine.apply(move, by: actor, to: &candidate)
         state = candidate
         moves.append(RecordedMove(actor: actor, move: move))
+        sessionCheckpoint = nil
+    }
+
+    mutating func attachSession(_ checkpoint: GameSession.Checkpoint) throws {
+        guard checkpoint.state == state else { throw MatchCheckpointStore.StoreError.inconsistentHistory }
+        sessionCheckpoint = checkpoint
     }
 
     mutating func recordElapsedTime(_ seconds: TimeInterval) throws {
@@ -45,6 +52,9 @@ struct MatchCheckpoint: Codable, Equatable, Sendable {
             try RulesEngine.apply(entry.move, by: entry.actor, to: &replay)
         }
         guard replay == state else { throw MatchCheckpointStore.StoreError.inconsistentHistory }
+        if let sessionCheckpoint, sessionCheckpoint.state != state {
+            throw MatchCheckpointStore.StoreError.inconsistentHistory
+        }
     }
 }
 
@@ -84,6 +94,16 @@ struct MatchCheckpointDocument: Codable, Equatable, Sendable {
         next.activeMatch = match
         if case .gameOver = match.state.phase { try next.recordCompletion(duration: elapsedSeconds) }
         next.revision = revision + 1
+        return next
+    }
+
+    /// Persist the actual candidate session's bookkeeping after its move.
+    /// Replay verifies the step agrees with that session before either reaches
+    /// disk. The caller keeps the candidate session, rather than rebuilding it.
+    func recording(_ step: GameSession.Step, session: GameSession.Checkpoint,
+                   elapsedSeconds: TimeInterval) throws -> Self {
+        var next = try applying(step.move, by: step.actor, elapsedSeconds: elapsedSeconds)
+        try next.activeMatch?.attachSession(session)
         return next
     }
 

@@ -7,6 +7,66 @@ import CatanAI
 @MainActor @Suite struct MatchCheckpointStoreTests {
     enum Interruption: Error { case simulatedProcessExit }
 
+    @Test func fullMatchCheckpointsResumeWithoutChangingTheSession() throws {
+        let root = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: root) } // Test-owned directory only.
+        let store = MatchCheckpointStore(fileURL: root.appendingPathComponent("checkpoint.json"))
+        let initial = GameSetup.newGame(board: BoardGenerator.standard(), seed: 471)
+        let setup = MatchSetup.default(preferredName: "Alex", preferredCivilization: Civilization.allCases[0])
+        var policies: [PlayerID: any Policy] = [:]
+        for player in initial.players {
+            policies[player.id] = HeuristicPolicy(personality: .balanced, id: "checkpoint-fixture")
+        }
+        var session = GameSession(state: initial, policies: policies, policySeed: 99)
+        var document = MatchCheckpointDocument(activeMatch: MatchCheckpoint(id: UUID(), initialState: initial, setup: setup))
+        try store.commit(document, replacingRevision: nil)
+        for index in 1...3_000 {
+            guard let step = try session.step() else { break }
+            let next = try document.recording(step, session: session.checkpoint, elapsedSeconds: Double(index))
+            try store.commit(next, replacingRevision: document.revision)
+            document = next
+            if index.isMultiple(of: 25) {
+                let reloaded = try #require(try store.load())
+                let snapshot = try #require(reloaded.activeMatch?.sessionCheckpoint)
+                #expect(snapshot == session.checkpoint)
+                session = try GameSession(checkpoint: snapshot, policies: policies)
+            }
+        }
+        guard case .gameOver = session.state.phase else {
+            Issue.record("checkpoint-driven match did not finish within the action limit")
+            return
+        }
+        #expect(document.statistics.gamesPlayed == 1)
+        #expect(document.completions.count == 1)
+        #expect(document.activeMatch?.moves.count ?? 0 > 100)
+        #expect(try store.load()?.activeMatch?.state == session.state)
+    }
+
+    @Test func committedPolicyStepRestoresTheSameSessionContinuation() throws {
+        let root = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: root) } // Test-owned directory only.
+        let store = MatchCheckpointStore(fileURL: root.appendingPathComponent("checkpoint.json"))
+        let initial = GameSetup.newGame(board: BoardGenerator.standard(), seed: 471)
+        let setup = MatchSetup.default(preferredName: "Alex", preferredCivilization: Civilization.allCases[0])
+        var policies: [PlayerID: any Policy] = [:]
+        for player in initial.players {
+            policies[player.id] = HeuristicPolicy(personality: .balanced, id: "checkpoint-fixture")
+        }
+        var session = GameSession(state: initial, policies: policies, policySeed: 99)
+        let original = MatchCheckpointDocument(activeMatch: MatchCheckpoint(id: UUID(), initialState: initial, setup: setup))
+        let step = try #require(try session.step())
+        let next = try original.recording(step, session: session.checkpoint, elapsedSeconds: 12)
+        try store.commit(original, replacingRevision: nil)
+        try store.commit(next, replacingRevision: 0)
+        let restored = try #require(try store.load()?.activeMatch?.sessionCheckpoint)
+        var resumed = try GameSession(checkpoint: restored, policies: policies)
+        let expected = try session.step()
+        let actual = try resumed.step()
+        #expect(expected?.move == actual?.move)
+        #expect(session.state == resumed.state)
+        #expect(session.policyRNG == resumed.policyRNG)
+    }
+
     @Test func winningMoveCommitsStateHistoryAndStatisticsInOneRevision() throws {
         let root = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
         defer { try? FileManager.default.removeItem(at: root) } // Test-owned directory only.
