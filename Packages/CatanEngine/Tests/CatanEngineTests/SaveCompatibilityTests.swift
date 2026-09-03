@@ -31,7 +31,8 @@ private func encodeOmitting(_ keys: [String], from state: GameState) throws -> D
     // Every field added since the first shipped save, plus the two this change
     // introduces. An older save has none of them.
     let laterAdditions = ["schemaVersion", "rng", "tradesAcceptedThisTurn",
-                          "devCardsBoughtThisTurn", "devCardPlayedThisTurn", "log"]
+                          "devCardsBoughtThisTurn", "devCardPlayedThisTurn", "log",
+                          "declinedTradeOffersThisTurn"]
     for key in laterAdditions {
         let trimmed = try encodeOmitting([key], from: state)
         #expect(throws: Never.self, "a save without '\(key)' must still load") {

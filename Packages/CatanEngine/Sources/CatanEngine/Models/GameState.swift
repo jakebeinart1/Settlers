@@ -3,14 +3,14 @@ public struct GameState: Codable, Sendable, Equatable {
     /// to the stored shape needs `init(from:)` below to do something other
     /// than fall back to a default, and branch on it there. Saves written
     /// before versioning existed decode as `0`.
-    /// Bumped to 2 when `victoryPointTarget` was added.
+    /// Bumped to 3 when `declinedTradeOffersThisTurn` was added.
     ///
     /// The field decodes with `decodeIfPresent ?? WinCondition.standardTarget`,
     /// so a v1 save still loads and plays to ten - which is what it was
     /// started at. The version is here so a future reader can tell the
     /// difference between "this game chose ten" and "this game predates the
     /// choice", not because the decoder needs it.
-    public static let currentSchemaVersion = 2
+    public static let currentSchemaVersion = 3
 
     /// The schema version this value was decoded from (or
     /// `currentSchemaVersion` for a freshly created game). Persisted so a
@@ -70,6 +70,14 @@ public struct GameState: Codable, Sendable, Equatable {
     /// who keeps coming back, bots previously had no way to. Cleared for
     /// everyone on `.endTurn`, same as `devCardsBoughtThisTurn`.
     public var tradesAcceptedThisTurn: [PlayerID: Int]
+    /// Every trade offer `PlayerID` has proposed and had declined so far this
+    /// turn - reset for everyone on `.endTurn`, same lifecycle as
+    /// `tradesAcceptedThisTurn`. Lets `TradeHeuristics.proposeTrades` retry with
+    /// a genuinely different offer instead of recomposing the one that was just
+    /// turned down (which, being a pure function of otherwise-unchanged state,
+    /// it would otherwise reproduce exactly), and caps how many attempts a
+    /// player gets per turn without needing separate session-local bookkeeping.
+    public var declinedTradeOffersThisTurn: [PlayerID: [TradeOffer]]
 
     public init(
         board: Board,
@@ -85,6 +93,7 @@ public struct GameState: Codable, Sendable, Equatable {
         devCardsBoughtThisTurn: [PlayerID: [DevCardType]] = [:],
         devCardPlayedThisTurn: PlayerID? = nil,
         tradesAcceptedThisTurn: [PlayerID: Int] = [:],
+        declinedTradeOffersThisTurn: [PlayerID: [TradeOffer]] = [:],
         rng: RandomSource = RandomSource(seed: UInt64.random(in: .min ... .max)),
         schemaVersion: Int = GameState.currentSchemaVersion,
         victoryPointTarget: Int = WinCondition.standardTarget
@@ -105,6 +114,7 @@ public struct GameState: Codable, Sendable, Equatable {
         self.devCardsBoughtThisTurn = devCardsBoughtThisTurn
         self.devCardPlayedThisTurn = devCardPlayedThisTurn
         self.tradesAcceptedThisTurn = tradesAcceptedThisTurn
+        self.declinedTradeOffersThisTurn = declinedTradeOffersThisTurn
     }
 
     /// Decodes a saved game, tolerating fields that a *older* save predates.
@@ -172,6 +182,8 @@ public struct GameState: Codable, Sendable, Equatable {
         devCardPlayedThisTurn = try container.decodeIfPresent(PlayerID.self, forKey: .devCardPlayedThisTurn)
         tradesAcceptedThisTurn = try container
             .decodeIfPresent([PlayerID: Int].self, forKey: .tradesAcceptedThisTurn) ?? [:]
+        declinedTradeOffersThisTurn = try container
+            .decodeIfPresent([PlayerID: [TradeOffer]].self, forKey: .declinedTradeOffersThisTurn) ?? [:]
     }
 
     /// Victory points that are public knowledge for `id`: buildings plus the
