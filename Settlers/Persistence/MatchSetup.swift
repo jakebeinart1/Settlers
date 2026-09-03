@@ -71,13 +71,13 @@ public struct MatchSetup: Codable, Equatable, Sendable {
         seats.map(\.index).elementsEqual(seats.indices)
     }
 
-    /// Why this setup cannot start a game, or `nil` if it can.
+    /// Why this setup is not a coherent match, or `nil` if it is.
     ///
-    /// One function rather than a scatter of `isValid` flags, because the
-    /// button needs to say *what* is wrong, not merely go grey. A control that
-    /// is disabled without saying why is the same failure as a setting that
-    /// silently does nothing.
-    public var validationProblem: String? {
+    /// This deliberately excludes product-level restrictions on creating a
+    /// *new* match. A checkpoint written by an older build must remain
+    /// resumable even when the current New Game screen no longer offers that
+    /// exact rules combination.
+    public var matchProblem: String? {
         guard GameSetup.supportedPlayerCounts.contains(seats.count) else {
             return "A game needs \(GameSetup.supportedPlayerCounts.lowerBound) or "
                 + "\(GameSetup.supportedPlayerCounts.upperBound) players."
@@ -105,7 +105,37 @@ public struct MatchSetup: Codable, Equatable, Sendable {
         return nil
     }
 
+    /// Why this setup cannot start a new game, or `nil` if it can.
+    ///
+    /// One function rather than a scatter of `isValid` flags, because the
+    /// button needs to say *what* is wrong, not merely go grey. A control that
+    /// is disabled without saying why is the same failure as a setting that
+    /// silently does nothing.
+    public var validationProblem: String? {
+        if let matchProblem { return matchProblem }
+        guard Self.newGameVictoryPointTargets(for: seats.count).contains(victoryPointTarget) else {
+            return "12 VP is available with 3 players."
+        }
+        return nil
+    }
+
+    public var isValidMatch: Bool { matchProblem == nil }
     public var isStartable: Bool { validationProblem == nil }
+
+    /// Match lengths the base board can reliably finish at this table size.
+    ///
+    /// Four-player 12-point self-play reached a fully developed 11/11/11/10
+    /// position and remained unchanged through 10,000 moves: the scoring
+    /// supply had been distributed without any player reaching 12. Existing
+    /// checkpoints retain engine support through `isValidMatch`, but the New
+    /// Game screen must not create a match that can have no winner.
+    public static func newGameVictoryPointTargets(for playerCount: Int) -> [Int] {
+        switch playerCount {
+        case 3: [8, 10, 12]
+        case 4: [8, 10]
+        default: []
+        }
+    }
 
     public var humanSeats: [Seat] { seats.filter(\.isHuman) }
     public var aiSeats: [Seat] { seats.filter { !$0.isHuman } }
@@ -146,6 +176,7 @@ public struct MatchSetup: Codable, Equatable, Sendable {
             // Shrinking must not leave a table with no human in it.
             if !seats.contains(where: \.isHuman) { seats[0].isHuman = true }
             if seats[0].name.trimmed.isEmpty { seats[0].name = preferredName }
+            normalizeNewGameOptions()
             return
         }
         while seats.count < count {
@@ -156,6 +187,15 @@ public struct MatchSetup: Codable, Equatable, Sendable {
                 name: index == 0 ? preferredName : "",
                 civilization: index == 0 ? preferredCivilization : nil
             ))
+        }
+        normalizeNewGameOptions()
+    }
+
+    /// Keeps a persisted New Game prefill representable by today's controls.
+    /// Active-match restoration never calls this method.
+    mutating func normalizeNewGameOptions() {
+        if !Self.newGameVictoryPointTargets(for: seats.count).contains(victoryPointTarget) {
+            victoryPointTarget = WinCondition.standardTarget
         }
     }
 }

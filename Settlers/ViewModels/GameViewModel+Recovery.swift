@@ -63,7 +63,7 @@ extension GameViewModel {
         let civilizations = setup.seats.compactMap { seat in
             seat.isHuman ? seat.civilization : seat.opponentProfile?.civilization ?? seat.civilization
         }
-        guard setup.isStartable,
+        guard setup.isValidMatch,
               setup.seats.count == state.players.count,
               setup.victoryPointTarget == state.victoryPointTarget,
               civilizations.count == state.players.count,

@@ -1,7 +1,7 @@
 # AI approach evaluation and prototype order
 
 Date: 2026-09-03
-Status: short-horizon P1 and first P2 learned policy rejected
+Status: short-horizon P1, first P2 learned policy, and first Easy prototype rejected
 
 ## Decision
 
@@ -70,7 +70,8 @@ Keep only if all are true:
 - repeated calls with the same observation and RNG are identical across
   processes;
 - p95 decision latency is measured at budgets suitable for a local device;
-- every supported 3/4-player, 8/10/12-point configuration completes;
+- every product configuration completes (3p at 8/10/12; 4p at 8/10), with
+  four-player 12-point retained only as an engine stress case;
 - a paired frozen-anchor evaluation shows either useful strength signal or a
   clear diagnostic about what the evaluator/search horizon lacks.
 
@@ -281,3 +282,152 @@ teacher corpus strongly overrepresents locally plausible actions that do not
 produce a winning long-horizon policy. A future learned candidate needs either
 search/value targets or self-play improvement, and must pass actual
 seat-rotated gameplay screening before any on-device integration work.
+
+## Difficulty calibration protocol — locked before the run
+
+The first difficulty experiment is an **anchor-validation screen**, not a UI
+label and not a five-point strength claim. It asks whether the shipping
+Balanced heuristic is materially stronger than the frozen Greedy anchor in
+every declared evaluation cell. The matrix was locked before four-player
+12-point play was removed from New Game; those two cells are now engine stress
+cases, not product configurations. Greedy remains an
+evaluation anchor; this protocol does not approve presenting it as an Easy
+personality because Greedy intentionally never trades and therefore erases a
+player-visible personality axis.
+
+The Release simulator is built once from the settled source tree, copied aside,
+and identified by both source commit and binary SHA-256. Candidate and control
+use that same binary:
+
+- candidate arm: one `heuristic-balanced` chair against Greedy in every other
+  occupied chair;
+- control arm: the evaluated chair and every opponent use Greedy;
+- complete rotation through all three or four occupied chairs;
+- one configuration per analyzer invocation; no pooling across table sizes,
+  victory targets, or board modes;
+- decisive games only, with the decisive rate reported separately;
+- seed-cluster bootstrap intervals, with every chair rotation from one board
+  seed kept in the same cluster.
+
+The held-out corpus is 40 unique board seeds per cell, 480 seeds total:
+
+| Players | VP | Board | Seeds | Games per arm |
+| ---: | ---: | --- | --- | ---: |
+| 3 | 8 | standard | 80000–80039 | 120 |
+| 3 | 8 | randomized | 80040–80079 | 120 |
+| 3 | 10 | standard | 80080–80119 | 120 |
+| 3 | 10 | randomized | 80120–80159 | 120 |
+| 3 | 12 | standard | 80160–80199 | 120 |
+| 3 | 12 | randomized | 80200–80239 | 120 |
+| 4 | 8 | standard | 80240–80279 | 160 |
+| 4 | 8 | randomized | 80280–80319 | 160 |
+| 4 | 10 | standard | 80320–80359 | 160 |
+| 4 | 10 | randomized | 80360–80399 | 160 |
+| 4 | 12 | standard | 80400–80439 | 160 |
+| 4 | 12 | randomized | 80440–80479 | 160 |
+
+That is 1,680 games per arm and 3,360 total. These counts are deliberately
+larger than a smoke test but are not powered to resolve a five-percentage-point
+difference. The predeclared keep criteria are instead a large-separation gate:
+
+1. every game is decisive and remains below the 3,000-move cap;
+2. each all-Greedy control cell equals its exact full-rotation null—33.3% for
+   three players and 25% for four—or the rig is invalid;
+3. in every cell, the paired 95% interval for Balanced minus control excludes
+   zero on the positive side; and
+4. in every cell, the point advantage is at least 20 percentage points.
+
+The seeds are never used to tune a candidate. Passing establishes that the two
+policies form distinct strength anchors across the declared matrix. It does not
+establish that either is fun for a human or authorize a difficulty selector.
+The next tier candidate must preserve personality, use a new held-out seed
+range, and pass the same per-cell structure before product integration.
+
+## Difficulty calibration result — failed as designed
+
+The locked run was completed without changing the protocol: **3,360 games**
+(1,680 candidate and 1,680 control records) from one frozen Release executable.
+Balanced was clearly stronger than Greedy in every cell, but the calibration
+**failed** the predeclared gate. Three- and four-player 12-point games exposed
+non-termination at the 3,000-move cap, and the three-player, standard-board,
+10-point cell cleared zero but missed the required 20-point separation.
+
+| Players | VP | Board | Balanced wins | Control wins | Difference (95% CI) | Decisive candidate / control | Gate |
+| ---: | ---: | --- | ---: | ---: | ---: | ---: | --- |
+| 3 | 8 | standard | 73/120 (60.8%) | 40/120 (33.3%) | +27.5 (+19.2, +35.8) | 120/120 · 120/120 | pass |
+| 3 | 8 | randomized | 92/120 (76.7%) | 40/120 (33.3%) | +43.3 (+34.2, +51.7) | 120/120 · 120/120 | pass |
+| 3 | 10 | standard | 58/120 (48.3%) | 40/120 (33.3%) | +15.0 (+5.8, +24.2) | 120/120 · 120/120 | **fail: margin** |
+| 3 | 10 | randomized | 106/120 (88.3%) | 40/120 (33.3%) | +55.0 (+49.2, +60.0) | 120/120 · 120/120 | pass |
+| 3 | 12 | standard | 87/120 (72.5%) | 40/120 (33.3%) | +39.2 (+30.8, +46.7) | 120/120 · 120/120 | pass |
+| 3 | 12 | randomized | 102/120 (85.0%) | 39/117 (33.3%) | +51.7 (+45.0, +58.3) | 120/120 · 117/120 | **fail: completion** |
+| 4 | 8 | standard | 131/160 (81.9%) | 40/160 (25.0%) | +56.9 (+50.0, +63.7) | 160/160 · 160/160 | pass |
+| 4 | 8 | randomized | 117/160 (73.1%) | 40/160 (25.0%) | +48.1 (+40.6, +55.6) | 160/160 · 160/160 | pass |
+| 4 | 10 | standard | 137/160 (85.6%) | 40/160 (25.0%) | +60.6 (+53.8, +66.2) | 160/160 · 160/160 | pass |
+| 4 | 10 | randomized | 134/160 (83.8%) | 40/160 (25.0%) | +58.8 (+52.5, +64.4) | 160/160 · 160/160 | pass |
+| 4 | 12 | standard | 139/159 (87.4%) | 40/160 (25.0%) | +62.4 (+57.4, +67.4) | 159/160 · 160/160 | **fail: completion** |
+| 4 | 12 | randomized | 140/157 (89.2%) | 34/136 (25.0%) | +64.2 (+58.5, +69.3) | 157/160 · 136/160 | **fail: completion** |
+
+All-Greedy controls retained the exact full-rotation null among decisive games,
+so the rotation and scoring rig behaved correctly. The 31 timeout records came
+from repeated chair rotations over a smaller set of board seeds. All-Greedy
+timed out on seed 80233 in the three-player randomized 12-point cell and seeds
+80443, 80448, 80449, 80452, 80457, and 80467 in the four-player randomized
+12-point cell. Four candidate games also timed out: seed 80405 on the standard
+four-player board, and seeds 80457, 80464, and 80479 on randomized four-player
+boards. Every timeout reached exactly 3,000 moves with at least one seat on 11
+points, which is a real inability to close rather than a crashed simulation.
+
+This rejects Greedy as a product **Easy** tier. It deliberately omits player
+trades, erases a visible personality axis, and can fail to finish the match.
+Balanced remains the shipping behavior, but this experiment alone does not
+justify calling it Standard or assigning any human-facing difficulty label.
+The next candidate must retain personality behavior and be measured first on
+new development seeds and then once on untouched held-out seeds.
+
+### Frozen-run provenance
+
+- source commit: `186ed8364e4ebbcbddc05392dd962ef0af79bb21`
+- simulator build ID: `sha256-10eef33e6442`
+- simulator SHA-256: `10eef33e6442b4ff09abcf502dd7582aed7a3630485971884001e892806d59bd`
+- raw records: 84 JSONL shards, 3,360 rows; sorted per-file checksum-manifest
+  SHA-256 `7774445f0373347ed76c2f2fd8ee8ebe518c085674702112ca1d118eb59d70ec`
+- 12 analysis reports; sorted per-file checksum-manifest SHA-256
+  `57e89c890ac6152c48788201a58e028579a477c0b23746c338857491cd17516d`
+- retained local artifact root: `/private/tmp/empires-calibration.IlfiFb`
+
+The artifact root is intentionally not committed: the JSONL is reproducible
+measurement output, while this document preserves the protocol, verdict,
+aggregate results, and integrity identifiers that the source branch must carry.
+
+## Easy prototype result — rejected and removed
+
+Four development variants tested a personality-preserving Easy policy that
+kept the shipping heuristic's move category and substituted an inferior
+settlement or city site. The final candidate (`851e245`) was measured over
+**3,024 games** across the full evaluation matrix; **3,022 were decisive**.
+Standard beat Easy by at least ten percentage points in every cell, and Easy
+preserved the intended personality axes: Aggressive knight use improved by
+26.0–34.3 points and Cautious trade proposals by 21.5–35.1 points, while both
+cross-axis shifts stayed inside the declared ±15-point limit.
+
+The candidate nevertheless failed its locked gate. Easy did not clear Random
+by five points in three four-player cells (0.0 at standard-board 8 and 10 VP;
+4.2 at standard-board 12 VP). More importantly, two four-player 12-point games
+hit the 3,000-action cap and a third required 2,008 actions, above the
+predeclared 1,500 ceiling. Replaying seed 100129 with a diagnostic 10,000-action
+cap left the same 11/11/11/10 score and no winner after every development card
+had been bought. That is terminal scoring saturation, not a cap chosen too low.
+
+The Easy runtime and its tests were therefore removed before merge. No held-out
+seed bank was consumed, no difficulty selector was added, and the shipping
+heuristic is unchanged. The reusable configuration-aware simulator, analyzer,
+locked anchor-calibration protocol, and negative result remain. Product New Game now offers Epic
+only with three players; the engine still accepts old four-player Epic saves
+and keeps 4p/12 available to the simulator as a stress configuration.
+
+Final-candidate provenance: source `851e245`; Release simulator SHA-256
+`9c40ee1df1191002666c4cc3c0238d57bce5f9c349cc365afef239bb6a1e724a`;
+3,024-game artifact root
+`/private/tmp/empires-easy-development-v4-851e245-full` with 48 analyzer
+reports. The 10,000-action diagnostic was a separate temporary executable and
+was not retained in source.

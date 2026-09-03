@@ -25,12 +25,13 @@ measures it the only way that works: two separate processes, byte-compared.
 |---|---|
 | **The executable exists, builds and plays games** | **RUN AND PROVEN 2026-08-29.** `Packages/CatanAI/Sources/sim/main.swift`, wired as `.executableTarget(name: "sim", ...)` in `Packages/CatanAI/Package.swift`. Builds clean under `-Xswiftc -warnings-as-errors` and under `swiftlint --strict`. |
 | **Cross-process reproducibility** | **PROVEN 2026-08-29.** Seeds 1000-1009, Release, run in two separate processes: both files `sha256 2dcfd1fb48dceb8adf381bcb8ffe571a5b6d53544656911a0543eca2dcd50c8c`, `cmp` silent. |
-| **Agreement with the existing determinism guard** | **PROVEN 2026-08-29.** All five fingerprints pinned in `Packages/CatanAI/Tests/CatanAITests/SeededGameFingerprintTests.swift` are reproduced exactly by the harness: seed 1 `7cc7aee7b0c9c4d9`, 42 `30f84fa73e61c1d7`, 7 `b338b8f0b41989bb`, 1234 `a4085aa0b3710e51`, 99 `526167e40f10ea2a`. The harness deliberately uses the same seat lineup, the same bot-RNG derivation and the same canonicalization so that test doubles as an external check on it. |
+| **Agreement with the existing determinism guard** | **PROVEN 2026-09-03.** All five fingerprints pinned in `Packages/CatanAI/Tests/CatanAITests/SeededGameFingerprintTests.swift` are reproduced exactly by the harness: seed 1 `d7fdc2d2721c1585`, 42 `a82a8c729629fefe`, 7 `1fb2872d10dcb596`, 1234 `1fda336942d04a99`, 99 `59a97a1b4b8825c8`. The harness deliberately uses the same seat lineup, the same bot-RNG derivation and the same canonicalization so that test doubles as an external check on it. |
+| **Evaluation configuration matrix** | **RUN AND PROVEN 2026-09-03.** `scripts/tests/test_sim_cli.py` invokes the Release executable for every 3/4-player × 8/10/12-VP × standard/randomized-board combination. These are engine/evaluation smoke cases; four-player 12 VP is no longer a product New Game option after longer runs proved it can saturate without a winner. Every sampled CLI case reaches a winner, reports schema-5 configuration provenance, and emits arrays matching the configured table size. The default invocation remains the historical four-player, 10-VP, randomized-board trajectory. |
 | **Throughput** | **MEASURED 2026-08-29** on an 18-core Apple Silicon Mac. **Release, one process: 0.45-0.56 games/sec** (four timed runs of 10 games: 22.45s, 19.48s, 19.05s, 17.96s). **Debug: 0.12 games/sec** (5 games in 41.56s) - about 4x slower, never measure on it. **Release, 10 shards in parallel: 1.76 games/sec** (100 games in 56.79s, 642% CPU). |
-| **Game shape** | **MEASURED over 350 games** across two seat lineups (seeds 1000-1009, 2000-2099, 3000-3039, 5000-5199): every game finished with a winner, 212-824 moves, mean 462. The 3000-move cap has never been hit. |
+| **Game shape** | **MEASURED over 350 historical default-length games** across two seat lineups (seeds 1000-1009, 2000-2099, 3000-3039, 5000-5199): every game finished with a winner, 212-824 moves, mean 462. Later 12-point calibration runs did hit the 3,000-move cap; never generalize the default-game range to a new policy or target. |
 | **Sharding into ONE shared output file** | **RAN ONCE, 100/100 lines intact and parseable, but NOT proven safe.** See the trap below - use one file per shard. |
 | **Running on Linux / in CI** | **NEVER RUN.** CI builds the whole package, so the sim target will start compiling on `ubuntu-latest` the moment this is pushed. It imports only `CatanEngine`, `CatanAI` and `Foundation`, so it should be fine, and "should be" is not "was". |
-| **Any strength claim from this output** | **NEVER MADE.** The harness produces games; turning games into a defensible claim is a separate method - see the **bot-strength** skill, which has also never been run here. |
+| **Strength evaluation using this output** | **RUN 2026-09-03, AND THE CANDIDATES FAILED.** The harness supplied a locked two-arm anchor calibration and four Easy development screens. Turning JSONL into a claim remains the separate **bot-strength** method; raw wins alone are not evidence. |
 
 ## Hard preconditions
 
@@ -60,14 +61,16 @@ REPO="$(git rev-parse --show-toplevel)"
 swift build --package-path "$REPO/Packages/CatanAI" -c release
 SIM="$(swift build --package-path "$REPO/Packages/CatanAI" -c release --show-bin-path)/sim"
 
-# 2) PLAY. Seeds are CONSECUTIVE from --seed: `--seed 1000 --games 10` plays
-#    1000..1009. Two knobs and no hidden state, so an invocation in a commit
-#    message is a complete description of what was run.
+# 2) PLAY. Match seeds are CONSECUTIVE from --seed: `--seed 1000 --games 10` plays
+#    1000..1009. Record all three configuration flags in any command meant to
+#    support a comparison; relying on defaults makes a pasted invocation less
+#    self-describing even though defaults remain stable.
 #    --jsonl is the machine form; without it you get a text table for
-#    eyeballing. The four --personalities are the seats in order, and the
+#    eyeballing. The --seats values are the seats in order, and the four-seat
 #    default (balanced,aggressive,cautious,balanced) is the SAME lineup
 #    SeededGameFingerprintTests uses, which is what makes step 4 possible.
-"$SIM" --games 10 --seed 1000 --jsonl > /tmp/runA.jsonl
+"$SIM" --games 10 --seed 1000 --players 4 --victory-points 10 \
+  --board randomized --jsonl > /tmp/runA.jsonl
 
 # 3) PROVE REPRODUCIBILITY THE ONLY WAY THAT COUNTS: a SECOND PROCESS.
 #    Not a loop inside one process - Swift's per-process hash seed makes that
@@ -78,7 +81,8 @@ SIM="$(swift build --package-path "$REPO/Packages/CatanAI" -c release --show-bin
 #    Note this compares STDOUT only. Timing goes to stderr precisely so that
 #    the data stream stays comparable; never print a duration or a path to
 #    stdout from this harness.
-"$SIM" --games 10 --seed 1000 --jsonl > /tmp/runB.jsonl
+"$SIM" --games 10 --seed 1000 --players 4 --victory-points 10 \
+  --board randomized --jsonl > /tmp/runB.jsonl
 cmp /tmp/runA.jsonl /tmp/runB.jsonl
 echo "reproducible across processes: $(shasum -a 256 /tmp/runA.jsonl | cut -d' ' -f1)"
 
@@ -88,7 +92,7 @@ echo "reproducible across processes: $(shasum -a 256 /tmp/runA.jsonl | cut -d' '
 #    divergence is a real bot change rather than a harness bug. Do this after
 #    any edit to the harness, and after any edit to the bots.
 for seed in 1 42 7 1234 99; do "$SIM" --seed "$seed" --games 1 --jsonl 2>/dev/null; done
-# expect 7cc7aee7b0c9c4d9 30f84fa73e61c1d7 b338b8f0b41989bb a4085aa0b3710e51 526167e40f10ea2a
+# expect d7fdc2d2721c1585 a82a8c729629fefe 1fb2872d10dcb596 1fda336942d04a99 59a97a1b4b8825c8
 
 # 5) SCALE BY SHARDING THE SEED RANGE ACROSS PROCESSES. One process does ~0.5
 #    games/sec, so 1,000 games is ~35 minutes of wall clock and 10,000 is most
@@ -110,11 +114,17 @@ One object per game, fields in a fixed order, hand-rendered rather than encoded
 so the order cannot drift:
 
 ```json
-{"seed":1000,"moves":406,"winner":3,"vp":[6,5,9,10],"fingerprint":"c047cdd24f0caec1"}
+{"schemaVersion":5,"buildID":"working-tree","playerCount":4,"victoryPointTarget":10,"boardMode":"randomized","policies":["heuristic-balanced","heuristic-aggressive","heuristic-cautious","heuristic-balanced"],"seed":1000,"moves":406,"winner":3,"vp":[6,5,9,10],"fingerprint":"c047cdd24f0caec1","behavior":[...]}
 ```
 
+- **`playerCount`**, **`victoryPointTarget`**, and **`boardMode`** identify the
+  experimental arm, not decorative copy. Their accepted values are 3 or 4;
+  8, 10 or 12; and `standard` or `randomized`. The analyzer includes them in
+  pairing keys so equal numeric seeds from different arms cannot be
+  mistaken for the same generated game.
 - **`winner`** is a seat index, or `null` if the 3000-move cap tripped. A
-  `null` is a bug report, not a draw - real games finish in 212-824 moves.
+  `null` is a failed-completion result, not a draw. Historical default-length
+  games finished in 212-824 moves; 12-point stress runs have exceeded the cap.
 - **`vp`** is final victory points **per seat in seat order**, from
   `GameState.victoryPoints(for:)`, so it includes the +2 longest-road and +2
   largest-army bonuses. The winner's entry can exceed 10 (seen: 11).
@@ -147,14 +157,21 @@ python3 scripts/train-policy-baseline.py \
   --model-output /tmp/checkpoint.json /tmp/examples.jsonl
 ```
 
-Each example carries the dataset schema, state/action layout versions, build
-and policy provenance, seed and decision index, observer/table identity, 5,182
-features, sparse legal-action indices, chosen global action, and final
-seat-relative outcome. The validator checks the serialized contract, including
-layout/provenance, feature bounds, contiguous decision indices, winner-derived
-outcomes, and that the chosen action belongs to the serialized legal mask. The
+Each schema-2 example carries the dataset schema, state/action layout versions,
+build and policy provenance, seed and decision index, player count, victory
+target, board mode, observer/table identity, 5,182 features, sparse legal-action
+indices, chosen global action, and final seat-relative outcome. The validator
+checks the serialized contract, including configuration/layout provenance,
+feature bounds, per-seed-and-configuration contiguous decision indices,
+winner-derived outcomes, and that the chosen action belongs to the serialized
+legal mask. The
 Swift constructor remains the authority for recomputing the mask from live game
 state; compact feature vectors intentionally cannot reconstruct that state.
+
+Both table sizes use the same 9,295-wide four-chair action head. In a
+three-player example the nonexistent fourth victim slots are simply illegal.
+Shrinking the head would shift every later segment, making one action index mean
+different moves depending on table size and silently corrupting mixed training.
 
 The baseline is deliberately modest and dependency-free: phase-conditioned
 action counts behind the legal mask, plus a linear value estimator. It proves
@@ -249,8 +266,8 @@ true and the floors move.
 
 ## Honest limits (do not overpromise)
 
-- **It plays four bots and no human.** There is no human-policy seat, no
-  interactive path, and nothing here says anything about how the app behaves
+- **It plays three or four bots and no human.** There is no human-policy seat,
+  no interactive path, and nothing here says anything about how the app behaves
   under a real player.
 - **Three personalities exist**: `balanced`, `aggressive`, `cautious`. Bot
   *weights* (`BotWeights`, the full numeric policy, explicitly built "to be
@@ -267,9 +284,11 @@ true and the floors move.
   telemetry, no resource curves, no time-to-first-settlement, no trade counts.
   Anything finer needs a new field, which needs the ordering question above
   answered.
-- **Nothing tests the harness itself.** `swift test` does not run it and CI
-  does not execute it; the only guard is the manual step-4 cross-check against
-  the pinned fingerprints. If you change `Rendering`, run step 4.
+- **The executable is integration-tested, but fingerprints still matter.**
+  `scripts/tests/test_sim_cli.py` builds and invokes Release `sim`, checks strict
+  CLI failures, runs all twelve engine/evaluation configurations, and validates a real training
+  export. If you change move rendering or policy flow, still run step 4 against
+  the independently pinned fingerprints and compare separate processes.
 - **Never run on Linux.** See the table.
 
 ## Related

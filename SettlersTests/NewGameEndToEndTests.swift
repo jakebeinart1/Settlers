@@ -91,7 +91,7 @@ private func setup(seats: Int, humans: [Int], target: Int,
     // The combinations a player can actually reach through the screen.
     for seats in 3...4 {
         for humanCount in 1...seats {
-            for target in [8, 10, 12] {
+            for target in MatchSetup.newGameVictoryPointTargets(for: seats) {
                 let match = IsolatedStartedMatch(setup: setup(
                     seats: seats,
                     humans: Array(0..<humanCount),

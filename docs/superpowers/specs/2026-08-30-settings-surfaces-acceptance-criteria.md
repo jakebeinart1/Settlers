@@ -93,7 +93,9 @@ A setting belongs to exactly one surface. Apply these in order:
 
 ### A4. Match length
 
-- **A4.1** The victory point target is selectable from a small set of named lengths.
+- **A4.1** The victory point target is selectable from the named lengths the
+  base board can reliably finish: 8/10/12 with three players and 8/10 with
+  four players.
 - **A4.2** The default is the standard game.
 - **A4.3** The chosen target governs the win condition, the victory-point display, and the end-of-game standings.
 - **A4.4** ~~The AI evaluates the game against the same target.~~ **NOT IMPLEMENTED - deferred.**
@@ -107,11 +109,22 @@ A setting belongs to exactly one surface. Apply these in order:
   is the difficulty work, not a settings change. The practical consequence is mild - bots play a
   strong game and it ends early - but it is a real gap and is recorded as one.
 - **A4.5** A saved game resumes at the target it was started with.
+- **A4.6** Four-player Epic (12 VP) is not offered for a new game. A measured
+  11/11/11/10 position remained unchanged through 10,000 bot actions after the
+  development-card supply was exhausted, so that combination can have no
+  winner. Existing four-player 12-point saves remain valid and resumable.
 
 **Acceptance criteria**
 - Given a target of 8, when a player reaches 8 victory points, then the game ends and that player wins.
 - Given a target of 8, when the HUD shows a player's score, then it is shown against 8, not 10.
 - Given a target of 12, when a game is saved at 9 points and resumed, then the game has not ended.
+- Given a four-player table, then 12 VP is not offered.
+- Given a three-player Epic setup that is changed to four players, then the
+  target becomes Standard (10 VP) and Start remains available.
+- Given an existing four-player 12-point checkpoint, then it still loads at
+  12 points rather than being rejected or silently replaced.
+- Given that legacy match is restarted, then the new match uses Standard
+  (10 VP) rather than recreating the unreachable combination or crashing.
 - ~~Given a target of 8, when a bot evaluates its position, then its notion of proximity to winning uses 8.~~
   **Deferred - see A4.4.**
 
@@ -306,7 +319,7 @@ Recorded so the design pass does not budget space for them:
 | Which seats are Human vs AI | A — New Game | Yes | At least one Human |
 | Human seat names | A — New Game | Yes | **Required**, unique, prefilled from C1 |
 | Seat civilizations | A — New Game | Yes | Distinct across all four seats |
-| Victory target | A — New Game | Yes | AI target-aware evaluation is deferred |
+| Victory target | A — New Game | Yes | 3p: 8/10/12; 4p: 8/10. Existing 4p/12 saves still resume. AI target-aware evaluation is deferred |
 | Randomized board | A — New Game | Board itself is saved | |
 | Seat order / randomize seats | A — New Game | Resulting order saved | |
 | AI turn speed | B — In-Game | No | Immediate effect |

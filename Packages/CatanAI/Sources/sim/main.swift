@@ -5,8 +5,8 @@ import Foundation
 // Headless seeded self-play harness for the Empires bots.
 //
 // ## What this is
-// Plays N complete games with all four seats driven by `Bot`, from a
-// contiguous range of board seeds, and writes one record per game. It exists
+// Plays N complete games with every seat driven by a policy, from a
+// contiguous range of match seeds, and writes one record per game. It exists
 // because every claim about the bots - "this heuristic is better", "this
 // change is neutral", "that crash reproduces" - needs a way to play thousands
 // of games without a simulator, a UI, or a human.
@@ -35,7 +35,7 @@ import Foundation
 // identical - same canonicalization, same hash, same bot RNG derivation - to
 // `Packages/CatanAI/Tests/CatanAITests/SeededGameFingerprintTests.swift`, so
 // that suite's five pinned constants double as an external check on this
-// harness. `sim --seed 1 --games 1 --jsonl` must print `603739cf6086264d`.
+// harness. `sim --seed 1 --games 1 --jsonl` must print `d7fdc2d2721c1585`.
 //
 // ## stdout is data, stderr is diagnostics
 // Timing and progress go to stderr so that two runs over the same seeds are
@@ -47,14 +47,24 @@ import Foundation
 /// finish in the low hundreds of moves.
 private let maxMovesPerGame = 3000
 
-/// Seats at the table. Fixed by the engine (`GameSetup.newGame` always builds
-/// four players), so a personality list of any other length is a usage error.
-private let seatCount = 4
+/// Wire version of one game-result JSON object. Bump whenever fields or their
+/// meanings change; evaluation tools reject mismatches rather than guessing.
+private let resultSchemaVersion = 5
 
-/// Derives the bot tie-break RNG seed from the board seed. Any injective
+/// The no-argument lineup remains byte-for-byte the historical four-seat
+/// default. A three-seat run takes its prefix unless `--seats` names an
+/// explicit roster.
+private let defaultSeatNames = ["balanced", "aggressive", "cautious", "balanced"]
+
+/// Product-supported evaluation targets. `WinCondition` accepts the whole
+/// 8...12 range for save compatibility, while the product and evaluator offer
+/// only the three calibrated match lengths.
+private let evaluationVictoryPointTargets: Set<Int> = [8, 10, 12]
+
+/// Derives the bot tie-break RNG seed from the match seed. Any injective
 /// function would do; this exact one is copied from `SeededGameFingerprintTests`
 /// so the harness and that test play the same games.
-private func botSeed(fromBoardSeed seed: UInt64) -> UInt64 { seed &* 31 &+ 7 }
+private func policySeed(from seed: UInt64) -> UInt64 { seed &* 31 &+ 7 }
 
 // MARK: - stderr
 
@@ -93,27 +103,63 @@ private func fail(_ message: String) -> Never {
 
 // MARK: - Options
 
+private extension EvaluationBoardMode {
+    func board(seed: UInt64) -> Board {
+        switch self {
+        case .standard: BoardGenerator.standard()
+        case .randomized: BoardGenerator.randomized(seed: seed)
+        }
+    }
+}
+
+/// Rules and board generation that define one evaluation arm. These values
+/// travel together into both game construction and output provenance so the
+/// label cannot drift from the state that was actually played.
+private struct SimulationConfiguration {
+    var playerCount = GameSetup.standardPlayerCount
+    var victoryPointTarget = WinCondition.standardTarget
+    var boardMode = EvaluationBoardMode.randomized
+
+    func state(seed: UInt64) -> GameState {
+        GameSetup.newGame(
+            board: boardMode.board(seed: seed),
+            seed: seed,
+            playerCount: playerCount,
+            victoryPointTarget: victoryPointTarget
+        )
+    }
+}
+
 /// One parsed invocation. Every field is required to have a value by the time
 /// parsing finishes; there is no "unset" state to reason about downstream.
 private struct Options {
     var games: Int = 1
     var firstSeed: UInt64 = 1
-    var seatNames: [String] = ["balanced", "aggressive", "cautious", "balanced"]
+    var seatNames = defaultSeatNames
+    var seatNamesWereProvided = false
+    var configuration = SimulationConfiguration()
     var buildID = "working-tree"
     var jsonl: Bool = false
     var trainingOutput: String?
     var trainingInformationPolicy: HiddenInformationPolicy = .revealAll
 
     static let usage = """
-        usage: sim [--games N] [--seed S] [--seats a,b,c,d] [--build-id ID] [--jsonl]
+        usage: sim [--games N] [--seed S] [--players 3|4] [--victory-points 8|10|12]
+                   [--board standard|randomized] [--seats LIST] [--build-id ID] [--jsonl]
                    [--training-jsonl PATH]
                    [--training-information reveal-all|public-counts]
           --games N     number of consecutive seeds to play (default 1)
-          --seed S      first board seed; seeds S ..< S+N are played (default 1)
-          --seats LIST  four comma-separated policy names, one per seat
+          --seed S      first match seed; seeds S ..< S+N are played (default 1)
+          --players N   seats at the table: 3 or 4 (default 4)
+          --victory-points N
+                        points required to win: 8, 10 or 12 (default 10)
+          --board MODE  standard fixed layout or seeded randomized layout
+                        (default randomized)
+          --seats LIST  comma-separated policy names, exactly one per player
                         heuristics: balanced, aggressive, cautious
                         anchors:    greedy, random
-                        (default balanced,aggressive,cautious,balanced)
+                        (four-seat default balanced,aggressive,cautious,balanced;
+                        a three-seat run uses the first three)
                         --personalities is accepted as an alias
           --build-id ID provenance label written into every result
                         (default working-tree; letters, digits, dot, dash, underscore)
@@ -153,11 +199,19 @@ private func policy(named name: String) -> any Policy {
 private func parseOptions(_ arguments: [String]) -> Options {
     var options = Options()
     var index = arguments.startIndex + 1
+    var seenConfigurationFlags: Set<String> = []
 
     func nextValue(for flag: String) -> String {
         index += 1
         guard index < arguments.endIndex else { fail("\(flag) needs a value") }
         return arguments[index]
+    }
+
+    func uniqueValue(for flag: String) -> String {
+        guard seenConfigurationFlags.insert(flag).inserted else {
+            fail("\(flag) may be supplied only once")
+        }
+        return nextValue(for: flag)
     }
 
     while index < arguments.endIndex {
@@ -168,9 +222,28 @@ private func parseOptions(_ arguments: [String]) -> Options {
         case "--seed":
             guard let seed = UInt64(nextValue(for: "--seed")) else { fail("--seed must be a non-negative integer") }
             options.firstSeed = seed
+        case "--players":
+            guard let count = Int(uniqueValue(for: "--players")),
+                  GameSetup.supportedPlayerCounts.contains(count) else {
+                fail("--players must be 3 or 4")
+            }
+            options.configuration.playerCount = count
+        case "--victory-points":
+            guard let target = Int(uniqueValue(for: "--victory-points")),
+                  evaluationVictoryPointTargets.contains(target) else {
+                fail("--victory-points must be 8, 10 or 12")
+            }
+            options.configuration.victoryPointTarget = target
+        case "--board":
+            let value = uniqueValue(for: "--board")
+            guard let mode = EvaluationBoardMode(rawValue: value) else {
+                fail("--board must be standard or randomized")
+            }
+            options.configuration.boardMode = mode
         case "--seats", "--personalities":
             let flag = arguments[index]
             options.seatNames = nextValue(for: flag).split(separator: ",").map(String.init)
+            options.seatNamesWereProvided = true
         case "--build-id":
             let value = nextValue(for: "--build-id")
             let allowed = CharacterSet.alphanumerics.union(CharacterSet(charactersIn: "._-"))
@@ -198,11 +271,18 @@ private func parseOptions(_ arguments: [String]) -> Options {
         index += 1
     }
 
-    guard options.seatNames.count == seatCount else {
-        fail("--seats needs exactly \(seatCount) names, got \(options.seatNames.count)")
+    if !options.seatNamesWereProvided {
+        options.seatNames = Array(defaultSeatNames.prefix(options.configuration.playerCount))
+    }
+    guard options.seatNames.count == options.configuration.playerCount else {
+        fail("--seats needs exactly \(options.configuration.playerCount) names, got \(options.seatNames.count)")
     }
     if options.trainingOutput != nil, options.buildID == "working-tree" {
         fail("--training-jsonl requires an explicit non-placeholder --build-id")
+    }
+    let finalOffset = UInt64(options.games - 1)
+    guard finalOffset <= UInt64.max - options.firstSeed else {
+        fail("seed range overflows UInt64")
     }
     return options
 }
@@ -260,6 +340,7 @@ private enum Rendering {
 /// Everything one finished game contributes to a measurement.
 private struct GameResult {
     let buildID: String
+    let configuration: SimulationConfiguration
     let policyIDs: [String]
     let seed: UInt64
     let moves: Int
@@ -292,16 +373,19 @@ private struct RecordedDecision {
 private func playGame(
     seed: UInt64,
     policies: [any Policy],
+    configuration: SimulationConfiguration,
     buildID: String,
     recordTraining: Bool
 ) -> GameResult {
-    let state = GameSetup.newGame(board: BoardGenerator.randomized(seed: seed), seed: seed)
+    let state = configuration.state(seed: seed)
+    precondition(policies.count == state.players.count,
+                 "policy roster must match the configured player count")
     var seats: [PlayerID: any Policy] = [:]
     for (index, policy) in policies.enumerated() { seats[state.players[index].id] = policy }
     var session = GameSession(state: state, policies: seats,
-                              policySeed: botSeed(fromBoardSeed: seed))
+                              policySeed: policySeed(from: seed))
     var trace: [String] = []
-    var behavior = Array(repeating: PolicyBehaviorMetrics(), count: seatCount)
+    var behavior = Array(repeating: PolicyBehaviorMetrics(), count: state.players.count)
     var decisions: [RecordedDecision] = []
 
     for _ in 0..<maxMovesPerGame {
@@ -330,6 +414,7 @@ private func playGame(
     if case .gameOver(let who) = session.state.phase { winner = who }
     return GameResult(
         buildID: buildID,
+        configuration: configuration,
         policyIDs: policies.map(\.id),
         seed: seed,
         moves: trace.count,
@@ -364,7 +449,12 @@ private func jsonLine(_ result: GameResult) -> String {
     let winner = result.winner.map { "\($0.index)" } ?? "null"
     let points = result.victoryPoints.map(String.init).joined(separator: ",")
     let policies = result.policyIDs.map { "\"\($0)\"" }.joined(separator: ",")
-    return "{\"schemaVersion\":4,\"buildID\":\"\(result.buildID)\",\"policies\":[\(policies)],"
+    let configuration = result.configuration
+    return "{\"schemaVersion\":\(resultSchemaVersion),\"buildID\":\"\(result.buildID)\","
+        + "\"playerCount\":\(configuration.playerCount),"
+        + "\"victoryPointTarget\":\(configuration.victoryPointTarget),"
+        + "\"boardMode\":\"\(configuration.boardMode.rawValue)\","
+        + "\"policies\":[\(policies)],"
         + "\"seed\":\(result.seed),\"moves\":\(result.moves),\"winner\":\(winner),"
         + "\"vp\":[\(points)],\"fingerprint\":\"\(result.fingerprint)\","
         + "\"behavior\":\(behaviorJSON(result.behavior))}"
@@ -460,6 +550,7 @@ private final class TrainingWriter {
                 decisionIndex: decision.evaluationIndex,
                 policyID: recorded.policyID,
                 hiddenInformationPolicy: informationPolicy,
+                boardMode: result.configuration.boardMode,
                 observation: decision.observation,
                 chosenMove: decision.move,
                 winner: winner
@@ -498,6 +589,7 @@ for offset in 0..<options.games {
     let result = playGame(
         seed: options.firstSeed &+ UInt64(offset),
         policies: seats,
+        configuration: options.configuration,
         buildID: options.buildID,
         recordTraining: trainingWriter != nil
     )

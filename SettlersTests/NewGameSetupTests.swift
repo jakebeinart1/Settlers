@@ -158,11 +158,32 @@ private func table(withSeatIndices indices: [Int]) -> MatchSetup {
         #expect(table.validationProblem == "That match length is not available.")
     }
 
-    @Test(arguments: [8, 10, 12])
-    func eachOfferedMatchLengthIsSupported(target: Int) {
+    @Test(arguments: [8, 10])
+    func eachFourPlayerMatchLengthIsSupported(target: Int) {
         var table = startableTable
         table.victoryPointTarget = target
         #expect(table.validationProblem == nil)
+    }
+
+    @Test func epicIsOfferedAtThreePlayers() {
+        var table = startableTable
+        table.resize(to: 3, preferredName: "Alex", preferredCivilization: .greece)
+        table.victoryPointTarget = 12
+
+        #expect(table.validationProblem == nil)
+        #expect(table.isStartable)
+        #expect(MatchSetup.newGameVictoryPointTargets(for: 3) == [8, 10, 12])
+    }
+
+    @Test func epicIsNotOfferedForANewFourPlayerMatch() {
+        var table = startableTable
+        table.victoryPointTarget = 12
+
+        #expect(table.validationProblem == "12 VP is available with 3 players.")
+        #expect(!table.isStartable)
+        #expect(MatchSetup.newGameVictoryPointTargets(for: 4) == [8, 10])
+        #expect(table.isValidMatch,
+                "an existing four-player Epic save must remain structurally valid and resumable")
     }
 
     /// The seat-count check runs first, so a two-seat table is refused for
@@ -254,6 +275,17 @@ private func table(withSeatIndices indices: [Int]) -> MatchSetup {
         let before = table
         table.resize(to: 4, preferredName: preferredName, preferredCivilization: preferredCivilization)
         #expect(table == before)
+    }
+
+    @Test func growingAnEpicTableToFourPlayersSelectsStandardLength() {
+        var table = startableTable
+        table.resize(to: 3, preferredName: preferredName, preferredCivilization: preferredCivilization)
+        table.victoryPointTarget = 12
+
+        table.resize(to: 4, preferredName: preferredName, preferredCivilization: preferredCivilization)
+
+        #expect(table.victoryPointTarget == WinCondition.standardTarget)
+        #expect(table.isStartable)
     }
 }
 

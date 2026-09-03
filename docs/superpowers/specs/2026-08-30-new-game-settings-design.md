@@ -1,6 +1,6 @@
 # Empires — New Game Settings Stage
 
-**Spec version:** 1.1 · **Date:** 2026-08-30 · **Status:** ready to implement
+**Spec version:** 1.2 · **Date:** 2026-08-30 · **Status:** implemented with amendments
 **Repo:** `Settlers` (app "Empires"), branch off `main`, PR to Jake.
 
 > **Verification note on the source material.** Two claims carried into this stage from prior work are **wrong** and have been corrected here from source:
@@ -25,6 +25,11 @@ reader needs to know where it now diverges.
   `Settlers/QALaunchFlag.swift`, mirrored in `.claude/skills/run-settlers/SKILL.md`.
 - **A4.4 (the AI honouring the victory target) is not implemented** and is now marked deferred in
   the acceptance-criteria document. It is a bot-strength change, not a settings change.
+- **Four-player Epic is no longer offered for new games.** A measured base-board
+  game reached 11/11/11/10 and then remained unchanged through 10,000 actions,
+  so a four-player 12-point game can have no winner. Three-player Epic remains
+  available. Intrinsic match validity is separate from current product
+  availability so existing four-player 12-point checkpoints still resume.
 
 ---
 
@@ -404,7 +409,7 @@ Six new cases on `QALaunchFlag` (`QALaunchFlag.swift:26-56`), each `#if DEBUG` a
 |---|---|---|---|---|
 | Human seats (which seats, how many) | **PER-GAME** | New-game screen, seat rows | **Yes** | `GameSetupStore` (app layer). Never `GameState` — D-7 |
 | Seat → civilization assignment | **PER-GAME** | New-game screen, seat rows + civ picker | **Yes** | `GameSetupStore`; legacy fallback to `CivilizationAssignmentStore` |
-| Victory target (8/10/12) | **PER-GAME** | New-game screen, Match Options | **Yes** | `GameState.victoryPointTarget` — the only engine field. Menu default in `@AppStorage("victoryPointTargetSetting")` |
+| Victory target (3p: 8/10/12; 4p: 8/10) | **PER-GAME** | New-game screen, Match Options | **Yes** | `GameState.victoryPointTarget` — the only engine field. Existing 4p/12 checkpoints remain loadable. Menu default in `@AppStorage("victoryPointTargetSetting")` |
 | Randomized board | **PER-GAME** | New-game screen, Match Options | No (an input to board generation; the board itself is saved) | `@AppStorage("randomizedBoardSetting")` |
 | Randomize seats | **PER-GAME** | New-game screen, Match Options | No (an input to the seat draw; the result is saved) | `@AppStorage("randomizeSeatSetting")` |
 | Bot personality mix | **PER-GAME**, derived | Not shown | Yes, implicitly — derived from `humanSeats` (`personalityIndex`), which is saved | none of its own |

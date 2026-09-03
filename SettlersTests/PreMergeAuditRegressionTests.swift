@@ -92,7 +92,7 @@ private func hotSeat(humans: Set<Int>, seats: Int = 4, phaseSeat: Int = 0) -> Ga
 @Test func anEpicWinIsNotFiledAsATen() {
     let model = isolatedGameViewModel()
     let config = MatchSetup(
-        seats: (0..<4).map {
+        seats: (0..<3).map {
             MatchSetup.Seat(index: $0, isHuman: $0 == 0, name: $0 == 0 ? "A" : "",
                             civilization: Civilization.allCases[$0])
         },

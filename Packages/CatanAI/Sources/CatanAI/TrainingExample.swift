@@ -1,13 +1,21 @@
 import CatanEngine
 import Foundation
 
+/// How the board in a self-play example was produced. The layout itself is
+/// encoded in the state features, while this label preserves the experimental
+/// arm so datasets cannot silently mix fixed and randomized boards.
+public enum EvaluationBoardMode: String, Codable, Sendable {
+    case standard
+    case randomized
+}
+
 /// One supervised policy/value example produced by deterministic self-play.
 ///
 /// The record carries both layout versions because shape-compatible does not
 /// mean semantically compatible: loading weights or data against moved slots
 /// produces plausible numbers and bad play rather than an actionable error.
 public struct TrainingExample: Codable, Sendable, Equatable {
-    public static let schemaVersion = 1
+    public static let schemaVersion = 2
 
     public let schemaVersion: Int
     public let buildID: String
@@ -19,6 +27,8 @@ public struct TrainingExample: Codable, Sendable, Equatable {
     public let observerSeat: Int
     public let winnerSeat: Int
     public let playerCount: Int
+    public let victoryPointTarget: Int
+    public let boardMode: EvaluationBoardMode
     public let policyID: String
     public let hiddenInformationPolicy: HiddenInformationPolicy
     public let features: [Float]
@@ -34,6 +44,7 @@ public struct TrainingExample: Codable, Sendable, Equatable {
         decisionIndex: Int,
         policyID: String,
         hiddenInformationPolicy: HiddenInformationPolicy,
+        boardMode: EvaluationBoardMode,
         observation: GameObservation,
         chosenMove: GameMove,
         winner: PlayerID
@@ -41,7 +52,14 @@ public struct TrainingExample: Codable, Sendable, Equatable {
         precondition(!buildID.isEmpty, "training examples require build provenance")
         precondition(!policyID.isEmpty, "training examples require policy provenance")
         precondition(decisionIndex >= 0, "decision index must be nonnegative")
-        let actionSpace = ActionSpace(board: observation.state.board)
+        // One fixed action head serves both supported table sizes. A
+        // three-seat position masks the absent fourth victim; shrinking this
+        // space would move every later segment and make identical action
+        // indices mean different moves in mixed-configuration training data.
+        let actionSpace = ActionSpace(
+            board: observation.state.board,
+            playerCount: StateEncoding.seatCount
+        )
         let legal = Self.actionIndices(for: observation, in: actionSpace)
         precondition(Set(legal).count == legal.count, "legal moves alias onto one global action index")
         guard let chosen = actionSpace.index(
@@ -62,6 +80,8 @@ public struct TrainingExample: Codable, Sendable, Equatable {
         observerSeat = observation.seat.index
         winnerSeat = winner.index
         playerCount = observation.state.players.count
+        victoryPointTarget = observation.state.victoryPointTarget
+        self.boardMode = boardMode
         self.policyID = policyID
         self.hiddenInformationPolicy = hiddenInformationPolicy
         features = StateEncoding.features(observation, policy: hiddenInformationPolicy.statePolicy)
