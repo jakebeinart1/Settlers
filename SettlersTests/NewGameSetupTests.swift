@@ -41,7 +41,42 @@ private var startableTable: MatchSetup {
     ])
 }
 
+private let invalidSeatIndexLayouts = [
+    [0, 0, 2], [0, -1, 2], [0, 1, 3], [1, 0, 2],
+    [0, 1, 1, 3], [0, 1, -1, 3], [0, 1, 2, 4], [0, 2, 1, 3],
+    [Int.max, 1, 2], [Int.min, 1, 2, 3],
+]
+
+private func table(withSeatIndices indices: [Int]) -> MatchSetup {
+    var table = startableTable
+    table.seats = zip(table.seats, indices).map { original, index in
+        var chair = original
+        chair.index = index
+        return chair
+    }
+    return table
+}
+
 @Suite struct MatchSetupValidationTests {
+
+    @Test(arguments: invalidSeatIndexLayouts)
+    func invalidSeatIndicesAreRefused(indices: [Int]) throws {
+        var table = table(withSeatIndices: indices)
+        // Index validation must precede name formatting, which adds one to
+        // the index and would overflow for hostile decoded Int.max metadata.
+        table.seats[0].name = ""
+        let decoded = try JSONDecoder().decode(MatchSetup.self, from: JSONEncoder().encode(table))
+        #expect(decoded.validationProblem == "Seat indices must match their table positions.")
+        #expect(!decoded.isStartable)
+    }
+
+    @Test(arguments: [3, 4])
+    func orderedSeatIndicesRemainStartable(count: Int) throws {
+        let table = table(withSeatIndices: Array(0..<count))
+        let decoded = try JSONDecoder().decode(MatchSetup.self, from: JSONEncoder().encode(table))
+        #expect(decoded == table)
+        #expect(decoded.isStartable)
+    }
 
     @Test func aFullyConfiguredTableStarts() {
         #expect(startableTable.validationProblem == nil)
@@ -268,6 +303,40 @@ private var startableTable: MatchSetup {
         let store = MatchSetupStore()
         store.defaults = defaults
         body(store)
+    }
+
+    @Test(arguments: invalidSeatIndexLayouts, [false, true])
+    func invalidDecodedIndicesAreRejectedWithoutChangingBytes(indices: [Int], active: Bool) throws {
+        let bytes = try JSONEncoder().encode(table(withSeatIndices: indices))
+        withStore { store in
+            store.restore(bytes, forActiveMatch: active)
+            let loaded = active ? store.loadActiveMatch() : store.load()
+            #expect(loaded == .unreadable)
+            #expect(loaded.value == nil)
+            #expect(store.data(forActiveMatch: active) == bytes)
+        }
+    }
+
+    @Test(arguments: [3, 4], [false, true])
+    func validDecodedIndicesPreserveTheWholeRecord(count: Int, active: Bool) throws {
+        let table = table(withSeatIndices: Array(0..<count))
+        let bytes = try JSONEncoder().encode(table)
+        withStore { store in
+            store.restore(bytes, forActiveMatch: active)
+            #expect((active ? store.loadActiveMatch() : store.load()) == .loaded(table))
+            #expect(store.data(forActiveMatch: active) == bytes)
+        }
+    }
+
+    @Test func aPrefillNeedingANameIsStillReadable() throws {
+        var table = startableTable
+        table.seats[0].name = ""
+        let bytes = try JSONEncoder().encode(table)
+        withStore { store in
+            store.restore(bytes, forActiveMatch: false)
+            #expect(store.load() == .loaded(table))
+            #expect(!table.isStartable)
+        }
     }
 
     @Test func nothingSavedReadsAsNoStoredSetup() {

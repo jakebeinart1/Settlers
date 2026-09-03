@@ -3,26 +3,45 @@ import Observation
 import CatanEngine
 import CatanAI
 
-/// Drives a single local game: owns the authoritative `GameState`, applies
-/// the human's moves through `RulesEngine`, and runs bot turns (via
-/// `CatanAI.Bot`) until control returns to the human or the game ends.
-/// Persists to `GameStore` after every applied move so the game can resume
-/// across app launches.
+/// Drives a local match through candidate sessions. The checkpoint document is
+/// the durable authority; state and events are published only after its commit.
 @MainActor
 @Observable
 public final class GameViewModel {
+    enum GameLogWarningState: Equatable {
+        case export(String)
+        case other(String)
+
+        var message: String {
+            switch self {
+            case .export(let message), .other(let message): message
+            }
+        }
+    }
+
     let gameStore: GameStore
     let civilizationStore: CivilizationAssignmentStore
     let matchSetupStore: MatchSetupStore
     let humanSeatStore: HumanSeatStore
-    private let gameLogStore: GameLogStore
-    private let gameStatsStore: GameStatsStore
+    let gameLogStore: GameLogStore
+    let gameStatsStore: GameStatsStore
+    let checkpointStore: MatchCheckpointStore
+    var checkpointDocument: MatchCheckpointDocument?
+    var persistenceBlocked = false
 
-    /// A recoverable persistence problem that the app must present to the
-    /// player. Gameplay stays in memory, but the UI never claims it is safely
-    /// resumable when a write failed.
+    public var statistics: GameStats { checkpointDocument?.statistics ?? GameStats() }
+    public var requiresSaveReplacementConfirmation: Bool { savedGameAvailability != .absent }
+
+    /// Failed writes leave the prior committed board visible and stop bots.
+    /// Dismissing an alert does not license further unsaved policy moves.
     public internal(set) var persistenceErrorMessage: String?
-    public private(set) var gameLogWarning: String?
+    var gameLogWarningState: GameLogWarningState?
+    public internal(set) var gameLogWarning: String? {
+        get { gameLogWarningState?.message }
+        set { gameLogWarningState = newValue.map(GameLogWarningState.other) }
+    }
+    public internal(set) var savedGameAvailability: SavedGameAvailability = .absent
+    public internal(set) var newGameSetupLoadResult: MatchSetupStore.LoadResult
     /// The one loop. Bots are decided by policies inside this session, and
     /// the human's own moves go through `applyExternal`, so the app and any
     /// headless harness advance the game through identical code. They used to
@@ -31,7 +50,7 @@ public final class GameViewModel {
     /// so the bots being measured were not the bots being played.
     ///
     /// Pacing stays out here. `GameSession` has no notion of elapsed time.
-    private var session: GameSession
+    var session: GameSession
 
     public var state: GameState { session.state }
     /// Every seat a person is playing, one to four of them.
@@ -40,15 +59,15 @@ public final class GameViewModel {
     /// "is this seat a bot?" A count could not express "humans in seats 0 and
     /// 2", and a `[SeatKind]` array would reintroduce the bare index that
     /// `PlayerID` exists to hide.
-    public private(set) var humanSeats: Set<PlayerID>
+    public internal(set) var humanSeats: Set<PlayerID>
 
     /// The realized bot identity at each non-human chair.
     ///
     /// Stored directly instead of recomputing from seat order so policy,
     /// dialogue and logging all read the same assignment. The civilization
     /// assignment is durable, so these profiles reconstruct identically after
-    /// relaunch without adding another persistence file.
-    public private(set) var opponentProfiles: [PlayerID: OpponentProfile]
+    /// relaunch from the checkpoint's realized setup.
+    public internal(set) var opponentProfiles: [PlayerID: OpponentProfile]
 
     /// Human seats in a stable order.
     ///
@@ -62,7 +81,7 @@ public final class GameViewModel {
     /// `nil` until a seat is claimed, which is what makes relaunch correct
     /// without a second flag: a force-quit hot-seat game has nobody at the
     /// device, so the handoff cover is shown before any hand is drawn.
-    public private(set) var seatAtDevice: PlayerID?
+    public internal(set) var seatAtDevice: PlayerID?
 
     /// The seat whose hand is on screen and whose taps are being applied.
     ///
@@ -154,9 +173,6 @@ public final class GameViewModel {
     public typealias PendingTradeConfirmation = PendingTradeConfirmationState
     public private(set) var pendingTradeConfirmation: PendingTradeConfirmation?
 
-    /// The durable log for this game, restored across process relaunches.
-    private var currentGameLogID: UUID?
-
     /// When each currently-pending trade offer was first proposed -
     /// `TradeOffer` itself carries no timestamp, so this is tracked
     /// separately. Used by `runBotTurnIfNeeded` to hold off a bot accepting
@@ -175,12 +191,13 @@ public final class GameViewModel {
     /// track actual time spent *playing*, for `GameStatsStore`'s "average
     /// game time" stat, rather than wall-clock time since the game started,
     /// which would also count time the app spent backgrounded/locked.
-    private var accumulatedActiveDuration: TimeInterval = 0
-    private var activeSince: Date?
+    var accumulatedActiveDuration: TimeInterval = 0
+    var activeSince: Date?
+    private var appIsActive = true
 
     /// The full elapsed foreground time this game, as of right now.
-    private var currentGameDuration: TimeInterval {
-        accumulatedActiveDuration + (activeSince.map { Date().timeIntervalSince($0) } ?? 0)
+    var currentGameDuration: TimeInterval {
+        accumulatedActiveDuration + (activeSince.map { max(0, Date().timeIntervalSince($0)) } ?? 0)
     }
 
     /// Resumes the active-time clock - called from `ContentView` on
@@ -188,7 +205,9 @@ public final class GameViewModel {
     /// very first call after a game starts, when nothing has resigned
     /// active yet to clear `activeSince`).
     public func appDidBecomeActive() {
-        guard activeSince == nil else { return }
+        appIsActive = true
+        guard activeSince == nil, checkpointDocument?.activeMatch != nil else { return }
+        if case .gameOver = state.phase { return }
         activeSince = Date()
     }
 
@@ -196,18 +215,33 @@ public final class GameViewModel {
     /// `scenePhase` becoming `.inactive`/`.background`, so that time doesn't
     /// silently keep counting while the app isn't actually on screen.
     public func appWillResignActive() {
+        appIsActive = false
         guard let activeSince else { return }
-        accumulatedActiveDuration += Date().timeIntervalSince(activeSince)
+        accumulatedActiveDuration += max(0, Date().timeIntervalSince(activeSince))
         self.activeSince = nil
+        guard let document = checkpointDocument else { return }
+        do { try commitDocument(document.recordingElapsedTime(accumulatedActiveDuration)) } catch {
+            persistenceErrorMessage = error.localizedDescription
+        }
     }
 
-    public init(
+    public convenience init(
         gameStore: GameStore = .shared,
         civilizationStore: CivilizationAssignmentStore = .shared,
         matchSetupStore: MatchSetupStore = .shared,
         gameLogStore: GameLogStore = .shared,
         gameStatsStore: GameStatsStore = .shared
     ) {
+        self.init(checkpointStore: MatchCheckpointStore(fileURL: gameStore.fileURL
+            .deletingLastPathComponent().appendingPathComponent("match_checkpoint.json")),
+                  gameStore: gameStore, civilizationStore: civilizationStore,
+                  matchSetupStore: matchSetupStore, gameLogStore: gameLogStore, gameStatsStore: gameStatsStore)
+    }
+
+    init(checkpointStore: MatchCheckpointStore, gameStore: GameStore,
+         civilizationStore: CivilizationAssignmentStore, matchSetupStore: MatchSetupStore,
+         gameLogStore: GameLogStore, gameStatsStore: GameStatsStore) {
+        self.checkpointStore = checkpointStore
         self.gameStore = gameStore
         self.civilizationStore = civilizationStore
         self.matchSetupStore = matchSetupStore
@@ -215,49 +249,19 @@ public final class GameViewModel {
         self.humanSeatStore = humanSeatStore
         self.gameLogStore = gameLogStore
         self.gameStatsStore = gameStatsStore
+        newGameSetupLoadResult = matchSetupStore.load()
         persistenceErrorMessage = nil
-        gameLogWarning = nil
-        let activeMatchResult = matchSetupStore.loadActiveMatch()
-        let initialState: GameState
-        let seat: PlayerID
-        let assignment: [Civilization]
-        var saveWasUnreadable = false
-        var resumedSavedGame = false
-        switch gameStore.load() {
-        case .loaded(let saved):
-            resumedSavedGame = true
-            initialState = saved
-            // A resumed game keeps whichever seat/civilizations it was
-            // dealt, read back from disk rather than re-randomized - falls
-            // back to seat 0 / a fresh civilization draw if either file is
-            // missing/corrupt (e.g. a save from before these existed) so
-            // the game still has *some* consistent lineup instead of the
-            // bare defaults.
-            seat = humanSeatStore.load()
-            assignment = Self.restoredCivilizations(
-                for: saved, humanSeat: seat,
-                civilizationStore: civilizationStore, matchSetupStore: matchSetupStore
-            )
-        case .unreadable:
-            // A save exists but will not decode. Start a fresh game so the app
-            // still launches, but say so rather than pretending there was
-            // never a game - and leave the file alone so it can be recovered.
-            saveWasUnreadable = true
-            initialState = GameSetup.newGame(board: BoardGenerator.standard())
-            seat = PlayerID(index: 0)
-            assignment = Array(Civilization.allCases.prefix(initialState.players.count))
-        case .none:
-            initialState = GameSetup.newGame(board: BoardGenerator.standard())
-            seat = PlayerID(index: 0)
-            assignment = Array(Civilization.allCases.prefix(initialState.players.count))
-        }
+        gameLogWarningState = nil
+        let initialState = GameSetup.newGame(board: BoardGenerator.standard())
+        let seat = PlayerID(index: 0)
+        let assignment = Array(Civilization.allCases.prefix(initialState.players.count))
         CivilizationAssignment.current = assignment
         CivilizationAssignment.humanSeat = seat
         // Hot-seat composition, if the game being resumed recorded one.
         // `HumanSeatStore` holds a single seat and cannot express "people in
         // seats 0 and 2", so on its own it turned every human seat but the
         // lowest into a bot on the next launch, and lost their names.
-        let roster = Self.restoredRoster(for: initialState, fallback: seat, store: matchSetupStore)
+        let roster = (seats: Set([seat]), names: [PlayerID: String]())
         CivilizationAssignment.humanNames = roster.names
         // `@Observable` requires every stored property assigned before
         // `self` (including `self.state`) can be read - `GameLogStore`
@@ -265,9 +269,7 @@ public final class GameViewModel {
         // fully assign-before-read through this initializer.
         let profiles = Self.opponentProfiles(
             for: initialState, humanSeats: roster.seats,
-            civilizations: assignment,
-            realizedSeats: activeMatchResult.value?.seats,
-            preserveLegacySeatOrder: true
+            civilizations: assignment
         )
         session = Self.makeSession(state: initialState, opponentProfiles: profiles)
         humanSeats = roster.seats
@@ -276,18 +278,8 @@ public final class GameViewModel {
         // behind the handoff cover rather than showing whoever's hand happens
         // to be up. A solo game has nobody to pass to and claims immediately.
         seatAtDevice = roster.seats.count == 1 ? roster.seats.first : nil
-        do {
-            currentGameLogID = resumedSavedGame ? try gameLogStore.activeGameID() : nil
-            if !resumedSavedGame { try gameLogStore.abandonActiveGame() }
-        } catch {
-            currentGameLogID = nil
-            gameLogWarning = error.localizedDescription
-        }
-        self.saveWasUnreadable = saveWasUnreadable
-        activeSince = Date()
-        if resumedSavedGame, activeMatchResult == .unreadable {
-            persistenceErrorMessage = "The game was restored, but its saved player setup could not be read."
-        }
+        self.saveWasUnreadable = false
+        loadCheckpointAuthority()
     }
 
     /// Starts a fresh game, discarding whatever `state` currently holds.
@@ -295,43 +287,18 @@ public final class GameViewModel {
     /// always seat 0 - covers both draft order and regular turn order,
     /// since both are driven by the same seat rotation in this engine.
     public func startNewGame(randomizedBoard: Bool, randomizeSeat: Bool) {
-        let board = randomizedBoard
-            ? BoardGenerator.randomized(seed: UInt64.random(in: .min ... .max))
-            : BoardGenerator.standard()
-        let fresh = GameSetup.newGame(board: board)
-        // Per-game bookkeeping, including the negotiation state that used to
-        // survive a restart: a confirmation banner left open before Restart
-        // carried into the new game, where confirming it failed against an
-        // offer that no longer existed. Shared with `startNewGame(setup:)` so
-        // the two entry points cannot drift over what a new game clears.
-        resetPerGameState()
-
-        humanSeats = [randomizeSeat ? PlayerID(index: Int.random(in: 0...3)) : PlayerID(index: 0)]
-        seatAtDevice = sortedHumanSeats.first
-        CivilizationAssignment.humanNames = [:]
-        // This entry point builds a one-human game, so any hot-seat roster from
-        // the previous match must not outlive it - a resumed game reading a
-        // stale roster would seat people who are no longer playing. Cleared
-        // rather than rewritten: with no record, `restoredRoster` falls back to
-        // `HumanSeatStore`'s single seat, which is exactly what this builds.
-        matchSetupStore.clearActiveMatch()
-        CivilizationAssignment.humanSeat = humanPlayer
-        humanSeatStore.save(humanPlayer)
-
-        let assignment = Self.drawAssignment(from: CivilizationSettingsStore.shared.load(), humanSeat: humanPlayer)
-        CivilizationAssignment.current = assignment
-        opponentProfiles = Self.opponentProfiles(
-            for: fresh, humanSeats: humanSeats, civilizations: assignment
-        )
-        session = Self.makeSession(state: fresh, opponentProfiles: opponentProfiles)
-        persistLegacyMatch(assignment: assignment)
+        let settings = CivilizationSettingsStore.shared.load()
+        var setup = MatchSetup.default(preferredName: PlayerNameStore.shared.load().isEmpty
+            ? "You" : PlayerNameStore.shared.load(), preferredCivilization: settings.yourCivilization)
+        setup.randomizedBoard = randomizedBoard
+        setup.randomizeSeatOrder = randomizeSeat
+        startNewGame(setup: setup)
     }
 
     /// Starts a game from a full `MatchSetup` - the New Game screen's output.
     ///
-    /// The older two-flag entry point above remains for the paths that have
-    /// not moved yet; it builds the same thing with one human and stored
-    /// preferences.
+    /// The two-flag compatibility entry point constructs a setup and enters
+    /// this same checkpoint transaction.
     public func startNewGame(setup: MatchSetup) {
         startNewGame(setup: setup, configuredAs: setup)
     }
@@ -339,9 +306,23 @@ public final class GameViewModel {
     private func startNewGame(setup: MatchSetup, configuredAs prefill: MatchSetup) {
         precondition(setup.isStartable, "refusing to start an invalid match: \(setup.validationProblem ?? "")")
         let match = Self.prepareMatch(from: setup)
-        guard persist(match, configuredAs: prefill) else { return }
-        resetPerGameState()
-        install(match)
+        do {
+            let realized = Self.realisedMatch(chairs: match.chairs, civilizations: match.civilizations,
+                                             opponentProfiles: match.opponentProfiles, from: setup)
+            let candidate = Self.makeSession(state: match.state, opponentProfiles: match.opponentProfiles)
+            try replaceActiveMatch(state: match.state, setup: realized, session: candidate)
+            resetPerGameState()
+            try installCheckpointMatch()
+            do {
+                try matchSetupStore.save(prefill)
+                newGameSetupLoadResult = .loaded(prefill)
+            } catch {
+                gameLogWarning = "The next-game preferences could not be saved: \(error.localizedDescription)"
+            }
+            exportCommittedRecordings()
+        } catch {
+            persistenceErrorMessage = "The new game could not be saved. Your previous game was not replaced: \(error.localizedDescription)"
+        }
     }
 
     struct PreparedMatch {
@@ -404,55 +385,39 @@ public final class GameViewModel {
         return (seats, names)
     }
 
-    private func install(_ match: PreparedMatch) {
-        humanSeats = match.humanSeats
-        seatAtDevice = match.humanSeats.count == 1 ? match.humanSeats.first : nil
-        opponentProfiles = match.opponentProfiles
-        session = Self.makeSession(state: match.state, opponentProfiles: match.opponentProfiles)
-
-        CivilizationAssignment.humanSeat = humanPlayer
-        CivilizationAssignment.humanNames = match.humanNames
-        CivilizationAssignment.current = match.civilizations
-    }
-
-    private func persistLegacyMatch(assignment: [Civilization]) {
-        do {
-            try civilizationStore.save(assignment)
-            try gameStore.save(state)
-            persistenceErrorMessage = nil
-        } catch {
-            persistenceErrorMessage = "The game is running, but it could not be saved for later."
-        }
-    }
-
-    private func persistCurrentState() {
-        do {
-            try gameStore.save(state)
-            persistenceErrorMessage = nil
-        } catch {
-            persistenceErrorMessage = "Your move was made, but the game could not be saved for later."
-        }
-    }
-
-    #if DEBUG
-    /// QA-only: writes the current in-memory state to disk immediately.
-    /// `replaceStateForTesting` (which every QA fixture, e.g.
-    /// `qaSeedIncomingTrade`, goes through) does not persist on its own, so
-    /// a UI test that needs a seeded fixture to survive a real process
-    /// relaunch has to force it explicitly.
-    func qaPersistCurrentState() { persistCurrentState() }
-    #endif
-
     public func dismissPersistenceError() {
         persistenceErrorMessage = nil
     }
 
-    public func clearCompletedMatch() -> Bool {
+    /// Reconcile uncertain writes before allowing play again. The failed human
+    /// action is not replayed blindly; the board shows what actually committed.
+    @discardableResult
+    public func retryPersistence() -> Bool {
         do {
-            try gameStore.clear()
-            try civilizationStore.clear()
-            matchSetupStore.clearActiveMatch()
+            guard let document = try checkpointStore.load() else {
+                throw SavedGameRecoveryError.blocked("The checkpoint is missing. The original files have not been changed.")
+            }
+            checkpointDocument = document
+            try installCheckpointMatch()
+            gameGeneration &+= 1
+            eventBatch = EventBatch(sequence: eventBatch.sequence + 1, events: [])
             persistenceErrorMessage = nil
+            return true
+        } catch {
+            _ = reportPersistenceFailure(error)
+            return false
+        }
+    }
+
+    public func clearCompletedMatch() -> Bool {
+        guard savedGameAvailability.recoveryMessage == nil,
+              case .gameOver = state.phase, let document = checkpointDocument else { return false }
+        do {
+            try commitDocument(document.replacingActiveMatch(with: nil))
+            resetPerGameState()
+            activeSince = nil
+            savedGameAvailability = .absent
+            exportCommittedRecordings()
             return true
         } catch {
             persistenceErrorMessage = "The finished game could not be cleared. Please try again."
@@ -480,98 +445,23 @@ public final class GameViewModel {
         )
     }
 
-    /// Restarts the match the player configured, rather than a fixed default.
-    ///
-    /// The In-Game Settings screen's Restart used to call the two-flag entry
-    /// point, which always builds a four-seat, ten-point, one-human game - so a
-    /// three-player hot-seat game played to eight came back as something else
-    /// entirely, silently. The stored prefill is the player's own layout and is
-    /// the right thing to replay; the flags are only reached when there is no
-    /// stored setup at all (a save from before this screen existed).
+    /// Restart the realized table, keeping the configured next-game prefill
+    /// separate. No roster or identity is read from legacy sidecar authority.
     public func restartCurrentMatch(fallbackRandomizedBoard: Bool, fallbackRandomizeSeat: Bool) {
-        guard case .loaded(let previous) = matchSetupStore.load(), previous.isStartable else {
+        guard var active = checkpointDocument?.activeMatch?.setup else {
             startNewGame(randomizedBoard: fallbackRandomizedBoard, randomizeSeat: fallbackRandomizeSeat)
             return
         }
-        // Restart means replay this table, not draw different opponents. The
-        // active record contains the resolved Random civilizations and actual
-        // shuffled chairs; the prefill remains what the New Game screen should
-        // show next time.
-        if case .loaded(var active) = matchSetupStore.loadActiveMatch(), active.isStartable {
-            active.randomizeSeatOrder = false
-            startNewGame(setup: active, configuredAs: previous)
-        } else {
-            startNewGame(setup: previous)
-        }
+        active.randomizeSeatOrder = false
+        startNewGame(setup: active, configuredAs: matchSetupStore.load().value ?? active)
     }
 
-    /// Who is playing the game being resumed, and what they are called.
-    ///
-    /// Read from `MatchSetupStore.loadActiveMatch()`, which records the chairs
-    /// as they were actually dealt. The record is checked against the state on
-    /// disk before it is trusted - a stored roster whose seat count disagrees
-    /// with the saved game belongs to a different match, and following it would
-    /// name seats that do not exist. In that case, and for a game started
-    /// before the record existed, this falls back to the single seat
-    /// `HumanSeatStore` holds, which is exactly the old behaviour.
-    private static func restoredRoster(
-        for state: GameState,
-        fallback: PlayerID,
-        store: MatchSetupStore
-    ) -> (seats: Set<PlayerID>, names: [PlayerID: String]) {
-        guard case .loaded(let active) = store.loadActiveMatch(),
-              active.seats.count == state.players.count,
-              !active.humanSeats.isEmpty
-        else { return ([fallback], [:]) }
-
-        var seats: Set<PlayerID> = []
-        var names: [PlayerID: String] = [:]
-        for chair in active.humanSeats {
-            let id = PlayerID(index: chair.index)
-            seats.insert(id)
-            if !chair.name.isEmpty { names[id] = chair.name }
-        }
-        // A solo seat's name is KEPT. Discarding it here threw away the name
-        // the player typed on the New Game screen on every relaunch, so the
-        // game silently reverted to the App Settings preference - the prefill
-        // becoming the running value, which X1.2 forbids, in the most common
-        // configuration of all. The loop above already skips empty names, so a
-        // player who typed nothing still falls through to
-        // `PlayerNameStore`/"You" exactly as before.
-        return (seats, names)
-    }
-
-    /// Records the finished game against lifetime statistics - **solo games
-    /// only**.
-    ///
-    /// A hot-seat game must not touch them, and not merely because "your win
-    /// rate" is ill-defined when four people share a phone. `apply` applies
-    /// every move as the seat holding the device, so the winner of a hot-seat
-    /// game IS the phone's owner by construction: recording them would drive a
-    /// shared device to a permanent 100% win rate, resettable only by wiping
-    /// every statistic. Spec C4.4.
-    ///
-    /// The victory-point cap follows the game's own target rather than a
-    /// hardcoded ten. The winning move can push a player past the threshold in
-    /// one jump - a knight that simultaneously claims Largest Army - which is
-    /// legal and not worth recording as a bigger score, but in a twelve-point
-    /// game the threshold is twelve, and capping at ten filed every Epic win
-    /// as a ten.
+    /// Personal totals belong only to solo games; durable completion accounting
+    /// lives in MatchCheckpointDocument, not in the log exporter or this view.
     var shouldRecordLifetimeStatistics: Bool { humanSeats.count == 1 }
-
-    private func recordGameEndIfSolo(winner: PlayerID) {
-        guard shouldRecordLifetimeStatistics else { return }
-        gameStatsStore.recordGameEnd(
-            won: winner == humanPlayer,
-            finalVP: min(state.victoryPoints(for: humanPlayer), state.victoryPointTarget),
-            duration: currentGameDuration
-        )
-    }
 
     /// The bookkeeping every new game clears, whichever entry point started it.
     private func resetPerGameState() {
-        currentGameLogID = nil
-        recordLogOperation { try gameLogStore.abandonActiveGame() }
         gameGeneration &+= 1
         pendingTradeConfirmation = nil
         lastTradeOutcome = nil
@@ -581,94 +471,43 @@ public final class GameViewModel {
         activeSince = Date()
     }
 
-    /// Applies `move` through `RulesEngine` exactly like a direct call
-    /// would, plus logs it to `GameLogStore` and - the first time `state`
-    /// transitions into `.gameOver` - finalizes the log and records the
-    /// outcome into `GameStatsStore`. Every `RulesEngine.apply` call in this
-    /// file routes through here instead of calling it directly, so no path
-    /// (human move, bot move, or an auto-resolved trade response) can skip
-    /// logging.
+    /// Human and automatic trade responses use the same candidate-session
+    /// commit as policy moves. Neither events nor UI state escape before disk.
     private func applyLogged(_ move: GameMove, by player: PlayerID) throws {
-        let wasGameOver: Bool
-        if case .gameOver = state.phase { wasGameOver = true } else { wasGameOver = false }
+        if let message = savedGameAvailability.recoveryMessage { throw SavedGameRecoveryError.blocked(message) }
+        var candidate = session
+        let step = try candidate.applyExternal(move, by: player)
+        try commitStep(step, candidate: candidate)
+    }
 
-        // Open the log on the first real move rather than at launch, so a
-        // session that never plays leaves nothing behind. `stateBeforeMove` is
-        // captured first: the `start` line has to describe the position the
-        // move list is relative to, not the one after the first move.
-        let stateBeforeMove = state
-        let gameLogID = openGameLogIfNeeded(initialState: stateBeforeMove)
-
-        eventBatch = EventBatch(
-            sequence: eventBatch.sequence,
-            events: eventBatch.events + (try session.applyExternal(move, by: player).events))
-        recordLogOperation {
-            if let gameLogID { try gameLogStore.appendMove(gameID: gameLogID, player: player, move: move) }
+    private func commitStep(_ step: GameSession.Step, candidate: GameSession) throws {
+        guard let document = checkpointDocument, document.activeMatch != nil else {
+            throw SavedGameRecoveryError.blocked("Start a game before making a move.")
         }
-
-        if case .proposeTrade(let offer) = move {
-            offerProposedAt[offer.id] = Date()
+        let next: MatchCheckpointDocument
+        do {
+            next = try document.recording(step, session: candidate.checkpoint,
+                                           elapsedSeconds: currentGameDuration)
+            try commitDocument(next)
+        } catch let failure as MatchPersistenceFailure {
+            throw failure
+        } catch {
+            throw reportPersistenceFailure(error)
         }
+        session = candidate
+        pendingEvents += step.events
+        eventBatch = EventBatch(sequence: eventBatch.sequence + 1, events: pendingEvents)
+        if case .proposeTrade(let offer) = step.move { offerProposedAt[offer.id] = Date() }
         let stillPending = Set(state.pendingTradeOffers.map(\.id))
         offerProposedAt = offerProposedAt.filter { stillPending.contains($0.key) }
-
-        if !wasGameOver, case .gameOver(let winner) = state.phase {
-            recordLogOperation {
-                if let gameLogID { try gameLogStore.finalizeGame(gameID: gameLogID, winner: winner) }
-            }
-            recordGameEndIfSolo(winner: winner)
-            currentGameLogID = nil
+        if case .gameOver = state.phase {
+            accumulatedActiveDuration = next.activeMatch?.elapsedSeconds ?? currentGameDuration
+            activeSince = nil
         }
+        exportCommittedRecordings()
     }
 
-    private func openGameLogIfNeeded(initialState: GameState) -> UUID? {
-        if let currentGameLogID { return currentGameLogID }
-        do {
-            let id = try gameLogStore.startNewGame(initialState: initialState, roster: seatRoster())
-            currentGameLogID = id
-            return id
-        } catch {
-            gameLogWarning = error.localizedDescription
-            return nil
-        }
-    }
-
-    private func recordLogOperation(_ operation: () throws -> Void) {
-        do { try operation() } catch { gameLogWarning = error.localizedDescription }
-    }
-
-    public func dismissGameLogWarning() { gameLogWarning = nil }
-
-    /// Who is sitting in each seat this game, for the log's `start` line.
-    ///
-    /// Both halves are otherwise unrecoverable from the log: the human's seat
-    /// lives in a single `UserDefaults` integer that the next new game
-    /// overwrites, and a bot's personality is derived from seat order relative
-    /// to that seat rather than stored anywhere.
-    private func seatRoster() -> GameLogStore.SeatRoster {
-        var personalities: [Int: String] = [:]
-        var profiles: [Int: String] = [:]
-        var profileNames: [Int: String] = [:]
-        var civilizations: [Int: String] = [:]
-        for player in state.players {
-            let index = player.id.index
-            civilizations[index] = Civilization.forSeat(index).displayName
-            guard !humanSeats.contains(player.id) else { continue }
-            profiles[index] = opponentProfile(for: player.id)?.id
-            profileNames[index] = opponentProfile(for: player.id)?.name
-            personalities[index] = personalityName(for: player.id)
-        }
-        return GameLogStore.SeatRoster(
-            humanSeats: humanSeats,
-            humanNames: Dictionary(uniqueKeysWithValues: CivilizationAssignment.humanNames.map {
-                ($0.key.index, $0.value)
-            }),
-            botProfiles: profiles,
-            botProfileNames: profileNames,
-            botPersonalities: personalities,
-            civilizations: civilizations
-        )
-    }
+    public func dismissGameLogWarning() { gameLogWarningState = nil }
 
     /// Resolves every Random chair strictly inside the selected pool.
     ///
@@ -708,14 +547,12 @@ public final class GameViewModel {
             eligiblePool: settings.eligibleRandomCivilizations)
     }
 
-    /// Applies a human move, persists the result, and lets any subsequent
-    /// bot turns run. A save failure here is swallowed the same way
-    /// `runBotTurnIfNeeded()` swallows one: losing the on-disk save is not
-    /// worth surfacing as if the move itself failed (the move already
-    /// succeeded against `state`, which is what the caller/UI cares about),
-    /// and only `RulesEngine.apply`'s own errors indicate the human's move
-    /// itself was rejected.
+    /// Commit the human's move before publishing it or starting any bots.
+    /// Engine rejection and durable-write failure are distinct caller errors.
     public func apply(_ move: GameMove) throws {
+        if let message = savedGameAvailability.recoveryMessage {
+            throw SavedGameRecoveryError.blocked(message)
+        }
         beginEventBatch()
         // A bot negotiation belongs to the turn that started it. Left standing
         // across `endTurn`, the next player's Trade screen opened on the
@@ -723,15 +560,14 @@ public final class GameViewModel {
         // not compose a trade until they declined somebody else's offer, which
         // then failed with `.offerNoLongerAvailable` because `RulesEngine`
         // drops pending offers at `endTurn` anyway.
+        try applyLogged(move, by: humanPlayer)
         if case .endTurn = move {
             pendingTradeConfirmation = nil
             lastTradeOutcome = nil
         }
-        try applyLogged(move, by: humanPlayer)
         if case .proposeTrade(let offer) = move, offer.from == humanPlayer {
-            resolveHumanProposedTrade(offer)
+            try resolveHumanProposedTrade(offer)
         }
-        persistCurrentState()
         Task { await runBotTurnIfNeeded() }
     }
 
@@ -785,6 +621,7 @@ public final class GameViewModel {
             for: newState, humanSeats: seats, civilizations: civilizations
         )
         session = Self.makeSession(state: newState, opponentProfiles: opponentProfiles)
+        persistTestingPosition()
     }
 
     /// Drops the device claim, reproducing a relaunch where nobody is holding
@@ -809,6 +646,7 @@ public final class GameViewModel {
             for: state, humanSeats: seats, civilizations: CivilizationAssignment.current
         )
         session = Self.makeSession(state: state, opponentProfiles: opponentProfiles)
+        persistTestingPosition()
     }
 
     /// Forces `state.phase` straight to a human win, for screenshotting
@@ -818,25 +656,55 @@ public final class GameViewModel {
         var forced = session.state
         forced.phase = .gameOver(winner: humanPlayer)
         session.replace(state: forced)
+        persistTestingPosition()
     }
 
     /// Plays through production session, log, stats, and save bookkeeping without UI delays.
     func qaPlayToEnd() {
-        for seat in humanSeats {
-            session.policies[seat] = HeuristicPolicy(personality: .balanced, id: "qa-human")
-        }
+        var humanRNG = RandomSource(seed: 12345)
         for _ in 0..<10_000 {
             if case .gameOver = state.phase { return }
             do {
-                guard let (seat, move) = session.decideNext() else {
-                    preconditionFailure("QA complete match stopped before game over")
+                var candidate = session
+                let step: GameSession.Step
+                if case .awaitingExternalSeat(let seat) = candidate.nextActor() {
+                    let observation = GameObservation(seat: seat, state: state,
+                        legalMoves: RulesEngine.legalMoves(for: state, seat: seat))
+                    let move = HeuristicPolicy(personality: .balanced, id: "qa-human").decide(observation, rng: &humanRNG)
+                    step = try candidate.applyExternal(move, by: seat)
+                } else {
+                    guard let (seat, move) = candidate.decideNext() else {
+                        preconditionFailure("QA complete match stopped before game over")
+                    }
+                    step = try candidate.commit(seat: seat, move: move)
                 }
-                try applyPolicyMove(move, by: seat)
+                beginEventBatch()
+                try commitStep(step, candidate: candidate)
             } catch {
                 preconditionFailure("QA complete match failed: \(error)")
             }
         }
         preconditionFailure("QA complete match exceeded 10,000 moves")
+    }
+
+    /// QA positions are explicit new replay baselines, never unrecorded edits
+    /// to a production history. Real bot policy identities stay unchanged.
+    private func persistTestingPosition() {
+        let chairs = state.players.map { player in
+            MatchSetup.Seat(index: player.id.index, isHuman: humanSeats.contains(player.id),
+                name: humanSeats.contains(player.id) ? "Player \(player.id.index + 1)" : "",
+                civilization: CivilizationAssignment.current[player.id.index],
+                opponentProfile: opponentProfiles[player.id])
+        }
+        let setup = MatchSetup(seats: chairs, victoryPointTarget: state.victoryPointTarget,
+                               randomizedBoard: false, randomizeSeatOrder: false)
+        do {
+            try replaceActiveMatch(state: state, setup: setup, session: session)
+            accumulatedActiveDuration = 0
+            activeSince = Date()
+            savedGameAvailability = .playable
+            saveWasUnreadable = false
+        } catch { preconditionFailure("Could not persist QA position: \(error)") }
     }
 
     /// Seeds `pendingTradeConfirmation` with every bot accepting, without a
@@ -870,7 +738,7 @@ public final class GameViewModel {
         return TradeMessages.response(offer: TradeOffer(id: offerID, from: bot, give: [:], want: [:]), empire: empire, accepted: accepted)
     }
 
-    private func resolveHumanProposedTrade(_ offer: TradeOffer) {
+    private func resolveHumanProposedTrade(_ offer: TradeOffer) throws {
         var decisions: [(bot: PlayerID, accepted: Bool, message: String)] = []
         var firstAccepter: PlayerID?
         // Every *other* seat, not `1..<state.players.count` - that range
@@ -923,9 +791,25 @@ public final class GameViewModel {
             // `try?` swallowed it, and the offer was left stuck in
             // `pendingTradeOffers` forever.
             if let anyBot = decisions.first?.bot {
-                try? applyLogged(.respondToTrade(offerID: offer.id, accept: false), by: anyBot)
+                try applyLogged(.respondToTrade(offerID: offer.id, accept: false), by: anyBot)
             }
             lastTradeOutcome = TradeOutcome(decisions: decisions, acceptedBy: nil)
+        }
+    }
+
+    /// The pending offer is authoritative; presentation can be reconstructed
+    /// without sampling policies or touching the board on a cold resume.
+    func restorePendingNegotiation() {
+        pendingTradeConfirmation = nil
+        lastTradeOutcome = nil
+        guard let offer = state.pendingTradeOffers.first(where: { $0.from == humanPlayer }) else { return }
+        let decisions = state.players.map(\.id).filter { !humanSeats.contains($0) }.map { bot in
+            let accepts = Trading.bothSidesCanHonour(offer, responder: bot, state: state)
+                && TradeHeuristics.evaluate(offer: offer, receiver: bot, state: state, personality: personality(for: bot))
+            return (bot: bot, accepted: accepts, message: tradeResponseMessage(for: bot, offerID: offer.id, accepted: accepts))
+        }
+        if let bot = decisions.first(where: \.accepted)?.bot {
+            pendingTradeConfirmation = PendingTradeConfirmation(offerID: offer.id, selectedBot: bot, decisions: decisions)
         }
     }
 
@@ -956,6 +840,7 @@ public final class GameViewModel {
         /// the very cards they'd offered, in the gap between proposing and
         /// confirming.
         case resourcesNoLongerAvailable
+        case persistenceFailed
     }
 
     /// Goes through with a trade a bot said it would accept - see
@@ -967,26 +852,31 @@ public final class GameViewModel {
     public func confirmPendingTrade() -> TradeConfirmationResult {
         beginEventBatch()
         guard let pending = pendingTradeConfirmation else { return .succeeded }
-        pendingTradeConfirmation = nil
-
         guard state.pendingTradeOffers.contains(where: { $0.id == pending.offerID }) else {
+            pendingTradeConfirmation = nil
             lastTradeOutcome = nil
             return .offerNoLongerAvailable
         }
         do {
             try applyLogged(.respondToTrade(offerID: pending.offerID, accept: true), by: pending.selectedBot)
+        } catch is MatchPersistenceFailure {
+            return .persistenceFailed
         } catch {
             // Withdraw the now-stuck offer on the willing bot's behalf
             // rather than leaving it pending forever with nothing left to
             // confirm it with - same "reject" applied `declinePendingTrade`
             // uses.
-            try? applyLogged(.respondToTrade(offerID: pending.offerID, accept: false), by: pending.selectedBot)
+            do {
+                try applyLogged(.respondToTrade(offerID: pending.offerID, accept: false), by: pending.selectedBot)
+            } catch {
+                return .persistenceFailed
+            }
+            pendingTradeConfirmation = nil
             lastTradeOutcome = TradeOutcome(decisions: pending.decisions, acceptedBy: nil)
-            persistCurrentState()
             return .resourcesNoLongerAvailable
         }
+        pendingTradeConfirmation = nil
         lastTradeOutcome = TradeOutcome(decisions: pending.decisions, acceptedBy: pending.selectedBot)
-        persistCurrentState()
         return .succeeded
     }
 
@@ -999,11 +889,17 @@ public final class GameViewModel {
     public func declinePendingTrade() {
         beginEventBatch()
         guard let pending = pendingTradeConfirmation else { return }
-        pendingTradeConfirmation = nil
-        guard state.pendingTradeOffers.contains(where: { $0.id == pending.offerID }) else { return }
-        try? applyLogged(.respondToTrade(offerID: pending.offerID, accept: false), by: pending.selectedBot)
-        lastTradeOutcome = TradeOutcome(decisions: pending.decisions, acceptedBy: nil)
-        persistCurrentState()
+        guard state.pendingTradeOffers.contains(where: { $0.id == pending.offerID }) else {
+            pendingTradeConfirmation = nil
+            return
+        }
+        do {
+            try applyLogged(.respondToTrade(offerID: pending.offerID, accept: false), by: pending.selectedBot)
+            pendingTradeConfirmation = nil
+            lastTradeOutcome = TradeOutcome(decisions: pending.decisions, acceptedBy: nil)
+        } catch {
+            persistenceErrorMessage = error.localizedDescription
+        }
     }
 
     /// Runs bot turns in a loop for as long as the active player (or, during
@@ -1065,53 +961,32 @@ public final class GameViewModel {
 
     public typealias EventBatch = GameEventBatch
     public private(set) var eventBatch = EventBatch(sequence: 0, events: [])
+    private var pendingEvents: [GameEvent] = []
 
-    /// Starts a new batch. Called at the top of each operation that a view
-    /// would react to as one thing.
-    /// Builds the session for a game: a policy per bot seat, none for the
-    /// human's, so `step()` stops and hands control back when it is their turn.
-    ///
-    /// The policy RNG is seeded by drawing once from the position's own
-    /// generator, so two sessions built from the same position get the same
-    /// bot tie-breaks.
-    ///
-    /// It does **not** survive a save. `policyRNG` lives in `GameSession`, not
-    /// in `GameState`, so nothing persists it: a resumed game restarts the
-    /// tie-break sequence from draw zero rather than continuing where it left
-    /// off. That is invisible in play - the bots are equally good either way -
-    /// but it means a saved game is not replayable move-for-move, and the fix
-    /// is to move the policy seed into `GameState` alongside `rng`.
-    /// Seats every realized opponent profile with its configured policy.
-    ///
-    /// `GameSession` drives a seat only if it has a policy; a seat without one
-    /// returns `.awaitingExternalSeat` and the loop stops for it. That is
-    /// already how the single human works, so one to four humans needs no
-    /// engine change - only that this hands out policies by set membership
-    /// rather than by inequality with one seat.
-    private static func makeSession(
+    /// Only new matches and legacy migration seed a session from the board.
+    /// Modern resume restores the saved policy RNG and negotiation bookkeeping.
+    static func makeSession(
         state: GameState,
         opponentProfiles: [PlayerID: OpponentProfile]
     ) -> GameSession {
-        var policies: [PlayerID: any Policy] = [:]
-        for player in state.players {
-            guard let profile = opponentProfiles[player.id] else { continue }
-            policies[player.id] = HeuristicPolicy(
-                personality: profile.strategicPersonality,
-                id: "heuristic-\(profile.strategy.rawValue)"
-            )
-        }
         var seedSource = state.rng
-        return GameSession(state: state, policies: policies, policySeed: seedSource.next())
+        return GameSession(state: state, policies: makePolicies(opponentProfiles), policySeed: seedSource.next())
+    }
+
+    static func makePolicies(_ profiles: [PlayerID: OpponentProfile]) -> [PlayerID: any Policy] {
+        profiles.mapValues { profile in
+            HeuristicPolicy(personality: profile.strategicPersonality,
+                            id: "heuristic-\(profile.strategy.rawValue)")
+        }
     }
 
     private func beginEventBatch() {
-        eventBatch = EventBatch(sequence: eventBatch.sequence + 1, events: [])
+        pendingEvents = []
     }
 
-    /// True when a save file was present at launch but could not be decoded.
-    /// Surfaced by `ContentView` so a lost game is reported rather than
-    /// silently replaced by a new one.
-    public private(set) var saveWasUnreadable = false
+    /// Compatibility signal for the launch alert: either game data or its
+    /// player setup failed restoration. Recovery status holds the explanation.
+    public internal(set) var saveWasUnreadable = false
 
     /// True while `InGameSettingsView` is on screen. The bot loop stops on it
     /// for the same reason it stops on `openIncomingOffer`: a surface the
@@ -1124,11 +999,15 @@ public final class GameViewModel {
     public var isSettingsSurfaceOpen = false
 
     public func runBotTurnIfNeeded() async {
-        guard !isProcessingBotTurns else { return }
+        guard savedGameAvailability.canResume, appIsActive, !persistenceBlocked, !isProcessingBotTurns else { return }
         isProcessingBotTurns = true
-        defer { isProcessingBotTurns = false }
-
         let generation = gameGeneration
+        defer {
+            isProcessingBotTurns = false
+            if generation != gameGeneration, savedGameAvailability.canResume, !persistenceBlocked {
+                Task { await runBotTurnIfNeeded() }
+            }
+        }
 
         // The loop is now only pacing and persistence. Choosing the move,
         // deciding whose turn it is and the runaway-action backstop all live
@@ -1169,57 +1048,31 @@ public final class GameViewModel {
             // the next game.
             try? await Task.sleep(for: .seconds(PacingPreferences.shared.aiTurnSpeed.secondsPerBotAction))
             // The game may have been restarted while this loop slept.
-            guard generation == gameGeneration else { return }
+            guard generation == gameGeneration, appIsActive, !Task.isCancelled,
+                  !isSettingsSurfaceOpen, openIncomingOffer == nil else { return }
 
-            guard let (seat, move) = session.decideNext() else { break }
+            let revision = checkpointDocument?.revision
+            var candidate = session
+            guard let (seat, move) = candidate.decideNext() else { break }
             await waitForFairAcceptWindow(before: move)
-            guard generation == gameGeneration else { return }
+            guard generation == gameGeneration, appIsActive, !Task.isCancelled, !persistenceBlocked,
+                  !isSettingsSurfaceOpen, openIncomingOffer == nil else { return }
+            guard revision == checkpointDocument?.revision else { continue }
             do {
-                try applyPolicyMove(move, by: seat)
+                let step = try candidate.commit(seat: seat, move: move)
+                beginEventBatch()
+                try commitStep(step, candidate: candidate)
+            } catch is MatchPersistenceFailure {
+                return
             } catch {
                 // A policy chose a move the rules reject: the two disagree,
                 // which is a bug rather than a position to recover from. It was
                 // previously a bare `try?`, so the loop simply stopped and the
-                // game sat frozen on a bot's turn with nothing said. Note also
-                // that `decideNext()` has already advanced `policyRNG`, so a
-                // replay of this seed diverges from here regardless.
+                // game sat frozen on a bot's turn with nothing said. The
+                // rejected candidate never replaces the committed policy RNG.
                 assertionFailure("bot \(seat.index) played an illegal \(move): \(error)")
                 break
             }
-        }
-    }
-
-    /// One policy move plus the production bookkeeping shared by paced and QA loops.
-    private func applyPolicyMove(_ move: GameMove, by seat: PlayerID) throws {
-        beginEventBatch()
-        let stateBeforeMove = state
-        let step = try session.commit(seat: seat, move: move)
-        recordAppliedMove(step, stateBeforeMove: stateBeforeMove)
-        persistCurrentState()
-    }
-
-    /// Mirrors `applyLogged`'s bookkeeping for a move the session chose.
-    ///
-    /// `applyLogged` exists for moves decided out here; a bot's move is
-    /// applied inside the session, so the logging, stats and trade-offer
-    /// housekeeping it would have done has to happen on this side instead.
-    private func recordAppliedMove(_ step: GameSession.Step, stateBeforeMove: GameState) {
-        let gameLogID = openGameLogIfNeeded(initialState: stateBeforeMove)
-        recordLogOperation {
-            if let gameLogID { try gameLogStore.appendMove(gameID: gameLogID, player: step.actor, move: step.move) }
-        }
-        eventBatch = EventBatch(sequence: eventBatch.sequence, events: eventBatch.events + step.events)
-
-        if case .proposeTrade(let offer) = step.move { offerProposedAt[offer.id] = Date() }
-        let stillPending = Set(state.pendingTradeOffers.map(\.id))
-        offerProposedAt = offerProposedAt.filter { stillPending.contains($0.key) }
-
-        if case .gameOver(let winner) = state.phase, currentGameLogID != nil {
-            recordLogOperation {
-                if let gameLogID { try gameLogStore.finalizeGame(gameID: gameLogID, winner: winner) }
-            }
-            recordGameEndIfSolo(winner: winner)
-            currentGameLogID = nil
         }
     }
 

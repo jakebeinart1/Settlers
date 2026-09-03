@@ -436,10 +436,10 @@ public struct GameView: View {
             if QALaunchFlag.showIncomingOffer.isSet {
                 #if DEBUG
                 incomingOfferQueue = [viewModel.qaSeedIncomingTrade()]
-                // So a UI test can `app.terminate()` right after this and
-                // still find the offer pending on the next launch - see
-                // `qaPersistCurrentState`'s doc comment.
-                viewModel.qaPersistCurrentState()
+                // `qaSeedIncomingTrade` goes through `replaceStateForTesting`,
+                // which persists via `persistTestingPosition()` on its own -
+                // so a UI test can `app.terminate()` right after this and
+                // still find the offer pending on the next launch.
                 #endif
             }
             // `-qaShowRobberVictimPicker`: same escape hatch pattern, one
@@ -1141,10 +1141,10 @@ public struct GameView: View {
         do {
             try viewModel.apply(.respondToTrade(offerID: offer.id, accept: accept))
             errorMessage = nil
+            incomingOfferQueue.removeAll { $0.id == offer.id }
         } catch {
             errorMessage = error.localizedDescription
         }
-        incomingOfferQueue.removeAll { $0.id == offer.id }
     }
 
     /// Drops everything the previous player had half-done.

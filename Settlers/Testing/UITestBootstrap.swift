@@ -21,16 +21,37 @@ enum UITestBootstrap {
         do {
             try GameStore.shared.clear()
             try CivilizationAssignmentStore.shared.clear()
+            let checkpointURL = GameStore.shared.fileURL.deletingLastPathComponent()
+                .appendingPathComponent("match_checkpoint.json")
+            if FileManager.default.fileExists(atPath: checkpointURL.path) {
+                try FileManager.default.removeItem(at: checkpointURL)
+            }
         } catch {
             preconditionFailure("Could not reset UI-test persistence: \(error)")
         }
         GameStatsStore.shared.clear()
         clearGameLogs()
         PlayerNameStore.shared.save("UI Tester")
+        if arguments.contains("-ui-testing-corrupt-save") {
+            writeCorruptSave()
+        }
         #endif
     }
 
     #if DEBUG
+    /// Only called behind reset, so a no-reset relaunch tests the existing
+    /// unreadable file rather than silently replacing it with another fixture.
+    private static func writeCorruptSave() {
+        let fileURL = GameStore.shared.fileURL
+        do {
+            try FileManager.default.createDirectory(
+                at: fileURL.deletingLastPathComponent(), withIntermediateDirectories: true)
+            try Data([0xFF, 0xFE, 0x00]).write(to: fileURL, options: .atomic)
+        } catch {
+            preconditionFailure("Could not seed unreadable UI-test save: \(error)")
+        }
+    }
+
     private static func clearGameLogs() {
         let documents = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
         let logs = documents.appendingPathComponent("GameLogs", isDirectory: true)

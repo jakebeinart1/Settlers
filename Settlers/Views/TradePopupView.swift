@@ -514,6 +514,8 @@ public struct TradePopupView: View {
                     case .resourcesNoLongerAvailable:
                         errorMessage = "That trade could no longer go through - resources changed since you proposed it."
                         proposalOutcome = viewModel.lastTradeOutcome
+                    case .persistenceFailed:
+                        errorMessage = "The trade could not be saved. Please try again."
                     }
                 })
             }

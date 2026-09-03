@@ -1,91 +1,78 @@
 import Foundation
-
-private enum FileSnapshot {
-    case absent
-    case data(Data)
-}
-
-private struct MatchPersistenceSnapshots {
-    let game: FileSnapshot
-    let civilizations: FileSnapshot
-    let prefill: Data?
-    let active: Data?
-}
+import CatanEngine
 
 extension GameViewModel {
-    @discardableResult
-    func persist(_ match: PreparedMatch, configuredAs setup: MatchSetup) -> Bool {
-        let snapshots: MatchPersistenceSnapshots
-        do {
-            snapshots = try persistenceSnapshots()
-        } catch {
-            persistenceErrorMessage = "The existing save could not be read, so it was not replaced."
-            return false
-        }
-
-        do {
-            try write(match, configuredAs: setup)
-            persistenceErrorMessage = nil
-            return true
-        } catch {
-            rollback(snapshots, originalError: error)
-            return false
-        }
-    }
-
-    private func write(_ match: PreparedMatch, configuredAs setup: MatchSetup) throws {
-        let realised = Self.realisedMatch(
-            chairs: match.chairs,
-            civilizations: match.civilizations,
-            opponentProfiles: match.opponentProfiles,
-            from: setup
-        )
-        try matchSetupStore.save(setup)
-        try civilizationStore.save(match.civilizations)
-        try matchSetupStore.saveActiveMatch(realised)
-        try gameStore.save(match.state)
-        humanSeatStore.save(match.humanSeats.sorted().first!)
-    }
-
-    private func persistenceSnapshots() throws -> MatchPersistenceSnapshots {
-        MatchPersistenceSnapshots(
-            game: try snapshot(of: gameStore.fileURL),
-            civilizations: try snapshot(of: civilizationStore.fileURL),
-            prefill: matchSetupStore.data(forActiveMatch: false),
-            active: matchSetupStore.data(forActiveMatch: true)
-        )
-    }
-
-    private func snapshot(of url: URL) throws -> FileSnapshot {
-        guard FileManager.default.fileExists(atPath: url.path) else { return .absent }
-        return .data(try Data(contentsOf: url))
-    }
-
-    private func rollback(_ snapshots: MatchPersistenceSnapshots, originalError: Error) {
-        do {
-            try restore(snapshots.game, to: gameStore.fileURL)
-            try restore(snapshots.civilizations, to: civilizationStore.fileURL)
-            matchSetupStore.restore(snapshots.prefill, forActiveMatch: false)
-            matchSetupStore.restore(snapshots.active, forActiveMatch: true)
-            persistenceErrorMessage = "The new game could not be saved. Your previous saved game is still available."
-        } catch {
-            persistenceErrorMessage = "The new game could not be saved, and the previous save could not be restored: "
-                + "\(originalError.localizedDescription); \(error.localizedDescription)"
-        }
-    }
-
-    private func restore(_ snapshot: FileSnapshot, to url: URL) throws {
-        switch snapshot {
-        case .data(let data):
-            try FileManager.default.createDirectory(
-                at: url.deletingLastPathComponent(),
-                withIntermediateDirectories: true
-            )
-            try data.write(to: url, options: .atomic)
-        case .absent:
-            if FileManager.default.fileExists(atPath: url.path) {
-                try FileManager.default.removeItem(at: url)
+    /// New Game is one durable table switch. Recovery copies are completed
+    /// before replacement, and ordinary legacy files remain untouched.
+    func replaceActiveMatch(state: GameState, setup: MatchSetup, session: GameSession) throws {
+        var match = MatchCheckpoint(id: UUID(), initialState: state, setup: setup)
+        try match.attachSession(session.checkpoint)
+        if savedGameAvailability.recoveryMessage != nil {
+            let backup = try preserveRecoveryArtifacts(reason: savedGameAvailability.recoveryMessage!)
+            if FileManager.default.fileExists(atPath: checkpointStore.fileURL.path) {
+                let fresh = try checkpointDocument.map {
+                    try MatchCheckpointDocument(recovering: $0, activeMatch: match)
+                } ?? MatchCheckpointDocument(activeMatch: match)
+                do {
+                    try checkpointStore.replaceAfterRecovery(fresh, preservedOriginalAt: backup.appendingPathComponent("checkpoint.json"))
+                } catch {
+                    guard try checkpointStore.load() == fresh else { throw error }
+                }
+                checkpointDocument = fresh
+                persistenceBlocked = false
+                persistenceErrorMessage = nil
+                gameLogWarning = "The unreadable checkpoint was backed up exactly. Its history and statistics could not be restored automatically."
+                return
             }
         }
+        if checkpointDocument == nil {
+            try commitDocument(MatchCheckpointMigration.prepare(statistics: gameStatsStore))
+        }
+        guard let document = checkpointDocument else { preconditionFailure("checkpoint initialization did not produce a document") }
+        let duration = max(document.activeMatch?.elapsedSeconds ?? 0, currentGameDuration)
+        try commitDocument(document.recordingElapsedTime(duration))
+        guard let timedDocument = checkpointDocument else { preconditionFailure("duration commit lost its document") }
+        try commitDocument(timedDocument.replacingActiveMatch(with: match))
+    }
+
+    /// Raw source bytes, not decoded values: damaged bytes are what recovery
+    /// needs. The completion marker is last, and any failure prevents replacement.
+    @discardableResult
+    func preserveRecoveryArtifacts(reason: String) throws -> URL {
+        let directory = checkpointStore.fileURL.deletingLastPathComponent()
+            .appendingPathComponent("Recovery").appendingPathComponent(UUID().uuidString)
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        try preserveFile(gameStore.fileURL, as: "save.json", in: directory)
+        try preserveFile(civilizationStore.fileURL, as: "civilizations.json", in: directory)
+        try preserveFile(checkpointStore.fileURL, as: "checkpoint.json", in: directory)
+        try preserveFile(gameStatsStore.fileURL, as: "statistics.json", in: directory)
+        try preserveFile(gameLogStore.activeGameIDURL, as: "active-game-id", in: directory)
+        if let data = matchSetupStore.data(forActiveMatch: false) {
+            try data.write(to: directory.appendingPathComponent("configured-match.json"), options: .atomic)
+        }
+        if let data = matchSetupStore.data(forActiveMatch: true) {
+            try data.write(to: directory.appendingPathComponent("active-match.json"), options: .atomic)
+        }
+        try Data(String(humanSeatStore.load().index).utf8).write(
+            to: directory.appendingPathComponent("legacy-human-seat.txt"), options: .atomic)
+        try preserveRecordings(in: directory)
+        try Data(reason.utf8).write(to: directory.appendingPathComponent("complete.txt"), options: .atomic)
+        return directory
+    }
+
+    private func preserveFile(_ source: URL, as name: String, in directory: URL) throws {
+        let data: Data
+        do { data = try Data(contentsOf: source) } catch let error as CocoaError where error.code == .fileReadNoSuchFile {
+            return
+        }
+        try data.write(to: directory.appendingPathComponent(name), options: .atomic)
+    }
+
+    private func preserveRecordings(in archive: URL) throws {
+        let files = try gameLogStore.logFiles()
+        guard !files.isEmpty else { return }
+        let directory = archive.appendingPathComponent("recordings")
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        for file in files { try preserveFile(file, as: file.lastPathComponent, in: directory) }
     }
 }

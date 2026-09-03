@@ -18,10 +18,24 @@ import CatanEngine
 public struct MainMenuView: View {
     public let onStart: (MatchSetup) -> Void
     public let onResume: () -> Void
+    public let canResumeSavedGame: Bool
+    public let statistics: GameStats
+    public let requiresSaveReplacementConfirmation: Bool
+    public let newGameSetupLoadResult: MatchSetupStore.LoadResult
+    public let onResetStatistics: () -> Bool
 
-    public init(onStart: @escaping (MatchSetup) -> Void, onResume: @escaping () -> Void) {
+    public init(canResumeSavedGame: Bool, onStart: @escaping (MatchSetup) -> Void,
+                onResume: @escaping () -> Void, statistics: GameStats = GameStats(),
+                requiresSaveReplacementConfirmation: Bool = false,
+                newGameSetupLoadResult: MatchSetupStore.LoadResult = .none,
+                onResetStatistics: @escaping () -> Bool = { false }) {
+        self.canResumeSavedGame = canResumeSavedGame
         self.onStart = onStart
         self.onResume = onResume
+        self.statistics = statistics
+        self.requiresSaveReplacementConfirmation = requiresSaveReplacementConfirmation
+        self.newGameSetupLoadResult = newGameSetupLoadResult
+        self.onResetStatistics = onResetStatistics
     }
 
     // `-qaShowSettings`: same escape-hatch pattern as `-qaShowPauseMenu` -
@@ -34,10 +48,6 @@ public struct MainMenuView: View {
         || QALaunchFlag.showNewGameInvalid.isSet
         || QALaunchFlag.showNewGameOverwrite.isSet
         || QALaunchFlag.showNewGameCivilizationPicker.isSet
-
-    private var hasSavedGame: Bool {
-        GameStore.shared.hasSave()
-    }
 
     public var body: some View {
         ZStack {
@@ -114,7 +124,7 @@ public struct MainMenuView: View {
                     .accessibilityIdentifier(AccessibilityID.MainMenu.newGame)
                     .padding(.horizontal, 40)
 
-                    if hasSavedGame {
+                    if canResumeSavedGame {
                         GoldRowButton(title: "Resume Game", systemImage: "play.fill") {
                             onResume()
                         }
@@ -132,13 +142,16 @@ public struct MainMenuView: View {
         .accessibilityIdentifier(AccessibilityID.Screen.mainMenu)
         .foregroundStyle(.white)
         .sheet(isPresented: $isShowingSettings) {
-            SettingsView(onDismiss: { isShowingSettings = false })
+            SettingsView(onDismiss: { isShowingSettings = false }, statistics: statistics,
+                         onResetStatistics: onResetStatistics)
         }
         // Full screen rather than a sheet: the setup screen is taller than a
         // phone, carries its own bottom action bar, and a sheet's drag-to-
         // dismiss would sit directly over a scroll view full of text fields.
         .fullScreenCover(isPresented: $isShowingNewGame) {
             NewGameSetupView(
+                hasSavedGame: requiresSaveReplacementConfirmation,
+                setupLoadResult: newGameSetupLoadResult,
                 onStart: { setup in
                     // Dismissed first: `onStart` replaces this whole view with
                     // the board, and tearing down a presenter while its cover
@@ -157,7 +170,7 @@ public struct MainMenuView: View {
     /// nothing meaningful to show yet.
     @ViewBuilder
     private var statsRow: some View {
-        let stats = GameStatsStore.shared.load()
+        let stats = statistics
         if stats.gamesPlayed > 0 {
             HStack(spacing: 20) {
                 statTile(value: "\(stats.gamesPlayed)", label: "Played")
@@ -212,5 +225,5 @@ public struct MainMenuView: View {
 }
 
 #Preview {
-    MainMenuView(onStart: { _ in }, onResume: {})
+    MainMenuView(canResumeSavedGame: false, onStart: { _ in }, onResume: {})
 }

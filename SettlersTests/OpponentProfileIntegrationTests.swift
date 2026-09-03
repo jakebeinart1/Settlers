@@ -187,7 +187,8 @@ struct OpponentProfileIntegrationTests {
                 gameStore: gameStore,
                 civilizationStore: civilizationStore,
                 matchSetupStore: setupStore,
-                gameLogStore: logStore
+                gameLogStore: logStore,
+                gameStatsStore: GameStatsStore(fileURL: root.appendingPathComponent("stats.json"))
             )
         }
     }

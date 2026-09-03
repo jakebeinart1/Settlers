@@ -6,13 +6,10 @@ description: The dev-loop verification ladder for the Settlers ("Empires") iOS a
 # Verify Settlers
 
 **"It builds" is a compile claim. "It works" is a runtime claim, and no compiler
-emits one.** This repo has no UI test at all, and until 2026-08-29 it had no app
-tests either - `project.yml` said `test: targets: []`, so `xcodebuild test
--scheme Settlers` ran literally nothing. An app that compiles, lints, passes
-every test (176 package tests at `4b99aff`; the count moves) and clears both
-coverage floors can still fail to install, crash inside `GameViewModel.init()`,
-or paint a blank screen, and every gate in `scripts/gate.sh` stays green while
-it does.
+emits one.** The app now has hosted unit tests and native XCUITests. Until
+2026-08-29 the scheme ran no app tests at all. Even the current coverage can
+miss an untested launch state or visual defect, so install, launch, and inspect
+the exact artifact being handed over.
 
 **The last rung is deliberately not automated.** Rungs 1-5 can all be green on a
 white screen: the bundle installed, the process is alive, no crash report
@@ -29,14 +26,15 @@ it has no right to give.
 | **The crash-report diff (rung 5) firing on a real crash** | **NEVER SEEN RED.** The `Settlers[-.]` filter and the `comm -13` diff are correct by construction and were exercised on a clean run, but no crash has been produced to prove they catch one. Treat a green rung 5 as "nothing appeared", not as "a crash would have been caught". |
 | **`kill -0 $PID` (rung 5)** | **RUN AND PROVEN 2026-08-29.** Simulator processes are ordinary host processes owned by this user, so the signal-0 liveness test is valid from the host shell. pid 84107 answered. |
 | **Release configuration** | **BUILT BY THE GATE ON EVERY RUN** since `gate.sh` made it mandatory. It is the one thing the ladder does NOT rebuild - rung 3 is Debug on purpose (see rung 3's note). |
-| **Any interaction at all** | **NEVER RUN, AND CANNOT BE.** `simctl` has no touch injection. A dead button, an untappable tile, a drag that does nothing - all six rungs pass. |
+| **Native interaction** | **RUN AND PROVEN 2026-09-03.** Twelve XCUITest flows cover setup, placement, settings, trade decisions/timing, cold resume, recovery, and a real automated match to game over. This still is not exhaustive human play. |
 
 ## Hard preconditions: if one is missing, STOP and say which
 
 - **`xcodegen` on PATH** (2.46.0 here). The `.xcodeproj` is a build artifact
   generated from `project.yml`; hand edits to `project.pbxproj` are discarded.
-- **A bootable iPhone simulator.** Discovered, never hardcoded - UDIDs differ
-  per machine and change when Xcode installs a runtime.
+- **An available iPhone simulator runtime.** `select-qa-simulator.py` reuses a
+  dedicated `Empires QA` device or creates it from the newest available runtime.
+  Test resets must never target a developer's manual-play simulator.
 - **A tree that is yours.** `gate.sh` lints and tests the WHOLE repo. If another
   agent or another branch has an in-progress file in it, rung 2 fails on their
   work and tells you nothing about yours. Check `git status` first.
@@ -86,12 +84,7 @@ xcodegen generate --quiet
 #    fails --strict on Xcode's own generated sources.
 #    Log to a FILE. Never `xcodebuild | tail` - see the trap below.
 DD="${TMPDIR:-/tmp}/settlers-verify-derived"; mkdir -p "$DD"
-SIM="$(xcrun simctl list devices available -j | python3 -c '
-import json, sys
-devices = [d for runtime in json.load(sys.stdin)["devices"].values()
-             for d in runtime if "iPhone" in d["name"]]
-booted = [d for d in devices if d["state"] == "Booted"]
-print((booted or devices)[0]["udid"])')"
+SIM="$(python3 scripts/select-qa-simulator.py)"
 xcrun simctl boot "$SIM" 2>/dev/null || true   # already-booted exits non-zero
 open -a Simulator                              # so there is a window to photograph
 xcodebuild -project "$REPO/Settlers.xcodeproj" -scheme Settlers \
@@ -231,15 +224,13 @@ protect you from your own build directory is one edit away from breaking.
   prints `READ <path>`. If nobody opened that file, the change is unverified,
   and a summary that says "verified" is a false claim about work that was not
   done.
-- **No interaction is tested, ever.** `simctl` has no touch injection, SwiftUI
-  is one opaque canvas to the accessibility APIs, and synthetic clicks are
-  banned here because they land on whatever Mac window is frontmost - including
-  Alex's real applications. A dead button passes all six rungs.
-- **The app-target test bundle is brand new and does not change this.** As of
-  2026-08-29 `SettlersTests` is being added on this branch (`project.yml`
-  gains `type: bundle.unit-test` and the scheme's `test: targets:` stops being
-  empty). Those are unit tests over the persistence stores only - `GameStoreTests` and `GameStatsStoreTests`. There is still NO test over `GameViewModel`, which is the file `project.yml` names as the motivating gap.
-  They are a real improvement and they still never render a pixel.
+- **Interaction coverage is substantial, not exhaustive.** Native XCUITest
+  taps through setup, placement, settings, trades, resume/recovery, and game
+  completion. It does not manually choose every move across a human-length
+  match or exercise every robber/discard/trading combination.
+- **Tests do not replace visual judgment.** App and UI tests now exercise
+  `GameViewModel` and rendered controls, but layout still ends with an opened,
+  inspected screenshot on each supported screen size.
 - **One screenshot, one screen.** The ladder photographs the launch screen.
   Everything reachable only by tapping is out of scope; use the `-qa*` flags
   and the **run-settlers** skill to seed a specific screen, and note that most
@@ -247,8 +238,8 @@ protect you from your own build directory is one edit away from breaking.
   the game logic which would normally produce that state works.
 - **Simulator is not a device.** Nothing here says anything about touch
   latency, thermals, memory pressure, or safe-area behaviour on real hardware,
-  and the device path has never produced an installed build on this machine
-  (signing is to Jake's team - see **run-settlers**).
+  on real hardware. See **ship-testflight** for the separate Alex-owned
+  distribution path; preserve Jake's committed signing defaults.
 - **Rung 5 has never gone red.** It has been proven to pass on a healthy app,
   not proven to catch a sick one.
 

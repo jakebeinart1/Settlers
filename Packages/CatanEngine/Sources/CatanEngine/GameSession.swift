@@ -20,7 +20,7 @@ import Foundation
 /// that also imports this package then fails to compile with
 /// "'Observable' is not a member type of struct 'CatanEngine.Observation'".
 
-public struct GameObservation: Sendable {
+public struct GameObservation: Codable, Equatable, Sendable {
     /// The seat being asked to move.
     public let seat: PlayerID
     public let state: GameState
@@ -117,6 +117,95 @@ public struct GameSession: Sendable {
         restorePendingTradeBookkeeping()
     }
 
+    /// Session-only progress is persisted alongside the board, not rebuilt by
+    /// re-evaluating policies. In particular a queued trade answer already used
+    /// randomness and must not be sampled again on resume.
+    public struct Checkpoint: Codable, Equatable, Sendable {
+        let version: Int
+        public let state: GameState
+        let policyIDs: [PlayerID: String]
+        let policyRNG: RandomSource
+        let policyEvaluationCount: Int
+        let queuedTradeResponse: Decision?
+        let proposedTradeThisTurn: Bool
+        let currentTurnSeat: PlayerID?
+        let actionsThisTurn: Int
+
+        /// Reject invalid wire state before nextActor indexes a seat or a
+        /// decision increments a counter. This checks session invariants;
+        /// it does not certify every board/rules invariant in an imported save.
+        public func validate() throws {
+            let occupied = Set(state.players.map(\.id))
+            guard version == 1, (1...GameState.currentSchemaVersion).contains(state.schemaVersion),
+                  GameSetup.supportedPlayerCounts.contains(state.players.count),
+                  state.players.map({ $0.id.index }).elementsEqual(state.players.indices),
+                  Set(policyIDs.keys).isSubset(of: occupied),
+                  currentTurnSeat.map(occupied.contains) ?? true,
+                  (0...GameSession.maxActionsPerTurn).contains(actionsThisTurn),
+                  (currentTurnSeat == nil) == (actionsThisTurn == 0),
+                  (0..<Int.max).contains(policyEvaluationCount) else {
+                throw CheckpointError.incompatibleCheckpoint
+            }
+            switch state.phase {
+            case .discarding(let pending):
+                guard !pending.isEmpty, pending.isSubset(of: occupied) else { throw CheckpointError.incompatibleCheckpoint }
+            case .gameOver(let winner):
+                guard occupied.contains(winner) else { throw CheckpointError.incompatibleCheckpoint }
+            default:
+                guard state.phase.awaitingSeatIndex.map(state.players.indices.contains) == true else {
+                    throw CheckpointError.incompatibleCheckpoint
+                }
+            }
+            try validateQueuedResponse(occupied: occupied)
+        }
+
+        private func validateQueuedResponse(occupied: Set<PlayerID>) throws {
+            guard let queued = queuedTradeResponse else { return }
+            guard occupied.contains(queued.seat), policyIDs[queued.seat] != nil,
+                  queued.observation.seat == queued.seat, queued.observation.state == state,
+                  (0..<policyEvaluationCount).contains(queued.evaluationIndex),
+                  case .respondToTrade(let offerID, _) = queued.move,
+                  let offer = state.pendingTradeOffers.first(where: { $0.id == offerID }),
+                  occupied.contains(offer.from), offer.from != queued.seat else {
+                throw CheckpointError.incompatibleCheckpoint
+            }
+            var legal: [GameMove] = [.respondToTrade(offerID: offerID, accept: false)]
+            if Trading.bothSidesCanHonour(offer, responder: queued.seat, state: state) {
+                legal.insert(.respondToTrade(offerID: offerID, accept: true), at: 0)
+            }
+            guard legal == queued.observation.legalMoves, legal.contains(queued.move) else {
+                throw CheckpointError.incompatibleCheckpoint
+            }
+        }
+    }
+
+    public enum CheckpointError: Error { case incompatibleCheckpoint }
+
+    public var checkpoint: Checkpoint {
+        Checkpoint(version: 1, state: state, policyIDs: policies.mapValues { $0.id },
+                   policyRNG: policyRNG, policyEvaluationCount: policyEvaluationCount,
+                   queuedTradeResponse: queuedTradeResponse, proposedTradeThisTurn: proposedTradeThisTurn,
+                   currentTurnSeat: currentTurnSeat, actionsThisTurn: actionsThisTurn)
+    }
+
+    /// Callers supply the same policy implementations/configurations identified
+    /// by the saved IDs. Executable policies are not serialized into save files.
+    /// Last-operation telemetry is transient; queued-decision telemetry is not.
+    public init(checkpoint: Checkpoint, policies: [PlayerID: any Policy]) throws {
+        try checkpoint.validate()
+        guard checkpoint.policyIDs == policies.mapValues({ $0.id }) else {
+            throw CheckpointError.incompatibleCheckpoint
+        }
+        self.state = checkpoint.state
+        self.policies = policies
+        self.policyRNG = checkpoint.policyRNG
+        self.policyEvaluationCount = checkpoint.policyEvaluationCount
+        self.queuedTradeResponse = checkpoint.queuedTradeResponse
+        self.proposedTradeThisTurn = checkpoint.proposedTradeThisTurn
+        self.currentTurnSeat = checkpoint.currentTurnSeat
+        self.actionsThisTurn = checkpoint.actionsThisTurn
+    }
+
     /// One applied move.
     public struct Step: Sendable {
         public let actor: PlayerID
@@ -127,7 +216,7 @@ public struct GameSession: Sendable {
     /// One policy choice together with the exact action mask it received.
     /// Evaluation consumers need the mask to distinguish preference from
     /// opportunity; ordinary app callers can keep using `decideNext()`.
-    public struct Decision: Sendable {
+    public struct Decision: Codable, Equatable, Sendable {
         public let evaluationIndex: Int
         public let seat: PlayerID
         public let move: GameMove

@@ -25,6 +25,7 @@ public struct GameLogEvent: Sendable, Equatable {
 }
 
 public struct GameLogDetail: Sendable, Equatable {
+    public let initialState: GameState
     public let summary: GameLogSummary
     public let roster: GameLogStore.SeatRoster
     public let events: [GameLogEvent]
@@ -46,7 +47,7 @@ public struct GameLogScan: Sendable, Equatable {
 /// inspect and export it without a development-signed container download.
 public struct GameLogStore: Sendable {
     public static let shared = GameLogStore()
-    public static let currentLogSchemaVersion = 3
+    public static let currentLogSchemaVersion = 4
 
     private let directoryURL: URL
     private let maxKeptLogs: Int
@@ -162,6 +163,7 @@ public struct GameLogStore: Sendable {
         var player: PlayerID?
         var move: GameMove?
         var winner: PlayerID?
+        var elapsedSeconds: TimeInterval?
     }
 
     public func startNewGame(initialState: GameState, roster: SeatRoster) throws -> UUID {
@@ -191,6 +193,56 @@ public struct GameLogStore: Sendable {
                     player: nil, move: nil, winner: winner), gameID: gameID)
         if try activeGameID() == gameID { try setActiveGameID(nil) }
         try prune()
+    }
+
+    /// JSONL is a derived view of committed history. Replace the entire stable
+    /// match-ID file atomically: retries cannot duplicate moves or append after
+    /// a partial trailing line. Retention runs separately after acknowledgement.
+    func export(checkpoint: MatchCheckpoint) throws -> URL {
+        try checkpoint.validateHistory()
+        let roster = try exportRoster(for: checkpoint.setup)
+        var entries = [Entry(kind: .start, timestamp: checkpoint.startedAt,
+                             logSchemaVersion: Self.currentLogSchemaVersion,
+                             initialState: checkpoint.initialState, roster: roster,
+                             elapsedSeconds: checkpoint.elapsedSeconds)]
+        entries += checkpoint.moves.map {
+            Entry(kind: .move, timestamp: $0.timestamp, player: $0.actor, move: $0.move)
+        }
+        if case .gameOver(let winner) = checkpoint.state.phase {
+            entries.append(Entry(kind: .end,
+                                 timestamp: checkpoint.moves.last?.timestamp ?? checkpoint.startedAt,
+                                 winner: winner))
+        }
+        let encoder = JSONEncoder()
+        encoder.outputFormatting = [.sortedKeys]
+        var data = Data()
+        for entry in entries { data.append(try encoder.encode(entry)); data.append(0x0A) }
+        try createLogDirectory()
+        let url = fileURL(for: checkpoint.id)
+        try data.write(to: url, options: .atomic)
+        return url
+    }
+
+    private func exportRoster(for setup: MatchSetup) throws -> SeatRoster {
+        guard setup.isStartable, setup.seats.allSatisfy({ $0.civilization != nil }),
+              setup.aiSeats.allSatisfy({ $0.opponentProfile?.civilization == $0.civilization }) else {
+            throw MatchCheckpointStore.StoreError.inconsistentHistory
+        }
+        return SeatRoster(
+            humanSeats: Set(setup.humanSeats.map { PlayerID(index: $0.index) }),
+            humanNames: Dictionary(uniqueKeysWithValues: setup.humanSeats.map { ($0.index, $0.name) }),
+            botProfiles: Dictionary(uniqueKeysWithValues: setup.aiSeats.compactMap { seat in
+                seat.opponentProfile.map { (seat.index, $0.id) }
+            }),
+            botProfileNames: Dictionary(uniqueKeysWithValues: setup.aiSeats.compactMap { seat in
+                seat.opponentProfile.map { (seat.index, $0.name) }
+            }),
+            botPersonalities: Dictionary(uniqueKeysWithValues: setup.aiSeats.compactMap { seat in
+                seat.opponentProfile.map { (seat.index, $0.strategy.rawValue) }
+            }),
+            civilizations: Dictionary(uniqueKeysWithValues: setup.seats.compactMap { seat in
+                seat.civilization.map { (seat.index, $0.displayName) }
+            }))
     }
 
     public func logFiles() throws -> [URL] {
@@ -266,15 +318,16 @@ public struct GameLogStore: Sendable {
         }
         let end = parsed.entries.last(where: { $0.kind == .end })
         let lastTimestamp = end?.timestamp ?? moves.last?.timestamp ?? start.timestamp
+        let duration = start.elapsedSeconds ?? max(0, lastTimestamp.timeIntervalSince(start.timestamp))
         let summary = GameLogSummary(
             gameID: gameID, fileURL: fileURL, startedAt: start.timestamp,
-            duration: max(0, lastTimestamp.timeIntervalSince(start.timestamp)),
+            duration: duration,
             playerCount: initialState.players.count,
             victoryPointTarget: initialState.victoryPointTarget,
             humanSeats: roster.humanSeats, winner: end?.winner,
             moveCount: moves.count, civilizations: roster.civilizations,
             isComplete: end != nil && !parsed.ignoredTruncatedLine)
-        return GameLogDetail(summary: summary, roster: roster, events: moves)
+        return GameLogDetail(initialState: initialState, summary: summary, roster: roster, events: moves)
     }
 
     private func entries(in fileURL: URL) throws -> (entries: [Entry], ignoredTruncatedLine: Bool) {
@@ -305,7 +358,7 @@ public struct GameLogStore: Sendable {
         directoryURL.appendingPathComponent("\(gameID.uuidString).jsonl")
     }
 
-    private var activeGameIDURL: URL { directoryURL.appendingPathComponent("active-game-id") }
+    var activeGameIDURL: URL { directoryURL.appendingPathComponent("active-game-id") }
 
     private func write(_ entry: Entry, gameID: UUID) throws {
         let data: Data
@@ -331,7 +384,17 @@ public struct GameLogStore: Sendable {
     }
 
     private func prune() throws {
-        let files = try logFiles()
+        try pruneExportedRecordings(protecting: [])
+    }
+
+    /// Keep pending/active exports regardless of age. The retention allowance
+    /// applies to additional unprotected recordings, so a backlog can exceed
+    /// it without losing history that has not been acknowledged durably.
+    func pruneExportedRecordings(protecting protectedIDs: Set<UUID>) throws {
+        let files = try logFiles().filter { file in
+            guard let id = UUID(uuidString: file.deletingPathExtension().lastPathComponent) else { return false }
+            return !protectedIDs.contains(id)
+        }
         for stale in files.dropFirst(maxKeptLogs) {
             do {
                 try FileManager.default.removeItem(at: stale)

@@ -14,9 +14,9 @@
 set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-HOOK="$REPO_ROOT/.git/hooks/pre-push"
+HOOK="$(git -C "$REPO_ROOT" rev-parse --path-format=absolute --git-path hooks/pre-push)"
 
-mkdir -p "$REPO_ROOT/.git/hooks"
+mkdir -p "$(dirname "$HOOK")"
 
 cat > "$HOOK" <<'HOOK_BODY'
 #!/usr/bin/env bash
@@ -28,7 +28,9 @@ cat > "$HOOK" <<'HOOK_BODY'
 
 set -uo pipefail
 
-REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+# Hooks are shared by linked worktrees. Git invokes pre-push from the checkout
+# being pushed, so resolve that checkout rather than the hook's main .git path.
+REPO_ROOT="$(git rev-parse --show-toplevel)"
 
 # Git streams "<local ref> <local sha> <remote ref> <remote sha>" lines on stdin
 # and expects the hook to consume them. If the hook exits without reading, git

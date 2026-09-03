@@ -22,7 +22,9 @@ import Testing
             civilizationStore: CivilizationAssignmentStore(
                 fileURL: root.appendingPathComponent("civilizations.json")),
             matchSetupStore: setupStore,
-            gameLogStore: GameLogStore(directoryURL: blocked, maxKeptLogs: 2))
+            gameLogStore: GameLogStore(directoryURL: blocked, maxKeptLogs: 2),
+            gameStatsStore: GameStatsStore(fileURL: root.appendingPathComponent("stats.json")))
+        model.startNewGame(randomizedBoard: false, randomizeSeat: false)
         let move = try #require(RulesEngine.legalMoves(for: model.state, seat: model.humanPlayer).first)
 
         try model.apply(move)

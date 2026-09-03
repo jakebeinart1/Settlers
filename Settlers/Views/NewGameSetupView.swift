@@ -64,15 +64,20 @@ struct NewGameSetupView: View {
     /// same question.
     private let hasSavedGame: Bool
 
-    init(onStart: @escaping (MatchSetup) -> Void, onCancel: @escaping () -> Void) {
+    init(hasSavedGame: Bool = false, setupLoadResult: MatchSetupStore.LoadResult = .none,
+         onStart: @escaping (MatchSetup) -> Void, onCancel: @escaping () -> Void) {
         self.onStart = onStart
         self.onCancel = onCancel
         let name = PlayerNameStore.shared.load()
         let civilization = CivilizationSettingsStore.shared.load().yourCivilization
         preferredName = name
         preferredCivilization = civilization
-        hasSavedGame = GameStore.shared.hasSave()
-        let initial = Self.initialSetup(preferredName: name, preferredCivilization: civilization)
+        self.hasSavedGame = hasSavedGame
+        let initial = Self.initialSetup(
+            from: setupLoadResult,
+            preferredName: name,
+            preferredCivilization: civilization
+        )
         _setup = State(initialValue: initial.setup)
         _isShowingUnreadableSetupAlert = State(initialValue: initial.wasUnreadable)
         #if DEBUG
@@ -148,6 +153,7 @@ struct NewGameSetupView: View {
     /// `MatchSetup.resize` traps on the former. Both fall back rather than
     /// opening a screen whose controls disagree with the value behind them.
     private static func initialSetup(
+        from loadResult: MatchSetupStore.LoadResult,
         preferredName: String,
         preferredCivilization: Civilization
     ) -> (setup: MatchSetup, wasUnreadable: Bool) {
@@ -156,8 +162,8 @@ struct NewGameSetupView: View {
         #endif
         let fallback = MatchSetup.default(preferredName: preferredName,
                                           preferredCivilization: preferredCivilization)
-        guard case .loaded(var saved) = MatchSetupStore.shared.load() else {
-            if case .unreadable = MatchSetupStore.shared.load() { return (fallback, true) }
+        guard case .loaded(var saved) = loadResult else {
+            if case .unreadable = loadResult { return (fallback, true) }
             return (fallback, false)
         }
         guard GameSetup.supportedPlayerCounts.contains(saved.seats.count) else {
@@ -620,7 +626,7 @@ struct NewGameSetupView: View {
     private var overwriteConfirmation: some View {
         ConfirmationPopupCard(
             title: "Replace your saved game?",
-            message: "You have a game in progress. Starting a new one throws it away, and it cannot be recovered.",
+            message: "Starting a new game replaces the saved table. Its recording will be preserved.",
             confirmTitle: "Start New Game",
             confirmIdentifier: AccessibilityID.NewGame.confirmOverwrite,
             onConfirm: { onStart(setup) },

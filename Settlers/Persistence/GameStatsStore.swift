@@ -33,7 +33,7 @@ public struct GameStats: Codable, Sendable, Equatable {
 public struct GameStatsStore: Sendable {
     public static let shared = GameStatsStore()
 
-    private let fileURL: URL
+    let fileURL: URL
 
     private init() {
         let baseURL = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
@@ -47,6 +47,24 @@ public struct GameStatsStore: Sendable {
     public func load() -> GameStats {
         guard let data = try? Data(contentsOf: fileURL) else { return GameStats() }
         return (try? JSONDecoder().decode(GameStats.self, from: data)) ?? GameStats()
+    }
+
+    /// Migration must never turn corrupt historical totals into an empty
+    /// baseline. Absence is zero; read/decode failures leave migration blocked.
+    func loadForMigration() throws -> GameStats {
+        let data: Data
+        do {
+            data = try Data(contentsOf: fileURL)
+        } catch let error as CocoaError where error.code == .fileReadNoSuchFile {
+            return GameStats()
+        }
+        let statistics = try JSONDecoder().decode(GameStats.self, from: data)
+        guard statistics.gamesPlayed >= 0, statistics.gamesWon >= 0,
+              statistics.gamesWon <= statistics.gamesPlayed, statistics.totalFinalVP >= 0,
+              statistics.totalDurationSeconds.isFinite, statistics.totalDurationSeconds >= 0 else {
+            throw CocoaError(.fileReadCorruptFile)
+        }
+        return statistics
     }
 
     /// Folds one finished game's outcome into the running totals and saves.

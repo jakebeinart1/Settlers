@@ -207,18 +207,19 @@ private func setup(seats: Int, humans: [Int], target: Int,
         gameStore: GameStore(fileURL: gameURL),
         civilizationStore: CivilizationAssignmentStore(fileURL: root.appendingPathComponent("civs.json")),
         matchSetupStore: setupStore,
-        gameLogStore: logStore
+        gameLogStore: logStore,
+        gameStatsStore: GameStatsStore(fileURL: root.appendingPathComponent("stats.json"))
     )
+    model.startNewGame(setup: setup(seats: 3, humans: [0], target: 8))
     let firstMove = try #require(RulesEngine.legalMoves(for: model.state, seat: model.humanPlayer).first)
     try model.apply(firstMove)
     let originalPhase = model.state.phase
-    let activeLogID = try logStore.activeGameID()
-    let originalLogID = try #require(activeLogID)
+    let originalLogID = try #require(model.checkpointDocument?.activeMatch?.id)
 
-    try FileManager.default.removeItem(at: gameURL)
-    try FileManager.default.createDirectory(at: gameURL, withIntermediateDirectories: false)
+    try FileManager.default.removeItem(at: model.checkpointStore.fileURL)
+    try FileManager.default.createDirectory(at: model.checkpointStore.fileURL, withIntermediateDirectories: false)
     model.startNewGame(setup: setup(seats: 3, humans: [0], target: 8))
-    let retainedLogID = try logStore.activeGameID()
+    let retainedLogID = model.checkpointDocument?.activeMatch?.id
 
     #expect(model.persistenceErrorMessage != nil)
     #expect(model.state.phase == originalPhase)

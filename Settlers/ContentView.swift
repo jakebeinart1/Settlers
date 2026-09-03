@@ -12,7 +12,7 @@ import CatanEngine
 /// because jumping straight into a resumed game would otherwise run its bot
 /// turns before the player ever saw the menu).
 struct ContentView: View {
-    @State private var viewModel = GameViewModel()
+    let viewModel: GameViewModel
     @State private var isShowingUnreadableSaveAlert = false
     @State private var isShowingPersistenceError = false
     @State private var isShowingGameLogWarning = false
@@ -21,17 +21,33 @@ struct ContentView: View {
     // (screenshotting UI chrome, etc.) without a real tap on `MainMenuView`
     // - never set in normal use, so this can't change anything for a real
     // player.
-    @State private var hasStartedThisSession = QALaunchFlag.autoStart.isSet
+    //
+    // Starts `false`, set `true` inside `.onAppear` below - NOT seeded
+    // directly from the flag here. Both real entry points (`startNewGame(_:)`
+    // below, `onResume`) call `viewModel.startNewGame`/set state fully
+    // *before* setting this true, so `GameView` only ever mounts once
+    // `gameGeneration` has already reached its final value for the game
+    // being shown. Seeding this true up front skipped that ordering:
+    // `GameView` mounted immediately (against whatever `state` happened to
+    // be, mid-turn or default), and the *later* `startNewGame` call inside
+    // `.onAppear` bumped `gameGeneration` out from under it, tearing down
+    // and remounting `GameView` - cancelling its `.task` (and any bot-loop
+    // work in flight) mid-run, repeatedly, since a torn-down `.task`
+    // orphans whatever `await` chain it was in. Measured: a fresh
+    // `-qaAutoStart -qaFastForwardToRollDice` launch got permanently stuck
+    // after the first round of setup placements, every time.
+    @State private var hasStartedThisSession = false
     @Environment(\.scenePhase) private var scenePhase
 
     var body: some View {
         Group {
-            if case .gameOver = viewModel.state.phase, hasStartedThisSession {
+            if case .gameOver = viewModel.state.phase, hasStartedThisSession,
+               viewModel.savedGameAvailability.recoveryMessage == nil {
                 EndGameView(state: viewModel.state, human: viewModel.humanPlayer,
                             playerLabel: viewModel.playerLabel) {
                     if viewModel.clearCompletedMatch() { hasStartedThisSession = false }
                 }
-            } else if hasStartedThisSession {
+            } else if hasStartedThisSession, viewModel.savedGameAvailability.recoveryMessage == nil {
                 GameView(viewModel: viewModel, onExitToMenu: { hasStartedThisSession = false })
                 #if DEBUG
                     .task {
@@ -57,8 +73,10 @@ struct ContentView: View {
                     .id(viewModel.gameGeneration)
             } else {
                 MainMenuView(
+                    canResumeSavedGame: viewModel.savedGameAvailability.canResume,
                     onStart: startNewGame,
                     onResume: {
+                        guard viewModel.savedGameAvailability.canResume else { return }
                         hasStartedThisSession = true
                         // Resuming into a save left mid-bot-turn needs the bot
                         // loop kicked off explicitly - `GameViewModel.apply(_:)`
@@ -67,7 +85,11 @@ struct ContentView: View {
                         // always starts on the human's own setup turn, so it
                         // doesn't need this.
                         Task { await viewModel.runBotTurnIfNeeded() }
-                    }
+                    },
+                    statistics: viewModel.statistics,
+                    requiresSaveReplacementConfirmation: viewModel.requiresSaveReplacementConfirmation,
+                    newGameSetupLoadResult: viewModel.newGameSetupLoadResult,
+                    onResetStatistics: viewModel.resetStatistics
                 )
             }
         }
@@ -78,10 +100,15 @@ struct ContentView: View {
         .alert("Couldn't open your saved game", isPresented: $isShowingUnreadableSaveAlert) {
             Button("OK", role: .cancel) {}
         } message: {
-            Text("A save was found but couldn't be read, so a new game is ready instead. "
-                 + "The file has been left in place.")
+            Text(viewModel.savedGameAvailability.recoveryMessage
+                 ?? "Your saved game cannot be resumed. The original files have been left in place.")
         }
         .alert("Couldn't save the game", isPresented: $isShowingPersistenceError) {
+            Button("Reload saved game") {
+                if viewModel.retryPersistence(), hasStartedThisSession {
+                    Task { await viewModel.runBotTurnIfNeeded() }
+                }
+            }
             Button("OK", role: .cancel) { viewModel.dismissPersistenceError() }
         } message: {
             Text(viewModel.persistenceErrorMessage ?? "The game could not be saved.")
@@ -111,6 +138,17 @@ struct ContentView: View {
             // still has to compile, and the method it names does not exist
             // outside DEBUG.
             #if DEBUG
+            if QALaunchFlag.autoStart.isSet {
+                if viewModel.savedGameAvailability == .absent {
+                    viewModel.startNewGame(randomizedBoard: false, randomizeSeat: false)
+                }
+                // Set only now that `savedGameAvailability`/`gameGeneration`
+                // have already reached whatever they're going to be for this
+                // launch - matching the real "New Game"/"Resume" entry
+                // points below, which both do the same thing (start the
+                // game, then reveal it) rather than the other way around.
+                hasStartedThisSession = true
+            }
             if QALaunchFlag.showEndGame.isSet {
                 viewModel.qaForceHumanWin()
             }
@@ -121,7 +159,9 @@ struct ContentView: View {
         // spent backgrounded/locked while a game sits mid-turn.
         .onChange(of: scenePhase) { _, newPhase in
             switch newPhase {
-            case .active: viewModel.appDidBecomeActive()
+            case .active:
+                viewModel.appDidBecomeActive()
+                if hasStartedThisSession { Task { await viewModel.runBotTurnIfNeeded() } }
             case .inactive, .background: viewModel.appWillResignActive()
             @unknown default: viewModel.appWillResignActive()
             }
@@ -149,5 +189,5 @@ struct ContentView: View {
 }
 
 #Preview {
-    ContentView()
+    ContentView(viewModel: GameViewModel())
 }
