@@ -9,15 +9,19 @@ import math
 from pathlib import Path
 
 
-SCHEMA_VERSION = 1
+SCHEMA_VERSION = 2
 STATE_LAYOUT_VERSION = 3
 ACTION_LAYOUT_VERSION = 1
 FEATURE_COUNT = 5_182
 ACTION_COUNT = 9_295
 INFORMATION_POLICIES = ("revealAll", "publicCountsOnly")
+PLAYER_COUNTS = (3, 4)
+VICTORY_POINT_TARGETS = (8, 10, 12)
+BOARD_MODES = ("standard", "randomized")
 REQUIRED_FIELDS = {
     "schemaVersion", "buildID", "stateLayoutVersion", "actionLayoutVersion",
     "actionCount", "seed", "decisionIndex", "observerSeat", "winnerSeat", "playerCount",
+    "victoryPointTarget", "boardMode",
     "policyID", "hiddenInformationPolicy", "features", "legalActionIndices",
     "chosenActionIndex", "outcome",
 }
@@ -65,9 +69,17 @@ def validate_row(
     if seed < 0 or decision < 0:
         raise ValueError(f"{location}: seed and decisionIndex must be nonnegative")
     player_count = require_integer(row, "playerCount", location)
+    if player_count not in PLAYER_COUNTS:
+        raise ValueError(f"{location}: invalid playerCount {player_count}")
+    victory_target = require_integer(row, "victoryPointTarget", location)
+    if victory_target not in VICTORY_POINT_TARGETS:
+        raise ValueError(f"{location}: invalid victoryPointTarget {victory_target}")
+    board_mode = row.get("boardMode")
+    if board_mode not in BOARD_MODES:
+        raise ValueError(f"{location}: invalid boardMode {board_mode!r}")
     observer = require_integer(row, "observerSeat", location)
     winner = require_integer(row, "winnerSeat", location)
-    if player_count not in (3, 4) or observer not in range(player_count):
+    if observer not in range(player_count):
         raise ValueError(f"{location}: invalid observer {observer} for {player_count} players")
     if winner not in range(player_count):
         raise ValueError(f"{location}: invalid winner {winner} for {player_count} players")
@@ -117,8 +129,18 @@ def reject_duplicate_keys(pairs: list[tuple[str, object]]) -> dict:
     return result
 
 
+def game_key(row: dict) -> tuple[int, int, int, str]:
+    """Identify one trajectory without conflating equal seeds across arms."""
+    return (
+        row["seed"],
+        row["playerCount"],
+        row["victoryPointTarget"],
+        row["boardMode"],
+    )
+
+
 def validate_files(paths: list[Path], build_id: str, information_policy: str) -> tuple[int, int]:
-    decisions_by_seed: dict[int, set[int]] = {}
+    decisions_by_game: dict[tuple[int, int, int, str], set[int]] = {}
     rows = 0
     for path in paths:
         with path.open(encoding="utf-8") as handle:
@@ -131,16 +153,17 @@ def validate_files(paths: list[Path], build_id: str, information_policy: str) ->
                 if not isinstance(row, dict):
                     raise ValueError(f"{location}: record must be an object")
                 seed, decision = validate_row(row, build_id, information_policy, location)
-                if decision in decisions_by_seed.setdefault(seed, set()):
-                    raise ValueError(f"{location}: duplicate decision {decision} for seed {seed}")
-                decisions_by_seed[seed].add(decision)
+                key = game_key(row)
+                if decision in decisions_by_game.setdefault(key, set()):
+                    raise ValueError(f"{location}: duplicate decision {decision} for game {key}")
+                decisions_by_game[key].add(decision)
                 rows += 1
     if rows == 0:
         raise ValueError("dataset contains no records")
-    for seed, decisions in decisions_by_seed.items():
+    for key, decisions in decisions_by_game.items():
         if decisions != set(range(len(decisions))):
-            raise ValueError(f"seed {seed}: decision indices are not contiguous from zero")
-    return rows, len(decisions_by_seed)
+            raise ValueError(f"game {key}: decision indices are not contiguous from zero")
+    return rows, len({key[0] for key in decisions_by_game})
 
 
 def main() -> None:

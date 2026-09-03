@@ -16,6 +16,7 @@ import Testing
         decisionIndex: 7,
         policyID: "test-policy",
         hiddenInformationPolicy: .revealAll,
+        boardMode: .standard,
         observation: observation,
         chosenMove: chosen,
         winner: seat
@@ -30,6 +31,9 @@ import Testing
     #expect(Set(example.legalActionIndices).count == example.legalActionIndices.count)
     #expect(example.legalActionIndices.contains(example.chosenActionIndex))
     #expect(example.hiddenInformationPolicy == .revealAll)
+    #expect(example.playerCount == 4)
+    #expect(example.victoryPointTarget == 10)
+    #expect(example.boardMode == .standard)
     #expect(example.winnerSeat == seat.index)
     #expect(example.outcome == 1)
 }
@@ -46,6 +50,7 @@ import Testing
         decisionIndex: 0,
         policyID: "test-policy",
         hiddenInformationPolicy: .revealAll,
+        boardMode: .standard,
         observation: observation,
         chosenMove: .endTurn,
         winner: state.players[1].id
@@ -55,7 +60,7 @@ import Testing
 }
 
 @Test(arguments: [3, 4])
-func threeAndFourSeatExamplesUseOneActionHeadWidth(playerCount: Int) {
+func configuredExamplesUseOneActionHeadWidth(playerCount: Int) {
     let state = GameSetup.newGame(
         board: BoardGenerator.standard(),
         seed: UInt64(500 + playerCount),
@@ -74,6 +79,7 @@ func threeAndFourSeatExamplesUseOneActionHeadWidth(playerCount: Int) {
         decisionIndex: 0,
         policyID: "test-policy",
         hiddenInformationPolicy: .publicCountsOnly,
+        boardMode: .standard,
         observation: observation,
         chosenMove: move,
         winner: seat
@@ -81,4 +87,7 @@ func threeAndFourSeatExamplesUseOneActionHeadWidth(playerCount: Int) {
 
     #expect(example.actionCount == ActionSpace(board: state.board).size)
     #expect(example.actionCount == 9_295)
+    #expect(example.playerCount == playerCount)
+    #expect(example.victoryPointTarget == 10)
+    #expect(example.boardMode == .standard)
 }

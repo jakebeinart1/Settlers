@@ -16,7 +16,7 @@ SPEC.loader.exec_module(MODULE)
 
 def valid_record() -> dict:
     return {
-        "schemaVersion": 1,
+        "schemaVersion": 2,
         "buildID": "test-build",
         "stateLayoutVersion": 3,
         "actionLayoutVersion": 1,
@@ -26,6 +26,8 @@ def valid_record() -> dict:
         "observerSeat": 0,
         "winnerSeat": 0,
         "playerCount": 4,
+        "victoryPointTarget": 10,
+        "boardMode": "randomized",
         "policyID": "heuristic-balanced",
         "hiddenInformationPolicy": "revealAll",
         "features": [0.0] * 5_182,
@@ -50,6 +52,18 @@ class TrainingDataValidationTests(unittest.TestCase):
         record["decisionIndex"] = -1
         with self.assertRaisesRegex(ValueError, "must be nonnegative"):
             MODULE.validate_row(record, "test-build", "revealAll", "row")
+
+    def test_rejects_unsupported_evaluation_configuration(self) -> None:
+        for field, value, message in (
+            ("playerCount", 2, "invalid playerCount"),
+            ("victoryPointTarget", 9, "invalid victoryPointTarget"),
+            ("boardMode", "custom", "invalid boardMode"),
+        ):
+            with self.subTest(field=field):
+                record = valid_record()
+                record[field] = value
+                with self.assertRaisesRegex(ValueError, message):
+                    MODULE.validate_row(record, "test-build", "revealAll", "row")
 
     def test_rejects_a_chosen_action_outside_the_mask(self) -> None:
         record = valid_record()
@@ -85,6 +99,22 @@ class TrainingDataValidationTests(unittest.TestCase):
                 paths.append(path)
             with self.assertRaisesRegex(ValueError, "duplicate decision"):
                 MODULE.validate_files(paths, "test-build", "revealAll")
+
+    def test_same_seed_in_different_configurations_is_not_a_duplicate_game(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            standard = valid_record()
+            standard["boardMode"] = "standard"
+            randomized = valid_record()
+            path = Path(directory) / "matrix.jsonl"
+            path.write_text(
+                json.dumps(standard) + "\n" + json.dumps(randomized) + "\n",
+                encoding="utf-8",
+            )
+
+            rows, seeds = MODULE.validate_files([path], "test-build", "revealAll")
+
+        self.assertEqual(rows, 2)
+        self.assertEqual(seeds, 1)
 
     def test_rejects_duplicate_or_extra_fields(self) -> None:
         record = valid_record()
