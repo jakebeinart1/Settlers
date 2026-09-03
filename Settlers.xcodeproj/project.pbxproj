@@ -21,6 +21,7 @@
 		232A932B1BF064663A7161C3 /* CivilizationMappingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B98093256E41FC724D7E6C36 /* CivilizationMappingTests.swift */; };
 		243CAFAAB0A24DF9C30ABFF7 /* CompleteMatchTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5281B8CED614C244F7E533EE /* CompleteMatchTests.swift */; };
 		2963FFF4A45E734FACE3E93A /* DiscardPopupView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 64A459436E4814B4E4BE3728 /* DiscardPopupView.swift */; };
+		2C2BEEF3E6CDB8BA9E3DCD3B /* CheckpointProcessProbe.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1BD3E13799BE187AEB0F4E6 /* CheckpointProcessProbe.swift */; };
 		2CC361595DA16ED4B8153B23 /* CivilizationAssignmentStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = C112C5D5A27EC971416706D0 /* CivilizationAssignmentStore.swift */; };
 		2D421855CBD3F4FB9CC6B077 /* InGameSettingsFlowTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A425B1FE3B37FECA7840481 /* InGameSettingsFlowTests.swift */; };
 		2E5F92427B07DC72628BAD38 /* CatanEngine in Frameworks */ = {isa = PBXBuildFile; productRef = EF131C34CF36EF855DAF17D0 /* CatanEngine */; };
@@ -174,6 +175,7 @@
 		BB62855B09E0A68CD8B97889 /* SaveRecoveryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SaveRecoveryTests.swift; sourceTree = "<group>"; };
 		BF75252617AEEC3F4190D703 /* ResourceChip.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ResourceChip.swift; sourceTree = "<group>"; };
 		C112C5D5A27EC971416706D0 /* CivilizationAssignmentStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CivilizationAssignmentStore.swift; sourceTree = "<group>"; };
+		C1BD3E13799BE187AEB0F4E6 /* CheckpointProcessProbe.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CheckpointProcessProbe.swift; sourceTree = "<group>"; };
 		C267D2BD50E26FCD707474EF /* SaveRecoveryFlowTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SaveRecoveryFlowTests.swift; sourceTree = "<group>"; };
 		C34E239F6C210A9578B2BF3B /* InGameSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InGameSettingsView.swift; sourceTree = "<group>"; };
 		C47D8E51CEBC82766DDDF936 /* Civilization.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Civilization.swift; sourceTree = "<group>"; };
@@ -276,6 +278,7 @@
 			isa = PBXGroup;
 			children = (
 				2FA5615D7AB20666AEB04B43 /* AccessibilityID.swift */,
+				C1BD3E13799BE187AEB0F4E6 /* CheckpointProcessProbe.swift */,
 				7E281605A981DE27D853BE66 /* GameViewModel+QATrade.swift */,
 				5CF7C06392E2A4F1B15C8411 /* UITestBootstrap.swift */,
 			);
@@ -532,6 +535,7 @@
 				687BD8586D01E4597A1C7A32 /* BoardView.swift in Sources */,
 				BD0B5D0BC26E3BE5C8A462FD /* BuildPopupView.swift in Sources */,
 				3B62B3E810E58200F2983839 /* CatanTheme.swift in Sources */,
+				2C2BEEF3E6CDB8BA9E3DCD3B /* CheckpointProcessProbe.swift in Sources */,
 				DBA70E71EA1FD506BEBF2C4A /* Civilization.swift in Sources */,
 				2CC361595DA16ED4B8153B23 /* CivilizationAssignmentStore.swift in Sources */,
 				82F087D94201BDEDFBBB4BA8 /* CivilizationBadge.swift in Sources */,

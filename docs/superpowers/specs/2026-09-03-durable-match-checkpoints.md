@@ -104,3 +104,18 @@ One entire seeded match wrote every move and reloaded its session every 25
 moves, finishing with one completion receipt and exact final state in 22.611s
 on the simulator. This is a functional storage-path test, not a phone latency
 benchmark or proof of production GameViewModel wiring, which remains pending.
+
+Session loading now rejects invalid schema/phase/current-turn seats, policy
+rosters, action/evaluation counters, and queued offer decisions before any
+unchecked index or increment can execute. Nineteen validation tests were first
+observed with 27 failed rejection expectations; after validation, the full 197
+engine tests pass.
+
+Actual process termination is now proven on the dedicated `Empires Recovery QA`
+simulator. A host harness launched the app into each commit boundary, waited for
+an app-written marker, terminated PID 12629 before atomic replacement and PID
+12672 after replacement, then launched different reader processes. Recovery
+returned exactly revision/moves/settlements `0,0,0` before and `1,1,1` after.
+The probe uses its own per-run Application Support directory and never reads,
+resets, or replaces the player save. This proves process interruption around
+atomic replacement; it does not claim power-loss durability.

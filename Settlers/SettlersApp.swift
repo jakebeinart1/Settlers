@@ -4,6 +4,9 @@ import SwiftUI
 struct SettlersApp: App {
 
     init() {
+        #if DEBUG
+        CheckpointProcessProbe.runIfRequested()
+        #endif
         UITestBootstrap.resetPersistentStateIfRequested()
     }
 

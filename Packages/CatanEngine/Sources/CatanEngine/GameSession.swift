@@ -130,6 +130,52 @@ public struct GameSession: Sendable {
         let proposedTradeThisTurn: Bool
         let currentTurnSeat: PlayerID?
         let actionsThisTurn: Int
+
+        /// Reject invalid wire state before nextActor indexes a seat or a
+        /// decision increments a counter. This checks session invariants;
+        /// it does not certify every board/rules invariant in an imported save.
+        public func validate() throws {
+            let occupied = Set(state.players.map(\.id))
+            guard version == 1, (1...GameState.currentSchemaVersion).contains(state.schemaVersion),
+                  GameSetup.supportedPlayerCounts.contains(state.players.count),
+                  state.players.map({ $0.id.index }).elementsEqual(state.players.indices),
+                  Set(policyIDs.keys).isSubset(of: occupied),
+                  currentTurnSeat.map(occupied.contains) ?? true,
+                  (0..<Int.max).contains(actionsThisTurn),
+                  (0..<Int.max).contains(policyEvaluationCount) else {
+                throw CheckpointError.incompatibleCheckpoint
+            }
+            switch state.phase {
+            case .discarding(let pending):
+                guard !pending.isEmpty, pending.isSubset(of: occupied) else { throw CheckpointError.incompatibleCheckpoint }
+            case .gameOver(let winner):
+                guard occupied.contains(winner) else { throw CheckpointError.incompatibleCheckpoint }
+            default:
+                guard state.phase.awaitingSeatIndex.map(state.players.indices.contains) == true else {
+                    throw CheckpointError.incompatibleCheckpoint
+                }
+            }
+            try validateQueuedResponse(occupied: occupied)
+        }
+
+        private func validateQueuedResponse(occupied: Set<PlayerID>) throws {
+            guard let queued = queuedTradeResponse else { return }
+            guard occupied.contains(queued.seat), policyIDs[queued.seat] != nil,
+                  queued.observation.seat == queued.seat, queued.observation.state == state,
+                  (0..<policyEvaluationCount).contains(queued.evaluationIndex),
+                  case .respondToTrade(let offerID, _) = queued.move,
+                  let offer = state.pendingTradeOffers.first(where: { $0.id == offerID }),
+                  occupied.contains(offer.from), offer.from != queued.seat else {
+                throw CheckpointError.incompatibleCheckpoint
+            }
+            var legal: [GameMove] = [.respondToTrade(offerID: offerID, accept: false)]
+            if Trading.bothSidesCanHonour(offer, responder: queued.seat, state: state) {
+                legal.insert(.respondToTrade(offerID: offerID, accept: true), at: 0)
+            }
+            guard legal == queued.observation.legalMoves, legal.contains(queued.move) else {
+                throw CheckpointError.incompatibleCheckpoint
+            }
+        }
     }
 
     public enum CheckpointError: Error { case incompatibleCheckpoint }
@@ -145,8 +191,8 @@ public struct GameSession: Sendable {
     /// by the saved IDs. Executable policies are not serialized into save files.
     /// Last-operation telemetry is transient; queued-decision telemetry is not.
     public init(checkpoint: Checkpoint, policies: [PlayerID: any Policy]) throws {
-        guard checkpoint.version == 1, checkpoint.policyIDs == policies.mapValues({ $0.id }),
-              checkpoint.policyEvaluationCount >= 0, checkpoint.actionsThisTurn >= 0 else {
+        try checkpoint.validate()
+        guard checkpoint.policyIDs == policies.mapValues({ $0.id }) else {
             throw CheckpointError.incompatibleCheckpoint
         }
         self.state = checkpoint.state

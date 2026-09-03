@@ -55,6 +55,7 @@ struct MatchCheckpoint: Codable, Equatable, Sendable {
         if let sessionCheckpoint, sessionCheckpoint.state != state {
             throw MatchCheckpointStore.StoreError.inconsistentHistory
         }
+        try sessionCheckpoint?.validate()
     }
 }
 
