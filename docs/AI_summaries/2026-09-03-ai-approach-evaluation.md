@@ -281,3 +281,61 @@ teacher corpus strongly overrepresents locally plausible actions that do not
 produce a winning long-horizon policy. A future learned candidate needs either
 search/value targets or self-play improvement, and must pass actual
 seat-rotated gameplay screening before any on-device integration work.
+
+## Difficulty calibration protocol — locked before the run
+
+The first difficulty experiment is an **anchor-validation screen**, not a UI
+label and not a five-point strength claim. It asks whether the shipping
+Balanced heuristic is materially stronger than the frozen Greedy anchor in
+every rules configuration the New Game screen supports. Greedy remains an
+evaluation anchor; this protocol does not approve presenting it as an Easy
+personality because Greedy intentionally never trades and therefore erases a
+player-visible personality axis.
+
+The Release simulator is built once from the settled source tree, copied aside,
+and identified by both source commit and binary SHA-256. Candidate and control
+use that same binary:
+
+- candidate arm: one `heuristic-balanced` chair against Greedy in every other
+  occupied chair;
+- control arm: the evaluated chair and every opponent use Greedy;
+- complete rotation through all three or four occupied chairs;
+- one configuration per analyzer invocation; no pooling across table sizes,
+  victory targets, or board modes;
+- decisive games only, with the decisive rate reported separately;
+- seed-cluster bootstrap intervals, with every chair rotation from one board
+  seed kept in the same cluster.
+
+The held-out corpus is 40 unique board seeds per cell, 480 seeds total:
+
+| Players | VP | Board | Seeds | Games per arm |
+| ---: | ---: | --- | --- | ---: |
+| 3 | 8 | standard | 80000–80039 | 120 |
+| 3 | 8 | randomized | 80040–80079 | 120 |
+| 3 | 10 | standard | 80080–80119 | 120 |
+| 3 | 10 | randomized | 80120–80159 | 120 |
+| 3 | 12 | standard | 80160–80199 | 120 |
+| 3 | 12 | randomized | 80200–80239 | 120 |
+| 4 | 8 | standard | 80240–80279 | 160 |
+| 4 | 8 | randomized | 80280–80319 | 160 |
+| 4 | 10 | standard | 80320–80359 | 160 |
+| 4 | 10 | randomized | 80360–80399 | 160 |
+| 4 | 12 | standard | 80400–80439 | 160 |
+| 4 | 12 | randomized | 80440–80479 | 160 |
+
+That is 1,680 games per arm and 3,360 total. These counts are deliberately
+larger than a smoke test but are not powered to resolve a five-percentage-point
+difference. The predeclared keep criteria are instead a large-separation gate:
+
+1. every game is decisive and remains below the 3,000-move cap;
+2. each all-Greedy control cell equals its exact full-rotation null—33.3% for
+   three players and 25% for four—or the rig is invalid;
+3. in every cell, the paired 95% interval for Balanced minus control excludes
+   zero on the positive side; and
+4. in every cell, the point advantage is at least 20 percentage points.
+
+The seeds are never used to tune a candidate. Passing establishes that the two
+policies form distinct strength anchors across supported rules. It does not
+establish that either is fun for a human or authorize a difficulty selector.
+The next tier candidate must preserve personality, use a new held-out seed
+range, and pass the same per-cell structure before product integration.
