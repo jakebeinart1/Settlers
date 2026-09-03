@@ -1,0 +1,250 @@
+import Foundation
+import Testing
+@testable import CatanEngine
+@testable import Settlers
+
+@MainActor
+@Suite(.serialized)
+struct OpponentProfileIntegrationTests {
+    @Test func everySupportedSeatCompositionGetsExactlyItsBotProfiles() throws {
+        try withStores { stores in
+            for playerCount in GameSetup.supportedPlayerCounts {
+                let seatIndices = Array(0..<playerCount)
+                for humanMask in 1..<(1 << playerCount) {
+                    let humans = Set(seatIndices.filter { humanMask & (1 << $0) != 0 })
+                    let model = stores.makeModel()
+                    model.startNewGame(setup: setup(playerCount: playerCount, humans: humans))
+
+                    #expect(model.opponentProfiles.count == playerCount - humans.count)
+                    for index in seatIndices {
+                        let seat = PlayerID(index: index)
+                        let profile = model.opponentProfile(for: seat)
+                        if humans.contains(index) {
+                            #expect(profile == nil)
+                        } else {
+                            #expect(profile?.civilization == Civilization.forSeat(index))
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    @Test func strategyFollowsTheGeneralRatherThanBotSeatRank() throws {
+        try withStores { stores in
+            let first = stores.makeModel()
+            first.startNewGame(setup: setup(
+                playerCount: 4, humans: [0],
+                civilizations: [.medieval, .rome, .egypt, .japan]
+            ))
+            let romeAtOne = try #require(first.opponentProfile(for: PlayerID(index: 1)))
+
+            let second = stores.makeModel()
+            second.startNewGame(setup: setup(
+                playerCount: 4, humans: [1],
+                civilizations: [.egypt, .medieval, .rome, .japan]
+            ))
+            let romeAtTwo = try #require(second.opponentProfile(for: PlayerID(index: 2)))
+
+            #expect(romeAtOne == romeAtTwo)
+            #expect(romeAtOne.strategy == .aggressive)
+        }
+    }
+
+    @Test func relaunchRecoversProfilesFromActiveMatchWhenSidecarIsMissing() throws {
+        try withStores { stores in
+            let original = stores.makeModel()
+            original.startNewGame(setup: setup(
+                playerCount: 3, humans: [0],
+                civilizations: [.norse, .rome, .japan]
+            ))
+            let expected = original.opponentProfiles
+            try stores.civilizationStore.clear()
+
+            let relaunched = stores.makeModel()
+
+            #expect(relaunched.opponentProfiles == expected)
+            #expect((0..<3).map(Civilization.forSeat) == [.norse, .rome, .japan])
+        }
+    }
+
+    @Test func activeMatchOutranksAStaleSameSizedCivilizationSidecar() throws {
+        try withStores { stores in
+            let original = stores.makeModel()
+            original.startNewGame(setup: setup(
+                playerCount: 3, humans: [0], civilizations: [.norse, .rome, .japan]
+            ))
+            try stores.civilizationStore.save([.greece, .egypt, .aztec])
+
+            let relaunched = stores.makeModel()
+
+            #expect((0..<3).map(Civilization.forSeat) == [.norse, .rome, .japan])
+            #expect(relaunched.opponentProfile(for: PlayerID(index: 1))?.civilization == .rome)
+        }
+    }
+
+    @Test func legacyActiveMatchKeepsItsOrdinalBotStrategies() throws {
+        try withStores { stores in
+            let legacy = setup(
+                playerCount: 4, humans: [0],
+                civilizations: [.norse, .rome, .japan, .egypt]
+            )
+            try stores.setupStore.save(legacy)
+            try stores.setupStore.saveActiveMatch(legacy)
+            try stores.civilizationStore.save([.norse, .rome, .japan, .egypt])
+            try stores.gameStore.save(GameSetup.newGame(
+                board: BoardGenerator.standard(), seed: 71, playerCount: 4
+            ))
+
+            let model = stores.makeModel()
+
+            #expect(model.opponentProfile(for: PlayerID(index: 1))?.strategy == .balanced)
+            #expect(model.opponentProfile(for: PlayerID(index: 2))?.strategy == .aggressive)
+            #expect(model.opponentProfile(for: PlayerID(index: 3))?.strategy == .cautious)
+        }
+    }
+
+    @Test func restartKeepsTheRealizedOpponentRosterAndTheNewGamePrefill() throws {
+        try withStores { stores in
+            let configured = setup(
+                playerCount: 4, humans: [0],
+                civilizations: [.norse, .rome, .japan, .egypt],
+                randomizeSeatOrder: true
+            )
+            let model = stores.makeModel()
+            model.startNewGame(setup: configured)
+            let profiles = model.opponentProfiles
+            let civilizations = (0..<4).map(Civilization.forSeat)
+
+            model.restartCurrentMatch(fallbackRandomizedBoard: false, fallbackRandomizeSeat: false)
+
+            #expect(model.opponentProfiles == profiles)
+            #expect((0..<4).map(Civilization.forSeat) == civilizations)
+            #expect(stores.setupStore.load().value == configured)
+        }
+    }
+
+    @Test func activeMatchSnapshotsProfileAndLogIdentity() throws {
+        try withStores { stores in
+            let snapshot = OpponentProfile(
+                id: "augustus-v1", name: "Augustus", civilization: .rome, strategy: .cautious
+            )
+            var configured = setup(
+                playerCount: 3, humans: [0], civilizations: [.norse, .rome, .japan]
+            )
+            configured.seats[1].opponentProfile = snapshot
+            let model = stores.makeModel()
+            model.startNewGame(setup: configured)
+            let move = try #require(
+                RulesEngine.legalMoves(for: model.state, seat: model.humanPlayer).first
+            )
+            try model.apply(move)
+
+            let relaunched = stores.makeModel()
+            #expect(relaunched.opponentProfile(for: PlayerID(index: 1)) == snapshot)
+            #expect(relaunched.playerLabel(for: PlayerID(index: 1)) == "Augustus")
+
+            let detail = try #require(stores.logStore.summaries().first)
+            let roster = try stores.logStore.detail(for: detail).roster
+            #expect(roster.botProfiles[1] == "augustus-v1")
+            #expect(roster.botProfileNames[1] == "Augustus")
+            #expect(roster.botPersonalities[1] == "cautious")
+        }
+    }
+
+    @Test func profileSnapshotKeepsIdentityCoherentWhenLegacySeatFieldDisagrees() throws {
+        try withStores { stores in
+            let snapshot = OpponentProfile(
+                id: "augustus-v1", name: "Augustus Prime", civilization: .rome, strategy: .cautious
+            )
+            var configured = setup(
+                playerCount: 3, humans: [0], civilizations: [.norse, .egypt, .japan]
+            )
+            configured.seats[1].opponentProfile = snapshot
+            try stores.setupStore.save(configured)
+            try stores.setupStore.saveActiveMatch(configured)
+            try stores.gameStore.save(GameSetup.newGame(
+                board: BoardGenerator.standard(), seed: 72, playerCount: 3
+            ))
+
+            let model = stores.makeModel()
+
+            #expect(Civilization.forSeat(1) == .rome)
+            #expect(model.opponentProfile(for: PlayerID(index: 1)) == snapshot)
+            #expect(model.playerLabel(for: PlayerID(index: 1)) == "Augustus Prime")
+        }
+    }
+
+    private struct Stores {
+        let root: URL
+        let gameStore: GameStore
+        let civilizationStore: CivilizationAssignmentStore
+        let setupStore: MatchSetupStore
+        let logStore: GameLogStore
+
+        @MainActor func makeModel() -> GameViewModel {
+            GameViewModel(
+                gameStore: gameStore,
+                civilizationStore: civilizationStore,
+                matchSetupStore: setupStore,
+                gameLogStore: logStore
+            )
+        }
+    }
+
+    private func withStores(_ body: (Stores) throws -> Void) throws {
+        let root = FileManager.default.temporaryDirectory
+            .appendingPathComponent("OpponentProfiles.\(UUID().uuidString)")
+        let suite = "OpponentProfiles.\(UUID().uuidString)"
+        let defaults = try #require(UserDefaults(suiteName: suite))
+        let previousSeat = UserDefaults.standard.object(forKey: "humanSeat")
+        let previousCivilizations = CivilizationAssignment.current
+        let previousHumanNames = CivilizationAssignment.humanNames
+        let previousHumanSeat = CivilizationAssignment.humanSeat
+        defer {
+            try? FileManager.default.removeItem(at: root)
+            defaults.removePersistentDomain(forName: suite)
+            if let previousSeat {
+                UserDefaults.standard.set(previousSeat, forKey: "humanSeat")
+            } else {
+                UserDefaults.standard.removeObject(forKey: "humanSeat")
+            }
+            CivilizationAssignment.current = previousCivilizations
+            CivilizationAssignment.humanNames = previousHumanNames
+            CivilizationAssignment.humanSeat = previousHumanSeat
+        }
+        let setupStore = MatchSetupStore()
+        setupStore.defaults = defaults
+        try body(Stores(
+            root: root,
+            gameStore: GameStore(fileURL: root.appendingPathComponent("game.json")),
+            civilizationStore: CivilizationAssignmentStore(
+                fileURL: root.appendingPathComponent("civilizations.json")
+            ),
+            setupStore: setupStore,
+            logStore: GameLogStore(directoryURL: root.appendingPathComponent("logs"), maxKeptLogs: 20)
+        ))
+    }
+
+    private func setup(
+        playerCount: Int,
+        humans: Set<Int>,
+        civilizations: [Civilization]? = nil,
+        randomizeSeatOrder: Bool = false
+    ) -> MatchSetup {
+        let choices = civilizations ?? Array(Civilization.allCases.prefix(playerCount))
+        return MatchSetup(
+            seats: (0..<playerCount).map { index in
+                MatchSetup.Seat(
+                    index: index,
+                    isHuman: humans.contains(index),
+                    name: humans.contains(index) ? "Human \(index + 1)" : "",
+                    civilization: choices[index]
+                )
+            },
+            victoryPointTarget: 10,
+            randomizedBoard: false,
+            randomizeSeatOrder: randomizeSeatOrder
+        )
+    }
+}

@@ -46,7 +46,7 @@ public struct GameLogScan: Sendable, Equatable {
 /// inspect and export it without a development-signed container download.
 public struct GameLogStore: Sendable {
     public static let shared = GameLogStore()
-    public static let currentLogSchemaVersion = 2
+    public static let currentLogSchemaVersion = 3
 
     private let directoryURL: URL
     private let maxKeptLogs: Int
@@ -95,25 +95,33 @@ public struct GameLogStore: Sendable {
     public struct SeatRoster: Codable, Sendable, Equatable {
         public let humanSeats: Set<PlayerID>
         public let humanNames: [Int: String]
+        public let botProfiles: [Int: String]
+        public let botProfileNames: [Int: String]
         public let botPersonalities: [Int: String]
         public let civilizations: [Int: String]
 
         public init(humanSeats: Set<PlayerID>, humanNames: [Int: String],
+                    botProfiles: [Int: String] = [:],
+                    botProfileNames: [Int: String] = [:],
                     botPersonalities: [Int: String], civilizations: [Int: String]) {
             precondition(!humanSeats.isEmpty, "a logged game must contain at least one human seat")
             self.humanSeats = humanSeats
             self.humanNames = humanNames
+            self.botProfiles = botProfiles
+            self.botProfileNames = botProfileNames
             self.botPersonalities = botPersonalities
             self.civilizations = civilizations
         }
 
         public static func legacy(humanSeat: PlayerID) -> SeatRoster {
             SeatRoster(humanSeats: [humanSeat], humanNames: [:],
+                       botProfiles: [:], botProfileNames: [:],
                        botPersonalities: [:], civilizations: [:])
         }
 
         private enum CodingKeys: String, CodingKey {
-            case humanSeat, humanSeats, humanNames, botPersonalities, civilizations
+            case humanSeat, humanSeats, humanNames, botProfiles, botProfileNames
+            case botPersonalities, civilizations
         }
 
         public init(from decoder: Decoder) throws {
@@ -124,6 +132,8 @@ public struct GameLogStore: Sendable {
                 humanSeats = [try values.decode(PlayerID.self, forKey: .humanSeat)]
             }
             humanNames = try values.decodeIfPresent([Int: String].self, forKey: .humanNames) ?? [:]
+            botProfiles = try values.decodeIfPresent([Int: String].self, forKey: .botProfiles) ?? [:]
+            botProfileNames = try values.decodeIfPresent([Int: String].self, forKey: .botProfileNames) ?? [:]
             botPersonalities = try values.decode([Int: String].self, forKey: .botPersonalities)
             civilizations = try values.decode([Int: String].self, forKey: .civilizations)
         }
@@ -134,6 +144,8 @@ public struct GameLogStore: Sendable {
             try values.encode(first, forKey: .humanSeat)
             try values.encode(humanSeats, forKey: .humanSeats)
             try values.encode(humanNames, forKey: .humanNames)
+            try values.encode(botProfiles, forKey: .botProfiles)
+            try values.encode(botProfileNames, forKey: .botProfileNames)
             try values.encode(botPersonalities, forKey: .botPersonalities)
             try values.encode(civilizations, forKey: .civilizations)
         }

@@ -232,7 +232,7 @@ public struct GameView: View {
                 // stays exactly as wide as it's always been - see chat) so
                 // the cards read as sitting a little off the screen's edge
                 // rather than flush against it, same as the reference.
-                BotHUDRow(state: state, human: human)
+                BotHUDRow(state: state, human: human, playerLabel: viewModel.playerLabel)
                     .padding(.horizontal, 12)
                     .padding(.bottom, 3)
 
@@ -274,7 +274,12 @@ public struct GameView: View {
                 // against the banner slot above it (board -> banner ->
                 // here reads as one continuous stack, not three separate
                 // boxes with gaps between them).
-                HumanPlayerPanel(state: state, human: human, onTapDevCard: { devCardPopupType = $0 })
+                HumanPlayerPanel(
+                    state: state,
+                    human: human,
+                    playerLabel: viewModel.playerLabel,
+                    onTapDevCard: { devCardPopupType = $0 }
+                )
                     .padding(.horizontal, 12)
 
                 bottomPanel
@@ -349,7 +354,8 @@ public struct GameView: View {
                 HandoffCoverView(
                     seat: owed,
                     handSize: viewModel.state.players
-                        .first { $0.id == owed }?.resources.values.reduce(0, +) ?? 0
+                        .first { $0.id == owed }?.resources.values.reduce(0, +) ?? 0,
+                    playerLabel: viewModel.playerLabel
                 ) {
                     clearSeatInteractionState()
                     viewModel.claimDeviceForSeatOwedATurn()
@@ -672,6 +678,7 @@ public struct GameView: View {
                     offer: currentOffer,
                     // Same signal the bot loop already holds on.
                     isHeld: isShowingInGameSettings,
+                    playerLabel: viewModel.playerLabel,
                     onAccept: { respond(to: currentOffer, accept: true) },
                     onReject: { respond(to: currentOffer, accept: false) }
                 )
@@ -764,7 +771,7 @@ public struct GameView: View {
                 HStack(spacing: 10) {
                     ForEach(robberVictims, id: \.self) { victim in
                         UniformActionButton(
-                            title: CatanTheme.playerLabel(for: victim),
+                            title: viewModel.playerLabel(for: victim),
                             systemImage: "person.fill.questionmark",
                             isEnabled: true
                         ) {

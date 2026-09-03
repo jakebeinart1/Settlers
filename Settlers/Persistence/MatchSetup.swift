@@ -34,12 +34,18 @@ public struct MatchSetup: Codable, Equatable, Sendable {
         public var name: String
         /// `nil` means "draw one at random from the eligible pool at start".
         public var civilization: Civilization?
+        /// Snapshot of the computer opponent actually occupying this chair.
+        /// Nil on a human seat and on old/new-game prefills; populated in the
+        /// realized active-match record after Random choices are resolved.
+        public var opponentProfile: OpponentProfile?
 
-        public init(index: Int, isHuman: Bool, name: String, civilization: Civilization?) {
+        public init(index: Int, isHuman: Bool, name: String, civilization: Civilization?,
+                    opponentProfile: OpponentProfile? = nil) {
             self.index = index
             self.isHuman = isHuman
             self.name = name
             self.civilization = civilization
+            self.opponentProfile = opponentProfile
         }
     }
 

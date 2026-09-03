@@ -88,6 +88,7 @@ Greedy anchor, not evidence of a strength ordering and not a difficulty ladder.
 2. Define a robust consolidation opportunity; city-versus-settlement is too
    rare to measure directly.
 3. Run blind replay/live-play recognition before exposing style labels.
-4. Replace seat-order strategy assignment with stable opponent profiles.
+4. Stable opponent profiles are now implemented; see
+   `2026-09-02-opponent-profile-decision-log.md`.
 5. Keep dialogue persona cosmetic and semantically informed; do not let prose
    reach rules or policy selection.

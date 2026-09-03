@@ -24,7 +24,17 @@ struct HandoffCoverView: View {
     /// How many cards they are holding, so they know what they are picking up
     /// without anyone having to reveal which cards those are.
     let handSize: Int
+    let playerLabel: (PlayerID) -> String
     let onReady: () -> Void
+
+    init(seat: PlayerID, handSize: Int,
+         playerLabel: @escaping (PlayerID) -> String = CatanTheme.playerLabel,
+         onReady: @escaping () -> Void) {
+        self.seat = seat
+        self.handSize = handSize
+        self.playerLabel = playerLabel
+        self.onReady = onReady
+    }
 
     var body: some View {
         ZStack {
@@ -61,7 +71,7 @@ struct HandoffCoverView: View {
 
                 VStack(spacing: 10) {
                     CivilizationBadgeMark(seat: seat)
-                    Text(CatanTheme.playerLabel(for: seat))
+                    Text(playerLabel(seat))
                         .font(.system(size: 40, weight: .bold, design: .serif))
                         .foregroundStyle(CatanTheme.color(for: seat))
                         .lineLimit(1)

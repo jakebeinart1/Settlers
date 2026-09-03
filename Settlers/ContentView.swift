@@ -27,7 +27,8 @@ struct ContentView: View {
     var body: some View {
         Group {
             if case .gameOver = viewModel.state.phase, hasStartedThisSession {
-                EndGameView(state: viewModel.state, human: viewModel.humanPlayer) {
+                EndGameView(state: viewModel.state, human: viewModel.humanPlayer,
+                            playerLabel: viewModel.playerLabel) {
                     if viewModel.clearCompletedMatch() { hasStartedThisSession = false }
                 }
             } else if hasStartedThisSession {

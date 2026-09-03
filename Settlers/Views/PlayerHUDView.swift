@@ -20,16 +20,19 @@ import CatanEngine
 public struct BotHUDRow: View {
     public let state: GameState
     public let human: PlayerID
+    public let playerLabel: (PlayerID) -> String
 
-    public init(state: GameState, human: PlayerID) {
+    public init(state: GameState, human: PlayerID,
+                playerLabel: @escaping (PlayerID) -> String = CatanTheme.playerLabel) {
         self.state = state
         self.human = human
+        self.playerLabel = playerLabel
     }
 
     public var body: some View {
         HStack(spacing: 8) {
             ForEach(Self.seatsShownAsOpponents(in: state, deviceSeat: human), id: \.id) { player in
-                PlayerChip.body(for: player, state: state)
+                PlayerChip.body(for: player, state: state, playerLabel: playerLabel)
             }
         }
     }
@@ -64,11 +67,15 @@ public struct BotHUDRow: View {
 public struct HumanPlayerPanel: View {
     public let state: GameState
     public let human: PlayerID
+    public let playerLabel: (PlayerID) -> String
     public let onTapDevCard: (DevCardType) -> Void
 
-    public init(state: GameState, human: PlayerID, onTapDevCard: @escaping (DevCardType) -> Void) {
+    public init(state: GameState, human: PlayerID,
+                playerLabel: @escaping (PlayerID) -> String = CatanTheme.playerLabel,
+                onTapDevCard: @escaping (DevCardType) -> Void) {
         self.state = state
         self.human = human
+        self.playerLabel = playerLabel
         self.onTapDevCard = onTapDevCard
     }
 
@@ -110,7 +117,7 @@ public struct HumanPlayerPanel: View {
                     // staying put. `CatanTheme.playerLabel` rather than a
                     // literal "You" - reads the custom name set in Settings,
                     // falling back to "You" if none is set.
-                    Text(CatanTheme.playerLabel(for: human))
+                    Text(playerLabel(human))
                         .font(.system(size: 18, weight: .bold, design: .serif))
                         .lineLimit(1)
                         .fixedSize()
@@ -401,7 +408,8 @@ private struct DevCardHUDTile: View {
 @MainActor
 enum PlayerChip {
     @ViewBuilder
-    static func body(for player: Player, state: GameState) -> some View {
+    static func body(for player: Player, state: GameState,
+                     playerLabel: (PlayerID) -> String) -> some View {
         let isActive = isActivePlayer(player.id, in: state)
         let handSize = player.resources.values.reduce(0, +)
 
@@ -431,7 +439,7 @@ enum PlayerChip {
                 // end-game standings both correctly called them "Sam".
                 // `playerLabel` already returns the general's name for a
                 // genuine bot, so this is right in both cases.
-                Text(CatanTheme.playerLabel(for: player.id))
+                Text(playerLabel(player.id))
                     .font(.system(size: 10, weight: .bold, design: .serif))
                     .lineLimit(1)
             }
