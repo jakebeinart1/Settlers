@@ -85,18 +85,27 @@ enum TileDrawing {
     /// radius is `size * 0.324` and a ring is 11pt in radius, so with the badge
     /// pushed `d` out from an edge midpoint, its distance to either of that
     /// edge's vertices is `hypot(size/2, d)` - the edge is `size` long on a
-    /// pointy-top grid. At the ~40pt hex this board draws at, the previous 0.4
-    /// left about a point of daylight in the best case and none once the
-    /// centre-ray skew pulled the badge sideways. 0.55 leaves roughly three.
-    static let portOffset: CGFloat = 0.55
+    /// pointy-top grid.
+    ///
+    /// This is also, by construction, the single biggest cost in
+    /// `BoardView.fittedGeometry`'s reservation: since `fittedGeometry` fits
+    /// the hex grid to whatever space is left after reserving this offset
+    /// (plus the frame radius) on every port-bearing edge, a bigger offset
+    /// directly shrinks the board. 0.55 (kept a full hex-width of shoreline
+    /// clearance) made the board visibly smaller than the hexes alone would
+    /// need, and read as ports floating apart from the coast rather than
+    /// docked to it. 0.44 is the smallest value (in 0.01 steps)
+    /// `BoardFitTests.portBadgesDoNotCollideWithPlacementRings` still accepts
+    /// across the tested boards - the badge still clears the ring, just with
+    /// less daylight to spare, and the board scales up to fill the freed
+    /// space.
+    static let portOffset: CGFloat = 0.44
 
     /// Radius of a vertex's placement ring - half `VertexTapTarget`'s
     /// `highlightDiameter` of 22.
     ///
-    /// Used twice: dock lines start this far from a vertex so they meet the
-    /// ring's edge instead of vanishing under it, and
-    /// `BoardView.fittedGeometry` reserves it around the board, since the ring
-    /// is a fixed point size and does not shrink with the hex.
+    /// `BoardView.fittedGeometry` reserves this much around the board, since
+    /// the ring is a fixed point size and does not shrink with the hex.
     static let vertexRingRadius: CGFloat = 11
 
     /// Draws the robber over `tileCoordinate`, and darkens the tile it is
@@ -184,16 +193,20 @@ enum TileDrawing {
         let b = geometry.vertexPosition(port.vertexB, board: board)
         let iconPoint = portIconPoint(a: a, b: b, boardCenter: boardCenter, size: geometry.size)
 
-        // The dock lines start clear of the vertex rings rather than at the
-        // vertices themselves, so a line never runs underneath the ring it is
-        // pointing at. They still trace the real edge the port trades through.
+        // The dock lines start right at the shoreline vertices, tracing the
+        // real edge the port trades through.
+        //
+        // They used to start `vertexRingRadius` further out, "so a line never
+        // runs underneath the ring it is pointing at" - but `BoardView.body`
+        // already draws every `VertexTapTarget` (rings included) in a layer
+        // above this `Canvas`, so a ring occludes whatever is under it
+        // regardless of where the line starts; the inset bought nothing
+        // during placement and, the rest of the time, with no ring drawn at
+        // all, it just left a gap between the coast and the dock line -
+        // reported as the ports looking detached from the board.
         var dockPath = Path()
         for shorelineVertex in [a, b] {
-            let toIcon = CGVector(dx: iconPoint.x - shorelineVertex.x, dy: iconPoint.y - shorelineVertex.y)
-            let span = max(sqrt(toIcon.dx * toIcon.dx + toIcon.dy * toIcon.dy), 0.001)
-            let start = CGPoint(x: shorelineVertex.x + toIcon.dx / span * vertexRingRadius,
-                                y: shorelineVertex.y + toIcon.dy / span * vertexRingRadius)
-            dockPath.move(to: start)
+            dockPath.move(to: shorelineVertex)
             dockPath.addLine(to: iconPoint)
         }
         context.stroke(dockPath, with: .color(CatanTheme.portIcon.opacity(0.85)), style: StrokeStyle(lineWidth: 2.5, lineCap: .round))

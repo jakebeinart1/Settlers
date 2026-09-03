@@ -21,7 +21,22 @@ struct ContentView: View {
     // (screenshotting UI chrome, etc.) without a real tap on `MainMenuView`
     // - never set in normal use, so this can't change anything for a real
     // player.
-    @State private var hasStartedThisSession = QALaunchFlag.autoStart.isSet
+    //
+    // Starts `false`, set `true` inside `.onAppear` below - NOT seeded
+    // directly from the flag here. Both real entry points (`startNewGame(_:)`
+    // below, `onResume`) call `viewModel.startNewGame`/set state fully
+    // *before* setting this true, so `GameView` only ever mounts once
+    // `gameGeneration` has already reached its final value for the game
+    // being shown. Seeding this true up front skipped that ordering:
+    // `GameView` mounted immediately (against whatever `state` happened to
+    // be, mid-turn or default), and the *later* `startNewGame` call inside
+    // `.onAppear` bumped `gameGeneration` out from under it, tearing down
+    // and remounting `GameView` - cancelling its `.task` (and any bot-loop
+    // work in flight) mid-run, repeatedly, since a torn-down `.task`
+    // orphans whatever `await` chain it was in. Measured: a fresh
+    // `-qaAutoStart -qaFastForwardToRollDice` launch got permanently stuck
+    // after the first round of setup placements, every time.
+    @State private var hasStartedThisSession = false
     @Environment(\.scenePhase) private var scenePhase
 
     var body: some View {
@@ -123,8 +138,16 @@ struct ContentView: View {
             // still has to compile, and the method it names does not exist
             // outside DEBUG.
             #if DEBUG
-            if QALaunchFlag.autoStart.isSet, viewModel.savedGameAvailability == .absent {
-                viewModel.startNewGame(randomizedBoard: false, randomizeSeat: false)
+            if QALaunchFlag.autoStart.isSet {
+                if viewModel.savedGameAvailability == .absent {
+                    viewModel.startNewGame(randomizedBoard: false, randomizeSeat: false)
+                }
+                // Set only now that `savedGameAvailability`/`gameGeneration`
+                // have already reached whatever they're going to be for this
+                // launch - matching the real "New Game"/"Resume" entry
+                // points below, which both do the same thing (start the
+                // game, then reveal it) rather than the other way around.
+                hasStartedThisSession = true
             }
             if QALaunchFlag.showEndGame.isSet {
                 viewModel.qaForceHumanWin()

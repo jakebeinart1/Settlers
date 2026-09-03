@@ -97,6 +97,23 @@ public struct TradePopupView: View {
                         .frame(maxWidth: .infinity, alignment: .leading)
                 }
 
+                // A resolved outcome ("No one accepted" / "X accepted!")
+                // used to leave Close as the only way out - fine after a
+                // trade actually goes through, but proposing again meant
+                // closing the whole popup and reopening it from the Trade
+                // button just to clear the banner. `proposalOutcome` (as
+                // opposed to `pendingTradeConfirmation`, which still has its
+                // own Decline/Confirm pair below) is specifically the
+                // "nothing left to decide" state, so that is the one that
+                // gets a way back into the builder instead of only a way out.
+                if proposalOutcome != nil {
+                    GoldRowButton(title: "New Offer", systemImage: "arrow.counterclockwise") {
+                        proposalOutcome = nil
+                        give = [:]
+                        want = [:]
+                        errorMessage = nil
+                    }
+                }
                 GoldRowButton(title: "Close", systemImage: "xmark", action: onDismiss)
             }
             .padding(16)
@@ -245,6 +262,7 @@ public struct TradePopupView: View {
                 ResourceChip(resource: resource, count: remaining, isEnabled: remaining > 0) {
                     give[resource] = (give[resource] ?? 0) + 1
                 }
+                .accessibilityIdentifier(AccessibilityID.Trade.giveChip(resource))
             }
         }
     }
@@ -257,6 +275,7 @@ public struct TradePopupView: View {
                 ResourceChip(resource: resource, count: nil) {
                     want[resource] = (want[resource] ?? 0) + 1
                 }
+                .accessibilityIdentifier(AccessibilityID.Trade.wantChip(resource))
             }
         }
     }
