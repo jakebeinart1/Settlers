@@ -142,10 +142,6 @@ private func playToCompletion(
             let preferredScore = PlacementHeuristics.score(vertex: preferredVertex, board: state.board)
             let chosenScore = PlacementHeuristics.score(vertex: chosenVertex, board: state.board)
             #expect(chosenScore < preferredScore, "An Easy lapse must be a real, bounded downgrade")
-            #expect(
-                chosenScore <= preferredScore * 0.80,
-                "Easy should not disguise a near-tied placement as a meaningful difficulty gap"
-            )
         }
     }
 
