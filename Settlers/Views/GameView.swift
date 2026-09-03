@@ -1086,6 +1086,25 @@ public struct GameView: View {
         let liveIDs = Set(state.pendingTradeOffers.map(\.id))
         incomingOfferQueue.removeAll { !liveIDs.contains($0.id) }
 
+        // Offer IDs are content-derived (`TradeOffer.enumerated` hashes
+        // proposer + sorted give/want, per the determinism contract in
+        // `RulesEngine.legalMoves`), so a bot proposing the identical trade
+        // shape twice in one session - same partner, same resources, which
+        // a heuristic bot does often - reuses the exact UUID of an offer the
+        // human already answered. Without this line `seenTradeOfferIDs` keeps
+        // that ID forever, so the repeat offer fails `!seenTradeOfferIDs
+        // .contains` and is silently never queued - yet `GameViewModel
+        // .openIncomingOffer`, which has no such memory, still sees a live
+        // pending offer and parks the bot loop on it forever: a real
+        // deadlock with nothing on screen to explain it, reported as "the
+        // game just stops advancing" (same signature as the relaunch bug
+        // fixed in `.onAppear` above, different trigger). Intersecting with
+        // `liveIDs` here mirrors what `incomingOfferQueue.removeAll` already
+        // does two lines up: forget an ID the moment its offer is no longer
+        // pending, so if that same content hashes to it again later, it
+        // reads as unseen and gets shown.
+        seenTradeOfferIDs.formIntersection(liveIDs)
+
         // Only ever surface an offer the human could actually accept right
         // now - one between two bots that doesn't involve resources the
         // human holds shouldn't interrupt them at all; bots still trade
