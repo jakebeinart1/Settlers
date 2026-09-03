@@ -141,7 +141,8 @@ public struct GameSession: Sendable {
                   state.players.map({ $0.id.index }).elementsEqual(state.players.indices),
                   Set(policyIDs.keys).isSubset(of: occupied),
                   currentTurnSeat.map(occupied.contains) ?? true,
-                  (0..<Int.max).contains(actionsThisTurn),
+                  (0...GameSession.maxActionsPerTurn).contains(actionsThisTurn),
+                  (currentTurnSeat == nil) == (actionsThisTurn == 0),
                   (0..<Int.max).contains(policyEvaluationCount) else {
                 throw CheckpointError.incompatibleCheckpoint
             }

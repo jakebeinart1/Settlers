@@ -11,7 +11,7 @@ import CatanEngine
 
 @MainActor
 private func hotSeatGame(humans: Set<Int>, seats: Int = 4, phaseSeat: Int = 0) -> GameViewModel {
-    let model = GameViewModel()
+    let model = isolatedGameViewModel()
     var state = GameSetup.newGame(board: BoardGenerator.standard(), seed: 3, playerCount: seats)
     state.phase = .mainTurn(playerIndex: phaseSeat)
     model.replaceStateForTesting(state, humanSeats: Set(humans.map { PlayerID(index: $0) }))
@@ -125,7 +125,7 @@ private func hotSeatGame(humans: Set<Int>, seats: Int = 4, phaseSeat: Int = 0) -
 /// is the state a hot-seat game is in when the 7 is rolled on that seat's turn.
 @MainActor
 private func discardingGame(humans: Set<Int>, pending: Set<Int>) -> GameViewModel {
-    let model = GameViewModel()
+    let model = isolatedGameViewModel()
     var state = GameSetup.newGame(board: BoardGenerator.standard(), seed: 4)
     state.phase = .discarding(pending: Set(pending.map { PlayerID(index: $0) }))
     model.replaceStateForTesting(state, humanSeats: Set(humans.map { PlayerID(index: $0) }))

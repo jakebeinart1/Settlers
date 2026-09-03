@@ -2,12 +2,17 @@ import SwiftUI
 
 @main
 struct SettlersApp: App {
+    /// One process owns one checkpoint revision cursor. Constructing this in a
+    /// SwiftUI child view created competing models when SwiftUI rebuilt that
+    /// view, and the second writer correctly failed as stale.
+    private let viewModel: GameViewModel
 
     init() {
         #if DEBUG
         CheckpointProcessProbe.runIfRequested()
         #endif
         UITestBootstrap.resetPersistentStateIfRequested()
+        viewModel = GameViewModel()
     }
 
     // Startup used to force-read the retired YAML pacing configuration. The
@@ -16,7 +21,7 @@ struct SettlersApp: App {
 
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            ContentView(viewModel: viewModel)
                 // The whole app is a fixed dark-blue/water palette designed
                 // around light text - it was never built to also support a
                 // light system appearance. Without this, any `Text` that

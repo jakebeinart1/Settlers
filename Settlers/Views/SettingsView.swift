@@ -6,13 +6,19 @@ import CatanEngine
 public struct SettingsView: View {
     public let onDismiss: () -> Void
 
-    public init(onDismiss: @escaping () -> Void) {
+    private let onResetStatistics: () -> Bool
+
+    public init(onDismiss: @escaping () -> Void, statistics: GameStats = GameStats(),
+                onResetStatistics: @escaping () -> Bool = { false }) {
         self.onDismiss = onDismiss
+        self.onResetStatistics = onResetStatistics
+        _stats = State(initialValue: statistics)
     }
 
     @State private var settings = CivilizationSettingsStore.shared.load()
     @State private var playerName = PlayerNameStore.shared.load()
-    @State private var stats = GameStatsStore.shared.load()
+    @State private var stats: GameStats
+    @State private var resetFailed = false
     @State private var isShowingResetStatsConfirmation = false
     @State private var isShowingGameLogs = false
     @State private var poolRefusal: String?
@@ -47,8 +53,7 @@ public struct SettingsView: View {
             titleVisibility: .visible
         ) {
             Button("Reset Stats", role: .destructive) {
-                GameStatsStore.shared.clear()
-                stats = GameStats()
+                if onResetStatistics() { stats = GameStats() } else { resetFailed = true }
             }
             Button("Cancel", role: .cancel) {}
         } message: {
@@ -56,6 +61,11 @@ public struct SettingsView: View {
         }
         .sheet(isPresented: $isShowingGameLogs) {
             GameLogListView(onDismiss: { isShowingGameLogs = false })
+        }
+        .alert("Stats could not be reset", isPresented: $resetFailed) {
+            Button("OK", role: .cancel) {}
+        } message: {
+            Text("Your recorded totals have not been changed. Please try again.")
         }
     }
 

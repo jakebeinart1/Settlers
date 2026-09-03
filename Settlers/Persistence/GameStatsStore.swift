@@ -33,7 +33,7 @@ public struct GameStats: Codable, Sendable, Equatable {
 public struct GameStatsStore: Sendable {
     public static let shared = GameStatsStore()
 
-    private let fileURL: URL
+    let fileURL: URL
 
     private init() {
         let baseURL = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]

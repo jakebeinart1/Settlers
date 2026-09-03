@@ -21,6 +21,11 @@ enum UITestBootstrap {
         do {
             try GameStore.shared.clear()
             try CivilizationAssignmentStore.shared.clear()
+            let checkpointURL = GameStore.shared.fileURL.deletingLastPathComponent()
+                .appendingPathComponent("match_checkpoint.json")
+            if FileManager.default.fileExists(atPath: checkpointURL.path) {
+                try FileManager.default.removeItem(at: checkpointURL)
+            }
         } catch {
             preconditionFailure("Could not reset UI-test persistence: \(error)")
         }

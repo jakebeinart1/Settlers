@@ -23,7 +23,7 @@ private func gameAwaitingAnswer(humanHolds: [Resource: Int],
                                 botHolds: [Resource: Int],
                                 botOffers: [Resource: Int],
                                 botWants: [Resource: Int]) -> GameViewModel {
-    let model = GameViewModel()
+    let model = isolatedGameViewModel()
     var state = GameSetup.newGame(board: BoardGenerator.standard(), seed: 5)
     state.phase = .mainTurn(playerIndex: 1)
     state.players[0].resources = humanHolds
@@ -62,7 +62,7 @@ private func gameAwaitingAnswer(humanHolds: [Resource: Int],
 @Test func theHumansOwnProposalDoesNotStopTheBots() {
     // A human-proposed offer is resolved by the bots, not by the human - and
     // holding the loop for it would deadlock, since the loop is what answers.
-    let model = GameViewModel()
+    let model = isolatedGameViewModel()
     var state = GameSetup.newGame(board: BoardGenerator.standard(), seed: 6)
     state.phase = .mainTurn(playerIndex: 0)
     state.players[0].resources = [.grain: 2]
@@ -74,7 +74,7 @@ private func gameAwaitingAnswer(humanHolds: [Resource: Int],
 
 @MainActor
 @Test func nothingPendingLeavesTheBotsAlone() {
-    let model = GameViewModel()
+    let model = isolatedGameViewModel()
     let state = GameSetup.newGame(board: BoardGenerator.standard(), seed: 7)
     model.replaceStateForTesting(state, humanSeat: state.players[0].id)
     #expect(model.openIncomingOffer == nil)
@@ -95,7 +95,7 @@ private func gameAwaitingAnswer(humanHolds: [Resource: Int],
 /// `PersistenceTests` caveat - writes neither the save file nor the game log.
 @MainActor
 @Test func anOpenSettingsSurfaceStopsTheBots() async {
-    let model = GameViewModel()
+    let model = isolatedGameViewModel()
     var state = GameSetup.newGame(board: BoardGenerator.standard(), seed: 11)
     state.phase = .mainTurn(playerIndex: 1)
     model.replaceStateForTesting(state, humanSeat: state.players[0].id)
@@ -112,5 +112,5 @@ private func gameAwaitingAnswer(humanHolds: [Resource: Int],
 /// would never run.
 @MainActor
 @Test func theSettingsSurfaceStartsClosed() {
-    #expect(GameViewModel().isSettingsSurfaceOpen == false)
+    #expect(isolatedGameViewModel().isSettingsSurfaceOpen == false)
 }

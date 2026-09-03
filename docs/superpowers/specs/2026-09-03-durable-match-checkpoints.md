@@ -1,6 +1,6 @@
 # Durable match checkpoints
 
-Status: isolated store prototype; production integration pending.
+Status: production integration implemented and verified; pending PR review/merge.
 Scope: process interruption, not power-loss durability.
 
 ## Product contract
@@ -138,3 +138,44 @@ hosted persistence tests pass, including two consecutive replacements across
 reload and clearing a genuine seeded winner while preserving its receipt and
 totals. Export acknowledgement/retention and production wiring remain pending;
 these queued histories are not yet a user-visible archive.
+
+The export/migration/duration slice was verified separately from the in-progress
+GameViewModel cutover. Nineteen hosted tests pass on the isolated snapshot:
+export retry replaces a deliberately truncated JSONL file without duplicate
+moves; filesystem export failure retains the queued recording until an exact
+snapshot acknowledgement; stats-only migration preserves original totals and
+bytes; foreground duration survives reload without inventing a move and stays
+frozen after completion. Strict scoped lint and Release simulator compilation
+also pass. This evidence covers the storage slice, not the concurrent
+production integration, which still needs its full app/UI and release checks.
+
+Archive retention now protects active/pending match IDs even when they are
+older than every other file, retaining the newest configured number of
+additional unprotected archives. Recovery replacement requires an independent
+backup with exact source bytes and rechecks both files at the write boundary.
+Ten targeted lifecycle/export tests and Release compilation pass, including
+rejection of a mismatched backup, using the source itself as backup, and a
+source changed at the injected pre-replacement boundary. These checks do not
+claim cross-process locking against arbitrary external writers.
+
+Completion accounting now computes checked integer totals and a finite duration
+before publishing any receipt or revision. The oversized-duration regression
+first failed with four issues (infinite totals, a recorded receipt, and a bumped
+revision instead of an error). Integer-count and duration-overflow cases now
+leave the document unchanged. Seventeen targeted lifecycle/storage tests,
+strict scoped lint, and Release compilation pass on the isolated snapshot.
+
+Production cutover verification completed on the dedicated Empires QA simulator.
+The unified gate passed with 176 app tests in 21 suites, 201 engine tests, 99 AI
+tests, all 24 supported match configurations, deterministic training export,
+95.86% engine and 96.72% AI coverage, strict lint, leak scanning, and both
+Release and Debug builds. Nine separate-process termination cases now cover
+human, bot, and automatic trade-response commits plus export before and after
+acknowledgement. A fresh install launched, survived, produced no new crash
+report, and its main menu, New Game, In-Game Settings, and Trade surfaces were
+visually inspected at 402 points wide.
+
+The whole-document format still makes launch validation proportional to retained
+unexported history. Retention bounds exported archives, and normal successful
+exports empty the pending queue, but a quantitative worst-case launch benchmark
+remains a follow-up before increasing archive retention or adopting a journal.

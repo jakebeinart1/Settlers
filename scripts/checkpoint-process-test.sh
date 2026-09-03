@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
-# Kill a dedicated simulator app at both atomic-save boundaries, then verify
-# recovery in a different process. Probe data never shares the player's save.
+# Kill a dedicated simulator app inside checkpoint and export boundaries, then
+# inspect durable state from a different process. Probe data is isolated from
+# player saves and every launch PID must differ from the interrupted writer.
 set -euo pipefail
 
 simulator="${1:?pass the dedicated QA simulator UDID}"
@@ -27,27 +28,39 @@ await_file() {
 }
 
 launch_probe() {
-  xcrun simctl launch "$simulator" "$bundle" -checkpoint-process-probe "$1" "$2"
+  xcrun simctl launch "$simulator" "$bundle" -checkpoint-process-probe "$1" "$2" "$3"
 }
 
-# An absent running process is expected before the first probe.
-xcrun simctl terminate "$simulator" "$bundle" 2>/dev/null || true
-for boundary in before after; do
+run_interruption() {
+  local scenario="$1" boundary="$2" expected="$3"
+  local probe_id directory interrupted recovered actual
   probe_id="$(uuidgen)"
   directory="$container/Library/Application Support/CheckpointProcessProbes/$probe_id"
-  launch_probe initialize "$probe_id"
+  launch_probe initialize "$scenario" "$probe_id" >/dev/null
   await_file "$directory/initialized"
   xcrun simctl terminate "$simulator" "$bundle"
-  interrupted="$(launch_probe "$boundary" "$probe_id")"
+  interrupted="$(launch_probe "$boundary" "$scenario" "$probe_id")"
   await_file "$directory/ready"
   xcrun simctl terminate "$simulator" "$bundle"
-  recovered="$(launch_probe read "$probe_id")"
+  recovered="$(launch_probe read "$scenario" "$probe_id")"
   [[ "$interrupted" != "$recovered" ]] || { echo "Recovery reused the interrupted process"; exit 1; }
   await_file "$directory/result"
-  expected="0,0,0"
-  [[ "$boundary" == before ]] || expected="1,1,1"
   actual="$(< "$directory/result")"
-  [[ "$actual" == "$expected" ]] || { echo "FAIL $boundary: $actual != $expected"; exit 1; }
-  echo "PASS $boundary replacement: revision,moves,settlements=$actual ($interrupted -> $recovered)"
+  [[ "$actual" == "$expected" ]] || {
+    echo "FAIL $scenario/$boundary: $actual != $expected" >&2
+    exit 1
+  }
+  echo "PASS $scenario/$boundary: revision,moves,settlements,offers,pendingExports,logs,logMoves=$actual"
   xcrun simctl terminate "$simulator" "$bundle"
+}
+
+xcrun simctl terminate "$simulator" "$bundle" 2>/dev/null || true
+for scenario in human bot; do
+  run_interruption "$scenario" before "0,0,0,0,0,0,0"
+  run_interruption "$scenario" after "1,1,1,0,0,0,0"
 done
+run_interruption automaticTrade before "0,1,0,1,0,0,0"
+run_interruption automaticTrade after "1,2,0,0,0,0,0"
+run_interruption export exported "1,0,0,0,1,1,0"
+run_interruption export before "1,0,0,0,1,1,0"
+run_interruption export after "2,0,0,0,0,1,0"

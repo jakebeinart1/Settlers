@@ -105,6 +105,35 @@ private struct ValidationCheckpointPolicy: Policy {
         expectRejected(checkpoint, policies: original.policies)
     }
 
+    @Test(arguments: [GameSession.maxActionsPerTurn + 1, 1_000_000])
+    func rejectsActionsBeyondTurnBackstop(actions: Int) throws {
+        let original = try fixture(queuedTrade: true)
+        let checkpoint = try decoded(original, replacing: ["actionsThisTurn"], with: actions)
+        expectRejected(checkpoint, policies: original.policies)
+    }
+
+    @Test func rejectsActionsWithoutACurrentTurnSeat() throws {
+        let original = try fixture(queuedTrade: true)
+        var checkpoint = try decoded(original, replacing: ["currentTurnSeat"])
+        checkpoint = try decoded(checkpoint, replacing: ["actionsThisTurn"], with: 1)
+        expectRejected(checkpoint, policies: original.policies)
+    }
+
+    @Test func rejectsCurrentTurnSeatWithoutActions() throws {
+        let original = try fixture(queuedTrade: true)
+        let checkpoint = try decoded(original, replacing: ["actionsThisTurn"], with: 0)
+        expectRejected(checkpoint, policies: original.policies)
+    }
+
+    @Test func acceptsCheckpointAtTurnBackstop() throws {
+        let original = try fixture(queuedTrade: true)
+        let checkpoint = try decoded(
+            original, replacing: ["actionsThisTurn"], with: GameSession.maxActionsPerTurn
+        )
+
+        _ = try GameSession(checkpoint: checkpoint, policies: original.policies)
+    }
+
     @Test(arguments: [-1, 1, 2])
     func rejectsQueuedEvaluationOutsideRecordedRange(index: Int) throws {
         let original = try fixture(queuedTrade: true)
@@ -166,6 +195,15 @@ private struct ValidationCheckpointPolicy: Policy {
         let data = try JSONEncoder().encode(session.checkpoint)
         var object = try #require(JSONSerialization.jsonObject(with: data) as? [String: Any])
         if !path.isEmpty { try replace(in: &object, path: path[...], with: value) }
+        let mutated = try JSONSerialization.data(withJSONObject: object)
+        return try JSONDecoder().decode(GameSession.Checkpoint.self, from: mutated)
+    }
+
+    private func decoded(_ checkpoint: GameSession.Checkpoint, replacing path: [String],
+                         with value: Any) throws -> GameSession.Checkpoint {
+        let data = try JSONEncoder().encode(checkpoint)
+        var object = try #require(JSONSerialization.jsonObject(with: data) as? [String: Any])
+        try replace(in: &object, path: path[...], with: value)
         let mutated = try JSONSerialization.data(withJSONObject: object)
         return try JSONDecoder().decode(GameSession.Checkpoint.self, from: mutated)
     }
