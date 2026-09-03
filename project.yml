@@ -88,6 +88,18 @@ targets:
         GENERATE_INFOPLIST_FILE: YES
     dependencies:
       - target: Settlers
+  SettlersUITests:
+    type: bundle.ui-testing
+    platform: iOS
+    sources: [SettlersUITests]
+    settings:
+      base:
+        SWIFT_VERSION: "6.0"
+        SWIFT_TREAT_WARNINGS_AS_ERRORS: YES
+        GENERATE_INFOPLIST_FILE: YES
+        TEST_TARGET_NAME: Settlers
+    dependencies:
+      - target: Settlers
 
 schemes:
   Settlers:
@@ -95,12 +107,14 @@ schemes:
       targets:
         Settlers: all
         SettlersTests: [test]
+        SettlersUITests: [test]
     test:
       # Was `targets: []`, which made `xcodebuild test -scheme Settlers`
       # report "Scheme is not currently configured for the test action" -
       # so any gate built on it would have been a false green.
       targets:
         - SettlersTests
+        - SettlersUITests
       gatherCoverageData: true
       coverageTargets:
         - Settlers

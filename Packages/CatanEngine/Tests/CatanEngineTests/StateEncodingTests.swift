@@ -77,7 +77,62 @@ private func sampledPositions() -> [GameState] {
         + StateEncoding.vertexCount * StateEncoding.perVertexFeatureCount
         + StateEncoding.edgeCount * StateEncoding.perEdgeFeatureCount
     #expect(StateEncoding.featureCount == expected)
-    #expect(StateEncoding.featureCount == 1012, "featureCount changed - did layoutVersion?")
+    #expect(StateEncoding.featureCount == 1013, "featureCount changed - did layoutVersion?")
+    #expect(StateEncoding.layoutVersion == 2, "layout changed without the required version bump")
+}
+
+@Test func globalBlockDistinguishesVictoryPointTargets() {
+    let targetOffset = StateEncoding.phaseCount
+        + StateEncoding.diceFeatureCount
+        + StateEncoding.resourceKindCount
+        + 2 // Development deck and pending offers precede the target.
+    var encodedTargets: [Float] = []
+
+    for seatCount in GameSetup.supportedPlayerCounts {
+        encodedTargets.removeAll(keepingCapacity: true)
+        for target in [8, 10, 12] {
+            let state = GameSetup.newGame(
+                board: BoardGenerator.standard(),
+                seed: 17,
+                playerCount: seatCount,
+                victoryPointTarget: target
+            )
+            let vector = StateEncoding.features(observe(state, as: PlayerID(index: 0)))
+            #expect(vector.count == StateEncoding.featureCount)
+            encodedTargets.append(vector[targetOffset])
+        }
+
+        #expect(encodedTargets == [Float(8) / 12, Float(10) / 12, 1],
+                "\(seatCount)-seat target slots do not carry the match contract")
+    }
+}
+
+@Test func publicVictoryPointProgressIsRelativeToTheMatchTarget() {
+    var shortGame = handBuiltPosition()
+    shortGame.victoryPointTarget = 8
+    var epicGame = shortGame
+    epicGame.victoryPointTarget = 12
+
+    let publicVPOffset = StateEncoding.globalFeatureCount + StateEncoding.holdingsFeatureCount + 1
+    let shortProgress = StateEncoding.features(observe(shortGame, as: PlayerID(index: 0)))[publicVPOffset]
+    let epicProgress = StateEncoding.features(observe(epicGame, as: PlayerID(index: 0)))[publicVPOffset]
+    let publicVP = Float(shortGame.publicVictoryPoints(for: PlayerID(index: 0)))
+
+    #expect(shortProgress == publicVP / 8)
+    #expect(epicProgress == publicVP / 12)
+    #expect(shortProgress > epicProgress)
+}
+
+@Test func promptDescriptionNamesTheVictoryPointTarget() {
+    for target in [8, 10, 12] {
+        let state = GameSetup.newGame(
+            board: BoardGenerator.standard(),
+            seed: 23,
+            victoryPointTarget: target
+        )
+        let prompt = StateEncoding.promptDescription(observe(state, as: PlayerID(index: 0)))
+        #expect(prompt.contains("target=\(target)"))
+    }
 }
 
 @Test func hidingOpponentHandsDoesNotChangeTheWidth() {
@@ -155,7 +210,7 @@ private func sampledPositions() -> [GameState] {
         let vector = StateEncoding.features(observe(state, as: seat))
         for slot in 0..<StateEncoding.seatCount {
             let described = StateEncoding.seatOrder(from: seat)[slot]
-            let expected = Float(state.publicVictoryPoints(for: described)) / Float(StateEncoding.victoryPointTarget)
+            let expected = Float(state.publicVictoryPoints(for: described)) / Float(state.victoryPointTarget)
             let actual = vector[start + slot * width + publicVPOffset]
             #expect(abs(actual - expected) < 1e-6,
                     "seat \(index) slot \(slot): expected P\(described.index)'s VP")
@@ -478,7 +533,11 @@ private func richMainTurnPosition() -> GameState {
         }
     }
 
-    #expect(digest == 0xAC5F_7823_A93F_19ED, "encoding changed; got \(String(digest, radix: 16))")
+    // Layout v2 intentionally adds the match victory target to the global
+    // vector, scales public VP by that target, and names it in the prompt.
+    // Re-recorded from the hand-built standard-target fixture after those
+    // three contract changes; no board ordering or hidden-state policy moved.
+    #expect(digest == 0x85F1_02D3_0632_88FD, "encoding changed; got \(String(digest, radix: 16))")
 }
 
 private func fnv1a(_ hash: UInt64, _ value: UInt32) -> UInt64 {

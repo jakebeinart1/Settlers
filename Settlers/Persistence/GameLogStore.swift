@@ -1,63 +1,141 @@
 import Foundation
 import CatanEngine
 
-/// Persists a durable, replayable record of each game to disk as it's
-/// played - unlike `GameStore` (a single in-progress save, overwritten
-/// every move and cleared on completion), every finished game leaves a
-/// standalone file behind under Application Support/GameLogs/. `GameState`
-/// and `GameMove` are already `Codable`, so a log is exactly what it takes
-/// to replay a game: the initial state plus its ordered move list - no
-/// separate reconstruction logic needed.
-///
-/// One JSON-Lines file per game (`<gameID>.jsonl`): each line is an
-/// independently-decodable `Entry`, so a log cut short by a crash mid-game
-/// is still readable up to its last complete line, unlike a single JSON
-/// array that would be corrupted by a truncated write.
-public struct GameLogStore: Sendable {
-    public static let shared = GameLogStore()
+/// A compact row in the in-app archive. The URL remains attached so opening a
+/// row and sharing its source file are both direct operations.
+public struct GameLogSummary: Identifiable, Sendable, Equatable {
+    public var id: UUID { gameID }
+    public let gameID: UUID
+    public let fileURL: URL
+    public let startedAt: Date
+    public let duration: TimeInterval
+    public let playerCount: Int
+    public let victoryPointTarget: Int
+    public let humanSeats: Set<PlayerID>
+    public let winner: PlayerID?
+    public let moveCount: Int
+    public let civilizations: [Int: String]
+    public let isComplete: Bool
+}
 
-    /// How many of the most recent games' logs to keep.
-    ///
-    /// Raised from 20 after measuring: a completed game's log is about 78 KB,
-    /// so 500 games is under 40 MB - negligible next to the app's own asset
-    /// catalogue, and 20 games is far too few to be worth training on or to
-    /// investigate a bug reported a few days late.
-    private let maxKeptLogs = 500
+public struct GameLogEvent: Sendable, Equatable {
+    public let timestamp: Date
+    public let player: PlayerID
+    public let move: GameMove
+}
 
-    private let directoryURL: URL
+public struct GameLogDetail: Sendable, Equatable {
+    public let summary: GameLogSummary
+    public let roster: GameLogStore.SeatRoster
+    public let events: [GameLogEvent]
+    public var isComplete: Bool { summary.isComplete }
+}
 
-    private init() {
-        // Documents, not Application Support, and deliberately so. Application
-        // Support is invisible to the Files app and its container can only be
-        // downloaded from a development-signed install - which means the
-        // moment this ships to TestFlight, every game a tester plays becomes
-        // unreachable, and testers are exactly the population whose games are
-        // worth having. Documents plus `UIFileSharingEnabled` makes the logs
-        // openable on the device itself, on any build.
-        let baseURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
-        directoryURL = baseURL.appendingPathComponent("GameLogs")
+public struct GameLogScan: Sendable, Equatable {
+    public struct Failure: Identifiable, Sendable, Equatable {
+        public var id: URL { fileURL }
+        public let fileURL: URL
+        public let message: String
     }
 
-    /// Who was sitting in each seat, recorded once on the `start` line.
-    ///
-    /// Without this a log is an unlabelled sequence of moves: there is no way
-    /// to tell a human's move from a bot's, or which bot personality produced
-    /// which decision. Both are the whole premise of learning anything from
-    /// the archive, and neither is recoverable after the fact - the human's
-    /// seat lives in a single `UserDefaults` integer that the next new game
-    /// overwrites.
+    public let summaries: [GameLogSummary]
+    public let failures: [Failure]
+}
+
+/// Durable JSONL game archive stored in Documents so TestFlight players can
+/// inspect and export it without a development-signed container download.
+public struct GameLogStore: Sendable {
+    public static let shared = GameLogStore()
+    public static let currentLogSchemaVersion = 2
+
+    private let directoryURL: URL
+    private let maxKeptLogs: Int
+
+    private init() {
+        let baseURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
+        self.init(directoryURL: baseURL.appendingPathComponent("GameLogs"), maxKeptLogs: 500)
+    }
+
+    /// Injectable archive location keeps tests away from the simulator's real
+    /// logs. The retention limit is injectable so pruning can be tested cheaply.
+    init(directoryURL: URL, maxKeptLogs: Int) {
+        precondition(maxKeptLogs > 0)
+        self.directoryURL = directoryURL
+        self.maxKeptLogs = maxKeptLogs
+    }
+
+    public enum ReadError: Error, Equatable, LocalizedError {
+        case unreadableFile(String)
+        case malformedLine(file: String, line: Int)
+        case missingStart(String)
+        case invalidFileName(String)
+
+        public var errorDescription: String? {
+            switch self {
+            case .unreadableFile(let file): return "Could not read \(file)."
+            case .malformedLine(let file, let line): return "\(file) has invalid data on line \(line)."
+            case .missingStart(let file): return "\(file) has no readable starting position."
+            case .invalidFileName(let file): return "\(file) does not have a valid game identifier."
+            }
+        }
+    }
+
+    public enum IOError: Error, LocalizedError {
+        case operation(String, underlying: Error)
+
+        public var errorDescription: String? {
+            switch self {
+            case .operation(let context, let error): return "\(context): \(error.localizedDescription)"
+            }
+        }
+    }
+
+    /// Who occupied each seat. `humanSeat` remains on the wire for old readers;
+    /// `humanSeats` is the v2 truth that can represent hot-seat games.
     public struct SeatRoster: Codable, Sendable, Equatable {
-        public let humanSeat: PlayerID
-        /// Seat index -> personality name (`balanced` / `aggressive` /
-        /// `cautious`), for the bot seats only.
+        public let humanSeats: Set<PlayerID>
+        public let humanNames: [Int: String]
         public let botPersonalities: [Int: String]
-        /// Seat index -> civilization name, which drives the bot's voice.
         public let civilizations: [Int: String]
 
-        public init(humanSeat: PlayerID, botPersonalities: [Int: String], civilizations: [Int: String]) {
-            self.humanSeat = humanSeat
+        public init(humanSeats: Set<PlayerID>, humanNames: [Int: String],
+                    botPersonalities: [Int: String], civilizations: [Int: String]) {
+            precondition(!humanSeats.isEmpty, "a logged game must contain at least one human seat")
+            self.humanSeats = humanSeats
+            self.humanNames = humanNames
             self.botPersonalities = botPersonalities
             self.civilizations = civilizations
+        }
+
+        public static func legacy(humanSeat: PlayerID) -> SeatRoster {
+            SeatRoster(humanSeats: [humanSeat], humanNames: [:],
+                       botPersonalities: [:], civilizations: [:])
+        }
+
+        private enum CodingKeys: String, CodingKey {
+            case humanSeat, humanSeats, humanNames, botPersonalities, civilizations
+        }
+
+        public init(from decoder: Decoder) throws {
+            let values = try decoder.container(keyedBy: CodingKeys.self)
+            if let seats = try values.decodeIfPresent(Set<PlayerID>.self, forKey: .humanSeats) {
+                humanSeats = seats
+            } else {
+                humanSeats = [try values.decode(PlayerID.self, forKey: .humanSeat)]
+            }
+            humanNames = try values.decodeIfPresent([Int: String].self, forKey: .humanNames) ?? [:]
+            botPersonalities = try values.decode([Int: String].self, forKey: .botPersonalities)
+            civilizations = try values.decode([Int: String].self, forKey: .civilizations)
+        }
+
+        public func encode(to encoder: Encoder) throws {
+            var values = encoder.container(keyedBy: CodingKeys.self)
+            let first = humanSeats.min { $0.index < $1.index }
+            try values.encode(first, forKey: .humanSeat)
+            try values.encode(humanSeats, forKey: .humanSeats)
+            try values.encode(humanNames, forKey: .humanNames)
+            try values.encode(botPersonalities, forKey: .botPersonalities)
+            try values.encode(civilizations, forKey: .civilizations)
         }
     }
 
@@ -65,124 +143,223 @@ public struct GameLogStore: Sendable {
         enum Kind: String, Codable { case start, move, end }
         let kind: Kind
         let timestamp: Date
-        /// Wire-format version of the LOG, independent of `GameState`'s own
-        /// `schemaVersion`. A reader has to be able to tell which shape it is
-        /// looking at without decoding the payload first.
         var logSchemaVersion: Int?
-        // `start` only:
         var initialState: GameState?
         var roster: SeatRoster?
-        /// The app build that produced the log, so games recorded either side
-        /// of an engine change are distinguishable rather than silently mixed.
         var appVersion: String?
-        // `move` only:
         var player: PlayerID?
         var move: GameMove?
-        // `end` only:
         var winner: PlayerID?
     }
 
-    /// Current log wire-format version. Bump when `Entry`'s shape changes in a
-    /// way a reader must branch on.
-    public static let currentLogSchemaVersion = 1
-
-    /// Starts a new log file for a fresh game and writes its `start` line.
-    /// Returns the ID subsequent `appendMove`/`finalizeGame` calls this
-    /// session should use. Best-effort: a failure to create the file still
-    /// returns an ID (subsequent appends then also silently no-op) rather
-    /// than making game creation itself fail over a logging problem.
-    public func startNewGame(initialState: GameState, roster: SeatRoster) -> UUID {
+    public func startNewGame(initialState: GameState, roster: SeatRoster) throws -> UUID {
         let id = UUID()
-        try? FileManager.default.createDirectory(at: directoryURL, withIntermediateDirectories: true)
-        // Prune on start as well as on finish. Pruning only in `finalizeGame`
-        // meant an abandoned game never triggered it, so junk accumulated
-        // until something actually finished.
-        prune()
-        let version = Bundle.main.infoDictionary?["CFBundleVersion"] as? String
+        try createLogDirectory()
         let entry = Entry(
-            kind: .start,
-            timestamp: Date(),
+            kind: .start, timestamp: Date(),
             logSchemaVersion: Self.currentLogSchemaVersion,
-            initialState: initialState,
-            roster: roster,
-            appVersion: version,
-            player: nil, move: nil, winner: nil
-        )
-        write(entry, gameID: id)
+            initialState: initialState, roster: roster,
+            appVersion: Bundle.main.infoDictionary?["CFBundleVersion"] as? String,
+            player: nil, move: nil, winner: nil)
+        try write(entry, gameID: id)
+        try setActiveGameID(id)
+        try prune()
         return id
     }
 
-    /// Every log file on disk, newest first. The only read path into the
-    /// archive - the store was previously write-only, which meant the logs it
-    /// carefully accumulated could not be opened by anything.
-    public func logFiles() -> [URL] {
-        guard let files = try? FileManager.default.contentsOfDirectory(
-            at: directoryURL, includingPropertiesForKeys: [.contentModificationDateKey]
-        ) else { return [] }
-        return files
-            .filter { $0.pathExtension == "jsonl" }
-            .sorted { modified($0) > modified($1) }
+    public func appendMove(gameID: UUID, player: PlayerID, move: GameMove) throws {
+        try write(Entry(kind: .move, timestamp: Date(), logSchemaVersion: nil,
+                    initialState: nil, roster: nil, appVersion: nil,
+                    player: player, move: move, winner: nil), gameID: gameID)
     }
 
-    /// The directory holding the logs, created if absent. Used by the export
-    /// sheet in Settings.
-    public func logDirectory() -> URL {
-        try? FileManager.default.createDirectory(at: directoryURL, withIntermediateDirectories: true)
+    public func finalizeGame(gameID: UUID, winner: PlayerID) throws {
+        try write(Entry(kind: .end, timestamp: Date(), logSchemaVersion: nil,
+                    initialState: nil, roster: nil, appVersion: nil,
+                    player: nil, move: nil, winner: winner), gameID: gameID)
+        if try activeGameID() == gameID { try setActiveGameID(nil) }
+        try prune()
+    }
+
+    public func logFiles() throws -> [URL] {
+        guard FileManager.default.fileExists(atPath: directoryURL.path) else { return [] }
+        do {
+            let files = try FileManager.default.contentsOfDirectory(
+                at: directoryURL, includingPropertiesForKeys: [.contentModificationDateKey])
+            return try files.filter { $0.pathExtension == "jsonl" }
+                .map { ($0, try modified($0)) }
+                .sorted { $0.1 > $1.1 }
+                .map(\.0)
+        } catch {
+            throw ioError("Could not enumerate game logs", error)
+        }
+    }
+
+    public func logDirectory() throws -> URL {
+        try createLogDirectory()
         return directoryURL
     }
 
-    /// Appends one applied move to `gameID`'s log file. Best-effort -
-    /// swallows write errors, since a missing log entry should never block
-    /// real gameplay.
-    public func appendMove(gameID: UUID, player: PlayerID, move: GameMove) {
-        let entry = Entry(kind: .move, timestamp: Date(), logSchemaVersion: nil,
-                          initialState: nil, roster: nil, appVersion: nil,
-                          player: player, move: move, winner: nil)
-        write(entry, gameID: gameID)
+    public func summaries() throws -> [GameLogSummary] {
+        try scan().summaries
     }
 
-    /// Appends the game-over line for `gameID`, then prunes log files
-    /// beyond the most recent `maxKeptLogs` (by file modification date).
-    public func finalizeGame(gameID: UUID, winner: PlayerID) {
-        let entry = Entry(kind: .end, timestamp: Date(), logSchemaVersion: nil,
-                          initialState: nil, roster: nil, appVersion: nil,
-                          player: nil, move: nil, winner: winner)
-        write(entry, gameID: gameID)
-        prune()
+    public func scan() throws -> GameLogScan {
+        var summaries: [GameLogSummary] = []
+        var failures: [GameLogScan.Failure] = []
+        for file in try logFiles() {
+            do {
+                summaries.append(try detail(for: file).summary)
+            } catch {
+                failures.append(.init(fileURL: file, message: error.localizedDescription))
+            }
+        }
+        return GameLogScan(summaries: summaries, failures: failures)
+    }
+
+    public func activeGameID() throws -> UUID? {
+        let url = activeGameIDURL
+        guard FileManager.default.fileExists(atPath: url.path) else { return nil }
+        do {
+            let value = try String(contentsOf: url, encoding: .utf8)
+                .trimmingCharacters(in: .whitespacesAndNewlines)
+            guard let id = UUID(uuidString: value) else {
+                throw ReadError.invalidFileName(url.lastPathComponent)
+            }
+            return id
+        } catch {
+            if error is ReadError { throw error }
+            throw ioError("Could not read active game-log identifier", error)
+        }
+    }
+
+    public func abandonActiveGame() throws { try setActiveGameID(nil) }
+
+    public func detail(for summary: GameLogSummary) throws -> GameLogDetail {
+        try detail(for: summary.fileURL)
+    }
+
+    public func detail(for fileURL: URL) throws -> GameLogDetail {
+        let parsed = try entries(in: fileURL)
+        guard let start = parsed.entries.first(where: { $0.kind == .start }),
+              let initialState = start.initialState,
+              let roster = start.roster
+        else { throw ReadError.missingStart(fileURL.lastPathComponent) }
+        guard let gameID = UUID(uuidString: fileURL.deletingPathExtension().lastPathComponent)
+        else { throw ReadError.invalidFileName(fileURL.lastPathComponent) }
+
+        let moves = parsed.entries.compactMap { entry -> GameLogEvent? in
+            guard entry.kind == .move, let player = entry.player, let move = entry.move else { return nil }
+            return GameLogEvent(timestamp: entry.timestamp, player: player, move: move)
+        }
+        let end = parsed.entries.last(where: { $0.kind == .end })
+        let lastTimestamp = end?.timestamp ?? moves.last?.timestamp ?? start.timestamp
+        let summary = GameLogSummary(
+            gameID: gameID, fileURL: fileURL, startedAt: start.timestamp,
+            duration: max(0, lastTimestamp.timeIntervalSince(start.timestamp)),
+            playerCount: initialState.players.count,
+            victoryPointTarget: initialState.victoryPointTarget,
+            humanSeats: roster.humanSeats, winner: end?.winner,
+            moveCount: moves.count, civilizations: roster.civilizations,
+            isComplete: end != nil && !parsed.ignoredTruncatedLine)
+        return GameLogDetail(summary: summary, roster: roster, events: moves)
+    }
+
+    private func entries(in fileURL: URL) throws -> (entries: [Entry], ignoredTruncatedLine: Bool) {
+        let data: Data
+        do {
+            data = try Data(contentsOf: fileURL)
+        } catch {
+            throw ReadError.unreadableFile(fileURL.lastPathComponent)
+        }
+        let parts = data.split(separator: 0x0A, omittingEmptySubsequences: false)
+        var entries: [Entry] = []
+        var ignoredTruncatedLine = false
+        for (offset, part) in parts.enumerated() where !part.isEmpty {
+            do {
+                entries.append(try JSONDecoder().decode(Entry.self, from: Data(part)))
+            } catch {
+                if offset == parts.count - 1 && data.last != 0x0A {
+                    ignoredTruncatedLine = true
+                    break
+                }
+                throw ReadError.malformedLine(file: fileURL.lastPathComponent, line: offset + 1)
+            }
+        }
+        return (entries, ignoredTruncatedLine)
     }
 
     private func fileURL(for gameID: UUID) -> URL {
         directoryURL.appendingPathComponent("\(gameID.uuidString).jsonl")
     }
 
-    private func write(_ entry: Entry, gameID: UUID) {
-        guard let data = try? JSONEncoder().encode(entry) else { return }
+    private var activeGameIDURL: URL { directoryURL.appendingPathComponent("active-game-id") }
+
+    private func write(_ entry: Entry, gameID: UUID) throws {
+        let data: Data
+        do {
+            data = try JSONEncoder().encode(entry)
+        } catch {
+            throw ioError("Could not encode game log \(gameID)", error)
+        }
         let url = fileURL(for: gameID)
         let line = data + Data("\n".utf8)
-        if let handle = try? FileHandle(forWritingTo: url) {
-            defer { try? handle.close() }
-            handle.seekToEndOfFile()
-            handle.write(line)
-        } else {
-            try? line.write(to: url)
+        do {
+            if FileManager.default.fileExists(atPath: url.path) {
+                let handle = try FileHandle(forWritingTo: url)
+                try handle.seekToEnd()
+                try handle.write(contentsOf: line)
+                try handle.close()
+            } else {
+                try line.write(to: url, options: .atomic)
+            }
+        } catch {
+            throw ioError("Could not write game log \(url.lastPathComponent)", error)
         }
     }
 
-    /// Deletes the oldest log files beyond `maxKeptLogs`, ranked by file
-    /// modification date (a game still being appended to is always its
-    /// file's most recent write, so a finished game never prunes itself).
-    private func prune() {
-        guard let files = try? FileManager.default.contentsOfDirectory(
-            at: directoryURL, includingPropertiesForKeys: [.contentModificationDateKey]
-        ) else { return }
-
-        let sorted = files.sorted { modified($0) > modified($1) }
-        for stale in sorted.dropFirst(maxKeptLogs) {
-            try? FileManager.default.removeItem(at: stale)
+    private func prune() throws {
+        let files = try logFiles()
+        for stale in files.dropFirst(maxKeptLogs) {
+            do {
+                try FileManager.default.removeItem(at: stale)
+            } catch {
+                throw ioError("Could not prune game log \(stale.lastPathComponent)", error)
+            }
         }
     }
 
-    private func modified(_ url: URL) -> Date {
-        (try? url.resourceValues(forKeys: [.contentModificationDateKey]))?.contentModificationDate ?? .distantPast
+    private func modified(_ url: URL) throws -> Date {
+        do {
+            return try url.resourceValues(forKeys: [.contentModificationDateKey])
+                .contentModificationDate ?? .distantPast
+        } catch {
+            throw ioError("Could not read metadata for \(url.lastPathComponent)", error)
+        }
+    }
+
+    private func createLogDirectory() throws {
+        do {
+            try FileManager.default.createDirectory(at: directoryURL, withIntermediateDirectories: true)
+        } catch {
+            throw ioError("Could not create game-log directory", error)
+        }
+    }
+
+    private func setActiveGameID(_ gameID: UUID?) throws {
+        do {
+            if let gameID {
+                try createLogDirectory()
+                try Data(gameID.uuidString.utf8).write(to: activeGameIDURL, options: .atomic)
+            } else if FileManager.default.fileExists(atPath: activeGameIDURL.path) {
+                try FileManager.default.removeItem(at: activeGameIDURL)
+            }
+        } catch {
+            throw ioError("Could not update active game-log identifier", error)
+        }
+    }
+
+    private func ioError(_ context: String, _ error: Error) -> IOError {
+        .operation(context, underlying: error)
     }
 }

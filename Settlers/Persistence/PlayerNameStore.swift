@@ -23,7 +23,16 @@ public struct PlayerNameStore: Sendable {
 
     /// Trims whitespace before saving - an all-whitespace "name" should read
     /// as "no custom name set" (falls back to "You"), not as a blank label.
+    /// Longest name this stores.
+    ///
+    /// Matches the cap the New Game screen enforces at input. Without it here,
+    /// an absurd name typed into App Settings prefilled a seat unchecked and,
+    /// because the HUD panel uses `.fixedSize()`, pushed the whole game screen
+    /// sideways - a preference reaching a layout that never agreed to it.
+    public static let maximumLength = 12
+
     public func save(_ name: String) {
-        UserDefaults.standard.set(name.trimmingCharacters(in: .whitespacesAndNewlines), forKey: key)
+        let trimmed = name.trimmingCharacters(in: .whitespacesAndNewlines)
+        UserDefaults.standard.set(String(trimmed.prefix(Self.maximumLength)), forKey: key)
     }
 }

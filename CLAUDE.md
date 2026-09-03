@@ -22,7 +22,7 @@ Every one of these is canonical for its question. Read the file, do not reason f
 | Why the pre-push hook drains stdin, and why an installer instead of `core.hooksPath` | `scripts/install-hooks.sh` |
 | Why CI runs on Ubuntu and what it deliberately does not do | `.github/workflows/ci.yml` |
 | Why each lint threshold sits where it does | `.swiftlint.yml` |
-| Running / screenshotting the app, all twelve `-qa*` launch flags, what the device path blocks on | `.claude/skills/run-settlers/SKILL.md` - **the** reference; do not re-derive it |
+| Running / screenshotting the app, all nineteen `-qa*` launch flags, UI-test reset arguments, what the device path blocks on | `.claude/skills/run-settlers/SKILL.md` - **the** reference; do not re-derive it |
 | Legal moves and move application (the whole ruleset) | `Packages/CatanEngine/Sources/CatanEngine/RulesEngine.swift` |
 | Save-file schema and its backward compatibility | `GameState.init(from:)`, `Models/GameState.swift:110` |
 | Randomness contract | `Models/RandomSource.swift` (doc comment is the spec) |
@@ -57,9 +57,14 @@ xcodebuild -project Settlers.xcodeproj -scheme Settlers \
 
 **Forbidden, and why - each of these has produced a false green here:**
 
-- **`xcodebuild test -scheme Settlers` runs NOTHING.** `project.yml` sets `test: targets: []`,
-  so it exits with `error: Scheme Settlers is not currently configured for the test action.`
-  There is no UI test target and no app-target test bundle. All tests are SPM tests.
+- **`swift test` reaches the two SPM packages ONLY.** It cannot see `GameViewModel`, the
+  persistence stores, or anything else in the app target. App-target tests are a real
+  bundle now - `SettlersTests` (`project.yml:80`), wired into the scheme's test action with
+  coverage (`project.yml:92-104`) and run by `scripts/gate.sh:164` on every gate:
+  `xcodebuild test -project Settlers.xcodeproj -scheme Settlers -destination '...'`.
+  This previously read "`xcodebuild test -scheme Settlers` runs NOTHING", which was true
+  when `test: targets: []` and is now false. Left uncorrected it tells the next reader that
+  app-layer behaviour cannot be tested, which is exactly backwards.
 - **`swift test` from the repo root fails** - there is no root `Package.swift`. Use
   `--package-path` (above) or `cd` into the package.
 - **Never pipe `xcodebuild` (or any test runner) through `tail`/`head`/`grep`.** A shell
@@ -69,9 +74,10 @@ xcodebuild -project Settlers.xcodeproj -scheme Settlers \
 - **Never hand-edit `Settlers.xcodeproj/project.pbxproj`.** XcodeGen regenerates it from
   `project.yml` and the edit is silently discarded. Build settings, `DEVELOPMENT_TEAM`,
   `MARKETING_VERSION`/`CURRENT_PROJECT_VERSION` all belong in `project.yml`.
-- **Never drive the simulator with synthetic clicks.** No touch injection exists, SwiftUI is
-  one opaque canvas to the accessibility APIs, and a stray click lands on Alex's real
-  desktop. The `-qa*` launch flags exist for this; see the run-settlers skill.
+- **Never drive the simulator with desktop-coordinate click tools.** `cliclick`/AppleScript
+  can hit whichever Mac window is frontmost. Native XCUITest is the supported interaction
+  path; stable identifiers live in `AccessibilityID.swift`, and `-qa*` flags provide
+  deterministic visual fixtures. See the run/play skills.
 
 ## The gate
 
@@ -80,7 +86,7 @@ Branch protection is **unavailable** on this repository and Alex is not an admin
 
 ```bash
 ./scripts/install-hooks.sh          # ONCE PER CLONE. Writes .git/hooks/pre-push.
-scripts/gate.sh                     # 8 gates. Measured 94s warm; the CatanAI suite dominates.
+scripts/gate.sh                     # 10 gates. CatanAI and native UI tests dominate.
 scripts/gate.sh --debug-app         # + also compile the app in Debug (Release always runs).
 ```
 
@@ -108,8 +114,11 @@ mistake is cheap to repeat.
   Worse in the file-list direction: a new `.swift` file on disk that has not been generated
   in fails with `cannot find 'X' in scope`, naming the *symbol*, not the file, which sends
   people hunting an import bug that does not exist.
-- **`test: targets: []` means the app scheme's test action is empty.** Reading "tests passed"
-  out of an `xcodebuild test` invocation here is reading a message about nothing.
+- **An empty `test: targets:` makes "tests passed" a message about nothing.** That was
+  literally true here - the app scheme once had `targets: []`, so `xcodebuild test` reported
+  success having run zero tests. It is fixed (`project.yml:92-104`), and the lesson is kept
+  because the failure is silent: a test action with no targets does not error, it passes.
+  If the app suite's count ever drops toward zero, check the scheme before the tests.
 - **"Seat 0 is the human" was copied into several places and is not fully dead.** Jake's
   `8710045` ("Randomize Seat") fixed the copies in `CatanTheme.playerLabel`,
   `GameViewModel.drawAssignment`, `GameViewModel.personality(for:)`, `ContentView`'s bot-loop
@@ -133,8 +142,9 @@ mistake is cheap to repeat.
   `GeneratedAssetSymbols.swift` turned the whole gate red on files nobody wrote.
   `.swiftlint.yml` excludes `.build` and `.ci-derived` but **not** `DerivedData`. Build with
   `-derivedDataPath` pointing **outside** the working tree.
-- **A green build is a compile claim; "it works" is a runtime claim.** There is no UI test.
-  The only evidence a visual change landed is a screenshot you actually opened with `Read`.
+- **A green build is a compile claim; "it works" is a runtime claim.** Native XCUITests cover
+  critical setup/settings/resume paths, but visual changes still need an inspected screenshot
+  and gameplay claims still need the play-settlers workflow.
 
 ## Determinism invariants (easy to break silently, expensive to notice)
 

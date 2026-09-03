@@ -48,6 +48,8 @@ public struct TradePopupView: View {
         var systemImage: String { self == .players ? "person.2.fill" : "building.columns.fill" }
     }
 
+    /// Starts on Bank when there is no bot to trade with - an all-human table
+    /// has nobody to answer a proposal (see `GameViewModel.hasBotSeats`).
     @State private var mode: Mode = .players
     @State private var give: [Resource: Int] = [:]
     @State private var want: [Resource: Int] = [:]
@@ -99,6 +101,10 @@ public struct TradePopupView: View {
             }
             .padding(16)
             .frame(maxWidth: 360)
+            .onAppear {
+                // An all-human table has no Players tab to select.
+                if !viewModel.hasBotSeats { mode = .bank }
+            }
         }
     }
 
@@ -131,9 +137,16 @@ public struct TradePopupView: View {
     /// Selection changes colour and background only, never metrics, which is
     /// what makes the highlight move horizontally and nothing else move at
     /// all.
+    /// The Players tab is absent entirely when no bot can answer a proposal,
+    /// rather than present-but-disabled: a tab that cannot ever be selected in
+    /// this game is not a state worth explaining.
+    private var availableModes: [Mode] {
+        viewModel.hasBotSeats ? Mode.allCases : [.bank]
+    }
+
     private var modePicker: some View {
         HStack(spacing: 0) {
-            ForEach(Mode.allCases, id: \.self) { candidate in
+            ForEach(availableModes, id: \.self) { candidate in
                 let isSelected = candidate == mode
                 Button {
                     // Clearing the error is the point: "the bank has no ore

@@ -45,8 +45,25 @@ public enum Civilization: String, CaseIterable, Sendable, Codable {
     /// This civilization as `TradeMessages` sees it - `CatanAI` is
     /// UI-agnostic and can't import `Civilization` itself, so its own
     /// `Empire` enum mirrors these same raw values 1:1 instead.
+    /// The `TradeMessages` pool this civilization speaks from.
+    ///
+    /// An exhaustive `switch`, not `Empire(rawValue: rawValue)!`. The two enums
+    /// live in different modules and can be edited independently, so the
+    /// force-unwrap turned "somebody renamed a case in `CatanAI`" into a crash
+    /// at the moment a bot tries to speak - which is mid-game, on a device,
+    /// with no compiler warning beforehand. Written this way the compiler
+    /// refuses to build until the new case is mapped.
     public var tradeMessagesEmpire: TradeMessages.Empire {
-        TradeMessages.Empire(rawValue: rawValue)!
+        switch self {
+        case .medieval: return .medieval
+        case .greece: return .greece
+        case .egypt: return .egypt
+        case .aztec: return .aztec
+        case .columbia: return .columbia
+        case .rome: return .rome
+        case .japan: return .japan
+        case .norse: return .norse
+        }
     }
 
     public var displayName: String {
@@ -227,6 +244,21 @@ public enum CivilizationAssignment {
     /// index 0 once that toggle picks a different one. Kept in step with
     /// `GameViewModel.humanPlayer`; only `GameViewModel` ever writes here.
     public nonisolated(unsafe) static var humanSeat: PlayerID = PlayerID(index: 0)
+
+    /// Names for the seats people are playing, by seat.
+    ///
+    /// One entry per human seat; a seat absent from this map is a bot and is
+    /// named after its civilization's general. Lives here rather than in
+    /// `PlayerNameStore` because that store holds a *preference* - the name to
+    /// prefill the next new-game screen with - while this is the match's own
+    /// record of who sat where. With one human and no custom name the map is
+    /// empty and every label is what it always was.
+    ///
+    /// Same `nonisolated(unsafe)` bargain as `current` directly below, and for
+    /// the same reason: it is written once per game from the main thread, and
+    /// isolating it would force `@MainActor` down through every nonisolated
+    /// helper that resolves a seat to a label.
+    public nonisolated(unsafe) static var humanNames: [PlayerID: String] = [:]
 
     /// Defaults to the original fixed lineup (human at seat 0) so anything
     /// that reads this before `GameViewModel` has run (previews, tests)

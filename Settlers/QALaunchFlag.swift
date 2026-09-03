@@ -1,16 +1,14 @@
 import Foundation
 
 /// The launch arguments that put the app straight into a particular screen or
-/// state, so it can be screenshotted without simulating taps.
+/// state, so visual QA can reach expensive or nondeterministic situations
+/// without playing hundreds of moves first.
 ///
 /// ## Why launch arguments at all
-/// There is no way to drive a SwiftUI app on the simulator from outside it.
-/// `simctl` has no touch injection; SwiftUI renders as one opaque canvas to
-/// the accessibility APIs, so there is no element tree to click into by name;
-/// and driving the Simulator window with synthetic mouse events is both
-/// unreliable (window coordinates do not map onto device points) and dangerous
-/// (a click can land on whatever Mac window happens to be frontmost). So the
-/// app puts itself into the state instead, and the tooling only photographs.
+/// `simctl` has no touch injection, while synthetic mouse coordinates are
+/// unreliable. Native XCUITests drive ordinary accessible controls and prove
+/// the core player journeys. These flags complement them by constructing rare
+/// states such as a finished game or a specific trade card deterministically.
 ///
 /// ## Why these are collected here rather than read inline
 /// They used to be twelve separate `ProcessInfo.processInfo.arguments.contains`
@@ -30,7 +28,37 @@ enum QALaunchFlag: String, CaseIterable {
     case showEndGame = "-qaShowEndGame"
     /// Opens the settings sheet over the main menu.
     case showSettings = "-qaShowSettings"
-    /// Opens the pause menu.
+    /// Opens `NewGameSetupView` over the main menu, on a fixture with two human
+    /// seats and two AI seats - a startable configuration, so the screen shows
+    /// its green ready plaque and an enabled Start.
+    case showNewGame = "-qaShowNewGame"
+    /// Starts a two-human hot-seat game so the handoff cover can be
+    /// photographed. Combine with `-qaAutoStart`.
+    case twoHumans = "-qaTwoHumans"
+    /// Same screen, on a fixture whose second human seat has a whitespace-only
+    /// name - so the amber problem plaque and the disabled Start can be
+    /// photographed too. Without this the invalid state is unreachable, because
+    /// nothing can type into the field.
+    case showNewGameInvalid = "-qaShowNewGameInvalid"
+    /// Same screen and fixture as `showNewGame`, with the "this replaces your
+    /// saved game" confirmation already raised.
+    case showNewGameOverwrite = "-qaShowNewGameOverwrite"
+    /// Same screen and fixture as `showNewGame`, with seat 2's civilization
+    /// picker open - the only way to photograph a taken civilization showing as
+    /// unavailable (A3.3) and the whole eight-empire grid fitting without
+    /// scrolling (A3.4).
+    case showNewGameCivilizationPicker = "-qaShowNewGameCivilizationPicker"
+    /// Combines with any of the above: shrinks the fixture to a three-player
+    /// table through `MatchSetup.resize`, so the missing fourth seat and the
+    /// note explaining it can be photographed.
+    case newGameThreeSeats = "-qaNewGameThreeSeats"
+    /// Combines with the New Game flags and opens a tall-device layout at its
+    /// bottom for focused screenshots. Short devices use the compact layout,
+    /// where the complete configuration and Start action fit at once.
+    case scrollNewGameToBottom = "-qaScrollNewGameToBottom"
+    /// Opens `InGameSettingsView`, which absorbed the old pause menu. The flag
+    /// keeps its original spelling so the run-settlers skill's documented list
+    /// of hooks stays accurate.
     case showPauseMenu = "-qaShowPauseMenu"
     /// Opens the trade popup.
     case showTradePopup = "-qaShowTradePopup"

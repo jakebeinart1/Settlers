@@ -61,8 +61,9 @@ private struct StableHeightSlot<Content: View>: View {
     }
 }
 
-/// The real, composed game screen, top to bottom: `BotHUDRow` (the 3 bot
-/// chips only), `BoardView` filling the middle - with the dice chip (once
+/// The real, composed game screen, top to bottom: `BotHUDRow` (a chip for
+/// every seat except the one holding the phone - bots, and other people in a
+/// hot-seat game), `BoardView` filling the middle - with the dice chip (once
 /// there's been a roll) overlaid on its top-left corner - `HumanPlayerPanel`
 /// (the human's own spacious info
 /// panel, now with a dev-card strip alongside the resources), then a single
@@ -76,7 +77,8 @@ private struct StableHeightSlot<Content: View>: View {
 /// knight-card robber move both happen inline on this same `BoardView` (see
 /// `isRobberTargetingActive`) rather than as a separate modal. Incoming bot
 /// trade offers surface as a small `IncomingTradeCardView` right above
-/// `HumanPlayerPanel`, with a 6-second accept window.
+/// `HumanPlayerPanel`, with a countdown set by `PacingPreferences` and
+/// defaulting to 15 seconds - or none at all, if the player chose No Limit.
 ///
 /// A roll used to also spawn small resource badges flying from each
 /// producing tile to the gaining player's HUD spot - dropped in favor of
@@ -96,8 +98,11 @@ public struct GameView: View {
     }
 
     // `-qaShowPauseMenu`: same escape hatch as `-qaAutoStart` (see
-    // `ContentView`) - lets QA screenshot the pause menu without a real tap.
-    @State var isShowingPauseMenu = QALaunchFlag.showPauseMenu.isSet
+    // `ContentView`) - lets QA screenshot the in-game settings screen without
+    // a real tap. The flag keeps its original name because the run-settlers
+    // skill documents it under that name; what it opens is now
+    // `InGameSettingsView`, which absorbed the old pause menu.
+    @State var isShowingInGameSettings = QALaunchFlag.showPauseMenu.isSet
     @State private var placementMode: PlacementMode?
     // `-qaShowTradePopup`: same escape hatch pattern - lets QA screenshot
     // the trade popup without a real tap.
@@ -112,8 +117,11 @@ public struct GameView: View {
     @State private var devCardPopupType: DevCardType? = QALaunchFlag.showMonopolyPopup.isSet ? .monopoly : nil
     @State private var errorMessage: String?
 
-    // The same keys `MainMenuView` writes, so Restart plays the game the
-    // player actually asked for rather than a fixed default.
+    // Legacy keys, kept only as the last-resort Restart fallback for a save
+    // started before New Game Setup existed. `MainMenuView` used to write them
+    // from two toggles; those toggles are gone and the match contract lives in
+    // `MatchSetupStore` now, so nothing writes these any more and Restart
+    // reaches them only when no stored setup exists at all.
     @AppStorage("randomizedBoardSetting") private var randomizedBoardSetting = true
     @AppStorage("randomizeSeatSetting") private var randomizeSeatSetting = true
 
@@ -300,32 +308,57 @@ public struct GameView: View {
                 DiscardPopupView(viewModel: viewModel)
             }
 
-            if isShowingPauseMenu {
-                // A themed `PopupCard` (the same card every other popup in
-                // this app uses), not the native `confirmationDialog` this
-                // replaced - a plain system action sheet was the one piece
-                // of chrome in the whole game that didn't match the painted
-                // gold-trim theme at all.
-                PauseMenuView(
-                    onResume: { isShowingPauseMenu = false },
+            if isShowingInGameSettings {
+                // Surface B of the settings spec - pacing and the trade timer
+                // above the Resume/Restart/Main Menu actions this used to be.
+                // A full painted screen rather than the native
+                // `confirmationDialog` it originally was: a plain system
+                // action sheet was the one piece of chrome in the whole game
+                // that didn't match the painted gold-trim theme at all.
+                InGameSettingsView(
+                    onResume: { isShowingInGameSettings = false },
                     onRestart: {
-                        isShowingPauseMenu = false
-                        // Reuse the player's own menu choices. These were
-                        // hardcoded to `false`, so Restart silently handed back
-                        // the fixed standard board with the human in seat 0 -
-                        // discarding both toggles, which default to on.
-                        viewModel.startNewGame(
-                            randomizedBoard: randomizedBoardSetting,
-                            randomizeSeat: randomizeSeatSetting
+                        isShowingInGameSettings = false
+                        // Replays the match the player configured on New Game
+                        // Setup - table size, victory target, who is a person
+                        // and what they are called. Calling the two-flag entry
+                        // point directly rebuilt a four-seat, ten-point,
+                        // one-human game instead, discarding all of it without
+                        // saying so. The flags are only reached when no setup
+                        // has ever been stored.
+                        viewModel.restartCurrentMatch(
+                            fallbackRandomizedBoard: randomizedBoardSetting,
+                            fallbackRandomizeSeat: randomizeSeatSetting
                         )
                     },
                     onMainMenu: {
-                        isShowingPauseMenu = false
+                        isShowingInGameSettings = false
                         onExitToMenu()
                     }
                 )
             }
+
+            // Last in the stack, so it covers every popup as well as the
+            // board. A hot-seat handoff has to hide a trade popup or an open
+            // discard sheet just as much as it hides the hand behind them.
+            // `?? humanPlayer` because `needsHandoff` is now also true when
+            // nobody holds the phone and no human is owed a turn - a resumed
+            // game during a bot's move. The cover names whoever will play next.
+            if viewModel.needsHandoff {
+                let owed = viewModel.seatOwedATurn ?? viewModel.humanPlayer
+                HandoffCoverView(
+                    seat: owed,
+                    handSize: viewModel.state.players
+                        .first { $0.id == owed }?.resources.values.reduce(0, +) ?? 0
+                ) {
+                    clearSeatInteractionState()
+                    viewModel.claimDeviceForSeatOwedATurn()
+                }
+                .zIndex(100)
+            }
         }
+        .accessibilityElement(children: .contain)
+        .accessibilityIdentifier(AccessibilityID.Screen.game)
         // Serif everywhere on the board screen - HUD, popups, buttons,
         // pause menu - to match the reference's painted-book serif type
         // instead of the system San Francisco default. Every popup above
@@ -336,6 +369,20 @@ public struct GameView: View {
         // `design: .serif` on each `Font.system(...)` call instead - see
         // `TileView.swift`.
         .fontDesign(.serif)
+        // Mirrors this view's own presentation state into the view model, which
+        // is what the bot loop stops on (spec B3.4 - the game must not advance
+        // behind a surface the player is reading). `initial: true` covers the
+        // `-qaShowPauseMenu` launch, which starts with the screen already up
+        // and would otherwise never fire a change. The dismissal kick is
+        // guarded on an actual open -> closed transition so a normal launch
+        // doesn't fire a second, redundant `runBotTurnIfNeeded` alongside the
+        // `.task` below.
+        .onChange(of: isShowingInGameSettings, initial: true) { wasOpen, isOpen in
+            viewModel.isSettingsSurfaceOpen = isOpen
+            if wasOpen && !isOpen {
+                Task { await viewModel.runBotTurnIfNeeded() }
+            }
+        }
         .onAppear {
             seenTradeOfferIDs = Set(state.pendingTradeOffers.map(\.id))
             // `-qaShowPendingTradeConfirmation`: same escape hatch pattern
@@ -623,6 +670,8 @@ public struct GameView: View {
                 // `GameViewModel.waitForFairAcceptWindow` is built around.
                 IncomingTradeCardView(
                     offer: currentOffer,
+                    // Same signal the bot loop already holds on.
+                    isHeld: isShowingInGameSettings,
                     onAccept: { respond(to: currentOffer, accept: true) },
                     onReject: { respond(to: currentOffer, accept: false) }
                 )
@@ -1104,6 +1153,37 @@ public struct GameView: View {
         incomingOfferQueue.removeAll { $0.id == offer.id }
     }
 
+    /// Drops everything the previous player had half-done.
+    ///
+    /// Every piece of `@State` that belongs to the seat that armed it: an armed
+    /// placement mode, an armed knight or road-building sub-flow, the first
+    /// edge of a road-building pair, a robber target, an open popup, the set of
+    /// trade offers this seat has already been shown.
+    /// `ContentView`'s `.id(viewModel.gameGeneration)` resets them on restart
+    /// only, so without this the incoming player inherits the outgoing player's
+    /// half-finished move - and can complete it, as their own, on their own
+    /// turn.
+    ///
+    /// `isKnightRobberActive` and `isRoadBuildingActive` are the two that are
+    /// easiest to miss and the worst to leave: they are *armed targeting modes*,
+    /// so an inherited one turns the next player's first tap on the board into
+    /// a robber move or a road placement they did not ask for. Clearing the
+    /// `roadBuildingFirstEdge` without clearing the flag that made it
+    /// meaningful is half a fix.
+    private func clearSeatInteractionState() {
+        placementMode = nil
+        roadBuildingFirstEdge = nil
+        isRoadBuildingActive = false
+        robberTargetTile = nil
+        isKnightRobberActive = false
+        showTradePopup = false
+        showBuildPopup = false
+        devCardPopupType = nil
+        incomingOfferQueue = []
+        seenTradeOfferIDs = Set(state.pendingTradeOffers.map(\.id))
+        errorMessage = nil
+    }
+
     // MARK: - Roll tile highlight
 
     /// Highlights the producing tiles whenever a roll happens, whoever rolled.
@@ -1132,7 +1212,7 @@ public struct GameView: View {
             rollHighlightTiles = Set(producingTiles.map(\.coordinate))
         }
         Task {
-            try? await Task.sleep(for: .seconds(PacingSettingsStore.current.rollHighlightSeconds))
+            try? await Task.sleep(for: .seconds(PacingPreferences.rollHighlightSeconds))
             withAnimation(.easeOut(duration: 0.3)) {
                 rollHighlightTiles = []
             }

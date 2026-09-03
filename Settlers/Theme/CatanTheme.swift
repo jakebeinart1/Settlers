@@ -78,7 +78,13 @@ public enum CatanTheme {
     /// `Civilization.forSeat`. Replaces the old generic "Player N" now that
     /// every bot seat has a fixed empire identity.
     public static func playerLabel(for player: PlayerID) -> String {
-        guard player == CivilizationAssignment.humanSeat else { return Civilization.forSeat(player.index).generalName }
+        // A named human wins: in a hot-seat game "Sam" is the only useful
+        // label, and calling one of several people "You" on a shared screen is
+        // worse than useless.
+        if let name = CivilizationAssignment.humanNames[player], !name.isEmpty { return name }
+        guard player == CivilizationAssignment.humanSeat else {
+            return Civilization.forSeat(player.index).generalName
+        }
         let name = PlayerNameStore.shared.load()
         return name.isEmpty ? "You" : name
     }

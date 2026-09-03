@@ -35,6 +35,20 @@
                ReferencedContainer = "container:Settlers.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
+         <BuildActionEntry
+            buildForTesting = "YES"
+            buildForRunning = "NO"
+            buildForProfiling = "NO"
+            buildForArchiving = "NO"
+            buildForAnalyzing = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "11AA176FC754CAF34398B2D4"
+               BuildableName = "SettlersUITests.xctest"
+               BlueprintName = "SettlersUITests"
+               ReferencedContainer = "container:Settlers.xcodeproj">
+            </BuildableReference>
+         </BuildActionEntry>
       </BuildActionEntries>
    </BuildAction>
    <TestAction
@@ -62,6 +76,17 @@
                BlueprintIdentifier = "B8C576D95C4867E2D83067BB"
                BuildableName = "SettlersTests.xctest"
                BlueprintName = "SettlersTests"
+               ReferencedContainer = "container:Settlers.xcodeproj">
+            </BuildableReference>
+         </TestableReference>
+         <TestableReference
+            skipped = "NO"
+            parallelizable = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "11AA176FC754CAF34398B2D4"
+               BuildableName = "SettlersUITests.xctest"
+               BlueprintName = "SettlersUITests"
                ReferencedContainer = "container:Settlers.xcodeproj">
             </BuildableReference>
          </TestableReference>

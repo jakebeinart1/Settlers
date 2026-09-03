@@ -13,19 +13,21 @@ import CatanEngine
 extension GameView {
 
     /// Stacked directly beneath `deckCountChip` in the board's top-trailing
-    /// corner (see that overlay). Opens the Resume/Restart/Main Menu
-    /// `confirmationDialog` - the actual pause is implicit: nothing in
-    /// `GameViewModel` runs on a timer, so simply showing the dialog blocks
-    /// further input until it's dismissed one way or another.
+    /// corner (see that overlay). Opens `InGameSettingsView` - pacing, the
+    /// trade timer, and the Resume/Restart/Main Menu actions this button used
+    /// to open on their own. The pause is no longer implicit: `GameView`
+    /// mirrors this into `GameViewModel.isSettingsSurfaceOpen`, which the bot
+    /// loop stops on, so the game cannot advance behind the screen.
     var pauseButton: some View {
         Button {
-            isShowingPauseMenu = true
+            isShowingInGameSettings = true
         } label: {
             Image("menu-icon")
                 .resizable()
                 .scaledToFit()
                 .frame(width: 40, height: 40)
         }
+        .accessibilityIdentifier(AccessibilityID.Game.settings)
     }
 
     /// Bigger and plainer than before (no more flying resource badges to

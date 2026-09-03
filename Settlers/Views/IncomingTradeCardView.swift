@@ -11,36 +11,54 @@ import CatanAI
 /// `GameViewModel.waitForFairAcceptWindow` holds other bots back from
 /// snapping up the same offer for a randomized 2-4s.
 ///
-/// ## It no longer answers for you
+/// ## It no longer answers for you in six seconds
 /// This used to run a hardcoded six-second countdown and auto-Reject on
 /// expiry, with a ring showing the time left. Six seconds is not a decision
 /// window - a bot proposes, you read who it is and what it wants, and it
 /// declines while you are still reading - and a trade you did not answer is
-/// not a trade you declined. The timeout is now
-/// `PacingSettings.incomingOfferTimeoutSeconds`, shipping as 0, meaning wait
-/// indefinitely. Tapping the card still pauses any countdown that has been
-/// deliberately turned back on.
+/// not a trade you declined. The window is now the player's own choice
+/// (`PacingPreferences.incomingOfferTimer`, In-Game Settings), defaulting to
+/// 15s and offering "No Limit". Tapping the card pauses whatever countdown is
+/// running.
 public struct IncomingTradeCardView: View {
     public let offer: TradeOffer
     public let onAccept: () -> Void
     public let onReject: () -> Void
+    /// Halts the countdown without the player having to tap the card.
+    ///
+    /// The only pause condition used to be a tap, so the timer kept draining
+    /// behind `InGameSettingsView` - a later sibling in the same `ZStack`,
+    /// which never removes this view from the hierarchy - and auto-declined a
+    /// real offer behind the very screen whose own copy says nothing moves
+    /// while you decide, and which a player most plausibly opened in order to
+    /// lengthen that timer.
+    public var isHeld: Bool = false
 
-    public init(offer: TradeOffer, onAccept: @escaping () -> Void, onReject: @escaping () -> Void) {
+    public init(offer: TradeOffer, isHeld: Bool = false,
+                onAccept: @escaping () -> Void, onReject: @escaping () -> Void) {
+        self.isHeld = isHeld
         self.offer = offer
         self.onAccept = onAccept
         self.onReject = onReject
     }
 
-    /// Seconds before the card answers for you. **Zero means never**, which is
-    /// the shipped default.
+    /// Seconds this card is counting down from. **Zero means never** - what
+    /// the player's "No Limit" choice resolves to.
     ///
-    /// This was a hardcoded 6. Six seconds is not a decision window - a bot
-    /// proposes, you read who it is and what it wants, and the card
-    /// auto-declines while you are still reading. It was reported as offers
-    /// vanishing before they could be answered. A trade you did not answer is
-    /// not a trade you declined, so the timer is off unless someone
-    /// deliberately turns it on in `pacing.yml`.
-    private var totalSeconds: Double { PacingSettingsStore.current.incomingOfferTimeoutSeconds }
+    /// Read from `PacingPreferences` once, in `startTicking`, and held for the
+    /// life of the card rather than recomputed on every render. It is the
+    /// denominator of the ring below, and the player can now change the
+    /// setting *while an offer is on screen* (In-Game Settings sits over the
+    /// board, and the bots are held for the whole time it is open): a computed
+    /// property let that change land mid-countdown, so the arc jumped, and
+    /// switching to "No Limit" hid the number while the already-running tick
+    /// task carried on to auto-decline the offer anyway. Capturing means a
+    /// change applies to the next offer, which is the only coherent answer.
+    ///
+    /// It was a hardcoded 6 once: offers vanished before they could be
+    /// answered, which is what got reported, and 15s is the default that
+    /// replaced it.
+    @State private var totalSeconds: Double = 0
     @State private var remaining: Double = 0
     @State private var isPaused = false
     /// A monotonically increasing tick source (0.1s) rather than a single
@@ -167,8 +185,18 @@ public struct IncomingTradeCardView: View {
             // two-way decision with no undo, so the two buttons should not be
             // adjacent thumb-sized targets.
             HStack(spacing: 16) {
-                answerButton(systemImage: "xmark", tint: .red, action: onReject)
-                answerButton(systemImage: "checkmark", tint: .green, action: onAccept)
+                answerButton(
+                    systemImage: "xmark",
+                    tint: .red,
+                    identifier: AccessibilityID.IncomingTrade.reject,
+                    action: onReject
+                )
+                answerButton(
+                    systemImage: "checkmark",
+                    tint: .green,
+                    identifier: AccessibilityID.IncomingTrade.accept,
+                    action: onAccept
+                )
             }
         }
         .padding(8)
@@ -214,7 +242,12 @@ public struct IncomingTradeCardView: View {
         .transition(.move(edge: .bottom).combined(with: .opacity))
     }
 
-    private func answerButton(systemImage: String, tint: Color, action: @escaping () -> Void) -> some View {
+    private func answerButton(
+        systemImage: String,
+        tint: Color,
+        identifier: String,
+        action: @escaping () -> Void
+    ) -> some View {
         Button(action: action) {
             Image(systemName: systemImage)
                 .font(.headline.bold())
@@ -224,6 +257,7 @@ public struct IncomingTradeCardView: View {
                 .overlay(Circle().strokeBorder(.white.opacity(0.35), lineWidth: 1))
         }
         .buttonStyle(.plain)
+        .accessibilityIdentifier(identifier)
     }
 
     /// Apple's minimum comfortable touch target.
@@ -231,6 +265,7 @@ public struct IncomingTradeCardView: View {
 
     private func startTicking() {
         tickTask?.cancel()
+        totalSeconds = PacingPreferences.shared.incomingOfferTimer.seconds
         // No countdown at all when the timeout is off - not a very long one.
         // A ticking task that never fires still spins at 10 Hz for as long as
         // the card is up, and the ring would drain toward an answer that is
@@ -244,7 +279,7 @@ public struct IncomingTradeCardView: View {
             while remaining > 0 {
                 try? await Task.sleep(for: .milliseconds(100))
                 if Task.isCancelled { return }
-                guard !isPaused else { continue }
+                guard !isPaused, !isHeld else { continue }
                 remaining = max(0, remaining - 0.1)
             }
             onReject()

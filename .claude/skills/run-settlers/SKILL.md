@@ -5,11 +5,9 @@ description: Build, install, launch and screenshot the Settlers ("Empires") iOS 
 
 # Run Settlers (Empires)
 
-**A green `xcodebuild` is a compile claim. "The change works" is a runtime claim, and the
-only evidence for it is a screenshot you actually looked at.** This app has no automated UI
-test — `project.yml` sets `test: targets: []`, so `xcodebuild test -scheme Settlers` runs
-literally nothing — so the screenshot is not a nicety, it is the entire verification layer
-above the two SPM packages.
+**A green `xcodebuild` is a compile claim. "The change works" is a runtime claim.** Native
+XCUITests exercise setup, settings, placement, and cold resume; an inspected screenshot
+remains the evidence for visual layout. Neither substitutes for the other.
 
 **Every path in this file is derived, not typed.** The previous version of this skill
 hardcoded `/Users/jakeb/Documents/Catan Game` and a `DerivedData/Settlers-*` glob under
@@ -24,6 +22,7 @@ read back out of `xcodebuild`, and the bundle id is read out of the built `Info.
 | **Simulator: build → install → launch → screenshot** | **RUN AND PROVEN 2026-08-29** on `iPhone 17 Pro` (`175016BD-5123-479A-AC91-4E852DF2FE06`, iOS 26.5), Debug. `BUILD SUCCEEDED`, installed, launched, four screenshots taken and read. The ladder below is that exact run. |
 | **`xcodegen generate` after a new file** | **MEASURED 2026-08-29, both directions.** With an untracked `Settlers/QALaunchFlag.swift` on disk the build failed `error: cannot find 'QALaunchFlag' in scope` ×6 (exit 65); after `xcodegen generate`, exit 0, same source. |
 | **QA launch arguments** | **RUN AND PROVEN 2026-08-29.** `-qaAutoStart -qaShowBuildPopup` and `-qaAutoStart -qaShowPauseMenu` both rendered their popup. `-qaShowEndGame` measured in both combinations (see the table). |
+| **Native UI tests** | **RUN AND PROVEN 2026-09-02.** All five setup, settings, placement, and cold-resume flows passed from isolated state. The first clean run exposed and removed a hidden dependency on a previously saved player name. |
 | **Real iPhone: build** | **NEVER SUCCEEDED.** Two separate blockers, both live as of 2026-08-29. See "The device path is blocked" below. |
 | **Real iPhone: install / launch** | **NEVER RUN** on this machine — the build has never produced a signed `.app` to install. The `devicectl` retry advice below is **inherited from Jake's sessions and has not been reproduced by Alex.** |
 | **Release configuration** | **RUN AND PROVEN.** Was red on `e95d1e5` (`#if DEBUG` methods called from unguarded sites) while every gate stayed green, because the gate built Debug only. Both are fixed: the call sites are guarded and `scripts/gate.sh` compiles Release on every run. |
@@ -120,9 +119,9 @@ xcrun simctl io "$SIM" screenshot "$DD/verify.png"
 echo "now READ $DD/verify.png"
 ```
 
-## The `-qa*` launch arguments — all twelve
+## The `-qa*` launch arguments — all nineteen
 
-Jake's version of this skill said there were three. There are twelve. Each is a plain
+Jake's version of this skill said there were three. There are nineteen. Each is a plain
 `ProcessInfo` argument check that is never set in normal use, so none can affect a real
 player. Find them all with:
 
@@ -144,14 +143,21 @@ grep -rnoE '"\-qa[A-Za-z]+"' --include="*.swift" "$REPO/Settlers" | sort -u
 | `-qaShowRobberVictimPicker` | `GameView.swift` | One step further: the "Steal from:" victim picker. |
 | `-qaShowIncomingOffer` | `GameView.swift` | `IncomingTradeCardView`, seeded with a fake always-fulfillable offer. |
 | `-qaFastForwardToRollDice` | `GameView.swift` | Plays the human's own setup placements, then rolls, so the `.rollDice` action row is reachable. **Applies real moves** (writes the save and the game log) and **needs 10-12s**, not 4. |
+| `-qaShowNewGame` | `MainMenuView.swift` / `NewGameSetupView.swift` | `NewGameSetupView` over the main menu, on a startable two-human/two-AI fixture (green ready plaque, Start enabled). **Must NOT be combined with `-qaAutoStart`.** |
+| `-qaShowNewGameInvalid` | `NewGameSetupView.swift` | Same screen, seat 2's name whitespace-only — the amber problem plaque and a disabled Start. |
+| `-qaShowNewGameOverwrite` | `NewGameSetupView.swift` | Same screen with the "Replace your saved game?" confirmation already raised. Pair with a real save (run `-qaAutoStart -qaFastForwardToRollDice` first) to also get the amber saved-game plaque behind it. |
+| `-qaShowNewGameCivilizationPicker` | `NewGameSetupView.swift` | Same screen with seat 2's civilization grid open — the only way to see a taken civilization greyed out. |
+| `-qaNewGameThreeSeats` | `NewGameSetupView.swift` | **Modifier**, combines with any of the four above: shrinks the fixture to a three-player table. |
+| `-qaTwoHumans` | `ContentView.swift` | Turns the loaded game into a two-human hot-seat game (seats 0 and 1, nobody at the device) so `HandoffCoverView` is photographable. **Needs `-qaAutoStart`.** |
+| `-qaScrollNewGameToBottom` | `NewGameSetupView.swift` | **Legacy modifier** retained for fixture compatibility. The compact screen now fits without requiring this scroll position. |
 
-**`-qaAutoStart` is load-bearing for nine of these.** `GameView` only renders once
+**`-qaAutoStart` is load-bearing for ten of these.** `GameView` only renders once
 `hasStartedThisSession` is true, so every flag read inside `GameView.swift` is inert on its
-own. Measured on 2026-08-29: `-qaShowEndGame` alone left the app sitting on the main menu;
+own — and so is `-qaTwoHumans`, which `ContentView` reads in the same branch. Measured on 2026-08-29: `-qaShowEndGame` alone left the app sitting on the main menu;
 `-qaAutoStart -qaShowEndGame` rendered the win screen. If a flag "does nothing", check this
 before suspecting the flag.
 
-**Debug only, as of 2026-08-29.** The twelve reads are being consolidated into
+**Debug only, as of 2026-08-29.** All nineteen reads are consolidated into
 `Settlers/QALaunchFlag.swift`, whose `isSet` is wrapped in `#if DEBUG` — so in a Release
 build the flags are inert whatever you pass. If that file exists, do not try to screenshot a
 Release build with them.
@@ -245,7 +251,7 @@ immediately after connecting") or `CoreDeviceError 3002` ("Could not get service
 com.apple.remote.installcoordination_proxy"), on a genuinely available device. A plain retry
 ~5s later has always worked. Retry once before treating it as a connectivity problem.
 
-## Never drive the simulator with synthetic clicks
+## Never drive the simulator with desktop-coordinate clicks
 
 No `osascript ... click at {x, y}`, no `cliclick`. Three reasons, and the third is the one
 that matters:
@@ -257,14 +263,27 @@ that matters:
 3. A click can land on **whatever Mac window happens to be frontmost**, which means it can
    interact with Alex's real desktop applications.
 
-`simctl` has no touch injection at all. That is exactly why the `-qa*` flags exist: the app
-puts itself into the state, and the tooling only photographs.
+`simctl` has no touch injection. Use native XCUITest for repeatable interaction and the
+`-qa*` flags for deterministic visual fixtures.
+
+## UI-test launch isolation
+
+The UI-test target uses two Debug-only process arguments with deliberately different
+semantics:
+
+- `-ui-testing-reset` clears preferences, the active save, civilization assignment, stats,
+  and game logs before `ContentView` is created. Every independent UI test starts with it.
+- `-ui-testing` marks a UI-test launch without clearing anything. The cold-resume test uses
+  it on its second process launch so the save from the first launch remains present.
+
+Never put reset behavior behind `-ui-testing` itself: doing so makes a true cold-resume test
+impossible. Reset support is compiled out of Release builds.
 
 ## Before saying a change works
 
 ```bash
-"$REPO/scripts/gate.sh"              # 9 gates
-"$REPO/scripts/gate.sh"              # Release app build included; --debug-app adds Debug
+"$REPO/scripts/gate.sh"              # 10 gates, including app and native UI tests
+"$REPO/scripts/gate.sh --debug-app"  # Release included; also compile the screenshot binary
 ```
 
 The gate is the merge gate here, because branch protection is unavailable on this repository
@@ -275,11 +294,10 @@ change needs both.
 
 ## Honest limits (do not overpromise)
 
-- **The ladder launches the app and photographs ONE screen.** A dead button, a tile that
-  cannot be tapped, a drag that does nothing — all pass. There is no touch injection and no
-  UI test target. Interaction is checked by Alex on the phone, or not at all.
-- **`xcodebuild test -scheme Settlers` runs nothing.** `project.yml` has `test: targets: []`.
-  All 174 tests live in the two SPM packages and run via `swift test` / `scripts/gate.sh`.
+- **The launch ladder photographs one screen.** Native XCUITests separately exercise a
+  focused set of interactions; untested gameplay still requires play-settlers or a person.
+- **`xcodebuild test -scheme Settlers` runs app and UI targets.** Read the Swift Testing and
+  XCTest summaries; do not mistake one runner's zero line for an empty full suite.
 - **This ladder builds Debug** (the `-qa*` flags are `#if DEBUG`), so a Release-only
   break was invisible to every gate in this repo until Release compilation became mandatory in `scripts/gate.sh`
   (see the trap above). A green gate is not evidence the app compiles for release.
@@ -294,8 +312,9 @@ change needs both.
 
 ## Related
 
-- **`scripts/gate.sh`** — the 8-gate merge gate (xcodegen drift, SwiftLint, packages with
-  warnings-as-errors, both suites, coverage floors, gitleaks, optional app build). Each gate
+- **`scripts/gate.sh`** — the 10-gate merge gate (xcodegen drift, SwiftLint, packages with
+  warnings-as-errors, both suites, coverage floors, gitleaks, app/UI tests, Release build,
+  and optional Debug build). Each gate
   reports from its own exit code and a gate that cannot run reports SKIP, never silence.
 - **`scripts/install-hooks.sh`** — installs the pre-push hook, the only thing in the setup
   that can actually refuse a push.

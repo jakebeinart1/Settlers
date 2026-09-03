@@ -44,7 +44,7 @@ import Testing
     #expect(!GamePhase.gameOver(winner: PlayerID(index: 2)).isMainTurn(of: 2))
 }
 
-@Test func theAccessorAgreesWithTheSessionsOwnNotionOfWhoActs() {
+@Test func theAccessorAgreesWithTheSessionsOwnNotionOfWhoActs() throws {
     // The accessor must not become a second, drifting source of truth for the
     // same question `GameSession.nextActor()` already answers.
     var state = GameSetup.newGame(board: BoardGenerator.standard(), seed: 3)
@@ -55,7 +55,7 @@ import Testing
         guard case .awaitingExternalSeat(let actor) = session.nextActor() else { break }
         #expect(actor.index == seat, "phase \(state.phase) names seat \(seat), session names \(actor.index)")
         guard let move = RulesEngine.legalMoves(for: state, seat: actor).first else { break }
-        try? RulesEngine.apply(move, by: actor, to: &state)
+        try RulesEngine.apply(move, by: actor, to: &state)
         session.replace(state: state)
     }
 }

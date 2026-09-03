@@ -3,13 +3,20 @@ import CatanEngine
 
 /// Top HUD strip: one compact chip per **bot** player (the human gets their
 /// own, more spacious panel at the bottom of the screen - see
-/// `HumanPlayerPanel`) showing name/personality, resource breakdown,
-/// development-card count, and victory-point/longest-road/largest-army tags.
-/// Every player's resource hand is shown in full (an intentional
-/// simplification for a casual single-device game - everyone's sitting at
-/// the same table anyway) while dev cards stay a count-only badge for every
-/// player, since which specific cards a player holds is the one piece of
-/// information that's legitimately hidden even in a casual game.
+/// `HumanPlayerPanel`) showing name/personality, hand size, development-card
+/// count, and victory-point/longest-road/largest-army tags.
+///
+/// **An opponent's chip shows only what is public in real Catan**: how many
+/// cards they hold, not which; public victory points, so an unplayed VP card
+/// stays hidden; roads, which are visible on the board; and played knights,
+/// which are played face-up. `PlayerChip`'s own comments spell each out. Only
+/// `HumanPlayerPanel` shows a per-resource breakdown, and only for its owner.
+///
+/// This doc previously said the opposite - "every player's resource hand is
+/// shown in full", described as a deliberate simplification. That has not been
+/// true for some time; the code below it was already correct. It mattered
+/// enough to fix because it is exactly the claim someone would rely on when
+/// deciding how much work hiding a second human's hand would be.
 public struct BotHUDRow: View {
     public let state: GameState
     public let human: PlayerID
@@ -21,10 +28,31 @@ public struct BotHUDRow: View {
 
     public var body: some View {
         HStack(spacing: 8) {
-            ForEach(state.players.filter { $0.id != human }, id: \.id) { player in
-                PlayerChip.body(for: player, state: state, isHuman: false)
+            ForEach(Self.seatsShownAsOpponents(in: state, deviceSeat: human), id: \.id) { player in
+                PlayerChip.body(for: player, state: state)
             }
         }
+    }
+
+    /// Seats rendered as opponent chips - hand SIZE, public victory points,
+    /// roads and played knights, never the per-resource breakdown.
+    ///
+    /// Extracted from `body` so it can be tested. It is the app's entire
+    /// hidden-information boundary, and the test that covered it was vacuous:
+    /// it filtered the device seat out of a list and then asserted the list did
+    /// not contain it. An audit demonstrated that three mutations destroying
+    /// hand-hiding left the whole suite green.
+    public static func seatsShownAsOpponents(in state: GameState, deviceSeat: PlayerID) -> [Player] {
+        state.players.filter { $0.id != deviceSeat }
+    }
+
+    /// Seats whose full per-resource hand is drawn. **Exactly one**, always:
+    /// whoever is holding the phone. Anything else is a hidden-information
+    /// leak, and it is silent - nothing throws, nothing logs, one person just
+    /// sees another person's cards.
+    public static func seatsShowingFullHand(in state: GameState, deviceSeat: PlayerID) -> Set<PlayerID> {
+        let opponents = Set(seatsShownAsOpponents(in: state, deviceSeat: deviceSeat).map(\.id))
+        return Set(state.players.map(\.id)).subtracting(opponents)
     }
 }
 
@@ -373,7 +401,7 @@ private struct DevCardHUDTile: View {
 @MainActor
 enum PlayerChip {
     @ViewBuilder
-    static func body(for player: Player, state: GameState, isHuman: Bool) -> some View {
+    static func body(for player: Player, state: GameState) -> some View {
         let isActive = isActivePlayer(player.id, in: state)
         let handSize = player.resources.values.reduce(0, +)
 
@@ -395,7 +423,15 @@ enum PlayerChip {
                 // the roster's longest names ("Charlemagne", "Washington")
                 // without ellipsis-truncating on a 3-bot-wide HUD row, where
                 // each chip only gets a third of the screen's width.
-                Text(isHuman ? CatanTheme.playerLabel(for: player.id) : civilization.generalName)
+                // Always the resolved label, never a hardcoded general name.
+                // The caller passed `isHuman: false` for every seat that is
+                // not at the device, which was correct when the only other
+                // seats were bots - and in a hot-seat game it meant a second
+                // person's chip read "Ragnar" while the handoff cover and the
+                // end-game standings both correctly called them "Sam".
+                // `playerLabel` already returns the general's name for a
+                // genuine bot, so this is right in both cases.
+                Text(CatanTheme.playerLabel(for: player.id))
                     .font(.system(size: 10, weight: .bold, design: .serif))
                     .lineLimit(1)
             }

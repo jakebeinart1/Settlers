@@ -14,11 +14,8 @@ things that break, and only tapping finds them.
 
 ## What the game actually is
 
-Confirmed by playing it, not by reading the code: **one human seat and three
-heuristic bots.** `GameViewModel.makeSession` gives a `HeuristicPolicy` to every
-seat except `humanPlayer`, so `GameSession.step()` stops and hands control back
-on the human's turn. With "Randomize Seat" on (the default) the human is a
-random one of the four seats, so do not assume seat 0.
+Empires supports three- or four-seat tables and one or more local hot-seat human
+players; remaining seats use heuristic bots. Do not assume seat 0 is human.
 
 The bots have personalities and speak in character - an Aztec bot opens a trade
 with *"The sun god demands this trade."* A bot round takes roughly 20-30 seconds
@@ -28,56 +25,30 @@ that ends a turn will not show a result for half a minute.
 
 ## Setup
 
-There is no `idb` and no XCUITest target in this repo. Taps go through
-`cliclick` against the Simulator window, which is why coordinates need care.
+Use the native `SettlersUITests` target for repeatable setup, settings, placement,
+and cold-resume interaction. Build, install, and launch with `run-settlers` for
+manual exploratory play.
+
+## Automated interaction
+
+Run a focused UI flow without inheriting simulator state:
 
 ```bash
-brew install cliclick     # if missing
+xcodebuild test -project Settlers.xcodeproj -scheme Settlers \
+  -destination 'platform=iOS Simulator,id=<SIM_UDID>' \
+  -only-testing:SettlersUITests/MainMenuFlowTests
 ```
 
-Build, install and launch with the `run-settlers` skill first.
+Independent tests launch with `-ui-testing-reset`; a cold-resume relaunch uses
+`-ui-testing` alone so the first process's save survives. Stable identifiers are
+defined in `Settlers/Testing/AccessibilityID.swift`.
 
-## Tapping
+## Manual tapping
 
-`tap.sh` beside this file takes **device pixel** coordinates - the numbers you
-read straight off a `simctl io screenshot`, which is 1206x2622 on an iPhone 17
-Pro. It measures where the device screen sits on the desktop from the
-accessibility tree and converts.
-
-```bash
-.claude/skills/play-settlers/tap.sh 976 2391    # End Turn
-xcrun simctl io <UDID> screenshot --type=png /tmp/after.png
-```
-
-Read the screenshot back. Always. The tap is the cheap part.
-
-### Two traps that cost real time here
-
-**Name the window exactly.** Several simulators are usually booted, and
-`window 1` is whichever the Simulator app feels like. It resolved to an *iPhone
-17 Pro Max* while every screenshot came from the *iPhone 17 Pro*, so taps landed
-on the wrong control of a device nobody was looking at - and the symptom was not
-an error, it was End Turn opening the Trade sheet. `tap.sh` names the window and
-raises it first. The name uses an en dash (`iPhone 17 Pro – iOS 26.5`), not a
-hyphen.
-
-**Never hardcode the bezel offset.** The device screen's rect is read from the
-accessibility tree every tap. A constant works until the window moves.
-
-## Coordinates that stay put
-
-Device pixels on iPhone 17 Pro, from the main game screen:
-
-| Control | x | y |
-|---|---:|---:|
-| Trade / Build / End Turn (or Roll Dice) | 225 / 603 / 976 | 2391 |
-| Accept an inline trade offer (green tick) | 1083 | 2384 |
-| Decline an inline trade offer (red cross) | 973 | 2384 |
-| Menu (hamburger) | 1120 | 723 |
-
-The bottom row's third button changes label - **Roll Dice** before the roll,
-**End Turn** after - but not position. Trade greys out until the dice are
-rolled, which is correct and not a bug.
+Use the visible Simulator window for exploratory play. Do not use `cliclick`,
+AppleScript coordinates, or a hardcoded bezel offset: those can target a
+different simulator or another desktop app. Capture and inspect a screenshot
+after the interaction whenever the visual result matters.
 
 ## Reading a game state from a screenshot
 
@@ -91,7 +62,6 @@ rolled, which is correct and not a bug.
 
 ## What this cannot do
 
-It drives the simulator only. Getting onto a real iPhone is blocked on signing -
-see `run-settlers` for why. Playing a full game to a win is ~476 moves and
-several minutes of bot pacing; prove a specific behaviour instead of grinding to
-a winner, unless the ask really is a full playthrough.
+Native UI coverage is intentionally focused; it does not yet play a complete
+match, exercise every trade/robber/discard branch, or replace human visual
+judgment. Device signing details live in `run-settlers`.

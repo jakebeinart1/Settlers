@@ -72,7 +72,7 @@ public enum StateEncoding {
     /// and for any change to the *field set* `promptDescription` emits - a
     /// few-shot prompt built against the old shape stops matching. Purely
     /// cosmetic changes to separators or spacing do not need a bump.
-    public static let layoutVersion = 1
+    public static let layoutVersion = 2
 
     // MARK: - Board shape this layout is defined against
 
@@ -122,9 +122,10 @@ public enum StateEncoding {
     /// Knights in the deck: the ceiling on both knights played and any single
     /// dev-card type held.
     public static let knightCardCount = 14
-    /// Victory points needed to win, and therefore the VP normaliser. Mirrors
-    /// the threshold in `WinCondition.checkForWinner`.
-    public static let victoryPointTarget = 10
+    /// Largest supported match target. The global target slot is scaled by
+    /// this ceiling; each seat's VP progress is scaled by the target of the
+    /// match being encoded.
+    public static let victoryPointTargetMaximum = WinCondition.supportedTargets.upperBound
     /// Soft cap on dev cards bought in one turn. Buying more than this in a
     /// single turn needs 5+ of three resources and effectively never happens.
     public static let devCardsBoughtSoftCap = 5
@@ -149,12 +150,12 @@ public enum StateEncoding {
     /// cannot tell the start of a turn from a bad one.
     public static let diceFeatureCount = 2
 
-    /// Global single-scalar slots: dev cards left in the deck, and pending
-    /// trade offers.
-    public static let globalScalarCount = 2
+    /// Global single-scalar slots: dev cards left in the deck, pending trade
+    /// offers, and the victory-point target for this match.
+    public static let globalScalarCount = 3
 
     /// Slots describing the position as a whole, before any per-seat block:
-    /// phase one-hot, last roll, bank stock, the two scalars above, and a
+    /// phase one-hot, last roll, bank stock, the three scalars above, and a
     /// robber one-hot over the canonical tile order.
     public static let globalFeatureCount =
         phaseCount + diceFeatureCount + resourceKindCount + globalScalarCount + tileCount
@@ -191,7 +192,7 @@ public enum StateEncoding {
     /// The length of every vector `features(_:)` returns, for every position,
     /// in every phase, forever - until `layoutVersion` changes.
     ///
-    /// 1012 = 35 global + 4 x 31 per-seat + 19 x 7 per-tile
+    /// 1013 = 36 global + 4 x 31 per-seat + 19 x 7 per-tile
     ///      + 54 x 8 per-vertex + 72 x 4 per-edge.
     public static let featureCount =
         globalFeatureCount
@@ -373,6 +374,25 @@ public enum StateEncoding {
         (0..<seatCount).map { PlayerID(index: (seat.index + $0) % seatCount) }
     }
 
+    /// The seats that actually exist in `state`, rotated so `seat` is first.
+    ///
+    /// A three-player game has no seat 3, and the fixed-width rotation above
+    /// would name one - which `player(_:in:)` traps on. This returns only real
+    /// seats; the fixed-width blocks are padded to `seatCount` with zeros by
+    /// their callers.
+    ///
+    /// Padding rather than shrinking is deliberate. `featureCount` must mean
+    /// the same thing in every position forever or a trained model reads the
+    /// wrong number out of every slot after the first, silently - which is the
+    /// whole argument for `layoutVersion`. An absent seat reading as all-zero
+    /// is also exactly how a concealed seat already reads under
+    /// `.publicCountsOnly`, so no new meaning is introduced.
+    public static func seatOrder(from seat: PlayerID, in state: GameState) -> [PlayerID] {
+        let present = state.players.count
+        guard present > 0 else { return [] }
+        return (0..<present).map { PlayerID(index: (seat.index + $0) % present) }
+    }
+
     /// The one-hot slot for a phase. Fixed order; changing it is a
     /// `layoutVersion` bump.
     public static func phaseSlot(_ phase: GamePhase) -> Int {
@@ -452,11 +472,11 @@ public extension StateEncoding {
     ///
     /// | Offset | Width | Block |
     /// |---|---|---|
-    /// | 0 | 35 | global: phase one-hot, last roll, bank, deck, offers, robber |
-    /// | 35 | 4 x 31 | per seat, observer first |
-    /// | 159 | 19 x 7 | per tile, ascending coordinate |
-    /// | 292 | 54 x 8 | per vertex, ascending `VertexID` |
-    /// | 724 | 72 x 4 | per edge, ascending `EdgeID` |
+    /// | 0 | 36 | global: phase one-hot, last roll, bank, deck, offers, target, robber |
+    /// | 36 | 4 x 31 | per seat, observer first |
+    /// | 160 | 19 x 7 | per tile, ascending coordinate |
+    /// | 293 | 54 x 8 | per vertex, ascending `VertexID` |
+    /// | 725 | 72 x 4 | per edge, ascending `EdgeID` |
     ///
     /// ## Why every value is normalised
     /// A trainer fed 19 bank cards beside 10 victory points beside a 0/1 flag
@@ -477,9 +497,14 @@ public extension StateEncoding {
         values.reserveCapacity(featureCount)
 
         appendGlobal(observation, index: index, into: &values)
-        for seat in seatOrder(from: observation.seat) {
+        let order = seatOrder(from: observation.seat, in: observation.state)
+        for seat in order {
             appendSeat(seat, observation, policy: policy, into: &values)
         }
+        // Empty chairs. A three-player game leaves the fourth seat's block
+        // zeroed rather than shortening the vector - see `seatOrder(from:in:)`.
+        values.append(contentsOf:
+            repeatElement(0, count: (seatCount - order.count) * perPlayerFeatureCount))
         appendTiles(index, into: &values)
         appendBoardOwnership(observation, index: index, into: &values)
 
@@ -493,9 +518,10 @@ public extension StateEncoding {
 
     // MARK: Blocks
 
-    /// Global block, 35 slots: phase one-hot (7), last roll normalised + a flag
+    /// Global block, 36 slots: phase one-hot (7), last roll normalised + a flag
     /// saying whether there was one (2), bank stock per resource (5), dev cards
-    /// left in the deck (1), pending trade offers (1), robber tile one-hot (19).
+    /// left in the deck (1), pending trade offers (1), match target (1), and
+    /// robber tile one-hot (19).
     private static func appendGlobal(_ observation: GameObservation, index: BoardIndex, into values: inout [Float]) {
         let state = observation.state
         values.append(contentsOf: oneHot(phaseSlot(state.phase), width: phaseCount))
@@ -509,6 +535,7 @@ public extension StateEncoding {
         }
         values.append(normalised(state.devCardDeck.count, max: devCardDeckSize))
         values.append(normalised(state.pendingTradeOffers.count, max: pendingTradeOfferSoftCap))
+        values.append(normalised(state.victoryPointTarget, max: victoryPointTargetMaximum))
         values.append(contentsOf: oneHot(index.slot(of: state.board.robberTile), width: tileCount))
     }
 
@@ -562,7 +589,7 @@ public extension StateEncoding {
     /// The observer's own VP cards are already in the holdings block.
     private static func appendStanding(of seated: Player, state: GameState, into values: inout [Float]) {
         values.append(normalised(state.tradesAcceptedThisTurn[seated.id] ?? 0, max: tradesAcceptedSoftCap))
-        values.append(normalised(state.publicVictoryPoints(for: seated.id), max: victoryPointTarget))
+        values.append(normalised(state.publicVictoryPoints(for: seated.id), max: state.victoryPointTarget))
         values.append(normalised(seated.settlements.count, max: Building.maxSettlementsPerPlayer))
         values.append(normalised(seated.cities.count, max: Building.maxCitiesPerPlayer))
         values.append(normalised(seated.roads.count, max: Building.maxRoadsPerPlayer))
@@ -613,20 +640,33 @@ public extension StateEncoding {
 
     /// Vertex block then edge block, both in egocentric seat order: 8 slots per
     /// vertex (settlement, city) x 4 seats, then 4 slots per edge (road).
+    ///
+    /// A three-player game pads the missing seat's slots to zero **inside each
+    /// vertex and each edge**, not at the end of the block. That placement is
+    /// the whole point: slot *k* of a vertex has to mean "the k-th seat in
+    /// egocentric order owns this vertex" in every position forever, so the
+    /// absent chair's two slots must sit where that chair's slots always sit.
+    /// Padding at the end of the block would keep the width right and shift the
+    /// meaning of every slot after the first vertex - silently, which is the
+    /// exact defect `layoutVersion` exists to make impossible.
     private static func appendBoardOwnership(_ observation: GameObservation,
                                              index: BoardIndex,
                                              into values: inout [Float]) {
-        let seated = seatOrder(from: observation.seat).map { player($0, in: observation.state) }
+        let seated = seatOrder(from: observation.seat, in: observation.state)
+            .map { player($0, in: observation.state) }
+        let emptyChairs = seatCount - seated.count
         for vertex in index.vertices {
             for owner in seated {
                 values.append(owner.settlements.contains(vertex) ? 1 : 0)
                 values.append(owner.cities.contains(vertex) ? 1 : 0)
             }
+            values.append(contentsOf: repeatElement(0, count: emptyChairs * 2))
         }
         for edge in index.edges {
             for owner in seated {
                 values.append(owner.roads.contains(edge) ? 1 : 0)
             }
+            values.append(contentsOf: repeatElement(0, count: emptyChairs))
         }
     }
 
@@ -700,14 +740,14 @@ public extension StateEncoding {
         let index = BoardIndex(state.board)
         var lines = [
             "OBS v\(layoutVersion) seat=P\(observation.seat.index) phase=\(phaseLabel(state.phase)) "
-                + "lastRoll=\(state.lastDiceRoll.map(String.init) ?? "-")",
+                + "target=\(state.victoryPointTarget) lastRoll=\(state.lastDiceRoll.map(String.init) ?? "-")",
             "KEY h#/v#/e# are hex/vertex/edge indices in this layout's canonical board order. "
                 + "vp is public victory points, so hidden VP cards are excluded. Omitted seat fields are zero.",
             hexLine(index, robber: state.board.robberTile),
             portLine(state.board, index: index),
             bankLine(state),
         ]
-        lines.append(contentsOf: seatOrder(from: observation.seat).map {
+        lines.append(contentsOf: seatOrder(from: observation.seat, in: observation.state).map {
             seatLine($0, observation, index: index, policy: policy)
         })
         lines.append(contentsOf: offerLines(state))
