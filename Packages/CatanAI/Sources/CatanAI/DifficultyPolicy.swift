@@ -56,6 +56,8 @@ private enum EasySpatialLapse {
     /// A development parameter, not a product promise. It may move only on
     /// development seeds and must be frozen before held-out calibration.
     static let lapseDenominator = 1
+    static let targetScoreRatio = 0.80
+    static let minimumScoreRatio = 0.60
 
     static func choose(
         insteadOf preferred: GameMove,
@@ -109,7 +111,11 @@ private enum EasySpatialLapse {
         let ranked = lower.sorted { left, right in
             left.score == right.score ? left.stableIndex < right.stableIndex : left.score > right.score
         }
-        return ranked.map(\.move)
+        let bounded = ranked.filter {
+            $0.score <= preferredScore * targetScoreRatio
+                && $0.score >= preferredScore * minimumScoreRatio
+        }
+        return (bounded.isEmpty ? ranked : bounded).map(\.move)
     }
 
     private static func score(

@@ -466,10 +466,25 @@ raw checksum-manifest SHA-256
 Artifacts remain under
 `/private/tmp/empires-easy-development-v2-0a40756-screen`.
 
-**v3 — under development.** The denominator remains 1, but road choices are
-no longer eligible. Easy takes the strongest strictly inferior initial
-settlement, settlement, or city site and retains the heuristic's road plan so
-the handicap cannot strand its network. No held-out seed has been consumed.
+**v3 — rejected.** Commit `95c838f`, denominator 1 over only initial
+settlement, settlement, and city sites. Keeping road planning fixed restored
+the completion shape: 336/336 decisive, maximum 1,435 moves. The strongest
+strictly inferior site was too often a near tie, however. Standard's advantage
+was below ten points in six cells, including zero in four of them. Release
+binary SHA-256
+`88a918f9c42793dd6b3e41106fef0f51ccab70cd7226c719077cda96ba6f1857`;
+raw checksum-manifest SHA-256
+`c9854c7d5eef664f4b615a53ff9cb3907760539ef1031e227857f6569e2ff827`;
+12-report checksum-manifest SHA-256
+`e30b43e21c8146c0dd7fe201078c965adcc63f05e967be2346cbe4b60c01f165`.
+Artifacts remain under
+`/private/tmp/empires-easy-development-v3-95c838f-screen`.
+
+**v4 — under development.** Eligibility remains limited to settlement/city
+sites with the heuristic road plan intact. Instead of taking a near-tied
+runner-up, Easy takes the strongest candidate scoring between 60% and 80% of
+the preferred target; if no such bounded candidate exists, it falls back to
+the strongest strictly inferior target. No held-out seed has been consumed.
 
 ### Development ladder
 
