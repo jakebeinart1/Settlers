@@ -230,6 +230,12 @@ public struct BotWeights: Codable, Sendable, Equatable {
     /// knights. Higher widens the gap between personalities.
     public var buildDevCardAggressionScale: Double = 0.5
 
+    /// Aggression level at which a bot treats an otherwise-uncommitted
+    /// playable knight as worthwhile proactive pressure. Kept above the
+    /// Balanced preset so this is a recognizable style choice, not a global
+    /// strength change disguised as personality.
+    public var proactiveKnightAggressivenessThreshold: Double = 0.85
+
     /// Penalty per unplayed *playable* card already in hand (VP cards excluded
     /// - they never compete for the one-card-per-turn slot). Only one card can
     /// be played a turn, so hoarding has real diminishing returns. Higher
@@ -396,8 +402,12 @@ public struct BotWeights: Codable, Sendable, Equatable {
     public var bankTradeMoveExpansionScale: Double = 0.3
 
     /// Priority of proposing a trade to other players, which `tradeWillingness`
-    /// is then added to directly.
+    /// scales below. The base alone remains below a guaranteed bank trade.
     public var proposeTradeMoveBase: Double = 1.0
+
+    /// Makes the Cautious preset ask another player before paying the bank's
+    /// poor rate, while Balanced and Aggressive still prefer certainty.
+    public var proposeTradeMoveWillingnessScale: Double = 1.5
 
     /// Priority of explicitly declining an unwanted pending offer. Deliberately
     /// the lowest of any category: it is housekeeping, done only when nothing

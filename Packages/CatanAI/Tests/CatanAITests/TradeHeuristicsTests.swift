@@ -132,6 +132,25 @@ import CatanEngine
     #expect(trade?.rate == 4) // no port owned (no settlements yet)
 }
 
+@Test func cautiousBotAsksAPlayerBeforePayingTheBankWhileBalancedUsesTheBank() {
+    var state = GameSetup.newGame(board: BoardGenerator.standard(), seed: 41)
+    state.phase = .mainTurn(playerIndex: 0)
+    state.players[0].resources = [.brick: 4, .grain: 1, .wool: 1]
+    let player = PlayerID(index: 0)
+    var cautiousRNG = RandomSource(seed: 3)
+    var balancedRNG = RandomSource(seed: 3)
+
+    let cautious = Bot(personality: .cautious).decide(
+        for: state, player: player, rng: &cautiousRNG
+    )
+    let balanced = Bot(personality: .balanced).decide(
+        for: state, player: player, rng: &balancedRNG
+    )
+
+    #expect({ if case .proposeTrade = cautious { true } else { false } }())
+    #expect({ if case .bankTrade = balanced { true } else { false } }())
+}
+
 /// A marginally-favorable deal is accepted from an average opponent but
 /// rejected from a dramatically more threatening one, since accepting hands
 /// them resources - see `evaluate`'s threat-shift doc. Uses `.aggressive`

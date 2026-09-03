@@ -110,6 +110,13 @@ gate_swiftlint() {
   swiftlint lint --strict --quiet
 }
 
+# The bot evaluator is part of the evidence behind every future personality or
+# strength claim. A malformed shard must fail loudly rather than producing a
+# polished but invalid table.
+gate_evaluation_tools() {
+  python3 -m unittest discover -s scripts/tests -p 'test_*.py'
+}
+
 # --- 3. Compile the packages with warnings as errors ----------------------
 gate_packages_build() {
   ( cd Packages/CatanEngine && swift build -Xswiftc -warnings-as-errors ) \
@@ -217,6 +224,7 @@ maybe() {
 
 maybe "xcodegen drift"          gate_xcodegen_drift
 maybe "swiftlint --strict"      gate_swiftlint
+maybe "evaluation tooling"     gate_evaluation_tools
 maybe "packages build (W=E)"    gate_packages_build
 maybe "CatanEngine tests"       gate_engine_tests
 maybe "CatanAI tests"           gate_ai_tests

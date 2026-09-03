@@ -89,6 +89,27 @@ private func makeAmbiguousYearOfPlentyState() -> GameState {
     #expect(move == nil)
 }
 
+@Test func aggressivePersonalityProactivelyUsesAKnightButCautiousDoesNot() {
+    var state = GameSetup.newGame(board: BoardGenerator.standard())
+    let player = PlayerID(index: 0)
+    state.players[0].devCards = [.knight]
+    state.players[0].settlements = []
+    state.players[0].cities = []
+
+    let aggressive = DevCardHeuristics.choosePlay(
+        state: state, player: player, personality: .aggressive
+    )
+    let cautious = DevCardHeuristics.choosePlay(
+        state: state, player: player, personality: .cautious
+    )
+
+    guard case .playKnight = aggressive else {
+        Issue.record("expected aggressive policy to use its disruption card")
+        return
+    }
+    #expect(cautious == nil)
+}
+
 /// Once a rival already holds Largest Army with a commanding lead our
 /// current hand can't plausibly overtake, and the deck still has plenty of
 /// cards left (no endgame urgency), there's no rush to burn the knight now -
