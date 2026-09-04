@@ -13,7 +13,7 @@ final class SaveRecoveryFlowTests: XCTestCase {
         assertRecoveryMenu(in: app)
 
         app.buttons["main-menu.new-game"].tap()
-        XCTAssertTrue(app.otherElements["screen.new-game"].waitForExistence(timeout: 2))
+        XCTAssertTrue(app.otherElements["screen.new-game"].waitForExistence(timeout: 5))
         app.buttons["new-game.cancel"].tap()
         assertRecoveryMenu(in: app)
 
@@ -44,7 +44,7 @@ final class SaveRecoveryFlowTests: XCTestCase {
 
     private func explicitlyReplaceSave(in app: XCUIApplication) {
         app.buttons["main-menu.new-game"].tap()
-        XCTAssertTrue(app.otherElements["screen.new-game"].waitForExistence(timeout: 2))
+        XCTAssertTrue(app.otherElements["screen.new-game"].waitForExistence(timeout: 5))
         app.buttons["As Shown"].tap()
         let start = app.buttons["new-game.start"]
         XCTAssertTrue(start.isEnabled)

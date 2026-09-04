@@ -15,6 +15,7 @@ public struct GameLogSummary: Identifiable, Sendable, Equatable {
     public let winner: PlayerID?
     public let moveCount: Int
     public let civilizations: [Int: String]
+    public let playerNames: [Int: String]
     public let isComplete: Bool
 }
 
@@ -118,6 +119,22 @@ public struct GameLogStore: Sendable {
             SeatRoster(humanSeats: [humanSeat], humanNames: [:],
                        botProfiles: [:], botProfileNames: [:],
                        botPersonalities: [:], civilizations: [:])
+        }
+
+        /// The archived name for a chair, resolved from one roster contract.
+        /// Strategy names such as "balanced" are never used as identities.
+        public func displayName(for seat: PlayerID) -> String {
+            if humanSeats.contains(seat) {
+                return humanNames[seat.index] ?? "Player \(seat.index + 1)"
+            }
+            if let name = botProfileNames[seat.index] { return name }
+            if let civilization = civilization(for: seat) { return civilization.generalName }
+            return "Computer \(seat.index + 1)"
+        }
+
+        public func civilization(for seat: PlayerID) -> Civilization? {
+            guard let name = civilizations[seat.index] else { return nil }
+            return Civilization.allCases.first { $0.displayName == name }
         }
 
         private enum CodingKeys: String, CodingKey {
@@ -224,8 +241,7 @@ public struct GameLogStore: Sendable {
     }
 
     private func exportRoster(for setup: MatchSetup) throws -> SeatRoster {
-        guard setup.isValidMatch, setup.seats.allSatisfy({ $0.civilization != nil }),
-              setup.aiSeats.allSatisfy({ $0.opponentProfile?.civilization == $0.civilization }) else {
+        guard setup.realizedIdentityProblem == nil else {
             throw MatchCheckpointStore.StoreError.inconsistentHistory
         }
         return SeatRoster(
@@ -326,6 +342,9 @@ public struct GameLogStore: Sendable {
             victoryPointTarget: initialState.victoryPointTarget,
             humanSeats: roster.humanSeats, winner: end?.winner,
             moveCount: moves.count, civilizations: roster.civilizations,
+            playerNames: Dictionary(uniqueKeysWithValues: initialState.players.map {
+                ($0.id.index, roster.displayName(for: $0.id))
+            }),
             isComplete: end != nil && !parsed.ignoredTruncatedLine)
         return GameLogDetail(initialState: initialState, summary: summary, roster: roster, events: moves)
     }

@@ -20,19 +20,19 @@ import CatanEngine
 public struct BotHUDRow: View {
     public let state: GameState
     public let human: PlayerID
-    public let playerLabel: (PlayerID) -> String
+    public let playerIdentity: (PlayerID) -> PlayerIdentity
 
     public init(state: GameState, human: PlayerID,
-                playerLabel: @escaping (PlayerID) -> String = CatanTheme.playerLabel) {
+                playerIdentity: @escaping (PlayerID) -> PlayerIdentity = CatanTheme.playerIdentity) {
         self.state = state
         self.human = human
-        self.playerLabel = playerLabel
+        self.playerIdentity = playerIdentity
     }
 
     public var body: some View {
         HStack(spacing: 8) {
             ForEach(Self.seatsShownAsOpponents(in: state, deviceSeat: human), id: \.id) { player in
-                PlayerChip.body(for: player, state: state, playerLabel: playerLabel)
+                PlayerChip.body(for: player, state: state, playerIdentity: playerIdentity)
             }
         }
     }
@@ -67,15 +67,15 @@ public struct BotHUDRow: View {
 public struct HumanPlayerPanel: View {
     public let state: GameState
     public let human: PlayerID
-    public let playerLabel: (PlayerID) -> String
+    public let playerIdentity: (PlayerID) -> PlayerIdentity
     public let onTapDevCard: (DevCardType) -> Void
 
     public init(state: GameState, human: PlayerID,
-                playerLabel: @escaping (PlayerID) -> String = CatanTheme.playerLabel,
+                playerIdentity: @escaping (PlayerID) -> PlayerIdentity = CatanTheme.playerIdentity,
                 onTapDevCard: @escaping (DevCardType) -> Void) {
         self.state = state
         self.human = human
-        self.playerLabel = playerLabel
+        self.playerIdentity = playerIdentity
         self.onTapDevCard = onTapDevCard
     }
 
@@ -95,6 +95,7 @@ public struct HumanPlayerPanel: View {
     public var body: some View {
         if let player = state.players.first(where: { $0.id == human }) {
             let isActive = PlayerChip.isActivePlayer(human, in: state)
+            let identity = playerIdentity(human)
 
             // Eased back open a little from the aggressive first trim, now
             // that the board's actual size is settled - that pass went
@@ -107,24 +108,18 @@ public struct HumanPlayerPanel: View {
             // - that's handled by structure, not by staying tiny.
             VStack(alignment: .leading, spacing: 9) {
                 HStack(spacing: 7) {
-                    Circle()
-                        .fill(CatanTheme.color(for: human))
-                        .frame(width: 15, height: 15)
+                    CivilizationCrest(civilization: identity.civilization, size: 30)
                     // `.lineLimit(1)` + `.fixedSize()` - without these,
                     // this and the civilization name (e.g. "Japan") were
                     // the ones that gave way when the row got crowded,
                     // wrapping mid-word onto a second line instead of
-                    // staying put. `CatanTheme.playerLabel` rather than a
-                    // literal "You" - reads the custom name set in Settings,
-                    // falling back to "You" if none is set.
-                    Text(playerLabel(human))
+                    // staying put. The match identity rather than a literal
+                    // "You" supports hot-seat names and durable snapshots.
+                    Text(identity.displayName)
                         .font(.system(size: 18, weight: .bold, design: .serif))
                         .lineLimit(1)
                         .fixedSize()
-                    Image(systemName: Civilization.forSeat(human.index).emblemSymbol)
-                        .font(.subheadline)
-                        .foregroundStyle(CatanTheme.onWaterText.opacity(0.8))
-                    Text(Civilization.forSeat(human.index).displayName)
+                    Text(identity.civilization.displayName)
                         .font(.system(size: 12, design: .serif))
                         .foregroundStyle(CatanTheme.onWaterText.opacity(0.8))
                         .lineLimit(1)
@@ -300,7 +295,7 @@ public struct HumanPlayerPanel: View {
             }
             .padding(11)
             .frame(maxWidth: .infinity, alignment: .leading)
-            .background(TintedTextureBackground(tint: Civilization.forSeat(human.index).cardBackgroundColor(active: isActive)))
+            .background(TintedTextureBackground(tint: identity.civilization.cardBackgroundColor(active: isActive)))
             .overlay(alignment: .bottomTrailing) {
                 // A specialized watermark just for the human's own panel -
                 // a small painted silhouette (mountains + pagodas, matching
@@ -325,7 +320,7 @@ public struct HumanPlayerPanel: View {
                 // always outlined in your own piece color, just a heavier
                 // line while it's your turn rather than the only time a
                 // border shows at all.
-                color: CatanTheme.color(for: human),
+                color: identity.civilization.accentColor,
                 cornerRadius: 12,
                 lineWidth: isActive ? 3.25 : 2.5
             )
@@ -413,43 +408,29 @@ private struct DevCardHUDTile: View {
 enum PlayerChip {
     @ViewBuilder
     static func body(for player: Player, state: GameState,
-                     playerLabel: (PlayerID) -> String) -> some View {
+                     playerIdentity: (PlayerID) -> PlayerIdentity) -> some View {
         let isActive = isActivePlayer(player.id, in: state)
         let handSize = player.resources.values.reduce(0, +)
-
-        let civilization = Civilization.forSeat(player.id.index)
+        let identity = playerIdentity(player.id)
+        let civilization = identity.civilization
 
         VStack(alignment: .leading, spacing: 5) {
             HStack(spacing: 5) {
-                Circle()
-                    .fill(CatanTheme.color(for: player.id))
-                    .frame(width: 11, height: 11)
-                Image(systemName: civilization.emblemSymbol)
-                    .font(.system(size: 10))
-                // No `minimumScaleFactor` - that let each name shrink
-                // independently to fit the same chip width, so "Ragnar" (6
-                // characters) stayed near full size while "Charlemagne" (11)
-                // shrank dramatically to fit, and the three bot names never
-                // actually matched each other. A consistent size for
-                // everyone instead - sized down from an earlier 12pt to fit
-                // the roster's longest names ("Charlemagne", "Washington")
-                // without ellipsis-truncating on a 3-bot-wide HUD row, where
-                // each chip only gets a third of the screen's width.
-                // Always the resolved label, never a hardcoded general name.
-                // The caller passed `isHuman: false` for every seat that is
-                // not at the device, which was correct when the only other
-                // seats were bots - and in a hot-seat game it meant a second
-                // person's chip read "Ragnar" while the handoff cover and the
-                // end-game standings both correctly called them "Sam".
-                // `playerLabel` already returns the general's name for a
-                // genuine bot, so this is right in both cases.
-                Text(playerLabel(player.id))
-                    .font(.system(size: 10, weight: .bold, design: .serif))
-                    .lineLimit(1)
+                CivilizationCrest(civilization: civilization, size: 26)
+                VStack(alignment: .leading, spacing: 1) {
+                    // The resolved match identity, never a hardcoded general
+                    // name. The civilization sits in this same crest row so
+                    // replacing the old 10pt SF Symbol with real piece art
+                    // does not make the HUD taller or shrink the board.
+                    Text(identity.displayName)
+                        .font(.system(size: 10, weight: .bold, design: .serif))
+                        .lineLimit(1)
+                    Text(civilization.displayName)
+                        .font(.system(size: 10, design: .serif))
+                        .foregroundStyle(CatanTheme.onWaterText.opacity(0.8))
+                        .lineLimit(1)
+                }
             }
-            Text(civilization.displayName)
-                .font(.system(size: 10, design: .serif))
-                .foregroundStyle(CatanTheme.onWaterText.opacity(0.8))
 
             // Longest Road/Largest Army used to spell themselves out
             // ("Road"/"Army") as their own `tag()` pills, each stacked on
@@ -535,7 +516,7 @@ enum PlayerChip {
             // the same thing at a glance even on someone else's turn. Active
             // still gets called out, just by a heavier line rather than by
             // being the only one with a border at all.
-            color: CatanTheme.color(for: player.id),
+            color: civilization.accentColor,
             cornerRadius: 12,
             lineWidth: isActive ? 3.25 : 2.5
         )

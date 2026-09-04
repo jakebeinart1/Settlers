@@ -63,6 +63,9 @@ extension GameViewModel {
         let civilizations = setup.seats.compactMap { seat in
             seat.isHuman ? seat.civilization : seat.opponentProfile?.civilization ?? seat.civilization
         }
+        // Legacy active-match sidecars predate opponent-profile snapshots;
+        // migration fills those profiles before writing a checkpoint. Do not
+        // require a fully realized identity roster at this earlier boundary.
         guard setup.isValidMatch,
               setup.seats.count == state.players.count,
               setup.victoryPointTarget == state.victoryPointTarget,

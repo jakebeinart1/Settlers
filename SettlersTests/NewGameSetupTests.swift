@@ -83,6 +83,20 @@ private func table(withSeatIndices indices: [Int]) -> MatchSetup {
         #expect(startableTable.isStartable)
     }
 
+    @Test func aHumanSeatCannotRetainAComputerProfile() {
+        var table = startableTable
+        table.seats[0].opponentProfile = OpponentProfile.forCivilization(.greece)
+
+        #expect(table.validationProblem == "Seat 1 cannot be both Human and AI.")
+    }
+
+    @Test func aComputerProfileCannotDisagreeWithItsCivilization() {
+        var table = startableTable
+        table.seats[2].opponentProfile = OpponentProfile.forCivilization(.rome)
+
+        #expect(table.validationProblem == "Seat 3's AI and civilization do not match.")
+    }
+
     /// A3.5: an undecided seat is not an invalid one. Seat 4 above is `nil`
     /// and the table still starts.
     @Test func seatsLeftOnRandomDoNotBlockStart() {

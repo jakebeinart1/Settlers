@@ -175,6 +175,46 @@ struct OpponentProfileIntegrationTests {
         }
     }
 
+    @Test func oneIdentityValueBindsEveryVisibleSeatAttribute() throws {
+        try withStores { stores in
+            let model = stores.makeModel()
+            model.startNewGame(setup: setup(
+                playerCount: 4,
+                humans: [0, 2],
+                civilizations: [.medieval, .egypt, .japan, .norse]
+            ))
+
+            let identities = Dictionary(uniqueKeysWithValues: model.state.players.map {
+                ($0.id, model.playerIdentity(for: $0.id))
+            })
+            let first = try #require(identities[PlayerID(index: 0)])
+            let second = try #require(identities[PlayerID(index: 1)])
+            let third = try #require(identities[PlayerID(index: 2)])
+            let fourth = try #require(identities[PlayerID(index: 3)])
+
+            #expect(first == PlayerIdentity(
+                seat: PlayerID(index: 0), displayName: "Human 1",
+                civilization: .medieval, controller: .human
+            ))
+            #expect(second == PlayerIdentity(
+                seat: PlayerID(index: 1), displayName: "Ramesses",
+                civilization: .egypt, controller: .computer
+            ))
+            #expect(third == PlayerIdentity(
+                seat: PlayerID(index: 2), displayName: "Human 3",
+                civilization: .japan, controller: .human
+            ))
+            #expect(fourth == PlayerIdentity(
+                seat: PlayerID(index: 3), displayName: "Ragnar",
+                civilization: .norse, controller: .computer
+            ))
+            #expect(identities.values.allSatisfy {
+                model.playerLabel(for: $0.seat) == $0.displayName
+                    && $0.pieceImageName == $0.civilization.paintedPieceImageName(isCity: false)
+            })
+        }
+    }
+
     private struct Stores {
         let root: URL
         let gameStore: GameStore

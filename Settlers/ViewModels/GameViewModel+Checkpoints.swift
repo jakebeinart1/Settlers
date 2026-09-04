@@ -91,25 +91,22 @@ extension GameViewModel {
                                               activeMatch: .loaded(match.setup), legacySeat: PlayerID(index: 0)) {
             throw SavedGameRecoveryError.blocked(problem)
         }
-        let profiles = Self.profiles(in: match.setup)
-        guard match.setup.seats.allSatisfy({ chair in
-            guard let civilization = chair.civilization else { return false }
-            return chair.isHuman ? chair.opponentProfile == nil
-                : chair.opponentProfile?.civilization == civilization
-        }) else {
-            throw SavedGameRecoveryError.blocked("The saved civilization and opponent roster disagree.")
+        if let problem = match.setup.realizedIdentityProblem {
+            throw SavedGameRecoveryError.blocked(
+                "The saved player identity roster is incomplete. \(problem)"
+            )
         }
+        let playerRoster = PlayerRoster(realizedSetup: match.setup)
+        let profiles = playerRoster.opponentProfiles
         guard profiles.count == match.setup.aiSeats.count, let savedSession = match.sessionCheckpoint else {
             throw SavedGameRecoveryError.blocked("The saved session or realized opponents are missing.")
         }
         let restored = try GameSession(checkpoint: savedSession, policies: Self.makePolicies(profiles))
-        let roster = Self.restoredRoster(from: .loaded(match.setup), fallback: PlayerID(index: 0))
         session = restored
-        humanSeats = roster.seats
-        opponentProfiles = profiles
-        seatAtDevice = roster.seats.count == 1 ? roster.seats.first : nil
+        self.playerRoster = playerRoster
+        seatAtDevice = humanSeats.count == 1 ? humanSeats.first : nil
         CivilizationAssignment.humanSeat = humanPlayer
-        CivilizationAssignment.humanNames = roster.names
+        CivilizationAssignment.humanNames = playerRoster.humanNames
         CivilizationAssignment.current = match.setup.seats.compactMap(\.civilization)
         accumulatedActiveDuration = match.elapsedSeconds
         activeSince = { if case .gameOver = match.state.phase { return nil }; return Date() }()

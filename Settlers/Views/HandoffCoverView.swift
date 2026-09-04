@@ -24,19 +24,20 @@ struct HandoffCoverView: View {
     /// How many cards they are holding, so they know what they are picking up
     /// without anyone having to reveal which cards those are.
     let handSize: Int
-    let playerLabel: (PlayerID) -> String
+    let playerIdentity: (PlayerID) -> PlayerIdentity
     let onReady: () -> Void
 
     init(seat: PlayerID, handSize: Int,
-         playerLabel: @escaping (PlayerID) -> String = CatanTheme.playerLabel,
+         playerIdentity: @escaping (PlayerID) -> PlayerIdentity = CatanTheme.playerIdentity,
          onReady: @escaping () -> Void) {
         self.seat = seat
         self.handSize = handSize
-        self.playerLabel = playerLabel
+        self.playerIdentity = playerIdentity
         self.onReady = onReady
     }
 
     var body: some View {
+        let identity = playerIdentity(seat)
         ZStack {
             // Opaque, and covering everything including the safe area. A
             // translucent ground would defeat the entire point, so this is the
@@ -70,12 +71,16 @@ struct HandoffCoverView: View {
                     .foregroundStyle(.secondary)
 
                 VStack(spacing: 10) {
-                    CivilizationBadgeMark(seat: seat)
-                    Text(playerLabel(seat))
+                    CivilizationCrest(civilization: identity.civilization, size: 104)
+                        .shadow(color: .black.opacity(0.5), radius: 6, y: 3)
+                    Text(identity.displayName)
                         .font(.system(size: 40, weight: .bold, design: .serif))
-                        .foregroundStyle(CatanTheme.color(for: seat))
+                        .foregroundStyle(identity.civilization.accentColor)
                         .lineLimit(1)
                         .minimumScaleFactor(0.5)
+                    Text(identity.civilization.displayName)
+                        .font(.subheadline.weight(.semibold))
+                        .foregroundStyle(.white.opacity(0.78))
                     Text("it's your turn")
                         .font(.title3)
                         .foregroundStyle(CatanTheme.onWaterText)
@@ -101,18 +106,5 @@ struct HandoffCoverView: View {
         // can be driven blind by whoever is holding the phone.
         .contentShape(Rectangle())
         .transition(.opacity)
-    }
-}
-
-/// The seat's civilization mark, sized for the cover.
-private struct CivilizationBadgeMark: View {
-    let seat: PlayerID
-
-    var body: some View {
-        Image(Civilization.forSeat(seat.index).paintedPieceImageName(isCity: false) ?? "civ-britannia-settlement")
-            .resizable()
-            .scaledToFit()
-            .frame(width: 92, height: 92)
-            .shadow(color: .black.opacity(0.5), radius: 6, y: 3)
     }
 }

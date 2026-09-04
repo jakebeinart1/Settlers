@@ -113,6 +113,7 @@ public struct MatchSetup: Codable, Equatable, Sendable {
     /// silently does nothing.
     public var validationProblem: String? {
         if let matchProblem { return matchProblem }
+        if let identityConflictProblem { return identityConflictProblem }
         guard Self.newGameVictoryPointTargets(for: seats.count).contains(victoryPointTarget) else {
             return "12 VP is available with 3 players."
         }
@@ -121,6 +122,49 @@ public struct MatchSetup: Codable, Equatable, Sendable {
 
     public var isValidMatch: Bool { matchProblem == nil }
     public var isStartable: Bool { validationProblem == nil }
+
+    /// Why this setup cannot be the realized identity roster stored beside a
+    /// running match. New-game input may leave civilizations and profiles
+    /// unresolved; a checkpoint may not. Keeping this validation on the value
+    /// prevents persistence, recovery, logging and presentation from each
+    /// inventing a slightly different definition of a complete roster.
+    var realizedIdentityProblem: String? {
+        if let matchProblem { return matchProblem }
+        if let seat = seats.first(where: { $0.civilization == nil }) {
+            return "Seat \(seat.index + 1) has no realized civilization."
+        }
+        if let identityConflictProblem { return identityConflictProblem }
+        if let seat = seats.first(where: { !$0.isHuman && $0.opponentProfile == nil }) {
+            return "Seat \(seat.index + 1) has no realized AI opponent."
+        }
+        return nil
+    }
+
+    /// Contradictions are invalid in both editable setup and realized saves;
+    /// keeping their wording and coverage here prevents the two validators
+    /// from drifting apart.
+    private var identityConflictProblem: String? {
+        if let seat = seats.first(where: { $0.isHuman && $0.opponentProfile != nil }) {
+            return "Seat \(seat.index + 1) cannot be both Human and AI."
+        }
+        if let seat = seats.first(where: {
+            guard let profile = $0.opponentProfile else { return false }
+            return profile.civilization != $0.civilization
+        }) {
+            return "Seat \(seat.index + 1)'s AI and civilization do not match."
+        }
+        if let seat = seats.first(where: {
+            $0.opponentProfile?.id.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == true
+        }) {
+            return "Seat \(seat.index + 1)'s AI profile has no identifier."
+        }
+        if let seat = seats.first(where: {
+            $0.opponentProfile?.name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == true
+        }) {
+            return "Seat \(seat.index + 1)'s AI needs a name."
+        }
+        return nil
+    }
 
     /// Match lengths the base board can reliably finish at this table size.
     ///

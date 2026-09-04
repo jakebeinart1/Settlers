@@ -76,6 +76,33 @@ struct BoardLayeringTests {
         )
     }
 
+    @Test func piecesUseTheProvidedMatchIdentityInsteadOfGlobalSeatStyling() throws {
+        var state = GameSetup.newGame(board: BoardGenerator.standard())
+        let vertex = try #require(Self.mostCentralVertex(of: state.board))
+        state.players[0].settlements.insert(vertex)
+
+        let britannia = try Self.render(
+            state: state, highlightedEdges: [], isPlacementModeActive: false,
+            civilization: .medieval
+        )
+        let rome = try Self.render(
+            state: state, highlightedEdges: [], isPlacementModeActive: false,
+            civilization: .rome
+        )
+        let geometry = BoardView.fittedGeometry(
+            for: state.board,
+            in: CGRect(x: 0, y: 0, width: Self.canvasSide, height: Self.canvasSide),
+            padding: 16
+        )
+        let centre = geometry.vertexPosition(vertex, board: state.board)
+        let changed = zip(
+            Self.patch(of: britannia, centredOn: centre),
+            Self.patch(of: rome, centredOn: centre)
+        ).filter { $0 != $1 }.count
+
+        #expect(changed > 0, "Board pieces ignored the match-authoritative identity resolver")
+    }
+
     // MARK: - Helpers
 
     /// The on-board vertex nearest the board's geometric centre - a stable,
@@ -94,10 +121,18 @@ struct BoardLayeringTests {
     private static func render(
         state: GameState,
         highlightedEdges: Set<EdgeID>,
-        isPlacementModeActive: Bool
+        isPlacementModeActive: Bool,
+        civilization: Civilization = .medieval
     ) throws -> CGImage {
         let view = BoardView(
             state: state,
+            playerIdentity: { seat in
+                PlayerIdentity(
+                    seat: seat, displayName: "Player \(seat.index + 1)",
+                    civilization: seat.index == 0 ? civilization : .greece,
+                    controller: seat.index == 0 ? .human : .computer
+                )
+            },
             onTapVertex: { _ in },
             onTapEdge: { _ in },
             onTapTile: { _ in },

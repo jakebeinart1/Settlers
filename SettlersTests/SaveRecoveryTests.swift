@@ -168,6 +168,49 @@ struct SaveRecoveryTests {
         #expect(fixture.setupStore.data(forActiveMatch: true) == damagedRoster)
     }
 
+    @Test func incompleteCheckpointIdentityRosterIsBlockedInsteadOfTrapping() throws {
+        let fixture = try RecoveryFixture()
+        let state = GameSetup.newGame(
+            board: BoardGenerator.standard(), seed: 71,
+            playerCount: 3, victoryPointTarget: 8
+        )
+        // Valid New Game input deliberately has no AI profile snapshots yet.
+        // That same shape is incomplete once stored as a realized checkpoint.
+        let document = MatchCheckpointDocument(activeMatch: MatchCheckpoint(
+            id: UUID(), initialState: state, setup: fixture.validSetup
+        ))
+        let (checkpointURL, original) = try fixture.writeCheckpoint(document)
+
+        let model = fixture.makeModel()
+
+        #expect(!model.savedGameAvailability.canResume)
+        #expect(model.savedGameAvailability.recoveryMessage?.contains("player identity roster") == true)
+        #expect(try Data(contentsOf: checkpointURL) == original)
+    }
+
+    @Test func blankCheckpointOpponentNameIsBlockedInsteadOfTrapping() throws {
+        let fixture = try RecoveryFixture()
+        let state = GameSetup.newGame(
+            board: BoardGenerator.standard(), seed: 72,
+            playerCount: 3, victoryPointTarget: 8
+        )
+        var setup = fixture.validSetup
+        setup.seats[1].opponentProfile = OpponentProfile(
+            id: "blank-name", name: "  \n", civilization: .greece, strategy: .balanced
+        )
+        setup.seats[2].opponentProfile = OpponentProfile.forCivilization(.egypt)
+        let document = MatchCheckpointDocument(activeMatch: MatchCheckpoint(
+            id: UUID(), initialState: state, setup: setup
+        ))
+        let (checkpointURL, original) = try fixture.writeCheckpoint(document)
+
+        let model = fixture.makeModel()
+
+        #expect(!model.savedGameAvailability.canResume)
+        #expect(model.savedGameAvailability.recoveryMessage?.contains("AI needs a name") == true)
+        #expect(try Data(contentsOf: checkpointURL) == original)
+    }
+
     @Test func unreadableSaveKeepsItsActiveRecording() throws {
         let fixture = try RecoveryFixture()
         let state = GameSetup.newGame(board: BoardGenerator.standard(), seed: 71)
@@ -228,6 +271,14 @@ private final class RecoveryFixture {
     func makeModel() -> GameViewModel {
         GameViewModel(gameStore: gameStore, civilizationStore: civilizationStore,
                       matchSetupStore: setupStore, gameLogStore: logStore, gameStatsStore: statsStore)
+    }
+
+    func writeCheckpoint(_ document: MatchCheckpointDocument) throws -> (URL, Data) {
+        let url = gameStore.fileURL.deletingLastPathComponent()
+            .appendingPathComponent("match_checkpoint.json")
+        let data = try JSONEncoder().encode(document)
+        try data.write(to: url, options: .atomic)
+        return (url, data)
     }
 
     var validSetup: MatchSetup {

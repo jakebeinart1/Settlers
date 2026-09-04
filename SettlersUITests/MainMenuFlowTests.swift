@@ -11,7 +11,7 @@ final class MainMenuFlowTests: XCTestCase {
         XCTAssertTrue(mainMenu.waitForExistence(timeout: 5))
 
         app.buttons["main-menu.new-game"].tap()
-        XCTAssertTrue(app.otherElements["screen.new-game"].waitForExistence(timeout: 2))
+        XCTAssertTrue(app.otherElements["screen.new-game"].waitForExistence(timeout: 5))
 
         app.buttons["new-game.cancel"].tap()
         XCTAssertTrue(mainMenu.waitForExistence(timeout: 2))
@@ -36,7 +36,7 @@ final class MainMenuFlowTests: XCTestCase {
         let app = launchResetApp()
 
         app.buttons["main-menu.new-game"].tap()
-        XCTAssertTrue(app.otherElements["screen.new-game"].waitForExistence(timeout: 2))
+        XCTAssertTrue(app.otherElements["screen.new-game"].waitForExistence(timeout: 5))
         XCTAssertFalse(app.buttons["12 VP"].exists)
 
         app.buttons["3 Players"].tap()

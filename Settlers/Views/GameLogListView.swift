@@ -79,7 +79,9 @@ struct GameLogListView: View {
     }
 
     private func summaryLine(_ summary: GameLogSummary) -> String {
-        let result = summary.winner.map { "Winner: Seat \($0.index + 1)" } ?? "In progress"
+        let result = summary.winner.map {
+            "Winner: \(summary.playerNames[$0.index] ?? "Player \($0.index + 1)")"
+        } ?? "In progress"
         return "\(result) · \(summary.playerCount) seats · \(summary.victoryPointTarget) VP · \(summary.moveCount) moves"
     }
 

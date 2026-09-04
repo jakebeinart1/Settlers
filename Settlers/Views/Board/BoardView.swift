@@ -10,6 +10,7 @@ import CatanEngine
 /// comment on that layer in `body`.
 public struct BoardView: View {
     public let state: GameState
+    public let playerIdentity: (PlayerID) -> PlayerIdentity
     public let onTapVertex: (VertexID) -> Void
     public let onTapEdge: (EdgeID) -> Void
     public let onTapTile: (HexCoordinate) -> Void
@@ -42,6 +43,7 @@ public struct BoardView: View {
 
     public init(
         state: GameState,
+        playerIdentity: @escaping (PlayerID) -> PlayerIdentity = CatanTheme.playerIdentity,
         onTapVertex: @escaping (VertexID) -> Void,
         onTapEdge: @escaping (EdgeID) -> Void,
         onTapTile: @escaping (HexCoordinate) -> Void,
@@ -53,6 +55,7 @@ public struct BoardView: View {
         rollHighlightTiles: Set<HexCoordinate> = []
     ) {
         self.state = state
+        self.playerIdentity = playerIdentity
         self.onTapVertex = onTapVertex
         self.onTapEdge = onTapEdge
         self.onTapTile = onTapTile
@@ -201,7 +204,7 @@ public struct BoardView: View {
                 // too, so the settlement -> city size jump stays clearly
                 // noticeable rather than shrinking once settlements got
                 // closer to their old size.
-                let civilization = Civilization.forSeat(owner.player.index)
+                let civilization = playerIdentity(owner.player).civilization
                 let size = geometry.size * (owner.isCity ? 0.87 : 0.68) * civilization.pieceSizeCorrection(isCity: owner.isCity)
                 CivilizationBadge(civilization: civilization, isCity: owner.isCity, size: size)
                     // A small grounding shadow - pieces sat perfectly flat
@@ -260,7 +263,7 @@ public struct BoardView: View {
 
                 ZStack {
                     borderPath.fill(.black.opacity(0.9))
-                    fillPath.fill(CatanTheme.color(for: player.id))
+                    fillPath.fill(playerIdentity(player.id).civilization.accentColor)
                 }
                 // Same small grounding shadow as `CivilizationBadge` -
                 // consistent depth cue across every piece on the board.
