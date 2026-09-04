@@ -1,6 +1,59 @@
 import Foundation
 import CatanEngine
 
+/// A `validateHistory()`-only comparison, deliberately narrower than
+/// `GameState`'s own synthesized `==`.
+///
+/// `validateHistory()` replays a match's recorded moves through the CURRENT
+/// `RulesEngine.apply` and compares the result against the persisted `state`
+/// snapshot. That snapshot was captured incrementally, move by move, by
+/// WHATEVER version of the engine was running at the time it was saved. For
+/// any save whose history includes a `.respondToTrade(_, false)` recorded
+/// before `Trading.respond` started appending to
+/// `GameState.declinedTradeOffersThisTurn`, replaying that same history under
+/// the current engine legitimately populates the field for the current turn,
+/// while the persisted snapshot - written by the old code, which never
+/// touched it - has it empty. `replay == state` would then fail for a save
+/// that is, in every rule/RNG/win-condition sense that matters, perfectly
+/// valid, and `validateHistory()` would mark the whole document blocked. This
+/// is the incident `CLAUDE.md` already documents happening once
+/// (`tradesAcceptedThisTurn`) and warns against repeating - reached here via
+/// the app-target replay validator, which no package-level test can see.
+///
+/// The fix is not to loosen `GameState.Equatable` itself - other code
+/// (determinism tests among them) may depend on its current strictness, and
+/// this is the only call site with a reason to differ. Every field `==`
+/// checks is checked here too, in the same list order as the struct
+/// declaration, EXCEPT `declinedTradeOffersThisTurn`: turn-scoped AI
+/// bookkeeping with no bearing on move legality, win conditions, or the RNG
+/// position - unlike, say, `rng` or `board`, which `validateHistory`'s own
+/// doc comment calls out by name as exactly what exact equality here needs to
+/// keep certifying. Add a case here, not to `GameState.==`, for the next
+/// field that turns out to have the same shape (turn-scoped, save-invisible
+/// bookkeeping recorded only from the moment a feature shipped).
+extension GameState {
+    func matchesForReplayValidationExcludingDeclinedTradeHistory(_ other: GameState) -> Bool {
+        schemaVersion == other.schemaVersion
+            && victoryPointTarget == other.victoryPointTarget
+            && rng == other.rng
+            && board == other.board
+            && players == other.players
+            && phase == other.phase
+            && bank == other.bank
+            && devCardDeck == other.devCardDeck
+            && lastDiceRoll == other.lastDiceRoll
+            && longestRoadPlayer == other.longestRoadPlayer
+            && largestArmyPlayer == other.largestArmyPlayer
+            && pendingTradeOffers == other.pendingTradeOffers
+            && robberMoverIndex == other.robberMoverIndex
+            && devCardsBoughtThisTurn == other.devCardsBoughtThisTurn
+            && devCardPlayedThisTurn == other.devCardPlayedThisTurn
+            && tradesAcceptedThisTurn == other.tradesAcceptedThisTurn
+        // declinedTradeOffersThisTurn deliberately excluded - see the doc
+        // comment above.
+    }
+}
+
 /// One match's state and its replay source travel in the same atomic write.
 /// App identity stays outside GameState because it is not a game rule.
 struct MatchCheckpoint: Codable, Equatable, Sendable {
@@ -49,13 +102,23 @@ struct MatchCheckpoint: Codable, Equatable, Sendable {
 
     /// The engine, not a duplicated move interpreter, validates the history.
     /// Exact equality also checks the saved generator position after dice/cards.
+    ///
+    /// Uses `matchesForReplayValidationExcludingDeclinedTradeHistory`, not
+    /// `==`, for the reason documented on that function: a save recorded
+    /// before this repo's creative-bot-trade-offers work started populating
+    /// `GameState.declinedTradeOffersThisTurn` would otherwise fail replay
+    /// under the new rules and get its whole document marked blocked - the
+    /// exact incident class `CLAUDE.md` already warns about ("Adding one
+    /// field once deleted every player's in-progress save").
     func validateHistory() throws {
         try validateSetup()
         var replay = initialState
         for entry in moves {
             try RulesEngine.apply(entry.move, by: entry.actor, to: &replay)
         }
-        guard replay == state else { throw MatchCheckpointStore.StoreError.inconsistentHistory }
+        guard replay.matchesForReplayValidationExcludingDeclinedTradeHistory(state) else {
+            throw MatchCheckpointStore.StoreError.inconsistentHistory
+        }
         if let sessionCheckpoint, sessionCheckpoint.state != state {
             throw MatchCheckpointStore.StoreError.inconsistentHistory
         }
