@@ -390,7 +390,7 @@ private func buildChain(from board: Board, length: Int) -> [EdgeID] {
 /// bot's road-building aimed at one place across turns instead of
 /// flip-flopping to whatever's marginally reachable each turn.
 @Test func buildRoadScoreIsHigherWhenItClosesDistanceToTheExpansionTarget() {
-    var state = GameSetup.newGame(board: BoardGenerator.standard())
+    let state = GameSetup.newGame(board: BoardGenerator.standard())
     let player = PlayerID(index: 0)
 
     // Try each on-board vertex as the hub until one has both a target and

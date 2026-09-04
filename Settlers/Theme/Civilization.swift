@@ -199,8 +199,10 @@ public enum Civilization: String, CaseIterable, Sendable, Codable {
         case (.japan, false): return 1.18
         case (.rome, false): return 0.92
         case (.greece, true): return 0.90
-        case (.columbia, false): return 1.15 // Sep 4 regen (AI-generated white obelisk/dome) reads small next to the roster - Jake flagged by eye, same "already-cropped-tight but visually light shape" case as Japan above.
-        case (.columbia, true): return 1.12 // Sep 4, Jake flagged the city as reading small too, same regen/same reason as the settlement above.
+        // The regenerated white obelisk/dome and city read small next to the roster,
+        // the same already-cropped but visually light case as Japan above.
+        case (.columbia, false): return 1.15
+        case (.columbia, true): return 1.12
         default: return 1.0
         }
     }

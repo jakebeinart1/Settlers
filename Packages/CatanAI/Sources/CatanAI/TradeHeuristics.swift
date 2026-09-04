@@ -177,17 +177,18 @@ public enum TradeHeuristics {
 
         let deficit = max(0, (target.cost[mostNeeded] ?? 0) - (me.resources[mostNeeded] ?? 0))
         let wantCount = min(max(1, deficit), RulesEngine.maxEnumeratedTradeQuantity)
+        let requested = (resource: mostNeeded, count: wantCount)
 
         let rankedGive = rankedGiveCandidates(excluding: mostNeeded, belowValue: wantValue, for: me,
                                                personality: personality, weights: weights)
 
-        if let ordinary = ordinaryOffer(rankedGive: rankedGive, want: mostNeeded, wantCount: wantCount,
-                                         player: player, me: me, state: state, declined: declined, weights: weights) {
+        if let ordinary = ordinaryOffer(rankedGive: rankedGive, requested: requested, player: player,
+                                         me: me, state: state, declined: declined, weights: weights) {
             return [ordinary]
         }
         guard target.cost == Building.settlementCost || target.cost == Building.cityCost,
-              let generous = generousUnlockOffer(rankedGive: rankedGive, want: mostNeeded, wantCount: wantCount,
-                                                  player: player, me: me, state: state, declined: declined, weights: weights)
+              let generous = generousUnlockOffer(rankedGive: rankedGive, requested: requested, player: player,
+                                                  me: me, state: state, declined: declined, weights: weights)
         else { return [] }
         return [generous]
     }
@@ -240,12 +241,13 @@ public enum TradeHeuristics {
     /// candidate, so a decline can move to the next-cheapest resource instead
     /// of regenerating the same offer forever.
     private static func ordinaryOffer(
-        rankedGive: [Resource], want: Resource, wantCount: Int,
+        rankedGive: [Resource], requested: (resource: Resource, count: Int),
         player: PlayerID, me: Player, state: GameState, declined: [TradeOffer], weights: BotWeights
     ) -> TradeOffer? {
         for give in rankedGive {
             let giveCount = ordinaryGiveCount(for: give, me: me, weights: weights)
-            if let offer = untried(give: give, giveCount: giveCount, want: want, wantCount: wantCount,
+            if let offer = untried(give: give, giveCount: giveCount,
+                                    want: requested.resource, wantCount: requested.count,
                                     player: player, state: state, declined: declined) {
                 return offer
             }
@@ -299,7 +301,7 @@ public enum TradeHeuristics {
     ///   improve on the ordinary ask, this returns `nil` (no escalation)
     ///   rather than a worse one.
     private static func generousUnlockOffer(
-        rankedGive: [Resource], want: Resource, wantCount: Int,
+        rankedGive: [Resource], requested: (resource: Resource, count: Int),
         player: PlayerID, me: Player, state: GameState, declined: [TradeOffer], weights: BotWeights
     ) -> TradeOffer? {
         guard !declined.isEmpty, let cheapest = rankedGive.first else { return nil }
@@ -308,7 +310,8 @@ public enum TradeHeuristics {
         let giveCount = min(ceiling, held)
         let ordinaryCount = ordinaryGiveCount(for: cheapest, me: me, weights: weights)
         guard giveCount > ordinaryCount else { return nil }
-        return untried(give: cheapest, giveCount: giveCount, want: want, wantCount: wantCount,
+        return untried(give: cheapest, giveCount: giveCount,
+                       want: requested.resource, wantCount: requested.count,
                        player: player, state: state, declined: declined)
     }
 
