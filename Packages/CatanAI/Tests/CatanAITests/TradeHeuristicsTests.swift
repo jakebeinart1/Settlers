@@ -337,3 +337,72 @@ import CatanEngine
     )
     #expect(TradeHeuristics.proposeTrades(state: state, player: player, personality: .balanced).isEmpty)
 }
+
+/// The TODO's own example: heavy ore surplus, missing exactly the 1 lumber
+/// a settlement needs. The *first* call is still the ordinary 1-2 card
+/// offer (favorability alone doesn't require overpaying); only once that
+/// ordinary offer has itself been declined does the second call escalate to
+/// a genuinely generous ratio - 3 ore for 1 lumber, one better than this
+/// bot's own no-port bank rate of 4, and still a target only settlement/city
+/// can trigger.
+@Test func proposesAGenerousUnlockTradeAfterTheOrdinaryOfferIsDeclined() {
+    var state = GameSetup.newGame(board: BoardGenerator.standard())
+    let player = PlayerID(index: 0)
+    state.players[0].resources = [.brick: 1, .lumber: 0, .grain: 1, .wool: 1, .ore: 4]
+
+    let first = TradeHeuristics.proposeTrades(state: state, player: player, personality: .balanced)
+    #expect(first.count == 1)
+    #expect(first.first?.give == [.ore: 2])
+    #expect(first.first?.want == [.lumber: 1])
+
+    state.declinedTradeOffersThisTurn[player] = first
+    let second = TradeHeuristics.proposeTrades(state: state, player: player, personality: .balanced)
+    #expect(second.count == 1)
+    #expect(second.first?.give == [.ore: 3])
+    #expect(second.first?.want == [.lumber: 1])
+}
+
+/// Never generous for a road - only the two highest-value targets
+/// (settlement/city) can trigger the override. A road is the nearest-
+/// blocked target here (deficit 1, versus 3+ for every other target), so
+/// the ordinary offer is still made and declined normally, but the bot
+/// gives up afterward instead of escalating quantity the way it would for
+/// a settlement/city.
+@Test func generousUnlockDoesNotApplyToARoad() {
+    var state = GameSetup.newGame(board: BoardGenerator.standard())
+    let player = PlayerID(index: 0)
+    state.players[0].resources = [.brick: 0, .lumber: 5, .grain: 0, .wool: 0, .ore: 0]
+
+    let first = TradeHeuristics.proposeTrades(state: state, player: player, personality: .balanced)
+    #expect(first.count == 1)
+    #expect(first.first?.give == [.lumber: 2])
+    #expect(first.first?.want == [.brick: 1])
+
+    state.declinedTradeOffersThisTurn[player] = first
+    #expect(TradeHeuristics.proposeTrades(state: state, player: player, personality: .balanced).isEmpty)
+}
+
+/// A 2:1 port for the give resource leaves no room to be "generous" at all
+/// - the ceiling (`bestRate - 1`) collapses to 1, same as an ordinary offer,
+/// so the escalation after a decline should ask for at most 1 more ore, not
+/// 3, because the bank/port already beats any bigger player-to-player deal.
+/// Skips (via `Issue.record`) if the standard board has no ore port, the
+/// same fallback `TradingTests.swift`'s port tests use for a port that
+/// might not exist on a given generated board.
+@Test func generousUnlockCeilingCollapsesWithAGoodPort() {
+    var state = GameSetup.newGame(board: BoardGenerator.standard())
+    guard let port = state.board.ports.first(where: { $0.kind == .resource(.ore) }) else {
+        Issue.record("no ore port on standard board")
+        return
+    }
+    let player = PlayerID(index: 0)
+    state.players[0].settlements = [port.vertexA]
+    state.players[0].resources = [.brick: 1, .lumber: 0, .grain: 1, .wool: 1, .ore: 4]
+
+    let first = TradeHeuristics.proposeTrades(state: state, player: player, personality: .balanced)
+    #expect(first.count == 1)
+
+    state.declinedTradeOffersThisTurn[player] = first
+    let second = TradeHeuristics.proposeTrades(state: state, player: player, personality: .balanced)
+    #expect(second.first?.give == [.ore: 1])
+}
