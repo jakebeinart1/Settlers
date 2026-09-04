@@ -116,12 +116,17 @@ public enum Civilization: String, CaseIterable, Sendable, Codable {
     /// water-blue background before being locked in. Used for
     /// `CivilizationBadge`, the road bar, HUD dots/tags, and everywhere else
     /// `CatanTheme.color(for: player)` is read. Several of the original
-    /// material tones (Greece's grey marble, Aztec/Columbia's slate
-    /// blue-grey, Norse's steel blue) read as near-identical washed-out
-    /// grays once shrunk down to a HUD dot/outline - `Self.vivid` bumps
-    /// every one of them uniformly rather than hand-picking 8 new RGB
-    /// triples, so the board pieces and the HUD both get the same
-    /// slightly-punchier version of the same fixed per-civilization color.
+    /// material tones (Aztec's slate blue, Norse's steel blue) read as
+    /// near-identical washed-out grays once shrunk down to a HUD dot/outline
+    /// - `Self.vivid` bumps every one of them uniformly rather than
+    /// hand-picking 8 new RGB triples, so the board pieces and the HUD both
+    /// get the same slightly-punchier version of the same fixed
+    /// per-civilization color. (Columbia is now pinned to white and Greece
+    /// to a light tan - see `design-references/STATUS.md`'s "Sep 4 Columbia
+    /// white / Greece tan recolor" note - so they're deliberately excluded
+    /// from that "washed-out gray" complaint; a near-white/near-gray input
+    /// still passes through `vivid` fine, it just has little saturation to
+    /// boost.)
     public var accentColor: Color {
         Self.vivid(baseAccentColor)
     }
@@ -129,10 +134,10 @@ public enum Civilization: String, CaseIterable, Sendable, Codable {
     private var baseAccentColor: Color {
         switch self {
         case .medieval: return Color(red: 0.56, green: 0.35, blue: 0.68) // purple
-        case .greece: return Color(red: 0.80, green: 0.81, blue: 0.80) // white/grey marble
+        case .greece: return Color(red: 0.890, green: 0.804, blue: 0.643) // light tan, eyedropped from greece-city.png's own flat fill (227,205,164) - see STATUS.md
         case .egypt: return Color(red: 0.77, green: 0.58, blue: 0.31) // sandstone
         case .aztec: return Color(red: 0.43, green: 0.61, blue: 0.79) // slate blue
-        case .columbia: return Color(red: 0.42, green: 0.50, blue: 0.60) // slate blue-grey
+        case .columbia: return Color(red: 0.96, green: 0.96, blue: 0.96) // white
         case .rome: return Color(red: 0.71, green: 0.40, blue: 0.29) // terracotta
         case .japan: return Color(red: 0.37, green: 0.55, blue: 0.46) // jade
         case .norse: return Color(red: 0.49, green: 0.58, blue: 0.64) // steel blue
@@ -194,6 +199,8 @@ public enum Civilization: String, CaseIterable, Sendable, Codable {
         case (.japan, false): return 1.18
         case (.rome, false): return 0.92
         case (.greece, true): return 0.90
+        case (.columbia, false): return 1.15 // Sep 4 regen (AI-generated white obelisk/dome) reads small next to the roster - Jake flagged by eye, same "already-cropped-tight but visually light shape" case as Japan above.
+        case (.columbia, true): return 1.12 // Sep 4, Jake flagged the city as reading small too, same regen/same reason as the settlement above.
         default: return 1.0
         }
     }

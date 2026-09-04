@@ -43,9 +43,9 @@ layered on. Shape stays recognizable as the original; only the rendering quality
 | Civilization | Settlement | City |
 |---|---|---|
 | Britannia | Painted (castle) | Painted (castle, grander) |
-| Greece | Painted (flat pictogram, 2-column house shape, matches greece-city; redone per feedback) | Painted (flat pictogram, bold outline) |
+| Greece | Painted (flat pictogram, 2-column house shape, matches greece-city; light tan, Sep 4) | Painted (flat pictogram, bold outline; light tan, Sep 4) |
 | Rome | Painted (2-arch colosseum ruin, bold outline, rugged texture; redone per feedback) | Painted (4-arch colosseum ruin, bold outline, rugged texture; redone per feedback) |
-| Columbia | Painted (blue obelisk/tower) | Painted (Capitol dome) |
+| Columbia | Painted (white obelisk/dome; AI-regenerated white, Sep 4 - see "Columbia white / Greece tan recolor" below) | Painted (white Capitol dome; AI-regenerated white, Sep 4) |
 | Egypt | Painted (cropped top tiers of the pyramid, Aztec-style crop logic; redone per feedback) | Painted (tiered pyramid) |
 | Aztec | Painted (step-pyramid w/ staircase + carved detail, redone per feedback) | Painted (step-pyramid) |
 | Japan | Painted (3-tier pagoda, redone per feedback) | Painted (pagoda) |
@@ -234,6 +234,164 @@ Three more rounds of feedback after the pass above:
   chromakey pipeline being standardized (same category as the `menu-icon` no-alpha-channel bug earlier in
   this file). Fixed by binarizing alpha at a 40/255 threshold (>40 -> fully opaque, else fully transparent)
   for just these 2 files, matching the hard-edged convention every other piece already has.
+
+## Sep 4 Columbia white / Greece tan recolor
+
+Jake asked for Columbia's material color to be white "across the board" and Greece's to move
+from its white/grey marble to a light tan, with the settlement/city art regenerated to match
+but the piece shape/shading left exactly as-is.
+
+Recoloring via a fresh `generate_icon.py` call was rejected in favor of a deterministic
+duotone remap: `tiles/_scripts/recolor_piece.py` takes each opaque pixel's own Rec. 601
+luminance and maps it `lerp(black, target_rgb, luminance)` - existing black outline ink stays
+black, existing highlights stay bright, every midtone shifts to the target hue. A fresh AI
+generation risks silently drifting the silhouette (the whole point of the original "restyle
+the original, one civ at a time" pass above was to avoid that), and the ask here was
+explicitly "same piece, different material," which a per-pixel color remap guarantees at zero
+OpenRouter spend - unlike every other regeneration logged in this file, this one cost nothing.
+
+Ran on all 4 files (`columbia-{settlement,city}.png`, `greece-{settlement,city}.png`) in
+`approved/pieces/`, then re-synced into `Assets.xcassets`. Greece's target was (230,208,166),
+a pale wheat/sandstone tan - lighter and less saturated than Egypt's (196,148,79) sandstone so
+the two don't read as the same material. Plain duotone (`floor`/`ink_cutoff` both 0), one
+pass, approved as-is.
+
+Columbia's first pass (plain duotone, target pure white) looked gray rather than white on
+device - checked why rather than re-guessing: `columbia-{city,settlement}`'s original art is
+genuinely mid-to-dark in luma (median luma 0.40 and 0.16 respectively, since it was a fairly
+dark blue-grey material to begin with), and plain `lerp(black, white, L)` reproduces that same
+tonal distribution, so a "dark" source piece stays visually dark even once every hue is
+stripped to gray - looking gray/charcoal, not white. Fixed with `recolor_piece.py`'s added
+`floor`/`ink_cutoff` params: pixels below `ink_cutoff` luma (0.15) are forced pure black
+(keeps the outline/detail linework crisp) and everything else is remapped from
+`[ink_cutoff, 1]` into `[floor, 1]` before scaling by the target color - so the fill is pushed
+into a bright near-white band regardless of how dark the original shading was, while the black
+ink stays exactly as sharp.
+
+That second pass (floor 0.8, ink_cutoff 0.15) fixed the gray-not-white problem but introduced
+a new one ("looks whak"): the source art's fine paper-grain texture, stretched by the high
+floor, showed up as visible blotches. Iterated `recolor_piece.py` twice more on Columbia
+specifically - adding `smooth` (an alpha-weighted Gaussian pre-blur so isolated grain pixels
+don't trip a threshold the way a real several-pixel-wide stroke does), then a Sobel-gradient
+ink signal plus an unconditional `border_px` alpha-ring border (since no single darkness
+threshold could separate "thin outline stroke" from "large genuinely-dark shadow-side fill"
+on this particular source file - one caught too little, the next caught the whole shadow
+region as solid black). Each pass fixed the specific defect Jake had just flagged and revealed
+the next one on-device: city dividers still barely visible ("no border... shades of light,
+white, and gray"), then, once those were legible, "the interior lines aren't as thick as the
+settlement's" - a plain darkness/gradient threshold was never going to reliably reproduce
+"looks like the rest of the roster's bold painted-outline style," because that style is a
+*rendering convention* the original artist applied by eye, not a property recoverable from
+Columbia's own (differently-styled, blue, thin-lined) source pixels.
+
+**Abandoned the deterministic pixel-math approach entirely and went back to
+`generate_icon.py`** (the tool this whole approach was originally chosen over, "Recoloring via
+a fresh `generate_icon.py` call was rejected..." above) - Jake's own call: "I don't think
+drawing them yourself is the best way. I think you should reproduce the image through the
+image generator." Regenerated both files image-to-image, feeding the ORIGINAL pre-recolor blue
+piece as the shape/silhouette reference and an already-bold-outlined piece (Britannia's castle,
+then Columbia's own freshly-generated settlement for the city's second pass) as the *outline
+style* reference, with the prompt explicit that interior detail lines need their own bold
+black stroke, not just the outer silhouette - directly asking the model to reproduce a
+*rendering convention* is what the pixel math could never do, because that convention isn't
+recoverable from Columbia's own source pixels at all. Two rounds: v1 for both files (clean
+white/ivory fill, solid bold outline, but the city's interior lines read thinner than the
+settlement's), then a v2 city-only regeneration adding the v1 settlement image as a second
+reference specifically for line *thickness* ("match the outline THICKNESS of the SECOND
+reference image exactly"), which fixed it. Total cost ~$0.19 across 3 calls - real spend,
+unlike the free pixel-math attempts, but it's what actually matched the roster; budget still
+nowhere near the original $10 note at the top of this file. Verified both via a side-by-side
+composite and confirmed on Jake's own iPhone.
+
+`Civilization.baseAccentColor` updated to match: `columbia` from the old slate blue-grey
+(0.42, 0.50, 0.60) to near-white (0.96, 0.96, 0.96); `greece` from white/grey marble
+(0.80, 0.81, 0.80) to light tan (0.90, 0.82, 0.65). Both still pass through `Self.vivid` like
+every other civ's color.
+
+**Follow-up: Columbia's settlement read small next to the roster.** Same "already-cropped-tight
+but visually light shape" case `pieceSizeCorrection` exists for (see Japan's settlement,
+above) - the new AI-generated obelisk/dome silhouette measures a normal alpha-bbox fill
+(89% x 95%, close to Britannia's 94% x 97%) so there was no margin left to gain by re-cropping.
+Added `(.columbia, false): 1.15` to `pieceSizeCorrection(isCity:)`.
+
+**Follow-up: Greece's settlement read darker than its city.** Not a color-target mismatch -
+both pieces' non-black fill pixels average essentially the same RGB (measured: (180.6, 163.3,
+130.3) city vs (180.3, 163.0, 130.0) settlement) - it's that the settlement's original art
+genuinely has much denser dark linework relative to its size (48.9% of its opaque pixels read
+as near-black vs the city's 31.9%, and its 25th-percentile luma sits at 0.076 vs the city's
+0.194), so the *same* tan target reads visually darker/denser overall on the smaller piece.
+Regenerating via `generate_icon.py` again felt like overkill for a "nudge it lighter" ask, and
+Greece's existing outline was already approved ("greece looks good") - re-deriving ink from
+scratch risked breaking that. Instead: a small one-off blend, not routed through
+`recolor_piece.py` (whose `floor` parameter also lightens genuine near-black ink pixels
+directly, which would have grayed out the crisp outline this fix needed to leave untouched) -
+every opaque pixel with `RGB sum >= 90` (i.e. not already near-black ink) blended 22% of the
+way toward white (`rgb + (255-rgb)*0.22`), ink pixels left exactly as they were. Re-synced,
+confirmed via a side-by-side crop against the city.
+
+**Follow-up: Jake wanted the settlement's fill to be Greece city's exact color, not a nudge
+toward it.** The 22%-blend fix above visibly narrowed the gap but wasn't literally the same
+RGB. Fixed properly this time: eyedroppered the city's own flat-fill tone directly - the
+single most common RGB among the city's non-ink, non-highlight opaque pixels (excluding
+`sum<90` as ink and `sum>720` as near-white highlight) is (227,205,164), repeated across
+271,699 candidate pixels with (228,206,164) a close second, so it's genuinely the dominant flat
+tone, not an averaging artifact. Re-ran `recolor_piece.py` plain-duotone (no `floor`/
+`ink_cutoff` - matching how greece was first recolored, before any of the follow-up tuning
+above) on BOTH `greece-city.png` and `greece-settlement.png` from their pre-recolor originals
+with that exact target, so city and settlement are now colorimetrically identical by
+construction rather than independently-tuned approximations of each other.
+`Civilization.baseAccentColor` for `.greece` updated to the same (0.890, 0.804, 0.643) so the
+HUD/badge/road (which all read `accentColor`, still plain `vivid(baseAccentColor)`, no
+per-civ road override - see the reverted `roadColor` note below) derive from the identical
+eyedroppered value too, not the earlier hand-picked (0.90, 0.82, 0.65) approximation.
+
+**Follow-up: still "just not the same," even with an identical target RGB by construction.**
+The road (also driven by that same value) was fine, so this was specific to the settlement's
+*fill*, not the color choice - confirms the earlier "denser dark linework relative to its
+size" finding above: an identical duotone target still produces a visibly different result
+once the two source pieces' own luma distributions differ this much, because the mapping is
+per-pixel (`target * luma`), not a single flat color. Sampling yet another point on the city
+wasn't going to fix a distribution-shape mismatch either. Regenerated the settlement via
+`generate_icon.py` again (Jake: "you may have to regenerate Greece's settlement") - but this
+time handed the model `approved/pieces/greece-city.png` itself as the color/style reference
+(not a hex value) with the prompt explicit about matching the reference's overall *brightness
+balance*, not just its hue, and asking it to avoid large heavily-shaded dark areas. This is a
+strictly better ask of the image model than an exact RGB is: matching "reads as the same
+overall material" is exactly the kind of holistic-appearance judgment a duotone remap (or any
+single-target color math) structurally cannot make, since it only ever sees luma-in,
+color-out for one pixel at a time with no notion of the OTHER piece's own tonal distribution.
+Re-synced, confirmed via a side-by-side crop and reinstalled on Jake's phone.
+
+**Follow-up tried and reverted: a separately-darkened Greece road color.** Jake first asked
+for Greece's road to be darker than its light-tan `accentColor` for legibility against the
+board. Added `Civilization.roadColor` (an HSB-darkened variant, Greece-only) and
+`CatanTheme.roadColor(for:)`, wired into `BoardView.roadViews`'s one per-player road-fill call
+site. On review the darkened shade read as too dark / not recognizably Greece's own color -
+Jake asked for "the exact color" instead, i.e. no separate road shade at all. Reverted
+`roadColor`/`CatanTheme.roadColor(for:)` entirely; `BoardView.roadViews` is back to plain
+`CatanTheme.color(for:)`, so Greece's road (like every other civ's) is exactly `accentColor`,
+no special case.
+
+**Lesson for next time:** the earlier "restyle via AI, not by hand" choice in this same section
+was right for a *fresh* civilization redesign, but this ask - "same piece, reproduce the
+roster's own bold-outline rendering convention on a differently-styled source" - was also
+fundamentally an AI-generation problem, not a pixel-math one, and four rounds of threshold/
+gradient/blur tuning were spent establishing that the hard way. The tell in hindsight: once the
+ask becomes about matching a *style convention* (line weight, "looks like the others") rather
+than a *measurable pixel property* (hue, brightness), deterministic pixel math is the wrong
+tool - reach for `generate_icon.py` with the right reference images instead of iterating
+further on thresholds.
+
+**Follow-up: the city's own interior lines still read thinner than its own outer border.** The
+v2 city regeneration above (matched line thickness to the settlement) still left some interior
+detail - the thin column dividers between window openings especially - visibly thinner than
+the bold outer silhouette stroke on the city itself. Regenerated once more (v3), this time
+using the CURRENT `columbia-city.png` as its own sole reference and asking narrowly for one
+fix only: every interior line brought up to the same thickness as that same image's own outer
+border, everything else (shape, color, shading, composition) held identical. Worked cleanly in
+one pass - a self-reference plus a single, precisely-scoped instruction ("make X match Y,
+already both present in this one image") gave the model an unambiguous target in a way
+"thicker" or "bolder" in the abstract hadn't. Re-synced, reinstalled on Jake's phone.
 
 ## Other pending work
 
