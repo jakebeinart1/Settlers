@@ -1,22 +1,6 @@
 # Settlers — To Do
 
-## 1. Design pass (make it look better)
-Taking the UI into Claude Design for fresh visual direction, starting narrow.
-
-- [x] Hand off `BuildingsDesignExport/` (settlement/city pieces only) to
-      Claude Design — got back a refined 4-civ look (etched detail, gold
-      pennant city marker) plus 4 new civilizations (Columbia, Rome, Japan,
-      Norse). Implemented in `Settlers/Theme/Civilization.swift`,
-      `Settlers/Views/Board/CivilizationBadge.swift` +
-      `CivilizationPieceShapes.swift`, plus a new civilization picker in
-      `SettingsView` (choose your own civ + toggle the bot roster,
-      persisted via `CivilizationSettingsStore`/`CivilizationAssignmentStore`).
-      See `docs/superpowers/specs/2026-08-12-civilization-expansion-design.md`.
-- [ ] Once buildings have a direction, take the full board into design via
-      `ClaudeDesignExport/` (board, HUD, popups — already bundled, not yet
-      sent).
-
-## 2. Bot strength
+## 1. Bot strength
 Make the bot opponents play meaningfully better.
 
 - [x] Added `ThreatAssessment` (`Packages/CatanAI/Sources/CatanAI/ThreatAssessment.swift`)
@@ -53,7 +37,7 @@ Make the bot opponents play meaningfully better.
       the shared `GameObservation`/`ActionSpace` seam. Do not select an
       algorithm from intuition or from another game's results.
 
-## 3. Main menu / game log rework
+## 2. Main menu / game log rework
 
 - [ ] Trim the main menu — drop the Settings entry there; most of what it
       exposes is already reachable later (in-game settings, etc.), so a
@@ -76,15 +60,27 @@ Make the bot opponents play meaningfully better.
       button as the pause menu (bottom-right), so you can see opponent
       reactions to events as the game goes.
 
-## 4. Creative bot trade offers
+## 3. New game modes (larger maps)
 
-- [x] Bots should get more creative/aggressive with trade offers instead of
-      giving up after one decline — if a first offer is turned down, a bot
-      can float another (different ratio, different give/want) rather than
-      falling back straight to the bank or dropping the plan.
-- [x] Bots should be willing to be generous/sacrifice value when the trade
-      unlocks their best play, even at worse than 3:1 — e.g. a bot sitting
-      on 3 ore and missing exactly one resource for a settlement (its best
-      available move) should offer those 3 ore for the 1 it needs, even
-      without a 3:1 port, rather than only proposing trades at or better
-      than bank rate.
+New fixed modes (board size + VP target + map art bundled together, not
+independent mix-and-match settings), starting with a "Plan to 20" mode on a
+much bigger board. Scoping notes from an architecture survey (2026-09-04):
+engine (`Board`, `HexCoordinate`, `GameState` schema) is already
+size-agnostic — only `BoardGeneration.swift`'s literal 19-tile/port tables
+are fixed — but board pan/zoom/recenter does not exist anywhere today
+(`BoardView` always auto-fits the whole board to its container via one
+`HexGeometry` fit calc; no `ScrollView`/`MagnificationGesture`/persisted
+viewport). See the full survey findings before starting design.
+
+- [ ] Design and write a spec for the first new mode (board layout
+      generator, VP target, stall-audit for reaching 20 VP given
+      buildings/dev-card caps, player-count support) via
+      superpowers:brainstorming → docs/superpowers/specs/.
+- [ ] Board camera: pinch/gesture zoom and pan on `BoardView`, plus a
+      Google-Maps-style "recenter" button that resets the camera back to
+      the current default fit-to-container view.
+- [ ] Generate new full-screen map background art for the larger board via
+      the existing AI art pipeline (`design-references/tiles/_scripts/`);
+      hex tile textures are stamped per-hex and don't need regenerating.
+- [ ] Add a map/mode selector to New Game setup (`MatchSetup`,
+      `NewGameSetupView`), wired to the new board generator and VP target.
