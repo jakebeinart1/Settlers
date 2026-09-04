@@ -273,34 +273,7 @@ struct SeatCardView: View {
         VStack(alignment: .leading, spacing: 4) {
             Button(action: onEditCivilization) {
                 HStack(spacing: 7) {
-                    // A question mark, not a die - a die reads as "roll for
-                    // it during the game", when this is actually an
-                    // as-yet-undrawn choice that stays fixed once picked
-                    // (Jake's ask, 2026-09-03).
-                    //
-                    // Fixed height AND width, not just the font's natural
-                    // size - SF Symbols aren't all drawn to the same optical
-                    // height at a given point size (`UniformActionButton` hit
-                    // the same thing with "die.face.5.fill"), so without a
-                    // pinned height an undrawn seat's `questionmark.circle.fill`
-                    // came out a visibly different height from a drawn seat's
-                    // emblem, growing the whole button (Jake's ask,
-                    // 2026-09-03, fixed same day). The width pin is the
-                    // second half of that fix, found only by reproducing on
-                    // the simulator and swapping civilizations between seats:
-                    // each emblem's natural width also differs (e.g.
-                    // "bolt.fill" is narrower than "mountain.2.fill"), which
-                    // left the `Text` below a different amount of leftover
-                    // row width per civilization - close enough to its own
-                    // fit that `minimumScaleFactor` occasionally engaged by a
-                    // sliver for one civ and not its neighbour, reading as
-                    // "this box's text is bigger than that one's" even though
-                    // both specify the exact same point size. Pinning the
-                    // icon's width removes the variable rather than chasing
-                    // its symptom.
-                    Image(systemName: seat.civilization?.emblemSymbol ?? "questionmark.circle.fill")
-                        .font(.system(size: 13))
-                        .frame(width: 18, height: 15)
+                    civilizationMark
                     Text(seat.civilization?.displayName ?? "Random")
                         .font(.system(size: Self.bodyTextSize, weight: .semibold, design: .serif))
                         .lineLimit(1)
@@ -315,6 +288,23 @@ struct SeatCardView: View {
             }
             .buttonStyle(.plain)
             .accessibilityLabel("Seat \(seat.index + 1) civilization, \(seat.civilization?.displayName ?? "Random")")
+        }
+    }
+
+    /// The same painted settlement the chosen civilization will place on the
+    /// board. Random remains a question mark because no identity exists yet;
+    /// a die implied the game would keep rerolling it.
+    @ViewBuilder
+    private var civilizationMark: some View {
+        if let civilization = seat.civilization {
+            CivilizationCrest(civilization: civilization, size: 20)
+        } else {
+            Image(systemName: "questionmark")
+                .font(.system(size: 10, weight: .bold))
+                .foregroundStyle(SettingsChrome.ornamentGold)
+                .frame(width: 20, height: 20)
+                .background(Color.black.opacity(0.45), in: Circle())
+                .overlay(Circle().strokeBorder(SettingsChrome.ornamentGold, lineWidth: 1.5))
         }
     }
 

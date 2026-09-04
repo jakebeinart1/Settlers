@@ -130,6 +130,27 @@ final class GameplayBoundaryFlowTests: XCTestCase {
         XCTAssertFalse(app.buttons["main-menu.resume"].exists)
     }
 
+    func testRobberVictimChoicesExposeConfiguredIdentity() {
+        continueAfterFailure = false
+        let app = launch(arguments: [
+            "-qaAutoStart", "-qaFastForwardToRollDice", "-qaShowRobberVictimPicker",
+        ])
+        let victims = app.buttons.matching(
+            NSPredicate(format: "identifier BEGINSWITH %@", "robber.victim.")
+        )
+        let first = victims.firstMatch
+
+        XCTAssertTrue(first.waitForExistence(timeout: 30))
+        XCTAssertTrue(first.label.contains("resource cards"))
+        XCTAssertGreaterThanOrEqual(first.label.split(separator: ",").count, 3,
+                                    "victim must expose name, civilization, and public hand size")
+
+        let attachment = XCTAttachment(screenshot: app.screenshot())
+        attachment.lifetime = .keepAlways
+        attachment.name = "identity-rich-robber-victims"
+        add(attachment)
+    }
+
     func testRealAutomatedMatchReachesGameOverAndClearsItsSave() {
         continueAfterFailure = false
         let app = launch(arguments: ["-qaAutoStart", "-qaPlayToEnd"])

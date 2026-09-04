@@ -76,6 +76,38 @@ struct CivilizationBadge: View {
     }
 }
 
+/// The civilization's board piece presented as a compact heraldic mark.
+///
+/// HUDs previously paired an ownership-color dot with an unrelated SF Symbol
+/// (sun, bolt, crown), while the map used painted settlements. A player then
+/// had to learn two logo systems for the same opponent. This crest reuses the
+/// exact settlement artwork from `CivilizationBadge`; the dark seal and exact
+/// accent ring only give that irregular transparent art a reliable footprint
+/// on light, dark and textured surfaces.
+struct CivilizationCrest: View {
+    let civilization: Civilization
+    let size: CGFloat
+
+    var body: some View {
+        ZStack {
+            Circle()
+                .fill(Color.black.opacity(0.42))
+            Circle()
+                .strokeBorder(Color.black.opacity(0.9), lineWidth: max(1, size * 0.11))
+            Circle()
+                .inset(by: max(1, size * 0.055))
+                .strokeBorder(civilization.accentColor, lineWidth: max(1, size * 0.075))
+            CivilizationBadge(
+                civilization: civilization,
+                isCity: false,
+                size: size * 0.72
+            )
+        }
+        .frame(width: size, height: size)
+        .accessibilityHidden(true)
+    }
+}
+
 /// The city marker's pennant-on-a-pole, shared across every civilization
 /// (only the building silhouette differs) - a thin pole with a small
 /// triangular flag near its top, drawn within whatever rect it's given.

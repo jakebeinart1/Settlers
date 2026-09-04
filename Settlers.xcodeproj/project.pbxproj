@@ -15,6 +15,7 @@
 		0C001867D26CBDBAA67CDC72 /* BoardLayeringTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56E4A8873ADD3D6574E7A3D3 /* BoardLayeringTests.swift */; };
 		0F1C7F5ED5E32E95D4FDE581 /* OpponentProfileTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4871E5E296438809020C5BFD /* OpponentProfileTests.swift */; };
 		17B209D17F882202517AC5D8 /* BoardChips.swift in Sources */ = {isa = PBXBuildFile; fileRef = 64B237C01DFEE60CA454FFCB /* BoardChips.swift */; };
+		18CC1440102EAD5B2A61EC6D /* PlayerIdentity.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9797C7C47B668B6FB29A4B0 /* PlayerIdentity.swift */; };
 		1B2E8933650EFB5E3A65F60D /* PlayerNameStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = A7D42223DB45BEF77F97D3F6 /* PlayerNameStore.swift */; };
 		1CE9F2891BE97F0B0CC630BB /* EndGameView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 52C0B1D44B650E22AEBC8366 /* EndGameView.swift */; };
 		1D2F66F3FE62DEFCBDD373E2 /* GameLogStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50C4CFF8E5798600294998A8 /* GameLogStoreTests.swift */; };
@@ -94,6 +95,7 @@
 		ED932E191F8F655CD1CF15F1 /* GameLogListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D98DF10D73632B7243DC205C /* GameLogListView.swift */; };
 		EDDC6F3EE75F97F9C0A3A1CA /* GameplayBoundaryFlowTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 95CF01E3C9518CFFC7C0AF1F /* GameplayBoundaryFlowTests.swift */; };
 		F196BA189817672BCD58FBA7 /* GameViewModel+QATrade.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7E281605A981DE27D853BE66 /* GameViewModel+QATrade.swift */; };
+		F771473CF73234C9A515C3B7 /* RobberVictimButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 51D0B7EDF9C05C757889F9F2 /* RobberVictimButton.swift */; };
 		FA9E6540100EF009A969A54A /* OpponentProfileIntegrationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 52A8BE17AC12F2C0246905CE /* OpponentProfileIntegrationTests.swift */; };
 		FF9AA750533D6758843BC13D /* GameLogDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E93C9C15AFA0812F0FF8E052 /* GameLogDetailView.swift */; };
 /* End PBXBuildFile section */
@@ -136,6 +138,7 @@
 		494D7E69889970F3FA1C24AB /* GameLogStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameLogStore.swift; sourceTree = "<group>"; };
 		4B89EE635B1E470682ED1D4B /* CatanTheme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CatanTheme.swift; sourceTree = "<group>"; };
 		50C4CFF8E5798600294998A8 /* GameLogStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameLogStoreTests.swift; sourceTree = "<group>"; };
+		51D0B7EDF9C05C757889F9F2 /* RobberVictimButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RobberVictimButton.swift; sourceTree = "<group>"; };
 		5281B8CED614C244F7E533EE /* CompleteMatchTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompleteMatchTests.swift; sourceTree = "<group>"; };
 		52A8BE17AC12F2C0246905CE /* OpponentProfileIntegrationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OpponentProfileIntegrationTests.swift; sourceTree = "<group>"; };
 		52C0B1D44B650E22AEBC8366 /* EndGameView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EndGameView.swift; sourceTree = "<group>"; };
@@ -171,6 +174,7 @@
 		A3E45A27E8D8AA6CC2D8717A /* DevCardStyle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DevCardStyle.swift; sourceTree = "<group>"; };
 		A7D42223DB45BEF77F97D3F6 /* PlayerNameStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerNameStore.swift; sourceTree = "<group>"; };
 		A91C26F52123725EF8FFF41C /* MatchCheckpointStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MatchCheckpointStore.swift; sourceTree = "<group>"; };
+		A9797C7C47B668B6FB29A4B0 /* PlayerIdentity.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerIdentity.swift; sourceTree = "<group>"; };
 		AAE31202C59C388953152F18 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		ACBC9F02C56C7D94404C8B98 /* GameViewModel+OpponentProfiles.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "GameViewModel+OpponentProfiles.swift"; sourceTree = "<group>"; };
 		AF68AEB9AD0DD219D7E84E99 /* MatchSetup.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MatchSetup.swift; sourceTree = "<group>"; };
@@ -307,6 +311,7 @@
 				4B89EE635B1E470682ED1D4B /* CatanTheme.swift */,
 				C47D8E51CEBC82766DDDF936 /* Civilization.swift */,
 				A3E45A27E8D8AA6CC2D8717A /* DevCardStyle.swift */,
+				A9797C7C47B668B6FB29A4B0 /* PlayerIdentity.swift */,
 			);
 			path = Theme;
 			sourceTree = "<group>";
@@ -344,6 +349,7 @@
 				44E440B9CD11BDC249491106 /* PaintedChromeBackground.swift */,
 				77BA2122016739392CF5DF22 /* PlayerHUDView.swift */,
 				BF75252617AEEC3F4190D703 /* ResourceChip.swift */,
+				51D0B7EDF9C05C757889F9F2 /* RobberVictimButton.swift */,
 				7B3D502345F41546FE4903CE /* SeatCardView.swift */,
 				D9D4E1C56EC91FE0C881DA59 /* SeatNumberPickerPopup.swift */,
 				8BC4427BD3E30FD0F5F9E9CC /* SettingsChrome.swift */,
@@ -594,9 +600,11 @@
 				57EA5B6AC6CBD8DF633CAEC0 /* PacingPreferences.swift in Sources */,
 				5FD5B98FFB1669F9BE80F1DC /* PaintedChromeBackground.swift in Sources */,
 				88CF824C3335F34CF54E08E2 /* PlayerHUDView.swift in Sources */,
+				18CC1440102EAD5B2A61EC6D /* PlayerIdentity.swift in Sources */,
 				1B2E8933650EFB5E3A65F60D /* PlayerNameStore.swift in Sources */,
 				EA3F8948081A29B415CD8B67 /* QALaunchFlag.swift in Sources */,
 				982B80C1DDE6B39264765604 /* ResourceChip.swift in Sources */,
+				F771473CF73234C9A515C3B7 /* RobberVictimButton.swift in Sources */,
 				08572217A242A44981A040EB /* SavedGameAvailability.swift in Sources */,
 				A0509BA422B4A4CCC2E73976 /* SeatCardView.swift in Sources */,
 				BC863FBB0B69046B3989938A /* SeatNumberPickerPopup.swift in Sources */,

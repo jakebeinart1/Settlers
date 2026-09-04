@@ -3,12 +3,10 @@ import UIKit
 import CatanEngine
 import CatanAI
 
-/// One of eight playable empires. Exactly one occupies each of the 4 seats
-/// per game - which one is fixed for the *duration of a game* but no longer
-/// fixed *forever*: `CivilizationAssignment` decides seat 0 (the human, from
-/// `CivilizationSettingsStore.yourCivilization`) and seats 1-3 (3 distinct
-/// random draws from `CivilizationSettingsStore.includedBotCivilizations`)
-/// once per game, in `GameViewModel.startNewGame`/`init`. Both the
+/// One of eight playable empires. Exactly one occupies each chair on the
+/// supported three- or four-player table. A realized `MatchSetup` fixes that
+/// assignment for the match and `PlayerRoster` is its runtime presentation
+/// authority. Both the
 /// settlement/city look (`CivilizationBadge`: a flat silhouette in this
 /// civilization's color with an etched detail, matching the board's flat,
 /// straight-bordered, black-outlined style - detailed isometric/illustrated
@@ -79,37 +77,11 @@ public enum Civilization: String, CaseIterable, Sendable, Codable {
         }
     }
 
-    /// The general leading this civilization's bot seat - shown in place of
-    /// "Bot (Balanced)"-style labels. The human's own seat still just reads
-    /// "You" everywhere (see `CatanTheme.playerLabel`), so this name is only
-    /// ever surfaced for bot seats in practice.
+    /// The catalogued general leading this civilization's default bot.
+    /// Running matches use their snapshotted `OpponentProfile.name`; this is
+    /// the fallback for previews and legacy archives that predate profiles.
     public var generalName: String {
-        switch self {
-        case .medieval: return "Charlemagne"
-        case .greece: return "Alexander"
-        case .egypt: return "Ramesses"
-        case .aztec: return "Moctezuma"
-        case .columbia: return "Washington"
-        case .rome: return "Augustus"
-        case .japan: return "Tokugawa"
-        case .norse: return "Ragnar"
-        }
-    }
-
-    /// Small SF Symbol standing in for this civilization's emblem - used
-    /// next to its name in the HUD so each empire reads as a distinct
-    /// faction at a glance, not just a color.
-    public var emblemSymbol: String {
-        switch self {
-        case .medieval: return "shield.lefthalf.filled"
-        case .greece: return "laurel.leading"
-        case .egypt: return "sun.max.fill"
-        case .aztec: return "flame.fill"
-        case .columbia: return "star.fill"
-        case .rome: return "crown.fill"
-        case .japan: return "mountain.2.fill"
-        case .norse: return "bolt.fill"
-        }
+        OpponentProfile.forCivilization(self).name
     }
 
     /// This civilization's fixed material color, tested against the board's
@@ -207,51 +179,49 @@ public enum Civilization: String, CaseIterable, Sendable, Codable {
         }
     }
 
-    /// A darker, fixed-saturation/brightness tint of `accentColor`, used as
+    /// A darker, fixed-brightness tint of `accentColor`, used as
     /// this civilization's HUD card background (`PlayerChip`,
     /// `HumanPlayerPanel`) so each player's card carries their own color
     /// instead of every card sharing one flat blue. Deriving from
     /// `accentColor`'s hue rather than choosing 8 new RGB triples keeps a
     /// card visibly "that civ's color" without a second palette to keep in
-    /// sync; pinning saturation/brightness instead of scaling `accentColor`
-    /// directly keeps every civ's card at the same legibility level for the
-    /// white HUD text on top, regardless of how bright or muted (e.g.
-    /// Greece's marble grey) that civ's own accent happens to be.
+    /// sync. Saturation is preserved: forcing every material to 55–60%
+    /// saturation invented a hue for Columbia's white and exaggerated muted
+    /// materials into unrelated colors. Only brightness is normalized for
+    /// consistent white-text legibility.
     public func cardBackgroundColor(active: Bool) -> Color {
         var hue: CGFloat = 0, saturation: CGFloat = 0, brightness: CGFloat = 0, alpha: CGFloat = 0
         UIColor(accentColor).getHue(&hue, saturation: &saturation, brightness: &brightness, alpha: &alpha)
-        return Color(hue: Double(hue), saturation: active ? 0.6 : 0.55, brightness: active ? 0.46 : 0.33, opacity: 1)
+        return Color(
+            hue: Double(hue), saturation: Double(saturation),
+            brightness: active ? 0.46 : 0.33, opacity: 1
+        )
     }
 
     private static func vivid(_ color: Color) -> Color {
         var hue: CGFloat = 0, saturation: CGFloat = 0, brightness: CGFloat = 0, alpha: CGFloat = 0
         UIColor(color).getHue(&hue, saturation: &saturation, brightness: &brightness, alpha: &alpha)
-        let boostedSaturation = min(1, saturation * 1.35 + 0.06)
+        // A fixed saturation bonus invents a hue for neutral materials. That
+        // turned Columbia's intentionally white identity faintly red before
+        // the HUD texture amplified it into a purple card. Preserve genuine
+        // neutrals; only already-coloured materials get the vividness bump.
+        let boostedSaturation = saturation < 0.08 ? saturation : min(1, saturation * 1.35 + 0.06)
         let boostedBrightness = min(1, brightness * 1.08)
         return Color(hue: Double(hue), saturation: Double(boostedSaturation), brightness: Double(boostedBrightness), opacity: Double(alpha))
     }
 
 }
 
-/// This game's seat -> civilization mapping - set once per game (not a
-/// per-app-launch constant) now that `CivilizationSettingsStore` lets the
-/// player choose their own civilization and which others are in the mix.
-/// A plain global var rather than something threaded through every view:
-/// `Civilization.forSeat`/`CatanTheme.color(for: PlayerID)` are read from
-/// ~10 call sites across the board/HUD/trade/settings views as pure-looking
-/// static lookups, and re-plumbing all of them through an environment value
-/// for a mapping that only actually changes once per game (at
-/// `GameViewModel.startNewGame`/`init`) isn't worth the churn. `nonisolated
-/// (unsafe)` rather than `@MainActor` for the same reason: this whole app is
-/// single-threaded UI code, every read and write already happens on the
-/// main thread in practice, and actor-isolating `current` would force
-/// `@MainActor` down through every nonisolated helper property that reads
-/// `Civilization.forSeat`/`CatanTheme.color(for: player:)` indirectly.
+/// Compatibility projection for previews, older tests, and legacy migration.
+/// Live gameplay surfaces receive `GameViewModel.playerIdentity(for:)` and do
+/// not read these globals; the durable realized `MatchSetup` is authoritative.
+/// Removing the projection entirely remains a migration cleanup, not a reason
+/// to let production UI assemble identity piecemeal again.
 public enum CivilizationAssignment {
     /// The human's seat within `current` - defaults to seat 0 (the fixed
     /// assumption before "Randomize Seat" existed), but not necessarily
-    /// index 0 once that toggle picks a different one. Kept in step with
-    /// `GameViewModel.humanPlayer`; only `GameViewModel` ever writes here.
+    /// index 0 once that toggle picks a different one. This is only the
+    /// compatibility fallback's preferred human, not hot-seat device state.
     public nonisolated(unsafe) static var humanSeat: PlayerID = PlayerID(index: 0)
 
     /// Names for the seats people are playing, by seat.
@@ -263,10 +233,8 @@ public enum CivilizationAssignment {
     /// record of who sat where. With one human and no custom name the map is
     /// empty and every label is what it always was.
     ///
-    /// Same `nonisolated(unsafe)` bargain as `current` directly below, and for
-    /// the same reason: it is written once per game from the main thread, and
-    /// isolating it would force `@MainActor` down through every nonisolated
-    /// helper that resolves a seat to a label.
+    /// Written from the validated roster so compatibility previews stay close
+    /// to the active match; live screens do not use it.
     public nonisolated(unsafe) static var humanNames: [PlayerID: String] = [:]
 
     /// Defaults to the original fixed lineup (human at seat 0) so anything

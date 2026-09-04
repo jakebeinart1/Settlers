@@ -1,4 +1,5 @@
 import SwiftUI
+import CatanEngine
 
 /// One archived game's roster and ordered decisions, plus its original JSONL
 /// for export when a tester needs to send an exact reproduction.
@@ -64,14 +65,15 @@ struct GameLogDetailView: View {
         VStack(alignment: .leading, spacing: 8) {
             Text("Players").font(.headline)
             ForEach(0..<detail.summary.playerCount, id: \.self) { seat in
-                let civilization = detail.roster.civilizations[seat] ?? "Unknown civilization"
-                let humanName = detail.roster.humanNames[seat]
-                let role = humanName
-                    ?? detail.roster.botProfileNames[seat]
-                    ?? detail.roster.botPersonalities[seat]
-                    ?? "Human"
-                Text("Seat \(seat + 1) · \(civilization) · \(role)")
-                    .font(.subheadline)
+                let player = PlayerID(index: seat)
+                HStack(spacing: 9) {
+                    if let civilization = detail.roster.civilization(for: player) {
+                        CivilizationCrest(civilization: civilization, size: 28)
+                    }
+                    Text("Seat \(seat + 1) · \(detail.roster.displayName(for: player)) · "
+                         + (detail.roster.civilizations[seat] ?? "Unknown civilization"))
+                        .font(.subheadline)
+                }
             }
         }
     }
@@ -80,7 +82,8 @@ struct GameLogDetailView: View {
         VStack(alignment: .leading, spacing: 8) {
             Text("Moves").font(.headline)
             ForEach(Array(detail.events.enumerated()), id: \.offset) { index, event in
-                Text("\(index + 1). Seat \(event.player.index + 1): \(String(describing: event.move))")
+                Text("\(index + 1). \(detail.roster.displayName(for: event.player)): "
+                     + String(describing: event.move))
                     .font(.caption.monospaced())
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(8)

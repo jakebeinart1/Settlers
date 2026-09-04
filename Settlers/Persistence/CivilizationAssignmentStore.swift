@@ -1,11 +1,10 @@
 import Foundation
 import CatanEngine
 
-/// Persists the *current game's* seat -> civilization assignment (one entry per
-/// seat, in seat order) to disk as JSON, alongside `GameStore`'s save file. Written
-/// once, when `GameViewModel.startNewGame` draws a fresh assignment; read
-/// back on relaunch so a resumed game keeps the same bots instead of
-/// re-randomizing them every launch. Cleared together with the save.
+/// Legacy sidecar for the current game's seat -> civilization assignment.
+/// New matches persist the complete identity roster inside `MatchCheckpoint`;
+/// this file remains readable only for migration from older builds until that
+/// compatibility window closes.
 public struct CivilizationAssignmentStore: Sendable {
     public static let shared = CivilizationAssignmentStore()
 

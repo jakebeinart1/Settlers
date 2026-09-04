@@ -58,6 +58,7 @@ import Testing
             #expect(summary.humanSeats == [PlayerID(index: 0), PlayerID(index: 2)])
             #expect(summary.winner == PlayerID(index: 2))
             #expect(summary.moveCount == 1)
+            #expect(summary.playerNames == [0: "Alex", 1: "Augustus", 2: "Jake", 3: "Ragnar"])
 
             let detail = try store.detail(for: summary)
             #expect(detail.roster.humanNames == [0: "Alex", 2: "Jake"])
@@ -78,6 +79,8 @@ import Testing
         #expect(roster.botProfiles.isEmpty)
         #expect(roster.botProfileNames.isEmpty)
         #expect(roster.botPersonalities == [1: "balanced"])
+        #expect(roster.displayName(for: PlayerID(index: 0)) == "Player 1")
+        #expect(roster.displayName(for: PlayerID(index: 1)) == "Augustus")
     }
 
     @Test func crashTruncatedFinalLineKeepsAllCompleteEvents() throws {

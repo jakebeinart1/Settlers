@@ -530,7 +530,7 @@ public struct TradePopupView: View {
     /// if nobody did, a bare "no one accepted") - so a fully-declined proposal
     /// still comes back with real reactions instead of a silent wall.
     private func proposalOutcomeBanner(_ outcome: GameViewModel.TradeOutcome) -> some View {
-        let headline = outcome.acceptedBy.map { "\(viewModel.playerLabel(for: $0)) accepted!" }
+        let headline = outcome.acceptedBy.map { "\(viewModel.playerIdentity(for: $0).displayName) accepted!" }
             ?? "No one accepted that trade."
         let headlineColor: Color = outcome.acceptedBy != nil ? .green : .red
 
@@ -556,19 +556,32 @@ public struct TradePopupView: View {
     /// One bot's name and message, shared between the pending banner and the
     /// resolved one - only the leading icon and the caller's colour differ.
     private func tradeMessageRow(_ decision: (bot: PlayerID, accepted: Bool, message: String), systemImage: String) -> some View {
-        HStack(alignment: .top, spacing: 6) {
-            Image(systemName: systemImage)
-                .font(.subheadline)
+        let identity = viewModel.playerIdentity(for: decision.bot)
+        return HStack(alignment: .top, spacing: 6) {
+            ZStack(alignment: .bottomTrailing) {
+                CivilizationCrest(civilization: identity.civilization, size: 30)
+                Image(systemName: systemImage)
+                    .font(.system(size: 8, weight: .bold))
+                    .foregroundStyle(.white)
+                    .frame(width: 14, height: 14)
+                    .background(decision.accepted ? Color.green : Color.red, in: Circle())
+            }
             // `TradeMessages`'s pools are capped at 38 characters (see its own
             // doc comment) so a line fits on one row at this size within the
             // popup's width, with no `lineLimit` or shrinking needed.
             VStack(alignment: .leading, spacing: 1) {
-                Text("\(viewModel.playerLabel(for: decision.bot)):")
-                    .font(.subheadline.bold())
+                HStack(spacing: 5) {
+                    Text(identity.displayName)
+                        .font(.subheadline.bold())
+                    Text(identity.civilization.displayName)
+                        .font(.caption)
+                        .foregroundStyle(.white.opacity(0.68))
+                }
                 Text(decision.message)
                     .font(.subheadline)
             }
         }
+        .accessibilityElement(children: .combine)
     }
 
     // MARK: - Bank trade

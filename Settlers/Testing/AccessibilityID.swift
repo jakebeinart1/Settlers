@@ -54,6 +54,10 @@ enum AccessibilityID {
         static let ready = "handoff.ready"
     }
 
+    enum Robber {
+        static func victim(_ seat: PlayerID) -> String { "robber.victim.\(seat.index)" }
+    }
+
     enum IncomingTrade {
         static let reject = "incoming-trade.reject"
         static let accept = "incoming-trade.accept"

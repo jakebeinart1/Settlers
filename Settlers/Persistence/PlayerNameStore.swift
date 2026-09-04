@@ -1,9 +1,9 @@
 import Foundation
 
-/// The player's own display name, shown in place of the generic "You"
-/// wherever `CatanTheme.playerLabel(for:)` is read (bot trade offers, the
-/// robber victim picker, the end-game standings, etc.) - edited from
-/// `SettingsView`. A single `UserDefaults` string rather than folding into
+/// The name preference used to prefill the next New Game screen. A running
+/// match snapshots each human's name in its realized `MatchSetup`, so changing
+/// this preference never renames a game already in progress. A single
+/// `UserDefaults` string rather than folding into
 /// `CivilizationSettings`: it's an unrelated, independently-editable field,
 /// and keeping it separate means no `Codable` migration story for the
 /// existing `CivilizationSettings` blob.

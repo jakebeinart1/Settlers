@@ -72,21 +72,36 @@ public enum CatanTheme {
         Civilization.forSeat(player.index).accentColor
     }
 
-    /// Human-readable seat label: the player's own custom name (set in
-    /// Settings) for the human seat, falling back to "You" if none is set,
-    /// otherwise that seat's civilization general (e.g. "Caesar") - see
-    /// `Civilization.forSeat`. Replaces the old generic "Player N" now that
-    /// every bot seat has a fixed empire identity.
-    public static func playerLabel(for player: PlayerID) -> String {
+    /// Fallback identity resolver for previews and views used without a live
+    /// `GameViewModel`. Gameplay uses the model's match-authoritative resolver,
+    /// which can also read snapshotted opponent profiles.
+    public static func playerIdentity(for player: PlayerID) -> PlayerIdentity {
+        let civilization = Civilization.forSeat(player.index)
         // A named human wins: in a hot-seat game "Sam" is the only useful
         // label, and calling one of several people "You" on a shared screen is
         // worse than useless.
-        if let name = CivilizationAssignment.humanNames[player], !name.isEmpty { return name }
-        guard player == CivilizationAssignment.humanSeat else {
-            return Civilization.forSeat(player.index).generalName
+        if let name = CivilizationAssignment.humanNames[player], !name.isEmpty {
+            return PlayerIdentity(
+                seat: player, displayName: name,
+                civilization: civilization, controller: .human
+            )
         }
-        let name = PlayerNameStore.shared.load()
-        return name.isEmpty ? "You" : name
+        if player == CivilizationAssignment.humanSeat {
+            let preferredName = PlayerNameStore.shared.load()
+            return PlayerIdentity(
+                seat: player, displayName: preferredName.isEmpty ? "You" : preferredName,
+                civilization: civilization, controller: .human
+            )
+        }
+        return PlayerIdentity(
+            seat: player, displayName: civilization.generalName,
+            civilization: civilization, controller: .computer
+        )
+    }
+
+    /// Compatibility convenience for text-only call sites.
+    public static func playerLabel(for player: PlayerID) -> String {
+        playerIdentity(for: player).displayName
     }
 
     /// City marker's pennant-on-a-pole flag, flown above a `CivilizationBadge`

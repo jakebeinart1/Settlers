@@ -43,8 +43,8 @@ struct ContentView: View {
         Group {
             if case .gameOver = viewModel.state.phase, hasStartedThisSession,
                viewModel.savedGameAvailability.recoveryMessage == nil {
-                EndGameView(state: viewModel.state, human: viewModel.humanPlayer,
-                            playerLabel: viewModel.playerLabel) {
+                EndGameView(state: viewModel.state, humanSeats: viewModel.humanSeats,
+                            playerIdentity: viewModel.playerIdentity) {
                     if viewModel.clearCompletedMatch() { hasStartedThisSession = false }
                 }
             } else if hasStartedThisSession, viewModel.savedGameAvailability.recoveryMessage == nil {

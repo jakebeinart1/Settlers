@@ -144,13 +144,12 @@ struct PaintedChromeBackground: View {
 /// cards' aspect isn't fixed - bot chips flex with 1-3 opponents, the human
 /// panel flexes with its content - so recoloring one shared texture at
 /// render time is the version that can't crop unevenly), laid over a flat
-/// `tint` fill in `.overlay` blend mode rather than `colorMultiply` - the
-/// source photo is itself a fairly dark navy (its own brightness is most of
-/// what makes the trade button read as a deep blue rather than a bright
-/// one), so multiplying it straight into another color compounded that
-/// darkness into a near-black card. Blending it as texture/contrast on top
-/// of the tint instead keeps the tint as the card's actual brightness level
-/// and only borrows the photo for its woven pattern.
+/// `tint` fill in `.luminosity` blend mode. The source photo is navy, so the
+/// old `.overlay` mode contributed its hue as well as its texture: Egypt's
+/// orange ownership colour rendered as a green HUD card and Columbia's white
+/// card rendered purple. Luminosity borrows only the painting's light and
+/// shade while preserving the civilization tint's hue and saturation. That
+/// makes the card, its border, its roads and its pieces one visual identity.
 ///
 /// Drawn with `Canvas`/`GraphicsContext.Shading.tiledImage` rather than a
 /// plain `Image(...).resizable().scaledToFill()` for two reasons: `tiledImage`
@@ -197,7 +196,7 @@ struct TintedTextureBackground: View {
             guard size.height > 0 else { return }
             let scale = size.height / Self.textureSize.height
             context.opacity = 0.6
-            context.blendMode = .overlay
+            context.blendMode = .luminosity
             context.fill(
                 Path(rect),
                 with: .tiledImage(

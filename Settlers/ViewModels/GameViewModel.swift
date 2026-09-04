@@ -53,13 +53,17 @@ public final class GameViewModel {
     var session: GameSession
 
     public var state: GameState { session.state }
+    /// Match-scoped visual and controller identity, derived from the same
+    /// realized setup that is stored in the durable checkpoint.
+    var playerRoster: PlayerRoster
+
     /// Every seat a person is playing, one to four of them.
     ///
     /// A `Set`, because membership is the question almost every caller asks -
     /// "is this seat a bot?" A count could not express "humans in seats 0 and
     /// 2", and a `[SeatKind]` array would reintroduce the bare index that
     /// `PlayerID` exists to hide.
-    public internal(set) var humanSeats: Set<PlayerID>
+    public var humanSeats: Set<PlayerID> { playerRoster.humanSeats }
 
     /// The realized bot identity at each non-human chair.
     ///
@@ -67,7 +71,7 @@ public final class GameViewModel {
     /// dialogue and logging all read the same assignment. The civilization
     /// assignment is durable, so these profiles reconstruct identically after
     /// relaunch from the checkpoint's realized setup.
-    public internal(set) var opponentProfiles: [PlayerID: OpponentProfile]
+    public var opponentProfiles: [PlayerID: OpponentProfile] { playerRoster.opponentProfiles }
 
     /// Human seats in a stable order.
     ///
@@ -261,23 +265,27 @@ public final class GameViewModel {
         // `HumanSeatStore` holds a single seat and cannot express "people in
         // seats 0 and 2", so on its own it turned every human seat but the
         // lowest into a bot on the next launch, and lost their names.
-        let roster = (seats: Set([seat]), names: [PlayerID: String]())
-        CivilizationAssignment.humanNames = roster.names
+        let preferredName = PlayerNameStore.shared.load()
+        let humanNames = [seat: preferredName.isEmpty ? "You" : preferredName]
+        CivilizationAssignment.humanNames = humanNames
         // `@Observable` requires every stored property assigned before
         // `self` (including `self.state`) can be read - `GameLogStore`
         // reads `initialState` (the local), never `self.state`, to stay
         // fully assign-before-read through this initializer.
         let profiles = Self.opponentProfiles(
-            for: initialState, humanSeats: roster.seats,
+            for: initialState, humanSeats: [seat],
             civilizations: assignment
         )
         session = Self.makeSession(state: initialState, opponentProfiles: profiles)
-        humanSeats = roster.seats
-        opponentProfiles = profiles
+        playerRoster = PlayerRoster(
+            playerIDs: initialState.players.map(\.id), humanSeats: [seat],
+            humanNames: humanNames, civilizations: assignment,
+            opponentProfiles: profiles
+        )
         // Nobody is holding a force-quit phone, so a hot-seat game resumes
         // behind the handoff cover rather than showing whoever's hand happens
         // to be up. A solo game has nobody to pass to and claims immediately.
-        seatAtDevice = roster.seats.count == 1 ? roster.seats.first : nil
+        seatAtDevice = seat
         self.saveWasUnreadable = false
         loadCheckpointAuthority()
     }
@@ -615,7 +623,6 @@ public final class GameViewModel {
     /// Multi-seat overload, for hot-seat tests.
     func replaceStateForTesting(_ newState: GameState, humanSeats seats: Set<PlayerID>) {
         precondition(!seats.isEmpty, "a game must have at least one human seat")
-        humanSeats = seats
         seatAtDevice = seats.sorted().first
         // Do not read the process-global assignment here. Swift Testing runs
         // test functions concurrently, and another fixture may be exercising
@@ -624,10 +631,19 @@ public final class GameViewModel {
         // own deterministic complete assignment.
         let civilizations = Array(Civilization.allCases.prefix(newState.players.count))
         CivilizationAssignment.current = civilizations
-        opponentProfiles = Self.opponentProfiles(
+        let profiles = Self.opponentProfiles(
             for: newState, humanSeats: seats, civilizations: civilizations
         )
-        session = Self.makeSession(state: newState, opponentProfiles: opponentProfiles)
+        let names = Dictionary(uniqueKeysWithValues: seats.map {
+            ($0, "Player \($0.index + 1)")
+        })
+        playerRoster = PlayerRoster(
+            playerIDs: newState.players.map(\.id), humanSeats: seats,
+            humanNames: names, civilizations: civilizations,
+            opponentProfiles: profiles
+        )
+        CivilizationAssignment.humanNames = names
+        session = Self.makeSession(state: newState, opponentProfiles: profiles)
         persistTestingPosition()
     }
 
@@ -643,16 +659,21 @@ public final class GameViewModel {
     /// before any hand is drawn.
     func qaMakeHotSeat() {
         let seats: Set<PlayerID> = [PlayerID(index: 0), PlayerID(index: 1)]
-        humanSeats = seats
         seatAtDevice = nil
-        CivilizationAssignment.humanNames = [
+        let names = [
             PlayerID(index: 0): "Alex",
             PlayerID(index: 1): "Sam",
         ]
-        opponentProfiles = Self.opponentProfiles(
+        CivilizationAssignment.humanNames = names
+        let profiles = Self.opponentProfiles(
             for: state, humanSeats: seats, civilizations: CivilizationAssignment.current
         )
-        session = Self.makeSession(state: state, opponentProfiles: opponentProfiles)
+        playerRoster = PlayerRoster(
+            playerIDs: state.players.map(\.id), humanSeats: seats,
+            humanNames: names, civilizations: CivilizationAssignment.current,
+            opponentProfiles: profiles
+        )
+        session = Self.makeSession(state: state, opponentProfiles: profiles)
         persistTestingPosition()
     }
 
@@ -698,9 +719,10 @@ public final class GameViewModel {
     /// to a production history. Real bot policy identities stay unchanged.
     private func persistTestingPosition() {
         let chairs = state.players.map { player in
-            MatchSetup.Seat(index: player.id.index, isHuman: humanSeats.contains(player.id),
-                name: humanSeats.contains(player.id) ? "Player \(player.id.index + 1)" : "",
-                civilization: CivilizationAssignment.current[player.id.index],
+            let identity = playerIdentity(for: player.id)
+            return MatchSetup.Seat(index: player.id.index, isHuman: humanSeats.contains(player.id),
+                name: humanSeats.contains(player.id) ? identity.displayName : "",
+                civilization: identity.civilization,
                 opponentProfile: opponentProfiles[player.id])
         }
         let setup = MatchSetup(seats: chairs, victoryPointTarget: state.victoryPointTarget,
@@ -741,7 +763,7 @@ public final class GameViewModel {
     /// needs the offer's `id` (not the full `TradeOffer`) since
     /// `TradeMessages` only ever keys off that for its deterministic pick.
     private func tradeResponseMessage(for bot: PlayerID, offerID: UUID, accepted: Bool) -> String {
-        let empire = Civilization.forSeat(bot.index).tradeMessagesEmpire
+        let empire = playerIdentity(for: bot).civilization.tradeMessagesEmpire
         return TradeMessages.response(offer: TradeOffer(id: offerID, from: bot, give: [:], want: [:]), empire: empire, accepted: accepted)
     }
 

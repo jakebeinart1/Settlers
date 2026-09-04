@@ -2,16 +2,18 @@ import CatanAI
 import CatanEngine
 
 extension GameViewModel {
-    /// Match-authoritative label for a seat. Bot names come from the realized
-    /// profile snapshot, not today's civilization catalog.
+    /// Match-authoritative presentation identity for a seat. Bot names and
+    /// civilizations come from the same realized profile snapshot, so tuning
+    /// today's catalog cannot create a hybrid identity in a resumed game.
+    public func playerIdentity(for player: PlayerID) -> PlayerIdentity {
+        precondition(state.players.contains { $0.id == player },
+                     "Only occupied seats have player identities")
+        return playerRoster.identity(for: player)
+    }
+
+    /// Compatibility convenience for text-only call sites.
     public func playerLabel(for player: PlayerID) -> String {
-        if let name = CivilizationAssignment.humanNames[player], !name.isEmpty { return name }
-        if let profile = opponentProfile(for: player) { return profile.name }
-        if player == CivilizationAssignment.humanSeat {
-            let name = PlayerNameStore.shared.load()
-            return name.isEmpty ? "You" : name
-        }
-        return CatanTheme.playerLabel(for: player)
+        playerIdentity(for: player).displayName
     }
 
     /// Restores the one civilization assignment matching the save on disk.

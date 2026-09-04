@@ -377,6 +377,10 @@ struct NewGameSetupView: View {
             return
         }
         setup.seats[index].isHuman = human
+        // A profile is a snapshot of a realized AI opponent, not editable New
+        // Game input. A role change must not leave a hidden second identity in
+        // the same chair for `startNewGame` to discover later.
+        setup.seats[index].opponentProfile = nil
     }
 
     /// A3.3 is served by handing the picker exactly the set `MatchSetup`
@@ -388,6 +392,7 @@ struct NewGameSetupView: View {
             taken: setup.civilizationsTaken(excluding: seatIndex),
             onSelect: { civilization in
                 setup.seats[seatIndex].civilization = civilization
+                setup.seats[seatIndex].opponentProfile = nil
                 pickingCivilizationForSeat = nil
             },
             onCancel: { pickingCivilizationForSeat = nil }

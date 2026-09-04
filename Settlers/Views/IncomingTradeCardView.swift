@@ -24,7 +24,7 @@ public struct IncomingTradeCardView: View {
     public let offer: TradeOffer
     public let onAccept: () -> Void
     public let onReject: () -> Void
-    public let playerLabel: (PlayerID) -> String
+    public let playerIdentity: (PlayerID) -> PlayerIdentity
     /// Halts the countdown without the player having to tap the card.
     ///
     /// The only pause condition used to be a tap, so the timer kept draining
@@ -36,11 +36,11 @@ public struct IncomingTradeCardView: View {
     public var isHeld: Bool = false
 
     public init(offer: TradeOffer, isHeld: Bool = false,
-                playerLabel: @escaping (PlayerID) -> String = CatanTheme.playerLabel,
+                playerIdentity: @escaping (PlayerID) -> PlayerIdentity = CatanTheme.playerIdentity,
                 onAccept: @escaping () -> Void, onReject: @escaping () -> Void) {
         self.isHeld = isHeld
         self.offer = offer
-        self.playerLabel = playerLabel
+        self.playerIdentity = playerIdentity
         self.onAccept = onAccept
         self.onReject = onReject
     }
@@ -71,6 +71,7 @@ public struct IncomingTradeCardView: View {
     @State private var tickTask: Task<Void, Never>?
 
     public var body: some View {
+        let identity = playerIdentity(offer.from)
         HStack(spacing: 8) {
             ZStack {
                 Circle()
@@ -79,21 +80,25 @@ public struct IncomingTradeCardView: View {
                     .trim(from: 0, to: totalSeconds > 0 ? remaining / totalSeconds : 1)
                     .stroke(Color.yellow, style: StrokeStyle(lineWidth: 3, lineCap: .round))
                     .rotationEffect(.degrees(-90))
+                CivilizationCrest(civilization: identity.civilization, size: 27)
                 if totalSeconds > 0 {
                     // The number, not just a draining arc. An arc alone says
                     // "something is running out" without saying how long you
                     // have, which is most of what makes a timed decision
                     // stressful rather than informative.
                     Text("\(Int(remaining.rounded(.up)))")
-                        .font(.system(size: 13, weight: .bold, design: .rounded))
+                        .font(.system(size: 9, weight: .bold, design: .rounded))
                         .monospacedDigit()
                         .foregroundStyle(.white)
+                        .padding(.horizontal, 4)
+                        .padding(.vertical, 1)
+                        .background(Color.black.opacity(0.88), in: Capsule())
+                        .offset(y: 15)
                 } else {
-                    Image(systemName: "arrow.left.arrow.right")
-                        .font(.caption2)
+                    EmptyView()
                 }
             }
-            .frame(width: 32, height: 32)
+            .frame(width: 38, height: 38)
 
             VStack(alignment: .leading, spacing: 4) {
                 // The bot's own pitch line instead of a flat "X wants to
@@ -132,9 +137,9 @@ public struct IncomingTradeCardView: View {
                 // every pitch at 38 characters - sit still at full size;
                 // only a long name+pitch combo moves.
                 MarqueeText(
-                    Text("\(playerLabel(offer.from)): ").font(.headline.bold())
+                    Text("\(identity.displayName): ").font(.headline.bold())
                         + Text(TradeMessages.pitch(offer: offer,
-                                                   empire: Civilization.forSeat(offer.from.index).tradeMessagesEmpire))
+                                                   empire: identity.civilization.tradeMessagesEmpire))
                         .font(.headline)
                 )
                 .frame(height: 22)
@@ -224,9 +229,10 @@ public struct IncomingTradeCardView: View {
         // card's own blue background that the color alone nearly
         // disappeared without it.
         .overlay(RoundedRectangle(cornerRadius: 12).strokeBorder(Color.black.opacity(0.55), lineWidth: 3.5))
-        .overlay(RoundedRectangle(cornerRadius: 12).inset(by: 1).strokeBorder(CatanTheme.color(for: offer.from), lineWidth: 2))
+        .overlay(RoundedRectangle(cornerRadius: 12).inset(by: 1).strokeBorder(identity.civilization.accentColor, lineWidth: 2))
         .foregroundStyle(.white)
         .contentShape(Rectangle())
+        .accessibilityLabel("Trade offer from \(identity.displayName) of \(identity.civilization.displayName)")
         // Tap to hold the countdown while reading, tap again to let it run.
         // It used to only ever set this to `true` - nothing anywhere set it
         // back - so one tap stopped the timer permanently and left the tick

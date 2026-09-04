@@ -88,10 +88,9 @@ public struct SettingsView: View {
 
     // MARK: - Your name
 
-    /// The name shown everywhere `CatanTheme.playerLabel(for:)` is read for
-    /// the human seat - bot trade offers, the robber victim picker, the
-    /// end-game standings, and the "You" row of your own HUD panel. Saves
-    /// on every keystroke via `onChange` rather than only on dismiss/blur -
+    /// The name prefilled for the first human on the next New Game screen.
+    /// Active matches keep the name they started with. Saves on every
+    /// keystroke via `onChange` rather than only on dismiss/blur -
     /// there's no separate "Done" step in this screen for a text field to
     /// wait for, and `PlayerNameStore.save` is cheap enough (one
     /// `UserDefaults` write) that debouncing isn't worth the complexity.
