@@ -1,5 +1,17 @@
 # Settlers — To Do
 
+## 0. Gameplay interaction UX
+
+Product requirements, interaction decisions, acceptance criteria, and the
+implementation sequence live in
+`docs/superpowers/specs/2026-09-04-gameplay-interaction-ux.md`.
+
+- [x] One match-authoritative player identity across live gameplay surfaces.
+- [ ] Confirmable robber destination and identity-rich victim selection.
+- [ ] Private development-card purchase reveal plus discoverable usable hand.
+- [ ] Minimize mandatory discard into an inspect-only board mode.
+- [ ] Cross-feature state-priority and accessibility pass.
+
 ## 1. Bot strength
 Make the bot opponents play meaningfully better.
 
