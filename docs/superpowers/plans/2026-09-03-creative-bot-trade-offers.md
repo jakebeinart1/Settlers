@@ -74,7 +74,7 @@ keep in sync across resume.
 | `Packages/CatanEngine/Tests/CatanEngineTests/SaveCompatibilityTests.swift` | New field in the "later additions" list |
 | `Packages/CatanEngine/Tests/CatanEngineTests/TradeOfferIDTests.swift` | Extend give-quantity range covered |
 | `Packages/CatanEngine/Tests/CatanEngineTests/ActionSpaceTests.swift` | Updated size formula |
-| `Packages/CatanEngine/Tests/CatanEngineTests/RulesEngineTests.swift` | New candidates appear in `legalMoves`; decline is recorded; reset on endTurn |
+| `Packages/CatanEngine/Tests/CatanEngineTests/TradingTests.swift` | New candidates appear in `legalMoves`; decline is recorded; reset on endTurn |
 | `Packages/CatanEngine/Tests/CatanEngineTests/GameSessionTests.swift` | Retry reachable through `decideNextDetailed`, capped correctly |
 | `Packages/CatanAI/Tests/CatanAITests/TradeHeuristicsTests.swift` | Retry variety, retry cap, generous-unlock scope and bound |
 | `docs/AI_summaries/2026-09-03-creative-bot-trade-offers.md` | Summary of what shipped and why (new directory, per `CLAUDE.md`) |
@@ -169,7 +169,10 @@ git commit -m "feat(engine): add declinedTradeOffersThisTurn to GameState"
 **Files:**
 - Modify: `Packages/CatanEngine/Sources/CatanEngine/Trading.swift`
 - Modify: `Packages/CatanEngine/Sources/CatanEngine/RulesEngine.swift` (the `.endTurn` case, ~line 400)
-- Test: `Packages/CatanEngine/Tests/CatanEngineTests/RulesEngineTests.swift`
+- Test: `Packages/CatanEngine/Tests/CatanEngineTests/TradingTests.swift` (there is no
+  `RulesEngineTests.swift` in this repo — `TradingTests.swift` is the existing home for
+  `Trading`/`.endTurn` trade-lifecycle tests; add both new cases there, matching its
+  existing style)
 
 **Interfaces:**
 - Consumes: `GameState.declinedTradeOffersThisTurn` from Task 1.
@@ -206,7 +209,7 @@ git commit -m "feat(engine): add declinedTradeOffersThisTurn to GameState"
 
 - [ ] **Step 2: Run to verify it fails**
 
-Run: `swift test --package-path Packages/CatanEngine --filter RulesEngineTests`
+Run: `swift test --package-path Packages/CatanEngine --filter TradingTests`
 Expected: FAIL — `declinedTradeOffersThisTurn` never gets written to, and
 `.endTurn` doesn't clear it either (it stays `[:]` in the first test too, so
 that assertion also fails since it expects the offer present).
@@ -242,7 +245,7 @@ case .endTurn:
 
 - [ ] **Step 5: Run tests to verify they pass**
 
-Run: `swift test --package-path Packages/CatanEngine --filter RulesEngineTests`
+Run: `swift test --package-path Packages/CatanEngine --filter TradingTests`
 Expected: PASS. Also re-run the full `CatanEngine` suite to confirm nothing
 else regressed:
 Run: `swift test --package-path Packages/CatanEngine`
@@ -253,7 +256,7 @@ Expected: PASS
 ```bash
 git add Packages/CatanEngine/Sources/CatanEngine/Trading.swift \
         Packages/CatanEngine/Sources/CatanEngine/RulesEngine.swift \
-        Packages/CatanEngine/Tests/CatanEngineTests/RulesEngineTests.swift
+        Packages/CatanEngine/Tests/CatanEngineTests/TradingTests.swift
 git commit -m "feat(engine): record declined trade offers, reset them on endTurn"
 ```
 
@@ -263,7 +266,8 @@ git commit -m "feat(engine): record declined trade offers, reset them on endTurn
 
 **Files:**
 - Modify: `Packages/CatanEngine/Sources/CatanEngine/RulesEngine.swift` (constants + `tradeProposals`, ~lines 145-187)
-- Test: `Packages/CatanEngine/Tests/CatanEngineTests/RulesEngineTests.swift`
+- Test: `Packages/CatanEngine/Tests/CatanEngineTests/TradingTests.swift` (again, no
+  `RulesEngineTests.swift` exists — trade-enumeration tests belong in `TradingTests.swift`)
 - Test: `Packages/CatanEngine/Tests/CatanEngineTests/TradeOfferIDTests.swift`
 
 **Interfaces:**
@@ -279,6 +283,7 @@ git commit -m "feat(engine): record declined trade offers, reset them on endTurn
 @Test func legalMovesIncludeGiveCountsUpToTheGenerousCeiling() {
     var state = GameSetup.newGame(board: BoardGenerator.standard())
     state.players[0].resources = [.lumber: 5, .ore: 1]
+    state.phase = .mainTurn(playerIndex: 0)
     let legal = RulesEngine.legalMoves(for: state, seat: state.players[0].id)
     let giveThree = legal.contains {
         if case .proposeTrade(let offer) = $0 { return offer.give == [.lumber: 3] }
@@ -290,7 +295,7 @@ git commit -m "feat(engine): record declined trade offers, reset them on endTurn
 
 - [ ] **Step 2: Run to verify it fails**
 
-Run: `swift test --package-path Packages/CatanEngine --filter RulesEngineTests`
+Run: `swift test --package-path Packages/CatanEngine --filter TradingTests`
 Expected: FAIL — today's ceiling is `maxEnumeratedTradeQuantity` (2), so a
 give count of 3 is never enumerated.
 
@@ -348,7 +353,7 @@ for giveCount in 1...RulesEngine.maxGenerousGiveQuantity {
 
 - [ ] **Step 5: Run tests to verify they pass**
 
-Run: `swift test --package-path Packages/CatanEngine --filter RulesEngineTests`
+Run: `swift test --package-path Packages/CatanEngine --filter TradingTests`
 Run: `swift test --package-path Packages/CatanEngine --filter TradeOfferIDTests`
 Expected: both PASS
 
@@ -356,7 +361,7 @@ Expected: both PASS
 
 ```bash
 git add Packages/CatanEngine/Sources/CatanEngine/RulesEngine.swift \
-        Packages/CatanEngine/Tests/CatanEngineTests/RulesEngineTests.swift \
+        Packages/CatanEngine/Tests/CatanEngineTests/TradingTests.swift \
         Packages/CatanEngine/Tests/CatanEngineTests/TradeOfferIDTests.swift
 git commit -m "feat(engine): widen enumerated trade give-quantity to 3"
 ```
@@ -375,13 +380,19 @@ git commit -m "feat(engine): widen enumerated trade give-quantity to 3"
 - Produces: `.proposeTrade` segment size
   `resources * (resources - 1) * maxGenerousGiveQuantity * maxEnumeratedTradeQuantity`;
   `proposeSlot`/`proposal` encode/decode give and want with their own,
-  now-different, ranges.
+  now-different, ranges; `ActionSpace.layoutVersion` bumped from 1 to 2 (it
+  exists precisely so a shape change like this one is acknowledged, not
+  silently absorbed — see `ActionSpace.swift:68` and
+  `ActionSpaceTests.swift:36`'s "if this moved, bump ActionSpace.layoutVersion").
 
 - [ ] **Step 1: Write the failing test**
 
-In `ActionSpaceTests.swift`, alongside the existing size-formula assertion
-(~line 32), update the expected multiplier and add a round-trip case for a
-give count of 3:
+In `ActionSpaceTests.swift`, the give-side widening (2 → 3) changes the
+total space size: today's hardcoded `9_295` (`theSpaceIsTheSizeItClaims`,
+~line 36) is `... + resources * (resources - 1) * 2 * 2 + ...`; the propose-
+trade term goes from `5*4*2*2 = 80` to `5*4*3*2 = 120`, a `+40` delta, so the
+new total is `9_335`. Update both the formula and the literal, and bump
+`layoutVersion`'s expected value alongside it:
 
 ```swift
 @Test func actionSpaceRoundTripsAGenerousGiveCountOfThree() {
@@ -399,10 +410,14 @@ give count of 3:
 }
 ```
 
-Update the existing size-formula test to use the two constants:
+Also update the existing size-formula test (`theSpaceIsTheSizeItClaims`) to
+use the two constants and the new total:
 
 ```swift
-* RulesEngine.maxGenerousGiveQuantity * RulesEngine.maxEnumeratedTradeQuantity
++ resources * (resources - 1) * RulesEngine.maxGenerousGiveQuantity * RulesEngine.maxEnumeratedTradeQuantity
+...
+#expect(space.size == expected)
+#expect(space.size == 9_335, "if this moved, bump ActionSpace.layoutVersion")
 ```
 
 - [ ] **Step 2: Run to verify it fails**
@@ -413,7 +428,7 @@ variable bound to `maxEnumeratedTradeQuantity` (2), so a give count of 3
 returns `nil` from `index(of:)` (fails the `(1...quantity).contains(...)`
 guard) and the size formula is still symmetric.
 
-- [ ] **Step 3: Update the size formula**
+- [ ] **Step 3: Update the size formula and bump `layoutVersion`**
 
 In `init` (~line 143):
 
@@ -421,6 +436,16 @@ In `init` (~line 143):
 resources * (resources - 1)
     * RulesEngine.maxGenerousGiveQuantity * RulesEngine.maxEnumeratedTradeQuantity,
 ```
+
+And at `ActionSpace.swift:68`:
+
+```swift
+public static let layoutVersion = 2
+```
+
+(it exists precisely so a shape change like this is acknowledged rather than
+silently absorbed by anything reading `ActionSpace.layoutVersion` — e.g.
+`TrainingExample.actionLayoutVersion`, `Packages/CatanAI/Sources/CatanAI/TrainingExample.swift:76`)
 
 - [ ] **Step 4: Update `proposeSlot`/`proposal` for asymmetric ranges**
 
@@ -487,67 +512,56 @@ git commit -m "feat(engine): widen ActionSpace's proposeTrade segment to match"
 
 - [ ] **Step 1: Write the failing test**
 
+`GameSessionTests.swift` already has a private `FirstLegalPolicy` (returns
+`observation.legalMoves[0]` verbatim) and a private `session(seed:policies:)`
+helper, but that helper always builds a fresh `GameSetup.newGame` internally
+with no way to seed extra state — this test constructs its own
+`GameSession` directly instead, since it needs
+`declinedTradeOffersThisTurn` set on the starting state before the session
+ever sees it:
+
 ```swift
-@Test func aSeatMayRetryAfterADeclineUpToTheTurnLimit() throws {
-    var state = GameSetup.newGame(board: BoardGenerator.standard())
-    let seat = state.players[0].id
-    state.players[0].resources = [.lumber: 5, .ore: 1]
-    state.phase = .mainTurn(playerIndex: 0)
+@Test func proposeTradeStopsBeingLegalAtTheTurnRetryLimit() {
+    func legalIncludesProposeTrade(declinedCount: Int) -> Bool {
+        var state = GameSetup.newGame(board: BoardGenerator.standard(), seed: 1)
+        let seat = state.players[0].id
+        state.players[0].resources = [.lumber: 5, .ore: 1]
+        state.phase = .mainTurn(playerIndex: 0)
+        state.declinedTradeOffersThisTurn[seat] = Array(
+            repeating: TradeOffer(from: seat, give: [.lumber: 1], want: [.ore: 1]),
+            count: declinedCount
+        )
+        var game = GameSession(state: state, policies: [seat: FirstLegalPolicy()], policySeed: 1)
+        let decision = game.decideNextDetailed()
+        return decision?.observation.legalMoves.contains {
+            if case .proposeTrade = $0 { return true }
+            return false
+        } ?? false
+    }
 
-    // Nothing declined yet: proposeTrade should be legal.
-    var legal = RulesEngine.legalMoves(for: state, seat: seat)
-        .filter { if case .proposeTrade = $0 { return true }; return false }
-    #expect(!legal.isEmpty)
-
-    // Fill up to the per-turn limit with declines.
-    state.declinedTradeOffersThisTurn[seat] = Array(
-        repeating: TradeOffer(from: seat, give: [.lumber: 1], want: [.ore: 1]),
-        count: RulesEngine.maxTradeProposalsPerTurn
-    )
-    let session = try GameSession(
-        checkpoint: .init(
-            version: 1, state: state, policyIDs: [:], policyRNG: RandomSource(seed: 1),
-            policyEvaluationCount: 0, queuedTradeResponse: nil,
-            currentTurnSeat: seat, actionsThisTurn: 0
-        ),
-        policies: [:]
-    )
-    let observation = session.observation(for: seat)
-    legal = observation.legalMoves.filter { if case .proposeTrade = $0 { return true }; return false }
-    #expect(legal.isEmpty)
+    #expect(legalIncludesProposeTrade(declinedCount: 0))
+    #expect(!legalIncludesProposeTrade(declinedCount: RulesEngine.maxTradeProposalsPerTurn))
 }
 ```
-
-(Adjust the `Checkpoint` initializer call and `observation(for:)` accessor
-names to whatever `GameSessionTests.swift`'s existing tests use for
-constructing a session mid-game and reading legal moves — match the file's
-established pattern rather than inventing a new one; the meaningful
-assertion is the two `legal` checks.)
 
 - [ ] **Step 2: Run to verify it fails**
 
 Run: `swift test --package-path Packages/CatanEngine --filter GameSessionTests`
-Expected: FAIL to compile at first (the `Checkpoint` initializer above still
-has `proposedTradeThisTurn` as a required argument) — that's expected until
-Step 3 removes it. After removing it from the call above to match the
-in-progress signature, expect a real behavioral failure: today's gate is the
-single `proposedTradeThisTurn` bool, not a count, so this scenario isn't
-expressible yet.
+Expected: FAIL — today's gate is the single `proposedTradeThisTurn` bool,
+which starts `false` regardless of `declinedTradeOffersThisTurn`, so both
+calls return `true` and the second `#expect` fails.
 
 - [ ] **Step 3: Replace the gate**
 
 In `GameSession.swift`:
 
-- Remove the `private var proposedTradeThisTurn = false` declaration (~line 102).
-- Remove `let proposedTradeThisTurn: Bool` from `Checkpoint` (~line 130), its
-  entry in `checkpoint`'s constructor call (~line 187), and its restore in
-  `init(checkpoint:policies:)` (~line 204).
-- Remove the two reset sites (`proposedTradeThisTurn = true` at ~line 325 on
-  a committed propose, `= false` at ~line 385 on `.endTurn`, `= false` at
-  ~line 404, and the restore-from-checkpoint special case at ~line 406) —
-  all of this bookkeeping is now derived from `state` instead of tracked
-  session-side.
-- Replace the masking condition at ~line 294-298:
+- Remove the `private var proposedTradeThisTurn = false` declaration (line 102).
+- Remove `let proposedTradeThisTurn: Bool` from `Checkpoint` (line 130), its
+  entry in `checkpoint`'s constructor call (line 187), and its restore in
+  `init(checkpoint:policies:)` (line 204). No test in this repo constructs a
+  `Checkpoint` by naming this field directly (confirmed by grep), so no
+  other call site needs updating for this removal specifically.
+- Replace the masking condition inside `decideNextDetailed()` (line 295-298):
 
 ```swift
 let legal = RulesEngine.legalMoves(for: state, seat: seat).filter {
@@ -558,14 +572,32 @@ let legal = RulesEngine.legalMoves(for: state, seat: seat).filter {
 }
 ```
 
+- Remove `proposedTradeThisTurn = true` from `commit(seat:move:)`'s
+  `.proposeTrade` branch (line 325).
+- In `recordAction(by:move:)` (lines 382-394), remove the
+  `proposedTradeThisTurn = false` line inside the `.endTurn` branch (line 385)
+  — the gate above already re-derives correctly every call, since
+  `declinedTradeOffersThisTurn` itself is reset to `[:]` on `.endTurn`
+  (Task 2), so nothing session-side needs to mirror that reset anymore.
+- Simplify `restorePendingTradeBookkeeping()` (lines 402-408) to just:
+
+```swift
+private mutating func restorePendingTradeBookkeeping() {
+    queuedTradeResponse = nil
+    guard let offer = state.pendingTradeOffers.first else { return }
+    queueAutomatedResponse(to: offer)
+}
+```
+
+(dropping its `proposedTradeThisTurn = false` and the restore-from-offer
+line — both were only ever feeding the field this task removes).
+
 - [ ] **Step 4: Run tests to verify they pass**
 
 Run: `swift test --package-path Packages/CatanEngine --filter GameSessionTests`
 Expected: PASS. Then the full package:
 Run: `swift test --package-path Packages/CatanEngine`
-Expected: PASS — pay particular attention to any `Checkpoint`-round-trip or
-determinism test that referenced `proposedTradeThisTurn` by name; update
-those call sites the same way as Step 1's test.
+Expected: PASS
 
 - [ ] **Step 5: Commit**
 
@@ -585,8 +617,14 @@ git commit -m "refactor(engine): derive the propose-trade turn gate from GameSta
 
 **Interfaces:**
 - Consumes: `GameState.declinedTradeOffersThisTurn`,
-  `RulesEngine.maxTradeProposalsPerTurn`, `RulesEngine.maxGenerousGiveQuantity`
-  (Tasks 1-3).
+  `RulesEngine.maxTradeProposalsPerTurn` (Tasks 1-2), and `Trading.bestRate`
+  (pre-existing, already used by `bestBankTrade` in this same file) for the
+  generous-unlock ceiling. Task 3's wider `RulesEngine.maxGenerousGiveQuantity`
+  enumeration is what makes the resulting offer *legal*
+  (`matchLegal`/`RulesEngine.legalMoves`) — `TradeHeuristics` itself never
+  references that constant directly, since its own ceiling comes from
+  `Trading.bestRate`, which is always ≤ `maxGenerousGiveQuantity` by
+  construction (see Task 3's doc comment on why 3 was chosen).
 - Produces: `proposeTrades(state:player:personality:weights:)` unchanged in
   signature; now returns a ranked-but-untried candidate (still at most one
   offer) instead of always the single cheapest-give candidate, and returns
@@ -643,8 +681,12 @@ test because nothing stops it).
 
 - [ ] **Step 3: Implement ranked retry**
 
-Replace the single-candidate selection in `proposeTrades` (~lines 165-247)
-with a ranked walk that skips anything already declined this turn:
+Both `proposeTrades` and its new private helper below are members of `enum
+TradeHeuristics` (add the helper inside the enum body, alongside
+`resourceValue`/`nearestBlockedTarget`/`mostNeededResource` — it calls
+`resourceValue`, which is `private`, so it must live in the same type to see
+it). Replace the single-candidate selection in `proposeTrades` (~lines
+165-247) entirely with:
 
 ```swift
 public static func proposeTrades(
@@ -660,19 +702,24 @@ public static func proposeTrades(
     guard let target = nearestBlockedTarget(personality: personality, holding: me.resources, weights: weights)
     else { return [] }
     guard let mostNeeded = mostNeededResource(for: target, holding: me.resources) else { return [] }
+    let wantValue = resourceValue(mostNeeded, for: me, personality: personality, weights: weights)
 
-    let wantCount = min(max(1, (target.cost[mostNeeded] ?? 0) - (me.resources[mostNeeded] ?? 0)),
-                         RulesEngine.maxEnumeratedTradeQuantity)
+    let deficit = max(0, (target.cost[mostNeeded] ?? 0) - (me.resources[mostNeeded] ?? 0))
+    let wantCount = min(max(1, deficit), RulesEngine.maxEnumeratedTradeQuantity)
 
-    // Every give resource we hold a genuine surplus of (more than one card),
-    // ranked cheapest-to-us first via `resourceValue` - same ordering
-    // `giveCandidates.min(by:)` used before, just kept as a full ranking
-    // instead of collapsing to the single winner, so a retry can move on to
-    // the next-cheapest instead of repeating the first. `Resource.allCases`
-    // order breaks ties the same way every time (see the file-level note on
-    // why `min(by:)` over a dictionary wasn't safe here).
+    // Every give resource that's a genuine surplus (more than one card) AND
+    // genuinely worth less to us than what we're asking for - the same
+    // self-favorable bar this always enforced, just applied per-candidate
+    // instead of to one pre-chosen resource, so a retry can rank past the
+    // first candidate instead of only ever considering it. Sorted cheapest-
+    // to-us first; `Resource.allCases` breaks ties the same way every time
+    // (see the file-level note on why `min(by:)` over a dictionary wasn't
+    // safe here).
     let rankedGive = Resource.allCases
-        .filter { $0 != mostNeeded && (me.resources[$0] ?? 0) > 1 }
+        .filter {
+            $0 != mostNeeded && (me.resources[$0] ?? 0) > 1
+                && resourceValue($0, for: me, personality: personality, weights: weights) < wantValue
+        }
         .sorted {
             let (lhs, rhs) = (resourceValue($0, for: me, personality: personality, weights: weights),
                                resourceValue($1, for: me, personality: personality, weights: weights))
@@ -680,68 +727,49 @@ public static func proposeTrades(
                               : lhs < rhs
         }
 
-    if let favorable = firstUntried(rankedGive, want: mostNeeded, wantCount: wantCount, target: target,
-                                     me: me, player: player, state: state, declined: declined,
-                                     personality: personality, weights: weights, requireFavorable: true) {
-        return [favorable]
-    }
-
-    // Nothing favorable left untried - allow a self-unfavorable "generous
-    // unlock" offer, but only toward the two highest-value targets
-    // (settlement/city) and only strictly better than what the bank/port
-    // would already give us for the same resource. See the design doc for
-    // why this bound, not "uncapped": `Trading.bestRate` is the ceiling a
-    // rational bot would never trade a *player* worse than, since the bank
-    // always says yes.
-    guard target.cost == Building.settlementCost || target.cost == Building.cityCost else { return [] }
-    if let generous = firstUntried(rankedGive, want: mostNeeded, wantCount: wantCount, target: target,
-                                    me: me, player: player, state: state, declined: declined,
-                                    personality: personality, weights: weights, requireFavorable: false) {
-        return [generous]
-    }
-    return []
-}
-
-/// Walks `rankedGive` for the first candidate offer that (a) hasn't already
-/// been proposed-and-declined this turn and (b) either clears the
-/// self-favorable bar or, when `requireFavorable` is false, at least stays
-/// within the generous-unlock quantity ceiling (see `proposeTrades`).
-private static func firstUntried(
-    _ rankedGive: [Resource], want: Resource, wantCount: Int,
-    target: (cost: [Resource: Int], weight: Double), me: Player, player: PlayerID, state: GameState,
-    declined: [TradeOffer], personality: BotPersonality, weights: BotWeights, requireFavorable: Bool
-) -> TradeOffer? {
-    for give in rankedGive {
-        let held = me.resources[give] ?? 0
-        let ceiling = requireFavorable
-            ? RulesEngine.maxEnumeratedTradeQuantity
-            : max(0, Trading.bestRate(for: give, player: player, state: state) - 1)
-        guard ceiling > 0 else { continue }
-        let generous = held >= weights.generousOfferSurplusThreshold
-        let giveCount = min(requireFavorable ? (generous ? 2 : 1) : ceiling, max(1, held - 1), ceiling)
-        guard giveCount > 0 else { continue }
-
-        if requireFavorable {
-            guard resourceValue(want, for: me, personality: personality, weights: weights)
-                > resourceValue(give, for: me, personality: personality, weights: weights) else { continue }
-        }
-
+    func untried(give: Resource, giveCount: Int) -> TradeOffer? {
         let giveTable = [give: giveCount]
-        let wantTable = [want: wantCount]
+        let wantTable = [mostNeeded: wantCount]
         let alreadyTried = declined.contains { $0.give == giveTable && $0.want == wantTable }
             || state.pendingTradeOffers.contains { $0.from == player && $0.give == giveTable && $0.want == wantTable }
-        guard !alreadyTried else { continue }
-
-        return TradeOffer.enumerated(from: player, give: giveTable, want: wantTable)
+        return alreadyTried ? nil : TradeOffer.enumerated(from: player, give: giveTable, want: wantTable)
     }
-    return nil
+
+    // Ordinary pass: walk ranked candidates at the usual 1-2 card quantity -
+    // unchanged from before, just no longer limited to a single pre-chosen
+    // candidate, so a decline can move to the next-cheapest resource instead
+    // of regenerating the same offer forever.
+    for give in rankedGive {
+        let held = me.resources[give] ?? 0
+        let generous = held >= weights.generousOfferSurplusThreshold
+        let giveCount = min(generous ? 2 : 1, max(1, held - 1), RulesEngine.maxEnumeratedTradeQuantity)
+        if let offer = untried(give: give, giveCount: giveCount) { return [offer] }
+    }
+
+    // Generous-unlock pass: every ordinary candidate for this target has
+    // already been proposed-and-declined this turn. For the two highest-
+    // value targets only (settlement/city - same scope
+    // `enablesImmediateBuild` uses elsewhere in this file), escalate
+    // quantity - not favorability, which every candidate above already
+    // cleared - up to one card better than this bot's own best bank/port
+    // rate for the cheapest candidate. See the design doc for why this
+    // bound, not "uncapped": `Trading.bestRate` is the ceiling a rational
+    // bot would never trade a *player* worse than, since the bank always
+    // says yes.
+    guard target.cost == Building.settlementCost || target.cost == Building.cityCost,
+          let cheapest = rankedGive.first else { return [] }
+    let held = me.resources[cheapest] ?? 0
+    let ceiling = max(0, Trading.bestRate(for: cheapest, player: player, state: state) - 1)
+    let giveCount = min(ceiling, max(1, held - 1))
+    guard giveCount > 0, let offer = untried(give: cheapest, giveCount: giveCount) else { return [] }
+    return [offer]
 }
 ```
 
 Remove the now-superseded single-candidate code this replaces (the old
 `giveCandidates.min(by:)` block, the standalone self-favorable `guard`, and
-the old `alreadyPending` check) — all folded into `firstUntried` above.
-Leave `bestBankTrade`, `mostNeededResource`, `nearestBlockedTarget`,
+the old `alreadyPending` check) — all folded into the version above. Leave
+`bestBankTrade`, `mostNeededResource`, `nearestBlockedTarget`,
 `totalDeficit`, `buildTargets`, `resourceValue`, and `evaluate` unchanged.
 
 - [ ] **Step 4: Run tests to verify they pass**
@@ -751,8 +779,8 @@ Expected: PASS, including the two new tests and every pre-existing one
 (`tradeHeuristicsAcceptsClearNetGainTowardNextBuild`,
 `proposeTradesSkipsWhenIdenticalOfferAlreadyPending`, etc.) — the pending-
 offer dedup that test guards is now covered by the `alreadyTried` check
-inside `firstUntried`, so re-verify that specific test still passes
-unmodified.
+inside the local `untried(give:giveCount:)` function, so re-verify that
+specific test still passes unmodified.
 
 - [ ] **Step 5: Commit**
 
@@ -774,81 +802,98 @@ git commit -m "feat(ai): retry declined trade proposals with a different offer"
 
 - [ ] **Step 1: Write the tests**
 
+All three depend on `Building.roadCost = [.brick: 1, .lumber: 1]`,
+`Building.settlementCost = [.brick: 1, .lumber: 1, .grain: 1, .wool: 1]`,
+`Building.cityCost = [.ore: 3, .grain: 2]` (`Building.swift:3-5`) — the exact
+resource amounts below are hand-computed against those costs, not
+placeholders.
+
 ```swift
-/// The TODO's own example: 3 ore surplus, missing exactly the 1 lumber a
-/// settlement needs, no port for ore (bank rate 4) - a generous offer of 3
-/// ore for 1 lumber beats the bank (which would cost 4 ore) and unlocks the
-/// bot's nearest-blocked target, so it should be proposed even though 3 ore
-/// is worth more to this bot in isolation than 1 lumber under the ordinary
-/// value function.
-@Test func proposesAGenerousUnlockTradeForItsNearestBlockedSettlement() {
+/// The TODO's own example: heavy ore surplus, missing exactly the 1 lumber
+/// a settlement needs. The *first* call is still the ordinary 1-2 card
+/// offer (favorability alone doesn't require overpaying); only once that
+/// ordinary offer has itself been declined does the second call escalate to
+/// a genuinely generous ratio - 3 ore for 1 lumber, one better than this
+/// bot's own no-port bank rate of 4, and still a target only settlement/city
+/// can trigger.
+@Test func proposesAGenerousUnlockTradeAfterTheOrdinaryOfferIsDeclined() {
     var state = GameSetup.newGame(board: BoardGenerator.standard())
     let player = PlayerID(index: 0)
     state.players[0].resources = [.brick: 1, .lumber: 0, .grain: 1, .wool: 1, .ore: 4]
 
-    let offers = TradeHeuristics.proposeTrades(state: state, player: player, personality: .balanced)
-    #expect(offers.count == 1)
-    #expect(offers.first?.give == [.ore: 3])
-    #expect(offers.first?.want == [.lumber: 1])
+    let first = TradeHeuristics.proposeTrades(state: state, player: player, personality: .balanced)
+    #expect(first.count == 1)
+    #expect(first.first?.give == [.ore: 2])
+    #expect(first.first?.want == [.lumber: 1])
+
+    state.declinedTradeOffersThisTurn[player] = first
+    let second = TradeHeuristics.proposeTrades(state: state, player: player, personality: .balanced)
+    #expect(second.count == 1)
+    #expect(second.first?.give == [.ore: 3])
+    #expect(second.first?.want == [.lumber: 1])
 }
 
-/// Never generous for a road or dev card - only the two highest-value
-/// targets (settlement/city) can trigger the override.
+/// Never generous for a road - only the two highest-value targets
+/// (settlement/city) can trigger the override. A road is the nearest-
+/// blocked target here (deficit 1, versus 3+ for every other target), so
+/// the ordinary offer is still made and declined normally, but the bot
+/// gives up afterward instead of escalating quantity the way it would for
+/// a settlement/city.
 @Test func generousUnlockDoesNotApplyToARoad() {
     var state = GameSetup.newGame(board: BoardGenerator.standard())
     let player = PlayerID(index: 0)
-    // Missing only brick for a road, but holds nothing else in genuine
-    // surplus toward it and no other target is closer - the ordinary
-    // self-favorable check should still gate this.
-    state.players[0].resources = [.brick: 0, .lumber: 4, .grain: 0, .wool: 0, .ore: 0]
+    state.players[0].resources = [.brick: 0, .lumber: 5, .grain: 0, .wool: 0, .ore: 0]
 
-    let offers = TradeHeuristics.proposeTrades(state: state, player: player, personality: .balanced)
-    // Either empty, or (if some other target's favorable trade exists) not
-    // a generous give of the whole lumber stock toward a road.
-    #expect(offers.allSatisfy { $0.give != [.lumber: 4] })
+    let first = TradeHeuristics.proposeTrades(state: state, player: player, personality: .balanced)
+    #expect(first.count == 1)
+    #expect(first.first?.give == [.lumber: 2])
+    #expect(first.first?.want == [.brick: 1])
+
+    state.declinedTradeOffersThisTurn[player] = first
+    #expect(TradeHeuristics.proposeTrades(state: state, player: player, personality: .balanced).isEmpty)
 }
 
 /// A 2:1 port for the give resource leaves no room to be "generous" at all
 /// - the ceiling (`bestRate - 1`) collapses to 1, same as an ordinary offer,
-/// so the bot should not overpay a player when the bank already beats any
-/// player-to-player deal it could make.
+/// so the escalation after a decline should ask for at most 1 more ore, not
+/// 3, because the bank/port already beats any bigger player-to-player deal.
+/// Skips (via `Issue.record`) if the standard board has no ore port, the
+/// same fallback `TradingTests.swift`'s port tests use for a port that
+/// might not exist on a given generated board.
 @Test func generousUnlockCeilingCollapsesWithAGoodPort() {
     var state = GameSetup.newGame(board: BoardGenerator.standard())
+    guard let port = state.board.ports.first(where: { $0.kind == .resource(.ore) }) else {
+        Issue.record("no ore port on standard board")
+        return
+    }
     let player = PlayerID(index: 0)
+    state.players[0].settlements = [port.vertexA]
     state.players[0].resources = [.brick: 1, .lumber: 0, .grain: 1, .wool: 1, .ore: 4]
-    // Give the player a 2:1 ore port by placing a settlement on it -
-    // match however BoardGenerator.standard()/existing port tests in this
-    // suite or RulesEngineTests establish a port for a seeded standard
-    // board (reuse that helper rather than hand-rolling vertex/port lookup
-    // here).
-    // ... apply whatever the existing port-trade tests use to grant seat 0
-    // a 2:1 ore port ...
 
-    let offers = TradeHeuristics.proposeTrades(state: state, player: player, personality: .balanced)
-    #expect(offers.allSatisfy { $0.give != [.ore: 3] })
+    let first = TradeHeuristics.proposeTrades(state: state, player: player, personality: .balanced)
+    #expect(first.count == 1)
+
+    state.declinedTradeOffersThisTurn[player] = first
+    let second = TradeHeuristics.proposeTrades(state: state, player: player, personality: .balanced)
+    #expect(second.first?.give == [.ore: 1])
 }
 ```
 
-(The port-setup ellipsis in the third test is intentional: grep
-`Trading.bestRate`'s existing test coverage — likely `TradingTests.swift` —
-for the established helper that grants a seat a specific port on
-`BoardGenerator.standard()`, and reuse it verbatim rather than inventing new
-board-setup code.)
-
-- [ ] **Step 2: Run to verify the first two fail, confirm the port test compiles**
+- [ ] **Step 2: Run to verify the first three assertions fail, confirm the port test compiles**
 
 Run: `swift test --package-path Packages/CatanAI --filter TradeHeuristicsTests`
-Expected: `proposesAGenerousUnlockTradeForItsNearestBlockedSettlement` FAILs
-if Task 6's `firstUntried`/ceiling math has an off-by-one (verify the
-concrete numbers: `Trading.bestRate` with no port is 4, so `ceiling = 3`,
-matching the test's expected `.ore: 3`). If it already passes, Task 6 is
-correct as written — this task exists to pin the exact numbers down with a
-regression test, not necessarily to change code.
+Expected: FAIL on the escalation assertions specifically (`second.first?.give
+== [.ore: 3]` in the first test, `second.first?.give == [.ore: 1]` in the
+third) if Task 6's ceiling math has an off-by-one — verify the concrete
+numbers: `Trading.bestRate` with no port is 4 (so ceiling 3), with a 2:1 port
+is 2 (so ceiling 1). If everything already passes, Task 6 is correct as
+written — this task exists to pin the exact numbers down with a regression
+test, not necessarily to change code.
 
 - [ ] **Step 3: Fix any discrepancy in `TradeHeuristics.swift` from Task 6**
 
-Only if Step 2 surfaced a mismatch — adjust `firstUntried`'s ceiling/guard
-math to match the intended `bestRate(give) - 1` bound exactly.
+Only if Step 2 surfaced a mismatch — adjust the generous-unlock pass's
+ceiling/guard math to match the intended `bestRate(give) - 1` bound exactly.
 
 - [ ] **Step 4: Run tests to verify they pass**
 
@@ -951,10 +996,10 @@ description of one; the one intentional ellipsis (Task 7, Step 1's port
 setup) is explicitly flagged as "find and reuse the existing helper," which
 is a real, boundable instruction, not a "handle it later."
 
-**Type consistency:** `firstUntried` and `proposeTrades` (Task 6) use the
-same parameter names/types throughout; `RulesEngine.maxGenerousGiveQuantity`
-and `RulesEngine.maxTradeProposalsPerTurn` are named identically everywhere
-they're referenced (Tasks 3-7).
+**Type consistency:** the local `untried(give:giveCount:)` helper and
+`proposeTrades` (Task 6) use the same parameter names/types throughout;
+`RulesEngine.maxGenerousGiveQuantity` and `RulesEngine.maxTradeProposalsPerTurn`
+are named identically everywhere they're referenced (Tasks 3-7).
 
 ---
 
