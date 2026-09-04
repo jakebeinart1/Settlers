@@ -136,3 +136,131 @@ Every other gate stage passed (`xcodegen drift`, `packages build`,
 `SKIP` (not requested). See
 `.superpowers/sdd/2026-09-03-creative-bot-trade-offers/task-8-report.md`
 for the full stage-by-stage breakdown, exact commands, and output.
+
+## Final whole-branch review fix pass (2026-09-03/04)
+
+A final review of the whole branch (all 8 tasks individually approved) found
+one critical and four important issues the per-task reviews above didn't
+reach, because none of them crossed package boundaries into the app target
+or paired the two new heuristic passes against each other end to end. All
+five are fixed; full detail, every command run, and exact output is in
+`.superpowers/sdd/2026-09-03-creative-bot-trade-offers/final-review-fix-report.md`.
+
+- **C1 (critical) — save/replay validation would have blocked existing
+  in-progress saves.** `MatchCheckpointStore.validateHistory()` replays a
+  match's recorded moves through the CURRENT `RulesEngine.apply` and
+  compares full-state equality against the persisted snapshot. For any save
+  whose history contains a `.respondToTrade(_, false)` recorded before this
+  branch shipped, replay under the new rules legitimately populates
+  `declinedTradeOffersThisTurn` for the current turn while the old
+  snapshot - written by code that never touched that field - has it empty,
+  so `replay == state` would fail and the whole document would be marked
+  blocked. This is the exact incident class `CLAUDE.md` already documents
+  (`tradesAcceptedThisTurn` deleting every in-progress save), reached this
+  time through the app-target replay validator that no package-level test
+  can see. Fixed with a narrow, `validateHistory()`-only comparison,
+  `GameState.matchesForReplayValidationExcludingDeclinedTradeHistory(_:)`
+  (`Settlers/Persistence/MatchCheckpointStore.swift`) - checks every field
+  `GameState.==` checks except this one, with a regression test in
+  `SettlersTests/MatchCheckpointStoreTests.swift`
+  (`validateHistoryToleratesADeclinedTradeSnapshotFromBeforeTheFieldExisted`)
+  that builds exactly this shape (a real decline in the move history, a
+  hand-blanked snapshot) and confirms `validateHistory()` no longer throws.
+  `GameState`'s own `Equatable` is untouched - other code (determinism
+  tests) may depend on its current strictness.
+
+- **I1 (important) — the generous-unlock pass could escalate to a WORSE
+  offer than the ordinary one.** With a 2:1 port, the old
+  `giveCount = min(ceiling, max(1, held - 1))` produced 1 (ceiling
+  `bestRate - 1 = 1`), while the ordinary pass had already offered 2 of the
+  same resource - a guaranteed-worse re-ask that would only burn one of the
+  3 per-turn attempts. `generousUnlockOffer` now computes the ordinary
+  pass's own give quantity for the same resource
+  (`ordinaryGiveCount(for:me:weights:)`, factored out of `ordinaryOffer` so
+  both sides share it) and refuses to escalate - returns `nil`, no offer -
+  unless the generous quantity genuinely exceeds it.
+  `generousUnlockCeilingCollapsesWithAGoodPort` (already existed) now
+  asserts the corrected behavior: the second call returns empty rather than
+  the old, wrong `[.ore: 1]`.
+
+- **I2 (important) — the per-turn retry cap only counts declines, not
+  proposals.** `RulesEngine.maxTradeProposalsPerTurn`'s doc comment claimed
+  it gated total proposals; the actual gate
+  (`GameSession.decideNextDetailed()`) reads
+  `declinedTradeOffersThisTurn[seat].count`, which `Trading.respond` only
+  increments on the reject branch - a seat whose offers keep getting
+  *accepted* can propose more than 3 times a turn, bounded only by
+  `GameSession.maxActionsPerTurn` (25). **Chosen fix: leave the behavior as
+  is, fix the doc comment.** A bot that keeps successfully trading isn't the
+  same failure mode as one that keeps getting turned down - the constant
+  exists to stop the latter (a policy retrying a declined offer forever,
+  crowding out `.endTurn`), and it still does. Switching to a
+  total-attempts counter was rejected as the higher-risk option for a
+  same-day fix pass: it would require either repurposing
+  `declinedTradeOffersThisTurn` or adding a second counter, and
+  re-verifying every existing test built around decline-only semantics
+  (Tasks 5 and 6), for a behavior change nobody had asked for. The doc
+  comment on `RulesEngine.maxTradeProposalsPerTurn` now says exactly what
+  it gates and why the accepted-trade gap is judged acceptable rather than
+  an oversight.
+
+- **I3 (important) — `.claude/skills/sim-harness/SKILL.md` pinned stale
+  fingerprints.** Updated to the values currently pinned in
+  `SeededGameFingerprintTests.swift`, and actually re-verified against a
+  fresh Release build of the `sim` harness (not just copied) - which is how
+  the next finding was caught.
+
+- **I4 (important) — TODO.md's flagship example (3 ore for 1 lumber) was
+  unreachable.** `generousUnlockOffer` reserved one card
+  (`held - 1`) the way the ordinary pass does, but the give resource here is
+  by construction one the target doesn't need at all - there's no reason to
+  hold a reserve of it. With exactly 3 ore held, the old ceiling collapsed
+  to 2, identical to the ordinary offer, so the escalation never fired.
+  Changed the reserve to `held` (offer everything). New test
+  `generousUnlockOffersAllThreeOreWhenThatsAllThatsHeld` proves the TODO's
+  literal example now works. Fixing I1 and I4 together surfaced a real
+  interaction: with the reserve widened, a *still-pending* (not yet
+  declined) ordinary offer could get "escalated" past by the generous pass
+  before anyone had even responded to it, breaking a pre-existing
+  regression test (`proposeTradesSkipsWhenIdenticalOfferAlreadyPending`).
+  Fixed by adding a third guard: `generousUnlockOffer` requires
+  `declined` to be non-empty - it only ever fires after an actual decline,
+  never merely because an identical ordinary offer is still awaiting a
+  response.
+
+- **I5 (important) — nothing proved a generous offer is ever accepted.**
+  New test `aGenerousUnlockOfferIsAcceptedByAPlausibleReceiver` pairs a real
+  generous-unlock offer (via `proposeTrades`, after a decline) with
+  `TradeHeuristics.evaluate` from a plausible receiver holding a genuine,
+  independent need for what's offered. **Finding: accepted.** The
+  `acceptUnlockShift` penalty (0.6, applied because a generous-unlock offer
+  is by construction an immediate-build-unlock for the proposer) narrows
+  which deals clear the bar; it does not block this class of offer
+  outright. Verified for both a receiver with a strong independent use for
+  the resource and a more neutral one - both accepted the 3-ore-for-1-lumber
+  offer. A full `bot-strength` measurement was explicitly out of scope for
+  this fix pass.
+
+- **Consequence of I1/I4: one fingerprint re-recorded, not four.**
+  `TradeHeuristics.swift`'s corrections are genuine bot-behavior changes,
+  and one of the five seeds pinned in `SeededGameFingerprintTests.swift`
+  (1234) has a trajectory that passes through a generous-unlock trade. Its
+  fingerprint moved from `db3186c153860fc4` to `c07d57fded64e7ae`, confirmed
+  identical across three separate processes (two `sim`-harness runs plus
+  the test's own process) before being re-pinned; the other four seeds
+  (1, 7, 42, 99) are unaffected and unchanged. `sim-harness/SKILL.md`'s
+  cross-check line was updated to match.
+
+- **Minor:** `SaveCompatibilityTests.swift`'s comment claiming "the two
+  this change introduces" was corrected to name the one field this branch
+  actually added (`declinedTradeOffersThisTurn`).
+
+### Fix-pass verification
+
+- `swift test --package-path Packages/CatanEngine` - full suite, PASS.
+- `swift test --package-path Packages/CatanAI` - full suite (including the
+  re-recorded `SeededGameFingerprintTests`), PASS.
+- `SettlersTests/MatchCheckpointStoreTests` (full suite, including the new
+  C1 regression test), run via `xcodebuild test -only-testing:` against the
+  QA simulator - PASS (10/10 tests).
+- `scripts/gate.sh` was **not** re-run for this fix pass, per scope.

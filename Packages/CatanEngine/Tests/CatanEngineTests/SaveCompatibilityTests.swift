@@ -28,8 +28,8 @@ private func encodeOmitting(_ keys: [String], from state: GameState) throws -> D
             if case .placeInitialSettlement(let v) = $0 { return v } else { return nil }
         }.first!), by: state.players[0].id, to: &state)
 
-    // Every field added since the first shipped save, plus the two this change
-    // introduces. An older save has none of them.
+    // Every field added since the first shipped save, plus the one this change
+    // introduces (`declinedTradeOffersThisTurn`). An older save has none of them.
     let laterAdditions = ["schemaVersion", "rng", "tradesAcceptedThisTurn",
                           "devCardsBoughtThisTurn", "devCardPlayedThisTurn", "log",
                           "declinedTradeOffersThisTurn"]
