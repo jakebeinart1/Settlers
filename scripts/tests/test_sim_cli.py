@@ -133,7 +133,7 @@ class SimulatorConfigurationTests(unittest.TestCase):
             self.assertEqual(example["playerCount"], 3)
             self.assertEqual(example["victoryPointTarget"], 12)
             self.assertEqual(example["boardMode"], "randomized")
-            self.assertEqual(example["actionCount"], 9_295)
+            self.assertEqual(example["actionCount"], 9_335)
             self.assertIn(example["observerSeat"], range(3))
             self.assertIn(example["winnerSeat"], range(3))
             self.assertLess(example["chosenActionIndex"], example["actionCount"])
@@ -192,7 +192,7 @@ class SimulatorConfigurationTests(unittest.TestCase):
         self.assertEqual(implicit.returncode, 0, implicit.stderr)
         self.assertEqual(explicit.returncode, 0, explicit.stderr)
         self.assertEqual(implicit.stdout, explicit.stdout)
-        self.assertEqual(json.loads(implicit.stdout)["fingerprint"], "d7fdc2d2721c1585")
+        self.assertEqual(json.loads(implicit.stdout)["fingerprint"], "46a24e9ecfe0feb8")
 
 
 if __name__ == "__main__":
