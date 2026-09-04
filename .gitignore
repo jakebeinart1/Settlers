@@ -14,3 +14,4 @@ __pycache__/
 # Deliberately never committed: it carries one developer's team and bundle
 # id, and committing it would change signing for everyone else.
 Settlers/Signing.local.xcconfig
+.worktrees/

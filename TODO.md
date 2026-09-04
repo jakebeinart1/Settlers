@@ -78,11 +78,11 @@ Make the bot opponents play meaningfully better.
 
 ## 4. Creative bot trade offers
 
-- [ ] Bots should get more creative/aggressive with trade offers instead of
+- [x] Bots should get more creative/aggressive with trade offers instead of
       giving up after one decline — if a first offer is turned down, a bot
       can float another (different ratio, different give/want) rather than
       falling back straight to the bank or dropping the plan.
-- [ ] Bots should be willing to be generous/sacrifice value when the trade
+- [x] Bots should be willing to be generous/sacrifice value when the trade
       unlocks their best play, even at worse than 3:1 — e.g. a bot sitting
       on 3 ore and missing exactly one resource for a settlement (its best
       available move) should offer those 3 ore for the 1 it needs, even

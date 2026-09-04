@@ -22,7 +22,7 @@ private func everyEnumeratedOffer() -> [(offer: TradeOffer, label: String)] {
     var result: [(TradeOffer, String)] = []
     for seat in 0..<4 {
         for give in Resource.allCases {
-            for giveCount in 1...RulesEngine.maxEnumeratedTradeQuantity {
+            for giveCount in 1...RulesEngine.maxGenerousGiveQuantity {
                 for want in Resource.allCases where want != give {
                     for wantCount in 1...RulesEngine.maxEnumeratedTradeQuantity {
                         let offer = TradeOffer.enumerated(

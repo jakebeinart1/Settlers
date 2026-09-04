@@ -74,12 +74,39 @@ import CatanEngine
 /// recomputed from scratch every turn with no preference for continuing the
 /// direction already invested in. The new value agreed across three
 /// separate debug-process runs before being pinned here.
+///
+/// Re-recorded 2026-09-03 (all five values) because a declined trade
+/// proposal is no longer the end of the bot's trading for the turn: it now
+/// retries with a different offer, up to `RulesEngine.maxTradeProposalsPerTurn`
+/// (3) attempts per turn, and may escalate to a generous quantity once a
+/// settlement or city target is close, replacing the old one-proposal-per-turn
+/// gate that ended a bot's trading after its first offer was rejected. Every
+/// game with any trade activity produces a different move sequence from
+/// there on. As this file's own "If this test fails" section prescribes,
+/// each new value was checked for being genuine-change rather than leaked
+/// ordering by running the same seed in several separate processes: all five
+/// were confirmed bit-identical across two separate-process runs, both at
+/// the pre-change commit and at the new one, before being pinned here.
+///
+/// Re-recorded 2026-09-03 (seed 1234 only) by the final whole-branch review's
+/// fix pass, which corrected two real bugs in `generousUnlockOffer`
+/// (`TradeHeuristics.swift`): it could escalate to a give-quantity *worse*
+/// than the ordinary offer already on the table (finding I1), and it
+/// reserved one card of the give resource for no reason - the resource is by
+/// construction one the target doesn't need at all (finding I4). Both are
+/// genuine behavior changes to what bots propose, so a game whose trajectory
+/// passes through a generous-unlock trade now legitimately diverges from the
+/// pre-fix trace. Of the five pinned seeds, only 1234's trajectory touches
+/// this path; the other four are unaffected and unchanged. The new value
+/// (`c07d57fded64e7ae`) was confirmed identical across three separate
+/// processes - two direct runs of the `sim` executable and this test's own
+/// process - before being pinned here.
 private let expectedFingerprints: [UInt64: String] = [
-    1: "d7fdc2d2721c1585",
-    42: "a82a8c729629fefe",
-    7: "1fb2872d10dcb596",
-    1234: "d04ed9631f61d82f",
-    99: "59a97a1b4b8825c8",
+    1: "46a24e9ecfe0feb8",
+    42: "49ead678fb08dc65",
+    7: "8c8415acff40784e",
+    1234: "c07d57fded64e7ae",
+    99: "bce23296652208a2",
 ]
 
 /// Whoever may act, or `nil` at game over.

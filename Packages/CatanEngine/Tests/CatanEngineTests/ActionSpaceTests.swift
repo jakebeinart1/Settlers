@@ -29,11 +29,11 @@ private let space = ActionSpace(board: board)
         + discardMultisets
         + resources * (resources - 1) * ActionSpace.bankRates.count
         + resources * (resources - 1)
-            * RulesEngine.maxEnumeratedTradeQuantity * RulesEngine.maxEnumeratedTradeQuantity
+            * RulesEngine.maxGenerousGiveQuantity * RulesEngine.maxEnumeratedTradeQuantity
         + ActionSpace.maxIndexedPendingOffers * 2
         + 1                                    // endTurn
     #expect(space.size == expected)
-    #expect(space.size == 9_295, "if this moved, bump ActionSpace.layoutVersion")
+    #expect(space.size == 9_335, "if this moved, bump ActionSpace.layoutVersion")
 }
 
 @Test func everyIndexRoundTripsBackToItself() {
@@ -73,6 +73,22 @@ private let space = ActionSpace(board: board)
                 "index \(index) decoded to \(move) which re-encodes elsewhere")
     }
     #expect(unmapped.isEmpty, "every index must name a move; \(unmapped.count) did not")
+}
+
+/// Task 3 widened the give-side ceiling from 2 to 3 - this proves a
+/// give-count-of-3 offer is actually representable end to end, not just
+/// that the space's total size grew to account for it.
+@Test func actionSpaceRoundTripsAGenerousGiveCountOfThree() {
+    let offer = TradeOffer.enumerated(from: PlayerID(index: 0), give: [.lumber: 3], want: [.ore: 1])
+    let index = space.index(of: .proposeTrade(offer))
+    #expect(index != nil)
+    let decoded = space.move(at: index!)
+    guard case .proposeTrade(let decodedOffer) = decoded else {
+        Issue.record("expected a proposeTrade move")
+        return
+    }
+    #expect(decodedOffer.give == [.lumber: 3])
+    #expect(decodedOffer.want == [.ore: 1])
 }
 
 @Test func outOfRangeIndicesAreRejectedRatherThanWrapped() {

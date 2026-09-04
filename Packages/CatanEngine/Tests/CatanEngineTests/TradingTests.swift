@@ -310,4 +310,41 @@ import Foundation
             try RulesEngine.apply(.bankTrade(give: [.brick: 4], get: [.ore: 1]), by: PlayerID(index: 1), to: &state)
         }
     }
+
+    @Test func decliningATradeRecordsItAgainstTheProposer() throws {
+        var state = GameSetup.newGame(board: BoardGenerator.standard())
+        let proposer = state.players[0].id
+        let responder = state.players[1].id
+        state.players[0].resources = [.lumber: 2]
+        let offer = TradeOffer(from: proposer, give: [.lumber: 1], want: [.ore: 1])
+        try Trading.proposeTrade(offer, state: &state)
+
+        try Trading.respond(offerID: offer.id, accept: false, by: responder, state: &state)
+
+        #expect(state.declinedTradeOffersThisTurn[proposer] == [offer])
+        #expect(state.pendingTradeOffers.isEmpty)
+    }
+
+    @Test func endTurnClearsDeclinedTradeHistory() throws {
+        var state = GameSetup.newGame(board: BoardGenerator.standard())
+        state.phase = .mainTurn(playerIndex: 0)
+        let proposer = state.players[0].id
+        state.declinedTradeOffersThisTurn[proposer] = [
+            TradeOffer(from: proposer, give: [.lumber: 1], want: [.ore: 1])
+        ]
+        try RulesEngine.apply(.endTurn, by: proposer, to: &state)
+        #expect(state.declinedTradeOffersThisTurn.isEmpty)
+    }
+
+    @Test func legalMovesIncludeGiveCountsUpToTheGenerousCeiling() {
+        var state = GameSetup.newGame(board: BoardGenerator.standard())
+        state.players[0].resources = [.lumber: 5, .ore: 1]
+        state.phase = .mainTurn(playerIndex: 0)
+        let legal = RulesEngine.legalMoves(for: state, seat: state.players[0].id)
+        let giveThree = legal.contains {
+            if case .proposeTrade(let offer) = $0 { return offer.give == [.lumber: 3] }
+            return false
+        }
+        #expect(giveThree)
+    }
 }

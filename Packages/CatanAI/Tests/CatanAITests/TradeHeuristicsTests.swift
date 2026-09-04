@@ -302,3 +302,164 @@ import CatanEngine
 
     #expect(!TradeHeuristics.evaluate(offer: offer, receiver: receiver, state: state, personality: .aggressive))
 }
+
+/// After a first proposal is declined, `proposeTrades` should float a
+/// genuinely different offer rather than recomposing the identical one -
+/// which, being a pure function of otherwise-unchanged state, it would
+/// otherwise reproduce forever.
+@Test func proposeTradesRetriesWithADifferentOfferAfterADecline() {
+    var state = GameSetup.newGame(board: BoardGenerator.standard())
+    let player = PlayerID(index: 0)
+    // Two surplus resources it could give up (wool, brick), either a
+    // plausible cheapest-first pick depending on target weighting - the
+    // point is the second call must not repeat whichever the first chose.
+    state.players[0].resources = [.brick: 3, .lumber: 0, .grain: 1, .wool: 3, .ore: 0]
+
+    let first = TradeHeuristics.proposeTrades(state: state, player: player, personality: .balanced)
+    #expect(first.count == 1)
+
+    state.declinedTradeOffersThisTurn[player] = [first[0]]
+    let second = TradeHeuristics.proposeTrades(state: state, player: player, personality: .balanced)
+    #expect(second.count == 1)
+    #expect(second[0].give != first[0].give || second[0].want != first[0].want)
+}
+
+/// Stops retrying once `maxTradeProposalsPerTurn` attempts have already
+/// been declined this turn - the bot gives up rather than looping forever
+/// even though every remaining candidate is still, in principle, favorable.
+@Test func proposeTradesGivesUpAfterTheTurnRetryLimit() {
+    var state = GameSetup.newGame(board: BoardGenerator.standard())
+    let player = PlayerID(index: 0)
+    state.players[0].resources = [.brick: 3, .lumber: 0, .grain: 1, .wool: 3, .ore: 0]
+    state.declinedTradeOffersThisTurn[player] = Array(
+        repeating: TradeOffer(from: player, give: [.brick: 1], want: [.lumber: 1]),
+        count: RulesEngine.maxTradeProposalsPerTurn
+    )
+    #expect(TradeHeuristics.proposeTrades(state: state, player: player, personality: .balanced).isEmpty)
+}
+
+/// The TODO's own example: heavy ore surplus, missing exactly the 1 lumber
+/// a settlement needs. The *first* call is still the ordinary 1-2 card
+/// offer (favorability alone doesn't require overpaying); only once that
+/// ordinary offer has itself been declined does the second call escalate to
+/// a genuinely generous ratio - 3 ore for 1 lumber, one better than this
+/// bot's own no-port bank rate of 4, and still a target only settlement/city
+/// can trigger.
+@Test func proposesAGenerousUnlockTradeAfterTheOrdinaryOfferIsDeclined() {
+    var state = GameSetup.newGame(board: BoardGenerator.standard())
+    let player = PlayerID(index: 0)
+    state.players[0].resources = [.brick: 1, .lumber: 0, .grain: 1, .wool: 1, .ore: 4]
+
+    let first = TradeHeuristics.proposeTrades(state: state, player: player, personality: .balanced)
+    #expect(first.count == 1)
+    #expect(first.first?.give == [.ore: 2])
+    #expect(first.first?.want == [.lumber: 1])
+
+    state.declinedTradeOffersThisTurn[player] = first
+    let second = TradeHeuristics.proposeTrades(state: state, player: player, personality: .balanced)
+    #expect(second.count == 1)
+    #expect(second.first?.give == [.ore: 3])
+    #expect(second.first?.want == [.lumber: 1])
+}
+
+/// Never generous for a road - only the two highest-value targets
+/// (settlement/city) can trigger the override. A road is the nearest-
+/// blocked target here (deficit 1, versus 3+ for every other target), so
+/// the ordinary offer is still made and declined normally, but the bot
+/// gives up afterward instead of escalating quantity the way it would for
+/// a settlement/city.
+@Test func generousUnlockDoesNotApplyToARoad() {
+    var state = GameSetup.newGame(board: BoardGenerator.standard())
+    let player = PlayerID(index: 0)
+    state.players[0].resources = [.brick: 0, .lumber: 5, .grain: 0, .wool: 0, .ore: 0]
+
+    let first = TradeHeuristics.proposeTrades(state: state, player: player, personality: .balanced)
+    #expect(first.count == 1)
+    #expect(first.first?.give == [.lumber: 2])
+    #expect(first.first?.want == [.brick: 1])
+
+    state.declinedTradeOffersThisTurn[player] = first
+    #expect(TradeHeuristics.proposeTrades(state: state, player: player, personality: .balanced).isEmpty)
+}
+
+/// A 2:1 port for the give resource leaves no room to be "generous" at all
+/// - the ceiling (`bestRate - 1`) collapses to 1, which is *less* than the
+/// ordinary offer's own 2-card ask. Re-asking for less after a decline would
+/// be a guaranteed-worse re-ask (see the design doc: "no room to be
+/// 'generous' at all - the port already is"), so the fix is to not escalate
+/// at all here: the second call returns empty rather than a worse offer.
+/// Skips (via `Issue.record`) if the standard board has no ore port, the
+/// same fallback `TradingTests.swift`'s port tests use for a port that
+/// might not exist on a given generated board.
+@Test func generousUnlockCeilingCollapsesWithAGoodPort() {
+    var state = GameSetup.newGame(board: BoardGenerator.standard())
+    guard let port = state.board.ports.first(where: { $0.kind == .resource(.ore) }) else {
+        Issue.record("no ore port on standard board")
+        return
+    }
+    let player = PlayerID(index: 0)
+    state.players[0].settlements = [port.vertexA]
+    state.players[0].resources = [.brick: 1, .lumber: 0, .grain: 1, .wool: 1, .ore: 4]
+
+    let first = TradeHeuristics.proposeTrades(state: state, player: player, personality: .balanced)
+    #expect(first.count == 1)
+
+    state.declinedTradeOffersThisTurn[player] = first
+    let second = TradeHeuristics.proposeTrades(state: state, player: player, personality: .balanced)
+    #expect(second.isEmpty)
+}
+
+/// The TODO's literal example: exactly 3 ore held, missing exactly the 1
+/// lumber a settlement needs. The reserve in `generousUnlockOffer` is
+/// `held`, not `held - 1` (see its doc comment) precisely so this case
+/// works: the ordinary offer (2 ore) is declined, then the generous pass
+/// offers all 3 - not 2 again - because the give resource is one the target
+/// doesn't need at all, so there's no reason to hold one back.
+@Test func generousUnlockOffersAllThreeOreWhenThatsAllThatsHeld() {
+    var state = GameSetup.newGame(board: BoardGenerator.standard())
+    let player = PlayerID(index: 0)
+    state.players[0].resources = [.brick: 1, .lumber: 0, .grain: 1, .wool: 1, .ore: 3]
+
+    let first = TradeHeuristics.proposeTrades(state: state, player: player, personality: .balanced)
+    #expect(first.count == 1)
+    #expect(first.first?.give == [.ore: 2])
+    #expect(first.first?.want == [.lumber: 1])
+
+    state.declinedTradeOffersThisTurn[player] = first
+    let second = TradeHeuristics.proposeTrades(state: state, player: player, personality: .balanced)
+    #expect(second.count == 1)
+    #expect(second.first?.give == [.ore: 3])
+    #expect(second.first?.want == [.lumber: 1])
+}
+
+/// Nothing else in this suite ever pairs a generous-unlock *proposal* with
+/// `evaluate` from the receiving side - and `evaluate`'s `unlockShift`
+/// (`acceptUnlockShift = 0.6`) specifically taxes exactly this kind of
+/// offer, since a generous-unlock offer is by construction an immediate-
+/// build-unlock for the proposer (see `enablesImmediateBuild`). This closes
+/// that gap for a plausible receiver: one who isn't especially threatened,
+/// suspicious of the proposer, or comfortably ahead, and who has a genuine,
+/// independent use for what's on offer (short on ore for their own city,
+/// sitting on lumber they don't need). Verified finding (I5): the
+/// generous-unlock ratio (3 ore for 1 lumber, one better than the 4:1 bank
+/// rate) clears the unlock-shift penalty and is accepted here - the penalty
+/// narrows the deals that get through, it doesn't block this class of offer
+/// outright.
+@Test func aGenerousUnlockOfferIsAcceptedByAPlausibleReceiver() {
+    var state = GameSetup.newGame(board: BoardGenerator.standard())
+    let proposer = PlayerID(index: 0)
+    state.players[0].resources = [.brick: 1, .lumber: 0, .grain: 1, .wool: 1, .ore: 4]
+    let first = TradeHeuristics.proposeTrades(state: state, player: proposer, personality: .balanced)
+    state.declinedTradeOffersThisTurn[proposer] = first
+    let second = TradeHeuristics.proposeTrades(state: state, player: proposer, personality: .balanced)
+    #expect(second.count == 1)
+    let offer = second[0]
+    #expect(offer.give == [.ore: 3])
+    #expect(offer.want == [.lumber: 1])
+
+    let receiver = PlayerID(index: 1)
+    // Two grain toward a city (needs 3 ore, 2 grain) with no ore of their
+    // own yet; a lumber surplus they don't need for anything of theirs.
+    state.players[1].resources = [.brick: 0, .lumber: 2, .grain: 2, .wool: 0, .ore: 0]
+    #expect(TradeHeuristics.evaluate(offer: offer, receiver: receiver, state: state, personality: .balanced))
+}

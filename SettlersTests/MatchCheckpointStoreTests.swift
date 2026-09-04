@@ -235,4 +235,49 @@ import CatanAI
         #expect(restored.activeMatch?.state == state)
         #expect(restored.activeMatch?.moves.isEmpty == true)
     }
+
+    /// Regression test for finding C1 of the final whole-branch review
+    /// (2026-09-03). A save recorded before `GameState
+    /// .declinedTradeOffersThisTurn` existed has a persisted `state`
+    /// snapshot that never recorded a decline, even though the same save's
+    /// move history contains a `.respondToTrade(_, false)`. Replaying that
+    /// history under the CURRENT engine legitimately re-populates the field
+    /// for the current turn - so a naive `replay == state` comparison in
+    /// `validateHistory()` would disagree with a snapshot that is, in every
+    /// rule/RNG/win-condition sense, perfectly valid, and mark the whole
+    /// document blocked. Simulates that shape directly: build a match whose
+    /// history contains a genuine decline, then blank the persisted
+    /// snapshot's `declinedTradeOffersThisTurn` the way an old build's save
+    /// would have (it never wrote to that key), and confirm
+    /// `validateHistory()` still does not throw.
+    @Test func validateHistoryToleratesADeclinedTradeSnapshotFromBeforeTheFieldExisted() throws {
+        var initial = GameSetup.newGame(board: BoardGenerator.standard(), seed: 471)
+        initial.phase = .mainTurn(playerIndex: 0)
+        initial.players[0].resources = [.lumber: 1]
+        let proposer = initial.players[0].id
+        let responder = initial.players[1].id
+        let setup = MatchSetup.default(preferredName: "Alex", preferredCivilization: Civilization.allCases[0])
+        var match = MatchCheckpoint(id: UUID(), initialState: initial, setup: setup)
+
+        let offer = TradeOffer(from: proposer, give: [.lumber: 1], want: [.ore: 1])
+        try match.apply(.proposeTrade(offer), by: proposer)
+        try match.apply(.respondToTrade(offerID: offer.id, accept: false), by: responder)
+        #expect(match.state.declinedTradeOffersThisTurn[proposer] == [offer])
+        try match.validateHistory() // Sanity: today's own code round-trips cleanly.
+
+        // Simulate an old build's save: its snapshot never wrote this key at
+        // all, so a decoder using `decodeIfPresent` sees it as absent/empty -
+        // everything else about the snapshot (moves, board, players, phase,
+        // rng) is untouched.
+        var object = try #require(
+            try JSONSerialization.jsonObject(with: JSONEncoder().encode(match)) as? [String: Any])
+        var stateObject = try #require(object["state"] as? [String: Any])
+        stateObject.removeValue(forKey: "declinedTradeOffersThisTurn")
+        object["state"] = stateObject
+        let agedSave = try JSONSerialization.data(withJSONObject: object)
+        let reloaded = try JSONDecoder().decode(MatchCheckpoint.self, from: agedSave)
+
+        #expect(reloaded.state.declinedTradeOffersThisTurn.isEmpty)
+        #expect(throws: Never.self) { try reloaded.validateHistory() }
+    }
 }

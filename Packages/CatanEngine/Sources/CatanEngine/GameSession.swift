@@ -94,12 +94,6 @@ public struct GameSession: Sendable {
     /// turn. The response is queued here so the app and simulator execute the
     /// same next action and both can log it as an ordinary `Step`.
     private var queuedTradeResponse: Decision?
-    /// Whether the active seat already opened one negotiation this turn.
-    /// A rejection removes the offer from state, so without this memory the
-    /// policy immediately walks through near-identical deals until the runaway
-    /// cap forces the turn to end. One proposal is a meaningful turn; twenty-
-    /// five variations are a stalled policy loop.
-    private var proposedTradeThisTurn = false
 
     /// A single seat may act only this many times in one `.mainTurn` before
     /// being forced to end it.
@@ -127,7 +121,6 @@ public struct GameSession: Sendable {
         let policyRNG: RandomSource
         let policyEvaluationCount: Int
         let queuedTradeResponse: Decision?
-        let proposedTradeThisTurn: Bool
         let currentTurnSeat: PlayerID?
         let actionsThisTurn: Int
 
@@ -184,7 +177,7 @@ public struct GameSession: Sendable {
     public var checkpoint: Checkpoint {
         Checkpoint(version: 1, state: state, policyIDs: policies.mapValues { $0.id },
                    policyRNG: policyRNG, policyEvaluationCount: policyEvaluationCount,
-                   queuedTradeResponse: queuedTradeResponse, proposedTradeThisTurn: proposedTradeThisTurn,
+                   queuedTradeResponse: queuedTradeResponse,
                    currentTurnSeat: currentTurnSeat, actionsThisTurn: actionsThisTurn)
     }
 
@@ -201,7 +194,6 @@ public struct GameSession: Sendable {
         self.policyRNG = checkpoint.policyRNG
         self.policyEvaluationCount = checkpoint.policyEvaluationCount
         self.queuedTradeResponse = checkpoint.queuedTradeResponse
-        self.proposedTradeThisTurn = checkpoint.proposedTradeThisTurn
         self.currentTurnSeat = checkpoint.currentTurnSeat
         self.actionsThisTurn = checkpoint.actionsThisTurn
     }
@@ -294,7 +286,9 @@ public struct GameSession: Sendable {
         // Seat-scoped: the unscoped list is a union in `.discarding`.
         let legal = RulesEngine.legalMoves(for: state, seat: seat).filter {
             guard case .proposeTrade = $0 else { return true }
-            return !proposedTradeThisTurn
+            let alreadyPendingFromSeat = state.pendingTradeOffers.contains { $0.from == seat }
+            let attemptsUsed = state.declinedTradeOffersThisTurn[seat]?.count ?? 0
+            return !alreadyPendingFromSeat && attemptsUsed < RulesEngine.maxTradeProposalsPerTurn
         }
         let observation = GameObservation(seat: seat, state: state, legalMoves: legal)
         let chosen = policy.decide(observation, rng: &policyRNG)
@@ -322,7 +316,6 @@ public struct GameSession: Sendable {
         }
         recordAction(by: seat, move: move)
         if case .proposeTrade(let offer) = move {
-            proposedTradeThisTurn = true
             queueAutomatedResponse(to: offer)
         }
         return Step(actor: seat, move: move, events: events)
@@ -382,7 +375,6 @@ public struct GameSession: Sendable {
     private mutating func recordAction(by seat: PlayerID, move: GameMove) {
         if case .respondToTrade = move { return }
         if seat == currentTurnSeat, case .endTurn = move {
-            proposedTradeThisTurn = false
             currentTurnSeat = nil
             actionsThisTurn = 0
         } else if seat == currentTurnSeat {
@@ -401,9 +393,7 @@ public struct GameSession: Sendable {
     /// between proposal and response cannot change how the turn continues.
     private mutating func restorePendingTradeBookkeeping() {
         queuedTradeResponse = nil
-        proposedTradeThisTurn = false
         guard let offer = state.pendingTradeOffers.first else { return }
-        proposedTradeThisTurn = state.phase.awaitingSeatIndex == offer.from.index
         queueAutomatedResponse(to: offer)
     }
 

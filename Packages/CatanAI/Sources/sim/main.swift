@@ -35,7 +35,11 @@ import Foundation
 // identical - same canonicalization, same hash, same bot RNG derivation - to
 // `Packages/CatanAI/Tests/CatanAITests/SeededGameFingerprintTests.swift`, so
 // that suite's five pinned constants double as an external check on this
-// harness. `sim --seed 1 --games 1 --jsonl` must print `d7fdc2d2721c1585`.
+// harness. `sim --seed 1 --games 1 --jsonl` must print `46a24e9ecfe0feb8`.
+// Re-pinned 2026-09-03 alongside `SeededGameFingerprintTests`'s seed-1 value:
+// a declined trade proposal now retries with a different offer instead of
+// ending the bot's trading for the turn, which changes the move sequence for
+// any seed with trade activity.
 //
 // ## stdout is data, stderr is diagnostics
 // Timing and progress go to stderr so that two runs over the same seeds are

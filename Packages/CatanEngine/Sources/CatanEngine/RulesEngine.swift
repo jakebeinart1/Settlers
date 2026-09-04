@@ -160,12 +160,41 @@ public enum RulesEngine {
     /// enumerated, not what is possible.
     public static let maxEnumeratedTradeQuantity = 2
 
+    /// How many of one resource a *generous* proposal (see
+    /// `TradeHeuristics`'s unlock-override) may offer, wider than
+    /// `maxEnumeratedTradeQuantity` on the give side only. Fixed at 3 - one more
+    /// than a bot would ever need to beat its own worst bank rate (4:1, no
+    /// port), which is the bound that actually matters: a generous offer only
+    /// exists to be a genuinely better deal than paying the bank, and above
+    /// that ceiling it never can be. The want side stays at
+    /// `maxEnumeratedTradeQuantity`; nothing asks for more.
+    public static let maxGenerousGiveQuantity = 3
+
+    /// How many DECLINES one player may accumulate in a single turn (via
+    /// `state.declinedTradeOffersThisTurn`) before `GameSession` stops
+    /// offering `.proposeTrade` as a legal move for them - not how many
+    /// offers they may propose in total. An offer that gets ACCEPTED never
+    /// increments this (`Trading.respond`'s accept branch only touches
+    /// `tradesAcceptedThisTurn`), so a seat whose offers keep landing can, in
+    /// principle, propose far more than 3 times in a turn - bounded only by
+    /// `GameSession.maxActionsPerTurn`, not this constant. That's judged the
+    /// right shape, not an oversight left over from the old
+    /// `proposedTradeThisTurn` one-shot-per-turn gate this replaced: a bot
+    /// that keeps successfully trading isn't the same failure mode as one
+    /// that keeps getting turned down, and the latter is what this constant
+    /// exists to stop - a policy that just keeps retrying a declined offer
+    /// forever, crowding out every other move and never reaching `.endTurn`
+    /// on its own. See the final-review fix report
+    /// (`docs/AI_summaries/2026-09-03-creative-bot-trade-offers.md`) for the
+    /// full reasoning.
+    public static let maxTradeProposalsPerTurn = 3
+
     /// Trade proposals worth putting in front of a chooser.
     ///
-    /// Bounded at `maxEnumeratedTradeQuantity` per side and one resource type
-    /// per side: 5 give types x 4 want types x 2 x 2 = 80 at the absolute
-    /// most, and far fewer in practice since the proposer must hold what they
-    /// offer.
+    /// Bounded at `maxGenerousGiveQuantity` on the give side and
+    /// `maxEnumeratedTradeQuantity` on the want side, one resource type per
+    /// side: 5 give types x 4 want types x 3 x 2 = 120 at the absolute most, and
+    /// far fewer in practice since the proposer must hold what they offer.
     private static func tradeProposals(for player: Player) -> [GameMove] {
         var moves: [GameMove] = []
         // Driven off `Resource.allCases`, not `player.resources` - dictionary
@@ -174,7 +203,7 @@ public enum RulesEngine {
         for give in Resource.allCases {
             let held = player.resources[give] ?? 0
             guard held > 1 else { continue }
-            for giveCount in 1...min(maxEnumeratedTradeQuantity, held - 1) {
+            for giveCount in 1...min(maxGenerousGiveQuantity, held - 1) {
                 for want in Resource.allCases where want != give {
                     for wantCount in 1...maxEnumeratedTradeQuantity {
                         moves.append(.proposeTrade(TradeOffer.enumerated(
@@ -401,6 +430,7 @@ public enum RulesEngine {
                 state.devCardsBoughtThisTurn = [:]
                 state.devCardPlayedThisTurn = nil
                 state.tradesAcceptedThisTurn = [:]
+                state.declinedTradeOffersThisTurn = [:]
                 // An offer only ever left `pendingTradeOffers` when somebody
                 // explicitly responded to it, so unanswered offers accumulated
                 // across turns - a 93-deep backlog was observed in a single

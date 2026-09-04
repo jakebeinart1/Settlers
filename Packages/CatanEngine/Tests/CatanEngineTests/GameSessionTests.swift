@@ -175,3 +175,25 @@ private func session(
     }
     #expect(play(7) == play(7))
 }
+
+@Test func proposeTradeStopsBeingLegalAtTheTurnRetryLimit() {
+    func legalIncludesProposeTrade(declinedCount: Int) -> Bool {
+        var state = GameSetup.newGame(board: BoardGenerator.standard(), seed: 1)
+        let seat = state.players[0].id
+        state.players[0].resources = [.lumber: 5, .ore: 1]
+        state.phase = .mainTurn(playerIndex: 0)
+        state.declinedTradeOffersThisTurn[seat] = Array(
+            repeating: TradeOffer(from: seat, give: [.lumber: 1], want: [.ore: 1]),
+            count: declinedCount
+        )
+        var game = GameSession(state: state, policies: [seat: FirstLegalPolicy()], policySeed: 1)
+        let decision = game.decideNextDetailed()
+        return decision?.observation.legalMoves.contains {
+            if case .proposeTrade = $0 { return true }
+            return false
+        } ?? false
+    }
+
+    #expect(legalIncludesProposeTrade(declinedCount: 0))
+    #expect(!legalIncludesProposeTrade(declinedCount: RulesEngine.maxTradeProposalsPerTurn))
+}

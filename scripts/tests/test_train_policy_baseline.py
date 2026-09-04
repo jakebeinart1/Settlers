@@ -64,7 +64,7 @@ class PolicyValueBaselineTests(unittest.TestCase):
         rows = [row(seed, seed % 2, 3 if seed % 2 else 8) for seed in range(10)]
         _, checkpoint = MODULE.train_and_evaluate(rows)
         self.assertEqual(checkpoint["stateLayoutVersion"], 3)
-        self.assertEqual(checkpoint["actionLayoutVersion"], 1)
+        self.assertEqual(checkpoint["actionLayoutVersion"], 2)
         self.assertEqual(checkpoint["featureCount"], 5_182)
         self.assertEqual(checkpoint["trainingSeeds"], [1, 2, 3, 4, 6, 7, 8, 9])
 
