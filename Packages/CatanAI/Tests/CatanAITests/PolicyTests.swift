@@ -307,7 +307,23 @@ private struct FirstLegalResponsePolicy: Policy {
     }
 }
 
-@Test func aRejectedOfferIsNotRepeatedInTheSameTurn() throws {
+/// Was `aRejectedOfferIsNotRepeatedInTheSameTurn`, which asserted the OLD
+/// one-proposal-per-turn gate: that a single decline made the very next
+/// `decideNext()` an `.endTurn`. That gate is gone - a decline now earns a
+/// retry with a different offer, up to `RulesEngine.maxTradeProposalsPerTurn`
+/// (3) attempts per turn (see `TradeHeuristics.proposeTrades`) - so the old
+/// assertion fails correctly against the new, deliberate behaviour rather
+/// than pointing at a bug.
+///
+/// What this guards now: the full `GameSession` propose/reject retry loop
+/// still terminates - the retry limit is real, not merely documented - and
+/// the retry path is genuinely exercised (more than one proposal is made)
+/// rather than the turn ending on the first decline for an unrelated reason.
+/// This is the only test in the package that drives that loop through
+/// `GameSession` end to end; `TradeHeuristicsTests.swift` covers the
+/// heuristic's retry logic at the unit level but never proves the session
+/// wiring around it actually gives up.
+@Test func proposeTradeRetriesThenEventuallyEndsTheTurn() throws {
     var state = GameSetup.newGame(board: BoardGenerator.standard(), seed: 21)
     state.phase = .mainTurn(playerIndex: 0)
     state.players[0].resources = [.brick: 2]
@@ -319,16 +335,37 @@ private struct FirstLegalResponsePolicy: Policy {
         policySeed: 9
     )
 
-    let proposed = session.decideNext()
-    let proposal = try #require(proposed)
-    #expect({ if case .proposeTrade = proposal.move { true } else { false } }())
-    _ = try session.commit(seat: proposal.seat, move: proposal.move)
-    let rejected = session.decideNext()
-    let rejection = try #require(rejected)
-    #expect({ if case .respondToTrade(_, false) = rejection.move { true } else { false } }())
-    _ = try session.commit(seat: rejection.seat, move: rejection.move)
+    var proposalsSeen = 0
+    var reachedEndTurn = false
+    // Hard cap so a bug in the retry gate fails this test loudly instead of
+    // hanging it: at most `maxTradeProposalsPerTurn` propose/reject rounds
+    // plus slack for the final `.endTurn`.
+    for _ in 0..<(RulesEngine.maxTradeProposalsPerTurn + 2) {
+        guard let proposal = session.decideNext() else {
+            Issue.record("session produced no further decision before reaching .endTurn")
+            break
+        }
+        if proposal.move == .endTurn {
+            reachedEndTurn = true
+            break
+        }
+        guard case .proposeTrade = proposal.move else {
+            Issue.record("expected a proposeTrade or endTurn, got \(proposal.move)")
+            break
+        }
+        proposalsSeen += 1
+        _ = try session.commit(seat: proposal.seat, move: proposal.move)
 
-    #expect(session.decideNext()?.move == .endTurn)
+        guard let rejection = session.decideNext() else {
+            Issue.record("expected the responder to answer the pending offer")
+            break
+        }
+        #expect({ if case .respondToTrade(_, false) = rejection.move { true } else { false } }())
+        _ = try session.commit(seat: rejection.seat, move: rejection.move)
+    }
+
+    #expect(reachedEndTurn, "the proposer must give up and end its turn once the retry limit is spent")
+    #expect(proposalsSeen > 1, "the retry path must actually be exercised, not just the give-up path")
 }
 
 private struct FirstProposalPolicy: Policy {
