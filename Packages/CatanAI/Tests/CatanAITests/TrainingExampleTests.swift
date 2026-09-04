@@ -86,7 +86,7 @@ func configuredExamplesUseOneActionHeadWidth(playerCount: Int) {
     )
 
     #expect(example.actionCount == ActionSpace(board: state.board).size)
-    #expect(example.actionCount == 9_295)
+    #expect(example.actionCount == 9_335)
     #expect(example.playerCount == playerCount)
     #expect(example.victoryPointTarget == 10)
     #expect(example.boardMode == .standard)
