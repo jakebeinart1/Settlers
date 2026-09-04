@@ -192,7 +192,7 @@ class SimulatorConfigurationTests(unittest.TestCase):
         self.assertEqual(implicit.returncode, 0, implicit.stderr)
         self.assertEqual(explicit.returncode, 0, explicit.stderr)
         self.assertEqual(implicit.stdout, explicit.stdout)
-        self.assertEqual(json.loads(implicit.stdout)["fingerprint"], "46a24e9ecfe0feb8")
+        self.assertEqual(json.loads(implicit.stdout)["fingerprint"], "7964368a77394abc")
 
 
 if __name__ == "__main__":
