@@ -65,8 +65,7 @@ private struct StableHeightSlot<Content: View>: View {
 /// every seat except the one holding the phone - bots, and other people in a
 /// hot-seat game), `BoardView` filling the middle - with the dice chip (once
 /// there's been a roll) overlaid on its top-left corner - `HumanPlayerPanel`
-/// (the human's own spacious info
-/// panel, now with a dev-card strip alongside the resources), then a single
+/// (the human's own spacious info panel, now with a dev-card strip alongside the resources), then a single
 /// uniform Build/Trade/turn-action row. Everything sits over one continuous
 /// water-blue background rather than separate boxed panels - there's no
 /// persistent log or toast feed anymore; the HUD (VP/tags/resource/dev-card
