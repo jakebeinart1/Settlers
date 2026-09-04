@@ -170,12 +170,23 @@ public enum RulesEngine {
     /// `maxEnumeratedTradeQuantity`; nothing asks for more.
     public static let maxGenerousGiveQuantity = 3
 
-    /// How many trade offers one player may propose in a single turn before
-    /// `GameSession` stops offering `.proposeTrade` as a legal move for them.
-    /// Three, not one: a declined offer should get a genuinely different retry
-    /// (see `TradeHeuristics.proposeTrades`), not silence for the rest of the
-    /// turn, but a policy that just keeps trying forever crowds out every other
-    /// move and never reaches `.endTurn` on its own.
+    /// How many DECLINES one player may accumulate in a single turn (via
+    /// `state.declinedTradeOffersThisTurn`) before `GameSession` stops
+    /// offering `.proposeTrade` as a legal move for them - not how many
+    /// offers they may propose in total. An offer that gets ACCEPTED never
+    /// increments this (`Trading.respond`'s accept branch only touches
+    /// `tradesAcceptedThisTurn`), so a seat whose offers keep landing can, in
+    /// principle, propose far more than 3 times in a turn - bounded only by
+    /// `GameSession.maxActionsPerTurn`, not this constant. That's judged the
+    /// right shape, not an oversight left over from the old
+    /// `proposedTradeThisTurn` one-shot-per-turn gate this replaced: a bot
+    /// that keeps successfully trading isn't the same failure mode as one
+    /// that keeps getting turned down, and the latter is what this constant
+    /// exists to stop - a policy that just keeps retrying a declined offer
+    /// forever, crowding out every other move and never reaching `.endTurn`
+    /// on its own. See the final-review fix report
+    /// (`docs/AI_summaries/2026-09-03-creative-bot-trade-offers.md`) for the
+    /// full reasoning.
     public static let maxTradeProposalsPerTurn = 3
 
     /// Trade proposals worth putting in front of a chooser.

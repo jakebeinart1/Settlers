@@ -187,7 +187,7 @@ public enum TradeHeuristics {
         }
         guard target.cost == Building.settlementCost || target.cost == Building.cityCost,
               let generous = generousUnlockOffer(rankedGive: rankedGive, want: mostNeeded, wantCount: wantCount,
-                                                  player: player, me: me, state: state, declined: declined)
+                                                  player: player, me: me, state: state, declined: declined, weights: weights)
         else { return [] }
         return [generous]
     }
@@ -244,15 +244,27 @@ public enum TradeHeuristics {
         player: PlayerID, me: Player, state: GameState, declined: [TradeOffer], weights: BotWeights
     ) -> TradeOffer? {
         for give in rankedGive {
-            let held = me.resources[give] ?? 0
-            let generous = held >= weights.generousOfferSurplusThreshold
-            let giveCount = min(generous ? 2 : 1, max(1, held - 1), RulesEngine.maxEnumeratedTradeQuantity)
+            let giveCount = ordinaryGiveCount(for: give, me: me, weights: weights)
             if let offer = untried(give: give, giveCount: giveCount, want: want, wantCount: wantCount,
                                     player: player, state: state, declined: declined) {
                 return offer
             }
         }
         return nil
+    }
+
+    /// The give quantity the ordinary pass would use for `give`, at whatever
+    /// `me` currently holds - factored out of `ordinaryOffer` so
+    /// `generousUnlockOffer` can compare its own escalated quantity against
+    /// this and refuse to "escalate" to something no better (see the
+    /// `giveCount > ordinary` guard there, and the design-doc incident this
+    /// closes: a 2:1-port bot's escalation ceiling collapsed *below* the
+    /// ordinary quantity, offering a strictly worse re-ask that could only
+    /// ever be declined again).
+    private static func ordinaryGiveCount(for give: Resource, me: Player, weights: BotWeights) -> Int {
+        let held = me.resources[give] ?? 0
+        let generous = held >= weights.generousOfferSurplusThreshold
+        return min(generous ? 2 : 1, max(1, held - 1), RulesEngine.maxEnumeratedTradeQuantity)
     }
 
     /// Generous-unlock pass: every ordinary candidate for this target has
@@ -265,15 +277,37 @@ public enum TradeHeuristics {
     /// bound, not "uncapped": `Trading.bestRate` is the ceiling a rational
     /// bot would never trade a *player* worse than, since the bank always
     /// says yes.
+    ///
+    /// Three guards keep this from firing when it shouldn't:
+    /// - `declined` must be non-empty: an ordinary offer can also return
+    ///   `nil` merely because it's already sitting un-answered in
+    ///   `pendingTradeOffers` (nobody has rejected it yet), and that case
+    ///   must stay silent, not escalate - retrying is only for a genuine
+    ///   decline, never for "still waiting to hear back."
+    /// - The reserve is `held`, not `held - 1`: unlike the ordinary pass
+    ///   (which keeps one card of a resource it might still want), the give
+    ///   resource here is one `rankedGive`'s value filter already proved the
+    ///   target doesn't need at all, so there's no reason to keep a reserve
+    ///   of it - offering literally all of it is the point (the bot sitting
+    ///   on exactly 3 ore for a 1-lumber settlement should offer all 3, not
+    ///   2, per `TODO.md`).
+    /// - `giveCount` must exceed what the ordinary pass would have offered
+    ///   for this same resource, or this pass isn't "generous" at all - with
+    ///   a 2:1 port, `bestRate - 1 == 1`, which is *less* than the ordinary
+    ///   offer's own 2, and re-asking for less after a decline is guaranteed
+    ///   to be declined again for no better reason. When escalating can't
+    ///   improve on the ordinary ask, this returns `nil` (no escalation)
+    ///   rather than a worse one.
     private static func generousUnlockOffer(
         rankedGive: [Resource], want: Resource, wantCount: Int,
-        player: PlayerID, me: Player, state: GameState, declined: [TradeOffer]
+        player: PlayerID, me: Player, state: GameState, declined: [TradeOffer], weights: BotWeights
     ) -> TradeOffer? {
-        guard let cheapest = rankedGive.first else { return nil }
+        guard !declined.isEmpty, let cheapest = rankedGive.first else { return nil }
         let held = me.resources[cheapest] ?? 0
         let ceiling = max(0, Trading.bestRate(for: cheapest, player: player, state: state) - 1)
-        let giveCount = min(ceiling, max(1, held - 1))
-        guard giveCount > 0 else { return nil }
+        let giveCount = min(ceiling, held)
+        let ordinaryCount = ordinaryGiveCount(for: cheapest, me: me, weights: weights)
+        guard giveCount > ordinaryCount else { return nil }
         return untried(give: cheapest, giveCount: giveCount, want: want, wantCount: wantCount,
                        player: player, state: state, declined: declined)
     }
