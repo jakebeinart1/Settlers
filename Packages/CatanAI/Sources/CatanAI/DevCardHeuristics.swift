@@ -69,6 +69,21 @@ public enum DevCardHeuristics {
             }
         }
 
+        // Two free roads for no resource cost is close to always worth
+        // playing once held - checked before Year of Plenty/Monopoly (both
+        // situational, resource-target-dependent) but after a Knight play,
+        // which can be a genuine necessity (robber sitting on our own tile).
+        // This branch didn't exist before 2026-09-04: a sim-harness audit
+        // found Road Building was the one dev-card type `choosePlay` never
+        // returned at all, so every copy drawn (roughly 1 in 4 non-Knight,
+        // non-VP cards, ~8% of the full deck) sat in hand for the rest of the
+        // game as pure dead weight, permanently paying `devCardHoardingPenalty`
+        // for zero possible return.
+        if DevCards.canPlay(.roadBuilding, by: player, in: state),
+           let (first, second) = bestRoadBuildingPair(state: state, player: player, personality: personality, weights: weights) {
+            return .playRoadBuilding(first, second)
+        }
+
         let targets = buildTargets(personality: personality, weights: weights)
         // Individual missing resource units (a target needing 2 ore and
         // 1 grain contributes [.ore, .ore, .grain]) for whichever target has
@@ -160,6 +175,53 @@ public enum DevCardHeuristics {
 
         let deckNearlyOut = state.devCardDeck.count <= weights.devDeckNearlyOutCount
         return myCeiling > aheadOfUs || deckNearlyOut
+    }
+
+    /// The two edges a played Road Building card should place, if any are
+    /// legal to build at all - the single best-scoring legal road edge (by
+    /// `BuildPlanner`'s own `.buildRoad` scoring, so a free road still
+    /// prioritizes production/blocking/Longest-Road value exactly the way a
+    /// paid one would), then the best-scoring legal edge left *after* placing
+    /// the first, since the second choice depends on the network the first
+    /// one just created (`RulesEngine`'s own legality check for the pair
+    /// works the same way - see `RulesEngine.swift`'s `.roadBuilding` legal-
+    /// move enumeration). `nil` only when the player has no legal road
+    /// edge at all (an essentially-complete board), which the caller must
+    /// treat as "nothing worth doing with this card yet", not a bug.
+    private static func bestRoadBuildingPair(
+        state: GameState,
+        player: PlayerID,
+        personality: BotPersonality,
+        weights: BotWeights
+    ) -> (EdgeID, EdgeID)? {
+        func bestLegalEdge(in candidateState: GameState) -> EdgeID? {
+            // `onBoardEdges` is a `Set`, hash-seeded per process - `.sorted()`
+            // first so a tie between two equally-scored edges resolves the
+            // same way every run, not by whichever the Set happened to
+            // enumerate first that process (confirmed as a real regression
+            // this way: seed 7's `SeededGameFingerprintTests` fingerprint
+            // disagreed across two separate processes before this fix, with
+            // this exact card - Road Building - as the new code path).
+            candidateState.board.onBoardEdges.sorted()
+                .filter { Building.canBuildRoad($0, for: player, in: candidateState) }
+                .compactMap { edge -> (EdgeID, Double)? in
+                    guard let score = BuildPlanner.score(
+                        .buildRoad(edge), for: candidateState, player: player, personality: personality, weights: weights
+                    ) else { return nil }
+                    return (edge, score)
+                }
+                .max { $0.1 < $1.1 }?
+                .0
+        }
+
+        guard let first = bestLegalEdge(in: state),
+              let playerIndex = state.players.firstIndex(where: { $0.id == player })
+        else { return nil }
+
+        var afterFirst = state
+        afterFirst.players[playerIndex].roads.insert(first)
+        guard let second = bestLegalEdge(in: afterFirst) else { return nil }
+        return (first, second)
     }
 
     /// Total holdings of `resource` across every opponent, weighted by how

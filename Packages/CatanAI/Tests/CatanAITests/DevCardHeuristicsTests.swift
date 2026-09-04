@@ -89,6 +89,33 @@ private func makeAmbiguousYearOfPlentyState() -> GameState {
     #expect(move == nil)
 }
 
+/// Regression test: `choosePlay` used to have no branch for Road Building at
+/// all, so a card that's always legal to play for free (no resource cost,
+/// no situational target to judge) simply sat in hand for the rest of the
+/// game - the one dev-card type guaranteed to be dead weight. A held Road
+/// Building card with at least one legal road edge available should always
+/// be played, and both edges it names should independently satisfy
+/// `Building.canBuildRoad` the same way `RulesEngine`'s own legal-move
+/// enumeration requires (the second edge legal only once the first is
+/// already placed).
+@Test func choosePlayAlwaysPlaysAHeldRoadBuildingCardWhenARoadIsLegal() {
+    var state = GameSetup.newGame(board: BoardGenerator.standard())
+    let player = PlayerID(index: 0)
+    let vertex = state.board.onBoardVertices.sorted().first!
+    state.players[0].settlements = [vertex]
+    state.players[0].devCards = [.roadBuilding]
+
+    let move = DevCardHeuristics.choosePlay(state: state, player: player, personality: .balanced)
+    guard case .playRoadBuilding(let first, let second) = move else {
+        Issue.record("expected a Road Building play, got \(String(describing: move))")
+        return
+    }
+    #expect(Building.canBuildRoad(first, for: player, in: state))
+    var afterFirst = state
+    afterFirst.players[0].roads.insert(first)
+    #expect(Building.canBuildRoad(second, for: player, in: afterFirst))
+}
+
 @Test func aggressivePersonalityProactivelyUsesAKnightButCautiousDoesNot() {
     var state = GameSetup.newGame(board: BoardGenerator.standard())
     let player = PlayerID(index: 0)

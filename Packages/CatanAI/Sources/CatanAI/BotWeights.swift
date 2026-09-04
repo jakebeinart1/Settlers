@@ -178,10 +178,46 @@ public struct BotWeights: Codable, Sendable, Equatable {
     /// Higher makes bots grab the bonus the moment it is available.
     public var longestRoadClaimBonus: Double = 2.5
 
+    /// Flat bonus for a road that bridges two of the player's own currently
+    /// disconnected road pieces (a settlement/stub each) into one - added on
+    /// top of, not instead of, whatever the length-based claim/pursuit/
+    /// defense bonus above already computes for the resulting chain.
+    ///
+    /// A bridging edge has both endpoints already inside the player's own
+    /// network by definition, so it structurally can never earn
+    /// `roadReachableScale`'s bestReachable term (nothing newly reachable)
+    /// or `committedPathScale`'s path term (already at distance 0 to
+    /// wherever `expansionTarget` picked, either way) the way a same-
+    /// position simple extension into open territory can - so without this,
+    /// a merge landing short of the 5-edge minimum reliably lost the scoring
+    /// competition to a mundane extension of whichever stub looked
+    /// marginally better that turn, and a bot could sit on two disconnected
+    /// pieces indefinitely. Confirmed as a real, reproducible defect by a
+    /// 90-game sim audit (2026-09-04): 53 player-instances ended the game
+    /// with enough total road segments (9-13) to clear Longest Road, split
+    /// across pieces whose longest single connected chain topped out at 3-4;
+    /// separately reproduced in a real played game the same day (bot
+    /// "Ragnar") where a comfortable existing lead made every road - bridge
+    /// included - score identically to a pointless filler. Sized in the same
+    /// range as `roadReachableScale`'s typical contribution, so a bridge is
+    /// no longer structurally disadvantaged against an extension purely for
+    /// lacking a term it can never earn. Higher makes bots merge fragmented
+    /// networks more readily.
+    public var longestRoadBridgeBonus: Double = 0.8
+
     /// Chain length (after the candidate road) at which a bot is treated as
     /// seriously pursuing Longest Road, and starts paying for the connective
     /// roads leading up to a claim rather than only the one that completes it.
     /// Lower makes bots commit to the road game earlier.
+    ///
+    /// A 2026-09-04 review flagged this gate as a theoretical source of
+    /// "first two pursuit roads score too low to build" - left unchanged
+    /// pending a confirmed repro, per the same empirical audit noted at
+    /// `buildDevCardBase`. The confirmed defect this session actually found
+    /// (bots ending with disconnected road fragments despite having enough
+    /// total segments for Longest Road, sim-audited 2026-09-04: 53 cases
+    /// across 90 games) is addressed directly by `bridgesOwnFragments`
+    /// instead, which doesn't depend on this gate at all.
     public var longestRoadPursuitMinLength: Int = 3
 
     /// Chain length at which the pursuit ramp is worth zero; the bonus is
@@ -241,6 +277,19 @@ public struct BotWeights: Codable, Sendable, Equatable {
 
     /// Flat value of buying a development card, as a *build* candidate.
     /// Higher makes bots spend spare ore/grain/wool on cards.
+    ///
+    /// A 2026-09-04 review flagged this as a theoretical suspect for
+    /// crowding out Longest-Road connector roads (worked arithmetic showed
+    /// `buyDevCard` outscoring one at several personality/length
+    /// combinations) - but a 90-game empirical instrumented-harness audit
+    /// specifically checking for that scenario found ZERO cases of
+    /// `buyDevCard` actually displacing an available longest-road-clearing
+    /// road, and a separate sim-harness audit found `buyDevCard` beating a
+    /// legal build 0/100 times overall. Left at its original value on that
+    /// evidence: the theoretical concern didn't manifest in play, so cutting
+    /// it would move fingerprints to fix a problem that isn't observed.
+    /// (The real, confirmed fragmentation defect is addressed instead via
+    /// `BuildPlanner.bridgesOwnFragments` - see its doc comment.)
     public var buildDevCardBase: Double = 1.6
 
     /// How strongly `aggressiveness` raises that value - aggressive bots want

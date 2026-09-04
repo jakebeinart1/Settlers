@@ -101,12 +101,44 @@ import CatanEngine
 /// (`c07d57fded64e7ae`) was confirmed identical across three separate
 /// processes - two direct runs of the `sim` executable and this test's own
 /// process - before being pinned here.
+///
+/// Re-recorded 2026-09-04 (all five values) for a road-building/dev-card
+/// review of a real played game: `BuildPlanner` now credits an edge that
+/// bridges two of a bot's own disconnected road pieces (`bridgesOwnFragments`,
+/// both in the not-yet-holder pursuit path and the already-holder defense
+/// path) - previously a bot could sit on two separate stubs indefinitely
+/// because a bridge structurally could never earn the reachable/path bonuses
+/// a plain extension gets, confirmed by a 90-game sim audit (53 fragmented-
+/// network cases) and separately by this project's own real played game
+/// (2026-09-04, bot "Ragnar") - and `DevCardHeuristics.choosePlay` now plays
+/// a held Road Building card at all, which it never did before (there was no
+/// branch for it), so it sat as pure dead weight every game it was drawn.
+/// Every game with any road-building activity now legitimately diverges from
+/// the pre-fix trace, which is all five seeds.
+///
+/// This re-pin also fixes a real bug that had nothing to do with bot
+/// behavior: the new `bestRoadBuildingPair` (`DevCardHeuristics.swift`)
+/// originally iterated `board.onBoardEdges` - a `Set`, hash-seeded per
+/// process - without sorting first, so a tie between two equally-scored
+/// candidate roads resolved differently run to run. `.sorted()` fixed that,
+/// but seed 7 still disagreed across separate processes afterward - tracked
+/// down to this file's own two `@Test` functions interfering with each other
+/// under `swift-testing`'s default concurrent scheduling once these changes
+/// made games long enough to make the interference reachable (confirmed by
+/// isolating `seededSelfPlayReproducesExactly` alone: stable across 5
+/// separate processes every time; both tests together: 3 different results
+/// across 3 processes). Root cause not further isolated beyond "the two
+/// tests must not run concurrently" - wrapping them in `@Suite(.serialized)`
+/// (below) forces that and was confirmed to produce the identical fingerprint
+/// across 3 more separate processes once applied. All five new values were
+/// additionally cross-checked against direct `sim` executable runs for their
+/// respective seeds before being pinned here.
 private let expectedFingerprints: [UInt64: String] = [
-    1: "46a24e9ecfe0feb8",
-    42: "49ead678fb08dc65",
-    7: "8c8415acff40784e",
-    1234: "c07d57fded64e7ae",
-    99: "bce23296652208a2",
+    1: "7964368a77394abc",
+    42: "77f1cbe943477e18",
+    7: "e985537b0fe9ca79",
+    1234: "e0be15d59b7df4c3",
+    99: "deddbc538f909be8",
 ]
 
 /// Whoever may act, or `nil` at game over.
@@ -187,22 +219,34 @@ private func playSeededGame(seed: UInt64) -> (fingerprint: String, moves: Int, w
     return (fingerprint(trace), trace.count, winner)
 }
 
-@Test func seededSelfPlayReproducesExactly() {
-    for (seed, expected) in expectedFingerprints.sorted(by: { $0.key < $1.key }) {
-        let result = playSeededGame(seed: seed)
-        let detail = "seed \(seed): expected \(expected), got \(result.fingerprint) "
-            + "(\(result.moves) moves, winner \(result.winner.map { "P\($0.index)" } ?? "none"))"
-        #expect(result.fingerprint == expected, "\(detail)")
+/// `.serialized` is load-bearing, not stylistic. `swift-testing` runs
+/// `@Test` functions concurrently by default (independent of `swift test`'s
+/// own `--parallel`/`--no-parallel`, which governs its outer process-level
+/// scheduling, not the library's own task scheduler) - both functions below
+/// play full self-play games, and letting them run concurrently produced a
+/// real, reproducible instability: seed 7's fingerprint disagreed across
+/// three separate processes when both ran together, and was rock-stable
+/// across five separate processes with `seededSelfPlayReproducesExactly`
+/// filtered to run alone. The exact racing access was not further isolated
+/// (see the 2026-09-04 changelog entry above) - `.serialized` is the
+/// standard, correct fix for "these tests must not overlap" regardless of
+/// the root cause, and this file's entire purpose (checking exact
+/// reproducibility against hand-verified constants) is defeated by
+/// concurrent noise either way.
+@Suite(.serialized)
+struct SelfPlayReproducibility {
+    @Test func seededSelfPlayReproducesExactly() {
+        for (seed, expected) in expectedFingerprints.sorted(by: { $0.key < $1.key }) {
+            let result = playSeededGame(seed: seed)
+            let detail = "seed \(seed): expected \(expected), got \(result.fingerprint) "
+                + "(\(result.moves) moves, winner \(result.winner.map { "P\($0.index)" } ?? "none"))"
+            #expect(result.fingerprint == expected, "\(detail)")
+        }
     }
-}
 
-@Test func replayingTheSameSeedInThisProcessAlsoMatches() {
-    // Weaker than the pinned constants above - two runs in one process share a
-    // hash seed - but it separates "the bots changed" from "ordering leaked
-    // back in" when the test above fails.
-    // One seed, not all five: each game is a full self-play run of several
-    // hundred moves, and this check is diagnostic rather than the guarantee.
-    let seed: UInt64 = 42
-    #expect(playSeededGame(seed: seed).fingerprint == playSeededGame(seed: seed).fingerprint,
-            "seed \(seed) is not even self-consistent within one process")
+    @Test func replayingTheSameSeedInThisProcessAlsoMatches() {
+        let seed: UInt64 = 42
+        #expect(playSeededGame(seed: seed).fingerprint == playSeededGame(seed: seed).fingerprint,
+                "seed \(seed) is not even self-consistent within one process")
+    }
 }

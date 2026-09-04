@@ -515,6 +515,131 @@ private struct SeededRNG: RandomNumberGenerator {
     #expect(contestedBonus > uncontestedBonus)
 }
 
+/// Direct unit coverage of `bridgesOwnFragments`, isolated from the scoring
+/// weights above it. Builds a genuine two-fragment network: fragment A is a
+/// road chain reaching vertex `tail`, fragment B is a lone settlement at `w`
+/// with no road of its own yet - exactly the real-game shape (a settlement
+/// one road-hop from the main network, never connected) that motivated this
+/// helper. `edgesTouching(tail)` on a real board always has at least one
+/// edge besides the chain's own last edge (interior vertices are degree 3),
+/// so `w` is reachable without hand-picked coordinates.
+@Test func bridgesOwnFragmentsDetectsAGenuineBridgeBetweenTwoDisconnectedPieces() {
+    var state = GameSetup.newGame(board: BoardGenerator.standard())
+    let chain = buildChain(from: state.board, length: 3)
+    #expect(chain.count == 3, "test board too small to build a 3-edge chain")
+    state.players[0].roads = Set(chain)
+
+    let tail = state.board.vertices(of: chain[2]).1
+    guard let bridgeEdge = state.board.edgesTouching(tail).first(where: { $0 != chain[2] }) else {
+        Issue.record("expected the chain's tail vertex to have a second edge")
+        return
+    }
+    let (a, b) = state.board.vertices(of: bridgeEdge)
+    let w = a == tail ? b : a
+    state.players[0].settlements = [w] // fragment B: a lone settlement, no road yet
+
+    #expect(BuildPlanner.bridgesOwnFragments(bridgeEdge, player: state.players[0], in: state))
+
+    // Control: an edge fully inside fragment A already (both endpoints share
+    // a root) is never a bridge.
+    #expect(!BuildPlanner.bridgesOwnFragments(chain[1], player: state.players[0], in: state))
+}
+
+/// Regression test for the real-game gap (2026-09-04, bot "Ragnar"): a
+/// comfortable, uncontested Longest Road lead used to zero out
+/// `longestRoadDefenseBonus` for every road, including one that would merge
+/// a stray settlement into the main network. That merge now scores above
+/// zero even with no rival close behind; a plain filler road into open
+/// territory (not touching any separate piece of the network) still doesn't.
+@Test func longestRoadDefenseBonusRewardsBridgingEvenWithAnUncontestedLead() {
+    var state = GameSetup.newGame(board: BoardGenerator.standard())
+    let player = PlayerID(index: 0)
+    let chain = buildChain(from: state.board, length: 5)
+    #expect(chain.count == 5, "test board too small to build a 5-edge chain")
+    state.players[0].roads = Set(chain)
+    state.longestRoadPlayer = player
+    // No opponent has any roads at all - the lead is completely uncontested.
+
+    // Any vertex fragment A's roads touch will do for either edge, and the
+    // two don't need to share a vertex - collect every (vertex, spare edge)
+    // pair along the whole chain rather than assuming any single vertex
+    // (e.g. the tail) has two spares of its own; a walk can end at a
+    // low-degree/edge-of-board vertex with only one.
+    let chainVertices = Set(chain.flatMap { [state.board.vertices(of: $0).0, state.board.vertices(of: $0).1] })
+    var spares: [(vertex: VertexID, edge: EdgeID)] = []
+    for vertex in chainVertices.sorted() {
+        for spareEdge in state.board.edgesTouching(vertex).filter({ !chain.contains($0) }) {
+            spares.append((vertex, spareEdge))
+        }
+    }
+    guard spares.count >= 2 else {
+        Issue.record("expected the chain to have two spare edges somewhere along it")
+        return
+    }
+    let (hub, bridgeEdge) = spares[0]
+    let fillerEdge = spares[1].edge
+    let (a, b) = state.board.vertices(of: bridgeEdge)
+    let w = a == hub ? b : a
+    state.players[0].settlements = [w] // a lone, disconnected settlement
+
+    let bridgeBonus = BuildPlanner.longestRoadDefenseBonus(edge: bridgeEdge, player: player, state: state)
+    let fillerBonus = BuildPlanner.longestRoadDefenseBonus(edge: fillerEdge, player: player, state: state)
+
+    #expect(bridgeBonus > 0)
+    #expect(fillerBonus == 0)
+}
+
+/// Regression test for the confirmed fragmentation defect (2026-09-04
+/// sim audit: 53 player-instances ended a game with enough total road
+/// segments to clear Longest Road but split across disconnected pieces).
+/// A bridge whose resulting length falls *below* `longestRoadPursuitMinLength`
+/// (a lone settlement merged with a single-edge stub reaches only length 2,
+/// under the default gate of 3) used to get zero pursuit credit at all - the
+/// gated ramp only ever looked at the resulting length, never at whether the
+/// edge merged two separate pieces. It should score above zero now, and
+/// strictly above a same-position filler edge that doesn't touch the
+/// settlement's separate piece.
+@Test func longestRoadPursuitBonusCreditsABridgeEvenBelowThePursuitGate() {
+    var state = GameSetup.newGame(board: BoardGenerator.standard())
+    let player = PlayerID(index: 0)
+    let chain = buildChain(from: state.board, length: 1)
+    #expect(chain.count == 1, "test board too small to build a 1-edge chain")
+    state.players[0].roads = Set(chain)
+
+    // Collect every (vertex, spare edge) pair from either endpoint - the two
+    // returned edges don't need to share a vertex, only to both extend the
+    // 1-edge chain somehow; a single endpoint isn't guaranteed to have two
+    // spares of its own (a walk can end at a low-degree/edge-of-board vertex).
+    let (v0, v1) = state.board.vertices(of: chain[0])
+    var spares: [(vertex: VertexID, edge: EdgeID)] = []
+    for vertex in [v0, v1] {
+        for spareEdge in state.board.edgesTouching(vertex) where spareEdge != chain[0] {
+            spares.append((vertex, spareEdge))
+        }
+    }
+    guard spares.count >= 2 else {
+        Issue.record("expected the 1-edge chain's endpoints to have two spare edges between them")
+        return
+    }
+    let (hub, bridgeEdge) = spares[0]
+    let fillerEdge = spares[1].edge
+    let (a, b) = state.board.vertices(of: bridgeEdge)
+    let w = a == hub ? b : a
+    state.players[0].settlements = [w] // a lone, disconnected settlement
+
+    // The bridge reaches length 2 (settlement -> bridge -> chain's far end) -
+    // below the default gate of 3, so only the merge-specific credit applies.
+    var simulated = state
+    simulated.players[0].roads.insert(bridgeEdge)
+    #expect(LongestRoad.length(for: simulated.players[0], in: simulated) == 2)
+
+    let bridgeBonus = BuildPlanner.longestRoadPursuitBonus(edge: bridgeEdge, player: player, state: state)
+    let fillerBonus = BuildPlanner.longestRoadPursuitBonus(edge: fillerEdge, player: player, state: state)
+
+    #expect(bridgeBonus > 0)
+    #expect(fillerBonus == 0)
+}
+
 @Test func longestRoadClaimBonusIsLargerWhenTakingItFromAHighThreatHolder() {
     var state = GameSetup.newGame(board: BoardGenerator.standard())
     let player = PlayerID(index: 0)

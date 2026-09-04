@@ -92,23 +92,8 @@ public enum BuildPlanner {
                     * (state.longestRoadPlayer == nil ? 1.0 : holderWeight)
             } else if state.longestRoadPlayer == player {
                 longestRoadBonus = longestRoadDefenseBonus(edge: edge, player: player, state: state, weights: weights)
-            } else if let playerIndex = state.players.firstIndex(where: { $0.id == player }) {
-                // Not the qualifying edge itself, and not already held (in
-                // which case there's nothing left to pursue) - but real
-                // Longest Road pursuit is a multi-turn commitment, not a
-                // single lucky edge, so reward extending our own chain once
-                // we're seriously in range (3+ segments long after this
-                // edge), scaling up as it approaches the 5-edge minimum, so
-                // the connective roads leading up to a real claim actually
-                // get built instead of only ever the one that happens to
-                // complete it.
-                var simulated = state
-                simulated.players[playerIndex].roads.insert(edge)
-                let ownLengthAfter = LongestRoad.length(for: simulated.players[playerIndex], in: simulated)
-                if ownLengthAfter >= weights.longestRoadPursuitMinLength {
-                    let segmentsAboveZeroPoint = ownLengthAfter - weights.longestRoadPursuitZeroLength
-                    longestRoadBonus = weights.longestRoadPursuitScale * Double(segmentsAboveZeroPoint)
-                }
+            } else {
+                longestRoadBonus = longestRoadPursuitBonus(edge: edge, player: player, state: state, weights: weights)
             }
             // A road going somewhere specific reads as planned; one that
             // doesn't reads as aimless. `committedPathBonus` rewards edges
@@ -434,15 +419,79 @@ public enum BuildPlanner {
         return weights.committedPathScale / Double(edgeDistance + 1)
     }
 
+    /// Bonus for `edge` when `player` doesn't yet hold Longest Road (the
+    /// exact qualifying edge and the already-holding case are handled
+    /// separately, by `claimsLongestRoad` and `longestRoadDefenseBonus`).
+    /// Real pursuit is a multi-turn commitment, not a single lucky edge, so
+    /// this rewards extending the chain once it's seriously in range
+    /// (`longestRoadPursuitMinLength`+ segments after this edge), scaling up
+    /// toward the 5-edge minimum, so the connective roads leading up to a
+    /// claim actually get built instead of only ever the one that happens to
+    /// complete it - plus, independent of that length gate, a flat bonus
+    /// whenever `edge` bridges two of the player's own currently-disconnected
+    /// road pieces into one.
+    ///
+    /// The bridge bonus needs to be a flat add, not folded into the length
+    /// ramp above: `LongestRoad.length` already accounts for a merge
+    /// correctly (a bridging edge connecting two 2-segment stubs legitimately
+    /// computes length 5 and is credited by the ordinary gate/ramp, no
+    /// special case needed there) - the actual gap is that a bridge edge, by
+    /// definition, has *both* endpoints already inside the player's own
+    /// network, so it structurally can never earn `bestReachable` (nothing
+    /// newly reachable) or `committedPathBonus` (already at hop 0 either way)
+    /// the way a same-position simple extension into open territory can. A
+    /// merge landing below the length gate loses that scoring competition to
+    /// a mundane extension every time, so bots kept extending a favored stub
+    /// indefinitely rather than ever bridging - confirmed as a real,
+    /// reproducible defect by a 90-game sim audit (2026-09-04): 53
+    /// player-instances ended the game with enough total road segments
+    /// (9-13) to clear Longest Road, split across disconnected pieces whose
+    /// longest single connected chain topped out at 3-4. Internal rather
+    /// than private so `BuildPlannerTests` can compare it directly, isolated
+    /// from `.buildRoad`'s other bonuses, which can otherwise swamp the
+    /// difference on a real board.
+    static func longestRoadPursuitBonus(
+        edge: EdgeID,
+        player: PlayerID,
+        state: GameState,
+        weights: BotWeights = .default
+    ) -> Double {
+        guard let playerIndex = state.players.firstIndex(where: { $0.id == player }) else { return 0 }
+        var simulated = state
+        simulated.players[playerIndex].roads.insert(edge)
+        let ownLengthAfter = LongestRoad.length(for: simulated.players[playerIndex], in: simulated)
+
+        var bonus = 0.0
+        if ownLengthAfter >= weights.longestRoadPursuitMinLength {
+            let segmentsAboveZeroPoint = ownLengthAfter - weights.longestRoadPursuitZeroLength
+            bonus = weights.longestRoadPursuitScale * Double(segmentsAboveZeroPoint)
+        }
+        if bridgesOwnFragments(edge, player: state.players[playerIndex], in: state) {
+            bonus += weights.longestRoadBridgeBonus
+        }
+        return bonus
+    }
+
     /// Bonus for `edge` extending `player`'s road chain while they already
     /// hold Longest Road - `0` unless a rival sits within one segment of
-    /// catching up. Longest Road only matters if it's still held *at game
-    /// end*, so defending a lead that's genuinely under threat is real
-    /// value; reinforcing a lead nobody is close to contesting is a wasted
-    /// road (the resources were better spent elsewhere). Internal rather
-    /// than private so `BuildPlannerTests` can compare it directly, isolated
-    /// from `.buildRoad`'s other bonuses (bestReachable/blocking/path),
-    /// which can otherwise swamp the difference on a real board.
+    /// catching up, *or* `edge` bridges two of the player's own currently
+    /// disconnected road pieces into one longer, more defensible chain.
+    /// Longest Road only matters if it's still held *at game end*, so
+    /// defending a lead that's genuinely under threat is real value;
+    /// reinforcing a lead nobody is close to contesting is a wasted road
+    /// (the resources were better spent elsewhere) - UNLESS that road also
+    /// consolidates a fragmented network, which has defensive value a raw
+    /// lead-margin comparison doesn't see: a single opponent settlement can
+    /// cut a stub off entirely, while a merged chain has no such single
+    /// point of failure. Confirmed as a real, reachable gap (not a
+    /// `LongestRoad` bug - it correctly computes the merged length) via a
+    /// real played game (2026-09-04, bot "Ragnar"): a comfortable lead made
+    /// this return `0` for every road, so a bridging edge one board-edge
+    /// away from an existing stub was never scored any differently from a
+    /// pointless filler road and never got built. Internal rather than
+    /// private so `BuildPlannerTests` can compare it directly, isolated from
+    /// `.buildRoad`'s other bonuses (bestReachable/blocking/path), which can
+    /// otherwise swamp the difference on a real board.
     static func longestRoadDefenseBonus(
         edge: EdgeID,
         player: PlayerID,
@@ -452,16 +501,64 @@ public enum BuildPlanner {
         guard let playerIndex = state.players.firstIndex(where: { $0.id == player }) else { return 0 }
         let me = state.players[playerIndex]
         let ownLength = LongestRoad.length(for: me, in: state)
-        let closestRivalLength = state.players
-            .filter { $0.id != player }
-            .map { LongestRoad.length(for: $0, in: state) }
-            .max() ?? 0
-        guard ownLength - closestRivalLength <= weights.longestRoadDefenseLeadGap else { return 0 }
 
         var simulated = state
         simulated.players[playerIndex].roads.insert(edge)
         let ownLengthAfter = LongestRoad.length(for: simulated.players[playerIndex], in: simulated)
-        return ownLengthAfter > ownLength ? weights.longestRoadDefenseBonus : 0
+        guard ownLengthAfter > ownLength else { return 0 }
+
+        let closestRivalLength = state.players
+            .filter { $0.id != player }
+            .map { LongestRoad.length(for: $0, in: state) }
+            .max() ?? 0
+        let leadIsContested = ownLength - closestRivalLength <= weights.longestRoadDefenseLeadGap
+        if leadIsContested { return weights.longestRoadDefenseBonus }
+        return bridgesOwnFragments(edge, player: me, in: state) ? weights.longestRoadBridgeBonus : 0
+    }
+
+    /// Whether `edge`'s two endpoints currently sit in two different
+    /// connected pieces of `player`'s own road network (including bare
+    /// settlements/cities with no road yet) - i.e. building it would merge
+    /// two pieces that today can only be reached from each other by roads
+    /// `player` doesn't own, rather than merely extending one piece that was
+    /// already connected. Used by `longestRoadDefenseBonus` to recognize a
+    /// consolidating road even when the current lead looks too comfortable
+    /// to bother defending by the raw length-margin alone.
+    static func bridgesOwnFragments(_ edge: EdgeID, player: Player, in state: GameState) -> Bool {
+        var parent: [VertexID: VertexID] = [:]
+        func find(_ vertex: VertexID) -> VertexID {
+            var v = vertex
+            while let p = parent[v], p != v { v = p }
+            return v
+        }
+        func union(_ a: VertexID, _ b: VertexID) {
+            let (ra, rb) = (find(a), find(b))
+            guard ra != rb else { return }
+            parent[ra] = rb
+        }
+
+        for vertex in player.settlements.union(player.cities) { parent[vertex] = vertex }
+        for existingEdge in player.roads {
+            let (a, b) = state.board.vertices(of: existingEdge)
+            // `dict[key, default:] = value` is NOT a conditional insert - it's
+            // a plain overwrite that happens to read `default` as its old
+            // value first, so using it here would silently reset a vertex's
+            // root on every edge that re-touches it, splitting an already-
+            // connected chain into false "fragments". Insert only if absent.
+            if parent[a] == nil { parent[a] = a }
+            if parent[b] == nil { parent[b] = b }
+            union(a, b)
+        }
+
+        let (a, b) = state.board.vertices(of: edge)
+        guard let rootA = parent[a].map(find), let rootB = parent[b].map(find) else {
+            // Neither endpoint touches any existing piece of the network yet
+            // - not a bridge between two pieces, just an unconnected edge
+            // (and not a legal road to begin with, but this helper doesn't
+            // need to re-derive legality).
+            return false
+        }
+        return rootA != rootB
     }
 
     /// Whether adding `edge` to `player`'s roads would make `player` the
