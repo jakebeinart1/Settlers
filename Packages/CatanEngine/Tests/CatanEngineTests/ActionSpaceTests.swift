@@ -75,6 +75,22 @@ private let space = ActionSpace(board: board)
     #expect(unmapped.isEmpty, "every index must name a move; \(unmapped.count) did not")
 }
 
+/// Task 3 widened the give-side ceiling from 2 to 3 - this proves a
+/// give-count-of-3 offer is actually representable end to end, not just
+/// that the space's total size grew to account for it.
+@Test func actionSpaceRoundTripsAGenerousGiveCountOfThree() {
+    let offer = TradeOffer.enumerated(from: PlayerID(index: 0), give: [.lumber: 3], want: [.ore: 1])
+    let index = space.index(of: .proposeTrade(offer))
+    #expect(index != nil)
+    let decoded = space.move(at: index!)
+    guard case .proposeTrade(let decodedOffer) = decoded else {
+        Issue.record("expected a proposeTrade move")
+        return
+    }
+    #expect(decodedOffer.give == [.lumber: 3])
+    #expect(decodedOffer.want == [.ore: 1])
+}
+
 @Test func outOfRangeIndicesAreRejectedRatherThanWrapped() {
     #expect(space.move(at: -1) == nil)
     #expect(space.move(at: space.size) == nil)
