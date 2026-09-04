@@ -153,11 +153,9 @@ public enum TradeHeuristics {
     /// genuinely self-favorable give candidate (worth less to us than what
     /// we're asking for) cheapest-first and returns the first one that
     /// hasn't already been proposed-and-declined or isn't already sitting in
-    /// `pendingTradeOffers` this turn. Once every ordinary candidate for the
-    /// two highest-value targets (settlement/city) has been declined, it
-    /// escalates quantity - not favorability - up to one card better than
-    /// this bot's own best bank/port rate, on the theory that a genuinely
-    /// generous offer might land where a merely-fair one didn't. Gives up
+    /// `pendingTradeOffers` this turn (`ordinaryOffer`). Once every ordinary
+    /// candidate for the two highest-value targets (settlement/city) has been
+    /// declined, it escalates quantity via `generousUnlockOffer`. Gives up
     /// entirely, returning `[]`, once `RulesEngine.maxTradeProposalsPerTurn`
     /// proposals have already been declined this turn - a bot that's been
     /// turned down that many times has exhausted its options for now rather
@@ -180,15 +178,36 @@ public enum TradeHeuristics {
         let deficit = max(0, (target.cost[mostNeeded] ?? 0) - (me.resources[mostNeeded] ?? 0))
         let wantCount = min(max(1, deficit), RulesEngine.maxEnumeratedTradeQuantity)
 
-        // Every give resource that's a genuine surplus (more than one card) AND
-        // genuinely worth less to us than what we're asking for - the same
-        // self-favorable bar this always enforced, just applied per-candidate
-        // instead of to one pre-chosen resource, so a retry can rank past the
-        // first candidate instead of only ever considering it. Sorted cheapest-
-        // to-us first; `Resource.allCases` breaks ties the same way every time
-        // (see the file-level note on why `min(by:)` over a dictionary wasn't
-        // safe here).
-        let rankedGive = Resource.allCases
+        let rankedGive = rankedGiveCandidates(excluding: mostNeeded, belowValue: wantValue, for: me,
+                                               personality: personality, weights: weights)
+
+        if let ordinary = ordinaryOffer(rankedGive: rankedGive, want: mostNeeded, wantCount: wantCount,
+                                         player: player, me: me, state: state, declined: declined, weights: weights) {
+            return [ordinary]
+        }
+        guard target.cost == Building.settlementCost || target.cost == Building.cityCost,
+              let generous = generousUnlockOffer(rankedGive: rankedGive, want: mostNeeded, wantCount: wantCount,
+                                                  player: player, me: me, state: state, declined: declined)
+        else { return [] }
+        return [generous]
+    }
+
+    /// Every give resource that's a genuine surplus (more than one card) AND
+    /// genuinely worth less to us than what we're asking for - the same
+    /// self-favorable bar this always enforced, just applied per-candidate
+    /// instead of to one pre-chosen resource, so a retry can rank past the
+    /// first candidate instead of only ever considering it. Sorted cheapest-
+    /// to-us first; `Resource.allCases` breaks ties the same way every time
+    /// (see the file-level note on why `min(by:)` over a dictionary wasn't
+    /// safe here).
+    private static func rankedGiveCandidates(
+        excluding mostNeeded: Resource,
+        belowValue wantValue: Double,
+        for me: Player,
+        personality: BotPersonality,
+        weights: BotWeights
+    ) -> [Resource] {
+        Resource.allCases
             .filter {
                 $0 != mostNeeded && (me.resources[$0] ?? 0) > 1
                     && resourceValue($0, for: me, personality: personality, weights: weights) < wantValue
@@ -199,43 +218,64 @@ public enum TradeHeuristics {
                 return lhs == rhs ? Resource.allCases.firstIndex(of: $0)! < Resource.allCases.firstIndex(of: $1)!
                                   : lhs < rhs
             }
+    }
 
-        func untried(give: Resource, giveCount: Int) -> TradeOffer? {
-            let giveTable = [give: giveCount]
-            let wantTable = [mostNeeded: wantCount]
-            let alreadyTried = declined.contains { $0.give == giveTable && $0.want == wantTable }
-                || state.pendingTradeOffers.contains { $0.from == player && $0.give == giveTable && $0.want == wantTable }
-            return alreadyTried ? nil : TradeOffer.enumerated(from: player, give: giveTable, want: wantTable)
-        }
+    /// Whether `give`/`giveCount` for `want`/`wantCount` from `player` hasn't
+    /// already been proposed-and-declined or isn't already sitting in
+    /// `pendingTradeOffers` this turn - shared by both the ordinary and
+    /// generous-unlock passes so neither regenerates a rejected offer.
+    private static func untried(
+        give: Resource, giveCount: Int, want: Resource, wantCount: Int,
+        player: PlayerID, state: GameState, declined: [TradeOffer]
+    ) -> TradeOffer? {
+        let giveTable = [give: giveCount]
+        let wantTable = [want: wantCount]
+        let alreadyTried = declined.contains { $0.give == giveTable && $0.want == wantTable }
+            || state.pendingTradeOffers.contains { $0.from == player && $0.give == giveTable && $0.want == wantTable }
+        return alreadyTried ? nil : TradeOffer.enumerated(from: player, give: giveTable, want: wantTable)
+    }
 
-        // Ordinary pass: walk ranked candidates at the usual 1-2 card quantity -
-        // unchanged from before, just no longer limited to a single pre-chosen
-        // candidate, so a decline can move to the next-cheapest resource instead
-        // of regenerating the same offer forever.
+    /// Ordinary pass: walk ranked candidates at the usual 1-2 card quantity -
+    /// unchanged from before, just no longer limited to a single pre-chosen
+    /// candidate, so a decline can move to the next-cheapest resource instead
+    /// of regenerating the same offer forever.
+    private static func ordinaryOffer(
+        rankedGive: [Resource], want: Resource, wantCount: Int,
+        player: PlayerID, me: Player, state: GameState, declined: [TradeOffer], weights: BotWeights
+    ) -> TradeOffer? {
         for give in rankedGive {
             let held = me.resources[give] ?? 0
             let generous = held >= weights.generousOfferSurplusThreshold
             let giveCount = min(generous ? 2 : 1, max(1, held - 1), RulesEngine.maxEnumeratedTradeQuantity)
-            if let offer = untried(give: give, giveCount: giveCount) { return [offer] }
+            if let offer = untried(give: give, giveCount: giveCount, want: want, wantCount: wantCount,
+                                    player: player, state: state, declined: declined) {
+                return offer
+            }
         }
+        return nil
+    }
 
-        // Generous-unlock pass: every ordinary candidate for this target has
-        // already been proposed-and-declined this turn. For the two highest-
-        // value targets only (settlement/city - same scope
-        // `enablesImmediateBuild` uses elsewhere in this file), escalate
-        // quantity - not favorability, which every candidate above already
-        // cleared - up to one card better than this bot's own best bank/port
-        // rate for the cheapest candidate. See the design doc for why this
-        // bound, not "uncapped": `Trading.bestRate` is the ceiling a rational
-        // bot would never trade a *player* worse than, since the bank always
-        // says yes.
-        guard target.cost == Building.settlementCost || target.cost == Building.cityCost,
-              let cheapest = rankedGive.first else { return [] }
+    /// Generous-unlock pass: every ordinary candidate for this target has
+    /// already been proposed-and-declined this turn. For the two highest-
+    /// value targets only (settlement/city - same scope
+    /// `enablesImmediateBuild` uses elsewhere in this file), escalate
+    /// quantity - not favorability, which every candidate above already
+    /// cleared - up to one card better than this bot's own best bank/port
+    /// rate for the cheapest candidate. See the design doc for why this
+    /// bound, not "uncapped": `Trading.bestRate` is the ceiling a rational
+    /// bot would never trade a *player* worse than, since the bank always
+    /// says yes.
+    private static func generousUnlockOffer(
+        rankedGive: [Resource], want: Resource, wantCount: Int,
+        player: PlayerID, me: Player, state: GameState, declined: [TradeOffer]
+    ) -> TradeOffer? {
+        guard let cheapest = rankedGive.first else { return nil }
         let held = me.resources[cheapest] ?? 0
         let ceiling = max(0, Trading.bestRate(for: cheapest, player: player, state: state) - 1)
         let giveCount = min(ceiling, max(1, held - 1))
-        guard giveCount > 0, let offer = untried(give: cheapest, giveCount: giveCount) else { return [] }
-        return [offer]
+        guard giveCount > 0 else { return nil }
+        return untried(give: cheapest, giveCount: giveCount, want: want, wantCount: wantCount,
+                       player: player, state: state, declined: declined)
     }
 
     /// A one-shot bank/port trade that would help `player`'s current
