@@ -302,3 +302,38 @@ import CatanEngine
 
     #expect(!TradeHeuristics.evaluate(offer: offer, receiver: receiver, state: state, personality: .aggressive))
 }
+
+/// After a first proposal is declined, `proposeTrades` should float a
+/// genuinely different offer rather than recomposing the identical one -
+/// which, being a pure function of otherwise-unchanged state, it would
+/// otherwise reproduce forever.
+@Test func proposeTradesRetriesWithADifferentOfferAfterADecline() {
+    var state = GameSetup.newGame(board: BoardGenerator.standard())
+    let player = PlayerID(index: 0)
+    // Two surplus resources it could give up (wool, brick), either a
+    // plausible cheapest-first pick depending on target weighting - the
+    // point is the second call must not repeat whichever the first chose.
+    state.players[0].resources = [.brick: 3, .lumber: 0, .grain: 1, .wool: 3, .ore: 0]
+
+    let first = TradeHeuristics.proposeTrades(state: state, player: player, personality: .balanced)
+    #expect(first.count == 1)
+
+    state.declinedTradeOffersThisTurn[player] = [first[0]]
+    let second = TradeHeuristics.proposeTrades(state: state, player: player, personality: .balanced)
+    #expect(second.count == 1)
+    #expect(second[0].give != first[0].give || second[0].want != first[0].want)
+}
+
+/// Stops retrying once `maxTradeProposalsPerTurn` attempts have already
+/// been declined this turn - the bot gives up rather than looping forever
+/// even though every remaining candidate is still, in principle, favorable.
+@Test func proposeTradesGivesUpAfterTheTurnRetryLimit() {
+    var state = GameSetup.newGame(board: BoardGenerator.standard())
+    let player = PlayerID(index: 0)
+    state.players[0].resources = [.brick: 3, .lumber: 0, .grain: 1, .wool: 3, .ore: 0]
+    state.declinedTradeOffersThisTurn[player] = Array(
+        repeating: TradeOffer(from: player, give: [.brick: 1], want: [.lumber: 1]),
+        count: RulesEngine.maxTradeProposalsPerTurn
+    )
+    #expect(TradeHeuristics.proposeTrades(state: state, player: player, personality: .balanced).isEmpty)
+}
