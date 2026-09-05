@@ -66,6 +66,7 @@ public struct BuildPopupView: View {
                     ) {
                         perform(.buyDevCard)
                     }
+                    .accessibilityIdentifier(AccessibilityID.Build.devCard)
                 }
 
                 if let errorMessage {
@@ -112,6 +113,10 @@ public struct BuildPopupView: View {
         do {
             try viewModel.apply(move)
             errorMessage = nil
+            // The durable private receipt now owns the next screen. Leaving
+            // Build open underneath it made Continue return to a stale menu
+            // and invited a second purchase before the first was understood.
+            if case .buyDevCard = move { onDismiss() }
         } catch {
             errorMessage = error.localizedDescription
         }

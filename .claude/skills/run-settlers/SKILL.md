@@ -133,11 +133,15 @@ grep -rnoE '"\-qa[A-Za-z]+"' --include="*.swift" "$REPO/Settlers" | sort -u
 | `-qaShowTradePopup` | `GameView.swift` | `TradePopupView`. |
 | `-qaShowBuildPopup` | `GameView.swift` | The "Build" popup (Road / Settlement / City / Dev Card). |
 | `-qaShowMonopolyPopup` | `GameView.swift` | The Monopoly resource picker in `DevCardPopupView` (Year of Plenty shares the layout). |
+| `-qaShowDevCardHand` | `GameView.swift` | A mixed private hand containing every card type, including ready, new, and passive states. |
+| `-qaDevCardPurchase` | `GameView.swift` | A legal Build position with Monopoly on top of the deck. A UI test still has to tap Build and buy it. |
+| `-qaShowDevCardReveal` | `GameView.swift` | A real committed Year of Plenty purchase waiting on its durable private acknowledgement. |
+| `-qaShowWinningDevCardReveal` | `GameView.swift` | A real Victory Point purchase that wins the game; the private reveal must appear before standings. |
 | `-qaShowPendingTradeConfirmation` | `GameView.swift` | The trade popup's "a bot will accept" banner, seeded directly. |
 | `-qaShowRobberTargeting` | `GameView.swift` | The "tap a tile" robber targeting panel. |
 | `-qaShowRobberVictimPicker` | `GameView.swift` | One step further: the "Steal from:" victim picker. |
 | `-qaShowIncomingOffer` | `GameView.swift` | `IncomingTradeCardView`, backed by a real pending engine offer and conserved deterministic hands. |
-| `-qaFastForwardToRollDice` | `GameView.swift` | Plays the human's own setup placements, then rolls, so the `.rollDice` action row is reachable. **Applies real moves** (writes the save and the game log) and **needs 10-12s**, not 4. |
+| `-qaFastForwardToRollDice` | `GameView.swift` | Plays the human's setup placements and first roll, resolving a possible seven until the main-turn controls are enabled. **Applies real moves** (writes the save and game log); wait on the target control's readiness rather than a fixed delay. |
 | `-qaShowNewGame` | `MainMenuView.swift` / `NewGameSetupView.swift` | `NewGameSetupView` over the main menu, on a startable two-human/two-AI fixture (green ready plaque, Start enabled). **Must NOT be combined with `-qaAutoStart`.** |
 | `-qaShowNewGameInvalid` | `NewGameSetupView.swift` | Same screen, seat 2's name whitespace-only — the amber problem plaque and a disabled Start. |
 | `-qaShowNewGameOverwrite` | `NewGameSetupView.swift` | Same screen with the "Replace your saved game?" confirmation already raised. Pair with a real save (run `-qaAutoStart -qaFastForwardToRollDice` first) to also get the amber saved-game plaque behind it. |
@@ -146,7 +150,7 @@ grep -rnoE '"\-qa[A-Za-z]+"' --include="*.swift" "$REPO/Settlers" | sort -u
 | `-qaTwoHumans` | `ContentView.swift` | Turns the loaded game into a two-human hot-seat game (seats 0 and 1, nobody at the device) so `HandoffCoverView` is photographable. **Needs `-qaAutoStart`.** |
 | `-qaScrollNewGameToBottom` | `NewGameSetupView.swift` | **Legacy modifier** retained for fixture compatibility. The compact screen now fits without requiring this scroll position. |
 
-**`-qaAutoStart` is load-bearing for eleven of these.** `GameView` only renders once
+**`-qaAutoStart` is load-bearing for every in-game fixture above.** `GameView` only renders once
 `hasStartedThisSession` is true, so every flag read inside `GameView.swift` is inert on its
 own — and so is `-qaTwoHumans`, which `ContentView` reads in the same branch. Measured on 2026-08-29: `-qaShowEndGame` alone left the app sitting on the main menu;
 `-qaAutoStart -qaShowEndGame` rendered the win screen. If a flag "does nothing", check this

@@ -104,6 +104,8 @@ extension GameViewModel {
         let restored = try GameSession(checkpoint: savedSession, policies: Self.makePolicies(profiles))
         session = restored
         self.playerRoster = playerRoster
+        pendingDevCardReveal = checkpointDocument?.pendingDevCardReveal
+        pendingDevCardResolution = checkpointDocument?.pendingDevCardResolution
         seatAtDevice = humanSeats.count == 1 ? humanSeats.first : nil
         CivilizationAssignment.humanSeat = humanPlayer
         CivilizationAssignment.humanNames = playerRoster.humanNames

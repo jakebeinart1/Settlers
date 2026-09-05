@@ -51,7 +51,12 @@ enum MatchCheckpointMigration {
             throw MigrationError.incompatibleRoster
         }
         for entry in activeLog.events {
-            try match.apply(entry.move, by: entry.player, timestamp: entry.timestamp)
+            try match.apply(
+                entry.move,
+                by: entry.player,
+                timestamp: entry.timestamp,
+                rulesVersion: RulesEngine.oldestSupportedRulesVersion
+            )
         }
         guard match.state == session.state else { throw MigrationError.historyMismatch }
         // Legacy active duration was memory-only. Archive wall-clock duration

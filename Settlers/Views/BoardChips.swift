@@ -16,7 +16,7 @@ extension GameView {
     /// corner (see that overlay). Opens `InGameSettingsView` - pacing, the
     /// trade timer, and the Resume/Restart/Main Menu actions this button used
     /// to open on their own. The pause is no longer implicit: `GameView`
-    /// mirrors this into `GameViewModel.isSettingsSurfaceOpen`, which the bot
+    /// contributes to `GameViewModel.isBlockingSurfaceOpen`, which the bot
     /// loop stops on, so the game cannot advance behind the screen.
     var pauseButton: some View {
         Button {

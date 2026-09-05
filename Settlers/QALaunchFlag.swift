@@ -68,6 +68,17 @@ enum QALaunchFlag: String, CaseIterable {
     case showBuildPopup = "-qaShowBuildPopup"
     /// Opens the monopoly resource picker.
     case showMonopolyPopup = "-qaShowMonopolyPopup"
+    /// Installs a mixed five-type private hand and opens the real card shelf.
+    case showDevCardHand = "-qaShowDevCardHand"
+    /// Installs a legal purchase position with Monopoly fixed on top. The UI
+    /// test must still tap Build and buy through the production path.
+    case devCardPurchase = "-qaDevCardPurchase"
+    /// Performs a real committed Year of Plenty purchase so the private reveal
+    /// can be inspected without depending on a shuffled deck.
+    case showDevCardReveal = "-qaShowDevCardReveal"
+    /// Buys the tenth point through the real engine path. The reveal must own
+    /// the screen before the end-game surface appears.
+    case showWinningDevCardReveal = "-qaShowWinningDevCardReveal"
     /// Seeds a pending trade confirmation banner.
     case showPendingTradeConfirmation = "-qaShowPendingTradeConfirmation"
     /// Arms voluntary knight robber targeting.
@@ -76,10 +87,10 @@ enum QALaunchFlag: String, CaseIterable {
     case showIncomingOffer = "-qaShowIncomingOffer"
     /// Arms a robber tile that has an eligible victim, to reach the victim picker.
     case showRobberVictimPicker = "-qaShowRobberVictimPicker"
-    /// Plays the human's own setup placements so the `.rollDice` action row can
-    /// be reached. Unlike the others this applies real moves, so it writes the
-    /// save file and the game log. It also needs real wall-clock time - bot
-    /// turns sleep between actions - so wait 10-12s before screenshotting.
+    /// Plays the human's setup placements and first roll, including discard and
+    /// robber resolution when that roll is seven, until main-turn controls are
+    /// enabled. Unlike the others this applies real moves, so it writes the save
+    /// file and game log. Bot pacing means callers must wait for UI readiness.
     case fastForwardToRollDice = "-qaFastForwardToRollDice"
 
     /// Whether this flag was passed on launch. Always `false` in a release

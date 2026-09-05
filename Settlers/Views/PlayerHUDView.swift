@@ -61,35 +61,26 @@ public struct BotHUDRow: View {
 
 /// Spacious bottom panel showing the human's full standing - name, VP/road/
 /// army tags, a prominent per-resource dot breakdown, and (since dev cards
-/// no longer get their own menu/button) a row of playable dev-card tiles
-/// right alongside the resources - tapping one calls `onTapDevCard` so
-/// `GameView` can open `DevCardPopupView` for it.
+/// no longer get their own menu/button) a permanent private card shelf beside
+/// the resources. The shelf exists at zero cards and every held card remains
+/// inspectable even when its Play action is unavailable.
 public struct HumanPlayerPanel: View {
     public let state: GameState
     public let human: PlayerID
     public let playerIdentity: (PlayerID) -> PlayerIdentity
-    public let onTapDevCard: (DevCardType) -> Void
+    public let onOpenDevCards: (DevCardType?) -> Void
 
     public init(state: GameState, human: PlayerID,
                 playerIdentity: @escaping (PlayerID) -> PlayerIdentity = CatanTheme.playerIdentity,
-                onTapDevCard: @escaping (DevCardType) -> Void) {
+                onOpenDevCards: @escaping (DevCardType?) -> Void) {
         self.state = state
         self.human = human
         self.playerIdentity = playerIdentity
-        self.onTapDevCard = onTapDevCard
+        self.onOpenDevCards = onOpenDevCards
     }
 
-    /// Held dev card types (with count + "new"/unplayable-this-turn count),
-    /// in a fixed display order - mirrors the old `DevCardPanelView.rows`.
-    private var devCardRows: [(type: DevCardType, held: Int, new: Int)] {
-        guard let player = state.players.first(where: { $0.id == human }) else { return [] }
-        let boughtThisTurn = state.devCardsBoughtThisTurn[human] ?? []
-        return [DevCardType.knight, .roadBuilding, .yearOfPlenty, .monopoly, .victoryPoint].compactMap { type in
-            let held = player.devCards.filter { $0 == type }.count
-            guard held > 0 else { return nil }
-            let new = boughtThisTurn.filter { $0 == type }.count
-            return (type, held, new)
-        }
+    private var devCardRows: [DevCardInventoryItem] {
+        DevCardInventoryItem.all(for: human, in: state)
     }
 
     public var body: some View {
@@ -189,108 +180,34 @@ public struct HumanPlayerPanel: View {
                     }
                 }
 
-                // `.top` rather than `.center`: dev card tiles (56pt tall)
-                // and the resource dots (~43pt tall) have different
-                // intrinsic heights, so centering them against each other
-                // shifted the resource row up/down depending on whether any
-                // dev cards were held - pinning both to the top keeps the
-                // resource row's position stable regardless.
+                // This row has one shape at zero cards and five cards. The old
+                // conditional shelf changed spacing and moved the resource
+                // hand the moment the first card was bought.
                 HStack(alignment: .top, spacing: 10) {
-                    if devCardRows.isEmpty {
-                        // No dev cards to share the row with, so the 5
-                        // resource dots are the row's only content - tight
-                        // fixed spacing left them bunched at the leading
-                        // edge with the rest of the panel's width sitting
-                        // empty. Stretching each dot into its own equal-width
-                        // flexible column (matching the bot chips' stat-badge
-                        // fix) technically filled the width, but blew the
-                        // group apart into 5 disconnected icons scattered
-                        // edge to edge - it read worse, not better. Centering
-                        // the whole cluster instead put it back together, but
-                        // sat oddly disconnected from the left-aligned name/
-                        // VP rows above it - wider spacing keeps it as one
-                        // still-grouped hand of cards, left-aligned like
-                        // everything else in the panel.
-                        HStack(spacing: 22) {
-                            ForEach(Resource.allCases, id: \.self) { resource in
-                                resourceDot(resource, count: player.resources[resource] ?? 0)
-                            }
+                    HStack(spacing: 13) {
+                        ForEach(Resource.allCases, id: \.self) { resource in
+                            resourceDot(resource, count: player.resources[resource] ?? 0)
                         }
-                        .padding(.leading, 6)
-                    } else {
-                        // `.fixedSize()` here (same reason as the roads/
-                        // knights/VP row above): without it, once the dev-card
-                        // `ScrollView` next to it wanted more room than was
-                        // available, this HStack was the one that gave way -
-                        // it has nothing else protecting its size - and got
-                        // squeezed until resources on the right (grain, wool)
-                        // ran past the panel's edge and off-screen entirely,
-                        // not just visually compressed. The `ScrollView` is
-                        // the one actually meant to give way here (it already
-                        // scrolls for overflow); resources should always show
-                        // in full. Once there's a dev-card row to share space
-                        // with, the resource dots go back to their natural
-                        // tight spacing rather than spreading out - stretching
-                        // them here would just shove the dev cards further
-                        // right for no benefit.
-                        HStack(spacing: 13) {
-                            ForEach(Resource.allCases, id: \.self) { resource in
-                                resourceDot(resource, count: player.resources[resource] ?? 0)
-                            }
-                        }
-                        .padding(.leading, 6)
-                        .fixedSize()
                     }
+                    .padding(.leading, 6)
+                    .fixedSize()
 
-                    if !devCardRows.isEmpty {
-                        Divider()
-                            .frame(height: 34)
-                            .overlay(Color.white.opacity(0.25))
+                    Divider()
+                        .frame(height: 42)
+                        .overlay(Color.white.opacity(0.25))
 
-                        ScrollView(.horizontal, showsIndicators: false) {
-                            HStack(spacing: 6) {
-                                ForEach(devCardRows, id: \.type) { row in
-                                    // `DevCards.canPlay` only checks
-                                    // ownership, not phase - a dev card is
-                                    // only actually playable during your own
-                                    // turn, and (per the official rules)
-                                    // Knight is the one card that's playable
-                                    // before rolling too - the other three
-                                    // only during `.mainTurn`, after the
-                                    // roll. Without a phase check here the
-                                    // tile looked tappable at other times as
-                                    // well, and for Knight specifically that
-                                    // let you walk through the whole "move
-                                    // the robber" flow before the engine's
-                                    // own phase guard ever got a chance to
-                                    // reject it - the other three dev cards
-                                    // apply immediately on tap and so at
-                                    // least surfaced an error, which is why
-                                    // this read as "only Knight can be
-                                    // played at the wrong time" rather than
-                                    // "none of them actually can".
-                                    // A knight may also be played before the
-                                    // roll, which is the one thing that stops
-                                    // this being a plain `isMainTurn(of:)`.
-                                    let isMyTurnToPlay: Bool = {
-                                        if state.phase.isMainTurn(of: human.index) { return true }
-                                        if case .rollDice(let idx) = state.phase {
-                                            return row.type == .knight && idx == human.index
-                                        }
-                                        return false
-                                    }()
-                                    let isPlayable = row.type != .victoryPoint
-                                        && isMyTurnToPlay
-                                        && DevCards.canPlay(row.type, by: human, in: state)
-                                    DevCardHUDTile(type: row.type, held: row.held, new: row.new, isPlayable: isPlayable) {
-                                        onTapDevCard(row.type)
-                                    }
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        HStack(spacing: 6) {
+                            DevelopmentCardShelfButton(count: devCardRows.reduce(0) { $0 + $1.held }) {
+                                onOpenDevCards(nil)
+                            }
+                            ForEach(devCardRows) { row in
+                                DevCardHUDTile(item: row) {
+                                    onOpenDevCards(row.type)
                                 }
                             }
                         }
                     }
-
-                    Spacer(minLength: 0)
                 }
             }
             .padding(11)
@@ -350,56 +267,81 @@ public struct HumanPlayerPanel: View {
     }
 }
 
-/// HUD-scale dev card tile - a shrunk version of the old `DevCardPanelView`
-/// card, small enough to sit inline next to the resource dots. Tappable
-/// only while `isPlayable` (mirrors `DevCards.canPlay`, with Victory Point
-/// cards always excluded since they're never played).
+/// Permanent shelf entry. Inspection is always available; the detail surface
+/// owns the distinction between reading a card and playing it.
 private struct DevCardHUDTile: View {
-    let type: DevCardType
-    let held: Int
-    let new: Int
-    let isPlayable: Bool
+    let item: DevCardInventoryItem
     let action: () -> Void
 
     var body: some View {
         Button(action: action) {
-            // Kept in step with the resource-dot row next to it (~38pt: an
-            // 18pt circle + a bold 14pt count) - a taller tile row than its
-            // neighbor visibly grows the whole panel the instant a dev
-            // card first appears.
             VStack(spacing: 2) {
-                Image(systemName: icon)
+                Image(systemName: DevCardStyle.icon(for: item.type))
                     .font(.footnote)
-                Text(name)
+                Text(DevCardStyle.shortName(for: item.type))
                     .font(.system(size: 8, weight: .bold))
                     .lineLimit(1)
                     .minimumScaleFactor(0.7)
-                Text("x\(held)")
+                Text(statusLine)
+                    .font(.system(size: 8, weight: .bold))
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.65)
+            }
+            .foregroundStyle(.white)
+            .frame(width: 54, height: 44)
+            .background(RoundedRectangle(cornerRadius: 8).fill(DevCardStyle.color(for: item.type).gradient))
+            .overlay(RoundedRectangle(cornerRadius: 8).strokeBorder(.white.opacity(0.4), lineWidth: 1))
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(accessibilityLabel)
+        .accessibilityIdentifier(AccessibilityID.DevCards.tile(item.type))
+    }
+
+    private var statusLine: String {
+        if item.status == .passiveVictoryPoint { return "×\(item.held) · VP" }
+        if item.ready > 0, item.boughtThisTurn > 0 {
+            return "\(item.ready) READY · \(item.boughtThisTurn) NEW"
+        }
+        if item.ready > 0 { return "×\(item.held) · READY" }
+        return "×\(item.held) · NEW"
+    }
+
+    private var accessibilityLabel: String {
+        let name = DevCardStyle.fullName(for: item.type)
+        if item.status == .passiveVictoryPoint { return "\(name), \(item.held) owned, passive" }
+        return "\(name), \(item.held) owned, \(item.ready) ready, \(item.boughtThisTurn) new"
+    }
+}
+
+private struct DevelopmentCardShelfButton: View {
+    let count: Int
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            VStack(spacing: 2) {
+                Image(systemName: "rectangle.stack.fill")
+                    .font(.footnote)
+                Text("CARDS")
+                    .font(.system(size: 8, weight: .bold, design: .serif))
+                Text("\(count)")
                     .font(.system(size: 10, weight: .bold))
             }
             .foregroundStyle(.white)
-            .frame(width: 44, height: 38)
-            .background(RoundedRectangle(cornerRadius: 8).fill(color.gradient))
-            .overlay(RoundedRectangle(cornerRadius: 8).strokeBorder(.white.opacity(0.4), lineWidth: 1))
-            .overlay(alignment: .topTrailing) {
-                if new > 0 {
-                    Circle()
-                        .fill(Color.yellow)
-                        .frame(width: 8, height: 8)
-                        .offset(x: 2, y: -2)
-                }
-            }
+            .frame(width: 48, height: 44)
+            .background(
+                PaintedChromeBackground(
+                    fill: .color(SettingsChrome.plaqueFill),
+                    cornerRadius: 8,
+                    notchScale: 0.45
+                )
+            )
         }
-        .disabled(!isPlayable)
-        .opacity(isPlayable ? 1 : 0.5)
+        .buttonStyle(.plain)
+        .accessibilityLabel("Development cards")
+        .accessibilityValue("\(count)")
+        .accessibilityIdentifier(AccessibilityID.DevCards.shelf)
     }
-
-    // Shared with `DevCardPopupView` via `DevCardStyle` - these were three
-    // byte-identical switches in both files, so a card could have been one
-    // colour in this strip and another in the popup the strip opens.
-    private var icon: String { DevCardStyle.icon(for: type) }
-    private var name: String { DevCardStyle.shortName(for: type) }
-    private var color: Color { DevCardStyle.color(for: type) }
 }
 
 /// Shared chip rendering + active-player logic used by `BotHUDRow` (and, for
@@ -582,7 +524,11 @@ enum PlayerChip {
 #Preview {
     VStack {
         BotHUDRow(state: GameSetup.newGame(board: BoardGenerator.standard()), human: PlayerID(index: 0))
-        HumanPlayerPanel(state: GameSetup.newGame(board: BoardGenerator.standard()), human: PlayerID(index: 0), onTapDevCard: { _ in })
+        HumanPlayerPanel(
+            state: GameSetup.newGame(board: BoardGenerator.standard()),
+            human: PlayerID(index: 0),
+            onOpenDevCards: { _ in }
+        )
     }
     .padding()
     .background(Color.black)

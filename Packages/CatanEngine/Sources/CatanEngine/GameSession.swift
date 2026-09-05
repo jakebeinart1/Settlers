@@ -203,6 +203,9 @@ public struct GameSession: Sendable {
         public let actor: PlayerID
         public let move: GameMove
         public let events: [GameEvent]
+        /// Buyer-scoped information that must never enter the public event
+        /// stream or exported move history.
+        public let privateEvents: [PrivateGameEvent]
     }
 
     /// One policy choice together with the exact action mask it received.
@@ -310,7 +313,7 @@ public struct GameSession: Sendable {
     /// Applies a move a policy chose.
     public mutating func commit(seat: PlayerID, move: GameMove) throws -> Step {
         lastPolicyDecisions = []
-        let events = try RulesEngine.apply(move, by: seat, to: &state)
+        let result = try RulesEngine.applyReportingPrivateEvents(move, by: seat, to: &state)
         if queuedTradeResponse?.seat == seat, queuedTradeResponse?.move == move {
             queuedTradeResponse = nil
         }
@@ -318,7 +321,7 @@ public struct GameSession: Sendable {
         if case .proposeTrade(let offer) = move {
             queueAutomatedResponse(to: offer)
         }
-        return Step(actor: seat, move: move, events: events)
+        return Step(actor: seat, move: move, events: result.events, privateEvents: result.privateEvents)
     }
 
     /// Decide and apply in one go. Returns `nil` when the game is over or it
@@ -337,9 +340,9 @@ public struct GameSession: Sendable {
     @discardableResult
     public mutating func applyExternal(_ move: GameMove, by seat: PlayerID) throws -> Step {
         lastPolicyDecisions = []
-        let events = try RulesEngine.apply(move, by: seat, to: &state)
+        let result = try RulesEngine.applyReportingPrivateEvents(move, by: seat, to: &state)
         recordAction(by: seat, move: move)
-        return Step(actor: seat, move: move, events: events)
+        return Step(actor: seat, move: move, events: result.events, privateEvents: result.privateEvents)
     }
 
     /// Replaces the position wholesale - loading a save, or a QA fixture.

@@ -56,6 +56,64 @@ enum DevCardStyle {
         case .victoryPoint: return "Victory Point"
         }
     }
+
+    /// Player-facing rules copy. This is presentation text only; legality
+    /// comes from `DevCards.playStatus`, never from parsing these sentences.
+    static func effect(for type: DevCardType) -> String {
+        switch type {
+        case .knight:
+            "Move the robber to a new tile, then steal one random resource from an adjacent rival."
+        case .roadBuilding:
+            "Place two legal roads for free. Both roads are committed together."
+        case .yearOfPlenty:
+            "Take any two resource cards the bank can supply. You may choose the same resource twice."
+        case .monopoly:
+            "Name one resource. Every rival gives you all cards of that resource they hold."
+        case .victoryPoint:
+            "Worth one hidden victory point. It counts automatically and is never played."
+        }
+    }
+
+    static func statusTitle(for status: DevCardPlayStatus) -> String {
+        switch status {
+        case .playable: "Ready to play"
+        case .passiveVictoryPoint: "Counts automatically"
+        case .notOwned: "Not in your hand"
+        case .boughtThisTurn: "New this turn"
+        case .alreadyPlayedThisTurn: "One card already played"
+        case .waitingForYourTurn: "Waiting for your turn"
+        case .resolveRequiredAction: "Finish the required action first"
+        case .noLegalChoices: "No legal choices"
+        case .gameOver: "Match complete"
+        }
+    }
+
+    static func statusDetail(for status: DevCardPlayStatus, type: DevCardType) -> String {
+        switch status {
+        case .playable:
+            "This card can be used now."
+        case .passiveVictoryPoint:
+            "Its point is already included in your private total."
+        case .notOwned:
+            "You do not currently hold this card."
+        case .boughtThisTurn:
+            "Development cards become playable on a later turn."
+        case .alreadyPlayedThisTurn:
+            "Only one development card may be played during a turn."
+        case .waitingForYourTurn:
+            "You can inspect it now and play it during your turn."
+        case .resolveRequiredAction:
+            "Complete setup, a discard, or the current robber move before playing a card."
+        case .noLegalChoices where type == .roadBuilding:
+            "There is no legal pair of roads available from your network."
+        case .noLegalChoices where type == .yearOfPlenty:
+            "The bank has fewer than two resource cards available."
+        case .noLegalChoices:
+            "This card has no legal target in the current position."
+        case .gameOver:
+            "The match has already ended."
+        }
+    }
 }
 
 /// Fixed heights the bottom row and its alternates all have to agree on.

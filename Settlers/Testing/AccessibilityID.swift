@@ -25,6 +25,12 @@ enum AccessibilityID {
     }
 
     enum Board {
+        static let stagedRoadPreview = "board.road-preview"
+
+        static func tile(_ tile: HexCoordinate) -> String {
+            "board.tile.\(tile.q)_\(tile.r)"
+        }
+
         static func vertex(_ vertex: VertexID) -> String {
             "board.vertex." + vertex.touchingTiles.map(coordinate).joined(separator: ".")
         }
@@ -44,6 +50,26 @@ enum AccessibilityID {
         static func humanResource(_ resource: Resource) -> String {
             "human-resource.\(resource.rawValue)"
         }
+    }
+
+    enum Build {
+        static let devCard = "build.dev-card"
+    }
+
+    enum DevCards {
+        static let shelf = "dev-cards.shelf"
+        static let overlay = "dev-cards.overlay"
+        static let status = "dev-cards.status"
+        static let viewHand = "dev-cards.view-hand"
+        static let continueAction = "dev-cards.continue"
+        static let close = "dev-cards.close"
+        static let result = "dev-cards.result"
+        static let resultContinue = "dev-cards.result.continue"
+
+        static func tile(_ type: DevCardType) -> String { "dev-cards.tile.\(type.rawValue)" }
+        static func detail(_ type: DevCardType) -> String { "dev-cards.detail.\(type.rawValue)" }
+        static func play(_ type: DevCardType) -> String { "dev-cards.play.\(type.rawValue)" }
+        static func resource(_ resource: Resource) -> String { "dev-cards.resource.\(resource.rawValue)" }
     }
 
     enum InGameSettings {

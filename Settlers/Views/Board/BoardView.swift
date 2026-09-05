@@ -23,6 +23,11 @@ public struct BoardView: View {
     public let highlightedVertices: Set<VertexID>
     /// Same as `highlightedVertices`, for edges (road placement).
     public let highlightedEdges: Set<EdgeID>
+    /// Roads selected as part of an uncommitted multi-road card. They are
+    /// drawn in the owner's color with a gold preview border, but never added
+    /// to `GameState` until the complete move is confirmed.
+    public let stagedRoads: Set<EdgeID>
+    public let stagedRoadOwner: PlayerID?
     /// True while any placement mode (vertex or edge) is active, so
     /// non-highlighted tap targets can be disabled/dimmed even when their own
     /// highlight set happens to be empty (e.g. edges during a settlement
@@ -49,6 +54,8 @@ public struct BoardView: View {
         onTapTile: @escaping (HexCoordinate) -> Void,
         highlightedVertices: Set<VertexID> = [],
         highlightedEdges: Set<EdgeID> = [],
+        stagedRoads: Set<EdgeID> = [],
+        stagedRoadOwner: PlayerID? = nil,
         isPlacementModeActive: Bool = false,
         highlightedTiles: Set<HexCoordinate> = [],
         isTileTargetingActive: Bool = false,
@@ -61,6 +68,8 @@ public struct BoardView: View {
         self.onTapTile = onTapTile
         self.highlightedVertices = highlightedVertices
         self.highlightedEdges = highlightedEdges
+        self.stagedRoads = stagedRoads
+        self.stagedRoadOwner = stagedRoadOwner
         self.isPlacementModeActive = isPlacementModeActive
         self.highlightedTiles = highlightedTiles
         self.isTileTargetingActive = isTileTargetingActive
@@ -118,6 +127,26 @@ public struct BoardView: View {
                 .contentShape(Rectangle())
                 .gesture(tileTapGesture(geometry: geometry))
 
+                // One semantic target per tile while the robber chooser is
+                // active. The Canvas gesture keeps ordinary touch input fast,
+                // but a Canvas exposes no individual hexes to XCUITest or
+                // VoiceOver; without these targets, "choose a tile" was a
+                // visual-only interaction that could not be reached or proved
+                // through accessibility. They sit below edge/vertex targets
+                // and exist only during tile targeting.
+                if isTileTargetingActive {
+                    ForEach(board.tiles, id: \.coordinate) { tile in
+                        TileTapTarget(
+                            position: geometry.center(of: tile.coordinate),
+                            diameter: max(44, geometry.size * 1.25),
+                            isEnabled: highlightedTiles.contains(tile.coordinate),
+                            accessibilityIdentifier: AccessibilityID.Board.tile(tile.coordinate),
+                            accessibilityLabel: tileAccessibilityLabel(tile),
+                            onTap: { onTapTile(tile.coordinate) }
+                        )
+                    }
+                }
+
                 // Placement targets sit BELOW the pieces, not above them.
                 // Their yellow highlights are a hint about what you may do
                 // next; the pieces are the game state itself, and a hint must
@@ -162,6 +191,10 @@ public struct BoardView: View {
                 }
 
                 roadViews(geometry: geometry)
+
+                if let stagedRoadOwner, !stagedRoads.isEmpty {
+                    stagedRoadPreview(geometry: geometry, owner: stagedRoadOwner)
+                }
 
                 // Drawn as its own layer, above roads (which the base tile
                 // `Canvas` sits behind - a rolled tile's own ring used to be
@@ -273,6 +306,34 @@ public struct BoardView: View {
         }
     }
 
+    /// A visibly provisional road. The bright border differentiates it from
+    /// committed state even when the player's road color is already pale,
+    /// while translucency keeps the next legal yellow targets readable.
+    private func stagedRoadPreview(geometry: HexGeometry, owner: PlayerID) -> some View {
+        let overlap = geometry.size * 0.05
+        let borderPath = unionedRoadPath(
+            for: stagedRoads,
+            geometry: geometry,
+            height: geometry.size * 0.32,
+            overlap: overlap
+        )
+        let fillPath = unionedRoadPath(
+            for: stagedRoads,
+            geometry: geometry,
+            height: geometry.size * 0.20,
+            overlap: overlap
+        )
+        return ZStack {
+            borderPath.fill(.yellow.opacity(0.95))
+            fillPath.fill(playerIdentity(owner).civilization.accentColor.opacity(0.72))
+        }
+        .shadow(color: .yellow.opacity(0.45), radius: 3)
+        .allowsHitTesting(false)
+        .accessibilityElement()
+        .accessibilityLabel("Staged road preview")
+        .accessibilityIdentifier(AccessibilityID.Board.stagedRoadPreview)
+    }
+
     /// The union of every edge in `edges`, each first built as the same
     /// rectangular bar `RoadShape` always used, positioned/rotated onto its
     /// actual board edge via `roadSegmentPath` - see `roadViews` for why
@@ -341,6 +402,17 @@ public struct BoardView: View {
                 let dr = hypot(rhs.1.x - point.x, rhs.1.y - point.y)
                 return dl < dr
             }?.0
+    }
+
+    private func tileAccessibilityLabel(_ tile: Tile) -> String {
+        let contents: String
+        switch tile.kind {
+        case .resource(let resource):
+            contents = tile.numberToken.map { "\(resource.rawValue), number \($0)" } ?? resource.rawValue
+        case .desert:
+            contents = "desert"
+        }
+        return "Move robber to \(contents)"
     }
 
     // MARK: - Stable ordering

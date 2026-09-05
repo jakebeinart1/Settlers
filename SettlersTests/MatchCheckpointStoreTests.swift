@@ -25,6 +25,11 @@ import CatanAI
             let next = try document.recording(step, session: session.checkpoint, elapsedSeconds: Double(index))
             try store.commit(next, replacingRevision: document.revision)
             document = next
+            let acknowledged = try acknowledgingPrivatePresentation(in: document)
+            if acknowledged != document {
+                try store.commit(acknowledged, replacingRevision: document.revision)
+                document = acknowledged
+            }
             if index.isMultiple(of: 25) {
                 let reloaded = try #require(try store.load())
                 let snapshot = try #require(reloaded.activeMatch?.sessionCheckpoint)
@@ -65,6 +70,69 @@ import CatanAI
         #expect(expected?.move == actual?.move)
         #expect(session.state == resumed.state)
         #expect(session.policyRNG == resumed.policyRNG)
+    }
+
+    @Test func unreadPurchaseReceiptPreventsTheGameAdvancingPastItsSourceMove() throws {
+        let human = PlayerID(index: 0)
+        var initial = GameSetup.newGame(board: BoardGenerator.standard(), seed: 472)
+        initial.phase = .mainTurn(playerIndex: human.index)
+        initial.players[human.index].resources = [.ore: 1, .grain: 1, .wool: 1]
+        initial.devCardDeck = [.monopoly]
+        let setup = MatchSetup.default(
+            preferredName: "Alex",
+            preferredCivilization: Civilization.allCases[0]
+        )
+        var session = GameSession(state: initial, policies: [:], policySeed: 100)
+        var document = MatchCheckpointDocument(
+            activeMatch: MatchCheckpoint(id: UUID(), initialState: initial, setup: setup)
+        )
+
+        let purchase = try session.applyExternal(.buyDevCard, by: human)
+        document = try document.recording(
+            purchase,
+            session: session.checkpoint,
+            elapsedSeconds: 1
+        )
+        let endTurn = try session.applyExternal(.endTurn, by: human)
+        #expect(document.pendingDevCardReveal == DevCardReveal(owner: human, card: .monopoly))
+        #expect(throws: MatchCheckpointStore.StoreError.pendingAcknowledgement) {
+            _ = try document.recording(
+                endTurn,
+                session: session.checkpoint,
+                elapsedSeconds: 2
+            )
+        }
+        try document.validateAuthority()
+    }
+
+    @Test func unreadCardResultIsClearedOnlyByAcknowledgement() throws {
+        let human = PlayerID(index: 0)
+        var initial = GameSetup.newGame(board: BoardGenerator.standard(), seed: 473)
+        initial.phase = .mainTurn(playerIndex: human.index)
+        initial.players[human.index].devCards = [.monopoly]
+        let setup = MatchSetup.default(
+            preferredName: "Alex",
+            preferredCivilization: Civilization.allCases[0]
+        )
+        var session = GameSession(state: initial, policies: [:], policySeed: 101)
+        var document = MatchCheckpointDocument(
+            activeMatch: MatchCheckpoint(id: UUID(), initialState: initial, setup: setup)
+        )
+
+        let play = try session.applyExternal(.playMonopoly(.wool), by: human)
+        document = try document.recording(play, session: session.checkpoint, elapsedSeconds: 1)
+        let expected = DevCardResolution.monopoly(owner: human, resource: .wool, gained: 0)
+        #expect(document.pendingDevCardResolution == expected)
+
+        let endTurn = try session.applyExternal(.endTurn, by: human)
+        #expect(throws: MatchCheckpointStore.StoreError.pendingAcknowledgement) {
+            _ = try document.recording(endTurn, session: session.checkpoint, elapsedSeconds: 2)
+        }
+
+        document = try document.dismissingDevCardResolution()
+        #expect(document.pendingDevCardResolution == nil)
+        document = try document.recording(endTurn, session: session.checkpoint, elapsedSeconds: 2)
+        try document.validateAuthority()
     }
 
     @Test func winningMoveCommitsStateHistoryAndStatisticsInOneRevision() throws {
@@ -279,5 +347,94 @@ import CatanAI
 
         #expect(reloaded.state.declinedTradeOffersThisTurn.isEmpty)
         #expect(throws: Never.self) { try reloaded.validateHistory() }
+    }
+
+    @Test func originMainYearOfPlentyHistoryStillLoadsAfterAtomicSupplyRulesShip() throws {
+        let human = PlayerID(index: 0)
+        var initial = GameSetup.newGame(board: BoardGenerator.standard(), seed: 911)
+        initial.phase = .mainTurn(playerIndex: human.index)
+        initial.players[human.index].devCards = [.yearOfPlenty]
+        initial.bank[.ore] = 0
+        initial.bank[.grain] = 1
+        let setup = MatchSetup.default(
+            preferredName: "Alex",
+            preferredCivilization: Civilization.allCases[0]
+        )
+        var match = MatchCheckpoint(id: UUID(), initialState: initial, setup: setup)
+        try match.apply(
+            .playYearOfPlenty(.ore, .grain),
+            by: human,
+            rulesVersion: RulesEngine.oldestSupportedRulesVersion
+        )
+
+        let decoded = try JSONDecoder().decode(
+            MatchCheckpoint.self,
+            from: encodedAsOriginMainCheckpoint(match)
+        )
+
+        #expect(decoded.moves.map(\.rulesVersion) == [RulesEngine.oldestSupportedRulesVersion])
+        #expect(decoded.state.players[human.index].resources[.ore] == nil)
+        #expect(decoded.state.players[human.index].resources[.grain] == 1)
+        #expect(throws: Never.self) { try decoded.validateHistory() }
+    }
+
+    @Test func originMainRobberHistoryStillLoadsAfterVictimSelectionBecomesMandatory() throws {
+        let human = PlayerID(index: 0)
+        let victim = PlayerID(index: 1)
+        var initial = GameSetup.newGame(board: BoardGenerator.standard(), seed: 912)
+        let target = try #require(initial.board.tiles.map(\.coordinate).first {
+            $0 != initial.board.robberTile
+        })
+        let victimVertex = try #require(HexGeometry.corners(of: target).first)
+        initial.phase = .movingRobber(playerIndex: human.index)
+        initial.players[victim.index].settlements.insert(victimVertex)
+        initial.players[victim.index].resources = [.lumber: 1]
+        let setup = MatchSetup.default(
+            preferredName: "Alex",
+            preferredCivilization: Civilization.allCases[0]
+        )
+        var match = MatchCheckpoint(id: UUID(), initialState: initial, setup: setup)
+        try match.apply(
+            .moveRobber(target, stealFrom: nil),
+            by: human,
+            rulesVersion: RulesEngine.oldestSupportedRulesVersion
+        )
+
+        let decoded = try JSONDecoder().decode(
+            MatchCheckpoint.self,
+            from: encodedAsOriginMainCheckpoint(match)
+        )
+
+        #expect(decoded.moves.map(\.rulesVersion) == [RulesEngine.oldestSupportedRulesVersion])
+        #expect(decoded.state.board.robberTile == target)
+        #expect(decoded.state.players[victim.index].resources[.lumber] == 1)
+        #expect(throws: Never.self) { try decoded.validateHistory() }
+    }
+
+    /// Removes the field that did not exist in `origin/main`'s encoded move
+    /// objects. Decoding those exact bytes must choose version 1 rather than
+    /// silently assigning today's behavior to historical decisions.
+    private func encodedAsOriginMainCheckpoint(_ match: MatchCheckpoint) throws -> Data {
+        var object = try #require(
+            try JSONSerialization.jsonObject(with: JSONEncoder().encode(match)) as? [String: Any]
+        )
+        var moves = try #require(object["moves"] as? [[String: Any]])
+        for index in moves.indices {
+            moves[index].removeValue(forKey: "rulesVersion")
+        }
+        object["moves"] = moves
+        return try JSONSerialization.data(withJSONObject: object)
+    }
+
+    private func acknowledgingPrivatePresentation(
+        in document: MatchCheckpointDocument
+    ) throws -> MatchCheckpointDocument {
+        if document.pendingDevCardReveal != nil {
+            return try document.dismissingDevCardReveal()
+        }
+        if document.pendingDevCardResolution != nil {
+            return try document.dismissingDevCardResolution()
+        }
+        return document
     }
 }

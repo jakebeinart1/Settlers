@@ -36,7 +36,7 @@ struct GameViewModelCheckpointTests {
         model.startNewGame(setup: fixture.setup)
         #expect(model.savedGameAvailability.canResume)
         #expect(model.gameLogWarning?.contains("could not be restored automatically") == true)
-        model.isSettingsSurfaceOpen = true
+        model.isBlockingSurfaceOpen = true
         let move = try #require(RulesEngine.legalMoves(for: model.state, seat: model.humanPlayer).first)
         try model.apply(move)
         #expect(try fixture.logStore.summaries().count == 1)
@@ -126,7 +126,7 @@ struct GameViewModelCheckpointTests {
         position.bank[.grain] = 13
         position.bank[.brick] = 17
         model.replaceStateForTesting(position, humanSeat: PlayerID(index: 0))
-        model.isSettingsSurfaceOpen = true
+        model.isBlockingSurfaceOpen = true
         let offer = TradeOffer(from: model.humanPlayer, give: [.grain: 4], want: [.brick: 1])
         try model.apply(.proposeTrade(offer))
         let pending = try #require(model.pendingTradeConfirmation)
@@ -160,7 +160,7 @@ struct GameViewModelCheckpointTests {
         let cursor = model.session.checkpoint
         let loop = Task { await model.runBotTurnIfNeeded() }
         try await Task.sleep(for: .milliseconds(50))
-        if background { model.appWillResignActive() } else { model.isSettingsSurfaceOpen = true }
+        if background { model.appWillResignActive() } else { model.isBlockingSurfaceOpen = true }
         await loop.value
         #expect(model.state == before)
         #expect(model.session.checkpoint == cursor)
@@ -219,7 +219,7 @@ struct GameViewModelCheckpointTests {
         try Data("not a directory".utf8).write(to: blocked)
         let model = fixture.makeModel()
         model.startNewGame(setup: fixture.setup)
-        model.isSettingsSurfaceOpen = true
+        model.isBlockingSurfaceOpen = true
         let move = try #require(RulesEngine.legalMoves(for: model.state, seat: model.humanPlayer).first)
         try model.apply(move)
         model.startNewGame(setup: fixture.setup)
@@ -238,7 +238,7 @@ struct GameViewModelCheckpointTests {
             if refuseWrite, stage == .beforeReplace { throw CocoaError(.fileWriteNoPermission) }
         })
         model.startNewGame(setup: fixture.setup)
-        model.isSettingsSurfaceOpen = true
+        model.isBlockingSurfaceOpen = true
         let before = model.state
         let session = model.session.checkpoint
         let move = try #require(RulesEngine.legalMoves(for: before, seat: model.humanPlayer).first)
@@ -262,7 +262,7 @@ struct GameViewModelCheckpointTests {
             if interrupt, stage == .afterReplace { throw CocoaError(.fileWriteUnknown) }
         })
         model.startNewGame(setup: fixture.setup)
-        model.isSettingsSurfaceOpen = true
+        model.isBlockingSurfaceOpen = true
         interrupt = true
         let move = try #require(RulesEngine.legalMoves(for: model.state, seat: model.humanPlayer).first)
         try model.apply(move)
@@ -305,7 +305,7 @@ struct GameViewModelCheckpointTests {
         let fixture = try CheckpointModelFixture()
         let model = fixture.makeModel()
         model.startNewGame(setup: fixture.setup)
-        model.isSettingsSurfaceOpen = true
+        model.isBlockingSurfaceOpen = true
         let move = try #require(RulesEngine.legalMoves(for: model.state, seat: model.humanPlayer).first)
         try model.apply(move)
         let committed = model.state
