@@ -255,6 +255,80 @@ struct GameViewModelCheckpointTests {
         #expect(model.state.players[0].settlements.count == 1)
     }
 
+    @Test func failedDiscardWriteRetainsTheDraftAcrossReloadAndRetriesExactlyOnce() throws {
+        let fixture = try CheckpointModelFixture()
+        var refuseWrite = false
+        let model = fixture.makeModel(atCommitStage: { stage in
+            if refuseWrite, stage == .beforeReplace { throw CocoaError(.fileWriteNoPermission) }
+        })
+        let human = PlayerID(index: 0)
+        var position = GameSetup.newGame(
+            board: BoardGenerator.standard(), seed: 4_204, playerCount: 3,
+            victoryPointTarget: fixture.setup.victoryPointTarget
+        )
+        position.players[human.index].resources = [.brick: 8]
+        position.bank[.brick] = 11
+        position.lastDiceRoll = 7
+        position.robberMoverIndex = human.index
+        position.phase = .discarding(pending: [human])
+        model.replaceStateForTesting(position, humanSeat: human)
+        for _ in 0..<4 { model.selectForDiscard(.brick) }
+        let before = model.state
+        let revision = model.checkpointDocument?.revision
+
+        refuseWrite = true
+        #expect(!model.submitDiscard())
+        #expect(model.state == before)
+        #expect(model.checkpointDocument?.revision == revision)
+        #expect(model.discardDraft.counts == [.brick: 4])
+        #expect(model.discardDraft.errorMessage != nil)
+
+        refuseWrite = false
+        #expect(model.retryPersistence())
+        #expect(model.state == before)
+        #expect(model.discardDraft.counts == [.brick: 4])
+        #expect(model.submitDiscard())
+        #expect(model.state.players[human.index].resources[.brick] == 4)
+        #expect(model.discardDraft.counts.isEmpty)
+        guard case .movingRobber(let playerIndex) = model.state.phase else {
+            Issue.record("the committed retry did not advance to robber placement")
+            return
+        }
+        #expect(playerIndex == human.index)
+    }
+
+    @Test func hotSeatReloadKeepsTheClaimedDiscardersDraft() throws {
+        let fixture = try CheckpointModelFixture()
+        var refuseWrite = false
+        let model = fixture.makeModel(atCommitStage: { stage in
+            if refuseWrite, stage == .beforeReplace { throw CocoaError(.fileWriteNoPermission) }
+        })
+        let first = PlayerID(index: 0)
+        let discarder = PlayerID(index: 1)
+        var position = GameSetup.newGame(
+            board: BoardGenerator.standard(), seed: 4_205, playerCount: 3,
+            victoryPointTarget: fixture.setup.victoryPointTarget
+        )
+        position.players[discarder.index].resources = [.brick: 8]
+        position.bank[.brick] = 11
+        position.lastDiceRoll = 7
+        position.robberMoverIndex = first.index
+        position.phase = .discarding(pending: [discarder])
+        model.replaceStateForTesting(position, humanSeats: [first, discarder])
+        model.claimDeviceForSeatOwedATurn()
+        for _ in 0..<4 { model.selectForDiscard(.brick) }
+
+        refuseWrite = true
+        #expect(!model.submitDiscard())
+        #expect(model.humanPlayer == discarder)
+        #expect(model.discardDraft.counts == [.brick: 4])
+
+        refuseWrite = false
+        #expect(model.retryPersistence())
+        #expect(model.humanPlayer == discarder)
+        #expect(model.discardDraft.counts == [.brick: 4])
+    }
+
     @Test func lostWriteAcknowledgementPublishesExactlyTheCommittedMove() throws {
         let fixture = try CheckpointModelFixture()
         var interrupt = false

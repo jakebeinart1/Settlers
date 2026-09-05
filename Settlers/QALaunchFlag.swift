@@ -87,6 +87,8 @@ enum QALaunchFlag: String, CaseIterable {
     case showIncomingOffer = "-qaShowIncomingOffer"
     /// Arms a robber tile that has an eligible victim, to reach the victim picker.
     case showRobberVictimPicker = "-qaShowRobberVictimPicker"
+    /// Installs a conserved eight-card hand owing a four-card discard.
+    case showDiscard = "-qaShowDiscard"
     /// Plays the human's setup placements and first roll, including discard and
     /// robber resolution when that roll is seven, until main-turn controls are
     /// enabled. Unlike the others this applies real moves, so it writes the save

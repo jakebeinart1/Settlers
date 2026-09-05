@@ -1,11 +1,10 @@
 import SwiftUI
 import CatanEngine
 import CatanAI
-
 /// The composed game screen: opponent HUD, board, private player panel, and
 /// one Build/Trade/turn-action row over a continuous scenic background.
 ///
-/// `TradePopupView`/`DevCardPopupView`/`DiscardView` are popups/sheets driven
+/// `TradePopupView`/`DevCardPopupView`/`DiscardPopupView` are overlays driven
 /// by view state; the mandatory post-7-roll robber move *and* the voluntary
 /// knight-card robber move both happen inline on this same `BoardView` (see
 /// `isRobberTargetingActive`) rather than as a separate modal. Incoming bot
@@ -205,20 +204,24 @@ public struct GameView: View {
                 // against the banner slot above it (board -> banner ->
                 // here reads as one continuous stack, not three separate
                 // boxes with gaps between them).
-                HumanPlayerPanel(
-                    state: state,
-                    human: human,
-                    playerIdentity: viewModel.playerIdentity,
-                    onOpenDevCards: { type in
-                        devCardPopupType = type
-                        showDevCardHand = true
-                    }
-                )
+                if !isDiscardPresented {
+                    HumanPlayerPanel(
+                        state: state,
+                        human: human,
+                        playerIdentity: viewModel.playerIdentity,
+                        onOpenDevCards: { type in
+                            devCardPopupType = type
+                            showDevCardHand = true
+                        }
+                    )
                     .padding(.horizontal, 12)
+                }
 
                 bottomPanel
                     .padding(.horizontal, 12)
                     .padding(.top, 8)
+                    .allowsHitTesting(!isDiscardPresented)
+                    .accessibilityHidden(isDiscardPresented)
             }
             // A full-screen card/popup visually blocks the board; it must do
             // the same for VoiceOver. Leaving the private shelf in the
@@ -228,17 +231,18 @@ public struct GameView: View {
             .allowsHitTesting(!isBlockingOverlayPresented)
             .accessibilityHidden(isBlockingOverlayPresented)
 
-            if showBuildPopup {
+            if !isDiscardPresented && showBuildPopup {
                 BuildPopupView(viewModel: viewModel, placementMode: $placementMode, onDismiss: { showBuildPopup = false })
                     .accessibilityHidden(viewModel.needsHandoff)
             }
 
-            if showTradePopup {
+            if !isDiscardPresented && showTradePopup {
                 TradePopupView(viewModel: viewModel, onDismiss: { showTradePopup = false })
                     .accessibilityHidden(viewModel.needsHandoff)
             }
 
-            if let reveal = viewModel.pendingDevCardReveal, reveal.owner == human {
+            if !isDiscardPresented,
+               let reveal = viewModel.pendingDevCardReveal, reveal.owner == human {
                 DevelopmentCardOverlay(
                     // A winning receipt remains while its hand is inspected;
                     // clearing it would mount EndGame immediately.
@@ -268,7 +272,8 @@ public struct GameView: View {
                     }
                 )
                 .accessibilityHidden(viewModel.needsHandoff)
-            } else if let resolution = viewModel.pendingDevCardResolution,
+            } else if !isDiscardPresented,
+                      let resolution = viewModel.pendingDevCardResolution,
                       resolution.owner == human {
                 DevelopmentCardResultOverlay(
                     resolution: resolution,
@@ -281,7 +286,7 @@ public struct GameView: View {
                     _ = viewModel.dismissDevCardResolution()
                 }
                 .accessibilityHidden(viewModel.needsHandoff)
-            } else if showDevCardHand {
+            } else if !isDiscardPresented && showDevCardHand {
                 DevelopmentCardOverlay(
                     mode: .hand,
                     state: state,
@@ -298,18 +303,18 @@ public struct GameView: View {
                 .accessibilityHidden(viewModel.needsHandoff)
             }
 
-            if isDiscardPresented {
+            // The draft lives in the view model, so removing this surface
+            // while Settings is open loses nothing. Keeping it mounted and
+            // merely painting Settings above it left the hidden dock in the
+            // VoiceOver tree, where it could still be activated through a
+            // visually opaque screen.
+            if isDiscardPresented && !isShowingInGameSettings {
                 DiscardPopupView(viewModel: viewModel)
                     .accessibilityHidden(viewModel.needsHandoff)
             }
 
             if isShowingInGameSettings {
-                // Surface B of the settings spec - pacing and the trade timer
-                // above the Resume/Restart/Main Menu actions this used to be.
-                // A full painted screen rather than the native
-                // `confirmationDialog` it originally was: a plain system
-                // action sheet was the one piece of chrome in the whole game
-                // that didn't match the painted gold-trim theme at all.
+                // Surface B: painted pacing, trade-timer, and match controls.
                 InGameSettingsView(
                     onResume: { isShowingInGameSettings = false },
                     onRestart: {
@@ -419,7 +424,9 @@ public struct GameView: View {
         }
         .task {
             #if DEBUG
-            if QALaunchFlag.devCardPurchase.isSet {
+            if QALaunchFlag.showDiscard.isSet {
+                viewModel.qaPrepareMandatoryDiscard()
+            } else if QALaunchFlag.devCardPurchase.isSet {
                 viewModel.qaPrepareDevCardPurchase(.monopoly)
             } else if QALaunchFlag.showDevCardHand.isSet || QALaunchFlag.showMonopolyPopup.isSet {
                 viewModel.qaPrepareMixedDevCardHand()
@@ -474,6 +481,12 @@ public struct GameView: View {
         }
         .onChange(of: state.pendingTradeOffers.map(\.id)) { _, _ in
             handleTradeOffersChange()
+        }
+        .onChange(of: isDiscardPresented, initial: true) { _, isPresented in
+            guard isPresented else { return }
+            showBuildPopup = false
+            showTradePopup = false
+            showDevCardHand = false
         }
         .onChange(of: state.lastDiceRoll) { oldValue, newValue in
             guard newValue != nil else { return }
@@ -555,6 +568,7 @@ public struct GameView: View {
                 isPlacementModeActive: isPlacementModeActive || isRobberTargetingActive,
                 highlightedTiles: highlightedTilesForRobber,
                 isTileTargetingActive: isRobberTargetingActive,
+                allowsGameCommands: !isDiscardPresented,
                 rollHighlightTiles: rollHighlightTiles
             )
             // Clears the dice and bank/deck chips that float over this area.
@@ -622,7 +636,9 @@ public struct GameView: View {
         // failure mode - there's nothing left to over-measure or grow
         // unexpectedly.
         VStack(spacing: 8) {
-            if isRobberTargetingActive {
+            if isDiscardPresented {
+                Color.clear.frame(height: Self.actionRowHeight)
+            } else if isRobberTargetingActive {
                 robberTargetingPanel
             } else if isRoadBuildingActive {
                 roadBuildingPanel
@@ -789,28 +805,24 @@ public struct GameView: View {
             UniformActionButton(title: "Turn", systemImage: "hourglass", isEnabled: false, backgroundImageName: "button-fill-turn") {}
         }
     }
+}
 
-    // MARK: - Popup presentation conditions
-
+private extension GameView {
     private var isDiscardPresented: Bool {
-        if case .discarding(let pending) = state.phase { return pending.contains(human) }
-        return false
+        viewModel.currentDiscardObligation != nil
     }
 
     private var isBlockingOverlayPresented: Bool {
-        showBuildPopup || showTradePopup || showDevCardHand || isDiscardPresented
+        showBuildPopup || showTradePopup || showDevCardHand
+            || (isDiscardPresented && !viewModel.isDiscardEditorMinimized)
             || isShowingInGameSettings || viewModel.pendingDevCardReveal?.owner == human
             || viewModel.pendingDevCardResolution?.owner == human || viewModel.needsHandoff
     }
 
-    /// Only surfaces that can remain up while a bot otherwise has work belong
-    /// here. Build and Trade are available solely on the human's own turn;
-    /// private receipts already stop the loop through their durable state.
+    /// Surfaces that can remain open while a bot otherwise has work.
     private var isBotBlockingSurfaceOpen: Bool {
         isShowingInGameSettings || showDevCardHand
     }
-
-    // MARK: - Dev card sub-flows
 
     private func handleDevCardPlay(_ type: DevCardType) {
         switch type {

@@ -156,6 +156,36 @@ private func discardingGame(humans: Set<Int>, pending: Set<Int>) -> GameViewMode
     #expect(model.humanPlayer.index == 1, "the discard sheet follows `humanPlayer`, so it must move")
 }
 
+@MainActor
+@Test func aSubmittedDiscardCannotLeakItsDraftIntoTheNextHumansHandoff() {
+    let model = isolatedGameViewModel()
+    let first = PlayerID(index: 0)
+    let second = PlayerID(index: 1)
+    var state = GameSetup.newGame(board: BoardGenerator.standard(), seed: 4)
+    state.players[first.index].resources = [.brick: 8]
+    state.players[second.index].resources = [.brick: 8]
+    state.bank[.brick] = 3
+    state.lastDiceRoll = 7
+    state.robberMoverIndex = first.index
+    state.phase = .discarding(pending: [first, second])
+    model.replaceStateForTesting(state, humanSeats: [first, second])
+
+    for _ in 0..<4 { model.selectForDiscard(.brick) }
+    #expect(model.submitDiscard())
+
+    #expect(model.discardDraft.counts.isEmpty)
+    #expect(!model.isDiscardEditorMinimized)
+    #expect(model.needsHandoff)
+    #expect(model.seatOwedATurn == second)
+
+    model.claimDeviceForSeatOwedATurn()
+
+    #expect(model.humanPlayer == second)
+    #expect(model.currentDiscardObligation?.owner == second)
+    #expect(model.discardDraft.counts.isEmpty)
+    #expect(!model.isDiscardEditorMinimized)
+}
+
 /// A bot owing a discard is the session's problem, not the phone's.
 @MainActor
 @Test func aBotOwingADiscardAsksForNoHandoff() {

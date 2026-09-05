@@ -70,6 +70,10 @@ struct ResourceChip: View {
                     .foregroundStyle(CatanTheme.onWaterText)
                     .opacity(count == nil ? 0 : 1)
             }
+            // The painted square stays compact enough for five across on a
+            // 375pt phone, while the button's actual target meets the 44pt
+            // minimum used by every mandatory-decision control.
+            .frame(minWidth: 44, minHeight: 44)
             .accessibilityLabel(Text(accessibilityText))
         }
         .disabled(!isEnabled)
@@ -103,6 +107,7 @@ struct ResourceChip: View {
 /// fills in place - and answers "what could go here" without a sentence.
 struct ResourceSlotRow: View {
     let counts: [Resource: Int]
+    var actionHint = "Remove one selected card"
     let onTap: (Resource) -> Void
 
     var body: some View {
@@ -116,6 +121,8 @@ struct ResourceSlotRow: View {
                              isEnabled: staged > 0, isSelected: staged > 0) {
                     onTap(resource)
                 }
+                .accessibilityHidden(staged == 0)
+                .accessibilityHint(actionHint)
             }
         }
     }

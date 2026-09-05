@@ -8,8 +8,8 @@ implementation sequence live in
 
 - [x] One match-authoritative player identity across live gameplay surfaces.
 - [ ] Confirmable robber destination and identity-rich victim selection.
-- [ ] Private development-card purchase reveal plus discoverable usable hand.
-- [ ] Minimize mandatory discard into an inspect-only board mode.
+- [x] Private development-card purchase reveal plus discoverable usable hand.
+- [x] Minimize mandatory discard into an inspect-only board mode.
 - [ ] Cross-feature state-priority and accessibility pass.
 
 ## 1. Bot strength

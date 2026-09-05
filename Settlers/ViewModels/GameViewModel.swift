@@ -73,13 +73,6 @@ public final class GameViewModel {
     /// relaunch from the checkpoint's realized setup.
     public var opponentProfiles: [PlayerID: OpponentProfile] { playerRoster.opponentProfiles }
 
-    /// Human seats in a stable order.
-    ///
-    /// Sorted, always. `Set` iteration order is seeded per process in Swift, so
-    /// anything derived from it that reaches a decision differs between
-    /// launches - this repo has been bitten by that four separate times.
-    public var sortedHumanSeats: [PlayerID] { humanSeats.sorted() }
-
     /// Which human is holding the phone right now, in a hot-seat game.
     ///
     /// `nil` until a seat is claimed, which is what makes relaunch correct
@@ -106,17 +99,6 @@ public final class GameViewModel {
         }
         return first
     }
-
-    /// Whether any seat is played by a bot.
-    ///
-    /// An all-human table is a supported configuration (spec A1.4), and in one
-    /// the player-trade path has nobody to answer it: `resolveHumanProposedTrade`
-    /// iterates an empty bot set, so the proposal is answered by nobody, leaves
-    /// an offer in `pendingTradeOffers` that no seat can see - `openIncomingOffer`
-    /// excludes offers a human proposed - and reports "No one accepted that
-    /// trade." over an empty list. The trade UI asks this rather than offering
-    /// a button that cannot work.
-    public var hasBotSeats: Bool { humanSeats.count < state.players.count }
 
     /// True when the phone has to change hands before play continues.
     ///
@@ -171,12 +153,6 @@ public final class GameViewModel {
         return owed
     }
 
-    /// Hands the device to whoever the game is waiting on.
-    public func claimDeviceForSeatOwedATurn() {
-        guard let owed = seatOwedATurn else { return }
-        seatAtDevice = owed
-    }
-
     public typealias TradeOutcome = TradeOutcomeState
     public private(set) var lastTradeOutcome: TradeOutcome?
 
@@ -188,6 +164,12 @@ public final class GameViewModel {
     public internal(set) var pendingDevCardReveal: DevCardReveal?
     /// A human card's exact committed outcome, retained until acknowledged.
     public internal(set) var pendingDevCardResolution: DevCardResolution?
+
+    /// Uncommitted mandatory-discard choices and whether their editor is in
+    /// inspect-only mode. These stay out of `GameState`, but belong to this
+    /// match coordinator rather than a disposable popup.
+    var discardDraft = DiscardDraft()
+    public internal(set) var isDiscardEditorMinimized = false
 
     /// When each currently-pending trade offer was first proposed -
     /// `TradeOffer` itself carries no timestamp, so this is tracked
@@ -409,26 +391,6 @@ public final class GameViewModel {
         persistenceErrorMessage = nil
     }
 
-    /// Reconcile uncertain writes before allowing play again. The failed human
-    /// action is not replayed blindly; the board shows what actually committed.
-    @discardableResult
-    public func retryPersistence() -> Bool {
-        do {
-            guard let document = try checkpointStore.load() else {
-                throw SavedGameRecoveryError.blocked("The checkpoint is missing. The original files have not been changed.")
-            }
-            checkpointDocument = document
-            try installCheckpointMatch()
-            gameGeneration &+= 1
-            eventBatch = EventBatch(sequence: eventBatch.sequence + 1, events: [])
-            persistenceErrorMessage = nil
-            return true
-        } catch {
-            _ = reportPersistenceFailure(error)
-            return false
-        }
-    }
-
     public func clearCompletedMatch() -> Bool {
         guard savedGameAvailability.recoveryMessage == nil,
               case .gameOver = state.phase, let document = checkpointDocument else { return false }
@@ -490,6 +452,7 @@ public final class GameViewModel {
     /// The bookkeeping every new game clears, whichever entry point started it.
     private func resetPerGameState() {
         gameGeneration &+= 1
+        resetDiscardPresentation()
         pendingTradeConfirmation = nil
         pendingDevCardReveal = nil
         pendingDevCardResolution = nil
@@ -612,6 +575,7 @@ public final class GameViewModel {
     /// Engine rejection and durable-write failure are distinct caller errors.
     public func apply(_ move: GameMove) throws {
         try commitHumanMove(move)
+        if case .discard = move { resetDiscardPresentation() }
         Task { await runBotTurnIfNeeded() }
     }
 
@@ -708,6 +672,7 @@ public final class GameViewModel {
         )
         CivilizationAssignment.humanNames = names
         session = Self.makeSession(state: newState, opponentProfiles: profiles)
+        resetDiscardPresentation()
         persistTestingPosition()
     }
 
@@ -1211,4 +1176,55 @@ public final class GameViewModel {
         }
     }
 
+}
+
+public extension GameViewModel {
+    /// Reconcile uncertain writes without replaying the failed action blindly.
+    @discardableResult
+    func retryPersistence() -> Bool {
+        do {
+            // This is an in-process recovery, not a cold launch: the same
+            // person is still holding the phone. `installCheckpointMatch()`
+            // clears hot-seat claims for cold resume, so restore a valid one
+            // before reconciling its uncommitted discard draft.
+            let claimedSeat = seatAtDevice
+            guard let document = try checkpointStore.load() else {
+                throw SavedGameRecoveryError.blocked(
+                    "The checkpoint is missing. The original files have not been changed."
+                )
+            }
+            checkpointDocument = document
+            try installCheckpointMatch()
+            if let claimedSeat, humanSeats.contains(claimedSeat) { seatAtDevice = claimedSeat }
+            gameGeneration &+= 1
+            eventBatch = EventBatch(sequence: eventBatch.sequence + 1, events: [])
+            prepareDiscardPresentation()
+            persistenceErrorMessage = nil
+            return true
+        } catch {
+            _ = reportPersistenceFailure(error)
+            return false
+        }
+    }
+
+    /// Human seats in a stable order.
+    ///
+    /// Sorted, always. `Set` iteration order is seeded per process in Swift, so
+    /// anything derived from it that reaches a decision differs between
+    /// launches - this repo has been bitten by that four separate times.
+    var sortedHumanSeats: [PlayerID] { humanSeats.sorted() }
+
+    /// Whether any seat is played by a bot.
+    ///
+    /// An all-human table is a supported configuration (spec A1.4), and in one
+    /// the player-trade path has nobody to answer it. The trade UI asks this
+    /// rather than offering a button that cannot work.
+    var hasBotSeats: Bool { humanSeats.count < state.players.count }
+
+    /// Hands the device to whoever the game is waiting on.
+    func claimDeviceForSeatOwedATurn() {
+        guard let owed = seatOwedATurn else { return }
+        seatAtDevice = owed
+        prepareDiscardPresentation()
+    }
 }

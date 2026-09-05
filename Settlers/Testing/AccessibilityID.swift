@@ -25,6 +25,7 @@ enum AccessibilityID {
     }
 
     enum Board {
+        static let surface = "board.surface"
         static let stagedRoadPreview = "board.road-preview"
 
         static func tile(_ tile: HexCoordinate) -> String {
@@ -37,6 +38,22 @@ enum AccessibilityID {
 
         static func edge(_ edge: EdgeID) -> String {
             "board.edge.\(vertex(edge.a)).\(vertex(edge.b))"
+        }
+
+        static func inspectionTile(_ tile: HexCoordinate) -> String {
+            "board.inspect.tile.\(coordinate(tile))"
+        }
+
+        static func inspectionPort(_ index: Int) -> String {
+            "board.inspect.port.\(index)"
+        }
+
+        static func inspectionBuilding(_ vertex: VertexID) -> String {
+            "board.inspect.building." + vertex.touchingTiles.map(coordinate).joined(separator: ".")
+        }
+
+        static func inspectionRoad(_ edge: EdgeID) -> String {
+            "board.inspect.road.\(vertex(edge.a)).\(vertex(edge.b))"
         }
 
         private static func coordinate(_ coordinate: HexCoordinate) -> String {
@@ -70,6 +87,18 @@ enum AccessibilityID {
         static func detail(_ type: DevCardType) -> String { "dev-cards.detail.\(type.rawValue)" }
         static func play(_ type: DevCardType) -> String { "dev-cards.play.\(type.rawValue)" }
         static func resource(_ resource: Resource) -> String { "dev-cards.resource.\(resource.rawValue)" }
+    }
+
+    enum Discard {
+        static let editor = "discard.editor"
+        static let progress = "discard.progress"
+        static let minimize = "discard.minimize"
+        static let dock = "discard.dock"
+        static let submit = "discard.submit"
+
+        static func hand(_ resource: Resource) -> String {
+            "discard.hand.\(resource.rawValue)"
+        }
     }
 
     enum InGameSettings {

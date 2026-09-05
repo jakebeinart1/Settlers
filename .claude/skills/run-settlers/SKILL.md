@@ -140,6 +140,7 @@ grep -rnoE '"\-qa[A-Za-z]+"' --include="*.swift" "$REPO/Settlers" | sort -u
 | `-qaShowPendingTradeConfirmation` | `GameView.swift` | The trade popup's "a bot will accept" banner, seeded directly. |
 | `-qaShowRobberTargeting` | `GameView.swift` | The "tap a tile" robber targeting panel. |
 | `-qaShowRobberVictimPicker` | `GameView.swift` | One step further: the "Steal from:" victim picker. |
+| `-qaShowDiscard` | `GameView.swift` | A real conserved eight-card hand in a mandatory four-card discard, for expanded/minimized inspection and submission. **Needs `-qaAutoStart`.** |
 | `-qaShowIncomingOffer` | `GameView.swift` | `IncomingTradeCardView`, backed by a real pending engine offer and conserved deterministic hands. |
 | `-qaFastForwardToRollDice` | `GameView.swift` | Plays the human's setup placements and first roll, resolving a possible seven until the main-turn controls are enabled. **Applies real moves** (writes the save and game log); wait on the target control's readiness rather than a fixed delay. |
 | `-qaShowNewGame` | `MainMenuView.swift` / `NewGameSetupView.swift` | `NewGameSetupView` over the main menu, on a startable two-human/two-AI fixture (green ready plaque, Start enabled). **Must NOT be combined with `-qaAutoStart`.** |
