@@ -26,7 +26,7 @@ it has no right to give.
 | **The crash-report diff (rung 5) firing on a real crash** | **NEVER SEEN RED.** The `Settlers[-.]` filter and the `comm -13` diff are correct by construction and were exercised on a clean run, but no crash has been produced to prove they catch one. Treat a green rung 5 as "nothing appeared", not as "a crash would have been caught". |
 | **`kill -0 $PID` (rung 5)** | **RUN AND PROVEN 2026-08-29.** Simulator processes are ordinary host processes owned by this user, so the signal-0 liveness test is valid from the host shell. pid 84107 answered. |
 | **Release configuration** | **BUILT BY THE GATE ON EVERY RUN** since `gate.sh` made it mandatory. It is the one thing the ladder does NOT rebuild - rung 3 is Debug on purpose (see rung 3's note). |
-| **Native interaction** | **RUN AND PROVEN 2026-09-03.** Twelve XCUITest flows cover setup, placement, settings, trade decisions/timing, cold resume, recovery, and a real automated match to game over. This still is not exhaustive human play. |
+| **Native interaction** | **RUN AND PROVEN 2026-09-03.** Native XCUITest flows cover setup, placement, settings, trade decisions/timing, cold resume, recovery, and a real automated match to game over. The suite has expanded since that first proof; do not pin a count here because the source is authoritative. This still is not exhaustive human play. |
 
 ## Hard preconditions: if one is missing, STOP and say which
 

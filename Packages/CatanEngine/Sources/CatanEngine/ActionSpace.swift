@@ -28,21 +28,21 @@
 /// `.claude/rules/swift.md`.
 ///
 /// ## Size, and the obvious optimisation
-/// On the standard board this is **9,295** indices. It is worth knowing where
+/// On the standard board this is **9,335** indices. It is worth knowing where
 /// they go, because two cases are 87% of it:
 ///
 /// | segment | size | share |
 /// |---|---|---|
 /// | `playRoadBuilding` (ordered edge pairs) | 5,112 | 55% |
 /// | `discard` (multisets up to `maxDiscardCards`) | 3,002 | 32% |
-/// | everything else combined | 1,181 | 13% |
+/// | everything else combined | 1,221 | 13% |
 ///
 /// Both are compound actions flattened into one index. If that ratio ever
 /// matters - and for a learned policy it probably will - the fix is to
 /// decompose them into sequences of atomic choices: road building becomes two
 /// consecutive single-edge picks, discarding becomes one card at a time. That
 /// takes the space to roughly 1,200 and costs a change to `GameMove` itself,
-/// which is why it is written down here rather than done now. A flat 9,295 is
+/// which is why it is written down here rather than done now. A flat 9,335 is
 /// a perfectly ordinary policy-head width in the meantime.
 ///
 /// ## Not the same numbering as a prompt's move list

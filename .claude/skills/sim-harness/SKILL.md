@@ -25,7 +25,7 @@ measures it the only way that works: two separate processes, byte-compared.
 |---|---|
 | **The executable exists, builds and plays games** | **RUN AND PROVEN 2026-08-29.** `Packages/CatanAI/Sources/sim/main.swift`, wired as `.executableTarget(name: "sim", ...)` in `Packages/CatanAI/Package.swift`. Builds clean under `-Xswiftc -warnings-as-errors` and under `swiftlint --strict`. |
 | **Cross-process reproducibility** | **PROVEN 2026-08-29.** Seeds 1000-1009, Release, run in two separate processes: both files `sha256 2dcfd1fb48dceb8adf381bcb8ffe571a5b6d53544656911a0543eca2dcd50c8c`, `cmp` silent. |
-| **Agreement with the existing determinism guard** | **RE-PROVEN 2026-09-03** (final whole-branch review's fix pass, superseding the same-day entry below it in this file's history). All five fingerprints currently pinned in `Packages/CatanAI/Tests/CatanAITests/SeededGameFingerprintTests.swift` were reproduced exactly by a fresh Release build of the harness, run after this fix pass's `TradeHeuristics.swift` corrections (findings I1/I4): seed 1 `46a24e9ecfe0feb8`, 42 `49ead678fb08dc65`, 7 `8c8415acff40784e`, 1234 `c07d57fded64e7ae`, 99 `bce23296652208a2`. Seed 1234 changed from the value pinned earlier that day (`db3186c153860fc4`) because the fix pass corrected two real bugs in the bots' generous-unlock trade logic - a genuine behavior change, confirmed reproducible across three separate processes before being re-pinned; the other four seeds were unaffected. The harness deliberately uses the same seat lineup, the same bot-RNG derivation and the same canonicalization so that test doubles as an external check on it. |
+| **Agreement with the existing determinism guard** | **RE-PROVEN 2026-09-05.** A fresh Release harness reproduced all five values currently pinned in `Packages/CatanAI/Tests/CatanAITests/SeededGameFingerprintTests.swift`. That test file is the single source of truth; values are deliberately not duplicated here because intentional trade, road, and development-card changes have moved them repeatedly. The harness uses the same seat lineup, bot-RNG derivation, and canonicalization so the test remains an external check on it. |
 | **Evaluation configuration matrix** | **RUN AND PROVEN 2026-09-03.** `scripts/tests/test_sim_cli.py` invokes the Release executable for every 3/4-player × 8/10/12-VP × standard/randomized-board combination. These are engine/evaluation smoke cases; four-player 12 VP is no longer a product New Game option after longer runs proved it can saturate without a winner. Every sampled CLI case reaches a winner, reports schema-5 configuration provenance, and emits arrays matching the configured table size. The default invocation remains the historical four-player, 10-VP, randomized-board trajectory. |
 | **Throughput** | **MEASURED 2026-08-29** on an 18-core Apple Silicon Mac. **Release, one process: 0.45-0.56 games/sec** (four timed runs of 10 games: 22.45s, 19.48s, 19.05s, 17.96s). **Debug: 0.12 games/sec** (5 games in 41.56s) - about 4x slower, never measure on it. **Release, 10 shards in parallel: 1.76 games/sec** (100 games in 56.79s, 642% CPU). |
 | **Game shape** | **MEASURED over 350 historical default-length games** across two seat lineups (seeds 1000-1009, 2000-2099, 3000-3039, 5000-5199): every game finished with a winner, 212-824 moves, mean 462. Later 12-point calibration runs did hit the 3,000-move cap; never generalize the default-game range to a new policy or target. |
@@ -92,7 +92,9 @@ echo "reproducible across processes: $(shasum -a 256 /tmp/runA.jsonl | cut -d' '
 #    divergence is a real bot change rather than a harness bug. Do this after
 #    any edit to the harness, and after any edit to the bots.
 for seed in 1 42 7 1234 99; do "$SIM" --seed "$seed" --games 1 --jsonl 2>/dev/null; done
-# expect 46a24e9ecfe0feb8 49ead678fb08dc65 8c8415acff40784e c07d57fded64e7ae bce23296652208a2
+# Compare the five outputs with `expectedFingerprints` in
+# SeededGameFingerprintTests.swift. That dictionary is authoritative; do not
+# cache another copy in this skill.
 
 # 5) SCALE BY SHARDING THE SEED RANGE ACROSS PROCESSES. One process does ~0.5
 #    games/sec, so 1,000 games is ~35 minutes of wall clock and 10,000 is most
@@ -168,7 +170,7 @@ legal mask. The
 Swift constructor remains the authority for recomputing the mask from live game
 state; compact feature vectors intentionally cannot reconstruct that state.
 
-Both table sizes use the same 9,295-wide four-chair action head. In a
+Both table sizes use the same 9,335-wide four-chair action head. In a
 three-player example the nonexistent fourth victim slots are simply illegal.
 Shrinking the head would shift every later segment, making one action index mean
 different moves depending on table size and silently corrupting mixed training.
@@ -280,10 +282,12 @@ true and the floors move.
 - **The fingerprint proves the sequence, not its quality.** Identical
   fingerprints mean identical play. They say nothing about whether the play was
   good, and a changed fingerprint is not evidence of improvement.
-- **The record is coarse**: seed, move count, winner, final VP. No per-turn
-  telemetry, no resource curves, no time-to-first-settlement, no trade counts.
-  Anything finer needs a new field, which needs the ordering question above
-  answered.
+- **The record is opportunity-aware but not a decision trace.** Schema 5 has
+  27 per-seat event/opportunity counters for builds, development cards, robber
+  targeting, and trade proposals/responses. It still lacks per-turn resource
+  curves, time-to-milestone data, trade score/rejection reasons, road-plan
+  intent, and runner-up action scores. Those require versioned new fields, not
+  inference from aggregate counters.
 - **The executable is integration-tested, but fingerprints still matter.**
   `scripts/tests/test_sim_cli.py` builds and invokes Release `sim`, checks strict
   CLI failures, runs all twelve engine/evaluation configurations, and validates a real training

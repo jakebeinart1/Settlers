@@ -24,7 +24,7 @@ the engine and evaluation system we already trust:
 - Three or four players, stochastic dice/cards, negotiation, and potentially
   hidden hands. This is neither deterministic chess nor a two-player zero-sum
   poker game.
-- The current four-seat action layout has 9,295 stable indices but only a small legal
+- The current four-seat action layout has 9,335 stable indices but only a small legal
   subset at each decision. Every learned/search policy must consume the exact
   mask; an unmasked output is invalid by construction.
 - A full match takes hundreds of actions. Phone inference must fit inside the

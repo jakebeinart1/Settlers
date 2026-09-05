@@ -28,12 +28,12 @@ import Foundation
 /// ## Two move numberings exist, and they are not the same number
 /// `promptDescription` numbers the moves **0-based within this observation's
 /// own `legalMoves`** - typically single digits, and meaningless in any other
-/// position. `ActionSpace` numbers moves **globally and permanently**, 0..<8815
+/// position. `ActionSpace` numbers moves **globally and permanently**, 0..<9335
 /// on the standard board, where a given index means the same move forever.
 ///
 /// The prompt uses the local numbering on purpose: asking a language model to
 /// pick out of nine options beats asking it to name an index in a space of
-/// 8,815, almost all of which is illegal at any moment. A trainer wants the
+/// 9,335, almost all of which is illegal at any moment. A trainer wants the
 /// opposite - a fixed-width head where slot k always means the same thing - and
 /// should use `ActionSpace` with `ActionSpace.mask(for:)`.
 ///
@@ -915,7 +915,7 @@ public extension StateEncoding {
         // Numbered within THIS observation, not by `ActionSpace` - see the
         // "Two move numberings" section on `StateEncoding`. A model picking
         // from nine options is a far easier ask than one naming an index in a
-        // space of 8,815 that is almost entirely illegal right now.
+        // space of 9,335 that is almost entirely illegal right now.
         var lines = ["MOVES \(observation.legalMoves.count) - reply with one number, 0-based, "
             + "indexing this list only"]
         let offers = observation.state.pendingTradeOffers
