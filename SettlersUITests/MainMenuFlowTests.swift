@@ -49,6 +49,69 @@ final class MainMenuFlowTests: XCTestCase {
                       "growing the table must normalize Epic to a playable length")
     }
 
+    func testNewGameControlsRemainUsableAtAccessibilityTextSize() {
+        continueAfterFailure = false
+        let app = XCUIApplication()
+        app.launchArguments = [
+            "-ui-testing", "-ui-testing-reset",
+            "-UIPreferredContentSizeCategoryName", "UICTContentSizeCategoryAccessibilityXXL",
+            "-qaShowNewGame",
+        ]
+        app.launch()
+
+        XCTAssertTrue(app.otherElements["screen.new-game"].waitForExistence(timeout: 5))
+        let start = app.buttons["new-game.start"]
+        let cancel = app.buttons["new-game.cancel"]
+        assertFullyOnScreen(start, named: "Start", in: app)
+        assertFullyOnScreen(cancel, named: "Cancel", in: app)
+
+        let setupScroll = app.scrollViews.firstMatch
+        XCTAssertTrue(setupScroll.exists)
+        assertChoiceRowIsReachable(
+            helpLabel: "About Board", choiceLabel: "Randomized", in: app, scroll: setupScroll
+        )
+        assertChoiceRowIsReachable(
+            helpLabel: "About Turn Order", choiceLabel: "Random", in: app, scroll: setupScroll
+        )
+
+        let screenshot = XCTAttachment(screenshot: app.screenshot())
+        screenshot.name = "new-game-accessibility-large"
+        screenshot.lifetime = .keepAlways
+        add(screenshot)
+    }
+
+    private func assertFullyOnScreen(
+        _ control: XCUIElement,
+        named name: String,
+        in app: XCUIApplication
+    ) {
+        XCTAssertTrue(control.exists)
+        XCTAssertTrue(control.isHittable)
+        XCTAssertTrue(
+            app.frame.contains(control.frame),
+            "the pinned \(name) action must stay fully on-screen at accessibility sizes"
+        )
+    }
+
+    private func assertChoiceRowIsReachable(
+        helpLabel: String,
+        choiceLabel: String,
+        in app: XCUIApplication,
+        scroll: XCUIElement
+    ) {
+        let help = app.buttons[helpLabel]
+        let choice = app.buttons[choiceLabel]
+        XCTAssertTrue(help.exists)
+        XCTAssertTrue(choice.exists)
+        for _ in 0..<3 where !help.isHittable { scroll.swipeUp() }
+        XCTAssertTrue(help.isHittable)
+        XCTAssertTrue(choice.isHittable)
+        XCTAssertFalse(
+            help.frame.intersects(choice.frame),
+            "\(helpLabel) must not consume or overlap its choices"
+        )
+    }
+
     func testOpeningSettlementRequiresAnAdjacentRoad() {
         continueAfterFailure = false
         let app = launchResetApp()
@@ -177,16 +240,71 @@ final class BoardDecisionFlowTests: XCTestCase {
             NSPredicate(format: "identifier BEGINSWITH %@", BoardDecisionUITestID.victimPrefix)
         ).firstMatch
         XCTAssertTrue(victim.waitForExistence(timeout: 2))
+        let civilization = app.staticTexts.matching(
+            NSPredicate(
+                format: "identifier BEGINSWITH %@",
+                BoardDecisionUITestID.victimCivilizationPrefix
+            )
+        ).firstMatch
+        XCTAssertTrue(
+            civilization.waitForExistence(timeout: 2),
+            "the compact victim card must visibly name its civilization"
+        )
         victim.tap()
         XCTAssertEqual(victim.value as? String, "Selected")
         XCTAssertTrue(confirm.isEnabled)
         XCTAssertTrue(preview.exists, "victim selection must still be an uncommitted proposal")
+        XCTAssertEqual(
+            app.buttons[BoardDecisionUITestID.clear].label,
+            "Choose another territory"
+        )
 
         confirm.tap()
 
         XCTAssertTrue(preview.waitForNonExistence(timeout: 3))
         XCTAssertTrue(app.otherElements[BoardDecisionUITestID.dock].waitForNonExistence(timeout: 3))
         assertResource(.ore, equals: 1, in: app)
+    }
+
+    func testThreePlayerNonzeroSeatCanResolveRolledSevenRobberDecision() {
+        continueAfterFailure = false
+        let app = launchBoardDecision(
+            "-qaShowMandatoryRobberDecision",
+            modifiers: ["-qaThreePlayerTable", "-qaHumanSeatTwo"]
+        )
+        let confirm = requireDecisionDock(in: app)
+
+        selectRobberDestinationWithVictim(in: app)
+        let victims = app.buttons.matching(
+            NSPredicate(format: "identifier BEGINSWITH %@", BoardDecisionUITestID.victimPrefix)
+        )
+        XCTAssertEqual(victims.count, 2, "a three-player fixture must expose both rival seats")
+        victims.firstMatch.tap()
+        XCTAssertTrue(confirm.isEnabled)
+        confirm.tap()
+
+        XCTAssertTrue(app.otherElements[BoardDecisionUITestID.dock].waitForNonExistence(timeout: 3))
+        assertResource(.ore, equals: 1, in: app)
+    }
+
+    func testThreePlayerNonzeroSeatCanResolveKnightRobberDecision() {
+        continueAfterFailure = false
+        let app = launchBoardDecision(
+            "-qaShowRobberTargeting",
+            modifiers: ["-qaThreePlayerTable", "-qaHumanSeatTwo"]
+        )
+        let confirm = requireDecisionDock(in: app)
+
+        selectRobberDestinationWithVictim(in: app)
+        let victim = app.buttons.matching(
+            NSPredicate(format: "identifier BEGINSWITH %@", BoardDecisionUITestID.victimPrefix)
+        ).firstMatch
+        XCTAssertTrue(victim.waitForExistence(timeout: 2))
+        victim.tap()
+        XCTAssertTrue(confirm.isEnabled)
+        confirm.tap()
+
+        XCTAssertTrue(app.staticTexts["dev-cards.result"].waitForExistence(timeout: 3))
     }
 
     func testSettingsRoundTripRetainsTheExactProposal() {
@@ -321,9 +439,13 @@ final class BoardDecisionFlowTests: XCTestCase {
         }
     }
 
-    private func launchBoardDecision(_ flag: String) -> XCUIApplication {
+    private func launchBoardDecision(
+        _ flag: String,
+        modifiers: [String] = []
+    ) -> XCUIApplication {
         let app = XCUIApplication()
         app.launchArguments = ["-ui-testing", "-ui-testing-reset", "-qaAutoStart", flag]
+            + modifiers
         app.launch()
         return app
     }
@@ -412,6 +534,7 @@ enum BoardDecisionUITestID {
     static let dragCradle = "board.drag-cradle"
     static let mandatoryRobberVictimTile = "board.tile.0_0"
     static let victimPrefix = "robber.victim."
+    static let victimCivilizationPrefix = "robber.victim.civilization."
     static let settings = "game.settings"
     static let settingsScreen = "screen.in-game-settings"
     static let settingsClose = "in-game-settings.close"

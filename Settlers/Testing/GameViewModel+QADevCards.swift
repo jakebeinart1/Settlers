@@ -18,6 +18,11 @@ extension GameViewModel {
         // just drawn, not the aggregate playability of every card of its type.
         fixture.players[human.index].devCards = [card]
         fixture.devCardDeck = [card]
+        if card == .roadBuilding {
+            fixture.players[human.index].settlements.insert(
+                fixture.board.onBoardVertices.sorted().first!
+            )
+        }
         installDevCardFixture(fixture, human: human)
     }
 

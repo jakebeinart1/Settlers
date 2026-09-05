@@ -54,6 +54,7 @@ struct NewGameSetupView: View {
     @State private var refusal: String?
     @State private var openHelp: HelpTopic?
     @State private var isShowingUnreadableSetupAlert: Bool
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     /// Read once, at init. Both are App Settings *preferences* - they prefill
     /// this screen (A2.3, A3.7, C1.1, C2.1) and are never the value the game
@@ -550,6 +551,7 @@ struct NewGameSetupView: View {
     /// underneath when the ⓘ is tapped, and an optional standing caption that
     /// states the current choice in words. Matches `InGameSettingsView`'s row
     /// shape so the two settings surfaces read as one family.
+    @ViewBuilder
     private func labelledChoice<Control: View>(
         label: String,
         help: HelpTopic,
@@ -564,17 +566,20 @@ struct NewGameSetupView: View {
         // show you the configuration. `caption` is kept in the signature and
         // shown only while help is closed for rows that genuinely need one.
         VStack(alignment: .leading, spacing: 6) {
-            HStack(alignment: .center, spacing: 8) {
-                VStack(alignment: .leading, spacing: 1) {
-                    Text(label)
-                        .font(.system(size: 13, weight: .semibold, design: .serif))
-                        .lineLimit(2)
-                        .minimumScaleFactor(0.75)
-                        .fixedSize(horizontal: false, vertical: true)
+            if dynamicTypeSize.isAccessibilitySize {
+                HStack(spacing: 8) {
+                    choiceLabel(label)
+                    Spacer(minLength: 0)
+                    helpButton(label: label, topic: help)
                 }
-                .frame(width: 104, alignment: .leading)
-                helpButton(label: label, topic: help)
                 control()
+            } else {
+                HStack(alignment: .center, spacing: 8) {
+                    choiceLabel(label)
+                        .frame(width: 104, alignment: .leading)
+                    helpButton(label: label, topic: help)
+                    control()
+                }
             }
             if openHelp == help {
                 footnote(helpText)
@@ -584,14 +589,37 @@ struct NewGameSetupView: View {
         }
     }
 
+    private func choiceLabel(_ label: String) -> some View {
+        Text(label)
+            // The row reflows at accessibility sizes, so the label can grow
+            // without squeezing its options. Cap it at 20pt to keep all three
+            // settings practically browsable on a 667pt phone; an uncapped
+            // semantic `.headline` reached ~48pt at Accessibility XXL while
+            // every seat-card label remained the app's intentional 13pt.
+            .font(.system(
+                size: dynamicTypeSize.isAccessibilitySize ? 20 : 13,
+                weight: .semibold,
+                design: .serif
+            ))
+            .lineLimit(2)
+            .minimumScaleFactor(0.75)
+            .fixedSize(horizontal: false, vertical: true)
+    }
+
     private func helpButton(label: String, topic: HelpTopic) -> some View {
         Button {
             openHelp = (openHelp == topic) ? nil : topic
         } label: {
-            Image(systemName: "info.circle")
-                .font(.footnote)
-                .foregroundStyle(.white.opacity(openHelp == topic ? 0.95 : 0.55))
+            if dynamicTypeSize.isAccessibilitySize {
+                Image(systemName: "info.circle")
+                    .font(.system(size: 20))
+                    .frame(width: 44, height: 44)
+            } else {
+                Image(systemName: "info.circle")
+                    .font(.footnote)
+            }
         }
+        .foregroundStyle(.white.opacity(openHelp == topic ? 0.95 : 0.55))
         .buttonStyle(.plain)
         .accessibilityLabel("About \(label)")
     }
@@ -734,6 +762,12 @@ struct NewGameSetupView: View {
         // the pinned bar reads as part of the same painted background instead
         // of a solid-colour strip stitched onto the bottom of it.
         .background(Color.black.opacity(0.55))
+        // This is fixed-height, always-visible game chrome rather than prose.
+        // Letting semantic icon and button fonts expand independently makes
+        // the controls paint outside their 48pt row and off the device. The
+        // configuration itself reflows and scrolls above; this critical bar
+        // keeps the same readable, 44pt-plus controls at every text setting.
+        .dynamicTypeSize(.large)
     }
 
     /// Cancel is fixed and narrow so Start gets the rest: at 375pt that is

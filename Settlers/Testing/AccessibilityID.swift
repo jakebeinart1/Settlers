@@ -126,6 +126,9 @@ enum AccessibilityID {
 
     enum Robber {
         static func victim(_ seat: PlayerID) -> String { "robber.victim.\(seat.index)" }
+        static func victimCivilization(_ seat: PlayerID) -> String {
+            "robber.victim.civilization.\(seat.index)"
+        }
     }
 
     enum IncomingTrade {

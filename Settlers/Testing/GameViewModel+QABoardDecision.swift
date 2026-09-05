@@ -44,10 +44,10 @@ extension GameViewModel {
     /// Mandatory seven-driven robber decision with all three rival identities
     /// available on one destination. It exercises the maximum-width picker.
     func qaPrepareMandatoryRobberDecision(selectDestination: Bool = false) {
-        let human = humanPlayer
+        let human = qaFixtureHuman
         var fixture = GameSetup.newGame(
             board: BoardGenerator.standard(), seed: 4_303,
-            playerCount: state.players.count, victoryPointTarget: state.victoryPointTarget
+            playerCount: qaFixturePlayerCount, victoryPointTarget: state.victoryPointTarget
         )
         let destination = fixture.board.tiles.first {
             $0.coordinate != fixture.board.robberTile
@@ -76,12 +76,25 @@ extension GameViewModel {
     /// path. The optional second stage chooses a destination that has a victim,
     /// so screenshots and UI tests never fake coordinator state.
     func qaPrepareKnightBoardDecision(selectDestinationWithVictim: Bool) {
-        let human = humanPlayer
-        var fixture = state
+        let human = qaFixtureHuman
+        var fixture = GameSetup.newGame(
+            board: BoardGenerator.standard(), seed: 4_304,
+            playerCount: qaFixturePlayerCount, victoryPointTarget: state.victoryPointTarget
+        )
+        let destination = fixture.board.tiles.first {
+            $0.coordinate != fixture.board.robberTile
+        }!.coordinate
+        let vertices = fixture.board.onBoardVertices.sorted().filter {
+            fixture.board.neighborTiles(of: $0).contains(destination)
+        }
+        let rivals = fixture.players.map(\.id).filter { $0 != human }
+        for (player, vertex) in zip(rivals, vertices) {
+            fixture.players[player.index].settlements.insert(vertex)
+            fixture.players[player.index].resources = [.ore: 1]
+            fixture.bank[.ore, default: 0] -= 1
+        }
         fixture.phase = .rollDice(playerIndex: human.index)
-        fixture.devCardPlayedThisTurn = nil
-        fixture.devCardsBoughtThisTurn[human] = []
-        fixture.players[human.index].devCards.append(.knight)
+        fixture.players[human.index].devCards = [.knight]
         replaceStateForTesting(fixture, humanSeat: human)
 
         precondition(beginBoardDecision(.knight), "QA Knight decision did not start")
@@ -94,6 +107,14 @@ extension GameViewModel {
             preconditionFailure("QA Knight fixture has no destination with a victim")
         }
         precondition(selectBoardTarget(.tile(tile)), "QA robber destination was rejected")
+    }
+
+    private var qaFixturePlayerCount: Int {
+        QALaunchFlag.threePlayerTable.isSet ? 3 : state.players.count
+    }
+
+    private var qaFixtureHuman: PlayerID {
+        QALaunchFlag.humanSeatTwo.isSet ? PlayerID(index: 1) : humanPlayer
     }
 }
 #endif

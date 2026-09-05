@@ -28,11 +28,6 @@ public struct BoardView: View {
     public let rollHighlightTiles: Set<HexCoordinate>
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
-    @GestureState private var draggedPieceLocation: CGPoint?
-
-    private static let boardCoordinateSpace = "board-decision-coordinate-space"
-    private static let cradleEdgeInset: CGFloat = 35
-    private static let dragDropMinimumRadius: CGFloat = 30
 
     public init(
         state: GameState,
@@ -83,9 +78,12 @@ public struct BoardView: View {
                 // settlement at their shared vertex while hit testing still
                 // falls through the non-interactive piece layers above it.
                 if allowsGameCommands, let decision {
-                    tileTargets(for: decision, geometry: geometry)
-                    edgeTargets(for: decision, geometry: geometry)
-                    vertexTargets(for: decision, geometry: geometry)
+                    BoardDecisionTargetLayer(
+                        board: board,
+                        decision: decision,
+                        geometry: geometry,
+                        onSelectTarget: onSelectTarget
+                    )
                 }
 
                 roadViews(geometry: geometry)
@@ -125,10 +123,17 @@ public struct BoardView: View {
                 }
 
                 if allowsGameCommands, let decision {
-                    decisionCradle(for: decision, geometry: geometry, containerSize: proxy.size)
+                    BoardDecisionCradleLayer(
+                        board: board,
+                        decision: decision,
+                        geometry: geometry,
+                        containerSize: proxy.size,
+                        civilization: playerIdentity(decision.actor).civilization,
+                        onSelectTarget: onSelectTarget
+                    )
                 }
             }
-            .coordinateSpace(name: Self.boardCoordinateSpace)
+            .coordinateSpace(name: BoardDecisionCoordinateSpace.name)
             .animation(reduceMotion ? nil : .spring(), value: BoardSnapshot(state: state))
             .animation(reduceMotion ? nil : .spring(response: 0.3, dampingFraction: 0.82), value: decision)
         }
@@ -152,7 +157,6 @@ public struct BoardView: View {
             drawCanonicalRobber(geometry: geometry, in: context)
         }
         .contentShape(Rectangle())
-        .gesture(tileTapGesture(geometry: geometry))
         .accessibilityElement(children: .ignore)
         .accessibilityLabel("Game board")
         .accessibilityIdentifier(AccessibilityID.Board.surface)
@@ -193,65 +197,6 @@ public struct BoardView: View {
             )
         } else {
             TileDrawing.drawRobber(at: board.robberTile, number: number, geometry: geometry, in: context)
-        }
-    }
-
-    @ViewBuilder
-    private func tileTargets(for decision: BoardDecisionPresentation, geometry: HexGeometry) -> some View {
-        if decision.intent.isRobber {
-            let legalTiles = Set(decision.legalTiles)
-            ForEach(board.tiles.filter { legalTiles.contains($0.coordinate) }, id: \.coordinate) { tile in
-                let isSelected = tile.coordinate == decision.selectedTile
-                TileTapTarget(
-                    position: geometry.center(of: tile.coordinate),
-                    diameter: max(44, geometry.size * 1.35),
-                    isEnabled: true,
-                    isSelected: isSelected,
-                    accessibilityIdentifier: AccessibilityID.Board.tile(tile.coordinate),
-                    accessibilityLabel: tileAccessibilityLabel(tile, decision: decision),
-                    accessibilityValue: isSelected ? "Selected destination" : "Available destination",
-                    accessibilityHint: boardTargetAccessibilityHint(isSelected: isSelected),
-                    onTap: { onSelectTarget(.tile(tile.coordinate)) }
-                )
-            }
-        }
-    }
-
-    @ViewBuilder
-    private func edgeTargets(for decision: BoardDecisionPresentation, geometry: HexGeometry) -> some View {
-        ForEach(Array(decision.legalEdges.enumerated()), id: \.element) { index, edge in
-            let (startVertex, endVertex) = board.vertices(of: edge)
-            let isSelected = decision.selectedEdges.contains(edge)
-            EdgeTapTarget(
-                start: geometry.vertexPosition(startVertex, board: board),
-                end: geometry.vertexPosition(endVertex, board: board),
-                isHighlighted: true,
-                isEnabled: true,
-                isSelected: isSelected,
-                accessibilityIdentifier: AccessibilityID.Board.edge(edge),
-                accessibilityLabel: edgeAccessibilityLabel(index: index, decision: decision),
-                accessibilityValue: isSelected ? "Selected" : "Available",
-                accessibilityHint: boardTargetAccessibilityHint(isSelected: isSelected),
-                onTap: { onSelectTarget(.edge(edge)) }
-            )
-        }
-    }
-
-    @ViewBuilder
-    private func vertexTargets(for decision: BoardDecisionPresentation, geometry: HexGeometry) -> some View {
-        ForEach(Array(decision.legalVertices.enumerated()), id: \.element) { index, vertex in
-            let isSelected = vertex == decision.selectedVertex
-            VertexTapTarget(
-                position: geometry.vertexPosition(vertex, board: board),
-                isHighlighted: true,
-                isEnabled: true,
-                isSelected: isSelected,
-                accessibilityIdentifier: AccessibilityID.Board.vertex(vertex),
-                accessibilityLabel: vertexAccessibilityLabel(index: index, decision: decision),
-                accessibilityValue: isSelected ? "Selected" : "Available",
-                accessibilityHint: boardTargetAccessibilityHint(isSelected: isSelected),
-                onTap: { onSelectTarget(.vertex(vertex)) }
-            )
         }
     }
 
@@ -363,139 +308,6 @@ public struct BoardView: View {
             .accessibilityIdentifier(identifier)
             .accessibilityLabel(label)
             .accessibilityValue(value)
-    }
-
-    @ViewBuilder
-    private func decisionCradle(
-        for decision: BoardDecisionPresentation,
-        geometry: HexGeometry,
-        containerSize: CGSize
-    ) -> some View {
-        let civilization = playerIdentity(decision.actor).civilization
-        let piece = BoardDecisionPieceKind(intent: decision.intent)
-        let ordinal = roadOrdinal(for: decision)
-        BoardDecisionCradle(
-            piece: piece,
-            civilization: civilization,
-            roadOrdinal: ordinal,
-            isDragging: draggedPieceLocation != nil,
-            accessibilityLabel: cradleAccessibilityLabel(for: decision)
-        )
-        .position(cradlePosition(in: containerSize))
-        .gesture(cradleDragGesture(for: decision, geometry: geometry))
-
-        // Direct dragging still selects the same nearest legal target with
-        // Reduce Motion enabled, but the cradle's opacity is the only moving
-        // feedback; a second token no longer chases the player's finger.
-        if let draggedPieceLocation, !reduceMotion {
-            BoardDecisionDragToken(piece: piece, civilization: civilization, roadOrdinal: ordinal)
-                .position(draggedPieceLocation)
-        }
-    }
-
-    private func cradleDragGesture(
-        for decision: BoardDecisionPresentation,
-        geometry: HexGeometry
-    ) -> some Gesture {
-        DragGesture(minimumDistance: 3, coordinateSpace: .named(Self.boardCoordinateSpace))
-            .updating($draggedPieceLocation) { value, location, _ in
-                location = value.location
-            }
-            .onEnded { value in
-                guard let target = nearestDropTarget(to: value.location, decision: decision, geometry: geometry) else {
-                    return
-                }
-                onSelectTarget(target)
-            }
-    }
-
-    private func nearestDropTarget(
-        to point: CGPoint,
-        decision: BoardDecisionPresentation,
-        geometry: HexGeometry
-    ) -> BoardTarget? {
-        let candidates = legalDropTargets(for: decision, geometry: geometry)
-        guard let nearest = candidates.min(by: { distance($0.point, point) < distance($1.point, point) }) else {
-            return nil
-        }
-        let radius = dropRadius(for: nearest.target, geometry: geometry)
-        return distance(nearest.point, point) <= radius ? nearest.target : nil
-    }
-
-    private func legalDropTargets(
-        for decision: BoardDecisionPresentation,
-        geometry: HexGeometry
-    ) -> [(target: BoardTarget, point: CGPoint)] {
-        let vertices = decision.legalVertices.map {
-            (BoardTarget.vertex($0), geometry.vertexPosition($0, board: board))
-        }
-        let edges = decision.legalEdges.map {
-            (BoardTarget.edge($0), geometry.edgeMidpoint($0, board: board))
-        }
-        let tiles = decision.legalTiles.map {
-            (BoardTarget.tile($0), geometry.center(of: $0))
-        }
-        return vertices + edges + tiles
-    }
-
-    private func dropRadius(for target: BoardTarget, geometry: HexGeometry) -> CGFloat {
-        switch target {
-        case .tile: max(Self.dragDropMinimumRadius, geometry.size * 0.92)
-        case .vertex, .edge: max(Self.dragDropMinimumRadius, geometry.size * 0.72)
-        case .victim: 0
-        }
-    }
-
-    private func distance(_ lhs: CGPoint, _ rhs: CGPoint) -> CGFloat {
-        hypot(lhs.x - rhs.x, lhs.y - rhs.y)
-    }
-
-    private func cradlePosition(in size: CGSize) -> CGPoint {
-        CGPoint(
-            x: max(Self.cradleEdgeInset, size.width - Self.cradleEdgeInset),
-            y: max(Self.cradleEdgeInset, size.height - Self.cradleEdgeInset)
-        )
-    }
-
-    private func roadOrdinal(for decision: BoardDecisionPresentation) -> Int? {
-        guard decision.intent == .roadBuilding else { return nil }
-        return min(decision.selectedEdges.count + 1, 2)
-    }
-
-    private func cradleAccessibilityLabel(for decision: BoardDecisionPresentation) -> String {
-        switch decision.intent {
-        case .initialSettlement: "Initial settlement drag piece"
-        case .initialRoad: "Initial road drag piece"
-        case .buildRoad: "Road drag piece"
-        case .buildSettlement: "Settlement drag piece"
-        case .buildCity: "City drag piece"
-        case .roadBuilding: "Road Building road \(roadOrdinal(for: decision) ?? 1) drag piece"
-        case .robberAfterSeven: "Rolled seven robber drag piece"
-        case .knight: "Knight robber drag piece"
-        }
-    }
-
-    private func vertexAccessibilityLabel(index: Int, decision: BoardDecisionPresentation) -> String {
-        let action = decision.intent == .initialSettlement ? "Preview initial settlement" :
-            decision.intent == .buildCity ? "Preview city" : "Preview settlement"
-        return "\(action) at legal corner \(index + 1) of \(decision.legalVertices.count)"
-    }
-
-    private func edgeAccessibilityLabel(index: Int, decision: BoardDecisionPresentation) -> String {
-        let action: String
-        switch decision.intent {
-        case .initialRoad: action = "Preview initial road"
-        case .roadBuilding where decision.selectedEdges.isEmpty: action = "Preview first Road Building road"
-        case .roadBuilding: action = "Preview second Road Building road"
-        default: action = "Preview road"
-        }
-        return "\(action) at legal edge \(index + 1) of \(decision.legalEdges.count)"
-    }
-
-    private func boardTargetAccessibilityHint(isSelected: Bool) -> String {
-        isSelected
-            ? "Selected. Choose another highlighted target to revise before confirming."
-            : "Stages this target without changing the game. Confirm in the board action dock."
     }
 
     // MARK: - Pieces
@@ -671,35 +483,6 @@ public struct BoardView: View {
         let transform = CGAffineTransform(rotationAngle: angle)
             .concatenating(CGAffineTransform(translationX: midpoint.x, y: midpoint.y))
         return RoadShape().path(in: localRect).applying(transform)
-    }
-
-    // MARK: - Gestures
-
-    private func tileTapGesture(geometry: HexGeometry) -> some Gesture {
-        SpatialTapGesture().onEnded { value in
-            guard allowsGameCommands, let decision, decision.intent.isRobber else { return }
-            guard let target = nearestDropTarget(
-                to: value.location,
-                decision: decision,
-                geometry: geometry
-            ), case .tile(let tile) = target else { return }
-            onSelectTarget(.tile(tile))
-        }
-    }
-
-    private func tileAccessibilityLabel(
-        _ tile: Tile,
-        decision: BoardDecisionPresentation
-    ) -> String {
-        let contents: String
-        switch tile.kind {
-        case .resource(let resource):
-            contents = tile.numberToken.map { "\(resource.rawValue), number \($0)" } ?? resource.rawValue
-        case .desert:
-            contents = "desert"
-        }
-        let source = decision.intent == .knight ? "Knight" : "rolled seven"
-        return "Preview \(source) robber move to \(contents)"
     }
 
     // MARK: - Stable ordering

@@ -132,9 +132,10 @@ struct BoardDecisionDockView: View {
 
     private var clearButton: some View {
         DockActionButton(
-            title: "Clear",
-            systemImage: "eraser.fill",
-            width: Layout.secondaryButtonWidth,
+            title: clearTitle,
+            systemImage: presentation.requiresVictimChoice ? "arrow.uturn.backward" : "eraser.fill",
+            width: presentation.requiresVictimChoice
+                ? Layout.changeTerritoryButtonWidth : Layout.secondaryButtonWidth,
             fill: .color(Color(white: 0.16)),
             isEnabled: hasSelection,
             accessibilityIdentifier: AccessibilityID.BoardDecision.clear,
@@ -178,6 +179,10 @@ struct BoardDecisionDockView: View {
             || presentation.selectedTile != nil || presentation.selectedVictim != nil
     }
 
+    private var clearTitle: String {
+        presentation.requiresVictimChoice ? "Choose another territory" : "Clear"
+    }
+
     private var dockHeight: CGFloat {
         dynamicTypeSize.isAccessibilitySize
             ? Layout.accessibilityDockHeight
@@ -210,8 +215,14 @@ private struct DockVictimButton: View {
                 VStack(alignment: .leading, spacing: 0) {
                     Text(identity.displayName)
                         .font(.caption2.bold())
+                    Text(identity.civilization.displayName)
+                        .font(.system(size: 8, weight: .semibold, design: .serif))
+                        .foregroundStyle(.white.opacity(0.78))
+                        .accessibilityIdentifier(
+                            AccessibilityID.Robber.victimCivilization(identity.seat)
+                        )
                     Text("\(resourceCardCount) \(cardNoun)")
-                        .font(.caption2.weight(.semibold))
+                        .font(.system(size: 8, weight: .semibold, design: .serif))
                         .foregroundStyle(.white.opacity(0.78))
                 }
                 .lineLimit(1)
@@ -240,7 +251,7 @@ private struct DockVictimButton: View {
         }
         .accessibilityIdentifier(AccessibilityID.Robber.victim(identity.seat))
         .accessibilityLabel(
-            "\(identity.displayName), \(identity.civilization.displayName), "
+            "\(identity.accessibilityLabel), "
                 + "\(resourceCardCount) resource \(cardNoun)"
         )
         .accessibilityValue(isSelected ? "Selected" : "Not selected")
@@ -347,7 +358,7 @@ private struct DockActionButton: View {
                 Text(title)
                     .font(.caption2.bold())
                     .multilineTextAlignment(.center)
-                    .lineLimit(2)
+                    .lineLimit(3)
                     .minimumScaleFactor(0.72)
             }
             .padding(.horizontal, 2)
@@ -375,7 +386,7 @@ private struct DockActionButton: View {
         switch title {
         case let value where value.hasPrefix("Confirm"): "Commit this preview to the match"
         case "Cancel": "Abandon this uncommitted action"
-        case "Clear": "Remove the preview and keep choosing"
+        case "Clear", "Choose another territory": "Remove the preview and keep choosing"
         case "Undo": "Remove the most recently staged road"
         default: "Change this uncommitted preview"
         }
@@ -393,6 +404,7 @@ private enum Layout {
     static let accessibilityVictimHeight: CGFloat = 58
     static let victimSpacing: CGFloat = 3
     static let secondaryButtonWidth: CGFloat = 44
+    static let changeTerritoryButtonWidth: CGFloat = 54
     static let confirmButtonWidth: CGFloat = 80
     static let minimumTapSize: CGFloat = 44
     static let accessibilityDockHeight: CGFloat = 100

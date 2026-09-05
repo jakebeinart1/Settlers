@@ -1,4 +1,5 @@
 import Foundation
+import CatanEngine
 
 /// The launch arguments that put the app straight into a particular screen or
 /// state, so visual QA can reach expensive or nondeterministic situations
@@ -79,6 +80,12 @@ enum QALaunchFlag: String, CaseIterable {
     /// Installs a legal purchase position with Monopoly fixed on top. The UI
     /// test must still tap Build and buy through the production path.
     case devCardPurchase = "-qaDevCardPurchase"
+    /// Modifier for board-decision fixtures: build a supported three-player
+    /// table instead of inheriting the default four-player table.
+    case threePlayerTable = "-qaThreePlayerTable"
+    /// Modifier for board-decision fixtures: make seat 2 the acting human, so
+    /// UI coverage does not silently depend on the historical seat-0 default.
+    case humanSeatTwo = "-qaHumanSeatTwo"
     /// Performs a real committed Year of Plenty purchase so the private reveal
     /// can be inspected without depending on a shuffled deck.
     case showDevCardReveal = "-qaShowDevCardReveal"
@@ -113,6 +120,29 @@ enum QALaunchFlag: String, CaseIterable {
         return ProcessInfo.processInfo.arguments.contains(rawValue)
         #else
         return false
+        #endif
+    }
+}
+
+/// Parameterized launch values that would otherwise require one Boolean flag
+/// per fixture value. Keep parsing beside `QALaunchFlag` so Release retains the
+/// same hard boundary: no QA argument can alter a player build.
+enum QALaunchOption {
+    private static let devCardPurchasePrefix = "-qaDevCardPurchase="
+
+    static var devCardPurchase: DevCardType? {
+        #if DEBUG
+        if QALaunchFlag.devCardPurchase.isSet { return .monopoly }
+        guard let argument = ProcessInfo.processInfo.arguments.first(where: {
+            $0.hasPrefix(devCardPurchasePrefix)
+        }) else { return nil }
+        let rawValue = String(argument.dropFirst(devCardPurchasePrefix.count))
+        guard let card = DevCardType(rawValue: rawValue) else {
+            preconditionFailure("Unknown QA development card: \(rawValue)")
+        }
+        return card
+        #else
+        return nil
         #endif
     }
 }
