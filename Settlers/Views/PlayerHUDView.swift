@@ -21,6 +21,7 @@ public struct BotHUDRow: View {
     public let state: GameState
     public let human: PlayerID
     public let playerIdentity: (PlayerID) -> PlayerIdentity
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     public init(state: GameState, human: PlayerID,
                 playerIdentity: @escaping (PlayerID) -> PlayerIdentity = CatanTheme.playerIdentity) {
@@ -29,10 +30,27 @@ public struct BotHUDRow: View {
         self.playerIdentity = playerIdentity
     }
 
+    @ViewBuilder
     public var body: some View {
-        HStack(spacing: 8) {
-            ForEach(Self.seatsShownAsOpponents(in: state, deviceSeat: human), id: \.id) { player in
-                PlayerChip.body(for: player, state: state, playerIdentity: playerIdentity)
+        if dynamicTypeSize.isAccessibilitySize {
+            ScrollView(.horizontal, showsIndicators: true) {
+                HStack(spacing: 8) {
+                    ForEach(Self.seatsShownAsOpponents(in: state, deviceSeat: human), id: \.id) { player in
+                        PlayerChip.body(for: player, state: state, playerIdentity: playerIdentity)
+                            // One readable card at a time is preferable to
+                            // three narrow cards whose scaled public stats
+                            // paint over one another at accessibility sizes.
+                            .frame(width: 300)
+                    }
+                }
+                .padding(.vertical, 2)
+            }
+            .accessibilityLabel("Opponent standings")
+        } else {
+            HStack(spacing: 8) {
+                ForEach(Self.seatsShownAsOpponents(in: state, deviceSeat: human), id: \.id) { player in
+                    PlayerChip.body(for: player, state: state, playerIdentity: playerIdentity)
+                }
             }
         }
     }

@@ -39,6 +39,11 @@ public struct BoardView: View {
     /// inline robber-move flow (see `GameView`).
     public let highlightedTiles: Set<HexCoordinate>
     public let isTileTargetingActive: Bool
+    /// False during inspect-only mandatory decisions. The board stays visible,
+    /// but vertex, edge and tile command targets leave both hit testing and
+    /// the accessibility tree. Non-mutating camera gestures can remain on the
+    /// board container independently when the board gains them.
+    public let allowsGameCommands: Bool
     /// Tiles matching the most recent dice roll, briefly outlined right
     /// after a roll - purely a visual cue for where production came from,
     /// distinct from `highlightedTiles`' robber-targeting purpose (both can
@@ -59,6 +64,7 @@ public struct BoardView: View {
         isPlacementModeActive: Bool = false,
         highlightedTiles: Set<HexCoordinate> = [],
         isTileTargetingActive: Bool = false,
+        allowsGameCommands: Bool = true,
         rollHighlightTiles: Set<HexCoordinate> = []
     ) {
         self.state = state
@@ -73,6 +79,7 @@ public struct BoardView: View {
         self.isPlacementModeActive = isPlacementModeActive
         self.highlightedTiles = highlightedTiles
         self.isTileTargetingActive = isTileTargetingActive
+        self.allowsGameCommands = allowsGameCommands
         self.rollHighlightTiles = rollHighlightTiles
     }
 
@@ -126,6 +133,18 @@ public struct BoardView: View {
                 }
                 .contentShape(Rectangle())
                 .gesture(tileTapGesture(geometry: geometry))
+                .accessibilityElement(children: .ignore)
+                .accessibilityLabel("Game board")
+                .accessibilityIdentifier(AccessibilityID.Board.surface)
+
+                if !allowsGameCommands {
+                    BoardInspectionSemantics(
+                        state: state,
+                        geometry: geometry,
+                        boardCenter: boardCenter,
+                        playerIdentity: playerIdentity
+                    )
+                }
 
                 // One semantic target per tile while the robber chooser is
                 // active. The Canvas gesture keeps ordinary touch input fast,
@@ -134,7 +153,7 @@ public struct BoardView: View {
                 // visual-only interaction that could not be reached or proved
                 // through accessibility. They sit below edge/vertex targets
                 // and exist only during tile targeting.
-                if isTileTargetingActive {
+                if allowsGameCommands, isTileTargetingActive {
                     ForEach(board.tiles, id: \.coordinate) { tile in
                         TileTapTarget(
                             position: geometry.center(of: tile.coordinate),
@@ -168,26 +187,28 @@ public struct BoardView: View {
                 // vertex never holds a building and a legal edge never holds a
                 // road, so only the rounded joint of an adjacent road ever
                 // overlaps one.
-                ForEach(sortedEdges, id: \.self) { edge in
-                    let (a, b) = board.vertices(of: edge)
-                    EdgeTapTarget(
-                        start: geometry.vertexPosition(a, board: board),
-                        end: geometry.vertexPosition(b, board: board),
-                        isHighlighted: highlightedEdges.contains(edge),
-                        isEnabled: !isPlacementModeActive || highlightedEdges.contains(edge),
-                        accessibilityIdentifier: AccessibilityID.Board.edge(edge),
-                        onTap: { onTapEdge(edge) }
-                    )
-                }
+                if allowsGameCommands {
+                    ForEach(sortedEdges, id: \.self) { edge in
+                        let (a, b) = board.vertices(of: edge)
+                        EdgeTapTarget(
+                            start: geometry.vertexPosition(a, board: board),
+                            end: geometry.vertexPosition(b, board: board),
+                            isHighlighted: highlightedEdges.contains(edge),
+                            isEnabled: !isPlacementModeActive || highlightedEdges.contains(edge),
+                            accessibilityIdentifier: AccessibilityID.Board.edge(edge),
+                            onTap: { onTapEdge(edge) }
+                        )
+                    }
 
-                ForEach(sortedVertices, id: \.self) { vertex in
-                    VertexTapTarget(
-                        position: geometry.vertexPosition(vertex, board: board),
-                        isHighlighted: highlightedVertices.contains(vertex),
-                        isEnabled: !isPlacementModeActive || highlightedVertices.contains(vertex),
-                        accessibilityIdentifier: AccessibilityID.Board.vertex(vertex),
-                        onTap: { onTapVertex(vertex) }
-                    )
+                    ForEach(sortedVertices, id: \.self) { vertex in
+                        VertexTapTarget(
+                            position: geometry.vertexPosition(vertex, board: board),
+                            isHighlighted: highlightedVertices.contains(vertex),
+                            isEnabled: !isPlacementModeActive || highlightedVertices.contains(vertex),
+                            accessibilityIdentifier: AccessibilityID.Board.vertex(vertex),
+                            onTap: { onTapVertex(vertex) }
+                        )
+                    }
                 }
 
                 roadViews(geometry: geometry)
@@ -389,6 +410,7 @@ public struct BoardView: View {
 
     private func tileTapGesture(geometry: HexGeometry) -> some Gesture {
         SpatialTapGesture().onEnded { value in
+            guard allowsGameCommands else { return }
             guard let tile = nearestTile(to: value.location, geometry: geometry) else { return }
             onTapTile(tile)
         }
