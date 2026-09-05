@@ -26,6 +26,8 @@ or metric independent.
 - No persistent system package or shell profile was changed.
 - Rust 1.98.1 was installed only into the temporary audit root.
 - Candidate repositories were not patched to make a failing command pass.
+- The final calibration used macOS 26.5.1 on an Apple M5 Pro, Python 3.12.14,
+  PyTorch 2.14.0, NumPy 2.5.2, and maturin 1.15.0.
 
 ## Result matrix
 
@@ -55,7 +57,7 @@ Observed result:
 - exit 0;
 - 100 completed games and 50,756 steps;
 - AlphaBot 83 wins; the three heuristic chairs won 4, 7, and 6;
-- simulator elapsed time 22.454 seconds after compilation.
+- simulator elapsed time 22.754 seconds after compilation.
 
 The ledger-aligned seed run was:
 
@@ -71,12 +73,29 @@ Observed result:
 - 192 completed games and 91,548 steps;
 - AlphaBot 157 wins; heuristic chairs won 15, 9, and 11;
 - 81.77%, reported as 81.8%;
-- simulator elapsed time 145.925 seconds.
+- simulator elapsed time 42.281 seconds.
 
 The local run supports “the current package gets about 82% in its own
 evaluator.” It does not support “AlphaBot is the strongest standard Catan AI.”
 It remained in chair 0, saw the project's perfect-information observation,
 used bounded trading, and faced only the project's frozen heuristic.
+
+## Checkpoint and training-pipeline calibration
+
+- Both released blobs matched their pinned hashes: checkpoint `c4258f23…` and
+  CTNN `21f3b380…`.
+- The full Rust suite passed 112 tests. The Python binding smoke passed 200
+  episodes and 744,704 policy decisions.
+- The binding could not build with its committed nested lockfile under
+  `--locked`; the documented unlocked command added `rand` to `catan-env` in
+  that lock and then built. The root locked Rust build remained clean.
+- Re-exporting the checkpoint preserved every tensor byte and changed only
+  three low-order bytes in the final self-check logits under PyTorch 2.14.0.
+  Both CTNN files loaded and chose the same seed-0 trajectory and winner.
+- A one-minute checkpoint continuation completed 1,671,168 policy steps,
+  wrote a checkpoint, exported it, and played it through Rust. This verifies
+  the current train-to-inference pipeline; it does not recreate the missing
+  historical parent run or validate a new strength claim.
 
 The protocol mismatch is source-verifiable: the
 [experiment ledger](https://github.com/Eli6th/catan-rl/blob/021279c56834b6203480e5292e1de7246e47bd68/training/results/EXPERIMENTS.md)

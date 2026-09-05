@@ -23,6 +23,55 @@ Therefore there are two different outcomes:
 
 This distinction is the first pass/fail gate, not a footnote.
 
+## Executed calibration record
+
+The source and released artifact were exercised after this plan was written.
+Everything ran in `/private/tmp/empires-catan-rl-baseline-20260905`; no external
+source or model was copied into Empires, and no system Rust/Python installation
+or shell profile was changed.
+
+The source-compatible environment was macOS 26.5.1 on an 18-core Apple M5 Pro,
+Rust/Cargo 1.98.1, Python 3.12.14, PyTorch 2.14.0 (CPU/Accelerate), NumPy 2.5.2,
+and maturin 1.15.0. These versions describe this execution, not the unknown
+historical environment.
+
+1. Source commit `021279c…` and both published artifact hashes matched Phase A.
+2. `cargo test --release --locked` passed all 112 Rust tests.
+3. The binding's committed nested `rust/catan-py/Cargo.lock` is stale:
+   `maturin develop --release --locked` failed because Cargo needed to add the
+   already-declared `rand` dependency to `catan-env`. The documented unlocked
+   command made that one-line dependency update and built successfully. This is
+   a source-packaging defect and another reason the historical environment is
+   not exactly frozen.
+4. `training/smoke_env.py` passed 200 episodes and 744,704 policy decisions,
+   including the 1,350-input observation and 299-action contracts, seeded
+   determinism, replay harvesting, first-to-7 construction, and both visibility
+   modes.
+5. The published PyTorch checkpoint exported successfully. All model weights,
+   biases, the 1,350-float test vector, and the value check were byte-identical
+   to the published CTNN. Only three low-order bytes in the last three check
+   logits differed under PyTorch 2.14.0: `-6.44093323/-5.91172600/-7.11271572`
+   became `-6.44093275/-5.91172504/-7.11271524`. The resulting SHA-256 was
+   `f9d57b4023f262df31b528f4cf55db782db66f823d19417c04fb9c36914723a9`,
+   not the published `21f3…`; both CTNNs passed the Rust loader and produced the
+   same 467-step seed-0 game and winner. Artifact semantics calibrated, but the
+   stronger byte-identical R4 condition did not pass.
+6. The author's published 100-game command produced 83 AlphaBot wins, 4/7/6
+   wins for the three Heuristic-v1 chairs, and 50,756 total steps. A separate
+   192-game seed-777 run produced 157 AlphaBot wins (81.8%) and 15/9/11
+   heuristic wins. Both were first-to-10 because the executable has no target
+   argument; neither is the undocumented historical first-to-7 experiment.
+7. A one-minute continuation smoke used the checkpoint-recorded `runB2` flags,
+   resumed the published final model, completed 1,671,168 new policy steps,
+   wrote metrics/checkpoints, exported a new CTNN, and played that CTNN through
+   the Rust AlphaBot. This proves the current train-to-inference path. It is not
+   R6: it starts from the final public model instead of the missing 43,376,640-
+   step parent and intentionally runs for one minute rather than sixty.
+
+The observed result is therefore precise: **the released AlphaBot artifact and
+current training pipeline are runnable; the public repository still cannot
+recreate the historical training lineage or its stated first-to-7 headline.**
+
 ## 1. What the published system actually is
 
 `Rust` here means the **Rust programming language**. The external project implements its own Catan rules engine and batched simulator in Rust, exposes that simulator to Python through PyO3, trains a neural network in Python/PyTorch with PPO, exports the trained tensors to a custom CTNN binary, and loads that binary back into Rust for AlphaBot inference. [Architecture diagram and commands][eli-readme-architecture]
@@ -383,13 +432,13 @@ The minimum package needed from the author to turn historical exactness from blo
 | R0 | Pin source and artifact oracle | Commit is exactly `021279c…`; both published hashes match §6 Phase A | **PASS in this audit**; [commit][eli-commit] · [model blobs][eli-models-tree] |
 | R1 | Identify historical source | Checkpoint's `engine_commit` is available and builds, or equivalence to the pinned source is proven | **FAIL / BLOCKED**; [checkpoint][eli-published-pt] |
 | R2 | Freeze historical toolchain | Exact compiler/interpreter/library/hardware manifest is available and reproducibly installable | **FAIL / BLOCKED**; [current manifests][eli-requirements] · [pyproject][eli-pyproject] · [Rust tree][eli-rust-tree] |
-| R3 | Build source contracts | `cargo test --release --locked`, binding build, and `smoke_env.py` all exit 0; smoke asserts v1/1,350 and v1/299 | **NOT RUN by this research-only task**; [commands][eli-readme-quickstart] · [smoke assertions][eli-smoke] |
-| R4 | Calibrate export/inference | Published `.pt` re-exports to byte-identical CTNN SHA-256 `21f3…` and Rust self-check loads it | **NOT RUN**; [exporter][eli-export] · [loader][eli-net-loader] |
+| R3 | Build source contracts | `cargo test --release --locked`, binding build, and `smoke_env.py` all exit 0; smoke asserts v1/1,350 and v1/299 | **PASS WITH PACKAGING DEFECT**; 112 Rust tests and the full smoke contract passed, but the nested binding lock needed a one-line dependency refresh before maturin could build |
+| R4 | Calibrate export/inference | Published `.pt` re-exports to byte-identical CTNN SHA-256 `21f3…` and Rust self-check loads it | **PARTIAL PASS**; weights and behavior match and both files load, but three final low-order check-logit bytes differ under PyTorch 2.14.0, producing SHA-256 `f9d5…` rather than `21f3…` |
 | R5 | Recover fresh `runB` | Exact config and parent checkpoint provenance exist; fresh stage ends at the recorded parent step without NaN/Inf | **FAIL / BLOCKED**; [ledger][eli-experiments-runs] · [checkpoint][eli-published-pt] |
 | R6 | Reproduce `runB2` continuation | Exact parent is loaded; second-stage config matches §4.2; final checkpoint records 46,497,792 second-stage steps and compatible versions | **BLOCKED by R1/R2/R5**; [checkpoint][eli-published-pt] |
 | R7 | Reproduce reactive fixed gate | Greedy chair-0 policy records exactly 126 wins in 192 seed-777 first-to-7 games versus three Heuristic-v1 bots, matching rounded 65.6% | **BLOCKED**; target from [ledger][eli-experiments-runs], protocol from [promotion code][eli-elo-promote] |
 | R8 | Export fresh CTNN | `export_net.py` succeeds; Rust loader passes dimensions and self-check; artifact hash and parent `.pt` hash are recorded | **BLOCKED by R6/R7**; [exporter][eli-export] · [loader][eli-net-loader] |
-| R9 | Run pinned Alpha smoke | 100 seed-0 10-VP `A,H,H,H` games complete; loader errors, illegal actions, winners, and turn-capped games are all reported explicitly | **NOT RUN**; this checks executability, not the headline; [simulator][eli-sim-run] |
+| R9 | Run pinned Alpha smoke | 100 seed-0 10-VP `A,H,H,H` games complete; loader errors, illegal actions, winners, and turn-capped games are all reported explicitly | **PASS**; 83/100 AlphaBot wins, 50,756 steps, no loader or rules failure; a second seed-777 run produced 157/192 (81.8%) |
 | R10 | Reproduce Alpha headline | Author's exact first-to-7 evaluator, seeds, count, and raw outcomes are available; the fresh model reproduces the corresponding 82.0% result | **FAIL / BLOCKED**; [public mismatch][eli-readme-alpha-command] · [simulator construction][eli-sim-run] · [ledger][eli-experiments-alpha] |
 | R11 | Begin Empires adaptation | R3–R10 results, failures, configs, hashes, and raw outcomes are archived; no historical claim remains ambiguous | **INTENTIONALLY NOT STARTED** |
 

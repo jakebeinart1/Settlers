@@ -15,7 +15,13 @@ The evidence-weighted conclusions are narrower:
 - **JSettlers2/STAC are mature control implementations, not evidenced winners.** They offer long-lived rules-based, planning, MCTS, and trading infrastructure, but their repositories do not contain a result bundle that identifies an evaluated agent, opponent, sample, seeds, seats, and metric.
 - **SamiKoneru/Catan_bot, kvombatkere/Catan-AI, and Algorhythm-sxv/monte-catano do not yet have auditable strength evidence.** The first has an unsupported 94% README claim and no checkpoint/log; the second is an unfinished heuristic/RL prototype; the third is a promising 2026 Rust MCTS MVP with a single commit-message Elo claim, no retained match record, and material rules departures.
 
-None of the results was independently reproduced under the strict definition below. On the evidence available at the cutoff, the honest answer is therefore a shortlist by **evidentiary role**, not one champion.
+One current executable result was independently rerun after the source audit:
+Eli6th's shipped 10-VP AlphaBot command produced 83/100 wins, and a seed-777
+192-game run produced 157/192 (81.8%). Its historical first-to-7 training and
+headline protocol were not reproduced because required source, checkpoint, and
+evaluation inputs are absent. No cross-project result was reproduced under one
+shared ruleset, so the honest answer remains a shortlist by **evidentiary
+role**, not one universal champion.
 
 ## Scope and evidence rules
 
@@ -76,9 +82,13 @@ There is an important replay trap. The Rust engine documents 10 VP as its defaul
 
 **Sample, seeds, chairs, and metric.** The metric is seat-0 game win rate. The ledger's general protocol calls the primary gate 192 games at fixed seed 777, but the Alpha design table describes 120–150 games per variant ([Alpha experiments](https://github.com/Eli6th/catan-rl/blob/021279c56834b6203480e5292e1de7246e47bd68/training/results/EXPERIMENTS.md#L68-L88)). The repository does not resolve whether the 82% figure used 120, 150, or 192 completed games. No per-chair results exist because the policy remains in seat 0. The training evaluator likewise fixes the policy in the first seat ([PPO seat construction](https://github.com/Eli6th/catan-rl/blob/021279c56834b6203480e5292e1de7246e47bd68/training/ppo.py#L119-L148)). An older Elo process uses randomized tables/seats and 576 games, but later Alpha checkpoints were not added to that ladder; it is different evidence, not confirmation of 82% ([Elo and Alpha notes](https://github.com/Eli6th/catan-rl/blob/021279c56834b6203480e5292e1de7246e47bd68/training/results/EXPERIMENTS.md#L62-L84)).
 
-**Artifacts and provenance.** The repository tracks a roughly 13 MB PyTorch checkpoint, `models/catan-512-best.pt`, a CTNN export, sample replay files, and `elo-ladder.json`; the README explicitly advertises the model, CTNN, and replays ([artifacts](https://github.com/Eli6th/catan-rl/blob/021279c56834b6203480e5292e1de7246e47bd68/README.md#L87-L98)). The audited PyTorch file has SHA-256 `c4258fc358a74483b75780818b466a378cb613a781be88389a08644c7e6b1584` and embeds useful metadata: global step 46,497,792, target 7, perfect information, hidden size 512, seed 0, and seat mix `policy, heuristic, policy, heuristic_v2`. It also names engine commit `eb8da245d2420876aae9ea66f60fc62cb1f3e787`, which is not present in the public repository history. That does not prove the model is invalid, but it prevents source-exact reconstruction. The repository says full logs live under `training/results/logs/` and `runs/`, yet those raw logs are not tracked; the checked-in ledger is the only result record ([claimed result files](https://github.com/Eli6th/catan-rl/blob/021279c56834b6203480e5292e1de7246e47bd68/training/results/EXPERIMENTS.md#L9-L12)).
+**Artifacts and provenance.** The repository tracks a roughly 13 MB PyTorch checkpoint, `models/catan-512-best.pt`, a CTNN export, sample replay files, and `elo-ladder.json`; the README explicitly advertises the model, CTNN, and replays ([artifacts](https://github.com/Eli6th/catan-rl/blob/021279c56834b6203480e5292e1de7246e47bd68/README.md#L87-L98)). The audited PyTorch file has SHA-256 `c4258f235c673efe6968b0aa4de66a1411f01012fa14fe71f548dfff681525a3` and embeds useful metadata: global step 46,497,792, target 7, perfect information, hidden size 512, seed 0, and seat mix `policy, heuristic, policy, heuristic_v2`. It also names engine commit `eb8da245d2420876aae9ea66f60fc62cb1f3e787`, which is not present in the public repository history. That does not prove the model is invalid, but it prevents source-exact reconstruction. The repository says full logs live under `training/results/logs/` and `runs/`, yet those raw logs are not tracked; the checked-in ledger is the only result record ([claimed result files](https://github.com/Eli6th/catan-rl/blob/021279c56834b6203480e5292e1de7246e47bd68/training/results/EXPERIMENTS.md#L9-L12)).
 
-**Evidence verdict.** Grade C. This is the strongest combination of a high four-player author-reported result and public weights in the set, but not a reproducible first-to-10 hidden-information result. No unaffiliated exact reproduction was found.
+**Evidence verdict.** Grade C. This is the strongest combination of a high
+four-player author-reported result and public weights in the set. Its current
+first-party 10-VP executable result was rerun unaffiliated at 83/100 and
+157/192; its historical first-to-7 result, training lineage, hidden-information
+strength, and cross-project strength remain unreproduced.
 
 ### 2. nogulong/rust-catan-rl
 
