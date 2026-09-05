@@ -210,7 +210,7 @@ struct OpponentProfileIntegrationTests {
             ))
             #expect(identities.values.allSatisfy {
                 model.playerLabel(for: $0.seat) == $0.displayName
-                    && $0.pieceImageName == $0.civilization.paintedPieceImageName(isCity: false)
+                    && $0.civilization.paintedPieceImageName(isCity: false) != nil
             })
         }
     }

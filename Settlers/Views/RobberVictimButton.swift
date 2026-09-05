@@ -1,11 +1,8 @@
 import SwiftUI
 
-/// Compact ownership card for the current robber-victim chooser.
-///
-/// The larger two-step robber redesign is specified separately. This card
-/// closes the identity bug in the shipping chooser now: a victim is never an
-/// anonymous question-mark icon detached from the name, civilization and
-/// board color the player just matched above.
+/// Full-height ownership card for robber-victim contexts outside the board
+/// decision dock. It consumes the same match-authoritative `PlayerIdentity` as
+/// the HUD, board pieces, and compact dock chooser.
 struct RobberVictimButton: View {
     let identity: PlayerIdentity
     let resourceCardCount: Int
@@ -41,7 +38,7 @@ struct RobberVictimButton: View {
         }
         .accessibilityIdentifier(AccessibilityID.Robber.victim(identity.seat))
         .accessibilityLabel(
-            "\(identity.displayName), \(identity.civilization.displayName), "
+            "\(identity.accessibilityLabel), "
                 + "\(resourceCardCount) resource cards"
         )
         .accessibilityHint("Steal one random resource card")

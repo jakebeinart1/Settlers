@@ -35,12 +35,6 @@ public struct PlayerIdentity: Identifiable, Sendable, Equatable {
         self.controller = controller
     }
 
-    /// The exact settlement artwork used for this civilization on the board.
-    /// UI crests use this rather than a second, symbolic logo vocabulary.
-    public var pieceImageName: String? {
-        civilization.paintedPieceImageName(isCity: false)
-    }
-
     public var accessibilityLabel: String {
         let role = controller == .human ? "human player" : "computer player"
         return "\(displayName), \(civilization.displayName), \(role)"

@@ -1,6 +1,6 @@
 ---
 name: run-settlers
-description: Build, install, launch and screenshot the Settlers ("Empires") iOS app on the simulator, and what blocks the real-iPhone path. Use whenever asked to run/rerun the app, "show me what it looks like", "screenshot the trade popup", "put it on my phone", "install it", or when the complaint is "my change didn't do anything", "it says it can't find that file", "the build works but the screen is wrong", or "why won't it install on my phone". The app is signed to JAKE's team (KDM65HE483) and Alex holds no identity for it, so the device path cannot sign today and the simulator is the only route that reaches a screen. Never claim a change works from a green build alone — take the screenshot and read it.
+description: Build, install, launch and screenshot Settlers ("Empires") on a simulator or Alex's paired iPhone. Use for run/rerun, visual checks, phone installs, stale-build complaints, and signing/device failures. Jake's committed signing defaults stay intact; Alex's device path uses the gitignored local override. A green build is not runtime evidence — inspect the screen or exercise the requested flow.
 ---
 
 # Run Settlers (Empires)
@@ -23,8 +23,8 @@ read back out of `xcodebuild`, and the bundle id is read out of the built `Info.
 | **`xcodegen generate` after a new file** | **MEASURED 2026-08-29, both directions.** With an untracked `Settlers/QALaunchFlag.swift` on disk the build failed `error: cannot find 'QALaunchFlag' in scope` ×6 (exit 65); after `xcodegen generate`, exit 0, same source. |
 | **QA launch arguments** | **RUN AND PROVEN 2026-08-29.** `-qaAutoStart -qaShowBuildPopup` and `-qaAutoStart -qaShowPauseMenu` both rendered their popup. `-qaShowEndGame` measured in both combinations (see the table). |
 | **Native UI tests** | **RUN AND PROVEN 2026-09-02.** All five setup, settings, placement, and cold-resume flows passed from isolated state. The first clean run exposed and removed a hidden dependency on a previously saved player name. |
-| **Real iPhone: build** | **NEVER SUCCEEDED.** Two separate blockers, both live as of 2026-08-29. See "The device path is blocked" below. |
-| **Real iPhone: install / launch** | **NEVER RUN** on this machine — the build has never produced a signed `.app` to install. The `devicectl` retry advice below is **inherited from Jake's sessions and has not been reproduced by Alex.** |
+| **Real iPhone: build** | **RUN AND PROVEN 2026-09-05.** Debug Build 4 signed for Alex's team through `Signing.local.xcconfig` and built for his paired iPhone. |
+| **Real iPhone: install / launch** | **RUN AND PROVEN 2026-09-05.** Build 4 installed in place, launched with `devicectl`, and read back as version 1.0 build 4. |
 | **Release configuration** | **RUN AND PROVEN.** Was red on `e95d1e5` (`#if DEBUG` methods called from unguarded sites) while every gate stayed green, because the gate built Debug only. Both are fixed: the call sites are guarded and `scripts/gate.sh` compiles Release on every run. |
 
 ## Hard preconditions: if one is missing, STOP and say which. Do not improvise.
@@ -35,7 +35,7 @@ read back out of `xcodebuild`, and the bundle id is read out of the built `Info.
 - **A bootable iPhone simulator.** Discovered, never hardcoded — step 2 below.
 - **For the device path only:** an unlocked, trusted iPhone reporting `available (paired)`
   from `devicectl`, *and* a codesigning identity for whichever team `project.yml` names.
-  Neither holds today.
+  Alex's gitignored signing override supplies his team without changing Jake's defaults.
 
 ## The ladder
 
@@ -138,7 +138,8 @@ grep -rnoE '"\-qa[A-Za-z]+"' --include="*.swift" "$REPO/Settlers" | sort -u
 | `-qaShowPaidCityDecision` | `GameView.swift` | Starts a real paid-city proposal with no city or resources committed yet. |
 | `-qaShowMonopolyPopup` | `GameView.swift` | The Monopoly resource picker in `DevCardPopupView` (Year of Plenty shares the layout). |
 | `-qaShowDevCardHand` | `GameView.swift` | A mixed private hand containing every card type, including ready, new, and passive states. |
-| `-qaDevCardPurchase` | `GameView.swift` | A legal Build position with Monopoly on top of the deck. A UI test still has to tap Build and buy it. |
+| `-qaDevCardPurchase` | `GameView.swift` | Backward-compatible shorthand for `-qaDevCardPurchase=monopoly`. |
+| `-qaDevCardPurchase=<type>` | `GameView.swift` | A legal Build position with `knight`, `roadBuilding`, `yearOfPlenty`, `monopoly`, or `victoryPoint` on top. An older matching card makes active types playable after the tapped purchase, while the new copy remains visibly marked New. |
 | `-qaShowDevCardReveal` | `GameView.swift` | A real committed Year of Plenty purchase waiting on its durable private acknowledgement. |
 | `-qaShowWinningDevCardReveal` | `GameView.swift` | A real Victory Point purchase that wins the game; the private reveal must appear before standings. |
 | `-qaShowPendingTradeConfirmation` | `GameView.swift` | The trade popup's "a bot will accept" banner, seeded directly. |
@@ -154,6 +155,8 @@ grep -rnoE '"\-qa[A-Za-z]+"' --include="*.swift" "$REPO/Settlers" | sort -u
 | `-qaShowNewGameOverwrite` | `NewGameSetupView.swift` | Same screen with the "Replace your saved game?" confirmation already raised. Pair with a real save (run `-qaAutoStart -qaFastForwardToRollDice` first) to also get the amber saved-game plaque behind it. |
 | `-qaShowNewGameCivilizationPicker` | `NewGameSetupView.swift` | Same screen with seat 2's civilization grid open — the only way to see a taken civilization greyed out. |
 | `-qaNewGameThreeSeats` | `NewGameSetupView.swift` | **Modifier**, combines with any of the four above: shrinks the fixture to a three-player table. |
+| `-qaThreePlayerTable` | `GameViewModel+QABoardDecision.swift` | **Modifier** for robber decision fixtures: builds a supported three-player game. |
+| `-qaHumanSeatTwo` | `GameViewModel+QABoardDecision.swift` | **Modifier** for robber decision fixtures: assigns the acting human to nonzero seat 2. |
 | `-qaTwoHumans` | `ContentView.swift` | Turns the loaded game into a two-human hot-seat game (seats 0 and 1, nobody at the device) so `HandoffCoverView` is photographable. **Needs `-qaAutoStart`.** |
 | `-qaScrollNewGameToBottom` | `NewGameSetupView.swift` | **Legacy modifier** retained for fixture compatibility. The compact screen now fits without requiring this scroll position. |
 
@@ -214,7 +217,7 @@ This is exactly the failure class the Debug-only gate cannot catch, which is why
 recorded here and not left to be rediscovered. Build Release explicitly before believing
 anything about a shippable binary.
 
-## The device path is blocked, by two independent things
+## Real-iPhone path
 
 Discover the phone — do not trust `xctrace list devices`, which reports a different state
 than the tool that actually installs:
@@ -223,39 +226,38 @@ than the tool that actually installs:
 xcrun devicectl list devices
 ```
 
-On 2026-08-29 that printed Alex's iPhone (`7EC639FF-685F-53D0-A11E-42473B94A724`,
-iPhone 17 Pro Max) as **`connected (no DDI)`** — not `available (paired)`. "No DDI" is the
-developer disk image not being mounted, and it is what surfaces later as **"The developer
-disk image could not be mounted on this device."** The fix is physical and is Alex's to do,
-not something to work around: **unlock the phone and tap Trust**, then re-run the list and
-confirm it says `available (paired)` before building.
+Proceed only when Alex's iPhone is `available (paired)`. `connected (no DDI)` means the
+phone must be unlocked/trusted so Xcode can mount its developer disk image.
 
-**Signing fails regardless, and it fails first.** Building for that device today:
+Jake's team and bundle id remain the defaults in `Settlers/Signing.xcconfig`. Alex's
+`Settlers/Signing.local.xcconfig` overrides them with team `HXB9F28LHR` and bundle id
+`com.alexchandler.empires`; it is gitignored and never reaches Jake. The local file must
+exist before Alex's device build — changing `project.yml` or Jake's defaults is not part of
+this path.
 
-```
-error: No profiles for 'com.jakebeinart.settlers' were found: Xcode couldn't find any
-iOS App Development provisioning profiles matching 'com.jakebeinart.settlers'.
-```
-
-`project.yml` sets `DEVELOPMENT_TEAM: KDM65HE483` — **Jake's** team. Alex's is
-`HXB9F28LHR`, and he holds no identity for Jake's:
+The Xcode destination identifier and the CoreDevice identifier are different. Read the
+former from `xcodebuild -showdestinations` and the latter from `devicectl list devices`, then
+build and install in place so a manual-play save survives:
 
 ```bash
-security find-identity -v -p codesigning
-# 2026-08-29: one "Apple Development: Created via API (R7AQ2QHN3X)", OU = HXB9F28LHR,
-# plus two iPhone Distribution certs, also HXB9F28LHR. Nothing for KDM65HE483.
+REPO="$(git rev-parse --show-toplevel)"
+DEVICE_DERIVED="$(mktemp -d /tmp/empires-device.XXXXXX)"
+xcodebuild -project "$REPO/Settlers.xcodeproj" -scheme Settlers \
+  -configuration Debug -destination "id=<XCODE-DESTINATION-ID>" \
+  -derivedDataPath "$DEVICE_DERIVED" -allowProvisioningUpdates build
+
+APP="$DEVICE_DERIVED/Build/Products/Debug-iphoneos/Settlers.app"
+plutil -extract CFBundleVersion raw "$APP/Info.plist"
+xcrun devicectl device install app --device <COREDEVICE-ID> "$APP"
+xcrun devicectl device process launch --device <COREDEVICE-ID> com.alexchandler.empires
+xcrun devicectl device info apps --device <COREDEVICE-ID> \
+  --bundle-id com.alexchandler.empires --columns '*'
 ```
 
-So the device path needs `DEVELOPMENT_TEAM` changed to `HXB9F28LHR` **in `project.yml`**
-(never in the pbxproj — it is regenerated) plus `-allowProvisioningUpdates` to mint a
-profile and register the phone. That is a real change to a file that goes back to Jake in a
-PR, so **ask before making it**; do not quietly retarget the team to get a build through.
-
-**Inherited from Jake, not reproduced here:** `xcrun devicectl device install app` fails
-intermittently on the *first* attempt with `CoreDeviceError 4000` ("The device disconnected
-immediately after connecting") or `CoreDeviceError 3002` ("Could not get service
-com.apple.remote.installcoordination_proxy"), on a genuinely available device. A plain retry
-~5s later has always worked. Retry once before treating it as a connectivity problem.
+The 2026-09-05 run produced `BUILD SUCCEEDED`, installed Build 4, launched it, and read Build
+4 back from the phone. A transient `CoreDeviceError 3002`/`4000` merits one install retry;
+repeated failure means re-check pairing, unlock state, and the DDI rather than changing
+signing.
 
 ## Never drive the simulator with desktop-coordinate clicks
 
@@ -307,10 +309,10 @@ change needs both.
 - **This ladder builds Debug** (the `-qa*` flags are `#if DEBUG`), so a Release-only
   break was invisible to every gate in this repo until Release compilation became mandatory in `scripts/gate.sh`
   (see the trap above). A green gate is not evidence the app compiles for release.
-- **Simulator ≠ device.** Nothing here says anything about touch latency, thermals, memory
-  pressure, or safe-area behaviour on real hardware.
-- **The device path has never produced an installed build on this machine.** Do not say "it's
-  on your phone" from anything in this file.
+- **Simulator ≠ device.** A successful install says nothing about touch latency, thermals,
+  memory pressure, or every safe-area state on hardware; manual play remains the check.
+- **Read the installed app back before saying it is on the phone.** The version/build row from
+  `devicectl device info apps` is the completion criterion, not a successful compile.
 - **A screenshot proves what was on screen, not that the state was reached legitimately.**
   Most `-qa*` flags seed state directly (a forced win, a fake trade offer, a bogus
   confirmation banner). They prove the view *lays out*, never that the game logic that would

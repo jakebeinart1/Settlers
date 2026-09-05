@@ -434,8 +434,8 @@ public struct GameView: View {
                 viewModel.qaPrepareMandatoryRobberDecision()
             } else if QALaunchFlag.showDiscard.isSet {
                 viewModel.qaPrepareMandatoryDiscard()
-            } else if QALaunchFlag.devCardPurchase.isSet {
-                viewModel.qaPrepareDevCardPurchase(.monopoly)
+            } else if let card = QALaunchOption.devCardPurchase {
+                viewModel.qaPrepareDevCardPurchase(card)
             } else if QALaunchFlag.showDevCardHand.isSet || QALaunchFlag.showMonopolyPopup.isSet {
                 viewModel.qaPrepareMixedDevCardHand()
                 if QALaunchFlag.showDevCardHand.isSet { devCardPopupType = .knight }

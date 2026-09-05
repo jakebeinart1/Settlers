@@ -7,10 +7,14 @@ implementation sequence live in
 `docs/superpowers/specs/2026-09-04-gameplay-interaction-ux.md`.
 
 - [x] One match-authoritative player identity across live gameplay surfaces.
-- [ ] Confirmable robber destination and identity-rich victim selection.
+- [x] Confirmable robber destination and identity-rich victim selection,
+      including an off-board drag cradle, ghost destination, explicit victim,
+      change-territory action, and one final durable confirmation.
 - [x] Private development-card purchase reveal plus discoverable usable hand.
 - [x] Minimize mandatory discard into an inspect-only board mode.
-- [ ] Cross-feature state-priority and accessibility pass.
+- [x] Cross-feature state-priority and accessibility pass, backed by the shared
+      interaction resolver plus native setup, discard, development-card,
+      trade, handoff, Settings, construction, and robber journeys.
 
 ## 1. Bot strength
 Make the bot opponents play meaningfully better.

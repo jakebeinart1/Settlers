@@ -33,6 +33,52 @@ final class DevelopmentCardFlowTests: XCTestCase {
         XCTAssertFalse(app.otherElements["dev-cards.overlay"].waitForExistence(timeout: 2))
     }
 
+    func testPurchasedKnightRevealsAndOlderCopyPlaysThroughConfirmation() {
+        let app = purchase(card: "knight")
+        openPurchasedCardHand(in: app, card: "knight")
+        app.buttons["dev-cards.play.knight"].tap()
+        enabledBoardButton(in: app, prefix: "board.tile.").tap()
+        app.buttons[BoardDecisionUITestID.confirm].tap()
+        XCTAssertTrue(app.staticTexts["dev-cards.result"].waitForExistence(timeout: 3))
+    }
+
+    func testPurchasedRoadBuildingRevealsAndOlderCopyPlacesTwoRoads() {
+        let app = purchase(card: "roadBuilding")
+        openPurchasedCardHand(in: app, card: "roadBuilding")
+        app.buttons["dev-cards.play.roadBuilding"].tap()
+        enabledBoardButton(in: app, prefix: "board.edge.").tap()
+        enabledBoardButton(in: app, prefix: "board.edge.").tap()
+        let confirm = app.buttons[BoardDecisionUITestID.confirm]
+        XCTAssertTrue(confirm.isEnabled)
+        confirm.tap()
+        XCTAssertTrue(app.staticTexts["dev-cards.result"].waitForExistence(timeout: 3))
+    }
+
+    func testPurchasedYearOfPlentyRevealsAndOlderCopyTakesTwoCards() {
+        let app = purchase(card: "yearOfPlenty")
+        openPurchasedCardHand(in: app, card: "yearOfPlenty")
+        let ore = app.buttons["dev-cards.resource.ore"]
+        ore.tap()
+        ore.tap()
+        app.buttons["dev-cards.play.yearOfPlenty"].tap()
+        XCTAssertTrue(app.staticTexts["dev-cards.result"].waitForExistence(timeout: 3))
+    }
+
+    func testPurchasedMonopolyRevealsAndOlderCopyPlays() {
+        let app = purchase(card: "monopoly")
+        openPurchasedCardHand(in: app, card: "monopoly")
+        app.buttons["dev-cards.resource.wool"].tap()
+        app.buttons["dev-cards.play.monopoly"].tap()
+        XCTAssertTrue(app.staticTexts["dev-cards.result"].waitForExistence(timeout: 3))
+    }
+
+    func testPurchasedVictoryPointRevealsAsPassiveAndAppearsInHand() {
+        let app = purchase(card: "victoryPoint", expectedRevealStatus: "Counts automatically")
+        openPurchasedCardHand(in: app, card: "victoryPoint", expectedStatus: "PASSIVE")
+        XCTAssertTrue(app.buttons["dev-cards.tile.victoryPoint"].exists)
+        XCTAssertFalse(app.buttons["dev-cards.play.victoryPoint"].exists)
+    }
+
     func testBlockedCardRemainsInspectableAndPlayExplainsWhy() {
         continueAfterFailure = false
         let app = launchReset(arguments: ["-qaAutoStart", "-qaShowDevCardHand"])
@@ -240,6 +286,40 @@ final class DevelopmentCardFlowTests: XCTestCase {
         app.launchArguments = ["-ui-testing", "-ui-testing-reset"] + arguments
         app.launch()
         return app
+    }
+
+    private func purchase(
+        card: String,
+        expectedRevealStatus: String = "New this turn"
+    ) -> XCUIApplication {
+        continueAfterFailure = false
+        let app = launchReset(arguments: ["-qaAutoStart", "-qaDevCardPurchase=\(card)"])
+        let build = app.buttons["Build"]
+        XCTAssertTrue(build.waitForExistence(timeout: 5))
+        let buildReady = XCTNSPredicateExpectation(
+            predicate: NSPredicate(format: "isEnabled == true"),
+            object: build
+        )
+        XCTAssertEqual(XCTWaiter.wait(for: [buildReady], timeout: 3), .completed)
+        build.tap()
+        let buy = app.buttons["build.dev-card"]
+        XCTAssertTrue(buy.waitForExistence(timeout: 2))
+        XCTAssertTrue(buy.isEnabled)
+        buy.tap()
+        XCTAssertTrue(app.otherElements["dev-cards.overlay"].waitForExistence(timeout: 3))
+        XCTAssertTrue(app.staticTexts["dev-cards.detail.\(card)"].exists)
+        XCTAssertTrue(app.staticTexts[expectedRevealStatus].exists)
+        return app
+    }
+
+    private func openPurchasedCardHand(
+        in app: XCUIApplication,
+        card: String,
+        expectedStatus: String = "1 READY · 1 NEW"
+    ) {
+        app.buttons["dev-cards.view-hand"].tap()
+        XCTAssertTrue(app.buttons["dev-cards.tile.\(card)"].waitForExistence(timeout: 2))
+        XCTAssertTrue(app.staticTexts[expectedStatus].exists)
     }
 
     private func enabledBoardButton(in app: XCUIApplication, prefix: String) -> XCUIElement {
