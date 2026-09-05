@@ -51,7 +51,9 @@ Make the bot opponents play meaningfully better.
       separate axes and must remain separate in both evaluation and UI.
 - [ ] Compare heuristic/search, RL/self-play, LLM, and hybrid prototypes through
       the shared `GameObservation`/`ActionSpace` seam. Do not select an
-      algorithm from intuition or from another game's results.
+      algorithm from intuition or from another game's results. The evidence
+      map, decision gates, and ordered research program are in
+      `docs/AI_summaries/2026-09-05-ai-strategy-research-program.md`.
 
 ## 2. Main menu / game log rework
 

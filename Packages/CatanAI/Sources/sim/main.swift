@@ -35,11 +35,10 @@ import Foundation
 // identical - same canonicalization, same hash, same bot RNG derivation - to
 // `Packages/CatanAI/Tests/CatanAITests/SeededGameFingerprintTests.swift`, so
 // that suite's five pinned constants double as an external check on this
-// harness. `sim --seed 1 --games 1 --jsonl` must print `46a24e9ecfe0feb8`.
-// Re-pinned 2026-09-03 alongside `SeededGameFingerprintTests`'s seed-1 value:
-// a declined trade proposal now retries with a different offer instead of
-// ending the bot's trading for the turn, which changes the move sequence for
-// any seed with trade activity.
+// harness. The test file is the single source of truth for those constants;
+// compare a fresh Release harness against it rather than copying a second set
+// here. Those values have moved after intentional trade, road, and development
+// card behavior changes, which is exactly why a duplicate literal went stale.
 //
 // ## stdout is data, stderr is diagnostics
 // Timing and progress go to stderr so that two runs over the same seeds are
