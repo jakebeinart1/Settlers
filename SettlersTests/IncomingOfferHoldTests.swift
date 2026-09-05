@@ -80,12 +80,11 @@ private func gameAwaitingAnswer(humanHolds: [Resource: Int],
     #expect(model.openIncomingOffer == nil)
 }
 
-// MARK: - The second signal the loop stops on
+// MARK: - Blocking reading surfaces
 
-/// Spec B3.4: the game must not advance behind `InGameSettingsView` while the
-/// player is reading it. Before this, opening the in-game menu during a bot
-/// turn left the bots playing on behind it, and the player came back to a
-/// position they had never seen reached.
+/// The game must not advance behind settings or the development-card hand
+/// while the player is reading it. Before this, the settings-specific flag
+/// left the card shelf live while a bot changed the board and bank beneath it.
 ///
 /// A bot seat is to act here (`.mainTurn(playerIndex: 1)` with the human at
 /// seat 0, so `GameSession.nextActor()` answers `.seat`), which is what makes
@@ -94,23 +93,26 @@ private func gameAwaitingAnswer(humanHolds: [Resource: Int],
 /// applies no move, and - deliberately, per this suite's sibling
 /// `PersistenceTests` caveat - writes neither the save file nor the game log.
 @MainActor
-@Test func anOpenSettingsSurfaceStopsTheBots() async {
+@Test func anOpenBlockingSurfaceStopsTheBotsWithoutWritingARevision() async {
     let model = isolatedGameViewModel()
     var state = GameSetup.newGame(board: BoardGenerator.standard(), seed: 11)
     state.phase = .mainTurn(playerIndex: 1)
     model.replaceStateForTesting(state, humanSeat: state.players[0].id)
     #expect(model.state.phase == .mainTurn(playerIndex: 1), "a bot seat is up, so the loop has work")
+    let revision = model.checkpointDocument?.revision
 
-    model.isSettingsSurfaceOpen = true
+    model.isBlockingSurfaceOpen = true
     await model.runBotTurnIfNeeded()
 
     #expect(model.state.phase == .mainTurn(playerIndex: 1),
-            "the bot loop must take no action while the settings surface is open")
+            "the bot loop must take no action while a blocking surface is open")
+    #expect(model.checkpointDocument?.revision == revision,
+            "reading a card must not create or advance a checkpoint")
 }
 
 /// The flag has to default to off, or the very first bot turn of every game
 /// would never run.
 @MainActor
-@Test func theSettingsSurfaceStartsClosed() {
-    #expect(isolatedGameViewModel().isSettingsSurfaceOpen == false)
+@Test func blockingSurfacesStartClosed() {
+    #expect(isolatedGameViewModel().isBlockingSurfaceOpen == false)
 }

@@ -52,3 +52,28 @@ public enum GameEvent: Codable, Sendable, Hashable {
     case endedTurn(PlayerID)
     case gameWon(PlayerID)
 }
+
+/// Information produced by a move that belongs only to the acting player.
+///
+/// These values deliberately never enter `GameEvent` or `GameState`: either
+/// would expose the face of a development card to every observer. A session
+/// hands them to the owning app so it can durably acknowledge the private
+/// result before continuing play.
+public enum PrivateGameEvent: Sendable, Equatable {
+    case boughtDevCard(owner: PlayerID, card: DevCardType)
+}
+
+/// One authoritative result from applying a move.
+///
+/// Keeping public and private events in the same return value means the card
+/// placed in a player's hand and the card named by its private receipt can
+/// never be inferred by two different callers that later drift apart.
+public struct AppliedMoveResult: Sendable, Equatable {
+    public let events: [GameEvent]
+    public let privateEvents: [PrivateGameEvent]
+
+    public init(events: [GameEvent], privateEvents: [PrivateGameEvent] = []) {
+        self.events = events
+        self.privateEvents = privateEvents
+    }
+}

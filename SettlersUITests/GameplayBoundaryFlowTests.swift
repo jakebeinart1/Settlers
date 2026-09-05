@@ -176,14 +176,10 @@ final class GameplayBoundaryFlowTests: XCTestCase {
         continueAfterFailure = false
         let app = launch(arguments: ["-qaAutoStart", "-qaFastForwardToRollDice"])
 
-        // `-qaFastForwardToRollDice` autoplays setup AND rolls the dice
-        // itself (see its doc comment in GameView.swift) - the action row
-        // it lands on already reads Trade/Build/End Turn, never Roll Dice.
-        // The whole sequence (4 setup moves plus the roll, each a real
-        // applied move) measurably takes longer than a single screenshot's
-        // worth of settling time, so this waits on `isEnabled` rather than
-        // mere existence - the button renders (disabled) well before
-        // `isHumanMainTurn` actually goes true.
+        // The fixture autoplays setup, rolls, and resolves a possible seven,
+        // so it always yields on Trade/Build/End Turn rather than a disabled
+        // intermediate phase. Those are real paced moves, so wait on enabled
+        // rather than existence: the action row renders before main turn.
         let tradeButton = app.buttons["Trade"]
         XCTAssertTrue(tradeButton.waitForExistence(timeout: 20))
         let becameEnabled = expectation(for: NSPredicate(format: "isEnabled == true"),

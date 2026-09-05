@@ -67,10 +67,40 @@ import Testing
         if case .moveRobber(let tile, let stealFrom) = $0 { return tile == targetTile && stealFrom == PlayerID(index: 1) }
         return false
     })
-    #expect(moves.contains {
+    #expect(!moves.contains {
         if case .moveRobber(let tile, let stealFrom) = $0 { return tile == targetTile && stealFrom == nil }
         return false
     })
+}
+
+@Test func invalidRobberVictimLeavesTheWholeStateUntouched() {
+    var state = GameSetup.newGame(board: BoardGenerator.standard(), seed: 77)
+    let thief = PlayerID(index: 0)
+    let targetTile = state.board.tiles.first { $0.coordinate != state.board.robberTile }!.coordinate
+    state.phase = .movingRobber(playerIndex: thief.index)
+    state.players[2].resources = [.ore: 1]
+    let before = state
+
+    #expect(throws: MoveError.illegalPlacement) {
+        try RulesEngine.apply(.moveRobber(targetTile, stealFrom: PlayerID(index: 2)), by: thief, to: &state)
+    }
+    #expect(state == before)
+}
+
+@Test func robberMoveCannotSkipAnEligibleVictim() {
+    var state = GameSetup.newGame(board: BoardGenerator.standard())
+    let thief = PlayerID(index: 0)
+    let targetTile = state.board.tiles.first { $0.coordinate != state.board.robberTile }!.coordinate
+    let victimVertex = state.board.onBoardVertices.first { state.board.neighborTiles(of: $0).contains(targetTile) }!
+    state.players[1].settlements.insert(victimVertex)
+    state.players[1].resources = [.wool: 1]
+    state.phase = .movingRobber(playerIndex: thief.index)
+    let before = state
+
+    #expect(throws: MoveError.illegalPlacement) {
+        try RulesEngine.apply(.moveRobber(targetTile, stealFrom: nil), by: thief, to: &state)
+    }
+    #expect(state == before)
 }
 
 @Test func movingRobberCanStealFromAdjacentPlayer() {

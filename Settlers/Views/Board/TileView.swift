@@ -325,6 +325,33 @@ struct EdgeTapTarget: View {
     }
 }
 
+/// Semantic tile target used only while choosing a robber destination.
+/// Visual highlighting remains in `BoardView`'s Canvas; this transparent
+/// circle gives each hex a stable, independently enabled control for assistive
+/// technology and tap-driven journey tests.
+struct TileTapTarget: View {
+    let position: CGPoint
+    let diameter: CGFloat
+    let isEnabled: Bool
+    let accessibilityIdentifier: String
+    let accessibilityLabel: String
+    let onTap: () -> Void
+
+    var body: some View {
+        Circle()
+            .fill(Color.white.opacity(0.001))
+            .frame(width: diameter, height: diameter)
+            .position(position)
+            .allowsHitTesting(isEnabled)
+            .onTapGesture(perform: onTap)
+            .accessibilityElement(children: .ignore)
+            .accessibilityIdentifier(accessibilityIdentifier)
+            .accessibilityLabel(accessibilityLabel)
+            .accessibilityAddTraits(.isButton)
+            .disabled(!isEnabled)
+    }
+}
+
 /// Rectangle for a road, drawn along an edge's axis via `rotationEffect` in
 /// the caller. Only lightly rounded (not the full-capsule pill this used to
 /// be) so that consecutive roads sharing a vertex - now drawn edge-to-edge,

@@ -11,6 +11,119 @@ import Testing
     #expect(state.devCardDeck.count == deckSizeBefore - 1)
 }
 
+@Test(arguments: DevCardType.allCases)
+func buyingDevCardReportsTheExactCardDrawn(card: DevCardType) throws {
+    var state = GameSetup.newGame(board: BoardGenerator.standard())
+    let player = PlayerID(index: 0)
+    state.phase = .mainTurn(playerIndex: player.index)
+    state.players[player.index].resources = [.ore: 1, .wool: 1, .grain: 1]
+    state.devCardDeck = [card, .knight]
+
+    var session = GameSession(state: state, policies: [:], policySeed: 1)
+    let step = try session.applyExternal(.buyDevCard, by: player)
+
+    #expect(step.events == [.boughtDevCard(player)])
+    #expect(step.privateEvents == [.boughtDevCard(owner: player, card: card)])
+    #expect(session.state.players[player.index].devCards == [card])
+    #expect(session.state.devCardDeck == [.knight])
+}
+
+@Test func devCardStatusDistinguishesNewAndOlderCopiesInOneStack() {
+    var state = GameSetup.newGame(board: BoardGenerator.standard())
+    let player = PlayerID(index: 0)
+    state.phase = .mainTurn(playerIndex: player.index)
+    state.players[player.index].devCards = [.knight, .knight]
+    state.devCardsBoughtThisTurn[player] = [.knight]
+
+    #expect(DevCards.playStatus(.knight, by: player, in: state) == .playable)
+
+    state.players[player.index].devCards = [.knight]
+    #expect(DevCards.playStatus(.knight, by: player, in: state) == .boughtThisTurn)
+}
+
+@Test func devCardStatusOwnsTurnTimingAndPassiveCardRules() {
+    var state = GameSetup.newGame(board: BoardGenerator.standard())
+    let player = PlayerID(index: 0)
+    state.players[player.index].devCards = [.knight, .monopoly, .victoryPoint]
+    state.phase = .rollDice(playerIndex: player.index)
+
+    #expect(DevCards.playStatus(.knight, by: player, in: state) == .playable)
+    #expect(DevCards.playStatus(.monopoly, by: player, in: state) == .playable)
+    #expect(DevCards.playStatus(.victoryPoint, by: player, in: state) == .passiveVictoryPoint)
+
+    state.phase = .rollDice(playerIndex: 1)
+    #expect(DevCards.playStatus(.knight, by: player, in: state) == .waitingForYourTurn)
+
+    state.phase = .discarding(pending: [player])
+    #expect(DevCards.playStatus(.knight, by: player, in: state) == .resolveRequiredAction)
+
+    state.phase = .gameOver(winner: PlayerID(index: 1))
+    #expect(DevCards.playStatus(.knight, by: player, in: state) == .gameOver)
+}
+
+@Test func devCardStatusExplainsTurnLimitAndMissingCard() {
+    var state = GameSetup.newGame(board: BoardGenerator.standard())
+    let player = PlayerID(index: 0)
+    state.phase = .mainTurn(playerIndex: player.index)
+
+    #expect(DevCards.playStatus(.monopoly, by: player, in: state) == .notOwned)
+
+    state.players[player.index].devCards = [.monopoly]
+    state.devCardPlayedThisTurn = player
+    #expect(DevCards.playStatus(.monopoly, by: player, in: state) == .alreadyPlayedThisTurn)
+}
+
+@Test func devCardStatusExplainsRequiredPlacementAndMissingRoadChoices() {
+    var state = GameSetup.newGame(board: BoardGenerator.standard())
+    let player = PlayerID(index: 0)
+    state.players[player.index].devCards = [.knight, .roadBuilding]
+
+    state.phase = .setupForward(playerIndex: player.index)
+    #expect(DevCards.playStatus(.knight, by: player, in: state) == .resolveRequiredAction)
+
+    state.phase = .movingRobber(playerIndex: player.index)
+    #expect(DevCards.playStatus(.knight, by: player, in: state) == .resolveRequiredAction)
+
+    state.phase = .mainTurn(playerIndex: player.index)
+    #expect(DevCards.playStatus(.roadBuilding, by: player, in: state) == .noLegalChoices)
+    #expect(DevCardPlayStatus.playable.isPlayable)
+    #expect(!DevCardPlayStatus.boughtThisTurn.isPlayable)
+}
+
+@Test func yearOfPlentyRequiresTwoCardsTheBankCanSupply() {
+    var state = GameSetup.newGame(board: BoardGenerator.standard())
+    let player = PlayerID(index: 0)
+    state.phase = .mainTurn(playerIndex: player.index)
+    state.players[player.index].devCards = [.yearOfPlenty]
+    state.bank = [.ore: 1]
+
+    #expect(DevCards.playStatus(.yearOfPlenty, by: player, in: state) == .noLegalChoices)
+    #expect(!RulesEngine.legalMoves(for: state).contains {
+        if case .playYearOfPlenty = $0 { return true }
+        return false
+    })
+
+    #expect(throws: MoveError.bankCannotSupply(.ore)) {
+        try RulesEngine.apply(.playYearOfPlenty(.ore, .ore), by: player, to: &state)
+    }
+    #expect(state.players[player.index].devCards == [.yearOfPlenty])
+    #expect(state.bank[.ore] == 1)
+}
+
+@Test func yearOfPlentyEnumeratesOnlyPairsTheBankCanSupply() {
+    var state = GameSetup.newGame(board: BoardGenerator.standard())
+    let player = PlayerID(index: 0)
+    state.phase = .mainTurn(playerIndex: player.index)
+    state.players[player.index].devCards = [.yearOfPlenty]
+    state.bank = [.ore: 1, .grain: 2]
+
+    let moves = RulesEngine.legalMoves(for: state)
+    #expect(moves.contains(.playYearOfPlenty(.ore, .grain)))
+    #expect(moves.contains(.playYearOfPlenty(.grain, .grain)))
+    #expect(!moves.contains(.playYearOfPlenty(.ore, .ore)))
+    #expect(!moves.contains(.playYearOfPlenty(.ore, .brick)))
+}
+
 @Test func cannotPlayDevCardBoughtThisTurn() {
     var state = GameSetup.newGame(board: BoardGenerator.standard())
     state.players[0].resources = [.ore: 1, .wool: 1, .grain: 1]
@@ -111,16 +224,17 @@ import Testing
     #expect(state.players[0].devCards == [.roadBuilding]) // card not consumed
 }
 
-@Test func yearOfPlentyGrantsTwoResourcesCappedByBank() {
+@Test func yearOfPlentyRejectsAnUnavailablePairWithoutConsumingTheCard() {
     var state = GameSetup.newGame(board: BoardGenerator.standard())
     state.players[0].devCards = [.yearOfPlenty]
     state.bank[.ore] = 0 // bank is out of ore
+    let before = state
 
-    try! DevCards.playYearOfPlenty(.ore, .grain, by: PlayerID(index: 0), state: &state)
+    #expect(throws: MoveError.bankCannotSupply(.ore)) {
+        try DevCards.playYearOfPlenty(.ore, .grain, by: PlayerID(index: 0), state: &state)
+    }
 
-    #expect((state.players[0].resources[.ore] ?? 0) == 0) // capped - bank had none
-    #expect((state.players[0].resources[.grain] ?? 0) == 1)
-    #expect(state.players[0].devCards.isEmpty)
+    #expect(state == before)
 }
 
 /// Regression test: `RulesEngine.legalMoves` enumerates r1/r2 independently
@@ -173,10 +287,8 @@ import Testing
     #expect((state.players[0].resources[.ore] ?? 0) == 1) // untouched - cost not deducted
 }
 
-/// Knight is the one dev card the official rules let you play before
-/// rolling (e.g. to move the robber off your own tile before the dice can
-/// hit it) - `.rollDice` must enumerate and accept `.playKnight` and stay
-/// in `.rollDice` afterward so the player still has to roll.
+/// A development card bought on an earlier turn may be played before rolling.
+/// The card resolves but the player still owes the roll afterward.
 @Test func knightCanBePlayedBeforeRolling() throws {
     var state = GameSetup.newGame(board: BoardGenerator.standard())
     state.phase = .rollDice(playerIndex: 0)
@@ -193,17 +305,30 @@ import Testing
     #expect(state.phase == .rollDice(playerIndex: 0)) // still owes the roll
 }
 
-/// The other three dev cards remain unplayable before rolling - only
-/// Knight gets the pre-roll exception.
-@Test func nonKnightCardsAreNotOfferedBeforeRolling() {
+@Test func everyActiveDevCardIsOfferedBeforeRolling() {
     var state = GameSetup.newGame(board: BoardGenerator.standard())
     state.phase = .rollDice(playerIndex: 0)
     state.players[0].devCards = [.roadBuilding, .yearOfPlenty, .monopoly]
+    state.players[0].settlements.insert(state.board.onBoardVertices.sorted().first!)
 
     let moves = RulesEngine.legalMoves(for: state)
-    #expect(!moves.contains { if case .playRoadBuilding = $0 { return true }; return false })
-    #expect(!moves.contains { if case .playYearOfPlenty = $0 { return true }; return false })
-    #expect(!moves.contains { if case .playMonopoly = $0 { return true }; return false })
+    #expect(moves.contains { if case .playRoadBuilding = $0 { return true }; return false })
+    #expect(moves.contains { if case .playYearOfPlenty = $0 { return true }; return false })
+    #expect(moves.contains { if case .playMonopoly = $0 { return true }; return false })
+}
+
+@Test func playingMonopolyBeforeRollingStillRequiresTheRoll() throws {
+    var state = GameSetup.newGame(board: BoardGenerator.standard())
+    let player = PlayerID(index: 0)
+    state.phase = .rollDice(playerIndex: player.index)
+    state.players[player.index].devCards = [.monopoly]
+    state.players[1].resources = [.ore: 2]
+
+    let events = try RulesEngine.apply(.playMonopoly(.ore), by: player, to: &state)
+
+    #expect(state.phase == .rollDice(playerIndex: player.index))
+    #expect(state.players[player.index].resources[.ore] == 2)
+    #expect(events.contains(.playedMonopoly(player, resource: .ore, gained: 2)))
 }
 
 /// Standard rule: at most one development card may be played per turn.
@@ -224,9 +349,8 @@ import Testing
     }
 }
 
-/// A knight played before rolling (the one pre-roll exception) still
-/// counts against the same turn's one-card limit once the turn reaches
-/// `.mainTurn`.
+/// A development card played before rolling still counts against the same
+/// turn's one-card limit once the turn reaches `.mainTurn`.
 @Test func knightPlayedBeforeRollingBlocksAnotherCardThatSameTurn() throws {
     var state = GameSetup.newGame(board: BoardGenerator.standard())
     state.phase = .rollDice(playerIndex: 0)

@@ -10,14 +10,14 @@ struct SaveRecoveryTests {
         let fixture = try RecoveryFixture()
         let original = fixture.makeModel()
         original.startNewGame(setup: fixture.validSetup)
-        original.isSettingsSurfaceOpen = true
+        original.isBlockingSurfaceOpen = true
         let settlement = try #require(RulesEngine.legalMoves(for: original.state, seat: original.humanPlayer).first)
         try original.apply(settlement)
         let checkpoint = original.state
         let expectedProfiles = original.opponentProfiles
 
         let resumed = fixture.makeModel()
-        resumed.isSettingsSurfaceOpen = true
+        resumed.isBlockingSurfaceOpen = true
         #expect(resumed.savedGameAvailability.canResume)
         #expect(resumed.state == checkpoint)
         #expect(resumed.opponentProfiles == expectedProfiles)
@@ -229,7 +229,7 @@ struct SaveRecoveryTests {
         let original = Data("not a saved game".utf8)
         try original.write(to: fixture.gameStore.fileURL)
         let model = fixture.makeModel()
-        model.isSettingsSurfaceOpen = true
+        model.isBlockingSurfaceOpen = true
         let move = try #require(RulesEngine.legalMoves(for: model.state, seat: model.humanPlayer).first)
 
         #expect(throws: (any Error).self) { try model.apply(move) }

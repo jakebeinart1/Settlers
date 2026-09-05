@@ -61,6 +61,43 @@ struct MatchCheckpoint: Codable, Equatable, Sendable {
         let actor: PlayerID
         let move: GameMove
         let timestamp: Date
+        /// The rules behavior under which this move was originally accepted.
+        /// Missing means version 1 because checkpoints shipped before this
+        /// field existed; every new move writes the current version explicitly.
+        let rulesVersion: Int
+
+        init(
+            actor: PlayerID,
+            move: GameMove,
+            timestamp: Date,
+            rulesVersion: Int = RulesEngine.currentRulesVersion
+        ) {
+            self.actor = actor
+            self.move = move
+            self.timestamp = timestamp
+            self.rulesVersion = rulesVersion
+        }
+
+        private enum CodingKeys: String, CodingKey {
+            case actor, move, timestamp, rulesVersion
+        }
+
+        init(from decoder: Decoder) throws {
+            let values = try decoder.container(keyedBy: CodingKeys.self)
+            actor = try values.decode(PlayerID.self, forKey: .actor)
+            move = try values.decode(GameMove.self, forKey: .move)
+            timestamp = try values.decode(Date.self, forKey: .timestamp)
+            rulesVersion = try values.decodeIfPresent(Int.self, forKey: .rulesVersion)
+                ?? RulesEngine.oldestSupportedRulesVersion
+        }
+
+        func encode(to encoder: Encoder) throws {
+            var values = encoder.container(keyedBy: CodingKeys.self)
+            try values.encode(actor, forKey: .actor)
+            try values.encode(move, forKey: .move)
+            try values.encode(timestamp, forKey: .timestamp)
+            try values.encode(rulesVersion, forKey: .rulesVersion)
+        }
     }
 
     let id: UUID
@@ -80,11 +117,21 @@ struct MatchCheckpoint: Codable, Equatable, Sendable {
         self.setup = setup
     }
 
-    mutating func apply(_ move: GameMove, by actor: PlayerID, timestamp: Date = Date()) throws {
+    mutating func apply(
+        _ move: GameMove,
+        by actor: PlayerID,
+        timestamp: Date = Date(),
+        rulesVersion: Int = RulesEngine.currentRulesVersion
+    ) throws {
         var candidate = state
-        try RulesEngine.apply(move, by: actor, to: &candidate)
+        try RulesEngine.replay(move, by: actor, rulesVersion: rulesVersion, to: &candidate)
         state = candidate
-        moves.append(RecordedMove(actor: actor, move: move, timestamp: timestamp))
+        moves.append(RecordedMove(
+            actor: actor,
+            move: move,
+            timestamp: timestamp,
+            rulesVersion: rulesVersion
+        ))
         sessionCheckpoint = nil
     }
 
@@ -100,8 +147,11 @@ struct MatchCheckpoint: Codable, Equatable, Sendable {
         elapsedSeconds = seconds
     }
 
-    /// The engine, not a duplicated move interpreter, validates the history.
-    /// Exact equality also checks the saved generator position after dice/cards.
+    /// The engine, not a duplicated move interpreter, validates the history,
+    /// private presentation receipts, and saved RNG position in one replay.
+    /// Separate receipt replays made each durable move repeat an already
+    /// expensive full-history traversal and pushed complete-match tests past
+    /// the native runner's execution timeout.
     ///
     /// Uses `matchesForReplayValidationExcludingDeclinedTradeHistory`, not
     /// `==`, for the reason documented on that function: a save recorded
@@ -110,13 +160,36 @@ struct MatchCheckpoint: Codable, Equatable, Sendable {
     /// under the new rules and get its whole document marked blocked - the
     /// exact incident class `CLAUDE.md` already warns about ("Adding one
     /// field once deleted every player's in-progress save").
-    func validateHistory() throws {
+    func validateHistory(
+        pendingReveal: DevCardReveal? = nil,
+        pendingResolution: DevCardResolution? = nil
+    ) throws {
         try validateSetup()
         var replay = initialState
-        for entry in moves {
-            try RulesEngine.apply(entry.move, by: entry.actor, to: &replay)
+        var revealWasRecorded = pendingReveal == nil
+        var resolutionWasRecorded = pendingResolution == nil
+        for (index, entry) in moves.enumerated() {
+            let drawn = entry.move == .buyDevCard ? replay.devCardDeck.first : nil
+            let events = try RulesEngine.replay(
+                entry.move,
+                by: entry.actor,
+                rulesVersion: entry.rulesVersion,
+                to: &replay
+            )
+            let isReceiptSource = index == moves.indices.last
+            if isReceiptSource, let pendingReveal, entry.actor == pendingReveal.owner,
+               drawn == pendingReveal.card {
+                revealWasRecorded = true
+            }
+            if isReceiptSource, let pendingResolution, entry.actor == pendingResolution.owner,
+               events.contains(where: {
+                   MatchCheckpointDocument.devCardResolution($0) == pendingResolution
+               }) {
+                resolutionWasRecorded = true
+            }
         }
-        guard replay.matchesForReplayValidationExcludingDeclinedTradeHistory(state) else {
+        guard revealWasRecorded, resolutionWasRecorded,
+              replay.matchesForReplayValidationExcludingDeclinedTradeHistory(state) else {
             throw MatchCheckpointStore.StoreError.inconsistentHistory
         }
         if let sessionCheckpoint, sessionCheckpoint.state != state {
@@ -158,6 +231,13 @@ struct MatchCheckpointDocument: Codable, Equatable, Sendable {
     private(set) var statistics = GameStats()
     private(set) var completions: [UUID: Completion] = [:]
     private(set) var pendingExports: [UUID: MatchCheckpoint] = [:]
+    /// Buyer-private presentation receipt. Optional decoding keeps documents
+    /// written before the reveal journey backward compatible.
+    private(set) var pendingDevCardReveal: DevCardReveal?
+    /// Acknowledgement owed after a human card resolves. Keeping it in the
+    /// checkpoint prevents a successful effect from becoming invisible if the
+    /// process stops between the game commit and the result card rendering.
+    private(set) var pendingDevCardResolution: DevCardResolution?
 
     init(activeMatch: MatchCheckpoint?, revision: Int = 0) {
         self.schemaVersion = Self.currentSchemaVersion
@@ -215,8 +295,37 @@ struct MatchCheckpointDocument: Codable, Equatable, Sendable {
     /// disk. The caller keeps the candidate session, rather than rebuilding it.
     func recording(_ step: GameSession.Step, session: GameSession.Checkpoint,
                    elapsedSeconds: TimeInterval) throws -> Self {
+        guard pendingDevCardReveal == nil, pendingDevCardResolution == nil else {
+            throw MatchCheckpointStore.StoreError.pendingAcknowledgement
+        }
         var next = try applying(step.move, by: step.actor, elapsedSeconds: elapsedSeconds)
         try next.activeMatch?.attachSession(session)
+        if next.activeMatch?.setup.humanSeats.contains(where: { $0.index == step.actor.index }) == true {
+            for case .boughtDevCard(let owner, let card) in step.privateEvents {
+                next.pendingDevCardReveal = DevCardReveal(owner: owner, card: card)
+            }
+            if let resolution = step.events.compactMap(Self.devCardResolution).last {
+                next.pendingDevCardResolution = resolution
+            }
+        }
+        return next
+    }
+
+    func dismissingDevCardReveal() throws -> Self {
+        guard pendingDevCardReveal != nil else { return self }
+        guard revision < Int.max else { throw MatchCheckpointStore.StoreError.staleRevision }
+        var next = self
+        next.pendingDevCardReveal = nil
+        next.revision += 1
+        return next
+    }
+
+    func dismissingDevCardResolution() throws -> Self {
+        guard pendingDevCardResolution != nil else { return self }
+        guard revision < Int.max else { throw MatchCheckpointStore.StoreError.staleRevision }
+        var next = self
+        next.pendingDevCardResolution = nil
+        next.revision += 1
         return next
     }
 
@@ -249,6 +358,8 @@ struct MatchCheckpointDocument: Codable, Equatable, Sendable {
         var next = self
         if let activeMatch { next.pendingExports[activeMatch.id] = activeMatch }
         next.activeMatch = match
+        next.pendingDevCardReveal = nil
+        next.pendingDevCardResolution = nil
         next.revision += 1
         return next
     }
@@ -320,7 +431,11 @@ struct MatchCheckpointDocument: Codable, Equatable, Sendable {
     /// recording or an archive key referring to a different match identity.
     func validateAuthority() throws {
         try validateStatistics()
-        try activeMatch?.validateHistory()
+        try validatePendingDevCardOwners()
+        try activeMatch?.validateHistory(
+            pendingReveal: pendingDevCardReveal,
+            pendingResolution: pendingDevCardResolution
+        )
         for id in pendingExports.keys.sorted(by: { $0.uuidString < $1.uuidString }) {
             guard let match = pendingExports[id], match.id == id, id != activeMatch?.id else {
                 throw MatchCheckpointStore.StoreError.inconsistentHistory
@@ -328,6 +443,31 @@ struct MatchCheckpointDocument: Codable, Equatable, Sendable {
             try match.validateHistory()
         }
         try validateCompletions()
+    }
+
+    private func validatePendingDevCardOwners() throws {
+        guard pendingDevCardReveal != nil || pendingDevCardResolution != nil else { return }
+        guard let match = activeMatch else { throw MatchCheckpointStore.StoreError.inconsistentHistory }
+        let humans = Set(match.setup.humanSeats.map(\.index))
+        guard pendingDevCardReveal.map({ humans.contains($0.owner.index) }) ?? true,
+              pendingDevCardResolution.map({ humans.contains($0.owner.index) }) ?? true else {
+            throw MatchCheckpointStore.StoreError.inconsistentHistory
+        }
+    }
+
+    fileprivate static func devCardResolution(_ event: GameEvent) -> DevCardResolution? {
+        switch event {
+        case .playedKnight(let owner, let from, let stolen):
+            .knight(owner: owner, from: from, stolen: stolen)
+        case .playedRoadBuilding(let owner):
+            .roadBuilding(owner: owner)
+        case .playedYearOfPlenty(let owner, let taken):
+            .yearOfPlenty(owner: owner, taken: taken)
+        case .playedMonopoly(let owner, let resource, let gained):
+            .monopoly(owner: owner, resource: resource, gained: gained)
+        default:
+            nil
+        }
     }
 
     private func validateStatistics() throws {
@@ -378,9 +518,10 @@ struct MatchCheckpointDocument: Codable, Equatable, Sendable {
 /// generations of state and roster. This is not a power-loss durability claim.
 @MainActor
 struct MatchCheckpointStore {
-    enum StoreError: Error {
+    enum StoreError: Error, Equatable {
         case unsupportedSchema, staleRevision, inconsistentHistory, invalidSetup
         case invalidStatistics, invalidCompletion, invalidDuration, recoveryNotPreserved
+        case pendingAcknowledgement
     }
     enum CommitStage: Sendable { case beforeReplace, afterReplace }
 

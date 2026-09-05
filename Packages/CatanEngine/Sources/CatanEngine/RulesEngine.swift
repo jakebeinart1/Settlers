@@ -1,4 +1,9 @@
 public enum RulesEngine {
+    /// Stored beside every recorded move. Version 1 predates atomic Year of
+    /// Plenty and mandatory robber-victim selection; new moves use version 2.
+    public static let currentRulesVersion = 2
+    public static let oldestSupportedRulesVersion = 1
+
     public static func legalMoves(for state: GameState) -> [GameMove] {
         switch state.phase {
         case .setupForward, .setupBackward:
@@ -6,18 +11,8 @@ public enum RulesEngine {
 
         case .rollDice(let playerIndex):
             var moves: [GameMove] = [.rollDice]
-            // Knight is the one development card the official rules let you
-            // play before rolling (e.g. to move the robber off your own
-            // tile before the dice can hit it) - every other card is only
-            // enumerated in `.mainTurn`, after the roll.
             let player = state.players[playerIndex]
-            if DevCards.canPlay(.knight, by: player.id, in: state) {
-                for tile in state.board.tiles.map(\.coordinate) where tile != state.board.robberTile {
-                    moves.append(.playKnight(moveRobberTo: tile, stealFrom: nil))
-                    moves.append(contentsOf: Robber.eligibleVictims(for: tile, thief: player.id, in: state)
-                        .map { .playKnight(moveRobberTo: tile, stealFrom: $0) })
-                }
-            }
+            moves += developmentCardMoves(for: player, in: state)
             return moves
 
         case .mainTurn(let playerIndex):
@@ -51,44 +46,7 @@ public enum RulesEngine {
             if canAfford(Building.devCardCost, player: player) && !state.devCardDeck.isEmpty {
                 moves.append(.buyDevCard)
             }
-            if DevCards.canPlay(.knight, by: player.id, in: state) {
-                for tile in state.board.tiles.map(\.coordinate) where tile != state.board.robberTile {
-                    moves.append(.playKnight(moveRobberTo: tile, stealFrom: nil))
-                    moves.append(contentsOf: Robber.eligibleVictims(for: tile, thief: player.id, in: state)
-                        .map { .playKnight(moveRobberTo: tile, stealFrom: $0) })
-                }
-            }
-            if DevCards.canPlay(.roadBuilding, by: player.id, in: state) {
-                let legalEdges = state.board.onBoardEdges
-                    .filter { Building.canBuildRoad($0, for: player.id, in: state) }
-                    .sorted()
-                let allEdges = state.board.onBoardEdges.sorted()
-                // The second edge is judged against a board where the first is
-                // already placed, so the pair is legal *in sequence*. Mutating
-                // one player's road set and restoring it beats the previous
-                // `var afterE1 = state` (a full `GameState` copy - board, all
-                // four players, both decks - once per candidate first edge),
-                // which made this branch the most expensive thing in the
-                // engine at ~10.8ms per call with a Road Building card in hand.
-                var probe = state
-                for e1 in legalEdges {
-                    probe.players[playerIndex].roads.insert(e1)
-                    for e2 in allEdges where e2 != e1 && Building.canBuildRoad(e2, for: player.id, in: probe) {
-                        moves.append(.playRoadBuilding(e1, e2))
-                    }
-                    probe.players[playerIndex].roads.remove(e1)
-                }
-            }
-            if DevCards.canPlay(.yearOfPlenty, by: player.id, in: state) {
-                for r1 in Resource.allCases {
-                    for r2 in Resource.allCases {
-                        moves.append(.playYearOfPlenty(r1, r2))
-                    }
-                }
-            }
-            if DevCards.canPlay(.monopoly, by: player.id, in: state) {
-                moves.append(contentsOf: Resource.allCases.map { .playMonopoly($0) })
-            }
+            moves += developmentCardMoves(for: player, in: state)
             for resource in Resource.allCases {
                 let rate = Trading.bestRate(for: resource, player: player.id, state: state)
                 guard (player.resources[resource] ?? 0) >= rate else { continue }
@@ -130,9 +88,12 @@ public enum RulesEngine {
             let thief = state.players[playerIndex].id
             var moves: [GameMove] = []
             for tile in state.board.tiles.map(\.coordinate) where tile != state.board.robberTile {
-                moves.append(.moveRobber(tile, stealFrom: nil))
-                moves.append(contentsOf: Robber.eligibleVictims(for: tile, thief: thief, in: state)
-                    .map { .moveRobber(tile, stealFrom: $0) })
+                let victims = Robber.eligibleVictims(for: tile, thief: thief, in: state)
+                if victims.isEmpty {
+                    moves.append(.moveRobber(tile, stealFrom: nil))
+                } else {
+                    moves += victims.map { .moveRobber(tile, stealFrom: $0) }
+                }
             }
             return moves
 
@@ -263,8 +224,23 @@ public enum RulesEngine {
     /// that wants a transcript keeps these; a search or self-play harness
     /// discards them and pays nothing. See `GameEvent`.
     @discardableResult
-    public static func apply(_ move: GameMove, by player: PlayerID, to state: inout GameState) throws -> [GameEvent] {
+    public static func apply(
+        _ move: GameMove,
+        by player: PlayerID,
+        to state: inout GameState
+    ) throws -> [GameEvent] {
+        try applyReportingPrivateEvents(move, by: player, to: &state).events
+    }
+
+    /// Applies a move once and returns both its public transcript and any
+    /// actor-private facts produced by that exact application.
+    public static func applyReportingPrivateEvents(
+        _ move: GameMove,
+        by player: PlayerID,
+        to state: inout GameState
+    ) throws -> AppliedMoveResult {
         var events: [GameEvent] = []
+        var privateEvents: [PrivateGameEvent] = []
         switch state.phase {
         case .setupForward, .setupBackward:
             switch move {
@@ -277,16 +253,13 @@ public enum RulesEngine {
         case .rollDice(let playerIndex):
             guard player.index == playerIndex else { throw MoveError.notYourTurn }
 
-            // Knight is the one card playable before rolling - handle it
-            // here and stay in `.rollDice` so the player still has to roll
-            // afterward.
-            if case .playKnight(let moveRobberTo, let stealFrom) = move {
-                let stolen = try DevCards.playKnight(
-                    moveRobberTo: moveRobberTo, stealFrom: stealFrom, by: player, state: &state)
+            // Any mature active card may be played before the roll. Resolve it
+            // and leave the phase untouched so the player still owes the dice.
+            if let event = try applyDevelopmentCard(move, by: player, to: &state) {
                 WinCondition.checkForWinner(&state)
-                events.append(.playedKnight(player, from: stealFrom, stealing: stolen))
+                events.append(event)
                 events += winEvent(state)
-                return events
+                return AppliedMoveResult(events: events)
             }
 
             guard case .rollDice = move else { throw MoveError.wrongPhase }
@@ -347,7 +320,7 @@ public enum RulesEngine {
                         : .rejectedTrade(player, from: offer.from))
                 }
                 events += winEvent(state)
-                return events
+                return AppliedMoveResult(events: events)
             }
 
             guard player.index == playerIndex else { throw MoveError.notYourTurn }
@@ -379,7 +352,8 @@ public enum RulesEngine {
                 events.append(.builtCity(player))
 
             case .buyDevCard:
-                try DevCards.buy(by: player, state: &state)
+                let card = try DevCards.buy(by: player, state: &state)
+                privateEvents.append(.boughtDevCard(owner: player, card: card))
                 // A bought VP card counts toward victory points immediately
                 // (it's the "playing" of a knight/road-building/etc. card
                 // that's deferred a turn, not VP cards being counted), so a
@@ -388,34 +362,12 @@ public enum RulesEngine {
                 WinCondition.checkForWinner(&state)
                 events.append(.boughtDevCard(player))
 
-            case .playKnight(let moveRobberTo, let stealFrom):
-                let stolen = try DevCards.playKnight(
-                    moveRobberTo: moveRobberTo, stealFrom: stealFrom, by: player, state: &state)
+            case .playKnight, .playRoadBuilding, .playYearOfPlenty, .playMonopoly:
+                guard let event = try applyDevelopmentCard(move, by: player, to: &state) else {
+                    throw MoveError.wrongPhase
+                }
                 WinCondition.checkForWinner(&state)
-                events.append(.playedKnight(player, from: stealFrom, stealing: stolen))
-
-            case .playRoadBuilding(let e1, let e2):
-                try DevCards.playRoadBuilding(e1, e2, by: player, state: &state)
-                WinCondition.checkForWinner(&state)
-                events.append(.playedRoadBuilding(player))
-
-            case .playYearOfPlenty(let r1, let r2):
-                try DevCards.playYearOfPlenty(r1, r2, by: player, state: &state)
-                // r1 and r2 may be the same resource (e.g. "take 2 lumber"
-                // is a legal choice - see the legalMoves generation above,
-                // which enumerates r1/r2 independently). Building the log
-                // line's resource map via a dictionary literal `[r1: 1, r2:
-                // 1]` would crash with "duplicate keys" whenever r1 == r2,
-                // so tally into a dictionary instead, which merges the two
-                // increments correctly either way.
-                var taken: [Resource: Int] = [:]
-                taken[r1, default: 0] += 1
-                taken[r2, default: 0] += 1
-                events.append(.playedYearOfPlenty(player, taken: taken))
-
-            case .playMonopoly(let resource):
-                let collected = try DevCards.playMonopoly(resource, by: player, state: &state)
-                events.append(.playedMonopoly(player, resource: resource, gained: collected))
+                events.append(event)
 
             case .bankTrade(let give, let get):
                 try Trading.bankTrade(give: give, get: get, by: player, state: &state)
@@ -451,7 +403,146 @@ public enum RulesEngine {
             throw MoveError.wrongPhase
         }
         events += winEvent(state)
-        return events
+        return AppliedMoveResult(events: events, privateEvents: privateEvents)
+    }
+
+    /// Replays one persisted move under the rule behavior recorded with it.
+    /// This is not a way to opt new gameplay into old rules: production move
+    /// application always uses `apply`, while checkpoint validation alone uses
+    /// this compatibility boundary.
+    @discardableResult
+    public static func replay(
+        _ move: GameMove,
+        by player: PlayerID,
+        rulesVersion: Int,
+        to state: inout GameState
+    ) throws -> [GameEvent] {
+        guard (oldestSupportedRulesVersion...currentRulesVersion).contains(rulesVersion) else {
+            throw MoveError.other("unsupported recorded rules version")
+        }
+        if rulesVersion == oldestSupportedRulesVersion,
+           let events = try applyRulesVersionOneException(move, by: player, to: &state) {
+            return events
+        }
+        return try apply(move, by: player, to: &state)
+    }
+
+    private static func applyRulesVersionOneException(
+        _ move: GameMove,
+        by player: PlayerID,
+        to state: inout GameState
+    ) throws -> [GameEvent]? {
+        switch (state.phase, move) {
+        case (.movingRobber(let seat), .moveRobber(let tile, nil))
+            where seat == player.index && legacyNilVictimDiffers(at: tile, player: player, state: state):
+            let stolen = try Robber.applyRulesVersionOne(
+                move: tile, stealFrom: nil, by: player, to: &state)
+            state.robberMoverIndex = nil
+            state.phase = .mainTurn(playerIndex: seat)
+            return [.movedRobber(player, from: nil, stealing: stolen)]
+
+        case (.rollDice(let seat), .playKnight(let tile, nil))
+            where seat == player.index && legacyNilVictimDiffers(at: tile, player: player, state: state):
+            return try applyLegacyKnight(tile: tile, by: player, state: &state)
+
+        case (.mainTurn(let seat), .playKnight(let tile, nil))
+            where seat == player.index && legacyNilVictimDiffers(at: tile, player: player, state: state):
+            return try applyLegacyKnight(tile: tile, by: player, state: &state)
+
+        case (.mainTurn(let seat), .playYearOfPlenty(let first, let second))
+            where seat == player.index && !DevCards.canTakeForYearOfPlenty(first, second, from: state):
+            try DevCards.playYearOfPlentyRulesVersionOne(
+                first, second, by: player, state: &state)
+            WinCondition.checkForWinner(&state)
+            var requested: [Resource: Int] = [:]
+            requested[first, default: 0] += 1
+            requested[second, default: 0] += 1
+            return [.playedYearOfPlenty(player, taken: requested)] + winEvent(state)
+
+        default:
+            return nil
+        }
+    }
+
+    private static func legacyNilVictimDiffers(
+        at tile: HexCoordinate,
+        player: PlayerID,
+        state: GameState
+    ) -> Bool {
+        !state.board.tiles.contains(where: { $0.coordinate == tile })
+            || !Robber.eligibleVictims(for: tile, thief: player, in: state).isEmpty
+    }
+
+    private static func applyLegacyKnight(
+        tile: HexCoordinate,
+        by player: PlayerID,
+        state: inout GameState
+    ) throws -> [GameEvent] {
+        let stolen = try DevCards.playKnightRulesVersionOne(
+            moveRobberTo: tile, stealFrom: nil, by: player, state: &state)
+        WinCondition.checkForWinner(&state)
+        return [.playedKnight(player, from: nil, stealing: stolen)] + winEvent(state)
+    }
+
+    /// Every complete development-card decision available to `player` in either
+    /// active turn phase. Choices are complete `GameMove`s, so presentation may
+    /// stage one without mutating state and commit it once.
+    private static func developmentCardMoves(for player: Player, in state: GameState) -> [GameMove] {
+        var moves: [GameMove] = []
+        if DevCards.canPlay(.knight, by: player.id, in: state) {
+            for tile in state.board.tiles.map(\.coordinate) where tile != state.board.robberTile {
+                let victims = Robber.eligibleVictims(for: tile, thief: player.id, in: state)
+                if victims.isEmpty {
+                    moves.append(.playKnight(moveRobberTo: tile, stealFrom: nil))
+                } else {
+                    moves += victims.map { .playKnight(moveRobberTo: tile, stealFrom: $0) }
+                }
+            }
+        }
+        if DevCards.canPlay(.roadBuilding, by: player.id, in: state) {
+            moves += DevCards.legalRoadBuildingPairs(by: player.id, in: state)
+                .map { .playRoadBuilding($0.first, $0.second) }
+        }
+        if DevCards.canPlay(.yearOfPlenty, by: player.id, in: state) {
+            for first in Resource.allCases {
+                for second in Resource.allCases where DevCards.canTakeForYearOfPlenty(first, second, from: state) {
+                    moves.append(.playYearOfPlenty(first, second))
+                }
+            }
+        }
+        if DevCards.canPlay(.monopoly, by: player.id, in: state) {
+            moves += Resource.allCases.map { .playMonopoly($0) }
+        }
+        return moves
+    }
+
+    /// Applies one active development card and returns its public result. A nil
+    /// return means the move is not a development-card move at all.
+    private static func applyDevelopmentCard(
+        _ move: GameMove,
+        by player: PlayerID,
+        to state: inout GameState
+    ) throws -> GameEvent? {
+        switch move {
+        case .playKnight(let tile, let victim):
+            let stolen = try DevCards.playKnight(
+                moveRobberTo: tile, stealFrom: victim, by: player, state: &state)
+            return .playedKnight(player, from: victim, stealing: stolen)
+        case .playRoadBuilding(let first, let second):
+            try DevCards.playRoadBuilding(first, second, by: player, state: &state)
+            return .playedRoadBuilding(player)
+        case .playYearOfPlenty(let first, let second):
+            try DevCards.playYearOfPlenty(first, second, by: player, state: &state)
+            var taken: [Resource: Int] = [:]
+            taken[first, default: 0] += 1
+            taken[second, default: 0] += 1
+            return .playedYearOfPlenty(player, taken: taken)
+        case .playMonopoly(let resource):
+            let count = try DevCards.playMonopoly(resource, by: player, state: &state)
+            return .playedMonopoly(player, resource: resource, gained: count)
+        default:
+            return nil
+        }
     }
 
     /// A `.gameWon` event, but only on the transition into `.gameOver`.

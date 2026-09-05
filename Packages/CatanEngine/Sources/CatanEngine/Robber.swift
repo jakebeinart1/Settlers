@@ -27,21 +27,25 @@ public enum Robber {
         by player: PlayerID,
         to state: inout GameState
     ) throws -> Resource? {
-        guard robberTo != state.board.robberTile else { throw MoveError.illegalPlacement }
-        // Moved once, here, before the optional steal. It was briefly assigned
-        // at both exits instead; only one ever ran, but any future early
-        // `return` inside the steal branch would then have left the robber on
-        // its old tile with the theft already applied - a silently corrupt
-        // board that nothing would report.
+        guard state.board.tiles.contains(where: { $0.coordinate == robberTo }),
+              robberTo != state.board.robberTile,
+              let thiefIndex = state.players.firstIndex(where: { $0.id == player }) else {
+            throw MoveError.illegalPlacement
+        }
+        let victims = eligibleVictims(for: robberTo, thief: player, in: state)
+        if victims.isEmpty {
+            guard stealFrom == nil else { throw MoveError.illegalPlacement }
+        } else {
+            guard let stealFrom, victims.contains(stealFrom) else { throw MoveError.illegalPlacement }
+        }
+
+        // Validate every choice before this first mutation. Moving the robber
+        // and only then rejecting an invalid victim left a partially-applied
+        // move even though `RulesEngine.apply` threw.
         state.board.robberTile = robberTo
 
         if let victimID = stealFrom {
-            guard victimID != player else { throw MoveError.illegalPlacement }
-            guard eligibleVictims(for: robberTo, thief: player, in: state).contains(victimID) else {
-                throw MoveError.illegalPlacement
-            }
             let victimIndex = state.players.firstIndex(where: { $0.id == victimID })!
-            let thiefIndex = state.players.firstIndex(where: { $0.id == player })!
 
             // Built by iterating `Resource.allCases` rather than the victim's
             // `resources` dictionary: dictionary iteration order is seeded
@@ -62,6 +66,39 @@ public enum Robber {
         }
 
         return nil
+    }
+
+    /// Exact robber semantics used by recorded moves written before rules
+    /// version 2. Version 1 allowed a nil victim even when somebody adjacent
+    /// could be robbed; current play correctly requires that choice.
+    ///
+    /// This is replay-only. New moves must always go through `apply` so they
+    /// receive current validation and atomicity.
+    static func applyRulesVersionOne(
+        move robberTo: HexCoordinate,
+        stealFrom: PlayerID?,
+        by player: PlayerID,
+        to state: inout GameState
+    ) throws -> Resource? {
+        guard robberTo != state.board.robberTile else { throw MoveError.illegalPlacement }
+        state.board.robberTile = robberTo
+
+        guard let victimID = stealFrom else { return nil }
+        guard victimID != player,
+              eligibleVictims(for: robberTo, thief: player, in: state).contains(victimID),
+              let victimIndex = state.players.firstIndex(where: { $0.id == victimID }),
+              let thiefIndex = state.players.firstIndex(where: { $0.id == player }) else {
+            throw MoveError.illegalPlacement
+        }
+        var pool: [Resource] = []
+        for resource in Resource.allCases {
+            let count = state.players[victimIndex].resources[resource] ?? 0
+            pool.append(contentsOf: repeatElement(resource, count: count))
+        }
+        let stolen = pool.randomElement(using: &state.rng)!
+        state.players[victimIndex].resources[stolen, default: 0] -= 1
+        state.players[thiefIndex].resources[stolen, default: 0] += 1
+        return stolen
     }
 
     /// Players eligible to be stolen from once the robber sits on `tile`:

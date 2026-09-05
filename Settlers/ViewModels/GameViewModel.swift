@@ -151,6 +151,12 @@ public final class GameViewModel {
     /// `humanPlayer` being pending) went away, while `GameSession.nextActor()`
     /// sat on `.awaitingExternalSeat` for a seat with no way to act.
     public var seatOwedATurn: PlayerID? {
+        // Private acknowledgements outrank ordinary turn routing. A winning
+        // Victory Point or third Knight can end the game immediately; after a
+        // cold hot-seat resume there is otherwise no phase-owned seat left to
+        // tell the cover who may safely read the result.
+        if let owner = pendingDevCardReveal?.owner, humanSeats.contains(owner) { return owner }
+        if let owner = pendingDevCardResolution?.owner, humanSeats.contains(owner) { return owner }
         if case .discarding(let pending) = state.phase {
             // Sorted: `pending` is a `Set` and Swift seeds hash order per
             // process, so `.first` on it would pick a different seat between
@@ -176,6 +182,12 @@ public final class GameViewModel {
 
     public typealias PendingTradeConfirmation = PendingTradeConfirmationState
     public private(set) var pendingTradeConfirmation: PendingTradeConfirmation?
+
+    /// Exact purchase result for the person holding the device. This is set
+    /// from `GameSession.Step.privateEvents` only after checkpoint commit.
+    public internal(set) var pendingDevCardReveal: DevCardReveal?
+    /// A human card's exact committed outcome, retained until acknowledged.
+    public internal(set) var pendingDevCardResolution: DevCardResolution?
 
     /// When each currently-pending trade offer was first proposed -
     /// `TradeOffer` itself carries no timestamp, so this is tracked
@@ -479,6 +491,8 @@ public final class GameViewModel {
     private func resetPerGameState() {
         gameGeneration &+= 1
         pendingTradeConfirmation = nil
+        pendingDevCardReveal = nil
+        pendingDevCardResolution = nil
         lastTradeOutcome = nil
         eventBatch = EventBatch(sequence: eventBatch.sequence + 1, events: [])
         offerProposedAt = [:]
@@ -512,6 +526,8 @@ public final class GameViewModel {
         session = candidate
         pendingEvents += step.events
         eventBatch = EventBatch(sequence: eventBatch.sequence + 1, events: pendingEvents)
+        pendingDevCardReveal = next.pendingDevCardReveal
+        pendingDevCardResolution = next.pendingDevCardResolution
         if case .proposeTrade(let offer) = step.move { offerProposedAt[offer.id] = Date() }
         let stillPending = Set(state.pendingTradeOffers.map(\.id))
         offerProposedAt = offerProposedAt.filter { stillPending.contains($0.key) }
@@ -523,6 +539,36 @@ public final class GameViewModel {
     }
 
     public func dismissGameLogWarning() { gameLogWarningState = nil }
+
+    /// Dismisses only the private presentation; the bought card is already in
+    /// the durable game checkpoint and is intentionally untouched.
+    @discardableResult
+    public func dismissDevCardReveal() -> Bool {
+        guard let document = checkpointDocument else { return false }
+        do {
+            try commitDocument(document.dismissingDevCardReveal())
+            pendingDevCardReveal = nil
+            return true
+        } catch {
+            _ = reportPersistenceFailure(error)
+            return false
+        }
+    }
+
+    /// Acknowledges only the presentation receipt. The card's rule effects
+    /// are already committed and remain untouched.
+    @discardableResult
+    public func dismissDevCardResolution() -> Bool {
+        guard let document = checkpointDocument else { return false }
+        do {
+            try commitDocument(document.dismissingDevCardResolution())
+            pendingDevCardResolution = nil
+            return true
+        } catch {
+            _ = reportPersistenceFailure(error)
+            return false
+        }
+    }
 
     /// Resolves every Random chair strictly inside the selected pool.
     ///
@@ -565,8 +611,19 @@ public final class GameViewModel {
     /// Commit the human's move before publishing it or starting any bots.
     /// Engine rejection and durable-write failure are distinct caller errors.
     public func apply(_ move: GameMove) throws {
+        try commitHumanMove(move)
+        Task { await runBotTurnIfNeeded() }
+    }
+
+    /// The synchronous half of `apply`. Keeping scheduling outside this method
+    /// gives deterministic QA one bot runner to await instead of racing the
+    /// production fire-and-forget task against a second call to the loop.
+    private func commitHumanMove(_ move: GameMove) throws {
         if let message = savedGameAvailability.recoveryMessage {
             throw SavedGameRecoveryError.blocked(message)
+        }
+        guard pendingDevCardReveal == nil, pendingDevCardResolution == nil else {
+            throw MoveError.other("Review the development card before continuing.")
         }
         beginEventBatch()
         // A bot negotiation belongs to the turn that started it. Left standing
@@ -583,8 +640,15 @@ public final class GameViewModel {
         if case .proposeTrade(let offer) = move, offer.from == humanPlayer {
             try resolveHumanProposedTrade(offer)
         }
-        Task { await runBotTurnIfNeeded() }
     }
+
+    #if DEBUG
+    /// Applies a QA move and waits until automation yields back to a person.
+    func qaApplyAndAwaitAutomatedTurns(_ move: GameMove) async throws {
+        try commitHumanMove(move)
+        await runBotTurnIfNeeded()
+    }
+    #endif
 
     /// Bots only ever get to accept/reject a pending offer as part of their
     /// *own* `mainTurn` (see `RulesEngine.legalMoves`'s `.respondToTrade`
@@ -708,6 +772,16 @@ public final class GameViewModel {
                 }
                 beginEventBatch()
                 try commitStep(step, candidate: candidate)
+                // This fixture owns every chair and has no person available to
+                // tap the private acknowledgement surfaces. Explicitly model
+                // those taps so receipts are cleared through the same durable
+                // APIs as production, rather than silently overwriting them.
+                if pendingDevCardReveal != nil, !dismissDevCardReveal() {
+                    preconditionFailure("QA complete match could not acknowledge a card purchase")
+                }
+                if pendingDevCardResolution != nil, !dismissDevCardResolution() {
+                    preconditionFailure("QA complete match could not acknowledge a card result")
+                }
             } catch {
                 preconditionFailure("QA complete match failed: \(error)")
             }
@@ -1017,15 +1091,13 @@ public final class GameViewModel {
     /// player setup failed restoration. Recovery status holds the explanation.
     public internal(set) var saveWasUnreadable = false
 
-    /// True while `InGameSettingsView` is on screen. The bot loop stops on it
-    /// for the same reason it stops on `openIncomingOffer`: a surface the
-    /// player is reading must not have the game move underneath it (spec
-    /// B3.4). Without this, opening the settings mid-bot-turn left the bots
-    /// playing on behind the screen, and the player came back to a position
-    /// they had not seen reached.
+    /// True while a blocking reading/decision surface is on screen. The bot
+    /// loop stops for settings and the development-card hand so the board,
+    /// bank and card status cannot change underneath what the player is
+    /// reading. Private receipts have their own durable gates as well.
     ///
     /// Written by `GameView`, which mirrors its own presentation state here.
-    public var isSettingsSurfaceOpen = false
+    public var isBlockingSurfaceOpen = false
 
     public func runBotTurnIfNeeded() async {
         guard savedGameAvailability.canResume, appIsActive, !persistenceBlocked, !isProcessingBotTurns else { return }
@@ -1060,13 +1132,14 @@ public final class GameViewModel {
             // frozen forever. Returning lets `defer` clear it, and the restart
             // already exists: answering the offer goes through `apply`, which
             // ends in `Task { await runBotTurnIfNeeded() }`.
-            if openIncomingOffer != nil { return }
+            if openIncomingOffer != nil || pendingDevCardReveal != nil
+                || pendingDevCardResolution != nil { return }
 
             // Same `return`-don't-park reasoning as the offer check above:
             // parking here would hold `isProcessingBotTurns` for as long as
-            // the settings screen stayed open, and the restart already exists
-            // - `GameView` kicks `runBotTurnIfNeeded()` again on dismissal.
-            if isSettingsSurfaceOpen { return }
+            // the surface stayed open, and `GameView` restarts the loop when
+            // the final blocking surface closes.
+            if isBlockingSurfaceOpen { return }
 
             // Pacing, not thinking: the bots decide instantly and this is the
             // only reason a turn is watchable.
@@ -1078,14 +1151,16 @@ public final class GameViewModel {
             try? await Task.sleep(for: .seconds(PacingPreferences.shared.aiTurnSpeed.secondsPerBotAction))
             // The game may have been restarted while this loop slept.
             guard generation == gameGeneration, appIsActive, !Task.isCancelled,
-                  !isSettingsSurfaceOpen, openIncomingOffer == nil else { return }
+                  !isBlockingSurfaceOpen, openIncomingOffer == nil,
+                  pendingDevCardReveal == nil, pendingDevCardResolution == nil else { return }
 
             let revision = checkpointDocument?.revision
             var candidate = session
             guard let (seat, move) = candidate.decideNext() else { break }
             await waitForFairAcceptWindow(before: move)
             guard generation == gameGeneration, appIsActive, !Task.isCancelled, !persistenceBlocked,
-                  !isSettingsSurfaceOpen, openIncomingOffer == nil else { return }
+                  !isBlockingSurfaceOpen, openIncomingOffer == nil,
+                  pendingDevCardReveal == nil, pendingDevCardResolution == nil else { return }
             guard revision == checkpointDocument?.revision else { continue }
             do {
                 let step = try candidate.commit(seat: seat, move: move)

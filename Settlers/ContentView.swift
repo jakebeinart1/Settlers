@@ -42,6 +42,8 @@ struct ContentView: View {
     var body: some View {
         Group {
             if case .gameOver = viewModel.state.phase, hasStartedThisSession,
+               viewModel.pendingDevCardReveal == nil,
+               viewModel.pendingDevCardResolution == nil,
                viewModel.savedGameAvailability.recoveryMessage == nil {
                 EndGameView(state: viewModel.state, humanSeats: viewModel.humanSeats,
                             playerIdentity: viewModel.playerIdentity) {
@@ -59,6 +61,11 @@ struct ContentView: View {
                         // one so the handoff cover is deterministic for visual
                         // QA and native interaction tests.
                         guard QALaunchFlag.twoHumans.isSet else { return }
+                        // The card-reveal fixture creates and persists its own
+                        // two-human roster before buying the card, then drops
+                        // the device claim. Replacing that match here would
+                        // correctly clear the private receipt we are testing.
+                        guard !QALaunchFlag.showDevCardReveal.isSet else { return }
                         viewModel.qaMakeHotSeat()
                     }
                 #endif

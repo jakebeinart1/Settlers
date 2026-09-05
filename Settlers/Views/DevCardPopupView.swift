@@ -1,162 +1,561 @@
 import SwiftUI
 import CatanEngine
 
-/// Small overlay card for playing a dev card, opened by tapping its tile in
-/// `HumanPlayerPanel` (replaces the old `DevCardPanelView` sheet + separate
-/// `RobberTargetView` sheet). Year of Plenty/Monopoly resolve entirely here
-/// (bank-only, no board interaction); Knight/Road Building just confirm
-/// intent, then hand off to `GameView` to arm the same inline board flow
-/// used for the mandatory post-7-roll robber move.
-public struct DevCardPopupView: View {
-    public let type: DevCardType
-    /// Called once the human confirms playing a Knight or Road Building card
-    /// - `GameView` arms the matching inline board flow in response.
-    public let onPlayBoardCard: (DevCardType) -> Void
-    public let onPlayYearOfPlenty: (Resource, Resource) -> Void
-    public let onPlayMonopoly: (Resource) -> Void
-    public let onCancel: () -> Void
-
-    public init(
-        type: DevCardType,
-        onPlayBoardCard: @escaping (DevCardType) -> Void,
-        onPlayYearOfPlenty: @escaping (Resource, Resource) -> Void,
-        onPlayMonopoly: @escaping (Resource) -> Void,
-        onCancel: @escaping () -> Void
-    ) {
-        self.type = type
-        self.onPlayBoardCard = onPlayBoardCard
-        self.onPlayYearOfPlenty = onPlayYearOfPlenty
-        self.onPlayMonopoly = onPlayMonopoly
-        self.onCancel = onCancel
+/// The owner's complete development-card surface: purchase reveal, durable
+/// hand, inspectable details, legal resource choices, and play actions.
+///
+/// This deliberately does not use `PopupCard`. A purchase reveal must never
+/// disappear from an outside tap, and the longest detail state must remain
+/// usable on a 375×667 phone and at large text sizes. The painted card is
+/// clamped to the safe frame and only its middle content scrolls; its title
+/// and acknowledgement actions stay visible.
+struct DevelopmentCardOverlay: View {
+    enum Mode: Equatable {
+        case hand
+        case reveal(DevCardReveal)
     }
 
-    // Picks are counted dictionaries (like `TradePopupView`'s Give/Want)
-    // rather than plain `Resource?`/`(Resource, Resource)` state, so the
-    // same `ResourceSlotRow`/`ResourceChip` "dots" the trade view uses for
-    // Give/Want can display and un-pick them the same way - tap a dot below
-    // to add, tap it in the chosen row to take it back out. Year of Plenty
-    // allows picking the same resource twice, which a dictionary of counts
-    // represents naturally; Monopoly just caps its own dictionary at 1.
-    @State private var yopPicks: [Resource: Int] = [:]
-    @State private var monopolyPicks: [Resource: Int] = [:]
+    let mode: Mode
+    let state: GameState
+    let player: PlayerID
+    @Binding var selectedType: DevCardType?
+    let onBeginBoardCard: (DevCardType) -> Void
+    let onCommit: (GameMove) -> String?
+    let onViewCards: (DevCardType) -> Void
+    let onDismiss: () -> Void
 
-    public var body: some View {
-        PopupCard(onDismiss: onCancel) {
-            VStack(spacing: 14) {
-                HStack(spacing: 8) {
-                    Image(systemName: icon)
-                        .foregroundStyle(color)
-                    Text(title)
-                        .font(.headline)
-                }
+    @State private var yearOfPlentyPicks: [Resource: Int] = [:]
+    @State private var monopolyPick: Resource?
+    @State private var errorMessage: String?
 
-                switch type {
-                case .knight:
-                    Text("Move the robber and steal a card from a neighboring player.")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                    confirmRow(title: "Play Knight") { onPlayBoardCard(.knight) }
-                case .roadBuilding:
-                    Text("Build two roads for free.")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                    confirmRow(title: "Play Road Building") { onPlayBoardCard(.roadBuilding) }
-                case .yearOfPlenty:
-                    resourcePickerCard(title: "Choose 2 resources", picks: $yopPicks, limit: 2)
-                    confirmRow(title: "Play Year of Plenty", isEnabled: totalPicks(yopPicks) == 2) {
-                        let picked = expand(yopPicks)
-                        onPlayYearOfPlenty(picked[0], picked[1])
-                    }
-                case .monopoly:
-                    resourcePickerCard(title: "Choose 1 resource", picks: $monopolyPicks, limit: 1)
-                    confirmRow(title: "Play Monopoly", isEnabled: totalPicks(monopolyPicks) == 1) {
-                        onPlayMonopoly(expand(monopolyPicks)[0])
-                    }
-                case .victoryPoint:
-                    Text("Victory Point cards are never played - they just count toward your total.")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                }
-            }
-            .padding(16)
-            .frame(maxWidth: 340)
+    private var inventory: [DevCardInventoryItem] {
+        DevCardInventoryItem.all(for: player, in: state)
+    }
+
+    private var displayedType: DevCardType? {
+        switch mode {
+        case .reveal(let reveal): reveal.card
+        case .hand: selectedType ?? inventory.first?.type
         }
     }
 
-    // MARK: - Resource picker (Year of Plenty / Monopoly)
+    var body: some View {
+        GeometryReader { geometry in
+            ZStack {
+                Color.black.opacity(0.68)
+                    .ignoresSafeArea()
 
-    /// Same chosen-slot-plus-palette shape as `TradePopupView`'s Give/Want:
-    /// a `ResourceSlotRow` showing what's picked so far (tap a dot there to
-    /// un-pick it), then a row of all five resources to tap and add - capped
-    /// at `limit` total picks so Monopoly can't take more than one and Year
-    /// of Plenty can't take more than two.
-    private func resourcePickerCard(title: String, picks: Binding<[Resource: Int]>, limit: Int) -> some View {
-        VStack(alignment: .leading, spacing: 6) {
+                VStack(spacing: 0) {
+                    header
+                        .padding(.horizontal, 18)
+                        .padding(.top, 16)
+                        .padding(.bottom, 10)
+
+                    Divider().overlay(SettingsChrome.ornamentGold.opacity(0.35))
+
+                    ScrollView {
+                        VStack(spacing: 14) {
+                            if mode == .hand { handStrip }
+                            if let type = displayedType {
+                                cardDetail(type)
+                            } else {
+                                emptyHand
+                            }
+                        }
+                        .padding(16)
+                    }
+                    .scrollIndicators(.visible)
+
+                    Divider().overlay(SettingsChrome.ornamentGold.opacity(0.35))
+                    actionArea
+                        .padding(14)
+                }
+                .frame(maxWidth: 366)
+                .frame(maxHeight: max(320, geometry.size.height - 28))
+                .background(
+                    PaintedChromeBackground(
+                        fill: .tintedTexture(SettingsChrome.screenBackground),
+                        cornerRadius: 18,
+                        notchScale: 0.9
+                    )
+                )
+                .padding(.horizontal, 14)
+                .padding(.vertical, 14)
+                .shadow(color: .black.opacity(0.65), radius: 28, y: 12)
+            }
+        }
+        .accessibilityElement(children: .contain)
+        .accessibilityIdentifier(AccessibilityID.DevCards.overlay)
+        .transition(.opacity.combined(with: .scale(scale: 0.97)))
+        .onChange(of: selectedType) { _, _ in resetChoices() }
+    }
+
+    private var header: some View {
+        HStack(spacing: 10) {
+            Image(systemName: mode == .hand ? "rectangle.stack.fill" : "sparkles.rectangle.stack.fill")
+                .font(.title3)
+                .foregroundStyle(SettingsChrome.ornamentGold)
+            VStack(alignment: .leading, spacing: 2) {
+                Text(mode == .hand ? "Development Cards" : "New Development Card")
+                    .font(.system(size: 21, weight: .bold, design: .serif))
+                    .foregroundStyle(.white)
+                Text(mode == .hand ? "Inspect your hand and choose a card." : "Added safely to your private hand.")
+                    .font(.caption)
+                    .foregroundStyle(.white.opacity(0.72))
+            }
+            Spacer(minLength: 0)
+        }
+    }
+
+    private var handStrip: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack {
+                Text("YOUR HAND")
+                    .font(.caption.bold())
+                    .foregroundStyle(SettingsChrome.ornamentGold)
+                Spacer()
+                Text("\(inventory.reduce(0) { $0 + $1.held }) cards")
+                    .font(.caption)
+                    .foregroundStyle(.white.opacity(0.68))
+            }
+
+            if inventory.isEmpty {
+                SettingsInfoPlaque(text: "Your first purchased development card will appear here.")
+            } else {
+                ScrollView(.horizontal, showsIndicators: true) {
+                    HStack(spacing: 8) {
+                        ForEach(inventory) { item in
+                            DevCardHandTile(item: item, isSelected: displayedType == item.type) {
+                                selectedType = item.type
+                            }
+                        }
+                    }
+                    .padding(.vertical, 2)
+                }
+            }
+        }
+    }
+
+    private func cardDetail(_ type: DevCardType) -> some View {
+        let status = displayedStatus(for: type)
+        return VStack(spacing: 12) {
+            DevCardArtwork(type: type)
+
+            VStack(spacing: 5) {
+                Text(DevCardStyle.fullName(for: type))
+                    .font(.system(size: 24, weight: .bold, design: .serif))
+                    .foregroundStyle(.white)
+                    .multilineTextAlignment(.center)
+                    .accessibilityIdentifier(AccessibilityID.DevCards.detail(type))
+                Text(DevCardStyle.effect(for: type))
+                    .font(.system(size: 14, design: .serif))
+                    .foregroundStyle(.white.opacity(0.82))
+                    .multilineTextAlignment(.center)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+
+            DevCardStatusPlaque(type: type, status: status)
+
+            if mode == .hand, status.isPlayable {
+                choiceArea(for: type)
+            }
+
+            if let errorMessage {
+                Text(errorMessage)
+                    .font(.caption)
+                    .foregroundStyle(.red)
+                    .multilineTextAlignment(.center)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+        }
+    }
+
+    /// A purchase reveal describes the one card that just entered the hand,
+    /// not the aggregate stack. If an older Monopoly is ready and a second is
+    /// bought, the new copy still becomes playable on a later turn.
+    private func displayedStatus(for type: DevCardType) -> DevCardPlayStatus {
+        if case .reveal(let reveal) = mode,
+           reveal.card == type,
+           type != .victoryPoint {
+            return .boughtThisTurn
+        }
+        return DevCards.playStatus(type, by: player, in: state)
+    }
+
+    @ViewBuilder
+    private func choiceArea(for type: DevCardType) -> some View {
+        switch type {
+        case .yearOfPlenty:
+            resourceChooser(
+                title: "Choose two from the bank",
+                selected: yearOfPlentyPicks,
+                canSelect: canAddYearOfPlenty,
+                onSelect: addYearOfPlenty,
+                onRemove: removeYearOfPlenty
+            )
+        case .monopoly:
+            resourceChooser(
+                title: "Name one resource",
+                selected: monopolyPick.map { [$0: 1] } ?? [:],
+                canSelect: { _ in true },
+                onSelect: { monopolyPick = $0 },
+                onRemove: { _ in monopolyPick = nil }
+            )
+        case .knight, .roadBuilding, .victoryPoint:
+            EmptyView()
+        }
+    }
+
+    private func resourceChooser(
+        title: String,
+        selected: [Resource: Int],
+        canSelect: @escaping (Resource) -> Bool,
+        onSelect: @escaping (Resource) -> Void,
+        onRemove: @escaping (Resource) -> Void
+    ) -> some View {
+        VStack(alignment: .leading, spacing: 8) {
             Text(title)
                 .font(.caption.bold())
-                .foregroundStyle(.secondary)
-            ResourceSlotRow(counts: picks.wrappedValue) { resource in
-                picks.wrappedValue[resource] = (picks.wrappedValue[resource] ?? 0) - 1
-                if picks.wrappedValue[resource] == 0 { picks.wrappedValue[resource] = nil }
-            }
+                .foregroundStyle(SettingsChrome.ornamentGold)
+            ResourceSlotRow(counts: selected, onTap: onRemove)
             HStack(spacing: 8) {
                 ForEach(Resource.allCases, id: \.self) { resource in
-                    let canAdd = totalPicks(picks.wrappedValue) < limit
-                    ResourceChip(resource: resource, count: nil, isEnabled: canAdd) {
-                        picks.wrappedValue[resource] = (picks.wrappedValue[resource] ?? 0) + 1
+                    ResourceChip(
+                        resource: resource,
+                        count: state.bank[resource] ?? 0,
+                        isEnabled: canSelect(resource)
+                    ) {
+                        onSelect(resource)
                     }
+                    .accessibilityIdentifier(AccessibilityID.DevCards.resource(resource))
                 }
             }
         }
+        .padding(10)
+        .background(PaintedChromeBackground(fill: .color(SettingsChrome.plaqueFill), cornerRadius: 10))
     }
 
-    private func totalPicks(_ picks: [Resource: Int]) -> Int {
-        picks.values.reduce(0, +)
+    private var emptyHand: some View {
+        VStack(spacing: 14) {
+            DevCardArtwork(type: .victoryPoint, isEmpty: true)
+            Text("No development cards yet")
+                .font(.headline)
+                .foregroundStyle(.white)
+            Text("Buy one from Build using 1 ore, 1 grain, and 1 wool.")
+                .font(.caption)
+                .foregroundStyle(.white.opacity(0.72))
+                .multilineTextAlignment(.center)
+        }
+        .padding(.vertical, 12)
     }
 
-    /// Flattens a counted-picks dictionary back into a plain list, e.g.
-    /// `[.brick: 2]` -> `[.brick, .brick]`.
-    private func expand(_ picks: [Resource: Int]) -> [Resource] {
-        picks.flatMap { resource, count in Array(repeating: resource, count: count) }
-    }
+    @ViewBuilder
+    private var actionArea: some View {
+        switch mode {
+        case .reveal(let reveal):
+            VStack(spacing: 9) {
+                GoldRowButton(
+                    title: "View My Cards",
+                    systemImage: "rectangle.stack.fill",
+                    iconColor: DevCardStyle.color(for: reveal.card)
+                ) {
+                    onViewCards(reveal.card)
+                }
+                .accessibilityIdentifier(AccessibilityID.DevCards.viewHand)
 
-    private func confirmRow(title: String, isEnabled: Bool = true, action: @escaping () -> Void) -> some View {
-        // Stacked, not side-by-side - "Play Monopoly"/"Play Year of Plenty"
-        // wrapped mid-word when squeezed into half this popup's width
-        // alongside Cancel (see chat).
-        VStack(spacing: 10) {
-            GoldRowButton(title: "Cancel", systemImage: "xmark", action: onCancel)
-            GoldRowButton(title: title, systemImage: "checkmark", iconColor: color, isEnabled: isEnabled, action: action)
+                GoldRowButton(
+                    title: revealButtonTitle(reveal),
+                    systemImage: revealButtonIcon(reveal),
+                    iconColor: SettingsChrome.ornamentGold,
+                    action: onDismiss
+                )
+                .accessibilityIdentifier(AccessibilityID.DevCards.continueAction)
+            }
+        case .hand:
+            VStack(spacing: 9) {
+                if let type = displayedType, type != .victoryPoint {
+                    let status = DevCards.playStatus(type, by: player, in: state)
+                    GoldRowButton(
+                        title: playButtonTitle(for: type),
+                        subtitle: status.isPlayable ? playButtonSubtitle(for: type) : DevCardStyle.statusTitle(for: status),
+                        systemImage: "play.fill",
+                        iconColor: DevCardStyle.color(for: type),
+                        isEnabled: canSubmit(type, status: status)
+                    ) {
+                        submit(type)
+                    }
+                    .accessibilityIdentifier(AccessibilityID.DevCards.play(type))
+                }
+                GoldRowButton(title: "Close", systemImage: "xmark", action: onDismiss)
+                    .accessibilityIdentifier(AccessibilityID.DevCards.close)
+            }
         }
     }
 
-    // See `DevCardStyle` - shared with the HUD's dev-card strip.
-    private var icon: String { DevCardStyle.icon(for: type) }
-    private var color: Color { DevCardStyle.color(for: type) }
-    private var title: String { DevCardStyle.fullName(for: type) }
+    private func revealButtonTitle(_ reveal: DevCardReveal) -> String {
+        if reveal.card == .victoryPoint, case .gameOver = state.phase { return "Claim Victory" }
+        return "Continue"
+    }
+
+    private func revealButtonIcon(_ reveal: DevCardReveal) -> String {
+        if reveal.card == .victoryPoint, case .gameOver = state.phase { return "crown.fill" }
+        return "checkmark"
+    }
+
+    private func playButtonTitle(for type: DevCardType) -> String {
+        "Play \(DevCardStyle.fullName(for: type))"
+    }
+
+    private func playButtonSubtitle(for type: DevCardType) -> String? {
+        switch type {
+        case .knight: "Choose the robber's destination"
+        case .roadBuilding: "Choose two roads on the board"
+        case .yearOfPlenty: "\(yearOfPlentyPicks.values.reduce(0, +)) of 2 selected"
+        case .monopoly: monopolyPick.map { $0.rawValue.capitalized } ?? "Choose a resource"
+        case .victoryPoint: nil
+        }
+    }
+
+    private func canSubmit(_ type: DevCardType, status: DevCardPlayStatus) -> Bool {
+        guard status.isPlayable else { return false }
+        switch type {
+        case .yearOfPlenty: return yearOfPlentyPicks.values.reduce(0, +) == 2
+        case .monopoly: return monopolyPick != nil
+        case .knight, .roadBuilding: return true
+        case .victoryPoint: return false
+        }
+    }
+
+    private func submit(_ type: DevCardType) {
+        switch type {
+        case .knight, .roadBuilding:
+            onBeginBoardCard(type)
+        case .yearOfPlenty:
+            let resources = expandedYearOfPlenty
+            guard resources.count == 2 else { return }
+            errorMessage = onCommit(.playYearOfPlenty(resources[0], resources[1]))
+        case .monopoly:
+            guard let monopolyPick else { return }
+            errorMessage = onCommit(.playMonopoly(monopolyPick))
+        case .victoryPoint:
+            break
+        }
+    }
+
+    private var expandedYearOfPlenty: [Resource] {
+        Resource.allCases.flatMap { resource in
+            Array(repeating: resource, count: yearOfPlentyPicks[resource] ?? 0)
+        }
+    }
+
+    private func canAddYearOfPlenty(_ resource: Resource) -> Bool {
+        let picks = expandedYearOfPlenty
+        guard picks.count < 2 else { return false }
+        guard let first = picks.first else { return (state.bank[resource] ?? 0) > 0 }
+        return DevCards.canTakeForYearOfPlenty(first, resource, from: state)
+    }
+
+    private func addYearOfPlenty(_ resource: Resource) {
+        guard canAddYearOfPlenty(resource) else { return }
+        yearOfPlentyPicks[resource, default: 0] += 1
+    }
+
+    private func removeYearOfPlenty(_ resource: Resource) {
+        yearOfPlentyPicks[resource, default: 0] -= 1
+        if yearOfPlentyPicks[resource] == 0 { yearOfPlentyPicks[resource] = nil }
+    }
+
+    private func resetChoices() {
+        yearOfPlentyPicks = [:]
+        monopolyPick = nil
+        errorMessage = nil
+    }
 }
 
-/// Shared themed card chrome for the popups that replaced sheets in this
-/// pass (`DevCardPopupView`, `TradePopupView`): a dimmed scrim behind a
-/// rounded card, tap-outside-to-dismiss via the scrim. No scroll mechanism -
-/// an earlier version of this scrolled/capped tall content (added when
-/// `TradePopupView`'s "a bot will accept" banner briefly overflowed its
-/// reserved space - see `TradePopupView.statusRegionHeight`'s own doc
-/// comment), but that overflow was the actual bug, not something to scroll
-/// around; every popup's content is sized to always fit on screen as-is, so
-/// there's nothing here that needs to scroll (per Jake's ask).
+/// Explicit result acknowledgement for successful active-card plays.
+struct DevelopmentCardResultOverlay: View {
+    let resolution: DevCardResolution
+    let playerIdentity: (PlayerID) -> PlayerIdentity
+    let isWinningResult: Bool
+    let onContinue: () -> Void
+
+    var body: some View {
+        PopupCard(onDismiss: {}, content: {
+            VStack(spacing: 14) {
+                DevCardArtwork(type: resolution.card)
+                Text("\(DevCardStyle.fullName(for: resolution.card)) resolved")
+                    .font(.system(size: 22, weight: .bold, design: .serif))
+                    .accessibilityIdentifier(AccessibilityID.DevCards.result)
+                Text(message)
+                    .font(.system(size: 14, design: .serif))
+                    .foregroundStyle(.white.opacity(0.82))
+                    .multilineTextAlignment(.center)
+                    .fixedSize(horizontal: false, vertical: true)
+                GoldRowButton(
+                    title: isWinningResult ? "Claim Victory" : "Continue",
+                    systemImage: isWinningResult ? "crown.fill" : "checkmark",
+                    iconColor: SettingsChrome.ornamentGold,
+                    action: onContinue
+                )
+                .accessibilityIdentifier(AccessibilityID.DevCards.resultContinue)
+            }
+            .padding(18)
+            .frame(maxWidth: 330)
+        })
+    }
+
+    private var message: String {
+        switch resolution {
+        case .knight(_, let victim, let stolen):
+            guard let victim else { return "The robber moved. No rival was eligible to steal from." }
+            let name = playerIdentity(victim).displayName
+            if let stolen { return "You stole 1 \(stolen.rawValue) from \(name)." }
+            return "The robber moved beside \(name), who had no resource card to steal."
+        case .roadBuilding:
+            return "Both free roads were placed together and your network has been updated."
+        case .yearOfPlenty(_, let taken):
+            let parts = Resource.allCases.compactMap { resource -> String? in
+                guard let count = taken[resource], count > 0 else { return nil }
+                return "\(count) \(resource.rawValue)"
+            }
+            return "The bank gave you \(parts.joined(separator: " and "))."
+        case .monopoly(_, let resource, let gained):
+            if gained == 0 { return "No rival held any \(resource.rawValue). You collected 0 cards." }
+            return "Every rival surrendered their \(resource.rawValue). You collected \(gained) cards."
+        }
+    }
+}
+
+private struct DevCardArtwork: View {
+    let type: DevCardType
+    var isEmpty = false
+
+    var body: some View {
+        ZStack {
+            RoundedRectangle(cornerRadius: 16)
+                .fill(DevCardStyle.color(for: type).opacity(isEmpty ? 0.14 : 0.32).gradient)
+            Circle()
+                .stroke(SettingsChrome.ornamentGold.opacity(0.32), lineWidth: 1)
+                .frame(width: 104, height: 104)
+            Circle()
+                .stroke(.white.opacity(0.16), lineWidth: 1)
+                .frame(width: 78, height: 78)
+            Image(systemName: isEmpty ? "rectangle.stack.badge.plus" : DevCardStyle.icon(for: type))
+                .font(.system(size: 48, weight: .semibold))
+                .foregroundStyle(isEmpty ? .white.opacity(0.5) : DevCardStyle.color(for: type))
+                .shadow(color: .black.opacity(0.5), radius: 4, y: 2)
+        }
+        .frame(height: 124)
+        .overlay(
+            RoundedRectangle(cornerRadius: 16)
+                .strokeBorder(SettingsChrome.ornamentGold.opacity(0.7), lineWidth: 1.25)
+        )
+        .accessibilityHidden(true)
+    }
+}
+
+private struct DevCardStatusPlaque: View {
+    let type: DevCardType
+    let status: DevCardPlayStatus
+
+    var body: some View {
+        HStack(alignment: .top, spacing: 9) {
+            Image(systemName: icon)
+                .foregroundStyle(color)
+                .frame(width: 20)
+            VStack(alignment: .leading, spacing: 2) {
+                Text(DevCardStyle.statusTitle(for: status))
+                    .font(.subheadline.bold())
+                Text(DevCardStyle.statusDetail(for: status, type: type))
+                    .font(.caption)
+                    .foregroundStyle(.white.opacity(0.72))
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            Spacer(minLength: 0)
+        }
+        .foregroundStyle(.white)
+        .padding(11)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(PaintedChromeBackground(fill: .color(SettingsChrome.plaqueFill), cornerRadius: 10))
+        .accessibilityElement(children: .combine)
+        .accessibilityIdentifier(AccessibilityID.DevCards.status)
+    }
+
+    private var icon: String {
+        switch status {
+        case .playable: "checkmark.seal.fill"
+        case .passiveVictoryPoint: "star.circle.fill"
+        case .boughtThisTurn: "clock.badge.checkmark"
+        case .notOwned, .waitingForYourTurn, .alreadyPlayedThisTurn,
+             .resolveRequiredAction, .noLegalChoices, .gameOver: "hourglass.circle.fill"
+        }
+    }
+
+    private var color: Color {
+        status.isPlayable || status == .passiveVictoryPoint ? .green : SettingsChrome.ornamentGold
+    }
+}
+
+private struct DevCardHandTile: View {
+    let item: DevCardInventoryItem
+    let isSelected: Bool
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            VStack(spacing: 4) {
+                Image(systemName: DevCardStyle.icon(for: item.type))
+                    .font(.title3)
+                Text(DevCardStyle.shortName(for: item.type))
+                    .font(.system(size: 10, weight: .bold, design: .serif))
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.75)
+                Text("×\(item.held)")
+                    .font(.caption2.bold())
+                Text(badge)
+                    .font(.system(size: 8, weight: .bold, design: .serif))
+                    .lineLimit(1)
+            }
+            .foregroundStyle(.white)
+            .frame(width: 70, height: 76)
+            .background(
+                RoundedRectangle(cornerRadius: 11)
+                    .fill(DevCardStyle.color(for: item.type).opacity(0.48).gradient)
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 11)
+                    .strokeBorder(isSelected ? SettingsChrome.ornamentGold : .white.opacity(0.28),
+                                  lineWidth: isSelected ? 2.5 : 1)
+            )
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(accessibilityLabel)
+        .accessibilityAddTraits(isSelected ? [.isButton, .isSelected] : [.isButton])
+        .accessibilityIdentifier(AccessibilityID.DevCards.tile(item.type))
+    }
+
+    private var badge: String {
+        if item.status == .passiveVictoryPoint { return "PASSIVE" }
+        if item.ready > 0, item.boughtThisTurn > 0 {
+            return "\(item.ready) READY · \(item.boughtThisTurn) NEW"
+        }
+        if item.ready > 0 { return "\(item.ready) READY" }
+        return "\(item.boughtThisTurn) NEW"
+    }
+
+    private var accessibilityLabel: String {
+        let name = DevCardStyle.fullName(for: item.type)
+        if item.status == .passiveVictoryPoint { return "\(name), \(item.held) owned, passive" }
+        return "\(name), \(item.held) owned, \(item.ready) ready, \(item.boughtThisTurn) new"
+    }
+}
+
+/// Shared themed card chrome for compact popups. Persistent development-card
+/// content uses `DevelopmentCardOverlay` because it has different dismissal
+/// and safe-height requirements.
 public struct PopupCard<Content: View>: View {
     public let onDismiss: () -> Void
     @ViewBuilder public let content: Content
-
-    /// Where the card sits in the screen.
-    ///
-    /// `.center` for anything whose height is fixed. `.top` for a popup whose
-    /// content can change height while it is open: centred, growing by 100pt
-    /// moves the card 50pt UP, so every control the player is looking at -
-    /// including the control they just tapped - slides under their finger. The
-    /// trade popup switches between two modes of different heights and did
-    /// exactly that, which read as the tab highlight bobbing vertically.
     public var alignment: Alignment = .center
 
     public init(onDismiss: @escaping () -> Void,
@@ -184,8 +583,6 @@ public struct PopupCard<Content: View>: View {
                 )
                 .foregroundStyle(CatanTheme.onWaterText)
                 .padding(.horizontal, 32)
-                // Only bites when top-aligned; keeps the card clear of the
-                // status bar and the bot HUD row.
                 .padding(.top, alignment == .top ? 96 : 0)
                 .shadow(radius: 20)
         }
