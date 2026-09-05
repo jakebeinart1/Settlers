@@ -131,6 +131,77 @@ None of the reviewed checkpoints has 5,182 inputs and 9,335 outputs. Padding, tr
 
 Eli6th and nogulong are the only current artifacts that justify paying this validation cost. Charlesworth would join that set only if reuse permission is obtained.
 
+### Exact Empires-versus-Eli representation comparison
+
+The raw widths make the systems look farther apart than they are. Their board
+representations are nearly the same; Empires becomes much larger because it
+reserves 256 full trade-offer rows and flattens several multi-step decisions
+into single action ids.
+
+#### State supplied to the network
+
+| Block | Empires | Eli6th | Consequence |
+| --- | ---: | ---: | --- |
+| 19 tiles + 54 vertices + 72 edges, including robber | 1,196 | 1,196 | Both use the same board cardinalities, one-hot resources/buildings/roads, relative ownership, ports, production strength, and robber location. A coordinate bijection still has to prove that slot 0 names the same physical place |
+| Player public/private information | 124 | 113 | Both rotate opponents relative to the observing seat and can expose or hide exact hands. Their exact counters and normalization constants differ |
+| Bank, phase, turn, and other context | 22 | 25 | Empires has one seven-way phase representation plus observer context; Eli separates four game phases from nine turn phases and records turn number, remaining road placements, and trades left |
+| Trade state | 3,840 | 16 | Empires reserves 256 rows × 15 values so any pending offer can be answered. Eli represents one active offer containing proposer, one offered resource/amount, and one requested resource |
+| **Total** | **5,182** | **1,350** | **3,824 of the 3,832-slot difference is trade representation; it is not a fundamentally different board model** |
+
+The exact Empires formula is `1,196 board + 124 players + 22 ordinary
+context + 3,840 pending trades = 5,182`. Eli's is `1,196 board + 113 players
++ 25 ordinary context + 16 current trade = 1,350`.
+
+Equal width does not mean byte compatibility. Empires orders resources as
+brick, lumber, ore, grain, wool; Eli orders wheat, sheep, wood, brick, stone.
+Empires orders development cards as Knight, Road Building, Year of Plenty,
+Monopoly, Victory Point; Eli puts Victory Point second. Eli numbers tiles by
+rows, vertices by first corner encounter, and edges by those vertex ids, while
+Empires sorts its coordinate types. Every one of these needs a tested mapping;
+passing the wrong order produces valid numbers with confidently wrong meaning.
+
+#### Action selected by the network
+
+| Decision | Empires action ids | Eli6th action ids | Why Eli stays small |
+| --- | ---: | ---: | --- |
+| Settlement/city/road locations | 306 | 180 | Eli reuses the same 54 settlement ids during setup and normal play, and the same 72 road ids for setup, paid roads, and Road Building |
+| Robber and Knight | 190 | 24 | Empires combines tile and victim, separately for a seven and a Knight. Eli first chooses Knight if relevant, then a tile, then a victim as separate decisions |
+| Road Building card | 5,112 | 1 plus reused road ids | Empires numbers every ordered pair of distinct edges. Eli chooses “play card,” then chooses each road one at a time through the ordinary 72-edge head |
+| Discard | 3,002 | 5 reused repeatedly | Empires chooses the complete multiset to discard in one action. Eli asks which single resource to discard until the required count is reached |
+| Year of Plenty | 25 | 15 | Empires numbers ordered pairs; Eli collapses equivalent unordered resource pairs |
+| Bank/player trading | 692 | 66 | Empires names rates, richer proposal quantities, and accept/reject for up to 256 offer positions. Eli infers the bank rate, permits only 1–2-for-1 player offers, exposes one current offer, then separately confirms a partner |
+| Roll/buy/play/end constants | 8 | 8 | Small phase-level choices in both systems |
+| **Total** | **9,335** | **299** | **8,114 Empires ids come from full-discard bundles and ordered Road Building pairs alone** |
+
+With Eli's published two-hidden-layer, 512-unit MLP shape, those widths imply
+about **1.11 million parameters**. Feeding the current Empires vector directly
+into the same shape would imply about **7.71 million**, including a 4.79-million
+parameter policy output layer versus Eli's 153-thousand parameter output layer.
+That hypothetical Empires model is still small enough to run, but each rare
+compound action receives far fewer training examples and the output computation
+is about 31 times wider. Sequentialization is primarily a sample-efficiency and
+credit-assignment decision, not just a file-size optimization.
+
+This makes the correct adaptation boundary concrete:
+
+1. Reproduce the author’s training and evaluation unchanged in the author’s
+   Rust environment first. No Empires codec participates in that claim.
+2. Do not mutate or delete Empires' current versioned encoders. Existing
+   exports and experiments depend on their meanings.
+3. Add an alternate, versioned sequential RL adapter that asks the model for
+   one atomic choice at a time, retains partial selections privately, and
+   emits one legal compound `GameMove` only when the sequence is complete.
+4. Give that adapter an Eli-compatible 1,350-slot observation only where every
+   slot can be proven semantically identical. A matching width without matching
+   slot meaning is not compatibility.
+5. Treat trading as an explicit incompatibility. Empires can hold many richer
+   offers; Eli sees one restricted offer and AlphaBot largely avoids proposing
+   trades. Unsupported trade states must use a declared fallback or a newly
+   trained Empires policy, never be silently squeezed into the foreign model.
+6. Once the adapter passes frozen scenario parity, load the public PPO weights
+   and compare logits against the author's runtime. Only then run games; only
+   after that should an Empires-native retraining or search experiment begin.
+
 ### License is part of the adaptation boundary
 
 MIT code/artifacts still need attribution and provenance review, but Eli6th and nogulong do not impose the reciprocal source boundary of the GPL family. Catanatron, PeterLP, JSettlers2, and STAC should stay as separate research executables unless Empires deliberately accepts GPL obligations. Monte Catano is more restrictive for the contemplated service escape hatch: AGPL also addresses users interacting with modified covered software over a network. This report is an engineering risk boundary, not legal advice; embedding, linking, translating source, shipping a derivative, or hosting a modified agent requires counsel before work begins. Keeping an unmodified executable separate reduces coupling but does not erase its license.

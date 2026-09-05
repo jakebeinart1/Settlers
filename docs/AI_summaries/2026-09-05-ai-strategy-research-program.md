@@ -32,6 +32,39 @@ masked strategic policy, optionally strengthened by bounded search, with a
 separate opponent model and a separate language renderer. That is a hypothesis
 to test, not a conclusion to implement.
 
+## User-selected execution order
+
+This program now has three deliberately ordered stages. Later ideas must not
+contaminate the baseline they are supposed to improve.
+
+1. **Reproduce and transfer the public baseline.** First train the pinned
+   Eli6th implementation from a fresh initialization under its own documented
+   rules and show that the reactive PPO and PPO-guided-search results are
+   statistically compatible with the author's claims. Only then build a
+   versioned Empires model adapter, preserve the Swift engine as rules
+   authority, and train/evaluate the equivalent design on Empires.
+2. **Audit Global Conquest and ablate its lessons.** After the Empires baseline
+   is frozen, inventory the Risk project's trainer, Windows/4090 transport,
+   league/Elo system, evaluation discipline, heuristics, artifact provenance,
+   and deployment path. Introduce one justified difference at a time and retain
+   negative results; never import Risk's algorithm conclusion merely because
+   its infrastructure was useful.
+3. **Add behavioral fun.** Keep strategic style and character expression
+   separate. Measure strategic personality axes against the frozen strength
+   baseline, then add event-driven authored reactions and only later evaluate
+   model-rendered or free-form language.
+
+“Reproduce” has two distinct milestones. Running the published checkpoint in
+the author's engine is an **artifact evaluation reproduction**; that is what
+has been completed. Training a new checkpoint from random initialization and
+recovering the reported policy/search performance is a **training
+reproduction**; that has not yet been completed. An Empires-trained equivalent
+is a subsequent transfer experiment and must not be reported as either one.
+During reproduction, “loop until it matches” means correcting source,
+dependency, configuration, seed, or evaluator mismatches. Tuning
+hyperparameters against the reported evaluation seeds until the number appears
+would create a new overfit experiment, not reproduce the original result.
+
 ## Decision ledger
 
 | ID | Decision for this phase | Status |
