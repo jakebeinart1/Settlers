@@ -159,6 +159,56 @@ trading systems, opponents, chairs, and compute budgets. Raw win rates across
 them do not share a denominator. Closed commercial bots also cannot be audited,
 reproduced, or licensed from public evidence, so they are not reuse candidates.
 
+### What the AlphaBot result means in plain English
+
+- A research subagent in this Empires task downloaded the pinned public source
+  and model, compiled the author's unchanged Rust program on this Mac, ran its
+  documented command, and retained the output. This was a new local execution
+  of the author's evaluator—not a result copied from the README and not an
+  independent reimplementation of the algorithm.
+- Every participant was an AI. The command `A,H,H,H` put AlphaBot in player
+  slot 1 and three copies of that repository's own hand-written Heuristic-v1
+  bot in slots 2–4. No human played these games.
+- AlphaBot won 83 of 100 games and then 157 of 192 fixed-seed games (81.8%).
+  The result means “AlphaBot usually beats this repository's Heuristic-v1 bot
+  under this repository's rules and evaluator.” It does not mean “AlphaBot
+  beats strong humans 81.8% of the time.”
+- “Fixed chair” means AlphaBot remained in player slot 1 instead of rotating
+  through all four starting-order positions. Catan's setup order and board
+  access can make one slot easier than another, so a fair strength test rotates
+  every candidate through every slot.
+- “Perfect information” means the policy observation contains opponent-private
+  cards. Empires' live policy seam currently also receives the full game state,
+  so allowing this makes the systems closer; it must still be labeled because
+  it changes what the resulting difficulty means.
+- “Bounded trading” means the foreign rules engine permits only one-resource
+  offers—give one or two of one resource for one of another—and at most three
+  offers per turn. More importantly, AlphaBot's search removes `ProposeTrade`
+  whenever any non-proposal move exists, so the measured agent is not evidence
+  of a strong, expressive trade negotiator.
+- “Its own opponents” means the three opponents were written in the same
+  repository. They were not humans, Empires bots, JSettlers, Catanatron, or an
+  independently selected champion. This is a valid internal benchmark but can
+  reward specialization against that particular heuristic.
+- AlphaBot is a hybrid. A PPO reinforcement-learning network trained through
+  self-play ranks the currently legal moves; the search keeps its top eight and
+  simulates 96 possible futures for each using the repository's Rust rules
+  engine. It then chooses the move with the best average outcome. Both the
+  MIT-licensed source and trained `.pt`/`.ctnn` weights are public.
+
+Here “Rust engine” means a second implementation of Catan written in the Rust
+programming language, not a REST web service. Empires' authoritative engine is
+written in Swift. The games are broadly the same, but their board coordinates,
+state fields, action numbering, trade protocol, phase transitions, and some
+rules contracts differ. The trained weights therefore cannot understand an
+Empires state directly, just as a chess model cannot interpret another chess
+program's internal numbers merely because both programs implement chess.
+
+Empires also does not currently ship a neural network. It ships the hand-written
+heuristic policy. The state encoder, action encoder, training exporter, and
+failed experimental learners are infrastructure for a future model, not a
+trained production network comparable to AlphaBot.
+
 The useful answer is split by evidentiary role:
 
 | Question | Best answer located | What that answer does and does not mean |
