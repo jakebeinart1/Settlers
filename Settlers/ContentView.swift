@@ -69,14 +69,11 @@ struct ContentView: View {
                         viewModel.qaMakeHotSeat()
                     }
                 #endif
-                    // Rebuild the whole view on a restart so its `@State` goes
-                    // with the old game. `GameView` holds sixteen pieces of
-                    // per-game interaction state - armed knight targeting, a
-                    // half-finished road-building pair, the incoming-offer
-                    // queue, the roll-history ring - and `startNewGame` resets
-                    // the model but cannot touch any of it. Restarting while a
-                    // Knight was armed dropped you into a brand-new board
-                    // already in robber-targeting mode with no action row.
+                    // Rebuild the whole view on restart so presentation-only
+                    // state such as open popups, the incoming-offer queue, and
+                    // roll history cannot cross games. Spatial proposals now
+                    // live in the model's shared coordinator and are cleared
+                    // by `startNewGame`; this identity still resets the rest.
                     .id(viewModel.gameGeneration)
             } else {
                 MainMenuView(

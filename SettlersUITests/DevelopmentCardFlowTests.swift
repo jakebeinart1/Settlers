@@ -95,17 +95,28 @@ final class DevelopmentCardFlowTests: XCTestCase {
         XCTAssertTrue(app.otherElements["dev-cards.overlay"].waitForExistence(timeout: 5))
         app.buttons["dev-cards.play.knight"].tap()
 
-        let cancel = app.buttons["Cancel Card"]
+        let cancel = app.buttons[BoardDecisionUITestID.cancel]
         XCTAssertTrue(cancel.waitForExistence(timeout: 2))
         cancel.tap()
+        XCTAssertTrue(app.otherElements[BoardDecisionUITestID.dock].waitForNonExistence(timeout: 2))
         XCTAssertFalse(app.staticTexts["dev-cards.result"].exists)
 
         app.buttons["dev-cards.shelf"].tap()
         app.buttons["dev-cards.tile.knight"].tap()
         app.buttons["dev-cards.play.knight"].tap()
-        enabledBoardButton(in: app, prefix: "board.tile.").tap()
+        let destination = enabledBoardButton(in: app, prefix: "board.tile.")
+        destination.tap()
+
+        let preview = app.otherElements[BoardDecisionUITestID.robberPreview]
+        XCTAssertTrue(preview.waitForExistence(timeout: 2))
+        XCTAssertEqual(destination.value as? String, "Selected destination")
+        XCTAssertFalse(app.staticTexts["dev-cards.result"].exists)
+        let confirm = app.buttons[BoardDecisionUITestID.confirm]
+        XCTAssertTrue(confirm.isEnabled)
+        confirm.tap()
 
         XCTAssertTrue(app.staticTexts["dev-cards.result"].waitForExistence(timeout: 3))
+        XCTAssertTrue(preview.waitForNonExistence(timeout: 2))
         XCTAssertTrue(app.staticTexts["The robber moved. No rival was eligible to steal from."].exists)
     }
 
@@ -120,14 +131,38 @@ final class DevelopmentCardFlowTests: XCTestCase {
 
         enabledBoardButton(in: app, prefix: "board.edge.").tap()
         XCTAssertTrue(app.otherElements["board.road-preview"].waitForExistence(timeout: 2))
-        let undo = app.buttons["Undo First"]
+        XCTAssertFalse(app.staticTexts["dev-cards.result"].exists)
+        let confirm = app.buttons[BoardDecisionUITestID.confirm]
+        XCTAssertFalse(confirm.isEnabled)
+        let undo = app.buttons[BoardDecisionUITestID.undo]
         XCTAssertTrue(undo.waitForExistence(timeout: 2))
         undo.tap()
         XCTAssertFalse(app.otherElements["board.road-preview"].exists)
-        XCTAssertTrue(app.staticTexts["Road Building — choose the first highlighted road"].exists)
 
         enabledBoardButton(in: app, prefix: "board.edge.").tap()
         enabledBoardButton(in: app, prefix: "board.edge.").tap()
+        XCTAssertTrue(app.otherElements[BoardDecisionUITestID.roadPreview].exists)
+        XCTAssertFalse(app.staticTexts["dev-cards.result"].exists)
+        XCTAssertTrue(confirm.isEnabled)
+
+        let clear = app.buttons[BoardDecisionUITestID.clear]
+        XCTAssertTrue(clear.exists)
+        XCTAssertTrue(app.buttons[BoardDecisionUITestID.cancel].exists)
+        let proposalScreenshot = XCTAttachment(screenshot: app.screenshot())
+        proposalScreenshot.name = "road-building-two-road-proposal"
+        proposalScreenshot.lifetime = .keepAlways
+        add(proposalScreenshot)
+        clear.tap()
+        XCTAssertFalse(app.otherElements[BoardDecisionUITestID.roadPreview].exists)
+        XCTAssertFalse(confirm.isEnabled)
+        XCTAssertTrue(app.otherElements[BoardDecisionUITestID.dock].exists,
+                      "Clear must retain the active Road Building decision")
+
+        enabledBoardButton(in: app, prefix: "board.edge.").tap()
+        enabledBoardButton(in: app, prefix: "board.edge.").tap()
+        XCTAssertTrue(confirm.isEnabled)
+        confirm.tap()
+
         XCTAssertTrue(app.staticTexts["dev-cards.result"].waitForExistence(timeout: 3))
         XCTAssertTrue(app.staticTexts[
             "Both free roads were placed together and your network has been updated."
@@ -172,7 +207,9 @@ final class DevelopmentCardFlowTests: XCTestCase {
 
     func testEmptyShelfIsDiscoverable() {
         continueAfterFailure = false
-        let app = launchReset(arguments: ["-qaAutoStart"])
+        // Start from an ordinary main turn. Fresh games now correctly owe a
+        // mandatory setup placement, which outranks opening the private hand.
+        let app = launchReset(arguments: ["-qaAutoStart", "-qaPaidBuildPosition"])
         let shelf = app.buttons["dev-cards.shelf"]
         XCTAssertTrue(shelf.waitForExistence(timeout: 5))
         XCTAssertEqual(shelf.value as? String, "0")

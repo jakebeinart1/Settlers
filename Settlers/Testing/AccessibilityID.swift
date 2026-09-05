@@ -27,6 +27,10 @@ enum AccessibilityID {
     enum Board {
         static let surface = "board.surface"
         static let stagedRoadPreview = "board.road-preview"
+        static let stagedBuildingPreview = "board.building-preview"
+        static let stagedRobberPreview = "board.robber-preview"
+        static let robberOrigin = "board.robber-origin"
+        static let dragCradle = "board.drag-cradle"
 
         static func tile(_ tile: HexCoordinate) -> String {
             "board.tile.\(tile.q)_\(tile.r)"
@@ -61,6 +65,14 @@ enum AccessibilityID {
         }
     }
 
+    enum BoardDecision {
+        static let dock = "board-decision.dock"
+        static let confirm = "board-decision.confirm"
+        static let clear = "board-decision.clear"
+        static let cancel = "board-decision.cancel"
+        static let undo = "board-decision.undo"
+    }
+
     enum Game {
         static let settings = "game.settings"
 
@@ -70,6 +82,9 @@ enum AccessibilityID {
     }
 
     enum Build {
+        static let road = "build.road"
+        static let settlement = "build.settlement"
+        static let city = "build.city"
         static let devCard = "build.dev-card"
     }
 

@@ -171,6 +171,10 @@ public final class GameViewModel {
     var discardDraft = DiscardDraft()
     public internal(set) var isDiscardEditorMinimized = false
 
+    /// Owns uncommitted board choices beside the durable session so write
+    /// failures retain them and hot-seat handoffs can clear them centrally.
+    var boardDecisionCoordinator = BoardDecisionCoordinator()
+
     /// When each currently-pending trade offer was first proposed -
     /// `TradeOffer` itself carries no timestamp, so this is tracked
     /// separately. Used by `runBotTurnIfNeeded` to hold off a bot accepting
@@ -453,6 +457,7 @@ public final class GameViewModel {
     private func resetPerGameState() {
         gameGeneration &+= 1
         resetDiscardPresentation()
+        boardDecisionCoordinator.clear()
         pendingTradeConfirmation = nil
         pendingDevCardReveal = nil
         pendingDevCardResolution = nil
@@ -487,6 +492,7 @@ public final class GameViewModel {
             throw reportPersistenceFailure(error)
         }
         session = candidate
+        reconcileBoardDecision()
         pendingEvents += step.events
         eventBatch = EventBatch(sequence: eventBatch.sequence + 1, events: pendingEvents)
         pendingDevCardReveal = next.pendingDevCardReveal
@@ -606,14 +612,6 @@ public final class GameViewModel {
         }
     }
 
-    #if DEBUG
-    /// Applies a QA move and waits until automation yields back to a person.
-    func qaApplyAndAwaitAutomatedTurns(_ move: GameMove) async throws {
-        try commitHumanMove(move)
-        await runBotTurnIfNeeded()
-    }
-    #endif
-
     /// Bots only ever get to accept/reject a pending offer as part of their
     /// *own* `mainTurn` (see `RulesEngine.legalMoves`'s `.respondToTrade`
     /// generation) - fine for a trade proposed *during* another bot's turn,
@@ -674,11 +672,15 @@ public final class GameViewModel {
         session = Self.makeSession(state: newState, opponentProfiles: profiles)
         resetDiscardPresentation()
         persistTestingPosition()
+        reconcileBoardDecision()
     }
 
     /// Drops the device claim, reproducing a relaunch where nobody is holding
     /// the phone yet. Tests only.
-    func qaClearSeatAtDeviceForTesting() { seatAtDevice = nil }
+    func qaClearSeatAtDeviceForTesting() {
+        seatAtDevice = nil
+        boardDecisionCoordinator.clear()
+    }
 
     /// Turns the loaded game into a two-human hot-seat game, for
     /// screenshotting `HandoffCoverView` (see `QALaunchFlag.twoHumans`).
@@ -689,6 +691,7 @@ public final class GameViewModel {
     func qaMakeHotSeat() {
         let seats: Set<PlayerID> = [PlayerID(index: 0), PlayerID(index: 1)]
         seatAtDevice = nil
+        boardDecisionCoordinator.clear()
         let names = [
             PlayerID(index: 0): "Alex",
             PlayerID(index: 1): "Sam",
@@ -1188,6 +1191,7 @@ public extension GameViewModel {
             // clears hot-seat claims for cold resume, so restore a valid one
             // before reconciling its uncommitted discard draft.
             let claimedSeat = seatAtDevice
+            let retainedBoardDecision = boardDecisionCoordinator
             guard let document = try checkpointStore.load() else {
                 throw SavedGameRecoveryError.blocked(
                     "The checkpoint is missing. The original files have not been changed."
@@ -1196,6 +1200,8 @@ public extension GameViewModel {
             checkpointDocument = document
             try installCheckpointMatch()
             if let claimedSeat, humanSeats.contains(claimedSeat) { seatAtDevice = claimedSeat }
+            boardDecisionCoordinator = retainedBoardDecision
+            reconcileBoardDecision()
             gameGeneration &+= 1
             eventBatch = EventBatch(sequence: eventBatch.sequence + 1, events: [])
             prepareDiscardPresentation()
@@ -1223,8 +1229,13 @@ public extension GameViewModel {
 
     /// Hands the device to whoever the game is waiting on.
     func claimDeviceForSeatOwedATurn() {
-        guard let owed = seatOwedATurn else { return }
+        // During a cold-resumed bot turn, no human is phase-owned. A stable
+        // fallback must still let the cover's only button claim the phone;
+        // requiring `seatOwedATurn` made that button a permanent no-op.
+        let owed = seatOwedATurn ?? humanPlayer
+        boardDecisionCoordinator.clear()
         seatAtDevice = owed
         prepareDiscardPresentation()
+        reconcileBoardDecision()
     }
 }

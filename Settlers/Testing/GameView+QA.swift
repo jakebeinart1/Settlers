@@ -42,7 +42,13 @@ extension GameView {
     #if DEBUG
     private func applyQA(_ move: GameMove) async {
         do {
-            try await viewModel.qaApplyAndAwaitAutomatedTurns(move)
+            try viewModel.apply(move)
+            // The fixture has just supplied the exact confirmed move, but
+            // SwiftUI has not rendered the cleared mandatory-decision state
+            // back into this mirrored hold yet. Release that stale QA-only
+            // value before asking the real policy loop to advance the bots.
+            viewModel.isBlockingSurfaceOpen = false
+            await viewModel.runBotTurnIfNeeded()
         } catch {
             preconditionFailure("QA fast-forward rejected \(move): \(error)")
         }
