@@ -121,7 +121,7 @@ enum DevCardStyle {
 /// `GameView.actionRowHeight` and a bare `75.33` in `IncomingTradeCardView`
 /// were the same measurement written twice, each with a comment asking the
 /// next reader to keep them in sync by hand. The row swaps between the action
-/// buttons, the robber-targeting panel and the incoming-offer card, and the
+/// buttons, the board-decision dock and the incoming-offer card, and the
 /// board is the only flexible element in the layout - so any disagreement
 /// between them resizes the board as the row changes.
 enum BottomRowMetrics {

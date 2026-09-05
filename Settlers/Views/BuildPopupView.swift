@@ -1,22 +1,20 @@
 import SwiftUI
 import CatanEngine
 
-/// Build popup - same card chrome as `TradePopupView`/`DevCardPopupView`
-/// (replaces the old `BuildMenuView` native `Menu`). Road/Settlement/City
-/// arm `placementMode` so `GameView` puts `BoardView` into placement mode
-/// and the next vertex/edge tap performs the actual build; Dev Card buys
-/// immediately (there's no placement step). Each row shows its resource
-/// cost and disables itself when `RulesEngine.legalMoves` has no matching
-/// move for the current state (covers both "can't afford" and "no legal
-/// spot" in one check).
+/// Painted build chooser for starting construction or buying a development card.
+///
+/// Road, Settlement, and City hand control to the shared board-decision
+/// coordinator. Closing the popup therefore exposes a reversible preview;
+/// resources are not spent until that proposal is explicitly confirmed.
+/// Development cards have no board target, so their existing durable purchase
+/// and private reveal remain immediate. Every row is disabled when the engine
+/// exposes no matching legal move, covering both cost and board availability.
 public struct BuildPopupView: View {
     public let viewModel: GameViewModel
-    @Binding public var placementMode: PlacementMode?
     public let onDismiss: () -> Void
 
-    public init(viewModel: GameViewModel, placementMode: Binding<PlacementMode?>, onDismiss: @escaping () -> Void) {
+    public init(viewModel: GameViewModel, onDismiss: @escaping () -> Void) {
         self.viewModel = viewModel
-        self._placementMode = placementMode
         self.onDismiss = onDismiss
     }
 
@@ -40,17 +38,17 @@ public struct BuildPopupView: View {
 
                 VStack(spacing: 8) {
                     buildRow(title: "Road", icon: "line.diagonal", color: .brown, cost: Building.roadCost, isEnabled: canBuildRoad) {
-                        placementMode = .road
-                        onDismiss()
+                        beginBoardDecision(.buildRoad, pieceName: "road")
                     }
+                    .accessibilityIdentifier(AccessibilityID.Build.road)
                     buildRow(title: "Settlement", icon: "house.fill", color: .green, cost: Building.settlementCost, isEnabled: canBuildSettlement) {
-                        placementMode = .settlement
-                        onDismiss()
+                        beginBoardDecision(.buildSettlement, pieceName: "settlement")
                     }
+                    .accessibilityIdentifier(AccessibilityID.Build.settlement)
                     buildRow(title: "City", icon: "building.2.fill", color: .indigo, cost: Building.cityCost, isEnabled: canBuildCity) {
-                        placementMode = .city
-                        onDismiss()
+                        beginBoardDecision(.buildCity, pieceName: "city")
                     }
+                    .accessibilityIdentifier(AccessibilityID.Build.city)
                     buildRow(
                         title: "Dev Card",
                         icon: "rectangle.stack.fill",
@@ -120,5 +118,14 @@ public struct BuildPopupView: View {
         } catch {
             errorMessage = error.localizedDescription
         }
+    }
+
+    private func beginBoardDecision(_ intent: BoardDecisionIntent, pieceName: String) {
+        guard viewModel.beginBoardDecision(intent) else {
+            errorMessage = "Could not start \(pieceName) placement. The game changed; please try again."
+            return
+        }
+        errorMessage = nil
+        onDismiss()
     }
 }

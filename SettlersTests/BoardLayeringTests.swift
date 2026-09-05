@@ -21,7 +21,7 @@ import UIKit
 ///
 /// ## How the test works
 /// `BoardView` is rendered twice over the same `GameState` at the same size -
-/// once with no placement mode, once with the placement mode armed and the
+/// once with no board decision, once with a road decision armed and the
 /// edges around the piece highlighted - and the two rasters are compared inside
 /// the piece's own footprint. Rendering rather than inspecting the view tree is
 /// deliberate: z-order is not readable from SwiftUI's declarative structure, and
@@ -46,17 +46,32 @@ struct BoardLayeringTests {
         let vertex = try #require(Self.mostCentralVertex(of: state.board))
         state.players[0].settlements.insert(vertex)
 
-        let plain = try Self.render(state: state, highlightedEdges: [], isPlacementModeActive: false)
+        let plain = try Self.render(state: state, decision: nil)
+        let decision = BoardDecisionPresentation(
+            intent: .initialRoad,
+            actor: state.players[0].id,
+            setupRound: 1,
+            legalVertices: [],
+            legalEdges: state.board.edgesTouching(vertex).sorted(),
+            legalTiles: [],
+            legalVictims: [],
+            selectedVertex: nil,
+            selectedEdges: [],
+            selectedTile: nil,
+            selectedVictim: nil,
+            canConfirm: false,
+            canCancel: false,
+            errorMessage: nil
+        )
         let armed = try Self.render(
             state: state,
-            highlightedEdges: Set(state.board.edgesTouching(vertex)),
-            isPlacementModeActive: true
+            decision: decision
         )
 
         let geometry = BoardView.fittedGeometry(
             for: state.board,
             in: CGRect(x: 0, y: 0, width: Self.canvasSide, height: Self.canvasSide),
-            padding: 16
+            padding: BoardView.boardPadding
         )
         let centre = geometry.vertexPosition(vertex, board: state.board)
 
@@ -70,7 +85,7 @@ struct BoardLayeringTests {
             changed == 0,
             """
             A placement highlight repainted the settlement: \(changed) of \(plainPatch.count) \
-            colour bytes changed when the placement mode was armed. \
+            colour bytes changed when the road decision was armed. \
             Piece centre was RGB \(Self.meanRGB(plainPatch)) unarmed, RGB \(Self.meanRGB(armedPatch)) armed.
             """
         )
@@ -82,17 +97,15 @@ struct BoardLayeringTests {
         state.players[0].settlements.insert(vertex)
 
         let britannia = try Self.render(
-            state: state, highlightedEdges: [], isPlacementModeActive: false,
-            civilization: .medieval
+            state: state, decision: nil, civilization: .medieval
         )
         let rome = try Self.render(
-            state: state, highlightedEdges: [], isPlacementModeActive: false,
-            civilization: .rome
+            state: state, decision: nil, civilization: .rome
         )
         let geometry = BoardView.fittedGeometry(
             for: state.board,
             in: CGRect(x: 0, y: 0, width: Self.canvasSide, height: Self.canvasSide),
-            padding: 16
+            padding: BoardView.boardPadding
         )
         let centre = geometry.vertexPosition(vertex, board: state.board)
         let changed = zip(
@@ -101,6 +114,44 @@ struct BoardLayeringTests {
         ).filter { $0 != $1 }.count
 
         #expect(changed > 0, "Board pieces ignored the match-authoritative identity resolver")
+    }
+
+    @Test func cityUpgradeGuideRemainsVisibleOutsideTheSettlementArt() throws {
+        var state = GameSetup.newGame(board: BoardGenerator.standard())
+        let vertex = try #require(Self.mostCentralVertex(of: state.board))
+        state.players[0].settlements.insert(vertex)
+
+        let plain = try Self.render(state: state, decision: nil)
+        let decision = BoardDecisionPresentation(
+            intent: .buildCity,
+            actor: state.players[0].id,
+            setupRound: nil,
+            legalVertices: [vertex],
+            legalEdges: [],
+            legalTiles: [],
+            legalVictims: [],
+            selectedVertex: nil,
+            selectedEdges: [],
+            selectedTile: nil,
+            selectedVictim: nil,
+            canConfirm: false,
+            canCancel: true,
+            errorMessage: nil
+        )
+        let armed = try Self.render(state: state, decision: decision)
+        let geometry = BoardView.fittedGeometry(
+            for: state.board,
+            in: CGRect(x: 0, y: 0, width: Self.canvasSide, height: Self.canvasSide),
+            padding: BoardView.boardPadding
+        )
+        let centre = geometry.vertexPosition(vertex, board: state.board)
+        let guideEdge = CGPoint(x: centre.x + geometry.size * 0.46, y: centre.y)
+        let changed = zip(
+            Self.patch(of: plain, centredOn: guideEdge),
+            Self.patch(of: armed, centredOn: guideEdge)
+        ).filter { $0 != $1 }.count
+
+        #expect(changed > 0, "The legal city-upgrade guide is hidden underneath its settlement")
     }
 
     // MARK: - Helpers
@@ -120,8 +171,7 @@ struct BoardLayeringTests {
 
     private static func render(
         state: GameState,
-        highlightedEdges: Set<EdgeID>,
-        isPlacementModeActive: Bool,
+        decision: BoardDecisionPresentation?,
         civilization: Civilization = .medieval
     ) throws -> CGImage {
         let view = BoardView(
@@ -133,11 +183,8 @@ struct BoardLayeringTests {
                     controller: seat.index == 0 ? .human : .computer
                 )
             },
-            onTapVertex: { _ in },
-            onTapEdge: { _ in },
-            onTapTile: { _ in },
-            highlightedEdges: highlightedEdges,
-            isPlacementModeActive: isPlacementModeActive
+            decision: decision,
+            onSelectTarget: { _ in }
         )
         .frame(width: canvasSide, height: canvasSide)
         let renderer = ImageRenderer(content: view)

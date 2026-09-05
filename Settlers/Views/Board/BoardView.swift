@@ -1,44 +1,20 @@
 import SwiftUI
 import CatanEngine
 
-/// The hex-board play surface: draws all tiles, number tokens, the robber,
-/// and ports via `Canvas`, layers invisible tap targets over every on-board
-/// vertex/edge (plus the tiles themselves) for building, and draws
-/// settlements/cities/roads as animated `Shape`s colored by owning player on
-/// top of all of it. The stacking order is deliberate and load-bearing: the
-/// tap targets' placement highlights belong *under* the pieces - see the
-/// comment on that layer in `body`.
+/// The fitted hex-board renderer for canonical pieces and uncommitted spatial
+/// proposals.
+///
+/// `BoardDecisionPresentation` is the complete rendering contract: this view
+/// never reconstructs legality and never emits a `GameMove`. Taps, drags,
+/// VoiceOver activation, and UI automation all send one typed `BoardTarget`
+/// through `onSelectTarget`; confirmation remains outside the board. The layer
+/// order is deliberate and load-bearing: legal-target hints sit below committed
+/// pieces, while unmistakably provisional previews sit above them.
 public struct BoardView: View {
     public let state: GameState
     public let playerIdentity: (PlayerID) -> PlayerIdentity
-    public let onTapVertex: (VertexID) -> Void
-    public let onTapEdge: (EdgeID) -> Void
-    public let onTapTile: (HexCoordinate) -> Void
-    /// When non-empty, only these vertices are tappable (highlighted with a
-    /// glow ring); every other vertex is dimmed and ignores taps. `nil` sets
-    /// (the default `[]` for both) mean "no vertex/edge placement mode" -
-    /// see `highlightedEdges` for the edge equivalent. The two are
-    /// independent so, e.g., a settlement placement can highlight vertices
-    /// while leaving edges untouched.
-    public let highlightedVertices: Set<VertexID>
-    /// Same as `highlightedVertices`, for edges (road placement).
-    public let highlightedEdges: Set<EdgeID>
-    /// Roads selected as part of an uncommitted multi-road card. They are
-    /// drawn in the owner's color with a gold preview border, but never added
-    /// to `GameState` until the complete move is confirmed.
-    public let stagedRoads: Set<EdgeID>
-    public let stagedRoadOwner: PlayerID?
-    /// True while any placement mode (vertex or edge) is active, so
-    /// non-highlighted tap targets can be disabled/dimmed even when their own
-    /// highlight set happens to be empty (e.g. edges during a settlement
-    /// placement).
-    public let isPlacementModeActive: Bool
-    /// While `isTileTargetingActive`, tiles in this set (the legal robber
-    /// destinations) are outlined so they read as tappable; every other tile
-    /// is dimmed. Mirrors `highlightedVertices`/`highlightedEdges` for the
-    /// inline robber-move flow (see `GameView`).
-    public let highlightedTiles: Set<HexCoordinate>
-    public let isTileTargetingActive: Bool
+    public let decision: BoardDecisionPresentation?
+    public let onSelectTarget: (BoardTarget) -> Void
     /// False during inspect-only mandatory decisions. The board stays visible,
     /// but vertex, edge and tile command targets leave both hit testing and
     /// the accessibility tree. Non-mutating camera gestures can remain on the
@@ -46,39 +22,30 @@ public struct BoardView: View {
     public let allowsGameCommands: Bool
     /// Tiles matching the most recent dice roll, briefly outlined right
     /// after a roll - purely a visual cue for where production came from,
-    /// distinct from `highlightedTiles`' robber-targeting purpose (both can
-    /// technically be active at once, though in practice a mandatory robber
-    /// move only follows a 7, which never has producing tiles to highlight).
+    /// distinct from a board decision's legal robber destinations. Both can
+    /// technically be present, though a mandatory robber move follows a 7,
+    /// which has no producing tiles to highlight.
     public let rollHighlightTiles: Set<HexCoordinate>
+
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @GestureState private var draggedPieceLocation: CGPoint?
+
+    private static let boardCoordinateSpace = "board-decision-coordinate-space"
+    private static let cradleEdgeInset: CGFloat = 35
+    private static let dragDropMinimumRadius: CGFloat = 30
 
     public init(
         state: GameState,
         playerIdentity: @escaping (PlayerID) -> PlayerIdentity = CatanTheme.playerIdentity,
-        onTapVertex: @escaping (VertexID) -> Void,
-        onTapEdge: @escaping (EdgeID) -> Void,
-        onTapTile: @escaping (HexCoordinate) -> Void,
-        highlightedVertices: Set<VertexID> = [],
-        highlightedEdges: Set<EdgeID> = [],
-        stagedRoads: Set<EdgeID> = [],
-        stagedRoadOwner: PlayerID? = nil,
-        isPlacementModeActive: Bool = false,
-        highlightedTiles: Set<HexCoordinate> = [],
-        isTileTargetingActive: Bool = false,
+        decision: BoardDecisionPresentation?,
+        onSelectTarget: @escaping (BoardTarget) -> Void,
         allowsGameCommands: Bool = true,
         rollHighlightTiles: Set<HexCoordinate> = []
     ) {
         self.state = state
         self.playerIdentity = playerIdentity
-        self.onTapVertex = onTapVertex
-        self.onTapEdge = onTapEdge
-        self.onTapTile = onTapTile
-        self.highlightedVertices = highlightedVertices
-        self.highlightedEdges = highlightedEdges
-        self.stagedRoads = stagedRoads
-        self.stagedRoadOwner = stagedRoadOwner
-        self.isPlacementModeActive = isPlacementModeActive
-        self.highlightedTiles = highlightedTiles
-        self.isTileTargetingActive = isTileTargetingActive
+        self.decision = decision
+        self.onSelectTarget = onSelectTarget
         self.allowsGameCommands = allowsGameCommands
         self.rollHighlightTiles = rollHighlightTiles
     }
@@ -100,42 +67,7 @@ public struct BoardView: View {
             let ownership = Ownership(players: state.players)
 
             ZStack {
-                // No opaque fill here anymore - `GameView`'s scenic
-                // background painting shows through the gaps around the
-                // hex cluster and behind the ports, the way it does behind
-                // the rest of the board screen. See design-references/STATUS.md.
-
-                Canvas { context, _ in
-                    // Two passes rather than one: every tile's fill has to
-                    // finish drawing *before* any tile's highlight ring
-                    // does, or a later tile in `board.tiles`' iteration
-                    // order paints its own manila frame right over the
-                    // shared-edge half of an earlier tile's ring - the roll
-                    // highlight looked "inconsistent" because whether that
-                    // happened (and which side got clipped) depended on
-                    // draw order relative to that tile's neighbors.
-                    for tile in board.tiles {
-                        TileDrawing.drawTile(tile, geometry: geometry, in: context)
-                    }
-                    for tile in board.tiles where isTileTargetingActive {
-                        let path = TileDrawing.hexPath(for: tile.coordinate, geometry: geometry)
-                        if highlightedTiles.contains(tile.coordinate) {
-                            context.stroke(path, with: .color(.yellow), lineWidth: 3)
-                        } else {
-                            context.fill(path, with: .color(.black.opacity(0.45)))
-                        }
-                    }
-                    for port in board.ports {
-                        TileDrawing.drawPort(port, geometry: geometry, board: board, boardCenter: boardCenter, in: context)
-                    }
-                    let robberTileNumber = board.tiles.first { $0.coordinate == board.robberTile }?.numberToken
-                    TileDrawing.drawRobber(at: board.robberTile, number: robberTileNumber, geometry: geometry, in: context)
-                }
-                .contentShape(Rectangle())
-                .gesture(tileTapGesture(geometry: geometry))
-                .accessibilityElement(children: .ignore)
-                .accessibilityLabel("Game board")
-                .accessibilityIdentifier(AccessibilityID.Board.surface)
+                boardCanvas(geometry: geometry, boardCenter: boardCenter)
 
                 if !allowsGameCommands {
                     BoardInspectionSemantics(
@@ -146,75 +78,20 @@ public struct BoardView: View {
                     )
                 }
 
-                // One semantic target per tile while the robber chooser is
-                // active. The Canvas gesture keeps ordinary touch input fast,
-                // but a Canvas exposes no individual hexes to XCUITest or
-                // VoiceOver; without these targets, "choose a tile" was a
-                // visual-only interaction that could not be reached or proved
-                // through accessibility. They sit below edge/vertex targets
-                // and exist only during tile targeting.
-                if allowsGameCommands, isTileTargetingActive {
-                    ForEach(board.tiles, id: \.coordinate) { tile in
-                        TileTapTarget(
-                            position: geometry.center(of: tile.coordinate),
-                            diameter: max(44, geometry.size * 1.25),
-                            isEnabled: highlightedTiles.contains(tile.coordinate),
-                            accessibilityIdentifier: AccessibilityID.Board.tile(tile.coordinate),
-                            accessibilityLabel: tileAccessibilityLabel(tile),
-                            onTap: { onTapTile(tile.coordinate) }
-                        )
-                    }
-                }
-
-                // Placement targets sit BELOW the pieces, not above them.
-                // Their yellow highlights are a hint about what you may do
-                // next; the pieces are the game state itself, and a hint must
-                // never repaint state. Drawn last (the previous order), the
-                // three legal road edges radiating from a just-placed
-                // settlement laid three `Color.yellow.opacity(0.55)` capsules
-                // across it - stacked, that is ~0.91 effective alpha, so the
-                // piece read as a solid yellow blob for as long as the road
-                // placement stayed armed and then "changed colour" the instant
-                // the road went down and the highlights cleared. Reported as
-                // "it's the wrong colour and then it switches colours" during
-                // setup.
-                //
-                // Hit testing is unaffected by the move: every piece layer
-                // above these is `.allowsHitTesting(false)`, so taps fall
-                // straight through to the targets, and the tile `Canvas`'s own
-                // gesture is still further below. A highlight can now be partly
-                // covered by a piece, which is the correct direction - a legal
-                // vertex never holds a building and a legal edge never holds a
-                // road, so only the rounded joint of an adjacent road ever
-                // overlaps one.
-                if allowsGameCommands {
-                    ForEach(sortedEdges, id: \.self) { edge in
-                        let (a, b) = board.vertices(of: edge)
-                        EdgeTapTarget(
-                            start: geometry.vertexPosition(a, board: board),
-                            end: geometry.vertexPosition(b, board: board),
-                            isHighlighted: highlightedEdges.contains(edge),
-                            isEnabled: !isPlacementModeActive || highlightedEdges.contains(edge),
-                            accessibilityIdentifier: AccessibilityID.Board.edge(edge),
-                            onTap: { onTapEdge(edge) }
-                        )
-                    }
-
-                    ForEach(sortedVertices, id: \.self) { vertex in
-                        VertexTapTarget(
-                            position: geometry.vertexPosition(vertex, board: board),
-                            isHighlighted: highlightedVertices.contains(vertex),
-                            isEnabled: !isPlacementModeActive || highlightedVertices.contains(vertex),
-                            accessibilityIdentifier: AccessibilityID.Board.vertex(vertex),
-                            onTap: { onTapVertex(vertex) }
-                        )
-                    }
+                // Interactive target layers remain below every canonical
+                // piece. This prevents a road glow from repainting a
+                // settlement at their shared vertex while hit testing still
+                // falls through the non-interactive piece layers above it.
+                if allowsGameCommands, let decision {
+                    tileTargets(for: decision, geometry: geometry)
+                    edgeTargets(for: decision, geometry: geometry)
+                    vertexTargets(for: decision, geometry: geometry)
                 }
 
                 roadViews(geometry: geometry)
 
-                if let stagedRoadOwner, !stagedRoads.isEmpty {
-                    stagedRoadPreview(geometry: geometry, owner: stagedRoadOwner)
+                if let decision, !decision.selectedEdges.isEmpty {
+                    stagedRoadPreview(for: decision, geometry: geometry)
                 }
 
                 // Drawn as its own layer, above roads (which the base tile
@@ -239,9 +116,386 @@ public struct BoardView: View {
                 }
 
                 buildingViews(geometry: geometry, ownership: ownership)
+
+                if let decision {
+                    cityUpgradeGuides(for: decision, geometry: geometry)
+                    stagedBuildingPreview(for: decision, geometry: geometry)
+                    stagedRobberPreview(for: decision, geometry: geometry)
+                    robberMarkerSemantics(for: decision, geometry: geometry)
+                }
+
+                if allowsGameCommands, let decision {
+                    decisionCradle(for: decision, geometry: geometry, containerSize: proxy.size)
+                }
             }
-            .animation(.spring(), value: BoardSnapshot(state: state))
+            .coordinateSpace(name: Self.boardCoordinateSpace)
+            .animation(reduceMotion ? nil : .spring(), value: BoardSnapshot(state: state))
+            .animation(reduceMotion ? nil : .spring(response: 0.3, dampingFraction: 0.82), value: decision)
         }
+    }
+
+    // MARK: - Board decision layers
+
+    private func boardCanvas(geometry: HexGeometry, boardCenter: CGPoint) -> some View {
+        Canvas { context, _ in
+            drawTiles(geometry: geometry, in: context)
+            drawRobberTargeting(geometry: geometry, in: context)
+            for port in board.ports {
+                TileDrawing.drawPort(
+                    port,
+                    geometry: geometry,
+                    board: board,
+                    boardCenter: boardCenter,
+                    in: context
+                )
+            }
+            drawCanonicalRobber(geometry: geometry, in: context)
+        }
+        .contentShape(Rectangle())
+        .gesture(tileTapGesture(geometry: geometry))
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel("Game board")
+        .accessibilityIdentifier(AccessibilityID.Board.surface)
+    }
+
+    /// Tiles are completed before any target outline. Drawing highlights in
+    /// the tile loop lets a later neighbor repaint half of an earlier ring.
+    private func drawTiles(geometry: HexGeometry, in context: GraphicsContext) {
+        for tile in board.tiles {
+            TileDrawing.drawTile(tile, geometry: geometry, in: context)
+        }
+    }
+
+    private func drawRobberTargeting(geometry: HexGeometry, in context: GraphicsContext) {
+        guard let decision, decision.intent.isRobber else { return }
+        let legalTiles = Set(decision.legalTiles)
+        for tile in board.tiles {
+            let path = TileDrawing.hexPath(for: tile.coordinate, geometry: geometry)
+            if tile.coordinate == decision.selectedTile {
+                context.fill(path, with: .color(CatanTheme.cityPennantGold.opacity(0.1)))
+                context.stroke(path, with: .color(CatanTheme.cityPennantGold), lineWidth: 5)
+            } else if legalTiles.contains(tile.coordinate) {
+                context.stroke(path, with: .color(CatanTheme.cityPennantGold.opacity(0.92)), lineWidth: 3)
+            } else {
+                context.fill(path, with: .color(.black.opacity(0.24)))
+            }
+        }
+    }
+
+    private func drawCanonicalRobber(geometry: HexGeometry, in context: GraphicsContext) {
+        let number = board.tiles.first { $0.coordinate == board.robberTile }?.numberToken
+        if decision?.intent.isRobber == true {
+            TileDrawing.drawRobberOrigin(
+                at: board.robberTile,
+                number: number,
+                geometry: geometry,
+                in: context
+            )
+        } else {
+            TileDrawing.drawRobber(at: board.robberTile, number: number, geometry: geometry, in: context)
+        }
+    }
+
+    @ViewBuilder
+    private func tileTargets(for decision: BoardDecisionPresentation, geometry: HexGeometry) -> some View {
+        if decision.intent.isRobber {
+            let legalTiles = Set(decision.legalTiles)
+            ForEach(board.tiles.filter { legalTiles.contains($0.coordinate) }, id: \.coordinate) { tile in
+                let isSelected = tile.coordinate == decision.selectedTile
+                TileTapTarget(
+                    position: geometry.center(of: tile.coordinate),
+                    diameter: max(44, geometry.size * 1.35),
+                    isEnabled: true,
+                    isSelected: isSelected,
+                    accessibilityIdentifier: AccessibilityID.Board.tile(tile.coordinate),
+                    accessibilityLabel: tileAccessibilityLabel(tile, decision: decision),
+                    accessibilityValue: isSelected ? "Selected destination" : "Available destination",
+                    accessibilityHint: boardTargetAccessibilityHint(isSelected: isSelected),
+                    onTap: { onSelectTarget(.tile(tile.coordinate)) }
+                )
+            }
+        }
+    }
+
+    @ViewBuilder
+    private func edgeTargets(for decision: BoardDecisionPresentation, geometry: HexGeometry) -> some View {
+        ForEach(Array(decision.legalEdges.enumerated()), id: \.element) { index, edge in
+            let (startVertex, endVertex) = board.vertices(of: edge)
+            let isSelected = decision.selectedEdges.contains(edge)
+            EdgeTapTarget(
+                start: geometry.vertexPosition(startVertex, board: board),
+                end: geometry.vertexPosition(endVertex, board: board),
+                isHighlighted: true,
+                isEnabled: true,
+                isSelected: isSelected,
+                accessibilityIdentifier: AccessibilityID.Board.edge(edge),
+                accessibilityLabel: edgeAccessibilityLabel(index: index, decision: decision),
+                accessibilityValue: isSelected ? "Selected" : "Available",
+                accessibilityHint: boardTargetAccessibilityHint(isSelected: isSelected),
+                onTap: { onSelectTarget(.edge(edge)) }
+            )
+        }
+    }
+
+    @ViewBuilder
+    private func vertexTargets(for decision: BoardDecisionPresentation, geometry: HexGeometry) -> some View {
+        ForEach(Array(decision.legalVertices.enumerated()), id: \.element) { index, vertex in
+            let isSelected = vertex == decision.selectedVertex
+            VertexTapTarget(
+                position: geometry.vertexPosition(vertex, board: board),
+                isHighlighted: true,
+                isEnabled: true,
+                isSelected: isSelected,
+                accessibilityIdentifier: AccessibilityID.Board.vertex(vertex),
+                accessibilityLabel: vertexAccessibilityLabel(index: index, decision: decision),
+                accessibilityValue: isSelected ? "Selected" : "Available",
+                accessibilityHint: boardTargetAccessibilityHint(isSelected: isSelected),
+                onTap: { onSelectTarget(.vertex(vertex)) }
+            )
+        }
+    }
+
+    @ViewBuilder
+    private func stagedBuildingPreview(
+        for decision: BoardDecisionPresentation,
+        geometry: HexGeometry
+    ) -> some View {
+        if let vertex = decision.selectedVertex,
+           let isCity = stagedBuildingIsCity(for: decision.intent) {
+            let civilization = playerIdentity(decision.actor).civilization
+            let correction = civilization.pieceSizeCorrection(isCity: isCity)
+            let size = geometry.size * (isCity ? 0.98 : 0.78) * correction
+            ProvisionalBuildingBadge(
+                civilization: civilization,
+                isCity: isCity,
+                size: size,
+                accessibilityLabel: isCity ? "Staged city preview" : "Staged settlement preview"
+            )
+            .position(geometry.vertexPosition(vertex, board: board))
+        }
+    }
+
+    /// City targets are the one legal vertex target that necessarily already
+    /// contains a canonical piece. The ordinary target ring belongs below
+    /// pieces (otherwise road hints recolor settlements), so a separate
+    /// outline is drawn above eligible settlements. It surrounds the artwork
+    /// without covering it and makes "choose a highlighted settlement" true
+    /// on screen rather than merely true to accessibility.
+    @ViewBuilder
+    private func cityUpgradeGuides(
+        for decision: BoardDecisionPresentation,
+        geometry: HexGeometry
+    ) -> some View {
+        if decision.intent == .buildCity {
+            ForEach(decision.legalVertices, id: \.self) { vertex in
+                let isSelected = decision.selectedVertex == vertex
+                ZStack {
+                    Circle()
+                        .strokeBorder(Color.black.opacity(0.9), lineWidth: isSelected ? 6 : 5)
+                    Circle()
+                        .strokeBorder(
+                            CatanTheme.cityPennantGold.opacity(isSelected ? 1 : 0.9),
+                            lineWidth: isSelected ? 3.5 : 2.5
+                        )
+                }
+                .frame(width: geometry.size * 0.92, height: geometry.size * 0.92)
+                .shadow(color: CatanTheme.cityPennantGold.opacity(0.45), radius: 2)
+                .position(geometry.vertexPosition(vertex, board: board))
+                .allowsHitTesting(false)
+                .accessibilityHidden(true)
+            }
+        }
+    }
+
+    private func stagedBuildingIsCity(for intent: BoardDecisionIntent) -> Bool? {
+        switch intent {
+        case .initialSettlement, .buildSettlement: false
+        case .buildCity: true
+        default: nil
+        }
+    }
+
+    @ViewBuilder
+    private func stagedRobberPreview(
+        for decision: BoardDecisionPresentation,
+        geometry: HexGeometry
+    ) -> some View {
+        if decision.intent.isRobber, let tile = decision.selectedTile {
+            Canvas { context, _ in
+                let number = board.tiles.first { $0.coordinate == tile }?.numberToken
+                TileDrawing.drawRobberPreview(at: tile, number: number, geometry: geometry, in: context)
+            }
+            .allowsHitTesting(false)
+            .accessibilityHidden(true)
+        }
+    }
+
+    @ViewBuilder
+    private func robberMarkerSemantics(
+        for decision: BoardDecisionPresentation,
+        geometry: HexGeometry
+    ) -> some View {
+        if decision.intent.isRobber {
+            boardMarker(
+                position: geometry.center(of: board.robberTile),
+                identifier: AccessibilityID.Board.robberOrigin,
+                label: "Current robber territory",
+                value: "Origin; the robber has not moved"
+            )
+            if let selectedTile = decision.selectedTile {
+                boardMarker(
+                    position: geometry.center(of: selectedTile),
+                    identifier: AccessibilityID.Board.stagedRobberPreview,
+                    label: "Staged robber destination",
+                    value: "Proposed; not yet moved"
+                )
+            }
+        }
+    }
+
+    private func boardMarker(position: CGPoint, identifier: String, label: String, value: String) -> some View {
+        Circle()
+            .fill(Color.white.opacity(0.001))
+            .frame(width: 44, height: 44)
+            .position(position)
+            .allowsHitTesting(false)
+            .accessibilityElement(children: .ignore)
+            .accessibilityIdentifier(identifier)
+            .accessibilityLabel(label)
+            .accessibilityValue(value)
+    }
+
+    @ViewBuilder
+    private func decisionCradle(
+        for decision: BoardDecisionPresentation,
+        geometry: HexGeometry,
+        containerSize: CGSize
+    ) -> some View {
+        let civilization = playerIdentity(decision.actor).civilization
+        let piece = BoardDecisionPieceKind(intent: decision.intent)
+        let ordinal = roadOrdinal(for: decision)
+        BoardDecisionCradle(
+            piece: piece,
+            civilization: civilization,
+            roadOrdinal: ordinal,
+            isDragging: draggedPieceLocation != nil,
+            accessibilityLabel: cradleAccessibilityLabel(for: decision)
+        )
+        .position(cradlePosition(in: containerSize))
+        .gesture(cradleDragGesture(for: decision, geometry: geometry))
+
+        // Direct dragging still selects the same nearest legal target with
+        // Reduce Motion enabled, but the cradle's opacity is the only moving
+        // feedback; a second token no longer chases the player's finger.
+        if let draggedPieceLocation, !reduceMotion {
+            BoardDecisionDragToken(piece: piece, civilization: civilization, roadOrdinal: ordinal)
+                .position(draggedPieceLocation)
+        }
+    }
+
+    private func cradleDragGesture(
+        for decision: BoardDecisionPresentation,
+        geometry: HexGeometry
+    ) -> some Gesture {
+        DragGesture(minimumDistance: 3, coordinateSpace: .named(Self.boardCoordinateSpace))
+            .updating($draggedPieceLocation) { value, location, _ in
+                location = value.location
+            }
+            .onEnded { value in
+                guard let target = nearestDropTarget(to: value.location, decision: decision, geometry: geometry) else {
+                    return
+                }
+                onSelectTarget(target)
+            }
+    }
+
+    private func nearestDropTarget(
+        to point: CGPoint,
+        decision: BoardDecisionPresentation,
+        geometry: HexGeometry
+    ) -> BoardTarget? {
+        let candidates = legalDropTargets(for: decision, geometry: geometry)
+        guard let nearest = candidates.min(by: { distance($0.point, point) < distance($1.point, point) }) else {
+            return nil
+        }
+        let radius = dropRadius(for: nearest.target, geometry: geometry)
+        return distance(nearest.point, point) <= radius ? nearest.target : nil
+    }
+
+    private func legalDropTargets(
+        for decision: BoardDecisionPresentation,
+        geometry: HexGeometry
+    ) -> [(target: BoardTarget, point: CGPoint)] {
+        let vertices = decision.legalVertices.map {
+            (BoardTarget.vertex($0), geometry.vertexPosition($0, board: board))
+        }
+        let edges = decision.legalEdges.map {
+            (BoardTarget.edge($0), geometry.edgeMidpoint($0, board: board))
+        }
+        let tiles = decision.legalTiles.map {
+            (BoardTarget.tile($0), geometry.center(of: $0))
+        }
+        return vertices + edges + tiles
+    }
+
+    private func dropRadius(for target: BoardTarget, geometry: HexGeometry) -> CGFloat {
+        switch target {
+        case .tile: max(Self.dragDropMinimumRadius, geometry.size * 0.92)
+        case .vertex, .edge: max(Self.dragDropMinimumRadius, geometry.size * 0.72)
+        case .victim: 0
+        }
+    }
+
+    private func distance(_ lhs: CGPoint, _ rhs: CGPoint) -> CGFloat {
+        hypot(lhs.x - rhs.x, lhs.y - rhs.y)
+    }
+
+    private func cradlePosition(in size: CGSize) -> CGPoint {
+        CGPoint(
+            x: max(Self.cradleEdgeInset, size.width - Self.cradleEdgeInset),
+            y: max(Self.cradleEdgeInset, size.height - Self.cradleEdgeInset)
+        )
+    }
+
+    private func roadOrdinal(for decision: BoardDecisionPresentation) -> Int? {
+        guard decision.intent == .roadBuilding else { return nil }
+        return min(decision.selectedEdges.count + 1, 2)
+    }
+
+    private func cradleAccessibilityLabel(for decision: BoardDecisionPresentation) -> String {
+        switch decision.intent {
+        case .initialSettlement: "Initial settlement drag piece"
+        case .initialRoad: "Initial road drag piece"
+        case .buildRoad: "Road drag piece"
+        case .buildSettlement: "Settlement drag piece"
+        case .buildCity: "City drag piece"
+        case .roadBuilding: "Road Building road \(roadOrdinal(for: decision) ?? 1) drag piece"
+        case .robberAfterSeven: "Rolled seven robber drag piece"
+        case .knight: "Knight robber drag piece"
+        }
+    }
+
+    private func vertexAccessibilityLabel(index: Int, decision: BoardDecisionPresentation) -> String {
+        let action = decision.intent == .initialSettlement ? "Preview initial settlement" :
+            decision.intent == .buildCity ? "Preview city" : "Preview settlement"
+        return "\(action) at legal corner \(index + 1) of \(decision.legalVertices.count)"
+    }
+
+    private func edgeAccessibilityLabel(index: Int, decision: BoardDecisionPresentation) -> String {
+        let action: String
+        switch decision.intent {
+        case .initialRoad: action = "Preview initial road"
+        case .roadBuilding where decision.selectedEdges.isEmpty: action = "Preview first Road Building road"
+        case .roadBuilding: action = "Preview second Road Building road"
+        default: action = "Preview road"
+        }
+        return "\(action) at legal edge \(index + 1) of \(decision.legalEdges.count)"
+    }
+
+    private func boardTargetAccessibilityHint(isSelected: Bool) -> String {
+        isSelected
+            ? "Selected. Choose another highlighted target to revise before confirming."
+            : "Stages this target without changing the game. Confirm in the board action dock."
     }
 
     // MARK: - Pieces
@@ -327,10 +581,14 @@ public struct BoardView: View {
         }
     }
 
-    /// A visibly provisional road. The bright border differentiates it from
-    /// committed state even when the player's road color is already pale,
-    /// while translucency keeps the next legal yellow targets readable.
-    private func stagedRoadPreview(geometry: HexGeometry, owner: PlayerID) -> some View {
+    /// A visibly provisional road. Road Building retains the coordinator's
+    /// ordered edge array and adds numbered seals; the set is used only for the
+    /// geometric union that removes seams where the two previews meet.
+    private func stagedRoadPreview(
+        for decision: BoardDecisionPresentation,
+        geometry: HexGeometry
+    ) -> some View {
+        let stagedRoads = Set(decision.selectedEdges)
         let overlap = geometry.size * 0.05
         let borderPath = unionedRoadPath(
             for: stagedRoads,
@@ -345,13 +603,22 @@ public struct BoardView: View {
             overlap: overlap
         )
         return ZStack {
-            borderPath.fill(.yellow.opacity(0.95))
-            fillPath.fill(playerIdentity(owner).civilization.accentColor.opacity(0.72))
+            borderPath.fill(CatanTheme.cityPennantGold.opacity(0.98))
+            fillPath.fill(playerIdentity(decision.actor).civilization.accentColor.opacity(0.72))
+            if decision.intent == .roadBuilding {
+                ForEach(Array(decision.selectedEdges.enumerated()), id: \.element) { index, edge in
+                    BoardRoadOrderBadge(ordinal: index + 1)
+                        .position(geometry.edgeMidpoint(edge, board: board))
+                }
+            }
         }
-        .shadow(color: .yellow.opacity(0.45), radius: 3)
+        .shadow(color: CatanTheme.cityPennantGold.opacity(0.55), radius: 3)
         .allowsHitTesting(false)
         .accessibilityElement()
-        .accessibilityLabel("Staged road preview")
+        .accessibilityLabel(
+            decision.selectedEdges.count == 1 ? "Staged road preview" : "Two staged road previews"
+        )
+        .accessibilityValue("Proposed, not yet built")
         .accessibilityIdentifier(AccessibilityID.Board.stagedRoadPreview)
     }
 
@@ -410,23 +677,20 @@ public struct BoardView: View {
 
     private func tileTapGesture(geometry: HexGeometry) -> some Gesture {
         SpatialTapGesture().onEnded { value in
-            guard allowsGameCommands else { return }
-            guard let tile = nearestTile(to: value.location, geometry: geometry) else { return }
-            onTapTile(tile)
+            guard allowsGameCommands, let decision, decision.intent.isRobber else { return }
+            guard let target = nearestDropTarget(
+                to: value.location,
+                decision: decision,
+                geometry: geometry
+            ), case .tile(let tile) = target else { return }
+            onSelectTarget(.tile(tile))
         }
     }
 
-    private func nearestTile(to point: CGPoint, geometry: HexGeometry) -> HexCoordinate? {
-        board.tiles
-            .map { ($0.coordinate, geometry.center(of: $0.coordinate)) }
-            .min { lhs, rhs in
-                let dl = hypot(lhs.1.x - point.x, lhs.1.y - point.y)
-                let dr = hypot(rhs.1.x - point.x, rhs.1.y - point.y)
-                return dl < dr
-            }?.0
-    }
-
-    private func tileAccessibilityLabel(_ tile: Tile) -> String {
+    private func tileAccessibilityLabel(
+        _ tile: Tile,
+        decision: BoardDecisionPresentation
+    ) -> String {
         let contents: String
         switch tile.kind {
         case .resource(let resource):
@@ -434,19 +698,14 @@ public struct BoardView: View {
         case .desert:
             contents = "desert"
         }
-        return "Move robber to \(contents)"
+        let source = decision.intent == .knight ? "Knight" : "rolled seven"
+        return "Preview \(source) robber move to \(contents)"
     }
 
     // MARK: - Stable ordering
 
     private var sortedVertices: [VertexID] {
         board.onBoardVertices.sorted()
-    }
-
-    private var sortedEdges: [EdgeID] {
-        board.onBoardEdges.sorted { lhs, rhs in
-            (lhs.a, lhs.b) < (rhs.a, rhs.b)
-        }
     }
 
     // MARK: - Geometry fitting

@@ -85,6 +85,7 @@ extension GameViewModel {
         guard let match = checkpointDocument?.activeMatch else {
             savedGameAvailability = .absent
             activeSince = nil
+            boardDecisionCoordinator.clear()
             return
         }
         if let problem = Self.recoveryProblem(for: .loaded(match.state),
@@ -116,6 +117,7 @@ extension GameViewModel {
         saveWasUnreadable = false
         persistenceBlocked = false
         restorePendingNegotiation()
+        reconcileBoardDecision()
     }
 
     private static func profiles(in setup: MatchSetup) -> [PlayerID: OpponentProfile] {

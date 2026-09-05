@@ -11,7 +11,7 @@ import Foundation
 /// states such as a finished game or a specific trade card deterministically.
 ///
 /// ## Why these are collected here rather than read inline
-/// They used to be twelve separate `ProcessInfo.processInfo.arguments.contains`
+/// They used to be scattered `ProcessInfo.processInfo.arguments.contains`
 /// calls spread across four files, none of them behind a compilation guard, so
 /// test scaffolding shipped in release builds and there was no single place to
 /// find out what hooks existed. `isSet` is hard-wired to `false` outside DEBUG,
@@ -66,6 +66,12 @@ enum QALaunchFlag: String, CaseIterable {
     case showTradePopup = "-qaShowTradePopup"
     /// Opens the build popup.
     case showBuildPopup = "-qaShowBuildPopup"
+    /// Installs a main-turn position where every paid construction is legal.
+    case paidBuildPosition = "-qaPaidBuildPosition"
+    /// Opens a paid road/settlement/city decision directly for visual QA.
+    case showPaidRoadDecision = "-qaShowPaidRoadDecision"
+    case showPaidSettlementDecision = "-qaShowPaidSettlementDecision"
+    case showPaidCityDecision = "-qaShowPaidCityDecision"
     /// Opens the monopoly resource picker.
     case showMonopolyPopup = "-qaShowMonopolyPopup"
     /// Installs a mixed five-type private hand and opens the real card shelf.
@@ -83,9 +89,14 @@ enum QALaunchFlag: String, CaseIterable {
     case showPendingTradeConfirmation = "-qaShowPendingTradeConfirmation"
     /// Arms voluntary knight robber targeting.
     case showRobberTargeting = "-qaShowRobberTargeting"
+    /// Starts a real two-road preview from a playable Road Building card.
+    case showRoadBuildingDecision = "-qaShowRoadBuildingDecision"
+    /// Starts the mandatory rolled-seven robber flow with three victims.
+    case showMandatoryRobberDecision = "-qaShowMandatoryRobberDecision"
     /// Seeds a real pending offer with deterministic conserved hands.
     case showIncomingOffer = "-qaShowIncomingOffer"
-    /// Arms a robber tile that has an eligible victim, to reach the victim picker.
+    /// Stages the mandatory robber fixture's three-victim destination, without
+    /// selecting a victim or committing the move.
     case showRobberVictimPicker = "-qaShowRobberVictimPicker"
     /// Installs a conserved eight-card hand owing a four-card discard.
     case showDiscard = "-qaShowDiscard"

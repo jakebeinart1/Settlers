@@ -132,14 +132,20 @@ grep -rnoE '"\-qa[A-Za-z]+"' --include="*.swift" "$REPO/Settlers" | sort -u
 | `-qaShowPauseMenu` | `GameView.swift` | The "Game Menu" pause sheet. |
 | `-qaShowTradePopup` | `GameView.swift` | `TradePopupView`. |
 | `-qaShowBuildPopup` | `GameView.swift` | The "Build" popup (Road / Settlement / City / Dev Card). |
+| `-qaPaidBuildPosition` | `GameView.swift` | Installs a real main-turn position where Road, Settlement, and City are all legal; use this to tap through the Build popup rather than seeding its result. |
+| `-qaShowPaidRoadDecision` | `GameView.swift` | Starts a real paid-road proposal with no road or resources committed yet. |
+| `-qaShowPaidSettlementDecision` | `GameView.swift` | Starts a real paid-settlement proposal with no settlement or resources committed yet. |
+| `-qaShowPaidCityDecision` | `GameView.swift` | Starts a real paid-city proposal with no city or resources committed yet. |
 | `-qaShowMonopolyPopup` | `GameView.swift` | The Monopoly resource picker in `DevCardPopupView` (Year of Plenty shares the layout). |
 | `-qaShowDevCardHand` | `GameView.swift` | A mixed private hand containing every card type, including ready, new, and passive states. |
 | `-qaDevCardPurchase` | `GameView.swift` | A legal Build position with Monopoly on top of the deck. A UI test still has to tap Build and buy it. |
 | `-qaShowDevCardReveal` | `GameView.swift` | A real committed Year of Plenty purchase waiting on its durable private acknowledgement. |
 | `-qaShowWinningDevCardReveal` | `GameView.swift` | A real Victory Point purchase that wins the game; the private reveal must appear before standings. |
 | `-qaShowPendingTradeConfirmation` | `GameView.swift` | The trade popup's "a bot will accept" banner, seeded directly. |
-| `-qaShowRobberTargeting` | `GameView.swift` | The "tap a tile" robber targeting panel. |
-| `-qaShowRobberVictimPicker` | `GameView.swift` | One step further: the "Steal from:" victim picker. |
+| `-qaShowRobberTargeting` | `GameView.swift` | Starts a real cancellable Knight proposal before a destination is selected. |
+| `-qaShowRobberVictimPicker` | `GameView.swift` | Stages the mandatory robber fixture's three-victim destination; no victim is selected and nothing is committed. |
+| `-qaShowRoadBuildingDecision` | `GameView.swift` | Starts a real Road Building proposal; both roads and the card remain uncommitted until Confirm. |
+| `-qaShowMandatoryRobberDecision` | `GameView.swift` | Starts the mandatory rolled-seven robber proposal with three eligible victims for maximum-width layout QA. |
 | `-qaShowDiscard` | `GameView.swift` | A real conserved eight-card hand in a mandatory four-card discard, for expanded/minimized inspection and submission. **Needs `-qaAutoStart`.** |
 | `-qaShowIncomingOffer` | `GameView.swift` | `IncomingTradeCardView`, backed by a real pending engine offer and conserved deterministic hands. |
 | `-qaFastForwardToRollDice` | `GameView.swift` | Plays the human's setup placements and first roll, resolving a possible seven until the main-turn controls are enabled. **Applies real moves** (writes the save and game log); wait on the target control's readiness rather than a fixed delay. |

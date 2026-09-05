@@ -108,8 +108,8 @@ enum TileDrawing {
     /// the ring is a fixed point size and does not shrink with the hex.
     static let vertexRingRadius: CGFloat = 11
 
-    /// Draws the robber over `tileCoordinate`, and darkens the tile it is
-    /// sitting on.
+    /// Draws the committed robber over `tileCoordinate`, and darkens the tile
+    /// it is sitting on.
     ///
     /// ## Why the tile is darkened rather than just marked
     /// The robber used to be a plain near-black disc with a thin white ring,
@@ -123,30 +123,101 @@ enum TileDrawing {
     /// marker carries the position; the number token is still redrawn on top so
     /// the hex stays identifiable.
     static func drawRobber(at tileCoordinate: HexCoordinate, number: Int?, geometry: HexGeometry, in context: GraphicsContext) {
-        // Blocked-tile scrim, inset slightly so the tile's own border still
-        // reads and neighbouring tiles are not visually joined to it.
-        let scrim = hexPath(for: tileCoordinate, geometry: geometry, scale: 0.97)
-        context.fill(scrim, with: .color(.black.opacity(0.45)))
+        drawRobberScrim(at: tileCoordinate, opacity: 0.45, geometry: geometry, in: context)
+        drawRobberDisc(at: tileCoordinate, opacity: 1, isProvisional: false, geometry: geometry, in: context)
+        drawRobberNumber(number, at: tileCoordinate, geometry: geometry, in: context)
+    }
 
+    /// Replaces the committed robber with a hollow departure marker while the
+    /// physical piece sits in the drag cradle. The tile remains darkened because
+    /// it is still canonically blocked until confirmation succeeds.
+    static func drawRobberOrigin(
+        at tileCoordinate: HexCoordinate,
+        number: Int?,
+        geometry: HexGeometry,
+        in context: GraphicsContext
+    ) {
+        drawRobberScrim(at: tileCoordinate, opacity: 0.34, geometry: geometry, in: context)
         let center = geometry.center(of: tileCoordinate)
-        let radius = geometry.size * 0.32
-        let disc = Path(ellipseIn: CGRect(x: center.x - radius, y: center.y - radius,
-                                          width: radius * 2, height: radius * 2))
-        context.fill(disc, with: .color(CatanTheme.robber))
-        // Gold, not white: every other frame on this board is gold-rimmed, and
-        // a lone white ring read as a UI artefact rather than a game piece.
-        context.stroke(disc, with: .color(CatanTheme.cityPennantGold), lineWidth: geometry.size * 0.05)
+        let radius = geometry.size * 0.34
+        let disc = circle(center: center, radius: radius)
+        context.stroke(
+            disc,
+            with: .color(CatanTheme.cityPennantGold.opacity(0.96)),
+            style: StrokeStyle(lineWidth: geometry.size * 0.07, dash: [5, 3])
+        )
+        context.stroke(
+            circle(center: center, radius: radius * 0.58),
+            with: .color(CatanTheme.robber.opacity(0.92)),
+            lineWidth: geometry.size * 0.06
+        )
+        drawRobberNumber(number, at: tileCoordinate, geometry: geometry, in: context)
+    }
 
-        if let number {
-            // Same font size `drawNumberToken` uses for every other tile
-            // (`geometry.size * 0.32` radius * `1.15`) - not this disc's own
-            // radius, which made the one number under the robber visibly
-            // shrink relative to its neighbours.
-            let text = Text("\(number)")
-                .font(.system(size: geometry.size * 0.32 * 1.15, weight: .bold, design: .serif))
-                .foregroundColor(.white)
-            context.draw(context.resolve(text), at: center, anchor: .center)
-        }
+    /// Draws a translucent robber at a proposed destination. The dashed gold
+    /// rim is the same provisional cue used by building previews; no canonical
+    /// board value has changed when this is visible.
+    static func drawRobberPreview(
+        at tileCoordinate: HexCoordinate,
+        number: Int?,
+        geometry: HexGeometry,
+        in context: GraphicsContext
+    ) {
+        drawRobberScrim(at: tileCoordinate, opacity: 0.27, geometry: geometry, in: context)
+        drawRobberDisc(at: tileCoordinate, opacity: 0.68, isProvisional: true, geometry: geometry, in: context)
+        drawRobberNumber(number, at: tileCoordinate, geometry: geometry, in: context)
+    }
+
+    private static func drawRobberScrim(
+        at tileCoordinate: HexCoordinate,
+        opacity: Double,
+        geometry: HexGeometry,
+        in context: GraphicsContext
+    ) {
+        let scrim = hexPath(for: tileCoordinate, geometry: geometry, scale: 0.97)
+        context.fill(scrim, with: .color(.black.opacity(opacity)))
+    }
+
+    private static func drawRobberDisc(
+        at tileCoordinate: HexCoordinate,
+        opacity: Double,
+        isProvisional: Bool,
+        geometry: HexGeometry,
+        in context: GraphicsContext
+    ) {
+        let center = geometry.center(of: tileCoordinate)
+        let disc = circle(center: center, radius: geometry.size * 0.32)
+        context.fill(disc, with: .color(CatanTheme.robber.opacity(opacity)))
+        context.stroke(
+            disc,
+            with: .color(CatanTheme.cityPennantGold.opacity(isProvisional ? 0.82 : 1)),
+            style: StrokeStyle(
+                lineWidth: geometry.size * 0.05,
+                dash: isProvisional ? [5, 3] : []
+            )
+        )
+    }
+
+    private static func drawRobberNumber(
+        _ number: Int?,
+        at tileCoordinate: HexCoordinate,
+        geometry: HexGeometry,
+        in context: GraphicsContext
+    ) {
+        guard let number else { return }
+        let text = Text("\(number)")
+            .font(.system(size: geometry.size * 0.32 * 1.15, weight: .bold, design: .serif))
+            .foregroundColor(.white)
+        context.draw(context.resolve(text), at: geometry.center(of: tileCoordinate), anchor: .center)
+    }
+
+    private static func circle(center: CGPoint, radius: CGFloat) -> Path {
+        Path(ellipseIn: CGRect(
+            x: center.x - radius,
+            y: center.y - radius,
+            width: radius * 2,
+            height: radius * 2
+        ))
     }
 
     /// Where a port's badge is drawn: out from the midpoint of its two
@@ -243,20 +314,23 @@ enum TileDrawing {
 }
 
 /// An invisible, generously-sized tap target over a board vertex, for
-/// building settlements/cities. During placement mode (`isEnabled: false`),
-/// non-highlighted targets ignore taps entirely; a highlighted target draws a
-/// glowing ring so the legal placements read as tappable.
+/// building settlements/cities. The board creates controls only for legal
+/// targets; a visible ring makes each available placement read as tappable.
 struct VertexTapTarget: View {
     let position: CGPoint
     var isHighlighted: Bool = false
     var isEnabled: Bool = true
+    var isSelected: Bool = false
     let accessibilityIdentifier: String
+    let accessibilityLabel: String
+    let accessibilityValue: String
+    let accessibilityHint: String
     let onTap: () -> Void
 
-    private let touchDiameter: CGFloat = 32
+    private let touchDiameter: CGFloat = 44
     /// Smaller than `touchDiameter` on purpose - the yellow glow ring
     /// (shown for every legal placement, most noticeably setup's two
-    /// rounds of settlements) read as oversized at the full 32pt tap-target
+    /// rounds of settlements) read as oversized at the full 44pt tap-target
     /// size. The invisible tap circle underneath stays at the full size so
     /// the actual hit target doesn't shrink, only what's visibly drawn.
     private let highlightDiameter: CGFloat = 22
@@ -265,8 +339,8 @@ struct VertexTapTarget: View {
         ZStack {
             if isHighlighted {
                 Circle()
-                    .strokeBorder(Color.yellow, lineWidth: 3)
-                    .background(Circle().fill(Color.yellow.opacity(0.35)))
+                    .strokeBorder(CatanTheme.cityPennantGold, lineWidth: isSelected ? 4 : 3)
+                    .background(Circle().fill(CatanTheme.cityPennantGold.opacity(isSelected ? 0.5 : 0.32)))
                     .frame(width: highlightDiameter, height: highlightDiameter)
             }
             Circle()
@@ -279,8 +353,11 @@ struct VertexTapTarget: View {
         .onTapGesture(perform: onTap)
         .accessibilityElement(children: .ignore)
         .accessibilityIdentifier(accessibilityIdentifier)
-        .accessibilityLabel("Build settlement")
+        .accessibilityLabel(accessibilityLabel)
+        .accessibilityValue(accessibilityValue)
+        .accessibilityHint(accessibilityHint)
         .accessibilityAddTraits(.isButton)
+        .accessibilityAddTraits(isSelected ? .isSelected : [])
         .disabled(!isEnabled)
     }
 }
@@ -292,25 +369,40 @@ struct EdgeTapTarget: View {
     let end: CGPoint
     var isHighlighted: Bool = false
     var isEnabled: Bool = true
+    var isSelected: Bool = false
     let accessibilityIdentifier: String
+    let accessibilityLabel: String
+    let accessibilityValue: String
+    let accessibilityHint: String
     let onTap: () -> Void
 
-    private let touchWidth: CGFloat = 20
+    private let touchWidth: CGFloat = 44
+    private let highlightWidth: CGFloat = 12
 
     var body: some View {
         let length = hypot(end.x - start.x, end.y - start.y)
+        // Keep the visual affordance near the middle of the edge. Three
+        // full-length capsules converge beneath every settlement and merge
+        // into one amorphous blob; shortened guides remain three readable
+        // choices while the invisible hit target still spans the whole edge.
+        let guideLength = max(length * 0.62, min(length, 20))
         let angle = atan2(end.y - start.y, end.x - start.x)
         let midpoint = CGPoint(x: (start.x + end.x) / 2, y: (start.y + end.y) / 2)
 
         ZStack {
             if isHighlighted {
                 Capsule()
-                    .fill(Color.yellow.opacity(0.55))
-                    .frame(width: length, height: touchWidth * 0.6)
+                    .fill(CatanTheme.chipGold.opacity(isSelected ? 0.96 : 0.82))
+                    .overlay {
+                        Capsule()
+                            .strokeBorder(Color.black.opacity(0.82), lineWidth: 1.5)
+                    }
+                    .shadow(color: CatanTheme.chipGold.opacity(0.4), radius: 1.5)
+                    .frame(width: guideLength, height: highlightWidth)
             }
             Capsule()
                 .fill(Color.white.opacity(0.001))
-                .frame(width: length, height: touchWidth)
+                .frame(width: max(length, 44), height: touchWidth)
         }
         .rotationEffect(.radians(angle))
         .position(midpoint)
@@ -319,8 +411,11 @@ struct EdgeTapTarget: View {
         .onTapGesture(perform: onTap)
         .accessibilityElement(children: .ignore)
         .accessibilityIdentifier(accessibilityIdentifier)
-        .accessibilityLabel("Build road")
+        .accessibilityLabel(accessibilityLabel)
+        .accessibilityValue(accessibilityValue)
+        .accessibilityHint(accessibilityHint)
         .accessibilityAddTraits(.isButton)
+        .accessibilityAddTraits(isSelected ? .isSelected : [])
         .disabled(!isEnabled)
     }
 }
@@ -333,8 +428,11 @@ struct TileTapTarget: View {
     let position: CGPoint
     let diameter: CGFloat
     let isEnabled: Bool
+    let isSelected: Bool
     let accessibilityIdentifier: String
     let accessibilityLabel: String
+    let accessibilityValue: String
+    let accessibilityHint: String
     let onTap: () -> Void
 
     var body: some View {
@@ -347,7 +445,10 @@ struct TileTapTarget: View {
             .accessibilityElement(children: .ignore)
             .accessibilityIdentifier(accessibilityIdentifier)
             .accessibilityLabel(accessibilityLabel)
+            .accessibilityValue(accessibilityValue)
+            .accessibilityHint(accessibilityHint)
             .accessibilityAddTraits(.isButton)
+            .accessibilityAddTraits(isSelected ? .isSelected : [])
             .disabled(!isEnabled)
     }
 }

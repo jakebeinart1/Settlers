@@ -5,9 +5,9 @@ import CatanAI
 /// one Build/Trade/turn-action row over a continuous scenic background.
 ///
 /// `TradePopupView`/`DevCardPopupView`/`DiscardPopupView` are overlays driven
-/// by view state; the mandatory post-7-roll robber move *and* the voluntary
-/// knight-card robber move both happen inline on this same `BoardView` (see
-/// `isRobberTargetingActive`) rather than as a separate modal. Incoming bot
+/// by view state. Every spatial action uses the view model's shared board
+/// decision: choose or drag a preview, reconsider it, then explicitly confirm
+/// before canonical state changes. Incoming bot
 /// trade offers surface as a small `IncomingTradeCardView` right above
 /// `HumanPlayerPanel`, with a countdown set by `PacingPreferences` and
 /// defaulting to 15 seconds - or none at all, if the player chose No Limit.
@@ -35,7 +35,6 @@ public struct GameView: View {
     // skill documents it under that name; what it opens is now
     // `InGameSettingsView`, which absorbed the old pause menu.
     @State var isShowingInGameSettings = QALaunchFlag.showPauseMenu.isSet
-    @State private var placementMode: PlacementMode?
     // `-qaShowTradePopup`: same escape hatch pattern - lets QA screenshot
     // the trade popup without a real tap.
     @State private var showTradePopup = QALaunchFlag.showTradePopup.isSet
@@ -58,21 +57,6 @@ public struct GameView: View {
     // reaches them only when no stored setup exists at all.
     @AppStorage("randomizedBoardSetting") private var randomizedBoardSetting = true
     @AppStorage("randomizeSeatSetting") private var randomizeSeatSetting = true
-
-    /// Road-building sub-flow: `nil` when inactive; once armed, the first
-    /// tapped edge is held here while the second is picked, then both are
-    /// applied together as `.playRoadBuilding(first, second)`.
-    @State private var roadBuildingFirstEdge: EdgeID?
-    @State private var isRoadBuildingActive = false
-
-    /// Robber-move sub-flow, inline on the main board - covers both the
-    /// mandatory post-7-roll move (`isMandatoryRobberActive`) and the
-    /// voluntary knight-card move (`isKnightRobberActive`): once the human
-    /// taps a legal tile, it's held here while an eligible victim (if any)
-    /// is picked from the inline picker in `bottomPanel`; committing (or a
-    /// tile with no eligible victims) applies the matching move directly.
-    @State private var robberTargetTile: HexCoordinate?
-    @State private var isKnightRobberActive = false
 
     /// Drives the dice chip's brief scale/rotate pulse on a new roll -
     /// bumped in `onChange(of: state.lastDiceRoll)`.
@@ -169,6 +153,7 @@ public struct GameView: View {
                 BotHUDRow(state: state, human: human, playerIdentity: viewModel.playerIdentity)
                     .padding(.horizontal, 12)
                     .padding(.bottom, 3)
+                    .dynamicTypeSize(...DynamicTypeSize.large)
 
                 boardArea
 
@@ -180,24 +165,25 @@ public struct GameView: View {
                 // nothing real to do anyway - so it now takes over that row
                 // directly instead of adding a whole extra reserved banner
                 // just for itself.
-                StableHeightSlot(height: $infoBannerHeight) {
-                    if let errorMessage {
-                        Text(errorMessage)
-                            .font(.caption2)
-                            .foregroundStyle(.red)
-                    } else {
-                        // `.frame(height: 0)` is load-bearing here, not
-                        // decoration: a bare `Color.clear` has no intrinsic
-                        // size and greedily fills all available space in a
-                        // `VStack` - on first launch, before any slot has
-                        // measured a real height yet, that made this
-                        // "nothing to show" placeholder compete with the
-                        // board for the same flexible space and squeeze it
-                        // down to a fraction of the screen. Caught by
-                        // rendering the exact structure in isolation - see
-                        // chat - after it shipped once already.
-                        Color.clear.frame(height: 0)
+                // A board decision reports its own errors and instructions in
+                // the command dock. Omitting this otherwise-reserved banner
+                // gives an accessibility-sized dock room to grow without
+                // stealing the board's 250-point minimum.
+                if viewModel.boardDecisionPresentation == nil {
+                    StableHeightSlot(height: $infoBannerHeight) {
+                        if let errorMessage {
+                            Text(errorMessage)
+                                .font(.caption2)
+                                .foregroundStyle(.red)
+                        } else {
+                            // `.frame(height: 0)` is load-bearing here, not
+                            // decoration: a bare `Color.clear` has no intrinsic
+                            // size and greedily fills all available space in a
+                            // `VStack`.
+                            Color.clear.frame(height: 0)
+                        }
                     }
+                    .dynamicTypeSize(...DynamicTypeSize.large)
                 }
 
                 // No top padding here - this needs to sit genuinely flush
@@ -215,6 +201,13 @@ public struct GameView: View {
                         }
                     )
                     .padding(.horizontal, 12)
+                    // This is a dense graphical inventory, not prose. Letting
+                    // Accessibility Large scale its symbols to 3× pushed the
+                    // board below 250pt and clipped VP off-screen. VoiceOver
+                    // still exposes every value; the fixed canvas stays whole.
+                    .dynamicTypeSize(...DynamicTypeSize.large)
+                    .allowsHitTesting(viewModel.boardDecisionPresentation == nil)
+                    .accessibilityHidden(viewModel.boardDecisionPresentation != nil)
                 }
 
                 bottomPanel
@@ -231,17 +224,17 @@ public struct GameView: View {
             .allowsHitTesting(!isBlockingOverlayPresented)
             .accessibilityHidden(isBlockingOverlayPresented)
 
-            if !isDiscardPresented && showBuildPopup {
-                BuildPopupView(viewModel: viewModel, placementMode: $placementMode, onDismiss: { showBuildPopup = false })
+            if !isDiscardPresented, viewModel.boardDecisionPresentation == nil, showBuildPopup {
+                BuildPopupView(viewModel: viewModel, onDismiss: { showBuildPopup = false })
                     .accessibilityHidden(viewModel.needsHandoff)
             }
 
-            if !isDiscardPresented && showTradePopup {
+            if !isDiscardPresented, viewModel.boardDecisionPresentation == nil, showTradePopup {
                 TradePopupView(viewModel: viewModel, onDismiss: { showTradePopup = false })
                     .accessibilityHidden(viewModel.needsHandoff)
             }
 
-            if !isDiscardPresented,
+            if interactionPriority.winner == .privateReceipt,
                let reveal = viewModel.pendingDevCardReveal, reveal.owner == human {
                 DevelopmentCardOverlay(
                     // A winning receipt remains while its hand is inspected;
@@ -272,7 +265,7 @@ public struct GameView: View {
                     }
                 )
                 .accessibilityHidden(viewModel.needsHandoff)
-            } else if !isDiscardPresented,
+            } else if interactionPriority.winner == .privateReceipt,
                       let resolution = viewModel.pendingDevCardResolution,
                       resolution.owner == human {
                 DevelopmentCardResultOverlay(
@@ -286,7 +279,9 @@ public struct GameView: View {
                     _ = viewModel.dismissDevCardResolution()
                 }
                 .accessibilityHidden(viewModel.needsHandoff)
-            } else if !isDiscardPresented && showDevCardHand {
+            } else if !isDiscardPresented,
+                      viewModel.boardDecisionPresentation == nil,
+                      showDevCardHand {
                 DevelopmentCardOverlay(
                     mode: .hand,
                     state: state,
@@ -308,12 +303,12 @@ public struct GameView: View {
             // merely painting Settings above it left the hidden dock in the
             // VoiceOver tree, where it could still be activated through a
             // visually opaque screen.
-            if isDiscardPresented && !isShowingInGameSettings {
+            if isDiscardPresented && !interactionPriority.isSettingsCoverPresented {
                 DiscardPopupView(viewModel: viewModel)
                     .accessibilityHidden(viewModel.needsHandoff)
             }
 
-            if isShowingInGameSettings {
+            if interactionPriority.isSettingsCoverPresented {
                 // Surface B: painted pacing, trade-timer, and match controls.
                 InGameSettingsView(
                     onResume: { isShowingInGameSettings = false },
@@ -333,6 +328,7 @@ public struct GameView: View {
                     },
                     onMainMenu: {
                         isShowingInGameSettings = false
+                        viewModel.clearBoardDecisionForBoundary()
                         onExitToMenu()
                     }
                 )
@@ -355,6 +351,11 @@ public struct GameView: View {
                 ) {
                     clearSeatInteractionState()
                     viewModel.claimDeviceForSeatOwedATurn()
+                    // Rebuild the queue only after ownership changes. Doing it
+                    // before this point evaluates affordability against the
+                    // outgoing hand and can permanently hide the incoming
+                    // player's first offer.
+                    handleTradeOffersChange()
                 }
                 .zIndex(100)
             }
@@ -385,6 +386,7 @@ public struct GameView: View {
             }
         }
         .onAppear {
+            viewModel.reconcileBoardDecision()
             // NOT `seenTradeOfferIDs = Set(state.pendingTradeOffers.map(\.id))`
             // - that blindly marked every currently-pending offer as already
             // shown, including one that was pending but had never actually
@@ -415,16 +417,22 @@ public struct GameView: View {
                 viewModel.qaSeedPendingTradeConfirmation()
             }
             #endif
-            // `-qaShowRobberTargeting`: same escape hatch pattern - arms
-            // `isKnightRobberActive` directly so `robberTargetingPanel` can
-            // be screenshotted without a real Knight card/7-roll.
-            if QALaunchFlag.showRobberTargeting.isSet {
-                isKnightRobberActive = true
-            }
         }
         .task {
             #if DEBUG
-            if QALaunchFlag.showDiscard.isSet {
+            if QALaunchFlag.showPaidRoadDecision.isSet {
+                viewModel.qaPreparePaidBuildPosition(starting: .buildRoad)
+            } else if QALaunchFlag.showPaidSettlementDecision.isSet {
+                viewModel.qaPreparePaidBuildPosition(starting: .buildSettlement)
+            } else if QALaunchFlag.showPaidCityDecision.isSet {
+                viewModel.qaPreparePaidBuildPosition(starting: .buildCity)
+            } else if QALaunchFlag.paidBuildPosition.isSet {
+                viewModel.qaPreparePaidBuildPosition()
+            } else if QALaunchFlag.showRoadBuildingDecision.isSet {
+                viewModel.qaPrepareRoadBuildingDecision()
+            } else if QALaunchFlag.showMandatoryRobberDecision.isSet {
+                viewModel.qaPrepareMandatoryRobberDecision()
+            } else if QALaunchFlag.showDiscard.isSet {
                 viewModel.qaPrepareMandatoryDiscard()
             } else if QALaunchFlag.devCardPurchase.isSet {
                 viewModel.qaPrepareDevCardPurchase(.monopoly)
@@ -464,20 +472,13 @@ public struct GameView: View {
                 // still find the offer pending on the next launch.
                 #endif
             }
-            // `-qaShowRobberVictimPicker`: same escape hatch pattern, one
-            // step further than `-qaShowRobberTargeting` - arms
-            // `robberTargetTile` too (to the first tile that actually has an
-            // eligible victim, found by scanning the real post-setup board
-            // state) so the "Steal from:" step can be screenshotted, not
-            // just the "tap a tile" message before it. Runs after
-            // `qaFastForwardToRollDiceIfRequested` (needs real settlements
-            // on the board to find a victim from) rather than in `onAppear`.
-            if QALaunchFlag.showRobberVictimPicker.isSet {
-                isKnightRobberActive = true
-                robberTargetTile = state.board.tiles
-                    .map(\.coordinate)
-                    .first { !Robber.eligibleVictims(for: $0, thief: human, in: state).isEmpty }
+            #if DEBUG
+            if QALaunchFlag.showRobberTargeting.isSet {
+                viewModel.qaPrepareKnightBoardDecision(selectDestinationWithVictim: false)
+            } else if QALaunchFlag.showRobberVictimPicker.isSet {
+                viewModel.qaPrepareMandatoryRobberDecision(selectDestination: true)
             }
+            #endif
         }
         .onChange(of: state.pendingTradeOffers.map(\.id)) { _, _ in
             handleTradeOffersChange()
@@ -497,9 +498,6 @@ public struct GameView: View {
         }
         .onChange(of: viewModel.eventBatch) { _, batch in
             handleEvents(batch.events)
-        }
-        .onChange(of: isRobberTargetingActive) { _, isActive in
-            if !isActive { robberTargetTile = nil }
         }
     }
 
@@ -558,17 +556,9 @@ public struct GameView: View {
             BoardView(
                 state: state,
                 playerIdentity: viewModel.playerIdentity,
-                onTapVertex: handleTapVertex,
-                onTapEdge: handleTapEdge,
-                onTapTile: handleTapTile,
-                highlightedVertices: highlightedVertices,
-                highlightedEdges: highlightedEdges,
-                stagedRoads: roadBuildingFirstEdge.map { Set([$0]) } ?? [],
-                stagedRoadOwner: roadBuildingFirstEdge == nil ? nil : human,
-                isPlacementModeActive: isPlacementModeActive || isRobberTargetingActive,
-                highlightedTiles: highlightedTilesForRobber,
-                isTileTargetingActive: isRobberTargetingActive,
-                allowsGameCommands: !isDiscardPresented,
+                decision: viewModel.boardDecisionPresentation,
+                onSelectTarget: { _ = viewModel.selectBoardTarget($0) },
+                allowsGameCommands: !isDiscardPresented && !isBlockingOverlayPresented,
                 rollHighlightTiles: rollHighlightTiles
             )
             // Clears the dice and bank/deck chips that float over this area.
@@ -591,7 +581,7 @@ public struct GameView: View {
                     .padding(8)
             }
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .frame(maxWidth: .infinity, minHeight: 250, maxHeight: .infinity)
         .clipShape(RoundedRectangle(cornerRadius: 12))
         // Top-right corner, the same `.padding(8)` as the dice chip so the
         // two sit flush on one shared top line - the bank's per-resource
@@ -615,12 +605,10 @@ public struct GameView: View {
         }
     }
 
-    // MARK: - Bottom panel: one uniform action row (or the inline
-    // robber-targeting panel while a robber move is pending) over a
-    // lighter water panel
+    // MARK: - Bottom panel: one uniform command row over a lighter water panel
 
     private var bottomPanel: some View {
-        // `actionRow`, every `robberTargetingPanel` state, and
+        // `actionRow`, every `BoardDecisionDockView` state, and
         // `IncomingTradeCardView` all share the same plain static height
         // floor (`actionRowHeight`, applied at each one's own call
         // site/root, not here) - not a measured/reserved slot. Two earlier
@@ -636,13 +624,23 @@ public struct GameView: View {
         // failure mode - there's nothing left to over-measure or grow
         // unexpectedly.
         VStack(spacing: 8) {
-            if isDiscardPresented {
+            switch interactionPriority.winner {
+            case .handoff, .recoveryFailure, .mandatoryDiscard, .privateReceipt:
                 Color.clear.frame(height: Self.actionRowHeight)
-            } else if isRobberTargetingActive {
-                robberTargetingPanel
-            } else if isRoadBuildingActive {
-                roadBuildingPanel
-            } else if let currentOffer = currentIncomingOffer {
+            case .mandatoryBoardDecision, .optionalBoardDecision:
+                if let decision = viewModel.boardDecisionPresentation {
+                    BoardDecisionDockView(
+                        presentation: decision,
+                        identity: viewModel.playerIdentity,
+                        resourceCount: resourceCount,
+                        onSelectVictim: { _ = viewModel.selectBoardTarget(.victim($0)) },
+                        onUndo: { _ = viewModel.undoBoardDecisionSelection() },
+                        onClear: viewModel.clearBoardDecisionSelection,
+                        onCancel: { _ = viewModel.cancelBoardDecision() },
+                        onConfirm: { _ = viewModel.confirmBoardDecision() }
+                    )
+                }
+            case .incomingTrade:
                 // Takes over this row for as long as the offer stays live
                 // (its own up-to-6s countdown, or until accepted/rejected) -
                 // including into the human's *own* turn if the proposing
@@ -654,17 +652,21 @@ public struct GameView: View {
                 // is an acceptable trade for that - it self-clears within
                 // the same window the fairness delay in
                 // `GameViewModel.waitForFairAcceptWindow` is built around.
-                IncomingTradeCardView(
-                    offer: currentOffer,
-                    // Same signal the bot loop already holds on.
-                    isHeld: isShowingInGameSettings,
-                    playerIdentity: viewModel.playerIdentity,
-                    onAccept: { respond(to: currentOffer, accept: true) },
-                    onReject: { respond(to: currentOffer, accept: false) }
-                )
-            } else {
+                if let currentOffer = currentIncomingOffer {
+                    IncomingTradeCardView(
+                        offer: currentOffer,
+                        // Same signal the bot loop already holds on.
+                        isHeld: interactionPriority.isSettingsCoverPresented,
+                        playerIdentity: viewModel.playerIdentity,
+                        onAccept: { respond(to: currentOffer, accept: true) },
+                        onReject: { respond(to: currentOffer, accept: false) }
+                    )
+                    .dynamicTypeSize(...DynamicTypeSize.large)
+                }
+            case .ordinaryActions:
                 actionRow
                     .frame(height: Self.actionRowHeight)
+                    .dynamicTypeSize(...DynamicTypeSize.large)
             }
         }
         .padding(6)
@@ -678,8 +680,8 @@ public struct GameView: View {
     /// Build / Trade / turn action (Roll Dice or End Turn) - dev cards are
     /// played by tapping their tile in `HumanPlayerPanel` now, so this row
     /// only needs three slots. Build opens `BuildPopupView` (matching
-    /// Trade's popup-card look) unless a placement mode is already armed, in
-    /// which case tapping the button just cancels it directly.
+    /// Trade's popup-card look). Choosing a piece there starts a board
+    /// decision, whose own dock owns cancellation and confirmation.
     private var actionRow: some View {
         HStack(spacing: 10) {
             UniformActionButton(
@@ -690,64 +692,19 @@ public struct GameView: View {
                 showTradePopup = true
             }
             UniformActionButton(
-                title: placementMode == nil ? "Build" : placementMode!.label,
-                systemImage: placementMode == nil ? "hammer.fill" : "hammer.circle.fill",
-                // `|| placementMode != nil` deliberately, not just
-                // `isHumanMainTurn`: while a placement is armed this button is
-                // the only way to cancel it, so disabling it mid-placement
-                // would strand the player in targeting mode. In practice a
-                // placement can only be armed during the human's main turn
-                // anyway, so this is belt-and-braces rather than a real second
-                // condition.
-                isEnabled: isHumanMainTurn || placementMode != nil,
-                isArmed: placementMode != nil,
+                title: "Build",
+                systemImage: "hammer.fill",
+                isEnabled: isHumanMainTurn,
                 backgroundImageName: "button-fill-build"
             ) {
-                if placementMode != nil {
-                    placementMode = nil
-                } else {
-                    showBuildPopup = true
-                }
+                showBuildPopup = true
             }
             turnActionButton
         }
     }
 
-    /// Replaces the action row while a robber move is active. The extracted
-    /// panel owns its exact height so the flexible board never resizes between
-    /// destination selection and victim selection.
-    private var robberTargetingPanel: some View {
-        GameRobberTargetingPanel(
-            targetSelected: robberTargetTile != nil,
-            victims: robberVictims,
-            identity: viewModel.playerIdentity,
-            resourceCount: resourceCount,
-            isKnight: isKnightRobberActive,
-            errorMessage: errorMessage,
-            onChooseVictim: chooseRobberVictim,
-            onRepick: { robberTargetTile = nil },
-            onCancel: cancelKnightFlow
-        )
-    }
-
-    private var roadBuildingPanel: some View {
-        GameRoadBuildingPanel(
-            hasFirstRoad: roadBuildingFirstEdge != nil,
-            onUndo: { roadBuildingFirstEdge = nil },
-            onCancel: {
-                roadBuildingFirstEdge = nil
-                isRoadBuildingActive = false
-            }
-        )
-    }
-
     private func resourceCount(for player: PlayerID) -> Int {
         state.players.first { $0.id == player }?.resources.values.reduce(0, +) ?? 0
-    }
-
-    private func chooseRobberVictim(_ victim: PlayerID) {
-        guard let robberTargetTile else { return }
-        performRobberMove(tile: robberTargetTile, victim: victim)
     }
 
     /// The common measured height for normal, trade, card, and robber rows.
@@ -812,30 +769,49 @@ private extension GameView {
         viewModel.currentDiscardObligation != nil
     }
 
+    private var interactionPriority: GameInteractionPriorityResolution {
+        let decision = viewModel.boardDecisionPresentation
+        let hasPrivateReceipt = showDevCardHand
+            || viewModel.pendingDevCardReveal?.owner == human
+            || viewModel.pendingDevCardResolution?.owner == human
+        return GameInteractionPriority.resolve(GameInteractionPriorityInput(
+            needsHandoff: viewModel.needsHandoff,
+            hasRecoveryFailure: viewModel.persistenceErrorMessage != nil,
+            hasMandatoryDiscard: isDiscardPresented,
+            hasMandatoryBoardDecision: decision?.canCancel == false,
+            hasPrivateReceipt: hasPrivateReceipt,
+            hasOptionalBoardDecision: decision?.canCancel == true,
+            hasIncomingTrade: currentIncomingOffer != nil,
+            isSettingsPresented: isShowingInGameSettings
+        ))
+    }
+
     private var isBlockingOverlayPresented: Bool {
-        showBuildPopup || showTradePopup || showDevCardHand
+        let winnerBlocksBoard = switch interactionPriority.winner {
+        case .handoff, .recoveryFailure, .privateReceipt: true
+        default: false
+        }
+        return showBuildPopup || showTradePopup || showDevCardHand
             || (isDiscardPresented && !viewModel.isDiscardEditorMinimized)
-            || isShowingInGameSettings || viewModel.pendingDevCardReveal?.owner == human
-            || viewModel.pendingDevCardResolution?.owner == human || viewModel.needsHandoff
+            || interactionPriority.isSettingsCoverPresented || winnerBlocksBoard
     }
 
     /// Surfaces that can remain open while a bot otherwise has work.
     private var isBotBlockingSurfaceOpen: Bool {
-        isShowingInGameSettings || showDevCardHand
+        interactionPriority.blocksBotProgress
     }
 
     private func handleDevCardPlay(_ type: DevCardType) {
+        let intent: BoardDecisionIntent?
         switch type {
         case .knight:
-            robberTargetTile = nil
-            isKnightRobberActive = true
+            intent = .knight
         case .roadBuilding:
-            roadBuildingFirstEdge = nil
-            isRoadBuildingActive = true
-            placementMode = nil
+            intent = .roadBuilding
         case .yearOfPlenty, .monopoly, .victoryPoint:
-            break
+            intent = nil
         }
+        guard let intent, viewModel.beginBoardDecision(intent) else { return }
         showDevCardHand = false
         devCardPopupType = nil
     }
@@ -855,218 +831,6 @@ private extension GameView {
             return error.localizedDescription
         }
     }
-
-    // MARK: - Inline robber-move flow (mandatory post-7-roll case and the
-    // voluntary knight-card case share this same on-board flow)
-
-    /// True exactly while the human owes a mandatory robber move -
-    /// `state.phase == .movingRobber(human.index)`. Drives `BoardView` into
-    /// tile-targeting mode and swaps `bottomPanel`'s action row for
-    /// `robberTargetingPanel`.
-    private var isMandatoryRobberActive: Bool {
-        if case .movingRobber(let playerIndex) = state.phase { return playerIndex == human.index }
-        return false
-    }
-
-    /// True while the human has confirmed playing a Knight card from
-    /// `DevCardPopupView` and is picking where to move the robber.
-    private var isRobberTargetingActive: Bool {
-        isMandatoryRobberActive || isKnightRobberActive
-    }
-
-    /// Every tile except the robber's current one - the only illegal target
-    /// per `Robber.apply`/`RulesEngine.legalMoves`.
-    private var highlightedTilesForRobber: Set<HexCoordinate> {
-        guard isRobberTargetingActive else { return [] }
-        return Set(state.board.tiles.map(\.coordinate)).subtracting([state.board.robberTile])
-    }
-
-    private var robberVictims: [PlayerID] {
-        guard let robberTargetTile else { return [] }
-        return Robber.eligibleVictims(for: robberTargetTile, thief: human, in: state)
-    }
-
-    private func handleTapTile(_ tile: HexCoordinate) {
-        guard isRobberTargetingActive, tile != state.board.robberTile else { return }
-        let victims = Robber.eligibleVictims(for: tile, thief: human, in: state)
-        if victims.isEmpty {
-            performRobberMove(tile: tile, victim: nil)
-        } else {
-            robberTargetTile = tile
-        }
-    }
-
-    private func performRobberMove(tile: HexCoordinate, victim: PlayerID?) {
-        let move: GameMove = isKnightRobberActive
-            ? .playKnight(moveRobberTo: tile, stealFrom: victim)
-            : .moveRobber(tile, stealFrom: victim)
-        do {
-            try viewModel.apply(move)
-            errorMessage = nil
-            robberTargetTile = nil
-            isKnightRobberActive = false
-        } catch {
-            errorMessage = error.localizedDescription
-        }
-    }
-
-    private func cancelKnightFlow() {
-        robberTargetTile = nil
-        isKnightRobberActive = false
-        errorMessage = nil
-    }
-
-    // MARK: - Board tap routing
-
-    private func handleTapVertex(_ vertex: VertexID) {
-        switch state.phase {
-        case .setupForward, .setupBackward:
-            perform(.placeInitialSettlement(vertex))
-        case .mainTurn:
-            switch placementMode {
-            case .settlement:
-                perform(.buildSettlement(vertex))
-                placementMode = nil
-            case .city:
-                perform(.buildCity(vertex))
-                placementMode = nil
-            case .road, nil:
-                break
-            }
-        default:
-            break
-        }
-    }
-
-    private func handleTapEdge(_ edge: EdgeID) {
-        switch state.phase {
-        case .setupForward, .setupBackward:
-            perform(.placeInitialRoad(edge))
-        case .rollDice(let playerIndex) where playerIndex == human.index:
-            if isRoadBuildingActive { handleRoadBuildingTap(edge) }
-        case .mainTurn:
-            if isRoadBuildingActive {
-                handleRoadBuildingTap(edge)
-            } else if placementMode == .road {
-                perform(.buildRoad(edge))
-                placementMode = nil
-            }
-        default:
-            break
-        }
-    }
-
-    private func handleRoadBuildingTap(_ edge: EdgeID) {
-        guard let first = roadBuildingFirstEdge else {
-            roadBuildingFirstEdge = edge
-            return
-        }
-        do {
-            try viewModel.apply(.playRoadBuilding(first, edge))
-            errorMessage = nil
-            roadBuildingFirstEdge = nil
-            isRoadBuildingActive = false
-        } catch {
-            errorMessage = error.localizedDescription
-        }
-    }
-
-    // MARK: - Highlighting
-
-    /// True during setup exactly when it's the *human's* turn to place -
-    /// `legalMoves` reflects whichever player is actually active, so
-    /// without this check the board would highlight legal spots for a
-    /// bot's own setup placement too, which the human can't act on anyway.
-    private var isHumanSetupTurn: Bool {
-        switch state.phase {
-        case .setupForward(let index), .setupBackward(let index):
-            return index == human.index
-        default:
-            return false
-        }
-    }
-
-    private var isPlacementModeActive: Bool {
-        switch state.phase {
-        case .setupForward, .setupBackward:
-            // Stays "active" (gating taps to only the highlighted set) even
-            // during a bot's own setup turn, when that set is empty (see
-            // `isHumanSetupTurn`) - so every vertex/edge is simply
-            // untappable then, rather than ungating everything.
-            return true
-        case .mainTurn:
-            return placementMode != nil || isRoadBuildingActive
-        case .rollDice(let playerIndex):
-            return playerIndex == human.index && isRoadBuildingActive
-        default:
-            return false
-        }
-    }
-
-    private var highlightedVertices: Set<VertexID> {
-        switch state.phase {
-        case .setupForward, .setupBackward:
-            guard isHumanSetupTurn else { return [] }
-            return Set(legalMoves.compactMap { if case .placeInitialSettlement(let v) = $0 { v } else { nil } })
-        case .mainTurn:
-            // The setup arms above guard on whose turn it is; these did not.
-            // `legalMoves` is the UNSCOPED overload, which returns the ACTING
-            // player's moves whoever asks (see `RulesEngine.legalMoves`'s doc),
-            // so with a placement mode still armed as the turn passed to a bot,
-            // the board lit up that BOT's legal settlement spots as if they
-            // were the human's.
-            guard isHumanMainTurn else { return [] }
-            switch placementMode {
-            case .settlement:
-                return Set(legalMoves.compactMap { if case .buildSettlement(let v) = $0 { v } else { nil } })
-            case .city:
-                return Set(legalMoves.compactMap { if case .buildCity(let v) = $0 { v } else { nil } })
-            default:
-                return []
-            }
-        default:
-            return []
-        }
-    }
-
-    private var highlightedEdges: Set<EdgeID> {
-        switch state.phase {
-        case .setupForward, .setupBackward:
-            guard isHumanSetupTurn else { return [] }
-            return Set(legalMoves.compactMap { if case .placeInitialRoad(let e) = $0 { e } else { nil } })
-        case .mainTurn:
-            // Same missing guard as `highlightedVertices` - see the note there.
-            guard isHumanMainTurn else { return [] }
-            if isRoadBuildingActive {
-                return highlightedRoadBuildingEdges
-            }
-            if placementMode == .road {
-                return Set(legalMoves.compactMap { if case .buildRoad(let e) = $0 { e } else { nil } })
-            }
-            return []
-        case .rollDice(let playerIndex):
-            guard playerIndex == human.index, isRoadBuildingActive else { return [] }
-            return highlightedRoadBuildingEdges
-        default:
-            return []
-        }
-    }
-
-    private var highlightedRoadBuildingEdges: Set<EdgeID> {
-        if let first = roadBuildingFirstEdge {
-            return Set(legalMoves.compactMap {
-                if case .playRoadBuilding(let candidate, let second) = $0,
-                   candidate == first { return second }
-                return nil
-            })
-        }
-        return Set(legalMoves.compactMap {
-            if case .playRoadBuilding(let first, _) = $0 { return first }
-            return nil
-        })
-    }
-
-    private var legalMoves: [GameMove] { RulesEngine.legalMoves(for: state) }
 
     private func perform(_ move: GameMove) {
         do {
@@ -1168,48 +932,19 @@ private extension GameView {
         }
     }
 
-    /// Drops everything the previous player had half-done.
-    ///
-    /// Every piece of `@State` that belongs to the seat that armed it: an armed
-    /// placement mode, an armed knight or road-building sub-flow, the first
-    /// edge of a road-building pair, a robber target, an open popup, the set of
-    /// trade offers this seat has already been shown.
-    /// `ContentView`'s `.id(viewModel.gameGeneration)` resets them on restart
-    /// only, so without this the incoming player inherits the outgoing player's
-    /// half-finished move - and can complete it, as their own, on their own
-    /// turn.
-    ///
-    /// `isKnightRobberActive` and `isRoadBuildingActive` are the two that are
-    /// easiest to miss and the worst to leave: they are *armed targeting modes*,
-    /// so an inherited one turns the next player's first tap on the board into
-    /// a robber move or a road placement they did not ask for. Clearing the
-    /// `roadBuildingFirstEdge` without clearing the flag that made it
-    /// meaningful is half a fix.
+    /// Drops every ephemeral surface owned by the outgoing player. Spatial
+    /// proposals are cleared through the coordinator, so adding another board
+    /// action cannot create a new handoff leak here.
     private func clearSeatInteractionState() {
-        placementMode = nil
-        roadBuildingFirstEdge = nil
-        isRoadBuildingActive = false
-        robberTargetTile = nil
-        isKnightRobberActive = false
+        viewModel.clearBoardDecisionForBoundary()
         showTradePopup = false
         showBuildPopup = false
         showDevCardHand = false
         devCardPopupType = nil
         incomingOfferQueue = []
-        // This has the same class of bug as `.onAppear` did (see its fix
-        // above and `GameplayBoundaryFlowTests.
-        // testIncomingOfferSurvivesAppRelaunch`) - blindly marking every
-        // currently-pending offer as seen can permanently swallow one the
-        // incoming seat was never actually shown. Left as-is here rather
-        // than applying the same fix blind: this runs *before*
-        // `claimDeviceForSeatOwedATurn()` updates `seatAtDevice`, so `human`
-        // (and therefore `isOfferCurrentlyFulfillable`) would still resolve
-        // to the *outgoing* seat if this called `handleTradeOffersChange()`
-        // directly - re-deriving the queue against the wrong player's
-        // resources. Only single-human play (Jake's own setup) was
-        // reproduced and verified; the hot-seat handoff path needs its own
-        // repro and fix, not a copy-paste of this one.
-        seenTradeOfferIDs = Set(state.pendingTradeOffers.map(\.id))
+        // The new owner has not seen any of these offers. The handoff callback
+        // rebuilds the queue after `seatAtDevice` changes, against that hand.
+        seenTradeOfferIDs = []
         errorMessage = nil
     }
 

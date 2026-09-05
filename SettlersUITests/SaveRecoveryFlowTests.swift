@@ -60,13 +60,31 @@ final class SaveRecoveryFlowTests: XCTestCase {
     }
 
     private func placeOpeningSettlementAndRoad(in app: XCUIApplication) {
+        let confirm = app.buttons[BoardDecisionUITestID.confirm]
+        XCTAssertTrue(confirm.waitForExistence(timeout: 5))
+        XCTAssertFalse(confirm.isEnabled)
+
         let vertex = enabledBoardButton(in: app, prefix: "board.vertex.")
         XCTAssertTrue(vertex.waitForExistence(timeout: 5))
         vertex.tap()
+        let settlementPreview = app.otherElements[BoardDecisionUITestID.buildingPreview]
+        XCTAssertTrue(settlementPreview.waitForExistence(timeout: 2))
+        XCTAssertTrue(confirm.isEnabled)
+        XCTAssertFalse(enabledBoardButton(in: app, prefix: "board.edge.").exists)
+        confirm.tap()
+
+        XCTAssertTrue(settlementPreview.waitForNonExistence(timeout: 2))
         let edge = enabledBoardButton(in: app, prefix: "board.edge.")
         XCTAssertTrue(edge.waitForExistence(timeout: 2))
+        XCTAssertFalse(confirm.isEnabled)
         edge.tap()
-        XCTAssertFalse(edge.waitForExistence(timeout: 2))
+        let roadPreview = app.otherElements[BoardDecisionUITestID.roadPreview]
+        XCTAssertTrue(roadPreview.waitForExistence(timeout: 2))
+        XCTAssertTrue(confirm.isEnabled)
+        confirm.tap()
+
+        XCTAssertTrue(roadPreview.waitForNonExistence(timeout: 2))
+        XCTAssertTrue(app.otherElements[BoardDecisionUITestID.dock].waitForNonExistence(timeout: 2))
     }
 
     private func enabledBoardButton(in app: XCUIApplication, prefix: String) -> XCUIElement {

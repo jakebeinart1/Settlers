@@ -133,17 +133,27 @@ final class GameplayBoundaryFlowTests: XCTestCase {
     func testRobberVictimChoicesExposeConfiguredIdentity() {
         continueAfterFailure = false
         let app = launch(arguments: [
-            "-qaAutoStart", "-qaFastForwardToRollDice", "-qaShowRobberVictimPicker",
+            "-qaAutoStart", "-qaShowRobberVictimPicker",
         ])
         let victims = app.buttons.matching(
             NSPredicate(format: "identifier BEGINSWITH %@", "robber.victim.")
         )
         let first = victims.firstMatch
+        let clear = app.buttons[BoardDecisionUITestID.clear]
 
-        XCTAssertTrue(first.waitForExistence(timeout: 30))
-        XCTAssertTrue(first.label.contains("resource cards"))
+        XCTAssertTrue(first.waitForExistence(timeout: 5))
+        XCTAssertEqual(victims.count, 3)
+        XCTAssertTrue(clear.waitForExistence(timeout: 2))
+        XCTAssertTrue(first.label.contains("resource card"))
         XCTAssertGreaterThanOrEqual(first.label.split(separator: ",").count, 3,
                                     "victim must expose name, civilization, and public hand size")
+        for victim in victims.allElementsBoundByIndex {
+            XCTAssertLessThanOrEqual(
+                victim.frame.maxX,
+                clear.frame.minX,
+                "a victim card must not paint or receive touches beneath pinned Clear"
+            )
+        }
 
         let attachment = XCTAttachment(screenshot: app.screenshot())
         attachment.lifetime = .keepAlways
