@@ -16,15 +16,16 @@ program**, not a production architecture choice:
 1. Keep the current heuristic as the shipping fallback and frozen comparator.
 2. Instrument trade and road decisions well enough to diagnose *why* they are
    bad before changing them.
-3. Reproduce strong public Catan baselines as external benchmarks, without
-   copying incompatible rules or licenses into the app.
+3. Use Eli6th AlphaBot as the first runnable public challenger, while keeping
+   its engine external and treating the protocol mismatch as unresolved.
 4. Establish a structured policy/value baseline on Empires' exact rules,
    masks, player counts, and victory targets.
 5. Compare reactive learning, search, and policy-guided search through the
    same evaluation rig; advance only what wins on held-out games and device
    constraints.
-6. Keep character language downstream of a typed strategic decision. Begin
-   with deterministic, context-rich templates; test an LLM renderer later.
+6. Keep character language downstream of verified game events and strategic
+   facts. Begin with deterministic, context-rich templates; test an LLM
+   renderer later.
 
 The most plausible eventual shape is a deterministic rules engine plus a
 masked strategic policy, optionally strengthened by bounded search, with a
@@ -40,11 +41,13 @@ to test, not a conclusion to implement.
 | AI-3 | Treat strength, style, opponent modelling, negotiation, and voice as independent contracts. | Decided |
 | AI-4 | Give every experiment an explicit reveal-all or public-information contract; do not mix their results. | Decided |
 | AI-5 | Keep rules and legal-move authority deterministic and outside every learned or language model. | Decided |
-| AI-6 | Keep initial character text downstream of typed strategic acts; free-form chat is a later product. | Decided |
-| AI-7 | Reproduce promising public agents as external benchmarks before borrowing architecture conclusions. | Decided |
+| AI-6 | Keep initial character text downstream of verified game events and strategic facts; free-form chat is a later product. | Decided |
+| AI-7 | Reproduce promising public agents as external benchmarks before borrowing architecture conclusions. | Partially executed: Eli6th current command reproduced; historical protocol unresolved |
 | AI-8 | Profile the complete 4090 pipeline before funding a faster/second simulator. | Decided |
 | AI-9 | Profile the current 9,335-action contract before decomposing compound decisions. | Deferred gate |
 | AI-10 | Implement R0/R1 observability before tuning trade or road behavior. | Next proposed implementation |
+| AI-11 | Treat Eli6th as the lead runnable permissive candidate and Dobre POMCP-TS-CR as the lead published standard-ish result; do not conflate them. | Decided |
+| AI-12 | Compare narrow reactive adapters before any foreign-engine port; Empires remains the sole rules authority. | Decided |
 
 ## What Empires has today
 
@@ -144,47 +147,138 @@ rate, nor “it looked smarter in a few games” is sufficient.
 
 Free-form chat is a seventh, optional input channel. It requires intent
 parsing, abuse/safety handling, latency, cost controls, and a safe mapping into
-typed dialogue acts. It should not be bundled into the first language pass.
+typed game intents. It should not be bundled into the first language pass.
 
-## Public Catan evidence: useful, but not a settled state of the art
+## Existing Catan AI: what is strongest, and what can actually be reused?
 
-There is no credible public consensus that one algorithm has solved full
-three/four-player Catan with standard-length games, realistic hidden hands,
-unrestricted player trading, and human-quality negotiation. Most results
-remove at least one of those hard parts, use private or weak comparators, or
-report only their own rules variant.
+### Direct answer
 
-Formally, Empires is best treated as a finite-horizon partially observable
-stochastic game. A sole-winner reward is n-player constant-sum, but that does
-not reduce three/four-player play to ordinary two-player minimax: bilateral
-trades, threat response, kingmaking, and policy cycles remain chair-specific.
+There is no defensible public, cross-project “best Catan AI” leaderboard. The
+projects use different rules, player counts, victory targets, visibility,
+trading systems, opponents, chairs, and compute budgets. Raw win rates across
+them do not share a denominator. Closed commercial bots also cannot be audited,
+reproduced, or licensed from public evidence, so they are not reuse candidates.
 
-### Highest-value references
+The useful answer is split by evidentiary role:
 
-| Work | What is genuinely useful | Transfer boundary | License / reuse |
+| Question | Best answer located | What that answer does and does not mean |
+| --- | --- | --- |
+| Best **runnable permissive** four-player package | [Eli6th/catan-rl](https://github.com/Eli6th/catan-rl) `AlphaBot` | MIT, shipped model, exact command, fast Rust engine. The current command was rerun locally at 83/100 and 157/192 (81.8%) against three in-project heuristics. This validates the package, not universal strength |
+| Best published result under the closest ordinary four-player contract | [Dobre & Lascarides 2018](https://ojs.aaai.org/index.php/AIIDE/article/view/13014), POMCP-TS-CR | 53.65% over 2,000 games versus three STAC agents at 40,000 planning iterations, with 10 VP, hidden hands, and player trading. It is the strongest located result in that ecosystem, not a turnkey public policy or cross-project winner |
+| Best large-sample published 1v1 external comparison | [Gendre & Kaneko 2020](https://arxiv.org/abs/2008.07079) | 56.5% over 10,000 games versus JSettler, but two-player and no player trading; no reusable public checkpoint was located |
+| Best published trade-only result | [Cuayáhuitl, Keizer & Lemon 2015](https://arxiv.org/abs/1511.08099) | 53.36% over 10,000 four-player games versus three heuristic traders. JSettlers chose every non-trade move, so this supports a separate negotiation policy rather than a complete bot |
+| Best evaluation discipline | [PeterLP123/catanatron-1v1](https://github.com/PeterLP123/catanatron-1v1) | Frozen parents, paired schedules, every-chair accounting, intervals, retained failures, and machine-readable summaries. Its game is two-player, 15 VP, balanced dice, friendly robber, and no player trades; the retained policy still lost most games to its hard `F` baseline |
+| Best public rules/comparator lineage | [JSettlers2](https://github.com/jdmonin/JSettlers2), STAC, and [Catanatron](https://github.com/bcollazo/catanatron) | Mature reference engines and useful external controls. They do not establish one modern champion, and their GPL-family code should remain outside the current closed/TestFlight app |
+
+Therefore the first public agent to **cross-evaluate** is Eli6th AlphaBot. The
+best published architecture to study for standard-ish hidden-information play
+is Dobre's POMCP work. Those are different answers; pretending they are one
+ranking would choose for convenience instead of evidence.
+
+### Normalized result boundaries
+
+| Candidate | Reported or observed result | Contract behind the number | Decision value |
 | --- | --- | --- | --- |
-| [Catanatron](https://github.com/bcollazo/catanatron) | Maintained simulator, Gym interface, heuristic/value/search agents, and unusually candid negative learned-model results | Its result log is not an independent modern leaderboard; rules and action representation differ | GPL-3.0: benchmark externally; do not copy/link into a proprietary app without accepting GPL obligations |
-| [JSettlers2](https://github.com/jdmonin/JSettlers2) and [STAC](https://homepages.inf.ed.ac.uk/alex/stac.html) | Mature full-game server/bots and the strongest public lineage for Catan trading/dialogue research | Java architecture and research variants differ; STAC corpus/data terms require separate review | GPLv3 for JSettlers2; verify every dataset's terms separately |
-| [Gendre & Kaneko 2020](https://arxiv.org/abs/2008.07079) | Shows learned structured representations can beat a JSettlers comparator in its experiment | Actual experiment is two-player and disables player trading; authors list full four-player/trading as future work | Ideas/paper are usable; code/license must be checked independently |
-| [Szita, Chaslot & Spronck, MCTS in Catan](https://doi.org/10.1007/978-3-642-12993-3_3) | Establishes that domain-informed MCTS is viable for multiplayer Catan | Older engine/comparators; implementation is not a drop-in Empires policy | Paper evidence, not reusable product code |
-| [Strategic Dialogue Management via DRL](https://arxiv.org/abs/1511.08099) | Treats offer/accept/reject/counteroffer as a learnable semantic sub-policy in four-player JSettlers | It learns negotiation decisions, not full-game policy or natural-language generation | Architecture evidence; inspect any code/data license before use |
-| [Keizer et al. 2017](https://aclanthology.org/E17-2077/) | Human evaluation found persuasion and learned negotiation strategies improved over prior dialogue baselines | Small research setting; does not establish general strategic strength | Supports human testing and semantic dialogue architecture |
-| [Henry Charlesworth's Settlers RL](https://github.com/henrycharlesworth/settlers_of_catan_RL) and [write-up](https://settlers-rl.github.io/) | Full four-player PPO experiment with trading, multiple conditional action heads, recurrent trade composition, historical-policy opponents, a pretrained checkpoint, and root forward search | Author explicitly says it is not superhuman; training took about a month on 32 CPU cores + GTX 3090, and several design choices were not ablated | No license file found in the inspected repository: run/study as a reference, but do not copy code or weights into Empires |
-| [Eli6th/catan-rl](https://github.com/Eli6th/catan-rl) | New MIT Rust engine with masked PPO, frozen opponents, an experiment ledger, and policy-prior-guided full rollouts; self-reports 82% versus three heuristics | Headline is first-to-7, perfect information, restricted trades, 192 fixed-seed games, and self-authored opponent/evaluator. Very new and not independently reproduced here | MIT; strongest current reproduction candidate, not evidence to copy its conclusion |
-| [nogulong/rust-catan-rl](https://github.com/nogulong/rust-catan-rl) | MIT Rust engine, 3/4-player support, PPO/archive training, separate trade model, visibility modes, ONNX artifacts, JSettlers bridge | Paper is still “in preparation” and no independently interpretable headline benchmark is published | MIT; audit rules, checkpoints, and provenance before reuse |
-| [kvombatkere/Catan-AI](https://github.com/kvombatkere/Catan-AI) | MIT multiplayer framework with hierarchical strategy/action design | Older student/research system; no result justifies calling it strongest | MIT; ideas or isolated code only after rule and quality audit |
-| [BenjaminL1/catan_rl](https://github.com/BenjaminL1/catan_rl) | Clear modern design reference: graph/tile encoder, six autoregressive heads, heuristic bootstrap, league PPO | 1v1, 15 VP, no player trades; no established independent strength result | No license found in the inspected repository: do not copy code or assets |
+| Eli6th `AlphaBot` | Published 82%; this audit reran 83/100 and 157/192 (81.8%) | Four players, perfect information, bounded trades, candidate fixed in chair 0, three self-authored heuristics. The ledger says first-to-7, but the shipped CLI has no target flag and actually used its 10-point default | **Lead runnable candidate.** The protocol contradiction prevents an exact historical reproduction; no external opponent or chair rotation yet |
+| Dobre POMCP-TS-CR | 53.65% | Four players, 10 VP, hidden opponent holdings, full trading, 2,000 games versus three STAC agents, 40k planning iterations | **Lead published standard-ish result.** Tuned against STAC; chairs/seeds unstated; public lineage is not a pinned paper artifact |
+| Rubin de Lima MPT-EnsembleUCT | 58.2% | Four players, hidden cards, restricted one-for-one player trades, 10k rollouts versus three unspecified JSettlers | Relevant search/trade evidence, but the headline table omits sample size and no public artifact was located; 58.2 cannot outrank better-specified experiments |
+| Gendre cross-dimensional A2C | 56.5% | Two players, 10 VP, hidden opponent holdings, no player trading, 10,000 games versus JSettlers2 2.2.00 | Strong external-comparator evidence for a materially easier game, not four-player Catan |
+| Cuayáhuitl trade DRL | 53.36% | Four players, 10 VP, 10,000 games; only offer/accept/reject/counter changes | Strong evidence for an independent trade sub-policy; no evidence it should control builds, roads, robber, or cards |
+| Szita MCTS | 27% at 1k simulations; 49% at 10k | Four players, perfect information, 100 games versus three JSettlers; candidate does not trade | Search scales, but the sample is small and no reusable implementation was located |
+| Charlesworth PPO + root search | 47/100 | Four players, 10 VP, hidden information and trading; search wrapper versus three copies of its own base PPO | Relevant complete-game artifact, but only an internal ablation, old runtime, and no repository license |
+| nogulong PPO/trade ONNX | No published completed metric | Four-player, 10 VP, hidden-safe observations, bounded trades; intended 10k comparison versus JSettlers | **Second adapter candidate.** Models exist, but the advertised evaluator is incomplete at the pinned revision and model/result provenance is missing |
+| Catanatron alpha-beta depth 2 | 53/100 versus its value-function player | Two players, 10 VP, full state passed to policies; bot does not originate player trades | Useful executable baseline, not a robust strength result |
+| SamiKoneru PPO | README says about 94% | Four players versus three random agents; player trading absent/unclear; N and checkpoint absent | Reject the headline as decision evidence until the missing model and result bundle exist |
 
-The new MIT `Eli6th/catan-rl` result is particularly informative even with its
-limits. Its own ledger says a reactive PPO policy plateaued around 65% against
-its heuristic, unguided deep rollouts reached 72.5%, and policy-prior-guided
-full rollouts reached 82%. Attempts to use its PPO critic as a leaf evaluator
-performed much worse. That is a concrete reason to test policy-guided search
-and outcome-trained values here. It is **not** proof the same ranking survives
-10-point Empires, realistic visibility, our trades, our opponents, or an
-iPhone latency budget. The local machine lacked a Rust toolchain, so this
-branch inspected source, tests, artifacts, and experiment records but did not
-independently execute that result.
+The complete source-by-source audit is in
+[`2026-09-05-open-source-catan-candidates.md`](2026-09-05-open-source-catan-candidates.md),
+the commands and observed local outcomes are in
+[`2026-09-05-public-catan-reproduction-log.md`](2026-09-05-public-catan-reproduction-log.md),
+and the exact Empires compatibility audit is in
+[`2026-09-05-catan-agent-integration-fit.md`](2026-09-05-catan-agent-integration-fit.md).
+
+### Four meanings of “reuse the best existing AI”
+
+| Reuse mode | Benefit | Failure mode | Empires decision |
+| --- | --- | --- | --- |
+| Embed another engine and its policy | Fastest way to replay the author's result | Two rule engines drift on setup, bank shortages, robber, cards, awards, trading, and victory; foreign runtime enters iOS | **Reject as product architecture.** Keep foreign engines as developer-side benchmarks |
+| Import pretrained weights unchanged | Avoids training cost | Weights are inseparable from their exact coordinates, observations, actions, rules, and visibility | **Not a drop-in option.** No public checkpoint consumes Empires' 5,182-feature state and 9,335-action contracts |
+| Build a narrow reactive adapter | Fast test of whether learned rankings transfer | Unsupported states fall back; a high fallback rate means the result is still mostly our heuristic | **Run as a research bake-off.** Compare frozen heuristic, heuristic + Eli reactive logits, and heuristic + nogulong logits; Empires remains the only legality/transition engine |
+| Reimplement the winning idea natively and retrain | Exact Empires rules, one engine, controllable visibility and latency | More engineering/training; public headline may not survive | **Preferred production route.** Use permissive code where it genuinely helps, or reproduce the published method against Empires' contracts |
+
+Eli6th's 82% agent cannot be “dropped in”: `AlphaBot` clones and advances its
+own Rust state to run full-game rollouts, and filters trade proposals from that
+search. Its strongest transferable hypothesis is policy-prior-guided terminal
+rollouts. The same project's reactive PPO plateaued around 65%, unguided deep
+rollouts reached 72.5%, and policy-guided full rollouts reached 82%; value-leaf
+variants fell to 15.8–38.3%. That is a good reason to test an Empires-native
+learned prior plus real rollouts, not a reason to ship its foreign engine.
+
+### Decision gates before selecting PPO, search, or another training stack
+
+1. Preserve the observed Eli6th baselines, pinned source/model hashes, commands,
+   and raw output. Resolve the historical 7-versus-current-10-point mismatch
+   and rotate the candidate through every chair.
+2. Obtain nogulong's exact JSettlers dependency revision and result provenance;
+   its core 142 Rust tests pass, but the published checkout cannot currently
+   reconstruct the advertised evaluator unchanged.
+3. Build the narrow `H`, `H + E`, and `H + N` adapter feasibility arms. All use
+   the same frozen Empires heuristic fallback and count every unsupported move
+   by phase and reason. Search remains off for this gate.
+4. Prove coordinate, seat, resource, phase, visibility, and legal-action
+   translation on a frozen scenario corpus before running strength games.
+5. Run exact Empires rules at three and four seats, 10 VP first, every chair,
+   common held-out seeds, zero illegal moves, full completion accounting, and
+   Mac plus iPhone p50/p95/p99 inference latency. A high fallback rate or a win
+   rate against random players cannot pass this gate.
+6. If a reactive adapter transfers, use it as a teacher/prior. Then test the
+   smallest Empires-native policy-guided rollout arm. Only after those results
+   should the 4090 be committed to PPO, league self-play, AlphaZero-like
+   iteration, or another long training program.
+
+This sequence answers the practical reuse question before it makes an expensive
+algorithm choice. It also preserves the option to conclude that the current
+Empires heuristic plus native search is better than either public checkpoint.
+
+### Strategic play and character behavior stay separate
+
+The proposed two-layer product architecture is sound:
+
+- The **strategic core** returns a typed legal move and stable facts such as
+  target, utility, alternatives, and reason codes. It may evolve from heuristic
+  to adapter, search, or learned policy.
+- The **character layer** observes real game events and those stable facts,
+  then selects authored lines for “you robbed me,” “I took Longest Road,” “that
+  trade helps my city,” rivalry, winning, and losing. This does not need an LLM
+  initially; character-specific variants, cooldowns, and recent-line history
+  make it expressive, cheap, deterministic, and testable.
+- A small local model may later paraphrase supplied facts. A hosted LLM belongs
+  only in a deliberate free-form-chat feature with latency, cost, privacy, and
+  safety controls. Neither renderer may mutate game state or invent moves.
+- If “cheat model” literally means hidden-hand access rather than “chat model,”
+  keep it out of normal play. It can be an explicit experimental mode, never an
+  accidental property of the production policy.
+
+### Licensing boundary
+
+Not planning to make money does **not** waive copyright or license terms. MIT
+permits commercial and noncommercial reuse but requires its copyright and
+permission notice to accompany copies or substantial portions
+([MIT text](https://opensource.org/license/mit)). GPL/AGPL conditions concern
+conveying/distributing covered work, not charging money
+([GPLv3](https://www.gnu.org/licenses/gpl-3.0.en.html)). A public repository with
+no license does not grant general permission to copy, modify, or distribute its
+code or weights
+([GitHub licensing guidance](https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/licensing-a-repository)).
+TestFlight sends beta binaries to testers, so copied code inside a beta should
+not be treated as purely private local use
+([Apple TestFlight](https://developer.apple.com/testflight/)).
+
+For Empires, MIT code is the low-friction reuse path after notices, dependency,
+model, data, and asset provenance are recorded. GPL/AGPL and unlicensed
+implementations stay as external research tools or clean-room specifications
+unless a deliberate release decision and qualified legal review say otherwise.
+This is an engineering risk classification, not legal advice.
 
 ## Algorithm-family fit for Empires
 
@@ -294,13 +388,16 @@ shippable only when it:
 
 ### Dialogue renders strategy
 
-Use a typed `DialogueAct` containing speaker, target, strategic event, offer,
-reason code, relationship state, urgency, and tone. The initial renderer should
-choose deterministic, authored variants keyed by opponent voice and context.
-This is cheap, offline, testable, and can be much richer than the current one
-line per offer outcome.
+Do not begin by designing a dialogue-class hierarchy. Begin with the game events
+and strategic facts the engine already knows: speaker, target, what happened,
+the resources in an offer, and—once the strategy can provide it—the reason for
+the choice. A small character renderer should choose deterministic authored
+variants keyed by civilization, event, and recent-line history. This is cheap,
+offline, testable, and can already cover being robbed, taking or losing Longest
+Road, accepting or rejecting a trade, rivalry, winning, and losing without
+making dialogue part of the strategic policy.
 
-An optional LLM renderer can later paraphrase that act under a strict schema,
+An optional LLM renderer can later paraphrase those supplied facts under a strict schema,
 cache, latency deadline, moderation policy, and deterministic fallback. It must
 never receive authority to alter an offer, choose a move, reveal hidden state,
 or invent a rule. Free-form player chat affecting policy is a separate product
@@ -374,6 +471,12 @@ fixture or trace.
 **Build:** separate, disposable benchmark adapters for the most promising MIT
 systems, starting with `Eli6th/catan-rl` and `nogulong/rust-catan-rl`; run their
 own checks before cross-engine comparison.
+
+**Current evidence:** Eli6th's first-party evaluator and tests run, with
+83/100 and 157/192 (81.8%) AlphaBot wins; the 7-versus-10-point protocol drift
+prevents an exact historical reproduction. Nogulong's core tests pass, but its
+full evaluator is not reconstructible from the pinned checkout because the
+JSettlers revision is omitted.
 
 **Exit:** reproduce or falsify headline results, document exact rule deltas,
 then play same-policy or matched-scenario comparisons where valid.
@@ -458,7 +561,7 @@ labels. Only then add a difficulty selector.
 
 ### R9 — character language, then optional chat
 
-**Build first:** typed dialogue acts plus authored contextual variants for
+**Build first:** stable game-event keys plus authored contextual variants for
 trades, blocks, robber moves, races, victories, and grudges.
 
 **Experiment later:** LLM paraphrase and, separately, chat intent parsing.
@@ -478,19 +581,23 @@ latency/cost, or missing offline fallback. Human raters prefer the experience.
 
 ## Immediate next deliverable
 
-The next implementation should be **R0 + R1 only**: freeze an evaluation
+The next implementation should finish **R0 + R1**—freeze an evaluation
 manifest, add trade-decision explanations, add road-plan/alternative traces,
-and encode the observed bad decisions as scenario tests. This is the smallest
-work that improves every later path—better heuristics, supervised learning,
-RL, search, personality, and dialogue—without selecting an algorithm by taste.
+and encode the observed bad decisions as scenario tests—then run the narrow
+`H`, `H + E`, and `H + N` adapter-feasibility gate defined above. This improves
+every later path without selecting PPO, POMCP, AlphaZero, or an LLM by taste.
 
-After that evidence exists, R2 and R3 can run in parallel: reproduce public
-agents and profile the 4090 pipeline. Their measured results determine whether
-the first serious Empires candidate is a structured learned policy, a faster
-search hybrid, or both.
+R2's unchanged-package work is now partially complete, so the adapter gate and
+R3's 4090 pipeline profile can proceed independently once R0/R1 define the
+shared evidence. Their measured results determine whether the first serious
+Empires candidate is a transferred reactive prior, an Empires-native search
+hybrid, or neither.
 
 ## Related Empires evidence
 
+- [`2026-09-05-open-source-catan-candidates.md`](2026-09-05-open-source-catan-candidates.md)
+- [`2026-09-05-public-catan-reproduction-log.md`](2026-09-05-public-catan-reproduction-log.md)
+- [`2026-09-05-catan-agent-integration-fit.md`](2026-09-05-catan-agent-integration-fit.md)
 - [`2026-09-05-current-ai-baseline.md`](2026-09-05-current-ai-baseline.md)
 - [`2026-09-05-algorithm-options.md`](2026-09-05-algorithm-options.md)
 - [`2026-09-05-global-conquest-lessons.md`](2026-09-05-global-conquest-lessons.md)

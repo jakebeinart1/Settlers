@@ -35,12 +35,16 @@ matches the whole Empires problem:
   supplies the rest of each player's behavior
   ([paper](https://arxiv.org/abs/1511.08099)).
 - The public MIT-licensed [`catan-rl`](https://github.com/Eli6th/catan-rl)
-  project is useful implementation evidence, but its numbers are an author
-  self-report rather than a peer-reviewed or independently reproduced result.
-  Its experiment uses four players, first-to-7, perfect information, frozen
-  heuristic opponents, and a restricted trade grammar
+  project is useful implementation evidence. Its historical 82% protocol is
+  still an author report, but the current first-party evaluator was executed
+  locally at 83/100 and 157/192 (81.8%). That is not an exact reproduction:
+  the ledger says first-to-7, while the current CLI has no victory-target flag
+  and uses the engine's 10-point default. The reported experiment uses four
+  players, perfect information, frozen heuristic opponents, and a restricted
+  trade grammar
   ([experiment ledger](https://github.com/Eli6th/catan-rl/blob/main/training/results/EXPERIMENTS.md),
-  [engine scope](https://github.com/Eli6th/catan-rl/blob/main/rust/README.md)).
+  [engine scope](https://github.com/Eli6th/catan-rl/blob/main/rust/README.md),
+  [reproduction log](2026-09-05-public-catan-reproduction-log.md)).
 
 Those studies are useful feasibility evidence for individual components. None
 is a transfer guarantee for a three- or four-player game containing all of the
@@ -291,21 +295,24 @@ settle how hidden information should be modeled
 ([Dobre and Lascarides, 2017](https://www.research.ed.ac.uk/en/publications/exploiting-action-categories-in-learning-complex-games/)).
 
 One newer implementation report sharpens two probes without settling either.
-In `catan-rl`'s own 192-game fixed-seed gate against three frozen heuristic
-opponents, flat PPO plateaued around 65%, 48 full rollouts with an 80-turn
-horizon reached 72.5%, and a learned-policy prior pruning to eight candidates
-with 96 full rollouts reached 82%. Three PPO-critic leaf variants instead
-reported 38.3%, 15.8%, and 25.8%
+In `catan-rl`'s own records against three frozen heuristic opponents, flat PPO
+plateaued around 65%, 48 full rollouts with an 80-turn horizon reached 72.5%,
+and a learned-policy prior pruning to eight candidates with 96 full rollouts
+reached 82%. The ledger defines 192 games for its primary PPO gate but describes
+the Alpha design variants as 120–150 games without tying an exact sample to the
+82% row. Three PPO-critic leaf variants reported 38.3%, 15.8%, and 25.8%
 ([ledger](https://github.com/Eli6th/catan-rl/blob/main/training/results/EXPERIMENTS.md)).
 The same project compresses decisions into a fixed 299-id codec by reusing ids
 across mutually exclusive phases and making some compound decisions sequential
 ([codec](https://github.com/Eli6th/catan-rl/blob/main/rust/catan-env/src/codec.rs)).
 This motivates testing full rollouts, policy-prior pruning, leaf calibration,
 and sequential action grammars separately. It is **not** comparative evidence
-for Empires: the source experiment is first-to-7 and perfect-information, its
-trades are limited to giving one or two of one resource for one other resource
-with at most three offers per turn, and its measurements are a project
-self-report rather than an independent replication.
+for Empires: the source experiment is documented as first-to-7 and
+perfect-information, its trades are limited to giving one or two of one
+resource for one other resource with at most three offers per turn, and its
+opponent is the same project's fixed heuristic. The current 10-point command
+rerun validates executability and approximate rate, not standard-Catan strength
+or the historical protocol.
 
 **Fit.** MCTS is anytime, uses the existing simulator, can sample chance rather
 than enumerate it, and can reuse heuristic policies as priors, rollouts, or leaf
