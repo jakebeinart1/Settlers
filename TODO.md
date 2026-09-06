@@ -16,7 +16,26 @@ implementation sequence live in
       interaction resolver plus native setup, discard, development-card,
       trade, handoff, Settings, construction, and robber journeys.
 
-## 1. Bot strength
+## 1. UI polish (quick, self-contained fixes)
+
+Small, independent cleanups to the current gameplay surfaces — no design work
+or spec needed, just fix the screen. Take these before the larger feature
+work below; they're cheap and visibly improve every game played in the
+meantime. (The board's *unintentional* viewport movement is the same
+underlying subsystem as the deliberate pan/zoom camera work, so that fix
+lives with "4. New game modes" instead of here — see the note there.)
+
+- [ ] Clean up the development-card deck / draw UI — currently redundant.
+      Audit `DevCardPopupView.swift` and `Theme/DevCardStyle.swift` for
+      duplicated card-face/deck presentation and simplify to one clear
+      pull/reveal flow.
+- [ ] Fix truncation in the robber steal (victim-selection) screen — the
+      bottom portion of the sheet is cut off. Likely
+      `RobberVictimButton.swift` and its containing sheet/journey from the
+      robber interaction resolver; make it fit without clipping on the
+      standard device sizes covered by `run-settlers`/`play-settlers`.
+
+## 2. Bot strength
 Make the bot opponents play meaningfully better.
 
 - [x] Added `ThreatAssessment` (`Packages/CatanAI/Sources/CatanAI/ThreatAssessment.swift`)
@@ -55,7 +74,7 @@ Make the bot opponents play meaningfully better.
       map, decision gates, and ordered research program are in
       `docs/AI_summaries/2026-09-05-ai-strategy-research-program.md`.
 
-## 2. Main menu / game log rework
+## 3. Main menu / game log rework
 
 - [ ] Trim the main menu — drop the Settings entry there; most of what it
       exposes is already reachable later (in-game settings, etc.), so a
@@ -78,7 +97,7 @@ Make the bot opponents play meaningfully better.
       button as the pause menu (bottom-right), so you can see opponent
       reactions to events as the game goes.
 
-## 3. New game modes (larger maps)
+## 4. New game modes (larger maps)
 
 New fixed modes (board size + VP target + map art bundled together, not
 independent mix-and-match settings), starting with a "Plan to 20" mode on a
@@ -94,9 +113,19 @@ viewport). See the full survey findings before starting design.
       generator, VP target, stall-audit for reaching 20 VP given
       buildings/dev-card caps, player-count support) via
       superpowers:brainstorming → docs/superpowers/specs/.
-- [ ] Board camera: pinch/gesture zoom and pan on `BoardView`, plus a
-      Google-Maps-style "recenter" button that resets the camera back to
-      the current default fit-to-container view.
+- [ ] Board camera, in two steps on the same code path — do (a) before (b),
+      since (b) is only worth building on a stable base:
+      (a) **Stop the accidental movement first.** Today `BoardView` has no
+      persisted camera: `fittedGeometry(for:in:padding:)`
+      (`Settlers/Views/Board/BoardView.swift:523`) recomputes scale-to-fit on
+      every render from whatever happens to be drawn (targeting overlays,
+      port badges, etc.), so the effective zoom visibly shifts during
+      settlement placement, general gameplay, and robber movement. Lock it
+      to one fit per screen/mode instead of recomputing per redraw.
+      (b) **Then add the deliberate camera** this larger-map mode needs:
+      pinch/gesture zoom and pan on `BoardView`, plus a Google-Maps-style
+      "recenter" button that resets back to the default fit-to-container
+      view.
 - [ ] Generate new full-screen map background art for the larger board via
       the existing AI art pipeline (`design-references/tiles/_scripts/`);
       hex tile textures are stamped per-hex and don't need regenerating.
