@@ -51,6 +51,56 @@ def device_metadata(device: str) -> dict:
     }
 
 
+def training_variant(options: argparse.Namespace) -> dict:
+    """Resolve opt-in flags without changing the frozen reconstruction defaults."""
+    if (
+        not options.long_experiment
+        and options.training_seed is None
+        and options.victory_target is None
+    ):
+        return {}
+    defaults = reconstruction.TRAINING_FLAGS
+    return {
+        "training_seed": (
+            defaults["seed"] if options.training_seed is None else options.training_seed
+        ),
+        "victory_target": (
+            defaults["victory-target"]
+            if options.victory_target is None
+            else options.victory_target
+        ),
+        "long_experiment": options.long_experiment,
+    }
+
+
+def prepare_experiment(
+    options: argparse.Namespace, command: list[str]
+) -> tuple[str, dict]:
+    """Retain the existing source transform, with only declared CLI variants."""
+    if "--vp-delta-final" in command or command[command.index("--vp-delta") + 1] != "0":
+        raise ValueError(
+            "equal-update experiments require terminal reward without annealing"
+        )
+    variant = training_variant(options)
+    entry_options = {}
+    if variant:
+        command[command.index("--seed") + 1] = str(variant["training_seed"])
+        command[command.index("--victory-target") + 1] = str(variant["victory_target"])
+        entry_options = {
+            "training_seed": variant["training_seed"],
+            "long_experiment": variant["long_experiment"],
+        }
+    entry, metadata = experiment.entry(
+        options.source,
+        options.output,
+        options.snapshot_mode,
+        options.updates,
+        **entry_options,
+    )
+    metadata.update(variant)
+    return entry, metadata
+
+
 def prepare_run(options: argparse.Namespace, name: str) -> list[str]:
     """Reuse frozen flags and provenance; verify the parent before trainer entry."""
     check_parent(options)
@@ -62,16 +112,7 @@ def prepare_run(options: argparse.Namespace, name: str) -> list[str]:
     )
     experiment_metadata = None
     if options.updates is not None:
-        if (
-            "--vp-delta-final" in command
-            or command[command.index("--vp-delta") + 1] != "0"
-        ):
-            raise ValueError(
-                "equal-update experiments require terminal reward without annealing"
-            )
-        command[3], experiment_metadata = experiment.entry(
-            options.source, options.output, options.snapshot_mode, options.updates
-        )
+        command[3], experiment_metadata = prepare_experiment(options, command)
     write_json(
         options.output / "manifest.json",
         {
@@ -183,7 +224,9 @@ def experiment_result(options: argparse.Namespace, run: Path, checkpoint: dict) 
     """Validate equal work before publishing experimental evidence, never a default."""
     if options.updates is None:
         return {}
-    experiment.validate_work(checkpoint, options.updates)
+    expected_config = training_variant(options)
+    expected_config.pop("long_experiment", None)
+    experiment.validate_work(checkpoint, options.updates, **expected_config)
     experiment.validate_metrics(run, options.updates)
     return {
         "checkpoint_content_digests": experiment.checkpoint_digests(

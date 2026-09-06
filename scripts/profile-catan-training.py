@@ -18,7 +18,12 @@ from pathlib import Path
 from typing import Optional
 
 import training_watchdog as watchdog
-from catan_training_config import MAX_EXPERIMENT_UPDATES
+from catan_training_config import (
+    MAX_EXPERIMENT_UPDATES,
+    MAX_LONG_EXPERIMENT_UPDATES,
+    MAX_LONG_TRAINING_SECONDS,
+    MAX_TRAINING_SEED,
+)
 
 MAX_TRAINING_SECONDS = 120
 FINISH_ALLOWANCE_SECONDS = 120
@@ -28,6 +33,35 @@ def sha256_argument(value: str) -> str:
     if len(value) != 64 or set(value) - set("0123456789abcdef"):
         raise argparse.ArgumentTypeError("expected 64 lowercase SHA-256 hex digits")
     return value
+
+
+def validate_experiment_options(
+    parser: argparse.ArgumentParser, options: argparse.Namespace
+) -> None:
+    """Keep extended budgets and training variants behind explicit equal-work opt-in."""
+    if options.long_experiment and (
+        options.updates is None
+        or options.mode != "none"
+        or options.snapshot_mode != "row"
+    ):
+        parser.error(
+            "--long-experiment requires --updates, --mode none and --snapshot-mode row"
+        )
+    if options.training_seed is not None or options.victory_target is not None:
+        if options.updates is None or options.snapshot_mode != "row":
+            parser.error("training variants require --updates and --snapshot-mode row")
+    limit = (
+        MAX_LONG_EXPERIMENT_UPDATES
+        if options.long_experiment
+        else MAX_EXPERIMENT_UPDATES
+    )
+    if options.updates is not None and not 0 < options.updates <= limit:
+        parser.error(f"--updates must be in [1, {limit}]")
+    if (
+        options.training_seed is not None
+        and not 0 <= options.training_seed <= MAX_TRAINING_SEED
+    ):
+        parser.error(f"--training-seed must be in [0, {MAX_TRAINING_SEED}]")
 
 
 def parse_options(arguments: Optional[list[str]] = None) -> argparse.Namespace:
@@ -47,23 +81,38 @@ def parse_options(arguments: Optional[list[str]] = None) -> argparse.Namespace:
     )
     parser.add_argument("--snapshot-mode", choices=("row", "batch"), default="row")
     parser.add_argument(
+        "--training-seed",
+        type=int,
+        help="Opt-in seed shared by NumPy, Torch and VecEnv",
+    )
+    parser.add_argument(
+        "--victory-target",
+        type=int,
+        choices=(7, 10),
+        help="Opt-in training victory target",
+    )
+    parser.add_argument(
+        "--long-experiment",
+        action="store_true",
+        help=(
+            f"Allow up to {MAX_LONG_EXPERIMENT_UPDATES} updates / "
+            f"{MAX_LONG_TRAINING_SECONDS} seconds in unprofiled row mode"
+        ),
+    )
+    parser.add_argument(
         "--gpu-lock", type=Path, help="Shared advisory lock; required for CUDA"
     )
     options = parser.parse_args(arguments)
-    if (
-        options.updates is not None
-        and not 0 < options.updates <= MAX_EXPERIMENT_UPDATES
-    ):
-        parser.error(f"--updates must be in [1, {MAX_EXPERIMENT_UPDATES}]")
+    validate_experiment_options(parser, options)
     if options.snapshot_mode != "row" and options.updates is None:
         parser.error("--snapshot-mode batch requires --updates")
     if options.device == "cuda" and options.gpu_lock is None:
         parser.error("--gpu-lock is required for --device cuda")
-    if (
-        not math.isfinite(options.seconds)
-        or not 0 < options.seconds <= MAX_TRAINING_SECONDS
-    ):
-        parser.error(f"--seconds must be finite and in (0, {MAX_TRAINING_SECONDS}]")
+    seconds_limit = (
+        MAX_LONG_TRAINING_SECONDS if options.long_experiment else MAX_TRAINING_SECONDS
+    )
+    if not math.isfinite(options.seconds) or not 0 < options.seconds <= seconds_limit:
+        parser.error(f"--seconds must be finite and in (0, {seconds_limit}]")
     for name in ("source", "output", "parent"):
         setattr(options, name, getattr(options, name).resolve())
     if options.gpu_lock is not None:

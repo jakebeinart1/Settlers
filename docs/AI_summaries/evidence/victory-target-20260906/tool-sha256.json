@@ -1,0 +1,11 @@
+{
+  "profile-catan-training.py": "0af7eb0ea82a71091a92d2598a33de5fd48e4ee4e680135b3176ec9b36b4a468",
+  "profile_catan_worker.py": "1f2de59d74078382d97d87d4cc83d54680bea27af06da54e3de735020df68d26",
+  "catan_training_experiment.py": "e4885a629ba93785778a19e91c7840568d797f4e465f4110cb9ae6e94e28c6e2",
+  "catan_training_config.py": "b9f777c54eb269f37b5d0142c72346dba279e8a7b4a95475d3c4b611e6d19c0f",
+  "run-catan-reconstruction.py": "50f4001cec371316bc1016a480c4e92cdb4910f7cbddaac36670488d0e02c44e",
+  "reproduce-catan-policy.py": "2ed6408f83a1238585a0cf12d953d3bbcfcb64e0a497d7ed7355938ea8a5d3ac",
+  "catan_policy_evidence.py": "26ad93e4cf7a828cd155f1bc9fa2d1e1882593a3927e6ff63e960723404d1a09",
+  "training_watchdog.py": "0fe5997a05c2982988aab889c766df200e292250b3f2b674c557918065857ad0",
+  "empires-victory-target-sequence-20260906.py": "734c729cd942f2d2ff50b4637eede7a157d7327d1dec1edc46b5848cd2691801"
+}

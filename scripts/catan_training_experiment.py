@@ -9,7 +9,7 @@ import signal
 import sys
 import threading
 from pathlib import Path
-from typing import Iterator
+from typing import Iterator, Optional
 
 import torch
 
@@ -36,13 +36,21 @@ SNAPSHOT_PATCHES = (
 )
 
 
-def transform(source: str, mode: str, updates: int) -> str:
+def transform(
+    source: str, mode: str, updates: int, *, long_experiment: bool = False
+) -> str:
     """Keep ordering/GAE intact; fail closed when upstream or patch anchors drift."""
     if hashlib.sha256(source.encode()).hexdigest() != PPO_SHA256:
         raise ValueError("experimental trainer source SHA-256 mismatch")
+    limit = (
+        workload.MAX_LONG_EXPERIMENT_UPDATES
+        if long_experiment
+        else workload.MAX_EXPERIMENT_UPDATES
+    )
     if (
         mode not in ("row", "batch")
-        or not 0 < updates <= workload.MAX_EXPERIMENT_UPDATES
+        or not 0 < updates <= limit
+        or (long_experiment and mode != "row")
     ):
         raise ValueError("unsupported snapshot mode or update limit")
     patches = [
@@ -60,9 +68,22 @@ def transform(source: str, mode: str, updates: int) -> str:
     return source
 
 
-def entry(source: Path, output: Path, mode: str, updates: int) -> tuple[str, dict]:
+def entry(
+    source: Path,
+    output: Path,
+    mode: str,
+    updates: int,
+    *,
+    training_seed: Optional[int] = None,
+    long_experiment: bool = False,
+) -> tuple[str, dict]:
+    seed = 0 if training_seed is None else training_seed
+    if not 0 <= seed <= workload.MAX_TRAINING_SEED:
+        raise ValueError("training seed is outside NumPy's supported range")
     original = source / "training/ppo.py"
-    generated = transform(original.read_text(), mode, updates)
+    generated = transform(
+        original.read_text(), mode, updates, long_experiment=long_experiment
+    )
     artifact = output / "executed-ppo.py"
     with artifact.open("x") as handle:
         handle.write(generated)
@@ -78,7 +99,7 @@ def entry(source: Path, output: Path, mode: str, updates: int) -> tuple[str, dic
     }
     command = (
         "import numpy as np; from pathlib import Path; "
-        "from catan_training_experiment import execute; np.random.seed(0); "
+        f"from catan_training_experiment import execute; np.random.seed({seed}); "
         f"execute(Path({str(artifact)!r}), Path({str(original)!r}), "
         f"{metadata['executed_ppo_sha256']!r})"
     )
@@ -159,13 +180,29 @@ def state_digest(value: object) -> str:
     return digest.hexdigest()
 
 
-def validate_work(checkpoint: dict, updates: int) -> None:
+def validate_work(
+    checkpoint: dict,
+    updates: int,
+    *,
+    training_seed: Optional[int] = None,
+    victory_target: Optional[int] = None,
+) -> None:
+    """Check outer iterations and declared config; completed batches/Adam steps may differ."""
     if (
         checkpoint["updates"] != updates
         or checkpoint["steps"] != updates * workload.TRAINING_DECISIONS_PER_UPDATE
     ):
         raise ValueError(
             "equal-update experiment stopped before completing requested work"
+        )
+    expected = {}
+    if training_seed is not None:
+        expected["seed"] = training_seed
+    if victory_target is not None:
+        expected["victory_target"] = victory_target
+    if any(checkpoint["config"].get(key) != value for key, value in expected.items()):
+        raise ValueError(
+            "checkpoint training configuration differs from requested flags"
         )
 
 
