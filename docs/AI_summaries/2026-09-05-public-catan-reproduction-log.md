@@ -262,6 +262,12 @@ including export/evaluation; this is an estimate, not a completion receipt.
   checkpoint promotion is configured. Do not launch a duplicate job.
 - The local `gpu-baseline/status-at-launch.json` is explicitly a snapshot,
   **not live status or completed-training evidence**.
+- Follow-up watcher: Codex thread heartbeat `watch-empires-gpu-reconstruction`,
+  active at ten-minute intervals. It checks process health and progress, reports
+  meaningful transitions/failure/completion, and pauses after its terminal report
+  or a final check at the absolute deadline. A post-launch check observed the
+  fresh stage advancing beyond 38.6M decisions. The remote timeout is independent
+  of this desktop watcher.
 
 Read-only status check:
 

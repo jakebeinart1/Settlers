@@ -1,9 +1,44 @@
 ---
 name: sim-harness
-description: Headless seeded self-play and versioned training-data export for the Empires bots. Use for multi-game behavior/strength measurements, deterministic reproduction, or producing masked policy/value examples. The no-RNG `Bot.decide` overload can never be reproducible; prove reproducibility across separate processes, never twice inside one.
+description: Headless seeded self-play, training-data export, and bounded training-run supervision for Empires research. Use for multi-game measurements, deterministic reproduction, policy training launches, or checking active training. Prove reproducibility across separate processes, never twice inside one.
 ---
 
 # Sim harness
+
+## First rule of training: timebound and watched
+
+Every training run, including upstream reproductions and smoke runs, needs both
+an enforced time limit and a verified watcher. A detached process is persistence,
+not monitoring; the trainer's own minute counter is not an independent deadline.
+
+1. Before launch record the run ID, host, exact command/source, stage budgets,
+   absolute end deadline, checkpoint/log paths, and scoped stop mechanism.
+   Bound training, export, and evaluation; an outer watchdog must terminate the
+   owned process group, with finite graceful shutdown then forced termination.
+2. For work continuing beyond the turn, create or update a product heartbeat
+   before handoff and verify it is active. Record its ID, cadence, and terminal
+   stop condition. Short foreground smoke runs may use actively awaited tool
+   calls with timeouts. If no watcher can run, remain supervising or report the
+   blocker; a promise to check later is not a watcher.
+3. Check immediately after launch: the expected process, deadline enforcement,
+   advancing updates, fresh logs, finite metrics, and actual requested device.
+   Watch process health AND progress; allow for bounded periodic evaluation.
+   A disconnected host means unknown status, and a vanished process without
+   completion evidence means failure.
+4. Use quiet periodic checks (normally ten minutes for hour-scale jobs). Report
+   meaningful phase changes, stalled progress, failure, or completion. Keep
+   monitoring bounded too: report and disable it at terminal state or after one
+   final bounded check at the absolute deadline. Never silently restart or
+   extend training, or stop unrelated GPU processes.
+5. At completion check exit/status, checkpoint lineage and finite weights,
+   native-game completion, and retained evaluation outcomes. Preserve receipts
+   and report what was proved; elapsed time and a checkpoint alone do not prove
+   reproduced strength. Pause the watcher after reporting the terminal result.
+
+For the upstream two-stage reconstruction, inspect
+`scripts/run-catan-reconstruction.py`; its external launcher supplies the outer
+deadline. Current run locations and receipts belong in
+`docs/AI_summaries/2026-09-05-public-catan-reproduction-log.md`, not in this skill.
 
 **A seed that reproduces twice inside one process is not reproducible.** Swift
 seeds `Set` and `Dictionary` iteration order **once per process**, so two runs
