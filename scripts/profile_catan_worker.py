@@ -179,27 +179,42 @@ def run_trainer(
         save_profile(output, profiler, mode, elapsed, completed, measure_memory)
 
 
+def experiment_result(options: argparse.Namespace, run: Path, checkpoint: dict) -> dict:
+    """Validate equal work before publishing experimental evidence, never a default."""
+    if options.updates is None:
+        return {}
+    experiment.validate_work(checkpoint, options.updates)
+    experiment.validate_metrics(run, options.updates)
+    return {
+        "checkpoint_content_digests": experiment.checkpoint_digests(
+            run, options.updates
+        ),
+        "cuda_peak_allocated_bytes": (
+            reconstruction.torch.cuda.max_memory_allocated()
+            if options.device == "cuda"
+            else None
+        ),
+        "cuda_peak_reserved_bytes": (
+            reconstruction.torch.cuda.max_memory_reserved()
+            if options.device == "cuda"
+            else None
+        ),
+    }
+
+
 def worker(options: argparse.Namespace) -> None:
     name = f"profile-{options.mode}-{uuid.uuid4().hex}"
     command = prepare_run(options, name)
     signal.signal(signal.SIGTERM, reconstruction.terminate_job)
     if options.device == "cuda" and options.updates is not None:
         reconstruction.torch.cuda.reset_peak_memory_stats()
-    if options.updates is None:
-        run_trainer(command, options.source, options.output, options.mode)
-    else:
-        run_trainer(
-            command, options.source, options.output, options.mode, measure_memory=True
-        )
+    run_options = {"measure_memory": True} if options.updates is not None else {}
+    run_trainer(command, options.source, options.output, options.mode, **run_options)
     runs = list((options.source / "training/runs").glob(f"*-{name}"))
     if len(runs) != 1:
         raise ValueError(f"expected one upstream run, found {len(runs)}")
     checkpoint = reconstruction.inspect_checkpoint(runs[0])
-    fingerprints = None
-    if options.updates is not None:
-        experiment.validate_work(checkpoint, options.updates)
-        experiment.validate_metrics(runs[0], options.updates)
-        fingerprints = experiment.checkpoint_digests(runs[0], options.updates)
+    measurements = experiment_result(options, runs[0], checkpoint)
     check_parent(options)
     reconstruction.replay.check_inputs(options.source, options.binding_sha256)
     for filename in ("metrics.jsonl", "config.json"):
@@ -212,23 +227,7 @@ def worker(options: argparse.Namespace) -> None:
             "schema_version": 1,
             "upstream_run": str(runs[0]),
             "checkpoint": checkpoint,
-            **(
-                {
-                    "checkpoint_content_digests": fingerprints,
-                    "cuda_peak_allocated_bytes": (
-                        reconstruction.torch.cuda.max_memory_allocated()
-                        if options.device == "cuda"
-                        else None
-                    ),
-                    "cuda_peak_reserved_bytes": (
-                        reconstruction.torch.cuda.max_memory_reserved()
-                        if options.device == "cuda"
-                        else None
-                    ),
-                }
-                if fingerprints is not None
-                else {}
-            ),
+            **measurements,
             "finite_checkpoint_and_metrics": True,
             "strength_claim": False,
         },

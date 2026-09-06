@@ -11,18 +11,39 @@ import threading
 from pathlib import Path
 from typing import Iterator
 
+import torch
+
+import catan_training_config as workload
+
 PPO_SHA256 = "720ecfa3971314b0feeed6cd11283ecbeea158b7d70d4deab1b73b0948bb7f42"
-MAX_UPDATES = 100
 RSS_ABORT_BYTES = 8 * 1024**3
 MEMORY_POLL_SECONDS = 0.25
 MEMORY_THREAD_JOIN_SECONDS = 1
+RECORD_LOOP = (
+    "                for i in range(args.num_envs):\n"
+    "                    key = (i, int(seats[i]))\n"
+    "                    rec = {"
+)
+BATCH_SNAPSHOT = (
+    "                snapshot_obs, snapshot_masks = obs.copy(), masks.copy()\n"
+)
+SNAPSHOT_PATCHES = (
+    (RECORD_LOOP, BATCH_SNAPSHOT + RECORD_LOOP),
+    (
+        '"obs": obs[i].copy(), "mask": masks[i].copy(),',
+        '"obs": snapshot_obs[i], "mask": snapshot_masks[i],',
+    ),
+)
 
 
 def transform(source: str, mode: str, updates: int) -> str:
     """Keep ordering/GAE intact; fail closed when upstream or patch anchors drift."""
     if hashlib.sha256(source.encode()).hexdigest() != PPO_SHA256:
         raise ValueError("experimental trainer source SHA-256 mismatch")
-    if mode not in ("row", "batch") or not 0 < updates <= MAX_UPDATES:
+    if (
+        mode not in ("row", "batch")
+        or not 0 < updates <= workload.MAX_EXPERIMENT_UPDATES
+    ):
         raise ValueError("unsupported snapshot mode or update limit")
     patches = [
         (
@@ -31,18 +52,7 @@ def transform(source: str, mode: str, updates: int) -> str:
         )
     ]
     if mode == "batch":
-        patches.extend(
-            [
-                (
-                    "                for i in range(args.num_envs):\n                    key = (i, int(seats[i]))\n                    rec = {",
-                    "                snapshot_obs, snapshot_masks = obs.copy(), masks.copy()\n                for i in range(args.num_envs):\n                    key = (i, int(seats[i]))\n                    rec = {",
-                ),
-                (
-                    '"obs": obs[i].copy(), "mask": masks[i].copy(),',
-                    '"obs": snapshot_obs[i], "mask": snapshot_masks[i],',
-                ),
-            ]
-        )
+        patches.extend(SNAPSHOT_PATCHES)
     for before, after in patches:
         if source.count(before) != 1:
             raise ValueError("experimental trainer patch anchor is not unique")
@@ -62,6 +72,9 @@ def entry(source: Path, output: Path, mode: str, updates: int) -> tuple[str, dic
         "original_ppo_sha256": PPO_SHA256,
         "executed_ppo_sha256": hashlib.sha256(generated.encode()).hexdigest(),
         "helper_sha256": hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
+        "workload_sha256": hashlib.sha256(
+            Path(workload.__file__).read_bytes()
+        ).hexdigest(),
     }
     command = (
         "import numpy as np; from pathlib import Path; "
@@ -116,13 +129,13 @@ def execute(artifact: Path, original: Path, expected_sha: str) -> None:
 
 def state_digest(value: object) -> str:
     """Hash actual model/Adam contents, not run metadata or pickle serialization."""
-    import torch
-
     digest = hashlib.sha256()
 
     def visit(item: object) -> None:
         if torch.is_tensor(item):
             tensor = item.detach().cpu().contiguous()
+            if not torch.isfinite(tensor).all().item():
+                raise ValueError("non-finite checkpoint tensor")
             visit(("tensor", str(tensor.dtype), list(tensor.shape)))
             digest.update(tensor.reshape(-1).view(torch.uint8).numpy().tobytes())
         elif isinstance(item, dict):
@@ -147,7 +160,10 @@ def state_digest(value: object) -> str:
 
 
 def validate_work(checkpoint: dict, updates: int) -> None:
-    if checkpoint["updates"] != updates or checkpoint["steps"] != updates * 256 * 96:
+    if (
+        checkpoint["updates"] != updates
+        or checkpoint["steps"] != updates * workload.TRAINING_DECISIONS_PER_UPDATE
+    ):
         raise ValueError(
             "equal-update experiment stopped before completing requested work"
         )
@@ -157,10 +173,18 @@ def validate_metrics(run: Path, updates: int) -> None:
     rows = [
         json.loads(line) for line in (run / "metrics.jsonl").read_text().splitlines()
     ]
-    expected_steps = [index * 256 * 96 for index in range(1, updates + 1)]
+    expected_steps = [
+        index * workload.TRAINING_DECISIONS_PER_UPDATE
+        for index in range(1, updates + 1)
+    ]
     if [row["step"] for row in rows if row["t"] == "train"] != expected_steps:
         raise ValueError("equal-update training steps differ from requested work")
-    eval_steps = [index * 256 * 96 for index in range(16, updates + 1, 16)]
+    eval_steps = [
+        index * workload.TRAINING_DECISIONS_PER_UPDATE
+        for index in range(
+            workload.TRAINING_EVAL_EVERY, updates + 1, workload.TRAINING_EVAL_EVERY
+        )
+    ]
     expected_evals = [
         (step, label)
         for step in [*eval_steps, expected_steps[-1]]
@@ -172,8 +196,6 @@ def validate_metrics(run: Path, updates: int) -> None:
 
 
 def checkpoint_digests(run: Path, updates: int) -> dict:
-    import torch
-
     result = {}
     for path in sorted((run / "checkpoints").glob("step_*.pt")):
         checkpoint = torch.load(path, map_location="cpu", weights_only=False)
@@ -185,7 +207,13 @@ def checkpoint_digests(run: Path, updates: int) -> dict:
             for name in ("model_state", "optimizer_state")
         }
     expected = {
-        str(index * 256 * 96) for index in (*range(16, updates + 1, 16), updates)
+        str(index * workload.TRAINING_DECISIONS_PER_UPDATE)
+        for index in (
+            *range(
+                workload.TRAINING_EVAL_EVERY, updates + 1, workload.TRAINING_EVAL_EVERY
+            ),
+            updates,
+        )
     }
     if set(result) != expected:
         raise ValueError("experiment checkpoint inventory differs from expected steps")

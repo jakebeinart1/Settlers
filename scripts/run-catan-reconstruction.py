@@ -20,12 +20,18 @@ from pathlib import Path
 
 import torch
 
+from catan_training_config import (
+    TRAINING_EVAL_EVERY,
+    TRAINING_NUM_ENVS,
+    TRAINING_ROLLOUT,
+)
+
 replay = importlib.import_module("reproduce-catan-policy")
 digest = replay.digest
 
 TRAINING_FLAGS = {
-    "num-envs": 256,
-    "rollout": 96,
+    "num-envs": TRAINING_NUM_ENVS,
+    "rollout": TRAINING_ROLLOUT,
     "victory-target": 7,
     "visibility": "perfect",
     "lr": 0.00025,
@@ -33,7 +39,7 @@ TRAINING_FLAGS = {
     "minibatch": 4096,
     "hidden": 512,
     "seed": 0,
-    "eval-every": 16,
+    "eval-every": TRAINING_EVAL_EVERY,
     "entropy-coef": 0.02,
     "train-seats": "policy,heuristic,policy,heuristic_v2",
 }

@@ -237,7 +237,7 @@ before r2 ran, so no paired ranking exists. Counters show activity and heuristic
 routing, but lack chronological states, masks, logits and overrides. Do not
 infer trade loops, missed wins or intent. Exact attribution requires traces.
 
-**NEXT — proposed two-seed, equal-update screen; no GPU launch authorized here.**
+**NEXT — proposed two-seed, equal-update screen; not yet launched.**
 
 - Hypothesis: training at ten points improves native ten-point transfer over
   equally continued seven-point training.

@@ -121,11 +121,15 @@ change generated trainer bytes; measured source/helper hashes remain in the
 original manifests. Revalidate retained artifacts instead of retraining to update
 their receipts.
 
-Focused verification: **45 isolated reconstruction/profile tests passed** (one
-Linux-only lease test skipped on macOS), including 12 snapshot/guard regressions.
+Focused verification: **50 isolated reconstruction/profile tests run: 49 passed,
+one Linux-only lease test skipped** on macOS, including 17 snapshot/guard regressions.
 An in-memory unsafe no-copy mutant was observed red: two tests produced six
 snapshot/batch assertion failures, exit 1. Terminal flushing, repeated seats,
 empty updates, pending across multiple updates and exact ordered GAE/tensors
 are covered using snippets from the executed source, not a second trainer.
 The logs and receipts are retained beside the machine verdict. Black and
 `git diff --check` pass. The ordinary repository pre-push gate remains mandatory.
+The separate standards review caught function-local imports and duplicated
+workload constants; both were corrected without changing the workload. The
+shared constants remain dependency-free so the supervisor starts before Torch.
+The independent requirements review found no remaining spec issue.

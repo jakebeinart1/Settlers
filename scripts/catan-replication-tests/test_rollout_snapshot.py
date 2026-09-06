@@ -2,6 +2,7 @@
 
 import hashlib
 import importlib
+import io
 import json
 import os
 import sys
@@ -125,6 +126,124 @@ class RolloutSnapshotTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "equal-update"):
                 experiment.validate_work(changed, 3)
 
+    def test_state_digest_rejects_nonfinite_model_and_optimizer_tensors(self) -> None:
+        for value in (float("nan"), float("inf"), float("-inf")):
+            tensor = torch.tensor([0.0, value])
+            cases = {
+                "direct": tensor,
+                "model": {"model_state": {"weight": tensor}},
+                "optimizer_moment": {
+                    "optimizer_state": {"state": {0: {"exp_avg": tensor}}}
+                },
+                "optimizer_step": {
+                    "optimizer_state": {"state": {0: {"step": torch.tensor(value)}}}
+                },
+            }
+            for location, checkpoint in cases.items():
+                with self.subTest(value=value, location=location):
+                    with self.assertRaisesRegex(
+                        ValueError, "non-finite checkpoint tensor"
+                    ):
+                        experiment.state_digest(checkpoint)
+
+    def test_parse_options_bounds_updates_and_requires_them_for_batch(self) -> None:
+        arguments = [
+            "--source",
+            os.environ["CATAN_UPSTREAM"],
+            "--output",
+            "/tmp/unused-snapshot-options-test",
+            "--parent",
+            "/tmp/unused-snapshot-parent.pt",
+            "--parent-sha256",
+            "0" * 64,
+            "--binding-sha256",
+            "0" * 64,
+            "--mode",
+            "none",
+            "--device",
+            "cpu",
+        ]
+        self.assertIsNone(supervisor.parse_options(arguments).updates)
+        for updates in (1, 100):
+            options = supervisor.parse_options(
+                [*arguments, "--updates", str(updates), "--snapshot-mode", "batch"]
+            )
+            self.assertEqual(
+                (options.updates, options.snapshot_mode), (updates, "batch")
+            )
+        for suffix, message in (
+            (["--updates", "0"], "--updates must be in [1, 100]"),
+            (["--updates", "101"], "--updates must be in [1, 100]"),
+            (["--snapshot-mode", "batch"], "--snapshot-mode batch requires --updates"),
+        ):
+            with self.subTest(arguments=suffix):
+                with (
+                    patch("sys.stderr", new_callable=io.StringIO) as error,
+                    self.assertRaises(SystemExit) as rejected,
+                ):
+                    supervisor.parse_options([*arguments, *suffix])
+                self.assertEqual(rejected.exception.code, 2)
+                self.assertIn(message, error.getvalue())
+
+    def metrics_rows(self, updates: int) -> list[dict]:
+        rows = [{"t": "run"}]
+        for update in range(1, updates + 1):
+            rows.append({"t": "train", "step": update * 24576})
+            if update % 16 == 0:
+                rows.extend(
+                    {"t": "eval", "step": update * 24576, "vs": opponent}
+                    for opponent in ("random-3", "heuristic-v1-3")
+                )
+        rows.append({"t": "game"})
+        rows.extend(
+            {"t": "eval", "step": updates * 24576, "vs": opponent}
+            for opponent in ("random-3", "heuristic-v1-3")
+        )
+        return rows
+
+    def validate_test_metrics(self, rows: list[dict], updates: int) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            run = Path(directory)
+            (run / "metrics.jsonl").write_text(
+                "\n".join(json.dumps(row) for row in rows) + "\n"
+            )
+            experiment.validate_metrics(run, updates)
+
+    def test_metrics_accept_ordered_periodic_and_final_evaluations(self) -> None:
+        for updates in (3, 16, 17):
+            with self.subTest(updates=updates):
+                self.validate_test_metrics(self.metrics_rows(updates), updates)
+
+    def assert_metrics_reject_sequence_changes(self, kind: str, message: str) -> None:
+        rows = self.metrics_rows(17)
+        indices = [index for index, row in enumerate(rows) if row["t"] == kind]
+        first, second, last = indices[0], indices[1], indices[-1]
+        reordered = list(rows)
+        reordered[first], reordered[second] = reordered[second], reordered[first]
+        wrong_step = list(rows)
+        wrong_step[first] = dict(rows[first], step=rows[first]["step"] + 1)
+        cases = {
+            "missing_first": rows[:first] + rows[first + 1 :],
+            "missing_last": rows[:last] + rows[last + 1 :],
+            "out_of_order": reordered,
+            "wrong_step": wrong_step,
+            "duplicate": rows[:first] + [rows[first]] + rows[first:],
+        }
+        for mutation, changed in cases.items():
+            with self.subTest(kind=kind, mutation=mutation):
+                with self.assertRaisesRegex(ValueError, message):
+                    self.validate_test_metrics(changed, 17)
+
+    def test_metrics_reject_missing_reordered_or_wrong_training_steps(self) -> None:
+        self.assert_metrics_reject_sequence_changes(
+            "train", "equal-update training steps"
+        )
+
+    def test_metrics_reject_missing_reordered_or_wrong_evaluation_steps(self) -> None:
+        self.assert_metrics_reject_sequence_changes(
+            "eval", "evaluation sequence changed"
+        )
+
     def save_test_checkpoint(
         self, run: Path, filename_update: int, recorded_update: int
     ) -> None:
@@ -218,7 +337,7 @@ class RolloutSnapshotTests(unittest.TestCase):
             )
 
     def test_default_modes_omit_experiment_metrics_and_cuda_memory_calls(self) -> None:
-        for mode in ("control", "cprofile"):
+        for mode in ("none", "cprofile"):
             with (
                 self.subTest(mode=mode),
                 tempfile.TemporaryDirectory() as directory,

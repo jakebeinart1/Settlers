@@ -18,6 +18,7 @@ from pathlib import Path
 from typing import Optional
 
 import training_watchdog as watchdog
+from catan_training_config import MAX_EXPERIMENT_UPDATES
 
 MAX_TRAINING_SECONDS = 120
 FINISH_ALLOWANCE_SECONDS = 120
@@ -40,15 +41,20 @@ def parse_options(arguments: Optional[list[str]] = None) -> argparse.Namespace:
     parser.add_argument("--seconds", type=float, default=60)
     parser.add_argument("--device", choices=("cpu", "cuda"), default="cuda")
     parser.add_argument(
-        "--updates", type=int, help="Experimental equal-work limit (1–100)"
+        "--updates",
+        type=int,
+        help=f"Experimental equal-work limit (1–{MAX_EXPERIMENT_UPDATES})",
     )
     parser.add_argument("--snapshot-mode", choices=("row", "batch"), default="row")
     parser.add_argument(
         "--gpu-lock", type=Path, help="Shared advisory lock; required for CUDA"
     )
     options = parser.parse_args(arguments)
-    if options.updates is not None and not 0 < options.updates <= 100:
-        parser.error("--updates must be in [1, 100]")
+    if (
+        options.updates is not None
+        and not 0 < options.updates <= MAX_EXPERIMENT_UPDATES
+    ):
+        parser.error(f"--updates must be in [1, {MAX_EXPERIMENT_UPDATES}]")
     if options.snapshot_mode != "row" and options.updates is None:
         parser.error("--snapshot-mode batch requires --updates")
     if options.device == "cuda" and options.gpu_lock is None:
