@@ -1,0 +1,3 @@
+# Exact false positive: canonical saved-game-state SHA-256, independently
+# recomputed from candidate-move-873.json. Keep scanning all other findings.
+cba94470666bc2c93bf674ddd9e1de4b49e6ef32:docs/AI_summaries/evidence/native-cap-diagnosis-20260906/empires-cap-candidate-analysis-20260906.json:generic-api-key:90
