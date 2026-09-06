@@ -143,14 +143,17 @@ private struct Options {
     var configuration = SimulationConfiguration()
     var buildID = "working-tree"
     var jsonl: Bool = false
+    var listPolicies = false
     var trainingOutput: String?
+    var policyAuditOutput: String?
     var trainingInformationPolicy: HiddenInformationPolicy = .revealAll
 
     static let usage = """
         usage: sim [--games N] [--seed S] [--players 3|4] [--victory-points 8|10|12]
                    [--board standard|randomized] [--seats LIST] [--build-id ID] [--jsonl]
-                   [--training-jsonl PATH]
+                   [--training-jsonl PATH] [--policy-audit-jsonl PATH]
                    [--training-information reveal-all|public-counts]
+               sim --list-policies
           --games N     number of consecutive seeds to play (default 1)
           --seed S      first match seed; seeds S ..< S+N are played (default 1)
           --players N   seats at the table: 3 or 4 (default 4)
@@ -161,14 +164,22 @@ private struct Options {
           --seats LIST  comma-separated policy names, exactly one per player
                         heuristics: balanced, aggressive, cautious
                         anchors:    greedy, random
+                        hybrid:     neural-r2 (bundled model, balanced heuristic trading;
+                                    all hands visible, experimental)
                         (four-seat default balanced,aggressive,cautious,balanced;
                         a three-seat run uses the first three)
                         --personalities is accepted as an alias
           --build-id ID provenance label written into every result
                         (default working-tree; letters, digits, dot, dash, underscore)
           --jsonl       one JSON object per game on stdout; without it, a text table
+          --list-policies
+                        standalone JSON object: seat name -> actual policy ID;
+                        validates the bundled model, runs no games
           --training-jsonl PATH
                         write one versioned masked policy/value example per decision
+          --policy-audit-jsonl PATH
+                        exclusively create a route-count sidecar, one JSON row per game;
+                        retains completed rows on failure, not network inference counts
           --training-information MODE
                         opponent holdings in training features (default reveal-all)
         """
@@ -184,21 +195,61 @@ private struct Options {
 /// Unknown names abort rather than falling back to `.balanced`: a typo'd arm
 /// silently played by the default opponent is the exact way a bogus strength
 /// claim gets made.
+private enum SeatPolicy: String, CaseIterable {
+    case balanced, aggressive, cautious, greedy, random
+    case neuralR2 = "neural-r2"
+
+    private static let balancedFallback = HeuristicPolicy(personality: .balanced, id: "heuristic-balanced")
+
+    /// Lazy, process-wide immutable weights: heuristic-only runs do not load
+    /// the model, and every neural seat/game shares the same validated value.
+    private static let network: UpstreamNetwork = {
+        do {
+            return try UpstreamNetwork.bundled()
+        } catch {
+            fail("cannot load neural-r2 bundled model: \(error)")
+        }
+    }()
+
+    func makePolicy() -> any Policy {
+        switch self {
+        case .balanced: return Self.balancedFallback
+        case .aggressive: return HeuristicPolicy(personality: .aggressive, id: "heuristic-aggressive")
+        case .cautious: return HeuristicPolicy(personality: .cautious, id: "heuristic-cautious")
+        case .greedy: return GreedyPolicy()
+        case .random: return RandomPolicy()
+        case .neuralR2:
+            return UpstreamPolicy(network: Self.network, fallback: Self.balancedFallback)
+        }
+    }
+}
+
 private func policy(named name: String) -> any Policy {
-    switch name {
-    case "balanced": return HeuristicPolicy(personality: .balanced, id: "heuristic-balanced")
-    case "aggressive": return HeuristicPolicy(personality: .aggressive, id: "heuristic-aggressive")
-    case "cautious": return HeuristicPolicy(personality: .cautious, id: "heuristic-cautious")
-    case "greedy": return GreedyPolicy()
-    case "random": return RandomPolicy()
-    default:
-        fail("unknown seat '\(name)'; expected balanced, aggressive, cautious, greedy or random")
+    guard let seat = SeatPolicy(rawValue: name) else {
+        fail("unknown seat '\(name)'; expected \(SeatPolicy.allCases.map(\.rawValue).joined(separator: ", "))")
+    }
+    return seat.makePolicy()
+}
+
+/// Derive identifiers from the same constructors as play; wrappers must not
+/// duplicate a neural identifier or assume that it hashes the bundled model.
+private func writePolicyRegistry() {
+    let registry = Dictionary(uniqueKeysWithValues: SeatPolicy.allCases.map { ($0.rawValue, $0.makePolicy().id) })
+    let encoder = JSONEncoder()
+    encoder.outputFormatting = [.sortedKeys]
+    do {
+        guard let json = String(data: try encoder.encode(registry), encoding: .utf8) else {
+            fail("cannot encode UTF-8 policy registry")
+        }
+        Stdout.write(json)
+    } catch {
+        fail("cannot encode policy registry: \(error)")
     }
 }
 
 /// Reads `CommandLine.arguments` into `Options`, aborting on anything it does
 /// not recognise. Flags may appear in any order; each consumes exactly one
-/// value except `--jsonl`, which is a switch.
+/// value except the `--jsonl` switch and standalone `--list-policies` query.
 private func parseOptions(_ arguments: [String]) -> Options {
     var options = Options()
     var index = arguments.startIndex + 1
@@ -256,8 +307,15 @@ private func parseOptions(_ arguments: [String]) -> Options {
             options.buildID = value
         case "--jsonl":
             options.jsonl = true
+        case "--list-policies":
+            guard arguments.count == 2 else { fail("--list-policies must be used alone") }
+            options.listPolicies = true
         case "--training-jsonl":
             options.trainingOutput = nextValue(for: "--training-jsonl")
+        case "--policy-audit-jsonl":
+            let path = uniqueValue(for: "--policy-audit-jsonl")
+            guard !path.isEmpty else { fail("--policy-audit-jsonl path cannot be empty") }
+            options.policyAuditOutput = path
         case "--training-information":
             let value = nextValue(for: "--training-information")
             switch value {
@@ -353,6 +411,7 @@ private struct GameResult {
     let behavior: [PolicyBehaviorMetrics]
     let decisions: [RecordedDecision]
     let policyEvaluationCount: Int
+    let policyAudit: PolicyAudit?
 }
 
 private struct RecordedDecision {
@@ -378,7 +437,8 @@ private func playGame(
     policies: [any Policy],
     configuration: SimulationConfiguration,
     buildID: String,
-    recordTraining: Bool
+    recordTraining: Bool,
+    auditPolicies: Bool
 ) -> GameResult {
     let state = configuration.state(seed: seed)
     precondition(policies.count == state.players.count,
@@ -390,6 +450,7 @@ private func playGame(
     var trace: [String] = []
     var behavior = Array(repeating: PolicyBehaviorMetrics(), count: state.players.count)
     var decisions: [RecordedDecision] = []
+    var policyAudit = auditPolicies ? PolicyAudit(seed: seed, policyIDs: policies.map(\.id)) : nil
 
     for _ in 0..<maxMovesPerGame {
         guard case .seat = session.nextActor() else { break }
@@ -398,6 +459,7 @@ private func playGame(
             behavior[evaluated.seat.index].observeDecision(evaluated.observation, chosen: evaluated.move)
         }
         record(session.lastPolicyDecisions, policies: policies, enabled: recordTraining, into: &decisions)
+        policyAudit?.observe(session.lastPolicyDecisions)
         let step: GameSession.Step?
         do {
             step = try session.commit(seat: decision.seat, move: decision.move)
@@ -409,12 +471,14 @@ private func playGame(
             behavior[evaluated.seat.index].observeDecision(evaluated.observation, chosen: evaluated.move)
         }
         record(session.lastPolicyDecisions, policies: policies, enabled: recordTraining, into: &decisions)
+        policyAudit?.observe(session.lastPolicyDecisions)
         trace.append("P\(step.actor.index):\(Rendering.canonical(step.move))")
         behavior[step.actor.index].observe(step.events, for: step.actor)
     }
 
     var winner: PlayerID?
     if case .gameOver(let who) = session.state.phase { winner = who }
+    policyAudit?.validate(evaluationCount: session.policyEvaluationCount)
     return GameResult(
         buildID: buildID,
         configuration: configuration,
@@ -426,7 +490,8 @@ private func playGame(
         fingerprint: Rendering.fingerprint(trace),
         behavior: behavior,
         decisions: decisions,
-        policyEvaluationCount: session.policyEvaluationCount
+        policyEvaluationCount: session.policyEvaluationCount,
+        policyAudit: policyAudit
     )
 }
 
@@ -502,6 +567,95 @@ private func textLine(_ result: GameResult) -> String {
     let winner = result.winner.map { "P\($0.index)" } ?? "none"
     let points = result.victoryPoints.map(String.init).joined(separator: "/")
     return "seed \(result.seed)  moves \(result.moves)  winner \(winner)  vp \(points)  \(result.fingerprint)"
+}
+
+/// Selection routes, not inference calls: compounds may score several times,
+/// and trade responders may be evaluated without becoming a committed move.
+private struct PolicyAudit: Encodable {
+    let schemaVersion = 1
+    let seed: UInt64
+    private(set) var evaluationCount = 0
+    private(set) var seats: [Seat]
+    private var evaluationIndices: Set<Int> = []
+
+    private enum CodingKeys: String, CodingKey { case schemaVersion, seed, evaluationCount, seats }
+
+    struct Seat: Encodable {
+        let policyID: String
+        var evaluations = 0
+        var sources: [String: Int] = [:]
+        var fallbackReasons: [String: Int] = [:]
+
+        mutating func observe(_ selection: PolicySelection) {
+            evaluations += 1
+            sources[selection.source, default: 0] += 1
+            if let reason = selection.fallbackReason { fallbackReasons[reason, default: 0] += 1 }
+        }
+    }
+
+    init(seed: UInt64, policyIDs: [String]) {
+        self.seed = seed
+        seats = policyIDs.map { Seat(policyID: $0) }
+    }
+
+    mutating func observe(_ decisions: [GameSession.Decision]) {
+        for decision in decisions {
+            guard let trace = decision.policyTrace,
+                  trace.evaluationIndex == decision.evaluationIndex,
+                  seats.indices.contains(decision.seat.index),
+                  trace.policyID == seats[decision.seat.index].policyID,
+                  !trace.selection.source.isEmpty,
+                  evaluationIndices.insert(decision.evaluationIndex).inserted else {
+                fail("seed \(seed): missing, inconsistent or duplicate policy audit trace")
+            }
+            seats[decision.seat.index].observe(trace.selection)
+            evaluationCount += 1
+        }
+    }
+
+    func validate(evaluationCount expected: Int) {
+        guard evaluationIndices == Set(0..<expected) else {
+            fail("seed \(seed): policy audit captured \(evaluationCount) of \(expected) evaluations")
+        }
+    }
+}
+
+/// Unlike a training dataset, completed audit rows remain useful after a later
+/// failure. Write directly to an exclusively created file and flush each row;
+/// never rename away or remove this evidence during cleanup.
+private final class PolicyAuditWriter {
+    private let handle: FileHandle
+    private let encoder = JSONEncoder()
+
+    init(path: String) {
+        let url = URL(fileURLWithPath: path)
+        do {
+            try Data().write(to: url, options: .withoutOverwriting)
+            handle = try FileHandle(forWritingTo: url)
+        } catch {
+            fail("cannot create policy audit at \(path) (existing paths are refused): \(error)")
+        }
+        encoder.outputFormatting = [.sortedKeys]
+    }
+
+    func write(_ audit: PolicyAudit) {
+        do {
+            var row = try encoder.encode(audit)
+            row.append(0x0A)
+            try handle.write(contentsOf: row)
+            try handle.synchronize()
+        } catch {
+            fail("seed \(audit.seed): cannot write policy audit: \(error)")
+        }
+    }
+
+    func finish() {
+        do {
+            try handle.close()
+        } catch {
+            fail("cannot close policy audit: \(error)")
+        }
+    }
 }
 
 private final class TrainingWriter {
@@ -581,9 +735,14 @@ private final class TrainingWriter {
 // is a module-scope declaration, and Swift refuses to expose one whose type is
 // less visible than it is.
 private let options = parseOptions(CommandLine.arguments)
+if options.listPolicies {
+    writePolicyRegistry()
+    exit(0)
+}
 private let seats = options.seatNames.map { policy(named: $0) }
 private let clock = ContinuousClock()
 private let started = clock.now
+private let policyAuditWriter = options.policyAuditOutput.map { PolicyAuditWriter(path: $0) }
 private let trainingWriter = options.trainingOutput.map {
     TrainingWriter(path: $0, informationPolicy: options.trainingInformationPolicy)
 }
@@ -594,11 +753,14 @@ for offset in 0..<options.games {
         policies: seats,
         configuration: options.configuration,
         buildID: options.buildID,
-        recordTraining: trainingWriter != nil
+        recordTraining: trainingWriter != nil,
+        auditPolicies: policyAuditWriter != nil
     )
+    if let audit = result.policyAudit { policyAuditWriter?.write(audit) }
     trainingWriter?.write(result)
     Stdout.write(options.jsonl ? jsonLine(result) : textLine(result))
 }
+policyAuditWriter?.finish()
 
 // Sampled ONCE. Reading `clock.now` twice took `seconds` from the first read
 // and `attoseconds` from the second, so a pair straddling a whole-second

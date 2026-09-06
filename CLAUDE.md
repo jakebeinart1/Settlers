@@ -32,6 +32,7 @@ Every one of these is canonical for its question. Read the file, do not reason f
 | Art assets: what is wired in, what is retired, how it was generated | `design-references/STATUS.md` |
 | Feature design rationale (4 specs, Aug 2026) | `docs/superpowers/specs/` |
 | Current product backlog | `TODO.md` |
+| AI priorities, experiment planning, evaluation/training commands, or progress reports | `docs/AI_summaries/AI-PROGRAM.md` — current tracker; follow its links only for the task at hand |
 | Coding standards, commit format, verification rules | `~/.claude/rules/*.md` (always-on) |
 
 AI summaries belong in `docs/AI_summaries/` per the global rule. That directory does not

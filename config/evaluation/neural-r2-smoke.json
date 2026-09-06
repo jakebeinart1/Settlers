@@ -1,0 +1,13 @@
+{
+  "name": "neural-r2-vs-balanced-smoke",
+  "purpose": "smoke",
+  "candidate": "neural-r2",
+  "baseline": "balanced",
+  "opponent": "greedy",
+  "players": 4,
+  "victory_points": 10,
+  "board": "randomized",
+  "first_seed": 960601,
+  "seeds": 4,
+  "budget_seconds": 600
+}

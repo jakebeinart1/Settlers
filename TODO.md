@@ -52,8 +52,9 @@ Make the bot opponents play meaningfully better.
 - [ ] Compare heuristic/search, RL/self-play, LLM, and hybrid prototypes through
       the shared `GameObservation`/`ActionSpace` seam. Do not select an
       algorithm from intuition or from another game's results. The evidence
-      map, decision gates, and ordered research program are in
-      `docs/AI_summaries/2026-09-05-ai-strategy-research-program.md`.
+      map is retained as background research. Current priorities, progress,
+      experiment gates and reusable commands live in
+      `docs/AI_summaries/AI-PROGRAM.md`.
 
 ## 2. Main menu / game log rework
 

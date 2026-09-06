@@ -1,0 +1,13 @@
+{
+  "baseline": "balanced",
+  "board": "randomized",
+  "budget_seconds": 600,
+  "candidate": "neural-r2",
+  "first_seed": 960701,
+  "name": "neural-r2-native-transfer-diagnostic",
+  "opponent": "greedy",
+  "players": 4,
+  "purpose": "smoke",
+  "seeds": 32,
+  "victory_points": 10
+}

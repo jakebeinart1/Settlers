@@ -100,7 +100,9 @@ parent checkpoint and MIT notice live with the shipped resource in
   fixes. The final pre-push gate subsequently passed with 262 hosted app tests,
   native UI flows and Release compilation; package counts and coverage stayed
   unchanged. The GitHub SSH transport disconnected during that gate, so the
-  green local verification did not itself publish a branch.
+  green local verification did not itself publish a branch. The single
+  keepalive retry passed the normal gate again (96.70% AI coverage) and pushed
+  successfully. [PR #40](https://github.com/jakebeinart1/Settlers/pull/40) is open.
 - Review fixes: 22 focused Release adapter/oracle tests pass after extracting
   frozen codec constants. Seven hosted provenance tests pass, including actual
   human-offer rejection, acceptance after reload, human cancellation, and
@@ -151,21 +153,17 @@ Use the existing distribution identity, with `CODE_SIGN_STYLE=Manual`,
 pass `PROVISIONING_PROFILE_SPECIFIER` globally. Normal development keeps
 Automatic signing and an unset explicit profile. At the recorded attempt,
 macOS requested access to the existing signing key; no certificate was
-created, revoked, or exported, and no upload occurred.
+created, revoked, or exported, and no upload occurred. The final-source archive
+reached its 30-minute watchdog deadline at 15:27:49 UTC (exit 124). Cleanup
+reported a permission error, but follow-up inspection found no residual owned
+archive process. Handle the protected signing prompt before retrying.
 
-## Following work, in order
+## Current follow-up
 
-1. Finish and deliver this app-compatible integration, retaining the frozen
-   original artifact and recording any compatibility fixes separately.
-2. Extend evaluation to interchangeable named policies, paired seed/chair
-   rotations, opponent pools, confidence intervals, completion rates, trade
-   fallback rates, and latency. Keep functional gates separate from strength.
-3. Profile environment rollout, transfer, inference and optimization; improve
-   the measured bottleneck under equal training/evaluation budgets. Use the
-   existing bounded-run watchdog and heartbeat for every GPU experiment.
-4. Pre-register individual experiments: broader opponent/chair training,
-   match-rule distribution alignment, search budget, trade policy, and road
-   planning/reward changes. These are hypotheses, not promised improvements.
-   Keep each arm's checkpoints, seeds, costs, failures and decision rationale.
-5. Add character expression after strategy has a reliable baseline; do not
-   entangle chat with policy decisions in this integration.
+[AI-PROGRAM.md](AI-PROGRAM.md) owns the current sequence and release status.
+The native evaluation subsequently raised a transfer-quality warning: an audited
+32-board comparison found r2 52/128 versus Balanced 112/128 wins against Greedy
+with no unexpected fallback. Compatibility evidence above remains valid; it
+never certified greater strength. PR #40 is draft and default promotion/upload
+is held pending assessment, independently of the signing block. See the
+[evaluation record](2026-09-06-reusable-evaluation.md).

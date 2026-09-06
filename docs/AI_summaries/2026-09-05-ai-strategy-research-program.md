@@ -2,7 +2,9 @@
 
 **Date:** 2026-09-05
 
-**Status:** baseline reconstruction completed; app integration in progress
+**Status:** historical research/reference. For current status, execution order,
+and command routing, read [AI-PROGRAM.md](AI-PROGRAM.md). That tracker supersedes
+the dated proposals and R0–R9 sequence below; these remain rationale, not live tasks.
 
 **Scope:** strategic play, trade negotiation, personalities, difficulty, and
 character dialogue. Gameplay UI and rules correctness are outside this decision.
@@ -719,18 +721,11 @@ latency/cost, or missing offline fallback. Human raters prefer the experience.
 - Whether relationship state ever affects strategy rather than dialogue only.
 - Any cloud LLM dependency or free-form chat feature.
 
-## Immediate next deliverable
+## Current execution
 
-Freeze the original upstream environment, retain per-game artifact-replay
-evidence, then train a fresh checkpoint using the published trainer and an
-explicitly recorded reconstruction of missing configuration. Separate exact
-historical artifacts (some unavailable) from an achievable source-faithful
-behavioral replication. Do not silently substitute a later model or adapter
-project for the training reproduction Alex requested.
-
-R0/R1 trade/road observability, adapter experiments, and R3 GPU profiling remain
-useful subsequent work. The user-selected execution order above supersedes the
-earlier proposal to start those projects in parallel now.
+The reconstruction and native adapter have since been implemented. Delivery,
+repeatable comparisons, profiling and subsequent research are tracked only in
+[AI-PROGRAM.md](AI-PROGRAM.md); the dated sequence above is background.
 
 ## Related Empires evidence
 
