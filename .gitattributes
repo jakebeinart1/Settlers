@@ -1,0 +1,6 @@
+# Keep raw experiment output available without burying source changes in PRs.
+# Narrative decisions, configurations and manifests remain expanded by default.
+docs/AI_summaries/evidence/**/*.jsonl linguist-generated
+docs/AI_summaries/evidence/**/profile.json linguist-generated
+docs/AI_summaries/evidence/**/*.pstats linguist-generated
+docs/AI_summaries/evidence/**/*.log linguist-generated

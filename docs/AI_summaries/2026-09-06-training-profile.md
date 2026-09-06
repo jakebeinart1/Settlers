@@ -131,12 +131,52 @@ busy device; no waiting process, forced takeover, automatic retry or budget
 extension. Any scheduler may check availability only until **2026-09-06 19:00
 UTC**, then report and pause. Run IDs: `profile-20260906-control-2` and
 `profile-20260906-cprofile-2`. A failed launched arm ends this diagnostic.
-The existing `watch-empires-gpu-reconstruction` heartbeat is active at ten-minute
-cadence for only this remaining pair and pauses at terminal state or the cutoff.
+The existing `watch-empires-gpu-reconstruction` heartbeat covered availability
+at ten-minute cadence. Both runs finished under active foreground supervision
+before the cutoff; the heartbeat was then paused.
 
 The wrapper also now starts its watchdog before importing Torch/the binding,
 and validates all nested metric numbers, including evaluation and game rows.
 The old wrappers/receipts are retained unchanged; post-run checks are separate.
+
+### Clean pair: complete, diagnostic budget exhausted
+
+At 18:24 UTC the device listed no compute processes and the shared lock was
+available. Both runs acquired that lock, used the same frozen parent/flags,
+passed full artifact validation and ended with watchdog exit 0. No foreign
+compute process was observed during the recorded checks. Advisory locking is
+not proof against a job that ignores the lock.
+
+| Run | Training decisions | Updates | Trainer elapsed incl. final evaluation | Median reported update SPS |
+| --- | ---: | ---: | ---: | ---: |
+| control-2 | 2,703,360 | 110 | 62.62 s | 50,218 |
+| cprofile-2 | 2,408,448 | 98 | 62.82 s | 44,963 |
+
+The instrumented run collected 10.9% fewer decisions. That is consistent with
+measurement overhead, **not a tested speed optimization**. One clean pair does
+not estimate run-to-run variation. The contaminated first pair is not a second
+clean replicate, and the exhausted four-minute budget is not extended.
+
+Host self-time reports `VecEnv.step` **22.49 s** (13,969 calls), `as_tensor`
+**4.30 s**, `numpy.array` **3.23 s**, and array copies **2.30 s** (4.82M calls).
+`.cpu()` and `.item()` report 1.22/1.48 s. These are host-call measurements,
+including waits, not isolated GPU-kernel time. They mix rollout/update/evaluation;
+main-loop bookkeeping and GAE are not separately reported. Cumulative caller
+times overlap and cannot be added into a pipeline breakdown.
+
+**Decision:** retain this as the first exclusive-device profile, with no new
+checkpoint promotion or throughput claim. The next small investigation is
+phase attribution and rollout data handling (millions of per-transition copies
+and repeated array assembly), alongside the larger environment-step cost.
+Measure those phases before choosing a buffer/batching optimization; leave
+architecture, precision, learning rules and opponents fixed. Any implementation
+needs a separate predeclared equal-sample/time-to-quality comparison, not another
+run under this spent budget.
+
+[Control evidence](evidence/training-profile-20260906/control-2/run.watchdog.json) /
+[instrumented evidence](evidence/training-profile-20260906/cprofile-2/profile.json)
+include exact source/worker/model hashes, raw metrics, profiles and receipts.
+These short-run checkpoints are timing artifacts, not candidate game AIs.
 
 ## Verification and review
 
@@ -162,7 +202,6 @@ The old wrappers/receipts are retained unchanged; post-run checks are separate.
   that is a failed upload despite a green gate, not remote publication.
   Retry uses SSH keepalives with the normal pre-push hook intact.
 
-**Status:** fidelity and sampled compound parity passed; clean profiling awaits
-the shared GPU. No optimization or stronger model is claimed. Choose an
-optimization only after uncontended evidence, then compare equal-sample and
-time-to-quality results under a new predeclared protocol.
+**Status:** fidelity and sampled compound parity passed; the exclusive-device
+profile is complete and its watcher paused. No training remains active from this
+diagnostic. Phase attribution and an isolated optimization are next, not done.

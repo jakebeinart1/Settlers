@@ -1,0 +1,34 @@
+{
+  "checkpoint": {
+    "checkpoint": "/home/alex_ubuntu/empires-research/original-v1/training/runs/20260906-1425-profile-none-e02800b10f8c49249aa0e20cac502e8a/checkpoints/step_0002703360.pt",
+    "checkpoint_sha256": "c1816230aea70a478b9ea111fb73b623375b179dc33a98ec00093f65dc498ae4",
+    "config": {
+      "device": "cuda",
+      "entropy_coef": 0.02,
+      "epochs": 4,
+      "eval_every": 16,
+      "hidden": 512,
+      "lr": 0.00025,
+      "metrics": null,
+      "minibatch": 4096,
+      "minutes": 1.0,
+      "name": "profile-none-e02800b10f8c49249aa0e20cac502e8a",
+      "num_envs": 256,
+      "resume": "/home/alex_ubuntu/empires-research/original-v1/training/runs/20260906-0030-gpu-baseline-20260906-r2-continuation/checkpoints/step_0148807680.pt",
+      "rollout": 96,
+      "seed": 0,
+      "train_seats": "policy,heuristic,policy,heuristic_v2",
+      "victory_target": 7,
+      "visibility": "perfect",
+      "vp_delta": 0.0,
+      "vp_delta_final": null
+    },
+    "metrics_sha256": "3eacaa178ebbbc1cfc4fbeb6e14a52451f06d9f2f48c43d50f969b681981954d",
+    "steps": 2703360,
+    "updates": 110
+  },
+  "finite_checkpoint_and_metrics": true,
+  "schema_version": 1,
+  "strength_claim": false,
+  "upstream_run": "/home/alex_ubuntu/empires-research/original-v1/training/runs/20260906-1425-profile-none-e02800b10f8c49249aa0e20cac502e8a"
+}
