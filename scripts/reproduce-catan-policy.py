@@ -68,7 +68,7 @@ def check_inputs(source: Path, binding_sha256: str) -> tuple[Path, Path]:
 
 
 def make_policy(model: Path) -> ppo.PolicyValueNet:
-    """Load only the hash-checked historical artifact using its own network."""
+    """Load a trusted upstream-format checkpoint using its own network definition."""
     checkpoint = torch.load(model, map_location="cpu", weights_only=False)
     net = ppo.PolicyValueNet(
         checkpoint["obs_dim"],
@@ -80,7 +80,13 @@ def make_policy(model: Path) -> ppo.PolicyValueNet:
     return net
 
 
-def collect_outcomes(net: ppo.PolicyValueNet, path: Path) -> list[dict]:
+def collect_outcomes(
+    net: ppo.PolicyValueNet,
+    path: Path,
+    device: str = "cpu",
+    seed: int = SEED,
+    games: int = GAMES,
+) -> list[dict]:
     """Mirror ppo.evaluate_vs, recording every completion including overshoot.
 
     The v1 API exposes no lane or per-game seed in these stats. We retain the
@@ -90,16 +96,19 @@ def collect_outcomes(net: ppo.PolicyValueNet, path: Path) -> list[dict]:
         LANES,
         victory_target=VICTORY_TARGET,
         visibility="perfect",
-        seed=SEED,
+        seed=seed,
         seats=["policy", "heuristic", "heuristic", "heuristic"],
     )
     observations, masks, _ = env.observe()
     rows: list[dict] = []
     batch = 0
     with torch.no_grad(), path.open("x", encoding="utf-8") as handle:
-        while len(rows) < GAMES:
-            logits, _ = net(torch.as_tensor(observations), torch.as_tensor(masks))
-            actions = logits.argmax(dim=1).numpy().astype(np.uint32)
+        while len(rows) < games:
+            logits, _ = net(
+                torch.as_tensor(observations, device=device),
+                torch.as_tensor(masks, device=device),
+            )
+            actions = logits.argmax(dim=1).cpu().numpy().astype(np.uint32)
             observations, masks, _, _, _, _ = env.step(actions)
             batch += 1
             for turns, winner, points, cap in env.take_episode_stats():
@@ -162,16 +171,21 @@ def main() -> None:
         "--expected-outcomes", default="", help="Optional prior local outcome digest"
     )
     parser.add_argument("--output", required=True, type=Path)
+    parser.add_argument("--device", choices=("cpu", "cuda"), default="cpu")
     args = parser.parse_args()
     source = args.source.resolve()
     model, binding = check_inputs(source, args.binding_sha256)
     torch.set_num_threads(TORCH_THREADS)
     metadata = provenance(source, model, binding)
+    metadata["device"] = args.device
+    metadata["cuda_runtime"] = torch.version.cuda
+    if args.device == "cuda":
+        metadata["gpu"] = torch.cuda.get_device_name(0)
     metadata["expected_local_outcomes_sha256"] = args.expected_outcomes
     args.output.mkdir(parents=True, exist_ok=False)
     (args.output / "manifest.json").write_text(json.dumps(metadata, indent=2) + "\n")
     outcomes = args.output / "games.jsonl"
-    rows = collect_outcomes(make_policy(model), outcomes)
+    rows = collect_outcomes(make_policy(model).to(args.device), outcomes, args.device)
     summary = summarize(rows, outcomes, args.expected_outcomes)
     (args.output / "summary.json").write_text(json.dumps(summary, indent=2) + "\n")
     print(json.dumps(summary, indent=2))

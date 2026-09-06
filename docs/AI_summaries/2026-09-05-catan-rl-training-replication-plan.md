@@ -169,11 +169,15 @@ The baseline must first be reproduced in Eli's unchanged `1,350 → 512 → 512 
 | maturin / PyO3 | `maturin>=1.5,<2`, PyO3 `0.22`, NumPy Rust crate `0.22`; binding Cargo lock pins resolved Rust crates | Exact maturin release and Python wheel ABI are absent | **Partially frozen**; [pyproject][eli-pyproject] · [binding manifest][eli-py-cargo] · [binding lock][eli-py-cargo-lock] |
 | Training hardware | Ledger says Apple Silicon CPU at about 16–20k policy steps/s; trainer forces four PyTorch CPU threads | Exact Mac model, core count, memory, OS, thermal state | **Not frozen**; [ledger][eli-experiments-header] · [thread setting][eli-ppo-main] |
 
-Start the reconstruction on CPU because the published lineage records
-`device=cpu`. Alex plans to provide an RTX 4090 on Linux later; access is not
-available or required now. Once a reproducible baseline exists, preserve the
-same source, rules, training configuration, and evaluation protocol when moving
-to Linux. Record actual updates/transitions as well as elapsed time: the
+The published lineage records `device=cpu`; initial calibration and a short
+fresh-training smoke ran on the Mac CPU. **Update, September 5:** SSH access to
+Alex's `gc-gpu` Linux/WSL host and RTX 4090 is now verified, and Alex explicitly
+requested using it for the full reconstruction. The published policy produced
+126/192 wins and identical outcome multisets on Mac CPU, Linux CPU, and CUDA.
+The isolated GPU environment uses Python 3.12.13 and PyTorch 2.14.0+cu126;
+it does not modify GlobalConquest's environment or system drivers.
+Preserve the same source, rules, training configuration, and evaluation protocol.
+Record actual updates/transitions as well as elapsed time: the
 upstream wall-clock stopping/annealing schedule otherwise changes the training
 budget on faster hardware. GPU numerical identity is not assumed; compare
 behavior and convergence before attributing gains to algorithm changes.

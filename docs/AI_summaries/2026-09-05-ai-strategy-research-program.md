@@ -65,12 +65,14 @@ dependency, configuration, seed, or evaluator mismatches. Tuning
 hyperparameters against the reported evaluation seeds until the number appears
 would create a new overfit experiment, not reproduce the original result.
 
-**Compute plan (Alex, September 5):** an RTX 4090 Linux machine will become
-available later. Do not assume access today or redesign the baseline around it.
+**Compute update (Alex, September 5):** the RTX 4090 Linux/WSL host `gc-gpu`
+is now reachable and CUDA execution is verified. Alex authorized the full
+50-minute fresh plus 60-minute continuation reconstruction on that machine.
+The original checkpoint's diagnostic outcomes agree across Mac CPU, Linux CPU,
+and CUDA; this verifies inference compatibility, not training reproduction.
 Keep source/configuration hashes, dependency manifests, checkpoints, commands,
-and raw evaluation outcomes portable now. After baseline replication, verify
-Linux/GPU training and inference behavior, profile the whole pipeline, and then
-use that machine for measured improvement experiments. Training time alone is
+and raw evaluation outcomes portable. Complete and evaluate the unchanged
+baseline before measured improvement experiments. Training time alone is
 not a comparable budget across CPU and GPU; record updates and transitions.
 
 ## Decision ledger

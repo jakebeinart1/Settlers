@@ -1,0 +1,12 @@
+{
+  "wins": 126,
+  "games": 192,
+  "caps": 0,
+  "win_rate": 0.65625,
+  "games_sha256": "cbf76cc0ed37033e19e74b6720a74497035a9008ef5818d868826426e4eee3ae",
+  "outcome_multiset_sha256": "36177758a7223345bf3253db1d2499de7445c6ef8f84ff8edb585086588c326b",
+  "artifact_score_matched": true,
+  "local_outcome_replay_matched": true,
+  "artifact_gate_passed": true,
+  "training_reproduced": false
+}

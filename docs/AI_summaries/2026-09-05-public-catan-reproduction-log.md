@@ -206,10 +206,73 @@ Independent review found two false-green risks (score-only success and an
 unchecked Python wrapper); both were addressed and tested. The app and its
 production AI have not changed.
 
+## Linux / RTX 4090 compatibility (September 5)
+
+The existing SSH alias `gc-gpu` reaches Alex's Linux/WSL machine. Research is
+isolated under `/home/alex_ubuntu/empires-research`; no GlobalConquest environment,
+system driver, or shell profile was changed. Rust/Cargo 1.98.1, Python 3.12.13,
+PyTorch 2.14.0+cu126, NumPy 2.5.2, and maturin 1.15.0 were installed there.
+The original Rust tests and release simulator build passed. CUDA availability,
+device identity (RTX 4090), and an actual CUDA matrix multiplication passed.
+
+Both Linux CPU and CUDA replay the original policy at **126 wins / 192 games,
+zero caps**. Their outcome-multiset hash matches both Mac runs:
+`36177758a7223345bf3253db1d2499de7445c6ef8f84ff8edb585086588c326b`.
+Raw outcomes and manifests are retained in
+[`evidence/catan-original-policy/linux-cpu`](evidence/catan-original-policy/linux-cpu)
+and [`linux-cuda`](evidence/catan-original-policy/linux-cuda).
+This is inference compatibility, not proof of reproduced training.
+
+`scripts/run-catan-reconstruction.py` supervises the two-stage training chain:
+random initialization, then continuation from that run's final checkpoint,
+finite-weight/optimizer/metric validation, CTNN export, a completed native game,
+and final-policy diagnostics against the published model. Four seeds are fixed
+before training: 777, 930011, 930043, 930071. These remain first-chair diagnostics,
+not an every-chair strength tournament or hyperparameter-selection objective.
+Each command has a deadline; failures are recorded and propagated, not retried.
+Fourteen isolated-environment guard tests and 62 evaluation-tool tests pass.
+Review caught and corrected an exit-zero-without-winner false green and an
+unbounded evaluation stage before the full training launch.
+
+## Full GPU reconstruction launched
+
+The 30-second fresh + 30-second continuation rehearsal completed successfully:
+both stages produced finite checkpoints, the exported network loaded in Rust,
+the native game reached a winner, and all eight policy diagnostic batches ran.
+This short rehearsal does not establish strength. Its manifest, completion
+status, evaluation counts, and native-game metrics are retained under
+[`evidence/catan-reconstruction/gpu-smoke`](evidence/catan-reconstruction/gpu-smoke).
+
+The real **50-minute fresh + 60-minute continuation** job started on
+September 5 at **22:32 UTC / 18:32 Eastern** in detached tmux session
+`empires-reconstruction-20260905`. It starts from random weights, not the
+rehearsal checkpoint. CUDA training and advancing updates were observed.
+Expected end is approximately 00:25 UTC September 6 / 20:25 Eastern September 5,
+including export/evaluation; this is an estimate, not a completion receipt.
+
+- Remote job directory: `/home/alex_ubuntu/empires-research/runs/gpu-baseline-20260905`.
+- Current phase and errors: `status.json` in that directory; detailed stage
+  output is in `fresh.log`, `continuation.log`, and `evaluation.log`.
+- Upstream checkpoints stay under `original-v1/training/runs/`; each completed
+  stage records its exact checkpoint path/hash in job status.
+- Launch stderr: sibling `gpu-baseline-20260905-launch.log`.
+- Parent job has a three-hour deadline; training stages allow ten minutes to
+  finish, and native export/inference/evaluation each have ten-minute deadlines.
+- tmux survives SSH disconnects, not a host reboot. No automatic retry or
+  checkpoint promotion is configured. Do not launch a duplicate job.
+- The local `gpu-baseline/status-at-launch.json` is explicitly a snapshot,
+  **not live status or completed-training evidence**.
+
+Read-only status check:
+
+```bash
+ssh -a gc-gpu 'cat /home/alex_ubuntu/empires-research/runs/gpu-baseline-20260905/status.json'
+```
+
 ## Reproduction gates still open
 
-The immediate next experiment is the declared 50-minute fresh stage followed
-by a 60-minute continuation, with those same explicit assumptions. Select the
+The declared 50-minute fresh stage followed by a 60-minute continuation is
+running with those same explicit assumptions. The supervisor selects the
 final checkpoint, not whichever checkpoint wins on seed 777. Retain both stage
 configs, actual step counts, logs, checkpoints and held-out results. This is a
 source-faithful reconstruction; exact historical lineage remains unavailable.
