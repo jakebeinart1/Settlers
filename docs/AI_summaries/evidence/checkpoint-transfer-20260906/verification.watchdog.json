@@ -1,0 +1,25 @@
+{
+  "budget_seconds": 600.0,
+  "started_epoch": 1788714216.905401,
+  "started_elapsed": 255007.453075541,
+  "started_utc": "2026-09-06T17:03:36.905401+00:00",
+  "deadline_epoch": 1788714816.905401,
+  "deadline_utc": "2026-09-06T17:13:36.905401+00:00",
+  "state": "complete",
+  "command": [
+    "/bin/zsh",
+    "-c",
+    "python3 -m unittest discover -s scripts/tests -p \"test_*.py\" && swift build --package-path Packages/CatanAI -c release -Xswiftc -warnings-as-errors && swift test --package-path Packages/CatanAI -c release --filter Upstream"
+  ],
+  "watchdog_pid": 66063,
+  "watchdog_identity": null,
+  "boot_identity": "unavailable",
+  "watchdog_sha256": "0fe5997a05c2982988aab889c766df200e292250b3f2b674c557918065857ad0",
+  "process_group": 66091,
+  "process_identity": null,
+  "remaining_seconds": 486.9858191013336,
+  "checked_epoch": 1788714329.91959,
+  "checked_utc": "2026-09-06T17:05:29.919590+00:00",
+  "exit_code": 0,
+  "finished_utc": "2026-09-06T17:05:29.920178+00:00"
+}

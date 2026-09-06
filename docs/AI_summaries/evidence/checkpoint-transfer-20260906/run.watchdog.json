@@ -1,0 +1,27 @@
+{
+  "budget_seconds": 600,
+  "started_epoch": 1788714131.734109,
+  "started_elapsed": 254922.282098583,
+  "started_utc": "2026-09-06T17:02:11.734109+00:00",
+  "deadline_epoch": 1788714731.734109,
+  "deadline_utc": "2026-09-06T17:12:11.734109+00:00",
+  "state": "complete",
+  "command": [
+    "/opt/homebrew/opt/python@3.14/bin/python3.14",
+    "/Users/alex/Documents/Personal Projects/Settlers/scripts/evaluate-bots.py",
+    "--worker",
+    "--output",
+    "/private/tmp/empires-original-vs-r2-native-20260906"
+  ],
+  "watchdog_pid": 56634,
+  "watchdog_identity": null,
+  "boot_identity": "unavailable",
+  "watchdog_sha256": "0fe5997a05c2982988aab889c766df200e292250b3f2b674c557918065857ad0",
+  "process_group": 56637,
+  "process_identity": null,
+  "remaining_seconds": 530.3812470436096,
+  "checked_epoch": 1788714201.3528728,
+  "checked_utc": "2026-09-06T17:03:21.352874+00:00",
+  "exit_code": 0,
+  "finished_utc": "2026-09-06T17:03:21.353487+00:00"
+}

@@ -146,6 +146,8 @@ private struct Options {
     var listPolicies = false
     var trainingOutput: String?
     var policyAuditOutput: String?
+    var neuralCheckpointPath: String?
+    var neuralCheckpointID: String?
     var trainingInformationPolicy: HiddenInformationPolicy = .revealAll
 
     static let usage = """
@@ -153,7 +155,8 @@ private struct Options {
                    [--board standard|randomized] [--seats LIST] [--build-id ID] [--jsonl]
                    [--training-jsonl PATH] [--policy-audit-jsonl PATH]
                    [--training-information reveal-all|public-counts]
-               sim --list-policies
+                   [--neural-checkpoint PATH --neural-checkpoint-id ID]
+               sim --list-policies [--neural-checkpoint PATH --neural-checkpoint-id ID]
           --games N     number of consecutive seeds to play (default 1)
           --seed S      first match seed; seeds S ..< S+N are played (default 1)
           --players N   seats at the table: 3 or 4 (default 4)
@@ -166,6 +169,7 @@ private struct Options {
                         anchors:    greedy, random
                         hybrid:     neural-r2 (bundled model, balanced heuristic trading;
                                     all hands visible, experimental)
+                                    neural-checkpoint (only with both checkpoint flags)
                         (four-seat default balanced,aggressive,cautious,balanced;
                         a three-seat run uses the first three)
                         --personalities is accepted as an alias
@@ -173,8 +177,13 @@ private struct Options {
                         (default working-tree; letters, digits, dot, dash, underscore)
           --jsonl       one JSON object per game on stdout; without it, a text table
           --list-policies
-                        standalone JSON object: seat name -> actual policy ID;
-                        validates the bundled model, runs no games
+                        JSON object: seat name -> actual policy ID; runs no games;
+                        accepts only checkpoint options, validates available models
+          --neural-checkpoint PATH --neural-checkpoint-id ID
+                        enable a compatible external CTNN, with the same hybrid adapter;
+                        ID is caller-supplied provenance, NOT a runtime checksum;
+                        caller must verify SHA-256 and freeze bytes before evaluation;
+                        ID allows ASCII letters, digits, dot, dash and underscore
           --training-jsonl PATH
                         write one versioned masked policy/value example per decision
           --policy-audit-jsonl PATH
@@ -199,7 +208,7 @@ private enum SeatPolicy: String, CaseIterable {
     case balanced, aggressive, cautious, greedy, random
     case neuralR2 = "neural-r2"
 
-    private static let balancedFallback = HeuristicPolicy(personality: .balanced, id: "heuristic-balanced")
+    static let balancedFallback = HeuristicPolicy(personality: .balanced, id: "heuristic-balanced")
 
     /// Lazy, process-wide immutable weights: heuristic-only runs do not load
     /// the model, and every neural seat/game shares the same validated value.
@@ -224,7 +233,35 @@ private enum SeatPolicy: String, CaseIterable {
     }
 }
 
-private func policy(named name: String) -> any Policy {
+/// CLI-only identity for caller-supplied bytes. The evaluator owns digest
+/// verification; this wrapper preserves the adapter's exact selection metadata
+/// without changing the bundled policy ID or calling inference a second time.
+private struct CheckpointPolicy: Policy {
+    static let seatName = "neural-checkpoint"
+    let id: String
+    private let hybrid: UpstreamPolicy
+
+    init(path: String, declaredID: String) throws {
+        let network = try UpstreamNetwork(data: Data(contentsOf: URL(fileURLWithPath: path)))
+        hybrid = UpstreamPolicy(network: network, fallback: SeatPolicy.balancedFallback)
+        id = "upstream-v1-hybrid-greedy-swift-compounds-trade-scheduler-fallback-"
+            + "\(hybrid.fallbackProfile)-declared-\(declaredID)"
+    }
+
+    func decide(_ observation: GameObservation, rng: inout RandomSource) -> GameMove {
+        hybrid.decide(observation, rng: &rng)
+    }
+
+    func select(_ observation: GameObservation, rng: inout RandomSource) -> PolicySelection {
+        hybrid.select(observation, rng: &rng)
+    }
+}
+
+private func policy(named name: String, checkpoint: CheckpointPolicy?) -> any Policy {
+    if name == CheckpointPolicy.seatName {
+        guard let checkpoint else { fail("neural-checkpoint requires --neural-checkpoint and --neural-checkpoint-id") }
+        return checkpoint
+    }
     guard let seat = SeatPolicy(rawValue: name) else {
         fail("unknown seat '\(name)'; expected \(SeatPolicy.allCases.map(\.rawValue).joined(separator: ", "))")
     }
@@ -233,8 +270,9 @@ private func policy(named name: String) -> any Policy {
 
 /// Derive identifiers from the same constructors as play; wrappers must not
 /// duplicate a neural identifier or assume that it hashes the bundled model.
-private func writePolicyRegistry() {
-    let registry = Dictionary(uniqueKeysWithValues: SeatPolicy.allCases.map { ($0.rawValue, $0.makePolicy().id) })
+private func writePolicyRegistry(checkpoint: CheckpointPolicy?) {
+    var registry = Dictionary(uniqueKeysWithValues: SeatPolicy.allCases.map { ($0.rawValue, $0.makePolicy().id) })
+    if let checkpoint { registry[CheckpointPolicy.seatName] = checkpoint.id }
     let encoder = JSONEncoder()
     encoder.outputFormatting = [.sortedKeys]
     do {
@@ -249,11 +287,12 @@ private func writePolicyRegistry() {
 
 /// Reads `CommandLine.arguments` into `Options`, aborting on anything it does
 /// not recognise. Flags may appear in any order; each consumes exactly one
-/// value except the `--jsonl` switch and standalone `--list-policies` query.
+/// value except the `--jsonl` switch and `--list-policies` query.
 private func parseOptions(_ arguments: [String]) -> Options {
     var options = Options()
     var index = arguments.startIndex + 1
     var seenConfigurationFlags: Set<String> = []
+    var suppliedFlags: Set<String> = []
 
     func nextValue(for flag: String) -> String {
         index += 1
@@ -269,6 +308,7 @@ private func parseOptions(_ arguments: [String]) -> Options {
     }
 
     while index < arguments.endIndex {
+        suppliedFlags.insert(arguments[index])
         switch arguments[index] {
         case "--games":
             guard let count = Int(nextValue(for: "--games")), count > 0 else { fail("--games must be a positive integer") }
@@ -308,8 +348,19 @@ private func parseOptions(_ arguments: [String]) -> Options {
         case "--jsonl":
             options.jsonl = true
         case "--list-policies":
-            guard arguments.count == 2 else { fail("--list-policies must be used alone") }
+            guard !options.listPolicies else { fail("--list-policies may be supplied only once") }
             options.listPolicies = true
+        case "--neural-checkpoint":
+            let path = uniqueValue(for: "--neural-checkpoint")
+            guard !path.isEmpty else { fail("--neural-checkpoint path cannot be empty") }
+            options.neuralCheckpointPath = path
+        case "--neural-checkpoint-id":
+            let identifier = uniqueValue(for: "--neural-checkpoint-id")
+            let allowed = CharacterSet(charactersIn: "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789._-")
+            guard !identifier.isEmpty, identifier.unicodeScalars.allSatisfy(allowed.contains) else {
+                fail("--neural-checkpoint-id requires a nonempty ASCII identifier (letters, digits, dot, dash, underscore)")
+            }
+            options.neuralCheckpointID = identifier
         case "--training-jsonl":
             options.trainingOutput = nextValue(for: "--training-jsonl")
         case "--policy-audit-jsonl":
@@ -324,6 +375,9 @@ private func parseOptions(_ arguments: [String]) -> Options {
             default: fail("--training-information must be reveal-all or public-counts")
             }
         case "--help", "-h":
+            guard !arguments.contains("--list-policies") else {
+                fail("--list-policies must be used alone or with only checkpoint options")
+            }
             Stderr.write(Options.usage)
             exit(0)
         default:
@@ -332,6 +386,7 @@ private func parseOptions(_ arguments: [String]) -> Options {
         index += 1
     }
 
+    validateCheckpointOptions(options, suppliedFlags: suppliedFlags)
     if !options.seatNamesWereProvided {
         options.seatNames = Array(defaultSeatNames.prefix(options.configuration.playerCount))
     }
@@ -346,6 +401,23 @@ private func parseOptions(_ arguments: [String]) -> Options {
         fail("seed range overflows UInt64")
     }
     return options
+}
+
+private func validateCheckpointOptions(_ options: Options, suppliedFlags: Set<String>) {
+    if options.listPolicies {
+        let allowed: Set<String> = ["--list-policies", "--neural-checkpoint", "--neural-checkpoint-id"]
+        guard suppliedFlags.isSubset(of: allowed) else {
+            fail("--list-policies must be used alone or with only checkpoint options")
+        }
+    }
+    guard (options.neuralCheckpointPath == nil) == (options.neuralCheckpointID == nil) else {
+        fail("--neural-checkpoint and --neural-checkpoint-id must be supplied together")
+    }
+    if options.neuralCheckpointPath != nil {
+        guard options.listPolicies || options.seatNames.contains(CheckpointPolicy.seatName) else {
+            fail("checkpoint options require a neural-checkpoint seat unless listing policies")
+        }
+    }
 }
 
 // MARK: - Canonical rendering
@@ -735,11 +807,21 @@ private final class TrainingWriter {
 // is a module-scope declaration, and Swift refuses to expose one whose type is
 // less visible than it is.
 private let options = parseOptions(CommandLine.arguments)
+// Load once, before either registry output or any result/audit/training file
+// creation. Reusing this immutable policy also shares weights across all seats.
+private let checkpointPolicy: CheckpointPolicy? = {
+    guard let path = options.neuralCheckpointPath, let identifier = options.neuralCheckpointID else { return nil }
+    do {
+        return try CheckpointPolicy(path: path, declaredID: identifier)
+    } catch {
+        fail("cannot load neural-checkpoint: \(error)")
+    }
+}()
 if options.listPolicies {
-    writePolicyRegistry()
+    writePolicyRegistry(checkpoint: checkpointPolicy)
     exit(0)
 }
-private let seats = options.seatNames.map { policy(named: $0) }
+private let seats = options.seatNames.map { policy(named: $0, checkpoint: checkpointPolicy) }
 private let clock = ContinuousClock()
 private let started = clock.now
 private let policyAuditWriter = options.policyAuditOutput.map { PolicyAuditWriter(path: $0) }

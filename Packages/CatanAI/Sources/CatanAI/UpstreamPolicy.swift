@@ -4,8 +4,8 @@ import CatanEngine
 /// actions, Swift-authoritative compound completion, and the existing heuristic
 /// for player trades and unsupported states. This is not upstream AlphaBot or a
 /// claim about playing strength. No model decision samples or advances an RNG.
-/// The r2 checkpoint was trained with perfect information in a fixed chair at
-/// four seats / target 7. Three-seat and 8/10/12-VP use is an experimental
+/// The r2 checkpoint trained with perfect information in seats 0 and 2 at
+/// four seats / target 7; its calibration evaluated seat 0. Three-seat and 8/10/12-VP use is an experimental
 /// distribution shift, not evidence of faithfully transferred strength.
 public struct UpstreamPolicy: Policy {
     public enum Source: String, Sendable { case neural, heuristic }

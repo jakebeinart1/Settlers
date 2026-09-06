@@ -1,0 +1,16 @@
+{
+  "baseline": "neural-r2",
+  "board": "randomized",
+  "budget_seconds": 600,
+  "candidate": {
+    "checkpoint": "/Users/alex/Library/Application Support/EmpiresResearch/catan-rl/original-v1/models/catan-512.ctnn",
+    "sha256": "21f3b380786a53998172896caac44191dea3d44efd11d3bf8c92150d8b18c8a5"
+  },
+  "first_seed": 960801,
+  "name": "original-vs-r2-native-checkpoint-diagnostic",
+  "opponent": "greedy",
+  "players": 4,
+  "purpose": "smoke",
+  "seeds": 32,
+  "victory_points": 10
+}

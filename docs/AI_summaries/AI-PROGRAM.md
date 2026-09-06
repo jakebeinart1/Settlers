@@ -16,14 +16,19 @@ progress. Detailed evidence and operational recipes stay behind the links below.
 - **Delivery remains open:** Build 5 is on the manual simulator, not TestFlight
   or the phone. The final archive timed out at its signing-key prompt; the phone
   is unavailable to Xcode. Resume delivery when those external blocks clear.
-- **Evaluation first slice works:** one command freezes r2, runs both arms,
-  rotates chairs and retains a report. Automated tests repeat it in separate
-  processes, with strict decision-route auditing. No new training was launched.
+- **Evaluation works:** one command freezes named policies or two hash-pinned
+  compatible checkpoints, rotates chairs and retains audited results. Identical
+  weights reproduce through both loading paths; distinct weights change play.
+  [PR #41](https://github.com/jakebeinart1/Settlers/pull/41) passed Linux CI/lint;
+  its local checkpoint-loader extension passed independent review, 105 tool
+  tests and 35 neural tests. The full iOS gate was not rerun for this CLI-only slice.
 - **Quality warning:** the audited 32-board follow-up gave r2 **52/128** versus
   Balanced **112/128** wins against Greedy, all chairs rotated, no unexpected
   fallbacks. This is one native configuration, not a universal ranking.
-  Default promotion is held: next compare checkpoint/adapter/rule-distribution
-  effects before assuming the transferred baseline is a stronger default.
+  A second native diagnostic found original **74/128** versus r2 **46/128**
+  (+21.9 points, paired 95% interval +10.2 to +32.8). The upstream ranking does
+  not transfer. Default promotion remains held; investigate checkpoint fidelity
+  and generalization before more training. [Evidence](2026-09-06-reusable-evaluation.md#result-and-decision).
 - **Limit:** trading remains heuristic; native rules differ from training.
   Compatibility and a legal complete game are not strength measurements.
 
@@ -32,7 +37,7 @@ progress. Detailed evidence and operational recipes stay behind the links below.
 | Stage | Status / next action | Done when |
 | --- | --- | --- |
 | **1. Deliver and retain regressions** | Simulator verified; phone/signing blocked; native strength warning under assessment. | Resolve the default-promotion warning; final artifact is VALID in TestFlight, intended testers can access it, phone version is verified, and reusable gameplay/UI checks remain green. |
-| **2. Make comparisons cheap to repeat** | First slice implemented, reviewed and tested: frozen r2 versus a named heuristic, all chairs, one rules cell per report. | Next accept two hash-identified compatible checkpoints for the transfer investigation; incompatible architectures use separate frozen builds. Keep the existing analyzer. |
+| **2. Make comparisons cheap to repeat** | Minimum checkpoint comparison implemented, reviewed and tested; original-versus-r2 diagnostic complete. | Preserve this entry point. Add separate builds/opponent pools only when a concrete experiment needs them; reuse the analyzer. |
 | **3. Make training faster without weakening learning** | Next major effort after the minimum evaluator works. Profile the actual 4090 pipeline before choosing an optimization. | Repeated profiles identify rollout/inference/transfer/update/evaluation costs; a bounded before/after experiment improves time-to-quality without correctness or playing-strength regression. |
 | **4. Improve strategy and architecture** | Main multi-week effort. Research and reprioritize the candidate queue below; run isolated experiments. | Each attempted change has a recorded hypothesis, fixed budget, result and decision. Promote promising candidates through fresh confirmation and device tests, then freeze the new baseline. This stage repeats. |
 | **5. Character, personality, difficulty** | Deferred. Keep strategy, strength and expression separate. | Measured tiers and intentional styles support honest UI labels; authored reactions are grounded in real events. LLM wording/chat needs a separate latency, cost and product decision. |

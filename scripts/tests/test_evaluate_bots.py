@@ -2,6 +2,7 @@
 
 import importlib.util
 import json
+import struct
 import subprocess
 import sys
 import tempfile
@@ -16,9 +17,220 @@ SPEC = importlib.util.spec_from_file_location(
 runner = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(runner)
 DEFAULT = SCRIPTS.parent / "config/evaluation/neural-r2-smoke.json"
+MODEL = (
+    SCRIPTS.parent
+    / "Packages/CatanAI/Sources/CatanAI/Resources/UpstreamPolicy/final.ctnn"
+)
+
+
+def failure_diagnostics(result: subprocess.CompletedProcess, output: Path) -> str:
+    """Keep stderr even when setup failed before the watchdog created its log."""
+    log = output / "run.launcher.log"
+    return result.stderr + (log.read_text() if log.exists() else "")
+
+
+def execute_pipeline(config: dict, output: Path) -> subprocess.CompletedProcess:
+    configuration = output.with_suffix(".config.json")
+    configuration.write_text(json.dumps(config))
+    return subprocess.run(
+        [
+            sys.executable,
+            str(SCRIPTS / "evaluate-bots.py"),
+            "--config",
+            str(configuration),
+            "--output",
+            str(output),
+        ],
+        capture_output=True,
+        text=True,
+        timeout=config["budget_seconds"] + 20,
+        check=False,
+    )
 
 
 class EvaluationRunnerTests(unittest.TestCase):
+    def test_checkpoint_descriptors_are_strict_and_relative_to_config(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            path = root / "config.json"
+            model = {"checkpoint": "model.ctnn", "sha256": "a" * 64}
+            config = json.loads(DEFAULT.read_text()) | {"candidate": model}
+            path.write_text(json.dumps(config))
+            self.assertEqual(
+                runner.read_config(path)["candidate"],
+                model | {"checkpoint": str((root / "model.ctnn").resolve())},
+            )
+            for bad in (
+                {},
+                model | {"sha256": "a" * 63},
+                model | {"sha256": "A" * 64},
+                model | {"sha256": True},
+                model | {"checkpoint": ""},
+                model | {"typo": 1},
+                "neural-checkpoint",
+            ):
+                path.write_text(json.dumps(config | {"candidate": bad}))
+                with self.subTest(bad=bad), self.assertRaises(ValueError):
+                    runner.read_config(path)
+            path.write_text(json.dumps(config | {"opponent": model}))
+            with self.assertRaises(ValueError):
+                runner.read_config(path)
+
+    def test_checkpoint_copy_enforces_hash_and_freezes_bytes(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            source = root / "source.ctnn"
+            source.write_bytes(b"checkpoint bytes")
+            model = {"checkpoint": str(source), "sha256": runner.digest(source)}
+            config = json.loads(DEFAULT.read_text()) | {"candidate": model}
+            frozen = root / "frozen"
+            frozen.mkdir()
+            runner.freeze_checkpoints(config, frozen)
+            self.assertEqual(
+                (frozen / "candidate.ctnn").read_bytes(), source.read_bytes()
+            )
+            source.write_bytes(b"changed bytes")
+            self.assertEqual(
+                (frozen / "candidate.ctnn").read_bytes(), b"checkpoint bytes"
+            )
+            second = root / "second"
+            second.mkdir()
+            with self.assertRaisesRegex(ValueError, "SHA-256"):
+                runner.freeze_checkpoints(config, second)
+            self.assertFalse((second / "candidate.ctnn").exists())
+            inputs = {"source_files": runner.source_snapshot(), "config": config}
+            binary = frozen / "sim"
+            binary.write_bytes(b"must not execute a modified checkpoint")
+            (frozen / "candidate.ctnn").write_bytes(b"changed during build")
+            with self.assertRaisesRegex(ValueError, "SHA-256 mismatch before loading"):
+                runner.record_manifest(inputs, binary, root)
+            self.assertFalse((root / "manifest.json").exists())
+
+    def test_checkpoint_pipeline_matches_bundled_policy_on_identical_bytes(
+        self,
+    ) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            descriptor = {"checkpoint": str(MODEL), "sha256": runner.digest(MODEL)}
+            config = json.loads(DEFAULT.read_text()) | {
+                "candidate": descriptor,
+                "baseline": "neural-r2",
+                "players": 3,
+                "seeds": 2,
+                "budget_seconds": 180,
+            }
+            for index, baseline in enumerate(("neural-r2", descriptor)):
+                output = root / f"run-{index}"
+                result = execute_pipeline(config | {"baseline": baseline}, output)
+                self.assertEqual(
+                    result.returncode, 0, failure_diagnostics(result, output)
+                )
+                manifest = json.loads((output / "manifest.json").read_text())
+                ids = manifest["policy_ids"]
+                actual_id = ids["candidate"]["neural-checkpoint"]
+                baseline_id = ids["baseline"][runner.policy_name(baseline)]
+                self.assertIn(descriptor["sha256"], actual_id)
+                if index == 0:
+                    self.assertNotEqual(actual_id, baseline_id)
+                else:
+                    self.assertEqual(actual_id, baseline_id)
+                for name, digest in manifest["artifacts"].items():
+                    self.assertEqual(runner.digest(output / name), digest)
+                self.assertEqual(
+                    json.loads((output / "run.watchdog.json").read_text())["state"],
+                    "complete",
+                )
+                self.assertTrue((output / "complete.json").exists())
+                self.assert_equivalent_shards(
+                    output, config["players"], actual_id, baseline_id
+                )
+
+    def assert_equivalent_shards(
+        self, output: Path, players: int, actual: str, baseline: str
+    ) -> None:
+        for seat in range(players):
+            for suffix in (".jsonl", ".audit.jsonl"):
+                candidate_rows = (output / f"candidate-seat{seat}{suffix}").read_text()
+                baseline_rows = (output / f"baseline-seat{seat}{suffix}").read_text()
+                self.assertEqual(
+                    candidate_rows.replace(actual, baseline), baseline_rows
+                )
+
+    def test_distinct_checkpoint_bytes_reach_play_in_both_descriptor_arms(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            zero_model = root / "zero.ctnn"
+            # A valid constant-zero CTNN: all tensors and its embedded probe are
+            # zero. It must play differently, even if a loader preserves IDs.
+            zero_model.write_bytes(
+                struct.pack("<4s4I", b"CTNN", 1, 1350, 299, 512)
+                + bytes(MODEL.stat().st_size - 20)
+            )
+            config = json.loads(DEFAULT.read_text()) | {
+                "candidate": {
+                    "checkpoint": str(zero_model),
+                    "sha256": runner.digest(zero_model),
+                },
+                "baseline": {"checkpoint": str(MODEL), "sha256": runner.digest(MODEL)},
+                "players": 3,
+                # Use the competent anchor and short games: the deliberately
+                # untrained fixture can deadlock a weak-Greedy table at ten VP.
+                "opponent": "balanced",
+                "victory_points": 8,
+                "seeds": 2,
+                "budget_seconds": 180,
+            }
+            output = root / "run"
+            result = execute_pipeline(config, output)
+            self.assertEqual(result.returncode, 0, failure_diagnostics(result, output))
+            manifest = json.loads((output / "manifest.json").read_text())
+            fingerprints = {}
+            for arm in ("candidate", "baseline"):
+                expected_sha = config[arm]["sha256"]
+                self.assertEqual(
+                    runner.digest(output / f"frozen/{arm}.ctnn"), expected_sha
+                )
+                self.assertIn(
+                    expected_sha, manifest["policy_ids"][arm]["neural-checkpoint"]
+                )
+                fingerprints[arm] = [
+                    json.loads(line)["fingerprint"]
+                    for seat in range(config["players"])
+                    for line in (output / f"{arm}-seat{seat}.jsonl")
+                    .read_text()
+                    .splitlines()
+                ]
+            self.assertNotEqual(fingerprints["candidate"], fingerprints["baseline"])
+
+    def test_checkpoint_hash_failure_retains_inputs_without_running_build(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            config = json.loads(DEFAULT.read_text()) | {
+                "candidate": {"checkpoint": str(MODEL), "sha256": "0" * 64},
+            }
+            configuration = root / "config.json"
+            configuration.write_text(json.dumps(config))
+            output = root / "failed"
+            result = subprocess.run(
+                [
+                    sys.executable,
+                    str(SCRIPTS / "evaluate-bots.py"),
+                    "--config",
+                    str(configuration),
+                    "--output",
+                    str(output),
+                ],
+                capture_output=True,
+                text=True,
+                timeout=20,
+                check=False,
+            )
+            self.assertNotEqual(result.returncode, 0)
+            self.assertIn("SHA-256 mismatch", (output / "run.launcher.log").read_text())
+            self.assertTrue((output / "inputs.json").exists())
+            self.assertFalse((output / "build.log").exists())
+            self.assertFalse((output / "complete.json").exists())
+
     def test_real_pipeline_repeats_across_processes_with_complete_artifacts(
         self,
     ) -> None:
@@ -47,11 +259,10 @@ class EvaluationRunnerTests(unittest.TestCase):
                     timeout=200,
                     check=False,
                 )
-                log = output / "run.launcher.log"
                 self.assertEqual(
                     result.returncode,
                     0,
-                    result.stderr + (log.read_text() if log.exists() else ""),
+                    failure_diagnostics(result, output),
                 )
                 receipt = json.loads((output / "run.watchdog.json").read_text())
                 self.assertEqual(receipt["state"], "complete")
@@ -193,17 +404,17 @@ class EvaluationRunnerTests(unittest.TestCase):
             valid | {"evaluations": True},
             valid | {"policyID": "wrong-model"},
         )
-        self.assertEqual(runner.validate_seat_audit(valid, neural_id, neural_id), 3)
+        self.assertEqual(runner.validate_seat_audit(valid, neural_id, {neural_id}), 3)
         for seat in invalid:
             with self.subTest(seat=seat), self.assertRaises(ValueError):
-                runner.validate_seat_audit(seat, neural_id, neural_id)
+                runner.validate_seat_audit(seat, neural_id, {neural_id})
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             (root / "game.jsonl").write_text(json.dumps({"seed": 1}))
             (root / "audit.jsonl").write_text("")
             with self.assertRaises(ValueError):
                 runner.validate_audit(
-                    root / "audit.jsonl", root / "game.jsonl", neural_id
+                    root / "audit.jsonl", root / "game.jsonl", {neural_id}
                 )
 
     def test_pipeline_failures_retain_inputs_without_success_receipt(self) -> None:

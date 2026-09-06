@@ -1,0 +1,159 @@
+.............................................Running: ['/opt/homebrew/opt/python@3.14/bin/python3.14', '-c', "print('partial'); raise SystemExit(7)"]
+............................................................
+----------------------------------------------------------------------
+Ran 105 tests in 74.949s
+
+OK
+[0/1] Planning build
+Building for production...
+[0/3] Write swift-version--58304C5D6DBC2206.txt
+[2/4] Compiling CatanEngine ActionSpace.swift
+[3/5] Compiling CatanAI Bot.swift
+[4/6] Compiling sim main.swift
+[4/5] Linking sim
+Build complete! (11.97s)
+[0/1] Planning build
+Building for production...
+[0/4] Write swift-version--58304C5D6DBC2206.txt
+[2/5] Compiling CatanEngine ActionSpace.swift
+[3/6] Compiling CatanAI Bot.swift
+[4/9] Compiling sim main.swift
+[4/9] Write Objects.LinkFileList
+[5/9] Linking sim
+[7/9] Compiling CatanAITests BotLegalityTests.swift
+/Users/alex/Documents/Personal Projects/Settlers/Packages/CatanAI/Tests/CatanAITests/DiscardRaceRegressionTests.swift:37:9: warning: result of 'try?' is unused [#no-usage]
+ 35 | 
+ 36 |     func apply(_ move: GameMove, by player: PlayerID) {
+ 37 |         try? RulesEngine.apply(move, by: player, to: &state)
+    |         `- warning: result of 'try?' is unused [#no-usage]
+ 38 |         Task { await self.runBotTurnIfNeeded() }
+ 39 |     }
+
+/Users/alex/Documents/Personal Projects/Settlers/Packages/CatanAI/Tests/CatanAITests/DiscardRaceRegressionTests.swift:67:13: warning: result of 'try?' is unused [#no-usage]
+ 65 |                 move = bot.decide(for: state, player: botPlayer)
+ 66 |             }
+ 67 |             try? RulesEngine.apply(move, by: botPlayer, to: &state)
+    |             `- warning: result of 'try?' is unused [#no-usage]
+ 68 |         }
+ 69 |     }
+[7/9] Write Objects.LinkFileList
+[8/9] Linking CatanAIPackageTests
+Build complete! (19.28s)
+Test Suite 'Selected tests' started at 2026-09-06 13:05:24.716.
+Test Suite 'CatanAIPackageTests.xctest' started at 2026-09-06 13:05:24.719.
+Test Suite 'CatanAIPackageTests.xctest' passed at 2026-09-06 13:05:24.719.
+	 Executed 0 tests, with 0 failures (0 unexpected) in 0.000 (0.000) seconds
+Test Suite 'Selected tests' passed at 2026-09-06 13:05:24.719.
+	 Executed 0 tests, with 0 failures (0 unexpected) in 0.000 (0.002) seconds
+◇ Test run started.
+↳ Testing Library Version: 1902
+↳ Target Platform: arm64e-apple-macos14.0
+◇ Suite UpstreamObservationTests started.
+◇ Test upstreamPolicyDoesNotSumCompoundLogitsAtRoot() started.
+◇ Test upstreamPolicyPreRollKnightKeepsTheRollOwed() started.
+◇ Test upstreamPolicyTradePreflightDoesNotAdvanceRNGWhenNeuralMoveWins() started.
+◇ Suite UpstreamNetworkTests started.
+◇ Suite UpstreamGameCompletionTests started.
+◇ Test upstreamPolicyDiscardCanExceedTheExistingFlatActionSpaceCap() started.
+◇ Test upstreamPolicyRoadBuildingNeverReturnsAOneRoadCompletion() started.
+◇ Test upstreamPolicyKnightKeepsActorAndTurnContextAcrossSupportedTables(players:target:) started.
+◇ Test upstreamPolicyRobberWithoutVictimsProducesNilWithoutAStealDecision() started.
+◇ Test upstreamPolicyPreservesExistingHeuristicTradeProposalScheduling() started.
+◇ Test upstreamPolicyAtomicActionIDsMatchFrozenCodec() started.
+◇ Test upstreamPolicyReportsMalformedPredictionAndEncodingFallbacks() started.
+◇ Test upstreamPolicyRichPlayerTradeResponsesUseHeuristicAndExactOfferID() started.
+◇ Test upstreamPolicyWinningKnightStillReturnsACompleteSwiftMove() started.
+◇ Test upstreamPolicyDiscardUsesOriginalQuotaAndCallerNarrowedBundles() started.
+◇ Test upstreamPolicySelectionCapturesDiagnosticsWithoutRepeatingInference() started.
+◇ Test upstreamPolicyRoadBuildingScoresPrivateSequentialStatesAndCommitsOnePair() started.
+◇ Test mainTurnOwnerDoesNotUseStaleRobberBookkeeping() started.
+◇ Test bundledHybridsCompleteTheSupportedAppMatrix() started.
+◇ Test matchesPinnedRustEncoderOnRealThreeAndFourSeatPositions() started.
+◇ Test upstreamPolicyUnknownHistoryAndPreRollDifferencesHaveNamedFallbacks() started.
+◇ Test upstreamPolicyUsesLowestActionIDForTiesWithoutAdvancingRNG() started.
+◇ Test case passing 2 arguments players → 3, target → 8 to upstreamPolicyKnightKeepsActorAndTurnContextAcrossSupportedTables(players:target:) started.
+◇ Test liveSetupContextMatchesRustWithoutAnOverride() started.
+◇ Test case passing 2 arguments players → 3, target → 12 to upstreamPolicyKnightKeepsActorAndTurnContextAcrossSupportedTables(players:target:) started.
+◇ Test rejectsMalformedTopologyInsteadOfTrappingOrReindexing() started.
+◇ Test case passing 2 arguments players → 3, target → 10 to upstreamPolicyKnightKeepsActorAndTurnContextAcrossSupportedTables(players:target:) started.
+◇ Test case passing 2 arguments players → 4, target → 8 to upstreamPolicyKnightKeepsActorAndTurnContextAcrossSupportedTables(players:target:) started.
+◇ Test refusesLegacyTurnGuessAndInvalidSeat() started.
+◇ Test case passing 2 arguments players → 4, target → 10 to upstreamPolicyKnightKeepsActorAndTurnContextAcrossSupportedTables(players:target:) started.
+◇ Test allFrozenRustOutputsMatch() started.
+◇ Test case passing 2 arguments players → 4, target → 12 to upstreamPolicyKnightKeepsActorAndTurnContextAcrossSupportedTables(players:target:) started.
+✔ Test upstreamPolicyPreRollKnightKeepsTheRollOwed() passed after 0.002 seconds.
+✔ Test upstreamPolicyDiscardUsesOriginalQuotaAndCallerNarrowedBundles() passed after 0.001 seconds.
+✔ Test mainTurnOwnerDoesNotUseStaleRobberBookkeeping() passed after 0.001 seconds.
+✔ Test upstreamPolicyWinningKnightStillReturnsACompleteSwiftMove() passed after 0.001 seconds.
+✔ Test upstreamPolicyDiscardCanExceedTheExistingFlatActionSpaceCap() passed after 0.002 seconds.
+✔ Test upstreamPolicyUnknownHistoryAndPreRollDifferencesHaveNamedFallbacks() passed after 0.002 seconds.
+✔ Test upstreamPolicyAtomicActionIDsMatchFrozenCodec() passed after 0.002 seconds.
+✔ Test upstreamPolicyDoesNotSumCompoundLogitsAtRoot() passed after 0.002 seconds.
+✔ Test upstreamPolicyRichPlayerTradeResponsesUseHeuristicAndExactOfferID() passed after 0.002 seconds.
+✔ Test upstreamPolicyRobberWithoutVictimsProducesNilWithoutAStealDecision() passed after 0.002 seconds.
+✔ Test upstreamPolicyPreservesExistingHeuristicTradeProposalScheduling() passed after 0.002 seconds.
+✔ Test refusesLegacyTurnGuessAndInvalidSeat() passed after 0.001 seconds.
+✔ Test upstreamPolicyRoadBuildingNeverReturnsAOneRoadCompletion() passed after 0.002 seconds.
+✔ Test rejectsMalformedTopologyInsteadOfTrappingOrReindexing() passed after 0.001 seconds.
+✔ Test upstreamPolicySelectionCapturesDiagnosticsWithoutRepeatingInference() passed after 0.002 seconds.
+✔ Test upstreamPolicyUsesLowestActionIDForTiesWithoutAdvancingRNG() passed after 0.002 seconds.
+✔ Test upstreamPolicyKnightKeepsActorAndTurnContextAcrossSupportedTables(players:target:) with 6 test cases passed after 0.002 seconds.
+✔ Test upstreamPolicyReportsMalformedPredictionAndEncodingFallbacks() passed after 0.002 seconds.
+✔ Test upstreamPolicyTradePreflightDoesNotAdvanceRNGWhenNeuralMoveWins() passed after 0.002 seconds.
+✔ Test upstreamPolicyRoadBuildingScoresPrivateSequentialStatesAndCommitsOnePair() passed after 0.003 seconds.
+✔ Test allFrozenRustOutputsMatch() passed after 0.023 seconds.
+◇ Test immutableNetworkCanBeSharedAcrossConcurrentPredictions() started.
+✔ Test immutableNetworkCanBeSharedAcrossConcurrentPredictions() passed after 0.013 seconds.
+◇ Test rejectsTruncatedAndTrailingData(count:) started.
+◇ Test case passing 1 argument count → 0 to rejectsTruncatedAndTrailingData(count:) started.
+◇ Test case passing 1 argument count → 3 to rejectsTruncatedAndTrailingData(count:) started.
+◇ Test case passing 1 argument count → 19 to rejectsTruncatedAndTrailingData(count:) started.
+◇ Test case passing 1 argument count → 20 to rejectsTruncatedAndTrailingData(count:) started.
+◇ Test case passing 1 argument count → 4433091 to rejectsTruncatedAndTrailingData(count:) started.
+✔ Test liveSetupContextMatchesRustWithoutAnOverride() passed after 0.038 seconds.
+◇ Test case passing 1 argument count → 4438527 to rejectsTruncatedAndTrailingData(count:) started.
+◇ Test case passing 1 argument count → 4438529 to rejectsTruncatedAndTrailingData(count:) started.
+✔ Test rejectsTruncatedAndTrailingData(count:) with 7 test cases passed after 0.001 seconds.
+◇ Test rejectsMagicVersionAndDimensionsBeforeAllocation() started.
+✔ Test rejectsMagicVersionAndDimensionsBeforeAllocation() passed after 0.001 seconds.
+◇ Test rejectsNonfiniteWeightsBiasesAndProbe(word:) started.
+◇ Test case passing 1 argument word → 2143289345 to rejectsNonfiniteWeightsBiasesAndProbe(word:) started.
+✔ Test matchesPinnedRustEncoderOnRealThreeAndFourSeatPositions() passed after 0.050 seconds.
+✔ Suite UpstreamObservationTests passed after 0.050 seconds.
+◇ Test case passing 1 argument word → 2139095041 to rejectsNonfiniteWeightsBiasesAndProbe(word:) started.
+◇ Test case passing 1 argument word → 2139095040 to rejectsNonfiniteWeightsBiasesAndProbe(word:) started.
+◇ Test case passing 1 argument word → 4286578688 to rejectsNonfiniteWeightsBiasesAndProbe(word:) started.
+✔ Test rejectsNonfiniteWeightsBiasesAndProbe(word:) with 4 test cases passed after 0.070 seconds.
+◇ Test rejectsEmbeddedValueAndLogitMismatch() started.
+✔ Test rejectsEmbeddedValueAndLogitMismatch() passed after 0.014 seconds.
+◇ Test rejectsFiniteDataThatOverflowsDuringTheEmbeddedCheck() started.
+✔ Test rejectsFiniteDataThatOverflowsDuringTheEmbeddedCheck() passed after 0.004 seconds.
+◇ Test embeddedToleranceMatchesRustStrictInequality() started.
+✔ Test embeddedToleranceMatchesRustStrictInequality() passed after 0.009 seconds.
+◇ Test preservesRawValueCheckButClampsPrediction() started.
+UPSTREAM_COMPLETION {"actionLimit":3000,"actions":240,"committedFallbacks":{"heuristic_trade_proposal":24,"player_trade_negotiation":24,"unsupported_pre_roll_development_card":1},"committedSources":{"heuristic":49,"neural":191},"elapsedSeconds":0.143395459,"evaluations":257,"fallbacks":{"heuristic_trade_proposal":24,"player_trade_negotiation":41,"unsupported_pre_roll_development_card":1},"fingerprint":"a2e874a1461b15b6","illegalSelections":0,"missingTraces":0,"moves":{"accept_trade":9,"bank_trade":30,"buy_dev":4,"city":3,"discard":4,"end_turn":55,"initial_road":6,"initial_settlement":6,"knight":2,"propose_trade":24,"reject_trade":15,"road":11,"road_building":1,"robber":9,"roll":56,"settlement":5},"overrides":{},"players":3,"policyIDs":["upstream-r2-hybrid-greedy-swift-compounds-trade-scheduler-fallback-heuristic-balanced-default","upstream-r2-hybrid-greedy-swift-compounds-trade-scheduler-fallback-heuristic-aggressive-default","upstream-r2-hybrid-greedy-swift-compounds-trade-scheduler-fallback-heuristic-cautious-default"],"seed":101,"sessionEvaluations":257,"sources":{"heuristic":66,"neural":191},"status":"completed","target":8,"vp":[6,8,3],"wallLimitSeconds":45,"winner":1}
+✔ Test preservesRawValueCheckButClampsPrediction() passed after 0.024 seconds.
+◇ Test supportsNonzeroDataStartIndexAndUnalignedStorage() started.
+✔ Test supportsNonzeroDataStartIndexAndUnalignedStorage() passed after 0.005 seconds.
+◇ Test rowMajorLayoutReluAndFinalLogitArePreserved() started.
+✔ Test rowMajorLayoutReluAndFinalLogitArePreserved() passed after 0.005 seconds.
+➜ Test releaseLatency() skipped.
+✔ Suite UpstreamNetworkTests passed after 0.174 seconds.
+UPSTREAM_COMPLETION {"actionLimit":3000,"actions":293,"committedFallbacks":{"heuristic_trade_proposal":48,"player_trade_negotiation":48,"unsupported_pre_roll_development_card":6},"committedSources":{"heuristic":102,"neural":191},"elapsedSeconds":0.125992791,"evaluations":329,"fallbacks":{"heuristic_trade_proposal":48,"player_trade_negotiation":84,"unsupported_pre_roll_development_card":6},"fingerprint":"ac19ad8a39f8d78a","illegalSelections":0,"missingTraces":0,"moves":{"accept_trade":16,"bank_trade":10,"buy_dev":8,"city":6,"discard":2,"end_turn":62,"initial_road":6,"initial_settlement":6,"knight":4,"monopoly":1,"propose_trade":48,"reject_trade":32,"road":10,"robber":16,"roll":63,"settlement":2,"year_of_plenty":1},"overrides":{},"players":3,"policyIDs":["upstream-r2-hybrid-greedy-swift-compounds-trade-scheduler-fallback-heuristic-balanced-default","upstream-r2-hybrid-greedy-swift-compounds-trade-scheduler-fallback-heuristic-aggressive-default","upstream-r2-hybrid-greedy-swift-compounds-trade-scheduler-fallback-heuristic-cautious-default"],"seed":202,"sessionEvaluations":329,"sources":{"heuristic":138,"neural":191},"status":"completed","target":8,"vp":[6,6,8],"wallLimitSeconds":45,"winner":2}
+UPSTREAM_COMPLETION {"actionLimit":3000,"actions":242,"committedFallbacks":{"heuristic_trade_proposal":39,"player_trade_negotiation":39,"unsupported_pre_roll_development_card":7},"committedSources":{"heuristic":85,"neural":157},"elapsedSeconds":0.205255291,"evaluations":267,"fallbacks":{"heuristic_trade_proposal":39,"player_trade_negotiation":64,"unsupported_pre_roll_development_card":7},"fingerprint":"d36e28283d988bcd","illegalSelections":0,"missingTraces":0,"moves":{"accept_trade":20,"bank_trade":5,"buy_dev":12,"city":5,"discard":2,"end_turn":50,"initial_road":6,"initial_settlement":6,"knight":8,"monopoly":1,"propose_trade":39,"reject_trade":19,"road":10,"road_building":1,"robber":4,"roll":51,"settlement":3},"overrides":{},"players":3,"policyIDs":["upstream-r2-hybrid-greedy-swift-compounds-trade-scheduler-fallback-heuristic-balanced-default","upstream-r2-hybrid-greedy-swift-compounds-trade-scheduler-fallback-heuristic-aggressive-default","upstream-r2-hybrid-greedy-swift-compounds-trade-scheduler-fallback-heuristic-cautious-default"],"seed":303,"sessionEvaluations":267,"sources":{"heuristic":110,"neural":157},"status":"completed","target":8,"vp":[7,4,8],"wallLimitSeconds":45,"winner":2}
+UPSTREAM_COMPLETION {"actionLimit":3000,"actions":485,"committedFallbacks":{"heuristic_trade_proposal":54,"player_trade_negotiation":54,"unsupported_pre_roll_development_card":4},"committedSources":{"heuristic":112,"neural":373},"elapsedSeconds":0.28285975,"evaluations":531,"fallbacks":{"heuristic_trade_proposal":54,"player_trade_negotiation":100,"unsupported_pre_roll_development_card":4},"fingerprint":"fc5cb3d14a68f32b","illegalSelections":0,"missingTraces":0,"moves":{"accept_trade":13,"bank_trade":65,"buy_dev":13,"city":3,"discard":10,"end_turn":105,"initial_road":6,"initial_settlement":6,"knight":7,"monopoly":2,"propose_trade":54,"reject_trade":41,"road":22,"road_building":1,"robber":25,"roll":106,"settlement":5,"year_of_plenty":1},"overrides":{},"players":3,"policyIDs":["upstream-r2-hybrid-greedy-swift-compounds-trade-scheduler-fallback-heuristic-balanced-default","upstream-r2-hybrid-greedy-swift-compounds-trade-scheduler-fallback-heuristic-aggressive-default","upstream-r2-hybrid-greedy-swift-compounds-trade-scheduler-fallback-heuristic-cautious-default"],"seed":101,"sessionEvaluations":531,"sources":{"heuristic":158,"neural":373},"status":"completed","target":10,"vp":[10,4,5],"wallLimitSeconds":45,"winner":0}
+UPSTREAM_COMPLETION {"actionLimit":3000,"actions":392,"committedFallbacks":{"heuristic_trade_proposal":68,"player_trade_negotiation":68,"unsupported_pre_roll_development_card":7},"committedSources":{"heuristic":143,"neural":249},"elapsedSeconds":0.20630175,"evaluations":443,"fallbacks":{"heuristic_trade_proposal":68,"player_trade_negotiation":119,"unsupported_pre_roll_development_card":7},"fingerprint":"e09dabfc3e6d77b6","illegalSelections":0,"missingTraces":0,"moves":{"accept_trade":23,"bank_trade":14,"buy_dev":13,"city":7,"discard":3,"end_turn":80,"initial_road":6,"initial_settlement":6,"knight":7,"monopoly":1,"propose_trade":68,"reject_trade":45,"road":14,"road_building":1,"robber":18,"roll":81,"settlement":4,"year_of_plenty":1},"overrides":{},"players":3,"policyIDs":["upstream-r2-hybrid-greedy-swift-compounds-trade-scheduler-fallback-heuristic-balanced-default","upstream-r2-hybrid-greedy-swift-compounds-trade-scheduler-fallback-heuristic-aggressive-default","upstream-r2-hybrid-greedy-swift-compounds-trade-scheduler-fallback-heuristic-cautious-default"],"seed":202,"sessionEvaluations":443,"sources":{"heuristic":194,"neural":249},"status":"completed","target":10,"vp":[6,8,10],"wallLimitSeconds":45,"winner":2}
+UPSTREAM_COMPLETION {"actionLimit":3000,"actions":424,"committedFallbacks":{"heuristic_trade_proposal":64,"player_trade_negotiation":64,"unsupported_pre_roll_development_card":11},"committedSources":{"heuristic":139,"neural":285},"elapsedSeconds":0.360766542,"evaluations":470,"fallbacks":{"heuristic_trade_proposal":64,"player_trade_negotiation":110,"unsupported_pre_roll_development_card":11},"fingerprint":"4d35e66906cb7767","illegalSelections":0,"missingTraces":0,"moves":{"accept_trade":27,"bank_trade":18,"buy_dev":23,"city":6,"discard":6,"end_turn":87,"initial_road":6,"initial_settlement":6,"knight":13,"monopoly":2,"propose_trade":64,"reject_trade":37,"road":23,"road_building":1,"robber":10,"roll":88,"settlement":5,"year_of_plenty":2},"overrides":{},"players":3,"policyIDs":["upstream-r2-hybrid-greedy-swift-compounds-trade-scheduler-fallback-heuristic-balanced-default","upstream-r2-hybrid-greedy-swift-compounds-trade-scheduler-fallback-heuristic-aggressive-default","upstream-r2-hybrid-greedy-swift-compounds-trade-scheduler-fallback-heuristic-cautious-default"],"seed":303,"sessionEvaluations":470,"sources":{"heuristic":185,"neural":285},"status":"completed","target":10,"vp":[10,8,8],"wallLimitSeconds":45,"winner":0}
+UPSTREAM_COMPLETION {"actionLimit":3000,"actions":604,"committedFallbacks":{"heuristic_trade_proposal":68,"player_trade_negotiation":68,"unsupported_pre_roll_development_card":9},"committedSources":{"heuristic":145,"neural":459},"elapsedSeconds":0.410090916,"evaluations":658,"fallbacks":{"heuristic_trade_proposal":68,"player_trade_negotiation":122,"unsupported_pre_roll_development_card":9},"fingerprint":"4d8205cfd55121b5","illegalSelections":0,"missingTraces":0,"moves":{"accept_trade":20,"bank_trade":78,"buy_dev":25,"city":3,"discard":9,"end_turn":129,"initial_road":6,"initial_settlement":6,"knight":14,"monopoly":2,"propose_trade":68,"reject_trade":48,"road":26,"road_building":2,"robber":26,"roll":130,"settlement":10,"year_of_plenty":2},"overrides":{},"players":3,"policyIDs":["upstream-r2-hybrid-greedy-swift-compounds-trade-scheduler-fallback-heuristic-balanced-default","upstream-r2-hybrid-greedy-swift-compounds-trade-scheduler-fallback-heuristic-aggressive-default","upstream-r2-hybrid-greedy-swift-compounds-trade-scheduler-fallback-heuristic-cautious-default"],"seed":101,"sessionEvaluations":658,"sources":{"heuristic":199,"neural":459},"status":"completed","target":12,"vp":[12,10,6],"wallLimitSeconds":45,"winner":0}
+UPSTREAM_COMPLETION {"actionLimit":3000,"actions":570,"committedFallbacks":{"heuristic_trade_proposal":96,"player_trade_negotiation":96,"unsupported_pre_roll_development_card":12},"committedSources":{"heuristic":204,"neural":366},"elapsedSeconds":0.369833834,"evaluations":642,"fallbacks":{"heuristic_trade_proposal":96,"player_trade_negotiation":168,"unsupported_pre_roll_development_card":12},"fingerprint":"a819906e763fefb1","illegalSelections":0,"missingTraces":0,"moves":{"accept_trade":34,"bank_trade":26,"buy_dev":25,"city":7,"discard":12,"end_turn":113,"initial_road":6,"initial_settlement":6,"knight":13,"monopoly":1,"propose_trade":96,"reject_trade":62,"road":19,"road_building":2,"robber":28,"roll":114,"settlement":4,"year_of_plenty":2},"overrides":{},"players":3,"policyIDs":["upstream-r2-hybrid-greedy-swift-compounds-trade-scheduler-fallback-heuristic-balanced-default","upstream-r2-hybrid-greedy-swift-compounds-trade-scheduler-fallback-heuristic-aggressive-default","upstream-r2-hybrid-greedy-swift-compounds-trade-scheduler-fallback-heuristic-cautious-default"],"seed":202,"sessionEvaluations":642,"sources":{"heuristic":276,"neural":366},"status":"completed","target":12,"vp":[6,7,13],"wallLimitSeconds":45,"winner":2}
+UPSTREAM_COMPLETION {"actionLimit":3000,"actions":441,"committedFallbacks":{"heuristic_trade_proposal":67,"player_trade_negotiation":67,"unsupported_pre_roll_development_card":13},"committedSources":{"heuristic":147,"neural":294},"elapsedSeconds":0.39626575,"evaluations":485,"fallbacks":{"heuristic_trade_proposal":67,"player_trade_negotiation":111,"unsupported_pre_roll_development_card":13},"fingerprint":"d5883b5b0549ca3c","illegalSelections":0,"missingTraces":0,"moves":{"accept_trade":32,"bank_trade":29,"buy_dev":25,"city":8,"discard":3,"end_turn":88,"initial_road":6,"initial_settlement":6,"knight":14,"monopoly":2,"propose_trade":67,"reject_trade":35,"road":20,"road_building":1,"robber":8,"roll":89,"settlement":6,"year_of_plenty":2},"overrides":{},"players":3,"policyIDs":["upstream-r2-hybrid-greedy-swift-compounds-trade-scheduler-fallback-heuristic-balanced-default","upstream-r2-hybrid-greedy-swift-compounds-trade-scheduler-fallback-heuristic-aggressive-default","upstream-r2-hybrid-greedy-swift-compounds-trade-scheduler-fallback-heuristic-cautious-default"],"seed":303,"sessionEvaluations":485,"sources":{"heuristic":191,"neural":294},"status":"completed","target":12,"vp":[11,12,6],"wallLimitSeconds":45,"winner":1}
+UPSTREAM_COMPLETION {"actionLimit":3000,"actions":139,"committedFallbacks":{"heuristic_trade_proposal":13,"player_trade_negotiation":13,"unsupported_pre_roll_development_card":1},"committedSources":{"heuristic":27,"neural":112},"elapsedSeconds":0.096245667,"evaluations":157,"fallbacks":{"heuristic_trade_proposal":13,"player_trade_negotiation":31,"unsupported_pre_roll_development_card":1},"fingerprint":"352013e6aa11d3a5","illegalSelections":0,"missingTraces":0,"moves":{"accept_trade":6,"bank_trade":2,"buy_dev":6,"city":4,"discard":2,"end_turn":30,"initial_road":8,"initial_settlement":8,"knight":2,"propose_trade":13,"reject_trade":7,"road":11,"road_building":1,"robber":5,"roll":31,"settlement":3},"overrides":{},"players":4,"policyIDs":["upstream-r2-hybrid-greedy-swift-compounds-trade-scheduler-fallback-heuristic-balanced-default","upstream-r2-hybrid-greedy-swift-compounds-trade-scheduler-fallback-heuristic-aggressive-default","upstream-r2-hybrid-greedy-swift-compounds-trade-scheduler-fallback-heuristic-cautious-default","upstream-r2-hybrid-greedy-swift-compounds-trade-scheduler-fallback-heuristic-balanced-default"],"seed":101,"sessionEvaluations":157,"sources":{"heuristic":45,"neural":112},"status":"completed","target":8,"vp":[4,3,8,3],"wallLimitSeconds":45,"winner":2}
+UPSTREAM_COMPLETION {"actionLimit":3000,"actions":407,"committedFallbacks":{"heuristic_trade_proposal":60,"player_trade_negotiation":60,"unsupported_pre_roll_development_card":4},"committedSources":{"heuristic":124,"neural":283},"elapsedSeconds":0.257749292,"evaluations":507,"fallbacks":{"heuristic_trade_proposal":60,"player_trade_negotiation":160,"unsupported_pre_roll_development_card":4},"fingerprint":"a19e1af0e4b557d9","illegalSelections":0,"missingTraces":0,"moves":{"accept_trade":17,"bank_trade":17,"buy_dev":14,"city":6,"discard":9,"end_turn":84,"initial_road":8,"initial_settlement":8,"knight":7,"monopoly":1,"propose_trade":60,"reject_trade":43,"road":19,"road_building":1,"robber":23,"roll":85,"settlement":4,"year_of_plenty":1},"overrides":{},"players":4,"policyIDs":["upstream-r2-hybrid-greedy-swift-compounds-trade-scheduler-fallback-heuristic-balanced-default","upstream-r2-hybrid-greedy-swift-compounds-trade-scheduler-fallback-heuristic-aggressive-default","upstream-r2-hybrid-greedy-swift-compounds-trade-scheduler-fallback-heuristic-cautious-default","upstream-r2-hybrid-greedy-swift-compounds-trade-scheduler-fallback-heuristic-balanced-default"],"seed":202,"sessionEvaluations":507,"sources":{"heuristic":224,"neural":283},"status":"completed","target":8,"vp":[8,7,6,4],"wallLimitSeconds":45,"winner":0}
+UPSTREAM_COMPLETION {"actionLimit":3000,"actions":383,"committedFallbacks":{"heuristic_trade_proposal":35,"player_trade_negotiation":35,"unsupported_pre_roll_development_card":7},"committedSources":{"heuristic":77,"neural":306},"elapsedSeconds":0.423747875,"evaluations":422,"fallbacks":{"heuristic_trade_proposal":35,"player_trade_negotiation":74,"unsupported_pre_roll_development_card":7},"fingerprint":"489186fa06f2c7f6","illegalSelections":0,"missingTraces":0,"moves":{"accept_trade":23,"bank_trade":30,"buy_dev":21,"city":6,"discard":11,"end_turn":88,"initial_road":8,"initial_settlement":8,"knight":12,"monopoly":2,"propose_trade":35,"reject_trade":12,"road":22,"road_building":1,"robber":8,"roll":89,"settlement":5,"year_of_plenty":2},"overrides":{},"players":4,"policyIDs":["upstream-r2-hybrid-greedy-swift-compounds-trade-scheduler-fallback-heuristic-balanced-default","upstream-r2-hybrid-greedy-swift-compounds-trade-scheduler-fallback-heuristic-aggressive-default","upstream-r2-hybrid-greedy-swift-compounds-trade-scheduler-fallback-heuristic-cautious-default","upstream-r2-hybrid-greedy-swift-compounds-trade-scheduler-fallback-heuristic-balanced-default"],"seed":303,"sessionEvaluations":422,"sources":{"heuristic":116,"neural":306},"status":"completed","target":8,"vp":[8,4,7,7],"wallLimitSeconds":45,"winner":0}
+UPSTREAM_COMPLETION {"actionLimit":3000,"actions":212,"committedFallbacks":{"heuristic_trade_proposal":21,"player_trade_negotiation":21,"unsupported_pre_roll_development_card":3},"committedSources":{"heuristic":45,"neural":167},"elapsedSeconds":0.141843833,"evaluations":239,"fallbacks":{"heuristic_trade_proposal":21,"player_trade_negotiation":48,"unsupported_pre_roll_development_card":3},"fingerprint":"36c5e36cfb691c1f","illegalSelections":0,"missingTraces":0,"moves":{"accept_trade":10,"bank_trade":6,"buy_dev":11,"city":6,"discard":3,"end_turn":46,"initial_road":8,"initial_settlement":8,"knight":6,"monopoly":1,"propose_trade":21,"reject_trade":11,"road":13,"road_building":1,"robber":9,"roll":47,"settlement":4,"year_of_plenty":1},"overrides":{},"players":4,"policyIDs":["upstream-r2-hybrid-greedy-swift-compounds-trade-scheduler-fallback-heuristic-balanced-default","upstream-r2-hybrid-greedy-swift-compounds-trade-scheduler-fallback-heuristic-aggressive-default","upstream-r2-hybrid-greedy-swift-compounds-trade-scheduler-fallback-heuristic-cautious-default","upstream-r2-hybrid-greedy-swift-compounds-trade-scheduler-fallback-heuristic-balanced-default"],"seed":101,"sessionEvaluations":239,"sources":{"heuristic":72,"neural":167},"status":"completed","target":10,"vp":[7,3,10,3],"wallLimitSeconds":45,"winner":2}
+UPSTREAM_COMPLETION {"actionLimit":3000,"actions":621,"committedFallbacks":{"heuristic_trade_proposal":91,"player_trade_negotiation":91,"unsupported_pre_roll_development_card":8},"committedSources":{"heuristic":190,"neural":431},"elapsedSeconds":0.66010475,"evaluations":765,"fallbacks":{"heuristic_trade_proposal":91,"player_trade_negotiation":235,"unsupported_pre_roll_development_card":8},"fingerprint":"8979718edad280b7","illegalSelections":0,"missingTraces":0,"moves":{"accept_trade":33,"bank_trade":43,"buy_dev":25,"city":9,"discard":15,"end_turn":121,"initial_road":8,"initial_settlement":8,"knight":14,"monopoly":2,"propose_trade":91,"reject_trade":58,"road":29,"road_building":2,"robber":31,"roll":122,"settlement":8,"year_of_plenty":2},"overrides":{},"players":4,"policyIDs":["upstream-r2-hybrid-greedy-swift-compounds-trade-scheduler-fallback-heuristic-balanced-default","upstream-r2-hybrid-greedy-swift-compounds-trade-scheduler-fallback-heuristic-aggressive-default","upstream-r2-hybrid-greedy-swift-compounds-trade-scheduler-fallback-heuristic-cautious-default","upstream-r2-hybrid-greedy-swift-compounds-trade-scheduler-fallback-heuristic-balanced-default"],"seed":202,"sessionEvaluations":765,"sources":{"heuristic":334,"neural":431},"status":"completed","target":10,"vp":[9,10,9,6],"wallLimitSeconds":45,"winner":1}
+UPSTREAM_COMPLETION {"actionLimit":3000,"actions":454,"committedFallbacks":{"heuristic_trade_proposal":48,"player_trade_negotiation":48,"unsupported_pre_roll_development_card":8},"committedSources":{"heuristic":104,"neural":350},"elapsedSeconds":0.544135333,"evaluations":507,"fallbacks":{"heuristic_trade_proposal":48,"player_trade_negotiation":101,"unsupported_pre_roll_development_card":8},"fingerprint":"0814d3e0332d2e6b","illegalSelections":0,"missingTraces":0,"moves":{"accept_trade":31,"bank_trade":33,"buy_dev":25,"city":8,"discard":13,"end_turn":100,"initial_road":8,"initial_settlement":8,"knight":14,"monopoly":2,"propose_trade":48,"reject_trade":17,"road":25,"road_building":2,"robber":10,"roll":101,"settlement":7,"year_of_plenty":2},"overrides":{},"players":4,"policyIDs":["upstream-r2-hybrid-greedy-swift-compounds-trade-scheduler-fallback-heuristic-balanced-default","upstream-r2-hybrid-greedy-swift-compounds-trade-scheduler-fallback-heuristic-aggressive-default","upstream-r2-hybrid-greedy-swift-compounds-trade-scheduler-fallback-heuristic-cautious-default","upstream-r2-hybrid-greedy-swift-compounds-trade-scheduler-fallback-heuristic-balanced-default"],"seed":303,"sessionEvaluations":507,"sources":{"heuristic":157,"neural":350},"status":"completed","target":10,"vp":[10,5,9,8],"wallLimitSeconds":45,"winner":0}
+UPSTREAM_COMPLETION_TOTAL {"completed":15}
+✔ Test bundledHybridsCompleteTheSupportedAppMatrix() passed after 4.636 seconds.
+✔ Suite UpstreamGameCompletionTests passed after 4.636 seconds.
+✔ Test run with 35 tests in 3 suites passed after 4.637 seconds.

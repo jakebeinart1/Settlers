@@ -13,6 +13,7 @@ from typing import Optional
 
 REPO_ROOT = Path(__file__).parents[2]
 PACKAGE = REPO_ROOT / "Packages" / "CatanAI"
+BUNDLED_MODEL = PACKAGE / "Sources/CatanAI/Resources/UpstreamPolicy/final.ctnn"
 NEURAL_POLICY_ID = (
     "upstream-r2-hybrid-greedy-swift-compounds-trade-scheduler-"
     "fallback-heuristic-balanced"
@@ -166,6 +167,130 @@ class SimulatorConfigurationTests(unittest.TestCase):
         self.assertNotEqual(
             record["fingerprint"], json.loads(heuristic.stdout)["fingerprint"]
         )
+
+    def checkpoint_arguments(
+        self, declared_id: str, path: Path = BUNDLED_MODEL
+    ) -> tuple[str, ...]:
+        return (
+            "--neural-checkpoint", str(path), "--neural-checkpoint-id", declared_id,
+        )
+
+    def checkpoint_registry(self, declared_id: str) -> dict[str, str]:
+        result = self.run_simulator(
+            "--list-policies", *self.checkpoint_arguments(declared_id)
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(result.stderr, "")
+        return json.loads(result.stdout)
+
+    def test_checkpoint_registry_exposes_distinct_caller_supplied_identities(self) -> None:
+        first = self.checkpoint_registry("same-bytes-a")
+        second = self.checkpoint_registry("same-bytes-b")
+        first_id = first.pop("neural-checkpoint")
+        second_id = second.pop("neural-checkpoint")
+        strategy_prefix = (
+            "upstream-v1-hybrid-greedy-swift-compounds-trade-scheduler-"
+            "fallback-heuristic-balanced-declared-"
+        )
+        self.assertEqual(first_id, strategy_prefix + "same-bytes-a")
+        self.assertEqual(second_id, strategy_prefix + "same-bytes-b")
+        self.assertNotEqual(first_id, second_id)
+        self.assertIn("declared-same-bytes-a", first_id)
+        self.assertIn("declared-same-bytes-b", second_id)
+        self.assertEqual(first, second)
+        self.assertEqual(first["neural-r2"], NEURAL_POLICY_ID)
+        plain = self.run_simulator("--list-policies")
+        self.assertEqual(plain.returncode, 0, plain.stderr)
+        self.assertEqual(first, json.loads(plain.stdout))
+
+    def test_same_checkpoint_bytes_preserve_gameplay_and_audits_except_identity(self) -> None:
+        arguments = (
+            "--players", "3", "--victory-points", "8", "--board", "standard",
+            "--seed", "101", "--games", "1", "--jsonl",
+        )
+        with tempfile.TemporaryDirectory() as directory:
+            baseline_audit = Path(directory) / "bundled.audit.jsonl"
+            baseline = self.run_simulator(
+                *arguments, "--seats", "neural-r2,balanced,neural-r2",
+                "--policy-audit-jsonl", str(baseline_audit),
+            )
+            self.assertEqual(baseline.returncode, 0, baseline.stderr)
+            cases = (
+                ("sha256-" + "a" * 64, "neural-checkpoint,balanced,neural-checkpoint"),
+                ("same-bytes-b", "neural-checkpoint,balanced,neural-r2"),
+            )
+            for declared_id, seats in cases:
+                with self.subTest(declared_id=declared_id):
+                    identity = self.checkpoint_registry(declared_id)["neural-checkpoint"]
+                    audit_path = Path(directory) / f"{declared_id}.audit.jsonl"
+                    result = self.run_simulator(
+                        *arguments, *self.checkpoint_arguments(declared_id),
+                        "--seats", seats,
+                        "--policy-audit-jsonl", str(audit_path),
+                    )
+                    self.assertEqual(result.returncode, 0, result.stderr)
+                    self.assertEqual(
+                        result.stdout.replace(identity, NEURAL_POLICY_ID), baseline.stdout
+                    )
+                    self.assertEqual(
+                        audit_path.read_text().replace(identity, NEURAL_POLICY_ID),
+                        baseline_audit.read_text(),
+                    )
+                    routes = json.loads(audit_path.read_text())["seats"][0]["sources"]
+                    self.assertGreater(routes["neural"], 0)
+
+    def test_checkpoint_flags_reject_missing_duplicate_invalid_and_unused_inputs(self) -> None:
+        paired = self.checkpoint_arguments("declared-test")
+        cases = (
+            (("--neural-checkpoint",), "needs a value"),
+            (("--neural-checkpoint-id",), "needs a value"),
+            (("--neural-checkpoint", str(BUNDLED_MODEL)), "must be supplied together"),
+            (("--neural-checkpoint-id", "id"), "must be supplied together"),
+            ((*paired, "--neural-checkpoint", str(BUNDLED_MODEL)), "only once"),
+            ((*paired, "--neural-checkpoint-id", "another"), "only once"),
+            (("--neural-checkpoint", "", "--neural-checkpoint-id", "id"), "cannot be empty"),
+            ((*paired, "--list-policies", "--list-policies"), "only once"),
+            ((*paired, "--list-policies", "--games", "1"), "must be used alone"),
+            (("--list-policies", "--help"), "must be used alone"),
+            (("--help", "--list-policies"), "must be used alone"),
+            (paired, "require a neural-checkpoint seat"),
+            (("--players", "3", "--seats", "neural-checkpoint,balanced,balanced"),
+             "requires --neural-checkpoint"),
+        )
+        for arguments, message in cases:
+            with self.subTest(arguments=arguments):
+                result = self.run_simulator(*arguments)
+                self.assertEqual(result.returncode, 2, result.stderr)
+                self.assertEqual(result.stdout, "")
+                self.assertIn(message, result.stderr)
+        for declared_id in ("", "bad id", "bad\"id", "bad/id", "unicode-é"):
+            with self.subTest(declared_id=declared_id):
+                result = self.run_simulator(
+                    "--list-policies", *self.checkpoint_arguments(declared_id)
+                )
+                self.assertEqual(result.returncode, 2, result.stderr)
+                self.assertEqual(result.stdout, "")
+                self.assertIn("--neural-checkpoint-id requires", result.stderr)
+
+    def test_missing_or_bad_checkpoint_fails_before_creating_outputs(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            bad_model = root / "bad.ctnn"
+            bad_model.write_bytes(b"CTNN")
+            before = set(root.iterdir())
+            for path in (root / "missing.ctnn", bad_model, root):
+                with self.subTest(path=path):
+                    result = self.run_simulator(
+                        *self.checkpoint_arguments("declared-test", path),
+                        "--players", "3", "--seats", "neural-checkpoint,balanced,balanced",
+                        "--build-id", "checkpoint-load-test",
+                        "--policy-audit-jsonl", str(root / "audit.jsonl"),
+                        "--training-jsonl", str(root / "training.jsonl"),
+                    )
+                    self.assertEqual(result.returncode, 2, result.stderr)
+                    self.assertEqual(result.stdout, "")
+                    self.assertIn("cannot load neural-checkpoint", result.stderr)
+                    self.assertEqual(set(root.iterdir()), before)
 
     def test_unknown_policy_names_fail_before_game_output(self) -> None:
         result = self.run_simulator(

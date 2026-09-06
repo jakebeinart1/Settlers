@@ -56,8 +56,8 @@ parent checkpoint and MIT notice live with the shipped resource in
 
 ## Distribution differences that remain
 
-- r2 was trained/evaluated in a fixed chair, four players, target seven, against
-  its upstream opponents. Empires uses different opponent compositions and
+- r2 trained policy seats 0 and 2; calibration evaluated seat 0. Both used four
+  players and target seven. Empires uses different opponent compositions and
   three/four-player targets eight/ten (and three-player twelve).
 - Native port placement is encoded faithfully, but seven of the nine standard
   port edges differ from upstream's fixed topology. This is unseen placement,

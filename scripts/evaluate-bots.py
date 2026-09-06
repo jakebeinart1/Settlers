@@ -4,8 +4,8 @@
 Usage: python3 scripts/evaluate-bots.py --config config/evaluation/neural-r2-smoke.json
        --output /tmp/empires-evaluation-unique-name
 
-This first slice compares named policies in one frozen build, not arbitrary
-checkpoints or opponent pools. Smoke results validate the pipeline, not strength.
+Compare named policies or hash-pinned compatible CTNN checkpoints in one frozen
+build. Smoke results validate the pipeline, not strength or architecture reuse.
 The existing watchdog owns the deadline, process group and terminal receipt.
 """
 
@@ -52,7 +52,7 @@ def read_config(path: Path) -> dict:
     config = json.loads(path.read_text(), object_pairs_hook=unique_object)
     if not isinstance(config, dict) or set(config) != CONFIG_KEYS:
         raise ValueError(f"config requires exactly these keys: {sorted(CONFIG_KEYS)}")
-    validate_identifiers(config)
+    validate_identifiers(config, path.resolve().parent)
     validate_configuration(config)
     return config
 
@@ -64,17 +64,59 @@ def unique_object(pairs: list[tuple[str, object]]) -> dict:
     return value
 
 
-def validate_identifiers(config: dict) -> None:
-    for key in ("name", "candidate", "baseline", "opponent"):
-        value = config[key]
-        if (
-            not isinstance(value, str)
-            or not value
-            or not all(
-                char.isascii() and (char.isalnum() or char in "._-") for char in value
-            )
-        ):
-            raise ValueError(f"{key} requires a nonempty ASCII identifier")
+def validate_identifier(value: object) -> None:
+    if (
+        not isinstance(value, str)
+        or not value
+        or not all(
+            char.isascii() and (char.isalnum() or char in "._-") for char in value
+        )
+    ):
+        raise ValueError("expected a nonempty ASCII identifier")
+
+
+def validate_identifiers(config: dict, directory: Path) -> None:
+    for key in ("name", "opponent"):
+        validate_identifier(config[key])
+    if config["opponent"] == "neural-checkpoint":
+        raise ValueError("the opponent must be a built-in named policy")
+    for arm in ("candidate", "baseline"):
+        value = config[arm]
+        if isinstance(value, dict):
+            validate_checkpoint(value)
+            value["checkpoint"] = str((directory / value["checkpoint"]).resolve())
+        else:
+            validate_identifier(value)
+            if value == "neural-checkpoint":
+                raise ValueError(
+                    "neural-checkpoint requires a checkpoint/SHA-256 descriptor"
+                )
+
+
+def validate_checkpoint(value: dict) -> None:
+    if set(value) != {"checkpoint", "sha256"}:
+        raise ValueError("checkpoint descriptor requires exactly checkpoint and sha256")
+    path, sha = value["checkpoint"], value["sha256"]
+    if not isinstance(path, str) or not path or "\0" in path:
+        raise ValueError("checkpoint requires a file path")
+    if not isinstance(sha, str) or len(sha) != 64 or set(sha) - set("0123456789abcdef"):
+        raise ValueError("sha256 requires 64 lowercase hexadecimal characters")
+
+
+def policy_name(value: object) -> str:
+    return "neural-checkpoint" if isinstance(value, dict) else value
+
+
+def checkpoint_arguments(config: dict, arm: str, output: Path) -> list[str]:
+    value = config[arm]
+    if not isinstance(value, dict):
+        return []
+    return [
+        "--neural-checkpoint",
+        str(output / "frozen" / f"{arm}.ctnn"),
+        "--neural-checkpoint-id",
+        f"sha256-{value['sha256']}",
+    ]
 
 
 def validate_configuration(config: dict) -> None:
@@ -131,12 +173,30 @@ def execute(command: list[str], output: Path, target: Optional[Path] = None) -> 
     return ""
 
 
-def freeze_build(output: Path) -> Path:
+def freeze_checkpoints(config: dict, frozen: Path) -> None:
+    """Hash the bytes actually copied, not a prior read vulnerable to file replacement.
+
+    The CLI's identity is caller-supplied metadata. This module verifies the full
+    digest and pins a separate immutable copy before supplying that identity.
+    Architecture/finite-weight validation belongs to the native CTNN loader.
+    """
+    for arm in ("candidate", "baseline"):
+        value = config[arm]
+        if isinstance(value, dict):
+            data = Path(value["checkpoint"]).read_bytes()
+            if hashlib.sha256(data).hexdigest() != value["sha256"]:
+                raise ValueError(f"{arm} checkpoint SHA-256 mismatch")
+            with (frozen / f"{arm}.ctnn").open("xb") as handle:
+                handle.write(data)
+
+
+def freeze_build(config: dict, output: Path) -> Path:
+    frozen = output / "frozen"
+    frozen.mkdir()
+    freeze_checkpoints(config, frozen)
     command = ["swift", "build", "--package-path", str(PACKAGE), "-c", "release"]
     execute([*command, "--product", "sim"], output, output / "build.log")
     binary_dir = Path(execute([*command, "--show-bin-path"], output).strip())
-    frozen = output / "frozen"
-    frozen.mkdir()
     shutil.copy2(binary_dir / "sim", frozen / "sim")
     shutil.copy2(ANALYZER, frozen / ANALYZER.name)
     bundles = [
@@ -161,7 +221,7 @@ def run_arm(
     shards = []
     for seat in range(config["players"]):
         roster = [config["opponent"]] * config["players"]
-        roster[seat] = config[arm]
+        roster[seat] = policy_name(config[arm])
         shard = output / f"{arm}-seat{seat}.jsonl"
         audit = output / f"{arm}-seat{seat}.audit.jsonl"
         command = [
@@ -183,10 +243,16 @@ def run_arm(
             ",".join(roster),
             "--policy-audit-jsonl",
             str(audit),
+            *checkpoint_arguments(config, arm, output),
         ]
         execute(command, output, shard)
         validate_shard(shard, config)
-        validate_audit(audit, shard, policies["neural-r2"])
+        neural_ids = {
+            value
+            for name, value in policies.items()
+            if name in ("neural-r2", "neural-checkpoint")
+        }
+        validate_audit(audit, shard, neural_ids)
         shards.append(shard)
     return shards
 
@@ -212,7 +278,7 @@ def checked_counts(counts: dict, allowed: set[str]) -> int:
     return sum(counts.values())
 
 
-def validate_audit(audit: Path, shard: Path, neural_id: str) -> None:
+def validate_audit(audit: Path, shard: Path, neural_ids: set[str]) -> None:
     """Count consulted responders too; legal heuristic fallback is not neural success."""
     games = [json.loads(line) for line in shard.read_text().splitlines()]
     records = [json.loads(line) for line in audit.read_text().splitlines()]
@@ -225,7 +291,7 @@ def validate_audit(audit: Path, shard: Path, neural_id: str) -> None:
             raise ValueError("policy audit seat count mismatch")
         total = 0
         for seat, policy_id in zip(record["seats"], game["policies"]):
-            total += validate_seat_audit(seat, policy_id, neural_id)
+            total += validate_seat_audit(seat, policy_id, neural_ids)
         if (
             type(record["evaluationCount"]) is not int
             or total != record["evaluationCount"]
@@ -234,8 +300,8 @@ def validate_audit(audit: Path, shard: Path, neural_id: str) -> None:
             raise ValueError("policy audit does not account for all evaluations")
 
 
-def validate_seat_audit(seat: dict, policy_id: str, neural_id: str) -> int:
-    neural = policy_id == neural_id
+def validate_seat_audit(seat: dict, policy_id: str, neural_ids: set[str]) -> int:
+    neural = policy_id in neural_ids
     if (
         seat["policyID"] != policy_id
         or type(seat["evaluations"]) is not int
@@ -270,9 +336,9 @@ def analyze(
                 f"--{arm}-build-id",
                 build_id,
                 f"--{arm}-policy",
-                policies[config[arm]],
+                policies[arm][policy_name(config[arm])],
                 f"--{arm}-foil-policy",
-                policies[config["opponent"]],
+                policies[arm][config["opponent"]],
                 f"--{arm}-files",
                 *(str(path) for path in arms[arm]),
             ]
@@ -311,7 +377,7 @@ def append_route_report(report: TextIO, arms: dict) -> None:
 
 def capture_inputs(config: dict, output: Path) -> dict:
     inputs = {
-        "schema_version": 1,
+        "schema_version": 2,
         "config": config,
         "source_files": source_snapshot(),
         "source_commit": execute(["git", "rev-parse", "HEAD"], output).strip(),
@@ -323,23 +389,43 @@ def capture_inputs(config: dict, output: Path) -> dict:
     return inputs
 
 
+def policy_registries(config: dict, binary: Path, output: Path) -> dict:
+    """Resolve model-specific IDs through the same constructors used for play."""
+    registries = {}
+    for arm in ("candidate", "baseline"):
+        command = [
+            str(binary),
+            "--list-policies",
+            *checkpoint_arguments(config, arm, output),
+        ]
+        policies = json.loads(execute(command, output))
+        for name in (policy_name(config[arm]), config["opponent"]):
+            if name not in policies:
+                raise ValueError(
+                    f"unknown policy {name!r}; available: {sorted(policies)}"
+                )
+        registries[arm] = policies
+    return registries
+
+
 def record_manifest(inputs: dict, binary: Path, output: Path) -> dict:
     if source_snapshot() != inputs["source_files"]:
         raise ValueError(
             "source changed during build; discard comparison, retain evidence"
         )
-    policies = json.loads(execute([str(binary), "--list-policies"], output))
-    config = inputs["config"]
-    for key in ("candidate", "baseline", "opponent"):
-        if config[key] not in policies:
-            raise ValueError(
-                f"unknown {key} {config[key]!r}; available: {sorted(policies)}"
-            )
     artifacts = {
         str(path.relative_to(output)): digest(path)
         for path in sorted(binary.parent.rglob("*"))
         if path.is_file()
     }
+    for arm in ("candidate", "baseline"):
+        value = inputs["config"][arm]
+        if (
+            isinstance(value, dict)
+            and artifacts[f"frozen/{arm}.ctnn"] != value["sha256"]
+        ):
+            raise ValueError(f"{arm} frozen checkpoint SHA-256 mismatch before loading")
+    policies = policy_registries(inputs["config"], binary, output)
     # A model can change without relinking sim. Identify the complete artifact,
     # not just its executable, so the analyzer cannot conflate checkpoints.
     build_id = (
@@ -362,11 +448,11 @@ def record_manifest(inputs: dict, binary: Path, output: Path) -> dict:
 def worker(output: Path) -> None:
     config = read_config(output / "config.json")
     inputs = capture_inputs(config, output)
-    binary = freeze_build(output)
+    binary = freeze_build(config, output)
     manifest = record_manifest(inputs, binary, output)
     policies, build_id = manifest["policy_ids"], manifest["build_id"]
     arms = {
-        arm: run_arm(config, arm, binary, build_id, policies, output)
+        arm: run_arm(config, arm, binary, build_id, policies[arm], output)
         for arm in ("candidate", "baseline")
     }
     analyze(config, policies, build_id, arms, output)
