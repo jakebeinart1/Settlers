@@ -3,6 +3,7 @@
 import json
 import resource
 import signal
+import struct
 import subprocess
 import tempfile
 import unittest
@@ -17,6 +18,24 @@ BUNDLED_MODEL = PACKAGE / "Sources/CatanAI/Resources/UpstreamPolicy/final.ctnn"
 NEURAL_POLICY_ID = (
     "upstream-r2-hybrid-greedy-swift-compounds-trade-scheduler-"
     "fallback-heuristic-balanced"
+)
+CTNN_MAGIC = b"CTNN"
+CTNN_VERSION = 1
+CTNN_HEADER_FORMAT = "<4s4I"
+CTNN_HEADER_BYTES = struct.calcsize(CTNN_HEADER_FORMAT)
+CTNN_FLOAT_FORMAT = "<f"
+CTNN_FLOAT_BYTES = struct.calcsize(CTNN_FLOAT_FORMAT)
+CTNN_OBSERVATION_SIZE = 1350
+CTNN_ACTION_COUNT = 299
+CTNN_HIDDEN_SIZE = 512
+CTNN_END_TURN_INDEX = 298
+CTNN_END_TURN_BIAS = 100.0
+CTNN_POLICY_BIAS_OFFSET = CTNN_HEADER_BYTES + CTNN_FLOAT_BYTES * (
+    CTNN_HIDDEN_SIZE * CTNN_OBSERVATION_SIZE
+    + CTNN_HIDDEN_SIZE
+    + CTNN_HIDDEN_SIZE * CTNN_HIDDEN_SIZE
+    + CTNN_HIDDEN_SIZE
+    + CTNN_ACTION_COUNT * CTNN_HIDDEN_SIZE
 )
 
 
@@ -324,6 +343,152 @@ class SimulatorConfigurationTests(unittest.TestCase):
         for audit, record in zip(audits, records):
             decisions = [row for row in examples if row["seed"] == audit["seed"]]
             self.assert_audit_matches_decisions(audit, record, decisions)
+
+    def test_decision_trace_preserves_stdout_and_orders_every_evaluation(self) -> None:
+        arguments = (
+            "--players", "3", "--victory-points", "8", "--board", "standard",
+            "--seats", "neural-r2,balanced,neural-r2", "--seed", "101",
+            "--games", "1", "--jsonl", "--build-id", "trace-test",
+        )
+        plain = self.run_simulator(*arguments)
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "trace.jsonl"
+            traced = self.run_simulator(*arguments, "--decision-trace-jsonl", str(path))
+            self.assertEqual(traced.returncode, 0, traced.stderr)
+            self.assertEqual(traced.stdout, plain.stdout)
+            rows = [json.loads(line) for line in path.read_text().splitlines()]
+            repeated_path = Path(directory) / "repeated.jsonl"
+            repeated = self.run_simulator(*arguments, "--decision-trace-jsonl", str(repeated_path))
+            self.assertEqual(repeated.returncode, 0, repeated.stderr)
+            self.assertEqual(repeated.stdout, traced.stdout)
+            self.run_trace_probe("compare", str(path), str(repeated_path))
+        self.assertEqual(rows[0]["type"], "start")
+        self.assertEqual(rows[-1]["type"], "end")
+        self.assertEqual(rows[-1]["payload"]["reason"], "victory")
+        self.assertEqual(rows[-1]["payload"]["fingerprint"], json.loads(plain.stdout)["fingerprint"])
+        self.assertEqual([row["sequence"] for row in rows], list(range(len(rows))))
+        evaluations = [row["payload"] for row in rows if row["type"] == "evaluation"]
+        self.assertEqual([row["evaluationIndex"] for row in evaluations], list(range(len(evaluations))))
+        self.assertEqual(len(evaluations), rows[-1]["payload"]["evaluationCount"])
+        commits = [row["payload"] for row in rows if row["type"] == "commit"]
+        self.assertEqual(len(commits), json.loads(plain.stdout)["moves"])
+        for decision in evaluations:
+            self.assertIn(decision["policyTrace"]["selection"]["move"], decision["observation"]["legalMoves"])
+            self.assertNotIn("reward", decision)
+            self.assertNotIn("winner", decision)
+
+    @classmethod
+    def run_trace_probe(cls, *arguments: str) -> None:
+        # Link the real writer against the already-built engine; no new product,
+        # production test flags, or duplicate serializer/game driver.
+        with tempfile.TemporaryDirectory() as directory:
+            probe = Path(directory) / "trace-probe"
+            binary_root = cls.simulator.parent
+            objects = sorted((binary_root / "CatanEngine.build").glob("*.o"))
+            if not objects:
+                raise AssertionError("no built engine objects for writer fixture")
+            subprocess.run([
+                "swiftc", "-I", str(binary_root / "Modules"),
+                str(PACKAGE / "Sources/sim/DecisionTraceWriter.swift"),
+                str(REPO_ROOT / "scripts/tests/fixtures/decision_trace_probe.swift"),
+                *map(str, objects), "-o", str(probe),
+            ], check=True, capture_output=True, text=True, timeout=60)
+            subprocess.run([str(probe), *arguments], check=True, capture_output=True, text=True, timeout=30)
+
+    def test_decision_trace_queued_cap_forced_override_and_byte_limit(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            for mode in ("queued", "forced", "limit"):
+                path = root / f"{mode}.jsonl"
+                self.run_trace_probe(mode, str(path))
+                rows = [json.loads(line) for line in path.read_text().splitlines()]
+                self.assertEqual(rows[0]["type"], "start")
+                self.assertEqual(rows[-1]["type"], "end")
+                if mode == "queued":
+                    self.assertEqual(rows[-1]["payload"]["reason"], "moveCap")
+                    decisions = [r["payload"] for r in rows if r["type"] == "evaluation"]
+                    self.assertEqual([r["evaluationIndex"] for r in decisions], [0, 1, 2])
+                    self.assertEqual(rows[-1]["payload"]["evaluationCount"], 3)
+                elif mode == "forced":
+                    forced = [r["payload"] for r in rows if r["type"] == "evaluation"
+                              and r["payload"]["policyTrace"].get("sessionOverride") == "turnActionLimit"]
+                    self.assertEqual(len(forced), 1)
+                    self.assertEqual(forced[0]["move"], {"endTurn": {}})
+                    self.assertNotEqual(forced[0]["policyTrace"]["selection"]["move"], forced[0]["move"])
+                else:
+                    self.assertEqual(rows[-1]["payload"]["reason"], "traceByteLimit")
+                    self.assertFalse(rows[-1]["payload"]["complete"])
+                    self.assertLessEqual(path.stat().st_size, 128 * 1024)
+
+    def test_decision_trace_rejects_ambiguous_flags_and_existing_paths(self) -> None:
+        cases = (
+            ("--decision-trace-jsonl", ""),
+            ("--decision-trace-jsonl", "one", "--decision-trace-jsonl", "two"),
+            ("--decision-trace-jsonl", "one", "--training-jsonl", "two", "--build-id", "test"),
+            ("--decision-trace-jsonl", "one"),
+            ("--list-policies", "--decision-trace-jsonl", "one"),
+        )
+        for arguments in cases:
+            with self.subTest(arguments=arguments):
+                self.assertEqual(self.run_simulator(*arguments).returncode, 2)
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "existing"
+            path.write_text("do not replace")
+            result = self.run_simulator("--decision-trace-jsonl", str(path), "--build-id", "test")
+            self.assertEqual(result.returncode, 2)
+            self.assertEqual(path.read_text(), "do not replace")
+
+    def test_decision_trace_actual_3000_move_cap_without_training_labels(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            model = bytearray(
+                struct.pack(
+                    CTNN_HEADER_FORMAT, CTNN_MAGIC, CTNN_VERSION,
+                    CTNN_OBSERVATION_SIZE, CTNN_ACTION_COUNT, CTNN_HIDDEN_SIZE,
+                )
+                + bytes(BUNDLED_MODEL.stat().st_size - CTNN_HEADER_BYTES)
+            )
+            # Prefer endTurn without changing the leading logits checked by
+            # the embedded probe, which remain exactly zero.
+            struct.pack_into(
+                CTNN_FLOAT_FORMAT, model,
+                CTNN_POLICY_BIAS_OFFSET + CTNN_END_TURN_INDEX * CTNN_FLOAT_BYTES,
+                CTNN_END_TURN_BIAS,
+            )
+            checkpoint = root / "end-turn.ctnn"
+            checkpoint.write_bytes(model)
+            path = root / "cap.jsonl"
+            arguments = ("--players", "4", "--victory-points", "10", "--board", "standard",
+                         "--seed", "971", "--seats", ",".join(["neural-checkpoint"] * 4),
+                         "--build-id", "cap-fixture", "--jsonl", *self.checkpoint_arguments("end-turn-fixture", checkpoint))
+            traced = self.run_simulator(*arguments, "--decision-trace-jsonl", str(path))
+            self.assertEqual(traced.returncode, 0, traced.stderr)
+            game = json.loads(traced.stdout)
+            self.assertIsNone(game["winner"])
+            self.assertEqual(game["moves"], 3000)
+            with path.open() as handle:
+                final = None
+                for line in handle:
+                    final = json.loads(line)
+            self.assertEqual(final["payload"]["reason"], "moveCap")
+            self.assertEqual(final["moveIndex"], 3000)
+            self.assertEqual(final["payload"]["fingerprint"], game["fingerprint"])
+            plain = self.run_simulator(*arguments)
+            self.assertEqual(plain.returncode, 0, plain.stderr)
+            self.assertEqual(traced.stdout, plain.stdout)
+            print(f"cap fixture trace: {traced.stderr.strip()}; plain: {plain.stderr.strip()}; bytes={path.stat().st_size}", flush=True)
+
+    def test_decision_trace_file_failure_preserves_complete_prefix(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "partial.jsonl"
+            result = self.run_simulator("--seed", "101", "--jsonl", "--build-id", "failure-fixture",
+                                        "--decision-trace-jsonl", str(path), file_size_limit=128 * 1024)
+            self.assertEqual(result.returncode, 2, result.stderr)
+            self.assertIn("decision trace failed", result.stderr)
+            rows = [json.loads(line) for line in path.read_text().splitlines()]
+            self.assertGreater(len(rows), 0)
+            self.assertEqual(rows[0]["type"], "start")
+            self.assertNotEqual(rows[-1]["type"], "end")
 
     def assert_audit_matches_decisions(
         self, audit: dict, record: dict, decisions: list[dict]

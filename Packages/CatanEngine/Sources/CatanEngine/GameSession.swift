@@ -102,6 +102,10 @@ public struct GameSession: Sendable {
     /// same next action and both can log it as an ordinary `Step`.
     private var queuedTradeResponse: Decision?
 
+    /// Already-evaluated reply, exposed without resampling for chronological diagnostics.
+    /// Ordinary telemetry still reports this reply on the next decision operation.
+    public var queuedPolicyDecision: Decision? { queuedTradeResponse }
+
     /// A single seat may act only this many times in one `.mainTurn` before
     /// being forced to end it.
     ///

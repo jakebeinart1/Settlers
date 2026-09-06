@@ -146,6 +146,7 @@ private struct Options {
     var listPolicies = false
     var trainingOutput: String?
     var policyAuditOutput: String?
+    var decisionTraceOutput: String?
     var neuralCheckpointPath: String?
     var neuralCheckpointID: String?
     var trainingInformationPolicy: HiddenInformationPolicy = .revealAll
@@ -153,7 +154,7 @@ private struct Options {
     static let usage = """
         usage: sim [--games N] [--seed S] [--players 3|4] [--victory-points 8|10|12]
                    [--board standard|randomized] [--seats LIST] [--build-id ID] [--jsonl]
-                   [--training-jsonl PATH] [--policy-audit-jsonl PATH]
+                   [--training-jsonl PATH] [--policy-audit-jsonl PATH] [--decision-trace-jsonl PATH]
                    [--training-information reveal-all|public-counts]
                    [--neural-checkpoint PATH --neural-checkpoint-id ID]
                sim --list-policies [--neural-checkpoint PATH --neural-checkpoint-id ID]
@@ -186,6 +187,10 @@ private struct Options {
                         ID allows ASCII letters, digits, dot, dash and underscore
           --training-jsonl PATH
                         write one versioned masked policy/value example per decision
+          --decision-trace-jsonl PATH
+                        stream full diagnostic state/legal moves, selections, commits and
+                        cap/outcome; no training labels; exclusive file, 256 MiB limit;
+                        requires --build-id and cannot combine with --training-jsonl
           --policy-audit-jsonl PATH
                         exclusively create a route-count sidecar, one JSON row per game;
                         retains completed rows on failure, not network inference counts
@@ -367,6 +372,10 @@ private func parseOptions(_ arguments: [String]) -> Options {
             let path = uniqueValue(for: "--policy-audit-jsonl")
             guard !path.isEmpty else { fail("--policy-audit-jsonl path cannot be empty") }
             options.policyAuditOutput = path
+        case "--decision-trace-jsonl":
+            let path = uniqueValue(for: "--decision-trace-jsonl")
+            guard !path.isEmpty else { fail("--decision-trace-jsonl path cannot be empty") }
+            options.decisionTraceOutput = path
         case "--training-information":
             let value = nextValue(for: "--training-information")
             switch value {
@@ -395,6 +404,10 @@ private func parseOptions(_ arguments: [String]) -> Options {
     }
     if options.trainingOutput != nil, options.buildID == "working-tree" {
         fail("--training-jsonl requires an explicit non-placeholder --build-id")
+    }
+    if options.decisionTraceOutput != nil {
+        guard options.buildID != "working-tree" else { fail("--decision-trace-jsonl requires an explicit --build-id") }
+        guard options.trainingOutput == nil else { fail("--decision-trace-jsonl cannot combine with --training-jsonl") }
     }
     let finalOffset = UInt64(options.games - 1)
     guard finalOffset <= UInt64.max - options.firstSeed else {
@@ -510,8 +523,9 @@ private func playGame(
     configuration: SimulationConfiguration,
     buildID: String,
     recordTraining: Bool,
-    auditPolicies: Bool
-) -> GameResult {
+    auditPolicies: Bool,
+    decisionTrace: DecisionTraceWriter? = nil
+) throws -> GameResult {
     let state = configuration.state(seed: seed)
     precondition(policies.count == state.players.count,
                  "policy roster must match the configured player count")
@@ -523,10 +537,14 @@ private func playGame(
     var behavior = Array(repeating: PolicyBehaviorMetrics(), count: state.players.count)
     var decisions: [RecordedDecision] = []
     var policyAudit = auditPolicies ? PolicyAudit(seed: seed, policyIDs: policies.map(\.id)) : nil
+    try decisionTrace?.start(seed: seed, metadata: .init(
+        buildID: buildID, policyIDs: policies.map(\.id), boardMode: configuration.boardMode.rawValue,
+        checkpointPath: options.neuralCheckpointPath, declaredCheckpointID: options.neuralCheckpointID, state: state))
 
     for _ in 0..<maxMovesPerGame {
         guard case .seat = session.nextActor() else { break }
         guard let decision = session.decideNextDetailed() else { break }
+        try decisionTrace?.evaluations(session)
         for evaluated in session.lastPolicyDecisions {
             behavior[evaluated.seat.index].observeDecision(evaluated.observation, chosen: evaluated.move)
         }
@@ -536,9 +554,12 @@ private func playGame(
         do {
             step = try session.commit(seat: decision.seat, move: decision.move)
         } catch {
+            try decisionTrace?.end(reason: "commitError", session: session,
+                                   fingerprint: Rendering.fingerprint(trace), error: String(describing: error))
             fatalError("seed \(seed): a policy played an illegal move: \(error)")
         }
         guard let step else { break }
+        try decisionTrace?.commit(step, session: session)
         for evaluated in session.lastPolicyDecisions {
             behavior[evaluated.seat.index].observeDecision(evaluated.observation, chosen: evaluated.move)
         }
@@ -550,6 +571,8 @@ private func playGame(
 
     var winner: PlayerID?
     if case .gameOver(let who) = session.state.phase { winner = who }
+    let reason = winner != nil ? "victory" : (trace.count == maxMovesPerGame ? "moveCap" : "unexpectedStop")
+    try decisionTrace?.end(reason: reason, session: session, fingerprint: Rendering.fingerprint(trace))
     policyAudit?.validate(evaluationCount: session.policyEvaluationCount)
     return GameResult(
         buildID: buildID,
@@ -825,24 +848,33 @@ private let seats = options.seatNames.map { policy(named: $0, checkpoint: checkp
 private let clock = ContinuousClock()
 private let started = clock.now
 private let policyAuditWriter = options.policyAuditOutput.map { PolicyAuditWriter(path: $0) }
+private let decisionTraceWriter: DecisionTraceWriter? = {
+    guard let path = options.decisionTraceOutput else { return nil }
+    do { return try DecisionTraceWriter(path: path) } catch { fail("cannot create decision trace: \(error)") }
+}()
 private let trainingWriter = options.trainingOutput.map {
     TrainingWriter(path: $0, informationPolicy: options.trainingInformationPolicy)
 }
 
 for offset in 0..<options.games {
-    let result = playGame(
+    let result: GameResult
+    do {
+        result = try playGame(
         seed: options.firstSeed &+ UInt64(offset),
         policies: seats,
         configuration: options.configuration,
         buildID: options.buildID,
         recordTraining: trainingWriter != nil,
-        auditPolicies: policyAuditWriter != nil
-    )
+            auditPolicies: policyAuditWriter != nil,
+            decisionTrace: decisionTraceWriter
+        )
+    } catch { fail("decision trace failed: \(error)") }
     if let audit = result.policyAudit { policyAuditWriter?.write(audit) }
     trainingWriter?.write(result)
     Stdout.write(options.jsonl ? jsonLine(result) : textLine(result))
 }
 policyAuditWriter?.finish()
+do { try decisionTraceWriter?.finish() } catch { fail("cannot close decision trace: \(error)") }
 
 // Sampled ONCE. Reading `clock.now` twice took `seconds` from the first read
 // and `attoseconds` from the second, so a pair straddling a whole-second
