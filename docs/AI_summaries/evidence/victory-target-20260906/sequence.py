@@ -27,13 +27,13 @@ ARMS = [
 ]
 
 
-def verify_tools():
+def verify_tools() -> None:
     for name, expected in json.loads((TOOLS / "tool-sha256.json").read_text()).items():
         if hashlib.sha256((TOOLS / name).read_bytes()).hexdigest() != expected:
             raise ValueError(f"frozen tool changed: {name}")
 
 
-def main():
+def main() -> None:
     # Exclusive receipt prevents accidentally dispatching this sequence twice.
     with (OUTPUT / "sequence-started.json").open("x") as handle:
         json.dump(
@@ -107,6 +107,8 @@ def main():
             ),
             flush=True,
         )
+        if dt.datetime.now(dt.timezone.utc) >= CUTOFF:
+            raise RuntimeError("predeclared launch cutoff reached during preflight")
         subprocess.run(command, env=environment, check=True)
         receipt = json.loads((output / "run.watchdog.json").read_text())
         result = json.loads((output / "result.json").read_text())
