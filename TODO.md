@@ -36,7 +36,12 @@ lives with "4. New game modes" instead of here — see the note there.)
       standard device sizes covered by `run-settlers`/`play-settlers`.
 
 ## 2. Bot strength
-Make the bot opponents play meaningfully better.
+Make the bot opponents play meaningfully better. **Not done** — the items
+below are infra/metrics milestones (baseline, personality separation,
+threat assessment), not a claim that bots play well. Playtesting
+(2026-09-06) says bots still lose consistently to a human player and show
+visibly repeating patterns during play. That gap is the actual goal of this
+section and is still open; treat it as the top-priority item here.
 
 - [x] Added `ThreatAssessment` (`Packages/CatanAI/Sources/CatanAI/ThreatAssessment.swift`)
       — a per-opponent threat score (VP + production + hidden dev cards +
@@ -65,6 +70,14 @@ Make the bot opponents play meaningfully better.
       dialogue; active matches snapshot profiles across relaunch/restart and
       logs record both profile identity and measured strategy. See
       `docs/AI_summaries/2026-09-02-opponent-profile-decision-log.md`.
+- [ ] Bots cannot beat a human player and repeat visibly predictable patterns
+      in real play (reported 2026-09-06). The bot-vs-bot metrics above never
+      measured this — they compare bots to the frozen Greedy anchor and to
+      each other, not to human-level play, so a bot can win every logged
+      metric here and still be an easy, repetitive opponent. Needs a
+      human-anchored strength check (not just bot-vs-bot), and root-causing
+      of the specific repeated patterns before more personality/metric work
+      is layered on top of a bot that isn't winning games.
 - [ ] Calibrate genuine difficulty tiers against frozen anchors before adding
       a difficulty control to New Game. Personality and difficulty are
       separate axes and must remain separate in both evaluation and UI.
