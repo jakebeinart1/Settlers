@@ -65,6 +65,14 @@ dependency, configuration, seed, or evaluator mismatches. Tuning
 hyperparameters against the reported evaluation seeds until the number appears
 would create a new overfit experiment, not reproduce the original result.
 
+**Compute plan (Alex, September 5):** an RTX 4090 Linux machine will become
+available later. Do not assume access today or redesign the baseline around it.
+Keep source/configuration hashes, dependency manifests, checkpoints, commands,
+and raw evaluation outcomes portable now. After baseline replication, verify
+Linux/GPU training and inference behavior, profile the whole pipeline, and then
+use that machine for measured improvement experiments. Training time alone is
+not a comparable budget across CPU and GPU; record updates and transitions.
+
 ## Decision ledger
 
 | ID | Decision for this phase | Status |
@@ -78,7 +86,7 @@ would create a new overfit experiment, not reproduce the original result.
 | AI-7 | Reproduce promising public agents as external benchmarks before borrowing architecture conclusions. | Partially executed: Eli6th current command reproduced; historical protocol unresolved |
 | AI-8 | Profile the complete 4090 pipeline before funding a faster/second simulator. | Decided |
 | AI-9 | Profile the current 9,335-action contract before decomposing compound decisions. | Deferred gate |
-| AI-10 | Implement R0/R1 observability before tuning trade or road behavior. | Next proposed implementation |
+| AI-10 | Implement R0/R1 observability before tuning trade or road behavior. | Deferred until public baseline replication |
 | AI-11 | Treat Eli6th as the lead runnable permissive candidate and Dobre POMCP-TS-CR as the lead published standard-ish result; do not conflate them. | Decided |
 | AI-12 | Compare narrow reactive adapters before any foreign-engine port; Empires remains the sole rules authority. | Decided |
 
@@ -664,17 +672,16 @@ latency/cost, or missing offline fallback. Human raters prefer the experience.
 
 ## Immediate next deliverable
 
-The next implementation should finish **R0 + R1**—freeze an evaluation
-manifest, add trade-decision explanations, add road-plan/alternative traces,
-and encode the observed bad decisions as scenario tests—then run the narrow
-`H`, `H + E`, and `H + N` adapter-feasibility gate defined above. This improves
-every later path without selecting PPO, POMCP, AlphaZero, or an LLM by taste.
+Freeze the original upstream environment, retain per-game artifact-replay
+evidence, then train a fresh checkpoint using the published trainer and an
+explicitly recorded reconstruction of missing configuration. Separate exact
+historical artifacts (some unavailable) from an achievable source-faithful
+behavioral replication. Do not silently substitute a later model or adapter
+project for the training reproduction Alex requested.
 
-R2's unchanged-package work is now partially complete, so the adapter gate and
-R3's 4090 pipeline profile can proceed independently once R0/R1 define the
-shared evidence. Their measured results determine whether the first serious
-Empires candidate is a transferred reactive prior, an Empires-native search
-hybrid, or neither.
+R0/R1 trade/road observability, adapter experiments, and R3 GPU profiling remain
+useful subsequent work. The user-selected execution order above supersedes the
+earlier proposal to start those projects in parallel now.
 
 ## Related Empires evidence
 

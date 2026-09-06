@@ -8,13 +8,15 @@ selects an external agent, checkpoint, or algorithm.
 ## Verdict
 
 **Update after auditing newer public branches:** upstream commit `7046c6b`
-publishes a later V5A-derived checkpoint. It is now the preferred practical
-first-to-10, realistic-information baseline; the `021279c` artifact below
-remains the historical reproduction oracle. The newer model completed a fresh
+publishes a later V5A-derived checkpoint. It is a candidate for later
+first-to-10, realistic-information comparisons; the `021279c` artifact below
+remains the reproduction priority. The newer model completed a fresh
 balanced 768-game gate per scenario and won 55.1% against Heuristic-v1 and
 52.9% against Heuristic-v2 under realistic information. See
 [`2026-09-05-catan-rl-upstream-artifact-audit.md`](2026-09-05-catan-rl-upstream-artifact-audit.md)
-for the non-comparable topology boundary and the missing-run-artifact caveat.
+for the non-comparable engines/seed schedules and missing-run-artifact caveat.
+The earlier preferred-baseline claim is withdrawn; these scores do not select
+a stronger policy.
 
 Only [Eli6th/catan-rl](https://github.com/Eli6th/catan-rl) supplied both a
 usable checkpoint and a runnable headline-strength command. Its current code
@@ -114,7 +116,106 @@ does not parse a victory target; and the
 [engine state](https://github.com/Eli6th/catan-rl/blob/021279c56834b6203480e5292e1de7246e47bd68/rust/catan-core/src/state.rs)
 defaults to 10.
 
+## Repeatable original-policy runner and fresh-training smoke
+
+The original source now has its own environment at
+`/Users/alex/Library/Application Support/EmpiresResearch/catan-rl/original-v1`.
+It is independent of the newer branches: changing their bindings cannot replace
+this one's engine. The checkout is pinned at `021279c…`. Python 3.12.14,
+PyTorch 2.14.0, NumPy 2.5.2, maturin 1.15.0 and the recorded Rust 1.98.1 build
+describe our environment, not the unavailable historical one.
+
+[`scripts/reproduce-catan-policy.py`](../../scripts/reproduce-catan-policy.py)
+checks the source revision/edits, imported trainer, checkpoint hash, native
+binary hash, Python wrapper identity, and observation/action contract before
+creating any output. It refuses to overwrite an existing result directory.
+The adaptation of the upstream evaluation loop retains its MIT notice.
+
+Two separate-process runs with the final runner each produced **126/192 wins,
+zero caps**, and the same reported-outcome multiset hash:
+`36177758a7223345bf3253db1d2499de7445c6ef8f84ff8edb585086588c326b`.
+Their complete manifests, summaries and raw outcomes are retained in
+[`evidence/catan-original-policy/`](evidence/catan-original-policy/).
+Within a batch, Rust workers append statistics under a mutex in scheduling
+order; raw line order differs. The comparison removes only arrival ordinal,
+preserving batch, winner, VP, turns, cap status, and duplicate multiplicity.
+This proves repeated reported outcomes, **not identical move trajectories**;
+the v1 statistics API exposes neither lane identity nor the action trace.
+
+To replay on this machine, from the Empires repository:
+
+```bash
+CATAN_UPSTREAM='/Users/alex/Library/Application Support/EmpiresResearch/catan-rl/original-v1'
+CATAN_BINDING_SHA256=aa0ca44fcde0a75374115912c67dca264e993d79bed5058f1c7db50c0253423d
+PYTHONPATH="$CATAN_UPSTREAM/training" "$CATAN_UPSTREAM/.venv/bin/python" \
+  scripts/reproduce-catan-policy.py --source "$CATAN_UPSTREAM" \
+  --binding-sha256 "$CATAN_BINDING_SHA256" \
+  --expected-outcomes 36177758a7223345bf3253db1d2499de7445c6ef8f84ff8edb585086588c326b \
+  --output '/Users/alex/Library/Application Support/EmpiresResearch/catan-rl/runs/next-replay'
+
+CATAN_UPSTREAM="$CATAN_UPSTREAM" CATAN_BINDING_SHA256="$CATAN_BINDING_SHA256" \
+  PYTHONPATH="scripts:$CATAN_UPSTREAM/training" "$CATAN_UPSTREAM/.venv/bin/python" \
+  -m unittest discover -s scripts/catan-replication-tests -v
+```
+
+For another machine, clone the public repository at the pinned revision, create
+a **separate** Python environment, install the manifest's pinned dependencies,
+and build `maturin develop --release -m rust/catan-py/Cargo.toml` from the upstream
+root. Record the one-line binding-lock repair and new compiler/binary identity.
+The macOS native hash above is not expected on Linux. Independently verify that
+new build before using its hash as the runner's trust anchor. The manifest's
+editable dependency URL reflects the original local clone source; use the
+public Git revision, not that temporary URL, when recreating it elsewhere.
+
+**Fresh smoke, completed:** started from random weights with no `--resume`;
+348 updates / **8,552,448 policy decisions** in the five-minute training window.
+All recorded floating-point training metrics and final model tensors were
+finite. Final upstream seed-999 evaluations were 181/192 versus Random and
+44/192 versus Heuristic-v1, with no caps. These are short-run diagnostics, not
+the seed-777 reported gate and not a strength improvement.
+
+The fresh checkpoint (`fd2bcecf452b0c9b2e61796833e70deee76cde2547baf83a11c017a0ac0cd62b`)
+exported to CTNN (`df8c9c8e366772bc2b016431a9ca3e40411188795aa6ef848943bb4410c99e5e`).
+The Rust loader accepted it and an `A,H,H,H`, seed-0, first-to-10 game completed
+in 413 actions with search `8,96,300`. One game verifies execution, not strength.
+Artifacts and metrics remain under the persistent `catan-rl` directory above:
+`original-v1/training/runs/20260905-2033-empires-fresh-smoke/` and `runs/fresh-smoke*`.
+Metrics SHA-256: `52a1c2217b79c4275bff4aa1652ac93640c5c5a5d6919dae55e417550a58f1ab`.
+
+Exact smoke command, from that original upstream checkout:
+
+```bash
+source .venv/bin/activate
+PYTHONPATH=training python -u -c 'import numpy as np, runpy; np.random.seed(0); runpy.run_path("training/ppo.py", run_name="__main__")' \
+  --name empires-fresh-smoke --minutes 5 --num-envs 256 --rollout 96 \
+  --victory-target 7 --vp-delta 0.05 --vp-delta-final 0 --visibility perfect \
+  --lr 0.00025 --epochs 4 --minibatch 4096 --hidden 512 --device cpu --seed 0 \
+  --eval-every 16 --entropy-coef 0.02 --train-seats policy,heuristic,policy,heuristic_v2
+```
+
+The hidden width, shaping anneal and entropy come from the initial run ledger.
+Missing initial opponent mix, rollout, evaluation interval and other parameters
+are explicitly **assumed from the published continuation config**. Seeding
+NumPy is an explicit wrapper-level reproducibility correction; upstream omits
+it. No upstream tracked trainer/rules source was changed. Five minutes compresses
+the annealing schedule; this is not the fifty-minute first stage.
+
+Validation: 62 dependency-free evaluation-tool tests pass, including the four
+new evidence-accounting tests; six isolated-environment integration guards pass.
+Independent review found two false-green risks (score-only success and an
+unchecked Python wrapper); both were addressed and tested. The app and its
+production AI have not changed.
+
 ## Reproduction gates still open
+
+The immediate next experiment is the declared 50-minute fresh stage followed
+by a 60-minute continuation, with those same explicit assumptions. Select the
+final checkpoint, not whichever checkpoint wins on seed 777. Retain both stage
+configs, actual step counts, logs, checkpoints and held-out results. This is a
+source-faithful reconstruction; exact historical lineage remains unavailable.
+The five-minute pilot is not an initialization for that experiment.
+
+Additional evidence questions, not authorization to contact upstream authors:
 
 1. Ask Eli6th to identify the exact engine commit embedded in the model and the
    precise sample behind 82%, then expose the historical target in the CLI.

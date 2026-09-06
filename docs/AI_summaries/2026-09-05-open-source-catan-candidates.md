@@ -3,8 +3,9 @@
 > **Selection update, 2026-09-05.** After this cross-project audit, newer
 > public branches of `Eli6th/catan-rl` were discovered and run. Commit
 > `7046c6b` publishes a V5A-derived first-to-10 realistic-information model
-> that is a better practical baseline than the older `main` checkpoint. The
-> original `main` model remains the historical reproduction oracle. Exact
+> that is a runnable later candidate, not a proven better baseline: initial
+> comparisons changed engines and seed schedules. The original `main` model
+> remains the reproduction priority. Exact
 > hashes, balanced results, and evidence limits are recorded in
 > [`2026-09-05-catan-rl-upstream-artifact-audit.md`](2026-09-05-catan-rl-upstream-artifact-audit.md).
 

@@ -14,17 +14,16 @@ Two upstream artifacts now have different, useful roles:
    AlphaBot command reproduced at about 82% in the repository's evaluator.
    Keep it unchanged when checking that our environment can reproduce the
    original published behavior.
-2. **Practical pretrained baseline:** pin
+2. **Later pretrained candidate, not yet selected:** pin
    [`7046c6b`](https://github.com/Eli6th/catan-rl/tree/7046c6bc942f7ebeb2638a46d3f8b5f728643202).
    It publishes a later V5A-derived, first-to-10, realistic-information model
-   and a corrected topology-v2 observation contract. Our clean evaluation
-   found it stronger than the historical policy against both scripted
-   opponents. This is the model to beat before Empires claims an AI
-   improvement.
+   and a corrected topology-v2 observation contract. It runs, but our two
+   evaluation setups differ in engine and sampling. Those scores do not
+   establish that this policy is stronger than the original.
 
 This revises the earlier conclusion that the released `main` model was the
-only reusable baseline. It remains the cleanest historical oracle, but it is
-not the strongest public runnable policy found in the repository.
+only reusable artifact. It remains our historical reproduction priority;
+the later model is a candidate for a future controlled comparison.
 
 Do **not** enable AlphaBot search around the newer model yet. Its own
 [`deployment-champion.json`](https://github.com/Eli6th/catan-rl/blob/7046c6bc942f7ebeb2638a46d3f8b5f728643202/models/deployment-champion.json)
@@ -85,13 +84,18 @@ The old checkpoint's exact documented policy gate reproduced:
 This explains why the old 65.6% cannot be carried into Empires as a
 first-to-10, hidden-information expectation.
 
-### Balanced first-to-10 comparison
+### First-to-10 calibration runs (not a controlled comparison)
 
 Each row below is 768 games: 192 in each physical chair, with zero turn caps.
-The same declared seed base (`14,100,010,000`) and generalization-v4 schedule
-were used. Percentages in parentheses are two-sided 95% Wilson intervals.
+Both used the declared seed base `14,100,010,000`, but **not the same schedule**.
+The old weights ran in `e081ff6`, whose evaluator reuses the base across chairs
+and selects games by lane completion order. The new weights ran in `7046c6b`,
+whose evaluator uses disjoint chair seeds and fixed per-lane quotas. Engine
+topology also changed. Per-game rows were not retained for these initial runs.
+Parenthesized Wilson intervals are descriptive binomial summaries, not valid
+paired evidence of an improvement (especially with repeated old chair seeds).
 
-| Information and opponents | Historical `021279c` | Showcase `7046c6b` |
+| Information and opponents | `021279c` weights in `e081ff6` evaluator | `7046c6b` weights and evaluator |
 | --- | ---: | ---: |
 | Perfect, 3× Random | 766/768 = 99.74% (99.06–99.93) | 761/768 = 99.09% (98.13–99.56) |
 | Perfect, 3× Heuristic-v1 | 421/768 = 54.82% (51.28–58.30) | **444/768 = 57.81%** (54.29–61.26) |
@@ -100,11 +104,11 @@ were used. Percentages in parentheses are two-sided 95% Wilson intervals.
 | Realistic, 3× Heuristic-v1 | 387/768 = 50.39% (46.86–53.92) | **423/768 = 55.08%** (51.54–58.56) |
 | Realistic, 3× Heuristic-v2 | 358/768 = 46.61% (43.11–50.15) | **406/768 = 52.86%** (49.33–56.37) |
 
-The showcase policy leads by 3.0 to 6.25 percentage points in the four
-non-random scenarios. Treat that as strong selection evidence, not a clean
-causal ablation: the historical model uses observation/topology v1 and the
-showcase model uses corrected topology v2, so both policy lineage and input
-semantics changed.
+The numerical differences cannot select a winner: policy lineage, engine/input
+semantics, and episode selection all changed. The earlier version of this memo
+called them strong selection evidence and incorrectly said the schedules were
+the same. That conclusion is withdrawn. A future comparison must hold those
+factors fixed, save outcomes, and use a predeclared held-out evaluation plan.
 
 ### Runtime and test checks
 
@@ -127,7 +131,7 @@ semantics changed.
 - the old fixed-chair 65.625% PPO gate;
 - the old approximately 82% AlphaBot behavior in its own evaluator;
 - both public checkpoint/CTNN pairs loading and completing games;
-- the new model's balanced first-to-10 absolute strength against Random,
+- the new model's first-to-10 calibration scores against Random,
   Heuristic-v1, and Heuristic-v2 under both visibility modes;
 - the newer observation/action contracts, seat routing, and benchmark code.
 
@@ -143,15 +147,15 @@ semantics changed.
 
 ## Consequence for Empires
 
-The next implementation stage should use three frozen controls, not one vague
-"best AI" label:
+Finish source-faithful fresh training in the original upstream environment
+first. Preserve three distinct roles for later transfer experiments:
 
 1. **Empires heuristic anchor:** the current Swift bot, measured in the Empires
    engine.
 2. **Historical compatibility oracle:** `021279c`, used to prove that an
    adapter reproduces known 1,350/299 decisions and the exact old gate.
-3. **Practical external champion:** `7046c6b` plus checkpoint hash `2e505d…`,
-   greedy-only, measured under balanced first-to-10 realistic games.
+3. **Later external candidate:** `7046c6b` plus checkpoint hash `2e505d…`,
+   greedy-only until search is independently qualified. Not a selected champion.
 
 Do not replace Empires' 5,182-input and 9,335-action versioned contracts. Add a
 separate sequential model adapter that exposes the external 1,350/299 contract,
@@ -159,11 +163,10 @@ retains partial Road Building/discard/robber choices internally, and emits a
 compound Swift `GameMove` only after the choice is complete. The Swift rules
 engine remains authoritative.
 
-Before training or changing rewards, the adapter must pass deterministic slot
-mapping, legal-mask, and full-game conformance tests and must reproduce the
-historical oracle. Only then should the showcase policy be evaluated inside
-Empires. Global Conquest infrastructure and personality/dialogue work remain
-later stages, exactly as requested.
+After upstream training reproduction, the adapter must pass deterministic slot
+mapping, legal-mask, and full-game conformance tests. Only then evaluate the
+transferred policies inside Empires. Global Conquest improvements and
+personality/dialogue work remain later stages, exactly as requested.
 
 ## Provenance and reuse boundary
 
@@ -171,5 +174,5 @@ The upstream repository is MIT-licensed. If code or weights are imported,
 retain its copyright/license notice and record the exact source commit and
 artifact hashes in-repo. Do not copy upstream Catan branding or art. The model
 selection decision does not itself authorize product claims such as
-"strongest Catan AI"; it establishes the strongest **public runnable baseline
-we independently measured in this audit**.
+"strongest Catan AI". This audit establishes runnable artifacts and evidence
+limits, not a strongest-policy ranking.

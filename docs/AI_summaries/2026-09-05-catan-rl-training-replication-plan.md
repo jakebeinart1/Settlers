@@ -3,13 +3,13 @@
 **Audit date:** 2026-09-05
 **External source:** [`Eli6th/catan-rl` at `021279c56834b6203480e5292e1de7246e47bd68`][eli-commit]
 **Empires source:** current `Settlers` checkout at `e361ad589bd5f4249d5f3dc2f34aa59c54c99f29`
-**Scope:** determine the exact reproduction path; do not import, modify, or vendor the external project.
+**Scope:** reproduce the upstream algorithm in an isolated checkout; do not import its engine or models into the Empires app yet.
 
 > **Later-upstream correction.** This document intentionally preserves the
 > historical `main` reproduction plan. A subsequent audit found a newer public
-> V5A-derived model on upstream commit `7046c6b`; it is now the preferred
-> practical first-to-10 baseline, while `021279c` remains the historical
-> compatibility oracle. See
+> V5A-derived model on upstream commit `7046c6b`; it is a later candidate,
+> not a proven stronger or selected baseline. Its initial comparisons changed
+> both engine and seed schedule. `021279c` remains the reproduction priority. See
 > [`2026-09-05-catan-rl-upstream-artifact-audit.md`](2026-09-05-catan-rl-upstream-artifact-audit.md).
 
 ## Executive finding
@@ -82,6 +82,13 @@ historical environment.
 The observed result is therefore precise: **the released AlphaBot artifact and
 current training pipeline are runnable; the public repository still cannot
 recreate the historical training lineage or its stated first-to-7 headline.**
+
+**Subsequent execution:** a dedicated persistent original-v1 environment now
+replays the 126/192 artifact gate with archived per-game outcomes. A fresh
+five-minute run (no resume) completed 8,552,448 decisions, exported successfully,
+and played a complete Rust game. This validates fresh training plumbing, not
+the full 50+60-minute reconstruction. Exact commands, missing-config assumptions,
+hashes and results are in the [reproduction log](2026-09-05-public-catan-reproduction-log.md#repeatable-original-policy-runner-and-fresh-training-smoke).
 
 ## 1. What the published system actually is
 
@@ -162,7 +169,15 @@ The baseline must first be reproduced in Eli's unchanged `1,350 → 512 → 512 
 | maturin / PyO3 | `maturin>=1.5,<2`, PyO3 `0.22`, NumPy Rust crate `0.22`; binding Cargo lock pins resolved Rust crates | Exact maturin release and Python wheel ABI are absent | **Partially frozen**; [pyproject][eli-pyproject] · [binding manifest][eli-py-cargo] · [binding lock][eli-py-cargo-lock] |
 | Training hardware | Ledger says Apple Silicon CPU at about 16–20k policy steps/s; trainer forces four PyTorch CPU threads | Exact Mac model, core count, memory, OS, thermal state | **Not frozen**; [ledger][eli-experiments-header] · [thread setting][eli-ppo-main] |
 
-The 4090 should not be used for the historical baseline gate: the published lineage records `device=cpu` and the author describes CPU training. GPU work belongs to a later throughput-equivalence experiment after CPU behavioral parity. [Checkpoint][eli-published-pt] · [ledger][eli-experiments-header]
+Start the reconstruction on CPU because the published lineage records
+`device=cpu`. Alex plans to provide an RTX 4090 on Linux later; access is not
+available or required now. Once a reproducible baseline exists, preserve the
+same source, rules, training configuration, and evaluation protocol when moving
+to Linux. Record actual updates/transitions as well as elapsed time: the
+upstream wall-clock stopping/annealing schedule otherwise changes the training
+budget on faster hardware. GPU numerical identity is not assumed; compare
+behavior and convergence before attributing gains to algorithm changes.
+[Checkpoint][eli-published-pt] · [ledger][eli-experiments-header]
 
 ## 4. Training algorithm and exact known configuration
 
@@ -447,8 +462,8 @@ The minimum package needed from the author to turn historical exactness from blo
 | R4 | Calibrate export/inference | Published `.pt` re-exports to byte-identical CTNN SHA-256 `21f3…` and Rust self-check loads it | **PARTIAL PASS**; weights and behavior match and both files load, but three final low-order check-logit bytes differ under PyTorch 2.14.0, producing SHA-256 `f9d5…` rather than `21f3…` |
 | R5 | Recover fresh `runB` | Exact config and parent checkpoint provenance exist; fresh stage ends at the recorded parent step without NaN/Inf | **FAIL / BLOCKED**; [ledger][eli-experiments-runs] · [checkpoint][eli-published-pt] |
 | R6 | Reproduce `runB2` continuation | Exact parent is loaded; second-stage config matches §4.2; final checkpoint records 46,497,792 second-stage steps and compatible versions | **BLOCKED by R1/R2/R5**; [checkpoint][eli-published-pt] |
-| R7 | Reproduce reactive fixed gate | Greedy chair-0 policy records exactly 126 wins in 192 seed-777 first-to-7 games versus three Heuristic-v1 bots, matching rounded 65.6% | **BLOCKED**; target from [ledger][eli-experiments-runs], protocol from [promotion code][eli-elo-promote] |
-| R8 | Export fresh CTNN | `export_net.py` succeeds; Rust loader passes dimensions and self-check; artifact hash and parent `.pt` hash are recorded | **BLOCKED by R6/R7**; [exporter][eli-export] · [loader][eli-net-loader] |
+| R7 | Reproduce reactive fixed gate | Published artifact records 126/192 seed-777 wins at 7 VP; independently trained policies require a declared statistical replication test, not exact score matching | **PASS for published artifact; full fresh reconstruction NOT YET RUN**; five-minute pilot only; target from [ledger][eli-experiments-runs], protocol from [promotion code][eli-elo-promote] |
+| R8 | Export fresh CTNN | `export_net.py` succeeds; Rust loader passes dimensions and self-check; artifact hash and parent `.pt` hash are recorded | **PASS for fresh smoke only; full reconstruction pending R6/R7**; [exporter][eli-export] · [loader][eli-net-loader] |
 | R9 | Run pinned Alpha smoke | 100 seed-0 10-VP `A,H,H,H` games complete; loader errors, illegal actions, winners, and turn-capped games are all reported explicitly | **PASS**; 83/100 AlphaBot wins, 50,756 steps, no loader or rules failure; a second seed-777 run produced 157/192 (81.8%) |
 | R10 | Reproduce Alpha headline | Author's exact first-to-7 evaluator, seeds, count, and raw outcomes are available; the fresh model reproduces the corresponding 82.0% result | **FAIL / BLOCKED**; [public mismatch][eli-readme-alpha-command] · [simulator construction][eli-sim-run] · [ledger][eli-experiments-alpha] |
 | R11 | Begin Empires adaptation | R3–R10 results, failures, configs, hashes, and raw outcomes are archived; no historical claim remains ambiguous | **INTENTIONALLY NOT STARTED** |
@@ -459,7 +474,10 @@ The minimum package needed from the author to turn historical exactness from blo
 
 No Empires state/action change should be made to make the checkpoint “fit” before this baseline is reproduced. Empires already records state layout v3, action layout v2, feature/action counts, legal actions, chosen action, seed, policy identity, player count, target, board mode, and hidden-information policy in each training example. [Empires training-example source][empires-training-example]
 
-After R10, adaptation should be a separately versioned experiment with one of three explicit contracts:
+After behavioral replication with the historical evidence gaps explicitly
+accounted for, adaptation should be a separately versioned experiment with one
+of three explicit contracts. Missing historical bytes do not prohibit a
+source-faithful reconstruction, but cannot be silently called recovered:
 
 1. Preserve Eli's 1,350/299 interface in an isolated compatibility environment and measure the unchanged agent.
 2. Build a semantics-audited adapter only for states/actions that map exactly, with unsupported decisions counted rather than guessed.
