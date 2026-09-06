@@ -1,0 +1,26 @@
+{
+  "budget_seconds": 600.0,
+  "started_epoch": 1788732215.428743,
+  "started_elapsed": 270954.761236583,
+  "started_utc": "2026-09-06T22:03:35.428743+00:00",
+  "deadline_epoch": 1788732815.428743,
+  "deadline_utc": "2026-09-06T22:13:35.428743+00:00",
+  "state": "complete",
+  "command": [
+    "python3",
+    "-u",
+    "-c",
+    "import subprocess\ncommands = [\n    [\"swift\", \"build\", \"--package-path\", \"Packages/CatanEngine\", \"-Xswiftc\", \"-warnings-as-errors\"],\n    [\"swift\", \"build\", \"--package-path\", \"Packages/CatanAI\", \"-Xswiftc\", \"-warnings-as-errors\"],\n    [\"swift\", \"test\", \"--package-path\", \"Packages/CatanEngine\", \"--enable-code-coverage\"],\n    [\"swift\", \"test\", \"--package-path\", \"Packages/CatanAI\", \"--enable-code-coverage\"],\n    [\"./scripts/coverage.sh\", \"Packages/CatanEngine\", \"95\", \"--reuse\"],\n    [\"./scripts/coverage.sh\", \"Packages/CatanAI\", \"95\", \"--reuse\"],\n]\nfailed = False\nfor command in commands:\n    print(\"RUN:\", \" \".join(command), flush=True)\n    result = subprocess.run(command, check=False)\n    print(\"EXIT:\", result.returncode, \" \".join(command), flush=True)\n    failed = failed or result.returncode != 0\nraise SystemExit(1 if failed else 0)"
+  ],
+  "watchdog_pid": 5111,
+  "watchdog_identity": null,
+  "boot_identity": "unavailable",
+  "watchdog_sha256": "0fe5997a05c2982988aab889c766df200e292250b3f2b674c557918065857ad0",
+  "process_group": 5158,
+  "process_identity": null,
+  "remaining_seconds": 449.25538897514343,
+  "checked_epoch": 1788732366.173362,
+  "checked_utc": "2026-09-06T22:06:06.173363+00:00",
+  "exit_code": 0,
+  "finished_utc": "2026-09-06T22:06:06.173791+00:00"
+}

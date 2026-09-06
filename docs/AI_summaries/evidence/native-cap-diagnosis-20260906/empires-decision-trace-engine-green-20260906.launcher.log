@@ -1,0 +1,39 @@
+[0/1] Planning build
+Building for debugging...
+[0/4] Write sources
+[1/4] Write swift-version--58304C5D6DBC2206.txt
+[3/6] Compiling CatanEngine GameSession.swift
+[4/6] Emitting module CatanEngine
+[5/14] Compiling CatanEngineTests PolicyTraceTests.swift
+[6/14] Compiling CatanEngineTests SessionCheckpointValidationTests.swift
+[7/14] Compiling CatanEngineTests SessionCheckpointTests.swift
+[8/14] Compiling CatanEngineTests PolicyContextTests.swift
+[9/14] Compiling CatanEngineTests DevCardTests.swift
+[10/14] Emitting module CatanEngineTests
+[11/14] Compiling CatanEngineTests GamePhaseTests.swift
+[12/14] Compiling CatanEngineTests GameSessionTests.swift
+[13/16] Compiling CatanEnginePackageTests runner.swift
+[14/16] Emitting module CatanEnginePackageTests
+[14/16] Write Objects.LinkFileList
+[15/16] Linking CatanEnginePackageTests
+Build complete! (2.81s)
+Test Suite 'Selected tests' started at 2026-09-06 17:05:14.229.
+Test Suite 'CatanEnginePackageTests.xctest' started at 2026-09-06 17:05:14.230.
+Test Suite 'CatanEnginePackageTests.xctest' passed at 2026-09-06 17:05:14.230.
+	 Executed 0 tests, with 0 failures (0 unexpected) in 0.000 (0.000) seconds
+Test Suite 'Selected tests' passed at 2026-09-06 17:05:14.230.
+	 Executed 0 tests, with 0 failures (0 unexpected) in 0.000 (0.001) seconds
+◇ Test run started.
+↳ Testing Library Version: 1902
+↳ Target Platform: arm64e-apple-macos14.0
+◇ Suite PolicyTraceTests started.
+◇ Test queuedDiagnosticDecisionIsVisibleBeforeCommitWithoutResampling() started.
+◇ Test traceFollowsExactlyOneDecisionThroughCommit() started.
+◇ Test externalMoveCannotInheritAnUncommittedPolicyLabel() started.
+◇ Test oldDecisionWithoutTraceStillDecodes() started.
+✔ Test queuedDiagnosticDecisionIsVisibleBeforeCommitWithoutResampling() passed after 0.002 seconds.
+✔ Test externalMoveCannotInheritAnUncommittedPolicyLabel() passed after 0.002 seconds.
+✔ Test traceFollowsExactlyOneDecisionThroughCommit() passed after 0.003 seconds.
+✔ Test oldDecisionWithoutTraceStillDecodes() passed after 0.006 seconds.
+✔ Suite PolicyTraceTests passed after 0.006 seconds.
+✔ Test run with 4 tests in 1 suite passed after 0.006 seconds.

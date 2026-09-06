@@ -1,0 +1,33 @@
+{
+  "budget_seconds": 240.0,
+  "started_epoch": 1788728757.574573,
+  "started_elapsed": 269542.398161416,
+  "started_utc": "2026-09-06T21:05:57.574573+00:00",
+  "deadline_epoch": 1788728997.574573,
+  "deadline_utc": "2026-09-06T21:09:57.574573+00:00",
+  "state": "failed",
+  "command": [
+    "python3",
+    "-m",
+    "unittest",
+    "discover",
+    "-s",
+    "scripts/tests",
+    "-p",
+    "test_sim_cli.py",
+    "-k",
+    "test_decision_trace",
+    "-v"
+  ],
+  "watchdog_pid": 77069,
+  "watchdog_identity": null,
+  "boot_identity": "unavailable",
+  "watchdog_sha256": "0fe5997a05c2982988aab889c766df200e292250b3f2b674c557918065857ad0",
+  "process_group": 77078,
+  "process_identity": null,
+  "remaining_seconds": 224.86243605613708,
+  "checked_epoch": 1788728772.712142,
+  "checked_utc": "2026-09-06T21:06:12.712142+00:00",
+  "exit_code": 1,
+  "finished_utc": "2026-09-06T21:06:12.712317+00:00"
+}

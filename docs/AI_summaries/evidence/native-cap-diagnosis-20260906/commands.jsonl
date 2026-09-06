@@ -1,0 +1,2 @@
+["swift", "build", "--package-path", "/private/tmp/empires-policy-decision-trace-20260906/Packages/CatanAI", "-c", "release", "--product", "sim"]
+["swift", "build", "--package-path", "/private/tmp/empires-policy-decision-trace-20260906/Packages/CatanAI", "-c", "release", "--show-bin-path"]

@@ -1,0 +1,11 @@
+test_decision_trace_actual_3000_move_cap_without_training_labels (test_sim_cli.SimulatorConfigurationTests.test_decision_trace_actual_3000_move_cap_without_training_labels) ... cap fixture trace: sim: 1 games in 4.65s (0.2 games/sec); plain: sim: 1 games in 1.67s (0.6 games/sec); bytes=72647000
+ok
+test_decision_trace_file_failure_preserves_complete_prefix (test_sim_cli.SimulatorConfigurationTests.test_decision_trace_file_failure_preserves_complete_prefix) ... ok
+test_decision_trace_preserves_stdout_and_orders_every_evaluation (test_sim_cli.SimulatorConfigurationTests.test_decision_trace_preserves_stdout_and_orders_every_evaluation) ... ok
+test_decision_trace_queued_cap_forced_override_and_byte_limit (test_sim_cli.SimulatorConfigurationTests.test_decision_trace_queued_cap_forced_override_and_byte_limit) ... ok
+test_decision_trace_rejects_ambiguous_flags_and_existing_paths (test_sim_cli.SimulatorConfigurationTests.test_decision_trace_rejects_ambiguous_flags_and_existing_paths) ... ok
+
+----------------------------------------------------------------------
+Ran 5 tests in 17.657s
+
+OK

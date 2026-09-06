@@ -26,8 +26,9 @@ progress. Detailed evidence and operational recipes stay behind the links below.
 - **Experiment tooling:** [PR #43](https://github.com/jakebeinart1/Settlers/pull/43)
   at `9a2610a` passed the full local gate, fresh Debug QA launch and Linux CI
   (`34057255572`). Snapshot optimization was not adopted; its reusable safeguards
-  and recorded result are review-ready, not merged. The active heartbeat now
-  supervises the separate target-adaptation experiment.
+  and recorded result are review-ready, not merged. Target adaptation and its
+  two diagnostic replays are now closed; the heartbeat watches publication/CI,
+  not additional training.
 - **Quality warning:** the audited 32-board follow-up gave r2 **52/128** versus
   Balanced **112/128** wins against Greedy, all chairs rotated, no unexpected
   fallbacks. This is one native configuration, not a universal ranking.
@@ -45,7 +46,7 @@ progress. Detailed evidence and operational recipes stay behind the links below.
 | **1. Deliver and retain regressions** | Simulator verified; phone/signing blocked; native strength warning under assessment. | Resolve the default-promotion warning; final artifact is VALID in TestFlight, intended testers can access it, phone version is verified, and reusable gameplay/UI checks remain green. |
 | **2. Make comparisons cheap to repeat** | Minimum checkpoint comparison implemented, reviewed and tested; original-versus-r2 diagnostic complete. | Preserve this entry point. Add separate builds/opponent pools only when a concrete experiment needs them; reuse the analyzer. |
 | **3. Make training faster without weakening learning** | [Snapshot experiment complete](2026-09-06-rollout-snapshot-experiment.md#result-and-decision): exact equal-update model/Adam parity; +5.57%/+2.02% GPU throughput, below the required 5% in both pairs. **Inconclusive, not adopted.** Budget spent; no owned run active. Retain the guarded comparison rather than chasing this small gain. | A bounded before/after experiment improves time-to-quality without correctness or playing-strength regression. Partial host attribution is not a complete GPU/phase breakdown. |
-| **4. Improve strategy and architecture** | [Target 7 versus 10 screen complete](2026-09-06-victory-target-experiment.md#result-and-decision): four valid training arms, exact exports, retention passed; native games capped on both paths and the full second pair gained only 2.34 points. **Not adopted.** Next: chronological decision/commit traces of the capped games, to distinguish policy planning from integration/scheduling before more training. | Each attempted change has a recorded hypothesis, fixed budget, result and decision. Promote promising candidates through fresh confirmation and device tests, then freeze the new baseline. This stage repeats. |
+| **4. Improve strategy and architecture** | [Target adaptation not adopted](2026-09-06-victory-target-experiment.md#result-and-decision). [Cap diagnosis complete](2026-09-06-native-cap-diagnosis.md#result-and-decision): exact replays show expansion/piece limits and neural purchase avoidance, without missing buy actions or session overrides. Saved capability witnesses now guide a fresh, single-change experiment; architecture/encoding/training causality remains open. No training is running. | Each attempted change has a recorded hypothesis, fixed budget, result and decision. Promote promising candidates through fresh confirmation and device tests, then freeze the new baseline. This stage repeats. |
 | **5. Character, personality, difficulty** | Deferred. Keep strategy, strength and expression separate. | Measured tiers and intentional styles support honest UI labels; authored reactions are grounded in real events. LLM wording/chat needs a separate latency, cost and product decision. |
 
 **Allocation:** unblock delivery promptly; spend only enough on stage 2 to make

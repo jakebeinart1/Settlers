@@ -1,0 +1,116 @@
+{
+  "buyDevCardLegalButOtherChosen": {
+    "bankTrade": 27,
+    "buildRoad": 1,
+    "endTurn": 43,
+    "playKnight": 4,
+    "playMonopoly": 1,
+    "playYearOfPlenty": 1
+  },
+  "lastGeometry": {
+    "citySites": 0,
+    "devDeckCount": 0,
+    "longestRoadLength": 5,
+    "moveIndex": 2996,
+    "points": 9,
+    "roadCount": 5,
+    "roadSites": 0,
+    "settlementSites": 0
+  },
+  "lateBuyDevCardLegalIndices": [],
+  "representativeStates": [
+    310,
+    638,
+    760,
+    761,
+    1500,
+    2996
+  ],
+  "seat": 3,
+  "selectedActions": {
+    "bankTrade": 118,
+    "buildCity": 2,
+    "buildRoad": 1,
+    "buyDevCard": 11,
+    "discard": 51,
+    "endTurn": 215,
+    "moveRobber": 37,
+    "placeInitialRoad": 2,
+    "placeInitialSettlement": 2,
+    "playKnight": 5,
+    "playMonopoly": 1,
+    "playRoadBuilding": 1,
+    "playYearOfPlenty": 1,
+    "proposeTrade": 307,
+    "rollDice": 215
+  },
+  "sessionOverrides": {},
+  "victoryPointTransitions": [
+    {
+      "actor": 0,
+      "moveIndex": 0,
+      "moveKind": "placeInitialSettlement",
+      "points": 0
+    },
+    {
+      "actor": 3,
+      "moveIndex": 6,
+      "moveKind": "placeInitialSettlement",
+      "points": 1
+    },
+    {
+      "actor": 3,
+      "moveIndex": 8,
+      "moveKind": "placeInitialSettlement",
+      "points": 2
+    },
+    {
+      "actor": 3,
+      "moveIndex": 53,
+      "moveKind": "buildCity",
+      "points": 3
+    },
+    {
+      "actor": 3,
+      "moveIndex": 72,
+      "moveKind": "buildCity",
+      "points": 4
+    },
+    {
+      "actor": 3,
+      "moveIndex": 513,
+      "moveKind": "buyDevCard",
+      "points": 5
+    },
+    {
+      "actor": 3,
+      "moveIndex": 596,
+      "moveKind": "buyDevCard",
+      "points": 6
+    },
+    {
+      "actor": 3,
+      "moveIndex": 812,
+      "moveKind": "buyDevCard",
+      "points": 7
+    },
+    {
+      "actor": 3,
+      "moveIndex": 842,
+      "moveKind": "playKnight",
+      "points": 9
+    },
+    {
+      "actor": 1,
+      "moveIndex": 1238,
+      "moveKind": "playKnight",
+      "points": 7
+    },
+    {
+      "actor": 3,
+      "moveIndex": 1363,
+      "moveKind": "playKnight",
+      "points": 9
+    }
+  ]
+}

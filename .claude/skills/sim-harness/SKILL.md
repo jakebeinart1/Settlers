@@ -185,7 +185,18 @@ so the order cannot drift:
 games/sec)` line goes to stderr. That split is what makes step 3's byte
 comparison possible at all, so do not "helpfully" move timing onto stdout.
 
-## Training-data mode
+## Decision traces and training data
+
+For a capped or suspicious game, use `--decision-trace-jsonl PATH` instead of
+training export. It streams full diagnostic state, ordered legal moves, original
+and effective selections, queued responses, commits and the terminal fingerprint.
+It requires `--build-id`, exclusively creates a bounded file, and preserves a
+failed prefix on I/O/size errors. A cap has no training winner label. Compare the
+ordinary game fingerprint and policy-audit counts with the original before
+interpreting the trace; Codable collection order is not canonical JSON ordering.
+Read [the cap diagnostic](../../../docs/AI_summaries/2026-09-06-native-cap-diagnosis.md)
+for a worked example and its closed replay budget; a new investigation needs its
+own budget, not another invocation of that spent experiment.
 
 `--training-jsonl` writes a separate record for every policy decision while
 ordinary game JSONL stays on stdout. Never point it at an existing file: the
@@ -327,12 +338,9 @@ true and the floors move.
 - **The fingerprint proves the sequence, not its quality.** Identical
   fingerprints mean identical play. They say nothing about whether the play was
   good, and a changed fingerprint is not evidence of improvement.
-- **The record is opportunity-aware but not a decision trace.** Schema 5 has
-  27 per-seat event/opportunity counters for builds, development cards, robber
-  targeting, and trade proposals/responses. It still lacks per-turn resource
-  curves, time-to-milestone data, trade score/rejection reasons, road-plan
-  intent, and runner-up action scores. Those require versioned new fields, not
-  inference from aggregate counters.
+- **Game counters do not explain causality.** Use the optional decision trace
+  for state/choice chronology. Neither format supplies trade valuations,
+  road-plan intent or runner-up network scores; do not infer those from counts.
 - **The executable is integration-tested, but fingerprints still matter.**
   `scripts/tests/test_sim_cli.py` builds and invokes Release `sim`, checks strict
   CLI failures, runs all twelve engine/evaluation configurations, and validates a real training

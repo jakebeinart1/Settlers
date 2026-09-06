@@ -1,0 +1,146 @@
+Building for debugging...
+[0/7] /private/tmp/empires-policy-decision-trace-20260906/Packages/CatanEngine/.build/arm64-apple-macosx/debug/CatanEnginePackageTests.derived/runner.swift
+[1/7] Write sources
+[4/7] Write swift-version--58304C5D6DBC2206.txt
+[6/39] Compiling CatanEngine Port.swift
+[7/39] Compiling CatanEngine RandomSource.swift
+[8/40] Compiling CatanEngine BoardGeneration.swift
+[9/40] Compiling CatanEngine Building.swift
+[10/40] Compiling CatanEngine WinCondition.swift
+[11/40] Compiling CatanEngine DiceOdds.swift
+[12/40] Compiling CatanEngine GameSession.swift
+[13/40] Compiling CatanEngine LongestRoad.swift
+[14/40] Compiling CatanEngine MainPhase.swift
+[15/40] Compiling CatanEngine CatanEngine.swift
+[16/40] Compiling CatanEngine DevCards.swift
+[17/40] Compiling CatanEngine ActionSpace.swift
+[18/40] Compiling CatanEngine Board.swift
+[19/40] Emitting module CatanEngine
+[20/40] Compiling CatanEngine EdgeID.swift
+[21/40] Compiling CatanEngine GameEvent.swift
+[22/40] Compiling CatanEngine Resource.swift
+[23/40] Compiling CatanEngine Tile.swift
+[24/40] Compiling CatanEngine SetupPhase.swift
+[25/40] Compiling CatanEngine Robber.swift
+[26/40] Compiling CatanEngine RulesEngine.swift
+[27/40] Compiling CatanEngine Trading.swift
+[28/40] Compiling CatanEngine VertexID.swift
+[29/40] Compiling CatanEngine PolicySelection.swift
+[30/40] Compiling CatanEngine DevCardPlayStatus.swift
+[31/40] Compiling CatanEngine DevCardType.swift
+[32/40] Compiling CatanEngine GamePhase.swift
+[33/40] Compiling CatanEngine GameState.swift
+[34/40] Compiling CatanEngine HexCoordinate.swift
+[35/40] Compiling CatanEngine Move.swift
+[36/40] Compiling CatanEngine Player.swift
+[37/40] Compiling CatanEngine PlayerID.swift
+[38/40] Compiling CatanEngine StateEncoding.swift
+[39/69] Compiling CatanEngineTests TradeOfferIDTests.swift
+[40/69] Compiling CatanEngineTests TradingTests.swift
+[41/70] Compiling CatanEngineTests SetupPhaseTests.swift
+[42/70] Compiling CatanEngineTests ResourceProductionTests.swift
+[43/70] Compiling CatanEngineTests RobberTests.swift
+[44/70] Compiling CatanEngineTests MatchConfigurationTests.swift
+[45/70] Compiling CatanEngineTests PieceSupplyTests.swift
+[46/70] Compiling CatanEngineTests GameSetupTests.swift
+[47/70] Compiling CatanEngineTests LongestRoadTests.swift
+[48/70] Compiling CatanEngineTests SessionCheckpointValidationTests.swift
+[49/70] Compiling CatanEngineTests SessionCheckpointTests.swift
+[50/70] Compiling CatanEngineTests RulesVersionReplayTests.swift
+[51/70] Compiling CatanEngineTests SaveCompatibilityTests.swift
+[52/70] Compiling CatanEngineTests StateEncodingTests.swift
+[53/70] Compiling CatanEngineTests GamePhaseTests.swift
+[54/70] Compiling CatanEngineTests GameSessionTests.swift
+[55/70] Compiling CatanEngineTests FullGameSimulationTests.swift
+[56/70] Compiling CatanEngineTests GameEventTests.swift
+[57/70] Compiling CatanEngineTests PolicyContextTests.swift
+/private/tmp/empires-policy-decision-trace-20260906/Packages/CatanEngine/Tests/CatanEngineTests/PolicyTraceTests.swift:24:25: error: value of type 'GameSession' has no member 'queuedPolicyDecision'
+22 |         let policies = Dictionary(uniqueKeysWithValues: state.players.map { ($0.id, RejectingPolicy() as any Policy) })
+23 |         var session = GameSession(state: state, policies: policies, policySeed: 817)
+24 |         #expect(session.queuedPolicyDecision == nil)
+   |                         `- error: value of type 'GameSession' has no member 'queuedPolicyDecision'
+25 |         let offer = TradeOffer(from: PlayerID(index: 0), give: [.brick: 1], want: [.grain: 1])
+26 |         _ = try session.commit(seat: PlayerID(index: 0), move: .proposeTrade(offer))
+
+/private/tmp/empires-policy-decision-trace-20260906/Packages/CatanEngine/Tests/CatanEngineTests/PolicyTraceTests.swift:28:43: error: value of type 'GameSession' has no member 'queuedPolicyDecision'
+26 |         _ = try session.commit(seat: PlayerID(index: 0), move: .proposeTrade(offer))
+27 |         let checkpoint = session.checkpoint
+28 |         let queued = try #require(session.queuedPolicyDecision)
+   |                                           `- error: value of type 'GameSession' has no member 'queuedPolicyDecision'
+29 |         #expect(queued.evaluationIndex == 0)
+30 |         #expect(session.lastPolicyDecisions.map(\.evaluationIndex) == [1, 2])
+
+/private/tmp/empires-policy-decision-trace-20260906/Packages/CatanEngine/Tests/CatanEngineTests/PolicyTraceTests.swift:32:25: error: value of type 'GameSession' has no member 'queuedPolicyDecision'
+30 |         #expect(session.lastPolicyDecisions.map(\.evaluationIndex) == [1, 2])
+31 |         #expect(session.policyEvaluationCount == 3)
+32 |         #expect(session.queuedPolicyDecision == queued)
+   |                         `- error: value of type 'GameSession' has no member 'queuedPolicyDecision'
+33 |         #expect(session.checkpoint == checkpoint)
+34 |         #expect(session.decideNextDetailed() == queued)
+
+/private/tmp/empires-policy-decision-trace-20260906/Packages/CatanEngine/Tests/CatanEngineTests/PolicyTraceTests.swift:38:25: error: value of type 'GameSession' has no member 'queuedPolicyDecision'
+36 |         let step = try session.commit(seat: queued.seat, move: queued.move)
+37 |         #expect(step.policyTrace == queued.policyTrace)
+38 |         #expect(session.queuedPolicyDecision == nil)
+   |                         `- error: value of type 'GameSession' has no member 'queuedPolicyDecision'
+39 |         #expect(session.policyEvaluationCount == 3)
+40 |     }
+
+/private/tmp/empires-policy-decision-trace-20260906/Packages/CatanEngine/Tests/CatanEngineTests/PolicyTraceTests.swift:28:22: warning: no calls to throwing functions occur within 'try' expression
+26 |         _ = try session.commit(seat: PlayerID(index: 0), move: .proposeTrade(offer))
+27 |         let checkpoint = session.checkpoint
+28 |         let queued = try #require(session.queuedPolicyDecision)
+   |                      `- warning: no calls to throwing functions occur within 'try' expression
+29 |         #expect(queued.evaluationIndex == 0)
+30 |         #expect(session.lastPolicyDecisions.map(\.evaluationIndex) == [1, 2])
+[58/70] Compiling CatanEngineTests PolicyTraceTests.swift
+/private/tmp/empires-policy-decision-trace-20260906/Packages/CatanEngine/Tests/CatanEngineTests/PolicyTraceTests.swift:24:25: error: value of type 'GameSession' has no member 'queuedPolicyDecision'
+22 |         let policies = Dictionary(uniqueKeysWithValues: state.players.map { ($0.id, RejectingPolicy() as any Policy) })
+23 |         var session = GameSession(state: state, policies: policies, policySeed: 817)
+24 |         #expect(session.queuedPolicyDecision == nil)
+   |                         `- error: value of type 'GameSession' has no member 'queuedPolicyDecision'
+25 |         let offer = TradeOffer(from: PlayerID(index: 0), give: [.brick: 1], want: [.grain: 1])
+26 |         _ = try session.commit(seat: PlayerID(index: 0), move: .proposeTrade(offer))
+
+/private/tmp/empires-policy-decision-trace-20260906/Packages/CatanEngine/Tests/CatanEngineTests/PolicyTraceTests.swift:28:43: error: value of type 'GameSession' has no member 'queuedPolicyDecision'
+26 |         _ = try session.commit(seat: PlayerID(index: 0), move: .proposeTrade(offer))
+27 |         let checkpoint = session.checkpoint
+28 |         let queued = try #require(session.queuedPolicyDecision)
+   |                                           `- error: value of type 'GameSession' has no member 'queuedPolicyDecision'
+29 |         #expect(queued.evaluationIndex == 0)
+30 |         #expect(session.lastPolicyDecisions.map(\.evaluationIndex) == [1, 2])
+
+/private/tmp/empires-policy-decision-trace-20260906/Packages/CatanEngine/Tests/CatanEngineTests/PolicyTraceTests.swift:32:25: error: value of type 'GameSession' has no member 'queuedPolicyDecision'
+30 |         #expect(session.lastPolicyDecisions.map(\.evaluationIndex) == [1, 2])
+31 |         #expect(session.policyEvaluationCount == 3)
+32 |         #expect(session.queuedPolicyDecision == queued)
+   |                         `- error: value of type 'GameSession' has no member 'queuedPolicyDecision'
+33 |         #expect(session.checkpoint == checkpoint)
+34 |         #expect(session.decideNextDetailed() == queued)
+
+/private/tmp/empires-policy-decision-trace-20260906/Packages/CatanEngine/Tests/CatanEngineTests/PolicyTraceTests.swift:38:25: error: value of type 'GameSession' has no member 'queuedPolicyDecision'
+36 |         let step = try session.commit(seat: queued.seat, move: queued.move)
+37 |         #expect(step.policyTrace == queued.policyTrace)
+38 |         #expect(session.queuedPolicyDecision == nil)
+   |                         `- error: value of type 'GameSession' has no member 'queuedPolicyDecision'
+39 |         #expect(session.policyEvaluationCount == 3)
+40 |     }
+
+/private/tmp/empires-policy-decision-trace-20260906/Packages/CatanEngine/Tests/CatanEngineTests/PolicyTraceTests.swift:28:22: warning: no calls to throwing functions occur within 'try' expression
+26 |         _ = try session.commit(seat: PlayerID(index: 0), move: .proposeTrade(offer))
+27 |         let checkpoint = session.checkpoint
+28 |         let queued = try #require(session.queuedPolicyDecision)
+   |                      `- warning: no calls to throwing functions occur within 'try' expression
+29 |         #expect(queued.evaluationIndex == 0)
+30 |         #expect(session.lastPolicyDecisions.map(\.evaluationIndex) == [1, 2])
+[59/70] Compiling CatanEngineTests CatanEngineTests.swift
+[60/70] Compiling CatanEngineTests DeterminismTests.swift
+[61/70] Compiling CatanEngineTests BoardGenerationTests.swift
+[62/70] Compiling CatanEngineTests BuildingTests.swift
+[63/70] Compiling CatanEngineTests ActionSpaceTests.swift
+[64/70] Compiling CatanEngineTests BankTradeValidationTests.swift
+[65/70] Emitting module CatanEngineTests
+[66/70] Compiling CatanEngineTests DevCardTests.swift
+[67/70] Compiling CatanEngineTests DiceOddsTests.swift
+[68/70] Compiling CatanEngineTests WinConditionTests.swift
+error: fatalError

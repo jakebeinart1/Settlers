@@ -1,0 +1,145 @@
+{
+  "schema_version": 1,
+  "status": "completed_read_only_analysis",
+  "analyzed_at_utc": "2026-09-06T22:04:05Z",
+  "scope": "Candidate only: training seed 0 target10 checkpoint, native board seed 961131, evaluated seat 1. Saved trace and existing geometry outputs only; no policy calls, engine apply, games, builds, or source changes.",
+  "index_convention": "moveIndex, evaluationIndex and sequence are zero-based; JSONL line numbers are one-based. An evaluation's moveIndex is the next commit index; a commit's moveIndex identifies that applied move.",
+  "verdict": "The verified trajectory reaches a genuine building/piece-supply lock at nine VP, then repeatedly chooses bank trades or endTurn despite an affordable, representable development-card alternative. The saved evidence locates the proximate choice on the neural route, not a dropped action or session override. It does not establish why the model prefers those actions, nor prove an architecture, training, observation-encoding, or general engine defect.",
+  "inputs_sha256": {
+    "/tmp/empires-cap-replays-20260906/candidate.trace.jsonl": "637ce5c9c51771809ea1d5a0150471198a995122115abf950765561cd47f798e",
+    "/tmp/empires-cap-replays-20260906/candidate.verified.json": "ce704b6adfe837831978cb6a9169702e9dd224775d394861eb91fa50f51e3a80",
+    "/tmp/empires-cap-replays-20260906/candidate.audit.jsonl": "eee735ed56a33b74220b6e2f551fff5645cf415a3230aa7125ec97b6ccc04257",
+    "/tmp/empires-cap-replays-20260906/candidate.watchdog.json": "6906f0a23efe50792975e2e02fec00915b403e627098c67369dac240be8ca141",
+    "/tmp/empires-cap-replays-20260906/candidate.states.json": "a663a585bea992b49034b0310f234b6546b161df2115574889a2933da25ff658",
+    "/tmp/empires-cap-replays-20260906/candidate.geometry.json": "b258395833531a5e91bd3c27022b4d197cec2e16e626fb187628f680c68c8411",
+    "/tmp/empires-cap-replays-20260906/manifest.json": "3e64889777820bfa0aa985d956dc3c4d7993cf7d1f59f79e0df384055d51f6db",
+    "/tmp/empires-cap-state-inspector-20260906.swift": "50d0a2b56dd22557ac80f941fe09fe133dd703a8b43af127388c23d6095fcb64",
+    "/tmp/empires-target-native-seed0-20260906/candidate-seat1.jsonl": "24623871028693e9c39246070bbb7df8004c5cdd0f1f3e3e76e3576fea38ba2e",
+    "/tmp/empires-target-native-seed0-20260906/candidate-seat1.audit.jsonl": "2e8b0a72a2ac5f7d5957fe1a519e773ff50b0b78617a2a6f972aa71b23d7105b"
+  },
+  "verification": {
+    "checkpoint_sha256": "b5e4ecef685a7ebefe32969c07be4dbf18b5a3ba05aab5b857cf1902535f206e",
+    "watchdog": {"budget_seconds": 90, "started_utc": "2026-09-06T21:57:48.597420+00:00", "finished_utc": "2026-09-06T21:57:54.623764+00:00", "state": "complete", "exit_code": 0},
+    "original_result_equal_except_build_id": true,
+    "original_policy_audit_exactly_equal": true,
+    "all_manifest_artifacts_hash_match": true,
+    "manifest_source_files_checked": 64,
+    "manifest_source_files_all_hash_match": true,
+    "trace_bytes": 95819019,
+    "trace_rows": 6478,
+    "start_rows": 1,
+    "evaluation_rows": 3476,
+    "commit_rows": 3000,
+    "end_rows": 1,
+    "sequence_and_evaluation_indices_contiguous": true,
+    "unique_commit_evaluation_links": 3000,
+    "commit_actor_move_and_policy_trace_match_referenced_evaluation": true,
+    "terminal": {"reason": "moveCap", "moveIndex": 3000, "evaluationCount": 3476, "fingerprint": "4b504877db53efef", "winner": null, "victoryPoints": [6, 9, 5, 5]},
+    "geometry_inputs_exactly_match_candidate_trace_states": 1079,
+    "geometry_inspector_execution": "Produced by Main; source inspected and output/input alignment independently checked here. Inspector was not rerun."
+  },
+  "building_lock_timeline": [
+    {"commit_moveIndex": 377, "next_observed_moveIndex": 378, "event": "Third post-setup settlement built; last resource-independent settlement site consumed. Settlement-site count stays zero for every later saved candidate observation."},
+    {"commit_moveIndex": 500, "next_observed_moveIndex": 501, "event": "Road count reaches 14; longest-road length remains 9 and settlement sites remain zero."},
+    {"commit_moveIndex": 586, "next_observed_moveIndex": 587, "event": "Road count reaches the 15-piece maximum; road-site count becomes zero, longest-road length remains 9, and settlement sites remain zero."},
+    {"commit_moveIndex": 667, "next_observed_moveIndex": 668, "event": "Fourth city raises VP from 8 to 9 and exhausts city supply. Road/settlement/city site counts are all zero for all 856 later candidate observations, independently of resources."}
+  ],
+  "candidate_decisions": {
+    "total": 1079,
+    "neural": 838,
+    "heuristic": 241,
+    "fallback_reasons": {"heuristic_trade_proposal": 238, "unsupported_pre_roll_development_card": 3},
+    "session_overrides": 0,
+    "after_nine_vp": {
+      "definition": "Candidate evaluations with moveIndex greater than 667, beginning at 668.",
+      "count": 856,
+      "choices": {"bankTrade": 247, "proposeTrade": 188, "endTurn": 167, "rollDice": 166, "discard": 47, "moveRobber": 36, "buyDevCard": 3, "playKnight": 2},
+      "legal_buy_dev_card_decisions": 121,
+      "all_121_are_neural_without_session_override": true,
+      "choices_when_buy_dev_card_legal": {"bankTrade": 79, "endTurn": 39, "buyDevCard": 3},
+      "buy_dev_card_commit_indices": [2841, 2850, 2941],
+      "bank_trades_immediately_destroying_dev_card_affordability": [721, 1058, 1083, 1095, 1588, 1712, 1770, 1822, 1882, 2080, 2156, 2428, 2494, 2597, 2619, 2641, 2695, 2881, 2914],
+      "affordability_example": "At move 721/evaluation 831, ore=2, grain=1, wool=4 could pay for a development card; the neural choice exchanges all four wool for one grain. At next move 722, wool=0, buying is no longer legal, and the heuristic proposes trading brick back for wool. This is observed resource-use behavior, not a tested causal counterfactual."
+    }
+  },
+  "count_reconciliation_with_main": {
+    "overall_legal_buy_dev_card_decisions": 156,
+    "overall_choices_when_buy_dev_card_legal": {"bankTrade": 92, "endTurn": 51, "buyDevCard": 6, "buildRoad": 4, "buildSettlement": 2, "buildCity": 1},
+    "moveIndex_greater_than_or_equal_to_1500": {
+      "legal_buy_dev_card_decisions": 93,
+      "choices": {"bankTrade": 61, "endTurn": 29, "buyDevCard": 3},
+      "all_source_neural": true
+    },
+    "explanation": "Main's >=1500 window and this analysis's post-nine-VP window (>667) use different cutoffs; 93 and 121 are both correct, not inconsistent totals."
+  },
+  "bank_choice_versus_representability": {
+    "confirmed": "buyDevCard directly maps to codec slot 295; endTurn maps to 298. The adapter only excludes player trades, maps every remaining legal move, and throws on any unmapped move rather than silently dropping it. The recorded neural route therefore excludes buyDevCard omission for these observed alternatives. Bank-trade mapping separately checks a single give/get resource and the actual port rate; it does not select a build goal.",
+    "separating_witness": "At move 873 there is no legal bankTrade. The only neural roots are [295,298], and the policy selects endTurn. This cannot be explained solely by bank-trade representability or a bank-trade root masking out buying.",
+    "not_proven": "The trace contains no explicit bank/build-goal variable or logits. Wasteful resource exchanges and repeated endTurn choices support a policy-preference/resource-management problem, but do not prove a particular goal heuristic, neural architecture, or feature-encoding defect caused it."
+  },
+  "minimal_logical_witness": {
+    "status": "Saved two-neural-action decision witness, not a rerun or proven minimal full-state regression fixture.",
+    "trace_file": "/tmp/empires-cap-replays-20260906/candidate.trace.jsonl",
+    "evaluation_line": 1882,
+    "commit_line": 1883,
+    "sequence": 1881,
+    "moveIndex": 873,
+    "evaluationIndex": 1007,
+    "completedTurnCount": 253,
+    "evaluation_line_sha256_including_newline": "58bd630932810918929426da299b4aecaa1e33ab5aa0ddfe7aca632214d77a8a",
+    "state_sha256_json_sort_keys_compact_separators": "0de95f4d799677336405f711787989326d74611159a89f5e5bad348a657495e2",
+    "phase": "mainTurn playerIndex 1",
+    "points": 9,
+    "resources": {"ore": 2, "grain": 2, "wool": 3, "lumber": 1, "brick": 1},
+    "pieces": {"roads": 15, "cities": 4, "settlements": 1},
+    "geometry_sites": {"road": 0, "settlement": 0, "city": 0},
+    "ordered_nontrade_legal_moves": ["endTurn", "buyDevCard"],
+    "other_engine_legal_moves": "32 player-trade proposals; source=neural proves scheduledTrade did not return one. These are excluded from neural root scoring by the existing adapter.",
+    "neural_root_action_ids_sorted": [295, 298],
+    "original_and_effective_and_committed_move": "endTurn",
+    "source": "neural",
+    "session_override": null,
+    "next_phase": "rollDice playerIndex 2",
+    "logical_winning_alternative": "The saved full diagnostic deck starts with victoryPoint. Existing DevCards.buy removes that first card and RulesEngine immediately checks victory, so buying from this nine-VP state would reach ten. This is a source-backed logical implication, not an executed engine-apply test.",
+    "inferred_scoring_fact": "With only buyDevCard=295 and endTurn=298 in the neural root mask, the strict sorted argmax choosing 298 implies endTurn outranked buyDevCard; equal scores would choose 295. Raw logits were not recorded or recomputed.",
+    "information_limit": "The 1350-float encoder does not expose development-deck order. The diagnostic observer can identify an immediate winning purchase; this does not prove the network could know the next card was a VP card."
+  },
+  "omniscient_winning_purchase_opportunities": {
+    "meaning": "At nine VP, buyDevCard was legal and the saved deck's first card was victoryPoint; all were passed over on the neural route without overrides.",
+    "count": 29,
+    "distinct_completed_turn_counts": 13,
+    "choices": {"bankTrade": 19, "endTurn": 10},
+    "move_indices": [871, 872, 873, 881, 882, 883, 1058, 1072, 1073, 1081, 1082, 1083, 1086, 1094, 1095, 1113, 1121, 1122, 1130, 1131, 1139, 1140, 1141, 1280, 1281, 1466, 1467, 1587, 1588],
+    "caution": "Correlated observations in one trajectory, not 29 independent strength trials or 29 knowingly missed visible wins."
+  },
+  "scheduler_and_cap": {
+    "all_seats_session_overrides": 0,
+    "proposals": 238,
+    "responder_evaluations": 714,
+    "responder_seat_order_each_proposal": [0, 2, 3],
+    "all_responses_reject": true,
+    "each_proposal_followed_by_matching_rejection_on_next_commit": true,
+    "committed_rejections": 238,
+    "consulted_noncommitted_responses": 476,
+    "proposal_plus_rejection_commits": 476,
+    "interpretation": "Trades consumed 476 of the 3000 committed moves, but none was withheld or repeatedly resampled. The normal move cap, not the 25-action turn override or watchdog, ended the game. Eliminating trade overhead was not tested and cannot be claimed to make this policy win."
+  },
+  "source_evidence": [
+    {"path": "/private/tmp/empires-policy-decision-trace-20260906/Packages/CatanAI/Sources/CatanAI/UpstreamPolicy.swift", "line": 132, "supports": "Non-player-trade legal actions all enter root mapping; incomplete representation fails instead of silently dropping buyDevCard."},
+    {"path": "/private/tmp/empires-policy-decision-trace-20260906/Packages/CatanAI/Sources/CatanAI/UpstreamActions.swift", "line": 29, "supports": "buyDevCard maps directly to the development-card root; endTurn has a distinct root."},
+    {"path": "/private/tmp/empires-policy-decision-trace-20260906/Packages/CatanAI/Sources/CatanAI/UpstreamActions.swift", "line": 91, "supports": "Sorted masked argmax, finite checks, and strict tie handling."},
+    {"path": "/private/tmp/empires-policy-decision-trace-20260906/Packages/CatanAI/Sources/CatanAI/UpstreamCodec.swift", "line": 43, "supports": "buyDevelopmentCard=295 and endTurn=298."},
+    {"path": "/private/tmp/empires-policy-decision-trace-20260906/Packages/CatanEngine/Sources/CatanEngine/DevCards.swift", "line": 17, "supports": "Purchase draws the first saved deck card."},
+    {"path": "/private/tmp/empires-policy-decision-trace-20260906/Packages/CatanEngine/Sources/CatanEngine/RulesEngine.swift", "line": 354, "supports": "VP card counts immediately and purchase checks for a winner."},
+    {"path": "/private/tmp/empires-policy-decision-trace-20260906/Packages/CatanAI/Sources/CatanAI/UpstreamObservation.swift", "line": 55, "supports": "Encoder inspected through EOF: player cards are encoded, development-deck order is not."},
+    {"path": "/private/tmp/empires-policy-decision-trace-20260906/Packages/CatanEngine/Sources/CatanEngine/Building.swift", "line": 23, "supports": "15-road/4-city supply limits and resource-independent placement checks."}
+  ],
+  "limitations": [
+    "No new policies, predictions, counterfactual moves, games, or inspector executions were run during this analysis.",
+    "The witness is logically narrowed to two neural action choices while retaining a pointer to the exact full saved observation. No fields or history were experimentally removed; full-state minimality and a passing alternative are not runtime-proven.",
+    "The trace records engine observations and selected routes, not the actual 1350 encoded floats or logits. An encoding/generalization issue is not excluded; action omission and session replacement are excluded for the specific witness by the recorded route and hash-matched source.",
+    "Building lock is confirmed in all later candidate observations. Which earlier road/settlement choice should change, and whether such a change prevents the cap, were not tested.",
+    "No conclusion about target10 versus target7 training, network capacity, broader strength, or default promotion follows from this one diagnostic trajectory.",
+    "Baseline analysis remains owned by Main; no baseline trajectory was analyzed here."
+  ]
+}

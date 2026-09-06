@@ -1,0 +1,28 @@
+{
+  "budget_seconds": 180.0,
+  "started_epoch": 1788728710.615475,
+  "started_elapsed": 269495.439128958,
+  "started_utc": "2026-09-06T21:05:10.615475+00:00",
+  "deadline_epoch": 1788728890.615475,
+  "deadline_utc": "2026-09-06T21:08:10.615475+00:00",
+  "state": "complete",
+  "command": [
+    "swift",
+    "test",
+    "--package-path",
+    "Packages/CatanEngine",
+    "--filter",
+    "PolicyTraceTests"
+  ],
+  "watchdog_pid": 76629,
+  "watchdog_identity": null,
+  "boot_identity": "unavailable",
+  "watchdog_sha256": "0fe5997a05c2982988aab889c766df200e292250b3f2b674c557918065857ad0",
+  "process_group": 76639,
+  "process_identity": null,
+  "remaining_seconds": 175.95729684829712,
+  "checked_epoch": 1788728714.6581829,
+  "checked_utc": "2026-09-06T21:05:14.658183+00:00",
+  "exit_code": 0,
+  "finished_utc": "2026-09-06T21:05:14.658426+00:00"
+}

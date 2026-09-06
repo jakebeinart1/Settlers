@@ -1,0 +1,25 @@
+{
+  "budget_seconds": 30.0,
+  "started_epoch": 1788731859.503246,
+  "started_elapsed": 270598.83627425,
+  "started_utc": "2026-09-06T21:57:39.503246+00:00",
+  "deadline_epoch": 1788731889.503246,
+  "deadline_utc": "2026-09-06T21:58:09.503246+00:00",
+  "state": "complete",
+  "command": [
+    "python3",
+    "-c",
+    "import ast, pathlib, runpy, struct; path = pathlib.Path(\"scripts/tests/test_sim_cli.py\"); source = path.read_text(); compile(source, str(path), \"exec\"); scope = runpy.run_path(str(path)); tree = ast.parse(source); method = next(node for node in ast.walk(tree) if isinstance(node, ast.FunctionDef) and node.name == \"test_decision_trace_actual_3000_move_cap_without_training_labels\"); body = method.body[0].body; statements = [node for node in body if (isinstance(node, ast.Assign) and any(isinstance(target, ast.Name) and target.id == \"model\" for target in node.targets)) or (isinstance(node, ast.Expr) and isinstance(node.value, ast.Call) and isinstance(node.value.func, ast.Attribute) and node.value.func.attr == \"pack_into\")]; exec(compile(ast.Module(body=statements, type_ignores=[]), str(path), \"exec\"), scope); expected = bytearray(struct.pack(\"<4s4I\", b\"CTNN\", 1, 1350, 299, 512) + bytes(scope[\"BUNDLED_MODEL\"].stat().st_size - 20)); offset = 20 + 4 * (512 * 1350 + 512 + 512 * 512 + 512 + 299 * 512); struct.pack_into(\"<f\", expected, offset + 298 * 4, 100.0); same = scope[\"model\"] == expected; print(\"Actual fixture expression byte-equivalence:\", same, \"bytes:\", len(expected)); raise SystemExit(0 if same else 1)"
+  ],
+  "watchdog_pid": 73216,
+  "watchdog_identity": null,
+  "boot_identity": "unavailable",
+  "watchdog_sha256": "0fe5997a05c2982988aab889c766df200e292250b3f2b674c557918065857ad0",
+  "process_group": 73242,
+  "process_identity": null,
+  "remaining_seconds": 28.991232709027827,
+  "checked_epoch": 1788731860.512022,
+  "checked_utc": "2026-09-06T21:57:40.512022+00:00",
+  "exit_code": 0,
+  "finished_utc": "2026-09-06T21:57:40.512251+00:00"
+}

@@ -1,0 +1,56 @@
+test_decision_trace_preserves_stdout_and_orders_every_evaluation (test_sim_cli.SimulatorConfigurationTests.test_decision_trace_preserves_stdout_and_orders_every_evaluation) ... FAIL
+
+======================================================================
+FAIL: test_decision_trace_preserves_stdout_and_orders_every_evaluation (test_sim_cli.SimulatorConfigurationTests.test_decision_trace_preserves_stdout_and_orders_every_evaluation)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/private/tmp/empires-policy-decision-trace-20260906/scripts/tests/test_sim_cli.py", line 338, in test_decision_trace_preserves_stdout_and_orders_every_evaluation
+    self.assertEqual(traced.returncode, 0, traced.stderr)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 2 != 0 : sim: unknown argument '--decision-trace-jsonl'
+usage: sim [--games N] [--seed S] [--players 3|4] [--victory-points 8|10|12]
+           [--board standard|randomized] [--seats LIST] [--build-id ID] [--jsonl]
+           [--training-jsonl PATH] [--policy-audit-jsonl PATH]
+           [--training-information reveal-all|public-counts]
+           [--neural-checkpoint PATH --neural-checkpoint-id ID]
+       sim --list-policies [--neural-checkpoint PATH --neural-checkpoint-id ID]
+  --games N     number of consecutive seeds to play (default 1)
+  --seed S      first match seed; seeds S ..< S+N are played (default 1)
+  --players N   seats at the table: 3 or 4 (default 4)
+  --victory-points N
+                points required to win: 8, 10 or 12 (default 10)
+  --board MODE  standard fixed layout or seeded randomized layout
+                (default randomized)
+  --seats LIST  comma-separated policy names, exactly one per player
+                heuristics: balanced, aggressive, cautious
+                anchors:    greedy, random
+                hybrid:     neural-r2 (bundled model, balanced heuristic trading;
+                            all hands visible, experimental)
+                            neural-checkpoint (only with both checkpoint flags)
+                (four-seat default balanced,aggressive,cautious,balanced;
+                a three-seat run uses the first three)
+                --personalities is accepted as an alias
+  --build-id ID provenance label written into every result
+                (default working-tree; letters, digits, dot, dash, underscore)
+  --jsonl       one JSON object per game on stdout; without it, a text table
+  --list-policies
+                JSON object: seat name -> actual policy ID; runs no games;
+                accepts only checkpoint options, validates available models
+  --neural-checkpoint PATH --neural-checkpoint-id ID
+                enable a compatible external CTNN, with the same hybrid adapter;
+                ID is caller-supplied provenance, NOT a runtime checksum;
+                caller must verify SHA-256 and freeze bytes before evaluation;
+                ID allows ASCII letters, digits, dot, dash and underscore
+  --training-jsonl PATH
+                write one versioned masked policy/value example per decision
+  --policy-audit-jsonl PATH
+                exclusively create a route-count sidecar, one JSON row per game;
+                retains completed rows on failure, not network inference counts
+  --training-information MODE
+                opponent holdings in training features (default reveal-all)
+
+
+----------------------------------------------------------------------
+Ran 1 test in 14.968s
+
+FAILED (failures=1)

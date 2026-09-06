@@ -1,0 +1,26 @@
+{
+  "baseline": {
+    "all_commit_links_match": true,
+    "all_game_fields_except_build_id_match": true,
+    "row_counts": {
+      "commit": 3000,
+      "end": 1,
+      "evaluation": 3614,
+      "start": 1
+    },
+    "rows": 6616,
+    "sha256": "aa7654b4f48f7627927d832003bac2ed674c0d061eb7bb09381d080559186a54"
+  },
+  "candidate": {
+    "all_commit_links_match": true,
+    "all_game_fields_except_build_id_match": true,
+    "row_counts": {
+      "commit": 3000,
+      "end": 1,
+      "evaluation": 3476,
+      "start": 1
+    },
+    "rows": 6478,
+    "sha256": "637ce5c9c51771809ea1d5a0150471198a995122115abf950765561cd47f798e"
+  }
+}

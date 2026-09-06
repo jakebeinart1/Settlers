@@ -1,0 +1,6 @@
+test_decision_trace_preserves_stdout_and_orders_every_evaluation (test_sim_cli.SimulatorConfigurationTests.test_decision_trace_preserves_stdout_and_orders_every_evaluation) ... ok
+
+----------------------------------------------------------------------
+Ran 1 test in 4.504s
+
+OK
