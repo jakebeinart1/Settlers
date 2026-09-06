@@ -1,0 +1,136 @@
+{
+  "status": "passed",
+  "purpose": "Single bounded Release cross-check after constants-only refactor; functional evidence, not a strength claim.",
+  "command": [
+    "swift",
+    "test",
+    "--package-path",
+    "Packages/CatanAI",
+    "-c",
+    "release",
+    "--filter",
+    "UpstreamGameCompletionTests"
+  ],
+  "watchdogCommand": [
+    "python3",
+    "scripts/training_watchdog.py",
+    "run",
+    "--output",
+    "docs/AI_summaries/evidence/neural-integration-20260906/final-source-crosscheck",
+    "--seconds",
+    "900",
+    "--",
+    "swift",
+    "test",
+    "--package-path",
+    "Packages/CatanAI",
+    "-c",
+    "release",
+    "--filter",
+    "UpstreamGameCompletionTests"
+  ],
+  "runCount": 1,
+  "exitCode": 0,
+  "bounds": {
+    "outerDeadlineSeconds": 900,
+    "suiteLimitSeconds": 720,
+    "perGameWallSeconds": 45,
+    "perGameActions": 3000
+  },
+  "matrix": [
+    {
+      "players": 3,
+      "targets": [
+        8,
+        10,
+        12
+      ]
+    },
+    {
+      "players": 4,
+      "targets": [
+        8,
+        10
+      ]
+    }
+  ],
+  "seeds": [
+    101,
+    202,
+    303
+  ],
+  "games": 15,
+  "completed": 15,
+  "actionCaps": 0,
+  "wallClockCaps": 0,
+  "failures": [],
+  "maxActions": 621,
+  "totals": {
+    "actions": 5907,
+    "evaluations": 6679,
+    "illegalSelections": 0,
+    "missingTraces": 0,
+    "sources": {
+      "heuristic": 2465,
+      "neural": 4214
+    },
+    "fallbacks": {
+      "heuristic_trade_proposal": 796,
+      "player_trade_negotiation": 1568,
+      "unsupported_pre_roll_development_card": 101
+    },
+    "statuses": {
+      "completed": 15
+    },
+    "overrides": {}
+  },
+  "unexpectedFallbackReasons": {},
+  "suiteElapsedSeconds": 4.717,
+  "comparison": {
+    "baseline": "full-game-results.jsonl",
+    "actual": "final-source-crosscheck.results.jsonl",
+    "excludedFields": [
+      "elapsedSeconds"
+    ],
+    "allOtherFieldsCompared": true,
+    "rowOrderPreserved": true,
+    "matchedRows": 15,
+    "differences": [],
+    "normalizedByteCompareExitCode": 0,
+    "normalizedResultsSHA256": "bfc13aad10b70d8365e63812db84a3bcffd0aedc6e510f5e049cf0582581ae9e"
+  },
+  "provenance": {
+    "gitHeadAtStart": "eb615067132915b525ad495295cb5bdf9dbdc94d",
+    "workingTree": "Contains concurrent uncommitted changes; hashes, not HEAD alone, identify tested source.",
+    "swift": "Apple Swift version 6.3.2 (swiftlang-6.3.2.1.108 clang-2100.1.1.101)",
+    "host": "Darwin arm64",
+    "sourceHashCount": 113,
+    "sourceHashScope": [
+      "Packages/CatanAI/Sources/**",
+      "Packages/CatanEngine/Sources/**",
+      "Packages/CatanAI/Tests/**",
+      "Packages/CatanEngine/Tests/**",
+      "Packages/CatanAI/Package.swift",
+      "Packages/CatanEngine/Package.swift",
+      "scripts/training_watchdog.py"
+    ],
+    "sourceHashesUnchanged": true,
+    "sourceManifestSHA256": "79de03ee59e693c05f67b2d2e2d435c7bd616ee5ae234b895bf97b68711790db",
+    "policyTraceEvaluationIndex": "Int? present before and after run",
+    "testBinary": "Packages/CatanAI/.build/release/CatanAIPackageTests.xctest/Contents/MacOS/CatanAIPackageTests",
+    "testBinarySHA256": "accf66d20304bc53e64f79e10dba7a7fe9c628e0e0944d57c03214f4e1909b2f"
+  },
+  "artifacts": {
+    "rawResults": "final-source-crosscheck.raw-results.jsonl",
+    "normalizedResults": "final-source-crosscheck.results.jsonl",
+    "rawLog": "final-source-crosscheck.launcher.log",
+    "watchdogReceipt": "final-source-crosscheck.watchdog.json",
+    "sourceBefore": "final-source-crosscheck.source-before.sha256",
+    "sourceAfter": "final-source-crosscheck.source-after.sha256"
+  },
+  "limitations": [
+    "No app build, app gate, UI validation, training, or strength evaluation.",
+    "No clean build or rerun: SwiftPM checked incremental Release build and the single focused suite ran once.",
+    "Only additional evidence files were created by this cross-check; implementation and test source were not edited."
+  ]
+}
