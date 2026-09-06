@@ -3,6 +3,8 @@ import CatanEngine
 /// Private sequential choices override context without committing a partial move.
 /// Numeric phases are the frozen upstream v1 enum values, not Empires enum order.
 public struct UpstreamDecisionContext: Sendable {
+    private typealias GamePhase = UpstreamCodec.GamePhase
+    private typealias TurnPhase = UpstreamCodec.TurnPhase
     public var gamePhase: Int
     public var turnPhase: Int
     public var turnOwner: PlayerID
@@ -17,18 +19,19 @@ public struct UpstreamDecisionContext: Sendable {
         // throughout setup. This feature is not the actor whose mask we score.
         switch state.phase {
         case .setupForward:
-            gamePhase = 0; turnPhase = 1; turnOwner = PlayerID(index: 0)
+            gamePhase = GamePhase.setupForward; turnPhase = TurnPhase.rollDice; turnOwner = PlayerID(index: 0)
         case .setupBackward:
-            gamePhase = 1; turnPhase = 1; turnOwner = PlayerID(index: 0)
+            gamePhase = GamePhase.setupBackward; turnPhase = TurnPhase.rollDice; turnOwner = PlayerID(index: 0)
         case .rollDice:
-            gamePhase = 2; turnPhase = state.devCardPlayedThisTurn == nil ? 0 : 1
-        case .mainTurn: gamePhase = 2; turnPhase = 5; hasRolled = true
+            gamePhase = GamePhase.playing
+            turnPhase = state.devCardPlayedThisTurn == nil ? TurnPhase.beforeRoll : TurnPhase.rollDice
+        case .mainTurn: gamePhase = GamePhase.playing; turnPhase = TurnPhase.mainTurn; hasRolled = true
         case .discarding:
-            gamePhase = 2; turnPhase = 2; hasRolled = true
+            gamePhase = GamePhase.playing; turnPhase = TurnPhase.discarding; hasRolled = true
             turnOwner = PlayerID(index: state.robberMoverIndex ?? seat.index)
             discardsRemaining = state.players[seat.index].resources.values.reduce(0, +) / 2
-        case .movingRobber: gamePhase = 2; turnPhase = 3; hasRolled = true
-        case .gameOver: gamePhase = 3; turnPhase = 5; hasRolled = true
+        case .movingRobber: gamePhase = GamePhase.playing; turnPhase = TurnPhase.movingRobber; hasRolled = true
+        case .gameOver: gamePhase = GamePhase.finished; turnPhase = TurnPhase.mainTurn; hasRolled = true
         }
     }
 }
@@ -40,7 +43,7 @@ public struct UpstreamDecisionContext: Sendable {
 /// never compressed into the upstream single-offer representation.
 public enum UpstreamObservation {
     public static let count = 1_350
-    public static let resources: [Resource] = [.grain, .wool, .lumber, .brick, .ore]
+    public static let resources = UpstreamCodec.resources
     public static let cards: [DevCardType] = [.knight, .victoryPoint, .roadBuilding, .yearOfPlenty, .monopoly]
     public enum EncodingError: Error { case unknownTurnHistory, invalidSeat, invalidContext }
 
@@ -51,7 +54,8 @@ public enum UpstreamObservation {
         }
         guard let turn = state.completedTurnCount else { throw EncodingError.unknownTurnHistory }
         let context = supplied ?? UpstreamDecisionContext(state: state, seat: seat)
-        guard (0..<4).contains(context.gamePhase), (0..<9).contains(context.turnPhase),
+        guard UpstreamCodec.GamePhase.validRange.contains(context.gamePhase),
+              UpstreamCodec.TurnPhase.validRange.contains(context.turnPhase),
               state.players.indices.contains(context.turnOwner.index) else { throw EncodingError.invalidContext }
         let layout = try UpstreamBoardLayout(board: state.board)
         var out = [Float](repeating: 0, count: count)
@@ -154,7 +158,7 @@ public enum UpstreamObservation {
     private static func encodeContext(_ state: GameState, turn: Int, context: UpstreamDecisionContext, out: inout [Float]) {
         let base = 1_314
         out[base + context.gamePhase] = 1
-        if context.gamePhase == 2 { out[base + 4 + context.turnPhase] = 1 }
+        if context.gamePhase == UpstreamCodec.GamePhase.playing { out[base + 4 + context.turnPhase] = 1 }
         out[base + 13] = Float(state.lastDiceRoll ?? 0) / 12
         out[base + 14] = context.hasRolled ? 1 : 0
         out[base + 15] = Float(turn) / 1_000

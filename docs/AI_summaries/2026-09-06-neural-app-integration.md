@@ -94,7 +94,57 @@ parent checkpoint and MIT notice live with the shipped resource in
   A native iPhone SE UI test tapped the explanation, checked its contents,
   dismissed it and verified Turn Order / Start remain reachable. In-game
   settings at 402pt shows the actual saved policy mode and existing controls.
-- Full quality gate and delivery remain pending; no release claim yet.
+- Initial full quality gate passed: 234 engine tests, 145 AI tests, 257
+  hosted app tests plus native UI flows; Release and Debug builds passed.
+  Coverage was 95.97% engine / 96.66% AI. This run preceded the final review
+  fixes; the final pre-push gate must independently cover those changes.
+- Review fixes: 22 focused Release adapter/oracle tests pass after extracting
+  frozen codec constants. Seven hosted provenance tests pass, including actual
+  human-offer rejection, acceptance after reload, human cancellation, and
+  resource-unavailable cleanup. Logging preserves both RNG streams and the
+  policy evaluation counter. External negotiations have no invented index.
+- Build 5 delivery remains pending; no phone/TestFlight release claim yet.
+
+## Final review
+
+Reviewed against `c6117d51c263ded9a87dff6ab32e868d70f8ada7`, using this
+acceptance document and the repository's coding rules. Standards and Spec
+were reviewed independently; the missing issue-tracker setup did not replace
+the concrete local specification with an invented issue.
+
+### Standards
+
+- Fixed: action offsets and phase ordinals now live in the frozen
+  `UpstreamCodec` contract. Observation and action translation share one
+  resource ordering. Numeric values and public Int-based interfaces are
+  unchanged; the Rust oracle and policy/RNG tests still pass.
+
+### Spec
+
+- Fixed: responses to human-initiated trade proposals bypass policy selection
+  intentionally, but previously lost that provenance. They now record the
+  already-computed app trade heuristic answer through checkpoint and export.
+  Human cancellation and resource cleanup preserve the original acceptance
+  with an explicit override; they are not mislabeled AI rejections. Human
+  actions remain untraced, and no policy is evaluated again for logging.
+- Pending external verification: signed Build 5 delivery and tester access.
+  These are not inferred from the successful simulator gates.
+
+## Build 5 signing
+
+The new SwiftPM model resource bundle exposed a release-workflow issue:
+passing the app's provisioning profile globally also assigns it to the
+resource target, which cannot accept an app profile. `project.yml` now maps
+`SETTLERS_PROVISIONING_PROFILE` only on the app target. Jake's committed
+team/bundle defaults and Alex's gitignored override are unchanged.
+
+Use the existing distribution identity, with `CODE_SIGN_STYLE=Manual`,
+`DEVELOPMENT_TEAM=HXB9F28LHR`, and
+`SETTLERS_PROVISIONING_PROFILE='Empires App Store'` for the archive. Do not
+pass `PROVISIONING_PROFILE_SPECIFIER` globally. Normal development keeps
+Automatic signing and an unset explicit profile. At the recorded attempt,
+macOS requested access to the existing signing key; no certificate was
+created, revoked, or exported, and no upload occurred.
 
 ## Following work, in order
 

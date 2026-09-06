@@ -5,6 +5,8 @@ import CatanEngine
 /// Swift requires both Road Building roads and complete Knight resolution even
 /// when upstream would already have declared victory between those choices.
 struct UpstreamCompounds {
+    private typealias Action = UpstreamCodec.Action
+    private typealias TurnPhase = UpstreamCodec.TurnPhase
     let observation: GameObservation
     let layout: UpstreamBoardLayout
     let scorer: UpstreamActionScorer
@@ -12,11 +14,11 @@ struct UpstreamCompounds {
     func resolve(root: Int, candidates: [GameMove]) throws -> GameMove {
         if root == UpstreamActions.roadBuilding { return try roads(candidates) }
         if root == UpstreamActions.knight { return try robber(candidates, knight: true) }
-        if (180..<199).contains(root) { return try robber(candidates, knight: false) }
+        if Action.robberTiles.contains(root) { return try robber(candidates, knight: false) }
         guard let first = candidates.first else { throw UpstreamActionScorer.ScoringError.incompleteCompound }
         // For Year of Plenty prefer canonical upstream resource order. When a
         // caller offers only the reverse ordering, return that exact legal move.
-        if (213..<228).contains(root) {
+        if Action.yearOfPlenty.contains(root) {
             return candidates.first {
                 guard case .playYearOfPlenty(let a, let b) = $0 else { return false }
                 return UpstreamActions.resourceIndex(a) <= UpstreamActions.resourceIndex(b)
@@ -29,12 +31,12 @@ struct UpstreamCompounds {
         var state = observation.state
         try consume(.roadBuilding, state: &state)
         var context = UpstreamDecisionContext(state: state, seat: observation.seat)
-        context.turnPhase = 6
+        context.turnPhase = TurnPhase.roadBuilding
         context.roadsToPlace = 2
         let firstIDs = candidates.compactMap { roadID($0, second: false) }
         let firstID = try scorer.choose(firstIDs, state: state, seat: observation.seat, context: context)
         let remaining = candidates.filter { roadID($0, second: false) == firstID }
-        let edge = layout.edges[firstID - 108]
+        let edge = layout.edges[firstID - Action.roadOffset]
         state.players[observation.seat.index].roads.insert(edge)
         state.longestRoadPlayer = LongestRoad.compute(for: state)
         context.roadsToPlace = 1
@@ -59,12 +61,12 @@ struct UpstreamCompounds {
             updateLargestArmy(state: &state)
         }
         var context = UpstreamDecisionContext(state: state, seat: observation.seat)
-        context.turnPhase = 3
+        context.turnPhase = TurnPhase.movingRobber
         let tileID = try scorer.choose(candidates.compactMap { robberTileID($0) },
                                        state: state, seat: observation.seat, context: context)
         let remaining = candidates.filter { robberTileID($0) == tileID }
-        state.board.robberTile = layout.tiles[tileID - 180]
-        context.turnPhase = 4
+        state.board.robberTile = layout.tiles[tileID - Action.robberTiles.lowerBound]
+        context.turnPhase = TurnPhase.choosingVictim
         let victimID = try scorer.choose(remaining.compactMap { robberVictimID($0) },
                                          state: state, seat: observation.seat, context: context)
         guard let move = remaining.first(where: { robberVictimID($0) == victimID }) else {
@@ -106,10 +108,10 @@ struct UpstreamCompounds {
         var chosen: [Resource: Int] = [:]
         while context.discardsRemaining > 0 {
             let allowed = UpstreamActions.resources.enumerated().compactMap { index, resource in
-                candidates.contains { $0[resource, default: 0] > chosen[resource, default: 0] } ? 203 + index : nil
+                candidates.contains { $0[resource, default: 0] > chosen[resource, default: 0] } ? Action.discardOffset + index : nil
             }
             let id = try scorer.choose(allowed, state: state, seat: observation.seat, context: context)
-            let resource = UpstreamActions.resources[id - 203]
+            let resource = UpstreamActions.resources[id - Action.discardOffset]
             chosen[resource, default: 0] += 1
             state.players[observation.seat.index].resources[resource, default: 0] -= 1
             state.bank[resource, default: 0] += 1

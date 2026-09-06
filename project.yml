@@ -47,7 +47,11 @@ targets:
         TARGETED_DEVICE_FAMILY: "1"
         SUPPORTS_MACCATALYST: false
         DEVELOPMENT_TEAM: $(SETTLERS_DEVELOPMENT_TEAM)
+        # Archive overrides must affect the app only. A global provisioning
+        # profile also reaches SwiftPM's model resource bundle, which cannot
+        # accept an app profile. Unset profile + Automatic preserve local dev.
         CODE_SIGN_STYLE: Automatic
+        PROVISIONING_PROFILE_SPECIFIER: $(SETTLERS_PROVISIONING_PROFILE)
     configFiles:
       Debug: Settlers/Signing.xcconfig
       Release: Settlers/Signing.xcconfig

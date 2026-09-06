@@ -4,46 +4,47 @@ import CatanEngine
 /// Board slots come exclusively from the shared upstream layout. A nil mapping
 /// means this profile cannot represent the move; it is never an end-turn alias.
 enum UpstreamActions {
-    static let count = 299
-    static let knight = 296
-    static let roadBuilding = 297
-    static let resources: [Resource] = [.grain, .wool, .lumber, .brick, .ore]
+    private typealias Action = UpstreamCodec.Action
+    static let count = UpstreamCodec.Action.count
+    static let knight = UpstreamCodec.Action.knight
+    static let roadBuilding = UpstreamCodec.Action.roadBuilding
+    static let resources = UpstreamCodec.resources
 
     static func root(_ move: GameMove, layout: UpstreamBoardLayout, state: GameState) -> Int? {
         switch move {
         case .placeInitialSettlement(let vertex), .buildSettlement(let vertex):
             return layout.vertices.firstIndex(of: vertex)
-        case .buildCity(let vertex): return layout.vertices.firstIndex(of: vertex).map { 54 + $0 }
+        case .buildCity(let vertex): return layout.vertices.firstIndex(of: vertex).map { Action.cityOffset + $0 }
         case .placeInitialRoad(let edge), .buildRoad(let edge): return road(edge, layout: layout)
         case .moveRobber(let tile, _): return robber(tile, layout: layout)
         case .playKnight: return knight
         case .playRoadBuilding: return roadBuilding
-        case .playMonopoly(let resource): return 208 + resourceIndex(resource)
+        case .playMonopoly(let resource): return Action.monopolyOffset + resourceIndex(resource)
         case .playYearOfPlenty(let first, let second):
             let low = min(resourceIndex(first), resourceIndex(second))
             let high = max(resourceIndex(first), resourceIndex(second))
-            return 213 + low * (11 - low) / 2 + high - low
+            return Action.yearOfPlenty.lowerBound + low * (11 - low) / 2 + high - low
         case .bankTrade(let give, let get): return bankTrade(give: give, get: get, state: state)
-        case .rollDice: return 294
-        case .buyDevCard: return 295
-        case .endTurn: return 298
+        case .rollDice: return Action.rollDice
+        case .buyDevCard: return Action.buyDevelopmentCard
+        case .endTurn: return Action.endTurn
         case .discard, .proposeTrade, .respondToTrade: return nil
         }
     }
 
     static func road(_ edge: EdgeID, layout: UpstreamBoardLayout) -> Int? {
-        layout.edges.firstIndex(of: edge).map { 108 + $0 }
+        layout.edges.firstIndex(of: edge).map { Action.roadOffset + $0 }
     }
 
     static func robber(_ tile: HexCoordinate, layout: UpstreamBoardLayout) -> Int? {
-        layout.tiles.firstIndex(of: tile).map { 180 + $0 }
+        layout.tiles.firstIndex(of: tile).map { Action.robberTiles.lowerBound + $0 }
     }
 
     static func victim(_ victim: PlayerID?, seat: PlayerID, playerCount: Int) -> Int? {
-        guard let victim else { return 202 }
+        guard let victim else { return Action.noVictim }
         guard (0..<playerCount).contains(victim.index), victim != seat else { return nil }
         let relative = (victim.index + playerCount - seat.index) % playerCount
-        return 198 + relative
+        return Action.victimRelativeOffset + relative
     }
 
     static func resourceIndex(_ resource: Resource) -> Int {
@@ -72,7 +73,7 @@ enum UpstreamActions {
         guard offered.value == rate else { return nil }
         let from = resourceIndex(offered.key)
         let to = resourceIndex(received.key)
-        return 228 + from * 4 + (to < from ? to : to - 1)
+        return Action.bankTradeOffset + from * 4 + (to < from ? to : to - 1)
     }
 }
 

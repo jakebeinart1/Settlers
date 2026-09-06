@@ -16,12 +16,14 @@ public struct PolicySelection: Codable, Equatable, Sendable {
 /// Compact durable provenance. Unlike GameSession.Decision this does not copy
 /// the whole observation into every move of a phone's recording.
 public struct PolicyTrace: Codable, Equatable, Sendable {
-    public let evaluationIndex: Int
+    /// Only selections evaluated by GameSession have a cursor index. An app
+    /// negotiation records its existing result without inventing an evaluation.
+    public let evaluationIndex: Int?
     public let policyID: String
     public let selection: PolicySelection
     public let sessionOverride: String?
 
-    public init(evaluationIndex: Int, policyID: String, selection: PolicySelection, sessionOverride: String? = nil) {
+    public init(evaluationIndex: Int?, policyID: String, selection: PolicySelection, sessionOverride: String? = nil) {
         self.evaluationIndex = evaluationIndex
         self.policyID = policyID
         self.selection = selection

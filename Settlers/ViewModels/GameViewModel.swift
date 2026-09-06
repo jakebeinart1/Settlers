@@ -478,11 +478,13 @@ public final class GameViewModel {
 
     /// Human and automatic trade responses use the same candidate-session
     /// commit as policy moves. Neither events nor UI state escape before disk.
-    private func applyLogged(_ move: GameMove, by player: PlayerID) throws {
+    private func applyLogged(_ move: GameMove, by player: PlayerID, policyTrace: PolicyTrace? = nil) throws {
         if let message = savedGameAvailability.recoveryMessage { throw SavedGameRecoveryError.blocked(message) }
         var candidate = session
         let step = try candidate.applyExternal(move, by: player)
-        try commitStep(step, candidate: candidate)
+        let tracedStep = GameSession.Step(actor: step.actor, move: step.move, events: step.events,
+            privateEvents: step.privateEvents, policyTrace: policyTrace)
+        try commitStep(tracedStep, candidate: candidate)
     }
 
     private func commitStep(_ step: GameSession.Step, candidate: GameSession) throws {
@@ -828,28 +830,14 @@ public final class GameViewModel {
     private func resolveHumanProposedTrade(_ offer: TradeOffer) throws {
         var decisions: [(bot: PlayerID, accepted: Bool, message: String)] = []
         var firstAccepter: PlayerID?
-        // Every *other* seat, not `1..<state.players.count` - that range
-        // silently assumed the human always sits in seat 0, which
-        // `startNewGame(randomizeSeat: true)` breaks (`humanPlayer` can be
-        // any of seats 0-3). With the human elsewhere, the old range
-        // evaluated the human's own seat as if it were a bot deciding on
-        // their own proposal (showing the human's own name in the
-        // confirmation banner) and skipped whichever real bot sat in seat
-        // 0 entirely.
+        // Filter by controller, never by seat number: randomized chairs once
+        // made the human evaluate their own offer while omitting the bot in
+        // seat zero. Hot-seat tables may have several human seats to exclude.
         for bot in state.players.map(\.id) where !humanSeats.contains(bot) {
-            // `TradeHeuristics.evaluate` only judges whether the offer is a
-            // *good deal* for the bot - it has no idea whether the bot
-            // actually holds enough of `offer.want` to go through with it,
-            // so a bot could "accept" cards it doesn't have. Confirming
-            // that (correctly) then failed inside `Trading.respond`'s own
-            // affordability check, but by then the pending-confirmation
-            // banner had already told the human this bot would accept -
-            // intermittent (only bit when the bot happened to be short on
-            // whatever was asked for), and looked like the trade just
-            // silently didn't happen. Checking affordability here, before
-            // ever offering the bot as a candidate, keeps the accepting
-            // bots truthful to what `confirmPendingTrade()` can actually
-            // deliver.
+            // The heuristic values the deal but does not check holdings.
+            // Gate affordability before promising acceptance; otherwise the
+            // confirmation banner can offer a trade that Trading.respond
+            // correctly rejects because the bot lacks the requested cards.
             guard let botPlayer = state.players.first(where: { $0.id == bot }),
                   offer.want.allSatisfy({ resource, amount in (botPlayer.resources[resource] ?? 0) >= amount }) else {
                 decisions.append((bot, false, tradeResponseMessage(for: bot, offerID: offer.id, accepted: false)))
@@ -867,18 +855,12 @@ public final class GameViewModel {
             lastTradeOutcome = nil
         } else {
             pendingTradeConfirmation = nil
-            // Withdraw the now-universally-rejected offer on any bot's
-            // behalf, since a bot's own legal `.respondToTrade(accept:
-            // false)` is what actually removes it from
-            // `pendingTradeOffers` - `decisions.first?.bot` rather than the
-            // old hardcoded `PlayerID(index: 1)`, which broke identically to
-            // the loop above whenever the human sat in seat 1
-            // (`randomizeSeat`): `Trading.respond` requires `responder !=
-            // offer.from`, so applying as the human (`== offer.from`) threw,
-            // `try?` swallowed it, and the offer was left stuck in
-            // `pendingTradeOffers` forever.
+            // A legal bot rejection removes the universally rejected offer.
+            // Use an actual responder, not a fixed chair: the proposer cannot
+            // reject their own offer, which once left randomized-seat trades stuck.
             if let anyBot = decisions.first?.bot {
-                try applyLogged(.respondToTrade(offerID: offer.id, accept: false), by: anyBot)
+                try applyLogged(.respondToTrade(offerID: offer.id, accept: false), by: anyBot,
+                    policyTrace: humanTradeResponseTrace(offerID: offer.id, bot: anyBot, accepted: false))
             }
             lastTradeOutcome = TradeOutcome(decisions: decisions, acceptedBy: nil)
         }
@@ -945,7 +927,8 @@ public final class GameViewModel {
             return .offerNoLongerAvailable
         }
         do {
-            try applyLogged(.respondToTrade(offerID: pending.offerID, accept: true), by: pending.selectedBot)
+            try applyLogged(.respondToTrade(offerID: pending.offerID, accept: true), by: pending.selectedBot,
+                policyTrace: humanTradeResponseTrace(offerID: pending.offerID, bot: pending.selectedBot, accepted: true))
         } catch is MatchPersistenceFailure {
             return .persistenceFailed
         } catch {
@@ -954,7 +937,9 @@ public final class GameViewModel {
             // confirm it with - same "reject" applied `declinePendingTrade`
             // uses.
             do {
-                try applyLogged(.respondToTrade(offerID: pending.offerID, accept: false), by: pending.selectedBot)
+                try applyLogged(.respondToTrade(offerID: pending.offerID, accept: false), by: pending.selectedBot,
+                    policyTrace: humanTradeResponseTrace(offerID: pending.offerID, bot: pending.selectedBot,
+                        accepted: true, sessionOverride: "resourcesNoLongerAvailable"))
             } catch {
                 return .persistenceFailed
             }
@@ -981,7 +966,9 @@ public final class GameViewModel {
             return
         }
         do {
-            try applyLogged(.respondToTrade(offerID: pending.offerID, accept: false), by: pending.selectedBot)
+            try applyLogged(.respondToTrade(offerID: pending.offerID, accept: false), by: pending.selectedBot,
+                policyTrace: humanTradeResponseTrace(offerID: pending.offerID, bot: pending.selectedBot,
+                    accepted: true, sessionOverride: "humanCancelledTrade"))
             pendingTradeConfirmation = nil
             lastTradeOutcome = TradeOutcome(decisions: pending.decisions, acceptedBy: nil)
         } catch {
@@ -1181,6 +1168,20 @@ public final class GameViewModel {
 }
 
 public extension GameViewModel {
+    /// Records the affordability-gated trade heuristic's already-known answer,
+    /// not a call to the configured neural policy. A human/cleanup override
+    /// retains that answer even when the applied move withdraws the offer.
+    private func humanTradeResponseTrace(offerID: UUID, bot: PlayerID, accepted: Bool,
+                                         sessionOverride: String? = nil) -> PolicyTrace {
+        guard let profile = opponentProfiles[bot] else {
+            preconditionFailure("An automated trade response requires a saved opponent profile")
+        }
+        return PolicyTrace(evaluationIndex: nil, policyID: "app-trade-heuristic-\(profile.strategy.rawValue)",
+            selection: PolicySelection(move: .respondToTrade(offerID: offerID, accept: accepted),
+                source: "app_trade_heuristic", fallbackReason: "player_trade_negotiation"),
+            sessionOverride: sessionOverride)
+    }
+
     /// Reconcile uncertain writes without replaying the failed action blindly.
     @discardableResult
     func retryPersistence() -> Bool {
