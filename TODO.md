@@ -74,7 +74,25 @@ Make the bot opponents play meaningfully better.
       map, decision gates, and ordered research program are in
       `docs/AI_summaries/2026-09-05-ai-strategy-research-program.md`.
 
-## 3. Main menu / game log rework
+## 3. Opponent event messages
+
+Extends the existing bot dialogue/personality infrastructure
+(`Packages/CatanAI/Sources/CatanAI/TradeMessages.swift`,
+`Settlers/Models/OpponentProfile.swift`) beyond trade offers. Split out of
+the old "Main menu / game log rework" section — it's a bot-behavior/dialogue
+feature, not a menu or log-UI change, even though it happens to share a
+button with the pause menu.
+
+- [ ] Besides trade offers, bots should be able to send you a message when
+      your move screws them over mid-game (cut off on the road, longest
+      road taken from them, a settlement/city built that hurts their spot,
+      etc.). Triggers: an opponent gets cut off from a road spot, Longest
+      Road changes hands, a settlement is built, a city is built. Surfaced
+      in a message window opened via the same button as the pause menu
+      (bottom-right), so you can see opponent reactions to events as the
+      game goes.
+
+## 4. Main menu / game log rework
 
 - [ ] Trim the main menu — drop the Settings entry there; most of what it
       exposes is already reachable later (in-game settings, etc.), so a
@@ -88,16 +106,8 @@ Make the bot opponents play meaningfully better.
 - [ ] Surface this same replay view from the end-of-game win/lose screen
       (e.g. a "View Game Log" button) so you can review how the game played
       out right after it ends.
-- [ ] Opponent event messages: besides trade offers, bots should be able to
-      send you a message when your move screws them over mid-game (cut off
-      on the road, longest road taken from them, a settlement/city built
-      that hurts their spot, etc.). Triggers: an opponent gets cut off from
-      a road spot, Longest Road changes hands, a settlement is built, a
-      city is built. Surfaced in a message window opened via the same
-      button as the pause menu (bottom-right), so you can see opponent
-      reactions to events as the game goes.
 
-## 4. New game modes (larger maps)
+## 5. New game modes (larger maps)
 
 New fixed modes (board size + VP target + map art bundled together, not
 independent mix-and-match settings), starting with a "Plan to 20" mode on a
