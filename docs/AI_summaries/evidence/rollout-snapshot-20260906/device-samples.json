@@ -1,0 +1,92 @@
+[
+  {
+    "run": "gpu-a1",
+    "checked": "2026-09-06T19:22:41.708Z",
+    "chunk_id": "a90ea1",
+    "wall_time_seconds": 0.202605959,
+    "exit_code": 0,
+    "original_token_count": 105,
+    "output": "2026/09/06 15:22:41.968, 21 %, 2750 MiB\n301650, [Not Found], [N/A]\nupdate 41 | step 1,007,616 | 51,714 sps | ent 1.06 | ev 0.78 | clip 0.08 | batch 24,579\nupdate 42 | step 1,032,192 | 52,818 sps | ent 1.05 | ev 0.74 | clip 0.06 | batch 24,574\nupdate 43 | step 1,056,768 | 48,457 sps | ent 1.05 | ev 0.77 | clip 0.06 | batch 24,572\nupdate 44 | step 1,081,344 | 45,241 sps | ent 1.11 | ev 0.76 | clip 0.06 | batch 24,577\n"
+  },
+  {
+    "run": "gpu-a1",
+    "checked": "2026-09-06T19:23:09.905Z",
+    "chunk_id": "8fcbde",
+    "wall_time_seconds": 0.235775791,
+    "exit_code": 0,
+    "original_token_count": 11,
+    "output": "2026/09/06 15:23:10.203, 0 %, 1738 MiB\n}\n"
+  },
+  {
+    "run": "gpu-b1",
+    "checked": "2026-09-06T19:23:54.110Z",
+    "chunk_id": "1b2120",
+    "wall_time_seconds": 0.071426167,
+    "exit_code": 0,
+    "original_token_count": 60,
+    "output": "2026/09/06 15:23:54.404, 22 %, 2750 MiB\n301849, [Not Found], [N/A]\nupdate 34 | step 835,584 | 52,953 sps | ent 1.05 | ev 0.76 | clip 0.07 | batch 24,580\nupdate 35 | step 860,160 | 54,311 sps | ent 1.06 | ev 0.74 | clip 0.07 | batch 24,573\n"
+  },
+  {
+    "run": "gpu-b1",
+    "checked": "2026-09-06T19:24:18.182Z",
+    "chunk_id": "b4455c",
+    "wall_time_seconds": 0.1410005,
+    "exit_code": 0,
+    "original_token_count": 17,
+    "output": "2026/09/06 15:24:18.458, 5 %, 2750 MiB\n301849, [Not Found], [N/A]\n"
+  },
+  {
+    "run": "gpu-b2",
+    "checked": "2026-09-06T19:25:10.235Z",
+    "chunk_id": "7fdab6",
+    "wall_time_seconds": 0.135737583,
+    "exit_code": 0,
+    "original_token_count": 38,
+    "output": "2026/09/06 15:25:10.504, 8 %, 2750 MiB\n302038, [Not Found], [N/A]\nupdate 27 | step 663,552 | 51,012 sps | ent 1.01 | ev 0.77 | clip 0.08 | batch 24,583\n"
+  },
+  {
+    "run": "gpu-b2",
+    "checked": "2026-09-06T19:25:28.648Z",
+    "chunk_id": "35ef10",
+    "wall_time_seconds": 0.132682167,
+    "exit_code": 0,
+    "original_token_count": 17,
+    "output": "2026/09/06 15:25:28.944, 16 %, 2750 MiB\n302038, [Not Found], [N/A]\n"
+  },
+  {
+    "run": "gpu-b2",
+    "checked": "2026-09-06T19:25:36.869Z",
+    "chunk_id": "701bf9",
+    "wall_time_seconds": 0.041558125,
+    "exit_code": 0,
+    "original_token_count": 17,
+    "output": "2026/09/06 15:25:37.168, 21 %, 2750 MiB\n302038, [Not Found], [N/A]\n"
+  },
+  {
+    "run": "gpu-b2",
+    "checked": "2026-09-06T19:25:45.103Z",
+    "chunk_id": "8cb349",
+    "wall_time_seconds": 0.048178375,
+    "exit_code": 0,
+    "original_token_count": 10,
+    "output": "2026/09/06 15:25:45.409, 0 %, 1738 MiB\n"
+  },
+  {
+    "run": "gpu-a2",
+    "checked": "2026-09-06T19:26:32.875Z",
+    "chunk_id": "09e509",
+    "wall_time_seconds": 0.065169833,
+    "exit_code": 0,
+    "original_token_count": 39,
+    "output": "2026/09/06 15:26:33.170, 11 %, 2750 MiB\n302228, [Not Found], [N/A]\nupdate 46 | step 1,130,496 | 50,782 sps | ent 1.10 | ev 0.77 | clip 0.06 | batch 24,579\n"
+  },
+  {
+    "run": "gpu-a2",
+    "checked": "2026-09-06T19:27:12.156Z",
+    "chunk_id": "99062e",
+    "wall_time_seconds": 0.105373875,
+    "exit_code": 0,
+    "original_token_count": 10,
+    "output": "2026/09/06 15:27:12.457, 0 %, 1738 MiB\n"
+  }
+]

@@ -1,0 +1,58 @@
+{
+  "checkpoint": {
+    "checkpoint": "/home/alex_ubuntu/empires-research/original-v1/training/runs/20260906-1524-profile-none-6a5edd6ae8b44af3b84915631062bd47/checkpoints/step_0001966080.pt",
+    "checkpoint_sha256": "de7eaad20bd90c3b385659c72739f74e5b63e4ebcc0cb283562a276b2ff9c128",
+    "config": {
+      "device": "cuda",
+      "entropy_coef": 0.02,
+      "epochs": 4,
+      "eval_every": 16,
+      "hidden": 512,
+      "lr": 0.00025,
+      "metrics": null,
+      "minibatch": 4096,
+      "minutes": 1.0,
+      "name": "profile-none-6a5edd6ae8b44af3b84915631062bd47",
+      "num_envs": 256,
+      "resume": "/home/alex_ubuntu/empires-research/original-v1/training/runs/20260906-0030-gpu-baseline-20260906-r2-continuation/checkpoints/step_0148807680.pt",
+      "rollout": 96,
+      "seed": 0,
+      "train_seats": "policy,heuristic,policy,heuristic_v2",
+      "victory_target": 7,
+      "visibility": "perfect",
+      "vp_delta": 0.0,
+      "vp_delta_final": null
+    },
+    "metrics_sha256": "e4a4b4df35757800ddef8971fdf791828962f869db33e6ed0f4e5f70be128b5a",
+    "steps": 1966080,
+    "updates": 80
+  },
+  "checkpoint_content_digests": {
+    "1179648": {
+      "model_state": "8cd4cb1a887b0017003d8c5ab9cf18433b5143fb82cf7eb88e4103c3e8d581ec",
+      "optimizer_state": "cb7c4392a7a3cebece0e7b6df15f8f0bded040259bd3f028aad3dc11b48bd00a"
+    },
+    "1572864": {
+      "model_state": "31441de7ad158cd8595fac1395d233bed4b8abd4283b7dbf331674bee1b5e2c6",
+      "optimizer_state": "ec13db92994b54548e56178ae557889d7e1eca1b071934e5ca3eb336c5f0d175"
+    },
+    "1966080": {
+      "model_state": "ccd53d74e5b6223ef0c25608d50db81028a4674ed73a1e33f7900decd04abc3d",
+      "optimizer_state": "cbb08f7ace8a5758716c03bbef71f168af26759a5616d36ce9c5f90e710433ca"
+    },
+    "393216": {
+      "model_state": "0992e3b1694061689df4a9c79638c3c56d85a37f7aa442cd2d64a422e404fc6e",
+      "optimizer_state": "a0034ce3cff13f005c33902ee557e4c583247ae725f7f06c66f8432daf3ff3a5"
+    },
+    "786432": {
+      "model_state": "51153ea0291a84f926fda86b0210ad13bb9ac1a34f9e71f490dc4f8f72337e8b",
+      "optimizer_state": "ab5ac80f5603f27f158c9568bd0f0dd66b76c1ad999a226eb40805a0d14d8bf6"
+    }
+  },
+  "cuda_peak_allocated_bytes": 315224064,
+  "cuda_peak_reserved_bytes": 576716800,
+  "finite_checkpoint_and_metrics": true,
+  "schema_version": 1,
+  "strength_claim": false,
+  "upstream_run": "/home/alex_ubuntu/empires-research/original-v1/training/runs/20260906-1524-profile-none-6a5edd6ae8b44af3b84915631062bd47"
+}

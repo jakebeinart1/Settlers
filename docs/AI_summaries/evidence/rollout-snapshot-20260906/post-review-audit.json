@@ -1,0 +1,6 @@
+{
+  "checked": ["gpu-a1", "gpu-b1", "gpu-b2", "gpu-a2"],
+  "checkpoint_inventory_and_content_valid": true,
+  "generated_source_unchanged_after_review": true,
+  "audit_helper_sha256": "7d0e293de3bcefd4ada18ab8574e1e26b97f9de3ab29a07efd3dc18468f32953"
+}

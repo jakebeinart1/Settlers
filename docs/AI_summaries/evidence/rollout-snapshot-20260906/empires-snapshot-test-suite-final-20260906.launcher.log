@@ -1,0 +1,92 @@
+test_arguments_require_hashes_and_bound_inner_budget (test_profile_training.ProfileTrainingTests.test_arguments_require_hashes_and_bound_inner_budget) ... usage: python -m unittest [-h] --source SOURCE --output OUTPUT --parent PARENT
+                          --parent-sha256 PARENT_SHA256 --binding-sha256
+                          BINDING_SHA256 --mode {none,cprofile}
+                          [--seconds SECONDS] [--device {cpu,cuda}]
+                          [--updates UPDATES] [--snapshot-mode {row,batch}]
+                          [--gpu-lock GPU_LOCK]
+python -m unittest: error: --seconds must be finite and in (0, 120]
+usage: python -m unittest [-h] --source SOURCE --output OUTPUT --parent PARENT
+                          --parent-sha256 PARENT_SHA256 --binding-sha256
+                          BINDING_SHA256 --mode {none,cprofile}
+                          [--seconds SECONDS] [--device {cpu,cuda}]
+                          [--updates UPDATES] [--snapshot-mode {row,batch}]
+                          [--gpu-lock GPU_LOCK]
+python -m unittest: error: --seconds must be finite and in (0, 120]
+usage: python -m unittest [-h] --source SOURCE --output OUTPUT --parent PARENT
+                          --parent-sha256 PARENT_SHA256 --binding-sha256
+                          BINDING_SHA256 --mode {none,cprofile}
+                          [--seconds SECONDS] [--device {cpu,cuda}]
+                          [--updates UPDATES] [--snapshot-mode {row,batch}]
+                          [--gpu-lock GPU_LOCK]
+python -m unittest: error: --seconds must be finite and in (0, 120]
+usage: python -m unittest [-h] --source SOURCE --output OUTPUT --parent PARENT
+                          --parent-sha256 PARENT_SHA256 --binding-sha256
+                          BINDING_SHA256 --mode {none,cprofile}
+                          [--seconds SECONDS] [--device {cpu,cuda}]
+                          [--updates UPDATES] [--snapshot-mode {row,batch}]
+                          [--gpu-lock GPU_LOCK]
+python -m unittest: error: --seconds must be finite and in (0, 120]
+usage: python -m unittest [-h] --source SOURCE --output OUTPUT --parent PARENT
+                          --parent-sha256 PARENT_SHA256 --binding-sha256
+                          BINDING_SHA256 --mode {none,cprofile}
+                          [--seconds SECONDS] [--device {cpu,cuda}]
+                          [--updates UPDATES] [--snapshot-mode {row,batch}]
+                          [--gpu-lock GPU_LOCK]
+python -m unittest: error: --seconds must be finite and in (0, 120]
+ok
+test_changed_parent_or_source_blocks_result_after_normal_return (test_profile_training.ProfileTrainingTests.test_changed_parent_or_source_blocks_result_after_normal_return) ... ok
+test_cuda_requires_explicit_lock_but_cpu_does_not (test_profile_training.ProfileTrainingTests.test_cuda_requires_explicit_lock_but_cpu_does_not) ... usage: python -m unittest [-h] --source SOURCE --output OUTPUT --parent PARENT
+                          --parent-sha256 PARENT_SHA256 --binding-sha256
+                          BINDING_SHA256 --mode {none,cprofile}
+                          [--seconds SECONDS] [--device {cpu,cuda}]
+                          [--updates UPDATES] [--snapshot-mode {row,batch}]
+                          [--gpu-lock GPU_LOCK]
+python -m unittest: error: --gpu-lock is required for --device cuda
+ok
+test_cuda_unavailable_fails_without_cpu_fallback (test_profile_training.ProfileTrainingTests.test_cuda_unavailable_fails_without_cpu_fallback) ... ok
+test_cuda_wraps_worker_with_nonblocking_lock_inside_watchdog (test_profile_training.ProfileTrainingTests.test_cuda_wraps_worker_with_nonblocking_lock_inside_watchdog) ... ok
+test_import_hang_is_bounded_and_leaves_no_worker_process_group (test_profile_training.ProfileTrainingTests.test_import_hang_is_bounded_and_leaves_no_worker_process_group) ... ok
+test_missing_flock_has_failed_receipt_without_starting_worker (test_profile_training.ProfileTrainingTests.test_missing_flock_has_failed_receipt_without_starting_worker) ... ok
+test_modes_execute_identical_entry_once_and_restore_process_context (test_profile_training.ProfileTrainingTests.test_modes_execute_identical_entry_once_and_restore_process_context) ... ok
+test_nonfinite_checkpoint_cannot_write_success (test_profile_training.ProfileTrainingTests.test_nonfinite_checkpoint_cannot_write_success) ... ok
+test_normal_trainer_return_without_artifacts_is_not_success (test_profile_training.ProfileTrainingTests.test_normal_trainer_return_without_artifacts_is_not_success) ... ok
+test_partial_profile_survives_failure_and_termination_without_success (test_profile_training.ProfileTrainingTests.test_partial_profile_survives_failure_and_termination_without_success) ... ok
+test_prepare_reuses_continuation_flags_and_retains_provenance (test_profile_training.ProfileTrainingTests.test_prepare_reuses_continuation_flags_and_retains_provenance) ... ok
+test_real_cli_bad_parent_is_supervised_and_never_starts_trainer (test_profile_training.ProfileTrainingTests.test_real_cli_bad_parent_is_supervised_and_never_starts_trainer) ... ok
+test_real_cli_dependency_import_failure_has_failed_receipt (test_profile_training.ProfileTrainingTests.test_real_cli_dependency_import_failure_has_failed_receipt) ... ok
+test_real_lock_refuses_competitor_then_stays_held_across_worker (test_profile_training.ProfileTrainingTests.test_real_lock_refuses_competitor_then_stays_held_across_worker) ... skipped 'requires Linux flock'
+test_supervisor_always_uses_watchdog_and_refuses_existing_output (test_profile_training.ProfileTrainingTests.test_supervisor_always_uses_watchdog_and_refuses_existing_output) ... ok
+test_worker_validates_checkpoint_and_preserves_parent_before_success (test_profile_training.ProfileTrainingTests.test_worker_validates_checkpoint_and_preserves_parent_before_success) ... ok
+test_wrong_parent_fails_before_provenance_or_training (test_profile_training.ProfileTrainingTests.test_wrong_parent_fails_before_provenance_or_training) ... ok
+test_budgets_are_finite_positive_and_bounded (test_reconstruction.ReconstructionTests.test_budgets_are_finite_positive_and_bounded) ... ok
+test_continuation_uses_exact_parent_and_removes_shaping (test_reconstruction.ReconstructionTests.test_continuation_uses_exact_parent_and_removes_shaping) ... ok
+test_every_metric_row_rejects_nonfinite_numbers (test_reconstruction.ReconstructionTests.test_every_metric_row_rejects_nonfinite_numbers) ... ok
+test_failure_is_recorded_and_propagated (test_reconstruction.ReconstructionTests.test_failure_is_recorded_and_propagated) ... ok
+test_fresh_stage_never_resumes_a_published_or_smoke_model (test_reconstruction.ReconstructionTests.test_fresh_stage_never_resumes_a_published_or_smoke_model) ... ok
+test_logged_command_failure_is_not_success (test_reconstruction.ReconstructionTests.test_logged_command_failure_is_not_success) ... ok
+test_logged_command_timeout_propagates (test_reconstruction.ReconstructionTests.test_logged_command_timeout_propagates) ... ok
+test_native_game_must_reach_a_winner (test_reconstruction.ReconstructionTests.test_native_game_must_reach_a_winner) ... ok
+test_signal_handler_does_not_silently_finish (test_reconstruction.ReconstructionTests.test_signal_handler_does_not_silently_finish) ... ok
+test_checkpoint_inventory_rejects_duplicate_and_misnamed_steps (test_rollout_snapshot.RolloutSnapshotTests.test_checkpoint_inventory_rejects_duplicate_and_misnamed_steps) ... ok
+test_checkpoint_inventory_requires_periodic_and_final_steps (test_rollout_snapshot.RolloutSnapshotTests.test_checkpoint_inventory_requires_periodic_and_final_steps) ... ok
+test_default_modes_omit_experiment_metrics_and_cuda_memory_calls (test_rollout_snapshot.RolloutSnapshotTests.test_default_modes_omit_experiment_metrics_and_cuda_memory_calls) ... ok
+test_empty_updates_keep_pending_until_the_seat_returns (test_rollout_snapshot.RolloutSnapshotTests.test_empty_updates_keep_pending_until_the_seat_returns) ... ok
+test_equal_work_validation_rejects_early_normal_exit (test_rollout_snapshot.RolloutSnapshotTests.test_equal_work_validation_rejects_early_normal_exit) ... ok
+test_hash_covers_tensor_shape_dtype_and_all_optimizer_fields (test_rollout_snapshot.RolloutSnapshotTests.test_hash_covers_tensor_shape_dtype_and_all_optimizer_fields) ... ok
+test_memory_guard_still_signals_when_abort_receipt_write_fails (test_rollout_snapshot.RolloutSnapshotTests.test_memory_guard_still_signals_when_abort_receipt_write_fails) ... ok
+test_pending_crosses_updates_with_exact_repeated_seat_gae_order (test_rollout_snapshot.RolloutSnapshotTests.test_pending_crosses_updates_with_exact_repeated_seat_gae_order) ... ok
+test_pending_snapshots_survive_source_overwrite_and_next_update (test_rollout_snapshot.RolloutSnapshotTests.test_pending_snapshots_survive_source_overwrite_and_next_update) ... ok
+test_pinned_patch_changes_only_limit_and_snapshot_storage (test_rollout_snapshot.RolloutSnapshotTests.test_pinned_patch_changes_only_limit_and_snapshot_storage) ... ok
+test_terminal_flushes_all_pending_seats_before_auto_reset (test_rollout_snapshot.RolloutSnapshotTests.test_terminal_flushes_all_pending_seats_before_auto_reset) ... ok
+test_unknown_source_and_invalid_limits_fail_closed (test_rollout_snapshot.RolloutSnapshotTests.test_unknown_source_and_invalid_limits_fail_closed) ... ok
+test_existing_output_is_not_overwritten (test_runner.RunnerGuardTests.test_existing_output_is_not_overwritten) ... ok
+test_modified_source_is_rejected (test_runner.RunnerGuardTests.test_modified_source_is_rejected) ... ok
+test_python_wrapper_cannot_replace_native_environment (test_runner.RunnerGuardTests.test_python_wrapper_cannot_replace_native_environment) ... ok
+test_verified_environment_is_accepted (test_runner.RunnerGuardTests.test_verified_environment_is_accepted) ... ok
+test_wrong_binding_is_rejected_before_any_output (test_runner.RunnerGuardTests.test_wrong_binding_is_rejected_before_any_output) ... ok
+test_wrong_revision_is_rejected (test_runner.RunnerGuardTests.test_wrong_revision_is_rejected) ... ok
+
+----------------------------------------------------------------------
+Ran 45 tests in 9.840s
+
+OK (skipped=1)

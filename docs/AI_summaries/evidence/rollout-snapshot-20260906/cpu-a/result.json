@@ -1,0 +1,42 @@
+{
+  "checkpoint": {
+    "checkpoint": "/Users/alex/Library/Application Support/EmpiresResearch/catan-rl/original-v1/training/runs/20260906-1519-profile-none-1d877440dbca424ab6f4c2943fdc9146/checkpoints/step_0000073728.pt",
+    "checkpoint_sha256": "540b6518aa34576b22e6f54febb685ab4c858d927fa1771aee987dcb618956b5",
+    "config": {
+      "device": "cpu",
+      "entropy_coef": 0.02,
+      "epochs": 4,
+      "eval_every": 16,
+      "hidden": 512,
+      "lr": 0.00025,
+      "metrics": null,
+      "minibatch": 4096,
+      "minutes": 2.0,
+      "name": "profile-none-1d877440dbca424ab6f4c2943fdc9146",
+      "num_envs": 256,
+      "resume": "/Users/alex/Library/Application Support/EmpiresResearch/checkpoints/gpu-baseline-20260906-r2/step_0148807680.pt",
+      "rollout": 96,
+      "seed": 0,
+      "train_seats": "policy,heuristic,policy,heuristic_v2",
+      "victory_target": 7,
+      "visibility": "perfect",
+      "vp_delta": 0.0,
+      "vp_delta_final": null
+    },
+    "metrics_sha256": "664bf02a0a5b5925629a27f8b516e82e0e31058df2afb50d024f9916c0247f8c",
+    "steps": 73728,
+    "updates": 3
+  },
+  "checkpoint_content_digests": {
+    "73728": {
+      "model_state": "39c04f520e18f595c1a9ed78f54e469b5f5659396323241c9ac24793188fe1f2",
+      "optimizer_state": "e0935ebe6c6bb79a0464c9a7ad1432a12344eb1aceff625332dba4036b6ed742"
+    }
+  },
+  "cuda_peak_allocated_bytes": null,
+  "cuda_peak_reserved_bytes": null,
+  "finite_checkpoint_and_metrics": true,
+  "schema_version": 1,
+  "strength_claim": false,
+  "upstream_run": "/Users/alex/Library/Application Support/EmpiresResearch/catan-rl/original-v1/training/runs/20260906-1519-profile-none-1d877440dbca424ab6f4c2943fdc9146"
+}

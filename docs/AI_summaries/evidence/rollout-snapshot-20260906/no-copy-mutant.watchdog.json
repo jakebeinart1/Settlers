@@ -1,0 +1,27 @@
+{
+  "budget_seconds": 25.0,
+  "started_epoch": 1788722646.5803468,
+  "started_elapsed": 263431.446664666,
+  "started_utc": "2026-09-06T19:24:06.580347+00:00",
+  "deadline_epoch": 1788722671.5803468,
+  "deadline_utc": "2026-09-06T19:24:31.580347+00:00",
+  "state": "failed",
+  "command": [
+    "/Users/alex/Library/Application Support/EmpiresResearch/catan-rl/original-v1/.venv/bin/python",
+    "-B",
+    "-u",
+    "-c",
+    "import sys, unittest\nfrom unittest.mock import patch\nimport catan_training_experiment as experiment\nimport test_rollout_snapshot\noriginal_transform = experiment.transform\ndef unsafe_transform(source, mode, updates):\n    transformed = original_transform(source, mode, updates)\n    if mode == \"batch\":\n        anchor = \"snapshot_obs, snapshot_masks = obs.copy(), masks.copy()\"\n        assert transformed.count(anchor) == 1\n        transformed = transformed.replace(anchor, \"snapshot_obs, snapshot_masks = obs, masks\")\n    return transformed\nprint(\"EXPECTED NEGATIVE CONTROL: in-memory no-copy mutant; no helper/source file edited.\", flush=True)\nsuite = unittest.TestSuite(test_rollout_snapshot.RolloutSnapshotTests(name) for name in (\n    \"test_pending_snapshots_survive_source_overwrite_and_next_update\",\n    \"test_pending_crosses_updates_with_exact_repeated_seat_gae_order\",\n))\nwith patch.object(experiment, \"transform\", side_effect=unsafe_transform):\n    result = unittest.TextTestRunner(verbosity=2).run(suite)\nraise SystemExit(0 if result.wasSuccessful() else 1)\n"
+  ],
+  "watchdog_pid": 31595,
+  "watchdog_identity": null,
+  "boot_identity": "unavailable",
+  "watchdog_sha256": "0fe5997a05c2982988aab889c766df200e292250b3f2b674c557918065857ad0",
+  "process_group": 31604,
+  "process_identity": null,
+  "remaining_seconds": 23.987804708012845,
+  "checked_epoch": 1788722647.592546,
+  "checked_utc": "2026-09-06T19:24:07.592547+00:00",
+  "exit_code": 1,
+  "finished_utc": "2026-09-06T19:24:07.592743+00:00"
+}

@@ -205,3 +205,54 @@ These short-run checkpoints are timing artifacts, not candidate game AIs.
 **Status:** fidelity and sampled compound parity passed; the exclusive-device
 profile is complete and its watcher paused. No training remains active from this
 diagnostic. Phase attribution and an isolated optimization are next, not done.
+
+## Native transfer diagnosis and next target experiment (2026-09-06)
+
+**Throughput handoff:** CPU batch-snapshot verification covered three updates;
+GPU ABBA covered 80 updates/run. All checkpoint model and Adam contents matched
+exactly. A1/B1: 46.970/44.491 seconds; A2/B2: 46.998/46.065 seconds.
+Throughput gains were 5.57%/2.02%, failing the predeclared requirement that
+both pairs exceed 5%.
+**Do not adopt; throughput benefit inconclusive.** No architecture change.
+
+**Diagnosis:** native transfer is poor: r2 won 52/128 versus Balanced 112/128
+(paired difference −46.9 points; 95% interval −57.8 to −35.9). The original
+checkpoint beat r2 74/128 versus 46/128 through the same architecture/adapter
+(+21.9 points; interval +10.2 to +32.8).
+[Comparison evidence](2026-09-06-reusable-evaluation.md).
+Export fidelity and sampled compound parity passed. Known compatibility limits
+remain: heuristic player trades, whole-decision pre-roll fallback that rolls
+when unsupported cards are available, and native compound-action requirements.
+Their causal contribution is unmeasured.
+
+Prioritize the **training target 7 → native target 10 mismatch**: it changes
+the winning horizon, encountered late-game states, target input and normalized
+VP features. Opponents, fixed training chairs and board/port distributions are
+secondary generalization hypotheses. The evidence does not establish an
+architecture bottleneck or continuation-induced overtraining.
+
+**Caps: cause unknown.** Fresh-final completed 126/128, with 77 decisive wins;
+chair-3 seeds 960920/960922 hit 3,000 actions at 9/8 VP. The wrapper stopped
+before r2 ran, so no paired ranking exists. Counters show activity and heuristic
+routing, but lack chronological states, masks, logits and overrides. Do not
+infer trade loops, missed wins or intent. Exact attribution requires traces.
+
+**NEXT — proposed two-seed, equal-update screen; no GPU launch authorized here.**
+
+- Hypothesis: training at ten points improves native ten-point transfer over
+  equally continued seven-point training.
+- Two prespecified training seeds, each with a matched 7/10 pair restored from
+  identical frozen r2 model/Adam state. Change only `victory_target`; hold PPO,
+  terminal-only reward, architecture, opponents/chairs, board rules and adapter
+  fixed. Use the unmodified throughput control. Before launch, freeze the
+  update count, seeds, hashes and watchdog/evaluation budgets; no adaptive extension.
+- Evaluate final checkpoints on fresh native four-player, target-ten boards
+  against frozen Greedy opponents, every chair rotated. Pair within each
+  training seed; report differences, seed-cluster 95% intervals and completion.
+- Advance only for ≥10-point native gain in both training-seed comparisons,
+  complete games, and passing legality, fallback and numerical regressions.
+  Check upstream seven-point retention against a five-point regression margin.
+- Promotion requires fresh confirmation with positive 95% difference intervals,
+  separate frozen Greedy/Balanced opponent results, and supported-configuration
+  regressions. Replacing Balanced additionally requires a direct matched
+  comparison; this screen alone cannot authorize default promotion.

@@ -20,9 +20,9 @@ progress. Detailed evidence and operational recipes stay behind the links below.
   compatible checkpoints, rotates chairs and retains audited results. Identical
   weights reproduce through both loading paths; distinct weights change play.
   [PR #41](https://github.com/jakebeinart1/Settlers/pull/41) passed Linux CI/lint;
-  the checkpoint-loader/profile extension passed independent review and a full
-  local gate at `2631a11` (including 310 app/UI tests). Its first upload failed
-  after SSH idled out; publication is separate from that green gate.
+  the checkpoint-loader/profile extension is [PR #42](https://github.com/jakebeinart1/Settlers/pull/42),
+  published at `dacef369` with Linux CI green (run `34053389032`) after a full
+  local gate, including 310 app/UI tests. Its CI watcher is now paused.
 - **Quality warning:** the audited 32-board follow-up gave r2 **52/128** versus
   Balanced **112/128** wins against Greedy, all chairs rotated, no unexpected
   fallbacks. This is one native configuration, not a universal ranking.
@@ -39,8 +39,8 @@ progress. Detailed evidence and operational recipes stay behind the links below.
 | --- | --- | --- |
 | **1. Deliver and retain regressions** | Simulator verified; phone/signing blocked; native strength warning under assessment. | Resolve the default-promotion warning; final artifact is VALID in TestFlight, intended testers can access it, phone version is verified, and reusable gameplay/UI checks remain green. |
 | **2. Make comparisons cheap to repeat** | Minimum checkpoint comparison implemented, reviewed and tested; original-versus-r2 diagnostic complete. | Preserve this entry point. Add separate builds/opponent pools only when a concrete experiment needs them; reuse the analyzer. |
-| **3. Make training faster without weakening learning** | Export and sampled compound parity passed. The [exclusive-device profile](2026-09-06-training-profile.md#clean-pair-complete-diagnostic-budget-exhausted) is complete; contaminated runs retained separately. Next: attribute phases and investigate rollout copies/array assembly before an isolated optimization. No speedup claimed; four-minute diagnostic budget spent, watcher paused. | Repeated profiles identify rollout/inference/transfer/update/evaluation costs; a bounded before/after experiment improves time-to-quality without correctness or playing-strength regression. |
-| **4. Improve strategy and architecture** | Main multi-week effort. Research and reprioritize the candidate queue below; run isolated experiments. | Each attempted change has a recorded hypothesis, fixed budget, result and decision. Promote promising candidates through fresh confirmation and device tests, then freeze the new baseline. This stage repeats. |
+| **3. Make training faster without weakening learning** | [Snapshot experiment complete](2026-09-06-rollout-snapshot-experiment.md#result-and-decision): exact equal-update model/Adam parity; +5.57%/+2.02% GPU throughput, below the required 5% in both pairs. **Inconclusive, not adopted.** Budget spent; no owned run active. Retain the guarded comparison rather than chasing this small gain. | A bounded before/after experiment improves time-to-quality without correctness or playing-strength regression. Partial host attribution is not a complete GPU/phase breakdown. |
+| **4. Improve strategy and architecture** | Next: [isolate training target 7 versus native target 10](2026-09-06-training-profile.md#native-transfer-diagnosis-and-next-target-experiment-2026-09-06), with matched control continuations, before altering network architecture. Existing adapter limitations/capped traces stay separate diagnostic questions. | Each attempted change has a recorded hypothesis, fixed budget, result and decision. Promote promising candidates through fresh confirmation and device tests, then freeze the new baseline. This stage repeats. |
 | **5. Character, personality, difficulty** | Deferred. Keep strategy, strength and expression separate. | Measured tiers and intentional styles support honest UI labels; authored reactions are grounded in real events. LLM wording/chat needs a separate latency, cost and product decision. |
 
 **Allocation:** unblock delivery promptly; spend only enough on stage 2 to make
@@ -62,6 +62,7 @@ the full recipe; this table is a router, not another copy of those instructions.
 | TestFlight / signing / tester access | [ship-testflight](../../.claude/skills/ship-testflight/SKILL.md) |
 | Seeded runner and bounded training supervision | [sim-harness](../../.claude/skills/sim-harness/SKILL.md); `python3 scripts/training_watchdog.py --help` |
 | Bounded upstream throughput profile | `python3 scripts/profile-catan-training.py --help`; [protocol, current budget and results](2026-09-06-training-profile.md) |
+| Equal-update rollout experiment | Same profiler, opt-in `--updates` / `--snapshot-mode`; [frozen protocol and decision](2026-09-06-rollout-snapshot-experiment.md) |
 | Evaluation statistics and interpretation | [bot-strength](../../.claude/skills/bot-strength/SKILL.md); `python3 scripts/analyze-bot-evaluation.py --help` |
 | One-command frozen neural/heuristic smoke comparison | `python3 scripts/evaluate-bots.py --config config/evaluation/neural-r2-smoke.json --output /tmp/empires-eval-unique-name`; [contract and evidence](2026-09-06-reusable-evaluation.md) |
 | Training reconstruction and artifact audits | [replication plan](2026-09-05-catan-rl-training-replication-plan.md), [run evidence](2026-09-05-public-catan-reproduction-log.md) |

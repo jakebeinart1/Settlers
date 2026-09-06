@@ -14,6 +14,8 @@ import time
 import uuid
 from pathlib import Path
 
+import catan_training_experiment as experiment
+
 supervisor = importlib.import_module("profile-catan-training")
 reconstruction = importlib.import_module("run-catan-reconstruction")
 PROFILE_SCOPE = (
@@ -58,6 +60,18 @@ def prepare_run(options: argparse.Namespace, name: str) -> list[str]:
     command = reconstruction.command_for_stage(
         name, options.seconds / 60, options.device, str(options.parent)
     )
+    experiment_metadata = None
+    if options.updates is not None:
+        if (
+            "--vp-delta-final" in command
+            or command[command.index("--vp-delta") + 1] != "0"
+        ):
+            raise ValueError(
+                "equal-update experiments require terminal reward without annealing"
+            )
+        command[3], experiment_metadata = experiment.entry(
+            options.source, options.output, options.snapshot_mode, options.updates
+        )
     write_json(
         options.output / "manifest.json",
         {
@@ -75,6 +89,11 @@ def prepare_run(options: argparse.Namespace, name: str) -> list[str]:
             "command": command,
             "mode": options.mode,
             "run_name": name,
+            **(
+                {"experiment": experiment_metadata, "worker_pid": os.getpid()}
+                if experiment_metadata is not None
+                else {}
+            ),
             "training_seconds": options.seconds,
             "watchdog_seconds": options.seconds + supervisor.FINISH_ALLOWANCE_SECONDS,
             "profile_scope": PROFILE_SCOPE,
@@ -86,7 +105,12 @@ def prepare_run(options: argparse.Namespace, name: str) -> list[str]:
 
 
 def save_profile(
-    output: Path, profiler: cProfile.Profile, mode: str, elapsed: float, completed: bool
+    output: Path,
+    profiler: cProfile.Profile,
+    mode: str,
+    elapsed: float,
+    completed: bool,
+    measure_memory: bool = False,
 ) -> None:
     functions = []
     if mode == "cprofile":
@@ -113,12 +137,23 @@ def save_profile(
             "scope": PROFILE_SCOPE,
             "trainer_returned_normally": completed,
             "elapsed_seconds": elapsed,
+            **(
+                {"peak_rss_bytes": experiment.peak_rss_bytes()}
+                if measure_memory
+                else {}
+            ),
             "functions": functions,
         },
     )
 
 
-def run_trainer(command: list[str], source: Path, output: Path, mode: str) -> None:
+def run_trainer(
+    command: list[str],
+    source: Path,
+    output: Path,
+    mode: str,
+    measure_memory: bool = False,
+) -> None:
     """Execute the existing seeded entry verbatim; retain partial profiles on TERM.
 
     Restoring argv/cwd also makes this seam testable without launching training.
@@ -141,18 +176,30 @@ def run_trainer(command: list[str], source: Path, output: Path, mode: str) -> No
         elapsed = time.perf_counter() - started
         sys.argv = previous_argv
         os.chdir(previous_directory)
-        save_profile(output, profiler, mode, elapsed, completed)
+        save_profile(output, profiler, mode, elapsed, completed, measure_memory)
 
 
 def worker(options: argparse.Namespace) -> None:
     name = f"profile-{options.mode}-{uuid.uuid4().hex}"
     command = prepare_run(options, name)
     signal.signal(signal.SIGTERM, reconstruction.terminate_job)
-    run_trainer(command, options.source, options.output, options.mode)
+    if options.device == "cuda" and options.updates is not None:
+        reconstruction.torch.cuda.reset_peak_memory_stats()
+    if options.updates is None:
+        run_trainer(command, options.source, options.output, options.mode)
+    else:
+        run_trainer(
+            command, options.source, options.output, options.mode, measure_memory=True
+        )
     runs = list((options.source / "training/runs").glob(f"*-{name}"))
     if len(runs) != 1:
         raise ValueError(f"expected one upstream run, found {len(runs)}")
     checkpoint = reconstruction.inspect_checkpoint(runs[0])
+    fingerprints = None
+    if options.updates is not None:
+        experiment.validate_work(checkpoint, options.updates)
+        experiment.validate_metrics(runs[0], options.updates)
+        fingerprints = experiment.checkpoint_digests(runs[0], options.updates)
     check_parent(options)
     reconstruction.replay.check_inputs(options.source, options.binding_sha256)
     for filename in ("metrics.jsonl", "config.json"):
@@ -165,6 +212,23 @@ def worker(options: argparse.Namespace) -> None:
             "schema_version": 1,
             "upstream_run": str(runs[0]),
             "checkpoint": checkpoint,
+            **(
+                {
+                    "checkpoint_content_digests": fingerprints,
+                    "cuda_peak_allocated_bytes": (
+                        reconstruction.torch.cuda.max_memory_allocated()
+                        if options.device == "cuda"
+                        else None
+                    ),
+                    "cuda_peak_reserved_bytes": (
+                        reconstruction.torch.cuda.max_memory_reserved()
+                        if options.device == "cuda"
+                        else None
+                    ),
+                }
+                if fingerprints is not None
+                else {}
+            ),
             "finite_checkpoint_and_metrics": True,
             "strength_claim": False,
         },
