@@ -1,0 +1,2 @@
+{"games":1,"players":["AlphaBot","HeuristicPlayer","HeuristicPlayer","HeuristicPlayer"],"seed":0,"source":"catan-sim","t":"run","unix_ms":1788672624744}
+{"cap":false,"i":0,"steps":448,"t":"game","turns":112,"unix_ms":1788672627298,"vp":[10,5,8,3],"winner":0}

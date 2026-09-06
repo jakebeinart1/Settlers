@@ -377,14 +377,60 @@ original/reconstructed win/game/cap counts with their limitations before pausing
 The trainer already queues export, native-game verification and evaluation
 automatically; no further user instruction is needed for those stages.
 
+## r2 completed and audited (2026-09-06, 05:30 UTC)
+
+The full 50-minute fresh + 60-minute continuation reconstruction completed
+without interruption. The independent watchdog recorded exit 0 at
+05:30:35 UTC, before its 06:40:12 UTC deadline. A subsequent process-group check
+found no remaining owned processes. The completion auditor passed against the
+actual GPU artifacts, including raw outcomes and checkpoint/metrics hashes.
+
+- Fresh: 121,626,624 decisions, 4,949 updates, 3,005.04 seconds.
+- Continuation: 148,807,680 additional decisions, 6,055 updates, 3,604.99 seconds.
+- Total: 270,434,304 decisions. These are the actual GPU sample counts, not the
+  historical CPU sample budget; matching 50+60 minutes does not make them equal.
+- Continuation parent: the exact fresh final checkpoint recorded above.
+- Final checkpoint SHA-256:
+  `b2b65d569ef2e56bbca9e6f6ecfd41b4c0905842803e62c3aff2aeec7d96dace`.
+- Exported CTNN SHA-256:
+  `a3c957a8765ccbb3c9afd1a8ebee45b7cbaff134c40ce0456e5024560b3ef94e`.
+- Native search smoke: seat 0 won at 10 VP after 448 actions / 112 turns,
+  without hitting the cap. This is one integration game, not a strength estimate.
+
+Predeclared policy evaluation against three upstream heuristic opponents:
+
+| Evaluation seed | Original wins/games | Reconstructed wins/games | Caps (both) |
+| --- | --- | --- | --- |
+| 777 | 126/192 | 134/192 | 0 |
+| 930011 | 123/192 | 134/193 | 0 |
+| 930043 | 126/192 | 142/192 | 0 |
+| 930071 | 129/192 | 138/192 | 0 |
+| Total | 504/768 (65.63%) | 548/769 (71.26%) | 0 |
+
+The extra reconstructed episode is retained batch overshoot, not a denominator
+typo. Both policies use chair 0, perfect information and a 7-VP target. The
+reconstructed policy scored higher in each diagnostic batch. This is encouraging
+evidence that the reconstruction learns useful play, not proof of statistical
+superiority, human-level strength, the AlphaBot search headline, or exact
+historical training reproduction. There is only one training seed, no chair
+rotation, and the upstream parallel API exposes no per-game pairing IDs.
+
+Final weights, CTNN, full stage logs and metrics are backed up outside git in
+`/Users/alex/Library/Application Support/EmpiresResearch/checkpoints/gpu-baseline-20260906-r2/`.
+The local final checkpoint hash matches the GPU receipt. All eight raw evaluation
+files, status, terminal watchdog receipt and completion audit are retained in
+`evidence/catan-reconstruction/gpu-baseline-20260906-r2/`.
+No new training was launched, and nothing was merged or deployed to the app.
+The watcher is paused after this terminal report; the next experiment needs its
+own declared protocol, finite budget and watcher.
+
 ## Reproduction gates still open
 
-The original run remains incomplete after the erroneous early stop above;
-the replacement 50+60 run is active. The supervisor is designed to select the
-final checkpoint, not whichever checkpoint wins on seed 777. Retain both stage
-configs, actual step counts, logs, checkpoints and held-out results. This is a
-source-faithful reconstruction; exact historical lineage remains unavailable.
-The five-minute pilot is not an initialization for that experiment.
+The original interrupted run remains incomplete, but the replacement 50+60 run
+has completed and its artifacts passed audit. The final checkpoint was selected
+by completion, not by maximizing the seed-777 score. Exact historical lineage
+and broader playing strength remain unproved. The five-minute pilot was not an
+initialization for this experiment.
 
 Additional evidence questions, not authorization to contact upstream authors:
 

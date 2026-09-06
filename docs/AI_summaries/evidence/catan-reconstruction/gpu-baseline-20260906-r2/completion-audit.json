@@ -1,0 +1,109 @@
+{
+  "artifact_audit": "passed",
+  "auditor_sha256": "52c35d3fcbc83167de35df96f9cbe257226a42f31e55712e8df2fb925511f8fd",
+  "manifest_sha256": "192acf50934412c4094aee9ca09b0b11f9407c13060468e31bdca18a069103e8",
+  "status_sha256": "2c78d7c32792f1353c8c6daa6cbeb929513a0a4d78c7a8b21e9d07dbee224ac5",
+  "training_reproduction_verdict": "not_assessed",
+  "scope": "Fixed policy chair, perfect information, first to 7, three heuristic opponents. Not human play, Elo, search strength or an every-chair evaluation.",
+  "stages": {
+    "fresh": {
+      "steps": 121626624,
+      "updates": 4949,
+      "checkpoint_sha256": "f31527270a1e15231b54d94a1ab01896e4b13db63374e5a63f75c9e072cedba1",
+      "minutes": 50.0
+    },
+    "continuation": {
+      "steps": 148807680,
+      "updates": 6055,
+      "checkpoint_sha256": "b2b65d569ef2e56bbca9e6f6ecfd41b4c0905842803e62c3aff2aeec7d96dace",
+      "minutes": 60.0
+    }
+  },
+  "evaluation": [
+    {
+      "model": "original",
+      "checkpoint_sha256": "c4258f235c673efe6968b0aa4de66a1411f01012fa14fe71f548dfff681525a3",
+      "seed": 777,
+      "games": 192,
+      "wins": 126,
+      "caps": 0,
+      "outcomes_sha256": "5ced03803b52086b9735db1918b95e341ddef7e0e9b62b738001703991abc212"
+    },
+    {
+      "model": "original",
+      "checkpoint_sha256": "c4258f235c673efe6968b0aa4de66a1411f01012fa14fe71f548dfff681525a3",
+      "seed": 930011,
+      "games": 192,
+      "wins": 123,
+      "caps": 0,
+      "outcomes_sha256": "f8b3c1fb2ebcad99cc85c6eb48914ef7fc23b25d4c224040873f99e59400bdf2"
+    },
+    {
+      "model": "original",
+      "checkpoint_sha256": "c4258f235c673efe6968b0aa4de66a1411f01012fa14fe71f548dfff681525a3",
+      "seed": 930043,
+      "games": 192,
+      "wins": 126,
+      "caps": 0,
+      "outcomes_sha256": "b0f76bd0fb932cdf790c58ad43719dd4ae2bf5f3627b8da7930c91cd4816d846"
+    },
+    {
+      "model": "original",
+      "checkpoint_sha256": "c4258f235c673efe6968b0aa4de66a1411f01012fa14fe71f548dfff681525a3",
+      "seed": 930071,
+      "games": 192,
+      "wins": 129,
+      "caps": 0,
+      "outcomes_sha256": "ee91d5b3d99be5523c0e9f095fed75fecd80406585462689d2cbe518ddaa67ba"
+    },
+    {
+      "model": "reconstructed",
+      "checkpoint_sha256": "b2b65d569ef2e56bbca9e6f6ecfd41b4c0905842803e62c3aff2aeec7d96dace",
+      "seed": 777,
+      "games": 192,
+      "wins": 134,
+      "caps": 0,
+      "outcomes_sha256": "3910b2d9d0e58f8a8e593a7717df88e382d285849b972ffb32b7bc2d083193af"
+    },
+    {
+      "model": "reconstructed",
+      "checkpoint_sha256": "b2b65d569ef2e56bbca9e6f6ecfd41b4c0905842803e62c3aff2aeec7d96dace",
+      "seed": 930011,
+      "games": 193,
+      "wins": 134,
+      "caps": 0,
+      "outcomes_sha256": "f12bbd5faac4c97619f9f412717bae1337174c018233bc886266c710d1c1fe57"
+    },
+    {
+      "model": "reconstructed",
+      "checkpoint_sha256": "b2b65d569ef2e56bbca9e6f6ecfd41b4c0905842803e62c3aff2aeec7d96dace",
+      "seed": 930043,
+      "games": 192,
+      "wins": 142,
+      "caps": 0,
+      "outcomes_sha256": "5b03cc01441c390e457cb370364177868bd0edc0f8853670563e64f1347151ce"
+    },
+    {
+      "model": "reconstructed",
+      "checkpoint_sha256": "b2b65d569ef2e56bbca9e6f6ecfd41b4c0905842803e62c3aff2aeec7d96dace",
+      "seed": 930071,
+      "games": 192,
+      "wins": 138,
+      "caps": 0,
+      "outcomes_sha256": "937508b7d710bcafc5d0187b58292f875a88c2dcb1f23970adbb0de745fc4d9e"
+    }
+  ],
+  "totals": {
+    "original": {
+      "wins": 504,
+      "games": 768,
+      "caps": 0
+    },
+    "reconstructed": {
+      "wins": 548,
+      "games": 769,
+      "caps": 0
+    }
+  },
+  "limitations": "Single training seed; parallel outcomes have no per-game pairing IDs. Equal wall time on a GPU does not reproduce the historical sample budget. Native search game is a separate 10-point smoke check."
+}
