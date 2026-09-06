@@ -345,6 +345,38 @@ ssh -a -o ConnectTimeout=10 gc-gpu \
   '/home/alex_ubuntu/empires-research/original-v1/.venv/bin/python /home/alex_ubuntu/empires-research/tools/training_watchdog.py inspect --output /home/alex_ubuntu/empires-research/runs/gpu-baseline-20260906-r2'
 ```
 
+## Completion audit prepared while r2 trains (2026-09-06)
+
+At 05:12 UTC, the on-host watchdog still reported live supervision and the
+continuation stage was running. The fresh stage completed its 50-minute budget
+with 121,626,624 decisions and 4,949 updates. Its final checkpoint SHA-256 is
+`f31527270a1e15231b54d94a1ab01896e4b13db63374e5a63f75c9e072cedba1`;
+the continuation resumes that exact file. A hash-verified local backup is at
+`/Users/alex/Library/Application Support/EmpiresResearch/checkpoints/gpu-baseline-20260906-r2/step_0121626624.pt`.
+
+`scripts/audit_catan_reconstruction.py` is now deployed alongside the supervisor.
+It is read-only, dependency-free, and runs after terminal success under a
+60-second timeout. It verifies the watchdog/pipeline identity and deadline,
+checkpoint and metrics hashes, exact continuation parent, native export/game,
+and all eight predeclared model/seed cells against retained raw outcomes. It
+rejects missing or duplicated cells and inflated summary counts. Batch overshoot
+is retained; capped episodes never count as wins. Tensor finiteness remains the
+supervisor's check, not a claim this hash-only auditor independently makes.
+
+The actual completed 30s+30s GPU smoke artifacts pass this audit; its report is
+`evidence/catan-reconstruction/gpu-watchdog-smoke/completion-audit.json`. Twelve
+new regression cases exercise corrupt checkpoints, wrong parents, missing cells,
+truncated outcomes, fabricated wins, running/failed/mismatched receipts, changed
+protocols, native caps and overdue completion. A passed artifact audit explicitly
+leaves `training_reproduction_verdict` as `not_assessed`: it is not a strength
+claim, and the smoke is not the 50+60-minute reconstruction.
+
+The ACTIVE ten-minute heartbeat now explicitly runs this audit on terminal r2
+success, preserves the report and final checkpoint locally, and reports the
+original/reconstructed win/game/cap counts with their limitations before pausing.
+The trainer already queues export, native-game verification and evaluation
+automatically; no further user instruction is needed for those stages.
+
 ## Reproduction gates still open
 
 The original run remains incomplete after the erroneous early stop above;
