@@ -1,0 +1,8 @@
+{
+  "control": "seed0-control7",
+  "prior_control": "snapshot-20260906/gpu-a1",
+  "compared": "complete model and Adam content digests in both validated result.json files",
+  "updates": [16, 32, 48, 64, 80],
+  "all_equal": true,
+  "scope": "same-device checkpoint contents, not cross-device or cross-target equality"
+}

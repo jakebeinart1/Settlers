@@ -127,3 +127,12 @@ all possible training durations, or whether this network can ever play expertly.
 - The active thread heartbeat `verify-empires-evaluation-ci` supervises this
   experiment and PR #43 CI together (the app permits only one active heartbeat
   per thread). The old GPU-profile heartbeat remains paused.
+- Post-training export/retention helper: ten fixture tests passed on Mac and
+  Linux. The first Linux fixture invocation failed because its test expected an
+  unspecified `CATAN_UPSTREAM` variable; the test now derives the already-imported
+  upstream location. Both failure and corrected receipts are retained. No trainer,
+  exporter or model change was needed. Independent helper review found no remaining
+  issue; native probe acceptance is deliberately left to the Mac evaluator.
+- The new seed-0 target-seven control matched the previous snapshot control's
+  complete model/Adam digests at updates 16, 32, 48, 64 and 80. This checks that the
+  longer explicit budget preserved the sampled baseline trajectory.

@@ -1,0 +1,15 @@
+test_accounting_rejects_missing_batch_and_preserves_unequal_work (__main__.PosttrainTests.test_accounting_rejects_missing_batch_and_preserves_unequal_work) ... ok
+test_both_stages_refuse_existing_output_before_any_execution (__main__.PosttrainTests.test_both_stages_refuse_existing_output_before_any_execution) ... ok
+test_configuration_and_nonfinite_state_rejected (__main__.PosttrainTests.test_configuration_and_nonfinite_state_rejected) ... ok
+test_ctnn_exact_parameters_and_corrupt_probe_rejected (__main__.PosttrainTests.test_ctnn_exact_parameters_and_corrupt_probe_rejected) ... ok
+test_export_uses_unchanged_exporter_and_leaves_native_probe_pending (__main__.PosttrainTests.test_export_uses_unchanged_exporter_and_leaves_native_probe_pending) ... ok
+test_pooled_actual_counts_exact_margin_caps_and_inventory (__main__.PosttrainTests.test_pooled_actual_counts_exact_margin_caps_and_inventory) ... ok
+test_provenance_records_durable_protocol_hash_without_latest_doc_gate (__main__.PosttrainTests.test_provenance_records_durable_protocol_hash_without_latest_doc_gate) ... ok
+test_retention_main_four_models_eight_fixed_calls_with_failed_cap_gate (__main__.PosttrainTests.test_retention_main_four_models_eight_fixed_calls_with_failed_cap_gate) ... ok
+test_retention_preserves_overshoot_explicit_seeds_and_caps_as_nonwins (__main__.PosttrainTests.test_retention_preserves_overshoot_explicit_seeds_and_caps_as_nonwins) ... ok
+test_successful_final_arm_and_fail_closed_mutations (__main__.PosttrainTests.test_successful_final_arm_and_fail_closed_mutations) ... ok
+
+----------------------------------------------------------------------
+Ran 10 tests in 0.117s
+
+OK

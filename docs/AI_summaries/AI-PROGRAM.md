@@ -23,6 +23,11 @@ progress. Detailed evidence and operational recipes stay behind the links below.
   the checkpoint-loader/profile extension is [PR #42](https://github.com/jakebeinart1/Settlers/pull/42),
   published at `dacef369` with Linux CI green (run `34053389032`) after a full
   local gate, including 310 app/UI tests. Its CI watcher is now paused.
+- **Experiment tooling:** [PR #43](https://github.com/jakebeinart1/Settlers/pull/43)
+  at `9a2610a` passed the full local gate, fresh Debug QA launch and Linux CI
+  (`34057255572`). Snapshot optimization was not adopted; its reusable safeguards
+  and recorded result are review-ready, not merged. The active heartbeat now
+  supervises the separate target-adaptation experiment.
 - **Quality warning:** the audited 32-board follow-up gave r2 **52/128** versus
   Balanced **112/128** wins against Greedy, all chairs rotated, no unexpected
   fallbacks. This is one native configuration, not a universal ranking.

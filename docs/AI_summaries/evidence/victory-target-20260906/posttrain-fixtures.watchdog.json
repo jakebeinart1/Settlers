@@ -1,0 +1,25 @@
+{
+  "budget_seconds": 25.0,
+  "started_epoch": 1788727141.6302657,
+  "started_elapsed": 74453.501630216,
+  "started_utc": "2026-09-06T20:39:01.630266+00:00",
+  "deadline_epoch": 1788727166.6302657,
+  "deadline_utc": "2026-09-06T20:39:26.630266+00:00",
+  "state": "failed",
+  "command": [
+    "/home/alex_ubuntu/empires-research/original-v1/.venv/bin/python",
+    "-B",
+    "/tmp/test_empires_target_posttrain_20260906.py"
+  ],
+  "watchdog_pid": 330364,
+  "watchdog_identity": "7445347",
+  "boot_identity": "9d36b96d-e143-4eac-b109-99b065725478",
+  "watchdog_sha256": "0fe5997a05c2982988aab889c766df200e292250b3f2b674c557918065857ad0",
+  "process_group": 330365,
+  "process_identity": "7445350",
+  "remaining_seconds": 22.99910667099175,
+  "checked_epoch": 1788727143.6311624,
+  "checked_utc": "2026-09-06T20:39:03.631163+00:00",
+  "exit_code": 1,
+  "finished_utc": "2026-09-06T20:39:03.631260+00:00"
+}

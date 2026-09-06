@@ -1,0 +1,597 @@
+[
+  {
+    "utc": "2026-09-06T20:21:16.432914+00:00",
+    "arms": [
+      {
+        "arm": "seed0-control7",
+        "state": "running",
+        "deadline": "2026-09-06T20:32:04.647041+00:00",
+        "pid": 328688,
+        "latest": "update 127 | step 3,121,152 | 51,248 sps | ent 0.94 | ev 0.78 | clip 0.06 | batch 24,577",
+        "result": false
+      }
+    ],
+    "gpu": "328689, [N/A]",
+    "sequenceComplete": false
+  },
+  {
+    "utc": "2026-09-06T20:22:12.168892+00:00",
+    "arms": [
+      {
+        "arm": "seed0-control7",
+        "state": "running",
+        "deadline": "2026-09-06T20:32:04.647041+00:00",
+        "pid": 328688,
+        "latest": "update 228 | step 5,603,328 | 51,634 sps | ent 1.03 | ev 0.79 | clip 0.06 | batch 24,576",
+        "result": false
+      }
+    ],
+    "gpu": "328689, [N/A]",
+    "sequenceComplete": false
+  },
+  {
+    "utc": "2026-09-06T20:23:08.372215+00:00",
+    "arms": [
+      {
+        "arm": "seed0-control7",
+        "state": "running",
+        "deadline": "2026-09-06T20:32:04.647041+00:00",
+        "pid": 328688,
+        "latest": "update 328 | step 8,060,928 | 51,488 sps | ent 1.03 | ev 0.74 | clip 0.06 | batch 24,566",
+        "result": false
+      }
+    ],
+    "gpu": "328689, [N/A]",
+    "sequenceComplete": false
+  },
+  {
+    "utc": "2026-09-06T20:25:14.308414+00:00",
+    "arms": [
+      {
+        "arm": "seed0-control7",
+        "state": "running",
+        "deadline": "2026-09-06T20:32:04.647041+00:00",
+        "pid": 328688,
+        "latest": "update 553 | step 13,590,528 | 48,821 sps | ent 1.04 | ev 0.78 | clip 0.09 | batch 24,578",
+        "result": false
+      }
+    ],
+    "gpu": "328689, [N/A]",
+    "sequenceComplete": false
+  },
+  {
+    "utc": "2026-09-06T20:26:19.609337+00:00",
+    "arms": [
+      {
+        "arm": "seed0-control7",
+        "state": "running",
+        "deadline": "2026-09-06T20:32:04.647041+00:00",
+        "pid": 328688,
+        "latest": "update 669 | step 16,441,344 | 49,942 sps | ent 1.06 | ev 0.77 | clip 0.10 | batch 24,577",
+        "result": false
+      }
+    ],
+    "gpu": "328689, [N/A]",
+    "sequenceComplete": false
+  },
+  {
+    "utc": "2026-09-06T20:28:31.245093+00:00",
+    "arms": [
+      {
+        "arm": "seed0-control7",
+        "state": "complete",
+        "deadline": "2026-09-06T20:32:04.647041+00:00",
+        "pid": 328688,
+        "latest": "update 800 | step 19,660,800 | 51,840 sps | ent 1.04 | ev 0.75 | clip 0.07 | batch 24,576",
+        "result": true
+      },
+      {
+        "arm": "seed0-target10",
+        "state": "running",
+        "deadline": "2026-09-06T20:39:38.913194+00:00",
+        "pid": 329278,
+        "latest": "update 86 | step 2,113,536 | 47,064 sps | ent 1.08 | ev 0.87 | clip 0.06 | batch 24,578",
+        "result": false
+      }
+    ],
+    "gpu": "329279, [N/A]",
+    "sequenceComplete": false
+  },
+  {
+    "utc": "2026-09-06T20:30:20.781486+00:00",
+    "arms": [
+      {
+        "arm": "seed0-control7",
+        "state": "complete",
+        "deadline": "2026-09-06T20:32:04.647041+00:00",
+        "pid": 328688,
+        "latest": "update 800 | step 19,660,800 | 51,840 sps | ent 1.04 | ev 0.75 | clip 0.07 | batch 24,576",
+        "result": true
+      },
+      {
+        "arm": "seed0-target10",
+        "state": "running",
+        "deadline": "2026-09-06T20:39:38.913194+00:00",
+        "pid": 329278,
+        "latest": "update 272 | step 6,684,672 | 44,608 sps | ent 1.07 | ev 0.87 | clip 0.06 | batch 24,570",
+        "result": false
+      }
+    ],
+    "gpu": "329279, [N/A]",
+    "sequenceComplete": false
+  },
+  {
+    "utc": "2026-09-06T20:32:38.687066+00:00",
+    "arms": [
+      {
+        "arm": "seed0-control7",
+        "state": "complete",
+        "deadline": "2026-09-06T20:32:04.647041+00:00",
+        "pid": 328688,
+        "latest": "update 800 | step 19,660,800 | 51,840 sps | ent 1.04 | ev 0.75 | clip 0.07 | batch 24,576",
+        "result": true
+      },
+      {
+        "arm": "seed0-target10",
+        "state": "running",
+        "deadline": "2026-09-06T20:39:38.913194+00:00",
+        "pid": 329278,
+        "latest": "update 496 | step 12,189,696 | 51,154 sps | ent 1.08 | ev 0.90 | clip 0.06 | batch 24,573",
+        "result": false
+      }
+    ],
+    "gpu": "329279, [N/A]",
+    "sequenceComplete": false
+  },
+  {
+    "utc": "2026-09-06T20:35:01.269113+00:00",
+    "arms": [
+      {
+        "arm": "seed0-control7",
+        "state": "complete",
+        "deadline": "2026-09-06T20:32:04.647041+00:00",
+        "pid": 328688,
+        "latest": "update 800 | step 19,660,800 | 51,840 sps | ent 1.04 | ev 0.75 | clip 0.07 | batch 24,576",
+        "result": true
+      },
+      {
+        "arm": "seed0-target10",
+        "state": "running",
+        "deadline": "2026-09-06T20:39:38.913194+00:00",
+        "pid": 329278,
+        "latest": "update 736 | step 18,087,936 | 52,109 sps | ent 1.05 | ev 0.84 | clip 0.07 | batch 24,576",
+        "result": false
+      }
+    ],
+    "gpu": "329279, [N/A]",
+    "sequenceComplete": false
+  },
+  {
+    "utc": "2026-09-06T20:36:06.428947+00:00",
+    "arms": [
+      {
+        "arm": "seed0-control7",
+        "state": "complete",
+        "deadline": "2026-09-06T20:32:04.647041+00:00",
+        "pid": 328688,
+        "latest": "update 800 | step 19,660,800 | 51,840 sps | ent 1.04 | ev 0.75 | clip 0.07 | batch 24,576",
+        "result": true
+      },
+      {
+        "arm": "seed0-target10",
+        "state": "complete",
+        "deadline": "2026-09-06T20:39:38.913194+00:00",
+        "pid": 329278,
+        "latest": "update 800 | step 19,660,800 | 51,167 sps | ent 1.06 | ev 0.88 | clip 0.06 | batch 24,576",
+        "result": true
+      },
+      {
+        "arm": "seed1-target10",
+        "state": "running",
+        "deadline": "2026-09-06T20:47:44.220372+00:00",
+        "pid": 329991,
+        "latest": "update 34 | step 835,584 | 52,438 sps | ent 0.99 | ev 0.85 | clip 0.07 | batch 24,569",
+        "result": false
+      }
+    ],
+    "gpu": "329992, [N/A]",
+    "sequenceComplete": false
+  },
+  {
+    "utc": "2026-09-06T20:38:08.513641+00:00",
+    "arms": [
+      {
+        "arm": "seed0-control7",
+        "state": "complete",
+        "deadline": "2026-09-06T20:32:04.647041+00:00",
+        "pid": 328688,
+        "latest": "update 800 | step 19,660,800 | 51,840 sps | ent 1.04 | ev 0.75 | clip 0.07 | batch 24,576",
+        "result": true
+      },
+      {
+        "arm": "seed0-target10",
+        "state": "complete",
+        "deadline": "2026-09-06T20:39:38.913194+00:00",
+        "pid": 329278,
+        "latest": "update 800 | step 19,660,800 | 51,167 sps | ent 1.06 | ev 0.88 | clip 0.06 | batch 24,576",
+        "result": true
+      },
+      {
+        "arm": "seed1-target10",
+        "state": "running",
+        "deadline": "2026-09-06T20:47:44.220372+00:00",
+        "pid": 329991,
+        "latest": "update 238 | step 5,849,088 | 50,324 sps | ent 1.08 | ev 0.86 | clip 0.06 | batch 24,575",
+        "result": false
+      }
+    ],
+    "gpu": "329992, [N/A]",
+    "sequenceComplete": false
+  },
+  {
+    "utc": "2026-09-06T20:39:28.201508+00:00",
+    "arms": [
+      {
+        "arm": "seed0-control7",
+        "state": "complete",
+        "deadline": "2026-09-06T20:32:04.647041+00:00",
+        "pid": 328688,
+        "latest": "update 800 | step 19,660,800 | 51,840 sps | ent 1.04 | ev 0.75 | clip 0.07 | batch 24,576",
+        "result": true
+      },
+      {
+        "arm": "seed0-target10",
+        "state": "complete",
+        "deadline": "2026-09-06T20:39:38.913194+00:00",
+        "pid": 329278,
+        "latest": "update 800 | step 19,660,800 | 51,167 sps | ent 1.06 | ev 0.88 | clip 0.06 | batch 24,576",
+        "result": true
+      },
+      {
+        "arm": "seed1-target10",
+        "state": "running",
+        "deadline": "2026-09-06T20:47:44.220372+00:00",
+        "pid": 329991,
+        "latest": "update 369 | step 9,068,544 | 50,593 sps | ent 1.07 | ev 0.90 | clip 0.06 | batch 24,576",
+        "result": false
+      }
+    ],
+    "gpu": "329992, [N/A]",
+    "sequenceComplete": false
+  },
+  {
+    "utc": "2026-09-06T20:40:33.201510+00:00",
+    "arms": [
+      {
+        "arm": "seed0-control7",
+        "state": "complete",
+        "deadline": "2026-09-06T20:32:04.647041+00:00",
+        "pid": 328688,
+        "latest": "update 800 | step 19,660,800 | 51,840 sps | ent 1.04 | ev 0.75 | clip 0.07 | batch 24,576",
+        "result": true
+      },
+      {
+        "arm": "seed0-target10",
+        "state": "complete",
+        "deadline": "2026-09-06T20:39:38.913194+00:00",
+        "pid": 329278,
+        "latest": "update 800 | step 19,660,800 | 51,167 sps | ent 1.06 | ev 0.88 | clip 0.06 | batch 24,576",
+        "result": true
+      },
+      {
+        "arm": "seed1-target10",
+        "state": "running",
+        "deadline": "2026-09-06T20:47:44.220372+00:00",
+        "pid": 329991,
+        "latest": "update 480 | step 11,796,480 | 51,158 sps | ent 1.08 | ev 0.90 | clip 0.06 | batch 24,575",
+        "result": false
+      }
+    ],
+    "gpu": "329992, [N/A]",
+    "sequenceComplete": false
+  },
+  {
+    "utc": "2026-09-06T20:42:15.336934+00:00",
+    "arms": [
+      {
+        "arm": "seed0-control7",
+        "state": "complete",
+        "deadline": "2026-09-06T20:32:04.647041+00:00",
+        "pid": 328688,
+        "latest": "update 800 | step 19,660,800 | 51,840 sps | ent 1.04 | ev 0.75 | clip 0.07 | batch 24,576",
+        "result": true
+      },
+      {
+        "arm": "seed0-target10",
+        "state": "complete",
+        "deadline": "2026-09-06T20:39:38.913194+00:00",
+        "pid": 329278,
+        "latest": "update 800 | step 19,660,800 | 51,167 sps | ent 1.06 | ev 0.88 | clip 0.06 | batch 24,576",
+        "result": true
+      },
+      {
+        "arm": "seed1-target10",
+        "state": "running",
+        "deadline": "2026-09-06T20:47:44.220372+00:00",
+        "pid": 329991,
+        "latest": "update 652 | step 16,023,552 | 50,140 sps | ent 1.04 | ev 0.88 | clip 0.06 | batch 24,571",
+        "result": false
+      }
+    ],
+    "gpu": "329992, [N/A]",
+    "sequenceComplete": false
+  },
+  {
+    "utc": "2026-09-06T20:43:58.773504+00:00",
+    "arms": [
+      {
+        "arm": "seed0-control7",
+        "state": "complete",
+        "deadline": "2026-09-06T20:32:04.647041+00:00",
+        "pid": 328688,
+        "latest": "update 800 | step 19,660,800 | 51,840 sps | ent 1.04 | ev 0.75 | clip 0.07 | batch 24,576",
+        "result": true
+      },
+      {
+        "arm": "seed0-target10",
+        "state": "complete",
+        "deadline": "2026-09-06T20:39:38.913194+00:00",
+        "pid": 329278,
+        "latest": "update 800 | step 19,660,800 | 51,167 sps | ent 1.06 | ev 0.88 | clip 0.06 | batch 24,576",
+        "result": true
+      },
+      {
+        "arm": "seed1-target10",
+        "state": "complete",
+        "deadline": "2026-09-06T20:47:44.220372+00:00",
+        "pid": 329991,
+        "latest": "update 800 | step 19,660,800 | 45,806 sps | ent 1.04 | ev 0.89 | clip 0.07 | batch 24,576",
+        "result": true
+      },
+      {
+        "arm": "seed1-control7",
+        "state": "running",
+        "deadline": "2026-09-06T20:55:51.519715+00:00",
+        "pid": 330732,
+        "latest": "update 11 | step 270,336 | 53,309 sps | ent 1.02 | ev 0.74 | clip 0.06 | batch 24,574",
+        "result": false
+      }
+    ],
+    "gpu": "330733, [N/A]",
+    "sequenceComplete": false
+  },
+  {
+    "utc": "2026-09-06T20:45:51.368939+00:00",
+    "arms": [
+      {
+        "arm": "seed0-control7",
+        "state": "complete",
+        "deadline": "2026-09-06T20:32:04.647041+00:00",
+        "pid": 328688,
+        "latest": "update 800 | step 19,660,800 | 51,840 sps | ent 1.04 | ev 0.75 | clip 0.07 | batch 24,576",
+        "result": true
+      },
+      {
+        "arm": "seed0-target10",
+        "state": "complete",
+        "deadline": "2026-09-06T20:39:38.913194+00:00",
+        "pid": 329278,
+        "latest": "update 800 | step 19,660,800 | 51,167 sps | ent 1.06 | ev 0.88 | clip 0.06 | batch 24,576",
+        "result": true
+      },
+      {
+        "arm": "seed1-target10",
+        "state": "complete",
+        "deadline": "2026-09-06T20:47:44.220372+00:00",
+        "pid": 329991,
+        "latest": "update 800 | step 19,660,800 | 45,806 sps | ent 1.04 | ev 0.89 | clip 0.07 | batch 24,576",
+        "result": true
+      },
+      {
+        "arm": "seed1-control7",
+        "state": "running",
+        "deadline": "2026-09-06T20:55:51.519715+00:00",
+        "pid": 330732,
+        "latest": "update 216 | step 5,308,416 | 50,380 sps | ent 1.07 | ev 0.74 | clip 0.06 | batch 24,571",
+        "result": false
+      }
+    ],
+    "gpu": "330733, [N/A]",
+    "sequenceComplete": false
+  },
+  {
+    "utc": "2026-09-06T20:46:59.305292+00:00",
+    "arms": [
+      {
+        "arm": "seed0-control7",
+        "state": "complete",
+        "deadline": "2026-09-06T20:32:04.647041+00:00",
+        "pid": 328688,
+        "latest": "update 800 | step 19,660,800 | 51,840 sps | ent 1.04 | ev 0.75 | clip 0.07 | batch 24,576",
+        "result": true
+      },
+      {
+        "arm": "seed0-target10",
+        "state": "complete",
+        "deadline": "2026-09-06T20:39:38.913194+00:00",
+        "pid": 329278,
+        "latest": "update 800 | step 19,660,800 | 51,167 sps | ent 1.06 | ev 0.88 | clip 0.06 | batch 24,576",
+        "result": true
+      },
+      {
+        "arm": "seed1-target10",
+        "state": "complete",
+        "deadline": "2026-09-06T20:47:44.220372+00:00",
+        "pid": 329991,
+        "latest": "update 800 | step 19,660,800 | 45,806 sps | ent 1.04 | ev 0.89 | clip 0.07 | batch 24,576",
+        "result": true
+      },
+      {
+        "arm": "seed1-control7",
+        "state": "running",
+        "deadline": "2026-09-06T20:55:51.519715+00:00",
+        "pid": 330732,
+        "latest": "update 337 | step 8,282,112 | 46,366 sps | ent 1.03 | ev 0.77 | clip 0.06 | batch 24,584",
+        "result": false
+      }
+    ],
+    "gpu": "330733, [N/A]",
+    "sequenceComplete": false
+  },
+  {
+    "utc": "2026-09-06T20:48:11.465005+00:00",
+    "arms": [
+      {
+        "arm": "seed0-control7",
+        "state": "complete",
+        "deadline": "2026-09-06T20:32:04.647041+00:00",
+        "pid": 328688,
+        "latest": "update 800 | step 19,660,800 | 51,840 sps | ent 1.04 | ev 0.75 | clip 0.07 | batch 24,576",
+        "result": true
+      },
+      {
+        "arm": "seed0-target10",
+        "state": "complete",
+        "deadline": "2026-09-06T20:39:38.913194+00:00",
+        "pid": 329278,
+        "latest": "update 800 | step 19,660,800 | 51,167 sps | ent 1.06 | ev 0.88 | clip 0.06 | batch 24,576",
+        "result": true
+      },
+      {
+        "arm": "seed1-target10",
+        "state": "complete",
+        "deadline": "2026-09-06T20:47:44.220372+00:00",
+        "pid": 329991,
+        "latest": "update 800 | step 19,660,800 | 45,806 sps | ent 1.04 | ev 0.89 | clip 0.07 | batch 24,576",
+        "result": true
+      },
+      {
+        "arm": "seed1-control7",
+        "state": "running",
+        "deadline": "2026-09-06T20:55:51.519715+00:00",
+        "pid": 330732,
+        "latest": "update 466 | step 11,452,416 | 47,471 sps | ent 1.06 | ev 0.76 | clip 0.06 | batch 24,575",
+        "result": false
+      }
+    ],
+    "gpu": "330733, [N/A]",
+    "sequenceComplete": false
+  },
+  {
+    "utc": "2026-09-06T20:49:48.345521+00:00",
+    "arms": [
+      {
+        "arm": "seed0-control7",
+        "state": "complete",
+        "deadline": "2026-09-06T20:32:04.647041+00:00",
+        "pid": 328688,
+        "latest": "update 800 | step 19,660,800 | 51,840 sps | ent 1.04 | ev 0.75 | clip 0.07 | batch 24,576",
+        "result": true
+      },
+      {
+        "arm": "seed0-target10",
+        "state": "complete",
+        "deadline": "2026-09-06T20:39:38.913194+00:00",
+        "pid": 329278,
+        "latest": "update 800 | step 19,660,800 | 51,167 sps | ent 1.06 | ev 0.88 | clip 0.06 | batch 24,576",
+        "result": true
+      },
+      {
+        "arm": "seed1-target10",
+        "state": "complete",
+        "deadline": "2026-09-06T20:47:44.220372+00:00",
+        "pid": 329991,
+        "latest": "update 800 | step 19,660,800 | 45,806 sps | ent 1.04 | ev 0.89 | clip 0.07 | batch 24,576",
+        "result": true
+      },
+      {
+        "arm": "seed1-control7",
+        "state": "running",
+        "deadline": "2026-09-06T20:55:51.519715+00:00",
+        "pid": 330732,
+        "latest": "update 635 | step 15,605,760 | 50,091 sps | ent 1.06 | ev 0.73 | clip 0.06 | batch 24,578",
+        "result": false
+      }
+    ],
+    "gpu": "330733, [N/A]",
+    "sequenceComplete": false
+  },
+  {
+    "utc": "2026-09-06T20:50:53.545345+00:00",
+    "arms": [
+      {
+        "arm": "seed0-control7",
+        "state": "complete",
+        "deadline": "2026-09-06T20:32:04.647041+00:00",
+        "pid": 328688,
+        "latest": "update 800 | step 19,660,800 | 51,840 sps | ent 1.04 | ev 0.75 | clip 0.07 | batch 24,576",
+        "result": true
+      },
+      {
+        "arm": "seed0-target10",
+        "state": "complete",
+        "deadline": "2026-09-06T20:39:38.913194+00:00",
+        "pid": 329278,
+        "latest": "update 800 | step 19,660,800 | 51,167 sps | ent 1.06 | ev 0.88 | clip 0.06 | batch 24,576",
+        "result": true
+      },
+      {
+        "arm": "seed1-target10",
+        "state": "complete",
+        "deadline": "2026-09-06T20:47:44.220372+00:00",
+        "pid": 329991,
+        "latest": "update 800 | step 19,660,800 | 45,806 sps | ent 1.04 | ev 0.89 | clip 0.07 | batch 24,576",
+        "result": true
+      },
+      {
+        "arm": "seed1-control7",
+        "state": "running",
+        "deadline": "2026-09-06T20:55:51.519715+00:00",
+        "pid": 330732,
+        "latest": "update 752 | step 18,481,152 | 50,821 sps | ent 1.03 | ev 0.80 | clip 0.06 | batch 24,575",
+        "result": false
+      }
+    ],
+    "gpu": "330733, [N/A]",
+    "sequenceComplete": false
+  },
+  {
+    "utc": "2026-09-06T20:51:43.663877+00:00",
+    "arms": [
+      {
+        "arm": "seed0-control7",
+        "state": "complete",
+        "deadline": "2026-09-06T20:32:04.647041+00:00",
+        "pid": 328688,
+        "latest": "update 800 | step 19,660,800 | 51,840 sps | ent 1.04 | ev 0.75 | clip 0.07 | batch 24,576",
+        "result": true
+      },
+      {
+        "arm": "seed0-target10",
+        "state": "complete",
+        "deadline": "2026-09-06T20:39:38.913194+00:00",
+        "pid": 329278,
+        "latest": "update 800 | step 19,660,800 | 51,167 sps | ent 1.06 | ev 0.88 | clip 0.06 | batch 24,576",
+        "result": true
+      },
+      {
+        "arm": "seed1-target10",
+        "state": "complete",
+        "deadline": "2026-09-06T20:47:44.220372+00:00",
+        "pid": 329991,
+        "latest": "update 800 | step 19,660,800 | 45,806 sps | ent 1.04 | ev 0.89 | clip 0.07 | batch 24,576",
+        "result": true
+      },
+      {
+        "arm": "seed1-control7",
+        "state": "complete",
+        "deadline": "2026-09-06T20:55:51.519715+00:00",
+        "pid": 330732,
+        "latest": "update 800 | step 19,660,800 | 48,168 sps | ent 1.00 | ev 0.71 | clip 0.07 | batch 24,583",
+        "result": true
+      }
+    ],
+    "gpu": "",
+    "sequenceComplete": true
+  }
+]
