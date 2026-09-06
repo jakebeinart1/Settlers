@@ -14,6 +14,34 @@ supervisor = importlib.import_module("run-catan-reconstruction")
 
 
 class ReconstructionTests(unittest.TestCase):
+    def test_every_metric_row_rejects_nonfinite_numbers(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            (root / "checkpoints").mkdir()
+            supervisor.torch.save(
+                {
+                    "model_state": {"weight": supervisor.torch.tensor([1.0])},
+                    "optimizer_state": {"state": {}},
+                    "global_step": 1,
+                    "config": {},
+                },
+                root / "checkpoints/latest.pt",
+            )
+            for number in ("NaN", "Infinity", "-Infinity", "1e400", "-1e400"):
+                for kind in ("eval", "game"):
+                    with self.subTest(number=number, kind=kind):
+                        (root / "metrics.jsonl").write_text(
+                            '{"t":"train","step":1,"value_loss":0.5}\n'
+                            f'{{"t":"{kind}","values":[{number}]}}\n'
+                        )
+                        with self.assertRaisesRegex(ValueError, "non-finite metric"):
+                            supervisor.inspect_checkpoint(root)
+            (root / "metrics.jsonl").write_text(
+                '{"t":"train","step":1,"value_loss":0.5}\n'
+                '{"t":"eval","values":[0.75,1e-20]}\n'
+            )
+            self.assertEqual(supervisor.inspect_checkpoint(root)["updates"], 1)
+
     def test_fresh_stage_never_resumes_a_published_or_smoke_model(self) -> None:
         command = supervisor.command_for_stage("fresh", 50, "cuda", "")
         self.assertNotIn("--resume", command)

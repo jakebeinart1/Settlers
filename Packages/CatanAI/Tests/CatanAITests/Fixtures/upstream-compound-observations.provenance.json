@@ -1,0 +1,46 @@
+{
+  "schemaVersion": 1,
+  "upstreamRepository": "https://github.com/Eli6th/catan-rl",
+  "upstreamRevision": "021279c56834b6203480e5292e1de7246e47bd68",
+  "visibility": "Perfect",
+  "rustVersion": "rustc 1.98.1 (48a229cea 2026-09-01)",
+  "generator": {
+    "path": "scripts/upstream-observation-fixture.rs",
+    "sha256": "7a632cf5e4d10564336f2119d88875bfcaab74b917f301067c2eafdbcf7f89e0",
+    "installation": "Copy the generator to rust/catan-env/examples/empires_observation_fixture.rs in the pinned checkout; do not modify upstream tracked sources.",
+    "commandFromUpstreamRustDirectory": "CARGO_PROFILE_RELEASE_STRIP=false cargo run --locked --offline --release -p catan-env --example empires_observation_fixture -- --compounds"
+  },
+  "fixture": {
+    "file": "upstream-compound-observations.jsonl",
+    "sha256": "fa98e579f39547ecb4c6bb6c40a2f59b914c0077a735957b3d99d2bbe54d7140",
+    "records": 34,
+    "featuresPerRecord": 1350,
+    "scenarioTablePairs": 10,
+    "playerCounts": [3, 4],
+    "scenarios": ["road-building", "knight-pre-roll", "knight-main", "discard-seat-0", "discard-seat-1"],
+    "construction": "Roots use legal seeded setup and completed turns, followed by explicit card/resource inventories with balanced bank counts. Road Building holds one old and one newly bought card; Knight begins with two played knights; a forced seven queues two off-turn discarders. All emitted stages execute real upstream actions, with multiple legal choices at every encoder boundary.",
+    "scope": "Compound-stage perfect-information observation parity, not full rules equivalence, numeric network parity, training provenance, or playing strength. Native Swift roots are reconstructed from raw fields; UpstreamPolicy supplies every private staged state and context. Only predictor logits are prescribed."
+  },
+  "upstreamSourceSHA256": {
+    "rust/Cargo.lock": "bd38cd78c3d0bcddb5bddca987908036abcbba49d06136e9fceaf5ec4ece39eb",
+    "rust/catan-env/src/obs.rs": "33793d1a9c456bfe65c43a312f74e2799ea130c9bb74921a87c75645c6c92a67",
+    "rust/catan-env/src/codec.rs": "18c6a73b9dc9df5217a6058d70161e38636ef96941d45d77083e526d8dd80413",
+    "rust/catan-core/src/game.rs": "4e1a3f84ad9073721cdeb6796c3adc08c8ef4135dd80f4d338f95a1574ef4afe",
+    "rust/catan-core/src/dev_cards.rs": "cad412f5319794abd17b721116aef956ed30047eef141e5aaad85be1ce3b1432",
+    "rust/catan-core/src/state.rs": "b5abd78fbbead5c597d92d780fac53be93ce646cfc68634137de066c4e35dcce",
+    "rust/catan-core/src/building.rs": "da0d7e16925dad9cee568f7bca515046fd0a3343af1b1ca49818b3fe26cc9c6f",
+    "rust/catan-core/src/robber.rs": "4ebd950f7a69b3662df87de02c6a3296472d1d203ed035996a38ddeb2a427fd2",
+    "rust/catan-core/src/resources.rs": "c9c7afd4403c174ce8ca2fd19c218415b3de8dbf6043847ec1a00ebf58a2d67f",
+    "rust/catan-core/src/board.rs": "a9759af8bdf2af1152e51ec24f8c4a39a863dfa05bb7c74a0ac9c68c8ee44442"
+  },
+  "reproducibility": {
+    "separateOracleProcesses": 2,
+    "byteIdentical": true,
+    "originalSampledFixtureRegeneratedUnchangedSHA256": "ab7d5447fe43546913863f3721469ae23bc5fd1f6922d21250246970ebaf782d"
+  },
+  "mutationCheck": {
+    "scope": "Temporary test-only encoder-boundary mutation, removed after the red run; production sources unchanged.",
+    "mutation": "Keep roadsToPlace at 2 instead of 1 before scoring the second road.",
+    "result": "Swift tests exited 1 with exactly two mismatches: slot 1331, one in each table size, absolute error 0.5."
+  }
+}

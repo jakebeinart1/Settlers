@@ -1,0 +1,81 @@
+[0/1] Planning build
+Building for debugging...
+[0/5] Copying Fixtures
+[1/5] Write swift-version--58304C5D6DBC2206.txt
+Build complete! (0.15s)
+Test Suite 'Selected tests' started at 2026-09-06 13:32:34.834.
+Test Suite 'CatanAIPackageTests.xctest' started at 2026-09-06 13:32:34.835.
+Test Suite 'CatanAIPackageTests.xctest' passed at 2026-09-06 13:32:34.835.
+	 Executed 0 tests, with 0 failures (0 unexpected) in 0.000 (0.000) seconds
+Test Suite 'Selected tests' passed at 2026-09-06 13:32:34.835.
+	 Executed 0 tests, with 0 failures (0 unexpected) in 0.000 (0.001) seconds
+◇ Test run started.
+↳ Testing Library Version: 1902
+↳ Target Platform: arm64e-apple-macos14.0
+◇ Suite UpstreamObservationTests started.
+◇ Test upstreamPolicyKnightKeepsActorAndTurnContextAcrossSupportedTables(players:target:) started.
+◇ Test upstreamPolicyTradePreflightDoesNotAdvanceRNGWhenNeuralMoveWins() started.
+◇ Test upstreamPolicyRoadBuildingScoresPrivateSequentialStatesAndCommitsOnePair() started.
+◇ Test upstreamPolicyPreservesExistingHeuristicTradeProposalScheduling() started.
+◇ Suite UpstreamCompoundObservationTests started.
+◇ Test upstreamPolicyAtomicActionIDsMatchFrozenCodec() started.
+◇ Test upstreamPolicyWinningKnightStillReturnsACompleteSwiftMove() started.
+◇ Test upstreamPolicyDoesNotSumCompoundLogitsAtRoot() started.
+◇ Test upstreamPolicyRichPlayerTradeResponsesUseHeuristicAndExactOfferID() started.
+◇ Test upstreamPolicyReportsMalformedPredictionAndEncodingFallbacks() started.
+◇ Test upstreamPolicyRobberWithoutVictimsProducesNilWithoutAStealDecision() started.
+◇ Test upstreamPolicySelectionCapturesDiagnosticsWithoutRepeatingInference() started.
+◇ Test upstreamPolicyPreRollKnightKeepsTheRollOwed() started.
+◇ Test upstreamPolicyUsesLowestActionIDForTiesWithoutAdvancingRNG() started.
+◇ Test upstreamPolicyDiscardCanExceedTheExistingFlatActionSpaceCap() started.
+◇ Test upstreamPolicyRoadBuildingNeverReturnsAOneRoadCompletion() started.
+◇ Test upstreamPolicyUnknownHistoryAndPreRollDifferencesHaveNamedFallbacks() started.
+◇ Test upstreamPolicyDiscardUsesOriginalQuotaAndCallerNarrowedBundles() started.
+◇ Test case passing 2 arguments players → 4, target → 8 to upstreamPolicyKnightKeepsActorAndTurnContextAcrossSupportedTables(players:target:) started.
+◇ Test case passing 2 arguments players → 3, target → 10 to upstreamPolicyKnightKeepsActorAndTurnContextAcrossSupportedTables(players:target:) started.
+◇ Test case passing 2 arguments players → 3, target → 12 to upstreamPolicyKnightKeepsActorAndTurnContextAcrossSupportedTables(players:target:) started.
+◇ Test case passing 2 arguments players → 3, target → 8 to upstreamPolicyKnightKeepsActorAndTurnContextAcrossSupportedTables(players:target:) started.
+◇ Test case passing 2 arguments players → 4, target → 10 to upstreamPolicyKnightKeepsActorAndTurnContextAcrossSupportedTables(players:target:) started.
+◇ Test case passing 2 arguments players → 4, target → 12 to upstreamPolicyKnightKeepsActorAndTurnContextAcrossSupportedTables(players:target:) started.
+◇ Test liveSetupContextMatchesRustWithoutAnOverride() started.
+◇ Test refusesLegacyTurnGuessAndInvalidSeat() started.
+◇ Test rejectsMalformedTopologyInsteadOfTrappingOrReindexing() started.
+◇ Test matchesPinnedRustEncoderOnRealThreeAndFourSeatPositions() started.
+◇ Test mainTurnOwnerDoesNotUseStaleRobberBookkeeping() started.
+◇ Test policyStagesMatchRust(players:scenario:) started.
+✔ Test upstreamPolicyRichPlayerTradeResponsesUseHeuristicAndExactOfferID() passed after 0.008 seconds.
+✔ Test upstreamPolicyAtomicActionIDsMatchFrozenCodec() passed after 0.009 seconds.
+✔ Test upstreamPolicyRobberWithoutVictimsProducesNilWithoutAStealDecision() passed after 0.009 seconds.
+✔ Test upstreamPolicyDoesNotSumCompoundLogitsAtRoot() passed after 0.009 seconds.
+✔ Test upstreamPolicyDiscardCanExceedTheExistingFlatActionSpaceCap() passed after 0.009 seconds.
+✔ Test upstreamPolicyPreRollKnightKeepsTheRollOwed() passed after 0.009 seconds.
+✔ Test upstreamPolicyWinningKnightStillReturnsACompleteSwiftMove() passed after 0.009 seconds.
+◇ Test case passing 2 arguments players → 3, scenario → .knightPreRoll to policyStagesMatchRust(players:scenario:) started.
+◇ Test case passing 2 arguments players → 3, scenario → .roadBuilding to policyStagesMatchRust(players:scenario:) started.
+◇ Test case passing 2 arguments players → 3, scenario → .knightMain to policyStagesMatchRust(players:scenario:) started.
+◇ Test case passing 2 arguments players → 3, scenario → .discardFirst to policyStagesMatchRust(players:scenario:) started.
+◇ Test case passing 2 arguments players → 3, scenario → .discardSecond to policyStagesMatchRust(players:scenario:) started.
+◇ Test case passing 2 arguments players → 4, scenario → .roadBuilding to policyStagesMatchRust(players:scenario:) started.
+◇ Test case passing 2 arguments players → 4, scenario → .knightPreRoll to policyStagesMatchRust(players:scenario:) started.
+◇ Test case passing 2 arguments players → 4, scenario → .knightMain to policyStagesMatchRust(players:scenario:) started.
+◇ Test case passing 2 arguments players → 4, scenario → .discardFirst to policyStagesMatchRust(players:scenario:) started.
+◇ Test case passing 2 arguments players → 4, scenario → .discardSecond to policyStagesMatchRust(players:scenario:) started.
+✔ Test upstreamPolicySelectionCapturesDiagnosticsWithoutRepeatingInference() passed after 0.012 seconds.
+✔ Test upstreamPolicyKnightKeepsActorAndTurnContextAcrossSupportedTables(players:target:) with 6 test cases passed after 0.012 seconds.
+✔ Test upstreamPolicyUsesLowestActionIDForTiesWithoutAdvancingRNG() passed after 0.012 seconds.
+✔ Test refusesLegacyTurnGuessAndInvalidSeat() passed after 0.007 seconds.
+✔ Test upstreamPolicyUnknownHistoryAndPreRollDifferencesHaveNamedFallbacks() passed after 0.012 seconds.
+✔ Test upstreamPolicyDiscardUsesOriginalQuotaAndCallerNarrowedBundles() passed after 0.012 seconds.
+✔ Test mainTurnOwnerDoesNotUseStaleRobberBookkeeping() passed after 0.007 seconds.
+✔ Test rejectsMalformedTopologyInsteadOfTrappingOrReindexing() passed after 0.007 seconds.
+✔ Test upstreamPolicyReportsMalformedPredictionAndEncodingFallbacks() passed after 0.013 seconds.
+✔ Test upstreamPolicyPreservesExistingHeuristicTradeProposalScheduling() passed after 0.014 seconds.
+✔ Test upstreamPolicyRoadBuildingNeverReturnsAOneRoadCompletion() passed after 0.014 seconds.
+✔ Test upstreamPolicyTradePreflightDoesNotAdvanceRNGWhenNeuralMoveWins() passed after 0.023 seconds.
+✔ Test upstreamPolicyRoadBuildingScoresPrivateSequentialStatesAndCommitsOnePair() passed after 0.029 seconds.
+✔ Test policyStagesMatchRust(players:scenario:) with 10 test cases passed after 0.096 seconds.
+✔ Suite UpstreamCompoundObservationTests passed after 0.105 seconds.
+✔ Test liveSetupContextMatchesRustWithoutAnOverride() passed after 0.126 seconds.
+✔ Test matchesPinnedRustEncoderOnRealThreeAndFourSeatPositions() passed after 0.199 seconds.
+✔ Suite UpstreamObservationTests passed after 0.204 seconds.
+✔ Test run with 23 tests in 2 suites passed after 0.204 seconds.

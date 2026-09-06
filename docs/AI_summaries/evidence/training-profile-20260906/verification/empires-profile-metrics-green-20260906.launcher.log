@@ -1,0 +1,14 @@
+test_budgets_are_finite_positive_and_bounded (test_reconstruction.ReconstructionTests.test_budgets_are_finite_positive_and_bounded) ... ok
+test_continuation_uses_exact_parent_and_removes_shaping (test_reconstruction.ReconstructionTests.test_continuation_uses_exact_parent_and_removes_shaping) ... ok
+test_every_metric_row_rejects_nonfinite_numbers (test_reconstruction.ReconstructionTests.test_every_metric_row_rejects_nonfinite_numbers) ... ok
+test_failure_is_recorded_and_propagated (test_reconstruction.ReconstructionTests.test_failure_is_recorded_and_propagated) ... ok
+test_fresh_stage_never_resumes_a_published_or_smoke_model (test_reconstruction.ReconstructionTests.test_fresh_stage_never_resumes_a_published_or_smoke_model) ... ok
+test_logged_command_failure_is_not_success (test_reconstruction.ReconstructionTests.test_logged_command_failure_is_not_success) ... ok
+test_logged_command_timeout_propagates (test_reconstruction.ReconstructionTests.test_logged_command_timeout_propagates) ... ok
+test_native_game_must_reach_a_winner (test_reconstruction.ReconstructionTests.test_native_game_must_reach_a_winner) ... ok
+test_signal_handler_does_not_silently_finish (test_reconstruction.ReconstructionTests.test_signal_handler_does_not_silently_finish) ... ok
+
+----------------------------------------------------------------------
+Ran 9 tests in 0.087s
+
+OK

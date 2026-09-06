@@ -1,0 +1,114 @@
+test_budgets_are_finite_positive_and_bounded (test_reconstruction.ReconstructionTests.test_budgets_are_finite_positive_and_bounded) ... ok
+test_continuation_uses_exact_parent_and_removes_shaping (test_reconstruction.ReconstructionTests.test_continuation_uses_exact_parent_and_removes_shaping) ... ok
+test_every_metric_row_rejects_nonfinite_numbers (test_reconstruction.ReconstructionTests.test_every_metric_row_rejects_nonfinite_numbers) ... 
+  test_every_metric_row_rejects_nonfinite_numbers (test_reconstruction.ReconstructionTests.test_every_metric_row_rejects_nonfinite_numbers) (number='NaN', kind='eval') ... FAIL
+  test_every_metric_row_rejects_nonfinite_numbers (test_reconstruction.ReconstructionTests.test_every_metric_row_rejects_nonfinite_numbers) (number='NaN', kind='game') ... FAIL
+  test_every_metric_row_rejects_nonfinite_numbers (test_reconstruction.ReconstructionTests.test_every_metric_row_rejects_nonfinite_numbers) (number='Infinity', kind='eval') ... FAIL
+  test_every_metric_row_rejects_nonfinite_numbers (test_reconstruction.ReconstructionTests.test_every_metric_row_rejects_nonfinite_numbers) (number='Infinity', kind='game') ... FAIL
+  test_every_metric_row_rejects_nonfinite_numbers (test_reconstruction.ReconstructionTests.test_every_metric_row_rejects_nonfinite_numbers) (number='-Infinity', kind='eval') ... FAIL
+  test_every_metric_row_rejects_nonfinite_numbers (test_reconstruction.ReconstructionTests.test_every_metric_row_rejects_nonfinite_numbers) (number='-Infinity', kind='game') ... FAIL
+  test_every_metric_row_rejects_nonfinite_numbers (test_reconstruction.ReconstructionTests.test_every_metric_row_rejects_nonfinite_numbers) (number='1e400', kind='eval') ... FAIL
+  test_every_metric_row_rejects_nonfinite_numbers (test_reconstruction.ReconstructionTests.test_every_metric_row_rejects_nonfinite_numbers) (number='1e400', kind='game') ... FAIL
+  test_every_metric_row_rejects_nonfinite_numbers (test_reconstruction.ReconstructionTests.test_every_metric_row_rejects_nonfinite_numbers) (number='-1e400', kind='eval') ... FAIL
+  test_every_metric_row_rejects_nonfinite_numbers (test_reconstruction.ReconstructionTests.test_every_metric_row_rejects_nonfinite_numbers) (number='-1e400', kind='game') ... FAIL
+test_failure_is_recorded_and_propagated (test_reconstruction.ReconstructionTests.test_failure_is_recorded_and_propagated) ... ok
+test_fresh_stage_never_resumes_a_published_or_smoke_model (test_reconstruction.ReconstructionTests.test_fresh_stage_never_resumes_a_published_or_smoke_model) ... ok
+test_logged_command_failure_is_not_success (test_reconstruction.ReconstructionTests.test_logged_command_failure_is_not_success) ... ok
+test_logged_command_timeout_propagates (test_reconstruction.ReconstructionTests.test_logged_command_timeout_propagates) ... ok
+test_native_game_must_reach_a_winner (test_reconstruction.ReconstructionTests.test_native_game_must_reach_a_winner) ... ok
+test_signal_handler_does_not_silently_finish (test_reconstruction.ReconstructionTests.test_signal_handler_does_not_silently_finish) ... ok
+
+======================================================================
+FAIL: test_every_metric_row_rejects_nonfinite_numbers (test_reconstruction.ReconstructionTests.test_every_metric_row_rejects_nonfinite_numbers) (number='NaN', kind='eval')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/alex/Documents/Personal Projects/Settlers/scripts/catan-replication-tests/test_reconstruction.py", line 37, in test_every_metric_row_rejects_nonfinite_numbers
+    with self.assertRaisesRegex(ValueError, "non-finite metric"):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: ValueError not raised
+
+======================================================================
+FAIL: test_every_metric_row_rejects_nonfinite_numbers (test_reconstruction.ReconstructionTests.test_every_metric_row_rejects_nonfinite_numbers) (number='NaN', kind='game')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/alex/Documents/Personal Projects/Settlers/scripts/catan-replication-tests/test_reconstruction.py", line 37, in test_every_metric_row_rejects_nonfinite_numbers
+    with self.assertRaisesRegex(ValueError, "non-finite metric"):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: ValueError not raised
+
+======================================================================
+FAIL: test_every_metric_row_rejects_nonfinite_numbers (test_reconstruction.ReconstructionTests.test_every_metric_row_rejects_nonfinite_numbers) (number='Infinity', kind='eval')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/alex/Documents/Personal Projects/Settlers/scripts/catan-replication-tests/test_reconstruction.py", line 37, in test_every_metric_row_rejects_nonfinite_numbers
+    with self.assertRaisesRegex(ValueError, "non-finite metric"):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: ValueError not raised
+
+======================================================================
+FAIL: test_every_metric_row_rejects_nonfinite_numbers (test_reconstruction.ReconstructionTests.test_every_metric_row_rejects_nonfinite_numbers) (number='Infinity', kind='game')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/alex/Documents/Personal Projects/Settlers/scripts/catan-replication-tests/test_reconstruction.py", line 37, in test_every_metric_row_rejects_nonfinite_numbers
+    with self.assertRaisesRegex(ValueError, "non-finite metric"):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: ValueError not raised
+
+======================================================================
+FAIL: test_every_metric_row_rejects_nonfinite_numbers (test_reconstruction.ReconstructionTests.test_every_metric_row_rejects_nonfinite_numbers) (number='-Infinity', kind='eval')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/alex/Documents/Personal Projects/Settlers/scripts/catan-replication-tests/test_reconstruction.py", line 37, in test_every_metric_row_rejects_nonfinite_numbers
+    with self.assertRaisesRegex(ValueError, "non-finite metric"):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: ValueError not raised
+
+======================================================================
+FAIL: test_every_metric_row_rejects_nonfinite_numbers (test_reconstruction.ReconstructionTests.test_every_metric_row_rejects_nonfinite_numbers) (number='-Infinity', kind='game')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/alex/Documents/Personal Projects/Settlers/scripts/catan-replication-tests/test_reconstruction.py", line 37, in test_every_metric_row_rejects_nonfinite_numbers
+    with self.assertRaisesRegex(ValueError, "non-finite metric"):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: ValueError not raised
+
+======================================================================
+FAIL: test_every_metric_row_rejects_nonfinite_numbers (test_reconstruction.ReconstructionTests.test_every_metric_row_rejects_nonfinite_numbers) (number='1e400', kind='eval')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/alex/Documents/Personal Projects/Settlers/scripts/catan-replication-tests/test_reconstruction.py", line 37, in test_every_metric_row_rejects_nonfinite_numbers
+    with self.assertRaisesRegex(ValueError, "non-finite metric"):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: ValueError not raised
+
+======================================================================
+FAIL: test_every_metric_row_rejects_nonfinite_numbers (test_reconstruction.ReconstructionTests.test_every_metric_row_rejects_nonfinite_numbers) (number='1e400', kind='game')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/alex/Documents/Personal Projects/Settlers/scripts/catan-replication-tests/test_reconstruction.py", line 37, in test_every_metric_row_rejects_nonfinite_numbers
+    with self.assertRaisesRegex(ValueError, "non-finite metric"):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: ValueError not raised
+
+======================================================================
+FAIL: test_every_metric_row_rejects_nonfinite_numbers (test_reconstruction.ReconstructionTests.test_every_metric_row_rejects_nonfinite_numbers) (number='-1e400', kind='eval')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/alex/Documents/Personal Projects/Settlers/scripts/catan-replication-tests/test_reconstruction.py", line 37, in test_every_metric_row_rejects_nonfinite_numbers
+    with self.assertRaisesRegex(ValueError, "non-finite metric"):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: ValueError not raised
+
+======================================================================
+FAIL: test_every_metric_row_rejects_nonfinite_numbers (test_reconstruction.ReconstructionTests.test_every_metric_row_rejects_nonfinite_numbers) (number='-1e400', kind='game')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/alex/Documents/Personal Projects/Settlers/scripts/catan-replication-tests/test_reconstruction.py", line 37, in test_every_metric_row_rejects_nonfinite_numbers
+    with self.assertRaisesRegex(ValueError, "non-finite metric"):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: ValueError not raised
+
+----------------------------------------------------------------------
+Ran 9 tests in 0.095s
+
+FAILED (failures=10)

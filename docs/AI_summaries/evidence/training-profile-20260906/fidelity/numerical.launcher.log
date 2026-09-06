@@ -1,0 +1,17 @@
+Traceback (most recent call last):
+  File "/tmp/empires-export-fidelity-H0pWLD/audit.py", line 78, in <module>
+    compare("original", SOURCE / "models/catan-512-best.pt", SOURCE / "models/catan-512.ctnn"),
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/tmp/empires-export-fidelity-H0pWLD/audit.py", line 39, in compare
+    rust_bits = oracle.rust_predictions(SOURCE, exported, "rustc", cases)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/alex/Documents/Personal Projects/Settlers/scripts/generate-upstream-network-fixtures.py", line 87, in rust_predictions
+    subprocess.run([rustc, *RUST_FLAGS, str(wrapper), "-o", str(binary)], check=True)
+  File "/Users/alex/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/subprocess.py", line 548, in run
+    with Popen(*popenargs, **kwargs) as process:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/alex/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/subprocess.py", line 1026, in __init__
+    self._execute_child(args, executable, preexec_fn, close_fds,
+  File "/Users/alex/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/subprocess.py", line 1955, in _execute_child
+    raise child_exception_type(errno_num, err_msg, err_filename)
+FileNotFoundError: [Errno 2] No such file or directory: 'rustc'

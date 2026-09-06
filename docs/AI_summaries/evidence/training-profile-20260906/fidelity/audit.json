@@ -1,0 +1,45 @@
+{
+  "source_commit": "021279c56834b6203480e5292e1de7246e47bd68",
+  "exporter_sha256": "ce74a024c0b1c9d52db6269f830c555935ccbfed42f21d9950fa7f9b569a7a7c",
+  "trainer_sha256": "720ecfa3971314b0feeed6cd11283ecbeea158b7d70d4deab1b73b0948bb7f42",
+  "auditor_sha256": "affd52d942d115528d57462b5659ff438000698500bcf65bcd5a3b6a118b1b5a",
+  "torch": "2.14.0",
+  "models": [
+    {
+      "model": "original",
+      "checkpoint_sha256": "c4258f235c673efe6968b0aa4de66a1411f01012fa14fe71f548dfff681525a3",
+      "export_sha256": "21f3b380786a53998172896caac44191dea3d44efd11d3bf8c92150d8b18c8a5",
+      "reexport_sha256": "f9d57b4023f262df31b528f4cf55db782db66f823d19417c04fb9c36914723a9",
+      "header_and_all_parameter_bytes_identical": true,
+      "parameter_float_count": 1108268,
+      "probe_input_identical": true,
+      "probe_prediction_max_abs_delta": 9.5367431640625e-07,
+      "samples": 70,
+      "real_upstream_positions": 39,
+      "observation_fixture_sha256": "ab7d5447fe43546913863f3721469ae23bc5fd1f6922d21250246970ebaf782d",
+      "rust_separate_process_bit_parity": true,
+      "cpu_rust_logit_max_abs_delta": 0.00030517578125,
+      "cpu_rust_clamped_value_max_abs_delta": 1.7881393432617188e-07,
+      "unmasked_top1_disagreements": 0,
+      "limits": "Top-1 uses all 299 outputs, not legal-action masks. Numerical audit, not gameplay or exhaustive parity."
+    },
+    {
+      "model": "r2",
+      "checkpoint_sha256": "b2b65d569ef2e56bbca9e6f6ecfd41b4c0905842803e62c3aff2aeec7d96dace",
+      "export_sha256": "a3c957a8765ccbb3c9afd1a8ebee45b7cbaff134c40ce0456e5024560b3ef94e",
+      "reexport_sha256": "6adea4b6acbafed88cbb1bf283003a00a3711305e79035fae97282ee50072f14",
+      "header_and_all_parameter_bytes_identical": true,
+      "parameter_float_count": 1108268,
+      "probe_input_identical": true,
+      "probe_prediction_max_abs_delta": 1.1444091796875e-05,
+      "samples": 70,
+      "real_upstream_positions": 39,
+      "observation_fixture_sha256": "ab7d5447fe43546913863f3721469ae23bc5fd1f6922d21250246970ebaf782d",
+      "rust_separate_process_bit_parity": true,
+      "cpu_rust_logit_max_abs_delta": 0.00030517578125,
+      "cpu_rust_clamped_value_max_abs_delta": 9.5367431640625e-07,
+      "unmasked_top1_disagreements": 0,
+      "limits": "Top-1 uses all 299 outputs, not legal-action masks. Numerical audit, not gameplay or exhaustive parity."
+    }
+  ]
+}

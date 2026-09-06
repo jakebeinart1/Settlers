@@ -1,0 +1,25 @@
+{
+  "budget_seconds": 60.0,
+  "started_epoch": 1788717174.6143856,
+  "started_elapsed": 64486.485749999,
+  "started_utc": "2026-09-06T17:52:54.614386+00:00",
+  "deadline_epoch": 1788717234.6143856,
+  "deadline_utc": "2026-09-06T17:53:54.614386+00:00",
+  "state": "complete",
+  "command": [
+    "/home/alex_ubuntu/empires-research/original-v1/.venv/bin/python",
+    "-c",
+    "import importlib,json; from pathlib import Path; m=importlib.import_module('run-catan-reconstruction'); root=Path('/home/alex_ubuntu/empires-research/runs');\nfor mode in ('control-1','cprofile-1'):\n old=json.loads((root / ('profile-20260906-'+mode) / 'result.json').read_text()); new=m.inspect_checkpoint(Path(old['upstream_run'])); assert new == old['checkpoint']; print(json.dumps({'run':mode,'post_run_full_metrics_validation':True,'checkpoint_sha256':new['checkpoint_sha256'],'metrics_sha256':new['metrics_sha256'],'validator_sha256':m.digest(Path(m.__file__))}))"
+  ],
+  "watchdog_pid": 294572,
+  "watchdog_identity": "6448646",
+  "boot_identity": "9d36b96d-e143-4eac-b109-99b065725478",
+  "watchdog_sha256": "0fe5997a05c2982988aab889c766df200e292250b3f2b674c557918065857ad0",
+  "process_group": 294573,
+  "process_identity": "6448648",
+  "remaining_seconds": 58.99938776300405,
+  "checked_epoch": 1788717175.6150036,
+  "checked_utc": "2026-09-06T17:52:55.615004+00:00",
+  "exit_code": 0,
+  "finished_utc": "2026-09-06T17:52:55.615108+00:00"
+}

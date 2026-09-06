@@ -1,0 +1,82 @@
+resumed from /home/alex_ubuntu/empires-research/original-v1/training/runs/20260906-0030-gpu-baseline-20260906-r2-continuation/checkpoints/step_0148807680.pt at step 148,807,680
+net params: 1,108,268 | device cuda
+run dir: training/runs/20260906-1339-profile-cprofile-758f8898896c44efa3114233877e573e
+metrics: training/runs/20260906-1339-profile-cprofile-758f8898896c44efa3114233877e573e/metrics.jsonl
+update 1 | step 24,576 | 14,350 sps | ent 1.04 | ev 0.75 | clip 0.06 | batch 24,064
+update 2 | step 49,152 | 24,285 sps | ent 0.99 | ev 0.82 | clip 0.09 | batch 24,579
+update 3 | step 73,728 | 21,295 sps | ent 1.08 | ev 0.74 | clip 0.08 | batch 24,578
+update 4 | step 98,304 | 23,213 sps | ent 1.05 | ev 0.77 | clip 0.06 | batch 24,574
+update 5 | step 122,880 | 28,145 sps | ent 1.04 | ev 0.78 | clip 0.06 | batch 24,581
+update 6 | step 147,456 | 24,348 sps | ent 1.05 | ev 0.77 | clip 0.06 | batch 24,571
+update 7 | step 172,032 | 23,645 sps | ent 1.00 | ev 0.77 | clip 0.06 | batch 24,577
+update 8 | step 196,608 | 22,825 sps | ent 1.05 | ev 0.76 | clip 0.07 | batch 24,575
+update 9 | step 221,184 | 38,057 sps | ent 1.04 | ev 0.72 | clip 0.06 | batch 24,575
+update 10 | step 245,760 | 40,924 sps | ent 1.04 | ev 0.74 | clip 0.08 | batch 24,580
+update 11 | step 270,336 | 41,306 sps | ent 1.05 | ev 0.75 | clip 0.06 | batch 24,572
+update 12 | step 294,912 | 40,182 sps | ent 1.05 | ev 0.79 | clip 0.06 | batch 24,574
+update 13 | step 319,488 | 41,407 sps | ent 0.98 | ev 0.76 | clip 0.07 | batch 24,580
+update 14 | step 344,064 | 40,990 sps | ent 1.04 | ev 0.73 | clip 0.09 | batch 24,577
+update 15 | step 368,640 | 39,205 sps | ent 1.16 | ev 0.76 | clip 0.07 | batch 24,579
+update 16 | step 393,216 | 42,402 sps | ent 1.06 | ev 0.73 | clip 0.07 | batch 24,573
+  eval vs 3 random: 100.0% (96 games, baseline 25%)
+  eval vs 3 heuristic: 68.8% (96 games, baseline 25%)
+update 17 | step 417,792 | 40,833 sps | ent 1.05 | ev 0.76 | clip 0.06 | batch 24,576
+update 18 | step 442,368 | 40,713 sps | ent 1.08 | ev 0.73 | clip 0.08 | batch 24,578
+update 19 | step 466,944 | 41,283 sps | ent 1.06 | ev 0.76 | clip 0.06 | batch 24,571
+update 20 | step 491,520 | 39,681 sps | ent 1.06 | ev 0.78 | clip 0.06 | batch 24,578
+update 21 | step 516,096 | 41,297 sps | ent 1.05 | ev 0.77 | clip 0.06 | batch 24,574
+update 22 | step 540,672 | 41,095 sps | ent 1.04 | ev 0.77 | clip 0.06 | batch 24,581
+update 23 | step 565,248 | 41,142 sps | ent 1.06 | ev 0.73 | clip 0.10 | batch 24,579
+update 24 | step 589,824 | 39,706 sps | ent 1.06 | ev 0.72 | clip 0.07 | batch 24,573
+update 25 | step 614,400 | 41,507 sps | ent 1.05 | ev 0.75 | clip 0.06 | batch 24,574
+update 26 | step 638,976 | 42,192 sps | ent 1.06 | ev 0.77 | clip 0.06 | batch 24,573
+update 27 | step 663,552 | 40,791 sps | ent 1.01 | ev 0.77 | clip 0.08 | batch 24,583
+update 28 | step 688,128 | 40,091 sps | ent 1.04 | ev 0.81 | clip 0.06 | batch 24,571
+update 29 | step 712,704 | 41,562 sps | ent 1.04 | ev 0.78 | clip 0.07 | batch 24,574
+update 30 | step 737,280 | 40,234 sps | ent 1.09 | ev 0.80 | clip 0.06 | batch 24,581
+update 31 | step 761,856 | 42,969 sps | ent 1.05 | ev 0.76 | clip 0.06 | batch 24,575
+update 32 | step 786,432 | 40,075 sps | ent 1.06 | ev 0.75 | clip 0.06 | batch 24,574
+  eval vs 3 random: 97.9% (96 games, baseline 25%)
+  eval vs 3 heuristic: 67.7% (96 games, baseline 25%)
+update 33 | step 811,008 | 39,922 sps | ent 1.05 | ev 0.76 | clip 0.06 | batch 24,575
+update 34 | step 835,584 | 39,726 sps | ent 1.05 | ev 0.76 | clip 0.07 | batch 24,580
+update 35 | step 860,160 | 41,276 sps | ent 1.06 | ev 0.74 | clip 0.07 | batch 24,573
+update 36 | step 884,736 | 40,581 sps | ent 1.10 | ev 0.77 | clip 0.08 | batch 24,580
+update 37 | step 909,312 | 40,242 sps | ent 1.06 | ev 0.73 | clip 0.07 | batch 24,570
+update 38 | step 933,888 | 40,464 sps | ent 1.06 | ev 0.73 | clip 0.08 | batch 24,580
+update 39 | step 958,464 | 42,249 sps | ent 1.05 | ev 0.73 | clip 0.06 | batch 24,574
+update 40 | step 983,040 | 40,449 sps | ent 1.05 | ev 0.71 | clip 0.13 | batch 24,577
+update 41 | step 1,007,616 | 39,200 sps | ent 1.06 | ev 0.78 | clip 0.08 | batch 24,579
+update 42 | step 1,032,192 | 41,720 sps | ent 1.05 | ev 0.74 | clip 0.06 | batch 24,574
+update 43 | step 1,056,768 | 41,536 sps | ent 1.05 | ev 0.77 | clip 0.06 | batch 24,572
+update 44 | step 1,081,344 | 39,941 sps | ent 1.11 | ev 0.76 | clip 0.06 | batch 24,577
+update 45 | step 1,105,920 | 30,360 sps | ent 1.07 | ev 0.74 | clip 0.06 | batch 24,575
+update 46 | step 1,130,496 | 22,290 sps | ent 1.10 | ev 0.77 | clip 0.06 | batch 24,579
+update 47 | step 1,155,072 | 22,823 sps | ent 1.04 | ev 0.76 | clip 0.07 | batch 24,572
+update 48 | step 1,179,648 | 31,507 sps | ent 1.05 | ev 0.75 | clip 0.06 | batch 24,580
+  eval vs 3 random: 99.0% (96 games, baseline 25%)
+  eval vs 3 heuristic: 68.8% (96 games, baseline 25%)
+update 49 | step 1,204,224 | 22,852 sps | ent 1.04 | ev 0.76 | clip 0.06 | batch 24,575
+update 50 | step 1,228,800 | 27,855 sps | ent 1.01 | ev 0.77 | clip 0.07 | batch 24,580
+update 51 | step 1,253,376 | 23,963 sps | ent 1.05 | ev 0.77 | clip 0.07 | batch 24,575
+update 52 | step 1,277,952 | 23,174 sps | ent 1.05 | ev 0.76 | clip 0.06 | batch 24,573
+update 53 | step 1,302,528 | 27,668 sps | ent 1.07 | ev 0.80 | clip 0.06 | batch 24,576
+update 54 | step 1,327,104 | 27,114 sps | ent 1.07 | ev 0.77 | clip 0.06 | batch 24,575
+update 55 | step 1,351,680 | 23,562 sps | ent 1.07 | ev 0.77 | clip 0.06 | batch 24,574
+update 56 | step 1,376,256 | 22,576 sps | ent 1.14 | ev 0.76 | clip 0.08 | batch 24,578
+update 57 | step 1,400,832 | 29,751 sps | ent 1.06 | ev 0.78 | clip 0.06 | batch 24,575
+update 58 | step 1,425,408 | 22,562 sps | ent 1.10 | ev 0.76 | clip 0.06 | batch 24,580
+update 59 | step 1,449,984 | 22,712 sps | ent 1.05 | ev 0.75 | clip 0.06 | batch 24,570
+update 60 | step 1,474,560 | 27,238 sps | ent 1.05 | ev 0.76 | clip 0.08 | batch 24,582
+update 61 | step 1,499,136 | 29,568 sps | ent 1.03 | ev 0.74 | clip 0.06 | batch 24,571
+update 62 | step 1,523,712 | 24,779 sps | ent 1.04 | ev 0.74 | clip 0.06 | batch 24,575
+update 63 | step 1,548,288 | 21,009 sps | ent 0.97 | ev 0.74 | clip 0.06 | batch 24,581
+update 64 | step 1,572,864 | 32,191 sps | ent 1.06 | ev 0.76 | clip 0.10 | batch 24,577
+  eval vs 3 random: 99.0% (96 games, baseline 25%)
+  eval vs 3 heuristic: 78.1% (96 games, baseline 25%)
+update 65 | step 1,597,440 | 23,256 sps | ent 1.05 | ev 0.74 | clip 0.07 | batch 24,576
+update 66 | step 1,622,016 | 28,213 sps | ent 1.04 | ev 0.76 | clip 0.08 | batch 24,578
+update 67 | step 1,646,592 | 23,480 sps | ent 1.05 | ev 0.78 | clip 0.06 | batch 24,575
+update 68 | step 1,671,168 | 24,650 sps | ent 1.05 | ev 0.74 | clip 0.06 | batch 24,571
+final eval vs 3 random: 99.5% | avg VP 7.2 | done at step 1,671,168
+final eval vs 3 heuristic: 71.0% | avg VP 6.4 | done at step 1,671,168

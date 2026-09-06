@@ -42,8 +42,13 @@ For the upstream two-stage reconstruction, inspect
 `scripts/run-catan-reconstruction.py`; launch it through
 `scripts/training_watchdog.py run` for independent deadline enforcement and use
 that script's `inspect` mode on the training host for clock-safe status.
-Current run locations and receipts belong in
-`docs/AI_summaries/2026-09-05-public-catan-reproduction-log.md`, not in this skill.
+For throughput profiling use `scripts/profile-catan-training.py --help` in the
+same isolated environment. CUDA runs require the host's existing shared GPU
+lock (`--gpu-lock`); contention fails inside the watchdog rather than queueing
+unboundedly. Also inspect device processes: advisory locks cannot exclude jobs
+that ignore them. Read the protocol and current budget linked from
+`docs/AI_summaries/AI-PROGRAM.md` before launching. Run locations/results live
+with that experiment, not in this skill.
 
 **A seed that reproduces twice inside one process is not reproducible.** Swift
 seeds `Set` and `Dictionary` iteration order **once per process**, so two runs
@@ -70,7 +75,7 @@ measures it the only way that works: two separate processes, byte-compared.
 | **Throughput** | **MEASURED 2026-08-29** on an 18-core Apple Silicon Mac. **Release, one process: 0.45-0.56 games/sec** (four timed runs of 10 games: 22.45s, 19.48s, 19.05s, 17.96s). **Debug: 0.12 games/sec** (5 games in 41.56s) - about 4x slower, never measure on it. **Release, 10 shards in parallel: 1.76 games/sec** (100 games in 56.79s, 642% CPU). |
 | **Game shape** | **MEASURED over 350 historical default-length games** across two seat lineups (seeds 1000-1009, 2000-2099, 3000-3039, 5000-5199): every game finished with a winner, 212-824 moves, mean 462. Later 12-point calibration runs did hit the 3,000-move cap; never generalize the default-game range to a new policy or target. |
 | **Sharding into ONE shared output file** | **RAN ONCE, 100/100 lines intact and parseable, but NOT proven safe.** See the trap below - use one file per shard. |
-| **Running on Linux / in CI** | **NEVER RUN.** CI builds the whole package, so the sim target will start compiling on `ubuntu-latest` the moment this is pushed. It imports only `CatanEngine`, `CatanAI` and `Foundation`, so it should be fine, and "should be" is not "was". |
+| **Running on Linux / in CI** | **VERIFIED 2026-09-06** at `ea56648`: GitHub Actions run `34045461363`, Engine + AI build/tests passed. This is a pinned result, not certification of later changes. |
 | **Strength evaluation using this output** | **RUN 2026-09-03, AND THE CANDIDATES FAILED.** The harness supplied a locked two-arm anchor calibration and four Easy development screens. Turning JSONL into a claim remains the separate **bot-strength** method; raw wins alone are not evidence. |
 
 ## Hard preconditions
@@ -311,11 +316,11 @@ true and the floors move.
 - **It plays three or four bots and no human.** There is no human-policy seat,
   no interactive path, and nothing here says anything about how the app behaves
   under a real player.
-- **Three personalities exist**: `balanced`, `aggressive`, `cautious`. Bot
-  *weights* (`BotWeights`, the full numeric policy, explicitly built "to be
-  swept or trained") are **not exposed on the command line**. Comparing two
-  weight sets today means editing the source, which means the two arms are not
-  the same binary - see **bot-strength** before drawing a conclusion from that.
+- **Policy discovery:** use `sim --list-policies`. Compatible external CTNN
+  checkpoints are supported by `scripts/evaluate-bots.py`; read
+  `docs/AI_summaries/2026-09-06-reusable-evaluation.md` before comparing them.
+  It freezes model bytes and resources, not merely the executable. Numeric
+  `BotWeights` overrides still require a separate source build; see **bot-strength**.
 - **It is slow.** ~0.5 games/sec per process. 1,000 games is ~35 minutes
   single-process, ~10 minutes across 10 shards. Any plan that says "run 100,000
   games" needs a profiler first, not more processes.
@@ -333,7 +338,6 @@ true and the floors move.
   CLI failures, runs all twelve engine/evaluation configurations, and validates a real training
   export. If you change move rendering or policy flow, still run step 4 against
   the independently pinned fingerprints and compare separate processes.
-- **Never run on Linux.** See the table.
 
 ## Related
 

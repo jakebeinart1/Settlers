@@ -1,0 +1,19 @@
+{
+  "recorded_utc": "2026-09-06T17:49:38Z",
+  "kind": "post-run provenance supplement, not a new numerical run",
+  "limits": "Helper hashes and compiler identity were checked after the retained audit; the original audit and its receipts remain unchanged.",
+  "helpers_sha256": {
+    "scripts/generate-upstream-network-fixtures.py": "d034f7d3a12f5f6427afad3413f85732628cb94ff18394a912b812e8108e6f6d",
+    "scripts/reproduce-catan-policy.py": "2ed6408f83a1238585a0cf12d953d3bbcfcb64e0a497d7ed7355938ea8a5d3ac",
+    "scripts/catan_policy_evidence.py": "26ad93e4cf7a828cd155f1bc9fa2d1e1882593a3927e6ff63e960723404d1a09",
+    "scripts/training_watchdog.py": "0fe5997a05c2982988aab889c766df200e292250b3f2b674c557918065857ad0"
+  },
+  "rustc": {
+    "path": "/tmp/empires-catan-rl-baseline-20260905/toolchain/rustup/toolchains/1.98.1-aarch64-apple-darwin/bin/rustc",
+    "sha256": "766eda9d8f53afd6fc7f27b3cd2e444dd22afacb5afa710a5625fc8e45b8c941",
+    "version": "1.98.1",
+    "commit": "48a229ceaefd4985c50990b14116b6d856af0985",
+    "host": "aarch64-apple-darwin",
+    "llvm": "22.1.8"
+  }
+}

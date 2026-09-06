@@ -1,0 +1,31 @@
+{
+  "budget_seconds": 120.0,
+  "started_epoch": 1788717313.385033,
+  "started_elapsed": 258103.940348291,
+  "started_utc": "2026-09-06T17:55:13.385033+00:00",
+  "deadline_epoch": 1788717433.385033,
+  "deadline_utc": "2026-09-06T17:57:13.385033+00:00",
+  "state": "complete",
+  "command": [
+    "/Users/alex/Library/Application Support/EmpiresResearch/catan-rl/original-v1/.venv/bin/python",
+    "-m",
+    "unittest",
+    "discover",
+    "-s",
+    "scripts/catan-replication-tests",
+    "-p",
+    "test_*.py",
+    "-v"
+  ],
+  "watchdog_pid": 46155,
+  "watchdog_identity": null,
+  "boot_identity": "unavailable",
+  "watchdog_sha256": "0fe5997a05c2982988aab889c766df200e292250b3f2b674c557918065857ad0",
+  "process_group": 46156,
+  "process_identity": null,
+  "remaining_seconds": 108.90949666601955,
+  "checked_epoch": 1788717324.4755368,
+  "checked_utc": "2026-09-06T17:55:24.475537+00:00",
+  "exit_code": 0,
+  "finished_utc": "2026-09-06T17:55:24.475795+00:00"
+}

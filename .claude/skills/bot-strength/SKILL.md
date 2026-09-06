@@ -24,8 +24,12 @@ about both product-supported table sizes needs a result for each; three- and
 four-player trajectories are not paired observations even when they share a
 seed number.
 
-This skill is the method. It needs no code beyond what **sim-harness** already
-provides.
+This skill is the method. For named policies or compatible CTNN checkpoints,
+use `scripts/evaluate-bots.py`; its frozen inputs, chair rotation, route audit
+and retained intervals implement the routine comparison. Read
+`docs/AI_summaries/2026-09-06-reusable-evaluation.md` for the configuration and
+artifact contract. Heuristic-source or architecture changes still require
+separate frozen builds. Current decisions belong in `AI-PROGRAM.md` beside it.
 
 ## What has actually run
 
@@ -37,7 +41,7 @@ provides.
 | **Three-player strength or seat advantage** | **MEASURED ONLY INSIDE THE FAILED CALIBRATION.** Full chair rotation established the exact 33.3% all-Greedy control null in each decisive cell. It did not create a shippable tier or a standalone seat-advantage estimate. The power tables below remain planning arithmetic. |
 | **A frozen anchor opponent** | **EXISTS IN SOURCE.** `GreedyPolicy` is the committed, intentionally untuned middle anchor and `RandomPolicy` is the floor. A comparison still has to build and hash the exact anchor binary once; a source type called "anchor" does not freeze the executable used by a run. |
 | **The variance reduction paired/CRN evaluation actually buys here** | **UNMEASURED.** Pairing on board seed reduces the required sample by roughly `(1 - rho)`, where `rho` is the per-seed correlation between arms - and `rho` has never been computed for this game. Every sample size below is therefore the **unpaired ceiling**. Measure `rho` from your first run; do not assume a discount you have not earned. |
-| **Comparing two weight sets in one run** | **NOT POSSIBLE TODAY.** The harness exposes policy names but not arbitrary weights, so two weight arms remain two separate binaries. The analyzer now accepts independent candidate/baseline build IDs and refuses mismatched seed/chair/configuration keys. |
+| **Comparing two checkpoints in one build** | **VERIFIED 2026-09-06.** The wrapper accepts hash-pinned CTNN descriptors for both arms. It freezes their bytes and the executable/resource bundle; each uses the same native adapter. Changed heuristic code or incompatible network layouts still require distinct builds. |
 
 ## Hard preconditions: if one is missing, STOP - the run will produce a number that means nothing
 
@@ -61,15 +65,10 @@ provides.
 
 ### 1. Freeze an anchor, and never touch it again
 
-Build the baseline once into a binary you keep:
-
-```bash
-REPO="$(git rev-parse --show-toplevel)"
-git -C "$REPO" rev-parse --short HEAD                       # record this in the result
-swift build --package-path "$REPO/Packages/CatanAI" -c release
-cp "$(swift build --package-path "$REPO/Packages/CatanAI" -c release --show-bin-path)/sim" \
-   /tmp/anchor-sim
-```
+Use the evaluator's frozen executable, **model resource bundle**, checkpoints
+and manifest for routine comparisons. Copying only `sim` loses the bundled
+neural model. For source-change arms, retain and hash each complete build with
+its corresponding source revision; use the existing analyzer to compare them.
 
 The anchor exists so that today's number and next month's number are on the
 same scale. The moment you rebuild it, they are not, and every earlier result
@@ -81,9 +80,9 @@ without its pool.
 Within one table-size and rules configuration, play the **identical** seed set
 with the anchor build and the candidate build. Because the engine is
 reproducible across processes (that is the property **sim-harness** proves),
-the same seed produces the same board, the same dev card deck, and the same
-dice sequence for both arms. The board luck therefore cancels between arms
-instead of being noise you have to pay sample size to average away.
+the same seed produces the same initial board and deck. Later dice and steals
+can diverge when policies consume random events differently. Pairing controls
+the starting position; it does not guarantee identical luck throughout play.
 
 This is the whole reason cross-process determinism matters. Without it, "the
 same seeds" is a sentence with no content.
@@ -281,14 +280,12 @@ in order of cost:
    "strength". They answer different questions and the gap between them is
    itself the diagnostic.
 
-## Trap: two arms are two binaries, so record what you built
+## Trap: policy names are not artifact identities
 
-There is no `--weights` flag. A weight or heuristic change means editing
-`Packages/CatanAI/Sources`, rebuilding, and getting a *different binary* - so
-the two arms of a comparison are two builds from two working trees, not two
-invocations. Practical shape: build the anchor, `cp` it aside (step 1), then
-change the source and build the candidate. Keep both binaries until the run is
-written up.
+Compatible checkpoints can share one executable; changed heuristic code or
+network layouts cannot. Retain the source, executable/resources, model hashes
+and configuration for each arm. The raw CLI's checkpoint ID is caller-supplied
+metadata; the evaluator verifies it against the copied bytes before play.
 
 **The fingerprints are your check that the change reached play.** If the
 candidate produces the same `fingerprint` as the anchor on the same seed,

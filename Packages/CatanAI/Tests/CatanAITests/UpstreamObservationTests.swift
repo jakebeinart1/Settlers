@@ -90,7 +90,7 @@ import CatanEngine
 /// Raw upstream fields are converted to typed Empires state independently of
 /// the feature encoder. Expected values come from Rust, not a second Swift
 /// formula that could share the encoder's mistake.
-private struct UpstreamObservationFixture: Decodable {
+struct UpstreamObservationFixture: Decodable {
     let players: Int
     let seat: Int
     let turnOwner: Int

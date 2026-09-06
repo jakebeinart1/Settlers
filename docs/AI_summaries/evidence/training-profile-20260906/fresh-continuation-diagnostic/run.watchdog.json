@@ -1,0 +1,27 @@
+{
+  "budget_seconds": 600,
+  "started_epoch": 1788715816.4615,
+  "started_elapsed": 256607.015287291,
+  "started_utc": "2026-09-06T17:30:16.461500+00:00",
+  "deadline_epoch": 1788716416.4615,
+  "deadline_utc": "2026-09-06T17:40:16.461500+00:00",
+  "state": "failed",
+  "command": [
+    "/opt/homebrew/opt/python@3.14/bin/python3.14",
+    "/Users/alex/Documents/Personal Projects/Settlers/scripts/evaluate-bots.py",
+    "--worker",
+    "--output",
+    "/private/tmp/empires-fresh-vs-r2-native-20260906"
+  ],
+  "watchdog_pid": 2596,
+  "watchdog_identity": null,
+  "boot_identity": "unavailable",
+  "watchdog_sha256": "0fe5997a05c2982988aab889c766df200e292250b3f2b674c557918065857ad0",
+  "process_group": 2597,
+  "process_identity": null,
+  "remaining_seconds": 549.6052593330096,
+  "checked_epoch": 1788715866.855742,
+  "checked_utc": "2026-09-06T17:31:06.855742+00:00",
+  "exit_code": 1,
+  "finished_utc": "2026-09-06T17:31:06.856126+00:00"
+}

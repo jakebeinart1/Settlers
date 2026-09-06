@@ -1,0 +1,59 @@
+test_arguments_require_hashes_and_bound_inner_budget (test_profile_training.ProfileTrainingTests.test_arguments_require_hashes_and_bound_inner_budget) ... usage: python -m unittest [-h] --source SOURCE --output OUTPUT --parent PARENT
+                          --parent-sha256 PARENT_SHA256 --binding-sha256
+                          BINDING_SHA256 --mode {none,cprofile}
+                          [--seconds SECONDS] [--device {cpu,cuda}]
+                          [--gpu-lock GPU_LOCK]
+python -m unittest: error: --seconds must be finite and in (0, 120]
+usage: python -m unittest [-h] --source SOURCE --output OUTPUT --parent PARENT
+                          --parent-sha256 PARENT_SHA256 --binding-sha256
+                          BINDING_SHA256 --mode {none,cprofile}
+                          [--seconds SECONDS] [--device {cpu,cuda}]
+                          [--gpu-lock GPU_LOCK]
+python -m unittest: error: --seconds must be finite and in (0, 120]
+usage: python -m unittest [-h] --source SOURCE --output OUTPUT --parent PARENT
+                          --parent-sha256 PARENT_SHA256 --binding-sha256
+                          BINDING_SHA256 --mode {none,cprofile}
+                          [--seconds SECONDS] [--device {cpu,cuda}]
+                          [--gpu-lock GPU_LOCK]
+python -m unittest: error: --seconds must be finite and in (0, 120]
+usage: python -m unittest [-h] --source SOURCE --output OUTPUT --parent PARENT
+                          --parent-sha256 PARENT_SHA256 --binding-sha256
+                          BINDING_SHA256 --mode {none,cprofile}
+                          [--seconds SECONDS] [--device {cpu,cuda}]
+                          [--gpu-lock GPU_LOCK]
+python -m unittest: error: --seconds must be finite and in (0, 120]
+usage: python -m unittest [-h] --source SOURCE --output OUTPUT --parent PARENT
+                          --parent-sha256 PARENT_SHA256 --binding-sha256
+                          BINDING_SHA256 --mode {none,cprofile}
+                          [--seconds SECONDS] [--device {cpu,cuda}]
+                          [--gpu-lock GPU_LOCK]
+python -m unittest: error: --seconds must be finite and in (0, 120]
+ok
+test_changed_parent_or_source_blocks_result_after_normal_return (test_profile_training.ProfileTrainingTests.test_changed_parent_or_source_blocks_result_after_normal_return) ... ok
+test_cuda_requires_explicit_lock_but_cpu_does_not (test_profile_training.ProfileTrainingTests.test_cuda_requires_explicit_lock_but_cpu_does_not) ... usage: python -m unittest [-h] --source SOURCE --output OUTPUT --parent PARENT
+                          --parent-sha256 PARENT_SHA256 --binding-sha256
+                          BINDING_SHA256 --mode {none,cprofile}
+                          [--seconds SECONDS] [--device {cpu,cuda}]
+                          [--gpu-lock GPU_LOCK]
+python -m unittest: error: --gpu-lock is required for --device cuda
+ok
+test_cuda_unavailable_fails_without_cpu_fallback (test_profile_training.ProfileTrainingTests.test_cuda_unavailable_fails_without_cpu_fallback) ... ok
+test_cuda_wraps_worker_with_nonblocking_lock_inside_watchdog (test_profile_training.ProfileTrainingTests.test_cuda_wraps_worker_with_nonblocking_lock_inside_watchdog) ... ok
+test_import_hang_is_bounded_and_leaves_no_worker_process_group (test_profile_training.ProfileTrainingTests.test_import_hang_is_bounded_and_leaves_no_worker_process_group) ... ok
+test_missing_flock_has_failed_receipt_without_starting_worker (test_profile_training.ProfileTrainingTests.test_missing_flock_has_failed_receipt_without_starting_worker) ... ok
+test_modes_execute_identical_entry_once_and_restore_process_context (test_profile_training.ProfileTrainingTests.test_modes_execute_identical_entry_once_and_restore_process_context) ... ok
+test_nonfinite_checkpoint_cannot_write_success (test_profile_training.ProfileTrainingTests.test_nonfinite_checkpoint_cannot_write_success) ... ok
+test_normal_trainer_return_without_artifacts_is_not_success (test_profile_training.ProfileTrainingTests.test_normal_trainer_return_without_artifacts_is_not_success) ... ok
+test_partial_profile_survives_failure_and_termination_without_success (test_profile_training.ProfileTrainingTests.test_partial_profile_survives_failure_and_termination_without_success) ... ok
+test_prepare_reuses_continuation_flags_and_retains_provenance (test_profile_training.ProfileTrainingTests.test_prepare_reuses_continuation_flags_and_retains_provenance) ... ok
+test_real_cli_bad_parent_is_supervised_and_never_starts_trainer (test_profile_training.ProfileTrainingTests.test_real_cli_bad_parent_is_supervised_and_never_starts_trainer) ... ok
+test_real_cli_dependency_import_failure_has_failed_receipt (test_profile_training.ProfileTrainingTests.test_real_cli_dependency_import_failure_has_failed_receipt) ... ok
+test_real_lock_refuses_competitor_then_stays_held_across_worker (test_profile_training.ProfileTrainingTests.test_real_lock_refuses_competitor_then_stays_held_across_worker) ... ok
+test_supervisor_always_uses_watchdog_and_refuses_existing_output (test_profile_training.ProfileTrainingTests.test_supervisor_always_uses_watchdog_and_refuses_existing_output) ... ok
+test_worker_validates_checkpoint_and_preserves_parent_before_success (test_profile_training.ProfileTrainingTests.test_worker_validates_checkpoint_and_preserves_parent_before_success) ... ok
+test_wrong_parent_fails_before_provenance_or_training (test_profile_training.ProfileTrainingTests.test_wrong_parent_fails_before_provenance_or_training) ... ok
+
+----------------------------------------------------------------------
+Ran 18 tests in 11.299s
+
+OK

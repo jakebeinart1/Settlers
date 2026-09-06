@@ -1,0 +1,26 @@
+{
+  "budget_seconds": 90.0,
+  "started_epoch": 1788715153.6163552,
+  "started_elapsed": 255944.16184125,
+  "started_utc": "2026-09-06T17:19:13.616355+00:00",
+  "deadline_epoch": 1788715243.6163552,
+  "deadline_utc": "2026-09-06T17:20:43.616355+00:00",
+  "state": "complete",
+  "command": [
+    "/Users/alex/Library/Application Support/EmpiresResearch/catan-rl/original-v1/.venv/bin/python",
+    "/Users/alex/Library/Application Support/EmpiresResearch/catan-rl/original-v1/training/export_net.py",
+    "/Users/alex/Library/Application Support/EmpiresResearch/checkpoints/gpu-baseline-20260906-r2/step_0148807680.pt",
+    "/tmp/empires-export-fidelity-H0pWLD/r2.ctnn"
+  ],
+  "watchdog_pid": 54676,
+  "watchdog_identity": null,
+  "boot_identity": "unavailable",
+  "watchdog_sha256": "0fe5997a05c2982988aab889c766df200e292250b3f2b674c557918065857ad0",
+  "process_group": 54705,
+  "process_identity": null,
+  "remaining_seconds": 88.98765599998296,
+  "checked_epoch": 1788715154.6287081,
+  "checked_utc": "2026-09-06T17:19:14.628708+00:00",
+  "exit_code": 0,
+  "finished_utc": "2026-09-06T17:19:14.628956+00:00"
+}

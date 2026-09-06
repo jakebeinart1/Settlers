@@ -1,0 +1,24 @@
+{
+  "budget_seconds": 90.0,
+  "started_epoch": 1788715318.5117838,
+  "started_elapsed": 256109.056886166,
+  "started_utc": "2026-09-06T17:21:58.511784+00:00",
+  "deadline_epoch": 1788715408.5117838,
+  "deadline_utc": "2026-09-06T17:23:28.511784+00:00",
+  "state": "failed",
+  "command": [
+    "/Users/alex/Library/Application Support/EmpiresResearch/catan-rl/original-v1/.venv/bin/python",
+    "/tmp/empires-export-fidelity-H0pWLD/audit.py"
+  ],
+  "watchdog_pid": 65353,
+  "watchdog_identity": null,
+  "boot_identity": "unavailable",
+  "watchdog_sha256": "0fe5997a05c2982988aab889c766df200e292250b3f2b674c557918065857ad0",
+  "process_group": 65354,
+  "process_identity": null,
+  "remaining_seconds": 87.97641491889954,
+  "checked_epoch": 1788715320.5353758,
+  "checked_utc": "2026-09-06T17:22:00.535376+00:00",
+  "exit_code": 1,
+  "finished_utc": "2026-09-06T17:22:00.535583+00:00"
+}

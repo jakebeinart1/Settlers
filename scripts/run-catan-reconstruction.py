@@ -96,6 +96,14 @@ def run_logged(command: list[str], source: Path, log: Path, timeout: float) -> N
         )
 
 
+def finite_metric_number(raw: str) -> float:
+    """Reject nonfinite JSON numbers, including nested metrics and overflow."""
+    value = float(raw)
+    if not math.isfinite(value):
+        raise ValueError(f"non-finite metric: {raw}")
+    return value
+
+
 def inspect_checkpoint(run: Path) -> dict:
     """Validate the final model/optimizer and metrics before allowing continuation."""
     checkpoint = (run / "checkpoints/latest.pt").resolve(strict=True)
@@ -110,13 +118,13 @@ def inspect_checkpoint(run: Path) -> dict:
     updates = 0
     with (run / "metrics.jsonl").open() as handle:
         for line in handle:
-            row = json.loads(line)
+            row = json.loads(
+                line,
+                parse_float=finite_metric_number,
+                parse_constant=finite_metric_number,
+            )
             if row["t"] == "train":
                 updates += 1
-                if not all(
-                    math.isfinite(v) for v in row.values() if isinstance(v, float)
-                ):
-                    raise ValueError("non-finite training metric")
     if not updates or state["global_step"] <= 0:
         raise ValueError("training completed without any recorded updates")
     return {

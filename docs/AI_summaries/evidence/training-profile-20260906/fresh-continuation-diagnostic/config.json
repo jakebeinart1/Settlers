@@ -1,0 +1,16 @@
+{
+  "baseline": "neural-r2",
+  "board": "randomized",
+  "budget_seconds": 600,
+  "candidate": {
+    "checkpoint": "/private/tmp/empires-export-fidelity-H0pWLD/fresh.ctnn",
+    "sha256": "a12360eee6f8cbcb538b9f16582aaadeacb1b25a8011ed638281c64048eaad0b"
+  },
+  "first_seed": 960901,
+  "name": "fresh-final-vs-r2-native-continuation-diagnostic",
+  "opponent": "greedy",
+  "players": 4,
+  "purpose": "smoke",
+  "seeds": 32,
+  "victory_points": 10
+}

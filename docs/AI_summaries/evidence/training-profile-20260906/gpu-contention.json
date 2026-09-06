@@ -1,0 +1,15 @@
+{
+  "observed_utc": "2026-09-06T17:49:48Z",
+  "host": "gc-gpu",
+  "other_workload": "GlobalConquest training (not modified or stopped)",
+  "pid": 292732,
+  "started_host_local": "Sun Sep 6 13:34:41 2026",
+  "elapsed_at_observation": "15:07",
+  "driver": "560.94",
+  "gpu_memory_used_mib": 2698,
+  "gpu_utilization_percent_snapshot": 84,
+  "shared_lock": "/home/alex_ubuntu/gc-data/.gpu.exclusive.lock",
+  "nonblocking_lock_probe_exit_code": 1,
+  "decision": "control-1 and cprofile-1 overlap foreign GPU work; invalid for clean throughput comparison. Keep raw results. Do not launch the second pair while this lock is owned.",
+  "limit": "Process start and a later utilization snapshot establish overlap, not per-run contention intensity. No claim about the other project's results."
+}

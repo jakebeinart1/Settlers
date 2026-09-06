@@ -1,0 +1,21 @@
+{
+  "name": "profile-none-a7c7c2250d90496285a944856b35d7ff",
+  "minutes": 1.0,
+  "num_envs": 256,
+  "rollout": 96,
+  "victory_target": 7,
+  "vp_delta": 0.0,
+  "visibility": "perfect",
+  "lr": 0.00025,
+  "epochs": 4,
+  "minibatch": 4096,
+  "hidden": 512,
+  "device": "cuda",
+  "seed": 0,
+  "eval_every": 16,
+  "metrics": null,
+  "resume": "/home/alex_ubuntu/empires-research/original-v1/training/runs/20260906-0030-gpu-baseline-20260906-r2-continuation/checkpoints/step_0148807680.pt",
+  "entropy_coef": 0.02,
+  "vp_delta_final": null,
+  "train_seats": "policy,heuristic,policy,heuristic_v2"
+}
