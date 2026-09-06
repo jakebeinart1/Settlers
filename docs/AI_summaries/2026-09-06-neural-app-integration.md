@@ -97,13 +97,20 @@ parent checkpoint and MIT notice live with the shipped resource in
 - Initial full quality gate passed: 234 engine tests, 145 AI tests, 257
   hosted app tests plus native UI flows; Release and Debug builds passed.
   Coverage was 95.97% engine / 96.66% AI. This run preceded the final review
-  fixes; the final pre-push gate must independently cover those changes.
+  fixes. The final pre-push gate subsequently passed with 262 hosted app tests,
+  native UI flows and Release compilation; package counts and coverage stayed
+  unchanged. The GitHub SSH transport disconnected during that gate, so the
+  green local verification did not itself publish a branch.
 - Review fixes: 22 focused Release adapter/oracle tests pass after extracting
   frozen codec constants. Seven hosted provenance tests pass, including actual
   human-offer rejection, acceptance after reload, human cancellation, and
   resource-unavailable cleanup. Logging preserves both RNG streams and the
   policy evaluation counter. External negotiations have no invented index.
 - Build 5 delivery remains pending; no phone/TestFlight release claim yet.
+- Final-source Release Build 5 was installed in place on the manual-play
+  simulator and launched successfully. Its embedded model digest matches the
+  frozen artifact, the menu was inspected, and no new Settlers crash report
+  appeared in the QA Release launch check. No manual-play save was erased.
 
 ## Final review
 
