@@ -1,0 +1,19 @@
+{
+  "baseline": {
+    "checkpoint": "/Users/alex/Library/Application Support/EmpiresResearch/experiments/victory-target-20260906/exports/seed0-control7.ctnn",
+    "sha256": "d4e2fa246b63026d736d648ea89a9f17ccbb8d22bf4a82e3a422b61933914d5a"
+  },
+  "board": "randomized",
+  "budget_seconds": 600,
+  "candidate": {
+    "checkpoint": "/Users/alex/Library/Application Support/EmpiresResearch/experiments/victory-target-20260906/exports/seed0-target10.ctnn",
+    "sha256": "b5e4ecef685a7ebefe32969c07be4dbf18b5a3ba05aab5b857cf1902535f206e"
+  },
+  "first_seed": 961101,
+  "name": "target-adaptation-seed0-20260906",
+  "opponent": "greedy",
+  "players": 4,
+  "purpose": "smoke",
+  "seeds": 32,
+  "victory_points": 10
+}

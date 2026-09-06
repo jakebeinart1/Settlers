@@ -1,0 +1,127 @@
+{
+  "source_commit": "471c19a",
+  "actual_games": 320,
+  "decisive_games": 318,
+  "scheduled_but_unplayed": 192,
+  "promotion": false,
+  "checks": [
+    {
+      "training_seed": 0,
+      "all_available_route_audits_passed": true,
+      "frozen_sources_and_artifacts_match": true,
+      "binary_sha256": "ab50373369524eaade07236352c932e40ec70e7848294af05e851a957b7102cf",
+      "shards": [
+        {
+          "file": "candidate-seat0.jsonl",
+          "sha256": "b32bbf7fbc2425182db1bd711c138f4fb447eb0ca61ef02bcfaa813d0cd9d05b",
+          "audit_sha256": "e125615a4c06a5105adadc333bb73a2ac114116a995be9b2d4777b42247a001a",
+          "games": 32,
+          "wins": 18,
+          "caps": []
+        },
+        {
+          "file": "candidate-seat1.jsonl",
+          "sha256": "24623871028693e9c39246070bbb7df8004c5cdd0f1f3e3e76e3576fea38ba2e",
+          "audit_sha256": "2e8b0a72a2ac5f7d5957fe1a519e773ff50b0b78617a2a6f972aa71b23d7105b",
+          "games": 32,
+          "wins": 13,
+          "caps": [
+            {
+              "seed": 961131,
+              "vp": [
+                6,
+                9,
+                5,
+                5
+              ],
+              "fingerprint": "4b504877db53efef"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "training_seed": 1,
+      "all_available_route_audits_passed": true,
+      "frozen_sources_and_artifacts_match": true,
+      "binary_sha256": "ab50373369524eaade07236352c932e40ec70e7848294af05e851a957b7102cf",
+      "shards": [
+        {
+          "file": "candidate-seat0.jsonl",
+          "sha256": "50929f6696fecde53fe1b017f66d95eeef7e3317c55ceac6707695453cd82907",
+          "audit_sha256": "ab8ec294cc86a5038370d8bdecd107f8bfdfc2d4b5e283d483888d5dfb35ebed",
+          "games": 32,
+          "wins": 13,
+          "caps": []
+        },
+        {
+          "file": "candidate-seat1.jsonl",
+          "sha256": "e1eadc0f52c7cb554e969a9a96dbf4379296032092af0f59cb617dafa4a91778",
+          "audit_sha256": "806bf489ab4609beb55a21d2327fdd8e456e53ff737a1b5c7cdd3fff724a776b",
+          "games": 32,
+          "wins": 17,
+          "caps": []
+        },
+        {
+          "file": "candidate-seat2.jsonl",
+          "sha256": "5089d224e5bea98bb5bd8f471004915f685b3b9fa73541ae0c7c02086fae601e",
+          "audit_sha256": "228c3bb08f304a75e2a320627ca8fb72f3d1387897ad1812c94863da7c41967b",
+          "games": 32,
+          "wins": 14,
+          "caps": []
+        },
+        {
+          "file": "candidate-seat3.jsonl",
+          "sha256": "b86a6a40c28fe29f1563866c7cb9f2183224839549d5a6bc6b544a6300a65640",
+          "audit_sha256": "15208f435d4231848b9cf8b2db4a847ad9fb75cc9fa1b67a27b682ece3deef47",
+          "games": 32,
+          "wins": 15,
+          "caps": []
+        },
+        {
+          "file": "baseline-seat0.jsonl",
+          "sha256": "a0db072332fa4c0b80277f9ed6149f7f7adcf4ee5c8d1bef7f0f160b0dd76a17",
+          "audit_sha256": "127fcb31b38188ae0ea8f1c6ce82fc017b6aedd63f8f4d1175ddca1605388e16",
+          "games": 32,
+          "wins": 17,
+          "caps": []
+        },
+        {
+          "file": "baseline-seat1.jsonl",
+          "sha256": "881748e91c1ec024dc792c1d3f41fa15e736ac819a0413c7acc4964ece2f482e",
+          "audit_sha256": "3409cca55342b044b38f72716be03016a522ec9f783ee9130ea53681ba153295",
+          "games": 32,
+          "wins": 10,
+          "caps": []
+        },
+        {
+          "file": "baseline-seat2.jsonl",
+          "sha256": "409ef79d1f5da5d08ff0ab56a4972a514a1077c98a21d51defaff66adebea194",
+          "audit_sha256": "cecd49d7212c163c6c9abc26af4563d2653b5a11bdb8f966f037d9821eac3898",
+          "games": 32,
+          "wins": 16,
+          "caps": []
+        },
+        {
+          "file": "baseline-seat3.jsonl",
+          "sha256": "f46a35f69f1d21d92720fc35016fa0872ad34e625b03770fddfffc90e86f8243",
+          "audit_sha256": "510f5a3ef71ec681c58667acebbb81cbfa202b223b63e4a0e8980a6322461619",
+          "games": 32,
+          "wins": 13,
+          "caps": [
+            {
+              "seed": 961105,
+              "vp": [
+                8,
+                5,
+                4,
+                9
+              ],
+              "fingerprint": "88e4e5bcbee25ab1"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

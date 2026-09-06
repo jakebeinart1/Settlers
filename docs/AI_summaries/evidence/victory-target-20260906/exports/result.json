@@ -1,0 +1,70 @@
+{
+  "comparisons": [],
+  "complete": true,
+  "gate_passed": true,
+  "results": [
+    {
+      "all_parameter_bytes_exact": true,
+      "arm": "seed0-control7",
+      "command": [
+        "/home/alex_ubuntu/empires-research/original-v1/.venv/bin/python",
+        "/home/alex_ubuntu/empires-research/original-v1/training/export_net.py",
+        "/home/alex_ubuntu/empires-research/original-v1/training/runs/20260906-1620-profile-none-47c85d7c748142a5bd87af17a998ed19/checkpoints/step_0019660800.pt",
+        "/home/alex_ubuntu/empires-research/victory-target-20260906/exports/seed0-control7.ctnn"
+      ],
+      "ctnn": "/home/alex_ubuntu/empires-research/victory-target-20260906/exports/seed0-control7.ctnn",
+      "ctnn_sha256": "d4e2fa246b63026d736d648ea89a9f17ccbb8d22bf4a82e3a422b61933914d5a",
+      "native_probe": "pending: Mac evaluate-bots.py must accept before games",
+      "parameter_floats": 1108268,
+      "probe_floats_finite": true
+    },
+    {
+      "all_parameter_bytes_exact": true,
+      "arm": "seed0-target10",
+      "command": [
+        "/home/alex_ubuntu/empires-research/original-v1/.venv/bin/python",
+        "/home/alex_ubuntu/empires-research/original-v1/training/export_net.py",
+        "/home/alex_ubuntu/empires-research/original-v1/training/runs/20260906-1627-profile-none-80fefd3579ab47a0a389bbc91a36f129/checkpoints/step_0019660800.pt",
+        "/home/alex_ubuntu/empires-research/victory-target-20260906/exports/seed0-target10.ctnn"
+      ],
+      "ctnn": "/home/alex_ubuntu/empires-research/victory-target-20260906/exports/seed0-target10.ctnn",
+      "ctnn_sha256": "b5e4ecef685a7ebefe32969c07be4dbf18b5a3ba05aab5b857cf1902535f206e",
+      "native_probe": "pending: Mac evaluate-bots.py must accept before games",
+      "parameter_floats": 1108268,
+      "probe_floats_finite": true
+    },
+    {
+      "all_parameter_bytes_exact": true,
+      "arm": "seed1-target10",
+      "command": [
+        "/home/alex_ubuntu/empires-research/original-v1/.venv/bin/python",
+        "/home/alex_ubuntu/empires-research/original-v1/training/export_net.py",
+        "/home/alex_ubuntu/empires-research/original-v1/training/runs/20260906-1635-profile-none-fc8fafb6eade4585b7d739304fab4ae2/checkpoints/step_0019660800.pt",
+        "/home/alex_ubuntu/empires-research/victory-target-20260906/exports/seed1-target10.ctnn"
+      ],
+      "ctnn": "/home/alex_ubuntu/empires-research/victory-target-20260906/exports/seed1-target10.ctnn",
+      "ctnn_sha256": "73b9b19a583ab81d954268b750391824c1b262e6b10dfbe251de877d5b08316d",
+      "native_probe": "pending: Mac evaluate-bots.py must accept before games",
+      "parameter_floats": 1108268,
+      "probe_floats_finite": true
+    },
+    {
+      "all_parameter_bytes_exact": true,
+      "arm": "seed1-control7",
+      "command": [
+        "/home/alex_ubuntu/empires-research/original-v1/.venv/bin/python",
+        "/home/alex_ubuntu/empires-research/original-v1/training/export_net.py",
+        "/home/alex_ubuntu/empires-research/original-v1/training/runs/20260906-1643-profile-none-cd566832576a4259a26c6f14a1ae05b8/checkpoints/step_0019660800.pt",
+        "/home/alex_ubuntu/empires-research/victory-target-20260906/exports/seed1-control7.ctnn"
+      ],
+      "ctnn": "/home/alex_ubuntu/empires-research/victory-target-20260906/exports/seed1-control7.ctnn",
+      "ctnn_sha256": "ebf6524fc0e242965e5be3381d448a97dd0a70e9fe43a8f80a52e56f6d709863",
+      "native_probe": "pending: Mac evaluate-bots.py must accept before games",
+      "parameter_floats": 1108268,
+      "probe_floats_finite": true
+    }
+  ],
+  "stage": "export",
+  "statistical_equivalence_claim": false,
+  "strength_claim": false
+}

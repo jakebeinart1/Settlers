@@ -1,8 +1,7 @@
 # Training victory target — matched continuation screen
 
-**Status:** complete, 2026-09-06. **Do not adopt:** native completion failed and
-the fully sampled second pair fell below the practical improvement threshold.
-The protocol below was frozen before training; no budgets were extended.
+**Status:** protocol frozen before training, 2026-09-06. Implementation and both
+real CPU preflights passed; GPU sequence ready, no result yet.
 This is a new experiment/budget, not a continuation of the spent snapshot trials.
 
 ## Hypothesis and comparison
@@ -115,72 +114,6 @@ native seed-cluster intervals and later confirmation carry the stronger claims.
 This budget tests bounded adaptation from r2, not target-ten training from scratch,
 all possible training durations, or whether this network can ever play expertly.
 
-## Result and decision
-
-All four GPU runs completed exactly 800 iterations / 19,660,800 decisions each,
-with 50 finite model/Adam checkpoint records and 102 evaluation rows per run.
-They used the declared seeds, targets and unchanged r2 parent; no retries or
-intermediate-checkpoint selection. Total trainer time was 1,867.93 seconds
-(31.13 minutes), within the 40-minute combined allowance.
-
-| Arm | Trainer seconds | Peak process GiB |
-| --- | ---: | ---: |
-| seed0-control7 | 450.68 | 1.905 |
-| seed0-target10 | 482.72 | 1.908 |
-| seed1-target10 | 484.86 | 1.909 |
-| seed1-control7 | 449.67 | 1.909 |
-
-All four CTNN exports matched all **1,108,268 parameter floats** byte-for-byte.
-Both native registries loaded their candidate and baseline models, accepting the
-embedded numerical probes. The native evaluator then failed loudly on capped
-games; it was not changed to allow a passing report.
-
-| Training seed | Target-10 candidate | Target-7 control | Outcome |
-| --- | --- | --- | --- |
-| 0 | 31 wins / 64 attempted; one cap | Not run | Stopped after candidate chair 1; no paired strength estimate |
-| 1 | 59 wins / 128 attempted; no caps | 56 wins / 128 attempted; one cap | Only +2.34 percentage points with caps counted as nonwins; below +10-point threshold, completion failed |
-
-**320 native games were attempted, 318 completed.** The planned ceiling was 512;
-192 were not run because the first comparison stopped early. Neither wrapper
-produced a passing report or paired confidence interval. Do not relabel the
-second pair's descriptive all-attempt rates as a completed strength comparison.
-Independent recount and a separate invocation of the existing route validator
-passed **all ten available shards**, including the capped shards that the wrapper
-stopped before auditing. Only declared intentional fallbacks occurred; both
-comparisons used identical executable bytes and unchanged frozen source/artifacts.
-
-- Seed-0 candidate cap: board **961131**, chair **1**, 3,000 actions, final VP
-  `[6,9,5,5]`, fingerprint `4b504877db53efef`.
-- Seed-1 control cap: board **961105**, chair **3**, 3,000 actions, final VP
-  `[8,5,4,9]`. Exact fingerprint and audit remain in the retained native shard.
-
-The separate seven-point retention screen completed **1,539 games**, including
-batch overshoot, with **zero caps**. Seed 0: control 267/384 versus treatment
-265/385, loss **0.70 points**. Seed 1: control 257/386 versus treatment 268/384,
-loss **−3.21 points**. Both meet the predeclared five-point point-estimate margin;
-this does not establish statistical equivalence.
-
-**Decision:** no model promotion, default change or TestFlight upload. This bounded
-target-ten adaptation did not qualify. It is not a failed training invocation:
-configuration, workload, numerical and export checks passed. It also does not
-prove the architecture is inadequate. Both training paths can stall in native
-play, so chronological policy/commit evidence is the next diagnostic, before more
-training or heuristic changes. Aggregate counters cannot establish causality.
-
-Raw source/commands/receipts, filtered train/eval rows, both failed native
-comparisons and complete retention outcomes are in
-[the evidence directory](evidence/victory-target-20260906/). `metrics_sha256`
-refers to the original full metrics file, not its filtered `train-eval.jsonl`.
-Full metrics, frozen native executables/resources and exported models remain at
-`/Users/alex/Library/Application Support/EmpiresResearch/experiments/victory-target-20260906/`;
-the 200 saved training checkpoints remain on `gc-gpu` in the recorded upstream
-run directories. Sampled device observations showed only the owned worker; this
-is not a claim of continuous device-process monitoring.
-The export manifest retains all batch sizes, episode counts and Adam counters:
-target-seven arms completed 90,019 / 89,547 training episodes versus 49,603 / 49,732
-for target ten; no training caps. Adam advances were 20,604 / 20,608 versus
-20,568 / 20,536 steps per parameter. Equal decision budgets were not equal episodes.
-
 ## Execution evidence
 
 - Isolated tests: 63 run, one Linux-only skip; source review found no remaining
@@ -194,12 +127,3 @@ for target ten; no training caps. Adam advances were 20,604 / 20,608 versus
 - The active thread heartbeat `verify-empires-evaluation-ci` supervises this
   experiment and PR #43 CI together (the app permits only one active heartbeat
   per thread). The old GPU-profile heartbeat remains paused.
-- Post-training export/retention helper: ten fixture tests passed on Mac and
-  Linux. The first Linux fixture invocation failed because its test expected an
-  unspecified `CATAN_UPSTREAM` variable; the test now derives the already-imported
-  upstream location. Both failure and corrected receipts are retained. No trainer,
-  exporter or model change was needed. Independent helper review found no remaining
-  issue; native probe acceptance is deliberately left to the Mac evaluator.
-- The new seed-0 target-seven control matched the previous snapshot control's
-  complete model/Adam digests at updates 16, 32, 48, 64 and 80. This checks that the
-  longer explicit budget preserved the sampled baseline trajectory.

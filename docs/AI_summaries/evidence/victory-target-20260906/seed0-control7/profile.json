@@ -1,0 +1,9 @@
+{
+  "elapsed_seconds": 450.6805253659986,
+  "functions": [],
+  "mode": "none",
+  "peak_rss_bytes": 2045759488,
+  "schema_version": 1,
+  "scope": "Cold trainer initialization, training, periodic/final evaluation and saves; wrapper imports/provenance and CUDA device preflight excluded. Trainer warmup retained, not separated. Host-call timings only: CUDA waits can be charged to cpu/item calls. Python transition bookkeeping and GAE share the trainer main frame.",
+  "trainer_returned_normally": true
+}

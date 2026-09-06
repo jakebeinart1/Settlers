@@ -1,0 +1,129 @@
+{
+  "comparisons": [
+    {
+      "control7": {
+        "caps": 0,
+        "games": 384,
+        "wins": 267
+      },
+      "loss": 0.007000811688311688,
+      "retention_gate_passed": true,
+      "training_seed": 0,
+      "treatment10": {
+        "caps": 0,
+        "games": 385,
+        "wins": 265
+      }
+    },
+    {
+      "control7": {
+        "caps": 0,
+        "games": 386,
+        "wins": 257
+      },
+      "loss": -0.03211355785837651,
+      "retention_gate_passed": true,
+      "training_seed": 1,
+      "treatment10": {
+        "caps": 0,
+        "games": 384,
+        "wins": 268
+      }
+    }
+  ],
+  "complete": true,
+  "gate_passed": true,
+  "results": [
+    {
+      "arm": "seed0-control7",
+      "caps": 0,
+      "evaluation_seed": 961201,
+      "games": 192,
+      "outcomes_sha256": "13fb7b1bc9569c84df368c9772b66c40648d4e97cfd5749202f43cf6bce012a0",
+      "requested_games": 192,
+      "training_seed": 0,
+      "training_target": 7,
+      "wins": 132
+    },
+    {
+      "arm": "seed0-control7",
+      "caps": 0,
+      "evaluation_seed": 961202,
+      "games": 192,
+      "outcomes_sha256": "46b471038e1ca4400376c0d0a753cda9bdc73c232f2540fc52b311a565c1eedf",
+      "requested_games": 192,
+      "training_seed": 0,
+      "training_target": 7,
+      "wins": 135
+    },
+    {
+      "arm": "seed0-target10",
+      "caps": 0,
+      "evaluation_seed": 961201,
+      "games": 193,
+      "outcomes_sha256": "45382578af69c4474c5ffe95b799d2ba55778cf7566817b01fcb4195c0fc3c02",
+      "requested_games": 192,
+      "training_seed": 0,
+      "training_target": 10,
+      "wins": 132
+    },
+    {
+      "arm": "seed0-target10",
+      "caps": 0,
+      "evaluation_seed": 961202,
+      "games": 192,
+      "outcomes_sha256": "d4da9f378708bc2cd17c1364681f0f5e7ad179bc39d9e2c79e1a43f06e2ea7b7",
+      "requested_games": 192,
+      "training_seed": 0,
+      "training_target": 10,
+      "wins": 133
+    },
+    {
+      "arm": "seed1-target10",
+      "caps": 0,
+      "evaluation_seed": 961201,
+      "games": 192,
+      "outcomes_sha256": "85836dbaff340778fb9afee01186c66d9b9c77467c6dff03d4c20039fbdc522c",
+      "requested_games": 192,
+      "training_seed": 1,
+      "training_target": 10,
+      "wins": 132
+    },
+    {
+      "arm": "seed1-target10",
+      "caps": 0,
+      "evaluation_seed": 961202,
+      "games": 192,
+      "outcomes_sha256": "f54162b976858345d89437d970e993dce018ec5d3c1f980dea2446896752a64c",
+      "requested_games": 192,
+      "training_seed": 1,
+      "training_target": 10,
+      "wins": 136
+    },
+    {
+      "arm": "seed1-control7",
+      "caps": 0,
+      "evaluation_seed": 961201,
+      "games": 193,
+      "outcomes_sha256": "7d27d13ce2a47dddfc67e95c2df9a29b1f86a7312099940c39dcb200d0963642",
+      "requested_games": 192,
+      "training_seed": 1,
+      "training_target": 7,
+      "wins": 129
+    },
+    {
+      "arm": "seed1-control7",
+      "caps": 0,
+      "evaluation_seed": 961202,
+      "games": 193,
+      "outcomes_sha256": "28b8ecdba052164816c175190d933f8ac4aece60af82bf542a4a84abe3094925",
+      "requested_games": 192,
+      "training_seed": 1,
+      "training_target": 7,
+      "wins": 128
+    }
+  ],
+  "stage": "retention",
+  "statistical_equivalence_claim": false,
+  "strength_claim": false
+}

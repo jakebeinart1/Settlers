@@ -1,0 +1,32 @@
+{
+  "budget_seconds": 300.0,
+  "started_epoch": 1788727943.6707678,
+  "started_elapsed": 75255.542132208,
+  "started_utc": "2026-09-06T20:52:23.670768+00:00",
+  "deadline_epoch": 1788728243.6707678,
+  "deadline_utc": "2026-09-06T20:57:23.670768+00:00",
+  "state": "complete",
+  "command": [
+    "/home/alex_ubuntu/empires-research/original-v1/.venv/bin/python",
+    "-B",
+    "/tmp/empires-target-posttrain-20260906.py",
+    "export",
+    "--source",
+    "/home/alex_ubuntu/empires-research/original-v1",
+    "--binding-sha256",
+    "1cedb54260dfa407135981e1fdbf35608a1b739a5168164424f02010701c0198",
+    "--output",
+    "/home/alex_ubuntu/empires-research/victory-target-20260906/exports"
+  ],
+  "watchdog_pid": 331368,
+  "watchdog_identity": "7525551",
+  "boot_identity": "9d36b96d-e143-4eac-b109-99b065725478",
+  "watchdog_sha256": "0fe5997a05c2982988aab889c766df200e292250b3f2b674c557918065857ad0",
+  "process_group": 331369,
+  "process_identity": "7525554",
+  "remaining_seconds": 292.9951190599968,
+  "checked_epoch": 1788727950.6756592,
+  "checked_utc": "2026-09-06T20:52:30.675660+00:00",
+  "exit_code": 0,
+  "finished_utc": "2026-09-06T20:52:30.675986+00:00"
+}

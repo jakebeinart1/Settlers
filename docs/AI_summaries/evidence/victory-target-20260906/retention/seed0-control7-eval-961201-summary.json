@@ -1,0 +1,11 @@
+{
+  "arm": "seed0-control7",
+  "caps": 0,
+  "evaluation_seed": 961201,
+  "games": 192,
+  "outcomes_sha256": "13fb7b1bc9569c84df368c9772b66c40648d4e97cfd5749202f43cf6bce012a0",
+  "requested_games": 192,
+  "training_seed": 0,
+  "training_target": 7,
+  "wins": 132
+}

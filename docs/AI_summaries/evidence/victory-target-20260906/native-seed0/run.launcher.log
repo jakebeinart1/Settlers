@@ -1,0 +1,25 @@
+Running: ['git', 'rev-parse', 'HEAD']
+Running: ['git', 'status', '--short']
+Running: ['swift', 'build', '--package-path', '/private/tmp/empires-victory-target-20260906/Packages/CatanAI', '-c', 'release', '--product', 'sim']
+Running: ['swift', 'build', '--package-path', '/private/tmp/empires-victory-target-20260906/Packages/CatanAI', '-c', 'release', '--show-bin-path']
+Running: ['/private/tmp/empires-target-native-seed0-20260906/frozen/sim', '--list-policies', '--neural-checkpoint', '/private/tmp/empires-target-native-seed0-20260906/frozen/candidate.ctnn', '--neural-checkpoint-id', 'sha256-b5e4ecef685a7ebefe32969c07be4dbf18b5a3ba05aab5b857cf1902535f206e']
+Running: ['/private/tmp/empires-target-native-seed0-20260906/frozen/sim', '--list-policies', '--neural-checkpoint', '/private/tmp/empires-target-native-seed0-20260906/frozen/baseline.ctnn', '--neural-checkpoint-id', 'sha256-d4e2fa246b63026d736d648ea89a9f17ccbb8d22bf4a82e3a422b61933914d5a']
+Running: ['swift', '--version']
+swift-driver version: 1.148.6 Running: ['/private/tmp/empires-target-native-seed0-20260906/frozen/sim', '--jsonl', '--build-id', 'frozen-8206a6ba8f7df68597b59cd3e801001b54c05ee83e73b4cfd447d1588207902e', '--games', '32', '--seed', '961101', '--players', '4', '--victory-points', '10', '--board', 'randomized', '--seats', 'neural-checkpoint,greedy,greedy,greedy', '--policy-audit-jsonl', '/private/tmp/empires-target-native-seed0-20260906/candidate-seat0.audit.jsonl', '--neural-checkpoint', '/private/tmp/empires-target-native-seed0-20260906/frozen/candidate.ctnn', '--neural-checkpoint-id', 'sha256-b5e4ecef685a7ebefe32969c07be4dbf18b5a3ba05aab5b857cf1902535f206e']
+Running: ['/private/tmp/empires-target-native-seed0-20260906/frozen/sim', '--jsonl', '--build-id', 'frozen-8206a6ba8f7df68597b59cd3e801001b54c05ee83e73b4cfd447d1588207902e', '--games', '32', '--seed', '961101', '--players', '4', '--victory-points', '10', '--board', 'randomized', '--seats', 'greedy,neural-checkpoint,greedy,greedy', '--policy-audit-jsonl', '/private/tmp/empires-target-native-seed0-20260906/candidate-seat1.audit.jsonl', '--neural-checkpoint', '/private/tmp/empires-target-native-seed0-20260906/frozen/candidate.ctnn', '--neural-checkpoint-id', 'sha256-b5e4ecef685a7ebefe32969c07be4dbf18b5a3ba05aab5b857cf1902535f206e']
+Traceback (most recent call last):
+  File "/private/tmp/empires-victory-target-20260906/scripts/evaluate-bots.py", line 508, in <module>
+    raise SystemExit(main())
+                     ~~~~^^
+  File "/private/tmp/empires-victory-target-20260906/scripts/evaluate-bots.py", line 481, in main
+    worker(output)
+    ~~~~~~^^^^^^^^
+  File "/private/tmp/empires-victory-target-20260906/scripts/evaluate-bots.py", line 455, in worker
+    arm: run_arm(config, arm, binary, build_id, policies[arm], output)
+         ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/private/tmp/empires-victory-target-20260906/scripts/evaluate-bots.py", line 249, in run_arm
+    validate_shard(shard, config)
+    ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+  File "/private/tmp/empires-victory-target-20260906/scripts/evaluate-bots.py", line 270, in validate_shard
+    raise ValueError(f"{path.name}: incomplete smoke game; raw result retained")
+ValueError: candidate-seat1.jsonl: incomplete smoke game; raw result retained

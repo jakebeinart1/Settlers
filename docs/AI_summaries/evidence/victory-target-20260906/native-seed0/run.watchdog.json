@@ -1,0 +1,27 @@
+{
+  "budget_seconds": 600,
+  "started_epoch": 1788728016.995904,
+  "started_elapsed": 268801.826566958,
+  "started_utc": "2026-09-06T20:53:36.995904+00:00",
+  "deadline_epoch": 1788728616.995904,
+  "deadline_utc": "2026-09-06T21:03:36.995904+00:00",
+  "state": "failed",
+  "command": [
+    "/opt/homebrew/opt/python@3.14/bin/python3.14",
+    "/private/tmp/empires-victory-target-20260906/scripts/evaluate-bots.py",
+    "--worker",
+    "--output",
+    "/private/tmp/empires-target-native-seed0-20260906"
+  ],
+  "watchdog_pid": 19291,
+  "watchdog_identity": null,
+  "boot_identity": "unavailable",
+  "watchdog_sha256": "0fe5997a05c2982988aab889c766df200e292250b3f2b674c557918065857ad0",
+  "process_group": 19313,
+  "process_identity": null,
+  "remaining_seconds": 583.845525999961,
+  "checked_epoch": 1788728033.1503758,
+  "checked_utc": "2026-09-06T20:53:53.150376+00:00",
+  "exit_code": 1,
+  "finished_utc": "2026-09-06T20:53:53.150768+00:00"
+}
