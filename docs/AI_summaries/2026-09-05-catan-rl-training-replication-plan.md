@@ -5,6 +5,13 @@
 **Empires source:** current `Settlers` checkout at `e361ad589bd5f4249d5f3dc2f34aa59c54c99f29`
 **Scope:** determine the exact reproduction path; do not import, modify, or vendor the external project.
 
+> **Later-upstream correction.** This document intentionally preserves the
+> historical `main` reproduction plan. A subsequent audit found a newer public
+> V5A-derived model on upstream commit `7046c6b`; it is now the preferred
+> practical first-to-10 baseline, while `021279c` remains the historical
+> compatibility oracle. See
+> [`2026-09-05-catan-rl-upstream-artifact-audit.md`](2026-09-05-catan-rl-upstream-artifact-audit.md).
+
 ## Executive finding
 
 The pinned repository can reproduce the **software shape** of the published agent: its Rust rules engine, 1,350-float observation v1, 299-action codec v1, masked PPO trainer, checkpoint format, CTNN exporter, and AlphaBot search code are public. The repository also contains a published PyTorch checkpoint and its exported CTNN network. [The repository describes this stack directly.][eli-readme-architecture]
@@ -61,6 +68,10 @@ historical environment.
    192-game seed-777 run produced 157 AlphaBot wins (81.8%) and 15/9/11
    heuristic wins. Both were first-to-10 because the executable has no target
    argument; neither is the undocumented historical first-to-7 experiment.
+   Separately, loading the PyTorch policy directly reproduced the ledger's
+   fixed-chair first-to-7 gate exactly: 126/192 = 65.625% at seed 777. The same
+   checkpoint scored 98/192 = 51.04% when changed to first-to-10 perfect
+   information, and 86/192 = 44.79% at first-to-10 realistic information.
 7. A one-minute continuation smoke used the checkpoint-recorded `runB2` flags,
    resumed the published final model, completed 1,671,168 new policy steps,
    wrote metrics/checkpoints, exported a new CTNN, and played that CTNN through

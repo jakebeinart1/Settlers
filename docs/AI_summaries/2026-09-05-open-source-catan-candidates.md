@@ -1,5 +1,13 @@
 # Open-source Catan-playing agents: evidence audit as of 2026-09-05
 
+> **Selection update, 2026-09-05.** After this cross-project audit, newer
+> public branches of `Eli6th/catan-rl` were discovered and run. Commit
+> `7046c6b` publishes a V5A-derived first-to-10 realistic-information model
+> that is a better practical baseline than the older `main` checkpoint. The
+> original `main` model remains the historical reproduction oracle. Exact
+> hashes, balanced results, and evidence limits are recorded in
+> [`2026-09-05-catan-rl-upstream-artifact-audit.md`](2026-09-05-catan-rl-upstream-artifact-audit.md).
+
 ## Executive conclusion
 
 There is no defensible, variant-independent "strongest open-source Catan agent" in the public evidence audited here. The reported percentages measure different games: two versus four players, 7 versus 10 versus 15 victory points, perfect versus hidden information, ordinary versus modified dice, and absent, bounded, or full player-to-player trading. They also use different opponents and evaluation budgets. This memo therefore does **not** turn those percentages into a leaderboard.

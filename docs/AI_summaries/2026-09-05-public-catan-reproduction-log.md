@@ -7,6 +7,15 @@ selects an external agent, checkpoint, or algorithm.
 
 ## Verdict
 
+**Update after auditing newer public branches:** upstream commit `7046c6b`
+publishes a later V5A-derived checkpoint. It is now the preferred practical
+first-to-10, realistic-information baseline; the `021279c` artifact below
+remains the historical reproduction oracle. The newer model completed a fresh
+balanced 768-game gate per scenario and won 55.1% against Heuristic-v1 and
+52.9% against Heuristic-v2 under realistic information. See
+[`2026-09-05-catan-rl-upstream-artifact-audit.md`](2026-09-05-catan-rl-upstream-artifact-audit.md)
+for the non-comparable topology boundary and the missing-run-artifact caveat.
+
 Only [Eli6th/catan-rl](https://github.com/Eli6th/catan-rl) supplied both a
 usable checkpoint and a runnable headline-strength command. Its current code
 produced a result close to the published 82%, but did **not** exactly reproduce
