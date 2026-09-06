@@ -102,3 +102,26 @@ viewport). See the full survey findings before starting design.
       hex tile textures are stamped per-hex and don't need regenerating.
 - [ ] Add a map/mode selector to New Game setup (`MatchSetup`,
       `NewGameSetupView`), wired to the new board generator and VP target.
+
+## 4. Board / dev-card / robber UI polish
+
+- [ ] Lock the board viewport during settlement placement, general gameplay,
+      and robber movement — it currently re-zooms/shifts. `BoardView` has no
+      persisted camera; `fittedGeometry(for:in:padding:)`
+      (`Settlers/Views/Board/BoardView.swift:523`) recomputes scale-to-fit on
+      every render from whatever is currently drawn (targeting overlays,
+      port badges, etc.), so the effective zoom moves under the player's
+      finger mid-interaction instead of holding one fixed fit. Standardize
+      on a single locked fit per screen/mode rather than a fit computed per
+      redraw. Related to, but distinct from, the "3. New game modes" item
+      that wants real pinch/pan camera controls — this item is about the
+      *unintentional* movement, independent of whether pan/zoom ships.
+- [ ] Clean up the development-card deck / draw UI — currently redundant.
+      Audit `DevCardPopupView.swift` and `Theme/DevCardStyle.swift` for
+      duplicated card-face/deck presentation and simplify to one clear
+      pull/reveal flow.
+- [ ] Fix truncation in the robber steal (victim-selection) screen — the
+      bottom portion of the sheet is cut off. Likely
+      `RobberVictimButton.swift` and its containing sheet/journey from the
+      robber interaction resolver; make it fit without clipping on the
+      standard device sizes covered by `run-settlers`/`play-settlers`.
