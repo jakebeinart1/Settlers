@@ -20,8 +20,9 @@ progress. Detailed evidence and operational recipes stay behind the links below.
   compatible checkpoints, rotates chairs and retains audited results. Identical
   weights reproduce through both loading paths; distinct weights change play.
   [PR #41](https://github.com/jakebeinart1/Settlers/pull/41) passed Linux CI/lint;
-  its local checkpoint-loader extension passed independent review, 105 tool
-  tests and 35 neural tests. The full iOS gate was not rerun for this CLI-only slice.
+  the checkpoint-loader/profile extension passed independent review and a full
+  local gate at `2631a11` (including 310 app/UI tests). Its first upload failed
+  after SSH idled out; publication is separate from that green gate.
 - **Quality warning:** the audited 32-board follow-up gave r2 **52/128** versus
   Balanced **112/128** wins against Greedy, all chairs rotated, no unexpected
   fallbacks. This is one native configuration, not a universal ranking.

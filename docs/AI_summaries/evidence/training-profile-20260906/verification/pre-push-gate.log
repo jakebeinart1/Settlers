@@ -1,0 +1,1182 @@
+pre-push: running scripts/gate.sh
+
+[1m▸ xcodegen drift[0m
+  project.pbxproj matches project.yml
+
+[1m▸ swiftlint --strict[0m
+
+[1m▸ evaluation tooling[0m
+.............................................Running: ['/opt/homebrew/opt/python@3.14/bin/python3.14', '-c', "print('partial'); raise SystemExit(7)"]
+............................................................
+----------------------------------------------------------------------
+Ran 105 tests in 85.684s
+
+OK
+
+[1m▸ packages build (W=E)[0m
+[0/1] Planning build
+Building for debugging...
+[0/1] Write swift-version--58304C5D6DBC2206.txt
+[2/33] Compiling CatanEngine Player.swift
+[3/33] Compiling CatanEngine PlayerID.swift
+[4/33] Compiling CatanEngine Robber.swift
+[5/33] Compiling CatanEngine RulesEngine.swift
+[6/33] Compiling CatanEngine StateEncoding.swift
+[7/33] Compiling CatanEngine VertexID.swift
+[8/33] Compiling CatanEngine PolicySelection.swift
+[9/33] Compiling CatanEngine Trading.swift
+[10/33] Compiling CatanEngine SetupPhase.swift
+[11/33] Compiling CatanEngine EdgeID.swift
+[12/33] Compiling CatanEngine GameEvent.swift
+[13/34] Compiling CatanEngine Port.swift
+[14/34] Compiling CatanEngine RandomSource.swift
+[15/34] Compiling CatanEngine DevCardPlayStatus.swift
+[16/34] Compiling CatanEngine DevCardType.swift
+[17/34] Compiling CatanEngine HexCoordinate.swift
+[18/34] Compiling CatanEngine Move.swift
+[19/34] Compiling CatanEngine LongestRoad.swift
+[20/34] Compiling CatanEngine MainPhase.swift
+[21/34] Compiling CatanEngine Resource.swift
+[22/34] Compiling CatanEngine Tile.swift
+[23/34] Compiling CatanEngine BoardGeneration.swift
+[24/34] Compiling CatanEngine Building.swift
+[25/34] Emitting module CatanEngine
+[26/34] Compiling CatanEngine CatanEngine.swift
+[27/34] Compiling CatanEngine DevCards.swift
+[28/34] Compiling CatanEngine GamePhase.swift
+[29/34] Compiling CatanEngine GameState.swift
+[30/34] Compiling CatanEngine ActionSpace.swift
+[31/34] Compiling CatanEngine Board.swift
+[32/34] Compiling CatanEngine DiceOdds.swift
+[33/34] Compiling CatanEngine GameSession.swift
+[34/34] Compiling CatanEngine WinCondition.swift
+Build complete! (0.82s)
+[0/1] Planning build
+Building for debugging...
+[0/6] Write sources
+[2/6] Write swift-version--58304C5D6DBC2206.txt
+[4/38] Compiling CatanEngine Robber.swift
+[5/38] Compiling CatanEngine RulesEngine.swift
+[6/38] Compiling CatanEngine GamePhase.swift
+[7/38] Compiling CatanEngine GameState.swift
+[8/38] Compiling CatanEngine Trading.swift
+[9/38] Compiling CatanEngine Port.swift
+[10/38] Compiling CatanEngine RandomSource.swift
+[11/39] Compiling CatanEngine VertexID.swift
+[12/39] Compiling CatanEngine PolicySelection.swift
+[13/39] Compiling CatanEngine EdgeID.swift
+[14/39] Compiling CatanEngine GameEvent.swift
+[15/39] Compiling CatanEngine ActionSpace.swift
+[16/39] Compiling CatanEngine Board.swift
+[17/39] Compiling CatanEngine SetupPhase.swift
+[18/39] Compiling CatanEngine WinCondition.swift
+[19/39] Compiling CatanEngine LongestRoad.swift
+[20/39] Compiling CatanEngine MainPhase.swift
+[21/39] Compiling CatanEngine StateEncoding.swift
+[22/39] Compiling CatanEngine Player.swift
+[23/39] Compiling CatanEngine PlayerID.swift
+[24/39] Compiling CatanEngine BoardGeneration.swift
+[25/39] Compiling CatanEngine Building.swift
+[26/39] Compiling CatanEngine Resource.swift
+[27/39] Compiling CatanEngine Tile.swift
+[28/39] Compiling CatanEngine DevCardPlayStatus.swift
+[29/39] Compiling CatanEngine DevCardType.swift
+[30/39] Compiling CatanEngine HexCoordinate.swift
+[31/39] Compiling CatanEngine Move.swift
+[32/39] Emitting module CatanEngine
+[33/39] Compiling CatanEngine CatanEngine.swift
+[34/39] Compiling CatanEngine DevCards.swift
+[35/39] Compiling CatanEngine DiceOdds.swift
+[36/39] Compiling CatanEngine GameSession.swift
+[37/62] Emitting module CatanAI
+[38/62] Compiling CatanAI UpstreamObservation.swift
+[39/62] Compiling CatanAI UpstreamCodec.swift
+[40/62] Compiling CatanAI UpstreamBoardLayout.swift
+[41/62] Compiling CatanAI UpstreamActions.swift
+[42/62] Compiling CatanAI ThreatAssessment.swift
+[43/62] Compiling CatanAI UpstreamPolicy.swift
+[44/63] Compiling CatanAI UpstreamCompounds.swift
+[45/63] Compiling CatanAI TrainingExample.swift
+[46/63] Compiling CatanAI TradeHeuristics.swift
+[47/63] Compiling CatanAI RobberHeuristics.swift
+[48/63] Compiling CatanAI CatanAI.swift
+[49/63] Compiling CatanAI DevCardHeuristics.swift
+[50/63] Compiling CatanAI TradeMessages.swift
+[51/63] Compiling CatanAI UpstreamNetwork.swift
+[52/63] Compiling CatanAI GreedyPolicy.swift
+[53/63] Compiling CatanAI HeuristicPolicy.swift
+[54/63] Compiling CatanAI PlacementHeuristics.swift
+[55/63] Compiling CatanAI PolicyBehaviorMetrics.swift
+[56/63] Compiling CatanAI resource_bundle_accessor.swift
+[57/63] Compiling CatanAI BotWeights.swift
+[58/63] Compiling CatanAI BuildPlanner.swift
+[59/63] Compiling CatanAI Bot.swift
+[60/63] Compiling CatanAI BotPersonality.swift
+[61/65] Emitting module sim
+[62/65] Compiling sim main.swift
+[62/65] Write Objects.LinkFileList
+[63/65] Linking sim
+[64/65] Applying sim
+Build complete! (1.94s)
+
+[1m▸ CatanEngine tests[0m
+[0/1] Planning build
+Building for debugging...
+[0/2] Write swift-version--58304C5D6DBC2206.txt
+[2/34] Compiling CatanEngine Player.swift
+[3/34] Compiling CatanEngine PlayerID.swift
+[4/34] Compiling CatanEngine StateEncoding.swift
+[5/34] Compiling CatanEngine GamePhase.swift
+[6/34] Compiling CatanEngine GameState.swift
+[7/34] Compiling CatanEngine EdgeID.swift
+[8/34] Compiling CatanEngine GameEvent.swift
+[9/34] Compiling CatanEngine SetupPhase.swift
+[10/35] Compiling CatanEngine Robber.swift
+[11/35] Compiling CatanEngine RulesEngine.swift
+[12/35] Compiling CatanEngine CatanEngine.swift
+[13/35] Compiling CatanEngine DevCards.swift
+[14/35] Compiling CatanEngine VertexID.swift
+[15/35] Compiling CatanEngine PolicySelection.swift
+[16/35] Compiling CatanEngine Trading.swift
+[17/35] Compiling CatanEngine Resource.swift
+[18/35] Compiling CatanEngine Tile.swift
+[19/35] Compiling CatanEngine HexCoordinate.swift
+[20/35] Compiling CatanEngine Move.swift
+[21/35] Compiling CatanEngine LongestRoad.swift
+[22/35] Compiling CatanEngine MainPhase.swift
+[23/35] Compiling CatanEngine Port.swift
+[24/35] Compiling CatanEngine RandomSource.swift
+[25/35] Compiling CatanEngine DevCardPlayStatus.swift
+[26/35] Compiling CatanEngine DevCardType.swift
+[27/35] Compiling CatanEngine ActionSpace.swift
+[28/35] Compiling CatanEngine Board.swift
+[29/35] Compiling CatanEngine BoardGeneration.swift
+[30/35] Compiling CatanEngine Building.swift
+[31/35] Emitting module CatanEngine
+[32/35] Compiling CatanEngine DiceOdds.swift
+[33/35] Compiling CatanEngine GameSession.swift
+[34/35] Compiling CatanEngine WinCondition.swift
+[34/36] Write Objects.LinkFileList
+[35/36] Linking CatanEnginePackageTests
+Build complete! (0.90s)
+Test Suite 'All tests' started at 2026-09-06 13:59:12.125.
+Test Suite 'All tests' passed at 2026-09-06 13:59:12.125.
+	 Executed 0 tests, with 0 failures (0 unexpected) in 0.000 (0.001) seconds
+◇ Test run started.
+↳ Testing Library Version: 1902
+↳ Target Platform: arm64e-apple-macos14.0
+◇ Test legalMovesEnumeratesMoveRobberTargetsAndVictims() started.
+◇ Test yearOfPlentyRejectsAnUnavailablePairWithoutConsumingTheCard() started.
+◇ Test aMaskRefusesToHideALegalMoveItCannotNumber() started.
+◇ Test rollOfSevenProducesNoResources() started.
+◇ Test numericVectorDistinguishesPendingOfferTerms() started.
+◇ Test concealingHandsRemovesOnlyOpponentCardKinds() started.
+◇ Test concealingHandsZeroesOnlyTheHiddenSlots() started.
+◇ Test serializedSessionKeepsTheAlreadySampledTradeResponse() started.
+◇ Test phasesNoSingleSeatOwnsReportNobody() started.
+◇ Test discardingOffersOnlyTheActingSeatsOwnCombinations() started.
+◇ Test theIdentifierDependsOnEveryPartOfTheOffer() started.
+◇ Test standardBoardHasNoAdjacentSixOrEight() started.
+◇ Test monopolyReportsHowManyCardsItSweptUp() started.
+◇ Test encodingIsStableAcrossSetInsertionOrder() started.
+◇ Test theNumberingDoesNotDependOnHowTheBoardWasBuilt() started.
+◇ Test globalBlockDistinguishesVictoryPointTargets() started.
+◇ Test settlementProducesOneResourceOnMatchingRoll() started.
+◇ Test robberTileProducesNothing() started.
+◇ Test devCardStatusDistinguishesNewAndOlderCopiesInOneStack() started.
+◇ Test buildCityUpgradesSettlementAndDeductsCost() started.
+◇ Test aPlayerAtTheRoadLimitHasNoLegalRoadToBuild() started.
+◇ Suite PolicyContextTests started.
+◇ Test settlementRespectsDistanceRuleAndRoadConnection() started.
+◇ Test victoryPointsMatchesGameStateComputation() started.
+◇ Test promptDescriptionNamesTheSeatPhaseAndMoveCount() started.
+◇ Test devCardPlayLimitResetsAfterEndTurn() started.
+◇ Test serializedSessionResumesTheSameDecisionsWithoutRestartingPolicyRandomness() started.
+◇ Test theSpaceIsTheSizeItClaims() started.
+◇ Test yearOfPlentyEnumeratesOnlyPairsTheBankCanSupply() started.
+◇ Test thirdKnightGrantsLargestArmy() started.
+◇ Test promptDescriptionNamesTheVictoryPointTarget() started.
+◇ Test engineNameIsSet() started.
+◇ Test anUnsupportedTableSizeIsRefusedAtConstruction() started.
+◇ Suite PolicyTraceTests started.
+◇ Test roadBuildingThrowsIfEitherEdgeIsIllegal() started.
+◇ Suite SessionCheckpointValidationTests started.
+◇ Test rotatingTheObserverRotatesTheSeatBlocks() started.
+◇ Test numericVectorDistinguishesShorelinePortTopology() started.
+◇ Test cityProducesTwoResourcesOnMatchingRoll() started.
+◇ Test theSameOfferAlwaysCarriesTheSameIdentifier() started.
+◇ Test distinctOffersGetDistinctIdentifiers() started.
+◇ Test buildRoadWithInsufficientResourcesThrows() started.
+◇ Test vertexCanonicalizationIsConsistentAcrossSharedTiles() started.
+◇ Test aFreshGameCarriesTheCurrentSchemaVersion() started.
+◇ Test monopolyTransfersAllMatchingCardsFromEveryOtherPlayer() started.
+◇ Test theMaskMarksExactlyTheLegalMoves() started.
+◇ Test roadCannotExtendThroughAnOpponentsSettlement() started.
+◇ Test validationAgreesWithWhatApplyingActuallyDoes() started.
+◇ Test pipsMatchTheWaysTwoDiceRollEachNumber() started.
+◇ Test vertexOwnershipIsEgocentricToo() started.
+◇ Test playingKnightMovesRobberAndConsumesCard() started.
+◇ Test theAbsentChairsOwnershipSlotsAreZero() started.
+◇ Test aThreeSeatGameCompletesSetupAcrossExactlyThreeSeats() started.
+◇ Test everyActiveDevCardIsOfferedBeforeRolling() started.
+◇ Test invalidRobberVictimLeavesTheWholeStateUntouched() started.
+◇ Test theRunawayBackstopForcesATurnToEnd() started.
+◇ Test knightCanBePlayedBeforeRolling() started.
+◇ Test anUnsupportedTargetIsRefused() started.
+◇ Test secondSettlementGrantsResources() started.
+◇ Test buyingIsLimitedByDeckSize() started.
+◇ Suite TradingTests started.
+◇ Test cannotPlayDevCardBoughtThisTurn() started.
+◇ Test aRecordedMoveListReplaysToTheSameOutcome() started.
+◇ Test aSaveMissingTheBoardIsRejectedRatherThanSilentlyDiscarded() started.
+◇ Test tiedKnightCountsKeepCurrentLargestArmyHolder() started.
+◇ Test noPlayerEverExceedsTheirPieceSupply() started.
+◇ Test aSeatWithNoPolicyStopsTheLoop() started.
+◇ Test rollingSevenWithOverEightCardsRequiresDiscard() started.
+◇ Test theOneHotBlocksHaveExactlyOneSetSlot() started.
+◇ Test publicVictoryPointProgressIsRelativeToTheMatchTarget() started.
+◇ Test boardIndicesAreTheSortedOrderAndRoundTrip() started.
+◇ Test onlyOneDevCardMayBePlayedPerTurn() started.
+◇ Test aFullyOwnedGameRunsToCompletion() started.
+◇ Test playingMonopolyBeforeRollingStillRequiresTheRoll() started.
+◇ Test wrongTurnMoveIsRejected() started.
+◇ Test fragmentedRoadNetworkDoesNotSumAcrossDisconnectedPieces() started.
+◇ Suite RulesVersionReplayTests started.
+◇ Test randomLegalPlayReachesGameOverWithoutErrors() started.
+◇ Test onlyMainTurnCountsAsAPlayableTurnForThatSeat() started.
+◇ Test aFixedPositionEncodesToAPinnedFingerprint() started.
+◇ Test everyLegalMoveInARealGameHasAnIndex() started.
+◇ Test sameSeedProducesAnIdenticalGame() started.
+◇ Test aWinningMoveReportsTheWinExactlyOnce() started.
+◇ Test everyPhaseWithASeatReportsIt() started.
+◇ Test aTwelvePointGameDoesNotEndAtTen() started.
+◇ Test tradingAResourceForItselfIsRejected() started.
+◇ Test promptDescriptionNumbersEveryLegalMove() started.
+◇ Test promptDescriptionIsFarCheaperThanAJSONDump() started.
+◇ Test tenVictoryPointsEndsGame() started.
+◇ Test theActionSpaceAndTheEncoderAgreeOnBoardOrder() started.
+◇ Test opponentBlocksFollowSeatOrderRelativeToTheObserver() started.
+◇ Test soleDemandingPlayerGetsWhateverBankHasLeft() started.
+◇ Test actionSpaceRoundTripsAGenerousGiveCountOfThree() started.
+◇ Test buildingSettlementOnOpponentRoadRecomputesLongestRoadImmediately() started.
+◇ Test replacingTheStateResetsTurnBookkeeping() started.
+◇ Test newTieBetweenTwoPlayersAwardsNoOne() started.
+◇ Test everyFeatureIsFiniteAndWithinItsDocumentedRange() started.
+◇ Test devCardStatusExplainsRequiredPlacementAndMissingRoadChoices() started.
+◇ Test promptDescriptionShowsEveryPlayerAndTheWholeBoard() started.
+◇ Test multipleDemandingPlayersGetNothingWhenBankCannotCoverAll() started.
+◇ Test yearOfPlentyWithSameResourceTwiceDoesNotCrash() started.
+◇ Test movingRobberCanStealFromAdjacentPlayer() started.
+◇ Test setupPhaseFollowsSnakeOrder() started.
+◇ Test buyingDevCardReportsTheExactCardDrawn(card:) started.
+◇ Test aSaveWithoutATargetLoadsAndPlaysToTen() started.
+◇ Test cityRequiresExistingOwnSettlement() started.
+◇ Test roadCannotBeBuiltOnAnEdgeAnotherPlayerAlreadyOwns() started.
+◇ Test boardHas9Ports() started.
+◇ Test serializedSessionRejectsChangingThePolicyRoster() started.
+◇ Test outOfOrderSettlementBeforePendingRoadIsRejected() started.
+◇ Test buildRoadDeductsCostAndReturnsResourcesToBank() started.
+◇ Test aLegalBankTradeReportsNoProblemAndApplies() started.
+◇ Test tieKeepsCurrentHolder() started.
+◇ Test encodingTheSamePositionTwiceAgrees() started.
+◇ Test opponentSettlementBreaksRoadChain() started.
+◇ Test branchingNetworkScoresOnlyLongestSimplePath() started.
+◇ Test yearOfPlentyRequiresTwoCardsTheBankCanSupply() started.
+◇ Test aThreeSeatGameHasThreeSeats() started.
+◇ Test buyingDevCardDeductsCostAndDraws() started.
+◇ Test movingTheRobberWithNobodyToRobReportsNoSteal() started.
+◇ Test negativeDiscardAmountIsRejected() started.
+◇ Test aThreeSeatObservationEncodesToTheFullFixedWidth() started.
+◇ Test buildingReportsWhatWasBuilt() started.
+◇ Test outOfRangeIndicesAreRejectedRatherThanWrapped() started.
+◇ Test devCardStatusOwnsTurnTimingAndPassiveCardRules() started.
+◇ Test theGameEndsAtItsOwnTarget() started.
+◇ Test theSameSeedProducesTheSameSession() started.
+◇ Test endTurnClearsPendingTradeOffers() started.
+◇ Test everyIndexRoundTripsBackToItself() started.
+◇ Test aDiscardTooLargeToNumberIsRejectedNotAliased() started.
+◇ Test knightPlayedBeforeRollingBlocksAnotherCardThatSameTurn() started.
+◇ Test aSaveMissingFieldsAddedAfterItWasWrittenStillLoads() started.
+◇ Test theRejectionMessageNamesTheBankRatherThanThePlayersHand() started.
+◇ Test fullSetupSequenceEndsAtRollDiceForPlayerZero() started.
+◇ Test theOwnBlockAlwaysDescribesTheObservingSeat() started.
+◇ Test proposeTradeStopsBeingLegalAtTheTurnRetryLimit() started.
+◇ Test rollingReportsTheTotalThatWasActuallyRolled() started.
+◇ Test aRobberStealReportsWhichCardWasTaken() started.
+◇ Test hidingOpponentHandsDoesNotChangeTheWidth() started.
+◇ Test identifiersDoNotShareLongPrefixes() started.
+◇ Test illegalPlacementTooCloseIsRejected() started.
+◇ Test everyVectorIsExactlyTheAdvertisedWidth() started.
+◇ Test newTieBetweenTwoOtherPlayersDisplacesCurrentHolder() started.
+◇ Test newGameDevCardDeckPreservesStandardComposition() started.
+◇ Test theAdvertisedWidthIsTheSumOfItsBlocks() started.
+◇ Test bankTradeIsRejectedWhenTheBankCannotSupplyTheWantedResource() started.
+◇ Test aSaveWithAnInvalidTargetIsRejectedAsCorrupt() started.
+◇ Test anExternalMoveAdvancesTheSameGame() started.
+◇ Test roadMustConnectToOwnNetwork() started.
+◇ Test checkForWinnerIsNoOpOnceGameIsAlreadyOver() started.
+◇ Test numbersThatAreNotOnTheBoardProduceNothing() started.
+◇ Test theAccessorAgreesWithTheSessionsOwnNotionOfWhoActs() started.
+◇ Test aResponseToAnUnknownOfferHasNoIndex() started.
+◇ Test settlementNotTouchingTheRolledTileGetsNothing() started.
+◇ Test aSaveResumesTheSameRandomSequenceItWouldHaveHad() started.
+◇ Test devCardsBoughtThisTurnBecomePlayableAfterEndTurn() started.
+◇ Test simultaneousOffersGetDistinctHandles() started.
+◇ Test randomizedBoardIsDeterministicForSameSeed() started.
+◇ Test endingATurnReportsIt() started.
+◇ Test discardingHalfRoundedDownResolvesPhase() started.
+◇ Test aThreeSeatGameCyclesTurnsAmongThreeSeats() started.
+◇ Test robberMoveCannotSkipAnEligibleVictim() started.
+◇ Test legalMovesIsAPureFunctionOfTheState() started.
+◇ Test belowTenVictoryPointsDoesNotEndGame() started.
+◇ Test standardBoardHas19TilesAndOneDesert() started.
+◇ Test fiveConnectedRoadsGrantsLongestRoad() started.
+◇ Test legalMovesEnumeratesDiscardCombinationsForEachPendingPlayer() started.
+◇ Test numericVectorDistinguishesTheObserversAbsoluteChair() started.
+◇ Test newGameShufflesDevCardDeckDifferentlyForDifferentSeeds() started.
+◇ Test aThreeSeatGameSurvivesASaveAndReload() started.
+◇ Test setupPlacementsReportThemselves() started.
+◇ Test roadBuildingBuildsTwoFreeRoads() started.
+◇ Test devCardStatusExplainsTurnLimitAndMissingCard() started.
+◇ Test aTargetSurvivesASaveAndReload() started.
+✔ Test phasesNoSingleSeatOwnsReportNobody() passed after 0.046 seconds.
+✔ Test theIdentifierDependsOnEveryPartOfTheOffer() passed after 0.096 seconds.
+◇ Test case passing 1 argument card → .knight to buyingDevCardReportsTheExactCardDrawn(card:) started.
+◇ Test case passing 1 argument card → .roadBuilding to buyingDevCardReportsTheExactCardDrawn(card:) started.
+◇ Test case passing 1 argument card → .yearOfPlenty to buyingDevCardReportsTheExactCardDrawn(card:) started.
+◇ Test case passing 1 argument card → .monopoly to buyingDevCardReportsTheExactCardDrawn(card:) started.
+◇ Test case passing 1 argument card → .victoryPoint to buyingDevCardReportsTheExactCardDrawn(card:) started.
+✔ Test standardBoardHasNoAdjacentSixOrEight() passed after 0.165 seconds.
+✔ Test rollOfSevenProducesNoResources() passed after 0.166 seconds.
+✔ Test monopolyReportsHowManyCardsItSweptUp() passed after 0.168 seconds.
+◇ Test contextDoesNotChangeLegalMovesOrOtherActions() started.
+◇ Test freshGamesStartWithKnownEmptyContext(playerCount:) started.
+◇ Test setupAndRollingDoNotCompleteTurns() started.
+◇ Test legacyMissingContextRemainsUnknownAfterResumingAndSaving() started.
+◇ Test rejectedProposalsAndEndTurnsLeaveTheWholeStateUnchanged() started.
+◇ Test nullContextDecodesWithTheSameLegacyDefaults() started.
+✔ Test yearOfPlentyRejectsAnUnavailablePairWithoutConsumingTheCard() passed after 0.179 seconds.
+◇ Test successfulEndTurnAdvancesKnownHistoryAndResetsProposals() started.
+◇ Test proposalsCountIndependentlyOfTheirResponses(accept:) started.
+◇ Test explicitInitializerContextRoundTrips(completedTurns:) started.
+✔ Test discardingOffersOnlyTheActingSeatsOwnCombinations() passed after 0.210 seconds.
+✔ Test devCardStatusDistinguishesNewAndOlderCopiesInOneStack() passed after 0.210 seconds.
+✔ Test settlementProducesOneResourceOnMatchingRoll() passed after 0.221 seconds.
+✔ Test legalMovesEnumeratesMoveRobberTargetsAndVictims() passed after 0.227 seconds.
+✔ Test robberTileProducesNothing() passed after 0.228 seconds.
+✔ Test buildCityUpgradesSettlementAndDeductsCost() passed after 0.232 seconds.
+✔ Test devCardPlayLimitResetsAfterEndTurn() passed after 0.248 seconds.
+✔ Test engineNameIsSet() passed after 0.255 seconds.
+✔ Test anUnsupportedTableSizeIsRefusedAtConstruction() passed after 0.258 seconds.
+✔ Test yearOfPlentyEnumeratesOnlyPairsTheBankCanSupply() passed after 0.290 seconds.
+✔ Test victoryPointsMatchesGameStateComputation() passed after 0.290 seconds.
+◇ Test rejectsNegativeCounters(field:) started.
+◇ Test rejectsCurrentTurnSeatWithoutActions() started.
+✔ Test aPlayerAtTheRoadLimitHasNoLegalRoadToBuild() passed after 0.292 seconds.
+◇ Test rejectsChangedPolicyRosterAfterDecoding() started.
+◇ Test externalMoveCannotInheritAnUncommittedPolicyLabel() started.
+◇ Test rejectsInvalidQueuedResponseActor(index:) started.
+◇ Test traceFollowsExactlyOneDecisionThroughCommit() started.
+◇ Test rejectsQueuedEvaluationOutsideRecordedRange(index:) started.
+◇ Test acceptsCheckpointAtTurnBackstop() started.
+◇ Test oldDecisionWithoutTraceStillDecodes() started.
+◇ Test rejectsQueuedNonResponseMove() started.
+✔ Test thirdKnightGrantsLargestArmy() passed after 0.323 seconds.
+◇ Test rejectsUnsupportedStateSchema(version:) started.
+◇ Test rejectsInvalidCurrentTurnSeat(index:) started.
+◇ Test rejectsQueuedResponseWithoutActorPolicy() started.
+◇ Test rejectsInvalidPhasePlayerIndex(phase:index:) started.
+◇ Test rejectsQueuedResponseToUnknownOffer() started.
+◇ Test rejectsUnsupportedCheckpointVersion(version:) started.
+◇ Test rejectsCountersThatCannotAdvanceWithoutOverflow(field:) started.
+◇ Test rejectsActionsBeyondTurnBackstop(actions:) started.
+◇ Test rejectsQueuedResponseWithoutPendingOffer() started.
+◇ Test rejectsQueuedResponseFromProposer() started.
+◇ Test rejectsActionsWithoutACurrentTurnSeat() started.
+◇ Test legitimateDecodedSnapshotsResume() started.
+◇ Test rejectsZeroEvaluationsWithQueuedDecision() started.
+✔ Test theSameOfferAlwaysCarriesTheSameIdentifier() passed after 0.343 seconds.
+✔ Test cityProducesTwoResourcesOnMatchingRoll() passed after 0.345 seconds.
+✔ Test settlementRespectsDistanceRuleAndRoadConnection() passed after 0.404 seconds.
+✔ Test roadBuildingThrowsIfEitherEdgeIsIllegal() passed after 0.406 seconds.
+✔ Test aFreshGameCarriesTheCurrentSchemaVersion() passed after 0.418 seconds.
+✔ Test vertexCanonicalizationIsConsistentAcrossSharedTiles() passed after 0.421 seconds.
+✔ Test buildRoadWithInsufficientResourcesThrows() passed after 0.421 seconds.
+✔ Test monopolyTransfersAllMatchingCardsFromEveryOtherPlayer() passed after 0.421 seconds.
+✔ Test serializedSessionKeepsTheAlreadySampledTradeResponse() passed after 0.441 seconds.
+✔ Test pipsMatchTheWaysTwoDiceRollEachNumber() passed after 0.449 seconds.
+✔ Test roadCannotExtendThroughAnOpponentsSettlement() passed after 0.460 seconds.
+✔ Test numericVectorDistinguishesPendingOfferTerms() passed after 0.465 seconds.
+✔ Test playingKnightMovesRobberAndConsumesCard() passed after 0.465 seconds.
+✔ Test distinctOffersGetDistinctIdentifiers() passed after 0.465 seconds.
+✔ Test numericVectorDistinguishesShorelinePortTopology() passed after 0.465 seconds.
+✔ Test invalidRobberVictimLeavesTheWholeStateUntouched() passed after 0.465 seconds.
+✔ Test promptDescriptionNamesTheVictoryPointTarget() passed after 0.465 seconds.
+✔ Test theAbsentChairsOwnershipSlotsAreZero() passed after 0.465 seconds.
+✔ Test anUnsupportedTargetIsRefused() passed after 0.465 seconds.
+✔ Test knightCanBePlayedBeforeRolling() passed after 0.465 seconds.
+✔ Test theSpaceIsTheSizeItClaims() passed after 0.465 seconds.
+✔ Test buyingIsLimitedByDeckSize() passed after 0.465 seconds.
+✔ Test aThreeSeatGameCompletesSetupAcrossExactlyThreeSeats() passed after 0.465 seconds.
+✔ Test cannotPlayDevCardBoughtThisTurn() passed after 0.465 seconds.
+✔ Test tiedKnightCountsKeepCurrentLargestArmyHolder() passed after 0.465 seconds.
+✔ Test everyActiveDevCardIsOfferedBeforeRolling() passed after 0.465 seconds.
+◇ Test bankTradeRejectedWhenRatioWrong() started.
+◇ Test proposeAndRejectLeavesResourcesUntouched() started.
+◇ Test bankTradeRejectsNegativeGetAmount() started.
+◇ Test proposeTradeRejectsNegativeAmounts() started.
+◇ Test rulesEngineStillRejectsUnrelatedOutOfTurnMoves() started.
+◇ Test legalMovesExcludesAcceptWhenProposerNoLongerAffordsGiveCards() started.
+◇ Test legalMovesIncludesAcceptWhenBothSidesCanAfford() started.
+✔ Test secondSettlementGrantsResources() passed after 0.465 seconds.
+◇ Test proposeTradeFailsIfProposerLacksGiveCards() started.
+◇ Test legalMovesIncludeGiveCountsUpToTheGenerousCeiling() started.
+◇ Test legalMovesExcludesAcceptWhenResponderCannotAffordWantedCards() started.
+◇ Test bankTradeRejectedWhenBankLacksResource() started.
+◇ Test bankTradeRejectsNegativeGiveAmount() started.
+✔ Test aSeatWithNoPolicyStopsTheLoop() passed after 0.465 seconds.
+◇ Test twoToOneBankTradeWithMatchingResourcePort() started.
+◇ Test endTurnClearsTradesAcceptedThisTurn() started.
+◇ Test respondRejectsWhenResponderIsProposer() started.
+◇ Test rulesEngineAppliesProposeTrade() started.
+◇ Test rulesEngineAllowsNonActivePlayerToRespondToTrade() started.
+◇ Test rulesEngineProposeTradeRejectsWrongProposer() started.
+◇ Test decliningATradeRecordsItAgainstTheProposer() started.
+◇ Test threeToOneBankTradeWithGenericPort() started.
+◇ Test acceptFailsIfProposerNoLongerHoldsGiveCards() started.
+◇ Test rulesEngineAppliesBankTrade() started.
+◇ Test endTurnClearsDeclinedTradeHistory() started.
+◇ Test proposeAndAcceptTradeSwapsCardsBetweenPlayers() started.
+◇ Test fourToOneBankTradeWithNoPort() started.
+◇ Test acceptFailsIfResponderLacksWantedCards() started.
+◇ Test acceptingATradeIncrementsTheProposersAcceptedCountAndRejectingDoesNot() started.
+✔ Test rollingSevenWithOverEightCardsRequiresDiscard() passed after 0.466 seconds.
+✔ Test theRunawayBackstopForcesATurnToEnd() passed after 0.466 seconds.
+✔ Test validationAgreesWithWhatApplyingActuallyDoes() passed after 0.466 seconds.
+✔ Test aSaveMissingTheBoardIsRejectedRatherThanSilentlyDiscarded() passed after 0.466 seconds.
+✔ Test onlyOneDevCardMayBePlayedPerTurn() passed after 0.466 seconds.
+✔ Test playingMonopolyBeforeRollingStillRequiresTheRoll() passed after 0.466 seconds.
+✔ Test boardIndicesAreTheSortedOrderAndRoundTrip() passed after 0.466 seconds.
+✔ Test theMaskMarksExactlyTheLegalMoves() passed after 0.466 seconds.
+◇ Test versionOnePreservesNilVictimRobberHistory() started.
+◇ Test versionOnePreservesPartialYearOfPlentyHistory() started.
+◇ Test versionOnePreservesNilVictimKnightHistory(beforeRoll:) started.
+◇ Test ordinaryMovesReplayUnderEverySupportedVersion(rulesVersion:) started.
+◇ Test unsupportedRulesVersionCannotMutateAReplay() started.
+◇ Test versionOneStillReplaysAnExplicitRobberVictimExactly() started.
+✔ Test globalBlockDistinguishesVictoryPointTargets() passed after 0.467 seconds.
+✔ Test onlyMainTurnCountsAsAPlayableTurnForThatSeat() passed after 0.466 seconds.
+✔ Test wrongTurnMoveIsRejected() passed after 0.466 seconds.
+✔ Test fragmentedRoadNetworkDoesNotSumAcrossDisconnectedPieces() passed after 0.466 seconds.
+✔ Test everyPhaseWithASeatReportsIt() passed after 0.466 seconds.
+✔ Test theNumberingDoesNotDependOnHowTheBoardWasBuilt() passed after 0.467 seconds.
+✔ Test aWinningMoveReportsTheWinExactlyOnce() passed after 0.466 seconds.
+✔ Test aTwelvePointGameDoesNotEndAtTen() passed after 0.466 seconds.
+✔ Test publicVictoryPointProgressIsRelativeToTheMatchTarget() passed after 0.466 seconds.
+✔ Test tradingAResourceForItselfIsRejected() passed after 0.466 seconds.
+✔ Test rotatingTheObserverRotatesTheSeatBlocks() passed after 0.467 seconds.
+✔ Test concealingHandsRemovesOnlyOpponentCardKinds() passed after 0.467 seconds.
+✔ Test concealingHandsZeroesOnlyTheHiddenSlots() passed after 0.467 seconds.
+✔ Test tenVictoryPointsEndsGame() passed after 0.466 seconds.
+✔ Test soleDemandingPlayerGetsWhateverBankHasLeft() passed after 0.466 seconds.
+✔ Test actionSpaceRoundTripsAGenerousGiveCountOfThree() passed after 0.466 seconds.
+✔ Test buildingSettlementOnOpponentRoadRecomputesLongestRoadImmediately() passed after 0.466 seconds.
+✔ Test newTieBetweenTwoPlayersAwardsNoOne() passed after 0.466 seconds.
+✔ Test replacingTheStateResetsTurnBookkeeping() passed after 0.466 seconds.
+✔ Test theActionSpaceAndTheEncoderAgreeOnBoardOrder() passed after 0.466 seconds.
+✔ Test devCardStatusExplainsRequiredPlacementAndMissingRoadChoices() passed after 0.467 seconds.
+✔ Test vertexOwnershipIsEgocentricToo() passed after 0.467 seconds.
+✔ Test yearOfPlentyWithSameResourceTwiceDoesNotCrash() passed after 0.466 seconds.
+✔ Test multipleDemandingPlayersGetNothingWhenBankCannotCoverAll() passed after 0.466 seconds.
+✔ Test movingRobberCanStealFromAdjacentPlayer() passed after 0.466 seconds.
+✔ Test setupPhaseFollowsSnakeOrder() passed after 0.466 seconds.
+✔ Test buyingDevCardReportsTheExactCardDrawn(card:) with 5 test cases passed after 0.466 seconds.
+✔ Test aFixedPositionEncodesToAPinnedFingerprint() passed after 0.466 seconds.
+✔ Test serializedSessionResumesTheSameDecisionsWithoutRestartingPolicyRandomness() passed after 0.467 seconds.
+✔ Test aSaveWithoutATargetLoadsAndPlaysToTen() passed after 0.466 seconds.
+✔ Test cityRequiresExistingOwnSettlement() passed after 0.466 seconds.
+✔ Test boardHas9Ports() passed after 0.466 seconds.
+✔ Test serializedSessionRejectsChangingThePolicyRoster() passed after 0.466 seconds.
+✔ Test roadCannotBeBuiltOnAnEdgeAnotherPlayerAlreadyOwns() passed after 0.466 seconds.
+✔ Test promptDescriptionNumbersEveryLegalMove() passed after 0.467 seconds.
+✔ Test buildRoadDeductsCostAndReturnsResourcesToBank() passed after 0.466 seconds.
+✔ Test aLegalBankTradeReportsNoProblemAndApplies() passed after 0.466 seconds.
+✔ Test outOfOrderSettlementBeforePendingRoadIsRejected() passed after 0.466 seconds.
+✔ Test tieKeepsCurrentHolder() passed after 0.466 seconds.
+✔ Test yearOfPlentyRequiresTwoCardsTheBankCanSupply() passed after 0.466 seconds.
+✔ Test opponentSettlementBreaksRoadChain() passed after 0.466 seconds.
+✔ Test branchingNetworkScoresOnlyLongestSimplePath() passed after 0.466 seconds.
+✔ Test aThreeSeatGameHasThreeSeats() passed after 0.465 seconds.
+✔ Test buyingDevCardDeductsCostAndDraws() passed after 0.465 seconds.
+✔ Test movingTheRobberWithNobodyToRobReportsNoSteal() passed after 0.465 seconds.
+✔ Test encodingIsStableAcrossSetInsertionOrder() passed after 0.468 seconds.
+✔ Test outOfRangeIndicesAreRejectedRatherThanWrapped() passed after 0.464 seconds.
+✔ Test negativeDiscardAmountIsRejected() passed after 0.465 seconds.
+✔ Test devCardStatusOwnsTurnTimingAndPassiveCardRules() passed after 0.465 seconds.
+✔ Test buildingReportsWhatWasBuilt() passed after 0.465 seconds.
+✔ Test endTurnClearsPendingTradeOffers() passed after 0.464 seconds.
+◇ Test case passing 1 argument playerCount → 3 to freshGamesStartWithKnownEmptyContext(playerCount:) started.
+◇ Test case passing 1 argument playerCount → 4 to freshGamesStartWithKnownEmptyContext(playerCount:) started.
+✔ Test theGameEndsAtItsOwnTarget() passed after 0.488 seconds.
+✔ Test aDiscardTooLargeToNumberIsRejectedNotAliased() passed after 0.524 seconds.
+✔ Test knightPlayedBeforeRollingBlocksAnotherCardThatSameTurn() passed after 0.524 seconds.
+✔ Test opponentBlocksFollowSeatOrderRelativeToTheObserver() passed after 0.526 seconds.
+◇ Test case passing 1 argument accept → false to proposalsCountIndependentlyOfTheirResponses(accept:) started.
+◇ Test case passing 1 argument accept → true to proposalsCountIndependentlyOfTheirResponses(accept:) started.
+✔ Test theRejectionMessageNamesTheBankRatherThanThePlayersHand() passed after 0.538 seconds.
+◇ Test case passing 1 argument completedTurns → 0 to explicitInitializerContextRoundTrips(completedTurns:) started.
+◇ Test case passing 1 argument completedTurns → 19 to explicitInitializerContextRoundTrips(completedTurns:) started.
+◇ Test case passing 1 argument completedTurns → nil to explicitInitializerContextRoundTrips(completedTurns:) started.
+✔ Test aThreeSeatObservationEncodesToTheFullFixedWidth() passed after 0.556 seconds.
+✔ Test promptDescriptionShowsEveryPlayerAndTheWholeBoard() passed after 0.558 seconds.
+✔ Test fullSetupSequenceEndsAtRollDiceForPlayerZero() passed after 0.556 seconds.
+✔ Test rollingReportsTheTotalThatWasActuallyRolled() passed after 0.555 seconds.
+✔ Test aSaveMissingFieldsAddedAfterItWasWrittenStillLoads() passed after 0.556 seconds.
+✔ Test proposeTradeStopsBeingLegalAtTheTurnRetryLimit() passed after 0.556 seconds.
+✔ Test aRobberStealReportsWhichCardWasTaken() passed after 0.555 seconds.
+✔ Test illegalPlacementTooCloseIsRejected() passed after 0.555 seconds.
+✔ Test identifiersDoNotShareLongPrefixes() passed after 0.555 seconds.
+✔ Test newTieBetweenTwoOtherPlayersDisplacesCurrentHolder() passed after 0.554 seconds.
+✔ Test newGameDevCardDeckPreservesStandardComposition() passed after 0.554 seconds.
+✔ Test theAdvertisedWidthIsTheSumOfItsBlocks() passed after 0.554 seconds.
+✔ Test bankTradeIsRejectedWhenTheBankCannotSupplyTheWantedResource() passed after 0.554 seconds.
+✔ Test aSaveWithAnInvalidTargetIsRejectedAsCorrupt() passed after 0.554 seconds.
+✔ Test anExternalMoveAdvancesTheSameGame() passed after 0.554 seconds.
+✔ Test roadMustConnectToOwnNetwork() passed after 0.554 seconds.
+✔ Test checkForWinnerIsNoOpOnceGameIsAlreadyOver() passed after 0.554 seconds.
+✔ Test numbersThatAreNotOnTheBoardProduceNothing() passed after 0.554 seconds.
+✔ Test theAccessorAgreesWithTheSessionsOwnNotionOfWhoActs() passed after 0.554 seconds.
+✔ Test aResponseToAnUnknownOfferHasNoIndex() passed after 0.554 seconds.
+◇ Test case passing 1 argument field → "actionsThisTurn" to rejectsNegativeCounters(field:) started.
+◇ Test case passing 1 argument field → "policyEvaluationCount" to rejectsNegativeCounters(field:) started.
+✔ Test settlementNotTouchingTheRolledTileGetsNothing() passed after 0.575 seconds.
+✔ Test theOwnBlockAlwaysDescribesTheObservingSeat() passed after 0.588 seconds.
+◇ Test case passing 1 argument index → -1 to rejectsInvalidQueuedResponseActor(index:) started.
+◇ Test case passing 1 argument index → 4 to rejectsInvalidQueuedResponseActor(index:) started.
+✔ Test devCardsBoughtThisTurnBecomePlayableAfterEndTurn() passed after 0.604 seconds.
+◇ Test case passing 1 argument index → -1 to rejectsQueuedEvaluationOutsideRecordedRange(index:) started.
+◇ Test case passing 1 argument index → 1 to rejectsQueuedEvaluationOutsideRecordedRange(index:) started.
+◇ Test case passing 1 argument index → 2 to rejectsQueuedEvaluationOutsideRecordedRange(index:) started.
+✔ Test hidingOpponentHandsDoesNotChangeTheWidth() passed after 0.646 seconds.
+◇ Test case passing 1 argument version → -1 to rejectsUnsupportedStateSchema(version:) started.
+◇ Test case passing 1 argument version → 5 to rejectsUnsupportedStateSchema(version:) started.
+◇ Test case passing 1 argument index → -1 to rejectsInvalidCurrentTurnSeat(index:) started.
+◇ Test case passing 1 argument index → 4 to rejectsInvalidCurrentTurnSeat(index:) started.
+✔ Test randomizedBoardIsDeterministicForSameSeed() passed after 0.670 seconds.
+◇ Test case passing 2 arguments phase → "setupForward", index → -1 to rejectsInvalidPhasePlayerIndex(phase:index:) started.
+◇ Test case passing 2 arguments phase → "setupForward", index → 4 to rejectsInvalidPhasePlayerIndex(phase:index:) started.
+◇ Test case passing 2 arguments phase → "setupBackward", index → -1 to rejectsInvalidPhasePlayerIndex(phase:index:) started.
+◇ Test case passing 2 arguments phase → "setupBackward", index → 4 to rejectsInvalidPhasePlayerIndex(phase:index:) started.
+◇ Test case passing 2 arguments phase → "rollDice", index → -1 to rejectsInvalidPhasePlayerIndex(phase:index:) started.
+◇ Test case passing 2 arguments phase → "rollDice", index → 4 to rejectsInvalidPhasePlayerIndex(phase:index:) started.
+◇ Test case passing 2 arguments phase → "mainTurn", index → -1 to rejectsInvalidPhasePlayerIndex(phase:index:) started.
+◇ Test case passing 2 arguments phase → "mainTurn", index → 4 to rejectsInvalidPhasePlayerIndex(phase:index:) started.
+◇ Test case passing 2 arguments phase → "movingRobber", index → -1 to rejectsInvalidPhasePlayerIndex(phase:index:) started.
+◇ Test case passing 2 arguments phase → "movingRobber", index → 4 to rejectsInvalidPhasePlayerIndex(phase:index:) started.
+✔ Test endingATurnReportsIt() passed after 0.699 seconds.
+◇ Test case passing 1 argument version → -1 to rejectsUnsupportedCheckpointVersion(version:) started.
+◇ Test case passing 1 argument version → 0 to rejectsUnsupportedCheckpointVersion(version:) started.
+◇ Test case passing 1 argument version → 2 to rejectsUnsupportedCheckpointVersion(version:) started.
+◇ Test case passing 1 argument field → "actionsThisTurn" to rejectsCountersThatCannotAdvanceWithoutOverflow(field:) started.
+◇ Test case passing 1 argument field → "policyEvaluationCount" to rejectsCountersThatCannotAdvanceWithoutOverflow(field:) started.
+◇ Test case passing 1 argument actions → 26 to rejectsActionsBeyondTurnBackstop(actions:) started.
+◇ Test case passing 1 argument actions → 1000000 to rejectsActionsBeyondTurnBackstop(actions:) started.
+✔ Test discardingHalfRoundedDownResolvesPhase() passed after 0.757 seconds.
+✔ Test theSameSeedProducesTheSameSession() passed after 0.760 seconds.
+✔ Test robberMoveCannotSkipAnEligibleVictim() passed after 0.755 seconds.
+✔ Test simultaneousOffersGetDistinctHandles() passed after 0.757 seconds.
+✔ Test belowTenVictoryPointsDoesNotEndGame() passed after 0.754 seconds.
+✔ Test standardBoardHas19TilesAndOneDesert() passed after 0.753 seconds.
+✔ Test fiveConnectedRoadsGrantsLongestRoad() passed after 0.751 seconds.
+✔ Test legalMovesEnumeratesDiscardCombinationsForEachPendingPlayer() passed after 0.751 seconds.
+✔ Test numericVectorDistinguishesTheObserversAbsoluteChair() passed after 0.751 seconds.
+✔ Test newGameShufflesDevCardDeckDifferentlyForDifferentSeeds() passed after 0.750 seconds.
+✔ Test aThreeSeatGameSurvivesASaveAndReload() passed after 0.750 seconds.
+✔ Test setupPlacementsReportThemselves() passed after 0.750 seconds.
+✔ Test roadBuildingBuildsTwoFreeRoads() passed after 0.750 seconds.
+✔ Test devCardStatusExplainsTurnLimitAndMissingCard() passed after 0.750 seconds.
+✔ Test aTargetSurvivesASaveAndReload() passed after 0.750 seconds.
+◇ Test case passing 1 argument beforeRoll → false to versionOnePreservesNilVictimKnightHistory(beforeRoll:) started.
+◇ Test case passing 1 argument beforeRoll → true to versionOnePreservesNilVictimKnightHistory(beforeRoll:) started.
+◇ Test case passing 1 argument rulesVersion → 1 to ordinaryMovesReplayUnderEverySupportedVersion(rulesVersion:) started.
+◇ Test case passing 1 argument rulesVersion → 2 to ordinaryMovesReplayUnderEverySupportedVersion(rulesVersion:) started.
+✔ Test contextDoesNotChangeLegalMovesOrOtherActions() passed after 0.615 seconds.
+✔ Test freshGamesStartWithKnownEmptyContext(playerCount:) with 2 test cases passed after 0.615 seconds.
+✔ Test setupAndRollingDoNotCompleteTurns() passed after 0.615 seconds.
+✔ Test legacyMissingContextRemainsUnknownAfterResumingAndSaving() passed after 0.608 seconds.
+✔ Test rejectedProposalsAndEndTurnsLeaveTheWholeStateUnchanged() passed after 0.608 seconds.
+✔ Test nullContextDecodesWithTheSameLegacyDefaults() passed after 0.608 seconds.
+✔ Test successfulEndTurnAdvancesKnownHistoryAndResetsProposals() passed after 0.608 seconds.
+✔ Test proposalsCountIndependentlyOfTheirResponses(accept:) with 2 test cases passed after 0.578 seconds.
+✔ Test explicitInitializerContextRoundTrips(completedTurns:) with 3 test cases passed after 0.578 seconds.
+✔ Test rejectsNegativeCounters(field:) with 2 test cases passed after 0.497 seconds.
+✔ Test rejectsCurrentTurnSeatWithoutActions() passed after 0.495 seconds.
+✔ Test legalMovesIsAPureFunctionOfTheState() passed after 0.778 seconds.
+✔ Test rejectsChangedPolicyRosterAfterDecoding() passed after 0.466 seconds.
+✔ Test externalMoveCannotInheritAnUncommittedPolicyLabel() passed after 0.466 seconds.
+✔ Test rejectsInvalidQueuedResponseActor(index:) with 2 test cases passed after 0.466 seconds.
+✔ Test traceFollowsExactlyOneDecisionThroughCommit() passed after 0.464 seconds.
+✔ Test rejectsQueuedEvaluationOutsideRecordedRange(index:) with 3 test cases passed after 0.464 seconds.
+✔ Test acceptsCheckpointAtTurnBackstop() passed after 0.464 seconds.
+✔ Test oldDecisionWithoutTraceStillDecodes() passed after 0.464 seconds.
+✔ Test rejectsUnsupportedStateSchema(version:) with 2 test cases passed after 0.451 seconds.
+✔ Test rejectsQueuedNonResponseMove() passed after 0.464 seconds.
+✔ Test rejectsInvalidCurrentTurnSeat(index:) with 2 test cases passed after 0.451 seconds.
+✔ Test rejectsInvalidPhasePlayerIndex(phase:index:) with 10 test cases passed after 0.446 seconds.
+✔ Test rejectsQueuedResponseWithoutActorPolicy() passed after 0.451 seconds.
+✔ Test aThreeSeatGameCyclesTurnsAmongThreeSeats() passed after 0.779 seconds.
+✔ Test rejectsUnsupportedCheckpointVersion(version:) with 3 test cases passed after 0.444 seconds.
+✔ Test rejectsQueuedResponseToUnknownOffer() passed after 0.446 seconds.
+✔ Test rejectsCountersThatCannotAdvanceWithoutOverflow(field:) with 2 test cases passed after 0.444 seconds.
+✔ Test rejectsQueuedResponseWithoutPendingOffer() passed after 0.444 seconds.
+✔ Test rejectsActionsBeyondTurnBackstop(actions:) with 2 test cases passed after 0.444 seconds.
+✔ Test rejectsQueuedResponseFromProposer() passed after 0.444 seconds.
+✔ Test rejectsActionsWithoutACurrentTurnSeat() passed after 0.444 seconds.
+✔ Test legitimateDecodedSnapshotsResume() passed after 0.444 seconds.
+✔ Test rejectsZeroEvaluationsWithQueuedDecision() passed after 0.444 seconds.
+✔ Test bankTradeRejectedWhenRatioWrong() passed after 0.322 seconds.
+✔ Test proposeAndRejectLeavesResourcesUntouched() passed after 0.322 seconds.
+✔ Test rulesEngineStillRejectsUnrelatedOutOfTurnMoves() passed after 0.321 seconds.
+✔ Test proposeTradeRejectsNegativeAmounts() passed after 0.322 seconds.
+✔ Test legalMovesExcludesAcceptWhenProposerNoLongerAffordsGiveCards() passed after 0.321 seconds.
+✔ Test legalMovesIncludesAcceptWhenBothSidesCanAfford() passed after 0.321 seconds.
+✔ Test proposeTradeFailsIfProposerLacksGiveCards() passed after 0.321 seconds.
+✔ Test bankTradeRejectsNegativeGetAmount() passed after 0.322 seconds.
+✔ Test legalMovesIncludeGiveCountsUpToTheGenerousCeiling() passed after 0.321 seconds.
+✔ Test legalMovesExcludesAcceptWhenResponderCannotAffordWantedCards() passed after 0.321 seconds.
+✔ Test bankTradeRejectedWhenBankLacksResource() passed after 0.321 seconds.
+✔ Test bankTradeRejectsNegativeGiveAmount() passed after 0.321 seconds.
+✔ Test twoToOneBankTradeWithMatchingResourcePort() passed after 0.321 seconds.
+✔ Test endTurnClearsTradesAcceptedThisTurn() passed after 0.321 seconds.
+✔ Test respondRejectsWhenResponderIsProposer() passed after 0.321 seconds.
+✔ Test rulesEngineAllowsNonActivePlayerToRespondToTrade() passed after 0.321 seconds.
+✔ Test rulesEngineAppliesProposeTrade() passed after 0.321 seconds.
+✔ Test decliningATradeRecordsItAgainstTheProposer() passed after 0.321 seconds.
+✔ Test rulesEngineProposeTradeRejectsWrongProposer() passed after 0.321 seconds.
+✔ Test threeToOneBankTradeWithGenericPort() passed after 0.321 seconds.
+✔ Test acceptFailsIfProposerNoLongerHoldsGiveCards() passed after 0.321 seconds.
+✔ Test endTurnClearsDeclinedTradeHistory() passed after 0.321 seconds.
+✔ Test proposeAndAcceptTradeSwapsCardsBetweenPlayers() passed after 0.321 seconds.
+✔ Test rulesEngineAppliesBankTrade() passed after 0.321 seconds.
+✔ Test fourToOneBankTradeWithNoPort() passed after 0.321 seconds.
+✔ Test acceptFailsIfResponderLacksWantedCards() passed after 0.321 seconds.
+✔ Test acceptingATradeIncrementsTheProposersAcceptedCountAndRejectingDoesNot() passed after 0.321 seconds.
+✔ Test versionOnePreservesPartialYearOfPlentyHistory() passed after 0.321 seconds.
+✔ Test versionOnePreservesNilVictimRobberHistory() passed after 0.321 seconds.
+✔ Test versionOnePreservesNilVictimKnightHistory(beforeRoll:) with 2 test cases passed after 0.321 seconds.
+✔ Test ordinaryMovesReplayUnderEverySupportedVersion(rulesVersion:) with 2 test cases passed after 0.321 seconds.
+✔ Test unsupportedRulesVersionCannotMutateAReplay() passed after 0.321 seconds.
+✔ Suite PolicyContextTests passed after 0.788 seconds.
+✔ Suite PolicyTraceTests passed after 0.788 seconds.
+✔ Test versionOneStillReplaysAnExplicitRobberVictimExactly() passed after 0.321 seconds.
+✔ Suite SessionCheckpointValidationTests passed after 0.788 seconds.
+✔ Suite RulesVersionReplayTests passed after 0.787 seconds.
+✔ Suite TradingTests passed after 0.788 seconds.
+✔ Test aFullyOwnedGameRunsToCompletion() passed after 0.809 seconds.
+✔ Test aMaskRefusesToHideALegalMoveItCannotNumber() passed after 1.357 seconds.
+✔ Test everyLegalMoveInARealGameHasAnIndex() passed after 1.853 seconds.
+✔ Test promptDescriptionNamesTheSeatPhaseAndMoveCount() passed after 2.471 seconds.
+✔ Test randomLegalPlayReachesGameOverWithoutErrors() passed after 2.521 seconds.
+✔ Test theOneHotBlocksHaveExactlyOneSetSlot() passed after 2.529 seconds.
+✔ Test encodingTheSamePositionTwiceAgrees() passed after 2.803 seconds.
+✔ Test aSaveResumesTheSameRandomSequenceItWouldHaveHad() passed after 2.803 seconds.
+worst prompt/JSON ratio: 4.8x - 4622 chars (~1155 tokens) for 152 moves, vs 22201 chars of JSON (~5550 tokens)
+✔ Test promptDescriptionIsFarCheaperThanAJSONDump() passed after 2.830 seconds.
+✔ Test everyFeatureIsFiniteAndWithinItsDocumentedRange() passed after 2.889 seconds.
+✔ Test everyVectorIsExactlyTheAdvertisedWidth() passed after 2.894 seconds.
+✔ Test everyIndexRoundTripsBackToItself() passed after 3.003 seconds.
+✔ Test aRecordedMoveListReplaysToTheSameOutcome() passed after 4.109 seconds.
+✔ Test sameSeedProducesAnIdenticalGame() passed after 5.922 seconds.
+✔ Test noPlayerEverExceedsTheirPieceSupply() passed after 6.917 seconds.
+✔ Test run with 234 tests in 5 suites passed after 6.918 seconds.
+
+[1m▸ CatanAI tests[0m
+[0/1] Planning build
+Building for debugging...
+[0/8] Write sources
+[1/8] Copying Fixtures
+[2/8] Write swift-version--58304C5D6DBC2206.txt
+[4/40] Compiling CatanEngine Robber.swift
+[5/40] Compiling CatanEngine RulesEngine.swift
+[6/40] Compiling CatanEngine VertexID.swift
+[7/40] Compiling CatanEngine PolicySelection.swift
+[8/40] Compiling CatanEngine LongestRoad.swift
+[9/40] Compiling CatanEngine MainPhase.swift
+[10/40] Compiling CatanEngine StateEncoding.swift
+[11/40] Compiling CatanEngine Trading.swift
+[12/40] Compiling CatanEngine Port.swift
+[13/40] Compiling CatanEngine RandomSource.swift
+[14/40] Compiling CatanEngine GamePhase.swift
+[15/40] Compiling CatanEngine GameState.swift
+[16/40] Compiling CatanEngine ActionSpace.swift
+[17/40] Compiling CatanEngine Board.swift
+[18/40] Compiling CatanEngine BoardGeneration.swift
+[19/40] Compiling CatanEngine Building.swift
+[20/40] Compiling CatanEngine Resource.swift
+[21/40] Compiling CatanEngine Tile.swift
+[22/40] Compiling CatanEngine Player.swift
+[23/40] Compiling CatanEngine PlayerID.swift
+[24/40] Compiling CatanEngine SetupPhase.swift
+[25/40] Compiling CatanEngine HexCoordinate.swift
+[26/40] Compiling CatanEngine Move.swift
+[27/40] Compiling CatanEngine DevCardPlayStatus.swift
+[28/40] Compiling CatanEngine DevCardType.swift
+[29/40] Compiling CatanEngine CatanEngine.swift
+[30/40] Compiling CatanEngine DevCards.swift
+[31/40] Compiling CatanEngine DiceOdds.swift
+[32/40] Compiling CatanEngine GameSession.swift
+[33/40] Compiling CatanEngine EdgeID.swift
+[34/40] Compiling CatanEngine GameEvent.swift
+[35/40] Emitting module CatanEngine
+[36/41] Compiling CatanEngine WinCondition.swift
+[37/64] Compiling CatanAI TrainingExample.swift
+[38/65] Compiling CatanAI UpstreamCodec.swift
+[39/65] Compiling CatanAI UpstreamObservation.swift
+[40/65] Compiling CatanAI UpstreamActions.swift
+[41/65] Compiling CatanAI UpstreamCompounds.swift
+[42/65] Compiling CatanAI UpstreamPolicy.swift
+[43/65] Compiling CatanAI UpstreamBoardLayout.swift
+[44/65] Compiling CatanAI ThreatAssessment.swift
+[45/65] Compiling CatanAI TradeHeuristics.swift
+[46/65] Compiling CatanAI TradeMessages.swift
+[47/65] Compiling CatanAI UpstreamNetwork.swift
+[48/65] Compiling CatanAI RobberHeuristics.swift
+[49/65] Compiling CatanAI PlacementHeuristics.swift
+[50/65] Compiling CatanAI PolicyBehaviorMetrics.swift
+[51/65] Compiling CatanAI resource_bundle_accessor.swift
+[52/65] Compiling CatanAI BotWeights.swift
+[53/65] Compiling CatanAI BuildPlanner.swift
+[54/65] Emitting module CatanAI
+[55/65] Compiling CatanAI GreedyPolicy.swift
+[56/65] Compiling CatanAI HeuristicPolicy.swift
+[57/65] Compiling CatanAI CatanAI.swift
+[58/65] Compiling CatanAI DevCardHeuristics.swift
+[59/65] Compiling CatanAI Bot.swift
+[60/65] Compiling CatanAI BotPersonality.swift
+[61/70] Compiling sim main.swift
+[62/70] Emitting module sim
+[62/70] Write Objects.LinkFileList
+[63/70] Linking sim
+[64/70] Applying sim
+[66/70] Compiling CatanAITests UpstreamCompoundObservationTests.swift
+[67/70] Compiling CatanAITests UpstreamObservationTests.swift
+[68/70] Emitting module CatanAITests
+[68/70] Write Objects.LinkFileList
+[69/70] Linking CatanAIPackageTests
+Build complete! (2.16s)
+Test Suite 'All tests' started at 2026-09-06 13:59:21.640.
+Test Suite 'All tests' passed at 2026-09-06 13:59:21.641.
+	 Executed 0 tests, with 0 failures (0 unexpected) in 0.000 (0.001) seconds
+◇ Test run started.
+↳ Testing Library Version: 1902
+↳ Target Platform: arm64e-apple-macos14.0
+◇ Test alreadyCoveredResourceScoresLowerThanNewResourceAtEqualPips() started.
+◇ Test buildRoadScoreIsUnaffectedByMerelyTouchingAnOpponentsOwnVertex() started.
+◇ Test buyDevCardScoreIgnoresHeldVictoryPointCards() started.
+◇ Suite UpstreamNetworkTests started.
+◇ Suite SelfPlayReproducibility started.
+◇ Test randomPolicyOnlyEverPlaysLegalMoves() started.
+◇ Test evaluateRequiresABetterDealWhenReceiverIsComfortablyAhead() started.
+◇ Test buyDevCardScoreDecreasesWithEachUnplayedCardAlreadyHeld() started.
+◇ Test everySupportedRulesConfigurationCompletesWithOnlyLegalMoves(game:) started.
+◇ Test responseIsDeterministicForTheSameOfferID() started.
+◇ Test aGenerousUnlockOfferIsAcceptedByAPlausibleReceiver() started.
+◇ Test anExternalResponderKeepsTheOfferForTheUI() started.
+◇ Test upstreamPolicyPreRollKnightKeepsTheRollOwed() started.
+◇ Test scoreSkipsLongestRoadSwingBonusWhenFarBehindTheHolder() started.
+◇ Test upstreamPolicyTradePreflightDoesNotAdvanceRNGWhenNeuralMoveWins() started.
+◇ Test aResumedBotProposalStillReceivesAResponse() started.
+◇ Test choosePlayAlwaysPlaysAHeldRoadBuildingCardWhenARoadIsLegal() started.
+◇ Test threeSeatGamesReachAWinner() started.
+◇ Test buildRoadScoreIsHigherWhenItClosesDistanceToTheExpansionTarget() started.
+◇ Suite UpstreamObservationTests started.
+◇ Test scoreAddsLargestArmySwingBonusWhenOneKnightAway() started.
+◇ Test opponentFrontierIncludesVacantVertexTwoHopsFromTheirSettlementButNotOneHop() started.
+◇ Test upstreamPolicyUnknownHistoryAndPreRollDifferencesHaveNamedFallbacks() started.
+◇ Test choosePlayDoesNotRushLargestArmyAgainstAFarAheadHolderMidGame() started.
+◇ Test scoreWeighsVictoryPointsHeavily() started.
+◇ Test replacingStateRestoresAPendingBotResponse() started.
+◇ Test ownStandingIsAboveOneWhenAheadOfTheField() started.
+◇ Test choosePlayFollowsCautiousPersonalitysCityPriority() started.
+◇ Test greedySeatsActuallyFinishTheirGames() started.
+◇ Test longestRoadDefenseBonusAppliesWhenARivalIsCloseBehind() started.
+◇ Test bestBankTradeIsNilWhenNothingIsBlockingTheNearestBuild() started.
+◇ Suite UpstreamCompoundObservationTests started.
+◇ Suite UpstreamGameCompletionTests started.
+◇ Test aBotProposalIsAnsweredBeforeTheProposerContinues() started.
+◇ Test tradeWillingnessShiftsTheAcceptanceBar() started.
+◇ Test pitchIsDeterministicForTheSameOfferID() started.
+◇ Test longestRoadClaimBonusIsLargerWhenTakingItFromAHighThreatHolder() started.
+◇ Test relativeWeightClampsExtremeOutliers() started.
+◇ Test upstreamPolicyReportsMalformedPredictionAndEncodingFallbacks() started.
+◇ Test proposeTradesRetriesWithADifferentOfferAfterADecline() started.
+◇ Test generousUnlockCeilingCollapsesWithAGoodPort() started.
+◇ Test neverAcceptsANetLossEvenAtHighTradeWillingness() started.
+◇ Test cautiousBotAsksAPlayerBeforePayingTheBankWhileBalancedUsesTheBank() started.
+◇ Test theGreedyAnchorSitsBetweenRandomAndTheHeuristic() started.
+◇ Test proposeTradesGivesUpAfterTheTurnRetryLimit() started.
+◇ Test scoresExcludesTheGivenPlayerAndSortsHighestFirst() started.
+◇ Test evaluateSuspicionShiftRejectsARepeatTradeFromTheSameProposerThisTurn() started.
+◇ Test upstreamPolicyRichPlayerTradeResponsesUseHeuristicAndExactOfferID() started.
+◇ Test robberAvoidsOwnTilesWhenAlternativeExists() started.
+◇ Test behaviorMetricsCountOnlyTheObservedSeat() started.
+◇ Test relativeWeightIsOneForEveryoneWhenAllScoresAreZero() started.
+◇ Test botAlwaysReturnsALegalMove() started.
+◇ Test case passing 1 argument game → MatrixGame(playerCount: 3, target: 8, boardMode: CatanAITests.(unknown context at $107e3d550).MatrixBoardMode.standard, seed: 977) to everySupportedRulesConfigurationCompletesWithOnlyLegalMoves(game:) started.
+◇ Test longestRoadPursuitBonusCreditsABridgeEvenBelowThePursuitGate() started.
+◇ Test robberTargetsLeadingOpponentsTile() started.
+◇ Test scoreIncludesHeldDevCardCount() started.
+◇ Test case passing 1 argument game → MatrixGame(playerCount: 3, target: 8, boardMode: CatanAITests.(unknown context at $107e3d550).MatrixBoardMode.standard, seed: 211) to everySupportedRulesConfigurationCompletesWithOnlyLegalMoves(game:) started.
+◇ Test aShortGameEndsSooner() started.
+◇ Test proposeTradeRetriesThenEventuallyEndsTheTurn() started.
+◇ Test choosePlayDoesNotPursueLargestArmyWithoutARealShot() started.
+◇ Test case passing 1 argument game → MatrixGame(playerCount: 3, target: 8, boardMode: CatanAITests.(unknown context at $107e3d550).MatrixBoardMode.randomized, seed: 211) to everySupportedRulesConfigurationCompletesWithOnlyLegalMoves(game:) started.
+◇ Test highPipVertexScoresHigherThanLowPipVertex() started.
+◇ Test trainingOutcomeIsRelativeToTheObservingSeat() started.
+◇ Test upstreamPolicyDiscardCanExceedTheExistingFlatActionSpaceCap() started.
+◇ Test acceptedAndRejectedResponsesDrawFromDisjointPools() started.
+◇ Test case passing 1 argument game → MatrixGame(playerCount: 3, target: 8, boardMode: CatanAITests.(unknown context at $107e3d550).MatrixBoardMode.randomized, seed: 977) to everySupportedRulesConfigurationCompletesWithOnlyLegalMoves(game:) started.
+◇ Test choosePlayPursuesLargestArmyWithARealShotEvenWithoutRobberOnOwnTile() started.
+◇ Test proposeTradesSkipsWhenIdenticalOfferAlreadyPending() started.
+◇ Test case passing 1 argument game → MatrixGame(playerCount: 3, target: 10, boardMode: CatanAITests.(unknown context at $107e3d550).MatrixBoardMode.standard, seed: 211) to everySupportedRulesConfigurationCompletesWithOnlyLegalMoves(game:) started.
+◇ Test longestRoadDefenseBonusIsAbsentWhenLeadIsUncontested() started.
+◇ Test upstreamPolicyRoadBuildingNeverReturnsAOneRoadCompletion() started.
+◇ Test case passing 1 argument game → MatrixGame(playerCount: 3, target: 10, boardMode: CatanAITests.(unknown context at $107e3d550).MatrixBoardMode.standard, seed: 977) to everySupportedRulesConfigurationCompletesWithOnlyLegalMoves(game:) started.
+◇ Test claimsLongestRoadIsFalseWhenAlreadyTheHolder() started.
+◇ Test botEndsTurnRatherThanReproposingAnIdenticalPendingOffer() started.
+◇ Test buildRoadScoreIncludesLongestRoadBonusOnlyWhenItWouldBeClaimed() started.
+◇ Test case passing 1 argument game → MatrixGame(playerCount: 3, target: 10, boardMode: CatanAITests.(unknown context at $107e3d550).MatrixBoardMode.randomized, seed: 211) to everySupportedRulesConfigurationCompletesWithOnlyLegalMoves(game:) started.
+◇ Test noPoolHasBlankOrDuplicateLines() started.
+◇ Test decisionMetricsRecordChoiceOpportunities() started.
+◇ Test longestRoadDefenseBonusRewardsBridgingEvenWithAnUncontestedLead() started.
+◇ Test upstreamPolicyAtomicActionIDsMatchFrozenCodec() started.
+◇ Test upstreamPolicyKnightKeepsActorAndTurnContextAcrossSupportedTables(players:target:) started.
+◇ Test upstreamPolicyWinningKnightStillReturnsACompleteSwiftMove() started.
+◇ Test case passing 1 argument game → MatrixGame(playerCount: 3, target: 10, boardMode: CatanAITests.(unknown context at $107e3d550).MatrixBoardMode.randomized, seed: 977) to everySupportedRulesConfigurationCompletesWithOnlyLegalMoves(game:) started.
+◇ Test upstreamPolicyUsesLowestActionIDForTiesWithoutAdvancingRNG() started.
+◇ Test scoreAddsLongestRoadSwingBonusWhenOneSegmentFromQualifying() started.
+◇ Test greedyRefusesEveryTradeItIsOffered() started.
+◇ Test decisionMetricsRecordTradeResponsesAndProposalShape() started.
+◇ Test upstreamPolicyPreservesExistingHeuristicTradeProposalScheduling() started.
+◇ Test scoreCountsCityProductionAtDoubleWeight() started.
+◇ Test botsOnlyGameReachesGameOverWithOnlyLegalMoves() started.
+◇ Test tradeHeuristicsRejectsTradeAwayFromNextBuild() started.
+◇ Test evaluateRequiresAMeaningfulBenefitNotJustAnyPositiveMargin() started.
+◇ Test ownStandingIsOneWhenAllScoresAreZero() started.
+◇ Test monopolyTargetsResourceHeldByTheHigherThreatOpponent() started.
+◇ Test differentOffersCanSampleDifferentLinesFromThePool() started.
+◇ Test upstreamPolicySelectionCapturesDiagnosticsWithoutRepeatingInference() started.
+◇ Test upstreamPolicyRoadBuildingScoresPrivateSequentialStatesAndCommitsOnePair() started.
+◇ Test upstreamPolicyDoesNotSumCompoundLogitsAtRoot() started.
+◇ Test proposesAGenerousUnlockTradeAfterTheOrdinaryOfferIsDeclined() started.
+◇ Test newlyReachableVerticesExcludesOneAlreadyReachableViaExistingNetwork() started.
+◇ Test bridgesOwnFragmentsDetectsAGenuineBridgeBetweenTwoDisconnectedPieces() started.
+◇ Test case passing 1 argument game → MatrixGame(playerCount: 3, target: 12, boardMode: CatanAITests.(unknown context at $107e3d550).MatrixBoardMode.standard, seed: 211) to everySupportedRulesConfigurationCompletesWithOnlyLegalMoves(game:) started.
+◇ Test bestBankTradeConvertsSurplusTowardTheNearestBuild() started.
+◇ Test claimsLongestRoadWhenAnEdgeWouldReachFiveAndNobodyElseHoldsIt() started.
+◇ Test decisionMetricsRecordDisruptionAndProposalOpportunities() started.
+◇ Test buyDevCardScoreIsNotBoostedWhenTheHolderIsFarAhead() started.
+◇ Test chooseBuildIsDeterministicWhenOneMoveClearlyDominates() started.
+◇ Test evaluateRejectsATradeThatWouldHandTheProposerAnImmediateBuild() started.
+◇ Test choosePlayFollowsAggressivePersonalitysSettlementPriority() started.
+◇ Test configuredExamplesUseOneActionHeadWidth(playerCount:) started.
+◇ Test case passing 1 argument game → MatrixGame(playerCount: 3, target: 12, boardMode: CatanAITests.(unknown context at $107e3d550).MatrixBoardMode.standard, seed: 977) to everySupportedRulesConfigurationCompletesWithOnlyLegalMoves(game:) started.
+◇ Test botsOnlyGameReachesGameOverAcrossSeveralSeeds() started.
+◇ Test heuristicPolicyCarriesAnIdentifierNamingItsPersonality() started.
+◇ Test tradeHeuristicsAcceptsClearNetGainTowardNextBuild() started.
+◇ Test everyEmpireHasALargePitchAndResponsePool() started.
+◇ Test upstreamPolicyDiscardUsesOriginalQuotaAndCallerNarrowedBundles() started.
+◇ Test aiNameIsSet() started.
+◇ Test case passing 1 argument game → MatrixGame(playerCount: 3, target: 12, boardMode: CatanAITests.(unknown context at $107e3d550).MatrixBoardMode.randomized, seed: 211) to everySupportedRulesConfigurationCompletesWithOnlyLegalMoves(game:) started.
+◇ Test scoreIncludesProductionStrengthWeightedByPips() started.
+◇ Test relativeWeightIsAboveOneForAnAboveAverageOpponent() started.
+◇ Test theHeuristicBotBeatsRandomPlayFromEverySeat() started.
+◇ Test opponentFrontierExcludesVerticesTooCloseToAnyExistingBuilding() started.
+◇ Test consolidationMetricRecordsEveryDecisionWhereACityIsBuildable() started.
+◇ Test concurrentHumanAndBotDiscardTurnsNeverCrash() started.
+◇ Test heuristicHonoursANarrowedRollPhaseActionMask() started.
+◇ Test buildRoadScoreExcludesReachableVertexThatIsAlreadyOccupied() started.
+◇ Test upstreamPolicyRobberWithoutVictimsProducesNilWithoutAStealDecision() started.
+◇ Test generousUnlockOffersAllThreeOreWhenThatsAllThatsHeld() started.
+◇ Test telemetryKeepsEveryEvaluatedTradeReplyWithoutCountingTheCommittedReplyTwice() started.
+◇ Test buyDevCardScoreIsBoostedTwoKnightsFromLargestArmy() started.
+◇ Test buildRoadScoreIsHigherWhenItDeniesAHighThreatOpponentsImmediateFrontier() started.
+◇ Test generousUnlockDoesNotApplyToARoad() started.
+◇ Test robberDisruptionScalesWithRelativeThreatNotJustRawVictoryPoints() started.
+◇ Test case passing 1 argument game → MatrixGame(playerCount: 3, target: 12, boardMode: CatanAITests.(unknown context at $107e3d550).MatrixBoardMode.randomized, seed: 977) to everySupportedRulesConfigurationCompletesWithOnlyLegalMoves(game:) started.
+◇ Test buildSettlementScoreIsHigherWhenItDeniesAHighThreatOpponentsFrontier() started.
+◇ Test case passing 1 argument game → MatrixGame(playerCount: 4, target: 8, boardMode: CatanAITests.(unknown context at $107e3d550).MatrixBoardMode.standard, seed: 211) to everySupportedRulesConfigurationCompletesWithOnlyLegalMoves(game:) started.
+◇ Test trainingExampleCarriesTheVersionedMaskedContract() started.
+◇ Test scoreSkipsLargestArmySwingBonusWhenHolderIsFarAhead() started.
+◇ Test heuristicHonoursATradeResponseOnlyActionMask() started.
+◇ Test ownStandingIsBelowOneWhenBehindTheField() started.
+◇ Test evaluateRequiresABetterDealFromAHighThreatProposer() started.
+◇ Test aggressivePersonalityProactivelyUsesAKnightButCautiousDoesNot() started.
+◇ Test everyLineFitsTheIncomingCardsCharacterBudget() started.
+◇ Test case passing 1 argument game → MatrixGame(playerCount: 4, target: 8, boardMode: CatanAITests.(unknown context at $107e3d550).MatrixBoardMode.standard, seed: 977) to everySupportedRulesConfigurationCompletesWithOnlyLegalMoves(game:) started.
+◇ Test case passing 1 argument game → MatrixGame(playerCount: 4, target: 8, boardMode: CatanAITests.(unknown context at $107e3d550).MatrixBoardMode.randomized, seed: 211) to everySupportedRulesConfigurationCompletesWithOnlyLegalMoves(game:) started.
+◇ Test case passing 1 argument game → MatrixGame(playerCount: 4, target: 8, boardMode: CatanAITests.(unknown context at $107e3d550).MatrixBoardMode.randomized, seed: 977) to everySupportedRulesConfigurationCompletesWithOnlyLegalMoves(game:) started.
+◇ Test case passing 1 argument game → MatrixGame(playerCount: 4, target: 10, boardMode: CatanAITests.(unknown context at $107e3d550).MatrixBoardMode.standard, seed: 211) to everySupportedRulesConfigurationCompletesWithOnlyLegalMoves(game:) started.
+◇ Test seededSelfPlayReproducesExactly() started.
+◇ Test case passing 1 argument game → MatrixGame(playerCount: 4, target: 10, boardMode: CatanAITests.(unknown context at $107e3d550).MatrixBoardMode.standard, seed: 977) to everySupportedRulesConfigurationCompletesWithOnlyLegalMoves(game:) started.
+◇ Test case passing 1 argument game → MatrixGame(playerCount: 4, target: 10, boardMode: CatanAITests.(unknown context at $107e3d550).MatrixBoardMode.randomized, seed: 211) to everySupportedRulesConfigurationCompletesWithOnlyLegalMoves(game:) started.
+◇ Test case passing 1 argument game → MatrixGame(playerCount: 4, target: 10, boardMode: CatanAITests.(unknown context at $107e3d550).MatrixBoardMode.randomized, seed: 977) to everySupportedRulesConfigurationCompletesWithOnlyLegalMoves(game:) started.
+◇ Test case passing 1 argument game → MatrixGame(playerCount: 4, target: 12, boardMode: CatanAITests.(unknown context at $107e3d550).MatrixBoardMode.standard, seed: 211) to everySupportedRulesConfigurationCompletesWithOnlyLegalMoves(game:) started.
+◇ Test case passing 1 argument game → MatrixGame(playerCount: 4, target: 12, boardMode: CatanAITests.(unknown context at $107e3d550).MatrixBoardMode.standard, seed: 977) to everySupportedRulesConfigurationCompletesWithOnlyLegalMoves(game:) started.
+◇ Test case passing 1 argument game → MatrixGame(playerCount: 4, target: 12, boardMode: CatanAITests.(unknown context at $107e3d550).MatrixBoardMode.randomized, seed: 211) to everySupportedRulesConfigurationCompletesWithOnlyLegalMoves(game:) started.
+◇ Test case passing 1 argument game → MatrixGame(playerCount: 4, target: 12, boardMode: CatanAITests.(unknown context at $107e3d550).MatrixBoardMode.randomized, seed: 977) to everySupportedRulesConfigurationCompletesWithOnlyLegalMoves(game:) started.
+✔ Test responseIsDeterministicForTheSameOfferID() passed after 8.559 seconds.
+◇ Test allFrozenRustOutputsMatch() started.
+✔ Test alreadyCoveredResourceScoresLowerThanNewResourceAtEqualPips() passed after 11.236 seconds.
+◇ Test rejectsMalformedTopologyInsteadOfTrappingOrReindexing() started.
+◇ Test refusesLegacyTurnGuessAndInvalidSeat() started.
+◇ Test matchesPinnedRustEncoderOnRealThreeAndFourSeatPositions() started.
+✔ Test buyDevCardScoreIgnoresHeldVictoryPointCards() passed after 11.252 seconds.
+◇ Test mainTurnOwnerDoesNotUseStaleRobberBookkeeping() started.
+✔ Test buyDevCardScoreDecreasesWithEachUnplayedCardAlreadyHeld() passed after 11.252 seconds.
+◇ Test liveSetupContextMatchesRustWithoutAnOverride() started.
+✔ Test anExternalResponderKeepsTheOfferForTheUI() passed after 11.257 seconds.
+✔ Test aGenerousUnlockOfferIsAcceptedByAPlausibleReceiver() passed after 11.266 seconds.
+✔ Test aResumedBotProposalStillReceivesAResponse() passed after 11.268 seconds.
+✔ Test evaluateRequiresABetterDealWhenReceiverIsComfortablyAhead() passed after 11.277 seconds.
+✔ Test buildRoadScoreIsUnaffectedByMerelyTouchingAnOpponentsOwnVertex() passed after 11.277 seconds.
+✔ Test scoreAddsLargestArmySwingBonusWhenOneKnightAway() passed after 11.277 seconds.
+◇ Test case passing 2 arguments players → 3, target → 8 to upstreamPolicyKnightKeepsActorAndTurnContextAcrossSupportedTables(players:target:) started.
+◇ Test case passing 2 arguments players → 3, target → 10 to upstreamPolicyKnightKeepsActorAndTurnContextAcrossSupportedTables(players:target:) started.
+◇ Test case passing 2 arguments players → 3, target → 12 to upstreamPolicyKnightKeepsActorAndTurnContextAcrossSupportedTables(players:target:) started.
+◇ Test case passing 2 arguments players → 4, target → 8 to upstreamPolicyKnightKeepsActorAndTurnContextAcrossSupportedTables(players:target:) started.
+◇ Test case passing 2 arguments players → 4, target → 10 to upstreamPolicyKnightKeepsActorAndTurnContextAcrossSupportedTables(players:target:) started.
+◇ Test case passing 2 arguments players → 4, target → 12 to upstreamPolicyKnightKeepsActorAndTurnContextAcrossSupportedTables(players:target:) started.
+✔ Test scoreSkipsLongestRoadSwingBonusWhenFarBehindTheHolder() passed after 11.319 seconds.
+✔ Test upstreamPolicyUnknownHistoryAndPreRollDifferencesHaveNamedFallbacks() passed after 11.916 seconds.
+✔ Test opponentFrontierIncludesVacantVertexTwoHopsFromTheirSettlementButNotOneHop() passed after 11.920 seconds.
+✔ Test upstreamPolicyPreRollKnightKeepsTheRollOwed() passed after 11.927 seconds.
+✔ Test choosePlayDoesNotRushLargestArmyAgainstAFarAheadHolderMidGame() passed after 11.928 seconds.
+◇ Test case passing 1 argument playerCount → 3 to configuredExamplesUseOneActionHeadWidth(playerCount:) started.
+◇ Test case passing 1 argument playerCount → 4 to configuredExamplesUseOneActionHeadWidth(playerCount:) started.
+✔ Test scoreWeighsVictoryPointsHeavily() passed after 11.991 seconds.
+✔ Test ownStandingIsAboveOneWhenAheadOfTheField() passed after 12.275 seconds.
+✔ Test replacingStateRestoresAPendingBotResponse() passed after 12.278 seconds.
+✔ Test longestRoadDefenseBonusAppliesWhenARivalIsCloseBehind() passed after 12.278 seconds.
+◇ Test policyStagesMatchRust(players:scenario:) started.
+✔ Test buildRoadScoreIsHigherWhenItClosesDistanceToTheExpansionTarget() passed after 12.910 seconds.
+✔ Test bestBankTradeIsNilWhenNothingIsBlockingTheNearestBuild() passed after 12.944 seconds.
+✔ Test upstreamPolicyTradePreflightDoesNotAdvanceRNGWhenNeuralMoveWins() passed after 12.947 seconds.
+◇ Test bundledHybridsCompleteTheSupportedAppMatrix() started.
+✔ Test choosePlayAlwaysPlaysAHeldRoadBuildingCardWhenARoadIsLegal() passed after 12.999 seconds.
+✔ Test choosePlayFollowsCautiousPersonalitysCityPriority() passed after 12.999 seconds.
+✔ Test aBotProposalIsAnsweredBeforeTheProposerContinues() passed after 12.999 seconds.
+✔ Test tradeWillingnessShiftsTheAcceptanceBar() passed after 12.999 seconds.
+✔ Test randomPolicyOnlyEverPlaysLegalMoves() passed after 13.000 seconds.
+✔ Test pitchIsDeterministicForTheSameOfferID() passed after 12.999 seconds.
+✔ Test longestRoadClaimBonusIsLargerWhenTakingItFromAHighThreatHolder() passed after 14.653 seconds.
+✔ Test relativeWeightClampsExtremeOutliers() passed after 14.653 seconds.
+✔ Test upstreamPolicyReportsMalformedPredictionAndEncodingFallbacks() passed after 14.653 seconds.
+✔ Test proposeTradesRetriesWithADifferentOfferAfterADecline() passed after 14.653 seconds.
+✔ Test generousUnlockCeilingCollapsesWithAGoodPort() passed after 14.653 seconds.
+✔ Test neverAcceptsANetLossEvenAtHighTradeWillingness() passed after 14.654 seconds.
+✔ Test cautiousBotAsksAPlayerBeforePayingTheBankWhileBalancedUsesTheBank() passed after 14.653 seconds.
+✔ Test proposeTradesGivesUpAfterTheTurnRetryLimit() passed after 14.653 seconds.
+✔ Test scoresExcludesTheGivenPlayerAndSortsHighestFirst() passed after 14.653 seconds.
+✔ Test evaluateSuspicionShiftRejectsARepeatTradeFromTheSameProposerThisTurn() passed after 14.654 seconds.
+✔ Test upstreamPolicyRichPlayerTradeResponsesUseHeuristicAndExactOfferID() passed after 14.653 seconds.
+✔ Test robberAvoidsOwnTilesWhenAlternativeExists() passed after 14.653 seconds.
+✔ Test behaviorMetricsCountOnlyTheObservedSeat() passed after 14.653 seconds.
+✔ Test relativeWeightIsOneForEveryoneWhenAllScoresAreZero() passed after 14.653 seconds.
+✔ Test longestRoadPursuitBonusCreditsABridgeEvenBelowThePursuitGate() passed after 14.653 seconds.
+✔ Test scoreIncludesHeldDevCardCount() passed after 14.653 seconds.
+✔ Test robberTargetsLeadingOpponentsTile() passed after 16.543 seconds.
+✔ Test proposeTradeRetriesThenEventuallyEndsTheTurn() passed after 16.543 seconds.
+✔ Test choosePlayDoesNotPursueLargestArmyWithoutARealShot() passed after 16.543 seconds.
+✔ Test highPipVertexScoresHigherThanLowPipVertex() passed after 16.543 seconds.
+✔ Test trainingOutcomeIsRelativeToTheObservingSeat() passed after 16.543 seconds.
+✔ Test upstreamPolicyDiscardCanExceedTheExistingFlatActionSpaceCap() passed after 16.543 seconds.
+✔ Test acceptedAndRejectedResponsesDrawFromDisjointPools() passed after 16.543 seconds.
+✔ Test choosePlayPursuesLargestArmyWithARealShotEvenWithoutRobberOnOwnTile() passed after 16.541 seconds.
+✔ Test proposeTradesSkipsWhenIdenticalOfferAlreadyPending() passed after 16.833 seconds.
+✔ Test longestRoadDefenseBonusIsAbsentWhenLeadIsUncontested() passed after 16.833 seconds.
+✔ Test upstreamPolicyRoadBuildingNeverReturnsAOneRoadCompletion() passed after 16.986 seconds.
+✔ Test claimsLongestRoadIsFalseWhenAlreadyTheHolder() passed after 16.986 seconds.
+✔ Test botEndsTurnRatherThanReproposingAnIdenticalPendingOffer() passed after 16.986 seconds.
+✔ Test buildRoadScoreIncludesLongestRoadBonusOnlyWhenItWouldBeClaimed() passed after 16.986 seconds.
+✔ Test noPoolHasBlankOrDuplicateLines() passed after 16.984 seconds.
+✔ Test decisionMetricsRecordChoiceOpportunities() passed after 16.984 seconds.
+✔ Test longestRoadDefenseBonusRewardsBridgingEvenWithAnUncontestedLead() passed after 16.984 seconds.
+✔ Test upstreamPolicyAtomicActionIDsMatchFrozenCodec() passed after 16.984 seconds.
+✔ Test upstreamPolicyWinningKnightStillReturnsACompleteSwiftMove() passed after 16.984 seconds.
+✔ Test upstreamPolicyKnightKeepsActorAndTurnContextAcrossSupportedTables(players:target:) with 6 test cases passed after 16.984 seconds.
+✔ Test upstreamPolicyUsesLowestActionIDForTiesWithoutAdvancingRNG() passed after 16.984 seconds.
+✔ Test scoreAddsLongestRoadSwingBonusWhenOneSegmentFromQualifying() passed after 16.984 seconds.
+✔ Test greedyRefusesEveryTradeItIsOffered() passed after 16.987 seconds.
+✔ Test decisionMetricsRecordTradeResponsesAndProposalShape() passed after 16.987 seconds.
+✔ Test upstreamPolicyPreservesExistingHeuristicTradeProposalScheduling() passed after 16.987 seconds.
+✔ Test scoreCountsCityProductionAtDoubleWeight() passed after 16.987 seconds.
+✔ Test tradeHeuristicsRejectsTradeAwayFromNextBuild() passed after 16.987 seconds.
+✔ Test evaluateRequiresAMeaningfulBenefitNotJustAnyPositiveMargin() passed after 16.987 seconds.
+✔ Test ownStandingIsOneWhenAllScoresAreZero() passed after 16.987 seconds.
+✔ Test monopolyTargetsResourceHeldByTheHigherThreatOpponent() passed after 16.987 seconds.
+✔ Test differentOffersCanSampleDifferentLinesFromThePool() passed after 16.987 seconds.
+✔ Test upstreamPolicySelectionCapturesDiagnosticsWithoutRepeatingInference() passed after 16.987 seconds.
+✔ Test upstreamPolicyRoadBuildingScoresPrivateSequentialStatesAndCommitsOnePair() passed after 16.987 seconds.
+✔ Test upstreamPolicyDoesNotSumCompoundLogitsAtRoot() passed after 16.987 seconds.
+✔ Test proposesAGenerousUnlockTradeAfterTheOrdinaryOfferIsDeclined() passed after 16.987 seconds.
+✔ Test newlyReachableVerticesExcludesOneAlreadyReachableViaExistingNetwork() passed after 16.987 seconds.
+✔ Test bridgesOwnFragmentsDetectsAGenuineBridgeBetweenTwoDisconnectedPieces() passed after 16.987 seconds.
+✔ Test bestBankTradeConvertsSurplusTowardTheNearestBuild() passed after 16.987 seconds.
+✔ Test claimsLongestRoadWhenAnEdgeWouldReachFiveAndNobodyElseHoldsIt() passed after 16.987 seconds.
+✔ Test decisionMetricsRecordDisruptionAndProposalOpportunities() passed after 16.987 seconds.
+✔ Test buyDevCardScoreIsNotBoostedWhenTheHolderIsFarAhead() passed after 16.987 seconds.
+✔ Test chooseBuildIsDeterministicWhenOneMoveClearlyDominates() passed after 16.986 seconds.
+✔ Test evaluateRejectsATradeThatWouldHandTheProposerAnImmediateBuild() passed after 16.986 seconds.
+✔ Test choosePlayFollowsAggressivePersonalitysSettlementPriority() passed after 16.986 seconds.
+✔ Test configuredExamplesUseOneActionHeadWidth(playerCount:) with 2 test cases passed after 16.986 seconds.
+✔ Test greedySeatsActuallyFinishTheirGames() passed after 16.993 seconds.
+✔ Test heuristicPolicyCarriesAnIdentifierNamingItsPersonality() passed after 16.985 seconds.
+✔ Test tradeHeuristicsAcceptsClearNetGainTowardNextBuild() passed after 16.985 seconds.
+✔ Test everyEmpireHasALargePitchAndResponsePool() passed after 16.985 seconds.
+✔ Test upstreamPolicyDiscardUsesOriginalQuotaAndCallerNarrowedBundles() passed after 16.984 seconds.
+✔ Test aiNameIsSet() passed after 16.983 seconds.
+✔ Test scoreIncludesProductionStrengthWeightedByPips() passed after 16.979 seconds.
+✔ Test relativeWeightIsAboveOneForAnAboveAverageOpponent() passed after 16.979 seconds.
+✔ Test opponentFrontierExcludesVerticesTooCloseToAnyExistingBuilding() passed after 16.979 seconds.
+✔ Test consolidationMetricRecordsEveryDecisionWhereACityIsBuildable() passed after 16.979 seconds.
+✔ Test heuristicHonoursANarrowedRollPhaseActionMask() passed after 16.979 seconds.
+✔ Test buildRoadScoreExcludesReachableVertexThatIsAlreadyOccupied() passed after 16.979 seconds.
+◇ Test case passing 2 arguments players → 3, scenario → .roadBuilding to policyStagesMatchRust(players:scenario:) started.
+◇ Test case passing 2 arguments players → 3, scenario → .knightPreRoll to policyStagesMatchRust(players:scenario:) started.
+◇ Test case passing 2 arguments players → 3, scenario → .knightMain to policyStagesMatchRust(players:scenario:) started.
+◇ Test case passing 2 arguments players → 3, scenario → .discardFirst to policyStagesMatchRust(players:scenario:) started.
+◇ Test case passing 2 arguments players → 3, scenario → .discardSecond to policyStagesMatchRust(players:scenario:) started.
+◇ Test case passing 2 arguments players → 4, scenario → .roadBuilding to policyStagesMatchRust(players:scenario:) started.
+◇ Test case passing 2 arguments players → 4, scenario → .knightPreRoll to policyStagesMatchRust(players:scenario:) started.
+◇ Test case passing 2 arguments players → 4, scenario → .knightMain to policyStagesMatchRust(players:scenario:) started.
+◇ Test case passing 2 arguments players → 4, scenario → .discardFirst to policyStagesMatchRust(players:scenario:) started.
+◇ Test case passing 2 arguments players → 4, scenario → .discardSecond to policyStagesMatchRust(players:scenario:) started.
+✔ Test upstreamPolicyRobberWithoutVictimsProducesNilWithoutAStealDecision() passed after 17.432 seconds.
+✔ Test generousUnlockOffersAllThreeOreWhenThatsAllThatsHeld() passed after 17.432 seconds.
+✔ Test telemetryKeepsEveryEvaluatedTradeReplyWithoutCountingTheCommittedReplyTwice() passed after 17.432 seconds.
+✔ Test buyDevCardScoreIsBoostedTwoKnightsFromLargestArmy() passed after 17.432 seconds.
+✔ Test buildRoadScoreIsHigherWhenItDeniesAHighThreatOpponentsImmediateFrontier() passed after 17.431 seconds.
+✔ Test generousUnlockDoesNotApplyToARoad() passed after 17.431 seconds.
+✔ Test robberDisruptionScalesWithRelativeThreatNotJustRawVictoryPoints() passed after 17.431 seconds.
+✔ Test buildSettlementScoreIsHigherWhenItDeniesAHighThreatOpponentsFrontier() passed after 17.431 seconds.
+✔ Test trainingExampleCarriesTheVersionedMaskedContract() passed after 17.414 seconds.
+✔ Test scoreSkipsLargestArmySwingBonusWhenHolderIsFarAhead() passed after 17.414 seconds.
+✔ Test heuristicHonoursATradeResponseOnlyActionMask() passed after 17.414 seconds.
+✔ Test ownStandingIsBelowOneWhenBehindTheField() passed after 17.414 seconds.
+✔ Test evaluateRequiresABetterDealFromAHighThreatProposer() passed after 17.414 seconds.
+✔ Test aggressivePersonalityProactivelyUsesAKnightButCautiousDoesNot() passed after 17.414 seconds.
+✔ Test everyLineFitsTheIncomingCardsCharacterBudget() passed after 17.413 seconds.
+✔ Test allFrozenRustOutputsMatch() passed after 8.355 seconds.
+✔ Test rejectsMalformedTopologyInsteadOfTrappingOrReindexing() passed after 6.194 seconds.
+✔ Test refusesLegacyTurnGuessAndInvalidSeat() passed after 6.194 seconds.
+✔ Test matchesPinnedRustEncoderOnRealThreeAndFourSeatPositions() passed after 6.194 seconds.
+✔ Test mainTurnOwnerDoesNotUseStaleRobberBookkeeping() passed after 6.194 seconds.
+✔ Test liveSetupContextMatchesRustWithoutAnOverride() passed after 6.188 seconds.
+✔ Test policyStagesMatchRust(players:scenario:) with 10 test cases passed after 4.547 seconds.
+✔ Suite UpstreamObservationTests passed after 21.978 seconds.
+✔ Suite UpstreamCompoundObservationTests passed after 21.978 seconds.
+◇ Test immutableNetworkCanBeSharedAcrossConcurrentPredictions() started.
+✔ Test immutableNetworkCanBeSharedAcrossConcurrentPredictions() passed after 2.363 seconds.
+◇ Test rejectsTruncatedAndTrailingData(count:) started.
+◇ Test case passing 1 argument count → 0 to rejectsTruncatedAndTrailingData(count:) started.
+◇ Test case passing 1 argument count → 3 to rejectsTruncatedAndTrailingData(count:) started.
+◇ Test case passing 1 argument count → 19 to rejectsTruncatedAndTrailingData(count:) started.
+◇ Test case passing 1 argument count → 20 to rejectsTruncatedAndTrailingData(count:) started.
+◇ Test case passing 1 argument count → 4433091 to rejectsTruncatedAndTrailingData(count:) started.
+◇ Test case passing 1 argument count → 4438527 to rejectsTruncatedAndTrailingData(count:) started.
+◇ Test case passing 1 argument count → 4438529 to rejectsTruncatedAndTrailingData(count:) started.
+✔ Test rejectsTruncatedAndTrailingData(count:) with 7 test cases passed after 0.001 seconds.
+◇ Test rejectsMagicVersionAndDimensionsBeforeAllocation() started.
+✔ Test rejectsMagicVersionAndDimensionsBeforeAllocation() passed after 0.002 seconds.
+◇ Test rejectsNonfiniteWeightsBiasesAndProbe(word:) started.
+◇ Test case passing 1 argument word → 2143289345 to rejectsNonfiniteWeightsBiasesAndProbe(word:) started.
+UPSTREAM_COMPLETION {"actionLimit":3000,"actions":240,"committedFallbacks":{"heuristic_trade_proposal":24,"player_trade_negotiation":24,"unsupported_pre_roll_development_card":1},"committedSources":{"heuristic":49,"neural":191},"elapsedSeconds":6.834503542,"evaluations":257,"fallbacks":{"heuristic_trade_proposal":24,"player_trade_negotiation":41,"unsupported_pre_roll_development_card":1},"fingerprint":"a2e874a1461b15b6","illegalSelections":0,"missingTraces":0,"moves":{"accept_trade":9,"bank_trade":30,"buy_dev":4,"city":3,"discard":4,"end_turn":55,"initial_road":6,"initial_settlement":6,"knight":2,"propose_trade":24,"reject_trade":15,"road":11,"road_building":1,"robber":9,"roll":56,"settlement":5},"overrides":{},"players":3,"policyIDs":["upstream-r2-hybrid-greedy-swift-compounds-trade-scheduler-fallback-heuristic-balanced-default","upstream-r2-hybrid-greedy-swift-compounds-trade-scheduler-fallback-heuristic-aggressive-default","upstream-r2-hybrid-greedy-swift-compounds-trade-scheduler-fallback-heuristic-cautious-default"],"seed":101,"sessionEvaluations":257,"sources":{"heuristic":66,"neural":191},"status":"completed","target":8,"vp":[6,8,3],"wallLimitSeconds":45,"winner":1}
+◇ Test case passing 1 argument word → 2139095041 to rejectsNonfiniteWeightsBiasesAndProbe(word:) started.
+◇ Test case passing 1 argument word → 2139095040 to rejectsNonfiniteWeightsBiasesAndProbe(word:) started.
+◇ Test case passing 1 argument word → 4286578688 to rejectsNonfiniteWeightsBiasesAndProbe(word:) started.
+✔ Test botAlwaysReturnsALegalMove() passed after 27.701 seconds.
+✔ Test rejectsNonfiniteWeightsBiasesAndProbe(word:) with 4 test cases passed after 3.440 seconds.
+◇ Test rejectsEmbeddedValueAndLogitMismatch() started.
+✔ Test rejectsEmbeddedValueAndLogitMismatch() passed after 0.693 seconds.
+◇ Test rejectsFiniteDataThatOverflowsDuringTheEmbeddedCheck() started.
+✔ Test rejectsFiniteDataThatOverflowsDuringTheEmbeddedCheck() passed after 0.220 seconds.
+◇ Test embeddedToleranceMatchesRustStrictInequality() started.
+✔ Test embeddedToleranceMatchesRustStrictInequality() passed after 0.488 seconds.
+◇ Test preservesRawValueCheckButClampsPrediction() started.
+✔ Test preservesRawValueCheckButClampsPrediction() passed after 1.302 seconds.
+◇ Test supportsNonzeroDataStartIndexAndUnalignedStorage() started.
+✔ Test supportsNonzeroDataStartIndexAndUnalignedStorage() passed after 0.243 seconds.
+◇ Test rowMajorLayoutReluAndFinalLogitArePreserved() started.
+✔ Test rowMajorLayoutReluAndFinalLogitArePreserved() passed after 0.326 seconds.
+➜ Test releaseLatency() skipped.
+✔ Suite UpstreamNetworkTests passed after 31.061 seconds.
+UPSTREAM_COMPLETION {"actionLimit":3000,"actions":293,"committedFallbacks":{"heuristic_trade_proposal":48,"player_trade_negotiation":48,"unsupported_pre_roll_development_card":6},"committedSources":{"heuristic":102,"neural":191},"elapsedSeconds":6.84888275,"evaluations":329,"fallbacks":{"heuristic_trade_proposal":48,"player_trade_negotiation":84,"unsupported_pre_roll_development_card":6},"fingerprint":"ac19ad8a39f8d78a","illegalSelections":0,"missingTraces":0,"moves":{"accept_trade":16,"bank_trade":10,"buy_dev":8,"city":6,"discard":2,"end_turn":62,"initial_road":6,"initial_settlement":6,"knight":4,"monopoly":1,"propose_trade":48,"reject_trade":32,"road":10,"robber":16,"roll":63,"settlement":2,"year_of_plenty":1},"overrides":{},"players":3,"policyIDs":["upstream-r2-hybrid-greedy-swift-compounds-trade-scheduler-fallback-heuristic-balanced-default","upstream-r2-hybrid-greedy-swift-compounds-trade-scheduler-fallback-heuristic-aggressive-default","upstream-r2-hybrid-greedy-swift-compounds-trade-scheduler-fallback-heuristic-cautious-default"],"seed":202,"sessionEvaluations":329,"sources":{"heuristic":138,"neural":191},"status":"completed","target":8,"vp":[6,6,8],"wallLimitSeconds":45,"winner":2}
+✔ Test threeSeatGamesReachAWinner() passed after 32.511 seconds.
+✔ Test botsOnlyGameReachesGameOverWithOnlyLegalMoves() passed after 35.012 seconds.
+UPSTREAM_COMPLETION {"actionLimit":3000,"actions":242,"committedFallbacks":{"heuristic_trade_proposal":39,"player_trade_negotiation":39,"unsupported_pre_roll_development_card":7},"committedSources":{"heuristic":85,"neural":157},"elapsedSeconds":5.446950167,"evaluations":267,"fallbacks":{"heuristic_trade_proposal":39,"player_trade_negotiation":64,"unsupported_pre_roll_development_card":7},"fingerprint":"d36e28283d988bcd","illegalSelections":0,"missingTraces":0,"moves":{"accept_trade":20,"bank_trade":5,"buy_dev":12,"city":5,"discard":2,"end_turn":50,"initial_road":6,"initial_settlement":6,"knight":8,"monopoly":1,"propose_trade":39,"reject_trade":19,"road":10,"road_building":1,"robber":4,"roll":51,"settlement":3},"overrides":{},"players":3,"policyIDs":["upstream-r2-hybrid-greedy-swift-compounds-trade-scheduler-fallback-heuristic-balanced-default","upstream-r2-hybrid-greedy-swift-compounds-trade-scheduler-fallback-heuristic-aggressive-default","upstream-r2-hybrid-greedy-swift-compounds-trade-scheduler-fallback-heuristic-cautious-default"],"seed":303,"sessionEvaluations":267,"sources":{"heuristic":110,"neural":157},"status":"completed","target":8,"vp":[7,4,8],"wallLimitSeconds":45,"winner":2}
+✔ Test theHeuristicBotBeatsRandomPlayFromEverySeat() passed after 41.112 seconds.
+✔ Test everySupportedRulesConfigurationCompletesWithOnlyLegalMoves(game:) with 24 test cases passed after 43.632 seconds.
+✔ Test aShortGameEndsSooner() passed after 44.859 seconds.
+UPSTREAM_COMPLETION {"actionLimit":3000,"actions":485,"committedFallbacks":{"heuristic_trade_proposal":54,"player_trade_negotiation":54,"unsupported_pre_roll_development_card":4},"committedSources":{"heuristic":112,"neural":373},"elapsedSeconds":9.104617292,"evaluations":531,"fallbacks":{"heuristic_trade_proposal":54,"player_trade_negotiation":100,"unsupported_pre_roll_development_card":4},"fingerprint":"fc5cb3d14a68f32b","illegalSelections":0,"missingTraces":0,"moves":{"accept_trade":13,"bank_trade":65,"buy_dev":13,"city":3,"discard":10,"end_turn":105,"initial_road":6,"initial_settlement":6,"knight":7,"monopoly":2,"propose_trade":54,"reject_trade":41,"road":22,"road_building":1,"robber":25,"roll":106,"settlement":5,"year_of_plenty":1},"overrides":{},"players":3,"policyIDs":["upstream-r2-hybrid-greedy-swift-compounds-trade-scheduler-fallback-heuristic-balanced-default","upstream-r2-hybrid-greedy-swift-compounds-trade-scheduler-fallback-heuristic-aggressive-default","upstream-r2-hybrid-greedy-swift-compounds-trade-scheduler-fallback-heuristic-cautious-default"],"seed":101,"sessionEvaluations":531,"sources":{"heuristic":158,"neural":373},"status":"completed","target":10,"vp":[10,4,5],"wallLimitSeconds":45,"winner":0}
+UPSTREAM_COMPLETION {"actionLimit":3000,"actions":392,"committedFallbacks":{"heuristic_trade_proposal":68,"player_trade_negotiation":68,"unsupported_pre_roll_development_card":7},"committedSources":{"heuristic":143,"neural":249},"elapsedSeconds":5.284290417,"evaluations":443,"fallbacks":{"heuristic_trade_proposal":68,"player_trade_negotiation":119,"unsupported_pre_roll_development_card":7},"fingerprint":"e09dabfc3e6d77b6","illegalSelections":0,"missingTraces":0,"moves":{"accept_trade":23,"bank_trade":14,"buy_dev":13,"city":7,"discard":3,"end_turn":80,"initial_road":6,"initial_settlement":6,"knight":7,"monopoly":1,"propose_trade":68,"reject_trade":45,"road":14,"road_building":1,"robber":18,"roll":81,"settlement":4,"year_of_plenty":1},"overrides":{},"players":3,"policyIDs":["upstream-r2-hybrid-greedy-swift-compounds-trade-scheduler-fallback-heuristic-balanced-default","upstream-r2-hybrid-greedy-swift-compounds-trade-scheduler-fallback-heuristic-aggressive-default","upstream-r2-hybrid-greedy-swift-compounds-trade-scheduler-fallback-heuristic-cautious-default"],"seed":202,"sessionEvaluations":443,"sources":{"heuristic":194,"neural":249},"status":"completed","target":10,"vp":[6,8,10],"wallLimitSeconds":45,"winner":2}
+✔ Test concurrentHumanAndBotDiscardTurnsNeverCrash() passed after 56.776 seconds.
+UPSTREAM_COMPLETION {"actionLimit":3000,"actions":424,"committedFallbacks":{"heuristic_trade_proposal":64,"player_trade_negotiation":64,"unsupported_pre_roll_development_card":11},"committedSources":{"heuristic":139,"neural":285},"elapsedSeconds":7.589947125,"evaluations":470,"fallbacks":{"heuristic_trade_proposal":64,"player_trade_negotiation":110,"unsupported_pre_roll_development_card":11},"fingerprint":"4d35e66906cb7767","illegalSelections":0,"missingTraces":0,"moves":{"accept_trade":27,"bank_trade":18,"buy_dev":23,"city":6,"discard":6,"end_turn":87,"initial_road":6,"initial_settlement":6,"knight":13,"monopoly":2,"propose_trade":64,"reject_trade":37,"road":23,"road_building":1,"robber":10,"roll":88,"settlement":5,"year_of_plenty":2},"overrides":{},"players":3,"policyIDs":["upstream-r2-hybrid-greedy-swift-compounds-trade-scheduler-fallback-heuristic-balanced-default","upstream-r2-hybrid-greedy-swift-compounds-trade-scheduler-fallback-heuristic-aggressive-default","upstream-r2-hybrid-greedy-swift-compounds-trade-scheduler-fallback-heuristic-cautious-default"],"seed":303,"sessionEvaluations":470,"sources":{"heuristic":185,"neural":285},"status":"completed","target":10,"vp":[10,8,8],"wallLimitSeconds":45,"winner":0}
+✔ Test seededSelfPlayReproducesExactly() passed after 56.426 seconds.
+◇ Test replayingTheSameSeedInThisProcessAlsoMatches() started.
+✔ Test theGreedyAnchorSitsBetweenRandomAndTheHeuristic() passed after 61.689 seconds.
+✔ Test botsOnlyGameReachesGameOverAcrossSeveralSeeds() passed after 65.498 seconds.
+UPSTREAM_COMPLETION {"actionLimit":3000,"actions":604,"committedFallbacks":{"heuristic_trade_proposal":68,"player_trade_negotiation":68,"unsupported_pre_roll_development_card":9},"committedSources":{"heuristic":145,"neural":459},"elapsedSeconds":9.780759792,"evaluations":658,"fallbacks":{"heuristic_trade_proposal":68,"player_trade_negotiation":122,"unsupported_pre_roll_development_card":9},"fingerprint":"4d8205cfd55121b5","illegalSelections":0,"missingTraces":0,"moves":{"accept_trade":20,"bank_trade":78,"buy_dev":25,"city":3,"discard":9,"end_turn":129,"initial_road":6,"initial_settlement":6,"knight":14,"monopoly":2,"propose_trade":68,"reject_trade":48,"road":26,"road_building":2,"robber":26,"roll":130,"settlement":10,"year_of_plenty":2},"overrides":{},"players":3,"policyIDs":["upstream-r2-hybrid-greedy-swift-compounds-trade-scheduler-fallback-heuristic-balanced-default","upstream-r2-hybrid-greedy-swift-compounds-trade-scheduler-fallback-heuristic-aggressive-default","upstream-r2-hybrid-greedy-swift-compounds-trade-scheduler-fallback-heuristic-cautious-default"],"seed":101,"sessionEvaluations":658,"sources":{"heuristic":199,"neural":459},"status":"completed","target":12,"vp":[12,10,6],"wallLimitSeconds":45,"winner":0}
+✔ Test replayingTheSameSeedInThisProcessAlsoMatches() passed after 9.119 seconds.
+✔ Suite SelfPlayReproducibility passed after 69.815 seconds.
+UPSTREAM_COMPLETION {"actionLimit":3000,"actions":570,"committedFallbacks":{"heuristic_trade_proposal":96,"player_trade_negotiation":96,"unsupported_pre_roll_development_card":12},"committedSources":{"heuristic":204,"neural":366},"elapsedSeconds":8.092702584,"evaluations":642,"fallbacks":{"heuristic_trade_proposal":96,"player_trade_negotiation":168,"unsupported_pre_roll_development_card":12},"fingerprint":"a819906e763fefb1","illegalSelections":0,"missingTraces":0,"moves":{"accept_trade":34,"bank_trade":26,"buy_dev":25,"city":7,"discard":12,"end_turn":113,"initial_road":6,"initial_settlement":6,"knight":13,"monopoly":1,"propose_trade":96,"reject_trade":62,"road":19,"road_building":2,"robber":28,"roll":114,"settlement":4,"year_of_plenty":2},"overrides":{},"players":3,"policyIDs":["upstream-r2-hybrid-greedy-swift-compounds-trade-scheduler-fallback-heuristic-balanced-default","upstream-r2-hybrid-greedy-swift-compounds-trade-scheduler-fallback-heuristic-aggressive-default","upstream-r2-hybrid-greedy-swift-compounds-trade-scheduler-fallback-heuristic-cautious-default"],"seed":202,"sessionEvaluations":642,"sources":{"heuristic":276,"neural":366},"status":"completed","target":12,"vp":[6,7,13],"wallLimitSeconds":45,"winner":2}
+UPSTREAM_COMPLETION {"actionLimit":3000,"actions":441,"committedFallbacks":{"heuristic_trade_proposal":67,"player_trade_negotiation":67,"unsupported_pre_roll_development_card":13},"committedSources":{"heuristic":147,"neural":294},"elapsedSeconds":6.445421625,"evaluations":485,"fallbacks":{"heuristic_trade_proposal":67,"player_trade_negotiation":111,"unsupported_pre_roll_development_card":13},"fingerprint":"d5883b5b0549ca3c","illegalSelections":0,"missingTraces":0,"moves":{"accept_trade":32,"bank_trade":29,"buy_dev":25,"city":8,"discard":3,"end_turn":88,"initial_road":6,"initial_settlement":6,"knight":14,"monopoly":2,"propose_trade":67,"reject_trade":35,"road":20,"road_building":1,"robber":8,"roll":89,"settlement":6,"year_of_plenty":2},"overrides":{},"players":3,"policyIDs":["upstream-r2-hybrid-greedy-swift-compounds-trade-scheduler-fallback-heuristic-balanced-default","upstream-r2-hybrid-greedy-swift-compounds-trade-scheduler-fallback-heuristic-aggressive-default","upstream-r2-hybrid-greedy-swift-compounds-trade-scheduler-fallback-heuristic-cautious-default"],"seed":303,"sessionEvaluations":485,"sources":{"heuristic":191,"neural":294},"status":"completed","target":12,"vp":[11,12,6],"wallLimitSeconds":45,"winner":1}
+UPSTREAM_COMPLETION {"actionLimit":3000,"actions":139,"committedFallbacks":{"heuristic_trade_proposal":13,"player_trade_negotiation":13,"unsupported_pre_roll_development_card":1},"committedSources":{"heuristic":27,"neural":112},"elapsedSeconds":2.291590083,"evaluations":157,"fallbacks":{"heuristic_trade_proposal":13,"player_trade_negotiation":31,"unsupported_pre_roll_development_card":1},"fingerprint":"352013e6aa11d3a5","illegalSelections":0,"missingTraces":0,"moves":{"accept_trade":6,"bank_trade":2,"buy_dev":6,"city":4,"discard":2,"end_turn":30,"initial_road":8,"initial_settlement":8,"knight":2,"propose_trade":13,"reject_trade":7,"road":11,"road_building":1,"robber":5,"roll":31,"settlement":3},"overrides":{},"players":4,"policyIDs":["upstream-r2-hybrid-greedy-swift-compounds-trade-scheduler-fallback-heuristic-balanced-default","upstream-r2-hybrid-greedy-swift-compounds-trade-scheduler-fallback-heuristic-aggressive-default","upstream-r2-hybrid-greedy-swift-compounds-trade-scheduler-fallback-heuristic-cautious-default","upstream-r2-hybrid-greedy-swift-compounds-trade-scheduler-fallback-heuristic-balanced-default"],"seed":101,"sessionEvaluations":157,"sources":{"heuristic":45,"neural":112},"status":"completed","target":8,"vp":[4,3,8,3],"wallLimitSeconds":45,"winner":2}
+UPSTREAM_COMPLETION {"actionLimit":3000,"actions":407,"committedFallbacks":{"heuristic_trade_proposal":60,"player_trade_negotiation":60,"unsupported_pre_roll_development_card":4},"committedSources":{"heuristic":124,"neural":283},"elapsedSeconds":6.08699725,"evaluations":507,"fallbacks":{"heuristic_trade_proposal":60,"player_trade_negotiation":160,"unsupported_pre_roll_development_card":4},"fingerprint":"a19e1af0e4b557d9","illegalSelections":0,"missingTraces":0,"moves":{"accept_trade":17,"bank_trade":17,"buy_dev":14,"city":6,"discard":9,"end_turn":84,"initial_road":8,"initial_settlement":8,"knight":7,"monopoly":1,"propose_trade":60,"reject_trade":43,"road":19,"road_building":1,"robber":23,"roll":85,"settlement":4,"year_of_plenty":1},"overrides":{},"players":4,"policyIDs":["upstream-r2-hybrid-greedy-swift-compounds-trade-scheduler-fallback-heuristic-balanced-default","upstream-r2-hybrid-greedy-swift-compounds-trade-scheduler-fallback-heuristic-aggressive-default","upstream-r2-hybrid-greedy-swift-compounds-trade-scheduler-fallback-heuristic-cautious-default","upstream-r2-hybrid-greedy-swift-compounds-trade-scheduler-fallback-heuristic-balanced-default"],"seed":202,"sessionEvaluations":507,"sources":{"heuristic":224,"neural":283},"status":"completed","target":8,"vp":[8,7,6,4],"wallLimitSeconds":45,"winner":0}
+UPSTREAM_COMPLETION {"actionLimit":3000,"actions":383,"committedFallbacks":{"heuristic_trade_proposal":35,"player_trade_negotiation":35,"unsupported_pre_roll_development_card":7},"committedSources":{"heuristic":77,"neural":306},"elapsedSeconds":7.877347083,"evaluations":422,"fallbacks":{"heuristic_trade_proposal":35,"player_trade_negotiation":74,"unsupported_pre_roll_development_card":7},"fingerprint":"489186fa06f2c7f6","illegalSelections":0,"missingTraces":0,"moves":{"accept_trade":23,"bank_trade":30,"buy_dev":21,"city":6,"discard":11,"end_turn":88,"initial_road":8,"initial_settlement":8,"knight":12,"monopoly":2,"propose_trade":35,"reject_trade":12,"road":22,"road_building":1,"robber":8,"roll":89,"settlement":5,"year_of_plenty":2},"overrides":{},"players":4,"policyIDs":["upstream-r2-hybrid-greedy-swift-compounds-trade-scheduler-fallback-heuristic-balanced-default","upstream-r2-hybrid-greedy-swift-compounds-trade-scheduler-fallback-heuristic-aggressive-default","upstream-r2-hybrid-greedy-swift-compounds-trade-scheduler-fallback-heuristic-cautious-default","upstream-r2-hybrid-greedy-swift-compounds-trade-scheduler-fallback-heuristic-balanced-default"],"seed":303,"sessionEvaluations":422,"sources":{"heuristic":116,"neural":306},"status":"completed","target":8,"vp":[8,4,7,7],"wallLimitSeconds":45,"winner":0}
+UPSTREAM_COMPLETION {"actionLimit":3000,"actions":212,"committedFallbacks":{"heuristic_trade_proposal":21,"player_trade_negotiation":21,"unsupported_pre_roll_development_card":3},"committedSources":{"heuristic":45,"neural":167},"elapsedSeconds":3.5753320410000002,"evaluations":239,"fallbacks":{"heuristic_trade_proposal":21,"player_trade_negotiation":48,"unsupported_pre_roll_development_card":3},"fingerprint":"36c5e36cfb691c1f","illegalSelections":0,"missingTraces":0,"moves":{"accept_trade":10,"bank_trade":6,"buy_dev":11,"city":6,"discard":3,"end_turn":46,"initial_road":8,"initial_settlement":8,"knight":6,"monopoly":1,"propose_trade":21,"reject_trade":11,"road":13,"road_building":1,"robber":9,"roll":47,"settlement":4,"year_of_plenty":1},"overrides":{},"players":4,"policyIDs":["upstream-r2-hybrid-greedy-swift-compounds-trade-scheduler-fallback-heuristic-balanced-default","upstream-r2-hybrid-greedy-swift-compounds-trade-scheduler-fallback-heuristic-aggressive-default","upstream-r2-hybrid-greedy-swift-compounds-trade-scheduler-fallback-heuristic-cautious-default","upstream-r2-hybrid-greedy-swift-compounds-trade-scheduler-fallback-heuristic-balanced-default"],"seed":101,"sessionEvaluations":239,"sources":{"heuristic":72,"neural":167},"status":"completed","target":10,"vp":[7,3,10,3],"wallLimitSeconds":45,"winner":2}
+UPSTREAM_COMPLETION {"actionLimit":3000,"actions":621,"committedFallbacks":{"heuristic_trade_proposal":91,"player_trade_negotiation":91,"unsupported_pre_roll_development_card":8},"committedSources":{"heuristic":190,"neural":431},"elapsedSeconds":11.112548167,"evaluations":765,"fallbacks":{"heuristic_trade_proposal":91,"player_trade_negotiation":235,"unsupported_pre_roll_development_card":8},"fingerprint":"8979718edad280b7","illegalSelections":0,"missingTraces":0,"moves":{"accept_trade":33,"bank_trade":43,"buy_dev":25,"city":9,"discard":15,"end_turn":121,"initial_road":8,"initial_settlement":8,"knight":14,"monopoly":2,"propose_trade":91,"reject_trade":58,"road":29,"road_building":2,"robber":31,"roll":122,"settlement":8,"year_of_plenty":2},"overrides":{},"players":4,"policyIDs":["upstream-r2-hybrid-greedy-swift-compounds-trade-scheduler-fallback-heuristic-balanced-default","upstream-r2-hybrid-greedy-swift-compounds-trade-scheduler-fallback-heuristic-aggressive-default","upstream-r2-hybrid-greedy-swift-compounds-trade-scheduler-fallback-heuristic-cautious-default","upstream-r2-hybrid-greedy-swift-compounds-trade-scheduler-fallback-heuristic-balanced-default"],"seed":202,"sessionEvaluations":765,"sources":{"heuristic":334,"neural":431},"status":"completed","target":10,"vp":[9,10,9,6],"wallLimitSeconds":45,"winner":1}
+UPSTREAM_COMPLETION {"actionLimit":3000,"actions":454,"committedFallbacks":{"heuristic_trade_proposal":48,"player_trade_negotiation":48,"unsupported_pre_roll_development_card":8},"committedSources":{"heuristic":104,"neural":350},"elapsedSeconds":9.329416125,"evaluations":507,"fallbacks":{"heuristic_trade_proposal":48,"player_trade_negotiation":101,"unsupported_pre_roll_development_card":8},"fingerprint":"0814d3e0332d2e6b","illegalSelections":0,"missingTraces":0,"moves":{"accept_trade":31,"bank_trade":33,"buy_dev":25,"city":8,"discard":13,"end_turn":100,"initial_road":8,"initial_settlement":8,"knight":14,"monopoly":2,"propose_trade":48,"reject_trade":17,"road":25,"road_building":2,"robber":10,"roll":101,"settlement":7,"year_of_plenty":2},"overrides":{},"players":4,"policyIDs":["upstream-r2-hybrid-greedy-swift-compounds-trade-scheduler-fallback-heuristic-balanced-default","upstream-r2-hybrid-greedy-swift-compounds-trade-scheduler-fallback-heuristic-aggressive-default","upstream-r2-hybrid-greedy-swift-compounds-trade-scheduler-fallback-heuristic-cautious-default","upstream-r2-hybrid-greedy-swift-compounds-trade-scheduler-fallback-heuristic-balanced-default"],"seed":303,"sessionEvaluations":507,"sources":{"heuristic":157,"neural":350},"status":"completed","target":10,"vp":[10,5,9,8],"wallLimitSeconds":45,"winner":0}
+UPSTREAM_COMPLETION_TOTAL {"completed":15}
+✔ Test bundledHybridsCompleteTheSupportedAppMatrix() passed after 110.415 seconds.
+✔ Suite UpstreamGameCompletionTests passed after 123.395 seconds.
+✔ Test run with 146 tests in 5 suites passed after 123.396 seconds.
+
+[1m▸ training export[0m
+sim: 1 games in 1.00s (1.0 games/sec)
+sim: 1 games in 0.99s (1.0 games/sec)
+training-data: valid 378 examples across 1 seeds
+
+[1m▸ coverage floors[0m
+coverage Packages/CatanEngine          95.97%  (floor 95%)
+coverage Packages/CatanAI              96.66%  (floor 95%)
+
+[1m▸ gitleaks[0m
+2:01PM INF 298 commits scanned.
+2:01PM INF scanned ~12947093 bytes (12.95 MB) in 1.33s
+2:01PM INF no leaks found
+
+[1m▸ app tests[0m
+  QA simulator: 937692FF-BFBF-4683-80E5-2590F5288D56
+Connection to github.com closed by remote host.
+** TEST SUCCEEDED **
+✔ Test run with 262 tests in 30 suites passed after 186.844 seconds.
+
+[1m▸ app build (Release)[0m
+** BUILD SUCCEEDED **
+
+[1m─── summary ───[0m
+[32mPASS  xcodegen drift  (0s)[0m
+[32mPASS  swiftlint --strict  (0s)[0m
+[32mPASS  evaluation tooling  (86s)[0m
+[32mPASS  packages build (W=E)  (3s)[0m
+[32mPASS  CatanEngine tests  (9s)[0m
+[32mPASS  CatanAI tests  (126s)[0m
+[32mPASS  training export  (2s)[0m
+[32mPASS  coverage floors  (1s)[0m
+[32mPASS  gitleaks  (1s)[0m
+[32mPASS  app tests  (822s)[0m
+[32mPASS  app build (Release)  (13s)[0m
+[33mSKIP  app build (Debug)  -- not requested; pass --debug-app[0m
+
+[32mgate: passed[0m

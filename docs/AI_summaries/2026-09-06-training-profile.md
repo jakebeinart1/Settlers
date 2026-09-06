@@ -44,6 +44,8 @@ passed in two processes. Deliberately giving the second road the wrong remaining
 road count fails feature 1331 on both tables; the mutation was removed.
 
 These cases found **no adapter mismatch**, not proof of exhaustive equivalence.
+Award ties/transfers and the complete seven/discards-to-robber transition remain
+uncovered by these new oracle fixtures; they are not confirmed defects.
 The generator preserves the original 39 fixtures byte-for-byte. Reproduction
 commands/hashes are in the
 [fixture provenance](../../Packages/CatanAI/Tests/CatanAITests/Fixtures/upstream-compound-observations.provenance.json).
@@ -129,6 +131,8 @@ busy device; no waiting process, forced takeover, automatic retry or budget
 extension. Any scheduler may check availability only until **2026-09-06 19:00
 UTC**, then report and pause. Run IDs: `profile-20260906-control-2` and
 `profile-20260906-cprofile-2`. A failed launched arm ends this diagnostic.
+The existing `watch-empires-gpu-reconstruction` heartbeat is active at ten-minute
+cadence for only this remaining pair and pauses at terminal state or the cutoff.
 
 The wrapper also now starts its watchdog before importing Torch/the binding,
 and validates all nested metric numbers, including evaluation and game rows.
@@ -146,9 +150,17 @@ The old wrappers/receipts are retained unchanged; post-run checks are separate.
   profiling runs passed a separate post-run check of every metric and checkpoint;
   that does not repair their timing contamination.
 - Independent standards/spec review closed the startup-watchdog and finite-metric
-  findings. Format checks and both edited skill validators passed. Full repository
-  gate is the remaining pre-push check; these isolated Torch tests are separate
-  from the normal dependency-free gate and Linux CI.
+  findings. Format checks and both edited skill validators passed. These isolated
+  Torch tests are separate from the dependency-free gate and Linux CI.
+- Full pre-push gate passed on **2631a11**: 105 tool tests, 234 engine tests,
+  146 AI tests, 262 hosted app tests and 48 UI tests (310 logical app/UI tests,
+  373 parameterized runs in Xcode's device summary). Release build passed;
+  standalone Debug build was not requested. Coverage: 95.97% engine / 96.66% AI.
+  [Raw gate](evidence/training-profile-20260906/verification/pre-push-gate.log)
+  and [Xcode summary](evidence/training-profile-20260906/verification/app-ui-summary.json).
+  The enclosing push exited **141** after its idle SSH connection closed;
+  that is a failed upload despite a green gate, not remote publication.
+  Retry uses SSH keepalives with the normal pre-push hook intact.
 
 **Status:** fidelity and sampled compound parity passed; clean profiling awaits
 the shared GPU. No optimization or stronger model is claimed. Choose an
