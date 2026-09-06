@@ -15,6 +15,9 @@ not monitoring; the trainer's own minute counter is not an independent deadline.
    absolute end deadline, checkpoint/log paths, and scoped stop mechanism.
    Bound training, export, and evaluation; an outer watchdog must terminate the
    owned process group, with finite graceful shutdown then forced termination.
+   Generate UTC/epoch deadlines in code on the training host. A run directory
+   may use local time: never turn its name or a manually converted time into a
+   shutdown instruction. Watchers read the machine-generated receipt.
 2. For work continuing beyond the turn, create or update a product heartbeat
    before handoff and verify it is active. Record its ID, cadence, and terminal
    stop condition. Short foreground smoke runs may use actively awaited tool
@@ -36,8 +39,10 @@ not monitoring; the trainer's own minute counter is not an independent deadline.
    reproduced strength. Pause the watcher after reporting the terminal result.
 
 For the upstream two-stage reconstruction, inspect
-`scripts/run-catan-reconstruction.py`; its external launcher supplies the outer
-deadline. Current run locations and receipts belong in
+`scripts/run-catan-reconstruction.py`; launch it through
+`scripts/training_watchdog.py run` for independent deadline enforcement and use
+that script's `inspect` mode on the training host for clock-safe status.
+Current run locations and receipts belong in
 `docs/AI_summaries/2026-09-05-public-catan-reproduction-log.md`, not in this skill.
 
 **A seed that reproduces twice inside one process is not reproducible.** Swift

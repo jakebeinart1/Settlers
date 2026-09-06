@@ -1,0 +1,32 @@
+{
+  "budget_seconds": 300.0,
+  "started_epoch": 1788665589.094159,
+  "started_elapsed": 12900.965523756,
+  "started_utc": "2026-09-06T03:33:09.094159+00:00",
+  "deadline_epoch": 1788665889.094159,
+  "deadline_utc": "2026-09-06T03:38:09.094159+00:00",
+  "state": "complete",
+  "command": [
+    "/home/alex_ubuntu/empires-research/original-v1/.venv/bin/python",
+    "-u",
+    "/home/alex_ubuntu/empires-research/tools/run-catan-reconstruction.py",
+    "--source",
+    "/home/alex_ubuntu/empires-research/original-v1",
+    "--output",
+    "/home/alex_ubuntu/empires-research/runs/gpu-watchdog-smoke-20260906",
+    "--binding-sha256",
+    "1cedb54260dfa407135981e1fdbf35608a1b739a5168164424f02010701c0198",
+    "--device",
+    "cuda",
+    "--fresh-minutes",
+    "0.5",
+    "--continuation-minutes",
+    "0.5"
+  ],
+  "watchdog_pid": 73209,
+  "process_group": 73210,
+  "remaining_seconds": 209.94986258000063,
+  "checked_utc": "2026-09-06T03:34:39.144302+00:00",
+  "exit_code": 0,
+  "finished_utc": "2026-09-06T03:34:39.144431+00:00"
+}

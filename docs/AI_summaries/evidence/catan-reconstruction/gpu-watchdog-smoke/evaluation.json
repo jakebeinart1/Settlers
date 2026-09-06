@@ -1,0 +1,74 @@
+[
+  {
+    "model": "original",
+    "checkpoint_sha256": "c4258f235c673efe6968b0aa4de66a1411f01012fa14fe71f548dfff681525a3",
+    "seed": 777,
+    "games": 192,
+    "wins": 126,
+    "caps": 0,
+    "outcomes_sha256": "7cf5d2ea20b50a79f07465d405b90495bb60663c8217ae6bcb6adec8ecc4611a"
+  },
+  {
+    "model": "original",
+    "checkpoint_sha256": "c4258f235c673efe6968b0aa4de66a1411f01012fa14fe71f548dfff681525a3",
+    "seed": 930011,
+    "games": 192,
+    "wins": 123,
+    "caps": 0,
+    "outcomes_sha256": "873816ce9630f7f89c164a5caa5f4c5fe9cf7b0a45df3f4c5ff5f072a06f2c76"
+  },
+  {
+    "model": "original",
+    "checkpoint_sha256": "c4258f235c673efe6968b0aa4de66a1411f01012fa14fe71f548dfff681525a3",
+    "seed": 930043,
+    "games": 192,
+    "wins": 126,
+    "caps": 0,
+    "outcomes_sha256": "6e9f3a9036e1f50e6db632f415ae497cea74ebc924da39f74e5a063882892da9"
+  },
+  {
+    "model": "original",
+    "checkpoint_sha256": "c4258f235c673efe6968b0aa4de66a1411f01012fa14fe71f548dfff681525a3",
+    "seed": 930071,
+    "games": 192,
+    "wins": 129,
+    "caps": 0,
+    "outcomes_sha256": "01e44b6fed1fabafbebd3d643211cba4507a1bba7f5f06a80441ba19e1d97671"
+  },
+  {
+    "model": "reconstructed",
+    "checkpoint_sha256": "a61f5c630a555a670f648b74b2034266fd70af556235cc9c6bf1d5c9f682332d",
+    "seed": 777,
+    "games": 192,
+    "wins": 36,
+    "caps": 0,
+    "outcomes_sha256": "bdb0bde44bc04d09c8fceb83141d566831ffab21c767afa826221c21b7feb18f"
+  },
+  {
+    "model": "reconstructed",
+    "checkpoint_sha256": "a61f5c630a555a670f648b74b2034266fd70af556235cc9c6bf1d5c9f682332d",
+    "seed": 930011,
+    "games": 192,
+    "wins": 30,
+    "caps": 0,
+    "outcomes_sha256": "7735aaedc398f9f140bd2b54d6aa272550605e3f153288dddea1b9c0c2bba3d6"
+  },
+  {
+    "model": "reconstructed",
+    "checkpoint_sha256": "a61f5c630a555a670f648b74b2034266fd70af556235cc9c6bf1d5c9f682332d",
+    "seed": 930043,
+    "games": 192,
+    "wins": 39,
+    "caps": 0,
+    "outcomes_sha256": "ece3ea6fc16b3dacc933463c21b11f37616ce5eba945076ab4572206f5a0dc87"
+  },
+  {
+    "model": "reconstructed",
+    "checkpoint_sha256": "a61f5c630a555a670f648b74b2034266fd70af556235cc9c6bf1d5c9f682332d",
+    "seed": 930071,
+    "games": 192,
+    "wins": 38,
+    "caps": 0,
+    "outcomes_sha256": "61374ea1e97f87ab010ad6d0491a999c914e62c7235dfdb946a4ce11f715140c"
+  }
+]

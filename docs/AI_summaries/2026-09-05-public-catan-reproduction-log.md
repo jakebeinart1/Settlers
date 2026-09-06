@@ -234,7 +234,31 @@ Fourteen isolated-environment guard tests and 62 evaluation-tool tests pass.
 Review caught and corrected an exit-zero-without-winner false green and an
 unbounded evaluation stage before the full training launch.
 
-## Full GPU reconstruction launched
+## Full GPU reconstruction — stopped incomplete
+
+**Correction after the September 6 03:15 UTC stop:** the assistant incorrectly
+treated the run directory's local Eastern time as UTC. Converting the actual
+start epoch `1788661944.1607244` yields **02:32:24 UTC September 6**, not 22:32 UTC
+September 5. The correct three-hour deadline was **05:32:24 UTC**, so it had NOT
+expired. The stop epoch `1788664552.7859533` yields 03:15:52 UTC, agreeing with
+the observed 43m28s process runtime. Python, native date, and the recorded epochs
+are consistent. The earlier claim of a GPU clock/suspension problem is withdrawn:
+the error was the assistant's manual conversion and handwritten watcher deadline.
+
+The watcher sent TERM only to the verified job process group 55549 and confirmed
+the timeout, supervisor, and training child had exited. Status now reads
+`failed`, with `InterruptedError('received signal 15')`. The latest checkpoint
+remains `step_0063307776.pt` (63,307,776 decisions) in the fresh-stage directory.
+No checkpoint was deleted or promoted. Continuation, final export, and final
+evaluation did not run. This is **not a completed training reproduction**.
+
+Receipts: `evidence/catan-reconstruction/gpu-baseline/status-at-stop.json` and
+the copied `fresh-at-stop.log`; full artifacts remain on the GPU host. Heartbeat
+`watch-empires-gpu-reconstruction` was paused at the stop. The launch record
+below is historical, not current status. Upstream resume restores weights and
+Adam but resets environments, RNG, counters, and shaping schedule, so tacking
+seven minutes onto this checkpoint would change the declared fresh experiment.
+Preserve this artifact and use a new run ID for a complete 50+60 reconstruction.
 
 The 30-second fresh + 30-second continuation rehearsal completed successfully:
 both stages produced finite checkpoints, the exported network loaded in Rust,
@@ -244,10 +268,10 @@ status, evaluation counts, and native-game metrics are retained under
 [`evidence/catan-reconstruction/gpu-smoke`](evidence/catan-reconstruction/gpu-smoke).
 
 The real **50-minute fresh + 60-minute continuation** job started on
-September 5 at **22:32 UTC / 18:32 Eastern** in detached tmux session
+September 6 at **02:32 UTC / September 5 22:32 Eastern** in detached tmux session
 `empires-reconstruction-20260905`. It starts from random weights, not the
 rehearsal checkpoint. CUDA training and advancing updates were observed.
-Expected end is approximately 00:25 UTC September 6 / 20:25 Eastern September 5,
+Expected end was approximately 04:25 UTC September 6 / 00:25 Eastern September 6,
 including export/evaluation; this is an estimate, not a completion receipt.
 
 - Remote job directory: `/home/alex_ubuntu/empires-research/runs/gpu-baseline-20260905`.
@@ -263,7 +287,7 @@ including export/evaluation; this is an estimate, not a completion receipt.
 - The local `gpu-baseline/status-at-launch.json` is explicitly a snapshot,
   **not live status or completed-training evidence**.
 - Follow-up watcher: Codex thread heartbeat `watch-empires-gpu-reconstruction`,
-  active at ten-minute intervals. It checks process health and progress, reports
+  configured at ten-minute intervals, now paused after the terminal check. It checks process health and progress, reports
   meaningful transitions/failure/completion, and pauses after its terminal report
   or a final check at the absolute deadline. A post-launch check observed the
   fresh stage advancing beyond 38.6M decisions. The remote timeout is independent
@@ -275,10 +299,56 @@ Read-only status check:
 ssh -a gc-gpu 'cat /home/alex_ubuntu/empires-research/runs/gpu-baseline-20260905/status.json'
 ```
 
+## Replacement run with machine-owned deadlines
+
+`gpu-baseline-20260906-r2` is the active replacement, launched from random
+weights with the unchanged 50+60 protocol after the user authorized fixing the
+monitoring bugs and continuing. The interrupted checkpoint remains untouched.
+Machine receipt: start `2026-09-06T03:40:12.729306+00:00`, absolute deadline
+`2026-09-06T06:40:12.729306+00:00`. These strings are generated from numeric epochs
+by code, not converted from the run directory's local timestamp.
+
+`scripts/training_watchdog.py` now owns an independent on-host process-group
+watchdog. It stops at the first exhausted wall-clock or Linux CLOCK_BOOTTIME
+budget, escalates TERM to KILL after five seconds, shields cleanup from repeated
+stop signals, and records cleanup failure as failure. An outer GNU timeout adds
+a 10,830-second backstop with 15-second kill escalation. Its `inspect` command
+checks host boot identity, guardian start ticks, and receipt freshness; stale or
+dead supervision cannot report healthy `running` status.
+
+The existing heartbeat `watch-empires-gpu-reconstruction` is ACTIVE again, now
+targeting only r2 and reading `inspect` output. It must not reuse the old wrong
+deadline, restart training, promote models, or interfere with unrelated work.
+The heartbeat pauses after reporting completion/failure. The on-host watchdog
+does not depend on the desktop scheduler waking up.
+
+Verification: 71 dependency-free tooling tests passed locally; 23 isolated
+integration checks passed on Linux. Regression cases cover the original epoch
+conversion, forward/backward clock changes, deadline termination of a child
+that ignores TERM, repeated TERM during cleanup, cleanup failures, dead guardian
+and reboot detection, and real CLI execution. Review findings were fixed and
+the follow-up review found no remaining blocker. The 30s+30s GPU rehearsal
+completed export, a native game and all eight evaluation batches under the new
+guardian (before the subsequent signal-shield/liveness hardening, which was
+tested separately). Receipts are under
+`evidence/catan-reconstruction/gpu-watchdog-smoke/`.
+
+Current run root: `/home/alex_ubuntu/empires-research/runs/gpu-baseline-20260906-r2`.
+The sibling `.watchdog.json` is live on the host; the local
+`evidence/catan-reconstruction/gpu-baseline-20260906-r2/watchdog-at-launch.json`
+is only a launch snapshot. Initial runtime inspection reported live supervision,
+CUDA selected, and training beyond 565,248 decisions. The new run is not yet a
+completed reproduction or a strength claim.
+
+```bash
+ssh -a -o ConnectTimeout=10 gc-gpu \
+  '/home/alex_ubuntu/empires-research/original-v1/.venv/bin/python /home/alex_ubuntu/empires-research/tools/training_watchdog.py inspect --output /home/alex_ubuntu/empires-research/runs/gpu-baseline-20260906-r2'
+```
+
 ## Reproduction gates still open
 
-The declared 50-minute fresh stage followed by a 60-minute continuation is
-running with those same explicit assumptions. The supervisor selects the
+The original run remains incomplete after the erroneous early stop above;
+the replacement 50+60 run is active. The supervisor is designed to select the
 final checkpoint, not whichever checkpoint wins on seed 777. Retain both stage
 configs, actual step counts, logs, checkpoints and held-out results. This is a
 source-faithful reconstruction; exact historical lineage remains unavailable.
