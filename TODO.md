@@ -1,22 +1,6 @@
 # Settlers — To Do
 
-## 0. Gameplay interaction UX
-
-Product requirements, interaction decisions, acceptance criteria, and the
-implementation sequence live in
-`docs/superpowers/specs/2026-09-04-gameplay-interaction-ux.md`.
-
-- [x] One match-authoritative player identity across live gameplay surfaces.
-- [x] Confirmable robber destination and identity-rich victim selection,
-      including an off-board drag cradle, ghost destination, explicit victim,
-      change-territory action, and one final durable confirmation.
-- [x] Private development-card purchase reveal plus discoverable usable hand.
-- [x] Minimize mandatory discard into an inspect-only board mode.
-- [x] Cross-feature state-priority and accessibility pass, backed by the shared
-      interaction resolver plus native setup, discard, development-card,
-      trade, handoff, Settings, construction, and robber journeys.
-
-## 1. UI polish (quick, self-contained fixes)
+## 0. UI polish (quick, self-contained fixes)
 
 Small, independent cleanups to the current gameplay surfaces — no design work
 or spec needed, just fix the screen. Take these before the larger feature
@@ -35,49 +19,21 @@ lives with "4. New game modes" instead of here — see the note there.)
       robber interaction resolver; make it fit without clipping on the
       standard device sizes covered by `run-settlers`/`play-settlers`.
 
-## 2. Bot strength
-Make the bot opponents play meaningfully better. **Not done** — the items
-below are infra/metrics milestones (baseline, personality separation,
-threat assessment), not a claim that bots play well. Playtesting
-(2026-09-06) says bots still lose consistently to a human player and show
-visibly repeating patterns during play. That gap is the actual goal of this
-section and is still open; treat it as the top-priority item here.
+## 1. Bot strength
 
-- [x] Added `ThreatAssessment` (`Packages/CatanAI/Sources/CatanAI/ThreatAssessment.swift`)
-      — a per-opponent threat score (VP + production + hidden dev cards +
-      proximity to Largest Army/Longest Road) — and wired it, proportionally
-      via `relativeWeight`, into robber targeting, settlement/road
-      placement (denies threatening opponents' frontier spots, blocks their
-      road network), trade acceptance (raises the bar for high-threat
-      proposers), and Monopoly targeting. See
-      `docs/superpowers/specs/2026-08-16-bot-threat-assessment-design.md`.
-- [x] Established a reproducible, seat-rotated baseline against the frozen
-      Greedy anchor; added per-seat behavior metrics; and fixed bot-to-bot
-      proposals so another policy answers before the proposer continues. See
-      `docs/AI_summaries/2026-09-02-ai-baseline-and-personality-audit.md`.
-- [x] Demonstrated two distinct style axes on held-out, chair-rotated games:
-      Aggressive uses playable knights more often; Cautious proposes a player
-      trade before paying the bank more often. See
-      `docs/AI_summaries/2026-09-02-personality-separation-results.md`.
-- [x] Defined and validated city capture rate as the consolidation metric;
-      Cautious chose a legal city +6.5 points more often than Balanced on
-      held-out, chair-rotated games (95% CI +3.1 to +10.3). The narrower
-      city-versus-settlement and city-versus-outward-build metrics were
-      explicitly rejected as too sparse. See
-      `docs/AI_summaries/2026-09-02-consolidation-metric-results.md`.
-- [x] Replaced bot-seat-order personality assignment with stable, realized
-      opponent profiles that compose civilization, general, strategy, and
-      dialogue; active matches snapshot profiles across relaunch/restart and
-      logs record both profile identity and measured strategy. See
-      `docs/AI_summaries/2026-09-02-opponent-profile-decision-log.md`.
+Make the bot opponents play meaningfully better. **Not done.** Playtesting
+(2026-09-06) says bots still lose consistently to a human player and show
+visibly repeating patterns during play. Past infra/metrics work here
+(baseline vs. the frozen Greedy anchor, personality separation, threat
+assessment) never measured bots against human-level play, only bot-vs-bot —
+so a bot can win every logged metric and still be the easy, repetitive
+opponent being reported now.
+
 - [ ] Bots cannot beat a human player and repeat visibly predictable patterns
-      in real play (reported 2026-09-06). The bot-vs-bot metrics above never
-      measured this — they compare bots to the frozen Greedy anchor and to
-      each other, not to human-level play, so a bot can win every logged
-      metric here and still be an easy, repetitive opponent. Needs a
-      human-anchored strength check (not just bot-vs-bot), and root-causing
-      of the specific repeated patterns before more personality/metric work
-      is layered on top of a bot that isn't winning games.
+      in real play (reported 2026-09-06). Needs a human-anchored strength
+      check (not just bot-vs-bot), and root-causing of the specific repeated
+      patterns before more personality/metric work is layered on top of a
+      bot that isn't winning games.
 - [ ] Calibrate genuine difficulty tiers against frozen anchors before adding
       a difficulty control to New Game. Personality and difficulty are
       separate axes and must remain separate in both evaluation and UI.
@@ -87,7 +43,7 @@ section and is still open; treat it as the top-priority item here.
       map, decision gates, and ordered research program are in
       `docs/AI_summaries/2026-09-05-ai-strategy-research-program.md`.
 
-## 3. Opponent event messages
+## 2. Opponent event messages
 
 Extends the existing bot dialogue/personality infrastructure
 (`Packages/CatanAI/Sources/CatanAI/TradeMessages.swift`,
@@ -105,7 +61,7 @@ button with the pause menu.
       (bottom-right), so you can see opponent reactions to events as the
       game goes.
 
-## 4. Main menu / game log rework
+## 3. Main menu / game log rework
 
 - [ ] Trim the main menu — drop the Settings entry there; most of what it
       exposes is already reachable later (in-game settings, etc.), so a
@@ -120,7 +76,7 @@ button with the pause menu.
       (e.g. a "View Game Log" button) so you can review how the game played
       out right after it ends.
 
-## 5. New game modes (larger maps)
+## 4. New game modes (larger maps)
 
 New fixed modes (board size + VP target + map art bundled together, not
 independent mix-and-match settings), starting with a "Plan to 20" mode on a
