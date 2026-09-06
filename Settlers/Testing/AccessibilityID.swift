@@ -19,6 +19,7 @@ enum AccessibilityID {
     }
 
     enum NewGame {
+        static let aiInfo = "new-game.ai-info"
         static let cancel = "new-game.cancel"
         static let start = "new-game.start"
         static let confirmOverwrite = "new-game.confirm-overwrite"

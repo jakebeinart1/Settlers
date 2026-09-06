@@ -109,6 +109,7 @@
 		DC62266DFBF7B3987969DA87 /* IncomingOfferHoldTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6BF5BC6D6577182E9829230A /* IncomingOfferHoldTests.swift */; };
 		E3A6D0C733055C91F0E356FE /* BoardFitTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A53ECD05D7E8073C7BEDC19 /* BoardFitTests.swift */; };
 		E47E806640E19E4105F9FEDF /* UITestBootstrap.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5CF7C06392E2A4F1B15C8411 /* UITestBootstrap.swift */; };
+		E5066533F49CF032C4C6C4CE /* PolicyTracePersistenceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECB6B57A74F53C2A2F115571 /* PolicyTracePersistenceTests.swift */; };
 		E943B06519C318DFE4BD613E /* TradePresentationState.swift in Sources */ = {isa = PBXBuildFile; fileRef = D64CA86D7B5FE711AD994243 /* TradePresentationState.swift */; };
 		EA3F8948081A29B415CD8B67 /* QALaunchFlag.swift in Sources */ = {isa = PBXBuildFile; fileRef = 59A80CE9867E891B09A3F0E5 /* QALaunchFlag.swift */; };
 		ED932E191F8F655CD1CF15F1 /* GameLogListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D98DF10D73632B7243DC205C /* GameLogListView.swift */; };
@@ -247,6 +248,7 @@
 		E89E14D5D0ACBB92DF7729B3 /* BoardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BoardView.swift; sourceTree = "<group>"; };
 		E93C9C15AFA0812F0FF8E052 /* GameLogDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameLogDetailView.swift; sourceTree = "<group>"; };
 		EC9BE64D33337CB59DE2D79D /* TileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TileView.swift; sourceTree = "<group>"; };
+		ECB6B57A74F53C2A2F115571 /* PolicyTracePersistenceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PolicyTracePersistenceTests.swift; sourceTree = "<group>"; };
 		EED095DCE8ECB10CAA5F77E5 /* Signing.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Signing.xcconfig; sourceTree = "<group>"; };
 		F07525DED1233EC887B0B75F /* GameViewModel+QABoardDecision.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "GameViewModel+QABoardDecision.swift"; sourceTree = "<group>"; };
 		F34A579755CFBDEAF52EBB70 /* IncomingTradeCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IncomingTradeCardView.swift; sourceTree = "<group>"; };
@@ -306,6 +308,7 @@
 				4871E5E296438809020C5BFD /* OpponentProfileTests.swift */,
 				859E263A00119BF52F19D867 /* PacingPreferencesTests.swift */,
 				68A4D0016F665BB8F904F4DD /* PersistenceTests.swift */,
+				ECB6B57A74F53C2A2F115571 /* PolicyTracePersistenceTests.swift */,
 				11D7DF8A5B6CAC4647065878 /* PreMergeAuditRegressionTests.swift */,
 				BB62855B09E0A68CD8B97889 /* SaveRecoveryTests.swift */,
 			);
@@ -721,6 +724,7 @@
 				0F1C7F5ED5E32E95D4FDE581 /* OpponentProfileTests.swift in Sources */,
 				9D2C2CFA8309AE51A7322BB1 /* PacingPreferencesTests.swift in Sources */,
 				8F8382E69A373BB264240262 /* PersistenceTests.swift in Sources */,
+				E5066533F49CF032C4C6C4CE /* PolicyTracePersistenceTests.swift in Sources */,
 				58CF19E0BF339B5D32B7D233 /* PreMergeAuditRegressionTests.swift in Sources */,
 				434C2E6A7C5F23148D5810A7 /* SaveRecoveryTests.swift in Sources */,
 			);

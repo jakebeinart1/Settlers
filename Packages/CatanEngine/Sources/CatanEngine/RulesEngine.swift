@@ -376,9 +376,12 @@ public enum RulesEngine {
             case .proposeTrade(let offer):
                 guard offer.from == player else { throw MoveError.notYourTurn }
                 try Trading.proposeTrade(offer, state: &state)
+                state.tradesProposedThisTurn += 1
                 events.append(.proposedTrade(player, give: offer.give, want: offer.want))
 
             case .endTurn:
+                state.completedTurnCount = state.completedTurnCount.map { $0 + 1 }
+                state.tradesProposedThisTurn = 0
                 state.devCardsBoughtThisTurn = [:]
                 state.devCardPlayedThisTurn = nil
                 state.tradesAcceptedThisTurn = [:]

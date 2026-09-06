@@ -23,6 +23,7 @@ public struct GameLogEvent: Sendable, Equatable {
     public let timestamp: Date
     public let player: PlayerID
     public let move: GameMove
+    public var policyTrace: PolicyTrace?
 }
 
 public struct GameLogDetail: Sendable, Equatable {
@@ -48,7 +49,7 @@ public struct GameLogScan: Sendable, Equatable {
 /// inspect and export it without a development-signed container download.
 public struct GameLogStore: Sendable {
     public static let shared = GameLogStore()
-    public static let currentLogSchemaVersion = 4
+    public static let currentLogSchemaVersion = 5
 
     private let directoryURL: URL
     private let maxKeptLogs: Int
@@ -181,6 +182,7 @@ public struct GameLogStore: Sendable {
         var move: GameMove?
         var winner: PlayerID?
         var elapsedSeconds: TimeInterval?
+        var policyTrace: PolicyTrace?
     }
 
     public func startNewGame(initialState: GameState, roster: SeatRoster) throws -> UUID {
@@ -223,7 +225,7 @@ public struct GameLogStore: Sendable {
                              initialState: checkpoint.initialState, roster: roster,
                              elapsedSeconds: checkpoint.elapsedSeconds)]
         entries += checkpoint.moves.map {
-            Entry(kind: .move, timestamp: $0.timestamp, player: $0.actor, move: $0.move)
+            Entry(kind: .move, timestamp: $0.timestamp, player: $0.actor, move: $0.move, policyTrace: $0.policyTrace)
         }
         if case .gameOver(let winner) = checkpoint.state.phase {
             entries.append(Entry(kind: .end,
@@ -330,7 +332,7 @@ public struct GameLogStore: Sendable {
 
         let moves = parsed.entries.compactMap { entry -> GameLogEvent? in
             guard entry.kind == .move, let player = entry.player, let move = entry.move else { return nil }
-            return GameLogEvent(timestamp: entry.timestamp, player: player, move: move)
+            return GameLogEvent(timestamp: entry.timestamp, player: player, move: move, policyTrace: entry.policyTrace)
         }
         let end = parsed.entries.last(where: { $0.kind == .end })
         let lastTimestamp = end?.timestamp ?? moves.last?.timestamp ?? start.timestamp

@@ -1,3 +1,4 @@
+import Foundation
 import CatanAI
 import CatanEngine
 
@@ -98,10 +99,12 @@ extension GameViewModel {
                     id: "legacy-\(civilization.rawValue)-\(strategy.rawValue)",
                     name: civilization.generalName,
                     civilization: civilization,
-                    strategy: strategy
+                    strategy: strategy,
+                    policy: .heuristic
                 ))
             }
-            return (player.id, OpponentProfile.forCivilization(civilization))
+            let profile = OpponentProfile.forCivilization(civilization)
+            return (player.id, preserveLegacySeatOrder ? profile.usingPolicy(.heuristic) : profile)
         })
     }
 
@@ -116,5 +119,70 @@ extension GameViewModel {
         let bots = state.players.map(\.id).filter { !humanSeats.contains($0) }
         let rank = bots.firstIndex(of: player) ?? 0
         return [OpponentStrategy.balanced, .aggressive, .cautious][min(rank, 2)]
+    }
+}
+
+extension GameViewModel {
+    /// Only new matches and legacy migration seed from the board. Modern
+    /// restoration supplies saved policy IDs and the checkpoint's RNG cursor.
+    static func makeSession(
+        state: GameState,
+        opponentProfiles: [PlayerID: OpponentProfile],
+        policyFactory: OpponentPolicyFactory = .shared
+    ) throws -> GameSession {
+        var seedSource = state.rng
+        return try GameSession(state: state, policies: makePolicies(opponentProfiles, policyFactory: policyFactory),
+                               policySeed: seedSource.next())
+    }
+
+    static func makePolicies(_ profiles: [PlayerID: OpponentProfile],
+                             policyFactory: OpponentPolicyFactory = .shared) throws -> [PlayerID: any Policy] {
+        try policyFactory.makePolicies(profiles)
+    }
+}
+
+/// Loads the bundled immutable model once per app process, only when a match
+/// actually requests it. Tests inject a separate factory to exercise failures
+/// without changing the shared cache or silently substituting heuristic play.
+@MainActor
+final class OpponentPolicyFactory {
+    static let shared = OpponentPolicyFactory()
+    private let loadNetwork: () throws -> UpstreamNetwork
+    private var network: UpstreamNetwork?
+
+    init(loadNetwork: @escaping () throws -> UpstreamNetwork = UpstreamNetwork.bundled) {
+        self.loadNetwork = loadNetwork
+    }
+
+    func makePolicies(_ profiles: [PlayerID: OpponentProfile]) throws -> [PlayerID: any Policy] {
+        try profiles.mapValues { profile in
+            let fallback = Self.heuristic(for: profile)
+            switch profile.policy {
+            case .heuristic: return fallback
+            case .neuralR2: return UpstreamPolicy(network: try loadedNetwork(), fallback: fallback)
+            }
+        }
+    }
+
+    static func heuristic(for profile: OpponentProfile) -> HeuristicPolicy {
+        HeuristicPolicy(personality: profile.strategicPersonality, id: "heuristic-\(profile.strategy.rawValue)")
+    }
+
+    private func loadedNetwork() throws -> UpstreamNetwork {
+        if let network { return network }
+        do {
+            let loaded = try loadNetwork()
+            network = loaded
+            return loaded
+        } catch {
+            throw LoadingFailure(underlying: error)
+        }
+    }
+
+    private struct LoadingFailure: LocalizedError {
+        let underlying: Error
+        var errorDescription: String? {
+            "Experimental neural AI could not be loaded: \(String(describing: underlying))"
+        }
     }
 }

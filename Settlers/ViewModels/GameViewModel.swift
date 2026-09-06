@@ -26,6 +26,7 @@ public final class GameViewModel {
     let gameLogStore: GameLogStore
     let gameStatsStore: GameStatsStore
     let checkpointStore: MatchCheckpointStore
+    let policyFactory: OpponentPolicyFactory
     var checkpointDocument: MatchCheckpointDocument?
     var persistenceBlocked = false
 
@@ -242,8 +243,10 @@ public final class GameViewModel {
 
     init(checkpointStore: MatchCheckpointStore, gameStore: GameStore,
          civilizationStore: CivilizationAssignmentStore, matchSetupStore: MatchSetupStore,
-         gameLogStore: GameLogStore, gameStatsStore: GameStatsStore) {
+         gameLogStore: GameLogStore, gameStatsStore: GameStatsStore,
+         policyFactory: OpponentPolicyFactory = .shared) {
         self.checkpointStore = checkpointStore
+        self.policyFactory = policyFactory
         self.gameStore = gameStore
         self.civilizationStore = civilizationStore
         self.matchSetupStore = matchSetupStore
@@ -272,9 +275,13 @@ public final class GameViewModel {
         // fully assign-before-read through this initializer.
         let profiles = Self.opponentProfiles(
             for: initialState, humanSeats: [seat],
-            civilizations: assignment
+            civilizations: assignment, preserveLegacySeatOrder: true
         )
-        session = Self.makeSession(state: initialState, opponentProfiles: profiles)
+        // The placeholder is never a newly started match. It must not load a
+        // neural model before a saved match's actual policy choice is known.
+        var seedSource = initialState.rng
+        session = GameSession(state: initialState,
+            policies: profiles.mapValues { OpponentPolicyFactory.heuristic(for: $0) }, policySeed: seedSource.next())
         playerRoster = PlayerRoster(
             playerIDs: initialState.players.map(\.id), humanSeats: [seat],
             humanNames: humanNames, civilizations: assignment,
@@ -315,7 +322,8 @@ public final class GameViewModel {
         do {
             let realized = Self.realisedMatch(chairs: match.chairs, civilizations: match.civilizations,
                                              opponentProfiles: match.opponentProfiles, from: setup)
-            let candidate = Self.makeSession(state: match.state, opponentProfiles: match.opponentProfiles)
+            let candidate = try Self.makeSession(state: match.state, opponentProfiles: match.opponentProfiles,
+                                                 policyFactory: policyFactory)
             try replaceActiveMatch(state: match.state, setup: realized, session: candidate)
             resetPerGameState()
             try installCheckpointMatch()
@@ -327,7 +335,7 @@ public final class GameViewModel {
             }
             exportCommittedRecordings()
         } catch {
-            persistenceErrorMessage = "The new game could not be saved. Your previous game was not replaced: \(error.localizedDescription)"
+            persistenceErrorMessage = "The new game could not be started. Your previous game was not replaced: \(error.localizedDescription)"
         }
     }
 
@@ -669,7 +677,11 @@ public final class GameViewModel {
             opponentProfiles: profiles
         )
         CivilizationAssignment.humanNames = names
-        session = Self.makeSession(state: newState, opponentProfiles: profiles)
+        do {
+            session = try Self.makeSession(state: newState, opponentProfiles: profiles, policyFactory: policyFactory)
+        } catch {
+            preconditionFailure("Cannot load QA match policies: \(error)")
+        }
         resetDiscardPresentation()
         persistTestingPosition()
         reconcileBoardDecision()
@@ -705,7 +717,11 @@ public final class GameViewModel {
             humanNames: names, civilizations: CivilizationAssignment.current,
             opponentProfiles: profiles
         )
-        session = Self.makeSession(state: state, opponentProfiles: profiles)
+        do {
+            session = try Self.makeSession(state: state, opponentProfiles: profiles, policyFactory: policyFactory)
+        } catch {
+            preconditionFailure("Cannot load QA match policies: \(error)")
+        }
         persistTestingPosition()
     }
 
@@ -1033,23 +1049,6 @@ public final class GameViewModel {
     public typealias EventBatch = GameEventBatch
     public private(set) var eventBatch = EventBatch(sequence: 0, events: [])
     private var pendingEvents: [GameEvent] = []
-
-    /// Only new matches and legacy migration seed a session from the board.
-    /// Modern resume restores the saved policy RNG and negotiation bookkeeping.
-    static func makeSession(
-        state: GameState,
-        opponentProfiles: [PlayerID: OpponentProfile]
-    ) -> GameSession {
-        var seedSource = state.rng
-        return GameSession(state: state, policies: makePolicies(opponentProfiles), policySeed: seedSource.next())
-    }
-
-    static func makePolicies(_ profiles: [PlayerID: OpponentProfile]) -> [PlayerID: any Policy] {
-        profiles.mapValues { profile in
-            HeuristicPolicy(personality: profile.strategicPersonality,
-                            id: "heuristic-\(profile.strategy.rawValue)")
-        }
-    }
 
     private func beginEventBatch() {
         pendingEvents = []

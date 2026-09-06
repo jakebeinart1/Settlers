@@ -45,7 +45,7 @@ extension GameViewModel {
         }
         let setup = legacyRealizedSetup(state: state, active: active, seat: seat)
         let profiles = Self.profiles(in: setup)
-        let candidate = Self.makeSession(state: state, opponentProfiles: profiles)
+        let candidate = try Self.makeSession(state: state, opponentProfiles: profiles, policyFactory: policyFactory)
         let document = try MatchCheckpointMigration.prepare(
             session: candidate.checkpoint, setup: setup, statistics: gameStatsStore,
             activeLog: legacyActiveLog())
@@ -102,7 +102,8 @@ extension GameViewModel {
         guard profiles.count == match.setup.aiSeats.count, let savedSession = match.sessionCheckpoint else {
             throw SavedGameRecoveryError.blocked("The saved session or realized opponents are missing.")
         }
-        let restored = try GameSession(checkpoint: savedSession, policies: Self.makePolicies(profiles))
+        let restored = try GameSession(checkpoint: savedSession,
+            policies: Self.makePolicies(profiles, policyFactory: policyFactory))
         session = restored
         self.playerRoster = playerRoster
         pendingDevCardReveal = checkpointDocument?.pendingDevCardReveal

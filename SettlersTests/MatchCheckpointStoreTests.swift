@@ -4,6 +4,36 @@ import Testing
 import CatanAI
 @testable import Settlers
 
+@Suite struct PolicyContextReplayTests {
+    @Test func replayChecksKnownTurnAndProposalCounts() {
+        let expected = GameSetup.newGame(board: BoardGenerator.standard(), seed: 23)
+        var changed = expected
+        changed.completedTurnCount = 1
+        #expect(!expected.matchesForReplayValidationExcludingDeclinedTradeHistory(changed))
+        changed = expected
+        changed.tradesProposedThisTurn = 1
+        #expect(!expected.matchesForReplayValidationExcludingDeclinedTradeHistory(changed))
+    }
+
+    @Test func replayCannotReplaceKnownHistoryWithUnknownHistory() {
+        let known = GameSetup.newGame(board: BoardGenerator.standard(), seed: 23)
+        var unknown = known
+        unknown.completedTurnCount = nil
+        #expect(!known.matchesForReplayValidationExcludingDeclinedTradeHistory(unknown))
+        #expect(!unknown.matchesForReplayValidationExcludingDeclinedTradeHistory(known))
+    }
+
+    @Test func legacyUnknownHistoryDoesNotInventProposalEquality() {
+        var expected = GameSetup.newGame(board: BoardGenerator.standard(), seed: 23)
+        expected.completedTurnCount = nil
+        var replay = expected
+        replay.tradesProposedThisTurn = 2
+        #expect(replay.matchesForReplayValidationExcludingDeclinedTradeHistory(expected))
+        replay.rng = RandomSource(seed: 24)
+        #expect(!replay.matchesForReplayValidationExcludingDeclinedTradeHistory(expected))
+    }
+}
+
 @MainActor @Suite struct MatchCheckpointStoreTests {
     enum Interruption: Error { case simulatedProcessExit }
 

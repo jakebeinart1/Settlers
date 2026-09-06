@@ -11,7 +11,10 @@ let package = Package(
         .package(path: "../CatanEngine")
     ],
     targets: [
-        .target(name: "CatanAI", dependencies: ["CatanEngine"]),
+        .target(
+            name: "CatanAI", dependencies: ["CatanEngine"],
+            resources: [.copy("Resources/UpstreamPolicy")]
+        ),
         // Headless seeded self-play harness. Deliberately a target and NOT a
         // `products:` entry: the iOS app links this package by package name
         // (`project.yml` -> `dependencies: - package: CatanAI`), so adding a
@@ -20,6 +23,9 @@ let package = Package(
         // executable product for an `.executableTarget`, which is all
         // `swift run --package-path Packages/CatanAI sim` needs.
         .executableTarget(name: "sim", dependencies: ["CatanAI", "CatanEngine"]),
-        .testTarget(name: "CatanAITests", dependencies: ["CatanAI"])
+        .testTarget(
+            name: "CatanAITests", dependencies: ["CatanAI"],
+            resources: [.copy("Fixtures")]
+        )
     ]
 )

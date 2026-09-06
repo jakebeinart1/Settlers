@@ -29,11 +29,14 @@ import SwiftUI
 /// against this palette and cannot take the painted gold-hairline treatment.
 /// The painted equivalents live in `SettingsChrome`.
 public struct InGameSettingsView: View {
+    public let opponentPolicies: [OpponentPolicy]
     public let onResume: () -> Void
     public let onRestart: () -> Void
     public let onMainMenu: () -> Void
 
-    public init(onResume: @escaping () -> Void, onRestart: @escaping () -> Void, onMainMenu: @escaping () -> Void) {
+    public init(opponentPolicies: [OpponentPolicy], onResume: @escaping () -> Void,
+                onRestart: @escaping () -> Void, onMainMenu: @escaping () -> Void) {
+        self.opponentPolicies = opponentPolicies
         self.onResume = onResume
         self.onRestart = onRestart
         self.onMainMenu = onMainMenu
@@ -65,6 +68,7 @@ public struct InGameSettingsView: View {
                     VStack(spacing: 22) {
                         titleBlock
                         SettingsInfoPlaque(text: "These settings do not change match rules.")
+                        SettingsInfoPlaque(text: OpponentPolicy.modeDescription(for: opponentPolicies))
                         pacingSection
                         tradeTimerSection
                         gameControlSection
@@ -310,5 +314,5 @@ public struct InGameSettingsView: View {
 }
 
 #Preview {
-    InGameSettingsView(onResume: {}, onRestart: {}, onMainMenu: {})
+    InGameSettingsView(opponentPolicies: [.neuralR2], onResume: {}, onRestart: {}, onMainMenu: {})
 }

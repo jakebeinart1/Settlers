@@ -1,0 +1,50 @@
+{
+  "status": "passed",
+  "scope": "Functional only; no strength claim or app UI verification",
+  "firstPass": {
+    "completed": 15,
+    "actionCaps": 0,
+    "wallClockCaps": 0,
+    "illegalSelections": 0,
+    "unexpectedFallbacks": 0,
+    "missingTraces": 0,
+    "exitCode": 0
+  },
+  "repeats": {
+    "completed": [
+      15,
+      15
+    ],
+    "exitCodes": [
+      0,
+      0
+    ],
+    "allThreeNormalizedRowsMatch": true,
+    "normalization": "Drop elapsedSeconds only; retain all other row fields"
+  },
+  "limits": {
+    "actionsPerGame": 3000,
+    "wallSecondsPerGame": 45,
+    "outerSecondsPerProcess": 900
+  },
+  "totals": {
+    "actions": 5907,
+    "evaluations": 6679,
+    "sources": {
+      "heuristic": 2465,
+      "neural": 4214
+    },
+    "fallbacks": {
+      "heuristic_trade_proposal": 796,
+      "player_trade_negotiation": 1568,
+      "unsupported_pre_roll_development_card": 101
+    }
+  },
+  "distributionShifts": [
+    "Fixed-chair four-player target-7 checkpoint used at three/four seats and targets 8/10/12",
+    "Native port positions 7/9 differ from upstream; encoded correctly",
+    "Swift compound completion and heuristic player trades"
+  ],
+  "staleEvidence": "STALE-pre-setup-fix.rows.jsonl preserves earlier context-bug outcomes and must not validate the corrected implementation",
+  "binaryHash": "e3eef365ee1aa26c38d9c57e3536751716604e47ca0c69cd266be6e0ea2f5188  /Users/alex/Documents/Personal Projects/Settlers/Packages/CatanAI/.build/arm64-apple-macosx/release/CatanAIPackageTests.xctest/Contents/MacOS/CatanAIPackageTests"
+}

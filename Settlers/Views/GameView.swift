@@ -311,6 +311,7 @@ public struct GameView: View {
             if interactionPriority.isSettingsCoverPresented {
                 // Surface B: painted pacing, trade-timer, and match controls.
                 InGameSettingsView(
+                    opponentPolicies: viewModel.opponentProfiles.values.map(\.policy),
                     onResume: { isShowingInGameSettings = false },
                     onRestart: {
                         isShowingInGameSettings = false

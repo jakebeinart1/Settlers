@@ -4,6 +4,24 @@ import XCTest
 /// match contract and back without relying on visible copy or pixel positions.
 @MainActor
 final class MainMenuFlowTests: XCTestCase {
+    func testNeuralInformationDoesNotDisplaceMatchControls() {
+        continueAfterFailure = false
+        let app = launchResetApp()
+        app.buttons["main-menu.new-game"].tap()
+        let info = app.buttons["new-game.ai-info"]
+        XCTAssertTrue(info.waitForExistence(timeout: 5))
+        XCTAssertTrue(info.isHittable)
+        let order = app.buttons["As Shown"]
+        XCTAssertTrue(order.isHittable, "Turn Order must fit before scrolling")
+        info.tap()
+        let notice = app.alerts["Experimental neural AI"]
+        XCTAssertTrue(notice.waitForExistence(timeout: 2))
+        XCTAssertTrue(notice.staticTexts.matching(NSPredicate(format: "label CONTAINS %@", "heuristic trading")).firstMatch.exists)
+        notice.buttons["OK"].tap()
+        XCTAssertTrue(app.buttons["new-game.start"].isHittable)
+        XCTAssertTrue(order.isHittable)
+    }
+
     func testNewGameOpensAndCancels() {
         continueAfterFailure = false
         let app = launchResetApp()

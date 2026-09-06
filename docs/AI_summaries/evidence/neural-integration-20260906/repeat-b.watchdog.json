@@ -1,0 +1,31 @@
+{
+  "budget_seconds": 900.0,
+  "started_epoch": 1788704841.8460438,
+  "started_elapsed": 245632.413771166,
+  "started_utc": "2026-09-06T14:27:21.846044+00:00",
+  "deadline_epoch": 1788705741.8460438,
+  "deadline_utc": "2026-09-06T14:42:21.846044+00:00",
+  "state": "complete",
+  "command": [
+    "swift",
+    "test",
+    "--package-path",
+    "Packages/CatanAI",
+    "-c",
+    "release",
+    "--skip-build",
+    "--filter",
+    "UpstreamGameCompletionTests"
+  ],
+  "watchdog_pid": 17250,
+  "watchdog_identity": null,
+  "boot_identity": "unavailable",
+  "watchdog_sha256": "0fe5997a05c2982988aab889c766df200e292250b3f2b674c557918065857ad0",
+  "process_group": 17251,
+  "process_identity": null,
+  "remaining_seconds": 894.9749739170074,
+  "checked_epoch": 1788704846.871084,
+  "checked_utc": "2026-09-06T14:27:26.871084+00:00",
+  "exit_code": 0,
+  "finished_utc": "2026-09-06T14:27:26.871521+00:00"
+}

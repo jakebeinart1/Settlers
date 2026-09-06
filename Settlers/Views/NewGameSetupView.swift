@@ -53,6 +53,7 @@ struct NewGameSetupView: View {
     /// looked away has no way to get back.
     @State private var refusal: String?
     @State private var openHelp: HelpTopic?
+    @State private var isShowingAIInformation = false
     @State private var isShowingUnreadableSetupAlert: Bool
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
@@ -151,6 +152,11 @@ struct NewGameSetupView: View {
         } message: {
             Text("The saved setup could not be read. It was left untouched, and safe defaults are shown instead.")
         }
+        .alert(setup.aiSeats.isEmpty ? "Local play" : "Experimental neural AI", isPresented: $isShowingAIInformation) {
+            Button("OK", role: .cancel) {}
+        } message: {
+            Text(OpponentPolicy.modeDescription(for: setup.aiSeats.map { $0.opponentProfile?.policy ?? .neuralR2 }))
+        }
     }
 
     /// The same painted seaside world + dark scrim `MainMenuView` sits on,
@@ -202,7 +208,7 @@ struct NewGameSetupView: View {
     /// longer supports or a victory target this screen has no button for, and
     /// `MatchSetup.resize` traps on the former. Both fall back rather than
     /// opening a screen whose controls disagree with the value behind them.
-    private static func initialSetup(
+    static func initialSetup(
         from loadResult: MatchSetupStore.LoadResult,
         preferredName: String,
         preferredCivilization: Civilization
@@ -223,6 +229,10 @@ struct NewGameSetupView: View {
             saved.victoryPointTarget = WinCondition.standardTarget
         }
         saved.normalizeNewGameOptions()
+        // Prefills are editable choices, not active-match identity snapshots.
+        // Clear only this draft so new games use today's catalog while resume,
+        // restart and explicit factory callers retain their saved policies.
+        for index in saved.seats.indices { saved.seats[index].opponentProfile = nil }
         applyAppPreferences(
             to: &saved,
             preferredName: preferredName,
@@ -259,10 +269,22 @@ struct NewGameSetupView: View {
     /// ornaments - Jake's ask, 2026-09-03, along with the matching ornaments
     /// on `InGameSettingsView`'s title and both screens' section headers.
     private var titleBlock: some View {
-        Text("New Game")
-            .font(.system(size: 26, weight: .bold, design: .serif))
-            .lineLimit(1)
-            .minimumScaleFactor(0.8)
+        HStack(spacing: 12) {
+            Text("New Game")
+                .font(.system(size: 26, weight: .bold, design: .serif))
+                .lineLimit(1)
+                .minimumScaleFactor(0.8)
+            Spacer(minLength: 0)
+            Button { isShowingAIInformation = true } label: {
+                Label(setup.aiSeats.isEmpty ? "Local play" : "Neural AI", systemImage: "info.circle")
+                    .font(.system(size: 12, weight: .semibold, design: .serif))
+                    .frame(minHeight: 44)
+                    .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .foregroundStyle(SettingsChrome.ornamentGold)
+            .accessibilityIdentifier(AccessibilityID.NewGame.aiInfo)
+        }
     }
 
     // MARK: - Table size (A1.1)

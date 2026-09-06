@@ -1,5 +1,6 @@
 import Foundation
 import Testing
+import CatanAI
 @testable import CatanEngine
 @testable import Settlers
 
@@ -101,6 +102,7 @@ struct OpponentProfileIntegrationTests {
             #expect(model.opponentProfile(for: PlayerID(index: 1))?.strategy == .balanced)
             #expect(model.opponentProfile(for: PlayerID(index: 2))?.strategy == .aggressive)
             #expect(model.opponentProfile(for: PlayerID(index: 3))?.strategy == .cautious)
+            #expect(model.opponentProfiles.values.allSatisfy { $0.policy == .heuristic })
         }
     }
 
@@ -215,6 +217,144 @@ struct OpponentProfileIntegrationTests {
         }
     }
 
+    @Test func oldPrefillSnapshotsAreOnlyClearedForTheNewGameDraft() throws {
+        try withStores { stores in
+            let old = configuredPolicy(.heuristic)
+            try stores.setupStore.save(old)
+            let draft = NewGameSetupView.initialSetup(
+                from: stores.setupStore.load(), preferredName: "Human 1", preferredCivilization: .norse
+            )
+            #expect(!draft.wasUnreadable)
+            #expect(draft.setup.seats.allSatisfy { $0.opponentProfile == nil })
+            #expect(draft.setup.seats.map(\.civilization) == old.seats.map(\.civilization))
+            #expect(stores.setupStore.load().value == old, "Opening or cancelling New Game does not rewrite a save")
+            let displayedMode = OpponentPolicy.modeDescription(
+                for: draft.setup.aiSeats.map { $0.opponentProfile?.policy ?? .neuralR2 })
+            let model = stores.makeModel()
+            model.startNewGame(setup: draft.setup)
+            #expect(model.persistenceErrorMessage == nil)
+            #expect(model.opponentProfiles.count == draft.setup.aiSeats.count)
+            #expect(model.opponentProfiles.values.allSatisfy { $0.policy == .neuralR2 })
+            #expect(displayedMode == OpponentPolicy.modeDescription(for: model.opponentProfiles.values.map(\.policy)))
+        }
+    }
+
+    @Test func restartingAnExistingHeuristicMatchKeepsItsPolicyIDs() throws {
+        try withStores { stores in
+            let factory = OpponentPolicyFactory { throw UpstreamNetwork.LoadingError.missingResource }
+            let model = stores.makeModel(policyFactory: factory)
+            let configured = configuredPolicy(.heuristic)
+            model.startNewGame(setup: configured)
+            let profiles = model.opponentProfiles
+            let ids = model.session.policies.mapValues(\.id)
+            model.restartCurrentMatch(fallbackRandomizedBoard: false, fallbackRandomizeSeat: false)
+            #expect(model.persistenceErrorMessage == nil)
+            #expect(model.opponentProfiles == profiles)
+            #expect(model.session.policies.mapValues(\.id) == ids)
+            #expect(model.opponentProfiles.values.allSatisfy { $0.policy == .heuristic })
+            #expect(stores.setupStore.load().value == configured)
+        }
+    }
+
+    @Test(arguments: OpponentPolicy.allCases)
+    func savedPolicyIDsAndKindsRestoreExactly(policy: OpponentPolicy) throws {
+        try withStores { stores in
+            let model = stores.makeModel()
+            model.startNewGame(setup: configuredPolicy(policy))
+            let saved = model.session.checkpoint
+            let ids = model.session.policies.mapValues(\.id)
+            let resumed = stores.makeModel()
+            #expect(resumed.savedGameAvailability.canResume)
+            #expect(resumed.session.checkpoint == saved)
+            #expect(resumed.session.policies.mapValues(\.id) == ids)
+            #expect(resumed.opponentProfiles.values.allSatisfy { $0.policy == policy })
+            #expect(resumed.session.policies[PlayerID(index: 0)] == nil)
+        }
+    }
+
+    @Test func failedNeuralLoadPreservesThePreviousMatchBeforeReplacement() throws {
+        try withStores { stores in
+            let factory = OpponentPolicyFactory { throw UpstreamNetwork.LoadingError.missingResource }
+            let model = stores.makeModel(policyFactory: factory)
+            model.startNewGame(setup: configuredPolicy(.heuristic))
+            let saved = model.checkpointDocument
+            let cursor = model.session.checkpoint
+            let roster = model.opponentProfiles
+            let bytes = try Data(contentsOf: model.checkpointStore.fileURL)
+            model.startNewGame(setup: configuredPolicy(.neuralR2))
+            #expect(model.checkpointDocument == saved)
+            #expect(model.session.checkpoint == cursor)
+            #expect(model.opponentProfiles == roster)
+            #expect(try Data(contentsOf: model.checkpointStore.fileURL) == bytes)
+            #expect(model.persistenceErrorMessage?.contains("Experimental neural AI could not be loaded") == true)
+        }
+    }
+
+    @Test func checkpointWithoutProfilePolicyRestoresOriginalIDsWithoutLoadingNetwork() throws {
+        try withStores { stores in
+            let original = stores.makeModel()
+            original.startNewGame(setup: configuredPolicy(.heuristic))
+            let cursor = original.session.checkpoint
+            let path = original.checkpointStore.fileURL
+            var object = try #require(JSONSerialization.jsonObject(with: Data(contentsOf: path)) as? [String: Any])
+            var active = try #require(object["activeMatch"] as? [String: Any])
+            var setup = try #require(active["setup"] as? [String: Any])
+            var seats = try #require(setup["seats"] as? [[String: Any]])
+            for index in seats.indices {
+                guard var profile = seats[index]["opponentProfile"] as? [String: Any] else { continue }
+                profile.removeValue(forKey: "policy")
+                seats[index]["opponentProfile"] = profile
+            }
+            setup["seats"] = seats
+            active["setup"] = setup
+            object["activeMatch"] = active
+            try JSONSerialization.data(withJSONObject: object).write(to: path, options: .atomic)
+            let factory = OpponentPolicyFactory { throw UpstreamNetwork.LoadingError.missingResource }
+            let resumed = stores.makeModel(policyFactory: factory)
+            #expect(resumed.savedGameAvailability.canResume)
+            #expect(resumed.session.checkpoint == cursor)
+            #expect(resumed.opponentProfiles.values.allSatisfy { $0.policy == .heuristic })
+        }
+    }
+
+    @Test func neuralResumeLoadFailureBlocksWithoutChangingSavedIDs() throws {
+        try withStores { stores in
+            let original = stores.makeModel()
+            original.startNewGame(setup: configuredPolicy(.neuralR2))
+            let bytes = try Data(contentsOf: original.checkpointStore.fileURL)
+            let factory = OpponentPolicyFactory { throw UpstreamNetwork.LoadingError.missingResource }
+            let resumed = stores.makeModel(policyFactory: factory)
+            #expect(!resumed.savedGameAvailability.canResume)
+            #expect(resumed.savedGameAvailability.recoveryMessage?.contains("could not be loaded") == true)
+            #expect(try Data(contentsOf: original.checkpointStore.fileURL) == bytes)
+            #expect(resumed.checkpointDocument == original.checkpointDocument)
+        }
+    }
+
+    @Test func legacyGenerationWithoutAnActiveSetupStillUsesHeuristics() throws {
+        try withStores { stores in
+            try stores.gameStore.save(GameSetup.newGame(board: BoardGenerator.standard(), seed: 71))
+            var loads = 0
+            let factory = OpponentPolicyFactory {
+                loads += 1
+                throw UpstreamNetwork.LoadingError.missingResource
+            }
+            let model = stores.makeModel(policyFactory: factory)
+            #expect(model.savedGameAvailability.canResume)
+            #expect(model.opponentProfiles.values.allSatisfy { $0.policy == .heuristic })
+            #expect(loads == 0)
+        }
+    }
+
+    private func configuredPolicy(_ policy: OpponentPolicy) -> MatchSetup {
+        var configured = setup(playerCount: 3, humans: [0], civilizations: [.norse, .rome, .japan])
+        for index in configured.seats.indices where !configured.seats[index].isHuman {
+            let civilization = configured.seats[index].civilization!
+            configured.seats[index].opponentProfile = OpponentProfile.forCivilization(civilization).usingPolicy(policy)
+        }
+        return configured
+    }
+
     private struct Stores {
         let root: URL
         let gameStore: GameStore
@@ -222,13 +362,15 @@ struct OpponentProfileIntegrationTests {
         let setupStore: MatchSetupStore
         let logStore: GameLogStore
 
-        @MainActor func makeModel() -> GameViewModel {
+        @MainActor func makeModel(policyFactory: OpponentPolicyFactory = .shared) -> GameViewModel {
             GameViewModel(
+                checkpointStore: MatchCheckpointStore(fileURL: root.appendingPathComponent("match_checkpoint.json")),
                 gameStore: gameStore,
                 civilizationStore: civilizationStore,
                 matchSetupStore: setupStore,
                 gameLogStore: logStore,
-                gameStatsStore: GameStatsStore(fileURL: root.appendingPathComponent("stats.json"))
+                gameStatsStore: GameStatsStore(fileURL: root.appendingPathComponent("stats.json")),
+                policyFactory: policyFactory
             )
         }
     }

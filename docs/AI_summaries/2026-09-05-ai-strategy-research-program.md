@@ -2,7 +2,7 @@
 
 **Date:** 2026-09-05
 
-**Status:** discovery decision record; no production policy selected
+**Status:** baseline reconstruction completed; app integration in progress
 
 **Scope:** strategic play, trade negotiation, personalities, difficulty, and
 character dialogue. Gameplay UI and rules correctness are outside this decision.
@@ -33,6 +33,53 @@ separate opponent model and a separate language renderer. That is a hypothesis
 to test, not a conclusion to implement.
 
 ## User-selected execution order
+
+### September 6: integration before improvement experiments
+
+Alex now prioritizes making the frozen reconstructed policy usable in Empires
+before enhancing it. The completed 50+60-minute run and its fixed-opponent
+results are recorded in the public reproduction log; neither expert strength
+nor exact historical training reproduction has been established.
+
+Execution order and acceptance gates:
+
+1. **Offline app integration.** Bundle the hash-pinned r2 model; independently
+   match Rust observations and model logits; translate atomic decisions into
+   legal Empires moves. Keep the Swift rules engine, existing encoders, game
+   settings, save files, identities and artwork intact. New games may default
+   to the verified neural/heuristic hybrid; existing saved games retain their
+   recorded policy identity. Show the actual AI mode, not an unearned Expert
+   difficulty label. Preserve current perfect-information access, explicitly
+   allowed by Alex; no implied realistic-information strength claim.
+2. **Integration verification.** Prove normal and compound choices, no partial
+   mutations, all-human/hot-seat compatibility, old/new save resume, actual
+   neural decisions, full games, Release build and UI interaction. Count
+   fallback reasons rather than hiding them. Trades retain the existing
+   heuristic because the foreign single-offer negotiation is not equivalent.
+   No promotion if integration produces illegal moves, unusable latency or
+   unplayable games. Publish to the phone only after those gates pass.
+3. **Evaluation expansion.** Frozen model-versus-model and opponent-pool
+   matchups, chair rotation, separate table sizes/rules, untouched seeds,
+   capped-game accounting, uncertainty and behavior/latency diagnostics.
+   Define promotion criteria before viewing candidate results.
+4. **Training efficiency.** Profile the complete 4090 loop. Change one measured
+   bottleneck at a time; check numerical/learning equivalence and use fixed
+   sample budgets as well as elapsed time. Every run remains bounded/watched.
+5. **Controlled improvements.** Research candidate interventions, preregister
+   four or five small experiments, then train/compare one variable at a time.
+   Record config/checkpoint/source, outcome and plausible explanations,
+   distinguishing implementation failures from a rejected hypothesis. Keep
+   failed experiments. Personality/chat remains a later, separate layer.
+
+Compatibility decisions: a new optional completed-turn counter preserves
+unknown history on old saves rather than inventing a model input. The model
+was trained at four seats/7 VP; three-seat and 8/10-VP play are transfer tests,
+not reproduction. Unsupported richer trading is a named heuristic fallback,
+not a claim that the neural policy understands every Empires rule.
+
+The older research sequence below is retained as historical context; this
+integration-first request supersedes waiting for an exact historical search
+headline before any app adapter work.
 
 This program now has three deliberately ordered stages. Later ideas must not
 contaminate the baseline they are supposed to improve.

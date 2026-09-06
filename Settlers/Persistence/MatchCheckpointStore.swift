@@ -31,6 +31,10 @@ import CatanEngine
 /// keep certifying. Add a case here, not to `GameState.==`, for the next
 /// field that turns out to have the same shape (turn-scoped, save-invisible
 /// bookkeeping recorded only from the moment a feature shipped).
+/// Completed-turn context must match, including known versus unknown history.
+/// Proposal counts must also match when history is known. For two legacy
+/// unknown histories, replay may count proposals that an old snapshot predates,
+/// so their proposal totals cannot certify or invalidate that saved match.
 extension GameState {
     func matchesForReplayValidationExcludingDeclinedTradeHistory(_ other: GameState) -> Bool {
         schemaVersion == other.schemaVersion
@@ -49,6 +53,8 @@ extension GameState {
             && devCardsBoughtThisTurn == other.devCardsBoughtThisTurn
             && devCardPlayedThisTurn == other.devCardPlayedThisTurn
             && tradesAcceptedThisTurn == other.tradesAcceptedThisTurn
+            && completedTurnCount == other.completedTurnCount
+            && (completedTurnCount == nil || tradesProposedThisTurn == other.tradesProposedThisTurn)
         // declinedTradeOffersThisTurn deliberately excluded - see the doc
         // comment above.
     }
@@ -65,21 +71,24 @@ struct MatchCheckpoint: Codable, Equatable, Sendable {
         /// Missing means version 1 because checkpoints shipped before this
         /// field existed; every new move writes the current version explicitly.
         let rulesVersion: Int
+        let policyTrace: PolicyTrace?
 
         init(
             actor: PlayerID,
             move: GameMove,
             timestamp: Date,
-            rulesVersion: Int = RulesEngine.currentRulesVersion
+            rulesVersion: Int = RulesEngine.currentRulesVersion,
+            policyTrace: PolicyTrace? = nil
         ) {
             self.actor = actor
             self.move = move
             self.timestamp = timestamp
             self.rulesVersion = rulesVersion
+            self.policyTrace = policyTrace
         }
 
         private enum CodingKeys: String, CodingKey {
-            case actor, move, timestamp, rulesVersion
+            case actor, move, timestamp, rulesVersion, policyTrace
         }
 
         init(from decoder: Decoder) throws {
@@ -89,6 +98,7 @@ struct MatchCheckpoint: Codable, Equatable, Sendable {
             timestamp = try values.decode(Date.self, forKey: .timestamp)
             rulesVersion = try values.decodeIfPresent(Int.self, forKey: .rulesVersion)
                 ?? RulesEngine.oldestSupportedRulesVersion
+            policyTrace = try values.decodeIfPresent(PolicyTrace.self, forKey: .policyTrace)
         }
 
         func encode(to encoder: Encoder) throws {
@@ -97,6 +107,7 @@ struct MatchCheckpoint: Codable, Equatable, Sendable {
             try values.encode(move, forKey: .move)
             try values.encode(timestamp, forKey: .timestamp)
             try values.encode(rulesVersion, forKey: .rulesVersion)
+            try values.encodeIfPresent(policyTrace, forKey: .policyTrace)
         }
     }
 
@@ -121,7 +132,8 @@ struct MatchCheckpoint: Codable, Equatable, Sendable {
         _ move: GameMove,
         by actor: PlayerID,
         timestamp: Date = Date(),
-        rulesVersion: Int = RulesEngine.currentRulesVersion
+        rulesVersion: Int = RulesEngine.currentRulesVersion,
+        policyTrace: PolicyTrace? = nil
     ) throws {
         var candidate = state
         try RulesEngine.replay(move, by: actor, rulesVersion: rulesVersion, to: &candidate)
@@ -130,7 +142,8 @@ struct MatchCheckpoint: Codable, Equatable, Sendable {
             actor: actor,
             move: move,
             timestamp: timestamp,
-            rulesVersion: rulesVersion
+            rulesVersion: rulesVersion,
+            policyTrace: policyTrace
         ))
         sessionCheckpoint = nil
     }
@@ -277,12 +290,13 @@ struct MatchCheckpointDocument: Codable, Equatable, Sendable {
     /// Build an unpublished candidate. The caller commits it before exposing
     /// its state; failures leave this document unchanged. A winning move and
     /// its accounting receipt belong to the same revision.
-    func applying(_ move: GameMove, by actor: PlayerID, elapsedSeconds: TimeInterval) throws -> Self {
+    func applying(_ move: GameMove, by actor: PlayerID, elapsedSeconds: TimeInterval,
+                  policyTrace: PolicyTrace? = nil) throws -> Self {
         guard var match = activeMatch, revision < Int.max else {
             throw MatchCheckpointStore.StoreError.staleRevision
         }
         try match.recordElapsedTime(elapsedSeconds)
-        try match.apply(move, by: actor)
+        try match.apply(move, by: actor, policyTrace: policyTrace)
         var next = self
         next.activeMatch = match
         if case .gameOver = match.state.phase { try next.recordCompletion(duration: elapsedSeconds) }
@@ -298,7 +312,7 @@ struct MatchCheckpointDocument: Codable, Equatable, Sendable {
         guard pendingDevCardReveal == nil, pendingDevCardResolution == nil else {
             throw MatchCheckpointStore.StoreError.pendingAcknowledgement
         }
-        var next = try applying(step.move, by: step.actor, elapsedSeconds: elapsedSeconds)
+        var next = try applying(step.move, by: step.actor, elapsedSeconds: elapsedSeconds, policyTrace: step.policyTrace)
         try next.activeMatch?.attachSession(session)
         if next.activeMatch?.setup.humanSeats.contains(where: { $0.index == step.actor.index }) == true {
             for case .boughtDevCard(let owner, let card) in step.privateEvents {

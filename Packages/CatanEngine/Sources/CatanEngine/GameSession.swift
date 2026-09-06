@@ -50,6 +50,13 @@ public protocol Policy: Sendable {
     /// Stable identifier, for evaluation records: "heuristic-v1", "random".
     var id: String { get }
     func decide(_ observation: GameObservation, rng: inout RandomSource) -> GameMove
+    func select(_ observation: GameObservation, rng: inout RandomSource) -> PolicySelection
+}
+
+extension Policy {
+    public func select(_ observation: GameObservation, rng: inout RandomSource) -> PolicySelection {
+        PolicySelection(move: decide(observation, rng: &rng), source: "policy")
+    }
 }
 
 /// Drives a game forward, one move at a time, with no notion of elapsed time.
@@ -206,6 +213,16 @@ public struct GameSession: Sendable {
         /// Buyer-scoped information that must never enter the public event
         /// stream or exported move history.
         public let privateEvents: [PrivateGameEvent]
+        public let policyTrace: PolicyTrace?
+
+        public init(actor: PlayerID, move: GameMove, events: [GameEvent],
+                    privateEvents: [PrivateGameEvent], policyTrace: PolicyTrace? = nil) {
+            self.actor = actor
+            self.move = move
+            self.events = events
+            self.privateEvents = privateEvents
+            self.policyTrace = policyTrace
+        }
     }
 
     /// One policy choice together with the exact action mask it received.
@@ -216,6 +233,7 @@ public struct GameSession: Sendable {
         public let seat: PlayerID
         public let move: GameMove
         public let observation: GameObservation
+        public var policyTrace: PolicyTrace?
     }
 
     /// Who acts next, or why nobody can.
@@ -294,24 +312,29 @@ public struct GameSession: Sendable {
             return !alreadyPendingFromSeat && attemptsUsed < RulesEngine.maxTradeProposalsPerTurn
         }
         let observation = GameObservation(seat: seat, state: state, legalMoves: legal)
-        let chosen = policy.decide(observation, rng: &policyRNG)
+        let selection = policy.select(observation, rng: &policyRNG)
+        let chosen = selection.move
         precondition(
             legal.contains(chosen),
             "policy \(policy.id) returned a move outside its action mask"
         )
 
         if actionsThisTurn >= Self.maxActionsPerTurn, case .mainTurn = state.phase {
-            let decision = recordedDecision(seat: seat, move: .endTurn, observation: observation)
+            let decision = recordedDecision(seat: seat, move: .endTurn, observation: observation,
+                selection: selection, sessionOverride: "turnActionLimit")
             lastPolicyDecisions = [decision]
             return decision
         }
-        let decision = recordedDecision(seat: seat, move: chosen, observation: observation)
+        let decision = recordedDecision(seat: seat, move: chosen, observation: observation, selection: selection)
         lastPolicyDecisions = [decision]
         return decision
     }
 
     /// Applies a move a policy chose.
     public mutating func commit(seat: PlayerID, move: GameMove) throws -> Step {
+        let trace = lastPolicyDecisions.first {
+            $0.seat == seat && $0.move == move && $0.observation.state == state
+        }?.policyTrace
         lastPolicyDecisions = []
         let result = try RulesEngine.applyReportingPrivateEvents(move, by: seat, to: &state)
         if queuedTradeResponse?.seat == seat, queuedTradeResponse?.move == move {
@@ -321,7 +344,7 @@ public struct GameSession: Sendable {
         if case .proposeTrade(let offer) = move {
             queueAutomatedResponse(to: offer)
         }
-        return Step(actor: seat, move: move, events: result.events, privateEvents: result.privateEvents)
+        return Step(actor: seat, move: move, events: result.events, privateEvents: result.privateEvents, policyTrace: trace)
     }
 
     /// Decide and apply in one go. Returns `nil` when the game is over or it
@@ -429,9 +452,10 @@ public struct GameSession: Sendable {
     private mutating func tradeDecision(for seat: PlayerID, offer: TradeOffer) -> Decision? {
         guard let policy = policies[seat] else { return nil }
         let observation = tradeObservation(for: seat, offer: offer)
-        let chosen = policy.decide(observation, rng: &policyRNG)
+        let selection = policy.select(observation, rng: &policyRNG)
+        let chosen = selection.move
         precondition(observation.legalMoves.contains(chosen), "policy \(policy.id) returned a non-response to an open trade")
-        let decision = recordedDecision(seat: seat, move: chosen, observation: observation)
+        let decision = recordedDecision(seat: seat, move: chosen, observation: observation, selection: selection)
         lastPolicyDecisions.append(decision)
         return decision
     }
@@ -439,14 +463,18 @@ public struct GameSession: Sendable {
     private mutating func recordedDecision(
         seat: PlayerID,
         move: GameMove,
-        observation: GameObservation
+        observation: GameObservation,
+        selection: PolicySelection,
+        sessionOverride: String? = nil
     ) -> Decision {
         defer { policyEvaluationCount += 1 }
         return Decision(
             evaluationIndex: policyEvaluationCount,
             seat: seat,
             move: move,
-            observation: observation
+            observation: observation,
+            policyTrace: PolicyTrace(evaluationIndex: policyEvaluationCount, policyID: policies[seat]!.id,
+                                     selection: selection, sessionOverride: sessionOverride)
         )
     }
 
