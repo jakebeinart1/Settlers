@@ -5,10 +5,21 @@
 Small, independent cleanups to the current gameplay surfaces — no design work
 or spec needed, just fix the screen. Take these before the larger feature
 work below; they're cheap and visibly improve every game played in the
-meantime. (The board's *unintentional* viewport movement is the same
-underlying subsystem as the deliberate pan/zoom camera work, so that fix
-lives with "4. New game modes" instead of here — see the note there.)
+meantime.
 
+- [ ] **Priority.** Lock the board viewport so it never moves on its own
+      based on in-game actions — settlement/road/city placement, general
+      gameplay, and robber movement all currently shift or re-zoom the
+      board. Root cause: `BoardView` has no persisted camera —
+      `fittedGeometry(for:in:padding:)`
+      (`Settlers/Views/Board/BoardView.swift:523`) recomputes scale-to-fit on
+      every render from whatever happens to be drawn (targeting overlays,
+      port badges, etc.), so the fit — and with it the apparent zoom/pan —
+      changes as those overlays come and go. Fix: compute one fit per
+      screen/mode and hold it fixed instead of recomputing per redraw. This
+      is a bug fix, independent of the *deliberate* pinch/pan camera planned
+      for "4. New game modes" — do this first regardless of whether that
+      feature ships, since it's broken in the current single-board game too.
 - [ ] Clean up the development-card deck / draw UI — currently redundant.
       Audit `DevCardPopupView.swift` and `Theme/DevCardStyle.swift` for
       duplicated card-face/deck presentation and simplify to one clear
@@ -92,19 +103,12 @@ viewport). See the full survey findings before starting design.
       generator, VP target, stall-audit for reaching 20 VP given
       buildings/dev-card caps, player-count support) via
       superpowers:brainstorming → docs/superpowers/specs/.
-- [ ] Board camera, in two steps on the same code path — do (a) before (b),
-      since (b) is only worth building on a stable base:
-      (a) **Stop the accidental movement first.** Today `BoardView` has no
-      persisted camera: `fittedGeometry(for:in:padding:)`
-      (`Settlers/Views/Board/BoardView.swift:523`) recomputes scale-to-fit on
-      every render from whatever happens to be drawn (targeting overlays,
-      port badges, etc.), so the effective zoom visibly shifts during
-      settlement placement, general gameplay, and robber movement. Lock it
-      to one fit per screen/mode instead of recomputing per redraw.
-      (b) **Then add the deliberate camera** this larger-map mode needs:
-      pinch/gesture zoom and pan on `BoardView`, plus a Google-Maps-style
-      "recenter" button that resets back to the default fit-to-container
-      view.
+- [ ] Board camera: pinch/gesture zoom and pan on `BoardView`, plus a
+      Google-Maps-style "recenter" button that resets back to the default
+      fit-to-container view. Build this on top of the locked, non-drifting
+      viewport from "0. UI polish" — do that fix first, since a deliberate
+      camera isn't worth building on a fit calc that's still recomputing
+      itself per render.
 - [ ] Generate new full-screen map background art for the larger board via
       the existing AI art pipeline (`design-references/tiles/_scripts/`);
       hex tile textures are stamped per-hex and don't need regenerating.
