@@ -1,0 +1,28 @@
+{
+  "budget_seconds": 600.0,
+  "started_epoch": 1788739016.954112,
+  "started_elapsed": 277756.242114291,
+  "started_utc": "2026-09-06T23:56:56.954112+00:00",
+  "deadline_epoch": 1788739616.954112,
+  "deadline_utc": "2026-09-07T00:06:56.954112+00:00",
+  "state": "complete",
+  "command": [
+    "python3",
+    "/tmp/finish-balanced-original-20260906.py",
+    "--original",
+    "/tmp/empires-balanced-original-balanced-20260906",
+    "--output",
+    "/tmp/empires-balanced-original-balanced-complete-20260906"
+  ],
+  "watchdog_pid": 80372,
+  "watchdog_identity": null,
+  "boot_identity": "unavailable",
+  "watchdog_sha256": "0fe5997a05c2982988aab889c766df200e292250b3f2b674c557918065857ad0",
+  "process_group": 80409,
+  "process_identity": null,
+  "remaining_seconds": 260.6076521873474,
+  "checked_epoch": 1788739356.346483,
+  "checked_utc": "2026-09-07T00:02:36.346484+00:00",
+  "exit_code": 0,
+  "finished_utc": "2026-09-07T00:02:36.347408+00:00"
+}

@@ -1,0 +1,16 @@
+{
+  "baseline": {
+    "checkpoint": "/Users/alex/Library/Application Support/EmpiresResearch/catan-rl/original-v1/models/catan-512.ctnn",
+    "sha256": "21f3b380786a53998172896caac44191dea3d44efd11d3bf8c92150d8b18c8a5"
+  },
+  "board": "randomized",
+  "budget_seconds": 600,
+  "candidate": "balanced",
+  "first_seed": 962001,
+  "name": "balanced-vs-original-balanced-opponents",
+  "opponent": "balanced",
+  "players": 4,
+  "purpose": "smoke",
+  "seeds": 64,
+  "victory_points": 10
+}

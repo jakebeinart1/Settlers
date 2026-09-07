@@ -1,0 +1,27 @@
+{
+  "budget_seconds": 600,
+  "started_epoch": 1788739015.804838,
+  "started_elapsed": 277755.092859708,
+  "started_utc": "2026-09-06T23:56:55.804838+00:00",
+  "deadline_epoch": 1788739615.804838,
+  "deadline_utc": "2026-09-07T00:06:55.804838+00:00",
+  "state": "complete",
+  "command": [
+    "/opt/homebrew/opt/python@3.14/bin/python3.14",
+    "/private/tmp/empires-policy-decision-trace-20260906/scripts/evaluate-bots.py",
+    "--worker",
+    "--output",
+    "/private/tmp/empires-balanced-original-greedy-20260906"
+  ],
+  "watchdog_pid": 79798,
+  "watchdog_identity": null,
+  "boot_identity": "unavailable",
+  "watchdog_sha256": "0fe5997a05c2982988aab889c766df200e292250b3f2b674c557918065857ad0",
+  "process_group": 79843,
+  "process_identity": null,
+  "remaining_seconds": 382.85430884361267,
+  "checked_epoch": 1788739232.950542,
+  "checked_utc": "2026-09-07T00:00:32.950542+00:00",
+  "exit_code": 0,
+  "finished_utc": "2026-09-07T00:00:32.951176+00:00"
+}

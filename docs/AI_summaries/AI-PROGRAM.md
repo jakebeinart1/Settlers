@@ -1,14 +1,19 @@
 # Empires AI — current work and next decisions
 
-**Updated:** 2026-09-06. This is the live tracker, not a claim that later stages
+**Updated:** 2026-09-07. This is the live tracker, not a claim that later stages
 are complete. Read it before planning AI work, running experiments, or reporting
 progress. Detailed evidence and operational recipes stay behind the links below.
 
 ## Where we stand
 
-- **Baseline:** the bounded fresh-plus-continuation reconstruction is complete.
-  Frozen `gpu-baseline-20260906-r2` is our reproducible starting artifact, not
-  proof of expert play or exact recovery of unavailable historical training.
+- **Best tested native baseline: Balanced (rule-based).** On the fixed
+  [comparison](2026-09-06-balanced-original-decision.md#result), it beat the
+  original checkpoint against both opponent groups: **83.6% vs 57.8%** against
+  Greedy, **25.0% vs 9.8%** against Balanced. Same 64 held-out boards/all chairs,
+  four players/ten points; 1,024 scheduled records completed. Both differences
+  cleared the predeclared useful-gain/uncertainty checks. Not human/expert play
+  or the upstream search bot. r2 remains a frozen reproduction artifact, not
+  the next model to improve by default.
 - **Integration:** offline neural/hybrid play is implemented and independently
   reviewed. Full gate, native UI journeys, parity checks, and full games passed.
   [draft PR #40](https://github.com/jakebeinart1/Settlers/pull/40) is stacked on
@@ -19,23 +24,21 @@ progress. Detailed evidence and operational recipes stay behind the links below.
 - **Evaluation works:** one command freezes named policies or two hash-pinned
   compatible checkpoints, rotates chairs and retains audited results. Identical
   weights reproduce through both loading paths; distinct weights change play.
-  [PR #41](https://github.com/jakebeinart1/Settlers/pull/41) passed Linux CI/lint;
-  the checkpoint-loader/profile extension is [PR #42](https://github.com/jakebeinart1/Settlers/pull/42),
+  [PR #42](https://github.com/jakebeinart1/Settlers/pull/42) now includes superseded #41;
   published at `dacef369` with Linux CI green (run `34053389032`) after a full
   local gate, including 310 app/UI tests. Its CI watcher is now paused.
-- **Experiment tooling:** [PR #43](https://github.com/jakebeinart1/Settlers/pull/43)
-  at `9a2610a` passed the full local gate, fresh Debug QA launch and Linux CI
-  (`34057255572`). Snapshot optimization was not adopted; its reusable safeguards
-  and recorded result are review-ready, not merged. Target adaptation and its
-  two diagnostic replays are now closed; the heartbeat watches publication/CI,
-  not additional training.
-- **Quality warning:** the audited 32-board follow-up gave r2 **52/128** versus
-  Balanced **112/128** wins against Greedy, all chairs rotated, no unexpected
-  fallbacks. This is one native configuration, not a universal ranking.
-  A second native diagnostic found original **74/128** versus r2 **46/128**
-  (+21.9 points, paired 95% interval +10.2 to +32.8). The upstream ranking does
-  not transfer. Default promotion remains held; investigate checkpoint fidelity
-  and generalization before more training. [Evidence](2026-09-06-reusable-evaluation.md#result-and-decision).
+- **Experiment disposition:** optimization and target adaptation were **not
+  adopted**. Their safeguards/results and cap diagnosis are consolidated in
+  [PR #45](https://github.com/jakebeinart1/Settlers/pull/45); #43/#44 are closed,
+  their branches/evidence retained. Open PRs reduced **seven to four**:
+  #37 research → #40 integration (draft) → #42 evaluator → #45 experiments.
+  No PR has reviewer approval yet; none was self-approved or merged.
+- **Neural decision:** original beat r2 in the earlier matched comparison,
+  **74/128 vs 46/128** against Greedy. Combined with the new Balanced comparison,
+  this ends r2 continuation/target adaptation as the next improvement path.
+  Retain current rule-based product behavior; #40's proposed automatic r2
+  selection must be removed or made explicit before it can ship. Keep the
+  integration seam and frozen models for controlled research.
 - **Limit:** trading remains heuristic; native rules differ from training.
   Compatibility and a legal complete game are not strength measurements.
 
@@ -43,14 +46,15 @@ progress. Detailed evidence and operational recipes stay behind the links below.
 
 | Stage | Status / next action | Done when |
 | --- | --- | --- |
-| **1. Deliver and retain regressions** | Simulator verified; phone/signing blocked; native strength warning under assessment. | Resolve the default-promotion warning; final artifact is VALID in TestFlight, intended testers can access it, phone version is verified, and reusable gameplay/UI checks remain green. |
+| **1. Deliver and retain regressions** | Simulator verified; phone/signing blocked. Keep the rule-based default; do not promote r2. Remove automatic neural selection from draft #40 before review/delivery. | Final artifact is VALID in TestFlight, intended testers can access it, phone version is verified, and reusable gameplay/UI checks remain green. |
 | **2. Make comparisons cheap to repeat** | Minimum checkpoint comparison implemented, reviewed and tested; original-versus-r2 diagnostic complete. | Preserve this entry point. Add separate builds/opponent pools only when a concrete experiment needs them; reuse the analyzer. |
 | **3. Make training faster without weakening learning** | [Snapshot experiment complete](2026-09-06-rollout-snapshot-experiment.md#result-and-decision): exact equal-update model/Adam parity; +5.57%/+2.02% GPU throughput, below the required 5% in both pairs. **Inconclusive, not adopted.** Budget spent; no owned run active. Retain the guarded comparison rather than chasing this small gain. | A bounded before/after experiment improves time-to-quality without correctness or playing-strength regression. Partial host attribution is not a complete GPU/phase breakdown. |
-| **4. Improve strategy and architecture** | [Target adaptation not adopted](2026-09-06-victory-target-experiment.md#result-and-decision). [Cap diagnosis complete](2026-09-06-native-cap-diagnosis.md#result-and-decision): exact replays show expansion/piece limits and neural purchase avoidance, without missing buy actions or session overrides. Saved capability witnesses now guide a fresh, single-change experiment; architecture/encoding/training causality remains open. No training is running. | Each attempted change has a recorded hypothesis, fixed budget, result and decision. Promote promising candidates through fresh confirmation and device tests, then freeze the new baseline. This stage repeats. |
+| **4. Improve strategy and architecture** | Balanced selected by the [fair comparison](2026-09-06-balanced-original-decision.md#result). Stop r2 continuation. Next: original-model look-ahead [feasibility first](2026-09-06-search-next-experiment.md), then one controlled search experiment only if runtime/semantics are viable; otherwise prioritize concrete rule-based road/trade failures. No training is running. | Each attempted change has a recorded hypothesis, fixed budget, result and decision. Promote useful candidates through fresh confirmation and device tests. Stop failed lines rather than automatically extending them. |
 | **5. Character, personality, difficulty** | Deferred. Keep strategy, strength and expression separate. | Measured tiers and intentional styles support honest UI labels; authored reactions are grounded in real events. LLM wording/chat needs a separate latency, cost and product decision. |
 
-**Allocation:** unblock delivery promptly; spend only enough on stage 2 to make
-the next comparison reproducible. Then put the bulk of effort into stages 3–4.
+**Allocation:** retain the working product and close PR debt; the next research
+effort belongs to the narrow stage-4 feasibility question, not more profiling,
+an architecture sweep or an r2 training extension. Stage 2 is sufficient today.
 Keep one implementation and at most one bounded GPU run active; background
 reading can continue. A delivery block need not stop independent tooling work.
 
@@ -106,9 +110,9 @@ universal “80% better” target.
 
 ## Research and experiment queue
 
-This is a hypothesis queue, **not a completed 2023–September 2026 literature
-review or a predicted ranking of gains**. Order is initial cost/diagnostic value;
-revise it after profiles and evidence. Review primary papers and runnable source
+This is a hypothesis backlog, **not a completed 2023–September 2026 literature
+review or the active execution order**. The baseline decision above supersedes
+this initial cost ordering. Review primary papers and runnable source
 in that date range, retaining older foundational baselines when useful. Each
 shortlisted idea needs its source, reproducibility/license check, implementation
 cost, compatible controls, expected mechanism and failure test before coding.

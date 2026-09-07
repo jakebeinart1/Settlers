@@ -1,0 +1,7 @@
+{
+  "original": "/private/tmp/empires-balanced-original-balanced-20260906",
+  "original_manifest_sha256": "814b73e9b3343ff6df04dcd517af19c170301471a02a6d4af0101285901c61cb",
+  "original_watchdog_sha256": "5b8a971df94d0f6fb959f94eedaa977836b7cfee88aeae3c2fdaaacd09c0efd3",
+  "reason": "time-only completion of the unchanged fixed game set; no control rerun",
+  "repair_source_sha256": "25d4c87a9d5025cb706eb7c9b1d5c0de9565eae9d20c2e2bf20da6b9213077a0"
+}

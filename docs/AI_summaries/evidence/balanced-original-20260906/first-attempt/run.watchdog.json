@@ -1,0 +1,28 @@
+{
+  "budget_seconds": 600,
+  "started_epoch": 1788738252.634042,
+  "started_elapsed": 276991.938030958,
+  "started_utc": "2026-09-06T23:44:12.634042+00:00",
+  "deadline_epoch": 1788738852.634042,
+  "deadline_utc": "2026-09-06T23:54:12.634042+00:00",
+  "state": "failed",
+  "command": [
+    "/opt/homebrew/opt/python@3.14/bin/python3.14",
+    "/private/tmp/empires-policy-decision-trace-20260906/scripts/evaluate-bots.py",
+    "--worker",
+    "--output",
+    "/private/tmp/empires-balanced-original-balanced-20260906"
+  ],
+  "watchdog_pid": 18003,
+  "watchdog_identity": null,
+  "boot_identity": "unavailable",
+  "watchdog_sha256": "0fe5997a05c2982988aab889c766df200e292250b3f2b674c557918065857ad0",
+  "process_group": 18021,
+  "process_identity": null,
+  "remaining_seconds": -0.010601043701171875,
+  "checked_epoch": 1788738852.644653,
+  "checked_utc": "2026-09-06T23:54:12.644653+00:00",
+  "exit_code": 124,
+  "cleanup_error": "PermissionError(1, 'Operation not permitted')",
+  "finished_utc": "2026-09-06T23:54:17.655508+00:00"
+}
