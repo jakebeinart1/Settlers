@@ -27,7 +27,26 @@ public struct BoardView: View {
     /// which has no producing tiles to highlight.
     public let rollHighlightTiles: Set<HexCoordinate>
 
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.accessibilityReduceMotion) var reduceMotion
+
+    // The three below are the camera's state. They are internal rather than
+    // private because everything that READS them lives in
+    // `BoardViewCamera.swift`; `@State` has to be declared on the type itself,
+    // so the storage cannot move to the extension with its behaviour.
+
+    /// The fit the board is locked to, and the layout it was solved for.
+    /// `nil` only before the first layout.
+    @State var lockedFit: LockedFit?
+
+    /// Zoom/pan on top of `lockedFit`. Reset by the recenter control and by
+    /// anything that re-solves the lock.
+    @State var camera: BoardCamera = .fitted
+
+    /// The camera each gesture started from. A gesture's value is cumulative
+    /// from its own start, so it must compose with the camera as it was when
+    /// the fingers went down, not with the camera as it was one frame ago -
+    /// composing with the latter squares the magnification every frame.
+    @State var gestureAnchor: BoardCamera?
 
     public init(
         state: GameState,
@@ -56,8 +75,9 @@ public struct BoardView: View {
             // redundant: the fit measures the badges and reserves the vertex
             // rings itself, so leaving 16 here reserved the same space a second
             // time and visibly shrank the board.
-            let geometry = Self.fittedGeometry(for: board, in: CGRect(origin: .zero, size: proxy.size),
-                                               padding: Self.boardPadding)
+            let fit = applicableFit(for: board, in: proxy.size)
+            let center = CGPoint(x: proxy.size.width / 2, y: proxy.size.height / 2)
+            let geometry = camera.applied(to: fit.geometry, containerCenter: center)
             let boardCenter = Self.boardCenter(for: board, geometry: geometry)
             let ownership = Ownership(players: state.players)
 
@@ -136,6 +156,28 @@ public struct BoardView: View {
             .coordinateSpace(name: BoardDecisionCoordinateSpace.name)
             .animation(reduceMotion ? nil : .spring(), value: BoardSnapshot(state: state))
             .animation(reduceMotion ? nil : .spring(response: 0.3, dampingFraction: 0.82), value: decision)
+            // Camera gestures are non-mutating, so unlike every target layer
+            // above they stay live during inspect-only decisions - looking
+            // around the board is exactly what an inspect-only mode is for.
+            .simultaneousGesture(pinch(fit: fit, container: proxy.size, center: center))
+            .simultaneousGesture(drag(fit: fit, container: proxy.size))
+            // Bottom-LEADING, not trailing: the bottom-right corner already
+            // belongs to the drag cradle, which is centered 35pt in from both
+            // edges (`BoardDecisionCradleLayer.Layout.cradleEdgeInset`) and so
+            // occupies exactly the corner a trailing recenter button would.
+            // The two are visible at the same time - a decision is precisely
+            // when you most want to pan around before committing a piece.
+            .overlay(alignment: .bottomLeading) {
+                if !camera.isFitted {
+                    recenterButton
+                        .padding(8)
+                        .transition(.opacity.combined(with: .scale))
+                }
+            }
+            .animation(reduceMotion ? nil : .easeOut(duration: 0.18), value: camera.isFitted)
+            .onAppear { updateLock(for: board, in: proxy.size) }
+            .onChange(of: proxy.size) { updateLock(for: board, in: proxy.size) }
+            .onChange(of: board.tiles.map(\.coordinate)) { updateLock(for: board, in: proxy.size) }
         }
     }
 
@@ -518,9 +560,33 @@ public struct BoardView: View {
     /// ships. When the test hardcoded its own 4, it proved a property of a
     /// number it supplied itself: changing the shipped value to 0 left every
     /// assertion passing while the real board clipped.
-    static let boardPadding: CGFloat = 4
+    ///
+    /// 6 rather than the old 4: at 4 the outermost port badge sits about five
+    /// points off the screen edge, which is not clipped but reads as clipped.
+    ///
+    /// 6 is also the CEILING, and the reason is not taste. Placement rings are
+    /// a fixed point size while port badges scale with the board, so shrinking
+    /// the board closes the gap between them, and
+    /// `BoardFitTests.portBadgesDoNotCollideWithPlacementRings` is what that
+    /// gap is guarded by. Measured on its own 402x300 fixture, the clearance
+    /// between the closest badge/ring pair is 0.21pt at padding 4, 0.06pt at 6,
+    /// and NEGATIVE from 7 up - a badge sitting on a ring, which is the exact
+    /// unreadable overlap that guard exists for. So there is no more cosmetic
+    /// margin available here without making the rings smaller or moving the
+    /// badges further offshore; do not raise this number expecting the tests
+    /// to be the thing that is wrong.
+    static let boardPadding: CGFloat = 6
 
-    static func fittedGeometry(for board: Board, in rect: CGRect, padding: CGFloat) -> HexGeometry {
+    /// Everything drawn on the board, measured in hex-size units (the extent
+    /// at `size == 1`), with each tile corner additionally expanded by
+    /// `ringInUnits`. `nil` for a board with nothing on it.
+    ///
+    /// Extracted so the fit and the camera's pan clamp measure the board with
+    /// one piece of code rather than two. A second copy of this walk is
+    /// exactly the drift this file's other comments are about: the clamp
+    /// would let you drag a port badge off screen the moment either copy
+    /// learned about something the other did not.
+    static func unitContentBounds(for board: Board, ringInUnits: CGFloat) -> CGRect? {
         let probe = HexGeometry(origin: .zero, size: 1)
         var minX = CGFloat.greatestFiniteMagnitude
         var maxX = -CGFloat.greatestFiniteMagnitude
@@ -530,16 +596,14 @@ public struct BoardView: View {
         for tile in board.tiles {
             for index in 0..<6 {
                 let corner = probe.corner(of: tile.coordinate, index: index)
-                minX = min(minX, corner.x)
-                maxX = max(maxX, corner.x)
-                minY = min(minY, corner.y)
-                maxY = max(maxY, corner.y)
+                minX = min(minX, corner.x - ringInUnits)
+                maxX = max(maxX, corner.x + ringInUnits)
+                minY = min(minY, corner.y - ringInUnits)
+                maxY = max(maxY, corner.y + ringInUnits)
             }
         }
 
-        guard maxX > minX, maxY > minY else {
-            return HexGeometry(origin: CGPoint(x: rect.midX, y: rect.midY), size: 20)
-        }
+        guard maxX > minX, maxY > minY else { return nil }
 
         // Port badges, at the same unit scale. `portIconPoint` needs a board
         // centre; at size 1 that is the mean of the tile centres, exactly as
@@ -559,6 +623,28 @@ public struct BoardView: View {
             maxY = max(maxY, icon.y + badge)
         }
 
+        return CGRect(x: minX, y: minY, width: maxX - minX, height: maxY - minY)
+    }
+
+    /// Everything drawn on the board, in container points, as `geometry`
+    /// would draw it. The extent the camera's pan clamp holds on screen.
+    static func contentBounds(for board: Board, geometry: HexGeometry) -> CGRect {
+        let ringInUnits = geometry.size > 0 ? TileDrawing.vertexRingRadius / geometry.size : 0
+        guard let unit = unitContentBounds(for: board, ringInUnits: ringInUnits) else {
+            return CGRect(origin: geometry.origin, size: .zero)
+        }
+        return CGRect(
+            x: geometry.origin.x + unit.minX * geometry.size,
+            y: geometry.origin.y + unit.minY * geometry.size,
+            width: unit.width * geometry.size,
+            height: unit.height * geometry.size)
+    }
+
+    static func fittedGeometry(for board: Board, in rect: CGRect, padding: CGFloat) -> HexGeometry {
+        guard let plain = unitContentBounds(for: board, ringInUnits: 0) else {
+            return HexGeometry(origin: CGPoint(x: rect.midX, y: rect.midY), size: 20)
+        }
+
         let availableWidth = max(rect.width - padding * 2, 1)
         let availableHeight = max(rect.height - padding * 2, 1)
 
@@ -573,26 +659,17 @@ public struct BoardView: View {
         // badge already sticks out four times further and the ring is nowhere
         // near the outer edge - which is board size given away for nothing. The
         // ring only ever binds on a stretch of coast with no port on it.
-        func fit(_ boundsMinX: CGFloat, _ boundsMaxX: CGFloat,
-                 _ boundsMinY: CGFloat, _ boundsMaxY: CGFloat) -> CGFloat {
-            min(availableWidth / (boundsMaxX - boundsMinX), availableHeight / (boundsMaxY - boundsMinY))
+        func fit(_ bounds: CGRect) -> CGFloat {
+            min(availableWidth / bounds.width, availableHeight / bounds.height)
         }
 
-        let firstPass = fit(minX, maxX, minY, maxY)
+        let firstPass = fit(plain)
         let ringInUnits = firstPass > 0 ? TileDrawing.vertexRingRadius / firstPass : 0
-        for tile in board.tiles {
-            for index in 0..<6 {
-                let corner = probe.corner(of: tile.coordinate, index: index)
-                minX = min(minX, corner.x - ringInUnits)
-                maxX = max(maxX, corner.x + ringInUnits)
-                minY = min(minY, corner.y - ringInUnits)
-                maxY = max(maxY, corner.y + ringInUnits)
-            }
-        }
-        let size = fit(minX, maxX, minY, maxY)
+        let bounds = Self.unitContentBounds(for: board, ringInUnits: ringInUnits) ?? plain
+        let size = fit(bounds)
 
-        let boardCenterX = (minX + maxX) / 2 * size
-        let boardCenterY = (minY + maxY) / 2 * size
+        let boardCenterX = bounds.midX * size
+        let boardCenterY = bounds.midY * size
         let origin = CGPoint(x: rect.midX - boardCenterX, y: rect.midY - boardCenterY)
         return HexGeometry(origin: origin, size: size)
     }

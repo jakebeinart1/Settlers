@@ -31,6 +31,9 @@ enum AccessibilityID {
         static let stagedRobberPreview = "board.robber-preview"
         static let robberOrigin = "board.robber-origin"
         static let dragCradle = "board.drag-cradle"
+        /// Shown only while the camera is off its fitted resting position,
+        /// so its presence is also the assertion that a gesture moved it.
+        static let recenter = "board.recenter"
 
         static func tile(_ tile: HexCoordinate) -> String {
             "board.tile.\(tile.q)_\(tile.r)"

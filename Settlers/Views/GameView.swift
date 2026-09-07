@@ -527,9 +527,15 @@ public struct GameView: View {
     /// this is the standard fix.
     /// Height the top chips occupy, reported by the chips themselves.
     ///
-    /// Seeded at the last hand-tuned value so the very first frame - drawn
-    /// before any preference has been reported - is not visibly wrong.
-    @State private var topChipInset: CGFloat = 38
+    /// Seeded *deliberately high* rather than at the last hand-tuned value.
+    /// The seed exists only for the one frame drawn before the chips have
+    /// reported, and `BoardView` locks its fit to the tallest container it is
+    /// given (see `BoardView.updateLock(for:in:)`) - so a seed that is too
+    /// large makes the board briefly a little small and then correct, while a
+    /// seed that is too small locks the board to a container taller than it
+    /// will ever really have. Over-reserving self-corrects; under-reserving
+    /// does not.
+    @State private var topChipInset: CGFloat = 64
 
     /// The chip band's own height, reported by the chip.
     ///
