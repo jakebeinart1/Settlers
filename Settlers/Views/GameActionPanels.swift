@@ -133,6 +133,7 @@ struct BoardDecisionDockView: View {
     private var clearButton: some View {
         DockActionButton(
             title: clearTitle,
+            visibleTitle: presentation.requiresVictimChoice ? "Change territory" : nil,
             systemImage: presentation.requiresVictimChoice ? "arrow.uturn.backward" : "eraser.fill",
             width: presentation.requiresVictimChoice
                 ? Layout.changeTerritoryButtonWidth : Layout.secondaryButtonWidth,
@@ -198,9 +199,19 @@ struct BoardDecisionDockView: View {
     }
 }
 
-/// A horizontal victim card sized specifically for the fixed-height dock.
+/// A victim card sized specifically for the fixed-height dock.
 /// The full-size picker card is intentionally not squeezed into this slot:
 /// doing so clips its three vertical labels before a 44-point tap target fits.
+///
+/// ## Why the crest is on its own row rather than beside the name
+/// It used to lead a text column: crest, then name/civilization/count stacked
+/// to its right. Inside a 64-point card that left the names about 34 points to
+/// live in, and every leader in the game is longer than that - the reported
+/// truncation was "Alexan...", "Rames...", "Moctez...", i.e. the one fact the
+/// card exists to convey. Putting the crest and the card count on a top row
+/// gives the name the card's full width, which every leader name fits at this
+/// size. Nothing was made smaller and nothing was dropped; the same four facts
+/// are simply folded the other way.
 private struct DockVictimButton: View {
     let identity: PlayerIdentity
     let resourceCardCount: Int
@@ -210,25 +221,42 @@ private struct DockVictimButton: View {
 
     var body: some View {
         Button(action: action) {
-            HStack(spacing: 3) {
-                CivilizationCrest(civilization: identity.civilization, size: 24)
-                VStack(alignment: .leading, spacing: 0) {
-                    Text(identity.displayName)
-                        .font(.caption2.bold())
-                    Text(identity.civilization.displayName)
-                        .font(.system(size: 8, weight: .semibold, design: .serif))
-                        .foregroundStyle(.white.opacity(0.78))
-                        .accessibilityIdentifier(
-                            AccessibilityID.Robber.victimCivilization(identity.seat)
-                        )
+            // Every size here is a fixed point size rather than a text style,
+            // and the three rows are budgeted against `Layout.victimHeight`:
+            // 18 + 13 + 10 with 1pt gaps is 43, inside the 46 that 54 leaves
+            // after `Layout.victimInsetY`. `minimumScaleFactor` only ever
+            // rescues the WIDTH - a stack whose rows are taller than its frame
+            // is not scaled down, it is clipped.
+            //
+            // The insets are not cosmetic either. This card is drawn inside a
+            // painted gold frame (`playerCardBorder` over `FrameCornerRect`)
+            // several points thick, and the old 3pt horizontal / 0pt vertical
+            // padding put the text UNDER it: measured on the QA fixture, the
+            // name ran the full 58pt content width of a 64pt card and the
+            // civilization line sat on the bottom rail. Nothing was clipped by
+            // a frame - it was covered by the chrome, which looks the same and
+            // is fixed by insetting the content off the rails instead.
+            VStack(alignment: .leading, spacing: 1) {
+                HStack(spacing: 2) {
+                    CivilizationCrest(civilization: identity.civilization, size: 18)
+                    Spacer(minLength: 0)
                     Text("\(resourceCardCount) \(cardNoun)")
                         .font(.system(size: 8, weight: .semibold, design: .serif))
                         .foregroundStyle(.white.opacity(0.78))
                 }
-                .lineLimit(1)
-                .minimumScaleFactor(0.58)
+                Text(identity.displayName)
+                    .font(.system(size: 11, weight: .bold, design: .serif))
+                Text(identity.civilization.displayName)
+                    .font(.system(size: 8, weight: .semibold, design: .serif))
+                    .foregroundStyle(.white.opacity(0.78))
+                    .accessibilityIdentifier(
+                        AccessibilityID.Robber.victimCivilization(identity.seat)
+                    )
             }
-            .padding(.horizontal, 3)
+            .lineLimit(1)
+            .minimumScaleFactor(0.58)
+            .padding(.horizontal, Layout.victimInsetX)
+            .padding(.vertical, Layout.victimInsetY)
             .frame(
                 width: Layout.victimWidth,
                 height: dynamicTypeSize.isAccessibilitySize
@@ -343,6 +371,12 @@ private struct RoadCradleGlyph: View {
 
 private struct DockActionButton: View {
     let title: String
+    /// What is drawn, when that has to be shorter than what the button is
+    /// called. "Choose another territory" is the honest name of the action and
+    /// stays the accessibility label, but at 54 points it renders as four
+    /// stacked fragments that read as a paragraph rather than a control.
+    /// Defaults to `title`, so a button whose name already fits says nothing.
+    var visibleTitle: String?
     let systemImage: String
     let width: CGFloat
     let fill: PaintedChromeBackground.Fill
@@ -355,7 +389,7 @@ private struct DockActionButton: View {
             VStack(spacing: 1) {
                 Image(systemName: systemImage)
                     .font(.footnote.weight(.black))
-                Text(title)
+                Text(visibleTitle ?? title)
                     .font(.caption2.bold())
                     .multilineTextAlignment(.center)
                     .lineLimit(3)
@@ -400,8 +434,15 @@ private enum Layout {
     // Three distinct players can border one tile. These dimensions let every
     // eligible identity remain visible together on a 375-point screen.
     static let victimWidth: CGFloat = 64
-    static let victimHeight: CGFloat = 48
+    /// 54, not the old 48: the card's three rows plus the inset off its
+    /// painted frame do not fit in 48. The dock gives the victim scroller
+    /// about 62pt under its "Steal from" title, so this and the accessibility
+    /// height below both still fit without the picker scrolling vertically.
+    static let victimHeight: CGFloat = 54
     static let accessibilityVictimHeight: CGFloat = 58
+    /// Clears the painted frame the card is drawn in - see `DockVictimButton`.
+    static let victimInsetX: CGFloat = 6
+    static let victimInsetY: CGFloat = 4
     static let victimSpacing: CGFloat = 3
     static let secondaryButtonWidth: CGFloat = 44
     static let changeTerritoryButtonWidth: CGFloat = 54
