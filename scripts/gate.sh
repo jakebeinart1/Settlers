@@ -170,12 +170,52 @@ gate_secrets() {
 # currently configured for the test action" - the scheme's test target list was
 # literally empty, so 6,700 lines of app code had no tests and any gate built on
 # that command would have been a false green. The scheme is wired now.
+#
+# PARALLEL, across cloned simulators. The scheme marks both bundles
+# `parallelizable` (see project.yml, which explains why that is safe); this is
+# where the machine-specific worker count lives, because it is a property of
+# whoever is running the gate and not of the project.
+#
+# Why a count at all, rather than letting xcodebuild pick: its default scales
+# with core count, and each worker is a whole booted simulator competing for
+# the same CPU as the app under test. MEASURED on the 8-core/16GB machine this
+# was tuned on, whole app-test stage, same tree:
+#
+#   1 worker (serial)   1151s   pass
+#   2 workers            731s   pass
+#   3 workers            681s   TWO FAILURES
+#
+# Three buys 7% and costs correctness, so the default is two. The two failures
+# are worth naming, because both look like bugs and neither is:
+#
+#   * testRealAutomatedMatchReachesGameOverAndClearsItsSave -
+#     "Unable to perform work on main run loop, process main thread busy for
+#     30.0s". That test plays a whole match; starved of CPU it cannot answer
+#     the accessibility snapshot in time.
+#   * testCardHandKeepsActionsReachableAtAccessibilityTextSize - asserts
+#     `isHittable` with no wait, so under load it reads the layout mid-render.
+#     Re-run serially on the same tree it passes in 5.5s.
+#
+# So a failure that appears ONLY at a higher worker count is a suspect, not a
+# verdict: re-run it serially before believing it. Override for a machine with
+# more cores rather than editing this line:
+#
+#   GATE_TEST_WORKERS=6 scripts/gate.sh
+#
+# Clones are created and reused by CoreSimulator under the names
+# "Clone N of Empires QA". They are separate devices from the `Empires QA`
+# device `select-qa-simulator.py` returns, and separate again from any
+# manual-play simulator - which is the whole reason this is allowed to erase
+# app containers.
 gate_app_tests() {
   local sim; sim="$(qa_iphone_simulator)"
   if [[ -z "$sim" ]]; then return 200; fi
-  echo "  QA simulator: $sim"
+  local workers="${GATE_TEST_WORKERS:-2}"
+  echo "  QA simulator: $sim ($workers parallel workers)"
   xcodebuild test -project Settlers.xcodeproj -scheme Settlers \
-    -destination "platform=iOS Simulator,id=$sim" 2>&1 \
+    -destination "platform=iOS Simulator,id=$sim" \
+    -parallel-testing-enabled YES \
+    -parallel-testing-worker-count "$workers" 2>&1 \
     | grep -E "error:|✘|Test run with|TEST SUCCEEDED|TEST FAILED" | sort -u
   return "${PIPESTATUS[0]}"
 }

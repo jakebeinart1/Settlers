@@ -115,9 +115,29 @@ schemes:
       # Was `targets: []`, which made `xcodebuild test -scheme Settlers`
       # report "Scheme is not currently configured for the test action" -
       # so any gate built on it would have been a false green.
+      #
+      # `parallelizable` is what lets `xcodebuild` distribute test CLASSES
+      # across cloned simulators. Measured on this suite: the app-test stage
+      # is ~1150s serial, of which ~750s is 50 UI tests - and almost none of
+      # that is assertions. Each UI test cold-launches the app, because
+      # `-ui-testing-reset` wipes the container and nothing is reused between
+      # tests, so most of every test's ~15s is process spawn plus the first
+      # SwiftUI render.
+      #
+      # This is safe here precisely BECAUSE of that isolation: no UI test
+      # depends on state another one left behind, and each worker gets its
+      # own simulator clone rather than sharing the `Empires QA` device. The
+      # one test that deliberately relies on state surviving - the cold-resume
+      # test - creates it and reads it back inside a single test method, so it
+      # travels to whichever worker runs it.
+      #
+      # The worker COUNT is not set here. It belongs to the machine, not the
+      # project, and `scripts/gate.sh` sets it (see `gate_app_tests`).
       targets:
-        - SettlersTests
-        - SettlersUITests
+        - name: SettlersTests
+          parallelizable: true
+        - name: SettlersUITests
+          parallelizable: true
       gatherCoverageData: true
       coverageTargets:
         - Settlers

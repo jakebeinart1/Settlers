@@ -95,6 +95,16 @@ App/UI tests run on the dedicated `Empires QA` simulator selected by
 never replace this with "first available" or "first booted", which wiped the
 manual-play simulator during an ordinary gate on 2026-09-03.
 
+They also run **in parallel across cloned simulators** (`Clone N of Empires QA`,
+created by xcodebuild - still not your manual-play device). Both bundles are
+marked `parallelizable` in `project.yml`; the worker count is machine-specific
+and lives in `gate.sh` (`GATE_TEST_WORKERS`, default 2). Measured on 8 cores /
+16GB, same tree: 1151s serial, 731s at 2 workers, 681s at 3 - but 3 starved two
+tests into failing. **A test that fails only at a higher worker count is a
+suspect, not a verdict**: re-run it serially before believing it. `gate.sh`'s
+`gate_app_tests` header names both of those and why each was starvation rather
+than a bug.
+
 Gates, cheapest first: xcodegen drift · `swiftlint --strict` · evaluation-tool tests · both
 packages built with `-warnings-as-errors` · CatanEngine tests · CatanAI tests · training
 export validation · coverage floors · gitleaks · app/UI tests · **app build in Release**.
