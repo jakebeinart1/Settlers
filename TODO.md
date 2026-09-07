@@ -7,28 +7,36 @@ or spec needed, just fix the screen. Take these before the larger feature
 work below; they're cheap and visibly improve every game played in the
 meantime.
 
-- [ ] **Priority.** Lock the board viewport so it never moves on its own
-      based on in-game actions — settlement/road/city placement, general
-      gameplay, and robber movement all currently shift or re-zoom the
-      board. Root cause: `BoardView` has no persisted camera —
-      `fittedGeometry(for:in:padding:)`
-      (`Settlers/Views/Board/BoardView.swift:523`) recomputes scale-to-fit on
-      every render from whatever happens to be drawn (targeting overlays,
-      port badges, etc.), so the fit — and with it the apparent zoom/pan —
-      changes as those overlays come and go. Fix: compute one fit per
-      screen/mode and hold it fixed instead of recomputing per redraw. This
-      is a bug fix, independent of the *deliberate* pinch/pan camera planned
-      for "4. New game modes" — do this first regardless of whether that
-      feature ships, since it's broken in the current single-board game too.
-- [ ] Clean up the development-card deck / draw UI — currently redundant.
-      Audit `DevCardPopupView.swift` and `Theme/DevCardStyle.swift` for
-      duplicated card-face/deck presentation and simplify to one clear
-      pull/reveal flow.
-- [ ] Fix truncation in the robber steal (victim-selection) screen — the
-      bottom portion of the sheet is cut off. Likely
-      `RobberVictimButton.swift` and its containing sheet/journey from the
-      robber interaction resolver; make it fit without clipping on the
-      standard device sizes covered by `run-settlers`/`play-settlers`.
+- [x] ~~**Board camera: lock the viewport, then make it deliberate.**~~
+      **Done 2026-09-07.** The fit is now solved once per board/width and
+      held (`BoardView.updateLock(for:in:)`), so the confirm/cancel panel,
+      the incoming trade card and the inline banners no longer re-zoom the
+      board as they come and go. On top of it, pinch-to-zoom, drag-to-pan and
+      a recenter control (`BoardCamera`, bottom-left of the board so it does
+      not land on the drag cradle). The camera is a value type with no
+      SwiftUI in it, so its clamping is unit-tested (`BoardCameraTests`) -
+      zoomed out there is exactly one legal camera and it is the fitted
+      board, and nothing can strand the board off screen. Real touches are
+      covered by `BoardCameraFlowTests`. Board padding also went 4 -> 6; it
+      cannot go higher without port badges landing on placement rings (see
+      `BoardView.boardPadding`, which carries the measurements).
+- [x] ~~Clean up the development-card deck / draw UI — currently redundant.~~
+      **Done 2026-09-07.** The "Ready to play / This card can be used now"
+      plaque now appears only when the card CANNOT be played - for a playable
+      card the hand tile already badges it READY and the action button reads
+      "Play Knight" with what it will ask for, so the plaque was a fourth
+      copy. The sheet also hugs its content (`ViewThatFits`) instead of
+      always filling the screen and leaving ~300pt of empty panel between the
+      description and the buttons, and the hand tiles' "1 READY · 1 NEW"
+      badge no longer hangs off both sides of its tile.
+- [x] ~~Fix truncation in the robber steal (victim-selection) screen.~~
+      **Done 2026-09-07.** The names were the truncation ("Alexan...",
+      "Rames...", "Moctez..."): the compact card led with the crest and left
+      about 34pt for the text column. The crest and card count now share a
+      top row and the name gets the card's full width. The card also grew
+      48 -> 54pt and its content is inset off the painted frame it was being
+      drawn underneath, and "Choose another territory" is drawn as "Change
+      territory" (the full name stays as its accessibility label).
 
 ## 1. Bot strength
 
@@ -103,12 +111,12 @@ viewport). See the full survey findings before starting design.
       generator, VP target, stall-audit for reaching 20 VP given
       buildings/dev-card caps, player-count support) via
       superpowers:brainstorming → docs/superpowers/specs/.
-- [ ] Board camera: pinch/gesture zoom and pan on `BoardView`, plus a
-      Google-Maps-style "recenter" button that resets back to the default
-      fit-to-container view. Build this on top of the locked, non-drifting
-      viewport from "0. UI polish" — do that fix first, since a deliberate
-      camera isn't worth building on a fit calc that's still recomputing
-      itself per render.
+- [x] ~~Board camera: pinch/gesture zoom and pan, plus a "recenter"
+      button.~~ **Moved to "0. UI polish"** (2026-09-07) and merged with the
+      viewport-lock bug fix, which is the same feature seen from the other
+      end. Tracked there, not here — it ships on the current 19-tile board
+      regardless of whether larger maps do. This section still *depends* on
+      it: a board bigger than the screen is unusable without pan/zoom.
 - [ ] Generate new full-screen map background art for the larger board via
       the existing AI art pipeline (`design-references/tiles/_scripts/`);
       hex tile textures are stamped per-hex and don't need regenerating.
