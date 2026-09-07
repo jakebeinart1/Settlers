@@ -45,49 +45,80 @@ struct DevelopmentCardOverlay: View {
                 Color.black.opacity(0.68)
                     .ignoresSafeArea()
 
-                VStack(spacing: 0) {
-                    header
-                        .padding(.horizontal, 18)
-                        .padding(.top, 16)
-                        .padding(.bottom, 10)
-
-                    Divider().overlay(SettingsChrome.ornamentGold.opacity(0.35))
-
-                    ScrollView {
-                        VStack(spacing: 14) {
-                            if mode == .hand { handStrip }
-                            if let type = displayedType {
-                                cardDetail(type)
-                            } else {
-                                emptyHand
-                            }
-                        }
-                        .padding(16)
-                    }
-                    .scrollIndicators(.visible)
-
-                    Divider().overlay(SettingsChrome.ornamentGold.opacity(0.35))
-                    actionArea
-                        .padding(14)
+                // A `ScrollView` accepts every point it is offered, so the
+                // panel used to be full-height whatever was in it: a Knight's
+                // three short paragraphs left roughly 300pt of empty painted
+                // panel between the description and the buttons, which reads
+                // as a screen with something missing from it.
+                //
+                // `ViewThatFits` picks the hugging layout when the content
+                // fits the screen and the scrolling one when it does not, so
+                // the long states - Year of Plenty's resource chooser at large
+                // text sizes, the one this sheet's height rules were written
+                // for - still scroll with the title and actions pinned. The
+                // alternative, measuring the content and capping the scroller,
+                // sizes the SCROLLER but leaves the panel behind it full
+                // height, which is the same empty panel with the buttons
+                // floating in the middle of it.
+                ViewThatFits(in: .vertical) {
+                    panel(scrolling: false, maxHeight: nil)
+                    panel(scrolling: true, maxHeight: max(320, geometry.size.height - 28))
                 }
-                .frame(maxWidth: 366)
-                .frame(maxHeight: max(320, geometry.size.height - 28))
-                .background(
-                    PaintedChromeBackground(
-                        fill: .tintedTexture(SettingsChrome.screenBackground),
-                        cornerRadius: 18,
-                        notchScale: 0.9
-                    )
-                )
-                .padding(.horizontal, 14)
-                .padding(.vertical, 14)
-                .shadow(color: .black.opacity(0.65), radius: 28, y: 12)
             }
         }
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier(AccessibilityID.DevCards.overlay)
         .transition(.opacity.combined(with: .scale(scale: 0.97)))
         .onChange(of: selectedType) { _, _ in resetChoices() }
+    }
+
+    /// The sheet itself. `maxHeight` is `nil` for the hugging variant, which
+    /// is what lets `ViewThatFits` measure its true height and reject it when
+    /// it is too tall.
+    private func panel(scrolling: Bool, maxHeight: CGFloat?) -> some View {
+        VStack(spacing: 0) {
+            header
+                .padding(.horizontal, 18)
+                .padding(.top, 16)
+                .padding(.bottom, 10)
+
+            Divider().overlay(SettingsChrome.ornamentGold.opacity(0.35))
+
+            if scrolling {
+                ScrollView { middle }
+                    .scrollIndicators(.visible)
+            } else {
+                middle
+            }
+
+            Divider().overlay(SettingsChrome.ornamentGold.opacity(0.35))
+            actionArea
+                .padding(14)
+        }
+        .frame(maxWidth: 366)
+        .frame(maxHeight: maxHeight)
+        .background(
+            PaintedChromeBackground(
+                fill: .tintedTexture(SettingsChrome.screenBackground),
+                cornerRadius: 18,
+                notchScale: 0.9
+            )
+        )
+        .padding(.horizontal, 14)
+        .padding(.vertical, 14)
+        .shadow(color: .black.opacity(0.65), radius: 28, y: 12)
+    }
+
+    private var middle: some View {
+        VStack(spacing: 14) {
+            if mode == .hand { handStrip }
+            if let type = displayedType {
+                cardDetail(type)
+            } else {
+                emptyHand
+            }
+        }
+        .padding(16)
     }
 
     private var header: some View {
@@ -154,7 +185,17 @@ struct DevelopmentCardOverlay: View {
                     .fixedSize(horizontal: false, vertical: true)
             }
 
-            DevCardStatusPlaque(type: type, status: status)
+            // Only when the card CANNOT be played. A playable card already
+            // says so three times over - the hand tile badges it READY, the
+            // action button reads "Play Knight", and the button's subtitle
+            // names what playing it will ask for - so the plaque's "Ready to
+            // play / This card can be used now" was a fourth copy sitting
+            // between the description and the button it describes. When the
+            // card is blocked the plaque is the ONLY place the reason appears
+            // in full, which is why it stays for exactly that case.
+            if !status.isPlayable {
+                DevCardStatusPlaque(type: type, status: status)
+            }
 
             if mode == .hand, status.isPlayable {
                 choiceArea(for: type)
@@ -515,8 +556,15 @@ private struct DevCardHandTile: View {
                 Text(badge)
                     .font(.system(size: 8, weight: .bold, design: .serif))
                     .lineLimit(1)
+                    // "1 READY · 1 NEW" is wider than the 70pt tile at 8pt
+                    // serif, and `lineLimit(1)` alone let it hang off both
+                    // sides of the tile rather than truncate. It is the
+                    // longest badge this tile can hold, so it is the one the
+                    // width has to be sized against.
+                    .minimumScaleFactor(0.62)
             }
             .foregroundStyle(.white)
+            .padding(.horizontal, 4)
             .frame(width: 70, height: 76)
             .background(
                 RoundedRectangle(cornerRadius: 11)
