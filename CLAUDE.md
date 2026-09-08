@@ -26,6 +26,7 @@ Every one of these is canonical for its question. Read the file, do not reason f
 | Legal moves and move application (the whole ruleset) | `Packages/CatanEngine/Sources/CatanEngine/RulesEngine.swift` |
 | Save-file schema and its backward compatibility | `GameState.init(from:)`, `Models/GameState.swift:110` |
 | Randomness contract | `Models/RandomSource.swift` (doc comment is the spec) |
+| Why the board's viewport never moves, and what may not be changed about it | `GameView.belowBoard` + `BoardView.applicableFit` (both doc comments are the spec) |
 | Bot decision entry point | `Packages/CatanAI/Sources/CatanAI/Bot.swift` |
 | Bot loop, seat assignment, personality mix | `Settlers/ViewModels/GameViewModel.swift` |
 | What is persisted, where, and why | `Settlers/Persistence/` - 7 stores, each with the rationale in its doc comment |
@@ -143,6 +144,27 @@ mistake is cheap to repeat.
   ("Player 1"..."Player 4") and leaves naming to the UI, because the engine has no notion of a
   human seat and should not acquire one to answer a presentation question. **If you find
   yourself adding a fifth copy, that is the signal to pass the seat instead.**
+- **The board's size must never be a layout *remainder*, and a remembered fit is not a fix
+  for that.** `GameView` gave `boardArea` `maxHeight: .infinity` in a column whose other rows
+  came and went, so the board's own container measured **362.67, 382.67 or 503.67 points on
+  the same device in the same game** depending on which panels were up - the board re-zoomed
+  and re-centered on a placement, on an incoming trade offer, and on a seven. The fix applied
+  first was to lock `BoardView`'s fit to the *tallest container it had been given*, and that
+  is the part worth remembering: **it looked like it worked and made the bug worse.** It
+  replaced a frame-dependent board size with a *history*-dependent one, so a game that rolled
+  a seven kept a board 39% too big for every later screen - drawn ~70pt below its container
+  and clipped, which is what cut the outer port badges off - while a game that never rolled
+  one kept a correct board. Two identical games, two board sizes, and no test could see it
+  because each game was internally consistent.
+  **No rule that observes the container can fix this**: tallest-seen is history-dependent,
+  shortest-seen shrinks the board mid-game, first-seen locks to the untrustworthy first
+  frame. The container has to stop varying. It does now: everything below the board lives in
+  a fixed `GameView.belowBoardReserve`-point frame, so panels inside it come and go without
+  reaching the board, and `BoardView`'s fit is a pure function again with **no stored fit at
+  all**. `BoardViewportInvarianceTests` launches every phase fixture and compares the board's
+  own frame; removing the reserve fails it immediately (measured: 382.67 vs 362.67).
+  **If the board ever moves again, the container moved - fix the layout, never re-introduce a
+  remembered fit.**
 - **SwiftPM will serve a stale module after a public API change**, producing a runtime crash
   that a clean rebuild fixes and that no rebuild-in-place reproduces. If behaviour contradicts
   the source you are reading, `rm -rf Packages/<Pkg>/.build` (or `swift package clean`) and

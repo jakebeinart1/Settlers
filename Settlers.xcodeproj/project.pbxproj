@@ -113,6 +113,7 @@
 		E0D4D23541A27CBEFB15DF73 /* BoardCameraTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 03EAB3CE8A50ABA81E547D16 /* BoardCameraTests.swift */; };
 		E3A6D0C733055C91F0E356FE /* BoardFitTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A53ECD05D7E8073C7BEDC19 /* BoardFitTests.swift */; };
 		E47E806640E19E4105F9FEDF /* UITestBootstrap.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5CF7C06392E2A4F1B15C8411 /* UITestBootstrap.swift */; };
+		E7B13CA29B6CD84D4DD4C4AC /* BoardViewportInvarianceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF5C497F322A8B09715BC1CB /* BoardViewportInvarianceTests.swift */; };
 		E943B06519C318DFE4BD613E /* TradePresentationState.swift in Sources */ = {isa = PBXBuildFile; fileRef = D64CA86D7B5FE711AD994243 /* TradePresentationState.swift */; };
 		EA3F8948081A29B415CD8B67 /* QALaunchFlag.swift in Sources */ = {isa = PBXBuildFile; fileRef = 59A80CE9867E891B09A3F0E5 /* QALaunchFlag.swift */; };
 		ED932E191F8F655CD1CF15F1 /* GameLogListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D98DF10D73632B7243DC205C /* GameLogListView.swift */; };
@@ -256,6 +257,7 @@
 		E93C9C15AFA0812F0FF8E052 /* GameLogDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameLogDetailView.swift; sourceTree = "<group>"; };
 		EC9BE64D33337CB59DE2D79D /* TileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TileView.swift; sourceTree = "<group>"; };
 		EED095DCE8ECB10CAA5F77E5 /* Signing.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Signing.xcconfig; sourceTree = "<group>"; };
+		EF5C497F322A8B09715BC1CB /* BoardViewportInvarianceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BoardViewportInvarianceTests.swift; sourceTree = "<group>"; };
 		F07525DED1233EC887B0B75F /* GameViewModel+QABoardDecision.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "GameViewModel+QABoardDecision.swift"; sourceTree = "<group>"; };
 		F34A579755CFBDEAF52EBB70 /* IncomingTradeCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IncomingTradeCardView.swift; sourceTree = "<group>"; };
 		F42228CB12352CF88F39073F /* GameViewModel+QADiscard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "GameViewModel+QADiscard.swift"; sourceTree = "<group>"; };
@@ -378,6 +380,7 @@
 			isa = PBXGroup;
 			children = (
 				B94B22772958B0AC3FC9CD63 /* BoardCameraFlowTests.swift */,
+				EF5C497F322A8B09715BC1CB /* BoardViewportInvarianceTests.swift */,
 				6C3E1669AE4CEDD931039E43 /* DevelopmentCardFlowTests.swift */,
 				B104F168E625B9E66CA71A2E /* DiscardFlowTests.swift */,
 				95CF01E3C9518CFFC7C0AF1F /* GameplayBoundaryFlowTests.swift */,
@@ -746,6 +749,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				43E81724C439E4208450EDBF /* BoardCameraFlowTests.swift in Sources */,
+				E7B13CA29B6CD84D4DD4C4AC /* BoardViewportInvarianceTests.swift in Sources */,
 				5033447C4E7FE175EFE2F595 /* DevelopmentCardFlowTests.swift in Sources */,
 				6596D6FBE997D8DC317C28DD /* DiscardFlowTests.swift in Sources */,
 				EDDC6F3EE75F97F9C0A3A1CA /* GameplayBoundaryFlowTests.swift in Sources */,

@@ -1,8 +1,8 @@
 import SwiftUI
 import CatanEngine
 
-/// `BoardView`'s deliberate camera: the locked fit it rests at, and the pinch,
-/// pan and recenter that move away from it.
+/// `BoardView`'s deliberate camera: the fit it rests at, and the pinch, pan
+/// and recenter that move away from it.
 ///
 /// Split out of `BoardView.swift` rather than kept beside the layers it draws
 /// over: that file was the largest view in the app before the camera was
@@ -12,30 +12,22 @@ import CatanEngine
 /// The arithmetic itself is in `BoardCamera`, which has no SwiftUI in it and
 /// is unit-tested directly. This file is only the wiring.
 extension BoardView {
-    /// A solved fit, plus enough of the layout that produced it to tell
-    /// whether it still applies.
+    /// A solved fit: the geometry the board rests at, and the extent it draws
+    /// into at that geometry.
+    ///
     /// Internal rather than private only because `BoardView.body`, in the
     /// other file, is what consumes it.
-    struct LockedFit {
-        let tiles: [HexCoordinate]
-        let width: CGFloat
-        /// The tallest container this board has been given at this width.
-        /// See `lockedFit(for:in:)` for why the tallest and not the latest.
-        let height: CGFloat
+    struct BoardFit {
         let geometry: HexGeometry
         /// Everything drawn, in container points, at `geometry` - the extent
         /// the camera clamps against.
         let bounds: CGRect
-
-        func describesSameBoard(as board: Board, width: CGFloat) -> Bool {
-            self.width == width && tiles == board.tiles.map(\.coordinate)
-        }
     }
 
     // MARK: - Camera
 
     /// Pinch to zoom, about the fingers rather than the board's center.
-    func pinch(fit: LockedFit, container: CGSize, center: CGPoint) -> some Gesture {
+    func pinch(fit: BoardFit, container: CGSize, center: CGPoint) -> some Gesture {
         MagnifyGesture()
             .onChanged { value in
                 let anchor = gestureAnchor ?? camera
@@ -51,7 +43,7 @@ extension BoardView {
     /// scale the clamp pins the pan to zero, so attaching this there would
     /// swallow drags to do nothing - and the board's own decision layers have
     /// drag interactions of their own that should keep every pixel they have.
-    func drag(fit: LockedFit, container: CGSize) -> some Gesture {
+    func drag(fit: BoardFit, container: CGSize) -> some Gesture {
         DragGesture(minimumDistance: Self.panSlop)
             .onChanged { value in
                 guard camera.zoom > BoardCamera.minZoom else { return }
@@ -85,75 +77,54 @@ extension BoardView {
         .accessibilityIdentifier(AccessibilityID.Board.recenter)
     }
 
-    // MARK: - The locked fit
+    // MARK: - The fit
 
-    /// The fit to draw with this frame. Falls back to solving one when the
-    /// lock does not yet apply, so the very first frame - drawn before
-    /// `onAppear` has committed anything - is already correct.
-    func applicableFit(for board: Board, in container: CGSize) -> LockedFit {
-        if let lockedFit, lockedFit.describesSameBoard(as: board, width: container.width) {
-            return lockedFit
-        }
-        return Self.solvedFit(for: board, in: container)
+    /// The fit to draw with this frame.
+    ///
+    /// ## This is a pure function on purpose, and that is the whole fix
+    /// It used to be `@State`, remembered across frames and re-solved only
+    /// when the container grew - "lock the fit to the tallest container this
+    /// board has been given". That rule was introduced to stop the board
+    /// re-zooming every time a sibling panel appeared, and it did stop that,
+    /// but it replaced a frame-dependent board size with a **history**-
+    /// dependent one, which is worse and much harder to see:
+    ///
+    /// - `GameView`'s below-board chrome used to be a flexible row, so the
+    ///   board's container measured 362.67, 382.67 or 503.67 points on the
+    ///   same device in the same game depending on which panels were up.
+    /// - Locking to the tallest meant a game that rolled a seven (the 503.67
+    ///   discard layout) kept a board 39% too big for every later screen,
+    ///   drawn ~70pt below its container and clipped at the bottom - which is
+    ///   what cut the outer port badges off - while a game that never rolled
+    ///   one kept a correct board. Two identical games, two board sizes.
+    /// - And the growth was visible: the board jumped the instant the first
+    ///   seven landed.
+    ///
+    /// **No rule that observes the container can fix that.** Tallest-seen is
+    /// history-dependent, shortest-seen shrinks the board mid-game the first
+    /// time a tall panel appears, and first-seen locks to the untrustworthy
+    /// first frame. The container has to stop varying instead, which is what
+    /// `GameView.belowBoardReserve` now guarantees: the board's container is
+    /// a fixed height in every phase.
+    ///
+    /// With the container constant, a pure function of `(board, container)`
+    /// is constant too - and, unlike a lock, it cannot quietly absorb a
+    /// future regression. If something ever makes the container vary again
+    /// the board will visibly move, which is a bug you can see, rather than
+    /// silently becoming history-dependent, which is a bug you cannot.
+    ///
+    /// **Do not reintroduce a stored fit here.** If the board moves, the
+    /// container moved; fix the layout that moved it.
+    /// `BoardViewportInvarianceTests` fails when it does.
+    func applicableFit(for board: Board, in container: CGSize) -> BoardFit {
+        Self.solvedFit(for: board, in: container)
     }
 
-    static func solvedFit(for board: Board, in container: CGSize) -> LockedFit {
+    static func solvedFit(for board: Board, in container: CGSize) -> BoardFit {
         let geometry = fittedGeometry(for: board,
                                       in: CGRect(origin: .zero, size: container),
                                       padding: boardPadding)
-        return LockedFit(
-            tiles: board.tiles.map(\.coordinate),
-            width: container.width,
-            height: container.height,
-            geometry: geometry,
-            bounds: contentBounds(for: board, geometry: geometry))
-    }
-
-    /// Decides whether the board's fit may move.
-    ///
-    /// ## The bug this exists to kill
-    /// `fittedGeometry` is a pure function of `(board, container, padding)`,
-    /// and it was being called inline on every render - so the board silently
-    /// re-zoomed and re-centered every time its *container* changed height.
-    /// It changes constantly: `GameView.boardArea` is `maxHeight: .infinity`
-    /// in a column, so the confirm/cancel decision panel, the incoming trade
-    /// card and the inline banners all take height from the board as they
-    /// come and go. Placing a settlement moved the board. So did a 7.
-    ///
-    /// ## Why the tallest container and not the latest
-    /// Everything that steals height *takes* it - nothing makes the board's
-    /// container taller than its unobstructed layout. So the tallest
-    /// container seen at a given width **is** the unobstructed layout, which
-    /// makes "lock to the tallest" a rule that converges on the right answer
-    /// from any starting frame, with no timer and no settling heuristic, and
-    /// never oscillates: the height it locks to is monotonic.
-    ///
-    /// That matters because the first frame is not trustworthy.
-    /// `GameView.topChipInset` starts at a placeholder and is corrected once
-    /// the chips report their real height, so a rule of "lock the first fit
-    /// you see" would lock to a layout that existed for one frame.
-    ///
-    /// The consequence, and it is the intended one: while a panel is up, the
-    /// board is drawn at its unobstructed size inside a shorter container and
-    /// is cropped by `boardArea`'s clip. It stays exactly where it was rather
-    /// than shrinking to fit - which is the whole point. Pinch or pan to
-    /// reach anything the panel covers.
-    ///
-    /// Width is in the key because it is the one dimension nothing steals: it
-    /// changes only on rotation or a genuinely different screen, where a fit
-    /// solved for the old width would be wrong rather than merely stale.
-    func updateLock(for board: Board, in container: CGSize) {
-        guard container.width > 0, container.height > 0 else { return }
-
-        if let lockedFit, lockedFit.describesSameBoard(as: board, width: container.width) {
-            guard container.height > lockedFit.height else { return }
-            let grown = Self.solvedFit(for: board, in: container)
-            self.lockedFit = grown
-            camera = camera.clamped(fittedBounds: grown.bounds, container: container)
-            return
-        }
-
-        lockedFit = Self.solvedFit(for: board, in: container)
-        camera = .fitted
+        return BoardFit(geometry: geometry,
+                         bounds: contentBounds(for: board, geometry: geometry))
     }
 }

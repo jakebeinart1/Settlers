@@ -85,21 +85,6 @@ public struct GameView: View {
     /// without the drama of a live animation demanding their attention.
     @State var rollHistory: [Int] = []
 
-    // Seeded with the row's actual measured height (rendered a
-    // faithful reproduction and read off its real size) rather than 0 -
-    // `StableHeightSlot` still grows to fit if real content ever needs more,
-    // but starting from a real estimate means there's no gap between "app
-    // just launched" and "something has measured once" for the board to
-    // flicker through. That gap - not the measure-after-the-fact approach
-    // itself - was the actual hole in the previous fix: this was 0 until the
-    // first real occurrence, and a bare `Color.clear` placeholder (now fixed
-    // separately) was what turned that brief 0 into a collapsed board.
-    /// Reserved height for the road-building hint / error message row - see
-    /// `StableHeightSlot`. Shared by the road-building hint and the error
-    /// message, the only two occupants now that the incoming-trade card lives
-    /// in `bottomPanel` instead - seeded at one caption line's height (~20pt).
-    @State private var infoBannerHeight: CGFloat = 20
-
     var state: GameState { viewModel.state }
     private var human: PlayerID { viewModel.humanPlayer }
 
@@ -157,64 +142,7 @@ public struct GameView: View {
 
                 boardArea
 
-                // The road-building hint and a build/move error share one
-                // slot (see `StableHeightSlot`) - the incoming-trade card
-                // used to live here too, but a bot can only ever propose one
-                // while it's *not* the human's turn (see `bottomPanel`'s own
-                // comment), the same window where the action row below has
-                // nothing real to do anyway - so it now takes over that row
-                // directly instead of adding a whole extra reserved banner
-                // just for itself.
-                // A board decision reports its own errors and instructions in
-                // the command dock. Omitting this otherwise-reserved banner
-                // gives an accessibility-sized dock room to grow without
-                // stealing the board's 250-point minimum.
-                if viewModel.boardDecisionPresentation == nil {
-                    StableHeightSlot(height: $infoBannerHeight) {
-                        if let errorMessage {
-                            Text(errorMessage)
-                                .font(.caption2)
-                                .foregroundStyle(.red)
-                        } else {
-                            // `.frame(height: 0)` is load-bearing here, not
-                            // decoration: a bare `Color.clear` has no intrinsic
-                            // size and greedily fills all available space in a
-                            // `VStack`.
-                            Color.clear.frame(height: 0)
-                        }
-                    }
-                    .dynamicTypeSize(...DynamicTypeSize.large)
-                }
-
-                // No top padding here - this needs to sit genuinely flush
-                // against the banner slot above it (board -> banner ->
-                // here reads as one continuous stack, not three separate
-                // boxes with gaps between them).
-                if !isDiscardPresented {
-                    HumanPlayerPanel(
-                        state: state,
-                        human: human,
-                        playerIdentity: viewModel.playerIdentity,
-                        onOpenDevCards: { type in
-                            devCardPopupType = type
-                            showDevCardHand = true
-                        }
-                    )
-                    .padding(.horizontal, 12)
-                    // This is a dense graphical inventory, not prose. Letting
-                    // Accessibility Large scale its symbols to 3× pushed the
-                    // board below 250pt and clipped VP off-screen. VoiceOver
-                    // still exposes every value; the fixed canvas stays whole.
-                    .dynamicTypeSize(...DynamicTypeSize.large)
-                    .allowsHitTesting(viewModel.boardDecisionPresentation == nil)
-                    .accessibilityHidden(viewModel.boardDecisionPresentation != nil)
-                }
-
-                bottomPanel
-                    .padding(.horizontal, 12)
-                    .padding(.top, 8)
-                    .allowsHitTesting(!isDiscardPresented)
-                    .accessibilityHidden(isDiscardPresented)
+                belowBoard
             }
             // A full-screen card/popup visually blocks the board; it must do
             // the same for VoiceOver. Leaving the private shelf in the
@@ -611,6 +539,127 @@ public struct GameView: View {
         }
     }
 
+    // MARK: - Below the board: a fixed reserve, never a flexible remainder
+
+    /// Everything under the board, in a frame whose height does NOT depend on
+    /// what is currently in it.
+    ///
+    /// ## The bug this shape exists to kill, and why the obvious shapes do not
+    /// These panels used to sit directly in the outer `VStack` as ordinary
+    /// flexible rows, with `boardArea` taking `maxHeight: .infinity`. That
+    /// makes the board's height *the remainder*, so every panel that appears
+    /// or disappears silently re-solves the board's fit. Measured on an
+    /// iPhone 17 Pro at width 402, the board's own container came out at:
+    ///
+    /// | state | container height |
+    /// |---|---|
+    /// | main turn with an incoming trade card | 362.67 |
+    /// | setup / roll / robber decision | 382.67 |
+    /// | discarding (this whole stack is replaced by the sheet) | 503.67 |
+    ///
+    /// A 141-point, 39% spread on one device in one game. The board visibly
+    /// re-zoomed and re-centered on a 7, on an incoming offer, and on a
+    /// discard.
+    ///
+    /// `BoardView` used to paper over that by locking its fit to the TALLEST
+    /// container it had been given. That is strictly worse than it sounds and
+    /// is why the bug came back: it made the board's size depend on the
+    /// *history* of the session rather than on the frame. A game that rolled a
+    /// seven locked to 503.67 and kept a board 39% too big for every later
+    /// screen - drawn correctly but hanging ~70pt below its container, which
+    /// is what clipped the bottom port badges - while a game that never rolled
+    /// one locked to 382.67. Two games, two different board sizes, and a
+    /// visible jump the moment the first seven landed.
+    ///
+    /// **No rule that observes the container can fix this.** Tallest-seen is
+    /// history-dependent; shortest-seen shrinks the board mid-game the first
+    /// time a tall panel appears; first-seen locks to the untrustworthy first
+    /// frame. The height has to stop varying, which is what this frame does.
+    ///
+    /// ## The rule
+    /// This region is `belowBoardReserve` points tall in every phase. Panels
+    /// inside it may still come and go freely - that is now invisible to the
+    /// board, because none of it is the board's remainder any more. Anything
+    /// that wants more room than the reserve must compress or scroll inside
+    /// it; it may not take height from the board.
+    ///
+    /// `BoardFitInvarianceTests` is what holds this: it fails if the reserve
+    /// stops covering a real state, and `BoardStabilityTests` fails if the
+    /// board's solved fit differs between any two phases.
+    private var belowBoard: some View {
+        VStack(spacing: 0) {
+            // The road-building hint and a build/move error share one
+            // fixed-height slot - the incoming-trade card
+            // used to live here too, but a bot can only ever propose one
+            // while it's *not* the human's turn (see `bottomPanel`'s own
+            // comment), the same window where the action row below has
+            // nothing real to do anyway - so it now takes over that row
+            // directly instead of adding a whole extra reserved banner
+            // just for itself.
+            // A board decision reports its own errors and instructions in
+            // the command dock, so this banner is omitted there and the dock
+            // gets the room. That trade is now purely internal to this
+            // fixed-height region and cannot reach the board.
+            if viewModel.boardDecisionPresentation == nil {
+                // A FIXED height, not a `StableHeightSlot`. That slot only
+                // ever grows, so the first error message of the session
+                // silently made this band taller for the rest of it - one
+                // more height that depended on the session's history rather
+                // than on the frame, which is the exact family of bug this
+                // file is being fixed for. One `.caption2` line is all this
+                // band has ever needed; a longer message shrinks to fit
+                // rather than reflowing and taking room from its neighbours.
+                Group {
+                    if let errorMessage {
+                        Text(errorMessage)
+                            .font(.caption2)
+                            .foregroundStyle(.red)
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.75)
+                    } else {
+                        Color.clear
+                    }
+                }
+                .frame(height: Self.infoBannerHeight)
+                .dynamicTypeSize(...DynamicTypeSize.large)
+            }
+
+            // No top padding here - this needs to sit genuinely flush
+            // against the banner slot above it (board -> banner ->
+            // here reads as one continuous stack, not three separate
+            // boxes with gaps between them).
+            if !isDiscardPresented {
+                HumanPlayerPanel(
+                    state: state,
+                    human: human,
+                    playerIdentity: viewModel.playerIdentity,
+                    onOpenDevCards: { type in
+                        devCardPopupType = type
+                        showDevCardHand = true
+                    }
+                )
+                .padding(.horizontal, 12)
+                // This is a dense graphical inventory, not prose. Letting
+                // Accessibility Large scale its symbols to 3x scale its
+                // symbols pushed the board below its minimum and clipped VP
+                // off-screen. VoiceOver still exposes every value; the fixed
+                // canvas stays whole.
+                .dynamicTypeSize(...DynamicTypeSize.large)
+                .allowsHitTesting(viewModel.boardDecisionPresentation == nil)
+                .accessibilityHidden(viewModel.boardDecisionPresentation != nil)
+            }
+
+            bottomPanel
+                .padding(.horizontal, 12)
+                .padding(.top, 8)
+                .allowsHitTesting(!isDiscardPresented)
+                .accessibilityHidden(isDiscardPresented)
+        }
+        // Top-aligned, so a state with less in it leaves its slack at the
+        // bottom rather than floating its panels into the middle of the gap.
+        .frame(height: Self.belowBoardReserve, alignment: .top)
+    }
+
     // MARK: - Bottom panel: one uniform command row over a lighter water panel
 
     private var bottomPanel: some View {
@@ -715,6 +764,31 @@ public struct GameView: View {
 
     /// The common measured height for normal, trade, card, and robber rows.
     private static let actionRowHeight: CGFloat = BottomRowMetrics.height
+
+    /// One `.caption2` line. See `belowBoard` for why this is a constant.
+    private static let infoBannerHeight: CGFloat = 20
+
+    /// The height reserved for everything under the board, in every phase.
+    ///
+    /// MEASURED, not chosen. Every component below caps its Dynamic Type at
+    /// `.large`, so what it reports at `.large` is its worst case and a
+    /// constant here is genuinely safe rather than merely convenient.
+    /// Measured on an iPhone 17 Pro at width 402, Dynamic Type `.large`:
+    ///
+    ///     HumanPlayerPanel   141.00
+    ///     info banner         20.00   (`infoBannerHeight`, now fixed)
+    ///     gap above the dock   8.00   (`.padding(.top, 8)`)
+    ///     bottomPanel         87.33   (identical in every winner state)
+    ///                       -------
+    ///                        256.33
+    ///
+    /// Rounded up to 257: every state must be <= this, never merely close to
+    /// it, and a fractional constant buys nothing.
+    ///
+    /// `BoardViewportInvarianceTests` is the guard - it launches every phase
+    /// fixture and fails if the board's own frame differs between any two of
+    /// them, which is exactly what a too-small reserve would cause.
+    static let belowBoardReserve: CGFloat = 257
 
     /// True exactly when the game is waiting for the human to take a main-turn
     /// action - the only phase in which building, trading or buying a

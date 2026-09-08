@@ -8,10 +8,17 @@ work below; they're cheap and visibly improve every game played in the
 meantime.
 
 - [x] ~~**Board camera: lock the viewport, then make it deliberate.**~~
-      **Done 2026-09-07.** The fit is now solved once per board/width and
-      held (`BoardView.updateLock(for:in:)`), so the confirm/cancel panel,
-      the incoming trade card and the inline banners no longer re-zoom the
-      board as they come and go. On top of it, pinch-to-zoom, drag-to-pan and
+      **Done 2026-09-07; the lock was WRONG and was replaced the same day.**
+      The first fix held the fit at the tallest container the board had been
+      given, which stopped the board re-zooming per frame but made its size
+      depend on the session's *history* instead: a game that rolled a seven
+      kept a board 39% too big and clipped at the bottom, a game that did not
+      kept a correct one. The real fix is that everything below the board now
+      lives in a fixed-height frame (`GameView.belowBoardReserve`), so the
+      board's container cannot vary at all and `BoardView`'s fit is a pure
+      function with no stored state - the confirm/cancel panel, the incoming
+      trade card, a discard and the inline banners no longer reach the board.
+      Guarded by `BoardViewportInvarianceTests`. On top of it, pinch-to-zoom, drag-to-pan and
       a recenter control (`BoardCamera`, bottom-left of the board so it does
       not land on the drag cradle). The camera is a value type with no
       SwiftUI in it, so its clamping is unit-tested (`BoardCameraTests`) -

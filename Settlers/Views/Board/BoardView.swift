@@ -29,17 +29,18 @@ public struct BoardView: View {
 
     @Environment(\.accessibilityReduceMotion) var reduceMotion
 
-    // The three below are the camera's state. They are internal rather than
+    // The two below are the camera's state. They are internal rather than
     // private because everything that READS them lives in
     // `BoardViewCamera.swift`; `@State` has to be declared on the type itself,
     // so the storage cannot move to the extension with its behaviour.
+    //
+    // There is deliberately NO stored fit here. A stored fit is what the
+    // previous version of this file had, and it is what made the board's size
+    // depend on the session's history rather than on the frame - see
+    // `solvedFit` for the full account.
 
-    /// The fit the board is locked to, and the layout it was solved for.
-    /// `nil` only before the first layout.
-    @State var lockedFit: LockedFit?
-
-    /// Zoom/pan on top of `lockedFit`. Reset by the recenter control and by
-    /// anything that re-solves the lock.
+    /// Zoom/pan on top of the solved fit. Reset by the recenter control and
+    /// by a new board.
     @State var camera: BoardCamera = .fitted
 
     /// The camera each gesture started from. A gesture's value is cumulative
@@ -175,9 +176,12 @@ public struct BoardView: View {
                 }
             }
             .animation(reduceMotion ? nil : .easeOut(duration: 0.18), value: camera.isFitted)
-            .onAppear { updateLock(for: board, in: proxy.size) }
-            .onChange(of: proxy.size) { updateLock(for: board, in: proxy.size) }
-            .onChange(of: board.tiles.map(\.coordinate)) { updateLock(for: board, in: proxy.size) }
+            // The camera is the only thing that may move the board, so it is
+            // the only thing reset here. The FIT is not state at all any
+            // more - see `solvedFit` - so there is nothing to recompute when
+            // the container or the board changes.
+            .onChange(of: proxy.size) { camera = camera.clamped(fittedBounds: fit.bounds, container: proxy.size) }
+            .onChange(of: board.tiles.map(\.coordinate)) { camera = .fitted }
         }
     }
 

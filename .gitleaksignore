@@ -1,0 +1,27 @@
+# Verified false positives, one fingerprint per line.
+#
+# A fingerprint is `commit:path:rule:line`, so an entry here silences exactly
+# one finding in one historical blob - never a rule, a path, or a file type.
+# That is deliberate: a broad allowlist would also hide the next real secret
+# committed to the same place, which is the failure mode this gate exists to
+# prevent. If you are adding an entry, read the blob first and record below
+# what you actually saw.
+#
+# ---------------------------------------------------------------------------
+# `state_sha256_json_sort_keys_compact_separators` in an AI-research evidence
+# JSON on `origin/codex/policy-decision-trace` (Alex Chandler, 2026-09-06).
+#
+# Read and verified 2026-09-07: the value is a 64-hex-character SHA-256 digest
+# of a serialized `GameState`, sitting beside
+# `evaluation_line_sha256_including_newline` in a list of per-move witnesses.
+# It is a content hash of a public game position - it grants nothing, and the
+# file it lives in was deleted from the tree in a later commit. `gitleaks`
+# matches it only because `generic-api-key` fires on a long high-entropy
+# string next to a key whose name ends in a word it treats as secret-ish.
+#
+# Note it is NOT on `main`: it is reachable only from that remote branch, so
+# this gate went from green to red on an unchanged working tree the moment
+# that branch was fetched into the clone. That is the gate behaving correctly
+# - it scans history, not the checkout - and is worth knowing before hunting
+# for a local cause.
+cba94470666bc2c93bf674ddd9e1de4b49e6ef32:docs/AI_summaries/evidence/native-cap-diagnosis-20260906/empires-cap-candidate-analysis-20260906.json:generic-api-key:90
