@@ -253,6 +253,7 @@ struct SeatCardView: View {
             .padding(.horizontal, 9)
             .frame(height: identityRowHeight)
             .background(PaintedChromeBackground(fill: .color(Self.fieldFill), cornerRadius: 8, notchScale: 0.45))
+            .accessibilityIdentifier(AccessibilityID.NewGame.seatName(seat.index))
     }
 
     private static let fieldFill = Color(red: 0.03, green: 0.06, blue: 0.10)

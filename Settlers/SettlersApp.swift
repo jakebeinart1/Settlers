@@ -12,6 +12,11 @@ struct SettlersApp: App {
         CheckpointProcessProbe.runIfRequested()
         #endif
         UITestBootstrap.resetPersistentStateIfRequested()
+        // After the reset, which clears the archive: seeding first would write
+        // a recording and then delete it.
+        #if DEBUG
+        QAGameHistoryFixture.seedIfRequested()
+        #endif
         viewModel = GameViewModel()
     }
 

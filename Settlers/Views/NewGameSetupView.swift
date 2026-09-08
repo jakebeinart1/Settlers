@@ -142,6 +142,23 @@ struct NewGameSetupView: View {
                 if isConfirmingOverwrite { overwriteConfirmation }
             }
         }
+        // The keyboard OVERLAYS this screen; it does not compress it. Without
+        // this, typing a name shrank the safe area, which shrank the
+        // `GeometryReader` above, which re-decided `isShortScreen` and every
+        // spacing derived from it - so the whole configuration visibly
+        // scrunched up (and animated doing it) the moment the field was
+        // tapped, then sprang back on dismiss. The layout is already scrollable
+        // and `.scrollDismissesKeyboard(.interactively)`, so a field the
+        // keyboard covers is reachable by scrolling rather than by rebuilding
+        // the screen around it - Jake's ask, 2026-09-07.
+        //
+        // Guarded by `NewGameKeyboardInvarianceTests`, which measures the
+        // pinned bottom bar before and after the keyboard opens. Note that the
+        // guard only bites with the simulator's HARDWARE keyboard disconnected
+        // (Simulator ▸ I/O ▸ Keyboard): with it connected no software keyboard
+        // appears, the safe area never changes, and the test passes against the
+        // broken build - measured on 2026-09-07, both ways.
+        .ignoresSafeArea(.keyboard, edges: .bottom)
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier(AccessibilityID.Screen.newGame)
         .foregroundStyle(.white)

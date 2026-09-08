@@ -44,6 +44,13 @@ public struct MainMenuView: View {
     @State private var isShowingSettings = QALaunchFlag.showSettings.isSet
     // The three `-qaShowNewGame*` flags do the same for `NewGameSetupView`,
     // each seeding a different state of it (see `QALaunchFlag`).
+    @State private var isShowingGameHistory = QALaunchFlag.showGameHistory.isSet
+        || QALaunchFlag.showReplay.isSet
+    /// Whether the archive holds anything worth opening. A directory listing,
+    /// not a parse: the count only decides whether to show a button, and
+    /// decoding every recording to answer that would make the menu pay for a
+    /// screen the player may never open.
+    @State private var recordedGameCount = 0
     @State private var isShowingNewGame = QALaunchFlag.showNewGame.isSet
         || QALaunchFlag.showNewGameInvalid.isSet
         || QALaunchFlag.showNewGameOverwrite.isSet
@@ -133,6 +140,8 @@ public struct MainMenuView: View {
                     }
                 }
 
+                historyButton
+
                 statsRow
 
                 Spacer()
@@ -166,9 +175,34 @@ public struct MainMenuView: View {
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier(AccessibilityID.Screen.mainMenu)
         .foregroundStyle(.white)
+        .task { recordedGameCount = (try? GameLogStore.shared.logFiles().count) ?? 0 }
+        .fullScreenCover(isPresented: $isShowingGameHistory) {
+            GameHistoryView(onDismiss: { isShowingGameHistory = false })
+        }
         .sheet(isPresented: $isShowingSettings) {
             SettingsView(onDismiss: { isShowingSettings = false }, statistics: statistics,
                          onResetStatistics: onResetStatistics)
+        }
+    }
+
+    /// The way back into games already played, sitting directly above the
+    /// statistics those games produced - the two answer the same question at
+    /// different resolutions ("how am I doing" and "what happened in that
+    /// one"), so they belong next to each other rather than the archive being
+    /// buried three taps deep in App Settings, which is where it used to live.
+    ///
+    /// Hidden until something has been recorded, for the same reason Resume
+    /// is: a menu button that can only lead to an empty screen is a button
+    /// that teaches the player not to trust the menu.
+    @ViewBuilder
+    private var historyButton: some View {
+        if recordedGameCount > 0 {
+            GoldRowButton(title: "Game History", systemImage: "clock.arrow.circlepath",
+                          iconColor: SettingsChrome.ornamentGold) {
+                isShowingGameHistory = true
+            }
+            .accessibilityIdentifier(AccessibilityID.MainMenu.gameHistory)
+            .padding(.horizontal, 40)
         }
     }
 

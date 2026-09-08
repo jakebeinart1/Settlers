@@ -161,12 +161,40 @@ final class GameplayBoundaryFlowTests: XCTestCase {
         add(attachment)
     }
 
+    /// Also the only place the win screen's "View Replay" shortcut can be
+    /// tested, which is why it is asserted here rather than in a test of its
+    /// own next to the rest of the replay coverage.
+    ///
+    /// Two reasons it has to be this test. A recording only exists for a game
+    /// that was really played, and `-qaShowEndGame` does not qualify:
+    /// `qaForceHumanWin` goes through `persistTestingPosition`, which replaces
+    /// the active match with a fresh one carrying no moves, so its id names a
+    /// recording that was never written. And a *second* `-qaPlayToEnd` test
+    /// makes the gate red rather than slow - measured 2026-09-08, when this
+    /// assertion did live in `GameHistoryFlowTests`: both full-match tests
+    /// failed together at `GATE_TEST_WORKERS=2` and both passed serially, the
+    /// starvation pattern `gate.sh`'s own header describes. One match, both
+    /// claims.
     func testRealAutomatedMatchReachesGameOverAndClearsItsSave() {
         continueAfterFailure = false
         let app = launch(arguments: ["-qaAutoStart", "-qaPlayToEnd"])
 
         let newGame = app.buttons["game-over.new-game"]
         XCTAssertTrue(newGame.waitForExistence(timeout: Self.completeMatchTimeoutSeconds))
+
+        // Existence only, and deliberately no tap. What this test uniquely
+        // proves is that the button resolves the recording of the match that
+        // was actually just played - the win screen shows it only when
+        // `GameLogStore.summary(for:)` finds a file for the active match id.
+        // Opening and scrubbing a replay is covered five ways over in
+        // `GameHistoryFlowTests` against a seeded fixture, and doing it here
+        // as well made this - already the most expensive test in the suite -
+        // build every frame of a full match while a second worker competed
+        // for the machine. That timed out an unrelated UI query and turned
+        // the gate red twice (2026-09-08) without a bug behind it.
+        XCTAssertTrue(app.buttons["game-over.replay"].waitForExistence(timeout: 10),
+                      "The win screen offered no replay of the match just played")
+
         newGame.tap()
 
         XCTAssertTrue(app.otherElements["screen.main-menu"].waitForExistence(timeout: 2))

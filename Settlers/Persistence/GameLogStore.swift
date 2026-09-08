@@ -319,6 +319,19 @@ public struct GameLogStore: Sendable {
         try detail(for: summary.fileURL)
     }
 
+    /// One named recording, or `nil` when the archive does not hold it.
+    ///
+    /// Deliberately not `summaries().first { $0.gameID == id }`: that decodes
+    /// every archived game (up to `maxKeptLogs` of them, each a full
+    /// `GameState` plus its move list) to answer a question about one. The file
+    /// is named after the match id, so the lookup is a path, and only the file
+    /// that was asked for is ever parsed.
+    public func summary(for gameID: UUID) throws -> GameLogSummary? {
+        let url = fileURL(for: gameID)
+        guard FileManager.default.fileExists(atPath: url.path) else { return nil }
+        return try detail(for: url).summary
+    }
+
     public func detail(for fileURL: URL) throws -> GameLogDetail {
         let parsed = try entries(in: fileURL)
         guard let start = parsed.entries.first(where: { $0.kind == .start }),

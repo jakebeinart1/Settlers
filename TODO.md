@@ -3,9 +3,35 @@
 ## 0. UI polish (quick, self-contained fixes)
 
 Small, independent cleanups to the current gameplay surfaces — no design work
-or spec needed, just fix the screen. Take these before the larger feature
-work below; they're cheap and visibly improve every game played in the
-meantime.
+or spec needed, just fix the screen. **All done as of 2026-09-07**; kept
+here for the rationale each fix carries.
+
+Three more landed the same day, from Jake playing on the phone, and are
+recorded here rather than given a section of their own:
+
+- [x] ~~The name typed on New Game is remembered for the next New Game.~~
+      The setup itself was already saved, but `NewGameSetupView` overwrites
+      the saved setup's human name with the `PlayerNameStore` preference every
+      time it opens, and only App Settings ever wrote that preference - so a
+      typed name survived exactly until the next visit. Starting a game now
+      writes the preference too (`ContentView.rememberPreferredName`).
+      Guarded end-to-end by `PlayerNameMemoryFlowTests`.
+- [x] ~~The keyboard overlays New Game instead of compressing it.~~ The screen
+      is built inside a `GeometryReader` that derives `isShortScreen` and every
+      spacing from the height it is given, so the keyboard's safe-area inset
+      visibly scrunched the whole configuration and sprang it back on dismiss.
+      `.ignoresSafeArea(.keyboard)` makes it an overlay. Guarded by
+      `NewGameKeyboardInvarianceTests` - which only bites with the simulator's
+      hardware keyboard disconnected, and says so.
+- [x] ~~The pause screen offers one way out, not two.~~ Close and "Resume Game"
+      were the same button under two names, over a "Game Control" section that
+      repeated all three exits. It is now one bottom row - Close, Restart, Quit
+      - with the two destructive ones still behind their confirmations, and the
+      boxed "These settings do not change match rules" plaque is folded into
+      the screen's subtitle (a plaque is the chrome this app uses for something
+      you act on, so a bordered sentence read as a button that would not press).
+
+The next open work is section 1.
 
 - [x] ~~**Board camera: lock the viewport, then make it deliberate.**~~
       **Done 2026-09-07; the lock was WRONG and was replaced the same day.**
@@ -40,12 +66,12 @@ meantime.
       live on `GameView.boardArea`, which is taller by `topChipInset`.
       Both are on `main` (`071bfe6`, `cc83b0c`), full gate green, and
       installed to Jake's iPhone as build 4.
-- [ ] Delete `StableHeightSlot` (`Settlers/Views/GameViewLayoutSupport.swift`).
-      Dead since the viewport fix: the two heights it measured are fixed
-      constants now, and the only remaining mentions are the comments in
-      `GameView` explaining why a grow-only slot was the *wrong* shape here.
-      Left in place deliberately on 2026-09-07 rather than widening a bug fix;
-      it is a delete, not a refactor.
+- [x] ~~Delete `StableHeightSlot` (`Settlers/Views/GameViewLayoutSupport.swift`).~~
+      **Done 2026-09-07.** Dead since the viewport fix - the two heights it
+      measured are fixed constants now, and nothing referenced it but two
+      comments in `GameView` explaining why a grow-only slot was the *wrong*
+      shape here. Those comments keep the lesson and no longer name a type
+      that does not exist.
 - [x] ~~Clean up the development-card deck / draw UI — currently redundant.~~
       **Done 2026-09-07.** The "Ready to play / This card can be used now"
       plaque now appears only when the card CANNOT be played - for a playable
@@ -108,18 +134,45 @@ button with the pause menu.
 
 ## 3. Main menu / game log rework
 
-- [ ] Trim the main menu — drop the Settings entry there; most of what it
-      exposes is already reachable later (in-game settings, etc.), so a
-      separate top-level Settings screen is redundant.
-- [ ] Pull the plain-text game log out of the current in-game Settings screen
-      and give it its own visual replay view instead of (or alongside) the
-      text log.
-- [ ] New feature: a visual game log / replay — shows the board and lets you
-      scrub a slider from game start to finish to see how the board state
-      (and score) evolved, rather than reading a log of text events.
-- [ ] Surface this same replay view from the end-of-game win/lose screen
-      (e.g. a "View Game Log" button) so you can review how the game played
-      out right after it ends.
+Mostly **done 2026-09-07**. The archive moved out of App Settings and onto the
+main menu as **Game History** (directly above the statistics row, hidden until
+something has been recorded), and a row now opens the board rather than a
+transcript. `GameLogListView` and `GameLogDetailView` - a flat system-chrome
+list and a `String(describing:)` dump of every archived `GameMove` - are
+deleted.
+
+- [ ] Trim the main menu - drop the Settings entry there. **Deliberately not
+      done, needs Jake's call.** The premise ("most of what it exposes is
+      already reachable later") turned out to be only two thirds true: Your
+      Name and Your Civilization are indeed reachable on New Game Setup, and
+      Game Logs has now moved out to Game History - but the **Random
+      Civilization Pool** and **Reset Stats** live nowhere else, and deleting
+      the screen would delete them with it. Either they get a home first (New
+      Game Setup for the pool; the stats row itself for the reset) or the gear
+      stays. It is now a three-section screen rather than five.
+- [x] ~~Pull the plain-text game log out of the current in-game Settings screen
+      and give it its own visual replay view.~~ **Done 2026-09-07.** It was on
+      the *main-menu* Settings screen, not the in-game one. Its "Game Logs"
+      section is gone; the archive is `GameHistoryView`, on the same painted
+      seaside ground as the menu it opens from.
+- [x] ~~New feature: a visual game log / replay - shows the board and lets you
+      scrub a slider from game start to finish.~~ **Done 2026-09-07.**
+      `GameReplayView`: the real `BoardView` at the top, then a per-seat score
+      strip, the narrated move, a scrubber, and transport controls (start,
+      previous, play/pause, next, end). `GameReplayTimeline` reconstructs every
+      position by replaying the recording's moves through `RulesEngine` and
+      materialises them all up front, because a scrubber is a random-access
+      control and the engine only walks forwards. A recording this build cannot
+      replay (an older rules version, say) keeps the frames it reconstructed and
+      says where it stopped, rather than ending silently on a half-played board.
+      Everything below the board sits in a fixed-height frame for the same
+      reason `GameView` does it - scrubbing must not resize the board.
+      Guarded by `GameReplayTimelineTests` (8 cases) and `GameHistoryFlowTests`
+      (6 native UI cases, including a game played to a real winner).
+- [x] ~~Surface this same replay view from the end-of-game win/lose screen.~~
+      **Done 2026-09-07.** "View Replay" under "New Game" on `EndGameView`,
+      resolved up front from the archive so the button is absent rather than
+      broken when no recording exists (a queued export, or the QA win fixture).
 
 ## 4. New game modes (larger maps)
 

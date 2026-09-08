@@ -46,7 +46,8 @@ struct ContentView: View {
                viewModel.pendingDevCardResolution == nil,
                viewModel.savedGameAvailability.recoveryMessage == nil {
                 EndGameView(state: viewModel.state, humanSeats: viewModel.humanSeats,
-                            playerIdentity: viewModel.playerIdentity) {
+                            playerIdentity: viewModel.playerIdentity,
+                            replayGameID: viewModel.currentGameLogID) {
                     if viewModel.clearCompletedMatch() { hasStartedThisSession = false }
                 }
             } else if hasStartedThisSession, viewModel.savedGameAvailability.recoveryMessage == nil {
@@ -182,6 +183,7 @@ struct ContentView: View {
     private func startNewGame(_ setup: MatchSetup) {
         viewModel.startNewGame(setup: setup)
         guard viewModel.persistenceErrorMessage == nil else { return }
+        rememberPreferredName(from: setup)
         hasStartedThisSession = true
         // With seat order randomized, seat 0 (where setup always starts) may
         // be a bot rather than the human - without this, nothing would ever
@@ -189,6 +191,26 @@ struct ContentView: View {
         // `runBotTurnIfNeeded` is a fast no-op whenever it's already the
         // human's turn.
         Task { await viewModel.runBotTurnIfNeeded() }
+    }
+
+    /// Keeps the name the player typed on New Game as the prefill for the next
+    /// one, so a player with a name types it once rather than once per game.
+    ///
+    /// It has to happen here, at the same commit point as the rest of the
+    /// contract, and it has to be a write to `PlayerNameStore` specifically.
+    /// The setup screen deliberately touches no store (A6.5: leaving without
+    /// starting must change nothing), and the previous setup *was* already
+    /// saved in `MatchSetupStore` - but `NewGameSetupView.applyAppPreferences`
+    /// overwrites that saved setup's human name with this preference every
+    /// time the screen opens, so a name typed here survived exactly until the
+    /// next visit and no further. Writing the preference is what makes the
+    /// prefill agree with what the player last did.
+    ///
+    /// The first human seat only: this is one player's own name, not the
+    /// hot-seat roster, which a running match snapshots for itself.
+    private func rememberPreferredName(from setup: MatchSetup) {
+        guard let name = setup.seats.first(where: \.isHuman)?.name else { return }
+        PlayerNameStore.shared.save(name)
     }
 }
 

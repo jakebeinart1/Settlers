@@ -12,16 +12,34 @@ public struct EndGameView: View {
     public let humanSeats: Set<PlayerID>
     public let playerIdentity: (PlayerID) -> PlayerIdentity
     public let onNewGame: () -> Void
+    /// The recording of the game just finished, when there is one. Optional
+    /// rather than assumed: a recording can legitimately be missing (an export
+    /// that failed and is queued for retry), and the right answer to that is
+    /// one fewer button, not a button that opens an error.
+    public let replayGameID: UUID?
 
     public init(state: GameState, humanSeats: Set<PlayerID>,
                 playerIdentity: @escaping (PlayerID) -> PlayerIdentity = CatanTheme.playerIdentity,
+                replayGameID: UUID? = nil,
                 onNewGame: @escaping () -> Void) {
         self.state = state
         precondition(!humanSeats.isEmpty, "An end screen needs at least one human seat")
         self.humanSeats = humanSeats
         self.playerIdentity = playerIdentity
+        self.replayGameID = replayGameID
         self.onNewGame = onNewGame
     }
+
+    /// The recording of this game, looked up once when the screen appears.
+    ///
+    /// Resolved up front rather than on the tap so the button can be absent
+    /// when there is nothing behind it. The id alone is not enough to promise
+    /// one: an export that failed is queued for retry, and the QA win fixture
+    /// replaces the active match outright, so both leave an id whose file does
+    /// not exist. Offering a button that can only raise "could not be found"
+    /// is worse than offering no button.
+    @State private var recording: GameLogSummary?
+    @State private var replaySummary: GameLogSummary?
 
     private var winner: PlayerID? {
         if case .gameOver(let winner) = state.phase { return winner }
@@ -74,11 +92,33 @@ public struct EndGameView: View {
                 .accessibilityIdentifier(AccessibilityID.GameOver.newGame)
                 .padding(.horizontal, 40)
 
+                replayButton
+
                 Spacer()
             }
         }
         .foregroundStyle(.white)
         .fontDesign(.serif)
+        .task { recording = replayGameID.flatMap { try? GameLogStore.shared.summary(for: $0) } }
+        .fullScreenCover(item: $replaySummary) { summary in
+            GameReplayView(summary: summary)
+        }
+    }
+
+    /// Straight into the replay of the game on screen, which is the moment a
+    /// player most wants it - "how did that happen" is asked while looking at
+    /// the result, not later from a menu. The same replay is reachable from
+    /// Game History afterwards; this is the shortcut, not a second feature.
+    @ViewBuilder
+    private var replayButton: some View {
+        if let recording {
+            GoldRowButton(title: "View Replay", systemImage: "play.rectangle.fill",
+                          iconColor: SettingsChrome.ornamentGold) {
+                replaySummary = recording
+            }
+            .accessibilityIdentifier(AccessibilityID.GameOver.replay)
+            .padding(.horizontal, 40)
+        }
     }
 
     @ViewBuilder

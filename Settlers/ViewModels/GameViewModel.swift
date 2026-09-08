@@ -32,6 +32,14 @@ public final class GameViewModel {
     public var statistics: GameStats { checkpointDocument?.statistics ?? GameStats() }
     public var requiresSaveReplacementConfirmation: Bool { savedGameAvailability != .absent }
 
+    /// The archive id of the match currently loaded, which is the match id
+    /// itself - `GameLogStore.export` names the recording after the
+    /// checkpoint. Non-nil right through the end-game screen, because the
+    /// finished match stays active until `clearCompletedMatch()`; that is what
+    /// lets "View Replay" there open the game the player has just finished
+    /// without hunting for it in the archive.
+    public var currentGameLogID: UUID? { checkpointDocument?.activeMatch?.id }
+
     /// Failed writes leave the prior committed board visible and stop bots.
     /// Dismissing an alert does not license further unsaved policy moves.
     public internal(set) var persistenceErrorMessage: String?

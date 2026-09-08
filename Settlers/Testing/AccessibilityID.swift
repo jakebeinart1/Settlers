@@ -1,4 +1,5 @@
 import CatanEngine
+import Foundation
 
 /// Stable identifiers for behavior-driven UI tests.
 ///
@@ -10,18 +11,44 @@ enum AccessibilityID {
         static let newGame = "screen.new-game"
         static let game = "screen.game"
         static let inGameSettings = "screen.in-game-settings"
+        static let gameHistory = "screen.game-history"
+        static let replay = "screen.replay"
     }
 
     enum MainMenu {
         static let newGame = "main-menu.new-game"
         static let resume = "main-menu.resume"
         static let settings = "main-menu.settings"
+        static let gameHistory = "main-menu.game-history"
+    }
+
+    enum GameHistory {
+        static let close = "game-history.close"
+
+        /// Keyed by the recording's own id, so a test opens the game it seeded
+        /// rather than whichever row happens to sort first.
+        static func game(_ id: UUID) -> String { "game-history.game.\(id.uuidString)" }
+    }
+
+    enum Replay {
+        static let close = "replay.close"
+        static let caption = "replay.caption"
+        static let scrubber = "replay.scrubber"
+        static let start = "replay.start"
+        static let previous = "replay.previous"
+        static let playPause = "replay.play-pause"
+        static let next = "replay.next"
+        static let end = "replay.end"
+
+        static func score(_ seat: PlayerID) -> String { "replay.score.\(seat.index)" }
     }
 
     enum NewGame {
         static let cancel = "new-game.cancel"
         static let start = "new-game.start"
         static let confirmOverwrite = "new-game.confirm-overwrite"
+
+        static func seatName(_ index: Int) -> String { "new-game.seat-name.\(index)" }
     }
 
     enum Board {
@@ -127,6 +154,8 @@ enum AccessibilityID {
 
     enum InGameSettings {
         static let close = "in-game-settings.close"
+        static let restart = "in-game-settings.restart"
+        static let quit = "in-game-settings.quit"
     }
 
     enum Handoff {
@@ -152,5 +181,6 @@ enum AccessibilityID {
 
     enum GameOver {
         static let newGame = "game-over.new-game"
+        static let replay = "game-over.replay"
     }
 }

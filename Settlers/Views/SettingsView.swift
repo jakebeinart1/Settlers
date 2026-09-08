@@ -1,8 +1,14 @@
 import SwiftUI
 import CatanEngine
 
-/// Surface C: next-match defaults and durable history. Nothing edited here is
-/// the source of truth for a running match.
+/// Surface C: next-match defaults and the running totals they produce. Nothing
+/// edited here is the source of truth for a running match.
+///
+/// The archive of played games used to live here too, as a "Game Logs" section
+/// opening a list of `String(describing:)` move dumps. It is now `Game History`
+/// on the main menu, one tap from the title screen and shown as a replayable
+/// board - a thing a player looks at, rather than a diagnostic buried behind a
+/// gear icon (2026-09-07).
 public struct SettingsView: View {
     public let onDismiss: () -> Void
 
@@ -20,7 +26,6 @@ public struct SettingsView: View {
     @State private var stats: GameStats
     @State private var resetFailed = false
     @State private var isShowingResetStatsConfirmation = false
-    @State private var isShowingGameLogs = false
     @State private var poolRefusal: String?
 
     public var body: some View {
@@ -35,7 +40,6 @@ public struct SettingsView: View {
                         yourNameSection
                         yourCivilizationSection
                         randomPoolSection
-                        gameLogsSection
                         resetStatsSection
                     }
                     .padding(.horizontal, 24)
@@ -58,9 +62,6 @@ public struct SettingsView: View {
             Button("Cancel", role: .cancel) {}
         } message: {
             Text("This clears your games played, win rate, and average VP/time. It can't be undone.")
-        }
-        .sheet(isPresented: $isShowingGameLogs) {
-            GameLogListView(onDismiss: { isShowingGameLogs = false })
         }
         .alert("Stats could not be reset", isPresented: $resetFailed) {
             Button("OK", role: .cancel) {}
@@ -181,32 +182,6 @@ public struct SettingsView: View {
                     .buttonStyle(.plain)
                 }
             }
-        }
-    }
-
-    // MARK: - Game logs
-
-    @ViewBuilder
-    private var gameLogsSection: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            Text("Game Logs")
-                .font(.headline)
-                .foregroundStyle(.white.opacity(0.8))
-
-            Text("A recording begins with the first move. Unreadable files are identified without hiding healthy games.")
-                .font(.caption)
-                .foregroundStyle(.white.opacity(0.55))
-            Button {
-                isShowingGameLogs = true
-            } label: {
-                Text("View Recorded Games")
-                    .font(.subheadline.bold())
-                    .foregroundStyle(.white)
-                    .frame(maxWidth: .infinity)
-                    .padding(12)
-                    .background(RoundedRectangle(cornerRadius: 10).fill(Color(white: 0.14)))
-            }
-            .buttonStyle(.plain)
         }
     }
 

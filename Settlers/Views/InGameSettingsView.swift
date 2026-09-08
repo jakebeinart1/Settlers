@@ -14,13 +14,13 @@ import SwiftUI
 /// are all match contract and belong to New Game Setup. Changing any of them
 /// mid-game either does nothing, which is confusing, or corrupts the game in
 /// progress, which is worse. If the player wants a different match, that is
-/// the Restart row.
+/// the Restart button.
 ///
 /// ## Why a full screen and not a `PopupCard`
 /// Every other popup in this app is a card over the board because it is a step
 /// in a move - pick a resource, answer an offer. This is not part of a move,
-/// it is a place you go, and it carries five controls and three destructive
-/// actions. The two confirmations it raises *are* `PopupCard`s, layered over
+/// it is a place you go, and it carries two controls plus the three ways out
+/// of the game. The two confirmations it raises *are* `PopupCard`s, layered over
 /// this screen, so the "are you sure" step still reads as the same family of
 /// popup as everywhere else in the app.
 ///
@@ -42,8 +42,8 @@ public struct InGameSettingsView: View {
     @State private var isConfirmingRestart = false
     @State private var isConfirmingMainMenu = false
     /// Which row's ⓘ is currently expanded, or `nil`. One at a time: these
-    /// explanations are a sentence each and two open at once just pushes the
-    /// Game Control rows off the screen.
+    /// explanations are a sentence each, and two open at once pushed the
+    /// controls under them off the screen.
     @State private var openHelp: HelpTopic?
 
     private enum HelpTopic {
@@ -61,13 +61,16 @@ public struct InGameSettingsView: View {
             SettingsChrome.screenBackground.ignoresSafeArea()
 
             VStack(spacing: 0) {
+                // Top-pinned, and the slack under the two controls is left
+                // alone. Centring them was tried and reverted the same day:
+                // `PaintedChoiceRow` grows to whatever height it is given, so
+                // a `Spacer` above and below handed it the free space and the
+                // two segmented rows ballooned to roughly 500pt tall each.
                 ScrollView {
                     VStack(spacing: 22) {
                         titleBlock
-                        SettingsInfoPlaque(text: "These settings do not change match rules.")
                         pacingSection
                         tradeTimerSection
-                        gameControlSection
                     }
                     .padding(.horizontal, Self.screenInset)
                     .padding(.top, 10)
@@ -97,10 +100,19 @@ public struct InGameSettingsView: View {
                 .font(.system(size: 29, weight: .bold, design: .serif))
                 .lineLimit(1)
                 .minimumScaleFactor(0.8)
-            Text("Adjust presentation and control the current game.")
+            // This line used to be a `SettingsInfoPlaque` of its own, a
+            // bordered gold-hairline card reading "These settings do not
+            // change match rules." A plaque is the chrome this app uses for
+            // something you act on, so a boxed sentence that does nothing read
+            // as a button that would not press - Jake's ask, 2026-09-07. The
+            // claim still matters (spec B4: nothing here touches the rules),
+            // so it survives as the screen's own subtitle, where a sentence
+            // explaining a screen belongs.
+            Text("Presentation and pacing only — nothing here changes the rules of the game in progress.")
                 .font(.system(size: 14, design: .serif))
                 .foregroundStyle(.white.opacity(0.6))
                 .multilineTextAlignment(.center)
+                .fixedSize(horizontal: false, vertical: true)
         }
     }
 
@@ -185,79 +197,28 @@ public struct InGameSettingsView: View {
         }
     }
 
-    // MARK: - Game control (B3)
-
-    private var gameControlSection: some View {
-        VStack(spacing: 14) {
-            SettingsSectionHeader(title: "Game Control")
-
-            VStack(spacing: 10) {
-                controlRow(
-                    title: "Resume Game",
-                    icon: "play.circle",
-                    accent: Self.resumeAccent,
-                    tint: Self.resumeTint,
-                    action: onResume
-                )
-                controlRow(
-                    title: "Restart Game",
-                    icon: "arrow.triangle.2.circlepath.circle",
-                    accent: Self.restartAccent,
-                    tint: Self.restartTint
-                ) { isConfirmingRestart = true }
-                // `house.circle`, not the reference's door-and-arrow glyph:
-                // that symbol has no `.circle` variant, and the ringed icon is
-                // what makes these three read as one set at a glance.
-                controlRow(
-                    title: "Quit to Main Menu",
-                    icon: "house.circle",
-                    accent: Self.quitAccent,
-                    tint: Self.quitTint
-                ) { isConfirmingMainMenu = true }
-            }
-        }
-    }
-
-    private func controlRow(title: String, icon: String, accent: Color, tint: Color, action: @escaping () -> Void) -> some View {
-        GoldRowButton(
-            title: title,
-            systemImage: icon,
-            iconColor: accent,
-            fill: .tintedTexture(tint),
-            trailing: {
-                Image(systemName: "chevron.right")
-                    .font(.footnote.weight(.semibold))
-                    .foregroundStyle(.white.opacity(0.55))
-            },
-            action: action
-        )
-    }
-
-    // Painted tints for the three Game Control rows. Deep enough that white
-    // titles still read, and each paired with a brighter accent for its icon
-    // so "this one is destructive" survives being glanced at rather than read.
-    private static let resumeTint = Color(red: 0.07, green: 0.26, blue: 0.12)
-    private static let resumeAccent = Color(red: 0.30, green: 0.82, blue: 0.40)
-    private static let restartTint = Color(red: 0.06, green: 0.16, blue: 0.31)
-    private static let restartAccent = Color(red: 0.34, green: 0.60, blue: 0.96)
-    private static let quitTint = Color(red: 0.24, green: 0.06, blue: 0.07)
-    private static let quitAccent = Color(red: 0.92, green: 0.28, blue: 0.28)
-
     // MARK: - Bottom bar
 
-    /// Close and Resume Game are the same action, and that is not an
-    /// oversight: nothing on this screen is staged, so there is no "discard my
-    /// edits" for Close to mean. Both dismiss, and both are here because the
-    /// player arrives with one of two intentions - "I came to change a
-    /// setting" and "I came to stop playing for a second" - and each should
-    /// find the word it was looking for rather than having to read the other.
+    /// The three ways out of the game, and the only place they live.
+    ///
+    /// This row used to be Close and "Resume Game" side by side, over a "Game
+    /// Control" section that repeated Resume and carried Restart and Quit as
+    /// full-width rows. Two of those were the same button under two names -
+    /// nothing on this screen is staged, so there is no "discard my edits" for
+    /// Close to mean that Resume does not - and the section duplicated the
+    /// other two. A pause menu you reached by pausing does not need to offer
+    /// to un-pause twice (Jake's ask, 2026-09-07).
+    ///
+    /// So: one Close, and the two destructive actions beside it, each still
+    /// behind its own confirmation. Bottom bar rather than in the scroll view,
+    /// because these are the screen's actions and must not scroll away.
     private var bottomBar: some View {
         VStack(spacing: 0) {
             Rectangle()
                 .fill(SettingsChrome.ornamentGold.opacity(0.4))
                 .frame(height: 1)
 
-            HStack(spacing: 12) {
+            HStack(spacing: 10) {
                 UniformActionButton(
                     title: "Close",
                     systemImage: "xmark",
@@ -266,13 +227,31 @@ public struct InGameSettingsView: View {
                     action: onResume
                 )
                 .accessibilityIdentifier(AccessibilityID.InGameSettings.close)
+                // All three share one texture, and that is the point: they are
+                // one row of exits, distinguished by their words and by the
+                // confirmation each destructive one raises, not by colour.
+                // Two other treatments were tried and rejected by screenshot:
+                // green (`button-fill-turn`, the End Turn button's own
+                // texture) on Restart read as *go* on the button that throws
+                // the game away, and dropping the texture from Restart and
+                // Quit left them as flat grey slabs with none of the gold
+                // hairline the rest of the screen is drawn with.
                 UniformActionButton(
-                    title: "Resume Game",
-                    systemImage: "play.fill",
+                    title: "Restart",
+                    systemImage: "arrow.triangle.2.circlepath",
                     isEnabled: true,
-                    backgroundImageName: "button-fill-turn",
-                    action: onResume
+                    backgroundImageName: "button-fill-trade",
+                    action: { isConfirmingRestart = true }
                 )
+                .accessibilityIdentifier(AccessibilityID.InGameSettings.restart)
+                UniformActionButton(
+                    title: "Quit",
+                    systemImage: "house.fill",
+                    isEnabled: true,
+                    backgroundImageName: "button-fill-trade",
+                    action: { isConfirmingMainMenu = true }
+                )
+                .accessibilityIdentifier(AccessibilityID.InGameSettings.quit)
             }
             // `UniformActionButton` grows to whatever height it is given
             // (`maxHeight: .infinity`), so the row has to state one.

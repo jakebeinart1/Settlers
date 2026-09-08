@@ -338,9 +338,10 @@ final class BoardDecisionFlowTests: XCTestCase {
 
         app.buttons[BoardDecisionUITestID.settings].tap()
         XCTAssertTrue(app.otherElements[BoardDecisionUITestID.settingsScreen].waitForExistence(timeout: 2))
-        let quit = app.buttons["Quit to Main Menu"]
-        if !quit.isHittable { app.swipeUp() }
-        XCTAssertTrue(quit.isHittable)
+        // The three ways out are pinned in the bottom bar now, so this no
+        // longer has to scroll to reach one.
+        let quit = app.buttons["in-game-settings.quit"]
+        XCTAssertTrue(quit.waitForExistence(timeout: 2))
         quit.tap()
 
         let confirmMainMenu = app.buttons["Main Menu"]

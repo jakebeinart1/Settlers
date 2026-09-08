@@ -107,6 +107,19 @@ enum QALaunchFlag: String, CaseIterable {
     case showRobberVictimPicker = "-qaShowRobberVictimPicker"
     /// Installs a conserved eight-card hand owing a four-card discard.
     case showDiscard = "-qaShowDiscard"
+    /// Opens `GameHistoryView` over the main menu. Pair with
+    /// `-qaSeedGameHistory`, or the screen correctly shows its empty state.
+    case showGameHistory = "-qaShowGameHistory"
+    /// Writes one short finished recording into the archive before the menu
+    /// appears, so the history list and the replay screen have a deterministic
+    /// game to open. Real recordings need a played-out match; this is the only
+    /// way to reach the archive in a test that has not spent a minute playing
+    /// one.
+    case seedGameHistory = "-qaSeedGameHistory"
+    /// Opens the newest recording's replay directly, so the board, the score
+    /// strip and the transport controls can be photographed without a tap.
+    /// Pair with `-qaSeedGameHistory`.
+    case showReplay = "-qaShowReplay"
     /// Plays the human's setup placements and first roll, including discard and
     /// robber resolution when that roll is seven, until main-turn controls are
     /// enabled. Unlike the others this applies real moves, so it writes the save
