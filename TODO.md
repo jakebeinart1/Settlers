@@ -38,6 +38,14 @@ meantime.
       only the `Canvas` layer (tiles/ports/robber) self-clips - `.position`
       pieces do not. `BoardView` now clips to its own bounds; the clip cannot
       live on `GameView.boardArea`, which is taller by `topChipInset`.
+      Both are on `main` (`071bfe6`, `cc83b0c`), full gate green, and
+      installed to Jake's iPhone as build 4.
+- [ ] Delete `StableHeightSlot` (`Settlers/Views/GameViewLayoutSupport.swift`).
+      Dead since the viewport fix: the two heights it measured are fixed
+      constants now, and the only remaining mentions are the comments in
+      `GameView` explaining why a grow-only slot was the *wrong* shape here.
+      Left in place deliberately on 2026-09-07 rather than widening a bug fix;
+      it is a delete, not a refactor.
 - [x] ~~Clean up the development-card deck / draw UI — currently redundant.~~
       **Done 2026-09-07.** The "Ready to play / This card can be used now"
       plaque now appears only when the card CANNOT be played - for a playable
@@ -120,10 +128,11 @@ independent mix-and-match settings), starting with a "Plan to 20" mode on a
 much bigger board. Scoping notes from an architecture survey (2026-09-04):
 engine (`Board`, `HexCoordinate`, `GameState` schema) is already
 size-agnostic — only `BoardGeneration.swift`'s literal 19-tile/port tables
-are fixed — but board pan/zoom/recenter does not exist anywhere today
-(`BoardView` always auto-fits the whole board to its container via one
-`HexGeometry` fit calc; no `ScrollView`/`MagnificationGesture`/persisted
-viewport). See the full survey findings before starting design.
+are fixed. The survey's other finding, that board pan/zoom/recenter did not
+exist anywhere, is **no longer true**: `BoardCamera` shipped 2026-09-07 (see
+section 0) and the board now pinches, pans, recenters and clips to its own
+bounds. What it does not do is *persist* a viewport across launches, which a
+larger board may want. See the full survey findings before starting design.
 
 - [ ] Design and write a spec for the first new mode (board layout
       generator, VP target, stall-audit for reaching 20 VP given
