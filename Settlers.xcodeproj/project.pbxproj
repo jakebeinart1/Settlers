@@ -10,6 +10,7 @@
 		01EF8804262A950A081F1E65 /* OpponentProfile.swift in Sources */ = {isa = PBXBuildFile; fileRef = 85B6069622A8A50F3F60184A /* OpponentProfile.swift */; };
 		026232B4459AF297E5949F67 /* NewGameEndToEndTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D04CF1402F3DF884C2B45746 /* NewGameEndToEndTests.swift */; };
 		076DBD0E74CFC2372A8A8AA9 /* GameViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0A975D333BC9759A83497B5 /* GameViewModel.swift */; };
+		07E4805C4AE5D6EFB51E63F0 /* VictoryPointBreakdown.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3405300C3B5526C327741E4F /* VictoryPointBreakdown.swift */; };
 		08572217A242A44981A040EB /* SavedGameAvailability.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E21004FB7C5F5948BEC71A9 /* SavedGameAvailability.swift */; };
 		0AF839BA0DBC818CC82119C9 /* DevelopmentCardJourneyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6EA6414242A6D72E151D2F11 /* DevelopmentCardJourneyTests.swift */; };
 		0BBF451A08F935DC2BB22743 /* TileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC9BE64D33337CB59DE2D79D /* TileView.swift */; };
@@ -59,6 +60,7 @@
 		5A3814A3A6D971002FE6368B /* CatanAI in Frameworks */ = {isa = PBXBuildFile; productRef = 86D26250D0551805B74D0B0B /* CatanAI */; };
 		5D9BC2890AFB1BDBE7B09D9A /* BoardCamera.swift in Sources */ = {isa = PBXBuildFile; fileRef = DEE2D0E9206ECE031A6A3A29 /* BoardCamera.swift */; };
 		5E6BD20480004B7ABB999F50 /* GameViewModel+Checkpoints.swift in Sources */ = {isa = PBXBuildFile; fileRef = 338D27A9E7D0498A2F649C2E /* GameViewModel+Checkpoints.swift */; };
+		5F4982074BC66FB97F145BC0 /* VictoryPointBreakdownTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = EB6E7FEA396F945A8263666A /* VictoryPointBreakdownTests.swift */; };
 		5FD5B98FFB1669F9BE80F1DC /* PaintedChromeBackground.swift in Sources */ = {isa = PBXBuildFile; fileRef = 44E440B9CD11BDC249491106 /* PaintedChromeBackground.swift */; };
 		6550ED481CBA2A0062722CCD /* NewGameSetupView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A2D1519676D42C401001336 /* NewGameSetupView.swift */; };
 		6596D6FBE997D8DC317C28DD /* DiscardFlowTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B104F168E625B9E66CA71A2E /* DiscardFlowTests.swift */; };
@@ -167,6 +169,7 @@
 		293F3C9F45563859C6C2E3F3 /* CheckpointLifecycleTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CheckpointLifecycleTests.swift; sourceTree = "<group>"; };
 		2FA5615D7AB20666AEB04B43 /* AccessibilityID.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccessibilityID.swift; sourceTree = "<group>"; };
 		338D27A9E7D0498A2F649C2E /* GameViewModel+Checkpoints.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "GameViewModel+Checkpoints.swift"; sourceTree = "<group>"; };
+		3405300C3B5526C327741E4F /* VictoryPointBreakdown.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VictoryPointBreakdown.swift; sourceTree = "<group>"; };
 		34F357D5B05179379CDC1EF1 /* HumanSeatStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HumanSeatStore.swift; sourceTree = "<group>"; };
 		3A2D1519676D42C401001336 /* NewGameSetupView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewGameSetupView.swift; sourceTree = "<group>"; };
 		3DE0DE7814B4DBCFD64A4645 /* GameViewModel+BoardDecision.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "GameViewModel+BoardDecision.swift"; sourceTree = "<group>"; };
@@ -268,6 +271,7 @@
 		E7A111350A6EA887DD350FF2 /* BoardInspectionSemantics.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BoardInspectionSemantics.swift; sourceTree = "<group>"; };
 		E8250AED471D490CB43122ED /* HandoffCoverView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HandoffCoverView.swift; sourceTree = "<group>"; };
 		E89E14D5D0ACBB92DF7729B3 /* BoardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BoardView.swift; sourceTree = "<group>"; };
+		EB6E7FEA396F945A8263666A /* VictoryPointBreakdownTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VictoryPointBreakdownTests.swift; sourceTree = "<group>"; };
 		EC9BE64D33337CB59DE2D79D /* TileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TileView.swift; sourceTree = "<group>"; };
 		EE1ED8D91C318DB8D5A7451E /* GameReplayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameReplayView.swift; sourceTree = "<group>"; };
 		EED095DCE8ECB10CAA5F77E5 /* Signing.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Signing.xcconfig; sourceTree = "<group>"; };
@@ -334,6 +338,7 @@
 				68A4D0016F665BB8F904F4DD /* PersistenceTests.swift */,
 				11D7DF8A5B6CAC4647065878 /* PreMergeAuditRegressionTests.swift */,
 				BB62855B09E0A68CD8B97889 /* SaveRecoveryTests.swift */,
+				EB6E7FEA396F945A8263666A /* VictoryPointBreakdownTests.swift */,
 			);
 			path = SettlersTests;
 			sourceTree = "<group>";
@@ -363,6 +368,7 @@
 				6B73E867DA1D4D948C9EE5F5 /* GameReplayNarrator.swift */,
 				A6AF9E4221C6DEDBD5B28F6E /* GameReplayTimeline.swift */,
 				85B6069622A8A50F3F60184A /* OpponentProfile.swift */,
+				3405300C3B5526C327741E4F /* VictoryPointBreakdown.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -730,6 +736,7 @@
 				E943B06519C318DFE4BD613E /* TradePresentationState.swift in Sources */,
 				E47E806640E19E4105F9FEDF /* UITestBootstrap.swift in Sources */,
 				9BAEB85A2B5C4ABDD88D14F3 /* UniformActionButton.swift in Sources */,
+				07E4805C4AE5D6EFB51E63F0 /* VictoryPointBreakdown.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -765,6 +772,7 @@
 				8F8382E69A373BB264240262 /* PersistenceTests.swift in Sources */,
 				58CF19E0BF339B5D32B7D233 /* PreMergeAuditRegressionTests.swift in Sources */,
 				434C2E6A7C5F23148D5810A7 /* SaveRecoveryTests.swift in Sources */,
+				5F4982074BC66FB97F145BC0 /* VictoryPointBreakdownTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -948,7 +956,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 5;
+				CURRENT_PROJECT_VERSION = 6;
 				DEVELOPMENT_TEAM = "$(SETTLERS_DEVELOPMENT_TEAM)";
 				GCC_TREAT_WARNINGS_AS_ERRORS = YES;
 				INFOPLIST_FILE = Settlers/Info.plist;
@@ -973,7 +981,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 5;
+				CURRENT_PROJECT_VERSION = 6;
 				DEVELOPMENT_TEAM = "$(SETTLERS_DEVELOPMENT_TEAM)";
 				GCC_TREAT_WARNINGS_AS_ERRORS = YES;
 				INFOPLIST_FILE = Settlers/Info.plist;

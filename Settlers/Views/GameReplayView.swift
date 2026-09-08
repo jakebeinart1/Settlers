@@ -27,6 +27,13 @@ struct GameReplayView: View {
     @State private var loadError: String?
     @State private var index = 0
     @State private var isPlaying = false
+    /// The seat whose points are being broken down, or nil for none. The card
+    /// it opens floats OVER the board rather than sitting under it: the rule
+    /// this screen is built around is that everything below the board is a
+    /// fixed-height frame, and a panel that appears and disappears in that
+    /// frame is exactly the thing that used to re-zoom the board mid-game
+    /// (`GameView.belowBoard`). An overlay costs the layout nothing.
+    @State private var inspectedSeat: PlayerID?
 
     /// Height of everything below the board. A constant, not a remainder: see
     /// the type's doc comment.
@@ -83,6 +90,11 @@ struct GameReplayView: View {
                     )
                     .frame(height: max(0, geometry.size.height
                                        - Self.headerHeight - Self.belowBoardReserve))
+                    .overlay(alignment: .bottom) {
+                        if let seat = inspectedSeat {
+                            breakdownCard(timeline: timeline, frame: frame, seat: seat)
+                        }
+                    }
                     controls(timeline: timeline, frame: frame)
                         .frame(height: Self.belowBoardReserve, alignment: .top)
                 }
@@ -144,30 +156,146 @@ struct GameReplayView: View {
 
     /// Live score, in seat order, so the whole point of the screen - watching
     /// the game tilt - is readable without leaving the board.
+    ///
+    /// Each seat is a button onto its own victory-point breakdown. The two
+    /// bonus badges are shown here rather than only in the card because they
+    /// are the usual answer to "why does that number say ten": four of a
+    /// leader's points can be sitting in Longest Road and Largest Army with
+    /// nothing on the board to show for them.
     private func scoreStrip(timeline: GameReplayTimeline, frame: GameReplayTimeline.Frame) -> some View {
         HStack(spacing: 8) {
             ForEach(0..<timeline.seatCount, id: \.self) { seat in
-                let identity = timeline.identity(for: PlayerID(index: seat))
-                let isWinner = summary.winner?.index == seat
-                VStack(spacing: 3) {
-                    CivilizationCrest(civilization: identity.civilization, size: 24)
-                    Text(identity.displayName)
-                        .font(.system(size: 11, design: .serif))
-                        .lineLimit(1)
-                        .minimumScaleFactor(0.7)
-                        .foregroundStyle(.white.opacity(0.75))
-                    Text("\(frame.scores[safe: seat] ?? 0) VP")
-                        .font(.system(size: 14, weight: isWinner ? .bold : .semibold, design: .serif))
-                        .foregroundStyle(isWinner ? SettingsChrome.ornamentGold : .white)
-                }
-                .frame(maxWidth: .infinity)
-                .accessibilityElement(children: .combine)
-                .accessibilityIdentifier(AccessibilityID.Replay.score(PlayerID(index: seat)))
+                seatColumn(timeline: timeline, frame: frame, seat: PlayerID(index: seat))
             }
         }
         .padding(.vertical, 8)
         .background(PaintedChromeBackground(fill: .color(SettingsChrome.plaqueFill),
                                             cornerRadius: 10, notchScale: 0.6))
+    }
+
+    private func seatColumn(timeline: GameReplayTimeline, frame: GameReplayTimeline.Frame,
+                            seat: PlayerID) -> some View {
+        let identity = timeline.identity(for: seat)
+        let breakdown = frame.breakdowns[safe: seat.index]
+        let isWinner = summary.winner == seat
+        let isInspected = inspectedSeat == seat
+        return Button {
+            inspectedSeat = isInspected ? nil : seat
+        } label: {
+            VStack(spacing: 3) {
+                CivilizationCrest(civilization: identity.civilization, size: 24)
+                Text(identity.displayName)
+                    .font(.system(size: 11, design: .serif))
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.7)
+                    .foregroundStyle(.white.opacity(0.75))
+                HStack(spacing: 3) {
+                    Text("\(breakdown?.total ?? 0) VP")
+                        .font(.system(size: 14, weight: isWinner ? .bold : .semibold, design: .serif))
+                        .foregroundStyle(isWinner ? SettingsChrome.ornamentGold : .white)
+                    if breakdown?.holds(.longestRoad) == true {
+                        bonusBadge("road.lanes", label: "Longest Road")
+                    }
+                    if breakdown?.holds(.largestArmy) == true {
+                        bonusBadge("shield.fill", label: "Largest Army")
+                    }
+                }
+            }
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 3)
+            .background(
+                RoundedRectangle(cornerRadius: 8)
+                    .stroke(SettingsChrome.ornamentGold.opacity(isInspected ? 0.85 : 0), lineWidth: 1)
+                    .background(RoundedRectangle(cornerRadius: 8)
+                        .fill(Color.white.opacity(isInspected ? 0.08 : 0))))
+        }
+        .buttonStyle(.plain)
+        .accessibilityElement(children: .combine)
+        .accessibilityIdentifier(AccessibilityID.Replay.score(seat))
+        .accessibilityHint("Shows where these points came from")
+    }
+
+    private func bonusBadge(_ symbol: String, label: String) -> some View {
+        Image(systemName: symbol)
+            .font(.system(size: 10, weight: .semibold))
+            .foregroundStyle(SettingsChrome.ornamentGold)
+            .accessibilityLabel(label)
+    }
+
+    /// The arithmetic behind one seat's total: every source of points, at this
+    /// frame, including the ones the board cannot show. All five lines are
+    /// always drawn - a card that grows a row when somebody buys their first
+    /// victory card would resize under a scrubbing finger.
+    private func breakdownCard(timeline: GameReplayTimeline, frame: GameReplayTimeline.Frame,
+                               seat: PlayerID) -> some View {
+        let identity = timeline.identity(for: seat)
+        let breakdown = frame.breakdowns[safe: seat.index]
+        return VStack(spacing: 6) {
+            HStack(spacing: 8) {
+                CivilizationCrest(civilization: identity.civilization, size: 20)
+                Text(identity.displayName)
+                    .font(.system(size: 14, weight: .semibold, design: .serif))
+                    .lineLimit(1)
+                Spacer(minLength: 8)
+                Text("\(breakdown?.total ?? 0) VP")
+                    .font(.system(size: 15, weight: .bold, design: .serif))
+                    .foregroundStyle(SettingsChrome.ornamentGold)
+                Button { inspectedSeat = nil } label: {
+                    Image(systemName: "xmark")
+                        .font(.system(size: 11, weight: .bold))
+                        .foregroundStyle(.white.opacity(0.6))
+                }
+                .buttonStyle(.plain)
+                .accessibilityIdentifier(AccessibilityID.Replay.breakdownClose)
+                .accessibilityLabel("Close breakdown")
+            }
+            Divider().overlay(SettingsChrome.ornamentGold.opacity(0.35))
+            ForEach(breakdown?.lines ?? []) { line in
+                breakdownRow(line)
+            }
+        }
+        .padding(12)
+        .frame(maxWidth: 320)
+        .background(PaintedChromeBackground(fill: .color(SettingsChrome.plaqueFill),
+                                            cornerRadius: 12, notchScale: 0.6))
+        .padding(.horizontal, 16)
+        .padding(.bottom, 8)
+        .accessibilityElement(children: .contain)
+        .accessibilityIdentifier(AccessibilityID.Replay.breakdown)
+    }
+
+    private func breakdownRow(_ line: VictoryPointBreakdown.Line) -> some View {
+        HStack(spacing: 8) {
+            Image(systemName: line.icon)
+                .font(.system(size: 12))
+                .frame(width: 16)
+            Text(line.label)
+                .font(.system(size: 13, design: .serif))
+            Spacer(minLength: 8)
+            Text(quantityText(line))
+                .font(.system(size: 12, design: .serif))
+                .foregroundStyle(.white.opacity(0.55))
+            // A dash rather than a zero: five rows of "0" read as a broken
+            // card, where a dash reads as "not this one".
+            Text(line.isScoring ? "+\(line.points)" : "\u{2013}")
+                .font(.system(size: 13, weight: .semibold, design: .serif))
+                .frame(width: 26, alignment: .trailing)
+                .foregroundStyle(line.isScoring ? SettingsChrome.ornamentGold : .white.opacity(0.35))
+        }
+        .foregroundStyle(.white.opacity(line.isScoring ? 0.95 : 0.6))
+        .accessibilityElement(children: .combine)
+        .accessibilityIdentifier(AccessibilityID.Replay.breakdownRow(line.source))
+    }
+
+    /// The middle column says what there IS, which is not always what it is
+    /// worth: a five-long road that lost the bonus to a six is worth nothing
+    /// and still worth seeing.
+    private func quantityText(_ line: VictoryPointBreakdown.Line) -> String {
+        switch line.source {
+        case .settlements, .cities, .victoryCards: return "\(line.quantity)"
+        case .longestRoad: return "\(line.quantity) long"
+        case .largestArmy: return "\(line.quantity) knight\(line.quantity == 1 ? "" : "s")"
+        }
     }
 
     /// Two lines, always. A caption that grows and shrinks with its sentence

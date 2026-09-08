@@ -39,7 +39,14 @@ enum AccessibilityID {
         static let next = "replay.next"
         static let end = "replay.end"
 
+        static let breakdown = "replay.breakdown"
+        static let breakdownClose = "replay.breakdown.close"
+
         static func score(_ seat: PlayerID) -> String { "replay.score.\(seat.index)" }
+
+        static func breakdownRow(_ source: VictoryPointBreakdown.Source) -> String {
+            "replay.breakdown.\(source.rawValue)"
+        }
     }
 
     enum NewGame {

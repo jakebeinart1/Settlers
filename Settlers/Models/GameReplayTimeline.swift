@@ -31,9 +31,15 @@ struct GameReplayTimeline: Equatable {
         let state: GameState
         let actor: PlayerID?
         let headline: String
-        /// Victory points per seat *at this frame*, indexed by seat, so the
-        /// score strip does not recompute during a drag.
-        let scores: [Int]
+        /// Where every seat's points came from *at this frame*, indexed by
+        /// seat. Precomputed rather than derived while rendering: a slider
+        /// drag emits dozens of values a second and
+        /// `LongestRoad.length(for:in:)` is a graph search, so recomputing it
+        /// per seat per drag value is the one expensive thing on this screen.
+        let breakdowns: [VictoryPointBreakdown]
+
+        /// Total victory points per seat, the number the score strip prints.
+        var scores: [Int] { breakdowns.map(\.total) }
     }
 
     let summary: GameLogSummary
@@ -59,7 +65,7 @@ struct GameReplayTimeline: Equatable {
 
         var state = detail.initialState
         var built = [Frame(id: 0, state: state, actor: nil,
-                           headline: "Opening position", scores: Self.scores(in: state))]
+                           headline: "Opening position", breakdowns: Self.breakdowns(in: state))]
         var stoppedAt: String?
         for (offset, event) in detail.events.enumerated() {
             do {
@@ -70,7 +76,7 @@ struct GameReplayTimeline: Equatable {
                     actor: event.player,
                     headline: GameReplayNarrator.headline(
                         for: events, move: event.move, actor: event.player, roster: detail.roster),
-                    scores: Self.scores(in: state)))
+                    breakdowns: Self.breakdowns(in: state)))
             } catch {
                 stoppedAt = "This recording replays as far as move \(offset) of "
                     + "\(detail.events.count). The rest was recorded by a different "
@@ -98,7 +104,7 @@ struct GameReplayTimeline: Equatable {
         Civilization.allCases[seat.index % Civilization.allCases.count]
     }
 
-    private static func scores(in state: GameState) -> [Int] {
-        state.players.map { state.victoryPoints(for: $0.id) }
+    private static func breakdowns(in state: GameState) -> [VictoryPointBreakdown] {
+        state.players.map { VictoryPointBreakdown(seat: $0.id, state: state) }
     }
 }

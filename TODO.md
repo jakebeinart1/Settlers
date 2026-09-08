@@ -187,6 +187,31 @@ Game History, and the stats row.
       app launches starved the full-match test in `gate.sh`'s parallel run).
       The win screen's own replay button is asserted inside that full-match
       test rather than in a second one, for the same reason.
+- [x] ~~Show the total points and how they are made up on the replay - dev
+      cards, Longest Road, Largest Army - so you can see where a player's
+      other points came from.~~ **Done 2026-09-08.** Each seat in the score
+      strip is now a button onto a `VictoryPointBreakdown` card: settlements,
+      cities, victory cards, longest road and largest army, each with what
+      there *is* (2 cities, 5 long, 3 knights) next to what it is *worth*.
+      All five rows are always drawn, so the card keeps one shape while the
+      replay runs under it, and the two bonus badges also sit beside the score
+      itself - four of a leader's points can be in Longest Road and Largest
+      Army with nothing on the board to show for them, which is the whole
+      question the card answers.
+      The card **floats over the board** rather than sitting below it: the rule
+      this screen is built around is that everything under the board is a
+      fixed-height frame, and a panel that comes and goes inside that frame is
+      exactly what used to re-zoom the board mid-game. An overlay costs the
+      layout nothing.
+      `total` is `GameState.victoryPoints(for:)` verbatim, never a sum of the
+      rows - the engine warns that a second victory-point formula in a view is
+      one that drifts. `VictoryPointBreakdownTests` (6 cases) asserts the rows
+      add up to the engine's total at every position of a replayed game, so a
+      new source of points fails a test rather than shipping a card that says
+      ten over rows adding to eight. Held victory-point cards are shown here
+      although the live HUD hides them: a recording is a finished game, and
+      hiding them would leave exactly the unexplained gap the card exists to
+      close.
 - [x] ~~Surface this same replay view from the end-of-game win/lose screen.~~
       **Done 2026-09-07.** "View Replay" under "New Game" on `EndGameView`,
       resolved up front from the archive so the button is absent rather than

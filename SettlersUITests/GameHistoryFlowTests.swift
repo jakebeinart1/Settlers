@@ -50,7 +50,7 @@ final class GameHistoryFlowTests: XCTestCase {
     /// matching snapshots" twice. Measured 2026-09-08: that test fails under
     /// this suite's load and passes without it, with no change to itself. One
     /// launch, three claims.
-    func testTheReplayStepsScrubsAndPlaysBack() {
+    func testTheReplayStepsScrubsAndPlaysBack() throws {
         continueAfterFailure = false
         let app = launchWithArchive(["-qaShowGameHistory"])
         openFirstReplay(in: app)
@@ -72,10 +72,23 @@ final class GameHistoryFlowTests: XCTestCase {
 
         // The end of the recording is a board somebody has scored on.
         app.buttons["replay.end"].tap()
-        let scored = (0..<4).contains { seat in
+
+        // The breakdown card explains the number the strip is showing.
+        let scoringSeat = try XCTUnwrap((0..<4).first { seat in
             !element(app, "replay.score.\(seat)").label.contains("0 VP")
+        }, "No seat had scored by the last frame of the replay")
+        element(app, "replay.score.\(scoringSeat)").tap()
+        let breakdown = app.otherElements["replay.breakdown"]
+        XCTAssertTrue(breakdown.waitForExistence(timeout: 3))
+        // Every source is drawn whether or not it scored, so the card keeps
+        // one shape while the replay runs underneath it.
+        for source in ["settlements", "cities", "victoryCards", "longestRoad", "largestArmy"] {
+            XCTAssertTrue(element(app, "replay.breakdown.\(source)").exists,
+                          "The breakdown card is missing its \(source) row")
         }
-        XCTAssertTrue(scored, "No seat had scored by the last frame of the replay")
+        XCTAssertTrue(element(app, "replay.breakdown.settlements").label.contains("Settlements"))
+        app.buttons["replay.breakdown.close"].tap()
+        XCTAssertFalse(breakdown.exists)
 
         // Playback advances on its own, and pause actually stops it.
         app.buttons["replay.start"].tap()
