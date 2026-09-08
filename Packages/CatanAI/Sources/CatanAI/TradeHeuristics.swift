@@ -86,7 +86,21 @@ public enum TradeHeuristics {
         personality: BotPersonality,
         weights: BotWeights = .default
     ) -> Bool {
-        guard let receiverPlayer = state.players.first(where: { $0.id == receiver }) else { return false }
+        assessment(offer: offer, receiver: receiver, state: state, personality: personality, weights: weights)?.accepted ?? false
+    }
+
+    /// Pure acceptance scoring shared with `evaluate`; returns `nil` only
+    /// when the receiver is absent. Captures the actual intermediate scalars
+    /// without re-evaluating policy or changing the existing arithmetic order.
+    /// Offer dictionary reductions deliberately retain their original order.
+    public static func assessment(
+        offer: TradeOffer,
+        receiver: PlayerID,
+        state: GameState,
+        personality: BotPersonality,
+        weights: BotWeights = .default
+    ) -> TradeAssessment? {
+        guard let receiverPlayer = state.players.first(where: { $0.id == receiver }) else { return nil }
 
         let gainValue = offer.give.reduce(0.0) { partial, entry in
             let unit = resourceValue(entry.key, for: receiverPlayer, personality: personality, weights: weights)
@@ -116,9 +130,9 @@ public enum TradeHeuristics {
         let priorAcceptsThisTurn = state.tradesAcceptedThisTurn[offer.from] ?? 0
         let suspicionShift = Double(priorAcceptsThisTurn) * weights.acceptSuspicionShiftPerTrade
 
-        // A deal that would hand the proposer an immediate settlement/city
-        // the instant it's accepted deserves real scrutiny beyond "is this
-        // good for me" - the previous math only ever valued the receiver's
+        // A deal that would newly cover the proposer's settlement/city cost
+        // deserves real scrutiny beyond "is this good for me" - the
+        // previous math only ever valued the receiver's
         // own resource need, so a proposer sitting one card short of a
         // build could complete it via a string of individually-plausible
         // one-for-one trades that nobody weighed against what it was
@@ -126,13 +140,17 @@ public enum TradeHeuristics {
         let unlockShift = enablesImmediateBuild(offer: offer, state: state) ? weights.acceptUnlockShift : 0.0
 
         let threshold = max(0, baseThreshold + threatShift + standingShift + suspicionShift + unlockShift)
-        return netGain > threshold
+        return TradeAssessment(
+            offer: offer, receiver: receiver, gainValue: gainValue, costValue: costValue, netGain: netGain,
+            baseThreshold: baseThreshold, threatShift: threatShift, standingShift: standingShift,
+            suspicionShift: suspicionShift, unlockShift: unlockShift, threshold: threshold, accepted: netGain > threshold
+        )
     }
 
     /// Whether accepting `offer` (from the proposer's side: losing `give`,
-    /// gaining `want`) would take the proposer from unable to afford a
-    /// settlement/city to able to, right now. Only checks the two
-    /// high-value builds - a road or dev card slipping through is a much
+    /// gaining `want`) would newly cover a settlement/city resource cost.
+    /// Does not check legal placement, remaining pieces, or victory. Only
+    /// checks the two high-value builds - a road or dev card slipping through is a much
     /// smaller swing, not worth raising every trade's bar over.
     private static func enablesImmediateBuild(offer: TradeOffer, state: GameState) -> Bool {
         guard let proposer = state.players.first(where: { $0.id == offer.from }) else { return false }

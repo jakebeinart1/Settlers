@@ -51,6 +51,35 @@ public struct Bot: Sendable {
         legalMoves legal: [GameMove],
         rng: inout some RandomNumberGenerator
     ) -> GameMove {
+        var assessments: [TradeAssessment] = []
+        return decide(for: state, player: player, legalMoves: legal, rng: &rng,
+                      assessments: &assessments, recordingAssessments: false)
+    }
+
+    /// Appends each actual trade assessment in evaluation order during this
+    /// decision, preserving existing entries. Repeated evaluations remain
+    /// repeated; masked-out/scoped early exits produce no invented records.
+    /// Missing receivers produce no assessment. The action mask, policy and
+    /// RNG consumption are identical to the overload without diagnostics.
+    public func decide(
+        for state: GameState,
+        player: PlayerID,
+        legalMoves legal: [GameMove],
+        rng: inout some RandomNumberGenerator,
+        assessments: inout [TradeAssessment]
+    ) -> GameMove {
+        decide(for: state, player: player, legalMoves: legal, rng: &rng,
+               assessments: &assessments, recordingAssessments: true)
+    }
+
+    private func decide(
+        for state: GameState,
+        player: PlayerID,
+        legalMoves legal: [GameMove],
+        rng: inout some RandomNumberGenerator,
+        assessments: inout [TradeAssessment],
+        recordingAssessments: Bool
+    ) -> GameMove {
         precondition(!legal.isEmpty, "asked to decide with no legal moves")
 
         let chosen: GameMove
@@ -62,7 +91,8 @@ public struct Bot: Sendable {
             chosen = legal.contains(.rollDice) ? .rollDice : legal[0]
 
         case .mainTurn:
-            chosen = decideMainTurn(legal: legal, state: state, player: player, rng: &rng)
+            chosen = decideMainTurn(legal: legal, state: state, player: player, rng: &rng,
+                                    assessments: &assessments, recordingAssessments: recordingAssessments)
 
         case .discarding:
             chosen = decideDiscard(legal: legal, state: state, player: player)
@@ -235,8 +265,12 @@ public struct Bot: Sendable {
     /// buying a dev card, and proposing a trade - scored so that `personality`
     /// shifts which category wins close calls, then returns whichever
     /// scores highest (or `.endTurn` if nothing clears the bar).
-    private func decideMainTurn(legal: [GameMove], state: GameState, player: PlayerID, rng: inout some RandomNumberGenerator) -> GameMove {
-        if let response = decideScopedTradeResponse(legal: legal, state: state, player: player) {
+    private func decideMainTurn(
+        legal: [GameMove], state: GameState, player: PlayerID, rng: inout some RandomNumberGenerator,
+        assessments: inout [TradeAssessment], recordingAssessments: Bool
+    ) -> GameMove {
+        if let response = decideScopedTradeResponse(legal: legal, state: state, player: player,
+                                                   assessments: &assessments, recordingAssessments: recordingAssessments) {
             return response
         }
         var best: (move: GameMove, score: Double)?
@@ -251,8 +285,9 @@ public struct Bot: Sendable {
         // Accepting a good pending trade is usually as valuable as a solid
         // build - score it in the same range, nudged by trade willingness.
         for offer in state.pendingTradeOffers where offer.from != player {
-            if TradeHeuristics.evaluate(
-                offer: offer, receiver: player, state: state, personality: personality, weights: weights
+            if evaluateTrade(
+                offer: offer, receiver: player, state: state,
+                assessments: &assessments, recordingAssessments: recordingAssessments
             ) {
                 consider(
                     .respondToTrade(offerID: offer.id, accept: true),
@@ -320,8 +355,9 @@ public struct Bot: Sendable {
             // so a bot that's otherwise out of better moves cleans one up
             // rather than reaching `.endTurn` with it still pending.
             for offer in state.pendingTradeOffers where offer.from != player {
-                if !TradeHeuristics.evaluate(
-                    offer: offer, receiver: player, state: state, personality: personality, weights: weights
+                if !evaluateTrade(
+                    offer: offer, receiver: player, state: state,
+                    assessments: &assessments, recordingAssessments: recordingAssessments
                 ) {
                     consider(.respondToTrade(offerID: offer.id, accept: false), score: weights.declineTradeMoveScore)
                 }
@@ -338,18 +374,34 @@ public struct Bot: Sendable {
     private func decideScopedTradeResponse(
         legal: [GameMove],
         state: GameState,
-        player: PlayerID
+        player: PlayerID,
+        assessments: inout [TradeAssessment],
+        recordingAssessments: Bool
     ) -> GameMove? {
         guard legal.allSatisfy({ if case .respondToTrade = $0 { true } else { false } }) else { return nil }
         for offer in state.pendingTradeOffers where offer.from != player {
             let accept = GameMove.respondToTrade(offerID: offer.id, accept: true)
-            if legal.contains(accept), TradeHeuristics.evaluate(
-                offer: offer, receiver: player, state: state, personality: personality, weights: weights
+            if legal.contains(accept), evaluateTrade(
+                offer: offer, receiver: player, state: state,
+                assessments: &assessments, recordingAssessments: recordingAssessments
             ) {
                 return accept
             }
         }
         return legal.first { if case .respondToTrade(_, false) = $0 { true } else { false } }
+    }
+
+    /// Records the same scalar result whose boolean controls the branch;
+    /// diagnostics never trigger a second scoring pass or retain global state.
+    private func evaluateTrade(
+        offer: TradeOffer, receiver: PlayerID, state: GameState,
+        assessments: inout [TradeAssessment], recordingAssessments: Bool
+    ) -> Bool {
+        guard let assessment = TradeHeuristics.assessment(
+            offer: offer, receiver: receiver, state: state, personality: personality, weights: weights
+        ) else { return false }
+        if recordingAssessments { assessments.append(assessment) }
+        return assessment.accepted
     }
 
     /// Finds the member of `legal` that structurally matches `desired`
