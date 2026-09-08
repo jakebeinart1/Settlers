@@ -600,11 +600,12 @@ public struct GameView: View {
             // the command dock, so it never fills this banner - but the slot
             // is still RESERVED while one is up. See below.
             //
-            // A FIXED height, not a `StableHeightSlot`. That slot only ever
-            // grows, so the first error message of the session silently made
-            // this band taller for the rest of it - one more height that
-            // depended on the session's history rather than on the frame,
-            // which is the exact family of bug this file is being fixed for.
+            // A FIXED height, not a measured, grow-only slot. Such a slot
+            // only ever grows, so the first error message of the session
+            // silently made this band taller for the rest of it - one more
+            // height that depended on the session's history rather than on
+            // the frame, which is the exact family of bug this file is being
+            // fixed for.
             // One `.caption2` line is all this band has ever needed; a longer
             // message shrinks to fit rather than reflowing and taking room
             // from its neighbours.
@@ -686,7 +687,7 @@ public struct GameView: View {
         // attempts at a *dynamically measured* shared height here (see git
         // history) both backfired: reserving one height across all three
         // let whichever state was rare-but-tall permanently inflate it (a
-        // `StableHeightSlot` only ever grows), and even narrowing that down
+        // measured slot like that only ever grows), and even narrowing it down
         // still left a visible dead gap under the ordinary action row -
         // both read as regressions, worse than the small resize during a
         // robber move/incoming offer they were meant to fix (see chat). A
