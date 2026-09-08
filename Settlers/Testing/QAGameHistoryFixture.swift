@@ -21,10 +21,21 @@ import CatanEngine
 /// part of `CatanAI`. It plays badly. That is fine: the screen under test
 /// renders a board and a score, not good play.
 enum QAGameHistoryFixture {
-    /// Enough moves to fill the opening placements and a few rounds beyond
-    /// them, so the scrubber has real distance to travel and the score strip
-    /// has something to count.
-    private static let moveBudget = 90
+    /// Enough moves to fill the opening placements (16 of them) and a few
+    /// rounds beyond, so the scrubber has real distance to travel and the
+    /// score strip has something to count - and no more than that.
+    ///
+    /// This was 90, and the difference is not cosmetic. Every move here is
+    /// played through `RulesEngine.legalMoves` during app launch, on the main
+    /// thread, three times over this suite - and then replayed again to build
+    /// the timeline. `gate.sh` runs both test bundles across parallel
+    /// simulator clones, so that work competes with
+    /// `GameplayBoundaryFlowTests.testRealAutomatedMatchReachesGameOverAndClearsItsSave`,
+    /// which plays a whole match on ITS main thread. At 90 that test failed
+    /// roughly every other gate run with an XCUITest query timeout rather than
+    /// an assertion - a starved machine, not a bug, and exactly the pattern
+    /// `gate.sh`'s own header warns about.
+    private static let moveBudget = 40
 
     static func seedIfRequested(store: GameLogStore = .shared) {
         guard QALaunchFlag.seedGameHistory.isSet else { return }
