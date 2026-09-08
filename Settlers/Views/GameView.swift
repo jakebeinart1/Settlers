@@ -597,32 +597,48 @@ public struct GameView: View {
             // directly instead of adding a whole extra reserved banner
             // just for itself.
             // A board decision reports its own errors and instructions in
-            // the command dock, so this banner is omitted there and the dock
-            // gets the room. That trade is now purely internal to this
-            // fixed-height region and cannot reach the board.
-            if viewModel.boardDecisionPresentation == nil {
-                // A FIXED height, not a `StableHeightSlot`. That slot only
-                // ever grows, so the first error message of the session
-                // silently made this band taller for the rest of it - one
-                // more height that depended on the session's history rather
-                // than on the frame, which is the exact family of bug this
-                // file is being fixed for. One `.caption2` line is all this
-                // band has ever needed; a longer message shrinks to fit
-                // rather than reflowing and taking room from its neighbours.
-                Group {
-                    if let errorMessage {
-                        Text(errorMessage)
-                            .font(.caption2)
-                            .foregroundStyle(.red)
-                            .lineLimit(1)
-                            .minimumScaleFactor(0.75)
-                    } else {
-                        Color.clear
-                    }
+            // the command dock, so it never fills this banner - but the slot
+            // is still RESERVED while one is up. See below.
+            //
+            // A FIXED height, not a `StableHeightSlot`. That slot only ever
+            // grows, so the first error message of the session silently made
+            // this band taller for the rest of it - one more height that
+            // depended on the session's history rather than on the frame,
+            // which is the exact family of bug this file is being fixed for.
+            // One `.caption2` line is all this band has ever needed; a longer
+            // message shrinks to fit rather than reflowing and taking room
+            // from its neighbours.
+            //
+            // The slot is reserved UNCONDITIONALLY, and only its *content* is
+            // conditional. It used to be omitted outright during a board
+            // decision, on the reasoning that the dock could have the room -
+            // and that omission was plainly visible: the player nameplate and
+            // the command dock under it jumped 20 points up the screen the
+            // moment a settlement placement, a knight, or a rolled seven
+            // began, then dropped back when it ended. The board itself never
+            // moved (`belowBoardReserve` is fixed either way), but this is the
+            // same bug one level in - a row whose height depends on the phase
+            // moves every row after it - and the dock did not need the room:
+            // `BoardDecisionDockView` is pinned to the same
+            // `BottomRowMetrics.height` as the action row it replaces.
+            //
+            // Do not make this row conditional again. If some future state
+            // genuinely needs more height than the reserve, take it from
+            // inside the reserve, never by deleting a row other rows are
+            // positioned against.
+            Group {
+                if let errorMessage, viewModel.boardDecisionPresentation == nil {
+                    Text(errorMessage)
+                        .font(.caption2)
+                        .foregroundStyle(.red)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.75)
+                } else {
+                    Color.clear
                 }
-                .frame(height: Self.infoBannerHeight)
-                .dynamicTypeSize(...DynamicTypeSize.large)
             }
+            .frame(height: Self.infoBannerHeight)
+            .dynamicTypeSize(...DynamicTypeSize.large)
 
             // No top padding here - this needs to sit genuinely flush
             // against the banner slot above it (board -> banner ->
@@ -730,6 +746,34 @@ public struct GameView: View {
             RoundedRectangle(cornerRadius: 10)
                 .fill(CatanTheme.panelBackground)
         )
+        .background(commandRowFrameMarker)
+    }
+
+    /// An empty, Debug-only element whose only job is to give
+    /// `BelowBoardInvarianceTests` this row's frame to measure - it is the row
+    /// Jake saw jump 20 points when a placement or a seven started.
+    ///
+    /// It is a `.background` - a SIBLING of the row's content - rather than an
+    /// identifier on the row itself, and that is the whole point. The obvious
+    /// spelling, `.accessibilityElement(children: .contain)` plus an
+    /// identifier on `bottomPanel`, makes this row an accessibility ANCESTOR
+    /// of the board-decision dock, and that absorbed the dock's own container:
+    /// `app.otherElements["board-decision.dock"]` stopped resolving and took
+    /// ELEVEN board-decision UI tests down with it, every one reporting
+    /// nothing but a bare `XCTAssertTrue failed`. A sibling leaf cannot do
+    /// that. If you need to measure a container here, add another sibling.
+    ///
+    /// `#if DEBUG` because an element with no label is a VoiceOver stop that
+    /// announces nothing. UI tests run Debug; players never get this.
+    @ViewBuilder
+    private var commandRowFrameMarker: some View {
+        #if DEBUG
+        Color.clear
+            .accessibilityElement()
+            .accessibilityIdentifier(AccessibilityID.Game.commandRow)
+        #else
+        Color.clear
+        #endif
     }
 
     /// Build / Trade / turn action (Roll Dice or End Turn) - dev cards are

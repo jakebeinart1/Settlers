@@ -27,6 +27,17 @@ meantime.
       covered by `BoardCameraFlowTests`. Board padding also went 4 -> 6; it
       cannot go higher without port badges landing on placement rings (see
       `BoardView.boardPadding`, which carries the measurements).
+      **Two follow-ups the same day, both from Jake playing on device.**
+      (1) The board stopped moving, but the panels *inside* the reserve did
+      not: the 20pt info banner was still omitted during a board decision, so
+      the nameplate and command row jumped 20pt up on every settlement
+      placement, knight and seven. The banner is now reserved
+      unconditionally and only its content is conditional
+      (`BelowBoardInvarianceTests`). (2) Zoomed in, settlements and roads
+      drew past the board's top edge over the bot HUD and the sky, because
+      only the `Canvas` layer (tiles/ports/robber) self-clips - `.position`
+      pieces do not. `BoardView` now clips to its own bounds; the clip cannot
+      live on `GameView.boardArea`, which is taller by `topChipInset`.
 - [x] ~~Clean up the development-card deck / draw UI — currently redundant.~~
       **Done 2026-09-07.** The "Ready to play / This card can be used now"
       plaque now appears only when the card CANNOT be played - for a playable

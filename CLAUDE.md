@@ -27,6 +27,7 @@ Every one of these is canonical for its question. Read the file, do not reason f
 | Save-file schema and its backward compatibility | `GameState.init(from:)`, `Models/GameState.swift:110` |
 | Randomness contract | `Models/RandomSource.swift` (doc comment is the spec) |
 | Why the board's viewport never moves, and what may not be changed about it | `GameView.belowBoard` + `BoardView.applicableFit` (both doc comments are the spec) |
+| Why the board clips to its own bounds, and why not to its container's | `BoardView.body`'s `.clipped()` (the comment on it is the spec) |
 | Bot decision entry point | `Packages/CatanAI/Sources/CatanAI/Bot.swift` |
 | Bot loop, seat assignment, personality mix | `Settlers/ViewModels/GameViewModel.swift` |
 | What is persisted, where, and why | `Settlers/Persistence/` - 7 stores, each with the rationale in its doc comment |
@@ -165,6 +166,37 @@ mistake is cheap to repeat.
   own frame; removing the reserve fails it immediately (measured: 382.67 vs 362.67).
   **If the board ever moves again, the container moved - fix the layout, never re-introduce a
   remembered fit.**
+- **A fixed reserve stops the BOARD moving; it does not stop rows moving INSIDE the reserve.**
+  The 20pt info-banner row at the top of `belowBoard` was still conditional - omitted whenever
+  a board decision was up, on the reasoning that the command dock could have the room. It could
+  not: `BoardDecisionDockView` is pinned to the same `BottomRowMetrics.height` as the action row
+  it replaces. So the row was deleted for nothing, and the player nameplate and the whole command
+  row under it jumped **exactly 20 points** up the screen the moment a settlement placement, a
+  knight, or a rolled seven began, then dropped back when it ended. Same bug one level in: **a row
+  whose height depends on the phase moves every row after it.** Reserve the row and make only its
+  *content* conditional. `BelowBoardInvarianceTests` measures `game.command-row` across six phase
+  fixtures and fails on a 1pt difference (measured with the row conditional again: 752.0 vs 732.0).
+- **Half the board clipped and half did not, and the resting fit hid it.** Tiles, ports and the
+  robber are drawn into a `Canvas`, which clips to its own frame for free. Settlements, cities and
+  roads are ordinary SwiftUI views placed with `.position(...)` and `Path.fill`, which are **not**
+  bounded by the frame they sit in. At the fitted camera nothing reaches an edge, so the two look
+  identical; the moment a player pinched in, the hexes stopped dead at the board's top edge while
+  pieces kept going, floating over the bot HUD cards and the painted sky above them.
+  `GameView.boardArea` already clipped, and that is precisely why it did not help - that container
+  is taller than `BoardView` by `topChipInset` (the room reserved for the dice and bank chips), and
+  that band is exactly what the pieces escaped into. The clip belongs on `BoardView` itself, whose
+  frame is the viewport a player perceives. Verified by screenshot, before and after, at the same
+  zoom and pan on the same fixture.
+- **An accessibility identifier on a CONTAINER can delete its children's containers.** Adding
+  `.accessibilityElement(children: .contain)` + an identifier to `GameView.bottomPanel` - purely
+  to give a test a frame to measure - made that row an accessibility ancestor of
+  `BoardDecisionDockView`, and `app.otherElements["board-decision.dock"]` stopped resolving.
+  **Eleven** board-decision UI tests failed, every one of them reporting nothing but a bare
+  `XCTAssertTrue failed` from a `waitForExistence` with no message, which points at the board and
+  not at the row two levels above it. The fix is to measure from a SIBLING leaf
+  (`GameView.commandRowFrameMarker`, a Debug-only empty `.background` element), never from an
+  ancestor. If a batch of unrelated element lookups fails at once, suspect a new container above
+  them before you suspect any of them.
 - **SwiftPM will serve a stale module after a public API change**, producing a runtime crash
   that a clean rebuild fixes and that no rebuild-in-place reproduces. If behaviour contradicts
   the source you are reading, `rm -rf Packages/<Pkg>/.build` (or `swift package clean`) and

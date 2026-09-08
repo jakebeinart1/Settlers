@@ -92,6 +92,7 @@
 		A61AF82693BF86DFF2883096 /* HotSeatTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00588364F7AD8B7D5AF440EA /* HotSeatTests.swift */; };
 		AA5F82F23D1E9E98AC20C58E /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1B782178D710BCD61E1E4ED /* SettingsView.swift */; };
 		AA96483ED82E09AF4488D6CB /* .swiftlint.yml in Resources */ = {isa = PBXBuildFile; fileRef = 26C8E728C5FF85E8400CFE1A /* .swiftlint.yml */; };
+		AAD77D2905B3E3FBE04B2542 /* BelowBoardInvarianceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5630973AB08C1A2B5F19F0F9 /* BelowBoardInvarianceTests.swift */; };
 		AC4946C6F314BF8A6DA1954C /* BoardDecisionCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = DEB787CD9ABDC20E57B98FC9 /* BoardDecisionCoordinator.swift */; };
 		AEC7FA559FC3E1966EE5EADE /* BoardViewCamera.swift in Sources */ = {isa = PBXBuildFile; fileRef = 185D6FBBEC12DDB165C33128 /* BoardViewCamera.swift */; };
 		AF899EB36C3533A4C9F0472D /* HexGeometry.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7581395190BC539D01AEA19A /* HexGeometry.swift */; };
@@ -175,6 +176,7 @@
 		5281B8CED614C244F7E533EE /* CompleteMatchTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompleteMatchTests.swift; sourceTree = "<group>"; };
 		52A8BE17AC12F2C0246905CE /* OpponentProfileIntegrationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OpponentProfileIntegrationTests.swift; sourceTree = "<group>"; };
 		52C0B1D44B650E22AEBC8366 /* EndGameView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EndGameView.swift; sourceTree = "<group>"; };
+		5630973AB08C1A2B5F19F0F9 /* BelowBoardInvarianceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BelowBoardInvarianceTests.swift; sourceTree = "<group>"; };
 		56E4A8873ADD3D6574E7A3D3 /* BoardLayeringTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BoardLayeringTests.swift; sourceTree = "<group>"; };
 		59A80CE9867E891B09A3F0E5 /* QALaunchFlag.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QALaunchFlag.swift; sourceTree = "<group>"; };
 		5C25923598FA6B7BCAF62C5A /* CivilizationSettingsStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CivilizationSettingsStore.swift; sourceTree = "<group>"; };
@@ -379,6 +381,7 @@
 		9036B40A6E660B2A6C6DD300 /* SettlersUITests */ = {
 			isa = PBXGroup;
 			children = (
+				5630973AB08C1A2B5F19F0F9 /* BelowBoardInvarianceTests.swift */,
 				B94B22772958B0AC3FC9CD63 /* BoardCameraFlowTests.swift */,
 				EF5C497F322A8B09715BC1CB /* BoardViewportInvarianceTests.swift */,
 				6C3E1669AE4CEDD931039E43 /* DevelopmentCardFlowTests.swift */,
@@ -748,6 +751,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				AAD77D2905B3E3FBE04B2542 /* BelowBoardInvarianceTests.swift in Sources */,
 				43E81724C439E4208450EDBF /* BoardCameraFlowTests.swift in Sources */,
 				E7B13CA29B6CD84D4DD4C4AC /* BoardViewportInvarianceTests.swift in Sources */,
 				5033447C4E7FE175EFE2F595 /* DevelopmentCardFlowTests.swift in Sources */,

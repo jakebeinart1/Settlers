@@ -155,6 +155,26 @@ public struct BoardView: View {
                 }
             }
             .coordinateSpace(name: BoardDecisionCoordinateSpace.name)
+            // THE VIEWPORT. Everything the board draws is cut off at this
+            // view's own bounds, and nothing may be drawn outside them.
+            //
+            // Without this the board clipped *inconsistently*, which read as
+            // a rendering bug rather than a layout one: tiles, ports and the
+            // robber are drawn into a `Canvas`, which clips to its own frame
+            // for free, while settlements, cities and roads are ordinary
+            // SwiftUI views placed with `.position(...)` and `Path.fill`,
+            // which are NOT bounded by the frame they sit in. At the resting
+            // fit nothing reaches the edge so both look the same; as soon as
+            // the player pinched in, the hexes stopped cleanly at the top of
+            // the board while pieces kept going, floating over the bot HUD
+            // and the sky above it.
+            //
+            // It has to be here rather than on `GameView.boardArea`, which
+            // already clips: that container is TALLER than this view by
+            // `topChipInset` (the room reserved for the dice and bank chips),
+            // so its clip left exactly that band for pieces to escape into.
+            // The viewport a player perceives is the board's own rectangle.
+            .clipped()
             .animation(reduceMotion ? nil : .spring(), value: BoardSnapshot(state: state))
             .animation(reduceMotion ? nil : .spring(response: 0.3, dampingFraction: 0.82), value: decision)
             // Camera gestures are non-mutating, so unlike every target layer

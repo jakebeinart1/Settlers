@@ -79,6 +79,12 @@ enum AccessibilityID {
     enum Game {
         static let settings = "game.settings"
 
+        /// The command row under the player panel - action buttons, the board
+        /// decision dock, or an incoming trade card, whichever is up. Named so
+        /// a test can assert it sits in the SAME place in every phase; see
+        /// `BelowBoardInvarianceTests`.
+        static let commandRow = "game.command-row"
+
         static func humanResource(_ resource: Resource) -> String {
             "human-resource.\(resource.rawValue)"
         }
