@@ -183,7 +183,10 @@ Game History, and the stats row.
       Everything below the board sits in a fixed-height frame for the same
       reason `GameView` does it - scrubbing must not resize the board.
       Guarded by `GameReplayTimelineTests` (8 cases) and `GameHistoryFlowTests`
-      (6 native UI cases, including a game played to a real winner).
+      (3 native UI cases in 3 launches - deliberately few, because the extra
+      app launches starved the full-match test in `gate.sh`'s parallel run).
+      The win screen's own replay button is asserted inside that full-match
+      test rather than in a second one, for the same reason.
 - [x] ~~Surface this same replay view from the end-of-game win/lose screen.~~
       **Done 2026-09-07.** "View Replay" under "New Game" on `EndGameView`,
       resolved up front from the archive so the button is absent rather than
