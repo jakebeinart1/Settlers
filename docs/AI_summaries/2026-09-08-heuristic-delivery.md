@@ -1,10 +1,11 @@
-# Heuristic delivery — Build 6
+# Heuristic delivery — Builds 6 and 7
 
 ## Decision and scope
 
 Pause neural-network/search delivery and further training. Ship the existing
-Balanced heuristic for new games on top of Jake's main at `4552809`, including
-his game-history replay work. This is a deployment choice, not a new strength
+Balanced heuristic for new games. Build 6 used main `4552809`; Build 7 also
+includes main through `b27d7fd`: menu cleanup, replay point breakdowns and the
+board's reclaimed bottom space. This is a deployment choice, not a new strength
 claim or a claim that heuristic play is expert play.
 
 ## Acceptance criteria
@@ -17,19 +18,22 @@ claim or a claim that heuristic play is expert play.
 - Package, app and interactive UI suites pass, including a complete match.
 - A fresh Release launch survives without a new crash report.
 - Jake's committed signing identity is unchanged. Alex's release is
-  `com.alexchandler.empires`, version 1.0, Build 6.
+  `com.alexchandler.empires`, version 1.0, Build 7 for the combined-main release.
 - Delivery means Apple's exact build is processed and available to the intended
   testers; an archive alone is not delivery.
 
 ## Research handoff
 
-The frozen research archive lives outside this product-only branch at
+The [six-stage plan](AI-PROGRAM.md) separates personality (stage 4) from
+heuristic strategy improvements (stage 5). Neither starts during this release.
+The [research findings and restart map](2026-09-08-research-handoff.md) index
+the frozen archive outside this product-only branch at
 `~/Library/Application Support/EmpiresResearch/handoffs/search-pause-20260908/`.
 Its README, source bundle and terminal diagnostic preserve the experiments and
 restart instructions. Search is not proven to beat Balanced within the phone
 latency budget. No new training or personality work is part of this release.
 
-## Verification and delivery
+## Build 6 verification and delivery (historical)
 
 - Standards review: no findings. Spec review: no implementation blockers.
 - Tests: 58 evaluation-tool tests, 222 engine tests, 110 AI tests; all passed.
@@ -41,12 +45,38 @@ latency budget. No new training or personality work is part of this release.
   screenshots inspected and the Release crash-directory diff was empty.
 - Initial whole-history secret scan flagged two research README prose matches;
   exact-fingerprint exclusions were reviewed and the repeated scan passed.
-- Signed upload and tester access remain pending at this commit. Consult the
-  release PR for the final live Apple status; an uploaded/processed build is not
-  proof of installation on a physical phone.
+- Signed Build 6 reached VALID and IN_BETA_TESTING internally and externally
+  on September 8 at 13:18:33 UTC, attached to Jake's group. This is availability,
+  not proof of installation on a physical phone.
 
 Evidence is retained locally in `/private/tmp/empires-build6.ITWKqT/` during the
 release and copied to the durable EmpiresResearch delivery artifact afterward.
+
+## Build 7 integration and closeout
+
+- [Product PR #46](https://github.com/jakebeinart1/Settlers/pull/46) is the merge
+  and final verification receipt. Alex explicitly authorized merging after
+  verification; no Jake review prerequisite. Research PRs are excluded.
+- First combined-main revision (`e034391`, before the board refinement) passed
+  the full local gate: 321 app/UI tests, 382 parameterized executions, zero
+  failures/skips. Debug and Release builds passed; a fresh Release launch
+  survived with no new crash report. New Game fit at 375pt and 402pt widths;
+  settings and replay screenshots were inspected.
+- Main then added `b27d7fd`; rerun the gate and rebuild the final archive against
+  that source. Never label the earlier archive as including the later change.
+- Physical phone was read back as Build 4. Its Documents, preferences and
+  Application Support were copied before attempting an in-place update. The
+  active match has four moves and preserves aggressive/cautious/balanced bots;
+  only a new match gets all Balanced. Do not erase it for a test.
+- Direct installation encountered CoreDevice tunnel/connection interruptions;
+  a successful build or TestFlight upload does not resolve that runtime check.
+  Final phone and Apple receipts belong with the release evidence below.
+- Durable Build 7 evidence directory:
+  `/Users/alex/Library/Application Support/EmpiresResearch/deliveries/heuristic-build7-20260908/`.
+  Its README records final source, merge, tests, beta access, physical-device
+  outcome and exact archive. Earlier artifacts are labeled as superseded.
+
+Public beta link: https://testflight.apple.com/join/gc4xMVQm
 
 ### Signing recovery
 
