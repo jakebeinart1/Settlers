@@ -144,6 +144,14 @@ public struct GameView: View {
 
                 belowBoard
             }
+            // Spend the home-indicator band on the board. Negative padding
+            // rather than `.ignoresSafeArea(edges: .bottom)`: this column must
+            // reach a MEASURED distance past the safe area, not all the way to
+            // the glass, and the amount is zero on a device whose inset is
+            // zero. `boardArea` is the only flexible row here, so every point
+            // this adds to the column's height lands on the board and nowhere
+            // else. See `reclaimedBottomBand`.
+            .padding(.bottom, -reclaimedBottomBand)
             // A full-screen card/popup visually blocks the board; it must do
             // the same for VoiceOver. Leaving the private shelf in the
             // accessibility tree produced two elements with identical card
@@ -290,6 +298,21 @@ public struct GameView: View {
         }
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier(AccessibilityID.Screen.game)
+        // Measured from a reader that still SITS in the safe area, because
+        // that is the only kind that reports one: a reader inside the
+        // background layer, which ignores the safe area, was handed the whole
+        // screen and dutifully reported an inset of zero (measured).
+        .background {
+            GeometryReader { proxy in
+                Color.clear.preference(key: BottomSafeInsetKey.self,
+                                       value: proxy.safeAreaInsets.bottom)
+            }
+        }
+        // BELOW the background that emits it, and not above: preferences
+        // travel outwards through the modifier chain, so a reader attached
+        // after this line is invisible to it. Written the other way round
+        // first, and the whole screen simply did not move.
+        .onPreferenceChange(BottomSafeInsetKey.self) { bottomSafeInset = $0 }
         // Serif everywhere on the board screen - HUD, popups, buttons,
         // pause menu - to match the reference's painted-book serif type
         // instead of the system San Francisco default. Every popup above
@@ -457,13 +480,53 @@ public struct GameView: View {
     ///
     /// Seeded *deliberately high* rather than at the last hand-tuned value.
     /// The seed exists only for the one frame drawn before the chips have
-    /// reported, and `BoardView` locks its fit to the tallest container it is
-    /// given (see `BoardView.updateLock(for:in:)`) - so a seed that is too
-    /// large makes the board briefly a little small and then correct, while a
-    /// seed that is too small locks the board to a container taller than it
-    /// will ever really have. Over-reserving self-corrects; under-reserving
-    /// does not.
+    /// reported: too large draws that frame's board a little small and then
+    /// corrects, while too small draws it up underneath the bank chip. Over-
+    /// reserving self-corrects; under-reserving is a visible collision.
     @State private var topChipInset: CGFloat = 64
+
+    /// The home-indicator band, reported by the background layer.
+    @State private var bottomSafeInset: CGFloat = 0
+
+    /// How much of the bottom safe area this screen draws into.
+    ///
+    /// ## Why take it at all
+    /// It was the only unspent space on the screen. Measured on an iPhone 17
+    /// Pro at Dynamic Type `.large`: 59pt of safe top, 94 of `BotHUDRow`, 63
+    /// of chip band, **362 of board**, 257 of `belowBoardReserve` - and then
+    /// 34.67 points of nothing, because the column stopped at the safe area
+    /// while the painting behind it ran to the glass. `boardArea` is the only
+    /// row here that flexes, so that band was the board's to have.
+    ///
+    /// ## Why it makes the board *fill* its frame rather than merely grow
+    /// The board is solved to fit everything it draws - port badges included -
+    /// inside its frame, so the frame's aspect ratio decides which axis binds.
+    /// Everything drawn is 1.035 wide for every 1 tall; the old 402x362 frame
+    /// was 1.111, so height bound the fit and the difference sat as water down
+    /// the two sides - 27.8pt of it, over and above the 6pt margin the fit
+    /// keeps on every side. Height was therefore the *only* dimension that
+    /// could help: at 402x382.67 the frame is 1.051, the board comes out 5.9%
+    /// larger, and that 27.8 falls to 7.7 - under 4pt a side. Zooming instead
+    /// would have cost the outer port badges; `BoardFitTests` says so.
+    ///
+    /// ## Why a clearance rather than the whole band
+    /// The action row is a row of buttons, and the home indicator is drawn
+    /// over the bottom ~13 points of the screen. `homeIndicatorClearance`
+    /// keeps the buttons above it; the rest is board. The remaining 7.7pt of
+    /// side water is deliberately *not* pursued: spending it needs another
+    /// 6pt of frame height, which is the buttons' clearance, and that is a
+    /// worse trade than four points of sea.
+    ///
+    /// Nothing here varies with the phase, so the board's frame is still the
+    /// same rectangle in every one of them - `BoardViewportInvarianceTests`
+    /// is unaffected and still passes on its own terms.
+    private var reclaimedBottomBand: CGFloat {
+        max(0, bottomSafeInset - Self.homeIndicatorClearance)
+    }
+
+    /// Left clear below the action row for the home indicator, which is drawn
+    /// about 5 points tall, 8 above the bottom of the screen.
+    static let homeIndicatorClearance: CGFloat = 14
 
     /// The chip band's own height, reported by the chip.
     ///

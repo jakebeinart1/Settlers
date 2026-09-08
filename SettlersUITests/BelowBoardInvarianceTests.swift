@@ -19,6 +19,11 @@ import XCTest
 ///
 /// A failure here means some row under the board became conditional again.
 /// Fix it by reserving the row, not by moving what sits after it.
+///
+/// The same launches also check the band's *lower* edge: the column draws
+/// into the home-indicator area on purpose, because that 34.67-point strip
+/// was the only unspent space on the screen and `boardArea` is the one row
+/// that flexes. See `GameView.reclaimedBottomBand`.
 @MainActor
 final class BelowBoardInvarianceTests: XCTestCase {
     private static let commandRow = "game.command-row"
@@ -42,9 +47,25 @@ final class BelowBoardInvarianceTests: XCTestCase {
     func testTheCommandRowOccupiesTheSameFrameInEveryPhase() {
         continueAfterFailure = false
 
-        var measured: [(flags: String, frame: CGRect)] = []
+        var measured: [(flags: String, frame: CGRect, screen: CGRect)] = []
         for fixture in Self.phaseFixtures {
-            measured.append((fixture.joined(separator: " "), commandRowFrame(launchedWith: fixture)))
+            let launched = commandRowFrame(launchedWith: fixture)
+            measured.append((fixture.joined(separator: " "), launched.row, launched.screen))
+        }
+
+        // The column deliberately draws past the safe area, leaving only
+        // `GameView.homeIndicatorClearance`; the rest of that band is height
+        // the board is now using (see `GameView.reclaimedBottomBand`). Checked
+        // here rather than in its own test because it needs the same launches:
+        // if the column ever stops at the safe area again, the board silently
+        // loses 20 points and nothing else notices.
+        for candidate in measured {
+            let unusedBelow = candidate.screen.maxY - candidate.frame.maxY
+            XCTAssertLessThanOrEqual(
+                unusedBelow, 20,
+                "\(candidate.flags): \(Int(unusedBelow))pt of screen sits unused below the command "
+                + "row. Every point of it belongs to the board, which is the only flexible row "
+                + "above it - see GameView.reclaimedBottomBand.")
         }
 
         guard let reference = measured.first else { return XCTFail("no fixtures") }
@@ -60,7 +81,7 @@ final class BelowBoardInvarianceTests: XCTestCase {
 
     // MARK: - Helpers
 
-    private func commandRowFrame(launchedWith flags: [String]) -> CGRect {
+    private func commandRowFrame(launchedWith flags: [String]) -> (row: CGRect, screen: CGRect) {
         let app = XCUIApplication()
         app.launchArguments = ["-ui-testing", "-ui-testing-reset"] + flags
         app.launch()
@@ -69,9 +90,9 @@ final class BelowBoardInvarianceTests: XCTestCase {
         let row = app.otherElements[Self.commandRow]
         XCTAssertTrue(row.waitForExistence(timeout: 5),
                       "no command row for \(flags.joined(separator: " "))")
-        let frame = row.frame
+        let frames = (row: row.frame, screen: app.frame)
         app.terminate()
-        return frame
+        return frames
     }
 
     /// A point of tolerance, and not more: the regression this guards against

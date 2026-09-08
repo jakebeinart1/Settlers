@@ -117,6 +117,7 @@
 		C834783EE1638B259EFA3035 /* MatchCheckpointStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FDDC6BE523633D50F2BBE0CF /* MatchCheckpointStoreTests.swift */; };
 		C8EBD90EAF2F47466F8B5A2C /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CB7D94876E201553696FE24C /* ContentView.swift */; };
 		CB58570AE806ACE6BFC462C1 /* TradePopupView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5DA573A3A82A8F2F109FA437 /* TradePopupView.swift */; };
+		CEA12EEFFD502BF20F4EF929 /* BottomSafeInsetKey.swift in Sources */ = {isa = PBXBuildFile; fileRef = 306B99243D5CB6793A272281 /* BottomSafeInsetKey.swift */; };
 		D16CC8C90FB7F755636F3397 /* GameStatsStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 16777953197BE2BC34CCFE6B /* GameStatsStore.swift */; };
 		DBA70E71EA1FD506BEBF2C4A /* Civilization.swift in Sources */ = {isa = PBXBuildFile; fileRef = C47D8E51CEBC82766DDDF936 /* Civilization.swift */; };
 		DC62266DFBF7B3987969DA87 /* IncomingOfferHoldTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6BF5BC6D6577182E9829230A /* IncomingOfferHoldTests.swift */; };
@@ -168,6 +169,7 @@
 		27BDAD47ABBB94D7F73976E5 /* MainMenuView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainMenuView.swift; sourceTree = "<group>"; };
 		293F3C9F45563859C6C2E3F3 /* CheckpointLifecycleTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CheckpointLifecycleTests.swift; sourceTree = "<group>"; };
 		2FA5615D7AB20666AEB04B43 /* AccessibilityID.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccessibilityID.swift; sourceTree = "<group>"; };
+		306B99243D5CB6793A272281 /* BottomSafeInsetKey.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BottomSafeInsetKey.swift; sourceTree = "<group>"; };
 		338D27A9E7D0498A2F649C2E /* GameViewModel+Checkpoints.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "GameViewModel+Checkpoints.swift"; sourceTree = "<group>"; };
 		3405300C3B5526C327741E4F /* VictoryPointBreakdown.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VictoryPointBreakdown.swift; sourceTree = "<group>"; };
 		34F357D5B05179379CDC1EF1 /* HumanSeatStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HumanSeatStore.swift; sourceTree = "<group>"; };
@@ -423,6 +425,7 @@
 			isa = PBXGroup;
 			children = (
 				64B237C01DFEE60CA454FFCB /* BoardChips.swift */,
+				306B99243D5CB6793A272281 /* BottomSafeInsetKey.swift */,
 				DDF1F85E001A7B74407061E4 /* BuildPopupView.swift */,
 				B2A0891F71DC44CCE94EEE19 /* CivilizationPickerPopup.swift */,
 				6704DBBD9FA192F71D8ED7D3 /* CornerAccent.swift */,
@@ -666,6 +669,7 @@
 				AFCE34C135741229E6908444 /* BoardInspectionSemantics.swift in Sources */,
 				687BD8586D01E4597A1C7A32 /* BoardView.swift in Sources */,
 				AEC7FA559FC3E1966EE5EADE /* BoardViewCamera.swift in Sources */,
+				CEA12EEFFD502BF20F4EF929 /* BottomSafeInsetKey.swift in Sources */,
 				BD0B5D0BC26E3BE5C8A462FD /* BuildPopupView.swift in Sources */,
 				3B62B3E810E58200F2983839 /* CatanTheme.swift in Sources */,
 				2C2BEEF3E6CDB8BA9E3DCD3B /* CheckpointProcessProbe.swift in Sources */,

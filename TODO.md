@@ -91,6 +91,44 @@ The next open work is section 1.
       drawn underneath, and "Choose another territory" is drawn as "Change
       territory" (the full name stays as its accessibility label).
 
+- [x] ~~**The board fills its frame: the layout stops short of the screen.**~~
+      **Done 2026-09-08**, from Jake playing on the phone: "In the game replay
+      the board appears larger than in the main game." It was, and not by a
+      zoom setting - the replay simply has less chrome, so its board frame is
+      402x508 where the game's was 402x362. The board was already drawn as
+      large as that frame allows: its solved fit left 12pt vertically, which
+      is exactly `boardPadding * 2`, so there was no zoom left to give. Two
+      things follow from that and both are worth keeping.
+      **(1) The frame's aspect ratio is the lever, not the fit.** Everything
+      the board draws - port badges and placement rings included - measures
+      1.035 wide per 1 tall. A 1.111 frame therefore binds on height and puts
+      the whole difference into water down the sides: 27.8pt of it, beyond the
+      fit's own margin. Zooming to spend that pushes the top and bottom port
+      badges out of the frame, which `BoardFitTests` refuses; only a taller
+      frame can help.
+      **(2) The screen had 34.67 unspent points.** The column stopped at the
+      bottom safe area while the painting behind it ran to the glass: 59 safe
+      top + 94 `BotHUDRow` + 63 chip band + 362 board + 257
+      `belowBoardReserve` + **34.67 of nothing**. `boardArea` is the only row
+      that flexes, so all of it was the board's. `GameView.reclaimedBottomBand`
+      now draws the column into that band, keeping
+      `homeIndicatorClearance` (14pt) below the action row for the indicator
+      itself. The board frame goes 362 -> 382.67, the board 5.9% larger, and
+      the side water 27.8pt -> 7.7. The last 7.7 is deliberately left: taking
+      it would put the action buttons within 8pt of the screen edge.
+      Nothing here is phase-dependent, so the board's frame is still identical
+      in every phase and the viewport invariance is untouched. The board's TOP
+      edge does not move either - height still binds, so the fit keeps its 6pt
+      margin there and the board grows downwards, which is what keeps the port
+      badges clear of the bank chip. Guarded by
+      `BoardFitTests.theShippedInGameFrameIsFilledOnBothAxes` (the aspect-ratio
+      relationship) and by `BelowBoardInvarianceTests`, whose existing launches
+      now also fail if more than 20pt of screen is left unused below the
+      command row. The measured inset is read from a `GeometryReader` that
+      still sits inside the safe area - one in the background layer, which
+      ignores it, reports 0.0 - and its preference must be attached BELOW the
+      `onPreferenceChange` that reads it, or nothing moves at all.
+
 ## 1. Bot strength
 
 Make the bot opponents play meaningfully better. **Not done.** Playtesting

@@ -96,6 +96,42 @@ private let boards: [(String, Board)] = [
     }
 }
 
+/// The frame's aspect ratio is what decides how much of it the board can use,
+/// and that is not obvious from either the fit or the frame alone.
+///
+/// Everything the board draws measures about 1.035 wide for every 1 tall. A
+/// frame that is relatively wider than that binds the fit on height and leaves
+/// the difference as water down both sides - and no amount of zooming can
+/// spend it, because zooming to fill the width pushes the top and bottom port
+/// badges out of the frame, which is what `everythingDrawnStaysInsideTheFrame`
+/// above refuses.
+///
+/// So the frame's shape is the lever. The in-game board frame used to measure
+/// 402x362 (1.111) and left 27.8pt of side water beyond the fit's own margin;
+/// giving it the home-indicator band that the layout had never claimed made it
+/// 402x382.67 (1.051), and that falls to 7.7. This pins the relationship: if a
+/// future change takes height back out of the board's frame, the board does
+/// not merely get smaller, it stops filling its width, and this says so.
+@MainActor
+@Test func theShippedInGameFrameIsFilledOnBothAxes() {
+    // Measured on an iPhone 17 Pro at Dynamic Type `.large`, with
+    // `GameView.homeIndicatorClearance` left below the action row.
+    let rect = CGRect(x: 0, y: 0, width: 402, height: 382.67)
+    let board = BoardGenerator.standard()
+    let geometry = BoardView.fittedGeometry(for: board, in: rect, padding: BoardView.boardPadding)
+    let bounds = BoardView.contentBounds(for: board, geometry: geometry)
+
+    // Slack beyond the cosmetic margin the fit reserves on every side. The
+    // binding axis has none by definition; the loose one had 27.8pt of it at
+    // the old 402x362 frame and has 7.7 here.
+    let spareHeight = rect.height - bounds.height - BoardView.boardPadding * 2
+    let spareWidth = rect.width - bounds.width - BoardView.boardPadding * 2
+    #expect(spareHeight < 0.001,
+            "height should still be the binding axis; it is leaving \(Int(spareHeight))pt")
+    #expect(spareWidth < 10,
+            "the board is leaving \(Int(spareWidth))pt of water down its sides - the frame is relatively wider than the board again")
+}
+
 @MainActor
 @Test func theBoardUsesTheSpaceItIsGiven() {
     // The other direction, and the reason this file exists at all: guarding
