@@ -36,21 +36,50 @@ public struct OpponentProfile: Codable, Sendable, Equatable, Identifiable {
     public let civilization: Civilization
     public let strategy: OpponentStrategy
 
+    private enum CodingKeys: String, CodingKey { case id, name, civilization, strategy }
+    private enum CompatibilityKeys: String, CodingKey { case policy }
+
+    public init(id: String, name: String, civilization: Civilization, strategy: OpponentStrategy) {
+        self.id = id
+        self.name = name
+        self.civilization = civilization
+        self.strategy = strategy
+    }
+
+    /// Research saves can name a runtime this build cannot restore. Reject it
+    /// explicitly instead of ignoring the extra key and changing a saved bot.
+    /// Encoding retains the original four-field schema; no migration is written.
+    public init(from decoder: Decoder) throws {
+        let compatibility = try decoder.container(keyedBy: CompatibilityKeys.self)
+        if compatibility.contains(.policy) {
+            guard try compatibility.decode(String.self, forKey: .policy) == "heuristic" else {
+                throw DecodingError.dataCorruptedError(forKey: .policy, in: compatibility,
+                    debugDescription: "This build cannot restore the saved opponent policy.")
+            }
+        }
+        let values = try decoder.container(keyedBy: CodingKeys.self)
+        id = try values.decode(String.self, forKey: .id)
+        name = try values.decode(String.self, forKey: .name)
+        civilization = try values.decode(Civilization.self, forKey: .civilization)
+        strategy = try values.decode(OpponentStrategy.self, forKey: .strategy)
+    }
+
     public var dialogueVoice: TradeMessages.Empire { civilization.tradeMessagesEmpire }
     public var strategicPersonality: BotPersonality { strategy.personality }
 
     /// One canonical profile per playable civilization.
     ///
+    /// New opponents use Balanced; saved profiles retain their decoded strategy.
     /// The mapping is explicit rather than inferred from enum order or seat
     /// order. Reordering either collection therefore cannot change behavior.
     public static let catalog: [OpponentProfile] = [
         OpponentProfile(id: "charlemagne", name: "Charlemagne", civilization: .medieval, strategy: .balanced),
-        OpponentProfile(id: "alexander", name: "Alexander", civilization: .greece, strategy: .aggressive),
-        OpponentProfile(id: "ramesses", name: "Ramesses", civilization: .egypt, strategy: .cautious),
-        OpponentProfile(id: "moctezuma", name: "Moctezuma", civilization: .aztec, strategy: .aggressive),
+        OpponentProfile(id: "alexander", name: "Alexander", civilization: .greece, strategy: .balanced),
+        OpponentProfile(id: "ramesses", name: "Ramesses", civilization: .egypt, strategy: .balanced),
+        OpponentProfile(id: "moctezuma", name: "Moctezuma", civilization: .aztec, strategy: .balanced),
         OpponentProfile(id: "washington", name: "Washington", civilization: .columbia, strategy: .balanced),
-        OpponentProfile(id: "augustus", name: "Augustus", civilization: .rome, strategy: .aggressive),
-        OpponentProfile(id: "tokugawa", name: "Tokugawa", civilization: .japan, strategy: .cautious),
+        OpponentProfile(id: "augustus", name: "Augustus", civilization: .rome, strategy: .balanced),
+        OpponentProfile(id: "tokugawa", name: "Tokugawa", civilization: .japan, strategy: .balanced),
         OpponentProfile(id: "ragnar", name: "Ragnar", civilization: .norse, strategy: .balanced),
     ]
 

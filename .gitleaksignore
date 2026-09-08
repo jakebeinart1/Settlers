@@ -25,3 +25,9 @@
 # - it scans history, not the checkout - and is worth knowing before hunting
 # for a local cause.
 cba94470666bc2c93bf674ddd9e1de4b49e6ef32:docs/AI_summaries/evidence/native-cap-diagnosis-20260906/empires-cap-candidate-analysis-20260906.json:generic-api-key:90
+
+# Verified 2026-09-08: generic-api-key spans the prose "paired-summary API,"
+# and "missing/duplicate rejection" in a research README. No credential.
+# These exact historical occurrences only; do not suppress the rule or path.
+fedf7939702693fba4e262a224b54e1c86a09ec0:scripts/research/reference-search-ab/README.md:generic-api-key:69
+b7962e97eeb7cdca1cf0c94433a1d906adbb6fa6:scripts/research/reference-search-ab/README.md:generic-api-key:69
