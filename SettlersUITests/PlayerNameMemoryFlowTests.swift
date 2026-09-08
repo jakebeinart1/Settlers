@@ -1,13 +1,18 @@
 import XCTest
 
-/// The name typed on New Game is the prefill for the next New Game.
+/// What the player picks on New Game is the prefill for the next New Game.
 ///
 /// This was not true before 2026-09-07, and the reason is worth keeping: the
 /// previous setup *was* saved (`MatchSetupStore`), but `NewGameSetupView`
-/// overwrites the saved setup's human name with the `PlayerNameStore`
-/// preference every time it opens, and only App Settings ever wrote that
-/// preference. So a name typed here survived exactly until the next visit to
-/// the screen. Starting a game now writes the preference too.
+/// overwrites the saved setup's human name and civilization with the
+/// `PlayerNameStore` / `CivilizationSettingsStore` preferences every time it
+/// opens, and only App Settings ever wrote those preferences. So a choice made
+/// here survived exactly until the next visit to the screen. Starting a game
+/// now writes both preferences.
+///
+/// The civilization half became load-bearing on 2026-09-08, when App Settings
+/// was deleted: with nothing else writing the preference, every new game would
+/// otherwise open on the built-in default however many games were played.
 ///
 /// Driven through the real screens rather than the store, because the bug was
 /// never in the store - it was in which of two saved values won.
@@ -36,6 +41,39 @@ final class PlayerNameMemoryFlowTests: XCTestCase {
         openNewGame(in: app)
 
         XCTAssertEqual(app.textFields["new-game.seat-name.0"].value as? String, "Boudica")
+    }
+
+    func testTheCivilizationPickedOnNewGameIsPrefilledNextTime() {
+        continueAfterFailure = false
+        let app = XCUIApplication()
+        app.launchArguments = ["-ui-testing", "-ui-testing-reset"]
+        app.launch()
+
+        openNewGame(in: app)
+        let seat = app.buttons["new-game.seat-civilization.0"]
+        XCTAssertTrue(seat.waitForExistence(timeout: 3), "seat 0 civilization control")
+        let before = seat.label
+        seat.tap()
+
+        // A civilization the seat does not already hold and no other seat has
+        // taken. A taken tile is disabled, so tapping one would assert nothing.
+        let candidates = ["aztec", "norse", "japan", "rome", "greece", "medieval"]
+        let free = candidates.lazy
+            .map { app.buttons["new-game.civilization-option.\($0)"] }
+            .first { $0.exists && $0.isEnabled && !before.contains($0.label) }
+        guard let picked = free else { return XCTFail("The picker offered no free civilization") }
+        let pickedName = picked.label
+        picked.tap()
+        XCTAssertTrue(seat.label.contains(pickedName), "the picker did not apply the choice")
+
+        app.buttons["new-game.start"].tap()
+        XCTAssertTrue(app.otherElements["screen.game"].waitForExistence(timeout: 15), "board after Start")
+
+        quitToMainMenu(in: app)
+        openNewGame(in: app)
+
+        XCTAssertTrue(app.buttons["new-game.seat-civilization.0"].label.contains(pickedName),
+                      "The civilization chosen last game was not prefilled")
     }
 
     private func openNewGame(in app: XCUIApplication) {

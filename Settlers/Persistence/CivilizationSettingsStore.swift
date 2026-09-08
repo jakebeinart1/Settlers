@@ -8,13 +8,16 @@ import CatanEngine
 /// edits therefore cannot rewrite a game already in progress.
 public struct CivilizationSettings: Codable, Equatable, Sendable {
     public var yourCivilization: Civilization
+    /// Which civilizations a seat left on Random may be dealt. Still read on
+    /// every new game (`GameViewModel`), but no longer editable: the screen
+    /// that edited it was deleted on 2026-09-08 and the pool now stays at its
+    /// default of every civilization. The field remains because the assignment
+    /// code is written against a pool, and because narrowing it is a plausible
+    /// New Game Setup control later - not because anything writes it today.
     public var eligibleRandomCivilizations: Set<Civilization>
 
     /// Four seats may all be left on Random, including human seats.
     public static let minimumEligibleCivilizations = GameSetup.supportedPlayerCounts.upperBound
-    public static let minimumPoolMessage =
-        "Keep at least \(minimumEligibleCivilizations) civilizations available for Random seats."
-
     public static let `default` = CivilizationSettings(
         yourCivilization: .medieval,
         eligibleRandomCivilizations: Set(Civilization.allCases)
@@ -24,22 +27,6 @@ public struct CivilizationSettings: Codable, Equatable, Sendable {
                 eligibleRandomCivilizations: Set<Civilization>) {
         self.yourCivilization = yourCivilization
         self.eligibleRandomCivilizations = eligibleRandomCivilizations
-    }
-
-    /// Applies one pool edit, or returns the sentence the UI should show.
-    @discardableResult
-    public mutating func setRandomEligibility(_ civilization: Civilization,
-                                              isEligible: Bool) -> String? {
-        if isEligible {
-            eligibleRandomCivilizations.insert(civilization)
-            return nil
-        }
-        guard eligibleRandomCivilizations.contains(civilization) else { return nil }
-        guard eligibleRandomCivilizations.count > Self.minimumEligibleCivilizations else {
-            return Self.minimumPoolMessage
-        }
-        eligibleRandomCivilizations.remove(civilization)
-        return nil
     }
 
     /// Expands an old three-entry pool deterministically while retaining every
@@ -95,7 +82,9 @@ public final class CivilizationSettingsStore: @unchecked Sendable {
 
     public func save(_ settings: CivilizationSettings) {
         let normalized = settings.normalized()
-        precondition(normalized == settings, CivilizationSettings.minimumPoolMessage)
+        precondition(normalized == settings,
+                     "refusing to save a Random pool smaller than "
+                     + "\(CivilizationSettings.minimumEligibleCivilizations) civilizations")
         do {
             defaults.set(try JSONEncoder().encode(settings), forKey: key)
         } catch {

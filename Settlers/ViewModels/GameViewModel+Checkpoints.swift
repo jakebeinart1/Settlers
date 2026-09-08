@@ -151,18 +151,6 @@ extension GameViewModel {
         return failure
     }
 
-    public func resetStatistics() -> Bool {
-        guard savedGameAvailability.recoveryMessage == nil, var document = checkpointDocument else { return false }
-        do {
-            try document.resetStatistics()
-            try commitDocument(document)
-            return true
-        } catch {
-            _ = reportPersistenceFailure(error)
-            return false
-        }
-    }
-
     /// Exports are retryable projections, never authority for a resumed game.
     /// A failed export or acknowledgement leaves the exact queued history live.
     func exportCommittedRecordings() {

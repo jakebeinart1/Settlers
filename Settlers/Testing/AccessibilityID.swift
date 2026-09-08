@@ -18,7 +18,6 @@ enum AccessibilityID {
     enum MainMenu {
         static let newGame = "main-menu.new-game"
         static let resume = "main-menu.resume"
-        static let settings = "main-menu.settings"
         static let gameHistory = "main-menu.game-history"
     }
 
@@ -49,6 +48,11 @@ enum AccessibilityID {
         static let confirmOverwrite = "new-game.confirm-overwrite"
 
         static func seatName(_ index: Int) -> String { "new-game.seat-name.\(index)" }
+        static func seatCivilization(_ index: Int) -> String { "new-game.seat-civilization.\(index)" }
+
+        static func civilizationOption(_ civilization: Civilization) -> String {
+            "new-game.civilization-option.\(civilization.rawValue)"
+        }
     }
 
     enum Board {

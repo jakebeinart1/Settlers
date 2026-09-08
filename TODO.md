@@ -7,7 +7,8 @@ or spec needed, just fix the screen. **All done as of 2026-09-07**; kept
 here for the rationale each fix carries.
 
 Three more landed the same day, from Jake playing on the phone, and are
-recorded here rather than given a section of their own:
+recorded here rather than given a section of their own (a fourth, remembering
+the chosen civilization, followed on 2026-09-08 - see section 3):
 
 - [x] ~~The name typed on New Game is remembered for the next New Game.~~
       The setup itself was already saved, but `NewGameSetupView` overwrites
@@ -134,22 +135,36 @@ button with the pause menu.
 
 ## 3. Main menu / game log rework
 
-Mostly **done 2026-09-07**. The archive moved out of App Settings and onto the
+**Done** - 2026-09-07 for the archive and the replay, 2026-09-08 for the menu
+trim. The archive moved out of App Settings and onto the
 main menu as **Game History** (directly above the statistics row, hidden until
 something has been recorded), and a row now opens the board rather than a
 transcript. `GameLogListView` and `GameLogDetailView` - a flat system-chrome
 list and a `String(describing:)` dump of every archived `GameMove` - are
-deleted.
+deleted, and so is `SettingsView` itself. The menu is now New Game, Resume,
+Game History, and the stats row.
 
-- [ ] Trim the main menu - drop the Settings entry there. **Deliberately not
-      done, needs Jake's call.** The premise ("most of what it exposes is
-      already reachable later") turned out to be only two thirds true: Your
-      Name and Your Civilization are indeed reachable on New Game Setup, and
-      Game Logs has now moved out to Game History - but the **Random
-      Civilization Pool** and **Reset Stats** live nowhere else, and deleting
-      the screen would delete them with it. Either they get a home first (New
-      Game Setup for the pool; the stats row itself for the reset) or the gear
-      stays. It is now a three-section screen rather than five.
+- [x] ~~Trim the main menu - drop the Settings entry there.~~ **Done
+      2026-09-08.** `SettingsView` and the gear pill are deleted. Of its five
+      sections, three had already been made redundant: Your Name and Your
+      Civilization are set directly on New Game Setup (and were in fact the
+      *cause* of both settings not sticking - opening that screen overwrote the
+      saved setup with the preference), and Game Logs became Game History.
+      Jake called the remaining two - the Random Civilization Pool and Reset
+      Stats - irrelevant, so they went with the screen rather than keeping it
+      alive as a home for two controls nobody uses.
+      Removed with it: `GameViewModel.resetStatistics()`,
+      `MatchCheckpointDocument.resetStatistics()`,
+      `CivilizationSettings.setRandomEligibility` and `-qaShowSettings`, all of
+      which had no caller left. The random pool *field* stays and still feeds
+      every Random seat; it simply sits at its default of all eight
+      civilizations now.
+      **The one thing this could have broken, and does not:** with App Settings
+      gone nothing wrote `CivilizationSettings.yourCivilization`, so every new
+      game would have opened on the built-in Medieval default however many
+      games were played. Starting a game now writes the chosen civilization as
+      well as the name (`ContentView.rememberPreferredIdentity`), guarded by
+      `PlayerNameMemoryFlowTests` - verified to fail without the write.
 - [x] ~~Pull the plain-text game log out of the current in-game Settings screen
       and give it its own visual replay view.~~ **Done 2026-09-07.** It was on
       the *main-menu* Settings screen, not the in-game one. Its "Game Logs"

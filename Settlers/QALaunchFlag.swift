@@ -29,8 +29,6 @@ enum QALaunchFlag: String, CaseIterable {
     case showEndGame = "-qaShowEndGame"
     /// Plays every seat through the production session until a real winner.
     case playToEnd = "-qaPlayToEnd"
-    /// Opens the settings sheet over the main menu.
-    case showSettings = "-qaShowSettings"
     /// Opens `NewGameSetupView` over the main menu, on a fixture with two human
     /// seats and two AI seats - a startable configuration, so the screen shows
     /// its green ready plaque and an enabled Start.

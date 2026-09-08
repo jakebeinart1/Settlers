@@ -418,14 +418,6 @@ struct MatchCheckpointDocument: Codable, Equatable, Sendable {
                          totalFinalVP: finalVP.partialValue, totalDurationSeconds: totalDuration)
     }
 
-    /// Reset the displayed totals, not the durable knowledge of which matches
-    /// were processed. Otherwise reopening the last winner undoes the reset.
-    mutating func resetStatistics() throws {
-        guard revision < Int.max else { throw MatchCheckpointStore.StoreError.staleRevision }
-        statistics = GameStats()
-        revision += 1
-    }
-
     /// Archived histories remain authoritative until exported. Validate them
     /// just like the active match; a valid active board cannot excuse a damaged
     /// recording or an archive key referring to a different match identity.

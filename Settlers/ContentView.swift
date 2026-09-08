@@ -93,8 +93,7 @@ struct ContentView: View {
                     },
                     statistics: viewModel.statistics,
                     requiresSaveReplacementConfirmation: viewModel.requiresSaveReplacementConfirmation,
-                    newGameSetupLoadResult: viewModel.newGameSetupLoadResult,
-                    onResetStatistics: viewModel.resetStatistics
+                    newGameSetupLoadResult: viewModel.newGameSetupLoadResult
                 )
             }
         }
@@ -183,7 +182,7 @@ struct ContentView: View {
     private func startNewGame(_ setup: MatchSetup) {
         viewModel.startNewGame(setup: setup)
         guard viewModel.persistenceErrorMessage == nil else { return }
-        rememberPreferredName(from: setup)
+        rememberPreferredIdentity(from: setup)
         hasStartedThisSession = true
         // With seat order randomized, seat 0 (where setup always starts) may
         // be a bot rather than the human - without this, nothing would ever
@@ -193,24 +192,38 @@ struct ContentView: View {
         Task { await viewModel.runBotTurnIfNeeded() }
     }
 
-    /// Keeps the name the player typed on New Game as the prefill for the next
-    /// one, so a player with a name types it once rather than once per game.
+    /// Keeps the name and civilization the player chose on New Game as the
+    /// prefill for the next one, so both are set once rather than once a game.
     ///
     /// It has to happen here, at the same commit point as the rest of the
-    /// contract, and it has to be a write to `PlayerNameStore` specifically.
-    /// The setup screen deliberately touches no store (A6.5: leaving without
-    /// starting must change nothing), and the previous setup *was* already
-    /// saved in `MatchSetupStore` - but `NewGameSetupView.applyAppPreferences`
-    /// overwrites that saved setup's human name with this preference every
-    /// time the screen opens, so a name typed here survived exactly until the
-    /// next visit and no further. Writing the preference is what makes the
-    /// prefill agree with what the player last did.
+    /// contract, and it has to be a write to these two preference stores
+    /// specifically. The setup screen deliberately touches no store (A6.5:
+    /// leaving without starting must change nothing), and the previous setup
+    /// *was* already saved in `MatchSetupStore` - but
+    /// `NewGameSetupView.applyAppPreferences` overwrites that saved setup's
+    /// human name and civilization with these preferences every time the
+    /// screen opens, so a choice made there survived exactly until the next
+    /// visit and no further. Writing the preferences is what makes the prefill
+    /// agree with what the player last did.
     ///
-    /// The first human seat only: this is one player's own name, not the
-    /// hot-seat roster, which a running match snapshots for itself.
-    private func rememberPreferredName(from setup: MatchSetup) {
-        guard let name = setup.seats.first(where: \.isHuman)?.name else { return }
-        PlayerNameStore.shared.save(name)
+    /// App Settings used to be the only writer of both, which is why this was
+    /// not noticed sooner and why it became load-bearing the moment that
+    /// screen was deleted: without this, every new game would open on
+    /// `CivilizationSettings.default`'s Medieval no matter what was played
+    /// last.
+    ///
+    /// The first human seat only: this is one player's own name and
+    /// civilization, not the hot-seat roster, which a running match snapshots
+    /// for itself. A seat left on Random is not recorded - the player did not
+    /// choose a civilization, so there is nothing to remember.
+    private func rememberPreferredIdentity(from setup: MatchSetup) {
+        guard let seat = setup.seats.first(where: \.isHuman) else { return }
+        PlayerNameStore.shared.save(seat.name)
+        guard let civilization = seat.civilization else { return }
+        var settings = CivilizationSettingsStore.shared.load()
+        guard settings.yourCivilization != civilization else { return }
+        settings.yourCivilization = civilization
+        CivilizationSettingsStore.shared.save(settings)
     }
 }
 

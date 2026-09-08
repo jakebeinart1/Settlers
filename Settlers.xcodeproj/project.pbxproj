@@ -98,7 +98,6 @@
 		A0509BA422B4A4CCC2E73976 /* SeatCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7B3D502345F41546FE4903CE /* SeatCardView.swift */; };
 		A080B035D28E1023EE94C946 /* NewGameKeyboardInvarianceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E03F792FF88D24A73F2BC944 /* NewGameKeyboardInvarianceTests.swift */; };
 		A61AF82693BF86DFF2883096 /* HotSeatTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00588364F7AD8B7D5AF440EA /* HotSeatTests.swift */; };
-		AA5F82F23D1E9E98AC20C58E /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1B782178D710BCD61E1E4ED /* SettingsView.swift */; };
 		AA96483ED82E09AF4488D6CB /* .swiftlint.yml in Resources */ = {isa = PBXBuildFile; fileRef = 26C8E728C5FF85E8400CFE1A /* .swiftlint.yml */; };
 		AAD77D2905B3E3FBE04B2542 /* BelowBoardInvarianceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5630973AB08C1A2B5F19F0F9 /* BelowBoardInvarianceTests.swift */; };
 		AC4946C6F314BF8A6DA1954C /* BoardDecisionCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = DEB787CD9ABDC20E57B98FC9 /* BoardDecisionCoordinator.swift */; };
@@ -233,7 +232,6 @@
 		AFE46EFA5240D8C313A1994C /* TopChipHeightKey.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TopChipHeightKey.swift; sourceTree = "<group>"; };
 		B0A975D333BC9759A83497B5 /* GameViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameViewModel.swift; sourceTree = "<group>"; };
 		B104F168E625B9E66CA71A2E /* DiscardFlowTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiscardFlowTests.swift; sourceTree = "<group>"; };
-		B1B782178D710BCD61E1E4ED /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		B26D9133BC8A526E79680726 /* SettlersTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = SettlersTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		B2A0891F71DC44CCE94EEE19 /* CivilizationPickerPopup.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CivilizationPickerPopup.swift; sourceTree = "<group>"; };
 		B5BF359507B1F781FDA749F5 /* Settlers.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = Settlers.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -443,7 +441,6 @@
 				7B3D502345F41546FE4903CE /* SeatCardView.swift */,
 				D9D4E1C56EC91FE0C881DA59 /* SeatNumberPickerPopup.swift */,
 				8BC4427BD3E30FD0F5F9E9CC /* SettingsChrome.swift */,
-				B1B782178D710BCD61E1E4ED /* SettingsView.swift */,
 				AFE46EFA5240D8C313A1994C /* TopChipHeightKey.swift */,
 				5DA573A3A82A8F2F109FA437 /* TradePopupView.swift */,
 				B9E07877542F256DEA51B11B /* UniformActionButton.swift */,
@@ -726,7 +723,6 @@
 				A0509BA422B4A4CCC2E73976 /* SeatCardView.swift in Sources */,
 				BC863FBB0B69046B3989938A /* SeatNumberPickerPopup.swift in Sources */,
 				895E3168C84B21B63AD67E4E /* SettingsChrome.swift in Sources */,
-				AA5F82F23D1E9E98AC20C58E /* SettingsView.swift in Sources */,
 				B6FC9BE50ABFF3D68CF98B29 /* SettlersApp.swift in Sources */,
 				0BBF451A08F935DC2BB22743 /* TileView.swift in Sources */,
 				9C6AB72E4AC52714E00EDD3A /* TopChipHeightKey.swift in Sources */,

@@ -288,6 +288,7 @@ struct SeatCardView: View {
                 .background(PaintedChromeBackground(fill: .tintedTexture(dropdownTint), cornerRadius: 8, notchScale: 0.45))
             }
             .buttonStyle(.plain)
+            .accessibilityIdentifier(AccessibilityID.NewGame.seatCivilization(seat.index))
             .accessibilityLabel("Seat \(seat.index + 1) civilization, \(seat.civilization?.displayName ?? "Random")")
         }
     }

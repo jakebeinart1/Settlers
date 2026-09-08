@@ -128,7 +128,6 @@ grep -rnoE '"\-qa[A-Za-z]+"' --include="*.swift" "$REPO/Settlers" | sort -u
 | `-qaAutoStart` | `ContentView.swift` | Skips `MainMenuView`, lands on the board. **Prerequisite for every GameView flag below.** |
 | `-qaShowEndGame` | `ContentView.swift` | `EndGameView` ("YOU WIN!") via a forced human win. |
 | `-qaPlayToEnd` | `ContentView.swift` | Plays every seat without presentation delays through the real app session, persistence, statistics, and game log until `EndGameView` renders. Needs `-qaAutoStart`. |
-| `-qaShowSettings` | `MainMenuView.swift` | `SettingsView` over the main menu. **The one flag that must NOT be combined with `-qaAutoStart`.** |
 | `-qaShowPauseMenu` | `GameView.swift` | The "Game Menu" pause sheet. |
 | `-qaShowTradePopup` | `GameView.swift` | `TradePopupView`. |
 | `-qaShowBuildPopup` | `GameView.swift` | The "Build" popup (Road / Settlement / City / Dev Card). |
@@ -150,6 +149,9 @@ grep -rnoE '"\-qa[A-Za-z]+"' --include="*.swift" "$REPO/Settlers" | sort -u
 | `-qaShowDiscard` | `GameView.swift` | A real conserved eight-card hand in a mandatory four-card discard, for expanded/minimized inspection and submission. **Needs `-qaAutoStart`.** |
 | `-qaShowIncomingOffer` | `GameView.swift` | `IncomingTradeCardView`, backed by a real pending engine offer and conserved deterministic hands. |
 | `-qaFastForwardToRollDice` | `GameView.swift` | Plays the human's setup placements and first roll, resolving a possible seven until the main-turn controls are enabled. **Applies real moves** (writes the save and game log); wait on the target control's readiness rather than a fixed delay. |
+| `-qaSeedGameHistory` | `SettlersApp.swift` | Writes one deterministic finished recording (40 moves, played by "first legal move") into the archive before the menu appears, so Game History and the replay have something real to open. Seeded AFTER `-ui-testing-reset`, which clears the archive. |
+| `-qaShowGameHistory` | `MainMenuView.swift` | `GameHistoryView` over the main menu. Pair with `-qaSeedGameHistory`, or it correctly shows its empty state. **Must NOT be combined with `-qaAutoStart`.** |
+| `-qaShowReplay` | `MainMenuView.swift` / `GameHistoryView.swift` | Opens the newest recording's `GameReplayView` directly - board, score strip and transport controls, no tap needed. Pair with `-qaSeedGameHistory`. |
 | `-qaShowNewGame` | `MainMenuView.swift` / `NewGameSetupView.swift` | `NewGameSetupView` over the main menu, on a startable two-human/two-AI fixture (green ready plaque, Start enabled). **Must NOT be combined with `-qaAutoStart`.** |
 | `-qaShowNewGameInvalid` | `NewGameSetupView.swift` | Same screen, seat 2's name whitespace-only — the amber problem plaque and a disabled Start. |
 | `-qaShowNewGameOverwrite` | `NewGameSetupView.swift` | Same screen with the "Replace your saved game?" confirmation already raised. Pair with a real save (run `-qaAutoStart -qaFastForwardToRollDice` first) to also get the amber saved-game plaque behind it. |

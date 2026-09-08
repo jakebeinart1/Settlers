@@ -31,18 +31,6 @@ import UIKit
         #expect(settings.eligibleRandomCivilizations == pool)
     }
 
-    @Test func removingTheFourthEligibleCivilizationIsRefusedWithAReason() {
-        var settings = CivilizationSettings(
-            yourCivilization: .medieval,
-            eligibleRandomCivilizations: [.greece, .rome, .japan, .norse, .aztec]
-        )
-
-        #expect(settings.setRandomEligibility(.greece, isEligible: false) == nil)
-        #expect(settings.setRandomEligibility(.rome, isEligible: false)
-                == "Keep at least 4 civilizations available for Random seats.")
-        #expect(settings.eligibleRandomCivilizations == [.rome, .japan, .norse, .aztec])
-    }
-
     @MainActor
     @Test func allRandomSeatsDrawOnlyFromTheSelectedPool() {
         let pool: Set<Civilization> = [.greece, .rome, .japan, .norse]

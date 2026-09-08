@@ -205,16 +205,15 @@ import CatanAI
         #expect(next.statistics == GameStats())
     }
 
-    @Test func resettingStatisticsDoesNotRecountTheCurrentCompletedMatch() throws {
+    @Test func recordingTheSameCompletedMatchTwiceCountsItOnce() throws {
         var terminal = GameSetup.newGame(board: BoardGenerator.standard(), seed: 471)
         terminal.phase = .gameOver(winner: PlayerID(index: 0))
         let setup = MatchSetup.default(preferredName: "Alex", preferredCivilization: Civilization.allCases[0])
         var document = MatchCheckpointDocument(activeMatch: MatchCheckpoint(
             id: UUID(), initialState: terminal, setup: setup))
         try document.recordCompletion(duration: 123)
-        try document.resetStatistics()
         try document.recordCompletion(duration: 999)
-        #expect(document.statistics == GameStats())
+        #expect(document.statistics.gamesPlayed == 1)
         #expect(document.completions.count == 1)
     }
 

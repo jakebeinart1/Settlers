@@ -43,7 +43,11 @@ struct GameViewModelCheckpointTests {
         #expect(model.gameLogWarning?.contains("could not be restored automatically") == true)
     }
 
-    @Test func completedMatchStatisticsStayResetAfterReloadAndClear() throws {
+    /// Clearing the finished match must not clear what it contributed to the
+    /// lifetime totals. There is no longer a stats reset anywhere in the app,
+    /// so this is the only thing standing between a played game and its
+    /// disappearance from the menu's stats row.
+    @Test func completedMatchStatisticsSurviveReloadAndClear() throws {
         let fixture = try CheckpointModelFixture()
         let model = fixture.makeModel()
         model.startNewGame(setup: fixture.setup)
@@ -51,12 +55,9 @@ struct GameViewModelCheckpointTests {
         #expect(model.statistics.gamesPlayed == 1)
         let resumed = fixture.makeModel()
         #expect(resumed.statistics == model.statistics)
-        #expect(resumed.resetStatistics())
-        let reset = fixture.makeModel()
-        #expect(reset.statistics == GameStats())
-        #expect(reset.clearCompletedMatch())
+        #expect(resumed.clearCompletedMatch())
         let cleared = fixture.makeModel()
-        #expect(cleared.statistics == GameStats())
+        #expect(cleared.statistics.gamesPlayed == 1)
         #expect(!cleared.savedGameAvailability.canResume)
     }
 
@@ -364,14 +365,15 @@ struct GameViewModelCheckpointTests {
         #expect(fixture.makeModel().state == before)
     }
 
-    @Test func statsOnlyMigrationAndResetSurviveColdLaunch() throws {
+    @Test func statsOnlyMigrationSurvivesColdLaunch() throws {
         let fixture = try CheckpointModelFixture()
         fixture.statsStore.recordGameEnd(won: true, finalVP: 8, duration: 60)
         let model = fixture.makeModel()
         #expect(model.statistics.gamesPlayed == 1)
         #expect(!model.savedGameAvailability.canResume)
-        #expect(model.resetStatistics())
-        #expect(fixture.makeModel().statistics.gamesPlayed == 0)
+        // The legacy file is migrated, never consumed: it stays on disk with
+        // its original contents so a failed migration can be retried.
+        #expect(fixture.makeModel().statistics.gamesPlayed == 1)
         #expect(fixture.statsStore.load().gamesPlayed == 1)
     }
 

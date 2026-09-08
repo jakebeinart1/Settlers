@@ -92,6 +92,7 @@ struct CivilizationPickerPopup: View {
         }
         .buttonStyle(.plain)
         .disabled(isTaken)
+        .accessibilityIdentifier(AccessibilityID.NewGame.civilizationOption(civilization))
         .accessibilityLabel(isTaken ? "\(civilization.displayName), taken by another seat" : civilization.displayName)
     }
 
