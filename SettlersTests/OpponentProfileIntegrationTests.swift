@@ -6,6 +6,35 @@ import Testing
 @MainActor
 @Suite(.serialized)
 struct OpponentProfileIntegrationTests {
+    @Test func newGameDraftRefreshesProfilesWithoutRewritingActiveMatch() throws {
+        try withStores { stores in
+            var configured = setup(playerCount: 3, humans: [0], civilizations: [.norse, .rome, .japan])
+            for index in [1, 2] {
+                let catalog = OpponentProfile.forCivilization(try #require(configured.seats[index].civilization))
+                configured.seats[index].opponentProfile = OpponentProfile(id: catalog.id, name: catalog.name,
+                    civilization: catalog.civilization, strategy: index == 1 ? .aggressive : .cautious)
+            }
+            let active = stores.makeModel()
+            active.startNewGame(setup: configured)
+            let checkpoint = stores.root.appendingPathComponent("match_checkpoint.json")
+            let before = try Data(contentsOf: checkpoint)
+            let draft = NewGameSetupView.initialSetup(from: stores.setupStore.load(),
+                preferredName: "Human 1", preferredCivilization: .norse)
+            #expect(!draft.wasUnreadable && draft.setup.seats.allSatisfy { $0.opponentProfile == nil })
+            #expect(draft.setup.seats.map(\.civilization) == configured.seats.map(\.civilization))
+            #expect(draft.setup.seats.map(\.name) == configured.seats.map(\.name))
+            #expect(stores.setupStore.load().value == configured)
+            #expect(try Data(contentsOf: checkpoint) == before, "Opening/cancelling New Game must not write")
+            #expect(stores.makeModel().opponentProfiles == active.opponentProfiles)
+            let fresh = stores.makeModel()
+            fresh.startNewGame(setup: draft.setup)
+            #expect(fresh.opponentProfiles.values.allSatisfy { $0.strategy == .balanced })
+            #expect(fresh.opponentProfiles.mapValues(\.id) == active.opponentProfiles.mapValues(\.id))
+            #expect(fresh.opponentProfiles.mapValues(\.name) == active.opponentProfiles.mapValues(\.name))
+            #expect(GameViewModel.makePolicies(fresh.opponentProfiles).values.allSatisfy { $0.id == "heuristic-balanced" })
+        }
+    }
+
     @Test func everySupportedSeatCompositionGetsExactlyItsBotProfiles() throws {
         try withStores { stores in
             for playerCount in GameSetup.supportedPlayerCounts {
@@ -23,8 +52,12 @@ struct OpponentProfileIntegrationTests {
                             #expect(profile == nil)
                         } else {
                             #expect(profile?.civilization == Civilization.forSeat(index))
+                            #expect(profile?.strategy == .balanced)
                         }
                     }
+                    #expect(GameViewModel.makePolicies(model.opponentProfiles).values.allSatisfy {
+                        $0.id == "heuristic-balanced"
+                    })
                 }
             }
         }
@@ -47,7 +80,7 @@ struct OpponentProfileIntegrationTests {
             let romeAtTwo = try #require(second.opponentProfile(for: PlayerID(index: 2)))
 
             #expect(romeAtOne == romeAtTwo)
-            #expect(romeAtOne.strategy == .aggressive)
+            #expect(romeAtOne.strategy == .balanced)
         }
     }
 
@@ -149,6 +182,36 @@ struct OpponentProfileIntegrationTests {
             #expect(roster.botProfiles[1] == "augustus-v1")
             #expect(roster.botProfileNames[1] == "Augustus")
             #expect(roster.botPersonalities[1] == "cautious")
+            let savedSession = model.session.checkpoint
+            #expect(relaunched.session.checkpoint == savedSession)
+            relaunched.restartCurrentMatch(fallbackRandomizedBoard: false, fallbackRandomizeSeat: false)
+            #expect(relaunched.opponentProfile(for: PlayerID(index: 1)) == snapshot)
+            #expect(GameViewModel.makePolicies(relaunched.opponentProfiles)[PlayerID(index: 1)]?.id == "heuristic-cautious")
+        }
+    }
+
+    @Test func unsupportedResearchSnapshotBlocksResumeAndPreservesBytes() throws {
+        try withStores { stores in
+            let model = stores.makeModel()
+            model.startNewGame(setup: setup(playerCount: 3, humans: [0]))
+            let path = stores.root.appendingPathComponent("match_checkpoint.json")
+            var document = try #require(JSONSerialization.jsonObject(with: Data(contentsOf: path)) as? [String: Any])
+            var match = try #require(document["activeMatch"] as? [String: Any])
+            var savedSetup = try #require(match["setup"] as? [String: Any])
+            var seats = try #require(savedSetup["seats"] as? [[String: Any]])
+            var profile = try #require(seats[1]["opponentProfile"] as? [String: Any])
+            profile["policy"] = "neuralR2"
+            seats[1]["opponentProfile"] = profile
+            savedSetup["seats"] = seats
+            match["setup"] = savedSetup
+            document["activeMatch"] = match
+            let unsupported = try JSONSerialization.data(withJSONObject: document)
+            try unsupported.write(to: path)
+            let restored = stores.makeModel()
+            #expect(!restored.savedGameAvailability.canResume)
+            #expect(restored.persistenceBlocked)
+            #expect(restored.savedGameAvailability.recoveryMessage != nil)
+            #expect(try Data(contentsOf: path) == unsupported)
         }
     }
 

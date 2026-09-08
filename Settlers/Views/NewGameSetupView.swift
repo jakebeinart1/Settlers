@@ -219,7 +219,7 @@ struct NewGameSetupView: View {
     /// longer supports or a victory target this screen has no button for, and
     /// `MatchSetup.resize` traps on the former. Both fall back rather than
     /// opening a screen whose controls disagree with the value behind them.
-    private static func initialSetup(
+    static func initialSetup(
         from loadResult: MatchSetupStore.LoadResult,
         preferredName: String,
         preferredCivilization: Civilization
@@ -240,6 +240,9 @@ struct NewGameSetupView: View {
             saved.victoryPointTarget = WinCondition.standardTarget
         }
         saved.normalizeNewGameOptions()
+        // Realized profiles belong to a saved match, not next-game preferences.
+        // Clear only this value copy; resume/restart retain their stored roster.
+        for index in saved.seats.indices { saved.seats[index].opponentProfile = nil }
         applyAppPreferences(
             to: &saved,
             preferredName: preferredName,
