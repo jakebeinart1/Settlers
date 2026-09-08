@@ -192,7 +192,14 @@ class SimulatorConfigurationTests(unittest.TestCase):
         self.assertEqual(implicit.returncode, 0, implicit.stderr)
         self.assertEqual(explicit.returncode, 0, explicit.stderr)
         self.assertEqual(implicit.stdout, explicit.stdout)
-        self.assertEqual(json.loads(implicit.stdout)["fingerprint"], "7964368a77394abc")
+        # Seed 1's trajectory, pinned a second time on this side of the fence:
+        # the Swift `SeededGameFingerprintTests` proves the game is
+        # reproducible, and this proves the CLI's defaults still select the
+        # configuration those traces were recorded under. Re-record BOTH
+        # together - this value drifting alone means the defaults moved, which
+        # is the whole point of the check. Last changed 2026-09-08, when bots
+        # stopped scoring opponents on hidden victory-point cards.
+        self.assertEqual(json.loads(implicit.stdout)["fingerprint"], "3994f514fb48cde2")
 
 
 if __name__ == "__main__":

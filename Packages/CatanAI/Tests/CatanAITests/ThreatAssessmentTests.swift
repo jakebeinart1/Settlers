@@ -38,17 +38,22 @@ private func buildChain(from board: Board, length: Int) -> [EdgeID] {
     return edges
 }
 
+/// The seat doing the judging in the cases below. They all score seat 0, and
+/// they all ask the question an opponent asks, so none of them may see seat
+/// 0's hand.
+private let opponentEye = PlayerID(index: 1)
+
 @Test func scoreWeighsVictoryPointsHeavily() {
     var state = GameSetup.newGame(board: BoardGenerator.standard())
     let player = PlayerID(index: 0)
     let vertex = state.board.onBoardVertices.sorted().first!
     state.players[0].settlements.insert(vertex)
 
-    let withSettlement = ThreatAssessment.score(for: player, in: state)
+    let withSettlement = ThreatAssessment.score(for: player, asSeenBy: opponentEye, in: state)
 
     var noSettlement = state
     noSettlement.players[0].settlements.removeAll()
-    let without = ThreatAssessment.score(for: player, in: noSettlement)
+    let without = ThreatAssessment.score(for: player, asSeenBy: opponentEye, in: noSettlement)
 
     // 1 VP difference must show up as (at least) the VP weight - other
     // components (production) also shift with the same settlement, so this
@@ -70,10 +75,10 @@ private func buildChain(from board: Board, length: Int) -> [EdgeID] {
     #expect(best.1 > worst.1, "test board too uniform to distinguish production")
 
     state.players[0].settlements = [best.0]
-    let highProduction = ThreatAssessment.score(for: player, in: state)
+    let highProduction = ThreatAssessment.score(for: player, asSeenBy: opponentEye, in: state)
 
     state.players[0].settlements = [worst.0]
-    let lowProduction = ThreatAssessment.score(for: player, in: state)
+    let lowProduction = ThreatAssessment.score(for: player, asSeenBy: opponentEye, in: state)
 
     #expect(highProduction > lowProduction)
 }
@@ -84,11 +89,11 @@ private func buildChain(from board: Board, length: Int) -> [EdgeID] {
     let vertex = state.board.onBoardVertices.sorted().first!
 
     state.players[0].settlements = [vertex]
-    let settlementScore = ThreatAssessment.score(for: player, in: state)
+    let settlementScore = ThreatAssessment.score(for: player, asSeenBy: opponentEye, in: state)
 
     state.players[0].settlements = []
     state.players[0].cities = [vertex]
-    let cityScore = ThreatAssessment.score(for: player, in: state)
+    let cityScore = ThreatAssessment.score(for: player, asSeenBy: opponentEye, in: state)
 
     // City is worth +10 VP-equivalent (1 more VP than settlement, weighted
     // 10) plus double the production term versus a settlement on the same
@@ -102,9 +107,9 @@ private func buildChain(from board: Board, length: Int) -> [EdgeID] {
     var state = GameSetup.newGame(board: BoardGenerator.standard())
     let player = PlayerID(index: 0)
 
-    let baseline = ThreatAssessment.score(for: player, in: state)
+    let baseline = ThreatAssessment.score(for: player, asSeenBy: opponentEye, in: state)
     state.players[0].devCards = [.knight, .knight]
-    let withDevCards = ThreatAssessment.score(for: player, in: state)
+    let withDevCards = ThreatAssessment.score(for: player, asSeenBy: opponentEye, in: state)
 
     #expect(withDevCards - baseline == 3.0) // 1.5 per card
 }
@@ -113,9 +118,9 @@ private func buildChain(from board: Board, length: Int) -> [EdgeID] {
     var state = GameSetup.newGame(board: BoardGenerator.standard())
     let player = PlayerID(index: 0)
 
-    let baseline = ThreatAssessment.score(for: player, in: state)
+    let baseline = ThreatAssessment.score(for: player, asSeenBy: opponentEye, in: state)
     state.players[0].playedKnights = 2
-    let oneAway = ThreatAssessment.score(for: player, in: state)
+    let oneAway = ThreatAssessment.score(for: player, asSeenBy: opponentEye, in: state)
 
     #expect(oneAway - baseline == 2.5)
 }
@@ -127,9 +132,9 @@ private func buildChain(from board: Board, length: Int) -> [EdgeID] {
     state.players[1].playedKnights = 5
     state.largestArmyPlayer = holder
 
-    let baseline = ThreatAssessment.score(for: player, in: state)
+    let baseline = ThreatAssessment.score(for: player, asSeenBy: opponentEye, in: state)
     state.players[0].playedKnights = 2
-    let stillTwoAway = ThreatAssessment.score(for: player, in: state)
+    let stillTwoAway = ThreatAssessment.score(for: player, asSeenBy: opponentEye, in: state)
 
     // Reaching 3 knights wouldn't take Largest Army from a holder already at
     // 5, so no swing bonus applies.
@@ -143,9 +148,9 @@ private func buildChain(from board: Board, length: Int) -> [EdgeID] {
     let chain = buildChain(from: state.board, length: 4)
     #expect(chain.count == 4, "test board too small to build a 4-edge chain")
 
-    let baseline = ThreatAssessment.score(for: player, in: state)
+    let baseline = ThreatAssessment.score(for: player, asSeenBy: opponentEye, in: state)
     state.players[0].roads = Set(chain)
-    let fourEdges = ThreatAssessment.score(for: player, in: state)
+    let fourEdges = ThreatAssessment.score(for: player, asSeenBy: opponentEye, in: state)
 
     #expect(fourEdges - baseline >= 2.5) // production from the new roads' vertices also shifts, so >=, not ==
 }
@@ -160,10 +165,10 @@ private func buildChain(from board: Board, length: Int) -> [EdgeID] {
     state.players[1].roads = Set(holderChain)
     state.longestRoadPlayer = holder
 
-    let baseline = ThreatAssessment.score(for: player, in: state)
+    let baseline = ThreatAssessment.score(for: player, asSeenBy: opponentEye, in: state)
     let shortChain = buildChain(from: state.board, length: 4)
     state.players[0].roads = Set(shortChain)
-    let stillBehind = ThreatAssessment.score(for: player, in: state)
+    let stillBehind = ThreatAssessment.score(for: player, asSeenBy: opponentEye, in: state)
 
     // 4 edges doesn't come close to beating a 7-edge holder, so no bonus -
     // any diff is purely from the roads' own production-adjacent vertices,
@@ -245,4 +250,44 @@ private func buildChain(from board: Board, length: Int) -> [EdgeID] {
 
     let standing = ThreatAssessment.ownStanding(for: PlayerID(index: 0), in: state)
     #expect(standing < 1.0)
+}
+
+/// The leak this file exists to prevent, reported from real play: "it shows
+/// the bots that I have 5 VPs... I feel like I'm getting targeted because they
+/// know I have 3 victory points in development cards."
+///
+/// A held victory-point card is hidden information. It may not move an
+/// opponent's threat score by one point, because that score is what
+/// `RobberHeuristics`, `TradeHeuristics`, `BuildPlanner` and
+/// `DevCardHeuristics` all target on.
+@Test func heldVictoryPointCardsAreInvisibleToOpponents() {
+    var state = GameSetup.newGame(board: BoardGenerator.standard())
+    let hidden = PlayerID(index: 0)
+    state.players[0].settlements.insert(state.board.onBoardVertices.sorted().first!)
+
+    let beforeDrawing = ThreatAssessment.score(for: hidden, asSeenBy: opponentEye, in: state)
+    state.players[0].devCards = [.victoryPoint, .victoryPoint, .victoryPoint]
+    let afterDrawing = ThreatAssessment.score(for: hidden, asSeenBy: opponentEye, in: state)
+
+    // Three cards are worth 3 * devCardWeight and not one point more. Their
+    // being victory points specifically must not register: at
+    // `victoryPointWeight` of 10 apiece the leak was worth 30, three times
+    // the whole rest of an early-game score.
+    #expect(afterDrawing - beforeDrawing == 3.0 * BotWeights.default.devCardWeight)
+}
+
+/// The other half of the rule, and why this is not a find-and-replace: a bot
+/// counting its OWN standing knows its own hand. Hiding a bot's cards from
+/// itself would make it trade like a player who cannot see them.
+@Test func aSeatStillCountsItsOwnHeldVictoryPointCards() {
+    var state = GameSetup.newGame(board: BoardGenerator.standard())
+    let seat = PlayerID(index: 0)
+    state.players[0].settlements.insert(state.board.onBoardVertices.sorted().first!)
+
+    let beforeDrawing = ThreatAssessment.score(for: seat, asSeenBy: seat, in: state)
+    state.players[0].devCards = [.victoryPoint]
+    let afterDrawing = ThreatAssessment.score(for: seat, asSeenBy: seat, in: state)
+
+    #expect(afterDrawing - beforeDrawing
+            == BotWeights.default.victoryPointWeight + BotWeights.default.devCardWeight)
 }

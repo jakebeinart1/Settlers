@@ -134,12 +134,38 @@ import CatanEngine
 /// additionally cross-checked against direct `sim` executable runs for their
 /// respective seeds before being pinned here.
 private let expectedFingerprints: [UInt64: String] = [
-    1: "7964368a77394abc",
-    42: "77f1cbe943477e18",
-    7: "e985537b0fe9ca79",
-    1234: "e0be15d59b7df4c3",
-    99: "deddbc538f909be8",
+    1: "3994f514fb48cde2",
+    42: "a45784b3bdb5c3ef",
+    7: "5b7b086f6759dc9c",
+    1234: "294f6f38fc41647b",
+    99: "ddc4993979b6a655",
 ]
+
+/// Re-recorded 2026-09-08 (all five) because the bots stopped reading hidden
+/// information. `ThreatAssessment.score` took the engine's TRUE victory-point
+/// total for every player it judged, so a held victory-point card - hidden
+/// information, exactly like the rest of a hand - raised its holder's threat
+/// score by `victoryPointWeight` (10.0, the largest single term in that
+/// score). Every heuristic that targets someone reads that score, so drawing a
+/// victory-point card made a player measurably more likely to be robbed,
+/// refused a trade and blocked. Jake reported it from real play: "they know I
+/// have 3 victory points in development cards". Opponents are now scored on
+/// `publicVictoryPoints`; a seat still counts its own hand when judging its own
+/// standing. Every trajectory that passes through a robber choice, a trade
+/// response or a blocking decision therefore diverges, which is all five seeds.
+///
+/// Seed 1 is pinned in a second place - `scripts/tests/test_sim_cli.py`'s
+/// `test_default_run_matches_the_explicit_historical_configuration`, which
+/// checks the `sim` CLI's DEFAULTS still select the configuration these traces
+/// were recorded under. Re-record both together; the gate caught the omission
+/// here, which is what it is for.
+///
+/// Checked the way this file prescribes before pinning: all five new values
+/// were bit-identical across three separate processes, so this is genuine
+/// change and not hash ordering leaking back in. The bots were re-measured
+/// against the frozen Greedy anchor over the same 40 seeds (5000-5039,
+/// `balanced,greedy,balanced,greedy`): 37/40 before, 39/40 after. Taking the
+/// information away did not weaken them.
 
 /// Whoever may act, or `nil` at game over.
 private func actingPlayer(_ state: GameState) -> PlayerID? {
