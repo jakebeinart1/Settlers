@@ -40,62 +40,49 @@ final class GameHistoryFlowTests: XCTestCase {
         XCTAssertFalse(app.buttons["main-menu.game-history"].exists)
     }
 
-    func testSteppingThroughAReplayChangesTheBoardAndTheCaption() {
+    /// Stepping, jumping and playback in one launch, deliberately.
+    ///
+    /// These were three tests and three app launches. The suite that costs
+    /// nothing on its own is not free inside `gate.sh`, which runs both
+    /// bundles across parallel simulator clones: the extra launches starved
+    /// `GameplayBoundaryFlowTests.testRealAutomatedMatchReachesGameOverAndClearsItsSave`
+    /// - which plays a whole match on the main actor - into "Failed to get
+    /// matching snapshots" twice. Measured 2026-09-08: that test fails under
+    /// this suite's load and passes without it, with no change to itself. One
+    /// launch, three claims.
+    func testTheReplayStepsScrubsAndPlaysBack() {
         continueAfterFailure = false
         let app = launchWithArchive(["-qaShowGameHistory"])
         openFirstReplay(in: app)
 
         let caption = app.staticTexts["replay.caption"]
-        XCTAssertTrue(caption.waitForExistence(timeout: 10))
+        XCTAssertTrue(caption.waitForExistence(timeout: 15))
         XCTAssertEqual(caption.label, "Opening position")
         XCTAssertTrue(app.otherElements["board.surface"].exists)
+        XCTAssertTrue(element(app, "replay.score.0").label.contains("0 VP"))
 
+        // Stepping forward and back lands on the same move again.
         app.buttons["replay.next"].tap()
         let firstMove = caption.label
         XCTAssertNotEqual(firstMove, "Opening position")
-
         app.buttons["replay.next"].tap()
         XCTAssertNotEqual(caption.label, firstMove)
-
         app.buttons["replay.previous"].tap()
         XCTAssertEqual(caption.label, firstMove)
-    }
 
-    /// Jumping to the end must land on the finished board, which is the whole
-    /// reason the score strip is on this screen: somebody has points by then.
-    func testJumpingToTheEndShowsTheFinishedPositionAndScores() {
-        continueAfterFailure = false
-        let app = launchWithArchive(["-qaShowGameHistory"])
-        openFirstReplay(in: app)
-
-        let opening = element(app, "replay.score.0")
-        XCTAssertTrue(opening.waitForExistence(timeout: 10))
-        XCTAssertTrue(opening.label.contains("0 VP"))
-
+        // The end of the recording is a board somebody has scored on.
         app.buttons["replay.end"].tap()
-
         let scored = (0..<4).contains { seat in
             !element(app, "replay.score.\(seat)").label.contains("0 VP")
         }
         XCTAssertTrue(scored, "No seat had scored by the last frame of the replay")
 
+        // Playback advances on its own, and pause actually stops it.
         app.buttons["replay.start"].tap()
-        XCTAssertEqual(app.staticTexts["replay.caption"].label, "Opening position")
-    }
-
-    func testPlaybackAdvancesTheReplayOnItsOwnAndStops() {
-        continueAfterFailure = false
-        let app = launchWithArchive(["-qaShowGameHistory"])
-        openFirstReplay(in: app)
-
-        let caption = app.staticTexts["replay.caption"]
-        XCTAssertTrue(caption.waitForExistence(timeout: 10))
+        XCTAssertEqual(caption.label, "Opening position")
         app.buttons["replay.play-pause"].tap()
-
-        let advanced = NSPredicate(format: "label != %@", "Opening position")
-        expectation(for: advanced, evaluatedWith: caption)
-        waitForExpectations(timeout: 5)
-
+        expectation(for: NSPredicate(format: "label != %@", "Opening position"), evaluatedWith: caption)
+        waitForExpectations(timeout: 8)
         app.buttons["replay.play-pause"].tap()
         let paused = caption.label
         Thread.sleep(forTimeInterval: 2)

@@ -124,6 +124,14 @@ final class GameplayBoundaryFlowTests: XCTestCase {
 
         let newGame = app.buttons["game-over.new-game"]
         XCTAssertTrue(newGame.waitForExistence(timeout: 5))
+        // No replay here, and that is the assertion. `-qaShowEndGame` forces
+        // the win through `qaForceHumanWin`, which replaces the active match
+        // with a fresh one carrying no moves - so its id names a recording
+        // that was never written, and the button must stay away rather than
+        // offer a replay that cannot open. The button's presence is asserted
+        // on the match that is really played, below.
+        XCTAssertFalse(app.buttons["game-over.replay"].exists)
+
         newGame.tap()
 
         XCTAssertTrue(app.otherElements["screen.main-menu"].waitForExistence(timeout: 2))

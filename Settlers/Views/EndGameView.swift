@@ -99,7 +99,19 @@ public struct EndGameView: View {
         }
         .foregroundStyle(.white)
         .fontDesign(.serif)
-        .task { recording = replayGameID.flatMap { try? GameLogStore.shared.summary(for: $0) } }
+        // Off the main actor, and not optional politeness: reading a recording
+        // decodes a JSONL file whose first line is a whole `GameState` and
+        // whose remaining few hundred are the moves. Done inline in `.task`
+        // (which runs on the main actor) it hitched the win screen hard enough
+        // that XCUITest's own query against this screen timed out - "Failed to
+        // get matching snapshots" - and turned the gate red with no bug behind
+        // it. A phone finishing a long game would have felt the same freeze.
+        .task {
+            guard let replayGameID else { return }
+            recording = await Task.detached(priority: .userInitiated) {
+                try? GameLogStore.shared.summary(for: replayGameID)
+            }.value
+        }
         .fullScreenCover(item: $replaySummary) { summary in
             GameReplayView(summary: summary)
         }

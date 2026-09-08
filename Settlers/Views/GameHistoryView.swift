@@ -37,7 +37,7 @@ struct GameHistoryView: View {
         .accessibilityIdentifier(AccessibilityID.Screen.gameHistory)
         .foregroundStyle(.white)
         .fontDesign(.serif)
-        .task { load() }
+        .task { await load() }
         .fullScreenCover(item: $replaying) { summary in
             GameReplayView(summary: summary, store: store)
         }
@@ -178,15 +178,23 @@ struct GameHistoryView: View {
         return minutes < 60 ? "\(minutes)m" : "\(minutes / 60)h \(minutes % 60)m"
     }
 
-    private func load() {
-        do {
-            let scan = try store.scan()
+    /// Scanning decodes every archived game - up to `maxKeptLogs` of them,
+    /// each one a full `GameState` plus its move list - so it happens off the
+    /// main actor. On the main actor it freezes the screen it is filling in,
+    /// for longer the more the player has played.
+    private func load() async {
+        let store = store
+        let scan = await Task.detached(priority: .userInitiated) {
+            Result { try store.scan() }
+        }.value
+        switch scan {
+        case .success(let scan):
             summaries = scan.summaries
             failures = scan.failures
             #if DEBUG
             if QALaunchFlag.showReplay.isSet { replaying = summaries.first }
             #endif
-        } catch {
+        case .failure(let error):
             loadError = error.localizedDescription
         }
     }
