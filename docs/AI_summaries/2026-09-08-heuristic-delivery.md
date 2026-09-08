@@ -31,7 +31,22 @@ latency budget. No new training or personality work is part of this release.
 
 ## Verification and delivery
 
-Pending. Record observed results here before calling the release complete.
+- Standards review: no findings. Spec review: no implementation blockers.
+- Tests: 58 evaluation-tool tests, 222 engine tests, 110 AI tests; all passed.
+- App/UI: 315 tests / 376 parameterized executions, no failures or skips.
+  Includes the UI-hosted full game, new-draft routing, all supported human/bot
+  seat compositions, cold resume and unsupported-checkpoint preservation.
+- Engine/AI coverage: 95.95% / 96.93%, both above their 95% floors.
+- Release and Debug builds passed. Fresh Debug and Release launches survived;
+  screenshots inspected and the Release crash-directory diff was empty.
+- Initial whole-history secret scan flagged two research README prose matches;
+  exact-fingerprint exclusions were reviewed and the repeated scan passed.
+- Signed upload and tester access remain pending at this commit. Consult the
+  release PR for the final live Apple status; an uploaded/processed build is not
+  proof of installation on a physical phone.
+
+Evidence is retained locally in `/private/tmp/empires-build6.ITWKqT/` during the
+release and copied to the durable EmpiresResearch delivery artifact afterward.
 
 ### Signing recovery
 
