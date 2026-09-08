@@ -139,11 +139,25 @@ assessment) never measured bots against human-level play, only bot-vs-bot —
 so a bot can win every logged metric and still be the easy, repetitive
 opponent being reported now.
 
+**What landed 2026-09-08 (Alex, `e8ad22c..8e6561e`), and what it does not
+claim.** Every bot in a NEW game now runs the existing Balanced heuristic,
+including games prefilled from an older setup preference; a resumed match
+keeps the strategies it was saved with, and a save naming an unsupported
+research policy is refused rather than silently converted. Neural-network and
+search delivery are paused - search was not shown to beat Balanced inside the
+phone's latency budget - and the frozen research archive is indexed in
+`docs/AI_summaries/2026-09-08-research-handoff.md`. **This is a deployment
+choice, not a strength result**: none of the bullets below are answered by it,
+and the six-stage plan in `docs/AI_summaries/AI-PROGRAM.md` deliberately keeps
+personality (stage 4) apart from strategy strength (stage 5).
+
 - [ ] Bots cannot beat a human player and repeat visibly predictable patterns
       in real play (reported 2026-09-06). Needs a human-anchored strength
       check (not just bot-vs-bot), and root-causing of the specific repeated
       patterns before more personality/metric work is layered on top of a
-      bot that isn't winning games.
+      bot that isn't winning games. Now that every seat runs the same Balanced
+      heuristic, the "visibly repeating patterns" report is easier to
+      reproduce and harder to blame on a mixed field.
 - [ ] Calibrate genuine difficulty tiers against frozen anchors before adding
       a difficulty control to New Game. Personality and difficulty are
       separate axes and must remain separate in both evaluation and UI.
