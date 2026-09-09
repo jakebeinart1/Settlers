@@ -29,6 +29,31 @@ public enum TradeHeuristics {
             : [city, settlement, devCard, road]
     }
 
+    /// Experimental, uncalibrated inventory potential for joint trade accounting.
+    /// The fixed factor two makes one-card-short completion earn the target's
+    /// weight. This is not legal-build availability: board, pieces, deck and
+    /// future play are deliberately absent. Baseline scoring never calls it.
+    static func jointTargetPotential(holding: [Resource: Int], cost: [Resource: Int], weight: Double) -> Double {
+        let missing = Resource.allCases.reduce(0) { total, resource in
+            total + max(0, cost[resource, default: 0] - holding[resource, default: 0])
+        }
+        return 2 * weight / (1 + Double(missing))
+    }
+
+    /// Reuse native targets and match the offline formula's alphabetical
+    /// target order and per-target subtraction; subtracting large aggregate
+    /// potentials can round differently at an acceptance threshold.
+    static func jointInventoryDelta(
+        before: [Resource: Int], after: [Resource: Int],
+        personality: BotPersonality, weights: BotWeights = .default
+    ) -> Double {
+        buildTargets(personality: personality, weights: weights).sorted { $0.name < $1.name }.reduce(0.0) { delta, target in
+            let beforeValue = jointTargetPotential(holding: before, cost: target.cost, weight: target.weight)
+            let afterValue = jointTargetPotential(holding: after, cost: target.cost, weight: target.weight)
+            return delta + (afterValue - beforeValue)
+        }
+    }
+
     /// Marginal value of one more `resource` card to `player`, based on how
     /// pivotal it is to completing the nearest (fewest total deficit)
     /// build target: a resource that's the *only* thing standing between

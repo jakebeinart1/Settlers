@@ -168,6 +168,7 @@ class EnrichPublicationTests(unittest.TestCase):
         for key, path in (("sourceManifestSHA256", self.review / "manifest.json"),
                           ("binarySHA256", self.output / "trade-review"),
                           ("inputSHA256", self.output / "private-input.jsonl"),
+                          ("nativeOutputSHA256", self.output / "native-output.jsonl"),
                           ("enricherSHA256", self.output / "enricher.py"),
                           ("reviewRendererSHA256", SCRIPTS / "review_corpus.py")):
             self.assertEqual(receipt[key], ENRICH.digest(path))

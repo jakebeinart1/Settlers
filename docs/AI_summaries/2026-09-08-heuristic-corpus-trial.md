@@ -75,7 +75,7 @@ Original reviews and packets:
 [review-02](</Users/alex/Library/Application Support/EmpiresResearch/experiments/heuristic-corpus-20260908/review-02/>).
 Blind and revealed judgments are separate files and remain unchanged.
 Six separately labelled optional-trade packets were also generated from the
-same raw batch (`optional-01`); they are **not yet strategically reviewed**.
+same raw batch (`optional-01`); their September 9 review is recorded below.
 They are a focused cohort, not a replacement representative sample.
 
 ## Efficiency and corrections earned by trying it
@@ -191,24 +191,91 @@ trajectory replay, a causal continuation test and evidence of stronger play.
 The method is promising for narrow trade accounting; it has not earned a general
 heuristic-audit skill or large collection run yet.
 
-## Next small milestone and stopping rule
+## Joint-accounting experiments and stopping rules
 
-1. Native inventories, immediate legal opportunities, production, timing and
-   opt-in scorer inputs are implemented. Extend only facts needed for a specific
-   unresolved judgment, not a second Python implementation of game rules.
-2. Review the separate six-case optional cohort; preserve blind judgments before
-   exposing scores. Do not treat re-reviewing the original three as new evidence.
-3. Expand the supported accounting concern into prerequisite-swap and useful-trade
-   scenario controls. Only then propose a bounded policy experiment; a plausible
-   LLM explanation alone is insufficient.
-4. Scale beyond the pilot only when packets support a specific, reproducible
-   diagnosis without unnecessary raw-context retrieval. If not, improve the
-   representation instead of spending more games or tuning weights.
+### Locked small experiment: joint-target accounting (September 9)
 
-Only after that: test candidate changes against held-out games and frozen
-opponents; assess an existing automated tuner. Personality stays separate and
-later. The [larger protocol](2026-09-08-heuristic-corpus-plan.md) includes external
-heuristic/tuning research and proposed sample sizes, not completed experiments.
+Before computing candidate results, fix one alternative: for each existing
+build target with weight `w` and total missing resource count `D`, value is
+`2*w/(1+D)`. Score the native atomic after-hand minus the before-hand, summed
+over the same targets. The factor two preserves the existing credit `w` for
+acquiring the final missing card. Earlier progress is deliberately less valued;
+this is **a strategic reshaping as well as an accounting correction**.
+
+Run offline only on the three original scored cases and six separately selected
+optional cases. Keep original weights and thresholds unchanged; decision flips
+are sensitivity, not demonstrated improvements or calibrated acceptance rates.
+Require identity/cycle neutrality, reversal symmetry, bundle order independence,
+monotonicity for additions, saturation past a target's resource needs, and sole
+versus surplus prerequisite controls. Reject the implementation on any failure.
+Keep the formula only as a candidate for a later controlled game experiment if
+these checks pass; do not change the default Bot, tune it to reviewer votes or ship it.
+
+Known counterexamples remain explicit: scarce resources, bank conversion,
+multiple future purchases, inaccessible building sites and an empty development
+deck. A coherent resource-value formula does not solve those planning problems.
+
+### Result: retain the candidate for testing, not product adoption
+
+The older six-case manifest lacked the newer validation receipt. Revalidating
+all 24 games against the frozen schedule preserved **all six exact identities**;
+`optional-validated-02/` records this. Native enrichment completed in under a
+second. A fresh reviewer read all six blind, saved those judgments, then saw the
+choices and scorer inputs. No outcomes, raw state or candidate scores were shown.
+
+The blind/revealed round produced three agreements, two disagreements and one
+abstention—not an accuracy score. Case 005 independently exposes the same
+mechanism beyond development cards: lumber earns settlement and road completion
+credit while payment removes the sole brick. Neither build becomes available.
+The reviewer also corrected its own proposed bank-trade sequence: spending all
+four grain for wool leaves no grain to buy the development card. This is why
+plausible text must be checked against actual post-payment inventories.
+
+`TradeAccountingBoundaryTests` adds **60 synthetic native cases**: ordered
+development-card resource swaps, quantities one/two, sole/surplus payment,
+irrelevant-resource payment and paired stocked/empty-deck controls. They preserve
+legacy decisions. Empty-deck cases confirm that resource completion credit is
+not a promise of a legal purchase; that separate planning limitation is not fixed.
+
+The alternative is implemented only in `scripts/trade_accounting.py`, not in
+Swift `Bot`, the app, or the simulation policy roster. It reconstructs missing
+resource totals from native scorer metadata and native after-hands. The script
+checks transfer arithmetic, complete target metadata and source-output hashes;
+it does not implement trading legality or copy runtime build costs into Python.
+
+| Development cohort | Legacy accepts | Alternative accepts | Changes with the original threshold |
+| --- | ---: | ---: | --- |
+| Original three scored cases | 2/3 | 1/3 | Case 009 prerequisite swap: accept → reject. |
+| Separate six optional cases | 3/6 | 1/6 | Case 005 prerequisite swap and case 006 scarce-grain trade: accept → reject. |
+
+These are **sensitivity counts, not win rates or population acceptance estimates**.
+The other nine original cases remain explicitly unscored. Final results live in
+`joint-original-02/` and `joint-optional-02/`; reviewed packets/judgments remain
+in `enriched-01/` and `optional-enriched-01/`. Hash-complete input publications
+are `enriched-03/` and `optional-enriched-02/`.
+
+Mechanical tests pass: **3,125 synthetic hands / 50,000 reversible swaps** match
+an independent whole-hand potential calculation; **6,075 addition-order pairs**
+check monotonicity, bundle equivalence and cycle neutrality. Worked examples
+preserve genuine completion, remove false completion credit, and recognize a
+lost purchase. These are arithmetic checks, not played games.
+
+**Decision:** keep the fixed formula for an isolated game experiment, not as a
+fix ready to merge into the bot. Case 006 reveals the risk: distant city progress
+falls from 0.625 to 0.25, below the unchanged 0.4 threshold, rejecting grain that
+is produced much less often than the surrendered brick. That could be a bad
+rejection, but it could also avoid helping an opponent; neither is proven.
+Do not tune the threshold to make the reviewer happy. An independent critic
+verified the reconstruction and reproduced both result files; it also found
+a missing input-transfer consistency check, now fixed and regression-tested.
+
+**Subsequent native screen completed:** the isolated policy passed its controls
+and all 448 comparison games. It tied Balanced in one comparison and won more in
+three, but every interval still includes no improvement. The
+[full-game report](2026-09-09-joint-trade-screen.md) has exact results and the
+next independent-test boundary. Keep the candidate experimental; do not ship or
+tune it to these development seeds. Personality and the proposed automated tuner
+remain later work in the [larger protocol](2026-09-08-heuristic-corpus-plan.md).
 
 ## Verification and delivery boundary
 
@@ -232,12 +299,47 @@ case identities and native before/after facts are unchanged between the reviewed
 Logs are retained in the September 9 artifact's `validation/`. This is package
 and tooling verification, **not** a new app/UI gate or on-phone gameplay claim.
 
-This work is committed locally on `codex/heuristic-corpus-plan-20260908`, not merged into the
-shipped app. No new trained model, tuned heuristic, or playing-strength comparison
-was produced. **Build 1.0 (7)** is the last verified TestFlight delivery
+The completed game-screen iteration additionally passed **143 CatanAI tests**
+and **114 Python tooling tests**, including the new native candidate and frozen
+runner. Source, raw games, both binaries and the terminal watchdog receipt are
+retained with the [screen report](2026-09-09-joint-trade-screen.md).
+
+This research remains on `codex/heuristic-corpus-plan-20260908`, not merged into the
+shipped app. No new trained model or tuned production heuristic was produced.
+The game comparison is exploratory, not evidence sufficient for adoption.
+**Build 1.0 (7)** is the last verified TestFlight delivery
 (September 8, 18:51 UTC), running Balanced for new games; physical full-game
 verification remains separate. See the [delivery report](2026-09-08-heuristic-delivery.md).
 No new delivery was performed by this trial; App Store Connect was not rechecked.
+
+## Locked native development screen (before results)
+
+Test exactly the same formula, weights and old threshold, through an explicit
+`joint-balanced` simulator policy. Only scoped automatic trade replies change;
+all other choices delegate to the existing Balanced bot. This is not a rewrite
+of proposing trades, bank trades or full main-turn planning. The app keeps its
+existing policy and cannot select this experiment.
+
+Four separately reported strata: three/four seats × Balanced/Aggressive
+opponents; randomized boards, ten points. Each uses sixteen fresh seed families,
+every evaluated chair, candidate and unchanged-baseline arms: **448 games**.
+Seed ranges begin 880000, 880100, 880200 and 880300. These become development
+data, never a future held-out adoption test. Same starting seeds do **not**
+guarantee identical subsequent dice after different RNG consumption.
+
+Freeze both executables, source, commands and results. Check unchanged-policy
+trajectory parity between binaries before play. Use at most two workers,
+120 seconds per sixteen-game shard and the existing independent watchdog's
+600-second total deadline. A crash, missing game or unfinished game invalidates
+the completed-screen claim; retain failures rather than replacing seeds.
+
+Report each stratum's wins and paired seed-family bootstrap interval, using
+the existing analyzer. Five percentage points is the practical improvement
+target. A 95% interval entirely below zero in any stratum rejects this version
+for adoption; mixed or overlapping results remain inconclusive. Even a positive
+screen is not a shipping decision: independent held-out evaluation, human-offer
+coverage and phone performance remain required. No automatic parameter tuning
+or favorable-seed reruns are allowed.
 
 ## Repeat the trial, not the whole research program
 

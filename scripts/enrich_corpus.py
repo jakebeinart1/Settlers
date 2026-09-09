@@ -140,6 +140,7 @@ def enrich(review: Path, binary: Path, output: Path) -> None:
                "sourceManifest": str((review / "manifest.json").resolve()),
                "sourceManifestSHA256": digest(review / "manifest.json"),
                "binarySHA256": digest(frozen), "inputSHA256": digest(snapshot),
+               "nativeOutputSHA256": digest(output / "native-output.jsonl"),
                "enricherSHA256": digest(Path(__file__)),
                "reviewRendererSHA256": digest(Path(__file__).with_name("review_corpus.py")),
                "elapsedSeconds": time.monotonic() - started}
