@@ -110,7 +110,11 @@ public enum Civilization: String, CaseIterable, Sendable, Codable {
         case .egypt: return Color(red: 0.77, green: 0.58, blue: 0.31) // sandstone
         case .aztec: return Color(red: 0.43, green: 0.61, blue: 0.79) // slate blue
         case .columbia: return Color(red: 0.96, green: 0.96, blue: 0.96) // white
-        case .rome: return Color(red: 0.71, green: 0.40, blue: 0.29) // terracotta
+        // Solved backwards through `vivid()` so the on-screen result lands exactly
+        // on the piece art's own fill (#E16256): vivid boosts saturation by
+        // *1.35 + 0.06 and brightness by *1.08, so declaring #E16256 here would
+        // overshoot it and Rome's roads would read hotter than its buildings.
+        case .rome: return Color(red: 0.817, green: 0.509, blue: 0.479) // coral terracotta -> #E16256 after vivid
         case .japan: return Color(red: 0.37, green: 0.55, blue: 0.46) // jade
         case .norse: return Color(red: 0.49, green: 0.58, blue: 0.64) // steel blue
         }
@@ -156,20 +160,52 @@ public enum Civilization: String, CaseIterable, Sendable, Codable {
     /// bump here rather than distorting the uniform multiplier for every
     /// other civ to compensate for one shape.
     ///
-    /// Rome's settlement and Greece's city read noticeably larger than
-    /// the rest of the roster at the same nominal size - measured by
-    /// comparing each piece's actual painted-pixel coverage of its own
-    /// square frame after `scaledToFit` (bounding-box aspect * ink
-    /// density within it), the real apples-to-apples "how big does this
-    /// look" number across pieces with different source canvases: both
-    /// sit ~1.5-2 standard deviations above the roster's average frame
-    /// coverage (Rome settlement +14.6pt, Greece city +20.4pt, the
-    /// single biggest outlier of the 16), matching what Jake flagged by
-    /// eye. Trimmed down here rather than re-cropping the source art.
+    /// Greece's city reads noticeably larger than the rest of the roster at
+    /// the same nominal size - measured by comparing each piece's painted-pixel
+    /// coverage of its own square frame after `scaledToFit`. Trimmed down here
+    /// rather than re-cropping the source art.
+    ///
+    /// Rome used to be trimmed by that same coverage measure (0.92), and that
+    /// was wrong. **Coverage is the wrong metric for a wide, low piece.**
+    /// `scaledToFit` fits the LONGEST side, so a letterbox silhouette fills the
+    /// frame's width while standing short - and a building is read by how tall
+    /// it stands, not by how many pixels it paints. Rome's colosseum measured
+    /// the single HIGHEST coverage of all 16 pieces (settlement 0.775, city
+    /// 0.798, against roster means of 0.635 and 0.602) while rendering the
+    /// SHORTEST of all 16 (settlement 0.733 of its frame against a 0.934 mean,
+    /// city 0.885 against 0.987). Shrinking it further made the only piece that
+    /// was already too small, smaller. Corrected by rendered HEIGHT instead, the
+    /// number that matches what the eye reports.
     public func pieceSizeCorrection(isCity: Bool) -> CGFloat {
         switch (self, isCity) {
         case (.japan, false): return 1.18
-        case (.rome, false): return 0.92
+        case (.rome, false): return 1.00
+        // Rome's city needs a bigger bump than its settlement even though the
+        // settlement is the flatter of the two: `BoardView` already scales a city
+        // by 0.87 against a settlement's 0.68, but the colosseum's 1.13 aspect
+        // spends that on width, so at 1.20 it still stood no taller than the
+        // roster's ordinary cities. Sized against the other seven on
+        // sqrt(width * height) rather than height alone, because Rome is the
+        // widest piece in the set and matching only its height still left it
+        // reading as the largest city on the board (0.925 against the others'
+        // 0.802 mean, on a width of 0.98 where the next widest was 0.86).
+        // 0.98 puts it exactly on that mean.
+        //
+        // **These two numbers are only meaningful against art cropped to its own
+        // painted bounds.** `scaledToFit` fits the IMAGE, not the ink in it, so
+        // transparent margin silently shrinks a piece: Rome's city shipped for a
+        // while as a 750x1024 PNG whose artwork was 654x579, i.e. rendered at 64%
+        // of its intended size, and both corrections here were inflated chasing
+        // that. Anything written into approved/pieces/ must be cropped to its
+        // alpha bounding box before it is synced into Assets.xcassets.
+        //
+        // Re-derived after the 2026-09-09 regeneration (759x797, was 654x579).
+        // The metric that drives this number is sqrt(width * height) / max side,
+        // which moved 0.9410 -> 0.9759: the redraw is nearly square, where the
+        // old drum was a letterbox. Holding the size Jake settled on that day
+        // (the previous art's 0.9958 metric at 0.88, i.e. 0.8763) therefore
+        // needs 0.8763 / 0.9759 = 0.90.
+        case (.rome, true): return 0.90
         case (.greece, true): return 0.90
         // The regenerated white obelisk/dome and city read small next to the roster,
         // the same already-cropped but visually light case as Japan above.

@@ -4,7 +4,10 @@ Direction: Avatar: The Last Airbender-style (`approved/master-reference-full-scr
 approved "v4" generation). Warm, legible, bird's-eye board, one dominant color per resource tile, painted
 landmark pieces with a soft textured single-color look, gold-trimmed UI chrome.
 
-OpenRouter key spend so far: ~$2.02 of $10 budget.
+OpenRouter key spend so far: **$56.46 of $67 bought, ~$10.54 left** (read live from
+`/api/v1/credits` on 2026-09-09). This line said "~$2.02 of $10 budget" for a long time
+after it stopped being true, and was quoted back to Jake as fact - read the endpoint, do
+not trust this number without checking it.
 
 ## Folder layout
 
@@ -44,7 +47,7 @@ layered on. Shape stays recognizable as the original; only the rendering quality
 |---|---|---|
 | Britannia | Painted (castle) | Painted (castle, grander) |
 | Greece | Painted (flat pictogram, 2-column house shape, matches greece-city; light tan, Sep 4) | Painted (flat pictogram, bold outline; light tan, Sep 4) |
-| Rome | Painted (2-arch colosseum ruin, bold outline, rugged texture; redone per feedback) | Painted (4-arch colosseum ruin, bold outline, rugged texture; redone per feedback) |
+| Rome | Painted (3-arch rectangular arcade, heavy black frame, double cornice + plinth; `#E16256`) | Painted (2 storeys x 4 arches, same rectangular block grown; regenerated 2026-09-09 - see "Sep 9 Rome city" below) |
 | Columbia | Painted (white obelisk/dome; AI-regenerated white, Sep 4 - see "Columbia white / Greece tan recolor" below) | Painted (white Capitol dome; AI-regenerated white, Sep 4) |
 | Egypt | Painted (cropped top tiers of the pyramid, Aztec-style crop logic; redone per feedback) | Painted (tiered pyramid) |
 | Aztec | Painted (step-pyramid w/ staircase + carved detail, redone per feedback) | Painted (step-pyramid) |
@@ -593,3 +596,72 @@ about the source painting's percentages in the abstract - crop and inspect the a
 screenshot at that exact region before deciding a placement worked. The first attempt (`v3`, top 12%)
 looked like it should have cleared the card by a comfortable margin measured against the full canvas, but
 the real HUD card starts much higher up the screen than that math suggested.
+
+## Sep 9 Rome city - regenerated on the Columbia rule
+
+Feedback: Rome was still the roster's oddball. Nine generations with
+`openai/gpt-5.4-image-2` (~$0.25 each, $2.30 total) across three rounds, plus a lot of
+free deterministic pixel work between them.
+
+**What was actually wrong, and it was not texture.** The first hypothesis was that Rome's
+grain was too coarse; measured, its fill noise was sd 9.6 - the *lowest* of all 16 pieces
+(Japan 26.6). The real defect was structural, and it showed up by laying all 16 pieces out
+settlement-above-city: **every other civ's city is its own settlement grown.** Britannia's
+keep gains turrets, Greece's porch becomes a colonnade, Japan goes one tier to three.
+Rome's city was a *different building* from its settlement - a curved barrel drum against a
+crisp rectangular arcade - and it was the only city in the set carrying LESS detail than its
+own settlement.
+
+**The Columbia rule.** Columbia is the clearest statement of the roster's grammar, which is
+why Jake named it: its city is bigger and BOLDER, not more ornate. Same building, one more
+storey, more repeated plain openings, and - the part that matters - **every interior line is
+the same heavy weight as the outer outline.** There are no mouldings, no keystones, no fine
+lines anywhere. That uniform stroke weight is what makes the roster read clean at 80px.
+
+An intermediate round violated exactly that and was rejected: pilasters, keystones, dentil
+blocks and recessed inner arch lines, all of which are invisible-to-muddy at board size and
+forced the interior strokes thin to fit. **Adding detail and matching the roster's line
+weight pull against each other; the roster resolves it by having almost no detail.**
+
+Shipped: `K3`, a rectangular block in the settlement's own vocabulary (double cornice band,
+base plinth, terracotta arch interiors ringed in black), two storeys of four arches, one
+stroke weight throughout, with a small `--outer 7` pass afterwards to firm up the frame
+(26px -> 33px, 3.35% -> 4.2% of the piece; the settlement's own frame is 5.90%).
+
+### Measurement lessons, each paid for by a wrong call this session
+
+- **"Make the border like Greece's" was unmeasurable as stated.** Greece's border is
+  *thinner* than Rome's was - 2.55% of the piece against 2.97%, and 1.42x its own interior
+  lines against Rome's 1.77x. What Greece actually has is room: 28% ink coverage against
+  Rome's 52%. A border reads heavy because little competes with it, not because it is thick.
+  Thickening Rome's further did not fix it; dropping the detail did.
+- **`scaledToFit` fits the IMAGE, not the ink in it**, so anything written into
+  `approved/pieces/` must be cropped to its alpha bounding box first, and every generation
+  needs its chroma-key fringe inpainted (561 stray magenta pixels on the shipped one, some
+  14px deep inside the silhouette, not just at the edge).
+- **`pieceSizeCorrection` must be re-derived on every redraw, not carried over.** It is
+  calibrated on `sqrt(width * height) / longest side`, and that metric moved 0.9410 ->
+  0.9958 -> 0.9759 across this session's silhouettes purely from shape. Holding one
+  on-board size therefore meant 0.98 -> 0.93 -> 0.90 in `Civilization.swift`, none of which
+  is a size change.
+
+### New tooling in `tiles/_scripts/`
+
+- `generate_piece_gpt54.py` - `openai/gpt-5.4-image-2` is a CHAT model, so reference images
+  ride in as message content parts and the result returns on `message.images`, not `data[0]`.
+  `OPENROUTER_IMAGE_MODEL` switches models. **`OPENROUTER_MAX_TOKENS` is not optional in
+  practice**: OpenRouter reserves a request's *maximum* possible cost (128k completion
+  tokens) against the key before running it, so a call that will really cost $0.26 is refused
+  `402 Payment Required` with $0.57 still sitting on the key.
+- `thicken_piece_edges.py` - grows the outer silhouette border and interior lines by
+  different amounts. `--smooth` builds a coverage ramp instead of dilating hard, so a
+  thickened line ends the way a drawn one does.
+- `shade_piece_voids.py` - repaints arch openings in a darker shade of the piece's own fill.
+  Two modes because Rome's two tiers draw the same feature differently: `--mode void`
+  separates black openings from black linework by SCALE (a morphological opening wider than
+  the thickest stroke), `--mode interior` separates terracotta openings from the wall by
+  SHAPE (an arch interior is taller than wide; the wall and cornices are wider than tall).
+  Not in the shipped art - kept because the separation problem recurs.
+- `thin_piece_lines.py` - the inverse. Inpaints from CLEAN fill only: sampling the nearest
+  non-ink pixel is wrong, because right beside a line those pixels are the anti-aliased
+  ramp, so every thinned stroke ends up wearing a muddy halo.

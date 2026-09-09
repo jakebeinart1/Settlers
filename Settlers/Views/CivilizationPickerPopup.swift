@@ -72,14 +72,29 @@ struct CivilizationPickerPopup: View {
             onSelect(civilization)
         } label: {
             VStack(spacing: 4) {
-                CivilizationBadge(civilization: civilization, isCity: false, size: 30)
-                    .overlay(alignment: .topTrailing) {
-                        if isTaken {
-                            Image(systemName: "nosign")
-                                .font(.system(size: 11, weight: .bold))
-                                .foregroundStyle(.white.opacity(0.85))
-                        }
+                // Both tiers, because the cell is where a player decides which
+                // empire to be and a civilization's city is not predictable from
+                // its settlement - Norse's longhouse grows dragon-head finials,
+                // Britannia's keep gains a second tower, Rome's arcade gains a
+                // storey. Showing only the settlement advertised half the choice.
+                //
+                // Laid out as an HStack of two badges at the SAME 30pt the single
+                // badge used, so the row's height - and therefore the cell and the
+                // whole popup - is byte-for-byte the size it was. Each
+                // `CivilizationBadge` is a fixed `size x size` frame, so two of
+                // them are 30pt tall exactly as one was; only width grows, and the
+                // three flexible grid columns already carry it.
+                HStack(spacing: 4) {
+                    CivilizationBadge(civilization: civilization, isCity: false, size: 30)
+                    CivilizationBadge(civilization: civilization, isCity: true, size: 30)
+                }
+                .overlay(alignment: .topTrailing) {
+                    if isTaken {
+                        Image(systemName: "nosign")
+                            .font(.system(size: 11, weight: .bold))
+                            .foregroundStyle(.white.opacity(0.85))
                     }
+                }
                 Text(civilization.displayName)
                     .font(.system(size: 11, weight: .semibold, design: .serif))
                     .lineLimit(1)
