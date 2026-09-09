@@ -1,8 +1,9 @@
 # Heuristic evidence workflow — first practical trial
 
 Started September 8; updated September 9, 2026. Stage 4 of the [AI program](AI-PROGRAM.md).
-**Decision: keep developing the diagnostic method; do not tune the bot or create
-the reusable skill yet.** This is a trade-only development trial, not a stronger
+**Historical development record.** The subsequent
+[closeout handoff](2026-09-09-heuristic-handoff.md) supersedes open-ended next-step
+language below. This is a trade-only development trial, not a stronger
 AI, a general strategic audit, or proof of representative human-facing behavior.
 
 ## What changed and what actually ran

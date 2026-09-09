@@ -1,11 +1,59 @@
-# Joint trade accounting — first native game screen
+# Joint trade accounting — final decision and historical screen
 
-September 9, 2026. **Decision: promising, inconclusive; do not ship.**
+September 9, 2026. **Final decision: retain Balanced; reject this candidate for
+adoption and close the bounded Stage 4 iteration.** No further tuning is queued.
 
-The candidate tied the existing Balanced bot in one comparison and had higher
-win rates in three. Every 95% interval still includes zero improvement. Keep the
-fixed candidate for an independent larger comparison, not as a proven fix.
-No training or automatic parameter tuning occurred. The app remains unchanged.
+The first screen looked promising. Fresh confirmation against current main did
+not meet the predeclared promotion rule, and four-player point estimates were
+worse. This is a decision against shipping the change, not proof that every
+atomic inventory evaluator is bad. The candidate remains an explicitly selected
+simulator comparator for reproducibility, never an app default. No training or
+automatic parameter tuning occurred.
+
+## Final fresh-main confirmation
+
+Both arms include Jake's hidden-VP fix from `4737471`. Candidate and Balanced
+each occupied every evaluated chair, against two or three opponents of the named
+style. Randomized boards, 10 VP, **64 fresh families per row**; no old-screen
+games pooled in. Balanced opponents share the candidate's actual table; the
+Aggressive rows compare separate matched arms against Aggressive opponents.
+
+| Table / other chairs | Candidate wins | Balanced wins | Difference, pp | 95% interval, pp |
+| --- | ---: | ---: | ---: | ---: |
+| 3 / Balanced | 69/192 (35.9%) | 64/192 (33.3%) | +2.6 | −4.2 to +9.4 |
+| 3 / Aggressive | 70/192 (36.5%) | 62/192 (32.3%) | +4.2 | −4.2 to +12.0 |
+| 4 / Balanced | 53/256 (20.7%) | 64/256 (25.0%) | −4.3 | −8.6 to 0.0 |
+| 4 / Aggressive | 56/256 (21.9%) | 60/256 (23.4%) | −1.6 | −7.8 to +4.7 |
+
+**1,792/1,792 comparisons and 28/28 qualification games finished**, with no
+replacement seeds, failed games or deadline extensions. All four independent
+600-second watchdogs ended `complete`, exit 0; runtimes were 155.00s / 175.18s /
+536.01s / 576.25s in table order. All **908** receipt-indexed artifact hashes
+were independently recomputed. The same 20,000-resample seed-family bootstrap
+and pointwise-interval limitations below apply. These results do not establish
+equivalence or expert human-level strength; an Elo league was not run here.
+
+The five-point improvement requirement failed, the four-player Balanced point
+estimate was negative, and both four-player lower bounds crossed −5 points.
+Therefore **do not integrate the candidate into human trade resolution or the
+phone app**. The original accounting mechanism remains a documented research
+finding; this replacement did not establish a safe improvement.
+
+Evidence: the four `confirmation-p{3,4}-{balanced,aggressive}/` directories in
+the [September 9 archive](</Users/alex/Library/Application Support/EmpiresResearch/experiments/heuristic-corpus-20260909/>).
+Each contains exact invocation, raw chunks, complete chair shards, frozen native
+source, runner source, binary locks, analysis and receipt. Sibling `*-watch`
+receipts retain terminal deadlines. `confirmation-protocol.md` preserves the
+declaration written before launch; its archive copy was made while runs were
+active, before any result analysis was read. The candidate binary SHA-256 is
+`b5aad82468ab5a0829236ab8d25406caba05f5f998f0b73e549142a436667d42`;
+the current-main baseline is
+`5ff37c59a5d44c78a2e08479268a3d350e6183fccd6ad96dc04062b9edd149b9`.
+
+The [closeout handoff](2026-09-09-heuristic-handoff.md) records final verification,
+merge/archive disposition and known limits. Personality is the next separate
+stage. Road planning, human-offer evaluation, automatic tuning and search remain
+future work, not additional rounds required before this closeout.
 
 ## What changed
 
@@ -30,7 +78,7 @@ proposing trades and bank trading are unchanged. `joint-balanced` is an explicit
 simulator option, not an app setting. Diagnostics never substitute the old bot
 for the candidate or claim its scores explain candidate decisions.
 
-## Locked comparison and actual results
+## Historical first screen — pre-hidden-VP-fix baseline
 
 Candidate and unchanged Balanced each occupied every chair against the listed
 opponents. Three-player rows have two opponent chairs; four-player rows have
@@ -103,17 +151,30 @@ and runs the existing analyzer; it refuses overwrites and does not retry failure
 The default candidate ID is `experimental-joint-balanced-v1`. This runner is a
 locked experiment, not yet a general tuning service or a new agent skill.
 
-## Next decision, not a running job
+## Final closeout comparison — declared before launch
 
-Keep this candidate unchanged for a larger independent confirmation block,
-proposed at 64 new families per row: 1,792 games in four separately bounded
-ten-minute runs. Lock those seeds and promotion/non-regression criteria before
-launch; do not recycle the 64 families used here as a holdout. Expand the existing
-runner's configuration rather than creating another evaluator. No follow-up run
-or watcher is active now.
+The first screen above predates Jake's hidden-victory-point fix. The final
+comparison therefore rebuilds **both arms from main `4737471`**, adding only
+the fixed experimental trade policy to the candidate. It does not pool these
+results with the historical screen or change the candidate's formula.
 
-Even confirmation would not prove every rejected human trade is sensible. Native
-human-offer scenarios and phone latency remain promotion requirements. Better
-road planning, automated tuning and personality stay separate later work.
-See the [program plan](AI-PROGRAM.md) and the
+Four randomized-board, 10-VP strata use 64 fresh seed families each, every chair:
+3/Balanced **990000–990063**, 3/Aggressive **990100–990163**,
+4/Balanced **990200–990263**, 4/Aggressive **990300–990363**.
+That is 1,792 comparison games, plus unchanged-policy binary qualification.
+Each stratum has its own 600-second independent watchdog; simulation chunks
+remain limited to 16 games and 120 seconds. No failed seed is replaced.
+
+Promotion requires at least a five-percentage-point gain against Balanced at
+one table size with its 95% difference interval above zero, nonnegative point
+estimates against Balanced at both sizes, and all four lower interval bounds
+above −5 points. These are screening criteria, not simultaneous statistical
+guarantees. Native human-offer compatibility and phone verification would still
+be required before changing the app default. If these criteria are not met,
+**retain current Balanced, archive the candidate, and close this Stage 4
+iteration without another tuning round**. A timeout or invalid comparison is
+an incomplete experiment, never evidence of equivalence or a candidate loss.
+
+The confirmation is now complete; no Stage 4 simulation or training watcher
+remains active. See the [program plan](AI-PROGRAM.md) and
 [corpus/review findings](2026-09-08-heuristic-corpus-trial.md).

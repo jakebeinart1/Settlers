@@ -24,8 +24,8 @@ claim or a claim that heuristic play is expert play.
 
 ## Research handoff
 
-The [six-stage plan](AI-PROGRAM.md) separates personality (stage 4) from
-heuristic strategy improvements (stage 5). Neither starts during this release.
+The [six-stage plan](AI-PROGRAM.md) now places heuristic strategy improvements
+in Stage 4 and personality in Stage 5 (reordered after this release).
 The [research findings and restart map](2026-09-08-research-handoff.md) index
 the frozen archive outside this product-only branch at
 `~/Library/Application Support/EmpiresResearch/handoffs/search-pause-20260908/`.

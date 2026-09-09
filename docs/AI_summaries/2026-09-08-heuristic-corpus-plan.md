@@ -1,9 +1,11 @@
 # Heuristic improvement: representative evidence before tuning
 
 September 8, 2026. **Longer-term protocol; first trade-only trial now run.**
-The [trial report](2026-09-08-heuristic-corpus-trial.md) separates implemented
-parts from proposals below. No strategy, weights or training changed; no new
-strength claim. Source inspection: product `81065c9`; archived diagnostic
+The [closeout handoff](2026-09-09-heuristic-handoff.md) is the current entry point;
+the [trial report](2026-09-08-heuristic-corpus-trial.md) separates implemented
+parts from proposals below. A simulator-only candidate was subsequently tested;
+the app's default was not changed by this trial. Source inspection at planning
+time: product `81065c9`; archived diagnostic
 source `64ddf534` through the [research restart map](2026-09-08-research-handoff.md).
 
 ## Trial-driven revision
@@ -23,7 +25,8 @@ evidence for strategic judgment. This is a useful abstention, not a failed move
 prediction. Keep representative sampling and separately labelled optional-trade
 sampling; do not turn a curated sample into a frequency estimate.
 
-The larger cohorts below remain **conditional proposals**, not queued runs.
+The larger cohorts below remain **conditional proposals**, not queued runs or
+prerequisites for closing Alex's bounded Stage 4 iteration.
 Before scaling: add native before/after resource and legal-build context,
 per-resource scoring inputs and explicit branch reasons; try another small
 review and verify that a proposed weakness has a refutable test. Do not create

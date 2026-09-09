@@ -131,6 +131,12 @@ The next open work is section 1.
 
 ## 1. Bot strength
 
+**September 9 closeout:** Alex is ending the bounded Stage 4 investigation and
+moving next to personality. The [heuristic handoff](docs/AI_summaries/2026-09-09-heuristic-handoff.md)
+records the final candidate decision, raw evidence, restart commands and known
+limits. The strategic ambitions below remain open, not a queue to resume
+automatically and not prerequisites for starting the separate personality stage.
+
 Make the bot opponents play meaningfully better. **Not done.** Playtesting
 (2026-09-06) says bots still lose consistently to a human player and show
 visibly repeating patterns during play. Past infra/metrics work here

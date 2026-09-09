@@ -9,15 +9,16 @@ Jake's review is welcome but is not a prerequisite or delivery blocker.
 | --- | --- | --- |
 | 1. Run the published AI | Upstream execution complete; native reproduction incomplete | Preserve identifiable source, weights, training and evaluation evidence. |
 | 2. Find stronger, phone-fast search | Paused | Reopen only by explicit decision; native strength and physical latency must both pass. |
-| 3. Verify and deliver the heuristic | Closing delivery | Merge the tested product, verify beta access and gameplay; distinguish simulator evidence from physical-phone verification. |
-| 4. Strategic quality and targeted heuristic improvements | First trade candidate completed 448 games: promising, not yet proven stronger | Collect representative decision evidence, audit coherent planning, test changes against frozen opponents, then assess automated tuning. |
-| 5. Personality and character expression | Deferred until strategic quality | Configurable behavioral traits and controlled randomness, followed by curated event/decision-linked phrases; no runtime LLM. |
+| 3. Verify and deliver the heuristic | Balanced delivered in Build 7 | Preserve tested delivery; later source changes are not automatically a new phone build. |
+| 4. Strategic quality and targeted heuristic improvements | Complete for this bounded iteration | Retain Balanced; preserve the measured corpus, rejected candidate and restart map. Broader strategy research remains open, not a prerequisite for Stage 5. |
+| 5. Personality and character expression | Next, not started | Configurable behavioral traits and controlled randomness, followed by curated event/decision-linked phrases; no runtime LLM. |
 | 6. Optional models, search and training | Parked | Explicit research question, compatible comparison, bounded run and active watcher. |
 
 September 8 priority revision: strategic quality now precedes personality;
 stages 4 and 5 have exchanged order. They remain separate projects. Current work
 now includes Alex's authorized collection/review trial and one fixed trade-accounting
-experiment. It does not start tuning, personality or change the app's policy. No candidate has demonstrated stronger native play than
+experiment. September 9 closeout ends this bounded iteration rather than claiming
+expert heuristic play. It does not start tuning, personality or change the app's policy. No candidate has demonstrated stronger native play than
 Balanced together with complete decisions within four seconds on an iPhone.
 
 ## Current delivery
@@ -26,6 +27,9 @@ Build 6 shipped the Balanced new-game default. Main subsequently gained menu
 cleanup and replay victory-point breakdowns. Build 7 combines those changes with
 the same heuristic delivery; its live verification and merge receipts belong in
 [the delivery report](2026-09-08-heuristic-delivery.md), not inferred from this plan.
+September 9: Apple still lists Build 7 as the latest upload; Alex's phone was read
+back as 1.0 (7). Main `4737471` is versioned 1.0 (8) and adds Jake's hidden-VP
+threat fix. Source versioning does not establish that Build 8 was delivered.
 Existing saves retain their strategies; unsupported research saves are preserved
 and blocked, never silently converted. Jake's signing defaults remain unchanged.
 
@@ -53,13 +57,22 @@ and 60 synthetic controls isolate prerequisite-swap accounting across developmen
 cards, roads and settlements. An offline joint-target alternative passes its
 mechanical checks and flips three of nine scored decisions, including a possibly
 useful scarce-grain trade. Native controls and **448/448 comparison games** passed.
-The candidate tied the existing bot in one row and had higher win rates in three;
-all confidence intervals still include no improvement. The
+The first screen tied the existing bot in one row and had higher win rates in
+three, without conclusive improvement. The
 [native trade screen](2026-09-09-joint-trade-screen.md) records exact wins, intervals,
-frozen source, the completed 5m 53s watchdog run and the no-ship decision.
+frozen source and the subsequent **1,792-game fresh-main confirmation**. That
+confirmation failed promotion: four-player wins against Balanced fell from
+25.0% to 20.7% (difference −4.3 points, 95% interval −8.6 to 0.0). All games and
+28 parity checks completed within the original deadlines. **Retain Balanced;
+archive the candidate rather than continuing to tune it.**
 
-Next milestone: independently test the unchanged candidate on more fresh seed
-families using the existing runner; lock the promotion/non-regression criteria
-before launching. This follow-up is proposed, not running. No active training or
-simulation watcher remains. The app keeps Balanced. Create a reusable skill only
-after the method earns it; personality stays deferred.
+The [closeout handoff](2026-09-09-heuristic-handoff.md) is the cold-start entry
+point, with final confirmation results, archives, verification and known gaps.
+The app keeps Balanced; the joint-trade candidate remains an opt-in research
+comparator, not a selectable app policy. Do not automatically restart larger
+corpora, road planning, parameter tuning or search from historical next-step text.
+
+Next milestone after closeout: agree the bounded Stage 5 personality scope,
+keeping deliberate style differences separate from playing strength, and authored
+expression separate from the policy. No runtime LLM. Do not create a general
+heuristic-tuning skill from this one trade-only trial.
