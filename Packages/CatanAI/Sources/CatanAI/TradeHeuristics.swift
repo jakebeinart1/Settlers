@@ -4,6 +4,12 @@ import CatanEngine
 /// by valuing each resource relative to the receiving player's current
 /// "closest" build target rather than treating all resources as equal.
 public enum TradeHeuristics {
+    private struct BuildTarget {
+        let name: String
+        let cost: [Resource: Int]
+        let weight: Double
+    }
+
     /// Build targets in priority order, favoring settlements/cities (which
     /// score higher below) over roads/dev cards. `expansionBias` decides
     /// whether a settlement or a city upgrade is this player's likelier
@@ -11,16 +17,41 @@ public enum TradeHeuristics {
     private static func buildTargets(
         personality: BotPersonality,
         weights: BotWeights
-    ) -> [(cost: [Resource: Int], weight: Double)] {
-        let settlement = (Building.settlementCost, weights.tradeTargetSettlementWeight)
-        let city = (Building.cityCost, weights.tradeTargetCityWeight)
-        let devCard = (Building.devCardCost, weights.tradeTargetDevCardWeight)
-        let road = (Building.roadCost, weights.tradeTargetRoadWeight)
+    ) -> [BuildTarget] {
+        let settlement = BuildTarget(name: "settlement", cost: Building.settlementCost, weight: weights.tradeTargetSettlementWeight)
+        let city = BuildTarget(name: "city", cost: Building.cityCost, weight: weights.tradeTargetCityWeight)
+        let devCard = BuildTarget(name: "devCard", cost: Building.devCardCost, weight: weights.tradeTargetDevCardWeight)
+        let road = BuildTarget(name: "road", cost: Building.roadCost, weight: weights.tradeTargetRoadWeight)
         // Cautious bots (low expansionBias) prioritize upgrading to cities;
         // aggressive/balanced bots prioritize planting new settlements.
         return personality.expansionBias >= weights.cityFirstExpansionBiasPivot
             ? [settlement, city, devCard, road]
             : [city, settlement, devCard, road]
+    }
+
+    /// Experimental, uncalibrated inventory potential for joint trade accounting.
+    /// The fixed factor two makes one-card-short completion earn the target's
+    /// weight. This is not legal-build availability: board, pieces, deck and
+    /// future play are deliberately absent. Baseline scoring never calls it.
+    static func jointTargetPotential(holding: [Resource: Int], cost: [Resource: Int], weight: Double) -> Double {
+        let missing = Resource.allCases.reduce(0) { total, resource in
+            total + max(0, cost[resource, default: 0] - holding[resource, default: 0])
+        }
+        return 2 * weight / (1 + Double(missing))
+    }
+
+    /// Reuse native targets and match the offline formula's alphabetical
+    /// target order and per-target subtraction; subtracting large aggregate
+    /// potentials can round differently at an acceptance threshold.
+    static func jointInventoryDelta(
+        before: [Resource: Int], after: [Resource: Int],
+        personality: BotPersonality, weights: BotWeights = .default
+    ) -> Double {
+        buildTargets(personality: personality, weights: weights).sorted { $0.name < $1.name }.reduce(0.0) { delta, target in
+            let beforeValue = jointTargetPotential(holding: before, cost: target.cost, weight: target.weight)
+            let afterValue = jointTargetPotential(holding: after, cost: target.cost, weight: target.weight)
+            return delta + (afterValue - beforeValue)
+        }
     }
 
     /// Marginal value of one more `resource` card to `player`, based on how
@@ -34,12 +65,23 @@ public enum TradeHeuristics {
         personality: BotPersonality,
         weights: BotWeights
     ) -> Double {
+        var targets: [TradeTargetContribution]?
+        return resourceValue(resource, for: player, personality: personality, weights: weights, targets: &targets)
+    }
+
+    /// Shares the numeric path with ordinary scoring. A nil collector skips
+    /// target allocation and the extra deficit work for zero-valued targets.
+    private static func resourceValue(
+        _ resource: Resource, for player: Player, personality: BotPersonality,
+        weights: BotWeights, targets: inout [TradeTargetContribution]?
+    ) -> Double {
         var value = 0.0
         for target in buildTargets(personality: personality, weights: weights) {
-            guard let needed = target.cost[resource], needed > 0 else { continue }
+            let needed = target.cost[resource] ?? 0
             let have = player.resources[resource] ?? 0
             let deficit = max(0, needed - have)
-            guard deficit > 0 else { continue }
+            let contributes = needed > 0 && deficit > 0
+            guard contributes || targets != nil else { continue }
 
             let otherDeficits = target.cost.reduce(0) { partial, entry in
                 let (otherResource, otherAmount) = entry
@@ -48,10 +90,38 @@ public enum TradeHeuristics {
             }
             // The fewer other resources still block this target, the more
             // pivotal this one is to completing it right now.
-            let closeness = 1.0 / (1.0 + Double(otherDeficits))
-            value += target.weight * closeness
+            var contribution = 0.0
+            if contributes {
+                let closeness = 1.0 / (1.0 + Double(otherDeficits))
+                contribution = target.weight * closeness
+                value += contribution
+            }
+            targets?.append(TradeTargetContribution(
+                targetName: target.name, held: have, required: needed, deficit: deficit,
+                otherDeficits: otherDeficits, weight: target.weight, contribution: contribution
+            ))
         }
         return value
+    }
+
+    /// Records terms while reducing, never sorts or reconstructs the scalar
+    /// from diagnostic data. Optional chaining avoids building components
+    /// (including their target arrays) on the default evaluation path.
+    private static func resourceTotal(
+        _ resources: [Resource: Int], direction: TradeResourceContribution.Direction,
+        for player: Player, personality: BotPersonality, weights: BotWeights,
+        contributions: inout [TradeResourceContribution]?
+    ) -> Double {
+        resources.reduce(0.0) { partial, entry in
+            var targets: [TradeTargetContribution]? = contributions == nil ? nil : []
+            let unit = resourceValue(entry.key, for: player, personality: personality, weights: weights, targets: &targets)
+            let total = unit * Double(entry.value)
+            contributions?.append(TradeResourceContribution(
+                resource: entry.key, quantity: entry.value, direction: direction,
+                unitValue: unit, totalValue: total, targets: targets!
+            ))
+            return partial + total
+        }
     }
 
     /// Accepts `offer` if what `receiver` would gain (`offer.give`) clears a
@@ -86,16 +156,34 @@ public enum TradeHeuristics {
         personality: BotPersonality,
         weights: BotWeights = .default
     ) -> Bool {
-        guard let receiverPlayer = state.players.first(where: { $0.id == receiver }) else { return false }
+        assessment(offer: offer, receiver: receiver, state: state, personality: personality, weights: weights)?.accepted ?? false
+    }
 
-        let gainValue = offer.give.reduce(0.0) { partial, entry in
-            let unit = resourceValue(entry.key, for: receiverPlayer, personality: personality, weights: weights)
-            return partial + unit * Double(entry.value)
-        }
-        let costValue = offer.want.reduce(0.0) { partial, entry in
-            let unit = resourceValue(entry.key, for: receiverPlayer, personality: personality, weights: weights)
-            return partial + unit * Double(entry.value)
-        }
+    /// Pure acceptance scoring shared with `evaluate`; returns `nil` only
+    /// when the receiver is absent. Captures the actual intermediate scalars
+    /// without re-evaluating policy or changing the existing arithmetic order.
+    /// Offer dictionary reductions deliberately retain their original order.
+    /// `includeContributions` adds per-resource/target details only when
+    /// requested by diagnostics; ordinary evaluation avoids those allocations.
+    public static func assessment(
+        offer: TradeOffer,
+        receiver: PlayerID,
+        state: GameState,
+        personality: BotPersonality,
+        weights: BotWeights = .default,
+        includeContributions: Bool = false
+    ) -> TradeAssessment? {
+        guard let receiverPlayer = state.players.first(where: { $0.id == receiver }) else { return nil }
+
+        var contributions: [TradeResourceContribution]? = includeContributions ? [] : nil
+        let gainValue = resourceTotal(
+            offer.give, direction: .gain, for: receiverPlayer, personality: personality, weights: weights,
+            contributions: &contributions
+        )
+        let costValue = resourceTotal(
+            offer.want, direction: .cost, for: receiverPlayer, personality: personality, weights: weights,
+            contributions: &contributions
+        )
 
         let netGain = gainValue - costValue
         let proposerWeight = ThreatAssessment.relativeWeight(for: offer.from, excluding: receiver, in: state, weights: weights)
@@ -116,9 +204,9 @@ public enum TradeHeuristics {
         let priorAcceptsThisTurn = state.tradesAcceptedThisTurn[offer.from] ?? 0
         let suspicionShift = Double(priorAcceptsThisTurn) * weights.acceptSuspicionShiftPerTrade
 
-        // A deal that would hand the proposer an immediate settlement/city
-        // the instant it's accepted deserves real scrutiny beyond "is this
-        // good for me" - the previous math only ever valued the receiver's
+        // A deal that would newly cover the proposer's settlement/city cost
+        // deserves real scrutiny beyond "is this good for me" - the
+        // previous math only ever valued the receiver's
         // own resource need, so a proposer sitting one card short of a
         // build could complete it via a string of individually-plausible
         // one-for-one trades that nobody weighed against what it was
@@ -126,13 +214,18 @@ public enum TradeHeuristics {
         let unlockShift = enablesImmediateBuild(offer: offer, state: state) ? weights.acceptUnlockShift : 0.0
 
         let threshold = max(0, baseThreshold + threatShift + standingShift + suspicionShift + unlockShift)
-        return netGain > threshold
+        return TradeAssessment(
+            offer: offer, receiver: receiver, gainValue: gainValue, costValue: costValue, netGain: netGain,
+            baseThreshold: baseThreshold, threatShift: threatShift, standingShift: standingShift,
+            suspicionShift: suspicionShift, unlockShift: unlockShift, threshold: threshold, accepted: netGain > threshold,
+            resourceContributions: contributions
+        )
     }
 
     /// Whether accepting `offer` (from the proposer's side: losing `give`,
-    /// gaining `want`) would take the proposer from unable to afford a
-    /// settlement/city to able to, right now. Only checks the two
-    /// high-value builds - a road or dev card slipping through is a much
+    /// gaining `want`) would newly cover a settlement/city resource cost.
+    /// Does not check legal placement, remaining pieces, or victory. Only
+    /// checks the two high-value builds - a road or dev card slipping through is a much
     /// smaller swing, not worth raising every trade's bar over.
     private static func enablesImmediateBuild(offer: TradeOffer, state: GameState) -> Bool {
         guard let proposer = state.players.first(where: { $0.id == offer.from }) else { return false }
@@ -362,7 +455,7 @@ public enum TradeHeuristics {
     ///
     /// Extracted because `proposeTrades` and `bestBankTrade` both derived this
     /// the same way and would otherwise have to be kept in sync by hand.
-    private static func mostNeededResource(for target: (cost: [Resource: Int], weight: Double),
+    private static func mostNeededResource(for target: BuildTarget,
                                            holding: [Resource: Int]) -> Resource? {
         var best: (resource: Resource, need: Int)?
         for resource in Resource.allCases {
@@ -387,7 +480,7 @@ public enum TradeHeuristics {
         personality: BotPersonality,
         holding: [Resource: Int],
         weights: BotWeights
-    ) -> (cost: [Resource: Int], weight: Double)? {
+    ) -> BuildTarget? {
         buildTargets(personality: personality, weights: weights)
             .filter { totalDeficit($0.cost, holding: holding) > 0 }
             .min { totalDeficit($0.cost, holding: holding) < totalDeficit($1.cost, holding: holding) }

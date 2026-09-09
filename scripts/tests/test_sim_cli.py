@@ -201,6 +201,46 @@ class SimulatorConfigurationTests(unittest.TestCase):
         # stopped scoring opponents on hidden victory-point cards.
         self.assertEqual(json.loads(implicit.stdout)["fingerprint"], "3994f514fb48cde2")
 
+    def test_joint_trade_candidate_is_explicit_and_cross_process_reproducible(self) -> None:
+        for players in (3, 4):
+            arguments = (
+                "--players", str(players), "--victory-points", "10",
+                "--board", "randomized", "--seed", "879900", "--games", "1",
+                "--seats", ",".join(["joint-balanced"] + ["balanced"] * (players - 1)),
+                "--build-id", "candidate-cli-test", "--jsonl",
+            )
+            first = self.run_simulator(*arguments)
+            second = self.run_simulator(*arguments)
+            self.assertEqual(first.returncode, 0, first.stderr)
+            self.assertEqual(second.returncode, 0, second.stderr)
+            self.assertEqual(first.stdout, second.stdout)
+            record = json.loads(first.stdout)
+            self.assertEqual(record["policies"][0], "experimental-joint-balanced-v1")
+            self.assertIn(record["winner"], range(players))
+
+    def test_candidate_diagnostics_do_not_substitute_the_ordinary_bot(self) -> None:
+        arguments = (
+            "--players", "3", "--seats", "joint-balanced,balanced,balanced",
+            "--seed", "879901", "--build-id", "candidate-trace-test", "--jsonl",
+        )
+        plain = self.run_simulator(*arguments)
+        with tempfile.TemporaryDirectory() as directory:
+            trace = Path(directory) / "decisions.jsonl"
+            traced = self.run_simulator(*arguments, "--decision-jsonl", str(trace))
+            self.assertEqual(plain.returncode, 0, plain.stderr)
+            self.assertEqual(traced.returncode, 0, traced.stderr)
+            self.assertEqual(plain.stdout, traced.stdout)
+            candidate_calls = 0
+            with trace.open() as stream:
+                for line in stream:
+                    record = json.loads(line)
+                    payload = record["payload"]
+                    if (record["type"] == "evaluation"
+                            and payload["policyID"] == "experimental-joint-balanced-v1"):
+                        candidate_calls += 1
+                        self.assertEqual(payload["tradeAssessments"], [])
+            self.assertGreater(candidate_calls, 0)
+
 
 if __name__ == "__main__":
     unittest.main()

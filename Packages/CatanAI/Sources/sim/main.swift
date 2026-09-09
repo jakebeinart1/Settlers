@@ -142,8 +142,11 @@ private struct Options {
     var seatNamesWereProvided = false
     var configuration = SimulationConfiguration()
     var buildID = "working-tree"
+    var buildIDWasProvided = false
     var jsonl: Bool = false
     var trainingOutput: String?
+    var decisionOutput: String?
+    var traceMaxBytes = CorpusWriter.defaultMaxBytes
     var trainingInformationPolicy: HiddenInformationPolicy = .revealAll
 
     static let usage = """
@@ -151,6 +154,7 @@ private struct Options {
                    [--board standard|randomized] [--seats LIST] [--build-id ID] [--jsonl]
                    [--training-jsonl PATH]
                    [--training-information reveal-all|public-counts]
+                   [--decision-jsonl PATH] [--trace-max-bytes N]
           --games N     number of consecutive seeds to play (default 1)
           --seed S      first match seed; seeds S ..< S+N are played (default 1)
           --players N   seats at the table: 3 or 4 (default 4)
@@ -161,6 +165,7 @@ private struct Options {
           --seats LIST  comma-separated policy names, exactly one per player
                         heuristics: balanced, aggressive, cautious
                         anchors:    greedy, random
+                        experiment: joint-balanced (trade-response accounting only)
                         (four-seat default balanced,aggressive,cautious,balanced;
                         a three-seat run uses the first three)
                         --personalities is accepted as an alias
@@ -171,6 +176,10 @@ private struct Options {
                         write one versioned masked policy/value example per decision
           --training-information MODE
                         opponent holdings in training features (default reveal-all)
+          --decision-jsonl PATH
+                        retained diagnostic JSONL; requires explicit --build-id
+          --trace-max-bytes N
+                        total diagnostic file cap (default 268435456 bytes)
         """
 }
 
@@ -184,16 +193,28 @@ private struct Options {
 /// Unknown names abort rather than falling back to `.balanced`: a typo'd arm
 /// silently played by the default opponent is the exact way a bogus strength
 /// claim gets made.
-private func policy(named name: String) -> any Policy {
+private func policy(named name: String, writer: CorpusWriter? = nil) -> any Policy {
+    let base: any Policy
+    let personality: BotPersonality?
     switch name {
-    case "balanced": return HeuristicPolicy(personality: .balanced, id: "heuristic-balanced")
-    case "aggressive": return HeuristicPolicy(personality: .aggressive, id: "heuristic-aggressive")
-    case "cautious": return HeuristicPolicy(personality: .cautious, id: "heuristic-cautious")
-    case "greedy": return GreedyPolicy()
-    case "random": return RandomPolicy()
+    case "balanced": personality = .balanced
+    case "aggressive": personality = .aggressive
+    case "cautious": personality = .cautious
+    case "greedy", "random", "joint-balanced": personality = nil
     default:
-        fail("unknown seat '\(name)'; expected balanced, aggressive, cautious, greedy or random")
+        fail("unknown seat '\(name)'; expected balanced, aggressive, cautious, greedy, random or joint-balanced")
     }
+    if let personality {
+        base = HeuristicPolicy(personality: personality, id: "heuristic-\(name)")
+    } else if name == "greedy" {
+        base = GreedyPolicy()
+    } else if name == "joint-balanced" {
+        base = JointTradeResponsePolicy()
+    } else {
+        base = RandomPolicy()
+    }
+    guard let writer else { return base }
+    return CorpusPolicy(base: base, bot: personality.map { Bot(personality: $0) }, writer: writer)
 }
 
 /// Reads `CommandLine.arguments` into `Options`, aborting on anything it does
@@ -248,16 +269,26 @@ private func parseOptions(_ arguments: [String]) -> Options {
             options.seatNames = nextValue(for: flag).split(separator: ",").map(String.init)
             options.seatNamesWereProvided = true
         case "--build-id":
-            let value = nextValue(for: "--build-id")
+            let value = uniqueValue(for: "--build-id")
             let allowed = CharacterSet.alphanumerics.union(CharacterSet(charactersIn: "._-"))
-            guard !value.isEmpty, value.unicodeScalars.allSatisfy(allowed.contains) else {
+            guard !value.isEmpty, !value.hasPrefix("--"), value.unicodeScalars.allSatisfy(allowed.contains) else {
                 fail("--build-id may contain only letters, digits, dot, dash and underscore")
             }
             options.buildID = value
+            options.buildIDWasProvided = true
         case "--jsonl":
             options.jsonl = true
         case "--training-jsonl":
             options.trainingOutput = nextValue(for: "--training-jsonl")
+        case "--decision-jsonl":
+            let value = uniqueValue(for: "--decision-jsonl")
+            guard !value.isEmpty, !value.hasPrefix("--") else { fail("--decision-jsonl needs a path") }
+            options.decisionOutput = value
+        case "--trace-max-bytes":
+            guard let value = Int(uniqueValue(for: "--trace-max-bytes")), value > 0 else {
+                fail("--trace-max-bytes must be a positive integer")
+            }
+            options.traceMaxBytes = value
         case "--training-information":
             let value = nextValue(for: "--training-information")
             switch value {
@@ -282,6 +313,12 @@ private func parseOptions(_ arguments: [String]) -> Options {
     }
     if options.trainingOutput != nil, options.buildID == "working-tree" {
         fail("--training-jsonl requires an explicit non-placeholder --build-id")
+    }
+    if options.decisionOutput != nil, !options.buildIDWasProvided {
+        fail("--decision-jsonl requires an explicit --build-id")
+    }
+    if seenConfigurationFlags.contains("--trace-max-bytes"), options.decisionOutput == nil {
+        fail("--trace-max-bytes requires --decision-jsonl")
     }
     let finalOffset = UInt64(options.games - 1)
     guard finalOffset <= UInt64.max - options.firstSeed else {
@@ -378,22 +415,30 @@ private func playGame(
     policies: [any Policy],
     configuration: SimulationConfiguration,
     buildID: String,
-    recordTraining: Bool
+    recordTraining: Bool,
+    corpus: CorpusWriter?
 ) -> GameResult {
     let state = configuration.state(seed: seed)
     precondition(policies.count == state.players.count,
                  "policy roster must match the configured player count")
     var seats: [PlayerID: any Policy] = [:]
     for (index, policy) in policies.enumerated() { seats[state.players[index].id] = policy }
+    // Start must precede construction: restoring pending trades can invoke
+    // policies inside GameSession.init, before its caller receives a session.
+    corpus?.start(seed: seed, payload: CorpusStart(buildID: buildID, policyIDs: policies.map(\.id),
+                                                 boardMode: configuration.boardMode, initialState: state))
     var session = GameSession(state: state, policies: seats,
                               policySeed: policySeed(from: seed))
+    corpus?.verify(session: session)
     var trace: [String] = []
     var behavior = Array(repeating: PolicyBehaviorMetrics(), count: state.players.count)
     var decisions: [RecordedDecision] = []
 
     for _ in 0..<maxMovesPerGame {
         guard case .seat = session.nextActor() else { break }
-        guard let decision = session.decideNextDetailed() else { break }
+        let nextDecision = session.decideNextDetailed()
+        corpus?.verify(session: session)
+        guard let decision = nextDecision else { break }
         for evaluated in session.lastPolicyDecisions {
             behavior[evaluated.seat.index].observeDecision(evaluated.observation, chosen: evaluated.move)
         }
@@ -402,9 +447,12 @@ private func playGame(
         do {
             step = try session.commit(seat: decision.seat, move: decision.move)
         } catch {
+            corpus?.abort(error)
             fatalError("seed \(seed): a policy played an illegal move: \(error)")
         }
+        corpus?.verify(session: session)
         guard let step else { break }
+        corpus?.commit(moveIndex: trace.count, step: step, session: session)
         for evaluated in session.lastPolicyDecisions {
             behavior[evaluated.seat.index].observeDecision(evaluated.observation, chosen: evaluated.move)
         }
@@ -414,6 +462,7 @@ private func playGame(
     }
 
     var winner: PlayerID?
+    corpus?.end(session: session, moves: trace.count)
     if case .gameOver(let who) = session.state.phase { winner = who }
     return GameResult(
         buildID: buildID,
@@ -581,7 +630,18 @@ private final class TrainingWriter {
 // is a module-scope declaration, and Swift refuses to expose one whose type is
 // less visible than it is.
 private let options = parseOptions(CommandLine.arguments)
-private let seats = options.seatNames.map { policy(named: $0) }
+// Validate all seats before creating either export file.
+private let validatedSeats = options.seatNames.map { policy(named: $0) }
+private let corpusWriter: CorpusWriter? = {
+    guard let path = options.decisionOutput else { return nil }
+    do {
+        return try CorpusWriter(path: path, maxBytes: options.traceMaxBytes)
+    } catch {
+        fail("could not create decision trace (refusing overwrite) at \(path): \(error)")
+    }
+}()
+private let seats = corpusWriter.map { writer in options.seatNames.map { policy(named: $0, writer: writer) } }
+    ?? validatedSeats
 private let clock = ContinuousClock()
 private let started = clock.now
 private let trainingWriter = options.trainingOutput.map {
@@ -594,11 +654,13 @@ for offset in 0..<options.games {
         policies: seats,
         configuration: options.configuration,
         buildID: options.buildID,
-        recordTraining: trainingWriter != nil
+        recordTraining: trainingWriter != nil,
+        corpus: corpusWriter
     )
     trainingWriter?.write(result)
     Stdout.write(options.jsonl ? jsonLine(result) : textLine(result))
 }
+corpusWriter?.finish()
 
 // Sampled ONCE. Reading `clock.now` twice took `seconds` from the first read
 // and `attoseconds` from the second, so a pair straddling a whole-second
