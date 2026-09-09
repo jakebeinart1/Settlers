@@ -22,6 +22,21 @@ from review_corpus import (
 
 PROCESS_TIMEOUT_SECONDS = 60
 MAX_PACKET_CHARACTERS = 12000
+FILTERED_FREQUENCY_WARNING = "Filtered cohorts do not estimate overall frequency."
+FREQUENCY_WARNINGS = {
+    "optional": FILTERED_FREQUENCY_WARNING,
+    "forced": FILTERED_FREQUENCY_WARNING,
+    "all": "Selected packets do not estimate overall frequency.",
+    "unknown": "Sampling cohort was not recorded; representativeness is unknown. "
+               "These packets do not estimate overall frequency.",
+}
+
+
+def frequency_warning(cohort: str) -> str:
+    """Keep sampling limits attached to evidence without inventing legacy provenance."""
+    if not isinstance(cohort, str) or cohort not in FREQUENCY_WARNINGS:
+        raise ValueError("unsupported sampling cohort")
+    return FREQUENCY_WARNINGS[cohort]
 
 
 def digest(path: Path) -> str:
@@ -85,7 +100,9 @@ def context_text(context: dict) -> str:
     return "\n".join(lines) + "\n"
 
 
-def publish_packets(inputs: list[dict], output: Path, results: list[dict]) -> None:
+def publish_packets(inputs: list[dict], output: Path, results: list[dict],
+                    cohort: str = "unknown") -> None:
+    sampling = f"Sampling cohort: {cohort}. {frequency_warning(cohort)}\n\n"
     for original, result in zip(inputs, results, strict=True):
         case_id = result["id"]
         native = context_text(result["context"])
@@ -99,7 +116,7 @@ def publish_packets(inputs: list[dict], output: Path, results: list[dict]) -> No
             base = base.replace(
                 "This packet is incomplete for spatial/production judgments; request context before concluding.",
                 "Production and immediate build options are supplied below. Spatial rankings and future play remain unknown.")
-            text = base + "\n" + native
+            text = sampling + base + "\n" + native
             if suffix == "explained" and result.get("assessment"):
                 text += "\n## Resource-score inputs (offline recomputation; original scalars numerically matched)\n"
                 text += "Scalar tolerance: 1e-12 relative/absolute; accept/reject must match exactly.\n"
@@ -113,6 +130,8 @@ def publish_packets(inputs: list[dict], output: Path, results: list[dict]) -> No
 def enrich(review: Path, binary: Path, output: Path) -> None:
     started = time.monotonic()
     manifest = json.loads((review / "manifest.json").read_text())
+    cohort = manifest.get("cohort", "unknown")
+    warning = frequency_warning(cohort)
     if not manifest.get("validation", {}).get("scheduleMembership"):
         raise ValueError("exact-schedule validated review required")
     if not 1 <= len(manifest["packets"]) <= 120:
@@ -133,10 +152,11 @@ def enrich(review: Path, binary: Path, output: Path) -> None:
     for result in results:
         if result.get("assessment"):
             validate_assessment(result["assessment"])
-    publish_packets(inputs, output, results)
+    publish_packets(inputs, output, results, cohort)
     shutil.copy2(Path(__file__), output / "enricher.py")
     shutil.copy2(Path(__file__).with_name("review_corpus.py"), output / "review_corpus.py")
     receipt = {"schemaVersion": 1, "status": "complete", "cases": len(results),
+               "cohort": cohort, "frequencyWarning": warning,
                "sourceManifest": str((review / "manifest.json").resolve()),
                "sourceManifestSHA256": digest(review / "manifest.json"),
                "binarySHA256": digest(frozen), "inputSHA256": digest(snapshot),

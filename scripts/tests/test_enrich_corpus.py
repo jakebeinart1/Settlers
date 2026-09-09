@@ -183,6 +183,34 @@ class EnrichPublicationTests(unittest.TestCase):
         self.assertIn("mock-target", explained)
         self.assertNotIn("SECRET-", explained)
 
+    def test_sampling_provenance_survives_packets_and_receipt(self):
+        manifest_path = self.review / "manifest.json"
+        original_manifest = json.loads(manifest_path.read_text())
+        cases = (
+            ("optional", "Filtered cohorts do not estimate overall frequency."),
+            ("forced", "Filtered cohorts do not estimate overall frequency."),
+            ("all", "Selected packets do not estimate overall frequency."),
+            ("unknown", "Sampling cohort was not recorded; representativeness is unknown. "
+             "These packets do not estimate overall frequency."),
+        )
+        for cohort, warning in cases:
+            with self.subTest(cohort=cohort):
+                manifest = dict(original_manifest)
+                if cohort != "unknown":
+                    manifest["cohort"] = cohort
+                manifest_path.write_text(json.dumps(manifest))
+                self.output = self.review.parent / f"enriched-{cohort}"
+                with patch.object(ENRICH.subprocess, "run", side_effect=self.run_native), \
+                        patch("sys.stdout", new=io.StringIO()):
+                    ENRICH.enrich(self.review, self.binary, self.output)
+                receipt = json.loads((self.output / "receipt.json").read_text())
+                self.assertEqual(receipt.get("cohort"), cohort)
+                self.assertEqual(receipt.get("frequencyWarning"), warning)
+                for suffix in ("blind", "explained"):
+                    packet = (self.output / f"case-001-{suffix}.md").read_text()
+                    self.assertIn(f"Sampling cohort: {cohort}.", packet)
+                    self.assertIn(warning, packet)
+
     def test_subprocess_failure_retains_partial_output_without_success_receipt(self):
         def fail_native(command, **kwargs):
             self.run_native(command, **kwargs)
