@@ -9,7 +9,26 @@ public enum ThreatAssessment {
     /// Raw threat score for a single player - current standing plus how
     /// close they are to a sudden VP swing. Not comparative on its own; see
     /// `scores`/`relativeWeight` for cross-player comparison.
-    static func score(for playerID: PlayerID, in state: GameState, weights: BotWeights = .default) -> Double {
+    ///
+    /// ## `viewer` is what keeps this honest
+    /// A bot may INFER that someone is sitting on a victory-point card. It may
+    /// not read the card. This scorer used to take `state.victoryPoints`, the
+    /// engine's true total, for every player it judged - so the instant a
+    /// human drew a victory-point card their threat score rose by
+    /// `victoryPointWeight` (10.0, the largest single term here) and the bots
+    /// turned on them. The player cannot see a bot's hidden cards and reported
+    /// exactly this asymmetry from real play: "they know I have 3 victory
+    /// points in development cards".
+    ///
+    /// `viewer` is the seat doing the judging, so the split is a rule rather
+    /// than a convention: your own hand is yours to count, everyone else is
+    /// worth only what the board shows - buildings, longest road, largest
+    /// army. What remains legitimately visible about a hidden card is that it
+    /// EXISTS: `devCardWeight` still counts how many cards a player holds,
+    /// because a face-down count is public in real Catan. That is the whole of
+    /// the inference a bot is entitled to.
+    static func score(for playerID: PlayerID, asSeenBy viewer: PlayerID,
+                      in state: GameState, weights: BotWeights = .default) -> Double {
         guard let player = state.players.first(where: { $0.id == playerID }) else { return 0 }
 
         // The `* 2.0` on cities is the rule that a city produces two of a
@@ -20,7 +39,10 @@ public enum ThreatAssessment {
             partial + PlacementHeuristics.score(vertex: vertex, board: state.board, weights: weights) * 2.0
         }
 
-        let vp = Double(state.victoryPoints(for: playerID)) * weights.victoryPointWeight
+        let visiblePoints = playerID == viewer
+            ? state.victoryPoints(for: playerID)
+            : state.publicVictoryPoints(for: playerID)
+        let vp = Double(visiblePoints) * weights.victoryPointWeight
         let devCards = Double(player.devCards.count) * weights.devCardWeight
 
         return vp + production + devCards + milestoneSwing(for: player, in: state, weights: weights)
@@ -61,7 +83,7 @@ public enum ThreatAssessment {
     ) -> [(player: PlayerID, score: Double)] {
         state.players
             .filter { $0.id != player }
-            .map { (player: $0.id, score: score(for: $0.id, in: state, weights: weights)) }
+            .map { (player: $0.id, score: score(for: $0.id, asSeenBy: player, in: state, weights: weights)) }
             .sorted { $0.score > $1.score }
     }
 
@@ -108,7 +130,11 @@ public enum ThreatAssessment {
         guard !others.isEmpty else { return 1.0 }
 
         let average = others.reduce(0.0) { $0 + $1.score } / Double(others.count)
-        let myScore = score(for: player, in: state, weights: weights)
+        // `asSeenBy: player` is the seat itself, so this one DOES count held
+        // victory-point cards: a bot judging whether it is ahead knows its own
+        // hand, and hiding it from itself would make it trade like a player
+        // who cannot see their own cards.
+        let myScore = score(for: player, asSeenBy: player, in: state, weights: weights)
         // Unlike `relativeWeight` (which compares one opponent to the
         // *other* opponents' average, and bails to a neutral `1.0` when
         // that average is still `0`, since it's judging someone else's
