@@ -185,6 +185,57 @@ class CorpusCLITests(unittest.TestCase):
         self.assertIn("overwrite", result.stderr)
         self.assertEqual(path.read_bytes(), sentinel)
 
+    def test_native_offline_enrichment_matches_historical_scores_and_rejects_tampering(self) -> None:
+        subprocess.run(["swift", "build", "--package-path", str(PACKAGE), "-c", "release",
+                        "--product", "trade-review"], check=True, capture_output=True, timeout=180)
+        binary = self.simulator.parent / "trade-review"
+        selected = next(row["payload"] for row in records(self.first)
+                        if row["type"] == "evaluation" and row["payload"]["tradeAssessments"]
+                        and "respondToTrade" in row["payload"]["chosenMove"])
+        selected["id"] = "native-case"
+        path = Path(self.directory.name) / "selected.jsonl"
+        path.write_text(json.dumps(selected) + "\n")
+        result = subprocess.run([str(binary), str(path)], capture_output=True, text=True, timeout=30)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        output = json.loads(result.stdout)
+        self.assertEqual(output["id"], "native-case")
+        self.assertIsNotNone(output["context"]["afterAcceptance"])
+        self.assertTrue(output["assessment"]["resourceContributions"])
+        self.assertEqual(output["assessment"]["netGain"], selected["tradeAssessments"][-1]["netGain"])
+        self.assertEqual(output["provenance"],
+                         "offline-native-recomputation-numerically-matched-to-recorded-scalars")
+        self.assertEqual(output["scalarRelativeTolerance"], 1e-12)
+        # Historical dictionary sums can differ by rounding across processes.
+        # Permit that numerical noise, never a changed decision or material score.
+        original_gain = selected["tradeAssessments"][-1]["gainValue"]
+        selected["tradeAssessments"][-1]["gainValue"] += 1e-14
+        path.write_text(json.dumps(selected) + "\n")
+        rounded = subprocess.run([str(binary), str(path)], capture_output=True, text=True, timeout=30)
+        self.assertEqual(rounded.returncode, 0, rounded.stderr)
+        selected["tradeAssessments"][-1]["gainValue"] = original_gain
+        selected["tradeAssessments"][-1]["accepted"] = not selected["tradeAssessments"][-1]["accepted"]
+        path.write_text(json.dumps(selected) + "\n")
+        changed = subprocess.run([str(binary), str(path)], capture_output=True, text=True, timeout=30)
+        self.assertNotEqual(changed.returncode, 0)
+        selected["tradeAssessments"][-1]["accepted"] = not selected["tradeAssessments"][-1]["accepted"]
+        selected["tradeAssessments"][-1]["gainValue"] += 1
+        path.write_text(json.dumps(selected) + "\n")
+        failed = subprocess.run([str(binary), str(path)], capture_output=True, text=True, timeout=30)
+        self.assertNotEqual(failed.returncode, 0)
+        self.assertIn("scoreMismatch", failed.stderr)
+        self.assertEqual(failed.stdout, "")
+        forced = next(row["payload"] for row in records(self.first)
+                      if row["type"] == "evaluation"
+                      and "respondToTrade" in row["payload"]["chosenMove"]
+                      and not row["payload"]["tradeAssessments"])
+        forced["id"] = "unscored-case"
+        path.write_text(json.dumps(forced) + "\n")
+        context_only = subprocess.run([str(binary), str(path)], capture_output=True, text=True, timeout=30)
+        self.assertEqual(context_only.returncode, 0, context_only.stderr)
+        unscored = json.loads(context_only.stdout)
+        self.assertNotIn("assessment", unscored)
+        self.assertEqual(unscored["provenance"], "native-context-only-no-scalar-match-claimed")
+
     def test_byte_cap_fails_with_retained_prefix_and_footer(self) -> None:
         # Stop after the first invocation but before its return; the footer
         # must expose the unmatched call, not renumber a partial trace.

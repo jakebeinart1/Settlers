@@ -1,6 +1,6 @@
 # Empires AI — current plan
 
-Updated September 8, 2026. Alex has authorized merging verified product code;
+Updated September 9, 2026. Alex has authorized merging verified product code;
 Jake's review is welcome but is not a prerequisite or delivery blocker.
 
 ## Six stages
@@ -10,7 +10,7 @@ Jake's review is welcome but is not a prerequisite or delivery blocker.
 | 1. Run the published AI | Upstream execution complete; native reproduction incomplete | Preserve identifiable source, weights, training and evaluation evidence. |
 | 2. Find stronger, phone-fast search | Paused | Reopen only by explicit decision; native strength and physical latency must both pass. |
 | 3. Verify and deliver the heuristic | Closing delivery | Merge the tested product, verify beta access and gameplay; distinguish simulator evidence from physical-phone verification. |
-| 4. Strategic quality and targeted heuristic improvements | First trade-diagnostics trial run; no strategy changes | Collect representative decision evidence, audit coherent planning, test changes against frozen opponents, then assess automated tuning. |
+| 4. Strategic quality and targeted heuristic improvements | Native trade context and scorer inputs verified; one accounting mechanism isolated; no strategy changes | Collect representative decision evidence, audit coherent planning, test changes against frozen opponents, then assess automated tuning. |
 | 5. Personality and character expression | Deferred until strategic quality | Configurable behavioral traits and controlled randomness, followed by curated event/decision-linked phrases; no runtime LLM. |
 | 6. Optional models, search and training | Parked | Explicit research question, compatible comparison, bounded run and active watcher. |
 
@@ -48,6 +48,11 @@ The protocol inventories reusable native/archived tooling, sample sizes,
 anti-overfitting controls, external heuristics and tuners. The
 [first workflow trial](2026-09-08-heuristic-corpus-trial.md) records 24 complete
 games and blind/revealed reviews. It proves useful diagnostic plumbing, not
-better strategy. Next: richer native before/after trade evidence and a focused
-optional-trade review, before scaling collection or editing weights. Create a
+better strategy. September 9: the same selected decisions now include native
+before/after options, production, timing and resource-score inputs. One trade
+credits development-card completion despite paying away a required resource;
+scenario controls distinguish sole from surplus payment. This explains a scoring
+mechanism, not whether accepting was wrong. Next: audit the separate six-case
+optional cohort and test this mechanism across prerequisite swaps and useful-trade
+counterexamples, before scaling collection or editing weights. Create a
 reusable skill only after the method earns it. Dialogue is not evidence of strength.

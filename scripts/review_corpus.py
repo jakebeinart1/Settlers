@@ -116,6 +116,34 @@ def validate_assessment(assessment: dict) -> None:
     accepted = assessment["netGain"] > assessment["threshold"]
     if assessment["accepted"] is not accepted:
         raise ValueError("strict threshold decision does not match assessment")
+    if assessment.get("resourceContributions") is not None:
+        validate_contributions(assessment)
+
+
+def validate_contributions(assessment: dict) -> None:
+    """Independent arithmetic check of optional target/resource-level terms."""
+    totals = {"gain": 0.0, "cost": 0.0}
+    quantities = {"gain": {}, "cost": {}}
+    for resource in assessment["resourceContributions"]:
+        direction = resource["direction"]
+        if direction not in totals or resource["resource"] in quantities[direction]:
+            raise ValueError("invalid/duplicate contribution direction or resource")
+        quantities[direction][resource["resource"]] = resource["quantity"]
+        unit = 0.0
+        for target in resource["targets"]:
+            expected = (target["weight"] / (1 + target["otherDeficits"])
+                        if target["required"] > target["held"] else 0.0)
+            close(target["deficit"], max(0, target["required"] - target["held"]))
+            close(target["contribution"], expected)
+            unit += target["contribution"]
+        close(resource["unitValue"], unit)
+        close(resource["totalValue"], unit * resource["quantity"])
+        totals[direction] += resource["totalValue"]
+    if quantities["gain"] != resource_map(assessment["offer"]["give"]) \
+            or quantities["cost"] != resource_map(assessment["offer"]["want"]):
+        raise ValueError("contribution quantities disagree with offer")
+    close(assessment["gainValue"], totals["gain"])
+    close(assessment["costValue"], totals["cost"])
 
 
 def is_trade_response(move: dict) -> bool:

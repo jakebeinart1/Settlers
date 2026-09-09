@@ -1,6 +1,6 @@
 # Heuristic evidence workflow — first practical trial
 
-September 8, 2026. Stage 4 of the [AI program](AI-PROGRAM.md).
+Started September 8; updated September 9, 2026. Stage 4 of the [AI program](AI-PROGRAM.md).
 **Decision: keep developing the diagnostic method; do not tune the bot or create
 the reusable skill yet.** This is a trade-only development trial, not a stronger
 AI, a general strategic audit, or proof of representative human-facing behavior.
@@ -108,16 +108,99 @@ They are a focused cohort, not a replacement representative sample.
   replacement sample was substituted. The final renderer is snapshotted beside
   that manifest. Original blind/revealed reviews remain attached to `review-02`.
 
+## September 9 — native context closes one diagnostic gap
+
+**Decision: keep the richer evidence workflow; do not change trade acceptance
+yet.** No new training, weight tuning, personality work or strength experiment
+ran. The same twelve selected cases were enriched, rather than collecting a
+replacement sample that might make the method look better.
+
+`TradeReviewContext` now applies acceptance to a copy through the native engine.
+It reports each seat's before/after inventory, legal build options, port rates,
+production and who can act now. An off-turn seat's options are explicitly
+counterfactual: its own main turn on the frozen board. Eleven road placements
+means eleven possible locations, not eleven affordable roads or eleven useful
+plans. Production uses native payouts over the possible next dice rolls, with
+the current bank and robber; seven's discard/steal losses are excluded.
+
+The executing scorer can now record each resource's settlement/city/development
+card/road contribution. Ordinary evaluation leaves this opt-in detail off.
+For the old recordings, `trade-review` recomputes those inputs offline and checks
+them against the original scalars. It allows only 1e-12 relative/absolute
+rounding noise; the accept/reject result must match exactly. Historical offer
+dictionaries can sum in a different order across processes, so this is a
+**numerical match, not bit-exact historical component capture**. Nine unscored,
+forced-rejection cases explicitly claim native context only, not matched scores.
+
+### What the second blind/revealed review found
+
+One reviewer read the same three optional cases blind, saved those judgments,
+then saw the choices and score inputs. This is a usability follow-up, not three
+new independent samples or a strategic truth label.
+
+| Case | Before reveal | What the supplied evidence supports |
+| --- | --- | --- |
+| 002 | Insufficient evidence | Receiver gains two lumber for wool but no immediate option changes; proposer can buy a development card. The zero resource score is explained, not justified as optimal. |
+| 007 | Tentative accept, low confidence | Receiving lumber unlocks eleven road-placement options. Neither those counts nor reviewer agreement establish route usefulness. |
+| 009 | Insufficient evidence | The scorer credits wool toward a development card while the payment removes the sole ore required for that card. Native acceptance still leaves the purchase unavailable. |
+
+Case 009's accounting mechanism is now reproduced in a native scenario test:
+ore=1/grain=1 receives wool and pays ore; the wool gets a 1.5 development-card
+contribution, while the ore loss gets zero development-card cost because costs
+also use the original hand. A paired control with **two ore** awards the same
+completion contribution but genuinely unlocks the purchase after payment.
+Another test shows a trade can remove a purchase that was already available.
+These characterize the current scorer; they do not change it.
+
+**Important counterexample:** swapping readily produced ore into scarce wool
+could still be sensible. The accounting mismatch does not prove rejection would
+win more games. A candidate should evaluate joint before/after target progress,
+not impose a blanket ban on prerequisite swaps. Test sole-prerequisite swaps,
+surplus payments, genuine completions and production-scarcity cases before
+considering any policy change. Future paired continuations also need explicitly
+coupled chance events: equal starting seeds alone do not guarantee equal future
+dice/deck draws when branches consume randomness differently. That evaluator
+extension is proposed, not implemented here.
+
+### Evidence, efficiency and audit corrections
+
+- [September 9 artifacts](</Users/alex/Library/Application Support/EmpiresResearch/experiments/heuristic-corpus-20260909/>): `enriched-01/reviewer-blind.md` and
+  `reviewer-revealed.md` preserve the actual review order and abstentions.
+  `enriched-02/` is the corrected final publication with source/input/binary
+  hashes, frozen renderer/enricher and a completion receipt.
+- The twelve-case final enrichment took **0.58 seconds** locally, including
+  source-hash checks and native processing. It reuses the previously validated
+  selection and parses only selected lines. This is not a speedup measurement
+  against the 97-second full-corpus validation: they perform different work.
+- Blind packets are regenerated from verified input through an allowlist,
+  not copied from potentially edited Markdown. No chosen move, scorer inputs,
+  future dice, deck order or RNG state goes into the blind text. The richer
+  packet limit is 12,000 characters, still not a measured token budget.
+- A read-only audit caught an inaccurate provenance label on unscored cases;
+  corrected in `enriched-02`. Historical scalar matching now explicitly allows
+  rounding noise instead of requiring cross-process dictionary sums to match
+  bit for bit. Accepted/rejected booleans and material score differences still
+  fail. Original reviewed files remain unchanged.
+- Publication tests exercise source/identity mismatch, private-data exclusion,
+  contribution arithmetic, native subprocess failure with retained partial
+  output, and packet-budget failure. Failure never publishes a success receipt.
+  The native subprocess has a 60-second timeout, 8 MiB input and 120-case limits.
+
+Still missing: useful route/settlement rankings, multi-action plans, full native
+trajectory replay, a causal continuation test and evidence of stronger play.
+The method is promising for narrow trade accounting; it has not earned a general
+heuristic-audit skill or large collection run yet.
+
 ## Next small milestone and stopping rule
 
-1. Supply native before/after inventories, actual legal build opportunities,
-   production/port context and action timing for optional trades. Avoid a second
-   Python implementation of game rules.
-2. Capture per-resource target contributions and explicit mask/early-return
-   reasons from the executing scorer. Retain the same-call/parity guarantees.
-3. Re-review a small optional-trade sample, preserving blind judgments and an
-   independent critic. Turn supported concerns into scenario tests with
-   counterexamples; a plausible LLM explanation alone is insufficient.
+1. Native inventories, immediate legal opportunities, production, timing and
+   opt-in scorer inputs are implemented. Extend only facts needed for a specific
+   unresolved judgment, not a second Python implementation of game rules.
+2. Review the separate six-case optional cohort; preserve blind judgments before
+   exposing scores. Do not treat re-reviewing the original three as new evidence.
+3. Expand the supported accounting concern into prerequisite-swap and useful-trade
+   scenario controls. Only then propose a bounded policy experiment; a plausible
+   LLM explanation alone is insufficient.
 4. Scale beyond the pilot only when packets support a specific, reproducible
    diagnosis without unnecessary raw-context retrieval. If not, improve the
    representation instead of spending more games or tuning weights.
@@ -129,7 +212,7 @@ heuristic/tuning research and proposed sample sizes, not completed experiments.
 
 ## Verification and delivery boundary
 
-Release `sim` built with warnings as errors; all 121 CatanAI tests passed,
+September 8: Release `sim` built with warnings as errors; all 121 CatanAI tests passed,
 including the existing seeded trajectory guards and 11 new assessment tests.
 Eight process-level corpus tests passed (including separate-process semantic
 RNG/trace agreement, masks, counts, bounded failures and overwrite refusal).
@@ -137,6 +220,17 @@ The complete Python tooling suite passed **91 tests after final validator
 hardening**; its output is retained in the artifact's `validation/`.
 SwiftLint and `git diff --check` passed. No app UI changed or new iOS build ran
 as part of this trial; the full app/UI gate has not been rerun for this branch.
+
+September 9: **134 CatanAI tests passed** in 69.73 seconds and **98 Python
+tooling tests passed** in 129.96 seconds. These include the native enrichment
+CLI, scalar rounding/material-change/decision-change checks, unscored provenance,
+traced/untraced game parity, separate-process trace/RNG agreement, native context
+and the sole/surplus-ore control. Release `sim` and `trade-review` built with
+warnings as errors; SwiftLint and diff whitespace checks passed. All twelve
+case identities and native before/after facts are unchanged between the reviewed
+`enriched-01` and corrected `enriched-02`; only provenance/rendering was revised.
+Logs are retained in the September 9 artifact's `validation/`. This is package
+and tooling verification, **not** a new app/UI gate or on-phone gameplay claim.
 
 This work is committed locally on `codex/heuristic-corpus-plan-20260908`, not merged into the
 shipped app. No new trained model, tuned heuristic, or playing-strength comparison
@@ -146,6 +240,20 @@ verification remains separate. See the [delivery report](2026-09-08-heuristic-de
 No new delivery was performed by this trial; App Store Connect was not rechecked.
 
 ## Repeat the trial, not the whole research program
+
+For a presentation/context iteration on an **already exact-schedule-validated**
+review, skip recollecting games and reparsing every state:
+
+```sh
+swift build --package-path Packages/CatanAI -c release --product trade-review -Xswiftc -warnings-as-errors
+python3 scripts/enrich_corpus.py --review '/path/to/validated-review' \
+  --binary "$PWD/Packages/CatanAI/.build/release/trade-review" \
+  --output '/path/to/NEW-enriched-review'
+```
+
+Send only blind Markdown files to the first-pass reviewer. Keep the private
+snapshot, explained files and raw native output out of that pass. A retained
+partial directory without `receipt.json` is **not** completed evidence.
 
 The existing `sim-harness` workflow supplies native games; the archived watchdog
 supplies the hard time bound. Use a **new output name** for each run. From the

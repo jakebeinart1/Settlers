@@ -398,7 +398,8 @@ public struct Bot: Sendable {
         assessments: inout [TradeAssessment], recordingAssessments: Bool
     ) -> Bool {
         guard let assessment = TradeHeuristics.assessment(
-            offer: offer, receiver: receiver, state: state, personality: personality, weights: weights
+            offer: offer, receiver: receiver, state: state, personality: personality, weights: weights,
+            includeContributions: recordingAssessments
         ) else { return false }
         if recordingAssessments { assessments.append(assessment) }
         return assessment.accepted
