@@ -1,7 +1,7 @@
 # Expanded Game Mode — Design
 
 **Date:** 2026-09-10
-**Status:** Draft — design sections approved by Jake 2026-09-10, spec awaiting review
+**Status:** Revised 2026-09-10 after Jake widened the goal to many future modes, massive maps and 100–1000 point targets. Supersedes the first draft; measured evidence added.
 **Branch:** `feat/expanded-game-mode`
 
 ## Goal
@@ -11,11 +11,22 @@ points, with longest road and largest army worth 4 points each and every
 quantity in the game — pieces, bank, development deck — scaled to match. The
 player picks it on the New Game screen alongside **Classic**.
 
-The larger half of the goal is structural. Jake intends to add further modes
-after this one, so the deliverable is not "one variant" but **a place variants
-live**: every rule quantity the engine currently hard-codes moves into one
-value type, and adding mode three costs an enum case and a literal rather than
-an archaeology pass across four files.
+The larger half of the goal is structural. Jake intends **many** further modes —
+new quantities, new board sizes up to hundreds or a thousand tiles, targets of
+100–1000 points, and new rule behaviours (a sixth resource, a development-card
+bank trade-in, a road remover, a "double city" worth 4) — so the deliverable is
+not "one variant" but **a place variants live**, sized for that ambition.
+
+Two things are settled and simplify the design considerably:
+
+- **The win condition is always a victory-point threshold.** No pluggable win
+  conditions; `WinCondition` stays a threshold test and only the number moves.
+- **The board is always a hex disc.** No arbitrary topologies; `BoardShape`
+  stays radius-based.
+
+What is NOT settled — new move shapes — is handled by making `Ruleset` cheap to
+extend rather than by building a plugin system for capabilities that do not yet
+exist. See *Where the boundary is*.
 
 ## Non-Goals
 
@@ -133,6 +144,84 @@ Expanded bounds the retries and then **deterministically repairs** the layout by
 swapping offending tokens with non-hot ones. The repair draws from `state.rng`
 and enumerates in sorted order, so it stays reproducible across processes.
 
+## Scale: what was measured, and the one thing that does not scale
+
+Measured 2026-09-10 on this machine, before any design was committed to. Guesses
+about performance were wrong in both directions, so the numbers are recorded
+here rather than the intuitions.
+
+### Board size is not a problem
+
+| radius | tiles | vertices | edges | board generation | `legalMoves` | legal moves |
+|---|---|---|---|---|---|---|
+| 2 | 19 | 54 | 72 | 0.7ms | 1.9ms | 210 |
+| 3 | 37 | 96 | 132 | 1.2ms | 2.2ms | 228 |
+| 5 | 91 | 216 | 306 | 2.7ms | 4.2ms | 282 |
+| 8 | 217 | 486 | 702 | 6.6ms | 9.1ms | 408 |
+| 12 | 469 | 1,014 | 1,482 | 13.6ms | 18.8ms | 660 |
+| 18 | 1,027 | 2,166 | 3,192 | 30.2ms | 41.5ms | 1,218 |
+
+Both scale **linearly**. A thousand-tile board is not an engine problem. (It is
+still a *rendering* problem — see *Accepted risks*.)
+
+### `LongestRoad` is exponential, and it is the real ceiling
+
+`LongestRoad.longestPath` runs an exhaustive depth-first search from every
+vertex, with no pruning, no memoization and no decomposition. Cost against road
+count, same machine:
+
+| roads | realistic (path-like network) | worst case (dense clump) |
+|---|---|---|
+| 15 — *Classic's cap* | 0.6ms | 3.3ms |
+| 20 | 0.9ms | 10.2ms |
+| 25 | 1.4ms | 27.8ms |
+| 30 — *Expanded's cap* | 2.3ms | 157ms |
+| 35 | — | 309ms |
+| 40 | 4.2ms | 776ms |
+| 60 | 9.0ms | — |
+
+Roughly doubling every five roads on the dense curve; one nastier topology at
+~24–30 roads ran **over 100 seconds** before it was killed.
+
+**Classic's 15-road limit is the only reason this has never surfaced.** Expanded
+at 30 roads is playable (2.3ms realistic, 157ms pathological), but a 100+ road
+mode — which a 1000-point target implies — would freeze for minutes on every
+road placement.
+
+Jake's call (2026-09-10): **fix it before building Expanded**, so the large
+modes are unblocked from the start.
+
+### The replacement
+
+Longest simple path is NP-hard in general, so the fix is not a clever formula —
+it is removing the work that never needed doing. Four steps, all exact:
+
+1. **Split the network at opponent-blocked vertices.** A road may end at an
+   opponent's building but not continue through it, so splitting there is
+   exactly equivalent to today's rule and breaks one tangled graph into several
+   small ones.
+2. **Decompose into connected components.** Separate clusters cannot form one
+   path; the answer is the maximum over components.
+3. **A component with no cycle is a tree, which is the common case.** Its
+   longest path is its diameter — two linear passes, no search at all.
+4. **Only a component containing a cycle searches**, and then with a
+   branch-and-bound cut: abandon any branch whose length plus all remaining
+   unvisited edges in the component cannot beat the best answer so far.
+
+**The result must be identical to today's, not merely close.** This function
+decides games and every seeded fingerprint in the repo depends on its answers.
+So the current implementation is kept in the test target as a **reference
+oracle**, and the replacement is proven equal to it across thousands of randomly
+generated networks — trees, cycles, disconnected clusters, and blocked vertices
+— before it is trusted. Any fingerprint change is then evidence of a bug, not an
+expected re-pinning.
+
+### The tripwire
+
+`Ruleset` validation refuses a mode whose road limit exceeds what the algorithm
+can serve, with a message naming the measured limit. A future mode gets a build
+-time error rather than a frozen game.
+
 ## Architecture
 
 ### `GameMode` is a tag; `Ruleset` is the data
@@ -143,18 +232,23 @@ currently hard-code:
 
 ```swift
 struct Ruleset {
-    let board: BoardShape                     // radius, resource mix, token multiset, ports
-    let victoryPointTargets: ClosedRange<Int> // Classic 8...12, Expanded 25...25
+    let board: BoardShape
+    /// Targets a game in this mode may be started at.
+    let victoryPointTargets: ClosedRange<Int>
     let defaultVictoryPointTarget: Int
     let longestRoadBonus: Int
     let largestArmyBonus: Int
     let longestRoadMinimum: Int
     let largestArmyMinimum: Int
+    /// Per building KIND, not per named field. Adding `.doubleCity` later is
+    /// two dictionary entries; three flat fields would be an edit to every
+    /// rule site that reads a limit.
+    let pieceLimits: PieceAllowance          // [BuildingKind: Int] or .scaledFromBoard
+    let victoryPointsPerBuilding: [BuildingKind: Int]
     let maxRoadsPerPlayer: Int
-    let maxSettlementsPerPlayer: Int
-    let maxCitiesPerPlayer: Int
-    let bankPerResource: Int
+    let bankPerResource: BankAllowance       // explicit or .scaledFromBoard
     let devCardDeck: [DevCardType: Int]
+    /// A player holding MORE than this many resource cards discards on a 7.
     let discardThreshold: Int
 }
 ```
@@ -175,6 +269,39 @@ Three properties make this survive modes four and five:
 3. **A mode needing an axis `Ruleset` lacks** adds a field with a Classic-valued
    default; every other mode keeps compiling. That is why `Ruleset` is a plain
    struct rather than a protocol with per-mode conformances.
+
+### Four seams built now, against named future features
+
+These are not speculation — each is a shape Jake has named, and each is cheap
+today and a cross-cutting refactor later. Nothing below *adds* a feature; they
+only stop the feature from being a rewrite.
+
+| Seam | Serves | Why now |
+|---|---|---|
+| **Per-kind piece limits and points** (`[BuildingKind: Int]` rather than `maxSettlements` / `maxCities` / a `settlementPoints` constant) | the "double city worth 4" | Adding a third building tier becomes two dictionary entries. As flat fields it is an edit to every limit check and both victory-point formulas. |
+| **Board declared as composition, not per-tile arrays** | maps of hundreds or a thousand tiles | A literal entry per tile is unwritable past ~50 tiles. The first draft of this spec already had to *generate* its 37-entry array with a stride trick rather than write it — the design saying it was wrong. |
+| **Piece counts and bank derivable from board size** | any new map size | `.scaledFromBoard` or an explicit override, so a new radius does not need hand-computed supplies. Every mode may still state its numbers outright. |
+| **No hardcoded resource count** | a sixth resource | Most of the engine already drives off `Resource.allCases`. This audits for literal `5`s and hardcoded resource lists and fixes what it finds. It does not add a resource. |
+
+**`BoardShape` becomes a composition:**
+
+```swift
+struct BoardShape: Equatable, Sendable {
+    let radius: Int
+    /// Tile counts by terrain, summing to the radius's tile count. Expanded
+    /// into a spiral layout deterministically; no per-tile literal.
+    let terrain: TerrainComposition
+    /// The token multiset, declared as counts per pip value.
+    let tokens: TokenComposition
+    /// Port kinds, placed by walking the coastline at an even stride.
+    let ports: PortLayout
+}
+```
+
+`PortLayout` keeps a `.fixed([Port])` case, and `TerrainComposition` /
+`TokenComposition` each keep a literal-order case, **used only by Classic**,
+whose arrangement is the authentic physical board and is not derivable from any
+rule.
 
 ### Why a tag and not stored values
 
