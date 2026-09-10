@@ -68,7 +68,7 @@ Important finding fixed, and re-verified. Commits are on `feat/expanded-game-mod
 | 2 | Nothing hardcodes five resources | ✅ **Done** 2026-09-10 | `092a3bc` | Audit clean — every enumeration already `Resource.allCases`-driven. Test-only commit; no production change. |
 | 3 | `BoardShape` as a composition | ✅ **Done** 2026-09-10 | `3340a3c..5a329f8` | 236/236 + 145/145, no fingerprint moved, swiftlint clean. Cross-process probe: 3 processes byte-identical. 6 findings fixed incl. an unbounded loop that hung forever on a legal all-6/8 composition. |
 | 4 | Expanded board shape + token repair | ✅ **Done** 2026-09-10 | `a09e339` | 243/243 + 145/145, no fingerprint moved. Verified independently: 37 tiles, terrain and 36-token multiset exactly 2× Classic, 14 ports (4 generic + 2/resource) on distinct edges, 0 adjacency violations, byte-identical across 3 processes. |
-| 5 | `GameMode` and `Ruleset` | 🔨 **In progress** | | |
+| 5 | `GameMode` and `Ruleset` | 🔍 **In review** | `6b28341` | 248/248 + 145/145. `supportedRoadLimit = 38`, measured not guessed — independently reproduced (38→5.60ms vs agent's 5.48ms) and the branch-and-bound cliff confirmed at 44 roads (235ms). |
 | 6 | `GameState.mode`, schema v4 | ⬜ Not started | | |
 | 7 | Route rule sites through `state.rules` | ⬜ Not started | | |
 | 8 | Expanded full game + fingerprints | ⬜ Not started | | |
@@ -1025,7 +1025,7 @@ Claude-Session: https://claude.ai/code/session_01TBxaHYvMxcRujKxfhdFdAe"
 - Consumes: `BoardShape.classic`, `BoardShape.expanded` from Tasks 3–4.
 - Produces: `GameMode` (`.classic`, `.expanded`; `String`-raw `Codable`, `CaseIterable`, `Sendable`), `GameMode.displayName`, `GameMode.summary`, `Ruleset`, `Ruleset.forMode(_:)`, `PieceAllowance`, `BankAllowance`, `Ruleset.pieceLimit(for:)`, `Ruleset.victoryPoints(for:)`, `Ruleset.bankPerResource`, `Ruleset.validationProblem`.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```swift
 import Testing
@@ -1110,12 +1110,12 @@ import Testing
 }
 ```
 
-- [ ] **Step 2: Run to verify it fails**
+- [x] **Step 2: Run to verify it fails**
 
 Run: `swift test --package-path Packages/CatanEngine --filter RulesetTests`
 Expected: FAIL — `cannot find 'Ruleset' in scope`.
 
-- [ ] **Step 3: Make `BuildingKind` enumerable**
+- [x] **Step 3: Make `BuildingKind` enumerable**
 
 `BuildingKind` (`Models/Player.swift:1`) is `Codable, Sendable` but **not** `CaseIterable`, and both the ceiling check and `validationProblem` enumerate it. Add the conformance:
 
@@ -1127,7 +1127,7 @@ public enum BuildingKind: Codable, Sendable, CaseIterable, Hashable {
 
 `Hashable` too — it is a dictionary key in `Ruleset` now. Adding a third case later then automatically reaches every loop that drives off `allCases`, which is the point of keying by kind.
 
-- [ ] **Step 4: Create `Models/GameMode.swift`**
+- [x] **Step 4: Create `Models/GameMode.swift`**
 
 ```swift
 /// Which rule set a game is played under.
@@ -1165,7 +1165,7 @@ public enum GameMode: String, Codable, CaseIterable, Sendable {
 }
 ```
 
-- [ ] **Step 5: Create `Ruleset.swift`**
+- [x] **Step 5: Create `Ruleset.swift`**
 
 ```swift
 /// How many of each piece a player owns.
@@ -1268,7 +1268,7 @@ Fill in both cases from the Global Constraints table. Classic: targets `8...12`,
 
 Comment the Expanded case with the *reasons*: pieces double because classic's limits cap buildings at 13 VP and 25 would otherwise need nearly every VP card; the discard threshold rises because doubled income would trigger classic's 7 for most players on most sevens; **the two bonus minimums deliberately do not move (Jake, 2026-09-10)**.
 
-- [ ] **Step 6: Add `LongestRoad.supportedRoadLimit`**
+- [x] **Step 6: Add `LongestRoad.supportedRoadLimit`**
 
 In `LongestRoad.swift`, from Task 1's measured curve:
 
@@ -1283,12 +1283,12 @@ In `LongestRoad.swift`, from Task 1's measured curve:
 
 Pick the value from Task 1's after-numbers: the largest road count whose **dense** case stays under 20ms. Record the number and its measurement in the commit message.
 
-- [ ] **Step 7: Run the tests**
+- [x] **Step 7: Run the tests**
 
 Run: `swift test --package-path Packages/CatanEngine`
 Expected: PASS — the five new cases and the whole existing suite, since `BuildingKind` gained conformances but no behaviour changed.
 
-- [ ] **Step 8: Commit**
+- [x] **Step 8: Commit**
 
 ```bash
 git add Packages/CatanEngine
