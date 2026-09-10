@@ -169,3 +169,83 @@ import Testing
         #expect(board.onBoardEdges.contains(edge))
     }
 }
+
+@Test func expandedBoardHasThirtySevenTilesAndOneDesert() {
+    let board = BoardGenerator.standard(BoardShape.expanded)
+    #expect(board.tiles.count == 37)
+    #expect(board.tiles.filter { $0.kind == .desert }.count == 1)
+}
+
+@Test func expandedTerrainIsExactlyTwiceClassic() {
+    let board = BoardGenerator.standard(BoardShape.expanded)
+    func count(_ resource: Resource) -> Int {
+        board.tiles.filter { $0.kind == .resource(resource) }.count
+    }
+    #expect(count(.grain) == 8)
+    #expect(count(.wool) == 8)
+    #expect(count(.lumber) == 8)
+    #expect(count(.brick) == 6)
+    #expect(count(.ore) == 6)
+}
+
+@Test func expandedTokenMultisetIsExactlyTwiceClassic() {
+    let board = BoardGenerator.standard(BoardShape.expanded)
+    let expanded = board.tiles.compactMap(\.numberToken).sorted()
+    let doubledClassic = (BoardGenerator.standardNumberOrder
+                          + BoardGenerator.standardNumberOrder).sorted()
+    #expect(expanded == doubledClassic)
+    #expect(expanded.count == 36)
+}
+
+@Test func expandedHasFourteenPortsOnDistinctCoastalEdges() {
+    let board = BoardGenerator.standard(BoardShape.expanded)
+    #expect(board.ports.count == 14)
+    #expect(Set(board.ports.map { EdgeID($0.vertexA, $0.vertexB) }).count == 14)
+    for port in board.ports {
+        #expect(board.onBoardVertices.contains(port.vertexA))
+        #expect(board.onBoardVertices.contains(port.vertexB))
+    }
+    #expect(board.ports.filter { $0.kind == .generic }.count == 4)
+    for resource in Resource.allCases {
+        #expect(board.ports.filter { $0.kind == .resource(resource) }.count == 2)
+    }
+}
+
+@Test func expandedRandomizedBoardNeverAdjoinsSixAndEight() {
+    for seed in UInt64(1)...50 {
+        let board = BoardGenerator.randomized(seed: seed, shape: .expanded)
+        let tokens = Dictionary(uniqueKeysWithValues: board.tiles.map { ($0.coordinate, $0.numberToken) })
+        for tile in board.tiles where tile.numberToken == 6 || tile.numberToken == 8 {
+            for direction in 0..<6 {
+                if let neighbor = tokens[tile.coordinate.neighbor(direction)] ?? nil {
+                    #expect(!(neighbor == 6 || neighbor == 8), "seed \(seed)")
+                }
+            }
+        }
+    }
+}
+
+@Test func expandedRandomizedBoardIsReproducibleFromItsSeed() {
+    let first = BoardGenerator.randomized(seed: 99, shape: .expanded)
+    let second = BoardGenerator.randomized(seed: 99, shape: .expanded)
+    #expect(first.tiles == second.tiles)
+    #expect(first.ports == second.ports)
+}
+
+@Test func aShapeNoShuffleCanSatisfyIsRepairedRatherThanRefused() {
+    // Every token hot. No shuffle can ever satisfy the no-adjacent-6/8 rule,
+    // so Task 3's bound would exhaust and crash. The repair must deal a board
+    // instead - and the rule is unsatisfiable here, so what it must NOT do is
+    // loop, crash, or silently drop tokens.
+    let shape = BoardShape(
+        radius: 2,
+        terrain: .counts([.desert: 1, .resource(.grain): 9, .resource(.ore): 9]),
+        tokens: .counts([6: 9, 8: 9]),
+        ports: .derived(kinds: [.generic])
+    )
+    let board = BoardGenerator.randomized(seed: 7, shape: shape)
+    #expect(board.tiles.count == 19)
+    #expect(board.tiles.compactMap(\.numberToken).count == 18)
+    // Reproducible despite going through the repair path.
+    #expect(BoardGenerator.randomized(seed: 7, shape: shape).tiles == board.tiles)
+}

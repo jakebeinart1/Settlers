@@ -64,6 +64,36 @@ public extension BoardShape {
         tokens: .literalOrder(BoardGenerator.standardNumberOrder),
         ports: .fixed(BoardGenerator.standardPorts)
     )
+
+    /// The 37-tile board (radius 3) that `GameMode.expanded` is played on.
+    ///
+    /// One desert plus 36 resource tiles is exactly twice classic's mix, and
+    /// the 36 tokens are exactly twice classic's multiset - so the dice
+    /// distribution is preserved to the card and a player's probability
+    /// intuition transfers between modes. A 38th tile would break both and buy
+    /// nothing.
+    static let expanded = BoardShape(
+        radius: 3,
+        terrain: .counts([
+            .desert: 1,
+            .resource(.grain): 8, .resource(.wool): 8, .resource(.lumber): 8,
+            .resource(.brick): 6, .resource(.ore): 6,
+        ]),
+        // Twice each of classic's 18: one 2 and one 12 become two; the pairs
+        // of 3-6 and 8-11 become fours.
+        tokens: .counts([2: 2, 3: 4, 4: 4, 5: 4, 6: 4, 8: 4, 9: 4, 10: 4, 11: 4, 12: 2]),
+        // 14 ports holds classic's ~30% shoreline density (9 of 30 coastal
+        // edges) on a 42-edge coast, rather than its 4:5 generic-to-resource
+        // ratio - doubling to 18 would cover 43% of the shore and make
+        // harbours cheap. Two 2:1 ports per resource is symmetric, which
+        // matters more on a map where a whole corner can be out of reach.
+        ports: .derived(kinds: [
+            .generic, .resource(.grain), .resource(.ore), .resource(.wool),
+            .generic, .resource(.brick), .resource(.lumber), .resource(.grain),
+            .generic, .resource(.ore), .resource(.wool), .resource(.brick),
+            .generic, .resource(.lumber),
+        ])
+    )
 }
 
 /// How a shape's terrain is specified.

@@ -124,17 +124,16 @@ public enum BoardGenerator {
         randomized(seed: seed, shape: BoardShape.classic)
     }
 
-    /// Rejected shuffles allowed before `randomized(seed:shape:)` gives up.
+    /// Shuffles allowed before `randomized(seed:shape:)` hands off to the
+    /// deterministic repair pass.
     ///
     /// Bounded rather than unbounded: classic's bag is known feasible, but
-    /// this loop is now reachable with an arbitrary `shape` - a token
+    /// this loop is reachable with an arbitrary `shape` - a token
     /// composition that packs a board with 6s and 8s (as in
     /// `aCompositionExpandsToExactlyTheDeclaredCounts`) can have no
     /// arrangement that satisfies "no 6 or 8 touches another 6 or 8" at all,
-    /// and an unbounded retry would hang forever rather than fail. Task 4
-    /// replaces this exhaustion path with a deterministic repair pass; until
-    /// then, crashing loudly beats hanging silently or dealing a board that
-    /// violates the rule.
+    /// and an unbounded retry would hang forever rather than fail.
+    /// `repairingAdjacentSixOrEight` is what runs when the bound is hit.
     private static let maxShuffleAttempts = 100
 
     /// Shuffles `shape`'s expanded terrain and tokens independently using a
@@ -150,20 +149,20 @@ public enum BoardGenerator {
             .expanded(count: baseKinds.filter { $0 != .desert }.count)
         var kinds: [TileKind]
         var numbers: [Int]
-        var attempt = 0
+        // The bound is already present from Task 3 - keep it.
+        var attemptsRemaining = maxShuffleAttempts
+        // Classic clears this in a handful of shuffles - 4 hot tiles among 19.
+        // Expanded has 8 among 36 on a graph with far more adjacencies, where a
+        // clean shuffle is rare enough that an unbounded loop can spin, and a
+        // thousand-tile board would never clear it. Try, then repair.
         repeat {
-            attempt += 1
-            guard attempt <= maxShuffleAttempts else {
-                preconditionFailure("""
-                    no arrangement of \(shape.tileCount) tiles / \
-                    \(baseNumbers.count) tokens for this shape satisfies the \
-                    no-adjacent-6/8 rule after \(maxShuffleAttempts) shuffles \
-                    - the composition is likely infeasible at this radius
-                    """)
-            }
             kinds = baseKinds.shuffled(using: &rng)
             numbers = baseNumbers.shuffled(using: &rng)
-        } while hasAdjacentSixOrEight(kinds: kinds, numbers: numbers, coordinates: coordinates)
+            attemptsRemaining -= 1
+        } while attemptsRemaining > 0
+            && hasAdjacentSixOrEight(kinds: kinds, numbers: numbers, coordinates: coordinates)
+
+        numbers = repairingAdjacentSixOrEight(kinds: kinds, numbers: numbers, radius: shape.radius)
 
         var numberIterator = numbers.makeIterator()
         let tiles = zip(coordinates, kinds).map { coordinate, kind -> Tile in
@@ -192,6 +191,52 @@ public enum BoardGenerator {
             }
         }
         return false
+    }
+
+    /// Swaps every 6/8 that touches another 6/8 onto a cool tile, walking tiles
+    /// in spiral order and taking the first cool partner that does not itself
+    /// create an adjacency.
+    ///
+    /// Best-effort on the no-adjacent-6/8 rule, not a guarantee: some
+    /// compositions (every token hot, for instance) make the rule
+    /// unsatisfiable at any arrangement, and this pass cannot conjure a
+    /// solution that does not exist. What it guarantees absolutely is
+    /// completeness - every producing tile keeps exactly one token, none
+    /// dropped or duplicated - and determinism - the walk is over an ordered
+    /// array, never a `Set` or `Dictionary` iteration, and the partner choice
+    /// is "first that works" rather than a random pick, so two calls with the
+    /// same input return the same board, in this process and in tomorrow's.
+    private static func repairingAdjacentSixOrEight(
+        kinds: [TileKind], numbers: [Int], radius: Int
+    ) -> [Int] {
+        let coordinates = spiralCoordinates(radius: radius)
+        var tokenIndexByCoordinate: [HexCoordinate: Int] = [:]
+        var nextToken = 0
+        for (coordinate, kind) in zip(coordinates, kinds) where kind != .desert {
+            tokenIndexByCoordinate[coordinate] = nextToken
+            nextToken += 1
+        }
+        var result = numbers
+        func isHot(_ token: Int) -> Bool { token == 6 || token == 8 }
+        func touchesHot(_ coordinate: HexCoordinate, ignoring: HexCoordinate?) -> Bool {
+            (0..<6).contains { direction in
+                let neighbor = coordinate.neighbor(direction)
+                guard neighbor != ignoring, let index = tokenIndexByCoordinate[neighbor] else { return false }
+                return isHot(result[index])
+            }
+        }
+        for coordinate in coordinates {
+            guard let index = tokenIndexByCoordinate[coordinate], isHot(result[index]) else { continue }
+            guard touchesHot(coordinate, ignoring: nil) else { continue }
+            let partner = coordinates.first { candidate in
+                guard let candidateIndex = tokenIndexByCoordinate[candidate],
+                      !isHot(result[candidateIndex]) else { return false }
+                return !touchesHot(candidate, ignoring: coordinate)
+            }
+            guard let partner, let partnerIndex = tokenIndexByCoordinate[partner] else { continue }
+            result.swapAt(index, partnerIndex)
+        }
+        return result
     }
 
     // MARK: Shared assembly
