@@ -1688,7 +1688,43 @@ Add the same `victoryPointTarget: Int? = nil, mode: GameMode = .classic` tail to
 
 - [ ] **Step 4: Route the five rule sites**
 
-`GameState.publicVictoryPoints` and `victoryPoints` — replace both `+= 2` pairs:
+**First, delete `Player.victoryPoints` — it is a second scoring formula.**
+
+`Models/Player.swift:35` computes `settlements.count + cities.count * 2 + <VP cards>`, hardcoding
+settlement = 1 and city = 2. `Player` has no access to a `Ruleset` and should not gain one — it is
+a bag of pieces, not a scorer. Left in place, adding the planned `.doubleCity` tier means editing
+this too, which defeats the whole reason piece points are keyed by `BuildingKind`.
+
+`GameState` owns the mode, so `GameState` owns the scoring. Delete the property and fold its
+logic into `GameState.victoryPoints(for:)`. Its only production reader is `GameState.swift:212`;
+`grep -rn "\.victoryPoints\b"` confirms nothing in `Settlers/` reads it. Fix any test that does.
+
+This also removes a duplicate formula the codebase already warns about: `publicVictoryPoints`'s own
+doc comment says a second victory-point formula is "the worst possible thing to maintain in two
+places."
+
+```swift
+    /// Buildings scored at this mode's rates, plus VP dev cards. Driven off
+    /// `BuildingKind.allCases` so a new building tier is a `Ruleset` entry
+    /// rather than an edit here.
+    private func buildingAndCardPoints(for player: Player) -> Int {
+        let buildings = BuildingKind.allCases.reduce(0) { total, kind in
+            let count: Int
+            switch kind {
+            case .settlement: count = player.settlements.count
+            case .city: count = player.cities.count
+            }
+            return total + count * rules.victoryPoints(for: kind)
+        }
+        return buildings + player.devCards.filter { $0 == .victoryPoint }.count
+    }
+```
+
+The `switch` is exhaustive on purpose: a new `BuildingKind` fails to compile here until it is told
+which collection holds it, which is the one thing `Ruleset` genuinely cannot know.
+
+Then `GameState.publicVictoryPoints` and `victoryPoints` — replace both `+= 2` pairs, and route
+their building terms through the helper above:
 
 ```swift
         if longestRoadPlayer == id { total += rules.longestRoadBonus }
