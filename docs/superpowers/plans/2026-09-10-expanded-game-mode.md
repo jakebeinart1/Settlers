@@ -2,9 +2,9 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Add a second playable rule set — "Expanded", a 37-tile map played to 25 victory points with 4-point bonuses and doubled quantities — and, in doing so, move every hard-coded rule quantity in `CatanEngine` into one `Ruleset` value so a third mode costs an enum case and a literal.
+**Goal:** Make `LongestRoad` scale, then add a second playable rule set — "Expanded", a 37-tile map played to 25 victory points with 4-point bonuses and doubled quantities — moving every hard-coded rule quantity in `CatanEngine` into one `Ruleset` value, with four seams sized for the many larger modes Jake intends next.
 
-**Architecture:** A `GameMode` enum is stored on `GameState` (one `Codable` field, `?? .classic` on decode); `Ruleset` maps a mode to every quantity the rules need; `BoardShape` maps it to the board geometry. Engine call sites read `state.rules.x` instead of a literal. Classic's values are unchanged throughout, so the existing suites are the refactor's safety net.
+**Architecture:** A `GameMode` enum is stored on `GameState` (one `Codable` field, `?? .classic` on decode); `Ruleset` maps a mode to every quantity the rules need; `BoardShape` declares board geometry as a *composition* expandable to any radius. Engine call sites read `state.rules.x` instead of a literal. Classic's values are unchanged throughout, so the existing suites are the refactor's safety net. Task 1 replaces the exhaustive longest-road search first, because Expanded's doubled road limit reaches its exponential zone and the modes after it would freeze outright.
 
 **Tech Stack:** Swift 6.3, SwiftUI, Swift Testing (`@Test` / `#expect`, not XCTest), SPM packages `CatanEngine` + `CatanAI`, XcodeGen, `scripts/gate.sh`.
 
@@ -26,6 +26,12 @@
   Claude-Session: https://claude.ai/code/session_01TBxaHYvMxcRujKxfhdFdAe
   ```
 
+### Measured facts this plan is built on (spec: *Scale*)
+
+- Board generation and `legalMoves` scale **linearly**: 1,027 tiles = 30ms and 42ms. Board size is not an engine problem.
+- `LongestRoad` is **exponential in road count**: 3.3ms at 15 roads, 157ms at 30, 776ms at 40, one topology >100s. Classic's 15-road cap is the only reason it has never surfaced.
+- The replacement must return **identical** results — the old implementation is retained as a test oracle.
+
 ### Fixed values this plan implements (from the spec)
 
 | | Classic | Expanded |
@@ -35,7 +41,9 @@
 | largest army bonus | 2 | 4 |
 | longest road minimum | 5 | 5 |
 | largest army minimum | 3 | 3 |
-| roads / settlements / cities per player | 15 / 5 / 4 | 30 / 10 / 8 |
+| roads per player | 15 | 30 |
+| piece limits by kind | settlement 5, city 4 | settlement 10, city 8 |
+| victory points by kind | settlement 1, city 2 | settlement 1, city 2 |
 | discard threshold | > 7 | > 10 |
 | bank per resource | 19 | 38 |
 | dev deck | 14/5/2/2/2 = 25 | 28/10/4/4/4 = 50 |
@@ -51,10 +59,13 @@
 
 ## File Structure
 
+**Modified first — the scaling fix:**
+- `LongestRoad.swift` — exhaustive DFS replaced by split → decompose → tree-diameter → bounded search.
+
 **New — `Packages/CatanEngine/Sources/CatanEngine/`:**
 - `Models/GameMode.swift` — the `GameMode` enum. One responsibility: name the modes, `Codable`.
 - `Ruleset.swift` — the `Ruleset` struct and the exhaustive `GameMode → Ruleset` mapping. The single place a new mode's quantities are written.
-- `BoardShape.swift` — `BoardShape` + `PortLayout`, and the coastline walk that derives ports for a generated layout.
+- `BoardShape.swift` — `BoardShape` as a composition (`TerrainComposition`, `TokenComposition`, `PortLayout`), the expansion to any radius, and the coastline walk that derives ports.
 
 **Modified — engine:**
 - `BoardGeneration.swift` — generalized to build from a `BoardShape`.
@@ -76,9 +87,327 @@ Why `Ruleset` and `BoardShape` are separate files: they change for different rea
 
 ---
 
-## Task 1: Generalize the board generator over a `BoardShape`
+## Task 1: Make `LongestRoad` scale, provably without changing any answer
 
-Pure refactor. Classic's board must come out byte-identical, and `BoardGenerationTests` is the proof.
+This is the highest-risk task in the project. `LongestRoad` decides who wins games, and every seeded fingerprint in the repo depends on its answers. The replacement must be **exactly equal** to the current implementation, not close.
+
+**Files:**
+- Modify: `Packages/CatanEngine/Sources/CatanEngine/LongestRoad.swift`
+- Test: Create `Packages/CatanEngine/Tests/CatanEngineTests/LongestRoadEquivalenceTests.swift`
+- Test: `Packages/CatanEngine/Tests/CatanEngineTests/LongestRoadTests.swift` (existing — must stay green untouched)
+
+**Interfaces:**
+- Consumes: nothing.
+- Produces: no public API change. `LongestRoad.compute(for:)` and `LongestRoad.length(for:in:)` keep their exact signatures and results. Internally adds `LongestRoad.referenceLongestPath(for:in:)`, `internal` and documented as test-only, holding today's algorithm verbatim.
+
+### Why this task exists (measured 2026-09-10)
+
+`longestPath` runs an exhaustive DFS from every vertex — no pruning, no memoization, no decomposition. Cost against road count:
+
+| roads | path-like network | dense clump |
+|---|---|---|
+| 15 (Classic's cap) | 0.6ms | 3.3ms |
+| 20 | 0.9ms | 10.2ms |
+| 25 | 1.4ms | 27.8ms |
+| 30 (Expanded's cap) | 2.3ms | 157ms |
+| 35 | — | 309ms |
+| 40 | 4.2ms | 776ms |
+
+Doubling every ~5 roads. Classic's 15-road cap is the only reason this has never surfaced. Expanded's 30 is playable but on the shoulder; the 100+ road modes Jake plans next would freeze for minutes.
+
+- [ ] **Step 1: Preserve today's algorithm as a reference oracle**
+
+Rename the existing `longestPath(for:in:)` to `referenceLongestPath(for:in:)`, change `private` to `internal`, and leave its body **byte-identical**. Add:
+
+```swift
+    /// Today's exhaustive search, kept verbatim as the correctness oracle for
+    /// `longestPath`. Exponential in road count (measured: 3.3ms at 15 roads,
+    /// 157ms at 30, 776ms at 40 on a dense network), which is why it is no
+    /// longer the one that runs — but it is simple enough to be obviously
+    /// correct, which is exactly what an oracle needs to be.
+    ///
+    /// Not `private` so `LongestRoadEquivalenceTests` can compare against it.
+    /// Nothing in production may call this.
+```
+
+- [ ] **Step 2: Write the failing equivalence test**
+
+Create `LongestRoadEquivalenceTests.swift`. This is the whole safety argument — write it before the new algorithm exists.
+
+```swift
+import Testing
+import Foundation
+@testable import CatanEngine
+
+/// Proves the fast longest-road search returns EXACTLY what the exhaustive one
+/// returns, across randomly generated networks.
+///
+/// Equality is the requirement, not approximation: this function decides games,
+/// and every seeded fingerprint in the repo is pinned to its answers. A
+/// disagreement on any generated network is a bug in the new algorithm, never
+/// an acceptable difference.
+private func randomNetwork(seed: UInt64, roadCount: Int, blockedCount: Int)
+    -> (GameState, Player) {
+    var rng = RandomSource(seed: seed)
+    let board = BoardGenerator.randomized(seed: seed)
+    var state = GameSetup.newGame(board: board, seed: seed)
+    let edges = board.onBoardEdges.sorted()
+    let vertices = board.onBoardVertices.sorted()
+
+    // Grow from a random seed edge so the network is CONNECTED often enough to
+    // be interesting, but jump to a fresh edge sometimes so disconnected
+    // components and cycles both occur.
+    var roads = Set<EdgeID>()
+    var frontier: [VertexID] = []
+    while roads.count < min(roadCount, edges.count) {
+        let candidates: [EdgeID]
+        if frontier.isEmpty || Int.random(in: 0..<5, using: &rng) == 0 {
+            candidates = edges.filter { !roads.contains($0) }
+        } else {
+            let from = frontier[Int.random(in: 0..<frontier.count, using: &rng)]
+            candidates = edges.filter { !roads.contains($0) && ($0.a == from || $0.b == from) }
+        }
+        guard let pick = candidates.isEmpty ? edges.filter({ !roads.contains($0) }).first
+                                            : candidates[Int.random(in: 0..<candidates.count, using: &rng)]
+        else { break }
+        roads.insert(pick)
+        frontier.append(pick.a); frontier.append(pick.b)
+    }
+    state.players[0].roads = roads
+    // Opponent buildings that cut the network.
+    var blocked = Set<VertexID>()
+    while blocked.count < blockedCount && blocked.count < vertices.count {
+        blocked.insert(vertices[Int.random(in: 0..<vertices.count, using: &rng)])
+    }
+    state.players[1].settlements = blocked
+    return (state, state.players[0])
+}
+
+@Test func fastSearchAgreesWithTheExhaustiveOneOnManyRandomNetworks() {
+    var checked = 0
+    for seed in UInt64(1)...300 {
+        for roadCount in [1, 3, 5, 8, 12, 15, 18, 22] {
+            for blockedCount in [0, 2, 5] {
+                let (state, player) = randomNetwork(seed: seed, roadCount: roadCount,
+                                                    blockedCount: blockedCount)
+                let fast = LongestRoad.length(for: player, in: state)
+                let reference = LongestRoad.referenceLongestPath(for: player, in: state)
+                #expect(fast == reference,
+                        "seed \(seed), \(roadCount) roads, \(blockedCount) blocked: fast \(fast) != reference \(reference)")
+                checked += 1
+            }
+        }
+    }
+    #expect(checked >= 7_000, "equivalence sweep covered only \(checked) networks")
+}
+
+@Test func fastSearchHandlesTheShapesThatBreakNaiveSearches() {
+    // A closed loop of roads around one hex: a cycle, so the tree shortcut
+    // must NOT be taken.
+    let board = BoardGenerator.standard()
+    var state = GameSetup.newGame(board: board, seed: 1)
+    let hex = board.tiles[0].coordinate
+    state.players[0].roads = Set(HexGeometry.edges(of: hex))
+    #expect(LongestRoad.length(for: state.players[0], in: state)
+            == LongestRoad.referenceLongestPath(for: state.players[0], in: state))
+
+    // Two disconnected clusters: the answer is the longer one, never the sum.
+    var disjoint = GameSetup.newGame(board: board, seed: 2)
+    let edges = board.onBoardEdges.sorted()
+    disjoint.players[0].roads = Set(edges.prefix(3)).union(Set(edges.suffix(4)))
+    #expect(LongestRoad.length(for: disjoint.players[0], in: disjoint)
+            == LongestRoad.referenceLongestPath(for: disjoint.players[0], in: disjoint))
+
+    // An empty network.
+    var empty = GameSetup.newGame(board: board, seed: 3)
+    empty.players[0].roads = []
+    #expect(LongestRoad.length(for: empty.players[0], in: empty) == 0)
+}
+```
+
+- [ ] **Step 3: Run to verify it fails for the right reason**
+
+Run: `swift test --package-path Packages/CatanEngine --filter LongestRoadEquivalence`
+Expected: FAIL — `referenceLongestPath` exists but `longestPath` is still the same function, so the test is comparing a function to itself and passes vacuously, OR it fails to compile. **Either way it proves nothing yet** — that is expected at this step, and Step 5 is where it becomes meaningful.
+
+- [ ] **Step 4: Write the fast search**
+
+Replace `longestPath(for:in:)` with the four-stage version. All four stages are exact; none approximates.
+
+```swift
+    /// The longest simple path through `player`'s road graph, cut at any vertex
+    /// holding an opposing settlement or city.
+    ///
+    /// Longest simple path is NP-hard in general, so this does not find a
+    /// clever formula - it removes work that never needed doing:
+    ///
+    /// 1. **Split at blocked vertices.** A road may END at an opponent's
+    ///    building but never continue through it, so a blocked vertex is
+    ///    duplicated into one copy per incident edge. That is exactly
+    ///    equivalent to the old rule and it breaks one tangled graph into
+    ///    several small ones.
+    /// 2. **Decompose into connected components.** Separate clusters cannot
+    ///    form one path, so the answer is the maximum over components rather
+    ///    than a search across all of them at once.
+    /// 3. **A component with no cycle is a tree** - the common case for real
+    ///    road networks - and a tree's longest path is its diameter, found by
+    ///    two linear traversals with no search at all.
+    /// 4. **Only a component containing a cycle searches**, and then with a
+    ///    branch-and-bound cut: a branch whose current length plus every
+    ///    remaining unvisited edge in its component cannot beat the best
+    ///    answer so far is abandoned.
+    ///
+    /// Proven equal to `referenceLongestPath` across thousands of generated
+    /// networks by `LongestRoadEquivalenceTests`. If those ever disagree, this
+    /// function is wrong - the oracle is the definition.
+    private static func longestPath(for player: Player, in state: GameState) -> Int {
+```
+
+Implement it. Guidance the plan can give but cannot write for you, because it depends on the split representation you choose:
+
+- Represent a split vertex as a `struct SplitVertex: Hashable { let vertex: VertexID; let copy: Int }` where unblocked vertices always use `copy: 0` and a blocked vertex uses a distinct copy per incident edge. Build adjacency over `SplitVertex`.
+- **Enumerate in sorted order everywhere.** Build adjacency by iterating `player.roads.sorted()`, and take component members in sorted order. `Set` iteration order is seeded per process; a non-deterministic traversal order would not change the *maximum* here, but it would make any future tie-break non-reproducible. Sort anyway.
+- A component is a tree exactly when `edgeCount == vertexCount - 1`.
+- Tree diameter: from any vertex, find the farthest vertex `u` by BFS; from `u`, find the farthest vertex `v`; the distance `u`→`v` is the diameter in edges.
+- Keep the recursion depth bounded — a 3,192-edge board can hold long components; prefer an explicit stack or confirm the recursion depth stays within the default stack for the road limits `Ruleset` permits.
+
+- [ ] **Step 5: Run the equivalence sweep**
+
+Run: `swift test --package-path Packages/CatanEngine --filter LongestRoadEquivalence`
+Expected: PASS, ≥7,000 networks compared, zero disagreements.
+
+**Any disagreement is a bug in the new code.** Do not adjust the oracle, do not relax the assertion, and do not exclude a failing shape. Print the failing network's roads and blocked vertices and fix the algorithm.
+
+- [ ] **Step 6: Prove the whole engine and the bots are unchanged**
+
+Run: `swift test --package-path Packages/CatanEngine`
+Run: `swift test --package-path Packages/CatanAI`
+Expected: PASS, both, with **`SeededGameFingerprintTests` unchanged and un-repinned.**
+
+The fingerprints are the strongest evidence available: identical move sequences across full seeded games mean the new search returned the same answer at every decision of every game. **If a fingerprint moves, stop.** Do not re-record it — that would be re-pinning the tests to a bug. Report it.
+
+- [ ] **Step 7: Measure the improvement and record it**
+
+Re-run the dense-network measurement at 15, 20, 25, 30, 35 and 40 roads and put the before/after numbers in the commit message. A performance fix without a measured number is a claim, not a result.
+
+- [ ] **Step 8: Commit**
+
+```bash
+git add Packages/CatanEngine/Sources/CatanEngine/LongestRoad.swift \
+        Packages/CatanEngine/Tests/CatanEngineTests/LongestRoadEquivalenceTests.swift
+git commit -m "perf(engine): make longest-road search scale, with identical results
+
+The search was an exhaustive DFS from every vertex with no pruning,
+memoization or decomposition, and its cost doubled roughly every five roads:
+measured 3.3ms at 15 roads, 157ms at 30, 776ms at 40 on a dense network, and
+over 100 seconds on one topology. Classic's 15-road piece limit is the only
+reason this never surfaced. Expanded doubles that limit to 30, and the larger
+modes planned next would freeze outright.
+
+Replaced with four exact stages: split the graph at opponent-blocked vertices
+(equivalent to the old rule, since a road may end at a building but not pass
+through it), decompose into connected components, solve any acyclic component
+as a tree diameter in linear time, and branch-and-bound only components that
+actually contain a cycle.
+
+<BEFORE/AFTER TABLE FROM STEP 7>
+
+The old implementation is retained as referenceLongestPath and is now the
+correctness oracle: LongestRoadEquivalenceTests compares the two across 7,000+
+generated networks spanning trees, cycles, disconnected clusters and blocked
+vertices. Every seeded fingerprint in CatanAI is unchanged and was NOT
+re-recorded, which is the real evidence - identical move sequences across full
+games mean identical answers at every decision.
+
+Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01TBxaHYvMxcRujKxfhdFdAe"
+```
+
+---
+
+## Task 2: Nothing hardcodes five resources
+
+A small audit task, serving a named future feature (a sixth resource). It adds no resource.
+
+**Files:**
+- Modify: whatever the audit finds.
+- Test: Create `Packages/CatanEngine/Tests/CatanEngineTests/ResourceCountAgnosticTests.swift`
+
+**Interfaces:**
+- Consumes: nothing. Produces: no API change.
+
+- [ ] **Step 1: Find every place the count 5 is baked in**
+
+```bash
+grep -rn "allCases" --include="*.swift" Packages/CatanEngine/Sources Packages/CatanAI/Sources | grep -i resource
+grep -rn "\b5\b" --include="*.swift" Packages/CatanEngine/Sources | grep -iv "test\|//" | grep -i "resource\|kind\|count"
+grep -rn "\[\.brick\|\.grain, \.wool\|\.lumber, \.ore" --include="*.swift" Packages/CatanEngine/Sources Packages/CatanAI/Sources
+```
+
+Write the findings into your report. Expect most of the engine to be clean already — `StateEncoding.resourceKindCount` is `Resource.allCases.count`, and the bank loop drives off `Resource.allCases`.
+
+- [ ] **Step 2: Write the failing test**
+
+```swift
+import Testing
+@testable import CatanEngine
+
+/// Pins the behaviour a sixth resource depends on: everything that enumerates
+/// resources does it through `Resource.allCases`, so adding a case is a
+/// one-line change rather than a hunt.
+@Test func everyResourceGetsBankStockAndAFeatureSlot() {
+    let state = GameSetup.newGame(board: BoardGenerator.standard(), seed: 1)
+    // Every case, not five named ones.
+    for resource in Resource.allCases {
+        #expect(state.bank[resource] != nil, "\(resource) has no bank stock")
+    }
+    #expect(state.bank.count == Resource.allCases.count)
+    #expect(StateEncoding.resourceKindCount == Resource.allCases.count)
+}
+
+@Test func startingBankIsUniformAcrossEveryResource() {
+    let state = GameSetup.newGame(board: BoardGenerator.standard(), seed: 1)
+    let stocks = Set(Resource.allCases.map { state.bank[$0] ?? -1 })
+    #expect(stocks.count == 1, "bank stock differs by resource: \(stocks)")
+}
+```
+
+- [ ] **Step 3: Run it**
+
+Run: `swift test --package-path Packages/CatanEngine --filter ResourceCountAgnostic`
+Expected: PASS immediately if the engine is already clean. **That is a valid outcome** — the test's job is to keep it clean, not to prove it was broken. If it fails, fix the source, not the test.
+
+- [ ] **Step 4: Fix anything the audit found**
+
+Only what Step 1 actually found. Do not add a resource, do not make `Resource` dynamic, do not touch `CatanAI` heuristic weights keyed by resource — per-resource *tuning* is legitimately per-resource.
+
+- [ ] **Step 5: Run the full engine suite**
+
+Run: `swift test --package-path Packages/CatanEngine`
+Expected: PASS.
+
+- [ ] **Step 6: Commit**
+
+```bash
+git add Packages/CatanEngine
+git commit -m "test(engine): pin resource enumeration to Resource.allCases
+
+A sixth resource is a named future mode. Most of the engine already enumerates
+through allCases; this adds the test that keeps it that way, plus fixes for
+whatever the audit turned up, so adding a case stays a one-line change instead
+of a hunt through six files.
+
+Adds no resource and changes no behaviour.
+
+Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01TBxaHYvMxcRujKxfhdFdAe"
+```
+
+---
+
+## Task 3: `BoardShape` as a composition, expandable to any radius
+
+Pure refactor. Classic's board must come out **byte-identical**, and `BoardGenerationTests` plus the CatanAI fingerprints are the proof.
 
 **Files:**
 - Create: `Packages/CatanEngine/Sources/CatanEngine/BoardShape.swift`
@@ -87,11 +416,15 @@ Pure refactor. Classic's board must come out byte-identical, and `BoardGeneratio
 
 **Interfaces:**
 - Consumes: nothing.
-- Produces: `BoardShape` (`radius: Int`, `resourceOrder: [TileKind]`, `numberOrder: [Int]`, `ports: PortLayout`), `PortLayout` (`.fixed([Port])` / `.derived(kinds: [Port.Kind])`), `BoardShape.classic`, `BoardGenerator.standard(_ shape: BoardShape)`, `BoardGenerator.randomized(seed:shape:)`. The existing no-argument `standard()` and `randomized(seed:)` stay as Classic-defaulting wrappers — 17 call sites depend on them.
+- Produces: `BoardShape(radius:terrain:tokens:ports:)`, `TerrainComposition`, `TokenComposition`, `PortLayout`, `BoardShape.classic`, `BoardShape.tileCount`, `BoardGenerator.standard(_:)`, `BoardGenerator.randomized(seed:shape:)`, `BoardGenerator.spiralCoordinates(radius:)` (drop its `private`). The existing no-argument `standard()` and `randomized(seed:)` stay as Classic-defaulting wrappers — 17 call sites depend on them.
+
+### Why a composition and not per-tile arrays
+
+Jake intends boards of hundreds or a thousand tiles. One literal entry per tile is unwritable past ~50, and an earlier draft of this plan proved it: it could not *write* a 37-entry terrain array and generated it with a stride trick instead. Declare proportions; let the generator expand them.
+
+Classic keeps literal-order cases, because its arrangement is the authentic physical board and is not derivable from any rule.
 
 - [ ] **Step 1: Write the failing test**
-
-Add to `BoardGenerationTests.swift`:
 
 ```swift
 @Test func classicShapeReproducesTheStandardBoardExactly() {
@@ -104,14 +437,40 @@ Add to `BoardGenerationTests.swift`:
     #expect(viaShape.robberTile == original.robberTile)
 }
 
-@Test func classicShapeDescribesNineteenTilesAndEighteenTokens() {
-    #expect(BoardShape.classic.radius == 2)
-    #expect(BoardShape.classic.resourceOrder.count == 19)
-    #expect(BoardShape.classic.numberOrder.count == 18)
+@Test func tileCountFollowsTheHexFormulaAtEveryRadius() {
+    // 3r^2 + 3r + 1
+    #expect(BoardShape.tileCount(radius: 0) == 1)
+    #expect(BoardShape.tileCount(radius: 2) == 19)
+    #expect(BoardShape.tileCount(radius: 3) == 37)
+    #expect(BoardShape.tileCount(radius: 12) == 469)
+    #expect(BoardShape.tileCount(radius: 18) == 1_027)
+}
+
+@Test func aCompositionExpandsToExactlyTheDeclaredCounts() {
+    let shape = BoardShape(
+        radius: 3,
+        terrain: .counts([.desert: 1, .resource(.grain): 12, .resource(.ore): 24]),
+        tokens: .counts([6: 18, 8: 18]),
+        ports: .derived(kinds: [.generic, .generic])
+    )
+    let board = BoardGenerator.standard(shape)
+    #expect(board.tiles.count == 37)
+    #expect(board.tiles.filter { $0.kind == .desert }.count == 1)
+    #expect(board.tiles.filter { $0.kind == .resource(.grain) }.count == 12)
+    #expect(board.tiles.filter { $0.kind == .resource(.ore) }.count == 24)
+    #expect(board.tiles.compactMap(\.numberToken).count == 36)
+}
+
+@Test func aCompositionThatDoesNotFillTheBoardIsRejected() {
+    // 10 tiles declared for a 37-tile radius. Trapping here beats dealing a
+    // board with silent holes in it.
+    #expect(BoardShape(radius: 3, terrain: .counts([.desert: 10]),
+                       tokens: .counts([:]), ports: .derived(kinds: []))
+        .compositionProblem != nil)
 }
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [ ] **Step 2: Run to verify it fails**
 
 Run: `swift test --package-path Packages/CatanEngine`
 Expected: FAIL — `cannot find 'BoardShape' in scope`.
@@ -119,83 +478,128 @@ Expected: FAIL — `cannot find 'BoardShape' in scope`.
 - [ ] **Step 3: Create `BoardShape.swift`**
 
 ```swift
-/// The geometry and terrain composition of one board, independent of the
-/// rules played on it.
+/// The geometry and terrain composition of one board, independent of the rules
+/// played on it.
 ///
-/// Separate from `Ruleset` because the two change for different reasons: a
-/// mode that reuses the classic map with different quantities touches only
-/// `Ruleset`, and a mode that adds a map touches only this file.
+/// Separate from `Ruleset` because the two change for different reasons: a mode
+/// reusing an existing map with different quantities touches only `Ruleset`; a
+/// mode adding a map touches only this file.
+///
+/// ## Declared as a composition, not as a list of tiles
+/// Boards of hundreds or a thousand tiles are planned, and one literal entry
+/// per tile stops being writable long before that. A shape therefore states how
+/// many of each terrain and each token it wants, and the generator expands that
+/// onto the spiral. Classic is the exception: its arrangement is the authentic
+/// physical board, so it declares a literal order.
 public struct BoardShape: Sendable, Equatable {
-    /// Rings of hexes around the centre. Radius 2 is the 19-tile classic
-    /// board; radius 3 is 37 tiles. Tile count is `3r^2 + 3r + 1`.
+    /// Rings of hexes around the centre. Radius 2 is the 19-tile classic board.
     public let radius: Int
-    /// Terrain in spiral order, one entry per tile. Count must equal the
-    /// tile count implied by `radius`.
-    public let resourceOrder: [TileKind]
-    /// Number tokens, dealt in order onto the non-desert tiles of the spiral.
-    /// Count must equal `resourceOrder` minus its deserts.
-    public let numberOrder: [Int]
+    public let terrain: TerrainComposition
+    public let tokens: TokenComposition
     public let ports: PortLayout
 
-    public init(radius: Int, resourceOrder: [TileKind], numberOrder: [Int], ports: PortLayout) {
+    public init(radius: Int, terrain: TerrainComposition,
+                tokens: TokenComposition, ports: PortLayout) {
         self.radius = radius
-        self.resourceOrder = resourceOrder
-        self.numberOrder = numberOrder
+        self.terrain = terrain
+        self.tokens = tokens
         self.ports = ports
     }
 
-    /// Tiles a board of this radius holds.
-    public var tileCount: Int { 3 * radius * radius + 3 * radius + 1 }
+    /// Tiles a hex board of `radius` holds: 3r^2 + 3r + 1.
+    public static func tileCount(radius: Int) -> Int {
+        3 * radius * radius + 3 * radius + 1
+    }
+
+    public var tileCount: Int { Self.tileCount(radius: radius) }
+
+    /// Why this shape cannot be dealt, or `nil` if it can.
+    ///
+    /// Checked rather than trusted: a composition that does not fill the board
+    /// would otherwise deal tiles with holes, and a token count that does not
+    /// match the non-desert tiles would leave hexes that never produce.
+    public var compositionProblem: String? {
+        let terrainTotal = terrain.expanded(tileCount: tileCount).count
+        guard terrainTotal == tileCount else {
+            return "terrain declares \(terrainTotal) tiles for a \(tileCount)-tile board"
+        }
+        let producing = terrain.expanded(tileCount: tileCount).filter { $0 != .desert }.count
+        let tokenTotal = tokens.expanded(count: producing).count
+        guard tokenTotal == producing else {
+            return "tokens declare \(tokenTotal) for \(producing) producing tiles"
+        }
+        return nil
+    }
+}
+
+/// How a shape's terrain is specified.
+public enum TerrainComposition: Sendable, Equatable {
+    /// Classic's authentic arrangement, in spiral order. Not derivable from a
+    /// rule, so it is written down.
+    case literalOrder([TileKind])
+    /// How many tiles of each kind. Expanded onto the spiral by interleaving,
+    /// so a fixed board is playable rather than five solid wedges of one
+    /// terrain. Deterministic: a fixed walk over a sorted array, no RNG.
+    case counts([TileKind: Int])
+
+    func expanded(tileCount: Int) -> [TileKind] { /* implement */ }
+}
+
+/// How a shape's number tokens are specified.
+public enum TokenComposition: Sendable, Equatable {
+    case literalOrder([Int])
+    /// How many of each pip value.
+    case counts([Int: Int])
+
+    func expanded(count: Int) -> [Int] { /* implement */ }
 }
 
 /// How a shape's ports are placed.
 ///
-/// Classic's nine are `.fixed`: they reproduce the physical board's
-/// authentic arrangement, which is not derivable from any rule. Anything
-/// larger is `.derived` — hand-authoring vertex triples for a 42-edge
-/// coastline is error-prone, and a walk generalizes to radii nobody has
-/// drawn yet.
+/// Classic's nine are `.fixed`: they reproduce the physical board and are not
+/// derivable. Anything larger is `.derived` — hand-authoring vertex triples for
+/// a 42-edge coastline is error-prone, and a walk generalizes to radii nobody
+/// has drawn.
 public enum PortLayout: Sendable, Equatable {
     case fixed([Port])
-    /// One port per entry, spread evenly around the coastline in the order
-    /// given.
+    /// One port per entry, spread evenly around the coastline in this order.
     case derived(kinds: [Port.Kind])
 }
+```
 
+**Implement both `expanded` functions deterministically.** `counts` must be walked in a **sorted** order (sort `TileKind`/`Int` keys), never in dictionary order — `Dictionary` iteration order is seeded per process, and an unstable expansion would deal a different board per launch for the same seed. Interleave rather than concatenating runs, so `.counts` produces a playable fixed board.
+
+- [ ] **Step 4: Add `BoardShape.classic`**
+
+```swift
 public extension BoardShape {
-    /// The 19-tile board every game of Catan opens on.
+    /// The 19-tile board every game of Catan opens on. Literal orders, because
+    /// this arrangement IS the physical board.
     static let classic = BoardShape(
         radius: 2,
-        resourceOrder: BoardGenerator.standardResourceOrder,
-        numberOrder: BoardGenerator.standardNumberOrder,
+        terrain: .literalOrder(BoardGenerator.standardResourceOrder),
+        tokens: .literalOrder(BoardGenerator.standardNumberOrder),
         ports: .fixed(BoardGenerator.standardPorts)
     )
 }
 ```
 
-- [ ] **Step 4: Generalize `BoardGeneration.swift`**
+- [ ] **Step 5: Generalize `BoardGeneration.swift`**
 
-Replace the fixed `tileCoordinates` constant and the two public entry points. Keep `spiralCoordinates` as-is; it already takes a radius.
+Drop `private` from `spiralCoordinates(radius:)`. Keep the `tileCoordinates` constant as classic's 19 — `standardPorts` and both standard orders are written against that exact ordering. **Do not** add a `tileCoordinates(radius:)` overload beside it; Swift permits it but a property and method sharing a name reads as a typo in a load-bearing file.
 
 ```swift
-    // `spiralCoordinates(radius:)` already exists and already generalizes.
-    // Drop its `private` so the shape-aware entry points can call it, and
-    // keep `tileCoordinates` as classic's 19 - `standardPorts` and the two
-    // standard orders are written against that exact ordering.
-    //
-    // Do NOT add a `tileCoordinates(radius:)` overload beside the existing
-    // `tileCoordinates` constant. Swift permits it, but a property and a
-    // method sharing a name in a file this load-bearing reads as a typo.
-    static func spiralCoordinates(radius: Int) -> [HexCoordinate] {   // was `private static func`
-
     public static func standard() -> Board { standard(BoardShape.classic) }
 
     public static func standard(_ shape: BoardShape) -> Board {
-        precondition(shape.resourceOrder.count == shape.tileCount,
-                     "shape has \(shape.resourceOrder.count) terrain entries for \(shape.tileCount) tiles")
-        var numbers = shape.numberOrder.makeIterator()
+        precondition(shape.compositionProblem == nil,
+                     "cannot deal this board: \(shape.compositionProblem!)")
         let coordinates = spiralCoordinates(radius: shape.radius)
-        let tiles = zip(coordinates, shape.resourceOrder).map { coordinate, kind -> Tile in
+        let kinds = shape.terrain.expanded(tileCount: shape.tileCount)
+        var numbers = shape.tokens
+            .expanded(count: kinds.filter { $0 != .desert }.count)
+            .makeIterator()
+        let tiles = zip(coordinates, kinds).map { coordinate, kind -> Tile in
             let number = (kind == .desert) ? nil : numbers.next()
             return Tile(coordinate: coordinate, kind: kind, numberToken: number)
         }
@@ -203,7 +607,7 @@ Replace the fixed `tileCoordinates` constant and the two public entry points. Ke
     }
 ```
 
-Then thread `shape` through `makeBoard`, resolving ports:
+Thread `shape` through `makeBoard` and resolve ports:
 
 ```swift
     private static func makeBoard(tiles: [Tile], shape: BoardShape) -> Board {
@@ -214,54 +618,47 @@ Then thread `shape` through `makeBoard`, resolving ports:
             edges.formUnion(HexGeometry.edges(of: tile.coordinate))
         }
         let robberTile = tiles.first(where: { $0.kind == .desert })?.coordinate ?? tiles[0].coordinate
-        return Board(
-            tiles: tiles,
-            ports: resolvePorts(shape.ports, tiles: tiles),
-            onBoardVertices: vertices,
-            onBoardEdges: edges,
-            robberTile: robberTile
-        )
+        return Board(tiles: tiles, ports: resolvePorts(shape.ports, tiles: tiles),
+                     onBoardVertices: vertices, onBoardEdges: edges, robberTile: robberTile)
     }
 
     private static func resolvePorts(_ layout: PortLayout, tiles: [Tile]) -> [Port] {
         switch layout {
-        case .fixed(let ports):
-            return ports
-        case .derived(let kinds):
-            return derivedPorts(kinds: kinds, tiles: tiles)
+        case .fixed(let ports): return ports
+        case .derived(let kinds): return derivedPorts(kinds: kinds, tiles: tiles)
         }
     }
 ```
 
-- [ ] **Step 5: Write the coastline walk**
+- [ ] **Step 6: Write the coastline walk**
 
-Append to `BoardShape.swift` — it belongs with the layout, not with the tile dealing:
+Append to `BoardShape.swift`:
 
 ```swift
 extension BoardGenerator {
     /// Places `kinds.count` ports evenly around the coastline.
     ///
     /// A coastal edge is an edge of an on-board tile whose neighbour in that
-    /// direction is off the board. Walking tiles in spiral order and
-    /// directions in index order visits the outer ring the way the ring is
-    /// wound, so consecutive coastal edges are physically adjacent and an
-    /// even stride spreads the ports around the shore rather than clumping
-    /// them on one side.
+    /// direction is off the board. Walking tiles in spiral order and directions
+    /// in index order visits the outer ring the way the ring is wound, so
+    /// consecutive coastal edges are physically adjacent and an even stride
+    /// spreads ports around the shore rather than clumping them.
     ///
-    /// Deterministic by construction: no `Set` is iterated, and the stride is
-    /// integer arithmetic. No RNG is involved — ports stay put while terrain
-    /// and tokens shuffle, exactly as on the classic board.
+    /// Deterministic by construction: no `Set` is iterated and the stride is
+    /// integer arithmetic. No RNG — ports stay put while terrain and tokens
+    /// shuffle, exactly as on the classic board.
     static func derivedPorts(kinds: [Port.Kind], tiles: [Tile]) -> [Port] {
         let onBoard = Set(tiles.map(\.coordinate))
         var coastal: [EdgeID] = []
         for tile in tiles {
             let edges = HexGeometry.edges(of: tile.coordinate)
             for direction in 0..<6 where !onBoard.contains(tile.coordinate.neighbor(direction)) {
-                // `HexGeometry.edges(of:)` indexes edge `i` as the one shared
-                // with the neighbour in direction `i`.
+                // `edges(of:)` indexes edge `i` as the one shared with the
+                // neighbour in direction `i`.
                 coastal.append(edges[direction])
             }
         }
+        guard !kinds.isEmpty else { return [] }
         precondition(coastal.count >= kinds.count,
                      "coastline holds \(coastal.count) edges, cannot place \(kinds.count) ports")
         let stride = coastal.count / kinds.count
@@ -273,7 +670,7 @@ extension BoardGenerator {
 }
 ```
 
-- [ ] **Step 6: Point `randomized` at the shape**
+- [ ] **Step 7: Point `randomized` at the shape**
 
 ```swift
     public static func randomized(seed: UInt64) -> Board {
@@ -282,56 +679,53 @@ extension BoardGenerator {
 
     public static func randomized(seed: UInt64, shape: BoardShape) -> Board {
         var rng = SeededGenerator(seed: seed)
-        var kinds: [TileKind]
-        var numbers: [Int]
+        let baseKinds = shape.terrain.expanded(tileCount: shape.tileCount)
+        let baseNumbers = shape.tokens.expanded(count: baseKinds.filter { $0 != .desert }.count)
+        var kinds = baseKinds
+        var numbers = baseNumbers
         repeat {
-            kinds = shape.resourceOrder.shuffled(using: &rng)
-            numbers = shape.numberOrder.shuffled(using: &rng)
+            kinds = baseKinds.shuffled(using: &rng)
+            numbers = baseNumbers.shuffled(using: &rng)
         } while hasAdjacentSixOrEight(kinds: kinds, numbers: numbers, radius: shape.radius)
-
-        var numberIterator = numbers.makeIterator()
-        let coordinates = spiralCoordinates(radius: shape.radius)
-        let tiles = zip(coordinates, kinds).map { coordinate, kind -> Tile in
-            let number = (kind == .desert) ? nil : numberIterator.next()
-            return Tile(coordinate: coordinate, kind: kind, numberToken: number)
-        }
-        return makeBoard(tiles: tiles, shape: shape)
+        // ... deal tiles as in `standard(_:)`, then makeBoard(tiles:shape:)
     }
 ```
 
-Give `hasAdjacentSixOrEight` a `radius: Int` parameter and have it call `spiralCoordinates(radius:)` instead of the `tileCoordinates` constant. Task 2 replaces this loop entirely — leave it alone for now.
+Give `hasAdjacentSixOrEight` a `radius: Int` parameter using `spiralCoordinates(radius:)`. Task 4 replaces this loop — leave it alone for now.
 
-- [ ] **Step 7: Run tests to verify they pass**
+- [ ] **Step 8: Run the tests**
 
 Run: `swift test --package-path Packages/CatanEngine`
-Expected: PASS, including every pre-existing `BoardGenerationTests`, `DeterminismTests` and `SeededGameFingerprintTests` case. If a fingerprint test fails here, the refactor changed the board — stop and find out why rather than re-pinning the fingerprint.
+Run: `swift test --package-path Packages/CatanAI`
+Expected: PASS, both, with fingerprints unchanged. **If a fingerprint moves, the board changed — find out why; do not re-pin.**
 
-- [ ] **Step 8: Commit**
+- [ ] **Step 9: Commit**
 
 ```bash
-git add Packages/CatanEngine/Sources/CatanEngine/BoardShape.swift \
-        Packages/CatanEngine/Sources/CatanEngine/BoardGeneration.swift \
-        Packages/CatanEngine/Tests/CatanEngineTests/BoardGenerationTests.swift
-git commit -m "refactor(engine): generalize board generation over a BoardShape
+git add Packages/CatanEngine
+git commit -m "refactor(engine): declare board shape as a composition
 
-Extracts radius, terrain order, token order and port layout into a value the
-generator reads, so a second map is data rather than a second generator.
-Classic's board is unchanged and asserted byte-identical against the previous
-entry point.
+Radius, terrain, tokens and port layout become a value the generator reads, so
+a second map is data rather than a second generator. Classic's board is
+unchanged and asserted byte-identical against the previous entry point.
 
-Ports gain a derived layout alongside the fixed one. Classic keeps its nine
-hand-authored positions because they reproduce the physical board and are not
-derivable from any rule; larger maps walk the coastline instead, which
-generalizes to radii nobody has drawn yet and avoids hand-authoring vertex
-triples for a 42-edge shore.
+Terrain and tokens are declared as COUNTS, not as one literal entry per tile.
+Boards of hundreds or a thousand tiles are planned and a per-tile literal stops
+being writable long before that - an earlier draft of this work could not write
+its own 37-entry array and generated it with a stride trick instead. Classic
+keeps literal orders because its arrangement is the authentic physical board
+and is not derivable from any rule.
+
+Ports gain a derived layout beside the fixed one, walking the coastline at an
+even stride, which generalizes to radii nobody has drawn and avoids
+hand-authoring vertex triples for a 42-edge shore.
 
 Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>
 Claude-Session: https://claude.ai/code/session_01TBxaHYvMxcRujKxfhdFdAe"
 ```
 
 ---
-
-## Task 2: The Expanded board shape and deterministic token repair
+## Task 4: The Expanded board shape and deterministic token repair
 
 **Files:**
 - Modify: `Packages/CatanEngine/Sources/CatanEngine/BoardShape.swift`
@@ -339,7 +733,7 @@ Claude-Session: https://claude.ai/code/session_01TBxaHYvMxcRujKxfhdFdAe"
 - Test: `Packages/CatanEngine/Tests/CatanEngineTests/BoardGenerationTests.swift`
 
 **Interfaces:**
-- Consumes: `BoardShape`, `PortLayout`, `BoardGenerator.standard(_:)`, `BoardGenerator.randomized(seed:shape:)` from Task 1.
+- Consumes: `BoardShape`, `TerrainComposition`, `TokenComposition`, `PortLayout`, `BoardGenerator.standard(_:)`, `randomized(seed:shape:)` from Task 3.
 - Produces: `BoardShape.expanded`.
 
 - [ ] **Step 1: Write the failing tests**
@@ -364,8 +758,10 @@ Claude-Session: https://claude.ai/code/session_01TBxaHYvMxcRujKxfhdFdAe"
 }
 
 @Test func expandedTokenMultisetIsExactlyTwiceClassic() {
-    let expanded = BoardShape.expanded.numberOrder.sorted()
-    let doubledClassic = (BoardShape.classic.numberOrder + BoardShape.classic.numberOrder).sorted()
+    let board = BoardGenerator.standard(BoardShape.expanded)
+    let expanded = board.tiles.compactMap(\.numberToken).sorted()
+    let doubledClassic = (BoardGenerator.standardNumberOrder
+                          + BoardGenerator.standardNumberOrder).sorted()
     #expect(expanded == doubledClassic)
     #expect(expanded.count == 36)
 }
@@ -373,8 +769,7 @@ Claude-Session: https://claude.ai/code/session_01TBxaHYvMxcRujKxfhdFdAe"
 @Test func expandedHasFourteenPortsOnDistinctCoastalEdges() {
     let board = BoardGenerator.standard(BoardShape.expanded)
     #expect(board.ports.count == 14)
-    let edges = Set(board.ports.map { EdgeID($0.vertexA, $0.vertexB) })
-    #expect(edges.count == 14)
+    #expect(Set(board.ports.map { EdgeID($0.vertexA, $0.vertexB) }).count == 14)
     for port in board.ports {
         #expect(board.onBoardVertices.contains(port.vertexA))
         #expect(board.onBoardVertices.contains(port.vertexB))
@@ -388,10 +783,10 @@ Claude-Session: https://claude.ai/code/session_01TBxaHYvMxcRujKxfhdFdAe"
 @Test func expandedRandomizedBoardNeverAdjoinsSixAndEight() {
     for seed in UInt64(1)...50 {
         let board = BoardGenerator.randomized(seed: seed, shape: .expanded)
-        let onBoard = Dictionary(uniqueKeysWithValues: board.tiles.map { ($0.coordinate, $0.numberToken) })
+        let tokens = Dictionary(uniqueKeysWithValues: board.tiles.map { ($0.coordinate, $0.numberToken) })
         for tile in board.tiles where tile.numberToken == 6 || tile.numberToken == 8 {
             for direction in 0..<6 {
-                if let neighbor = onBoard[tile.coordinate.neighbor(direction)] ?? nil {
+                if let neighbor = tokens[tile.coordinate.neighbor(direction)] ?? nil {
                     #expect(!(neighbor == 6 || neighbor == 8), "seed \(seed)")
                 }
             }
@@ -407,14 +802,14 @@ Claude-Session: https://claude.ai/code/session_01TBxaHYvMxcRujKxfhdFdAe"
 }
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [ ] **Step 2: Run to verify they fail**
 
 Run: `swift test --package-path Packages/CatanEngine`
 Expected: FAIL — `type 'BoardShape' has no member 'expanded'`.
 
 - [ ] **Step 3: Add the Expanded shape**
 
-In `BoardShape.swift`, beside `classic`:
+Beside `classic` in `BoardShape.swift`. Note how much shorter this is than a literal array — that is the composition earning its place.
 
 ```swift
     /// The 37-tile board (radius 3) that `GameMode.expanded` is played on.
@@ -422,16 +817,18 @@ In `BoardShape.swift`, beside `classic`:
     /// One desert plus 36 resource tiles is exactly twice classic's mix, and
     /// the 36 tokens are exactly twice classic's multiset — so the dice
     /// distribution is preserved to the card and a player's probability
-    /// intuition transfers between modes. A 38th tile would break both and
-    /// buy nothing.
-    ///
-    /// The order below is the fixed layout, dealt along the spiral. It
-    /// alternates terrain so the fixed board is playable without a shuffle;
-    /// `randomized(seed:shape:)` reshuffles both arrays.
+    /// intuition transfers between modes. A 38th tile would break both and buy
+    /// nothing.
     static let expanded = BoardShape(
         radius: 3,
-        resourceOrder: expandedResourceOrder,
-        numberOrder: expandedNumberOrder,
+        terrain: .counts([
+            .desert: 1,
+            .resource(.grain): 8, .resource(.wool): 8, .resource(.lumber): 8,
+            .resource(.brick): 6, .resource(.ore): 6,
+        ]),
+        // Twice each of classic's 18: one 2 and one 12 become two; the pairs
+        // of 3-6 and 8-11 become fours.
+        tokens: .counts([2: 2, 3: 4, 4: 4, 5: 4, 6: 4, 8: 4, 9: 4, 10: 4, 11: 4, 12: 2]),
         // 14 ports holds classic's ~30% shoreline density (9 of 30 coastal
         // edges) on a 42-edge coast, rather than its 4:5 generic-to-resource
         // ratio — doubling to 18 would cover 43% of the shore and make
@@ -444,43 +841,21 @@ In `BoardShape.swift`, beside `classic`:
             .generic, .resource(.lumber),
         ])
     )
-
-    /// 1 desert + 8 grain + 8 wool + 8 lumber + 6 brick + 6 ore = 37.
-    private static let expandedResourceOrder: [TileKind] = {
-        var kinds: [TileKind] = [.desert]
-        kinds.append(contentsOf: repeatElement(.resource(.grain), count: 8))
-        kinds.append(contentsOf: repeatElement(.resource(.wool), count: 8))
-        kinds.append(contentsOf: repeatElement(.resource(.lumber), count: 8))
-        kinds.append(contentsOf: repeatElement(.resource(.brick), count: 6))
-        kinds.append(contentsOf: repeatElement(.resource(.ore), count: 6))
-        // Interleave so the FIXED layout is a playable board rather than five
-        // solid wedges of one terrain. Deterministic: a fixed stride over a
-        // fixed array, no RNG.
-        return stride(from: 0, to: 7, by: 1).flatMap { offset in
-            kinds.enumerated().filter { $0.offset % 7 == offset }.map(\.element)
-        }
-    }()
-
-    /// Exactly twice classic's 18 tokens.
-    private static let expandedNumberOrder: [Int] =
-        BoardGenerator.standardNumberOrder + BoardGenerator.standardNumberOrder.reversed()
 ```
 
 - [ ] **Step 4: Replace rejection sampling with a bounded retry plus repair**
 
-In `BoardGeneration.swift`, replace the `repeat`/`while` in `randomized(seed:shape:)`:
+In `randomized(seed:shape:)`, replace the `repeat`/`while`:
 
 ```swift
-        var kinds: [TileKind] = []
-        var numbers: [Int] = []
-        // Classic clears this in a handful of shuffles — 4 hot tiles among 19.
-        // Expanded has 8 among 36 on a graph with far more adjacencies, where
-        // a clean shuffle is rare enough that an unbounded loop can spin. Try,
-        // then repair deterministically.
         var attemptsRemaining = maxShuffleAttempts
+        // Classic clears this in a handful of shuffles — 4 hot tiles among 19.
+        // Expanded has 8 among 36 on a graph with far more adjacencies, where a
+        // clean shuffle is rare enough that an unbounded loop can spin, and a
+        // thousand-tile board would never clear it. Try, then repair.
         repeat {
-            kinds = shape.resourceOrder.shuffled(using: &rng)
-            numbers = shape.numberOrder.shuffled(using: &rng)
+            kinds = baseKinds.shuffled(using: &rng)
+            numbers = baseNumbers.shuffled(using: &rng)
             attemptsRemaining -= 1
         } while attemptsRemaining > 0
             && hasAdjacentSixOrEight(kinds: kinds, numbers: numbers, radius: shape.radius)
@@ -488,26 +863,23 @@ In `BoardGeneration.swift`, replace the `repeat`/`while` in `randomized(seed:sha
         numbers = repairingAdjacentSixOrEight(kinds: kinds, numbers: numbers, radius: shape.radius)
 ```
 
-with the constant and the repair:
-
 ```swift
-    /// Shuffles attempted before falling back to repair. Classic clears in
-    /// one or two; the cap only bites on larger boards.
+    /// Shuffles attempted before falling back to repair. Classic clears in one
+    /// or two; the cap only bites on larger boards.
     private static let maxShuffleAttempts = 100
 
-    /// Swaps every 6/8 that touches another 6/8 onto a cool tile, walking
-    /// tiles in spiral order and taking the first cool partner that does not
-    /// itself create an adjacency.
+    /// Swaps every 6/8 that touches another 6/8 onto a cool tile, walking tiles
+    /// in spiral order and taking the first cool partner that does not itself
+    /// create an adjacency.
     ///
-    /// Deterministic by construction and RNG-free: the walk is over an
-    /// ordered array, never a `Set`, and the choice of partner is "first that
-    /// works" rather than a random pick. Two calls with the same input return
-    /// the same board, in this process and in tomorrow's.
+    /// Deterministic and RNG-free: the walk is over an ordered array, never a
+    /// `Set`, and the partner is "first that works" rather than a random pick.
+    /// Two calls with the same input return the same board, in this process and
+    /// in tomorrow's.
     private static func repairingAdjacentSixOrEight(
         kinds: [TileKind], numbers: [Int], radius: Int
     ) -> [Int] {
         let coordinates = spiralCoordinates(radius: radius)
-        // Index into `numbers` for each tile position, skipping deserts.
         var tokenIndexByCoordinate: [HexCoordinate: Int] = [:]
         var nextToken = 0
         for (coordinate, kind) in zip(coordinates, kinds) where kind != .desert {
@@ -529,8 +901,6 @@ with the constant and the repair:
             let partner = coordinates.first { candidate in
                 guard let candidateIndex = tokenIndexByCoordinate[candidate],
                       !isHot(result[candidateIndex]) else { return false }
-                // Moving a hot token here must not create a new adjacency,
-                // and the cool token must be safe where the hot one was.
                 return !touchesHot(candidate, ignoring: coordinate)
             }
             guard let partner, let partnerIndex = tokenIndexByCoordinate[partner] else { continue }
@@ -540,17 +910,15 @@ with the constant and the repair:
     }
 ```
 
-- [ ] **Step 5: Run tests to verify they pass**
+- [ ] **Step 5: Run the tests**
 
 Run: `swift test --package-path Packages/CatanEngine`
-Expected: PASS, all six new cases plus every Classic case. `expandedRandomizedBoardNeverAdjoinsSixAndEight` sweeps 50 seeds; if any seed fails, the repair left an adjacency and the loop above needs a second pass — do not weaken the test.
+Expected: PASS, all six new cases plus every Classic case. The 50-seed sweep is the important one: if any seed leaves an adjacency, the repair needs a second pass. **Do not weaken the test.**
 
 - [ ] **Step 6: Commit**
 
 ```bash
-git add Packages/CatanEngine/Sources/CatanEngine/BoardShape.swift \
-        Packages/CatanEngine/Sources/CatanEngine/BoardGeneration.swift \
-        Packages/CatanEngine/Tests/CatanEngineTests/BoardGenerationTests.swift
+git add Packages/CatanEngine
 git commit -m "feat(engine): add the 37-tile Expanded board shape
 
 One desert plus 36 resource tiles is exactly twice classic's mix, and the 36
@@ -560,9 +928,9 @@ preserved to the card and probability intuition transfers between modes.
 Replaces the randomizer's unbounded rejection sampling with a bounded retry
 plus a deterministic repair pass. Classic clears the no-adjacent-6/8 rule in
 one or two shuffles with 4 hot tiles among 19; Expanded has 8 among 36 on a
-graph with far more adjacencies, where a clean shuffle is rare enough that the
-old loop could spin. The repair walks tiles in spiral order and is RNG-free,
-so a seed still reproduces its board across processes.
+graph with far more adjacencies, and a thousand-tile board would never clear it
+by shuffling. The repair walks tiles in spiral order and uses no RNG, so a seed
+still reproduces its board across processes.
 
 Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>
 Claude-Session: https://claude.ai/code/session_01TBxaHYvMxcRujKxfhdFdAe"
@@ -570,7 +938,7 @@ Claude-Session: https://claude.ai/code/session_01TBxaHYvMxcRujKxfhdFdAe"
 
 ---
 
-## Task 3: `GameMode` and `Ruleset`
+## Task 5: `GameMode` and `Ruleset`
 
 **Files:**
 - Create: `Packages/CatanEngine/Sources/CatanEngine/Models/GameMode.swift`
@@ -578,12 +946,10 @@ Claude-Session: https://claude.ai/code/session_01TBxaHYvMxcRujKxfhdFdAe"
 - Test: Create `Packages/CatanEngine/Tests/CatanEngineTests/RulesetTests.swift`
 
 **Interfaces:**
-- Consumes: `BoardShape.classic`, `BoardShape.expanded` from Tasks 1–2.
-- Produces: `GameMode` (`.classic`, `.expanded`; `Codable`, `CaseIterable`, `Sendable`, `String`-raw-valued), `GameMode.displayName`, `GameMode.summary`, `Ruleset` with the fields listed below, and `Ruleset.forMode(_:)`.
+- Consumes: `BoardShape.classic`, `BoardShape.expanded` from Tasks 3–4.
+- Produces: `GameMode` (`.classic`, `.expanded`; `String`-raw `Codable`, `CaseIterable`, `Sendable`), `GameMode.displayName`, `GameMode.summary`, `Ruleset`, `Ruleset.forMode(_:)`, `PieceAllowance`, `BankAllowance`, `Ruleset.pieceLimit(for:)`, `Ruleset.victoryPoints(for:)`, `Ruleset.bankPerResource`, `Ruleset.validationProblem`.
 
 - [ ] **Step 1: Write the failing test**
-
-Create `RulesetTests.swift`:
 
 ```swift
 import Testing
@@ -598,8 +964,10 @@ import Testing
     #expect(rules.longestRoadMinimum == 5)
     #expect(rules.largestArmyMinimum == 3)
     #expect(rules.maxRoadsPerPlayer == 15)
-    #expect(rules.maxSettlementsPerPlayer == 5)
-    #expect(rules.maxCitiesPerPlayer == 4)
+    #expect(rules.pieceLimit(for: .settlement) == 5)
+    #expect(rules.pieceLimit(for: .city) == 4)
+    #expect(rules.victoryPoints(for: .settlement) == 1)
+    #expect(rules.victoryPoints(for: .city) == 2)
     #expect(rules.bankPerResource == 19)
     #expect(rules.discardThreshold == 7)
     #expect(rules.devCardDeckSize == 25)
@@ -615,8 +983,10 @@ import Testing
     #expect(rules.longestRoadMinimum == 5)
     #expect(rules.largestArmyMinimum == 3)
     #expect(rules.maxRoadsPerPlayer == 30)
-    #expect(rules.maxSettlementsPerPlayer == 10)
-    #expect(rules.maxCitiesPerPlayer == 8)
+    #expect(rules.pieceLimit(for: .settlement) == 10)
+    #expect(rules.pieceLimit(for: .city) == 8)
+    #expect(rules.victoryPoints(for: .settlement) == 1)
+    #expect(rules.victoryPoints(for: .city) == 2)
     #expect(rules.bankPerResource == 38)
     #expect(rules.discardThreshold == 10)
     #expect(rules.devCardDeckSize == 50)
@@ -631,44 +1001,75 @@ import Testing
     }
 }
 
-@Test func everyModeIsReachableAndBuildableToItsTarget() {
+@Test func everyModeIsCoherentAndReachable() {
     for mode in GameMode.allCases {
         let rules = Ruleset.forMode(mode)
-        // Settlements and cities are the only unbounded-in-time source of
-        // points; a target above their ceiling is a game that cannot end.
-        let buildingCeiling = rules.maxSettlementsPerPlayer + rules.maxCitiesPerPlayer * 2
-        #expect(buildingCeiling >= rules.victoryPointTargets.upperBound,
-                "\(mode) targets \(rules.victoryPointTargets.upperBound) with a \(buildingCeiling)-point building ceiling")
+        #expect(rules.validationProblem == nil, "\(mode): \(rules.validationProblem ?? "")")
+        // Buildings are the only source of points a player can grow without
+        // limit in time; a target above their ceiling is a game that cannot end.
+        let ceiling = BuildingKind.allCases.reduce(0) {
+            $0 + rules.pieceLimit(for: $1) * rules.victoryPoints(for: $1)
+        }
+        #expect(ceiling >= rules.victoryPointTargets.upperBound,
+                "\(mode) targets \(rules.victoryPointTargets.upperBound) with a \(ceiling)-point ceiling")
         #expect(!mode.displayName.isEmpty)
         #expect(!mode.summary.isEmpty)
     }
 }
+
+@Test func aModeWhoseRoadLimitOutrunsTheSearchIsRefused() {
+    // The tripwire: a future mode must fail at construction, not by freezing
+    // the game on a road placement.
+    let reckless = Ruleset(
+        board: .expanded, victoryPointTargets: 25...25, defaultVictoryPointTarget: 25,
+        longestRoadBonus: 4, largestArmyBonus: 4, longestRoadMinimum: 5, largestArmyMinimum: 3,
+        pieceLimits: .explicit([.settlement: 10, .city: 8]),
+        victoryPointsPerBuilding: [.settlement: 1, .city: 2],
+        maxRoadsPerPlayer: LongestRoad.supportedRoadLimit + 1,
+        bank: .explicit(38),
+        devCardDeck: [.knight: 28, .victoryPoint: 10, .roadBuilding: 4, .yearOfPlenty: 4, .monopoly: 4],
+        discardThreshold: 10
+    )
+    #expect(reckless.validationProblem != nil)
+}
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [ ] **Step 2: Run to verify it fails**
 
 Run: `swift test --package-path Packages/CatanEngine --filter RulesetTests`
 Expected: FAIL — `cannot find 'Ruleset' in scope`.
 
-- [ ] **Step 3: Create `Models/GameMode.swift`**
+- [ ] **Step 3: Make `BuildingKind` enumerable**
+
+`BuildingKind` (`Models/Player.swift:1`) is `Codable, Sendable` but **not** `CaseIterable`, and both the ceiling check and `validationProblem` enumerate it. Add the conformance:
+
+```swift
+public enum BuildingKind: Codable, Sendable, CaseIterable, Hashable {
+    case settlement, city
+}
+```
+
+`Hashable` too — it is a dictionary key in `Ruleset` now. Adding a third case later then automatically reaches every loop that drives off `allCases`, which is the point of keying by kind.
+
+- [ ] **Step 4: Create `Models/GameMode.swift`**
 
 ```swift
 /// Which rule set a game is played under.
 ///
-/// A tag, not a bag of values: the quantities live in `Ruleset`, keyed by
-/// this. Storing the tag rather than the numbers means a save cannot carry an
+/// A tag, not a bag of values: the quantities live in `Ruleset`, keyed by this.
+/// Storing the tag rather than the numbers means a save cannot carry an
 /// incoherent combination — a 25-point target beside classic's five-settlement
 /// limit — and adding a mode needs one decode default rather than one per
 /// quantity.
 ///
-/// Raw-valued on purpose. A `String` raw value survives reordering the cases,
-/// which an `Int` would not: saves store this.
+/// `String`-raw on purpose: saves store this, and a `String` survives
+/// reordering the cases where an `Int` would not.
 public enum GameMode: String, Codable, CaseIterable, Sendable {
     /// The 19-tile board played to 8, 10 or 12 points. Every save written
     /// before modes existed is this one.
     case classic
-    /// The 37-tile board played to 25, with doubled pieces, bank and deck,
-    /// and 4-point bonuses.
+    /// The 37-tile board played to 25, with doubled pieces, bank and deck, and
+    /// 4-point bonuses.
     case expanded
 
     public var displayName: String {
@@ -688,28 +1089,50 @@ public enum GameMode: String, Codable, CaseIterable, Sendable {
 }
 ```
 
-- [ ] **Step 4: Create `Ruleset.swift`**
+- [ ] **Step 5: Create `Ruleset.swift`**
 
 ```swift
+/// How many of each piece a player owns.
+public enum PieceAllowance: Sendable, Equatable {
+    case explicit([BuildingKind: Int])
+    /// Scaled from the board's tile count against classic's ratio, for a mode
+    /// that wants supplies proportional to its map without hand-computing them.
+    case scaledFromBoard
+
+    func limit(for kind: BuildingKind, board: BoardShape) -> Int { /* implement */ }
+}
+
+/// How many cards of each resource the bank starts with.
+public enum BankAllowance: Sendable, Equatable {
+    case explicit(Int)
+    case scaledFromBoard
+
+    func perResource(board: BoardShape) -> Int { /* implement */ }
+}
+
 /// Every quantity the rules need, for one mode.
 ///
 /// ## Why one value rather than constants per rule
 /// These numbers were literals scattered across `Building`, `LongestRoad`,
 /// `DevCards`, `Robber`, `WinCondition` and `GameSetup`. Adding a second rule
 /// set that way means finding all of them; adding a third means finding them
-/// again. Here, a new mode is one case in `forMode(_:)`, and the switch is
+/// again. Here a new mode is one case in `forMode(_:)`, and the switch is
 /// exhaustive, so the compiler names anything left out.
 ///
+/// ## Keyed by building KIND, not by named field
+/// `pieceLimits` and `victoryPointsPerBuilding` are dictionaries because a
+/// third building tier is planned (a "double city" worth 4). As three flat
+/// fields, adding it would edit every limit check and both victory-point
+/// formulas; as dictionary entries it edits neither.
+///
 /// ## Where the boundary is
-/// This covers quantities and board shape — the whole of Expanded, and most
-/// of what a variant wants. A mode that changes the *shape* of a move (a new
-/// development card, a build action, a trade type) is a change to `GameMove`
-/// and `RulesEngine`, not a field here. Adding a field with a classic-valued
-/// default is the supported way to grow this; every other mode keeps
-/// compiling.
+/// This covers quantities and board shape. A mode that changes the *shape* of a
+/// move — a new development card, a build action, a trade type — is a change to
+/// `GameMove` and `RulesEngine`, not a field here. Adding a field with a
+/// classic-valued default is the supported way to grow this; every other mode
+/// keeps compiling.
 public struct Ruleset: Sendable, Equatable {
     public let board: BoardShape
-    /// Targets a game in this mode may be started at.
     public let victoryPointTargets: ClosedRange<Int>
     public let defaultVictoryPointTarget: Int
     public let longestRoadBonus: Int
@@ -718,111 +1141,118 @@ public struct Ruleset: Sendable, Equatable {
     public let longestRoadMinimum: Int
     /// Fewest played knights that can claim the bonus.
     public let largestArmyMinimum: Int
+    public let pieceLimits: PieceAllowance
+    public let victoryPointsPerBuilding: [BuildingKind: Int]
     public let maxRoadsPerPlayer: Int
-    public let maxSettlementsPerPlayer: Int
-    public let maxCitiesPerPlayer: Int
-    public let bankPerResource: Int
+    public let bank: BankAllowance
     public let devCardDeck: [DevCardType: Int]
     /// A player holding MORE than this many resource cards discards on a 7.
     public let discardThreshold: Int
 
+    public func pieceLimit(for kind: BuildingKind) -> Int {
+        pieceLimits.limit(for: kind, board: board)
+    }
+    public func victoryPoints(for kind: BuildingKind) -> Int {
+        victoryPointsPerBuilding[kind, default: 0]
+    }
+    /// Starting stock of each resource. Named apart from the stored `bank`
+    /// allowance it resolves, because Swift will not take a property and a
+    /// computed property of the same name.
+    public var bankPerResource: Int { bank.perResource(board: board) }
     public var devCardDeckSize: Int { devCardDeck.values.reduce(0, +) }
 
-    /// The rules for `mode`.
+    /// Why this rule set cannot be played, or `nil` if it can.
     ///
-    /// Exhaustive on purpose: a new `GameMode` case fails to compile until it
-    /// is given values here, which is the whole point of the tag.
-    public static func forMode(_ mode: GameMode) -> Ruleset {
-        switch mode {
-        case .classic:
-            return Ruleset(
-                board: .classic,
-                victoryPointTargets: 8...12,
-                defaultVictoryPointTarget: 10,
-                longestRoadBonus: 2,
-                largestArmyBonus: 2,
-                longestRoadMinimum: 5,
-                largestArmyMinimum: 3,
-                maxRoadsPerPlayer: 15,
-                maxSettlementsPerPlayer: 5,
-                maxCitiesPerPlayer: 4,
-                bankPerResource: 19,
-                devCardDeck: [.knight: 14, .victoryPoint: 5, .roadBuilding: 2,
-                              .yearOfPlenty: 2, .monopoly: 2],
-                discardThreshold: 7
-            )
-        case .expanded:
-            // Pieces double because classic's limits cap buildings at 13 VP:
-            // 25 would then be reachable only by hoarding nearly every
-            // victory-point card drawn, and the game would stop being about
-            // the board. Doubled, buildings cap at 26.
-            //
-            // The discard threshold rises with income. At classic's 7, an
-            // Expanded economy would trigger a discard for most players on
-            // most sevens, stalling the game and punishing exactly the large
-            // engine a 25-point target asks for.
-            //
-            // The two bonus MINIMUMS deliberately do not move (Jake, 2026-09-10).
-            // Both are fields here, so playtesting can tune them in one line.
-            return Ruleset(
-                board: .expanded,
-                victoryPointTargets: 25...25,
-                defaultVictoryPointTarget: 25,
-                longestRoadBonus: 4,
-                largestArmyBonus: 4,
-                longestRoadMinimum: 5,
-                largestArmyMinimum: 3,
-                maxRoadsPerPlayer: 30,
-                maxSettlementsPerPlayer: 10,
-                maxCitiesPerPlayer: 8,
-                bankPerResource: 38,
-                devCardDeck: [.knight: 28, .victoryPoint: 10, .roadBuilding: 4,
-                              .yearOfPlenty: 4, .monopoly: 4],
-                discardThreshold: 10
-            )
+    /// The road limit is checked against what the longest-road search can
+    /// actually serve. A mode that exceeds it must fail here, at construction,
+    /// rather than by freezing the game on a road placement — which is what the
+    /// old exhaustive search did past roughly 40 roads.
+    public var validationProblem: String? {
+        if let boardProblem = board.compositionProblem { return boardProblem }
+        guard maxRoadsPerPlayer <= LongestRoad.supportedRoadLimit else {
+            return "\(maxRoadsPerPlayer) roads exceeds the \(LongestRoad.supportedRoadLimit) "
+                + "the longest-road search is measured to support"
         }
+        guard victoryPointTargets.contains(defaultVictoryPointTarget) else {
+            return "default target \(defaultVictoryPointTarget) is outside \(victoryPointTargets)"
+        }
+        for kind in BuildingKind.allCases where victoryPointsPerBuilding[kind] == nil {
+            return "\(kind) has no victory-point value"
+        }
+        return nil
     }
+
+    /// The rules for `mode`. Exhaustive on purpose: a new `GameMode` case fails
+    /// to compile until it is given values here, which is the point of the tag.
+    public static func forMode(_ mode: GameMode) -> Ruleset { /* both cases */ }
 }
 ```
 
-- [ ] **Step 5: Run tests to verify they pass**
+Fill in both cases from the Global Constraints table. Classic: targets `8...12`, default 10, bonuses 2/2, minimums 5/3, pieces `.explicit([.settlement: 5, .city: 4])`, points `[.settlement: 1, .city: 2]`, 15 roads, `bank: .explicit(19)`, deck `[.knight: 14, .victoryPoint: 5, .roadBuilding: 2, .yearOfPlenty: 2, .monopoly: 2]`, discard 7. Expanded: targets `25...25`, default 25, bonuses 4/4, minimums 5/3, pieces `.explicit([.settlement: 10, .city: 8])`, points `[.settlement: 1, .city: 2]`, 30 roads, `bank: .explicit(38)`, deck doubled, discard 10.
 
-Run: `swift test --package-path Packages/CatanEngine --filter RulesetTests`
-Expected: PASS, four cases.
+Comment the Expanded case with the *reasons*: pieces double because classic's limits cap buildings at 13 VP and 25 would otherwise need nearly every VP card; the discard threshold rises because doubled income would trigger classic's 7 for most players on most sevens; **the two bonus minimums deliberately do not move (Jake, 2026-09-10)**.
 
-- [ ] **Step 6: Commit**
+- [ ] **Step 6: Add `LongestRoad.supportedRoadLimit`**
+
+In `LongestRoad.swift`, from Task 1's measured curve:
+
+```swift
+    /// The largest per-player road limit the search is measured to serve
+    /// comfortably. `Ruleset.validationProblem` refuses a mode above this.
+    ///
+    /// Set from the measurement in Task 1's commit, not guessed. Raising it
+    /// requires re-running that measurement and pasting the new numbers.
+    public static let supportedRoadLimit = <FROM TASK 1's MEASURED CURVE>
+```
+
+Pick the value from Task 1's after-numbers: the largest road count whose **dense** case stays under 20ms. Record the number and its measurement in the commit message.
+
+- [ ] **Step 7: Run the tests**
+
+Run: `swift test --package-path Packages/CatanEngine`
+Expected: PASS — the five new cases and the whole existing suite, since `BuildingKind` gained conformances but no behaviour changed.
+
+- [ ] **Step 8: Commit**
 
 ```bash
-git add Packages/CatanEngine/Sources/CatanEngine/Models/GameMode.swift \
-        Packages/CatanEngine/Sources/CatanEngine/Ruleset.swift \
-        Packages/CatanEngine/Tests/CatanEngineTests/RulesetTests.swift
+git add Packages/CatanEngine
 git commit -m "feat(engine): add GameMode and Ruleset
 
-Every rule quantity the engine hard-codes gets a home keyed by mode, so a
-third rule set is one enum case plus one literal instead of an archaeology
-pass across six files. The switch in forMode(_:) is exhaustive, so a new mode
-fails to compile until it is given values.
+Every rule quantity the engine hard-codes gets a home keyed by mode, so a third
+rule set is one enum case plus one literal instead of an archaeology pass
+across six files. The switch in forMode(_:) is exhaustive, so a new mode fails
+to compile until it is given values.
 
-A tag rather than per-value fields on GameState: storing the numbers
-separately would admit an incoherent save - a 25-point target beside classic's
+A tag rather than per-value fields on GameState: storing the numbers separately
+would admit an incoherent save - a 25-point target beside classic's
 five-settlement limit - and cost a decode default and a compatibility case
-each. Nothing reads these yet; the call sites move in a later commit.
+each.
+
+Piece limits and victory points are keyed by BuildingKind rather than named
+per-field, because a third building tier is planned. As flat fields that
+feature would edit every limit check and both victory-point formulas; as
+dictionary entries it edits neither.
+
+validationProblem refuses a mode whose road limit outruns the longest-road
+search, so a future large mode fails at construction instead of freezing the
+game on a road placement.
+
+Nothing reads any of this yet; the call sites move in a later commit.
 
 Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>
 Claude-Session: https://claude.ai/code/session_01TBxaHYvMxcRujKxfhdFdAe"
 ```
 
 ---
-
-## Task 4: `GameState.mode`, decoding, and schema version 4
+## Task 6: `GameState.mode`, decoding, and schema version 4
 
 **Files:**
 - Modify: `Packages/CatanEngine/Sources/CatanEngine/Models/GameState.swift`
 - Test: `Packages/CatanEngine/Tests/CatanEngineTests/SaveCompatibilityTests.swift`
 
 **Interfaces:**
-- Consumes: `GameMode`, `Ruleset.forMode(_:)` from Task 3.
-- Produces: `GameState.mode: GameMode`, `GameState.rules: Ruleset` (computed), `GameState.init(..., mode: GameMode = .classic, ...)`, `GameState.currentSchemaVersion == 4`, and **all three `GameSetup.newGame` overloads taking `victoryPointTarget: Int? = nil, mode: GameMode = .classic`** (moved here from Task 5 — see Step 5).
+- Consumes: `GameMode`, `Ruleset.forMode(_:)` from Task 5.
+- Produces: `GameState.mode: GameMode`, `GameState.rules: Ruleset` (computed), `GameState.init(..., mode: GameMode = .classic, ...)`, `GameState.currentSchemaVersion == 4`, and **all three `GameSetup.newGame` overloads taking `victoryPointTarget: Int? = nil, mode: GameMode = .classic`** (moved here from Task 7 — see Step 5).
 
 - [ ] **Step 1: Write the failing test**
 
@@ -934,7 +1364,7 @@ Then change the target guard to ask the mode rather than a global range:
 
 - [ ] **Step 5: Run tests to verify they pass**
 
-**PREFLIGHT RULING (controller, before execution):** the `newGame` change moved from Task 5 into this task. The tests above construct Expanded states, so they cannot compile without it, and a task whose own tests do not compile is not independently reviewable. Apply Task 5's Step 3 verbatim **here**:
+**PREFLIGHT RULING (controller, before execution):** the `newGame` change moved from Task 7 into this task. The tests above construct Expanded states, so they cannot compile without it, and a task whose own tests do not compile is not independently reviewable. Apply Task 7's Step 3 verbatim **here**:
 
 ```swift
     public static func newGame(board: Board, rng: inout some RandomNumberGenerator,
@@ -1011,7 +1441,7 @@ Claude-Session: https://claude.ai/code/session_01TBxaHYvMxcRujKxfhdFdAe"
 
 ---
 
-## Task 5: Route every engine rule site through `state.rules`
+## Task 7: Route every engine rule site through `state.rules`
 
 The largest task, and a pure refactor: Classic's numbers do not change, so the existing suites are the net.
 
@@ -1025,8 +1455,8 @@ The largest task, and a pure refactor: Classic's numbers do not change, so the e
 - Test: `Packages/CatanEngine/Tests/CatanEngineTests/RulesetRoutingTests.swift` (create)
 
 **Interfaces:**
-- Consumes: `GameState.rules` from Task 4.
-- Consumes additionally: `GameSetup.newGame(board:seed:playerCount:victoryPointTarget:mode:)` — **built in Task 4**, not here (preflight ruling).
+- Consumes: `GameState.rules` from Task 6.
+- Consumes additionally: `GameSetup.newGame(board:seed:playerCount:victoryPointTarget:mode:)` — **built in Task 6**, not here (preflight ruling).
 - Produces: `WinCondition.standardTarget` and `WinCondition.supportedTargets` are **deleted**; callers ask the ruleset.
 
 - [ ] **Step 1: Write the failing test**
@@ -1217,8 +1647,8 @@ Add the same `victoryPointTarget: Int? = nil, mode: GameMode = .classic` tail to
 
 ```swift
         guard owner.roads.count < state.rules.maxRoadsPerPlayer else { return false }
-        guard owner.settlements.count < state.rules.maxSettlementsPerPlayer else { return false }
-        guard owner.cities.count < state.rules.maxCitiesPerPlayer else { return false }
+        guard owner.settlements.count < state.rules.pieceLimit(for: .settlement) else { return false }
+        guard owner.cities.count < state.rules.pieceLimit(for: .city) else { return false }
 ```
 
 Keep the piece-supply comment block in `Building.swift`, retargeted: the *reason* pieces are limited is unchanged; only where the numbers live moves. Add a line saying the values are now `Ruleset`'s.
@@ -1270,14 +1700,14 @@ Claude-Session: https://claude.ai/code/session_01TBxaHYvMxcRujKxfhdFdAe"
 
 ---
 
-## Task 6: Expanded plays a full game, and its seeds are pinned
+## Task 8: Expanded plays a full game, and its seeds are pinned
 
 **Files:**
 - Modify: `Packages/CatanEngine/Tests/CatanEngineTests/FullGameSimulationTests.swift`
 - Modify: `Packages/CatanAI/Tests/CatanAITests/SeededGameFingerprintTests.swift:136,264`
 
 **Interfaces:**
-- Consumes: everything from Tasks 1–5. Adds no production code — if a test here fails, the bug is in an earlier task.
+- Consumes: everything from Tasks 1–7. Adds no production code — if a test here fails, the bug is in an earlier task.
 
 > **Note:** `SeededGameFingerprintTests.swift` lives in **`Packages/CatanAI/Tests/CatanAITests/`**, not in `CatanEngineTests`. `CLAUDE.md`'s determinism section implies the engine package; it is wrong. The fingerprints are of *bot self-play*, which is why they are in the AI package — so they run under `swift test --package-path Packages/CatanAI`, the 55–175s suite.
 
@@ -1380,7 +1810,7 @@ Expected: PASS. This step has no new behaviour — if it fails, the lift was not
 Run: `swift test --package-path Packages/CatanEngine --filter FullGameSimulation`
 Expected: PASS.
 
-**Random play is not bot play** — it is a termination and legality check, not a length measurement. The real number comes from Task 12. If the game does not finish inside 60,000 random moves, **do not raise the cap**: report the number and stop. That is Accepted Risk 1 surfacing, and which dial to turn is Jake's call.
+**Random play is not bot play** — it is a termination and legality check, not a length measurement. The real number comes from Task 14. If the game does not finish inside 60,000 random moves, **do not raise the cap**: report the number and stop. That is Accepted Risk 1 surfacing, and which dial to turn is Jake's call.
 
 - [ ] **Step 5: Pin Expanded fingerprints in the AI package**
 
@@ -1433,7 +1863,7 @@ Claude-Session: https://claude.ai/code/session_01TBxaHYvMxcRujKxfhdFdAe"
 
 ---
 
-## Task 7: `StateEncoding` and `ActionSpace` refuse a non-Classic board
+## Task 9: `StateEncoding` and `ActionSpace` refuse a non-Classic board
 
 **Files:**
 - Modify: `Packages/CatanEngine/Sources/CatanEngine/StateEncoding.swift:336-341`
@@ -1441,7 +1871,7 @@ Claude-Session: https://claude.ai/code/session_01TBxaHYvMxcRujKxfhdFdAe"
 - Test: `Packages/CatanEngine/Tests/CatanEngineTests/StateEncodingTests.swift`
 
 **Interfaces:**
-- Consumes: `GameMode`, `Ruleset` from Task 3.
+- Consumes: `GameMode`, `Ruleset` from Task 5.
 - Produces: `StateEncoding.supportedModes: Set<GameMode>` — `[.classic]`.
 
 - [ ] **Step 1: Write the failing test**
@@ -1526,14 +1956,14 @@ Claude-Session: https://claude.ai/code/session_01TBxaHYvMxcRujKxfhdFdAe"
 
 ---
 
-## Task 8: `MatchSetup` carries the mode
+## Task 10: `MatchSetup` carries the mode
 
 **Files:**
 - Modify: `Settlers/Persistence/MatchSetup.swift:53-62,102-104,117-119,176-182,200-202,241-242`
 - Test: `SettlersTests/NewGameSetupTests.swift`
 
 **Interfaces:**
-- Consumes: `GameMode`, `Ruleset` from Task 3.
+- Consumes: `GameMode`, `Ruleset` from Task 5.
 - Produces: `MatchSetup.mode: GameMode`, `MatchSetup.init(seats:mode:victoryPointTarget:randomizedBoard:randomizeSeatOrder:)`, `MatchSetup.newGameVictoryPointTargets(for:mode:)`.
 
 - [ ] **Step 1: Write the failing test**
@@ -1657,7 +2087,7 @@ Claude-Session: https://claude.ai/code/session_01TBxaHYvMxcRujKxfhdFdAe"
 
 ---
 
-## Task 9: The mode survives save, resume, replay and export
+## Task 11: The mode survives save, resume, replay and export
 
 **Files:**
 - Modify: `Settlers/ViewModels/GameViewModel.swift:377-385`
@@ -1667,7 +2097,7 @@ Claude-Session: https://claude.ai/code/session_01TBxaHYvMxcRujKxfhdFdAe"
 - Test: `SettlersTests/MatchCheckpointStoreTests.swift`, `SettlersTests/GameLogStoreTests.swift`
 
 **Interfaces:**
-- Consumes: `MatchSetup.mode` (Task 8), `GameState.mode` (Task 4).
+- Consumes: `MatchSetup.mode` (Task 10), `GameState.mode` (Task 6).
 - Produces: no new public API — this task makes an existing invariant hold for a new field.
 
 - [ ] **Step 1: Write the failing test**
@@ -1778,7 +2208,7 @@ Claude-Session: https://claude.ai/code/session_01TBxaHYvMxcRujKxfhdFdAe"
 
 ---
 
-## Task 10: The mode picker on the New Game screen
+## Task 12: The mode picker on the New Game screen
 
 **Files:**
 - Create: `Settlers/Views/GameModePickerPopup.swift`
@@ -1787,7 +2217,7 @@ Claude-Session: https://claude.ai/code/session_01TBxaHYvMxcRujKxfhdFdAe"
 - Test: `SettlersTests/NewGameSetupTests.swift`; create `SettlersUITests/NewGameModeFlowTests.swift`
 
 **Interfaces:**
-- Consumes: `MatchSetup.mode`, `MatchSetup.newGameVictoryPointTargets(for:mode:)` (Task 8), `GameMode.displayName`, `GameMode.summary` (Task 3).
+- Consumes: `MatchSetup.mode`, `MatchSetup.newGameVictoryPointTargets(for:mode:)` (Task 10), `GameMode.displayName`, `GameMode.summary` (Task 5).
 - Produces: `GameModePickerPopup(selection:onSelect:onCancel:)`, `AccessibilityID.NewGame.modeRow` / `.modePicker` / `.modeOption(GameMode)`.
 
 - [ ] **Step 1: Read the pattern before writing**
@@ -2050,7 +2480,7 @@ Claude-Session: https://claude.ai/code/session_01TBxaHYvMxcRujKxfhdFdAe"
 
 ---
 
-## Task 11: The UI stops printing "+2"
+## Task 13: The UI stops printing "+2"
 
 **Files:**
 - Modify: `Settlers/Models/VictoryPointBreakdown.swift:52-56`
@@ -2058,7 +2488,7 @@ Claude-Session: https://claude.ai/code/session_01TBxaHYvMxcRujKxfhdFdAe"
 - Test: `SettlersTests/VictoryPointBreakdownTests.swift`
 
 **Interfaces:**
-- Consumes: `GameState.rules` (Task 4).
+- Consumes: `GameState.rules` (Task 6).
 - Produces: no new API. `VictoryPointBreakdown.bonusPoints` stops being a constant.
 
 - [ ] **Step 1: Write the failing test**
@@ -2119,7 +2549,7 @@ Claude-Session: https://claude.ai/code/session_01TBxaHYvMxcRujKxfhdFdAe"
 
 ---
 
-## Task 12: Verification
+## Task 14: Verification
 
 No production code. This task produces evidence, and its deliverable is a report with numbers in it.
 
