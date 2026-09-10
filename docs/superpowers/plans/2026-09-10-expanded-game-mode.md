@@ -67,8 +67,8 @@ Important finding fixed, and re-verified. Commits are on `feat/expanded-game-mod
 | 1 | Make `LongestRoad` scale | ✅ **Done** 2026-09-10 | `dd53a9d..d1baab9` | 30 roads 80.6ms→4.90ms, 40 roads 719.6ms→45.54ms. 7,440 networks vs retained oracle, 0 disagreements. No fingerprint moved. |
 | 2 | Nothing hardcodes five resources | ✅ **Done** 2026-09-10 | `092a3bc` | Audit clean — every enumeration already `Resource.allCases`-driven. Test-only commit; no production change. |
 | 3 | `BoardShape` as a composition | ✅ **Done** 2026-09-10 | `3340a3c..5a329f8` | 236/236 + 145/145, no fingerprint moved, swiftlint clean. Cross-process probe: 3 processes byte-identical. 6 findings fixed incl. an unbounded loop that hung forever on a legal all-6/8 composition. |
-| 4 | Expanded board shape + token repair | 🔨 **In progress** | | |
-| 5 | `GameMode` and `Ruleset` | ⬜ Not started | | |
+| 4 | Expanded board shape + token repair | ✅ **Done** 2026-09-10 | `a09e339` | 243/243 + 145/145, no fingerprint moved. Verified independently: 37 tiles, terrain and 36-token multiset exactly 2× Classic, 14 ports (4 generic + 2/resource) on distinct edges, 0 adjacency violations, byte-identical across 3 processes. |
+| 5 | `GameMode` and `Ruleset` | 🔨 **In progress** | | |
 | 6 | `GameState.mode`, schema v4 | ⬜ Not started | | |
 | 7 | Route rule sites through `state.rules` | ⬜ Not started | | |
 | 8 | Expanded full game + fingerprints | ⬜ Not started | | |
@@ -773,7 +773,7 @@ Claude-Session: https://claude.ai/code/session_01TBxaHYvMxcRujKxfhdFdAe"
 - Consumes: `BoardShape`, `TerrainComposition`, `TokenComposition`, `PortLayout`, `BoardGenerator.standard(_:)`, `randomized(seed:shape:)` from Task 3.
 - Produces: `BoardShape.expanded`.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```swift
 @Test func expandedBoardHasThirtySevenTilesAndOneDesert() {
@@ -839,12 +839,12 @@ Claude-Session: https://claude.ai/code/session_01TBxaHYvMxcRujKxfhdFdAe"
 }
 ```
 
-- [ ] **Step 2: Run to verify they fail**
+- [x] **Step 2: Run to verify they fail**
 
 Run: `swift test --package-path Packages/CatanEngine`
 Expected: FAIL — `type 'BoardShape' has no member 'expanded'`.
 
-- [ ] **Step 3: Add the Expanded shape**
+- [x] **Step 3: Add the Expanded shape**
 
 Beside `classic` in `BoardShape.swift`. Note how much shorter this is than a literal array — that is the composition earning its place.
 
@@ -880,7 +880,7 @@ Beside `classic` in `BoardShape.swift`. Note how much shorter this is than a lit
     )
 ```
 
-- [ ] **Step 4: Replace the bound's hard failure with a deterministic repair**
+- [x] **Step 4: Replace the bound's hard failure with a deterministic repair**
 
 **CHANGED DURING EXECUTION.** The bounded retry itself was pulled forward into Task 3, because
 `randomized(seed:shape:)` had an *unbounded* loop that hangs forever on a legal all-6/8
@@ -956,7 +956,7 @@ The loop should end up as:
     }
 ```
 
-- [ ] **Step 5: Prove the shape that used to crash now deals**
+- [x] **Step 5: Prove the shape that used to crash now deals**
 
 Add the case that closes the loop on Task 3's emergency fix:
 
@@ -984,12 +984,12 @@ If the repair cannot satisfy the rule (as here, where it is unsatisfiable), it m
 return a complete, reproducible board. Document that in the repair's doc comment: it is
 best-effort on the 6/8 rule and absolute on completeness and determinism.
 
-- [ ] **Step 6: Run the tests**
+- [x] **Step 6: Run the tests**
 
 Run: `swift test --package-path Packages/CatanEngine`
 Expected: PASS, all seven new cases plus every Classic case. The 50-seed sweep is the important one: if any seed leaves an adjacency, the repair needs a second pass. **Do not weaken the test.**
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add Packages/CatanEngine
