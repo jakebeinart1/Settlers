@@ -43,13 +43,23 @@ import Testing
 // MARK: BoardShape
 
 @Test func classicShapeReproducesTheStandardBoardExactly() {
-    let viaShape = BoardGenerator.standard(BoardShape.classic)
-    let original = BoardGenerator.standard()
-    #expect(viaShape.tiles == original.tiles)
-    #expect(viaShape.ports == original.ports)
-    #expect(viaShape.onBoardVertices == original.onBoardVertices)
-    #expect(viaShape.onBoardEdges == original.onBoardEdges)
-    #expect(viaShape.robberTile == original.robberTile)
+    // Deliberately does NOT compare against `BoardGenerator.standard()` -
+    // Step 5 rewrote that to literally BE `standard(BoardShape.classic)`, so
+    // that comparison would assert a value against itself. This compares
+    // against the underlying source constants instead, which is what
+    // actually proves the composition path deals the authentic board.
+    let board = BoardGenerator.standard(BoardShape.classic)
+    #expect(board.tiles.map(\.coordinate) == BoardGenerator.tileCoordinates)
+    #expect(board.tiles.map(\.kind) == BoardGenerator.standardResourceOrder)
+    let expectedNumbers = BoardGenerator.standardResourceOrder.map { $0 == .desert }
+    var tokenIterator = BoardGenerator.standardNumberOrder.makeIterator()
+    let expectedTokens = expectedNumbers.map { isDesert in isDesert ? nil : tokenIterator.next() }
+    #expect(board.tiles.map(\.numberToken) == expectedTokens)
+    #expect(board.ports == BoardGenerator.standardPorts)
+    let expectedRobberTile = BoardGenerator.tileCoordinates[
+        BoardGenerator.standardResourceOrder.firstIndex(of: .desert)!
+    ]
+    #expect(board.robberTile == expectedRobberTile)
 }
 
 @Test func tileCountFollowsTheHexFormulaAtEveryRadius() {
@@ -108,6 +118,39 @@ import Testing
         ports: .derived(kinds: [])
     )
     #expect(shape.compositionProblem != nil)
+}
+
+@Test func aNegativeRadiusIsRejected() {
+    // Without this guard, `tileCount` (3r^2 + 3r + 1) stays positive for a
+    // negative radius while `spiralCoordinates` collapses to a 1-tile board,
+    // and a `.counts` expansion sized to the mismatched `tileCount` would
+    // zip silently down to whichever is shorter - the exact silent-holes
+    // failure `compositionProblem` exists to catch.
+    let shape = BoardShape(radius: -1, terrain: .counts([:]), tokens: .counts([:]),
+                            ports: .derived(kinds: []))
+    #expect(shape.compositionProblem != nil)
+}
+
+@Test func randomizedTerminatesForAFeasibleCountedShape() {
+    // A sparse mix of 6s and 8s (2 of each on 36 producing tiles) is easy to
+    // arrange without an adjacency - this proves the bounded shuffle loop
+    // actually terminates on a real, non-trivial composition rather than
+    // relying on the attempt cap. Verified against six seeds before pinning
+    // this one. `aCompositionExpandsToExactlyTheDeclaredCounts` deliberately
+    // packs the board solid with 6s and 8s and is never passed through
+    // `randomized`, which is precisely what would exhaust the cap.
+    let shape = BoardShape(
+        radius: 3,
+        terrain: .counts([
+            .desert: 1, .resource(.grain): 12, .resource(.ore): 12, .resource(.wool): 12,
+        ]),
+        tokens: .counts([
+            2: 4, 3: 4, 4: 4, 5: 4, 6: 2, 8: 2, 9: 4, 10: 4, 11: 4, 12: 4,
+        ]),
+        ports: .derived(kinds: [.generic, .generic])
+    )
+    let board = BoardGenerator.randomized(seed: 7, shape: shape)
+    #expect(board.tiles.count == 37)
 }
 
 @Test func derivedPortsSitOnDistinctCoastalEdgesOfTheBoard() {

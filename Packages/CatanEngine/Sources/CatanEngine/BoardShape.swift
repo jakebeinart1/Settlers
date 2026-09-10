@@ -39,6 +39,9 @@ public struct BoardShape: Sendable, Equatable {
     /// would otherwise deal tiles with holes, and a token count that does not
     /// match the non-desert tiles would leave hexes that never produce.
     public var compositionProblem: String? {
+        guard radius >= 0 else {
+            return "radius \(radius) is negative"
+        }
         let kinds = terrain.expanded(tileCount: tileCount)
         guard kinds.count == tileCount else {
             return "terrain declares \(kinds.count) tiles for a \(tileCount)-tile board"
@@ -170,9 +173,14 @@ extension BoardGenerator {
     ///
     /// A coastal edge is an edge of an on-board tile whose neighbour in that
     /// direction is off the board. Walking tiles in spiral order and directions
-    /// in index order visits the outer ring the way the ring is wound, so
-    /// consecutive coastal edges are physically adjacent and an even stride
-    /// spreads ports around the shore rather than clumping them.
+    /// in index order advances around the ring the way it is wound, so the
+    /// sequence progresses around the shore overall even though it can zigzag
+    /// locally at a corner tile (where two of its three outward edges are
+    /// coastal but not adjacent to each other). An even stride over that
+    /// sequence spreads ports around the shore rather than clumping them, but
+    /// does not itself guarantee no two chosen edges share a vertex when
+    /// `stride` is small relative to a tile's edge count - not a concern at
+    /// any radius large enough to need `.derived` ports.
     ///
     /// Deterministic by construction: no `Set` is iterated and the stride is
     /// integer arithmetic. No RNG - ports stay put while terrain and tokens

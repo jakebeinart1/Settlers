@@ -124,6 +124,19 @@ public enum BoardGenerator {
         randomized(seed: seed, shape: BoardShape.classic)
     }
 
+    /// Rejected shuffles allowed before `randomized(seed:shape:)` gives up.
+    ///
+    /// Bounded rather than unbounded: classic's bag is known feasible, but
+    /// this loop is now reachable with an arbitrary `shape` - a token
+    /// composition that packs a board with 6s and 8s (as in
+    /// `aCompositionExpandsToExactlyTheDeclaredCounts`) can have no
+    /// arrangement that satisfies "no 6 or 8 touches another 6 or 8" at all,
+    /// and an unbounded retry would hang forever rather than fail. Task 4
+    /// replaces this exhaustion path with a deterministic repair pass; until
+    /// then, crashing loudly beats hanging silently or dealing a board that
+    /// violates the rule.
+    private static let maxShuffleAttempts = 100
+
     /// Shuffles `shape`'s expanded terrain and tokens independently using a
     /// seeded RNG, re-rolling whenever a 6 or 8 would end up adjacent to
     /// another 6 or 8. Ports are resolved from `shape.ports`, unshuffled.
@@ -137,10 +150,20 @@ public enum BoardGenerator {
             .expanded(count: baseKinds.filter { $0 != .desert }.count)
         var kinds: [TileKind]
         var numbers: [Int]
+        var attempt = 0
         repeat {
+            attempt += 1
+            guard attempt <= maxShuffleAttempts else {
+                preconditionFailure("""
+                    no arrangement of \(shape.tileCount) tiles / \
+                    \(baseNumbers.count) tokens for this shape satisfies the \
+                    no-adjacent-6/8 rule after \(maxShuffleAttempts) shuffles \
+                    - the composition is likely infeasible at this radius
+                    """)
+            }
             kinds = baseKinds.shuffled(using: &rng)
             numbers = baseNumbers.shuffled(using: &rng)
-        } while hasAdjacentSixOrEight(kinds: kinds, numbers: numbers, radius: shape.radius)
+        } while hasAdjacentSixOrEight(kinds: kinds, numbers: numbers, coordinates: coordinates)
 
         var numberIterator = numbers.makeIterator()
         let tiles = zip(coordinates, kinds).map { coordinate, kind -> Tile in
@@ -150,8 +173,9 @@ public enum BoardGenerator {
         return makeBoard(tiles: tiles, shape: shape)
     }
 
-    private static func hasAdjacentSixOrEight(kinds: [TileKind], numbers: [Int], radius: Int) -> Bool {
-        let coordinates = spiralCoordinates(radius: radius)
+    private static func hasAdjacentSixOrEight(
+        kinds: [TileKind], numbers: [Int], coordinates: [HexCoordinate]
+    ) -> Bool {
         var numberIterator = numbers.makeIterator()
         var tokenByCoordinate: [HexCoordinate: Int] = [:]
         for (coordinate, kind) in zip(coordinates, kinds) {
