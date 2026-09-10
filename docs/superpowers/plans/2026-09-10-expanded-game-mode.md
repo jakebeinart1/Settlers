@@ -68,8 +68,8 @@ Important finding fixed, and re-verified. Commits are on `feat/expanded-game-mod
 | 2 | Nothing hardcodes five resources | ✅ **Done** 2026-09-10 | `092a3bc` | Audit clean — every enumeration already `Resource.allCases`-driven. Test-only commit; no production change. |
 | 3 | `BoardShape` as a composition | ✅ **Done** 2026-09-10 | `3340a3c..5a329f8` | 236/236 + 145/145, no fingerprint moved, swiftlint clean. Cross-process probe: 3 processes byte-identical. 6 findings fixed incl. an unbounded loop that hung forever on a legal all-6/8 composition. |
 | 4 | Expanded board shape + token repair | ✅ **Done** 2026-09-10 | `a09e339` | 243/243 + 145/145, no fingerprint moved. Verified independently: 37 tiles, terrain and 36-token multiset exactly 2× Classic, 14 ports (4 generic + 2/resource) on distinct edges, 0 adjacency violations, byte-identical across 3 processes. |
-| 5 | `GameMode` and `Ruleset` | 🔍 **In review** | `6b28341` | 248/248 + 145/145. `supportedRoadLimit = 38`, measured not guessed — independently reproduced (38→5.60ms vs agent's 5.48ms) and the branch-and-bound cliff confirmed at 44 roads (235ms). |
-| 6 | `GameState.mode`, schema v4 | ⬜ Not started | | |
+| 5 | `GameMode` and `Ruleset` | ✅ **Done** 2026-09-10 | `6b28341..7bca304` | 251/251. Classic + Expanded values verified directly. `supportedRoadLimit = 38` measured and independently reproduced (5.60ms vs 5.48ms); cliff confirmed at 44 roads (235ms). `scaledFromBoard` rounding pinned both directions; recursion trap removed structurally. |
+| 6 | `GameState.mode`, schema v4 | 🔨 **In progress** | | |
 | 7 | Route rule sites through `state.rules` | ⬜ Not started | | |
 | 8 | Expanded full game + fingerprints | ⬜ Not started | | |
 | 9 | `StateEncoding`/`ActionSpace` refusal | ⬜ Not started | | |
