@@ -57,6 +57,43 @@
 
 ---
 
+## Status
+
+**Updated after every task completes.** `Done` means implemented, reviewed, every Critical and
+Important finding fixed, and re-verified. Commits are on `feat/expanded-game-mode`.
+
+| # | Task | Status | Commits | Evidence |
+|---|---|---|---|---|
+| 1 | Make `LongestRoad` scale | ✅ **Done** 2026-09-10 | `dd53a9d..d1baab9` | 30 roads 80.6ms→4.90ms, 40 roads 719.6ms→45.54ms. 7,440 networks vs retained oracle, 0 disagreements. No fingerprint moved. |
+| 2 | Nothing hardcodes five resources | ✅ **Done** 2026-09-10 | `092a3bc` | Audit clean — every enumeration already `Resource.allCases`-driven. Test-only commit; no production change. |
+| 3 | `BoardShape` as a composition | 🔧 **Fix round** | `3340a3c` | 234/234 + 145/145 green, no fingerprint moved. Cross-process probe: 3 processes, byte-identical. 2 Important open (tautological classic test; unbounded retry loop). |
+| 4 | Expanded board shape + token repair | ⬜ Not started | | |
+| 5 | `GameMode` and `Ruleset` | ⬜ Not started | | |
+| 6 | `GameState.mode`, schema v4 | ⬜ Not started | | |
+| 7 | Route rule sites through `state.rules` | ⬜ Not started | | |
+| 8 | Expanded full game + fingerprints | ⬜ Not started | | |
+| 9 | `StateEncoding`/`ActionSpace` refusal | ⬜ Not started | | |
+| 10 | `MatchSetup` carries the mode | ⬜ Not started | | |
+| 11 | Mode survives save/resume/replay | ⬜ Not started | | |
+| 12 | Mode picker on New Game screen | ⬜ Not started | | |
+| 13 | UI stops printing "+2" | ⬜ Not started | | |
+| 14 | Verification (gate, sim-harness, screenshot) | ⬜ Not started | | |
+
+### Decisions made during execution
+
+These changed the plan after it was written. Each is a deliberate call, not drift.
+
+| Decision | Why | Cost if wrong |
+|---|---|---|
+| Fix `LongestRoad` before Expanded (Task 1, new) | Measured exponential blow-up: 3.3ms at 15 roads, 157ms at 30, 776ms at 40, one topology >100s. Classic's 15-road cap was the only thing hiding it. Jake's call. | Expanded ships later |
+| `newGame`'s `mode:` parameter moved Task 7 → Task 6 | Task 6's own tests construct Expanded states and could not compile without it | Task 6's diff is larger |
+| `Player.victoryPoints` test rewritten | It is a computed read-only property (`Player.swift:35`); the planned test assigned to it | None — the replacement is more faithful |
+| `TileKind` gains `Hashable` | Plan specified `[TileKind: Int]` but `TileKind` was only `Equatable` | None — `Resource` is already `Hashable`, so it is synthesized |
+| Bounded retry pulled Task 4 → Task 3 | `randomized(seed:shape:)` hangs forever on an all-6/8 composition, newly reachable once shapes became public API | A feasible-but-unlucky shape crashes instead of retrying; Task 4's repair removes that window |
+| Two tautological tests replaced | Both asserted that a value equals its own definition — `resourceKindCount == Resource.allCases.count`, and `standard(BoardShape.classic)` vs a `standard()` that *is* that call | None — both replacements are strictly more falsifiable |
+
+---
+
 ## File Structure
 
 **Modified first — the scaling fix:**
@@ -115,7 +152,7 @@ This is the highest-risk task in the project. `LongestRoad` decides who wins gam
 
 Doubling every ~5 roads. Classic's 15-road cap is the only reason this has never surfaced. Expanded's 30 is playable but on the shoulder; the 100+ road modes Jake plans next would freeze for minutes.
 
-- [ ] **Step 1: Preserve today's algorithm as a reference oracle**
+- [x] **Step 1: Preserve today's algorithm as a reference oracle**
 
 Rename the existing `longestPath(for:in:)` to `referenceLongestPath(for:in:)`, change `private` to `internal`, and leave its body **byte-identical**. Add:
 
@@ -130,7 +167,7 @@ Rename the existing `longestPath(for:in:)` to `referenceLongestPath(for:in:)`, c
     /// Nothing in production may call this.
 ```
 
-- [ ] **Step 2: Write the failing equivalence test**
+- [x] **Step 2: Write the failing equivalence test**
 
 Create `LongestRoadEquivalenceTests.swift`. This is the whole safety argument — write it before the new algorithm exists.
 
@@ -225,12 +262,12 @@ private func randomNetwork(seed: UInt64, roadCount: Int, blockedCount: Int)
 }
 ```
 
-- [ ] **Step 3: Run to verify it fails for the right reason**
+- [x] **Step 3: Run to verify it fails for the right reason**
 
 Run: `swift test --package-path Packages/CatanEngine --filter LongestRoadEquivalence`
 Expected: FAIL — `referenceLongestPath` exists but `longestPath` is still the same function, so the test is comparing a function to itself and passes vacuously, OR it fails to compile. **Either way it proves nothing yet** — that is expected at this step, and Step 5 is where it becomes meaningful.
 
-- [ ] **Step 4: Write the fast search**
+- [x] **Step 4: Write the fast search**
 
 Replace `longestPath(for:in:)` with the four-stage version. All four stages are exact; none approximates.
 
@@ -271,14 +308,14 @@ Implement it. Guidance the plan can give but cannot write for you, because it de
 - Tree diameter: from any vertex, find the farthest vertex `u` by BFS; from `u`, find the farthest vertex `v`; the distance `u`→`v` is the diameter in edges.
 - Keep the recursion depth bounded — a 3,192-edge board can hold long components; prefer an explicit stack or confirm the recursion depth stays within the default stack for the road limits `Ruleset` permits.
 
-- [ ] **Step 5: Run the equivalence sweep**
+- [x] **Step 5: Run the equivalence sweep**
 
 Run: `swift test --package-path Packages/CatanEngine --filter LongestRoadEquivalence`
 Expected: PASS, ≥7,000 networks compared, zero disagreements.
 
 **Any disagreement is a bug in the new code.** Do not adjust the oracle, do not relax the assertion, and do not exclude a failing shape. Print the failing network's roads and blocked vertices and fix the algorithm.
 
-- [ ] **Step 6: Prove the whole engine and the bots are unchanged**
+- [x] **Step 6: Prove the whole engine and the bots are unchanged**
 
 Run: `swift test --package-path Packages/CatanEngine`
 Run: `swift test --package-path Packages/CatanAI`
@@ -286,11 +323,11 @@ Expected: PASS, both, with **`SeededGameFingerprintTests` unchanged and un-repin
 
 The fingerprints are the strongest evidence available: identical move sequences across full seeded games mean the new search returned the same answer at every decision of every game. **If a fingerprint moves, stop.** Do not re-record it — that would be re-pinning the tests to a bug. Report it.
 
-- [ ] **Step 7: Measure the improvement and record it**
+- [x] **Step 7: Measure the improvement and record it**
 
 Re-run the dense-network measurement at 15, 20, 25, 30, 35 and 40 roads and put the before/after numbers in the commit message. A performance fix without a measured number is a claim, not a result.
 
-- [ ] **Step 8: Commit**
+- [x] **Step 8: Commit**
 
 ```bash
 git add Packages/CatanEngine/Sources/CatanEngine/LongestRoad.swift \
@@ -336,7 +373,7 @@ A small audit task, serving a named future feature (a sixth resource). It adds n
 **Interfaces:**
 - Consumes: nothing. Produces: no API change.
 
-- [ ] **Step 1: Find every place the count 5 is baked in**
+- [x] **Step 1: Find every place the count 5 is baked in**
 
 ```bash
 grep -rn "allCases" --include="*.swift" Packages/CatanEngine/Sources Packages/CatanAI/Sources | grep -i resource
@@ -346,7 +383,7 @@ grep -rn "\[\.brick\|\.grain, \.wool\|\.lumber, \.ore" --include="*.swift" Packa
 
 Write the findings into your report. Expect most of the engine to be clean already — `StateEncoding.resourceKindCount` is `Resource.allCases.count`, and the bank loop drives off `Resource.allCases`.
 
-- [ ] **Step 2: Write the failing test**
+- [x] **Step 2: Write the failing test**
 
 ```swift
 import Testing
@@ -372,21 +409,21 @@ import Testing
 }
 ```
 
-- [ ] **Step 3: Run it**
+- [x] **Step 3: Run it**
 
 Run: `swift test --package-path Packages/CatanEngine --filter ResourceCountAgnostic`
 Expected: PASS immediately if the engine is already clean. **That is a valid outcome** — the test's job is to keep it clean, not to prove it was broken. If it fails, fix the source, not the test.
 
-- [ ] **Step 4: Fix anything the audit found**
+- [x] **Step 4: Fix anything the audit found**
 
 Only what Step 1 actually found. Do not add a resource, do not make `Resource` dynamic, do not touch `CatanAI` heuristic weights keyed by resource — per-resource *tuning* is legitimately per-resource.
 
-- [ ] **Step 5: Run the full engine suite**
+- [x] **Step 5: Run the full engine suite**
 
 Run: `swift test --package-path Packages/CatanEngine`
 Expected: PASS.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add Packages/CatanEngine
