@@ -2,6 +2,19 @@
 public enum LongestRoad {
     private static let minimumLength = 5
 
+    /// The largest per-player road limit the search is measured to serve
+    /// comfortably. `Ruleset.validationProblem` refuses a mode above this.
+    ///
+    /// Measured on the standard board's densest clump (every edge of each
+    /// hex, centre outward — Task 1's method), mean of 20 calls: 32 roads
+    /// 1.83ms, 35 roads 3.93ms, 38 roads 5.48ms, all stable across repeated
+    /// runs. Probing further on the same generator found the branch-and-bound
+    /// cliff at 44 roads (~235ms) with 43 still at ~7.8ms — 38 was kept as the
+    /// candidate actually asked for, comfortably under the 20ms bar with a
+    /// 5-road margin before that cliff. Raising it requires re-running that
+    /// measurement and pasting the new numbers.
+    public static let supportedRoadLimit = 38
+
     /// The player with the strict-longest continuous road of at least
     /// `minimumLength` edges. Ties keep the current holder's bonus (per
     /// official rules); if there's no current holder and it's a tie, no one

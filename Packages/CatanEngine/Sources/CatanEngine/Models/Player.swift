@@ -1,4 +1,4 @@
-public enum BuildingKind: Codable, Sendable {
+public enum BuildingKind: Codable, Sendable, CaseIterable, Hashable {
     case settlement, city
 }
 
