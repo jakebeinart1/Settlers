@@ -822,7 +822,7 @@ Claude-Session: https://claude.ai/code/session_01TBxaHYvMxcRujKxfhdFdAe"
 
 **Interfaces:**
 - Consumes: `GameMode`, `Ruleset.forMode(_:)` from Task 3.
-- Produces: `GameState.mode: GameMode`, `GameState.rules: Ruleset` (computed), `GameState.init(..., mode: GameMode = .classic, ...)`, `GameState.currentSchemaVersion == 4`.
+- Produces: `GameState.mode: GameMode`, `GameState.rules: Ruleset` (computed), `GameState.init(..., mode: GameMode = .classic, ...)`, `GameState.currentSchemaVersion == 4`, and **all three `GameSetup.newGame` overloads taking `victoryPointTarget: Int? = nil, mode: GameMode = .classic`** (moved here from Task 5 — see Step 5).
 
 - [ ] **Step 1: Write the failing test**
 
@@ -934,10 +934,62 @@ Then change the target guard to ask the mode rather than a global range:
 
 - [ ] **Step 5: Run tests to verify they pass**
 
-Run: `swift test --package-path Packages/CatanEngine`
-Expected: PASS. The whole engine suite must stay green — `mode` defaults to `.classic` everywhere, so nothing else changes yet. `GameSetup.newGame`'s `mode:` parameter arrives in Task 5; until then the second new test will not compile, so **write Task 5's `newGame` signature change now if the compiler asks for it** rather than stubbing the test.
+**PREFLIGHT RULING (controller, before execution):** the `newGame` change moved from Task 5 into this task. The tests above construct Expanded states, so they cannot compile without it, and a task whose own tests do not compile is not independently reviewable. Apply Task 5's Step 3 verbatim **here**:
 
-- [ ] **Step 6: Commit**
+```swift
+    public static func newGame(board: Board, rng: inout some RandomNumberGenerator,
+                               playerCount: Int = GameSetup.standardPlayerCount,
+                               victoryPointTarget: Int? = nil,
+                               mode: GameMode = .classic) -> GameState {
+        precondition(supportedPlayerCounts.contains(playerCount),
+                     "playerCount \(playerCount) is outside \(supportedPlayerCounts)")
+        let rules = Ruleset.forMode(mode)
+        let target = victoryPointTarget ?? rules.defaultVictoryPointTarget
+        precondition(rules.victoryPointTargets.contains(target),
+                     "victoryPointTarget \(target) is outside \(mode.displayName)'s \(rules.victoryPointTargets)")
+        precondition(board.tiles.count == rules.board.tileCount,
+                     "a \(board.tiles.count)-tile board cannot host \(mode.displayName), "
+                     + "which is played on \(rules.board.tileCount) tiles")
+        let players = (0..<playerCount).map { Player(id: PlayerID(index: $0)) }
+
+        var bank: [Resource: Int] = [:]
+        for resource in Resource.allCases {
+            bank[resource] = rules.bankPerResource
+        }
+
+        // Driven off `DevCardType.allCases`, not off the dictionary, so the
+        // deck is built in a stable order before it is shuffled. Dictionary
+        // iteration order is seeded per process; shuffling an
+        // unstably-ordered array gives a different deck per launch for the
+        // same seed, which is the determinism bug this repo has paid for four
+        // times.
+        var devCardDeck: [DevCardType] = []
+        for type in DevCardType.allCases {
+            devCardDeck.append(contentsOf: repeatElement(type, count: rules.devCardDeck[type, default: 0]))
+        }
+        devCardDeck.shuffle(using: &rng)
+
+        return GameState(
+            board: board,
+            players: players,
+            phase: .setupForward(playerIndex: 0),
+            bank: bank,
+            devCardDeck: devCardDeck,
+            rng: RandomSource(seed: rng.next()),
+            mode: mode,
+            victoryPointTarget: target
+        )
+    }
+```
+
+Add the same `victoryPointTarget: Int? = nil, mode: GameMode = .classic` tail to the `seed:` and no-argument overloads, forwarding both. Fix any caller the `Int?` change breaks.
+
+- [ ] **Step 6: Run tests to verify they pass**
+
+Run: `swift test --package-path Packages/CatanEngine`
+Expected: PASS. The whole engine suite must stay green — `mode` defaults to `.classic` everywhere, so no existing behaviour changes.
+
+- [ ] **Step 7: Commit**
 
 ```bash
 git add Packages/CatanEngine/Sources/CatanEngine/Models/GameState.swift \
@@ -974,7 +1026,8 @@ The largest task, and a pure refactor: Classic's numbers do not change, so the e
 
 **Interfaces:**
 - Consumes: `GameState.rules` from Task 4.
-- Produces: `GameSetup.newGame(board:rng:playerCount:victoryPointTarget:mode:)` and `newGame(board:seed:playerCount:victoryPointTarget:mode:)`, both with `mode: GameMode = .classic` last, and `victoryPointTarget: Int? = nil` meaning "the mode's default". `WinCondition.standardTarget` and `WinCondition.supportedTargets` are **deleted**; callers ask the ruleset.
+- Consumes additionally: `GameSetup.newGame(board:seed:playerCount:victoryPointTarget:mode:)` — **built in Task 4**, not here (preflight ruling).
+- Produces: `WinCondition.standardTarget` and `WinCondition.supportedTargets` are **deleted**; callers ask the ruleset.
 
 - [ ] **Step 1: Write the failing test**
 
@@ -996,6 +1049,9 @@ private func expandedGame(seed: UInt64 = 1) -> GameState {
 @Test func expandedBonusesAreWorthFourPointsInBothFormulas() {
     var state = expandedGame()
     let seat = state.players[0].id
+    // A fresh game: no buildings, so both formulas start at zero and the 8
+    // below is purely the two bonuses.
+    #expect(state.victoryPoints(for: seat) == 0)
     state.longestRoadPlayer = seat
     state.largestArmyPlayer = seat
     #expect(state.victoryPoints(for: seat) == 8)
@@ -1035,11 +1091,21 @@ private func expandedGame(seed: UInt64 = 1) -> GameState {
 @Test func expandedWinsAtTwentyFiveNotTen() {
     var state = expandedGame()
     let seat = state.players[0].id
-    state.players[0].victoryPoints = 20
-    state.longestRoadPlayer = seat   // +4 = 24
+    // `Player.victoryPoints` is COMPUTED and read-only (`Player.swift:35`) -
+    // it cannot be assigned. Build the total out of real pieces instead:
+    // 8 cities (16) + 1 settlement (1) = 17, so the two 4-point bonuses are
+    // exactly what carries this seat from 21 to 25.
+    let vertices = state.board.onBoardVertices.sorted()
+    state.players[0].cities = Set(vertices.prefix(8))
+    state.players[0].settlements = Set(vertices.dropFirst(8).prefix(1))
+    #expect(state.victoryPoints(for: seat) == 17)
+
+    state.longestRoadPlayer = seat   // 17 + 4 = 21
     WinCondition.checkForWinner(&state)
-    if case .gameOver = state.phase { Issue.record("ended at 24 of 25") }
-    state.largestArmyPlayer = seat   // +4 = 28
+    if case .gameOver = state.phase { Issue.record("ended at 21 of 25") }
+
+    state.largestArmyPlayer = seat   // 21 + 4 = 25
+    #expect(state.victoryPoints(for: seat) == 25)
     WinCondition.checkForWinner(&state)
     #expect(state.phase == .gameOver(winner: seat))
 }
