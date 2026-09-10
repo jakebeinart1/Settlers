@@ -66,8 +66,8 @@ Important finding fixed, and re-verified. Commits are on `feat/expanded-game-mod
 |---|---|---|---|---|
 | 1 | Make `LongestRoad` scale | ✅ **Done** 2026-09-10 | `dd53a9d..d1baab9` | 30 roads 80.6ms→4.90ms, 40 roads 719.6ms→45.54ms. 7,440 networks vs retained oracle, 0 disagreements. No fingerprint moved. |
 | 2 | Nothing hardcodes five resources | ✅ **Done** 2026-09-10 | `092a3bc` | Audit clean — every enumeration already `Resource.allCases`-driven. Test-only commit; no production change. |
-| 3 | `BoardShape` as a composition | 🔧 **Fix round** | `3340a3c` | 234/234 + 145/145 green, no fingerprint moved. Cross-process probe: 3 processes, byte-identical. 2 Important open (tautological classic test; unbounded retry loop). |
-| 4 | Expanded board shape + token repair | ⬜ Not started | | |
+| 3 | `BoardShape` as a composition | ✅ **Done** 2026-09-10 | `3340a3c..5a329f8` | 236/236 + 145/145, no fingerprint moved, swiftlint clean. Cross-process probe: 3 processes byte-identical. 6 findings fixed incl. an unbounded loop that hung forever on a legal all-6/8 composition. |
+| 4 | Expanded board shape + token repair | 🔨 **In progress** | | |
 | 5 | `GameMode` and `Ruleset` | ⬜ Not started | | |
 | 6 | `GameState.mode`, schema v4 | ⬜ Not started | | |
 | 7 | Route rule sites through `state.rules` | ⬜ Not started | | |
@@ -461,7 +461,7 @@ Jake intends boards of hundreds or a thousand tiles. One literal entry per tile 
 
 Classic keeps literal-order cases, because its arrangement is the authentic physical board and is not derivable from any rule.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```swift
 @Test func classicShapeReproducesTheStandardBoardExactly() {
@@ -507,12 +507,12 @@ Classic keeps literal-order cases, because its arrangement is the authentic phys
 }
 ```
 
-- [ ] **Step 2: Run to verify it fails**
+- [x] **Step 2: Run to verify it fails**
 
 Run: `swift test --package-path Packages/CatanEngine`
 Expected: FAIL — `cannot find 'BoardShape' in scope`.
 
-- [ ] **Step 3: Create `BoardShape.swift`**
+- [x] **Step 3: Create `BoardShape.swift`**
 
 ```swift
 /// The geometry and terrain composition of one board, independent of the rules
@@ -606,7 +606,7 @@ public enum PortLayout: Sendable, Equatable {
 
 **Implement both `expanded` functions deterministically.** `counts` must be walked in a **sorted** order (sort `TileKind`/`Int` keys), never in dictionary order — `Dictionary` iteration order is seeded per process, and an unstable expansion would deal a different board per launch for the same seed. Interleave rather than concatenating runs, so `.counts` produces a playable fixed board.
 
-- [ ] **Step 4: Add `BoardShape.classic`**
+- [x] **Step 4: Add `BoardShape.classic`**
 
 ```swift
 public extension BoardShape {
@@ -621,7 +621,7 @@ public extension BoardShape {
 }
 ```
 
-- [ ] **Step 5: Generalize `BoardGeneration.swift`**
+- [x] **Step 5: Generalize `BoardGeneration.swift`**
 
 Drop `private` from `spiralCoordinates(radius:)`. Keep the `tileCoordinates` constant as classic's 19 — `standardPorts` and both standard orders are written against that exact ordering. **Do not** add a `tileCoordinates(radius:)` overload beside it; Swift permits it but a property and method sharing a name reads as a typo in a load-bearing file.
 
@@ -667,7 +667,7 @@ Thread `shape` through `makeBoard` and resolve ports:
     }
 ```
 
-- [ ] **Step 6: Write the coastline walk**
+- [x] **Step 6: Write the coastline walk**
 
 Append to `BoardShape.swift`:
 
@@ -707,7 +707,7 @@ extension BoardGenerator {
 }
 ```
 
-- [ ] **Step 7: Point `randomized` at the shape**
+- [x] **Step 7: Point `randomized` at the shape**
 
 ```swift
     public static func randomized(seed: UInt64) -> Board {
@@ -730,13 +730,13 @@ extension BoardGenerator {
 
 Give `hasAdjacentSixOrEight` a `radius: Int` parameter using `spiralCoordinates(radius:)`. Task 4 replaces this loop — leave it alone for now.
 
-- [ ] **Step 8: Run the tests**
+- [x] **Step 8: Run the tests**
 
 Run: `swift test --package-path Packages/CatanEngine`
 Run: `swift test --package-path Packages/CatanAI`
 Expected: PASS, both, with fingerprints unchanged. **If a fingerprint moves, the board changed — find out why; do not re-pin.**
 
-- [ ] **Step 9: Commit**
+- [x] **Step 9: Commit**
 
 ```bash
 git add Packages/CatanEngine
