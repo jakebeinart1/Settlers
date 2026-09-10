@@ -1,0 +1,2118 @@
+# Expanded Game Mode Implementation Plan
+
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+
+**Goal:** Add a second playable rule set — "Expanded", a 37-tile map played to 25 victory points with 4-point bonuses and doubled quantities — and, in doing so, move every hard-coded rule quantity in `CatanEngine` into one `Ruleset` value so a third mode costs an enum case and a literal.
+
+**Architecture:** A `GameMode` enum is stored on `GameState` (one `Codable` field, `?? .classic` on decode); `Ruleset` maps a mode to every quantity the rules need; `BoardShape` maps it to the board geometry. Engine call sites read `state.rules.x` instead of a literal. Classic's values are unchanged throughout, so the existing suites are the refactor's safety net.
+
+**Tech Stack:** Swift 6.3, SwiftUI, Swift Testing (`@Test` / `#expect`, not XCTest), SPM packages `CatanEngine` + `CatanAI`, XcodeGen, `scripts/gate.sh`.
+
+**Spec:** `docs/superpowers/specs/2026-09-10-expanded-game-mode-design.md` (committed `98b0778`)
+
+## Global Constraints
+
+- **Branch `feat/expanded-game-mode`. Never push to `main`.** Work goes to Jake as a PR.
+- **`CatanEngine` and `CatanAI` import only `Foundation`.** No UIKit/SwiftUI/Darwin — it breaks Linux CI, not just taste.
+- **All randomness goes through `state.rng`.** Any `Int.random`, `.randomElement()`, `.shuffled()` or `SystemRandomNumberGenerator` inside `CatanEngine` is a bug. The one existing exception is `BoardGenerator`'s private `SeededGenerator`, which is seeded explicitly.
+- **New enumeration must be order-stable.** `Set`/`Dictionary` iteration order is seeded per process. Sort before iterating; drive resource loops off `Resource.allCases`.
+- **Every new `GameState` field decodes with a default** via `decodeIfPresent`. Only `board`, `players`, `phase` may throw.
+- **Never hand-edit `Settlers.xcodeproj/project.pbxproj`.** Run `xcodegen generate` after adding or removing any `.swift` file under `Settlers/`.
+- **Never pipe `xcodebuild` through `tail`/`head`/`grep`** — a pipeline returns the last command's status. Read `${PIPESTATUS[0]}` if you must filter.
+- **Conventional commits**: `type(scope): description`. Bodies explain *why*, with measured numbers.
+- Commit trailers on every commit:
+  ```
+  Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>
+  Claude-Session: https://claude.ai/code/session_01TBxaHYvMxcRujKxfhdFdAe
+  ```
+
+### Fixed values this plan implements (from the spec)
+
+| | Classic | Expanded |
+|---|---|---|
+| victory-point target | 8 / 10 / 12 | 25 (fixed) |
+| longest road bonus | 2 | 4 |
+| largest army bonus | 2 | 4 |
+| longest road minimum | 5 | 5 |
+| largest army minimum | 3 | 3 |
+| roads / settlements / cities per player | 15 / 5 / 4 | 30 / 10 / 8 |
+| discard threshold | > 7 | > 10 |
+| bank per resource | 19 | 38 |
+| dev deck | 14/5/2/2/2 = 25 | 28/10/4/4/4 = 50 |
+| tiles | 19 (radius 2) | 37 (radius 3) |
+| desert | 1 | 1 |
+| grain / wool / lumber | 4 / 4 / 4 | 8 / 8 / 8 |
+| brick / ore | 3 / 3 | 6 / 6 |
+| ports | 9 fixed (4 generic, 5 resource) | 14 derived (4 generic, 2 per resource) |
+| seats | 3–4 | 3–4 (unchanged) |
+| setup settlements | 2 | 2 (unchanged) |
+
+---
+
+## File Structure
+
+**New — `Packages/CatanEngine/Sources/CatanEngine/`:**
+- `Models/GameMode.swift` — the `GameMode` enum. One responsibility: name the modes, `Codable`.
+- `Ruleset.swift` — the `Ruleset` struct and the exhaustive `GameMode → Ruleset` mapping. The single place a new mode's quantities are written.
+- `BoardShape.swift` — `BoardShape` + `PortLayout`, and the coastline walk that derives ports for a generated layout.
+
+**Modified — engine:**
+- `BoardGeneration.swift` — generalized to build from a `BoardShape`.
+- `Models/GameState.swift` — `mode` field, decode, `rules` accessor, VP formulas, `GameSetup.newGame`.
+- `Building.swift`, `LongestRoad.swift`, `DevCards.swift`, `Robber.swift`, `WinCondition.swift` — literals become `state.rules` reads.
+- `StateEncoding.swift`, `ActionSpace.swift` — named refusal for non-Classic.
+
+**Modified — app:**
+- `Settlers/Persistence/MatchSetup.swift`, `GameLogStore.swift`, `MatchCheckpointMigration.swift`, `MatchCheckpointStore.swift`
+- `Settlers/ViewModels/GameViewModel.swift`
+- `Settlers/Views/NewGameSetupView.swift`, `EndGameView.swift`, `PlayerHUDView.swift`
+- `Settlers/Models/VictoryPointBreakdown.swift`
+- `Settlers/Theme/AccessibilityID.swift`
+
+**New — app:**
+- `Settlers/Views/GameModePickerPopup.swift` — the mode selector, following `CivilizationPickerPopup`.
+
+Why `Ruleset` and `BoardShape` are separate files: they change for different reasons. A new mode with existing geometry touches only `Ruleset`; a new geometry touches only `BoardShape`.
+
+---
+
+## Task 1: Generalize the board generator over a `BoardShape`
+
+Pure refactor. Classic's board must come out byte-identical, and `BoardGenerationTests` is the proof.
+
+**Files:**
+- Create: `Packages/CatanEngine/Sources/CatanEngine/BoardShape.swift`
+- Modify: `Packages/CatanEngine/Sources/CatanEngine/BoardGeneration.swift`
+- Test: `Packages/CatanEngine/Tests/CatanEngineTests/BoardGenerationTests.swift`
+
+**Interfaces:**
+- Consumes: nothing.
+- Produces: `BoardShape` (`radius: Int`, `resourceOrder: [TileKind]`, `numberOrder: [Int]`, `ports: PortLayout`), `PortLayout` (`.fixed([Port])` / `.derived(kinds: [Port.Kind])`), `BoardShape.classic`, `BoardGenerator.standard(_ shape: BoardShape)`, `BoardGenerator.randomized(seed:shape:)`. The existing no-argument `standard()` and `randomized(seed:)` stay as Classic-defaulting wrappers — 17 call sites depend on them.
+
+- [ ] **Step 1: Write the failing test**
+
+Add to `BoardGenerationTests.swift`:
+
+```swift
+@Test func classicShapeReproducesTheStandardBoardExactly() {
+    let viaShape = BoardGenerator.standard(BoardShape.classic)
+    let original = BoardGenerator.standard()
+    #expect(viaShape.tiles == original.tiles)
+    #expect(viaShape.ports == original.ports)
+    #expect(viaShape.onBoardVertices == original.onBoardVertices)
+    #expect(viaShape.onBoardEdges == original.onBoardEdges)
+    #expect(viaShape.robberTile == original.robberTile)
+}
+
+@Test func classicShapeDescribesNineteenTilesAndEighteenTokens() {
+    #expect(BoardShape.classic.radius == 2)
+    #expect(BoardShape.classic.resourceOrder.count == 19)
+    #expect(BoardShape.classic.numberOrder.count == 18)
+}
+```
+
+- [ ] **Step 2: Run test to verify it fails**
+
+Run: `swift test --package-path Packages/CatanEngine`
+Expected: FAIL — `cannot find 'BoardShape' in scope`.
+
+- [ ] **Step 3: Create `BoardShape.swift`**
+
+```swift
+/// The geometry and terrain composition of one board, independent of the
+/// rules played on it.
+///
+/// Separate from `Ruleset` because the two change for different reasons: a
+/// mode that reuses the classic map with different quantities touches only
+/// `Ruleset`, and a mode that adds a map touches only this file.
+public struct BoardShape: Sendable, Equatable {
+    /// Rings of hexes around the centre. Radius 2 is the 19-tile classic
+    /// board; radius 3 is 37 tiles. Tile count is `3r^2 + 3r + 1`.
+    public let radius: Int
+    /// Terrain in spiral order, one entry per tile. Count must equal the
+    /// tile count implied by `radius`.
+    public let resourceOrder: [TileKind]
+    /// Number tokens, dealt in order onto the non-desert tiles of the spiral.
+    /// Count must equal `resourceOrder` minus its deserts.
+    public let numberOrder: [Int]
+    public let ports: PortLayout
+
+    public init(radius: Int, resourceOrder: [TileKind], numberOrder: [Int], ports: PortLayout) {
+        self.radius = radius
+        self.resourceOrder = resourceOrder
+        self.numberOrder = numberOrder
+        self.ports = ports
+    }
+
+    /// Tiles a board of this radius holds.
+    public var tileCount: Int { 3 * radius * radius + 3 * radius + 1 }
+}
+
+/// How a shape's ports are placed.
+///
+/// Classic's nine are `.fixed`: they reproduce the physical board's
+/// authentic arrangement, which is not derivable from any rule. Anything
+/// larger is `.derived` — hand-authoring vertex triples for a 42-edge
+/// coastline is error-prone, and a walk generalizes to radii nobody has
+/// drawn yet.
+public enum PortLayout: Sendable, Equatable {
+    case fixed([Port])
+    /// One port per entry, spread evenly around the coastline in the order
+    /// given.
+    case derived(kinds: [Port.Kind])
+}
+
+public extension BoardShape {
+    /// The 19-tile board every game of Catan opens on.
+    static let classic = BoardShape(
+        radius: 2,
+        resourceOrder: BoardGenerator.standardResourceOrder,
+        numberOrder: BoardGenerator.standardNumberOrder,
+        ports: .fixed(BoardGenerator.standardPorts)
+    )
+}
+```
+
+- [ ] **Step 4: Generalize `BoardGeneration.swift`**
+
+Replace the fixed `tileCoordinates` constant and the two public entry points. Keep `spiralCoordinates` as-is; it already takes a radius.
+
+```swift
+    // `spiralCoordinates(radius:)` already exists and already generalizes.
+    // Drop its `private` so the shape-aware entry points can call it, and
+    // keep `tileCoordinates` as classic's 19 - `standardPorts` and the two
+    // standard orders are written against that exact ordering.
+    //
+    // Do NOT add a `tileCoordinates(radius:)` overload beside the existing
+    // `tileCoordinates` constant. Swift permits it, but a property and a
+    // method sharing a name in a file this load-bearing reads as a typo.
+    static func spiralCoordinates(radius: Int) -> [HexCoordinate] {   // was `private static func`
+
+    public static func standard() -> Board { standard(BoardShape.classic) }
+
+    public static func standard(_ shape: BoardShape) -> Board {
+        precondition(shape.resourceOrder.count == shape.tileCount,
+                     "shape has \(shape.resourceOrder.count) terrain entries for \(shape.tileCount) tiles")
+        var numbers = shape.numberOrder.makeIterator()
+        let coordinates = spiralCoordinates(radius: shape.radius)
+        let tiles = zip(coordinates, shape.resourceOrder).map { coordinate, kind -> Tile in
+            let number = (kind == .desert) ? nil : numbers.next()
+            return Tile(coordinate: coordinate, kind: kind, numberToken: number)
+        }
+        return makeBoard(tiles: tiles, shape: shape)
+    }
+```
+
+Then thread `shape` through `makeBoard`, resolving ports:
+
+```swift
+    private static func makeBoard(tiles: [Tile], shape: BoardShape) -> Board {
+        var vertices = Set<VertexID>()
+        var edges = Set<EdgeID>()
+        for tile in tiles {
+            vertices.formUnion(HexGeometry.corners(of: tile.coordinate))
+            edges.formUnion(HexGeometry.edges(of: tile.coordinate))
+        }
+        let robberTile = tiles.first(where: { $0.kind == .desert })?.coordinate ?? tiles[0].coordinate
+        return Board(
+            tiles: tiles,
+            ports: resolvePorts(shape.ports, tiles: tiles),
+            onBoardVertices: vertices,
+            onBoardEdges: edges,
+            robberTile: robberTile
+        )
+    }
+
+    private static func resolvePorts(_ layout: PortLayout, tiles: [Tile]) -> [Port] {
+        switch layout {
+        case .fixed(let ports):
+            return ports
+        case .derived(let kinds):
+            return derivedPorts(kinds: kinds, tiles: tiles)
+        }
+    }
+```
+
+- [ ] **Step 5: Write the coastline walk**
+
+Append to `BoardShape.swift` — it belongs with the layout, not with the tile dealing:
+
+```swift
+extension BoardGenerator {
+    /// Places `kinds.count` ports evenly around the coastline.
+    ///
+    /// A coastal edge is an edge of an on-board tile whose neighbour in that
+    /// direction is off the board. Walking tiles in spiral order and
+    /// directions in index order visits the outer ring the way the ring is
+    /// wound, so consecutive coastal edges are physically adjacent and an
+    /// even stride spreads the ports around the shore rather than clumping
+    /// them on one side.
+    ///
+    /// Deterministic by construction: no `Set` is iterated, and the stride is
+    /// integer arithmetic. No RNG is involved — ports stay put while terrain
+    /// and tokens shuffle, exactly as on the classic board.
+    static func derivedPorts(kinds: [Port.Kind], tiles: [Tile]) -> [Port] {
+        let onBoard = Set(tiles.map(\.coordinate))
+        var coastal: [EdgeID] = []
+        for tile in tiles {
+            let edges = HexGeometry.edges(of: tile.coordinate)
+            for direction in 0..<6 where !onBoard.contains(tile.coordinate.neighbor(direction)) {
+                // `HexGeometry.edges(of:)` indexes edge `i` as the one shared
+                // with the neighbour in direction `i`.
+                coastal.append(edges[direction])
+            }
+        }
+        precondition(coastal.count >= kinds.count,
+                     "coastline holds \(coastal.count) edges, cannot place \(kinds.count) ports")
+        let stride = coastal.count / kinds.count
+        return kinds.enumerated().map { offset, kind in
+            let edge = coastal[offset * stride]
+            return Port(vertexA: edge.a, vertexB: edge.b, kind: kind)
+        }
+    }
+}
+```
+
+- [ ] **Step 6: Point `randomized` at the shape**
+
+```swift
+    public static func randomized(seed: UInt64) -> Board {
+        randomized(seed: seed, shape: BoardShape.classic)
+    }
+
+    public static func randomized(seed: UInt64, shape: BoardShape) -> Board {
+        var rng = SeededGenerator(seed: seed)
+        var kinds: [TileKind]
+        var numbers: [Int]
+        repeat {
+            kinds = shape.resourceOrder.shuffled(using: &rng)
+            numbers = shape.numberOrder.shuffled(using: &rng)
+        } while hasAdjacentSixOrEight(kinds: kinds, numbers: numbers, radius: shape.radius)
+
+        var numberIterator = numbers.makeIterator()
+        let coordinates = spiralCoordinates(radius: shape.radius)
+        let tiles = zip(coordinates, kinds).map { coordinate, kind -> Tile in
+            let number = (kind == .desert) ? nil : numberIterator.next()
+            return Tile(coordinate: coordinate, kind: kind, numberToken: number)
+        }
+        return makeBoard(tiles: tiles, shape: shape)
+    }
+```
+
+Give `hasAdjacentSixOrEight` a `radius: Int` parameter and have it call `spiralCoordinates(radius:)` instead of the `tileCoordinates` constant. Task 2 replaces this loop entirely — leave it alone for now.
+
+- [ ] **Step 7: Run tests to verify they pass**
+
+Run: `swift test --package-path Packages/CatanEngine`
+Expected: PASS, including every pre-existing `BoardGenerationTests`, `DeterminismTests` and `SeededGameFingerprintTests` case. If a fingerprint test fails here, the refactor changed the board — stop and find out why rather than re-pinning the fingerprint.
+
+- [ ] **Step 8: Commit**
+
+```bash
+git add Packages/CatanEngine/Sources/CatanEngine/BoardShape.swift \
+        Packages/CatanEngine/Sources/CatanEngine/BoardGeneration.swift \
+        Packages/CatanEngine/Tests/CatanEngineTests/BoardGenerationTests.swift
+git commit -m "refactor(engine): generalize board generation over a BoardShape
+
+Extracts radius, terrain order, token order and port layout into a value the
+generator reads, so a second map is data rather than a second generator.
+Classic's board is unchanged and asserted byte-identical against the previous
+entry point.
+
+Ports gain a derived layout alongside the fixed one. Classic keeps its nine
+hand-authored positions because they reproduce the physical board and are not
+derivable from any rule; larger maps walk the coastline instead, which
+generalizes to radii nobody has drawn yet and avoids hand-authoring vertex
+triples for a 42-edge shore.
+
+Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01TBxaHYvMxcRujKxfhdFdAe"
+```
+
+---
+
+## Task 2: The Expanded board shape and deterministic token repair
+
+**Files:**
+- Modify: `Packages/CatanEngine/Sources/CatanEngine/BoardShape.swift`
+- Modify: `Packages/CatanEngine/Sources/CatanEngine/BoardGeneration.swift`
+- Test: `Packages/CatanEngine/Tests/CatanEngineTests/BoardGenerationTests.swift`
+
+**Interfaces:**
+- Consumes: `BoardShape`, `PortLayout`, `BoardGenerator.standard(_:)`, `BoardGenerator.randomized(seed:shape:)` from Task 1.
+- Produces: `BoardShape.expanded`.
+
+- [ ] **Step 1: Write the failing tests**
+
+```swift
+@Test func expandedBoardHasThirtySevenTilesAndOneDesert() {
+    let board = BoardGenerator.standard(BoardShape.expanded)
+    #expect(board.tiles.count == 37)
+    #expect(board.tiles.filter { $0.kind == .desert }.count == 1)
+}
+
+@Test func expandedTerrainIsExactlyTwiceClassic() {
+    let board = BoardGenerator.standard(BoardShape.expanded)
+    func count(_ resource: Resource) -> Int {
+        board.tiles.filter { $0.kind == .resource(resource) }.count
+    }
+    #expect(count(.grain) == 8)
+    #expect(count(.wool) == 8)
+    #expect(count(.lumber) == 8)
+    #expect(count(.brick) == 6)
+    #expect(count(.ore) == 6)
+}
+
+@Test func expandedTokenMultisetIsExactlyTwiceClassic() {
+    let expanded = BoardShape.expanded.numberOrder.sorted()
+    let doubledClassic = (BoardShape.classic.numberOrder + BoardShape.classic.numberOrder).sorted()
+    #expect(expanded == doubledClassic)
+    #expect(expanded.count == 36)
+}
+
+@Test func expandedHasFourteenPortsOnDistinctCoastalEdges() {
+    let board = BoardGenerator.standard(BoardShape.expanded)
+    #expect(board.ports.count == 14)
+    let edges = Set(board.ports.map { EdgeID($0.vertexA, $0.vertexB) })
+    #expect(edges.count == 14)
+    for port in board.ports {
+        #expect(board.onBoardVertices.contains(port.vertexA))
+        #expect(board.onBoardVertices.contains(port.vertexB))
+    }
+    #expect(board.ports.filter { $0.kind == .generic }.count == 4)
+    for resource in Resource.allCases {
+        #expect(board.ports.filter { $0.kind == .resource(resource) }.count == 2)
+    }
+}
+
+@Test func expandedRandomizedBoardNeverAdjoinsSixAndEight() {
+    for seed in UInt64(1)...50 {
+        let board = BoardGenerator.randomized(seed: seed, shape: .expanded)
+        let onBoard = Dictionary(uniqueKeysWithValues: board.tiles.map { ($0.coordinate, $0.numberToken) })
+        for tile in board.tiles where tile.numberToken == 6 || tile.numberToken == 8 {
+            for direction in 0..<6 {
+                if let neighbor = onBoard[tile.coordinate.neighbor(direction)] ?? nil {
+                    #expect(!(neighbor == 6 || neighbor == 8), "seed \(seed)")
+                }
+            }
+        }
+    }
+}
+
+@Test func expandedRandomizedBoardIsReproducibleFromItsSeed() {
+    let first = BoardGenerator.randomized(seed: 99, shape: .expanded)
+    let second = BoardGenerator.randomized(seed: 99, shape: .expanded)
+    #expect(first.tiles == second.tiles)
+    #expect(first.ports == second.ports)
+}
+```
+
+- [ ] **Step 2: Run tests to verify they fail**
+
+Run: `swift test --package-path Packages/CatanEngine`
+Expected: FAIL — `type 'BoardShape' has no member 'expanded'`.
+
+- [ ] **Step 3: Add the Expanded shape**
+
+In `BoardShape.swift`, beside `classic`:
+
+```swift
+    /// The 37-tile board (radius 3) that `GameMode.expanded` is played on.
+    ///
+    /// One desert plus 36 resource tiles is exactly twice classic's mix, and
+    /// the 36 tokens are exactly twice classic's multiset — so the dice
+    /// distribution is preserved to the card and a player's probability
+    /// intuition transfers between modes. A 38th tile would break both and
+    /// buy nothing.
+    ///
+    /// The order below is the fixed layout, dealt along the spiral. It
+    /// alternates terrain so the fixed board is playable without a shuffle;
+    /// `randomized(seed:shape:)` reshuffles both arrays.
+    static let expanded = BoardShape(
+        radius: 3,
+        resourceOrder: expandedResourceOrder,
+        numberOrder: expandedNumberOrder,
+        // 14 ports holds classic's ~30% shoreline density (9 of 30 coastal
+        // edges) on a 42-edge coast, rather than its 4:5 generic-to-resource
+        // ratio — doubling to 18 would cover 43% of the shore and make
+        // harbours cheap. Two 2:1 ports per resource is symmetric, which
+        // matters more on a map where a whole corner can be out of reach.
+        ports: .derived(kinds: [
+            .generic, .resource(.grain), .resource(.ore), .resource(.wool),
+            .generic, .resource(.brick), .resource(.lumber), .resource(.grain),
+            .generic, .resource(.ore), .resource(.wool), .resource(.brick),
+            .generic, .resource(.lumber),
+        ])
+    )
+
+    /// 1 desert + 8 grain + 8 wool + 8 lumber + 6 brick + 6 ore = 37.
+    private static let expandedResourceOrder: [TileKind] = {
+        var kinds: [TileKind] = [.desert]
+        kinds.append(contentsOf: repeatElement(.resource(.grain), count: 8))
+        kinds.append(contentsOf: repeatElement(.resource(.wool), count: 8))
+        kinds.append(contentsOf: repeatElement(.resource(.lumber), count: 8))
+        kinds.append(contentsOf: repeatElement(.resource(.brick), count: 6))
+        kinds.append(contentsOf: repeatElement(.resource(.ore), count: 6))
+        // Interleave so the FIXED layout is a playable board rather than five
+        // solid wedges of one terrain. Deterministic: a fixed stride over a
+        // fixed array, no RNG.
+        return stride(from: 0, to: 7, by: 1).flatMap { offset in
+            kinds.enumerated().filter { $0.offset % 7 == offset }.map(\.element)
+        }
+    }()
+
+    /// Exactly twice classic's 18 tokens.
+    private static let expandedNumberOrder: [Int] =
+        BoardGenerator.standardNumberOrder + BoardGenerator.standardNumberOrder.reversed()
+```
+
+- [ ] **Step 4: Replace rejection sampling with a bounded retry plus repair**
+
+In `BoardGeneration.swift`, replace the `repeat`/`while` in `randomized(seed:shape:)`:
+
+```swift
+        var kinds: [TileKind] = []
+        var numbers: [Int] = []
+        // Classic clears this in a handful of shuffles — 4 hot tiles among 19.
+        // Expanded has 8 among 36 on a graph with far more adjacencies, where
+        // a clean shuffle is rare enough that an unbounded loop can spin. Try,
+        // then repair deterministically.
+        var attemptsRemaining = maxShuffleAttempts
+        repeat {
+            kinds = shape.resourceOrder.shuffled(using: &rng)
+            numbers = shape.numberOrder.shuffled(using: &rng)
+            attemptsRemaining -= 1
+        } while attemptsRemaining > 0
+            && hasAdjacentSixOrEight(kinds: kinds, numbers: numbers, radius: shape.radius)
+
+        numbers = repairingAdjacentSixOrEight(kinds: kinds, numbers: numbers, radius: shape.radius)
+```
+
+with the constant and the repair:
+
+```swift
+    /// Shuffles attempted before falling back to repair. Classic clears in
+    /// one or two; the cap only bites on larger boards.
+    private static let maxShuffleAttempts = 100
+
+    /// Swaps every 6/8 that touches another 6/8 onto a cool tile, walking
+    /// tiles in spiral order and taking the first cool partner that does not
+    /// itself create an adjacency.
+    ///
+    /// Deterministic by construction and RNG-free: the walk is over an
+    /// ordered array, never a `Set`, and the choice of partner is "first that
+    /// works" rather than a random pick. Two calls with the same input return
+    /// the same board, in this process and in tomorrow's.
+    private static func repairingAdjacentSixOrEight(
+        kinds: [TileKind], numbers: [Int], radius: Int
+    ) -> [Int] {
+        let coordinates = spiralCoordinates(radius: radius)
+        // Index into `numbers` for each tile position, skipping deserts.
+        var tokenIndexByCoordinate: [HexCoordinate: Int] = [:]
+        var nextToken = 0
+        for (coordinate, kind) in zip(coordinates, kinds) where kind != .desert {
+            tokenIndexByCoordinate[coordinate] = nextToken
+            nextToken += 1
+        }
+        var result = numbers
+        func isHot(_ token: Int) -> Bool { token == 6 || token == 8 }
+        func touchesHot(_ coordinate: HexCoordinate, ignoring: HexCoordinate?) -> Bool {
+            (0..<6).contains { direction in
+                let neighbor = coordinate.neighbor(direction)
+                guard neighbor != ignoring, let index = tokenIndexByCoordinate[neighbor] else { return false }
+                return isHot(result[index])
+            }
+        }
+        for coordinate in coordinates {
+            guard let index = tokenIndexByCoordinate[coordinate], isHot(result[index]) else { continue }
+            guard touchesHot(coordinate, ignoring: nil) else { continue }
+            let partner = coordinates.first { candidate in
+                guard let candidateIndex = tokenIndexByCoordinate[candidate],
+                      !isHot(result[candidateIndex]) else { return false }
+                // Moving a hot token here must not create a new adjacency,
+                // and the cool token must be safe where the hot one was.
+                return !touchesHot(candidate, ignoring: coordinate)
+            }
+            guard let partner, let partnerIndex = tokenIndexByCoordinate[partner] else { continue }
+            result.swapAt(index, partnerIndex)
+        }
+        return result
+    }
+```
+
+- [ ] **Step 5: Run tests to verify they pass**
+
+Run: `swift test --package-path Packages/CatanEngine`
+Expected: PASS, all six new cases plus every Classic case. `expandedRandomizedBoardNeverAdjoinsSixAndEight` sweeps 50 seeds; if any seed fails, the repair left an adjacency and the loop above needs a second pass — do not weaken the test.
+
+- [ ] **Step 6: Commit**
+
+```bash
+git add Packages/CatanEngine/Sources/CatanEngine/BoardShape.swift \
+        Packages/CatanEngine/Sources/CatanEngine/BoardGeneration.swift \
+        Packages/CatanEngine/Tests/CatanEngineTests/BoardGenerationTests.swift
+git commit -m "feat(engine): add the 37-tile Expanded board shape
+
+One desert plus 36 resource tiles is exactly twice classic's mix, and the 36
+tokens are exactly twice classic's multiset, so the dice distribution is
+preserved to the card and probability intuition transfers between modes.
+
+Replaces the randomizer's unbounded rejection sampling with a bounded retry
+plus a deterministic repair pass. Classic clears the no-adjacent-6/8 rule in
+one or two shuffles with 4 hot tiles among 19; Expanded has 8 among 36 on a
+graph with far more adjacencies, where a clean shuffle is rare enough that the
+old loop could spin. The repair walks tiles in spiral order and is RNG-free,
+so a seed still reproduces its board across processes.
+
+Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01TBxaHYvMxcRujKxfhdFdAe"
+```
+
+---
+
+## Task 3: `GameMode` and `Ruleset`
+
+**Files:**
+- Create: `Packages/CatanEngine/Sources/CatanEngine/Models/GameMode.swift`
+- Create: `Packages/CatanEngine/Sources/CatanEngine/Ruleset.swift`
+- Test: Create `Packages/CatanEngine/Tests/CatanEngineTests/RulesetTests.swift`
+
+**Interfaces:**
+- Consumes: `BoardShape.classic`, `BoardShape.expanded` from Tasks 1–2.
+- Produces: `GameMode` (`.classic`, `.expanded`; `Codable`, `CaseIterable`, `Sendable`, `String`-raw-valued), `GameMode.displayName`, `GameMode.summary`, `Ruleset` with the fields listed below, and `Ruleset.forMode(_:)`.
+
+- [ ] **Step 1: Write the failing test**
+
+Create `RulesetTests.swift`:
+
+```swift
+import Testing
+@testable import CatanEngine
+
+@Test func classicRulesetMatchesTheValuesTheEngineShippedWith() {
+    let rules = Ruleset.forMode(.classic)
+    #expect(rules.victoryPointTargets == 8...12)
+    #expect(rules.defaultVictoryPointTarget == 10)
+    #expect(rules.longestRoadBonus == 2)
+    #expect(rules.largestArmyBonus == 2)
+    #expect(rules.longestRoadMinimum == 5)
+    #expect(rules.largestArmyMinimum == 3)
+    #expect(rules.maxRoadsPerPlayer == 15)
+    #expect(rules.maxSettlementsPerPlayer == 5)
+    #expect(rules.maxCitiesPerPlayer == 4)
+    #expect(rules.bankPerResource == 19)
+    #expect(rules.discardThreshold == 7)
+    #expect(rules.devCardDeckSize == 25)
+    #expect(rules.board == BoardShape.classic)
+}
+
+@Test func expandedRulesetMatchesTheSpec() {
+    let rules = Ruleset.forMode(.expanded)
+    #expect(rules.victoryPointTargets == 25...25)
+    #expect(rules.defaultVictoryPointTarget == 25)
+    #expect(rules.longestRoadBonus == 4)
+    #expect(rules.largestArmyBonus == 4)
+    #expect(rules.longestRoadMinimum == 5)
+    #expect(rules.largestArmyMinimum == 3)
+    #expect(rules.maxRoadsPerPlayer == 30)
+    #expect(rules.maxSettlementsPerPlayer == 10)
+    #expect(rules.maxCitiesPerPlayer == 8)
+    #expect(rules.bankPerResource == 38)
+    #expect(rules.discardThreshold == 10)
+    #expect(rules.devCardDeckSize == 50)
+    #expect(rules.board == BoardShape.expanded)
+}
+
+@Test func expandedDeckIsExactlyTwiceClassic() {
+    let classic = Ruleset.forMode(.classic).devCardDeck
+    let expanded = Ruleset.forMode(.expanded).devCardDeck
+    for type in DevCardType.allCases {
+        #expect(expanded[type, default: 0] == classic[type, default: 0] * 2)
+    }
+}
+
+@Test func everyModeIsReachableAndBuildableToItsTarget() {
+    for mode in GameMode.allCases {
+        let rules = Ruleset.forMode(mode)
+        // Settlements and cities are the only unbounded-in-time source of
+        // points; a target above their ceiling is a game that cannot end.
+        let buildingCeiling = rules.maxSettlementsPerPlayer + rules.maxCitiesPerPlayer * 2
+        #expect(buildingCeiling >= rules.victoryPointTargets.upperBound,
+                "\(mode) targets \(rules.victoryPointTargets.upperBound) with a \(buildingCeiling)-point building ceiling")
+        #expect(!mode.displayName.isEmpty)
+        #expect(!mode.summary.isEmpty)
+    }
+}
+```
+
+- [ ] **Step 2: Run test to verify it fails**
+
+Run: `swift test --package-path Packages/CatanEngine --filter RulesetTests`
+Expected: FAIL — `cannot find 'Ruleset' in scope`.
+
+- [ ] **Step 3: Create `Models/GameMode.swift`**
+
+```swift
+/// Which rule set a game is played under.
+///
+/// A tag, not a bag of values: the quantities live in `Ruleset`, keyed by
+/// this. Storing the tag rather than the numbers means a save cannot carry an
+/// incoherent combination — a 25-point target beside classic's five-settlement
+/// limit — and adding a mode needs one decode default rather than one per
+/// quantity.
+///
+/// Raw-valued on purpose. A `String` raw value survives reordering the cases,
+/// which an `Int` would not: saves store this.
+public enum GameMode: String, Codable, CaseIterable, Sendable {
+    /// The 19-tile board played to 8, 10 or 12 points. Every save written
+    /// before modes existed is this one.
+    case classic
+    /// The 37-tile board played to 25, with doubled pieces, bank and deck,
+    /// and 4-point bonuses.
+    case expanded
+
+    public var displayName: String {
+        switch self {
+        case .classic: return "Classic"
+        case .expanded: return "Expanded"
+        }
+    }
+
+    /// One line, shown under the name in the mode picker.
+    public var summary: String {
+        switch self {
+        case .classic: return "The standard 19-tile board, played to 8, 10 or 12 points."
+        case .expanded: return "A 37-tile map played to 25 points, with twice the pieces and 4-point bonuses."
+        }
+    }
+}
+```
+
+- [ ] **Step 4: Create `Ruleset.swift`**
+
+```swift
+/// Every quantity the rules need, for one mode.
+///
+/// ## Why one value rather than constants per rule
+/// These numbers were literals scattered across `Building`, `LongestRoad`,
+/// `DevCards`, `Robber`, `WinCondition` and `GameSetup`. Adding a second rule
+/// set that way means finding all of them; adding a third means finding them
+/// again. Here, a new mode is one case in `forMode(_:)`, and the switch is
+/// exhaustive, so the compiler names anything left out.
+///
+/// ## Where the boundary is
+/// This covers quantities and board shape — the whole of Expanded, and most
+/// of what a variant wants. A mode that changes the *shape* of a move (a new
+/// development card, a build action, a trade type) is a change to `GameMove`
+/// and `RulesEngine`, not a field here. Adding a field with a classic-valued
+/// default is the supported way to grow this; every other mode keeps
+/// compiling.
+public struct Ruleset: Sendable, Equatable {
+    public let board: BoardShape
+    /// Targets a game in this mode may be started at.
+    public let victoryPointTargets: ClosedRange<Int>
+    public let defaultVictoryPointTarget: Int
+    public let longestRoadBonus: Int
+    public let largestArmyBonus: Int
+    /// Shortest road that can claim the bonus.
+    public let longestRoadMinimum: Int
+    /// Fewest played knights that can claim the bonus.
+    public let largestArmyMinimum: Int
+    public let maxRoadsPerPlayer: Int
+    public let maxSettlementsPerPlayer: Int
+    public let maxCitiesPerPlayer: Int
+    public let bankPerResource: Int
+    public let devCardDeck: [DevCardType: Int]
+    /// A player holding MORE than this many resource cards discards on a 7.
+    public let discardThreshold: Int
+
+    public var devCardDeckSize: Int { devCardDeck.values.reduce(0, +) }
+
+    /// The rules for `mode`.
+    ///
+    /// Exhaustive on purpose: a new `GameMode` case fails to compile until it
+    /// is given values here, which is the whole point of the tag.
+    public static func forMode(_ mode: GameMode) -> Ruleset {
+        switch mode {
+        case .classic:
+            return Ruleset(
+                board: .classic,
+                victoryPointTargets: 8...12,
+                defaultVictoryPointTarget: 10,
+                longestRoadBonus: 2,
+                largestArmyBonus: 2,
+                longestRoadMinimum: 5,
+                largestArmyMinimum: 3,
+                maxRoadsPerPlayer: 15,
+                maxSettlementsPerPlayer: 5,
+                maxCitiesPerPlayer: 4,
+                bankPerResource: 19,
+                devCardDeck: [.knight: 14, .victoryPoint: 5, .roadBuilding: 2,
+                              .yearOfPlenty: 2, .monopoly: 2],
+                discardThreshold: 7
+            )
+        case .expanded:
+            // Pieces double because classic's limits cap buildings at 13 VP:
+            // 25 would then be reachable only by hoarding nearly every
+            // victory-point card drawn, and the game would stop being about
+            // the board. Doubled, buildings cap at 26.
+            //
+            // The discard threshold rises with income. At classic's 7, an
+            // Expanded economy would trigger a discard for most players on
+            // most sevens, stalling the game and punishing exactly the large
+            // engine a 25-point target asks for.
+            //
+            // The two bonus MINIMUMS deliberately do not move (Jake, 2026-09-10).
+            // Both are fields here, so playtesting can tune them in one line.
+            return Ruleset(
+                board: .expanded,
+                victoryPointTargets: 25...25,
+                defaultVictoryPointTarget: 25,
+                longestRoadBonus: 4,
+                largestArmyBonus: 4,
+                longestRoadMinimum: 5,
+                largestArmyMinimum: 3,
+                maxRoadsPerPlayer: 30,
+                maxSettlementsPerPlayer: 10,
+                maxCitiesPerPlayer: 8,
+                bankPerResource: 38,
+                devCardDeck: [.knight: 28, .victoryPoint: 10, .roadBuilding: 4,
+                              .yearOfPlenty: 4, .monopoly: 4],
+                discardThreshold: 10
+            )
+        }
+    }
+}
+```
+
+- [ ] **Step 5: Run tests to verify they pass**
+
+Run: `swift test --package-path Packages/CatanEngine --filter RulesetTests`
+Expected: PASS, four cases.
+
+- [ ] **Step 6: Commit**
+
+```bash
+git add Packages/CatanEngine/Sources/CatanEngine/Models/GameMode.swift \
+        Packages/CatanEngine/Sources/CatanEngine/Ruleset.swift \
+        Packages/CatanEngine/Tests/CatanEngineTests/RulesetTests.swift
+git commit -m "feat(engine): add GameMode and Ruleset
+
+Every rule quantity the engine hard-codes gets a home keyed by mode, so a
+third rule set is one enum case plus one literal instead of an archaeology
+pass across six files. The switch in forMode(_:) is exhaustive, so a new mode
+fails to compile until it is given values.
+
+A tag rather than per-value fields on GameState: storing the numbers
+separately would admit an incoherent save - a 25-point target beside classic's
+five-settlement limit - and cost a decode default and a compatibility case
+each. Nothing reads these yet; the call sites move in a later commit.
+
+Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01TBxaHYvMxcRujKxfhdFdAe"
+```
+
+---
+
+## Task 4: `GameState.mode`, decoding, and schema version 4
+
+**Files:**
+- Modify: `Packages/CatanEngine/Sources/CatanEngine/Models/GameState.swift`
+- Test: `Packages/CatanEngine/Tests/CatanEngineTests/SaveCompatibilityTests.swift`
+
+**Interfaces:**
+- Consumes: `GameMode`, `Ruleset.forMode(_:)` from Task 3.
+- Produces: `GameState.mode: GameMode`, `GameState.rules: Ruleset` (computed), `GameState.init(..., mode: GameMode = .classic, ...)`, `GameState.currentSchemaVersion == 4`.
+
+- [ ] **Step 1: Write the failing test**
+
+Add to `SaveCompatibilityTests.swift`:
+
+```swift
+@Test func aSaveWrittenBeforeModesExistedLoadsAsClassic() throws {
+    let state = GameSetup.newGame(board: BoardGenerator.randomized(seed: 7), seed: 7)
+    let data = try encodeOmitting(["mode"], from: state)
+    let decoded = try JSONDecoder().decode(GameState.self, from: data)
+    #expect(decoded.mode == .classic)
+    #expect(decoded.victoryPointTarget == 10)
+    #expect(decoded.rules.longestRoadBonus == 2)
+}
+
+@Test func anExpandedSaveRoundTripsWithItsModeAndTarget() throws {
+    let state = GameSetup.newGame(board: BoardGenerator.standard(BoardShape.expanded),
+                                  seed: 11, mode: .expanded)
+    let data = try JSONEncoder().encode(state)
+    let decoded = try JSONDecoder().decode(GameState.self, from: data)
+    #expect(decoded.mode == .expanded)
+    #expect(decoded.victoryPointTarget == 25)
+    #expect(decoded.rules.longestRoadBonus == 4)
+    #expect(decoded.board.tiles.count == 37)
+}
+
+@Test func aClassicSaveCarryingAnExpandedTargetIsRefused() throws {
+    // 25 is legal for Expanded and corrupt for Classic. The guard exists
+    // because an out-of-range target would otherwise let the very next build
+    // declare a winner.
+    var state = GameSetup.newGame(board: BoardGenerator.randomized(seed: 3), seed: 3)
+    state.victoryPointTarget = 10
+    var object = try JSONSerialization.jsonObject(
+        with: try JSONEncoder().encode(state)) as! [String: Any]
+    object["victoryPointTarget"] = 25
+    object["mode"] = "classic"
+    let data = try JSONSerialization.data(withJSONObject: object)
+    #expect(throws: DecodingError.self) {
+        _ = try JSONDecoder().decode(GameState.self, from: data)
+    }
+}
+```
+
+- [ ] **Step 2: Run test to verify it fails**
+
+Run: `swift test --package-path Packages/CatanEngine --filter SaveCompatibilityTests`
+Expected: FAIL — `value of type 'GameState' has no member 'mode'`.
+
+- [ ] **Step 3: Add the stored property and the accessor**
+
+In `GameState.swift`, bump the version constant and document the bump beside the existing note:
+
+```swift
+    /// Bumped to 4 when `mode` was added.
+    public static let currentSchemaVersion = 4
+```
+
+Add beside `victoryPointTarget`:
+
+```swift
+    /// Which rule set THIS game is played under.
+    ///
+    /// Beside the position for the same reason `victoryPointTarget` is: the
+    /// rules are a property of the game, not of the process. A global would
+    /// make every rule read depend on which screen was last opened, and a
+    /// resumed Expanded game would silently revert to classic's quantities
+    /// while keeping its 37-tile board — the rules and the board disagreeing
+    /// mid-game.
+    public var mode: GameMode
+
+    /// The quantities this game is played with. Derived, never stored, so a
+    /// save cannot carry a rule set that disagrees with its own mode.
+    public var rules: Ruleset { Ruleset.forMode(mode) }
+```
+
+Add `mode: GameMode = .classic` to the memberwise `init` parameter list (after `schemaVersion`, before `victoryPointTarget`) and assign `self.mode = mode` before `self.victoryPointTarget`.
+
+- [ ] **Step 4: Decode `mode` before validating the target**
+
+In `init(from:)`, insert immediately after the `schemaVersion` line and **before** the `victoryPointTarget` block:
+
+```swift
+        // Absent in every save written before modes existed. Those games were
+        // played under the only rules there were.
+        mode = try container.decodeIfPresent(GameMode.self, forKey: .mode) ?? .classic
+```
+
+Then change the target guard to ask the mode rather than a global range:
+
+```swift
+        let decodedTarget = try container.decodeIfPresent(Int.self, forKey: .victoryPointTarget)
+            ?? Ruleset.forMode(mode).defaultVictoryPointTarget
+        // Range-checked on the way in, not only at construction. A save
+        // carrying 0 - corruption, or a future version widening the range -
+        // would otherwise make the very next build declare seat 0 the winner.
+        //
+        // Decode order is load-bearing: `mode` is read above, because
+        // validating the target against a range not yet known would reject
+        // every Expanded save as corrupt.
+        guard Ruleset.forMode(mode).victoryPointTargets.contains(decodedTarget) else {
+            throw DecodingError.dataCorruptedError(
+                forKey: .victoryPointTarget,
+                in: container,
+                debugDescription: "Target \(decodedTarget) is outside \(mode.displayName)'s range"
+            )
+        }
+        victoryPointTarget = decodedTarget
+```
+
+- [ ] **Step 5: Run tests to verify they pass**
+
+Run: `swift test --package-path Packages/CatanEngine`
+Expected: PASS. The whole engine suite must stay green — `mode` defaults to `.classic` everywhere, so nothing else changes yet. `GameSetup.newGame`'s `mode:` parameter arrives in Task 5; until then the second new test will not compile, so **write Task 5's `newGame` signature change now if the compiler asks for it** rather than stubbing the test.
+
+- [ ] **Step 6: Commit**
+
+```bash
+git add Packages/CatanEngine/Sources/CatanEngine/Models/GameState.swift \
+        Packages/CatanEngine/Tests/CatanEngineTests/SaveCompatibilityTests.swift
+git commit -m "feat(engine): store the game mode on GameState
+
+One Codable field defaulting to .classic, so every existing save decodes
+untouched and keeps playing the rules it started under. Schema version 4.
+
+Decode order is load-bearing and is documented as such: mode is read before
+the victory-point target, because that guard validates the target against the
+mode's permitted range, and checking it against a range not yet known would
+reject every Expanded save as corrupt - the failure mode that silently deleted
+every player's in-progress game once already.
+
+Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01TBxaHYvMxcRujKxfhdFdAe"
+```
+
+---
+
+## Task 5: Route every engine rule site through `state.rules`
+
+The largest task, and a pure refactor: Classic's numbers do not change, so the existing suites are the net.
+
+**Files:**
+- Modify: `Packages/CatanEngine/Sources/CatanEngine/Building.swift:23-25,48,75,94`
+- Modify: `Packages/CatanEngine/Sources/CatanEngine/LongestRoad.swift:3,11`
+- Modify: `Packages/CatanEngine/Sources/CatanEngine/DevCards.swift:282`
+- Modify: `Packages/CatanEngine/Sources/CatanEngine/Robber.swift:7`
+- Modify: `Packages/CatanEngine/Sources/CatanEngine/WinCondition.swift`
+- Modify: `Packages/CatanEngine/Sources/CatanEngine/Models/GameState.swift` (VP formulas, `GameSetup.newGame`)
+- Test: `Packages/CatanEngine/Tests/CatanEngineTests/RulesetRoutingTests.swift` (create)
+
+**Interfaces:**
+- Consumes: `GameState.rules` from Task 4.
+- Produces: `GameSetup.newGame(board:rng:playerCount:victoryPointTarget:mode:)` and `newGame(board:seed:playerCount:victoryPointTarget:mode:)`, both with `mode: GameMode = .classic` last, and `victoryPointTarget: Int? = nil` meaning "the mode's default". `WinCondition.standardTarget` and `WinCondition.supportedTargets` are **deleted**; callers ask the ruleset.
+
+- [ ] **Step 1: Write the failing test**
+
+Create `RulesetRoutingTests.swift`:
+
+```swift
+import Testing
+@testable import CatanEngine
+
+/// Proves each rule site reads its number from the ruleset rather than from a
+/// literal. Each case sets up a position that classic and Expanded score or
+/// permit differently, so a missed call site fails here rather than surfacing
+/// as a 25-point game that ends at 10.
+private func expandedGame(seed: UInt64 = 1) -> GameState {
+    GameSetup.newGame(board: BoardGenerator.standard(BoardShape.expanded),
+                      seed: seed, mode: .expanded)
+}
+
+@Test func expandedBonusesAreWorthFourPointsInBothFormulas() {
+    var state = expandedGame()
+    let seat = state.players[0].id
+    state.longestRoadPlayer = seat
+    state.largestArmyPlayer = seat
+    #expect(state.victoryPoints(for: seat) == 8)
+    #expect(state.publicVictoryPoints(for: seat) == 8)
+}
+
+@Test func expandedSeatsAThirtyEightCardBankAndAFiftyCardDeck() {
+    let state = expandedGame()
+    for resource in Resource.allCases {
+        #expect(state.bank[resource] == 38)
+    }
+    #expect(state.devCardDeck.count == 50)
+    #expect(state.devCardDeck.filter { $0 == .knight }.count == 28)
+    #expect(state.devCardDeck.filter { $0 == .victoryPoint }.count == 10)
+}
+
+@Test func expandedDiscardThresholdIsTenNotSeven() {
+    var state = expandedGame()
+    for resource in Resource.allCases {
+        state.players[0].resources[resource] = 2   // 10 cards total
+    }
+    #expect(Robber.playersWhoMustDiscard(state).isEmpty)
+    state.players[0].resources[.grain, default: 0] += 1   // 11
+    #expect(Robber.playersWhoMustDiscard(state).contains(state.players[0].id))
+}
+
+@Test func classicDiscardThresholdIsStillSeven() {
+    var state = GameSetup.newGame(board: BoardGenerator.standard(), seed: 1)
+    for resource in Resource.allCases {
+        state.players[0].resources[resource] = 1   // 5 cards
+    }
+    #expect(Robber.playersWhoMustDiscard(state).isEmpty)
+    state.players[0].resources[.grain] = 4   // 8 cards
+    #expect(Robber.playersWhoMustDiscard(state).contains(state.players[0].id))
+}
+
+@Test func expandedWinsAtTwentyFiveNotTen() {
+    var state = expandedGame()
+    let seat = state.players[0].id
+    state.players[0].victoryPoints = 20
+    state.longestRoadPlayer = seat   // +4 = 24
+    WinCondition.checkForWinner(&state)
+    if case .gameOver = state.phase { Issue.record("ended at 24 of 25") }
+    state.largestArmyPlayer = seat   // +4 = 28
+    WinCondition.checkForWinner(&state)
+    #expect(state.phase == .gameOver(winner: seat))
+}
+
+@Test func expandedAllowsThirtyRoadsWhereClassicStopsAtFifteen() {
+    #expect(Ruleset.forMode(.expanded).maxRoadsPerPlayer == 30)
+    #expect(Ruleset.forMode(.classic).maxRoadsPerPlayer == 15)
+    // The supply check reads the ruleset: a classic game must still refuse a
+    // 16th road. `PieceSupplyTests` covers the classic path in full.
+    var state = GameSetup.newGame(board: BoardGenerator.standard(), seed: 1)
+    let seat = state.players[0].id
+    state.players[0].roads = Set(state.board.onBoardEdges.sorted().prefix(15))
+    let spare = state.board.onBoardEdges.sorted().dropFirst(15).first!
+    #expect(!Building.canBuildRoad(spare, for: seat, in: state))
+}
+```
+
+- [ ] **Step 2: Run test to verify it fails**
+
+Run: `swift test --package-path Packages/CatanEngine --filter RulesetRoutingTests`
+Expected: FAIL — `newGame` has no `mode:` parameter.
+
+- [ ] **Step 3: Give `GameSetup.newGame` a mode**
+
+In `GameState.swift`, replace the bank loop and deck construction in the `rng:` overload, and add `mode` to all three overloads:
+
+```swift
+    public static func newGame(board: Board, rng: inout some RandomNumberGenerator,
+                               playerCount: Int = GameSetup.standardPlayerCount,
+                               victoryPointTarget: Int? = nil,
+                               mode: GameMode = .classic) -> GameState {
+        precondition(supportedPlayerCounts.contains(playerCount),
+                     "playerCount \(playerCount) is outside \(supportedPlayerCounts)")
+        let rules = Ruleset.forMode(mode)
+        let target = victoryPointTarget ?? rules.defaultVictoryPointTarget
+        precondition(rules.victoryPointTargets.contains(target),
+                     "victoryPointTarget \(target) is outside \(mode.displayName)'s \(rules.victoryPointTargets)")
+        precondition(board.tiles.count == rules.board.tileCount,
+                     "a \(board.tiles.count)-tile board cannot host \(mode.displayName), "
+                     + "which is played on \(rules.board.tileCount) tiles")
+        let players = (0..<playerCount).map { Player(id: PlayerID(index: $0)) }
+
+        var bank: [Resource: Int] = [:]
+        for resource in Resource.allCases {
+            bank[resource] = rules.bankPerResource
+        }
+
+        // Driven off `DevCardType.allCases`, not off the dictionary, so the
+        // deck is built in a stable order before it is shuffled. Dictionary
+        // iteration order is seeded per process; shuffling an
+        // unstably-ordered array gives a different deck per launch for the
+        // same seed, which is the determinism bug this repo has paid for four
+        // times.
+        var devCardDeck: [DevCardType] = []
+        for type in DevCardType.allCases {
+            devCardDeck.append(contentsOf: repeatElement(type, count: rules.devCardDeck[type, default: 0]))
+        }
+        devCardDeck.shuffle(using: &rng)
+
+        return GameState(
+            board: board,
+            players: players,
+            phase: .setupForward(playerIndex: 0),
+            bank: bank,
+            devCardDeck: devCardDeck,
+            rng: RandomSource(seed: rng.next()),
+            mode: mode,
+            victoryPointTarget: target
+        )
+    }
+```
+
+Add the same `victoryPointTarget: Int? = nil, mode: GameMode = .classic` tail to the `seed:` and no-argument overloads, forwarding both.
+
+- [ ] **Step 4: Route the five rule sites**
+
+`GameState.publicVictoryPoints` and `victoryPoints` — replace both `+= 2` pairs:
+
+```swift
+        if longestRoadPlayer == id { total += rules.longestRoadBonus }
+        if largestArmyPlayer == id { total += rules.largestArmyBonus }
+```
+
+`Robber.playersWhoMustDiscard`:
+
+```swift
+    /// Players holding more than `Ruleset.discardThreshold` resource cards;
+    /// each must discard half (rounded down) when a 7 is rolled.
+    public static func playersWhoMustDiscard(_ state: GameState) -> Set<PlayerID> {
+        Set(state.players.filter { totalResources($0) > state.rules.discardThreshold }.map(\.id))
+    }
+```
+
+`LongestRoad.compute` — delete the `minimumLength` constant, read the state:
+
+```swift
+        guard let maxLength = lengths.map(\.1).max(),
+              maxLength >= state.rules.longestRoadMinimum else { return nil }
+```
+
+`DevCards.computeLargestArmy`:
+
+```swift
+        guard let maxCount = counts.map(\.1).max(),
+              maxCount >= state.rules.largestArmyMinimum else { return nil }
+```
+
+`Building` — the three limits become parameters of the state. Delete the three `static let`s and change the three guards:
+
+```swift
+        guard owner.roads.count < state.rules.maxRoadsPerPlayer else { return false }
+        guard owner.settlements.count < state.rules.maxSettlementsPerPlayer else { return false }
+        guard owner.cities.count < state.rules.maxCitiesPerPlayer else { return false }
+```
+
+Keep the piece-supply comment block in `Building.swift`, retargeted: the *reason* pieces are limited is unchanged; only where the numbers live moves. Add a line saying the values are now `Ruleset`'s.
+
+`WinCondition` — delete `standardTarget` and `supportedTargets`, keeping the reasoning that justified the range in `Ruleset.forMode`'s classic case. `checkForWinner` already reads `state.victoryPointTarget` and needs no change.
+
+- [ ] **Step 5: Fix every caller the deletions break**
+
+`WinCondition.standardTarget` and `.supportedTargets` had callers outside the engine. Find them:
+
+```bash
+grep -rn "standardTarget\|supportedTargets\|Building.maxRoads\|Building.maxSettlements\|Building.maxCities" \
+  --include="*.swift" Packages/ Settlers/ SettlersTests/ SettlersUITests/
+```
+
+Replace each with `Ruleset.forMode(<mode>).<field>`. In app code the mode comes from `setup.mode` or `state.mode`; in tests that predate modes, `Ruleset.forMode(.classic)`.
+
+- [ ] **Step 6: Run the full engine and AI suites**
+
+Run: `swift test --package-path Packages/CatanEngine`
+Run: `swift test --package-path Packages/CatanAI`
+Expected: PASS, both. `CatanAI` takes 55–175s. Every pre-existing test must stay green — Classic's numbers did not change, so a failure here means a call site was rerouted to the wrong field.
+
+- [ ] **Step 7: Commit**
+
+```bash
+git add -A Packages/CatanEngine Packages/CatanAI
+git commit -m "refactor(engine): read every rule quantity from the ruleset
+
+Piece limits, bank size, deck composition, both bonus values, both bonus
+minimums, the discard threshold and the victory-point range now come from
+Ruleset rather than from literals in six files. Classic's values are
+unchanged, so the existing suites are the proof: no fingerprint, determinism
+or save-compatibility test moves.
+
+Deletes WinCondition.standardTarget and .supportedTargets. A global 'the'
+target is exactly the assumption a second rule set breaks, and leaving them
+as classic-flavoured aliases would let a caller silently validate an Expanded
+game against classic's range.
+
+Builds the dev deck off DevCardType.allCases rather than the composition
+dictionary, so the pre-shuffle order is stable. Dictionary iteration order is
+seeded per process, and shuffling an unstably-ordered array yields a different
+deck per launch for the same seed.
+
+Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01TBxaHYvMxcRujKxfhdFdAe"
+```
+
+---
+
+## Task 6: Expanded plays a full game, and its seeds are pinned
+
+**Files:**
+- Modify: `Packages/CatanEngine/Tests/CatanEngineTests/FullGameSimulationTests.swift`
+- Modify: `Packages/CatanAI/Tests/CatanAITests/SeededGameFingerprintTests.swift:136,264`
+
+**Interfaces:**
+- Consumes: everything from Tasks 1–5. Adds no production code — if a test here fails, the bug is in an earlier task.
+
+> **Note:** `SeededGameFingerprintTests.swift` lives in **`Packages/CatanAI/Tests/CatanAITests/`**, not in `CatanEngineTests`. `CLAUDE.md`'s determinism section implies the engine package; it is wrong. The fingerprints are of *bot self-play*, which is why they are in the AI package — so they run under `swift test --package-path Packages/CatanAI`, the 55–175s suite.
+
+- [ ] **Step 1: Extract the existing simulation driver into a reusable helper**
+
+`FullGameSimulationTests.swift` drives its game with an inline `while` loop inside `randomLegalPlayReachesGameOverWithoutErrors` (lines 4–44). There is no `playToCompletion` helper — write one by lifting that loop verbatim, then have the existing test call it, so the Expanded cases share exactly one driver rather than a second copy that can drift.
+
+```swift
+/// Plays `state` to `.gameOver` by picking uniformly among legal moves.
+/// Lifted unchanged from `randomLegalPlayReachesGameOverWithoutErrors` so the
+/// classic and Expanded cases cannot drift apart. Returns the winner, or
+/// `nil` if `moveLimit` was reached first.
+private func playRandomlyToCompletion(
+    _ state: inout GameState, rng: inout SeededGenerator, moveLimit: Int
+) -> PlayerID? {
+    var iterations = 0
+    while true {
+        if case .gameOver(let winner) = state.phase { return winner }
+        iterations += 1
+        if iterations >= moveLimit { return nil }
+        let moves = RulesEngine.legalMoves(for: state)
+        #expect(!moves.isEmpty, "no legal moves in phase \(state.phase)")
+
+        // `.discarding` is the one phase where several players can act
+        // concurrently and `legalMoves` returns the union of every pending
+        // player's legal `.discard` combinations. A `GameMove.discard` payload
+        // carries no player identity, so a move picked at random from that
+        // merged list isn't necessarily legal for an arbitrarily-picked
+        // pending player. Pick the acting player first, then restrict.
+        let player: PlayerID
+        let candidateMoves: [GameMove]
+        if case .discarding(let pending) = state.phase {
+            player = pending.sorted().randomElement(using: &rng)!
+            let hand = state.players[player.index].resources
+            let count = Robber.discardCount(for: state.players[player.index])
+            candidateMoves = moves.filter { move in
+                guard case .discard(let discarded) = move else { return false }
+                guard discarded.values.reduce(0, +) == count else { return false }
+                return discarded.allSatisfy { resource, amount in (hand[resource] ?? 0) >= amount }
+            }
+        } else {
+            player = activePlayer(state.phase)
+            candidateMoves = moves
+        }
+        #expect(!candidateMoves.isEmpty, "no legal moves for acting player in phase \(state.phase)")
+        guard let move = candidateMoves.randomElement(using: &rng) else { return nil }
+        try! RulesEngine.apply(move, by: player, to: &state)
+    }
+}
+```
+
+Rewrite the existing test as a call to it, keeping its 20,000 limit and its `#expect(iterations < 20_000, "game did not terminate")` intent:
+
+```swift
+@Test func randomLegalPlayReachesGameOverWithoutErrors() {
+    var state = GameSetup.newGame(board: BoardGenerator.randomized(seed: 7))
+    var rng = SeededGenerator(seed: 7)
+    let winner = playRandomlyToCompletion(&state, rng: &rng, moveLimit: 20_000)
+    #expect(winner != nil, "game did not terminate")
+}
+```
+
+- [ ] **Step 2: Run to confirm the extraction changed nothing**
+
+Run: `swift test --package-path Packages/CatanEngine --filter FullGameSimulation`
+Expected: PASS. This step has no new behaviour — if it fails, the lift was not verbatim.
+
+- [ ] **Step 3: Write the failing Expanded cases**
+
+```swift
+@Test func anExpandedGamePlaysToTwentyFiveWithoutStalling() {
+    var state = GameSetup.newGame(board: BoardGenerator.randomized(seed: 2_501, shape: .expanded),
+                                  seed: 2_501, mode: .expanded)
+    var rng = SeededGenerator(seed: 2_501)
+    // Raised from the classic 20,000 because a 25-point game on twice the map
+    // is legitimately longer. A stall shows up as exhausting this cap.
+    let winner = playRandomlyToCompletion(&state, rng: &rng, moveLimit: 60_000)
+    #expect(winner != nil, "Expanded game did not finish inside 60,000 moves")
+    if let winner {
+        #expect(state.victoryPoints(for: winner) >= 25)
+    }
+    #expect(state.mode == .expanded)
+}
+
+@Test func expandedPieceSuppliesAreNeverExceededOverAFullGame() {
+    var state = GameSetup.newGame(board: BoardGenerator.randomized(seed: 2_502, shape: .expanded),
+                                  seed: 2_502, mode: .expanded)
+    var rng = SeededGenerator(seed: 2_502)
+    _ = playRandomlyToCompletion(&state, rng: &rng, moveLimit: 60_000)
+    for player in state.players {
+        #expect(player.roads.count <= 30)
+        #expect(player.settlements.count <= 10)
+        #expect(player.cities.count <= 8)
+    }
+}
+```
+
+- [ ] **Step 4: Run them**
+
+Run: `swift test --package-path Packages/CatanEngine --filter FullGameSimulation`
+Expected: PASS.
+
+**Random play is not bot play** — it is a termination and legality check, not a length measurement. The real number comes from Task 12. If the game does not finish inside 60,000 random moves, **do not raise the cap**: report the number and stop. That is Accepted Risk 1 surfacing, and which dial to turn is Jake's call.
+
+- [ ] **Step 5: Pin Expanded fingerprints in the AI package**
+
+`SeededGameFingerprintTests.swift` keys its expectations by seed alone (`expectedFingerprints: [UInt64: String]`, line 136), so Expanded needs its own dictionary rather than a new key format:
+
+```swift
+/// Expanded-mode fingerprints. A separate table because the existing one is
+/// keyed by seed alone, and a seed means a different game in each mode.
+private let expectedExpandedFingerprints: [UInt64: String] = [
+    // Filled in by Step 6. Do not guess these.
+]
+```
+
+and a third `@Test` inside the same suite type as the existing two (line 264), mirroring `seededSelfPlayReproducesExactly` exactly but starting its games with:
+
+```swift
+GameSetup.newGame(board: BoardGenerator.standard(BoardShape.expanded), seed: seed, mode: .expanded)
+```
+
+- [ ] **Step 6: Record the fingerprints, then verify across processes**
+
+Record the observed values into the dictionary — a fingerprint is pinned from an observed run, never invented. **Only do this after Step 4 passes**, so a fingerprint is never pinned over a broken game.
+
+Then run the suite **twice, as two separate processes**:
+
+Run: `swift test --package-path Packages/CatanAI --filter SeededGameFingerprint`
+Run: `swift test --package-path Packages/CatanAI --filter SeededGameFingerprint`
+
+Both must pass. Swift seeds `Set`/`Dictionary` iteration order once per process, so two runs *inside* one process agree with each other and disagree with tomorrow's — that exact mistake shipped a broken RNG fix here once and left the property false for four more places. Two separate processes agreeing is the actual evidence.
+
+- [ ] **Step 7: Commit**
+
+```bash
+git add Packages/CatanEngine/Tests/CatanEngineTests/FullGameSimulationTests.swift \
+        Packages/CatanAI/Tests/CatanAITests/SeededGameFingerprintTests.swift
+git commit -m "test: play Expanded to completion and pin its seeded fingerprints
+
+Lifts the inline simulation loop into a shared driver so the classic and
+Expanded cases cannot drift, then plays a full Expanded game to 25 points and
+asserts no player exceeds the doubled piece supplies.
+
+Fingerprints were recorded only after the game was observed finishing, and
+verified across two separate test processes. Swift seeds Set iteration order
+once per process, so two runs inside one process agree with each other and
+disagree with tomorrow's - the mistake that once shipped a broken RNG fix here.
+
+Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01TBxaHYvMxcRujKxfhdFdAe"
+```
+
+---
+
+## Task 7: `StateEncoding` and `ActionSpace` refuse a non-Classic board
+
+**Files:**
+- Modify: `Packages/CatanEngine/Sources/CatanEngine/StateEncoding.swift:336-341`
+- Modify: `Packages/CatanEngine/Sources/CatanEngine/ActionSpace.swift:118`
+- Test: `Packages/CatanEngine/Tests/CatanEngineTests/StateEncodingTests.swift`
+
+**Interfaces:**
+- Consumes: `GameMode`, `Ruleset` from Task 3.
+- Produces: `StateEncoding.supportedModes: Set<GameMode>` — `[.classic]`.
+
+- [ ] **Step 1: Write the failing test**
+
+```swift
+@Test func theLayoutDeclaresWhichModesItIsDefinedAgainst() {
+    #expect(StateEncoding.supportedModes == [.classic])
+    #expect(!StateEncoding.supportedModes.contains(.expanded))
+}
+```
+
+A `precondition` cannot be caught in-process, so the trap itself is not unit-testable; this pins the declaration a caller checks against instead.
+
+- [ ] **Step 2: Run to verify it fails**
+
+Run: `swift test --package-path Packages/CatanEngine --filter StateEncodingTests`
+Expected: FAIL — no member `supportedModes`.
+
+- [ ] **Step 3: Declare and enforce**
+
+In `StateEncoding.swift`, beside the board-shape constants:
+
+```swift
+    /// The modes `layoutVersion` is defined against.
+    ///
+    /// The layout is fixed-width, so it is fixed-width against ONE board. A
+    /// board of another size is not "mostly compatible" — it shifts every slot
+    /// after the first board block, and the dangerous version of that failure
+    /// is silent: no shape error, no crash, just a model that plays badly.
+    /// "The bots got worse" is among the most expensive things to diagnose
+    /// here, so this refuses loudly instead.
+    ///
+    /// Widening this is a real project — new slot counts and a `layoutVersion`
+    /// bump — not a one-line edit.
+    public static let supportedModes: Set<GameMode> = [.classic]
+```
+
+Add to the `BoardIndex` precondition block at line 336:
+
+```swift
+            precondition(StateEncoding.supportedModes.contains(state.mode),
+                         "layout v\(StateEncoding.layoutVersion) is defined against "
+                         + "\(StateEncoding.supportedModes.map(\.rawValue).sorted().joined(separator: ", ")), "
+                         + "got \(state.mode.rawValue)")
+```
+
+Add the same guard to `ActionSpace.init(board:playerCount:)`. It takes a `Board`, not a `GameState`, so check the tile count against the classic ruleset and name the mode in the message:
+
+```swift
+        precondition(board.tiles.count == Ruleset.forMode(.classic).board.tileCount,
+                     "ActionSpace is numbered against the \(Ruleset.forMode(.classic).board.tileCount)-tile "
+                     + "classic board; got \(board.tiles.count) tiles. Widening it means renumbering every "
+                     + "index, which invalidates any artifact trained against the old numbering.")
+```
+
+- [ ] **Step 4: Verify the corpus tooling still builds**
+
+Run: `swift build --package-path Packages/CatanAI`
+Run: `swift test --package-path Packages/CatanAI`
+Expected: PASS. The tooling only ever sees classic boards; if anything now trips the precondition, it was already relying on an unchecked assumption.
+
+- [ ] **Step 5: Commit**
+
+```bash
+git add Packages/CatanEngine/Sources/CatanEngine/StateEncoding.swift \
+        Packages/CatanEngine/Sources/CatanEngine/ActionSpace.swift \
+        Packages/CatanEngine/Tests/CatanEngineTests/StateEncodingTests.swift
+git commit -m "feat(engine): refuse to encode a board the layout was not defined against
+
+Both the feature vector and the global action numbering are fixed-width
+against the 19-tile classic board. Expanded does not extend them; it makes
+them say so. A padded or truncated vector runs without error and merely plays
+badly, which looks exactly like a tuning problem and sends you sweeping
+weights for a week.
+
+The three heuristic bots are unaffected - they never touch either type. Only
+the training and corpus tooling does, and it only ever sees classic boards.
+
+Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01TBxaHYvMxcRujKxfhdFdAe"
+```
+
+---
+
+## Task 8: `MatchSetup` carries the mode
+
+**Files:**
+- Modify: `Settlers/Persistence/MatchSetup.swift:53-62,102-104,117-119,176-182,200-202,241-242`
+- Test: `SettlersTests/NewGameSetupTests.swift`
+
+**Interfaces:**
+- Consumes: `GameMode`, `Ruleset` from Task 3.
+- Produces: `MatchSetup.mode: GameMode`, `MatchSetup.init(seats:mode:victoryPointTarget:randomizedBoard:randomizeSeatOrder:)`, `MatchSetup.newGameVictoryPointTargets(for:mode:)`.
+
+- [ ] **Step 1: Write the failing test**
+
+```swift
+@Test func aSetupDecodedWithoutAModeIsClassic() throws {
+    let setup = MatchSetup.default(preferredName: "Alex", preferredCivilization: Civilization.allCases[0])
+    var object = try JSONSerialization.jsonObject(
+        with: try JSONEncoder().encode(setup)) as! [String: Any]
+    object.removeValue(forKey: "mode")
+    let data = try JSONSerialization.data(withJSONObject: object)
+    let decoded = try JSONDecoder().decode(MatchSetup.self, from: data)
+    #expect(decoded.mode == .classic)
+}
+
+@Test func expandedOffersOnlyTwentyFiveAtEveryTableSize() {
+    #expect(MatchSetup.newGameVictoryPointTargets(for: 3, mode: .expanded) == [25])
+    #expect(MatchSetup.newGameVictoryPointTargets(for: 4, mode: .expanded) == [25])
+    #expect(MatchSetup.newGameVictoryPointTargets(for: 3, mode: .classic) == [8, 10, 12])
+    #expect(MatchSetup.newGameVictoryPointTargets(for: 4, mode: .classic) == [8, 10])
+}
+
+@Test func anExpandedSetupAtTwentyFiveIsStartable() {
+    var setup = MatchSetup.default(preferredName: "Alex", preferredCivilization: Civilization.allCases[0])
+    setup.mode = .expanded
+    setup.victoryPointTarget = 25
+    #expect(setup.validationProblem == nil)
+}
+
+@Test func aClassicSetupCarryingTwentyFiveIsRefused() {
+    var setup = MatchSetup.default(preferredName: "Alex", preferredCivilization: Civilization.allCases[0])
+    setup.mode = .classic
+    setup.victoryPointTarget = 25
+    #expect(setup.matchProblem != nil)
+}
+```
+
+If `MatchSetup.default(preferredName: "Alex", preferredCivilization: Civilization.allCases[0])` is named differently in the file, use the existing prefill factory at `MatchSetup.swift:200` rather than inventing one.
+
+- [ ] **Step 2: Run to verify it fails**
+
+Run: `xcodebuild test -project Settlers.xcodeproj -scheme Settlers -destination 'platform=iOS Simulator,name=Empires QA' -only-testing:SettlersTests/NewGameSetupTests`
+Expected: FAIL — no member `mode`. **Do not pipe this through `tail`/`grep`.**
+
+- [ ] **Step 3: Add the property**
+
+```swift
+    /// The rule set this match is played under. Duplicated from `GameState`
+    /// for the same reason `victoryPointTarget` is: it is the value the next
+    /// game will be started with, and the running game owns its own copy.
+    public var mode: GameMode
+```
+
+Add `mode: GameMode = .classic` to `init` (after `seats`), assign it, and add an explicit `init(from:)`-free default by giving the property a decode fallback — `MatchSetup` uses the synthesized `Codable`, so add a custom `init(from:)` mirroring the synthesized one with `decodeIfPresent` for `mode` only:
+
+```swift
+    /// Hand-written for one field. `MatchSetup` is written to disk beside a
+    /// running game, so a setup saved before modes existed must still decode -
+    /// the synthesized initializer would throw on the missing key and take the
+    /// player's configured table with it.
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        seats = try container.decode([Seat].self, forKey: .seats)
+        mode = try container.decodeIfPresent(GameMode.self, forKey: .mode) ?? .classic
+        victoryPointTarget = try container.decode(Int.self, forKey: .victoryPointTarget)
+        randomizedBoard = try container.decode(Bool.self, forKey: .randomizedBoard)
+        randomizeSeatOrder = try container.decode(Bool.self, forKey: .randomizeSeatOrder)
+    }
+```
+
+- [ ] **Step 4: Make the two validators mode-aware**
+
+In `matchProblem`, replace the `WinCondition.supportedTargets` guard:
+
+```swift
+        guard Ruleset.forMode(mode).victoryPointTargets.contains(victoryPointTarget) else {
+            return "That match length is not available in \(mode.displayName)."
+        }
+```
+
+Replace `newGameVictoryPointTargets(for:)` with the mode-aware form:
+
+```swift
+    /// Targets the New Game screen offers. A product rule, deliberately
+    /// narrower than the engine's range: 9 and 11 are legal and nobody asks
+    /// for them by name, and 12 is a three-player length.
+    ///
+    /// Expanded offers exactly one, because there the target is part of the
+    /// rule set rather than a dial.
+    public static func newGameVictoryPointTargets(for playerCount: Int, mode: GameMode) -> [Int] {
+        guard GameSetup.supportedPlayerCounts.contains(playerCount) else { return [] }
+        switch mode {
+        case .classic: return playerCount == 3 ? [8, 10, 12] : [8, 10]
+        case .expanded: return [25]
+        }
+    }
+```
+
+Update `validationProblem`'s call and its message (`"12 VP is available with 3 players."` stays correct only for classic — make it `"That match length is not available at this table size."`), and the normalizer at line 241 to pass `mode`.
+
+- [ ] **Step 5: Run tests**
+
+Run: `xcodebuild test -project Settlers.xcodeproj -scheme Settlers -destination 'platform=iOS Simulator,name=Empires QA' -only-testing:SettlersTests/NewGameSetupTests`
+Expected: PASS.
+
+- [ ] **Step 6: Commit**
+
+```bash
+git add Settlers/Persistence/MatchSetup.swift SettlersTests/NewGameSetupTests.swift
+git commit -m "feat(app): carry the game mode in MatchSetup
+
+The match contract gains the rule set beside the target it already held, and
+both validators ask the mode's ruleset instead of a global range. Adds a
+hand-written init(from:) for the one field: MatchSetup is written to disk
+beside a running game, and the synthesized initializer would throw on the
+missing key in every setup saved before modes existed.
+
+Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01TBxaHYvMxcRujKxfhdFdAe"
+```
+
+---
+
+## Task 9: The mode survives save, resume, replay and export
+
+**Files:**
+- Modify: `Settlers/ViewModels/GameViewModel.swift:377-385`
+- Modify: `Settlers/Persistence/GameLogStore.swift:97-122` (`SeatRoster`) and the summary type at `:13`
+- Modify: `Settlers/Persistence/MatchCheckpointMigration.swift:37`
+- Modify: `Settlers/Persistence/MatchCheckpointStore.swift:37,208-209`
+- Test: `SettlersTests/MatchCheckpointStoreTests.swift`, `SettlersTests/GameLogStoreTests.swift`
+
+**Interfaces:**
+- Consumes: `MatchSetup.mode` (Task 8), `GameState.mode` (Task 4).
+- Produces: no new public API — this task makes an existing invariant hold for a new field.
+
+- [ ] **Step 1: Write the failing test**
+
+In `MatchCheckpointStoreTests.swift`:
+
+```swift
+@Test func anExpandedMatchResumesAsExpanded() throws {
+    // Same fixture shape as `fullMatchCheckpointsResumeWithoutChangingTheSession`
+    // (line 10). There is no shared `makeTemporaryStore()` helper in this
+    // file - every test builds its own root inline and deletes it.
+    let root = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+    defer { try? FileManager.default.removeItem(at: root) } // Test-owned directory only.
+    let store = MatchCheckpointStore(fileURL: root.appendingPathComponent("checkpoint.json"))
+
+    var setup = MatchSetup.default(preferredName: "Alex", preferredCivilization: Civilization.allCases[0])
+    setup.mode = .expanded
+    setup.victoryPointTarget = 25
+    let initial = GameSetup.newGame(board: BoardGenerator.standard(BoardShape.expanded),
+                                    seed: 31, mode: .expanded)
+    let document = MatchCheckpointDocument(
+        activeMatch: MatchCheckpoint(id: UUID(), initialState: initial, setup: setup))
+    try store.commit(document, replacingRevision: nil)
+
+    let reloaded = try #require(try store.load())
+    let match = try #require(reloaded.activeMatch)
+    #expect(match.setup.mode == .expanded)
+    #expect(match.state.mode == .expanded)
+    #expect(match.state.board.tiles.count == 37)
+}
+
+@Test func aCheckpointWhoseSetupAndStateDisagreeOnModeIsRefused() throws {
+    var setup = MatchSetup.default(preferredName: "Alex", preferredCivilization: Civilization.allCases[0])
+    setup.mode = .expanded
+    setup.victoryPointTarget = 25
+    // A classic state under an Expanded setup: 19 tiles while the rules say
+    // 37. Refuse rather than resume into a game whose board and rules
+    // disagree.
+    let state = GameSetup.newGame(board: BoardGenerator.standard(), seed: 31)
+    #expect(MatchCheckpoint(id: UUID(), initialState: state, setup: setup).setup.mode != state.mode)
+}
+```
+
+The second case asserts the disagreement the guard in Step 4 must reject. If `MatchCheckpointMigration.prepare` is reachable from the test target with a fixture you can build cheaply, prefer asserting it throws `MigrationError.incompatibleRoster` directly — read the existing `CheckpointMigrationTests.swift` for how it constructs its arguments, and mirror that rather than inventing a `GameSession` initializer.
+
+- [ ] **Step 2: Run to verify it fails**
+
+Run: `xcodebuild test -project Settlers.xcodeproj -scheme Settlers -destination 'platform=iOS Simulator,name=Empires QA' -only-testing:SettlersTests/MatchCheckpointStoreTests`
+Expected: FAIL — a classic state under an Expanded setup is currently accepted.
+
+- [ ] **Step 3: Start the right board and mode**
+
+`GameViewModel.makeInitialState`:
+
+```swift
+    private static func makeInitialState(for setup: MatchSetup, playerCount: Int) -> GameState {
+        let shape = Ruleset.forMode(setup.mode).board
+        let board = setup.randomizedBoard
+            ? BoardGenerator.randomized(seed: UInt64.random(in: .min ... .max), shape: shape)
+            : BoardGenerator.standard(shape)
+        return GameSetup.newGame(board: board,
+                                 seed: UInt64.random(in: .min ... .max),
+                                 playerCount: playerCount,
+                                 victoryPointTarget: setup.victoryPointTarget,
+                                 mode: setup.mode)
+    }
+```
+
+- [ ] **Step 4: Make the three agreement checks include the mode**
+
+`MatchCheckpointMigration.prepare` (line 37):
+
+```swift
+        guard setup.isValidMatch, setup.seats.count == session.state.players.count,
+              setup.mode == session.state.mode,
+              setup.victoryPointTarget == session.state.victoryPointTarget else {
+            throw MigrationError.incompatibleRoster
+        }
+```
+
+`MatchCheckpointStore` line 37 (equality) and lines 208-209 (validation) — add `mode` beside each `victoryPointTarget` comparison, using the identical shape the existing line uses.
+
+`GameLogStore`: add `public let mode: GameMode` to `GameLogSummary` beside `victoryPointTarget`, populate it at line 355 from `initialState.mode`, and give `SeatRoster` nothing — the roster describes chairs, not rules, so the mode belongs on the summary. Where `GameLogSummary` is decoded from an archived file, decode `mode` with `?? .classic`.
+
+- [ ] **Step 5: Run the app suite**
+
+Run: `xcodebuild test -project Settlers.xcodeproj -scheme Settlers -destination 'platform=iOS Simulator,name=Empires QA' -only-testing:SettlersTests`
+Expected: PASS. `CheckpointExportTests.retryReplacesATruncatedArchiveWithoutDuplicatingMoves` is a known unexplained flake — if only that fails, re-run it in isolation before believing it, and say so in the report rather than treating it as caused by this change.
+
+- [ ] **Step 6: Commit**
+
+```bash
+git add Settlers/ViewModels/GameViewModel.swift Settlers/Persistence/ SettlersTests/
+git commit -m "feat(app): carry the game mode through save, resume, replay and export
+
+The mode joins the victory-point target in all three places a checkpoint's
+setup is checked against its session state, and the game log's summary records
+it. Without this a resumed or replayed Expanded game decodes as classic and
+keeps its 37-tile board while playing classic's quantities - a silent mid-game
+divergence between the rules and the board they are played on.
+
+makeInitialState now builds the board from the mode's shape, so choosing
+Expanded on the New Game screen actually deals 37 tiles.
+
+Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01TBxaHYvMxcRujKxfhdFdAe"
+```
+
+---
+
+## Task 10: The mode picker on the New Game screen
+
+**Files:**
+- Create: `Settlers/Views/GameModePickerPopup.swift`
+- Modify: `Settlers/Views/NewGameSetupView.swift:460-495,549-568`
+- Modify: `Settlers/Theme/AccessibilityID.swift`
+- Test: `SettlersTests/NewGameSetupTests.swift`; create `SettlersUITests/NewGameModeFlowTests.swift`
+
+**Interfaces:**
+- Consumes: `MatchSetup.mode`, `MatchSetup.newGameVictoryPointTargets(for:mode:)` (Task 8), `GameMode.displayName`, `GameMode.summary` (Task 3).
+- Produces: `GameModePickerPopup(selection:onSelect:onCancel:)`, `AccessibilityID.NewGame.modeRow` / `.modePicker` / `.modeOption(GameMode)`.
+
+- [ ] **Step 1: Read the pattern before writing**
+
+Run: `cat Settlers/Views/SeatNumberPickerPopup.swift`
+Run: `grep -rn "struct PopupCard" -A 20 Settlers/Views/`
+Run: `grep -n "enum NewGame" -A 20 Settlers/Theme/AccessibilityID.swift`
+
+`SeatNumberPickerPopup` is the smaller of the two existing popups and the closer model. Match its chrome, dismissal and identifier conventions exactly — this screen's whole design rationale is that its surfaces read as one family.
+
+- [ ] **Step 2: Write the failing test**
+
+In `NewGameSetupTests.swift`:
+
+```swift
+@Test func switchingToExpandedSnapsTheTargetToTwentyFive() {
+    var setup = MatchSetup.default(preferredName: "Alex", preferredCivilization: Civilization.allCases[0])
+    setup.mode = .classic
+    setup.victoryPointTarget = 8
+    setup.mode = .expanded
+    setup.normalizeNewGameOptions()
+    #expect(setup.victoryPointTarget == 25)
+    #expect(setup.validationProblem == nil)
+}
+
+@Test func switchingBackToClassicRestoresAnOfferedTarget() {
+    var setup = MatchSetup.default(preferredName: "Alex", preferredCivilization: Civilization.allCases[0])
+    setup.mode = .expanded
+    setup.victoryPointTarget = 25
+    setup.mode = .classic
+    setup.normalizeNewGameOptions()
+    #expect(MatchSetup.newGameVictoryPointTargets(for: setup.seats.count, mode: .classic)
+        .contains(setup.victoryPointTarget))
+}
+```
+
+`normalizeNewGameOptions()` is the existing normalizer (`MatchSetup.swift:240`). It is `internal`, so the test reaches it through `@testable import Settlers`, which this file already does.
+
+- [ ] **Step 3: Run to verify it fails**
+
+Run: `xcodebuild test -project Settlers.xcodeproj -scheme Settlers -destination 'platform=iOS Simulator,name=Empires QA' -only-testing:SettlersTests/NewGameSetupTests`
+Expected: FAIL — the target stays 8 after switching to Expanded.
+
+- [ ] **Step 4: Make the normalizer snap the target to the mode**
+
+At `MatchSetup.swift:241`, replace the existing target reset:
+
+```swift
+        let offered = Self.newGameVictoryPointTargets(for: seats.count, mode: mode)
+        if !offered.contains(victoryPointTarget) {
+            // Snap rather than refuse. Changing mode is not an error, and a
+            // Start button that greys out because a setting the player cannot
+            // see is now out of range is the failure this screen's validation
+            // was written to avoid.
+            victoryPointTarget = Ruleset.forMode(mode).defaultVictoryPointTarget
+        }
+```
+
+- [ ] **Step 5: Create the popup**
+
+`Settlers/Views/GameModePickerPopup.swift` — modelled on `SeatNumberPickerPopup`:
+
+```swift
+import SwiftUI
+import CatanEngine
+
+/// Picks the rule set a new match is played under.
+///
+/// A popup rather than a `PaintedChoiceRow` of chips: the row is already tight
+/// with three chips at 375pt, more modes are planned, and a name alone does
+/// not tell a player what "Expanded" changes. The list has room for the
+/// one-line summary that does.
+struct GameModePickerPopup: View {
+    let selection: GameMode
+    let onSelect: (GameMode) -> Void
+    let onCancel: () -> Void
+
+    var body: some View {
+        // `PopupCard` + `GoldRowButton` is the chrome both existing popups
+        // use. Do not introduce a second one.
+        PopupCard(onDismiss: onCancel) {
+            VStack(spacing: 14) {
+                Text("Game Mode")
+                    .font(.system(size: 18, weight: .bold, design: .serif))
+                ForEach(GameMode.allCases, id: \.self) { mode in
+                    Button { onSelect(mode) } label: {
+                        HStack(alignment: .firstTextBaseline, spacing: 10) {
+                            VStack(alignment: .leading, spacing: 3) {
+                                Text(mode.displayName)
+                                    .font(.system(size: SeatCardView.bodyTextSize, weight: .semibold, design: .serif))
+                                Text(mode.summary)
+                                    .font(.system(size: SeatCardView.bodyTextSize - 3, design: .serif))
+                                    .foregroundStyle(.white.opacity(0.75))
+                                    .fixedSize(horizontal: false, vertical: true)
+                            }
+                            Spacer(minLength: 0)
+                            if mode == selection {
+                                Image(systemName: "checkmark")
+                                    .font(.system(size: SeatCardView.bodyTextSize, weight: .bold))
+                            }
+                        }
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                    }
+                    .accessibilityIdentifier(AccessibilityID.NewGame.modeOption(mode))
+                }
+                GoldRowButton(title: "Close", systemImage: "xmark", action: onCancel)
+            }
+            .padding(16)
+            .foregroundStyle(.white)
+        }
+        .accessibilityIdentifier(AccessibilityID.NewGame.modePicker)
+    }
+}
+```
+
+`PopupCard(onDismiss:)` wrapping a `VStack` that ends in a `GoldRowButton` titled "Close" is what `SeatNumberPickerPopup` and `CivilizationPickerPopup` both do. Match it exactly.
+
+- [ ] **Step 6: Add the row and fix the match-length row**
+
+In `NewGameSetupView.swift`, add `@State private var isPickingMode = false`, put `modeRow` first in `matchSettingsSection`, and present `GameModePickerPopup` in the same `ZStack` the other two popups use (line ~140).
+
+```swift
+    private var modeRow: some View {
+        labelledChoice(
+            label: "Game Mode",
+            help: .mode,
+            helpText: "Classic is the standard 19-tile board played to 8, 10 or 12 points. "
+                + "Expanded doubles the map to 37 tiles and plays to 25, with twice the pieces, "
+                + "a bigger bank and deck, and longest road and largest army worth 4 points each.",
+            caption: nil
+        ) {
+            Button { isPickingMode = true } label: {
+                HStack(spacing: 6) {
+                    Text(setup.mode.displayName)
+                    Image(systemName: "chevron.down").font(.system(size: SeatCardView.bodyTextSize - 4))
+                }
+            }
+            .accessibilityIdentifier(AccessibilityID.NewGame.modeRow)
+        }
+    }
+```
+
+Add `case mode` to the `HelpTopic` enum at line 542.
+
+Then make `matchLengthRow` mode-aware. `MatchLength` is a `private enum` of named classic lengths and must not gain a 25 case — Expanded's target is not a named length. Branch instead:
+
+```swift
+    private var matchLengthRow: some View {
+        labelledChoice(
+            label: "Match Length",
+            help: .matchLength,
+            helpText: "The game ends when a player reaches this many victory points. "
+                + "A saved game resumes at the target it started with. "
+                + "Epic (12 VP) is available at three-player tables. "
+                + "Expanded is always played to 25.",
+            caption: nil
+        ) {
+            let offered = MatchSetup.newGameVictoryPointTargets(for: setup.seats.count, mode: setup.mode)
+            if offered.count == 1 {
+                // Expanded's target is part of the rule set, not a dial. A
+                // one-chip picker would look tappable and do nothing.
+                Text("\(offered[0]) VP")
+                    .font(.system(size: SeatCardView.bodyTextSize, design: .serif))
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .accessibilityIdentifier(AccessibilityID.NewGame.fixedMatchLength)
+            } else {
+                PaintedChoiceRow(
+                    options: MatchLength.allCases.filter { offered.contains($0.rawValue) },
+                    title: \.displayName,
+                    selection: MatchLength(rawValue: setup.victoryPointTarget) ?? .standard,
+                    isCompact: true,
+                    fontSize: SeatCardView.bodyTextSize,
+                    onSelect: { setup.victoryPointTarget = $0.rawValue }
+                )
+            }
+        }
+    }
+```
+
+Add the four identifiers to `AccessibilityID.NewGame`. **These exact strings are what the UI test in Step 8 matches on** — the UI test target cannot import `Settlers`, so the two are kept in step by hand:
+
+```swift
+        static let modeRow = "new-game.mode"
+        static let modePicker = "new-game.mode.picker"
+        static let fixedMatchLength = "new-game.match-length.fixed"
+        static func modeOption(_ mode: GameMode) -> String { "new-game.mode.\(mode.rawValue)" }
+```
+
+- [ ] **Step 7: Regenerate the project — a new file will not compile without it**
+
+Run: `xcodegen generate`
+
+Skipping this produces `cannot find 'GameModePickerPopup' in scope`, which names the symbol and not the missing file, and sends people hunting an import bug that does not exist.
+
+- [ ] **Step 8: Write the UI test**
+
+Create `SettlersUITests/NewGameModeFlowTests.swift`. **UI tests here are XCTest, not Swift Testing, and they cannot import `Settlers`** — identifiers are raw string literals, matching `NewGameKeyboardInvarianceTests.swift`. Keep the strings in step with the `AccessibilityID` values added in Step 6.
+
+```swift
+import XCTest
+
+/// The mode picker is the only control on this screen that changes another
+/// control's shape, so it gets a flow test: choosing Expanded must replace the
+/// match-length chips with a fixed 25 VP, and Start must stay enabled.
+@MainActor
+final class NewGameModeFlowTests: XCTestCase {
+    func testPickingExpandedShowsAFixedTwentyFivePointTarget() {
+        continueAfterFailure = false
+        let app = XCUIApplication()
+        app.launchArguments = ["-ui-testing", "-ui-testing-reset", "-qaShowNewGame"]
+        app.launch()
+
+        let modeRow = app.buttons["new-game.mode"]
+        XCTAssertTrue(modeRow.waitForExistence(timeout: 10))
+        modeRow.tap()
+
+        let expanded = app.buttons["new-game.mode.expanded"]
+        XCTAssertTrue(expanded.waitForExistence(timeout: 5), "The mode picker never appeared")
+        expanded.tap()
+
+        let fixed = app.staticTexts["new-game.match-length.fixed"]
+        XCTAssertTrue(fixed.waitForExistence(timeout: 5),
+                      "Expanded did not replace the match-length chips with a fixed target")
+        XCTAssertEqual(fixed.label, "25 VP")
+        XCTAssertTrue(app.buttons["new-game.start"].isEnabled,
+                      "Switching mode left Start disabled: the target did not snap into range")
+    }
+}
+```
+
+**Do not add `.accessibilityElement(children: .contain)` plus an identifier to any container** to make this resolve. Doing that to `GameView.bottomPanel` once made the row an accessibility ancestor of the board decision dock and broke eleven unrelated tests, each reporting nothing but a bare `XCTAssertTrue failed`.
+
+- [ ] **Step 9: Run the tests**
+
+Run: `xcodebuild test -project Settlers.xcodeproj -scheme Settlers -destination 'platform=iOS Simulator,name=Empires QA' -only-testing:SettlersTests -only-testing:SettlersUITests`
+Expected: PASS.
+
+- [ ] **Step 10: Commit**
+
+```bash
+git add Settlers/Views/GameModePickerPopup.swift Settlers/Views/NewGameSetupView.swift \
+        Settlers/Theme/AccessibilityID.swift Settlers.xcodeproj/project.pbxproj \
+        SettlersTests/ SettlersUITests/
+git commit -m "feat(app): pick the game mode on the New Game screen
+
+A popup rather than a chip row: PaintedChoiceRow is already tight with three
+chips at 375pt, more modes are planned, and a name alone does not tell a
+player what Expanded changes - the list has room for the line that does. It
+follows SeatNumberPickerPopup so the screen's surfaces stay one family.
+
+The Match Length row shows Expanded's 25 as a statement rather than a
+one-option picker, because there the target is part of the rule set and a
+single chip would look tappable and do nothing. Switching mode snaps an
+out-of-range target rather than greying out Start over a setting the player
+cannot see.
+
+Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01TBxaHYvMxcRujKxfhdFdAe"
+```
+
+---
+
+## Task 11: The UI stops printing "+2"
+
+**Files:**
+- Modify: `Settlers/Models/VictoryPointBreakdown.swift:52-56`
+- Modify: `Settlers/Views/EndGameView.swift`, `Settlers/Views/PlayerHUDView.swift`
+- Test: `SettlersTests/VictoryPointBreakdownTests.swift`
+
+**Interfaces:**
+- Consumes: `GameState.rules` (Task 4).
+- Produces: no new API. `VictoryPointBreakdown.bonusPoints` stops being a constant.
+
+- [ ] **Step 1: Write the failing test**
+
+```swift
+@Test func anExpandedBreakdownScoresBonusesAtFourAndStillSumsToTheEngineTotal() {
+    var state = GameSetup.newGame(board: BoardGenerator.standard(BoardShape.expanded),
+                                  seed: 5, mode: .expanded)
+    let seat = state.players[0].id
+    state.longestRoadPlayer = seat
+    state.largestArmyPlayer = seat
+    let breakdown = VictoryPointBreakdown(seat: seat, state: state)
+    #expect(breakdown.lines.first { $0.source == .longestRoad }?.points == 4)
+    #expect(breakdown.lines.first { $0.source == .largestArmy }?.points == 4)
+    // The invariant this type exists to hold.
+    #expect(breakdown.lines.reduce(0) { $0 + $1.points } == breakdown.total)
+}
+```
+
+- [ ] **Step 2: Run to verify it fails**
+
+Run: `xcodebuild test -project Settlers.xcodeproj -scheme Settlers -destination 'platform=iOS Simulator,name=Empires QA' -only-testing:SettlersTests/VictoryPointBreakdownTests`
+Expected: FAIL — lines score 2 each and sum to 4 below `total`.
+
+This is the failure the file's own doc comment predicts: "a rules change that adds a new source of points fails a test here rather than silently showing 10 VP over lines that add to eight."
+
+- [ ] **Step 3: Read the bonus values from the state**
+
+In `VictoryPointBreakdown.swift`, delete `private static let bonusPoints = 2` and, in `init(seat:state:)`, score the two bonus lines with `state.rules.longestRoadBonus` and `state.rules.largestArmyBonus` respectively. The settlement, city and victory-card values stay constants — those are not `Ruleset` fields and no mode varies them.
+
+- [ ] **Step 4: Find and fix every other hard-coded bonus in the UI**
+
+```bash
+grep -rn '"+2"\|+ 2 VP\|bonusPoints\|longestRoadPlayer\|largestArmyPlayer' --include="*.swift" Settlers/Views/
+```
+
+Replace any literal 2 that means "the bonus is worth two" with the ruleset read. Leave alone any 2 that means a city is worth two points.
+
+- [ ] **Step 5: Run the tests**
+
+Run: `xcodebuild test -project Settlers.xcodeproj -scheme Settlers -destination 'platform=iOS Simulator,name=Empires QA' -only-testing:SettlersTests`
+Expected: PASS.
+
+- [ ] **Step 6: Commit**
+
+```bash
+git add Settlers/Models/VictoryPointBreakdown.swift Settlers/Views/ SettlersTests/
+git commit -m "fix(app): score bonus lines from the ruleset instead of a literal 2
+
+The victory-point breakdown promised its lines add up to the engine's total
+and asserted it across a replayed game. Under Expanded's 4-point bonuses the
+literal made them add up to four short, which is exactly the drift the type's
+doc comment warns a second victory-point formula in a view produces.
+
+Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01TBxaHYvMxcRujKxfhdFdAe"
+```
+
+---
+
+## Task 12: Verification
+
+No production code. This task produces evidence, and its deliverable is a report with numbers in it.
+
+**Files:** none modified except a possible follow-up fix, which gets its own commit.
+
+- [ ] **Step 1: Regenerate and run the full gate**
+
+Run: `xcodegen generate`
+Run: `scripts/gate.sh`
+
+All 10 gates must pass. A gate that cannot run prints `SKIP`, and a `SKIP` is not verification — install the missing tool rather than reporting it. Expect 12–20 minutes; CatanAI and the native UI tests dominate.
+
+If `CheckpointExportTests.retryReplacesATruncatedArchiveWithoutDuplicatingMoves` fails, re-run it serially before believing it — it is a known unexplained flake, documented in `CLAUDE.md`. Report it as such rather than as a regression, and do not "fix" it by changing this feature.
+
+- [ ] **Step 2: Measure how long an Expanded game actually runs**
+
+**REQUIRED SUB-SKILL:** invoke the `sim-harness` skill.
+
+Play at least 20 headless seeded Expanded games and 20 Classic games as a baseline. Report:
+- median and max turns to a win, both modes
+- how many Expanded games failed to finish inside the move cap
+- median final score spread
+
+This is Accepted Risk 1 in the spec. **Report the number; do not adjust the target to make it look better.** If Expanded runs past roughly 3x Classic, stop and give Jake the figure — the target, the two bonus values and the piece counts are all `Ruleset` fields, and which dial to turn is his call, not this plan's.
+
+- [ ] **Step 3: Look at the board**
+
+**REQUIRED SUB-SKILL:** invoke the `run-settlers` skill to build, install fresh and launch on the simulator.
+
+Start an Expanded game through the UI — the mode popup, then Start — and capture the board at its resting fit.
+
+Confirm by **looking at the screenshot**, not by the build succeeding:
+- 37 tiles are drawn and the whole board is inside the viewport
+- number tokens are legible at the resting fit
+- all 14 port badges are on-screen and not clipped
+- settlements and roads are placeable and drawn inside the board's bounds
+
+This is Accepted Risk 2. If the tokens are not legible, say so and stop — a legibility pass is a real design change, not a tweak to slip into this branch.
+
+- [ ] **Step 4: Play it**
+
+**REQUIRED SUB-SKILL:** invoke the `play-settlers` skill.
+
+Play through the setup placements and several full turns of an Expanded game by tapping. A green build is a compile claim and a correct-looking screenshot survives a game that cannot be played. Confirm a settlement can be placed, a turn ends, the bots take theirs, and the HUD shows the target as 25.
+
+- [ ] **Step 5: Write the summary**
+
+Write `docs/AI_summaries/2026-09-10-expanded-game-mode.md` with: what shipped, the measured game-length numbers from Step 2, the screenshot path from Step 3, what was verified by hand in Step 4, and anything left open. Create the directory if it does not exist.
+
+- [ ] **Step 6: Commit and open the PR**
+
+```bash
+git add docs/AI_summaries/2026-09-10-expanded-game-mode.md
+git commit -m "docs(ai): summarize the Expanded game mode work
+
+Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01TBxaHYvMxcRujKxfhdFdAe"
+git push -u origin feat/expanded-game-mode
+gh pr create --base main --title "feat: add the Expanded game mode" --body "..."
+```
+
+The PR body states the measured game length, links the screenshot, and names the three accepted risks. PR into `main`; **never push to `main` directly.**
