@@ -1,3 +1,18 @@
+/// Classic's per-piece and per-resource supplies, as plain constants rather
+/// than a call into `Ruleset.forMode(.classic)`.
+///
+/// `PieceAllowance.limit` and `BankAllowance.perResource` read these directly
+/// for their `.scaledFromBoard` case. Routing that through `forMode(.classic)`
+/// instead would work only by accident - it would depend on Classic's own
+/// `pieceLimits`/`bank` staying `.explicit` forever, and the moment Classic's
+/// allowance became `.scaledFromBoard` itself, resolving it would call back
+/// into `forMode(.classic)`, which resolves it, forever. Reading a constant
+/// instead makes that recursion unrepresentable rather than merely avoided.
+private enum ClassicBaseline {
+    static let pieceLimits: [BuildingKind: Int] = [.settlement: 5, .city: 4]
+    static let bankPerResource = 19
+}
+
 /// How many of each piece a player owns.
 public enum PieceAllowance: Sendable, Equatable {
     case explicit([BuildingKind: Int])
@@ -10,7 +25,7 @@ public enum PieceAllowance: Sendable, Equatable {
         case .explicit(let limits):
             return limits[kind, default: 0]
         case .scaledFromBoard:
-            let classicLimit = Ruleset.forMode(.classic).pieceLimit(for: kind)
+            let classicLimit = ClassicBaseline.pieceLimits[kind, default: 0]
             let ratio = Double(board.tileCount) / Double(BoardShape.classic.tileCount)
             return Int((Double(classicLimit) * ratio).rounded())
         }
@@ -27,9 +42,8 @@ public enum BankAllowance: Sendable, Equatable {
         case .explicit(let count):
             return count
         case .scaledFromBoard:
-            let classicBank = Ruleset.forMode(.classic).bankPerResource
             let ratio = Double(board.tileCount) / Double(BoardShape.classic.tileCount)
-            return Int((Double(classicBank) * ratio).rounded())
+            return Int((Double(ClassicBaseline.bankPerResource) * ratio).rounded())
         }
     }
 }
@@ -149,10 +163,10 @@ public struct Ruleset: Sendable, Equatable {
                 largestArmyBonus: 2,
                 longestRoadMinimum: 5,
                 largestArmyMinimum: 3,
-                pieceLimits: .explicit([.settlement: 5, .city: 4]),
+                pieceLimits: .explicit(ClassicBaseline.pieceLimits),
                 victoryPointsPerBuilding: [.settlement: 1, .city: 2],
                 maxRoadsPerPlayer: 15,
-                bank: .explicit(19),
+                bank: .explicit(ClassicBaseline.bankPerResource),
                 devCardDeck: [
                     .knight: 14, .victoryPoint: 5, .roadBuilding: 2,
                     .yearOfPlenty: 2, .monopoly: 2,

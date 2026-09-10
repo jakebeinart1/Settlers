@@ -63,6 +63,50 @@ import Testing
     }
 }
 
+/// A synthetic board of `radius`, valid only insofar as `PieceAllowance` and
+/// `BankAllowance` need it: they read `tileCount` alone. Content is empty
+/// since `compositionProblem` is not exercised by these tests.
+private func syntheticBoard(radius: Int) -> BoardShape {
+    BoardShape(radius: radius, terrain: .counts([:]), tokens: .counts([:]), ports: .derived(kinds: []))
+}
+
+@Test func scaledFromBoardReproducesClassicOnAClassicSizedBoard() {
+    // radius 2 = 19 tiles = Classic's own board, ratio exactly 1 - the
+    // property that makes trusting this seam for other sizes reasonable.
+    let board = syntheticBoard(radius: 2)
+    #expect(board.tileCount == 19)
+    #expect(PieceAllowance.scaledFromBoard.limit(for: .settlement, board: board) == 5)
+    #expect(PieceAllowance.scaledFromBoard.limit(for: .city, board: board) == 4)
+    #expect(BankAllowance.scaledFromBoard.perResource(board: board) == 19)
+}
+
+@Test func scaledFromBoardOnAnExpandedSizedBoardRoundsAwayFromZero() {
+    // radius 3 = 37 tiles, ratio 37/19 = 1.947368... - both piece counts land
+    // on a genuine fraction, so this also pins the rounding rule: `.rounded()`
+    // is round-half-away-from-zero, and 5*ratio=9.7368 and 4*ratio=7.7895
+    // both round UP. (An exact x.5 tie is unreachable here: the ratio's
+    // denominator is 19, which is odd, so 5*tileCount/19 and 4*tileCount/19
+    // can never land exactly on a half-integer.)
+    let board = syntheticBoard(radius: 3)
+    #expect(board.tileCount == 37)
+    #expect(PieceAllowance.scaledFromBoard.limit(for: .settlement, board: board) == 10)
+    #expect(PieceAllowance.scaledFromBoard.limit(for: .city, board: board) == 8)
+    // Bank scales exactly: 19 * (37/19) == 37 with no fractional part to round.
+    #expect(BankAllowance.scaledFromBoard.perResource(board: board) == 37)
+}
+
+@Test func scaledFromBoardOnAMuchLargerBoardRoundsDownWhenTheFractionIsBelowHalf() {
+    // radius 10 = 331 tiles, ratio 331/19 = 17.42105... - the opposite
+    // rounding direction from the radius-3 case (5*ratio=87.105 rounds DOWN
+    // to 87, 4*ratio=69.684 rounds DOWN to 70), so both directions of
+    // `.rounded()` are pinned by this pair of tests, not just one.
+    let board = syntheticBoard(radius: 10)
+    #expect(board.tileCount == 331)
+    #expect(PieceAllowance.scaledFromBoard.limit(for: .settlement, board: board) == 87)
+    #expect(PieceAllowance.scaledFromBoard.limit(for: .city, board: board) == 70)
+    #expect(BankAllowance.scaledFromBoard.perResource(board: board) == 331)
+}
+
 @Test func aModeWhoseRoadLimitOutrunsTheSearchIsRefused() {
     // The tripwire: a future mode must fail at construction, not by freezing
     // the game on a road placement.
