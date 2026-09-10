@@ -880,11 +880,22 @@ Beside `classic` in `BoardShape.swift`. Note how much shorter this is than a lit
     )
 ```
 
-- [ ] **Step 4: Replace rejection sampling with a bounded retry plus repair**
+- [ ] **Step 4: Replace the bound's hard failure with a deterministic repair**
 
-In `randomized(seed:shape:)`, replace the `repeat`/`while`:
+**CHANGED DURING EXECUTION.** The bounded retry itself was pulled forward into Task 3, because
+`randomized(seed:shape:)` had an *unbounded* loop that hangs forever on a legal all-6/8
+composition — a hang could not wait a task. Task 3 therefore already added
+`maxShuffleAttempts` and a `preconditionFailure` on exhaustion.
+
+**So do not re-add the bound.** Read `randomized(seed:shape:)` first and confirm what is
+already there. Your job is to replace that `preconditionFailure` with the repair pass below, so
+an infeasible-by-shuffling shape is *fixed* rather than crashed on. Keep the bound; only the
+exhaustion branch changes.
+
+The loop should end up as:
 
 ```swift
+        // The bound is already present from Task 3 - keep it.
         var attemptsRemaining = maxShuffleAttempts
         // Classic clears this in a handful of shuffles — 4 hot tiles among 19.
         // Expanded has 8 among 36 on a graph with far more adjacencies, where a
@@ -900,11 +911,9 @@ In `randomized(seed:shape:)`, replace the `repeat`/`while`:
         numbers = repairingAdjacentSixOrEight(kinds: kinds, numbers: numbers, radius: shape.radius)
 ```
 
-```swift
-    /// Shuffles attempted before falling back to repair. Classic clears in one
-    /// or two; the cap only bites on larger boards.
-    private static let maxShuffleAttempts = 100
+`maxShuffleAttempts` already exists from Task 3; leave it. Add only the repair:
 
+```swift
     /// Swaps every 6/8 that touches another 6/8 onto a cool tile, walking tiles
     /// in spiral order and taking the first cool partner that does not itself
     /// create an adjacency.
@@ -947,12 +956,40 @@ In `randomized(seed:shape:)`, replace the `repeat`/`while`:
     }
 ```
 
-- [ ] **Step 5: Run the tests**
+- [ ] **Step 5: Prove the shape that used to crash now deals**
+
+Add the case that closes the loop on Task 3's emergency fix:
+
+```swift
+@Test func aShapeNoShuffleCanSatisfyIsRepairedRatherThanRefused() {
+    // Every token hot. No shuffle can ever satisfy the no-adjacent-6/8 rule,
+    // so Task 3's bound would exhaust and crash. The repair must deal a board
+    // instead - and the rule is unsatisfiable here, so what it must NOT do is
+    // loop, crash, or silently drop tokens.
+    let shape = BoardShape(
+        radius: 2,
+        terrain: .counts([.desert: 1, .resource(.grain): 9, .resource(.ore): 9]),
+        tokens: .counts([6: 9, 8: 9]),
+        ports: .derived(kinds: [.generic])
+    )
+    let board = BoardGenerator.randomized(seed: 7, shape: shape)
+    #expect(board.tiles.count == 19)
+    #expect(board.tiles.compactMap(\.numberToken).count == 18)
+    // Reproducible despite going through the repair path.
+    #expect(BoardGenerator.randomized(seed: 7, shape: shape).tiles == board.tiles)
+}
+```
+
+If the repair cannot satisfy the rule (as here, where it is unsatisfiable), it must still
+return a complete, reproducible board. Document that in the repair's doc comment: it is
+best-effort on the 6/8 rule and absolute on completeness and determinism.
+
+- [ ] **Step 6: Run the tests**
 
 Run: `swift test --package-path Packages/CatanEngine`
-Expected: PASS, all six new cases plus every Classic case. The 50-seed sweep is the important one: if any seed leaves an adjacency, the repair needs a second pass. **Do not weaken the test.**
+Expected: PASS, all seven new cases plus every Classic case. The 50-seed sweep is the important one: if any seed leaves an adjacency, the repair needs a second pass. **Do not weaken the test.**
 
-- [ ] **Step 6: Commit**
+- [ ] **Step 7: Commit**
 
 ```bash
 git add Packages/CatanEngine
@@ -962,12 +999,14 @@ One desert plus 36 resource tiles is exactly twice classic's mix, and the 36
 tokens are exactly twice classic's multiset, so the dice distribution is
 preserved to the card and probability intuition transfers between modes.
 
-Replaces the randomizer's unbounded rejection sampling with a bounded retry
-plus a deterministic repair pass. Classic clears the no-adjacent-6/8 rule in
-one or two shuffles with 4 hot tiles among 19; Expanded has 8 among 36 on a
-graph with far more adjacencies, and a thousand-tile board would never clear it
-by shuffling. The repair walks tiles in spiral order and uses no RNG, so a seed
-still reproduces its board across processes.
+Replaces the bounded retry's hard failure with a deterministic repair pass.
+Task 3 bounded the previously unbounded loop and crashed on exhaustion, which
+was the right emergency fix for a hang but refuses a board it could have
+repaired. Classic clears the no-adjacent-6/8 rule in one or two shuffles with 4
+hot tiles among 19; Expanded has 8 among 36 on a graph with far more
+adjacencies, and a thousand-tile board would never clear it by shuffling. The
+repair walks tiles in spiral order and uses no RNG, so a seed still reproduces
+its board across processes.
 
 Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>
 Claude-Session: https://claude.ai/code/session_01TBxaHYvMxcRujKxfhdFdAe"
