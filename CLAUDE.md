@@ -276,9 +276,20 @@ billing. Importing UIKit/SwiftUI/Darwin into either package breaks CI, not just 
 
 ## Known-open
 
-- **PR #1** (`fix/engine-determinism-and-rules`) and **PR #2** (`ci/gate-and-workflow`) are
-  both **OPEN** and awaiting Jake. Nothing from this work is on `main`.
-- **`-configuration Release` does not compile.** Verified 2026-08-29, exit 65. The QA hooks
+- **There is nothing open.** `gh pr list --state open` returns empty as of 2026-09-09.
+  This entry previously said PR #1 (`fix/engine-determinism-and-rules`) and PR #2
+  (`ci/gate-and-workflow`) were "**OPEN** and awaiting Jake" with "nothing from this work on
+  `main`" - both merged on 2026-08-29 and the line stayed wrong for eleven days, telling
+  every reader the determinism and gate work was unlanded when it had been `main` for over a
+  week. **Check the PR list rather than trusting this bullet.**
+- **`main` moved twice on 2026-09-09.** Alex's PR #47 (`codex/heuristic-corpus-plan-...`,
+  merge `1d11da4`) closed the heuristic trial: ~6,400 lines of trade-diagnostics research -
+  new `CatanAI` trade tests, four corpus tools under `scripts/` with their own Python
+  suites, and the `docs/AI_summaries/` write-ups. Rome's art rebuild (`67b8bb6`) went on top
+  of it. Anything written against an earlier tree - `design-references/STATUS.md` included -
+  predates both.
+- **RESOLVED, kept for the lesson: `-configuration Release` once did not compile.**
+  Verified 2026-08-29, exit 65. The QA hooks
   `qaForceHumanWin` and `qaSeedPendingTradeConfirmation` were moved behind `#if DEBUG` in
   `GameViewModel.swift:313`, but their call sites - `ContentView.swift:87` and
   `GameView.swift:353` - were not guarded. **Every gate is green while this is broken**:
@@ -293,9 +304,20 @@ billing. Importing UIKit/SwiftUI/Darwin into either package breaks CI, not just 
   `scripts/coverage.sh Packages/CatanAI 90` **without** `--reuse`.
 - **`ClaudeDesignExport/` and `BuildingsDesignExport/` have been deleted** - 3,934 lines
   compiled by nothing (`project.yml` builds only `Settlers/`) and drifted from the real views,
-  so a grep for any UI symbol returned two hits, one of them wrong. `TODO.md` item 1 still
-  names `ClaudeDesignExport/` as the vehicle for the next design pass; that plan needs a fresh
-  export from the current source, not the stale copy.
+  so a grep for any UI symbol returned two hits, one of them wrong. This entry used to add
+  that "`TODO.md` item 1 still names `ClaudeDesignExport/` as the vehicle for the next design
+  pass"; `TODO.md` no longer mentions it anywhere (checked 2026-09-09), so that warning is
+  retired too.
+- **One app test is an unexplained flake.**
+  `CheckpointExportTests.retryReplacesATruncatedArchiveWithoutDuplicatingMoves` asserts byte
+  equality across two exports of one checkpoint. Measured 2026-09-09 on one tree: **failed**
+  under the gate at 2 workers and again in a serial full-suite run, then **passed** in a
+  second serial full-suite run, in isolation, and in the gate run that landed `67b8bb6`.
+  Clean `HEAD` passed a full suite too. So it is not tied to a change, and it does not
+  reproduce in isolation - only under full-suite conditions. **The cause was not found.** A
+  `Set<PlayerID>` encoded as an unordered JSON array in `GameLogStore.SeatRoster.encode` was
+  the obvious suspect and is probably *not* it (two identically-built Sets share an iteration
+  order within one process). Worth solving before it fails a run that matters.
 
 ## Settled dead ends - do not re-litigate
 
