@@ -1,4 +1,4 @@
-public enum TileKind: Codable, Sendable, Equatable {
+public enum TileKind: Codable, Sendable, Equatable, Hashable {
     case resource(Resource)
     case desert
 }

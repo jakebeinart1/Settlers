@@ -8,7 +8,7 @@ public enum BoardGenerator {
     /// layout and the randomizer's shuffle are defined against.
     static let tileCoordinates: [HexCoordinate] = spiralCoordinates(radius: 2)
 
-    private static func spiralCoordinates(radius: Int) -> [HexCoordinate] {
+    static func spiralCoordinates(radius: Int) -> [HexCoordinate] {
         var results = [HexCoordinate(q: 0, r: 0)]
         guard radius > 0 else { return results }
         for ring in 1...radius {
@@ -95,13 +95,23 @@ public enum BoardGenerator {
         ),
     ]
 
-    public static func standard() -> Board {
-        var numbers = standardNumberOrder.makeIterator()
-        let tiles = zip(tileCoordinates, standardResourceOrder).map { coordinate, kind -> Tile in
+    public static func standard() -> Board { standard(BoardShape.classic) }
+
+    /// Deals `shape`'s tiles onto its spiral, in `shape.terrain`'s expanded
+    /// order, and resolves its ports.
+    public static func standard(_ shape: BoardShape) -> Board {
+        precondition(shape.compositionProblem == nil,
+                     "cannot deal this board: \(shape.compositionProblem!)")
+        let coordinates = spiralCoordinates(radius: shape.radius)
+        let kinds = shape.terrain.expanded(tileCount: shape.tileCount)
+        var numbers = shape.tokens
+            .expanded(count: kinds.filter { $0 != .desert }.count)
+            .makeIterator()
+        let tiles = zip(coordinates, kinds).map { coordinate, kind -> Tile in
             let number = (kind == .desert) ? nil : numbers.next()
             return Tile(coordinate: coordinate, kind: kind, numberToken: number)
         }
-        return makeBoard(tiles: tiles)
+        return makeBoard(tiles: tiles, shape: shape)
     }
 
     // MARK: Randomized layout
@@ -111,26 +121,40 @@ public enum BoardGenerator {
     /// whenever a 6 or 8 would end up adjacent to another 6 or 8. Ports stay
     /// in their fixed standard positions.
     public static func randomized(seed: UInt64) -> Board {
+        randomized(seed: seed, shape: BoardShape.classic)
+    }
+
+    /// Shuffles `shape`'s expanded terrain and tokens independently using a
+    /// seeded RNG, re-rolling whenever a 6 or 8 would end up adjacent to
+    /// another 6 or 8. Ports are resolved from `shape.ports`, unshuffled.
+    public static func randomized(seed: UInt64, shape: BoardShape) -> Board {
+        precondition(shape.compositionProblem == nil,
+                     "cannot deal this board: \(shape.compositionProblem!)")
         var rng = SeededGenerator(seed: seed)
+        let coordinates = spiralCoordinates(radius: shape.radius)
+        let baseKinds = shape.terrain.expanded(tileCount: shape.tileCount)
+        let baseNumbers = shape.tokens
+            .expanded(count: baseKinds.filter { $0 != .desert }.count)
         var kinds: [TileKind]
         var numbers: [Int]
         repeat {
-            kinds = standardResourceOrder.shuffled(using: &rng)
-            numbers = standardNumberOrder.shuffled(using: &rng)
-        } while hasAdjacentSixOrEight(kinds: kinds, numbers: numbers)
+            kinds = baseKinds.shuffled(using: &rng)
+            numbers = baseNumbers.shuffled(using: &rng)
+        } while hasAdjacentSixOrEight(kinds: kinds, numbers: numbers, radius: shape.radius)
 
         var numberIterator = numbers.makeIterator()
-        let tiles = zip(tileCoordinates, kinds).map { coordinate, kind -> Tile in
+        let tiles = zip(coordinates, kinds).map { coordinate, kind -> Tile in
             let number = (kind == .desert) ? nil : numberIterator.next()
             return Tile(coordinate: coordinate, kind: kind, numberToken: number)
         }
-        return makeBoard(tiles: tiles)
+        return makeBoard(tiles: tiles, shape: shape)
     }
 
-    private static func hasAdjacentSixOrEight(kinds: [TileKind], numbers: [Int]) -> Bool {
+    private static func hasAdjacentSixOrEight(kinds: [TileKind], numbers: [Int], radius: Int) -> Bool {
+        let coordinates = spiralCoordinates(radius: radius)
         var numberIterator = numbers.makeIterator()
         var tokenByCoordinate: [HexCoordinate: Int] = [:]
-        for (coordinate, kind) in zip(tileCoordinates, kinds) {
+        for (coordinate, kind) in zip(coordinates, kinds) {
             if kind != .desert, let token = numberIterator.next() {
                 tokenByCoordinate[coordinate] = token
             }
@@ -148,7 +172,7 @@ public enum BoardGenerator {
 
     // MARK: Shared assembly
 
-    private static func makeBoard(tiles: [Tile]) -> Board {
+    private static func makeBoard(tiles: [Tile], shape: BoardShape) -> Board {
         var vertices = Set<VertexID>()
         var edges = Set<EdgeID>()
         for tile in tiles {
@@ -158,11 +182,20 @@ public enum BoardGenerator {
         let robberTile = tiles.first(where: { $0.kind == .desert })?.coordinate ?? tiles[0].coordinate
         return Board(
             tiles: tiles,
-            ports: standardPorts,
+            ports: resolvePorts(shape.ports, tiles: tiles),
             onBoardVertices: vertices,
             onBoardEdges: edges,
             robberTile: robberTile
         )
+    }
+
+    private static func resolvePorts(_ layout: PortLayout, tiles: [Tile]) -> [Port] {
+        switch layout {
+        case .fixed(let ports):
+            return ports
+        case .derived(let kinds):
+            return derivedPorts(kinds: kinds, tiles: tiles)
+        }
     }
 }
 
