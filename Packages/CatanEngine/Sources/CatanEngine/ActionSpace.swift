@@ -116,6 +116,10 @@ public struct ActionSpace: Sendable {
     public let playerCount: Int
 
     public init(board: Board, playerCount: Int = 4) {
+        precondition(board.tiles.count == Ruleset.forMode(.classic).board.tileCount,
+                     "ActionSpace is numbered against the \(Ruleset.forMode(.classic).board.tileCount)-tile "
+                     + "classic board; got \(board.tiles.count) tiles. Widening it means renumbering every "
+                     + "index, which invalidates any artifact trained against the old numbering.")
         self.playerCount = playerCount
         vertices = board.onBoardVertices.sorted()
         edges = board.onBoardEdges.sorted()

@@ -183,7 +183,7 @@ private let space = ActionSpace(board: board)
     // Vertices and edges agreed all along, which is what made it easy to miss.
     let board = BoardGenerator.randomized(seed: 21)
     let space = ActionSpace(board: board)
-    let encoder = StateEncoding.BoardIndex(board)
+    let encoder = StateEncoding.BoardIndex(board, mode: .classic)
 
     for (slot, tile) in encoder.tiles.enumerated() {
         let move = space.move(at: space.index(of: .moveRobber(tile.coordinate, stealFrom: nil))!)

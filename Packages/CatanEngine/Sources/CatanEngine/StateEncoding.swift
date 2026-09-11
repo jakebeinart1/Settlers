@@ -74,6 +74,19 @@ public enum StateEncoding {
     /// cosmetic changes to separators or spacing do not need a bump.
     public static let layoutVersion = 3
 
+    /// The modes `layoutVersion` is defined against.
+    ///
+    /// The layout is fixed-width, so it is fixed-width against ONE board. A
+    /// board of another size is not "mostly compatible" - it shifts every slot
+    /// after the first board block, and the dangerous version of that failure
+    /// is silent: no shape error, no crash, just a model that plays badly.
+    /// "The bots got worse" is among the most expensive things to diagnose
+    /// here, so this refuses loudly instead.
+    ///
+    /// Widening this is a real project - new slot counts and a `layoutVersion`
+    /// bump - not a one-line edit.
+    public static let supportedModes: Set<GameMode> = [.classic]
+
     // MARK: - Board shape this layout is defined against
 
     // The layout is fixed-width, so it has to be fixed-width *against
@@ -330,7 +343,16 @@ public enum StateEncoding {
         private let vertexSlots: [VertexID: Int]
         private let edgeSlots: [EdgeID: Int]
 
-        public init(_ board: Board) {
+        /// - Parameter mode: the mode the board belongs to. Checked against
+        ///   `StateEncoding.supportedModes` before anything else, so a
+        ///   non-Classic board traps here rather than producing a vector whose
+        ///   slots silently mean the wrong thing.
+        public init(_ board: Board, mode: GameMode) {
+            precondition(StateEncoding.supportedModes.contains(mode),
+                         "layout v\(StateEncoding.layoutVersion) is defined against "
+                         + "\(StateEncoding.supportedModes.map(\.rawValue).sorted().joined(separator: ", ")), "
+                         + "got \(mode.rawValue)")
+
             tiles = board.tiles.sorted { $0.coordinate < $1.coordinate }
             vertices = board.onBoardVertices.sorted()
             edges = board.onBoardEdges.sorted()
@@ -509,7 +531,7 @@ public extension StateEncoding {
     ///     the vector's width.
     static func features(_ observation: GameObservation,
                          policy: HiddenInformationPolicy = .revealAll) -> [Float] {
-        let index = BoardIndex(observation.state.board)
+        let index = BoardIndex(observation.state.board, mode: observation.state.mode)
         var values: [Float] = []
         values.reserveCapacity(featureCount)
 
@@ -790,7 +812,7 @@ public extension StateEncoding {
     static func promptDescription(_ observation: GameObservation,
                                   policy: HiddenInformationPolicy = .revealAll) -> String {
         let state = observation.state
-        let index = BoardIndex(state.board)
+        let index = BoardIndex(state.board, mode: state.mode)
         var lines = [
             "OBS v\(layoutVersion) seat=P\(observation.seat.index) phase=\(phaseLabel(state.phase)) "
                 + "target=\(state.victoryPointTarget) lastRoll=\(state.lastDiceRoll.map(String.init) ?? "-")",

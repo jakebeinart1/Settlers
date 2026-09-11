@@ -58,6 +58,11 @@ private func sampledPositions() -> [GameState] {
 
 // MARK: - Width
 
+@Test func theLayoutDeclaresWhichModesItIsDefinedAgainst() {
+    #expect(StateEncoding.supportedModes == [.classic])
+    #expect(!StateEncoding.supportedModes.contains(.expanded))
+}
+
 @Test func everyVectorIsExactlyTheAdvertisedWidth() {
     for state in sampledPositions() {
         for index in 0..<StateEncoding.seatCount {
@@ -305,7 +310,7 @@ private func replacingPorts(in board: Board, with ports: [CatanEngine.Port]) -> 
     // would leave a learner reading "my settlement" out of a different slot per
     // seat while the per-seat blocks looked correct.
     let state = position(boardSeed: 42, driverSeed: 11, moves: 150)
-    let index = StateEncoding.BoardIndex(state.board)
+    let index = StateEncoding.BoardIndex(state.board, mode: state.mode)
     let vertexStart = StateEncoding.globalFeatureCount
         + StateEncoding.seatCount * StateEncoding.perPlayerFeatureCount
         + StateEncoding.tileCount * StateEncoding.perTileFeatureCount
@@ -374,7 +379,7 @@ private func replacingPorts(in board: Board, with ports: [CatanEngine.Port]) -> 
 
 @Test func boardIndicesAreTheSortedOrderAndRoundTrip() {
     let board = BoardGenerator.randomized(seed: 42)
-    let index = StateEncoding.BoardIndex(board)
+    let index = StateEncoding.BoardIndex(board, mode: .classic)
 
     #expect(index.vertices == board.onBoardVertices.sorted())
     #expect(index.edges == board.onBoardEdges.sorted())
@@ -408,7 +413,7 @@ private func replacingPorts(in board: Board, with ports: [CatanEngine.Port]) -> 
 
     // Numbering is 0-based and positional, so `n` is `legalMoves[n]` with no
     // lookup table - the property a consumer relies on when it replies.
-    let index = StateEncoding.BoardIndex(state.board)
+    let index = StateEncoding.BoardIndex(state.board, mode: state.mode)
     for (offset, move) in observation.legalMoves.enumerated() {
         #expect(text.contains("\(offset) \(StateEncoding.label(for: move, index: index))"),
                 "move \(offset) is missing from the numbered list")
@@ -445,7 +450,7 @@ private func replacingPorts(in board: Board, with ports: [CatanEngine.Port]) -> 
     }
     #expect(state.pendingTradeOffers.count == 20)
 
-    let index = StateEncoding.BoardIndex(state.board)
+    let index = StateEncoding.BoardIndex(state.board, mode: state.mode)
     let handles = state.pendingTradeOffers.map {
         StateEncoding.label(for: .respondToTrade(offerID: $0.id, accept: true),
                             index: index,
@@ -613,7 +618,7 @@ private func fnv1a(_ hash: UInt64, _ value: UInt32) -> UInt64 {
 /// fingerprint above would notice a slot going missing.
 private func handBuiltPosition() -> GameState {
     let board = BoardGenerator.standard()
-    let index = StateEncoding.BoardIndex(board)
+    let index = StateEncoding.BoardIndex(board, mode: .classic)
 
     var players: [Player] = []
     for seat in 0..<StateEncoding.seatCount {
