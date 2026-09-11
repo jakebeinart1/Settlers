@@ -70,8 +70,8 @@ Important finding fixed, and re-verified. Commits are on `feat/expanded-game-mod
 | 4 | Expanded board shape + token repair | ✅ **Done** 2026-09-10 | `a09e339` | 243/243 + 145/145, no fingerprint moved. Verified independently: 37 tiles, terrain and 36-token multiset exactly 2× Classic, 14 ports (4 generic + 2/resource) on distinct edges, 0 adjacency violations, byte-identical across 3 processes. |
 | 5 | `GameMode` and `Ruleset` | ✅ **Done** 2026-09-10 | `6b28341..7bca304` | 251/251. Classic + Expanded values verified directly. `supportedRoadLimit = 38` measured and independently reproduced (5.60ms vs 5.48ms); cliff confirmed at 44 roads (235ms). `scaledFromBoard` rounding pinned both directions; recursion trap removed structurally. |
 | 6 | `GameState.mode`, schema v4 | ✅ **Done** 2026-09-11 | `1e9a8e9` | 255/255 + 145/145. Decode order correct (`mode` before target validation). Deck-order conflict resolved via `DevCardType.deckBuildOrder` — **no fingerprint re-recorded**; `git diff main...HEAD -- Packages/CatanAI` still empty. |
-| 7 | Route rule sites through `state.rules` | 🔨 **In progress** | | |
-| 8 | Expanded full game + fingerprints | ⬜ Not started | | |
+| 7 | Route rule sites through `state.rules` | ✅ **Done** 2026-09-11 | `690df71` | 261/261 + 145/145, no fingerprint moved. **App target builds clean** (`BUILD SUCCEEDED`, 0 errors) — verifying the 8 files edited without Xcode. `Player.victoryPoints` deleted; every rule site verified against `Ruleset` by review. |
+| 8 | Expanded full game + fingerprints | 🔨 **In progress** | | |
 | 9 | `StateEncoding`/`ActionSpace` refusal | ⬜ Not started | | |
 | 10 | `MatchSetup` carries the mode | ⬜ Not started | | |
 | 11 | Mode survives save/resume/replay | ⬜ Not started | | |
@@ -1536,7 +1536,7 @@ The largest task, and a pure refactor: Classic's numbers do not change, so the e
 - Consumes additionally: `GameSetup.newGame(board:seed:playerCount:victoryPointTarget:mode:)` — **built in Task 6**, not here (preflight ruling).
 - Produces: `WinCondition.standardTarget` and `WinCondition.supportedTargets` are **deleted**; callers ask the ruleset.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Create `RulesetRoutingTests.swift`:
 
@@ -1630,12 +1630,12 @@ private func expandedGame(seed: UInt64 = 1) -> GameState {
 }
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `swift test --package-path Packages/CatanEngine --filter RulesetRoutingTests`
 Expected: FAIL — `newGame` has no `mode:` parameter.
 
-- [ ] **Step 3: Give `GameSetup.newGame` a mode**
+- [x] **Step 3: Give `GameSetup.newGame` a mode**
 
 In `GameState.swift`, replace the bank loop and deck construction in the `rng:` overload, and add `mode` to all three overloads:
 
@@ -1687,7 +1687,7 @@ In `GameState.swift`, replace the bank loop and deck construction in the `rng:` 
 
 Add the same `victoryPointTarget: Int? = nil, mode: GameMode = .classic` tail to the `seed:` and no-argument overloads, forwarding both.
 
-- [ ] **Step 4: Route the five rule sites**
+- [x] **Step 4: Route the five rule sites**
 
 **First, delete `Player.victoryPoints` — it is a second scoring formula.**
 
@@ -1768,7 +1768,7 @@ Keep the piece-supply comment block in `Building.swift`, retargeted: the *reason
 
 `WinCondition` — delete `standardTarget` and `supportedTargets`, keeping the reasoning that justified the range in `Ruleset.forMode`'s classic case. `checkForWinner` already reads `state.victoryPointTarget` and needs no change.
 
-- [ ] **Step 5: Fix every caller the deletions break**
+- [x] **Step 5: Fix every caller the deletions break**
 
 `WinCondition.standardTarget` and `.supportedTargets` had callers outside the engine. Find them:
 
@@ -1779,13 +1779,13 @@ grep -rn "standardTarget\|supportedTargets\|Building.maxRoads\|Building.maxSettl
 
 Replace each with `Ruleset.forMode(<mode>).<field>`. In app code the mode comes from `setup.mode` or `state.mode`; in tests that predate modes, `Ruleset.forMode(.classic)`.
 
-- [ ] **Step 6: Run the full engine and AI suites**
+- [x] **Step 6: Run the full engine and AI suites**
 
 Run: `swift test --package-path Packages/CatanEngine`
 Run: `swift test --package-path Packages/CatanAI`
 Expected: PASS, both. `CatanAI` takes 55–175s. Every pre-existing test must stay green — Classic's numbers did not change, so a failure here means a call site was rerouted to the wrong field.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add -A Packages/CatanEngine Packages/CatanAI
@@ -1986,6 +1986,12 @@ Claude-Session: https://claude.ai/code/session_01TBxaHYvMxcRujKxfhdFdAe"
 **Interfaces:**
 - Consumes: `GameMode`, `Ruleset` from Task 5.
 - Produces: `StateEncoding.supportedModes: Set<GameMode>` — `[.classic]`.
+
+**Carried from Task 7's review:** confirm `StateEncoding.appendStanding` cannot be reached with a
+non-Classic state before this gate lands. Task 7 left its layout constants pinned to
+`Ruleset.forMode(.classic)` while `appendStanding`'s normalizers read live `state.rules` — the two
+agree today only because this encoder is never fed a non-Classic game. This task is what makes that
+true by construction rather than by luck.
 
 - [ ] **Step 1: Write the failing test**
 
