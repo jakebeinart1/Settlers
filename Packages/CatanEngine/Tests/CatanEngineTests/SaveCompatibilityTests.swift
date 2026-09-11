@@ -65,3 +65,39 @@ private func encodeOmitting(_ keys: [String], from state: GameState) throws -> D
     let state = GameSetup.newGame(board: BoardGenerator.standard(), seed: 1)
     #expect(state.schemaVersion == GameState.currentSchemaVersion)
 }
+
+@Test func aSaveWrittenBeforeModesExistedLoadsAsClassic() throws {
+    let state = GameSetup.newGame(board: BoardGenerator.randomized(seed: 7), seed: 7)
+    let data = try encodeOmitting(["mode"], from: state)
+    let decoded = try JSONDecoder().decode(GameState.self, from: data)
+    #expect(decoded.mode == .classic)
+    #expect(decoded.victoryPointTarget == 10)
+    #expect(decoded.rules.longestRoadBonus == 2)
+}
+
+@Test func anExpandedSaveRoundTripsWithItsModeAndTarget() throws {
+    let state = GameSetup.newGame(board: BoardGenerator.standard(BoardShape.expanded),
+                                  seed: 11, mode: .expanded)
+    let data = try JSONEncoder().encode(state)
+    let decoded = try JSONDecoder().decode(GameState.self, from: data)
+    #expect(decoded.mode == .expanded)
+    #expect(decoded.victoryPointTarget == 25)
+    #expect(decoded.rules.longestRoadBonus == 4)
+    #expect(decoded.board.tiles.count == 37)
+}
+
+@Test func aClassicSaveCarryingAnExpandedTargetIsRefused() throws {
+    // 25 is legal for Expanded and corrupt for Classic. The guard exists
+    // because an out-of-range target would otherwise let the very next build
+    // declare a winner.
+    var state = GameSetup.newGame(board: BoardGenerator.randomized(seed: 3), seed: 3)
+    state.victoryPointTarget = 10
+    var object = try JSONSerialization.jsonObject(
+        with: try JSONEncoder().encode(state)) as! [String: Any]
+    object["victoryPointTarget"] = 25
+    object["mode"] = "classic"
+    let data = try JSONSerialization.data(withJSONObject: object)
+    #expect(throws: DecodingError.self) {
+        _ = try JSONDecoder().decode(GameState.self, from: data)
+    }
+}

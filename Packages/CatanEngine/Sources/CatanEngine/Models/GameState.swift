@@ -4,13 +4,14 @@ public struct GameState: Codable, Sendable, Equatable {
     /// than fall back to a default, and branch on it there. Saves written
     /// before versioning existed decode as `0`.
     /// Bumped to 3 when `declinedTradeOffersThisTurn` was added.
+    /// Bumped to 4 when `mode` was added.
     ///
     /// The field decodes with `decodeIfPresent ?? WinCondition.standardTarget`,
     /// so a v1 save still loads and plays to ten - which is what it was
     /// started at. The version is here so a future reader can tell the
     /// difference between "this game chose ten" and "this game predates the
     /// choice", not because the decoder needs it.
-    public static let currentSchemaVersion = 3
+    public static let currentSchemaVersion = 4
 
     /// The schema version this value was decoded from (or
     /// `currentSchemaVersion` for a freshly created game). Persisted so a
@@ -27,6 +28,20 @@ public struct GameState: Codable, Sendable, Equatable {
     /// twelve-point game resumed after a relaunch would silently revert to
     /// ten.
     public var victoryPointTarget: Int
+
+    /// Which rule set THIS game is played under.
+    ///
+    /// Beside the position for the same reason `victoryPointTarget` is: the
+    /// rules are a property of the game, not of the process. A global would
+    /// make every rule read depend on which screen was last opened, and a
+    /// resumed Expanded game would silently revert to classic's quantities
+    /// while keeping its 37-tile board - the rules and the board disagreeing
+    /// mid-game.
+    public var mode: GameMode
+
+    /// The quantities this game is played with. Derived, never stored, so a
+    /// save cannot carry a rule set that disagrees with its own mode.
+    public var rules: Ruleset { Ruleset.forMode(mode) }
 
     /// Seeded generator for every random outcome the rules produce - dice
     /// rolls and robber steals. Stored here rather than passed in so that a
@@ -96,10 +111,12 @@ public struct GameState: Codable, Sendable, Equatable {
         declinedTradeOffersThisTurn: [PlayerID: [TradeOffer]] = [:],
         rng: RandomSource = RandomSource(seed: UInt64.random(in: .min ... .max)),
         schemaVersion: Int = GameState.currentSchemaVersion,
+        mode: GameMode = .classic,
         victoryPointTarget: Int = WinCondition.standardTarget
     ) {
         self.rng = rng
         self.schemaVersion = schemaVersion
+        self.mode = mode
         self.victoryPointTarget = victoryPointTarget
         self.board = board
         self.players = players
@@ -146,21 +163,28 @@ public struct GameState: Codable, Sendable, Equatable {
         phase = try container.decode(GamePhase.self, forKey: .phase)
 
         schemaVersion = try container.decodeIfPresent(Int.self, forKey: .schemaVersion) ?? 0
+
+        // Absent in every save written before modes existed. Those games were
+        // played under the only rules there were.
+        mode = try container.decodeIfPresent(GameMode.self, forKey: .mode) ?? .classic
+
         // Absent in every v1 save. Those games were started under the fixed
         // ten-point rule, so ten is not merely a safe default - it is the
         // value they actually played to.
+        let decodedTarget = try container.decodeIfPresent(Int.self, forKey: .victoryPointTarget)
+            ?? Ruleset.forMode(mode).defaultVictoryPointTarget
         // Range-checked on the way in, not only at construction. A save
         // carrying 0 - corruption, or a future version widening the range -
         // would otherwise make the very next build declare seat 0 the winner.
-        // Unreachable through the UI, which is exactly why it needs the guard
-        // here rather than a precondition somebody remembers to write.
-        let decodedTarget = try container.decodeIfPresent(Int.self, forKey: .victoryPointTarget)
-            ?? WinCondition.standardTarget
-        guard WinCondition.supportedTargets.contains(decodedTarget) else {
+        //
+        // Decode order is load-bearing: `mode` is read above, because
+        // validating the target against a range not yet known would reject
+        // every Expanded save as corrupt.
+        guard Ruleset.forMode(mode).victoryPointTargets.contains(decodedTarget) else {
             throw DecodingError.dataCorruptedError(
                 forKey: .victoryPointTarget,
                 in: container,
-                debugDescription: "Unsupported victory-point target: \(decodedTarget)"
+                debugDescription: "Target \(decodedTarget) is outside \(mode.displayName)'s range"
             )
         }
         victoryPointTarget = decodedTarget
@@ -222,9 +246,11 @@ public enum GameSetup {
     /// ready to begin the setup phase at player 0's first placement. Uses
     /// the system RNG; see the `rng:` overload below for deterministic
     /// (e.g. test) callers.
-    public static func newGame(board: Board) -> GameState {
+    public static func newGame(board: Board, victoryPointTarget: Int? = nil,
+                               mode: GameMode = .classic) -> GameState {
         var rng = SystemRandomNumberGenerator()
-        return newGame(board: board, rng: &rng)
+        return newGame(board: board, rng: &rng,
+                       victoryPointTarget: victoryPointTarget, mode: mode)
     }
 
     /// Creates a fully reproducible game: `seed` fixes both the dev card
@@ -235,10 +261,11 @@ public enum GameSetup {
     /// failing simulation possible at all.
     public static func newGame(board: Board, seed: UInt64,
                                playerCount: Int = GameSetup.standardPlayerCount,
-                               victoryPointTarget: Int = WinCondition.standardTarget) -> GameState {
+                               victoryPointTarget: Int? = nil,
+                               mode: GameMode = .classic) -> GameState {
         var rng = RandomSource(seed: seed)
-        return newGame(board: board, rng: &rng,
-                       playerCount: playerCount, victoryPointTarget: victoryPointTarget)
+        return newGame(board: board, rng: &rng, playerCount: playerCount,
+                       victoryPointTarget: victoryPointTarget, mode: mode)
     }
 
     /// Seats a standard game. Three and four are the sizes this board's
@@ -253,24 +280,36 @@ public enum GameSetup {
     /// deterministic game and not merely a deterministic opening deck.
     public static func newGame(board: Board, rng: inout some RandomNumberGenerator,
                                playerCount: Int = GameSetup.standardPlayerCount,
-                               victoryPointTarget: Int = WinCondition.standardTarget) -> GameState {
+                               victoryPointTarget: Int? = nil,
+                               mode: GameMode = .classic) -> GameState {
         precondition(supportedPlayerCounts.contains(playerCount),
                      "playerCount \(playerCount) is outside \(supportedPlayerCounts)")
-        precondition(WinCondition.supportedTargets.contains(victoryPointTarget),
-                     "victoryPointTarget \(victoryPointTarget) is outside \(WinCondition.supportedTargets)")
+        let rules = Ruleset.forMode(mode)
+        let target = victoryPointTarget ?? rules.defaultVictoryPointTarget
+        precondition(rules.victoryPointTargets.contains(target),
+                     "victoryPointTarget \(target) is outside \(mode.displayName)'s \(rules.victoryPointTargets)")
+        precondition(board.tiles.count == rules.board.tileCount,
+                     "a \(board.tiles.count)-tile board cannot host \(mode.displayName), "
+                     + "which is played on \(rules.board.tileCount) tiles")
         let players = (0..<playerCount).map { Player(id: PlayerID(index: $0)) }
 
         var bank: [Resource: Int] = [:]
         for resource in Resource.allCases {
-            bank[resource] = 19
+            bank[resource] = rules.bankPerResource
         }
 
+        // Driven off `DevCardType.allCases` sorted by `deckBuildOrder`, not off
+        // the dictionary directly, so the deck is built in a stable order
+        // before it is shuffled. Dictionary iteration order is seeded per
+        // process; shuffling an unstably-ordered array gives a different deck
+        // per launch for the same seed, which is the determinism bug this
+        // repo has paid for four times. `deckBuildOrder` (rather than
+        // `allCases`' own order) is what keeps this the historical stacking
+        // order, so a seeded Classic game still deals the deck it always has.
         var devCardDeck: [DevCardType] = []
-        devCardDeck.append(contentsOf: repeatElement(.knight, count: 14))
-        devCardDeck.append(contentsOf: repeatElement(.victoryPoint, count: 5))
-        devCardDeck.append(contentsOf: repeatElement(.roadBuilding, count: 2))
-        devCardDeck.append(contentsOf: repeatElement(.yearOfPlenty, count: 2))
-        devCardDeck.append(contentsOf: repeatElement(.monopoly, count: 2))
+        for type in DevCardType.allCases.sorted(by: { $0.deckBuildOrder < $1.deckBuildOrder }) {
+            devCardDeck.append(contentsOf: repeatElement(type, count: rules.devCardDeck[type, default: 0]))
+        }
         devCardDeck.shuffle(using: &rng)
 
         return GameState(
@@ -280,7 +319,8 @@ public enum GameSetup {
             bank: bank,
             devCardDeck: devCardDeck,
             rng: RandomSource(seed: rng.next()),
-            victoryPointTarget: victoryPointTarget
+            mode: mode,
+            victoryPointTarget: target
         )
     }
 }

@@ -25,3 +25,17 @@ import Testing
     #expect(state.devCardDeck.filter { $0 == .yearOfPlenty }.count == 2)
     #expect(state.devCardDeck.filter { $0 == .monopoly }.count == 2)
 }
+
+/// `DevCardType.deckBuildOrder` (not `allCases`' own declaration order) is
+/// what the deck is stacked in before it is shuffled - pinned to the
+/// historical knight/VP/roadBuilding/yearOfPlenty/monopoly order because
+/// `SeededGameFingerprintTests` depends on that exact pre-shuffle stacking
+/// producing the same seeded permutation it always has. If a rank ever
+/// collides or drifts, this fails before a fingerprint has to.
+@Test func deckBuildOrderRanksArePreservedAndDistinct() {
+    let stacked = DevCardType.allCases.sorted { $0.deckBuildOrder < $1.deckBuildOrder }
+    #expect(stacked == [.knight, .victoryPoint, .roadBuilding, .yearOfPlenty, .monopoly])
+
+    let ranks = Set(DevCardType.allCases.map(\.deckBuildOrder))
+    #expect(ranks.count == DevCardType.allCases.count, "every case must have a distinct rank")
+}
