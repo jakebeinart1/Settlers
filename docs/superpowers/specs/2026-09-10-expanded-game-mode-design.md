@@ -412,13 +412,28 @@ The invariants in `CLAUDE.md` apply unchanged, and two are specifically at risk:
 
 ## Accepted risks
 
-1. **Game length, unmeasured.** Two setup settlements to a 25-point target is a
-   long ramp, and a third snake round was declined in favour of leaving
-   `SetupPhase` and every setup fixture, QA flag and UI test untouched. The
-   estimate is that Expanded runs well over twice a Classic game; it has not
-   been measured. The `sim-harness` run above produces the real number before
-   this is called done. If it comes back at 3x Classic, the target and the two
-   bonus values are the dials, and all three are `Ruleset` fields.
+1. **Game length — MEASURED 2026-09-11, and the estimate was wrong in the safe
+   direction.** Two setup settlements to a 25-point target is a long ramp, and a
+   third snake round was declined in favour of leaving `SetupPhase` and every
+   setup fixture, QA flag and UI test untouched. The estimate below was that
+   Expanded would run *well over twice* a Classic game, possibly 3x. It does not.
+
+   | method | Classic | Expanded | ratio |
+   |---|---|---|---|
+   | random play, 10 seeded games/mode | median 4,835 moves (1,850–13,459) | median 9,128 (4,806–11,866) | **1.89x** |
+   | bot self-play, 8 seeded games/mode | median 490 moves (358–702) | median 903 (653–1,049) | **1.84x** |
+
+   Two unrelated methods agree: **Expanded costs 2.5x the victory points but only
+   ~1.85x the game length.** The doubled map and doubled piece supplies raise
+   income enough to outpace the higher target.
+
+   A second finding nobody predicted: **Expanded is *more consistent* than
+   Classic**, with a lower maximum (11,866 vs 13,459 under random play) and a far
+   higher minimum. More land means fewer boxed-in games that grind.
+
+   Task 14's `sim-harness` run remains the authoritative paired figure. If it
+   ever disagreed with both of these, the target and the two bonus values are the
+   dials, and all three are `Ruleset` fields.
 2. **Legibility at the resting fit.** 37 tiles in the same viewport means
    roughly 40%-smaller hexes. Number tokens and pieces may not survive it. Pan
    and zoom already exist, but this needs the inspected screenshot before any
