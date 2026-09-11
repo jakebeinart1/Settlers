@@ -13,6 +13,8 @@
 ## Global Constraints
 
 - **Branch `feat/expanded-game-mode`. Never push to `main`.** Work goes to Jake as a PR.
+  **Execution override, 2026-09-11:** Jake explicitly requested that the completed, gated branch be
+  fast-forwarded and pushed directly to `main`; that later instruction supersedes this delivery route.
 - **`CatanEngine` and `CatanAI` import only `Foundation`.** No UIKit/SwiftUI/Darwin — it breaks Linux CI, not just taste.
 - **All randomness goes through `state.rng`.** Any `Int.random`, `.randomElement()`, `.shuffled()` or `SystemRandomNumberGenerator` inside `CatanEngine` is a bug. The one existing exception is `BoardGenerator`'s private `SeededGenerator`, which is seeded explicitly.
 - **New enumeration must be order-stable.** `Set`/`Dictionary` iteration order is seeded per process. Sort before iterating; drive resource loops off `Resource.allCases`.
@@ -74,10 +76,10 @@ Important finding fixed, and re-verified. Commits are on `feat/expanded-game-mod
 | 8 | Expanded full game + fingerprints | ✅ **Done** 2026-09-11 | `dadd865` | Expanded plays to 25 pts; piece supplies never exceeded; no cap raised. 5 Expanded fingerprints pinned, verified across 2 separate processes. **No Classic pin altered.** |
 | 9 | `StateEncoding`/`ActionSpace` refusal | ✅ **Done** 2026-09-11 | `058c8f1` | 264/264 + 146/146. Gate reachable on every path (chain independently re-traced by review); `mode:` made a **required** param so no caller can bypass it. Closes Task 7's mixed-sources concern by construction. |
 | 10 | `MatchSetup` carries the mode | ✅ **Done** 2026-09-11 | `f40337e` | Hand-written decoder covers all 5 stored properties, `decodeIfPresent` on `mode` only. **App target `TEST SUCCEEDED`, exit 0** — verifying 5 files the implementer could not compile. |
-| 11 | Mode survives save/resume/replay | 🔨 **In progress** | | |
-| 12 | Mode picker on New Game screen | ⬜ Not started | | |
-| 13 | UI stops printing "+2" | ⬜ Not started | | |
-| 14 | Verification (gate, sim-harness, screenshot) | ⬜ Not started | | |
+| 11 | Mode survives save/resume/replay | ✅ **Done** 2026-09-11 | `12bfaf1` | Focused persistence/log tests passed, including Expanded resume and mode-mismatch refusal. Audited all 19 `MatchSetup(` sites; the three live-state constructors now carry `state.mode`, while the rest are Classic fixtures or inherit a setup's mode. |
+| 12 | Mode picker on New Game screen | ✅ **Done** 2026-09-11 | `eeb9c23` | Model tests and native UI flow passed. Expanded replaces match-length choices with fixed `25 VP`, keeps Start enabled, and starts the mode selected by the user. |
+| 13 | UI stops printing "+2" | ✅ **Done** 2026-09-11 | `08ff317` | Expanded breakdown test passed: Longest Road and Largest Army each score 4 and the displayed lines sum to the engine total. |
+| 14 | Verification (gate, simulator, screenshot) | ✅ **Done** 2026-09-11 | this summary commit | All 10 gates passed serially, including the previously memory-blocked app/CompleteMatch suite. 20 games/mode measured; Expanded median 125.5 turns vs Classic 92.5 (1.36×). Fresh-install and native UI probes passed, including three full Expanded turns. |
 
 ### Decisions made during execution
 
@@ -92,6 +94,8 @@ These changed the plan after it was written. Each is a deliberate call, not drif
 | Bounded retry pulled Task 4 → Task 3 | `randomized(seed:shape:)` hangs forever on an all-6/8 composition, newly reachable once shapes became public API | A feasible-but-unlucky shape crashes instead of retrying; Task 4's repair removes that window |
 | `DevCardType.deckBuildOrder` added (Task 6) | Building the deck off `allCases` moved all five seeded fingerprints — same 25 cards, different pre-shuffle order. Re-recording would change what every seeded Classic game deals; reordering the enum would silently shift `StateEncoding`'s feature slots | An extra indirection on deck construction; ranks kept in step by an exhaustive switch, not by memory |
 | Two tautological tests replaced | Both asserted that a value equals its own definition — `resourceKindCount == Resource.allCases.count`, and `standard(BoardShape.classic)` vs a `standard()` that *is* that call | None — both replacements are strictly more falsifiable |
+| Verification skill fallbacks | The plan names `sim-harness`, `run-settlers`, and `play-settlers`, but those skills were not installed in this environment. Used the repository's simulation driver, `scripts/verify.sh`, and a temporary native XCUITest probe instead. | None to production; exact commands and artifacts are recorded in the summary. |
+| Direct delivery to `main` | Jake explicitly requested a gated direct push to `main` after the original PR-only plan was written. | Bypasses a hosted PR review; local review and the complete gate remain recorded. |
 
 ---
 
@@ -2219,7 +2223,7 @@ Claude-Session: https://claude.ai/code/session_01TBxaHYvMxcRujKxfhdFdAe"
 - Consumes: `MatchSetup.mode` (Task 10), `GameState.mode` (Task 6).
 - Produces: no new public API — this task makes an existing invariant hold for a new field.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 In `MatchCheckpointStoreTests.swift`:
 
@@ -2262,7 +2266,7 @@ In `MatchCheckpointStoreTests.swift`:
 
 The second case asserts the disagreement the guard in Step 4 must reject. If `MatchCheckpointMigration.prepare` is reachable from the test target with a fixture you can build cheaply, prefer asserting it throws `MigrationError.incompatibleRoster` directly — read the existing `CheckpointMigrationTests.swift` for how it constructs its arguments, and mirror that rather than inventing a `GameSession` initializer.
 
-- [ ] **Step 2: Run to verify it fails**
+- [x] **Step 2: Run to verify it fails**
 
 Run: `xcodebuild test -project Settlers.xcodeproj -scheme Settlers -destination 'platform=iOS Simulator,name=Empires QA' -only-testing:SettlersTests/MatchCheckpointStoreTests`
 Expected: FAIL — a classic state under an Expanded setup is currently accepted.
@@ -2294,7 +2298,7 @@ This is also exactly what the `setup.mode == session.state.mode` guard in Step 4
 guard in place, this bug becomes a loud refusal instead of a silent divergence. Fix the sites AND
 add the guard — the guard is what stops the next one.
 
-- [ ] **Step 3: Start the right board and mode**
+- [x] **Step 3: Start the right board and mode**
 
 `GameViewModel.makeInitialState`:
 
@@ -2312,7 +2316,7 @@ add the guard — the guard is what stops the next one.
     }
 ```
 
-- [ ] **Step 4: Make the three agreement checks include the mode**
+- [x] **Step 4: Make the three agreement checks include the mode**
 
 `MatchCheckpointMigration.prepare` (line 37):
 
@@ -2328,12 +2332,12 @@ add the guard — the guard is what stops the next one.
 
 `GameLogStore`: add `public let mode: GameMode` to `GameLogSummary` beside `victoryPointTarget`, populate it at line 355 from `initialState.mode`, and give `SeatRoster` nothing — the roster describes chairs, not rules, so the mode belongs on the summary. Where `GameLogSummary` is decoded from an archived file, decode `mode` with `?? .classic`.
 
-- [ ] **Step 5: Run the app suite**
+- [x] **Step 5: Run the app suite**
 
 Run: `xcodebuild test -project Settlers.xcodeproj -scheme Settlers -destination 'platform=iOS Simulator,name=Empires QA' -only-testing:SettlersTests`
 Expected: PASS. `CheckpointExportTests.retryReplacesATruncatedArchiveWithoutDuplicatingMoves` is a known unexplained flake — if only that fails, re-run it in isolation before believing it, and say so in the report rather than treating it as caused by this change.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add Settlers/ViewModels/GameViewModel.swift Settlers/Persistence/ SettlersTests/
@@ -2366,7 +2370,7 @@ Claude-Session: https://claude.ai/code/session_01TBxaHYvMxcRujKxfhdFdAe"
 - Consumes: `MatchSetup.mode`, `MatchSetup.newGameVictoryPointTargets(for:mode:)` (Task 10), `GameMode.displayName`, `GameMode.summary` (Task 5).
 - Produces: `GameModePickerPopup(selection:onSelect:onCancel:)`, `AccessibilityID.NewGame.modeRow` / `.modePicker` / `.modeOption(GameMode)`.
 
-- [ ] **Step 1: Read the pattern before writing**
+- [x] **Step 1: Read the pattern before writing**
 
 Run: `cat Settlers/Views/SeatNumberPickerPopup.swift`
 Run: `grep -rn "struct PopupCard" -A 20 Settlers/Views/`
@@ -2374,7 +2378,7 @@ Run: `grep -n "enum NewGame" -A 20 Settlers/Theme/AccessibilityID.swift`
 
 `SeatNumberPickerPopup` is the smaller of the two existing popups and the closer model. Match its chrome, dismissal and identifier conventions exactly — this screen's whole design rationale is that its surfaces read as one family.
 
-- [ ] **Step 2: Write the failing test**
+- [x] **Step 2: Write the failing test**
 
 In `NewGameSetupTests.swift`:
 
@@ -2402,12 +2406,12 @@ In `NewGameSetupTests.swift`:
 
 `normalizeNewGameOptions()` is the existing normalizer (`MatchSetup.swift:240`). It is `internal`, so the test reaches it through `@testable import Settlers`, which this file already does.
 
-- [ ] **Step 3: Run to verify it fails**
+- [x] **Step 3: Run to verify it fails**
 
 Run: `xcodebuild test -project Settlers.xcodeproj -scheme Settlers -destination 'platform=iOS Simulator,name=Empires QA' -only-testing:SettlersTests/NewGameSetupTests`
 Expected: FAIL — the target stays 8 after switching to Expanded.
 
-- [ ] **Step 4: Make the normalizer snap the target to the mode**
+- [x] **Step 4: Make the normalizer snap the target to the mode**
 
 At `MatchSetup.swift:241`, replace the existing target reset:
 
@@ -2422,7 +2426,7 @@ At `MatchSetup.swift:241`, replace the existing target reset:
         }
 ```
 
-- [ ] **Step 5: Create the popup**
+- [x] **Step 5: Create the popup**
 
 `Settlers/Views/GameModePickerPopup.swift` — modelled on `SeatNumberPickerPopup`:
 
@@ -2481,7 +2485,7 @@ struct GameModePickerPopup: View {
 
 `PopupCard(onDismiss:)` wrapping a `VStack` that ends in a `GoldRowButton` titled "Close" is what `SeatNumberPickerPopup` and `CivilizationPickerPopup` both do. Match it exactly.
 
-- [ ] **Step 6: Add the row and fix the match-length row**
+- [x] **Step 6: Add the row and fix the match-length row**
 
 In `NewGameSetupView.swift`, add `@State private var isPickingMode = false`, put `modeRow` first in `matchSettingsSection`, and present `GameModePickerPopup` in the same `ZStack` the other two popups use (line ~140).
 
@@ -2552,13 +2556,13 @@ Add the four identifiers to `AccessibilityID.NewGame`. **These exact strings are
         static func modeOption(_ mode: GameMode) -> String { "new-game.mode.\(mode.rawValue)" }
 ```
 
-- [ ] **Step 7: Regenerate the project — a new file will not compile without it**
+- [x] **Step 7: Regenerate the project — a new file will not compile without it**
 
 Run: `xcodegen generate`
 
 Skipping this produces `cannot find 'GameModePickerPopup' in scope`, which names the symbol and not the missing file, and sends people hunting an import bug that does not exist.
 
-- [ ] **Step 8: Write the UI test**
+- [x] **Step 8: Write the UI test**
 
 Create `SettlersUITests/NewGameModeFlowTests.swift`. **UI tests here are XCTest, not Swift Testing, and they cannot import `Settlers`** — identifiers are raw string literals, matching `NewGameKeyboardInvarianceTests.swift`. Keep the strings in step with the `AccessibilityID` values added in Step 6.
 
@@ -2596,12 +2600,12 @@ final class NewGameModeFlowTests: XCTestCase {
 
 **Do not add `.accessibilityElement(children: .contain)` plus an identifier to any container** to make this resolve. Doing that to `GameView.bottomPanel` once made the row an accessibility ancestor of the board decision dock and broke eleven unrelated tests, each reporting nothing but a bare `XCTAssertTrue failed`.
 
-- [ ] **Step 9: Run the tests**
+- [x] **Step 9: Run the tests**
 
 Run: `xcodebuild test -project Settlers.xcodeproj -scheme Settlers -destination 'platform=iOS Simulator,name=Empires QA' -only-testing:SettlersTests -only-testing:SettlersUITests`
 Expected: PASS.
 
-- [ ] **Step 10: Commit**
+- [x] **Step 10: Commit**
 
 ```bash
 git add Settlers/Views/GameModePickerPopup.swift Settlers/Views/NewGameSetupView.swift \
@@ -2637,7 +2641,7 @@ Claude-Session: https://claude.ai/code/session_01TBxaHYvMxcRujKxfhdFdAe"
 - Consumes: `GameState.rules` (Task 6).
 - Produces: no new API. `VictoryPointBreakdown.bonusPoints` stops being a constant.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```swift
 @Test func anExpandedBreakdownScoresBonusesAtFourAndStillSumsToTheEngineTotal() {
@@ -2654,18 +2658,18 @@ Claude-Session: https://claude.ai/code/session_01TBxaHYvMxcRujKxfhdFdAe"
 }
 ```
 
-- [ ] **Step 2: Run to verify it fails**
+- [x] **Step 2: Run to verify it fails**
 
 Run: `xcodebuild test -project Settlers.xcodeproj -scheme Settlers -destination 'platform=iOS Simulator,name=Empires QA' -only-testing:SettlersTests/VictoryPointBreakdownTests`
 Expected: FAIL — lines score 2 each and sum to 4 below `total`.
 
 This is the failure the file's own doc comment predicts: "a rules change that adds a new source of points fails a test here rather than silently showing 10 VP over lines that add to eight."
 
-- [ ] **Step 3: Read the bonus values from the state**
+- [x] **Step 3: Read the bonus values from the state**
 
 In `VictoryPointBreakdown.swift`, delete `private static let bonusPoints = 2` and, in `init(seat:state:)`, score the two bonus lines with `state.rules.longestRoadBonus` and `state.rules.largestArmyBonus` respectively. The settlement, city and victory-card values stay constants — those are not `Ruleset` fields and no mode varies them.
 
-- [ ] **Step 4: Find and fix every other hard-coded bonus in the UI**
+- [x] **Step 4: Find and fix every other hard-coded bonus in the UI**
 
 ```bash
 grep -rn '"+2"\|+ 2 VP\|bonusPoints\|longestRoadPlayer\|largestArmyPlayer' --include="*.swift" Settlers/Views/
@@ -2673,12 +2677,12 @@ grep -rn '"+2"\|+ 2 VP\|bonusPoints\|longestRoadPlayer\|largestArmyPlayer' --inc
 
 Replace any literal 2 that means "the bonus is worth two" with the ruleset read. Leave alone any 2 that means a city is worth two points.
 
-- [ ] **Step 5: Run the tests**
+- [x] **Step 5: Run the tests**
 
 Run: `xcodebuild test -project Settlers.xcodeproj -scheme Settlers -destination 'platform=iOS Simulator,name=Empires QA' -only-testing:SettlersTests`
 Expected: PASS.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add Settlers/Models/VictoryPointBreakdown.swift Settlers/Views/ SettlersTests/
@@ -2701,7 +2705,7 @@ No production code. This task produces evidence, and its deliverable is a report
 
 **Files:** none modified except a possible follow-up fix, which gets its own commit.
 
-- [ ] **Step 1: Regenerate and run the full gate**
+- [x] **Step 1: Regenerate and run the full gate**
 
 Run: `xcodegen generate`
 Run: `scripts/gate.sh`
@@ -2710,7 +2714,7 @@ All 10 gates must pass. A gate that cannot run prints `SKIP`, and a `SKIP` is no
 
 If `CheckpointExportTests.retryReplacesATruncatedArchiveWithoutDuplicatingMoves` fails, re-run it serially before believing it — it is a known unexplained flake, documented in `CLAUDE.md`. Report it as such rather than as a regression, and do not "fix" it by changing this feature.
 
-- [ ] **Step 2: Measure how long an Expanded game actually runs**
+- [x] **Step 2: Measure how long an Expanded game actually runs**
 
 **REQUIRED SUB-SKILL:** invoke the `sim-harness` skill.
 
@@ -2721,7 +2725,7 @@ Play at least 20 headless seeded Expanded games and 20 Classic games as a baseli
 
 This is Accepted Risk 1 in the spec. **Report the number; do not adjust the target to make it look better.** If Expanded runs past roughly 3x Classic, stop and give Jake the figure — the target, the two bonus values and the piece counts are all `Ruleset` fields, and which dial to turn is his call, not this plan's.
 
-- [ ] **Step 3: Look at the board**
+- [x] **Step 3: Look at the board**
 
 **REQUIRED SUB-SKILL:** invoke the `run-settlers` skill to build, install fresh and launch on the simulator.
 
@@ -2735,17 +2739,17 @@ Confirm by **looking at the screenshot**, not by the build succeeding:
 
 This is Accepted Risk 2. If the tokens are not legible, say so and stop — a legibility pass is a real design change, not a tweak to slip into this branch.
 
-- [ ] **Step 4: Play it**
+- [x] **Step 4: Play it**
 
 **REQUIRED SUB-SKILL:** invoke the `play-settlers` skill.
 
 Play through the setup placements and several full turns of an Expanded game by tapping. A green build is a compile claim and a correct-looking screenshot survives a game that cannot be played. Confirm a settlement can be placed, a turn ends, the bots take theirs, and the HUD shows the target as 25.
 
-- [ ] **Step 5: Write the summary**
+- [x] **Step 5: Write the summary**
 
 Write `docs/AI_summaries/2026-09-10-expanded-game-mode.md` with: what shipped, the measured game-length numbers from Step 2, the screenshot path from Step 3, what was verified by hand in Step 4, and anything left open. Create the directory if it does not exist.
 
-- [ ] **Step 6: Commit and open the PR**
+- [x] **Step 6: Commit and open the PR**
 
 ```bash
 git add docs/AI_summaries/2026-09-10-expanded-game-mode.md
