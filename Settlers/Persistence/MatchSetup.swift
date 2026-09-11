@@ -50,16 +50,34 @@ public struct MatchSetup: Codable, Equatable, Sendable {
     }
 
     public var seats: [Seat]
+    /// The rule set this match is played under. Duplicated from `GameState`
+    /// for the same reason `victoryPointTarget` is: it is the value the next
+    /// game will be started with, and the running game owns its own copy.
+    public var mode: GameMode
     public var victoryPointTarget: Int
     public var randomizedBoard: Bool
     public var randomizeSeatOrder: Bool
 
-    public init(seats: [Seat], victoryPointTarget: Int,
+    public init(seats: [Seat], mode: GameMode = .classic, victoryPointTarget: Int,
                 randomizedBoard: Bool, randomizeSeatOrder: Bool) {
         self.seats = seats
+        self.mode = mode
         self.victoryPointTarget = victoryPointTarget
         self.randomizedBoard = randomizedBoard
         self.randomizeSeatOrder = randomizeSeatOrder
+    }
+
+    /// Hand-written for one field. `MatchSetup` is written to disk beside a
+    /// running game, so a setup saved before modes existed must still decode -
+    /// the synthesized initializer would throw on the missing key and take the
+    /// player's configured table with it.
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        seats = try container.decode([Seat].self, forKey: .seats)
+        mode = try container.decodeIfPresent(GameMode.self, forKey: .mode) ?? .classic
+        victoryPointTarget = try container.decode(Int.self, forKey: .victoryPointTarget)
+        randomizedBoard = try container.decode(Bool.self, forKey: .randomizedBoard)
+        randomizeSeatOrder = try container.decode(Bool.self, forKey: .randomizeSeatOrder)
     }
 
     // MARK: - Validity
@@ -99,8 +117,8 @@ public struct MatchSetup: Codable, Equatable, Sendable {
         if Set(chosen).count != chosen.count {
             return "Two seats share a civilization."
         }
-        guard Ruleset.forMode(.classic).victoryPointTargets.contains(victoryPointTarget) else {
-            return "That match length is not available."
+        guard Ruleset.forMode(mode).victoryPointTargets.contains(victoryPointTarget) else {
+            return "That match length is not available in \(mode.displayName)."
         }
         return nil
     }
@@ -114,8 +132,8 @@ public struct MatchSetup: Codable, Equatable, Sendable {
     public var validationProblem: String? {
         if let matchProblem { return matchProblem }
         if let identityConflictProblem { return identityConflictProblem }
-        guard Self.newGameVictoryPointTargets(for: seats.count).contains(victoryPointTarget) else {
-            return "12 VP is available with 3 players."
+        guard Self.newGameVictoryPointTargets(for: seats.count, mode: mode).contains(victoryPointTarget) else {
+            return "That match length is not available at this table size."
         }
         return nil
     }
@@ -173,11 +191,13 @@ public struct MatchSetup: Codable, Equatable, Sendable {
     /// supply had been distributed without any player reaching 12. Existing
     /// checkpoints retain engine support through `isValidMatch`, but the New
     /// Game screen must not create a match that can have no winner.
-    public static func newGameVictoryPointTargets(for playerCount: Int) -> [Int] {
-        switch playerCount {
-        case 3: [8, 10, 12]
-        case 4: [8, 10]
-        default: []
+    /// Expanded offers exactly one, because there the target is part of the
+    /// rule set rather than a dial.
+    public static func newGameVictoryPointTargets(for playerCount: Int, mode: GameMode) -> [Int] {
+        guard GameSetup.supportedPlayerCounts.contains(playerCount) else { return [] }
+        switch mode {
+        case .classic: return playerCount == 3 ? [8, 10, 12] : [8, 10]
+        case .expanded: return [25]
         }
     }
 
@@ -238,8 +258,8 @@ public struct MatchSetup: Codable, Equatable, Sendable {
     /// Keeps a persisted New Game prefill representable by today's controls.
     /// Active-match restoration never calls this method.
     mutating func normalizeNewGameOptions() {
-        if !Self.newGameVictoryPointTargets(for: seats.count).contains(victoryPointTarget) {
-            victoryPointTarget = Ruleset.forMode(.classic).defaultVictoryPointTarget
+        if !Self.newGameVictoryPointTargets(for: seats.count, mode: mode).contains(victoryPointTarget) {
+            victoryPointTarget = Ruleset.forMode(mode).defaultVictoryPointTarget
         }
     }
 }

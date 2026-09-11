@@ -169,7 +169,7 @@ private func table(withSeatIndices indices: [Int]) -> MatchSetup {
     @Test func aTargetOutsideTheSupportedRangeIsRefused() {
         var table = startableTable
         table.victoryPointTarget = Ruleset.forMode(.classic).victoryPointTargets.upperBound + 1
-        #expect(table.validationProblem == "That match length is not available.")
+        #expect(table.validationProblem == "That match length is not available in Classic.")
     }
 
     @Test(arguments: [8, 10])
@@ -186,16 +186,16 @@ private func table(withSeatIndices indices: [Int]) -> MatchSetup {
 
         #expect(table.validationProblem == nil)
         #expect(table.isStartable)
-        #expect(MatchSetup.newGameVictoryPointTargets(for: 3) == [8, 10, 12])
+        #expect(MatchSetup.newGameVictoryPointTargets(for: 3, mode: .classic) == [8, 10, 12])
     }
 
     @Test func epicIsNotOfferedForANewFourPlayerMatch() {
         var table = startableTable
         table.victoryPointTarget = 12
 
-        #expect(table.validationProblem == "12 VP is available with 3 players.")
+        #expect(table.validationProblem == "That match length is not available at this table size.")
         #expect(!table.isStartable)
-        #expect(MatchSetup.newGameVictoryPointTargets(for: 4) == [8, 10])
+        #expect(MatchSetup.newGameVictoryPointTargets(for: 4, mode: .classic) == [8, 10])
         #expect(table.isValidMatch,
                 "an existing four-player Epic save must remain structurally valid and resumable")
     }
@@ -325,6 +325,42 @@ private func table(withSeatIndices indices: [Int]) -> MatchSetup {
         #expect(table.seats[0].civilization == .norse)
         #expect(table.aiSeats.count == GameSetup.standardPlayerCount - 1)
         #expect(table.victoryPointTarget == Ruleset.forMode(.classic).defaultVictoryPointTarget)
+    }
+}
+
+@Suite struct MatchSetupModeTests {
+
+    /// A setup written before modes existed has no `mode` key at all; it must
+    /// still decode, as Classic.
+    @Test func aSetupDecodedWithoutAModeIsClassic() throws {
+        let setup = MatchSetup.default(preferredName: "Alex", preferredCivilization: Civilization.allCases[0])
+        var object = try JSONSerialization.jsonObject(
+            with: try JSONEncoder().encode(setup)) as! [String: Any]
+        object.removeValue(forKey: "mode")
+        let data = try JSONSerialization.data(withJSONObject: object)
+        let decoded = try JSONDecoder().decode(MatchSetup.self, from: data)
+        #expect(decoded.mode == .classic)
+    }
+
+    @Test func expandedOffersOnlyTwentyFiveAtEveryTableSize() {
+        #expect(MatchSetup.newGameVictoryPointTargets(for: 3, mode: .expanded) == [25])
+        #expect(MatchSetup.newGameVictoryPointTargets(for: 4, mode: .expanded) == [25])
+        #expect(MatchSetup.newGameVictoryPointTargets(for: 3, mode: .classic) == [8, 10, 12])
+        #expect(MatchSetup.newGameVictoryPointTargets(for: 4, mode: .classic) == [8, 10])
+    }
+
+    @Test func anExpandedSetupAtTwentyFiveIsStartable() {
+        var setup = MatchSetup.default(preferredName: "Alex", preferredCivilization: Civilization.allCases[0])
+        setup.mode = .expanded
+        setup.victoryPointTarget = 25
+        #expect(setup.validationProblem == nil)
+    }
+
+    @Test func aClassicSetupCarryingTwentyFiveIsRefused() {
+        var setup = MatchSetup.default(preferredName: "Alex", preferredCivilization: Civilization.allCases[0])
+        setup.mode = .classic
+        setup.victoryPointTarget = 25
+        #expect(setup.matchProblem != nil)
     }
 }
 

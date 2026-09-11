@@ -484,7 +484,7 @@ struct NewGameSetupView: View {
         ) {
             PaintedChoiceRow(
                 options: MatchLength.allCases.filter {
-                    MatchSetup.newGameVictoryPointTargets(for: setup.seats.count).contains($0.rawValue)
+                    MatchSetup.newGameVictoryPointTargets(for: setup.seats.count, mode: setup.mode).contains($0.rawValue)
                 },
                 title: \.displayName,
                 selection: MatchLength(rawValue: setup.victoryPointTarget) ?? .standard,

@@ -110,7 +110,7 @@ struct AppMatchCase: Sendable, CustomTestStringConvertible {
     static let supportedMatrix: [AppMatchCase] = {
         (0...1).flatMap { variant in
             GameSetup.supportedPlayerCounts.flatMap { playerCount in
-                MatchSetup.newGameVictoryPointTargets(for: playerCount).enumerated().map { targetIndex, target in
+                MatchSetup.newGameVictoryPointTargets(for: playerCount, mode: .classic).enumerated().map { targetIndex, target in
                     AppMatchCase(
                         playerCount: playerCount,
                         humanSeatIndices: humanSeats(
