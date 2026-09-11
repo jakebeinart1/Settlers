@@ -71,8 +71,8 @@ Important finding fixed, and re-verified. Commits are on `feat/expanded-game-mod
 | 5 | `GameMode` and `Ruleset` | ✅ **Done** 2026-09-10 | `6b28341..7bca304` | 251/251. Classic + Expanded values verified directly. `supportedRoadLimit = 38` measured and independently reproduced (5.60ms vs 5.48ms); cliff confirmed at 44 roads (235ms). `scaledFromBoard` rounding pinned both directions; recursion trap removed structurally. |
 | 6 | `GameState.mode`, schema v4 | ✅ **Done** 2026-09-11 | `1e9a8e9` | 255/255 + 145/145. Decode order correct (`mode` before target validation). Deck-order conflict resolved via `DevCardType.deckBuildOrder` — **no fingerprint re-recorded**; `git diff main...HEAD -- Packages/CatanAI` still empty. |
 | 7 | Route rule sites through `state.rules` | ✅ **Done** 2026-09-11 | `690df71` | 261/261 + 145/145, no fingerprint moved. **App target builds clean** (`BUILD SUCCEEDED`, 0 errors) — verifying the 8 files edited without Xcode. `Player.victoryPoints` deleted; every rule site verified against `Ruleset` by review. |
-| 8 | Expanded full game + fingerprints | 🔨 **In progress** | | |
-| 9 | `StateEncoding`/`ActionSpace` refusal | ⬜ Not started | | |
+| 8 | Expanded full game + fingerprints | ✅ **Done** 2026-09-11 | `dadd865` | Expanded plays to 25 pts; piece supplies never exceeded; no cap raised. 5 Expanded fingerprints pinned, verified across 2 separate processes. **No Classic pin altered.** |
+| 9 | `StateEncoding`/`ActionSpace` refusal | 🔨 **In progress** | | |
 | 10 | `MatchSetup` carries the mode | ⬜ Not started | | |
 | 11 | Mode survives save/resume/replay | ⬜ Not started | | |
 | 12 | Mode picker on New Game screen | ⬜ Not started | | |
@@ -1824,7 +1824,7 @@ Claude-Session: https://claude.ai/code/session_01TBxaHYvMxcRujKxfhdFdAe"
 
 > **Note:** `SeededGameFingerprintTests.swift` lives in **`Packages/CatanAI/Tests/CatanAITests/`**, not in `CatanEngineTests`. `CLAUDE.md`'s determinism section implies the engine package; it is wrong. The fingerprints are of *bot self-play*, which is why they are in the AI package — so they run under `swift test --package-path Packages/CatanAI`, the 55–175s suite.
 
-- [ ] **Step 1: Extract the existing simulation driver into a reusable helper**
+- [x] **Step 1: Extract the existing simulation driver into a reusable helper**
 
 `FullGameSimulationTests.swift` drives its game with an inline `while` loop inside `randomLegalPlayReachesGameOverWithoutErrors` (lines 4–44). There is no `playToCompletion` helper — write one by lifting that loop verbatim, then have the existing test call it, so the Expanded cases share exactly one driver rather than a second copy that can drift.
 
@@ -1883,12 +1883,12 @@ Rewrite the existing test as a call to it, keeping its 20,000 limit and its `#ex
 }
 ```
 
-- [ ] **Step 2: Run to confirm the extraction changed nothing**
+- [x] **Step 2: Run to confirm the extraction changed nothing**
 
 Run: `swift test --package-path Packages/CatanEngine --filter FullGameSimulation`
 Expected: PASS. This step has no new behaviour — if it fails, the lift was not verbatim.
 
-- [ ] **Step 3: Write the failing Expanded cases**
+- [x] **Step 3: Write the failing Expanded cases**
 
 ```swift
 @Test func anExpandedGamePlaysToTwentyFiveWithoutStalling() {
@@ -1918,14 +1918,14 @@ Expected: PASS. This step has no new behaviour — if it fails, the lift was not
 }
 ```
 
-- [ ] **Step 4: Run them**
+- [x] **Step 4: Run them**
 
 Run: `swift test --package-path Packages/CatanEngine --filter FullGameSimulation`
 Expected: PASS.
 
 **Random play is not bot play** — it is a termination and legality check, not a length measurement. The real number comes from Task 14. If the game does not finish inside 60,000 random moves, **do not raise the cap**: report the number and stop. That is Accepted Risk 1 surfacing, and which dial to turn is Jake's call.
 
-- [ ] **Step 5: Pin Expanded fingerprints in the AI package**
+- [x] **Step 5: Pin Expanded fingerprints in the AI package**
 
 `SeededGameFingerprintTests.swift` keys its expectations by seed alone (`expectedFingerprints: [UInt64: String]`, line 136), so Expanded needs its own dictionary rather than a new key format:
 
@@ -1943,7 +1943,7 @@ and a third `@Test` inside the same suite type as the existing two (line 264), m
 GameSetup.newGame(board: BoardGenerator.standard(BoardShape.expanded), seed: seed, mode: .expanded)
 ```
 
-- [ ] **Step 6: Record the fingerprints, then verify across processes**
+- [x] **Step 6: Record the fingerprints, then verify across processes**
 
 Record the observed values into the dictionary — a fingerprint is pinned from an observed run, never invented. **Only do this after Step 4 passes**, so a fingerprint is never pinned over a broken game.
 
@@ -1954,7 +1954,7 @@ Run: `swift test --package-path Packages/CatanAI --filter SeededGameFingerprint`
 
 Both must pass. Swift seeds `Set`/`Dictionary` iteration order once per process, so two runs *inside* one process agree with each other and disagree with tomorrow's — that exact mistake shipped a broken RNG fix here once and left the property false for four more places. Two separate processes agreeing is the actual evidence.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add Packages/CatanEngine/Tests/CatanEngineTests/FullGameSimulationTests.swift \
