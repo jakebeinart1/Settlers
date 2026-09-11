@@ -383,6 +383,31 @@ private func buildChain(from board: Board, length: Int) -> [EdgeID] {
     #expect(vpHeld == noneHeld)
 }
 
+@Test func expandedBotReservesNearTermPermanentBuildResourcesBeforeBuyingDevelopmentCards() {
+    let player = PlayerID(index: 0)
+    let classic = GameSetup.newGame(board: BoardGenerator.standard(), mode: .classic)
+    var expanded = GameSetup.newGame(board: BoardGenerator.standard(.expanded), mode: .expanded)
+
+    let classicScore = BuildPlanner.score(.buyDevCard, for: classic, player: player, personality: .balanced)!
+    let settlement = expanded.board.onBoardVertices.sorted()[0]
+    expanded.players[0].settlements = [settlement]
+    expanded.players[0].resources = [.ore: 1, .grain: 1, .wool: 1]
+    let reservingScore = BuildPlanner.score(.buyDevCard, for: expanded, player: player, personality: .balanced)!
+    #expect(reservingScore < BotWeights.default.worthItThreshold)
+
+    let vertices = expanded.board.onBoardVertices.sorted()
+    expanded.players[0].settlements = Set(vertices.prefix(expanded.rules.pieceLimit(for: .settlement)))
+    expanded.players[0].cities = Set(vertices.dropFirst(10).prefix(expanded.rules.pieceLimit(for: .city)))
+    let unreservedScore = BuildPlanner.score(.buyDevCard, for: expanded, player: player, personality: .balanced)!
+    #expect(unreservedScore == classicScore)
+
+    expanded.players[0].settlements = [settlement]
+    expanded.players[0].cities = []
+    expanded.players[0].playedKnights = 2
+    let armyClaimScore = BuildPlanner.score(.buyDevCard, for: expanded, player: player, personality: .balanced)!
+    #expect(armyClaimScore >= BotWeights.default.worthItThreshold)
+}
+
 /// Regression test for bot feedback: roads read as "sporadic ... not
 /// directed toward anything ... building in circles". A road that measurably
 /// closes the distance to the player's own `expansionTarget` should outscore

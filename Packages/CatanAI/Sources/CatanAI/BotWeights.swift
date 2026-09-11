@@ -296,6 +296,12 @@ public struct BotWeights: Codable, Sendable, Equatable {
     /// knights. Higher widens the gap between personalities.
     public var buildDevCardAggressionScale: Double = 0.5
 
+    /// Expanded-game penalty for buying a development card while a permanent
+    /// production build is within a small number of resource cards. This
+    /// keeps ore/grain/wool reserved for the next city or settlement without
+    /// imposing a fixed early-game VP cutoff.
+    public var expandedBuildReserveDevCardPenalty: Double = 0.75
+
     /// Aggression level at which a bot treats an otherwise-uncommitted
     /// playable knight as worthwhile proactive pressure. Kept above the
     /// Balanced preset so this is a recognizable style choice, not a global

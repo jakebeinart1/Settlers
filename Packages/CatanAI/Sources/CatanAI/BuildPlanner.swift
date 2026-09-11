@@ -120,6 +120,9 @@ public enum BuildPlanner {
             // knights, reaching 3 ourselves wouldn't take it from them.
             var value = weights.buildDevCardBase + personality.aggressiveness * weights.buildDevCardAggressionScale
             if let me = state.players.first(where: { $0.id == player }) {
+                if state.mode == .expanded, shouldReserveForPermanentBuild(me, in: state) {
+                    value -= weights.expandedBuildReserveDevCardPenalty
+                }
                 // Diminishing returns for hoarding: only one development
                 // card can be played per turn (`DevCards.canPlay`), so a
                 // bot already sitting on several unplayed ones has less
@@ -146,6 +149,29 @@ public enum BuildPlanner {
         default:
             return nil
         }
+    }
+
+    /// Whether an Expanded bot can turn a short period of saving into a city
+    /// or settlement. Development cards consume three of the same resources;
+    /// buying one whenever affordable otherwise prevents those hands from
+    /// ever reaching the permanent build cost.
+    static func shouldReserveForPermanentBuild(_ player: Player, in state: GameState) -> Bool {
+        func deficit(for cost: [Resource: Int]) -> Int {
+            cost.reduce(0) { total, entry in
+                total + max(0, entry.value - player.resources[entry.key, default: 0])
+            }
+        }
+
+        let hasCityPiece = player.cities.count < state.rules.pieceLimit(for: .city)
+        if hasCityPiece, !player.settlements.isEmpty, deficit(for: Building.cityCost) <= 3 {
+            return true
+        }
+
+        let hasSettlementPiece = player.settlements.count < state.rules.pieceLimit(for: .settlement)
+        let hasBuildableFrontier = state.board.onBoardVertices.contains {
+            Building.canBuildSettlement($0, for: player.id, in: state)
+        }
+        return hasSettlementPiece && hasBuildableFrontier && deficit(for: Building.settlementCost) <= 2
     }
 
     /// Whether `vertex` could ever legally hold a settlement right now -

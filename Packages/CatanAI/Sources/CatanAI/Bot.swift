@@ -142,17 +142,34 @@ public struct Bot: Sendable {
             return best
         }
 
-        // Otherwise every legal move is `.placeInitialRoad` - point it
-        // toward whichever endpoint has the better future settlement value.
+        // Otherwise every legal move is `.placeInitialRoad` - point it toward
+        // the outward endpoint. All candidates share the just-placed
+        // settlement endpoint, so scoring `max(a, b)` made that same occupied,
+        // often-high-value endpoint win every comparison and reduced the road
+        // choice to legal-move order.
         var best = legal[0]
         var bestScore = -Double.infinity
+        let ownBuildings = state.players.first(where: { $0.id == player })
+            .map { $0.settlements.union($0.cities) } ?? []
         for move in legal {
             guard case .placeInitialRoad(let edge) = move else { continue }
             let (a, b) = state.board.vertices(of: edge)
-            let score = max(
-                PlacementHeuristics.score(vertex: a, board: state.board, alreadyCovered: alreadyCovered, weights: weights),
-                PlacementHeuristics.score(vertex: b, board: state.board, alreadyCovered: alreadyCovered, weights: weights)
-            )
+            let score: Double
+            if state.mode == .expanded {
+                let outward = ownBuildings.contains(a) ? b : a
+                score = PlacementHeuristics.score(
+                    vertex: outward, board: state.board, alreadyCovered: alreadyCovered, weights: weights
+                )
+            } else {
+                score = max(
+                    PlacementHeuristics.score(
+                        vertex: a, board: state.board, alreadyCovered: alreadyCovered, weights: weights
+                    ),
+                    PlacementHeuristics.score(
+                        vertex: b, board: state.board, alreadyCovered: alreadyCovered, weights: weights
+                    )
+                )
+            }
             if score > bestScore {
                 bestScore = score
                 best = move
@@ -315,7 +332,11 @@ public struct Bot: Sendable {
         // build wasn't clearly worth it (buying is already scored as part of
         // `BuildPlanner`'s own candidates when it *is* worthwhile).
         if buildMove == nil {
-            if DevCardHeuristics.shouldBuyDevCard(state: state, player: player) {
+            // In Expanded, BuildPlanner may deliberately reject a card while
+            // the bot establishes its production base. The older fallback
+            // would immediately buy that same card anyway, nullifying the
+            // mode-aware score. Classic retains its historical fallback.
+            if state.mode == .classic, DevCardHeuristics.shouldBuyDevCard(state: state, player: player) {
                 consider(
                     .buyDevCard,
                     score: weights.buyDevCardMoveBase

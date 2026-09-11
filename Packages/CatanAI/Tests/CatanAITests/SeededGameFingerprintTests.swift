@@ -169,12 +169,28 @@ private let expectedFingerprints: [UInt64: String] = [
 
 /// Expanded-mode fingerprints. A separate table because the existing one is
 /// keyed by seed alone, and a seed means a different game in each mode.
+///
+/// Re-recorded 2026-09-11 (all five) for two deliberate Expanded-only policy
+/// changes; the Classic table above is untouched, which is the check that they
+/// really are mode-scoped. (1) Opening roads now score their OUTWARD endpoint.
+/// Every `.placeInitialRoad` candidate shares the settlement just placed, so
+/// scoring `max(a, b)` let that one occupied, high-value endpoint win every
+/// comparison - the roads tied, and the pick collapsed to legal-move order.
+/// (2) A development card is penalised while a city or settlement is within a
+/// few cards (`BuildPlanner.shouldReserveForPermanentBuild`), and
+/// `Bot.decideMainTurn`'s affordability-only fallback no longer buys the card
+/// the planner just refused. Both reach the opening of every Expanded game, so
+/// all five seeds diverge.
+///
+/// Checked the way this file prescribes before pinning: all five new values
+/// were bit-identical across three separate processes, so this is genuine
+/// policy change and not hash ordering leaking back in.
 private let expectedExpandedFingerprints: [UInt64: String] = [
-    1: "a212777236e1acad",
-    42: "b9cdd1b0027225a1",
-    7: "cf4010b04c0104fc",
-    1234: "757c4345acbe5e7b",
-    99: "274fd76e453df20f",
+    1: "59229d39c550c44f",
+    42: "4c674adca8701f44",
+    7: "e7883f45c870a7d3",
+    1234: "9f9b3845c58a69cc",
+    99: "85fcba6e7cfa9d66",
 ]
 
 /// Whoever may act, or `nil` at game over.

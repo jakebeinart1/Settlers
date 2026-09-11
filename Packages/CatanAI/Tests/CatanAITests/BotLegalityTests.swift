@@ -15,6 +15,62 @@ import CatanEngine
     }
 }
 
+@Test func expandedSetupRoadPointsTowardTheBestOutwardEndpoint() {
+    var state = GameSetup.newGame(board: BoardGenerator.standard(.expanded), mode: .expanded)
+    let player = state.players[0].id
+    let bot = Bot(personality: .balanced)
+
+    for settlement in state.board.onBoardVertices.sorted() {
+        let edges = state.board.edgesTouching(settlement)
+        guard edges.count > 1 else { continue }
+        state.players[0].settlements = [settlement]
+        state.phase = .setupForward(playerIndex: 0)
+        let legal = RulesEngine.legalMoves(for: state)
+        let covered = Set(state.board.neighborTiles(of: settlement).compactMap { coordinate in
+            state.board.tiles.first(where: { $0.coordinate == coordinate }).flatMap { tile in
+                if case .resource(let resource) = tile.kind { return resource }
+                return nil
+            }
+        })
+        let scored = edges.map { edge -> (EdgeID, Double) in
+            let (a, b) = state.board.vertices(of: edge)
+            let outward = a == settlement ? b : a
+            return (edge, PlacementHeuristics.score(vertex: outward, board: state.board, alreadyCovered: covered))
+        }
+        guard let expected = scored.max(by: { $0.1 < $1.1 }),
+              scored.filter({ $0.1 == expected.1 }).count == 1,
+              case .placeInitialRoad(let firstEdge) = legal.first,
+              firstEdge != expected.0 else { continue }
+
+        var rng = RandomSource(seed: 1)
+        let chosen = bot.decide(for: state, player: player, legalMoves: legal, rng: &rng)
+        #expect(movesMatch(chosen, .placeInitialRoad(expected.0)))
+        return
+    }
+    Issue.record("expanded fixture has no setup vertex with differentiated outward endpoints")
+}
+
+@Test func expandedDevelopmentCardFallbackHonorsPermanentBuildReserve() {
+    let bot = Bot(personality: .balanced)
+    let player = PlayerID(index: 0)
+    let legal: [GameMove] = [.buyDevCard, .endTurn]
+
+    var expanded = GameSetup.newGame(board: BoardGenerator.standard(.expanded), mode: .expanded)
+    expanded.phase = .mainTurn(playerIndex: 0)
+    expanded.players[0].settlements = [expanded.board.onBoardVertices.sorted()[0]]
+    expanded.players[0].resources = [.ore: 1, .grain: 1, .wool: 1]
+    var expandedRNG = RandomSource(seed: 1)
+    let expandedChoice = bot.decide(for: expanded, player: player, legalMoves: legal, rng: &expandedRNG)
+    #expect(movesMatch(expandedChoice, .endTurn))
+
+    var classic = GameSetup.newGame(board: BoardGenerator.standard(), mode: .classic)
+    classic.phase = .mainTurn(playerIndex: 0)
+    classic.players[0].resources = [.ore: 1, .grain: 1, .wool: 1]
+    var classicRNG = RandomSource(seed: 1)
+    let classicChoice = bot.decide(for: classic, player: player, legalMoves: legal, rng: &classicRNG)
+    #expect(movesMatch(classicChoice, .buyDevCard))
+}
+
 // activePlayer duplicated here from CatanEngineTests (small, test-only, acceptable duplication
 // across package test targets since they can't share test code without a shared test-support library).
 
