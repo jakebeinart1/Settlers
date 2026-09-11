@@ -69,8 +69,8 @@ Important finding fixed, and re-verified. Commits are on `feat/expanded-game-mod
 | 3 | `BoardShape` as a composition | ✅ **Done** 2026-09-10 | `3340a3c..5a329f8` | 236/236 + 145/145, no fingerprint moved, swiftlint clean. Cross-process probe: 3 processes byte-identical. 6 findings fixed incl. an unbounded loop that hung forever on a legal all-6/8 composition. |
 | 4 | Expanded board shape + token repair | ✅ **Done** 2026-09-10 | `a09e339` | 243/243 + 145/145, no fingerprint moved. Verified independently: 37 tiles, terrain and 36-token multiset exactly 2× Classic, 14 ports (4 generic + 2/resource) on distinct edges, 0 adjacency violations, byte-identical across 3 processes. |
 | 5 | `GameMode` and `Ruleset` | ✅ **Done** 2026-09-10 | `6b28341..7bca304` | 251/251. Classic + Expanded values verified directly. `supportedRoadLimit = 38` measured and independently reproduced (5.60ms vs 5.48ms); cliff confirmed at 44 roads (235ms). `scaledFromBoard` rounding pinned both directions; recursion trap removed structurally. |
-| 6 | `GameState.mode`, schema v4 | 🔨 **In progress** | | |
-| 7 | Route rule sites through `state.rules` | ⬜ Not started | | |
+| 6 | `GameState.mode`, schema v4 | ✅ **Done** 2026-09-11 | `1e9a8e9` | 255/255 + 145/145. Decode order correct (`mode` before target validation). Deck-order conflict resolved via `DevCardType.deckBuildOrder` — **no fingerprint re-recorded**; `git diff main...HEAD -- Packages/CatanAI` still empty. |
+| 7 | Route rule sites through `state.rules` | 🔨 **In progress** | | |
 | 8 | Expanded full game + fingerprints | ⬜ Not started | | |
 | 9 | `StateEncoding`/`ActionSpace` refusal | ⬜ Not started | | |
 | 10 | `MatchSetup` carries the mode | ⬜ Not started | | |
@@ -90,6 +90,7 @@ These changed the plan after it was written. Each is a deliberate call, not drif
 | `Player.victoryPoints` test rewritten | It is a computed read-only property (`Player.swift:35`); the planned test assigned to it | None — the replacement is more faithful |
 | `TileKind` gains `Hashable` | Plan specified `[TileKind: Int]` but `TileKind` was only `Equatable` | None — `Resource` is already `Hashable`, so it is synthesized |
 | Bounded retry pulled Task 4 → Task 3 | `randomized(seed:shape:)` hangs forever on an all-6/8 composition, newly reachable once shapes became public API | A feasible-but-unlucky shape crashes instead of retrying; Task 4's repair removes that window |
+| `DevCardType.deckBuildOrder` added (Task 6) | Building the deck off `allCases` moved all five seeded fingerprints — same 25 cards, different pre-shuffle order. Re-recording would change what every seeded Classic game deals; reordering the enum would silently shift `StateEncoding`'s feature slots | An extra indirection on deck construction; ranks kept in step by an exhaustive switch, not by memory |
 | Two tautological tests replaced | Both asserted that a value equals its own definition — `resourceKindCount == Resource.allCases.count`, and `standard(BoardShape.classic)` vs a `standard()` that *is* that call | None — both replacements are strictly more falsifiable |
 
 ---
@@ -1330,7 +1331,7 @@ Claude-Session: https://claude.ai/code/session_01TBxaHYvMxcRujKxfhdFdAe"
 - Consumes: `GameMode`, `Ruleset.forMode(_:)` from Task 5.
 - Produces: `GameState.mode: GameMode`, `GameState.rules: Ruleset` (computed), `GameState.init(..., mode: GameMode = .classic, ...)`, `GameState.currentSchemaVersion == 4`, and **all three `GameSetup.newGame` overloads taking `victoryPointTarget: Int? = nil, mode: GameMode = .classic`** (moved here from Task 7 — see Step 5).
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Add to `SaveCompatibilityTests.swift`:
 
@@ -1372,12 +1373,12 @@ Add to `SaveCompatibilityTests.swift`:
 }
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `swift test --package-path Packages/CatanEngine --filter SaveCompatibilityTests`
 Expected: FAIL — `value of type 'GameState' has no member 'mode'`.
 
-- [ ] **Step 3: Add the stored property and the accessor**
+- [x] **Step 3: Add the stored property and the accessor**
 
 In `GameState.swift`, bump the version constant and document the bump beside the existing note:
 
@@ -1406,7 +1407,7 @@ Add beside `victoryPointTarget`:
 
 Add `mode: GameMode = .classic` to the memberwise `init` parameter list (after `schemaVersion`, before `victoryPointTarget`) and assign `self.mode = mode` before `self.victoryPointTarget`.
 
-- [ ] **Step 4: Decode `mode` before validating the target**
+- [x] **Step 4: Decode `mode` before validating the target**
 
 In `init(from:)`, insert immediately after the `schemaVersion` line and **before** the `victoryPointTarget` block:
 
@@ -1438,7 +1439,7 @@ Then change the target guard to ask the mode rather than a global range:
         victoryPointTarget = decodedTarget
 ```
 
-- [ ] **Step 5: Run tests to verify they pass**
+- [x] **Step 5: Run tests to verify they pass**
 
 **PREFLIGHT RULING (controller, before execution):** the `newGame` change moved from Task 7 into this task. The tests above construct Expanded states, so they cannot compile without it, and a task whose own tests do not compile is not independently reviewable. Apply Task 7's Step 3 verbatim **here**:
 
@@ -1490,12 +1491,12 @@ Then change the target guard to ask the mode rather than a global range:
 
 Add the same `victoryPointTarget: Int? = nil, mode: GameMode = .classic` tail to the `seed:` and no-argument overloads, forwarding both. Fix any caller the `Int?` change breaks.
 
-- [ ] **Step 6: Run tests to verify they pass**
+- [x] **Step 6: Run tests to verify they pass**
 
 Run: `swift test --package-path Packages/CatanEngine`
 Expected: PASS. The whole engine suite must stay green — `mode` defaults to `.classic` everywhere, so no existing behaviour changes.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add Packages/CatanEngine/Sources/CatanEngine/Models/GameState.swift \
