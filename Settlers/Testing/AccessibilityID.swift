@@ -53,6 +53,11 @@ enum AccessibilityID {
         static let cancel = "new-game.cancel"
         static let start = "new-game.start"
         static let confirmOverwrite = "new-game.confirm-overwrite"
+        static let modeRow = "new-game.mode"
+        static let modePicker = "new-game.mode.picker"
+        static let fixedMatchLength = "new-game.match-length.fixed"
+
+        static func modeOption(_ mode: GameMode) -> String { "new-game.mode.\(mode.rawValue)" }
 
         static func seatName(_ index: Int) -> String { "new-game.seat-name.\(index)" }
         static func seatCivilization(_ index: Int) -> String { "new-game.seat-civilization.\(index)" }

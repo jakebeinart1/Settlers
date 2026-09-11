@@ -46,6 +46,7 @@ struct NewGameSetupView: View {
     /// Turn Order is "As Shown" - `SeatCardView`'s header is a locked label,
     /// not a button, while it's Random (Jake's ask, 2026-09-03).
     @State private var pickingSeatNumberForSeat: Int?
+    @State private var isPickingMode = false
     @State private var isConfirmingOverwrite = false
     /// The reason the last seat edit was refused (A1.3), shown in place of the
     /// standing note under the grid. Cleared by the next edit rather than on a
@@ -139,6 +140,17 @@ struct NewGameSetupView: View {
 
                 if let seatIndex = pickingCivilizationForSeat { civilizationPicker(for: seatIndex) }
                 if let seatIndex = pickingSeatNumberForSeat { seatNumberPicker(for: seatIndex) }
+                if isPickingMode {
+                    GameModePickerPopup(
+                        selection: setup.mode,
+                        onSelect: { mode in
+                            setup.mode = mode
+                            setup.normalizeNewGameOptions()
+                            isPickingMode = false
+                        },
+                        onCancel: { isPickingMode = false }
+                    )
+                }
                 if isConfirmingOverwrite { overwriteConfirmation }
             }
         }
@@ -463,9 +475,30 @@ struct NewGameSetupView: View {
     private var matchSettingsSection: some View {
         VStack(spacing: 10) {
             SettingsSectionHeader(title: "Match Settings", titleColor: .white)
+            modeRow
             matchLengthRow
             boardRow
             seatingRow
+        }
+    }
+
+    private var modeRow: some View {
+        labelledChoice(
+            label: "Game Mode",
+            help: .mode,
+            helpText: "Classic is the standard 19-tile board played to 8, 10 or 12 points. "
+                + "Expanded doubles the map to 37 tiles and plays to 25, with twice the pieces, "
+                + "a bigger bank and deck, and longest road and largest army worth 4 points each.",
+            caption: nil
+        ) {
+            Button { isPickingMode = true } label: {
+                HStack(spacing: 6) {
+                    Text(setup.mode.displayName)
+                    Image(systemName: "chevron.down")
+                        .font(.system(size: SeatCardView.bodyTextSize - 4))
+                }
+            }
+            .accessibilityIdentifier(AccessibilityID.NewGame.modeRow)
         }
     }
 
@@ -479,19 +512,26 @@ struct NewGameSetupView: View {
             help: .matchLength,
             helpText: "The game ends when a player reaches this many victory points. "
                 + "A saved game resumes at the target it started with. "
-                + "Epic (12 VP) is available at three-player tables.",
+                + "Epic (12 VP) is available at three-player tables. "
+                + "Expanded is always played to 25.",
             caption: nil
         ) {
-            PaintedChoiceRow(
-                options: MatchLength.allCases.filter {
-                    MatchSetup.newGameVictoryPointTargets(for: setup.seats.count, mode: setup.mode).contains($0.rawValue)
-                },
-                title: \.displayName,
-                selection: MatchLength(rawValue: setup.victoryPointTarget) ?? .standard,
-                isCompact: true,
-                fontSize: SeatCardView.bodyTextSize,
-                onSelect: { setup.victoryPointTarget = $0.rawValue }
-            )
+            let offered = MatchSetup.newGameVictoryPointTargets(for: setup.seats.count, mode: setup.mode)
+            if offered.count == 1, let target = offered.first {
+                Text("\(target) VP")
+                    .font(.system(size: SeatCardView.bodyTextSize, design: .serif))
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .accessibilityIdentifier(AccessibilityID.NewGame.fixedMatchLength)
+            } else {
+                PaintedChoiceRow(
+                    options: MatchLength.allCases.filter { offered.contains($0.rawValue) },
+                    title: \.displayName,
+                    selection: MatchLength(rawValue: setup.victoryPointTarget) ?? .standard,
+                    isCompact: true,
+                    fontSize: SeatCardView.bodyTextSize,
+                    onSelect: { setup.victoryPointTarget = $0.rawValue }
+                )
+            }
         }
     }
 
@@ -541,6 +581,7 @@ struct NewGameSetupView: View {
     }
 
     private enum HelpTopic {
+        case mode
         case matchLength
         case board
         case seating

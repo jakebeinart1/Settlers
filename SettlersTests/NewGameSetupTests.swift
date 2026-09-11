@@ -59,6 +59,26 @@ private func table(withSeatIndices indices: [Int]) -> MatchSetup {
 
 @Suite struct MatchSetupValidationTests {
 
+    @Test func switchingToExpandedSnapsTheTargetToTwentyFive() {
+        var table = MatchSetup.default(preferredName: "Alex", preferredCivilization: Civilization.allCases[0])
+        table.mode = .classic
+        table.victoryPointTarget = 8
+        table.mode = .expanded
+        table.normalizeNewGameOptions()
+        #expect(table.victoryPointTarget == 25)
+        #expect(table.validationProblem == nil)
+    }
+
+    @Test func switchingBackToClassicRestoresAnOfferedTarget() {
+        var table = MatchSetup.default(preferredName: "Alex", preferredCivilization: Civilization.allCases[0])
+        table.mode = .expanded
+        table.victoryPointTarget = 25
+        table.mode = .classic
+        table.normalizeNewGameOptions()
+        #expect(MatchSetup.newGameVictoryPointTargets(for: table.seats.count, mode: .classic)
+            .contains(table.victoryPointTarget))
+    }
+
     @Test(arguments: invalidSeatIndexLayouts)
     func invalidSeatIndicesAreRefused(indices: [Int]) throws {
         var table = table(withSeatIndices: indices)
