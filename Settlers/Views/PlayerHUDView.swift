@@ -163,7 +163,7 @@ public struct HumanPlayerPanel: View {
                         }
                         .font(.subheadline.bold())
                         .fixedSize()
-                        // Longest continuous stretch (what the 2VP bonus is
+                        // Longest continuous stretch (what the road bonus is
                         // actually based on), not total segments built - a
                         // forked network can have far more segments than
                         // its longest single run.

@@ -86,6 +86,21 @@ import Testing
         #expect(try line(other, .longestRoad).points == 0)
     }
 
+    @Test func anExpandedBreakdownScoresBonusesAtFourAndStillSumsToTheEngineTotal() throws {
+        var state = GameSetup.newGame(
+            board: BoardGenerator.standard(BoardShape.expanded), seed: 5, mode: .expanded
+        )
+        let seat = state.players[0].id
+        state.longestRoadPlayer = seat
+        state.largestArmyPlayer = seat
+
+        let breakdown = VictoryPointBreakdown(seat: seat, state: state)
+
+        #expect(try line(breakdown, .longestRoad).points == 4)
+        #expect(try line(breakdown, .largestArmy).points == 4)
+        #expect(breakdown.lines.reduce(0) { $0 + $1.points } == breakdown.total)
+    }
+
     /// The number beside "Longest road" is the longest continuous stretch the
     /// bonus is judged on, not the pile of segments built. Two disconnected
     /// roads are two segments and a stretch of one.

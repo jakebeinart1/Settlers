@@ -52,7 +52,6 @@ struct VictoryPointBreakdown: Equatable {
     private static let settlementPoints = 1
     private static let cityPoints = 2
     private static let victoryCardPoints = 1
-    private static let bonusPoints = 2
 
     init(seat: PlayerID, state: GameState) {
         self.seat = seat
@@ -81,10 +80,10 @@ struct VictoryPointBreakdown: Equatable {
             // larger number next to "Longest Road: no" reads as a bug.
             Line(source: .longestRoad, icon: "road.lanes", label: "Longest road",
                  quantity: LongestRoad.length(for: player, in: state),
-                 points: holdsRoad ? Self.bonusPoints : 0),
+                 points: holdsRoad ? state.rules.longestRoadBonus : 0),
             Line(source: .largestArmy, icon: "shield.fill", label: "Largest army",
                  quantity: player.playedKnights,
-                 points: holdsArmy ? Self.bonusPoints : 0)
+                 points: holdsArmy ? state.rules.largestArmyBonus : 0)
         ]
     }
 
