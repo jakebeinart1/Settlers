@@ -2267,6 +2267,18 @@ The second case asserts the disagreement the guard in Step 4 must reject. If `Ma
 Run: `xcodebuild test -project Settlers.xcodeproj -scheme Settlers -destination 'platform=iOS Simulator,name=Empires QA' -only-testing:SettlersTests/MatchCheckpointStoreTests`
 Expected: FAIL — a classic state under an Expanded setup is currently accepted.
 
+**AUDIT EVERY `MatchSetup(...)` CONSTRUCTION SITE, not just the two named below.**
+
+Task 10's review identified the mechanism behind this class of bug: `MatchSetup.init` defaults
+`mode` to `.classic`, so an existing positional call site that should pass a real mode keeps
+compiling silently instead of failing. The default is necessary — decode compatibility and test
+ergonomics both want it — so the compiler will not find these for you.
+
+Run `grep -rn "MatchSetup(" --include="*.swift" Settlers/ SettlersTests/` and check each hit:
+does it construct a *realized* setup from live state (must pass `mode: state.mode`), or is it a
+genuine Classic fixture (fine as-is)? Say in your report how many sites you checked and how many
+needed changing — a bare "fixed the two" is not an audit.
+
 **FOUND DURING TASK 10 — fix these two first.** `MatchSetup` gained a `mode` property with a
 `.classic` default, and two sites build a *realized* setup from live state without passing it:
 
