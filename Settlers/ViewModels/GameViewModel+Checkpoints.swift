@@ -75,7 +75,7 @@ extension GameViewModel {
                 name: roster.names[player.id] ?? (roster.seats.contains(player.id) ? "You" : ""),
                 civilization: civilizations[player.id.index], opponentProfile: profiles[player.id])
         }
-        return MatchSetup(seats: chairs, victoryPointTarget: state.victoryPointTarget,
+        return MatchSetup(seats: chairs, mode: state.mode, victoryPointTarget: state.victoryPointTarget,
                           randomizedBoard: active.value?.randomizedBoard ?? false, randomizeSeatOrder: false)
     }
 

@@ -47,6 +47,45 @@ import CatanAI
         #expect(try store.load()?.activeMatch?.state == session.state)
     }
 
+    @Test func anExpandedMatchResumesAsExpanded() throws {
+        let root = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: root) } // Test-owned directory only.
+        let store = MatchCheckpointStore(fileURL: root.appendingPathComponent("checkpoint.json"))
+
+        var setup = MatchSetup.default(preferredName: "Alex", preferredCivilization: Civilization.allCases[0])
+        setup.mode = .expanded
+        setup.victoryPointTarget = 25
+        let initial = GameSetup.newGame(board: BoardGenerator.standard(BoardShape.expanded),
+                                        seed: 31, mode: .expanded)
+        let document = MatchCheckpointDocument(
+            activeMatch: MatchCheckpoint(id: UUID(), initialState: initial, setup: setup))
+        try store.commit(document, replacingRevision: nil)
+
+        let reloaded = try #require(try store.load())
+        let match = try #require(reloaded.activeMatch)
+        #expect(match.setup.mode == .expanded)
+        #expect(match.state.mode == .expanded)
+        #expect(match.state.board.tiles.count == 37)
+    }
+
+    @Test func aCheckpointWhoseSetupAndStateDisagreeOnModeIsRefused() throws {
+        var setup = MatchSetup.default(preferredName: "Alex", preferredCivilization: Civilization.allCases[0])
+        setup.mode = .expanded
+        setup.victoryPointTarget = 25
+        // A classic state under an Expanded setup: 19 tiles while the rules say
+        // 37. Refuse rather than resume into a game whose board and rules
+        // disagree.
+        let state = GameSetup.newGame(board: BoardGenerator.standard(), seed: 31)
+        let session = GameSession(state: state, policies: [:], policySeed: 99)
+        #expect(throws: MatchCheckpointMigration.MigrationError.incompatibleRoster) {
+            try MatchCheckpointMigration.prepare(
+                session: session.checkpoint, setup: setup,
+                statistics: GameStatsStore(fileURL: FileManager.default.temporaryDirectory
+                    .appendingPathComponent(UUID().uuidString)),
+                activeLog: nil)
+        }
+    }
+
     @Test func committedPolicyStepRestoresTheSameSessionContinuation() throws {
         let root = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
         defer { try? FileManager.default.removeItem(at: root) } // Test-owned directory only.

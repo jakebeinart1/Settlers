@@ -10,6 +10,7 @@ public struct GameLogSummary: Identifiable, Sendable, Equatable {
     public let startedAt: Date
     public let duration: TimeInterval
     public let playerCount: Int
+    public let mode: GameMode
     public let victoryPointTarget: Int
     public let humanSeats: Set<PlayerID>
     public let winner: PlayerID?
@@ -352,6 +353,7 @@ public struct GameLogStore: Sendable {
             gameID: gameID, fileURL: fileURL, startedAt: start.timestamp,
             duration: duration,
             playerCount: initialState.players.count,
+            mode: initialState.mode,
             victoryPointTarget: initialState.victoryPointTarget,
             humanSeats: roster.humanSeats, winner: end?.winner,
             moveCount: moves.count, civilizations: roster.civilizations,

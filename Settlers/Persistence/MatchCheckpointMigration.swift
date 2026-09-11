@@ -34,6 +34,7 @@ enum MatchCheckpointMigration {
                         statistics: GameStatsStore, activeLog: GameLogDetail?) throws -> MatchCheckpointDocument {
         try session.validate()
         guard setup.isValidMatch, setup.seats.count == session.state.players.count,
+              setup.mode == session.state.mode,
               setup.victoryPointTarget == session.state.victoryPointTarget else {
             throw MigrationError.incompatibleRoster
         }

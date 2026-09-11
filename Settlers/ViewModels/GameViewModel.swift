@@ -375,13 +375,12 @@ public final class GameViewModel {
     }
 
     private static func makeInitialState(for setup: MatchSetup, playerCount: Int) -> GameState {
+        let shape = Ruleset.forMode(setup.mode).board
         let board = setup.randomizedBoard
-            ? BoardGenerator.randomized(seed: UInt64.random(in: .min ... .max))
-            : BoardGenerator.standard()
-        return GameSetup.newGame(board: board,
-                                 seed: UInt64.random(in: .min ... .max),
-                                 playerCount: playerCount,
-                                 victoryPointTarget: setup.victoryPointTarget)
+            ? BoardGenerator.randomized(seed: UInt64.random(in: .min ... .max), shape: shape)
+            : BoardGenerator.standard(shape)
+        return GameSetup.newGame(board: board, seed: UInt64.random(in: .min ... .max), playerCount: playerCount,
+                                 victoryPointTarget: setup.victoryPointTarget, mode: setup.mode)
     }
 
     private static func humanRoster(
@@ -433,6 +432,7 @@ public final class GameViewModel {
                                 civilization: civilizations[chair],
                                 opponentProfile: opponentProfiles[PlayerID(index: chair)])
             },
+            mode: setup.mode,
             victoryPointTarget: setup.victoryPointTarget,
             randomizedBoard: setup.randomizedBoard,
             randomizeSeatOrder: setup.randomizeSeatOrder
@@ -775,7 +775,7 @@ public final class GameViewModel {
                 civilization: identity.civilization,
                 opponentProfile: opponentProfiles[player.id])
         }
-        let setup = MatchSetup(seats: chairs, victoryPointTarget: state.victoryPointTarget,
+        let setup = MatchSetup(seats: chairs, mode: state.mode, victoryPointTarget: state.victoryPointTarget,
                                randomizedBoard: false, randomizeSeatOrder: false)
         do {
             try replaceActiveMatch(state: state, setup: setup, session: session)

@@ -34,6 +34,7 @@ import CatanEngine
 extension GameState {
     func matchesForReplayValidationExcludingDeclinedTradeHistory(_ other: GameState) -> Bool {
         schemaVersion == other.schemaVersion
+            && mode == other.mode
             && victoryPointTarget == other.victoryPointTarget
             && rng == other.rng
             && board == other.board
@@ -205,6 +206,8 @@ struct MatchCheckpoint: Codable, Equatable, Sendable {
         guard setup.isValidMatch,
               setup.seats.count == state.players.count,
               setup.seats.count == initialState.players.count,
+              setup.mode == state.mode,
+              setup.mode == initialState.mode,
               setup.victoryPointTarget == state.victoryPointTarget,
               setup.victoryPointTarget == initialState.victoryPointTarget,
               state.players.map(\.id.index).elementsEqual(setup.seats.indices),

@@ -69,6 +69,19 @@ import Testing
         }
     }
 
+    @Test func anExpandedGamesSummaryAndDetailRecordItsMode() throws {
+        try withStore { store in
+            let state = GameSetup.newGame(
+                board: BoardGenerator.standard(BoardShape.expanded), seed: 31, mode: .expanded
+            )
+            let id = try store.startNewGame(initialState: state, roster: .legacy(humanSeat: PlayerID(index: 0)))
+
+            let summary = try #require(try store.summary(for: id))
+            #expect(summary.mode == .expanded)
+            #expect(try store.detail(for: summary).initialState.mode == .expanded)
+        }
+    }
+
     @Test func versionTwoRosterWithoutProfilesStillDecodes() throws {
         let json = #"{"humanSeat":{"index":0},"humanSeats":[{"index":0}],"humanNames":{},"botPersonalities":{"1":"balanced"},"civilizations":{"0":"Greece","1":"Rome"}}"#
 
