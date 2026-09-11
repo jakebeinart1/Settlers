@@ -72,8 +72,8 @@ Important finding fixed, and re-verified. Commits are on `feat/expanded-game-mod
 | 6 | `GameState.mode`, schema v4 | ✅ **Done** 2026-09-11 | `1e9a8e9` | 255/255 + 145/145. Decode order correct (`mode` before target validation). Deck-order conflict resolved via `DevCardType.deckBuildOrder` — **no fingerprint re-recorded**; `git diff main...HEAD -- Packages/CatanAI` still empty. |
 | 7 | Route rule sites through `state.rules` | ✅ **Done** 2026-09-11 | `690df71` | 261/261 + 145/145, no fingerprint moved. **App target builds clean** (`BUILD SUCCEEDED`, 0 errors) — verifying the 8 files edited without Xcode. `Player.victoryPoints` deleted; every rule site verified against `Ruleset` by review. |
 | 8 | Expanded full game + fingerprints | ✅ **Done** 2026-09-11 | `dadd865` | Expanded plays to 25 pts; piece supplies never exceeded; no cap raised. 5 Expanded fingerprints pinned, verified across 2 separate processes. **No Classic pin altered.** |
-| 9 | `StateEncoding`/`ActionSpace` refusal | 🔨 **In progress** | | |
-| 10 | `MatchSetup` carries the mode | ⬜ Not started | | |
+| 9 | `StateEncoding`/`ActionSpace` refusal | ✅ **Done** 2026-09-11 | `058c8f1` | 264/264 + 146/146. Gate reachable on every path (chain independently re-traced by review); `mode:` made a **required** param so no caller can bypass it. Closes Task 7's mixed-sources concern by construction. |
+| 10 | `MatchSetup` carries the mode | 🔨 **In progress** | | |
 | 11 | Mode survives save/resume/replay | ⬜ Not started | | |
 | 12 | Mode picker on New Game screen | ⬜ Not started | | |
 | 13 | UI stops printing "+2" | ⬜ Not started | | |
@@ -1993,7 +1993,7 @@ non-Classic state before this gate lands. Task 7 left its layout constants pinne
 agree today only because this encoder is never fed a non-Classic game. This task is what makes that
 true by construction rather than by luck.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```swift
 @Test func theLayoutDeclaresWhichModesItIsDefinedAgainst() {
@@ -2004,12 +2004,12 @@ true by construction rather than by luck.
 
 A `precondition` cannot be caught in-process, so the trap itself is not unit-testable; this pins the declaration a caller checks against instead.
 
-- [ ] **Step 2: Run to verify it fails**
+- [x] **Step 2: Run to verify it fails**
 
 Run: `swift test --package-path Packages/CatanEngine --filter StateEncodingTests`
 Expected: FAIL — no member `supportedModes`.
 
-- [ ] **Step 3: Declare and enforce**
+- [x] **Step 3: Declare and enforce**
 
 In `StateEncoding.swift`, beside the board-shape constants:
 
@@ -2046,13 +2046,13 @@ Add the same guard to `ActionSpace.init(board:playerCount:)`. It takes a `Board`
                      + "index, which invalidates any artifact trained against the old numbering.")
 ```
 
-- [ ] **Step 4: Verify the corpus tooling still builds**
+- [x] **Step 4: Verify the corpus tooling still builds**
 
 Run: `swift build --package-path Packages/CatanAI`
 Run: `swift test --package-path Packages/CatanAI`
 Expected: PASS. The tooling only ever sees classic boards; if anything now trips the precondition, it was already relying on an unchecked assumption.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add Packages/CatanEngine/Sources/CatanEngine/StateEncoding.swift \
