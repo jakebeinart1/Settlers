@@ -167,6 +167,16 @@ private let expectedFingerprints: [UInt64: String] = [
 /// `balanced,greedy,balanced,greedy`): 37/40 before, 39/40 after. Taking the
 /// information away did not weaken them.
 
+/// Expanded-mode fingerprints. A separate table because the existing one is
+/// keyed by seed alone, and a seed means a different game in each mode.
+private let expectedExpandedFingerprints: [UInt64: String] = [
+    1: "a212777236e1acad",
+    42: "b9cdd1b0027225a1",
+    7: "cf4010b04c0104fc",
+    1234: "757c4345acbe5e7b",
+    99: "274fd76e453df20f",
+]
+
 /// Whoever may act, or `nil` at game over.
 private func actingPlayer(_ state: GameState) -> PlayerID? {
     switch state.phase {
@@ -212,8 +222,11 @@ private func fingerprint(_ moves: [String]) -> String {
     return String(format: "%016llx", hash)
 }
 
-private func playSeededGame(seed: UInt64) -> (fingerprint: String, moves: Int, winner: PlayerID?) {
-    let state = GameSetup.newGame(board: BoardGenerator.randomized(seed: seed), seed: seed)
+private func playSeededGame(
+    seed: UInt64, mode: GameMode = .classic
+) -> (fingerprint: String, moves: Int, winner: PlayerID?) {
+    let board = mode == .expanded ? BoardGenerator.standard(BoardShape.expanded) : BoardGenerator.randomized(seed: seed)
+    let state = GameSetup.newGame(board: board, seed: seed, mode: mode)
     let seatPolicies: [any Policy] = [
         HeuristicPolicy(personality: .balanced, id: "heuristic-balanced"),
         HeuristicPolicy(personality: .aggressive, id: "heuristic-aggressive"),
@@ -274,5 +287,14 @@ struct SelfPlayReproducibility {
         let seed: UInt64 = 42
         #expect(playSeededGame(seed: seed).fingerprint == playSeededGame(seed: seed).fingerprint,
                 "seed \(seed) is not even self-consistent within one process")
+    }
+
+    @Test func expandedSeededSelfPlayReproducesExactly() {
+        for (seed, expected) in expectedExpandedFingerprints.sorted(by: { $0.key < $1.key }) {
+            let result = playSeededGame(seed: seed, mode: .expanded)
+            let detail = "seed \(seed): expected \(expected), got \(result.fingerprint) "
+                + "(\(result.moves) moves, winner \(result.winner.map { "P\($0.index)" } ?? "none"))"
+            #expect(result.fingerprint == expected, "\(detail)")
+        }
     }
 }

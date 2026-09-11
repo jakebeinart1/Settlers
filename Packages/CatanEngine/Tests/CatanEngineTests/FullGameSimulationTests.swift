@@ -4,12 +4,48 @@ import Testing
 @Test func randomLegalPlayReachesGameOverWithoutErrors() {
     var state = GameSetup.newGame(board: BoardGenerator.randomized(seed: 7))
     var rng = SeededGenerator(seed: 7)
+    let winner = playRandomlyToCompletion(&state, rng: &rng, moveLimit: 20_000)
+    #expect(winner != nil, "game did not terminate")
+}
+
+@Test func anExpandedGamePlaysToTwentyFiveWithoutStalling() {
+    var state = GameSetup.newGame(board: BoardGenerator.randomized(seed: 2_501, shape: .expanded),
+                                  seed: 2_501, mode: .expanded)
+    var rng = SeededGenerator(seed: 2_501)
+    // Raised from the classic 20,000 because a 25-point game on twice the map
+    // is legitimately longer. A stall shows up as exhausting this cap.
+    let winner = playRandomlyToCompletion(&state, rng: &rng, moveLimit: 60_000)
+    #expect(winner != nil, "Expanded game did not finish inside 60,000 moves")
+    if let winner {
+        #expect(state.victoryPoints(for: winner) >= 25)
+    }
+    #expect(state.mode == .expanded)
+}
+
+@Test func expandedPieceSuppliesAreNeverExceededOverAFullGame() {
+    var state = GameSetup.newGame(board: BoardGenerator.randomized(seed: 2_502, shape: .expanded),
+                                  seed: 2_502, mode: .expanded)
+    var rng = SeededGenerator(seed: 2_502)
+    _ = playRandomlyToCompletion(&state, rng: &rng, moveLimit: 60_000)
+    for player in state.players {
+        #expect(player.roads.count <= 30)
+        #expect(player.settlements.count <= 10)
+        #expect(player.cities.count <= 8)
+    }
+}
+
+/// Plays `state` to `.gameOver` by picking uniformly among legal moves.
+/// Lifted unchanged from `randomLegalPlayReachesGameOverWithoutErrors` so the
+/// classic and Expanded cases cannot drift apart. Returns the winner, or
+/// `nil` if `moveLimit` was reached first.
+private func playRandomlyToCompletion(
+    _ state: inout GameState, rng: inout SeededGenerator, moveLimit: Int
+) -> PlayerID? {
     var iterations = 0
     while true {
-        if case .gameOver = state.phase { break }
+        if case .gameOver(let winner) = state.phase { return winner }
         iterations += 1
-        #expect(iterations < 20_000, "game did not terminate")
-        if iterations >= 20_000 { break }
+        if iterations >= moveLimit { return nil }
         let moves = RulesEngine.legalMoves(for: state)
         #expect(!moves.isEmpty, "no legal moves in phase \(state.phase)")
 
@@ -38,7 +74,7 @@ import Testing
             candidateMoves = moves
         }
         #expect(!candidateMoves.isEmpty, "no legal moves for acting player in phase \(state.phase)")
-        guard let move = candidateMoves.randomElement(using: &rng) else { break }
+        guard let move = candidateMoves.randomElement(using: &rng) else { return nil }
         try! RulesEngine.apply(move, by: player, to: &state)
     }
 }
