@@ -151,6 +151,31 @@ extension GameViewModel {
         return failure
     }
 
+    /// `exportCommittedRecordings()`, but only at the points in a game where
+    /// rewriting the archive earns its cost.
+    ///
+    /// `GameLogStore.export` rewrites the WHOLE JSONL recording and replays
+    /// the whole history to validate it first, so calling it per move is
+    /// O(history) work repeated up to 25 times a turn: measured over one
+    /// Expanded match it cost 8ms per move at move 50 and 101ms at move 700,
+    /// on the main actor, which is a visible stall between bot actions late in
+    /// a 25-point game. The archive is a derived projection - a resume reads
+    /// the checkpoint, never this - so the only thing deferring it costs is
+    /// that Game History shows an in-progress game as of its last completed
+    /// turn.
+    ///
+    /// The first move of a match is a flush point too, so a game that has just
+    /// started is listed in Game History right away; it is also the cheapest
+    /// export a match will ever do. `appWillResignActive` flushes as well, so
+    /// a game left mid-turn still archives what it had.
+    func exportCommittedRecordings(after move: GameMove, in document: MatchCheckpointDocument) {
+        var isFlushPoint = document.activeMatch?.moves.count == 1
+        if case .gameOver = state.phase { isFlushPoint = true }
+        if case .endTurn = move { isFlushPoint = true }
+        guard isFlushPoint else { return }
+        exportCommittedRecordings()
+    }
+
     /// Exports are retryable projections, never authority for a resumed game.
     /// A failed export or acknowledgement leaves the exact queued history live.
     func exportCommittedRecordings() {

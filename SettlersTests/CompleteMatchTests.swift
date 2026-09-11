@@ -33,7 +33,8 @@ import Testing
 
         #expect(initialState.players.count == match.playerCount)
         #expect(initialState.victoryPointTarget == match.victoryPointTarget)
-        #expect((initialState.board == BoardGenerator.standard()) == !match.randomizedBoard)
+        #expect(initialState.mode == match.mode)
+        #expect((initialState.board == BoardGenerator.standard(Ruleset.forMode(match.mode).board)) == !match.randomizedBoard)
         let activeSetup = try #require(model.checkpointDocument?.activeMatch?.setup)
         #expect(activeSetup.seats.count == match.playerCount)
         #expect(activeSetup.humanSeats.count == match.humanCount)
@@ -108,7 +109,7 @@ struct AppMatchCase: Sendable, CustomTestStringConvertible {
     // remain valid, but the New Game screen does not create another one.
 
     static let supportedMatrix: [AppMatchCase] = {
-        (0...1).flatMap { variant in
+        let classic = (0...1).flatMap { variant in
             GameSetup.supportedPlayerCounts.flatMap { playerCount in
                 MatchSetup.newGameVictoryPointTargets(for: playerCount, mode: .classic).enumerated().map { targetIndex, target in
                     AppMatchCase(
@@ -122,6 +123,18 @@ struct AppMatchCase: Sendable, CustomTestStringConvertible {
                 }
             }
         }
+        // One Expanded case, not a second full matrix. A 25-point game is the
+        // longest thing the app can be asked to play - several hundred more
+        // moves than any Classic case - and the length is the point: it is the
+        // only case here that reaches the sizes where committing a move used
+        // to cost O(history) (see
+        // `docs/plans/2026-09-11-expanded-bots-and-speed.md`). One case covers
+        // the whole session/persistence/statistics/log/resume path at that
+        // length; a matrix of them would only buy runtime.
+        return classic + [AppMatchCase(
+            playerCount: 4, humanSeatIndices: [0], victoryPointTarget: 25,
+            randomizedBoard: false, randomizeSeatOrder: false, mode: .expanded
+        )]
     }()
 
     let playerCount: Int
@@ -129,11 +142,12 @@ struct AppMatchCase: Sendable, CustomTestStringConvertible {
     let victoryPointTarget: Int
     let randomizedBoard: Bool
     let randomizeSeatOrder: Bool
+    var mode: GameMode = .classic
 
     var humanCount: Int { humanSeatIndices.count }
 
     var testDescription: String {
-        "\(playerCount)p/humans\(humanSeatIndices)/\(victoryPointTarget)vp/"
+        "\(mode)/\(playerCount)p/humans\(humanSeatIndices)/\(victoryPointTarget)vp/"
             + "\(randomizedBoard ? "random" : "standard")Board/"
             + "\(randomizeSeatOrder ? "random" : "fixed")Seats"
     }
@@ -148,6 +162,7 @@ struct AppMatchCase: Sendable, CustomTestStringConvertible {
                     civilization: Civilization.allCases[index]
                 )
             },
+            mode: mode,
             victoryPointTarget: victoryPointTarget,
             randomizedBoard: randomizedBoard,
             randomizeSeatOrder: randomizeSeatOrder

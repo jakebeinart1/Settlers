@@ -193,7 +193,7 @@ public final class GameViewModel {
     /// had any real chance at it). Populated in `applyLogged` on every
     /// `.proposeTrade`; pruned there too once an offer leaves
     /// `state.pendingTradeOffers` (accepted, rejected, or otherwise gone).
-    private var offerProposedAt: [UUID: Date] = [:]
+    var offerProposedAt: [UUID: Date] = [:]
 
     /// Foreground time banked so far this game (from previous active spans,
     /// each ended by `appWillResignActive`), plus `activeSince` (when the
@@ -233,6 +233,9 @@ public final class GameViewModel {
         do { try commitDocument(document.recordingElapsedTime(accumulatedActiveDuration)) } catch {
             persistenceErrorMessage = error.localizedDescription
         }
+        // Turn-boundary archiving (`exportCommittedRecordings(after:in:)`)
+        // leaves a game abandoned mid-turn behind; this is the flush for it.
+        exportCommittedRecordings()
     }
 
     public convenience init(
@@ -512,7 +515,7 @@ public final class GameViewModel {
             accumulatedActiveDuration = next.activeMatch?.elapsedSeconds ?? currentGameDuration
             activeSince = nil
         }
-        exportCommittedRecordings()
+        exportCommittedRecordings(after: step.move, in: next)
     }
 
     public func dismissGameLogWarning() { gameLogWarningState = nil }
@@ -1025,6 +1028,11 @@ public final class GameViewModel {
     /// second concurrent copy of this loop.
     private var isProcessingBotTurns = false
 
+    /// When the last bot action was shown - the deadline
+    /// `waitForNextBotAction` paces against. Cleared whenever the bot loop
+    /// stops, so the first action after any pause still waits in full.
+    var lastBotActionAt: Date?
+
     /// Bumped by `startNewGame`. A bot loop already in flight compares this
     /// against the value it started with and stops if they differ.
     ///
@@ -1081,6 +1089,7 @@ public final class GameViewModel {
         let generation = gameGeneration
         defer {
             isProcessingBotTurns = false
+            lastBotActionAt = nil
             if generation != gameGeneration, savedGameAvailability.canResume, !persistenceBlocked {
                 Task { await runBotTurnIfNeeded() }
             }
@@ -1118,13 +1127,8 @@ public final class GameViewModel {
             if isBlockingSurfaceOpen { return }
 
             // Pacing, not thinking: the bots decide instantly and this is the
-            // only reason a turn is watchable.
-            //
-            // Read from the singleton on every iteration rather than captured
-            // once before the loop: that is the whole of B1.2 - a speed the
-            // player changes mid-turn has to reach the very next action, not
-            // the next game.
-            try? await Task.sleep(for: .seconds(PacingPreferences.shared.aiTurnSpeed.secondsPerBotAction))
+            // only reason a turn is watchable. See `waitForNextBotAction`.
+            await waitForNextBotAction()
             // The game may have been restarted while this loop slept.
             guard generation == gameGeneration, appIsActive, !Task.isCancelled,
                   !isBlockingSurfaceOpen, openIncomingOffer == nil,
@@ -1142,6 +1146,7 @@ public final class GameViewModel {
                 let step = try candidate.commit(seat: seat, move: move)
                 beginEventBatch()
                 try commitStep(step, candidate: candidate)
+                lastBotActionAt = Date()
             } catch is MatchPersistenceFailure {
                 return
             } catch {
@@ -1154,24 +1159,6 @@ public final class GameViewModel {
                 break
             }
         }
-    }
-
-    /// Holds off applying `move` if it's a bot accepting someone *else's*
-    /// still-open trade offer, until a randomized 2-4s have passed since
-    /// that offer was first proposed (see `offerProposedAt`'s doc) - real
-    /// Catan only lets you act on your own turn, and without this, a bot
-    /// whose turn happens to fall right after the proposal could snap up an
-    /// offer the human's card is still showing, with none of the human's
-    /// read-and-decide time. A no-op for every other move (declines,
-    /// proposals, builds, etc. all go through immediately).
-    private func waitForFairAcceptWindow(before move: GameMove) async {
-        guard case .respondToTrade(let offerID, true) = move,
-              let proposedAt = offerProposedAt[offerID]
-        else { return }
-        let targetDelay = Double.random(in: 2...4)
-        let elapsed = Date().timeIntervalSince(proposedAt)
-        guard elapsed < targetDelay else { return }
-        try? await Task.sleep(for: .seconds(targetDelay - elapsed))
     }
 
     /// A bot-proposed offer the human could accept right now, if there is one.

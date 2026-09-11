@@ -199,6 +199,77 @@ struct MatchCheckpoint: Codable, Equatable, Sendable {
         try sessionCheckpoint?.validate()
     }
 
+    /// Whether this checkpoint is `previous` with zero or more moves appended:
+    /// same match identity, same starting position, same roster, and an
+    /// unchanged move prefix. Nothing here replays anything - it establishes
+    /// that `previous`'s already-validated state is a legitimate starting
+    /// point for validating only what is new.
+    func isExtending(_ previous: MatchCheckpoint) -> Bool {
+        id == previous.id && startedAt == previous.startedAt
+            && setup == previous.setup && initialState == previous.initialState
+            && moves.count >= previous.moves.count
+            && moves.prefix(previous.moves.count).elementsEqual(previous.moves)
+    }
+
+    /// `validateHistory()` restricted to the moves `previous` did not have.
+    ///
+    /// The full replay is O(history) and ran on **every** committed move,
+    /// which is what made a 25-point game slow down as it went: measured over
+    /// one 770-move Expanded match, a committed move cost 36ms early and
+    /// 395ms late, with three full-history replays inside it (this one, the
+    /// one `load()` performed on the document it read, and `GameLogStore`'s
+    /// before each export). The property being certified is inductive - if
+    /// `previous` replayed to `previous.state`, and the appended moves replay
+    /// from there to `state`, then the whole history replays to `state` - so
+    /// the prefix does not have to be replayed again to know it still holds.
+    /// It was validated when it was committed, and `isExtending` is what
+    /// establishes that this is the same prefix.
+    ///
+    /// The full replay remains on every cold path, where it is the real
+    /// check: `load()`, resume, recovery, migration and export all still
+    /// re-derive the entire game from `initialState`, so a checkpoint that
+    /// was corrupted on disk or written by an older engine is caught before
+    /// anything is played on it.
+    func validateHistory(
+        succeeding previous: MatchCheckpoint,
+        pendingReveal: DevCardReveal? = nil,
+        pendingResolution: DevCardResolution? = nil
+    ) throws {
+        try validateSetup()
+        var replay = previous.state
+        var revealWasRecorded = pendingReveal == nil
+        var resolutionWasRecorded = pendingResolution == nil
+        for index in previous.moves.count..<moves.count {
+            let entry = moves[index]
+            let drawn = entry.move == .buyDevCard ? replay.devCardDeck.first : nil
+            let events = try RulesEngine.replay(
+                entry.move,
+                by: entry.actor,
+                rulesVersion: entry.rulesVersion,
+                to: &replay
+            )
+            let isReceiptSource = index == moves.indices.last
+            if isReceiptSource, let pendingReveal, entry.actor == pendingReveal.owner,
+               drawn == pendingReveal.card {
+                revealWasRecorded = true
+            }
+            if isReceiptSource, let pendingResolution, entry.actor == pendingResolution.owner,
+               events.contains(where: {
+                   MatchCheckpointDocument.devCardResolution($0) == pendingResolution
+               }) {
+                resolutionWasRecorded = true
+            }
+        }
+        guard revealWasRecorded, resolutionWasRecorded,
+              replay.matchesForReplayValidationExcludingDeclinedTradeHistory(state) else {
+            throw MatchCheckpointStore.StoreError.inconsistentHistory
+        }
+        if let sessionCheckpoint, sessionCheckpoint.state != state {
+            throw MatchCheckpointStore.StoreError.inconsistentHistory
+        }
+        try sessionCheckpoint?.validate()
+    }
+
     /// The app roster and the engine state are one checkpoint generation.
     /// Reject disagreement rather than restoring names or rules for a
     /// different table onto an otherwise replayable board.
@@ -440,6 +511,40 @@ struct MatchCheckpointDocument: Codable, Equatable, Sendable {
         try validateCompletions()
     }
 
+    /// `validateAuthority()` for a candidate the store is about to write over
+    /// `previous`, which this store already validated.
+    ///
+    /// Everything cheap is still checked in full - statistics, receipt
+    /// ownership, completions. What is skipped is re-deriving history that
+    /// cannot have changed: the active match's unchanged move prefix (see
+    /// `MatchCheckpoint.validateHistory(succeeding:)`) and archived
+    /// recordings that are byte-identical to the ones validated last time.
+    /// Anything that is not a clean extension of `previous` - a different
+    /// match, a rewritten prefix, a changed archive, a receipt that appeared
+    /// without a move to source it - falls back to the full validation rather
+    /// than being trusted.
+    func validateAuthority(succeeding previous: Self?) throws {
+        guard let previous,
+              let candidate = activeMatch, let earlier = previous.activeMatch,
+              pendingExports == previous.pendingExports,
+              candidate.isExtending(earlier),
+              candidate.moves.count > earlier.moves.count
+                  || (pendingDevCardReveal == previous.pendingDevCardReveal
+                      && pendingDevCardResolution == previous.pendingDevCardResolution)
+        else {
+            try validateAuthority()
+            return
+        }
+        try validateStatistics()
+        try validatePendingDevCardOwners()
+        try candidate.validateHistory(
+            succeeding: earlier,
+            pendingReveal: pendingDevCardReveal,
+            pendingResolution: pendingDevCardResolution
+        )
+        try validateCompletions()
+    }
+
     private func validatePendingDevCardOwners() throws {
         guard pendingDevCardReveal != nil || pendingDevCardResolution != nil else { return }
         guard let match = activeMatch else { throw MatchCheckpointStore.StoreError.inconsistentHistory }
@@ -523,6 +628,26 @@ struct MatchCheckpointStore {
     let fileURL: URL
     private let atCommitStage: (CommitStage) throws -> Void
 
+    /// The exact bytes this store last read or wrote, and the validated
+    /// document they decode to.
+    ///
+    /// This is a decode cache keyed on **content**, not a shortcut around
+    /// verification. `commit` needs the document currently on disk to check
+    /// the revision it is replacing, and decoding plus fully validating it
+    /// cost 55ms per move by move 600 of an Expanded game - repeated for
+    /// every one of ~800 moves. Comparing the file's bytes against the bytes
+    /// we last wrote costs a read and a memcmp, and if anything at all wrote
+    /// that file in the meantime the bytes differ and the full
+    /// decode-and-validate path runs exactly as before. A reference box
+    /// rather than a stored property because the store is a value type held
+    /// by `let`, and `commit` is not a mutating operation on the caller's
+    /// copy; `@MainActor` is what makes the shared box safe.
+    private final class DecodeCache {
+        var data: Data?
+        var document: MatchCheckpointDocument?
+    }
+    private let cache = DecodeCache()
+
     /// The hook models an interruption at the filesystem boundary, not a
     /// gameplay collaborator. Production leaves it empty; process-kill tests
     /// can terminate a child at either side of the atomic replacement.
@@ -538,11 +663,14 @@ struct MatchCheckpointStore {
         } catch let error as CocoaError where error.code == .fileReadNoSuchFile {
             return nil
         }
+        if let cached = cache.document, cache.data == data { return cached }
         let document = try JSONDecoder().decode(MatchCheckpointDocument.self, from: data)
         guard document.schemaVersion == MatchCheckpointDocument.currentSchemaVersion else {
             throw StoreError.unsupportedSchema
         }
         try document.validateAuthority()
+        cache.data = data
+        cache.document = document
         return document
     }
 
@@ -585,12 +713,18 @@ struct MatchCheckpointStore {
               document.revision == (expected.map { $0 + 1 } ?? 0) else {
             throw StoreError.staleRevision
         }
-        try document.validateAuthority()
+        // `current` came back validated - fully if it was decoded here, or
+        // by the induction in `validateHistory(succeeding:)` if it is a
+        // document this store wrote. Either way its history has been checked,
+        // which is what licenses validating the candidate as a delta on it.
+        try document.validateAuthority(succeeding: current)
         let data = try JSONEncoder().encode(document)
         try FileManager.default.createDirectory(
             at: fileURL.deletingLastPathComponent(), withIntermediateDirectories: true)
         try atCommitStage(.beforeReplace)
         try data.write(to: fileURL, options: .atomic)
         try atCommitStage(.afterReplace)
+        cache.data = data
+        cache.document = document
     }
 }
