@@ -2267,6 +2267,21 @@ The second case asserts the disagreement the guard in Step 4 must reject. If `Ma
 Run: `xcodebuild test -project Settlers.xcodeproj -scheme Settlers -destination 'platform=iOS Simulator,name=Empires QA' -only-testing:SettlersTests/MatchCheckpointStoreTests`
 Expected: FAIL — a classic state under an Expanded setup is currently accepted.
 
+**FOUND DURING TASK 10 — fix these two first.** `MatchSetup` gained a `mode` property with a
+`.classic` default, and two sites build a *realized* setup from live state without passing it:
+
+- `Settlers/ViewModels/GameViewModel.swift:778`
+- `Settlers/ViewModels/GameViewModel+Checkpoints.swift:78`
+
+Both call `MatchSetup(seats:victoryPointTarget:randomizedBoard:randomizeSeatOrder:)` and therefore
+silently record `mode: .classic` **whatever the game actually is**. For an Expanded match that
+writes a checkpoint whose setup contradicts its own state — a 37-tile board carrying Classic's
+quantities on resume. Pass `mode: state.mode` at both sites.
+
+This is also exactly what the `setup.mode == session.state.mode` guard in Step 4 is for: with that
+guard in place, this bug becomes a loud refusal instead of a silent divergence. Fix the sites AND
+add the guard — the guard is what stops the next one.
+
 - [ ] **Step 3: Start the right board and mode**
 
 `GameViewModel.makeInitialState`:
