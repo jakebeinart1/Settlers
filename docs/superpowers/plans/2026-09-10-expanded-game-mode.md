@@ -73,8 +73,8 @@ Important finding fixed, and re-verified. Commits are on `feat/expanded-game-mod
 | 7 | Route rule sites through `state.rules` | ✅ **Done** 2026-09-11 | `690df71` | 261/261 + 145/145, no fingerprint moved. **App target builds clean** (`BUILD SUCCEEDED`, 0 errors) — verifying the 8 files edited without Xcode. `Player.victoryPoints` deleted; every rule site verified against `Ruleset` by review. |
 | 8 | Expanded full game + fingerprints | ✅ **Done** 2026-09-11 | `dadd865` | Expanded plays to 25 pts; piece supplies never exceeded; no cap raised. 5 Expanded fingerprints pinned, verified across 2 separate processes. **No Classic pin altered.** |
 | 9 | `StateEncoding`/`ActionSpace` refusal | ✅ **Done** 2026-09-11 | `058c8f1` | 264/264 + 146/146. Gate reachable on every path (chain independently re-traced by review); `mode:` made a **required** param so no caller can bypass it. Closes Task 7's mixed-sources concern by construction. |
-| 10 | `MatchSetup` carries the mode | 🔨 **In progress** | | |
-| 11 | Mode survives save/resume/replay | ⬜ Not started | | |
+| 10 | `MatchSetup` carries the mode | ✅ **Done** 2026-09-11 | `f40337e` | Hand-written decoder covers all 5 stored properties, `decodeIfPresent` on `mode` only. **App target `TEST SUCCEEDED`, exit 0** — verifying 5 files the implementer could not compile. |
+| 11 | Mode survives save/resume/replay | 🔨 **In progress** | | |
 | 12 | Mode picker on New Game screen | ⬜ Not started | | |
 | 13 | UI stops printing "+2" | ⬜ Not started | | |
 | 14 | Verification (gate, sim-harness, screenshot) | ⬜ Not started | | |
@@ -2085,7 +2085,7 @@ Claude-Session: https://claude.ai/code/session_01TBxaHYvMxcRujKxfhdFdAe"
 - Consumes: `GameMode`, `Ruleset` from Task 5.
 - Produces: `MatchSetup.mode: GameMode`, `MatchSetup.init(seats:mode:victoryPointTarget:randomizedBoard:randomizeSeatOrder:)`, `MatchSetup.newGameVictoryPointTargets(for:mode:)`.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```swift
 @Test func aSetupDecodedWithoutAModeIsClassic() throws {
@@ -2122,12 +2122,12 @@ Claude-Session: https://claude.ai/code/session_01TBxaHYvMxcRujKxfhdFdAe"
 
 If `MatchSetup.default(preferredName: "Alex", preferredCivilization: Civilization.allCases[0])` is named differently in the file, use the existing prefill factory at `MatchSetup.swift:200` rather than inventing one.
 
-- [ ] **Step 2: Run to verify it fails**
+- [x] **Step 2: Run to verify it fails**
 
 Run: `xcodebuild test -project Settlers.xcodeproj -scheme Settlers -destination 'platform=iOS Simulator,name=Empires QA' -only-testing:SettlersTests/NewGameSetupTests`
 Expected: FAIL — no member `mode`. **Do not pipe this through `tail`/`grep`.**
 
-- [ ] **Step 3: Add the property**
+- [x] **Step 3: Add the property**
 
 ```swift
     /// The rule set this match is played under. Duplicated from `GameState`
@@ -2153,7 +2153,7 @@ Add `mode: GameMode = .classic` to `init` (after `seats`), assign it, and add an
     }
 ```
 
-- [ ] **Step 4: Make the two validators mode-aware**
+- [x] **Step 4: Make the two validators mode-aware**
 
 In `matchProblem`, replace the `WinCondition.supportedTargets` guard:
 
@@ -2183,12 +2183,12 @@ Replace `newGameVictoryPointTargets(for:)` with the mode-aware form:
 
 Update `validationProblem`'s call and its message (`"12 VP is available with 3 players."` stays correct only for classic — make it `"That match length is not available at this table size."`), and the normalizer at line 241 to pass `mode`.
 
-- [ ] **Step 5: Run tests**
+- [x] **Step 5: Run tests**
 
 Run: `xcodebuild test -project Settlers.xcodeproj -scheme Settlers -destination 'platform=iOS Simulator,name=Empires QA' -only-testing:SettlersTests/NewGameSetupTests`
 Expected: PASS.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add Settlers/Persistence/MatchSetup.swift SettlersTests/NewGameSetupTests.swift
