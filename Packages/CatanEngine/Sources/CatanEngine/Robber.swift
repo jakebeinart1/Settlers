@@ -1,10 +1,10 @@
 /// Robber rules: who must discard on a 7-roll, how many cards, and moving
 /// the robber (with an optional random steal from an adjacent player).
 public enum Robber {
-    /// Players currently holding more than 7 resource cards; each must
-    /// discard half (rounded down) when a 7 is rolled.
+    /// Players holding more than `Ruleset.discardThreshold` resource cards;
+    /// each must discard half (rounded down) when a 7 is rolled.
     public static func playersWhoMustDiscard(_ state: GameState) -> Set<PlayerID> {
-        Set(state.players.filter { totalResources($0) > 7 }.map(\.id))
+        Set(state.players.filter { totalResources($0) > state.rules.discardThreshold }.map(\.id))
     }
 
     /// Half of `player`'s total resource cards, rounded down.

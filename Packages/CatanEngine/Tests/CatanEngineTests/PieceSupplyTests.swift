@@ -31,14 +31,15 @@ private func peakPieceCounts(boardSeed: UInt64, driverSeed: UInt64) -> (roads: I
 }
 
 @Test func noPlayerEverExceedsTheirPieceSupply() {
+    let rules = Ruleset.forMode(.classic)
     for seed: UInt64 in [1, 2, 3, 4, 5, 6, 7, 8, 9, 10] {
         let peak = peakPieceCounts(boardSeed: seed, driverSeed: seed &* 13)
-        #expect(peak.roads <= Building.maxRoadsPerPlayer,
-                "seed \(seed): a player held \(peak.roads) roads, limit \(Building.maxRoadsPerPlayer)")
-        #expect(peak.settlements <= Building.maxSettlementsPerPlayer,
-                "seed \(seed): a player held \(peak.settlements) settlements, limit \(Building.maxSettlementsPerPlayer)")
-        #expect(peak.cities <= Building.maxCitiesPerPlayer,
-                "seed \(seed): a player held \(peak.cities) cities, limit \(Building.maxCitiesPerPlayer)")
+        #expect(peak.roads <= rules.maxRoadsPerPlayer,
+                "seed \(seed): a player held \(peak.roads) roads, limit \(rules.maxRoadsPerPlayer)")
+        #expect(peak.settlements <= rules.pieceLimit(for: .settlement),
+                "seed \(seed): a player held \(peak.settlements) settlements, limit \(rules.pieceLimit(for: .settlement))")
+        #expect(peak.cities <= rules.pieceLimit(for: .city),
+                "seed \(seed): a player held \(peak.cities) cities, limit \(rules.pieceLimit(for: .city))")
     }
 }
 
@@ -47,11 +48,12 @@ private func peakPieceCounts(boardSeed: UInt64, driverSeed: UInt64) -> (roads: I
     let player = state.players[0].id
 
     // Hand the player the whole road supply plus resources for one more.
-    state.players[0].roads = Set(state.board.onBoardEdges.sorted().prefix(Building.maxRoadsPerPlayer))
+    let maxRoads = Ruleset.forMode(.classic).maxRoadsPerPlayer
+    state.players[0].roads = Set(state.board.onBoardEdges.sorted().prefix(maxRoads))
     state.players[0].resources = [.brick: 5, .lumber: 5]
     state.phase = .mainTurn(playerIndex: 0)
 
-    #expect(state.players[0].roads.count == Building.maxRoadsPerPlayer)
+    #expect(state.players[0].roads.count == maxRoads)
     let anyRoadIsLegal = state.board.onBoardEdges.contains { Building.canBuildRoad($0, for: player, in: state) }
     #expect(!anyRoadIsLegal, "a player who has placed all 15 roads must not be offered another")
     let roadMoves = RulesEngine.legalMoves(for: state).filter {

@@ -202,7 +202,7 @@ import Testing
         try expectReloadToReject(archived) { wire in
             try Self.mutatePendingMatch(for: match.id, in: &wire) { pending in
                 var setup = try #require(pending["setup"] as? [String: Any])
-                setup["victoryPointTarget"] = WinCondition.supportedTargets.upperBound
+                setup["victoryPointTarget"] = Ruleset.forMode(.classic).victoryPointTargets.upperBound
                 pending["setup"] = setup
             }
         }

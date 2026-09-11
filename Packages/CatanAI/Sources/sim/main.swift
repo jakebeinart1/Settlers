@@ -120,7 +120,7 @@ private extension EvaluationBoardMode {
 /// label cannot drift from the state that was actually played.
 private struct SimulationConfiguration {
     var playerCount = GameSetup.standardPlayerCount
-    var victoryPointTarget = WinCondition.standardTarget
+    var victoryPointTarget = Ruleset.forMode(.classic).defaultVictoryPointTarget
     var boardMode = EvaluationBoardMode.randomized
 
     func state(seed: UInt64) -> GameState {

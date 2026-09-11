@@ -163,9 +163,10 @@ import Foundation
 }
 
 @Test func anUnsupportedTargetIsRefused() {
-    #expect(!WinCondition.supportedTargets.contains(7))
-    #expect(!WinCondition.supportedTargets.contains(13))
-    for target in [8, 10, 12] { #expect(WinCondition.supportedTargets.contains(target)) }
+    let targets = Ruleset.forMode(.classic).victoryPointTargets
+    #expect(!targets.contains(7))
+    #expect(!targets.contains(13))
+    for target in [8, 10, 12] { #expect(targets.contains(target)) }
 }
 
 // MARK: - Saves written before either setting existed
@@ -183,7 +184,7 @@ import Foundation
     let data = try JSONSerialization.data(withJSONObject: json)
     let restored = try JSONDecoder().decode(GameState.self, from: data)
 
-    #expect(restored.victoryPointTarget == WinCondition.standardTarget,
+    #expect(restored.victoryPointTarget == Ruleset.forMode(.classic).defaultVictoryPointTarget,
             "a v1 save must play to the target it was started under")
     #expect(restored.players.count == fresh.players.count)
 }

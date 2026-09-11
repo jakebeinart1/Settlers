@@ -237,7 +237,7 @@ struct NewGameSetupView: View {
             return (fallback, true)
         }
         if MatchLength(rawValue: saved.victoryPointTarget) == nil {
-            saved.victoryPointTarget = WinCondition.standardTarget
+            saved.victoryPointTarget = Ruleset.forMode(.classic).defaultVictoryPointTarget
         }
         saved.normalizeNewGameOptions()
         // Realized profiles belong to a saved match, not next-game preferences.
@@ -546,7 +546,7 @@ struct NewGameSetupView: View {
         case seating
     }
 
-    /// A4.1's named set. Deliberately a subset of `WinCondition.supportedTargets`
+    /// A4.1's named set. Deliberately a subset of `Ruleset.forMode(.classic).victoryPointTargets`
     /// (8...12): nine and eleven are legal for the engine but are not lengths
     /// anybody asks for by name. Epic is shown only for a three-player table;
     /// `MatchSetup` owns that product rule so the view cannot drift from Start.
@@ -855,7 +855,7 @@ struct NewGameSetupView: View {
                 MatchSetup.Seat(index: 2, isHuman: false, name: "", civilization: .japan),
                 MatchSetup.Seat(index: 3, isHuman: false, name: "", civilization: nil),
             ],
-            victoryPointTarget: WinCondition.standardTarget,
+            victoryPointTarget: Ruleset.forMode(.classic).defaultVictoryPointTarget,
             randomizedBoard: true,
             randomizeSeatOrder: true
         )

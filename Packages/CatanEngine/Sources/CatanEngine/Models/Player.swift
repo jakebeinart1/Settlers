@@ -28,11 +28,4 @@ public struct Player: Codable, Sendable, Equatable {
         self.cities = cities
         self.roads = roads
     }
-
-    /// Victory points from buildings and played VP dev cards only. Longest
-    /// road / largest army bonuses depend on cross-player comparison and are
-    /// added at the `GameState` level via `GameState.victoryPoints(for:)`.
-    public var victoryPoints: Int {
-        settlements.count + cities.count * 2 + devCards.filter { $0 == .victoryPoint }.count
-    }
 }

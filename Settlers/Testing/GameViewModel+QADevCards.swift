@@ -59,7 +59,7 @@ extension GameViewModel {
             board: BoardGenerator.standard(),
             seed: 4_203,
             playerCount: state.players.count,
-            victoryPointTarget: WinCondition.standardTarget
+            victoryPointTarget: Ruleset.forMode(.classic).defaultVictoryPointTarget
         )
         let vertices = fixture.board.onBoardVertices.sorted()
         fixture.phase = .mainTurn(playerIndex: human.index)

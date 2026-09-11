@@ -125,7 +125,7 @@ struct PlayerRoster: Sendable, Equatable {
             )
         }
         self.init(realizedSetup: MatchSetup(
-            seats: chairs, victoryPointTarget: WinCondition.standardTarget,
+            seats: chairs, victoryPointTarget: Ruleset.forMode(.classic).defaultVictoryPointTarget,
             randomizedBoard: false, randomizeSeatOrder: false
         ))
     }

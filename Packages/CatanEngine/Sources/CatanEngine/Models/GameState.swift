@@ -6,7 +6,7 @@ public struct GameState: Codable, Sendable, Equatable {
     /// Bumped to 3 when `declinedTradeOffersThisTurn` was added.
     /// Bumped to 4 when `mode` was added.
     ///
-    /// The field decodes with `decodeIfPresent ?? WinCondition.standardTarget`,
+    /// The field decodes with `decodeIfPresent ?? Ruleset.forMode(mode).defaultVictoryPointTarget`,
     /// so a v1 save still loads and plays to ten - which is what it was
     /// started at. The version is here so a future reader can tell the
     /// difference between "this game chose ten" and "this game predates the
@@ -112,7 +112,7 @@ public struct GameState: Codable, Sendable, Equatable {
         rng: RandomSource = RandomSource(seed: UInt64.random(in: .min ... .max)),
         schemaVersion: Int = GameState.currentSchemaVersion,
         mode: GameMode = .classic,
-        victoryPointTarget: Int = WinCondition.standardTarget
+        victoryPointTarget: Int = Ruleset.forMode(.classic).defaultVictoryPointTarget
     ) {
         self.rng = rng
         self.schemaVersion = schemaVersion
@@ -222,9 +222,9 @@ public struct GameState: Codable, Sendable, Equatable {
     /// maintain in two places.
     public func publicVictoryPoints(for id: PlayerID) -> Int {
         guard let player = players.first(where: { $0.id == id }) else { return 0 }
-        var total = player.settlements.count + player.cities.count * 2
-        if longestRoadPlayer == id { total += 2 }
-        if largestArmyPlayer == id { total += 2 }
+        var total = buildingPoints(for: player)
+        if longestRoadPlayer == id { total += rules.longestRoadBonus }
+        if largestArmyPlayer == id { total += rules.largestArmyBonus }
         return total
     }
 
@@ -233,10 +233,28 @@ public struct GameState: Codable, Sendable, Equatable {
     /// anything an opponent can see.
     public func victoryPoints(for id: PlayerID) -> Int {
         guard let player = players.first(where: { $0.id == id }) else { return 0 }
-        var total = player.victoryPoints
-        if longestRoadPlayer == id { total += 2 }
-        if largestArmyPlayer == id { total += 2 }
+        var total = buildingAndCardPoints(for: player)
+        if longestRoadPlayer == id { total += rules.longestRoadBonus }
+        if largestArmyPlayer == id { total += rules.largestArmyBonus }
         return total
+    }
+
+    /// Buildings scored at this mode's rates. Driven off `BuildingKind.allCases`
+    /// so a new building tier is a `Ruleset` entry rather than an edit here.
+    private func buildingPoints(for player: Player) -> Int {
+        BuildingKind.allCases.reduce(0) { total, kind in
+            let count: Int
+            switch kind {
+            case .settlement: count = player.settlements.count
+            case .city: count = player.cities.count
+            }
+            return total + count * rules.victoryPoints(for: kind)
+        }
+    }
+
+    /// Buildings scored at this mode's rates, plus VP dev cards.
+    private func buildingAndCardPoints(for player: Player) -> Int {
+        buildingPoints(for: player) + player.devCards.filter { $0 == .victoryPoint }.count
     }
 }
 

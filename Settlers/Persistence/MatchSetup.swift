@@ -99,7 +99,7 @@ public struct MatchSetup: Codable, Equatable, Sendable {
         if Set(chosen).count != chosen.count {
             return "Two seats share a civilization."
         }
-        guard WinCondition.supportedTargets.contains(victoryPointTarget) else {
+        guard Ruleset.forMode(.classic).victoryPointTargets.contains(victoryPointTarget) else {
             return "That match length is not available."
         }
         return nil
@@ -197,7 +197,7 @@ public struct MatchSetup: Codable, Equatable, Sendable {
     public static func `default`(preferredName: String, preferredCivilization: Civilization) -> MatchSetup {
         var setup = MatchSetup(
             seats: [],
-            victoryPointTarget: WinCondition.standardTarget,
+            victoryPointTarget: Ruleset.forMode(.classic).defaultVictoryPointTarget,
             randomizedBoard: true,
             randomizeSeatOrder: true
         )
@@ -239,7 +239,7 @@ public struct MatchSetup: Codable, Equatable, Sendable {
     /// Active-match restoration never calls this method.
     mutating func normalizeNewGameOptions() {
         if !Self.newGameVictoryPointTargets(for: seats.count).contains(victoryPointTarget) {
-            victoryPointTarget = WinCondition.standardTarget
+            victoryPointTarget = Ruleset.forMode(.classic).defaultVictoryPointTarget
         }
     }
 }

@@ -434,9 +434,9 @@ struct GameViewModelCheckpointTests {
 
         resumed.restartCurrentMatch(fallbackRandomizedBoard: true, fallbackRandomizeSeat: true)
 
-        #expect(resumed.state.victoryPointTarget == WinCondition.standardTarget)
+        #expect(resumed.state.victoryPointTarget == Ruleset.forMode(.classic).defaultVictoryPointTarget)
         #expect(resumed.checkpointDocument?.activeMatch?.setup.victoryPointTarget
-                == WinCondition.standardTarget)
+                == Ruleset.forMode(.classic).defaultVictoryPointTarget)
         #expect(resumed.savedGameAvailability.canResume)
     }
 }

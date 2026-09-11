@@ -1,7 +1,5 @@
 /// Computes which player (if any) currently holds the longest-road bonus.
 public enum LongestRoad {
-    private static let minimumLength = 5
-
     /// The largest per-player road limit the search is measured to serve
     /// comfortably. `Ruleset.validationProblem` refuses a mode above this.
     ///
@@ -16,12 +14,13 @@ public enum LongestRoad {
     public static let supportedRoadLimit = 38
 
     /// The player with the strict-longest continuous road of at least
-    /// `minimumLength` edges. Ties keep the current holder's bonus (per
-    /// official rules); if there's no current holder and it's a tie, no one
-    /// gets it.
+    /// `state.rules.longestRoadMinimum` edges. Ties keep the current holder's
+    /// bonus (per official rules); if there's no current holder and it's a
+    /// tie, no one gets it.
     public static func compute(for state: GameState) -> PlayerID? {
         let lengths = state.players.map { ($0.id, longestPath(for: $0, in: state)) }
-        guard let maxLength = lengths.map(\.1).max(), maxLength >= minimumLength else { return nil }
+        guard let maxLength = lengths.map(\.1).max(),
+              maxLength >= state.rules.longestRoadMinimum else { return nil }
 
         let leaders = lengths.filter { $0.1 == maxLength }.map { $0.0 }
         if leaders.count == 1 { return leaders[0] }

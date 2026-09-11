@@ -1,6 +1,6 @@
 /// Development card rules: buying, playing each of the four playable
 /// types (knight, road building, year of plenty, monopoly - victory point
-/// cards are never "played", they just add to `Player.victoryPoints`), and
+/// cards are never "played", they just add to `GameState.victoryPoints(for:)`), and
 /// largest-army tracking.
 public enum DevCards {
     /// Deducts `Building.devCardCost` (1 ore, 1 grain, 1 wool), draws the
@@ -274,12 +274,13 @@ public enum DevCards {
         }
     }
 
-    /// Mirrors `LongestRoad.compute`: first player to reach the minimum
-    /// (3 knights played) leads; a tie keeps the current holder; a tie with
-    /// no current holder awards no one.
+    /// Mirrors `LongestRoad.compute`: first player to reach
+    /// `state.rules.largestArmyMinimum` knights played leads; a tie keeps the
+    /// current holder; a tie with no current holder awards no one.
     private static func computeLargestArmy(for state: GameState) -> PlayerID? {
         let counts = state.players.map { ($0.id, $0.playedKnights) }
-        guard let maxCount = counts.map(\.1).max(), maxCount >= 3 else { return nil }
+        guard let maxCount = counts.map(\.1).max(),
+              maxCount >= state.rules.largestArmyMinimum else { return nil }
 
         let leaders = counts.filter { $0.1 == maxCount }.map { $0.0 }
         if leaders.count == 1 { return leaders[0] }

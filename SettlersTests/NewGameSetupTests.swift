@@ -23,7 +23,7 @@ private func seat(_ index: Int,
 }
 
 private func setup(_ seats: [MatchSetup.Seat],
-                   target: Int = WinCondition.standardTarget) -> MatchSetup {
+                   target: Int = Ruleset.forMode(.classic).defaultVictoryPointTarget) -> MatchSetup {
     MatchSetup(seats: seats,
                victoryPointTarget: target,
                randomizedBoard: true,
@@ -168,7 +168,7 @@ private func table(withSeatIndices indices: [Int]) -> MatchSetup {
 
     @Test func aTargetOutsideTheSupportedRangeIsRefused() {
         var table = startableTable
-        table.victoryPointTarget = WinCondition.supportedTargets.upperBound + 1
+        table.victoryPointTarget = Ruleset.forMode(.classic).victoryPointTargets.upperBound + 1
         #expect(table.validationProblem == "That match length is not available.")
     }
 
@@ -298,7 +298,7 @@ private func table(withSeatIndices indices: [Int]) -> MatchSetup {
 
         table.resize(to: 4, preferredName: preferredName, preferredCivilization: preferredCivilization)
 
-        #expect(table.victoryPointTarget == WinCondition.standardTarget)
+        #expect(table.victoryPointTarget == Ruleset.forMode(.classic).defaultVictoryPointTarget)
         #expect(table.isStartable)
     }
 }
@@ -324,7 +324,7 @@ private func table(withSeatIndices indices: [Int]) -> MatchSetup {
         #expect(table.seats[0].name == "Jake")
         #expect(table.seats[0].civilization == .norse)
         #expect(table.aiSeats.count == GameSetup.standardPlayerCount - 1)
-        #expect(table.victoryPointTarget == WinCondition.standardTarget)
+        #expect(table.victoryPointTarget == Ruleset.forMode(.classic).defaultVictoryPointTarget)
     }
 }
 

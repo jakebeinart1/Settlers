@@ -124,8 +124,10 @@ public enum StateEncoding {
     public static let knightCardCount = 14
     /// Largest supported match target. The global target slot is scaled by
     /// this ceiling; each seat's VP progress is scaled by the target of the
-    /// match being encoded.
-    public static let victoryPointTargetMaximum = WinCondition.supportedTargets.upperBound
+    /// match being encoded. This encoding is classic-only for now, so the
+    /// ceiling is read from classic's ruleset rather than a mode threaded
+    /// through the encoder.
+    public static let victoryPointTargetMaximum = Ruleset.forMode(.classic).victoryPointTargets.upperBound
     /// Soft cap on dev cards bought in one turn. Buying more than this in a
     /// single turn needs 5+ of three resources and effectively never happens.
     public static let devCardsBoughtSoftCap = 5
@@ -625,14 +627,14 @@ public extension StateEncoding {
     private static func appendStanding(of seated: Player, state: GameState, into values: inout [Float]) {
         values.append(normalised(state.tradesAcceptedThisTurn[seated.id] ?? 0, max: tradesAcceptedSoftCap))
         values.append(normalised(state.publicVictoryPoints(for: seated.id), max: state.victoryPointTarget))
-        values.append(normalised(seated.settlements.count, max: Building.maxSettlementsPerPlayer))
-        values.append(normalised(seated.cities.count, max: Building.maxCitiesPerPlayer))
-        values.append(normalised(seated.roads.count, max: Building.maxRoadsPerPlayer))
+        values.append(normalised(seated.settlements.count, max: state.rules.pieceLimit(for: .settlement)))
+        values.append(normalised(seated.cities.count, max: state.rules.pieceLimit(for: .city)))
+        values.append(normalised(seated.roads.count, max: state.rules.maxRoadsPerPlayer))
         values.append(normalised(seated.playedKnights, max: knightCardCount))
         // Segments built and longest continuous run are different numbers - a
         // forked network can hold many more of the former - and only the second
         // one answers "how close is this seat to the bonus".
-        values.append(normalised(LongestRoad.length(for: seated, in: state), max: Building.maxRoadsPerPlayer))
+        values.append(normalised(LongestRoad.length(for: seated, in: state), max: state.rules.maxRoadsPerPlayer))
         values.append(state.longestRoadPlayer == seated.id ? 1 : 0)
         values.append(state.largestArmyPlayer == seated.id ? 1 : 0)
         values.append(turnSeat(in: state) == seated.id ? 1 : 0)

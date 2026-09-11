@@ -4,23 +4,12 @@
 /// are never "played" - they count as soon as they're in hand), and any move
 /// that can change `longestRoadPlayer`/`largestArmyPlayer`.
 public enum WinCondition {
-    /// The standard game's target, and the default for any save that predates
-    /// the setting.
-    public static let standardTarget = 10
-
-    /// Targets a game may be started at.
-    ///
-    /// The upper bound is not arbitrary: buildings alone cap at 13 victory
-    /// points (five settlements upgraded to four cities is 4 + 2x4 = 12, plus
-    /// one un-upgraded settlement), so a target far above that can only be
-    /// reached through development cards and the two bonus tiles, which makes
-    /// for a game that stalls rather than one that lasts. Below eight the
-    /// setup placements have very nearly decided it.
-    public static let supportedTargets = 8...12
-
-    /// Total victory points for `player`: settlements + 2x cities + VP dev
-    /// cards (from `Player.victoryPoints`), plus +2 if `player` holds
-    /// longest road and +2 if `player` holds largest army.
+    /// Total victory points for `player`: settlements + cities (at this
+    /// mode's per-building rates) + VP dev cards, plus this mode's
+    /// longest-road bonus if `player` holds it and its largest-army bonus if
+    /// `player` holds that. A mode's supported targets and their reasoning
+    /// live in `Ruleset.forMode(_:)`, not here - a global "the" target is
+    /// exactly the assumption a second rule set breaks.
     public static func victoryPoints(for player: PlayerID, in state: GameState) -> Int {
         state.victoryPoints(for: player)
     }

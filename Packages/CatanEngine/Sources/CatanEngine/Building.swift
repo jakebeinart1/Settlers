@@ -19,10 +19,13 @@ public enum Building {
     // the wrong game.
     //
     // Cities are *upgrades*: building one returns a settlement to the supply,
-    // so a player can hold at most 5 settlements and 4 cities simultaneously.
-    public static let maxRoadsPerPlayer = 15
-    public static let maxSettlementsPerPlayer = 5
-    public static let maxCitiesPerPlayer = 4
+    // so a player can hold at most as many settlements and cities
+    // simultaneously as this mode's ruleset allows.
+    //
+    // The actual numbers live in `Ruleset` (`state.rules.maxRoadsPerPlayer`,
+    // `state.rules.pieceLimit(for:)`) rather than here, so a second mode with
+    // different supplies is a `Ruleset` entry rather than a change to these
+    // guards.
 
     public static func cost(for kind: BuildingKind) -> [Resource: Int] {
         switch kind {
@@ -45,7 +48,7 @@ public enum Building {
     public static func canBuildRoad(_ edge: EdgeID, for player: PlayerID, in state: GameState) -> Bool {
         guard state.board.onBoardEdges.contains(edge) else { return false }
         guard let owner = state.players.first(where: { $0.id == player }) else { return false }
-        guard owner.roads.count < maxRoadsPerPlayer else { return false }
+        guard owner.roads.count < state.rules.maxRoadsPerPlayer else { return false }
         let allRoads = Set(state.players.flatMap { $0.roads })
         guard !allRoads.contains(edge) else { return false }
 
@@ -72,7 +75,7 @@ public enum Building {
     public static func canBuildSettlement(_ vertex: VertexID, for player: PlayerID, in state: GameState) -> Bool {
         guard state.board.onBoardVertices.contains(vertex) else { return false }
         guard let owner = state.players.first(where: { $0.id == player }) else { return false }
-        guard owner.settlements.count < maxSettlementsPerPlayer else { return false }
+        guard owner.settlements.count < state.rules.pieceLimit(for: .settlement) else { return false }
 
         let occupied = Set(state.players.flatMap { $0.settlements.union($0.cities) })
         guard !occupied.contains(vertex) else { return false }
@@ -91,7 +94,7 @@ public enum Building {
     /// own settlement.
     public static func canBuildCity(_ vertex: VertexID, for player: PlayerID, in state: GameState) -> Bool {
         guard let owner = state.players.first(where: { $0.id == player }) else { return false }
-        guard owner.cities.count < maxCitiesPerPlayer else { return false }
+        guard owner.cities.count < state.rules.pieceLimit(for: .city) else { return false }
         return owner.settlements.contains(vertex)
     }
 }

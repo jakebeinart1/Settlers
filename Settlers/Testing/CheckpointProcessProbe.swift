@@ -150,7 +150,7 @@ enum CheckpointProcessProbe {
             MatchSetup.Seat(index: $0, isHuman: true, name: "Probe \($0 + 1)",
                             civilization: Civilization.allCases[$0])
         }
-        return MatchSetup(seats: seats, victoryPointTarget: WinCondition.standardTarget,
+        return MatchSetup(seats: seats, victoryPointTarget: Ruleset.forMode(.classic).defaultVictoryPointTarget,
                           randomizedBoard: false, randomizeSeatOrder: false)
     }
 
