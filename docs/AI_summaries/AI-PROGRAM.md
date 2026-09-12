@@ -9,7 +9,7 @@ Jake's review is welcome but is not a prerequisite or delivery blocker.
 | --- | --- | --- |
 | 1. Run the published AI | Upstream execution complete; native reproduction incomplete | Preserve identifiable source, weights, training and evaluation evidence. |
 | 2. Find stronger, phone-fast search | Paused | Reopen only by explicit decision; native strength and physical latency must both pass. |
-| 3. Verify and deliver the heuristic | Balanced delivered in Build 7 | Preserve tested delivery; later source changes are not automatically a new phone build. |
+| 3. Verify and deliver the heuristic | Balanced delivered in Build 7; Build 8 uploaded September 12 | Verify Apple processing and tester access separately from upload and physical installation. |
 | 4. Strategic quality and targeted heuristic improvements | Complete for this bounded iteration | Retain Balanced; preserve the measured corpus, rejected candidate and restart map. Broader strategy research remains open, not a prerequisite for Stage 5. |
 | 5. Personality and character expression | Product scope in progress; implementation not started | Configurable behavioral traits and controlled randomness, followed by curated event/decision-linked phrases; no runtime LLM. |
 | 6. Optional models, search and training | Parked | Explicit research question, compatible comparison, bounded run and active watcher. |
@@ -26,14 +26,20 @@ Build 6 shipped the Balanced new-game default. Main subsequently gained menu
 cleanup and replay victory-point breakdowns. Build 7 combines those changes with
 the same heuristic delivery; its live verification and merge receipts belong in
 [the delivery report](2026-09-08-heuristic-delivery.md), not inferred from this plan.
-September 12 live Apple check still lists Build 7 VALID as the latest upload.
-Alex's phone was last read back as 1.0 (7) on September 9, not rechecked today.
+September 12: Apple accepted the Build 8 upload at 10:57 EDT after the fresh
+full gate passed, including 339 app/UI tests with zero failures or skips.
+Fresh New Game screens at 402pt and 375pt were inspected; Release launched
+without a new crash report. Processing and tester access are separate release
+checks; the durable live receipt is
+`~/Library/Application Support/EmpiresResearch/deliveries/baseline-build8-20260912/README.md`.
+Alex's phone remains unavailable to CoreDevice today; its last verified installed
+version is 1.0 (7) on September 9. No fresh physical installation is claimed.
 Current main `3c4fed9` is versioned 1.0 (8): it adds Jake's hidden-VP threat fix,
 Expanded mode, mode-specific opening fixes and late-game persistence improvements.
 The [Expanded summary](2026-09-10-expanded-game-mode.md) and
 [opening/performance report](../plans/2026-09-11-expanded-bots-and-speed.md)
 record their source/simulator verification; their word “shipped” must not be read
-as evidence of a TestFlight upload. A fresh delivery gate is running September 12.
+as evidence of a TestFlight upload; the September 12 upload now has its own receipt.
 Existing saves retain their strategies; unsupported research saves are preserved
 and blocked, never silently converted. Jake's signing defaults remain unchanged.
 

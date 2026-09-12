@@ -131,7 +131,13 @@ work, not blockers to writing this contract or prerequisites we restart by defau
 
 - Fetched and fast-forwarded the clean checkout to `3c4fed9`; preserved `.agents`.
 - Rechecked source seams and completed two independent read-only audits.
-- Confirmed no open PRs and Apple latest upload Build 7; physical installation
-  has not been rechecked this pass.
-- Began a fresh full gate for baseline delivery. Its result is not yet known.
+- No open PRs existed before this work; PR #48 contains this documentation only.
+- The full gate passed, including 339 app/UI tests without failures or skips,
+  both package suites, coverage, Release and Debug. A complete automated match
+  reached game over; mode selection and Expanded persistence tests also passed.
+- Inspected fresh New Game screenshots at 402pt and 375pt. A fresh Release
+  simulator launch survived without a new crash report. Physical iPhone is
+  unavailable this pass; no fresh phone installation is claimed.
+- Build 8 was archived/exported with verified distribution signing. Live Apple
+  delivery status belongs in the current plan and release receipt, not this proposal.
 - No bot behavior, phrases, app UI or training changed by this scope document.
