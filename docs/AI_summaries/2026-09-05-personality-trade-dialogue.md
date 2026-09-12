@@ -4,6 +4,12 @@ Date: 2026-09-05
 Code baseline: `6ec560df96d0617b39359a20fbf628814e043a30`
 Status: research and audit only; no implementation and no architecture selection
 
+**Historical baseline.** The September 12
+[personality scope](2026-09-12-personality-scope.md) is the current product proposal.
+Current code has structured trade assessments and defaults all new opponents to
+Balanced; the Boolean-only and civilization-to-strategy claims below describe
+September 5. Runtime LLMs and free-form chat are now outside the agreed scope.
+
 ## Scope
 
 This document audits the current Empires bot personality, trade-decision, opponent-profile, and dialogue systems. It separates four concerns that are easy to conflate:
