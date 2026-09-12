@@ -1,6 +1,6 @@
 # Empires AI — current plan
 
-Updated September 9, 2026. Alex has authorized merging verified product code;
+Updated September 12, 2026. Alex has authorized merging verified product code;
 Jake's review is welcome but is not a prerequisite or delivery blocker.
 
 ## Six stages
@@ -11,15 +11,14 @@ Jake's review is welcome but is not a prerequisite or delivery blocker.
 | 2. Find stronger, phone-fast search | Paused | Reopen only by explicit decision; native strength and physical latency must both pass. |
 | 3. Verify and deliver the heuristic | Balanced delivered in Build 7 | Preserve tested delivery; later source changes are not automatically a new phone build. |
 | 4. Strategic quality and targeted heuristic improvements | Complete for this bounded iteration | Retain Balanced; preserve the measured corpus, rejected candidate and restart map. Broader strategy research remains open, not a prerequisite for Stage 5. |
-| 5. Personality and character expression | Next, not started | Configurable behavioral traits and controlled randomness, followed by curated event/decision-linked phrases; no runtime LLM. |
+| 5. Personality and character expression | Product scope in progress; implementation not started | Configurable behavioral traits and controlled randomness, followed by curated event/decision-linked phrases; no runtime LLM. |
 | 6. Optional models, search and training | Parked | Explicit research question, compatible comparison, bounded run and active watcher. |
 
-September 8 priority revision: strategic quality now precedes personality;
-stages 4 and 5 have exchanged order. They remain separate projects. Current work
-now includes Alex's authorized collection/review trial and one fixed trade-accounting
-experiment. September 9 closeout ends this bounded iteration rather than claiming
-expert heuristic play. It does not start tuning, personality or change the app's policy. No candidate has demonstrated stronger native play than
-Balanced together with complete decisions within four seconds on an iPhone.
+Strategic quality precedes personality; stages 4 and 5 remain separate projects.
+The September 9 closeout retained Balanced and ended the bounded trade experiment,
+not strategic research forever or proof of expert play. September 12 work defines
+the [personality scope](2026-09-12-personality-scope.md) and reconciles delivery.
+It does not restart neural/search experiments or automatic tuning.
 
 ## Current delivery
 
@@ -27,9 +26,14 @@ Build 6 shipped the Balanced new-game default. Main subsequently gained menu
 cleanup and replay victory-point breakdowns. Build 7 combines those changes with
 the same heuristic delivery; its live verification and merge receipts belong in
 [the delivery report](2026-09-08-heuristic-delivery.md), not inferred from this plan.
-September 9: Apple still lists Build 7 as the latest upload; Alex's phone was read
-back as 1.0 (7). Main `4737471` is versioned 1.0 (8) and adds Jake's hidden-VP
-threat fix. Source versioning does not establish that Build 8 was delivered.
+September 12 live Apple check still lists Build 7 VALID as the latest upload.
+Alex's phone was last read back as 1.0 (7) on September 9, not rechecked today.
+Current main `3c4fed9` is versioned 1.0 (8): it adds Jake's hidden-VP threat fix,
+Expanded mode, mode-specific opening fixes and late-game persistence improvements.
+The [Expanded summary](2026-09-10-expanded-game-mode.md) and
+[opening/performance report](../plans/2026-09-11-expanded-bots-and-speed.md)
+record their source/simulator verification; their word “shipped” must not be read
+as evidence of a TestFlight upload. A fresh delivery gate is running September 12.
 Existing saves retain their strategies; unsupported research saves are preserved
 and blocked, never silently converted. Jake's signing defaults remain unchanged.
 
@@ -72,7 +76,9 @@ The app keeps Balanced; the joint-trade candidate remains an opt-in research
 comparator, not a selectable app policy. Do not automatically restart larger
 corpora, road planning, parameter tuning or search from historical next-step text.
 
-Next milestone after closeout: agree the bounded Stage 5 personality scope,
-keeping deliberate style differences separate from playing strength, and authored
-expression separate from the policy. No runtime LLM. Do not create a general
-heuristic-tuning skill from this one trade-only trial.
+Next: finish baseline delivery, settle the first character's behavior and voice,
+then implement and test one complete character before expanding the roster.
+The [scope and acceptance criteria](2026-09-12-personality-scope.md) preserve
+grudges/controlled variation as explicit work, not implied existing functionality.
+No runtime LLM or general heuristic-tuning skill. Archived Classic evaluation
+results do not automatically establish strength for the later Expanded bot.
