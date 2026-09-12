@@ -66,6 +66,11 @@ do not silently assign all eight new play styles from these three examples.
 Build one complete character first, then use its playtest to choose the rest.
 Trait magnitudes, rivalry duration and final voice assignments remain product
 choices to settle before behavior changes, not constants inferred from prose.
+Do not implement the raider by simply assigning the existing Aggressive preset:
+that also lowers trade willingness, which could amplify Alex's complaint about
+rejected offers. Pressure, trade selectivity and negotiating persistence need
+separate contracts. Likewise, raising the existing willingness dial alone does
+not guarantee more acceptance because the threshold has a floor.
 
 ## Acceptance criteria
 
