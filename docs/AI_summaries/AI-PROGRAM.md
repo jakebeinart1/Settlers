@@ -9,7 +9,7 @@ Jake's review is welcome but is not a prerequisite or delivery blocker.
 | --- | --- | --- |
 | 1. Run the published AI | Upstream execution complete; native reproduction incomplete | Preserve identifiable source, weights, training and evaluation evidence. |
 | 2. Find stronger, phone-fast search | Paused | Reopen only by explicit decision; native strength and physical latency must both pass. |
-| 3. Verify and deliver the heuristic | Balanced delivered in Build 7; Build 8 uploaded September 12 | Verify Apple processing and tester access separately from upload and physical installation. |
+| 3. Verify and deliver the heuristic | Build 8 approved and tester-accessible September 12 | Physical iPhone installation is not verified this pass; preserve that distinction. |
 | 4. Strategic quality and targeted heuristic improvements | Complete for this bounded iteration | Retain Balanced; preserve the measured corpus, rejected candidate and restart map. Broader strategy research remains open, not a prerequisite for Stage 5. |
 | 5. Personality and character expression | Product scope in progress; implementation not started | Configurable behavioral traits and controlled randomness, followed by curated event/decision-linked phrases; no runtime LLM. |
 | 6. Optional models, search and training | Parked | Explicit research question, compatible comparison, bounded run and active watcher. |
@@ -29,8 +29,9 @@ the same heuristic delivery; its live verification and merge receipts belong in
 September 12: Apple accepted the Build 8 upload at 10:57 EDT after the fresh
 full gate passed, including 339 app/UI tests with zero failures or skips.
 Fresh New Game screens at 402pt and 375pt were inspected; Release launched
-without a new crash report. Processing and tester access are separate release
-checks; the durable live receipt is
+without a new crash report. Apple subsequently returned VALID, APPROVED and
+internal/external IN_BETA_TESTING. The exact Build 8 is in Jake's existing group:
+[TestFlight](https://testflight.apple.com/join/gc4xMVQm). The durable release receipt is
 `~/Library/Application Support/EmpiresResearch/deliveries/baseline-build8-20260912/README.md`.
 Alex's phone remains unavailable to CoreDevice today; its last verified installed
 version is 1.0 (7) on September 9. No fresh physical installation is claimed.
