@@ -9,7 +9,16 @@
 The planner is **built, tested, deterministic, information-clean, and
 substantially weaker than the bot that ships.** Measured over 1,248 decisive
 games with full chair rotation against three frozen `balanced` heuristics, it
-won **1.6%** of games against a 25.0% null — 95% CI [0.9, 2.3].
+won **1.6%** of games against a 25.0% null — 95% CI [0.9, 2.3]. Re-measured
+after the Largest Army fix on fresh held-out seeds 92000–92311 (commit
+`2056500`), it won **1.0%** — 95% CI [0.5, 1.6]. The intervals overlap, so that
+is no measurable change, not an improvement and not a regression.
+
+**Superseded.** Its decision rule was replaced by a position evaluation, which
+wins 43.0% under the same protocol; see
+[the successor note](2026-09-14-position-evaluation-bot.md). The route model
+described below is retained and unused — folding it back in as one weighted
+feature is an open measurement.
 
 It is not wired into the app roster and must not be until it beats the anchor.
 
