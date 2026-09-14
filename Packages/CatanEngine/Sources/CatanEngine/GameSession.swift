@@ -154,7 +154,10 @@ public struct GameSession: Sendable {
         /// and never a wrong one; the alternative, silently resetting every
         /// belief on resume without saying so, is the kind of quiet difference
         /// this repository has paid for before.
-        let ledgers: [PlayerID: PublicLedger]?
+        /// Seat-ordered, because a `[PlayerID: PublicLedger]` serialises in
+        /// per-process hash order. Each ledger names its own observer, so an
+        /// array loses nothing.
+        let ledgers: [PublicLedger]?
 
         /// Reject invalid wire state before nextActor indexes a seat or a
         /// decision increments a counter. This checks session invariants;
@@ -211,7 +214,7 @@ public struct GameSession: Sendable {
                    policyRNG: policyRNG, policyEvaluationCount: policyEvaluationCount,
                    queuedTradeResponse: queuedTradeResponse,
                    currentTurnSeat: currentTurnSeat, actionsThisTurn: actionsThisTurn,
-                   ledgers: ledgers)
+                   ledgers: ledgers.keys.sorted().compactMap { ledgers[$0] })
     }
 
     /// Callers supply the same policy implementations/configurations identified
@@ -229,7 +232,9 @@ public struct GameSession: Sendable {
         self.queuedTradeResponse = checkpoint.queuedTradeResponse
         self.currentTurnSeat = checkpoint.currentTurnSeat
         self.actionsThisTurn = checkpoint.actionsThisTurn
-        self.ledgers = checkpoint.ledgers ?? Self.freshLedgers(for: checkpoint.state)
+        self.ledgers = checkpoint.ledgers
+            .map { Dictionary(uniqueKeysWithValues: $0.map { ($0.observer, $0) }) }
+            ?? Self.freshLedgers(for: checkpoint.state)
     }
 
     /// A position-only ledger for every seat, with no counted history behind it.

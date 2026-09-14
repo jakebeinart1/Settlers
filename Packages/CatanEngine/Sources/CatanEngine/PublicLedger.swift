@@ -1,4 +1,3 @@
-
 /// What one observer may legitimately believe about every seat's hand.
 ///
 /// ## Why a ledger instead of reading `state.players[i].resources`
@@ -31,6 +30,9 @@ public struct PublicLedger: Codable, Sendable, Equatable {
     /// One seat's believed holdings, from the owning ledger's point of view.
     public struct SeatBelief: Codable, Sendable, Equatable {
         /// Resources this seat certainly holds. A floor, never an estimate.
+        ///
+        /// Encoded through `knownPairs` below for the same per-process ordering
+        /// reason the seat map is.
         public var known: [Resource: Int]
         /// Upper bound on how many resource cards this seat holds.
         public var maxTotal: Int
@@ -42,6 +44,36 @@ public struct PublicLedger: Codable, Sendable, Equatable {
             self.known = known
             self.maxTotal = maxTotal
             self.devCardCount = devCardCount
+        }
+
+        private enum CodingKeys: String, CodingKey {
+            case known, maxTotal, devCardCount
+        }
+
+        private struct ResourceCount: Codable, Sendable {
+            let resource: Resource
+            let count: Int
+        }
+
+        public func encode(to encoder: any Encoder) throws {
+            var container = encoder.container(keyedBy: CodingKeys.self)
+            try container.encode(
+                Resource.allCases.compactMap { resource -> ResourceCount? in
+                    guard let count = known[resource], count != 0 else { return nil }
+                    return ResourceCount(resource: resource, count: count)
+                },
+                forKey: .known
+            )
+            try container.encode(maxTotal, forKey: .maxTotal)
+            try container.encode(devCardCount, forKey: .devCardCount)
+        }
+
+        public init(from decoder: any Decoder) throws {
+            let container = try decoder.container(keyedBy: CodingKeys.self)
+            let pairs = try container.decode([ResourceCount].self, forKey: .known)
+            known = Dictionary(uniqueKeysWithValues: pairs.map { ($0.resource, $0.count) })
+            maxTotal = try container.decode(Int.self, forKey: .maxTotal)
+            devCardCount = try container.decode(Int.self, forKey: .devCardCount)
         }
 
         /// Cards held whose identity this ledger cannot pin down.
@@ -70,6 +102,50 @@ public struct PublicLedger: Codable, Sendable, Equatable {
     public init(observer: PlayerID, seats: [PlayerID: SeatBelief] = [:]) {
         self.observer = observer
         self.seats = seats
+    }
+
+    // MARK: - Codable
+
+    /// Encoded as a seat-ordered array, not as the dictionary it is stored in.
+    ///
+    /// ## Why this is hand-written
+    /// Swift encodes a `Dictionary` whose key is neither `String` nor `Int` as
+    /// an **unkeyed array of alternating keys and values, in the dictionary's
+    /// own iteration order** - and that order is seeded per process. A ledger
+    /// written by one process and one written by another therefore serialise
+    /// the same beliefs in a different order, and any consumer comparing the
+    /// two sees a difference that is not there.
+    ///
+    /// That is not hypothetical. It broke
+    /// `test_separate_process_traces_match_semantically_including_rng`, which
+    /// replays a seed in two processes and compares the traces: record 3 came
+    /// back with `observer: 2` from one run and `observer: 1` from the other,
+    /// while the games themselves were identical move for move. Sorting the
+    /// seats on the way out makes the bytes a function of the beliefs rather
+    /// than of the hash seed.
+    private enum CodingKeys: String, CodingKey {
+        case observer, seats
+    }
+
+    private struct SeatEntry: Codable, Sendable {
+        let seat: PlayerID
+        let belief: SeatBelief
+    }
+
+    public func encode(to encoder: any Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(observer, forKey: .observer)
+        try container.encode(
+            seats.keys.sorted().map { SeatEntry(seat: $0, belief: seats[$0] ?? SeatBelief()) },
+            forKey: .seats
+        )
+    }
+
+    public init(from decoder: any Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        observer = try container.decode(PlayerID.self, forKey: .observer)
+        let entries = try container.decode([SeatEntry].self, forKey: .seats)
+        seats = Dictionary(uniqueKeysWithValues: entries.map { ($0.seat, $0.belief) })
     }
 
     public func belief(of seat: PlayerID) -> SeatBelief {

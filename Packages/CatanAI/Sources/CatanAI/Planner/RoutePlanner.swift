@@ -266,6 +266,20 @@ public enum RoutePlanner {
         return total
     }
 
+    /// Victory points one purchase is worth, in expectation.
+    ///
+    /// ## Why a development card is not just its victory-point chance
+    /// It was, and that made the whole Largest Army route invisible to the
+    /// estimate that decides what the route is. A card is about 0.2 points of
+    /// deck expectation, which loses to a settlement on every comparison - so
+    /// the planner bought 0.6 cards and played 0.3 knights per game against the
+    /// shipping heuristic's 6.9 and 3.3, and never went near an army bonus
+    /// worth 2 points in Classic and 4 in Expanded.
+    ///
+    /// Each card now also carries its share of that bonus: the chance it is a
+    /// knight, times the bonus, divided across the knights still needed to
+    /// claim it. A seat already holding Largest Army gets no such credit, and
+    /// neither does one that would need more knights than the deck can supply.
     private static func victoryPointGain(of purchase: RoutePurchase, in context: RouteContext) -> Double {
         switch purchase {
         case .settlement:
@@ -273,10 +287,23 @@ public enum RoutePlanner {
         case .city:
             return Double(context.rules.victoryPoints(for: .city) - context.rules.victoryPoints(for: .settlement))
         case .devCard:
-            return context.devCardVictoryPointChance
+            return context.devCardVictoryPointChance + largestArmyShare(in: context)
         case .road:
             return 0
         }
+    }
+
+    /// Expected victory points one development card contributes toward Largest
+    /// Army, or zero when the bonus is already held or out of reach.
+    static func largestArmyShare(in context: RouteContext) -> Double {
+        guard !context.holdsLargestArmy, context.devCardKnightChance > 0 else { return 0 }
+        let needed = max(context.rules.largestArmyMinimum, context.largestArmyToBeat + 1) - context.knightsPlayed
+        guard needed > 0 else { return 0 }
+        // Cards that would have to be bought to get there, at this deck's
+        // knight density. Out of reach if the deck cannot supply them.
+        let cardsRequired = Double(needed) / context.devCardKnightChance
+        guard cardsRequired <= Double(context.devCardsAvailable) else { return 0 }
+        return Double(context.rules.largestArmyBonus) / cardsRequired
     }
 
     // MARK: - Exact search (the test oracle)

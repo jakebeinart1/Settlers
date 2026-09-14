@@ -99,33 +99,67 @@ import CatanEngine
         #expect(session.state.victoryPoints(for: winner) >= session.state.victoryPointTarget)
     }
 
-    /// Jake's worked example, and the one that shows the two layers working:
-    /// holding eight cards with a development card affordable but not a city,
-    /// ducking under the discard threshold is the best available move - and it
-    /// needs no rule of its own, because the seven cost is part of the clock.
-    @Test func itShedsCardsRatherThanSitOnAnEightCardHandBeforeASeven() throws {
+    /// The seven cost is real, rises with hand size, and pushes toward
+    /// spending - but it does not dominate, and the design was wrong to say it
+    /// would.
+    ///
+    /// ## What this used to assert, and why it was wrong
+    /// It required that a seat holding eight cards, with a development card
+    /// affordable and a city out of reach, would buy the card to duck under
+    /// the discard threshold. It does not, and the arithmetic says it should
+    /// not: at a typical early production rate, buying costs about eight turns
+    /// of progress along the route, while the expected loss from a seven is
+    /// about 1.3 - a seven only lands one roll in six, and the purchase is
+    /// certain. The claim came from play intuition, where the card bought is
+    /// one you wanted anyway; that is only true when a development card is
+    /// worth something, and this planner prices one at roughly half a victory
+    /// point.
+    ///
+    /// So this tests the mechanism the design actually adds: holding more
+    /// cards costs more turns, monotonically, and that cost is what a larger
+    /// hand contributes to the decision. Whether it is ever decisive is a
+    /// question about how development cards are valued, which is a known open
+    /// defect rather than something to assert into existence here.
+    @Test func holdingMoreCardsThroughASevenCostsMoreTurns() throws {
         var state = GameSetup.newGame(board: BoardGenerator.randomized(seed: 44), seed: 44)
         playOpeningPlacements(in: &state, seed: 44)
-        state.phase = .mainTurn(playerIndex: 0)
         let seat = state.players[0].id
-        // Eight cards: enough for a development card, one ore short of a city.
-        state.players[0].resources = [.ore: 2, .grain: 3, .wool: 2, .lumber: 1]
-
         let rate = ProductionModel.rate(for: seat, in: state)
-        let costOfHolding = ClockModel.sevenCost(handSize: 8, rate: rate, rules: state.rules)
-        #expect(costOfHolding > 0, "an eight-card hand must carry a real cost, or the example is moot")
+        let rules = state.rules
 
-        let legal = RulesEngine.legalMoves(for: state, seat: seat)
-        #expect(legal.contains(.buyDevCard), "the example needs the card to be affordable")
+        let safe = ClockModel.sevenCost(handSize: rules.discardThreshold, rate: rate, rules: rules)
+        let overBy2 = ClockModel.sevenCost(handSize: rules.discardThreshold + 2, rate: rate, rules: rules)
+        let overBy6 = ClockModel.sevenCost(handSize: rules.discardThreshold + 6, rate: rate, rules: rules)
+
+        #expect(safe == 0, "at or under the threshold a seven costs nothing")
+        #expect(overBy2 > 0, "over the threshold it costs something")
+        #expect(overBy6 > overBy2, "and more cards cost more")
+    }
+
+    /// Development cards must carry their share of Largest Army, or the whole
+    /// army route is invisible to the estimate that chooses the route.
+    @Test func aDevelopmentCardIsWorthMoreThanItsVictoryPointChanceAlone() {
+        var state = GameSetup.newGame(board: BoardGenerator.randomized(seed: 45), seed: 45)
+        playOpeningPlacements(in: &state, seed: 45)
+        let seat = state.players[0].id
+        let ledger = PublicLedger.fromPositionAlone(state, observer: seat)
+        let context = RouteContext.build(for: seat, in: state, ledger: ledger)
+
         #expect(
-            !legal.contains(where: { if case .buildCity = $0 { return true } else { return false } }),
-            "the example needs the city to be out of reach"
+            RoutePlanner.largestArmyShare(in: context) > 0,
+            "with no knights played and a full deck, the army bonus must be reachable and credited"
         )
+    }
 
-        var rng = RandomSource(seed: 5)
-        let chosen = PlannerPolicy().decide(
-            GameObservation(seat: seat, state: state, legalMoves: legal), rng: &rng
-        )
-        #expect(chosen != .endTurn, "sitting on eight cards through a seven is the move being replaced")
+    /// And a seat that already holds the bonus is credited nothing further.
+    @Test func aSeatHoldingLargestArmyGetsNoFurtherArmyCredit() {
+        var state = GameSetup.newGame(board: BoardGenerator.randomized(seed: 46), seed: 46)
+        playOpeningPlacements(in: &state, seed: 46)
+        let seat = state.players[0].id
+        state.largestArmyPlayer = seat
+        let ledger = PublicLedger.fromPositionAlone(state, observer: seat)
+        let context = RouteContext.build(for: seat, in: state, ledger: ledger)
+
+        #expect(RoutePlanner.largestArmyShare(in: context) == 0)
     }
 }

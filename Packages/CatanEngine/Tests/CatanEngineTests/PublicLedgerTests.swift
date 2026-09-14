@@ -1,3 +1,4 @@
+import Foundation
 import Testing
 @testable import CatanEngine
 
@@ -124,6 +125,61 @@ import Testing
 
         #expect(ledger.belief(of: PlayerID(index: 2)).known == [.ore: 2, .grain: 1])
         #expect(ledger.belief(of: PlayerID(index: 2)).uncertain == 0)
+    }
+
+    /// The encoded form must be ordered by seat, because that is what makes it
+    /// identical across processes.
+    ///
+    /// Swift serialises a `Dictionary` whose key is neither `String` nor `Int`
+    /// as an unkeyed array in the dictionary's own iteration order, and that
+    /// order is seeded per process. Storing beliefs in a `[PlayerID: ...]` and
+    /// encoding it directly therefore produced two different byte streams for
+    /// the same beliefs - which broke the cross-process trace comparison in
+    /// `scripts/tests/test_corpus_cli.py` while the games themselves were
+    /// identical move for move. Asserting the order here catches it in the
+    /// engine suite rather than in a Python test sixty seconds downstream.
+    @Test func theEncodedLedgerIsOrderedBySeat() throws {
+        var state = newGame()
+        for index in state.players.indices {
+            state.players[index].resources = [.ore: index + 1]
+        }
+        var ledger = PublicLedger.fromPositionAlone(state, observer: PlayerID(index: 0))
+        ledger.reconcileHandSizes(from: state)
+
+        let encoded = try JSONEncoder().encode(ledger)
+        let object = try JSONSerialization.jsonObject(with: encoded) as? [String: Any]
+        let seats = try #require(object?["seats"] as? [[String: Any]])
+
+        let order = seats.compactMap { ($0["seat"] as? [String: Any])?["index"] as? Int }
+        #expect(order == order.sorted(), "seats encoded out of order: \(order)")
+        #expect(order.count == state.players.count)
+    }
+
+    /// The same beliefs must encode to the same bytes however the ledger was
+    /// assembled - the property the ordering above exists to provide.
+    ///
+    /// Encoded with `.sortedKeys`, because `JSONEncoder` does not fix the key
+    /// order *within* an object on its own and that ordering is not what broke
+    /// anything: a consumer parses the JSON before comparing, so object keys
+    /// are already order-insensitive to it. Array order is not, which is the
+    /// property under test here.
+    @Test func equalLedgersEncodeIdentically() throws {
+        let encoder = JSONEncoder()
+        encoder.outputFormatting = .sortedKeys
+        let state = newGame()
+        var first = PublicLedger(observer: PlayerID(index: 1))
+        var second = PublicLedger(observer: PlayerID(index: 1))
+        // Same credits, applied in opposite seat order.
+        for seat in [0, 1, 2, 3] {
+            first.apply(.tradedWithBank(PlayerID(index: seat), gave: [:], got: [.wool: seat + 1]),
+                        stateBefore: state)
+        }
+        for seat in [3, 2, 1, 0] {
+            second.apply(.tradedWithBank(PlayerID(index: seat), gave: [:], got: [.wool: seat + 1]),
+                         stateBefore: state)
+        }
+        #expect(first == second)
+        #expect(try encoder.encode(first) == encoder.encode(second))
     }
 
     /// The property that matters most: the ledger never claims a seat holds
