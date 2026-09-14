@@ -149,7 +149,7 @@ public struct RouteExpansion: Sendable {
     }
 }
 
-private extension RouteNode {
+extension RouteNode {
     mutating func spend(_ cost: [Resource: Int]) {
         for (resource, amount) in cost { spent[resource, default: 0] += amount }
     }

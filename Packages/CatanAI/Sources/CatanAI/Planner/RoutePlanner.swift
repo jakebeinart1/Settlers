@@ -204,10 +204,25 @@ public enum RoutePlanner {
 
     /// Optimistic estimate of the turns still needed from `node`.
     ///
-    /// Remaining victory points times the cheapest turns-per-point available at
-    /// this node's rate. Production only ever rises along a route, so a later
-    /// purchase can never cost more than this estimate assumes - which keeps
-    /// the estimate from pruning a route that was actually the best one.
+    /// Prices the remaining victory points as *repeated* purchases of whichever
+    /// victory-point purchase is cheapest here, spending down the hand as it
+    /// goes.
+    ///
+    /// ## Why it repeats rather than multiplying
+    /// It used to be `remaining x costOfOnePurchase`, and that made giving
+    /// cards away free. A bank trade converts four surplus cards into one
+    /// needed card; `turnsToAfford` charges only for the resource the next
+    /// purchase is *short* of, so the four cards leaving the hand cost nothing
+    /// and the one arriving shortened the estimate. Every bank trade therefore
+    /// scored positive, and the planner spent whole turns converting its hand
+    /// away - measured over one game: five bank trades, two roads, no
+    /// settlements, no cities, and a final score of two.
+    ///
+    /// Charging for the whole remaining requirement fixes it at the source.
+    /// Four settlements need four settlements' worth of cards, so a hand that
+    /// has been traded down is visibly further from the target, and a
+    /// conversion has to earn its cost against the rest of the route rather
+    /// than against one purchase.
     static func heuristic(for node: RouteNode, expansion: RouteExpansion) -> Double {
         let remaining = Double(expansion.context.victoryPointTarget) - node.victoryPoints
         guard remaining > 0 else { return 0 }
@@ -216,10 +231,39 @@ public enum RoutePlanner {
         for purchase in RoutePurchase.allCases {
             let gain = victoryPointGain(of: purchase, in: expansion.context)
             guard gain > 0 else { continue }
-            cheapest = min(cheapest, expansion.cost(of: purchase, from: node) / gain)
+            let repeats = min(maximumHeuristicRepeats, Int((remaining / gain).rounded(.up)))
+            cheapest = min(cheapest, costOfRepeating(purchase, repeats, from: node, expansion: expansion))
         }
-        guard cheapest < ClockModel.unreachable else { return 0 }
-        return remaining * cheapest
+        return cheapest < ClockModel.unreachable ? cheapest : 0
+    }
+
+    /// Caps how far the tail estimate simulates. Expanded can need twenty-odd
+    /// victory points, and the estimate is a tie-break over a bounded horizon,
+    /// not a plan - past a handful of repeats the extra precision buys nothing
+    /// and costs a decision that is already the expensive part of a turn.
+    static let maximumHeuristicRepeats = 8
+
+    /// Expected turns to buy `purchase` `repeats` times in a row, spending the
+    /// hand down as it goes and leaving production unchanged.
+    ///
+    /// Production only rises along a real route, so holding it flat keeps this
+    /// an over-estimate of speed rather than an under-estimate - the direction
+    /// that does not prune a route that was actually the best one.
+    private static func costOfRepeating(
+        _ purchase: RoutePurchase,
+        _ repeats: Int,
+        from node: RouteNode,
+        expansion: RouteExpansion
+    ) -> Double {
+        var walker = node
+        var total = 0.0
+        for _ in 0..<max(1, repeats) {
+            let step = expansion.cost(of: purchase, from: walker)
+            guard step < ClockModel.unreachable else { return ClockModel.unreachable }
+            total += step
+            walker.spend(expansion.price(of: purchase))
+        }
+        return total
     }
 
     private static func victoryPointGain(of purchase: RoutePurchase, in context: RouteContext) -> Double {

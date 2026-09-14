@@ -1,4 +1,3 @@
-import Foundation
 import CatanEngine
 
 /// Prices positions that two seats are racing for.
@@ -21,26 +20,40 @@ import CatanEngine
 /// is near zero, rather than its face value in victory points.
 public enum ContestModel {
 
-    /// How sharply the claim probability swings as the road-distance gap
-    /// changes. At a gap of zero the two seats are even; one road of advantage
-    /// moves the odds substantially, which matches how these races actually
-    /// resolve.
-    static let distanceSharpness = 1.1
+    /// Most of a site's value that losing the race can take away.
+    ///
+    /// A contested site is worth less, never nothing. The discount is capped
+    /// because the race is not the only thing that decides who builds there:
+    /// a rival two roads closer may be heading somewhere else entirely, may
+    /// not hold the cards, and may be blocked in the meantime.
+    static let maximumDiscount = 0.5
+
+    /// How much of the remaining value one road of disadvantage removes.
+    static let discountPerRoadBehind = 0.25
 
     /// Chance that some rival puts a building on `vertex` before this seat can.
     ///
-    /// Driven purely by road distance, which is public. A rival who is two
-    /// roads closer will usually get there; one who is two roads further
-    /// usually will not. Seat order is deliberately not modelled - it is worth
-    /// a fraction of one road of distance and would make the estimate depend
-    /// on whose turn it happens to be rather than on the position.
+    /// Driven purely by road distance, which is public, and only by rivals who
+    /// are strictly *closer*. Being level is not being behind - this seat also
+    /// gets to move - and seat order is deliberately not modelled: it is worth
+    /// a fraction of one road and would make the estimate depend on whose turn
+    /// it happens to be rather than on the position.
+    ///
+    /// ## Why this replaced a logistic on the raw gap
+    /// The first version was `1 / (1 + exp(-1.1 * gap))`, which returns 0.5
+    /// when the two seats are level and 0.75 at one road behind. Almost every
+    /// vertex on a real board has some rival within a road or two, so almost
+    /// every candidate site lost most of its value, the planner concluded that
+    /// expanding was worthless, and it upgraded its two opening settlements and
+    /// then stopped. Measured over three games: **zero settlements built in two
+    /// of them.** A discount that applies to everything is not a discount, it
+    /// is a change of units.
     public static func rivalClaimChance(
         myDistance: Int,
         rivalDistances: [Int]
     ) -> Double {
-        guard let nearest = rivalDistances.min() else { return 0 }
-        let gap = Double(myDistance - nearest)
-        return 1.0 / (1.0 + exp(-distanceSharpness * gap))
+        guard let nearest = rivalDistances.min(), nearest < myDistance else { return 0 }
+        return min(maximumDiscount, discountPerRoadBehind * Double(myDistance - nearest))
     }
 
     /// Road distances to every vertex for each seat other than `seat`.
