@@ -176,6 +176,7 @@ private struct Options {
           --seats LIST  comma-separated policy names, exactly one per player
                         heuristics: balanced, aggressive, cautious
                         anchors:    greedy, random
+                        search: eval (position evaluation, the current candidate)
                         experiment: joint-balanced (trade-response accounting only)
                         (four-seat default balanced,aggressive,cautious,balanced;
                         a three-seat run uses the first three)
@@ -211,11 +212,11 @@ private func policy(named name: String, writer: CorpusWriter? = nil) -> any Poli
     case "balanced": personality = .balanced
     case "aggressive": personality = .aggressive
     case "cautious": personality = .cautious
-    case "greedy", "random", "joint-balanced", "planner": personality = nil
+    case "greedy", "random", "joint-balanced", "planner", "eval": personality = nil
     default:
         fail(
             "unknown seat '\(name)'; expected balanced, aggressive, cautious, "
-                + "planner, greedy, random or joint-balanced"
+                + "eval, planner, greedy, random or joint-balanced"
         )
     }
     if let personality {
@@ -224,6 +225,8 @@ private func policy(named name: String, writer: CorpusWriter? = nil) -> any Poli
         base = GreedyPolicy()
     } else if name == "planner" {
         base = PlannerPolicy()
+    } else if name == "eval" {
+        base = EvaluationPolicy()
     } else if name == "joint-balanced" {
         base = JointTradeResponsePolicy()
     } else {
