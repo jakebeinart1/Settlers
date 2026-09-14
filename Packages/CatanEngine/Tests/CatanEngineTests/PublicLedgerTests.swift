@@ -214,6 +214,49 @@ import Testing
             }
         }
     }
+
+    /// A ledger must equal itself after a round trip through `Codable`.
+    ///
+    /// It did not. `encode` skips a zero count while `debit`, `shrink` and
+    /// `normalise` all spend a floor down to zero and stored it, so a belief
+    /// carrying `[.ore: 0]` came back as `[:]` and compared unequal. A
+    /// checkpoint is written, reloaded and compared to the document that was
+    /// written, so an ordinary game failed a cold resume within a few moves
+    /// (`aFullyDeltaCommittedMatchStillPassesAColdFullReplay`).
+    ///
+    /// Driven off a real played game rather than a hand-built belief, because
+    /// the hand-built version is exactly the one that looked fine.
+    @Test func aLedgerEqualsItselfAfterARoundTrip() throws {
+        var state = GameSetup.newGame(board: BoardGenerator.randomized(seed: 88), seed: 88)
+        var policies: [PlayerID: any Policy] = [:]
+        for player in state.players { policies[player.id] = LedgerProbePolicy() }
+        var session = GameSession(state: state, policies: policies, policySeed: 88)
+        _ = try session.run(limit: 300)
+        state = session.state
+
+        for player in state.players {
+            let ledger = session.ledger(for: player.id)
+            let data = try JSONEncoder().encode(ledger)
+            let restored = try JSONDecoder().decode(PublicLedger.self, from: data)
+            #expect(
+                restored == ledger,
+                "seat \(player.id) did not survive its own round trip"
+            )
+            #expect(
+                try JSONEncoder().encode(restored) == data,
+                "a second encode must reproduce the first, or the form is not canonical"
+            )
+        }
+    }
+
+    /// The canonical form, stated directly: spending a floor to zero removes
+    /// the entry rather than storing a zero.
+    @Test func aFloorSpentToZeroLeavesNoEntryBehind() {
+        var belief = PublicLedger.SeatBelief(known: [.ore: 2], maxTotal: 2)
+        belief.setKnown(.ore, to: 0)
+        #expect(belief.known.isEmpty, "a zero floor must be absent, not stored")
+        #expect(belief == PublicLedger.SeatBelief(known: [:], maxTotal: 2))
+    }
 }
 
 /// Plays any legal move, seeded, so the ledger is exercised over a long and

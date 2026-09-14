@@ -76,6 +76,30 @@ public struct PublicLedger: Codable, Sendable, Equatable {
             devCardCount = try container.decode(Int.self, forKey: .devCardCount)
         }
 
+        /// Sets the floor for `resource`, storing nothing when it reaches zero.
+        ///
+        /// ## Why absence rather than a stored zero
+        /// Every read here is `known[resource] ?? 0`, so an absent key and a
+        /// stored zero already mean the same thing - but only to this type.
+        /// They do not mean the same thing to `Equatable`, and they did not
+        /// mean the same thing to `Codable`: `encode` skips zero counts, so a
+        /// belief carrying one round-tripped to a belief without one and
+        /// compared unequal to itself.
+        ///
+        /// That broke `aFullyDeltaCommittedMatchStillPassesAColdFullReplay`,
+        /// which reloads a checkpoint and requires it to equal the document
+        /// that was written. `debit`, `shrink` and `normalise` all spend a
+        /// floor down to zero, so an ordinary game reached the broken state
+        /// within a few moves. Keeping one canonical spelling in memory is
+        /// what makes the encoded bytes, the equality and the reload agree.
+        mutating func setKnown(_ resource: Resource, to count: Int) {
+            if count > 0 {
+                known[resource] = count
+            } else {
+                known.removeValue(forKey: resource)
+            }
+        }
+
         /// Cards held whose identity this ledger cannot pin down.
         public var uncertain: Int { max(0, maxTotal - knownTotal) }
 
@@ -330,7 +354,7 @@ public struct PublicLedger: Codable, Sendable, Equatable {
         var belief = seats[seat] ?? SeatBelief()
         for resource in Resource.allCases {
             guard let amount = amounts[resource], amount != 0 else { continue }
-            belief.known[resource, default: 0] += amount
+            belief.setKnown(resource, to: (belief.known[resource] ?? 0) + amount)
             belief.maxTotal += amount
         }
         seats[seat] = belief
@@ -344,7 +368,7 @@ public struct PublicLedger: Codable, Sendable, Equatable {
         for resource in Resource.allCases {
             guard let amount = amounts[resource], amount != 0 else { continue }
             let certain = belief.known[resource] ?? 0
-            belief.known[resource] = max(0, certain - amount)
+            belief.setKnown(resource, to: max(0, certain - amount))
             belief.maxTotal = max(0, belief.maxTotal - amount)
         }
         seats[seat] = belief
@@ -366,7 +390,7 @@ public struct PublicLedger: Codable, Sendable, Equatable {
         belief.maxTotal = max(0, belief.maxTotal - count)
         for resource in Resource.allCases {
             guard let held = belief.known[resource], held > 0 else { continue }
-            belief.known[resource] = max(0, held - count)
+            belief.setKnown(resource, to: max(0, held - count))
         }
         seats[seat] = belief
     }
@@ -394,7 +418,7 @@ public struct PublicLedger: Codable, Sendable, Equatable {
             for resource in Resource.allCases where excess > 0 {
                 let held = belief.known[resource] ?? 0
                 let removed = min(held, excess)
-                belief.known[resource] = held - removed
+                belief.setKnown(resource, to: held - removed)
                 excess -= removed
             }
             seats[seat] = belief
