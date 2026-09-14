@@ -1,7 +1,7 @@
 # Win-condition planner — design
 
 **Date:** 2026-09-14
-**Status:** approved for implementation
+**Status:** implemented; measured at 1.6% against a 25% null and **not shipped** — see the [delivery note](../../AI_summaries/2026-09-14-win-condition-planner.md)
 **Branch:** `feat/win-condition-planner`
 
 ## The problem

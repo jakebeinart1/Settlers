@@ -13,6 +13,7 @@ Plan and evidence: [25-point bot and performance work](docs/plans/2026-09-11-exp
 
 - [ ] Validate bot strength and repetitive behavior against human play; bot-vs-bot evaluation alone does not establish human difficulty.
 - [ ] Calibrate difficulty tiers against frozen anchors before adding a difficulty selector.
+- [ ] Iterate the win-condition planner, or retire it. `PlannerPolicy` is built, tested and measured: **1.6% against a 25% null** over 1,248 rotated games, with the all-heuristic control landing exactly on 25.0%. Three diagnosed defects and the order to fix them are in [the delivery note](docs/AI_summaries/2026-09-14-win-condition-planner.md). It is not in the app roster.
 - [ ] Compare future heuristic/search, RL/self-play, LLM and hybrid policies under the [AI research program](docs/AI_summaries/2026-09-05-ai-strategy-research-program.md). Research remains paused pending a separate decision.
 - [ ] Add opponent reactions to blocked expansion, Longest Road changes and settlement/city builds, available from the in-game message window.
 - [ ] Consider distinct background art for Expanded; the shipped mode uses the existing painted backdrop.
