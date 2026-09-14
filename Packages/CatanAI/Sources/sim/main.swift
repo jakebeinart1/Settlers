@@ -107,10 +107,11 @@ private func fail(_ message: String) -> Never {
 // MARK: - Options
 
 private extension EvaluationBoardMode {
-    func board(seed: UInt64) -> Board {
+    func board(seed: UInt64, mode: GameMode = .classic) -> Board {
+        let shape: BoardShape = mode == .expanded ? .expanded : .classic
         switch self {
-        case .standard: BoardGenerator.standard()
-        case .randomized: BoardGenerator.randomized(seed: seed)
+        case .standard: return BoardGenerator.standard(shape)
+        case .randomized: return BoardGenerator.randomized(seed: seed, shape: shape)
         }
     }
 }
@@ -122,13 +123,19 @@ private struct SimulationConfiguration {
     var playerCount = GameSetup.standardPlayerCount
     var victoryPointTarget = Ruleset.forMode(.classic).defaultVictoryPointTarget
     var boardMode = EvaluationBoardMode.randomized
+    /// Which rule set the arm is played under. Expanded fixes its own target,
+    /// so `--victory-points` is not accepted with it - a run labelled 25 that
+    /// silently played to 10 is precisely the kind of drift this struct exists
+    /// to prevent.
+    var mode = GameMode.classic
 
     func state(seed: UInt64) -> GameState {
         GameSetup.newGame(
-            board: boardMode.board(seed: seed),
+            board: boardMode.board(seed: seed, mode: mode),
             seed: seed,
             playerCount: playerCount,
-            victoryPointTarget: victoryPointTarget
+            victoryPointTarget: victoryPointTarget,
+            mode: mode
         )
     }
 }
@@ -140,6 +147,7 @@ private struct Options {
     var firstSeed: UInt64 = 1
     var seatNames = defaultSeatNames
     var seatNamesWereProvided = false
+    var victoryPointsWereProvided = false
     var configuration = SimulationConfiguration()
     var buildID = "working-tree"
     var buildIDWasProvided = false
@@ -161,6 +169,9 @@ private struct Options {
           --victory-points N
                         points required to win: 8, 10 or 12 (default 10)
           --board MODE  standard fixed layout or seeded randomized layout
+          --mode MODE   classic or expanded rule set (default classic).
+                        expanded fixes the target at 25 and rejects
+                        --victory-points
                         (default randomized)
           --seats LIST  comma-separated policy names, exactly one per player
                         heuristics: balanced, aggressive, cautious
@@ -200,14 +211,19 @@ private func policy(named name: String, writer: CorpusWriter? = nil) -> any Poli
     case "balanced": personality = .balanced
     case "aggressive": personality = .aggressive
     case "cautious": personality = .cautious
-    case "greedy", "random", "joint-balanced": personality = nil
+    case "greedy", "random", "joint-balanced", "planner": personality = nil
     default:
-        fail("unknown seat '\(name)'; expected balanced, aggressive, cautious, greedy, random or joint-balanced")
+        fail(
+            "unknown seat '\(name)'; expected balanced, aggressive, cautious, "
+                + "planner, greedy, random or joint-balanced"
+        )
     }
     if let personality {
         base = HeuristicPolicy(personality: personality, id: "heuristic-\(name)")
     } else if name == "greedy" {
         base = GreedyPolicy()
+    } else if name == "planner" {
+        base = PlannerPolicy()
     } else if name == "joint-balanced" {
         base = JointTradeResponsePolicy()
     } else {
@@ -257,13 +273,34 @@ private func parseOptions(_ arguments: [String]) -> Options {
                   evaluationVictoryPointTargets.contains(target) else {
                 fail("--victory-points must be 8, 10 or 12")
             }
+            // Order-independent: Expanded fixes its own target, so naming both
+            // is a contradiction however they are ordered on the line, and a
+            // run whose label disagrees with the rules it played is worse than
+            // one that refuses to start.
+            guard options.configuration.mode == .classic else {
+                fail("--victory-points cannot be combined with --mode expanded, which fixes the target at 25")
+            }
             options.configuration.victoryPointTarget = target
+            options.victoryPointsWereProvided = true
         case "--board":
             let value = uniqueValue(for: "--board")
             guard let mode = EvaluationBoardMode(rawValue: value) else {
                 fail("--board must be standard or randomized")
             }
             options.configuration.boardMode = mode
+        case "--mode":
+            let value = uniqueValue(for: "--mode")
+            switch value {
+            case "classic": options.configuration.mode = .classic
+            case "expanded":
+                guard !options.victoryPointsWereProvided else {
+                    fail("--victory-points cannot be combined with --mode expanded, which fixes the target at 25")
+                }
+                options.configuration.mode = .expanded
+                options.configuration.victoryPointTarget =
+                    Ruleset.forMode(.expanded).defaultVictoryPointTarget
+            default: fail("--mode must be classic or expanded")
+            }
         case "--seats", "--personalities":
             let flag = arguments[index]
             options.seatNames = nextValue(for: flag).split(separator: ",").map(String.init)

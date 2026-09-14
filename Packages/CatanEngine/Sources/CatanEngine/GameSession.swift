@@ -76,6 +76,27 @@ public struct GameSession: Sendable {
     /// changing how a bot breaks ties cannot shift the dice.
     public private(set) var policyRNG: RandomSource
 
+    /// One counted view of the table per seat, maintained as moves are
+    /// applied.
+    ///
+    /// ## Why the session owns this and not the policy
+    /// A `Policy` is handed one position and asked for one move; it has no
+    /// memory between calls and no sight of the events a move produced. Card
+    /// counting is a fold over that event stream, so the only place it can
+    /// live without giving every policy mutable state is here - the one loop
+    /// every move already passes through.
+    ///
+    /// Each seat's ledger is folded from events **masked for that seat**, so a
+    /// seat is never told the identity of a card it did not see move. That is
+    /// the difference between a bot that counts cards and a bot that reads
+    /// hands.
+    private var ledgers: [PlayerID: PublicLedger] = [:]
+
+    /// What `seat` may legitimately believe about every hand at the table.
+    public func ledger(for seat: PlayerID) -> PublicLedger {
+        ledgers[seat] ?? PublicLedger.fromPositionAlone(state, observer: seat)
+    }
+
     /// Exact policy evaluations performed by the most recent decision or
     /// commit operation. A proposal may ask several responders before one
     /// acceptance wins; all answers matter to evaluators, not only the one
@@ -108,6 +129,7 @@ public struct GameSession: Sendable {
         self.state = state
         self.policies = policies
         self.policyRNG = RandomSource(seed: policySeed)
+        self.ledgers = Self.freshLedgers(for: state)
         restorePendingTradeBookkeeping()
     }
 
@@ -123,6 +145,16 @@ public struct GameSession: Sendable {
         let queuedTradeResponse: Decision?
         let currentTurnSeat: PlayerID?
         let actionsThisTurn: Int
+        /// Counted card beliefs, one per seat.
+        ///
+        /// Optional so that a checkpoint written before ledgers existed still
+        /// decodes - the synthesized decoder uses `decodeIfPresent` for an
+        /// optional, and a resumed game with no stored beliefs rebuilds them
+        /// from the position alone. That is a weaker belief than a counted one
+        /// and never a wrong one; the alternative, silently resetting every
+        /// belief on resume without saying so, is the kind of quiet difference
+        /// this repository has paid for before.
+        let ledgers: [PlayerID: PublicLedger]?
 
         /// Reject invalid wire state before nextActor indexes a seat or a
         /// decision increments a counter. This checks session invariants;
@@ -178,7 +210,8 @@ public struct GameSession: Sendable {
         Checkpoint(version: 1, state: state, policyIDs: policies.mapValues { $0.id },
                    policyRNG: policyRNG, policyEvaluationCount: policyEvaluationCount,
                    queuedTradeResponse: queuedTradeResponse,
-                   currentTurnSeat: currentTurnSeat, actionsThisTurn: actionsThisTurn)
+                   currentTurnSeat: currentTurnSeat, actionsThisTurn: actionsThisTurn,
+                   ledgers: ledgers)
     }
 
     /// Callers supply the same policy implementations/configurations identified
@@ -196,6 +229,56 @@ public struct GameSession: Sendable {
         self.queuedTradeResponse = checkpoint.queuedTradeResponse
         self.currentTurnSeat = checkpoint.currentTurnSeat
         self.actionsThisTurn = checkpoint.actionsThisTurn
+        self.ledgers = checkpoint.ledgers ?? Self.freshLedgers(for: checkpoint.state)
+    }
+
+    /// A position-only ledger for every seat, with no counted history behind it.
+    static func freshLedgers(for state: GameState) -> [PlayerID: PublicLedger] {
+        var ledgers: [PlayerID: PublicLedger] = [:]
+        for player in state.players {
+            ledgers[player.id] = PublicLedger.fromPositionAlone(state, observer: player.id)
+        }
+        return ledgers
+    }
+
+    /// The seat and vertex of a second-placement settlement, if this move was
+    /// one. The vertex is the settlement the seat did not have before, which
+    /// only a caller holding both states can identify.
+    private func initialGrant(
+        in events: [GameEvent],
+        stateBefore: GameState
+    ) -> (seat: PlayerID, vertex: VertexID)? {
+        guard case .setupBackward = stateBefore.phase else { return nil }
+        for event in events {
+            guard case .placedInitialSettlement(let seat) = event,
+                  let before = stateBefore.players.first(where: { $0.id == seat }),
+                  let after = state.players.first(where: { $0.id == seat }),
+                  let vertex = after.settlements.subtracting(before.settlements).sorted().first
+            else { continue }
+            return (seat, vertex)
+        }
+        return nil
+    }
+
+    /// Folds one applied move's events into every seat's ledger.
+    ///
+    /// Called from the two places a move can be applied, with the state as it
+    /// was *before* the move: a roll's payout depends on where the robber was
+    /// and what the bank held at the moment it was rolled.
+    private mutating func recordInLedgers(_ events: [GameEvent], stateBefore: GameState) {
+        let grant = initialGrant(in: events, stateBefore: stateBefore)
+        for seat in ledgers.keys.sorted() {
+            guard var ledger = ledgers[seat] else { continue }
+            for event in events {
+                ledger.apply(event.masked(for: seat), stateBefore: stateBefore)
+            }
+            if let grant {
+                ledger.creditInitialGrant(to: grant.seat, at: grant.vertex, board: state.board)
+            }
+            ledger.reconcileHandSizes(from: state)
+            ledger.reconcileObserverHand(from: state)
+            ledgers[seat] = ledger
+        }
     }
 
     /// One applied move.
@@ -294,7 +377,7 @@ public struct GameSession: Sendable {
             return !alreadyPendingFromSeat && attemptsUsed < RulesEngine.maxTradeProposalsPerTurn
         }
         let observation = GameObservation(seat: seat, state: state, legalMoves: legal)
-        let chosen = policy.decide(observation, rng: &policyRNG)
+        let chosen = decide(with: policy, observation: observation, seat: seat)
         precondition(
             legal.contains(chosen),
             "policy \(policy.id) returned a move outside its action mask"
@@ -313,7 +396,9 @@ public struct GameSession: Sendable {
     /// Applies a move a policy chose.
     public mutating func commit(seat: PlayerID, move: GameMove) throws -> Step {
         lastPolicyDecisions = []
+        let stateBefore = state
         let result = try RulesEngine.applyReportingPrivateEvents(move, by: seat, to: &state)
+        recordInLedgers(result.events, stateBefore: stateBefore)
         if queuedTradeResponse?.seat == seat, queuedTradeResponse?.move == move {
             queuedTradeResponse = nil
         }
@@ -340,7 +425,9 @@ public struct GameSession: Sendable {
     @discardableResult
     public mutating func applyExternal(_ move: GameMove, by seat: PlayerID) throws -> Step {
         lastPolicyDecisions = []
+        let stateBefore = state
         let result = try RulesEngine.applyReportingPrivateEvents(move, by: seat, to: &state)
+        recordInLedgers(result.events, stateBefore: stateBefore)
         recordAction(by: seat, move: move)
         return Step(actor: seat, move: move, events: result.events, privateEvents: result.privateEvents)
     }
@@ -350,6 +437,9 @@ public struct GameSession: Sendable {
     public mutating func replace(state newState: GameState) {
         lastPolicyDecisions = []
         state = newState
+        // A wholesale replacement is a different game; counted beliefs about
+        // the old one would be worse than none.
+        ledgers = Self.freshLedgers(for: newState)
         currentTurnSeat = nil
         actionsThisTurn = 0
         policyEvaluationCount = 0
@@ -429,7 +519,7 @@ public struct GameSession: Sendable {
     private mutating func tradeDecision(for seat: PlayerID, offer: TradeOffer) -> Decision? {
         guard let policy = policies[seat] else { return nil }
         let observation = tradeObservation(for: seat, offer: offer)
-        let chosen = policy.decide(observation, rng: &policyRNG)
+        let chosen = decide(with: policy, observation: observation, seat: seat)
         precondition(observation.legalMoves.contains(chosen), "policy \(policy.id) returned a non-response to an open trade")
         let decision = recordedDecision(seat: seat, move: chosen, observation: observation)
         lastPolicyDecisions.append(decision)
@@ -468,5 +558,33 @@ public struct GameSession: Sendable {
         lastPolicyDecisions.removeAll {
             $0.seat == queuedTradeResponse.seat && $0.move == queuedTradeResponse.move
         }
+    }
+}
+
+/// A policy that wants the counted view of the table as well as the position.
+///
+/// ## Why this is a second protocol and not a field on `GameObservation`
+/// Adding the ledger to the observation looked simpler and is not. The
+/// observation is `Codable` and `Equatable`, it is stored inside a session
+/// checkpoint's queued trade response, and `Checkpoint.validate()` asserts
+/// that the stored observation's state equals the session's. A belief folded
+/// from a different event history would fail that comparison and reject a
+/// perfectly good save. It is also serialised into every exported training
+/// example, where it is not wanted.
+///
+/// So the ledger travels beside the observation instead. A policy that does
+/// not adopt this protocol is called exactly as before and cannot tell the
+/// difference.
+public protocol LedgerAwarePolicy: Policy {
+    func decide(_ observation: GameObservation, ledger: PublicLedger, rng: inout RandomSource) -> GameMove
+}
+
+extension GameSession {
+    /// Calls `policy`, handing it the counted view if it asked for one.
+    mutating func decide(with policy: any Policy, observation: GameObservation, seat: PlayerID) -> GameMove {
+        if let aware = policy as? any LedgerAwarePolicy {
+            return aware.decide(observation, ledger: ledger(for: seat), rng: &policyRNG)
+        }
+        return policy.decide(observation, rng: &policyRNG)
     }
 }

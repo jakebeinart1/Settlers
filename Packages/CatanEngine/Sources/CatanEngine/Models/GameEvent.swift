@@ -77,3 +77,47 @@ public struct AppliedMoveResult: Sendable, Equatable {
         self.privateEvents = privateEvents
     }
 }
+
+extension GameEvent {
+    /// This event as `observer` is entitled to see it.
+    ///
+    /// ## Why this exists
+    /// `movedRobber` and `playedKnight` carry `stealing:` - a resource the
+    /// doc comment above describes as one "only the engine knows". Handing
+    /// that to every seat makes a card-counting observer strictly better
+    /// informed than a human at the same table, which turns any strength
+    /// measured against it into a measurement of the leak rather than of the
+    /// policy.
+    ///
+    /// Two seats are entitled to it and no others: the thief, who takes the
+    /// card into their own hand, and the victim, who watches it leave theirs.
+    /// For everyone else the resource becomes `nil`, which is exactly what a
+    /// player at the table observes - a card moved, identity unknown.
+    ///
+    /// Every other case is already public by construction. A bought
+    /// development card reports only that it was bought (`PrivateGameEvent`
+    /// carries the face), and a discard reports only a count.
+    public func masked(for observer: PlayerID) -> GameEvent {
+        switch self {
+        case .movedRobber(let actor, let victim, _):
+            guard observer != actor, observer != victim else { return self }
+            return .movedRobber(actor, from: victim, stealing: nil)
+        case .playedKnight(let actor, let victim, _):
+            guard observer != actor, observer != victim else { return self }
+            return .playedKnight(actor, from: victim, stealing: nil)
+        default:
+            return self
+        }
+    }
+
+    /// Whether this event hides something from `observer` that it reveals to
+    /// someone else. Used by tests to prove the mask covers every leaking case.
+    public var carriesPrivateDetail: Bool {
+        switch self {
+        case .movedRobber(_, _, let stolen), .playedKnight(_, _, let stolen):
+            return stolen != nil
+        default:
+            return false
+        }
+    }
+}
