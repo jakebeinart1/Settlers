@@ -6,10 +6,14 @@
 
 ## Verdict first
 
-`EvaluationPolicy` wins **43.0%** of games against three frozen `balanced`
+`EvaluationPolicy` wins **47.3%** of games against three frozen `balanced`
 heuristics, over 1,248 decisive games with complete chair rotation on held-out
-seeds, against a 25.0% null — 95% CI [40.3, 45.8]. The control arm returned
+seeds, against a 25.0% null — 95% CI [44.5, 50.0]. The control arm returned
 exactly 25.0%.
+
+That figure is with fitted weights. Hand-set weights scored 43.0%; a weight
+sweep added **+4.7 points, paired, McNemar p = 0.010** (see
+[the sweep](#the-weight-sweep) below, and read both of its columns).
 
 It is the first candidate in this repository to beat the shipping bot under the
 `bot-strength` protocol. It is **not** wired into the app roster, and should not
@@ -126,18 +130,19 @@ how a bot becomes a donor.
   independent anchor is the next thing that should happen.
 - **Classic, four players, 10 VP.** Expanded strength is unmeasured; only
   termination was checked.
-- **Weights are hand-set, not fitted.** They were written from the game's own
-  arithmetic. `EvaluationWeights.vector` exists so that a sweep can change that,
-  and no sweep has been run.
+- **The weights are fitted against one opponent.** They were tuned against
+  `eval` and validated against `balanced`, and the gap between those two results
+  says plainly that some of what was learned is specific to `eval`. Whether the
+  fitted weights hold up against a *third* opponent is unmeasured, and it is the
+  single best argument for the independent anchor below.
 
 ## What comes next, in the order the evidence supports
 
 1. **An opponent we did not design.** Catanatron is GPL-3.0, so it can be an
    external benchmark process but never linked into the app. This is what turns
    "beats our bot" into "plays Catan well".
-2. **Sweep the weights.** This is where the remaining points most likely are,
-   and it is the first real customer for a method this repository has had
-   documented and unusable since `BotWeights` was written.
+2. ~~**Sweep the weights.**~~ Done: +4.7 points, and the `--weights` seam now
+   exists for `BotWeights` to use the same way.
 3. **Fold the planner's clock in as one feature.** Expected turns to the target
    is not discarded — it is the term this policy does not yet carry. Leaving it
    out here is what makes its contribution measurable rather than assumed.
