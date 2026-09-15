@@ -67,6 +67,8 @@ extension EvaluationPolicy {
         ledger: PublicLedger,
         evaluator: PositionEvaluator
     ) -> Double? {
+        guard improvesOnEveryRefusal(offer, in: state) else { return nil }
+
         let payers = PlannerTradeEvaluator(seat: evaluator.seat)
             .plausiblePayers(of: offer, state: state, ledger: ledger)
         guard !payers.isEmpty else { return nil }
@@ -112,5 +114,48 @@ extension EvaluationPolicy {
             state.players[taker].resources[resource] = (state.players[taker].resources[resource] ?? 0) + amount
         }
         return true
+    }
+
+    /// Whether `offer` is worth putting in front of a table that has already
+    /// refused something this turn.
+    ///
+    /// ## Why this is not the engine's job
+    /// `RulesEngine.maxTradeProposalsPerTurn` caps a seat at three proposals a
+    /// turn, and its doc comment says plainly what the cap is for: stopping "a
+    /// policy that just keeps retrying a declined offer forever". It is a
+    /// backstop, not the rule. `TradeHeuristics.untried` is where the shipping
+    /// bot declines to re-ask, and this policy had no equivalent - so it
+    /// re-proposed the same offer until the cap cut it off, three identical
+    /// asks in a row. Declining changes nothing about the board, so the offer
+    /// that scored highest before scores highest again; nothing here was ever
+    /// going to break that loop on its own.
+    ///
+    /// ## "A better trade or nothing"
+    /// Three shapes are refused, all of them re-asks that a person has already
+    /// said no to:
+    /// - the identical offer;
+    /// - the same ask for less on the table;
+    /// - the same goods on the table for a bigger ask.
+    ///
+    /// A genuinely different trade - different resources, or more offered for
+    /// the same ask - is still allowed, because that is a new proposition
+    /// rather than pestering. Comparison is by content and never by `id`: an
+    /// offer the player refused and an offer the search regenerated are equal
+    /// as propositions however they were built.
+    func improvesOnEveryRefusal(_ offer: TradeOffer, in state: GameState) -> Bool {
+        let refusals = state.declinedTradeOffersThisTurn[offer.from] ?? []
+        for refused in refusals {
+            if refused.give == offer.give && refused.want == offer.want { return false }
+            if refused.want == offer.want, total(offer.give) <= total(refused.give) { return false }
+            if refused.give == offer.give, total(offer.want) >= total(refused.want) { return false }
+        }
+        return true
+    }
+
+    /// Cards in a half of a trade. Summed over `Resource.allCases` rather than
+    /// the dictionary's own order - these are counts feeding a comparison that
+    /// orders candidate moves, and dictionary order is seeded per process.
+    private func total(_ amounts: [Resource: Int]) -> Int {
+        Resource.allCases.reduce(0) { $0 + (amounts[$1] ?? 0) }
     }
 }
