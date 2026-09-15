@@ -6,28 +6,63 @@
 
 ## Verdict first
 
-`EvaluationPolicy` wins **62.4%** of games against three frozen `balanced`
-heuristics, over 1,248 decisive games with complete chair rotation on held-out
-seeds, against a 25.0% null — 95% CI [59.7, 65.1]. The control arm returned
-exactly 25.0%.
-
-Three changes got it there, and the largest came from a bug report rather than
-from the search:
+`EvaluationPolicy` wins **68.4%** of Classic games against three frozen
+`balanced` heuristics, over 1,248 decisive games with complete chair rotation on
+held-out seeds, against a 25.0% null — 95% CI [65.9, 71.0]. The control arm
+returned exactly 25.0%.
 
 | change | win rate |
 |---|---:|
 | hand-set weights | 43.0% |
 | fitted weights (SPSA sweep) | 47.3% |
-| **stop re-asking a refused trade** | **62.4%** |
+| stop re-asking a refused trade | 62.4% |
+| Expanded stall fixes, per-mode weights, refuse worthless trades | **68.4%** |
 
-That figure is with fitted weights. Hand-set weights scored 43.0%; a weight
-sweep added **+4.7 points, paired, McNemar p = 0.010** (see
+The largest single step came from Jake playing the game, not from the search.
+The sweep's +4.7 points are paired, McNemar p = 0.010 (see
 [the sweep](#the-weight-sweep) below, and read both of its columns).
 
-It is the first candidate in this repository to beat the shipping bot under the
-`bot-strength` protocol. It is **not** wired into the app roster, and should not
-be until it has also been measured against an opponent this repository did not
-design.
+It ships in the app as the **Expert** difficulty, chosen on the New Game screen
+beside the heuristic's Classic tier. Expanded strength is unmeasured: four Expert
+bots finish 38 of 40 seeded 25-point games, where the heuristic finishes 40.
+
+## Round three: the Expanded stall, and two ideas that lost
+
+The gate failed a four-Expert Expanded game that ran 8,000 moves without a
+winner. Dumping stalled games found two distinct traps, both invisible in
+Classic because Classic games end before the board or the hands fill up.
+
+- **A settlement two roads away was invisible.** A seat at 24 of 25 with cities
+  maxed, the deck empty and both bonuses settled could only win with a distant
+  settlement, and the evaluator only saw sites touching its roads.
+  `BoardIndex.approachableSites` searches four roads out; turning it off in
+  Classic costs 5.9 points, so it was a gap there too.
+- **Hoarding scored as correct.** Seats sat on 17–23 cards with nine settlements
+  unbuilt. Crediting nothing past the discard threshold fixed Expanded and cost
+  Classic 8.7 points, so the credit is a per-mode weight.
+
+Development cards now price at their public expectation, including the chance of
+a victory point; reverting to knight-only pricing costs 4.0 points.
+
+Two questions Jake raised from play were measured rather than argued:
+
+| idea | Classic win rate |
+|---|---:|
+| baseline | 57.5% |
+| price expected discards before ending a turn (−0.20) | 39.0% |
+| price expected discards before ending a turn (−0.40) | 36.1% |
+| only trade for a gain of at least 0.10 | 27.1% |
+
+The bot does lose 9.0 cards a game to sevens against the heuristic's 1.9 — but
+avoiding that costs certain cards at the bank to dodge a probable loss, and
+empties the hand its trading runs on. And its median accepted trade is worth
+0.037, so a floor removes nine trades in ten. Both stay as switched-off weights.
+
+What *was* wrong with trading: 100 of 336 accepted offers were worth exactly
+nothing to the bot, taken because accept sorts before decline on a tie. It now
+refuses a trade that does not strictly help it, at no measured cost. It never
+refused a helpful offer (0 of 1,372), and neither tier ever paid the bank above
+its own best port (0 of 403 trades).
 
 ## What changed from the planner
 

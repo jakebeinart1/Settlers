@@ -21,7 +21,10 @@ import CatanEngine
 /// | tier | policy | win rate |
 /// |---|---|---|
 /// | Classic | `HeuristicPolicy` | 25.0% (it *is* the anchor) |
-/// | Expert | `EvaluationPolicy` | 47.3% (95% CI 44.5-50.0) |
+/// | Expert | `EvaluationPolicy` | 68.4% (95% CI 65.9-71.0) |
+///
+/// Classic mode only. Expert's Expanded strength has not been measured; what
+/// has is that four Expert bots finish 38 of 40 seeded 25-point games.
 ///
 /// That is the whole justification for offering a choice: the two tiers are
 /// known to differ, and by how much. A difficulty control whose levels had not

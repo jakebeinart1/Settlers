@@ -566,7 +566,7 @@ struct NewGameSetupView: View {
             help: .difficulty,
             helpText: "Classic is the opponent that has always shipped. Expert plans around your "
                 + "position and your opponents' rather than scoring each move on its own. Measured "
-                + "over 1,248 games with every seat rotated, Expert wins 47% against a 25% average.",
+                + "over 1,248 Classic games with every seat rotated, Expert wins 68% against a 25% average.",
             caption: setup.difficulty.summary
         ) {
             PaintedChoiceRow(
