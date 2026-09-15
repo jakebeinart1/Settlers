@@ -156,10 +156,15 @@ private struct Options {
     var decisionOutput: String?
     var traceMaxBytes = CorpusWriter.defaultMaxBytes
     var trainingInformationPolicy: HiddenInformationPolicy = .revealAll
+    /// Weights for the `eval-tuned` seat. A sweep varies this and nothing
+    /// else, so one binary plays every candidate and the arms of a
+    /// comparison differ by a value rather than by a build.
+    var tunedWeights: EvaluationWeights = .default
 
     static let usage = """
         usage: sim [--games N] [--seed S] [--players 3|4] [--victory-points 8|10|12]
                    [--board standard|randomized] [--seats LIST] [--build-id ID] [--jsonl]
+                   [--weights W1,...,W14]
                    [--training-jsonl PATH]
                    [--training-information reveal-all|public-counts]
                    [--decision-jsonl PATH] [--trace-max-bytes N]
@@ -177,6 +182,7 @@ private struct Options {
                         heuristics: balanced, aggressive, cautious
                         anchors:    greedy, random
                         search: eval (position evaluation, the current candidate)
+                        sweep:  eval-tuned (same, with --weights)
                         experiment: joint-balanced (trade-response accounting only)
                         (four-seat default balanced,aggressive,cautious,balanced;
                         a three-seat run uses the first three)
@@ -205,18 +211,19 @@ private struct Options {
 /// Unknown names abort rather than falling back to `.balanced`: a typo'd arm
 /// silently played by the default opponent is the exact way a bogus strength
 /// claim gets made.
-private func policy(named name: String, writer: CorpusWriter? = nil) -> any Policy {
+private func policy(named name: String, writer: CorpusWriter? = nil,
+                    tunedWeights: EvaluationWeights = .default) -> any Policy {
     let base: any Policy
     let personality: BotPersonality?
     switch name {
     case "balanced": personality = .balanced
     case "aggressive": personality = .aggressive
     case "cautious": personality = .cautious
-    case "greedy", "random", "joint-balanced", "planner", "eval": personality = nil
+    case "greedy", "random", "joint-balanced", "planner", "eval", "eval-tuned": personality = nil
     default:
         fail(
             "unknown seat '\(name)'; expected balanced, aggressive, cautious, "
-                + "eval, planner, greedy, random or joint-balanced"
+                + "eval, eval-tuned, planner, greedy, random or joint-balanced"
         )
     }
     if let personality {
@@ -227,6 +234,8 @@ private func policy(named name: String, writer: CorpusWriter? = nil) -> any Poli
         base = PlannerPolicy()
     } else if name == "eval" {
         base = EvaluationPolicy()
+    } else if name == "eval-tuned" {
+        base = EvaluationPolicy(id: "evaluation-tuned", weights: tunedWeights)
     } else if name == "joint-balanced" {
         base = JointTradeResponsePolicy()
     } else {
@@ -316,6 +325,20 @@ private func parseOptions(_ arguments: [String]) -> Options {
             }
             options.buildID = value
             options.buildIDWasProvided = true
+        case "--weights":
+            let value = uniqueValue(for: "--weights")
+            let numbers = value.split(separator: ",").map { Double($0.trimmingCharacters(in: .whitespaces)) }
+            guard numbers.allSatisfy({ $0 != nil }) else { fail("--weights must be comma-separated numbers") }
+            let parsed = numbers.compactMap { $0 }
+            guard parsed.count == EvaluationWeights.vectorLabels.count else {
+                fail(
+                    "--weights needs \(EvaluationWeights.vectorLabels.count) values in the order "
+                        + EvaluationWeights.vectorLabels.joined(separator: ",")
+                        + "; got \(parsed.count)"
+                )
+            }
+            guard parsed.allSatisfy({ $0.isFinite }) else { fail("--weights must all be finite") }
+            options.tunedWeights = EvaluationWeights(vector: parsed)
         case "--jsonl":
             options.jsonl = true
         case "--training-jsonl":
@@ -671,7 +694,9 @@ private final class TrainingWriter {
 // less visible than it is.
 private let options = parseOptions(CommandLine.arguments)
 // Validate all seats before creating either export file.
-private let validatedSeats = options.seatNames.map { policy(named: $0) }
+private let validatedSeats = options.seatNames.map {
+    policy(named: $0, tunedWeights: options.tunedWeights)
+}
 private let corpusWriter: CorpusWriter? = {
     guard let path = options.decisionOutput else { return nil }
     do {
@@ -680,7 +705,9 @@ private let corpusWriter: CorpusWriter? = {
         fail("could not create decision trace (refusing overwrite) at \(path): \(error)")
     }
 }()
-private let seats = corpusWriter.map { writer in options.seatNames.map { policy(named: $0, writer: writer) } }
+private let seats = corpusWriter.map { writer in
+    options.seatNames.map { policy(named: $0, writer: writer, tunedWeights: options.tunedWeights) }
+}
     ?? validatedSeats
 private let clock = ContinuousClock()
 private let started = clock.now
