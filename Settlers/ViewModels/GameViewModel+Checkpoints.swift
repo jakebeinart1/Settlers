@@ -45,7 +45,9 @@ extension GameViewModel {
         }
         let setup = legacyRealizedSetup(state: state, active: active, seat: seat)
         let profiles = Self.profiles(in: setup)
-        let candidate = Self.makeSession(state: state, opponentProfiles: profiles)
+        let candidate = Self.makeSession(
+            state: state, opponentProfiles: profiles, difficulty: setup.difficulty
+        )
         let document = try MatchCheckpointMigration.prepare(
             session: candidate.checkpoint, setup: setup, statistics: gameStatsStore,
             activeLog: legacyActiveLog())
@@ -102,7 +104,13 @@ extension GameViewModel {
         guard profiles.count == match.setup.aiSeats.count, let savedSession = match.sessionCheckpoint else {
             throw SavedGameRecoveryError.blocked("The saved session or realized opponents are missing.")
         }
-        let restored = try GameSession(checkpoint: savedSession, policies: Self.makePolicies(profiles))
+        // The resumed match keeps the difficulty it was started under -
+        // that is the whole reason difficulty is stored with the setup
+        // rather than read live from a preference.
+        let restored = try GameSession(
+            checkpoint: savedSession,
+            policies: Self.makePolicies(profiles, difficulty: match.setup.difficulty)
+        )
         session = restored
         self.playerRoster = playerRoster
         pendingDevCardReveal = checkpointDocument?.pendingDevCardReveal

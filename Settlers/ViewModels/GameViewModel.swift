@@ -285,7 +285,12 @@ public final class GameViewModel {
             for: initialState, humanSeats: [seat],
             civilizations: assignment
         )
-        session = Self.makeSession(state: initialState, opponentProfiles: profiles)
+        // The placeholder table built before a saved match is restored.
+        // Whatever is restored replaces this session along with its own
+        // difficulty, so this one only has to be a legal table.
+        session = Self.makeSession(
+            state: initialState, opponentProfiles: profiles, difficulty: .default
+        )
         playerRoster = PlayerRoster(
             playerIDs: initialState.players.map(\.id), humanSeats: [seat],
             humanNames: humanNames, civilizations: assignment,
@@ -326,7 +331,10 @@ public final class GameViewModel {
         do {
             let realized = Self.realisedMatch(chairs: match.chairs, civilizations: match.civilizations,
                                              opponentProfiles: match.opponentProfiles, from: setup)
-            let candidate = Self.makeSession(state: match.state, opponentProfiles: match.opponentProfiles)
+            let candidate = Self.makeSession(
+                state: match.state, opponentProfiles: match.opponentProfiles,
+                difficulty: setup.difficulty
+            )
             try replaceActiveMatch(state: match.state, setup: realized, session: candidate)
             resetPerGameState()
             try installCheckpointMatch()
@@ -423,23 +431,33 @@ public final class GameViewModel {
 
     /// The configured seats renumbered into the chairs they were dealt, with
     /// every civilization now decided - the record a resumed game reads.
+    /// ## Copy the setup and replace the seats; never rebuild it field by field
+    /// This listed `mode`, `victoryPointTarget`, `randomizedBoard` and
+    /// `randomizeSeatOrder` by hand, so the realized record silently lost any
+    /// field added to `MatchSetup` afterwards. `difficulty` was the first, and
+    /// the failure was not a missing setting - it was **"the new game could
+    /// not be saved"** on every Expert match. The session was built with
+    /// `EvaluationPolicy`, the realized setup was written claiming Classic,
+    /// and `installCheckpointMatch` restores through `makePolicies` to check
+    /// its own work: the policy IDs disagreed and `GameSession.init(checkpoint:)`
+    /// threw `incompatibleCheckpoint`.
+    ///
+    /// Copying makes the next added field correct without anyone remembering
+    /// this. Only the seats are realized here; nothing else about the match
+    /// changes when chairs are dealt.
     static func realisedMatch(chairs: [MatchSetup.Seat],
                               civilizations: [Civilization],
                               opponentProfiles: [PlayerID: OpponentProfile],
                               from setup: MatchSetup) -> MatchSetup {
-        MatchSetup(
-            seats: chairs.enumerated().map { chair, configured in
-                MatchSetup.Seat(index: chair,
-                                isHuman: configured.isHuman,
-                                name: configured.name.trimmingCharacters(in: .whitespacesAndNewlines),
-                                civilization: civilizations[chair],
-                                opponentProfile: opponentProfiles[PlayerID(index: chair)])
-            },
-            mode: setup.mode,
-            victoryPointTarget: setup.victoryPointTarget,
-            randomizedBoard: setup.randomizedBoard,
-            randomizeSeatOrder: setup.randomizeSeatOrder
-        )
+        var realized = setup
+        realized.seats = chairs.enumerated().map { chair, configured in
+            MatchSetup.Seat(index: chair,
+                            isHuman: configured.isHuman,
+                            name: configured.name.trimmingCharacters(in: .whitespacesAndNewlines),
+                            civilization: civilizations[chair],
+                            opponentProfile: opponentProfiles[PlayerID(index: chair)])
+        }
+        return realized
     }
 
     /// Restart the realized table, keeping the configured next-game prefill
@@ -680,7 +698,9 @@ public final class GameViewModel {
             opponentProfiles: profiles
         )
         CivilizationAssignment.humanNames = names
-        session = Self.makeSession(state: newState, opponentProfiles: profiles)
+        session = Self.makeSession(
+            state: newState, opponentProfiles: profiles, difficulty: .default
+        )
         resetDiscardPresentation()
         persistTestingPosition()
         reconcileBoardDecision()
@@ -716,7 +736,9 @@ public final class GameViewModel {
             humanNames: names, civilizations: CivilizationAssignment.current,
             opponentProfiles: profiles
         )
-        session = Self.makeSession(state: state, opponentProfiles: profiles)
+        session = Self.makeSession(
+            state: state, opponentProfiles: profiles, difficulty: .default
+        )
         persistTestingPosition()
     }
 
@@ -1054,17 +1076,28 @@ public final class GameViewModel {
     /// Modern resume restores the saved policy RNG and negotiation bookkeeping.
     static func makeSession(
         state: GameState,
-        opponentProfiles: [PlayerID: OpponentProfile]
+        opponentProfiles: [PlayerID: OpponentProfile],
+        difficulty: BotDifficulty
     ) -> GameSession {
         var seedSource = state.rng
-        return GameSession(state: state, policies: makePolicies(opponentProfiles), policySeed: seedSource.next())
+        return GameSession(
+            state: state,
+            policies: makePolicies(opponentProfiles, difficulty: difficulty),
+            policySeed: seedSource.next()
+        )
     }
 
-    static func makePolicies(_ profiles: [PlayerID: OpponentProfile]) -> [PlayerID: any Policy] {
-        profiles.mapValues { profile in
-            HeuristicPolicy(personality: profile.strategicPersonality,
-                            id: "heuristic-\(profile.strategy.rawValue)")
-        }
+    /// The policies for one table.
+    ///
+    /// `difficulty` has no default on purpose. A caller that forgot it would
+    /// silently seat the tier nobody chose, and "the arm was silently played by
+    /// the default opponent" is the exact shape of every bogus strength claim
+    /// this project has had to retract.
+    static func makePolicies(
+        _ profiles: [PlayerID: OpponentProfile],
+        difficulty: BotDifficulty
+    ) -> [PlayerID: any Policy] {
+        profiles.mapValues { difficulty.policy(for: $0) }
     }
 
     private func beginEventBatch() {

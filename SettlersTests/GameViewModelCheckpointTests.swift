@@ -420,7 +420,7 @@ struct GameViewModelCheckpointTests {
             randomizedBoard: false,
             randomizeSeatOrder: false
         )
-        let session = GameViewModel.makeSession(state: state, opponentProfiles: profiles)
+        let session = GameViewModel.makeSession(state: state, opponentProfiles: profiles, difficulty: .classic)
         var match = MatchCheckpoint(id: UUID(), initialState: state, setup: setup)
         try match.attachSession(session.checkpoint)
         let store = MatchCheckpointStore(

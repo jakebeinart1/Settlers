@@ -57,14 +57,24 @@ public struct MatchSetup: Codable, Equatable, Sendable {
     public var victoryPointTarget: Int
     public var randomizedBoard: Bool
     public var randomizeSeatOrder: Bool
+    /// How strong the computer opponents play.
+    ///
+    /// Stored with the match rather than as a global preference, for the same
+    /// reason `mode` and `victoryPointTarget` are: it decides how the game is
+    /// played, so a running game must keep the opponents it was started with.
+    /// A preference read live would swap every bot's brain mid-match on the
+    /// next resume, which is a rule change disguised as a setting.
+    public var difficulty: BotDifficulty
 
     public init(seats: [Seat], mode: GameMode = .classic, victoryPointTarget: Int,
-                randomizedBoard: Bool, randomizeSeatOrder: Bool) {
+                randomizedBoard: Bool, randomizeSeatOrder: Bool,
+                difficulty: BotDifficulty = .default) {
         self.seats = seats
         self.mode = mode
         self.victoryPointTarget = victoryPointTarget
         self.randomizedBoard = randomizedBoard
         self.randomizeSeatOrder = randomizeSeatOrder
+        self.difficulty = difficulty
     }
 
     /// Hand-written for one field. `MatchSetup` is written to disk beside a
@@ -78,6 +88,9 @@ public struct MatchSetup: Codable, Equatable, Sendable {
         victoryPointTarget = try container.decode(Int.self, forKey: .victoryPointTarget)
         randomizedBoard = try container.decode(Bool.self, forKey: .randomizedBoard)
         randomizeSeatOrder = try container.decode(Bool.self, forKey: .randomizeSeatOrder)
+        // Absent in every setup written before difficulty existed. Those games
+        // were played against the heuristic and must resume against it.
+        difficulty = try container.decodeIfPresent(BotDifficulty.self, forKey: .difficulty) ?? .default
     }
 
     // MARK: - Validity

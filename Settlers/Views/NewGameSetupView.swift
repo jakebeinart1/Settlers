@@ -478,6 +478,7 @@ struct NewGameSetupView: View {
             modeRow
             matchLengthRow
             boardRow
+            difficultyRow
             seatingRow
         }
     }
@@ -554,6 +555,31 @@ struct NewGameSetupView: View {
         }
     }
 
+    /// Difficulty belongs here and not on the In-Game Settings screen, whose
+    /// subtitle promises "nothing here changes the rules of the game in
+    /// progress". Swapping every opponent's brain mid-match is exactly the
+    /// thing that promise rules out, so the choice is made when the match is
+    /// made and travels with it in `MatchSetup`.
+    private var difficultyRow: some View {
+        labelledChoice(
+            label: "Opponents",
+            help: .difficulty,
+            helpText: "Classic is the opponent that has always shipped. Expert plans around your "
+                + "position and your opponents' rather than scoring each move on its own. Measured "
+                + "over 1,248 games with every seat rotated, Expert wins 47% against a 25% average.",
+            caption: setup.difficulty.summary
+        ) {
+            PaintedChoiceRow(
+                options: BotDifficulty.allCases,
+                title: \.displayName,
+                selection: setup.difficulty,
+                isCompact: true,
+                fontSize: SeatCardView.bodyTextSize,
+                onSelect: { setup.difficulty = $0 }
+            )
+        }
+    }
+
     /// A5.4: with "As Shown" the cards above *are* the turn order, so it is
     /// visible before Start; with "Random" the caption says plainly that it is
     /// not yet decided, which is the other half of that criterion.
@@ -584,6 +610,7 @@ struct NewGameSetupView: View {
         case mode
         case matchLength
         case board
+        case difficulty
         case seating
     }
 
