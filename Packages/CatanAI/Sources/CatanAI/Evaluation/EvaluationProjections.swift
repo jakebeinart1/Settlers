@@ -18,20 +18,60 @@ import CatanEngine
 ///   heuristic's 20.6.
 extension EvaluationPolicy {
 
-    /// A development card priced as *a* card rather than as the card the deck
-    /// would deal: the cost leaves the hand and an unplayed card enters it.
+    /// A development card priced at its expectation over the deck's *public*
+    /// composition, never over what the deck actually holds.
     ///
-    /// The placeholder is a knight specifically because it is the one type
-    /// that changes no other term - it adds no victory point and, unplayed,
-    /// no army progress. What the card is worth on average is carried by
-    /// `EvaluationWeights.devCardHeld`, where a sweep can reach it.
+    /// ## Why an expectation and not a single placeholder
+    /// This used to append a knight, and only a knight, so that the deck's
+    /// order could not reach the decision. That was safe and it was wrong in
+    /// one decisive place: **a bought card could never project a victory
+    /// point.** At 24 of 25 with no site left to build on, the only route to
+    /// the last point is a victory-point card, and this priced it as worthless
+    /// - so the bot held its cards, and Expanded games between Expert bots
+    /// stalled one or two points short of the target until the move cap
+    /// ended them. Measured: 4 of 6 seeded Expanded games never finished. The
+    /// hand-set weights hid it only partly (2 of 16), because it is not a
+    /// weighting error; the card's best outcome was simply absent.
+    ///
+    /// Scoring both outcomes and weighting them by the chance of each is exact
+    /// expected value, and a card that would reach the target now carries
+    /// `EvaluationWeights.winning` in proportion to that chance.
+    ///
+    /// ## Why the rulebook's composition and not the live deck's
+    /// Which cards remain is not public: every seat's victory-point draws are
+    /// hidden until the game ends. The live deck's composition would therefore
+    /// tell this seat what its opponents have drawn. The deck the ruleset
+    /// *starts* with is printed in the rules, so that fraction is the honest
+    /// prior. `theEvaluatorIgnoresWhatItIsNotEntitledToSee` reverses the deck
+    /// and requires the same move, which this still satisfies because nothing
+    /// here reads the deck at all beyond whether it is empty.
     func projectedDevCard(
         state: GameState,
         ledger: PublicLedger,
         evaluator: PositionEvaluator
     ) -> Double? {
-        guard let index = state.players.firstIndex(where: { $0.id == evaluator.seat }) else { return nil }
-        guard state.devCardDeck.count > 0 else { return nil }
+        guard let paid = paidForDevCard(in: state, seat: evaluator.seat) else { return nil }
+        let chance = Self.publicVictoryPointChance(in: state.rules)
+
+        let asKnight = evaluated(paid, drawing: .knight, seat: evaluator.seat, ledger: ledger, evaluator: evaluator)
+        guard chance > 0 else { return asKnight }
+        let asPoint = evaluated(
+            paid, drawing: .victoryPoint, seat: evaluator.seat, ledger: ledger, evaluator: evaluator
+        )
+        return chance * asPoint + (1 - chance) * asKnight
+    }
+
+    /// The fraction of the ruleset's printed deck that is victory points.
+    static func publicVictoryPointChance(in rules: Ruleset) -> Double {
+        let size = rules.devCardDeckSize
+        guard size > 0 else { return 0 }
+        return Double(rules.devCardDeck[.victoryPoint] ?? 0) / Double(size)
+    }
+
+    /// The position with the card's cost paid, or `nil` if it cannot be.
+    private func paidForDevCard(in state: GameState, seat: PlayerID) -> GameState? {
+        guard let index = state.players.firstIndex(where: { $0.id == seat }) else { return nil }
+        guard !state.devCardDeck.isEmpty else { return nil }
 
         var next = state
         for resource in Resource.allCases {
@@ -41,8 +81,21 @@ extension EvaluationPolicy {
             guard held >= due else { return nil }
             next.players[index].resources[resource] = held - due
         }
-        next.players[index].devCards.append(.knight)
+        return next
+    }
 
+    /// `paid` with `card` in this seat's hand, evaluated.
+    private func evaluated(
+        _ paid: GameState,
+        drawing card: DevCardType,
+        seat: PlayerID,
+        ledger: PublicLedger,
+        evaluator: PositionEvaluator
+    ) -> Double {
+        var next = paid
+        if let index = next.players.firstIndex(where: { $0.id == seat }) {
+            next.players[index].devCards.append(card)
+        }
         var nextLedger = ledger
         nextLedger.reconcileObserverHand(from: next)
         return evaluator.evaluate(next, ledger: nextLedger)
@@ -73,6 +126,10 @@ extension EvaluationPolicy {
             .plausiblePayers(of: offer, state: state, ledger: ledger)
         guard !payers.isEmpty else { return nil }
 
+        // Worth proposing only if even the least favourable acceptance leaves
+        // this seat meaningfully better off than not trading at all. See
+        // `EvaluationWeights.tradeMargin`.
+        let standingStill = evaluator.evaluate(state, ledger: ledger)
         var worst: Double?
         for payer in payers {
             guard let settled = settled(offer, payer: payer, in: state) else { continue }
@@ -81,6 +138,7 @@ extension EvaluationPolicy {
             let score = evaluator.evaluate(settled, ledger: nextLedger)
             worst = worst.map { Swift.min($0, score) } ?? score
         }
+        guard let worst, worst > standingStill + evaluator.weights.tradeMargin else { return nil }
         return worst
     }
 

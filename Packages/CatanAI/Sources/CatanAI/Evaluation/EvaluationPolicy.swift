@@ -1,4 +1,5 @@
 import CatanEngine
+import Foundation
 
 /// Plays the move that leaves the best position, judged by `PositionEvaluator`.
 ///
@@ -32,11 +33,19 @@ import CatanEngine
 public struct EvaluationPolicy: LedgerAwarePolicy {
 
     public let id: String
-    public let weights: EvaluationWeights
+    /// Weights to play with regardless of mode, or `nil` to use the set
+    /// validated for whichever mode the game is in. A sweep sets this; the app
+    /// does not.
+    public let weightsOverride: EvaluationWeights?
 
-    public init(id: String = "evaluation-v1", weights: EvaluationWeights = .default) {
+    public init(id: String = "evaluation-v1", weights: EvaluationWeights? = nil) {
         self.id = id
-        self.weights = weights
+        self.weightsOverride = weights
+    }
+
+    /// The weights this policy plays `mode` with.
+    public func weights(for mode: GameMode) -> EvaluationWeights {
+        weightsOverride ?? .forMode(mode)
     }
 
     /// Without a ledger, fall back to a position-only belief: exact hand
@@ -77,7 +86,7 @@ public struct EvaluationPolicy: LedgerAwarePolicy {
     func best(among legal: [GameMove], state: GameState, ledger: PublicLedger) -> GameMove {
         // The ledger knows whose view this is; the policy does not carry a
         // seat of its own, so there is only one place the two can disagree.
-        let evaluator = PositionEvaluator(seat: ledger.observer, weights: weights)
+        let evaluator = PositionEvaluator(seat: ledger.observer, weights: weights(for: state.mode))
 
         var bestMove = legal[0]
         var bestScore = -Double.greatestFiniteMagnitude
@@ -109,7 +118,39 @@ public struct EvaluationPolicy: LedgerAwarePolicy {
         guard let (next, nextLedger) = applied(move, to: state, ledger: ledger, by: evaluator.seat) else {
             return nil
         }
-        return evaluator.evaluate(next, ledger: nextLedger)
+        let outcome = evaluator.evaluate(next, ledger: nextLedger)
+        if case .respondToTrade(let offerID, true) = move {
+            return acceptance(outcome, of: offerID, state: state, ledger: ledger, evaluator: evaluator)
+        }
+        return outcome
+    }
+
+    /// An acceptance's score, or `nil` if it does not beat refusing by the
+    /// trade margin.
+    ///
+    /// ## Why a tie refuses
+    /// Measured over 40 games, 100 of the 336 offers this policy accepted
+    /// scored *exactly* the same as refusing them. A tie fell to the engine's
+    /// enumeration order, and accept is listed before decline, so the bot took
+    /// trades that gave it nothing. That is never nothing for the table: the
+    /// proposer only asked because the trade helps them, and the relative
+    /// objective only charges for helping the single strongest rival, so a
+    /// gift to anyone else scored as free. Requiring a strict gain refuses
+    /// those. The same `tradeMargin` governs proposing and accepting, so the
+    /// bot is not pickier about its own offers than about everyone else's.
+    private func acceptance(
+        _ outcome: Double,
+        of offerID: UUID,
+        state: GameState,
+        ledger: PublicLedger,
+        evaluator: PositionEvaluator
+    ) -> Double? {
+        let decline = GameMove.respondToTrade(offerID: offerID, accept: false)
+        guard let (refused, refusedLedger) = applied(decline, to: state, ledger: ledger, by: evaluator.seat) else {
+            return outcome
+        }
+        let standingPat = evaluator.evaluate(refused, ledger: refusedLedger)
+        return outcome > standingPat + evaluator.weights.tradeMargin ? outcome : nil
     }
 
     /// Applies `move` and folds its events into the ledger, masked for this

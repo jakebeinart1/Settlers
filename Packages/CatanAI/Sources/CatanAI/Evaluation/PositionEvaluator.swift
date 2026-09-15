@@ -1,4 +1,5 @@
 import CatanEngine
+import Foundation
 
 /// Scores a position as it stands, from public information.
 ///
@@ -71,8 +72,9 @@ public struct PositionEvaluator: Sendable {
         let points = victoryPoints(of: player, in: state)
         if points >= state.victoryPointTarget { return weights.winning }
 
-        let economy = economyTerms(of: player, in: state, board: board)
-        let hand = handTerms(of: player, in: state, ledger: ledger)
+        let rate = ProductionModel.rate(for: player, in: state, tiles: board.tiles)
+        let economy = economyTerms(of: player, rate: rate, in: state, board: board)
+        let hand = handTerms(of: player, rate: rate, in: state, ledger: ledger)
         let bonuses = bonusTerms(of: player, in: state)
         return Double(points) * weights.victoryPoint + economy + hand + bonuses
     }
@@ -90,10 +92,10 @@ public struct PositionEvaluator: Sendable {
     /// Production, variety, room to expand, and the best expansion available.
     private func economyTerms(
         of player: PlayerID,
+        rate: ProductionRate,
         in state: GameState,
         board: BoardIndex
     ) -> Double {
-        let rate = ProductionModel.rate(for: player, in: state, tiles: board.tiles)
         let distinct = Resource.allCases.reduce(0.0) { $0 + (rate[$1] > 0 ? 1 : 0) }
         let sites = board.buildableSites(for: player, in: state)
 
@@ -104,31 +106,92 @@ public struct PositionEvaluator: Sendable {
         return rate.total * weights.production
             + distinct * weights.variety
             + bestGain * weights.expansion
+            + bestApproach(for: player, in: state, board: board) * weights.approach
             + Double(sites.count) * weights.buildableSites
+    }
+
+    /// Roads beyond the current network the approach term looks, and what each
+    /// one costs. Four, because a saturated Expanded board late in a 25-point
+    /// game can leave the nearest free site that far out, and a site the term
+    /// cannot see is a site no move is ever scored as approaching. Halving per
+    /// road keeps an adjacent site worth more than any distant one while still
+    /// making every step toward one worth taking.
+    private static let approachRoadLimit = 4
+    private static let approachDiscountPerRoad = 0.5
+
+    /// The production of the best site within reach of a few more roads,
+    /// discounted by how many. Zero when nothing is reachable.
+    private func bestApproach(for player: PlayerID, in state: GameState, board: BoardIndex) -> Double {
+        board.approachableSites(for: player, in: state, limit: Self.approachRoadLimit)
+            .map { site in
+                ProductionModel.rateGain(at: site.vertex, yield: 1, in: state, tiles: board.tiles).total
+                    * pow(Self.approachDiscountPerRoad, Double(site.roads))
+            }
+            .max() ?? 0
     }
 
     // MARK: - Hand
 
     /// What the seat is holding, and how usable it is.
     ///
+    /// ## Why cards past the discard threshold have their own weight
+    /// Long Expanded games once stalled with four Expert bots holding 22, 22,
+    /// 17 and 23 cards and nine settlements unbuilt each. A card over the
+    /// threshold netted +0.008 at the fitted weights, so hoarding scored as
+    /// correct. Crediting nothing past the threshold ended that stall.
+    ///
+    /// It also cost Classic **8.7 points**: 57.5% with that cap against 66.2%
+    /// without it, same 1,248 held-out games. And removing it everywhere
+    /// brought the Expanded stall back, 2 games in 40, even at the hand-set
+    /// weights. The two modes want opposite answers, so the answer is a
+    /// weight rather than a shape: `handCardOverflow` is the credit per card
+    /// past the threshold, equal to `handCard` in Classic and zero in
+    /// Expanded, where games run long enough for a large hand to be a trap.
+    ///
     /// `handSynergy` is the part that stops a bot hoarding: a hand two ore
     /// short of a city scores better than the same number of cards spread
     /// across resources nothing needs.
     private func handTerms(
         of player: PlayerID,
+        rate: ProductionRate,
         in state: GameState,
         ledger: PublicLedger
     ) -> Double {
         let belief = ledger.belief(of: player)
         let holding = ClockModel.holding(from: belief)
         let size = Double(belief.maxTotal)
-        let overflow = max(0, size - Double(state.rules.discardThreshold))
+        let threshold = Double(state.rules.discardThreshold)
+        let overflow = max(0, size - threshold)
 
         return synergy(of: holding) * weights.handSynergy
-            + size * weights.handCard
+            + min(size, threshold) * weights.handCard
+            + overflow * weights.handCardOverflow
             + overflow * weights.discardExposure
+            + expectedSevenLoss(hand: size, rate: rate.total, state: state) * weights.sevenLoss
             + Double(belief.devCardCount) * weights.devCardHeld
     }
+
+    /// Cards a seat holding `hand` expects to lose to sevens before its next
+    /// turn, counting what it will collect on the rolls in between.
+    ///
+    /// One roll per seat until this seat rolls again, each a seven one time in
+    /// six. On the k-th roll the hand has grown by k rolls of production, and
+    /// a seven then takes half of it if it is over the threshold. Approximate
+    /// in one direction only: it ignores that an earlier seven would already
+    /// have halved the hand, so it slightly overstates the loss, which errs
+    /// toward spending rather than hoarding.
+    private func expectedSevenLoss(hand: Double, rate: Double, state: GameState) -> Double {
+        let threshold = Double(state.rules.discardThreshold)
+        var loss = 0.0
+        for roll in 0..<state.players.count {
+            let held = (hand + Double(roll) * rate).rounded(.down)
+            guard held > threshold else { continue }
+            loss += Self.sevenChance * (held / 2).rounded(.down)
+        }
+        return loss
+    }
+
+    private static let sevenChance = 6.0 / 36.0
 
     /// How close `holding` is to affording the next settlement and the next
     /// city, on a 0...1 scale where 1 is "both affordable now".

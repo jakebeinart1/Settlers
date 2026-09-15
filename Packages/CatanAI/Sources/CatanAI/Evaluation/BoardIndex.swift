@@ -61,4 +61,82 @@ public struct BoardIndex: Sendable {
             }
             .sorted()
     }
+
+    /// Legal settlement sites `player` could reach by building roads, each with
+    /// the number of roads it would take, out to `limit`.
+    ///
+    /// ## Why sites beyond the road network have to be visible
+    /// `buildableSites` answers only "where can I settle today", and it was the
+    /// only expansion signal the evaluator had. A road that brings a site one
+    /// step closer changed nothing it could see, so it scored as nothing - and
+    /// once every site next to a seat's roads was gone, no sequence of moves
+    /// the bot could evaluate led anywhere. Classic games end before the board
+    /// fills, so this never showed. Expanded games between Expert bots did not:
+    /// seats sat at 24 of 25 with cities maxed, the development deck empty and
+    /// both bonuses settled - the only way to the last point was a settlement
+    /// two roads away - and proposed refused trades until the move cap.
+    ///
+    /// ## What a road may not pass
+    /// Breadth-first over free edges, never through an opponent's road or an
+    /// opponent's building. The engine forbids extending a road past an
+    /// opponent's settlement (`Building.canBuildRoad`), so a search that walked
+    /// through one would point the bot at a site it cannot reach - which is
+    /// just a different stall. Sorted enumeration throughout, because this
+    /// feeds a floating-point maximum and `Set` order is seeded per process.
+    public func approachableSites(
+        for player: PlayerID,
+        in state: GameState,
+        limit: Int
+    ) -> [(vertex: VertexID, roads: Int)] {
+        guard let owner = state.players.first(where: { $0.id == player }) else { return [] }
+        guard owner.settlements.count < state.rules.pieceLimit(for: .settlement) else { return [] }
+        let roadsLeft = state.rules.maxRoadsPerPlayer - owner.roads.count
+        let reach = min(limit, roadsLeft)
+        guard reach > 0 else { return [] }
+
+        let distances = roadDistances(from: owner, in: state, limit: reach)
+        return distances
+            .filter { $0.value >= 1 && isSettlementSite($0.key, in: state) }
+            .map { (vertex: $0.key, roads: $0.value) }
+            .sorted { $0.roads != $1.roads ? $0.roads < $1.roads : $0.vertex < $1.vertex }
+    }
+
+    /// Whether a settlement could stand at `vertex` under the distance rule.
+    private func isSettlementSite(_ vertex: VertexID, in state: GameState) -> Bool {
+        guard !occupied.contains(vertex) else { return false }
+        return !state.board.adjacentVertices(of: vertex).contains { occupied.contains($0) }
+    }
+
+    /// Roads needed to reach each vertex from `owner`'s network, to `limit`.
+    private func roadDistances(from owner: Player, in state: GameState, limit: Int) -> [VertexID: Int] {
+        let theirRoads = state.players
+            .filter { $0.id != owner.id }
+            .reduce(into: Set<EdgeID>()) { $0.formUnion($1.roads) }
+        let ownBuildings = owner.settlements.union(owner.cities)
+        let theirBuildings = occupied.subtracting(ownBuildings)
+
+        var distances: [VertexID: Int] = [:]
+        var frontier: [VertexID] = []
+        let seeds = owner.roads.flatMap { [$0.a, $0.b] } + Array(ownBuildings)
+        for vertex in Set(seeds).sorted() where !theirBuildings.contains(vertex) {
+            distances[vertex] = 0
+            frontier.append(vertex)
+        }
+
+        var index = 0
+        while index < frontier.count {
+            let vertex = frontier[index]
+            index += 1
+            let distance = distances[vertex] ?? 0
+            guard distance < limit else { continue }
+            for edge in state.board.edgesTouching(vertex).sorted() where !theirRoads.contains(edge) {
+                let (a, b) = state.board.vertices(of: edge)
+                let next = a == vertex ? b : a
+                guard distances[next] == nil, !theirBuildings.contains(next) else { continue }
+                distances[next] = distance + 1
+                frontier.append(next)
+            }
+        }
+        return distances
+    }
 }
