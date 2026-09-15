@@ -74,20 +74,60 @@ import CatanEngine
         #expect(alone > shared, "a gain the rival shares must not price the same as a gain we keep")
     }
 
-    /// Planner defect 2, pinned. It bought 0.6 development cards a game
-    /// against the heuristic's 6.9 because the army route was invisible to the
-    /// quantity it maximised. With the cost in hand and nothing else to do
-    /// with it, a card must beat ending the turn.
-    @Test func aDevelopmentCardBeatsEndingTheTurn() {
-        var state = opening(seed: 13)
+    /// Planner defect 2, pinned: the army route must be visible to the
+    /// quantity being maximised. The planner bought 0.6 development cards a
+    /// game against the heuristic's 6.9 because a card carried no credit
+    /// toward Largest Army at all.
+    ///
+    /// ## Why this is not "a card beats ending the turn"
+    /// It was, and the weight sweep falsified it. With fitted weights a hand
+    /// holding exactly one card's cost is often worth more kept than spent -
+    /// `handCard` tripled and `discardExposure` halved, so three resources in
+    /// hand out-price one unplayed card in that specific position. The bot
+    /// still buys 6.8 cards a game, more than the heuristic's 5.4, so the
+    /// behaviour was right and the assertion was wrong.
+    ///
+    /// That is the second time a test here has been written from play
+    /// intuition without checking the arithmetic. What actually matters is
+    /// that a card is *priced*, so that is what this asserts.
+    @Test func aDevelopmentCardInHandIsWorthSomething() {
+        let state = opening(seed: 13)
         let seat = state.players[0].id
-        state.players[0].resources = [.ore: 1, .grain: 1, .wool: 1]
-
-        let policy = EvaluationPolicy()
-        let chosen = policy.best(
-            among: [.endTurn, .buyDevCard], state: state, ledger: ledger(for: state, seat: seat)
+        let evaluator = PositionEvaluator(seat: seat)
+        let board = BoardIndex(state: state)
+        let before = evaluator.standing(
+            of: seat, in: state, ledger: ledger(for: state, seat: seat), board: board
         )
-        #expect(chosen == .buyDevCard, "an affordable development card must beat passing")
+
+        var holding = state
+        holding.players[0].devCards.append(.knight)
+        let after = evaluator.standing(
+            of: seat, in: holding, ledger: ledger(for: holding, seat: seat),
+            board: BoardIndex(state: holding)
+        )
+        #expect(after > before, "an unplayed development card must carry credit")
+    }
+
+    /// The behavioural half, which is what the planner actually failed. One
+    /// full game, counting what the policy chose to buy.
+    ///
+    /// The threshold is deliberately far below what it does (6.8 a game) and
+    /// far above what the planner did (0.6): this is a guard against the route
+    /// going invisible again, not a pin on a tuned number.
+    @Test func theEvaluatorBuysDevelopmentCardsOverAGame() throws {
+        let state = GameSetup.newGame(board: BoardGenerator.randomized(seed: 41), seed: 41)
+        var policies: [PlayerID: any Policy] = [:]
+        for player in state.players { policies[player.id] = EvaluationPolicy() }
+        var session = GameSession(state: state, policies: policies, policySeed: 41)
+
+        var purchases = 0
+        for _ in 0..<3000 {
+            guard let decision = session.decideNextDetailed() else { break }
+            if case .buyDevCard = decision.move { purchases += 1 }
+            _ = try session.commit(seat: decision.seat, move: decision.move)
+            if case .gameOver = session.state.phase { break }
+        }
+        #expect(purchases >= 4, "the development-card route went invisible again (\(purchases) bought)")
     }
 
     /// Planner defect 1, pinned. It built 1.0 settlements a game against 2.3
