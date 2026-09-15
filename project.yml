@@ -38,7 +38,7 @@ targets:
         # and a reused build number is rejected as ITMS-90189 only AFTER
         # archive, export and upload have all reported success.
         MARKETING_VERSION: "1.0"
-        CURRENT_PROJECT_VERSION: "10"
+        CURRENT_PROJECT_VERSION: "11"
         # Both of these come from Settlers/Signing.xcconfig, which carries
         # Jake's team and bundle id as the defaults and optionally includes a
         # gitignored Signing.local.xcconfig for anyone who has to sign with a
