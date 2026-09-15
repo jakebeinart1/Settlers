@@ -6,10 +6,19 @@
 
 ## Verdict first
 
-`EvaluationPolicy` wins **47.3%** of games against three frozen `balanced`
+`EvaluationPolicy` wins **62.4%** of games against three frozen `balanced`
 heuristics, over 1,248 decisive games with complete chair rotation on held-out
-seeds, against a 25.0% null — 95% CI [44.5, 50.0]. The control arm returned
+seeds, against a 25.0% null — 95% CI [59.7, 65.1]. The control arm returned
 exactly 25.0%.
+
+Three changes got it there, and the largest came from a bug report rather than
+from the search:
+
+| change | win rate |
+|---|---:|
+| hand-set weights | 43.0% |
+| fitted weights (SPSA sweep) | 47.3% |
+| **stop re-asking a refused trade** | **62.4%** |
 
 That figure is with fitted weights. Hand-set weights scored 43.0%; a weight
 sweep added **+4.7 points, paired, McNemar p = 0.010** (see
