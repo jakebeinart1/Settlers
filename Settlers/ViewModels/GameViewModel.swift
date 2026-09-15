@@ -1072,34 +1072,6 @@ public final class GameViewModel {
     public private(set) var eventBatch = EventBatch(sequence: 0, events: [])
     private var pendingEvents: [GameEvent] = []
 
-    /// Only new matches and legacy migration seed a session from the board.
-    /// Modern resume restores the saved policy RNG and negotiation bookkeeping.
-    static func makeSession(
-        state: GameState,
-        opponentProfiles: [PlayerID: OpponentProfile],
-        difficulty: BotDifficulty
-    ) -> GameSession {
-        var seedSource = state.rng
-        return GameSession(
-            state: state,
-            policies: makePolicies(opponentProfiles, difficulty: difficulty),
-            policySeed: seedSource.next()
-        )
-    }
-
-    /// The policies for one table.
-    ///
-    /// `difficulty` has no default on purpose. A caller that forgot it would
-    /// silently seat the tier nobody chose, and "the arm was silently played by
-    /// the default opponent" is the exact shape of every bogus strength claim
-    /// this project has had to retract.
-    static func makePolicies(
-        _ profiles: [PlayerID: OpponentProfile],
-        difficulty: BotDifficulty
-    ) -> [PlayerID: any Policy] {
-        profiles.mapValues { difficulty.policy(for: $0) }
-    }
-
     private func beginEventBatch() {
         pendingEvents = []
     }
