@@ -226,6 +226,15 @@ import Testing
     ///
     /// Driven off a real played game rather than a hand-built belief, because
     /// the hand-built version is exactly the one that looked fine.
+    ///
+    /// ## Why the byte comparison uses sorted keys
+    /// It used a default `JSONEncoder`, and failed one gate in three on a
+    /// ledger whose value round-tripped perfectly: a default encoder does not
+    /// promise the order it writes a keyed container's keys in, so two
+    /// encodes of one value can differ in bytes and in nothing else. The
+    /// property worth pinning is that the *canonical* form is stable - the
+    /// form `GameLogStore` writes, with `.sortedKeys` - so that is the
+    /// encoder this compares with.
     @Test func aLedgerEqualsItselfAfterARoundTrip() throws {
         var state = GameSetup.newGame(board: BoardGenerator.randomized(seed: 88), seed: 88)
         var policies: [PlayerID: any Policy] = [:]
@@ -234,17 +243,19 @@ import Testing
         _ = try session.run(limit: 300)
         state = session.state
 
+        let canonical = JSONEncoder()
+        canonical.outputFormatting = [.sortedKeys]
         for player in state.players {
             let ledger = session.ledger(for: player.id)
-            let data = try JSONEncoder().encode(ledger)
+            let data = try canonical.encode(ledger)
             let restored = try JSONDecoder().decode(PublicLedger.self, from: data)
             #expect(
                 restored == ledger,
                 "seat \(player.id) did not survive its own round trip"
             )
             #expect(
-                try JSONEncoder().encode(restored) == data,
-                "a second encode must reproduce the first, or the form is not canonical"
+                try canonical.encode(restored) == data,
+                "a second canonical encode must reproduce the first"
             )
         }
     }
