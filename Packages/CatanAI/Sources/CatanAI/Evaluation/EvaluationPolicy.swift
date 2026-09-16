@@ -130,13 +130,21 @@ public struct EvaluationPolicy: LedgerAwarePolicy {
         // seat of its own, so there is only one place the two can disagree.
         let evaluator = PositionEvaluator(seat: ledger.observer, weights: weights(for: state.mode))
 
+        // Built once, and only when the bank is actually on the table, because
+        // a bank trade is scored against the purchase it unlocks and that
+        // needs the same valuation the cascade uses.
+        var purchases = legal.contains(where: { if case .bankTrade = $0 { true } else { false } })
+            ? PurchaseGains(valuation: TradeValuation(evaluator: evaluator, state: state, ledger: ledger))
+            : nil
+
         var bestMove = legal[0]
         var bestScore = -Double.greatestFiniteMagnitude
         for move in legal {
             // Every model but the frozen anchor chooses its own proposal, from
             // offers the enumeration cannot express; see `TradeCascade.swift`.
             if tradeModel != .roundThree, case .proposeTrade = move { continue }
-            guard let score = score(move, state: state, ledger: ledger, evaluator: evaluator) else {
+            guard let score = score(move, state: state, ledger: ledger, evaluator: evaluator,
+                                   purchases: &purchases) else {
                 continue
             }
             if score > bestScore {
@@ -157,13 +165,19 @@ public struct EvaluationPolicy: LedgerAwarePolicy {
         _ move: GameMove,
         state: GameState,
         ledger: PublicLedger,
-        evaluator: PositionEvaluator
+        evaluator: PositionEvaluator,
+        purchases: inout PurchaseGains?
     ) -> Double? {
         if case .proposeTrade(let offer) = move {
             return projectedTrade(offer, state: state, ledger: ledger, evaluator: evaluator)
         }
         if case .buyDevCard = move {
             return projectedDevCard(state: state, ledger: ledger, evaluator: evaluator)
+        }
+        if case .bankTrade = move {
+            return projectedBankTrade(
+                move, state: state, ledger: ledger, evaluator: evaluator, purchases: &purchases
+            )
         }
         guard let (next, nextLedger) = applied(move, to: state, ledger: ledger, by: evaluator.seat) else {
             return nil
@@ -173,6 +187,45 @@ public struct EvaluationPolicy: LedgerAwarePolicy {
             return acceptance(outcome, of: offerID, state: state, ledger: ledger, evaluator: evaluator)
         }
         return outcome
+    }
+
+    /// A bank or port trade's score: the position after the swap, plus the
+    /// purchase the swap opens up, less the purchase already open without it.
+    ///
+    /// ## Why the bank needed the same correction a proposal already had
+    /// `TradeValuation.bestPurchaseGain` exists because a trade scored on the
+    /// position immediately after it looks like a loss - Jake's example there
+    /// came out at -0.27 for the swap that finishes a city, because the
+    /// evaluation could not see the city. That correction was wired to
+    /// proposals and not to the bank, so a 4:1 was priced at one ply: three
+    /// cards gone now, the building it pays for a move away and invisible. At
+    /// the fitted `handCard` of 0.0646 that is a flat -0.194 against doing
+    /// nothing, which is why an Expert seat could hold a 3:1 port, sit on
+    /// three spare ore with no wheat, and never once use it.
+    ///
+    /// The purchase already affordable without trading is subtracted for the
+    /// reason the proposal path subtracts it: otherwise every trade inherits
+    /// the credit for a build the seat could have made anyway.
+    private func projectedBankTrade(
+        _ move: GameMove,
+        state: GameState,
+        ledger: PublicLedger,
+        evaluator: PositionEvaluator,
+        purchases: inout PurchaseGains?
+    ) -> Double? {
+        guard let (next, nextLedger) = applied(move, to: state, ledger: ledger, by: evaluator.seat) else {
+            return nil
+        }
+        let outcome = evaluator.evaluate(next, ledger: nextLedger)
+        // `best` builds this whenever a bank trade is legal, so reaching here
+        // without one would mean scoring a move nobody offered.
+        guard var gains = purchases,
+              let before = state.players.first(where: { $0.id == evaluator.seat }),
+              let after = next.players.first(where: { $0.id == evaluator.seat })
+        else { return outcome }
+        let opened = gains.gain(with: after.resources) - gains.gain(with: before.resources)
+        purchases = gains
+        return outcome + opened
     }
 
     /// An acceptance's score, or `nil` if it does not beat refusing by the

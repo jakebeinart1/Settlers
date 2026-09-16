@@ -192,6 +192,7 @@ private struct Options {
                         sweep:  eval-tuned (same, with --weights)
                         anchor: eval-round3 (Expert as shipped at dac279c)
                         variant: eval-worthit (composed offers, no escalation ladder)
+                        opponent: refuses-balanced (balanced, accepts nothing)
                         experiment: joint-balanced (trade-response accounting only)
                         (four-seat default balanced,aggressive,cautious,balanced;
                         a three-seat run uses the first three)
@@ -228,11 +229,13 @@ private func policy(named name: String, writer: CorpusWriter? = nil,
     case "balanced": personality = .balanced
     case "aggressive": personality = .aggressive
     case "cautious": personality = .cautious
+    case "refuses-balanced": personality = nil
     case "greedy", "random", "joint-balanced", "planner", "eval", "eval-tuned", "eval-round3", "eval-worthit": personality = nil
     default:
         fail(
             "unknown seat '\(name)'; expected balanced, aggressive, cautious, "
-                + "eval, eval-tuned, eval-round3, planner, greedy, random or joint-balanced"
+                + "eval, eval-tuned, eval-round3, planner, greedy, random, "
+                + "refuses-balanced or joint-balanced"
         )
     }
     if let personality {
@@ -252,6 +255,11 @@ private func policy(named name: String, writer: CorpusWriter? = nil,
         // against the Expert it replaces in the same game. See
         // `EvaluationPolicy.TradeModel` for why that needs one binary.
         base = EvaluationPolicy(id: "evaluation-round3", tradeModel: .roundThree)
+    } else if name == "refuses-balanced" {
+        // The self-sufficient opponent: `balanced` in every respect except
+        // that it never accepts what another seat proposes. See
+        // `TradeRefusingPolicy`.
+        base = TradeRefusingPolicy(base: HeuristicPolicy(personality: .balanced, id: "heuristic-balanced"))
     } else if name == "joint-balanced" {
         base = JointTradeResponsePolicy()
     } else {
