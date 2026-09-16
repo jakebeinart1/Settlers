@@ -157,7 +157,15 @@ public struct PositionEvaluator: Sendable {
         in state: GameState,
         ledger: PublicLedger
     ) -> Double {
-        let belief = ledger.belief(of: player)
+        handTerms(belief: ledger.belief(of: player), rate: rate, state: state)
+    }
+
+    /// The hand terms for one believed hand.
+    ///
+    /// Split out so trade valuation can price the only two hands a trade
+    /// changes without re-scoring the board. `TradeValuation` relies on this
+    /// being exactly the function `standing` uses, which a test pins.
+    func handTerms(belief: PublicLedger.SeatBelief, rate: ProductionRate, state: GameState) -> Double {
         let holding = ClockModel.holding(from: belief)
         let size = Double(belief.maxTotal)
         let threshold = Double(state.rules.discardThreshold)

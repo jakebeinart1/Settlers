@@ -32,15 +32,51 @@ import Foundation
 ///   the kind of thing that silently makes a strength measurement flattering.
 public struct EvaluationPolicy: LedgerAwarePolicy {
 
+    /// Which generation of trade modelling this policy plays.
+    ///
+    /// ## Why the old one is kept
+    /// Jake's rule for trading changes is that Expert must improve *against
+    /// Expert*, not just against the shipping heuristic. That cannot be
+    /// measured with two builds: a table of four copies of one build wins 25%
+    /// by symmetry whatever the build does. The new model has to sit at the
+    /// same table as the old one, and one binary can only do that if the old
+    /// one still exists. `roundThree` is the trading that shipped on main at
+    /// `dac279c`, frozen as the opponent later work is measured against. The
+    /// app never selects it.
+    public enum TradeModel: Sendable, Equatable {
+        /// Pushed at `dac279c`: the counterparty's side of a proposal is not
+        /// modelled, so the rival term never sees what it receives.
+        case roundThree
+        /// The cascade: open with the offer best for this seat and concede
+        /// more on every refusal.
+        case current
+        /// Jake, after seeing the cascade measured: "try the wacky trades but
+        /// not a full cascade - if it isn't worth trading don't go down the
+        /// ladder. But if getting a city is worth trading away 3-4 cards, that
+        /// should definitely be offered."
+        ///
+        /// Same composed offers, same counterparty modelling, no forced
+        /// escalation. An offer must clear a bar that rises with the number of
+        /// cards it gives away, so a trade that finishes a city is worth four
+        /// cards while a marginal one is not worth one.
+        case worthIt
+    }
+
     public let id: String
     /// Weights to play with regardless of mode, or `nil` to use the set
     /// validated for whichever mode the game is in. A sweep sets this; the app
     /// does not.
     public let weightsOverride: EvaluationWeights?
+    public let tradeModel: TradeModel
 
-    public init(id: String = "evaluation-v1", weights: EvaluationWeights? = nil) {
+    public init(
+        id: String = "evaluation-v1",
+        weights: EvaluationWeights? = nil,
+        tradeModel: TradeModel = .worthIt
+    ) {
         self.id = id
         self.weightsOverride = weights
+        self.tradeModel = tradeModel
     }
 
     /// The weights this policy plays `mode` with.
@@ -73,7 +109,13 @@ public struct EvaluationPolicy: LedgerAwarePolicy {
         counted.reconcileObserverHand(from: observation.state)
 
         let chosen = best(among: legal, state: observation.state, ledger: counted)
-        precondition(legal.contains(chosen), "evaluation policy returned a move outside its mask")
+        precondition(
+            legal.contains(chosen)
+                || RulesEngine.isPermittedComposedProposal(
+                    chosen, by: observation.seat, in: observation.state, legal: legal
+                ),
+            "evaluation policy returned a move outside its mask"
+        )
         return chosen
     }
 
@@ -91,6 +133,9 @@ public struct EvaluationPolicy: LedgerAwarePolicy {
         var bestMove = legal[0]
         var bestScore = -Double.greatestFiniteMagnitude
         for move in legal {
+            // Every model but the frozen anchor chooses its own proposal, from
+            // offers the enumeration cannot express; see `TradeCascade.swift`.
+            if tradeModel != .roundThree, case .proposeTrade = move { continue }
             guard let score = score(move, state: state, ledger: ledger, evaluator: evaluator) else {
                 continue
             }
@@ -98,6 +143,11 @@ public struct EvaluationPolicy: LedgerAwarePolicy {
                 bestScore = score
                 bestMove = move
             }
+        }
+        if tradeModel != .roundThree,
+           let proposal = cascadeProposal(state: state, ledger: ledger, evaluator: evaluator, legal: legal),
+           proposal.score > bestScore {
+            bestMove = .proposeTrade(proposal.offer)
         }
         return bestMove
     }

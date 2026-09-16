@@ -15,15 +15,29 @@ import CatanEngine
 
     /// The one contract that is not about strength but about whether the game
     /// still works. `Bot` and `PlannerPolicy` are held to the same thing.
+    ///
+    /// Expert is the one policy allowed a single exception, and only the one
+    /// the engine grants: a composed trade proposal - a bundle, or more cards
+    /// than the enumeration lists - that `RulesEngine` itself permits. Any
+    /// other move outside the mask still fails here. The run is long enough
+    /// that composed offers actually occur, which is counted so a version
+    /// that quietly stopped composing cannot pass on vacuous truth.
     @Test func everyMoveComesFromTheSuppliedMask() throws {
         let state = GameSetup.newGame(board: BoardGenerator.randomized(seed: 21), seed: 21)
         var session = GameSession(state: state, policies: table(state), policySeed: 4)
-        for _ in 0..<300 {
+        var composed = 0
+        for _ in 0..<1_500 {
             guard let decision = session.decideNextDetailed() else { break }
-            #expect(decision.observation.legalMoves.contains(decision.move))
+            let listed = decision.observation.legalMoves.contains(decision.move)
+            let permitted = RulesEngine.isPermittedComposedProposal(
+                decision.move, by: decision.seat, in: session.state, legal: decision.observation.legalMoves
+            )
+            #expect(listed || permitted, "\(decision.move) is neither listed nor a permitted composition")
+            if !listed { composed += 1 }
             _ = try session.commit(seat: decision.seat, move: decision.move)
             if case .gameOver = session.state.phase { break }
         }
+        #expect(composed > 0, "no composed offer occurred, so this run did not exercise the exception")
     }
 
     /// Two positions differing only in what this seat may not see - opponents'

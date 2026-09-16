@@ -130,48 +130,87 @@ extension EvaluationPolicy {
         // this seat meaningfully better off than not trading at all. See
         // `EvaluationWeights.tradeMargin`.
         let standingStill = evaluator.evaluate(state, ledger: ledger)
-        var worst: Double?
-        for payer in payers {
-            guard let settled = settled(offer, payer: payer, in: state) else { continue }
-            var nextLedger = ledger
-            nextLedger.reconcileObserverHand(from: settled)
-            let score = evaluator.evaluate(settled, ledger: nextLedger)
-            worst = worst.map { Swift.min($0, score) } ?? score
+        let scores = payers.compactMap {
+            settledScore(offer, payer: $0, state: state, ledger: ledger, evaluator: evaluator)
         }
-        guard let worst, worst > standingStill + evaluator.weights.tradeMargin else { return nil }
+        guard let worst = scores.min(), worst > standingStill + evaluator.weights.tradeMargin else { return nil }
         return worst
     }
 
-    /// The position after `offer` is executed between its proposer and `payer`.
+    /// This seat's standing if `payer` accepts `offer`, or `nil` if this seat
+    /// cannot cover its own side.
     ///
-    /// Returns `nil` when the payer cannot actually cover it. The belief that
-    /// put them on the plausible list is a belief; this is the arithmetic.
+    /// ## The counterparty has to gain something in the model too
+    /// This used to move the cards in `GameState` and then refresh only this
+    /// seat's own hand in the ledger. But every opponent's hand terms are read
+    /// from the ledger, not from the state, so the payer's belief never
+    /// changed: to the evaluator, a trade handed its counterparty nothing. The
+    /// rival term - the thing that is supposed to stop this seat helping the
+    /// leader more than itself - was pricing every trade as a free gift to
+    /// nobody. The payer's side now goes through the same `acceptedTrade`
+    /// event the engine emits when a trade really happens, so the belief moves
+    /// exactly as it would at the table.
+    ///
+    /// ## Whether the payer can pay is decided from public information only
+    /// This also used to refuse any projection where the payer's *real* hand
+    /// was short - which let a hidden hand decide which proposals got made.
+    /// `plausiblePayers` already answers that question from the counted
+    /// ledger. Here the payer's cards are only moved as far as they go; the
+    /// evaluation never reads them, because opponents are scored from belief.
+    func settledScore(
+        _ offer: TradeOffer,
+        payer: PlayerID,
+        state: GameState,
+        ledger: PublicLedger,
+        evaluator: PositionEvaluator
+    ) -> Double? {
+        // Round three checked the payer's real hand here. That was hidden
+        // information choosing proposals, and it is kept only in the frozen
+        // anchor so the anchor plays exactly what shipped.
+        if tradeModel == .roundThree,
+           let index = state.players.firstIndex(where: { $0.id == payer }),
+           !RulesEngine.canAfford(offer.want, player: state.players[index]) {
+            return nil
+        }
+        guard let settled = settled(offer, payer: payer, in: state) else { return nil }
+        var nextLedger = ledger
+        if tradeModel != .roundThree {
+            let event = GameEvent.acceptedTrade(payer, from: offer.from, gave: offer.want, got: offer.give)
+            nextLedger.apply(event.masked(for: evaluator.seat), stateBefore: state)
+        }
+        nextLedger.reconcileObserverHand(from: settled)
+        return evaluator.evaluate(settled, ledger: nextLedger)
+    }
+
+    /// The position after `offer` is executed between its proposer and `payer`,
+    /// or `nil` if the proposer - whose hand is this seat's own - cannot cover
+    /// its side.
     private func settled(_ offer: TradeOffer, payer: PlayerID, in state: GameState) -> GameState? {
         guard let proposer = state.players.firstIndex(where: { $0.id == offer.from }),
               let accepter = state.players.firstIndex(where: { $0.id == payer }) else { return nil }
+        guard RulesEngine.canAfford(offer.give, player: state.players[proposer]) else { return nil }
 
         var next = state
-        guard move(offer.give, from: proposer, to: accepter, in: &next) else { return nil }
-        guard move(offer.want, from: accepter, to: proposer, in: &next) else { return nil }
+        transfer(offer.give, from: proposer, to: accepter, in: &next)
+        transfer(offer.want, from: accepter, to: proposer, in: &next)
         return next
     }
 
-    /// Moves `amounts` between two seats, or reports that the giver is short.
-    private func move(
+    /// Moves `amounts` between two seats, never below zero. Only the proposer's
+    /// side is guaranteed covered; the payer's is a belief.
+    private func transfer(
         _ amounts: [Resource: Int],
         from giver: Int,
         to taker: Int,
         in state: inout GameState
-    ) -> Bool {
+    ) {
         for resource in Resource.allCases {
             let amount = amounts[resource] ?? 0
             guard amount > 0 else { continue }
             let held = state.players[giver].resources[resource] ?? 0
-            guard held >= amount else { return false }
-            state.players[giver].resources[resource] = held - amount
+            state.players[giver].resources[resource] = max(0, held - amount)
             state.players[taker].resources[resource] = (state.players[taker].resources[resource] ?? 0) + amount
         }
-        return true
     }
 
     /// Whether `offer` is worth putting in front of a table that has already

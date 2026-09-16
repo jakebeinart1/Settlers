@@ -22,6 +22,8 @@ let package = Package(
         .executableTarget(name: "sim", dependencies: ["CatanAI", "CatanEngine"]),
         // Offline enrichment of retained decisions; no policy/session loop.
         .executableTarget(name: "trade-review", dependencies: ["CatanAI", "CatanEngine"]),
+        // Trade behaviour on sampled positions, without playing games out.
+        .executableTarget(name: "trade-bench", dependencies: ["CatanAI", "CatanEngine"]),
         .testTarget(name: "CatanAITests", dependencies: ["CatanAI"])
     ]
 )

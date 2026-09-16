@@ -80,6 +80,17 @@ public struct EvaluationWeights: Sendable, Equatable, Codable {
     /// where this policy's strength comes from, which is also why stopping it
     /// re-asking a refused offer was worth eighteen points.
     public var tradeMargin: Double
+    /// Extra gain required per card handed over, under the `worthIt` trade
+    /// model. Zero leaves every beneficial trade worth making; higher values
+    /// mean only trades that pay for what they give away.
+    ///
+    /// **Zero by default, measured.** At 0.04 with the same everything else,
+    /// Expert offered 0.82 trades a turn against round three's 2.30 and lost
+    /// 14.4 points. The bar is not what stops the bot overpaying - the
+    /// evaluation already charges it for every card it hands over, and for
+    /// what the counterparty gains. Kept as a weight so a sweep can test that
+    /// again on the retrained policy.
+    public var concessionPerCard: Double
     /// An unplayed development card.
     public var devCardHeld: Double
     /// A played knight, before the army bonus itself.
@@ -119,6 +130,7 @@ public struct EvaluationWeights: Sendable, Equatable, Codable {
         port: Double = 0.0986,
         rival: Double = 0.9207,
         tradeMargin: Double = 0,
+        concessionPerCard: Double = 0.0,
         winning: Double = 1000.0
     ) {
         self.victoryPoint = victoryPoint
@@ -138,6 +150,7 @@ public struct EvaluationWeights: Sendable, Equatable, Codable {
         self.port = port
         self.rival = rival
         self.tradeMargin = tradeMargin
+        self.concessionPerCard = concessionPerCard
         self.winning = winning
     }
 
@@ -215,7 +228,7 @@ public struct EvaluationWeights: Sendable, Equatable, Codable {
         [
             victoryPoint, production, variety, expansion, approach, buildableSites,
             handSynergy, handCard, handCardOverflow, discardExposure, sevenLoss, devCardHeld, knight,
-            roadLength, port, rival, tradeMargin, winning,
+            roadLength, port, rival, tradeMargin, concessionPerCard, winning,
         ]
     }
 
@@ -223,7 +236,7 @@ public struct EvaluationWeights: Sendable, Equatable, Codable {
     public static let vectorLabels = [
         "victoryPoint", "production", "variety", "expansion", "approach", "buildableSites",
         "handSynergy", "handCard", "handCardOverflow", "discardExposure", "sevenLoss", "devCardHeld", "knight",
-        "roadLength", "port", "rival", "tradeMargin", "winning",
+        "roadLength", "port", "rival", "tradeMargin", "concessionPerCard", "winning",
     ]
 
     /// Rebuilds weights from `vector`'s layout. Fails fast on the wrong count:
@@ -240,7 +253,7 @@ public struct EvaluationWeights: Sendable, Equatable, Codable {
             handSynergy: vector[6], handCard: vector[7], handCardOverflow: vector[8],
             discardExposure: vector[9], sevenLoss: vector[10], devCardHeld: vector[11],
             knight: vector[12], roadLength: vector[13], port: vector[14], rival: vector[15],
-            tradeMargin: vector[16], winning: vector[17]
+            tradeMargin: vector[16], concessionPerCard: vector[17], winning: vector[18]
         )
     }
 }

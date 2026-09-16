@@ -183,6 +183,8 @@ private struct Options {
                         anchors:    greedy, random
                         search: eval (position evaluation, the current candidate)
                         sweep:  eval-tuned (same, with --weights)
+                        anchor: eval-round3 (Expert as shipped at dac279c)
+                        variant: eval-worthit (composed offers, no escalation ladder)
                         experiment: joint-balanced (trade-response accounting only)
                         (four-seat default balanced,aggressive,cautious,balanced;
                         a three-seat run uses the first three)
@@ -219,11 +221,11 @@ private func policy(named name: String, writer: CorpusWriter? = nil,
     case "balanced": personality = .balanced
     case "aggressive": personality = .aggressive
     case "cautious": personality = .cautious
-    case "greedy", "random", "joint-balanced", "planner", "eval", "eval-tuned": personality = nil
+    case "greedy", "random", "joint-balanced", "planner", "eval", "eval-tuned", "eval-round3", "eval-worthit": personality = nil
     default:
         fail(
             "unknown seat '\(name)'; expected balanced, aggressive, cautious, "
-                + "eval, eval-tuned, planner, greedy, random or joint-balanced"
+                + "eval, eval-tuned, eval-round3, planner, greedy, random or joint-balanced"
         )
     }
     if let personality {
@@ -236,6 +238,13 @@ private func policy(named name: String, writer: CorpusWriter? = nil,
         base = EvaluationPolicy()
     } else if name == "eval-tuned" {
         base = EvaluationPolicy(id: "evaluation-tuned", weights: tunedWeights)
+    } else if name == "eval-worthit" {
+        base = EvaluationPolicy(id: "evaluation-worthit", tradeModel: .worthIt)
+    } else if name == "eval-round3" {
+        // Expert as it shipped at `dac279c`, so new trading can be measured
+        // against the Expert it replaces in the same game. See
+        // `EvaluationPolicy.TradeModel` for why that needs one binary.
+        base = EvaluationPolicy(id: "evaluation-round3", tradeModel: .roundThree)
     } else if name == "joint-balanced" {
         base = JointTradeResponsePolicy()
     } else {
@@ -376,6 +385,13 @@ private func parseOptions(_ arguments: [String]) -> Options {
     }
     if options.trainingOutput != nil, options.buildID == "working-tree" {
         fail("--training-jsonl requires an explicit non-placeholder --build-id")
+    }
+    // Expert composes trade offers the fixed action space cannot index, and a
+    // training example requires every chosen move to have an index. Refusing
+    // here beats a precondition failure hundreds of games into an export.
+    if options.trainingOutput != nil,
+       let expert = options.seatNames.first(where: { $0.hasPrefix("eval") }) {
+        fail("--training-jsonl cannot record '\(expert)': composed trade offers have no action index")
     }
     if options.decisionOutput != nil, !options.buildIDWasProvided {
         fail("--decision-jsonl requires an explicit --build-id")
