@@ -88,7 +88,7 @@ Branch protection is **unavailable** on this repository and Alex is not an admin
 
 ```bash
 ./scripts/install-hooks.sh          # ONCE PER CLONE. Writes .git/hooks/pre-push.
-scripts/gate.sh                     # 10 gates. CatanAI and native UI tests dominate.
+scripts/gate.sh                     # 9 gates. CatanAI and native UI tests dominate.
 scripts/gate.sh --debug-app         # + also compile the app in Debug (Release always runs).
 ```
 
@@ -108,8 +108,8 @@ suspect, not a verdict**: re-run it serially before believing it. `gate.sh`'s
 than a bug.
 
 Gates, cheapest first: xcodegen drift · `swiftlint --strict` · evaluation-tool tests · both
-packages built with `-warnings-as-errors` · CatanEngine tests · CatanAI tests · training
-export validation · coverage floors · gitleaks · app/UI tests · **app build in Release**.
+packages built with `-warnings-as-errors` · CatanEngine tests · CatanAI tests · coverage
+floors · gitleaks · app/UI tests · **app build in Release**.
 
 Three properties it is built around, and that any change to it must preserve:
 

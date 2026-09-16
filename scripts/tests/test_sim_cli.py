@@ -2,7 +2,6 @@
 
 import json
 import subprocess
-import tempfile
 import unittest
 from pathlib import Path
 
@@ -93,51 +92,6 @@ class SimulatorConfigurationTests(unittest.TestCase):
                 self.assertEqual(result.returncode, 2)
                 self.assertIn(message, result.stderr)
 
-    def test_three_player_training_examples_carry_the_same_configuration(self) -> None:
-        with tempfile.TemporaryDirectory() as directory:
-            training_path = Path(directory) / "training.jsonl"
-            result = self.run_simulator(
-                "--players", "3",
-                "--victory-points", "12",
-                "--board", "randomized",
-                "--seats", "balanced,aggressive,cautious",
-                "--build-id", "training-config-test",
-                "--training-information", "public-counts",
-                "--training-jsonl", str(training_path),
-                "--seed", "702",
-                "--games", "1",
-                "--jsonl",
-            )
-
-            self.assertEqual(result.returncode, 0, result.stderr)
-            examples = [
-                json.loads(line)
-                for line in training_path.read_text(encoding="utf-8").splitlines()
-            ]
-            validation = subprocess.run(
-                [
-                    "python3", str(REPO_ROOT / "scripts" / "validate-training-data.py"),
-                    "--build-id", "training-config-test",
-                    "--information-policy", "publicCountsOnly",
-                    str(training_path),
-                ],
-                check=False,
-                capture_output=True,
-                text=True,
-            )
-
-        self.assertEqual(validation.returncode, 0, validation.stderr)
-        self.assertGreater(len(examples), 0)
-        for example in examples:
-            self.assertEqual(example["schemaVersion"], 2)
-            self.assertEqual(example["playerCount"], 3)
-            self.assertEqual(example["victoryPointTarget"], 12)
-            self.assertEqual(example["boardMode"], "randomized")
-            self.assertEqual(example["actionCount"], 9_335)
-            self.assertIn(example["observerSeat"], range(3))
-            self.assertIn(example["winnerSeat"], range(3))
-            self.assertLess(example["chosenActionIndex"], example["actionCount"])
-
     def test_every_supported_configuration_runs_to_a_decisive_game(self) -> None:
         fingerprints: dict[tuple[int, int, str], str] = {}
         for players in (3, 4):
@@ -217,29 +171,6 @@ class SimulatorConfigurationTests(unittest.TestCase):
             record = json.loads(first.stdout)
             self.assertEqual(record["policies"][0], "experimental-joint-balanced-v1")
             self.assertIn(record["winner"], range(players))
-
-    def test_candidate_diagnostics_do_not_substitute_the_ordinary_bot(self) -> None:
-        arguments = (
-            "--players", "3", "--seats", "joint-balanced,balanced,balanced",
-            "--seed", "879901", "--build-id", "candidate-trace-test", "--jsonl",
-        )
-        plain = self.run_simulator(*arguments)
-        with tempfile.TemporaryDirectory() as directory:
-            trace = Path(directory) / "decisions.jsonl"
-            traced = self.run_simulator(*arguments, "--decision-jsonl", str(trace))
-            self.assertEqual(plain.returncode, 0, plain.stderr)
-            self.assertEqual(traced.returncode, 0, traced.stderr)
-            self.assertEqual(plain.stdout, traced.stdout)
-            candidate_calls = 0
-            with trace.open() as stream:
-                for line in stream:
-                    record = json.loads(line)
-                    payload = record["payload"]
-                    if (record["type"] == "evaluation"
-                            and payload["policyID"] == "experimental-joint-balanced-v1"):
-                        candidate_calls += 1
-                        self.assertEqual(payload["tradeAssessments"], [])
-            self.assertGreater(candidate_calls, 0)
 
 
 if __name__ == "__main__":

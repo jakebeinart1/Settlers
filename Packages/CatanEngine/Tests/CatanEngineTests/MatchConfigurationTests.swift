@@ -88,47 +88,6 @@ import Foundation
     #expect(GameSetup.supportedPlayerCounts.contains(4))
 }
 
-/// The encoding has to survive a three-seat table, and it did not.
-///
-/// `seatOrder(from:in:)` shortened the per-seat blocks *and* the board-ownership
-/// blocks. The per-seat side was padded back to `seatCount`; the vertex and edge
-/// side was not, so a three-player observation produced 832 features where the
-/// layout promises 1012 and `features(_:)` tripped its own precondition - a hard
-/// trap on the first call, in a configuration nothing else tested.
-@Test func aThreeSeatObservationEncodesToTheFullFixedWidth() {
-    for seats in GameSetup.supportedPlayerCounts {
-        let state = GameSetup.newGame(board: BoardGenerator.standard(), seed: 3, playerCount: seats)
-        for index in 0..<seats {
-            let seat = PlayerID(index: index)
-            let observation = GameObservation(seat: seat, state: state,
-                                              legalMoves: RulesEngine.legalMoves(for: state, seat: seat))
-            #expect(StateEncoding.features(observation).count == StateEncoding.featureCount,
-                    "\(seats)-seat game, seat \(index): wrong feature width")
-        }
-    }
-}
-
-/// The absent chair reads as all-zero, in the slots that chair would have
-/// occupied - so every remaining slot keeps the meaning `layoutVersion` pins it
-/// to. Checked on the board block, because that is the one that was wrong.
-@Test func theAbsentChairsOwnershipSlotsAreZero() {
-    let state = GameSetup.newGame(board: BoardGenerator.standard(), seed: 3, playerCount: 3)
-    let seat = PlayerID(index: 0)
-    let observation = GameObservation(seat: seat, state: state,
-                                      legalMoves: RulesEngine.legalMoves(for: state, seat: seat))
-    let values = StateEncoding.features(observation)
-
-    let vertexBlockStart = StateEncoding.globalFeatureCount
-        + StateEncoding.seatCount * StateEncoding.perPlayerFeatureCount
-        + StateEncoding.tileCount * StateEncoding.perTileFeatureCount
-    for vertex in 0..<StateEncoding.vertexCount {
-        let base = vertexBlockStart + vertex * StateEncoding.perVertexFeatureCount
-        // The fourth seat's settlement and city slots.
-        #expect(values[base + 6] == 0)
-        #expect(values[base + 7] == 0)
-    }
-}
-
 // MARK: - Victory target
 
 @Test func theGameEndsAtItsOwnTarget() throws {

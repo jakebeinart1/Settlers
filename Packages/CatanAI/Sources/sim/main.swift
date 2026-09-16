@@ -69,6 +69,14 @@ private let evaluationVictoryPointTargets: Set<Int> = [8, 10, 12]
 /// so the harness and that test play the same games.
 private func policySeed(from seed: UInt64) -> UInt64 { seed &* 31 &+ 7 }
 
+/// Which board an evaluation arm was played on. A raw `String` because it is
+/// written into every result object and read back by
+/// `scripts/analyze-bot-evaluation.py`.
+private enum EvaluationBoardMode: String, Sendable {
+    case standard
+    case randomized
+}
+
 // MARK: - stderr
 
 /// Diagnostics channel. Kept separate from the results channel so nothing
@@ -159,10 +167,6 @@ private struct Options {
     var buildID = "working-tree"
     var buildIDWasProvided = false
     var jsonl: Bool = false
-    var trainingOutput: String?
-    var decisionOutput: String?
-    var traceMaxBytes = CorpusWriter.defaultMaxBytes
-    var trainingInformationPolicy: HiddenInformationPolicy = .revealAll
     /// Weights for the `eval-tuned` seat. A sweep varies this and nothing
     /// else, so one binary plays every candidate and the arms of a
     /// comparison differ by a value rather than by a build.
@@ -172,9 +176,6 @@ private struct Options {
         usage: sim [--games N] [--seed S] [--players 3|4] [--victory-points 8|10|12]
                    [--board standard|randomized] [--seats LIST] [--build-id ID] [--jsonl]
                    [--weights W1,...,W14]
-                   [--training-jsonl PATH]
-                   [--training-information reveal-all|public-counts]
-                   [--decision-jsonl PATH] [--trace-max-bytes N]
           --games N     number of consecutive seeds to play (default 1)
           --seed S      first match seed; seeds S ..< S+N are played (default 1)
           --players N   seats at the table: 3 or 4 (default 4)
@@ -200,14 +201,6 @@ private struct Options {
           --build-id ID provenance label written into every result
                         (default working-tree; letters, digits, dot, dash, underscore)
           --jsonl       one JSON object per game on stdout; without it, a text table
-          --training-jsonl PATH
-                        write one versioned masked policy/value example per decision
-          --training-information MODE
-                        opponent holdings in training features (default reveal-all)
-          --decision-jsonl PATH
-                        retained diagnostic JSONL; requires explicit --build-id
-          --trace-max-bytes N
-                        total diagnostic file cap (default 268435456 bytes)
         """
 }
 
@@ -221,7 +214,7 @@ private struct Options {
 /// Unknown names abort rather than falling back to `.balanced`: a typo'd arm
 /// silently played by the default opponent is the exact way a bogus strength
 /// claim gets made.
-private func policy(named name: String, writer: CorpusWriter? = nil,
+private func policy(named name: String,
                     tunedWeights: EvaluationWeights = .default) -> any Policy {
     let base: any Policy
     let personality: BotPersonality?
@@ -230,11 +223,11 @@ private func policy(named name: String, writer: CorpusWriter? = nil,
     case "aggressive": personality = .aggressive
     case "cautious": personality = .cautious
     case "refuses-balanced": personality = nil
-    case "greedy", "random", "joint-balanced", "planner", "eval", "eval-tuned", "eval-round3", "eval-worthit": personality = nil
+    case "greedy", "random", "joint-balanced", "eval", "eval-tuned", "eval-round3", "eval-worthit": personality = nil
     default:
         fail(
             "unknown seat '\(name)'; expected balanced, aggressive, cautious, "
-                + "eval, eval-tuned, eval-round3, planner, greedy, random, "
+                + "eval, eval-tuned, eval-round3, greedy, random, "
                 + "refuses-balanced or joint-balanced"
         )
     }
@@ -242,8 +235,6 @@ private func policy(named name: String, writer: CorpusWriter? = nil,
         base = HeuristicPolicy(personality: personality, id: "heuristic-\(name)")
     } else if name == "greedy" {
         base = GreedyPolicy()
-    } else if name == "planner" {
-        base = PlannerPolicy()
     } else if name == "eval" {
         base = EvaluationPolicy()
     } else if name == "eval-tuned" {
@@ -265,8 +256,7 @@ private func policy(named name: String, writer: CorpusWriter? = nil,
     } else {
         base = RandomPolicy()
     }
-    guard let writer else { return base }
-    return CorpusPolicy(base: base, bot: personality.map { Bot(personality: $0) }, writer: writer)
+    return base
 }
 
 /// Reads `CommandLine.arguments` into `Options`, aborting on anything it does
@@ -372,24 +362,6 @@ private func parseOptions(_ arguments: [String]) -> Options {
             options.tunedWeights = EvaluationWeights(vector: parsed)
         case "--jsonl":
             options.jsonl = true
-        case "--training-jsonl":
-            options.trainingOutput = nextValue(for: "--training-jsonl")
-        case "--decision-jsonl":
-            let value = uniqueValue(for: "--decision-jsonl")
-            guard !value.isEmpty, !value.hasPrefix("--") else { fail("--decision-jsonl needs a path") }
-            options.decisionOutput = value
-        case "--trace-max-bytes":
-            guard let value = Int(uniqueValue(for: "--trace-max-bytes")), value > 0 else {
-                fail("--trace-max-bytes must be a positive integer")
-            }
-            options.traceMaxBytes = value
-        case "--training-information":
-            let value = nextValue(for: "--training-information")
-            switch value {
-            case "reveal-all": options.trainingInformationPolicy = .revealAll
-            case "public-counts": options.trainingInformationPolicy = .publicCountsOnly
-            default: fail("--training-information must be reveal-all or public-counts")
-            }
         case "--help", "-h":
             Stderr.write(Options.usage)
             exit(0)
@@ -404,22 +376,6 @@ private func parseOptions(_ arguments: [String]) -> Options {
     }
     guard options.seatNames.count == options.configuration.playerCount else {
         fail("--seats needs exactly \(options.configuration.playerCount) names, got \(options.seatNames.count)")
-    }
-    if options.trainingOutput != nil, options.buildID == "working-tree" {
-        fail("--training-jsonl requires an explicit non-placeholder --build-id")
-    }
-    // Expert composes trade offers the fixed action space cannot index, and a
-    // training example requires every chosen move to have an index. Refusing
-    // here beats a precondition failure hundreds of games into an export.
-    if options.trainingOutput != nil,
-       let expert = options.seatNames.first(where: { $0.hasPrefix("eval") }) {
-        fail("--training-jsonl cannot record '\(expert)': composed trade offers have no action index")
-    }
-    if options.decisionOutput != nil, !options.buildIDWasProvided {
-        fail("--decision-jsonl requires an explicit --build-id")
-    }
-    if seenConfigurationFlags.contains("--trace-max-bytes"), options.decisionOutput == nil {
-        fail("--trace-max-bytes requires --decision-jsonl")
     }
     let finalOffset = UInt64(options.games - 1)
     guard finalOffset <= UInt64.max - options.firstSeed else {
@@ -489,13 +445,6 @@ private struct GameResult {
     let victoryPoints: [Int]
     let fingerprint: String
     let behavior: [PolicyBehaviorMetrics]
-    let decisions: [RecordedDecision]
-    let policyEvaluationCount: Int
-}
-
-private struct RecordedDecision {
-    let decision: GameSession.Decision
-    let policyID: String
 }
 
 /// Plays one complete game on a randomized board derived from `seed`, with
@@ -515,55 +464,39 @@ private func playGame(
     seed: UInt64,
     policies: [any Policy],
     configuration: SimulationConfiguration,
-    buildID: String,
-    recordTraining: Bool,
-    corpus: CorpusWriter?
+    buildID: String
 ) -> GameResult {
     let state = configuration.state(seed: seed)
     precondition(policies.count == state.players.count,
                  "policy roster must match the configured player count")
     var seats: [PlayerID: any Policy] = [:]
     for (index, policy) in policies.enumerated() { seats[state.players[index].id] = policy }
-    // Start must precede construction: restoring pending trades can invoke
-    // policies inside GameSession.init, before its caller receives a session.
-    corpus?.start(seed: seed, payload: CorpusStart(buildID: buildID, policyIDs: policies.map(\.id),
-                                                 boardMode: configuration.boardMode, initialState: state))
     var session = GameSession(state: state, policies: seats,
                               policySeed: policySeed(from: seed))
-    corpus?.verify(session: session)
     var trace: [String] = []
     var behavior = Array(repeating: PolicyBehaviorMetrics(), count: state.players.count)
-    var decisions: [RecordedDecision] = []
 
     for _ in 0..<maxMovesPerGame {
         guard case .seat = session.nextActor() else { break }
-        let nextDecision = session.decideNextDetailed()
-        corpus?.verify(session: session)
-        guard let decision = nextDecision else { break }
+        guard let decision = session.decideNextDetailed() else { break }
         for evaluated in session.lastPolicyDecisions {
             behavior[evaluated.seat.index].observeDecision(evaluated.observation, chosen: evaluated.move)
         }
-        record(session.lastPolicyDecisions, policies: policies, enabled: recordTraining, into: &decisions)
         let step: GameSession.Step?
         do {
             step = try session.commit(seat: decision.seat, move: decision.move)
         } catch {
-            corpus?.abort(error)
             fatalError("seed \(seed): a policy played an illegal move: \(error)")
         }
-        corpus?.verify(session: session)
         guard let step else { break }
-        corpus?.commit(moveIndex: trace.count, step: step, session: session)
         for evaluated in session.lastPolicyDecisions {
             behavior[evaluated.seat.index].observeDecision(evaluated.observation, chosen: evaluated.move)
         }
-        record(session.lastPolicyDecisions, policies: policies, enabled: recordTraining, into: &decisions)
         trace.append("P\(step.actor.index):\(Rendering.canonical(step.move))")
         behavior[step.actor.index].observe(step.events, for: step.actor)
     }
 
     var winner: PlayerID?
-    corpus?.end(session: session, moves: trace.count)
     if case .gameOver(let who) = session.state.phase { winner = who }
     return GameResult(
         buildID: buildID,
@@ -574,22 +507,8 @@ private func playGame(
         winner: winner,
         victoryPoints: session.state.players.map { session.state.victoryPoints(for: $0.id) },
         fingerprint: Rendering.fingerprint(trace),
-        behavior: behavior,
-        decisions: decisions,
-        policyEvaluationCount: session.policyEvaluationCount
+        behavior: behavior
     )
-}
-
-private func record(
-    _ evaluated: [GameSession.Decision],
-    policies: [any Policy],
-    enabled: Bool,
-    into decisions: inout [RecordedDecision]
-) {
-    guard enabled else { return }
-    decisions.append(contentsOf: evaluated.map {
-        RecordedDecision(decision: $0, policyID: policies[$0.seat.index].id)
-    })
 }
 
 // MARK: - Output
@@ -654,118 +573,27 @@ private func textLine(_ result: GameResult) -> String {
     return "seed \(result.seed)  moves \(result.moves)  winner \(winner)  vp \(points)  \(result.fingerprint)"
 }
 
-private final class TrainingWriter {
-    private let finalURL: URL
-    private let temporaryURL: URL
-    private let handle: FileHandle
-    private let encoder: JSONEncoder
-    private let informationPolicy: HiddenInformationPolicy
-    private var isFinished = false
-
-    init(path: String, informationPolicy: HiddenInformationPolicy) {
-        precondition(!path.isEmpty, "--training-jsonl path cannot be empty")
-        precondition(!FileManager.default.fileExists(atPath: path),
-                     "refusing to overwrite existing training data at \(path)")
-        finalURL = URL(fileURLWithPath: path)
-        temporaryURL = finalURL.deletingLastPathComponent()
-            .appendingPathComponent(".\(finalURL.lastPathComponent).\(UUID().uuidString).tmp")
-        precondition(FileManager.default.createFile(atPath: temporaryURL.path, contents: nil),
-                     "could not create temporary training output beside \(path)")
-        guard let handle = FileHandle(forWritingAtPath: temporaryURL.path) else {
-            preconditionFailure("could not open temporary training output beside \(path)")
-        }
-        self.handle = handle
-        self.informationPolicy = informationPolicy
-        encoder = JSONEncoder()
-        encoder.outputFormatting = [.sortedKeys, .withoutEscapingSlashes]
-    }
-
-    deinit {
-        guard !isFinished else { return }
-        // Best-effort cleanup only: `finish()` owns the checked close and
-        // atomic publication path. A crash may leave a visibly temporary file,
-        // never a valid-looking final dataset.
-        try? handle.close()
-        try? FileManager.default.removeItem(at: temporaryURL)
-    }
-
-    func write(_ result: GameResult) {
-        guard let winner = result.winner else {
-            preconditionFailure("training data requires a decisive game for seed \(result.seed)")
-        }
-        precondition(result.decisions.count == result.policyEvaluationCount,
-                     "captured \(result.decisions.count) of \(result.policyEvaluationCount) policy evaluations")
-        for recorded in result.decisions {
-            let decision = recorded.decision
-            let example = TrainingExample(
-                buildID: result.buildID,
-                seed: result.seed,
-                decisionIndex: decision.evaluationIndex,
-                policyID: recorded.policyID,
-                hiddenInformationPolicy: informationPolicy,
-                boardMode: result.configuration.boardMode,
-                observation: decision.observation,
-                chosenMove: decision.move,
-                winner: winner
-            )
-            do {
-                handle.write(try encoder.encode(example))
-                handle.write(Data("\n".utf8))
-            } catch {
-                preconditionFailure("could not encode training example: \(error)")
-            }
-        }
-    }
-
-    func finish() throws {
-        try handle.synchronize()
-        try handle.close()
-        try FileManager.default.moveItem(at: temporaryURL, to: finalURL)
-        isFinished = true
-    }
-}
-
 // MARK: - Run
 
 // These are `private` because `Options` is: a top-level `let` in main.swift
 // is a module-scope declaration, and Swift refuses to expose one whose type is
 // less visible than it is.
 private let options = parseOptions(CommandLine.arguments)
-// Validate all seats before creating either export file.
-private let validatedSeats = options.seatNames.map {
+private let seats = options.seatNames.map {
     policy(named: $0, tunedWeights: options.tunedWeights)
 }
-private let corpusWriter: CorpusWriter? = {
-    guard let path = options.decisionOutput else { return nil }
-    do {
-        return try CorpusWriter(path: path, maxBytes: options.traceMaxBytes)
-    } catch {
-        fail("could not create decision trace (refusing overwrite) at \(path): \(error)")
-    }
-}()
-private let seats = corpusWriter.map { writer in
-    options.seatNames.map { policy(named: $0, writer: writer, tunedWeights: options.tunedWeights) }
-}
-    ?? validatedSeats
 private let clock = ContinuousClock()
 private let started = clock.now
-private let trainingWriter = options.trainingOutput.map {
-    TrainingWriter(path: $0, informationPolicy: options.trainingInformationPolicy)
-}
 
 for offset in 0..<options.games {
     let result = playGame(
         seed: options.firstSeed &+ UInt64(offset),
         policies: seats,
         configuration: options.configuration,
-        buildID: options.buildID,
-        recordTraining: trainingWriter != nil,
-        corpus: corpusWriter
+        buildID: options.buildID
     )
-    trainingWriter?.write(result)
     Stdout.write(options.jsonl ? jsonLine(result) : textLine(result))
 }
-corpusWriter?.finish()
 
 // Sampled ONCE. Reading `clock.now` twice took `seconds` from the first read
 // and `attoseconds` from the second, so a pair straddling a whole-second
@@ -777,8 +605,3 @@ let elapsed = Double(duration.components.seconds)
     + Double(duration.components.attoseconds) / 1e18
 Stderr.write(String(format: "sim: %d games in %.2fs (%.1f games/sec)",
                     options.games, elapsed, Double(options.games) / elapsed))
-do {
-    try trainingWriter?.finish()
-} catch {
-    fatalError("could not publish training data: \(error)")
-}

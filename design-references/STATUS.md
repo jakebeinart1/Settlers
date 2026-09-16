@@ -1,3 +1,9 @@
+> **`tiles/_scripts/` was deleted on 2026-09-16.** Every asset it produced is committed
+> and wired in; the generators were one-shot tools that had not been run since the art
+> landed. The sections below still describe *how* each asset was made, which is the part
+> worth keeping - restore a script from history (`git log -- design-references/tiles/_scripts`)
+> if a regeneration is ever needed.
+
 # Empires visual redesign — status
 
 Direction: Avatar: The Last Airbender-style (`approved/master-reference-full-screen.png`, the original

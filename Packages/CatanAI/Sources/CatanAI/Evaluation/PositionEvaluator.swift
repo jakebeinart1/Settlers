@@ -166,7 +166,7 @@ public struct PositionEvaluator: Sendable {
     /// changes without re-scoring the board. `TradeValuation` relies on this
     /// being exactly the function `standing` uses, which a test pins.
     func handTerms(belief: PublicLedger.SeatBelief, rate: ProductionRate, state: GameState) -> Double {
-        let holding = ClockModel.holding(from: belief)
+        let holding = believedHolding(from: belief)
         let size = Double(belief.maxTotal)
         let threshold = Double(state.rules.discardThreshold)
         let overflow = max(0, size - threshold)
@@ -245,4 +245,14 @@ public struct PositionEvaluator: Sendable {
         let occupied = owner.settlements.union(owner.cities)
         return state.board.ports.count { occupied.contains($0.vertexA) || occupied.contains($0.vertexB) }
     }
+}
+
+/// A seat's believed hand as fractional counts, walked in `Resource.allCases`
+/// order so the result cannot depend on dictionary iteration order.
+func believedHolding(from belief: PublicLedger.SeatBelief) -> [Resource: Double] {
+    var holding: [Resource: Double] = [:]
+    for resource in Resource.allCases {
+        holding[resource] = belief.believedHolding(of: resource)
+    }
+    return holding
 }

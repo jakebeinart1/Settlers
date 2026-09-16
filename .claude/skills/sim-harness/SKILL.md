@@ -1,6 +1,6 @@
 ---
 name: sim-harness
-description: Headless seeded self-play and versioned training-data export for the Empires bots. Use for multi-game behavior/strength measurements, deterministic reproduction, or producing masked policy/value examples. The no-RNG `Bot.decide` overload can never be reproducible; prove reproducibility across separate processes, never twice inside one.
+description: Headless seeded self-play for the Empires bots. Use for multi-game behavior/strength measurements and deterministic reproduction. The no-RNG `Bot.decide` overload can never be reproducible; prove reproducibility across separate processes, never twice inside one.
 ---
 
 # Sim harness
@@ -140,46 +140,15 @@ so the order cannot drift:
 games/sec)` line goes to stderr. That split is what makes step 3's byte
 comparison possible at all, so do not "helpfully" move timing onto stdout.
 
-## Training-data mode
+## Training-data mode: REMOVED
 
-`--training-jsonl` writes a separate record for every policy decision while
-ordinary game JSONL stays on stdout. Never point it at an existing file: the
-harness refuses to overwrite so two incompatible runs cannot be mixed.
-
-```bash
-"$SIM" --games 20 --seed 53000 --jsonl \
-  --build-id policy-baseline-v1 \
-  --training-information reveal-all \
-  --training-jsonl /tmp/examples.jsonl > /tmp/games.jsonl
-python3 scripts/validate-training-data.py \
-  --build-id policy-baseline-v1 --information-policy revealAll /tmp/examples.jsonl
-python3 scripts/train-policy-baseline.py \
-  --build-id policy-baseline-v1 \
-  --information-policy revealAll \
-  --model-output /tmp/checkpoint.json /tmp/examples.jsonl
-```
-
-Each schema-2 example carries the dataset schema, state/action layout versions,
-build and policy provenance, seed and decision index, player count, victory
-target, board mode, observer/table identity, 5,182 features, sparse legal-action
-indices, chosen global action, and final seat-relative outcome. The validator
-checks the serialized contract, including configuration/layout provenance,
-feature bounds, per-seed-and-configuration contiguous decision indices,
-winner-derived outcomes, and that the chosen action belongs to the serialized
-legal mask. The
-Swift constructor remains the authority for recomputing the mask from live game
-state; compact feature vectors intentionally cannot reconstruct that state.
-
-Both table sizes use the same 9,335-wide four-chair action head. In a
-three-player example the nonexistent fourth victim slots are simply illegal.
-Shrinking the head would shift every later segment, making one action index mean
-different moves depending on table size and silently corrupting mixed training.
-
-The baseline is deliberately modest and dependency-free: phase-conditioned
-action counts behind the legal mask, plus a linear value estimator. It proves
-the pipeline and supplies lower-bound metrics; it is not a shipping bot or a
-strength result. Splitting is by whole game seed, never by decision, because
-adjacent states from one trajectory in train and test would be leakage.
+`--training-jsonl`, `--training-information`, `--decision-jsonl`,
+`--trace-max-bytes`, `StateEncoding`, `ActionSpace`, `TrainingExample` and the
+two Python trainers were deleted on 2026-09-16. Nothing consumed them: no
+learned policy ships, and the two attempts to fit one failed (67.7% sign
+accuracy against a 74.0% baseline; an imitation policy at 0/40). If a learned
+policy is attempted again, restore the exporter from history rather than
+rebuilding it - `git log -- Packages/CatanEngine/Sources/CatanEngine/StateEncoding.swift`.
 
 ## Trap: the RNG overload that can never be reproducible
 
@@ -290,8 +259,8 @@ true and the floors move.
   inference from aggregate counters.
 - **The executable is integration-tested, but fingerprints still matter.**
   `scripts/tests/test_sim_cli.py` builds and invokes Release `sim`, checks strict
-  CLI failures, runs all twelve engine/evaluation configurations, and validates a real training
-  export. If you change move rendering or policy flow, still run step 4 against
+  CLI failures, and runs all twelve engine/evaluation configurations. If you
+  change move rendering or policy flow, still run step 4 against
   the independently pinned fingerprints and compare separate processes.
 - **Never run on Linux.** See the table.
 

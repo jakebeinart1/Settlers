@@ -138,7 +138,6 @@
 		EF87083558FA32FFB14AA859 /* GameViewModel+BotPacing.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A01A012123500F977D8417F /* GameViewModel+BotPacing.swift */; };
 		F196BA189817672BCD58FBA7 /* GameViewModel+QATrade.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7E281605A981DE27D853BE66 /* GameViewModel+QATrade.swift */; };
 		F6F3324A29096F09311AF398 /* DevelopmentCardPresentationState.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE9D96776AC8F1DC2429C0B9 /* DevelopmentCardPresentationState.swift */; };
-		F771473CF73234C9A515C3B7 /* RobberVictimButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 51D0B7EDF9C05C757889F9F2 /* RobberVictimButton.swift */; };
 		FA9E6540100EF009A969A54A /* OpponentProfileIntegrationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 52A8BE17AC12F2C0246905CE /* OpponentProfileIntegrationTests.swift */; };
 /* End PBXBuildFile section */
 
@@ -194,7 +193,6 @@
 		508E724EE652E4C341C3BAC8 /* BoardDecisionBoardChrome.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BoardDecisionBoardChrome.swift; sourceTree = "<group>"; };
 		50C4CFF8E5798600294998A8 /* GameLogStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameLogStoreTests.swift; sourceTree = "<group>"; };
 		51734632231393886280C1ED /* BotDifficulty.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BotDifficulty.swift; sourceTree = "<group>"; };
-		51D0B7EDF9C05C757889F9F2 /* RobberVictimButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RobberVictimButton.swift; sourceTree = "<group>"; };
 		5281B8CED614C244F7E533EE /* CompleteMatchTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompleteMatchTests.swift; sourceTree = "<group>"; };
 		52A8BE17AC12F2C0246905CE /* OpponentProfileIntegrationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OpponentProfileIntegrationTests.swift; sourceTree = "<group>"; };
 		52C0B1D44B650E22AEBC8366 /* EndGameView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EndGameView.swift; sourceTree = "<group>"; };
@@ -465,7 +463,6 @@
 				44E440B9CD11BDC249491106 /* PaintedChromeBackground.swift */,
 				77BA2122016739392CF5DF22 /* PlayerHUDView.swift */,
 				BF75252617AEEC3F4190D703 /* ResourceChip.swift */,
-				51D0B7EDF9C05C757889F9F2 /* RobberVictimButton.swift */,
 				7B3D502345F41546FE4903CE /* SeatCardView.swift */,
 				D9D4E1C56EC91FE0C881DA59 /* SeatNumberPickerPopup.swift */,
 				8BC4427BD3E30FD0F5F9E9CC /* SettingsChrome.swift */,
@@ -753,7 +750,6 @@
 				9D659C4304480CACA215E1EF /* QAGameHistoryFixture.swift in Sources */,
 				EA3F8948081A29B415CD8B67 /* QALaunchFlag.swift in Sources */,
 				982B80C1DDE6B39264765604 /* ResourceChip.swift in Sources */,
-				F771473CF73234C9A515C3B7 /* RobberVictimButton.swift in Sources */,
 				08572217A242A44981A040EB /* SavedGameAvailability.swift in Sources */,
 				A0509BA422B4A4CCC2E73976 /* SeatCardView.swift in Sources */,
 				BC863FBB0B69046B3989938A /* SeatNumberPickerPopup.swift in Sources */,

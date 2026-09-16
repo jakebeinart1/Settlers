@@ -20,8 +20,6 @@ let package = Package(
         // executable product for an `.executableTarget`, which is all
         // `swift run --package-path Packages/CatanAI sim` needs.
         .executableTarget(name: "sim", dependencies: ["CatanAI", "CatanEngine"]),
-        // Offline enrichment of retained decisions; no policy/session loop.
-        .executableTarget(name: "trade-review", dependencies: ["CatanAI", "CatanEngine"]),
         // Trade behaviour on sampled positions, without playing games out.
         .executableTarget(name: "trade-bench", dependencies: ["CatanAI", "CatanEngine"]),
         .testTarget(name: "CatanAITests", dependencies: ["CatanAI"])

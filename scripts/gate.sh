@@ -130,10 +130,6 @@ gate_packages_build() {
 gate_engine_tests() { ( cd Packages/CatanEngine && swift test --enable-code-coverage ); }
 gate_ai_tests()     { ( cd Packages/CatanAI && swift test --enable-code-coverage ); }
 
-# A same-process determinism test is insufficient because Swift seeds hash
-# iteration once per process. This executes the real exporter twice and checks
-# the serialized artifact, including completeness validation.
-gate_training_export() { ./scripts/verify-training-export.sh; }
 
 # --- 5. Coverage floors ---------------------------------------------------
 # Floors sit ~1 point under the measured figure. See scripts/coverage.sh for
@@ -276,7 +272,6 @@ maybe "evaluation tooling"     gate_evaluation_tools
 maybe "packages build (W=E)"    gate_packages_build
 maybe "CatanEngine tests"       gate_engine_tests
 maybe "CatanAI tests"           gate_ai_tests
-maybe "training export"         gate_training_export
 maybe "coverage floors"         gate_coverage
 maybe "gitleaks"                gate_secrets
 maybe "app tests"               gate_app_tests
