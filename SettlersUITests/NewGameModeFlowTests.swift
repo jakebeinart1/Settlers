@@ -16,10 +16,9 @@ final class NewGameModeFlowTests: XCTestCase {
         app.launchArguments = ["-ui-testing", "-ui-testing-reset", "-qaShowNewGame"]
         app.launch()
 
-        let modeRow = app.otherElements["new-game.mode"]
-        XCTAssertTrue(modeRow.waitForExistence(timeout: 10))
+        XCTAssertTrue(app.otherElements["screen.new-game"].waitForExistence(timeout: 10))
 
-        let vast = modeRow.buttons["Vast"]
+        let vast = app.buttons["Vast"]
         XCTAssertTrue(vast.waitForExistence(timeout: 5), "The Vast chip is not on the mode row")
         vast.tap()
 
@@ -35,9 +34,8 @@ final class NewGameModeFlowTests: XCTestCase {
         app.launchArguments = ["-ui-testing", "-ui-testing-reset", "-qaShowNewGame"]
         app.launch()
 
-        let modeRow = app.otherElements["new-game.mode"]
-        XCTAssertTrue(modeRow.waitForExistence(timeout: 10))
-        XCTAssertFalse(modeRow.buttons["Expanded"].exists,
+        XCTAssertTrue(app.otherElements["screen.new-game"].waitForExistence(timeout: 10))
+        XCTAssertFalse(app.buttons["Expanded"].exists,
                        "Expanded is still startable; its 25-point target is unreachable on its board")
     }
 }

@@ -53,7 +53,6 @@ enum AccessibilityID {
         static let cancel = "new-game.cancel"
         static let start = "new-game.start"
         static let confirmOverwrite = "new-game.confirm-overwrite"
-        static let modeRow = "new-game.mode"
         static let modePicker = "new-game.mode.picker"
 
         static func modeOption(_ mode: GameMode) -> String { "new-game.mode.\(mode.rawValue)" }

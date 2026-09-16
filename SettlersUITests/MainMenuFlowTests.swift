@@ -22,8 +22,6 @@ final class MainMenuFlowTests: XCTestCase {
         let app = launchResetApp()
 
         app.buttons["main-menu.new-game"].tap()
-        app.buttons["3 Players"].tap()
-        app.buttons["8 VP"].tap()
         app.buttons["Randomized"].tap()
         app.buttons["Random"].tap()
         app.buttons["new-game.start"].tap()
@@ -31,22 +29,22 @@ final class MainMenuFlowTests: XCTestCase {
         XCTAssertTrue(app.otherElements["screen.game"].waitForExistence(timeout: 5))
     }
 
-    func testEpicLengthIsOnlyOfferedAtAThreePlayerTable() {
+    /// Table size and match length stopped being controls on 2026-09-16: every
+    /// table is four seats and the mode names the target, so Epic left with the
+    /// three-player table that offered it. This replaces the test that used to
+    /// drive those chips - what matters now is that they are gone and the screen
+    /// still starts.
+    func testTableSizeAndMatchLengthAreNoLongerChoices() {
         continueAfterFailure = false
         let app = launchResetApp()
 
         app.buttons["main-menu.new-game"].tap()
         XCTAssertTrue(app.otherElements["screen.new-game"].waitForExistence(timeout: 5))
-        XCTAssertFalse(app.buttons["12 VP"].exists)
 
-        app.buttons["3 Players"].tap()
-        XCTAssertTrue(app.buttons["12 VP"].waitForExistence(timeout: 2))
-        app.buttons["12 VP"].tap()
-
-        app.buttons["4 Players"].tap()
-        XCTAssertFalse(app.buttons["12 VP"].exists)
-        XCTAssertTrue(app.buttons["new-game.start"].isEnabled,
-                      "growing the table must normalize Epic to a playable length")
+        for gone in ["3 Players", "4 Players", "8 VP", "10 VP", "12 VP"] {
+            XCTAssertFalse(app.buttons[gone].exists, "\(gone) should no longer be a control")
+        }
+        XCTAssertTrue(app.buttons["new-game.start"].isEnabled)
     }
 
     func testNewGameControlsRemainUsableAtAccessibilityTextSize() {
@@ -117,7 +115,6 @@ final class MainMenuFlowTests: XCTestCase {
         let app = launchResetApp()
 
         app.buttons["main-menu.new-game"].tap()
-        app.buttons["3 Players"].tap()
         app.buttons["As Shown"].tap()
         app.buttons["new-game.start"].tap()
 
@@ -160,7 +157,6 @@ final class MainMenuFlowTests: XCTestCase {
         let app = launchResetApp()
 
         app.buttons["main-menu.new-game"].tap()
-        app.buttons["3 Players"].tap()
         app.buttons["As Shown"].tap()
         app.buttons["new-game.start"].tap()
         XCTAssertTrue(app.otherElements["screen.game"].waitForExistence(timeout: 5))

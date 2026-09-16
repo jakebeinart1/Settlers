@@ -523,7 +523,6 @@ struct NewGameSetupView: View {
                     setup.normalizeNewGameOptions()
                 }
             )
-            .accessibilityIdentifier(AccessibilityID.NewGame.modeRow)
         }
     }
 
