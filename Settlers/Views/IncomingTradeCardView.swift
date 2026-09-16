@@ -156,18 +156,26 @@ public struct IncomingTradeCardView: View {
                 // match `actionRow`'s height - see chat) to actually use
                 // that extra vertical space instead of leaving it as
                 // padding around still-tiny text.
-                HStack(spacing: 6) {
-                    Text("Give")
-                        .font(.system(size: 12, weight: .semibold))
-                        .foregroundStyle(.secondary)
-                    resourceDots(offer.want)
-                    Image(systemName: "arrow.right")
-                        .font(.system(size: 12, weight: .bold))
-                        .foregroundStyle(.secondary)
-                    Text("Get")
-                        .font(.system(size: 12, weight: .semibold))
-                        .foregroundStyle(.secondary)
-                    resourceDots(offer.give)
+                // Expert composes bundles now (up to five cards across four
+                // resource types), and the row is sized by the number of
+                // *types*, not cards. At the original fixed metrics a four-type
+                // side did not overflow visibly - SwiftUI compressed the only
+                // flexible children, the count labels, to zero width. Measured
+                // on the QA simulator with `-qaBundleOffer`: "Give [wheat] 3 ->
+                // Get [] [] [] []", four colours and no quantities at all, so
+                // the player could not tell one ore from three. A silently
+                // dropped number on a two-way decision with no undo is worse
+                // than a small one.
+                //
+                // `ViewThatFits` picks the widest density that actually fits,
+                // and `.fixedSize()` inside every density makes the counts
+                // incompressible - so the degradation is "tighter", never
+                // "missing". Single-resource offers, the common case, still get
+                // the first and largest set.
+                ViewThatFits(in: .horizontal) {
+                    exchangeRow(swatch: 14, font: 14, spacing: 6)
+                    exchangeRow(swatch: 12, font: 12, spacing: 4)
+                    exchangeRow(swatch: 10, font: 10, spacing: 3)
                 }
             }
 
@@ -299,17 +307,44 @@ public struct IncomingTradeCardView: View {
     /// consistently - the same visual language `HumanPlayerPanel`'s hand
     /// row and `TradePopupView`'s chips already use, instead of a text
     /// sentence.
-    private func resourceDots(_ resources: [Resource: Int]) -> some View {
-        HStack(spacing: 6) {
+    private func resourceDots(_ resources: [Resource: Int],
+                              swatch: CGFloat,
+                              font: CGFloat,
+                              spacing: CGFloat) -> some View {
+        HStack(spacing: spacing) {
             ForEach(Resource.allCases.filter { (resources[$0] ?? 0) > 0 }, id: \.self) { resource in
-                HStack(spacing: 4) {
+                HStack(spacing: spacing > 4 ? 4 : 2) {
                     RoundedRectangle(cornerRadius: 3)
                         .fill(CatanTheme.color(for: resource))
-                        .frame(width: 14, height: 14)
+                        .frame(width: swatch, height: swatch)
                     Text("\(resources[resource] ?? 0)")
-                        .font(.system(size: 14, weight: .bold))
+                        .font(.system(size: font, weight: .bold))
+                        // Without this the count is the only thing in the row
+                        // SwiftUI can shrink, so it is the thing that vanishes.
+                        .fixedSize()
                 }
             }
+        }
+    }
+
+    /// The "Give … → Get …" line at one density. `ViewThatFits` above picks the
+    /// largest one that fits the card, which depends on how many resource types
+    /// the offer spreads across.
+    private func exchangeRow(swatch: CGFloat, font: CGFloat, spacing: CGFloat) -> some View {
+        HStack(spacing: spacing) {
+            Text("Give")
+                .font(.system(size: font < 12 ? 10 : 12, weight: .semibold))
+                .foregroundStyle(.secondary)
+                .fixedSize()
+            resourceDots(offer.want, swatch: swatch, font: font, spacing: spacing)
+            Image(systemName: "arrow.right")
+                .font(.system(size: font < 12 ? 10 : 12, weight: .bold))
+                .foregroundStyle(.secondary)
+            Text("Get")
+                .font(.system(size: font < 12 ? 10 : 12, weight: .semibold))
+                .foregroundStyle(.secondary)
+                .fixedSize()
+            resourceDots(offer.give, swatch: swatch, font: font, spacing: spacing)
         }
     }
 }

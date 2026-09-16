@@ -18,13 +18,28 @@ extension GameViewModel {
             fixture.players[index].resources = [:]
         }
         fixture.bank = Dictionary(uniqueKeysWithValues: Resource.allCases.map { ($0, 19) })
-        fixture.players[human.index].resources[.grain] = 1
-        fixture.players[bot.index].resources[.brick] = 1
-        fixture.bank[.grain] = 18
-        fixture.bank[.brick] = 18
+        // The widest bundle the engine permits is four give types against one
+        // want type: `maxComposedTradeGive` is 5 cards and `maxComposedTradeWant`
+        // 3, and with only five resources a disjoint offer cannot spread further
+        // than 4 + 1. Row width is driven by the number of *types*, not cards,
+        // because `resourceDots` renders one swatch and a count per type.
+        let bundling = QALaunchFlag.bundleOffer.isSet
+        let give: [Resource: Int] = bundling
+            ? [.brick: 2, .lumber: 1, .wool: 1, .ore: 1]
+            : [.brick: 1]
+        let want: [Resource: Int] = bundling ? [.grain: 3] : [.grain: 1]
+
+        for (resource, count) in want {
+            fixture.players[human.index].resources[resource] = count
+            fixture.bank[resource, default: 19] -= count
+        }
+        for (resource, count) in give {
+            fixture.players[bot.index].resources[resource] = count
+            fixture.bank[resource, default: 19] -= count
+        }
         fixture.phase = .mainTurn(playerIndex: human.index)
 
-        let offer = TradeOffer(from: bot, give: [.brick: 1], want: [.grain: 1])
+        let offer = TradeOffer(from: bot, give: give, want: want)
         do {
             try Trading.proposeTrade(offer, state: &fixture)
         } catch {

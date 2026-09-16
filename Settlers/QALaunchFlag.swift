@@ -100,6 +100,12 @@ enum QALaunchFlag: String, CaseIterable {
     case showMandatoryRobberDecision = "-qaShowMandatoryRobberDecision"
     /// Seeds a real pending offer with deterministic conserved hands.
     case showIncomingOffer = "-qaShowIncomingOffer"
+    /// **Modifier** for `-qaShowIncomingOffer`: widens the offer to the widest
+    /// bundle the engine permits, four give types against one want type.
+    /// Expert composes multi-resource offers now (`maxComposedTradeGive = 5`,
+    /// `maxComposedTradeWant = 3`), and the single-resource fixture could never
+    /// show what that does to the card's fixed-height row.
+    case bundleOffer = "-qaBundleOffer"
     /// Stages the mandatory robber fixture's three-victim destination, without
     /// selecting a victim or committing the move.
     case showRobberVictimPicker = "-qaShowRobberVictimPicker"
