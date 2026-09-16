@@ -4,11 +4,11 @@ Updated September 16, 2026. Completed UI/menu/replay notes and previous research
 
 ## Start here — next session, in this order
 
-1. **Tune the weights for Vast** (Current work #4). It ships playing Expanded's hand-set weights as a placeholder, never swept on this board. Highest-value open item, and the machine is free.
-2. **Fix bank-trade churn** (#6) — a known bot defect with a measured number and a designed fix, waiting only on a strength measurement and Jake's nod.
+1. **Re-sweep the Classic weights against an opponent that refuses trades** (Current work #8). Measured today: Expert's entire advantage over the shipping bot disappears at a table that will not accept its offers — and that is how Jake plays. This is the biggest open gap between the measured bot and the played one.
+2. **Tune the weights for Vast** (#4). It ships playing Expanded's hand-set weights as a placeholder, never swept on this board.
 3. **Soften the first-settlement overlay on Vast** (#5) — small, visual, and the only rough edge a player will notice.
 
-Everything through the Vast replacement is committed, gated and pushed, and running on Jake's phone. Nothing is half-finished; the three above are new work.
+Everything through the bank-trade fix (#6) is committed and pushed and running on Jake's phone. One docs commit sits unpushed on `feat/expert-no-trade-sweep`; it lands with that branch's next push.
 
 ## Tooling
 
@@ -40,7 +40,20 @@ Everything through the Vast replacement is committed, gated and pushed, and runn
 - [x] **Simplified the New Game screen** (Jake, 2026-09-16): Game Mode is a chip row rather than a popup, the table is fixed at four players, match length is a label derived from the mode (Classic 10, Vast 26) rather than an 8-vs-10 dial, and seat 4's "Optional" pill is gone. Everything now fits without scrolling. Existing three-player and 8/12-point saves still resume - `supportedPlayerCounts` stays `3...4` and `isValidMatch` does not read the new-game target list.
 - [ ] **4. Tune the weights for Vast, and re-run the trading tests there.** It currently plays Expanded's hand-set weights as a placeholder - never swept, never validated on this board. Same rule as Classic: no table mix regresses, Expert-vs-Expert improves. The sweep must count an unfinished game as a loss for every seat, or the optimiser learns to stall.
 - [ ] **5. Soften the first-settlement placement overlay on Vast.** All 150 vertices highlight at once and merge into chainmail; it clears as soon as the distance rule culls candidates, so only the opening placement is affected. Screenshot in the delivery note. Ordinary play is legible and was verified at real render size.
-- [ ] **6. Fix bank-trade churn when nothing is buildable.** `bankTrade` is scored through the generic one-ply path, so hand synergy alone can pay for a 4:1 with no purchase to spend it on. Measured at **3.29 bank trades per turn** in a dead Expanded endgame against 0.29 in short games. Vast makes it rarer (0.34/turn) but does not fix the cause. Proposal: require a bank trade to enable a purchase this turn, or price it against `bestPurchaseGain` the way `TradeValuation` already prices a proposal. Needs a strength measurement before adoption - it is a policy change, not a bug fix.
+- [x] **6. Bank trades now price the purchase they unlock — landed (`328c235`).** The cause named here was right and broader than the churn symptom: `.bankTrade` had **no handling anywhere** in `Sources/CatanAI/Evaluation` (`grep` returned nothing across all seven files), so it fell through to the generic one-ply path while proposals got `TradeValuation.bestPurchaseGain`. It is now scored as the swap plus the purchase it opens up, less the purchase already affordable without it — the same subtraction the proposal path uses, and what stops it becoming "always trade". Measured over 2,624 games in four opponent cells: bank trades up in every one (2.71 → 3.52 vs `balanced`; 3.11 → 4.30 vs `refuses-balanced`), cities up, games shorter, **and no significant win-rate change in any cell**. Kept as a correctness fix; no strength is claimed. Two tests pin it, and the "unlocks a city" one was confirmed to fail without the change.
+  - **Not re-measured: the churn symptom itself.** The 3.29-per-turn figure came from a dead Expanded endgame, and Expanded is gone. The same check has never been run on Vast, where the rate was already 0.34/turn.
+- [ ] **8. Re-sweep `EvaluationWeights` with an opponent that refuses trades — the largest open gap.** Measured 2026-09-16 over 2,624 games, full chair rotation, held-out seeds:
+
+  | three opponents that… | Expert | Classic `balanced` | Expert's edge |
+  |---|---:|---:|---:|
+  | accept trades (`balanced`) | **83.5%** ±4.0 | 25.0% (by symmetry) | **+58.5 pts** |
+  | accept nothing (`refuses-balanced`) | **38.7%** ±5.3 | **39.3%** ±5.3 | **−0.6 pts** |
+
+  The intervals overlap: **at a table that will not accept its trades, Expert is the same strength as the heuristic it was built to replace.** Its whole advantage is contingent on opponents saying yes. The control runs against the finding and strengthens it — refusing costs the refuser ~14 points off the null, so Expert faces *weaker* opponents in row two and still gains nothing. Jake accepted 1 offer in 75 in the game that prompted this, and won.
+  - **Why it was invisible:** nothing in the opponent pool could refuse until `TradeRefusingPolicy` / the `refuses-balanced` seat was added, so every number Expert has — the 68.4%, the SPSA-fitted weights — was earned at a table that trades. `tradeMargin`'s own doc says it: "a stream of small gains is where this policy's strength comes from."
+  - `handCard` tripling in the sweep is that fact as a number. Holding cards is correct when someone will trade with you later; it learned the table, not the game.
+  - The sweep must keep **both** arms: no regression at a trading table, real gain at a non-trading one. Optimising the no-trade cell alone just overfits the other direction.
+  - [Full numbers and method](docs/AI_summaries/2026-09-16-expert-trade-reliance.md).
 - [ ] **7. Measure Expert against an opponent this repository did not design.** Every number so far is against our own bots, which measures how well a candidate exploits *them*. Catanatron is GPL-3.0: usable as an external benchmark process, never linked into the app.
 
 **How the bots learn:** [the whole pipeline, explained](docs/AI_summaries/2026-09-15-how-the-bot-learning-works.md) — what the bot is, how SPSA training works, how strength is measured without fooling yourself, and which parts are real machine learning versus ordinary engineering.
