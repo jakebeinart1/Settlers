@@ -10,6 +10,42 @@ Updated September 16, 2026. Completed UI/menu/replay notes and previous research
 
 Everything through the bank-trade fix (#6) is committed and pushed and running on Jake's phone. One docs commit sits unpushed on `feat/expert-no-trade-sweep`; it lands with that branch's next push.
 
+## Agent sessions — how the open work splits
+
+Each row is **one unit of work: one worktree, one branch, one gate, one push** (CLAUDE.md,
+"Concurrent agents"). The *touches* column is what makes two sessions safe to run at once —
+rows touching different trees cannot collide. The only shared resources are the gate and the
+`Empires QA` simulator, and those serialize at **push** time, so stagger the endings rather
+than the beginnings.
+
+| Session | Items | Touches | Cost |
+|---|---|---|---|
+| **A — Weights & sweeps** | #8, #4 | `Packages/CatanAI` | hours of compute, one gate |
+| **B — Vast placement overlay** | #5 | `Settlers/Views` | short; verified by screenshot, not win rate |
+| **C — External benchmark** | #7 | `scripts/` + a separate process | medium; no app or engine change |
+| **D — Tooling** | the `github` plugin | `~/.claude`, not this repo | minutes; no gate at all |
+
+**A is one session, not two, and the reason is not convenience.** Both items are SPSA sweeps
+against a frozen anchor under the `bot-strength` protocol — same harness, same rig, same
+held-out-seed discipline, and the rig setup is most of the work. More importantly, #8 is what
+#4 has to learn from: Classic's weights were fitted at a table that always trades, and that is
+the whole defect. Sweeping Vast without `refuses-balanced` in the pool would bake the same
+mistake into a second mode. Do Classic first, then carry the pool into Vast.
+
+**B can run beside A.** Different package, different verification path — a screenshot at real
+render size, per the `verify-settlers` ladder — and no overlap with anything A edits. Just do
+not push while A is pushing.
+
+**C is independent of both.** Catanatron is GPL-3.0: an external benchmark *process*, never
+linked into the app. That boundary is the design constraint, and nothing in `Settlers/` or the
+packages changes.
+
+**D barely needs a session.** It is `~/.claude` configuration, touches no repository file, and
+therefore runs no gate.
+
+Backlog items below are deliberately **not** sessions yet — they need scoping before they can
+be one worktree's worth of work.
+
 ## Tooling
 
 - [x] **Install ponytail and i-have-adhd globally.** Both installed at user scope (`~/.claude/settings.json`), so they load in every project and session. Installed with the `claude plugin` **CLI**, which works over Remote Control where the `/plugin` slash command is blocked:
