@@ -192,30 +192,41 @@ private func table(withSeatIndices indices: [Int]) -> MatchSetup {
         #expect(table.validationProblem == "That match length is not available in Classic.")
     }
 
-    @Test(arguments: [8, 10])
-    func eachFourPlayerMatchLengthIsSupported(target: Int) {
+    /// One target per mode as of 2026-09-16, so Classic offers 10 and nothing
+    /// else. 8 used to be offered and is now refused for a *new* match, while
+    /// `isValidMatch` keeps an existing 8-point save resumable.
+    @Test func classicOffersTenAndOnlyTen() {
         var table = startableTable
-        table.victoryPointTarget = target
+        table.victoryPointTarget = 10
         #expect(table.validationProblem == nil)
+        #expect(MatchSetup.newGameVictoryPointTargets(for: 4, mode: .classic) == [10])
+
+        table.victoryPointTarget = 8
+        #expect(!table.isStartable)
+        #expect(table.isValidMatch, "an existing 8-point save must stay resumable")
     }
 
-    @Test func epicIsOfferedAtThreePlayers() {
+    /// Three-player tables left the New Game screen on 2026-09-16 (Jake: "that's
+    /// how these games are designed"), taking the 12-point target with them. The
+    /// engine still supports three seats so an existing save resumes, which is
+    /// why `supportedPlayerCounts` is unchanged and only `newGameTableSizes` is
+    /// narrow.
+    @Test func threePlayerTablesAreNoLongerOffered() {
+        #expect(GameSetup.newGameTableSizes == [4])
+        #expect(GameSetup.supportedPlayerCounts.contains(3),
+                "the engine must still load a three-player save")
+
         var table = startableTable
         table.resize(to: 3, preferredName: "Alex", preferredCivilization: .greece)
-        table.victoryPointTarget = 12
-
-        #expect(table.validationProblem == nil)
-        #expect(table.isStartable)
-        #expect(MatchSetup.newGameVictoryPointTargets(for: 3, mode: .classic) == [8, 10, 12])
+        #expect(table.isValidMatch, "an existing three-player save must stay resumable")
     }
 
     @Test func epicIsNotOfferedForANewFourPlayerMatch() {
         var table = startableTable
         table.victoryPointTarget = 12
 
-        #expect(table.validationProblem == "That match length is not available at this table size.")
         #expect(!table.isStartable)
-        #expect(MatchSetup.newGameVictoryPointTargets(for: 4, mode: .classic) == [8, 10])
+        #expect(MatchSetup.newGameVictoryPointTargets(for: 4, mode: .classic) == [10])
         #expect(table.isValidMatch,
                 "an existing four-player Epic save must remain structurally valid and resumable")
     }
@@ -362,11 +373,20 @@ private func table(withSeatIndices indices: [Int]) -> MatchSetup {
         #expect(decoded.mode == .classic)
     }
 
-    @Test func expandedOffersOnlyTwentyFiveAtEveryTableSize() {
-        #expect(MatchSetup.newGameVictoryPointTargets(for: 3, mode: .expanded) == [25])
-        #expect(MatchSetup.newGameVictoryPointTargets(for: 4, mode: .expanded) == [25])
-        #expect(MatchSetup.newGameVictoryPointTargets(for: 3, mode: .classic) == [8, 10, 12])
-        #expect(MatchSetup.newGameVictoryPointTargets(for: 4, mode: .classic) == [8, 10])
+    /// Every mode now names exactly one target, which is what lets the New Game
+    /// screen drop the match-length control entirely.
+    @Test func everyModeOffersExactlyOneTarget() {
+        #expect(MatchSetup.newGameVictoryPointTargets(for: 4, mode: .classic) == [10])
+        #expect(MatchSetup.newGameVictoryPointTargets(for: 4, mode: .vast) == [26])
+        #expect(MatchSetup.newGameVictoryPointTargets(for: 4, mode: .expanded) == [25],
+                "retired from the picker, but an Expanded save still resumes at 25")
+    }
+
+    /// Expanded is gone from the New Game screen and must not come back by
+    /// accident; deleting the case outright would make in-progress saves throw.
+    @Test func expandedIsNotOfferedForANewMatch() {
+        #expect(GameMode.newGameChoices == [.classic, .vast])
+        #expect(GameMode(rawValue: "expanded") == .expanded)
     }
 
     @Test func anExpandedSetupAtTwentyFiveIsStartable() {
@@ -453,7 +473,7 @@ private func table(withSeatIndices indices: [Int]) -> MatchSetup {
     @Test func aSavedSetupRoundTrips() {
         withStore { store in
             var table = startableTable
-            table.victoryPointTarget = 8
+            table.victoryPointTarget = 10
             table.randomizedBoard = false
             table.randomizeSeatOrder = false
             try! store.save(table)

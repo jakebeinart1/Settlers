@@ -456,7 +456,7 @@ final class CheckpointModelFixture {
         MatchSetup(seats: (0..<3).map {
             MatchSetup.Seat(index: $0, isHuman: $0 == 0, name: $0 == 0 ? "Alex" : "",
                             civilization: Civilization.allCases[$0])
-        }, victoryPointTarget: 8, randomizedBoard: false, randomizeSeatOrder: false)
+        }, victoryPointTarget: 10, randomizedBoard: false, randomizeSeatOrder: false)
     }
 
     init() throws {

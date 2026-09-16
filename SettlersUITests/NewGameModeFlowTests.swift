@@ -1,28 +1,43 @@
 import XCTest
 
-/// Choosing a mode changes the shape of the match-length control, so the
-/// interaction is covered end to end rather than only through model tests.
+/// The mode is the only match-contract dial left on the New Game screen, and it
+/// sets the victory-point target, so the interaction is covered end to end
+/// rather than only through model tests.
 @MainActor
 final class NewGameModeFlowTests: XCTestCase {
-    func testPickingExpandedShowsAFixedTwentyFivePointTarget() {
+
+    /// The mode row is a chip row rather than a popup as of 2026-09-16, so this
+    /// taps the chip directly. Match length is no longer a control at all - the
+    /// mode sets the target - so what this asserts is that picking a mode still
+    /// leaves a startable match rather than stranding an out-of-range target.
+    func testPickingVastLeavesTheMatchStartable() {
         continueAfterFailure = false
         let app = XCUIApplication()
         app.launchArguments = ["-ui-testing", "-ui-testing-reset", "-qaShowNewGame"]
         app.launch()
 
-        let modeRow = app.buttons["new-game.mode"]
+        let modeRow = app.otherElements["new-game.mode"]
         XCTAssertTrue(modeRow.waitForExistence(timeout: 10))
-        modeRow.tap()
 
-        let expanded = app.buttons["new-game.mode.expanded"]
-        XCTAssertTrue(expanded.waitForExistence(timeout: 5), "The mode picker never appeared")
-        expanded.tap()
+        let vast = modeRow.buttons["Vast"]
+        XCTAssertTrue(vast.waitForExistence(timeout: 5), "The Vast chip is not on the mode row")
+        vast.tap()
 
-        let fixed = app.staticTexts["new-game.match-length.fixed"]
-        XCTAssertTrue(fixed.waitForExistence(timeout: 5),
-                      "Expanded did not replace the match-length chips with a fixed target")
-        XCTAssertEqual(fixed.label, "25 VP")
         XCTAssertTrue(app.buttons["new-game.start"].isEnabled,
                       "Switching mode left Start disabled: the target did not snap into range")
+    }
+
+    /// Expanded is retired from the New Game screen but still decodable, so an
+    /// in-progress save resumes. It must not be offerable again.
+    func testExpandedIsNoLongerOffered() {
+        continueAfterFailure = false
+        let app = XCUIApplication()
+        app.launchArguments = ["-ui-testing", "-ui-testing-reset", "-qaShowNewGame"]
+        app.launch()
+
+        let modeRow = app.otherElements["new-game.mode"]
+        XCTAssertTrue(modeRow.waitForExistence(timeout: 10))
+        XCTAssertFalse(modeRow.buttons["Expanded"].exists,
+                       "Expanded is still startable; its 25-point target is unreachable on its board")
     }
 }

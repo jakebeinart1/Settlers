@@ -94,6 +94,47 @@ public extension BoardShape {
             .generic, .resource(.lumber),
         ])
     )
+
+    /// The 61-tile board (radius 4) that `GameMode.vast` is played on.
+    ///
+    /// ## Why a fourth ring at all
+    /// Measured on the 37-tile board, four players claim only about eight or
+    /// nine vertices each before the map is full, which caps a player at roughly
+    /// 17 points of buildings against a 25-point target - so the last points had
+    /// to come from a 50-card deck four players were emptying, and half the
+    /// games reached a position nobody could win from. Radius 4 raises the
+    /// vertex count 96 -> 150, which is the quantity that was actually scarce.
+    ///
+    /// ## Composition
+    /// Three deserts and 58 resource tiles. The desert share (4.9%) matches
+    /// classic's 5.3% rather than expanded's 2.7%, and an odd producing count is
+    /// what lets the tokens stay symmetric. The resource mix holds classic's
+    /// 4:4:4:3:3 to within a point, so brick and ore stay the scarce pair that
+    /// the whole trading game is built on - flattening them would quietly change
+    /// what a good position is.
+    static let vast = BoardShape(
+        radius: 4,
+        terrain: .counts([
+            .desert: 3,
+            .resource(.grain): 13, .resource(.wool): 13, .resource(.lumber): 12,
+            .resource(.brick): 10, .resource(.ore): 10,
+        ]),
+        // 58 tokens, symmetric about 7 exactly as the physical board is: 2 and
+        // 12 are the rarest, and each pair (3/11, 4/10, 5/9, 6/8) is equal. The
+        // shape of the dice distribution is preserved, so pip intuition carries
+        // over from both smaller boards.
+        tokens: .counts([2: 3, 3: 7, 4: 7, 5: 6, 6: 6, 8: 6, 9: 6, 10: 7, 11: 7, 12: 3]),
+        // 15 ports on a 54-edge coast is 27.8%, holding classic's ~30% shoreline
+        // density rather than scaling the count with area. Generics sit every
+        // third port so no stretch of coast is all-resource or all-generic.
+        ports: .derived(kinds: [
+            .generic, .resource(.grain), .resource(.ore),
+            .generic, .resource(.wool), .resource(.brick),
+            .generic, .resource(.lumber), .resource(.grain),
+            .generic, .resource(.ore), .resource(.wool),
+            .generic, .resource(.brick), .resource(.lumber),
+        ])
+    )
 }
 
 /// How a shape's terrain is specified.

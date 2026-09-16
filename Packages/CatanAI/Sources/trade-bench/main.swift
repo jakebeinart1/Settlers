@@ -39,7 +39,7 @@ func parse() -> Options {
         switch flag {
         case "--games": options.games = Int(raw) ?? options.games
         case "--seed": options.seed = UInt64(raw) ?? options.seed
-        case "--mode": options.mode = raw == "expanded" ? .expanded : .classic
+        case "--mode": options.mode = GameMode(rawValue: raw) ?? .classic
         default:
             FileHandle.standardError.write(Data("trade-bench: unknown flag \(flag)\n".utf8))
             exit(2)
@@ -73,7 +73,7 @@ func unlocksABuild(_ give: [Resource: Int], _ want: [Resource: Int], hand: [Reso
 
 func play(_ model: EvaluationPolicy.TradeModel, _ options: Options) -> Tally {
     var tally = Tally()
-    let shape: BoardShape = options.mode == .expanded ? .expanded : .classic
+    let shape = Ruleset.forMode(options.mode).board
     for offset in 0..<options.games {
         let seed = options.seed &+ UInt64(offset)
         let state = GameSetup.newGame(
@@ -127,7 +127,7 @@ func play(_ model: EvaluationPolicy.TradeModel, _ options: Options) -> Tally {
 
 let options = parse()
 let started = Date()
-print("\(options.games) real games per model, \(options.mode == .expanded ? "Expanded" : "Classic"), "
+print("\(options.games) real games per model, \(options.mode.displayName), "
     + "Expert in seat 0 against three shipping bots\n")
 let columns = ["model", "offers/turn", "taken", "take-rate", "given", "got",
                "bundles", "unlocks", "after refusal", "cities", "VP"]

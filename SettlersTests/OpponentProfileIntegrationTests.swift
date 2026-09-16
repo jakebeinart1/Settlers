@@ -8,8 +8,14 @@ import Testing
 struct OpponentProfileIntegrationTests {
     @Test func newGameDraftRefreshesProfilesWithoutRewritingActiveMatch() throws {
         try withStores { stores in
-            var configured = setup(playerCount: 3, humans: [0], civilizations: [.norse, .rome, .japan])
-            for index in [1, 2] {
+            // Four seats deliberately: as of 2026-09-16 the New Game screen
+            // offers only four, and `initialSetup` grows a smaller prefill to
+            // fit rather than discarding it. A three-seat fixture here would be
+            // resized on the way back in and this test would be measuring that
+            // resize instead of the profile refresh it is about.
+            var configured = setup(playerCount: 4, humans: [0],
+                                   civilizations: [.norse, .rome, .japan, .greece])
+            for index in [1, 2, 3] {
                 let catalog = OpponentProfile.forCivilization(try #require(configured.seats[index].civilization))
                 configured.seats[index].opponentProfile = OpponentProfile(id: catalog.id, name: catalog.name,
                     civilization: catalog.civilization, strategy: index == 1 ? .aggressive : .cautious)

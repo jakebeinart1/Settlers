@@ -112,7 +112,7 @@ import CatanAI
         var setup = MatchSetup.default(preferredName: "Jake", preferredCivilization: .medieval)
         setup.difficulty = .expert
         setup.randomizedBoard = true
-        setup.victoryPointTarget = 8
+        setup.victoryPointTarget = 10
 
         let realized = GameViewModel.realisedMatch(
             chairs: setup.seats,

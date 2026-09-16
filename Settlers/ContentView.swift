@@ -144,7 +144,11 @@ struct ContentView: View {
             #if DEBUG
             if QALaunchFlag.autoStart.isSet {
                 if viewModel.savedGameAvailability == .absent {
-                    viewModel.startNewGame(randomizedBoard: false, randomizeSeat: false)
+                    if QALaunchFlag.vastMode.isSet {
+                        viewModel.qaStartVastGame()
+                    } else {
+                        viewModel.startNewGame(randomizedBoard: false, randomizeSeat: false)
+                    }
                 }
                 // Set only now that `savedGameAvailability`/`gameGeneration`
                 // have already reached whatever they're going to be for this

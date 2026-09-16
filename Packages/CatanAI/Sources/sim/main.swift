@@ -108,7 +108,14 @@ private func fail(_ message: String) -> Never {
 
 private extension EvaluationBoardMode {
     func board(seed: UInt64, mode: GameMode = .classic) -> Board {
-        let shape: BoardShape = mode == .expanded ? .expanded : .classic
+        // Read the shape off the ruleset rather than matching the mode here.
+        // This was `mode == .expanded ? .expanded : .classic`, which silently
+        // dealt a 19-tile board to any mode it had not been taught - adding
+        // `vast` produced a 19-tile board for a 61-tile ruleset and a bare
+        // precondition trap in `GameSetup.newGame` with no message. A ternary
+        // on an enum does not fail to compile when the enum grows; this cannot
+        // drift, because `Ruleset` is where the pairing is already declared.
+        let shape = Ruleset.forMode(mode).board
         switch self {
         case .standard: return BoardGenerator.standard(shape)
         case .randomized: return BoardGenerator.randomized(seed: seed, shape: shape)
@@ -320,7 +327,14 @@ private func parseOptions(_ arguments: [String]) -> Options {
                 options.configuration.mode = .expanded
                 options.configuration.victoryPointTarget =
                     Ruleset.forMode(.expanded).defaultVictoryPointTarget
-            default: fail("--mode must be classic or expanded")
+            case "vast":
+                guard !options.victoryPointsWereProvided else {
+                    fail("--victory-points cannot be combined with --mode vast, which fixes the target at 26")
+                }
+                options.configuration.mode = .vast
+                options.configuration.victoryPointTarget =
+                    Ruleset.forMode(.vast).defaultVictoryPointTarget
+            default: fail("--mode must be classic, expanded or vast")
             }
         case "--seats", "--personalities":
             let flag = arguments[index]

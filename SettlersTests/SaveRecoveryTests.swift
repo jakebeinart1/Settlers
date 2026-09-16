@@ -172,7 +172,7 @@ struct SaveRecoveryTests {
         let fixture = try RecoveryFixture()
         let state = GameSetup.newGame(
             board: BoardGenerator.standard(), seed: 71,
-            playerCount: 3, victoryPointTarget: 8
+            playerCount: 3, victoryPointTarget: 10
         )
         // Valid New Game input deliberately has no AI profile snapshots yet.
         // That same shape is incomplete once stored as a realized checkpoint.
@@ -192,7 +192,7 @@ struct SaveRecoveryTests {
         let fixture = try RecoveryFixture()
         let state = GameSetup.newGame(
             board: BoardGenerator.standard(), seed: 72,
-            playerCount: 3, victoryPointTarget: 8
+            playerCount: 3, victoryPointTarget: 10
         )
         var setup = fixture.validSetup
         setup.seats[1].opponentProfile = OpponentProfile(
@@ -286,6 +286,6 @@ private final class RecoveryFixture {
             MatchSetup.Seat(index: index, isHuman: index == 0,
                             name: index == 0 ? "Alex" : "",
                             civilization: Civilization.allCases[index])
-        }, victoryPointTarget: 8, randomizedBoard: false, randomizeSeatOrder: false)
+        }, victoryPointTarget: 10, randomizedBoard: false, randomizeSeatOrder: false)
     }
 }

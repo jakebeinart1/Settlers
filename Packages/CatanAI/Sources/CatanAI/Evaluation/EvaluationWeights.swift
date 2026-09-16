@@ -204,6 +204,13 @@ public struct EvaluationWeights: Sendable, Equatable, Codable {
         switch mode {
         case .classic: return .default
         case .expanded: return .handSet
+        // Vast is a longer game than Expanded on a board with more room, so it
+        // inherits Expanded's answer rather than Classic's for the same reason
+        // Expanded needed one: the fitted weights were tuned in games that end
+        // before hands grow large. This is a starting point, not a validated
+        // set - it has never been swept here, and saying so is the difference
+        // between an untested default and a claim.
+        case .vast: return .handSet
         }
     }
 

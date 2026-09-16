@@ -155,7 +155,7 @@ public struct Bot: Sendable {
             guard case .placeInitialRoad(let edge) = move else { continue }
             let (a, b) = state.board.vertices(of: edge)
             let score: Double
-            if state.mode == .expanded {
+            if state.rules.isLargeBoard {
                 let outward = ownBuildings.contains(a) ? b : a
                 score = PlacementHeuristics.score(
                     vertex: outward, board: state.board, alreadyCovered: alreadyCovered, weights: weights

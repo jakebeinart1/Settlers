@@ -100,6 +100,11 @@ enum QALaunchFlag: String, CaseIterable {
     case showMandatoryRobberDecision = "-qaShowMandatoryRobberDecision"
     /// Seeds a real pending offer with deterministic conserved hands.
     case showIncomingOffer = "-qaShowIncomingOffer"
+    /// **Modifier** for `-qaAutoStart`: starts the game in `GameMode.vast`
+    /// rather than Classic, so the 61-tile board can be photographed at real
+    /// render size. Whether that board is legible on a phone is the one
+    /// question about the mode that simulation cannot answer.
+    case vastMode = "-qaVastMode"
     /// **Modifier** for `-qaShowIncomingOffer`: widens the offer to the widest
     /// bundle the engine permits, four give types against one want type.
     /// Expert composes multi-resource offers now (`maxComposedTradeGive = 5`,

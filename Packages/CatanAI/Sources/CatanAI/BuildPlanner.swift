@@ -120,7 +120,7 @@ public enum BuildPlanner {
             // knights, reaching 3 ourselves wouldn't take it from them.
             var value = weights.buildDevCardBase + personality.aggressiveness * weights.buildDevCardAggressionScale
             if let me = state.players.first(where: { $0.id == player }) {
-                if state.mode == .expanded, shouldReserveForPermanentBuild(me, in: state) {
+                if state.rules.isLargeBoard, shouldReserveForPermanentBuild(me, in: state) {
                     value -= weights.expandedBuildReserveDevCardPenalty
                 }
                 // Diminishing returns for hoarding: only one development

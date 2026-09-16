@@ -146,7 +146,10 @@ public struct MatchSetup: Codable, Equatable, Sendable {
         if let matchProblem { return matchProblem }
         if let identityConflictProblem { return identityConflictProblem }
         guard Self.newGameVictoryPointTargets(for: seats.count, mode: mode).contains(victoryPointTarget) else {
-            return "That match length is not available at this table size."
+            // Named by mode, not by table size: the target is a consequence of
+            // the mode now, and the table is fixed at four.
+            return "\(mode.displayName) is played to "
+                + "\(Self.newGameVictoryPointTargets(for: seats.count, mode: mode).map(String.init).joined(separator: " or "))."
         }
         return nil
     }
@@ -197,20 +200,39 @@ public struct MatchSetup: Codable, Equatable, Sendable {
         return nil
     }
 
-    /// Match lengths the base board can reliably finish at this table size.
+    /// The victory-point target a new game in `mode` is played to.
     ///
-    /// Four-player 12-point self-play reached a fully developed 11/11/11/10
-    /// position and remained unchanged through 10,000 moves: the scoring
-    /// supply had been distributed without any player reaching 12. Existing
-    /// checkpoints retain engine support through `isValidMatch`, but the New
-    /// Game screen must not create a match that can have no winner.
-    /// Expanded offers exactly one, because there the target is part of the
-    /// rule set rather than a dial.
+    /// Returns a list, and every mode now returns exactly one, so the New Game
+    /// screen renders match length as a label instead of a chip row. The shape
+    /// is kept as a list because the screen already branches on `count == 1`
+    /// and because a mode offering a choice again is a data change here rather
+    /// than a control change there.
+    ///
+    /// The 12-point target this used to offer at three-player tables is gone
+    /// with the three-player table. It was always the fragile one: four-player
+    /// 12-point self-play reached a fully developed 11/11/11/10 position and
+    /// stayed there through 10,000 moves, the scoring supply exhausted with
+    /// nobody able to reach 12 - the same defect, in miniature, that retired
+    /// Expanded. Existing checkpoints keep engine support through
+    /// `isValidMatch`; the New Game screen must not create a match that can
+    /// have no winner.
     public static func newGameVictoryPointTargets(for playerCount: Int, mode: GameMode) -> [Int] {
         guard GameSetup.supportedPlayerCounts.contains(playerCount) else { return [] }
         switch mode {
-        case .classic: return playerCount == 3 ? [8, 10, 12] : [8, 10]
+        // One target per mode (Jake, 2026-09-16): "get rid of the 8 VP versus
+        // 10 VP, it's useless, we should always do 10... it just depends on the
+        // mode for the VP." So match length stops being a dial and becomes a
+        // consequence of the mode, and the row renders as a label.
+        //
+        // This governs *new* games only. `isValidMatch`, which is what a resume
+        // consults, does not read this list, so a saved 8- or 12-point game
+        // still loads and still finishes at the target it started with.
+        case .classic: return [10]
         case .expanded: return [25]
+        // Like Expanded, the target is part of the rule set rather than a dial:
+        // 26 is derived from how much of a 61-tile board a player can actually
+        // claim, so an 18 or a 34 beside it would not be the same game.
+        case .vast: return [26]
         }
     }
 

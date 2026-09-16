@@ -55,7 +55,6 @@ enum AccessibilityID {
         static let confirmOverwrite = "new-game.confirm-overwrite"
         static let modeRow = "new-game.mode"
         static let modePicker = "new-game.mode.picker"
-        static let fixedMatchLength = "new-game.match-length.fixed"
 
         static func modeOption(_ mode: GameMode) -> String { "new-game.mode.\(mode.rawValue)" }
 

@@ -127,6 +127,17 @@ public struct Ruleset: Sendable, Equatable {
     /// allowance it resolves, because Swift will not take a property and a
     /// computed property of the same name.
     public var bankPerResource: Int { bank.perResource(board: board) }
+
+    /// Whether this is a long game on a board bigger than classic's.
+    ///
+    /// Two bot behaviours key on this - opening roads scoring their outward
+    /// endpoint, and refusing a development card while a permanent build is
+    /// close - both added to fix Expanded's stalls. They were written as
+    /// `state.mode == .expanded`, which is a claim about one mode's *name* when
+    /// what they actually depend on is having room to expand into and a target
+    /// far enough away that a development card is a detour. Keyed off the board,
+    /// a mode added later gets the behaviour without anyone remembering to.
+    public var isLargeBoard: Bool { board.radius > BoardShape.classic.radius }
     public var devCardDeckSize: Int { devCardDeck.values.reduce(0, +) }
 
     /// Why this rule set cannot be played, or `nil` if it can.
@@ -201,6 +212,45 @@ public struct Ruleset: Sendable, Equatable {
                 // 7 for most players on most sevens, turning every roll into a
                 // discard event instead of an occasional one.
                 discardThreshold: 10
+            )
+        case .vast:
+            return Ruleset(
+                board: .vast,
+                victoryPointTargets: 26...26,
+                defaultVictoryPointTarget: 26,
+                longestRoadBonus: 4,
+                largestArmyBonus: 4,
+                // Unmoved, as in expanded (Jake, 2026-09-10): a 5-road /
+                // 3-knight bar stays a real commitment however big the map.
+                longestRoadMinimum: 5,
+                largestArmyMinimum: 3,
+                // Sized to the vertices a player can actually claim (~13 on
+                // this board, against ~8-9 on expanded's), not to the area.
+                // Expanded's 8-city cap was never the binding constraint there;
+                // at 13 spots it would become one, which is why cities move
+                // with settlements rather than staying at expanded's 4:5 ratio.
+                pieceLimits: .explicit([.settlement: 14, .city: 12]),
+                victoryPointsPerBuilding: [.settlement: 1, .city: 2],
+                // 38 is `LongestRoad.supportedRoadLimit`, not a balance choice:
+                // the search's branch-and-bound cliff is measured at 44 roads
+                // (~235ms) and `validationProblem` refuses anything above 38.
+                // Area would argue for about 50. Expanded's players already
+                // finish on 23-28 of their 30, so roads are expected to bind
+                // here before vertices do - the thing to measure first, and the
+                // reason this mode's target is a hypothesis until it is.
+                maxRoadsPerPlayer: 38,
+                bank: .explicit(60),
+                // Scaled with the board (61/37 = 1.65x expanded's 50), holding
+                // the printed ratios so a knight stays as likely as it is in
+                // both other modes.
+                devCardDeck: [
+                    .knight: 46, .victoryPoint: 16, .roadBuilding: 7,
+                    .yearOfPlenty: 7, .monopoly: 6,
+                ],
+                // Raised with income: a player working ~13 vertices instead of
+                // ~8-9 draws about half as many cards again per turn, and
+                // expanded's 10 would make a seven a discard for everyone.
+                discardThreshold: 12
             )
         }
     }

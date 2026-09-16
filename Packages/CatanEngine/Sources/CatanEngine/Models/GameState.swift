@@ -292,6 +292,18 @@ public enum GameSetup {
     public static let standardPlayerCount = 4
     public static let supportedPlayerCounts = 3...4
 
+    /// Table sizes a *new* game may be started at.
+    ///
+    /// Four only (Jake, 2026-09-16): "that's how these games are designed".
+    ///
+    /// Deliberately narrower than `supportedPlayerCounts`, which stays 3...4 so
+    /// that a three-player game already on disk still loads, still replays, and
+    /// still passes `GameSession`'s own guard. Narrowing the engine instead
+    /// would turn every saved three-player game into a precondition failure on
+    /// resume, and the simulator would lose a table size the strength harness
+    /// still measures at.
+    public static let newGameTableSizes = [4]
+
     /// Same as `newGame(board:)` but with an injectable RNG, so the dev card
     /// shuffle can be made deterministic (e.g. for tests). The in-game
     /// generator is seeded *from* `rng`, so a deterministic caller gets a

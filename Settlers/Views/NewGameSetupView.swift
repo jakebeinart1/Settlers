@@ -46,7 +46,6 @@ struct NewGameSetupView: View {
     /// Turn Order is "As Shown" - `SeatCardView`'s header is a locked label,
     /// not a button, while it's Random (Jake's ask, 2026-09-03).
     @State private var pickingSeatNumberForSeat: Int?
-    @State private var isPickingMode = false
     @State private var isConfirmingOverwrite = false
     /// The reason the last seat edit was refused (A1.3), shown in place of the
     /// standing note under the grid. Cleared by the next edit rather than on a
@@ -140,17 +139,6 @@ struct NewGameSetupView: View {
 
                 if let seatIndex = pickingCivilizationForSeat { civilizationPicker(for: seatIndex) }
                 if let seatIndex = pickingSeatNumberForSeat { seatNumberPicker(for: seatIndex) }
-                if isPickingMode {
-                    GameModePickerPopup(
-                        selection: setup.mode,
-                        onSelect: { mode in
-                            setup.mode = mode
-                            setup.normalizeNewGameOptions()
-                            isPickingMode = false
-                        },
-                        onCancel: { isPickingMode = false }
-                    )
-                }
                 if isConfirmingOverwrite { overwriteConfirmation }
             }
         }
@@ -248,9 +236,19 @@ struct NewGameSetupView: View {
         guard GameSetup.supportedPlayerCounts.contains(saved.seats.count) else {
             return (fallback, true)
         }
-        if MatchLength(rawValue: saved.victoryPointTarget) == nil {
-            saved.victoryPointTarget = Ruleset.forMode(.classic).defaultVictoryPointTarget
+        // A prefill saved before the table size was fixed at four would open
+        // this screen on three seats with no control left to change it, so the
+        // player would be stuck at a size they can no longer choose. Grow it
+        // instead of rejecting the whole prefill - their names and
+        // civilizations are still what they last asked for.
+        if !GameSetup.newGameTableSizes.contains(saved.seats.count),
+           let size = GameSetup.newGameTableSizes.first {
+            saved.resize(to: size, preferredName: preferredName, preferredCivilization: preferredCivilization)
         }
+        // `normalizeNewGameOptions` is the single owner of "is this target one
+        // the mode offers", and it resets anything that is not - which now
+        // covers the 8- and 12-point prefills that used to be sanitized here
+        // against a named-length enum that no longer exists.
         saved.normalizeNewGameOptions()
         // Realized profiles belong to a saved match, not next-game preferences.
         // Clear only this value copy; resume/restart retain their stored roster.
@@ -301,17 +299,24 @@ struct NewGameSetupView: View {
 
     /// Inline label rather than an ornamented section header of its own - one
     /// control does not need a section, and the header cost ~40pt.
-    private var tableSizeSection: some View {
-        HStack(spacing: 12) {
-            Text("Table")
-                .font(.system(size: 13, weight: .semibold, design: .serif))
-                .foregroundStyle(.white.opacity(0.75))
-            PaintedChoiceRow(
-                options: Array(GameSetup.supportedPlayerCounts),
-                title: { "\($0) Players" },
-                selection: setup.seats.count,
-                onSelect: setTableSize
-            )
+    ///
+    /// Hidden entirely while only one table size is offered, rather than shown
+    /// as a single chip: a control with one option is a control that cannot be
+    /// used, and the four seat cards directly below already say how many seats
+    /// there are. It reappears on its own if `newGameTableSizes` ever grows.
+    @ViewBuilder private var tableSizeSection: some View {
+        if GameSetup.newGameTableSizes.count > 1 {
+            HStack(spacing: 12) {
+                Text("Table")
+                    .font(.system(size: 13, weight: .semibold, design: .serif))
+                    .foregroundStyle(.white.opacity(0.75))
+                PaintedChoiceRow(
+                    options: GameSetup.newGameTableSizes,
+                    title: { "\($0) Players" },
+                    selection: setup.seats.count,
+                    onSelect: setTableSize
+                )
+            }
         }
     }
 
@@ -389,7 +394,13 @@ struct NewGameSetupView: View {
     private func seatCard(for seat: MatchSetup.Seat, isShortScreen: Bool) -> some View {
         SeatCardView(
             seat: seat,
-            isOptional: seat.index == GameSetup.supportedPlayerCounts.upperBound - 1,
+            // "Optional" meant "a 3-player table drops this seat". With the
+            // table fixed at four there is no smaller table to drop it to, so
+            // the pill would be telling the player about a control that is no
+            // longer on the screen. It returns by itself if the table size ever
+            // becomes a choice again.
+            isOptional: GameSetup.newGameTableSizes.count > 1
+                && seat.index == GameSetup.supportedPlayerCounts.upperBound - 1,
             onSetHuman: { setSeat(seat.index, human: $0) },
             onRename: { setup.seats[seat.index].name = $0 },
             onEditCivilization: { pickingCivilizationForSeat = seat.index },
@@ -476,7 +487,6 @@ struct NewGameSetupView: View {
         VStack(spacing: 10) {
             SettingsSectionHeader(title: "Match Settings", titleColor: .white)
             modeRow
-            matchLengthRow
             boardRow
             difficultyRow
             seatingRow
@@ -487,52 +497,33 @@ struct NewGameSetupView: View {
         labelledChoice(
             label: "Game Mode",
             help: .mode,
-            helpText: "Classic is the standard 19-tile board played to 8, 10 or 12 points. "
-                + "Expanded doubles the map to 37 tiles and plays to 25, with twice the pieces, "
-                + "a bigger bank and deck, and longest road and largest army worth 4 points each.",
+            helpText: "Classic is the standard 19-tile board, played to 10 points. "
+                + "Vast is a 61-tile map played to 26, with room for about thirteen settlements "
+                + "each, a bigger bank and deck, and longest road and largest army worth 4 "
+                + "points each. The mode sets the target; there is no separate match length.",
             caption: nil
         ) {
-            Button { isPickingMode = true } label: {
-                HStack(spacing: 6) {
-                    Text(setup.mode.displayName)
-                    Image(systemName: "chevron.down")
-                        .font(.system(size: SeatCardView.bodyTextSize - 4))
+            // A chip row rather than the popup this used to open (Jake's ask,
+            // 2026-09-16): with the modes down to two, a tap-to-open sheet is a
+            // second screen to reach a binary choice, and every other setting on
+            // this page is already a `PaintedChoiceRow`.
+            PaintedChoiceRow(
+                options: GameMode.newGameChoices,
+                title: \.displayName,
+                selection: setup.mode,
+                isCompact: true,
+                fontSize: SeatCardView.bodyTextSize,
+                onSelect: { mode in
+                    setup.mode = mode
+                    // Each mode offers its own targets - Classic's 8/10/12
+                    // against Vast's single 26 - so a mode change can strand a
+                    // target the new mode refuses, which surfaces as a disabled
+                    // Start with its reason two rows away. The popup called this
+                    // in its own `onSelect`; the chip row has to as well.
+                    setup.normalizeNewGameOptions()
                 }
-            }
+            )
             .accessibilityIdentifier(AccessibilityID.NewGame.modeRow)
-        }
-    }
-
-    /// A4.1: a small named set, so an unsupported target is unrepresentable
-    /// rather than validated. The caption carries the number the name stands
-    /// for, because "Standard" alone does not tell a player what they are
-    /// playing to and the option chips are too narrow at 375pt to hold both.
-    private var matchLengthRow: some View {
-        labelledChoice(
-            label: "Match Length",
-            help: .matchLength,
-            helpText: "The game ends when a player reaches this many victory points. "
-                + "A saved game resumes at the target it started with. "
-                + "Epic (12 VP) is available at three-player tables. "
-                + "Expanded is always played to 25.",
-            caption: nil
-        ) {
-            let offered = MatchSetup.newGameVictoryPointTargets(for: setup.seats.count, mode: setup.mode)
-            if offered.count == 1, let target = offered.first {
-                Text("\(target) VP")
-                    .font(.system(size: SeatCardView.bodyTextSize, design: .serif))
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .accessibilityIdentifier(AccessibilityID.NewGame.fixedMatchLength)
-            } else {
-                PaintedChoiceRow(
-                    options: MatchLength.allCases.filter { offered.contains($0.rawValue) },
-                    title: \.displayName,
-                    selection: MatchLength(rawValue: setup.victoryPointTarget) ?? .standard,
-                    isCompact: true,
-                    fontSize: SeatCardView.bodyTextSize,
-                    onSelect: { setup.victoryPointTarget = $0.rawValue }
-                )
-            }
         }
     }
 
@@ -567,7 +558,7 @@ struct NewGameSetupView: View {
             helpText: "Classic is the opponent that has always shipped. Expert plans around your "
                 + "position and your opponents' rather than scoring each move on its own. Measured "
                 + "over 1,248 Classic games with every seat rotated, Expert wins 68% against a 25% average.",
-            caption: setup.difficulty.summary
+            caption: nil
         ) {
             PaintedChoiceRow(
                 options: BotDifficulty.allCases,
@@ -608,31 +599,9 @@ struct NewGameSetupView: View {
 
     private enum HelpTopic {
         case mode
-        case matchLength
         case board
         case difficulty
         case seating
-    }
-
-    /// A4.1's named set. Deliberately a subset of `Ruleset.forMode(.classic).victoryPointTargets`
-    /// (8...12): nine and eleven are legal for the engine but are not lengths
-    /// anybody asks for by name. Epic is shown only for a three-player table;
-    /// `MatchSetup` owns that product rule so the view cannot drift from Start.
-    private enum MatchLength: Int, CaseIterable {
-        case quick = 8
-        case standard = 10
-        case epic = 12
-
-        /// The number is IN the chip, not in a caption underneath it.
-        /// "Standard" alone does not tell a player what they are playing to,
-        /// and a caption per row cost more height than the screen had.
-        var displayName: String {
-            switch self {
-            case .quick: return "8 VP"
-            case .standard: return "10 VP"
-            case .epic: return "12 VP"
-            }
-        }
     }
 
     /// Label + ⓘ above a choice control, with the explanation folding out
