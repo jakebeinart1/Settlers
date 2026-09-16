@@ -6,9 +6,9 @@ Updated September 16, 2026. Completed UI/menu/replay notes and previous research
 
 1. **Re-sweep the Classic weights against an opponent that refuses trades** (Current work #8). Measured today: Expert's entire advantage over the shipping bot disappears at a table that will not accept its offers — and that is how Jake plays. This is the biggest open gap between the measured bot and the played one.
 2. **Tune the weights for Vast** (#4). It ships playing Expanded's hand-set weights as a placeholder, never swept on this board.
-3. **Soften the first-settlement overlay on Vast** (#5) — small, visual, and the only rough edge a player will notice.
+3. **Nothing else is small.** Sessions B and D are done; C needs scoping before it is one worktree's work.
 
-Everything through the bank-trade fix (#6) is committed and pushed and running on Jake's phone. One docs commit sits unpushed on `feat/expert-no-trade-sweep`; it lands with that branch's next push.
+Everything through the bank-trade fix (#6) is committed and pushed and running on Jake's phone. Six commits sit unpushed on `feat/expert-no-trade-sweep` — the process docs, this list, the refusing-policy tests and the overlay fix — and they land together with that branch's single gate run.
 
 ## Agent sessions — how the open work splits
 
@@ -21,9 +21,9 @@ than the beginnings.
 | Session | Items | Touches | Cost |
 |---|---|---|---|
 | **A — Weights & sweeps** | #8, #4 | `Packages/CatanAI` | hours of compute, one gate |
-| **B — Vast placement overlay** | #5 | `Settlers/Views` | short; verified by screenshot, not win rate |
+| ~~**B — Vast placement overlay**~~ | ~~#5~~ | `Settlers/Views` | **done** (`9a2f90f`), folded into A's branch |
 | **C — External benchmark** | #7 | `scripts/` + a separate process | medium; no app or engine change |
-| **D — Tooling** | the `github` plugin | `~/.claude`, not this repo | minutes; no gate at all |
+| ~~**D — Tooling**~~ | ~~the `github` plugin~~ | `~/.claude`, not this repo | **done** — removed, no gate needed |
 
 **A is one session, not two, and the reason is not convenience.** Both items are SPSA sweeps
 against a frozen anchor under the `bot-strength` protocol — same harness, same rig, same
@@ -32,9 +32,12 @@ held-out-seed discipline, and the rig setup is most of the work. More importantl
 the whole defect. Sweeping Vast without `refuses-balanced` in the pool would bake the same
 mistake into a second mode. Do Classic first, then carry the pool into Vast.
 
-**B can run beside A.** Different package, different verification path — a screenshot at real
-render size, per the `verify-settlers` ladder — and no overlap with anything A edits. Just do
-not push while A is pushing.
+**B and D are done, and B did not get its own worktree.** Jake asked for both on A's branch
+rather than opening two more trees, which is the right call when the second unit is a
+two-file visual fix: a separate worktree would have bought isolation that nothing was
+competing for, and cost a second gate run. The rule this bends — one worktree, one unit, one
+gate — exists to stop *unfinished* work stranding *finished* work behind it. Both of these
+finished first, so nothing is stranded; they simply ride A's single gate.
 
 **C is independent of both.** Catanatron is GPL-3.0: an external benchmark *process*, never
 linked into the app. That boundary is the design constraint, and nothing in `Settlers/` or the
@@ -55,7 +58,7 @@ be one worktree's worth of work.
   ```
 - [x] **Both always-on, at their default modes.** `~/.claude/.i-have-adhd-always` loads that ruleset at session start, and `~/.config/ponytail/config.json` pins `defaultMode: "full"` — ponytail was already always-on at `full` implicitly, so this only stops it drifting if the package default changes. Per-session overrides remain `/ponytail lite|ultra|off` and `rm ~/.claude/.i-have-adhd-always`.
   - Worth watching against `CLAUDE.md`: both push toward brevity, and this repository's habit of recording *why* — what was measured, what failed, what was tried and rejected — is what has stopped mistakes repeating. A strict YAGNI ladder would have argued against the long doc comments, the frozen round-three policy kept only as a measurement anchor, and `trade-bench` built purely to make experiments fast; each has since paid for itself.
-- [ ] **Fix or remove the `github` plugin.** Its MCP server fails to connect every session ("Authorization header is badly formatted"). A broken integration costs more than an unused one: it errors at startup and has to be rediscovered as dead whenever GitHub work comes up.
+- [x] **Removed the `github` plugin** (2026-09-16). Root cause: its `.mcp.json` sends `Authorization: Bearer ${GITHUB_PERSONAL_ACCESS_TOKEN}`, and that variable was never set, so the header went out as a bare `Bearer ` - "badly formatted" was literal, not an auth or network failure. Fixing it means a plaintext PAT on disk (settings `env` blocks do no command substitution, and the `gh` token is an OAuth `gho_` in the keyring) in a repository that runs gitleaks on every push. `gh` is already authenticated with `repo`/`workflow` scopes and is what `CLAUDE.md` drives every GitHub operation through, so the plugin was a second path to a working tool. Reinstall is one command if a PAT is ever set: `claude plugin install github@claude-plugins-official`.
 
 ## Current work — finish in this order
 
@@ -75,7 +78,7 @@ be one worktree's worth of work.
   Expanded stays decodable so an in-progress save resumes, and only leaves `GameMode.newGameChoices`. Both predicted risks were wrong and measured so: Vast is *faster* than Expanded, and the 38-road cap never bound (30 was the most any bot used).
 - [x] **Simplified the New Game screen** (Jake, 2026-09-16): Game Mode is a chip row rather than a popup, the table is fixed at four players, match length is a label derived from the mode (Classic 10, Vast 26) rather than an 8-vs-10 dial, and seat 4's "Optional" pill is gone. Everything now fits without scrolling. Existing three-player and 8/12-point saves still resume - `supportedPlayerCounts` stays `3...4` and `isValidMatch` does not read the new-game target list.
 - [ ] **4. Tune the weights for Vast, and re-run the trading tests there.** It currently plays Expanded's hand-set weights as a placeholder - never swept, never validated on this board. Same rule as Classic: no table mix regresses, Expert-vs-Expert improves. The sweep must count an unfinished game as a loss for every seat, or the optimiser learns to stall.
-- [ ] **5. Soften the first-settlement placement overlay on Vast.** All 150 vertices highlight at once and merge into chainmail; it clears as soon as the distance rule culls candidates, so only the opening placement is affected. Screenshot in the delivery note. Ordinary play is legible and was verified at real render size.
+- [x] **5. Soften the first-settlement placement overlay on Vast — landed (`9a2f90f`).** The cause was geometric rather than a count: neighbouring corners sit exactly `HexGeometry.size` apart, and that spacing is set by how many tiles have to fit a viewport that deliberately never moves. Classic is 5 hexes across and leaves ~48pt between corners, so a 22pt ring had ~26pt of clear space; Vast is 9 across and leaves ~27pt, so the same ring nearly touched its neighbours and all ~150 of them merged into chainmail. The ring is now `min(22, spacing * 0.53)` — 0.53 is where 22pt over Classic's spacing already sat, so **Classic renders unchanged** (the ceiling binds) and Vast draws at ~14pt. Stroke width holds the same fraction of the ring; the invisible 44pt tap target is untouched. Verified by screenshot at real render size, same launch flags, before and after, on both modes.
 - [x] **6. Bank trades now price the purchase they unlock — landed (`328c235`).** The cause named here was right and broader than the churn symptom: `.bankTrade` had **no handling anywhere** in `Sources/CatanAI/Evaluation` (`grep` returned nothing across all seven files), so it fell through to the generic one-ply path while proposals got `TradeValuation.bestPurchaseGain`. It is now scored as the swap plus the purchase it opens up, less the purchase already affordable without it — the same subtraction the proposal path uses, and what stops it becoming "always trade". Measured over 2,624 games in four opponent cells: bank trades up in every one (2.71 → 3.52 vs `balanced`; 3.11 → 4.30 vs `refuses-balanced`), cities up, games shorter, **and no significant win-rate change in any cell**. Kept as a correctness fix; no strength is claimed. Two tests pin it, and the "unlocks a city" one was confirmed to fail without the change.
   - **Not re-measured: the churn symptom itself.** The 3.29-per-turn figure came from a dead Expanded endgame, and Expanded is gone. The same check has never been run on Vast, where the rate was already 0.34/turn.
 - [ ] **8. Re-sweep `EvaluationWeights` with an opponent that refuses trades — the largest open gap.** Measured 2026-09-16 over 2,624 games, full chair rotation, held-out seeds:
