@@ -383,8 +383,11 @@ public struct GameSession: Sendable {
         }
         let observation = GameObservation(seat: seat, state: state, legalMoves: legal)
         let chosen = decide(with: policy, observation: observation, seat: seat)
+        // A composed trade proposal is outside the enumerated mask by design;
+        // `RulesEngine` decides whether this one is permitted.
         precondition(
-            legal.contains(chosen),
+            legal.contains(chosen)
+                || RulesEngine.isPermittedComposedProposal(chosen, by: seat, in: state, legal: legal),
             "policy \(policy.id) returned a move outside its action mask"
         )
 

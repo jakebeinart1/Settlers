@@ -176,6 +176,63 @@ public enum RulesEngine {
         return moves
     }
 
+    /// The most cards a composed proposal may put on the table.
+    ///
+    /// Five covers the lopsided bundles a strong player actually makes - two
+    /// brick and two wood for the one wheat that finishes a city, which is the
+    /// worked example this limit was set against - with one to spare, while
+    /// keeping a policy from composing a hand-dumping offer no table would see
+    /// in real play.
+    public static let maxComposedTradeGive = 5
+    /// The most cards a composed proposal may ask for. Three reaches a
+    /// three-for-two, and nothing a single turn completes needs more.
+    public static let maxComposedTradeWant = 3
+
+    /// Whether `move` is a trade proposal `seat` may make although `legal` does
+    /// not list it.
+    ///
+    /// ## Why policies may compose offers at all
+    /// `legalMoves` lists single-resource offers only, because enumerating
+    /// bundles would multiply a list that is rebuilt on the rendering path.
+    /// But bundles are how a good player trades, and `Trading.proposeTrade`
+    /// already applies any positive offer the proposer can afford. So the
+    /// enumeration bounds what is *shown*, and this decides what a policy may
+    /// *choose* - with the engine, not the policy, as the authority.
+    ///
+    /// ## What makes one permitted
+    /// - Proposing must be allowed right now: `legal` offers at least one
+    ///   proposal, which carries the phase, the turn, the pending-offer rule
+    ///   and the per-turn cap with it rather than restating them here.
+    /// - It comes from `seat`, asks for and gives something, never the same
+    ///   resource on both sides, and stays within the composed limits.
+    /// - `seat` can afford its side.
+    /// - Its id is the content-derived `TradeOffer.enumerated` id, so a seeded
+    ///   game that makes it replays identically in every process.
+    public static func isPermittedComposedProposal(
+        _ move: GameMove,
+        by seat: PlayerID,
+        in state: GameState,
+        legal: [GameMove]
+    ) -> Bool {
+        guard case .proposeTrade(let offer) = move, offer.from == seat else { return false }
+        guard legal.contains(where: { if case .proposeTrade = $0 { true } else { false } }) else { return false }
+        guard isWellFormedComposition(offer),
+              let proposer = state.players.first(where: { $0.id == seat }),
+              canAfford(offer.give, player: proposer) else { return false }
+        return offer.id == TradeOffer.enumerated(from: seat, give: offer.give, want: offer.want).id
+    }
+
+    /// Positive amounts, disjoint sides, and within the composed limits.
+    private static func isWellFormedComposition(_ offer: TradeOffer) -> Bool {
+        guard !offer.give.isEmpty, !offer.want.isEmpty,
+              offer.give.values.allSatisfy({ $0 > 0 }),
+              offer.want.values.allSatisfy({ $0 > 0 }),
+              Set(offer.give.keys).isDisjoint(with: offer.want.keys) else { return false }
+        let given = Resource.allCases.reduce(0) { $0 + (offer.give[$1] ?? 0) }
+        let wanted = Resource.allCases.reduce(0) { $0 + (offer.want[$1] ?? 0) }
+        return given <= maxComposedTradeGive && wanted <= maxComposedTradeWant
+    }
+
     /// The moves `seat` may legally make right now - **when `seat` is the
     /// player the phase is waiting on.**
     ///
