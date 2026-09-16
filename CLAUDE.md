@@ -33,6 +33,7 @@ Every one of these is canonical for its question. Read the file, do not reason f
 | What is persisted, where, and why | `Settlers/Persistence/` - 7 stores, each with the rationale in its doc comment |
 | Art assets: what is wired in, what is retired, how it was generated | `design-references/STATUS.md` |
 | Feature design rationale (4 specs, Aug 2026) | `docs/superpowers/specs/` |
+| Running two agents at once: layout, what is worktree-safe, what serializes | "Concurrent agents" below - three incidents on 2026-09-16 are why it exists |
 | Current product backlog | `TODO.md` |
 | Coding standards, commit format, verification rules | `~/.claude/rules/*.md` (always-on) |
 
@@ -292,6 +293,119 @@ Corollary: **`CatanEngine` and `CatanAI` import only `Foundation`** (plus `Catan
 `CatanAI`) and have zero external dependencies. That is what lets CI test them on Linux at 1x
 billing. Importing UIKit/SwiftUI/Darwin into either package breaks CI, not just taste.
 
+## Concurrent agents - one worktree each
+
+Two agents sharing one checkout is the failure mode this section exists for. All three of
+the following happened on 2026-09-16, in one hour, from exactly that:
+
+- **A commit landed on the wrong branch.** `7da89cf` (a gate change) was committed onto
+  `feat/expert-self-sufficiency`, because the primary checkout happened to have that branch
+  out at the time. A working tree has one HEAD and whoever moved it last wins. The commit
+  then rode into someone else's push.
+- **Builds queued behind an invisible lock.** A `swift test --enable-code-coverage` held
+  `Packages/CatanAI/.build`'s SwiftPM lock for 33 minutes. Concurrent `swift build`s did not
+  error - they *waited*, over ten minutes each, looking exactly like a hung build. Found
+  only with `ps`. Work around it with `--scratch-path` outside both trees; never by killing
+  the other run.
+- **`main` diverged from `origin/main`** and would have made the same edits arrive twice
+  under two SHAs, conflicting with itself on every file a pending rebase touched.
+
+**The layout.** One directory per agent, all of them under a single sibling folder, and
+the primary checkout is nobody's workspace - it stays on `main`, clean, for reading code and
+running one-off commands:
+
+```
+~/Documents/Catan Game/              the repo; main, clean, nobody works here
+~/Documents/Catan Game worktrees/
+    sweep/                           feat/expert-no-trade-sweep
+    <thing>/                         feat/<thing>
+```
+
+```bash
+git -C "<repo>" fetch origin
+git -C "<repo>" worktree add -b feat/<thing> "$HOME/Documents/Catan Game worktrees/<thing>" origin/main
+```
+
+**Sibling, never inside the repo, and the reason is SwiftLint.** `.swiftlint.yml` says it in
+its own comment - it "walks the filesystem rather than git" - and its `excluded:` list is
+`Packages/*/.build`, `.build`, `.ci-derived` and `DerivedData`, with no provision for a
+worktree. A worktree under the repo therefore puts a second complete copy of every Swift
+file under the linted root, so `swiftlint --strict` counts every violation twice and, worse,
+fails the gate on `main` because of half-written code in someone else's branch. `DerivedData`
+is on that exclusion list because exactly this already happened once, on Xcode's own
+generated sources.
+
+`xcodegen` and `gitleaks` are *not* reasons: `project.yml` globs `sources: [Settlers]`, which
+a sibling directory cannot match, and `gitleaks detect` reads git history rather than the
+working tree. Putting worktrees inside would work with two lines - gitignore the path and add
+it to `excluded:` - and is rejected because it encodes a local workflow choice in the repo's
+lint config.
+
+Git enforces the half that matters: a branch checked out in one worktree **cannot** be
+checked out in another, so "which agent owns this branch" has exactly one answer.
+
+**What is already worktree-safe, verified 2026-09-16 - do not re-derive it:**
+
+- `.git/hooks/pre-push` fires from linked worktrees and resolves the checkout being pushed
+  (`git rev-parse --show-toplevel`), not the main `.git`. Its own comment says so.
+- `gate.sh` takes `REPO_ROOT` from its own `BASH_SOURCE`, so a push from a worktree gates
+  **that worktree's** tree, using that worktree's copy of the script.
+- `Packages/*/.build` is per worktree, so agents do not share a SwiftPM lock.
+- `xcodebuild` derives its DerivedData path from the project path, so worktrees get separate
+  directories - and both are outside the tree, which is what keeps SwiftLint off them.
+
+**What is NOT safe, and cannot be made safe by configuration:**
+
+- **The QA simulator is one device.** `select-qa-simulator.py` returns the single
+  `Empires QA`, and `gate_app_tests` erases its app container. Two gates at once corrupt
+  each other.
+- **Memory, not CPU.** Two ~50-minute gates on this machine do not run slowly, they get
+  killed - see the measurement above.
+
+So **gate runs serialize.** Stagger the *endings*, not the beginnings: while one agent is
+pushing, the other iterates with targeted tests.
+
+**The push is the finish line.** A worktree's push runs `gate.sh` against *that worktree's
+own tree* - every stage, on exactly the code being landed. So a push that succeeds **is** the
+verification, and there is nothing after it: no PR, no second gate, no review step, and no
+"landed but not yet checked" state for anyone to track. **One worktree, one unit of work, one
+gate, one push, done.**
+
+**So a worktree pushes exactly once, when its work is finished.** Every push runs the full
+gate - the hook does not look at what changed, and a markdown-only commit gets all the same
+stages. Pushing mid-work therefore buys an hour of verifying something that is not done yet.
+Intermediate progress stays as local commits; the worktree is on disk, and nothing is at risk
+until it is landed.
+
+Four rules follow, and each has already cost an hour here:
+
+- **Rebase before pushing, never merge after.** Push the branch and then merge it into `main`
+  separately and the hook gates the same tree twice - the 3,600s-then-3,641s case measured
+  above.
+- **Never hand-run `gate.sh` and then push.** Same two runs, same hour, same reason.
+- **Never push to save progress.** There is no cheap push; there is only a gate run. If the
+  worry is losing hours of work, push the *feature branch* with `--no-verify`. Nothing lands
+  on `main`, so nothing needed checking - the gate exists to protect `main`, and it still runs
+  at the push that gets there.
+- **Finished work stuck behind unfinished work means two units share one worktree.** That is
+  the error, not the waiting. A docs commit sitting on a multi-hour sweep branch should have
+  been its own worktree, finished and pushed on its own. Split it rather than either coupling
+  it or holding it.
+
+Rebase first, then push once:
+
+```bash
+# in the agent's worktree, work committed:
+git fetch origin && git rebase origin/main     # resolve here, where it is cheap
+git push origin HEAD:main                      # ONE push, ONE gate run
+# then, after it lands:
+git -C "<repo>" worktree remove "$HOME/Documents/Catan Game worktrees/<thing>"
+git -C "<repo>" branch -d feat/<thing>
+git -C "<repo>" fetch origin && git -C "<repo>" reset --hard origin/main
+```
+
+That last line is not optional. Skipping it is what left `main` on a stale commit above.
+
 ## Commits, branches, PRs
 
 - **Conventional commits**: `type(scope): description` - `feat` `fix` `docs` `style`
@@ -300,9 +414,14 @@ billing. Importing UIKit/SwiftUI/Darwin into either package breaks CI, not just 
   `main`** ("Add bot trade messages, painted-chrome UI overhaul, trade heuristic tuning").
   That conflicts with the global gitflow rule. **Alex's commits follow the global rule**; do
   not retroactively rewrite Jake's, and do not adopt his style for new work.
-- Branch per unit of work (`fix/`, `feat/`, `ci/`, `build/`), PR into `main`, never push to
-  `main` directly. The current stack is `feat/stage-0-cleanup` on top of
-  `ci/gate-and-workflow` on top of `fix/engine-determinism-and-rules`.
+- Branch per unit of work (`fix/`, `feat/`, `ci/`, `build/`).
+- **PR into `main` applies to Alex, and says why: he has `push` but not `admin`, and his
+  work goes back to Jake for review.** It is not a rule about the repository. Jake owns it,
+  his own history is direct-to-`main`, and a PR he opens to himself has no reviewer - it
+  buys a rubber stamp, not a check. **The check is the pre-push hook, which runs either
+  way.** An agent working for Jake branches for isolation and pushes to `main`; see
+  "Concurrent agents" above. Use `/code-review` on the diff before pushing if the lost
+  review matters - an agent reading the diff beats a stamp.
 - Commit bodies here are long and explain *why*, with measured numbers. Match that; the
   existing bodies (`761822f`, `1f3618d`) are the template.
 
