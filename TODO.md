@@ -9,9 +9,8 @@ Updated September 15, 2026. Completed UI/menu/replay notes and previous research
   claude plugin marketplace add ayghri/i-have-adhd && claude plugin install i-have-adhd@i-have-adhd
   claude plugin marketplace add DietrichGebert/ponytail && claude plugin install ponytail@ponytail
   ```
-- [ ] **Decide the two always-on toggles.** Neither is set, because both change behaviour on every prompt:
-  - i-have-adhd: `touch ~/.claude/.i-have-adhd-always` loads its ruleset at session start; otherwise invoke `/i-have-adhd` per session.
-  - ponytail: already always-on; intensity is `/ponytail lite|full|ultra|off` or `PONYTAIL_DEFAULT_MODE`. Worth reading against `CLAUDE.md` first — this repo deliberately spends effort where a strict YAGNI ladder would say don't (the long "why" doc comments, the frozen round-three policy kept only as a measurement anchor, `trade-bench` built purely to make experiments fast), and each has since paid for itself.
+- [x] **Both always-on, at their default modes.** `~/.claude/.i-have-adhd-always` loads that ruleset at session start, and `~/.config/ponytail/config.json` pins `defaultMode: "full"` — ponytail was already always-on at `full` implicitly, so this only stops it drifting if the package default changes. Per-session overrides remain `/ponytail lite|ultra|off` and `rm ~/.claude/.i-have-adhd-always`.
+  - Worth watching against `CLAUDE.md`: both push toward brevity, and this repository's habit of recording *why* — what was measured, what failed, what was tried and rejected — is what has stopped mistakes repeating. A strict YAGNI ladder would have argued against the long doc comments, the frozen round-three policy kept only as a measurement anchor, and `trade-bench` built purely to make experiments fast; each has since paid for itself.
 - [ ] **Fix or remove the `github` plugin.** Its MCP server fails to connect every session ("Authorization header is badly formatted"). A broken integration costs more than an unused one: it errors at startup and has to be rediscovered as dead whenever GitHub work comes up.
 
 ## Current work — finish in this order
