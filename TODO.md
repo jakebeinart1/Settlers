@@ -8,7 +8,7 @@ Updated September 16, 2026. Completed UI/menu/replay notes and previous research
 2. **Tune the weights for Vast** (#4). It ships playing Expanded's hand-set weights as a placeholder, never swept on this board.
 3. **Nothing else is small.** Sessions B and D are done; C needs scoping before it is one worktree's work.
 
-Everything through the bank-trade fix (#6) is committed and pushed and running on Jake's phone. Six commits sit unpushed on `feat/expert-no-trade-sweep` — the process docs, this list, the refusing-policy tests and the overlay fix — and they land together with that branch's single gate run.
+Everything through the bank-trade fix (#6) is committed and pushed and running on Jake's phone. Five commits land with `feat/expert-no-trade-sweep` — the process docs, this list, and the Vast overlay fix. A sixth, covering `TradeRefusingPolicy`, was dropped in rebase: the concurrent session hit the same coverage failure and wrote the same file, and their version asserts on the move list the wrapped policy actually receives rather than inferring it from the move returned, so it is the one on `main`.
 
 ## Agent sessions — how the open work splits
 
