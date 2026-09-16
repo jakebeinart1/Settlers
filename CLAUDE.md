@@ -121,6 +121,38 @@ Three properties it is built around, and that any change to it must preserve:
 `git push --no-verify` bypasses it. If you are reaching for that routinely, the gate is
 wrong - fix the gate.
 
+### Run it ONCE per push. The hook already runs it.
+
+**Do not run `scripts/gate.sh` by hand and then push.** The pre-push hook runs the identical
+script, so that is two ~50-minute runs to land one change. Measured 2026-09-16: a manual gate
+(3,600s) immediately followed by a push whose hook gated the same tree again (3,641s) - over
+two hours of wall clock to land four commits, one of which was a three-line comment trim.
+
+The loop that is actually fast:
+
+1. **Iterate with targeted tests**, not the gate. `-only-testing:` takes minutes where the
+   gate takes an hour, and it is what finds the breakage:
+   ```bash
+   xcodebuild test -project Settlers.xcodeproj -scheme Settlers \
+     -destination "platform=iOS Simulator,id=$SIM" \
+     -only-testing:SettlersUITests/MainMenuFlowTests        # ~2 min, not ~50
+   swift test --package-path Packages/CatanEngine           # ~25s
+   swiftlint --strict                                       # ~1s, catches file_length
+   ```
+   Pick the suites your change actually touches. A New Game screen edit means
+   `MainMenuFlowTests` and `NewGameModeFlowTests`; a rules edit means `CatanEngine`.
+2. **Push once, and let the hook be the only full run.**
+
+A hand-run gate earns its hour in exactly one case: a change broad enough that you cannot
+name which suites it touches, and you would rather find three red stages at once than
+discover them one push at a time. That is the third property above, used deliberately -
+not the default.
+
+**Memory, not CPU, is the constraint on this machine.** Four separate runs were killed
+mid-flight on 2026-09-16 with the Simulator open (measured: 61MB free). Quit the Simulator
+and `xcrun simctl shutdown all` before a gate or a push, and prefer `GATE_TEST_WORKERS=1`,
+which trades ~7 minutes of wall clock for not being killed at minute forty.
+
 ## Anti-false-green - lessons this repo has already paid for
 
 Each of these produced a green signal over a broken thing. They are listed because the

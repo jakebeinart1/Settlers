@@ -207,6 +207,14 @@ gate_secrets() {
 # device `select-qa-simulator.py` returns, and separate again from any
 # manual-play simulator - which is the whole reason this is allowed to erase
 # app containers.
+#
+# The filter below must keep matching "Test case '...' failed", which is how
+# XCTest reports a failure. It did not until 2026-09-16, so this stage printed a
+# bare "** TEST FAILED **" with no test names and the cause had to be found by
+# re-running the suite by hand. The VERDICT was never wrong - it comes from
+# PIPESTATUS, per the first property in CLAUDE.md - but a gate that says only
+# "something failed" costs an hour to act on. Swift Testing's marker is the
+# separate "✘".
 gate_app_tests() {
   local sim; sim="$(qa_iphone_simulator)"
   if [[ -z "$sim" ]]; then return 200; fi
@@ -216,7 +224,7 @@ gate_app_tests() {
     -destination "platform=iOS Simulator,id=$sim" \
     -parallel-testing-enabled YES \
     -parallel-testing-worker-count "$workers" 2>&1 \
-    | grep -E "error:|✘|Test run with|TEST SUCCEEDED|TEST FAILED" | sort -u
+    | grep -E "error:|✘|Test case '.*' failed|Test run with|TEST SUCCEEDED|TEST FAILED" | sort -u
   return "${PIPESTATUS[0]}"
 }
 
