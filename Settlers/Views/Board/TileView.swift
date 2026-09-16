@@ -321,6 +321,8 @@ struct VertexTapTarget: View {
     var isHighlighted: Bool = false
     var isEnabled: Bool = true
     var isSelected: Bool = false
+    /// Defaults to the Classic ceiling; see `highlightDiameter(spacing:)`.
+    var highlightDiameter: CGFloat = VertexTapTarget.maximumHighlightDiameter
     let accessibilityIdentifier: String
     let accessibilityLabel: String
     let accessibilityValue: String
@@ -328,18 +330,50 @@ struct VertexTapTarget: View {
     let onTap: () -> Void
 
     private let touchDiameter: CGFloat = 44
+
     /// Smaller than `touchDiameter` on purpose - the yellow glow ring
     /// (shown for every legal placement, most noticeably setup's two
     /// rounds of settlements) read as oversized at the full 44pt tap-target
     /// size. The invisible tap circle underneath stays at the full size so
     /// the actual hit target doesn't shrink, only what's visibly drawn.
-    private let highlightDiameter: CGFloat = 22
+    ///
+    /// This is the diameter on Classic, and it is a *ceiling*, not a
+    /// constant - see `highlightDiameter(spacing:)`.
+    static let maximumHighlightDiameter: CGFloat = 22
+
+    /// Fraction of the gap between neighbouring corners that the ring may
+    /// occupy. 22pt over Classic's ~41pt spacing is where this came from, so
+    /// Classic renders exactly as it did before.
+    private static let highlightShareOfSpacing: CGFloat = 0.53
+
+    /// The ring has to shrink with the board, not sit at a fixed 22pt.
+    ///
+    /// Neighbouring corners are exactly `HexGeometry.size` apart - a regular
+    /// hexagon's edge length equals its circumradius - and that distance is
+    /// set by how many tiles have to fit the fixed viewport. Classic (radius
+    /// 2, 5 hexes across) leaves ~41pt between corners, so a 22pt ring has
+    /// ~19pt of clear space around it. Vast (radius 4, 9 hexes across) leaves
+    /// ~23pt, so the same 22pt ring nearly touches its neighbours: during the
+    /// opening settlement, when every one of the ~150 corners is legal at
+    /// once, they merged into chainmail and the board underneath disappeared.
+    ///
+    /// Scaling with spacing rather than special-casing Vast is what keeps a
+    /// third board size from re-introducing this.
+    static func highlightDiameter(spacing: CGFloat) -> CGFloat {
+        min(maximumHighlightDiameter, spacing * highlightShareOfSpacing)
+    }
+
+    /// Held at the same fraction of the ring the 3pt/4pt pair was at 22pt, so
+    /// a shrunken ring stays a ring instead of closing up into a dot.
+    private var highlightLineWidth: CGFloat {
+        highlightDiameter * (isSelected ? 4 : 3) / VertexTapTarget.maximumHighlightDiameter
+    }
 
     var body: some View {
         ZStack {
             if isHighlighted {
                 Circle()
-                    .strokeBorder(CatanTheme.cityPennantGold, lineWidth: isSelected ? 4 : 3)
+                    .strokeBorder(CatanTheme.cityPennantGold, lineWidth: highlightLineWidth)
                     .background(Circle().fill(CatanTheme.cityPennantGold.opacity(isSelected ? 0.5 : 0.32)))
                     .frame(width: highlightDiameter, height: highlightDiameter)
             }

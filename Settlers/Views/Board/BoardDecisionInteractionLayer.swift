@@ -77,6 +77,7 @@ struct BoardDecisionTargetLayer: View {
                 isHighlighted: true,
                 isEnabled: true,
                 isSelected: isSelected,
+                highlightDiameter: VertexTapTarget.highlightDiameter(spacing: geometry.size),
                 accessibilityIdentifier: AccessibilityID.Board.vertex(vertex),
                 accessibilityLabel: vertexAccessibilityLabel(index: index),
                 accessibilityValue: isSelected ? "Selected" : "Available",
