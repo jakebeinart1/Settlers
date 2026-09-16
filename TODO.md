@@ -2,6 +2,18 @@
 
 Updated September 15, 2026. Completed UI/menu/replay notes and previous research context are preserved in [the historical list](docs/archive/2026-09-11-todo-history.md).
 
+## Tooling
+
+- [x] **Install ponytail and i-have-adhd globally.** Both installed at user scope (`~/.claude/settings.json`), so they load in every project and session. Installed with the `claude plugin` **CLI**, which works over Remote Control where the `/plugin` slash command is blocked:
+  ```bash
+  claude plugin marketplace add ayghri/i-have-adhd && claude plugin install i-have-adhd@i-have-adhd
+  claude plugin marketplace add DietrichGebert/ponytail && claude plugin install ponytail@ponytail
+  ```
+- [ ] **Decide the two always-on toggles.** Neither is set, because both change behaviour on every prompt:
+  - i-have-adhd: `touch ~/.claude/.i-have-adhd-always` loads its ruleset at session start; otherwise invoke `/i-have-adhd` per session.
+  - ponytail: already always-on; intensity is `/ponytail lite|full|ultra|off` or `PONYTAIL_DEFAULT_MODE`. Worth reading against `CLAUDE.md` first — this repo deliberately spends effort where a strict YAGNI ladder would say don't (the long "why" doc comments, the frozen round-three policy kept only as a measurement anchor, `trade-bench` built purely to make experiments fast), and each has since paid for itself.
+- [ ] **Fix or remove the `github` plugin.** Its MCP server fails to connect every session ("Authorization header is badly formatted"). A broken integration costs more than an unused one: it errors at startup and has to be rediscovered as dead whenever GitHub work comes up.
+
 ## Current work — finish in this order
 
 - [ ] **1. Finish the Expert trading overhaul.** Composed offers (bundles, 3+ cards), the counterparty's gain modelled, and Jake's "worth it, don't go down the ladder" rule. Design: [trade cascade](docs/AI_summaries/2026-09-14-position-evaluation-bot.md). Measured against Expert as shipped at `dac279c`, 624 rotated held-out games vs three shipping bots: **80.3% against 65.5%, +14.7 points**. Still to do: validate across every table mix (3/2/1/0 shipping bots), then Expanded.
