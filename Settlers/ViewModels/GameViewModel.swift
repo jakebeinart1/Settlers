@@ -326,18 +326,12 @@ public final class GameViewModel {
     }
 
     private func startNewGame(setup: MatchSetup, configuredAs prefill: MatchSetup) {
-        // `isValidMatch`, not `isStartable`. The two differ by exactly the
-        // product rules about what the New Game *screen* currently offers, and
-        // those moved on 2026-09-16: the table is fixed at four and each mode
-        // names one target, so an 8- or 12-point match stopped being offerable
-        // while staying perfectly playable. Preconditioning on the screen's
-        // policy meant anything that legitimately starts a match the screen
-        // could not have produced - restarting a legacy Epic save, a test
-        // fixture, a future deep link - died on an assertion instead of
-        // playing. `MatchSetup.matchProblem`'s own doc draws this line: it
-        // "deliberately excludes product-level restrictions on creating a new
-        // match". The screen still checks `isStartable` before calling, so the
-        // rule is enforced where it belongs.
+        // `isValidMatch`, not `isStartable`: the two differ by what the New Game
+        // *screen* currently offers, and narrowing that (four seats, one target
+        // per mode) left legitimate matches - a restarted legacy Epic save, a
+        // test fixture - dying on an assertion instead of playing.
+        // `MatchSetup.matchProblem` documents that line; the screen still checks
+        // `isStartable` before calling.
         precondition(setup.isValidMatch, "refusing to start an incoherent match: \(setup.matchProblem ?? "")")
         let match = Self.prepareMatch(from: setup)
         do {

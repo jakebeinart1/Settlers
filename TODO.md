@@ -1,6 +1,14 @@
 # Settlers — To Do
 
-Updated September 15, 2026. Completed UI/menu/replay notes and previous research context are preserved in [the historical list](docs/archive/2026-09-11-todo-history.md).
+Updated September 16, 2026. Completed UI/menu/replay notes and previous research context are preserved in [the historical list](docs/archive/2026-09-11-todo-history.md).
+
+## Start here — next session, in this order
+
+1. **Tune the weights for Vast** (Current work #4). It ships playing Expanded's hand-set weights as a placeholder, never swept on this board. Highest-value open item, and the machine is free.
+2. **Fix bank-trade churn** (#6) — a known bot defect with a measured number and a designed fix, waiting only on a strength measurement and Jake's nod.
+3. **Soften the first-settlement overlay on Vast** (#5) — small, visual, and the only rough edge a player will notice.
+
+Everything through the Vast replacement is committed, gated and pushed, and running on Jake's phone. Nothing is half-finished; the three above are new work.
 
 ## Tooling
 
@@ -15,7 +23,7 @@ Updated September 15, 2026. Completed UI/menu/replay notes and previous research
 
 ## Current work — finish in this order
 
-- [ ] **1. Finish the Expert trading overhaul.** Composed offers (bundles, 3+ cards), the counterparty's gain modelled, and Jake's "worth it, don't go down the ladder" rule. Design: [trade cascade](docs/AI_summaries/2026-09-14-position-evaluation-bot.md). Measured against Expert as shipped at `dac279c`, 624 rotated held-out games vs three shipping bots: **80.3% against 65.5%, +14.7 points**. Still to do: validate across every table mix (3/2/1/0 shipping bots), then Expanded.
+- [x] **1. Expert trading overhaul — shipped.** Composed offers (bundles, 3+ cards), the counterparty's gain modelled, and Jake's "worth it, don't go down the ladder" rule. Design: [trade cascade](docs/AI_summaries/2026-09-14-position-evaluation-bot.md). Measured against Expert as shipped at `dac279c`, 624 rotated held-out games vs three shipping bots: **80.3% against 65.5%, +14.7 points**, and validated across all four table mixes (+13.3/+11.7/+7.2/+5.0 at 3/2/1/0 shipping bots, every one significant).
 - [x] **2. Retrain `EvaluationWeights` for the new trading, Classic — run, and the result is "keep the shipped weights".** 40 sign-SPSA iterations took the training number 47.9% → 51.0%, but it peaked on the last iteration and held-out validation across all four mixes did not hold it up: **−3.7 against three shipping bots** (p = 0.100) and **+2.7 Expert-vs-Expert** (p = 0.239). The arm that had to not regress did, and the arm that had to improve didn't. [Full numbers and reasoning](docs/AI_summaries/2026-09-16-classic-retrain-not-adopted.md). The rig's control arm returned exactly 25.0%, so the numbers are trustworthy.
 - [x] **3. Replaced Expanded with Vast, a 61-tile board played to 26.** The 25-point mode's target was unreachable: four players claim only ~8-9 vertices each on 37 tiles, capping a player near 17 points of buildings, so the rest had to come from a deck those same four were emptying. [The diagnosis](docs/AI_summaries/2026-09-16-expanded-endgame-supply-cliff.md) and [the replacement](docs/AI_summaries/2026-09-16-vast-mode.md). Measured over 24 seeded games, four Experts:
 
