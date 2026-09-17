@@ -235,13 +235,25 @@ public struct EvaluationWeights: Sendable, Equatable, Codable {
         switch mode {
         case .classic: return .default
         case .expanded: return .handSet
-        // Vast is a longer game than Expanded on a board with more room, so it
-        // inherits Expanded's answer rather than Classic's for the same reason
-        // Expanded needed one: the fitted weights were tuned in games that end
-        // before hands grow large. This is a starting point, not a validated
-        // set - it has never been swept here, and saying so is the difference
-        // between an untested default and a claim.
-        case .vast: return .handSet
+        // Vast inherited Expanded's hand-set answer as an untested placeholder,
+        // on the reasoning that a longer game rewards different things. It was
+        // measured on 2026-09-17 and the reasoning was wrong: one seat on the
+        // fitted set beats three on the hand-set one **81.7%** of the time on
+        // this board (480 rotated games, 25.0% null, z = +28.7), and wins 85.2%
+        // against three `balanced` where the hand-set weights win 67.7%.
+        //
+        // The caution that put it here was specific and has been checked rather
+        // than argued away: fitted Classic weights once stalled in Expanded,
+        // failing to finish 2 of 40 games with four Expert seats. Four seats on
+        // THIS set finish **40/40** in Vast, as does the hand-set arm, and every
+        // cell measured for this decision was 100% decisive over 1,248 games.
+        //
+        // Against three seats that refuse every trade the fitted set is 1.4
+        // points behind (59.3% against 60.7%, p = 0.40 over 1,248 games). A
+        // 480-game run had that at -5.2 with p = 0.055; the full-power number is
+        // what the interval was always saying. It is recorded because it is the
+        // one cell that does not favour this change, not because it decided it.
+        case .vast: return .default
         }
     }
 
