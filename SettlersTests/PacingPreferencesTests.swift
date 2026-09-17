@@ -86,7 +86,11 @@ private enum StoredPreference {
 /// Being able to see what the AI did is the reason the delay exists (B1.4).
 @Test func noSelectableSpeedIsEffectivelyInstant() {
     for speed in AITurnSpeed.allCases {
-        #expect(speed.secondsPerBotAction >= 0.5,
+        // 0.5 until `ultraFast` (0.3) was added on Jake's ask, 2026-09-17.
+        // The bar this guards is "a player can see what the AI did", not any
+        // particular number; 0.3s still shows a placement and its animation,
+        // and nothing may go below it without that argument being made again.
+        #expect(speed.secondsPerBotAction >= 0.3,
                 "\(speed) at \(speed.secondsPerBotAction)s would make a bot turn unwatchable")
     }
 }

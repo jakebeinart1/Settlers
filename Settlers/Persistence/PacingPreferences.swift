@@ -15,6 +15,7 @@ public enum AITurnSpeed: String, CaseIterable, Sendable {
     case slow
     case standard
     case fast
+    case ultraFast
 
     /// What the In-Game Settings screen calls each speed.
     public var displayName: String {
@@ -22,6 +23,7 @@ public enum AITurnSpeed: String, CaseIterable, Sendable {
         case .slow: return "Slow"
         case .standard: return "Standard"
         case .fast: return "Fast"
+        case .ultraFast: return "Ultra Fast"
         }
     }
 
@@ -41,11 +43,26 @@ public enum AITurnSpeed: String, CaseIterable, Sendable {
     /// zero or near-zero, per B1.4: being able to see what the AI did is the
     /// entire reason the delay exists, so no selectable speed may make a turn
     /// effectively instant.
+    ///
+    /// `ultraFast` is 0.3, added on Jake's ask (2026-09-17) for a way to play
+    /// Vast - a 61-tile board whose games run half again as long in moves - at
+    /// something closer to the speed of thought. It is the floor of what B1.4
+    /// still permits: a build or a robber move is on screen for roughly the
+    /// length of the animation that draws it, which is watchable, and halving
+    /// it again would not be. The rest of the wait it used to sit behind was
+    /// never this number - the bots' own decision cost was 13.5ms per move on
+    /// Vast against 1.9ms on Classic, and the deadline in
+    /// `GameViewModel.waitForNextBotAction` spends that cost out of the
+    /// interval rather than on top of it, so at 0.3s a slow decision simply
+    /// ate the whole pause. That is what `PlanningContext` and the engine's
+    /// per-edge set allocations were about; this case is what makes the
+    /// saving visible.
     public var secondsPerBotAction: Double {
         switch self {
         case .slow: return 2.0
         case .standard: return 1.1
         case .fast: return 0.6
+        case .ultraFast: return 0.3
         }
     }
 }
