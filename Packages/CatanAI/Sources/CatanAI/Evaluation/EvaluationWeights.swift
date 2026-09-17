@@ -52,7 +52,7 @@ public struct EvaluationWeights: Sendable, Equatable, Codable {
     public var discardExposure: Double
     /// Per card this seat expects to lose to a seven before its next turn,
     /// counting the production it will collect in between. Negative, and
-    /// **zero by default because turning it on measurably loses.**
+    /// **effectively off: the fitted value is -0.0081.**
     ///
     /// It was added because the Expert bot loses 9.0 cards a game to sevens
     /// against the shipping heuristic's 1.9, while ending its own turn over
@@ -68,28 +68,40 @@ public struct EvaluationWeights: Sendable, Equatable, Codable {
     /// the occasional discard is the cheaper price. Kept as a weight rather
     /// than deleted so an Expanded sweep, where games are long enough for
     /// sevens to compound, can find out whether that answer changes.
+    ///
+    /// The 2026-09-17 no-trade sweep was the first that could move it and put
+    /// it at **-0.0081**, twenty-five times smaller than the -0.20 measured
+    /// above. Read that as the search confirming zero rather than finding a
+    /// value: at this size the term changes a decision only when two moves are
+    /// otherwise within a hundredth of a point.
     public var sevenLoss: Double
     /// The least a trade must improve this seat's position before it proposes
     /// or accepts one. Comparison is strict, so at zero a trade that leaves
     /// the seat exactly level is refused.
     ///
-    /// **Zero by default because a floor measurably loses.** At 0.10 the bot
+    /// **Near zero because a floor measurably loses.** At 0.10 the bot
     /// won 27.1% against the same 1,248 games it wins 57.5% of at zero. The
     /// median trade it accepts improves its position by 0.037, so a floor of
     /// 0.10 removed about nine trades in ten - and a stream of small gains is
     /// where this policy's strength comes from, which is also why stopping it
     /// re-asking a refused offer was worth eighteen points.
+    ///
+    /// The fitted value is **0.0073** - a fifth of the 0.037 median gain of an
+    /// accepted trade, so it removes the trades that are level-ish and leaves
+    /// the stream of small gains intact. It is not the 0.10 that lost thirty
+    /// points; it is the smallest floor that is not zero.
     public var tradeMargin: Double
     /// Extra gain required per card handed over, under the `worthIt` trade
     /// model. Zero leaves every beneficial trade worth making; higher values
     /// mean only trades that pay for what they give away.
     ///
-    /// **Zero by default, measured.** At 0.04 with the same everything else,
+    /// **Near zero, measured.** At 0.04 with the same everything else,
     /// Expert offered 0.82 trades a turn against round three's 2.30 and lost
     /// 14.4 points. The bar is not what stops the bot overpaying - the
     /// evaluation already charges it for every card it hands over, and for
     /// what the counterparty gains. Kept as a weight so a sweep can test that
-    /// again on the retrained policy.
+    /// again on the retrained policy - which it now has: the fitted value is
+    /// **0.0061**, about a sixth of the 0.04 that cost 14.4 points.
     public var concessionPerCard: Double
     /// An unplayed development card.
     public var devCardHeld: Double
@@ -114,23 +126,23 @@ public struct EvaluationWeights: Sendable, Equatable, Codable {
 
     public init(
         victoryPoint: Double = 1.0,
-        production: Double = 0.5058,
-        variety: Double = 0.1263,
-        expansion: Double = 0.2945,
-        approach: Double = 0.2945,
-        buildableSites: Double = 0.0608,
-        handSynergy: Double = 0.2240,
-        handCard: Double = 0.0646,
-        handCardOverflow: Double = 0.0646,
-        discardExposure: Double = -0.0568,
-        sevenLoss: Double = 0,
-        devCardHeld: Double = 0.2681,
-        knight: Double = 0.2746,
-        roadLength: Double = 0.0923,
-        port: Double = 0.0986,
-        rival: Double = 0.9207,
-        tradeMargin: Double = 0,
-        concessionPerCard: Double = 0.0,
+        production: Double = 0.4601,
+        variety: Double = 0.1281,
+        expansion: Double = 0.3070,
+        approach: Double = 0.2925,
+        buildableSites: Double = 0.0680,
+        handSynergy: Double = 0.1845,
+        handCard: Double = 0.0623,
+        handCardOverflow: Double = 0.0573,
+        discardExposure: Double = -0.0524,
+        sevenLoss: Double = -0.0081,
+        devCardHeld: Double = 0.2560,
+        knight: Double = 0.2611,
+        roadLength: Double = 0.0888,
+        port: Double = 0.0978,
+        rival: Double = 0.8039,
+        tradeMargin: Double = 0.0073,
+        concessionPerCard: Double = 0.0061,
         winning: Double = 1000.0
     ) {
         self.victoryPoint = victoryPoint
@@ -154,35 +166,54 @@ public struct EvaluationWeights: Sendable, Equatable, Codable {
         self.winning = winning
     }
 
-    /// Fitted, not hand-set.
+    /// Fitted, not hand-set - and refitted once the opponent pool could refuse.
     ///
-    /// These come from a 50-iteration SPSA sweep against frozen `eval` on
-    /// training seeds, validated on held-out seeds against `balanced` - an
-    /// opponent the sweep never played. Paired over 1,248 rotated games they
-    /// beat the hand-set weights by **+4.7 points (95% CI +1.2 to +8.3,
-    /// McNemar p = 0.010)**.
+    /// ## Why these replaced the first fitted set
+    /// Every earlier number this policy had was earned at a table that accepts
+    /// trades, because nothing in the pool could refuse until
+    /// `TradeRefusingPolicy` existed. Measured against three seats that accept
+    /// nothing, Expert won 38.7% against the shipping heuristic's 39.3% - the
+    /// whole advantage was contingent on opponents saying yes, which is not
+    /// what a person does. `docs/AI_summaries/2026-09-16-expert-trade-reliance.md`
+    /// has that finding; these weights are the answer to it.
     ///
-    /// ## Read the two numbers together, because they disagree
-    /// Against the training opponent the sweep went from 25.0% to **67.2%**.
-    /// Against `balanced` it went from 42.5% to **47.3%**. A policy that had
-    /// genuinely become much stronger would have moved both; most of that
-    /// 67.2% is this weight set learning `eval`'s particular blind spots. The
-    /// honest figure is the smaller one, and the gap is the reason the
-    /// held-out arm is not optional.
+    /// Forty sign-SPSA iterations against a pool of THREE cells - a refusing
+    /// table, a trading table, and the shipped weights head to head - then
+    /// validated on two independent held-out blocks of 1,248 rotated games per
+    /// arm, all decisive:
     ///
-    /// ## What the sweep actually found
-    /// One correction dominates and the rest barely moved. `handCard` more
-    /// than tripled and `discardExposure` halved - together, "a card in hand
-    /// is worth far more than the risk of holding it through a seven". The
-    /// hand-set values had the bot spending and bank-trading to duck the
-    /// discard threshold, which costs more than the robber does at six rolls
-    /// in thirty-six. Every structural weight - `expansion`, `variety`,
-    /// `port`, `buildableSites` - moved less than 5%, so the shape of the
-    /// evaluation was about right and the error was concentrated in one place.
+    /// | cell | shipped | these | diff |
+    /// |---|---:|---:|---:|
+    /// | vs 3x `refuses-balanced` | 40.8% | **44.2%** | **+4.3** (p = 0.019, 0.003) |
+    /// | vs 3x `balanced` | 80.3% | 78.8% | -1.5 (p = 0.227, 0.448) |
+    /// | vs 3x shipped weights | 25.0% by symmetry | **27.2%** | +2.2 (z = +2.5) |
     ///
-    /// `rival` rose 8% and stayed firmly nonzero across all fifty iterations,
-    /// which is the closest thing to independent support the differential
-    /// objective has: the search could have driven it to zero and did not.
+    /// ## The objective is the result, and it is the part to keep
+    /// A first sweep summed only the first two cells and was **rejected**: it
+    /// bought +5.0 at the refusing table with -3.0 at the trading one and lost
+    /// head to head, 19.6% against a known 25.0% null. Nothing was wrong with
+    /// the optimiser - the objective let it sell general strength for the cell
+    /// it was being scored on, which is the same "learned the table, not the
+    /// game" failure the refusing opponent was built to expose, pointed the
+    /// other way. **Putting the head-to-head arm inside the objective is what
+    /// made the second sweep adoptable.** A sweep can only refuse a trade its
+    /// objective can see.
+    ///
+    /// ## What moved, and what it means
+    /// `handSynergy` -17.6%, `production` -9.0%, `rival` -12.7%,
+    /// `handCardOverflow` -11.3%, `buildableSites` +11.8%, `expansion` +4.2%.
+    /// The direction is consistent: value moves off *the hand* - which is only
+    /// worth what someone will give you for it - and onto *the board*, which
+    /// pays whether or not anybody trades.
+    ///
+    /// ## Read this next to the honest caution
+    /// The trading cell is down 1.1 and 1.8 points on the two blocks. Neither
+    /// is significant and the pooled -1.5 is inside its interval, but the sign
+    /// is the same both times, so this is a small real cost paid for a larger
+    /// real gain rather than a free lunch. And two SPSA runs on this objective
+    /// disagreed on the DIRECTION of most weights, which says the surface is
+    /// flat relative to the noise: do not read any single weight's move here
+    /// as a fact about Catan.
     public static let `default` = EvaluationWeights()
 
     /// The weights validated for `mode`.
@@ -218,10 +249,18 @@ public struct EvaluationWeights: Sendable, Equatable, Codable {
     /// than as history. A future sweep needs something to beat, and "the
     /// numbers a person wrote down from the game's own arithmetic" is the
     /// most honest baseline available.
+    ///
+    /// `sevenLoss`, `tradeMargin` and `concessionPerCard` are spelled out as
+    /// zero rather than left to the initialiser's defaults, which is not
+    /// decoration: those defaults are the *fitted Classic* values and they are
+    /// now nonzero. Inheriting them would have moved Vast - which ships this
+    /// set - on a Classic sweep nobody ran on that board.
     public static let handSet = EvaluationWeights(
         production: 0.55, variety: 0.12, expansion: 0.30, approach: 0.30, buildableSites: 0.06,
-        handSynergy: 0.18, handCard: 0.02, handCardOverflow: 0, discardExposure: -0.12, devCardHeld: 0.30,
-        knight: 0.25, roadLength: 0.08, port: 0.10, rival: 0.85
+        handSynergy: 0.18, handCard: 0.02, handCardOverflow: 0, discardExposure: -0.12,
+        sevenLoss: 0, devCardHeld: 0.30,
+        knight: 0.25, roadLength: 0.08, port: 0.10, rival: 0.85,
+        tradeMargin: 0, concessionPerCard: 0
     )
 
     // MARK: - Sweeping
