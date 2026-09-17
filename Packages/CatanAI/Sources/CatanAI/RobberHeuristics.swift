@@ -36,9 +36,27 @@ public enum RobberHeuristics {
         /// different launch of the same seeded game - the last remaining
         /// source of cross-process non-determinism, and invisible to any test
         /// that compares two runs inside one process.
+        ///
+        /// Memoised per tile because this scans the whole board's vertices and
+        /// every caller below asks repeatedly - `max(by:)` alone re-evaluates
+        /// its comparands. Same list, same order, computed once.
+        var cornersByTile: [HexCoordinate: [VertexID]] = [:]
         func verticesTouching(_ tile: HexCoordinate) -> [VertexID] {
-            state.board.onBoardVertices.filter { $0.touchingTiles.contains(tile) }.sorted()
+            if let cached = cornersByTile[tile] { return cached }
+            let corners = state.board.onBoardVertices.filter { $0.touchingTiles.contains(tile) }.sorted()
+            cornersByTile[tile] = corners
+            return corners
         }
+
+        // `relativeWeight` re-scores the whole table - including a
+        // longest-road graph search per player - on every call, and nothing
+        // it reads changes while this function runs. On the 61-tile board it
+        // was called once per tile per corner per opponent, which was half of
+        // the entire bot's time.
+        let threatByOpponent = Dictionary(uniqueKeysWithValues: state.players
+            .filter { $0.id != player }
+            .map { ($0.id, ThreatAssessment.relativeWeight(for: $0.id, excluding: player,
+                                                           in: state, weights: weights)) })
 
         func touchesOwn(_ tile: HexCoordinate) -> Bool {
             guard let me = state.players.first(where: { $0.id == player }) else { return false }
@@ -48,11 +66,13 @@ public enum RobberHeuristics {
         // Disruption score for `tile`: opponent building weight there,
         // scaled by each occupant's threat relative to the average
         // opponent and by how aggressively this bot leans into robber play.
+        var disruptionByTile: [HexCoordinate: Double] = [:]
         func disruption(_ tile: HexCoordinate) -> Double {
+            if let cached = disruptionByTile[tile] { return cached }
             var value = 0.0
             for vertex in verticesTouching(tile) {
                 for other in state.players where other.id != player {
-                    let threat = ThreatAssessment.relativeWeight(for: other.id, excluding: player, in: state, weights: weights)
+                    let threat = threatByOpponent[other.id] ?? 1.0
                     let weight = 1.0 + threat * personality.aggressiveness * weights.robberThreatWeightScale
                     // 2-to-1 is the rule that a city produces double a
                     // settlement, so it isn't a tunable weight.
@@ -63,6 +83,7 @@ public enum RobberHeuristics {
                     }
                 }
             }
+            disruptionByTile[tile] = value
             return value
         }
 

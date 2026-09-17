@@ -49,20 +49,23 @@ public enum Building {
         guard state.board.onBoardEdges.contains(edge) else { return false }
         guard let owner = state.players.first(where: { $0.id == player }) else { return false }
         guard owner.roads.count < state.rules.maxRoadsPerPlayer else { return false }
-        let allRoads = Set(state.players.flatMap { $0.roads })
-        guard !allRoads.contains(edge) else { return false }
+        // Asked directly of each seat's own `Set` rather than by building one
+        // combined `Set` of every road and every opponent building: this runs
+        // once per on-board edge inside `RulesEngine.legalMoves`, so the two
+        // throwaway sets were allocated a few hundred times per decision and
+        // were a quarter of the bots' time on the 61-tile board.
+        guard !state.players.contains(where: { $0.roads.contains(edge) }) else { return false }
 
-        let opponentBuildings = state.players
-            .filter { $0.id != player }
-            .flatMap { $0.settlements.union($0.cities) }
-        let opponentOccupied = Set(opponentBuildings)
+        func opponentBuilds(at vertex: VertexID) -> Bool {
+            state.players.contains { $0.id != player && ($0.settlements.contains(vertex) || $0.cities.contains(vertex)) }
+        }
 
         let (a, b) = state.board.vertices(of: edge)
         let touchesOwnBuilding = owner.settlements.contains(a) || owner.settlements.contains(b)
             || owner.cities.contains(a) || owner.cities.contains(b)
 
         func connectsThroughOwnRoad(at vertex: VertexID) -> Bool {
-            guard !opponentOccupied.contains(vertex) else { return false }
+            guard !opponentBuilds(at: vertex) else { return false }
             return state.board.edgesTouching(vertex).contains { owner.roads.contains($0) }
         }
         let touchesOwnRoad = connectsThroughOwnRoad(at: a) || connectsThroughOwnRoad(at: b)
@@ -77,9 +80,14 @@ public enum Building {
         guard let owner = state.players.first(where: { $0.id == player }) else { return false }
         guard owner.settlements.count < state.rules.pieceLimit(for: .settlement) else { return false }
 
-        let occupied = Set(state.players.flatMap { $0.settlements.union($0.cities) })
-        guard !occupied.contains(vertex) else { return false }
-        let adjacentOccupied = state.board.adjacentVertices(of: vertex).contains { occupied.contains($0) }
+        // Asked seat by seat rather than through one combined `Set`, for the
+        // reason spelled out in `canBuildRoad`: `legalMoves` calls this once
+        // per on-board vertex, and the set was rebuilt every time.
+        func anyoneBuilds(at candidate: VertexID) -> Bool {
+            state.players.contains { $0.settlements.contains(candidate) || $0.cities.contains(candidate) }
+        }
+        guard !anyoneBuilds(at: vertex) else { return false }
+        let adjacentOccupied = state.board.adjacentVertices(of: vertex).contains { anyoneBuilds(at: $0) }
         guard !adjacentOccupied else { return false }
 
         switch state.phase {

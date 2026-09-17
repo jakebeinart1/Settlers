@@ -202,11 +202,15 @@ public enum DevCardHeuristics {
             // this way: seed 7's `SeededGameFingerprintTests` fingerprint
             // disagreed across two separate processes before this fix, with
             // this exact card - Road Building - as the new code path).
-            candidateState.board.onBoardEdges.sorted()
+            // One memo for the whole sweep - every edge below asks the same
+            // questions of the same `candidateState` (see `PlanningContext`).
+            let context = PlanningContext(state: candidateState, player: player, weights: weights)
+            return candidateState.board.onBoardEdges.sorted()
                 .filter { Building.canBuildRoad($0, for: player, in: candidateState) }
                 .compactMap { edge -> (EdgeID, Double)? in
                     guard let score = BuildPlanner.score(
-                        .buildRoad(edge), for: candidateState, player: player, personality: personality, weights: weights
+                        .buildRoad(edge), for: candidateState, player: player,
+                        personality: personality, weights: weights, context: context
                     ) else { return nil }
                     return (edge, score)
                 }
