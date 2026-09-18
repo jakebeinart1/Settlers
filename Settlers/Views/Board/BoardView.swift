@@ -211,12 +211,13 @@ public struct BoardView: View {
         Canvas { context, _ in
             drawTiles(geometry: geometry, in: context)
             drawRobberTargeting(geometry: geometry, in: context)
-            for port in board.ports {
+            let portPoints = TileDrawing.portIconPoints(board: board, geometry: geometry, boardCenter: boardCenter)
+            for (index, port) in board.ports.enumerated() {
                 TileDrawing.drawPort(
                     port,
+                    at: portPoints[index],
                     geometry: geometry,
                     board: board,
-                    boardCenter: boardCenter,
                     in: context
                 )
             }
@@ -574,7 +575,7 @@ public struct BoardView: View {
     /// Two extents are added to the tile bounds:
     ///
     /// - **Ports**, measured in hex-size units through the same
-    ///   `TileDrawing.portIconPoint` the renderer uses, so the two cannot drift.
+    ///   `TileDrawing.portIconPoints` the renderer uses, so the two cannot drift.
     /// - **Vertex placement rings**, which are a *fixed point size* rather than
     ///   a multiple of the hex, so they cannot go into the scale calculation -
     ///   they come off the available space instead.
@@ -629,7 +630,7 @@ public struct BoardView: View {
 
         guard maxX > minX, maxY > minY else { return nil }
 
-        // Port badges, at the same unit scale. `portIconPoint` needs a board
+        // Port badges, at the same unit scale. `portIconPoints` needs a board
         // centre; at size 1 that is the mean of the tile centres, exactly as
         // `boardCenter(for:geometry:)` computes it at real scale.
         let probeCenters = board.tiles.map { probe.center(of: $0.coordinate) }
@@ -637,10 +638,7 @@ public struct BoardView: View {
             x: probeCenters.map(\.x).reduce(0, +) / CGFloat(max(probeCenters.count, 1)),
             y: probeCenters.map(\.y).reduce(0, +) / CGFloat(max(probeCenters.count, 1)))
         let badge = TileDrawing.portFrameRadiusFactor
-        for port in board.ports {
-            let icon = TileDrawing.portIconPoint(a: probe.vertexPosition(port.vertexA, board: board),
-                                              b: probe.vertexPosition(port.vertexB, board: board),
-                                              boardCenter: probeCenter, size: 1)
+        for icon in TileDrawing.portIconPoints(board: board, geometry: probe, boardCenter: probeCenter) {
             minX = min(minX, icon.x - badge)
             maxX = max(maxX, icon.x + badge)
             minY = min(minY, icon.y - badge)

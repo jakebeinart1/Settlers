@@ -290,8 +290,17 @@ public struct MatchSetup: Codable, Equatable, Sendable {
         normalizeNewGameOptions()
     }
 
-    /// Keeps a persisted New Game prefill representable by today's controls.
-    /// Active-match restoration never calls this method.
+    /// Retired modes fall back only when prefilling New Game. Decoding and
+    /// restarting an existing match must retain the rules it was saved with.
+    func normalizedForNewGame() -> MatchSetup {
+        var setup = self
+        if !GameMode.newGameChoices.contains(setup.mode) { setup.mode = .classic }
+        setup.normalizeNewGameOptions()
+        return setup
+    }
+
+    /// Normalizes the target within the chosen mode, including legacy modes
+    /// used by restart. Mode retirement belongs only to `normalizedForNewGame`.
     mutating func normalizeNewGameOptions() {
         if !Self.newGameVictoryPointTargets(for: seats.count, mode: mode).contains(victoryPointTarget) {
             victoryPointTarget = Ruleset.forMode(mode).defaultVictoryPointTarget

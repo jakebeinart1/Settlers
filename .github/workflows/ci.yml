@@ -56,7 +56,10 @@ jobs:
   packages:
     name: Engine + AI (Linux)
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    # Run 35273741537 hit the old 15-minute ceiling after Engine passed,
+    # while the expanded Expert simulations were still running. Keep every
+    # Debug test and give the full suite bounded headroom to report a verdict.
+    timeout-minutes: 30
     container: swift:6.1
     defaults:
       run:

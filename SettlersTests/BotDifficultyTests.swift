@@ -126,3 +126,153 @@ import CatanAI
         #expect(realized == expected, "realizing the chairs changed something other than the seats")
     }
 }
+
+/// Kept in its own suite because the regression used to terminate the runner
+/// while restoring a completed match, before an expectation could be checked.
+@MainActor @Suite struct CompletedHumanTradeRestoreTests {
+    @Test func completedCheckpointSkipsPendingHumanNegotiation() throws {
+        let fixture = try CheckpointModelFixture()
+        let model = fixture.makeModel()
+        let human = PlayerID(index: 0)
+        var state = GameSetup.newGame(board: BoardGenerator.standard(), seed: 92, playerCount: 3)
+        let vertices = state.board.onBoardVertices.sorted()
+        state.phase = .mainTurn(playerIndex: human.index)
+        state.players[0].cities = Set(vertices.prefix(3))
+        state.players[0].settlements = Set(vertices.dropFirst(20).prefix(3))
+        state.players[0].resources = [.ore: 1, .wool: 1, .grain: 5]
+        state.players[1].resources = [.brick: 2]
+        state.devCardDeck = [.victoryPoint]
+        model.replaceStateForTesting(state, humanSeat: human)
+        let offer = TradeOffer.enumerated(from: human, give: [.grain: 4], want: [.brick: 1])
+        var session = model.session
+        var document = try #require(model.checkpointDocument)
+        for move in [GameMove.proposeTrade(offer), .buyDevCard] {
+            let step = try session.applyExternal(move, by: human)
+            document = try document.recording(step, session: session.checkpoint, elapsedSeconds: 0)
+            try model.commitDocument(document)
+        }
+        try #require(session.state.phase == .gameOver(winner: human))
+        try #require(session.state.pendingTradeOffers == [offer])
+        try #require(Trading.bothSidesCanHonour(offer, responder: PlayerID(index: 1), state: session.state))
+        let bytes = try Data(contentsOf: model.checkpointStore.fileURL)
+
+        let restored = fixture.makeModel()
+
+        #expect(restored.savedGameAvailability.canResume)
+        #expect(restored.pendingTradeConfirmation == nil)
+        #expect(restored.lastTradeOutcome == nil)
+        #expect(restored.session.checkpoint == session.checkpoint)
+        #expect(restored.checkpointDocument == document)
+        restored.restorePendingNegotiation()
+        #expect(restored.session.checkpoint == session.checkpoint)
+        #expect(try Data(contentsOf: model.checkpointStore.fileURL) == bytes)
+    }
+}
+
+/// Human proposals must reach the same policy as automated negotiations.
+/// Isolated checkpoint stores exercise cold restoration without sharing saves.
+@MainActor @Suite(.serialized) struct HumanTradePolicyTests {
+    @Test(arguments: BotDifficulty.allCases, [false, true])
+    func newHumanOfferUsesConfiguredPolicy(tier: BotDifficulty, generous: Bool) throws {
+        let fixture = try CheckpointModelFixture()
+        let model = try makeTradeModel(fixture, tier: tier)
+        let offer = makeOffer(generous: generous)
+        var proposed = model.session
+        try proposed.applyExternal(.proposeTrade(offer), by: model.humanPlayer)
+        let expected = try policyAnswers(in: proposed, offer: offer)
+        try requireDiscriminatingAnswers(expected, tier: tier, generous: generous)
+        let cursor = model.session.policyRNG
+
+        try model.apply(.proposeTrade(offer))
+
+        let decisions = try #require(model.pendingTradeConfirmation?.decisions ?? model.lastTradeOutcome?.decisions)
+        #expect(Dictionary(uniqueKeysWithValues: decisions.map { ($0.bot, $0.accepted) }) == expected)
+        #expect(model.session.policyRNG == cursor)
+        #expect(model.persistenceErrorMessage == nil)
+    }
+
+    @Test(arguments: BotDifficulty.allCases, [false, true])
+    func coldRestoredHumanOfferUsesConfiguredPolicy(tier: BotDifficulty, generous: Bool) throws {
+        let fixture = try CheckpointModelFixture()
+        let model = try makeTradeModel(fixture, tier: tier)
+        let offer = makeOffer(generous: generous)
+        // Persist the proposal before presentation, as if the app exited at
+        // that boundary. Resume must reconstruct policy-correct answers.
+        var candidate = model.session
+        let step = try candidate.applyExternal(.proposeTrade(offer), by: model.humanPlayer)
+        let document = try #require(model.checkpointDocument)
+        try model.commitDocument(document.recording(step, session: candidate.checkpoint,
+                                                    elapsedSeconds: model.currentGameDuration))
+        model.session = candidate
+        let expected = try policyAnswers(in: model.session, offer: offer)
+        try requireDiscriminatingAnswers(expected, tier: tier, generous: generous)
+        let checkpoint = model.session.checkpoint
+
+        let restored = fixture.makeModel()
+
+        #expect(restored.savedGameAvailability.canResume)
+        for (seat, accepted) in expected {
+            let actual = restored.pendingTradeConfirmation?.decisions.first { $0.bot == seat }?.accepted ?? false
+            #expect(actual == accepted, "cold resume bypassed the configured policy for \(seat)")
+        }
+        #expect(restored.session.checkpoint == checkpoint, "presenting a restored answer must not consume policy RNG")
+        restored.restorePendingNegotiation()
+        #expect(restored.session.checkpoint == checkpoint, "reconstructing presentation must be idempotent")
+    }
+
+    private func makeTradeModel(_ fixture: CheckpointModelFixture, tier: BotDifficulty) throws -> GameViewModel {
+        let model = fixture.makeModel()
+        var state = GameSetup.newGame(board: BoardGenerator.standard(), seed: 33, playerCount: 3)
+        state.phase = .mainTurn(playerIndex: 0)
+        state.players[0].resources = [.grain: 6]
+        state.players[1].resources = [.brick: 2]
+        state.bank[.grain] = 13
+        state.bank[.brick] = 17
+        model.replaceStateForTesting(state, humanSeat: PlayerID(index: 0))
+        var setup = try #require(model.checkpointDocument?.activeMatch?.setup)
+        setup.difficulty = tier
+        let session = GameViewModel.makeSession(
+            state: state, opponentProfiles: model.opponentProfiles, difficulty: tier
+        )
+        try model.replaceActiveMatch(state: state, setup: setup, session: session)
+        try model.installCheckpointMatch()
+        model.isBlockingSurfaceOpen = true
+        return model
+    }
+
+    private func makeOffer(generous: Bool) -> TradeOffer {
+        TradeOffer.enumerated(from: PlayerID(index: 0),
+                              give: [.grain: generous ? 4 : 1], want: [.brick: generous ? 1 : 2])
+    }
+
+    /// Use the actual seated policy and counted ledger, never duplicate either
+    /// tier's valuation formula. A local RNG copy keeps this oracle read-only.
+    private func policyAnswers(in session: GameSession, offer: TradeOffer) throws -> [PlayerID: Bool] {
+        var answers: [PlayerID: Bool] = [:]
+        var rng = session.policyRNG
+        for seat in session.policies.keys.sorted() {
+            let policy = try #require(session.policies[seat])
+            var legal: [GameMove] = [.respondToTrade(offerID: offer.id, accept: false)]
+            if Trading.bothSidesCanHonour(offer, responder: seat, state: session.state) {
+                legal.insert(.respondToTrade(offerID: offer.id, accept: true), at: 0)
+            }
+            let observation = GameObservation(seat: seat, state: session.state, legalMoves: legal)
+            let move: GameMove
+            if let aware = policy as? any LedgerAwarePolicy {
+                move = aware.decide(observation, ledger: session.ledger(for: seat), rng: &rng)
+            } else {
+                move = policy.decide(observation, rng: &rng)
+            }
+            answers[seat] = move == .respondToTrade(offerID: offer.id, accept: true)
+        }
+        return answers
+    }
+
+    private func requireDiscriminatingAnswers(
+        _ answers: [PlayerID: Bool], tier: BotDifficulty, generous: Bool
+    ) throws {
+        try #require(answers[PlayerID(index: 1)] == (generous || tier == .classic),
+                     "fixture must distinguish Expert from Classic on the two-brick offer")
+        try #require(answers[PlayerID(index: 2)] == false, "an empty-handed bot cannot accept")
+    }
+}

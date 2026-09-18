@@ -878,7 +878,7 @@ public final class GameViewModel {
                 decisions.append((bot, false, tradeResponseMessage(for: bot, offerID: offer.id, accepted: false)))
                 continue
             }
-            let accepts = TradeHeuristics.evaluate(offer: offer, receiver: bot, state: state, personality: personality(for: bot))
+            let accepts = policyAcceptsHumanTrade(offer, responder: bot)
             let message = tradeResponseMessage(for: bot, offerID: offer.id, accepted: accepts)
             decisions.append((bot, accepts, message))
             if accepts, firstAccepter == nil {
@@ -912,10 +912,12 @@ public final class GameViewModel {
     func restorePendingNegotiation() {
         pendingTradeConfirmation = nil
         lastTradeOutcome = nil
+        // Winning can leave an offer in the checkpoint, but policies cannot act after a win.
+        if case .gameOver = state.phase { return }
         guard let offer = state.pendingTradeOffers.first(where: { $0.from == humanPlayer }) else { return }
         let decisions = state.players.map(\.id).filter { !humanSeats.contains($0) }.map { bot in
             let accepts = Trading.bothSidesCanHonour(offer, responder: bot, state: state)
-                && TradeHeuristics.evaluate(offer: offer, receiver: bot, state: state, personality: personality(for: bot))
+                && policyAcceptsHumanTrade(offer, responder: bot)
             return (bot: bot, accepted: accepts, message: tradeResponseMessage(for: bot, offerID: offer.id, accepted: accepts))
         }
         if let bot = decisions.first(where: \.accepted)?.bot {

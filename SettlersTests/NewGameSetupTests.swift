@@ -361,6 +361,31 @@ private func table(withSeatIndices indices: [Int]) -> MatchSetup {
 
 @Suite struct MatchSetupModeTests {
 
+    @MainActor @Test(arguments: [GameMode.classic, .expanded, .vast])
+    func savedPrefillUsesAnOfferedModeWithoutChangingTheSavedMatch(mode: GameMode) throws {
+        var saved = startableTable
+        saved.mode = mode
+        saved.victoryPointTarget = Ruleset.forMode(mode).defaultVictoryPointTarget
+        let bytes = try JSONEncoder().encode(saved)
+        let decoded = try JSONDecoder().decode(MatchSetup.self, from: bytes)
+
+        let initial = NewGameSetupView.initialSetup(
+            from: .loaded(decoded), preferredName: "Alex", preferredCivilization: .greece)
+        var expected = saved
+        if mode == .expanded {
+            expected.mode = .classic
+            expected.victoryPointTarget = Ruleset.forMode(.classic).defaultVictoryPointTarget
+        }
+        #expect(initial.setup == expected)
+        #expect(GameMode.newGameChoices.contains(initial.setup.mode))
+        #expect(initial.setup.isStartable)
+        #expect(!initial.wasUnreadable)
+        #expect(decoded == saved, "decoding and prefill must preserve the saved match")
+        var restarted = decoded
+        restarted.normalizeNewGameOptions()
+        #expect(restarted == saved, "restart normalization must retain the original mode")
+    }
+
     /// A setup written before modes existed has no `mode` key at all; it must
     /// still decode, as Classic.
     @Test func aSetupDecodedWithoutAModeIsClassic() throws {

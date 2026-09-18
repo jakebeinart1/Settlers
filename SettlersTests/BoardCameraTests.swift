@@ -167,11 +167,7 @@ private func fitted(_ container: CGSize) -> (geometry: HexGeometry, bounds: CGRe
         let center = BoardView.boardCenter(for: board, geometry: geometry)
         let badge = geometry.size * TileDrawing.portFrameRadiusFactor
 
-        for port in board.ports {
-            let icon = TileDrawing.portIconPoint(
-                a: geometry.vertexPosition(port.vertexA, board: board),
-                b: geometry.vertexPosition(port.vertexB, board: board),
-                boardCenter: center, size: geometry.size)
+        for icon in TileDrawing.portIconPoints(board: board, geometry: geometry, boardCenter: center) {
             let box = CGRect(x: icon.x - badge, y: icon.y - badge, width: badge * 2, height: badge * 2)
             #expect(bounds.insetBy(dx: -0.01, dy: -0.01).contains(box),
                     "a port badge \(box) is outside the measured content bounds \(bounds)")
