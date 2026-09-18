@@ -245,11 +245,9 @@ struct NewGameSetupView: View {
            let size = GameSetup.newGameTableSizes.first {
             saved.resize(to: size, preferredName: preferredName, preferredCivilization: preferredCivilization)
         }
-        // `normalizeNewGameOptions` is the single owner of "is this target one
-        // the mode offers", and it resets anything that is not - which now
-        // covers the 8- and 12-point prefills that used to be sanitized here
-        // against a named-length enum that no longer exists.
-        saved.normalizeNewGameOptions()
+        // Retired modes and targets must be representable by today's controls;
+        // normalize only this prefill copy, never the active match or restart.
+        saved = saved.normalizedForNewGame()
         // Realized profiles belong to a saved match, not next-game preferences.
         // Clear only this value copy; resume/restart retain their stored roster.
         for index in saved.seats.indices { saved.seats[index].opponentProfile = nil }
