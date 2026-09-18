@@ -37,4 +37,31 @@ extension GameViewModel {
     ) -> [PlayerID: any Policy] {
         profiles.mapValues { difficulty.policy(for: $0) }
     }
+
+    /// Human-offer presentation uses the seated policy, including its counted
+    /// ledger, just as automated negotiations do. Both shipped policies answer
+    /// a response-only mask without consuming RNG. Enforce that contract so
+    /// cold resume can reconstruct these answers without advancing the durable
+    /// decision cursor; a future stochastic responder needs persisted answers.
+    func policyAcceptsHumanTrade(_ offer: TradeOffer, responder: PlayerID) -> Bool {
+        guard let policy = session.policies[responder] else {
+            preconditionFailure("A human trade response requires a seated policy")
+        }
+        let accept = GameMove.respondToTrade(offerID: offer.id, accept: true)
+        var legal: [GameMove] = [.respondToTrade(offerID: offer.id, accept: false)]
+        if Trading.bothSidesCanHonour(offer, responder: responder, state: state) {
+            legal.insert(accept, at: 0)
+        }
+        let observation = GameObservation(seat: responder, state: state, legalMoves: legal)
+        var rng = session.policyRNG
+        let chosen: GameMove
+        if let aware = policy as? any LedgerAwarePolicy {
+            chosen = aware.decide(observation, ledger: session.ledger(for: responder), rng: &rng)
+        } else {
+            chosen = policy.decide(observation, rng: &rng)
+        }
+        precondition(rng == session.policyRNG, "Human trade responses must not consume policy RNG")
+        precondition(legal.contains(chosen), "A human trade response must stay inside its response mask")
+        return chosen == accept
+    }
 }
