@@ -255,14 +255,83 @@ enum TileDrawing {
     /// for.
     static let portFrameRadiusFactor: CGFloat = 0.24 * 1.35
 
+    /// A small visible gap, scaled with the badges rather than the viewport.
+    static let portBadgeGapFactor: CGFloat = 0.08
+
+    /// Port centers in board order, shared by drawing, fitting and inspection.
+    /// Vast has two neighboring edge normals that converge offshore. Separate
+    /// only overlapping badges equally along their connecting line, leaving
+    /// all other ports and the engine's shoreline vertices untouched. Board
+    /// units keep this a pure, zoom-independent layout with no remembered fit.
+    static func portIconPoints(board: Board, geometry: HexGeometry, boardCenter: CGPoint) -> [CGPoint] {
+        var points = board.ports.map { port in
+            portIconPoint(a: geometry.vertexPosition(port.vertexA, board: board),
+                          b: geometry.vertexPosition(port.vertexB, board: board),
+                          boardCenter: boardCenter, size: geometry.size)
+        }
+        let clearance = geometry.size * (2 * portFrameRadiusFactor + portBadgeGapFactor)
+        let vertices = board.onBoardVertices.sorted().map { geometry.vertexPosition($0, board: board) }
+        // Stable pair order; further passes handle a displacement reaching a
+        // neighbor. The shipped boards need only one pair adjustment.
+        for _ in points.indices {
+            var changed = false
+            for first in points.indices {
+                for second in points.indices where second > first {
+                    if separatePortPair(first, second, points: &points, clearance: clearance) {
+                        points[first] = clearPortFromRings(points[first], vertices: vertices, center: boardCenter, size: geometry.size)
+                        points[second] = clearPortFromRings(points[second], vertices: vertices, center: boardCenter, size: geometry.size)
+                        changed = true
+                    }
+                }
+            }
+            if !changed { break }
+        }
+        return points
+    }
+
+    private static func separatePortPair(_ first: Int, _ second: Int,
+                                         points: inout [CGPoint], clearance: CGFloat) -> Bool {
+        let delta = CGVector(dx: points[second].x - points[first].x, dy: points[second].y - points[first].y)
+        let distance = hypot(delta.dx, delta.dy)
+        guard distance < clearance else { return false }
+        let shift = (clearance - distance) / 2
+        let offset = CGVector(dx: distance > 0 ? delta.dx / distance * shift : shift,
+                              dy: distance > 0 ? delta.dy / distance * shift : 0)
+        points[first].x -= offset.dx
+        points[first].y -= offset.dy
+        points[second].x += offset.dx
+        points[second].y += offset.dy
+        return true
+    }
+
+    /// Move a displaced badge outward just far enough to clear the vertex
+    /// rings. Solve the ray/circle exits directly rather than stepping by a
+    /// guessed pixel offset. The unit-scale ring is its maximum proportional
+    /// size, keeping fit and rendering identical even when zoom caps the ring.
+    private static func clearPortFromRings(_ point: CGPoint, vertices: [CGPoint], center: CGPoint, size: CGFloat) -> CGPoint {
+        let radius = size * (portFrameRadiusFactor + VertexTapTarget.highlightDiameter(spacing: 1) / 2
+            + portBadgeGapFactor / 2)
+        let length = hypot(point.x - center.x, point.y - center.y)
+        precondition(length > 0, "an offshore port must be outside the board center")
+        let direction = CGVector(dx: (point.x - center.x) / length, dy: (point.y - center.y) / length)
+        var shift: CGFloat = 0
+        for vertex in vertices {
+            let delta = CGVector(dx: vertex.x - point.x, dy: vertex.y - point.y)
+            let along = delta.dx * direction.dx + delta.dy * direction.dy
+            let across = delta.dx * direction.dy - delta.dy * direction.dx
+            guard abs(across) < radius else { continue }
+            shift = max(shift, along + sqrt(radius * radius - across * across))
+        }
+        return CGPoint(x: point.x + direction.dx * shift, y: point.y + direction.dy * shift)
+    }
+
     /// Draws a port badge offshore of the edge it trades through, with two
     /// dock lines running back to that edge's two shoreline vertices - so the
     /// badge is pinned to a specific edge rather than floating near the coast,
     /// which was ambiguous wherever two ports sat close together.
-    static func drawPort(_ port: CatanEngine.Port, geometry: HexGeometry, board: Board, boardCenter: CGPoint, in context: GraphicsContext) {
+    static func drawPort(_ port: CatanEngine.Port, at iconPoint: CGPoint, geometry: HexGeometry, board: Board, in context: GraphicsContext) {
         let a = geometry.vertexPosition(port.vertexA, board: board)
         let b = geometry.vertexPosition(port.vertexB, board: board)
-        let iconPoint = portIconPoint(a: a, b: b, boardCenter: boardCenter, size: geometry.size)
 
         // The dock lines start right at the shoreline vertices, tracing the
         // real edge the port trades through.
@@ -339,12 +408,12 @@ struct VertexTapTarget: View {
     ///
     /// This is the diameter on Classic, and it is a *ceiling*, not a
     /// constant - see `highlightDiameter(spacing:)`.
-    static let maximumHighlightDiameter: CGFloat = 22
+    nonisolated static let maximumHighlightDiameter: CGFloat = 22
 
     /// Fraction of the gap between neighbouring corners that the ring may
     /// occupy. 22pt over Classic's ~41pt spacing is where this came from, so
     /// Classic renders exactly as it did before.
-    private static let highlightShareOfSpacing: CGFloat = 0.53
+    nonisolated private static let highlightShareOfSpacing: CGFloat = 0.53
 
     /// The ring has to shrink with the board, not sit at a fixed 22pt.
     ///
@@ -359,7 +428,7 @@ struct VertexTapTarget: View {
     ///
     /// Scaling with spacing rather than special-casing Vast is what keeps a
     /// third board size from re-introducing this.
-    static func highlightDiameter(spacing: CGFloat) -> CGFloat {
+    nonisolated static func highlightDiameter(spacing: CGFloat) -> CGFloat {
         min(maximumHighlightDiameter, spacing * highlightShareOfSpacing)
     }
 

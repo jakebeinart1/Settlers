@@ -24,13 +24,10 @@ struct BoardInspectionSemantics: View {
                 )
             }
 
+            let portPoints = TileDrawing.portIconPoints(board: state.board, geometry: geometry, boardCenter: boardCenter)
             ForEach(Array(state.board.ports.enumerated()), id: \.offset) { index, port in
-                let a = geometry.vertexPosition(port.vertexA, board: state.board)
-                let b = geometry.vertexPosition(port.vertexB, board: state.board)
                 marker(
-                    at: TileDrawing.portIconPoint(
-                        a: a, b: b, boardCenter: boardCenter, size: geometry.size
-                    ),
+                    at: portPoints[index],
                     label: portLabel(port),
                     identifier: AccessibilityID.Board.inspectionPort(index)
                 )

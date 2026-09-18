@@ -33,7 +33,30 @@ private let boards: [(String, Board)] = [
     ("standard", BoardGenerator.standard()),
     ("randomized-1", BoardGenerator.randomized(seed: 1)),
     ("randomized-2", BoardGenerator.randomized(seed: 2)),
+    ("expanded", BoardGenerator.randomized(seed: 1, shape: .expanded)),
+    ("vast", BoardGenerator.randomized(seed: 1, shape: .vast)),
 ]
+
+/// Vast's two lower-right ports collide even though both fit the viewport.
+/// Clearance is in board units so zooming cannot turn a pass into an overlap.
+@MainActor
+@Test func portBadgesHaveClearanceOnEveryBoard() {
+    for shape in [BoardShape.classic, .expanded, .vast] {
+        let board = BoardGenerator.randomized(seed: 1, shape: shape)
+        let geometry = BoardView.fittedGeometry(
+            for: board, in: CGRect(x: 0, y: 0, width: 402, height: 382.67), padding: BoardView.boardPadding)
+        let center = BoardView.boardCenter(for: board, geometry: geometry)
+        let points = TileDrawing.portIconPoints(board: board, geometry: geometry, boardCenter: center)
+        let required = geometry.size * (2 * TileDrawing.portFrameRadiusFactor + TileDrawing.portBadgeGapFactor)
+        for first in points.indices {
+            for second in points.indices where second > first {
+                let distance = hypot(points[first].x - points[second].x, points[first].y - points[second].y)
+                #expect(distance >= required - 0.001,
+                        "radius \(shape.radius), ports \(first)/\(second): \(distance)pt apart, need \(required)pt")
+            }
+        }
+    }
+}
 
 @MainActor
 @Test func everythingDrawnStaysInsideTheFrame() {
@@ -45,11 +68,7 @@ private let boards: [(String, Board)] = [
             // Port badges - the outermost thing on the board, and what every
             // previous clipping report was actually about.
             let badge = geometry.size * TileDrawing.portFrameRadiusFactor
-            for port in board.ports {
-                let icon = TileDrawing.portIconPoint(
-                    a: geometry.vertexPosition(port.vertexA, board: board),
-                    b: geometry.vertexPosition(port.vertexB, board: board),
-                    boardCenter: center, size: geometry.size)
+            for icon in TileDrawing.portIconPoints(board: board, geometry: geometry, boardCenter: center) {
                 let box = CGRect(x: icon.x - badge, y: icon.y - badge, width: badge * 2, height: badge * 2)
                 #expect(rect.contains(box),
                         "\(boardName) at \(Int(rect.width))x\(Int(rect.height)): a port badge is clipped (\(box) outside \(rect))")
@@ -68,6 +87,35 @@ private let boards: [(String, Board)] = [
     }
 }
 
+/// Resolving the crowded pair must not buy clearance by shrinking the board
+/// or moving unrelated ports. It must also commute with camera scale/pan.
+@MainActor
+@Test func portClearancePreservesBoardExtentAndCameraScaling() {
+    let unit = HexGeometry(origin: .zero, size: 1)
+    let zoomed = HexGeometry(origin: CGPoint(x: 37, y: 51), size: 43)
+    for (_, board) in boards {
+        let center = BoardView.boardCenter(for: board, geometry: unit)
+        let original = board.ports.map { port in
+            TileDrawing.portIconPoint(a: unit.vertexPosition(port.vertexA, board: board),
+                                      b: unit.vertexPosition(port.vertexB, board: board),
+                                      boardCenter: center, size: 1)
+        }
+        let resolved = TileDrawing.portIconPoints(board: board, geometry: unit, boardCenter: center)
+        let projected = TileDrawing.portIconPoints(
+            board: board, geometry: zoomed, boardCenter: BoardView.boardCenter(for: board, geometry: zoomed))
+        let bounds = CGRect(x: original.map(\.x).min()!, y: original.map(\.y).min()!,
+                            width: original.map(\.x).max()! - original.map(\.x).min()!,
+                            height: original.map(\.y).max()! - original.map(\.y).min()!)
+        for index in resolved.indices {
+            #expect(bounds.insetBy(dx: -0.001, dy: -0.001).contains(resolved[index]), "clearance expanded the board bounds")
+            #expect(abs(projected[index].x - (resolved[index].x * zoomed.size + zoomed.origin.x)) < 0.001)
+            #expect(abs(projected[index].y - (resolved[index].y * zoomed.size + zoomed.origin.y)) < 0.001)
+        }
+        let moved = original.indices.filter { hypot(original[$0].x - resolved[$0].x, original[$0].y - resolved[$0].y) > 0.001 }
+        #expect(moved.count == (board.tiles.count == 61 ? 2 : 0), "unrelated ports moved")
+    }
+}
+
 @MainActor
 @Test func portBadgesDoNotCollideWithPlacementRings() {
     // The overlap that started this: during setup every vertex is ringed at
@@ -78,18 +126,14 @@ private let boards: [(String, Board)] = [
         let geometry = BoardView.fittedGeometry(for: board, in: rect, padding: BoardView.boardPadding)
         let center = BoardView.boardCenter(for: board, geometry: geometry)
         let badge = geometry.size * TileDrawing.portFrameRadiusFactor
-        let ring = TileDrawing.vertexRingRadius
+        let ring = VertexTapTarget.highlightDiameter(spacing: geometry.size) / 2
 
-        for port in board.ports {
-            let icon = TileDrawing.portIconPoint(
-                a: geometry.vertexPosition(port.vertexA, board: board),
-                b: geometry.vertexPosition(port.vertexB, board: board),
-                boardCenter: center, size: geometry.size)
+        for icon in TileDrawing.portIconPoints(board: board, geometry: geometry, boardCenter: center) {
             for vertex in board.onBoardVertices {
                 let point = geometry.vertexPosition(vertex, board: board)
                 let separation = hypot(icon.x - point.x, icon.y - point.y)
                 let overlap = Int((badge + ring) - separation)
-                let detail = "\(boardName): a \(port.kind) badge overlaps a placement ring by \(overlap)pt"
+                let detail = "\(boardName): a port badge overlaps a placement ring by \(overlap)pt"
                 #expect(separation >= badge + ring, "\(detail)")
             }
         }
@@ -145,11 +189,7 @@ private let boards: [(String, Board)] = [
     let badge = geometry.size * TileDrawing.portFrameRadiusFactor
 
     var minEdgeGap = CGFloat.greatestFiniteMagnitude
-    for port in board.ports {
-        let icon = TileDrawing.portIconPoint(
-            a: geometry.vertexPosition(port.vertexA, board: board),
-            b: geometry.vertexPosition(port.vertexB, board: board),
-            boardCenter: center, size: geometry.size)
+    for icon in TileDrawing.portIconPoints(board: board, geometry: geometry, boardCenter: center) {
         minEdgeGap = min(minEdgeGap,
                          icon.y - badge - rect.minY, rect.maxY - (icon.y + badge),
                          icon.x - badge - rect.minX, rect.maxX - (icon.x + badge))
