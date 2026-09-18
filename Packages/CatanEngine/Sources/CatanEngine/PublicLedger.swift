@@ -189,7 +189,9 @@ public struct PublicLedger: Codable, Sendable, Equatable {
         for player in state.players {
             let handSize = player.resources.values.reduce(0, +)
             seats[player.id] = SeatBelief(
-                known: player.id == observer ? player.resources : [:],
+                // Match reconcileObserverHand's canonical form: encoding omits
+                // zeros, so keeping them here would change checkpoint equality.
+                known: player.id == observer ? player.resources.filter { $0.value > 0 } : [:],
                 maxTotal: handSize,
                 devCardCount: player.devCards.count
             )
@@ -287,7 +289,7 @@ public struct PublicLedger: Codable, Sendable, Equatable {
                 // say how much, so the ceiling only drops by what was certain.
                 guard var belief = seats[other] else { continue }
                 let certainLoss = belief.known[resource] ?? 0
-                belief.known[resource] = 0
+                belief.setKnown(resource, to: 0)
                 belief.maxTotal = max(0, belief.maxTotal - certainLoss)
                 seats[other] = belief
             }
