@@ -127,6 +127,48 @@ import CatanAI
     }
 }
 
+/// Kept in its own suite because the regression used to terminate the runner
+/// while restoring a completed match, before an expectation could be checked.
+@MainActor @Suite struct CompletedHumanTradeRestoreTests {
+    @Test func completedCheckpointSkipsPendingHumanNegotiation() throws {
+        let fixture = try CheckpointModelFixture()
+        let model = fixture.makeModel()
+        let human = PlayerID(index: 0)
+        var state = GameSetup.newGame(board: BoardGenerator.standard(), seed: 92, playerCount: 3)
+        let vertices = state.board.onBoardVertices.sorted()
+        state.phase = .mainTurn(playerIndex: human.index)
+        state.players[0].cities = Set(vertices.prefix(3))
+        state.players[0].settlements = Set(vertices.dropFirst(20).prefix(3))
+        state.players[0].resources = [.ore: 1, .wool: 1, .grain: 5]
+        state.players[1].resources = [.brick: 2]
+        state.devCardDeck = [.victoryPoint]
+        model.replaceStateForTesting(state, humanSeat: human)
+        let offer = TradeOffer.enumerated(from: human, give: [.grain: 4], want: [.brick: 1])
+        var session = model.session
+        var document = try #require(model.checkpointDocument)
+        for move in [GameMove.proposeTrade(offer), .buyDevCard] {
+            let step = try session.applyExternal(move, by: human)
+            document = try document.recording(step, session: session.checkpoint, elapsedSeconds: 0)
+            try model.commitDocument(document)
+        }
+        try #require(session.state.phase == .gameOver(winner: human))
+        try #require(session.state.pendingTradeOffers == [offer])
+        try #require(Trading.bothSidesCanHonour(offer, responder: PlayerID(index: 1), state: session.state))
+        let bytes = try Data(contentsOf: model.checkpointStore.fileURL)
+
+        let restored = fixture.makeModel()
+
+        #expect(restored.savedGameAvailability.canResume)
+        #expect(restored.pendingTradeConfirmation == nil)
+        #expect(restored.lastTradeOutcome == nil)
+        #expect(restored.session.checkpoint == session.checkpoint)
+        #expect(restored.checkpointDocument == document)
+        restored.restorePendingNegotiation()
+        #expect(restored.session.checkpoint == session.checkpoint)
+        #expect(try Data(contentsOf: model.checkpointStore.fileURL) == bytes)
+    }
+}
+
 /// Human proposals must reach the same policy as automated negotiations.
 /// Isolated checkpoint stores exercise cold restoration without sharing saves.
 @MainActor @Suite(.serialized) struct HumanTradePolicyTests {

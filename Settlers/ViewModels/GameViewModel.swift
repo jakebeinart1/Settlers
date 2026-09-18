@@ -912,6 +912,8 @@ public final class GameViewModel {
     func restorePendingNegotiation() {
         pendingTradeConfirmation = nil
         lastTradeOutcome = nil
+        // Winning can leave an offer in the checkpoint, but policies cannot act after a win.
+        if case .gameOver = state.phase { return }
         guard let offer = state.pendingTradeOffers.first(where: { $0.from == humanPlayer }) else { return }
         let decisions = state.players.map(\.id).filter { !humanSeats.contains($0) }.map { bot in
             let accepts = Trading.bothSidesCanHonour(offer, responder: bot, state: state)
