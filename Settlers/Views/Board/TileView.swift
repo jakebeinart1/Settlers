@@ -555,14 +555,3 @@ struct TileTapTarget: View {
             .disabled(!isEnabled)
     }
 }
-
-/// Rectangle for a road, drawn along an edge's axis via `rotationEffect` in
-/// the caller. Only lightly rounded (not the full-capsule pill this used to
-/// be) so that consecutive roads sharing a vertex - now drawn edge-to-edge,
-/// see `BoardView.roadViews` - butt up cleanly into one continuous line
-/// instead of each segment necking down to a rounded point at the joint.
-struct RoadShape: Shape {
-    func path(in rect: CGRect) -> Path {
-        Path(roundedRect: rect, cornerRadius: rect.height * 0.18)
-    }
-}

@@ -5,8 +5,15 @@ import CatanEngine
 ///
 /// Both rules here are presentation, not gameplay: the engine has no notion of
 /// time and `GameSession` decides a move in microseconds. Everything a player
-/// perceives as a bot "thinking" is added deliberately, and in exactly these
-/// two places.
+/// perceives as a bot "thinking" is added deliberately, and only here.
+///
+/// There used to be a second place: a randomized 2-4s hold before a bot could
+/// accept another seat's offer, so a bot could not snap up an offer the human
+/// was still reading. `runBotTurnIfNeeded` has since stopped the whole loop
+/// while such an offer is open (`openIncomingOffer`), which gives the human
+/// unlimited time rather than 2-4s - so by the time a bot could accept, the
+/// human had answered or could never take the offer, and the hold was a pause
+/// the speed setting could not shorten.
 extension GameViewModel {
     /// Waits until the player's chosen interval has passed since the previous
     /// bot action.
@@ -33,23 +40,5 @@ extension GameViewModel {
         let remaining = interval - max(0, sinceLastAction)
         guard remaining > 0 else { return }
         try? await Task.sleep(for: .seconds(remaining))
-    }
-
-    /// Holds off applying `move` if it's a bot accepting someone *else's*
-    /// still-open trade offer, until a randomized 2-4s have passed since
-    /// that offer was first proposed (see `offerProposedAt`'s doc) - real
-    /// Catan only lets you act on your own turn, and without this, a bot
-    /// whose turn happens to fall right after the proposal could snap up an
-    /// offer the human's card is still showing, with none of the human's
-    /// read-and-decide time. A no-op for every other move (declines,
-    /// proposals, builds, etc. all go through immediately).
-    func waitForFairAcceptWindow(before move: GameMove) async {
-        guard case .respondToTrade(let offerID, true) = move,
-              let proposedAt = offerProposedAt[offerID]
-        else { return }
-        let targetDelay = Double.random(in: 2...4)
-        let elapsed = Date().timeIntervalSince(proposedAt)
-        guard elapsed < targetDelay else { return }
-        try? await Task.sleep(for: .seconds(targetDelay - elapsed))
     }
 }

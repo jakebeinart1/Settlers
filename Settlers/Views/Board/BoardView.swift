@@ -411,46 +411,37 @@ public struct BoardView: View {
     /// slice of it rather than a coherent road. A flat civilization-colored
     /// bar reads far more cleanly at this size and angle range.
     ///
-    /// Drawn per *player* rather than per edge: each of a player's road
-    /// segments still starts life as the same rounded-rect bar as before,
-    /// but every segment is geometrically unioned into one combined `Path`
-    /// (`Path.union`) before it's ever filled or bordered, so two segments
-    /// sharing a vertex merge into one shape instead of two separate
-    /// bordered rectangles butting against each other - the black border
-    /// only ever traces the *outside* of a player's whole connected road
-    /// network, never a seam at an internal joint. Same two-layer
-    /// bigger-shape-then-smaller-shape trick `TileDrawing.drawTile` uses
-    /// for the manila gap between tiles: a wider black union filled first,
-    /// then a narrower colored union on top leaves a uniform border ring
-    /// showing only around the true outline.
+    /// Drawn per *player* rather than per edge: a player's whole network is
+    /// one path stroked once (`roadNetworkPath`), so two segments sharing a
+    /// vertex merge into one shape and the black border only ever traces the
+    /// *outside* of the network, never a seam at an internal joint. Same
+    /// two-layer trick `TileDrawing.drawTile` uses for the manila gap between
+    /// tiles: a wide black stroke first, then a narrower colored stroke on
+    /// top leaves a uniform border ring around the true outline.
     /// Rendered in ascending road-count order, so whoever has more roads
     /// draws *last* (on top) wherever two different players' networks
     /// happen to touch the same vertex - a player with two roads meeting
     /// there (part of a longer connected chain) reads better sitting over
     /// a neighbor with just one isolated segment there than the reverse.
     /// A per-player approximation rather than tracking it per contested
-    /// vertex (which the current whole-network-per-player `Path.union`
-    /// approach doesn't cleanly support) - fine in practice since draw
+    /// vertex (which the whole-network-per-player stroke doesn't cleanly
+    /// support) - fine in practice since draw
     /// order only matters at all where two players' roads actually meet.
     @ViewBuilder
     private func roadViews(geometry: HexGeometry) -> some View {
         ForEach(state.players.sorted { $0.roads.count < $1.roads.count }, id: \.id) { player in
             if !player.roads.isEmpty {
                 // Border margin bumped from a fixed 0.07 addition (barely
-                // visible at typical board scale, especially once
-                // `Path.union` softened it further at every joint) to a
+                // visible at typical board scale) to a
                 // proportionally bigger, near-opaque ring - it needs to
                 // read unmistakably as a border around the whole connected
                 // shape, not just a faint edge.
-                let overlap = geometry.size * 0.05
-                let fillHeight = geometry.size * 0.20
-                let borderHeight = geometry.size * 0.30
-                let borderPath = unionedRoadPath(for: player.roads, geometry: geometry, height: borderHeight, overlap: overlap)
-                let fillPath = unionedRoadPath(for: player.roads, geometry: geometry, height: fillHeight, overlap: overlap)
+                let network = roadNetworkPath(for: player.roads, geometry: geometry)
 
                 ZStack {
-                    borderPath.fill(.black.opacity(0.9))
-                    fillPath.fill(playerIdentity(player.id).civilization.accentColor)
+                    network.stroke(.black.opacity(0.9), style: roadStroke(width: geometry.size * 0.30))
+                    network.stroke(playerIdentity(player.id).civilization.accentColor,
+                                   style: roadStroke(width: geometry.size * 0.20))
                 }
                 // Same small grounding shadow as `CivilizationBadge` -
                 // consistent depth cue across every piece on the board.
@@ -461,29 +452,17 @@ public struct BoardView: View {
     }
 
     /// A visibly provisional road. Road Building retains the coordinator's
-    /// ordered edge array and adds numbered seals; the set is used only for the
-    /// geometric union that removes seams where the two previews meet.
+    /// ordered edge array and adds numbered seals; the set is stroked as one
+    /// path so there is no seam where the two previews meet.
     private func stagedRoadPreview(
         for decision: BoardDecisionPresentation,
         geometry: HexGeometry
     ) -> some View {
-        let stagedRoads = Set(decision.selectedEdges)
-        let overlap = geometry.size * 0.05
-        let borderPath = unionedRoadPath(
-            for: stagedRoads,
-            geometry: geometry,
-            height: geometry.size * 0.32,
-            overlap: overlap
-        )
-        let fillPath = unionedRoadPath(
-            for: stagedRoads,
-            geometry: geometry,
-            height: geometry.size * 0.20,
-            overlap: overlap
-        )
+        let network = roadNetworkPath(for: Set(decision.selectedEdges), geometry: geometry)
         return ZStack {
-            borderPath.fill(CatanTheme.cityPennantGold.opacity(0.98))
-            fillPath.fill(playerIdentity(decision.actor).civilization.accentColor.opacity(0.72))
+            network.stroke(CatanTheme.cityPennantGold.opacity(0.98), style: roadStroke(width: geometry.size * 0.32))
+            network.stroke(playerIdentity(decision.actor).civilization.accentColor.opacity(0.72),
+                           style: roadStroke(width: geometry.size * 0.20))
             if decision.intent == .roadBuilding {
                 ForEach(Array(decision.selectedEdges.enumerated()), id: \.element) { index, edge in
                     BoardRoadOrderBadge(ordinal: index + 1)
@@ -501,55 +480,28 @@ public struct BoardView: View {
         .accessibilityIdentifier(AccessibilityID.Board.stagedRoadPreview)
     }
 
-    /// The union of every edge in `edges`, each first built as the same
-    /// rectangular bar `RoadShape` always used, positioned/rotated onto its
-    /// actual board edge via `roadSegmentPath` - see `roadViews` for why
-    /// this needs to be a true geometric union rather than separately
-    /// filled/bordered shapes. A plain rectangle union alone still isn't
-    /// enough, though: two straight bars meeting at an angle leave a
-    /// wedge-shaped gap on the outside of the bend (each bar's end is cut
-    /// perpendicular to *its own* axis, not angled to the bisector between
-    /// the two) - a classic "miter join" problem, confirmed by rendering
-    /// this in isolation and seeing the exact notch. The fix is the
-    /// standard one: union in a filled circle at every vertex a road in
-    /// this set touches, which closes that gap regardless of angle (a
-    /// "round join") and, as a side effect, gives dead-end tips a clean
-    /// rounded cap too.
-    private func unionedRoadPath(for edges: Set<EdgeID>, geometry: HexGeometry, height: CGFloat, overlap: CGFloat) -> Path {
-        var result = Path()
-        var vertices: Set<VertexID> = []
+    /// Every edge in `edges` as one open polyline, one subpath per edge.
+    ///
+    /// Stroked with round caps and joins this draws exactly what the old
+    /// `Path.union` of rounded bars plus a circle at every vertex drew - a
+    /// capsule per edge, merged into one seamless shape, since a single stroke
+    /// paints its covered area once however many subpaths overlap. The union
+    /// was rebuilt for every player on every board render and cost grew with
+    /// the square of a network's size: measured 13ms at 20 roads and 91ms at
+    /// 60, per path, two paths per player, re-run on every bot move and every
+    /// pan or pinch frame. That is the late-game lag on a Vast board.
+    private func roadNetworkPath(for edges: Set<EdgeID>, geometry: HexGeometry) -> Path {
+        var path = Path()
         for edge in edges {
             let (a, b) = board.vertices(of: edge)
-            let start = geometry.vertexPosition(a, board: board)
-            let end = geometry.vertexPosition(b, board: board)
-            let segment = roadSegmentPath(from: start, to: end, height: height, overlap: overlap)
-            result = result.isEmpty ? segment : result.union(segment)
-            vertices.insert(a)
-            vertices.insert(b)
+            path.move(to: geometry.vertexPosition(a, board: board))
+            path.addLine(to: geometry.vertexPosition(b, board: board))
         }
-        let radius = height / 2
-        for vertex in vertices {
-            let center = geometry.vertexPosition(vertex, board: board)
-            let circle = Path(ellipseIn: CGRect(x: center.x - radius, y: center.y - radius, width: radius * 2, height: radius * 2))
-            result = result.union(circle)
-        }
-        return result
+        return path
     }
 
-    /// One road edge's bar, built in its own local (unrotated, centered-at-
-    /// origin) coordinate space via `RoadShape` and then transformed onto
-    /// its actual position/angle between `start` and `end` - kept as a
-    /// standalone `Path` (rather than a positioned/rotated `View`, the old
-    /// approach) specifically so `unionedRoadPath` can combine several of
-    /// these with `Path.union` before any fill/stroke happens.
-    private func roadSegmentPath(from start: CGPoint, to end: CGPoint, height: CGFloat, overlap: CGFloat) -> Path {
-        let length = hypot(end.x - start.x, end.y - start.y) + overlap
-        let angle = atan2(end.y - start.y, end.x - start.x)
-        let midpoint = CGPoint(x: (start.x + end.x) / 2, y: (start.y + end.y) / 2)
-        let localRect = CGRect(x: -length / 2, y: -height / 2, width: length, height: height)
-        let transform = CGAffineTransform(rotationAngle: angle)
-            .concatenating(CGAffineTransform(translationX: midpoint.x, y: midpoint.y))
-        return RoadShape().path(in: localRect).applying(transform)
+    private func roadStroke(width: CGFloat) -> StrokeStyle {
+        StrokeStyle(lineWidth: width, lineCap: .round, lineJoin: .round)
     }
 
     // MARK: - Stable ordering
@@ -716,7 +668,7 @@ private struct BuildingOwner {
 /// Precomputed vertex -> owner lookup, built once per render from
 /// `state.players` rather than re-scanning all players per vertex. Roads no
 /// longer need an equivalent lookup here - `roadViews` reads `player.roads`
-/// directly, once per player, to build each player's unioned road path.
+/// directly, once per player, to build each player's road network path.
 private struct Ownership {
     private let buildings: [VertexID: BuildingOwner]
 

@@ -7,9 +7,9 @@ import CatanAI
 /// "wants to trade" toast that just jumped to the trade sheet.
 ///
 /// Every offer reaching this card is one the human can actually fulfil (see
-/// `GameView.handleTradeOffersChange`'s affordability filter), and
-/// `GameViewModel.waitForFairAcceptWindow` holds other bots back from
-/// snapping up the same offer for a randomized 2-4s.
+/// `GameView.handleTradeOffersChange`'s affordability filter), and the bot
+/// loop stays stopped while it is open (`GameViewModel.openIncomingOffer`), so
+/// no other bot can snap up the same offer first.
 ///
 /// ## It no longer answers for you in six seconds
 /// This used to run a hardcoded six-second countdown and auto-Reject on

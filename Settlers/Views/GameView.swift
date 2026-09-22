@@ -785,8 +785,7 @@ public struct GameView: View {
                 // doesn't surface existing `pendingTradeOffers`). Briefly
                 // gating Build/Trade/Roll-or-End behind resolving this first
                 // is an acceptable trade for that - it self-clears within
-                // the same window the fairness delay in
-                // `GameViewModel.waitForFairAcceptWindow` is built around.
+                // the offer's own countdown.
                 if let currentOffer = currentIncomingOffer {
                     IncomingTradeCardView(
                         offer: currentOffer,

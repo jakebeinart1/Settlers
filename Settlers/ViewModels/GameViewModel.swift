@@ -183,18 +183,6 @@ public final class GameViewModel {
     /// failures retain them and hot-seat handoffs can clear them centrally.
     var boardDecisionCoordinator = BoardDecisionCoordinator()
 
-    /// When each currently-pending trade offer was first proposed -
-    /// `TradeOffer` itself carries no timestamp, so this is tracked
-    /// separately. Used by `runBotTurnIfNeeded` to hold off a bot accepting
-    /// someone else's offer for a randomized 2-4s (real Catan only lets you
-    /// act on your own turn, but a bot's turn arriving right after the
-    /// proposal - with none of the human's read-and-decide time - would
-    /// otherwise let it snap up an offer shown to the human before they've
-    /// had any real chance at it). Populated in `applyLogged` on every
-    /// `.proposeTrade`; pruned there too once an offer leaves
-    /// `state.pendingTradeOffers` (accepted, rejected, or otherwise gone).
-    var offerProposedAt: [UUID: Date] = [:]
-
     /// Foreground time banked so far this game (from previous active spans,
     /// each ended by `appWillResignActive`), plus `activeSince` (when the
     /// current active span began, `nil` while backgrounded) - together these
@@ -498,7 +486,6 @@ public final class GameViewModel {
         pendingDevCardResolution = nil
         lastTradeOutcome = nil
         eventBatch = EventBatch(sequence: eventBatch.sequence + 1, events: [])
-        offerProposedAt = [:]
         accumulatedActiveDuration = 0
         activeSince = Date()
     }
@@ -532,9 +519,6 @@ public final class GameViewModel {
         eventBatch = EventBatch(sequence: eventBatch.sequence + 1, events: pendingEvents)
         pendingDevCardReveal = next.pendingDevCardReveal
         pendingDevCardResolution = next.pendingDevCardResolution
-        if case .proposeTrade(let offer) = step.move { offerProposedAt[offer.id] = Date() }
-        let stillPending = Set(state.pendingTradeOffers.map(\.id))
-        offerProposedAt = offerProposedAt.filter { stillPending.contains($0.key) }
         if case .gameOver = state.phase {
             accumulatedActiveDuration = next.activeMatch?.elapsedSeconds ?? currentGameDuration
             activeSince = nil
@@ -1150,7 +1134,6 @@ public final class GameViewModel {
             let revision = checkpointDocument?.revision
             var candidate = session
             guard let (seat, move) = candidate.decideNext() else { break }
-            await waitForFairAcceptWindow(before: move)
             guard generation == gameGeneration, appIsActive, !Task.isCancelled, !persistenceBlocked,
                   !isBlockingSurfaceOpen, openIncomingOffer == nil,
                   pendingDevCardReveal == nil, pendingDevCardResolution == nil else { return }
