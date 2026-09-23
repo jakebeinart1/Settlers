@@ -54,3 +54,15 @@ private func conquestMainTurn(seed: UInt64 = 1) -> GameState {
         #expect(armyMoves > 0, "seed \(seed): bots never deployed")
     }
 }
+
+@Test func aBoldBotBuysAnArmyCardBeforeBuildingAndAnIdleOneDoesNot() {
+    var state = conquestMainTurn()
+    state.armyHands = [:]
+    state.players[0].resources = [.brick: 1, .lumber: 1, .wool: 1, .grain: 1, .ore: 1]
+    let seat = state.players[0].id
+    var rng = RandomSource(seed: 1)
+    let bold = Bot(personality: .balanced, boldArmies: true).decide(for: state, player: seat, rng: &rng)
+    let idle = Bot(personality: .balanced).decide(for: state, player: seat, rng: &rng)
+    #expect(bold == .buyArmyCard)
+    #expect(idle != .buyArmyCard, "idle bot should build first, got \(idle)")
+}

@@ -144,9 +144,11 @@ private struct SimulationConfiguration {
     /// to prevent.
     var mode = GameMode.classic
     var variant = GameVariant.standard
+    /// Experiment only: replaces the rules' army deck without changing the rules.
+    var strongArmyDeck = false
 
     func state(seed: UInt64) -> GameState {
-        GameSetup.newGame(
+        var state = GameSetup.newGame(
             board: boardMode.board(seed: seed, mode: mode),
             seed: seed,
             playerCount: playerCount,
@@ -154,6 +156,15 @@ private struct SimulationConfiguration {
             mode: mode,
             variant: variant
         )
+        if strongArmyDeck {
+            // Mean ~4.7 instead of ~4.0, same 29 cards (doubled off Classic's board).
+            let strong: [Int: Int] = [1: 3, 2: 3, 3: 4, 4: 4, 5: 4, 6: 4, 7: 3, 8: 2, 9: 2]
+            let scale = mode == .classic ? 1 : 2
+            var rng = RandomSource(seed: seed &+ 0xA4D_DECC)
+            state.armyDeck = Conquest.buildArmyDeck(strong.mapValues { $0 * scale })
+            state.armyDeck.shuffle(using: &rng)
+        }
+        return state
     }
 }
 
@@ -176,7 +187,7 @@ private struct Options {
 
     static let usage = """
         usage: sim [--games N] [--seed S] [--players 3|4] [--victory-points 8|10|12]
-                   [--board standard|randomized] [--variant standard|conquest] [--seats LIST] [--build-id ID] [--jsonl]
+                   [--board standard|randomized] [--variant standard|conquest] [--army-deck standard|strong] [--seats LIST] [--build-id ID] [--jsonl]
                    [--weights W1,...,W14]
           --games N     number of consecutive seeds to play (default 1)
           --seed S      first match seed; seeds S ..< S+N are played (default 1)
@@ -221,7 +232,7 @@ private func policy(named name: String,
     let base: any Policy
     let personality: BotPersonality?
     switch name {
-    case "balanced": personality = .balanced
+    case "balanced", "bold": personality = .balanced
     case "aggressive": personality = .aggressive
     case "cautious": personality = .cautious
     case "refuses-balanced": personality = nil
@@ -229,12 +240,13 @@ private func policy(named name: String,
     default:
         fail(
             "unknown seat '\(name)'; expected balanced, aggressive, cautious, "
-                + "eval, eval-tuned, eval-round3, greedy, random, "
+                + "bold, eval, eval-tuned, eval-round3, greedy, random, "
                 + "refuses-balanced or joint-balanced"
         )
     }
     if let personality {
-        base = HeuristicPolicy(personality: personality, id: "heuristic-\(name)")
+        // `bold` is `balanced` that buys Conquest army cards ahead of building.
+        base = HeuristicPolicy(personality: personality, boldArmies: name == "bold", id: "heuristic-\(name)")
     } else if name == "greedy" {
         base = GreedyPolicy()
     } else if name == "eval" {
@@ -341,6 +353,12 @@ private func parseOptions(_ arguments: [String]) -> Options {
                 fail("--variant must be standard or conquest")
             }
             options.configuration.variant = variant
+        case "--army-deck":
+            switch uniqueValue(for: "--army-deck") {
+            case "standard": options.configuration.strongArmyDeck = false
+            case "strong": options.configuration.strongArmyDeck = true
+            default: fail("--army-deck must be standard or strong")
+            }
         case "--seats", "--personalities":
             let flag = arguments[index]
             options.seatNames = nextValue(for: flag).split(separator: ",").map(String.init)

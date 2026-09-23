@@ -15,8 +15,8 @@ public struct HeuristicPolicy: Policy {
     /// - Parameter id: how this policy appears in an evaluation record. Include
     ///   the personality, because two `HeuristicPolicy` seats with different
     ///   personalities are genuinely different opponents.
-    public init(personality: BotPersonality, weights: BotWeights = .default, id: String) {
-        self.bot = Bot(personality: personality, weights: weights)
+    public init(personality: BotPersonality, weights: BotWeights = .default, boldArmies: Bool = false, id: String) {
+        self.bot = Bot(personality: personality, weights: weights, boldArmies: boldArmies)
         self.id = id
     }
 
