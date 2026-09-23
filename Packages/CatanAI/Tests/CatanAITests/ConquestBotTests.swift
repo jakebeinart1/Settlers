@@ -61,8 +61,26 @@ private func conquestMainTurn(seed: UInt64 = 1) -> GameState {
     state.players[0].resources = [.brick: 1, .lumber: 1, .wool: 1, .grain: 1, .ore: 1]
     let seat = state.players[0].id
     var rng = RandomSource(seed: 1)
-    let bold = Bot(personality: .balanced, boldArmies: true).decide(for: state, player: seat, rng: &rng)
+    let bold = Bot(personality: .balanced, armyBuying: .bold).decide(for: state, player: seat, rng: &rng)
     let idle = Bot(personality: .balanced).decide(for: state, player: seat, rng: &rng)
     #expect(bold == .buyArmyCard)
     #expect(idle != .buyArmyCard, "idle bot should build first, got \(idle)")
+}
+
+@Test func aTargetedBotBuysOnlyWhenOneMoreCardWouldTakeAGoodHex() throws {
+    var state = conquestMainTurn()
+    let seat = state.players[0].id
+    for hex in state.garrisons.keys { state.garrisons[hex] = Garrison(owner: nil, strength: 5) }
+    let goodReachable = state.board.tiles.contains {
+        ($0.numberToken.map(DiceOdds.pips) ?? 0) >= 4 && Conquest.canDeploy(to: $0.coordinate, by: seat, in: state)
+    }
+    try #require(goodReachable, "seed must give seat 0 a building on a 5, 6, 8 or 9")
+    state.players[0].resources = [.brick: 1, .lumber: 1, .wool: 1, .grain: 1, .ore: 1]
+    let bot = Bot(personality: .balanced, armyBuying: .targeted)
+    var rng = RandomSource(seed: 1)
+
+    state.armyHands = [:]
+    #expect(bot.decide(for: state, player: seat, rng: &rng) != .buyArmyCard, "0 + ~4 cannot beat 5")
+    state.armyHands = [seat: [2]]
+    #expect(bot.decide(for: state, player: seat, rng: &rng) == .buyArmyCard, "2 + ~4 beats 5")
 }

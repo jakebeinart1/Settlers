@@ -1,5 +1,16 @@
 import CatanEngine
 
+/// When a bot buys Conquest army cards.
+public enum ArmyBuying: Sendable {
+    /// Only when no build is worth making (the shipped behaviour).
+    case idle
+    /// Ahead of building, whenever affordable and some hex is not yet ours.
+    case bold
+    /// Ahead of building, but only when one more card at mean strength would
+    /// let the playable hand take a 5, 6, 8 or 9 it touches.
+    case targeted
+}
+
 /// Conquest decisions for `Bot`. Heuristic, untrained: this exists to make the
 /// variant playable and measurable, not to be strong.
 enum ConquestHeuristics {
@@ -39,6 +50,21 @@ enum ConquestHeuristics {
             Conquest.canDeploy(to: $0, by: player, in: state) && state.garrisons[$0]?.owner != player
         }
     }
+
+    static func shouldBuyAheadOfBuilding(_ buying: ArmyBuying, state: GameState, player: PlayerID) -> Bool {
+        guard buying != .idle, shouldBuyArmyCard(state: state, player: player) else { return false }
+        guard buying == .targeted else { return true }
+        let reach = Double(Conquest.playableCards(for: player, in: state).reduce(0, +)) + expectedCardStrength
+        return state.board.tiles.sorted(by: { $0.coordinate < $1.coordinate }).contains { tile in
+            guard let token = tile.numberToken, DiceOdds.pips(for: token) >= goodHexPips,
+                  Conquest.canDeploy(to: tile.coordinate, by: player, in: state),
+                  state.garrisons[tile.coordinate]?.owner != player else { return false }
+            return reach > Double(state.garrisons[tile.coordinate]?.strength ?? 0)
+        }
+    }
+
+    /// 5, 6, 8 and 9: the hexes worth an army card.
+    static let goodHexPips = 4
 
     /// Pips x (the +1 bonus, plus every rival building the takeover silences).
     private static func hexValue(_ hex: HexCoordinate, for player: PlayerID, in state: GameState) -> Double {

@@ -232,7 +232,7 @@ private func policy(named name: String,
     let base: any Policy
     let personality: BotPersonality?
     switch name {
-    case "balanced", "bold": personality = .balanced
+    case "balanced", "bold", "targeted": personality = .balanced
     case "aggressive": personality = .aggressive
     case "cautious": personality = .cautious
     case "refuses-balanced": personality = nil
@@ -240,13 +240,14 @@ private func policy(named name: String,
     default:
         fail(
             "unknown seat '\(name)'; expected balanced, aggressive, cautious, "
-                + "bold, eval, eval-tuned, eval-round3, greedy, random, "
+                + "bold, targeted, eval, eval-tuned, eval-round3, greedy, random, "
                 + "refuses-balanced or joint-balanced"
         )
     }
     if let personality {
-        // `bold` is `balanced` that buys Conquest army cards ahead of building.
-        base = HeuristicPolicy(personality: personality, boldArmies: name == "bold", id: "heuristic-\(name)")
+        // `bold`/`targeted` are `balanced` with a Conquest army-buying rule; see `ArmyBuying`.
+        let buying: ArmyBuying = name == "bold" ? .bold : name == "targeted" ? .targeted : .idle
+        base = HeuristicPolicy(personality: personality, armyBuying: buying, id: "heuristic-\(name)")
     } else if name == "greedy" {
         base = GreedyPolicy()
     } else if name == "eval" {

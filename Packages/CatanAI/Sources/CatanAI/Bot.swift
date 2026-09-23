@@ -16,15 +16,14 @@ public struct Bot: Sendable {
     /// policy underneath and exist to be swept or trained. Defaulted so
     /// callers that don't care never see them.
     public let weights: BotWeights
-    /// Conquest: buy an army card ahead of building whenever one is affordable
-    /// and a hex is there to take. Off, the bot buys only when nothing else is
-    /// worth building. An experiment knob, not a personality trait.
-    public let boldArmies: Bool
+    /// When this bot buys Conquest army cards. An experiment knob, not a
+    /// personality trait. See `ArmyBuying`.
+    public let armyBuying: ArmyBuying
 
-    public init(personality: BotPersonality, weights: BotWeights = .default, boldArmies: Bool = false) {
+    public init(personality: BotPersonality, weights: BotWeights = .default, armyBuying: ArmyBuying = .idle) {
         self.personality = personality
         self.weights = weights
-        self.boldArmies = boldArmies
+        self.armyBuying = armyBuying
     }
 
     /// Always returns a member of `RulesEngine.legalMoves(for: state)`.
@@ -339,7 +338,7 @@ public struct Bot: Sendable {
             for: state, player: player, personality: personality, rng: &rng, weights: weights
         )
         consider(buildMove, score: weights.buildMoveScore)
-        if boldArmies, ConquestHeuristics.shouldBuyArmyCard(state: state, player: player) {
+        if ConquestHeuristics.shouldBuyAheadOfBuilding(armyBuying, state: state, player: player) {
             consider(.buyArmyCard, score: weights.buildMoveScore + 0.1)
         }
 
@@ -358,7 +357,7 @@ public struct Bot: Sendable {
                         + personality.aggressiveness * weights.buyDevCardMoveAggressionScale
                 )
             }
-            if !boldArmies, ConquestHeuristics.shouldBuyArmyCard(state: state, player: player) {
+            if armyBuying == .idle, ConquestHeuristics.shouldBuyArmyCard(state: state, player: player) {
                 consider(.buyArmyCard, score: weights.buyDevCardMoveBase)
             }
             // Fall back to the bank/port when no build is affordable yet and
