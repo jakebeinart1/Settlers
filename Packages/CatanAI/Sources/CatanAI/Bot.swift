@@ -323,6 +323,13 @@ public struct Bot: Sendable {
             score: weights.playDevCardMoveBase + personality.aggressiveness * weights.playDevCardMoveAggressionScale
         )
 
+        // Deploying spends cards already paid for, so like playing a dev card
+        // it never competes with a build for resources.
+        consider(
+            ConquestHeuristics.chooseDeploy(state: state, player: player, legal: legal),
+            score: weights.playDevCardMoveBase
+        )
+
         let buildMove = BuildPlanner.chooseBuild(
             for: state, player: player, personality: personality, rng: &rng, weights: weights
         )
@@ -342,6 +349,9 @@ public struct Bot: Sendable {
                     score: weights.buyDevCardMoveBase
                         + personality.aggressiveness * weights.buyDevCardMoveAggressionScale
                 )
+            }
+            if ConquestHeuristics.shouldBuyArmyCard(state: state, player: player) {
+                consider(.buyArmyCard, score: weights.buyDevCardMoveBase)
             }
             // Fall back to the bank/port when no build is affordable yet and
             // no other player's offering a good deal - previously bots only
@@ -447,6 +457,8 @@ public struct Bot: Sendable {
             case (.bankTrade(let gx, let ax), .bankTrade(let gy, let ay)) where gx == gy && ax == ay: return candidate
             case (.proposeTrade(let x), .proposeTrade(let y)) where x.from == y.from && x.give == y.give && x.want == y.want: return candidate
             case (.respondToTrade(let ox, let ax), .respondToTrade(let oy, let ay)) where ox == oy && ax == ay: return candidate
+            case (.buyArmyCard, .buyArmyCard): return candidate
+            case (.deployArmy, .deployArmy) where desired == candidate: return candidate
             case (.endTurn, .endTurn): return candidate
             default: continue
             }

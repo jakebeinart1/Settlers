@@ -63,7 +63,7 @@ public struct Board: Codable, Sendable, Equatable {
 /// single source of truth for hex-grid geometry: every other piece of code
 /// (board generation, adjacency queries) builds on these two functions rather
 /// than re-deriving corner/edge positions.
-enum HexGeometry {
+public enum HexGeometry {
     /// The corner shared by `coordinate` and its neighbors in directions `i`
     /// and `i+1`. `HexCoordinate.neighborDirections` is listed in consistent
     /// rotational (60°) order, so any two directions that are adjacent in
@@ -80,7 +80,7 @@ enum HexGeometry {
 
     /// All 6 corners of a tile, indexed 0...5, where corner `i` sits between
     /// neighbor directions `i` and `i + 1`.
-    static func corners(of coordinate: HexCoordinate) -> [VertexID] {
+    public static func corners(of coordinate: HexCoordinate) -> [VertexID] {
         (0..<6).map { corner(of: coordinate, between: $0) }
     }
 
