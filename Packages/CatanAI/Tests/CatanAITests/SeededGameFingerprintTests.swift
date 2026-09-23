@@ -141,6 +141,15 @@ private let expectedFingerprints: [UInt64: String] = [
     99: "ddc4993979b6a655",
 ]
 
+/// Conquest seeds 1-3, recorded 2026-09-23 when the variant landed. Each value
+/// agreed across three separate `sim --variant conquest` processes (three hash
+/// seeds) before it was pinned - same-process agreement proves nothing here.
+private let expectedConquestFingerprints: [UInt64: String] = [
+    1: "208dd4c2617c0344",
+    2: "ad73dbaaae7c2a74",
+    3: "8129d880e5b6931f",
+]
+
 /// Re-recorded 2026-09-08 (all five) because the bots stopped reading hidden
 /// information. `ThreatAssessment.score` took the engine's TRUE victory-point
 /// total for every player it judged, so a held victory-point card - hidden
@@ -239,10 +248,10 @@ private func fingerprint(_ moves: [String]) -> String {
 }
 
 private func playSeededGame(
-    seed: UInt64, mode: GameMode = .classic
+    seed: UInt64, mode: GameMode = .classic, variant: GameVariant = .standard
 ) -> (fingerprint: String, moves: Int, winner: PlayerID?) {
     let board = mode == .expanded ? BoardGenerator.standard(BoardShape.expanded) : BoardGenerator.randomized(seed: seed)
-    let state = GameSetup.newGame(board: board, seed: seed, mode: mode)
+    let state = GameSetup.newGame(board: board, seed: seed, mode: mode, variant: variant)
     let seatPolicies: [any Policy] = [
         HeuristicPolicy(personality: .balanced, id: "heuristic-balanced"),
         HeuristicPolicy(personality: .aggressive, id: "heuristic-aggressive"),
@@ -303,6 +312,13 @@ struct SelfPlayReproducibility {
         let seed: UInt64 = 42
         #expect(playSeededGame(seed: seed).fingerprint == playSeededGame(seed: seed).fingerprint,
                 "seed \(seed) is not even self-consistent within one process")
+    }
+
+    @Test func conquestSeededSelfPlayReproducesExactly() {
+        for (seed, expected) in expectedConquestFingerprints.sorted(by: { $0.key < $1.key }) {
+            let result = playSeededGame(seed: seed, variant: .conquest)
+            #expect(result.fingerprint == expected, "seed \(seed): expected \(expected), got \(result.fingerprint)")
+        }
     }
 
     @Test func expandedSeededSelfPlayReproducesExactly() {

@@ -143,6 +143,7 @@ private struct SimulationConfiguration {
     /// silently played to 10 is precisely the kind of drift this struct exists
     /// to prevent.
     var mode = GameMode.classic
+    var variant = GameVariant.standard
 
     func state(seed: UInt64) -> GameState {
         GameSetup.newGame(
@@ -150,7 +151,8 @@ private struct SimulationConfiguration {
             seed: seed,
             playerCount: playerCount,
             victoryPointTarget: victoryPointTarget,
-            mode: mode
+            mode: mode,
+            variant: variant
         )
     }
 }
@@ -174,7 +176,7 @@ private struct Options {
 
     static let usage = """
         usage: sim [--games N] [--seed S] [--players 3|4] [--victory-points 8|10|12]
-                   [--board standard|randomized] [--seats LIST] [--build-id ID] [--jsonl]
+                   [--board standard|randomized] [--variant standard|conquest] [--seats LIST] [--build-id ID] [--jsonl]
                    [--weights W1,...,W14]
           --games N     number of consecutive seeds to play (default 1)
           --seed S      first match seed; seeds S ..< S+N are played (default 1)
@@ -334,6 +336,11 @@ private func parseOptions(_ arguments: [String]) -> Options {
                     Ruleset.forMode(.vast).defaultVictoryPointTarget
             default: fail("--mode must be classic, expanded or vast")
             }
+        case "--variant":
+            guard let variant = GameVariant(rawValue: uniqueValue(for: "--variant")) else {
+                fail("--variant must be standard or conquest")
+            }
+            options.configuration.variant = variant
         case "--seats", "--personalities":
             let flag = arguments[index]
             options.seatNames = nextValue(for: flag).split(separator: ",").map(String.init)
@@ -445,6 +452,9 @@ private struct GameResult {
     let victoryPoints: [Int]
     let fingerprint: String
     let behavior: [PolicyBehaviorMetrics]
+    let armyCardsBought: Int
+    let pvpCaptures: Int
+    let firstPrimeHolder: PlayerID?
 }
 
 /// Plays one complete game on a randomized board derived from `seed`, with
@@ -475,6 +485,8 @@ private func playGame(
                               policySeed: policySeed(from: seed))
     var trace: [String] = []
     var behavior = Array(repeating: PolicyBehaviorMetrics(), count: state.players.count)
+    var armyCardsBought = 0, pvpCaptures = 0
+    var firstPrimeHolder: PlayerID?
 
     for _ in 0..<maxMovesPerGame {
         guard case .seat = session.nextActor() else { break }
@@ -482,6 +494,7 @@ private func playGame(
         for evaluated in session.lastPolicyDecisions {
             behavior[evaluated.seat.index].observeDecision(evaluated.observation, chosen: evaluated.move)
         }
+        let before = session.state.garrisons
         let step: GameSession.Step?
         do {
             step = try session.commit(seat: decision.seat, move: decision.move)
@@ -494,6 +507,16 @@ private func playGame(
         }
         trace.append("P\(step.actor.index):\(Rendering.canonical(step.move))")
         behavior[step.actor.index].observe(step.events, for: step.actor)
+        for event in step.events {
+            switch event {
+            case .boughtArmyCard: armyCardsBought += 1
+            case .deployedArmy(let actor, let hex, _, let result) where result?.owner == actor:
+                if let previous = before[hex]?.owner, previous != actor { pvpCaptures += 1 }
+                let token = session.state.board.tiles.first { $0.coordinate == hex }?.numberToken
+                if firstPrimeHolder == nil, token == 6 || token == 8 { firstPrimeHolder = actor }
+            default: break
+            }
+        }
     }
 
     var winner: PlayerID?
@@ -507,7 +530,10 @@ private func playGame(
         winner: winner,
         victoryPoints: session.state.players.map { session.state.victoryPoints(for: $0.id) },
         fingerprint: Rendering.fingerprint(trace),
-        behavior: behavior
+        behavior: behavior,
+        armyCardsBought: armyCardsBought,
+        pvpCaptures: pvpCaptures,
+        firstPrimeHolder: firstPrimeHolder
     )
 }
 
@@ -529,7 +555,16 @@ private func jsonLine(_ result: GameResult) -> String {
         + "\"policies\":[\(policies)],"
         + "\"seed\":\(result.seed),\"moves\":\(result.moves),\"winner\":\(winner),"
         + "\"vp\":[\(points)],\"fingerprint\":\"\(result.fingerprint)\","
+        + conquestJSON(result)
         + "\"behavior\":\(behaviorJSON(result.behavior))}"
+}
+
+/// Split out for the same Linux type-checker limit `behaviorObjectJSON` names.
+private func conquestJSON(_ result: GameResult) -> String {
+    let holder = result.firstPrimeHolder.map { "\($0.index)" } ?? "null"
+    return "\"variant\":\"\(result.configuration.variant.rawValue)\","
+        + "\"armyCardsBought\":\(result.armyCardsBought),\"pvpCaptures\":\(result.pvpCaptures),"
+        + "\"firstPrimeHolder\":\(holder),"
 }
 
 private func behaviorJSON(_ metrics: [PolicyBehaviorMetrics]) -> String {
