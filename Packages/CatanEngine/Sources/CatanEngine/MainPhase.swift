@@ -12,7 +12,8 @@ public enum MainPhase {
     /// subject to bank depletion: if only one player demands a resource,
     /// they get whatever's left in the bank; if multiple players demand it
     /// and the bank can't cover the combined demand, no one gets that
-    /// resource from this roll.
+    /// resource from this roll. In Conquest, an occupied hex pays only its
+    /// occupier, plus one.
     public static func rollDice(state: inout GameState, roll: Int) {
         state.lastDiceRoll = roll
         guard roll != 7 else {
@@ -63,14 +64,21 @@ public enum MainPhase {
             guard tile.numberToken == roll, tile.coordinate != state.board.robberTile else { continue }
             guard case .resource(let resource) = tile.kind else { continue }
 
+            // Conquest: an occupied hex pays only its occupier, plus one. A
+            // tribe (`owner == nil`) or an unoccupied hex pays as normal, and
+            // a standard game has no garrisons, so this is a no-op there.
+            let occupier = state.garrisons[tile.coordinate]?.owner
             for vertex in HexGeometry.corners(of: tile.coordinate) {
-                for (index, player) in state.players.enumerated() {
+                for (index, player) in state.players.enumerated() where occupier == nil || player.id == occupier {
                     if player.cities.contains(vertex) {
                         demand[resource, default: []].append((index, 2))
                     } else if player.settlements.contains(vertex) {
                         demand[resource, default: []].append((index, 1))
                     }
                 }
+            }
+            if let occupier, let index = state.players.firstIndex(where: { $0.id == occupier }) {
+                demand[resource, default: []].append((index, 1))
             }
         }
 
