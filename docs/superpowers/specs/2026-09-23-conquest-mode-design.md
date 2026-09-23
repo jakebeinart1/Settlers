@@ -172,7 +172,8 @@ heuristics and are measured, not tuned, in this project.
 ### App
 
 - New Game: a **Conquest** toggle beside the board choice.
-- Board: a garrison badge per hex (owner colour + strength; tribe = neutral).
+- Board: the owner's colour rings the hex's number token (Jake, 2026-09-23: "a simple
+  approach"); tribes get no ring. Strength sits beside the token.
 - Hand: army card count and strengths in the player panel; count only for bots.
 - Deploy: tap a hex, pick cards, confirm — using the existing confirmable
   board-action pattern (`2026-09-04-confirmable-board-actions.md`).
