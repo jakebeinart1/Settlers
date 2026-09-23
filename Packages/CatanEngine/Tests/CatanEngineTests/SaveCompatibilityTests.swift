@@ -101,3 +101,21 @@ private func encodeOmitting(_ keys: [String], from state: GameState) throws -> D
         _ = try JSONDecoder().decode(GameState.self, from: data)
     }
 }
+
+@Test func aSaveWrittenBeforeConquestExistedLoadsAsStandard() throws {
+    let state = GameSetup.newGame(board: BoardGenerator.standard(), seed: 9)
+    let data = try encodeOmitting(["variant", "garrisons", "armyDeck", "armyHands",
+                                   "armyCardsBoughtThisTurn"], from: state)
+    let decoded = try JSONDecoder().decode(GameState.self, from: data)
+    #expect(decoded.variant == .standard)
+    #expect(decoded.garrisons.isEmpty && decoded.armyHands.isEmpty)
+}
+
+@Test func aConquestSaveRoundTripsGarrisonsAndHands() throws {
+    var state = GameSetup.newGame(board: BoardGenerator.standard(), seed: 9, variant: .conquest)
+    let hex = state.board.tiles.first { $0.numberToken != nil }!.coordinate
+    state.garrisons[hex] = Garrison(owner: state.players[2].id, strength: 17)
+    state.armyHands[state.players[1].id] = [9, 1, 4]
+    let decoded = try JSONDecoder().decode(GameState.self, from: JSONEncoder().encode(state))
+    #expect(decoded == state)
+}

@@ -84,6 +84,9 @@ public struct Ruleset: Sendable, Equatable {
     public let maxRoadsPerPlayer: Int
     public let bank: BankAllowance
     public let devCardDeck: [DevCardType: Int]
+    /// Army cards by strength, for the Conquest variant. Unused by a standard
+    /// game. Weighted low so a 9 is an event, and finite so it can be counted.
+    public let armyDeck: [Int: Int]
     /// A player holding MORE than this many resource cards discards on a 7.
     public let discardThreshold: Int
 
@@ -100,7 +103,8 @@ public struct Ruleset: Sendable, Equatable {
         maxRoadsPerPlayer: Int,
         bank: BankAllowance,
         devCardDeck: [DevCardType: Int],
-        discardThreshold: Int
+        discardThreshold: Int,
+        armyDeck: [Int: Int] = Ruleset.classicArmyDeck
     ) {
         self.board = board
         self.victoryPointTargets = victoryPointTargets
@@ -115,7 +119,11 @@ public struct Ruleset: Sendable, Equatable {
         self.bank = bank
         self.devCardDeck = devCardDeck
         self.discardThreshold = discardThreshold
+        self.armyDeck = armyDeck
     }
+
+    /// Classic's army deck: 29 cards, mean strength ~4.0.
+    public static let classicArmyDeck: [Int: Int] = [1: 5, 2: 5, 3: 4, 4: 4, 5: 3, 6: 3, 7: 2, 8: 2, 9: 1]
 
     public func pieceLimit(for kind: BuildingKind) -> Int {
         pieceLimits.limit(for: kind, board: board)
@@ -211,7 +219,8 @@ public struct Ruleset: Sendable, Equatable {
                 // Raised because doubled income would trigger classic's fixed
                 // 7 for most players on most sevens, turning every roll into a
                 // discard event instead of an occasional one.
-                discardThreshold: 10
+                discardThreshold: 10,
+                armyDeck: Ruleset.classicArmyDeck.mapValues { $0 * 2 }
             )
         case .vast:
             return Ruleset(
@@ -250,7 +259,8 @@ public struct Ruleset: Sendable, Equatable {
                 // Raised with income: a player working ~13 vertices instead of
                 // ~8-9 draws about half as many cards again per turn, and
                 // expanded's 10 would make a seven a discard for everyone.
-                discardThreshold: 12
+                discardThreshold: 12,
+                armyDeck: Ruleset.classicArmyDeck.mapValues { $0 * 2 }
             )
         }
     }

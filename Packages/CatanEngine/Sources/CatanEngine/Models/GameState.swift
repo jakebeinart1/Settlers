@@ -5,13 +5,14 @@ public struct GameState: Codable, Sendable, Equatable {
     /// before versioning existed decode as `0`.
     /// Bumped to 3 when `declinedTradeOffersThisTurn` was added.
     /// Bumped to 4 when `mode` was added.
+    /// Bumped to 5 when the Conquest fields were added.
     ///
     /// The field decodes with `decodeIfPresent ?? Ruleset.forMode(mode).defaultVictoryPointTarget`,
     /// so a v1 save still loads and plays to ten - which is what it was
     /// started at. The version is here so a future reader can tell the
     /// difference between "this game chose ten" and "this game predates the
     /// choice", not because the decoder needs it.
-    public static let currentSchemaVersion = 4
+    public static let currentSchemaVersion = 5
 
     /// The schema version this value was decoded from (or
     /// `currentSchemaVersion` for a freshly created game). Persisted so a
@@ -93,6 +94,18 @@ public struct GameState: Codable, Sendable, Equatable {
     /// it would otherwise reproduce exactly), and caps how many attempts a
     /// player gets per turn without needing separate session-local bookkeeping.
     public var declinedTradeOffersThisTurn: [PlayerID: [TradeOffer]]
+    /// The rule layer. `.standard` for every game that is not Conquest.
+    public var variant: GameVariant
+    /// Conquest only: who holds each hex. No entry means unoccupied (or the desert).
+    public var garrisons: [HexCoordinate: Garrison]
+    /// Conquest only: undealt army cards, top first.
+    public var armyDeck: [Int]
+    /// Conquest only: each seat's hidden army cards, by strength. Kept here
+    /// rather than on `Player` because `Player` decodes synthesized, and a new
+    /// non-optional field there would reject every existing save.
+    public var armyHands: [PlayerID: [Int]]
+    /// Army cards bought this turn, not yet playable. Cleared on `.endTurn`.
+    public var armyCardsBoughtThisTurn: [PlayerID: [Int]]
 
     public init(
         board: Board,
@@ -112,7 +125,12 @@ public struct GameState: Codable, Sendable, Equatable {
         rng: RandomSource = RandomSource(seed: UInt64.random(in: .min ... .max)),
         schemaVersion: Int = GameState.currentSchemaVersion,
         mode: GameMode = .classic,
-        victoryPointTarget: Int = Ruleset.forMode(.classic).defaultVictoryPointTarget
+        victoryPointTarget: Int = Ruleset.forMode(.classic).defaultVictoryPointTarget,
+        variant: GameVariant = .standard,
+        garrisons: [HexCoordinate: Garrison] = [:],
+        armyDeck: [Int] = [],
+        armyHands: [PlayerID: [Int]] = [:],
+        armyCardsBoughtThisTurn: [PlayerID: [Int]] = [:]
     ) {
         self.rng = rng
         self.schemaVersion = schemaVersion
@@ -132,6 +150,11 @@ public struct GameState: Codable, Sendable, Equatable {
         self.devCardPlayedThisTurn = devCardPlayedThisTurn
         self.tradesAcceptedThisTurn = tradesAcceptedThisTurn
         self.declinedTradeOffersThisTurn = declinedTradeOffersThisTurn
+        self.variant = variant
+        self.garrisons = garrisons
+        self.armyDeck = armyDeck
+        self.armyHands = armyHands
+        self.armyCardsBoughtThisTurn = armyCardsBoughtThisTurn
     }
 
     /// Decodes a saved game, tolerating fields that a *older* save predates.
@@ -208,6 +231,13 @@ public struct GameState: Codable, Sendable, Equatable {
             .decodeIfPresent([PlayerID: Int].self, forKey: .tradesAcceptedThisTurn) ?? [:]
         declinedTradeOffersThisTurn = try container
             .decodeIfPresent([PlayerID: [TradeOffer]].self, forKey: .declinedTradeOffersThisTurn) ?? [:]
+        // Absent in every save written before Conquest (schema < 5).
+        variant = try container.decodeIfPresent(GameVariant.self, forKey: .variant) ?? .standard
+        garrisons = try container.decodeIfPresent([HexCoordinate: Garrison].self, forKey: .garrisons) ?? [:]
+        armyDeck = try container.decodeIfPresent([Int].self, forKey: .armyDeck) ?? []
+        armyHands = try container.decodeIfPresent([PlayerID: [Int]].self, forKey: .armyHands) ?? [:]
+        armyCardsBoughtThisTurn = try container
+            .decodeIfPresent([PlayerID: [Int]].self, forKey: .armyCardsBoughtThisTurn) ?? [:]
     }
 
     /// Victory points that are public knowledge for `id`: buildings plus the
@@ -265,10 +295,10 @@ public enum GameSetup {
     /// the system RNG; see the `rng:` overload below for deterministic
     /// (e.g. test) callers.
     public static func newGame(board: Board, victoryPointTarget: Int? = nil,
-                               mode: GameMode = .classic) -> GameState {
+                               mode: GameMode = .classic, variant: GameVariant = .standard) -> GameState {
         var rng = SystemRandomNumberGenerator()
         return newGame(board: board, rng: &rng,
-                       victoryPointTarget: victoryPointTarget, mode: mode)
+                       victoryPointTarget: victoryPointTarget, mode: mode, variant: variant)
     }
 
     /// Creates a fully reproducible game: `seed` fixes both the dev card
@@ -280,10 +310,11 @@ public enum GameSetup {
     public static func newGame(board: Board, seed: UInt64,
                                playerCount: Int = GameSetup.standardPlayerCount,
                                victoryPointTarget: Int? = nil,
-                               mode: GameMode = .classic) -> GameState {
+                               mode: GameMode = .classic,
+                               variant: GameVariant = .standard) -> GameState {
         var rng = RandomSource(seed: seed)
         return newGame(board: board, rng: &rng, playerCount: playerCount,
-                       victoryPointTarget: victoryPointTarget, mode: mode)
+                       victoryPointTarget: victoryPointTarget, mode: mode, variant: variant)
     }
 
     /// Seats a standard game. Three and four are the sizes this board's
@@ -311,7 +342,8 @@ public enum GameSetup {
     public static func newGame(board: Board, rng: inout some RandomNumberGenerator,
                                playerCount: Int = GameSetup.standardPlayerCount,
                                victoryPointTarget: Int? = nil,
-                               mode: GameMode = .classic) -> GameState {
+                               mode: GameMode = .classic,
+                               variant: GameVariant = .standard) -> GameState {
         precondition(supportedPlayerCounts.contains(playerCount),
                      "playerCount \(playerCount) is outside \(supportedPlayerCounts)")
         let rules = Ruleset.forMode(mode)
@@ -342,15 +374,31 @@ public enum GameSetup {
         }
         devCardDeck.shuffle(using: &rng)
 
+        // The state's seed is drawn BEFORE the army deck is shuffled, in the
+        // same position it always was, so a standard game - which draws
+        // nothing further - consumes exactly the sequence it did before
+        // Conquest existed, and `SeededGameFingerprintTests` stays green.
+        let stateSeed = rng.next()
+        var armyDeck: [Int] = []
+        var garrisons: [HexCoordinate: Garrison] = [:]
+        if variant == .conquest {
+            armyDeck = Conquest.buildArmyDeck(rules.armyDeck)
+            armyDeck.shuffle(using: &rng)
+            garrisons = Conquest.initialGarrisons(board: board)
+        }
+
         return GameState(
             board: board,
             players: players,
             phase: .setupForward(playerIndex: 0),
             bank: bank,
             devCardDeck: devCardDeck,
-            rng: RandomSource(seed: rng.next()),
+            rng: RandomSource(seed: stateSeed),
             mode: mode,
-            victoryPointTarget: target
+            victoryPointTarget: target,
+            variant: variant,
+            garrisons: garrisons,
+            armyDeck: armyDeck
         )
     }
 }
