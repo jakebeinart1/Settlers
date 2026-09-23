@@ -129,6 +129,7 @@ enum SetupPhase {
                 state.phase = .setupBackward(playerIndex: justCompletedIndex - 1)
             } else {
                 state.phase = .rollDice(playerIndex: 0)
+                Conquest.dealStartingCards(&state)
             }
         default:
             break

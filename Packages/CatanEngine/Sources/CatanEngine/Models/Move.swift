@@ -15,6 +15,11 @@ public enum GameMove: Codable, Sendable, Hashable {
     case buildSettlement(VertexID)
     case buildCity(VertexID)
     case buyDevCard
+    /// Conquest: 1 of each resource for the top army card.
+    case buyArmyCard
+    /// Conquest: spend these army cards on `to`. Reinforces a hex you hold,
+    /// attacks any other. `strengths` is sorted ascending by convention.
+    case deployArmy(to: HexCoordinate, strengths: [Int])
     case playKnight(moveRobberTo: HexCoordinate, stealFrom: PlayerID?)
     case playRoadBuilding(EdgeID, EdgeID)
     case playYearOfPlenty(Resource, Resource)

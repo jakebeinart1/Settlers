@@ -252,6 +252,12 @@ public struct PublicLedger: Codable, Sendable, Equatable {
             debit(seat, Building.devCardCost)
             seats[seat, default: SeatBelief()].devCardCount += 1
 
+        case .boughtArmyCard(let seat):
+            debit(seat, Conquest.armyCardCost)
+
+        case .deployedArmy:
+            break
+
         case .discarded(let seat, let count):
             // Which cards went is not public; only that `count` of them did.
             shrink(seat, by: count)

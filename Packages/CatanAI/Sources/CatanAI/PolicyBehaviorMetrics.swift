@@ -160,7 +160,8 @@ private extension GameEvent {
              .playedRoadBuilding(let seat), .playedYearOfPlenty(let seat, _),
              .playedMonopoly(let seat, _, _), .tradedWithBank(let seat, _, _),
              .proposedTrade(let seat, _, _), .acceptedTrade(let seat, _, _, _),
-             .rejectedTrade(let seat, _), .endedTurn(let seat), .gameWon(let seat):
+             .rejectedTrade(let seat, _), .endedTurn(let seat), .gameWon(let seat),
+             .boughtArmyCard(let seat), .deployedArmy(let seat, _, _, _):
             return seat
         }
     }

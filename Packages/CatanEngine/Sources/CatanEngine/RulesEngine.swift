@@ -67,6 +67,7 @@ public enum RulesEngine {
                 }
                 moves.append(.respondToTrade(offerID: offer.id, accept: false))
             }
+            moves += Conquest.moves(for: player, in: state)
             moves.append(contentsOf: tradeProposals(for: player))
             return moves
 
@@ -419,6 +420,14 @@ public enum RulesEngine {
                 WinCondition.checkForWinner(&state)
                 events.append(.boughtDevCard(player))
 
+            case .buyArmyCard:
+                try Conquest.buy(by: player, state: &state)
+                events.append(.boughtArmyCard(player))
+
+            case .deployArmy(let hex, let strengths):
+                let result = try Conquest.deploy(strengths, to: hex, by: player, state: &state)
+                events.append(.deployedArmy(player, hex: hex, total: strengths.reduce(0, +), result: result))
+
             case .playKnight, .playRoadBuilding, .playYearOfPlenty, .playMonopoly:
                 guard let event = try applyDevelopmentCard(move, by: player, to: &state) else {
                     throw MoveError.wrongPhase
@@ -437,6 +446,7 @@ public enum RulesEngine {
 
             case .endTurn:
                 state.devCardsBoughtThisTurn = [:]
+                state.armyCardsBoughtThisTurn = [:]
                 state.devCardPlayedThisTurn = nil
                 state.tradesAcceptedThisTurn = [:]
                 state.declinedTradeOffersThisTurn = [:]

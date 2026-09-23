@@ -42,6 +42,11 @@ enum GameReplayNarrator {
             return "\(name(player, roster)) raised a city"
         case .boughtDevCard(let player):
             return "\(name(player, roster)) bought a development card"
+        case .boughtArmyCard(let player):
+            return "\(name(player, roster)) raised an army card"
+        case .deployedArmy(let player, _, let total, let result):
+            let outcome = result?.owner == player ? "holds the hex at \(result!.strength)" : "did not take the hex"
+            return "\(name(player, roster)) committed \(total) strength and \(outcome)"
         case .movedRobber(let player, let victim, let stolen):
             return "\(name(player, roster)) moved the robber" + theft(victim, stolen, roster)
         case .playedKnight(let player, let victim, let stolen):
