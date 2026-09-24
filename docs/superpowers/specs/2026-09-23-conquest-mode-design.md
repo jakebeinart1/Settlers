@@ -39,7 +39,7 @@ switch beside it.
 
 | | Classic board | Vast board |
 |---|---|---|
-| cost | 1 brick, 1 lumber, 1 wool, 1 grain, 1 ore | same |
+| cost | **any 3 resource cards** (revised 2026-09-24, see below) | same |
 | deck | 29 cards (below) | 58 cards (each count doubled) |
 
 Classic deck, by strength: `1×5, 2×5, 3×4, 4×4, 5×3, 6×3, 7×2, 8×2, 9×1`.
@@ -96,6 +96,16 @@ The bonus is paid only if the bank can supply it, under the existing shortage ru
 Why a bonus as well as the block: blocking alone pays the occupier nothing, so a
 card spent occupying was estimated (by hand, not simulated) to be a wash, while the two bystanders gained
 for free. The +1 makes a card spent on a hex pay for itself.
+
+### Price revision (2026-09-24)
+
+The original price, one of each resource, was measured dead: a trained Expert that plays
+only to win bought 0.1 army cards a game. Any one card was the opposite failure: a seat
+refusing armies won 6.5% (null 25%), a single meta. **Any three cards** leaves refusing
+armies viable (24.8%) while the table buys ~11 cards and makes ~4.5 takeovers a game, and
+seats win at similar rates across 0, 1-3 and 4-7 cards bought - several routes, not one.
+The engine chooses which three: biggest pile first. Evidence:
+`docs/AI_summaries/2026-09-23-conquest-expert-price.md`.
 
 ## What we expect to happen (hypotheses, to measure)
 
