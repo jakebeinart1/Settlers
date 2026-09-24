@@ -80,4 +80,49 @@ final class ConquestFlowTests: XCTestCase {
         shot.lifetime = .keepAlways
         add(shot)
     }
+
+    /// Raising an army card pays exactly the chosen cards, and the new card
+    /// shows up among the army tiles; tapping a tile starts a deploy.
+    func testRaisingAnArmyWithChosenCardsThenDeployingFromItsTile() {
+        continueAfterFailure = false
+        let app = XCUIApplication()
+        app.launchArguments = ["-ui-testing", "-ui-testing-reset", "-qaAutoStart", "-qaShowConquest"]
+        app.launch()
+        let tiles = app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH %@", "army.tile."))
+        XCTAssertTrue(tiles.firstMatch.waitForExistence(timeout: 10))
+        let before = heldCount(tiles)
+        XCTAssertEqual(before, 2, "the fixture holds a 2 and a 4")
+
+        app.buttons["Build"].tap()
+        app.buttons["build.army-card"].tap()
+        let raise = app.buttons["army.raise"]
+        XCTAssertTrue(raise.waitForExistence(timeout: 5))
+        XCTAssertFalse(raise.isEnabled, "nothing chosen yet")
+        app.buttons["army.payment.ore"].tap()
+        app.buttons["army.payment.ore"].tap()
+        app.buttons["army.payment.wool"].tap()
+        XCTAssertTrue(raise.isEnabled, "three cards chosen")
+        attach(app, "conquest-raise-army")
+        raise.tap()
+
+        XCTAssertFalse(raise.waitForExistence(timeout: 2), "the chooser closes after raising")
+        XCTAssertEqual(heldCount(tiles), before + 1)
+
+        // A touch at the tile's centre, not `tap()`: XCUITest reports the tile
+        // not hittable (its accessibility hit test disagrees inside this
+        // horizontal ScrollView) although a finger there works - which the
+        // board targets appearing below is what proves.
+        tiles.firstMatch.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
+        let hex = app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH %@", "board.tile.")).firstMatch
+        XCTAssertTrue(hex.waitForExistence(timeout: 5), "tapping an army tile starts Deploy Army")
+    }
+
+    /// Sums the "N held" in every army tile's accessibility label.
+    private func heldCount(_ tiles: XCUIElementQuery) -> Int {
+        tiles.allElementsBoundByIndex.reduce(0) { total, tile in
+            let words = tile.label.components(separatedBy: ", ")
+            let held = words.first { $0.hasSuffix(" held. Deploy.") }?.components(separatedBy: " ").first
+            return total + (held.flatMap(Int.init) ?? 0)
+        }
+    }
 }

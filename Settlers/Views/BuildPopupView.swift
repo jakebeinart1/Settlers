@@ -12,10 +12,13 @@ import CatanEngine
 public struct BuildPopupView: View {
     public let viewModel: GameViewModel
     public let onDismiss: () -> Void
+    /// Conquest: Army Card opens the payment chooser rather than buying outright.
+    public let onRaiseArmy: () -> Void
 
-    public init(viewModel: GameViewModel, onDismiss: @escaping () -> Void) {
+    public init(viewModel: GameViewModel, onDismiss: @escaping () -> Void, onRaiseArmy: @escaping () -> Void = {}) {
         self.viewModel = viewModel
         self.onDismiss = onDismiss
+        self.onRaiseArmy = onRaiseArmy
     }
 
     @State private var errorMessage: String?
@@ -74,11 +77,11 @@ public struct BuildPopupView: View {
                                 + " · \(viewModel.state.armyDeck.count) left",
                             systemImage: "shield.lefthalf.filled",
                             iconColor: .red,
-                            isEnabled: legalMoves.contains(.buyArmyCard),
+                            isEnabled: legalMoves.contains { if case .buyArmyCard = $0 { true } else { false } },
                             trailing: {
                                 Text("Any 3").font(.caption2.bold()).foregroundStyle(CatanTheme.cityPennantGold)
                             },
-                            action: { perform(.buyArmyCard) }
+                            action: onRaiseArmy
                         )
                         .accessibilityIdentifier(AccessibilityID.Build.armyCard)
                         GoldRowButton(

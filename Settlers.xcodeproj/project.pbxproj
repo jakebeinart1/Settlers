@@ -103,6 +103,7 @@
 		9D659C4304480CACA215E1EF /* QAGameHistoryFixture.swift in Sources */ = {isa = PBXBuildFile; fileRef = D6C6EA9E052430871400D65A /* QAGameHistoryFixture.swift */; };
 		A0509BA422B4A4CCC2E73976 /* SeatCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7B3D502345F41546FE4903CE /* SeatCardView.swift */; };
 		A080B035D28E1023EE94C946 /* NewGameKeyboardInvarianceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E03F792FF88D24A73F2BC944 /* NewGameKeyboardInvarianceTests.swift */; };
+		A3875B327B70080CD123396D /* ArmyPurchasePopupView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 118052E72D8695833C2EC00C /* ArmyPurchasePopupView.swift */; };
 		A61AF82693BF86DFF2883096 /* HotSeatTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00588364F7AD8B7D5AF440EA /* HotSeatTests.swift */; };
 		AA96483ED82E09AF4488D6CB /* .swiftlint.yml in Resources */ = {isa = PBXBuildFile; fileRef = 26C8E728C5FF85E8400CFE1A /* .swiftlint.yml */; };
 		AAD77D2905B3E3FBE04B2542 /* BelowBoardInvarianceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5630973AB08C1A2B5F19F0F9 /* BelowBoardInvarianceTests.swift */; };
@@ -169,6 +170,7 @@
 		06E9063445AF048FF3A65C5A /* DevCardPopupView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DevCardPopupView.swift; sourceTree = "<group>"; };
 		094066516FB9FCC3D028672A /* GameViewModel+Policies.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "GameViewModel+Policies.swift"; sourceTree = "<group>"; };
 		0AC74C3A12A7CDE5AE1B1546 /* CivilizationPieceShapes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CivilizationPieceShapes.swift; sourceTree = "<group>"; };
+		118052E72D8695833C2EC00C /* ArmyPurchasePopupView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArmyPurchasePopupView.swift; sourceTree = "<group>"; };
 		11D7DF8A5B6CAC4647065878 /* PreMergeAuditRegressionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreMergeAuditRegressionTests.swift; sourceTree = "<group>"; };
 		142B4786F6C2B6DBAED5AA58 /* ConquestFlowTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConquestFlowTests.swift; sourceTree = "<group>"; };
 		16777953197BE2BC34CCFE6B /* GameStatsStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameStatsStore.swift; sourceTree = "<group>"; };
@@ -455,6 +457,7 @@
 		B0748839A83B816591CA6267 /* Views */ = {
 			isa = PBXGroup;
 			children = (
+				118052E72D8695833C2EC00C /* ArmyPurchasePopupView.swift */,
 				64B237C01DFEE60CA454FFCB /* BoardChips.swift */,
 				306B99243D5CB6793A272281 /* BottomSafeInsetKey.swift */,
 				DDF1F85E001A7B74407061E4 /* BuildPopupView.swift */,
@@ -694,6 +697,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				83C2D6F2A6B7F67093D579CB /* AccessibilityID.swift in Sources */,
+				A3875B327B70080CD123396D /* ArmyPurchasePopupView.swift in Sources */,
 				5D9BC2890AFB1BDBE7B09D9A /* BoardCamera.swift in Sources */,
 				17B209D17F882202517AC5D8 /* BoardChips.swift in Sources */,
 				0CC77716B1B04BB85F41BFD2 /* BoardDecisionBoardChrome.swift in Sources */,

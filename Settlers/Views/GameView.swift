@@ -41,6 +41,7 @@ public struct GameView: View {
     // `-qaShowBuildPopup`: same escape hatch pattern - lets QA screenshot
     // the build popup without a real tap.
     @State private var showBuildPopup = QALaunchFlag.showBuildPopup.isSet
+    @State private var showArmyPurchase = false
     // `-qaShowMonopolyPopup` remains the visual fixture for the longest card
     // detail state. The production path opens the same surface from the
     // permanent shelf, including when a card is not currently playable.
@@ -161,7 +162,13 @@ public struct GameView: View {
             .accessibilityHidden(isBlockingOverlayPresented)
 
             if !isDiscardPresented, viewModel.boardDecisionPresentation == nil, showBuildPopup {
-                BuildPopupView(viewModel: viewModel, onDismiss: { showBuildPopup = false })
+                BuildPopupView(viewModel: viewModel, onDismiss: { showBuildPopup = false },
+                               onRaiseArmy: { showBuildPopup = false; showArmyPurchase = true })
+                    .accessibilityHidden(viewModel.needsHandoff)
+            }
+
+            if !isDiscardPresented, viewModel.boardDecisionPresentation == nil, showArmyPurchase {
+                ArmyPurchasePopupView(viewModel: viewModel, onDismiss: { showArmyPurchase = false })
                     .accessibilityHidden(viewModel.needsHandoff)
             }
 
@@ -441,6 +448,7 @@ public struct GameView: View {
         .onChange(of: isDiscardPresented, initial: true) { _, isPresented in
             guard isPresented else { return }
             showBuildPopup = false
+            showArmyPurchase = false
             showTradePopup = false
             showDevCardHand = false
         }
@@ -720,7 +728,8 @@ public struct GameView: View {
                     onOpenDevCards: { type in
                         devCardPopupType = type
                         showDevCardHand = true
-                    }
+                    },
+                    onDeployArmy: { if isHumanMainTurn { _ = viewModel.beginBoardDecision(.deployArmy) } }
                 )
                 .padding(.horizontal, 12)
                 // This is a dense graphical inventory, not prose. Letting
@@ -984,7 +993,7 @@ private extension GameView {
         case .handoff, .recoveryFailure, .privateReceipt: true
         default: false
         }
-        return showBuildPopup || showTradePopup || showDevCardHand
+        return showBuildPopup || showArmyPurchase || showTradePopup || showDevCardHand
             || (isDiscardPresented && !viewModel.isDiscardEditorMinimized)
             || interactionPriority.isSettingsCoverPresented || winnerBlocksBoard
     }
@@ -1132,6 +1141,7 @@ private extension GameView {
         viewModel.clearBoardDecisionForBoundary()
         showTradePopup = false
         showBuildPopup = false
+        showArmyPurchase = false
         showDevCardHand = false
         devCardPopupType = nil
         incomingOfferQueue = []

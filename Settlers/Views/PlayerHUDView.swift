@@ -87,14 +87,24 @@ public struct HumanPlayerPanel: View {
     public let human: PlayerID
     public let playerIdentity: (PlayerID) -> PlayerIdentity
     public let onOpenDevCards: (DevCardType?) -> Void
+    /// Conquest: tapping an army tile starts Deploy Army, as tapping a dev card plays it.
+    public let onDeployArmy: () -> Void
 
     public init(state: GameState, human: PlayerID,
                 playerIdentity: @escaping (PlayerID) -> PlayerIdentity = CatanTheme.playerIdentity,
-                onOpenDevCards: @escaping (DevCardType?) -> Void) {
+                onOpenDevCards: @escaping (DevCardType?) -> Void,
+                onDeployArmy: @escaping () -> Void = {}) {
         self.state = state
         self.human = human
         self.playerIdentity = playerIdentity
         self.onOpenDevCards = onOpenDevCards
+        self.onDeployArmy = onDeployArmy
+    }
+
+    /// The army hand grouped by strength, ascending: one tile per strength.
+    private var armyRows: [(strength: Int, count: Int)] {
+        let counts = Dictionary(grouping: state.armyHands[human, default: []], by: { $0 }).mapValues(\.count)
+        return counts.keys.sorted().map { ($0, counts[$0]!) }
     }
 
     private var devCardRows: [DevCardInventoryItem] {
@@ -224,6 +234,9 @@ public struct HumanPlayerPanel: View {
                                     onOpenDevCards(row.type)
                                 }
                             }
+                            ForEach(armyRows, id: \.strength) { row in
+                                ArmyHUDTile(strength: row.strength, count: row.count, action: onDeployArmy)
+                            }
                         }
                     }
                 }
@@ -328,6 +341,36 @@ private struct DevCardHUDTile: View {
         let name = DevCardStyle.fullName(for: item.type)
         if item.status == .passiveVictoryPoint { return "\(name), \(item.held) owned, passive" }
         return "\(name), \(item.held) owned, \(item.ready) ready, \(item.boughtThisTurn) new"
+    }
+}
+
+/// An army card in the player panel, in the dev-card tiles' shape: icon, name,
+/// count. Tapping it starts Deploy Army. Army red, matching the Build rows.
+private struct ArmyHUDTile: View {
+    let strength: Int
+    let count: Int
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            VStack(spacing: 2) {
+                Image(systemName: "shield.lefthalf.filled")
+                    .font(.footnote)
+                Text("ARMY \(strength)")
+                    .font(.system(size: 8, weight: .bold))
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.7)
+                Text("×\(count)")
+                    .font(.system(size: 8, weight: .bold))
+            }
+            .foregroundStyle(.white)
+            .frame(width: 54, height: 44)
+            .background(RoundedRectangle(cornerRadius: 8).fill(Color(red: 0.62, green: 0.16, blue: 0.14).gradient))
+            .overlay(RoundedRectangle(cornerRadius: 8).strokeBorder(.white.opacity(0.4), lineWidth: 1))
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel("Army card, strength \(strength), \(count) held. Deploy.")
+        .accessibilityIdentifier(AccessibilityID.Army.tile(strength))
     }
 }
 
