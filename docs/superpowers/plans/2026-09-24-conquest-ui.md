@@ -4,7 +4,7 @@
 
 **Goal:** Make Conquest playable by a person in the app: start it from New Game, see who holds each hex on the board, buy army cards and commit them to hexes, then install it on Jake's phone.
 
-**Architecture:** Plan 2 of 2; the engine, bots and price (any 3 cards) are done on this branch. The app adds one match setting (`MatchSetup.variant`), one drawing change (an owner-coloured ring and a strength badge on the number token, inside the existing board `Canvas`), and one popup (`ArmyPopupView`) reached from a new row in the Build popup. The popup commits through the existing `GameViewModel.apply(_:)`, so it needs no new view-model code and no change to the board-decision coordinator. Everything that decides what the popup shows lives in a pure `ArmyPlan` enum, so it is unit-tested without a view.
+**Architecture:** Plan 2 of 2; the engine, bots and price (any 3 cards) are done on this branch. The app adds one match setting (`MatchSetup.variant`), one drawing change (an owner-coloured ring and a strength badge on the number token, inside the existing board `Canvas`), two Build-popup rows (buy an army card; deploy), and one new board decision, `.deployArmy`, shaped exactly like the robber's: **tap a highlighted hex, pick cards from chips in the dock, confirm**. The decision's path is `[.tile(hex), .armyCards(set)]`, so the existing path-matching coordinator needs no new machinery, and the engine (`Conquest.deployMoves`) enumerates every card set so the coordinator still never invents a rule.
 
 **Tech Stack:** SwiftUI, Swift 6.3, XcodeGen, swift-testing (app unit tests), XCUITest.
 
@@ -14,7 +14,8 @@
 
 ## Global Constraints
 
-- **Deliberate deviation from the spec, for Jake to confirm in review:** the spec says "tap a hex, pick cards, confirm" via the board-decision pattern. This plan picks the hex from a **list inside the Army popup** instead. The board-decision coordinator selects board targets only; choosing a *set of cards* is not a target, and bolting a card picker onto the fixed-height dock risks `BelowBoardInvarianceTests`. The list is the smallest thing that works; the code carries a `ponytail:` note naming the upgrade.
+- **Deploying is tap-the-hex** (Jake, 2026-09-24): the board highlights deployable hexes in the robber's gold; tapping one puts the army-card chips in the dock; Confirm commits. No army popup.
+- **Theme:** everything reuses existing chrome - `GoldRowButton` rows in Build, `DockActionButton`s, and army chips styled exactly like `DockVictimButton` (`TintedTextureBackground` in the actor's civilization tint, `FrameCornerRect`, `playerCardBorder`, the same selection border and mark). No new colours except the owner accent already used for pieces. The dock's height is fixed (`BottomRowMetrics.height`); the chips live in the slot the victim picker uses, so `BelowBoardInvarianceTests` must stay green.
 - The ownership ring is the owner's `Civilization.accentColor` around the number token (Jake: "a simple approach"). Tribes get no ring. Every garrisoned hex shows its strength in a small badge by the token.
 - `GameViewModel.swift` is 1,232 lines and `GameView.swift` 1,172; `swiftlint --strict` errors at 1,250. Add no code to `GameViewModel.swift`; add at most ~25 lines to `GameView.swift`. New code goes in new files.
 - After adding any `.swift` file under `Settlers/` or `SettlersTests/`/`SettlersUITests/`, run `xcodegen generate` before building.
@@ -25,10 +26,10 @@
 
 ## Review Focus
 
-1. **A card bought this turn.** It is in the hand but not playable; the popup must show it as not selectable, not let it be committed and fail. Tested in Task 3 (`ArmyPlanTests.cardsBoughtThisTurnAreNotOffered`).
-2. **A standard (non-Conquest) game.** No Army row in Build, no rings or badges on the board. Tested in Task 3 (`ArmyPlanTests.aStandardGameOffersNoArmy`) and by the unchanged `NewGameModeFlowTests`.
-3. **The preview sentence at the exact-zero boundary.** Committing exactly the garrison's strength empties the hex; the popup must say so, not "takes it". Tested in Task 3 (`ArmyPlanTests.previewSaysEmptyAtExactlyZero`).
-4. **A human who touches no producing hex** (possible only in fixtures, never in a real game past setup). The hex list is empty and Commit stays disabled; no crash. Tested in Task 3 (`ArmyPlanTests.noReachableHexMeansNoOptions`).
+1. **A card bought this turn.** It is in the hand but not playable; its chip must not appear, so it cannot be committed and fail. Tested in Task 3 (`deployMovesNeverOfferACardBoughtThisTurn`).
+2. **A standard (non-Conquest) game.** No army rows in Build, no rings or badges, `.deployArmy` cannot begin. Tested in Task 3 (`aStandardGameCannotBeginADeploy`) and by the unchanged `NewGameModeFlowTests`.
+3. **The preview sentence at the exact-zero boundary.** Committing exactly the garrison's strength empties the hex; the dock must say so, not "takes it". Tested in Task 4 (`ArmyPreviewTests.saysEmptyAtExactlyZero`).
+4. **Duplicate strengths in one hand** (two 3s). Tapping the second 3 must select a second copy, and tapping a selected 3 must drop exactly one. Tested in Task 4 (`ArmyChipsTests.duplicateStrengthsToggleOneCopyAtATime`).
 5. **An old saved match setup** (written before `variant`). Must resume as Standard. Tested in Task 1 (`ConquestSetupTests.aSetupSavedBeforeConquestResumesAsStandard`).
 
 ---
@@ -205,7 +206,7 @@ Expected: `EXIT=0`; lint 0 violations. If `NewGameKeyboardInvarianceTests` fails
 - Modify: `Settlers/Views/Board/BoardView.swift:234-238` (`drawTiles` passes the mark)
 
 **Interfaces:**
-- Produces: `QALaunchFlag.showConquest` (`-qaShowConquest`), `QALaunchFlag.showArmyPopup` (`-qaShowArmyPopup`); `GameViewModel.qaPrepareConquestPosition()`; `TileDrawing.GarrisonMark { strength: Int; ownerColor: Color? }`.
+- Produces: `QALaunchFlag.showConquest` (`-qaShowConquest`), `QALaunchFlag.showDeployArmy` (`-qaShowDeployArmy`); `GameViewModel.qaPrepareConquestPosition()`; `TileDrawing.GarrisonMark { strength: Int; ownerColor: Color? }`.
 
 - [ ] **Step 1: The fixture**
 
@@ -214,10 +215,10 @@ Expected: `EXIT=0`; lint 0 violations. If `NewGameKeyboardInvarianceTests` fails
 ```swift
     /// A Conquest main turn: the human holds one hex, a rival holds another, the
     /// rest are tribes; the human has army cards and resources. For photographing
-    /// the ownership rings and exercising the Army popup.
+    /// the ownership rings and exercising a deploy.
     case showConquest = "-qaShowConquest"
-    /// `-qaShowConquest` with the Army popup already open.
-    case showArmyPopup = "-qaShowArmyPopup"
+    /// `-qaShowConquest` with the Deploy Army board decision already begun.
+    case showDeployArmy = "-qaShowDeployArmy"
 ```
 
 `Settlers/Testing/GameViewModel+QAConquest.swift`:
@@ -263,13 +264,12 @@ extension GameViewModel {
 `GameView.swift`, inside the existing `#if DEBUG` block that checks `showRobberTargeting`, add before it:
 
 ```swift
-            if QALaunchFlag.showConquest.isSet || QALaunchFlag.showArmyPopup.isSet {
+            if QALaunchFlag.showConquest.isSet || QALaunchFlag.showDeployArmy.isSet {
                 viewModel.qaPrepareConquestPosition()
-                showArmyPopup = QALaunchFlag.showArmyPopup.isSet
             }
 ```
 
-(`showArmyPopup` is declared in Task 3. Until then, write only the `qaPrepareConquestPosition()` line; Task 3 Step 5 adds the second.)
+(Task 4 Step 5 adds the `showDeployArmy` begin call once `.deployArmy` exists.)
 
 - [ ] **Step 2: Photograph the board before the change (the "red")**
 
@@ -353,377 +353,483 @@ Expected: `EXIT=0`, 0 violations. The marks draw inside the existing `Canvas`, s
 
 ---
 
-### Task 3: The Army popup
+### Task 3: Deploy is a board decision (engine + coordinator)
 
 **Files:**
-- Create: `Settlers/Views/ArmyPopupView.swift` (`ArmyPlan` + `ArmyPopupView`)
-- Modify: `Settlers/Views/BuildPopupView.swift` (Army row, `onOpenArmy` callback)
-- Modify: `Settlers/Views/GameView.swift` (`showArmyPopup` state and presentation; ~15 lines)
-- Modify: `Settlers/Testing/AccessibilityID.swift` (`Build.army`, `enum Army`)
-- Test: `SettlersTests/ArmyPlanTests.swift` (new)
+- Modify: `Packages/CatanEngine/Sources/CatanEngine/Conquest.swift` (`deployMoves`)
+- Test: `Packages/CatanEngine/Tests/CatanEngineTests/ConquestMoveTests.swift` (append)
+- Modify: `Settlers/ViewModels/BoardDecisionCoordinator.swift` (intent, target, candidates, path, select, presentation fields)
+- Test: `SettlersTests/BoardDecisionCoordinatorTests.swift` (append, reusing its private `context(_:)`)
 
 **Interfaces:**
-- Consumes: `qaPrepareConquestPosition()`, `QALaunchFlag.showArmyPopup` (Task 2).
-- Produces: `enum ArmyPlan` with `hexOptions(in:for:) -> [ArmyPlan.HexOption]`, `playableCards(in:for:) -> [Int]`, `label(for:me:name:) -> String`, `preview(total:against:me:name:) -> String`, `rivalSummary(in:me:name:) -> String`; `ArmyPopupView(viewModel:onDismiss:)`; `BuildPopupView(viewModel:onDismiss:onOpenArmy:)`.
+- Produces: `Conquest.deployMoves(for: PlayerID, in: GameState) -> [GameMove]`; `BoardDecisionIntent.deployArmy`; `BoardTarget.armyCards([Int])`; `BoardDecisionPresentation.legalArmyCards: [Int]` (the playable hand, ascending) and `.selectedArmyCards: [Int]` (ascending).
 
-- [ ] **Step 1: Write the failing tests**
+- [ ] **Step 1: Engine test**
 
-`SettlersTests/ArmyPlanTests.swift`:
+Append to `ConquestMoveTests.swift`:
+
+```swift
+@Test func deployMovesOfferEveryCardSetOnEveryReachableHex() {
+    let (state, tile) = conquest(hand: [3, 3, 5])
+    let sets = Set(Conquest.deployMoves(for: state.players[0].id, in: state).compactMap { move -> [Int]? in
+        guard case .deployArmy(let hex, let strengths) = move, hex == tile.coordinate else { return nil }
+        return strengths
+    })
+    #expect(sets == [[3], [5], [3, 3], [3, 5], [3, 3, 5]])
+}
+
+@Test func deployMovesNeverOfferACardBoughtThisTurn() {
+    var (state, _) = conquest(hand: [2, 5])
+    state.armyCardsBoughtThisTurn[state.players[0].id] = [5]
+    let offered = Conquest.deployMoves(for: state.players[0].id, in: state).allSatisfy {
+        if case .deployArmy(_, let strengths) = $0 { return !strengths.contains(5) } else { return false }
+    }
+    #expect(offered)
+}
+```
+
+Run `swift test --package-path Packages/CatanEngine --filter deployMoves` → compile failure (`no member 'deployMoves'`).
+
+- [ ] **Step 2: Engine implementation**
+
+Append inside `enum Conquest`:
+
+```swift
+    /// Every deploy `player` could make now: each reachable hex x every distinct
+    /// set of its playable cards. `legalMoves` lists a bounded few; a UI that lets
+    /// the player pick any set asks here, so the engine stays the authority on
+    /// what may be committed. ponytail: 2^n in distinct cards held - fine for
+    /// real hands; cap it if hands ever reach the dozens.
+    public static func deployMoves(for player: PlayerID, in state: GameState) -> [GameMove] {
+        let counts = Dictionary(grouping: playableCards(for: player, in: state), by: { $0 }).mapValues(\.count)
+        var sets: [[Int]] = [[]]
+        for strength in counts.keys.sorted() {
+            sets = sets.flatMap { base in (0...counts[strength]!).map { base + Array(repeating: strength, count: $0) } }
+        }
+        let chosen = sets.filter { !$0.isEmpty }
+        return state.board.tiles.map(\.coordinate).sorted()
+            .filter { canDeploy(to: $0, by: player, in: state) }
+            .flatMap { hex in chosen.map { GameMove.deployArmy(to: hex, strengths: $0) } }
+    }
+```
+
+Run the engine suite → all pass. Commit `feat(engine): Conquest.deployMoves - every card set a player may commit`.
+
+- [ ] **Step 3: Coordinator tests**
+
+Append inside `BoardDecisionCoordinatorTests` (it already has `context(_:)` and `actor = PlayerID(index: 0)`):
+
+```swift
+    private func conquestTurn(hand: [Int]) -> (GameState, HexCoordinate) {
+        var state = GameSetup.newGame(board: BoardGenerator.standard(), seed: 4_310, variant: .conquest)
+        let six = state.board.tiles.sorted { $0.coordinate < $1.coordinate }.first { $0.numberToken == 6 }!
+        state.players[0].settlements.insert(HexGeometry.corners(of: six.coordinate)[0])
+        state.armyHands[actor] = hand
+        state.phase = .mainTurn(playerIndex: 0)
+        return (state, six.coordinate)
+    }
+
+    @Test func deployingIsTapAHexThenChooseCards() throws {
+        let (state, six) = conquestTurn(hand: [2, 5])
+        var coordinator = BoardDecisionCoordinator()
+        #expect(coordinator.begin(.deployArmy, with: context(state)))
+        let begun = try #require(coordinator.presentation)
+        #expect(begun.legalTiles.contains(six))
+        #expect(!begun.canConfirm)
+
+        #expect(coordinator.select(.tile(six)))
+        #expect(coordinator.presentation?.legalArmyCards == [2, 5])
+        #expect(coordinator.presentation?.canConfirm == false, "a hex alone is not a deploy")
+
+        #expect(coordinator.select(.armyCards([2, 5])))
+        #expect(coordinator.presentation?.selectedArmyCards == [2, 5])
+        #expect(coordinator.confirmableMove == .deployArmy(to: six, strengths: [2, 5]))
+
+        #expect(coordinator.select(.armyCards([])))
+        #expect(coordinator.confirmableMove == nil, "deselecting every card un-stages the deploy")
+    }
+
+    @Test func aCardSetTheHandCannotMakeIsRefused() {
+        let (state, six) = conquestTurn(hand: [2, 5])
+        var coordinator = BoardDecisionCoordinator()
+        _ = coordinator.begin(.deployArmy, with: context(state))
+        _ = coordinator.select(.tile(six))
+        #expect(!coordinator.select(.armyCards([9])))
+        #expect(!coordinator.select(.armyCards([2, 2])))
+    }
+
+    @Test func aStandardGameCannotBeginADeploy() {
+        var state = GameSetup.newGame(board: BoardGenerator.standard(), seed: 4_310)
+        state.phase = .mainTurn(playerIndex: 0)
+        var coordinator = BoardDecisionCoordinator()
+        #expect(!coordinator.begin(.deployArmy, with: context(state)))
+    }
+```
+
+Run:
+```bash
+xcodebuild test -project Settlers.xcodeproj -scheme Settlers -destination "platform=iOS Simulator,id=$SIM" \
+  -derivedDataPath "$HOME/Library/Developer/Xcode/DerivedData/conquest" \
+  -only-testing:SettlersTests/BoardDecisionCoordinatorTests > /tmp/t3-red.log 2>&1; echo EXIT=$?
+```
+Expected `EXIT=65`: `type 'BoardDecisionIntent' has no member 'deployArmy'`.
+
+- [ ] **Step 4: Coordinator implementation**
+
+In `BoardDecisionCoordinator.swift`:
+
+1. `BoardDecisionIntent`: add `case deployArmy`; in `canCancel` add it to the `true` list.
+2. `BoardTarget`: add `case armyCards([Int])` with a doc line "Conquest: the chosen set of army-card strengths, ascending."
+3. `BoardDecisionPresentation`: add
+   ```swift
+   /// Conquest: the actor's playable army cards, ascending; empty for other intents.
+   public var legalArmyCards: [Int] = []
+   /// Conquest: the cards chosen so far, ascending.
+   public var selectedArmyCards: [Int] = []
+   ```
+   and in `presentation`, set them after constructing (the struct's memberwise init keeps working because both have defaults):
+   ```swift
+        var result = BoardDecisionPresentation( /* existing arguments unchanged */ )
+        if draft.intent == .deployArmy {
+            result.legalArmyCards = draft.candidates.compactMap { path(for: $0, intent: .deployArmy)?.last?.armyCards }
+                .max { $0.count < $1.count } ?? []
+            result.selectedArmyCards = draft.selection.dropFirst().first?.armyCards ?? []
+        }
+        return result
+   ```
+4. `candidateMoves`: before the existing `return`, add
+   ```swift
+        if intent == .deployArmy {
+            guard case .mainTurn = context.state.phase else { return [] }
+            return Conquest.deployMoves(for: context.actor, in: context.state)
+        }
+   ```
+5. `select(_:in:)`: add `case .deployArmy: return selectArmy(target, in: &draft)` and
+   ```swift
+    private func selectArmy(_ target: BoardTarget, in draft: inout Draft) -> Bool {
+        switch target {
+        case .tile where firstTargets(in: draft).contains(target):
+            draft.selection = [target]
+            return true
+        case .armyCards(let cards):
+            guard let hex = draft.selection.first, hex.tile != nil else { return false }
+            if cards.isEmpty { draft.selection = [hex]; return true }
+            guard nextTargets(in: draft, after: 1).contains(target) else { return false }
+            draft.selection = [hex, target]
+            return true
+        default:
+            return false
+        }
+    }
+   ```
+6. `path(for:intent:)`: add `case (.deployArmy, .deployArmy(let hex, let strengths)): return [.tile(hex), .armyCards(strengths)]`.
+7. Private `BoardTarget` extension: `var armyCards: [Int]? { if case .armyCards(let value) = self { value } else { nil } }`.
+
+Every other `switch` over `BoardDecisionIntent` the compiler now names (dock title/detail/confirmTitle, piece cradle) gets a `.deployArmy` case in Task 4; to compile this task alone, add them now with the Task 4 values.
+
+- [ ] **Step 5:** Re-run Step 3's command → `EXIT=0`. Commit `feat(app): deployArmy board decision - tap a hex, then a card set`.
+
+---
+
+### Task 4: Deploy in the dock, army rows in Build
+
+**Files:**
+- Create: `Settlers/ViewModels/GameViewModel+Conquest.swift` (`ArmyPreview`, `ArmyChips`, `armyDeploymentPreview`)
+- Test: `SettlersTests/ArmyUITests.swift` (new; `ArmyPreviewTests`, `ArmyChipsTests`)
+- Modify: `Settlers/Views/GameActionPanels.swift` (army picker + `DockArmyCardButton`, strings)
+- Modify: `Settlers/Views/BuildPopupView.swift` (two rows)
+- Modify: `Settlers/Views/Board/BoardView.swift:241` (gold highlight for `.deployArmy` too)
+- Modify: `Settlers/Views/GameView.swift` (two dock arguments; QA begin; ~5 lines)
+- Modify: `Settlers/Testing/AccessibilityID.swift`
+- Test: `SettlersUITests/ConquestFlowTests.swift` (new)
+
+- [ ] **Step 1: Tests for the pure parts**
+
+`SettlersTests/ArmyUITests.swift`:
 
 ```swift
 import Testing
 import CatanEngine
 @testable import Settlers
 
-/// Seat 0 settled on the first 6, holding [2, 5] with the 5 bought this turn.
-private func position(variant: GameVariant = .conquest) -> (GameState, HexCoordinate) {
-    var state = GameSetup.newGame(board: BoardGenerator.standard(), seed: 4_310, variant: variant)
-    let six = state.board.tiles.sorted { $0.coordinate < $1.coordinate }.first { $0.numberToken == 6 }!
-    state.players[0].settlements.insert(HexGeometry.corners(of: six.coordinate)[0])
-    state.armyHands[state.players[0].id] = [2, 5]
-    state.armyCardsBoughtThisTurn[state.players[0].id] = [5]
-    state.phase = .mainTurn(playerIndex: 0)
-    return (state, six.coordinate)
-}
-
 private let name: (PlayerID) -> String = { "P\($0.index + 1)" }
+private let me = PlayerID(index: 0)
 
-@Test func cardsBoughtThisTurnAreNotOffered() {
-    let (state, _) = position()
-    #expect(ArmyPlan.playableCards(in: state, for: state.players[0].id) == [2])
-}
-
-@Test func aStandardGameOffersNoArmy() {
-    let (state, _) = position(variant: .standard)
-    #expect(ArmyPlan.hexOptions(in: state, for: state.players[0].id).isEmpty)
-}
-
-@Test func theHexesOfferedAreTheOnesMyBuildingsTouch() {
-    let (state, six) = position()
-    let me = state.players[0].id
-    let options = ArmyPlan.hexOptions(in: state, for: me)
-    #expect(options.contains { $0.id == six })
-    #expect(options.allSatisfy { Conquest.canDeploy(to: $0.id, by: me, in: state) })
-}
-
-@Test func previewNamesEachOutcome() {
-    let me = PlayerID(index: 0), rival = PlayerID(index: 1)
-    #expect(ArmyPlan.preview(total: 9, against: Garrison(owner: nil, strength: 5), me: me, name: name)
-        == "Takes it, holding at 4")
-    #expect(ArmyPlan.preview(total: 2, against: Garrison(owner: rival, strength: 5), me: me, name: name)
-        == "Leaves P2 at 3")
-    #expect(ArmyPlan.preview(total: 3, against: Garrison(owner: me, strength: 5), me: me, name: name)
-        == "Reinforces to 8")
-}
-
-@Test func previewSaysEmptyAtExactlyZero() {
-    #expect(ArmyPlan.preview(total: 5, against: Garrison(owner: nil, strength: 5), me: PlayerID(index: 0), name: name)
-        == "Leaves it empty")
-}
-
-@Test func noReachableHexMeansNoOptions() {
-    var (state, _) = position()
-    state.players[0].settlements = []
-    #expect(ArmyPlan.hexOptions(in: state, for: state.players[0].id).isEmpty)
-}
-
-@Test func labelsSayWhoHoldsTheHex() {
-    var (state, six) = position()
-    let me = state.players[0].id
-    guard case .resource(let kind) = state.board.tiles.first(where: { $0.coordinate == six })!.kind else {
-        Issue.record("a 6 always produces"); return
+@Suite struct ArmyPreviewTests {
+    @Test func namesEachOutcome() {
+        #expect(ArmyPreview.sentence(total: 9, against: Garrison(owner: nil, strength: 5), me: me, name: name)
+            == "Takes it, holding at 4")
+        #expect(ArmyPreview.sentence(total: 2, against: Garrison(owner: PlayerID(index: 1), strength: 5), me: me, name: name)
+            == "Leaves P2 at 3")
+        #expect(ArmyPreview.sentence(total: 3, against: Garrison(owner: me, strength: 5), me: me, name: name)
+            == "Reinforces to 8")
+        #expect(ArmyPreview.sentence(total: 1, against: nil, me: me, name: name) == "Takes it, holding at 1")
     }
-    let resource = kind.rawValue.capitalized
-    func label() -> String {
-        ArmyPlan.label(for: ArmyPlan.hexOptions(in: state, for: me).first { $0.id == six }!, me: me, name: name)
+
+    @Test func saysEmptyAtExactlyZero() {
+        #expect(ArmyPreview.sentence(total: 5, against: Garrison(owner: nil, strength: 5), me: me, name: name)
+            == "Leaves it empty")
     }
-    #expect(label() == "6 · \(resource) · Tribe 5")
-    state.garrisons[six] = Garrison(owner: me, strength: 7)
-    #expect(label() == "6 · \(resource) · Yours 7")
-    state.garrisons[six] = Garrison(owner: state.players[2].id, strength: 3)
-    #expect(label() == "6 · \(resource) · P3 3")
-    state.garrisons[six] = nil
-    #expect(label() == "6 · \(resource) · Empty")
+}
+
+@Suite struct ArmyChipsTests {
+    @Test func duplicateStrengthsToggleOneCopyAtATime() {
+        let hand = [3, 3, 5]
+        var selected: [Int] = []
+        selected = ArmyChips.toggle(1, hand: hand, selected: selected)     // either 3 selects "a 3"
+        #expect(selected == [3])
+        #expect(ArmyChips.isOn(0, hand: hand, selected: selected))
+        #expect(!ArmyChips.isOn(1, hand: hand, selected: selected))
+        selected = ArmyChips.toggle(1, hand: hand, selected: selected)
+        #expect(selected == [3, 3])
+        selected = ArmyChips.toggle(0, hand: hand, selected: selected)
+        #expect(selected == [3])
+    }
 }
 ```
 
-- [ ] **Step 2: Run to verify failure**
+Run `-only-testing:SettlersTests/ArmyPreviewTests -only-testing:SettlersTests/ArmyChipsTests` → `EXIT=65`, `cannot find 'ArmyPreview'`.
 
-```bash
-xcodegen generate
-xcodebuild test -project Settlers.xcodeproj -scheme Settlers -destination "platform=iOS Simulator,id=$SIM" \
-  -derivedDataPath "$HOME/Library/Developer/Xcode/DerivedData/conquest" \
-  -only-testing:SettlersTests/ArmyPlanTests > /tmp/t3-red.log 2>&1; echo EXIT=$?
-```
-Expected: `EXIT=65`, `cannot find 'ArmyPlan' in scope`.
-
-- [ ] **Step 3: `ArmyPlan` and `ArmyPopupView`**
-
-`Settlers/Views/ArmyPopupView.swift`:
+- [ ] **Step 2: `GameViewModel+Conquest.swift`**
 
 ```swift
-import SwiftUI
 import CatanEngine
 
-/// What the Army popup shows, as pure functions of the game - so it is tested
-/// without a view.
-enum ArmyPlan {
-    struct HexOption: Identifiable, Equatable {
-        let id: HexCoordinate
-        let number: Int
-        let resource: Resource?
-        let garrison: Garrison?
-    }
-
-    /// Producing hexes one of `seat`'s buildings touches, in board order.
-    static func hexOptions(in state: GameState, for seat: PlayerID) -> [HexOption] {
-        state.board.tiles.sorted { $0.coordinate < $1.coordinate }.compactMap { tile in
-            guard let number = tile.numberToken, Conquest.canDeploy(to: tile.coordinate, by: seat, in: state) else {
-                return nil
-            }
-            let resource: Resource? = if case .resource(let kind) = tile.kind { kind } else { nil }
-            return HexOption(id: tile.coordinate, number: number, resource: resource,
-                             garrison: state.garrisons[tile.coordinate])
-        }
-    }
-
-    /// Cards that may be committed now: bought-this-turn cards are held back.
-    static func playableCards(in state: GameState, for seat: PlayerID) -> [Int] {
-        Conquest.playableCards(for: seat, in: state)
-    }
-
-    static func label(for option: HexOption, me: PlayerID, name: (PlayerID) -> String) -> String {
-        let resource = option.resource.map { $0.rawValue.capitalized } ?? "Desert"
-        let holder: String
-        switch option.garrison {
-        case .none: holder = "Empty"
-        case .some(let garrison) where garrison.owner == nil: holder = "Tribe \(garrison.strength)"
-        case .some(let garrison) where garrison.owner == me: holder = "Yours \(garrison.strength)"
-        case .some(let garrison): holder = "\(name(garrison.owner!)) \(garrison.strength)"
-        }
-        return "\(option.number) · \(resource) · \(holder)"
-    }
-
-    /// One sentence for what committing `total` does, from the engine's own rule.
-    static func preview(total: Int, against current: Garrison?, me: PlayerID, name: (PlayerID) -> String) -> String {
-        if current?.owner == me {
-            return "Reinforces to \((current?.strength ?? 0) + total)"
-        }
+/// The dock's one line about what the chosen cards will do, from the engine's rule.
+enum ArmyPreview {
+    static func sentence(total: Int, against current: Garrison?, me: PlayerID, name: (PlayerID) -> String) -> String {
+        if let current, current.owner == me { return "Reinforces to \(current.strength + total)" }
         guard let after = Conquest.outcome(of: total, against: current, by: me) else { return "Leaves it empty" }
         if after.owner == me { return "Takes it, holding at \(after.strength)" }
         return after.owner.map { "Leaves \(name($0)) at \(after.strength)" } ?? "Leaves the tribe at \(after.strength)"
     }
+}
 
-    /// Public: how many army cards each rival holds.
-    static func rivalSummary(in state: GameState, me: PlayerID, name: (PlayerID) -> String) -> String {
-        state.players.map(\.id).filter { $0 != me }.sorted()
-            .map { "\(name($0)) \(state.armyHands[$0, default: []].count)" }
-            .joined(separator: " · ") + " cards"
+/// Chip toggling for a hand that may hold the same strength twice: chip `index`
+/// is "on" while fewer copies of its strength sit before it than are selected.
+enum ArmyChips {
+    static func isOn(_ index: Int, hand: [Int], selected: [Int]) -> Bool {
+        let value = hand[index]
+        return hand[..<index].filter { $0 == value }.count < selected.filter { $0 == value }.count
+    }
+
+    static func toggle(_ index: Int, hand: [Int], selected: [Int]) -> [Int] {
+        var next = selected
+        if isOn(index, hand: hand, selected: selected), let existing = next.firstIndex(of: hand[index]) {
+            next.remove(at: existing)
+        } else {
+            next.append(hand[index])
+        }
+        return next.sorted()
     }
 }
 
-/// Conquest's army screen: raise a card, then commit cards to a hex.
-/// ponytail: the hex is picked from a list, not by tapping the board; move it to
-/// a `BoardDecisionIntent` if players find the list hard to map onto the board.
-public struct ArmyPopupView: View {
-    public let viewModel: GameViewModel
-    public let onDismiss: () -> Void
-
-    @State private var selectedHex: HexCoordinate?
-    @State private var selected: [Int] = []          // indices into the playable list
-    @State private var errorMessage: String?
-
-    public init(viewModel: GameViewModel, onDismiss: @escaping () -> Void) {
-        self.viewModel = viewModel
-        self.onDismiss = onDismiss
+@MainActor
+extension GameViewModel {
+    /// The dock's title while choosing army cards, or nil outside a deploy.
+    public var armyDeploymentPreview: String? {
+        guard let decision = boardDecisionPresentation, decision.intent == .deployArmy,
+              let hex = decision.selectedTile else { return nil }
+        let total = decision.selectedArmyCards.reduce(0, +)
+        guard total > 0 else { return "Choose army cards" }
+        return ArmyPreview.sentence(total: total, against: state.garrisons[hex], me: humanPlayer,
+                                    name: { self.playerIdentity(for: $0).displayName })
     }
+}
+```
 
-    public var body: some View {
-        let state = viewModel.state
-        let me = viewModel.humanPlayer
-        let name: (PlayerID) -> String = { viewModel.playerIdentity(for: $0).displayName }
-        let playable = ArmyPlan.playableCards(in: state, for: me)
-        let held = state.armyHands[me, default: []].count
-        let options = ArmyPlan.hexOptions(in: state, for: me)
-        let total = selected.map { playable[$0] }.reduce(0, +)
-        let target = options.first { $0.id == selectedHex }
+Run Step 1's tests → `EXIT=0`.
 
-        PopupCard(onDismiss: onDismiss) {
-            VStack(spacing: 10) {
-                Text("Army").font(.headline)
-                GoldRowButton(
-                    title: "Raise army card",
-                    subtitle: "Any 3 cards · \(state.armyDeck.count) left",
-                    systemImage: "shield.lefthalf.filled", iconColor: .red,
-                    isEnabled: RulesEngine.legalMoves(for: state).contains(.buyArmyCard),
-                    action: { perform(.buyArmyCard) }
-                )
-                .accessibilityIdentifier(AccessibilityID.Army.buy)
+- [ ] **Step 3: The dock**
 
-                HStack(spacing: 6) {
-                    ForEach(Array(playable.enumerated()), id: \.offset) { index, strength in
-                        let isOn = selected.contains(index)
-                        Button("\(strength)") {
-                            if isOn { selected.removeAll { $0 == index } } else { selected.append(index) }
-                        }
-                        .font(.headline.monospacedDigit())
-                        .frame(width: 36, height: 44)
-                        .background(isOn ? Color.red : Color(white: 0.25), in: RoundedRectangle(cornerRadius: 6))
-                        .foregroundStyle(.white)
+In `GameActionPanels.swift`:
+
+1. `BoardDecisionDockView` gains `let armyPreview: String?` and `let onSelectArmyCards: ([Int]) -> Void`; init parameters `armyPreview: String? = nil, onSelectArmyCards: @escaping ([Int]) -> Void = { _ in }` (defaulted, so every existing call site compiles).
+2. `messageOrVictims`:
+   ```swift
+        if presentation.requiresArmyChoice {
+            armyPicker
+        } else if presentation.requiresVictimChoice {
+            victimPicker
+        } else {
+            decisionMessage
+        }
+   ```
+3. Add, beside `victimPicker`:
+   ```swift
+    private var armyPicker: some View {
+        let actor = playerIdentity(presentation.actor)
+        let hand = presentation.legalArmyCards
+        return VStack(alignment: .leading, spacing: 2) {
+            Text(presentation.errorMessage ?? armyPreview ?? "Choose army cards")
+                .font(.system(.caption2, design: .serif, weight: .bold))
+                .foregroundStyle(presentation.errorMessage == nil ? CatanTheme.onWaterText : Color.red)
+                .lineLimit(1)
+                .minimumScaleFactor(0.7)
+                .accessibilityIdentifier(AccessibilityID.Army.preview)
+            ScrollView(.horizontal, showsIndicators: false) {
+                LazyHStack(spacing: Layout.victimSpacing) {
+                    ForEach(hand.indices, id: \.self) { index in
+                        DockArmyCardButton(
+                            strength: hand[index],
+                            civilization: actor.civilization,
+                            isSelected: ArmyChips.isOn(index, hand: hand, selected: presentation.selectedArmyCards),
+                            action: { onSelectArmyCards(ArmyChips.toggle(index, hand: hand, selected: presentation.selectedArmyCards)) }
+                        )
                         .accessibilityIdentifier(AccessibilityID.Army.card(index))
                     }
-                    if held > playable.count {
-                        Text("+\(held - playable.count) next turn").font(.caption2).foregroundStyle(.secondary)
-                    }
                 }
-
-                ScrollView {
-                    VStack(spacing: 6) {
-                        ForEach(options) { option in
-                            GoldRowButton(
-                                title: ArmyPlan.label(for: option, me: me, name: name),
-                                systemImage: selectedHex == option.id ? "largecircle.fill.circle" : "circle",
-                                action: { selectedHex = option.id }
-                            )
-                            .accessibilityIdentifier(AccessibilityID.Army.hex(option.id))
-                        }
-                    }
-                }
-                .frame(maxHeight: 220)
-
-                if let target, total > 0 {
-                    Text(ArmyPlan.preview(total: total, against: target.garrison, me: me, name: name))
-                        .font(.caption).accessibilityIdentifier(AccessibilityID.Army.preview)
-                }
-                GoldRowButton(
-                    title: "Commit \(total) strength", systemImage: "flag.fill", iconColor: .red,
-                    isEnabled: target != nil && total > 0,
-                    action: {
-                        guard let hex = selectedHex else { return }
-                        perform(.deployArmy(to: hex, strengths: selected.map { playable[$0] }.sorted()))
-                    }
-                )
-                .accessibilityIdentifier(AccessibilityID.Army.commit)
-
-                Text(ArmyPlan.rivalSummary(in: state, me: me, name: name)).font(.caption2).foregroundStyle(.secondary)
-                if let errorMessage { Text(errorMessage).font(.caption2).foregroundStyle(.red) }
-                GoldRowButton(title: "Close", systemImage: "xmark", action: onDismiss)
             }
-            .padding(16)
-            .frame(maxWidth: 340)
         }
-        .accessibilityIdentifier(AccessibilityID.Army.popup)
     }
+   ```
+4. Add a chip view after `DockVictimButton`, copying its chrome so the two read as one family:
+   ```swift
+/// One army card in the deploy dock. Same chrome as `DockVictimButton` - tinted
+/// civilization texture, notched frame, painted border, selection mark - so the
+/// robber and army choosers read as one family. Narrower: it carries one number.
+private struct DockArmyCardButton: View {
+    let strength: Int
+    let civilization: Civilization
+    let isSelected: Bool
+    let action: () -> Void
 
-    private func perform(_ move: GameMove) {
-        do {
-            try viewModel.apply(move)
-            errorMessage = nil
-            selected = []            // indices refer to the old hand
-        } catch {
-            errorMessage = error.localizedDescription
+    var body: some View {
+        Button(action: action) {
+            VStack(spacing: 1) {
+                Image(systemName: "shield.lefthalf.filled").font(.system(size: 10, weight: .bold))
+                Text("\(strength)").font(.system(size: 20, weight: .heavy, design: .serif))
+            }
+            .frame(width: Layout.armyCardWidth, height: Layout.victimHeight)
+            .background(TintedTextureBackground(tint: civilization.cardBackgroundColor(active: true)))
+            .clipShape(FrameCornerRect(cornerRadius: 8, notchScale: 0.7))
+            .playerCardBorder(color: civilization.accentColor, cornerRadius: 8, lineWidth: 2)
+            .overlay {
+                if isSelected {
+                    FrameCornerRect(cornerRadius: 8, notchScale: 0.7)
+                        .stroke(CatanTheme.cityPennantGold, lineWidth: 3)
+                }
+            }
+            .foregroundStyle(.white)
         }
+        .buttonStyle(.plain)
+        .accessibilityLabel("Army card, strength \(strength)")
+        .accessibilityAddTraits(isSelected ? .isSelected : [])
     }
 }
-```
+   ```
+   Before writing the overlay, read `DockVictimButton`'s `selectionBorder`/`selectionMark` and copy them verbatim if they differ from the above - matching them exactly is the requirement.
+5. `Layout`: `static let armyCardWidth: CGFloat = 38`.
+6. `BoardDecisionPresentation` private extension: `var requiresArmyChoice: Bool { intent == .deployArmy && selectedTile != nil }`; `title`: `case .deployArmy: "Deploy army"`; `detail`: `case .deployArmy: selectedTile == nil ? "Tap a hex your buildings touch." : "Choose cards, then commit."`; `confirmTitle`: `case .deployArmy: "Commit"`. Where the clear button switches on `requiresVictimChoice` (its title, width, visible title and icon), use `requiresVictimChoice || requiresArmyChoice`, so Clear reads "Change territory" after a hex is chosen, exactly as for the robber. The piece cradle shows nothing for `.deployArmy`.
 
-`AccessibilityID.swift`: add `static let army = "build.army"` to `enum Build`, and:
+- [ ] **Step 4: Board highlight**
 
-```swift
-    enum Army {
-        static let popup = "army.popup"
-        static let buy = "army.buy"
-        static let commit = "army.commit"
-        static let preview = "army.preview"
-        static func card(_ index: Int) -> String { "army.card.\(index)" }
-        static func hex(_ hex: HexCoordinate) -> String { "army.hex.\(hex.q).\(hex.r)" }
-    }
-```
+`BoardView.swift:241`: `guard let decision, decision.intent.isRobber || decision.intent == .deployArmy else { return }`. (Tile taps already work for any decision with `legalTiles`, via `BoardDecisionInteractionLayer`.)
 
+- [ ] **Step 5: Build rows, dock wiring, QA begin**
 
-- [ ] **Step 4: The Build row**
-
-`BuildPopupView`: add `public let onOpenArmy: () -> Void` with init parameter `onOpenArmy: @escaping () -> Void = {}`, and after the Dev Card row:
+`BuildPopupView`, after the Dev Card row:
 
 ```swift
                     if viewModel.state.variant == .conquest {
-                        GoldRowButton(title: "Army", subtitle: "Raise and commit army cards",
-                                      systemImage: "shield.lefthalf.filled", iconColor: .red,
-                                      isEnabled: true, action: onOpenArmy)
-                        .accessibilityIdentifier(AccessibilityID.Build.army)
+                        let me = viewModel.humanPlayer
+                        let hand = viewModel.state.armyHands[me, default: []].sorted()
+                        GoldRowButton(
+                            title: "Army Card",
+                            subtitle: (hand.isEmpty ? "No cards" : "Yours: " + hand.map(String.init).joined(separator: ", "))
+                                + " · \(viewModel.state.armyDeck.count) left",
+                            systemImage: "shield.lefthalf.filled",
+                            iconColor: .red,
+                            isEnabled: legalMoves.contains(.buyArmyCard),
+                            trailing: {
+                                Text("Any 3").font(.caption2.bold()).foregroundStyle(CatanTheme.cityPennantGold)
+                            },
+                            action: { perform(.buyArmyCard) }
+                        )
+                        .accessibilityIdentifier(AccessibilityID.Build.armyCard)
+                        GoldRowButton(
+                            title: "Deploy Army",
+                            subtitle: "Tap a hex to take or hold it",
+                            systemImage: "flag.fill",
+                            iconColor: .red,
+                            isEnabled: !Conquest.deployMoves(for: me, in: viewModel.state).isEmpty,
+                            action: { beginBoardDecision(.deployArmy, pieceName: "army") }
+                        )
+                        .accessibilityIdentifier(AccessibilityID.Build.deployArmy)
                     }
 ```
 
-- [ ] **Step 5: Present it from `GameView`**
-
-1. `@State private var showArmyPopup = false` beside `showBuildPopup`.
-2. The Build presentation becomes `BuildPopupView(viewModel: viewModel, onDismiss: { showBuildPopup = false }, onOpenArmy: { showBuildPopup = false; showArmyPopup = true })`.
-3. Directly after it:
-
+`AccessibilityID`: in `Build` add `static let armyCard = "build.army-card"` and `static let deployArmy = "build.deploy-army"`; add
 ```swift
-            if !isDiscardPresented, viewModel.boardDecisionPresentation == nil, showArmyPopup {
-                ArmyPopupView(viewModel: viewModel, onDismiss: { showArmyPopup = false })
-                    .accessibilityHidden(viewModel.needsHandoff)
-            }
+    enum Army {
+        static let preview = "army.preview"
+        static func card(_ index: Int) -> String { "army.card.\(index)" }
+    }
 ```
 
-4. Add `|| showArmyPopup` to `isBlockingOverlayPresented`'s return; add `showArmyPopup = false` beside `showBuildPopup = false` in both the discard `onChange` and `clearSeatInteractionState()`.
-5. In the Task 2 QA dispatch, add `showArmyPopup = QALaunchFlag.showArmyPopup.isSet`.
+`GameView`: where `BoardDecisionDockView(` is constructed, add the two arguments `armyPreview: viewModel.armyDeploymentPreview,` and `onSelectArmyCards: { _ = viewModel.selectBoardTarget(.armyCards($0)) },`. In the Task 2 QA dispatch add, after `qaPrepareConquestPosition()`:
+```swift
+                if QALaunchFlag.showDeployArmy.isSet { _ = viewModel.beginBoardDecision(.deployArmy) }
+```
 
-Check `wc -l Settlers/Views/GameView.swift` stays under 1,240.
+`wc -l Settlers/Views/GameView.swift` must stay under 1,240.
 
-- [ ] **Step 6: Run to verify pass**
-
-Re-run Step 2's command → `EXIT=0`, 7 tests passed.
-
-- [ ] **Step 7: A UI test that plays it**
+- [ ] **Step 6: UI test that taps the hex**
 
 `SettlersUITests/ConquestFlowTests.swift`:
 
 ```swift
 import XCTest
 
-/// The Army popup commits a real deploy: pick the 9 the fixture holds at 6,
-/// reinforce it with the 2, and the row reads "Yours 8".
+/// Deploying is tap-a-hex: from Build, Deploy Army; tap a highlighted hex; pick
+/// the 2 in the dock; the preview names the outcome; Commit lands it.
 @MainActor
 final class ConquestFlowTests: XCTestCase {
-    func testReinforcingAHeldHexFromTheArmyPopup() {
+    func testDeployingByTappingAHex() {
         continueAfterFailure = false
         let app = XCUIApplication()
-        app.launchArguments = ["-ui-testing", "-ui-testing-reset", "-qaAutoStart", "-qaShowArmyPopup"]
+        app.launchArguments = ["-ui-testing", "-ui-testing-reset", "-qaAutoStart", "-qaShowConquest"]
         app.launch()
-        XCTAssertTrue(app.otherElements["army.popup"].waitForExistence(timeout: 10))
-        let held = app.buttons.matching(NSPredicate(format: "label CONTAINS %@", "Yours 6")).firstMatch
-        XCTAssertTrue(held.waitForExistence(timeout: 5))
-        held.tap()
-        app.buttons["army.card.0"].tap()
-        XCTAssertEqual(app.staticTexts["army.preview"].label, "Reinforces to 8")
-        app.buttons["army.commit"].tap()
-        XCTAssertTrue(app.buttons.matching(NSPredicate(format: "label CONTAINS %@", "Yours 8"))
-            .firstMatch.waitForExistence(timeout: 5))
+        XCTAssertTrue(app.buttons["Build"].waitForExistence(timeout: 10))
+        app.buttons["Build"].tap()
+        app.buttons["build.deploy-army"].tap()
+        let hex = app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH %@", "board.tile.")).firstMatch
+        XCTAssertTrue(hex.waitForExistence(timeout: 5))
+        hex.tap()
+        let two = app.buttons["army.card.0"]
+        XCTAssertTrue(two.waitForExistence(timeout: 5))
+        two.tap()
+        XCTAssertNotEqual(app.staticTexts["army.preview"].label, "Choose army cards")
+        let commit = app.buttons["board-decision.confirm"]
+        XCTAssertTrue(commit.isEnabled)
         let shot = XCTAttachment(screenshot: app.screenshot())
-        shot.name = "conquest-army-popup"
+        shot.name = "conquest-deploy-dock"
         shot.lifetime = .keepAlways
         add(shot)
+        commit.tap()
+        XCTAssertTrue(app.buttons["Build"].waitForExistence(timeout: 5), "the dock gave way to the action row")
     }
 }
 ```
+
+(If the Build button's identifier is not its label, use the one `DevelopmentCardFlowTests` taps.)
 
 ```bash
 xcodegen generate
 xcodebuild test -project Settlers.xcodeproj -scheme Settlers -destination "platform=iOS Simulator,id=$SIM" \
   -derivedDataPath "$HOME/Library/Developer/Xcode/DerivedData/conquest" \
   -only-testing:SettlersUITests/ConquestFlowTests -only-testing:SettlersUITests/BelowBoardInvarianceTests \
-  -only-testing:SettlersUITests/DevelopmentCardFlowTests > /tmp/t3-ui.log 2>&1; echo EXIT=$?
+  -only-testing:SettlersUITests/DevelopmentCardFlowTests -only-testing:SettlersTests/BoardDecisionCoordinatorTests \
+  -only-testing:SettlersTests/BoardDecisionViewModelTests > /tmp/t4-ui.log 2>&1; echo EXIT=$?
 swiftlint --strict
 ```
-Expected: `EXIT=0`; lint clean. Open the `conquest-army-popup` attachment from the `.xcresult` and look at it: nothing clipped, card chips legible.
+Expected `EXIT=0`; lint clean. Open the `conquest-deploy-dock` attachment and compare it side by side with a robber-victim dock screenshot (`-qaAutoStart -qaShowRobberVictimPicker` via run-settlers): same fonts, frame, tint, spacing. Any visible mismatch is a defect to fix before committing.
 
-- [ ] **Step 8: Commit** — `feat(app): Army popup - raise army cards and commit them to hexes`.
+- [ ] **Step 7: Commit** — `feat(app): deploy armies by tapping a hex; army rows in Build`.
 
 ---
 
-### Task 4: Play it for real
+### Task 5: Play it for real
 
 **Files:** none unless a defect is found.
 
@@ -733,7 +839,7 @@ Expected: `EXIT=0`; lint clean. Open the `conquest-army-popup` attachment from t
 
 ---
 
-### Task 5: Land it and put it on Jake's phone
+### Task 6: Land it and put it on Jake's phone
 
 - [ ] **Step 1:** `git fetch origin && git rebase origin/main` in the worktree; resolve conflicts; re-run `swift test --package-path Packages/CatanEngine` and `swiftlint --strict`.
 - [ ] **Step 2:** Quit Simulator, `xcrun simctl shutdown all`, then **ask Jake before pushing** — the push runs the ~50-minute gate and lands on `main`: `git push origin HEAD:main`. The pre-push hook is the full verification.
