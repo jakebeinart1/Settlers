@@ -530,11 +530,13 @@ private struct ArmySeat {
     var reinforce = 0       // added strength to a hex already held
     var chip = 0            // attacked and fell short
     var settleThenTake = 0  // took a hex within 40 moves of settling onto it
+    var starve = 0          // a take that left some rival producing none of a resource
+    var starveLeader = 0    // ...where that rival was the public points leader
     var json: String {
         "{\"bought\":\(bought),\"captures\":\(captures),\"pvp\":\(pvp),\"held\":\(heldAtEnd),"
             + "\"solo\":\(solo),\"shared\":\(shared),\"crowded\":\(crowded),\"prime\":\(prime),"
             + "\"fromLeader\":\(fromLeader),\"reinforce\":\(reinforce),\"chip\":\(chip),"
-            + "\"settleThenTake\":\(settleThenTake)}"
+            + "\"settleThenTake\":\(settleThenTake),\"starve\":\(starve),\"starveLeader\":\(starveLeader)}"
     }
 
     /// Labels one deploy by `actor` on `hex`, against the position before it.
@@ -554,6 +556,22 @@ private struct ArmySeat {
         if let owner = previous?.owner, let top = points.max(),
            points.filter({ $0 == top }).count == 1, before.publicVictoryPoints(for: owner) == top { fromLeader += 1 }
         if let settled = settledAt[hex], move - settled <= 40 { settleThenTake += 1 }
+        classifyStarvation(of: hex, by: actor, result: result, before: before, points: points)
+    }
+
+    /// A take that zeroes some rival's production of a resource they had.
+    private mutating func classifyStarvation(of hex: HexCoordinate, by actor: PlayerID, result: Garrison?,
+                                             before: GameState, points: [Int]) {
+        var after = before
+        after.garrisons[hex] = result
+        let top = points.max()
+        let leader = points.filter { $0 == top }.count == 1 ? points.firstIndex(of: top!).map(PlayerID.init) : nil
+        for rival in before.players.map(\.id).sorted() where rival != actor {
+            let was = ProductionModel.rate(for: rival, in: before), now = ProductionModel.rate(for: rival, in: after)
+            guard Resource.allCases.contains(where: { was[$0] > 0 && now[$0] == 0 }) else { continue }
+            starve += 1
+            if rival == leader { starveLeader += 1 }
+        }
     }
 }
 
