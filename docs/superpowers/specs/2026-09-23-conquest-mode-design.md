@@ -39,8 +39,8 @@ switch beside it.
 
 | | Classic board | Vast board |
 |---|---|---|
-| cost | **any 3 resource cards** (revised 2026-09-24, see below) | same |
-| deck | 29 cards (below) | 58 cards (each count doubled) |
+| cost | **any 3 resource cards**, chosen by the buyer (revised 2026-09-24) | same |
+| deck | 29 cards, strengths **1-4** (revised 2026-09-24, below) | 58 cards (each count doubled) |
 
 Classic deck, by strength: `1×5, 2×5, 3×4, 4×4, 5×3, 6×3, 7×2, 8×2, 9×1`.
 Mean strength ≈ 4.0. Weighted low so a 9 is an event, and finite so the table can
@@ -96,6 +96,18 @@ The bonus is paid only if the bank can supply it, under the existing shortage ru
 Why a bonus as well as the block: blocking alone pays the occupier nothing, so a
 card spent occupying was estimated (by hand, not simulated) to be a wash, while the two bystanders gained
 for free. The +1 makes a card spent on a hex pay for itself.
+
+### Revisions after first play (Jake, 2026-09-24)
+
+- **Deck is strengths 1-4**: `1×7, 2×8, 3×8, 4×6` (mean ~2.45). Tribes keep their
+  pip-count strengths (up to 5), so no single card takes a 6 or 8 and holding one
+  takes several cards to break.
+- **A card may be deployed the turn it is bought.** The same-turn rule below is
+  withdrawn; a buy-and-strike can now come without warning.
+- **The buyer chooses the 3 cards paid.**
+
+The trained-Expert balance below was measured on the 1-9 deck with the same-turn
+rule; it needs re-measuring on these rules.
 
 ### Price revision (2026-09-24)
 

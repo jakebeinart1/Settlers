@@ -81,10 +81,10 @@ private func conquestMainTurn(seed: UInt64 = 1) -> GameState {
 
     state.armyHands = [:]
     let without = bot.decide(for: state, player: seat, rng: &rng)
-    #expect({ if case .buyArmyCard = without { false } else { true } }(), "0 + ~4 cannot beat 5")
-    state.armyHands = [seat: [2]]
+    #expect({ if case .buyArmyCard = without { false } else { true } }(), "0 + ~2.45 (the deck mean) cannot beat 5")
+    state.armyHands = [seat: [3]]
     let with = bot.decide(for: state, player: seat, rng: &rng)
-    #expect({ if case .buyArmyCard = with { true } else { false } }(), "2 + ~4 beats 5")
+    #expect({ if case .buyArmyCard = with { true } else { false } }(), "3 + ~2.45 beats 5")
 }
 
 @Test func silencingTheLeaderIsWorthMoreThanSilencingAnyoneElse() throws {

@@ -122,8 +122,10 @@ public struct Ruleset: Sendable, Equatable {
         self.armyDeck = armyDeck
     }
 
-    /// Classic's army deck: 29 cards, mean strength ~4.0.
-    public static let classicArmyDeck: [Int: Int] = [1: 5, 2: 5, 3: 4, 4: 4, 5: 3, 6: 3, 7: 2, 8: 2, 9: 1]
+    /// Classic's army deck: 29 cards of strength 1-4, mean ~2.45 (Jake,
+    /// 2026-09-24). Below a 6 or 8's tribe (5), so no single card takes a prime
+    /// hex, and a held one takes several cards to break.
+    public static let classicArmyDeck: [Int: Int] = [1: 7, 2: 8, 3: 8, 4: 6]
 
     public func pieceLimit(for kind: BuildingKind) -> Int {
         pieceLimits.limit(for: kind, board: board)

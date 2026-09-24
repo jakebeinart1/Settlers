@@ -14,9 +14,11 @@ public enum ArmyBuying: Sendable {
 /// Conquest decisions for `Bot`. Heuristic, untrained: this exists to make the
 /// variant playable and measurable, not to be strong.
 enum ConquestHeuristics {
-    /// Mean strength of the Classic deck, used as a rival card's expected value.
+    /// The printed deck's mean, used as an unseen card's expected value.
     /// ponytail: ignores cards already seen; count spent cards via `PublicLedger` if bots over-reinforce.
-    static let expectedCardStrength = 4.0
+    static func expectedCardStrength(_ state: GameState) -> Double {
+        PositionEvaluator.meanArmyStrength(state.rules)
+    }
 
     /// The best legal deploy that takes a hex, else a reinforcement of a held hex
     /// a rival could plausibly break next turn, else nil. Never a losing attack.
@@ -61,7 +63,7 @@ enum ConquestHeuristics {
     static func shouldBuyAheadOfBuilding(_ buying: ArmyBuying, state: GameState, player: PlayerID) -> Bool {
         guard buying != .idle, shouldBuyArmyCard(state: state, player: player) else { return false }
         guard buying == .targeted else { return true }
-        let reach = Double(Conquest.playableCards(for: player, in: state).reduce(0, +)) + expectedCardStrength
+        let reach = Double(Conquest.playableCards(for: player, in: state).reduce(0, +)) + expectedCardStrength(state)
         return state.board.tiles.sorted(by: { $0.coordinate < $1.coordinate }).contains { tile in
             guard let token = tile.numberToken, DiceOdds.pips(for: token) >= goodHexPips,
                   Conquest.canDeploy(to: tile.coordinate, by: player, in: state),
@@ -101,7 +103,7 @@ enum ConquestHeuristics {
     private static func isThreatened(_ hex: HexCoordinate, garrison: Int, state: GameState, player: PlayerID) -> Bool {
         state.players.contains { rival in
             rival.id != player && Conquest.canDeploy(to: hex, by: rival.id, in: state)
-                && Double(state.armyHands[rival.id, default: []].count) * expectedCardStrength >= Double(garrison)
+                && Double(state.armyHands[rival.id, default: []].count) * expectedCardStrength(state) >= Double(garrison)
         }
     }
 }

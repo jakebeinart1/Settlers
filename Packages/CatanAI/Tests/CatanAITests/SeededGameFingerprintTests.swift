@@ -148,11 +148,12 @@ private let expectedFingerprints: [UInt64: String] = [
 /// leader's silenced buildings double (`ConquestHeuristics.leaderDenialWeight`);
 /// all three re-recorded 2026-09-24 when the army price became any three
 /// cards, and again when buying began to carry its payment and a card became
-/// deployable the turn it is bought. Each time agreed across three processes first.
+/// deployable the turn it is bought, and when the deck became strengths 1-4.
+/// Each time agreed across three processes first.
 private let expectedConquestFingerprints: [UInt64: String] = [
-    1: "f8d6316f3e19c392",
-    2: "161190747128e1a6",
-    3: "055c8456215c33fa",
+    1: "ce5d6055d337e7ca",
+    2: "4902c09658e33109",
+    3: "1c51d951bff8dab7",
 ]
 
 /// Re-recorded 2026-09-08 (all five) because the bots stopped reading hidden

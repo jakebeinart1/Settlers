@@ -21,7 +21,7 @@ import Testing
 
 @Test func vastDoublesTheArmyDeck() {
     #expect(Ruleset.forMode(.vast).armyDeck.values.reduce(0, +) == 58)
-    #expect(Ruleset.forMode(.vast).armyDeck[9] == 2)
+    #expect(Ruleset.forMode(.vast).armyDeck[4] == 12)
 }
 
 @Test func aStandardGameHasNoConquestStateAndDrawsTheSameRandomSequence() {
@@ -41,4 +41,10 @@ import Testing
 @Test func armyCardsCostAnyThreeResourcesByDefault() {
     let state = GameSetup.newGame(board: BoardGenerator.standard(), seed: 3, variant: .conquest)
     #expect(state.armyPrice == .anyThree)
+}
+
+@Test func armyCardsRunFromOneToFourSoTribesAreHardToBreak() {
+    #expect(Set(Ruleset.classicArmyDeck.keys) == [1, 2, 3, 4])
+    // A 6 or 8's tribe holds at 5, so no single card can take it.
+    #expect(Ruleset.classicArmyDeck.keys.max()! < DiceOdds.pips(for: 6))
 }
