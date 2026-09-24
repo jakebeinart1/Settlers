@@ -90,6 +90,48 @@ public struct PositionEvaluator: Sendable {
             : Double(hand.count) * Self.meanArmyStrength(state.rules)
         let garrisoned = state.garrisons.values.reduce(0) { $0 + ($1.owner == player ? $1.strength : 0) }
         return held * weights.armyStrength + Double(garrisoned) * weights.garrisonStrength
+            + captureThreat(of: player, reach: held, in: state) * weights.captureThreat
+            + exposure(of: player, in: state) * weights.garrisonExposure
+    }
+
+    /// What `player`'s hand could commit: exact for this seat, count x mean for
+    /// anyone else, whose card faces this seat never sees.
+    private func armyReach(of player: PlayerID, in state: GameState) -> Double {
+        let hand = state.armyHands[player, default: []]
+        return player == seat ? Double(hand.reduce(0, +)) : Double(hand.count) * Self.meanArmyStrength(state.rules)
+    }
+
+    /// Chance per roll the hex pays x (1 + every other seat's building silenced).
+    private func hexSwing(_ tile: Tile, for player: PlayerID, in state: GameState) -> Double {
+        guard let token = tile.numberToken else { return 0 }
+        let corners = state.board.corners(of: tile.coordinate)
+        let silenced = state.players.filter { $0.id != player }.reduce(0) { total, other in
+            total + corners.reduce(0) { $0 + (other.cities.contains($1) ? 2 : other.settlements.contains($1) ? 1 : 0) }
+        }
+        return ProductionModel.probability(ofToken: token) * Double(1 + silenced)
+    }
+
+    /// The best hex `player`'s hand can take right now. Board order, so a tie
+    /// resolves identically in every process.
+    private func captureThreat(of player: PlayerID, reach: Double, in state: GameState) -> Double {
+        state.board.tiles.reduce(0.0) { best, tile in
+            let garrison = state.garrisons[tile.coordinate]
+            guard garrison?.owner != player, Conquest.canDeploy(to: tile.coordinate, by: player, in: state),
+                  reach > Double(garrison?.strength ?? 0) else { return best }
+            return max(best, hexSwing(tile, for: player, in: state))
+        }
+    }
+
+    /// Production `player` holds that some rival touching it could break now.
+    private func exposure(of player: PlayerID, in state: GameState) -> Double {
+        state.board.tiles.reduce(0.0) { total, tile in
+            guard let garrison = state.garrisons[tile.coordinate], garrison.owner == player,
+                  state.players.contains(where: { rival in
+                      rival.id != player && Conquest.canDeploy(to: tile.coordinate, by: rival.id, in: state)
+                          && armyReach(of: rival.id, in: state) >= Double(garrison.strength)
+                  }) else { return total }
+            return total + hexSwing(tile, for: player, in: state)
+        }
     }
 
     /// The printed deck's mean card strength: what a card nobody has seen is worth.

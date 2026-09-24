@@ -56,3 +56,33 @@ private func sharedSix(seed: UInt64 = 1) throws -> (GameState, HexCoordinate) {
     #expect(EvaluationWeights.forMode(.classic).armyStrength == 0)
     #expect(EvaluationWeights.conquest(.classic).armyStrength > 0)
 }
+
+/// My standing in `state` under `weights`.
+private func standing(_ state: GameState, _ weights: EvaluationWeights) -> Double {
+    let me = state.players[0].id
+    return PositionEvaluator(seat: me, weights: weights).standing(
+        of: me, in: state, ledger: PublicLedger.fromPositionAlone(state, observer: me), board: BoardIndex(state: state))
+}
+
+@Test func aHandThatCanTakeAPrimeHexIsWorthMoreThanItsCards() throws {
+    var (weak, six) = try sharedSix()
+    weak.garrisons[six] = Garrison(owner: nil, strength: 5)
+    weak.armyHands = [weak.players[0].id: [4]]
+    var strong = weak
+    strong.armyHands = [strong.players[0].id: [4, 2]]           // 6 beats the tribe's 5
+    var off = EvaluationWeights.conquest(.classic); off.captureThreat = 0
+    var on = off; on.captureThreat = 1
+    #expect(standing(strong, on) - standing(weak, on) > standing(strong, off) - standing(weak, off))
+}
+
+@Test func aThinGarrisonNextToAnArmedRivalCostsSomething() throws {
+    var thin = try sharedSix().0
+    let six = try sharedSix().1
+    thin.garrisons[six] = Garrison(owner: thin.players[0].id, strength: 1)
+    thin.armyHands = [thin.players[1].id: [1, 1, 1]]            // seat 1 touches the 6
+    var thick = thin
+    thick.garrisons[six] = Garrison(owner: thin.players[0].id, strength: 20)
+    var off = EvaluationWeights.conquest(.classic); off.garrisonExposure = 0
+    var on = off; on.garrisonExposure = -1
+    #expect(standing(thick, on) - standing(thin, on) > standing(thick, off) - standing(thin, off))
+}

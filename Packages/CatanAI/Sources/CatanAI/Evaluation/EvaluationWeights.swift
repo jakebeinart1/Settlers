@@ -131,6 +131,14 @@ public struct EvaluationWeights: Sendable, Equatable, Codable {
     /// Conquest: per point of garrison strength on hexes this seat holds - what
     /// it costs a rival to take them back.
     public var garrisonStrength: Double
+    /// Conquest: the production swing of the best hex this seat's hand can take
+    /// right now. What makes saving up for a 6 or 8 worth something before the
+    /// cards are spent, which strength-per-card alone never priced.
+    public var captureThreat: Double
+    /// Conquest: production on hexes this seat holds that a rival touching them
+    /// could break with the cards they hold. Negative: an exposed hex is a loss
+    /// waiting to happen, so reinforcing it has a reason.
+    public var garrisonExposure: Double
 
     public init(
         victoryPoint: Double = 1.0,
@@ -153,7 +161,9 @@ public struct EvaluationWeights: Sendable, Equatable, Codable {
         concessionPerCard: Double = 0.0061,
         winning: Double = 1000.0,
         armyStrength: Double = 0,
-        garrisonStrength: Double = 0
+        garrisonStrength: Double = 0,
+        captureThreat: Double = 0,
+        garrisonExposure: Double = 0
     ) {
         self.victoryPoint = victoryPoint
         self.production = production
@@ -176,6 +186,8 @@ public struct EvaluationWeights: Sendable, Equatable, Codable {
         self.winning = winning
         self.armyStrength = armyStrength
         self.garrisonStrength = garrisonStrength
+        self.captureThreat = captureThreat
+        self.garrisonExposure = garrisonExposure
     }
 
     /// Fitted, not hand-set - and refitted once the opponent pool could refuse.
@@ -291,6 +303,9 @@ public struct EvaluationWeights: Sendable, Equatable, Codable {
         var weights = forMode(mode)
         weights.armyStrength = 0.015
         weights.garrisonStrength = 0.015
+        // Starting points for a fit, on the production term's own scale.
+        weights.captureThreat = 0.4
+        weights.garrisonExposure = -0.3
         return weights
     }
 
@@ -314,7 +329,7 @@ public struct EvaluationWeights: Sendable, Equatable, Codable {
             victoryPoint, production, variety, expansion, approach, buildableSites,
             handSynergy, handCard, handCardOverflow, discardExposure, sevenLoss, devCardHeld, knight,
             roadLength, port, rival, tradeMargin, concessionPerCard, winning,
-            armyStrength, garrisonStrength,
+            armyStrength, garrisonStrength, captureThreat, garrisonExposure,
         ]
     }
 
@@ -323,7 +338,7 @@ public struct EvaluationWeights: Sendable, Equatable, Codable {
         "victoryPoint", "production", "variety", "expansion", "approach", "buildableSites",
         "handSynergy", "handCard", "handCardOverflow", "discardExposure", "sevenLoss", "devCardHeld", "knight",
         "roadLength", "port", "rival", "tradeMargin", "concessionPerCard", "winning",
-        "armyStrength", "garrisonStrength",
+        "armyStrength", "garrisonStrength", "captureThreat", "garrisonExposure",
     ]
 
     /// Rebuilds weights from `vector`'s layout. Fails fast on the wrong count:
@@ -341,7 +356,8 @@ public struct EvaluationWeights: Sendable, Equatable, Codable {
             discardExposure: vector[9], sevenLoss: vector[10], devCardHeld: vector[11],
             knight: vector[12], roadLength: vector[13], port: vector[14], rival: vector[15],
             tradeMargin: vector[16], concessionPerCard: vector[17], winning: vector[18],
-            armyStrength: vector[19], garrisonStrength: vector[20]
+            armyStrength: vector[19], garrisonStrength: vector[20],
+            captureThreat: vector[21], garrisonExposure: vector[22]
         )
     }
 }
