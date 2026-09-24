@@ -263,19 +263,29 @@ public struct EvaluationPolicy: LedgerAwarePolicy {
     /// Applies `move` and folds its events into the ledger, masked for this
     /// seat so the belief a candidate is scored against is the belief this
     /// seat would actually hold afterwards.
-    /// Buying an army card, scored as if the card were the deck's mean.
-    /// Applying the move for real draws the actual top card - a hidden face -
-    /// so that card is taken back out before evaluating and the mean's value
-    /// added instead. Removing it (rather than subtracting its value) keeps the
-    /// score bit-identical whatever the face was.
+    /// Buying an army card, scored as the expectation over the printed deck's
+    /// strengths - never the actual top card, a hidden face. The drawn card is
+    /// taken back out and each possible strength put in its place, weighted by
+    /// how many the deck prints.
+    ///
+    /// The first version added the mean's flat value with the new card removed,
+    /// which scored the purchase without the card in hand at all: a 3 that one
+    /// more card would turn into a 6-or-8 capture got no credit for it, and the
+    /// trained Expert bought ~1.5 cards a game while Jake won by buying many.
     func projectedArmyCard(
         _ buy: GameMove, state: GameState, ledger: PublicLedger, evaluator: PositionEvaluator
     ) -> Double? {
         guard var (next, nextLedger) = applied(buy, to: state, ledger: ledger, by: evaluator.seat),
               next.armyHands[evaluator.seat]?.popLast() != nil else { return nil }
         next.armyDeck = state.armyDeck
-        let mean = PositionEvaluator.meanArmyStrength(state.rules)
-        return evaluator.evaluate(next, ledger: nextLedger) + evaluator.weights.armyStrength * mean
+        let deck = state.rules.armyDeck
+        let printed = Double(deck.values.reduce(0, +))
+        guard printed > 0 else { return nil }
+        return deck.keys.sorted().reduce(0.0) { expected, strength in
+            var drawn = next
+            drawn.armyHands[evaluator.seat, default: []].append(strength)
+            return expected + Double(deck[strength]!) / printed * evaluator.evaluate(drawn, ledger: nextLedger)
+        }
     }
 
     private func applied(

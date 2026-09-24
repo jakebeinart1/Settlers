@@ -86,3 +86,20 @@ private func standing(_ state: GameState, _ weights: EvaluationWeights) -> Doubl
     var on = off; on.garrisonExposure = -1
     #expect(standing(thick, on) - standing(thin, on) > standing(thick, off) - standing(thin, off))
 }
+
+@Test func buyingValuesTheCaptureTheNewCardCouldEnable() throws {
+    var (state, _) = try sharedSix()
+    let me = state.players[0].id
+    for hex in state.garrisons.keys { state.garrisons[hex] = Garrison(owner: nil, strength: 5) }
+    state.armyHands = [me: [3]]                       // 3 alone beats nothing; 3 + a 3 or 4 beats a 5
+    state.players[0].resources = [.ore: 3]
+    let buy = ConquestHeuristics.buyMove(state: state, player: me)!
+    func projected(_ capture: Double) -> Double {
+        var weights = EvaluationWeights.conquest(.classic)
+        weights.captureThreat = capture
+        let policy = EvaluationPolicy(id: "t", weights: weights)
+        return policy.projectedArmyCard(buy, state: state, ledger: PublicLedger.fromPositionAlone(state, observer: me),
+                                        evaluator: PositionEvaluator(seat: me, weights: weights))!
+    }
+    #expect(projected(1) > projected(0), "a buy that may complete a capture must be worth more")
+}
