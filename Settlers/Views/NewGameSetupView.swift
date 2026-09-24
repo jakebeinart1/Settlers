@@ -485,6 +485,7 @@ struct NewGameSetupView: View {
         VStack(spacing: 10) {
             SettingsSectionHeader(title: "Match Settings", titleColor: .white)
             modeRow
+            rulesRow
             boardRow
             difficultyRow
             seatingRow
@@ -520,6 +521,28 @@ struct NewGameSetupView: View {
                     // in its own `onSelect`; the chip row has to as well.
                     setup.normalizeNewGameOptions()
                 }
+            )
+        }
+    }
+
+    /// Conquest crosses every board, so it is its own row beside Game Mode
+    /// rather than a third mode.
+    private var rulesRow: some View {
+        labelledChoice(
+            label: "Rules",
+            help: .rules,
+            helpText: "Conquest: every hex starts held by a tribe. Army cards cost any 3 resource "
+                + "cards; spend them on a hex your buildings touch to take it. Whoever holds a hex "
+                + "collects all of it, plus one. Works on Classic and Vast.",
+            caption: nil
+        ) {
+            PaintedChoiceRow(
+                options: GameVariant.allCases,
+                title: \.displayName,
+                selection: setup.variant,
+                isCompact: true,
+                fontSize: SeatCardView.bodyTextSize,
+                onSelect: { setup.variant = $0 }
             )
         }
     }
@@ -596,6 +619,7 @@ struct NewGameSetupView: View {
 
     private enum HelpTopic {
         case mode
+        case rules
         case board
         case difficulty
         case seating

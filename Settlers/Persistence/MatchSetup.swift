@@ -65,16 +65,20 @@ public struct MatchSetup: Codable, Equatable, Sendable {
     /// A preference read live would swap every bot's brain mid-match on the
     /// next resume, which is a rule change disguised as a setting.
     public var difficulty: BotDifficulty
+    /// The rule layer - Standard or Conquest - over the chosen board. Stored with
+    /// the match for the same reason `mode` is: a running game keeps its rules.
+    public var variant: GameVariant
 
     public init(seats: [Seat], mode: GameMode = .classic, victoryPointTarget: Int,
                 randomizedBoard: Bool, randomizeSeatOrder: Bool,
-                difficulty: BotDifficulty = .default) {
+                difficulty: BotDifficulty = .default, variant: GameVariant = .standard) {
         self.seats = seats
         self.mode = mode
         self.victoryPointTarget = victoryPointTarget
         self.randomizedBoard = randomizedBoard
         self.randomizeSeatOrder = randomizeSeatOrder
         self.difficulty = difficulty
+        self.variant = variant
     }
 
     /// Hand-written for one field. `MatchSetup` is written to disk beside a
@@ -91,6 +95,8 @@ public struct MatchSetup: Codable, Equatable, Sendable {
         // Absent in every setup written before difficulty existed. Those games
         // were played against the heuristic and must resume against it.
         difficulty = try container.decodeIfPresent(BotDifficulty.self, forKey: .difficulty) ?? .default
+        // Absent in every setup written before Conquest. Those were standard games.
+        variant = try container.decodeIfPresent(GameVariant.self, forKey: .variant) ?? .standard
     }
 
     // MARK: - Validity

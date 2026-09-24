@@ -66,6 +66,9 @@ final class MainMenuFlowTests: XCTestCase {
         let setupScroll = app.scrollViews.firstMatch
         XCTAssertTrue(setupScroll.exists)
         assertChoiceRowIsReachable(
+            helpLabel: "About Rules", choiceLabel: "Conquest", in: app, scroll: setupScroll
+        )
+        assertChoiceRowIsReachable(
             helpLabel: "About Board", choiceLabel: "Randomized", in: app, scroll: setupScroll
         )
         assertChoiceRowIsReachable(
@@ -101,7 +104,11 @@ final class MainMenuFlowTests: XCTestCase {
         let choice = app.buttons[choiceLabel]
         XCTAssertTrue(help.exists)
         XCTAssertTrue(choice.exists)
-        for _ in 0..<3 where !help.isHittable { scroll.swipeUp() }
+        // Until the CHOICES are reachable too, not just the help button: once the
+        // Rules row (Conquest) lengthened the page, the Board header surfaced
+        // while its chips still sat under the pinned status footer, and the old
+        // help-only condition stopped swiping there.
+        for _ in 0..<6 where !(help.isHittable && choice.isHittable) { scroll.swipeUp() }
         XCTAssertTrue(help.isHittable)
         XCTAssertTrue(choice.isHittable)
         XCTAssertFalse(

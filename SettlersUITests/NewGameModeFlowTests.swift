@@ -50,6 +50,20 @@ final class NewGameModeFlowTests: XCTestCase {
         confirmOpeningSettlement(in: app)
     }
 
+    /// Conquest is a rules layer over the board, chosen beside it.
+    func testConquestStartsFromTheNewGameScreen() {
+        continueAfterFailure = false
+        let app = XCUIApplication()
+        app.launchArguments = ["-ui-testing", "-ui-testing-reset"]
+        app.launch()
+        app.buttons["main-menu.new-game"].tap()
+        XCTAssertTrue(app.otherElements["screen.new-game"].waitForExistence(timeout: 5))
+        app.buttons["Conquest"].tap()
+        app.buttons["As Shown"].tap()
+        app.buttons["new-game.start"].tap()
+        assertOpeningBoard(in: app, vertexCount: 54)
+    }
+
     private func assertOpeningBoard(in app: XCUIApplication, vertexCount: Int) {
         XCTAssertTrue(app.otherElements["screen.game"].waitForExistence(timeout: 5))
         let vertices = app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH %@", "board.vertex."))

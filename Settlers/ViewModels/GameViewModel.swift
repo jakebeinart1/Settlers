@@ -385,7 +385,7 @@ public final class GameViewModel {
             ? BoardGenerator.randomized(seed: UInt64.random(in: .min ... .max), shape: shape)
             : BoardGenerator.standard(shape)
         return GameSetup.newGame(board: board, seed: UInt64.random(in: .min ... .max), playerCount: playerCount,
-                                 victoryPointTarget: setup.victoryPointTarget, mode: setup.mode)
+                                 victoryPointTarget: setup.victoryPointTarget, mode: setup.mode, variant: setup.variant)
     }
 
     private static func humanRoster(
