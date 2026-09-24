@@ -104,8 +104,7 @@ private func encodeOmitting(_ keys: [String], from state: GameState) throws -> D
 
 @Test func aSaveWrittenBeforeConquestExistedLoadsAsStandard() throws {
     let state = GameSetup.newGame(board: BoardGenerator.standard(), seed: 9)
-    let data = try encodeOmitting(["variant", "garrisons", "armyDeck", "armyHands",
-                                   "armyCardsBoughtThisTurn"], from: state)
+    let data = try encodeOmitting(["variant", "garrisons", "armyDeck", "armyHands"], from: state)
     let decoded = try JSONDecoder().decode(GameState.self, from: data)
     #expect(decoded.variant == .standard)
     #expect(decoded.garrisons.isEmpty && decoded.armyHands.isEmpty)

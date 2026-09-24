@@ -339,7 +339,7 @@ public struct Bot: Sendable {
         )
         consider(buildMove, score: weights.buildMoveScore)
         if ConquestHeuristics.shouldBuyAheadOfBuilding(armyBuying, state: state, player: player) {
-            consider(.buyArmyCard, score: weights.buildMoveScore + 0.1)
+            consider(ConquestHeuristics.buyMove(state: state, player: player), score: weights.buildMoveScore + 0.1)
         }
 
         // Buying/proposing a trade are fallbacks considered only once a
@@ -358,7 +358,7 @@ public struct Bot: Sendable {
                 )
             }
             if armyBuying == .idle, ConquestHeuristics.shouldBuyArmyCard(state: state, player: player) {
-                consider(.buyArmyCard, score: weights.buyDevCardMoveBase)
+                consider(ConquestHeuristics.buyMove(state: state, player: player), score: weights.buyDevCardMoveBase)
             }
             // Fall back to the bank/port when no build is affordable yet and
             // no other player's offering a good deal - previously bots only

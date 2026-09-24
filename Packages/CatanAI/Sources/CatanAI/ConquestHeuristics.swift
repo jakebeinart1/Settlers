@@ -51,6 +51,13 @@ enum ConquestHeuristics {
         }
     }
 
+    /// The buy a bot makes: the engine's default payment for its hand.
+    static func buyMove(state: GameState, player: PlayerID) -> GameMove? {
+        guard let owner = state.players.first(where: { $0.id == player }),
+              let paying = Conquest.payment(for: owner.resources, price: state.armyPrice) else { return nil }
+        return .buyArmyCard(paying: paying)
+    }
+
     static func shouldBuyAheadOfBuilding(_ buying: ArmyBuying, state: GameState, player: PlayerID) -> Bool {
         guard buying != .idle, shouldBuyArmyCard(state: state, player: player) else { return false }
         guard buying == .targeted else { return true }

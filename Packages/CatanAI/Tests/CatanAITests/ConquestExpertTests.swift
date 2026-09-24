@@ -46,9 +46,9 @@ private func sharedSix(seed: UInt64 = 1) throws -> (GameState, HexCoordinate) {
     let ledger = PublicLedger.fromPositionAlone(state, observer: me)
     let evaluator = PositionEvaluator(seat: me, weights: policy.weights(for: state))
     state.armyDeck[0] = 9
-    let withNine = try #require(policy.projectedArmyCard(state: state, ledger: ledger, evaluator: evaluator))
+    let withNine = try #require(policy.projectedArmyCard(ConquestHeuristics.buyMove(state: state, player: me)!, state: state, ledger: ledger, evaluator: evaluator))
     state.armyDeck[0] = 1
-    let withOne = try #require(policy.projectedArmyCard(state: state, ledger: ledger, evaluator: evaluator))
+    let withOne = try #require(policy.projectedArmyCard(ConquestHeuristics.buyMove(state: state, player: me)!, state: state, ledger: ledger, evaluator: evaluator))
     #expect(withNine == withOne)
 }
 

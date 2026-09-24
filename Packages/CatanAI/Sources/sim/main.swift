@@ -451,6 +451,8 @@ private enum Rendering {
             return "discard[\(table(amounts))]"
         case .bankTrade(let give, let get):
             return "bankTrade[\(table(give))->\(table(get))]"
+        case .buyArmyCard(let paying):
+            return "buyArmyCard[\(table(paying))]"
         case .proposeTrade(let offer):
             return "proposeTrade[p\(offer.from.index):\(table(offer.give))->\(table(offer.want))]"
         default:

@@ -420,8 +420,8 @@ public enum RulesEngine {
                 WinCondition.checkForWinner(&state)
                 events.append(.boughtDevCard(player))
 
-            case .buyArmyCard:
-                let paid = try Conquest.buy(by: player, state: &state)
+            case .buyArmyCard(let paying):
+                let paid = try Conquest.buy(paying: paying, by: player, state: &state)
                 events.append(.boughtArmyCard(player, paid: paid))
 
             case .deployArmy(let hex, let strengths):
@@ -446,7 +446,6 @@ public enum RulesEngine {
 
             case .endTurn:
                 state.devCardsBoughtThisTurn = [:]
-                state.armyCardsBoughtThisTurn = [:]
                 state.devCardPlayedThisTurn = nil
                 state.tradesAcceptedThisTurn = [:]
                 state.declinedTradeOffersThisTurn = [:]

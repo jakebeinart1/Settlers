@@ -5,11 +5,10 @@
 public enum Conquest {
     public static let armyCardCost: [Resource: Int] = [.brick: 1, .lumber: 1, .wool: 1, .grain: 1, .ore: 1]
 
-    /// What `hand` pays for one army card at `price`, or nil if it cannot.
-    /// For "any N" the engine chooses: biggest pile first, ties in
-    /// `Resource.allCases` order, so the choice is the same in every process.
-    /// ponytail: the buyer cannot choose which cards; add a payment payload to
-    /// `.buyArmyCard` if players want to.
+    /// The default payment `hand` makes for one army card at `price` - what a
+    /// bot pays and what `legalMoves` lists - or nil if it cannot. For "any N":
+    /// biggest pile first, ties in `Resource.allCases` order, so the choice is
+    /// the same in every process. A player may pay any other valid set.
     public static func payment(for hand: [Resource: Int], price: ArmyPrice) -> [Resource: Int]? {
         guard let count = price.anyCount else {
             return armyCardCost.allSatisfy { (hand[$0.key] ?? 0) >= $0.value } ? armyCardCost : nil
@@ -42,13 +41,18 @@ public enum Conquest {
         counts.keys.sorted().flatMap { repeatElement($0, count: counts[$0, default: 0]) }
     }
 
-    /// `player`'s army cards minus those bought this turn, ascending.
+    /// `player`'s army cards, ascending. All of them: a card may be deployed the
+    /// turn it is bought (Jake, 2026-09-24), so an attack can come from nowhere.
     public static func playableCards(for player: PlayerID, in state: GameState) -> [Int] {
-        var hand = state.armyHands[player, default: []].sorted()
-        for card in state.armyCardsBoughtThisTurn[player, default: []] {
-            if let index = hand.firstIndex(of: card) { hand.remove(at: index) }
-        }
-        return hand
+        state.armyHands[player, default: []].sorted()
+    }
+
+    /// Whether `paying` is exactly one army card's price and `hand` holds it.
+    public static func isValidPayment(_ paying: [Resource: Int], price: ArmyPrice, hand: [Resource: Int]) -> Bool {
+        guard paying.values.allSatisfy({ $0 > 0 }),
+              paying.allSatisfy({ (hand[$0.key] ?? 0) >= $0.value }) else { return false }
+        guard let count = price.anyCount else { return paying == armyCardCost }
+        return paying.values.reduce(0, +) == count
     }
 
     /// A producing hex one of `player`'s buildings touches, in a Conquest game.
@@ -72,20 +76,18 @@ public enum Conquest {
 
     /// Returns what was paid; the drawn card stays private.
     @discardableResult
-    static func buy(by player: PlayerID, state: inout GameState) throws -> [Resource: Int] {
+    static func buy(paying: [Resource: Int], by player: PlayerID, state: inout GameState) throws -> [Resource: Int] {
         guard state.variant == .conquest else { throw MoveError.wrongPhase }
         guard let index = state.players.firstIndex(where: { $0.id == player }) else {
             throw MoveError.other("unknown player")
         }
         guard !state.armyDeck.isEmpty else { throw MoveError.other("The army deck is empty.") }
-        guard let paid = payment(for: state.players[index].resources, price: state.armyPrice) else {
-            throw MoveError.insufficientResources
+        guard isValidPayment(paying, price: state.armyPrice, hand: state.players[index].resources) else {
+            throw MoveError.other("An army card costs \(state.armyPrice.label), from cards you hold.")
         }
-        try RulesEngine.deduct(paid, from: &state, playerIndex: index)
-        let card = state.armyDeck.removeFirst()
-        state.armyHands[player, default: []].append(card)
-        state.armyCardsBoughtThisTurn[player, default: []].append(card)
-        return paid
+        try RulesEngine.deduct(paying, from: &state, playerIndex: index)
+        state.armyHands[player, default: []].append(state.armyDeck.removeFirst())
+        return paying
     }
 
     static func deploy(_ strengths: [Int], to hex: HexCoordinate, by player: PlayerID,
@@ -125,8 +127,8 @@ public enum Conquest {
     static func moves(for player: Player, in state: GameState) -> [GameMove] {
         guard state.variant == .conquest else { return [] }
         var moves: [GameMove] = []
-        if payment(for: player.resources, price: state.armyPrice) != nil, !state.armyDeck.isEmpty {
-            moves.append(.buyArmyCard)
+        if let paying = payment(for: player.resources, price: state.armyPrice), !state.armyDeck.isEmpty {
+            moves.append(.buyArmyCard(paying: paying))
         }
         let playable = playableCards(for: player.id, in: state)
         guard !playable.isEmpty else { return moves }
@@ -184,6 +186,15 @@ public enum ArmyPrice: String, Codable, CaseIterable, Sendable {
     case anyThree
     /// Any single resource card.
     case anyOne
+
+    /// For messages: "any 3 resource cards".
+    public var label: String {
+        switch self {
+        case .oneOfEach: return "one of each resource"
+        case .anyThree: return "any 3 resource cards"
+        case .anyOne: return "any 1 resource card"
+        }
+    }
 
     var anyCount: Int? {
         switch self {

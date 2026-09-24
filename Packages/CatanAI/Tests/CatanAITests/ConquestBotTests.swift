@@ -63,8 +63,8 @@ private func conquestMainTurn(seed: UInt64 = 1) -> GameState {
     var rng = RandomSource(seed: 1)
     let bold = Bot(personality: .balanced, armyBuying: .bold).decide(for: state, player: seat, rng: &rng)
     let idle = Bot(personality: .balanced).decide(for: state, player: seat, rng: &rng)
-    #expect(bold == .buyArmyCard)
-    #expect(idle != .buyArmyCard, "idle bot should build first, got \(idle)")
+    #expect({ if case .buyArmyCard = bold { true } else { false } }())
+    #expect({ if case .buyArmyCard = idle { false } else { true } }(), "idle bot should build first, got \(idle)")
 }
 
 @Test func aTargetedBotBuysOnlyWhenOneMoreCardWouldTakeAGoodHex() throws {
@@ -80,9 +80,11 @@ private func conquestMainTurn(seed: UInt64 = 1) -> GameState {
     var rng = RandomSource(seed: 1)
 
     state.armyHands = [:]
-    #expect(bot.decide(for: state, player: seat, rng: &rng) != .buyArmyCard, "0 + ~4 cannot beat 5")
+    let without = bot.decide(for: state, player: seat, rng: &rng)
+    #expect({ if case .buyArmyCard = without { false } else { true } }(), "0 + ~4 cannot beat 5")
     state.armyHands = [seat: [2]]
-    #expect(bot.decide(for: state, player: seat, rng: &rng) == .buyArmyCard, "2 + ~4 beats 5")
+    let with = bot.decide(for: state, player: seat, rng: &rng)
+    #expect({ if case .buyArmyCard = with { true } else { false } }(), "2 + ~4 beats 5")
 }
 
 @Test func silencingTheLeaderIsWorthMoreThanSilencingAnyoneElse() throws {

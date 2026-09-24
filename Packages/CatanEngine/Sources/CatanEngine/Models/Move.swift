@@ -15,8 +15,11 @@ public enum GameMove: Codable, Sendable, Hashable {
     case buildSettlement(VertexID)
     case buildCity(VertexID)
     case buyDevCard
-    /// Conquest: 1 of each resource for the top army card.
-    case buyArmyCard
+    /// Conquest: the top army card, paid for with exactly these cards - any the
+    /// buyer holds that make up `GameState.armyPrice`. `legalMoves` lists one
+    /// payment (the engine's default); `apply` accepts any valid one, so a
+    /// player chooses what to give up.
+    case buyArmyCard(paying: [Resource: Int])
     /// Conquest: spend these army cards on `to`. Reinforces a hex you hold,
     /// attacks any other. `strengths` is sorted ascending by convention.
     case deployArmy(to: HexCoordinate, strengths: [Int])

@@ -173,7 +173,7 @@ public struct EvaluationPolicy: LedgerAwarePolicy {
             return projectedTrade(offer, state: state, ledger: ledger, evaluator: evaluator)
         }
         if case .buyArmyCard = move {
-            return projectedArmyCard(state: state, ledger: ledger, evaluator: evaluator)
+            return projectedArmyCard(move, state: state, ledger: ledger, evaluator: evaluator)
         }
         if case .buyDevCard = move {
             return projectedDevCard(state: state, ledger: ledger, evaluator: evaluator)
@@ -268,8 +268,10 @@ public struct EvaluationPolicy: LedgerAwarePolicy {
     /// so that card is taken back out before evaluating and the mean's value
     /// added instead. Removing it (rather than subtracting its value) keeps the
     /// score bit-identical whatever the face was.
-    func projectedArmyCard(state: GameState, ledger: PublicLedger, evaluator: PositionEvaluator) -> Double? {
-        guard var (next, nextLedger) = applied(.buyArmyCard, to: state, ledger: ledger, by: evaluator.seat),
+    func projectedArmyCard(
+        _ buy: GameMove, state: GameState, ledger: PublicLedger, evaluator: PositionEvaluator
+    ) -> Double? {
+        guard var (next, nextLedger) = applied(buy, to: state, ledger: ledger, by: evaluator.seat),
               next.armyHands[evaluator.seat]?.popLast() != nil else { return nil }
         next.armyDeck = state.armyDeck
         let mean = PositionEvaluator.meanArmyStrength(state.rules)

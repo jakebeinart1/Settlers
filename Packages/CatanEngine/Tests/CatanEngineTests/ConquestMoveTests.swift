@@ -13,30 +13,57 @@ private func conquest(hand: [Int] = [], seed: UInt64 = 1) -> (GameState, Tile) {
 
 private let everyResource: [Resource: Int] = [.brick: 1, .lumber: 1, .wool: 1, .grain: 1, .ore: 1]
 
-@Test func buyingCostsAnyThreeAndDrawsTheTopCardUnplayableThisTurn() throws {
-    var (state, _) = conquest()
-    state.players[0].resources = everyResource
-    let top = state.armyDeck[0]
-    try RulesEngine.apply(.buyArmyCard, by: state.players[0].id, to: &state)
-    #expect(state.players[0].resources.values.reduce(0, +) == 2)
-    #expect(state.armyHands[state.players[0].id] == [top])
-    #expect(Conquest.playableCards(for: state.players[0].id, in: state).isEmpty)
+/// The buy a bot would make: the engine's default payment for this hand.
+private func defaultBuy(_ state: GameState) -> GameMove {
+    .buyArmyCard(paying: Conquest.payment(for: state.players[0].resources, price: state.armyPrice)!)
 }
 
-@Test func aCardBoughtThisTurnIsNotPlayableEvenWhenAnOlderTwinIs() throws {
-    var (state, _) = conquest(hand: [3])
-    state.armyDeck[0] = 3
+private func offersBuy(_ state: GameState) -> Bool {
+    RulesEngine.legalMoves(for: state).contains { if case .buyArmyCard = $0 { true } else { false } }
+}
+
+@Test func buyingPaysExactlyTheChosenThreeCardsAndDrawsTheTopCard() throws {
+    var (state, _) = conquest()
+    state.players[0].resources = [.ore: 2, .wool: 2, .brick: 1]
+    let top = state.armyDeck[0]
+    let events = try RulesEngine.apply(.buyArmyCard(paying: [.ore: 2, .brick: 1]), by: state.players[0].id, to: &state)
+    #expect(state.players[0].resources[.ore] == 0)
+    #expect(state.players[0].resources[.brick] == 0)
+    #expect(state.players[0].resources[.wool] == 2)
+    #expect(state.armyHands[state.players[0].id] == [top])
+    #expect(events.contains(.boughtArmyCard(state.players[0].id, paid: [.ore: 2, .brick: 1])))
+}
+
+@Test func aCardBoughtThisTurnCanBeDeployedAtOnce() throws {
+    var (state, tile) = conquest()
+    state.armyDeck[0] = 9
     state.players[0].resources = everyResource
-    try RulesEngine.apply(.buyArmyCard, by: state.players[0].id, to: &state)
-    #expect(Conquest.playableCards(for: state.players[0].id, in: state) == [3])
+    try RulesEngine.apply(defaultBuy(state), by: state.players[0].id, to: &state)
+    #expect(Conquest.playableCards(for: state.players[0].id, in: state) == [9])
+    try RulesEngine.apply(.deployArmy(to: tile.coordinate, strengths: [9]), by: state.players[0].id, to: &state)
+    #expect(state.garrisons[tile.coordinate]?.owner == state.players[0].id)
+}
+
+@Test func aPaymentThatIsNotExactlyTheHeldPriceIsRefusedWithoutMutation() {
+    var (start, _) = conquest()
+    start.players[0].resources = [.ore: 2, .wool: 2]
+    for paying: [Resource: Int] in [[.ore: 2], [.ore: 3], [.ore: 2, .wool: 2], [.brick: 3], [.ore: -1, .wool: 4], [:]] {
+        var state = start
+        #expect(throws: (any Error).self, "paying \(paying)") {
+            try RulesEngine.apply(.buyArmyCard(paying: paying), by: state.players[0].id, to: &state)
+        }
+        #expect(state == start)
+    }
 }
 
 @Test func anEmptyArmyDeckCannotBeBoughtFrom() {
     var (state, _) = conquest()
     state.armyDeck = []
     state.players[0].resources = everyResource
-    #expect(!RulesEngine.legalMoves(for: state).contains(.buyArmyCard))
-    #expect(throws: (any Error).self) { try RulesEngine.apply(.buyArmyCard, by: state.players[0].id, to: &state) }
+    #expect(!offersBuy(state))
+    #expect(throws: (any Error).self) {
+        try RulesEngine.apply(.buyArmyCard(paying: [.brick: 1, .lumber: 1, .wool: 1]), by: state.players[0].id, to: &state)
+    }
 }
 
 @Test func attackingPastATribeTakesTheHexWithTheOverflow() throws {
@@ -127,25 +154,17 @@ private let everyResource: [Resource: Int] = [.brick: 1, .lumber: 1, .wool: 1, .
     state.phase = .mainTurn(playerIndex: 0)
     state.players[0].resources = everyResource
     let tile = state.board.tiles.first { $0.numberToken == 6 }!
-    #expect(!RulesEngine.legalMoves(for: state).contains(.buyArmyCard))
+    #expect(!offersBuy(state))
     #expect(throws: (any Error).self) {
         try RulesEngine.apply(.deployArmy(to: tile.coordinate, strengths: [1]), by: state.players[0].id, to: &state)
     }
-}
-
-@Test func endTurnMakesBoughtCardsPlayable() throws {
-    var (state, _) = conquest()
-    state.players[0].resources = everyResource
-    try RulesEngine.apply(.buyArmyCard, by: state.players[0].id, to: &state)
-    try RulesEngine.apply(.endTurn, by: state.players[0].id, to: &state)
-    #expect(Conquest.playableCards(for: state.players[0].id, in: state).count == 1)
 }
 
 @Test func anyThreePricePaysFromTheBiggestPilesFirst() throws {
     var (state, _) = conquest()
     state.armyPrice = .anyThree
     state.players[0].resources = [.ore: 2, .wool: 2, .brick: 1]
-    let events = try RulesEngine.apply(.buyArmyCard, by: state.players[0].id, to: &state)
+    let events = try RulesEngine.apply(defaultBuy(state), by: state.players[0].id, to: &state)
     // Ties break in Resource.allCases order, so the result is the same in every process.
     let paid = Conquest.payment(for: [.ore: 2, .wool: 2, .brick: 1], price: .anyThree)!
     #expect(paid.values.reduce(0, +) == 3)
@@ -158,14 +177,14 @@ private let everyResource: [Resource: Int] = [.brick: 1, .lumber: 1, .wool: 1, .
     var (state, _) = conquest()
     state.armyPrice = .anyThree
     state.players[0].resources = [.ore: 2]
-    #expect(!RulesEngine.legalMoves(for: state).contains(.buyArmyCard))
+    #expect(!offersBuy(state))
 }
 
 @Test func anyOnePriceTakesASingleCard() throws {
     var (state, _) = conquest()
     state.armyPrice = .anyOne
     state.players[0].resources = [.grain: 1]
-    try RulesEngine.apply(.buyArmyCard, by: state.players[0].id, to: &state)
+    try RulesEngine.apply(defaultBuy(state), by: state.players[0].id, to: &state)
     #expect(state.players[0].resources.values.reduce(0, +) == 0)
 }
 
@@ -181,13 +200,4 @@ private let everyResource: [Resource: Int] = [.brick: 1, .lumber: 1, .wool: 1, .
         return strengths
     })
     #expect(sets == [[3], [5], [3, 3], [3, 5], [3, 3, 5]])
-}
-
-@Test func deployMovesNeverOfferACardBoughtThisTurn() {
-    var (state, _) = conquest(hand: [2, 5])
-    state.armyCardsBoughtThisTurn[state.players[0].id] = [5]
-    let offered = Conquest.deployMoves(for: state.players[0].id, in: state).allSatisfy {
-        if case .deployArmy(_, let strengths) = $0 { return !strengths.contains(5) } else { return false }
-    }
-    #expect(offered)
 }

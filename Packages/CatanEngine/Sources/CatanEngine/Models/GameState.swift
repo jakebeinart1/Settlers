@@ -104,8 +104,6 @@ public struct GameState: Codable, Sendable, Equatable {
     /// rather than on `Player` because `Player` decodes synthesized, and a new
     /// non-optional field there would reject every existing save.
     public var armyHands: [PlayerID: [Int]]
-    /// Army cards bought this turn, not yet playable. Cleared on `.endTurn`.
-    public var armyCardsBoughtThisTurn: [PlayerID: [Int]]
     /// Conquest only: what an army card costs in this game. Any three cards
     /// (Jake, 2026-09-24): a trained Expert found armies dead at one-of-each
     /// and mandatory at any-one; see `docs/AI_summaries/2026-09-23-conquest-expert-price.md`.
@@ -134,7 +132,6 @@ public struct GameState: Codable, Sendable, Equatable {
         garrisons: [HexCoordinate: Garrison] = [:],
         armyDeck: [Int] = [],
         armyHands: [PlayerID: [Int]] = [:],
-        armyCardsBoughtThisTurn: [PlayerID: [Int]] = [:],
         armyPrice: ArmyPrice = .anyThree
     ) {
         self.rng = rng
@@ -159,7 +156,6 @@ public struct GameState: Codable, Sendable, Equatable {
         self.garrisons = garrisons
         self.armyDeck = armyDeck
         self.armyHands = armyHands
-        self.armyCardsBoughtThisTurn = armyCardsBoughtThisTurn
         self.armyPrice = armyPrice
     }
 
@@ -242,8 +238,6 @@ public struct GameState: Codable, Sendable, Equatable {
         garrisons = try container.decodeIfPresent([HexCoordinate: Garrison].self, forKey: .garrisons) ?? [:]
         armyDeck = try container.decodeIfPresent([Int].self, forKey: .armyDeck) ?? []
         armyHands = try container.decodeIfPresent([PlayerID: [Int]].self, forKey: .armyHands) ?? [:]
-        armyCardsBoughtThisTurn = try container
-            .decodeIfPresent([PlayerID: [Int]].self, forKey: .armyCardsBoughtThisTurn) ?? [:]
         armyPrice = try container.decodeIfPresent(ArmyPrice.self, forKey: .armyPrice) ?? .anyThree
     }
 
