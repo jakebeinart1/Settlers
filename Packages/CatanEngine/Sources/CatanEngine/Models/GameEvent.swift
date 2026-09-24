@@ -38,8 +38,8 @@ public enum GameEvent: Codable, Sendable, Hashable {
     case builtSettlement(PlayerID)
     case builtCity(PlayerID)
     case boughtDevCard(PlayerID)
-    /// Conquest. Public: everyone sees that a card was bought, never its strength.
-    case boughtArmyCard(PlayerID)
+    /// Conquest. Public: everyone sees what was paid, never the card's strength.
+    case boughtArmyCard(PlayerID, paid: [Resource: Int])
     /// Conquest. `result` is the hex's garrison afterwards; `nil` = unoccupied.
     case deployedArmy(PlayerID, hex: HexCoordinate, total: Int, result: Garrison?)
     /// `stealing` is the resource actually taken, which only the engine knows;

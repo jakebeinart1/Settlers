@@ -140,3 +140,36 @@ private let everyResource: [Resource: Int] = [.brick: 1, .lumber: 1, .wool: 1, .
     try RulesEngine.apply(.endTurn, by: state.players[0].id, to: &state)
     #expect(Conquest.playableCards(for: state.players[0].id, in: state).count == 1)
 }
+
+@Test func anyThreePricePaysFromTheBiggestPilesFirst() throws {
+    var (state, _) = conquest()
+    state.armyPrice = .anyThree
+    state.players[0].resources = [.ore: 2, .wool: 2, .brick: 1]
+    let events = try RulesEngine.apply(.buyArmyCard, by: state.players[0].id, to: &state)
+    // Ties break in Resource.allCases order, so the result is the same in every process.
+    let paid = Conquest.payment(for: [.ore: 2, .wool: 2, .brick: 1], price: .anyThree)!
+    #expect(paid.values.reduce(0, +) == 3)
+    #expect(events.contains(.boughtArmyCard(state.players[0].id, paid: paid)))
+    #expect(state.players[0].resources.values.reduce(0, +) == 2)
+    #expect(state.armyHands[state.players[0].id]?.count == 1)
+}
+
+@Test func anyThreePriceIsUnaffordableWithTwoCards() {
+    var (state, _) = conquest()
+    state.armyPrice = .anyThree
+    state.players[0].resources = [.ore: 2]
+    #expect(!RulesEngine.legalMoves(for: state).contains(.buyArmyCard))
+}
+
+@Test func anyOnePriceTakesASingleCard() throws {
+    var (state, _) = conquest()
+    state.armyPrice = .anyOne
+    state.players[0].resources = [.grain: 1]
+    try RulesEngine.apply(.buyArmyCard, by: state.players[0].id, to: &state)
+    #expect(state.players[0].resources.values.reduce(0, +) == 0)
+}
+
+@Test func oneOfEachStillNeedsAllFive() {
+    #expect(Conquest.payment(for: [.ore: 4, .wool: 4, .brick: 4, .grain: 4], price: .oneOfEach) == nil)
+    #expect(Conquest.payment(for: everyResource, price: .oneOfEach) == Conquest.armyCardCost)
+}

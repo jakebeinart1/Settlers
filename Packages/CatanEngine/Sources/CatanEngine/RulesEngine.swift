@@ -421,8 +421,8 @@ public enum RulesEngine {
                 events.append(.boughtDevCard(player))
 
             case .buyArmyCard:
-                try Conquest.buy(by: player, state: &state)
-                events.append(.boughtArmyCard(player))
+                let paid = try Conquest.buy(by: player, state: &state)
+                events.append(.boughtArmyCard(player, paid: paid))
 
             case .deployArmy(let hex, let strengths):
                 let result = try Conquest.deploy(strengths, to: hex, by: player, state: &state)

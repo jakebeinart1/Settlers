@@ -106,6 +106,8 @@ public struct GameState: Codable, Sendable, Equatable {
     public var armyHands: [PlayerID: [Int]]
     /// Army cards bought this turn, not yet playable. Cleared on `.endTurn`.
     public var armyCardsBoughtThisTurn: [PlayerID: [Int]]
+    /// Conquest only: what an army card costs in this game.
+    public var armyPrice: ArmyPrice
 
     public init(
         board: Board,
@@ -130,7 +132,8 @@ public struct GameState: Codable, Sendable, Equatable {
         garrisons: [HexCoordinate: Garrison] = [:],
         armyDeck: [Int] = [],
         armyHands: [PlayerID: [Int]] = [:],
-        armyCardsBoughtThisTurn: [PlayerID: [Int]] = [:]
+        armyCardsBoughtThisTurn: [PlayerID: [Int]] = [:],
+        armyPrice: ArmyPrice = .oneOfEach
     ) {
         self.rng = rng
         self.schemaVersion = schemaVersion
@@ -155,6 +158,7 @@ public struct GameState: Codable, Sendable, Equatable {
         self.armyDeck = armyDeck
         self.armyHands = armyHands
         self.armyCardsBoughtThisTurn = armyCardsBoughtThisTurn
+        self.armyPrice = armyPrice
     }
 
     /// Decodes a saved game, tolerating fields that a *older* save predates.
@@ -238,6 +242,7 @@ public struct GameState: Codable, Sendable, Equatable {
         armyHands = try container.decodeIfPresent([PlayerID: [Int]].self, forKey: .armyHands) ?? [:]
         armyCardsBoughtThisTurn = try container
             .decodeIfPresent([PlayerID: [Int]].self, forKey: .armyCardsBoughtThisTurn) ?? [:]
+        armyPrice = try container.decodeIfPresent(ArmyPrice.self, forKey: .armyPrice) ?? .oneOfEach
     }
 
     /// Victory points that are public knowledge for `id`: buildings plus the

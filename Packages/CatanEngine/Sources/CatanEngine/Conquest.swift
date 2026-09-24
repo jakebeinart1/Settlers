@@ -5,6 +5,26 @@
 public enum Conquest {
     public static let armyCardCost: [Resource: Int] = [.brick: 1, .lumber: 1, .wool: 1, .grain: 1, .ore: 1]
 
+    /// What `hand` pays for one army card at `price`, or nil if it cannot.
+    /// For "any N" the engine chooses: biggest pile first, ties in
+    /// `Resource.allCases` order, so the choice is the same in every process.
+    /// ponytail: the buyer cannot choose which cards; add a payment payload to
+    /// `.buyArmyCard` if players want to.
+    public static func payment(for hand: [Resource: Int], price: ArmyPrice) -> [Resource: Int]? {
+        guard let count = price.anyCount else {
+            return armyCardCost.allSatisfy { (hand[$0.key] ?? 0) >= $0.value } ? armyCardCost : nil
+        }
+        var left = hand
+        var paid: [Resource: Int] = [:]
+        for _ in 0..<count {
+            guard let biggest = Resource.allCases.max(by: { (left[$0] ?? 0) < (left[$1] ?? 0) }),
+                  (left[biggest] ?? 0) > 0 else { return nil }
+            left[biggest, default: 0] -= 1
+            paid[biggest, default: 0] += 1
+        }
+        return paid
+    }
+
     /// Every producing hex held by a tribe at its number's pip count. The
     /// desert gets no entry, which is what makes it un-deployable.
     public static func initialGarrisons(board: Board) -> [HexCoordinate: Garrison] {
@@ -50,18 +70,22 @@ public enum Conquest {
         return Garrison(owner: player, strength: -remaining)
     }
 
+    /// Returns what was paid; the drawn card stays private.
     @discardableResult
-    static func buy(by player: PlayerID, state: inout GameState) throws -> Int {
+    static func buy(by player: PlayerID, state: inout GameState) throws -> [Resource: Int] {
         guard state.variant == .conquest else { throw MoveError.wrongPhase }
         guard let index = state.players.firstIndex(where: { $0.id == player }) else {
             throw MoveError.other("unknown player")
         }
         guard !state.armyDeck.isEmpty else { throw MoveError.other("The army deck is empty.") }
-        try RulesEngine.deduct(armyCardCost, from: &state, playerIndex: index)
+        guard let paid = payment(for: state.players[index].resources, price: state.armyPrice) else {
+            throw MoveError.insufficientResources
+        }
+        try RulesEngine.deduct(paid, from: &state, playerIndex: index)
         let card = state.armyDeck.removeFirst()
         state.armyHands[player, default: []].append(card)
         state.armyCardsBoughtThisTurn[player, default: []].append(card)
-        return card
+        return paid
     }
 
     static func deploy(_ strengths: [Int], to hex: HexCoordinate, by player: PlayerID,
@@ -101,7 +125,7 @@ public enum Conquest {
     static func moves(for player: Player, in state: GameState) -> [GameMove] {
         guard state.variant == .conquest else { return [] }
         var moves: [GameMove] = []
-        if RulesEngine.canAfford(armyCardCost, player: player), !state.armyDeck.isEmpty {
+        if payment(for: player.resources, price: state.armyPrice) != nil, !state.armyDeck.isEmpty {
             moves.append(.buyArmyCard)
         }
         let playable = playableCards(for: player.id, in: state)
@@ -132,6 +156,24 @@ public enum Conquest {
             }
         }
         return best.keys.sorted().first { $0 > target }.flatMap { best[$0] }
+    }
+}
+
+/// What an army card costs. `String`-raw so saves survive reordering.
+public enum ArmyPrice: String, Codable, CaseIterable, Sendable {
+    /// One brick, lumber, wool, grain and ore.
+    case oneOfEach
+    /// Any three resource cards, like a 3:1 port.
+    case anyThree
+    /// Any single resource card.
+    case anyOne
+
+    var anyCount: Int? {
+        switch self {
+        case .oneOfEach: return nil
+        case .anyThree: return 3
+        case .anyOne: return 1
+        }
     }
 }
 

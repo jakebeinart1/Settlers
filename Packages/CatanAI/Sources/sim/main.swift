@@ -145,7 +145,9 @@ private struct SimulationConfiguration {
     var mode = GameMode.classic
     var variant = GameVariant.standard
     /// Experiment only: replaces the rules' army deck without changing the rules.
-    var strongArmyDeck = false
+    /// nil keeps the rules' deck.
+    var armyDeck: [Int: Int]?
+    var armyPrice = ArmyPrice.oneOfEach
 
     func state(seed: UInt64) -> GameState {
         var state = GameSetup.newGame(
@@ -156,12 +158,11 @@ private struct SimulationConfiguration {
             mode: mode,
             variant: variant
         )
-        if strongArmyDeck {
-            // Mean ~4.7 instead of ~4.0, same 29 cards (doubled off Classic's board).
-            let strong: [Int: Int] = [1: 3, 2: 3, 3: 4, 4: 4, 5: 4, 6: 4, 7: 3, 8: 2, 9: 2]
+        state.armyPrice = armyPrice
+        if let armyDeck {
             let scale = mode == .classic ? 1 : 2
             var rng = RandomSource(seed: seed &+ 0xA4D_DECC)
-            state.armyDeck = Conquest.buildArmyDeck(strong.mapValues { $0 * scale })
+            state.armyDeck = Conquest.buildArmyDeck(armyDeck.mapValues { $0 * scale })
             state.armyDeck.shuffle(using: &rng)
         }
         return state
@@ -187,7 +188,7 @@ private struct Options {
 
     static let usage = """
         usage: sim [--games N] [--seed S] [--players 3|4] [--victory-points 8|10|12]
-                   [--board standard|randomized] [--variant standard|conquest] [--army-deck standard|strong] [--seats LIST] [--build-id ID] [--jsonl]
+                   [--board standard|randomized] [--variant standard|conquest] [--army-deck standard|strong|steady] [--army-price each|any3|any1] [--seats LIST] [--build-id ID] [--jsonl]
                    [--weights W1,...,W14]
           --games N     number of consecutive seeds to play (default 1)
           --seed S      first match seed; seeds S ..< S+N are played (default 1)
@@ -356,9 +357,19 @@ private func parseOptions(_ arguments: [String]) -> Options {
             options.configuration.variant = variant
         case "--army-deck":
             switch uniqueValue(for: "--army-deck") {
-            case "standard": options.configuration.strongArmyDeck = false
-            case "strong": options.configuration.strongArmyDeck = true
-            default: fail("--army-deck must be standard or strong")
+            case "standard": options.configuration.armyDeck = nil
+            // Same 29 cards, mean ~4.7 instead of ~4.0.
+            case "strong": options.configuration.armyDeck = [1: 3, 2: 3, 3: 4, 4: 4, 5: 4, 6: 4, 7: 3, 8: 2, 9: 2]
+            // Same 29 cards and mean ~4.0, but only 3s, 4s and 5s: less luck.
+            case "steady": options.configuration.armyDeck = [3: 10, 4: 9, 5: 10]
+            default: fail("--army-deck must be standard, strong or steady")
+            }
+        case "--army-price":
+            switch uniqueValue(for: "--army-price") {
+            case "each": options.configuration.armyPrice = .oneOfEach
+            case "any3": options.configuration.armyPrice = .anyThree
+            case "any1": options.configuration.armyPrice = .anyOne
+            default: fail("--army-price must be each, any3 or any1")
             }
         case "--seats", "--personalities":
             let flag = arguments[index]

@@ -45,7 +45,7 @@ enum ConquestHeuristics {
     static func shouldBuyArmyCard(state: GameState, player: PlayerID) -> Bool {
         guard state.variant == .conquest, !state.armyDeck.isEmpty,
               let owner = state.players.first(where: { $0.id == player }),
-              RulesEngine.canAfford(Conquest.armyCardCost, player: owner) else { return false }
+              Conquest.payment(for: owner.resources, price: state.armyPrice) != nil else { return false }
         return state.board.tiles.map(\.coordinate).sorted().contains {
             Conquest.canDeploy(to: $0, by: player, in: state) && state.garrisons[$0]?.owner != player
         }
@@ -66,14 +66,28 @@ enum ConquestHeuristics {
     /// 5, 6, 8 and 9: the hexes worth an army card.
     static let goodHexPips = 4
 
-    /// Pips x (the +1 bonus, plus every rival building the takeover silences).
-    private static func hexValue(_ hex: HexCoordinate, for player: PlayerID, in state: GameState) -> Double {
+    /// A rival building silenced on the public leader's side counts this many
+    /// times over: cutting off whoever is winning is what the takeover is for.
+    static let leaderDenialWeight = 2.0
+
+    /// Pips x (the +1 bonus, plus every rival building the takeover silences,
+    /// the leader's weighted by `leaderDenialWeight`).
+    static func hexValue(_ hex: HexCoordinate, for player: PlayerID, in state: GameState) -> Double {
         guard let token = state.board.tiles.first(where: { $0.coordinate == hex })?.numberToken else { return 0 }
         let corners = HexGeometry.corners(of: hex)
-        let silenced = state.players.filter { $0.id != player }.reduce(0) { total, rival in
-            total + corners.reduce(0) { $0 + (rival.cities.contains($1) ? 2 : rival.settlements.contains($1) ? 1 : 0) }
+        let leader = publicLeader(in: state)
+        let silenced = state.players.filter { $0.id != player }.reduce(0.0) { total, rival in
+            let buildings = corners.reduce(0) { $0 + (rival.cities.contains($1) ? 2 : rival.settlements.contains($1) ? 1 : 0) }
+            return total + Double(buildings) * (rival.id == leader ? leaderDenialWeight : 1)
         }
-        return Double(DiceOdds.pips(for: token)) * Double(1 + silenced)
+        return Double(DiceOdds.pips(for: token)) * (1 + silenced)
+    }
+
+    /// The seat strictly ahead on public points, or nil on a tie.
+    private static func publicLeader(in state: GameState) -> PlayerID? {
+        let points = state.players.map { ($0.id, state.publicVictoryPoints(for: $0.id)) }
+        guard let top = points.map(\.1).max(), points.filter({ $0.1 == top }).count == 1 else { return nil }
+        return points.first { $0.1 == top }?.0
     }
 
     /// A rival touching `hex` whose visible hand, at expected strength, breaks it.

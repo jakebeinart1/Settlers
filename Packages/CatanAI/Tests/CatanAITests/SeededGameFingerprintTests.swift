@@ -144,10 +144,13 @@ private let expectedFingerprints: [UInt64: String] = [
 /// Conquest seeds 1-3, recorded 2026-09-23 when the variant landed. Each value
 /// agreed across three separate `sim --variant conquest` processes (three hash
 /// seeds) before it was pinned - same-process agreement proves nothing here.
+/// Seed 3 re-recorded the same day because bots began weighting the public
+/// leader's silenced buildings double (`ConquestHeuristics.leaderDenialWeight`);
+/// again agreed across three processes.
 private let expectedConquestFingerprints: [UInt64: String] = [
     1: "208dd4c2617c0344",
     2: "ad73dbaaae7c2a74",
-    3: "8129d880e5b6931f",
+    3: "fc2a721628dbc310",
 ]
 
 /// Re-recorded 2026-09-08 (all five) because the bots stopped reading hidden

@@ -84,3 +84,24 @@ private func conquestMainTurn(seed: UInt64 = 1) -> GameState {
     state.armyHands = [seat: [2]]
     #expect(bot.decide(for: state, player: seat, rng: &rng) == .buyArmyCard, "2 + ~4 beats 5")
 }
+
+@Test func silencingTheLeaderIsWorthMoreThanSilencingAnyoneElse() throws {
+    var state = conquestMainTurn()
+    let me = state.players[0].id
+    let hex = try #require(state.board.tiles.first {
+        $0.numberToken != nil && Conquest.canDeploy(to: $0.coordinate, by: me, in: state)
+    }).coordinate
+    let rivalCorner = try #require(HexGeometry.corners(of: hex).first { corner in
+        !state.players.contains { $0.settlements.contains(corner) || $0.cities.contains(corner) }
+    })
+    state.players[1].settlements.insert(rivalCorner)
+    let far = state.board.onBoardVertices.sorted().suffix(8)
+    // Seat 2 leads, so silencing seat 1 is ordinary denial...
+    state.players[2].cities.formUnion(far.suffix(4))
+    let asEqual = ConquestHeuristics.hexValue(hex, for: me, in: state)
+    // ...then seat 1 pulls ahead of everyone.
+    state.players[2].cities.subtract(far.suffix(4))
+    state.players[1].cities.formUnion(far.prefix(4))
+    let asLeader = ConquestHeuristics.hexValue(hex, for: me, in: state)
+    #expect(asLeader > asEqual)
+}

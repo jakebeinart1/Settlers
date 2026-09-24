@@ -252,8 +252,8 @@ public struct PublicLedger: Codable, Sendable, Equatable {
             debit(seat, Building.devCardCost)
             seats[seat, default: SeatBelief()].devCardCount += 1
 
-        case .boughtArmyCard(let seat):
-            debit(seat, Conquest.armyCardCost)
+        case .boughtArmyCard(let seat, let paid):
+            debit(seat, paid)
 
         case .deployedArmy:
             break
