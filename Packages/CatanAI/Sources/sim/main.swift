@@ -237,11 +237,12 @@ private func policy(named name: String,
     case "aggressive": personality = .aggressive
     case "cautious": personality = .cautious
     case "refuses-balanced": personality = nil
-    case "greedy", "random", "joint-balanced", "eval", "eval-tuned", "eval-round3", "eval-worthit": personality = nil
+    case "greedy", "random", "joint-balanced", "eval", "eval-tuned", "eval-round3", "eval-worthit",
+         "eval-noarmy": personality = nil
     default:
         fail(
             "unknown seat '\(name)'; expected balanced, aggressive, cautious, "
-                + "bold, targeted, eval, eval-tuned, eval-round3, greedy, random, "
+                + "bold, targeted, eval, eval-noarmy, eval-tuned, eval-round3, greedy, random, "
                 + "refuses-balanced or joint-balanced"
         )
     }
@@ -253,6 +254,8 @@ private func policy(named name: String,
         base = GreedyPolicy()
     } else if name == "eval" {
         base = EvaluationPolicy()
+    } else if name == "eval-noarmy" {
+        base = ArmyRefusingPolicy(base: EvaluationPolicy())
     } else if name == "eval-tuned" {
         base = EvaluationPolicy(id: "evaluation-tuned", weights: tunedWeights)
     } else if name == "eval-worthit" {
@@ -469,6 +472,45 @@ private enum Rendering {
     }
 }
 
+/// Expert with every Conquest army move masked out - never buys, never deploys,
+/// not even its free card. The "no army lane": if it wins about as often as the
+/// seats around it, armies are one route among several rather than the meta.
+///
+/// Ledger-aware on purpose. `TradeRefusingPolicy` wraps a heuristic that has no
+/// ledger; wrapping Expert without forwarding one would silently drop it to a
+/// position-only belief and measure a weaker bot, not a different lane.
+private struct ArmyRefusingPolicy: LedgerAwarePolicy {
+    let base: EvaluationPolicy
+    var id: String { "evaluation-noarmy" }
+
+    func decide(_ observation: GameObservation, rng: inout RandomSource) -> GameMove {
+        base.decide(masked(observation), rng: &rng)
+    }
+
+    func decide(_ observation: GameObservation, ledger: PublicLedger, rng: inout RandomSource) -> GameMove {
+        base.decide(masked(observation), ledger: ledger, rng: &rng)
+    }
+
+    private func masked(_ observation: GameObservation) -> GameObservation {
+        let kept = observation.legalMoves.filter {
+            switch $0 {
+            case .buyArmyCard, .deployArmy: return false
+            default: return true
+            }
+        }
+        return GameObservation(seat: observation.seat, state: observation.state, legalMoves: kept)
+    }
+}
+
+/// One seat's Conquest activity over a game.
+private struct ArmySeat {
+    var bought = 0
+    var captures = 0
+    var pvp = 0
+    var heldAtEnd = 0
+    var json: String { "{\"bought\":\(bought),\"captures\":\(captures),\"pvp\":\(pvp),\"held\":\(heldAtEnd)}" }
+}
+
 // MARK: - Playing one game
 
 /// Everything one finished game contributes to a measurement.
@@ -485,6 +527,7 @@ private struct GameResult {
     let armyCardsBought: Int
     let pvpCaptures: Int
     let firstPrimeHolder: PlayerID?
+    let armySeats: [ArmySeat]
 }
 
 /// Plays one complete game on a randomized board derived from `seed`, with
@@ -517,6 +560,7 @@ private func playGame(
     var behavior = Array(repeating: PolicyBehaviorMetrics(), count: state.players.count)
     var armyCardsBought = 0, pvpCaptures = 0
     var firstPrimeHolder: PlayerID?
+    var armySeats = Array(repeating: ArmySeat(), count: state.players.count)
 
     for _ in 0..<maxMovesPerGame {
         guard case .seat = session.nextActor() else { break }
@@ -539,9 +583,15 @@ private func playGame(
         behavior[step.actor.index].observe(step.events, for: step.actor)
         for event in step.events {
             switch event {
-            case .boughtArmyCard: armyCardsBought += 1
+            case .boughtArmyCard(let buyer, _):
+                armyCardsBought += 1
+                armySeats[buyer.index].bought += 1
             case .deployedArmy(let actor, let hex, _, let result) where result?.owner == actor:
-                if let previous = before[hex]?.owner, previous != actor { pvpCaptures += 1 }
+                if before[hex]?.owner != actor { armySeats[actor.index].captures += 1 }
+                if let previous = before[hex]?.owner, previous != actor {
+                    pvpCaptures += 1
+                    armySeats[actor.index].pvp += 1
+                }
                 let token = session.state.board.tiles.first { $0.coordinate == hex }?.numberToken
                 if firstPrimeHolder == nil, token == 6 || token == 8 { firstPrimeHolder = actor }
             default: break
@@ -551,6 +601,9 @@ private func playGame(
 
     var winner: PlayerID?
     if case .gameOver(let who) = session.state.phase { winner = who }
+    for garrison in session.state.garrisons.values {
+        if let owner = garrison.owner { armySeats[owner.index].heldAtEnd += 1 }
+    }
     return GameResult(
         buildID: buildID,
         configuration: configuration,
@@ -563,7 +616,8 @@ private func playGame(
         behavior: behavior,
         armyCardsBought: armyCardsBought,
         pvpCaptures: pvpCaptures,
-        firstPrimeHolder: firstPrimeHolder
+        firstPrimeHolder: firstPrimeHolder,
+        armySeats: armySeats
     )
 }
 
@@ -595,6 +649,7 @@ private func conquestJSON(_ result: GameResult) -> String {
     return "\"variant\":\"\(result.configuration.variant.rawValue)\","
         + "\"armyCardsBought\":\(result.armyCardsBought),\"pvpCaptures\":\(result.pvpCaptures),"
         + "\"firstPrimeHolder\":\(holder),"
+        + "\"armySeats\":[\(result.armySeats.map(\.json).joined(separator: ","))],"
 }
 
 private func behaviorJSON(_ metrics: [PolicyBehaviorMetrics]) -> String {
