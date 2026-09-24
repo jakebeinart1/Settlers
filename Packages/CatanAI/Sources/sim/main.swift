@@ -239,11 +239,11 @@ private func policy(named name: String,
     case "cautious": personality = .cautious
     case "refuses-balanced": personality = nil
     case "greedy", "random", "joint-balanced", "eval", "eval-tuned", "eval-round3", "eval-worthit",
-         "eval-noarmy": personality = nil
+         "eval-noarmy", "eval-v0": personality = nil
     default:
         fail(
             "unknown seat '\(name)'; expected balanced, aggressive, cautious, "
-                + "bold, targeted, eval, eval-noarmy, eval-tuned, eval-round3, greedy, random, "
+                + "bold, targeted, eval, eval-noarmy, eval-v0, eval-tuned, eval-round3, greedy, random, "
                 + "refuses-balanced or joint-balanced"
         )
     }
@@ -255,6 +255,15 @@ private func policy(named name: String,
         base = GreedyPolicy()
     } else if name == "eval" {
         base = EvaluationPolicy()
+    } else if name == "eval-v0" {
+        // The Conquest Expert Jake beat on 2026-09-24: the fork before it knew
+        // capture threat or exposure. Frozen here as the anchor to beat.
+        base = EvaluationPolicy(id: "evaluation-conquest-v0", weights: {
+            var weights = EvaluationWeights.conquest(.classic)
+            weights.captureThreat = 0
+            weights.garrisonExposure = 0
+            return weights
+        }())
     } else if name == "eval-noarmy" {
         // Same weights as `eval-tuned`, so a lanes run differs only in armies.
         base = ArmyRefusingPolicy(base: EvaluationPolicy(id: "evaluation-tuned", weights: tunedWeights))
