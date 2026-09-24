@@ -242,10 +242,10 @@ extension GameViewModel {
         let nine = tiles.first { $0.numberToken == 9 }!
         let five = tiles.first { $0.numberToken == 5 }!
         fixture.players[human.index].settlements.formUnion([
-            HexGeometry.corners(of: six.coordinate)[0], HexGeometry.corners(of: nine.coordinate)[0],
+            fixture.board.corners(of: six.coordinate)[0], fixture.board.corners(of: nine.coordinate)[0],
         ])
         fixture.players[rival.index].settlements.formUnion([
-            HexGeometry.corners(of: six.coordinate)[3], HexGeometry.corners(of: five.coordinate)[3],
+            fixture.board.corners(of: six.coordinate)[3], fixture.board.corners(of: five.coordinate)[3],
         ])
         fixture.garrisons[nine.coordinate] = Garrison(owner: human, strength: 6)
         fixture.garrisons[five.coordinate] = Garrison(owner: rival, strength: 4)
@@ -423,7 +423,7 @@ Append inside `BoardDecisionCoordinatorTests` (it already has `context(_:)` and 
     private func conquestTurn(hand: [Int]) -> (GameState, HexCoordinate) {
         var state = GameSetup.newGame(board: BoardGenerator.standard(), seed: 4_310, variant: .conquest)
         let six = state.board.tiles.sorted { $0.coordinate < $1.coordinate }.first { $0.numberToken == 6 }!
-        state.players[0].settlements.insert(HexGeometry.corners(of: six.coordinate)[0])
+        state.players[0].settlements.insert(fixture.board.corners(of: six.coordinate)[0])
         state.armyHands[actor] = hand
         state.phase = .mainTurn(playerIndex: 0)
         return (state, six.coordinate)

@@ -74,7 +74,7 @@ enum ConquestHeuristics {
     /// the leader's weighted by `leaderDenialWeight`).
     static func hexValue(_ hex: HexCoordinate, for player: PlayerID, in state: GameState) -> Double {
         guard let token = state.board.tiles.first(where: { $0.coordinate == hex })?.numberToken else { return 0 }
-        let corners = HexGeometry.corners(of: hex)
+        let corners = state.board.corners(of: hex)
         let leader = publicLeader(in: state)
         let silenced = state.players.filter { $0.id != player }.reduce(0.0) { total, rival in
             let buildings = corners.reduce(0) { $0 + (rival.cities.contains($1) ? 2 : rival.settlements.contains($1) ? 1 : 0) }

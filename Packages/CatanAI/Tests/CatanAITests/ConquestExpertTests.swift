@@ -7,7 +7,7 @@ private func sharedSix(seed: UInt64 = 1) throws -> (GameState, HexCoordinate) {
     var state = GameSetup.newGame(board: BoardGenerator.standard(), seed: seed, variant: .conquest)
     state.phase = .mainTurn(playerIndex: 0)
     let six = try #require(state.board.tiles.first { $0.numberToken == 6 && $0.coordinate != state.board.robberTile })
-    let corners = HexGeometry.corners(of: six.coordinate)
+    let corners = state.board.corners(of: six.coordinate)
     state.players[0].settlements.insert(corners[0])
     state.players[1].settlements.insert(corners[3])
     return (state, six.coordinate)

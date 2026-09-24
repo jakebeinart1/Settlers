@@ -91,7 +91,7 @@ private func conquestMainTurn(seed: UInt64 = 1) -> GameState {
     let hex = try #require(state.board.tiles.first {
         $0.numberToken != nil && Conquest.canDeploy(to: $0.coordinate, by: me, in: state)
     }).coordinate
-    let rivalCorner = try #require(HexGeometry.corners(of: hex).first { corner in
+    let rivalCorner = try #require(state.board.corners(of: hex).first { corner in
         !state.players.contains { $0.settlements.contains(corner) || $0.cities.contains(corner) }
     })
     state.players[1].settlements.insert(rivalCorner)

@@ -20,6 +20,14 @@ public struct Board: Codable, Sendable, Equatable {
     }
 
     /// The tile coordinates that meet at `vertex` (1-3 of them).
+    /// The six corners of `hex`. Public on `Board` rather than by exposing
+    /// `HexGeometry`, whose name the app target already uses for its own
+    /// drawing geometry - both public, every file importing the two modules
+    /// failed with "'HexGeometry' is ambiguous".
+    public func corners(of hex: HexCoordinate) -> [VertexID] {
+        HexGeometry.corners(of: hex)
+    }
+
     public func neighborTiles(of vertex: VertexID) -> [HexCoordinate] {
         vertex.touchingTiles
     }
@@ -63,7 +71,7 @@ public struct Board: Codable, Sendable, Equatable {
 /// single source of truth for hex-grid geometry: every other piece of code
 /// (board generation, adjacency queries) builds on these two functions rather
 /// than re-deriving corner/edge positions.
-public enum HexGeometry {
+enum HexGeometry {
     /// The corner shared by `coordinate` and its neighbors in directions `i`
     /// and `i+1`. `HexCoordinate.neighborDirections` is listed in consistent
     /// rotational (60°) order, so any two directions that are adjacent in
@@ -80,7 +88,7 @@ public enum HexGeometry {
 
     /// All 6 corners of a tile, indexed 0...5, where corner `i` sits between
     /// neighbor directions `i` and `i + 1`.
-    public static func corners(of coordinate: HexCoordinate) -> [VertexID] {
+    static func corners(of coordinate: HexCoordinate) -> [VertexID] {
         (0..<6).map { corner(of: coordinate, between: $0) }
     }
 
