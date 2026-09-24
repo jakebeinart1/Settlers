@@ -255,7 +255,8 @@ private func policy(named name: String,
     } else if name == "eval" {
         base = EvaluationPolicy()
     } else if name == "eval-noarmy" {
-        base = ArmyRefusingPolicy(base: EvaluationPolicy())
+        // Same weights as `eval-tuned`, so a lanes run differs only in armies.
+        base = ArmyRefusingPolicy(base: EvaluationPolicy(id: "evaluation-tuned", weights: tunedWeights))
     } else if name == "eval-tuned" {
         base = EvaluationPolicy(id: "evaluation-tuned", weights: tunedWeights)
     } else if name == "eval-worthit" {
