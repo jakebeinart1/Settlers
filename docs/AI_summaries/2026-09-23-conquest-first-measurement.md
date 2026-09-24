@@ -51,3 +51,53 @@ in fact worth buying earlier. Two ways to separate them, cheapest first:
 - Try the spec's knob: the stronger deck (mean ~4.7) or a cheaper card, and re-measure.
 
 Changing the rules is Jake's call; nothing here changes them.
+
+---
+
+# Follow-up: is it the rules or the bot? (same day)
+
+Frozen binaries `bf1512d` (bold, strong deck) and `e959a75` (targeted); both contain the
+unchanged idle bot. Held-out seeds 30000-30155 (rotations) / 30000-30199 (tables), never used
+before. Four-player only (the only table size New Game offers). Every seat is `balanced`
+personality; only the army-buying rule differs:
+
+- **idle** — the shipped bot: buys a card only when no build is worth making.
+- **bold** — buys ahead of building whenever affordable and a hex is not yet its own.
+- **targeted** — buys ahead of building only when one more card at mean strength would let its
+  hand take a 5, 6, 8 or 9 it touches.
+
+Rotations put the candidate in each of the 4 chairs for every seed (624 games, all decisive);
+the null is exactly 25% by symmetry. Declared effect size: 5 points.
+
+| Candidate win rate (null 25%) | Classic | Vast |
+|---|---|---|
+| one **bold** vs three idle | **14.6% ± 2.8%** | **0.5% ± 0.5%** |
+| one **idle** vs three bold | **38.0% ± 3.8%** | **77.6% ± 3.3%** |
+| one bold vs three idle, **strong deck** (mean 4.7) | 14.9% ± 2.8% | 0.5% ± 0.5% |
+| one **targeted** vs three idle | 25.2% ± 3.4% | 22.6% ± 3.3% |
+
+| Whole-table behaviour (200 games) | Classic | Vast |
+|---|---|---|
+| all idle: army cards / PvP captures per game | 1.3 / 0.98 | 0.1 / 0.54 |
+| all targeted | 1.8 / 1.35 | 15.7 / 6.57 |
+| all bold | 11.7 / 4.00 | 53.7 / 15.85 |
+| all bold, strong deck | 10.0 / 4.05 | 52.9 / 19.12 |
+| first 6/8 holder wins (any table) | 21–30% | 17–32% |
+
+Every game in every arm finished. All-bold Vast games are 60% longer (1,085 moves vs 673).
+
+## Verdict
+
+1. **Under the current rules, armies are at best break-even.** Buying for a reason
+   (targeted) is statistically indistinguishable from not buying; buying freely (bold) is a
+   large, significant loss, and on Vast a near-certain one. A player who ignores the mode's
+   central mechanic loses nothing - and beats a table that embraces it.
+2. **It is the rules, not only the bot.** The targeted bot fixes the overbuying and still gains
+   nothing. Five resources for ~4 strength that pays +1 per roll of one hex does not return its
+   cost against a settlement or city.
+3. **The deck strength is not the lever.** Mean 4.7 instead of 4.0 moved nothing.
+4. **Snowball stays absent.** No arm shows the first 6/8 holder winning out of line with 25%.
+
+The levers left are the **payoff** (e.g. the occupier *captures* what blocked players would
+have collected, instead of +1; or points for holding territory) or the **price**. These are
+rules changes, for Jake.
