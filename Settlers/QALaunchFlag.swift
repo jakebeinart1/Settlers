@@ -111,6 +111,10 @@ enum QALaunchFlag: String, CaseIterable {
     /// render size. Whether that board is legible on a phone is the one
     /// question about the mode that simulation cannot answer.
     case vastMode = "-qaVastMode"
+    /// **Modifier** for `-qaAutoStart`: starts the game under Conquest rules
+    /// (combinable with `-qaVastMode`), so a real Conquest game - setup, the
+    /// dealt army card, bot deploys - can be driven or played to the end.
+    case conquestMode = "-qaConquestMode"
     /// **Modifier** for `-qaShowIncomingOffer`: widens the offer to the widest
     /// bundle the engine permits, four give types against one want type.
     /// Expert composes multi-resource offers now (`maxComposedTradeGive = 5`,

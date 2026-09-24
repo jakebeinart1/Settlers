@@ -144,8 +144,11 @@ struct ContentView: View {
             #if DEBUG
             if QALaunchFlag.autoStart.isSet {
                 if viewModel.savedGameAvailability == .absent {
+                    let conquest = QALaunchFlag.conquestMode.isSet
                     if QALaunchFlag.vastMode.isSet {
-                        viewModel.qaStartVastGame()
+                        viewModel.qaStartVastGame(variant: conquest ? .conquest : .standard)
+                    } else if conquest {
+                        viewModel.qaStartClassicConquestGame()
                     } else {
                         viewModel.startNewGame(randomizedBoard: false, randomizeSeat: false)
                     }
