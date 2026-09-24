@@ -136,6 +136,13 @@ enum AccessibilityID {
         static let settlement = "build.settlement"
         static let city = "build.city"
         static let devCard = "build.dev-card"
+        static let armyCard = "build.army-card"
+        static let deployArmy = "build.deploy-army"
+    }
+
+    enum Army {
+        static let preview = "army.preview"
+        static func card(_ index: Int) -> String { "army.card.\(index)" }
     }
 
     enum DevCards {

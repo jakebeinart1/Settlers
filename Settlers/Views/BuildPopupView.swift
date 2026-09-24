@@ -65,6 +65,32 @@ public struct BuildPopupView: View {
                         perform(.buyDevCard)
                     }
                     .accessibilityIdentifier(AccessibilityID.Build.devCard)
+                    if viewModel.state.variant == .conquest {
+                        let me = viewModel.humanPlayer
+                        let hand = viewModel.state.armyHands[me, default: []].sorted()
+                        GoldRowButton(
+                            title: "Army Card",
+                            subtitle: (hand.isEmpty ? "No cards" : "Yours: " + hand.map(String.init).joined(separator: ", "))
+                                + " · \(viewModel.state.armyDeck.count) left",
+                            systemImage: "shield.lefthalf.filled",
+                            iconColor: .red,
+                            isEnabled: legalMoves.contains(.buyArmyCard),
+                            trailing: {
+                                Text("Any 3").font(.caption2.bold()).foregroundStyle(CatanTheme.cityPennantGold)
+                            },
+                            action: { perform(.buyArmyCard) }
+                        )
+                        .accessibilityIdentifier(AccessibilityID.Build.armyCard)
+                        GoldRowButton(
+                            title: "Deploy Army",
+                            subtitle: "Tap a hex to take or hold it",
+                            systemImage: "flag.fill",
+                            iconColor: .red,
+                            isEnabled: !Conquest.deployMoves(for: me, in: viewModel.state).isEmpty,
+                            action: { beginBoardDecision(.deployArmy, pieceName: "army") }
+                        )
+                        .accessibilityIdentifier(AccessibilityID.Build.deployArmy)
+                    }
                 }
 
                 if let errorMessage {

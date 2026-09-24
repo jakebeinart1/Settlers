@@ -26,6 +26,10 @@ public enum BoardDecisionIntent: Sendable, Equatable {
     }
 
     public var isRobber: Bool { self == .robberAfterSeven || self == .knight }
+
+    /// Decisions whose first choice is a hex: the robber's, and a Conquest deploy.
+    /// Board targeting (gold rings, tap targets) keys on this, not on `isRobber`.
+    public var targetsTiles: Bool { isRobber || self == .deployArmy }
 }
 
 /// One input vocabulary for taps, drags, VoiceOver, and UI automation.

@@ -18,7 +18,7 @@ struct BoardDecisionTargetLayer: View {
 
     var body: some View {
         ZStack {
-            if decision.intent.isRobber {
+            if decision.intent.targetsTiles {
                 Color.clear
                     .contentShape(Rectangle())
                     .gesture(tileTapGesture)

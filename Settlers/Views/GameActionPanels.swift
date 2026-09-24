@@ -16,6 +16,8 @@ struct BoardDecisionDockView: View {
     let onCancel: () -> Void
     let onUndo: () -> Void
     let onSelectVictim: (PlayerID) -> Void
+    let armyPreview: String?
+    let onSelectArmyCards: ([Int]) -> Void
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     init(
@@ -26,8 +28,12 @@ struct BoardDecisionDockView: View {
         onUndo: @escaping () -> Void,
         onClear: @escaping () -> Void,
         onCancel: @escaping () -> Void,
-        onConfirm: @escaping () -> Void
+        onConfirm: @escaping () -> Void,
+        armyPreview: String? = nil,
+        onSelectArmyCards: @escaping ([Int]) -> Void = { _ in }
     ) {
+        self.armyPreview = armyPreview
+        self.onSelectArmyCards = onSelectArmyCards
         self.presentation = presentation
         self.playerIdentity = identity
         self.victimResourceCount = resourceCount
@@ -64,7 +70,9 @@ struct BoardDecisionDockView: View {
 
     @ViewBuilder
     private var messageOrVictims: some View {
-        if presentation.requiresVictimChoice {
+        if presentation.requiresArmyChoice {
+            armyPicker
+        } else if presentation.requiresVictimChoice {
             victimPicker
         } else {
             decisionMessage
@@ -110,6 +118,35 @@ struct BoardDecisionDockView: View {
         }
     }
 
+    /// Conquest: the chips sit in the victim picker's slot, so the dock keeps
+    /// its measured height (`BelowBoardInvarianceTests`).
+    private var armyPicker: some View {
+        let actor = playerIdentity(presentation.actor)
+        let hand = presentation.legalArmyCards
+        let chosen = presentation.selectedArmyCards
+        return VStack(alignment: .leading, spacing: 2) {
+            Text(presentation.errorMessage ?? armyPreview ?? "Choose army cards")
+                .font(.system(.caption2, design: .serif, weight: .bold))
+                .foregroundStyle(presentation.errorMessage == nil ? CatanTheme.onWaterText : Color.red)
+                .lineLimit(1)
+                .minimumScaleFactor(0.7)
+                .accessibilityIdentifier(AccessibilityID.Army.preview)
+            ScrollView(.horizontal, showsIndicators: false) {
+                LazyHStack(spacing: Layout.victimSpacing) {
+                    ForEach(hand.indices, id: \.self) { index in
+                        DockArmyCardButton(
+                            strength: hand[index],
+                            civilization: actor.civilization,
+                            isSelected: ArmyChips.isOn(index, hand: hand, selected: chosen),
+                            action: { onSelectArmyCards(ArmyChips.toggle(index, hand: hand, selected: chosen)) }
+                        )
+                        .accessibilityIdentifier(AccessibilityID.Army.card(index))
+                    }
+                }
+            }
+        }
+    }
+
     private func victimChoice(_ victim: PlayerID) -> some View {
         let identity = playerIdentity(victim)
         return DockVictimButton(
@@ -133,9 +170,9 @@ struct BoardDecisionDockView: View {
     private var clearButton: some View {
         DockActionButton(
             title: clearTitle,
-            visibleTitle: presentation.requiresVictimChoice ? "Change territory" : nil,
-            systemImage: presentation.requiresVictimChoice ? "arrow.uturn.backward" : "eraser.fill",
-            width: presentation.requiresVictimChoice
+            visibleTitle: presentation.choosesAfterTile ? "Change territory" : nil,
+            systemImage: presentation.choosesAfterTile ? "arrow.uturn.backward" : "eraser.fill",
+            width: presentation.choosesAfterTile
                 ? Layout.changeTerritoryButtonWidth : Layout.secondaryButtonWidth,
             fill: .color(Color(white: 0.16)),
             isEnabled: hasSelection,
@@ -181,7 +218,7 @@ struct BoardDecisionDockView: View {
     }
 
     private var clearTitle: String {
-        presentation.requiresVictimChoice ? "Choose another territory" : "Clear"
+        presentation.choosesAfterTile ? "Choose another territory" : "Clear"
     }
 
     private var dockHeight: CGFloat {
@@ -287,6 +324,58 @@ private struct DockVictimButton: View {
     }
 
     private var cardNoun: String { resourceCardCount == 1 ? "card" : "cards" }
+
+    @ViewBuilder
+    private var selectionBorder: some View {
+        if isSelected {
+            FrameCornerRect(cornerRadius: 8, notchScale: 0.7)
+                .strokeBorder(PaintedChromeBackground.gold, lineWidth: 3)
+        }
+    }
+
+    @ViewBuilder
+    private var selectionMark: some View {
+        if isSelected {
+            Image(systemName: "checkmark.circle.fill")
+                .font(.system(size: 13, weight: .black))
+                .symbolRenderingMode(.palette)
+                .foregroundStyle(.black, CatanTheme.chipGold)
+                .offset(x: 2, y: -2)
+                .accessibilityHidden(true)
+        }
+    }
+}
+
+/// One army card in the deploy dock. Same chrome as `DockVictimButton` - tinted
+/// civilization texture, notched frame, painted border, the same selection
+/// border and mark - so the robber and army choosers read as one family.
+/// Narrower: it carries one number.
+private struct DockArmyCardButton: View {
+    let strength: Int
+    let civilization: Civilization
+    let isSelected: Bool
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            VStack(spacing: 1) {
+                Image(systemName: "shield.lefthalf.filled")
+                    .font(.system(size: 10, weight: .bold))
+                Text("\(strength)")
+                    .font(.system(size: 20, weight: .heavy, design: .serif))
+            }
+            .frame(width: Layout.armyCardWidth, height: Layout.victimHeight)
+            .background(TintedTextureBackground(tint: civilization.cardBackgroundColor(active: true)))
+            .clipShape(FrameCornerRect(cornerRadius: 8, notchScale: 0.7))
+            .playerCardBorder(color: civilization.accentColor, cornerRadius: 8, lineWidth: 2)
+            .overlay { selectionBorder }
+            .overlay(alignment: .topTrailing) { selectionMark }
+            .foregroundStyle(.white)
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel("Army card, strength \(strength)")
+        .accessibilityAddTraits(isSelected ? .isSelected : [])
+    }
 
     @ViewBuilder
     private var selectionBorder: some View {
@@ -449,6 +538,7 @@ private enum Layout {
     static let victimInsetX: CGFloat = 6
     static let victimInsetY: CGFloat = 4
     static let victimSpacing: CGFloat = 3
+    static let armyCardWidth: CGFloat = 38
     static let secondaryButtonWidth: CGFloat = 44
     static let changeTerritoryButtonWidth: CGFloat = 54
     static let confirmButtonWidth: CGFloat = 80
@@ -460,6 +550,14 @@ private extension BoardDecisionPresentation {
     var requiresVictimChoice: Bool {
         selectedTile != nil && !legalVictims.isEmpty
     }
+
+    var requiresArmyChoice: Bool {
+        intent == .deployArmy && selectedTile != nil
+    }
+
+    /// After a hex is chosen the dock asks a second question - who, or which
+    /// cards - and Clear becomes "choose another territory".
+    var choosesAfterTile: Bool { requiresVictimChoice || requiresArmyChoice }
 
     var title: String {
         switch intent {

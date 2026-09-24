@@ -245,7 +245,7 @@ public struct BoardView: View {
     }
 
     private func drawRobberTargeting(geometry: HexGeometry, in context: GraphicsContext) {
-        guard let decision, decision.intent.isRobber else { return }
+        guard let decision, decision.intent.targetsTiles else { return }
         let legalTiles = Set(decision.legalTiles)
         for tile in board.tiles {
             let path = TileDrawing.hexPath(for: tile.coordinate, geometry: geometry)

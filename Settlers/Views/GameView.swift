@@ -426,6 +426,7 @@ public struct GameView: View {
             #if DEBUG
             if QALaunchFlag.showConquest.isSet || QALaunchFlag.showDeployArmy.isSet {
                 viewModel.qaPrepareConquestPosition()
+                if QALaunchFlag.showDeployArmy.isSet { _ = viewModel.beginBoardDecision(.deployArmy) }
             }
             if QALaunchFlag.showRobberTargeting.isSet {
                 viewModel.qaPrepareKnightBoardDecision(selectDestinationWithVictim: false)
@@ -775,7 +776,9 @@ public struct GameView: View {
                         onUndo: { _ = viewModel.undoBoardDecisionSelection() },
                         onClear: viewModel.clearBoardDecisionSelection,
                         onCancel: { _ = viewModel.cancelBoardDecision() },
-                        onConfirm: { _ = viewModel.confirmBoardDecision() }
+                        onConfirm: { _ = viewModel.confirmBoardDecision() },
+                        armyPreview: viewModel.armyDeploymentPreview,
+                        onSelectArmyCards: { _ = viewModel.selectBoardTarget(.armyCards($0)) }
                     )
                 }
             case .incomingTrade:
