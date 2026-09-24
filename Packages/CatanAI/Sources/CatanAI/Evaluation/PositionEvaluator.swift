@@ -92,6 +92,19 @@ public struct PositionEvaluator: Sendable {
         return held * weights.armyStrength + Double(garrisoned) * weights.garrisonStrength
             + captureThreat(of: player, reach: held, in: state) * weights.captureThreat
             + exposure(of: player, in: state) * weights.garrisonExposure
+            + foothold(of: player, in: state) * weights.takeoverFoothold
+    }
+
+    /// Swing summed over contested hexes `player` touches but does not hold -
+    /// only the rival-silencing part, so an uncontested hex adds nothing here.
+    private func foothold(of player: PlayerID, in state: GameState) -> Double {
+        state.board.tiles.reduce(0.0) { total, tile in
+            guard state.garrisons[tile.coordinate]?.owner != player,
+                  Conquest.canDeploy(to: tile.coordinate, by: player, in: state) else { return total }
+            let swing = hexSwing(tile, for: player, in: state)
+            let alone = tile.numberToken.map(ProductionModel.probability(ofToken:)) ?? 0
+            return total + (swing - alone)
+        }
     }
 
     /// What `player`'s hand could commit: exact for this seat, count x mean for

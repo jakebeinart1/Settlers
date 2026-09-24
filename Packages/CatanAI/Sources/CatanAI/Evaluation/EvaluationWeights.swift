@@ -139,6 +139,12 @@ public struct EvaluationWeights: Sendable, Equatable, Codable {
     /// could break with the cards they hold. Negative: an exposed hex is a loss
     /// waiting to happen, so reinforcing it has a reason.
     public var garrisonExposure: Double
+    /// Conquest: summed swing of the contested hexes this seat has a building
+    /// on but does not hold - how many rival buildings a takeover there would
+    /// silence. What makes settling onto a crowded 6 or 8 worth it before the
+    /// cards to take it are in hand; captureThreat only sees hexes the hand can
+    /// take now.
+    public var takeoverFoothold: Double
 
     public init(
         victoryPoint: Double = 1.0,
@@ -163,7 +169,8 @@ public struct EvaluationWeights: Sendable, Equatable, Codable {
         armyStrength: Double = 0,
         garrisonStrength: Double = 0,
         captureThreat: Double = 0,
-        garrisonExposure: Double = 0
+        garrisonExposure: Double = 0,
+        takeoverFoothold: Double = 0
     ) {
         self.victoryPoint = victoryPoint
         self.production = production
@@ -188,6 +195,7 @@ public struct EvaluationWeights: Sendable, Equatable, Codable {
         self.garrisonStrength = garrisonStrength
         self.captureThreat = captureThreat
         self.garrisonExposure = garrisonExposure
+        self.takeoverFoothold = takeoverFoothold
     }
 
     /// Fitted, not hand-set - and refitted once the opponent pool could refuse.
@@ -306,6 +314,7 @@ public struct EvaluationWeights: Sendable, Equatable, Codable {
         // Starting points for a fit, on the production term's own scale.
         weights.captureThreat = 0.4
         weights.garrisonExposure = -0.3
+        weights.takeoverFoothold = 0.15
         return weights
     }
 
@@ -329,7 +338,7 @@ public struct EvaluationWeights: Sendable, Equatable, Codable {
             victoryPoint, production, variety, expansion, approach, buildableSites,
             handSynergy, handCard, handCardOverflow, discardExposure, sevenLoss, devCardHeld, knight,
             roadLength, port, rival, tradeMargin, concessionPerCard, winning,
-            armyStrength, garrisonStrength, captureThreat, garrisonExposure,
+            armyStrength, garrisonStrength, captureThreat, garrisonExposure, takeoverFoothold,
         ]
     }
 
@@ -338,7 +347,7 @@ public struct EvaluationWeights: Sendable, Equatable, Codable {
         "victoryPoint", "production", "variety", "expansion", "approach", "buildableSites",
         "handSynergy", "handCard", "handCardOverflow", "discardExposure", "sevenLoss", "devCardHeld", "knight",
         "roadLength", "port", "rival", "tradeMargin", "concessionPerCard", "winning",
-        "armyStrength", "garrisonStrength", "captureThreat", "garrisonExposure",
+        "armyStrength", "garrisonStrength", "captureThreat", "garrisonExposure", "takeoverFoothold",
     ]
 
     /// Rebuilds weights from `vector`'s layout. Fails fast on the wrong count:
@@ -357,7 +366,7 @@ public struct EvaluationWeights: Sendable, Equatable, Codable {
             knight: vector[12], roadLength: vector[13], port: vector[14], rival: vector[15],
             tradeMargin: vector[16], concessionPerCard: vector[17], winning: vector[18],
             armyStrength: vector[19], garrisonStrength: vector[20],
-            captureThreat: vector[21], garrisonExposure: vector[22]
+            captureThreat: vector[21], garrisonExposure: vector[22], takeoverFoothold: vector[23]
         )
     }
 }

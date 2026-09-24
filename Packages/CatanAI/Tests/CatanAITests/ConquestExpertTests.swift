@@ -103,3 +103,17 @@ private func standing(_ state: GameState, _ weights: EvaluationWeights) -> Doubl
     }
     #expect(projected(1) > projected(0), "a buy that may complete a capture must be worth more")
 }
+
+@Test func aFootholdOnACrowdedPrimeHexIsWorthSettlingFor() throws {
+    var without = GameSetup.newGame(board: BoardGenerator.standard(), seed: 1, variant: .conquest)
+    without.phase = .mainTurn(playerIndex: 0)
+    let six = try #require(without.board.tiles.first { $0.numberToken == 6 && $0.coordinate != without.board.robberTile })
+    let corners = without.board.corners(of: six.coordinate)
+    without.players[1].settlements.insert(corners[1])
+    without.players[2].settlements.insert(corners[3])          // two rivals crowd the 6
+    var with = without
+    with.players[0].settlements.insert(corners[5])             // I settle onto it
+    var off = EvaluationWeights.conquest(.classic); off.takeoverFoothold = 0
+    var on = off; on.takeoverFoothold = 1
+    #expect(standing(with, on) - standing(without, on) > standing(with, off) - standing(without, off))
+}
