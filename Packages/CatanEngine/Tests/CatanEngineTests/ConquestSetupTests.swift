@@ -37,3 +37,8 @@ import Testing
     #expect(standard.devCardDeck == conquest.devCardDeck)
     #expect(standard.rng == conquest.rng)
 }
+
+@Test func armyCardsCostAnyThreeResourcesByDefault() {
+    let state = GameSetup.newGame(board: BoardGenerator.standard(), seed: 3, variant: .conquest)
+    #expect(state.armyPrice == .anyThree)
+}

@@ -146,11 +146,12 @@ private let expectedFingerprints: [UInt64: String] = [
 /// seeds) before it was pinned - same-process agreement proves nothing here.
 /// Seed 3 re-recorded the same day because bots began weighting the public
 /// leader's silenced buildings double (`ConquestHeuristics.leaderDenialWeight`);
-/// again agreed across three processes.
+/// all three re-recorded 2026-09-24 when the army price became any three
+/// cards. Each time agreed across three processes first.
 private let expectedConquestFingerprints: [UInt64: String] = [
-    1: "208dd4c2617c0344",
-    2: "ad73dbaaae7c2a74",
-    3: "fc2a721628dbc310",
+    1: "d5fddfcc46ba4a72",
+    2: "39d29b0d806655ee",
+    3: "45204bc2deb43f4a",
 ]
 
 /// Re-recorded 2026-09-08 (all five) because the bots stopped reading hidden

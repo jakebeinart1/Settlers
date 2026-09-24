@@ -106,7 +106,9 @@ public struct GameState: Codable, Sendable, Equatable {
     public var armyHands: [PlayerID: [Int]]
     /// Army cards bought this turn, not yet playable. Cleared on `.endTurn`.
     public var armyCardsBoughtThisTurn: [PlayerID: [Int]]
-    /// Conquest only: what an army card costs in this game.
+    /// Conquest only: what an army card costs in this game. Any three cards
+    /// (Jake, 2026-09-24): a trained Expert found armies dead at one-of-each
+    /// and mandatory at any-one; see `docs/AI_summaries/2026-09-23-conquest-expert-price.md`.
     public var armyPrice: ArmyPrice
 
     public init(
@@ -133,7 +135,7 @@ public struct GameState: Codable, Sendable, Equatable {
         armyDeck: [Int] = [],
         armyHands: [PlayerID: [Int]] = [:],
         armyCardsBoughtThisTurn: [PlayerID: [Int]] = [:],
-        armyPrice: ArmyPrice = .oneOfEach
+        armyPrice: ArmyPrice = .anyThree
     ) {
         self.rng = rng
         self.schemaVersion = schemaVersion
@@ -242,7 +244,7 @@ public struct GameState: Codable, Sendable, Equatable {
         armyHands = try container.decodeIfPresent([PlayerID: [Int]].self, forKey: .armyHands) ?? [:]
         armyCardsBoughtThisTurn = try container
             .decodeIfPresent([PlayerID: [Int]].self, forKey: .armyCardsBoughtThisTurn) ?? [:]
-        armyPrice = try container.decodeIfPresent(ArmyPrice.self, forKey: .armyPrice) ?? .oneOfEach
+        armyPrice = try container.decodeIfPresent(ArmyPrice.self, forKey: .armyPrice) ?? .anyThree
     }
 
     /// Victory points that are public knowledge for `id`: buildings plus the

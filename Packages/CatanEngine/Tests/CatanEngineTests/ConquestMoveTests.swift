@@ -13,12 +13,12 @@ private func conquest(hand: [Int] = [], seed: UInt64 = 1) -> (GameState, Tile) {
 
 private let everyResource: [Resource: Int] = [.brick: 1, .lumber: 1, .wool: 1, .grain: 1, .ore: 1]
 
-@Test func buyingCostsOneOfEachAndDrawsTheTopCardUnplayableThisTurn() throws {
+@Test func buyingCostsAnyThreeAndDrawsTheTopCardUnplayableThisTurn() throws {
     var (state, _) = conquest()
     state.players[0].resources = everyResource
     let top = state.armyDeck[0]
     try RulesEngine.apply(.buyArmyCard, by: state.players[0].id, to: &state)
-    #expect(state.players[0].resources.values.allSatisfy { $0 == 0 })
+    #expect(state.players[0].resources.values.reduce(0, +) == 2)
     #expect(state.armyHands[state.players[0].id] == [top])
     #expect(Conquest.playableCards(for: state.players[0].id, in: state).isEmpty)
 }

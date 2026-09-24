@@ -147,7 +147,8 @@ private struct SimulationConfiguration {
     /// Experiment only: replaces the rules' army deck without changing the rules.
     /// nil keeps the rules' deck.
     var armyDeck: [Int: Int]?
-    var armyPrice = ArmyPrice.oneOfEach
+    /// nil keeps the rules' price.
+    var armyPrice: ArmyPrice?
 
     func state(seed: UInt64) -> GameState {
         var state = GameSetup.newGame(
@@ -158,7 +159,7 @@ private struct SimulationConfiguration {
             mode: mode,
             variant: variant
         )
-        state.armyPrice = armyPrice
+        if let armyPrice { state.armyPrice = armyPrice }
         if let armyDeck {
             let scale = mode == .classic ? 1 : 2
             var rng = RandomSource(seed: seed &+ 0xA4D_DECC)
