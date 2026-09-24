@@ -103,11 +103,20 @@ public enum ProductionModel {
 
         for (vertex, yield) in buildings(of: player) {
             for coordinate in state.board.neighborTiles(of: vertex) where coordinate != state.board.robberTile {
+                // Conquest: a hex another seat holds pays this seat nothing.
+                if let owner = state.garrisons[coordinate]?.owner, owner != seat { continue }
                 guard let tile = tiles[coordinate],
                       case .resource(let resource) = tile.kind,
                       let token = tile.numberToken else { continue }
                 rate[resource] += Double(yield) * probability(ofToken: token)
             }
+        }
+        // Conquest: +1 on every hex this seat holds. Walked in board order, not
+        // dictionary order: a Double sum is order-sensitive in its last bit.
+        for tile in state.board.tiles where tile.coordinate != state.board.robberTile
+            && state.garrisons[tile.coordinate]?.owner == seat {
+            guard case .resource(let resource) = tile.kind, let token = tile.numberToken else { continue }
+            rate[resource] += probability(ofToken: token)
         }
         return rate
     }
@@ -126,6 +135,8 @@ public enum ProductionModel {
         var gain = ProductionRate()
         let tiles = tiles ?? tileIndex(of: state.board)
         for coordinate in state.board.neighborTiles(of: vertex) where coordinate != state.board.robberTile {
+            // ponytail: ignores Conquest garrisons (no seat here); pass one in if
+            // Expert starts settling next to hexes a rival holds.
             guard let tile = tiles[coordinate],
                   case .resource(let resource) = tile.kind,
                   let token = tile.numberToken else { continue }

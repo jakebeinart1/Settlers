@@ -124,6 +124,14 @@ public struct EvaluationWeights: Sendable, Equatable, Codable {
     /// Reaching the victory target. Dominates every other term by construction.
     public var winning: Double
 
+    /// Conquest: per point of army-card strength held. Own hand exactly; a
+    /// rival's as card count x the deck's mean, never the hidden faces. Zero
+    /// outside Conquest, where nobody holds army cards.
+    public var armyStrength: Double
+    /// Conquest: per point of garrison strength on hexes this seat holds - what
+    /// it costs a rival to take them back.
+    public var garrisonStrength: Double
+
     public init(
         victoryPoint: Double = 1.0,
         production: Double = 0.4601,
@@ -143,7 +151,9 @@ public struct EvaluationWeights: Sendable, Equatable, Codable {
         rival: Double = 0.8039,
         tradeMargin: Double = 0.0073,
         concessionPerCard: Double = 0.0061,
-        winning: Double = 1000.0
+        winning: Double = 1000.0,
+        armyStrength: Double = 0,
+        garrisonStrength: Double = 0
     ) {
         self.victoryPoint = victoryPoint
         self.production = production
@@ -164,6 +174,8 @@ public struct EvaluationWeights: Sendable, Equatable, Codable {
         self.tradeMargin = tradeMargin
         self.concessionPerCard = concessionPerCard
         self.winning = winning
+        self.armyStrength = armyStrength
+        self.garrisonStrength = garrisonStrength
     }
 
     /// Fitted, not hand-set - and refitted once the opponent pool could refuse.
@@ -267,6 +279,21 @@ public struct EvaluationWeights: Sendable, Equatable, Codable {
     /// decoration: those defaults are the *fitted Classic* values and they are
     /// now nonzero. Inheriting them would have moved Vast - which ships this
     /// set - on a Classic sweep nobody ran on that board.
+    /// The Conquest fork: the board's fitted set plus the two army terms.
+    ///
+    /// Starting values, before any Conquest fit, are EQUAL on purpose. Strength
+    /// moved from hand to garrison then keeps its value, so a deploy is judged
+    /// only by the strength the defender burns against what the hex pays. At
+    /// 0.05 held against 0.02 garrisoned, holding a 9 outscored taking a shared
+    /// 6 with it and the bot sat on its free card (pinned by
+    /// `expertSpendsItsFreeCardTakingAHex`).
+    public static func conquest(_ mode: GameMode) -> EvaluationWeights {
+        var weights = forMode(mode)
+        weights.armyStrength = 0.015
+        weights.garrisonStrength = 0.015
+        return weights
+    }
+
     public static let handSet = EvaluationWeights(
         production: 0.55, variety: 0.12, expansion: 0.30, approach: 0.30, buildableSites: 0.06,
         handSynergy: 0.18, handCard: 0.02, handCardOverflow: 0, discardExposure: -0.12,
@@ -287,6 +314,7 @@ public struct EvaluationWeights: Sendable, Equatable, Codable {
             victoryPoint, production, variety, expansion, approach, buildableSites,
             handSynergy, handCard, handCardOverflow, discardExposure, sevenLoss, devCardHeld, knight,
             roadLength, port, rival, tradeMargin, concessionPerCard, winning,
+            armyStrength, garrisonStrength,
         ]
     }
 
@@ -295,6 +323,7 @@ public struct EvaluationWeights: Sendable, Equatable, Codable {
         "victoryPoint", "production", "variety", "expansion", "approach", "buildableSites",
         "handSynergy", "handCard", "handCardOverflow", "discardExposure", "sevenLoss", "devCardHeld", "knight",
         "roadLength", "port", "rival", "tradeMargin", "concessionPerCard", "winning",
+        "armyStrength", "garrisonStrength",
     ]
 
     /// Rebuilds weights from `vector`'s layout. Fails fast on the wrong count:
@@ -311,7 +340,8 @@ public struct EvaluationWeights: Sendable, Equatable, Codable {
             handSynergy: vector[6], handCard: vector[7], handCardOverflow: vector[8],
             discardExposure: vector[9], sevenLoss: vector[10], devCardHeld: vector[11],
             knight: vector[12], roadLength: vector[13], port: vector[14], rival: vector[15],
-            tradeMargin: vector[16], concessionPerCard: vector[17], winning: vector[18]
+            tradeMargin: vector[16], concessionPerCard: vector[17], winning: vector[18],
+            armyStrength: vector[19], garrisonStrength: vector[20]
         )
     }
 }

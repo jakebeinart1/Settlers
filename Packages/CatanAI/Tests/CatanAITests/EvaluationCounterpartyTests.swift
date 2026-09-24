@@ -34,7 +34,7 @@ import CatanEngine
         let me = state.players[0].id
         let offer = TradeOffer(from: me, give: [.ore: 2, .grain: 1], want: [.wool: 1])
         let policy = EvaluationPolicy()
-        let evaluator = PositionEvaluator(seat: me, weights: policy.weights(for: state.mode))
+        let evaluator = PositionEvaluator(seat: me, weights: policy.weights(for: state))
 
         let toLeader = try #require(policy.settledScore(
             offer, payer: state.players[1].id, state: state, ledger: ledger, evaluator: evaluator
@@ -59,7 +59,7 @@ import CatanEngine
         state.players[2].resources = [:]
         let offer = TradeOffer(from: me, give: [.ore: 1], want: [.wool: 1])
         let policy = EvaluationPolicy()
-        let evaluator = PositionEvaluator(seat: me, weights: policy.weights(for: state.mode))
+        let evaluator = PositionEvaluator(seat: me, weights: policy.weights(for: state))
 
         #expect(policy.settledScore(offer, payer: payer, state: state, ledger: ledger, evaluator: evaluator) != nil)
     }

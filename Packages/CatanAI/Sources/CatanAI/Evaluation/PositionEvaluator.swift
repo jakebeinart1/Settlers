@@ -76,7 +76,27 @@ public struct PositionEvaluator: Sendable {
         let economy = economyTerms(of: player, rate: rate, in: state, board: board)
         let hand = handTerms(of: player, rate: rate, in: state, ledger: ledger)
         let bonuses = bonusTerms(of: player, in: state)
-        return Double(points) * weights.victoryPoint + economy + hand + bonuses
+        return Double(points) * weights.victoryPoint + economy + hand + bonuses + armyTerms(of: player, in: state)
+    }
+
+    // MARK: - Conquest
+
+    /// Army cards held and garrison strength standing. Zero outside Conquest.
+    private func armyTerms(of player: PlayerID, in state: GameState) -> Double {
+        guard state.variant == .conquest else { return 0 }
+        let hand = state.armyHands[player, default: []]
+        let held = player == seat
+            ? Double(hand.reduce(0, +))
+            : Double(hand.count) * Self.meanArmyStrength(state.rules)
+        let garrisoned = state.garrisons.values.reduce(0) { $0 + ($1.owner == player ? $1.strength : 0) }
+        return held * weights.armyStrength + Double(garrisoned) * weights.garrisonStrength
+    }
+
+    /// The printed deck's mean card strength: what a card nobody has seen is worth.
+    static func meanArmyStrength(_ rules: Ruleset) -> Double {
+        let cards = rules.armyDeck.values.reduce(0, +)
+        guard cards > 0 else { return 0 }
+        return Double(rules.armyDeck.reduce(0) { $0 + $1.key * $1.value }) / Double(cards)
     }
 
     // MARK: - Victory points

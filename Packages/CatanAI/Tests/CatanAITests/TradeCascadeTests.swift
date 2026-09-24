@@ -25,7 +25,7 @@ import CatanEngine
     }
 
     private func evaluator(for seat: PlayerID, in state: GameState) -> PositionEvaluator {
-        PositionEvaluator(seat: seat, weights: EvaluationPolicy().weights(for: state.mode))
+        PositionEvaluator(seat: seat, weights: EvaluationPolicy().weights(for: state))
     }
 
     /// The cheap path must be the real path. If this drifts, every trade the

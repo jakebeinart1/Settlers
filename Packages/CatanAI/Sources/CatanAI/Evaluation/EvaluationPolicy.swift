@@ -80,8 +80,9 @@ public struct EvaluationPolicy: LedgerAwarePolicy {
     }
 
     /// The weights this policy plays `mode` with.
-    public func weights(for mode: GameMode) -> EvaluationWeights {
-        weightsOverride ?? .forMode(mode)
+    /// Conquest games get the Conquest fork of the board's weights.
+    public func weights(for state: GameState) -> EvaluationWeights {
+        weightsOverride ?? (state.variant == .conquest ? .conquest(state.mode) : .forMode(state.mode))
     }
 
     /// Without a ledger, fall back to a position-only belief: exact hand
@@ -128,7 +129,7 @@ public struct EvaluationPolicy: LedgerAwarePolicy {
     func best(among legal: [GameMove], state: GameState, ledger: PublicLedger) -> GameMove {
         // The ledger knows whose view this is; the policy does not carry a
         // seat of its own, so there is only one place the two can disagree.
-        let evaluator = PositionEvaluator(seat: ledger.observer, weights: weights(for: state.mode))
+        let evaluator = PositionEvaluator(seat: ledger.observer, weights: weights(for: state))
 
         // Built once, and only when the bank is actually on the table, because
         // a bank trade is scored against the purchase it unlocks and that
@@ -170,6 +171,9 @@ public struct EvaluationPolicy: LedgerAwarePolicy {
     ) -> Double? {
         if case .proposeTrade(let offer) = move {
             return projectedTrade(offer, state: state, ledger: ledger, evaluator: evaluator)
+        }
+        if case .buyArmyCard = move {
+            return projectedArmyCard(state: state, ledger: ledger, evaluator: evaluator)
         }
         if case .buyDevCard = move {
             return projectedDevCard(state: state, ledger: ledger, evaluator: evaluator)
@@ -259,6 +263,19 @@ public struct EvaluationPolicy: LedgerAwarePolicy {
     /// Applies `move` and folds its events into the ledger, masked for this
     /// seat so the belief a candidate is scored against is the belief this
     /// seat would actually hold afterwards.
+    /// Buying an army card, scored as if the card were the deck's mean.
+    /// Applying the move for real draws the actual top card - a hidden face -
+    /// so that card is taken back out before evaluating and the mean's value
+    /// added instead. Removing it (rather than subtracting its value) keeps the
+    /// score bit-identical whatever the face was.
+    func projectedArmyCard(state: GameState, ledger: PublicLedger, evaluator: PositionEvaluator) -> Double? {
+        guard var (next, nextLedger) = applied(.buyArmyCard, to: state, ledger: ledger, by: evaluator.seat),
+              next.armyHands[evaluator.seat]?.popLast() != nil else { return nil }
+        next.armyDeck = state.armyDeck
+        let mean = PositionEvaluator.meanArmyStrength(state.rules)
+        return evaluator.evaluate(next, ledger: nextLedger) + evaluator.weights.armyStrength * mean
+    }
+
     private func applied(
         _ move: GameMove,
         to state: GameState,

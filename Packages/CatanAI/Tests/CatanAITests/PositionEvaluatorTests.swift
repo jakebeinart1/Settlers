@@ -207,7 +207,7 @@ import CatanEngine
     /// disagree, every tuned weight lands in the wrong slot and the resulting
     /// strength number describes a policy nobody can rebuild.
     @Test func weightsRoundTripThroughTheirVector() {
-        let weights = EvaluationWeights(vector: (1...19).map { Double($0) / 7.0 })
+        let weights = EvaluationWeights(vector: (1...EvaluationWeights.vectorLabels.count).map { Double($0) / 7.0 })
         #expect(EvaluationWeights(vector: weights.vector) == weights)
         #expect(weights.vector.count == EvaluationWeights.vectorLabels.count)
     }
