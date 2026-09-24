@@ -11,6 +11,7 @@ enum BoardDecisionPieceKind: Equatable {
     case settlement
     case city
     case robber
+    case army
 
     init(intent: BoardDecisionIntent) {
         switch intent {
@@ -18,6 +19,7 @@ enum BoardDecisionPieceKind: Equatable {
         case .initialSettlement, .buildSettlement: self = .settlement
         case .buildCity: self = .city
         case .robberAfterSeven, .knight: self = .robber
+        case .deployArmy: self = .army
         }
     }
 }
@@ -172,7 +174,24 @@ private struct BoardDecisionPieceGlyph: View {
             CivilizationBadge(civilization: civilization, isCity: true, size: size)
         case .robber:
             robberGlyph
+        case .army:
+            armyGlyph
         }
+    }
+
+    /// The robber's disc in the deployer's colours: same weight on the board,
+    /// but a shield rather than a hood, and the civilization accent for its rim.
+    private var armyGlyph: some View {
+        ZStack {
+            Circle()
+                .fill(Color.black.opacity(0.85))
+            Circle()
+                .strokeBorder(civilization.accentColor, lineWidth: max(2, size * 0.1))
+            Image(systemName: "shield.lefthalf.filled")
+                .font(.system(size: size * 0.46, weight: .bold))
+                .foregroundStyle(civilization.accentColor)
+        }
+        .frame(width: size, height: size)
     }
 
     private var roadGlyph: some View {

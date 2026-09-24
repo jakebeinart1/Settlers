@@ -219,6 +219,7 @@ struct BoardDecisionCradleLayer: View {
         case .roadBuilding: "Road Building road \(roadOrdinal ?? 1) drag piece"
         case .robberAfterSeven: "Rolled seven robber drag piece"
         case .knight: "Knight robber drag piece"
+        case .deployArmy: "Army drag piece"
         }
     }
 
@@ -264,7 +265,7 @@ private enum BoardDropTargetResolver {
         switch target {
         case .tile: max(Layout.minimumRadius, geometry.size * 0.92)
         case .vertex, .edge: max(Layout.minimumRadius, geometry.size * 0.72)
-        case .victim: 0
+        case .victim, .armyCards: 0
         }
     }
 

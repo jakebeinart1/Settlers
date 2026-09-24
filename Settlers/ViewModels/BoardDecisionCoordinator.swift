@@ -15,11 +15,13 @@ public enum BoardDecisionIntent: Sendable, Equatable {
     case roadBuilding
     case robberAfterSeven
     case knight
+    /// Conquest: tap a hex, then choose the army cards to commit to it.
+    case deployArmy
 
     public var canCancel: Bool {
         switch self {
         case .initialSettlement, .initialRoad, .robberAfterSeven: false
-        case .buildRoad, .buildSettlement, .buildCity, .roadBuilding, .knight: true
+        case .buildRoad, .buildSettlement, .buildCity, .roadBuilding, .knight, .deployArmy: true
         }
     }
 
@@ -32,6 +34,8 @@ public enum BoardTarget: Sendable, Hashable {
     case edge(EdgeID)
     case tile(HexCoordinate)
     case victim(PlayerID)
+    /// Conquest: the chosen set of army-card strengths, ascending.
+    case armyCards([Int])
 }
 
 /// Semantic projection consumed by the board and its command dock.
@@ -54,6 +58,10 @@ public struct BoardDecisionPresentation: Sendable, Equatable {
     public let canConfirm: Bool
     public let canCancel: Bool
     public let errorMessage: String?
+    /// Conquest: the actor's playable army cards, ascending; empty for other intents.
+    public var legalArmyCards: [Int] = []
+    /// Conquest: the cards chosen so far, ascending.
+    public var selectedArmyCards: [Int] = []
 }
 
 /// Identifies the canonical position a thought belongs to. A failed move keeps
@@ -96,7 +104,7 @@ struct BoardDecisionCoordinator: Sendable {
     var presentation: BoardDecisionPresentation? {
         guard let draft else { return nil }
         let boardTargets = boardTargets(for: draft)
-        return BoardDecisionPresentation(
+        var result = BoardDecisionPresentation(
             intent: draft.intent,
             actor: draft.actor,
             setupRound: draft.setupRound,
@@ -112,6 +120,13 @@ struct BoardDecisionCoordinator: Sendable {
             canCancel: draft.intent.canCancel,
             errorMessage: draft.errorMessage
         )
+        if draft.intent == .deployArmy {
+            result.legalArmyCards = draft.candidates
+                .compactMap { path(for: $0, intent: .deployArmy)?.last?.armyCards }
+                .max { $0.count < $1.count } ?? []
+            result.selectedArmyCards = draft.selection.dropFirst().first?.armyCards ?? []
+        }
+        return result
     }
 
     var confirmableMove: GameMove? {
@@ -243,6 +258,10 @@ struct BoardDecisionCoordinator: Sendable {
         in context: BoardDecisionContext
     ) -> [GameMove] {
         guard context.state.phase.awaitingSeatIndex == context.actor.index else { return [] }
+        if intent == .deployArmy {
+            guard case .mainTurn = context.state.phase else { return [] }
+            return Conquest.deployMoves(for: context.actor, in: context.state)
+        }
         return RulesEngine.legalMoves(for: context.state, seat: context.actor).filter {
             path(for: $0, intent: intent) != nil
         }
@@ -254,6 +273,8 @@ struct BoardDecisionCoordinator: Sendable {
             return selectRobber(target, in: &draft)
         case .roadBuilding:
             return selectRoadBuilding(target, in: &draft)
+        case .deployArmy:
+            return selectArmy(target, in: &draft)
         default:
             guard firstTargets(in: draft).contains(target) else { return false }
             draft.selection = [target]
@@ -270,6 +291,22 @@ struct BoardDecisionCoordinator: Sendable {
             guard draft.selection.first?.tile != nil,
                   nextTargets(in: draft, after: 1).contains(target) else { return false }
             draft.selection = [draft.selection[0], target]
+            return true
+        default:
+            return false
+        }
+    }
+
+    private func selectArmy(_ target: BoardTarget, in draft: inout Draft) -> Bool {
+        switch target {
+        case .tile where firstTargets(in: draft).contains(target):
+            draft.selection = [target]
+            return true
+        case .armyCards(let cards):
+            guard let hex = draft.selection.first, hex.tile != nil else { return false }
+            if cards.isEmpty { draft.selection = [hex]; return true }
+            guard nextTargets(in: draft, after: 1).contains(target) else { return false }
+            draft.selection = [hex, target]
             return true
         default:
             return false
@@ -356,6 +393,8 @@ struct BoardDecisionCoordinator: Sendable {
         case (.robberAfterSeven, .moveRobber(let tile, let victim)),
              (.knight, .playKnight(let tile, let victim)):
             return [.tile(tile)] + (victim.map { [.victim($0)] } ?? [])
+        case (.deployArmy, .deployArmy(let hex, let strengths)):
+            return [.tile(hex), .armyCards(strengths)]
         default:
             return nil
         }
@@ -367,4 +406,5 @@ private extension BoardTarget {
     var edge: EdgeID? { if case .edge(let value) = self { value } else { nil } }
     var tile: HexCoordinate? { if case .tile(let value) = self { value } else { nil } }
     var victim: PlayerID? { if case .victim(let value) = self { value } else { nil } }
+    var armyCards: [Int]? { if case .armyCards(let value) = self { value } else { nil } }
 }

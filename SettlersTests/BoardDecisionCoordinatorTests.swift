@@ -248,6 +248,58 @@ struct BoardDecisionCoordinatorTests {
         #expect(coordinator.presentation?.selectedTile == nil)
     }
 
+    private func conquestTurn(hand: [Int]) -> (GameState, HexCoordinate) {
+        var state = GameSetup.newGame(board: BoardGenerator.standard(), seed: 4_310, variant: .conquest)
+        let six = state.board.tiles.sorted { $0.coordinate < $1.coordinate }.first { $0.numberToken == 6 }!
+        state.players[0].settlements.insert(state.board.corners(of: six.coordinate)[0])
+        state.armyHands[actor] = hand
+        state.phase = .mainTurn(playerIndex: 0)
+        return (state, six.coordinate)
+    }
+
+    @Test func deployingIsTapAHexThenChooseCards() throws {
+        let (state, six) = conquestTurn(hand: [2, 5])
+        var coordinator = BoardDecisionCoordinator()
+        let result1 = coordinator.begin(.deployArmy, with: context(state))
+        #expect(result1)
+        let begun = try #require(coordinator.presentation)
+        #expect(begun.legalTiles.contains(six))
+        #expect(!begun.canConfirm)
+
+        let result2 = coordinator.select(.tile(six))
+        #expect(result2)
+        #expect(coordinator.presentation?.legalArmyCards == [2, 5])
+        #expect(coordinator.presentation?.canConfirm == false, "a hex alone is not a deploy")
+
+        let result3 = coordinator.select(.armyCards([2, 5]))
+        #expect(result3)
+        #expect(coordinator.presentation?.selectedArmyCards == [2, 5])
+        #expect(coordinator.confirmableMove == .deployArmy(to: six, strengths: [2, 5]))
+
+        let result4 = coordinator.select(.armyCards([]))
+        #expect(result4)
+        #expect(coordinator.confirmableMove == nil, "deselecting every card un-stages the deploy")
+    }
+
+    @Test func aCardSetTheHandCannotMakeIsRefused() {
+        let (state, six) = conquestTurn(hand: [2, 5])
+        var coordinator = BoardDecisionCoordinator()
+        _ = coordinator.begin(.deployArmy, with: context(state))
+        _ = coordinator.select(.tile(six))
+        let result5 = coordinator.select(.armyCards([9]))
+        #expect(!result5)
+        let result6 = coordinator.select(.armyCards([2, 2]))
+        #expect(!result6)
+    }
+
+    @Test func aStandardGameCannotBeginADeploy() {
+        var state = GameSetup.newGame(board: BoardGenerator.standard(), seed: 4_310)
+        state.phase = .mainTurn(playerIndex: 0)
+        var coordinator = BoardDecisionCoordinator()
+        let result7 = coordinator.begin(.deployArmy, with: context(state))
+        #expect(!result7)
+    }
+
     private func context(_ state: GameState, moveCount: Int = 7) -> BoardDecisionContext {
         BoardDecisionContext(matchID: matchID, committedMoveCount: moveCount, actor: actor, state: state)
     }

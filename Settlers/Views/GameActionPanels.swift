@@ -342,6 +342,11 @@ private struct DecisionPieceCradle: View {
                 .font(.system(size: 26, weight: .black))
                 .foregroundStyle(CatanTheme.robber)
                 .shadow(color: CatanTheme.chipGold, radius: 1)
+        case .deployArmy:
+            Image(systemName: "shield.lefthalf.filled")
+                .font(.system(size: 26, weight: .black))
+                .foregroundStyle(identity.civilization.accentColor)
+                .shadow(color: .black.opacity(0.8), radius: 1)
         }
     }
 }
@@ -468,6 +473,7 @@ private extension BoardDecisionPresentation {
         case .roadBuilding: "Road Building"
         case .robberAfterSeven: "Move the robber"
         case .knight: "Play Knight"
+        case .deployArmy: "Deploy army"
         }
     }
 
@@ -491,6 +497,8 @@ private extension BoardDecisionPresentation {
             roadBuildingDetail
         case .robberAfterSeven, .knight:
             robberDetail
+        case .deployArmy:
+            selectedTile == nil ? "Tap a hex your buildings touch." : "Choose cards, then commit."
         }
     }
 
@@ -502,6 +510,7 @@ private extension BoardDecisionPresentation {
         case .roadBuilding: "Confirm 2 Roads"
         case .robberAfterSeven, .knight:
             legalVictims.isEmpty ? "Confirm Move" : "Confirm Steal"
+        case .deployArmy: "Commit"
         }
     }
 
