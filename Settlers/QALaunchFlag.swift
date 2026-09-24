@@ -100,6 +100,12 @@ enum QALaunchFlag: String, CaseIterable {
     case showMandatoryRobberDecision = "-qaShowMandatoryRobberDecision"
     /// Seeds a real pending offer with deterministic conserved hands.
     case showIncomingOffer = "-qaShowIncomingOffer"
+    /// A Conquest main turn: the human holds one hex, a rival holds another, the
+    /// rest are tribes; the human has army cards and resources. For photographing
+    /// the ownership rings and exercising a deploy.
+    case showConquest = "-qaShowConquest"
+    /// `-qaShowConquest` with the Deploy Army board decision already begun.
+    case showDeployArmy = "-qaShowDeployArmy"
     /// **Modifier** for `-qaAutoStart`: starts the game in `GameMode.vast`
     /// rather than Classic, so the 61-tile board can be photographed at real
     /// render size. Whether that board is legible on a phone is the one

@@ -6,6 +6,13 @@ import CatanEngine
 /// readability; these operate directly on a `GraphicsContext` rather than
 /// being SwiftUI `View`s, since `Canvas` draws imperatively.
 enum TileDrawing {
+    /// What the board shows about a Conquest garrison. `ownerColor` nil = a tribe:
+    /// no ring, grey badge.
+    struct GarrisonMark {
+        let strength: Int
+        let ownerColor: Color?
+    }
+
     /// `scale` shrinks the hex toward its own center (1.0 = full size, the
     /// tap-target/vertex-alignment size every other caller - highlighting,
     /// `BoardView`'s vertex/edge math - still uses). Only `drawTile` itself
@@ -43,7 +50,7 @@ enum TileDrawing {
     /// drawn to fill its bounding box, then gets its own thin gray outline
     /// too - see `design-references/STATUS.md` for where these textures
     /// came from.
-    static func drawTile(_ tile: Tile, geometry: HexGeometry, in context: GraphicsContext) {
+    static func drawTile(_ tile: Tile, geometry: HexGeometry, garrison: GarrisonMark? = nil, in context: GraphicsContext) {
         let framePath = hexPath(for: tile.coordinate, geometry: geometry)
         context.fill(framePath, with: .color(CatanTheme.desert))
         context.stroke(framePath, with: .color(.black.opacity(0.18)), lineWidth: 1)
@@ -57,11 +64,14 @@ enum TileDrawing {
         context.stroke(fillPath, with: .color(.black.opacity(0.22)), lineWidth: 1)
 
         if let number = tile.numberToken {
-            drawNumberToken(number, at: geometry.center(of: tile.coordinate), size: geometry.size, in: context)
+            drawNumberToken(number, at: geometry.center(of: tile.coordinate), size: geometry.size,
+                            garrison: garrison, in: context)
         }
     }
 
-    private static func drawNumberToken(_ number: Int, at point: CGPoint, size: CGFloat, in context: GraphicsContext) {
+    private static func drawNumberToken(
+        _ number: Int, at point: CGPoint, size: CGFloat, garrison: GarrisonMark? = nil, in context: GraphicsContext
+    ) {
         let radius = size * 0.32
         let circle = Path(ellipseIn: CGRect(x: point.x - radius, y: point.y - radius, width: radius * 2, height: radius * 2))
 
@@ -76,6 +86,38 @@ enum TileDrawing {
             .font(.system(size: radius * 1.15, weight: .bold, design: .serif))
             .foregroundColor(isHot ? CatanTheme.hotNumber : CatanTheme.coolNumber)
         context.draw(context.resolve(text), at: point, anchor: .center)
+        if let garrison { drawGarrison(garrison, around: point, tokenRadius: radius, in: context) }
+    }
+
+    /// Conquest: the holder's colour rings the token, and a badge by it shows the
+    /// strength holding the hex. Tribes get the badge only, in neutral grey.
+    private static func drawGarrison(
+        _ garrison: GarrisonMark, around point: CGPoint, tokenRadius radius: CGFloat, in context: GraphicsContext
+    ) {
+        // Dark edges, like the pieces' outlines: several civilization accents
+        // (Greece's cream) are close to the token's own colour, and measured on
+        // the QA fixture a bare cream ring and a white-on-cream badge vanished.
+        let edge = Color.black.opacity(0.7)
+        if let owner = garrison.ownerColor {
+            let ringRadius = radius * 1.14
+            let ring = Path(ellipseIn: CGRect(x: point.x - ringRadius, y: point.y - ringRadius,
+                                              width: ringRadius * 2, height: ringRadius * 2))
+            context.stroke(ring, with: .color(edge), lineWidth: radius * 0.24 + 2.5)
+            context.stroke(ring, with: .color(owner), lineWidth: radius * 0.24)
+        }
+        let badgeRadius = radius * 0.46
+        let badgeCenter = CGPoint(x: point.x + radius * 0.98, y: point.y + radius * 0.78)
+        let badge = Path(ellipseIn: CGRect(x: badgeCenter.x - badgeRadius, y: badgeCenter.y - badgeRadius,
+                                           width: badgeRadius * 2, height: badgeRadius * 2))
+        context.fill(badge, with: .color(garrison.ownerColor ?? Color(white: 0.28)))
+        context.stroke(badge, with: .color(edge), lineWidth: 1.25)
+        let strength = Text("\(garrison.strength)")
+            .font(.system(size: badgeRadius * 1.2, weight: .heavy, design: .rounded))
+            .foregroundColor(.white)
+        context.drawLayer { layer in
+            layer.addFilter(.shadow(color: .black.opacity(0.9), radius: 1.2))
+            layer.draw(layer.resolve(strength), at: badgeCenter, anchor: .center)
+        }
     }
 
     /// How far out to push a port badge, in hex-size units, measured along the

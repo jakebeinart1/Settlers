@@ -424,6 +424,9 @@ public struct GameView: View {
                 #endif
             }
             #if DEBUG
+            if QALaunchFlag.showConquest.isSet || QALaunchFlag.showDeployArmy.isSet {
+                viewModel.qaPrepareConquestPosition()
+            }
             if QALaunchFlag.showRobberTargeting.isSet {
                 viewModel.qaPrepareKnightBoardDecision(selectDestinationWithVictim: false)
             } else if QALaunchFlag.showRobberVictimPicker.isSet {

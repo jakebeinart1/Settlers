@@ -233,8 +233,15 @@ public struct BoardView: View {
     /// the tile loop lets a later neighbor repaint half of an earlier ring.
     private func drawTiles(geometry: HexGeometry, in context: GraphicsContext) {
         for tile in board.tiles {
-            TileDrawing.drawTile(tile, geometry: geometry, in: context)
+            TileDrawing.drawTile(tile, geometry: geometry, garrison: garrisonMark(at: tile.coordinate), in: context)
         }
+    }
+
+    /// Conquest only; a standard game has no garrisons, so this is always nil there.
+    private func garrisonMark(at hex: HexCoordinate) -> TileDrawing.GarrisonMark? {
+        guard let garrison = state.garrisons[hex] else { return nil }
+        return .init(strength: garrison.strength,
+                     ownerColor: garrison.owner.map { playerIdentity($0).civilization.accentColor })
     }
 
     private func drawRobberTargeting(geometry: HexGeometry, in context: GraphicsContext) {
