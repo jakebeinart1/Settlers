@@ -140,6 +140,7 @@
 		E7B13CA29B6CD84D4DD4C4AC /* BoardViewportInvarianceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF5C497F322A8B09715BC1CB /* BoardViewportInvarianceTests.swift */; };
 		E943B06519C318DFE4BD613E /* TradePresentationState.swift in Sources */ = {isa = PBXBuildFile; fileRef = D64CA86D7B5FE711AD994243 /* TradePresentationState.swift */; };
 		EA3F8948081A29B415CD8B67 /* QALaunchFlag.swift in Sources */ = {isa = PBXBuildFile; fileRef = 59A80CE9867E891B09A3F0E5 /* QALaunchFlag.swift */; };
+		ED5DEDE275F7FA08368C0F1F /* ArmyHandViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83ABF1BEB91221BFB90E929D /* ArmyHandViews.swift */; };
 		EDDC6F3EE75F97F9C0A3A1CA /* GameplayBoundaryFlowTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 95CF01E3C9518CFFC7C0AF1F /* GameplayBoundaryFlowTests.swift */; };
 		EF87083558FA32FFB14AA859 /* GameViewModel+BotPacing.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A01A012123500F977D8417F /* GameViewModel+BotPacing.swift */; };
 		F196BA189817672BCD58FBA7 /* GameViewModel+QATrade.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7E281605A981DE27D853BE66 /* GameViewModel+QATrade.swift */; };
@@ -232,6 +233,7 @@
 		7E281605A981DE27D853BE66 /* GameViewModel+QATrade.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "GameViewModel+QATrade.swift"; sourceTree = "<group>"; };
 		8164AC90317469202817676F /* SettlersApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettlersApp.swift; sourceTree = "<group>"; };
 		82B3789736E74EC7C38C0C27 /* MatchCheckpointMigration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MatchCheckpointMigration.swift; sourceTree = "<group>"; };
+		83ABF1BEB91221BFB90E929D /* ArmyHandViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArmyHandViews.swift; sourceTree = "<group>"; };
 		859E263A00119BF52F19D867 /* PacingPreferencesTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PacingPreferencesTests.swift; sourceTree = "<group>"; };
 		85B6069622A8A50F3F60184A /* OpponentProfile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OpponentProfile.swift; sourceTree = "<group>"; };
 		8BC4427BD3E30FD0F5F9E9CC /* SettingsChrome.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsChrome.swift; sourceTree = "<group>"; };
@@ -457,6 +459,7 @@
 		B0748839A83B816591CA6267 /* Views */ = {
 			isa = PBXGroup;
 			children = (
+				83ABF1BEB91221BFB90E929D /* ArmyHandViews.swift */,
 				118052E72D8695833C2EC00C /* ArmyPurchasePopupView.swift */,
 				64B237C01DFEE60CA454FFCB /* BoardChips.swift */,
 				306B99243D5CB6793A272281 /* BottomSafeInsetKey.swift */,
@@ -697,6 +700,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				83C2D6F2A6B7F67093D579CB /* AccessibilityID.swift in Sources */,
+				ED5DEDE275F7FA08368C0F1F /* ArmyHandViews.swift in Sources */,
 				A3875B327B70080CD123396D /* ArmyPurchasePopupView.swift in Sources */,
 				5D9BC2890AFB1BDBE7B09D9A /* BoardCamera.swift in Sources */,
 				17B209D17F882202517AC5D8 /* BoardChips.swift in Sources */,

@@ -23,6 +23,13 @@ struct DevelopmentCardOverlay: View {
     let onCommit: (GameMove) -> String?
     let onViewCards: (DevCardType) -> Void
     let onDismiss: () -> Void
+    /// Conquest: the Army tab's Deploy button.
+    var onDeployArmy: () -> Void = {}
+    var playerName: (PlayerID) -> String = { "Player \($0.index + 1)" }
+
+    private enum HandTab: Hashable { case development, army }
+    @State private var tab: HandTab = .development
+    @State private var armyStrength: Int?
 
     @State private var yearOfPlentyPicks: [Resource: Int] = [:]
     @State private var monopolyPick: Resource?
@@ -111,26 +118,123 @@ struct DevelopmentCardOverlay: View {
 
     private var middle: some View {
         VStack(spacing: 14) {
-            if mode == .hand { handStrip }
-            if let type = displayedType {
-                cardDetail(type)
+            if showsArmyTab {
+                PaintedChoiceRow(
+                    options: [HandTab.development, .army],
+                    title: { $0 == .army ? "Army" : "Development" },
+                    selection: tab,
+                    isCompact: true,
+                    fontSize: 14,
+                    onSelect: { tab = $0 }
+                )
+                .fixedSize(horizontal: false, vertical: true)
+            }
+            if tab == .army && showsArmyTab {
+                armyStrip
+                armyDetail
             } else {
-                emptyHand
+                if mode == .hand { handStrip }
+                if let type = displayedType {
+                    cardDetail(type)
+                } else {
+                    emptyHand
+                }
             }
         }
         .padding(16)
     }
 
+    // MARK: - Army tab (Conquest)
+
+    private var showsArmyTab: Bool { mode == .hand && state.variant == .conquest }
+    private var isArmyTab: Bool { showsArmyTab && tab == .army }
+
+    /// The army hand grouped by strength, ascending.
+    private var armyRows: [(strength: Int, count: Int)] {
+        let counts = Dictionary(grouping: state.armyHands[player, default: []], by: { $0 }).mapValues(\.count)
+        return counts.keys.sorted().map { ($0, counts[$0]!) }
+    }
+
+    private var displayedStrength: Int? { armyStrength ?? armyRows.first?.strength }
+
+    private var armyStrip: some View {
+        let hand = state.armyHands[player, default: []]
+        return VStack(alignment: .leading, spacing: 8) {
+            HStack {
+                Text("YOUR ARMY")
+                    .font(.caption.bold())
+                    .foregroundStyle(SettingsChrome.ornamentGold)
+                Spacer()
+                Text("\(hand.count) cards · strength \(hand.reduce(0, +))")
+                    .font(.caption)
+                    .foregroundStyle(.white.opacity(0.68))
+            }
+            if hand.isEmpty {
+                SettingsInfoPlaque(text: "Raise your first army card from Build, paying \(state.armyPrice.label).")
+            } else {
+                ScrollView(.horizontal, showsIndicators: true) {
+                    HStack(spacing: 8) {
+                        ForEach(armyRows, id: \.strength) { row in
+                            ArmyHandTile(strength: row.strength, count: row.count,
+                                         isSelected: displayedStrength == row.strength) {
+                                armyStrength = row.strength
+                            }
+                        }
+                    }
+                    .padding(.vertical, 2)
+                }
+            }
+        }
+    }
+
+    private var armyDetail: some View {
+        VStack(spacing: 12) {
+            ArmyArtwork(strength: displayedStrength)
+            if let strength = displayedStrength {
+                VStack(spacing: 5) {
+                    Text("Army \(strength)")
+                        .font(.system(size: 24, weight: .bold, design: .serif))
+                        .foregroundStyle(.white)
+                        .accessibilityIdentifier(AccessibilityID.Army.handDetail(strength))
+                    Text(ArmyStyle.effect(strength: strength))
+                        .font(.system(size: 14, design: .serif))
+                        .foregroundStyle(.white.opacity(0.82))
+                        .multilineTextAlignment(.center)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+            }
+            Text("\(state.armyDeck.count) left in the deck\nRivals' army cards: " + rivalArmyCounts)
+                .font(.caption)
+                .foregroundStyle(.white.opacity(0.68))
+                .multilineTextAlignment(.center)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+    }
+
+    /// Public: how many army cards each rival holds, never their strengths.
+    private var rivalArmyCounts: String {
+        state.players.map(\.id).filter { $0 != player }.sorted()
+            .map { "\(playerName($0)) \(state.armyHands[$0, default: []].count)" }
+            .joined(separator: " · ")
+    }
+
+    private var canDeployArmy: Bool {
+        guard case .mainTurn(let seat) = state.phase, seat == player.index else { return false }
+        return !Conquest.deployMoves(for: player, in: state).isEmpty
+    }
+
     private var header: some View {
         HStack(spacing: 10) {
-            Image(systemName: mode == .hand ? "rectangle.stack.fill" : "sparkles.rectangle.stack.fill")
+            Image(systemName: isArmyTab ? "shield.lefthalf.filled"
+                  : mode == .hand ? "rectangle.stack.fill" : "sparkles.rectangle.stack.fill")
                 .font(.title3)
                 .foregroundStyle(SettingsChrome.ornamentGold)
             VStack(alignment: .leading, spacing: 2) {
-                Text(mode == .hand ? "Development Cards" : "New Development Card")
+                Text(isArmyTab ? "Army Cards" : mode == .hand ? "Development Cards" : "New Development Card")
                     .font(.system(size: 21, weight: .bold, design: .serif))
                     .foregroundStyle(.white)
-                Text(mode == .hand ? "Inspect your hand and choose a card." : "Added safely to your private hand.")
+                Text(isArmyTab ? "Inspect your army, then deploy it."
+                     : mode == .hand ? "Inspect your hand and choose a card." : "Added safely to your private hand.")
                     .font(.caption)
                     .foregroundStyle(.white.opacity(0.72))
             }
@@ -314,7 +418,17 @@ struct DevelopmentCardOverlay: View {
             }
         case .hand:
             VStack(spacing: 9) {
-                if let type = displayedType, type != .victoryPoint {
+                if tab == .army && showsArmyTab {
+                    GoldRowButton(
+                        title: "Deploy Army",
+                        subtitle: canDeployArmy ? "Tap a hex your buildings touch" : "Deploy on your own turn",
+                        systemImage: "flag.fill",
+                        iconColor: ArmyStyle.color,
+                        isEnabled: canDeployArmy,
+                        action: onDeployArmy
+                    )
+                    .accessibilityIdentifier(AccessibilityID.Army.handDeploy)
+                } else if let type = displayedType, type != .victoryPoint {
                     let status = DevCards.playStatus(type, by: player, in: state)
                     GoldRowButton(
                         title: playButtonTitle(for: type),

@@ -146,6 +146,9 @@ enum AccessibilityID {
         static func card(_ index: Int) -> String { "army.card.\(index)" }
         static func payment(_ resource: Resource) -> String { "army.payment.\(resource.rawValue)" }
         static func tile(_ strength: Int) -> String { "army.tile.\(strength)" }
+        static let handDeploy = "army.hand.deploy"
+        static func handTile(_ strength: Int) -> String { "army.hand.tile.\(strength)" }
+        static func handDetail(_ strength: Int) -> String { "army.hand.detail.\(strength)" }
     }
 
     enum DevCards {

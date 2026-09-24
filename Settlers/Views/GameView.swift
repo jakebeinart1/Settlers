@@ -236,7 +236,13 @@ public struct GameView: View {
                     onDismiss: {
                         showDevCardHand = false
                         devCardPopupType = nil
-                    }
+                    },
+                    onDeployArmy: {
+                        showDevCardHand = false
+                        devCardPopupType = nil
+                        _ = viewModel.beginBoardDecision(.deployArmy)
+                    },
+                    playerName: { viewModel.playerIdentity(for: $0).displayName }
                 )
                 .accessibilityHidden(viewModel.needsHandoff)
             }

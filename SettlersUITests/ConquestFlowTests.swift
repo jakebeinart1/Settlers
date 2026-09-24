@@ -125,4 +125,26 @@ final class ConquestFlowTests: XCTestCase {
             return total + (held.flatMap(Int.init) ?? 0)
         }
     }
+
+    /// CARDS opens the hand with an Army tab beside the development cards: the
+    /// army is inspectable before anything is deployed, and deploys from there.
+    func testTheArmyTabShowsTheHandAndDeploysFromIt() {
+        continueAfterFailure = false
+        let app = XCUIApplication()
+        app.launchArguments = ["-ui-testing", "-ui-testing-reset", "-qaAutoStart", "-qaShowConquest"]
+        app.launch()
+        let shelf = app.buttons["dev-cards.shelf"]
+        XCTAssertTrue(shelf.waitForExistence(timeout: 10))
+        shelf.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
+        let armyTab = app.buttons["Army"]
+        XCTAssertTrue(armyTab.waitForExistence(timeout: 5), "Conquest adds an Army tab to the hand")
+        armyTab.tap()
+        XCTAssertTrue(app.buttons["army.hand.tile.2"].waitForExistence(timeout: 5))
+        app.buttons["army.hand.tile.4"].tap()
+        XCTAssertTrue(app.staticTexts["army.hand.detail.4"].exists)
+        attach(app, "conquest-army-tab")
+        app.buttons["army.hand.deploy"].tap()
+        let hex = app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH %@", "board.tile.")).firstMatch
+        XCTAssertTrue(hex.waitForExistence(timeout: 5), "Deploy Army from the hand starts the board decision")
+    }
 }
