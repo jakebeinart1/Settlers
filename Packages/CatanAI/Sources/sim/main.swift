@@ -521,7 +521,40 @@ private struct ArmySeat {
     var captures = 0
     var pvp = 0
     var heldAtEnd = 0
-    var json: String { "{\"bought\":\(bought),\"captures\":\(captures),\"pvp\":\(pvp),\"held\":\(heldAtEnd)}" }
+    // Strategy labels, each classified from the position just before the move.
+    var solo = 0            // took a hex no rival building touches
+    var shared = 0          // took a hex one rival building touches
+    var crowded = 0         // took a hex two or more rival buildings touch
+    var prime = 0           // took a 6 or 8
+    var fromLeader = 0      // took a hex the public points leader held
+    var reinforce = 0       // added strength to a hex already held
+    var chip = 0            // attacked and fell short
+    var settleThenTake = 0  // took a hex within 40 moves of settling onto it
+    var json: String {
+        "{\"bought\":\(bought),\"captures\":\(captures),\"pvp\":\(pvp),\"held\":\(heldAtEnd),"
+            + "\"solo\":\(solo),\"shared\":\(shared),\"crowded\":\(crowded),\"prime\":\(prime),"
+            + "\"fromLeader\":\(fromLeader),\"reinforce\":\(reinforce),\"chip\":\(chip),"
+            + "\"settleThenTake\":\(settleThenTake)}"
+    }
+
+    /// Labels one deploy by `actor` on `hex`, against the position before it.
+    mutating func classify(deployOn hex: HexCoordinate, by actor: PlayerID, result: Garrison?,
+                           before: GameState, settledAt: [HexCoordinate: Int], move: Int) {
+        let previous = before.garrisons[hex]
+        guard result?.owner == actor else { chip += 1; return }
+        if previous?.owner == actor { reinforce += 1; return }
+        let corners = before.board.corners(of: hex)
+        let rivals = before.players.filter { $0.id != actor }.reduce(0) { total, rival in
+            total + corners.filter { rival.settlements.contains($0) || rival.cities.contains($0) }.count
+        }
+        if rivals == 0 { solo += 1 } else if rivals == 1 { shared += 1 } else { crowded += 1 }
+        let token = before.board.tiles.first { $0.coordinate == hex }?.numberToken
+        if token == 6 || token == 8 { prime += 1 }
+        let points = before.players.map { before.publicVictoryPoints(for: $0.id) }
+        if let owner = previous?.owner, let top = points.max(),
+           points.filter({ $0 == top }).count == 1, before.publicVictoryPoints(for: owner) == top { fromLeader += 1 }
+        if let settled = settledAt[hex], move - settled <= 40 { settleThenTake += 1 }
+    }
 }
 
 // MARK: - Playing one game
@@ -574,6 +607,7 @@ private func playGame(
     var armyCardsBought = 0, pvpCaptures = 0
     var firstPrimeHolder: PlayerID?
     var armySeats = Array(repeating: ArmySeat(), count: state.players.count)
+    var settledAt = Array(repeating: [HexCoordinate: Int](), count: state.players.count)
 
     for _ in 0..<maxMovesPerGame {
         guard case .seat = session.nextActor() else { break }
@@ -581,7 +615,8 @@ private func playGame(
         for evaluated in session.lastPolicyDecisions {
             behavior[evaluated.seat.index].observeDecision(evaluated.observation, chosen: evaluated.move)
         }
-        let before = session.state.garrisons
+        let beforeState = session.state
+        let before = beforeState.garrisons
         let step: GameSession.Step?
         do {
             step = try session.commit(seat: decision.seat, move: decision.move)
@@ -599,7 +634,16 @@ private func playGame(
             case .boughtArmyCard(let buyer, _):
                 armyCardsBought += 1
                 armySeats[buyer.index].bought += 1
-            case .deployedArmy(let actor, let hex, _, let result) where result?.owner == actor:
+            case .builtSettlement(let builder):
+                let new = session.state.players[builder.index].settlements
+                    .subtracting(beforeState.players[builder.index].settlements)
+                for vertex in new.sorted() {
+                    for hex in session.state.board.neighborTiles(of: vertex) { settledAt[builder.index][hex] = trace.count }
+                }
+            case .deployedArmy(let actor, let hex, _, let result):
+                armySeats[actor.index].classify(deployOn: hex, by: actor, result: result, before: beforeState,
+                                                settledAt: settledAt[actor.index], move: trace.count)
+                guard result?.owner == actor else { break }
                 if before[hex]?.owner != actor { armySeats[actor.index].captures += 1 }
                 if let previous = before[hex]?.owner, previous != actor {
                     pvpCaptures += 1
