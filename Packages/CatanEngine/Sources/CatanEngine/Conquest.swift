@@ -145,6 +145,23 @@ public enum Conquest {
         return moves
     }
 
+    /// Every deploy `player` could make now: each reachable hex x every distinct
+    /// set of its playable cards. `legalMoves` lists a bounded few; a UI that lets
+    /// the player pick any set asks here, so the engine stays the authority on
+    /// what may be committed. ponytail: 2^n in distinct cards held - fine for
+    /// real hands; cap it if hands ever reach the dozens.
+    public static func deployMoves(for player: PlayerID, in state: GameState) -> [GameMove] {
+        let counts = Dictionary(grouping: playableCards(for: player, in: state), by: { $0 }).mapValues(\.count)
+        var sets: [[Int]] = [[]]
+        for strength in counts.keys.sorted() {
+            sets = sets.flatMap { base in (0...counts[strength]!).map { base + Array(repeating: strength, count: $0) } }
+        }
+        let chosen = sets.filter { !$0.isEmpty }
+        return state.board.tiles.map(\.coordinate).sorted()
+            .filter { canDeploy(to: $0, by: player, in: state) }
+            .flatMap { hex in chosen.map { GameMove.deployArmy(to: hex, strengths: $0) } }
+    }
+
     /// The subset of `cards` with the smallest total strictly above `target`,
     /// ascending; ties go to the first found in ascending-card order. `nil` if
     /// the whole hand cannot beat it. Subset-sum over at most 9 x deck-size.

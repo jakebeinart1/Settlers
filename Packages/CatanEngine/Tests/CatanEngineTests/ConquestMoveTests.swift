@@ -173,3 +173,21 @@ private let everyResource: [Resource: Int] = [.brick: 1, .lumber: 1, .wool: 1, .
     #expect(Conquest.payment(for: [.ore: 4, .wool: 4, .brick: 4, .grain: 4], price: .oneOfEach) == nil)
     #expect(Conquest.payment(for: everyResource, price: .oneOfEach) == Conquest.armyCardCost)
 }
+
+@Test func deployMovesOfferEveryCardSetOnEveryReachableHex() {
+    let (state, tile) = conquest(hand: [3, 3, 5])
+    let sets = Set(Conquest.deployMoves(for: state.players[0].id, in: state).compactMap { move -> [Int]? in
+        guard case .deployArmy(let hex, let strengths) = move, hex == tile.coordinate else { return nil }
+        return strengths
+    })
+    #expect(sets == [[3], [5], [3, 3], [3, 5], [3, 3, 5]])
+}
+
+@Test func deployMovesNeverOfferACardBoughtThisTurn() {
+    var (state, _) = conquest(hand: [2, 5])
+    state.armyCardsBoughtThisTurn[state.players[0].id] = [5]
+    let offered = Conquest.deployMoves(for: state.players[0].id, in: state).allSatisfy {
+        if case .deployArmy(_, let strengths) = $0 { return !strengths.contains(5) } else { return false }
+    }
+    #expect(offered)
+}
