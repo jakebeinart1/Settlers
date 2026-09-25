@@ -22,7 +22,8 @@ import Testing
                 matchSetupStore: setupStore,
                 gameLogStore: GameLogStore(directoryURL: root.appendingPathComponent("logs"), maxKeptLogs: 10),
                 gameStatsStore: GameStatsStore(fileURL: root.appendingPathComponent("stats.json")),
-                ghostStore: store ?? ghosts
+                ghostStore: store ?? ghosts,
+                ratingStore: RatingStore(directory: root.appendingPathComponent("ratings"))
             )
         }
 
@@ -92,6 +93,31 @@ import Testing
         #expect(message.contains("ghost"))
         #expect(FileManager.default.fileExists(atPath: f.root.appendingPathComponent("match_checkpoint.json").path),
                 "the save must be kept")
+    }
+
+    /// A finished game is rated for every seat and teaches the human's ghost.
+    /// Jake's rule: the ghost's own moves never teach it - here seat 3 is
+    /// Jake's ghost and seat 1 is Jake, and the ghost learns only from seat 1.
+    @MainActor
+    @Test func aFinishedGameIsRatedAndTeachesThePersonsGhost() async throws {
+        let f = try fixture()
+        defer { f.tearDown() }
+        let model = f.model()
+        model.startNewGame(setup: ghostTable())
+        model.qaPlayToEnd()
+        guard case .gameOver = model.state.phase else {
+            Issue.record("the game did not finish")
+            return
+        }
+        await model.lastFinishedMatchWork?.value
+        let ratings = RatingStore(directory: f.root.appendingPathComponent("ratings")).load()
+        #expect(ratings.games["person:Jake"] == 1)
+        #expect(ratings.games["ghost:jake"] == 1)
+        #expect(ratings.ratings["classic"] == nil, "Classic is the fixed anchor")
+        #expect(ratings.ratedMatches.count == 1)
+        let taught = try #require(f.ghosts.ghost(id: "jake"))
+        #expect(taught.gamesLearned == 25, "the bundled ghost's 24 games plus this one")
+        #expect(f.ghosts.versions(of: "jake").count == 1)
     }
 
     /// Review Focus 1: pass-and-play is gone, but an old two-human save still

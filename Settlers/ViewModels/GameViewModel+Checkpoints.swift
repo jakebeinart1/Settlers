@@ -122,6 +122,9 @@ extension GameViewModel {
         CivilizationAssignment.current = match.setup.seats.compactMap(\.civilization)
         accumulatedActiveDuration = match.elapsedSeconds
         activeSince = { if case .gameOver = match.state.phase { return nil }; return Date() }()
+        // A game that ended just before a crash may not have been rated or
+        // taught yet. Both are idempotent per match, so re-running is safe.
+        if case .gameOver = match.state.phase { lastFinishedMatchWork = recordFinishedMatch(match) }
         savedGameAvailability = .playable
         saveWasUnreadable = false
         persistenceBlocked = false

@@ -10,7 +10,7 @@ import Foundation
 //   ghost fit --out person.json [--rounds 3] LOG.jsonl...   (fit on 3/4 of games, report on the held-out 1/4)
 //   ghost calibrate --person P.json --target 0.54 [--games 40] [--tier classic|expert]
 //   ghost strength --person P.json --lambda L [--games 1248] [--tier expert]
-//   ghost bundle --person P.json --lambda L --id jake --name "Jake's Ghost" --games-learned 24
+//   ghost bundle --person P.json --lambda L --id jake --name "Jake's Ghost" --games-learned 24 --decisions-learned 2612
 //                [--civilization greece] --out Settlers/Resources/Ghosts/jake.json
 //   ghost selftest [--games 12] [--seed 700000] [--rounds 3] (recover a known synthetic person)
 
@@ -225,6 +225,7 @@ case "bundle":
     }
     let profile = GhostProfile(id: id, name: name, person: try readPerson(path), lambda: lambda,
                                gamesLearned: Int(option("--games-learned") ?? "0") ?? 0,
+                               decisionsLearned: Int(option("--decisions-learned") ?? "0") ?? 0,
                                civilization: option("--civilization"))
     let encoder = JSONEncoder()
     encoder.outputFormatting = [.prettyPrinted, .sortedKeys]

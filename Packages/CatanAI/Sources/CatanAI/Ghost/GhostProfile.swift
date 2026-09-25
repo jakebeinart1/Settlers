@@ -16,19 +16,23 @@ public struct GhostProfile: Codable, Sendable, Equatable, Identifiable {
     public var lambda: Double
     /// How many of its person's finished games it has learned from.
     public var gamesLearned: Int
+    /// How many of its person's decisions it has learned from: how stiff it is
+    /// as the prior for its next retraining (`FitOptions.priorEvidence`).
+    public var decisionsLearned: Int
     public var civilization: String?
 
     public init(id: String, name: String, person: PersonModel, lambda: Double,
-                gamesLearned: Int, civilization: String? = nil) {
+                gamesLearned: Int, decisionsLearned: Int = 0, civilization: String? = nil) {
         self.id = id
         self.name = name
         self.person = person
         self.lambda = lambda
         self.gamesLearned = gamesLearned
+        self.decisionsLearned = decisionsLearned
         self.civilization = civilization
     }
 
-    private enum CodingKeys: String, CodingKey { case id, name, person, lambda, gamesLearned, civilization }
+    private enum CodingKeys: String, CodingKey { case id, name, person, lambda, gamesLearned, decisionsLearned, civilization }
 
     /// Hand-written so a field added later cannot make an older ghost vanish:
     /// a ghost that fails to decode drops out of the picker without a word.
@@ -39,6 +43,7 @@ public struct GhostProfile: Codable, Sendable, Equatable, Identifiable {
         person = try values.decode(PersonModel.self, forKey: .person)
         lambda = try values.decode(Double.self, forKey: .lambda)
         gamesLearned = try values.decodeIfPresent(Int.self, forKey: .gamesLearned) ?? 0
+        decisionsLearned = try values.decodeIfPresent(Int.self, forKey: .decisionsLearned) ?? 0
         civilization = try values.decodeIfPresent(String.self, forKey: .civilization)
     }
 }

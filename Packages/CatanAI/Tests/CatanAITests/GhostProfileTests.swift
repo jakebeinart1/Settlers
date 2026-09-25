@@ -20,8 +20,10 @@ import CatanEngine
     @Test func decodesWithoutACivilization() throws {
         var object = try #require(JSONSerialization.jsonObject(with: JSONEncoder().encode(sample)) as? [String: Any])
         object.removeValue(forKey: "civilization")
+        object.removeValue(forKey: "decisionsLearned")
         let decoded = try JSONDecoder().decode(GhostProfile.self, from: JSONSerialization.data(withJSONObject: object))
         #expect(decoded.civilization == nil)
+        #expect(decoded.decisionsLearned == 0)
         #expect(decoded.gamesLearned == 24)
     }
 

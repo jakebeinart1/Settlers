@@ -26,6 +26,9 @@ public final class GameViewModel {
     let gameLogStore: GameLogStore
     let gameStatsStore: GameStatsStore
     let ghostStore: GhostStore
+    let ratingStore: RatingStore
+    /// Rating and ghost training for the game that just ended; a test awaits it.
+    var lastFinishedMatchWork: Task<Void, Never>?
     let checkpointStore: MatchCheckpointStore
     var checkpointDocument: MatchCheckpointDocument?
     var persistenceBlocked = false
@@ -216,18 +219,20 @@ public final class GameViewModel {
         matchSetupStore: MatchSetupStore = .shared,
         gameLogStore: GameLogStore = .shared,
         gameStatsStore: GameStatsStore = .shared,
-        ghostStore: GhostStore = .shared
+        ghostStore: GhostStore = .shared,
+        ratingStore: RatingStore = .shared
     ) {
         self.init(checkpointStore: MatchCheckpointStore(fileURL: gameStore.fileURL
             .deletingLastPathComponent().appendingPathComponent("match_checkpoint.json")),
                   gameStore: gameStore, civilizationStore: civilizationStore,
                   matchSetupStore: matchSetupStore, gameLogStore: gameLogStore, gameStatsStore: gameStatsStore,
-                  ghostStore: ghostStore)
+                  ghostStore: ghostStore, ratingStore: ratingStore)
     }
 
     init(checkpointStore: MatchCheckpointStore, gameStore: GameStore,
          civilizationStore: CivilizationAssignmentStore, matchSetupStore: MatchSetupStore,
-         gameLogStore: GameLogStore, gameStatsStore: GameStatsStore, ghostStore: GhostStore = .shared) {
+         gameLogStore: GameLogStore, gameStatsStore: GameStatsStore, ghostStore: GhostStore = .shared,
+         ratingStore: RatingStore = .shared) {
         self.checkpointStore = checkpointStore
         self.gameStore = gameStore
         self.civilizationStore = civilizationStore
@@ -237,6 +242,7 @@ public final class GameViewModel {
         self.gameLogStore = gameLogStore
         self.gameStatsStore = gameStatsStore
         self.ghostStore = ghostStore
+        self.ratingStore = ratingStore
         newGameSetupLoadResult = matchSetupStore.load()
         persistenceErrorMessage = nil
         gameLogWarningState = nil
@@ -513,6 +519,7 @@ public final class GameViewModel {
         if case .gameOver = state.phase {
             accumulatedActiveDuration = next.activeMatch?.elapsedSeconds ?? currentGameDuration
             activeSince = nil
+            if let finished = next.activeMatch { lastFinishedMatchWork = recordFinishedMatch(finished) }
         }
         exportCommittedRecordings(after: step.move, in: next)
     }

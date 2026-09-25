@@ -56,4 +56,40 @@ extension GameViewModel {
         return "Seat \(seat.index + 1)'s ghost (\(name)) is no longer on this phone, so this game cannot continue. "
             + "Your saved game has been kept."
     }
+
+    /// A finished game: rate every seat, then teach the human's ghost.
+    ///
+    /// Only Classic standard games with exactly one human are rated or taught,
+    /// the same scope ghosts play in, so the ladder compares like with like.
+    /// Rating is idempotent by match id, so calling this again for the same
+    /// match (a resume after a crash) is safe. Training runs in the background
+    /// and never blocks the end screen; a failure leaves the ghost as it was.
+    func recordFinishedMatch(_ match: MatchCheckpoint) -> Task<Void, Never>? {
+        guard case .gameOver(let winner) = match.state.phase else { return nil }
+        let setup = match.setup
+        guard setup.mode == .classic, setup.variant == .standard, setup.humanSeats.count == 1,
+              let human = setup.humanSeats.first else { return nil }
+        do {
+            try ratingStore.record(match: match.id, seats: setup.seats.map { Self.ratedEntity(for: $0, in: setup) },
+                                   winner: winner.index)
+        } catch {
+            gameLogWarning = "This game's rating could not be saved: \(error.localizedDescription)"
+        }
+        let game = LoggedGame(id: match.id.uuidString, initialState: match.initialState,
+                              humanSeats: [PlayerID(index: human.index)],
+                              events: match.moves.map { LoggedMove(player: $0.actor, move: $0.move) })
+        let trainer = GhostTrainer(store: ghostStore)
+        let matchID = match.id
+        return Task.detached(priority: .background) {
+            _ = try? trainer.learn(match: matchID, game: game, human: PlayerID(index: human.index), personName: human.name)
+        }
+    }
+
+    /// Who sat in a chair, for the ladder: the person by name, a ghost by id,
+    /// any other AI as its tier.
+    static func ratedEntity(for seat: MatchSetup.Seat, in setup: MatchSetup) -> RatedEntity {
+        if seat.isHuman { return .person(seat.name) }
+        if let profile = seat.opponentProfile, let id = ghostID(of: profile) { return .ghost(id) }
+        return setup.difficulty == .expert ? .expert : .classic
+    }
 }

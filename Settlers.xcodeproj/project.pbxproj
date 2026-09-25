@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		009E5CB963F6A551ADA6FF83 /* GhostTrainerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A53231ADE2BF3D84D9FFBE9 /* GhostTrainerTests.swift */; };
 		01EF8804262A950A081F1E65 /* OpponentProfile.swift in Sources */ = {isa = PBXBuildFile; fileRef = 85B6069622A8A50F3F60184A /* OpponentProfile.swift */; };
 		026232B4459AF297E5949F67 /* NewGameEndToEndTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D04CF1402F3DF884C2B45746 /* NewGameEndToEndTests.swift */; };
 		06479A5D63CE3A565C2BC775 /* Elo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0892D7EFB79360118C486EE3 /* Elo.swift */; };
@@ -21,6 +22,7 @@
 		0CC77716B1B04BB85F41BFD2 /* BoardDecisionBoardChrome.swift in Sources */ = {isa = PBXBuildFile; fileRef = 508E724EE652E4C341C3BAC8 /* BoardDecisionBoardChrome.swift */; };
 		0D1C18B7C7CECCAA9082F139 /* NewGameModeFlowTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 675A4FCE4897088732569512 /* NewGameModeFlowTests.swift */; };
 		0F1C7F5ED5E32E95D4FDE581 /* OpponentProfileTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4871E5E296438809020C5BFD /* OpponentProfileTests.swift */; };
+		13004C279D6FA79C03B66CB1 /* GhostTrainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8B132570ABBBFF851519647A /* GhostTrainer.swift */; };
 		17B209D17F882202517AC5D8 /* BoardChips.swift in Sources */ = {isa = PBXBuildFile; fileRef = 64B237C01DFEE60CA454FFCB /* BoardChips.swift */; };
 		18CC1440102EAD5B2A61EC6D /* PlayerIdentity.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9797C7C47B668B6FB29A4B0 /* PlayerIdentity.swift */; };
 		19BC9FFB2F565BAEF0571C8C /* PlayerNameMemoryFlowTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B1CD11CF283FBD26628A325 /* PlayerNameMemoryFlowTests.swift */; };
@@ -188,6 +190,7 @@
 		16777953197BE2BC34CCFE6B /* GameStatsStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameStatsStore.swift; sourceTree = "<group>"; };
 		16AE03B6566127BEBE8CED53 /* GhostSeatTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GhostSeatTests.swift; sourceTree = "<group>"; };
 		185D6FBBEC12DDB165C33128 /* BoardViewCamera.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BoardViewCamera.swift; sourceTree = "<group>"; };
+		1A53231ADE2BF3D84D9FFBE9 /* GhostTrainerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GhostTrainerTests.swift; sourceTree = "<group>"; };
 		1E21004FB7C5F5948BEC71A9 /* SavedGameAvailability.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SavedGameAvailability.swift; sourceTree = "<group>"; };
 		1EAE8607EB0452626F9A092E /* CheckpointExportTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CheckpointExportTests.swift; sourceTree = "<group>"; };
 		1F5C0B1182DAC9A11A80D10D /* GameViewModel+QADevCards.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "GameViewModel+QADevCards.swift"; sourceTree = "<group>"; };
@@ -250,6 +253,7 @@
 		83ABF1BEB91221BFB90E929D /* ArmyHandViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArmyHandViews.swift; sourceTree = "<group>"; };
 		859E263A00119BF52F19D867 /* PacingPreferencesTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PacingPreferencesTests.swift; sourceTree = "<group>"; };
 		85B6069622A8A50F3F60184A /* OpponentProfile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OpponentProfile.swift; sourceTree = "<group>"; };
+		8B132570ABBBFF851519647A /* GhostTrainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GhostTrainer.swift; sourceTree = "<group>"; };
 		8BC4427BD3E30FD0F5F9E9CC /* SettingsChrome.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsChrome.swift; sourceTree = "<group>"; };
 		8C2F5AA2574FC0C8D7590DBB /* EloTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EloTests.swift; sourceTree = "<group>"; };
 		8DDA700575394DF91917C2EE /* GameViewModel+Recovery.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "GameViewModel+Recovery.swift"; sourceTree = "<group>"; };
@@ -380,6 +384,7 @@
 				5E1449FD2095D36C126206BA /* GameViewModelCheckpointTests.swift */,
 				16AE03B6566127BEBE8CED53 /* GhostSeatTests.swift */,
 				0DFB1FCCE94DC838E55F1479 /* GhostStoreTests.swift */,
+				1A53231ADE2BF3D84D9FFBE9 /* GhostTrainerTests.swift */,
 				6BF5BC6D6577182E9829230A /* IncomingOfferHoldTests.swift */,
 				92F9BFE16D19CFD1ABEC5B88 /* IncrementalCheckpointValidationTests.swift */,
 				FDDC6BE523633D50F2BBE0CF /* MatchCheckpointStoreTests.swift */,
@@ -592,6 +597,7 @@
 				ACBC9F02C56C7D94404C8B98 /* GameViewModel+OpponentProfiles.swift */,
 				094066516FB9FCC3D028672A /* GameViewModel+Policies.swift */,
 				8DDA700575394DF91917C2EE /* GameViewModel+Recovery.swift */,
+				8B132570ABBBFF851519647A /* GhostTrainer.swift */,
 				68F460B80CB6CE897A077356 /* MatchPersistenceTransaction.swift */,
 				D64CA86D7B5FE711AD994243 /* TradePresentationState.swift */,
 			);
@@ -785,6 +791,7 @@
 				3F438AED3E4BED126FEC2153 /* GameViewModel+Recovery.swift in Sources */,
 				076DBD0E74CFC2372A8A8AA9 /* GameViewModel.swift in Sources */,
 				083F184813E8CD8A7E763264 /* GhostStore.swift in Sources */,
+				13004C279D6FA79C03B66CB1 /* GhostTrainer.swift in Sources */,
 				73E0287081669C06B076C233 /* GoldRowButton.swift in Sources */,
 				AF899EB36C3533A4C9F0472D /* HexGeometry.swift in Sources */,
 				4DF1B0D807C52C188BCD9DC8 /* HumanSeatStore.swift in Sources */,
@@ -849,6 +856,7 @@
 				85F2ED311872E6FE30EF2372 /* GameViewModelCheckpointTests.swift in Sources */,
 				6EAB31E64F84941B16B52ACB /* GhostSeatTests.swift in Sources */,
 				DD9EFF1EB723C14E49780637 /* GhostStoreTests.swift in Sources */,
+				009E5CB963F6A551ADA6FF83 /* GhostTrainerTests.swift in Sources */,
 				DC62266DFBF7B3987969DA87 /* IncomingOfferHoldTests.swift in Sources */,
 				D94CD795172802BE9D7C9F5E /* IncrementalCheckpointValidationTests.swift in Sources */,
 				C834783EE1638B259EFA3035 /* MatchCheckpointStoreTests.swift in Sources */,

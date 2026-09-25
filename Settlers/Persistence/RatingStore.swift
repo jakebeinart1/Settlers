@@ -29,8 +29,8 @@ struct Ratings: Codable, Equatable, Sendable {
 /// ## Why a corrupt file is moved aside
 /// Loading it as empty and then writing would erase every rating without a
 /// word. The damaged file is kept as `ratings.corrupt.json`.
-struct RatingStore: Sendable {
-    static let shared = RatingStore(directory: FileManager.default
+public struct RatingStore: Sendable {
+    public static let shared = RatingStore(directory: FileManager.default
         .urls(for: .applicationSupportDirectory, in: .userDomainMask)[0])
 
     let directory: URL
