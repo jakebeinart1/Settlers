@@ -56,14 +56,17 @@ public enum DecisionExtractor {
         let ledger = session.ledger(for: event.player)
         var extra: [TradeOffer] = []
         if case .proposeTrade(let offer) = event.move { extra.append(offer) }
+        // A move the person made is always an option they had, listed or not.
+        let unlisted = extra.isEmpty ? [event.move] : []
 
         let base = EvaluationPolicy(weights: anchor)
-            .candidateScores(observation, ledger: ledger, extraProposals: extra, humanTrading: humanTrading)
+            .candidateScores(observation, ledger: ledger, extraProposals: extra, extraMoves: unlisted,
+                             humanTrading: humanTrading)
         guard base.count > 1 else { return nil }
         guard let chosen = base.firstIndex(where: { same($0.move, event.move) }) else {
             throw ChoiceMissing(move: event.move)
         }
-        let gradients = slopes(observation, ledger: ledger, extra: extra, anchor: anchor,
+        let gradients = slopes(observation, ledger: ledger, extra: extra, unlisted: unlisted, anchor: anchor,
                                count: base.count, humanTrading: humanTrading)
         let candidates = base.enumerated().map { index, candidate in
             CandidateRecord(move: candidate.move, score: candidate.score, gradient: gradients[index],
@@ -90,26 +93,29 @@ public enum DecisionExtractor {
     // ponytail: 2 × free-slot re-scorings per decision (33 in Classic). Fine
     // offline; memoise per-state evaluations if 100+ games is too slow.
     /// Central differences, one free weight at a time. `result[candidate][slot]`.
-    static func slopes(_ observation: GameObservation, ledger: PublicLedger, extra: [TradeOffer],
+    static func slopes(_ observation: GameObservation, ledger: PublicLedger, extra: [TradeOffer], unlisted: [GameMove],
                        anchor: EvaluationWeights, count: Int, humanTrading: Bool) -> [[Double]] {
         var result = [[Double]](repeating: [Double](repeating: 0, count: anchor.vector.count), count: count)
         for slot in freeSlots(for: observation.state) {
             let step = 0.01 * max(abs(anchor.vector[slot]), 0.05)
-            let up = scores(observation, ledger, extra, anchor, slot, +step, humanTrading)
-            let down = scores(observation, ledger, extra, anchor, slot, -step, humanTrading)
+            let up = scores(observation, ledger, extra, unlisted, anchor, slot, +step, humanTrading)
+            let down = scores(observation, ledger, extra, unlisted, anchor, slot, -step, humanTrading)
             precondition(up.count == count && down.count == count, "candidate list moved with the weights")
             for index in 0..<count { result[index][slot] = (up[index] - down[index]) / (2 * step) }
         }
         return result
     }
 
+    // swiftlint:disable:next function_parameter_count
     private static func scores(_ observation: GameObservation, _ ledger: PublicLedger, _ extra: [TradeOffer],
+                               _ unlisted: [GameMove],
                                _ anchor: EvaluationWeights, _ slot: Int, _ delta: Double,
                                _ humanTrading: Bool) -> [Double] {
         var vector = anchor.vector
         vector[slot] += delta
         return EvaluationPolicy(weights: EvaluationWeights(vector: vector))
-            .candidateScores(observation, ledger: ledger, extraProposals: extra, humanTrading: humanTrading).map(\.score)
+            .candidateScores(observation, ledger: ledger, extraProposals: extra, extraMoves: unlisted,
+                             humanTrading: humanTrading).map(\.score)
     }
 
     /// `GameSession.decideNextDetailed`'s proposal filter, which every bot seat sees.

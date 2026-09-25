@@ -26,10 +26,16 @@ extension EvaluationPolicy {
     /// engine's enumeration: a person may offer anything they can afford on
     /// their own turn, including their last card of a kind, which `legalMoves`
     /// never lists. The ghost leaves it off and trades under bot rules.
+    ///
+    /// `extraMoves` are non-proposal moves a person made that `legalMoves`
+    /// never lists but the app accepted, such as one bank trade of two 3:1
+    /// swaps. They are scored like any other move; one the engine refuses is
+    /// dropped.
     public func candidateScores(
         _ observation: GameObservation,
         ledger: PublicLedger,
         extraProposals: [TradeOffer] = [],
+        extraMoves: [GameMove] = [],
         humanTrading: Bool = false
     ) -> [ScoredCandidate] {
         var counted = ledger
@@ -40,7 +46,8 @@ extension EvaluationPolicy {
             valuation: TradeValuation(evaluator: evaluator, state: state, ledger: counted)
         )
         var result: [ScoredCandidate] = []
-        for move in observation.legalMoves where move != .rollDice {
+        let unlisted = extraMoves.filter { !observation.legalMoves.contains($0) }
+        for move in observation.legalMoves + unlisted where move != .rollDice {
             if case .proposeTrade = move { continue }
             // Expert's `acceptance` refuses to score an accept that does not
             // beat declining - a weight-dependent filter. A person may accept

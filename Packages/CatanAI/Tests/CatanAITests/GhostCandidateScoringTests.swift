@@ -87,6 +87,19 @@ import CatanEngine
         #expect(scored.contains { if case .proposeTrade(let o) = $0.move { o.sameProposition(as: offer) } else { false } })
     }
 
+    /// Jake again: one bank trade of 6 ore for a grain and a wool - two 3:1
+    /// swaps in one move, which the app accepts and `legalMoves` never lists.
+    /// Any move the person made that replays is a candidate, scored like the rest.
+    @Test func aMoveTheEngineAcceptsButNeverListsIsScored() {
+        var (state, me) = table()
+        state.players[0].resources = [.ore: 8]
+        let combined = GameMove.bankTrade(give: [.ore: 8], get: [.grain: 1, .wool: 1])
+        let obs = observation(state, me)
+        #expect(!obs.legalMoves.contains(combined))
+        let scored = EvaluationPolicy().candidateScores(obs, ledger: .fromPositionAlone(state, observer: me), extraMoves: [combined])
+        #expect(scored.contains { $0.move == combined })
+    }
+
     /// Weights change scores, never the candidate list. The extractor's slopes depend on it.
     @Test func candidateOrderDoesNotDependOnWeights() {
         let (state, me) = table()
