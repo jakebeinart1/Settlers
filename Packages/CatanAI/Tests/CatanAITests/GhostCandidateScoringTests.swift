@@ -38,6 +38,25 @@ import CatanEngine
         #expect(scored.contains { if case .proposeTrade(let o) = $0.move { o.sameProposition(as: greedy) } else { false } })
     }
 
+    /// A person may accept an offer Expert would refuse; the accept still needs
+    /// a value, or extraction cannot find the move they made. Expert's
+    /// `acceptance` returned nil for exactly these, and whether it did moved
+    /// with the weights, which crashed the re-linearised selftest.
+    @Test func aBadOfferCanStillBeAccepted() {
+        var (state, me) = table()
+        let proposer = state.players[1].id
+        state.phase = .mainTurn(playerIndex: 1)
+        state.players[1].resources = [.wool: 1]
+        let offer = TradeOffer.enumerated(from: proposer, give: [.wool: 1], want: [.ore: 3])
+        state.pendingTradeOffers = [offer]
+        let accept = GameMove.respondToTrade(offerID: offer.id, accept: true)
+        let obs = GameObservation(seat: me, state: state,
+                                  legalMoves: [accept, .respondToTrade(offerID: offer.id, accept: false)])
+        let scored = EvaluationPolicy().candidateScores(obs, ledger: .fromPositionAlone(state, observer: me))
+        #expect(scored.map(\.move).contains(accept))
+        #expect(scored.count == 2)
+    }
+
     /// Weights change scores, never the candidate list. The extractor's slopes depend on it.
     @Test func candidateOrderDoesNotDependOnWeights() {
         let (state, me) = table()

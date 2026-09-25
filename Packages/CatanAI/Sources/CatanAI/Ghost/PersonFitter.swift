@@ -24,9 +24,13 @@ public enum PersonFitter {
     static let slots = EvaluationWeights.vectorLabels.count
     static var betaIndex: Int { slots }
 
+    /// - Parameters:
+    ///   - anchor: Expert's weights, which the prior pulls toward.
+    ///   - start: where to begin, usually the previous round's fit when the
+    ///     decisions were re-linearised there. Defaults to Expert.
     public static func fit(_ decisions: [DecisionRecord], anchor: EvaluationWeights,
-                           options: FitOptions = FitOptions()) -> PersonModel {
-        let start = PersonModel.anchored(at: anchor)
+                           start: PersonModel? = nil, options: FitOptions = FitOptions()) -> PersonModel {
+        let start = start ?? PersonModel.anchored(at: anchor)
         guard !decisions.isEmpty else { return start }
         let movable = movableSlots(decisions)
         var params = pack(start)

@@ -70,6 +70,17 @@ import CatanEngine
         for slot in DecisionExtractor.frozen.sorted() { #expect(fitted.weights[slot] == anchor.vector[slot]) }
     }
 
+    /// Re-linearising needs the fit to resume from the last round's person,
+    /// while the prior still pulls toward Expert.
+    @Test func aFitResumesFromItsStartingPoint() {
+        var start = PersonModel.anchored(at: anchor)
+        start.weights[1] += 0.2
+        start.theta[3] = -0.7
+        var options = FitOptions()
+        options.iterations = 0
+        #expect(PersonFitter.fit(synthetic(count: 10, seed: 5), anchor: anchor, start: start, options: options) == start)
+    }
+
     /// Review Focus 4: no data means the anchor, not NaN.
     @Test func fittingNothingReturnsTheAnchor() {
         #expect(PersonFitter.fit([], anchor: anchor) == PersonModel.anchored(at: anchor))

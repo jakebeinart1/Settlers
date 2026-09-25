@@ -36,6 +36,15 @@ extension EvaluationPolicy {
         var result: [ScoredCandidate] = []
         for move in observation.legalMoves where move != .rollDice {
             if case .proposeTrade = move { continue }
+            // Expert's `acceptance` refuses to score an accept that does not
+            // beat declining - a weight-dependent filter. A person may accept
+            // anyway, so an accept is valued as the position it leads to.
+            if case .respondToTrade(_, true) = move {
+                if let (next, nextLedger) = applied(move, to: state, ledger: counted, by: evaluator.seat) {
+                    result.append(ScoredCandidate(move: move, score: evaluator.evaluate(next, ledger: nextLedger)))
+                }
+                continue
+            }
             if let value = score(move, state: state, ledger: counted, evaluator: evaluator, purchases: &purchases) {
                 result.append(ScoredCandidate(move: move, score: value))
             }

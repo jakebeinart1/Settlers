@@ -289,7 +289,7 @@ public struct EvaluationPolicy: LedgerAwarePolicy {
         }
     }
 
-    private func applied(
+    func applied(
         _ move: GameMove,
         to state: GameState,
         ledger: PublicLedger,
