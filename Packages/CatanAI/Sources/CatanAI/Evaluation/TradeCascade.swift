@@ -113,7 +113,7 @@ extension EvaluationPolicy {
     }
 
     /// This seat's worst score over plausible payers, and the best payer gain.
-    private func appeal(
+    func appeal(
         of offer: TradeOffer,
         payers: PlannerTradeEvaluator,
         valuation: TradeValuation

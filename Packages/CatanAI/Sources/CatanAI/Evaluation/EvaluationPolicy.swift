@@ -162,7 +162,7 @@ public struct EvaluationPolicy: LedgerAwarePolicy {
     }
 
     /// One candidate's score, or `nil` if the engine refuses the move.
-    private func score(
+    func score(
         _ move: GameMove,
         state: GameState,
         ledger: PublicLedger,
