@@ -9,9 +9,9 @@ struct RadarChartView: View {
     var isLearnedFrom = false
 
     private static let axes = RadarAxis.allCases
-    private static let labelInset: CGFloat = 44
+    private static let labelInset: CGFloat = 54
     /// How far outside the 99 ring a label sits, so a 99 vertex never touches it.
-    private static let labelGap: CGFloat = 28
+    private static let labelGap: CGFloat = 38
 
     var body: some View {
         GeometryReader { geo in

@@ -31,6 +31,16 @@ enum UITestBootstrap {
         }
         GameStatsStore.shared.clear()
         clearGameLogs()
+        // Ratings, per-game stats and locally trained ghosts outlived a reset
+        // until 2026-09-25: a leaderboard test then saw a player with four
+        // rated games where its fixture seeds three, and Expert's starting
+        // 1229 would drift once any leftover game rated it. Specific paths
+        // only - the ratings file shares Application Support with the rest.
+        let ratings = RatingStore.shared.directory
+        for url in [ratings.appendingPathComponent("ratings.json"), ratings.appendingPathComponent("ratings.corrupt.json"),
+                    SeatStatsStore.shared.directory, GhostStore.shared.localDirectory] {
+            removeIfPresent(url)
+        }
         PlayerNameStore.shared.save("UI Tester")
         if arguments.contains("-ui-testing-corrupt-save") {
             writeCorruptSave()
@@ -49,6 +59,16 @@ enum UITestBootstrap {
             try Data([0xFF, 0xFE, 0x00]).write(to: fileURL, options: .atomic)
         } catch {
             preconditionFailure("Could not seed unreadable UI-test save: \(error)")
+        }
+    }
+
+    private static func removeIfPresent(_ url: URL) {
+        do {
+            try FileManager.default.removeItem(at: url)
+        } catch where (error as NSError).code == NSFileNoSuchFileError {
+            // Nothing recorded yet.
+        } catch {
+            preconditionFailure("Could not reset UI-test ghost data at \(url.lastPathComponent): \(error)")
         }
     }
 
