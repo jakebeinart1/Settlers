@@ -36,12 +36,12 @@ public enum PersonFitter {
         var params = pack(start)
         var adam = Adam(count: params.count)
         for _ in 0..<options.iterations {
-            let grad = gradient(unpack(params), decisions: decisions, anchor: anchor.vector,
+            let grad = gradient(unpack(params, like: start), decisions: decisions, anchor: anchor.vector,
                                 movable: movable, options: options)
             adam.step(&params, grad, rate: options.learningRate)
             params[betaIndex] = max(params[betaIndex], 0.01) // beta stays positive
         }
-        return unpack(params)
+        return unpack(params, like: start)
     }
 
     /// Weights some decision's score actually depends on, minus the frozen ones.
@@ -56,6 +56,12 @@ public enum PersonFitter {
 
     static func unpack(_ params: [Double]) -> PersonModel {
         PersonModel(weights: Array(params[0..<slots]), beta: params[betaIndex], theta: Array(params[(slots + 1)...]))
+    }
+
+    static func unpack(_ params: [Double], like model: PersonModel) -> PersonModel {
+        var unpacked = unpack(params)
+        unpacked.lapse = model.lapse
+        return unpacked
     }
 
     /// Gradient of (mean negative log-likelihood + priors), in `pack` order.
@@ -74,11 +80,13 @@ public enum PersonFitter {
                 active.reduce(candidate.score) { $0 + candidate.gradient[$1] * delta[$1] }
             }
             let logits = zip(scores, decision.candidates).map { model.beta * $0 + model.habit($1.style) }
-            let top = logits.max() ?? 0
-            let exps = logits.map { exp($0 - top) }
-            let total = exps.reduce(0, +)
+            let choice = PersonModel.softmax(logits)
+            // d log P'(chosen) / d logit = share · (onehot - choice), where share
+            // is how much of P'(chosen) the model (not the lapse) accounts for.
+            let chosen = choice[decision.chosen]
+            let share = (1 - model.lapse) * chosen / ((1 - model.lapse) * chosen + model.lapse / Double(choice.count))
             for (index, candidate) in decision.candidates.enumerated() {
-                let residual = (exps[index] / total - (index == decision.chosen ? 1 : 0)) / count
+                let residual = share * (choice[index] - (index == decision.chosen ? 1 : 0)) / count
                 for slot in active { grad[slot] += residual * model.beta * candidate.gradient[slot] }
                 grad[betaIndex] += residual * scores[index]
                 for feature in candidate.style.indices where candidate.style[feature] != 0 {

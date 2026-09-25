@@ -70,6 +70,28 @@ import CatanEngine
         for slot in DecisionExtractor.frozen.sorted() { #expect(fitted.weights[slot] == anchor.vector[slot]) }
     }
 
+    /// Found fitting Jake: 3% of his turns had a candidate scored ~992 (a
+    /// trade that would win if a bot accepted, which no bot does) that he
+    /// rightly ignored. Without a lapse rate those few decisions drove beta to
+    /// its floor, and the model stopped using Expert's scores at all.
+    @Test func aFewAbsurdlyScoredOptionsDoNotCollapseBeta() {
+        let clean = synthetic(count: 600, seed: 6)
+        let poisoned = clean.enumerated().map { index, decision -> DecisionRecord in
+            guard index % 33 == 0 else { return decision }
+            var candidates = decision.candidates
+            let spare = decision.chosen == 0 ? 1 : 0
+            let old = candidates[spare]
+            candidates[spare] = CandidateRecord(move: old.move, score: 990, gradient: old.gradient, style: old.style)
+            return DecisionRecord(game: decision.game, facet: decision.facet, anchor: decision.anchor,
+                                  candidates: candidates, chosen: decision.chosen)
+        }
+        var options = FitOptions()
+        options.iterations = 800
+        options.learningRate = 0.05
+        let fitted = PersonFitter.fit(poisoned, anchor: anchor, options: options)
+        #expect(fitted.beta > 1.5, "beta collapsed to \(fitted.beta)")
+    }
+
     /// Re-linearising needs the fit to resume from the last round's person,
     /// while the prior still pulls toward Expert.
     @Test func aFitResumesFromItsStartingPoint() {

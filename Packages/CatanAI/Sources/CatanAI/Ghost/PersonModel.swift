@@ -7,15 +7,27 @@ import Foundation
 /// score under this person's weights. `weights` says what they value, `beta`
 /// how consistently they play their own best move, and `theta` the habits the
 /// score cannot see.
+///
+/// ## The lapse rate
+/// A share of choices, `lapse`, is treated as made for reasons the model
+/// cannot see: `P'(m) = (1 - lapse) · P(m) + lapse / n`. Fitting Jake without
+/// it, 3% of his turns offered a candidate scored ~992 (a trade that would win
+/// if a bot accepted, which none does) that he rightly ignored, and those few
+/// decisions drove `beta` to its floor. With it, no single decision can cost
+/// more than `log(lapse / n)`.
 public struct PersonModel: Codable, Sendable, Equatable {
+    public static let defaultLapse = 0.05
+
     public var weights: [Double]
     public var beta: Double
     public var theta: [Double]
+    public var lapse: Double
 
-    public init(weights: [Double], beta: Double, theta: [Double]) {
+    public init(weights: [Double], beta: Double, theta: [Double], lapse: Double = PersonModel.defaultLapse) {
         self.weights = weights
         self.beta = beta
         self.theta = theta
+        self.lapse = lapse
     }
 
     public static func anchored(at anchor: EvaluationWeights) -> PersonModel {
@@ -37,8 +49,14 @@ public struct PersonModel: Codable, Sendable, Equatable {
         decision.candidates.map { beta * personalScore($0, anchor: decision.anchor) + habit($0.style) }
     }
 
+    /// With the lapse blended in.
     public func probabilities(_ decision: DecisionRecord) -> [Double] {
-        let logits = logits(decision)
+        let choice = Self.softmax(logits(decision))
+        let floor = lapse / Double(choice.count)
+        return choice.map { (1 - lapse) * $0 + floor }
+    }
+
+    static func softmax(_ logits: [Double]) -> [Double] {
         let top = logits.max() ?? 0
         let exps = logits.map { exp($0 - top) }
         let total = exps.reduce(0, +)
