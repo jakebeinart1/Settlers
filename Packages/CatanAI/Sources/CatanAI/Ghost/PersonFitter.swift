@@ -8,6 +8,10 @@ public struct FitOptions: Sendable {
     public var weightPrior = 1.0
     /// Pull of each habit toward "no habit".
     public var stylePrior = 0.1
+    /// How far one fit may move a weight from where it started, in units of
+    /// the weight's own size. The slopes it fits on hold only near that point;
+    /// further moves wait for the next re-linearised round.
+    public var trustRadius = 0.5
     public init() {}
 }
 
@@ -33,6 +37,7 @@ public enum PersonFitter {
         let start = start ?? PersonModel.anchored(at: anchor)
         guard !decisions.isEmpty else { return start }
         let movable = movableSlots(decisions)
+        let bounds = weightBounds(start: start, anchor: anchor.vector, radius: options.trustRadius)
         var params = pack(start)
         var adam = Adam(count: params.count)
         for _ in 0..<options.iterations {
@@ -40,8 +45,26 @@ public enum PersonFitter {
                                 movable: movable, options: options)
             adam.step(&params, grad, rate: options.learningRate)
             params[betaIndex] = max(params[betaIndex], 0.01) // beta stays positive
+            for slot in 0..<slots { params[slot] = min(max(params[slot], bounds[slot].lower), bounds[slot].upper) }
         }
         return unpack(params, like: start)
+    }
+
+    /// The trust region around `start`, never crossing zero from Expert's side.
+    ///
+    /// Found fitting Jake: unbounded, `rival` went 0.80 -> -1.48 ("wants
+    /// opponents to do well") and the linearisation drift rose to 2.5. A
+    /// negative `approach` or a positive `sevenLoss` means nothing in the game,
+    /// which is why Expert's own sweep keeps each sign too.
+    static func weightBounds(start: PersonModel, anchor: [Double], radius: Double) -> [(lower: Double, upper: Double)] {
+        (0..<slots).map { slot in
+            let reach = radius * max(abs(anchor[slot]), 0.05)
+            var lower = start.weights[slot] - reach
+            var upper = start.weights[slot] + reach
+            if anchor[slot] > 0 { lower = max(lower, 0) }
+            if anchor[slot] < 0 { upper = min(upper, 0) }
+            return (lower, upper)
+        }
     }
 
     /// Weights some decision's score actually depends on, minus the frozen ones.

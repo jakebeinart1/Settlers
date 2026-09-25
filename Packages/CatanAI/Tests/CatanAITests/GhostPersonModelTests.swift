@@ -92,6 +92,32 @@ import CatanEngine
         #expect(fitted.beta > 1.5, "beta collapsed to \(fitted.beta)")
     }
 
+    /// Found fitting Jake: `rival` went 0.80 -> -1.48, i.e. "wants opponents to
+    /// do well", and the linearisation drift rose to 2.5. Expert's own sweep
+    /// keeps each weight's sign for the same reason; a fit round also may only
+    /// move a weight within a trust region, where its slopes still hold.
+    @Test func weightsKeepTheirSignAndStayInTheTrustRegion() {
+        // A person pushed hard against production: the unbounded fit drives it negative.
+        var pushed = synthetic(count: 300, seed: 7).map { decision -> DecisionRecord in
+            let candidates = decision.candidates.map {
+                CandidateRecord(move: $0.move, score: $0.score, gradient: $0.gradient.map { $0 * -5 }, style: $0.style)
+            }
+            return DecisionRecord(game: decision.game, facet: decision.facet, anchor: decision.anchor,
+                                  candidates: candidates, chosen: decision.chosen)
+        }
+        pushed = Array(pushed)
+        var options = FitOptions()
+        options.iterations = 400
+        options.learningRate = 0.05
+        let start = PersonModel.anchored(at: anchor)
+        let fitted = PersonFitter.fit(pushed, anchor: anchor, start: start, options: options)
+        for slot in anchor.vector.indices {
+            #expect(fitted.weights[slot] * anchor.vector[slot] >= 0, "\(EvaluationWeights.vectorLabels[slot]) flipped sign")
+            let reach = options.trustRadius * max(abs(anchor.vector[slot]), 0.05)
+            #expect(abs(fitted.weights[slot] - start.weights[slot]) <= reach + 1e-9)
+        }
+    }
+
     /// Re-linearising needs the fit to resume from the last round's person,
     /// while the prior still pulls toward Expert.
     @Test func aFitResumesFromItsStartingPoint() {
