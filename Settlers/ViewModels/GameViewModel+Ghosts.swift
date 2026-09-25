@@ -1,3 +1,4 @@
+import Foundation
 import CatanAI
 import CatanEngine
 
@@ -69,15 +70,20 @@ extension GameViewModel {
         let setup = match.setup
         guard setup.mode == .classic, setup.variant == .standard, setup.humanSeats.count == 1,
               let human = setup.humanSeats.first else { return nil }
-        do {
-            try ratingStore.record(match: match.id, seats: setup.seats.map { Self.ratedEntity(for: $0, in: setup) },
-                                   winner: winner.index)
-        } catch {
-            gameLogWarning = "This game's rating could not be saved: \(error.localizedDescription)"
-        }
+        let entities = setup.seats.map { Self.ratedEntity(for: $0, in: setup) }
         let game = LoggedGame(id: match.id.uuidString, initialState: match.initialState,
                               humanSeats: [PlayerID(index: human.index)],
                               events: match.moves.map { LoggedMove(player: $0.actor, move: $0.move) })
+        do {
+            try ratingStore.record(match: match.id, seats: entities, winner: winner.index)
+            let stats = try SeatStats.compute(initial: game.initialState, moves: game.events)
+            try seatStatsStore.record(SeatStatsRecord(
+                match: match.id, date: Date(),
+                seats: zip(entities, stats).map { SeatStatsRecord.Entry(entity: $0.key, stats: $1) }
+            ))
+        } catch {
+            gameLogWarning = "This game's rating or stats could not be saved: \(error.localizedDescription)"
+        }
         let trainer = GhostTrainer(store: ghostStore)
         let matchID = match.id
         return Task.detached(priority: .background) {

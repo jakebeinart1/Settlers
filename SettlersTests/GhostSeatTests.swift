@@ -23,7 +23,8 @@ import Testing
                 gameLogStore: GameLogStore(directoryURL: root.appendingPathComponent("logs"), maxKeptLogs: 10),
                 gameStatsStore: GameStatsStore(fileURL: root.appendingPathComponent("stats.json")),
                 ghostStore: store ?? ghosts,
-                ratingStore: RatingStore(directory: root.appendingPathComponent("ratings"))
+                ratingStore: RatingStore(directory: root.appendingPathComponent("ratings")),
+                seatStatsStore: SeatStatsStore(directory: root.appendingPathComponent("stats"))
             )
         }
 
@@ -117,6 +118,10 @@ import Testing
         #expect(ratings.ratedMatches.count == 1)
         let taught = try #require(f.ghosts.ghost(id: "jake"))
         #expect(taught.gamesLearned == 25, "the bundled ghost's 24 games plus this one")
+        let stats = SeatStatsStore(directory: f.root.appendingPathComponent("stats")).all()
+        #expect(stats.count == 1)
+        #expect(stats.first?.seats.map(\.entity) == ["person:Jake", "classic", "ghost:jake", "classic"])
+        #expect(stats.first?.seats.filter(\.stats.won).count == 1)
         #expect(f.ghosts.versions(of: "jake").count == 1)
     }
 
