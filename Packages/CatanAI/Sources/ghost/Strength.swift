@@ -57,3 +57,28 @@ func ghostWinRate(person: PersonModel, lambda: Double, tier: Tier, games: Int) t
 func readPerson(_ path: String) throws -> PersonModel {
     try JSONDecoder().decode(PersonModel.self, from: Data(contentsOf: URL(fileURLWithPath: path)))
 }
+
+/// Wall-clock time of each decision a wrapped policy makes (`ghost timing`).
+final class MoveClock: @unchecked Sendable {
+    private let lock = NSLock()
+    private var recorded: [Double] = []
+    var times: [Double] { lock.withLock { recorded } }
+    func add(_ seconds: Double) { lock.withLock { recorded.append(seconds) } }
+}
+
+struct TimedPolicy: LedgerAwarePolicy {
+    let inner: GhostPolicy
+    let clock: MoveClock
+    var id: String { inner.id }
+
+    func decide(_ observation: GameObservation, rng: inout RandomSource) -> GameMove {
+        decide(observation, ledger: .fromPositionAlone(observation.state, observer: observation.seat), rng: &rng)
+    }
+
+    func decide(_ observation: GameObservation, ledger: PublicLedger, rng: inout RandomSource) -> GameMove {
+        let started = Date()
+        let move = inner.decide(observation, ledger: ledger, rng: &rng)
+        clock.add(Date().timeIntervalSince(started))
+        return move
+    }
+}

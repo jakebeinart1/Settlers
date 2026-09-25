@@ -8,11 +8,12 @@ import Foundation
 //   ghost extract --out decisions.jsonl LOG.jsonl...   (one human seat per game; others skipped)
 //   ghost profile decisions.jsonl                        (what this person does, per facet)
 //   ghost fit --out person.json [--rounds 3] LOG.jsonl...   (fit on 3/4 of games, report on the held-out 1/4)
-//   ghost calibrate --person P.json --target 0.54 [--games 40] [--tier classic|expert]
+//   ghost calibrate --person P.json --target 0.54 [--games 40] [--tier classic|expert] [--lambdas 0,0.05,0.1]
 //   ghost strength --person P.json --lambda L [--games 1248] [--tier expert]
 //   ghost bundle --person P.json --lambda L --id jake --name "Jake's Ghost" --games-learned 24 --decisions-learned 2612
 //                [--civilization greece] --out Settlers/Resources/Ghosts/jake.json
 //   ghost baseline [--games 200]                        (Expert self-play: the spider graph's reference averages)
+//   ghost timing --person P.json --lambda L                (one game: ghost move time, then one retrain)
 //   ghost selftest [--games 12] [--seed 700000] [--rounds 3] (recover a known synthetic person)
 
 // Line-buffered so a run that dies still leaves its progress: the first
@@ -199,7 +200,8 @@ case "calibrate":
     guard let tier = Tier(rawValue: option("--tier") ?? "classic") else { fail("--tier must be classic or expert") }
     let person = try readPerson(path)
     var best: (lambda: Double, gap: Double)?
-    for lambda in [0, 0.25, 0.5, 1, 2, 4] {
+    let grid = option("--lambdas").map { $0.split(separator: ",").compactMap { Double($0) } } ?? [0, 0.25, 0.5, 1, 2, 4]
+    for lambda in grid {
         let started = Date()
         let result = try ghostWinRate(person: person, lambda: lambda, tier: tier, games: games)
         print("lambda " + number(lambda) + ": " + result.summary
@@ -240,6 +242,38 @@ case "baseline":
     print("development " + number(radar.development) + "  dev cards played (+2 Largest Army) per game")
     print("robber      " + number(radar.robber) + "  share of robberies on the leader")
     print("finishing   " + number(radar.finishing) + "  final VP / target")
+case "timing":
+    // One game with the ghost in seat 1 against Classic bots: how long each
+    // ghost move takes, then one retrain on that seat's decisions (what the
+    // phone does after a game). Mac numbers; the phone is slower.
+    guard let path = option("--person"), let lambda = Double(option("--lambda") ?? "") else {
+        fail("timing needs --person and --lambda")
+    }
+    let person = try readPerson(path)
+    let initial = GameSetup.newGame(board: BoardGenerator.randomized(seed: 920_000), seed: 920_000)
+    let ghostSeat = initial.players[0].id
+    let clock = MoveClock()
+    var policies: [PlayerID: any Policy] = [:]
+    for player in initial.players { policies[player.id] = Tier.classic.policy() }
+    policies[ghostSeat] = TimedPolicy(inner: GhostPolicy(person: person, lambda: lambda), clock: clock)
+    var session = GameSession(state: initial, policies: policies, policySeed: 920_000)
+    var moves: [LoggedMove] = []
+    while let step = try session.step() { moves.append(LoggedMove(player: step.actor, move: step.move)) }
+    let ghostTimes = clock.times
+    let sorted = ghostTimes.sorted()
+    print("ghost moves: \(sorted.count), mean " + number(sorted.reduce(0, +) / Double(max(sorted.count, 1)))
+          + "s, p95 " + number(sorted[Int(Double(sorted.count - 1) * 0.95)]) + "s, max " + number(sorted.last ?? 0) + "s")
+    let game = LoggedGame(id: "timing", initialState: initial, humanSeats: [ghostSeat], events: moves)
+    let extractStart = Date()
+    let decisions = try DecisionExtractor.decisions(in: game, anchor: EvaluationWeights(vector: person.weights))
+    let extractTime = Date().timeIntervalSince(extractStart)
+    var options = FitOptions()
+    options.iterations = 1000
+    options.priorCenter = person
+    options.priorEvidence = 2612
+    let fitStart = Date()
+    _ = PersonFitter.fit(decisions, anchor: .forMode(.classic), start: person, options: options)
+    print("retrain: extract \(decisions.count) decisions " + number(extractTime) + "s, fit " + number(Date().timeIntervalSince(fitStart)) + "s")
 case "bundle":
     guard let path = option("--person"), let lambda = Double(option("--lambda") ?? ""),
           let id = option("--id"), let name = option("--name"), let out = option("--out") else {
