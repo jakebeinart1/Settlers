@@ -34,6 +34,29 @@ import CatanEngine
             == GhostPolicy(person: .anchored(at: .forMode(.classic)), lambda: 0).decide(obs, rng: &rng))
     }
 
+    /// Final review, Important: at lambda 0 the ghost must BE Expert, since
+    /// lambda is calibrated against Expert's strength. It used to rank by
+    /// plain values, so it accepted trades that gained nothing and proposed
+    /// offers below Expert's cascade bar. Same seeds, same opponents: the ghost
+    /// in seat 0 must produce Expert's game move for move.
+    @Test func lambdaZeroPlaysExactlyLikeExpert() throws {
+        func moves(seat0: any Policy) throws -> [GameMove] {
+            let initial = GameSetup.newGame(board: BoardGenerator.randomized(seed: 85), seed: 85)
+            var policies: [PlayerID: any Policy] = [:]
+            for player in initial.players { policies[player.id] = EvaluationPolicy() }
+            policies[initial.players[0].id] = seat0
+            var session = GameSession(state: initial, policies: policies, policySeed: 85)
+            var played: [GameMove] = []
+            while played.count < 250, let step = try session.step() { played.append(step.move) }
+            return played
+        }
+        let expert = try moves(seat0: EvaluationPolicy())
+        let ghost = try moves(seat0: GhostPolicy(person: .anchored(at: .forMode(.classic)), lambda: 0))
+        let firstDifference = zip(expert, ghost).enumerated().first { $0.element.0 != $0.element.1 }?.offset
+        #expect(firstDifference == nil, "diverged at move \(firstDifference ?? -1): \(firstDifference.map { expert[$0] } as Any) vs \(firstDifference.map { ghost[$0] } as Any)")
+        #expect(expert.count == ghost.count)
+    }
+
     /// The engine term keeps the ghost playing: an anchored person at moderate
     /// lambda finishes a real game with only legal moves. This guards against the
     /// 0/40 collapse of the old imitation policy.

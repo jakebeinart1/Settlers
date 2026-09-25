@@ -41,9 +41,32 @@ extension EvaluationPolicy {
         evaluator: PositionEvaluator,
         legal: [GameMove]
     ) -> (offer: TradeOffer, score: Double)? {
+        var chosen: (offer: TradeOffer, score: Double, appeal: Double)?
+        for option in cascadeOptions(state: state, ledger: ledger, evaluator: evaluator, legal: legal)
+        where isBetter((option.score, option.appeal), than: chosen) {
+            chosen = option
+        }
+        guard let chosen,
+              legal.contains(.proposeTrade(chosen.offer))
+                || RulesEngine.isPermittedComposedProposal(.proposeTrade(chosen.offer), by: evaluator.seat,
+                                                          in: state, legal: legal)
+        else { return nil }
+        return (chosen.offer, chosen.score)
+    }
+
+    /// Every offer that clears the cascade's bar, in composer order, with its
+    /// score and appeal. `cascadeProposal` picks one; `GhostPolicy` weighs
+    /// them all against a person's habits, so the ghost proposes only what
+    /// Expert would consider proposing.
+    func cascadeOptions(
+        state: GameState,
+        ledger: PublicLedger,
+        evaluator: PositionEvaluator,
+        legal: [GameMove]
+    ) -> [(offer: TradeOffer, score: Double, appeal: Double)] {
         let seat = evaluator.seat
         guard legal.contains(where: { if case .proposeTrade = $0 { true } else { false } }),
-              let me = state.players.first(where: { $0.id == seat }) else { return nil }
+              let me = state.players.first(where: { $0.id == seat }) else { return [] }
 
         let valuation = TradeValuation(evaluator: evaluator, state: state, ledger: ledger)
         let payers = PlannerTradeEvaluator(seat: seat)
@@ -52,7 +75,7 @@ extension EvaluationPolicy {
         var purchases = PurchaseGains(valuation: valuation)
         let baseline = valuation.standingStill + purchases.gain(with: me.resources)
 
-        var chosen: (offer: TradeOffer, score: Double, appeal: Double)?
+        var options: [(offer: TradeOffer, score: Double, appeal: Double)] = []
         for offer in TradeComposer.offers(from: me) where !refused.contains(where: { $0.sameProposition(as: offer) }) {
             guard let judged = appeal(of: offer, payers: payers, valuation: valuation) else { continue }
             // The ladder forces each refusal to be answered with a more
@@ -61,15 +84,9 @@ extension EvaluationPolicy {
             if tradeModel == .current, judged.appeal <= (floor ?? -.greatestFiniteMagnitude) { continue }
             let total = judged.worst + purchases.gain(with: me.resources.trading(offer))
             guard total > baseline + requiredGain(for: offer, weights: evaluator.weights) else { continue }
-            if isBetter((total, judged.appeal), than: chosen) {
-                chosen = (offer, total, judged.appeal)
-            }
+            options.append((offer, total, judged.appeal))
         }
-        guard let chosen,
-              legal.contains(.proposeTrade(chosen.offer))
-                || RulesEngine.isPermittedComposedProposal(.proposeTrade(chosen.offer), by: seat, in: state, legal: legal)
-        else { return nil }
-        return (chosen.offer, chosen.score)
+        return options
     }
 
     /// How much an offer must gain before it is worth making.

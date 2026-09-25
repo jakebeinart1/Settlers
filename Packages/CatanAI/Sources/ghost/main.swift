@@ -124,6 +124,7 @@ func linearisationDrift(_ fitted: PersonModel, _ records: [DecisionRecord], game
 /// slopes are taken at moves.
 func relinearisedFit(_ games: [LoggedGame], rounds: Int,
                      humanTrading: Bool = true) throws -> (PersonModel, heldOut: [DecisionRecord]) {
+    guard rounds >= 1 else { fail("--rounds must be at least 1") }
     var person = PersonModel.anchored(at: anchor)
     var heldOut: [DecisionRecord] = []
     for round in 1...rounds {
@@ -164,7 +165,8 @@ case "profile":
 case "fit":
     guard let out = option("--out") else { fail("fit needs --out and log files") }
     let rounds = Int(option("--rounds") ?? "3") ?? 3
-    let games = try arguments.map { try loadGame(URL(fileURLWithPath: $0)) }.filter { $0.humanSeats.count == 1 }
+    // Not filtered here: `extract` skips multi-human games out loud, every round.
+    let games = try arguments.map { try loadGame(URL(fileURLWithPath: $0)) }
     let (fitted, heldOut) = try relinearisedFit(games, rounds: rounds)
     try JSONEncoder().encode(fitted).write(to: URL(fileURLWithPath: out))
     report(fitted, heldOut: heldOut)

@@ -34,21 +34,66 @@ public struct GhostPolicy: LedgerAwarePolicy {
         let legal = observation.legalMoves
         guard legal.count > 1 else { return legal[0] }
         if legal.contains(.rollDice) { return .rollDice }
-        let judged = expert.candidateScores(observation, ledger: ledger)
+        var counted = ledger
+        counted.reconcileObserverHand(from: observation.state)
+        let judged = expertOptions(observation, ledger: counted)
         guard !judged.isEmpty else { return legal[0] }
         // At lambda 0 the person cannot change the answer; skip scoring them.
-        let habits = lambda == 0 ? judged : personal.candidateScores(observation, ledger: ledger)
+        let habits: [GameMove: Double] = lambda == 0 ? [:] : Dictionary(
+            personal.candidateScores(observation, ledger: ledger).map { ($0.move, $0.score) },
+            uniquingKeysWith: { first, _ in first }
+        )
         var best = 0
         var bestValue = -Double.greatestFiniteMagnitude
         for index in judged.indices {
-            let style = StyleFeatures.of(judged[index].move, by: observation.seat, in: observation.state)
-            let habit = person.beta * habits[index].score + person.habit(style)
-            let value = judged[index].score + lambda * habit
+            let move = judged[index].move
+            var value = judged[index].score
+            if lambda != 0 {
+                guard let mine = habits[move] else { preconditionFailure("the person has no score for \(move)") }
+                let style = StyleFeatures.of(move, by: observation.seat, in: observation.state)
+                value += lambda * (person.beta * mine + person.habit(style))
+            }
             if value > bestValue {
                 best = index
                 bestValue = value
             }
         }
         return judged[best].move
+    }
+
+    /// What Expert itself would weigh, scored as Expert scores it.
+    ///
+    /// Not `candidateScores`, which values every move plainly: that accepted
+    /// offers gaining nothing (Expert's `acceptance` refuses them) and proposed
+    /// offers below Expert's cascade bar, so lambda 0 was a weaker player than
+    /// the Expert tier lambda is calibrated against. This mirrors `best`: the
+    /// non-proposal moves `score` accepts, in legal order, then the offers that
+    /// clear the bar, Expert's own pick first so ties resolve its way.
+    func expertOptions(_ observation: GameObservation, ledger: PublicLedger) -> [ScoredCandidate] {
+        let state = observation.state
+        let legal = observation.legalMoves
+        let evaluator = PositionEvaluator(seat: observation.seat, weights: expert.weights(for: state))
+        var purchases = legal.contains(where: { if case .bankTrade = $0 { true } else { false } })
+            ? PurchaseGains(valuation: TradeValuation(evaluator: evaluator, state: state, ledger: ledger))
+            : nil
+        var result: [ScoredCandidate] = []
+        for move in legal {
+            if case .proposeTrade = move { continue }
+            if let value = expert.score(move, state: state, ledger: ledger, evaluator: evaluator, purchases: &purchases) {
+                result.append(ScoredCandidate(move: move, score: value))
+            }
+        }
+        guard let pick = expert.cascadeProposal(state: state, ledger: ledger, evaluator: evaluator, legal: legal) else {
+            return result
+        }
+        let others = expert.cascadeOptions(state: state, ledger: ledger, evaluator: evaluator, legal: legal)
+            .filter { !$0.offer.sameProposition(as: pick.offer) }
+            .filter { option in
+                legal.contains(.proposeTrade(option.offer))
+                    || RulesEngine.isPermittedComposedProposal(.proposeTrade(option.offer), by: observation.seat,
+                                                              in: state, legal: legal)
+            }
+        return result + [ScoredCandidate(move: .proposeTrade(pick.offer), score: pick.score)]
+            + others.map { ScoredCandidate(move: .proposeTrade($0.offer), score: $0.score) }
     }
 }
