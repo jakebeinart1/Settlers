@@ -25,7 +25,7 @@
 | Whose ghosts are in the picker | Ghosts built on this phone, **plus Jake's ghost bundled in the app** so testers can play him |
 | How a ghost earns Elo | **Only in real games** where someone seats it. No background sims |
 | When a ghost relearns | **After every finished game**, automatically, in the background |
-| Bot Elo | **Fixed anchors**: Classic 1000, Expert at the rating its measured strength implies |
+| Bot Elo | **Classic fixed at 1000.** Expert **starts** at 1229, the rating its measured strength implies, and then **moves with human games like a ghost** (Jake revised this the same day) |
 
 ## Defaults I chose (say if any is wrong)
 
@@ -116,8 +116,15 @@ for moves Expert ranks in its top N.
 
 ### 6. Elo (`RatingStore`, new, app target)
 
-**Participants:** each human name, each ghost, and two fixed anchors, Classic
-(1000) and Expert.
+**Participants:** each human name, each ghost, **Expert** (one shared
+rating), and **Classic** (the one fixed anchor, 1000).
+
+**Why exactly one anchor.** Jake asked (2026-09-25) that Expert's Elo come from
+human games, like a ghost's. It does. But a pool where every rating moves has
+no fixed point, and all the numbers drift together. Classic, the tier that
+has always shipped, stays pinned at 1000 as the ruler. Expert starts at 1229
+(derived below) and moves. The derivation is its *starting* point, the prior,
+no longer a constant.
 
 **Four-player update (pairwise decomposition):** the winner scores 1 against
 each other seat, and two non-winners score 0.5 against each other. Each pair
@@ -125,14 +132,17 @@ applies a standard Elo update with K = 32/3 (so one game moves a player about
 as much as one head-to-head game). Anchors never move; their results still move
 their opponents.
 
-**Expert's anchor:** measured at 68.4% wins against three Classic bots. Under the
+**Expert's starting rating:** measured at 68.4% wins against three Classic bots. Under the
 pairwise scoring above, Expert's expected score against one Classic bot is
 0.684 + 0.5 × (1 − 0.684 − 0.316/3) = 0.789, which gives
 400·log10(0.789/0.211) ≈ **+229**, so **Expert = 1229**. The derivation is
 kept in the store's doc comment.
 
-**Who is rated in a game:** every seat. AI seats are the anchor for their tier
-(`difficulty`), and ghost and human seats are themselves. Only complete games
+**Who is rated in a game:** every seat. An AI seat is its tier's entity, and
+ghost and human seats are themselves. **Several seats of one entity in a game**
+(three Expert bots, say) do not play each other: pairs within the same entity
+are skipped, and that entity's deltas from all its seats are summed into its
+one rating. Only complete games
 count, and only in Classic standard (the same scope as ghosts, so the ladder
 compares like with like).
 
@@ -231,6 +241,10 @@ improving Expert.
 2. **Different pools.** Expert's 1229 comes from Expert-vs-Classic bot games.
    A ghost's rating comes from games with a human at the table. Elo assumes
    results carry over between pools, which is plausible but unproven.
+   (Now that Expert's Elo also moves with human games, the two pools
+   overlap: in a game with one human, an Expert seat and a ghost seat are
+   rated against the same people. That makes the comparison fairer over
+   time, but it does not remove caveat 1.)
 3. **The real test is head-to-head,** and it can be run any time on the Mac:
    the `bot-strength` protocol with the ghost in every chair against three
    Expert bots, 1,248 games, held-out seeds. A win rate significantly above
@@ -260,6 +274,11 @@ would have learned strength from people rather than self-play. The plan adds a
   leaderboard (run-settlers skill).
 
 ## Out of scope for v1
+
+- **Live sync** of all this data (ratings, ghosts, game logs, decision
+  records, seat stats) across devices. Jake wants it (2026-09-25), and it is
+  recorded in `TODO.md`. The app has no backend today, so this is its own
+  project.
 
 - Sharing ghosts between phones (beyond the one bundled ghost).
 - Person-to-ghost Elo coupling.

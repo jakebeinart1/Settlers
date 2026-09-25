@@ -2,7 +2,7 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Let Jake seat ghosts (starting with his own) as opponents, remove pass-and-play, rate everyone with Elo against fixed Classic and Expert anchors, retrain a person's ghost after each of their games, show a leaderboard, and fix the game-over buttons.
+**Goal:** Let Jake seat ghosts (starting with his own) as opponents, remove pass-and-play, rate everyone with Elo against a fixed Classic anchor (Expert's rating moves with human games), retrain a person's ghost after each of their games, show a leaderboard, and fix the game-over buttons.
 
 **Architecture:** Ghost data is a small `Codable` `GhostProfile` shared by the `ghost` CLI and the app, bundled for Jake and stored locally for anyone else. Seats gain `ghostID`. `GameViewModel.makePolicies` seats a `GhostPolicy` for a ghost chair. A finished game triggers one idempotent Elo update (keyed by match id) and a background `GhostTrainer` run. The New Game screen fixes seat 1 as the human and gives the other seats AI | Ghost.
 
@@ -21,7 +21,7 @@
 - Every new `Codable` field decodes with `decodeIfPresent` and a default (CLAUDE.md, "Determinism invariants" 4).
 - The engine never learns which seat is human (CLAUDE.md, "Seat 0 is the human"). "Seat 1 is the human" is a **New Game screen** rule and lives in `MatchSetup` validation only.
 - Ghosts are offered only when `mode == .classic && variant == .standard`.
-- Elo constants: Classic anchor **1000**, Expert anchor **1229**, start rating 1000, K = 32/3 per pair (spec §6).
+- Elo constants: Classic is the **one fixed anchor at 1000**. Expert **starts at 1229** and moves with human games (Jake, 2026-09-25). Everyone else starts at 1000. K = 32/3 per pair (spec §6).
 - Targeted test commands:
   - `swift test --package-path Packages/CatanAI --filter Ghost`
   - `xcodebuild test -project Settlers.xcodeproj -scheme Settlers -destination "platform=iOS Simulator,id=$SIM" -only-testing:SettlersTests/<Suite>`, with `SIM` from `scripts/select-qa-simulator.py`
@@ -133,8 +133,8 @@ public struct GhostProfile: Codable, Sendable, Equatable, Identifiable {
 ```swift
 enum RatedEntity: Hashable, Codable, Sendable { case person(String), ghost(String), classic, expert }
 struct Elo {
-    static let start = 1000.0, classicAnchor = 1000.0, expertAnchor = 1229.0, pairK = 32.0 / 3.0
-    /// New ratings after one four-player game. Anchors never change.
+    static let start = 1000.0, classicAnchor = 1000.0, expertStart = 1229.0, pairK = 32.0 / 3.0
+    /// New ratings after one four-player game. Only `.classic` is fixed.
     static func update(_ ratings: [RatedEntity: Double], seats: [RatedEntity], winner: Int) -> [RatedEntity: Double]
 }
 struct RatingStore {
@@ -145,15 +145,17 @@ struct RatingStore {
 
 - [ ] **Step 1: Failing tests (`EloTests`).**
   - Four players at 1000; seat 0 wins. Seat 0 gains `3 × (32/3) × 0.5 = 16`. Each loser loses `(32/3) × 0.5 = 5.333`, and their mutual 0.5-vs-0.5 pairs change nothing.
-  - An anchor seat's rating is unchanged after both a win and a loss.
-  - Two Classic seats both read 1000 (anchors are per tier, not per chair).
+  - A Classic seat's rating is unchanged after both a win and a loss (the only anchor).
+  - Expert starts at 1229 and **moves**: with one human at 1000 beating three Expert seats, Expert loses rating, and it is summed across its three seats into one number.
+  - Pairs within the same entity are skipped: three Expert seats do not rate each other.
   - The Expert anchor derivation: `400 * log10(0.789 / 0.211)` rounds to 229. Pin the 0.789 arithmetic from the spec in a comment on the constant.
   - Run: FAIL, `Elo` missing.
 - [ ] **Step 2: Implement `Elo.update`.**
   - For each unordered pair (i, j): `S_ij` is 1 if i won, 0 if j won, else 0.5.
   - `E_ij = 1 / (1 + 10^((R_j − R_i)/400))`.
   - Accumulate `Δ_i += K (S_ij − E_ij)` from the **pre-game** ratings.
-  - Anchor entities (`.classic`, `.expert`) are read from the constants and never written.
+  - `.classic` is read from its constant and never written. `.expert` starts at `expertStart` and is written like any other entity.
+  - Pairs whose two seats are the same entity are skipped, and each entity's deltas from all its seats are summed.
   - Seats are in turn order and iterated by index, never by `Set`/`Dictionary` order.
 - [ ] **Step 3: Failing `RatingStoreTests`.**
   - Record a match, then record the same match id again: ratings are unchanged the second time (Review Focus 3).
@@ -333,7 +335,7 @@ The ghost's id is the human's name, slugged. The first game creates the ghost, b
 - [ ] **Step 1: Failing unit tests.**
   - `LeaderboardModel.rows`:
     - sorts by Elo, descending, with ties broken by name;
-    - marks anchors `isFixed`;
+    - marks Classic `isFixed` (the only anchor);
     - shows "unrated" when a non-anchor has 0 games.
   - `DetailModel(for: .ghost(id))`, for any ghost (bundled or local, the user's or an opponent's):
     - `gamesLearned` comes from the ghost's profile;
@@ -343,7 +345,7 @@ The ghost's id is the human's name, slugged. The first game creates the ghost, b
     - there is no recent-games list (Jake dropped it).
 - [ ] **Step 2: Implement** the models and views. Use the painted chrome from `GameHistoryView`.
 - [ ] **Step 3: UI test.**
-  - Main menu → Leaderboard shows "Classic AI 1000" and "Expert AI 1229".
+  - Main menu → Leaderboard shows "Classic AI 1000 (fixed)" and "Expert AI" at its current rating (1229 on a fresh install).
   - Tapping "Jake's Ghost" opens a page with the radar (`AccessibilityID.Leaderboard.radar`) and the record.
 - [ ] **Step 4: Screenshot** the leaderboard and the detail page with the run-settlers skill, and read both. Commit as `feat(ui): leaderboard with ghost and player detail pages`.
 
