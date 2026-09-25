@@ -313,7 +313,7 @@ public final class GameViewModel {
         startNewGame(setup: setup, configuredAs: setup)
     }
 
-    private func startNewGame(setup: MatchSetup, configuredAs prefill: MatchSetup) {
+    func startNewGame(setup: MatchSetup, configuredAs prefill: MatchSetup) {
         // `isValidMatch`, not `isStartable`: the two differ by what the New Game
         // *screen* currently offers, and narrowing that (four seats, one target
         // per mode) left legitimate matches - a restarted legacy Epic save, a

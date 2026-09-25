@@ -132,10 +132,28 @@ final class GameplayBoundaryFlowTests: XCTestCase {
         // on the match that is really played, below.
         XCTAssertFalse(app.buttons["game-over.replay"].exists)
 
-        newGame.tap()
+        let mainMenu = app.buttons["game-over.main-menu"]
+        XCTAssertTrue(mainMenu.exists)
+        mainMenu.tap()
 
         XCTAssertTrue(app.otherElements["screen.main-menu"].waitForExistence(timeout: 2))
         XCTAssertFalse(app.buttons["main-menu.resume"].exists)
+    }
+
+    /// Jake, 2026-09-25: "New game should be the same as restart game." It used
+    /// to clear the match back to the menu, the same thing Main Menu does.
+    func testGameOverNewGameStartsTheSameTableAgain() {
+        continueAfterFailure = false
+        let app = launch(arguments: ["-qaAutoStart", "-qaShowEndGame"])
+
+        let newGame = app.buttons["game-over.new-game"]
+        XCTAssertTrue(newGame.waitForExistence(timeout: 5))
+        newGame.tap()
+
+        XCTAssertTrue(app.otherElements["screen.game"].waitForExistence(timeout: 5),
+                      "New Game on the game-over screen must start a game, not return to the menu")
+        XCTAssertFalse(app.otherElements["screen.main-menu"].exists)
+        XCTAssertFalse(app.buttons["game-over.new-game"].exists)
     }
 
     func testRobberVictimChoicesExposeConfiguredIdentity() {
@@ -203,7 +221,7 @@ final class GameplayBoundaryFlowTests: XCTestCase {
         XCTAssertTrue(app.buttons["game-over.replay"].waitForExistence(timeout: 10),
                       "The win screen offered no replay of the match just played")
 
-        newGame.tap()
+        app.buttons["game-over.main-menu"].tap()
 
         XCTAssertTrue(app.otherElements["screen.main-menu"].waitForExistence(timeout: 2))
         XCTAssertFalse(app.buttons["main-menu.resume"].exists)

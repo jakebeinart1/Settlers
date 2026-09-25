@@ -5,13 +5,15 @@ import CatanEngine
 /// celebratory framing; every other result names the configured winner.
 /// Either way, a final VP table (including longest-road/largest-army
 /// bonuses, via `GameState.victoryPoints(for:)`) lists every occupied seat.
-/// "New Game" clears the on-disk save and hands control back to
-/// `ContentView` via `onNewGame`.
+/// "New Game" plays the same table again (`onNewGame`); "Main Menu" clears the
+/// finished match and goes home (`onMainMenu`). They used to be one button,
+/// titled New Game, that went to the menu (Jake, 2026-09-25).
 public struct EndGameView: View {
     public let state: GameState
     public let humanSeats: Set<PlayerID>
     public let playerIdentity: (PlayerID) -> PlayerIdentity
     public let onNewGame: () -> Void
+    public let onMainMenu: () -> Void
     /// The recording of the game just finished, when there is one. Optional
     /// rather than assumed: a recording can legitimately be missing (an export
     /// that failed and is queued for retry), and the right answer to that is
@@ -21,13 +23,15 @@ public struct EndGameView: View {
     public init(state: GameState, humanSeats: Set<PlayerID>,
                 playerIdentity: @escaping (PlayerID) -> PlayerIdentity = CatanTheme.playerIdentity,
                 replayGameID: UUID? = nil,
-                onNewGame: @escaping () -> Void) {
+                onNewGame: @escaping () -> Void,
+                onMainMenu: @escaping () -> Void) {
         self.state = state
         precondition(!humanSeats.isEmpty, "An end screen needs at least one human seat")
         self.humanSeats = humanSeats
         self.playerIdentity = playerIdentity
         self.replayGameID = replayGameID
         self.onNewGame = onNewGame
+        self.onMainMenu = onMainMenu
     }
 
     /// The recording of this game, looked up once when the screen appears.
@@ -90,6 +94,13 @@ public struct EndGameView: View {
                     onNewGame()
                 }
                 .accessibilityIdentifier(AccessibilityID.GameOver.newGame)
+                .padding(.horizontal, 40)
+
+                GoldRowButton(title: "Main Menu", systemImage: "house.fill",
+                              iconColor: SettingsChrome.ornamentGold) {
+                    onMainMenu()
+                }
+                .accessibilityIdentifier(AccessibilityID.GameOver.mainMenu)
                 .padding(.horizontal, 40)
 
                 replayButton
@@ -197,6 +208,7 @@ public struct EndGameView: View {
     EndGameView(
         state: GameSetup.newGame(board: BoardGenerator.standard()),
         humanSeats: [PlayerID(index: 0)],
-        onNewGame: {}
+        onNewGame: {},
+        onMainMenu: {}
     )
 }

@@ -47,9 +47,9 @@ struct ContentView: View {
                viewModel.savedGameAvailability.recoveryMessage == nil {
                 EndGameView(state: viewModel.state, humanSeats: viewModel.humanSeats,
                             playerIdentity: viewModel.playerIdentity,
-                            replayGameID: viewModel.currentGameLogID) {
-                    if viewModel.clearCompletedMatch() { hasStartedThisSession = false }
-                }
+                            replayGameID: viewModel.currentGameLogID,
+                            onNewGame: { if viewModel.restartCompletedMatch() { hasStartedThisSession = true } },
+                            onMainMenu: { if viewModel.clearCompletedMatch() { hasStartedThisSession = false } })
             } else if hasStartedThisSession, viewModel.savedGameAvailability.recoveryMessage == nil {
                 GameView(viewModel: viewModel, onExitToMenu: { hasStartedThisSession = false })
                 #if DEBUG

@@ -209,5 +209,6 @@ enum AccessibilityID {
     enum GameOver {
         static let newGame = "game-over.new-game"
         static let replay = "game-over.replay"
+        static let mainMenu = "game-over.main-menu"
     }
 }
