@@ -22,8 +22,9 @@ import Foundation
 /// double count. The opposite order would lose the game for good.
 struct GhostTrainer: Sendable {
     /// Until a person's own lambda is calibrated on the Mac, a new ghost
-    /// plays at the value calibrated for the first ghost (Jake's).
-    static let defaultLambda = 0.5
+    /// plays at the value calibrated for the first ghost (Jake's, 2026-09-25:
+    /// 0.010 matched his 54% against Classic bots; at 0.25 his model won 15%).
+    static let defaultLambda = 0.010
 
     let store: GhostStore
     var fit: @Sendable (_ decisions: [DecisionRecord], _ previous: GhostProfile) throws -> PersonModel = GhostTrainer.incrementalFit
