@@ -71,14 +71,7 @@ extension GameViewModel {
     }
 
     private func installDevCardFixture(_ fixture: GameState, human: PlayerID) {
-        if QALaunchFlag.twoHumans.isSet, fixture.players.count > 1 {
-            replaceStateForTesting(
-                fixture,
-                humanSeats: [human, PlayerID(index: human.index == 0 ? 1 : 0)]
-            )
-        } else {
-            replaceStateForTesting(fixture, humanSeat: human)
-        }
+        replaceStateForTesting(fixture, humanSeat: human)
     }
 }
 #endif

@@ -25,6 +25,7 @@ public final class GameViewModel {
     let humanSeatStore: HumanSeatStore
     let gameLogStore: GameLogStore
     let gameStatsStore: GameStatsStore
+    let ghostStore: GhostStore
     let checkpointStore: MatchCheckpointStore
     var checkpointDocument: MatchCheckpointDocument?
     var persistenceBlocked = false
@@ -101,32 +102,15 @@ public final class GameViewModel {
     /// not a game this app can present: `MatchSetup.validationProblem` refuses
     /// to start one, and failing loudly here beats inventing seat 0.
     public var humanPlayer: PlayerID {
+        // Pass-and-play is gone (Jake, 2026-09-25), but an old save with
+        // several human seats still resumes: whoever the game is waiting on
+        // acts, with no hand-off cover. With one human this is that human.
+        if let owed = seatOwedATurn { return owed }
         if let seatAtDevice, humanSeats.contains(seatAtDevice) { return seatAtDevice }
         guard let first = sortedHumanSeats.first else {
             preconditionFailure("a game must have at least one human seat")
         }
         return first
-    }
-
-    /// True when the phone has to change hands before play continues.
-    ///
-    /// Derived rather than fired as an event at each transition. An event
-    /// needs a firing site everywhere control can pass to a person - end turn,
-    /// a discard resolving, the bot loop finishing, a resumed save, a restart -
-    /// and the bug is always the site nobody remembered. `GameView` already
-    /// carries scars from exactly that: `GamePhase.awaitingSeatIndex` exists
-    /// because six hand-written copies of "is it my turn" disagreed.
-    public var needsHandoff: Bool {
-        guard humanSeats.count > 1 else { return false }
-        // No human is owed a turn - a bot is thinking, or the game is over.
-        // Cover anyway if nobody has claimed the phone. That is reachable on
-        // the ordinary path, not only at game start: saves are written after
-        // every bot move, so a force quit mid-bot-turn resumes here, and
-        // without this no cover appeared while `humanPlayer` fell back to the
-        // lowest human seat and drew that player's full hand to whoever picked
-        // the phone up.
-        guard let owed = seatOwedATurn else { return seatAtDevice == nil }
-        return owed != seatAtDevice
     }
 
     /// The human the game is waiting on, if it is waiting on one.
@@ -231,17 +215,19 @@ public final class GameViewModel {
         civilizationStore: CivilizationAssignmentStore = .shared,
         matchSetupStore: MatchSetupStore = .shared,
         gameLogStore: GameLogStore = .shared,
-        gameStatsStore: GameStatsStore = .shared
+        gameStatsStore: GameStatsStore = .shared,
+        ghostStore: GhostStore = .shared
     ) {
         self.init(checkpointStore: MatchCheckpointStore(fileURL: gameStore.fileURL
             .deletingLastPathComponent().appendingPathComponent("match_checkpoint.json")),
                   gameStore: gameStore, civilizationStore: civilizationStore,
-                  matchSetupStore: matchSetupStore, gameLogStore: gameLogStore, gameStatsStore: gameStatsStore)
+                  matchSetupStore: matchSetupStore, gameLogStore: gameLogStore, gameStatsStore: gameStatsStore,
+                  ghostStore: ghostStore)
     }
 
     init(checkpointStore: MatchCheckpointStore, gameStore: GameStore,
          civilizationStore: CivilizationAssignmentStore, matchSetupStore: MatchSetupStore,
-         gameLogStore: GameLogStore, gameStatsStore: GameStatsStore) {
+         gameLogStore: GameLogStore, gameStatsStore: GameStatsStore, ghostStore: GhostStore = .shared) {
         self.checkpointStore = checkpointStore
         self.gameStore = gameStore
         self.civilizationStore = civilizationStore
@@ -250,6 +236,7 @@ public final class GameViewModel {
         self.humanSeatStore = humanSeatStore
         self.gameLogStore = gameLogStore
         self.gameStatsStore = gameStatsStore
+        self.ghostStore = ghostStore
         newGameSetupLoadResult = matchSetupStore.load()
         persistenceErrorMessage = nil
         gameLogWarningState = nil
@@ -277,7 +264,7 @@ public final class GameViewModel {
         // Whatever is restored replaces this session along with its own
         // difficulty, so this one only has to be a legal table.
         session = Self.makeSession(
-            state: initialState, opponentProfiles: profiles, difficulty: .default
+            state: initialState, opponentProfiles: profiles, difficulty: .default, ghosts: ghostStore
         )
         playerRoster = PlayerRoster(
             playerIDs: initialState.players.map(\.id), humanSeats: [seat],
@@ -322,12 +309,15 @@ public final class GameViewModel {
         // `isStartable` before calling.
         precondition(setup.isValidMatch, "refusing to start an incoherent match: \(setup.matchProblem ?? "")")
         let match = Self.prepareMatch(from: setup)
+        let profiles = match.opponentProfiles.merging(
+            Self.ghostOpponentProfiles(chairs: match.chairs, civilizations: match.civilizations, store: ghostStore)
+        ) { _, ghost in ghost }
         do {
             let realized = Self.realisedMatch(chairs: match.chairs, civilizations: match.civilizations,
-                                             opponentProfiles: match.opponentProfiles, from: setup)
+                                             opponentProfiles: profiles, from: setup)
             let candidate = Self.makeSession(
-                state: match.state, opponentProfiles: match.opponentProfiles,
-                difficulty: setup.difficulty
+                state: match.state, opponentProfiles: profiles,
+                difficulty: setup.difficulty, ghosts: ghostStore
             )
             try replaceActiveMatch(state: match.state, setup: realized, session: candidate)
             resetPerGameState()
@@ -449,7 +439,8 @@ public final class GameViewModel {
                             isHuman: configured.isHuman,
                             name: configured.name.trimmingCharacters(in: .whitespacesAndNewlines),
                             civilization: civilizations[chair],
-                            opponentProfile: opponentProfiles[PlayerID(index: chair)])
+                            opponentProfile: opponentProfiles[PlayerID(index: chair)],
+                            ghostID: configured.ghostID)
         }
         return realized
     }
@@ -689,47 +680,11 @@ public final class GameViewModel {
         )
         CivilizationAssignment.humanNames = names
         session = Self.makeSession(
-            state: newState, opponentProfiles: profiles, difficulty: .default
+            state: newState, opponentProfiles: profiles, difficulty: .default, ghosts: ghostStore
         )
         resetDiscardPresentation()
         persistTestingPosition()
         reconcileBoardDecision()
-    }
-
-    /// Drops the device claim, reproducing a relaunch where nobody is holding
-    /// the phone yet. Tests only.
-    func qaClearSeatAtDeviceForTesting() {
-        seatAtDevice = nil
-        boardDecisionCoordinator.clear()
-    }
-
-    /// Turns the loaded game into a two-human hot-seat game, for
-    /// screenshotting `HandoffCoverView` (see `QALaunchFlag.twoHumans`).
-    ///
-    /// Seats 0 and 1 become people and nobody is at the device, which is
-    /// exactly the state a relaunched hot-seat game is in - so the cover shows
-    /// before any hand is drawn.
-    func qaMakeHotSeat() {
-        let seats: Set<PlayerID> = [PlayerID(index: 0), PlayerID(index: 1)]
-        seatAtDevice = nil
-        boardDecisionCoordinator.clear()
-        let names = [
-            PlayerID(index: 0): "Alex",
-            PlayerID(index: 1): "Sam",
-        ]
-        CivilizationAssignment.humanNames = names
-        let profiles = Self.opponentProfiles(
-            for: state, humanSeats: seats, civilizations: CivilizationAssignment.current
-        )
-        playerRoster = PlayerRoster(
-            playerIDs: state.players.map(\.id), humanSeats: seats,
-            humanNames: names, civilizations: CivilizationAssignment.current,
-            opponentProfiles: profiles
-        )
-        session = Self.makeSession(
-            state: state, opponentProfiles: profiles, difficulty: .default
-        )
-        persistTestingPosition()
     }
 
     /// Forces `state.phase` straight to a human win, for screenshotting
@@ -1217,16 +1172,4 @@ public extension GameViewModel {
     /// the player-trade path has nobody to answer it. The trade UI asks this
     /// rather than offering a button that cannot work.
     var hasBotSeats: Bool { humanSeats.count < state.players.count }
-
-    /// Hands the device to whoever the game is waiting on.
-    func claimDeviceForSeatOwedATurn() {
-        // During a cold-resumed bot turn, no human is phase-owned. A stable
-        // fallback must still let the cover's only button claim the phone;
-        // requiring `seatOwedATurn` made that button a permanent no-op.
-        let owed = seatOwedATurn ?? humanPlayer
-        boardDecisionCoordinator.clear()
-        seatAtDevice = owed
-        prepareDiscardPresentation()
-        reconcileBoardDecision()
-    }
 }

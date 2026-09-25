@@ -67,11 +67,11 @@ import CatanAI
             PlayerID(index: 1): OpponentProfile(id: "a", name: "A", civilization: .greece, strategy: .balanced),
             PlayerID(index: 2): OpponentProfile(id: "b", name: "B", civilization: .egypt, strategy: .cautious),
         ]
-        let expert = GameViewModel.makePolicies(profiles, difficulty: .expert)
+        let expert = GameViewModel.makePolicies(profiles, difficulty: .expert, ghosts: .shared)
         #expect(expert.count == 2)
         #expect(expert.values.allSatisfy { $0.id == "evaluation-v1" })
 
-        let classic = GameViewModel.makePolicies(profiles, difficulty: .classic)
+        let classic = GameViewModel.makePolicies(profiles, difficulty: .classic, ghosts: .shared)
         #expect(classic.values.allSatisfy { $0.id.hasPrefix("heuristic-") })
     }
 
@@ -232,7 +232,7 @@ import CatanAI
         var setup = try #require(model.checkpointDocument?.activeMatch?.setup)
         setup.difficulty = tier
         let session = GameViewModel.makeSession(
-            state: state, opponentProfiles: model.opponentProfiles, difficulty: tier
+            state: state, opponentProfiles: model.opponentProfiles, difficulty: tier, ghosts: .shared
         )
         try model.replaceActiveMatch(state: state, setup: setup, session: session)
         try model.installCheckpointMatch()

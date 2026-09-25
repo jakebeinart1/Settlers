@@ -46,7 +46,7 @@ extension GameViewModel {
         let setup = legacyRealizedSetup(state: state, active: active, seat: seat)
         let profiles = Self.profiles(in: setup)
         let candidate = Self.makeSession(
-            state: state, opponentProfiles: profiles, difficulty: setup.difficulty
+            state: state, opponentProfiles: profiles, difficulty: setup.difficulty, ghosts: ghostStore
         )
         let document = try MatchCheckpointMigration.prepare(
             session: candidate.checkpoint, setup: setup, statistics: gameStatsStore,
@@ -107,15 +107,16 @@ extension GameViewModel {
         // The resumed match keeps the difficulty it was started under -
         // that is the whole reason difficulty is stored with the setup
         // rather than read live from a preference.
+        if let problem = missingGhostProblem(in: profiles) { throw SavedGameRecoveryError.blocked(problem) }
         let restored = try GameSession(
             checkpoint: savedSession,
-            policies: Self.makePolicies(profiles, difficulty: match.setup.difficulty)
+            policies: Self.makePolicies(profiles, difficulty: match.setup.difficulty, ghosts: ghostStore)
         )
         session = restored
         self.playerRoster = playerRoster
         pendingDevCardReveal = checkpointDocument?.pendingDevCardReveal
         pendingDevCardResolution = checkpointDocument?.pendingDevCardResolution
-        seatAtDevice = humanSeats.count == 1 ? humanSeats.first : nil
+        seatAtDevice = sortedHumanSeats.first
         CivilizationAssignment.humanSeat = humanPlayer
         CivilizationAssignment.humanNames = playerRoster.humanNames
         CivilizationAssignment.current = match.setup.seats.compactMap(\.civilization)

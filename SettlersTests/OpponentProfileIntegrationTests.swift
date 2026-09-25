@@ -37,7 +37,7 @@ struct OpponentProfileIntegrationTests {
             #expect(fresh.opponentProfiles.values.allSatisfy { $0.strategy == .balanced })
             #expect(fresh.opponentProfiles.mapValues(\.id) == active.opponentProfiles.mapValues(\.id))
             #expect(fresh.opponentProfiles.mapValues(\.name) == active.opponentProfiles.mapValues(\.name))
-            #expect(GameViewModel.makePolicies(fresh.opponentProfiles, difficulty: .classic).values.allSatisfy { $0.id == "heuristic-balanced" })
+            #expect(GameViewModel.makePolicies(fresh.opponentProfiles, difficulty: .classic, ghosts: .shared).values.allSatisfy { $0.id == "heuristic-balanced" })
         }
     }
 
@@ -61,7 +61,7 @@ struct OpponentProfileIntegrationTests {
                             #expect(profile?.strategy == .balanced)
                         }
                     }
-                    #expect(GameViewModel.makePolicies(model.opponentProfiles, difficulty: .classic).values.allSatisfy {
+                    #expect(GameViewModel.makePolicies(model.opponentProfiles, difficulty: .classic, ghosts: .shared).values.allSatisfy {
                         $0.id == "heuristic-balanced"
                     })
                 }
@@ -192,7 +192,7 @@ struct OpponentProfileIntegrationTests {
             #expect(relaunched.session.checkpoint == savedSession)
             relaunched.restartCurrentMatch(fallbackRandomizedBoard: false, fallbackRandomizeSeat: false)
             #expect(relaunched.opponentProfile(for: PlayerID(index: 1)) == snapshot)
-            #expect(GameViewModel.makePolicies(relaunched.opponentProfiles, difficulty: .classic)[PlayerID(index: 1)]?.id == "heuristic-cautious")
+            #expect(GameViewModel.makePolicies(relaunched.opponentProfiles, difficulty: .classic, ghosts: .shared)[PlayerID(index: 1)]?.id == "heuristic-cautious")
         }
     }
 

@@ -16,11 +16,11 @@ import Foundation
 /// phone the same ghost is also trained locally, and the local copy wins: it
 /// has seen more of his games. An unreadable local file never hides the
 /// bundled ghost.
-struct GhostStore: Sendable {
+public struct GhostStore: Sendable {
     /// A ghost joins the picker after this many of its person's games.
     static let minimumGamesToPlay = 10
 
-    static let shared = GhostStore(
+    public static let shared = GhostStore(
         localDirectory: FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
             .appendingPathComponent("Ghosts"),
         bundledGhosts: Bundle.main.urls(forResourcesWithExtension: "ghost", subdirectory: nil) ?? []

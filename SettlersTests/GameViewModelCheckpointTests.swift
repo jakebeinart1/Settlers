@@ -316,7 +316,6 @@ struct GameViewModelCheckpointTests {
         position.robberMoverIndex = first.index
         position.phase = .discarding(pending: [discarder])
         model.replaceStateForTesting(position, humanSeats: [first, discarder])
-        model.claimDeviceForSeatOwedATurn()
         for _ in 0..<4 { model.selectForDiscard(.brick) }
 
         refuseWrite = true
@@ -420,7 +419,7 @@ struct GameViewModelCheckpointTests {
             randomizedBoard: false,
             randomizeSeatOrder: false
         )
-        let session = GameViewModel.makeSession(state: state, opponentProfiles: profiles, difficulty: .classic)
+        let session = GameViewModel.makeSession(state: state, opponentProfiles: profiles, difficulty: .classic, ghosts: .shared)
         var match = MatchCheckpoint(id: UUID(), initialState: state, setup: setup)
         try match.attachSession(session.checkpoint)
         let store = MatchCheckpointStore(

@@ -4,7 +4,6 @@ import SwiftUI
 /// been resolved. Declaration order is not priority; the resolver below is
 /// deliberately explicit so adding a case cannot silently reorder the UI.
 enum GameInteractionSurface: CaseIterable, Hashable, Sendable {
-    case handoff
     case recoveryFailure
     case mandatoryDiscard
     case mandatoryBoardDecision
@@ -19,7 +18,6 @@ enum GameInteractionSurface: CaseIterable, Hashable, Sendable {
 /// Settings is intentionally orthogonal. It covers the resolved surface while
 /// open, but does not replace or erase a draft that must resume underneath.
 struct GameInteractionPriorityInput: Equatable, Sendable {
-    var needsHandoff = false
     var hasRecoveryFailure = false
     var hasMandatoryDiscard = false
     var hasMandatoryBoardDecision = false
@@ -50,9 +48,7 @@ enum GameInteractionPriority {
         _ input: GameInteractionPriorityInput
     ) -> GameInteractionPriorityResolution {
         let winner: GameInteractionSurface
-        if input.needsHandoff {
-            winner = .handoff
-        } else if input.hasRecoveryFailure {
+        if input.hasRecoveryFailure {
             winner = .recoveryFailure
         } else if input.hasMandatoryDiscard {
             winner = .mandatoryDiscard

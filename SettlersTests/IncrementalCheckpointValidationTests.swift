@@ -171,10 +171,9 @@ import CatanAI
         return model
     }
 
-    /// The seat to move next, with the device passed to it first: in hot seat
-    /// the model applies a move as whoever is holding the phone.
+    /// The seat to move next. With several humans the model applies a move as
+    /// whoever the game is waiting on.
     private func actingSeat(_ model: GameViewModel) -> PlayerID? {
-        if model.needsHandoff { model.claimDeviceForSeatOwedATurn() }
         switch model.state.phase {
         case .setupForward(let index), .setupBackward(let index),
              .rollDice(let index), .mainTurn(let index), .movingRobber(let index):

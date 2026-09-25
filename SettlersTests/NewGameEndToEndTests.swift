@@ -120,19 +120,11 @@ private func setup(seats: Int, humans: [Int], target: Int,
     let full = fullMatch.model
     #expect(full.humanSeats.count == 4)
 
-    // A hot-seat game opens on the handoff cover, and that is deliberate.
-    // `seatAtDevice` starts `nil` because nobody has picked the phone up yet -
-    // which is also what makes a relaunched hot-seat game correct, since a
-    // force-quit leaves nobody holding it either. So the first thing four
-    // people see is "Alex, it's your turn", which is the right way to start a
-    // game being passed around a table.
-    #expect(full.needsHandoff, "a hot-seat game must open by naming whose turn it is")
-    #expect(full.seatAtDevice == nil, "nobody has claimed the phone yet")
+    // Pass-and-play is gone from New Game (Jake, 2026-09-25), but a
+    // several-human table the engine still accepts plays with no hand-off
+    // cover: whoever the game is waiting on acts.
     #expect(full.seatOwedATurn == PlayerID(index: 0))
-
-    // A solo game must NOT do that - one person holding their own phone should
-    // never be asked to pass it to themselves.
-    #expect(!solo.needsHandoff)
+    #expect(full.humanPlayer == PlayerID(index: 0))
     #expect(solo.humanPlayer == PlayerID(index: 0))
 }
 

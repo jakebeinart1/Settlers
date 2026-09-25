@@ -4,7 +4,6 @@ import Testing
 @Suite("Game interaction priority")
 struct GameInteractionPriorityTests {
     private static let rankedSurfaces: [GameInteractionSurface] = [
-        .handoff,
         .recoveryFailure,
         .mandatoryDiscard,
         .mandatoryBoardDecision,
@@ -72,7 +71,6 @@ struct GameInteractionPriorityTests {
         settings: Bool = false
     ) -> GameInteractionPriorityInput {
         GameInteractionPriorityInput(
-            needsHandoff: active.contains(.handoff),
             hasRecoveryFailure: active.contains(.recoveryFailure),
             hasMandatoryDiscard: active.contains(.mandatoryDiscard),
             hasMandatoryBoardDecision: active.contains(.mandatoryBoardDecision),

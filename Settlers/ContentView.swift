@@ -58,16 +58,6 @@ struct ContentView: View {
                             viewModel.qaPlayToEnd()
                             return
                         }
-                        // `-qaTwoHumans`: turns the loaded game into a hot-seat
-                        // one so the handoff cover is deterministic for visual
-                        // QA and native interaction tests.
-                        guard QALaunchFlag.twoHumans.isSet else { return }
-                        // The card-reveal fixture creates and persists its own
-                        // two-human roster before buying the card, then drops
-                        // the device claim. Replacing that match here would
-                        // correctly clear the private receipt we are testing.
-                        guard !QALaunchFlag.showDevCardReveal.isSet else { return }
-                        viewModel.qaMakeHotSeat()
                     }
                 #endif
                     // Rebuild the whole view on restart so presentation-only

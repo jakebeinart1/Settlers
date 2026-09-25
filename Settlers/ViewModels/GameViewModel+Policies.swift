@@ -15,12 +15,13 @@ extension GameViewModel {
     static func makeSession(
         state: GameState,
         opponentProfiles: [PlayerID: OpponentProfile],
-        difficulty: BotDifficulty
+        difficulty: BotDifficulty,
+        ghosts: GhostStore
     ) -> GameSession {
         var seedSource = state.rng
         return GameSession(
             state: state,
-            policies: makePolicies(opponentProfiles, difficulty: difficulty),
+            policies: makePolicies(opponentProfiles, difficulty: difficulty, ghosts: ghosts),
             policySeed: seedSource.next()
         )
     }
@@ -33,9 +34,10 @@ extension GameViewModel {
     /// this project has had to retract.
     static func makePolicies(
         _ profiles: [PlayerID: OpponentProfile],
-        difficulty: BotDifficulty
+        difficulty: BotDifficulty,
+        ghosts: GhostStore
     ) -> [PlayerID: any Policy] {
-        profiles.mapValues { difficulty.policy(for: $0) }
+        profiles.mapValues { policy(for: $0, difficulty: difficulty, ghosts: ghosts) }
     }
 
     /// Human-offer presentation uses the seated policy, including its counted

@@ -17,27 +17,6 @@ private func hotSeat(humans: Set<Int>, seats: Int = 4, phaseSeat: Int = 0) -> Ga
     return model
 }
 
-// MARK: - B2: an unclaimed device must never draw somebody's hand
-
-@MainActor
-@Test func anUnclaimedPhoneIsCoveredEvenDuringABotTurn() {
-    // Saves are written after every bot move, so force-quitting mid-bot-turn
-    // and relaunching is an ordinary path, not an edge case. Before the fix no
-    // cover appeared - a bot phase owes no human a turn - while `humanPlayer`
-    // fell back to the lowest human seat and drew that player's full hand to
-    // whoever picked the phone up.
-    let model = hotSeat(humans: [0, 2], phaseSeat: 1)   // seat 1 is a bot
-    model.qaClearSeatAtDeviceForTesting()
-    #expect(model.needsHandoff, "nobody is holding the phone; the hand must stay covered")
-}
-
-@MainActor
-@Test func aSoloGameIsNeverCoveredEvenWithNobodyClaimed() {
-    let model = hotSeat(humans: [1], phaseSeat: 1)
-    model.qaClearSeatAtDeviceForTesting()
-    #expect(!model.needsHandoff, "one player holding their own phone must never be asked to pass it")
-}
-
 // MARK: - B3: lifetime statistics belong to a solo player
 
 @MainActor

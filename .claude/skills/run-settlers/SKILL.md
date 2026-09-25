@@ -160,7 +160,6 @@ grep -rnoE '"\-qa[A-Za-z]+"' --include="*.swift" "$REPO/Settlers" | sort -u
 | `-qaNewGameThreeSeats` | `NewGameSetupView.swift` | **Modifier**, combines with any of the four above: shrinks the fixture to a three-player table. |
 | `-qaThreePlayerTable` | `GameViewModel+QABoardDecision.swift` | **Modifier** for robber decision fixtures: builds a supported three-player game. |
 | `-qaHumanSeatTwo` | `GameViewModel+QABoardDecision.swift` | **Modifier** for robber decision fixtures: assigns the acting human to nonzero seat 2. |
-| `-qaTwoHumans` | `ContentView.swift` | Turns the loaded game into a two-human hot-seat game (seats 0 and 1, nobody at the device) so `HandoffCoverView` is photographable. **Needs `-qaAutoStart`.** |
 | `-qaScrollNewGameToBottom` | `NewGameSetupView.swift` | **Legacy modifier** retained for fixture compatibility. The compact screen now fits without requiring this scroll position. |
 
 **`-qaAutoStart` is load-bearing for every in-game fixture above.** `GameView` only renders once

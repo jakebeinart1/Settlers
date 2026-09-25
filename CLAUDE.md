@@ -22,7 +22,7 @@ Every one of these is canonical for its question. Read the file, do not reason f
 | Why the pre-push hook drains stdin, and why an installer instead of `core.hooksPath` | `scripts/install-hooks.sh` |
 | Why CI runs on Ubuntu and what it deliberately does not do | `.github/workflows/ci.yml` |
 | Why each lint threshold sits where it does | `.swiftlint.yml` |
-| Running / screenshotting the app, all 35 `-qa*` launch flags, UI-test reset arguments, what the device path blocks on | `.claude/skills/run-settlers/SKILL.md` - **the** reference; do not re-derive it |
+| Running / screenshotting the app, every `-qa*` launch flag, UI-test reset arguments, what the device path blocks on | `.claude/skills/run-settlers/SKILL.md` - **the** reference; do not re-derive it |
 | Legal moves and move application (the whole ruleset) | `Packages/CatanEngine/Sources/CatanEngine/RulesEngine.swift` |
 | Save-file schema and its backward compatibility | `GameState.init(from:)`, `Models/GameState.swift:110` |
 | Randomness contract | `Models/RandomSource.swift` (doc comment is the spec) |

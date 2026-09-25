@@ -194,40 +194,8 @@ struct BoardDecisionViewModelTests {
 
         try model.apply(.endTurn)
 
-        #expect(model.needsHandoff)
+        #expect(model.humanPlayer == second, "the next human acts with no hand-off")
         #expect(model.boardDecisionPresentation == nil)
-        model.claimDeviceForSeatOwedATurn()
-        #expect(model.humanPlayer == second)
-        #expect(model.boardDecisionPresentation == nil)
-    }
-
-    @Test func coldBotTurnHandoffBlocksPolicyMovesUntilItIsClaimed() async {
-        let model = isolatedGameViewModel()
-        let first = PlayerID(index: 0)
-        let second = PlayerID(index: 1)
-        let bot = PlayerID(index: 2)
-        var state = GameSetup.newGame(board: BoardGenerator.standard(), seed: 5_203)
-        state.phase = .mainTurn(playerIndex: bot.index)
-        model.replaceStateForTesting(state, humanSeats: [first, second])
-        model.qaClearSeatAtDeviceForTesting()
-        #expect(model.needsHandoff)
-        #expect(model.seatOwedATurn == nil)
-        let before = model.state
-        let revision = model.checkpointDocument?.revision
-        let priority = GameInteractionPriority.resolve(GameInteractionPriorityInput(
-            needsHandoff: true
-        ))
-        model.isBlockingSurfaceOpen = priority.blocksBotProgress
-
-        await model.runBotTurnIfNeeded()
-
-        #expect(model.state == before)
-        #expect(model.checkpointDocument?.revision == revision)
-
-        model.claimDeviceForSeatOwedATurn()
-
-        #expect(model.seatAtDevice == first)
-        #expect(!model.needsHandoff)
     }
 
     @Test func paidRoadSpendsNothingUntilOneSuccessfulConfirmation() throws {

@@ -33,9 +33,6 @@ enum QALaunchFlag: String, CaseIterable {
     /// seats and two AI seats - a startable configuration, so the screen shows
     /// its green ready plaque and an enabled Start.
     case showNewGame = "-qaShowNewGame"
-    /// Starts a two-human hot-seat game so the handoff cover can be
-    /// photographed. Combine with `-qaAutoStart`.
-    case twoHumans = "-qaTwoHumans"
     /// Same screen, on a fixture whose second human seat has a whitespace-only
     /// name - so the amber problem plaque and the disabled Start can be
     /// photographed too. Without this the invalid state is unreachable, because

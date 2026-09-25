@@ -164,17 +164,14 @@ public struct GameView: View {
             if !isDiscardPresented, viewModel.boardDecisionPresentation == nil, showBuildPopup {
                 BuildPopupView(viewModel: viewModel, onDismiss: { showBuildPopup = false },
                                onRaiseArmy: { showBuildPopup = false; showArmyPurchase = true })
-                    .accessibilityHidden(viewModel.needsHandoff)
             }
 
             if !isDiscardPresented, viewModel.boardDecisionPresentation == nil, showArmyPurchase {
                 ArmyPurchasePopupView(viewModel: viewModel, onDismiss: { showArmyPurchase = false })
-                    .accessibilityHidden(viewModel.needsHandoff)
             }
 
             if !isDiscardPresented, viewModel.boardDecisionPresentation == nil, showTradePopup {
                 TradePopupView(viewModel: viewModel, onDismiss: { showTradePopup = false })
-                    .accessibilityHidden(viewModel.needsHandoff)
             }
 
             if interactionPriority.winner == .privateReceipt,
@@ -207,7 +204,6 @@ public struct GameView: View {
                         }
                     }
                 )
-                .accessibilityHidden(viewModel.needsHandoff)
             } else if interactionPriority.winner == .privateReceipt,
                       let resolution = viewModel.pendingDevCardResolution,
                       resolution.owner == human {
@@ -221,7 +217,6 @@ public struct GameView: View {
                 ) {
                     _ = viewModel.dismissDevCardResolution()
                 }
-                .accessibilityHidden(viewModel.needsHandoff)
             } else if !isDiscardPresented,
                       viewModel.boardDecisionPresentation == nil,
                       showDevCardHand {
@@ -244,7 +239,6 @@ public struct GameView: View {
                     },
                     playerName: { viewModel.playerIdentity(for: $0).displayName }
                 )
-                .accessibilityHidden(viewModel.needsHandoff)
             }
 
             // The draft lives in the view model, so removing this surface
@@ -254,7 +248,6 @@ public struct GameView: View {
             // visually opaque screen.
             if isDiscardPresented && !interactionPriority.isSettingsCoverPresented {
                 DiscardPopupView(viewModel: viewModel)
-                    .accessibilityHidden(viewModel.needsHandoff)
             }
 
             if interactionPriority.isSettingsCoverPresented {
@@ -281,33 +274,8 @@ public struct GameView: View {
                         onExitToMenu()
                     }
                 )
-                .accessibilityHidden(viewModel.needsHandoff)
             }
 
-            // Last in the stack, so it covers every popup as well as the
-            // board. A hot-seat handoff has to hide a trade popup or an open
-            // discard sheet just as much as it hides the hand behind them.
-            // `?? humanPlayer` because `needsHandoff` is now also true when
-            // nobody holds the phone and no human is owed a turn - a resumed
-            // game during a bot's move. The cover names whoever will play next.
-            if viewModel.needsHandoff {
-                let owed = viewModel.seatOwedATurn ?? viewModel.humanPlayer
-                HandoffCoverView(
-                    seat: owed,
-                    handSize: viewModel.state.players
-                        .first { $0.id == owed }?.resources.values.reduce(0, +) ?? 0,
-                    playerIdentity: viewModel.playerIdentity
-                ) {
-                    clearSeatInteractionState()
-                    viewModel.claimDeviceForSeatOwedATurn()
-                    // Rebuild the queue only after ownership changes. Doing it
-                    // before this point evaluates affordability against the
-                    // outgoing hand and can permanently hide the incoming
-                    // player's first offer.
-                    handleTradeOffersChange()
-                }
-                .zIndex(100)
-            }
         }
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier(AccessibilityID.Screen.game)
@@ -407,9 +375,6 @@ public struct GameView: View {
                 viewModel.qaPrepareDevCardPurchase(.yearOfPlenty)
                 do {
                     try viewModel.apply(.buyDevCard)
-                    if QALaunchFlag.twoHumans.isSet {
-                        viewModel.qaClearSeatAtDeviceForTesting()
-                    }
                 } catch {
                     assertionFailure("QA development-card reveal failed: \(error)")
                 }
@@ -779,7 +744,7 @@ public struct GameView: View {
         // unexpectedly.
         VStack(spacing: 8) {
             switch interactionPriority.winner {
-            case .handoff, .recoveryFailure, .mandatoryDiscard, .privateReceipt:
+            case .recoveryFailure, .mandatoryDiscard, .privateReceipt:
                 Color.clear.frame(height: Self.actionRowHeight)
             case .mandatoryBoardDecision, .optionalBoardDecision:
                 if let decision = viewModel.boardDecisionPresentation {
@@ -983,7 +948,6 @@ private extension GameView {
             || viewModel.pendingDevCardReveal?.owner == human
             || viewModel.pendingDevCardResolution?.owner == human
         return GameInteractionPriority.resolve(GameInteractionPriorityInput(
-            needsHandoff: viewModel.needsHandoff,
             hasRecoveryFailure: viewModel.persistenceErrorMessage != nil,
             hasMandatoryDiscard: isDiscardPresented,
             hasMandatoryBoardDecision: decision?.canCancel == false,
@@ -996,7 +960,7 @@ private extension GameView {
 
     private var isBlockingOverlayPresented: Bool {
         let winnerBlocksBoard = switch interactionPriority.winner {
-        case .handoff, .recoveryFailure, .privateReceipt: true
+        case .recoveryFailure, .privateReceipt: true
         default: false
         }
         return showBuildPopup || showArmyPurchase || showTradePopup || showDevCardHand
