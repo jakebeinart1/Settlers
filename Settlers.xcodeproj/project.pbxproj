@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		01EF8804262A950A081F1E65 /* OpponentProfile.swift in Sources */ = {isa = PBXBuildFile; fileRef = 85B6069622A8A50F3F60184A /* OpponentProfile.swift */; };
 		026232B4459AF297E5949F67 /* NewGameEndToEndTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D04CF1402F3DF884C2B45746 /* NewGameEndToEndTests.swift */; };
+		06479A5D63CE3A565C2BC775 /* Elo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0892D7EFB79360118C486EE3 /* Elo.swift */; };
 		065197416B5B899A995BFB93 /* GameViewModel+QAConquest.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDEC87B3C860C54365AEE88F /* GameViewModel+QAConquest.swift */; };
 		076DBD0E74CFC2372A8A8AA9 /* GameViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0A975D333BC9759A83497B5 /* GameViewModel.swift */; };
 		07E4805C4AE5D6EFB51E63F0 /* VictoryPointBreakdown.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3405300C3B5526C327741E4F /* VictoryPointBreakdown.swift */; };
@@ -26,6 +27,7 @@
 		1C255E384D3A2EFC9CCD8FB3 /* GameViewModel+QADevCards.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1F5C0B1182DAC9A11A80D10D /* GameViewModel+QADevCards.swift */; };
 		1CE9F2891BE97F0B0CC630BB /* EndGameView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 52C0B1D44B650E22AEBC8366 /* EndGameView.swift */; };
 		1D2F66F3FE62DEFCBDD373E2 /* GameLogStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50C4CFF8E5798600294998A8 /* GameLogStoreTests.swift */; };
+		21F17B30E80E883AB4F47895 /* EloTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8C2F5AA2574FC0C8D7590DBB /* EloTests.swift */; };
 		2254FEA712B9147BDC0D79D4 /* GameViewLayoutSupport.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E786F1B0785BE8FE3D7E229 /* GameViewLayoutSupport.swift */; };
 		232A932B1BF064663A7161C3 /* CivilizationMappingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B98093256E41FC724D7E6C36 /* CivilizationMappingTests.swift */; };
 		2351A47641190EB4F53F128E /* CheckpointMigrationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DBA8BCB46AF42E87EB22D98E /* CheckpointMigrationTests.swift */; };
@@ -57,6 +59,7 @@
 		5017D3A0DED43EEFE47CB4CC /* GameView+QA.swift in Sources */ = {isa = PBXBuildFile; fileRef = CCAAA4A264244E1A6CD47BEB /* GameView+QA.swift */; };
 		5033447C4E7FE175EFE2F595 /* DevelopmentCardFlowTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6C3E1669AE4CEDD931039E43 /* DevelopmentCardFlowTests.swift */; };
 		553CE98D82F40F5E629CF8A7 /* GameHistoryFlowTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CD3E109D52F2D3D54EA71F13 /* GameHistoryFlowTests.swift */; };
+		556002F6D3EEBF9679079FD6 /* RatingStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63FDF22B7ACAB8B54DB31A63 /* RatingStore.swift */; };
 		5754F9C1356C779A5553C1BD /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = AAE31202C59C388953152F18 /* Assets.xcassets */; };
 		57EA5B6AC6CBD8DF633CAEC0 /* PacingPreferences.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1F6B7C1967EDFFBBD8873DAC /* PacingPreferences.swift */; };
 		58CF19E0BF339B5D32B7D233 /* PreMergeAuditRegressionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11D7DF8A5B6CAC4647065878 /* PreMergeAuditRegressionTests.swift */; };
@@ -125,6 +128,7 @@
 		C33298E3E68FDD117862CCF3 /* GameInteractionPriorityTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96572AA0664ABBE89C37F610 /* GameInteractionPriorityTests.swift */; };
 		C834783EE1638B259EFA3035 /* MatchCheckpointStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FDDC6BE523633D50F2BBE0CF /* MatchCheckpointStoreTests.swift */; };
 		C8EBD90EAF2F47466F8B5A2C /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CB7D94876E201553696FE24C /* ContentView.swift */; };
+		CB1B7B5D513B44AC7115433C /* RatingStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 161D4797A450338FD0A087B5 /* RatingStoreTests.swift */; };
 		CB58570AE806ACE6BFC462C1 /* TradePopupView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5DA573A3A82A8F2F109FA437 /* TradePopupView.swift */; };
 		CEA12EEFFD502BF20F4EF929 /* BottomSafeInsetKey.swift in Sources */ = {isa = PBXBuildFile; fileRef = 306B99243D5CB6793A272281 /* BottomSafeInsetKey.swift */; };
 		D16CC8C90FB7F755636F3397 /* GameStatsStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 16777953197BE2BC34CCFE6B /* GameStatsStore.swift */; };
@@ -171,11 +175,13 @@
 		00588364F7AD8B7D5AF440EA /* HotSeatTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HotSeatTests.swift; sourceTree = "<group>"; };
 		03EAB3CE8A50ABA81E547D16 /* BoardCameraTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BoardCameraTests.swift; sourceTree = "<group>"; };
 		06E9063445AF048FF3A65C5A /* DevCardPopupView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DevCardPopupView.swift; sourceTree = "<group>"; };
+		0892D7EFB79360118C486EE3 /* Elo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Elo.swift; sourceTree = "<group>"; };
 		094066516FB9FCC3D028672A /* GameViewModel+Policies.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "GameViewModel+Policies.swift"; sourceTree = "<group>"; };
 		0AC74C3A12A7CDE5AE1B1546 /* CivilizationPieceShapes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CivilizationPieceShapes.swift; sourceTree = "<group>"; };
 		118052E72D8695833C2EC00C /* ArmyPurchasePopupView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArmyPurchasePopupView.swift; sourceTree = "<group>"; };
 		11D7DF8A5B6CAC4647065878 /* PreMergeAuditRegressionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreMergeAuditRegressionTests.swift; sourceTree = "<group>"; };
 		142B4786F6C2B6DBAED5AA58 /* ConquestFlowTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConquestFlowTests.swift; sourceTree = "<group>"; };
+		161D4797A450338FD0A087B5 /* RatingStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RatingStoreTests.swift; sourceTree = "<group>"; };
 		16777953197BE2BC34CCFE6B /* GameStatsStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameStatsStore.swift; sourceTree = "<group>"; };
 		185D6FBBEC12DDB165C33128 /* BoardViewCamera.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BoardViewCamera.swift; sourceTree = "<group>"; };
 		1E21004FB7C5F5948BEC71A9 /* SavedGameAvailability.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SavedGameAvailability.swift; sourceTree = "<group>"; };
@@ -214,6 +220,7 @@
 		5CF7C06392E2A4F1B15C8411 /* UITestBootstrap.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UITestBootstrap.swift; sourceTree = "<group>"; };
 		5DA573A3A82A8F2F109FA437 /* TradePopupView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TradePopupView.swift; sourceTree = "<group>"; };
 		5E1449FD2095D36C126206BA /* GameViewModelCheckpointTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameViewModelCheckpointTests.swift; sourceTree = "<group>"; };
+		63FDF22B7ACAB8B54DB31A63 /* RatingStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RatingStore.swift; sourceTree = "<group>"; };
 		64A459436E4814B4E4BE3728 /* DiscardPopupView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiscardPopupView.swift; sourceTree = "<group>"; };
 		64B237C01DFEE60CA454FFCB /* BoardChips.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BoardChips.swift; sourceTree = "<group>"; };
 		6704DBBD9FA192F71D8ED7D3 /* CornerAccent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CornerAccent.swift; sourceTree = "<group>"; };
@@ -240,6 +247,7 @@
 		859E263A00119BF52F19D867 /* PacingPreferencesTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PacingPreferencesTests.swift; sourceTree = "<group>"; };
 		85B6069622A8A50F3F60184A /* OpponentProfile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OpponentProfile.swift; sourceTree = "<group>"; };
 		8BC4427BD3E30FD0F5F9E9CC /* SettingsChrome.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsChrome.swift; sourceTree = "<group>"; };
+		8C2F5AA2574FC0C8D7590DBB /* EloTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EloTests.swift; sourceTree = "<group>"; };
 		8DDA700575394DF91917C2EE /* GameViewModel+Recovery.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "GameViewModel+Recovery.swift"; sourceTree = "<group>"; };
 		8E616D996C5EBA2DBFC75D9D /* CivilizationBadge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CivilizationBadge.swift; sourceTree = "<group>"; };
 		92F9BFE16D19CFD1ABEC5B88 /* IncrementalCheckpointValidationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IncrementalCheckpointValidationTests.swift; sourceTree = "<group>"; };
@@ -358,6 +366,7 @@
 				A469428A7A7C53B82AAA7CF0 /* ConquestSetupTests.swift */,
 				6EA6414242A6D72E151D2F11 /* DevelopmentCardJourneyTests.swift */,
 				AEA920BF49EA01E0CB03070F /* DiscardDraftTests.swift */,
+				8C2F5AA2574FC0C8D7590DBB /* EloTests.swift */,
 				96572AA0664ABBE89C37F610 /* GameInteractionPriorityTests.swift */,
 				50C4CFF8E5798600294998A8 /* GameLogStoreTests.swift */,
 				CF720556392B11429436CBAA /* GameOverActionsTests.swift */,
@@ -374,6 +383,7 @@
 				859E263A00119BF52F19D867 /* PacingPreferencesTests.swift */,
 				68A4D0016F665BB8F904F4DD /* PersistenceTests.swift */,
 				11D7DF8A5B6CAC4647065878 /* PreMergeAuditRegressionTests.swift */,
+				161D4797A450338FD0A087B5 /* RatingStoreTests.swift */,
 				BB62855B09E0A68CD8B97889 /* SaveRecoveryTests.swift */,
 				EB6E7FEA396F945A8263666A /* VictoryPointBreakdownTests.swift */,
 			);
@@ -403,6 +413,7 @@
 			isa = PBXGroup;
 			children = (
 				51734632231393886280C1ED /* BotDifficulty.swift */,
+				0892D7EFB79360118C486EE3 /* Elo.swift */,
 				6B73E867DA1D4D948C9EE5F5 /* GameReplayNarrator.swift */,
 				A6AF9E4221C6DEDBD5B28F6E /* GameReplayTimeline.swift */,
 				85B6069622A8A50F3F60184A /* OpponentProfile.swift */,
@@ -534,6 +545,7 @@
 				AF68AEB9AD0DD219D7E84E99 /* MatchSetup.swift */,
 				1F6B7C1967EDFFBBD8873DAC /* PacingPreferences.swift */,
 				A7D42223DB45BEF77F97D3F6 /* PlayerNameStore.swift */,
+				63FDF22B7ACAB8B54DB31A63 /* RatingStore.swift */,
 				1E21004FB7C5F5948BEC71A9 /* SavedGameAvailability.swift */,
 			);
 			path = Persistence;
@@ -734,6 +746,7 @@
 				F6F3324A29096F09311AF398 /* DevelopmentCardPresentationState.swift in Sources */,
 				2963FFF4A45E734FACE3E93A /* DiscardPopupView.swift in Sources */,
 				9D095531AB8A93EBEBC78B39 /* DiscardPresentationState.swift in Sources */,
+				06479A5D63CE3A565C2BC775 /* Elo.swift in Sources */,
 				1CE9F2891BE97F0B0CC630BB /* EndGameView.swift in Sources */,
 				455E51A5AB5D82DEABF2A8F1 /* GameActionPanels.swift in Sources */,
 				DF49A9492B071F7B13D1148B /* GameHistoryView.swift in Sources */,
@@ -781,6 +794,7 @@
 				1B2E8933650EFB5E3A65F60D /* PlayerNameStore.swift in Sources */,
 				9D659C4304480CACA215E1EF /* QAGameHistoryFixture.swift in Sources */,
 				EA3F8948081A29B415CD8B67 /* QALaunchFlag.swift in Sources */,
+				556002F6D3EEBF9679079FD6 /* RatingStore.swift in Sources */,
 				982B80C1DDE6B39264765604 /* ResourceChip.swift in Sources */,
 				08572217A242A44981A040EB /* SavedGameAvailability.swift in Sources */,
 				A0509BA422B4A4CCC2E73976 /* SeatCardView.swift in Sources */,
@@ -817,6 +831,7 @@
 				E117B2BCB38DA3FABD17B6DE /* ConquestSetupTests.swift in Sources */,
 				0AF839BA0DBC818CC82119C9 /* DevelopmentCardJourneyTests.swift in Sources */,
 				917E8B9490D1B99CFFA7AAF6 /* DiscardDraftTests.swift in Sources */,
+				21F17B30E80E883AB4F47895 /* EloTests.swift in Sources */,
 				C33298E3E68FDD117862CCF3 /* GameInteractionPriorityTests.swift in Sources */,
 				1D2F66F3FE62DEFCBDD373E2 /* GameLogStoreTests.swift in Sources */,
 				2BAEFADBE6DAC80EDAACA51A /* GameOverActionsTests.swift in Sources */,
@@ -833,6 +848,7 @@
 				9D2C2CFA8309AE51A7322BB1 /* PacingPreferencesTests.swift in Sources */,
 				8F8382E69A373BB264240262 /* PersistenceTests.swift in Sources */,
 				58CF19E0BF339B5D32B7D233 /* PreMergeAuditRegressionTests.swift in Sources */,
+				CB1B7B5D513B44AC7115433C /* RatingStoreTests.swift in Sources */,
 				434C2E6A7C5F23148D5810A7 /* SaveRecoveryTests.swift in Sources */,
 				5F4982074BC66FB97F145BC0 /* VictoryPointBreakdownTests.swift in Sources */,
 			);
