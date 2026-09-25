@@ -335,16 +335,36 @@ The ghost's id is the human's name, slugged. The first game creates the ghost, b
     - sorts by Elo, descending, with ties broken by name;
     - marks anchors `isFixed`;
     - shows "unrated" when a non-anchor has 0 games.
-  - `DetailModel(for: .ghost("jake"))`:
-    - record totals come from `SeatStatsStore`;
-    - the head-to-head against its own person counts only games where both sat;
+  - `DetailModel(for: .ghost(id))`, for any ghost (bundled or local, the user's or an opponent's):
+    - `gamesLearned` comes from the ghost's profile;
+    - games against humans (played, won, lost, win rate) come from `SeatStatsStore`, with self-play against its own person on a separate line;
     - the radar uses the ghost's games once it has 3 or more, and its person's games (flagged `isLearnedFrom`) below that;
-    - style lines are the top 3 habits by |θ|, phrased from a fixed table and never showing the size.
-- [ ] **Step 2: Implement** the models and views. Use the painted chrome from `GameHistoryView`. Recent-game rows open `GameReplayView` by `gameID`.
+    - style lines are the top 3 habits by |θ|, phrased from a fixed table and never showing the size;
+    - there is no recent-games list (Jake dropped it).
+- [ ] **Step 2: Implement** the models and views. Use the painted chrome from `GameHistoryView`.
 - [ ] **Step 3: UI test.**
   - Main menu → Leaderboard shows "Classic AI 1000" and "Expert AI 1229".
   - Tapping "Jake's Ghost" opens a page with the radar (`AccessibilityID.Leaderboard.radar`) and the record.
 - [ ] **Step 4: Screenshot** the leaderboard and the detail page with the run-settlers skill, and read both. Commit as `feat(ui): leaderboard with ghost and player detail pages`.
+
+---
+
+### Task 9c: Keep everything, and the ghost-vs-Expert test
+
+**Files:**
+- Modify: `Settlers/Persistence/GameLogStore.swift` (no pruning; doc comment with the ~0.5 GB-per-10k-games ceiling)
+- Modify: `RatingStore` (append a history entry per update)
+- Modify: `GhostStore.save` (writes `ghosts/<id>/v<n>.json`, never overwriting; the latest version wins)
+- Modify: `Packages/CatanAI/Sources/ghost/main.swift` (add `strength`)
+- Test: `SettlersTests/GameLogStoreTests.swift` (the pruning test flips: 600 logs are all kept), `RatingStoreTests`, `GhostStoreTests`
+
+- [ ] **Step 1: Failing tests.**
+  - All 600 logs survive.
+  - Two rating updates leave two history entries.
+  - Saving a ghost twice leaves v1 and v2 on disk, and `ghost(id:)` returns v2.
+- [ ] **Step 2: Implement.** The existing pruning test encodes the old rule on purpose. Change it, and say why in the commit.
+- [ ] **Step 3: `ghost strength --person P.json --lambda L --games 1248 --vs expert`.** It follows the `bot-strength` skill: ghost in every chair, held-out seeds, and a Wilson 95% CI against the 25% null. Run it on Jake's calibrated ghost and record the result in the research doc. **If the CI is above 25%, it is better than Expert.** Tell Jake before anything else, because that result opens "adopt the ghost as Expert", which is its own plan.
+- [ ] **Step 4:** Commit as `feat(app,sim): keep every game, rating and ghost version; ghost-vs-Expert strength test`.
 
 ---
 

@@ -160,25 +160,25 @@ A `GoldRowButton` titled "Leaderboard" sits beside Game History. Each row shows
 rank, name, a kind badge (You / Ghost / AI), Elo, and games rated. Anchors are
 marked "fixed". **Tapping a person or a ghost opens its detail page (§8).**
 
-### 8. Detail page (Jake, 2026-09-25): "see a person's ghost, their games, a FIFA web graph, basic stats"
+### 8. Detail page (Jake, 2026-09-25, revised the same day)
 
-Opened from a leaderboard row. For a **ghost**, the page shows:
+Opened from any ghost's leaderboard row, **your own or an opponent's**: every
+ghost on the phone, bundled or local, has the same page. It shows:
 
-- **Header:** the name, whose ghost it is, Elo, and games learned from (its
-  person's games).
-- **Record:** games played, won and lost, win rate, average final VP, and its
-  record against its own person (the self-play games Jake asked to keep).
-- **Radar ("FIFA card"):** six categories, each rated 1–99. It is drawn with a
-  SwiftUI `Path`, because Swift Charts has no radar chart and no dependency is
-  added.
-- **Recent games:** the last 10 rated games (result, VP, opponents). Each opens
-  the existing replay (`GameReplayView`).
+- **Header:** the ghost's name, whose ghost it is, and Elo.
+- **Games learned from its human:** how many of its person's games trained it.
+- **Games played against humans:** the rated games it sat in with a human at
+  the table, with wins, losses and win rate. Self-play games against its own
+  person are included (Jake's rule) and broken out on their own line.
+- **FIFA spider graph:** six categories rated 1–99. It is drawn with a SwiftUI
+  `Path`, because Swift Charts has no radar chart and no dependency is added.
 - **Style:** the person model's top habits in plain words ("offers often",
   "robs the leader", "rarely plays dev cards"), from the fitted `theta`, sign
   and rank only. Section 7 of the research doc says sizes are not reliable.
 
-A **person's** page is the same without the Style block, and adds a link to
-their ghost.
+The recent-games list is dropped (Jake: "the last 10 I don't need to see"). A
+person's own leaderboard row shows the same header and graph, from their own
+games.
 
 **Radar categories.** Each is measured per game from the seat's own play:
 
@@ -204,6 +204,43 @@ VP and a win flag) is computed for every seat when a game completes. The
 completed game is replayed through `GameSession` and its events are read. The
 records are stored per match (`SeatStatsStore`), so the detail page never
 replays a game on the main thread.
+
+### 9. Keep everything (Jake, 2026-09-25: "All the data needs to be saved")
+
+Nothing the ghost system produces is ever deleted, because it is also the
+training data for making Expert better:
+
+- **Game logs:** `GameLogStore` currently prunes to 500 (`maxKeptLogs`). That
+  becomes **no pruning**. A log is about 20–50 KB, so 10,000 games is about
+  0.5 GB, a real ceiling that is stated in the store's doc comment. If it is
+  ever reached, the answer is compression, not deletion.
+- **Decision records** (per game, per person), **seat stats** (per game, per
+  seat), **rating history** (every update, not just the current number), and
+  **every ghost version** (`ghosts/<id>/v<n>.json`, never overwritten) are all
+  append-only.
+- The existing phone-to-Mac copy (`xcrun devicectl … copy from`) pulls all of
+  it for offline work.
+
+### 10. "If my ghost beats Expert's Elo, is it better than Expert?"
+
+Roughly yes, with three caveats. Being better than Expert is also the route to
+improving Expert.
+
+1. **Uncertainty.** After about 30 games an Elo is only good to about ±100. A
+   ghost at 1250 against Expert's 1229 is a tie, not a win.
+2. **Different pools.** Expert's 1229 comes from Expert-vs-Classic bot games.
+   A ghost's rating comes from games with a human at the table. Elo assumes
+   results carry over between pools, which is plausible but unproven.
+3. **The real test is head-to-head,** and it can be run any time on the Mac:
+   the `bot-strength` protocol with the ghost in every chair against three
+   Expert bots, 1,248 games, held-out seeds. A win rate significantly above
+   25% means it is better than Expert, full stop.
+
+**Why this matters.** `GhostPolicy` is literally Expert plus a person term. If
+Jake's ghost beats Expert head-to-head, adopting its weights and habits *is*
+an Expert upgrade, learned from a human. That is the first time this repo
+would have learned strength from people rather than self-play. The plan adds a
+`ghost strength` command for exactly this test.
 
 ## Testing
 
