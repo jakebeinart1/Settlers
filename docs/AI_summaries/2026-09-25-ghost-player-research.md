@@ -248,3 +248,93 @@ passes.
 Deliberately **not** in v1: sending ghosts to other devices, ratings and the
 ladder, and logging cancelled drafts. Those come after one ghost (Jake's) is
 proven to be him.
+
+---
+
+## 7. Results: phases 1–4, built 2026-09-25
+
+Branch `feat/ghost-player`. Code: `Packages/CatanAI/Sources/CatanAI/Ghost/`
+(candidate scoring, style features, extractor, person model and fitter,
+`GhostPolicy`) and the `ghost` CLI (`Packages/CatanAI/Sources/ghost/`).
+
+### What real data changed about the design
+
+Jake's own logs broke the first version five times. Each break was a place
+where "the rules the seat played under" differed from what the extractor
+assumed. They are recorded here because the next person's logs will find
+more of them:
+
+| Found | Cause | Fix |
+|---|---|---|
+| Every human offer dropped | UI offers carry random ids; the engine permits composed offers only under the content id | Re-issue each offer under `TradeOffer.enumerated` |
+| Trade replies crashed extraction | `legalMoves` lists the *acting* seat's moves, not the responder's | Build responder options the way `GameSession` does |
+| Offering a last ore 1-for-1 | The engine enumerates gives only of resources held twice | `humanTrading`: a person may offer anything affordable on their turn |
+| 6 ore for a grain and a wool | Engine caps composed gives at 5; the app does not | Human offers need only be well-formed and affordable |
+| One bank trade of two 3:1 swaps | `legalMoves` lists single swaps only | Any move the person made that replays is a candidate (`extraMoves`) |
+
+The selftest, whose persona is a `GameSession` bot, found the mirror image:
+read under human rules, it seemed to skip offers that the 3-refusal cap never
+allowed it to make, and the fit invented a −3.0 habit from that.
+
+Three fitting fixes came from the same data:
+- **Re-linearisation rounds**: one linearisation at Expert's weights cannot
+  reach a person far from Expert (drift 0.122, production fitted in the
+  wrong direction).
+- **A 5% lapse rate**: 3% of Jake's turns offered a candidate scored ~992 (a
+  trade whose purchase wins if a bot accepts, which no bot does). He rightly
+  ignored them, and without a lapse those decisions drove β to its floor.
+- **Sign-preserving trust regions**: unbounded, `rival` went 0.80 → −1.48,
+  with drift 2.5.
+
+### Selftest (12 games, known persona, 5 rounds)
+
+| Parameter | True | Fitted |
+|---|---|---|
+| production | 0.710 | 0.574 (from 0.460) |
+| habit `propose` | 1.0 | 0.365 |
+| habit `robberHitsLeader` | 1.5 | 0.770 |
+| β | 4.0 | 4.63 |
+| Held-out `turn` log-likelihood | −3.46 (true model) | −3.50 (Expert −3.86) |
+
+The direction is right on every parameter. Magnitudes are under-recovered,
+and there is one false habit (`buildCity` −1.55). **Read fitted habit sizes as
+directions, not amounts.**
+
+### Jake, 24 finished Classic games (2,612 decisions; 6 held out)
+
+He won 13 of the 24 (54%; the null is 25%). The final round's drift was 0.045.
+
+| Facet | n | Expert top-1 | Jake-model top-1 | Expert LL | Jake-model LL |
+|---|---|---|---|---|---|
+| opening | 24 | 0.333 | 0.375 | −2.31 | −1.83 |
+| turn | 275 | 0.095 | **0.473** | −4.86 | −2.38 |
+| tradeResponse | 272 | 0.783 | **0.971** | −0.67 | −0.13 |
+| robber | 17 | 0.294 | 0.176 | −2.94 | −2.51 |
+| discard | 4 | 0.750 | 0.750 | −2.65 | −2.30 |
+
+**What he values, relative to Expert:** production 0.46 → 1.61, hand synergy
+0.18 → 0.53, port 0.10 → 0.18, rival 0.80 → 0.33 (plays his own game), and
+knight 0.26 → 0 (at the sign bound).
+
+**Habits:** strongly prefers building settlements (+6.4), buys dev cards (+1.6)
+but rarely plays them (−5.8), declines bot offers (−4.6; he accepted 25 of
+1,242), re-offers after a refusal (+1.4), and robs the leader (+1.6). The two
+proposal-size habits are collinear (lopsided = given − wanted). Taken together
+they say he asks for few cards.
+
+**Open:** the ghost has not yet played a game. λ is uncalibrated (target: his
+54%), and robber has too few decisions to judge.
+
+### Running it
+
+```bash
+swift run --package-path Packages/CatanAI -c release ghost extract --out jake.jsonl LOGS...
+swift run --package-path Packages/CatanAI -c release ghost profile jake.jsonl
+swift run --package-path Packages/CatanAI -c release ghost fit --out jake-person.json --rounds 5 LOGS...
+swift run --package-path Packages/CatanAI -c release ghost selftest --games 12 --rounds 5
+```
+
+Logs come off a connected phone with `xcrun devicectl device copy from
+--domain-type appDataContainer --domain-identifier com.jakebeinart.settlers
+--source Documents/GameLogs`. Only complete, single-human, Classic standard
+games were used.
