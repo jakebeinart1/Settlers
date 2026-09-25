@@ -57,6 +57,25 @@ import CatanEngine
         #expect(scored.count == 2)
     }
 
+    /// Found in Jake's own games: holding a single ore, he offered it 1-for-1.
+    /// `legalMoves` enumerates only gives of a resource held twice, so it listed
+    /// no proposals at all, while the app lets a person offer anything they can
+    /// afford on their own turn. Under human rules the offer is a candidate;
+    /// under bot rules (the ghost's) it is not.
+    @Test func aPersonMayOfferTheirLastCardOfAKind() {
+        var (state, me) = table()
+        state.players[0].resources = [.ore: 1, .grain: 1, .wool: 1]
+        let obs = observation(state, me)
+        #expect(!obs.legalMoves.contains { if case .proposeTrade = $0 { true } else { false } })
+        let offer = TradeOffer(from: me, give: [.ore: 1], want: [.lumber: 1])
+        let ledger = PublicLedger.fromPositionAlone(state, observer: me)
+        func proposes(_ scored: [ScoredCandidate]) -> Bool {
+            scored.contains { if case .proposeTrade(let o) = $0.move { o.sameProposition(as: offer) } else { false } }
+        }
+        #expect(proposes(EvaluationPolicy().candidateScores(obs, ledger: ledger, extraProposals: [offer], humanTrading: true)))
+        #expect(!proposes(EvaluationPolicy().candidateScores(obs, ledger: ledger, extraProposals: [offer])))
+    }
+
     /// Weights change scores, never the candidate list. The extractor's slopes depend on it.
     @Test func candidateOrderDoesNotDependOnWeights() {
         let (state, me) = table()

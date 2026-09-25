@@ -21,10 +21,16 @@ extension EvaluationPolicy {
     ///
     /// The list depends only on the observation, never on the weights, so two
     /// weight vectors give lists that line up index for index.
+    ///
+    /// `humanTrading` applies the app's rule for a person instead of the
+    /// engine's enumeration: a person may offer anything they can afford on
+    /// their own turn, including their last card of a kind, which `legalMoves`
+    /// never lists. The ghost leaves it off and trades under bot rules.
     public func candidateScores(
         _ observation: GameObservation,
         ledger: PublicLedger,
-        extraProposals: [TradeOffer] = []
+        extraProposals: [TradeOffer] = [],
+        humanTrading: Bool = false
     ) -> [ScoredCandidate] {
         var counted = ledger
         counted.reconcileObserverHand(from: observation.state)
@@ -49,21 +55,24 @@ extension EvaluationPolicy {
                 result.append(ScoredCandidate(move: move, score: value))
             }
         }
-        return result + proposalScores(observation, ledger: counted, evaluator: evaluator, extra: extraProposals)
+        return result + proposalScores(observation, ledger: counted, evaluator: evaluator,
+                                       extra: extraProposals, humanTrading: humanTrading)
     }
 
     private func proposalScores(
         _ observation: GameObservation,
         ledger: PublicLedger,
         evaluator: PositionEvaluator,
-        extra: [TradeOffer]
+        extra: [TradeOffer],
+        humanTrading: Bool
     ) -> [ScoredCandidate] {
         let state = observation.state
         let legal = observation.legalMoves
         let enumerated = legal.compactMap { move -> TradeOffer? in
             if case .proposeTrade(let offer) = move { offer } else { nil }
         }
-        guard !enumerated.isEmpty, let me = state.players.first(where: { $0.id == observation.seat }) else { return [] }
+        let mayPropose = !enumerated.isEmpty || (humanTrading && Self.personMayPropose(observation))
+        guard mayPropose, let me = state.players.first(where: { $0.id == observation.seat }) else { return [] }
 
         // ponytail: O(n²) dedupe over at most a few hundred offers per decision.
         // Switch to a content-keyed Set if extraction profiling shows it.
@@ -82,13 +91,24 @@ extension EvaluationPolicy {
         var result: [ScoredCandidate] = []
         for offer in offers {
             let move = GameMove.proposeTrade(offer)
+            // The engine's check also asks "may this seat propose at all", which
+            // it reads off `legal`. Under human rules that was answered above.
+            let gate = enumerated.isEmpty ? legal + [move] : legal
             guard legal.contains(move)
-                || RulesEngine.isPermittedComposedProposal(move, by: observation.seat, in: state, legal: legal)
+                || RulesEngine.isPermittedComposedProposal(move, by: observation.seat, in: state, legal: gate)
             else { continue }
             let settled = appeal(of: offer, payers: payers, valuation: valuation)?.worst ?? valuation.standingStill
             let opened = purchases.gain(with: me.resources.trading(offer))
             result.append(ScoredCandidate(move: move, score: settled + opened - openNow))
         }
         return result
+    }
+
+    /// The app's rule for a person: their own main turn, no offer of theirs pending.
+    static func personMayPropose(_ observation: GameObservation) -> Bool {
+        let state = observation.state
+        guard case .mainTurn(let index) = state.phase, state.players.indices.contains(index),
+              state.players[index].id == observation.seat else { return false }
+        return !state.pendingTradeOffers.contains { $0.from == observation.seat }
     }
 }

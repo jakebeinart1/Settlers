@@ -51,7 +51,8 @@ public enum DecisionExtractor {
         var extra: [TradeOffer] = []
         if case .proposeTrade(let offer) = event.move { extra.append(offer) }
 
-        let base = EvaluationPolicy(weights: anchor).candidateScores(observation, ledger: ledger, extraProposals: extra)
+        let base = EvaluationPolicy(weights: anchor)
+            .candidateScores(observation, ledger: ledger, extraProposals: extra, humanTrading: true)
         guard base.count > 1 else { return nil }
         guard let chosen = base.firstIndex(where: { same($0.move, event.move) }) else {
             throw ChoiceMissing(move: event.move)
@@ -99,7 +100,7 @@ public enum DecisionExtractor {
         var vector = anchor.vector
         vector[slot] += delta
         return EvaluationPolicy(weights: EvaluationWeights(vector: vector))
-            .candidateScores(observation, ledger: ledger, extraProposals: extra).map(\.score)
+            .candidateScores(observation, ledger: ledger, extraProposals: extra, humanTrading: true).map(\.score)
     }
 
     static func freeSlots(for state: GameState) -> [Int] {
