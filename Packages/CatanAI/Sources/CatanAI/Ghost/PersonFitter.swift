@@ -97,11 +97,11 @@ public enum PersonFitter {
         var grad = [Double](repeating: 0, count: slots + 1 + model.theta.count)
         let count = Double(decisions.count)
         let active = (0..<slots).filter { movable[$0] }
-        let delta = (0..<slots).map { model.weights[$0] - anchor[$0] }
         for decision in decisions {
-            let scores = decision.candidates.map { candidate in
-                active.reduce(candidate.score) { $0 + candidate.gradient[$1] * delta[$1] }
-            }
+            // Linearised from where this record's slopes were taken - after
+            // re-linearisation that is the previous round's weights, not
+            // Expert's. `anchor` below is only the prior's centre.
+            let scores = decision.candidates.map { model.personalScore($0, anchor: decision.anchor) }
             let logits = zip(scores, decision.candidates).map { model.beta * $0 + model.habit($1.style) }
             let choice = PersonModel.softmax(logits)
             // d log P'(chosen) / d logit = share · (onehot - choice), where share
@@ -119,7 +119,7 @@ public enum PersonFitter {
         }
         for slot in active {
             let scale = max(abs(anchor[slot]), 0.05)
-            grad[slot] += 2 * options.weightPrior * delta[slot] / (scale * scale) / count
+            grad[slot] += 2 * options.weightPrior * (model.weights[slot] - anchor[slot]) / (scale * scale) / count
         }
         for feature in model.theta.indices {
             grad[slots + 1 + feature] += 2 * options.stylePrior * model.theta[feature] / count

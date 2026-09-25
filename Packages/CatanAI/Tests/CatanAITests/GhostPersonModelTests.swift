@@ -118,6 +118,33 @@ import CatanEngine
         }
     }
 
+    /// Final review, Critical: re-linearised rounds store records whose
+    /// `anchor` is the previous round's weights, but the fitter measured the
+    /// shift from Expert's. Its gradient must be the derivative of the
+    /// likelihood `PersonModel` reports, on records anchored anywhere.
+    @Test func theGradientMatchesTheLikelihoodOnRelinearisedRecords() {
+        var shiftedAnchor = anchor.vector
+        shiftedAnchor[1] += 0.2
+        let records = synthetic(count: 50, seed: 8).map {
+            DecisionRecord(game: $0.game, facet: $0.facet, anchor: shiftedAnchor, candidates: $0.candidates, chosen: $0.chosen)
+        }
+        var model = PersonModel.anchored(at: anchor)
+        model.weights[1] = shiftedAnchor[1] + 0.05
+        model.beta = 2
+        var options = FitOptions()
+        options.weightPrior = 0
+        options.stylePrior = 0
+        let movable = PersonFitter.movableSlots(records)
+        let analytic = PersonFitter.gradient(model, decisions: records, anchor: anchor.vector, movable: movable, options: options)
+        let step = 1e-5
+        var up = model
+        up.weights[1] += step
+        var down = model
+        down.weights[1] -= step
+        let numeric = -(up.meanLogLikelihood(records) - down.meanLogLikelihood(records)) / (2 * step)
+        #expect(abs(analytic[1] - numeric) < 1e-4, "analytic \(analytic[1]) vs numeric \(numeric)")
+    }
+
     /// Re-linearising needs the fit to resume from the last round's person,
     /// while the prior still pulls toward Expert.
     @Test func aFitResumesFromItsStartingPoint() {

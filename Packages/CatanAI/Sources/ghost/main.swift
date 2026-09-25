@@ -12,7 +12,11 @@ import Foundation
 
 // Line-buffered so a run that dies still leaves its progress: the first
 // selftest crashed after 19 minutes with an empty log.
+// Darwin only: under Linux Swift 6, `stdout` is a global var the compiler
+// rejects as not concurrency-safe, and CI builds every target there.
+#if canImport(Darwin)
 setvbuf(stdout, nil, _IOLBF, 0)
+#endif
 
 let anchor = EvaluationWeights.forMode(.classic)
 var arguments = Array(CommandLine.arguments.dropFirst())
