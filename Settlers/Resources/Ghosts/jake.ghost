@@ -3,7 +3,7 @@
   "decisionsLearned" : 2612,
   "gamesLearned" : 24,
   "id" : "jake",
-  "lambda" : 0.5,
+  "lambda" : 0.01,
   "name" : "Jake's Ghost",
   "person" : {
     "beta" : 6.4976455137327465,
