@@ -54,9 +54,16 @@ public struct GameLogStore: Sendable {
     private let directoryURL: URL
     private let maxKeptLogs: Int
 
+    /// The app keeps every game. Jake, 2026-09-25: "All the data needs to be
+    /// saved" - these logs are what ghosts learn from and what can make Expert
+    /// better. The ceiling is storage: a log is about 20-50 KB, so 10,000
+    /// games is about 0.5 GB. If that is ever reached, compress; do not delete.
+    /// (It was 500, oldest pruned first.)
+    static let productionRetention = Int.max
+
     private init() {
         let baseURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
-        self.init(directoryURL: baseURL.appendingPathComponent("GameLogs"), maxKeptLogs: 500)
+        self.init(directoryURL: baseURL.appendingPathComponent("GameLogs"), maxKeptLogs: Self.productionRetention)
     }
 
     /// Injectable archive location keeps tests away from the simulator's real

@@ -232,3 +232,18 @@ import Testing
         try body(GameLogStore(directoryURL: directory, maxKeptLogs: 500))
     }
 }
+
+/// Jake, 2026-09-25: "All the data needs to be saved" - game logs are the
+/// training data for ghosts and for improving Expert, so the app's store
+/// never prunes. (Tests still inject small limits to exercise the code path.)
+@Test func theAppsGameLogStoreKeepsEveryGame() throws {
+    let root = FileManager.default.temporaryDirectory.appendingPathComponent("KeepEveryGame.\(UUID().uuidString)")
+    defer { try? FileManager.default.removeItem(at: root) }
+    try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
+    for _ in 0..<600 {
+        try Data("{}\n".utf8).write(to: root.appendingPathComponent("\(UUID().uuidString).jsonl"))
+    }
+    let store = GameLogStore(directoryURL: root, maxKeptLogs: GameLogStore.productionRetention)
+    try store.pruneExportedRecordings(protecting: [])
+    #expect(try store.logFiles().count == 600)
+}
