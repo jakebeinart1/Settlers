@@ -121,6 +121,9 @@ struct ContentView: View {
         }
         .onAppear {
             isShowingUnreadableSaveAlert = viewModel.saveWasUnreadable
+            // Teach any rated game whose ghost training was cut off by the app
+            // being killed. Idempotent and serial, so a second appear is harmless.
+            viewModel.startGhostCatchUp()
             // `-qaShowEndGame`: same escape-hatch pattern as `-qaAutoStart`
             // - forces a human win via `qaForceHumanWin()` so `EndGameView`
             // can be screenshotted without actually playing a game out to

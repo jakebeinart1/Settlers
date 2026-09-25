@@ -68,8 +68,9 @@ extension GameViewModel {
     func recordFinishedMatch(_ match: MatchCheckpoint) -> Task<Void, Never>? {
         guard case .gameOver(let winner) = match.state.phase else { return nil }
         let setup = match.setup
+        // A match with no moves is a QA forced win, not a game (final review).
         guard setup.mode == .classic, setup.variant == .standard, setup.humanSeats.count == 1,
-              let human = setup.humanSeats.first else { return nil }
+              !match.moves.isEmpty, let human = setup.humanSeats.first else { return nil }
         let entities = setup.seats.map { Self.ratedEntity(for: $0, in: setup) }
         let game = LoggedGame(id: match.id.uuidString, initialState: match.initialState,
                               humanSeats: [PlayerID(index: human.index)],
@@ -84,10 +85,16 @@ extension GameViewModel {
         } catch {
             gameLogWarning = "This game's rating or stats could not be saved: \(error.localizedDescription)"
         }
+        #if DEBUG
+        // -qaPlayToEnd plays the human's seat with a bot; it must not teach
+        // anyone's ghost.
+        if QALaunchFlag.playToEnd.isSet { return nil }
+        #endif
         let trainer = GhostTrainer(store: ghostStore)
         let matchID = match.id
         return Task.detached(priority: .background) {
-            _ = try? trainer.learn(match: matchID, game: game, human: PlayerID(index: human.index), personName: human.name)
+            await GhostTrainingQueue.shared.learn(trainer, match: matchID, game: game,
+                                                  human: PlayerID(index: human.index), personName: human.name)
         }
     }
 
@@ -97,5 +104,32 @@ extension GameViewModel {
         if seat.isHuman { return .person(seat.name) }
         if let profile = seat.opponentProfile, let id = ghostID(of: profile) { return .ghost(id) }
         return setup.difficulty == .expert ? .expert : .classic
+    }
+
+    /// At launch, teaches any rated game whose training was cut off.
+    func startGhostCatchUp() {
+        let logs = gameLogStore
+        let rated = Set(ratingStore.load().ratedMatches)
+        guard !rated.isEmpty else { return }
+        let trainer = GhostTrainer(store: ghostStore)
+        Task.detached(priority: .background) {
+            let games = Self.catchUpGames(logs: logs, rated: rated)
+            _ = await GhostTrainingQueue.shared.catchUp(trainer, games: games, ratedMatches: rated)
+        }
+    }
+
+    // ponytail: reads every rated game's log at each launch; a small
+    // "taught" index is the upgrade once rated games run into the thousands.
+    nonisolated static func catchUpGames(logs: GameLogStore, rated: Set<UUID>) -> [CatchUpGame] {
+        let summaries = (try? logs.summaries()) ?? []
+        return summaries.filter { rated.contains($0.gameID) && $0.isComplete && $0.humanSeats.count == 1 }
+            .compactMap { summary in
+                guard let detail = try? logs.detail(for: summary), detail.initialState.mode == .classic,
+                      detail.initialState.variant == .standard, let human = summary.humanSeats.first,
+                      let name = detail.roster.humanNames[human.index] else { return nil }
+                let game = LoggedGame(id: summary.gameID.uuidString, initialState: detail.initialState, humanSeats: [human],
+                                      events: detail.events.map { LoggedMove(player: $0.player, move: $0.move) })
+                return CatchUpGame(match: summary.gameID, game: game, human: human, personName: name)
+            }
     }
 }

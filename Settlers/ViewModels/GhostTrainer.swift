@@ -38,6 +38,9 @@ struct GhostTrainer: Sendable {
     /// The new ghost, or `nil` if this match was already learned.
     func learn(match: UUID, game: LoggedGame, human: PlayerID, personName: String) throws -> GhostProfile? {
         let id = Self.ghostID(forPerson: personName)
+        // A name with no Latin letters or digits has no usable id (final
+        // review): an empty id would write a ghost at the store's root.
+        guard !id.isEmpty else { return nil }
         let record = store.decisionsDirectory(for: id).appendingPathComponent("\(match.uuidString).jsonl")
         guard !FileManager.default.fileExists(atPath: record.path) else { return nil }
         let previous = store.ghost(id: id) ?? GhostProfile(
@@ -48,6 +51,9 @@ struct GhostTrainer: Sendable {
         let decisions = try DecisionExtractor.decisions(
             in: personOnly, anchor: EvaluationWeights(vector: previous.person.weights), humanTrading: true
         )
+        // A game in which the person made no decision teaches nothing and must
+        // not count toward the ghost's games (a QA forced win has no moves).
+        guard !decisions.isEmpty else { return nil }
         var learned = previous
         learned.person = try fit(decisions, previous)
         learned.gamesLearned += 1
@@ -76,5 +82,42 @@ struct GhostTrainer: Sendable {
             data.append(0x0A)
         }
         try data.write(to: url, options: .atomic)
+    }
+}
+
+/// A finished, rated game to (re)teach at launch.
+struct CatchUpGame: Sendable {
+    let match: UUID
+    let game: LoggedGame
+    let human: PlayerID
+    let personName: String
+}
+
+/// One training at a time, for every ghost.
+///
+/// Final review: two trainings could overlap - the resume-time re-run of a
+/// finished match while its first run was still going, or two games whose
+/// trainings overlapped - and both would read version N and write N+1,
+/// losing one game or counting one twice. An actor with no suspension point
+/// inside `learn` runs each training to completion before the next starts.
+actor GhostTrainingQueue {
+    static let shared = GhostTrainingQueue()
+
+    @discardableResult
+    func learn(_ trainer: GhostTrainer, match: UUID, game: LoggedGame, human: PlayerID,
+               personName: String) -> GhostProfile? {
+        try? trainer.learn(match: match, game: game, human: human, personName: personName)
+    }
+
+    /// Teaches rated games whose training never finished (the app was killed
+    /// during the minute it takes). Only games in the rating store qualify:
+    /// they were played after ghosts existed, so the bundled ghost's own 24
+    /// games, which were never rated here, cannot be taught twice. A game
+    /// already taught is skipped by its decision record. Returns how many were taught.
+    func catchUp(_ trainer: GhostTrainer, games: [CatchUpGame], ratedMatches: Set<UUID>) -> Int {
+        games.filter { ratedMatches.contains($0.match) }.reduce(0) { taught, game in
+            taught + (learn(trainer, match: game.match, game: game.game, human: game.human,
+                            personName: game.personName) == nil ? 0 : 1)
+        }
     }
 }

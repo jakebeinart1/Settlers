@@ -53,11 +53,12 @@ public struct RatingStore: Sendable {
         var current: [RatedEntity: Double] = [:]
         for entity in seats { current[entity] = stored.ratings[entity.key] }
         let updated = Elo.update(current.compactMapValues { $0 }, seats: seats, winner: winner)
-        for entity in Self.distinct(seats) where entity != .classic {
-            guard let after = updated[entity] else { continue }
+        for entity in Self.distinct(seats) {
+            // Classic's rating is the fixed anchor, but its games still count.
+            stored.games[entity.key, default: 0] += 1
+            guard entity != .classic, let after = updated[entity] else { continue }
             let before = Elo.rating(of: entity, in: current.compactMapValues { $0 })
             stored.ratings[entity.key] = after
-            stored.games[entity.key, default: 0] += 1
             stored.history.append(Ratings.Change(match: match, entity: entity.key, before: before, after: after, date: date))
         }
         stored.ratedMatches.append(match)
