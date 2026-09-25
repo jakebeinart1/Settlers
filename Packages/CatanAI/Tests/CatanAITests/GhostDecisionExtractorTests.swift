@@ -54,6 +54,24 @@ import CatanEngine
         }
     }
 
+    /// A bot seat plays under `GameSession`'s rules, which stop offering
+    /// proposals after three refusals in a turn. The selftest persona is such a
+    /// seat; reading it under human rules invented a -3.0 "never re-offers
+    /// after a refusal" habit out of options it never had.
+    @Test func botRulesDropProposalsAfterThreeRefusals() throws {
+        var state = GameSetup.newGame(board: BoardGenerator.randomized(seed: 92), seed: 92)
+        playOpeningPlacements(in: &state, seed: 92)
+        state.phase = .mainTurn(playerIndex: 0)
+        let me = state.players[0].id
+        state.players[0].resources = [.ore: 3, .brick: 3]
+        let refused = TradeOffer.enumerated(from: me, give: [.ore: 1], want: [.wool: 1])
+        state.declinedTradeOffersThisTurn[me] = Array(repeating: refused, count: RulesEngine.maxTradeProposalsPerTurn)
+        let event = LoggedMove(player: me, move: .endTurn)
+        let isProposal: (GameMove) -> Bool = { if case .proposeTrade = $0 { true } else { false } }
+        #expect(!DecisionExtractor.options(for: event, in: state, humanTrading: false).contains(where: isProposal))
+        #expect(DecisionExtractor.options(for: event, in: state, humanTrading: true).contains(where: isProposal))
+    }
+
     /// Review Focus 1: a log that stops replaying fails loudly, naming where.
     @Test func aMoveThatDoesNotReplayThrowsWithItsIndex() throws {
         let game = try loggedGame(moves: 20)

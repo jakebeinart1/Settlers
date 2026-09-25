@@ -76,6 +76,17 @@ import CatanEngine
         #expect(!proposes(EvaluationPolicy().candidateScores(obs, ledger: ledger, extraProposals: [offer])))
     }
 
+    /// Also Jake's: 6 ore for a grain and a wool. The engine caps a composed
+    /// give at `maxComposedTradeGive` (5); the app does not cap a person.
+    @Test func aPersonMayOfferMoreThanTheBotLimit() {
+        var (state, me) = table()
+        state.players[0].resources = [.ore: 7, .brick: 2]
+        let offer = TradeOffer(from: me, give: [.ore: 6], want: [.grain: 1, .wool: 1])
+        let scored = EvaluationPolicy().candidateScores(observation(state, me), ledger: .fromPositionAlone(state, observer: me),
+                                                        extraProposals: [offer], humanTrading: true)
+        #expect(scored.contains { if case .proposeTrade(let o) = $0.move { o.sameProposition(as: offer) } else { false } })
+    }
+
     /// Weights change scores, never the candidate list. The extractor's slopes depend on it.
     @Test func candidateOrderDoesNotDependOnWeights() {
         let (state, me) = table()

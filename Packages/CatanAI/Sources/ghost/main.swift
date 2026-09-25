@@ -52,14 +52,15 @@ func readDecisions(_ path: String) throws -> [DecisionRecord] {
 }
 
 /// Review Focus 3: a hot-seat game mixes several people, so it is skipped out loud.
-func extract(_ games: [LoggedGame], at weights: EvaluationWeights = anchor) throws -> [DecisionRecord] {
+func extract(_ games: [LoggedGame], at weights: EvaluationWeights = anchor,
+             humanTrading: Bool = true) throws -> [DecisionRecord] {
     var records: [DecisionRecord] = []
     for game in games.sorted(by: { $0.id < $1.id }) {
         guard game.humanSeats.count == 1 else {
             print("skip \(game.id): \(game.humanSeats.count) human seats; a ghost is one person")
             continue
         }
-        let found = try DecisionExtractor.decisions(in: game, anchor: weights)
+        let found = try DecisionExtractor.decisions(in: game, anchor: weights, humanTrading: humanTrading)
         print("\(game.id): \(found.count) decisions")
         records += found
     }
@@ -92,9 +93,12 @@ func report(_ fitted: PersonModel, heldOut: [DecisionRecord]) {
 
 /// Review Focus 5: how far the linearised score is from an exact re-score at
 /// the fitted weights, on the first two games.
-func linearisationDrift(_ fitted: PersonModel, _ records: [DecisionRecord], games: [LoggedGame]) throws -> Double {
+func linearisationDrift(_ fitted: PersonModel, _ records: [DecisionRecord], games: [LoggedGame],
+                        humanTrading: Bool) throws -> Double {
     let sample = Array(games.sorted { $0.id < $1.id }.prefix(2))
-    let exact = try sample.flatMap { try DecisionExtractor.decisions(in: $0, anchor: EvaluationWeights(vector: fitted.weights)) }
+    let exact = try sample.flatMap {
+        try DecisionExtractor.decisions(in: $0, anchor: EvaluationWeights(vector: fitted.weights), humanTrading: humanTrading)
+    }
     let linear = records.filter { record in sample.contains { $0.id == record.game } }
     var total = 0.0
     var count = 0
@@ -114,15 +118,16 @@ func linearisationDrift(_ fitted: PersonModel, _ records: [DecisionRecord], game
 /// a single round left drift at 0.122 and moved production the wrong way.
 /// The prior still pulls toward Expert every round; only the point the
 /// slopes are taken at moves.
-func relinearisedFit(_ games: [LoggedGame], rounds: Int) throws -> (PersonModel, heldOut: [DecisionRecord]) {
+func relinearisedFit(_ games: [LoggedGame], rounds: Int,
+                     humanTrading: Bool = true) throws -> (PersonModel, heldOut: [DecisionRecord]) {
     var person = PersonModel.anchored(at: anchor)
     var heldOut: [DecisionRecord] = []
     for round in 1...rounds {
-        let records = try extract(games, at: EvaluationWeights(vector: person.weights))
+        let records = try extract(games, at: EvaluationWeights(vector: person.weights), humanTrading: humanTrading)
         let parts = split(records)
         person = PersonFitter.fit(parts.train, anchor: anchor, start: person)
         heldOut = parts.heldOut
-        let drift = try linearisationDrift(person, records, games: games)
+        let drift = try linearisationDrift(person, records, games: games, humanTrading: humanTrading)
         print("round \(round): trained on \(parts.train.count), held out \(parts.heldOut.count), drift" + number(drift))
     }
     return (person, heldOut)
@@ -165,10 +170,12 @@ case "selftest":
     let rounds = Int(option("--rounds") ?? "3") ?? 3
     let games = try selftestGames(count: count, seed: seed)
     let truth = selftestPersona()
-    let (fitted, heldOut) = try relinearisedFit(games, rounds: rounds)
+    // The persona is a GameSession bot, so it is read under bot trading rules.
+    let (fitted, heldOut) = try relinearisedFit(games, rounds: rounds, humanTrading: false)
     let heldOutGames = Set(heldOut.map(\.game))
     // The true person scored on its own exact scores, not a linearisation of them.
-    let exactTruth = try extract(games.filter { heldOutGames.contains($0.id) }, at: EvaluationWeights(vector: truth.weights))
+    let exactTruth = try extract(games.filter { heldOutGames.contains($0.id) },
+                                 at: EvaluationWeights(vector: truth.weights), humanTrading: false)
     print("\nTRUE person:")
     report(truth, heldOut: exactTruth)
     print("\nFITTED person:")

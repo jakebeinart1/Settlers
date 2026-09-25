@@ -71,7 +71,7 @@ extension EvaluationPolicy {
         let enumerated = legal.compactMap { move -> TradeOffer? in
             if case .proposeTrade(let offer) = move { offer } else { nil }
         }
-        let mayPropose = !enumerated.isEmpty || (humanTrading && Self.personMayPropose(observation))
+        let mayPropose = humanTrading ? Self.personMayPropose(observation) : !enumerated.isEmpty
         guard mayPropose, let me = state.players.first(where: { $0.id == observation.seat }) else { return [] }
 
         // ponytail: O(n²) dedupe over at most a few hundred offers per decision.
@@ -91,17 +91,27 @@ extension EvaluationPolicy {
         var result: [ScoredCandidate] = []
         for offer in offers {
             let move = GameMove.proposeTrade(offer)
-            // The engine's check also asks "may this seat propose at all", which
-            // it reads off `legal`. Under human rules that was answered above.
-            let gate = enumerated.isEmpty ? legal + [move] : legal
-            guard legal.contains(move)
-                || RulesEngine.isPermittedComposedProposal(move, by: observation.seat, in: state, legal: gate)
-            else { continue }
+            let permitted = humanTrading
+                ? Self.personMayOffer(offer, from: me)
+                : legal.contains(move)
+                    || RulesEngine.isPermittedComposedProposal(move, by: observation.seat, in: state, legal: legal)
+            guard permitted else { continue }
             let settled = appeal(of: offer, payers: payers, valuation: valuation)?.worst ?? valuation.standingStill
             let opened = purchases.gain(with: me.resources.trading(offer))
             result.append(ScoredCandidate(move: move, score: settled + opened - openNow))
         }
         return result
+    }
+
+    /// The app's rule for a person's offer: something for something, never the
+    /// same resource both ways, and affordable. No size cap - the engine's
+    /// `maxComposedTradeGive` bounds what a bot composes, not what a person
+    /// types (Jake once offered six ore for a grain and a wool).
+    static func personMayOffer(_ offer: TradeOffer, from player: Player) -> Bool {
+        guard offer.from == player.id, !offer.give.isEmpty, !offer.want.isEmpty,
+              offer.give.values.allSatisfy({ $0 > 0 }), offer.want.values.allSatisfy({ $0 > 0 }),
+              Set(offer.give.keys).isDisjoint(with: offer.want.keys) else { return false }
+        return RulesEngine.canAfford(offer.give, player: player)
     }
 
     /// The app's rule for a person: their own main turn, no offer of theirs pending.

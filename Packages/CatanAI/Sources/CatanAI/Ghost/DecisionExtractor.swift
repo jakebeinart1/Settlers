@@ -20,13 +20,19 @@ public enum DecisionExtractor {
     public static let frozen: Set<Int> = [0, 16, 18]
     static let conquestSlots = 19..<24
 
-    public static func decisions(in game: LoggedGame, anchor: EvaluationWeights) throws -> [DecisionRecord] {
+    /// - Parameter humanTrading: the rules the seat played under. A person in
+    ///   the app may offer any affordable trade on their turn; a `GameSession`
+    ///   bot gets the enumerated offers, and none after three refusals. Reading
+    ///   a seat under the wrong rules invents habits out of options it never had.
+    public static func decisions(in game: LoggedGame, anchor: EvaluationWeights,
+                                 humanTrading: Bool = true) throws -> [DecisionRecord] {
         var session = GameSession(state: game.initialState, policies: [:], policySeed: 0)
         var records: [DecisionRecord] = []
         for (index, event) in game.events.enumerated() {
             do {
                 if game.humanSeats.contains(event.player),
-                   let found = try decision(for: event, in: session, game: game.id, anchor: anchor) {
+                   let found = try decision(for: event, in: session, game: game.id, anchor: anchor,
+                                            humanTrading: humanTrading) {
                     records.append(found)
                 }
                 _ = try session.applyExternal(event.move, by: event.player)
@@ -40,10 +46,10 @@ public enum DecisionExtractor {
     struct ChoiceMissing: Error { let move: GameMove }
 
     static func decision(
-        for event: LoggedMove, in session: GameSession, game: String, anchor: EvaluationWeights
+        for event: LoggedMove, in session: GameSession, game: String, anchor: EvaluationWeights, humanTrading: Bool
     ) throws -> DecisionRecord? {
         let state = session.state
-        let legal = options(for: event, in: state)
+        let legal = options(for: event, in: state, humanTrading: humanTrading)
         // A roll is not a decision; v1 does not model knight-before-roll.
         guard legal.count > 1, !legal.contains(.rollDice) else { return nil }
         let observation = GameObservation(seat: event.player, state: state, legalMoves: legal)
@@ -52,12 +58,13 @@ public enum DecisionExtractor {
         if case .proposeTrade(let offer) = event.move { extra.append(offer) }
 
         let base = EvaluationPolicy(weights: anchor)
-            .candidateScores(observation, ledger: ledger, extraProposals: extra, humanTrading: true)
+            .candidateScores(observation, ledger: ledger, extraProposals: extra, humanTrading: humanTrading)
         guard base.count > 1 else { return nil }
         guard let chosen = base.firstIndex(where: { same($0.move, event.move) }) else {
             throw ChoiceMissing(move: event.move)
         }
-        let gradients = slopes(observation, ledger: ledger, extra: extra, anchor: anchor, count: base.count)
+        let gradients = slopes(observation, ledger: ledger, extra: extra, anchor: anchor,
+                               count: base.count, humanTrading: humanTrading)
         let candidates = base.enumerated().map { index, candidate in
             CandidateRecord(move: candidate.move, score: candidate.score, gradient: gradients[index],
                             style: StyleFeatures.of(candidate.move, by: event.player, in: state))
@@ -69,10 +76,11 @@ public enum DecisionExtractor {
     /// What `event.player` could have done. A reply to someone else's offer
     /// is not in `legalMoves`, which lists the *acting* seat's moves in that
     /// phase; the responder's choice is built the way `GameSession` builds it.
-    static func options(for event: LoggedMove, in state: GameState) -> [GameMove] {
+    static func options(for event: LoggedMove, in state: GameState, humanTrading: Bool) -> [GameMove] {
         guard case .respondToTrade(let id, _) = event.move,
               let offer = state.pendingTradeOffers.first(where: { $0.id == id }) else {
-            return RulesEngine.legalMoves(for: state, seat: event.player)
+            let legal = RulesEngine.legalMoves(for: state, seat: event.player)
+            return humanTrading ? legal : legal.filter { sessionAllows($0, by: event.player, in: state) }
         }
         let reject = GameMove.respondToTrade(offerID: id, accept: false)
         guard Trading.bothSidesCanHonour(offer, responder: event.player, state: state) else { return [reject] }
@@ -83,12 +91,12 @@ public enum DecisionExtractor {
     // offline; memoise per-state evaluations if 100+ games is too slow.
     /// Central differences, one free weight at a time. `result[candidate][slot]`.
     static func slopes(_ observation: GameObservation, ledger: PublicLedger, extra: [TradeOffer],
-                       anchor: EvaluationWeights, count: Int) -> [[Double]] {
+                       anchor: EvaluationWeights, count: Int, humanTrading: Bool) -> [[Double]] {
         var result = [[Double]](repeating: [Double](repeating: 0, count: anchor.vector.count), count: count)
         for slot in freeSlots(for: observation.state) {
             let step = 0.01 * max(abs(anchor.vector[slot]), 0.05)
-            let up = scores(observation, ledger, extra, anchor, slot, +step)
-            let down = scores(observation, ledger, extra, anchor, slot, -step)
+            let up = scores(observation, ledger, extra, anchor, slot, +step, humanTrading)
+            let down = scores(observation, ledger, extra, anchor, slot, -step, humanTrading)
             precondition(up.count == count && down.count == count, "candidate list moved with the weights")
             for index in 0..<count { result[index][slot] = (up[index] - down[index]) / (2 * step) }
         }
@@ -96,11 +104,19 @@ public enum DecisionExtractor {
     }
 
     private static func scores(_ observation: GameObservation, _ ledger: PublicLedger, _ extra: [TradeOffer],
-                               _ anchor: EvaluationWeights, _ slot: Int, _ delta: Double) -> [Double] {
+                               _ anchor: EvaluationWeights, _ slot: Int, _ delta: Double,
+                               _ humanTrading: Bool) -> [Double] {
         var vector = anchor.vector
         vector[slot] += delta
         return EvaluationPolicy(weights: EvaluationWeights(vector: vector))
-            .candidateScores(observation, ledger: ledger, extraProposals: extra, humanTrading: true).map(\.score)
+            .candidateScores(observation, ledger: ledger, extraProposals: extra, humanTrading: humanTrading).map(\.score)
+    }
+
+    /// `GameSession.decideNextDetailed`'s proposal filter, which every bot seat sees.
+    static func sessionAllows(_ move: GameMove, by seat: PlayerID, in state: GameState) -> Bool {
+        guard case .proposeTrade = move else { return true }
+        let pending = state.pendingTradeOffers.contains { $0.from == seat }
+        return !pending && (state.declinedTradeOffersThisTurn[seat]?.count ?? 0) < RulesEngine.maxTradeProposalsPerTurn
     }
 
     static func freeSlots(for state: GameState) -> [Int] {
