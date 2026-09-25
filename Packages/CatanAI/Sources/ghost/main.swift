@@ -12,6 +12,7 @@ import Foundation
 //   ghost strength --person P.json --lambda L [--games 1248] [--tier expert]
 //   ghost bundle --person P.json --lambda L --id jake --name "Jake's Ghost" --games-learned 24 --decisions-learned 2612
 //                [--civilization greece] --out Settlers/Resources/Ghosts/jake.json
+//   ghost baseline [--games 200]                        (Expert self-play: the spider graph's reference averages)
 //   ghost selftest [--games 12] [--seed 700000] [--rounds 3] (recover a known synthetic person)
 
 // Line-buffered so a run that dies still leaves its progress: the first
@@ -218,6 +219,27 @@ case "strength":
     let (low, high) = result.interval
     print(low > 0.25 ? "BETTER than \(tier.rawValue) at 95%" : high < 0.25 ? "WORSE than \(tier.rawValue) at 95%"
           : "not distinguishable from \(tier.rawValue) at 95%")
+case "baseline":
+    let games = Int(option("--games") ?? "200") ?? 200
+    var seats: [SeatStats] = []
+    for game in 0..<games {
+        let seed = 910_000 + UInt64(game)
+        let initial = GameSetup.newGame(board: BoardGenerator.randomized(seed: seed), seed: seed)
+        var policies: [PlayerID: any Policy] = [:]
+        for player in initial.players { policies[player.id] = EvaluationPolicy() }
+        var session = GameSession(state: initial, policies: policies, policySeed: seed)
+        var moves: [LoggedMove] = []
+        while let step = try session.step() { moves.append(LoggedMove(player: step.actor, move: step.move)) }
+        seats += try SeatStats.compute(initial: initial, moves: moves)
+    }
+    let radar = RadarMeasures(games: seats)
+    print("Expert self-play, \(games) games, \(seats.count) seats, seeds 910000...")
+    print("production  " + number(radar.production) + "  cards per turn")
+    print("expansion   " + number(radar.expansion) + "  settlements + cities per game")
+    print("trading     " + number(radar.trading) + "  trades completed per game")
+    print("development " + number(radar.development) + "  dev cards played (+2 Largest Army) per game")
+    print("robber      " + number(radar.robber) + "  share of robberies on the leader")
+    print("finishing   " + number(radar.finishing) + "  final VP / target")
 case "bundle":
     guard let path = option("--person"), let lambda = Double(option("--lambda") ?? ""),
           let id = option("--id"), let name = option("--name"), let out = option("--out") else {
