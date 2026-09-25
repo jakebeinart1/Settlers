@@ -30,6 +30,17 @@ public struct PersonModel: Codable, Sendable, Equatable {
         self.lapse = lapse
     }
 
+    private enum CodingKeys: String, CodingKey { case weights, beta, theta, lapse }
+
+    /// A model saved before the lapse rate existed decodes with the default.
+    public init(from decoder: Decoder) throws {
+        let values = try decoder.container(keyedBy: CodingKeys.self)
+        weights = try values.decode([Double].self, forKey: .weights)
+        beta = try values.decode(Double.self, forKey: .beta)
+        theta = try values.decode([Double].self, forKey: .theta)
+        lapse = try values.decodeIfPresent(Double.self, forKey: .lapse) ?? Self.defaultLapse
+    }
+
     public static func anchored(at anchor: EvaluationWeights) -> PersonModel {
         PersonModel(weights: anchor.vector, beta: 1, theta: [Double](repeating: 0, count: StyleFeatures.labels.count))
     }

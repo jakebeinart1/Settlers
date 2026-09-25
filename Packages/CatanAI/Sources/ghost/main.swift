@@ -8,6 +8,10 @@ import Foundation
 //   ghost extract --out decisions.jsonl LOG.jsonl...   (one human seat per game; others skipped)
 //   ghost profile decisions.jsonl                        (what this person does, per facet)
 //   ghost fit --out person.json [--rounds 3] LOG.jsonl...   (fit on 3/4 of games, report on the held-out 1/4)
+//   ghost calibrate --person P.json --target 0.54 [--games 40] [--tier classic|expert]
+//   ghost strength --person P.json --lambda L [--games 1248] [--tier expert]
+//   ghost bundle --person P.json --lambda L --id jake --name "Jake's Ghost" --games-learned 24
+//                [--civilization greece] --out Settlers/Resources/Ghosts/jake.json
 //   ghost selftest [--games 12] [--seed 700000] [--rounds 3] (recover a known synthetic person)
 
 // Line-buffered so a run that dies still leaves its progress: the first
@@ -186,6 +190,46 @@ case "selftest":
     report(truth, heldOut: exactTruth)
     print("\nFITTED person:")
     report(fitted, heldOut: heldOut)
+case "calibrate":
+    guard let path = option("--person"), let target = Double(option("--target") ?? "") else {
+        fail("calibrate needs --person and --target")
+    }
+    let games = Int(option("--games") ?? "40") ?? 40
+    guard let tier = Tier(rawValue: option("--tier") ?? "classic") else { fail("--tier must be classic or expert") }
+    let person = try readPerson(path)
+    var best: (lambda: Double, gap: Double)?
+    for lambda in [0, 0.25, 0.5, 1, 2, 4] {
+        let started = Date()
+        let result = try ghostWinRate(person: person, lambda: lambda, tier: tier, games: games)
+        print("lambda " + number(lambda) + ": " + result.summary
+              + String(format: "  (%.0fs)", Date().timeIntervalSince(started)))
+        let gap = abs(result.rate - target)
+        if best == nil || gap < best!.gap { best = (lambda, gap) }
+    }
+    print("closest to target " + number(target) + ": lambda " + number(best!.lambda))
+case "strength":
+    guard let path = option("--person"), let lambda = Double(option("--lambda") ?? "") else {
+        fail("strength needs --person and --lambda")
+    }
+    let games = Int(option("--games") ?? "1248") ?? 1248
+    guard let tier = Tier(rawValue: option("--tier") ?? "expert") else { fail("--tier must be classic or expert") }
+    let result = try ghostWinRate(person: try readPerson(path), lambda: lambda, tier: tier, games: games)
+    print("ghost vs three \(tier.rawValue) bots: " + result.summary + "  (null 0.250)")
+    let (low, high) = result.interval
+    print(low > 0.25 ? "BETTER than \(tier.rawValue) at 95%" : high < 0.25 ? "WORSE than \(tier.rawValue) at 95%"
+          : "not distinguishable from \(tier.rawValue) at 95%")
+case "bundle":
+    guard let path = option("--person"), let lambda = Double(option("--lambda") ?? ""),
+          let id = option("--id"), let name = option("--name"), let out = option("--out") else {
+        fail("bundle needs --person --lambda --id --name --out")
+    }
+    let profile = GhostProfile(id: id, name: name, person: try readPerson(path), lambda: lambda,
+                               gamesLearned: Int(option("--games-learned") ?? "0") ?? 0,
+                               civilization: option("--civilization"))
+    let encoder = JSONEncoder()
+    encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
+    try encoder.encode(profile).write(to: URL(fileURLWithPath: out))
+    print("wrote \(out)")
 default:
     fail("unknown command \(command)")
 }
