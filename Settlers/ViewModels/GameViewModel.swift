@@ -30,6 +30,8 @@ public final class GameViewModel {
     let seatStatsStore: SeatStatsStore
     /// Rating and ghost training for the game that just ended; a test awaits it.
     var lastFinishedMatchWork: Task<Void, Never>?
+    /// The ghost trainer the completion hook uses; a test swaps in a fast one.
+    var makeGhostTrainer: @Sendable (GhostStore) -> GhostTrainer = { GhostTrainer(store: $0) }
     let checkpointStore: MatchCheckpointStore
     var checkpointDocument: MatchCheckpointDocument?
     var persistenceBlocked = false

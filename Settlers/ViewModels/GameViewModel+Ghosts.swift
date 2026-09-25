@@ -90,7 +90,7 @@ extension GameViewModel {
         // anyone's ghost.
         if QALaunchFlag.playToEnd.isSet { return nil }
         #endif
-        let trainer = GhostTrainer(store: ghostStore)
+        let trainer = makeGhostTrainer(ghostStore)
         let matchID = match.id
         return Task.detached(priority: .background) {
             await GhostTrainingQueue.shared.learn(trainer, match: matchID, game: game,

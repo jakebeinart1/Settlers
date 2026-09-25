@@ -28,6 +28,11 @@ struct GhostTrainer: Sendable {
 
     let store: GhostStore
     var fit: @Sendable (_ decisions: [DecisionRecord], _ previous: GhostProfile) throws -> PersonModel = GhostTrainer.incrementalFit
+    /// Replaying a game and scoring every candidate is the slow half (about a
+    /// minute per game on a Mac); a test of the completion hook swaps it out.
+    var extract: @Sendable (_ game: LoggedGame, _ anchor: EvaluationWeights) throws -> [DecisionRecord] = {
+        try DecisionExtractor.decisions(in: $0, anchor: $1, humanTrading: true)
+    }
 
     /// Lowercase letters and digits of the person's name: "Jake" -> "jake",
     /// which is also the bundled ghost's id, so Jake's phone continues it.
@@ -48,9 +53,7 @@ struct GhostTrainer: Sendable {
             person: .anchored(at: .forMode(.classic)), lambda: Self.defaultLambda, gamesLearned: 0
         )
         let personOnly = LoggedGame(id: game.id, initialState: game.initialState, humanSeats: [human], events: game.events)
-        let decisions = try DecisionExtractor.decisions(
-            in: personOnly, anchor: EvaluationWeights(vector: previous.person.weights), humanTrading: true
-        )
+        let decisions = try extract(personOnly, EvaluationWeights(vector: previous.person.weights))
         // A game in which the person made no decision teaches nothing and must
         // not count toward the ghost's games (a QA forced win has no moves).
         guard !decisions.isEmpty else { return nil }

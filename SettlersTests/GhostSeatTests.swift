@@ -104,6 +104,25 @@ import Testing
         let f = try fixture()
         defer { f.tearDown() }
         let model = f.model()
+        // Real training replays the game and scores every candidate - about 4
+        // minutes of an unoptimised Debug build, and 22 under a full parallel
+        // suite. GhostTrainerTests cover training itself; here one recorded
+        // decision stands in, and the test checks the hook teaches the right
+        // person's ghost from the human seat only.
+        let seats = LockedSeats()
+        model.makeGhostTrainer = { store in
+            var trainer = GhostTrainer(store: store)
+            trainer.extract = { game, anchor in
+                seats.record(game.humanSeats)
+                return [DecisionRecord(game: game.id, facet: .turn, anchor: anchor.vector, candidates: [
+                    CandidateRecord(move: .endTurn, score: 0, gradient: Array(repeating: 0, count: anchor.vector.count),
+                                    style: Array(repeating: 0, count: StyleFeatures.labels.count)),
+                    CandidateRecord(move: .rollDice, score: 0, gradient: Array(repeating: 0, count: anchor.vector.count),
+                                    style: Array(repeating: 0, count: StyleFeatures.labels.count)),
+                ], chosen: 0)]
+            }
+            return trainer
+        }
         model.startNewGame(setup: ghostTable())
         model.qaPlayToEnd()
         guard case .gameOver = model.state.phase else {
@@ -123,6 +142,7 @@ import Testing
         #expect(stats.first?.seats.map(\.entity) == ["person:Jake", "classic", "ghost:jake", "classic"])
         #expect(stats.first?.seats.filter(\.stats.won).count == 1)
         #expect(f.ghosts.versions(of: "jake").count == 1)
+        #expect(seats.all == [[PlayerID(index: 0)]], "only Jake's own seat is read, never the ghost's")
     }
 
     /// Review Focus 1: pass-and-play is gone, but an old two-human save still
@@ -145,4 +165,12 @@ import Testing
         #expect(restored.state.phase.awaitingSeatIndex == 1)
         #expect(restored.humanPlayer == PlayerID(index: 1), "the second person acts without claiming the phone")
     }
+}
+
+/// Which seats the stand-in extractor was asked to read, across threads.
+private final class LockedSeats: @unchecked Sendable {
+    private let lock = NSLock()
+    private var seen: [Set<PlayerID>] = []
+    var all: [Set<PlayerID>] { lock.withLock { seen } }
+    func record(_ seats: Set<PlayerID>) { lock.withLock { seen.append(seats) } }
 }

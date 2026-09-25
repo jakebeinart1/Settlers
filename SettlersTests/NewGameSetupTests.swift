@@ -372,6 +372,9 @@ private func table(withSeatIndices indices: [Int]) -> MatchSetup {
         let initial = NewGameSetupView.initialSetup(
             from: .loaded(decoded), preferredName: "Alex", preferredCivilization: .greece)
         var expected = saved
+        // Pass-and-play is gone (2026-09-25): a saved two-human prefill opens
+        // as one human. The mode, which is what this test pins, is untouched.
+        expected.normalizeToOneHuman()
         if mode == .expanded {
             expected.mode = .classic
             expected.victoryPointTarget = Ruleset.forMode(.classic).defaultVictoryPointTarget
