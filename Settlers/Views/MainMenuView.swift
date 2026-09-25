@@ -50,6 +50,7 @@ public struct MainMenuView: View {
 
     @State private var isShowingGameHistory = QALaunchFlag.showGameHistory.isSet
         || QALaunchFlag.showReplay.isSet
+    @State private var isShowingLeaderboard = false
     /// Whether the archive holds anything worth opening. A directory listing,
     /// not a parse: the count only decides whether to show a button, and
     /// decoding every recording to answer that would make the menu pay for a
@@ -121,6 +122,13 @@ public struct MainMenuView: View {
 
                 historyButton
 
+                GoldRowButton(title: "Leaderboard", systemImage: "trophy.fill",
+                              iconColor: SettingsChrome.ornamentGold) {
+                    isShowingLeaderboard = true
+                }
+                .accessibilityIdentifier(AccessibilityID.MainMenu.leaderboard)
+                .padding(.horizontal, 40)
+
                 statsRow
 
                 Spacer()
@@ -157,6 +165,9 @@ public struct MainMenuView: View {
         .task { recordedGameCount = (try? GameLogStore.shared.logFiles().count) ?? 0 }
         .fullScreenCover(isPresented: $isShowingGameHistory) {
             GameHistoryView(onDismiss: { isShowingGameHistory = false })
+        }
+        .fullScreenCover(isPresented: $isShowingLeaderboard) {
+            LeaderboardView(onDismiss: { isShowingLeaderboard = false })
         }
     }
 

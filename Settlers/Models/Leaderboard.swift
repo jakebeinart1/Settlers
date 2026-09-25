@@ -144,16 +144,30 @@ struct EntityDetail: Equatable, Sendable {
     /// The three strongest habits, as words. Section 7 of the research doc:
     /// fitted habit sizes are directions, not amounts, so no number is shown.
     static func styleLines(for person: PersonModel) -> [String] {
-        let ranked = zip(StyleFeatures.labels, person.theta)
+        let ranked = effectiveHabits(person)
             .filter { $0.1 != 0 && phrases[$0.0] != nil }
             .sorted { (abs($1.1), $0.0) < (abs($0.1), $1.0) }
         return ranked.prefix(3).map { label, value in value > 0 ? phrases[label]!.more : phrases[label]!.less }
     }
 
+    /// The habits as they act. `proposeLopsided` is cards given minus cards
+    /// wanted, so it and `proposeCardsGiven` are one habit seen twice, and
+    /// read alone they contradicted each other on Jake's page ("offers few
+    /// cards" beside "makes lopsided offers"). Recombined: the pull per card
+    /// given is their sum, and the pull per card asked for is minus lopsided.
+    static func effectiveHabits(_ person: PersonModel) -> [(String, Double)] {
+        var habits = Dictionary(uniqueKeysWithValues: zip(StyleFeatures.labels, person.theta))
+        let given = habits.removeValue(forKey: "proposeCardsGiven") ?? 0
+        let lopsided = habits.removeValue(forKey: "proposeLopsided") ?? 0
+        habits["proposeGive"] = given + lopsided
+        habits["proposeWant"] = -lopsided
+        return habits.sorted { $0.key < $1.key }.map { ($0.key, $0.value) }
+    }
+
     private static let phrases: [String: (more: String, less: String)] = [
         "propose": ("Offers trades often", "Rarely offers trades"),
-        "proposeCardsGiven": ("Gives generously in offers", "Offers few cards"),
-        "proposeLopsided": ("Makes lopsided offers", "Asks for more than it gives"),
+        "proposeGive": ("Gives generously in offers", "Offers few cards"),
+        "proposeWant": ("Asks for a lot in return", "Asks for little in return"),
         "proposeAfterRefusal": ("Keeps offering after a refusal", "Gives up after a refusal"),
         "bankTrade": ("Trades with the bank", "Avoids bank trades"),
         "acceptOffer": ("Accepts offers readily", "Turns down most offers"),

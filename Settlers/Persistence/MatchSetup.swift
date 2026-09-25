@@ -194,6 +194,19 @@ public struct MatchSetup: Codable, Equatable, Sendable {
         return nil
     }
 
+    /// Seat 1 is the one human; every other seat an opponent. For a New Game
+    /// prefill saved while pass-and-play existed, whose extra humans would
+    /// otherwise open the screen on a table it refuses to start.
+    public mutating func normalizeToOneHuman() {
+        guard !seats.isEmpty else { return }
+        seats[0].isHuman = true
+        seats[0].ghostID = nil
+        for index in seats.indices.dropFirst() where seats[index].isHuman {
+            seats[index].isHuman = false
+            seats[index].name = ""
+        }
+    }
+
     public var isValidMatch: Bool { matchProblem == nil }
     public var isStartable: Bool { validationProblem == nil }
 

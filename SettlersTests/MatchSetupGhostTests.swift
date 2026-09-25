@@ -74,6 +74,19 @@ import Testing
         #expect(setup.newGameProblem(knownGhosts: ["jake"]) == "Seat 4's ghost is no longer on this phone.")
     }
 
+    /// A prefill saved in the pass-and-play era opens as you plus opponents.
+    @Test func anOldTwoHumanPrefillOpensWithOneHuman() {
+        var setup = table()
+        setup.seats[2].isHuman = true
+        setup.seats[2].name = "Sam"
+        setup.seats[0].ghostID = "stale"
+        setup.normalizeToOneHuman()
+        #expect(setup.seats.map(\.isHuman) == [true, false, false, false])
+        #expect(setup.seats[2].name.isEmpty)
+        #expect(setup.seats[0].ghostID == nil)
+        #expect(setup.newGameProblem(knownGhosts: []) == nil)
+    }
+
     @Test func growingTheTableNeverAddsAHuman() {
         var setup = table()
         setup.resize(to: 3, preferredName: "Jake", preferredCivilization: .greece)

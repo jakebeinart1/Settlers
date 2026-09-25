@@ -46,6 +46,10 @@ struct NewGameSetupView: View {
     /// Turn Order is "As Shown" - `SeatCardView`'s header is a locked label,
     /// not a button, while it's Random (Jake's ask, 2026-09-03).
     @State private var pickingSeatNumberForSeat: Int?
+    @State private var pickingGhostForSeat: Int?
+    /// Read once when the screen opens; nothing reachable here trains a ghost.
+    private let ghosts = GhostStore.shared.pickable()
+    private let knownGhosts = Set(GhostStore.shared.all().map(\.id))
     @State private var isConfirmingOverwrite = false
     /// The reason the last seat edit was refused (A1.3), shown in place of the
     /// standing note under the grid. Cleared by the next edit rather than on a
@@ -139,6 +143,7 @@ struct NewGameSetupView: View {
 
                 if let seatIndex = pickingCivilizationForSeat { civilizationPicker(for: seatIndex) }
                 if let seatIndex = pickingSeatNumberForSeat { seatNumberPicker(for: seatIndex) }
+                if let seatIndex = pickingGhostForSeat { ghostPicker(for: seatIndex) }
                 if isConfirmingOverwrite { overwriteConfirmation }
             }
         }
@@ -159,6 +164,8 @@ struct NewGameSetupView: View {
         // appears, the safe area never changes, and the test passes against the
         // broken build - measured on 2026-09-07, both ways.
         .ignoresSafeArea(.keyboard, edges: .bottom)
+        .onChange(of: setup.mode) { releaseGhostsOutsideClassic() }
+        .onChange(of: setup.variant) { releaseGhostsOutsideClassic() }
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier(AccessibilityID.Screen.newGame)
         .foregroundStyle(.white)
@@ -248,6 +255,9 @@ struct NewGameSetupView: View {
         // Retired modes and targets must be representable by today's controls;
         // normalize only this prefill copy, never the active match or restart.
         saved = saved.normalizedForNewGame()
+        // Pass-and-play is gone (Jake, 2026-09-25): an older prefill with
+        // several humans opens as you plus opponents.
+        saved.normalizeToOneHuman()
         // Realized profiles belong to a saved match, not next-game preferences.
         // Clear only this value copy; resume/restart retain their stored roster.
         for index in saved.seats.indices { saved.seats[index].opponentProfile = nil }
@@ -399,31 +409,66 @@ struct NewGameSetupView: View {
             // becomes a choice again.
             isOptional: GameSetup.newGameTableSizes.count > 1
                 && seat.index == GameSetup.supportedPlayerCounts.upperBound - 1,
-            onSetHuman: { setSeat(seat.index, human: $0) },
+            onSetGhost: { setSeat(seat.index, ghost: $0) },
             onRename: { setup.seats[seat.index].name = $0 },
             onEditCivilization: { pickingCivilizationForSeat = seat.index },
             onEditSeatNumber: { pickingSeatNumberForSeat = seat.index },
             seatOrderIsRandom: setup.randomizeSeatOrder,
-            isShortScreen: isShortScreen
+            isShortScreen: isShortScreen,
+            ghostName: seat.ghostID.flatMap { id in ghosts.first { $0.id == id }?.name }
         )
     }
 
-    /// A1.2, and A1.3's refusal. The last human seat cannot become AI, because
-    /// a table of four bots has nobody to play it - and the tap is answered
-    /// with the reason rather than silently doing nothing, which reads as a
-    /// broken control.
-    private func setSeat(_ index: Int, human: Bool) {
+    /// AI or Ghost for an opponent's seat. Choosing Ghost opens the picker;
+    /// a tap that cannot work says why rather than silently doing nothing.
+    private func setSeat(_ index: Int, ghost: Bool) {
         refusal = nil
-        guard human || setup.humanSeats.count > 1 || !setup.seats[index].isHuman else {
-            refusal = "Seat \(index + 1) is the only human seat - somebody has to play."
-            return
-        }
-        setup.seats[index].isHuman = human
         // A profile is a snapshot of a realized AI opponent, not editable New
         // Game input. A role change must not leave a hidden second identity in
         // the same chair for `startNewGame` to discover later.
         setup.seats[index].opponentProfile = nil
+        guard ghost else {
+            setup.seats[index].ghostID = nil
+            return
+        }
+        guard setup.mode == .classic, setup.variant == .standard else {
+            refusal = "Ghosts play Classic only."
+            return
+        }
+        guard !ghosts.isEmpty else {
+            refusal = "No ghosts yet: a player's ghost joins after \(GhostStore.minimumGamesToPlay) finished Classic games."
+            return
+        }
+        pickingGhostForSeat = index
     }
+
+    private func ghostPicker(for seatIndex: Int) -> some View {
+        GhostPickerPopup(
+            seatIndex: seatIndex,
+            ghosts: ghosts,
+            taken: Set(setup.seats.filter { $0.index != seatIndex }.compactMap(\.ghostID)),
+            ratings: RatingStore.shared.load(),
+            onSelect: { id in
+                setup.seats[seatIndex].ghostID = id
+                pickingGhostForSeat = nil
+            },
+            onCancel: { pickingGhostForSeat = nil }
+        )
+    }
+
+    /// Ghosts are fitted on Classic standard games and play only there, so a
+    /// ghost seat returns to AI when the rules change - and says so.
+    private func releaseGhostsOutsideClassic() {
+        guard setup.mode != .classic || setup.variant != .standard else { return }
+        let released = setup.seats.filter { $0.ghostID != nil }.map(\.index)
+        guard !released.isEmpty else { return }
+        for index in released { setup.seats[index].ghostID = nil }
+        let seats = released.map { "seat \($0 + 1)" }.joined(separator: " and ")
+        refusal = "Ghosts play Classic only, so \(seats) is AI again."
+    }
+
+    /// The New Game contract: one human in seat 1, ghosts only where they can play.
+    private var startProblem: String? { setup.newGameProblem(knownGhosts: knownGhosts) }
 
     /// A3.3 is served by handing the picker exactly the set `MatchSetup`
     /// computes, rather than the view working out what is taken for itself.
@@ -573,7 +618,7 @@ struct NewGameSetupView: View {
     /// made and travels with it in `MatchSetup`.
     private var difficultyRow: some View {
         labelledChoice(
-            label: "Opponents",
+            label: "AI Opponents",
             help: .difficulty,
             helpText: "Classic is the opponent that has always shipped. Expert plans around your "
                 + "position and your opponents' rather than scoring each move on its own. Measured "
@@ -716,7 +761,7 @@ struct NewGameSetupView: View {
     /// gives - never a bare disabled button.
     @ViewBuilder
     private var statusPlaque: some View {
-        if let problem = setup.validationProblem {
+        if let problem = startProblem {
             plaque(icon: "exclamationmark.triangle.fill", text: problem,
                    tint: Self.problemTint, accent: Self.problemAccent)
         } else if hasSavedGame {
@@ -740,9 +785,9 @@ struct NewGameSetupView: View {
     /// and the saved-game warning - pushed Board and Turn Order back off the
     /// screen, which is the problem this move was meant to solve.
     private var readySummary: String {
-        let humans = setup.humanSeats.count
-        let bots = setup.aiSeats.count
-        let composition = "\(humans) Human\(humans == 1 ? "" : "s") • \(bots) AI"
+        let ghostCount = setup.seats.filter { $0.ghostID != nil }.count
+        let bots = setup.aiSeats.count - ghostCount
+        let composition = "You • \(bots) AI" + (ghostCount == 0 ? "" : " • \(ghostCount) Ghost\(ghostCount == 1 ? "" : "s")")
         return hasSavedGame
             ? "Ready • \(composition) • replaces your saved game"
             : "Ready to start • \(composition)"
@@ -824,7 +869,7 @@ struct NewGameSetupView: View {
                 UniformActionButton(
                     title: "Start New Game",
                     systemImage: "flag.fill",
-                    isEnabled: setup.isStartable,
+                    isEnabled: startProblem == nil,
                     backgroundImageName: "button-fill-turn",
                     action: startTapped
                 )
@@ -859,7 +904,7 @@ struct NewGameSetupView: View {
     /// is the only thing standing between a future caller and an invalid game,
     /// and `validationProblem` is the single place that decides.
     private func startTapped() {
-        guard setup.isStartable else { return }
+        guard startProblem == nil else { return }
         if hasSavedGame {
             isConfirmingOverwrite = true
         } else {
@@ -909,7 +954,7 @@ struct NewGameSetupView: View {
         var valid = MatchSetup(
             seats: [
                 MatchSetup.Seat(index: 0, isHuman: true, name: "Alex", civilization: .greece),
-                MatchSetup.Seat(index: 1, isHuman: true, name: "Sam", civilization: .rome),
+                MatchSetup.Seat(index: 1, isHuman: false, name: "", civilization: .rome),
                 MatchSetup.Seat(index: 2, isHuman: false, name: "", civilization: .japan),
                 MatchSetup.Seat(index: 3, isHuman: false, name: "", civilization: nil),
             ],
@@ -924,7 +969,7 @@ struct NewGameSetupView: View {
         if QALaunchFlag.showNewGameInvalid.isSet {
             var invalid = valid
             // Whitespace-only, which A2.6 requires to read as empty.
-            invalid.seats[1].name = "   "
+            invalid.seats[0].name = "   "
             return invalid
         }
         let opensOnTheFixture = QALaunchFlag.showNewGame.isSet

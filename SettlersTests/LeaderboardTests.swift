@@ -96,6 +96,20 @@ import Testing
         #expect(lines.allSatisfy { !$0.contains(where: \.isNumber) })
     }
 
+    /// Jake's fitted habits: proposeCardsGiven -6.2 and proposeLopsided +5.7.
+    /// Lopsided is given minus wanted, so the two are one habit seen twice, and
+    /// phrasing each alone read as "offers few cards" beside "makes lopsided
+    /// offers". Together: per card given -0.5, per card asked for -5.7.
+    @Test func linkedOfferHabitsAreReadTogether() {
+        let labels = StyleFeatures.labels
+        let theta = [labels.firstIndex(of: "proposeCardsGiven")!: -6.2, labels.firstIndex(of: "proposeLopsided")!: 5.7,
+                     labels.firstIndex(of: "buildSettlement")!: 8.6, labels.firstIndex(of: "acceptOffer")!: -4.4]
+        let lines = EntityDetail.styleLines(for: ghost("jake", "Jake's Ghost", theta: theta).person)
+        #expect(lines == ["Loves settlements", "Asks for little in return", "Turns down most offers"])
+        #expect(!lines.contains("Makes lopsided offers"))
+        #expect(!lines.contains("Offers few cards"), "-0.5 per card given is too weak to rank above -5.7")
+    }
+
     @Test func statsAreRecordedOncePerMatch() throws {
         let dir = FileManager.default.temporaryDirectory.appendingPathComponent("SeatStatsStore.\(UUID().uuidString)")
         defer { try? FileManager.default.removeItem(at: dir) }

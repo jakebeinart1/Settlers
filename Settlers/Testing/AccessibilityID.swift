@@ -13,12 +13,22 @@ enum AccessibilityID {
         static let inGameSettings = "screen.in-game-settings"
         static let gameHistory = "screen.game-history"
         static let replay = "screen.replay"
+        static let leaderboard = "screen.leaderboard"
+        static let ratedEntity = "screen.rated-entity"
+    }
+
+    enum Leaderboard {
+        static let close = "leaderboard.close"
+        static let back = "leaderboard.back"
+        static let radar = "leaderboard.radar"
+        static func row(_ key: String) -> String { "leaderboard.row.\(key)" }
     }
 
     enum MainMenu {
         static let newGame = "main-menu.new-game"
         static let resume = "main-menu.resume"
         static let gameHistory = "main-menu.game-history"
+        static let leaderboard = "main-menu.leaderboard"
     }
 
     enum GameHistory {
@@ -58,6 +68,11 @@ enum AccessibilityID {
         static func modeOption(_ mode: GameMode) -> String { "new-game.mode.\(mode.rawValue)" }
 
         static func seatName(_ index: Int) -> String { "new-game.seat-name.\(index)" }
+        static func seatYou(_ index: Int) -> String { "new-game.seat-you.\(index)" }
+        static func seatKind(_ index: Int, ghost: Bool) -> String {
+            "new-game.seat-kind.\(index).\(ghost ? "ghost" : "ai")"
+        }
+        static func ghostOption(_ id: String) -> String { "new-game.ghost-option.\(id)" }
         static func seatCivilization(_ index: Int) -> String { "new-game.seat-civilization.\(index)" }
 
         static func civilizationOption(_ civilization: Civilization) -> String {

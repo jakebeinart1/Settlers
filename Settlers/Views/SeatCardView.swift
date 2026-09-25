@@ -45,7 +45,9 @@ struct SeatCardView: View {
     /// (`MatchSetup.resize` shrinks off the end), so the pill is telling the
     /// truth about which chair disappears rather than decorating the last card.
     let isOptional: Bool
-    let onSetHuman: (Bool) -> Void
+    /// AI or Ghost, for any seat but the human's (Jake, 2026-09-25: pass-and-play
+    /// is gone, seat 1 is you, every other seat is an opponent).
+    let onSetGhost: (Bool) -> Void
     let onRename: (String) -> Void
     let onEditCivilization: () -> Void
     /// Raises `SeatNumberPickerPopup` for this seat. Only reachable when
@@ -60,6 +62,8 @@ struct SeatCardView: View {
     /// 2026-09-03).
     var seatOrderIsRandom = false
     var isShortScreen = false
+    /// The seated ghost's name, when this chair is a ghost.
+    var ghostName: String?
 
     /// A2.5: a name has a maximum length, enforced at input rather than by
     /// truncating at display. Twelve characters is what fits the 142.5pt field
@@ -191,15 +195,29 @@ struct SeatCardView: View {
     /// Refusing the last human seat (A1.3) is `NewGameSetupView`'s job, not
     /// this row's: the rule is about the *table*, and a card cannot see the
     /// other three.
+    @ViewBuilder
     private var rolePicker: some View {
-        PaintedChoiceRow(
-            options: [true, false],
-            title: { $0 ? "Human" : "AI" },
-            selection: seat.isHuman,
-            verticalPadding: civilizationRowVerticalPadding,
-            fontSize: Self.bodyTextSize,
-            onSelect: onSetHuman
-        )
+        if seat.isHuman {
+            // Same text size and padding as the row it replaces, so all four
+            // cards stay one height.
+            Text("You")
+                .font(.system(size: Self.bodyTextSize, weight: .bold, design: .serif))
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, civilizationRowVerticalPadding)
+                .background(PaintedChromeBackground(fill: .color(SettingsChrome.plaqueFill), cornerRadius: 10,
+                                                    notchScale: 0.6))
+                .accessibilityIdentifier(AccessibilityID.NewGame.seatYou(seat.index))
+        } else {
+            PaintedChoiceRow(
+                options: [false, true],
+                title: { $0 ? "Ghost" : "AI" },
+                selection: seat.ghostID != nil,
+                verticalPadding: civilizationRowVerticalPadding,
+                fontSize: Self.bodyTextSize,
+                optionIdentifier: { AccessibilityID.NewGame.seatKind(seat.index, ghost: $0) },
+                onSelect: onSetGhost
+            )
+        }
     }
 
     // MARK: - Identity (A2)
@@ -220,7 +238,7 @@ struct SeatCardView: View {
             if seat.isHuman {
                 nameField
             } else {
-                Text(seat.civilization?.generalName ?? Self.undrawnGeneralName)
+                Text(ghostName ?? seat.civilization?.generalName ?? Self.undrawnGeneralName)
                     .font(.system(size: Self.bodyTextSize, weight: .semibold, design: .serif))
                     .lineLimit(1)
                     .minimumScaleFactor(0.65)
@@ -319,14 +337,14 @@ struct SeatCardView: View {
             SeatCardView(
                 seat: MatchSetup.Seat(index: 0, isHuman: true, name: "Alex", civilization: .greece),
                 isOptional: false,
-                onSetHuman: { _ in },
+                onSetGhost: { _ in },
                 onRename: { _ in },
                 onEditCivilization: {}
             )
             SeatCardView(
                 seat: MatchSetup.Seat(index: 3, isHuman: false, name: "", civilization: nil),
                 isOptional: true,
-                onSetHuman: { _ in },
+                onSetGhost: { _ in },
                 onRename: { _ in },
                 onEditCivilization: {}
             )

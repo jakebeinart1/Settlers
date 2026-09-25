@@ -192,6 +192,10 @@ struct PaintedChoiceRow<Option: Hashable>: View {
     /// identical to every other label on the card rather than coincidentally
     /// matching a hardcoded value here (Jake's ask, 2026-09-03).
     var fontSize: CGFloat = 15
+    /// Per-option accessibility identifiers, for rows repeated on one screen
+    /// (the New Game seat cards each show "AI" and "Ghost"), where a label
+    /// alone cannot tell a UI test which seat's button it means.
+    var optionIdentifier: ((Option) -> String)?
     let onSelect: (Option) -> Void
 
     var body: some View {
@@ -236,6 +240,7 @@ struct PaintedChoiceRow<Option: Hashable>: View {
         }
         .buttonStyle(.plain)
         .accessibilityAddTraits(isSelected ? [.isButton, .isSelected] : [.isButton])
+        .modifier(OptionIdentifier(identifier: optionIdentifier?(option)))
     }
 
     private var divider: some View {
@@ -243,5 +248,15 @@ struct PaintedChoiceRow<Option: Hashable>: View {
             .fill(SettingsChrome.ornamentGold.opacity(0.30))
             .frame(width: 1)
             .padding(.vertical, 7)
+    }
+}
+
+/// Applies an accessibility identifier only when there is one, so a row that
+/// passes none keeps the identifier SwiftUI derives from its label.
+private struct OptionIdentifier: ViewModifier {
+    let identifier: String?
+
+    func body(content: Content) -> some View {
+        if let identifier { content.accessibilityIdentifier(identifier) } else { content }
     }
 }
