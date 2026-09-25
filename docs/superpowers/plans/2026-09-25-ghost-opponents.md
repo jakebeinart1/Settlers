@@ -31,7 +31,8 @@
 
 1. **An old pass-and-play save** (two or more humans) must still load and play to the end with no hand-off cover, never trap or crash. Test in Task 6.
 2. **A ghost seat whose ghost is missing** (bundled ghost removed in an update, or a local file deleted) must be refused before the game starts, with a message naming the seat. On resume, it falls back to an Expert policy for that chair and the fallback is logged. Tests in Tasks 5 and 6.
-3. **Elo applied twice** for one match (resume after an unacknowledged commit, or the app killed during the update) must be a no-op the second time. Test in Task 3.
+3. **Self-play counts for Elo.** Jake playing his own ghost is a rated game for both (Jake's rule). Only the human seat's decisions ever train a ghost, never the ghost's own moves. Test in Task 7: after a Jake-vs-Jake's-ghost game, the new decision records all belong to the human seat.
+3b. **Elo applied twice** for one match (resume after an unacknowledged commit, or the app killed during the update) must be a no-op the second time. Test in Task 3.
 4. **Retraining that fails or is killed** must leave the previous ghost file intact and readable. Test in Task 7.
 5. **The same ghost picked for two seats** is refused on New Game. Test in Task 5.
 
@@ -293,23 +294,57 @@ The ghost's id is the human's name, slugged. The first game creates the ghost, b
 
 ---
 
-### Task 9: Leaderboard
+### Task 9: Per-seat game stats (`SeatStats`) and the Expert baseline
+
+**Files:**
+- Create: `Settlers/Models/SeatStats.swift` (the six measures, VP, won, and `matchID`)
+- Create: `Settlers/Persistence/SeatStatsStore.swift`
+- Modify: `GameViewModel+Ghosts.swift` (the completion hook computes stats for every seat, next to the Elo and trainer calls)
+- Modify: `Packages/CatanAI/Sources/ghost/main.swift` (add a `baseline` subcommand)
+- Create: `Settlers/Models/RadarBaseline.swift` (constants plus their source)
+- Test: `SettlersTests/SeatStatsTests.swift`
+
+- [ ] **Step 1: Failing test.** Replay a seeded fixture game with known events. Assert each measure for one seat:
+  - production cards per turn
+  - settlements + cities built
+  - completed trades
+  - dev cards played, and Largest Army
+  - leader-hit share of robber moves
+  - final VP ÷ target
+
+  The expected numbers are computed by hand from the fixture's event list. Write them into the test as literals, with a comment deriving each one.
+- [ ] **Step 2: Implement `SeatStats.compute(initial:moves:)`.** Replay through `GameSession.applyExternal` and read `Step.events`. The leader is judged by public VP before the robber move, the same rule as `StyleFeatures.isLeader`.
+- [ ] **Step 3: `SeatStatsStore`.** One JSON file per match, written in the completion hook and idempotent by match id. Test: recording twice leaves one record.
+- [ ] **Step 4: `ghost baseline --games 200`.** Run Expert self-play on held-out seeds and print each measure's mean. Put the means in `RadarBaseline.expert`, with the command, the date and the sample size in its doc comment. `rating = clamp(1...99, round(75 × value / expertMean))`, except for Finishing, which is already a ratio: `75 × (vpRatio / expertVpRatio)`.
+- [ ] **Step 5:** Tests pass. Commit as `feat(app): per-seat game stats and an Expert radar baseline`.
+
+---
+
+### Task 9b: Leaderboard and detail page
 
 **Files:**
 - Create: `Settlers/Views/LeaderboardView.swift`
+- Create: `Settlers/Views/RatedEntityDetailView.swift`
+- Create: `Settlers/Views/RadarChartView.swift` (SwiftUI `Path`, six axes, 0–99 scale, solid or dashed outline)
 - Modify: `Settlers/Views/MainMenuView.swift` (a "Leaderboard" `GoldRowButton` beside `historyButton`)
 - Modify: `Settlers/Testing/AccessibilityID.swift`
 - Test: `SettlersTests/LeaderboardModelTests.swift`, `SettlersUITests/MainMenuFlowTests.swift`
 
-- [ ] **Step 1: Failing unit test.** `LeaderboardModel.rows(ratings:ghosts:)`:
-  - rows sort by Elo, descending;
-  - ties are broken by name, so the order is deterministic;
-  - anchors carry `isFixed`;
-  - a ghost shows its `name`, and a person shows their name;
-  - entities with 0 games show "unrated", except anchors.
-- [ ] **Step 2: Implement** the model and the view: rank, name, badge (You / Ghost / AI), Elo, and games. Use the painted chrome of `GameHistoryView`.
-- [ ] **Step 3: UI test.** Main menu → Leaderboard shows "Classic AI 1000" and "Expert AI 1229".
-- [ ] **Step 4:** Screenshot and read it. Commit as `feat(ui): leaderboard on the main menu`.
+- [ ] **Step 1: Failing unit tests.**
+  - `LeaderboardModel.rows`:
+    - sorts by Elo, descending, with ties broken by name;
+    - marks anchors `isFixed`;
+    - shows "unrated" when a non-anchor has 0 games.
+  - `DetailModel(for: .ghost("jake"))`:
+    - record totals come from `SeatStatsStore`;
+    - the head-to-head against its own person counts only games where both sat;
+    - the radar uses the ghost's games once it has 3 or more, and its person's games (flagged `isLearnedFrom`) below that;
+    - style lines are the top 3 habits by |θ|, phrased from a fixed table and never showing the size.
+- [ ] **Step 2: Implement** the models and views. Use the painted chrome from `GameHistoryView`. Recent-game rows open `GameReplayView` by `gameID`.
+- [ ] **Step 3: UI test.**
+  - Main menu → Leaderboard shows "Classic AI 1000" and "Expert AI 1229".
+  - Tapping "Jake's Ghost" opens a page with the radar (`AccessibilityID.Leaderboard.radar`) and the record.
+- [ ] **Step 4: Screenshot** the leaderboard and the detail page with the run-settlers skill, and read both. Commit as `feat(ui): leaderboard with ghost and player detail pages`.
 
 ---
 

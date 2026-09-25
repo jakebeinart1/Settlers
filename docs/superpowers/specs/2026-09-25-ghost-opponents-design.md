@@ -136,6 +136,16 @@ kept in the store's doc comment.
 count, and only in Classic standard (the same scope as ghosts, so the ladder
 compares like with like).
 
+**Two rules, both Jake's (2026-09-25):**
+- **A ghost's *model* changes only from its person's own play.** Retraining
+  reads the human seat's decisions and never the ghost's.
+- **A ghost's *rating* changes only in games it sat in with exactly one human
+  at the table.** That includes games against its own person: if Jake plays
+  Jake's ghost and the ghost wins, it counts. "I wouldn't exclude that data
+  unless problematic." The known cost is that a person and their own ghost
+  trade points directly. That is visible on the detail page, and nothing
+  corrupts the model, because only the human's decisions train it.
+
 **A ghost's Elo changes only in games it sat in**, per Jake's answer. Retraining
 does not reset it. The number means "how this ghost has done", and the ghost's
 games are its record.
@@ -148,7 +158,52 @@ Jake's ghost starts at his own rating once his first rated game is played.
 
 A `GoldRowButton` titled "Leaderboard" sits beside Game History. Each row shows
 rank, name, a kind badge (You / Ghost / AI), Elo, and games rated. Anchors are
-marked "fixed". It is read-only in v1.
+marked "fixed". **Tapping a person or a ghost opens its detail page (§8).**
+
+### 8. Detail page (Jake, 2026-09-25): "see a person's ghost, their games, a FIFA web graph, basic stats"
+
+Opened from a leaderboard row. For a **ghost**, the page shows:
+
+- **Header:** the name, whose ghost it is, Elo, and games learned from (its
+  person's games).
+- **Record:** games played, won and lost, win rate, average final VP, and its
+  record against its own person (the self-play games Jake asked to keep).
+- **Radar ("FIFA card"):** six categories, each rated 1–99. It is drawn with a
+  SwiftUI `Path`, because Swift Charts has no radar chart and no dependency is
+  added.
+- **Recent games:** the last 10 rated games (result, VP, opponents). Each opens
+  the existing replay (`GameReplayView`).
+- **Style:** the person model's top habits in plain words ("offers often",
+  "robs the leader", "rarely plays dev cards"), from the fitted `theta`, sign
+  and rank only. Section 7 of the research doc says sizes are not reliable.
+
+A **person's** page is the same without the Style block, and adds a link to
+their ghost.
+
+**Radar categories.** Each is measured per game from the seat's own play:
+
+| Category | Per-game measure |
+|---|---|
+| Production | resource cards received from rolls, per turn |
+| Expansion | settlements + cities built |
+| Trading | player trades completed (proposed and accepted, either side) |
+| Development | dev cards played, plus Largest Army held at the end |
+| Robber | share of robber moves that hit the leader |
+| Finishing | final VP ÷ target |
+
+**What "how good" means.** Each measure is scaled against the Expert bot's
+average on the same measure, which is set once from seeded self-play
+(`ghost` CLI) and shipped as constants with their source. **Expert maps to
+75**, and each category is clamped to 1–99, so a rating reads "better or
+worse than Expert at this". A ghost with fewer than 3 rated games shows its
+**person's** games instead, drawn dashed and labelled "learned from Jake's
+games".
+
+**Where the numbers come from:** a `SeatStats` record (the six measures plus
+VP and a win flag) is computed for every seat when a game completes. The
+completed game is replayed through `GameSession` and its events are read. The
+records are stored per match (`SeatStatsStore`), so the detail page never
+replays a game on the main thread.
 
 ## Testing
 
