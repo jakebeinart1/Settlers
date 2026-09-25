@@ -38,14 +38,19 @@ public struct MatchSetup: Codable, Equatable, Sendable {
         /// Nil on a human seat and on old/new-game prefills; populated in the
         /// realized active-match record after Random choices are resolved.
         public var opponentProfile: OpponentProfile?
+        /// The ghost playing this chair, by `GhostProfile.id`, or `nil` for an
+        /// ordinary AI or the human. Optional, so every setup saved before
+        /// ghosts existed decodes as "no ghost".
+        public var ghostID: String?
 
         public init(index: Int, isHuman: Bool, name: String, civilization: Civilization?,
-                    opponentProfile: OpponentProfile? = nil) {
+                    opponentProfile: OpponentProfile? = nil, ghostID: String? = nil) {
             self.index = index
             self.isHuman = isHuman
             self.name = name
             self.civilization = civilization
             self.opponentProfile = opponentProfile
+            self.ghostID = ghostID
         }
     }
 
@@ -156,6 +161,35 @@ public struct MatchSetup: Codable, Equatable, Sendable {
             // the mode now, and the table is fixed at four.
             return "\(mode.displayName) is played to "
                 + "\(Self.newGameVictoryPointTargets(for: seats.count, mode: mode).map(String.init).joined(separator: " or "))."
+        }
+        return nil
+    }
+
+    /// Why the New Game screen cannot start this table, or `nil` if it can.
+    ///
+    /// Stricter than `validationProblem`, which a restart also uses: Jake
+    /// removed pass-and-play (2026-09-25), so a new game has exactly one
+    /// human, in seat 1. `matchProblem` still accepts several humans, so an
+    /// old pass-and-play save resumes and finishes.
+    ///
+    /// Ghosts are fitted on Classic standard games, so they play only there.
+    /// `knownGhosts` is what the phone can seat right now; a ghost that has
+    /// gone (an update dropped a bundled one) is refused by seat.
+    public func newGameProblem(knownGhosts: Set<String>) -> String? {
+        if let validationProblem { return validationProblem }
+        guard humanSeats.count == 1, seats.first?.isHuman == true else {
+            return "Pass-and-play has been removed. Seat 1 is you."
+        }
+        if let seat = seats.first(where: { $0.isHuman && $0.ghostID != nil }) {
+            return "Seat \(seat.index + 1) cannot be both you and a ghost."
+        }
+        let ghostSeats = seats.filter { $0.ghostID != nil }
+        guard !ghostSeats.isEmpty else { return nil }
+        guard mode == .classic, variant == .standard else { return "Ghosts play Classic only." }
+        let ids = ghostSeats.compactMap(\.ghostID)
+        guard Set(ids).count == ids.count else { return "A ghost can only take one seat." }
+        if let seat = ghostSeats.first(where: { !knownGhosts.contains($0.ghostID ?? "") }) {
+            return "Seat \(seat.index + 1)'s ghost is no longer on this phone."
         }
         return nil
     }
