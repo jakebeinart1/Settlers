@@ -299,24 +299,27 @@ public struct EvaluationWeights: Sendable, Equatable, Codable {
     /// decoration: those defaults are the *fitted Classic* values and they are
     /// now nonzero. Inheriting them would have moved Vast - which ships this
     /// set - on a Classic sweep nobody ran on that board.
-    /// The Conquest fork: the board's fitted set plus the two army terms.
+    /// The Conquest Expert: fitted 2026-09-24 on Conquest's rules (any 3
+    /// cards, deck 1-4, same-turn deploy), sign-SPSA over 30 iterations against
+    /// the pre-fit fork and the Classic heuristics. Adopted on 1,200 held-out
+    /// games against the pre-fit fork: **28.4% ±2.6** (null 25%, z = +2.73),
+    /// and 81.5% against three Classic bots. It takes a 6 or 8 in 42% of games
+    /// (from 19%), crowded hexes 3x as often, and starves the leader of a
+    /// resource in 80%. See `docs/AI_summaries/2026-09-24-conquest-expert.md`.
     ///
-    /// Starting values, before any Conquest fit, are EQUAL on purpose. Strength
-    /// moved from hand to garrison then keeps its value, so a deploy is judged
-    /// only by the strength the defender burns against what the hex pays. At
-    /// 0.05 held against 0.02 garrisoned, holding a 9 outscored taking a shared
-    /// 6 with it and the bot sat on its free card (pinned by
-    /// `expertSpendsItsFreeCardTakingAHex`).
+    /// Fitted on Classic and used on Vast too, untested there; `mode` is kept so
+    /// a Vast fit can slot in without changing callers.
     public static func conquest(_ mode: GameMode) -> EvaluationWeights {
-        var weights = forMode(mode)
-        weights.armyStrength = 0.015
-        weights.garrisonStrength = 0.015
-        // Starting points for a fit, on the production term's own scale.
-        weights.captureThreat = 0.4
-        weights.garrisonExposure = -0.3
-        weights.takeoverFoothold = 0.15
-        return weights
+        EvaluationWeights(vector: conquestFit)
     }
+
+    /// In `vectorLabels` order.
+    static let conquestFit: [Double] = [
+            1.000000, 0.907047, 0.144209, 0.213801, 0.418654, 0.089841,
+            0.243760, 0.043387, 0.050735, -0.050263, -0.007172, 0.093975,
+            0.344964, 0.078627, 0.101630, 0.980409, 0.004693, 0.006868,
+            1000.000000, 0.013282, 0.015587, 0.528478, -0.503936, 0.172415,
+    ]
 
     public static let handSet = EvaluationWeights(
         production: 0.55, variety: 0.12, expansion: 0.30, approach: 0.30, buildableSites: 0.06,

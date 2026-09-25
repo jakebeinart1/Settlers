@@ -117,3 +117,17 @@ private func standing(_ state: GameState, _ weights: EvaluationWeights) -> Doubl
     var on = off; on.takeoverFoothold = 1
     #expect(standing(with, on) - standing(without, on) > standing(with, off) - standing(without, off))
 }
+
+/// The shipped Conquest Expert is the fit adopted 2026-09-24 (1,200 held-out
+/// games against the pre-fit fork: 28.4% ±2.6, null 25%, z = +2.73). A change
+/// to these numbers is a change to the opponent players face, so it is pinned.
+@Test func theShippedConquestExpertIsTheAdoptedFit() {
+    let adopted = [
+        1.000000, 0.907047, 0.144209, 0.213801, 0.418654, 0.089841,
+        0.243760, 0.043387, 0.050735, -0.050263, -0.007172, 0.093975,
+        0.344964, 0.078627, 0.101630, 0.980409, 0.004693, 0.006868,
+        1000.000000, 0.013282, 0.015587, 0.528478, -0.503936, 0.172415,
+    ]
+    #expect(EvaluationWeights.conquest(.classic).vector == adopted)
+    #expect(EvaluationWeights.conquest(.vast).vector == adopted)
+}

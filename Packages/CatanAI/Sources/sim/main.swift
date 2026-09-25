@@ -258,10 +258,12 @@ private func policy(named name: String,
     } else if name == "eval-v0" {
         // The Conquest Expert Jake beat on 2026-09-24: the fork before it knew
         // capture threat or exposure. Frozen here as the anchor to beat.
+        // Spelled out rather than derived from `conquest(.classic)`, which now
+        // returns the adopted fit: an anchor that moves measures nothing.
         base = EvaluationPolicy(id: "evaluation-conquest-v0", weights: {
-            var weights = EvaluationWeights.conquest(.classic)
-            weights.captureThreat = 0
-            weights.garrisonExposure = 0
+            var weights = EvaluationWeights.forMode(.classic)
+            weights.armyStrength = 0.015
+            weights.garrisonStrength = 0.015
             return weights
         }())
     } else if name == "eval-noarmy" {
