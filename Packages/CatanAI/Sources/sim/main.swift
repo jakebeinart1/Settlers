@@ -716,10 +716,12 @@ private func jsonLine(_ result: GameResult) -> String {
         + "\"policies\":[\(policies)],"
         + "\"seed\":\(result.seed),\"moves\":\(result.moves),\"winner\":\(winner),"
         + "\"vp\":[\(points)],\"fingerprint\":\"\(result.fingerprint)\","
-        + conquestJSON(result)
+        + (result.configuration.variant == .conquest ? conquestJSON(result) : "")
         + "\"behavior\":\(behaviorJSON(result.behavior))}"
 }
 
+/// Conquest runs only: a standard run's record keeps exactly the fields
+/// `scripts/tests/test_sim_cli.py` and `analyze-bot-evaluation.py` expect.
 /// Split out for the same Linux type-checker limit `behaviorObjectJSON` names.
 private func conquestJSON(_ result: GameResult) -> String {
     let holder = result.firstPrimeHolder.map { "\($0.index)" } ?? "null"

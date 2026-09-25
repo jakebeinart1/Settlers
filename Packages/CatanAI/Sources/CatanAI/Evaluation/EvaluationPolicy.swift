@@ -275,8 +275,9 @@ public struct EvaluationPolicy: LedgerAwarePolicy {
     func projectedArmyCard(
         _ buy: GameMove, state: GameState, ledger: PublicLedger, evaluator: PositionEvaluator
     ) -> Double? {
-        guard var (next, nextLedger) = applied(buy, to: state, ledger: ledger, by: evaluator.seat),
-              next.armyHands[evaluator.seat]?.popLast() != nil else { return nil }
+        guard let (projected, nextLedger) = applied(buy, to: state, ledger: ledger, by: evaluator.seat) else { return nil }
+        var next = projected
+        guard next.armyHands[evaluator.seat]?.popLast() != nil else { return nil }
         next.armyDeck = state.armyDeck
         let deck = state.rules.armyDeck
         let printed = Double(deck.values.reduce(0, +))
