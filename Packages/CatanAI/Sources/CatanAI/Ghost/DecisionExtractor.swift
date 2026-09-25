@@ -78,9 +78,9 @@ public enum DecisionExtractor {
         return [.respondToTrade(offerID: id, accept: true), reject]
     }
 
-    /// Central differences, one free weight at a time. `result[candidate][slot]`.
     // ponytail: 2 × free-slot re-scorings per decision (33 in Classic). Fine
     // offline; memoise per-state evaluations if 100+ games is too slow.
+    /// Central differences, one free weight at a time. `result[candidate][slot]`.
     static func slopes(_ observation: GameObservation, ledger: PublicLedger, extra: [TradeOffer],
                        anchor: EvaluationWeights, count: Int) -> [[Double]] {
         var result = [[Double]](repeating: [Double](repeating: 0, count: anchor.vector.count), count: count)

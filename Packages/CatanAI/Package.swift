@@ -22,6 +22,9 @@ let package = Package(
         .executableTarget(name: "sim", dependencies: ["CatanAI", "CatanEngine"]),
         // Trade behaviour on sampled positions, without playing games out.
         .executableTarget(name: "trade-bench", dependencies: ["CatanAI", "CatanEngine"]),
+        // A person model from recorded games, and its ghost. Not a product, for
+        // the reason `sim` is not.
+        .executableTarget(name: "ghost", dependencies: ["CatanAI", "CatanEngine"]),
         .testTarget(name: "CatanAITests", dependencies: ["CatanAI"])
     ]
 )
