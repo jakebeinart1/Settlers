@@ -3,18 +3,6 @@ import XCTest
 /// Exercises the modal boundaries most likely to make a playable game stall.
 @MainActor
 final class GameplayBoundaryFlowTests: XCTestCase {
-    func testHotSeatHandoffCanBeAcknowledged() {
-        continueAfterFailure = false
-        let app = launch(arguments: ["-qaAutoStart", "-qaTwoHumans"])
-
-        let ready = app.buttons["handoff.ready"]
-        XCTAssertTrue(ready.waitForExistence(timeout: 5))
-        ready.tap()
-
-        XCTAssertFalse(ready.waitForExistence(timeout: 2))
-        XCTAssertTrue(app.otherElements["screen.game"].exists)
-    }
-
     /// Debugging repro for Jake's "the game just stops advancing" report -
     /// "sometimes it happens if I close the game" in particular.
     ///

@@ -165,7 +165,7 @@ grep -rnoE '"\-qa[A-Za-z]+"' --include="*.swift" "$REPO/Settlers" | sort -u
 
 **`-qaAutoStart` is load-bearing for every in-game fixture above.** `GameView` only renders once
 `hasStartedThisSession` is true, so every flag read inside `GameView.swift` is inert on its
-own — and so is `-qaTwoHumans`, which `ContentView` reads in the same branch. Measured on 2026-08-29: `-qaShowEndGame` alone left the app sitting on the main menu;
+own. Measured on 2026-08-29: `-qaShowEndGame` alone left the app sitting on the main menu;
 `-qaAutoStart -qaShowEndGame` rendered the win screen. If a flag "does nothing", check this
 before suspecting the flag.
 

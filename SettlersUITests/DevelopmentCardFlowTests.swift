@@ -218,22 +218,6 @@ final class DevelopmentCardFlowTests: XCTestCase {
                       "Road Building must remain fully usable before the roll")
     }
 
-    func testHotSeatCoverHidesPrivateRevealFromAccessibilityUntilClaimed() {
-        continueAfterFailure = false
-        let app = launchReset(arguments: [
-            "-qaAutoStart", "-qaTwoHumans", "-qaShowDevCardReveal",
-        ])
-
-        let ready = app.buttons["handoff.ready"]
-        XCTAssertTrue(ready.waitForExistence(timeout: 5))
-        XCTAssertFalse(app.staticTexts["dev-cards.detail.yearOfPlenty"].exists,
-                       "the covered player's exact card leaked through accessibility")
-
-        ready.tap()
-
-        XCTAssertTrue(app.staticTexts["dev-cards.detail.yearOfPlenty"].waitForExistence(timeout: 3))
-    }
-
     func testCardHandKeepsActionsReachableAtAccessibilityTextSize() {
         continueAfterFailure = false
         let app = XCUIApplication()

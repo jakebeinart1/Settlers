@@ -200,10 +200,6 @@ enum AccessibilityID {
         static let quit = "in-game-settings.quit"
     }
 
-    enum Handoff {
-        static let ready = "handoff.ready"
-    }
-
     enum Robber {
         static func victim(_ seat: PlayerID) -> String { "robber.victim.\(seat.index)" }
         static func victimCivilization(_ seat: PlayerID) -> String {
