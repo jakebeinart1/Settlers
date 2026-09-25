@@ -12,6 +12,20 @@ public struct FitOptions: Sendable {
     /// the weight's own size. The slopes it fits on hold only near that point;
     /// further moves wait for the next re-linearised round.
     public var trustRadius = 0.5
+    /// The previous ghost, when retraining one: the prior's centre instead of
+    /// Expert (weights) and "no habit" (theta). On the phone a ghost refits
+    /// from its newest game alone, because the games it learned before are
+    /// not there to re-read; without this each game would drag it back toward
+    /// Expert and it would forget its person.
+    public var priorCenter: PersonModel?
+    /// How many decisions the previous ghost learned from. The prior stiffens
+    /// by `evidenceStiffness` per decision, so 2,600 earlier decisions outweigh
+    /// one new game's hundred, as they should.
+    public var priorEvidence = 0.0
+    // ponytail: one scalar stiffness for every parameter. A per-parameter
+    // posterior (the fit's Hessian) is the upgrade if some habits prove to
+    // settle faster than others.
+    public var evidenceStiffness = 0.01
     public init() {}
 }
 
@@ -117,12 +131,15 @@ public enum PersonFitter {
                 }
             }
         }
+        let stiffness = options.evidenceStiffness * options.priorEvidence
         for slot in active {
             let scale = max(abs(anchor[slot]), 0.05)
-            grad[slot] += 2 * options.weightPrior * (model.weights[slot] - anchor[slot]) / (scale * scale) / count
+            let centre = options.priorCenter?.weights[slot] ?? anchor[slot]
+            grad[slot] += 2 * (options.weightPrior + stiffness) * (model.weights[slot] - centre) / (scale * scale) / count
         }
         for feature in model.theta.indices {
-            grad[slots + 1 + feature] += 2 * options.stylePrior * model.theta[feature] / count
+            let centre = options.priorCenter?.theta[feature] ?? 0
+            grad[slots + 1 + feature] += 2 * (options.stylePrior + stiffness) * (model.theta[feature] - centre) / count
         }
         return grad
     }

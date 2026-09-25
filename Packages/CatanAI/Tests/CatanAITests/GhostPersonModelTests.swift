@@ -156,6 +156,31 @@ import CatanEngine
         #expect(PersonFitter.fit(synthetic(count: 10, seed: 5), anchor: anchor, start: start, options: options) == start)
     }
 
+    /// On the phone a ghost retrains after each game from that game alone: the
+    /// games it learned before live on the Mac. So the previous ghost is the
+    /// prior, as stiff as the evidence behind it. A person far from Expert
+    /// must not be pulled back to Expert by one new game.
+    @Test func anIncrementalFitStaysNearThePreviousGhost() {
+        var previous = PersonModel.anchored(at: anchor)
+        previous.weights[1] = anchor.vector[1] + 0.3
+        previous.theta[0] = 1.5
+        let newGame = synthetic(count: 100, seed: 9)
+        var options = FitOptions()
+        options.iterations = 400
+        options.learningRate = 0.05
+        options.priorCenter = previous
+        options.priorEvidence = 2600
+        let updated = PersonFitter.fit(newGame, anchor: anchor, start: previous, options: options)
+        #expect(abs(updated.weights[1] - previous.weights[1]) < 0.1, "production drifted to \(updated.weights[1])")
+        #expect(abs(updated.theta[0] - previous.theta[0]) < 0.3, "habit drifted to \(updated.theta[0])")
+
+        options.priorCenter = nil
+        options.priorEvidence = 0
+        let forgetful = PersonFitter.fit(newGame, anchor: anchor, start: previous, options: options)
+        #expect(abs(forgetful.weights[1] - previous.weights[1]) > abs(updated.weights[1] - previous.weights[1]),
+                "without the previous ghost as prior the fit must move further")
+    }
+
     /// Review Focus 4: no data means the anchor, not NaN.
     @Test func fittingNothingReturnsTheAnchor() {
         #expect(PersonFitter.fit([], anchor: anchor) == PersonModel.anchored(at: anchor))
