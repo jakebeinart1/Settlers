@@ -286,44 +286,97 @@ Three fitting fixes came from the same data:
 - **Sign-preserving trust regions**: unbounded, `rival` went 0.80 → −1.48,
   with drift 2.5.
 
-### Selftest (12 games, known persona, 5 rounds)
+### A correction, found in review
+
+The final branch review found that re-linearised rounds 2 and later fitted
+from Expert's weights, not from each record's own anchor. The first
+numbers in this section were produced with that bug. Everything below is
+the re-run after the fix (a finite-difference test now pins the gradient).
+
+### Selftest (12 games, known persona, 5 rounds, after the fix)
 
 | Parameter | True | Fitted |
 |---|---|---|
-| production | 0.710 | 0.574 (from 0.460) |
-| habit `propose` | 1.0 | 0.365 |
-| habit `robberHitsLeader` | 1.5 | 0.770 |
-| β | 4.0 | 4.63 |
-| Held-out `turn` log-likelihood | −3.46 (true model) | −3.50 (Expert −3.86) |
+| production | 0.710 | **0.654** (from 0.460) |
+| habit `propose` | 1.0 | 0.349 |
+| habit `robberHitsLeader` | 1.5 | 0.776 |
+| β | 4.0 | 4.49 |
+| Held-out `turn` log-likelihood | −3.47 (true model) | **−3.50** (Expert −3.86) |
+| Final drift | | 0.020 |
 
-The direction is right on every parameter. Magnitudes are under-recovered,
-and there is one false habit (`buildCity` −1.55). **Read fitted habit sizes as
-directions, not amounts.**
+The direction is right on every parameter, and the fitted model is almost
+as likely as the true one on held-out games. Two faults remain: `propose`
+is under-recovered, and a spurious `buildCity` −1.5 appears (`rival` also
+drifted to 1.25). **Read habit sizes as directions, not amounts.**
 
-### Jake, 24 finished Classic games (2,612 decisions; 6 held out)
+### Jake, 24 finished Classic games (2,612 decisions; 6 held out; after the fix)
 
-He won 13 of the 24 (54%; the null is 25%). The final round's drift was 0.045.
+He won 13 of the 24 (54%; the null is 25%). The final drift was 0.016.
 
 | Facet | n | Expert top-1 | Jake-model top-1 | Expert LL | Jake-model LL |
 |---|---|---|---|---|---|
-| opening | 24 | 0.333 | 0.375 | −2.31 | −1.83 |
-| turn | 275 | 0.095 | **0.473** | −4.86 | −2.38 |
-| tradeResponse | 272 | 0.783 | **0.971** | −0.67 | −0.13 |
-| robber | 17 | 0.294 | 0.176 | −2.94 | −2.51 |
-| discard | 4 | 0.750 | 0.750 | −2.65 | −2.30 |
+| opening | 24 | 0.333 | 0.375 | −2.31 | −1.74 |
+| turn | 275 | 0.098 | **0.491** | −4.85 | −2.39 |
+| tradeResponse | 272 | 0.776 | **0.971** | −0.67 | −0.12 |
+| robber | 17 | 0.176 | 0.176 | −2.93 | −2.43 |
+| discard | 4 | 0.750 | 0.750 | −2.65 | −2.11 |
 
-**What he values, relative to Expert:** production 0.46 → 1.61, hand synergy
-0.18 → 0.53, port 0.10 → 0.18, rival 0.80 → 0.33 (plays his own game), and
-knight 0.26 → 0 (at the sign bound).
+**What he values, relative to Expert:** production 0.46 → 1.61, hand
+synergy 0.18 → 0.65, expansion 0.31 → 0.61, road length 0.09 → 0.20,
+rival 0.80 → 0.47 (plays his own game), and knight 0.26 → 0 (at the sign
+bound).
 
-**Habits:** strongly prefers building settlements (+6.4), buys dev cards (+1.6)
-but rarely plays them (−5.8), declines bot offers (−4.6; he accepted 25 of
-1,242), re-offers after a refusal (+1.4), and robs the leader (+1.6). The two
-proposal-size habits are collinear (lopsided = given − wanted). Taken together
-they say he asks for few cards.
+**Habits:** loves settlements (+8.6), sits on development cards (−5.1),
+turns down bot offers (−4.4), asks for little in return, re-offers after a
+refusal, and robs the leader. Offers read together: cards given and
+lopsidedness are one habit, net −0.5 per card given and −5.7 per card
+asked for. The model is in `assets/2026-09-25-jake-person.json`.
 
-**Open:** the ghost has not yet played a game. λ is uncalibrated (target: his
-54%), and robber has too few decisions to judge.
+### Calibration: lambda against three Classic bots (target 54%)
+
+| λ | Wins | Rate (95% CI) |
+|---|---|---|
+| 0 (Expert) | 27/40 | 67.5% [52, 80] |
+| 0.004 | 63/80 | 78.7% [69, 86] |
+| 0.008 | 53/80 | 66.2% [55, 76] |
+| 0.012 | 37/80 | 46.3% [36, 57] |
+| 0.016 | 33/80 | 41.2% [31, 52] |
+| 0.02 | 13/40 | 32.5% |
+| 0.05 | 7/40 | 17.5% |
+| 0.25 | 6/40 | 15.0% |
+
+Shipped at **λ = 0.010**, which interpolates to 54%. The dial lives near
+zero because the person term is large (β 6.5, habits up to 8.6). The
+0.004 point beats pure Expert by 11 points, with overlapping intervals.
+That is a hint that a small dose of Jake improves Expert, not a finding,
+and it is exactly what the head-to-head below tests.
+
+### Is Jake's ghost better than Expert? (`ghost strength`, 1,248 games vs three Expert bots)
+
+This follows the bot-strength protocol: the ghost in every chair, held-out
+seeds from 900,000, and a 25% null.
+
+| Ghost | Wins | Rate (95% CI) | Verdict |
+|---|---|---|---|
+| Shipped, λ 0.010 | 243/1248 | **19.5%** [17.4, 21.8] | worse than Expert |
+| Light dose, λ 0.004 | 314/1248 | **25.2%** [22.8, 27.6] | indistinguishable from Expert |
+
+**Answer to Jake's question ("if my ghost beats Expert's Elo, is it better
+than Expert?"): not yet.** The ghost as shipped is tuned to Jake's own
+level against Classic bots, and it is clearly weaker than Expert. The small
+dose that looked better than Expert against Classic bots (78.7% on 80 games)
+ties Expert head-to-head over 1,248 games. That hint was sampling noise, not
+an upgrade. Nothing here justifies changing Expert. The route stays open: the
+same test re-run as the model learns from more of Jake's games is exactly
+how a genuine improvement would show.
+
+### Timing (Mac, release)
+
+Ghost moves: mean 0.021 s, p95 0.107 s, max 0.20 s, well inside the app's
+600 ms bot pacing. Retraining after one game: 49.6 s to extract 86
+decisions, plus 3.2 s to fit. The phone is slower and was not measured,
+because installing a development build over Jake's personal app was not
+asked for.
 
 ### Running it
 
