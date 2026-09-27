@@ -6,6 +6,7 @@ struct SettlersApp: App {
     /// SwiftUI child view created competing models when SwiftUI rebuilt that
     /// view, and the second writer correctly failed as stale.
     private let viewModel: GameViewModel
+    @Environment(\.scenePhase) private var scenePhase
 
     init() {
         #if DEBUG
@@ -37,6 +38,12 @@ struct SettlersApp: App {
                 // `.primary` to white everywhere, matching what every
                 // explicitly-colored label already looked like.
                 .preferredColorScheme(.dark)
+        }
+        // Launch and every return to the app check the online ladder, at most
+        // once per `LiveSync.refreshInterval`; a finished game syncs at once.
+        .onChange(of: scenePhase, initial: true) { _, phase in
+            guard phase == .active, let sync = LiveSync.shared else { return }
+            Task { await sync.refreshIfDue() }
         }
     }
 }

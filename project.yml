@@ -48,6 +48,8 @@ targets:
         SUPPORTS_MACCATALYST: false
         DEVELOPMENT_TEAM: $(SETTLERS_DEVELOPMENT_TEAM)
         CODE_SIGN_STYLE: Automatic
+        # Empty unless a build opts into the online ladder (Signing.xcconfig).
+        CODE_SIGN_ENTITLEMENTS: $(SETTLERS_ENTITLEMENTS)
     configFiles:
       Debug: Settlers/Signing.xcconfig
       Release: Settlers/Signing.xcconfig
@@ -68,6 +70,8 @@ targets:
         # app and over USB, which is the only export route that keeps working
         # on a TestFlight build.
         UIFileSharingEnabled: true
+        # The CloudKit container of the online ladder; empty means no sync.
+        EmpiresCloudKitContainer: $(SETTLERS_CLOUDKIT_CONTAINER)
         LSSupportsOpeningDocumentsInPlace: true
         UILaunchScreen: {}
         UISupportedInterfaceOrientations:

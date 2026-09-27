@@ -9,11 +9,13 @@ import Foundation
 /// test launches once with reset, then relaunches without it to prove the save
 /// survives a genuine process boundary.
 enum UITestBootstrap {
+    static let resetArgument = "-ui-testing-reset"
+
     static func resetPersistentStateIfRequested(
         arguments: [String] = ProcessInfo.processInfo.arguments
     ) {
         #if DEBUG
-        guard arguments.contains("-ui-testing-reset") else { return }
+        guard arguments.contains(resetArgument) else { return }
 
         if let bundleIdentifier = Bundle.main.bundleIdentifier {
             UserDefaults.standard.removePersistentDomain(forName: bundleIdentifier)
@@ -38,7 +40,8 @@ enum UITestBootstrap {
         // only - the ratings file shares Application Support with the rest.
         let ratings = RatingStore.shared.directory
         for url in [ratings.appendingPathComponent("ratings.json"), ratings.appendingPathComponent("ratings.corrupt.json"),
-                    SeatStatsStore.shared.directory, GhostStore.shared.localDirectory] {
+                    SeatStatsStore.shared.directory, GhostStore.shared.localDirectory,
+                    LiveSync.Stores.standard.stateFile.deletingLastPathComponent()] {
             removeIfPresent(url)
         }
         PlayerNameStore.shared.save("UI Tester")

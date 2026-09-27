@@ -21,6 +21,7 @@ enum AccessibilityID {
         static let close = "leaderboard.close"
         static let back = "leaderboard.back"
         static let radar = "leaderboard.radar"
+        static let syncStatus = "leaderboard.sync-status"
         static func row(_ key: String) -> String { "leaderboard.row.\(key)" }
     }
 

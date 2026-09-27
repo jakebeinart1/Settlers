@@ -30,6 +30,18 @@ public struct SeatStatsStore: Sendable {
         try JSONEncoder().encode(record).write(to: file, options: .atomic)
     }
 
+    /// Overwrites a record this phone already holds: the one correction sync
+    /// makes, writing a game typed under "jake" back under the claimed "Jake".
+    func replace(_ record: SeatStatsRecord) throws {
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        try JSONEncoder().encode(record).write(to: directory.appendingPathComponent("\(record.match.uuidString).json"),
+                                               options: .atomic)
+    }
+
+    func contains(match: UUID) -> Bool {
+        FileManager.default.fileExists(atPath: directory.appendingPathComponent("\(match.uuidString).json").path)
+    }
+
     /// Oldest first; an unreadable file is skipped, never deleted.
     func all() -> [SeatStatsRecord] {
         let files = (try? FileManager.default.contentsOfDirectory(at: directory, includingPropertiesForKeys: nil)) ?? []

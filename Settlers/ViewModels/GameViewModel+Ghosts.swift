@@ -93,8 +93,12 @@ extension GameViewModel {
         let trainer = makeGhostTrainer(ghostStore)
         let matchID = match.id
         return Task.detached(priority: .background) {
+            // The game goes up at once; a second pass after training sends
+            // the ghost that learned from it.
+            await LiveSync.shared?.sync()
             await GhostTrainingQueue.shared.learn(trainer, match: matchID, game: game,
                                                   human: PlayerID(index: human.index), personName: human.name)
+            await LiveSync.shared?.sync()
         }
     }
 

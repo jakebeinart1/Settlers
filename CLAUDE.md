@@ -1,7 +1,8 @@
 # Empires (repo: `Settlers`)
 
-A native Swift/SwiftUI iOS Catan clone: a hex board, four seats, three heuristic bots, no
-network and no backend. The rules and the AI live in two local SPM packages (`CatanEngine`
+A native Swift/SwiftUI iOS Catan clone: a hex board, four seats, three heuristic bots. The
+only network use is the opt-in online ladder (CloudKit public database, `Settlers/Sync/`,
+`docs/live-sync.md`), which is off in every build that does not name a container. The rules and the AI live in two local SPM packages (`CatanEngine`
 ~2,000 lines, `CatanAI` ~1,800 lines); the app target (`Settlers/`, ~6,700 lines) is
 presentation and persistence only.
 
@@ -30,6 +31,7 @@ Every one of these is canonical for its question. Read the file, do not reason f
 | Why the board clips to its own bounds, and why not to its container's | `BoardView.body`'s `.clipped()` (the comment on it is the spec) |
 | Bot decision entry point | `Packages/CatanAI/Sources/CatanAI/Bot.swift` |
 | Bot loop, seat assignment, personality mix | `Settlers/ViewModels/GameViewModel.swift` |
+| Online ladder: what syncs, how games are verified, why Elo is replayed, CloudKit setup | `docs/live-sync.md` + `LiveSync`'s doc comment |
 | What is persisted, where, and why | `Settlers/Persistence/` - 7 stores, each with the rationale in its doc comment |
 | Art assets: what is wired in, what is retired, how it was generated | `design-references/STATUS.md` |
 | Feature design rationale (4 specs, Aug 2026) | `docs/superpowers/specs/` |

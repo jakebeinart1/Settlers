@@ -11,12 +11,28 @@ struct LeaderboardView: View {
 
     @State private var rows: [LeaderboardRow] = []
     @State private var selected: EntityDetail?
+    /// `nil` when this build has no sync: the ladder is this phone's alone,
+    /// and the screen says nothing about it.
+    @State private var syncStatus: LiveSync.Status?
+    var liveSync = LiveSync.shared
+
+    /// How often an open leaderboard asks for a refresh. The request only
+    /// reaches CloudKit when `LiveSync.refreshInterval` has passed; in
+    /// between it re-reads this phone's stores, which is free.
+    static let recheckInterval: Duration = .seconds(60)
 
     var body: some View {
         ZStack {
             PaintedScreenBackground()
             VStack(spacing: 14) {
                 header
+                if let syncStatus {
+                    Text(Self.describe(syncStatus))
+                        .font(.system(size: 12, design: .serif))
+                        .foregroundStyle(.white.opacity(0.7))
+                        .multilineTextAlignment(.center)
+                        .accessibilityIdentifier(AccessibilityID.Leaderboard.syncStatus)
+                }
                 if let selected {
                     RatedEntityDetailView(detail: selected, onBack: { self.selected = nil })
                 } else {
@@ -34,7 +50,30 @@ struct LeaderboardView: View {
             #if DEBUG
             if QALaunchFlag.seedLeaderboard.isSet { Self.seedForQA(ratings: ratingStore, stats: statsStore) }
             #endif
-            rows = LeaderboardModel.rows(ratings: ratingStore.load(), ghosts: ghostStore.all())
+            reload()
+            guard let liveSync else { return }
+            syncStatus = await liveSync.status
+            while !Task.isCancelled {
+                syncStatus = await liveSync.refreshIfDue()
+                reload()
+                try? await Task.sleep(for: Self.recheckInterval)
+            }
+        }
+    }
+
+    private func reload() {
+        rows = LeaderboardModel.rows(ratings: ratingStore.load(), ghosts: ghostStore.all())
+    }
+
+    static func describe(_ status: LiveSync.Status) -> String {
+        switch status {
+        case .never: return "Connecting to the online ladder…"
+        case .online(let date): return "Online ladder · updated \(date.formatted(date: .omitted, time: .shortened))"
+        case .noName: return "Set your name in Settings to join the online ladder."
+        case .nameTaken(let name): return "“\(name)” is taken online. Choose another name in Settings to post your games."
+        case .noAccount: return "Sign in to iCloud to join the online ladder."
+        case .offline: return "Offline · showing the ladder as last synced."
+        case .failed: return "The online ladder could not be reached. Showing the ladder as last synced."
         }
     }
 

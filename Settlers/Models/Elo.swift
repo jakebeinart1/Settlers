@@ -8,13 +8,31 @@ enum RatedEntity: Hashable, Sendable {
     case classic
     case expert
 
+    static let personPrefix = "person:"
+    static let ghostPrefix = "ghost:"
+
     /// The key ratings are stored under: "person:Jake", "ghost:jake", "classic".
     var key: String {
         switch self {
-        case .person(let name): return "person:\(name)"
-        case .ghost(let id): return "ghost:\(id)"
+        case .person(let name): return Self.personPrefix + name
+        case .ghost(let id): return Self.ghostPrefix + id
         case .classic: return "classic"
         case .expert: return "expert"
+        }
+    }
+
+    /// The inverse of `key`; `nil` for a key no entity has.
+    init?(key: String) {
+        if key.hasPrefix(Self.personPrefix) {
+            self = .person(String(key.dropFirst(Self.personPrefix.count)))
+        } else if key.hasPrefix(Self.ghostPrefix) {
+            self = .ghost(String(key.dropFirst(Self.ghostPrefix.count)))
+        } else if key == Self.classic.key {
+            self = .classic
+        } else if key == Self.expert.key {
+            self = .expert
+        } else {
+            return nil
         }
     }
 }
