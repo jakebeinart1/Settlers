@@ -90,7 +90,11 @@ import CatanAI
     /// stayed green through the whole outage.
     @Test(arguments: BotDifficulty.allCases)
     func aMatchStartsAndSavesAtEveryTier(_ tier: BotDifficulty) throws {
-        let model = GameViewModel()
+        // Isolated: on the app's real save file this test depended on whatever
+        // the test host and earlier tests had left there, and in the
+        // 2026-09-27 gate it failed as `inconsistentHistory` while passing
+        // on its own. Every other view-model test already isolates.
+        let model = isolatedGameViewModel()
         var setup = model.newGameSetupLoadResult.value
             ?? MatchSetup.default(preferredName: "Jake", preferredCivilization: .medieval)
         setup.difficulty = tier
