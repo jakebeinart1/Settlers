@@ -107,6 +107,10 @@ only staged; the normal Confirm button must commit it before any feedback exists
   three plus seven feedback flows on unchanged code. The failed run is retained,
   not represented as an initially green gate. Final complete app recheck and
   delivery receipts live in the evidence root's `STATUS.md`.
+- Final `final-app-suite.xcresult`: **471 passed, zero failures/skips**, on the
+  corrected `67c1339` application source. Final Release compilation passed;
+  a fresh Release installation survived the 86-second check, its menu screenshot
+  was inspected, and no new Settlers crash report appeared.
 
 ## Original implementation-pass limits
 
