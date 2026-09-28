@@ -1,18 +1,32 @@
 # Settlers — To Do
 
-Updated September 16, 2026. Completed UI/menu/replay notes and previous research context are preserved in [the historical list](docs/archive/2026-09-11-todo-history.md).
+Updated September 28, 2026, against `main` at `6adc97f`. Completed UI/menu/replay notes and previous research context are preserved in [the historical list](docs/archive/2026-09-11-todo-history.md).
 
 ## Start here — next session, in this order
 
-1. **Expert has no notion of self-sufficiency, and that is now the gap.** The
-   weights are fitted against a refusing table (#8, landed) and Expert's edge
-   there went from nothing to +19 points over the null - but it still wins
-   78.8% at a trading table against 44.2% at a refusing one. Refitting existing
-   terms has now been measured twice; the remaining distance is a **missing
-   term**, not more sweeping. The evaluation cannot price "a plan that needs no
-   counterparty".
-2. **Nothing else is small.** Sessions A, B and D are done; C needs scoping
-   before it is one worktree's work.
+1. **Get `6adc97f` onto TestFlight, then test the online ladder on two real phones.**
+   Jake's iPhone runs TestFlight build 13, which predates the hand-size rule, the
+   rename fix and the AI spider graphs. Everything online is tested only against an
+   in-memory CloudKit with two simulated phones (`LiveSyncTests`); no two-device run
+   has happened, because the CloudKit build signs under Alex's team. The check: two
+   Apple IDs join, each sees the other's ghost in the picker, each plays it, both
+   leaderboards agree, and a rename moves the row and the ghost's name on both. Jake's
+   phone is saved as "Bein" and migrates its "Jake" games on its first sync.
+   [Details](docs/AI_summaries/2026-09-28-ghost-hoarding-and-rename.md).
+2. **Recalibrate the ghost's lambda.** The hand-size rule made Jake's ghost stronger:
+   68.8% against three Classic bots (624 games) against 60.4% before, where lambda
+   0.010 was chosen to match Jake's own 54%. `ghost calibrate` is the tool.
+3. **Expert has no notion of self-sufficiency, and that is still the largest gap.** The
+   weights are fitted against a refusing table (#8, landed) and Expert's edge there
+   went from nothing to +19 points over the null, but it still wins 78.8% at a
+   trading table against 44.2% at a refusing one. Refitting existing terms has now
+   been measured twice; the remaining distance is a **missing term**, not more
+   sweeping.
+
+**Settled on 2026-09-28, do not reopen without new evidence:** bots keep the cap of
+three refused trade proposals a turn. Removing it was built and measured: four Expert
+seats went from 193 to 540 proposals a game, up to 19 in one turn, and games doubled in
+length. Jake decided to leave it.
 
 ## Agent sessions — how the open work splits
 
@@ -132,15 +146,21 @@ be one worktree's worth of work.
   - Concrete levers, all of which exist: contested-site value in `BoardIndex.approachableSites` (take the vertex the human is one road from), robber targeting (the human, always, on their best tile), trade acceptance (never accept anything that helps the human, and never offer them anything), and Longest Road cuts.
   - **Two honest cautions, both worth deciding before building it.** First, three bots co-operating against one player is not the same game as Catan - it is three-on-one, and it will be *unwinnable* rather than *hard*, which is what Jake asked for but is worth confirming once it exists. Second, this is exactly the behaviour the relative objective was built to avoid: a bot that spends its turns hurting someone instead of advancing itself usually loses to a bot that just plays well, so **Impossible may measure as weaker than Expert under the `bot-strength` protocol while feeling far harder to a person.** Measure it as an experience, not a win rate - and if it does win less, that is a finding about the mode, not a bug.
   - Related: this and [Expert](docs/AI_summaries/2026-09-14-position-evaluation-bot.md) are the two ends the difficulty ladder should be calibrated across.
-- [ ] **Player-trained ghost opponents and a rating ladder.** Jake's idea, 2026-09-15: every game a person plays trains a model of *them*; past a quality threshold it becomes a named opponent other players face offline — "other people's shadows", a Mario Kart ghost run but a trained model rather than a recorded lap, or Super Auto Pets' asynchronous opponents. Play style carries over, so opponents feel like people rather than one engine wearing different names. Both the person and their bot earn an Elo-style rating, Clash-of-Clans style: your ghost winning someone else's game moves you up by a smaller step than winning yourself.
-  - **The training-export plumbing was deleted on 2026-09-16** (`StateEncoding`, `ActionSpace`, `TrainingExample`, `sim --training-jsonl`, and the two Python trainers) as part of the ponytail audit: it had no consumer, and this repository had already failed twice at learning a policy from it. `GameLogStore` still records full move histories and the engine still replays them exactly, so the *data* is not lost - but anyone picking this up restores the exporter from history (`git log -- Packages/CatanEngine/Sources/CatanEngine/StateEncoding.swift`) rather than finding it in the tree.
-  - The gap is a *learned* policy, and this repository has failed at that twice (67.7% sign accuracy against a 74.0% baseline; an imitation policy at 0/40). Imitation from one player's games is the research question; the plumbing is not.
-  - Blocker that was never cleared, and that the restored exporter still faces: composed trade offers have no fixed action index, so training export refused Expert seats outright.
-  - **2026-09-25: the person model is built, without a learned policy** (branch `feat/ghost-player`, write-up `docs/AI_summaries/2026-09-25-ghost-player-research.md`). It fits Expert's weights plus 14 style habits to one person's recorded choices, and `GhostPolicy` plays Expert pulled toward them (piKL). Fitted on Jake's 24 finished Classic games (2,612 decisions), it predicts 47% of his held-out turn moves against Expert's 9%. The composed-offer blocker does not apply: offers are scored as candidates, not indexed. Next: λ calibration against Jake's 54% win rate, ghosts as selectable opponents, and ratings.
-- [ ] **Sync all ghost and rating data live across devices.** **Built 2026-09-26** (`docs/live-sync.md`); waiting on the one-time CloudKit setup in Alex's account, and the shared-AI training job on the Mac is still to build. Jake, 2026-09-25: ratings, ghosts (every version), game logs, decision records and per-seat stats should be synced live, not kept per phone. Today the app has **no backend and no network**, and ghost data stays on one device, apart from Jake's ghost bundled into the build (`docs/superpowers/specs/2026-09-25-ghost-opponents-design.md`).
-  - This is what turns ghosts into the ladder in the item above: other people's ghosts appear on your phone, and ratings are shared rather than local.
-  - Decide before building: CloudKit (native, no server to run, per-Apple-ID; a public database for shared ghosts and ratings) or a small hosted service; conflict rules for ratings updated on two phones at once (make updates idempotent by match id, as `RatingStore` already is); and consent, because this ships a person's name and play style to other people's devices.
-  - Data volume: logs are about 20-50 KB per game, and everything is append-only by design (spec §9), so sync is upload-only apart from ghosts and ratings.
+- [x] **Player-trained ghost opponents and a rating ladder — built.** A person's
+  finished Classic games train their ghost on the phone (`GhostTrainer`), and a ghost with
+  10+ games is pickable for any AI seat in New Game. People, ghosts, Classic (fixed at
+  1000) and Expert (moves with human results) share one Elo ladder. Every entity,
+  including both AI tiers since 2026-09-28, has a page with a spider graph.
+  [Research](docs/AI_summaries/2026-09-25-ghost-player-research.md),
+  [spec](docs/superpowers/specs/2026-09-25-ghost-opponents-design.md).
+  - Open: lambda recalibration (Start here #2), and ghosts beyond Jake's need their
+    people to play 10 rated games first.
+- [x] **Sync ghost and rating data live across devices — built and on TestFlight.**
+  CloudKit public database (`docs/live-sync.md`): names claimed per Apple ID, games
+  uploaded as moves and re-verified by replay on every phone, Elo rebuilt in one fixed
+  order, ghosts downloaded from their owners only, renames carried everywhere.
+  - Open: a real two-phone verification (Start here #1), and the shared-AI training
+    job on the Mac that would learn from everyone's synced games.
 - [ ] **Keep Expert rated above every human.** Jake, 2026-09-26: "If the humans beat the bots and expert it should have a higher elo. If humans get higher than expert then expert can be better and need to be better than human." The first half is already how the ladder works: Classic is fixed at 1000, and Expert starts at 1229 and moves with its results against people, so beating Expert raises a player and lowers Expert. The second half is the standing goal: once the online ladder is live (`docs/live-sync.md`), any person rated above Expert means Expert needs improving, and the synced games are the evidence to improve it from.
 - [ ] **Validate bot strength and repetitive behaviour against human play.** Bot-vs-bot evaluation cannot establish human difficulty, and the two bugs that mattered most so far — the repeated trade offer and the dev-card deck running dry — both came from Jake playing, not from simulation.
 - [ ] **Give Expert a term for self-sufficiency.** The largest measured gap after the
@@ -157,6 +177,19 @@ be one worktree's worth of work.
 
 ## Recently completed
 
+- [x] **The ghost that froze at 7 VP with 25-32 cards, fixed (2026-09-28).** Expert
+  priced a card over seven as slightly good and the ghost's habits tipped a 0.014 margin
+  toward ending the turn. `HandDiscipline` now stops Expert and ghosts ending a turn over
+  the discard threshold while they can spend (no strength cost to Expert: 26.3% vs three
+  old Experts, 624-672 games per arm). Ghost retraining now priors beta (8 simulated
+  retrains: 6.5 -> 7.4, was 6.5 -> 23+). Renaming yourself now renames your row and your
+  ghost on every phone. Expert and Classic have spider graphs.
+  [Write-up](docs/AI_summaries/2026-09-28-ghost-hoarding-and-rename.md).
+- [x] **Online ladder, name choice in the app, How to Play, event feedback (2026-09-26 to
+  28).** CloudKit sync (`7ca1778`), ladder name on launch and on the leaderboard
+  (`66e35ae`), How to Play (`26566c8`), card-play and victory-point feedback (PR #52).
+- [x] **Conquest mode and its fitted Expert (2026-09-24/25).**
+  [Conquest Expert](docs/AI_summaries/2026-09-24-conquest-expert.md).
 - [x] **Expert difficulty ships in the app.** Chosen on the New Game screen beside Classic, stored with the match so a resumed game keeps the opponents it started with. [Delivery note](docs/AI_summaries/2026-09-14-position-evaluation-bot.md).
 - [x] **Position evaluation replaced the win-condition planner.** The planner measured 1.0% against a 25% null and was retired as a decision rule; `EvaluationPolicy` reached **68.4%** (95% CI 65.9–71.0) on held-out rotated games, the first candidate here to beat the shipping bot under the `bot-strength` protocol.
 - [x] **Swept `EvaluationWeights`.** Fifty SPSA iterations, +4.7 points (McNemar p = 0.010) on held-out seeds. Most of the apparent gain (67.2% against the training opponent against 47.3% against `balanced`) was exploitation rather than strength — both columns are recorded. `sim --weights` is the seam, and `BotWeights` can be swept the same way.
