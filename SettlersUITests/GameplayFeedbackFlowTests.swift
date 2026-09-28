@@ -59,6 +59,56 @@ final class GameplayFeedbackFlowTests: XCTestCase {
         XCTAssertFalse(notice(in: app).exists)
     }
 
+    func testKnightNoticeRequiresConfirmedRobberAndPrivateAcknowledgement() {
+        let app = launch(["-qaShowDevCardHand"])
+        XCTAssertTrue(app.buttons["dev-cards.play.knight"].waitForExistence(timeout: 10))
+        app.buttons["dev-cards.play.knight"].tap()
+        enabledBoardButton(in: app, prefix: "board.tile.").tap()
+        XCTAssertFalse(notice(in: app).exists)
+        app.buttons["board-decision.confirm"].tap()
+        acknowledgeResult(in: app, card: "Knight")
+    }
+
+    func testRoadBuildingNoticeRequiresBothRoadsCommitted() {
+        let app = launch(["-qaShowDevCardHand"])
+        XCTAssertTrue(app.buttons["dev-cards.tile.roadBuilding"].waitForExistence(timeout: 10))
+        app.buttons["dev-cards.tile.roadBuilding"].tap()
+        app.buttons["dev-cards.play.roadBuilding"].tap()
+        enabledBoardButton(in: app, prefix: "board.edge.").tap()
+        enabledBoardButton(in: app, prefix: "board.edge.").tap()
+        XCTAssertFalse(notice(in: app).exists)
+        app.buttons["board-decision.confirm"].tap()
+        acknowledgeResult(in: app, card: "Road Building")
+    }
+
+    func testYearOfPlentyNoticeNamesTheCardAfterRealSelection() {
+        let app = launch(["-qaShowDevCardHand"])
+        XCTAssertTrue(app.buttons["dev-cards.tile.yearOfPlenty"].waitForExistence(timeout: 10))
+        app.buttons["dev-cards.tile.yearOfPlenty"].tap()
+        app.buttons["dev-cards.resource.ore"].tap()
+        app.buttons["dev-cards.resource.ore"].tap()
+        XCTAssertFalse(notice(in: app).exists)
+        app.buttons["dev-cards.play.yearOfPlenty"].tap()
+        acknowledgeResult(in: app, card: "Year of Plenty")
+    }
+
+    private func acknowledgeResult(in app: XCUIApplication, card: String) {
+        XCTAssertTrue(app.staticTexts["dev-cards.result"].waitForExistence(timeout: 3))
+        XCTAssertFalse(notice(in: app).exists)
+        app.buttons["dev-cards.result.continue"].tap()
+        XCTAssertTrue(notice(in: app).waitForExistence(timeout: 3))
+        XCTAssertEqual(notice(in: app).label, "Player 1 played \(card)")
+        capture(app, "Committed \(card) public notice")
+    }
+
+    private func enabledBoardButton(in app: XCUIApplication, prefix: String) -> XCUIElement {
+        let button = app.buttons.matching(NSPredicate(
+            format: "identifier BEGINSWITH %@ AND isEnabled == true", prefix
+        )).firstMatch
+        XCTAssertTrue(button.waitForExistence(timeout: 3))
+        return button
+    }
+
     private func launch(_ arguments: [String]) -> XCUIApplication {
         continueAfterFailure = false
         let app = XCUIApplication()
