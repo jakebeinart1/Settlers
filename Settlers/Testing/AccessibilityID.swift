@@ -26,6 +26,7 @@ enum AccessibilityID {
         static let nameField = "leaderboard.name-field"
         static let joinButton = "leaderboard.join"
         static let changeName = "leaderboard.change-name"
+        static let skipName = "leaderboard.skip-name"
         static func row(_ key: String) -> String { "leaderboard.row.\(key)" }
     }
 

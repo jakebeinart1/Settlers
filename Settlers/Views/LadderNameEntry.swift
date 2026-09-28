@@ -76,6 +76,13 @@ struct LadderNamePrompt: View {
                 LadderNameEntry { status in
                     if case .nameTaken(let name) = status { taken = name } else { onDone() }
                 }
+                // Sync may still be waiting for CloudKit. Local play must not
+                // depend on a network response or require an iCloud account.
+                Button("Not now", action: onDone)
+                    .font(.system(size: 16, weight: .semibold, design: .serif))
+                    .foregroundStyle(SettingsChrome.ornamentGold)
+                    .frame(minHeight: 44)
+                    .accessibilityIdentifier(AccessibilityID.Leaderboard.skipName)
             }
             .padding(.horizontal, 28)
             .foregroundStyle(.white)

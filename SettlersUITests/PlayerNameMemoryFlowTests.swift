@@ -61,6 +61,20 @@ final class PlayerNameMemoryFlowTests: XCTestCase {
         XCTAssertEqual(app.textFields["new-game.seat-name.0"].value as? String, "Hannibal")
     }
 
+    func testTheLaunchNamePromptDoesNotRequireJoiningToPlay() {
+        continueAfterFailure = false
+        let app = XCUIApplication()
+        app.launchArguments = ["-ui-testing", "-ui-testing-reset", "-qaAskLadderName"]
+        app.launch()
+
+        let skip = app.buttons["leaderboard.skip-name"]
+        XCTAssertTrue(skip.waitForExistence(timeout: 5), "local-play exit from name prompt")
+        XCTAssertTrue(skip.isEnabled && skip.isHittable)
+        skip.tap()
+        XCTAssertTrue(app.otherElements["screen.ladder-name"].waitForNonExistence(timeout: 5))
+        openNewGame(in: app)
+    }
+
     func testTheCivilizationPickedOnNewGameIsPrefilledNextTime() {
         continueAfterFailure = false
         let app = XCUIApplication()
