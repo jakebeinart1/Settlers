@@ -92,10 +92,27 @@ only staged; the normal Confirm button must commit it before any feedback exists
   notice is readable; both transfer score deltas remain visible; native assertions
   confirm unchanged board and command-row frames.
 
-## Handoff limits
+## Release-owner integration
+
+- The real 402pt run exposed a clipped local +2 badge that the HUD-size-only
+  assertion did not detect. `67c1339` disables clipping on the stats scroller;
+  the parent painted card still clips the row. No dimensions or score rules
+  changed. Source follow-up review found no blocker.
+- `visible-badge.xcresult`: all nine checks passed (seven card/score flows,
+  cross-width HUD sizing, and command-row invariance). The corrected 402pt
+  screenshot `screenshots-visible-badge/CEED9A08-5F5F-4CE2-AE03-8EB24443DB45.png`
+  was opened and inspected; the whole local +2 badge is now visible.
+- Earlier full app run: 471 tests, 468 passed, three simulator/query/time-out
+  failures under severe host contention. `serial-recheck.xcresult` passed all
+  three plus seven feedback flows on unchanged code. The failed run is retained,
+  not represented as an initially green gate. Final complete app recheck and
+  delivery receipts live in the evidence root's `STATUS.md`.
+
+## Original implementation-pass limits
 
 The 402pt check renders both HUDs and the reserved information slot; it is not a
 full 402pt simulator tap run. Native interactions above ran at 375pt. This pass
 did not run the full gate, compile Release, test a physical phone, push, archive,
 merge, or upload. Those checks and Build 14 delivery belong to the release owner.
-The focused pass is complete; production source is frozen at `82cf08a`.
+That focused implementation pass froze at `82cf08a`; the release-owner correction
+and checks above supersede that source as the final delivery candidate.
