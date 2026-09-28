@@ -233,6 +233,10 @@ public struct HumanPlayerPanel: View {
                         }
                     }
                 }
+                // Score-change overlays sit in the existing inter-row gap.
+                // The scroll viewport must not crop them; the painted card's
+                // outer clip still contains content when this row is scrolled.
+                .scrollClipDisabled()
 
                 // This row has one shape at zero cards and five cards. The old
                 // conditional shelf changed spacing and moved the resource
