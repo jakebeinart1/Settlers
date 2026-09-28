@@ -89,16 +89,19 @@ public struct HumanPlayerPanel: View {
     public let onOpenDevCards: (DevCardType?) -> Void
     /// Conquest: tapping an army tile starts Deploy Army, as tapping a dev card plays it.
     public let onDeployArmy: () -> Void
+    public let productionFeedback: ResourceProductionFeedback?
 
     public init(state: GameState, human: PlayerID,
                 playerIdentity: @escaping (PlayerID) -> PlayerIdentity = CatanTheme.playerIdentity,
                 onOpenDevCards: @escaping (DevCardType?) -> Void,
-                onDeployArmy: @escaping () -> Void = {}) {
+                onDeployArmy: @escaping () -> Void = {},
+                productionFeedback: ResourceProductionFeedback? = nil) {
         self.state = state
         self.human = human
         self.playerIdentity = playerIdentity
         self.onOpenDevCards = onOpenDevCards
         self.onDeployArmy = onDeployArmy
+        self.productionFeedback = productionFeedback
     }
 
     /// The army hand grouped by strength, ascending: one tile per strength.
@@ -112,6 +115,14 @@ public struct HumanPlayerPanel: View {
     }
 
     public var body: some View {
+        ResourceProductionFeedbackPresenter(feedback: productionFeedback, viewer: human) { feedback in
+            panel(feedback: feedback)
+        }
+        .id(human)
+    }
+
+    @ViewBuilder
+    private func panel(feedback: ResourceProductionFeedback?) -> some View {
         if let player = state.players.first(where: { $0.id == human }) {
             let isActive = PlayerChip.isActivePlayer(human, in: state)
             let identity = playerIdentity(human)
@@ -138,11 +149,15 @@ public struct HumanPlayerPanel: View {
                         .font(.system(size: 18, weight: .bold, design: .serif))
                         .lineLimit(1)
                         .fixedSize()
-                    Text(identity.civilization.displayName)
-                        .font(.system(size: 12, design: .serif))
-                        .foregroundStyle(CatanTheme.onWaterText.opacity(0.8))
-                        .lineLimit(1)
-                        .fixedSize()
+                    if let feedback {
+                        ResourceProductionReceiptView(feedback: feedback)
+                    } else {
+                        Text(identity.civilization.displayName)
+                            .font(.system(size: 12, design: .serif))
+                            .foregroundStyle(CatanTheme.onWaterText.opacity(0.8))
+                            .lineLimit(1)
+                            .fixedSize()
+                    }
                     Spacer(minLength: 0)
                 }
 
@@ -214,7 +229,8 @@ public struct HumanPlayerPanel: View {
                 HStack(alignment: .top, spacing: 10) {
                     HStack(spacing: 13) {
                         ForEach(Resource.allCases, id: \.self) { resource in
-                            resourceDot(resource, count: player.resources[resource] ?? 0)
+                            resourceDot(resource, count: player.resources[resource] ?? 0,
+                                        gain: feedback?.amount(for: resource) ?? 0)
                         }
                     }
                     .padding(.leading, 6)
@@ -281,19 +297,32 @@ public struct HumanPlayerPanel: View {
     /// square rather than a circle - matches the resource swatches in
     /// `MainMenuView`'s title block, per Jake's ask to keep the same shape
     /// language on the board's own resource counts instead of a dot.
-    private func resourceDot(_ resource: Resource, count: Int) -> some View {
+    private func resourceDot(_ resource: Resource, count: Int, gain: Int) -> some View {
         VStack(spacing: 3) {
             RoundedRectangle(cornerRadius: 3)
                 .fill(CatanTheme.color(for: resource))
                 .frame(width: 18, height: 18)
+                .overlay {
+                    if gain > 0 {
+                        RoundedRectangle(cornerRadius: 3)
+                            .strokeBorder(CatanTheme.chipGold, lineWidth: 2)
+                    }
+                }
+                .overlay(alignment: .top) {
+                    if gain > 0 {
+                        ResourceProductionBadge(amount: gain)
+                            .offset(y: -7)
+                    }
+                }
             Text("\(count)")
                 .font(.system(size: 14, weight: .bold))
                 .foregroundStyle(CatanTheme.onWaterText)
         }
-        .opacity(count > 0 ? 1 : 0.35)
+        .opacity(count > 0 || gain > 0 ? 1 : 0.35)
         .accessibilityElement(children: .ignore)
         .accessibilityLabel("\(resource.rawValue.capitalized) cards")
         .accessibilityValue("\(count)")
+        .accessibilityHint(gain > 0 ? "Received \(gain) from the roll" : "")
         .accessibilityIdentifier(AccessibilityID.Game.humanResource(resource))
     }
 }

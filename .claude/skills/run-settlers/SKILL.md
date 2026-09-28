@@ -130,6 +130,8 @@ grep -rnoE '"\-qa[A-Za-z]+"' --include="*.swift" "$REPO/Settlers" | sort -u
 | `-qaPlayToEnd` | `ContentView.swift` | Plays every seat without presentation delays through the real app session, persistence, statistics, and game log until `EndGameView` renders. Needs `-qaAutoStart`. |
 | `-qaShowPauseMenu` | `GameView.swift` | The "Game Menu" pause sheet. |
 | `-qaShowTradePopup` | `GameView.swift` | `TradePopupView`. |
+| `-qaBankTradePosition` | `GameView.swift` | Conserved seven-grain hand with a grain port; tap Trade → Bank to exercise six grain for three ore. |
+| `-qaProductionPosition` | `GameView.swift` | Pre-roll city/settlement fixture. Tap Roll Dice to produce two ore and one grain through the real commit and receipt path. |
 | `-qaShowBuildPopup` | `GameView.swift` | The "Build" popup (Road / Settlement / City / Dev Card). |
 | `-qaPaidBuildPosition` | `GameView.swift` | Installs a real main-turn position where Road, Settlement, and City are all legal; use this to tap through the Build popup rather than seeding its result. |
 | `-qaShowPaidRoadDecision` | `GameView.swift` | Starts a real paid-road proposal with no road or resources committed yet. |
@@ -148,6 +150,7 @@ grep -rnoE '"\-qa[A-Za-z]+"' --include="*.swift" "$REPO/Settlers" | sort -u
 | `-qaShowMandatoryRobberDecision` | `GameView.swift` | Starts the mandatory rolled-seven robber proposal with three eligible victims for maximum-width layout QA. |
 | `-qaShowDiscard` | `GameView.swift` | A real conserved eight-card hand in a mandatory four-card discard, for expanded/minimized inspection and submission. **Needs `-qaAutoStart`.** |
 | `-qaShowIncomingOffer` | `GameView.swift` | `IncomingTradeCardView`, backed by a real pending engine offer and conserved deterministic hands. |
+| `-qaQueuedBotOffers` | `GameViewModel+QATrade.swift` | Modifier for `-qaShowIncomingOffer`: two affordable offers during a bot turn, for receipt/timer hold and resume checks. |
 | `-qaBundleOffer` | `GameViewModel+QATrade.swift` | **Modifier** for `-qaShowIncomingOffer`: widens it to the widest bundle the engine permits (four give types against one want type). The single-resource fixture cannot show what a composed Expert offer does to the card's fixed-height row — measured 2026-09-16, it silently dropped every count on the wider side. |
 | `-qaFastForwardToRollDice` | `GameView.swift` | Plays the human's setup placements and first roll, resolving a possible seven until the main-turn controls are enabled. **Applies real moves** (writes the save and game log); wait on the target control's readiness rather than a fixed delay. |
 | `-qaSeedGameHistory` | `SettlersApp.swift` | Writes one deterministic finished recording (40 moves, played by "first legal move") into the archive before the menu appears, so Game History and the replay have something real to open. Seeded AFTER `-ui-testing-reset`, which clears the archive. |
@@ -155,6 +158,7 @@ grep -rnoE '"\-qa[A-Za-z]+"' --include="*.swift" "$REPO/Settlers" | sort -u
 | `-qaShowReplay` | `MainMenuView.swift` / `GameHistoryView.swift` | Opens the newest recording's `GameReplayView` directly - board, score strip and transport controls, no tap needed. Pair with `-qaSeedGameHistory`. |
 | `-qaShowNewGame` | `MainMenuView.swift` / `NewGameSetupView.swift` | `NewGameSetupView` over the main menu, on a startable two-human/two-AI fixture (green ready plaque, Start enabled). **Must NOT be combined with `-qaAutoStart`.** |
 | `-qaSeedLeaderboard` | `LeaderboardView.swift` | Records three rated games (Jake vs Jake's bundled ghost + two Classic seats) before the leaderboard loads, so the ghost page shows a record and a spider graph on a fresh install. Open the leaderboard from the main menu. |
+| `-qaAskLadderName` | `LadderNamePrompt` | Shows the first-launch leaderboard name prompt even with simulator CloudKit disabled; Join saves the name used to prefill New Game. |
 | `-qaShowNewGameInvalid` | `NewGameSetupView.swift` | Same screen, seat 2's name whitespace-only — the amber problem plaque and a disabled Start. |
 | `-qaShowNewGameOverwrite` | `NewGameSetupView.swift` | Same screen with the "Replace your saved game?" confirmation already raised. Pair with a real save (run `-qaAutoStart -qaFastForwardToRollDice` first) to also get the amber saved-game plaque behind it. |
 | `-qaShowNewGameCivilizationPicker` | `NewGameSetupView.swift` | Same screen with seat 2's civilization grid open — the only way to see a taken civilization greyed out. |

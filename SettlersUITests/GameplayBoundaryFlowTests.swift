@@ -83,7 +83,36 @@ final class GameplayBoundaryFlowTests: XCTestCase {
         accept.tap()
 
         XCTAssertFalse(accept.waitForExistence(timeout: 2))
+        XCTAssertTrue(app.staticTexts["Trade complete"].exists)
+        XCTAssertTrue(app.staticTexts["1 Grain"].exists)
+        XCTAssertTrue(app.staticTexts["1 Brick"].exists)
+        let receipt = XCTAttachment(screenshot: app.screenshot())
+        receipt.name = "Incoming trade receipt"
+        receipt.lifetime = .keepAlways
+        add(receipt)
+        app.coordinate(withNormalizedOffset: CGVector(dx: 0.02, dy: 0.1)).tap()
+        XCTAssertTrue(app.buttons["Close trade"].exists, "A background tap must not discard the receipt")
+        app.buttons["Close trade"].tap()
         assertHumanResources(brick: 1, grain: 0, in: app)
+    }
+
+    func testIncomingReceiptHoldsAnotherOfferDuringBotTurn() {
+        continueAfterFailure = false
+        let app = launch(arguments: ["-qaAutoStart", "-qaShowIncomingOffer", "-qaQueuedBotOffers"])
+        let accept = app.buttons["incoming-trade.accept"]
+        XCTAssertTrue(accept.waitForExistence(timeout: 5))
+        accept.tap()
+        XCTAssertTrue(app.buttons["Close trade"].waitForExistence(timeout: 3))
+        XCTAssertFalse(app.buttons["Trade again"].exists, "A receipt must not let you trade outside your turn")
+        let held = expectation(description: "receipt remains past the next offer's deadline")
+        DispatchQueue.main.asyncAfter(deadline: .now() + Self.holdPastDefaultTimerSeconds) { held.fulfill() }
+        wait(for: [held], timeout: Self.timerTestTimeoutSeconds)
+        XCTAssertTrue(app.staticTexts["Trade complete"].exists)
+        app.buttons["Close trade"].tap()
+        XCTAssertTrue(accept.waitForExistence(timeout: 3), "Queued offer must not auto-reject behind the receipt")
+        XCTAssertEqual(resourceCount(.brick, in: app), "1")
+        XCTAssertEqual(resourceCount(.grain, in: app), "1")
+        app.buttons["incoming-trade.reject"].tap()
     }
 
     func testIncomingTradeTimerStopsWhileSettingsAreOpen() {

@@ -2,6 +2,15 @@ import Foundation
 
 /// Bank/port trading and player-to-player (including bot) trade negotiation.
 public enum Trading {
+    public enum DraftMode: Sendable {
+        case players, bank
+    }
+
+    public enum DraftProblem: Equatable, Sendable {
+        case overlappingResources
+        case invalidBankBundle(resource: Resource, rate: Int)
+    }
+
     /// The best (lowest) bank-trade rate `player` can get for `resource`:
     /// 2 if they own a 2:1 port for that resource, else 3 if they own a
     /// generic 3:1 port, else 4.
@@ -21,6 +30,32 @@ public enum Trading {
             }
         }
         return sawGeneric ? 3 : 4
+    }
+
+    /// Structural feedback while composing a trade, not permission to commit.
+    /// Empty or unfinished sides are allowed; the final validator still owns
+    /// positive counts, balanced quantities, affordability, and bank stock.
+    /// Overlap wins before bank bundle errors, whose resource is selected in
+    /// `Resource.allCases` order so dictionary insertion/hash order cannot
+    /// change the hint. Player drafts do not use bank rates.
+    /// Live domestic editors use this query without tightening historical
+    /// `proposeTrade`/`respond` behavior, which saved move replay depends on.
+    public static func draftProblem(give: [Resource: Int], get: [Resource: Int],
+                                    mode: DraftMode, by player: PlayerID,
+                                    state: GameState) -> DraftProblem? {
+        // CATAN maritime trades exchange for a different resource type.
+        // https://www.catan.com/faq/basegame (Trade - resource symbols)
+        // https://live.catanconsoleedition.com/news/catan-101-how-trading-works
+        // Domestic editors share that exclusion, without changing old replay.
+        guard Set(give.keys).isDisjoint(with: get.keys) else { return .overlappingResources }
+        guard case .bank = mode else { return nil }
+        for resource in Resource.allCases where give[resource] != nil {
+            let rate = bestRate(for: resource, player: player, state: state)
+            if give[resource, default: 0] % rate != 0 {
+                return .invalidBankBundle(resource: resource, rate: rate)
+            }
+        }
+        return nil
     }
 
     /// Trades `give` for `get` with the bank, at `player`'s best rate for
@@ -61,10 +96,10 @@ public enum Trading {
         let getTotal = get.values.reduce(0, +)
         guard giveTotal > 0, getTotal > 0 else { return .illegalPlacement }
 
-        // Trading a resource for itself is always a strict loss and is never
-        // something a player means to do, but the rate arithmetic alone
-        // happily accepts it (8 brick for 2 brick balances at 4:1).
-        guard Set(give.keys).isDisjoint(with: get.keys) else { return .illegalPlacement }
+        // Share draft constraints while preserving the mutation error contract.
+        guard draftProblem(give: give, get: get, mode: .bank, by: player, state: state) == nil else {
+            return .illegalPlacement
+        }
 
         // Each given resource must be offered in a quantity that's a whole
         // multiple of its own best rate, and the total given must convert to
@@ -72,7 +107,6 @@ public enum Trading {
         var convertedTotal = 0
         for (resource, amount) in give {
             let rate = bestRate(for: resource, player: player, state: state)
-            guard amount % rate == 0 else { return .illegalPlacement }
             convertedTotal += amount / rate
         }
         guard convertedTotal == getTotal else { return .illegalPlacement }

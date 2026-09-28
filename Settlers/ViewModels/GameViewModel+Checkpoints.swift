@@ -157,6 +157,7 @@ extension GameViewModel {
     }
 
     func reportPersistenceFailure(_ error: Error) -> MatchPersistenceFailure {
+        resourceProductionFeedback = nil
         persistenceBlocked = true
         let failure = MatchPersistenceFailure(underlying: error)
         persistenceErrorMessage = failure.localizedDescription

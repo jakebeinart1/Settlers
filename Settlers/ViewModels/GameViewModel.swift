@@ -162,6 +162,8 @@ public final class GameViewModel {
     public internal(set) var pendingDevCardReveal: DevCardReveal?
     /// A human card's exact committed outcome, retained until acknowledged.
     public internal(set) var pendingDevCardResolution: DevCardResolution?
+    /// Ephemeral local-hand receipt; never part of saved rules state.
+    public internal(set) var resourceProductionFeedback: ResourceProductionFeedback?
 
     /// Uncommitted mandatory-discard choices and whether their editor is in
     /// inspect-only mode. These stay out of `GameState`, but belong to this
@@ -203,6 +205,7 @@ public final class GameViewModel {
     /// `scenePhase` becoming `.inactive`/`.background`, so that time doesn't
     /// silently keep counting while the app isn't actually on screen.
     public func appWillResignActive() {
+        resourceProductionFeedback = nil
         appIsActive = false
         guard let activeSince else { return }
         accumulatedActiveDuration += max(0, Date().timeIntervalSince(activeSince))
@@ -480,6 +483,7 @@ public final class GameViewModel {
 
     /// The bookkeeping every new game clears, whichever entry point started it.
     private func resetPerGameState() {
+        resourceProductionFeedback = nil
         gameGeneration &+= 1
         resetDiscardPresentation()
         boardDecisionCoordinator.clear()
@@ -502,6 +506,8 @@ public final class GameViewModel {
     }
 
     private func commitStep(_ step: GameSession.Step, candidate: GameSession) throws {
+        let productionBefore = state
+        let productionViewer = humanPlayer
         guard let document = checkpointDocument, document.activeMatch != nil else {
             throw SavedGameRecoveryError.blocked("Start a game before making a move.")
         }
@@ -516,6 +522,12 @@ public final class GameViewModel {
             throw reportPersistenceFailure(error)
         }
         session = candidate
+        if case .rollDice = step.move {
+            resourceProductionFeedback = ResourceProductionFeedback(
+                events: step.events, before: productionBefore, after: state, viewer: productionViewer
+            )
+        }
+        if resourceProductionFeedback?.owner != humanPlayer { resourceProductionFeedback = nil }
         reconcileBoardDecision()
         pendingEvents += step.events
         eventBatch = EventBatch(sequence: eventBatch.sequence + 1, events: pendingEvents)
@@ -1161,6 +1173,7 @@ public extension GameViewModel {
             boardDecisionCoordinator = retainedBoardDecision
             reconcileBoardDecision()
             gameGeneration &+= 1
+            resourceProductionFeedback = nil
             eventBatch = EventBatch(sequence: eventBatch.sequence + 1, events: [])
             prepareDiscardPresentation()
             persistenceErrorMessage = nil

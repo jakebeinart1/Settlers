@@ -2,6 +2,23 @@
 import CatanEngine
 
 extension GameViewModel {
+    /// Conserved 2:1 position from the reported six-grain / three-ore trade.
+    func qaPrepareBankTradePosition() {
+        var fixture = GameSetup.newGame(board: BoardGenerator.standard(), seed: 4_308)
+        let port = fixture.board.ports.first { $0.kind == .resource(.grain) }!
+        fixture.players[humanPlayer.index].settlements.insert(port.vertexA)
+        fixture.players[humanPlayer.index].resources = [.grain: 7]
+        fixture.bank[.grain, default: 0] -= 7
+        // A real, generously priced player proposal can use the same fixture.
+        // Responses still run the production bot evaluation, never a fake yes.
+        for seat in fixture.players.indices where seat != humanPlayer.index {
+            fixture.players[seat].resources = [.ore: 1]
+            fixture.bank[.ore, default: 0] -= 1
+        }
+        fixture.phase = .mainTurn(playerIndex: humanPlayer.index)
+        replaceStateForTesting(fixture, humanSeat: humanPlayer)
+    }
+
     /// Installs a real pending bot offer with a conserved, deterministic hand.
     ///
     /// Unlike the old view-only fixture, accepting or rejecting this offer
@@ -42,6 +59,14 @@ extension GameViewModel {
         let offer = TradeOffer(from: bot, give: give, want: want)
         do {
             try Trading.proposeTrade(offer, state: &fixture)
+            if QALaunchFlag.queuedBotOffers.isSet {
+                fixture.phase = .mainTurn(playerIndex: bot.index)
+                fixture.players[human.index].resources[.grain, default: 0] += 1
+                fixture.bank[.grain, default: 0] -= 1
+                fixture.players[bot.index].resources[.brick, default: 0] += 2
+                fixture.bank[.brick, default: 0] -= 2
+                try Trading.proposeTrade(TradeOffer(from: bot, give: [.brick: 2], want: [.grain: 1]), state: &fixture)
+            }
         } catch {
             preconditionFailure("failed to construct incoming-trade QA fixture: \(error)")
         }
