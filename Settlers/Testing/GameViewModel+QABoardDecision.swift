@@ -46,8 +46,8 @@ extension GameViewModel {
     func qaPrepareMandatoryRobberDecision(selectDestination: Bool = false) {
         let human = qaFixtureHuman
         var fixture = GameSetup.newGame(
-            board: BoardGenerator.standard(), seed: 4_303,
-            playerCount: qaFixturePlayerCount, victoryPointTarget: state.victoryPointTarget
+            board: BoardGenerator.standard(Ruleset.forMode(state.mode).board), seed: 4_303,
+            playerCount: qaFixturePlayerCount, victoryPointTarget: state.victoryPointTarget, mode: state.mode
         )
         let destination = fixture.board.tiles.first {
             $0.coordinate != fixture.board.robberTile
@@ -78,8 +78,8 @@ extension GameViewModel {
     func qaPrepareKnightBoardDecision(selectDestinationWithVictim: Bool) {
         let human = qaFixtureHuman
         var fixture = GameSetup.newGame(
-            board: BoardGenerator.standard(), seed: 4_304,
-            playerCount: qaFixturePlayerCount, victoryPointTarget: state.victoryPointTarget
+            board: BoardGenerator.standard(Ruleset.forMode(state.mode).board), seed: 4_304,
+            playerCount: qaFixturePlayerCount, victoryPointTarget: state.victoryPointTarget, mode: state.mode
         )
         let destination = fixture.board.tiles.first {
             $0.coordinate != fixture.board.robberTile

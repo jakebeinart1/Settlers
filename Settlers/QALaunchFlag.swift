@@ -64,6 +64,10 @@ enum QALaunchFlag: String, CaseIterable {
     case showPauseMenu = "-qaShowPauseMenu"
     /// Opens the trade popup.
     case showTradePopup = "-qaShowTradePopup"
+    /// Seven grain and a grain port: exercises repeated bank output selection.
+    case bankTradePosition = "-qaBankTradePosition"
+    /// Real next roll of six, paying a city two ore and a settlement one grain.
+    case productionPosition = "-qaProductionPosition"
     /// Opens the build popup.
     case showBuildPopup = "-qaShowBuildPopup"
     /// Installs a main-turn position where every paid construction is legal.

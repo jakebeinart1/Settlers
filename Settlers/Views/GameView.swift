@@ -161,16 +161,16 @@ public struct GameView: View {
             .allowsHitTesting(!isBlockingOverlayPresented)
             .accessibilityHidden(isBlockingOverlayPresented)
 
-            if !isDiscardPresented, viewModel.boardDecisionPresentation == nil, showBuildPopup {
+            if canPresentBoardPopup, showBuildPopup {
                 BuildPopupView(viewModel: viewModel, onDismiss: { showBuildPopup = false },
                                onRaiseArmy: { showBuildPopup = false; showArmyPurchase = true })
             }
 
-            if !isDiscardPresented, viewModel.boardDecisionPresentation == nil, showArmyPurchase {
+            if canPresentBoardPopup, showArmyPurchase {
                 ArmyPurchasePopupView(viewModel: viewModel, onDismiss: { showArmyPurchase = false })
             }
 
-            if !isDiscardPresented, viewModel.boardDecisionPresentation == nil, showTradePopup {
+            if canPresentBoardPopup, showTradePopup {
                 TradePopupView(viewModel: viewModel, onDismiss: { showTradePopup = false })
             }
 
@@ -388,6 +388,10 @@ public struct GameView: View {
             }
             #endif
             await qaFastForwardToRollDiceIfRequested()
+            #if DEBUG
+            if QALaunchFlag.bankTradePosition.isSet { viewModel.qaPrepareBankTradePosition() }
+            if QALaunchFlag.productionPosition.isSet { viewModel.qaPrepareProductionPosition() }
+            #endif
             // Seed a real engine-backed offer after any fast-forwarding. The
             // UI test accepts and rejects this exact pending offer and checks
             // the human hand, so a card that merely disappears on an engine
@@ -415,6 +419,15 @@ public struct GameView: View {
         }
         .onChange(of: state.pendingTradeOffers.map(\.id)) { _, _ in
             handleTradeOffersChange()
+        }
+        .onChange(of: viewModel.boardDecisionPresentation != nil) { _, isDeciding in
+            guard isDeciding else { return }
+            // Superseded editors must not invisibly block a mandatory decision,
+            // nor reappear after that decision is confirmed.
+            showBuildPopup = false
+            showArmyPurchase = false
+            showTradePopup = false
+            showDevCardHand = false
         }
         .onChange(of: isDiscardPresented, initial: true) { _, isPresented in
             guard isPresented else { return }
@@ -700,7 +713,8 @@ public struct GameView: View {
                         devCardPopupType = type
                         showDevCardHand = true
                     },
-                    onDeployArmy: { if isHumanMainTurn { _ = viewModel.beginBoardDecision(.deployArmy) } }
+                    onDeployArmy: { if isHumanMainTurn { _ = viewModel.beginBoardDecision(.deployArmy) } },
+                    productionFeedback: viewModel.resourceProductionFeedback
                 )
                 .padding(.horizontal, 12)
                 // This is a dense graphical inventory, not prose. Letting
@@ -958,12 +972,16 @@ private extension GameView {
         ))
     }
 
+    private var canPresentBoardPopup: Bool {
+        !isDiscardPresented && viewModel.boardDecisionPresentation == nil
+    }
+
     private var isBlockingOverlayPresented: Bool {
         let winnerBlocksBoard = switch interactionPriority.winner {
         case .recoveryFailure, .privateReceipt: true
         default: false
         }
-        return showBuildPopup || showArmyPurchase || showTradePopup || showDevCardHand
+        return (canPresentBoardPopup && (showBuildPopup || showArmyPurchase || showTradePopup))
             || (isDiscardPresented && !viewModel.isDiscardEditorMinimized)
             || interactionPriority.isSettingsCoverPresented || winnerBlocksBoard
     }

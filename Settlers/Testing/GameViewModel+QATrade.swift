@@ -2,6 +2,17 @@
 import CatanEngine
 
 extension GameViewModel {
+    /// Conserved 2:1 position from the reported six-grain / three-ore trade.
+    func qaPrepareBankTradePosition() {
+        var fixture = GameSetup.newGame(board: BoardGenerator.standard(), seed: 4_308)
+        let port = fixture.board.ports.first { $0.kind == .resource(.grain) }!
+        fixture.players[humanPlayer.index].settlements.insert(port.vertexA)
+        fixture.players[humanPlayer.index].resources = [.grain: 7]
+        fixture.bank[.grain, default: 0] -= 7
+        fixture.phase = .mainTurn(playerIndex: humanPlayer.index)
+        replaceStateForTesting(fixture, humanSeat: humanPlayer)
+    }
+
     /// Installs a real pending bot offer with a conserved, deterministic hand.
     ///
     /// Unlike the old view-only fixture, accepting or rejecting this offer

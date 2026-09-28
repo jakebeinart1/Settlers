@@ -321,7 +321,8 @@ public struct HumanPlayerPanel: View {
         .opacity(count > 0 || gain > 0 ? 1 : 0.35)
         .accessibilityElement(children: .ignore)
         .accessibilityLabel("\(resource.rawValue.capitalized) cards")
-        .accessibilityValue(gain > 0 ? "\(count), received \(gain) from the roll" : "\(count)")
+        .accessibilityValue("\(count)")
+        .accessibilityHint(gain > 0 ? "Received \(gain) from the roll" : "")
         .accessibilityIdentifier(AccessibilityID.Game.humanResource(resource))
     }
 }

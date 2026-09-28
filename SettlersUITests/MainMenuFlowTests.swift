@@ -310,6 +310,39 @@ final class BoardDecisionFlowTests: XCTestCase {
         XCTAssertTrue(app.staticTexts["dev-cards.result"].waitForExistence(timeout: 3))
     }
 
+    func testVastNonzeroSeatCanConfirmStealing() {
+        continueAfterFailure = false
+        let app = launchBoardDecision("-qaShowMandatoryRobberDecision", modifiers: ["-qaVastMode", "-qaHumanSeatTwo"])
+        let confirm = requireDecisionDock(in: app)
+        let tiles = app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH %@", "board.tile."))
+        XCTAssertGreaterThan(tiles.count, 19, "The fixture must actually retain the Vast map")
+        selectRobberDestinationWithVictim(in: app)
+        let victim = app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH %@", BoardDecisionUITestID.victimPrefix)).firstMatch
+        XCTAssertTrue(victim.waitForExistence(timeout: 3))
+        victim.tap()
+        XCTAssertTrue(confirm.isEnabled)
+        XCTAssertTrue(app.frame.contains(confirm.frame), "Confirm must be fully on-screen")
+        let attachment = XCTAttachment(screenshot: app.screenshot())
+        attachment.name = "Vast robber ready to confirm"
+        attachment.lifetime = .keepAlways
+        add(attachment)
+        confirm.tap()
+        XCTAssertTrue(app.otherElements[BoardDecisionUITestID.dock].waitForNonExistence(timeout: 3))
+        assertResource(.ore, equals: 1, in: app)
+    }
+
+    func testMandatoryRobberIsInteractiveWhenTradePresentationIsSuperseded() {
+        continueAfterFailure = false
+        let app = launchBoardDecision("-qaShowMandatoryRobberDecision", modifiers: ["-qaShowTradePopup"])
+        let confirm = requireDecisionDock(in: app)
+        selectRobberDestinationWithVictim(in: app)
+        app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH %@", BoardDecisionUITestID.victimPrefix)).firstMatch.tap()
+        XCTAssertTrue(confirm.isEnabled)
+        confirm.tap()
+        XCTAssertTrue(app.otherElements[BoardDecisionUITestID.dock].waitForNonExistence(timeout: 3))
+        assertResource(.ore, equals: 1, in: app)
+    }
+
     func testSettingsRoundTripRetainsTheExactProposal() {
         continueAfterFailure = false
         let app = launchBoardDecision("-qaShowPaidRoadDecision")

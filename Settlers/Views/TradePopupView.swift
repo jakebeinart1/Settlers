@@ -55,6 +55,7 @@ public struct TradePopupView: View {
     @State private var want: [Resource: Int] = [:]
     @State private var errorMessage: String?
     @State private var proposalOutcome: GameViewModel.TradeOutcome?
+    @State private var receipt: TradeReceipt?
     @State private var isShowingBankHelp = false
 
     private static let bankGold = CatanTheme.chipGold
@@ -62,67 +63,76 @@ public struct TradePopupView: View {
     private var human: Player? { viewModel.state.players.first { $0.id == viewModel.humanPlayer } }
 
     public var body: some View {
-        PopupCard(onDismiss: onDismiss, alignment: .top) {
-            VStack(spacing: 14) {
-                header
-                // While a bot's answer is on screen the builder is hidden
-                // rather than pushed below it. Two reasons, one of them a bug:
-                //
-                // The bug: this popup does NOT scroll. `PopupCard` says so
-                // explicitly - an earlier version scrolled and that was
-                // reverted because the overflow was the actual defect, not
-                // something to scroll around. A previous revision here removed
-                // the fixed 260pt status reservation on the stated grounds
-                // that "PopupCard scrolls when tall", which was never true, and
-                // with three bots accepting, "Close" went off the bottom edge
-                // with no way to reach it.
-                //
-                // The reason it is also better: a player looking at three bots'
-                // answers is deciding on an offer, not composing one. The
-                // builder is noise at that moment, and reserving 260pt of blank
-                // space for a banner that is absent most of the time was most
-                // of why this card read as empty.
-                if isShowingBotResponse {
-                    statusRegion
-                } else {
-                    modePicker
-                    tradeBuilder
-                    actionButton
+        GeometryReader { geometry in
+            ZStack {
+                Color.black.opacity(0.45).ignoresSafeArea().onTapGesture(perform: onDismiss)
+                // Hug ordinary content; scroll only the middle on short screens.
+                // The footer never scrolls away, even with help or three replies.
+                ViewThatFits(in: .vertical) {
+                    panel(scrolling: false, height: nil)
+                    panel(scrolling: true, height: max(0, geometry.size.height - 24))
                 }
-
-                if let errorMessage {
-                    Text(errorMessage)
-                        .font(.caption)
-                        .foregroundStyle(.red)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                }
-
-                // A resolved outcome ("No one accepted" / "X accepted!")
-                // used to leave Close as the only way out - fine after a
-                // trade actually goes through, but proposing again meant
-                // closing the whole popup and reopening it from the Trade
-                // button just to clear the banner. `proposalOutcome` (as
-                // opposed to `pendingTradeConfirmation`, which still has its
-                // own Decline/Confirm pair below) is specifically the
-                // "nothing left to decide" state, so that is the one that
-                // gets a way back into the builder instead of only a way out.
-                if proposalOutcome != nil {
-                    GoldRowButton(title: "New Offer", systemImage: "arrow.counterclockwise") {
-                        proposalOutcome = nil
-                        give = [:]
-                        want = [:]
-                        errorMessage = nil
-                    }
-                }
-                GoldRowButton(title: "Close", systemImage: "xmark", action: onDismiss)
-            }
-            .padding(16)
-            .frame(maxWidth: 360)
-            .onAppear {
-                // An all-human table has no Players tab to select.
-                if !viewModel.hasBotSeats { mode = .bank }
+                .padding(.horizontal, 24)
+                .padding(.vertical, 12)
             }
         }
+        .onAppear { if !viewModel.hasBotSeats { mode = .bank } }
+    }
+
+    private func panel(scrolling: Bool, height: CGFloat?) -> some View {
+        VStack(spacing: 14) {
+            header
+            if scrolling {
+                ScrollView { panelContent }
+            } else {
+                panelContent.fixedSize(horizontal: false, vertical: true)
+            }
+            footer
+        }
+        .padding(16)
+        .frame(maxWidth: 360, maxHeight: height)
+        .background(CatanTheme.panelBackground, in: RoundedRectangle(cornerRadius: 16))
+        .overlay(RoundedRectangle(cornerRadius: 16).strokeBorder(.white.opacity(0.2)))
+        .shadow(radius: 20)
+    }
+
+    private var panelContent: some View {
+        VStack(spacing: 14) {
+            if let receipt {
+                TradeReceiptView(receipt: receipt, partnerName: receipt.partner.map {
+                    viewModel.playerIdentity(for: $0).displayName
+                } ?? "the Bank")
+            } else if isShowingBotResponse {
+                statusRegion
+            } else {
+                modePicker
+                tradeBuilder
+            }
+            if let errorMessage {
+                Text(errorMessage).font(.caption).foregroundStyle(.red)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+            }
+        }
+    }
+
+    private var footer: some View {
+        VStack(spacing: 10) {
+            if receipt != nil || proposalOutcome != nil {
+                GoldRowButton(title: receipt != nil ? "Trade again" : "New Offer",
+                              systemImage: "arrow.counterclockwise", action: resetDraft)
+            } else if !isShowingBotResponse {
+                actionButton
+            }
+            GoldRowButton(title: receipt != nil ? "Close trade" : "Close", systemImage: "xmark", action: onDismiss)
+        }
+    }
+
+    private func resetDraft() {
+        receipt = nil
+        proposalOutcome = nil
+        give = [:]
+        want = [:]
+        errorMessage = nil
     }
 
     private var header: some View {
@@ -259,7 +269,7 @@ public struct TradePopupView: View {
                 // `Trading` rejects it and `perform` surfaces the reason, which
                 // beats quietly altering an offer the player composed.
                 let remaining = max(0, owned - (give[resource] ?? 0))
-                ResourceChip(resource: resource, count: remaining, isEnabled: remaining > 0) {
+                ResourceChip(resource: resource, count: remaining, isEnabled: remaining > 0 && want[resource, default: 0] == 0) {
                     give[resource] = (give[resource] ?? 0) + 1
                 }
                 .accessibilityIdentifier(AccessibilityID.Trade.giveChip(resource))
@@ -272,7 +282,7 @@ public struct TradePopupView: View {
     private var wantPalette: some View {
         HStack(spacing: 8) {
             ForEach(Resource.allCases, id: \.self) { resource in
-                ResourceChip(resource: resource, count: nil) {
+                ResourceChip(resource: resource, count: nil, isEnabled: give[resource, default: 0] == 0) {
                     want[resource] = (want[resource] ?? 0) + 1
                 }
                 .accessibilityIdentifier(AccessibilityID.Trade.wantChip(resource))
@@ -290,8 +300,7 @@ public struct TradePopupView: View {
     /// hexagons - You give, You get, Your hand, Ask for, Your rate - which is
     /// four ways of saying the same thing plus a rate table nobody asked for.
     ///
-    /// Everything those rows carried now lives on the give card itself: the
-    /// rate is printed under it, the number you hold is its badge, and one tap
+    /// The give card shows the staged count and its rate, and one tap
     /// stages a whole bundle at that rate. So the trade is legal by
     /// construction rather than by the player working out the arithmetic, and
     /// the "each Give resource must be a multiple of its rate" instruction -
@@ -319,8 +328,8 @@ public struct TradePopupView: View {
 
             if isShowingBankHelp {
                 Text("The bank swaps cards at a fixed rate. Four of a kind buys one "
-                     + "of anything - or three, or two, if you have built on that port. "
-                     + "Tap a card below to hand over one full trade at its rate.")
+                     + "of a different resource - or three, or two, if you have built on that port. "
+                     + "Tap a card to add. Use minus to take one back.")
                     .font(.caption)
                     .foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
@@ -351,14 +360,19 @@ public struct TradePopupView: View {
                 let bundle = rate(for: resource)
                 VStack(spacing: 4) {
                     ResourceChip(resource: resource,
-                                 count: staged > 0 ? staged : owned,
-                                 isEnabled: owned - staged >= bundle,
+                                 count: staged,
+                                 isEnabled: owned - staged >= bundle && want[resource, default: 0] == 0,
                                  isSelected: staged > 0) {
                         give[resource] = staged + bundle
                     }
+                    .accessibilityIdentifier(AccessibilityID.Trade.bankGive(resource))
+                    .accessibilityValue("\(staged)")
                     Text("\(bundle):1")
                         .font(.system(size: 13, weight: .bold, design: .rounded))
                         .foregroundStyle(bundle < 4 ? CatanTheme.chipGold : Color.secondary)
+                    removeButton(resource: resource, isGive: true, count: staged) {
+                        give[resource] = staged > bundle ? staged - bundle : nil
+                    }
                 }
             }
         }
@@ -382,23 +396,36 @@ public struct TradePopupView: View {
         return HStack(spacing: 8) {
             ForEach(Resource.allCases, id: \.self) { resource in
                 let staged = want[resource] ?? 0
-                ResourceChip(resource: resource, count: staged > 0 ? staged : nil,
-                             isEnabled: unspent > 0 || staged > 0,
-                             isSelected: staged > 0) {
-                    // A card already asked for always REMOVES one on tap, and
-                    // an unasked one adds. Previously a tap added while any
-                    // bundle was unspent and only removed once none were, so
-                    // undoing a mis-tap gave you a second of the thing you did
-                    // not want - and the only escape was Clear, which also
-                    // threw away the cards you had staged to pay with.
-                    if staged > 0 {
-                        want[resource] = staged == 1 ? nil : staged - 1
-                    } else {
-                        want[resource] = 1
+                VStack(spacing: 4) {
+                    ResourceChip(resource: resource, count: staged > 0 ? staged : nil,
+                                 isEnabled: unspent > 0 && give[resource, default: 0] == 0
+                                    && staged < viewModel.state.bank[resource, default: 0],
+                                 isSelected: staged > 0) {
+                        want[resource] = staged + 1
+                    }
+                    .accessibilityIdentifier(AccessibilityID.Trade.bankGet(resource))
+                    .accessibilityValue("\(staged)")
+                    removeButton(resource: resource, isGive: false, count: staged) {
+                        want[resource] = staged > 1 ? staged - 1 : nil
                     }
                 }
             }
         }
+    }
+
+    private func removeButton(resource: Resource, isGive: Bool, count: Int, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            Image(systemName: "minus.circle")
+                .font(.system(size: 19))
+                .frame(minWidth: 44, minHeight: 44)
+                .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .foregroundStyle(CatanTheme.chipGold)
+        .disabled(count == 0)
+        .opacity(count == 0 ? 0.25 : 1)
+        .accessibilityLabel("Remove \(isGive ? rate(for: resource) : 1) \(resource.rawValue) from \(isGive ? "give" : "get")")
+        .accessibilityIdentifier(AccessibilityID.Trade.bankRemove(resource, fromGive: isGive))
     }
 
     private func sectionLabel(_ text: String) -> some View {
@@ -417,7 +444,7 @@ public struct TradePopupView: View {
             GoldRowButton(
                 title: "Propose to Bots",
                 systemImage: "person.2.fill",
-                isEnabled: !give.isEmpty && !want.isEmpty
+                isEnabled: !give.isEmpty && !want.isEmpty && Set(give.keys).isDisjoint(with: want.keys)
             ) {
                 let offer = TradeOffer(from: viewModel.humanPlayer, give: give, want: want)
                 proposalOutcome = nil
@@ -450,9 +477,8 @@ public struct TradePopupView: View {
 
     /// Shows a bot's answer.
     ///
-    /// Only ever rendered in place of the builder (see `body`), never below
-    /// it - this popup cannot scroll, so anything that does not fit is simply
-    /// unreachable.
+    /// Rendered in place of the builder: composing and deciding are separate
+    /// tasks, not two panels competing for the phone's limited space.
     /// Whether a bot's answer is occupying the card.
     private var isShowingBotResponse: Bool {
         viewModel.pendingTradeConfirmation != nil || proposalOutcome != nil
@@ -504,9 +530,11 @@ public struct TradePopupView: View {
                     // no changed cards, no indication why - because `try?`
                     // swallowed the failure. Now it is reported like any other
                     // failed move.
+                    let previousSequence = viewModel.eventBatch.sequence
                     switch viewModel.confirmPendingTrade() {
                     case .succeeded:
                         errorMessage = nil
+                        captureReceipt(after: previousSequence)
                         proposalOutcome = viewModel.lastTradeOutcome
                     case .offerNoLongerAvailable:
                         errorMessage = "That trade is no longer available."
@@ -603,8 +631,14 @@ public struct TradePopupView: View {
     private var isValidBankTrade: Bool { bankTradeProblem == nil }
 
     private var bankHintText: String {
+        if !Set(give.keys).isDisjoint(with: want.keys) {
+            return "Give and get must be different resources. Remove one side to continue."
+        }
+        if let resource = Resource.allCases.first(where: { give[$0, default: 0] % rate(for: $0) != 0 }) {
+            return "Give \(resource.rawValue) in bundles of \(rate(for: resource)). Clear or remove that stack to adjust it."
+        }
         if give.isEmpty && want.isEmpty {
-            return "Tap a card to hand over one trade's worth."
+            return "Tap cards to add; minus takes them back. Each tap gives one bundle."
         }
         if give.isEmpty { return "Pick a card to give first - what you get unlocks once it is paid for." }
         if want.isEmpty {
@@ -635,12 +669,23 @@ public struct TradePopupView: View {
 
     private func perform(_ move: GameMove) {
         do {
+            let previousSequence = viewModel.eventBatch.sequence
             try viewModel.apply(move)
+            captureReceipt(after: previousSequence)
             errorMessage = nil
             give = [:]
             want = [:]
         } catch {
             errorMessage = error.localizedDescription
         }
+    }
+
+    private func captureReceipt(after previousSequence: Int) {
+        // A duplicate confirmation is an intentional no-op in the view model.
+        // It must not redisplay a receipt from an older event batch.
+        guard viewModel.eventBatch.sequence != previousSequence else { return }
+        receipt = viewModel.eventBatch.events.compactMap {
+            TradeReceipt(event: $0, player: viewModel.humanPlayer)
+        }.last
     }
 }

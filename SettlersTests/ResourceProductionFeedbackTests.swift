@@ -194,7 +194,10 @@ struct ResourceProductionFeedbackTests {
         let geometry = BoardGenerator.standard()
         let vertices = Set(tiles.flatMap { geometry.corners(of: $0.coordinate) })
         let board = Board(tiles: tiles, ports: [], onBoardVertices: vertices, onBoardEdges: [], robberTile: desert)
-        var state = GameSetup.newGame(board: board, seed: 27)
+        // This isolated payout fixture deliberately has only four hexes;
+        // initialize a supported game before substituting its test board.
+        var state = GameSetup.newGame(board: geometry, seed: 27)
+        state.board = board
         state.phase = .rollDice(playerIndex: roller.index)
         state.players[human.index].cities = [board.corners(of: oreHex)[0]]
         state.players[human.index].settlements = [board.corners(of: grainHex)[0]]
