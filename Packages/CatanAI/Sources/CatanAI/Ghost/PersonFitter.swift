@@ -137,6 +137,17 @@ public enum PersonFitter {
             let centre = options.priorCenter?.weights[slot] ?? anchor[slot]
             grad[slot] += 2 * (options.weightPrior + stiffness) * (model.weights[slot] - centre) / (scale * scale) / count
         }
+        // Beta is pulled toward the previous ghost's like everything else.
+        // It had no prior, and it is the one parameter a single game can move
+        // far: eight simulated on-phone retrains took Jake's 6.5 to 23-32, and
+        // with it the weights, since the data's pull on every weight is scaled
+        // by beta. No pull on a first fit, where there is no previous ghost.
+        // In units of one beta, not of beta's own size: scaled by itself, a
+        // ghost at 10 was pulled 100x more weakly than at 1 and still fell to
+        // the new game's 2.7 in a test with 2,600 decisions of prior evidence.
+        if let centre = options.priorCenter?.beta {
+            grad[betaIndex] += 2 * (options.weightPrior + stiffness) * (model.beta - centre) / count
+        }
         for feature in model.theta.indices {
             let centre = options.priorCenter?.theta[feature] ?? 0
             grad[slots + 1 + feature] += 2 * (options.stylePrior + stiffness) * (model.theta[feature] - centre) / count
