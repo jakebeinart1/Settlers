@@ -37,6 +37,7 @@ struct ContentView: View {
     // `-qaAutoStart -qaFastForwardToRollDice` launch got permanently stuck
     // after the first round of setup placements, every time.
     @State private var hasStartedThisSession = false
+    @State private var isAskingLadderName = LadderNamePrompt.isNeeded
     @Environment(\.scenePhase) private var scenePhase
 
     var body: some View {
@@ -86,6 +87,9 @@ struct ContentView: View {
                     newGameSetupLoadResult: viewModel.newGameSetupLoadResult
                 )
             }
+        }
+        .fullScreenCover(isPresented: $isAskingLadderName) {
+            LadderNamePrompt { isAskingLadderName = false }
         }
         // A save that exists but will not decode is reported, not swallowed.
         // Silently starting a fresh game in that case is how a player loses a

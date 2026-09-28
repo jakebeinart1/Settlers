@@ -37,6 +37,9 @@ enum QALaunchFlag: String, CaseIterable {
     /// "Jake" and Jake's bundled ghost (plus two Classic seats), so the ghost
     /// page shows a record and a spider graph on a fresh install.
     case seedLeaderboard = "-qaSeedLeaderboard"
+    /// Shows the launch name prompt (`LadderNamePrompt`), which a build
+    /// without the online ladder never asks.
+    case askLadderName = "-qaAskLadderName"
     /// Same screen, on a fixture whose second human seat has a whitespace-only
     /// name - so the amber problem plaque and the disabled Start can be
     /// photographed too. Without this the invalid state is unreachable, because

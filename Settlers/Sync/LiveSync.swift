@@ -34,7 +34,7 @@ actor LiveSync {
     enum Status: Error, Equatable, Sendable {
         case never
         case online(Date)
-        /// Nothing to sync as: no name set in Settings.
+        /// Nothing to sync as: no name chosen yet, or still the default "You".
         case noName
         /// The name is held by another Apple ID.
         case nameTaken(String)
@@ -63,6 +63,9 @@ actor LiveSync {
     /// public-database allowance, which grows with active users - while a
     /// friend's game still shows up within five minutes.
     static let refreshInterval: TimeInterval = 300
+
+    /// The seat name used when the player never typed one (`GameViewModel`).
+    static let defaultName = "You"
 
     /// `nil` unless this build is configured for CloudKit, and never under
     /// tests, which must not reach a real database.
@@ -157,7 +160,9 @@ actor LiveSync {
     private func claimName(for me: String) async throws -> Result<OwnClaim, Status> {
         let name = displayName().trimmingCharacters(in: .whitespacesAndNewlines)
         let slug = GhostTrainer.ghostID(forPerson: name)
-        guard !slug.isEmpty else { return .failure(.noName) }
+        // "You" is what a seat is called when nobody typed a name. Claiming it
+        // would hand one player every phone's default name for good.
+        guard !slug.isEmpty, name.caseInsensitiveCompare(Self.defaultName) != .orderedSame else { return .failure(.noName) }
         let claim = try await backend.claim(slug: slug, name: name)
         return claim.owner == me ? .success(OwnClaim(slug: slug, claim: claim)) : .failure(.nameTaken(claim.name))
     }

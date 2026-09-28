@@ -14,6 +14,7 @@ enum AccessibilityID {
         static let gameHistory = "screen.game-history"
         static let replay = "screen.replay"
         static let leaderboard = "screen.leaderboard"
+        static let ladderName = "screen.ladder-name"
         static let ratedEntity = "screen.rated-entity"
     }
 
@@ -22,6 +23,9 @@ enum AccessibilityID {
         static let back = "leaderboard.back"
         static let radar = "leaderboard.radar"
         static let syncStatus = "leaderboard.sync-status"
+        static let nameField = "leaderboard.name-field"
+        static let joinButton = "leaderboard.join"
+        static let changeName = "leaderboard.change-name"
         static func row(_ key: String) -> String { "leaderboard.row.\(key)" }
     }
 
