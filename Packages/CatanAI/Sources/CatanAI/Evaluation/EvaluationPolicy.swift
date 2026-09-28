@@ -68,15 +68,21 @@ public struct EvaluationPolicy: LedgerAwarePolicy {
     /// does not.
     public let weightsOverride: EvaluationWeights?
     public let tradeModel: TradeModel
+    /// Whether this seat spends down before ending a turn over the discard
+    /// threshold (`HandDiscipline`). Off only for the comparison arm that
+    /// measures the rule; the app never turns it off.
+    public let handDiscipline: Bool
 
     public init(
         id: String = "evaluation-v1",
         weights: EvaluationWeights? = nil,
-        tradeModel: TradeModel = .worthIt
+        tradeModel: TradeModel = .worthIt,
+        handDiscipline: Bool = true
     ) {
         self.id = id
         self.weightsOverride = weights
         self.tradeModel = tradeModel
+        self.handDiscipline = handDiscipline
     }
 
     /// The weights this policy plays `mode` with.
@@ -140,6 +146,7 @@ public struct EvaluationPolicy: LedgerAwarePolicy {
 
         var bestMove = legal[0]
         var bestScore = -Double.greatestFiniteMagnitude
+        var bestSpend: (move: GameMove, score: Double)?
         for move in legal {
             // Every model but the frozen anchor chooses its own proposal, from
             // offers the enumeration cannot express; see `TradeCascade.swift`.
@@ -152,11 +159,17 @@ public struct EvaluationPolicy: LedgerAwarePolicy {
                 bestScore = score
                 bestMove = move
             }
+            if HandDiscipline.spends(move), score > bestSpend?.score ?? -Double.greatestFiniteMagnitude {
+                bestSpend = (move, score)
+            }
         }
         if tradeModel != .roundThree,
            let proposal = cascadeProposal(state: state, ledger: ledger, evaluator: evaluator, legal: legal),
            proposal.score > bestScore {
             bestMove = .proposeTrade(proposal.offer)
+        }
+        if handDiscipline, bestMove == .endTurn, let bestSpend, HandDiscipline.mustSpend(evaluator.seat, in: state) {
+            return bestSpend.move
         }
         return bestMove
     }

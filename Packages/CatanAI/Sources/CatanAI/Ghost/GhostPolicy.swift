@@ -16,11 +16,14 @@ public struct GhostPolicy: LedgerAwarePolicy {
     public let id: String
     public let person: PersonModel
     public let lambda: Double
+    /// See `EvaluationPolicy.handDiscipline`: off only to measure the rule.
+    public let handDiscipline: Bool
     private let expert = EvaluationPolicy()
     private let personal: EvaluationPolicy
 
-    public init(person: PersonModel, lambda: Double, id: String = "ghost") {
+    public init(person: PersonModel, lambda: Double, id: String = "ghost", handDiscipline: Bool = true) {
         self.id = id
+        self.handDiscipline = handDiscipline
         self.person = person
         self.lambda = lambda
         self.personal = EvaluationPolicy(weights: EvaluationWeights(vector: person.weights))
@@ -58,7 +61,20 @@ public struct GhostPolicy: LedgerAwarePolicy {
                 bestValue = value
             }
         }
-        return judged[best].move
+        return handDiscipline && judged[best].move == .endTurn && HandDiscipline.mustSpend(observation.seat, in: observation.state)
+            ? spendDown(judged) ?? .endTurn
+            : judged[best].move
+    }
+
+    /// Expert's best spending move, when the ghost would otherwise end a turn
+    /// over the discard threshold (`HandDiscipline`).
+    ///
+    /// Expert's judgement alone, not the person's: this is where the person's
+    /// habits did the damage. Jake's model carries -1.3 on bank trades and
+    /// -0.7 on ending the turn, and at a 0.014 margin that difference was the
+    /// whole decision, eight turns running.
+    private func spendDown(_ judged: [ScoredCandidate]) -> GameMove? {
+        judged.filter { HandDiscipline.spends($0.move) }.max { $0.score < $1.score }?.move
     }
 
     /// What Expert itself would weigh, scored as Expert scores it.
