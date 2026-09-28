@@ -61,9 +61,11 @@ public enum Trading {
         let getTotal = get.values.reduce(0, +)
         guard giveTotal > 0, getTotal > 0 else { return .illegalPlacement }
 
-        // Trading a resource for itself is always a strict loss and is never
-        // something a player means to do, but the rate arithmetic alone
-        // happily accepts it (8 brick for 2 brick balances at 4:1).
+        // CATAN maritime trades exchange for a different resource type.
+        // https://www.catan.com/faq/basegame (Trade - resource symbols)
+        // https://live.catanconsoleedition.com/news/catan-101-how-trading-works
+        // The ratio alone cannot enforce that rule: 8 brick for 2 brick
+        // balances at 4:1 but is still illegal.
         guard Set(give.keys).isDisjoint(with: get.keys) else { return .illegalPlacement }
 
         // Each given resource must be offered in a quantity that's a whole
