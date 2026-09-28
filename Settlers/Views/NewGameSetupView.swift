@@ -596,7 +596,7 @@ struct NewGameSetupView: View {
         labelledChoice(
             label: "Board",
             help: .board,
-            helpText: "Standard is the classic fixed layout every game of Catan opens on. "
+            helpText: "Standard is the same fixed layout every game. "
                 + "Randomized reshuffles the terrain and the number tokens.",
             caption: nil
         ) {

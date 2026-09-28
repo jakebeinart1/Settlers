@@ -5,7 +5,8 @@ import CatanEngine
 /// display name - the underlying Xcode project/module is still named
 /// `Settlers`, a deliberately untouched implementation detail), "New Game",
 /// "Resume Game" (only when a save exists), "Game History" (only when
-/// something has been recorded), and the lifetime stats row.
+/// something has been recorded), the lifetime stats row, and a Rules pill in
+/// the top-right corner that opens `HowToPlayView`.
 ///
 /// ## Why there is no Settings button any more
 /// There was a gear pill in the top-right opening `SettingsView`, and by
@@ -51,6 +52,7 @@ public struct MainMenuView: View {
     @State private var isShowingGameHistory = QALaunchFlag.showGameHistory.isSet
         || QALaunchFlag.showReplay.isSet
     @State private var isShowingLeaderboard = false
+    @State private var isShowingHowToPlay = QALaunchFlag.showHowToPlay.isSet
     /// Whether the archive holds anything worth opening. A directory listing,
     /// not a parse: the count only decides whether to show a button, and
     /// decoding every recording to answer that would make the menu pay for a
@@ -134,6 +136,8 @@ public struct MainMenuView: View {
                 Spacer()
             }
 
+            howToPlayButton
+
             // An in-place overlay rather than `.fullScreenCover`, and with no
             // transition - Jake's ask, 2026-09-03: a modal cover always plays
             // UIKit's slide-up presentation animation, which cannot be turned
@@ -169,6 +173,35 @@ public struct MainMenuView: View {
         .fullScreenCover(isPresented: $isShowingLeaderboard) {
             LeaderboardView(onDismiss: { isShowingLeaderboard = false })
         }
+        .fullScreenCover(isPresented: $isShowingHowToPlay) {
+            HowToPlayView(onDismiss: { isShowingHowToPlay = false })
+        }
+    }
+
+    /// Rules and the walkthrough, pinned to the top-right corner (Jake,
+    /// 2026-09-28) rather than added as a fifth gold row: a returning player
+    /// never needs it, so it should be findable without competing with New
+    /// Game for the middle of the screen.
+    private var howToPlayButton: some View {
+        VStack {
+            HStack {
+                Spacer()
+                Button { isShowingHowToPlay = true } label: {
+                    Label("Rules", systemImage: "book.fill")
+                        .font(.system(size: 15, weight: .semibold, design: .serif))
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 7)
+                        .background(PaintedChromeBackground(fill: .color(SettingsChrome.plaqueFill), cornerRadius: 10,
+                                                            notchScale: 0.6))
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel("How to Play")
+                .accessibilityIdentifier(AccessibilityID.MainMenu.howToPlay)
+            }
+            Spacer()
+        }
+        .padding(.horizontal, 16)
+        .padding(.top, 8)
     }
 
     /// The way back into games already played, sitting directly above the

@@ -139,6 +139,8 @@ enum QALaunchFlag: String, CaseIterable {
     /// Opens `GameHistoryView` over the main menu. Pair with
     /// `-qaSeedGameHistory`, or the screen correctly shows its empty state.
     case showGameHistory = "-qaShowGameHistory"
+    /// Opens `HowToPlayView` over the main menu, on its Walkthrough tab.
+    case showHowToPlay = "-qaShowHowToPlay"
     /// Writes one short finished recording into the archive before the menu
     /// appears, so the history list and the replay screen have a deterministic
     /// game to open. Real recordings need a played-out match; this is the only

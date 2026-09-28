@@ -26,6 +26,7 @@
 		123CB296DE224A4FEAEF6173 /* TradeReceiptTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D31FB025F54503AC88495A8 /* TradeReceiptTests.swift */; };
 		13004C279D6FA79C03B66CB1 /* GhostTrainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8B132570ABBBFF851519647A /* GhostTrainer.swift */; };
 		14BCE187CAB45289A7C09E54 /* CloudBackend.swift in Sources */ = {isa = PBXBuildFile; fileRef = 191C5E42E18826A5D4B6BD24 /* CloudBackend.swift */; };
+		15ED16990789A67992C0E39A /* HowToPlayFlowTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9A42270345F1194BF658C81 /* HowToPlayFlowTests.swift */; };
 		174F9D80368C548D93E1A7D3 /* RobberConfirmationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E0675F5FEBC91C411DE65811 /* RobberConfirmationTests.swift */; };
 		17895BD56BB9A425D24D9B63 /* SeatStatsStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = D51D6C2B064A6FE2882F48B4 /* SeatStatsStore.swift */; };
 		17B209D17F882202517AC5D8 /* BoardChips.swift in Sources */ = {isa = PBXBuildFile; fileRef = 64B237C01DFEE60CA454FFCB /* BoardChips.swift */; };
@@ -53,6 +54,7 @@
 		38C27CDC3380AB32A2AA53C6 /* CivilizationSettingsStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5C25923598FA6B7BCAF62C5A /* CivilizationSettingsStore.swift */; };
 		3B62B3E810E58200F2983839 /* CatanTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4B89EE635B1E470682ED1D4B /* CatanTheme.swift */; };
 		3DB00133F0A18C5A4E8710E7 /* DevCardStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3E45A27E8D8AA6CC2D8717A /* DevCardStyle.swift */; };
+		3DD57F560189E3A8DBDCA125 /* HowToPlayContent.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC5EA52CBEC4E5FA13EAACEE /* HowToPlayContent.swift */; };
 		3DFA472D04AA6869164E2F52 /* BotDifficultyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99A87B86850543E2C6721D01 /* BotDifficultyTests.swift */; };
 		3F438AED3E4BED126FEC2153 /* GameViewModel+Recovery.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8DDA700575394DF91917C2EE /* GameViewModel+Recovery.swift */; };
 		434C2E6A7C5F23148D5810A7 /* SaveRecoveryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB62855B09E0A68CD8B97889 /* SaveRecoveryTests.swift */; };
@@ -67,6 +69,7 @@
 		4F5EE77C59F9BE470AFF5799 /* CloudKitBackend.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3709CC5CD3E831311DD00FA /* CloudKitBackend.swift */; };
 		5017D3A0DED43EEFE47CB4CC /* GameView+QA.swift in Sources */ = {isa = PBXBuildFile; fileRef = CCAAA4A264244E1A6CD47BEB /* GameView+QA.swift */; };
 		5033447C4E7FE175EFE2F595 /* DevelopmentCardFlowTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6C3E1669AE4CEDD931039E43 /* DevelopmentCardFlowTests.swift */; };
+		51B8E2F594B621641729863E /* HowToPlayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8009BD402BC196E55B1C7A19 /* HowToPlayView.swift */; };
 		553CE98D82F40F5E629CF8A7 /* GameHistoryFlowTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CD3E109D52F2D3D54EA71F13 /* GameHistoryFlowTests.swift */; };
 		556002F6D3EEBF9679079FD6 /* RatingStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63FDF22B7ACAB8B54DB31A63 /* RatingStore.swift */; };
 		5754F9C1356C779A5553C1BD /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = AAE31202C59C388953152F18 /* Assets.xcassets */; };
@@ -113,6 +116,7 @@
 		8A95329505542BBE6D3491A9 /* CheckpointLifecycleTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 293F3C9F45563859C6C2E3F3 /* CheckpointLifecycleTests.swift */; };
 		8AF726AC5707B3AA0DDBB903 /* BoardDecisionCoordinatorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5F1D0F7BFD00C785501001C /* BoardDecisionCoordinatorTests.swift */; };
 		8F8382E69A373BB264240262 /* PersistenceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68A4D0016F665BB8F904F4DD /* PersistenceTests.swift */; };
+		913C57653536FBA441AD3CB5 /* HowToPlayIllustration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 820F1935BE5BF60DE5E0137D /* HowToPlayIllustration.swift */; };
 		917E8B9490D1B99CFFA7AAF6 /* DiscardDraftTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AEA920BF49EA01E0CB03070F /* DiscardDraftTests.swift */; };
 		92A35E7291EA81AF8A6CCB08 /* jake.ghost in Resources */ = {isa = PBXBuildFile; fileRef = 325AC0C64B02A426FFC40EC6 /* jake.ghost */; };
 		96E9A0F7E1CC5EDC00265E47 /* ResourceProductionFeedback.swift in Sources */ = {isa = PBXBuildFile; fileRef = DAE86C5408798C13B4847320 /* ResourceProductionFeedback.swift */; };
@@ -286,7 +290,9 @@
 		7CECF5639AE6110AD5C7475C /* GameViewModel+GameOver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "GameViewModel+GameOver.swift"; sourceTree = "<group>"; };
 		7D31FB025F54503AC88495A8 /* TradeReceiptTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TradeReceiptTests.swift; sourceTree = "<group>"; };
 		7E281605A981DE27D853BE66 /* GameViewModel+QATrade.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "GameViewModel+QATrade.swift"; sourceTree = "<group>"; };
+		8009BD402BC196E55B1C7A19 /* HowToPlayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HowToPlayView.swift; sourceTree = "<group>"; };
 		8164AC90317469202817676F /* SettlersApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettlersApp.swift; sourceTree = "<group>"; };
+		820F1935BE5BF60DE5E0137D /* HowToPlayIllustration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HowToPlayIllustration.swift; sourceTree = "<group>"; };
 		82B3789736E74EC7C38C0C27 /* MatchCheckpointMigration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MatchCheckpointMigration.swift; sourceTree = "<group>"; };
 		83ABF1BEB91221BFB90E929D /* ArmyHandViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArmyHandViews.swift; sourceTree = "<group>"; };
 		859E263A00119BF52F19D867 /* PacingPreferencesTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PacingPreferencesTests.swift; sourceTree = "<group>"; };
@@ -343,6 +349,7 @@
 		CB7D94876E201553696FE24C /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		CBB4F92ADCFC05C7711F29E5 /* ResourceProductionFeedbackTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ResourceProductionFeedbackTests.swift; sourceTree = "<group>"; };
 		CC426BE6A4FDB88C268644E6 /* GhostStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GhostStore.swift; sourceTree = "<group>"; };
+		CC5EA52CBEC4E5FA13EAACEE /* HowToPlayContent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HowToPlayContent.swift; sourceTree = "<group>"; };
 		CCAAA4A264244E1A6CD47BEB /* GameView+QA.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "GameView+QA.swift"; sourceTree = "<group>"; };
 		CD3E109D52F2D3D54EA71F13 /* GameHistoryFlowTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameHistoryFlowTests.swift; sourceTree = "<group>"; };
 		CF720556392B11429436CBAA /* GameOverActionsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameOverActionsTests.swift; sourceTree = "<group>"; };
@@ -367,6 +374,7 @@
 		E674366C1C13D0BBB8CCC2B2 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		E7A111350A6EA887DD350FF2 /* BoardInspectionSemantics.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BoardInspectionSemantics.swift; sourceTree = "<group>"; };
 		E89E14D5D0ACBB92DF7729B3 /* BoardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BoardView.swift; sourceTree = "<group>"; };
+		E9A42270345F1194BF658C81 /* HowToPlayFlowTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HowToPlayFlowTests.swift; sourceTree = "<group>"; };
 		EB35F43AB81A0869D3F28DF0 /* MatchSetupGhostTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MatchSetupGhostTests.swift; sourceTree = "<group>"; };
 		EB6E7FEA396F945A8263666A /* VictoryPointBreakdownTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VictoryPointBreakdownTests.swift; sourceTree = "<group>"; };
 		EC579AD42504AEED661414A6 /* GameViewModel+Ghosts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "GameViewModel+Ghosts.swift"; sourceTree = "<group>"; };
@@ -559,6 +567,7 @@
 				CD3E109D52F2D3D54EA71F13 /* GameHistoryFlowTests.swift */,
 				95CF01E3C9518CFFC7C0AF1F /* GameplayBoundaryFlowTests.swift */,
 				BFD60E7B13505C8C0D2C0A8A /* GhostOpponentFlowTests.swift */,
+				E9A42270345F1194BF658C81 /* HowToPlayFlowTests.swift */,
 				7A425B1FE3B37FECA7840481 /* InGameSettingsFlowTests.swift */,
 				D9B3F03CB1B60C2FDB672854 /* MainMenuFlowTests.swift */,
 				E03F792FF88D24A73F2BC944 /* NewGameKeyboardInvarianceTests.swift */,
@@ -590,6 +599,9 @@
 				6E786F1B0785BE8FE3D7E229 /* GameViewLayoutSupport.swift */,
 				ECB51DFDE72A08093F517F2E /* GhostPickerPopup.swift */,
 				773974AAADA7CAFE9AC538F0 /* GoldRowButton.swift */,
+				CC5EA52CBEC4E5FA13EAACEE /* HowToPlayContent.swift */,
+				820F1935BE5BF60DE5E0137D /* HowToPlayIllustration.swift */,
+				8009BD402BC196E55B1C7A19 /* HowToPlayView.swift */,
 				F34A579755CFBDEAF52EBB70 /* IncomingTradeCardView.swift */,
 				C34E239F6C210A9578B2BF3B /* InGameSettingsView.swift */,
 				01FCBC5DF77B998FFBDC2042 /* LadderNameEntry.swift */,
@@ -900,6 +912,9 @@
 				13004C279D6FA79C03B66CB1 /* GhostTrainer.swift in Sources */,
 				73E0287081669C06B076C233 /* GoldRowButton.swift in Sources */,
 				AF899EB36C3533A4C9F0472D /* HexGeometry.swift in Sources */,
+				3DD57F560189E3A8DBDCA125 /* HowToPlayContent.swift in Sources */,
+				913C57653536FBA441AD3CB5 /* HowToPlayIllustration.swift in Sources */,
+				51B8E2F594B621641729863E /* HowToPlayView.swift in Sources */,
 				4DF1B0D807C52C188BCD9DC8 /* HumanSeatStore.swift in Sources */,
 				49B07B4241AC2D9627186F1A /* InGameSettingsView.swift in Sources */,
 				7678F2D966C6DDD39D673266 /* IncomingTradeCardView.swift in Sources */,
@@ -1011,6 +1026,7 @@
 				553CE98D82F40F5E629CF8A7 /* GameHistoryFlowTests.swift in Sources */,
 				EDDC6F3EE75F97F9C0A3A1CA /* GameplayBoundaryFlowTests.swift in Sources */,
 				648C33E0171B7088E9DA1DC2 /* GhostOpponentFlowTests.swift in Sources */,
+				15ED16990789A67992C0E39A /* HowToPlayFlowTests.swift in Sources */,
 				2D421855CBD3F4FB9CC6B077 /* InGameSettingsFlowTests.swift in Sources */,
 				6E9E65ED3AD9879E2B45C6D6 /* MainMenuFlowTests.swift in Sources */,
 				A080B035D28E1023EE94C946 /* NewGameKeyboardInvarianceTests.swift in Sources */,

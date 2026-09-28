@@ -16,6 +16,7 @@ enum AccessibilityID {
         static let leaderboard = "screen.leaderboard"
         static let ladderName = "screen.ladder-name"
         static let ratedEntity = "screen.rated-entity"
+        static let howToPlay = "screen.how-to-play"
     }
 
     enum Leaderboard {
@@ -35,6 +36,17 @@ enum AccessibilityID {
         static let resume = "main-menu.resume"
         static let gameHistory = "main-menu.game-history"
         static let leaderboard = "main-menu.leaderboard"
+        static let howToPlay = "main-menu.how-to-play"
+    }
+
+    enum HowToPlay {
+        static let close = "how-to-play.close"
+        static let back = "how-to-play.back"
+        static let next = "how-to-play.next"
+        static func tab(_ name: String) -> String { "how-to-play.tab.\(name)" }
+        static func step(_ index: Int) -> String { "how-to-play.step.\(index)" }
+        static func details(_ section: String) -> String { "how-to-play.details.\(section)" }
+        static func detailsBody(_ section: String) -> String { "how-to-play.details-body.\(section)" }
     }
 
     enum GameHistory {
