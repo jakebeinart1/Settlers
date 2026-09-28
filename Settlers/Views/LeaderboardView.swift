@@ -14,6 +14,7 @@ struct LeaderboardView: View {
     /// `nil` when this build has no sync: the ladder is this phone's alone,
     /// and the screen says nothing about it.
     @State private var syncStatus: LiveSync.Status?
+    @State private var isEditingName = false
     var liveSync = LiveSync.shared
 
     /// How often an open leaderboard asks for a refresh. The request only
@@ -32,6 +33,7 @@ struct LeaderboardView: View {
                         .foregroundStyle(.white.opacity(0.7))
                         .multilineTextAlignment(.center)
                         .accessibilityIdentifier(AccessibilityID.Leaderboard.syncStatus)
+                    nameControls(syncStatus)
                 }
                 if let selected {
                     RatedEntityDetailView(detail: selected, onBack: { self.selected = nil })
@@ -69,11 +71,36 @@ struct LeaderboardView: View {
         switch status {
         case .never: return "Connecting to the online ladder…"
         case .online(let date): return "Online ladder · updated \(date.formatted(date: .omitted, time: .shortened))"
-        case .noName: return "Set your name in Settings to join the online ladder."
-        case .nameTaken(let name): return "“\(name)” is taken online. Choose another name in Settings to post your games."
-        case .noAccount: return "Sign in to iCloud to join the online ladder."
+        case .noName: return "Choose a name to join the online ladder."
+        case .nameTaken(let name): return "“\(name)” is taken online. Choose another name to post your games."
+        // Apps cannot sign a phone into iCloud; only the iPhone's Settings app can.
+        case .noAccount: return "Sign in to iCloud in your iPhone's Settings app to join the online ladder."
         case .offline: return "Offline · showing the ladder as last synced."
         case .failed: return "The online ladder could not be reached. Showing the ladder as last synced."
+        }
+    }
+
+    static func needsName(_ status: LiveSync.Status) -> Bool {
+        switch status {
+        case .noName, .nameTaken: return true
+        default: return false
+        }
+    }
+
+    /// Where a player sets or changes their ladder name (Jake, 2026-09-27):
+    /// open when the ladder needs one, behind "Change name" otherwise.
+    @ViewBuilder private func nameControls(_ status: LiveSync.Status) -> some View {
+        if Self.needsName(status) || isEditingName {
+            LadderNameEntry { newStatus in
+                isEditingName = false
+                if let newStatus { syncStatus = newStatus }
+                reload()
+            }
+        } else if case .online = status {
+            Button("Change name") { isEditingName = true }
+                .font(.system(size: 13, weight: .semibold, design: .serif))
+                .foregroundStyle(SettingsChrome.ornamentGold)
+                .accessibilityIdentifier(AccessibilityID.Leaderboard.changeName)
         }
     }
 

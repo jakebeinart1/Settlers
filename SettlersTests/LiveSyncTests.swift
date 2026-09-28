@@ -167,6 +167,7 @@ import Testing
         let status = await Device("impostor", in: dir).sync(cloud, as: "apple-other", name: "jake ")
         #expect(status == .nameTaken("Jake"))
         #expect(await Device("blank", in: dir).sync(cloud, as: "apple-blank", name: "  ") == .noName)
+        #expect(await Device("default", in: dir).sync(cloud, as: "apple-default", name: "You") == .noName)
     }
 
     /// A game posted under someone else's name, or with a result its moves do

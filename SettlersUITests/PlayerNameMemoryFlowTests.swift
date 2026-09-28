@@ -43,6 +43,24 @@ final class PlayerNameMemoryFlowTests: XCTestCase {
         XCTAssertEqual(app.textFields["new-game.seat-name.0"].value as? String, "Boudica")
     }
 
+    /// The launch prompt's name is the one every game is then played under,
+    /// so a player's games reach the online ladder (Jake, 2026-09-27).
+    func testTheLaunchNamePromptSetsTheNewGameName() {
+        continueAfterFailure = false
+        let app = XCUIApplication()
+        app.launchArguments = ["-ui-testing", "-ui-testing-reset", "-qaAskLadderName"]
+        app.launch()
+
+        let field = app.textFields["leaderboard.name-field"]
+        XCTAssertTrue(field.waitForExistence(timeout: 5), "launch name prompt")
+        replaceText(in: field, with: "Hannibal")
+        app.buttons["leaderboard.join"].tap()
+        XCTAssertTrue(app.otherElements["screen.ladder-name"].waitForNonExistence(timeout: 5), "prompt closes on Join")
+
+        openNewGame(in: app)
+        XCTAssertEqual(app.textFields["new-game.seat-name.0"].value as? String, "Hannibal")
+    }
+
     func testTheCivilizationPickedOnNewGameIsPrefilledNextTime() {
         continueAfterFailure = false
         let app = XCUIApplication()

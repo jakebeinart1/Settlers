@@ -10,6 +10,10 @@ Code: `Settlers/Sync/`. Tests: `SettlersTests/LiveSyncTests.swift`.
   lets a record's creator change it, so the first Apple ID to claim "Jake"
   holds it for good. Another phone using "Jake" is told the name is taken, and
   none of its games are posted.
+- **Choosing the name, all in the app.** A ladder build asks for a name on
+  launch when none is set (or it is still the default "You", which is never
+  claimed), and the leaderboard has "Change name". Both claim at once. The one
+  step outside the app is iCloud sign-in, which iOS gives apps no way to do.
 - **Games.** A finished rated game is uploaded as its opening position plus
   every move (`Match` record). No result is uploaded. Every phone that downloads
   the game replays it through the rules engine and computes the winner and
@@ -81,9 +85,9 @@ TestFlight build (`com.alexchandler.empires`, team `HXB9F28LHR`).
 | Shown | Meaning |
 |---|---|
 | Online ladder · updated 3:41 PM | Last sync succeeded |
-| Set your name in Settings… | No name set, so nothing to claim |
-| "Jake" is taken online… | Another Apple ID holds the name. Games stay local |
-| Sign in to iCloud… | No iCloud account on the device |
+| Choose a name… (+ name field) | No name set, or still the default "You", so nothing to claim. Join claims it and syncs at once |
+| "Jake" is taken online… (+ name field) | Another Apple ID holds the name. Games stay local until another name is joined |
+| Sign in to iCloud in your iPhone's Settings… | No iCloud account on the device. iOS offers apps no way to sign in, so this one step is outside the app |
 | Offline · … | No network, or CloudKit is busy. The next sync retries |
 
 ## What the ratings mean (Jake, 2026-09-26)

@@ -170,6 +170,7 @@
 		E117B2BCB38DA3FABD17B6DE /* ConquestSetupTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A469428A7A7C53B82AAA7CF0 /* ConquestSetupTests.swift */; };
 		E3A6D0C733055C91F0E356FE /* BoardFitTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A53ECD05D7E8073C7BEDC19 /* BoardFitTests.swift */; };
 		E47E806640E19E4105F9FEDF /* UITestBootstrap.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5CF7C06392E2A4F1B15C8411 /* UITestBootstrap.swift */; };
+		E6E3A46DE03166999407E48E /* LadderNameEntry.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01FCBC5DF77B998FFBDC2042 /* LadderNameEntry.swift */; };
 		E7B13CA29B6CD84D4DD4C4AC /* BoardViewportInvarianceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF5C497F322A8B09715BC1CB /* BoardViewportInvarianceTests.swift */; };
 		E943B06519C318DFE4BD613E /* TradePresentationState.swift in Sources */ = {isa = PBXBuildFile; fileRef = D64CA86D7B5FE711AD994243 /* TradePresentationState.swift */; };
 		EA3F8948081A29B415CD8B67 /* QALaunchFlag.swift in Sources */ = {isa = PBXBuildFile; fileRef = 59A80CE9867E891B09A3F0E5 /* QALaunchFlag.swift */; };
@@ -201,6 +202,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		01FCBC5DF77B998FFBDC2042 /* LadderNameEntry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LadderNameEntry.swift; sourceTree = "<group>"; };
 		03EAB3CE8A50ABA81E547D16 /* BoardCameraTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BoardCameraTests.swift; sourceTree = "<group>"; };
 		06E9063445AF048FF3A65C5A /* DevCardPopupView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DevCardPopupView.swift; sourceTree = "<group>"; };
 		077100D8FBBD5DE94A789909 /* LeaderboardTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LeaderboardTests.swift; sourceTree = "<group>"; };
@@ -590,6 +592,7 @@
 				773974AAADA7CAFE9AC538F0 /* GoldRowButton.swift */,
 				F34A579755CFBDEAF52EBB70 /* IncomingTradeCardView.swift */,
 				C34E239F6C210A9578B2BF3B /* InGameSettingsView.swift */,
+				01FCBC5DF77B998FFBDC2042 /* LadderNameEntry.swift */,
 				599B55BFA00E03B282538E74 /* LeaderboardView.swift */,
 				27BDAD47ABBB94D7F73976E5 /* MainMenuView.swift */,
 				3A2D1519676D42C401001336 /* NewGameSetupView.swift */,
@@ -900,6 +903,7 @@
 				4DF1B0D807C52C188BCD9DC8 /* HumanSeatStore.swift in Sources */,
 				49B07B4241AC2D9627186F1A /* InGameSettingsView.swift in Sources */,
 				7678F2D966C6DDD39D673266 /* IncomingTradeCardView.swift in Sources */,
+				E6E3A46DE03166999407E48E /* LadderNameEntry.swift in Sources */,
 				0774C5FC392C91BB9916D17F /* Leaderboard.swift in Sources */,
 				6885DD744E5C5A7F78217ED7 /* LeaderboardView.swift in Sources */,
 				9B7C10705B509187A7524A6B /* LiveSync.swift in Sources */,
