@@ -41,32 +41,40 @@ struct ResourceProductionBadge: View {
             .padding(.vertical, 1)
             .background(CatanTheme.numberTokenBackground, in: Capsule())
             .overlay(Capsule().strokeBorder(CatanTheme.chipGold, lineWidth: 1))
+            .fixedSize()
             .accessibilityHidden(true)
             .allowsHitTesting(false)
     }
 }
 
-/// Two scheduled redraws, with no task that can delay a rule, pause bots, or
-/// leave a stale dismissal racing a later receipt. The absolute deadline also
-/// stops an expired receipt replaying when the HUD is temporarily removed.
+/// Receipt-keyed presentation lifetime, independent of game pacing. Replacing
+/// a receipt cancels its dismissal; the ID also prevents a stale completion
+/// from expiring a newer gain. Remounting never extends the absolute deadline.
 struct ResourceProductionFeedbackPresenter<Content: View>: View {
     let feedback: ResourceProductionFeedback?
     let viewer: PlayerID
     @ViewBuilder let content: (ResourceProductionFeedback?) -> Content
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.scenePhase) private var scenePhase
+    @State private var expiredReceiptID: UUID?
 
     var body: some View {
-        TimelineView(.explicit(feedback.map { [$0.occurredAt, $0.expiresAt] } ?? [])) { context in
-            let visible = scenePhase == .active ? feedback?.visible(to: viewer, at: context.date) : nil
-            content(visible)
-                .animation(reduceMotion ? nil : .easeOut(duration: 0.18), value: visible?.id)
-                // Seat changes must never cross-fade somebody else's receipt.
-                .transaction { transaction in
-                    if reduceMotion || feedback?.owner != viewer || scenePhase != .active {
-                        transaction.animation = nil
-                    }
+        let visible = scenePhase == .active && feedback?.id != expiredReceiptID
+            ? feedback?.visible(to: viewer, at: Date()) : nil
+        content(visible)
+            .animation(reduceMotion ? nil : .easeOut(duration: 0.18), value: visible?.id)
+            // Seat changes must never cross-fade somebody else's receipt.
+            .transaction { transaction in
+                if reduceMotion || feedback?.owner != viewer || scenePhase != .active {
+                    transaction.animation = nil
                 }
-        }
+            }
+            .task(id: feedback?.id) {
+                guard let receipt = feedback else { return }
+                let remaining = max(0, receipt.expiresAt.timeIntervalSinceNow)
+                do { try await Task.sleep(for: .seconds(remaining)) } catch { return }
+                guard !Task.isCancelled else { return }
+                expiredReceiptID = receipt.id
+            }
     }
 }

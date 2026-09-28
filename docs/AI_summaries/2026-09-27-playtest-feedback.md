@@ -14,6 +14,8 @@ resource (https://www.catan.com/faq/basegame).
 - Only a committed trade shows success. A quiet receipt names the partner and
   exact cards given/received. It stays until **Trade again** or **Close trade**;
   failures and bot willingness are not presented as completed exchanges.
+  Incoming accepted offers use the same receipt. During a bot turn, only Close
+  is offered; another queued offer's countdown is held behind the receipt.
 - All trade controls remain reachable on 375-point phones. Normal content hugs
   its height; overflow scrolls inside the panel with the footer always visible.
 - Production feedback is local to the seat holding the phone: readable +N
@@ -52,3 +54,32 @@ board interaction during a mandatory robber decision. Visibility and input
 blocking now use the same predicate; superseded editor flags are cleared. The
 normal seven/Knight flows passed on SE. This is a concrete related defect, not
 proof that it is Alex's unspecified phone failure.
+
+`trade-green.xcresult`, `small-screen.xcresult`, `final-small.xcresult`,
+`player-trade.xcresult`, and `receipt-review.xcresult` passed native tap-driven
+bank/player/incoming trade checks. The 375-point SE screenshots were inspected:
+quantity controls, success receipt and pinned footer fit. `queued-receipt.xcresult`
+waits beyond the offer timeout during a bot turn, closes the receipt, and proves
+the next offer remains answerable. Standards and Spec reviews found engine-query
+duplication, missing incoming receipts and hidden countdown progression; the
+follow-up resolves these rather than accepting them as release caveats.
+
+`final-small.xcresult` also passed the actual-roll production receipt: city +2,
+settlement +1, readable badges, unchanged board frame and three-second expiry.
+The first implementation's TimelineView did not remove the receipt reliably;
+the failing UI check led to a receipt-ID-keyed dismissal task. Counts update in
+the committed game state immediately; only the temporary explanation fades.
+
+## Crash-dialog incident during verification
+
+The initial production unit-test fixture incorrectly called Classic new-game
+setup with a four-tile board. Its required 19-tile precondition crashed the test
+host, and Xcode retried it, generating repeated macOS crash alerts around
+22:48–22:49 local time. The process was stopped, and the fixture now creates a
+valid game before replacing its board for isolated payout tests. The corrected
+unit suite and native UI runs passed; no new report followed those runs. Existing
+local reports are retained (latest at 22:49:19), not submitted to Apple. This
+was a test-fixture failure, not evidence of a production crash fix. The old
+`production-robber-green` artifact name is misleading: that run was terminated,
+not green. The second run failed the expiry assertion; `final-small` is the
+passing verification after that fix.

@@ -68,6 +68,8 @@ enum QALaunchFlag: String, CaseIterable {
     case bankTradePosition = "-qaBankTradePosition"
     /// Real next roll of six, paying a city two ore and a settlement one grain.
     case productionPosition = "-qaProductionPosition"
+    /// Modifier for incoming offers: two affordable offers during a bot turn.
+    case queuedBotOffers = "-qaQueuedBotOffers"
     /// Opens the build popup.
     case showBuildPopup = "-qaShowBuildPopup"
     /// Installs a main-turn position where every paid construction is legal.

@@ -100,4 +100,27 @@ final class BankTradeFlowTests: XCTestCase {
         close.tap()
         XCTAssertTrue(app.buttons["End Turn"].exists)
     }
+
+    func testConfirmedPlayerTradeShowsActualReceiptAndClose() {
+        continueAfterFailure = false
+        let app = XCUIApplication()
+        app.launchArguments = ["-ui-testing", "-ui-testing-reset", "-qaAutoStart", "-qaBankTradePosition"]
+        app.launch()
+        XCTAssertTrue(app.buttons["Trade"].waitForExistence(timeout: 10))
+        app.buttons["Trade"].tap()
+        for _ in 0..<6 { app.buttons["trade.give.grain"].tap() }
+        app.buttons["trade.want.ore"].tap()
+        app.buttons["Propose to Bots"].tap()
+        let confirm = app.buttons["Confirm Trade"]
+        XCTAssertTrue(confirm.waitForExistence(timeout: 3))
+        XCTAssertFalse(app.staticTexts["Trade complete"].exists, "Willingness is not a completed exchange")
+        confirm.tap()
+        XCTAssertTrue(app.staticTexts["Trade complete"].waitForExistence(timeout: 3))
+        XCTAssertTrue(app.staticTexts["6 Grain"].exists)
+        XCTAssertTrue(app.staticTexts["1 Ore"].exists)
+        XCTAssertTrue(app.buttons["Trade again"].exists)
+        app.buttons["Close trade"].tap()
+        XCTAssertEqual(app.otherElements["human-resource.grain"].value as? String, "1")
+        XCTAssertEqual(app.otherElements["human-resource.ore"].value as? String, "1")
+    }
 }

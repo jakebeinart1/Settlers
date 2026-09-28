@@ -38,6 +38,7 @@ public struct GameView: View {
     // `-qaShowTradePopup`: same escape hatch pattern - lets QA screenshot
     // the trade popup without a real tap.
     @State private var showTradePopup = QALaunchFlag.showTradePopup.isSet
+    @State private var incomingTradeReceipt: TradeReceipt?
     // `-qaShowBuildPopup`: same escape hatch pattern - lets QA screenshot
     // the build popup without a real tap.
     @State private var showBuildPopup = QALaunchFlag.showBuildPopup.isSet
@@ -171,7 +172,10 @@ public struct GameView: View {
             }
 
             if canPresentBoardPopup, showTradePopup {
-                TradePopupView(viewModel: viewModel, onDismiss: { showTradePopup = false })
+                TradePopupView(viewModel: viewModel, completedTrade: incomingTradeReceipt, onDismiss: {
+                    showTradePopup = false
+                    incomingTradeReceipt = nil
+                })
             }
 
             if interactionPriority.winner == .privateReceipt,
@@ -427,6 +431,7 @@ public struct GameView: View {
             showBuildPopup = false
             showArmyPurchase = false
             showTradePopup = false
+            incomingTradeReceipt = nil
             showDevCardHand = false
         }
         .onChange(of: isDiscardPresented, initial: true) { _, isPresented in
@@ -434,6 +439,7 @@ public struct GameView: View {
             showBuildPopup = false
             showArmyPurchase = false
             showTradePopup = false
+            incomingTradeReceipt = nil
             showDevCardHand = false
         }
         .onChange(of: state.lastDiceRoll) { oldValue, newValue in
@@ -789,8 +795,9 @@ public struct GameView: View {
                 if let currentOffer = currentIncomingOffer {
                     IncomingTradeCardView(
                         offer: currentOffer,
-                        // Same signal the bot loop already holds on.
-                        isHeld: interactionPriority.isSettingsCoverPresented,
+                        // An inaccessible offer must not expire behind settings,
+                        // a private card, or the preceding trade's receipt.
+                        isHeld: isBlockingOverlayPresented,
                         playerIdentity: viewModel.playerIdentity,
                         onAccept: { respond(to: currentOffer, accept: true) },
                         onReject: { respond(to: currentOffer, accept: false) }
@@ -988,7 +995,7 @@ private extension GameView {
 
     /// Surfaces that can remain open while a bot otherwise has work.
     private var isBotBlockingSurfaceOpen: Bool {
-        interactionPriority.blocksBotProgress
+        interactionPriority.blocksBotProgress || incomingTradeReceipt != nil
     }
 
     private func handleDevCardPlay(_ type: DevCardType) {
@@ -1114,7 +1121,13 @@ private extension GameView {
 
     private func respond(to offer: TradeOffer, accept: Bool) {
         do {
+            let previousSequence = viewModel.eventBatch.sequence
             try viewModel.apply(.respondToTrade(offerID: offer.id, accept: accept))
+            if viewModel.eventBatch.sequence != previousSequence,
+               let receipt = viewModel.eventBatch.events.compactMap({ TradeReceipt(event: $0, player: human) }).last {
+                incomingTradeReceipt = receipt
+                showTradePopup = true
+            }
             errorMessage = nil
             incomingOfferQueue.removeAll { $0.id == offer.id }
         } catch {
@@ -1128,6 +1141,7 @@ private extension GameView {
     private func clearSeatInteractionState() {
         viewModel.clearBoardDecisionForBoundary()
         showTradePopup = false
+        incomingTradeReceipt = nil
         showBuildPopup = false
         showArmyPurchase = false
         showDevCardHand = false

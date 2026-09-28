@@ -31,10 +31,18 @@ import CatanEngine
 public struct TradePopupView: View {
     public let viewModel: GameViewModel
     public let onDismiss: () -> Void
+    private let initialReceipt: TradeReceipt?
 
     public init(viewModel: GameViewModel, onDismiss: @escaping () -> Void) {
         self.viewModel = viewModel
         self.onDismiss = onDismiss
+        initialReceipt = nil
+    }
+
+    init(viewModel: GameViewModel, completedTrade: TradeReceipt?, onDismiss: @escaping () -> Void) {
+        self.viewModel = viewModel
+        self.onDismiss = onDismiss
+        initialReceipt = completedTrade
     }
 
     /// Which trade is being composed. Give/Get carry across a switch on
@@ -65,7 +73,9 @@ public struct TradePopupView: View {
     public var body: some View {
         GeometryReader { geometry in
             ZStack {
-                Color.black.opacity(0.45).ignoresSafeArea().onTapGesture(perform: onDismiss)
+                Color.black.opacity(0.45).ignoresSafeArea().onTapGesture {
+                    if receipt == nil { onDismiss() }
+                }
                 // Hug ordinary content; scroll only the middle on short screens.
                 // The footer never scrolls away, even with help or three replies.
                 ViewThatFits(in: .vertical) {
@@ -76,7 +86,10 @@ public struct TradePopupView: View {
                 .padding(.vertical, 12)
             }
         }
-        .onAppear { if !viewModel.hasBotSeats { mode = .bank } }
+        .onAppear {
+            if !viewModel.hasBotSeats { mode = .bank }
+            receipt = initialReceipt
+        }
     }
 
     private func panel(scrolling: Bool, height: CGFloat?) -> some View {
@@ -117,10 +130,10 @@ public struct TradePopupView: View {
 
     private var footer: some View {
         VStack(spacing: 10) {
-            if receipt != nil || proposalOutcome != nil {
+            if (receipt != nil && viewModel.state.phase.isMainTurn(of: viewModel.humanPlayer.index)) || proposalOutcome != nil {
                 GoldRowButton(title: receipt != nil ? "Trade again" : "New Offer",
                               systemImage: "arrow.counterclockwise", action: resetDraft)
-            } else if !isShowingBotResponse {
+            } else if receipt == nil && !isShowingBotResponse {
                 actionButton
             }
             GoldRowButton(title: receipt != nil ? "Close trade" : "Close", systemImage: "xmark", action: onDismiss)
