@@ -164,6 +164,8 @@ public final class GameViewModel {
     public internal(set) var pendingDevCardResolution: DevCardResolution?
     /// Ephemeral local-hand receipt; never part of saved rules state.
     public internal(set) var resourceProductionFeedback: ResourceProductionFeedback?
+    /// Readable public notices; never saved, replayed, or awaited by the bots.
+    var gameplayFeedback = GameplayFeedbackQueue()
 
     /// Uncommitted mandatory-discard choices and whether their editor is in
     /// inspect-only mode. These stay out of `GameState`, but belong to this
@@ -206,6 +208,7 @@ public final class GameViewModel {
     /// silently keep counting while the app isn't actually on screen.
     public func appWillResignActive() {
         resourceProductionFeedback = nil
+        gameplayFeedback.clear()
         appIsActive = false
         guard let activeSince else { return }
         accumulatedActiveDuration += max(0, Date().timeIntervalSince(activeSince))
@@ -484,6 +487,7 @@ public final class GameViewModel {
     /// The bookkeeping every new game clears, whichever entry point started it.
     private func resetPerGameState() {
         resourceProductionFeedback = nil
+        gameplayFeedback.clear()
         gameGeneration &+= 1
         resetDiscardPresentation()
         boardDecisionCoordinator.clear()
@@ -522,6 +526,9 @@ public final class GameViewModel {
             throw reportPersistenceFailure(error)
         }
         session = candidate
+        gameplayFeedback.enqueue(GameplayFeedback.committed(
+            events: step.events, before: productionBefore, after: state, viewer: productionViewer
+        ))
         if case .rollDice = step.move {
             resourceProductionFeedback = ResourceProductionFeedback(
                 events: step.events, before: productionBefore, after: state, viewer: productionViewer
@@ -682,6 +689,7 @@ public final class GameViewModel {
 
     /// Multi-seat overload, for hot-seat tests.
     func replaceStateForTesting(_ newState: GameState, humanSeats seats: Set<PlayerID>) {
+        gameplayFeedback.clear()
         precondition(!seats.isEmpty, "a game must have at least one human seat")
         seatAtDevice = seats.sorted().first
         // Do not read the process-global assignment here. Swift Testing runs
@@ -1174,6 +1182,7 @@ public extension GameViewModel {
             reconcileBoardDecision()
             gameGeneration &+= 1
             resourceProductionFeedback = nil
+            gameplayFeedback.clear()
             eventBatch = EventBatch(sequence: eventBatch.sequence + 1, events: [])
             prepareDiscardPresentation()
             persistenceErrorMessage = nil

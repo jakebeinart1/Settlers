@@ -88,7 +88,7 @@ enum HowToPlayContent {
                 "Longest Road and Largest Army are worth \(classic.longestRoadBonus) points each while you hold them.",
                 "Victory point cards count too, and stay hidden from the others.",
                 "The game ends the moment anyone reaches the target.",
-                "New Game lets you play Classic to \(classic.victoryPointTargets.lowerBound), \(classic.defaultVictoryPointTarget) or \(classic.victoryPointTargets.upperBound) points.",
+                "New Classic games are played to \(classic.defaultVictoryPointTarget) points.",
             ]
         ),
         Section(

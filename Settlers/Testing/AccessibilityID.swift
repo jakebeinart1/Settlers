@@ -6,6 +6,10 @@ import Foundation
 /// Visible copy and artwork are product design; tests should survive those
 /// changing. These identifiers name the action or screen the player reaches.
 enum AccessibilityID {
+    enum Feedback {
+        static let notice = "gameplay.notice"
+        static func points(_ seat: PlayerID) -> String { "gameplay.points.\(seat.index)" }
+    }
     enum Screen {
         static let mainMenu = "screen.main-menu"
         static let newGame = "screen.new-game"
