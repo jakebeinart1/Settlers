@@ -12,11 +12,20 @@ enum RadarAxis: String, CaseIterable, Sendable {
 /// reads "better or worse than Expert at this" (Jake liked the 1-99 scale).
 enum RadarBaseline {
     /// Expert self-play means, measured with
-    /// `ghost baseline --games 200` (seeds 910000..., 800 seats, 2026-09-25).
-    static let expert = RadarMeasures(production: 3.172, expansion: 3.731,
-                                      trading: 6.272, development: 2.604,
-                                      robber: 0.947, finishing: 0.730)
+    /// `ghost baseline --games 200` (seeds 910000..., 800 seats). Re-measured
+    /// 2026-09-28 once Expert stopped ending turns over seven cards
+    /// (`HandDiscipline`), so Expert stays exactly 75: development rose from
+    /// 2.604, expansion fell from 3.731, the rest moved in the third digit.
+    static let expert = RadarMeasures(production: 3.166, expansion: 3.646,
+                                      trading: 6.258, development: 2.772,
+                                      robber: 0.944, finishing: 0.728)
     static let expertRating = 75.0
+    /// Classic (`balanced`) self-play means, same command with
+    /// `--policy classic` (seeds 910000..., 800 seats, 2026-09-28): the AI
+    /// rows' graph until a tier has games of its own.
+    static let classic = RadarMeasures(production: 2.908, expansion: 3.234,
+                                       trading: 14.492, development: 4.974,
+                                       robber: 0.822, finishing: 0.741)
 
     static func ratings(for measures: RadarMeasures) -> [RadarAxis: Int] {
         var result: [RadarAxis: Int] = [:]
@@ -97,13 +106,19 @@ struct EntityDetail: Equatable, Sendable {
     let selfPlay: Record?
     let radar: [RadarAxis: Int]?
     let radarIsLearnedFrom: Bool
+    /// Under the graph: where its numbers came from.
+    let radarCaption: String
     let style: [String]
 
-    static func ghost(_ ghost: GhostProfile, ratings: Ratings, stats: [SeatStatsRecord]) -> EntityDetail {
+    /// `resolve` maps a person's slug to their ghost's id (`GhostStore.resolve`):
+    /// after a rename, "Bein" owns the ghost stored as `jake`.
+    static func ghost(_ ghost: GhostProfile, ratings: Ratings, stats: [SeatStatsRecord],
+                      resolve: @escaping (String) -> String = { $0 }) -> EntityDetail {
         let key = RatedEntity.ghost(ghost.id).key
         let own = stats.compactMap { game in game.seats.first { $0.entity == key }.map { (game, $0.stats) } }
         let isOwner: (String) -> Bool = { entity in
-            entity.hasPrefix("person:") && GhostTrainer.ghostID(forPerson: String(entity.dropFirst("person:".count))) == ghost.id
+            entity.hasPrefix("person:")
+                && resolve(GhostTrainer.ghostID(forPerson: String(entity.dropFirst("person:".count)))) == ghost.id
         }
         var record = Record()
         var selfPlay = Record()
@@ -123,8 +138,31 @@ struct EntityDetail: Equatable, Sendable {
             elo: ratings.ratings[key] ?? Elo.start, gamesLearned: ghost.gamesLearned, record: record,
             selfPlay: selfPlay.played > 0 ? selfPlay : nil,
             radar: graphGames.isEmpty ? nil : RadarBaseline.ratings(for: RadarMeasures(games: graphGames)),
-            radarIsLearnedFrom: learnedFrom, style: styleLines(for: ghost.person)
+            radarIsLearnedFrom: learnedFrom,
+            radarCaption: learnedFrom ? "Learned from its player's games · Expert is 75" : "1–99 · Expert is 75",
+            style: styleLines(for: ghost.person)
         )
+    }
+
+    /// An AI tier's page: its record against people, and its graph from the
+    /// games it played here, or from its own self-play until it has
+    /// `minimumGamesForOwnGraph` (Jake, 2026-09-28: "I want spider graphs for
+    /// them too, just like the users").
+    static func ai(_ entity: RatedEntity, name: String, elo: Double, stats: [SeatStatsRecord]) -> EntityDetail {
+        let games = stats.flatMap { $0.seats.filter { $0.entity == entity.key }.map(\.stats) }
+        var record = Record()
+        for game in games {
+            record.played += 1
+            if game.won { record.won += 1 }
+        }
+        let own = games.count >= minimumGamesForOwnGraph
+        let selfPlay = entity == .classic ? RadarBaseline.classic : RadarBaseline.expert
+        return EntityDetail(name: name, subtitle: entity == .classic ? "AI · fixed reference" : "AI", elo: elo,
+                            gamesLearned: nil, record: record, selfPlay: nil,
+                            radar: RadarBaseline.ratings(for: own ? RadarMeasures(games: games) : selfPlay),
+                            radarIsLearnedFrom: !own,
+                            radarCaption: own ? "1–99 · Expert is 75" : "From its own self-play · Expert is 75",
+                            style: [])
     }
 
     static func person(_ name: String, ratings: Ratings, stats: [SeatStatsRecord]) -> EntityDetail {
@@ -138,7 +176,7 @@ struct EntityDetail: Equatable, Sendable {
         return EntityDetail(name: name, subtitle: "Player", elo: ratings.ratings[key] ?? Elo.start, gamesLearned: nil,
                             record: record, selfPlay: nil,
                             radar: games.isEmpty ? nil : RadarBaseline.ratings(for: RadarMeasures(games: games)),
-                            radarIsLearnedFrom: false, style: [])
+                            radarIsLearnedFrom: false, radarCaption: "1–99 · Expert is 75", style: [])
     }
 
     /// The three strongest habits, as words. Section 7 of the research doc:

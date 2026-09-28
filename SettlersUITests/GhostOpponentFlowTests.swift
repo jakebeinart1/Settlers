@@ -99,4 +99,32 @@ final class GhostOpponentFlowTests: XCTestCase {
         page.lifetime = .keepAlways
         add(page)
     }
+
+    /// Jake, 2026-09-28: Expert and Classic get spider graphs like players.
+    /// The seeded games give Classic three of its own; Expert has none, so
+    /// its graph is its self-play and says so.
+    func testTheAITiersHaveSpiderGraphs() {
+        continueAfterFailure = false
+        let app = XCUIApplication()
+        app.launchArguments = ["-ui-testing", "-ui-testing-reset", "-qaSeedLeaderboard"]
+        app.launch()
+        app.buttons["main-menu.leaderboard"].tap()
+        for (row, caption, shot) in [("expert", "From its own self-play · Expert is 75", "expert-ai-page"),
+                                     ("classic", "1–99 · Expert is 75", "classic-ai-page")] {
+            let button = app.buttons["leaderboard.row.\(row)"]
+            XCTAssertTrue(button.waitForExistence(timeout: 5))
+            button.tap()
+            XCTAssertTrue(app.descendants(matching: .any)["screen.rated-entity"].waitForExistence(timeout: 3))
+            let radar = app.descendants(matching: .any)["leaderboard.radar"]
+            XCTAssertTrue(radar.exists, "\(row) has a graph")
+            XCTAssertTrue(radar.label.contains("Production"), radar.label)
+            XCTAssertTrue(app.staticTexts[caption].exists, "\(row) says where its graph came from")
+            XCTAssertTrue(app.staticTexts["Games against humans"].exists)
+            let page = XCTAttachment(screenshot: app.screenshot())
+            page.name = shot
+            page.lifetime = .keepAlways
+            add(page)
+            app.buttons["leaderboard.back"].tap()
+        }
+    }
 }
