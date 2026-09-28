@@ -112,6 +112,27 @@ only staged; the normal Confirm button must commit it before any feedback exists
   a fresh Release installation survived the 86-second check, its menu screenshot
   was inspected, and no new Settlers crash report appeared.
 
+## Final Jake integration
+
+- Jake's `26566c80c363eef5e1b8a2f08fee62d18e4ad17f` added the How to Play
+  walkthrough, rules and modes while verification was underway. Integrated in
+  `b4b180e`; final application source is `8ebf788`, which corrects help copy to
+  describe the current fixed Classic target instead of legacy 8/10/12 choices.
+- `integrated-jake/menu-feedback.xcresult`: all **16 tests passed**, zero
+  failures/skips: native walkthrough, menu/setup/resume, seven feedback flows,
+  HUD sizing and command-row invariance. `integrated-jake/howto-se.xcresult`
+  then passed the walkthrough on the final copy at 375pt. The 402pt feedback
+  and both widths' walkthrough/rules/modes screenshots were opened and inspected.
+- Final strict lint, XcodeGen drift, secret scan, Debug/Release builds, manual
+  distribution archive and export passed. Only `integrated-jake/Empires.xcarchive`
+  and `integrated-jake/export/Settlers.ipa` are release candidates; all earlier
+  archives in the evidence root are superseded. IPA SHA-256:
+  `439e1f7b985774b9c480f23f32112b050b3d8811483cdc71a38a5b99e91b54b0`.
+- Strict/deep signature, correct Empires bundle and Build 14, Production
+  CloudKit, beta reporting, no debug entitlement and no device restriction
+  were checked on that IPA. Delivery status and the exact Apple receipt belong
+  in the evidence root's `STATUS.md`; packaging alone does not prove availability.
+
 ## Original implementation-pass limits
 
 The 402pt check renders both HUDs and the reserved information slot; it is not a
