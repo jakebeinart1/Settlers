@@ -282,7 +282,7 @@ public struct TradePopupView: View {
                 // `Trading` rejects it and `perform` surfaces the reason, which
                 // beats quietly altering an offer the player composed.
                 let remaining = max(0, owned - (give[resource] ?? 0))
-                ResourceChip(resource: resource, count: remaining, isEnabled: remaining > 0 && want[resource, default: 0] == 0) {
+                ResourceChip(resource: resource, count: remaining, isEnabled: remaining > 0 && permitsAdding(resource, toGive: true)) {
                     give[resource] = (give[resource] ?? 0) + 1
                 }
                 .accessibilityIdentifier(AccessibilityID.Trade.giveChip(resource))
@@ -295,7 +295,7 @@ public struct TradePopupView: View {
     private var wantPalette: some View {
         HStack(spacing: 8) {
             ForEach(Resource.allCases, id: \.self) { resource in
-                ResourceChip(resource: resource, count: nil, isEnabled: give[resource, default: 0] == 0) {
+                ResourceChip(resource: resource, count: nil, isEnabled: permitsAdding(resource, toGive: false)) {
                     want[resource] = (want[resource] ?? 0) + 1
                 }
                 .accessibilityIdentifier(AccessibilityID.Trade.wantChip(resource))
@@ -374,7 +374,7 @@ public struct TradePopupView: View {
                 VStack(spacing: 4) {
                     ResourceChip(resource: resource,
                                  count: staged,
-                                 isEnabled: owned - staged >= bundle && want[resource, default: 0] == 0,
+                                 isEnabled: owned - staged >= bundle && permitsAdding(resource, toGive: true),
                                  isSelected: staged > 0) {
                         give[resource] = staged + bundle
                     }
@@ -411,7 +411,7 @@ public struct TradePopupView: View {
                 let staged = want[resource] ?? 0
                 VStack(spacing: 4) {
                     ResourceChip(resource: resource, count: staged > 0 ? staged : nil,
-                                 isEnabled: unspent > 0 && give[resource, default: 0] == 0
+                                 isEnabled: unspent > 0 && permitsAdding(resource, toGive: false)
                                     && staged < viewModel.state.bank[resource, default: 0],
                                  isSelected: staged > 0) {
                         want[resource] = staged + 1
@@ -457,7 +457,7 @@ public struct TradePopupView: View {
             GoldRowButton(
                 title: "Propose to Bots",
                 systemImage: "person.2.fill",
-                isEnabled: !give.isEmpty && !want.isEmpty && Set(give.keys).isDisjoint(with: want.keys)
+                isEnabled: !give.isEmpty && !want.isEmpty && draftProblem(mode: .players) == nil
             ) {
                 let offer = TradeOffer(from: viewModel.humanPlayer, give: give, want: want)
                 proposalOutcome = nil
@@ -643,12 +643,28 @@ public struct TradePopupView: View {
 
     private var isValidBankTrade: Bool { bankTradeProblem == nil }
 
+    private func draftProblem(mode: Trading.DraftMode) -> Trading.DraftProblem? {
+        Trading.draftProblem(give: give, get: want, mode: mode, by: viewModel.humanPlayer, state: viewModel.state)
+    }
+
+    /// Ask the engine about a prospective resource selection. Bank quantities
+    /// are constrained separately by the bundle/credit controls; this query is
+    /// only about which resources may share a draft.
+    private func permitsAdding(_ resource: Resource, toGive: Bool) -> Bool {
+        var proposedGive = give
+        var proposedWant = want
+        if toGive { proposedGive[resource, default: 0] += 1 } else { proposedWant[resource, default: 0] += 1 }
+        return Trading.draftProblem(give: proposedGive, get: proposedWant, mode: .players,
+                                    by: viewModel.humanPlayer, state: viewModel.state) == nil
+    }
+
     private var bankHintText: String {
-        if !Set(give.keys).isDisjoint(with: want.keys) {
+        switch draftProblem(mode: .bank) {
+        case .overlappingResources:
             return "Give and get must be different resources. Remove one side to continue."
-        }
-        if let resource = Resource.allCases.first(where: { give[$0, default: 0] % rate(for: $0) != 0 }) {
-            return "Give \(resource.rawValue) in bundles of \(rate(for: resource)). Clear or remove that stack to adjust it."
+        case .invalidBankBundle(let resource, let rate):
+            return "Give \(resource.rawValue) in bundles of \(rate). Clear or remove that stack to adjust it."
+        case nil: break
         }
         if give.isEmpty && want.isEmpty {
             return "Tap cards to add; minus takes them back. Each tap gives one bundle."
