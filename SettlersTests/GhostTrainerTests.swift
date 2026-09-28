@@ -40,6 +40,23 @@ import Testing
             .appendingPathComponent("\(match.uuidString).jsonl").path))
     }
 
+    /// After Jake renamed himself "Bein" (2026-09-28), his next game must
+    /// teach the ghost that already learned from him, not start `bein` blank.
+    @Test func aRenamedPersonTeachesTheGhostTheyAlreadyHave() throws {
+        let (ghosts, root) = store()
+        defer { try? FileManager.default.removeItem(at: root) }
+        try ghosts.save(GhostProfile(id: "jake", name: "Jake's Ghost", person: .anchored(at: .forMode(.classic)),
+                                     lambda: 0.01, gamesLearned: 25, decisionsLearned: 2731))
+        try ghosts.alias("bein", to: "jake")
+        let (logged, human) = try game()
+        var trainer = GhostTrainer(store: ghosts)
+        trainer.fit = { _, previous in previous.person }
+        let learned = try #require(try trainer.learn(match: UUID(), game: logged, human: human, personName: "Bein"))
+        #expect(learned.id == "jake")
+        #expect(learned.gamesLearned == 26)
+        #expect(ghosts.all().map(\.id) == ["jake"], "no second ghost")
+    }
+
     /// Review Focus 3b's twin: the same match cannot teach twice.
     @Test func theSameMatchTeachesOnce() throws {
         let (ghosts, root) = store()

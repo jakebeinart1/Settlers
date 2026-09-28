@@ -3,7 +3,8 @@ import Foundation
 
 /// A name on the shared ladder and the Apple ID that holds it.
 struct NameClaim: Codable, Equatable, Sendable {
-    /// As first claimed: "Jake".
+    /// The holder's current name: "Jake" as first claimed, or whatever they
+    /// renamed themselves to since (`CloudBackend.rename`).
     let name: String
     /// The opaque CloudKit user id of the claimant.
     let owner: String
@@ -43,6 +44,10 @@ protocol CloudBackend: Sendable {
     /// Claims `slug` for the current user under `name`, or returns the claim
     /// someone already holds.
     func claim(slug: String, name: String) async throws -> NameClaim
+    /// Renames a claim this user holds: the slug stays theirs, and every
+    /// phone reads its games and ghost under `name` from then on. Only the
+    /// claim's creator can do this (the guarantee below).
+    func rename(slug: String, to name: String) async throws
     /// The claims that exist among `slugs`; an unclaimed slug is absent.
     func claims(slugs: [String]) async throws -> [String: NameClaim]
     /// Idempotent by match id.

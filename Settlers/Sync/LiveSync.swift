@@ -127,12 +127,14 @@ actor LiveSync {
             let claim = try await claimName(for: me)
             var changed = false
             if case .success(let mine) = claim {
+                try await carryOverRename(to: mine, me: me, state: &state)
                 changed = try await uploadGames(as: mine, state: &state)
                 try await uploadGhost(as: mine, state: &state)
             }
-            let ownSlug = try? claim.get().slug
+            let ownGhost = (try? claim.get().slug).map(stores.ghosts.resolve)
             changed = try await downloadGames(state: &state) || changed
-            changed = try await downloadGhosts(except: ownSlug) || changed
+            changed = try await downloadGhosts(except: ownGhost) || changed
+            changed = try await applyClaimedNames() || changed
             if changed || !state.ratingsRebuilt {
                 try stores.ratings.rebuild(from: stores.seatStats.all())
                 state.ratingsRebuilt = true
@@ -163,17 +165,93 @@ actor LiveSync {
         // "You" is what a seat is called when nobody typed a name. Claiming it
         // would hand one player every phone's default name for good.
         guard !slug.isEmpty, name.caseInsensitiveCompare(Self.defaultName) != .orderedSame else { return .failure(.noName) }
-        let claim = try await backend.claim(slug: slug, name: name)
-        return claim.owner == me ? .success(OwnClaim(slug: slug, claim: claim)) : .failure(.nameTaken(claim.name))
+        var claim = try await backend.claim(slug: slug, name: name)
+        // Taken: say so in the name the player typed, not the holder's
+        // current name, which after a rename is a different word entirely.
+        guard claim.owner == me else {
+            return .failure(.nameTaken(GhostTrainer.ghostID(forPerson: claim.name) == slug ? claim.name : name))
+        }
+        // A slug already ours under another spelling or an earlier rename
+        // ("Bein" back to "Jake"): the name typed now is the name.
+        if claim.name != name {
+            try await backend.rename(slug: slug, to: name)
+            claim = NameClaim(name: name, owner: me)
+        }
+        return .success(OwnClaim(slug: slug, claim: claim))
     }
+
+    // MARK: - Renames
+
+    /// Makes a new name a rename rather than a new player (Jake, 2026-09-28:
+    /// he changed his name and his row and his ghost's name stayed "Jake").
+    ///
+    /// Every slug this Apple ID has held is renamed to the new name on the
+    /// server, so every phone rewrites its games under it
+    /// (`applyClaimedNames`), and this phone's ghost keeps training under the
+    /// id it already has. Old slugs stay held: nobody else can become "Jake".
+    ///
+    /// A phone from before renames were tracked has no `claimedSlug`; its
+    /// earlier names are the people in its own games whose slug this Apple ID
+    /// holds.
+    private func carryOverRename(to mine: OwnClaim, me: String, state: inout SyncState) async throws {
+        var candidates = Set(state.ownSlugs ?? []).union([mine.slug])
+        if state.claimedSlug == nil {
+            candidates.formUnion(stores.seatStats.all().flatMap { $0.seats.compactMap { Self.slug(ofPersonKey: $0.entity) } })
+        }
+        let claims = try await backend.claims(slugs: candidates.sorted())
+        let own = candidates.filter { claims[$0]?.owner == me }.sorted()
+        for slug in own where slug != mine.slug && claims[slug]?.name != mine.claim.name {
+            try await backend.rename(slug: slug, to: mine.claim.name)
+        }
+        if stores.ghosts.ghost(id: mine.slug) == nil,
+           let earlier = own.first(where: { $0 != mine.slug && stores.ghosts.ghost(id: $0) != nil }) {
+            try stores.ghosts.alias(mine.slug, to: stores.ghosts.resolve(earlier))
+        }
+        guard state.claimedSlug != mine.slug || state.ownSlugs != own else { return }
+        state.claimedSlug = mine.slug
+        state.ownSlugs = own
+        try state.save(to: stores.stateFile)
+    }
+
+    /// Every person and ghost on this phone under the name its holder goes by
+    /// now. Games are rewritten in place (they were verified under the slug,
+    /// which does not change), and a ghost is saved again under its new name.
+    private func applyClaimedNames() async throws -> Bool {
+        let records = stores.seatStats.all()
+        let ghosts = stores.ghosts.all()
+        let slugs = Set(records.flatMap { $0.seats.compactMap { Self.slug(ofPersonKey: $0.entity) } } + ghosts.map(\.id))
+        let claims = try await backend.claims(slugs: slugs.sorted())
+        var changed = false
+        for record in records {
+            let renamed = SeatStatsRecord(match: record.match, date: record.date, seats: record.seats.map { entry in
+                guard let slug = Self.slug(ofPersonKey: entry.entity), let claim = claims[slug] else { return entry }
+                return SeatStatsRecord.Entry(entity: RatedEntity.person(claim.name).key, stats: entry.stats)
+            })
+            guard renamed != record else { continue }
+            try stores.seatStats.replace(renamed)
+            changed = true
+        }
+        for var ghost in ghosts {
+            guard let claim = claims[ghost.id], ghost.name != Self.ghostName(claim.name) else { continue }
+            ghost.name = Self.ghostName(claim.name)
+            try stores.ghosts.save(ghost)
+            changed = true
+        }
+        return changed
+    }
+
+    static func ghostName(_ person: String) -> String { "\(person)'s Ghost" }
 
     /// Uploads this person's rated games not yet sent. A game whose log is
     /// gone cannot be verified by anyone else, so it stays local; one that
     /// fails its own verification is marked and never retried.
     private func uploadGames(as mine: OwnClaim, state: inout SyncState) async throws -> Bool {
+        // A game played as "Jake" before renaming to "Bein" is still this
+        // player's, and goes up under "Bein".
+        let held = Set(state.ownSlugs ?? []).union([mine.slug])
         let pending = stores.seatStats.all().filter { record in
             !state.uploaded.contains(record.match) && !state.unshareable.contains(record.match)
-                && record.seats.contains { Self.slug(ofPersonKey: $0.entity) == mine.slug }
+                && record.seats.contains { Self.slug(ofPersonKey: $0.entity).map(held.contains) ?? false }
         }
         guard !pending.isEmpty else { return false }
         let logs = Dictionary(((try? stores.logs.summaries()) ?? []).map { ($0.gameID, $0) }, uniquingKeysWith: { first, _ in first })
@@ -214,7 +292,7 @@ actor LiveSync {
         for game in fresh {
             guard let slug = game.value.seats.lazy.compactMap(Self.slug(ofPersonKey:)).first,
                   let claim = claims[slug], claim.owner == game.owner,
-                  let record = try? game.value.verified(uploader: claim.name) else { continue }
+                  let record = try? game.value.verified(uploader: claim.name, holding: slug) else { continue }
             try stores.seatStats.record(record)
             changed = true
         }
@@ -239,7 +317,7 @@ actor LiveSync {
             guard let claim = claims[ghost.id], claim.owner == item.owner,
                   ghost.person.weights.count == shape.weights.count, ghost.person.theta.count == shape.theta.count,
                   ghost.gamesLearned > (stores.ghosts.ghost(id: ghost.id)?.gamesLearned ?? -1) else { continue }
-            ghost.name = "\(claim.name)'s Ghost"
+            ghost.name = Self.ghostName(claim.name)
             try stores.ghosts.save(ghost)
             changed = true
         }
@@ -267,6 +345,11 @@ struct SyncState: Codable, Equatable, Sendable {
     /// Games that failed their own verification: never offered again.
     var unshareable: [UUID] = []
     var ghostGamesUploaded = -1
+    /// The slug this phone last held, and every slug its Apple ID has held:
+    /// how a new name is recognised as a rename. Optional so a state file
+    /// from before renames decodes rather than resetting.
+    var claimedSlug: String?
+    var ownSlugs: [String]?
     /// The newest server modification date seen.
     var lastModified: Date?
     /// False until the first rebuild, so a phone joining the ladder converts

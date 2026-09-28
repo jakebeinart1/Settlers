@@ -10,6 +10,17 @@ Code: `Settlers/Sync/`. Tests: `SettlersTests/LiveSyncTests.swift`.
   lets a record's creator change it, so the first Apple ID to claim "Jake"
   holds it for good. Another phone using "Jake" is told the name is taken, and
   none of its games are posted.
+- **Renaming** (Jake, 2026-09-28: he changed his name and his row and his
+  ghost's name stayed "Jake"). A new name claimed by the same Apple ID is a
+  rename, not a new player. The phone rewrites `name` on every `Player`
+  record that Apple ID holds, so `name-jake` now reads "Bein". Every phone
+  then rewrites its games under the name each slug's claim carries now, and
+  rebuilds Elo. Games are verified against the slug they were posted under,
+  so games posted as "Jake" still count. The ghost keeps its first id
+  (`jake`), so its training carries on, and it is shown as "Bein's Ghost".
+  Old names stay held, so nobody else can become "Jake". A name typed into
+  New Game is the same preference as the ladder name, so it renames too. No
+  schema change: `name` was always a field of `Player`.
 - **Choosing the name, all in the app.** A ladder build asks for a name on
   launch when none is set (or it is still the default "You", which is never
   claimed), and the leaderboard has "Change name". Both claim at once. The one

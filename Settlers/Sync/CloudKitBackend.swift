@@ -6,7 +6,8 @@ import Foundation
 /// build names.
 ///
 /// ## Record types (docs/live-sync.md has the console setup)
-/// - `Player`, id `name-<slug>`: `name`. Who holds a name.
+/// - `Player`, id `name-<slug>`: `name`. Who holds a name, and what they
+///   are called now: a rename rewrites `name` on every slug its holder owns.
 /// - `Match`, id = match UUID: `payload` (asset, `SharedMatch` JSON),
 ///   `date`, `version`, `seats`. The seats are duplicated outside the payload
 ///   only so a training job can query by them.
@@ -58,6 +59,14 @@ final class CloudKitBackend: CloudBackend, @unchecked Sendable {
                 guard let existing = try await self.record(id) else { throw error }
                 return try await claim(from: existing)
             }
+        }
+    }
+
+    func rename(slug: String, to name: String) async throws {
+        try await mapped {
+            guard let record = try await record(CKRecord.ID(recordName: "name-\(slug)")) else { return }
+            record["name"] = name
+            _ = try await database.save(record)
         }
     }
 

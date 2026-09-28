@@ -42,10 +42,11 @@ struct GhostTrainer: Sendable {
 
     /// The new ghost, or `nil` if this match was already learned.
     func learn(match: UUID, game: LoggedGame, human: PlayerID, personName: String) throws -> GhostProfile? {
-        let id = Self.ghostID(forPerson: personName)
         // A name with no Latin letters or digits has no usable id (final
         // review): an empty id would write a ghost at the store's root.
-        guard !id.isEmpty else { return nil }
+        guard !Self.ghostID(forPerson: personName).isEmpty else { return nil }
+        // After a rename the person's ghost lives under its first id.
+        let id = store.resolve(Self.ghostID(forPerson: personName))
         let record = store.decisionsDirectory(for: id).appendingPathComponent("\(match.uuidString).jsonl")
         guard !FileManager.default.fileExists(atPath: record.path) else { return nil }
         let previous = store.ghost(id: id) ?? GhostProfile(
