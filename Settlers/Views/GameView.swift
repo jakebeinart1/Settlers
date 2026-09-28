@@ -89,6 +89,13 @@ public struct GameView: View {
 
     var state: GameState { viewModel.state }
     private var human: PlayerID { viewModel.humanPlayer }
+    private var visibleFeedback: GameplayFeedback? {
+        holdsGameplayFeedback ? nil : viewModel.gameplayFeedback.visible
+    }
+    private var holdsGameplayFeedback: Bool {
+        isBlockingOverlayPresented || showDevCardHand || isDiscardPresented
+            || viewModel.boardDecisionPresentation != nil || errorMessage != nil
+    }
 
     public var body: some View {
         ZStack {
@@ -137,7 +144,8 @@ public struct GameView: View {
                 // stays exactly as wide as it's always been - see chat) so
                 // the cards read as sitting a little off the screen's edge
                 // rather than flush against it, same as the reference.
-                BotHUDRow(state: state, human: human, playerIdentity: viewModel.playerIdentity)
+                BotHUDRow(state: state, human: human, playerIdentity: viewModel.playerIdentity,
+                          pointChanges: visibleFeedback?.pointChanges ?? [:])
                     .padding(.horizontal, 12)
                     .padding(.bottom, 3)
                     .dynamicTypeSize(...DynamicTypeSize.large)
@@ -395,6 +403,7 @@ public struct GameView: View {
             #if DEBUG
             if QALaunchFlag.bankTradePosition.isSet { viewModel.qaPrepareBankTradePosition() }
             if QALaunchFlag.productionPosition.isSet { viewModel.qaPrepareProductionPosition() }
+            if QALaunchFlag.longestRoadPosition.isSet { viewModel.qaPrepareLongestRoadPosition() }
             #endif
             // Seed a real engine-backed offer after any fast-forwarding. The
             // UI test accepts and rejects this exact pending offer and checks
@@ -451,6 +460,17 @@ public struct GameView: View {
         }
         .onChange(of: viewModel.eventBatch) { _, batch in
             handleEvents(batch.events)
+        }
+        .onChange(of: holdsGameplayFeedback, initial: true) { _, held in
+            viewModel.gameplayFeedback.suspend(held)
+        }
+        .onChange(of: human) { _, _ in viewModel.gameplayFeedback.clear() }
+        .onDisappear { viewModel.gameplayFeedback.clear() }
+        .task(id: viewModel.gameplayFeedback.deadline) {
+            guard let deadline = viewModel.gameplayFeedback.deadline else { return }
+            do { try await Task.sleep(for: .seconds(max(0, deadline.timeIntervalSinceNow))) } catch { return }
+            guard !Task.isCancelled else { return }
+            viewModel.gameplayFeedback.advance()
         }
     }
 
@@ -699,6 +719,8 @@ public struct GameView: View {
                         .foregroundStyle(.red)
                         .lineLimit(1)
                         .minimumScaleFactor(0.75)
+                } else if let feedback = visibleFeedback {
+                    GameplayFeedbackView(feedback: feedback, playerIdentity: viewModel.playerIdentity)
                 } else {
                     Color.clear
                 }
@@ -720,7 +742,8 @@ public struct GameView: View {
                         showDevCardHand = true
                     },
                     onDeployArmy: { if isHumanMainTurn { _ = viewModel.beginBoardDecision(.deployArmy) } },
-                    productionFeedback: viewModel.resourceProductionFeedback
+                    productionFeedback: viewModel.resourceProductionFeedback,
+                    pointChange: visibleFeedback?.pointChanges[human] ?? 0
                 )
                 .padding(.horizontal, 12)
                 // This is a dense graphical inventory, not prose. Letting

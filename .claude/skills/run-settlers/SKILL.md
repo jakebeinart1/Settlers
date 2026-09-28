@@ -132,6 +132,7 @@ grep -rnoE '"\-qa[A-Za-z]+"' --include="*.swift" "$REPO/Settlers" | sort -u
 | `-qaShowTradePopup` | `GameView.swift` | `TradePopupView`. |
 | `-qaBankTradePosition` | `GameView.swift` | Conserved seven-grain hand with a grain port; tap Trade → Bank to exercise six grain for three ore. |
 | `-qaProductionPosition` | `GameView.swift` | Pre-roll city/settlement fixture. Tap Roll Dice to produce two ore and one grain through the real commit and receipt path. |
+| `-qaLongestRoadPosition` | `GameView.swift` | Tied five-road paths with a rival holding the bonus. Tap Confirm on the human's staged sixth road to verify the Longest Road transfer and both signed VP changes. |
 | `-qaShowBuildPopup` | `GameView.swift` | The "Build" popup (Road / Settlement / City / Dev Card). |
 | `-qaPaidBuildPosition` | `GameView.swift` | Installs a real main-turn position where Road, Settlement, and City are all legal; use this to tap through the Build popup rather than seeding its result. |
 | `-qaShowPaidRoadDecision` | `GameView.swift` | Starts a real paid-road proposal with no road or resources committed yet. |

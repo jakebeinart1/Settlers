@@ -21,13 +21,16 @@ public struct BotHUDRow: View {
     public let state: GameState
     public let human: PlayerID
     public let playerIdentity: (PlayerID) -> PlayerIdentity
+    public let pointChanges: [PlayerID: Int]
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     public init(state: GameState, human: PlayerID,
-                playerIdentity: @escaping (PlayerID) -> PlayerIdentity = CatanTheme.playerIdentity) {
+                playerIdentity: @escaping (PlayerID) -> PlayerIdentity = CatanTheme.playerIdentity,
+                pointChanges: [PlayerID: Int] = [:]) {
         self.state = state
         self.human = human
         self.playerIdentity = playerIdentity
+        self.pointChanges = pointChanges
     }
 
     @ViewBuilder
@@ -36,7 +39,8 @@ public struct BotHUDRow: View {
             ScrollView(.horizontal, showsIndicators: true) {
                 HStack(spacing: 8) {
                     ForEach(Self.seatsShownAsOpponents(in: state, deviceSeat: human), id: \.id) { player in
-                        PlayerChip.body(for: player, state: state, playerIdentity: playerIdentity)
+                        PlayerChip.body(for: player, state: state, playerIdentity: playerIdentity,
+                                        pointChange: pointChanges[player.id, default: 0])
                             // One readable card at a time is preferable to
                             // three narrow cards whose scaled public stats
                             // paint over one another at accessibility sizes.
@@ -49,7 +53,8 @@ public struct BotHUDRow: View {
         } else {
             HStack(spacing: 8) {
                 ForEach(Self.seatsShownAsOpponents(in: state, deviceSeat: human), id: \.id) { player in
-                    PlayerChip.body(for: player, state: state, playerIdentity: playerIdentity)
+                    PlayerChip.body(for: player, state: state, playerIdentity: playerIdentity,
+                                    pointChange: pointChanges[player.id, default: 0])
                 }
             }
         }
@@ -90,18 +95,21 @@ public struct HumanPlayerPanel: View {
     /// Conquest: tapping an army tile starts Deploy Army, as tapping a dev card plays it.
     public let onDeployArmy: () -> Void
     public let productionFeedback: ResourceProductionFeedback?
+    public let pointChange: Int
 
     public init(state: GameState, human: PlayerID,
                 playerIdentity: @escaping (PlayerID) -> PlayerIdentity = CatanTheme.playerIdentity,
                 onOpenDevCards: @escaping (DevCardType?) -> Void,
                 onDeployArmy: @escaping () -> Void = {},
-                productionFeedback: ResourceProductionFeedback? = nil) {
+                productionFeedback: ResourceProductionFeedback? = nil,
+                pointChange: Int = 0) {
         self.state = state
         self.human = human
         self.playerIdentity = playerIdentity
         self.onOpenDevCards = onOpenDevCards
         self.onDeployArmy = onDeployArmy
         self.productionFeedback = productionFeedback
+        self.pointChange = pointChange
     }
 
     /// The army hand grouped by strength, ascending: one tile per strength.
@@ -214,6 +222,9 @@ public struct HumanPlayerPanel: View {
                         .padding(.vertical, 4)
                         .background(Color.yellow.opacity(0.85), in: Capsule())
                         .fixedSize()
+                        .overlay(alignment: .topTrailing) {
+                            VictoryPointChangeBadge(amount: pointChange, seat: human)
+                        }
                         if state.longestRoadPlayer == human {
                             PlayerChip.miniBadge(icon: "road.lanes", tint: .orange)
                         }
@@ -440,7 +451,7 @@ private struct DevelopmentCardShelfButton: View {
 enum PlayerChip {
     @ViewBuilder
     static func body(for player: Player, state: GameState,
-                     playerIdentity: (PlayerID) -> PlayerIdentity) -> some View {
+                     playerIdentity: (PlayerID) -> PlayerIdentity, pointChange: Int = 0) -> some View {
         let isActive = isActivePlayer(player.id, in: state)
         let handSize = player.resources.values.reduce(0, +)
         let identity = playerIdentity(player.id)
@@ -481,6 +492,9 @@ enum PlayerChip {
                 // their hand, so it shouldn't silently show up in their
                 // total before they'd ever reveal it.
                 tag(text: "\(state.publicVictoryPoints(for: player.id)) VP", icon: "star.fill", tint: .yellow)
+                    .overlay(alignment: .topTrailing) {
+                        VictoryPointChangeBadge(amount: pointChange, seat: player.id)
+                    }
                 if state.longestRoadPlayer == player.id {
                     miniBadge(icon: "road.lanes", tint: .orange)
                 }
