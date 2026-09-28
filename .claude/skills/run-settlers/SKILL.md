@@ -158,6 +158,7 @@ grep -rnoE '"\-qa[A-Za-z]+"' --include="*.swift" "$REPO/Settlers" | sort -u
 | `-qaShowReplay` | `MainMenuView.swift` / `GameHistoryView.swift` | Opens the newest recording's `GameReplayView` directly - board, score strip and transport controls, no tap needed. Pair with `-qaSeedGameHistory`. |
 | `-qaShowNewGame` | `MainMenuView.swift` / `NewGameSetupView.swift` | `NewGameSetupView` over the main menu, on a startable two-human/two-AI fixture (green ready plaque, Start enabled). **Must NOT be combined with `-qaAutoStart`.** |
 | `-qaSeedLeaderboard` | `LeaderboardView.swift` | Records three rated games (Jake vs Jake's bundled ghost + two Classic seats) before the leaderboard loads, so the ghost page shows a record and a spider graph on a fresh install. Open the leaderboard from the main menu. |
+| `-qaAskLadderName` | `LadderNamePrompt` | Shows the first-launch leaderboard name prompt even with simulator CloudKit disabled; Join saves the name used to prefill New Game. |
 | `-qaShowNewGameInvalid` | `NewGameSetupView.swift` | Same screen, seat 2's name whitespace-only — the amber problem plaque and a disabled Start. |
 | `-qaShowNewGameOverwrite` | `NewGameSetupView.swift` | Same screen with the "Replace your saved game?" confirmation already raised. Pair with a real save (run `-qaAutoStart -qaFastForwardToRollDice` first) to also get the amber saved-game plaque behind it. |
 | `-qaShowNewGameCivilizationPicker` | `NewGameSetupView.swift` | Same screen with seat 2's civilization grid open — the only way to see a taken civilization greyed out. |
