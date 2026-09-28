@@ -135,6 +135,50 @@ struct GameplayFeedbackTests {
         #expect(queue.deadline == nil)
     }
 
+    @Test func clearingNewsWhileHeldPreservesThePresentationHold() {
+        var queue = GameplayFeedbackQueue()
+        queue.suspend(true, now: now)
+        queue.clear() // Backgrounding does not dismiss the card hand.
+        let played = item(.monopoly)
+        queue.enqueue([played], now: now.addingTimeInterval(1))
+        queue.advance(now: now.addingTimeInterval(6))
+        #expect(queue.isSuspended)
+        #expect(queue.visible == nil)
+        #expect(queue.deadline == nil)
+        queue.suspend(false, now: now.addingTimeInterval(6))
+        #expect(queue.visible?.id == played.id)
+        #expect(queue.deadline == now.addingTimeInterval(10))
+    }
+
+    @Test func resumedNoticeExpiresAtItsAgeLimitEvenWithReadingTimeRemaining() {
+        var queue = GameplayFeedbackQueue()
+        queue.enqueue([item(.monopoly)], now: now)
+        queue.suspend(true, now: now.addingTimeInterval(1))
+        queue.suspend(false, now: now.addingTimeInterval(23))
+        #expect(queue.visible != nil)
+        #expect(queue.deadline == now.addingTimeInterval(24))
+        queue.advance(now: now.addingTimeInterval(23.99))
+        #expect(queue.visible != nil)
+        queue.advance(now: now.addingTimeInterval(24))
+        #expect(queue.visible == nil)
+        #expect(queue.deadline == nil)
+    }
+
+    @Test func promotedNoticeCannotSchedulePastItsOwnAgeLimit() {
+        var queue = GameplayFeedbackQueue()
+        let recent = GameplayFeedback(kind: .card(viewer, .knight), pointChanges: [:],
+                                      occurredAt: now.addingTimeInterval(19))
+        let old = item(.monopoly)
+        queue.enqueue([recent], now: now.addingTimeInterval(19))
+        queue.enqueue([old], now: now.addingTimeInterval(20))
+        queue.advance(now: now.addingTimeInterval(23))
+        #expect(queue.visible?.id == old.id)
+        #expect(queue.deadline == now.addingTimeInterval(24))
+        queue.advance(now: now.addingTimeInterval(24))
+        #expect(queue.visible == nil)
+        #expect(queue.deadline == nil)
+    }
+
     private func fixture() -> GameState {
         var state = GameSetup.newGame(board: BoardGenerator.standard(), seed: 32)
         state.phase = .mainTurn(playerIndex: viewer.index)

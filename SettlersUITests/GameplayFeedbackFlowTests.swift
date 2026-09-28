@@ -59,6 +59,30 @@ final class GameplayFeedbackFlowTests: XCTestCase {
         XCTAssertFalse(notice(in: app).exists)
     }
 
+    func testBackgroundWithCardHandOpenKeepsNewNoticeHeldBehindResult() {
+        let app = launch(["-qaShowDevCardHand"])
+        let monopoly = app.buttons["dev-cards.tile.monopoly"]
+        XCTAssertTrue(monopoly.waitForExistence(timeout: 10))
+        XCUIDevice.shared.press(.home)
+        app.activate()
+        XCTAssertTrue(monopoly.waitForExistence(timeout: 3))
+        monopoly.tap()
+        app.buttons["dev-cards.resource.ore"].tap()
+        app.buttons["dev-cards.play.monopoly"].tap()
+        let result = app.staticTexts["dev-cards.result"]
+        XCTAssertTrue(result.waitForExistence(timeout: 3))
+        // Exercise the real timer beyond its four-second reading window, not
+        // just a quick acknowledgement that would hide the lifecycle defect.
+        XCTAssertFalse(result.waitForNonExistence(timeout: 5))
+        XCTAssertFalse(notice(in: app).exists)
+        app.buttons["dev-cards.result.continue"].tap()
+        let receipt = notice(in: app)
+        XCTAssertTrue(receipt.waitForExistence(timeout: 3))
+        XCTAssertEqual(receipt.label, "Player 1 played Monopoly")
+        capture(app, "Public notice survives background and held private result")
+        XCTAssertTrue(receipt.waitForNonExistence(timeout: 6))
+    }
+
     func testKnightNoticeRequiresConfirmedRobberAndPrivateAcknowledgement() {
         let app = launch(["-qaShowDevCardHand"])
         XCTAssertTrue(app.buttons["dev-cards.play.knight"].waitForExistence(timeout: 10))

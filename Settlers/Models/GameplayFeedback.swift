@@ -123,7 +123,7 @@ struct GameplayFeedbackQueue {
         if current == nil {
             current = pending.isEmpty ? nil : pending.removeFirst()
             remaining = Self.displaySeconds
-            deadline = current.map { _ in now.addingTimeInterval(remaining) }
+            deadline = readingDeadline(now: now)
         }
     }
 
@@ -131,9 +131,22 @@ struct GameplayFeedbackQueue {
         guard value != isSuspended else { return }
         if value { remaining = max(0, deadline?.timeIntervalSince(now) ?? Self.displaySeconds) }
         isSuspended = value
-        deadline = value ? nil : current.map { _ in now.addingTimeInterval(remaining) }
+        deadline = value ? nil : readingDeadline(now: now)
         advance(now: now)
     }
 
-    mutating func clear() { self = Self() }
+    /// Reading time can pause, but the age limit cannot. Cap the scheduled wake
+    /// itself so stale news disappears without requiring another game event.
+    private func readingDeadline(now: Date) -> Date? {
+        current.map { min(now.addingTimeInterval(remaining), $0.occurredAt.addingTimeInterval(Self.maximumAge)) }
+    }
+
+    /// Forget news, not the view's hold. Backgrounding can leave the same card
+    /// surface open, so its unchanged hold predicate will not fire onChange.
+    mutating func clear() {
+        current = nil
+        pending = []
+        deadline = nil
+        remaining = Self.displaySeconds
+    }
 }
