@@ -174,13 +174,17 @@ def cmd_schedule(args) -> None:
 
 def cmd_run(args) -> None:
     args.results_dir.mkdir(parents=True, exist_ok=True)
+    # Every earlier result file counts as done, whatever shard count wrote it.
+    finished = [arg for path in sorted(args.results_dir.glob("*.jsonl")) for arg in ("--done", str(path))]
+    run_id = len(list(args.results_dir.glob("run-*"))) + 1
+    (args.results_dir / f"run-{run_id}").touch()
     workers = []
     for shard in range(args.workers):
-        out = args.results_dir / f"shard-{shard}.jsonl"
+        out = args.results_dir / f"run{run_id}-shard-{shard}.jsonl"
         command = [str(args.arena), "--schedule", str(args.schedule), "--seats-dir", str(args.seats_dir),
-                   "--shard", f"{shard}/{args.workers}", "--done", str(out)]
+                   "--shard", f"{shard}/{args.workers}", *finished]
         workers.append(subprocess.Popen(command, stdout=out.open("a"),
-                                        stderr=(args.results_dir / f"shard-{shard}.err").open("a")))
+                                        stderr=(args.results_dir / f"run{run_id}-shard-{shard}.err").open("a")))
     failed = [w.args for w in workers if w.wait() != 0]
     if failed:
         sys.exit(f"{len(failed)} shard(s) failed; re-run to resume: {failed[0]}")
@@ -230,7 +234,14 @@ def label(seat: str, labels: dict[str, str]) -> str:
 
 
 def cmd_analyse(args) -> None:
-    games = [g for path in args.results for g in read_jsonl(path) if not g["match"].startswith("probe")]
+    games, seen = [], set()
+    for path in args.results:
+        for g in read_jsonl(path):
+            key = (g["match"], g["seed"], tuple(g["seats"]))
+            if g["match"].startswith("probe") or key in seen:
+                continue
+            seen.add(key)
+            games.append(g)
     labels = {}
     if args.roster:
         for row in json.loads(args.roster.read_text()):

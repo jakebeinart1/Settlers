@@ -354,7 +354,7 @@ private struct Options {
     var seatsDirectory: URL?
     var shard = 0
     var shards = 1
-    var done: URL?
+    var done: [URL] = []
     var seats: [String] = []
     var seed: UInt64 = 1
 }
@@ -370,7 +370,7 @@ private func parse(_ arguments: [String]) -> Options {
         switch flag {
         case "--schedule": options.schedule = URL(fileURLWithPath: value(flag))
         case "--seats-dir": options.seatsDirectory = URL(fileURLWithPath: value(flag))
-        case "--done": options.done = URL(fileURLWithPath: value(flag))
+        case "--done": options.done.append(URL(fileURLWithPath: value(flag)))
         case "--seats": options.seats = value(flag).split(separator: ",").map(String.init)
         case "--seed": options.seed = UInt64(value(flag)) ?? { fail("--seed must be an integer") }()
         case "--shard":
@@ -383,9 +383,15 @@ private func parse(_ arguments: [String]) -> Options {
     return options
 }
 
-/// Games already recorded, so a killed shard resumes instead of replaying.
-private func finishedGames(in file: URL?) -> Set<String> {
-    guard let file, let text = try? String(contentsOf: file, encoding: .utf8) else { return [] }
+/// Games already recorded, so a killed run resumes instead of replaying -
+/// from any number of result files, so a resumed run may use a different
+/// shard count than the one it replaces.
+private func finishedGames(in files: [URL]) -> Set<String> {
+    files.reduce(into: Set<String>()) { $0.formUnion(finishedGames(in: $1)) }
+}
+
+private func finishedGames(in file: URL) -> Set<String> {
+    guard let text = try? String(contentsOf: file, encoding: .utf8) else { return [] }
     struct Key: Decodable { let match: String; let seed: UInt64; let seats: [String] }
     return Set(text.split(separator: "\n").compactMap { line in
         (try? JSONDecoder().decode(Key.self, from: Data(line.utf8))).map { "\($0.match)|\($0.seed)|\($0.seats)" }
