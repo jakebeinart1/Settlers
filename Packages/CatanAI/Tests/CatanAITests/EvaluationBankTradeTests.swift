@@ -49,11 +49,22 @@ import CatanEngine
     /// the same four lumber with the city already affordable buys nothing the
     /// seat does not already have, so handing three cards to the bank is a
     /// loss and the trade must be refused.
-    @Test func aBankTradeThatUnlocksNothingIsRefused() {
+    ///
+    /// The city itself is on offer here. Nine cards is over the discard
+    /// threshold, and `HandDiscipline` will not end that turn while something
+    /// can be spent, so without the city the only spend left is the trade.
+    /// With it, the city is the spend: five cards into a point, not three to
+    /// the bank for nothing.
+    @Test func aBankTradeThatUnlocksNothingIsRefused() throws {
         var (state, me, candidates) = oneGrainShortOfACity()
         state.players[0].resources = [.ore: 3, .grain: 2, .lumber: 4]
-        if case .bankTrade = choice(state, me, candidates) {
+        let city = try #require(RulesEngine.legalMoves(for: state, seat: me).first {
+            if case .buildCity = $0 { true } else { false }
+        })
+        let chosen = choice(state, me, candidates + [city])
+        if case .bankTrade = chosen {
             Issue.record("paid the bank three cards for a purchase it could already afford")
         }
+        #expect(chosen == city)
     }
 }

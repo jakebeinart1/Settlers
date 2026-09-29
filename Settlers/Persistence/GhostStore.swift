@@ -40,8 +40,42 @@ public struct GhostStore: Sendable {
         return byID.values.sorted { ($0.name, $0.id) < ($1.name, $1.id) }
     }
 
+    /// The ghost behind `id`, following a rename (`alias`).
     func ghost(id: String) -> GhostProfile? {
-        latest(of: id) ?? bundledGhosts.compactMap(Self.read).first { $0.id == id }
+        let id = resolve(id)
+        return latest(of: id) ?? bundledGhosts.compactMap(Self.read).first { $0.id == id }
+    }
+
+    // MARK: - Renames
+
+    /// The id a person's ghost is stored under.
+    ///
+    /// A ghost keeps the id it was first trained under for good: Jake renamed
+    /// himself "Bein" (2026-09-28) and his next game would otherwise have
+    /// started a blank ghost `bein`, leaving the one that learned 25 of his
+    /// games behind as "Jake's Ghost". The rename records `bein -> jake`.
+    func resolve(_ id: String) -> String {
+        var current = id
+        var seen: Set<String> = []
+        while let next = aliases()[current], seen.insert(current).inserted { current = next }
+        return current
+    }
+
+    /// Points `slug` at the ghost stored as `id`. A person's own phone does
+    /// this when they rename; other phones never need to, because a ghost
+    /// travels under its stored id.
+    func alias(_ slug: String, to id: String) throws {
+        guard slug != id else { return }
+        var map = aliases()
+        map[slug] = id
+        try FileManager.default.createDirectory(at: localDirectory, withIntermediateDirectories: true)
+        try JSONEncoder().encode(map).write(to: aliasFile, options: .atomic)
+    }
+
+    private var aliasFile: URL { localDirectory.appendingPathComponent("aliases.json") }
+
+    private func aliases() -> [String: String] {
+        (try? JSONDecoder().decode([String: String].self, from: Data(contentsOf: aliasFile))) ?? [:]
     }
 
     func pickable() -> [GhostProfile] {
@@ -67,7 +101,7 @@ public struct GhostStore: Sendable {
     }
 
     func decisionsDirectory(for id: String) -> URL {
-        localDirectory.appendingPathComponent(id).appendingPathComponent("decisions")
+        localDirectory.appendingPathComponent(resolve(id)).appendingPathComponent("decisions")
     }
 
     private func latest(of id: String) -> GhostProfile? {

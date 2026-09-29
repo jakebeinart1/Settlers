@@ -48,12 +48,20 @@ struct SharedMatch: Codable, Sendable {
     /// The per-seat stats this game really produced, or why it is not a
     /// game this ladder counts. `uploader` is the name the record's creator
     /// has claimed (`LiveSync` resolves it from the record's owner).
-    func verified(uploader: String) throws -> SeatStatsRecord {
+    ///
+    /// `holding` is the slug the uploader's claim sits under. It is the name's
+    /// own slug unless they have renamed: then a game posted as "Jake" is
+    /// checked against `jake`, which the renamed "Bein" still holds.
+    func verified(uploader: String, holding: String? = nil) throws -> SeatStatsRecord {
         guard version == Self.currentVersion else { throw Rejection.unknownVersion(version) }
         guard initialState.mode == .classic, initialState.variant == .standard else { throw Rejection.notClassicStandard }
         guard seats.count == initialState.players.count else { throw Rejection.seatCountMismatch }
+        // By slug, not by exact name: a game uploaded as "Jake" still belongs
+        // to the holder of `jake` after they rename themselves "Bein", and it
+        // is recorded under the name they go by now.
         let people = seats.filter { $0.hasPrefix(RatedEntity.personPrefix) }
-        guard people == [RatedEntity.person(uploader).key] else { throw Rejection.personIsNotUploader }
+        guard people.count == 1, let person = LiveSync.slug(ofPersonKey: people[0]),
+              person == holding ?? GhostTrainer.ghostID(forPerson: uploader) else { throw Rejection.personIsNotUploader }
         let stats: [SeatStats]
         do {
             stats = try SeatStats.compute(initial: initialState, moves: moves.map { LoggedMove(player: $0.player, move: $0.move) })
@@ -62,7 +70,10 @@ struct SharedMatch: Codable, Sendable {
         }
         guard stats.filter(\.won).count == 1 else { throw Rejection.notFinished }
         return SeatStatsRecord(match: match, date: date,
-                               seats: zip(seats, stats).map { SeatStatsRecord.Entry(entity: $0, stats: $1) })
+                               seats: zip(seats, stats).map { entity, stats in
+                                   SeatStatsRecord.Entry(entity: entity.hasPrefix(RatedEntity.personPrefix)
+                                                             ? RatedEntity.person(uploader).key : entity, stats: stats)
+                               })
     }
 }
 

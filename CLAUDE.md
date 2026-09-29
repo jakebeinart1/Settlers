@@ -31,7 +31,10 @@ Every one of these is canonical for its question. Read the file, do not reason f
 | Why the board clips to its own bounds, and why not to its container's | `BoardView.body`'s `.clipped()` (the comment on it is the spec) |
 | Bot decision entry point | `Packages/CatanAI/Sources/CatanAI/Bot.swift` |
 | Bot loop, seat assignment, personality mix | `Settlers/ViewModels/GameViewModel.swift` |
-| Online ladder: what syncs, how games are verified, why Elo is replayed, CloudKit setup | `docs/live-sync.md` + `LiveSync`'s doc comment |
+| Online ladder: what syncs, how games are verified, why Elo is replayed, renames, CloudKit setup | `docs/live-sync.md` + `LiveSync`'s doc comment |
+| Why no bot ends a turn holding more than 7 cards (Jake's rule) | `HandDiscipline`'s doc comment (`Packages/CatanAI/Sources/CatanAI/Evaluation/`) |
+| How strong every Expert and Classic that ever shipped is, and how to seat old commits at one table | `docs/AI_summaries/2026-09-29-every-bot-tournament.md` + `arena`'s header (`Packages/CatanAI/Sources/arena/`) |
+| Replaying a real game off Jake's iPhone (TestFlight data is readable) | `docs/AI_summaries/2026-09-28-ghost-hoarding-and-rename.md`, "How it was found" |
 | What is persisted, where, and why | `Settlers/Persistence/` - 7 stores, each with the rationale in its doc comment |
 | Art assets: what is wired in, what is retired, how it was generated | `design-references/STATUS.md` |
 | Feature design rationale (4 specs, Aug 2026) | `docs/superpowers/specs/` |
@@ -429,7 +432,13 @@ That last line is not optional. Skipping it is what left `main` on a stale commi
 
 ## Known-open
 
-- **There is nothing open.** `gh pr list --state open` returns empty as of 2026-09-09.
+- **`main` is not on TestFlight yet** (checked 2026-09-29 on Jake's iPhone). It runs
+  build 14, cut from Alex's `event-feedback` branch before `a168a4b` landed. The hand-size rule, the rename fix and the AI spider graphs reach players only with
+  the next build, and the online ladder has never been tested on two real phones - only
+  against the in-memory CloudKit in `LiveSyncTests`. `TODO.md` "Start here" #1.
+- **Jake's ghost now wins more than Jake did** (68.8% vs three Classic, was 60.4%, target
+  ~54%): lambda wants recalibrating. `TODO.md` "Start here" #2.
+- **There is nothing open.** `gh pr list --state open` returns empty as of 2026-09-28.
   This entry previously said PR #1 (`fix/engine-determinism-and-rules`) and PR #2
   (`ci/gate-and-workflow`) were "**OPEN** and awaiting Jake" with "nothing from this work on
   `main`" - both merged on 2026-08-29 and the line stayed wrong for eleven days, telling
@@ -474,6 +483,11 @@ That last line is not optional. Skipping it is what left `main` on a stale commi
 
 ## Settled dead ends - do not re-litigate
 
+- **Long-running Swift CLI loops on macOS need an `autoreleasepool` per iteration.** The
+  2026-09-29 tournament leaked ~23MB/s per process through Foundation pipe I/O, filled
+  20GB of swap and kernel-panicked Jake's Mac three times ("no checkins from watchdogd").
+  It looked like CPU load and was not. Measure RSS for ~40s before any multi-hour run.
+
 - **Branch protection.** Unavailable: private repo on a plan without it, and Alex is not an
   admin (`gh api .../branches/main/protection` returns 404 for a non-admin; a write attempt
   answers 403 "Upgrade to GitHub Pro or make this repository public"). The pre-push hook is
@@ -490,6 +504,11 @@ That last line is not optional. Skipping it is what left `main` on a stale commi
   changes every call site in three modules and still leaves save/resume non-deterministic,
   because the generator's position would not survive being written to disk. The generator
   lives in `GameState` instead.
+- **Removing the cap of three refused trade proposals a turn.** Built and measured
+  2026-09-28: four Expert seats went from 193 to 540 proposals a game, up to 19 in one
+  turn (20+ seconds of offers at app pacing, each able to interrupt the human), games
+  doubled in length, and a Classic 12-VP matrix game stopped finishing. Jake: leave it at
+  three. [Numbers](docs/AI_summaries/2026-09-28-ghost-hoarding-and-rename.md).
 - **Adding an Xcode test target.** The tests are SPM tests and run on Linux for 1x billing.
   Keep them there.
 

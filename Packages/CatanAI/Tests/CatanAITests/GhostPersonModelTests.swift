@@ -181,6 +181,29 @@ import CatanEngine
                 "without the previous ghost as prior the fit must move further")
     }
 
+    /// Beta had no prior, so one game could move it anywhere: eight simulated
+    /// on-phone retrains took Jake's 6.5 to 23-32 (2026-09-28). The synthetic
+    /// person's beta is 3; a previous ghost at 10 with 2,600 decisions behind
+    /// it must barely move on 100 new ones.
+    @Test func anIncrementalFitKeepsBetaNearThePreviousGhost() {
+        var previous = PersonModel.anchored(at: anchor)
+        previous.beta = 10
+        let newGame = synthetic(count: 100, seed: 9)
+        var options = FitOptions()
+        options.iterations = 400
+        options.learningRate = 0.05
+        options.priorCenter = previous
+        options.priorEvidence = 2600
+        let updated = PersonFitter.fit(newGame, anchor: anchor, start: previous, options: options)
+        #expect(abs(updated.beta - previous.beta) < 1, "beta drifted to \(updated.beta)")
+
+        options.priorCenter = nil
+        options.priorEvidence = 0
+        let forgetful = PersonFitter.fit(newGame, anchor: anchor, start: previous, options: options)
+        #expect(abs(forgetful.beta - previous.beta) > abs(updated.beta - previous.beta) + 1,
+                "without the previous ghost as prior beta must move further")
+    }
+
     /// Review Focus 4: no data means the anchor, not NaN.
     @Test func fittingNothingReturnsTheAnchor() {
         #expect(PersonFitter.fit([], anchor: anchor) == PersonModel.anchored(at: anchor))

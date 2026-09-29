@@ -2,7 +2,7 @@ import CatanAI
 import SwiftUI
 
 /// Everyone on the ladder: players, every ghost on the phone, and both AI
-/// tiers (Jake, 2026-09-25). Tapping a player or a ghost opens its page.
+/// tiers (Jake, 2026-09-25). Tapping any row opens its page.
 struct LeaderboardView: View {
     let onDismiss: () -> Void
     var ratingStore = RatingStore.shared
@@ -156,8 +156,6 @@ struct LeaderboardView: View {
             .background(PaintedChromeBackground(fill: .color(SettingsChrome.plaqueFill), cornerRadius: 10, notchScale: 0.5))
         }
         .buttonStyle(.plain)
-        // Not `.disabled`: that dims the row, and Expert read as unavailable.
-        .allowsHitTesting(row.kind != .ai)
         .accessibilityIdentifier(AccessibilityID.Leaderboard.row(row.key))
     }
 
@@ -174,11 +172,12 @@ struct LeaderboardView: View {
         case .ghost:
             let id = String(row.key.dropFirst("ghost:".count))
             guard let ghost = ghostStore.ghost(id: id) else { return }
-            selected = EntityDetail.ghost(ghost, ratings: ratings, stats: stats)
+            selected = EntityDetail.ghost(ghost, ratings: ratings, stats: stats, resolve: ghostStore.resolve)
         case .player:
             selected = EntityDetail.person(row.name, ratings: ratings, stats: stats)
         case .ai:
-            return
+            guard let tier = RatedEntity(key: row.key) else { return }
+            selected = EntityDetail.ai(tier, name: row.name, elo: row.elo, stats: stats)
         }
     }
 }

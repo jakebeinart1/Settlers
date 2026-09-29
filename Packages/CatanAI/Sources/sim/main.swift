@@ -205,6 +205,7 @@ private struct Options {
                         heuristics: balanced, aggressive, cautious
                         anchors:    greedy, random
                         search: eval (position evaluation, the current candidate)
+                        variant: eval-holder (eval without the hand-size rule)
                         sweep:  eval-tuned (same, with --weights)
                         anchor: eval-round3 (Expert as shipped at dac279c)
                         variant: eval-worthit (composed offers, no escalation ladder)
@@ -238,12 +239,12 @@ private func policy(named name: String,
     case "aggressive": personality = .aggressive
     case "cautious": personality = .cautious
     case "refuses-balanced": personality = nil
-    case "greedy", "random", "joint-balanced", "eval", "eval-tuned", "eval-round3", "eval-worthit",
+    case "greedy", "random", "joint-balanced", "eval", "eval-holder", "eval-tuned", "eval-round3", "eval-worthit",
          "eval-noarmy", "eval-v0": personality = nil
     default:
         fail(
             "unknown seat '\(name)'; expected balanced, aggressive, cautious, "
-                + "bold, targeted, eval, eval-noarmy, eval-v0, eval-tuned, eval-round3, greedy, random, "
+                + "bold, targeted, eval, eval-holder, eval-noarmy, eval-v0, eval-tuned, eval-round3, greedy, random, "
                 + "refuses-balanced or joint-balanced"
         )
     }
@@ -255,6 +256,10 @@ private func policy(named name: String,
         base = GreedyPolicy()
     } else if name == "eval" {
         base = EvaluationPolicy()
+    } else if name == "eval-holder" {
+        // Expert as it was before `HandDiscipline`: free to end a turn on
+        // any hand size. The arm that answers whether the rule costs anything.
+        base = EvaluationPolicy(id: "evaluation-holder", handDiscipline: false)
     } else if name == "eval-v0" {
         // The Conquest Expert Jake beat on 2026-09-24: the fork before it knew
         // capture threat or exposure. Frozen here as the anchor to beat.

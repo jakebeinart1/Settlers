@@ -72,6 +72,35 @@ import Testing
         #expect(detail.radar != nil)
     }
 
+    /// Jake, 2026-09-28: Expert and Classic get spider graphs like players.
+    /// Until a tier has three games here, its graph is its own self-play.
+    @Test func theAITiersHaveGraphs() {
+        let fresh = EntityDetail.ai(.expert, name: "Expert AI", elo: 1229, stats: [])
+        #expect(fresh.radar == RadarBaseline.ratings(for: RadarBaseline.expert))
+        #expect(fresh.radarCaption == "From its own self-play · Expert is 75")
+        #expect(EntityDetail.ai(.classic, name: "Classic AI", elo: 1000, stats: []).radar
+                == RadarBaseline.ratings(for: RadarBaseline.classic))
+
+        let played = [record(ghostWins: true), record(ghostWins: false), record(ghostWins: true)]
+        let classic = EntityDetail.ai(.classic, name: "Classic AI", elo: 1000, stats: played)
+        #expect(classic.record.played == 6, "two Classic seats in each of three games")
+        #expect(classic.record.won == 0)
+        #expect(!classic.radarIsLearnedFrom)
+        #expect(classic.radar == RadarBaseline.ratings(for: RadarMeasures(games: played.flatMap { $0.seats[2...].map(\.stats) })))
+    }
+
+    /// After a rename, "person:Bein" owns the ghost stored as `jake`.
+    @Test func aRenamedPersonStillOwnsTheirGhostsPage() {
+        let renamed = [record(ghostWins: true), record(ghostWins: false), record(ghostWins: true)].map { game in
+            SeatStatsRecord(match: game.match, date: game.date, seats: game.seats.map {
+                $0.entity == "person:Jake" ? .init(entity: "person:Bein", stats: $0.stats) : $0
+            })
+        }
+        let detail = EntityDetail.ghost(ghost("jake", "Bein's Ghost"), ratings: Ratings(), stats: renamed,
+                                        resolve: { $0 == "bein" ? "jake" : $0 })
+        #expect(detail.selfPlay?.played == 3)
+    }
+
     /// Expert maps to 75; everything is clamped to 1...99.
     @Test func ratingsAreOneToNinetyNineWithExpertAtSeventyFive() {
         let expert = RadarBaseline.expert

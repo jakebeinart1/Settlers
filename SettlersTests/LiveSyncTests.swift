@@ -48,6 +48,14 @@ import Testing
             }
         }
 
+        func rename(slug: String, to name: String) async throws {
+            try cloud.locked { cloud in
+                guard let existing = cloud.names[slug] else { return }
+                guard existing.owner == user else { throw CloudSyncError.failed("not creator") }
+                cloud.setName(slug, NameClaim(name: name, owner: user))
+            }
+        }
+
         func claims(slugs: [String]) async throws -> [String: NameClaim] {
             cloud.locked { cloud in cloud.names.filter { slugs.contains($0.key) } }
         }
@@ -94,9 +102,10 @@ import Testing
             await LiveSync(backend: Phone(cloud: cloud, user: user), stores: stores, displayName: { name }).sync()
         }
 
-        /// Plays one whole rated game on this device as `name`.
+        /// Plays one whole rated game on this device as `name`, with
+        /// `ghost` in seat 2 if given.
         @MainActor
-        func play(as name: String) throws {
+        func play(as name: String, against ghost: String? = nil) throws {
             let suite = "LiveSyncTests.\(UUID().uuidString)"
             let defaults = try #require(UserDefaults(suiteName: suite))
             defer { defaults.removePersistentDomain(forName: suite) }
@@ -116,6 +125,8 @@ import Testing
             }
             var setup = MatchSetup.default(preferredName: name, preferredCivilization: .greece)
             setup.randomizeSeatOrder = false
+            setup.seats[2].ghostID = ghost
+            #expect(setup.newGameProblem(knownGhosts: Set(stores.ghosts.pickable().map(\.id))) == nil)
             model.startNewGame(setup: setup)
             model.qaPlayToEnd()
             guard case .gameOver = model.state.phase else { throw CancellationError() }
@@ -273,6 +284,7 @@ import Testing
             return try await inner.currentUser()
         }
         func claim(slug: String, name: String) async throws -> NameClaim { try await inner.claim(slug: slug, name: name) }
+        func rename(slug: String, to name: String) async throws { try await inner.rename(slug: slug, to: name) }
         func claims(slugs: [String]) async throws -> [String: NameClaim] { try await inner.claims(slugs: slugs) }
         func upload(_ match: SharedMatch) async throws { try await inner.upload(match) }
         func matches(modifiedAfter date: Date?) async throws -> [Downloaded<SharedMatch>] {
@@ -301,5 +313,130 @@ import Testing
         try backward.rebuild(from: records.reversed())
         #expect(forward.load() == backward.load())
         #expect(forward.load().games["person:Jake"] == 6)
+    }
+
+    // MARK: - Renames (Jake, 2026-09-28: "I tried to change my name and it
+    // didn't update my name and my ghost's name")
+
+    private func trainedGhost(_ id: String, _ name: String, games: Int = 12) -> GhostProfile {
+        GhostProfile(id: id, name: name, person: .anchored(at: .forMode(.classic)), lambda: 0.01, gamesLearned: games)
+    }
+
+    /// A player and their ghost as seen by every phone after a rename.
+    private func expectRenamed(_ device: Device, from old: String, to new: String, ghost: String,
+                               sourceLocation: SourceLocation = #_sourceLocation) {
+        let ladder = device.stores.ratings.load()
+        #expect(ladder.ratings["person:\(old)"] == nil, "the old name is gone from the ladder", sourceLocation: sourceLocation)
+        #expect((ladder.games["person:\(new)"] ?? 0) > 0, "the games moved to the new name", sourceLocation: sourceLocation)
+        #expect(device.stores.ghosts.ghost(id: ghost)?.name == "\(new)'s Ghost", sourceLocation: sourceLocation)
+        #expect(!device.stores.ghosts.all().contains { $0.name == "\(old)'s Ghost" }, sourceLocation: sourceLocation)
+    }
+
+    @MainActor
+    @Test func aRenameMovesTheLadderRowAndTheGhostOnEveryPhone() async throws {
+        let dir = root()
+        defer { try? FileManager.default.removeItem(at: dir) }
+        let cloud = FakeCloud()
+        let jake = Device("jake", in: dir)
+        let alex = Device("alex", in: dir)
+        try jake.stores.ghosts.save(trainedGhost("jake", "Jake's Ghost"))
+        try jake.play(as: "Jake")
+        _ = await jake.sync(cloud, as: "apple-jake", name: "Jake")
+        _ = await alex.sync(cloud, as: "apple-alex", name: "Alex")
+        #expect(alex.stores.ratings.load().games["person:Jake"] == 1)
+
+        guard case .online = await jake.sync(cloud, as: "apple-jake", name: "Bein") else {
+            Issue.record("the rename did not come online")
+            return
+        }
+        expectRenamed(jake, from: "Jake", to: "Bein", ghost: "jake")
+        #expect(jake.stores.ghosts.ghost(id: "bein")?.id == "jake", "the new name trains the ghost it already has")
+        #expect(cloud.locked { $0.names["jake"] } == NameClaim(name: "Bein", owner: "apple-jake"))
+
+        _ = await alex.sync(cloud, as: "apple-alex", name: "Alex")
+        expectRenamed(alex, from: "Jake", to: "Bein", ghost: "jake")
+        #expect(alex.stores.ratings.load().ratings == jake.stores.ratings.load().ratings, "both phones agree")
+
+        // The old name stays his: nobody else can become "Jake".
+        #expect(await Device("impostor", in: dir).sync(cloud, as: "apple-other", name: "Jake") == .nameTaken("Jake"))
+    }
+
+    /// Jake's own phone: renamed before renames were tracked, so its sync
+    /// state has no record of "jake" having been his. His games still are.
+    @MainActor
+    @Test func aPhoneThatRenamedBeforeRenamesWereTrackedCatchesUp() async throws {
+        let dir = root()
+        defer { try? FileManager.default.removeItem(at: dir) }
+        let cloud = FakeCloud()
+        let jake = Device("jake", in: dir)
+        try jake.stores.ghosts.save(trainedGhost("jake", "Jake's Ghost"))
+        try jake.play(as: "Jake")
+        _ = await jake.sync(cloud, as: "apple-jake", name: "Jake")
+        var state = SyncState.load(from: jake.stores.stateFile)
+        state.claimedSlug = nil
+        state.ownSlugs = nil
+        try state.save(to: jake.stores.stateFile)
+
+        _ = await jake.sync(cloud, as: "apple-jake", name: "Bein")
+        expectRenamed(jake, from: "Jake", to: "Bein", ghost: "jake")
+    }
+
+    /// A game begun as "Jake" and finished after the rename is still his,
+    /// goes up, and lands on the renamed row everywhere. Then he renames back.
+    @MainActor
+    @Test func gamesFromBeforeARenameAndRenamingBack() async throws {
+        let dir = root()
+        defer { try? FileManager.default.removeItem(at: dir) }
+        let cloud = FakeCloud()
+        let jake = Device("jake", in: dir)
+        let alex = Device("alex", in: dir)
+        try jake.stores.ghosts.save(trainedGhost("jake", "Jake's Ghost"))
+        _ = await jake.sync(cloud, as: "apple-jake", name: "Jake")
+        _ = await jake.sync(cloud, as: "apple-jake", name: "Bein")
+        try jake.play(as: "Jake")
+        _ = await jake.sync(cloud, as: "apple-jake", name: "Bein")
+        #expect(cloud.locked { $0.matches.count } == 1, "the game played under the old name went up")
+        _ = await alex.sync(cloud, as: "apple-alex", name: "Alex")
+        #expect(alex.stores.ratings.load().games["person:Bein"] == 1)
+
+        _ = await jake.sync(cloud, as: "apple-jake", name: "Jake")
+        _ = await alex.sync(cloud, as: "apple-alex", name: "Alex")
+        expectRenamed(jake, from: "Bein", to: "Jake", ghost: "jake")
+        expectRenamed(alex, from: "Bein", to: "Jake", ghost: "jake")
+    }
+
+    // MARK: - Two players, each other's ghosts
+
+    /// The whole online loop between two people: each gets on, each sees the
+    /// other's ghost in their picker, each plays it, and each phone ends on
+    /// the same ladder with both ghosts rated.
+    @MainActor
+    @Test func twoPlayersPlayEachOthersGhosts() async throws {
+        let dir = root()
+        defer { try? FileManager.default.removeItem(at: dir) }
+        let cloud = FakeCloud()
+        let jake = Device("jake", in: dir)
+        let alex = Device("alex", in: dir)
+        try jake.stores.ghosts.save(trainedGhost("jake", "Jake's Ghost"))
+        try alex.stores.ghosts.save(trainedGhost("alex", "Alex's Ghost"))
+        #expect(await jake.sync(cloud, as: "apple-jake", name: "Jake") != .noAccount)
+        #expect(await alex.sync(cloud, as: "apple-alex", name: "Alex") != .noAccount)
+        _ = await jake.sync(cloud, as: "apple-jake", name: "Jake")
+
+        #expect(jake.stores.ghosts.pickable().map(\.name) == ["Alex's Ghost", "Jake's Ghost"])
+        #expect(alex.stores.ghosts.pickable().map(\.name) == ["Alex's Ghost", "Jake's Ghost"])
+
+        try jake.play(as: "Jake", against: "alex")
+        try alex.play(as: "Alex", against: "jake")
+        _ = await jake.sync(cloud, as: "apple-jake", name: "Jake")
+        _ = await alex.sync(cloud, as: "apple-alex", name: "Alex")
+        _ = await jake.sync(cloud, as: "apple-jake", name: "Jake")
+
+        for device in [jake, alex] {
+            let ladder = device.stores.ratings.load()
+            #expect(ladder.games["ghost:jake"] == 1 && ladder.games["ghost:alex"] == 1)
+            #expect(ladder.games["person:Jake"] == 1 && ladder.games["person:Alex"] == 1)
+        }
+        #expect(jake.stores.ratings.load().ratings == alex.stores.ratings.load().ratings)
     }
 }

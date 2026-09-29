@@ -12,7 +12,7 @@ import Foundation
 //   ghost strength --person P.json --lambda L [--games 1248] [--tier expert]
 //   ghost bundle --person P.json --lambda L --id jake --name "Jake's Ghost" --games-learned 24 --decisions-learned 2612
 //                [--civilization greece] --out Settlers/Resources/Ghosts/jake.json
-//   ghost baseline [--games 200]                        (Expert self-play: the spider graph's reference averages)
+//   ghost baseline [--games 200] [--policy classic]     (self-play averages: the spider graph's reference, and the AI rows' own graphs)
 //   ghost timing --person P.json --lambda L                (one game: ghost move time, then one retrain)
 //   ghost selftest [--games 12] [--seed 700000] [--rounds 3] (recover a known synthetic person)
 
@@ -223,19 +223,22 @@ case "strength":
           : "not distinguishable from \(tier.rawValue) at 95%")
 case "baseline":
     let games = Int(option("--games") ?? "200") ?? 200
+    let classic = option("--policy") == "classic"
     var seats: [SeatStats] = []
     for game in 0..<games {
         let seed = 910_000 + UInt64(game)
         let initial = GameSetup.newGame(board: BoardGenerator.randomized(seed: seed), seed: seed)
         var policies: [PlayerID: any Policy] = [:]
-        for player in initial.players { policies[player.id] = EvaluationPolicy() }
+        for player in initial.players {
+            policies[player.id] = classic ? HeuristicPolicy(personality: .balanced, id: "balanced") : EvaluationPolicy()
+        }
         var session = GameSession(state: initial, policies: policies, policySeed: seed)
         var moves: [LoggedMove] = []
         while let step = try session.step() { moves.append(LoggedMove(player: step.actor, move: step.move)) }
         seats += try SeatStats.compute(initial: initial, moves: moves)
     }
     let radar = RadarMeasures(games: seats)
-    print("Expert self-play, \(games) games, \(seats.count) seats, seeds 910000...")
+    print("\(classic ? "Classic" : "Expert") self-play, \(games) games, \(seats.count) seats, seeds 910000...")
     print("production  " + number(radar.production) + "  cards per turn")
     print("expansion   " + number(radar.expansion) + "  settlements + cities per game")
     print("trading     " + number(radar.trading) + "  trades completed per game")

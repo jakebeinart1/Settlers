@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// A ghost's or a player's page (Jake, 2026-09-25): games learned from its
+/// A ghost's, a player's or an AI tier's page (Jake, 2026-09-25): games learned from its
 /// human, games against humans with self-play on its own line, the spider
 /// graph, and style in words.
 struct RatedEntityDetailView: View {
@@ -65,9 +65,7 @@ struct RatedEntityDetailView: View {
                 RadarChartView(ratings: radar, isLearnedFrom: detail.radarIsLearnedFrom)
                     .frame(maxWidth: 320)
                     .accessibilityIdentifier(AccessibilityID.Leaderboard.radar)
-                Text(detail.radarIsLearnedFrom
-                     ? "Learned from its player's games · Expert is 75"
-                     : "1–99 · Expert is 75")
+                Text(detail.radarCaption)
                     .font(.system(size: 11, design: .serif))
                     .foregroundStyle(.white.opacity(0.65))
             }
