@@ -125,14 +125,12 @@ actor LiveSync {
             let me = try await backend.currentUser()
             var state = SyncState.load(from: stores.stateFile)
             let claim = try await claimName(for: me)
-            var changed = false
+            var changed = try await downloadGhosts()
             if case .success(let mine) = claim {
-                changed = try await uploadGames(as: mine, state: &state)
+                changed = try await uploadGames(as: mine, state: &state) || changed
                 try await uploadGhost(as: mine, state: &state)
             }
-            let ownSlug = try? claim.get().slug
             changed = try await downloadGames(state: &state) || changed
-            changed = try await downloadGhosts(except: ownSlug) || changed
             if changed || !state.ratingsRebuilt {
                 try stores.ratings.rebuild(from: stores.seatStats.all())
                 state.ratingsRebuilt = true
@@ -225,12 +223,14 @@ actor LiveSync {
         return changed
     }
 
-    /// Other people's ghosts that have learned more than the copy here. Only
+    /// Ghosts that have learned more than the copy here, including our own:
+    /// a restored phone must fetch its newer server copy before publishing.
+    /// Only
     /// the ghost's owner can publish it, its name is rebuilt from the claim
     /// rather than trusted, and a model of the wrong shape is refused before
     /// it can reach `GhostPolicy`.
-    private func downloadGhosts(except ownSlug: String?) async throws -> Bool {
-        let downloaded = try await backend.ghosts().filter { $0.value.id != ownSlug && !$0.value.id.isEmpty }
+    private func downloadGhosts() async throws -> Bool {
+        let downloaded = try await backend.ghosts().filter { !$0.value.id.isEmpty }
         let claims = try await backend.claims(slugs: downloaded.map(\.value.id).sorted())
         let shape = PersonModel.anchored(at: .forMode(.classic))
         var changed = false

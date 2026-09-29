@@ -217,6 +217,31 @@ import Testing
         #expect(alex.stores.ghosts.all().map(\.id) == ["jake"])
     }
 
+    @Test(arguments: [true, false])
+    func aFreshOwnerRestoresTheNewerCloudGhostWithoutDowngradingIt(hasOlderCopy: Bool) async throws {
+        let dir = root()
+        defer { try? FileManager.default.removeItem(at: dir) }
+        let cloud = FakeCloud()
+        let owner = Phone(cloud: cloud, user: "apple-jake")
+        _ = try await owner.claim(slug: "jake", name: "Jake")
+        let newer = GhostProfile(id: "jake", name: "Jake's Ghost",
+                                 person: .anchored(at: .forMode(.classic)), lambda: 0.01, gamesLearned: 25)
+        try await owner.upload(newer)
+        let fresh = Device("fresh", in: dir)
+        if hasOlderCopy {
+            var older = newer
+            older.gamesLearned = 24
+            try fresh.stores.ghosts.save(older)
+        }
+
+        guard case .online = await fresh.sync(cloud, as: "apple-jake", name: "Jake") else {
+            Issue.record("The restored owner did not come online")
+            return
+        }
+        #expect(cloud.locked { $0.ghosts["jake"]?.value.gamesLearned } == 25)
+        #expect(fresh.stores.ghosts.ghost(id: "jake")?.gamesLearned == 25)
+    }
+
     /// Refreshes stay within `refreshInterval`; a finished game still syncs
     /// at once (Jake, 2026-09-26).
     @Test func refreshesAreThrottledButAFinishedGameSyncsAtOnce() async throws {

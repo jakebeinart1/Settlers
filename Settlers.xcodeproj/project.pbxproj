@@ -167,6 +167,7 @@
 		D056E44741C6A5840747E3B6 /* GameViewModel+Ghosts.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC579AD42504AEED661414A6 /* GameViewModel+Ghosts.swift */; };
 		D16CC8C90FB7F755636F3397 /* GameStatsStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 16777953197BE2BC34CCFE6B /* GameStatsStore.swift */; };
 		D22C3A2E80F1FC2B69A2926A /* LiveSyncTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 41620E9C1682D3B0588CE14D /* LiveSyncTests.swift */; };
+		D29E33187E5FE82FF22B9C6F /* CloudKitBackendTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0AE92337AA13178C682DF685 /* CloudKitBackendTests.swift */; };
 		D60440D0F2E4C24383EBBCCA /* GameViewModel+QAVast.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDC27F9952EDC7F3F2607D46 /* GameViewModel+QAVast.swift */; };
 		D64F537A73A0182B86EE502A /* BotDifficulty.swift in Sources */ = {isa = PBXBuildFile; fileRef = 51734632231393886280C1ED /* BotDifficulty.swift */; };
 		D79308E2266D7C121F7150A7 /* ArmyUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9AEFB97E94522F96868B7B54 /* ArmyUITests.swift */; };
@@ -220,6 +221,7 @@
 		0892D7EFB79360118C486EE3 /* Elo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Elo.swift; sourceTree = "<group>"; };
 		094066516FB9FCC3D028672A /* GameViewModel+Policies.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "GameViewModel+Policies.swift"; sourceTree = "<group>"; };
 		0AC74C3A12A7CDE5AE1B1546 /* CivilizationPieceShapes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CivilizationPieceShapes.swift; sourceTree = "<group>"; };
+		0AE92337AA13178C682DF685 /* CloudKitBackendTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CloudKitBackendTests.swift; sourceTree = "<group>"; };
 		0DFB1FCCE94DC838E55F1479 /* GhostStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GhostStoreTests.swift; sourceTree = "<group>"; };
 		118052E72D8695833C2EC00C /* ArmyPurchasePopupView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArmyPurchasePopupView.swift; sourceTree = "<group>"; };
 		11D7DF8A5B6CAC4647065878 /* PreMergeAuditRegressionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreMergeAuditRegressionTests.swift; sourceTree = "<group>"; };
@@ -445,6 +447,7 @@
 				293F3C9F45563859C6C2E3F3 /* CheckpointLifecycleTests.swift */,
 				DBA8BCB46AF42E87EB22D98E /* CheckpointMigrationTests.swift */,
 				B98093256E41FC724D7E6C36 /* CivilizationMappingTests.swift */,
+				0AE92337AA13178C682DF685 /* CloudKitBackendTests.swift */,
 				5281B8CED614C244F7E533EE /* CompleteMatchTests.swift */,
 				A469428A7A7C53B82AAA7CF0 /* ConquestSetupTests.swift */,
 				6EA6414242A6D72E151D2F11 /* DevelopmentCardJourneyTests.swift */,
@@ -1000,6 +1003,7 @@
 				8A95329505542BBE6D3491A9 /* CheckpointLifecycleTests.swift in Sources */,
 				2351A47641190EB4F53F128E /* CheckpointMigrationTests.swift in Sources */,
 				232A932B1BF064663A7161C3 /* CivilizationMappingTests.swift in Sources */,
+				D29E33187E5FE82FF22B9C6F /* CloudKitBackendTests.swift in Sources */,
 				243CAFAAB0A24DF9C30ABFF7 /* CompleteMatchTests.swift in Sources */,
 				E117B2BCB38DA3FABD17B6DE /* ConquestSetupTests.swift in Sources */,
 				0AF839BA0DBC818CC82119C9 /* DevelopmentCardJourneyTests.swift in Sources */,

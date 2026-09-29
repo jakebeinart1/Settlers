@@ -66,9 +66,8 @@ final class CloudKitBackend: CloudBackend, @unchecked Sendable {
         return try await mapped {
             let results = try await database.records(for: slugs.map { CKRecord.ID(recordName: "name-\($0)") })
             var claims: [String: NameClaim] = [:]
-            for (id, result) in results {
-                guard case .success(let record) = result else { continue }
-                claims[String(id.recordName.dropFirst("name-".count))] = try await claim(from: record)
+            for record in try Self.claimRecords(from: results) {
+                claims[String(record.recordID.recordName.dropFirst("name-".count))] = try await claim(from: record)
             }
             return claims
         }
@@ -99,12 +98,10 @@ final class CloudKitBackend: CloudBackend, @unchecked Sendable {
     func upload(_ ghost: GhostProfile) async throws {
         try await mapped {
             let id = CKRecord.ID(recordName: "ghost-\(ghost.id)")
-            let record = try await self.record(id) ?? CKRecord(recordType: "Ghost", recordID: id)
-            record["gamesLearned"] = ghost.gamesLearned
-            let file = try Self.temporaryFile(JSONEncoder().encode(ghost))
-            defer { try? FileManager.default.removeItem(at: file) }
-            record["payload"] = CKAsset(fileURL: file)
-            _ = try await database.save(record)
+            let existing = try await self.record(id)
+            guard let upload = try Self.prepareGhostUpload(ghost, existing: existing) else { return }
+            defer { try? FileManager.default.removeItem(at: upload.assetFile) }
+            _ = try await database.save(upload.record)
         }
     }
 
@@ -137,26 +134,66 @@ final class CloudKitBackend: CloudBackend, @unchecked Sendable {
         return creator == CKCurrentUserDefaultName ? try await container.userRecordID().recordName : creator
     }
 
-    /// Every record of `type` changed after `date`. A record whose payload
-    /// cannot be read (a newer app's format) is skipped, never fatal.
+    /// Every record of `type` changed after `date`. Incompatible payloads are
+    /// skipped; failed record or asset reads must not advance the checkpoint.
     private func query<Value: Decodable & Sendable>(_ type: String, modifiedAfter date: Date?) async throws -> [Downloaded<Value>] {
         let predicate = NSPredicate(format: "modificationDate > %@", (date ?? .distantPast) as NSDate)
         var (results, cursor) = try await database.records(matching: CKQuery(recordType: type, predicate: predicate),
                                                            resultsLimit: CKQueryOperation.maximumResults)
-        var records = results.compactMap { try? $0.1.get() }
+        var records = try Self.queryRecords(from: results)
         while let next = cursor {
             (results, cursor) = try await database.records(continuingMatchFrom: next, resultsLimit: CKQueryOperation.maximumResults)
-            records += results.compactMap { try? $0.1.get() }
+            records += try Self.queryRecords(from: results)
         }
         var downloaded: [Downloaded<Value>] = []
         for record in records {
-            guard let url = (record["payload"] as? CKAsset)?.fileURL,
-                  let data = try? Data(contentsOf: url),
-                  let value = try? JSONDecoder().decode(Value.self, from: data) else { continue }
+            guard let value: Value = try Self.decodedPayload(from: record) else { continue }
             downloaded.append(Downloaded(value: value, owner: try await owner(of: record),
                                          modified: record.modificationDate ?? .distantPast))
         }
         return downloaded
+    }
+
+    /// An individual query failure must fail the whole pass: returning later
+    /// records would let LiveSync advance its checkpoint past the failed one.
+    static func queryRecords(from results: [(CKRecord.ID, Result<CKRecord, any Error>)]) throws -> [CKRecord] {
+        try results.map { try $0.1.get() }
+    }
+
+    /// A name not yet claimed is expected; any other failed lookup must retry
+    /// rather than letting a game's missing claim look like an invalid owner.
+    static func claimRecords(from results: [CKRecord.ID: Result<CKRecord, any Error>]) throws -> [CKRecord] {
+        try results.values.compactMap { result in
+            do {
+                return try result.get()
+            } catch let error as CKError where error.code == .unknownItem {
+                return nil
+            }
+        }
+    }
+
+    /// Reading the downloaded asset is retryable. Only a decode failure means
+    /// its format is unsupported, so only that failure may skip a record.
+    static func decodedPayload<Value: Decodable>(from record: CKRecord) throws -> Value? {
+        guard let url = (record["payload"] as? CKAsset)?.fileURL else { throw CKError(.assetNotAvailable) }
+        let data = try Data(contentsOf: url)
+        do {
+            return try JSONDecoder().decode(Value.self, from: data)
+        } catch is DecodingError {
+            return nil
+        }
+    }
+
+    /// A fresh install can hold a bundled ghost older than the server's.
+    /// Compare before mutating the fetched record, and keep its change tag so
+    /// a concurrent server update still fails the save and retries next pass.
+    static func prepareGhostUpload(_ ghost: GhostProfile, existing: CKRecord?) throws -> (record: CKRecord, assetFile: URL)? {
+        if let learned = existing?["gamesLearned"] as? Int, learned > ghost.gamesLearned { return nil }
+        let record = existing ?? CKRecord(recordType: "Ghost", recordID: CKRecord.ID(recordName: "ghost-\(ghost.id)"))
+        let file = try temporaryFile(JSONEncoder().encode(ghost))
+        record["gamesLearned"] = ghost.gamesLearned
+        record["payload"] = CKAsset(fileURL: file)
+        return (record, file)
     }
 
     private static func temporaryFile(_ data: Data) throws -> URL {

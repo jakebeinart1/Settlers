@@ -138,6 +138,7 @@ grep -rnoE '"\-qa[A-Za-z]+"' --include="*.swift" "$REPO/Settlers" | sort -u
 | `-qaShowPaidRoadDecision` | `GameView.swift` | Starts a real paid-road proposal with no road or resources committed yet. |
 | `-qaShowPaidSettlementDecision` | `GameView.swift` | Starts a real paid-settlement proposal with no settlement or resources committed yet. |
 | `-qaShowPaidCityDecision` | `GameView.swift` | Starts a real paid-city proposal with no city or resources committed yet. |
+| `-qaRecordingWarningAfterCity` | `GameView.swift` | Modifier for `-qaShowPaidCityDecision`: Confirm a legal city upgrade to raise the real recording-warning alert through the existing export-warning state. Only the warning is injected; the city, +1 VP notice, queue and timer use the production commit path. No archive write is forced to fail. |
 | `-qaShowMonopolyPopup` | `GameView.swift` | The Monopoly resource picker in `DevCardPopupView` (Year of Plenty shares the layout). |
 | `-qaShowDevCardHand` | `GameView.swift` | A mixed private hand containing every card type, including ready, new, and passive states. |
 | `-qaDevCardPurchase` | `GameView.swift` | Backward-compatible shorthand for `-qaDevCardPurchase=monopoly`. |

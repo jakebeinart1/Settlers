@@ -460,6 +460,13 @@ public struct GameView: View {
         }
         .onChange(of: viewModel.eventBatch) { _, batch in
             handleEvents(batch.events)
+            #if DEBUG
+            // Published events follow a durable commit. Exercise ContentView's
+            // real warning alert without inventing a notice or failing the save.
+            if QALaunchFlag.recordingWarningAfterCity.isSet, batch.events.contains(.builtCity(human)) {
+                viewModel.gameLogWarningState = .export("QA: recording export failed after a committed city upgrade.")
+            }
+            #endif
         }
         .onChange(of: holdsGameplayFeedback, initial: true) { _, held in
             viewModel.gameplayFeedback.suspend(held)
