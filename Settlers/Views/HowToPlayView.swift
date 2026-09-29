@@ -130,7 +130,7 @@ struct HowToPlayView: View {
         }
         .padding(20)
         .frame(maxWidth: .infinity)
-        .background(PaintedChromeBackground(fill: .color(SettingsChrome.plaqueFill.opacity(0.85)), cornerRadius: 14))
+        .background(PaintedChromeBackground(fill: .color(SettingsChrome.plaqueFill), cornerRadius: 10, notchScale: 0.6))
         .padding(.vertical, 4)
         .accessibilityElement(children: .combine)
         .accessibilityIdentifier(AccessibilityID.HowToPlay.step(item.id))
@@ -166,9 +166,10 @@ struct HowToPlayView: View {
                 if section.id == "classic" {
                     Text("MAIN GAME")
                         .font(.system(size: 10, weight: .bold, design: .serif))
-                        .padding(.horizontal, 6).padding(.vertical, 2)
-                        .background(Capsule().fill(SettingsChrome.selectedOptionFill))
-                        .foregroundStyle(.black)
+                        .padding(.horizontal, 8).padding(.vertical, 3)
+                        // The selected option's painted gold (`PaintedChoiceRow`).
+                        .background(PaintedChromeBackground(
+                            fill: .tintedTexture(SettingsChrome.selectedOptionFill), cornerRadius: 6, notchScale: 0.4))
                 }
                 Spacer()
             }
@@ -195,7 +196,7 @@ struct HowToPlayView: View {
         }
         .padding(14)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(PaintedChromeBackground(fill: .color(SettingsChrome.plaqueFill.opacity(0.85)), cornerRadius: 12))
+        .background(PaintedChromeBackground(fill: .color(SettingsChrome.plaqueFill), cornerRadius: 10, notchScale: 0.6))
     }
 
     private func detailsToggle(_ section: HowToPlayContent.Section, isOpen: Bool) -> some View {
@@ -217,25 +218,23 @@ struct HowToPlayView: View {
     }
 }
 
-/// A price as the game shows it: each resource's card art and a count.
+/// A price as the Build popup shows it: each resource's swatch and a count
+/// in that resource's color.
 private struct CostRow: View {
     let cost: [Resource: Int]
 
     var body: some View {
-        HStack(spacing: 12) {
+        HStack(spacing: 14) {
             ForEach(Resource.allCases.filter { cost[$0, default: 0] > 0 }, id: \.self) { resource in
-                HStack(spacing: 3) {
-                    Image(CatanTheme.iconImageName(for: resource))
-                        .resizable().scaledToFit()
-                        .frame(width: 26, height: 26)
-                    Text("×\(cost[resource, default: 0])")
-                        .font(.system(size: 15, weight: .bold, design: .serif))
+                HStack(spacing: 5) {
+                    ResourceSwatch(resource: resource, size: 22)
+                    Text("\(cost[resource, default: 0])")
+                        .font(.system(size: 17, weight: .bold, design: .serif))
+                        .foregroundStyle(CatanTheme.color(for: resource))
                 }
                 .accessibilityElement(children: .ignore)
                 .accessibilityLabel("\(cost[resource, default: 0]) \(resource.rawValue.capitalized)")
             }
         }
-        .padding(.horizontal, 12).padding(.vertical, 6)
-        .background(Capsule().fill(Color.black.opacity(0.35)))
     }
 }
