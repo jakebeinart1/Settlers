@@ -25,6 +25,9 @@ let package = Package(
         // A person model from recorded games, and its ghost. Not a product, for
         // the reason `sim` is not.
         .executableTarget(name: "ghost", dependencies: ["CatanAI", "CatanEngine"]),
+        // Tournament referee: seats from any commit at one table, played by
+        // today's rules. See its header and `scripts/tournament/`.
+        .executableTarget(name: "arena", dependencies: ["CatanAI", "CatanEngine"]),
         .testTarget(name: "CatanAITests", dependencies: ["CatanAI"])
     ]
 )
