@@ -28,6 +28,7 @@ import itertools
 import json
 import math
 import os
+import shutil
 import subprocess
 import sys
 from collections import defaultdict
@@ -172,7 +173,19 @@ def cmd_schedule(args) -> None:
           f"{write_jsonl(args.out, games)} games -> {args.out}")
 
 
+def keep_machine_safe() -> None:
+    """Hours of all-core load kernel-panicked Jake's fanless MacBook Air three
+    times on 2026-09-29 ("no checkins from watchdogd in 92 seconds"), and the
+    Mac slept through most of a night's run. So a run lowers its own priority
+    (the workers inherit it) and holds a caffeinate assertion for as long as
+    this process lives."""
+    os.nice(10)
+    if shutil.which("caffeinate"):
+        subprocess.Popen(["caffeinate", "-ims", "-w", str(os.getpid())])
+
+
 def cmd_run(args) -> None:
+    keep_machine_safe()
     args.results_dir.mkdir(parents=True, exist_ok=True)
     # Every earlier result file counts as done, whatever shard count wrote it.
     finished = [arg for path in sorted(args.results_dir.glob("*.jsonl")) for arg in ("--done", str(path))]
@@ -322,7 +335,8 @@ def main() -> None:
     run.add_argument("--schedule", type=Path, required=True)
     run.add_argument("--seats-dir", type=Path, required=True)
     run.add_argument("--results-dir", type=Path, required=True)
-    run.add_argument("--workers", type=int, default=6)
+    # Half the cores: all eight pinned for hours is what panicked the Mac.
+    run.add_argument("--workers", type=int, default=max(1, (os.cpu_count() or 2) // 2))
     run.set_defaults(run=cmd_run)
 
     analyse = sub.add_parser("analyse")
