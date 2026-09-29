@@ -180,6 +180,12 @@ private func answer(_ line: String) -> String {
     return String(bytes: encoded, encoding: .utf8) ?? #"{"error":"policy"}"#
 }
 
+// Each request's Foundation objects are autoreleased, and a command-line loop
+// never drains them on its own: without this pool the 2026-08 builds (which
+// also go through JSONSerialization) grew ~23MB a second and filled 20GB of
+// swap on 2026-09-29.
 while let line = readLine(strippingNewline: true) {
-    FileHandle.standardOutput.write(Data((answer(line) + "\n").utf8))
+    autoreleasepool {
+        FileHandle.standardOutput.write(Data((answer(line) + "\n").utf8))
+    }
 }

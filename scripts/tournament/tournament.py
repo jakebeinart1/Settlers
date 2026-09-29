@@ -31,6 +31,7 @@ import os
 import shutil
 import subprocess
 import sys
+import time
 from collections import defaultdict
 from pathlib import Path
 
@@ -198,9 +199,30 @@ def cmd_run(args) -> None:
                    "--shard", f"{shard}/{args.workers}", *finished]
         workers.append(subprocess.Popen(command, stdout=out.open("a"),
                                         stderr=(args.results_dir / f"run{run_id}-shard-{shard}.err").open("a")))
+    guard_memory(workers, args.max_process_mb)
     failed = [w.args for w in workers if w.wait() != 0]
     if failed:
         sys.exit(f"{len(failed)} shard(s) failed; re-run to resume: {failed[0]}")
+
+
+def guard_memory(workers: list[subprocess.Popen], limit_mb: int) -> None:
+    """Stop the whole run if any worker or seat server outgrows `limit_mb`.
+
+    A leak in the seat servers filled 20GB of swap on 2026-09-29 and froze the
+    Mac. Finished games are on disk and a re-run resumes, so stopping loses at
+    most the games in flight; carrying on can cost the machine.
+    """
+    ours = {w.pid for w in workers}
+    while any(w.poll() is None for w in workers):
+        table = subprocess.run(["ps", "-Ao", "pid=,ppid=,rss=,comm="], capture_output=True, text=True).stdout
+        for row in table.splitlines():
+            pid, ppid, rss, command = row.split(None, 3)
+            if (int(pid) in ours or int(ppid) in ours) and int(rss) > limit_mb * 1024:
+                subprocess.run(["pkill", "-P", ",".join(map(str, ours))])
+                for w in workers:
+                    w.kill()
+                sys.exit(f"stopped: {command} (pid {pid}) reached {int(rss) // 1024}MB, over {limit_mb}MB")
+        time.sleep(15)
 
 
 # MARK: analysis
@@ -336,6 +358,8 @@ def main() -> None:
     run.add_argument("--seats-dir", type=Path, required=True)
     run.add_argument("--results-dir", type=Path, required=True)
     # Half the cores: all eight pinned for hours is what panicked the Mac.
+    run.add_argument("--max-process-mb", type=int, default=1024,
+                     help="stop everything if one worker or seat server grows past this")
     run.add_argument("--workers", type=int, default=max(1, (os.cpu_count() or 2) // 2))
     run.set_defaults(run=cmd_run)
 

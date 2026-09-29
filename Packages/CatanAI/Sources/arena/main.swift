@@ -98,7 +98,18 @@ private final class SeatServer: @unchecked Sendable {
         do { try process.run() } catch { fail("cannot start \(binary.path): \(error)") }
     }
 
+    /// Pipe reads and writes autorelease on Darwin and a command-line loop
+    /// never drains them: without the pool a worker grew ~3MB a second until,
+    /// with its seat servers, the Mac ran out of swap (2026-09-29).
     func ask(_ request: Data) -> Data {
+        #if canImport(ObjectiveC)
+        return autoreleasepool { exchange(request) }
+        #else
+        return exchange(request)
+        #endif
+    }
+
+    private func exchange(_ request: Data) -> Data {
         input.fileHandleForWriting.write(request + Data("\n".utf8))
         while true {
             if let newline = buffer.firstIndex(of: 0x0A) {
