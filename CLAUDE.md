@@ -33,6 +33,7 @@ Every one of these is canonical for its question. Read the file, do not reason f
 | Bot loop, seat assignment, personality mix | `Settlers/ViewModels/GameViewModel.swift` |
 | Online ladder: what syncs, how games are verified, why Elo is replayed, renames, CloudKit setup | `docs/live-sync.md` + `LiveSync`'s doc comment |
 | Why no bot ends a turn holding more than 7 cards (Jake's rule) | `HandDiscipline`'s doc comment (`Packages/CatanAI/Sources/CatanAI/Evaluation/`) |
+| How strong every Expert and Classic that ever shipped is, and how to seat old commits at one table | `docs/AI_summaries/2026-09-29-every-bot-tournament.md` + `arena`'s header (`Packages/CatanAI/Sources/arena/`) |
 | Replaying a real game off Jake's iPhone (TestFlight data is readable) | `docs/AI_summaries/2026-09-28-ghost-hoarding-and-rename.md`, "How it was found" |
 | What is persisted, where, and why | `Settlers/Persistence/` - 7 stores, each with the rationale in its doc comment |
 | Art assets: what is wired in, what is retired, how it was generated | `design-references/STATUS.md` |
@@ -431,8 +432,8 @@ That last line is not optional. Skipping it is what left `main` on a stale commi
 
 ## Known-open
 
-- **`main` at `6adc97f` is not on TestFlight yet** (2026-09-28). Jake's phone runs build
-  13. The hand-size rule, the rename fix and the AI spider graphs reach players only with
+- **`main` is not on TestFlight yet** (checked 2026-09-29 on Jake's iPhone). It runs
+  build 14, cut from Alex's `event-feedback` branch before `a168a4b` landed. The hand-size rule, the rename fix and the AI spider graphs reach players only with
   the next build, and the online ladder has never been tested on two real phones - only
   against the in-memory CloudKit in `LiveSyncTests`. `TODO.md` "Start here" #1.
 - **Jake's ghost now wins more than Jake did** (68.8% vs three Classic, was 60.4%, target
@@ -481,6 +482,11 @@ That last line is not optional. Skipping it is what left `main` on a stale commi
   order within one process). Worth solving before it fails a run that matters.
 
 ## Settled dead ends - do not re-litigate
+
+- **Long-running Swift CLI loops on macOS need an `autoreleasepool` per iteration.** The
+  2026-09-29 tournament leaked ~23MB/s per process through Foundation pipe I/O, filled
+  20GB of swap and kernel-panicked Jake's Mac three times ("no checkins from watchdogd").
+  It looked like CPU load and was not. Measure RSS for ~40s before any multi-hour run.
 
 - **Branch protection.** Unavailable: private repo on a plan without it, and Alex is not an
   admin (`gh api .../branches/main/protection` returns 404 for a non-admin; a write attempt

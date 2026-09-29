@@ -1,12 +1,13 @@
 # Settlers — To Do
 
-Updated September 28, 2026, against `main` at `6adc97f`. Completed UI/menu/replay notes and previous research context are preserved in [the historical list](docs/archive/2026-09-11-todo-history.md).
+Updated September 29, 2026, against `main` at `655a733` plus the tournament branch. Completed UI/menu/replay notes and previous research context are preserved in [the historical list](docs/archive/2026-09-11-todo-history.md).
 
 ## Start here — next session, in this order
 
 1. **Get `6adc97f` onto TestFlight, then test the online ladder on two real phones.**
-   Jake's iPhone runs TestFlight build 13, which predates the hand-size rule, the
-   rename fix and the AI spider graphs. Everything online is tested only against an
+   Jake's iPhone runs TestFlight build 14 (checked 2026-09-29), cut from Alex's
+   `event-feedback` branch before the hand-size rule, the ghost beta prior, the rename
+   fix and the AI spider graphs landed - which is why a rename on the phone did not work. Everything online is tested only against an
    in-memory CloudKit with two simulated phones (`LiveSyncTests`); no two-device run
    has happened, because the CloudKit build signs under Alex's team. The check: two
    Apple IDs join, each sees the other's ghost in the picker, each plays it, both
@@ -22,6 +23,16 @@ Updated September 28, 2026, against `main` at `6adc97f`. Completed UI/menu/repla
    trading table against 44.2% at a refusing one. Refitting existing terms has now
    been measured twice; the remaining distance is a **missing term**, not more
    sweeping.
+   The every-bot tournament (2026-09-29) points at the same gap from the other side:
+   the strongest Classic ever shipped is `a1ce686`, which could not accept any offer,
+   and it rates ~250 above today's Classic.
+4. **How to Play says "the dots under each number"; the board draws no dots.** Reword
+   the two lines (Rules > Your turn, Conquest strength) or draw dots on the tokens -
+   Jake to choose. [Tournament write-up, last section](docs/AI_summaries/2026-09-29-every-bot-tournament.md).
+
+**Measured on 2026-09-29:** spending cards down (the hand-size rule) beats holding them
+by ~2 points (26.3% vs 24.2%, 12,000 games), and today's Expert is the strongest of the 8
+Experts ever shipped. [Details](docs/AI_summaries/2026-09-29-every-bot-tournament.md).
 
 **Settled on 2026-09-28, do not reopen without new evidence:** bots keep the cap of
 three refused trade proposals a turn. Removing it was built and measured: four Expert
