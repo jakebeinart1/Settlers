@@ -47,6 +47,8 @@ enum HowToPlayContent {
         let summary: String
         let details: [String]
         var cost: [Resource: Int]?
+        /// Draw `RollOddsChart` under the details.
+        var showsRollOdds = false
     }
 
     private static let classic = Ruleset.forMode(.classic)
@@ -107,9 +109,10 @@ enum HowToPlayContent {
             details: [
                 "The dice pay every player with a building next to a hex showing the rolled number - not just you.",
                 "A settlement collects 1 card from each matching hex; a city collects 2.",
-                "Numbers near 7 (6 and 8) come up most often; 2 and 12 are rare. The dots under each number show how likely it is.",
+                "Numbers near 7 come up most often and 2 and 12 rarely - the chart below counts the ways each total can roll, out of 36.",
                 "You can trade and build as many times as you can afford before ending your turn.",
-            ]
+            ],
+            showsRollOdds: true
         ),
         Section(
             id: "build", icon: "hammer.fill", title: "Building",
@@ -192,7 +195,7 @@ enum HowToPlayContent {
             id: "conquest", icon: "shield.lefthalf.filled", title: "Conquest",
             summary: "An extra rule for Classic or Vast: capture hexes with Army cards.",
             details: [
-                "Every hex that produces starts held by a tribe. Its strength is the number of dots under its number.",
+                "Every hex that produces starts held by a tribe. Its strength is how many ways its number can roll: 5 for a 6 or 8, down to 1 for a 2 or 12.",
                 "A tribe's hex pays everyone next to it as normal.",
                 "Army cards cost any 3 resource cards and have a strength from 1 to 4. Everyone starts with one, and you can deploy a card the turn you buy it.",
                 "Deploy armies on a hex one of your buildings touches. Beat its strength and the hex is yours; an exact tie leaves it empty.",

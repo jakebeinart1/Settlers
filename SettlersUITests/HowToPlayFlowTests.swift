@@ -37,6 +37,15 @@ final class HowToPlayFlowTests: XCTestCase {
         goalDetails.tap()
         XCTAssertTrue(goalBody.waitForNonExistence(timeout: 2), "Details should close again")
 
+        // The board prints no pips, so the odds live in a chart under "Your turn".
+        let turnDetails = app.buttons["how-to-play.details.turn"]
+        XCTAssertTrue(turnDetails.waitForExistence(timeout: 2))
+        turnDetails.tap()
+        XCTAssertTrue(app.descendants(matching: .any)["how-to-play.roll-odds"].waitForExistence(timeout: 2),
+                      "Your turn details should show the roll-odds chart")
+        attach(app, "rules-roll-odds")
+        turnDetails.tap()
+
         app.buttons["how-to-play.tab.modes"].tap()
         XCTAssertTrue(app.buttons["how-to-play.details.classic"].waitForExistence(timeout: 2))
         XCTAssertTrue(app.buttons["how-to-play.details.conquest"].exists)
