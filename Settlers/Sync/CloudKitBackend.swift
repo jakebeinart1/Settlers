@@ -6,8 +6,10 @@ import Foundation
 /// build names.
 ///
 /// ## Record types (docs/live-sync.md has the console setup)
-/// - `Player`, id `name-<slug>`: `name`. Who holds a name, and what they
-///   are called now: a rename rewrites `name` on every slug its holder owns.
+/// - `Player`, id `name-<slug>`: `name`. Who holds a name. Held for good,
+///   so a name someone renamed away from cannot be taken by another person.
+/// - `Player`, id `account-<user id>`: `name`. What that user is called now;
+///   renaming rewrites only this.
 /// - `Match`, id = match UUID: `payload` (asset, `SharedMatch` JSON),
 ///   `date`, `version`, `seats`. The seats are duplicated outside the payload
 ///   only so a training job can query by them.
@@ -62,23 +64,27 @@ final class CloudKitBackend: CloudBackend, @unchecked Sendable {
         }
     }
 
-    func rename(slug: String, to name: String) async throws {
+    func setName(_ name: String) async throws {
         try await mapped {
-            guard let record = try await record(CKRecord.ID(recordName: "name-\(slug)")) else { return }
+            let id = CKRecord.ID(recordName: "account-\(try await container.userRecordID().recordName)")
+            let record = try await self.record(id) ?? CKRecord(recordType: "Player", recordID: id)
             record["name"] = name
             _ = try await database.save(record)
         }
     }
 
-    func claims(slugs: [String]) async throws -> [String: NameClaim] {
-        guard !slugs.isEmpty else { return [:] }
+    func names(of ids: [String]) async throws -> [String: String] {
+        guard !ids.isEmpty else { return [:] }
         return try await mapped {
-            let results = try await database.records(for: slugs.map { CKRecord.ID(recordName: "name-\($0)") })
-            var claims: [String: NameClaim] = [:]
+            let results = try await database.records(for: ids.map { CKRecord.ID(recordName: "account-\($0)") })
+            var names: [String: String] = [:]
             for record in try Self.claimRecords(from: results) {
-                claims[String(record.recordID.recordName.dropFirst("name-".count))] = try await claim(from: record)
+                let id = String(record.recordID.recordName.dropFirst("account-".count))
+                // Only the user themself can name their account.
+                guard let name = record["name"] as? String, try await owner(of: record) == id else { continue }
+                names[id] = name
             }
-            return claims
+            return names
         }
     }
 

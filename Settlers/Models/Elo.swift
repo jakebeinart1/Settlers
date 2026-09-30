@@ -1,7 +1,8 @@
 import Foundation
 
-/// Who holds a rating. A person is keyed by name, because the app knows a
-/// player by the name they type; a ghost by its id.
+/// Who holds a rating. A person is keyed by player id (`PlayerDirectory`),
+/// never by name, so a rename keeps the rating; a ghost by its id, which is
+/// its person's id.
 enum RatedEntity: Hashable, Sendable {
     case person(String)
     case ghost(String)
@@ -11,10 +12,10 @@ enum RatedEntity: Hashable, Sendable {
     static let personPrefix = "person:"
     static let ghostPrefix = "ghost:"
 
-    /// The key ratings are stored under: "person:Jake", "ghost:jake", "classic".
+    /// The key ratings are stored under: "person:<id>", "ghost:<id>", "classic".
     var key: String {
         switch self {
-        case .person(let name): return Self.personPrefix + name
+        case .person(let id): return Self.personPrefix + id
         case .ghost(let id): return Self.ghostPrefix + id
         case .classic: return "classic"
         case .expert: return "expert"

@@ -8,6 +8,7 @@ struct LeaderboardView: View {
     var ratingStore = RatingStore.shared
     var ghostStore = GhostStore.shared
     var statsStore = SeatStatsStore.shared
+    var players = PlayerDirectory.shared
 
     @State private var rows: [LeaderboardRow] = []
     @State private var selected: EntityDetail?
@@ -50,7 +51,7 @@ struct LeaderboardView: View {
         .fontDesign(.serif)
         .task {
             #if DEBUG
-            if QALaunchFlag.seedLeaderboard.isSet { Self.seedForQA(ratings: ratingStore, stats: statsStore) }
+            if QALaunchFlag.seedLeaderboard.isSet { Self.seedForQA(ratings: ratingStore, stats: statsStore, players: players) }
             #endif
             reload()
             guard let liveSync else { return }
@@ -64,7 +65,8 @@ struct LeaderboardView: View {
     }
 
     private func reload() {
-        rows = LeaderboardModel.rows(ratings: ratingStore.load(), ghosts: ghostStore.all())
+        let players = players
+        rows = LeaderboardModel.rows(ratings: ratingStore.load(), ghosts: ghostStore.all()) { players.name(of: $0) }
     }
 
     static func describe(_ status: LiveSync.Status) -> String {
@@ -72,7 +74,7 @@ struct LeaderboardView: View {
         case .never: return "Connecting to the online ladder…"
         case .online(let date): return "Online ladder · updated \(date.formatted(date: .omitted, time: .shortened))"
         case .noName: return "Choose a name to join the online ladder."
-        case .nameTaken(let name): return "“\(name)” is taken online. Choose another name to post your games."
+        case .nameTaken(let name): return "“\(name)” is taken online. Choose another name."
         // Apps cannot sign a phone into iCloud; only the iPhone's Settings app can.
         case .noAccount: return "Sign in to iCloud in your iPhone's Settings app to join the online ladder."
         case .offline: return "Offline · showing the ladder as last synced."
@@ -174,7 +176,8 @@ struct LeaderboardView: View {
             guard let ghost = ghostStore.ghost(id: id) else { return }
             selected = EntityDetail.ghost(ghost, ratings: ratings, stats: stats, resolve: ghostStore.resolve)
         case .player:
-            selected = EntityDetail.person(row.name, ratings: ratings, stats: stats)
+            selected = EntityDetail.person(String(row.key.dropFirst("person:".count)), name: row.name,
+                                           ratings: ratings, stats: stats)
         case .ai:
             guard let tier = RatedEntity(key: row.key) else { return }
             selected = EntityDetail.ai(tier, name: row.name, elo: row.elo, stats: stats)
@@ -186,8 +189,12 @@ struct LeaderboardView: View {
 extension LeaderboardView {
     /// `-qaSeedLeaderboard`: three rated games, Jake against his ghost and two
     /// Classic seats, the ghost winning two. Idempotent by fixed match ids.
-    static func seedForQA(ratings: RatingStore, stats: SeatStatsStore) {
-        let seats: [RatedEntity] = [.person("Jake"), .ghost("jake"), .classic, .classic]
+    /// Jake's player id is `jake`, his bundled ghost's, so the ghost is his.
+    static func seedForQA(ratings: RatingStore, stats: SeatStatsStore, players: PlayerDirectory) {
+        var contents = players.load()
+        contents.names["jake"] = "Jake"
+        try? players.save(contents)
+        let seats: [RatedEntity] = [.person("jake"), .ghost("jake"), .classic, .classic]
         for game in 0..<3 {
             let match = UUID(uuidString: "00000000-0000-0000-0000-00000000000\(game + 1)")!
             let winner = game == 1 ? 0 : 1

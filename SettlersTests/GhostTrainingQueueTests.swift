@@ -33,8 +33,8 @@ import Testing
         let match = UUID()
         let queue = GhostTrainingQueue()
         let trainer = GhostTrainer(store: ghosts)
-        async let first = queue.learn(trainer, match: match, game: logged, human: human, personName: "Sam")
-        async let second = queue.learn(trainer, match: match, game: logged, human: human, personName: "Sam")
+        async let first = queue.learn(trainer, match: match, game: logged, human: human, personID: "sam", personName: "Sam")
+        async let second = queue.learn(trainer, match: match, game: logged, human: human, personID: "sam", personName: "Sam")
         _ = await (first, second)
         #expect(ghosts.ghost(id: "sam")?.gamesLearned == 1)
         #expect(ghosts.versions(of: "sam").count == 1)
@@ -46,18 +46,31 @@ import Testing
         let (ghosts, root) = store()
         defer { try? FileManager.default.removeItem(at: root) }
         let (logged, human) = try game(moves: 0)
-        #expect(try GhostTrainer(store: ghosts).learn(match: UUID(), game: logged, human: human, personName: "Sam") == nil)
+        #expect(try GhostTrainer(store: ghosts).learn(match: UUID(), game: logged, human: human, personID: "sam", personName: "Sam") == nil)
         #expect(ghosts.ghost(id: "sam") == nil)
     }
 
-    /// M3: a name with no Latin letters or digits has no usable id; nothing is
-    /// written, rather than a ghost at the store's root.
-    @Test func aNameWithoutAnIDTeachesNothing() throws {
+    /// M3: an empty player id writes nothing, rather than a ghost at the
+    /// store's root.
+    @Test func anEmptyPlayerIDTeachesNothing() throws {
         let (ghosts, root) = store()
         defer { try? FileManager.default.removeItem(at: root) }
         let (logged, human) = try game()
-        #expect(try GhostTrainer(store: ghosts).learn(match: UUID(), game: logged, human: human, personName: "李明") == nil)
+        #expect(try GhostTrainer(store: ghosts).learn(match: UUID(), game: logged, human: human,
+                                                      personID: "", personName: "Sam") == nil)
         #expect(!FileManager.default.fileExists(atPath: root.path))
+    }
+
+    /// A name with no Latin letters used to have no ghost at all; the ghost
+    /// is filed under the player id, so any name has one.
+    @Test func aNameWithoutLatinLettersStillHasAGhost() throws {
+        let (ghosts, root) = store()
+        defer { try? FileManager.default.removeItem(at: root) }
+        let (logged, human) = try game()
+        var trainer = GhostTrainer(store: ghosts)
+        trainer.fit = { _, previous in previous.person }
+        let learned = try trainer.learn(match: UUID(), game: logged, human: human, personID: "p", personName: "李明")
+        #expect(learned?.name == "李明's Ghost")
     }
 
     /// I1: a rated game whose training never finished (the app was killed) is
@@ -70,8 +83,8 @@ import Testing
         let (logged, human) = try game()
         let rated = UUID()
         let unrated = UUID()
-        let games = [CatchUpGame(match: rated, game: logged, human: human, personName: "Sam"),
-                     CatchUpGame(match: unrated, game: logged, human: human, personName: "Sam")]
+        let games = [CatchUpGame(match: rated, game: logged, human: human, personID: "sam", personName: "Sam"),
+                     CatchUpGame(match: unrated, game: logged, human: human, personID: "sam", personName: "Sam")]
         let taught = await GhostTrainingQueue().catchUp(GhostTrainer(store: ghosts), games: games, ratedMatches: [rated])
         #expect(taught == 1)
         #expect(ghosts.ghost(id: "sam")?.gamesLearned == 1)

@@ -11,6 +11,9 @@ import Testing
         let defaults: UserDefaults
         let suite: String
         let ghosts: GhostStore
+        /// Never the app's own: this phone's player is `jake`, the bundled
+        /// ghost's id, so the game below is Jake against his own ghost.
+        var players: PlayerDirectory { PlayerDirectory(directory: root.appendingPathComponent("players")) }
 
         @MainActor
         func model(ghosts store: GhostStore? = nil) -> GameViewModel {
@@ -24,7 +27,8 @@ import Testing
                 gameStatsStore: GameStatsStore(fileURL: root.appendingPathComponent("stats.json")),
                 ghostStore: store ?? ghosts,
                 ratingStore: RatingStore(directory: root.appendingPathComponent("ratings")),
-                seatStatsStore: SeatStatsStore(directory: root.appendingPathComponent("stats"))
+                seatStatsStore: SeatStatsStore(directory: root.appendingPathComponent("stats")),
+                playerDirectory: players
             )
         }
 
@@ -103,6 +107,7 @@ import Testing
     @Test func aFinishedGameIsRatedAndTeachesThePersonsGhost() async throws {
         let f = try fixture()
         defer { f.tearDown() }
+        try f.players.save(.init(me: "jake"))
         let model = f.model()
         // Real training replays the game and scores every candidate - about 4
         // minutes of an unoptimised Debug build, and 22 under a full parallel
@@ -131,7 +136,7 @@ import Testing
         }
         await model.lastFinishedMatchWork?.value
         let ratings = RatingStore(directory: f.root.appendingPathComponent("ratings")).load()
-        #expect(ratings.games["person:Jake"] == 1)
+        #expect(ratings.games["person:jake"] == 1)
         #expect(ratings.games["ghost:jake"] == 1)
         #expect(ratings.ratings["classic"] == nil, "Classic is the fixed anchor")
         #expect(ratings.ratedMatches.count == 1)
@@ -139,7 +144,7 @@ import Testing
         #expect(taught.gamesLearned == 25, "the bundled ghost's 24 games plus this one")
         let stats = SeatStatsStore(directory: f.root.appendingPathComponent("stats")).all()
         #expect(stats.count == 1)
-        #expect(stats.first?.seats.map(\.entity) == ["person:Jake", "classic", "ghost:jake", "classic"])
+        #expect(stats.first?.seats.map(\.entity) == ["person:jake", "classic", "ghost:jake", "classic"])
         #expect(stats.first?.seats.filter(\.stats.won).count == 1)
         #expect(f.ghosts.versions(of: "jake").count == 1)
         #expect(seats.all == [[PlayerID(index: 0)]], "only Jake's own seat is read, never the ghost's")

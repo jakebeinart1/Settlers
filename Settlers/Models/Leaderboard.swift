@@ -65,7 +65,8 @@ struct LeaderboardRow: Identifiable, Equatable, Sendable {
 enum LeaderboardModel {
     /// Everyone rated, every ghost on the phone (rated or not), and both tiers.
     /// Highest Elo first; ties by name so the order never depends on storage.
-    static func rows(ratings: Ratings, ghosts: [GhostProfile]) -> [LeaderboardRow] {
+    /// `name` labels a player id (`PlayerDirectory.name(of:)`).
+    static func rows(ratings: Ratings, ghosts: [GhostProfile], name: (String) -> String) -> [LeaderboardRow] {
         var rows: [LeaderboardRow] = [
             LeaderboardRow(key: "classic", name: "Classic AI", kind: .ai, elo: Elo.classicAnchor,
                            games: ratings.games["classic"] ?? 0, isFixed: true),
@@ -73,7 +74,7 @@ enum LeaderboardModel {
                            games: ratings.games["expert"] ?? 0, isFixed: false),
         ]
         for key in ratings.ratings.keys.sorted() where key.hasPrefix("person:") {
-            rows.append(LeaderboardRow(key: key, name: String(key.dropFirst("person:".count)), kind: .player,
+            rows.append(LeaderboardRow(key: key, name: name(String(key.dropFirst("person:".count))), kind: .player,
                                        elo: ratings.ratings[key] ?? Elo.start, games: ratings.games[key] ?? 0, isFixed: false))
         }
         for ghost in ghosts {
@@ -110,15 +111,15 @@ struct EntityDetail: Equatable, Sendable {
     let radarCaption: String
     let style: [String]
 
-    /// `resolve` maps a person's slug to their ghost's id (`GhostStore.resolve`):
-    /// after a rename, "Bein" owns the ghost stored as `jake`.
+    /// `resolve` maps a person's id to their ghost's id (`GhostStore.resolve`),
+    /// which differs only for a ghost filed before player ids existed.
     static func ghost(_ ghost: GhostProfile, ratings: Ratings, stats: [SeatStatsRecord],
                       resolve: @escaping (String) -> String = { $0 }) -> EntityDetail {
         let key = RatedEntity.ghost(ghost.id).key
         let own = stats.compactMap { game in game.seats.first { $0.entity == key }.map { (game, $0.stats) } }
         let isOwner: (String) -> Bool = { entity in
             entity.hasPrefix("person:")
-                && resolve(GhostTrainer.ghostID(forPerson: String(entity.dropFirst("person:".count)))) == ghost.id
+                && resolve(String(entity.dropFirst("person:".count))) == ghost.id
         }
         var record = Record()
         var selfPlay = Record()
@@ -165,8 +166,8 @@ struct EntityDetail: Equatable, Sendable {
                             style: [])
     }
 
-    static func person(_ name: String, ratings: Ratings, stats: [SeatStatsRecord]) -> EntityDetail {
-        let key = RatedEntity.person(name).key
+    static func person(_ id: String, name: String, ratings: Ratings, stats: [SeatStatsRecord]) -> EntityDetail {
+        let key = RatedEntity.person(id).key
         let games = stats.flatMap { $0.seats.filter { $0.entity == key }.map(\.stats) }
         var record = Record()
         for game in games {

@@ -5,27 +5,34 @@ Code: `Settlers/Sync/`. Tests: `SettlersTests/LiveSyncTests.swift`.
 
 ## How it works
 
-- **Identity.** Each player's name is claimed by their Apple ID the first time
-  they sync (`Player` record `name-<slug>`). CloudKit's public database only
-  lets a record's creator change it, so the first Apple ID to claim "Jake"
-  holds it for good. Another phone using "Jake" is told the name is taken, and
-  none of its games are posted.
-- **Renaming** (Jake, 2026-09-28: he changed his name and his row and his
-  ghost's name stayed "Jake"). A new name claimed by the same Apple ID is a
-  rename, not a new player. The phone rewrites `name` on every `Player`
-  record that Apple ID holds, so `name-jake` now reads "Bein". Every phone
-  then rewrites its games under the name each slug's claim carries now, and
-  rebuilds Elo. Games are verified against the slug they were posted under,
-  so games posted as "Jake" still count. The ghost keeps its first id
-  (`jake`), so its training carries on, and it is shown as "Bein's Ghost".
-  Old names stay held, so nobody else can become "Jake". A name typed into
-  New Game is the same preference as the ladder name, so it renames too. No
-  schema change: `name` was always a field of `Player`.
-  An unchanged cached preference on another phone follows the server name;
-  only Join or a changed local preference requests a rename. Restored phones
-  discover earlier identities through claim-owned downloaded ghosts, not just
-  their local game history. The same claim-derived aliases preserve opponent
-  ghost graphs and the own-player record on observer phones.
+- **Identity: a player is their iCloud account, never their name** (Jake,
+  2026-09-29: "you change your name and that resets your score and bot score
+  is no good ... nothing new is created unless the user specifies"). Every
+  rating, every rated game's seat (`person:<id>`) and the player's ghost
+  (`ghost:<id>`) are filed under one id (`PlayerDirectory`). A phone starts
+  on a `local-` id; its first sync signed into iCloud swaps that for the Apple
+  ID's CloudKit user id and brings its games and ghost along. Every phone on
+  the same Apple ID is therefore the same player, and their games merge onto
+  one row. A phone signed into a *different* Apple ID is a different person
+  and nothing is moved to them.
+- **Names are labels.** The name each player goes by is one `Player` record,
+  `account-<id>`, that only they can write. Renaming rewrites that one field;
+  the score, the games and the ghost do not move, because nothing was ever
+  filed under the name. The ghost is shown as "<name>'s Ghost".
+  Without sync (Jake's builds) a name typed into New Game is the same player
+  too: the one human at a rated table is always this phone's player.
+- **Names are unique.** A name is claimed by the first Apple ID to use it
+  (`Player` record `name-<slug>`), and held for good, so nobody else can become
+  "Jake" even after Jake renames. Choosing a taken name is refused and the
+  account keeps its old name.
+- **Nothing goes up until the player chooses a name.** Until then their games
+  count on their own phone only. Another phone on the same account that did
+  not choose a new name follows the account's name rather than undoing it.
+- **Before 2026-09-29 players were keyed by name.** At launch each phone
+  re-files its own games (those with a log on the phone) and the ghost that
+  learned most under its player id, once. Downloaded games are re-filed under
+  their uploader's id by downloading them all once more. Games against another
+  player's ghost from before then keep that ghost's old id.
 - **Choosing the name, all in the app.** A ladder build asks for a name on
   launch when none is set (or it is still the default "You", which is never
   claimed), and the leaderboard has "Change name". Both claim at once. The one
@@ -34,8 +41,8 @@ Code: `Settlers/Sync/`. Tests: `SettlersTests/LiveSyncTests.swift`.
   every move (`Match` record). No result is uploaded. Every phone that downloads
   the game replays it through the rules engine and computes the winner and
   stats itself, so a record claiming a win its moves don't produce is rejected.
-  A game is also rejected if its human seat is not the uploader's own claimed
-  name.
+  A game's person seat is always filed under the account that uploaded it,
+  so nobody can post a game as someone else.
 - **Elo.** Each phone recomputes every rating from all the games it holds,
   oldest first (`RatingStore.rebuild`). Elo depends on the order games are
   counted, and this fixed order is what makes every phone show the same ladder
@@ -49,8 +56,7 @@ Code: `Settlers/Sync/`. Tests: `SettlersTests/LiveSyncTests.swift`.
   more games than its copy. Uploads cannot replace a higher server training
   count, and upload watermarks are per stable ghost ID rather than per device.
   Phones accept a ghost only from
-  the Apple ID that holds the ghost's name, and rebuild its display name from
-  that claim.
+  the Apple ID it is filed under, and name it after that account.
 - **When it syncs** (Jake, 2026-09-26: "on a periodic basis that stays within
   limits of needed, otherwise it should just refresh once a game is
   completed"):
@@ -94,6 +100,10 @@ TestFlight build (`com.alexchandler.empires`, team `HXB9F28LHR`).
    - `Match`: `modificationDate` **Queryable**
    - `Ghost`: `modificationDate` **Queryable**
    - `Player`, `Match`, `Ghost`: `recordName` **Queryable** (lets the console list them)
+
+   `Player` holds two kinds of record, `name-<slug>` (a claimed name) and
+   `account-<user id>` (what that user is called now), with the same `name`
+   field, so no schema change was needed for them.
 6. **Security roles.** Check that the defaults are unchanged: World → Read,
    Authenticated → Create, Creator → Write. The name claim depends on
    "Creator → Write".
@@ -108,7 +118,7 @@ TestFlight build (`com.alexchandler.empires`, team `HXB9F28LHR`).
 |---|---|
 | Online ladder · updated 3:41 PM | Last sync succeeded |
 | Choose a name… (+ name field) | No name set, or still the default "You", so nothing to claim. Join claims it and syncs at once |
-| "Jake" is taken online… (+ name field) | Another Apple ID holds the name. Games stay local until another name is joined |
+| "Jake" is taken online… (+ name field) | Another Apple ID holds the name. The account keeps its old name; one that never had a name keeps its games on the phone until it joins |
 | Sign in to iCloud in your iPhone's Settings… | No iCloud account on the device. iOS offers apps no way to sign in, so this one step is outside the app |
 | Offline · … | No network, or CloudKit is busy. The next sync retries |
 
@@ -128,8 +138,9 @@ TestFlight build (`com.alexchandler.empires`, team `HXB9F28LHR`).
   expensive. Build that when the ladder is actually abused.
 - **Every phone downloads every ghost on each sync.** That's one small record
   per player, fine until there are thousands of players.
-- **Games played under a name other than the claimed one stay local** (a guest
-  on your phone). They still count on that phone's own ladder.
+- **There is no second player on one phone.** A guest who plays on your phone
+  plays as you. Creating a separate player would be an explicit leaderboard
+  action, not built yet.
 - **Not built yet: a Mac job that trains the shared AIs on every player's
   games.** The data is already there: every uploaded `Match` carries the full
   move log. The job needs a CloudKit server-to-server key from the same

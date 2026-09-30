@@ -34,19 +34,20 @@ struct GhostTrainer: Sendable {
         try DecisionExtractor.decisions(in: $0, anchor: $1, humanTrading: true)
     }
 
-    /// Lowercase letters and digits of the person's name: "Jake" -> "jake",
-    /// which is also the bundled ghost's id, so Jake's phone continues it.
+    /// Lowercase letters and digits of a name: "Jake" -> "jake". The key a
+    /// name is claimed under on the ladder, and the id ghosts had before they
+    /// were filed under player ids (`PlayerDirectory.migrateLegacyNames`).
     static func ghostID(forPerson name: String) -> String {
         String(name.lowercased().unicodeScalars.filter { CharacterSet.alphanumerics.contains($0) && $0.isASCII }.map(Character.init))
     }
 
-    /// The new ghost, or `nil` if this match was already learned.
-    func learn(match: UUID, game: LoggedGame, human: PlayerID, personName: String) throws -> GhostProfile? {
-        // A name with no Latin letters or digits has no usable id (final
-        // review): an empty id would write a ghost at the store's root.
-        guard !Self.ghostID(forPerson: personName).isEmpty else { return nil }
-        // After a rename the person's ghost lives under its first id.
-        let id = store.resolve(Self.ghostID(forPerson: personName))
+    /// The new ghost, or `nil` if this match was already learned. The ghost is
+    /// filed under its person's player id (`PlayerDirectory`), so a rename
+    /// keeps training the same ghost; `personName` only names a new one.
+    func learn(match: UUID, game: LoggedGame, human: PlayerID, personID: String, personName: String) throws -> GhostProfile? {
+        // An empty id would write a ghost at the store's root.
+        guard !personID.isEmpty else { return nil }
+        let id = store.resolve(personID)
         let record = store.decisionsDirectory(for: id).appendingPathComponent("\(match.uuidString).jsonl")
         guard !FileManager.default.fileExists(atPath: record.path) else { return nil }
         let previous = store.ghost(id: id) ?? GhostProfile(
@@ -60,6 +61,7 @@ struct GhostTrainer: Sendable {
         guard !decisions.isEmpty else { return nil }
         var learned = previous
         learned.person = try fit(decisions, previous)
+        learned.name = "\(personName.trimmingCharacters(in: .whitespacesAndNewlines))'s Ghost"
         learned.gamesLearned += 1
         learned.decisionsLearned += decisions.count
         try store.save(learned)
@@ -94,6 +96,7 @@ struct CatchUpGame: Sendable {
     let match: UUID
     let game: LoggedGame
     let human: PlayerID
+    let personID: String
     let personName: String
 }
 
@@ -109,8 +112,8 @@ actor GhostTrainingQueue {
 
     @discardableResult
     func learn(_ trainer: GhostTrainer, match: UUID, game: LoggedGame, human: PlayerID,
-               personName: String) -> GhostProfile? {
-        try? trainer.learn(match: match, game: game, human: human, personName: personName)
+               personID: String, personName: String) -> GhostProfile? {
+        try? trainer.learn(match: match, game: game, human: human, personID: personID, personName: personName)
     }
 
     /// Teaches rated games whose training never finished (the app was killed
@@ -121,7 +124,7 @@ actor GhostTrainingQueue {
     func catchUp(_ trainer: GhostTrainer, games: [CatchUpGame], ratedMatches: Set<UUID>) -> Int {
         games.filter { ratedMatches.contains($0.match) }.reduce(0) { taught, game in
             taught + (learn(trainer, match: game.match, game: game.game, human: game.human,
-                            personName: game.personName) == nil ? 0 : 1)
+                            personID: game.personID, personName: game.personName) == nil ? 0 : 1)
         }
     }
 }

@@ -71,7 +71,8 @@ extension GameViewModel {
         // A match with no moves is a QA forced win, not a game (final review).
         guard setup.mode == .classic, setup.variant == .standard, setup.humanSeats.count == 1,
               !match.moves.isEmpty, let human = setup.humanSeats.first else { return nil }
-        let entities = setup.seats.map { Self.ratedEntity(for: $0, in: setup) }
+        let me = playerDirectory.me
+        let entities = setup.seats.map { Self.ratedEntity(for: $0, in: setup, me: me) }
         let game = LoggedGame(id: match.id.uuidString, initialState: match.initialState,
                               humanSeats: [PlayerID(index: human.index)],
                               events: match.moves.map { LoggedMove(player: $0.actor, move: $0.move) })
@@ -97,17 +98,30 @@ extension GameViewModel {
             // the ghost that learned from it.
             await LiveSync.shared?.sync()
             await GhostTrainingQueue.shared.learn(trainer, match: matchID, game: game,
-                                                  human: PlayerID(index: human.index), personName: human.name)
+                                                  human: PlayerID(index: human.index), personID: me, personName: human.name)
             await LiveSync.shared?.sync()
         }
     }
 
-    /// Who sat in a chair, for the ladder: the person by name, a ghost by id,
-    /// any other AI as its tier.
-    static func ratedEntity(for seat: MatchSetup.Seat, in setup: MatchSetup) -> RatedEntity {
-        if seat.isHuman { return .person(seat.name) }
+    /// Who sat in a chair, for the ladder: the person is this phone's player
+    /// (`me`) whatever name they typed, a ghost by id, any other AI as its
+    /// tier. Only one-human games are rated, so the human is always `me`.
+    static func ratedEntity(for seat: MatchSetup.Seat, in setup: MatchSetup, me: String) -> RatedEntity {
+        if seat.isHuman { return .person(me) }
         if let profile = seat.opponentProfile, let id = ghostID(of: profile) { return .ghost(id) }
         return setup.difficulty == .expert ? .expert : .classic
+    }
+
+    /// Once per phone, at launch: games and the ghost filed under typed names
+    /// before 2026-09-29 move to this phone's player id, and ratings follow.
+    func migrateLegacyPlayerNames() {
+        do {
+            guard try playerDirectory.migrateLegacyNames(seatStats: seatStatsStore, ghosts: ghostStore,
+                                                         logs: gameLogStore) else { return }
+            try ratingStore.rebuild(from: seatStatsStore.all())
+        } catch {
+            gameLogWarning = "Your rated games could not be moved to your player: \(error.localizedDescription)"
+        }
     }
 
     /// At launch, teaches any rated game whose training was cut off.
@@ -116,15 +130,16 @@ extension GameViewModel {
         let rated = Set(ratingStore.load().ratedMatches)
         guard !rated.isEmpty else { return }
         let trainer = GhostTrainer(store: ghostStore)
+        let me = playerDirectory.me
         Task.detached(priority: .background) {
-            let games = Self.catchUpGames(logs: logs, rated: rated)
+            let games = Self.catchUpGames(logs: logs, rated: rated, me: me)
             _ = await GhostTrainingQueue.shared.catchUp(trainer, games: games, ratedMatches: rated)
         }
     }
 
     // ponytail: reads every rated game's log at each launch; a small
     // "taught" index is the upgrade once rated games run into the thousands.
-    nonisolated static func catchUpGames(logs: GameLogStore, rated: Set<UUID>) -> [CatchUpGame] {
+    nonisolated static func catchUpGames(logs: GameLogStore, rated: Set<UUID>, me: String) -> [CatchUpGame] {
         let summaries = (try? logs.summaries()) ?? []
         return summaries.filter { rated.contains($0.gameID) && $0.isComplete && $0.humanSeats.count == 1 }
             .compactMap { summary in
@@ -133,7 +148,7 @@ extension GameViewModel {
                       let name = detail.roster.humanNames[human.index] else { return nil }
                 let game = LoggedGame(id: summary.gameID.uuidString, initialState: detail.initialState, humanSeats: [human],
                                       events: detail.events.map { LoggedMove(player: $0.player, move: $0.move) })
-                return CatchUpGame(match: summary.gameID, game: game, human: human, personName: name)
+                return CatchUpGame(match: summary.gameID, game: game, human: human, personID: me, personName: name)
             }
     }
 }

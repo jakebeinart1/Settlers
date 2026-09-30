@@ -8,7 +8,8 @@ import CatanEngine
 /// the file. `civilization` is a `Civilization.rawValue`, because that type
 /// belongs to the app and this package must not import it.
 public struct GhostProfile: Codable, Sendable, Equatable, Identifiable {
-    /// A stable slug: "jake".
+    /// Its person's player id (the app's `PlayerDirectory`), or for a ghost
+    /// made before 2026-09-29 a slug of their name ("jake").
     public let id: String
     /// Shown in the picker and on the leaderboard: "Jake's Ghost".
     public var name: String

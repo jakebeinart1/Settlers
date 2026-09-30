@@ -23,7 +23,7 @@ import Testing
     /// One rated game: Jake at seat 0, his ghost at seat 1, two Classic bots.
     private func record(ghostWins: Bool, date: Date = Date()) -> SeatStatsRecord {
         SeatStatsRecord(match: UUID(), date: date, seats: [
-            .init(entity: "person:Jake", stats: seat(0, won: !ghostWins, vp: ghostWins ? 7 : 10)),
+            .init(entity: "person:jake", stats: seat(0, won: !ghostWins, vp: ghostWins ? 7 : 10)),
             .init(entity: "ghost:jake", stats: seat(1, won: ghostWins, vp: ghostWins ? 10 : 7)),
             .init(entity: "classic", stats: seat(2)),
             .init(entity: "classic", stats: seat(3)),
@@ -34,7 +34,7 @@ import Testing
         var ratings = Ratings()
         ratings.ratings = ["person:Jake": 1040, "ghost:jake": 1010, "expert": 1200]
         ratings.games = ["person:Jake": 3, "ghost:jake": 3, "expert": 5]
-        let rows = LeaderboardModel.rows(ratings: ratings, ghosts: [ghost("jake", "Jake's Ghost"), ghost("sam", "Sam's Ghost")])
+        let rows = LeaderboardModel.rows(ratings: ratings, ghosts: [ghost("jake", "Jake's Ghost"), ghost("sam", "Sam's Ghost")]) { $0 }
         #expect(rows.map(\.name) == ["Expert AI", "Jake", "Jake's Ghost", "Classic AI", "Sam's Ghost"], "ties at 1000 go by name")
         #expect(rows.first { $0.name == "Classic AI" }?.isFixed == true)
         #expect(rows.first { $0.name == "Classic AI" }?.elo == 1000)
@@ -43,7 +43,7 @@ import Testing
     }
 
     @Test func aFreshInstallShowsBothTiers() {
-        let rows = LeaderboardModel.rows(ratings: Ratings(), ghosts: [])
+        let rows = LeaderboardModel.rows(ratings: Ratings(), ghosts: []) { $0 }
         #expect(rows.map(\.name) == ["Expert AI", "Classic AI"])
         #expect(rows.first?.elo == 1229)
     }
@@ -89,15 +89,16 @@ import Testing
         #expect(classic.radar == RadarBaseline.ratings(for: RadarMeasures(games: played.flatMap { $0.seats[2...].map(\.stats) })))
     }
 
-    /// After a rename, "person:Bein" owns the ghost stored as `jake`.
-    @Test func aRenamedPersonStillOwnsTheirGhostsPage() {
-        let renamed = [record(ghostWins: true), record(ghostWins: false), record(ghostWins: true)].map { game in
+    /// A player whose ghost is still filed under its pre-2026-09-29 id
+    /// (`jake`) owns its page through `GhostStore.resolve`.
+    @Test func aPlayerOwnsAGhostFiledUnderAnOlderID() {
+        let refiled = [record(ghostWins: true), record(ghostWins: false), record(ghostWins: true)].map { game in
             SeatStatsRecord(match: game.match, date: game.date, seats: game.seats.map {
-                $0.entity == "person:Jake" ? .init(entity: "person:Bein", stats: $0.stats) : $0
+                $0.entity == "person:jake" ? .init(entity: "person:player-1", stats: $0.stats) : $0
             })
         }
-        let detail = EntityDetail.ghost(ghost("jake", "Bein's Ghost"), ratings: Ratings(), stats: renamed,
-                                        resolve: { $0 == "bein" ? "jake" : $0 })
+        let detail = EntityDetail.ghost(ghost("jake", "Bein's Ghost"), ratings: Ratings(), stats: refiled,
+                                        resolve: { $0 == "player-1" ? "jake" : $0 })
         #expect(detail.selfPlay?.played == 3)
     }
 

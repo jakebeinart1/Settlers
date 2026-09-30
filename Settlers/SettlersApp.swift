@@ -19,6 +19,7 @@ struct SettlersApp: App {
         QAGameHistoryFixture.seedIfRequested()
         #endif
         viewModel = GameViewModel()
+        viewModel.migrateLegacyPlayerNames()
     }
 
     // Startup used to force-read the retired YAML pacing configuration. The

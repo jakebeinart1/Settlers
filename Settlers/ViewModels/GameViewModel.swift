@@ -28,6 +28,7 @@ public final class GameViewModel {
     let ghostStore: GhostStore
     let ratingStore: RatingStore
     let seatStatsStore: SeatStatsStore
+    let playerDirectory: PlayerDirectory
     /// Rating and ghost training for the game that just ended; a test awaits it.
     var lastFinishedMatchWork: Task<Void, Never>?
     /// The ghost trainer the completion hook uses; a test swaps in a fast one.
@@ -230,19 +231,22 @@ public final class GameViewModel {
         gameStatsStore: GameStatsStore = .shared,
         ghostStore: GhostStore = .shared,
         ratingStore: RatingStore = .shared,
-        seatStatsStore: SeatStatsStore = .shared
+        seatStatsStore: SeatStatsStore = .shared,
+        playerDirectory: PlayerDirectory = .shared
     ) {
         self.init(checkpointStore: MatchCheckpointStore(fileURL: gameStore.fileURL
             .deletingLastPathComponent().appendingPathComponent("match_checkpoint.json")),
                   gameStore: gameStore, civilizationStore: civilizationStore,
                   matchSetupStore: matchSetupStore, gameLogStore: gameLogStore, gameStatsStore: gameStatsStore,
-                  ghostStore: ghostStore, ratingStore: ratingStore, seatStatsStore: seatStatsStore)
+                  ghostStore: ghostStore, ratingStore: ratingStore, seatStatsStore: seatStatsStore,
+                  playerDirectory: playerDirectory)
     }
 
     init(checkpointStore: MatchCheckpointStore, gameStore: GameStore,
          civilizationStore: CivilizationAssignmentStore, matchSetupStore: MatchSetupStore,
          gameLogStore: GameLogStore, gameStatsStore: GameStatsStore, ghostStore: GhostStore = .shared,
-         ratingStore: RatingStore = .shared, seatStatsStore: SeatStatsStore = .shared) {
+         ratingStore: RatingStore = .shared, seatStatsStore: SeatStatsStore = .shared,
+         playerDirectory: PlayerDirectory = .shared) {
         self.checkpointStore = checkpointStore
         self.gameStore = gameStore
         self.civilizationStore = civilizationStore
@@ -254,6 +258,7 @@ public final class GameViewModel {
         self.ghostStore = ghostStore
         self.ratingStore = ratingStore
         self.seatStatsStore = seatStatsStore
+        self.playerDirectory = playerDirectory
         newGameSetupLoadResult = matchSetupStore.load()
         persistenceErrorMessage = nil
         gameLogWarningState = nil

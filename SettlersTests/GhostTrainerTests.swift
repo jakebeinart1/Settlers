@@ -30,7 +30,7 @@ import Testing
         defer { try? FileManager.default.removeItem(at: root) }
         let (logged, human) = try game()
         let match = UUID()
-        let learned = try #require(try GhostTrainer(store: ghosts).learn(match: match, game: logged, human: human, personName: "Sam"))
+        let learned = try #require(try GhostTrainer(store: ghosts).learn(match: match, game: logged, human: human, personID: "sam", personName: "Sam"))
         #expect(learned.id == "sam")
         #expect(learned.name == "Sam's Ghost")
         #expect(learned.gamesLearned == 1)
@@ -41,20 +41,22 @@ import Testing
     }
 
     /// After Jake renamed himself "Bein" (2026-09-28), his next game must
-    /// teach the ghost that already learned from him, not start `bein` blank.
+    /// teach the ghost that already learned from him, not start a blank one:
+    /// the ghost is filed under his player id, which a rename does not touch.
     @Test func aRenamedPersonTeachesTheGhostTheyAlreadyHave() throws {
         let (ghosts, root) = store()
         defer { try? FileManager.default.removeItem(at: root) }
-        try ghosts.save(GhostProfile(id: "jake", name: "Jake's Ghost", person: .anchored(at: .forMode(.classic)),
+        try ghosts.save(GhostProfile(id: "player-1", name: "Jake's Ghost", person: .anchored(at: .forMode(.classic)),
                                      lambda: 0.01, gamesLearned: 25, decisionsLearned: 2731))
-        try ghosts.alias("bein", to: "jake")
         let (logged, human) = try game()
         var trainer = GhostTrainer(store: ghosts)
         trainer.fit = { _, previous in previous.person }
-        let learned = try #require(try trainer.learn(match: UUID(), game: logged, human: human, personName: "Bein"))
-        #expect(learned.id == "jake")
+        let learned = try #require(try trainer.learn(match: UUID(), game: logged, human: human,
+                                                     personID: "player-1", personName: "Bein"))
+        #expect(learned.id == "player-1")
         #expect(learned.gamesLearned == 26)
-        #expect(ghosts.all().map(\.id) == ["jake"], "no second ghost")
+        #expect(learned.name == "Bein's Ghost")
+        #expect(ghosts.all().map(\.id) == ["player-1"], "no second ghost")
     }
 
     /// Review Focus 3b's twin: the same match cannot teach twice.
@@ -64,8 +66,8 @@ import Testing
         let (logged, human) = try game()
         let match = UUID()
         let trainer = GhostTrainer(store: ghosts)
-        _ = try trainer.learn(match: match, game: logged, human: human, personName: "Sam")
-        #expect(try trainer.learn(match: match, game: logged, human: human, personName: "Sam") == nil)
+        _ = try trainer.learn(match: match, game: logged, human: human, personID: "sam", personName: "Sam")
+        #expect(try trainer.learn(match: match, game: logged, human: human, personID: "sam", personName: "Sam") == nil)
         #expect(ghosts.ghost(id: "sam")?.gamesLearned == 1)
     }
 
@@ -74,12 +76,12 @@ import Testing
         let (ghosts, root) = store()
         defer { try? FileManager.default.removeItem(at: root) }
         let (logged, human) = try game()
-        _ = try GhostTrainer(store: ghosts).learn(match: UUID(), game: logged, human: human, personName: "Sam")
+        _ = try GhostTrainer(store: ghosts).learn(match: UUID(), game: logged, human: human, personID: "sam", personName: "Sam")
         let before = try Data(contentsOf: try #require(ghosts.versions(of: "sam").last?.url))
         struct Boom: Error {}
         var failing = GhostTrainer(store: ghosts)
         failing.fit = { _, _ in throw Boom() }
-        #expect(throws: Boom.self) { try failing.learn(match: UUID(), game: logged, human: human, personName: "Sam") }
+        #expect(throws: Boom.self) { try failing.learn(match: UUID(), game: logged, human: human, personID: "sam", personName: "Sam") }
         #expect(ghosts.versions(of: "sam").count == 1)
         #expect(try Data(contentsOf: try #require(ghosts.versions(of: "sam").last?.url)) == before)
     }
@@ -91,7 +93,7 @@ import Testing
         defer { try? FileManager.default.removeItem(at: root) }
         let (logged, human) = try game()
         let match = UUID()
-        _ = try GhostTrainer(store: ghosts).learn(match: match, game: logged, human: human, personName: "Sam")
+        _ = try GhostTrainer(store: ghosts).learn(match: match, game: logged, human: human, personID: "sam", personName: "Sam")
         let text = try String(contentsOf: ghosts.decisionsDirectory(for: "sam").appendingPathComponent("\(match.uuidString).jsonl"),
                               encoding: .utf8)
         let records = try text.split(separator: "\n").map { try JSONDecoder().decode(DecisionRecord.self, from: Data($0.utf8)) }

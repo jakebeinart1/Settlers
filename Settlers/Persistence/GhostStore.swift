@@ -30,14 +30,17 @@ public struct GhostStore: Sendable {
     let bundledGhosts: [URL]
 
     /// Local wins over bundled for the same id. Sorted by name, then id, so
-    /// the picker's order never depends on file-system order.
+    /// the picker's order never depends on file-system order. An id that was
+    /// moved (`move`) is its old history, not a second ghost: on Jake's phone
+    /// the bundled `jake` is the ghost now filed under his player id.
     func all() -> [GhostProfile] {
         var byID: [String: GhostProfile] = [:]
         for ghost in bundledGhosts.compactMap(Self.read) { byID[ghost.id] = ghost }
         for id in localIDs() {
             if let ghost = latest(of: id) { byID[id] = ghost }
         }
-        return byID.values.sorted { ($0.name, $0.id) < ($1.name, $1.id) }
+        let moved = aliases()
+        return byID.values.filter { moved[$0.id] == nil }.sorted { ($0.name, $0.id) < ($1.name, $1.id) }
     }
 
     /// The ghost behind `id`, following a rename (`alias`).
@@ -70,6 +73,29 @@ public struct GhostStore: Sendable {
         map[slug] = id
         try FileManager.default.createDirectory(at: localDirectory, withIntermediateDirectories: true)
         try JSONEncoder().encode(map).write(to: aliasFile, options: .atomic)
+    }
+
+    /// Re-files the ghost stored as `old` under `new`, the player id it
+    /// belongs to (`PlayerDirectory`). Its latest model and its decision
+    /// records (the "already learned" markers) move; its earlier versions stay
+    /// under `old` as history, and `old` resolves to `new` from then on.
+    func move(_ old: String, to new: String) throws {
+        guard let ghost = ghost(id: old) else { return }
+        let from = decisionsDirectory(for: old)
+        try save(GhostProfile(id: new, name: ghost.name, person: ghost.person, lambda: ghost.lambda,
+                              gamesLearned: ghost.gamesLearned, decisionsLearned: ghost.decisionsLearned,
+                              civilization: ghost.civilization))
+        if FileManager.default.fileExists(atPath: from.path) {
+            let to = localDirectory.appendingPathComponent(new).appendingPathComponent("decisions")
+            try? FileManager.default.removeItem(at: to)
+            try FileManager.default.moveItem(at: from, to: to)
+        }
+        try alias(old, to: new)
+    }
+
+    /// Whether any ghost, trained here or bundled, is stored as `id`.
+    func isLocal(_ id: String) -> Bool {
+        latest(of: id) != nil || bundledGhosts.compactMap(Self.read).contains { $0.id == id }
     }
 
     private var aliasFile: URL { localDirectory.appendingPathComponent("aliases.json") }

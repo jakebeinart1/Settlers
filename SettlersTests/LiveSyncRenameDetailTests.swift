@@ -21,7 +21,8 @@ import Testing
         try #require(before.record.played == 1 && before.radarIsLearnedFrom)
         try #require(before.radar != nil)
         try #require(before.selfPlay?.played == 1)
-        let owner = EntityDetail.person("Jake", ratings: jake.stores.ratings.load(), stats: jake.stores.seatStats.all())
+        let owner = EntityDetail.person("apple-jake", name: "Jake", ratings: jake.stores.ratings.load(),
+                                        stats: jake.stores.seatStats.all())
         #expect(before.radar == owner.radar, "the borrowed graph is Jake's actual play, not the ghost's")
 
         try await sync(jake, cloud: cloud, user: "apple-jake", name: "Bein")
@@ -38,10 +39,10 @@ import Testing
     @MainActor
     private func seedJake(on device: LiveSyncTests.Device, cloud: LiveSyncTests.FakeCloud) async throws {
         try device.stores.ghosts.save(GhostProfile(
-            id: "jake", name: "Jake's Ghost", person: .anchored(at: .forMode(.classic)), lambda: 0.01, gamesLearned: 12))
-        try device.play(as: "Jake", against: "jake")
+            id: device.me, name: "Jake's Ghost", person: .anchored(at: .forMode(.classic)), lambda: 0.01, gamesLearned: 12))
+        try device.play(as: "Jake", against: device.me)
         try await sync(device, cloud: cloud, user: "apple-jake", name: "Jake")
-        try #require(cloud.locked { $0.ghosts["jake"] != nil }, "the source ghost must reach the cloud")
+        try #require(cloud.locked { $0.ghosts["apple-jake"] != nil }, "the source ghost must reach the cloud")
     }
 
     private func sync(_ device: LiveSyncTests.Device, cloud: LiveSyncTests.FakeCloud,
@@ -52,7 +53,7 @@ import Testing
 
     /// The same detail API and real resolver that LeaderboardView.open uses.
     private func ghostDetail(on device: LiveSyncTests.Device) throws -> EntityDetail {
-        let ghost = try #require(device.stores.ghosts.ghost(id: "jake"))
+        let ghost = try #require(device.stores.ghosts.ghost(id: "apple-jake"))
         return EntityDetail.ghost(ghost, ratings: device.stores.ratings.load(), stats: device.stores.seatStats.all(),
                                   resolve: device.stores.ghosts.resolve)
     }

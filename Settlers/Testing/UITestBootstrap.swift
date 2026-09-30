@@ -40,7 +40,7 @@ enum UITestBootstrap {
         // only - the ratings file shares Application Support with the rest.
         let ratings = RatingStore.shared.directory
         for url in [ratings.appendingPathComponent("ratings.json"), ratings.appendingPathComponent("ratings.corrupt.json"),
-                    SeatStatsStore.shared.directory, GhostStore.shared.localDirectory,
+                    SeatStatsStore.shared.directory, GhostStore.shared.localDirectory, PlayerDirectory.shared.directory,
                     LiveSync.Stores.standard.stateFile.deletingLastPathComponent()] {
             removeIfPresent(url)
         }

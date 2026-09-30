@@ -5,7 +5,7 @@ import Foundation
 /// (Jake, 2026-09-25: "All the data needs to be saved").
 struct SeatStatsRecord: Codable, Equatable, Sendable {
     struct Entry: Codable, Equatable, Sendable {
-        /// `RatedEntity.key`: "person:Jake", "ghost:jake", "classic", "expert".
+        /// `RatedEntity.key`: "person:<id>", "ghost:<id>", "classic", "expert".
         let entity: String
         let stats: SeatStats
     }
@@ -30,12 +30,16 @@ public struct SeatStatsStore: Sendable {
         try JSONEncoder().encode(record).write(to: file, options: .atomic)
     }
 
-    /// Overwrites a record this phone already holds: the one correction sync
-    /// makes, writing a game typed under "jake" back under the claimed "Jake".
+    /// Overwrites a record this phone already holds: re-filing a game under a
+    /// player id (`PlayerDirectory`, `LiveSync`).
     func replace(_ record: SeatStatsRecord) throws {
         try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
         try JSONEncoder().encode(record).write(to: directory.appendingPathComponent("\(record.match.uuidString).json"),
                                                options: .atomic)
+    }
+
+    func record(for match: UUID) -> SeatStatsRecord? {
+        try? JSONDecoder().decode(SeatStatsRecord.self, from: Data(contentsOf: directory.appendingPathComponent("\(match.uuidString).json")))
     }
 
     func contains(match: UUID) -> Bool {

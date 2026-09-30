@@ -158,6 +158,7 @@
 		BC863FBB0B69046B3989938A /* SeatNumberPickerPopup.swift in Sources */ = {isa = PBXBuildFile; fileRef = D9D4E1C56EC91FE0C881DA59 /* SeatNumberPickerPopup.swift */; };
 		BD0B5D0BC26E3BE5C8A462FD /* BuildPopupView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDF1F85E001A7B74407061E4 /* BuildPopupView.swift */; };
 		BD5549DAB0D7EC73C910B2E9 /* RadarChartView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3CAED738A22FF74274C67E3A /* RadarChartView.swift */; };
+		C2576836D4CC4060178D8070 /* PlayerDirectory.swift in Sources */ = {isa = PBXBuildFile; fileRef = 971DE22B853F6DB44BCE2E62 /* PlayerDirectory.swift */; };
 		C33298E3E68FDD117862CCF3 /* GameInteractionPriorityTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96572AA0664ABBE89C37F610 /* GameInteractionPriorityTests.swift */; };
 		C834783EE1638B259EFA3035 /* MatchCheckpointStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FDDC6BE523633D50F2BBE0CF /* MatchCheckpointStoreTests.swift */; };
 		C8EBD90EAF2F47466F8B5A2C /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CB7D94876E201553696FE24C /* ContentView.swift */; };
@@ -319,6 +320,7 @@
 		92F9BFE16D19CFD1ABEC5B88 /* IncrementalCheckpointValidationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IncrementalCheckpointValidationTests.swift; sourceTree = "<group>"; };
 		95CF01E3C9518CFFC7C0AF1F /* GameplayBoundaryFlowTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameplayBoundaryFlowTests.swift; sourceTree = "<group>"; };
 		96572AA0664ABBE89C37F610 /* GameInteractionPriorityTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameInteractionPriorityTests.swift; sourceTree = "<group>"; };
+		971DE22B853F6DB44BCE2E62 /* PlayerDirectory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerDirectory.swift; sourceTree = "<group>"; };
 		99A87B86850543E2C6721D01 /* BotDifficultyTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BotDifficultyTests.swift; sourceTree = "<group>"; };
 		9AEFB97E94522F96868B7B54 /* ArmyUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArmyUITests.swift; sourceTree = "<group>"; };
 		9B1CD11CF283FBD26628A325 /* PlayerNameMemoryFlowTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerNameMemoryFlowTests.swift; sourceTree = "<group>"; };
@@ -696,6 +698,7 @@
 				A91C26F52123725EF8FFF41C /* MatchCheckpointStore.swift */,
 				AF68AEB9AD0DD219D7E84E99 /* MatchSetup.swift */,
 				1F6B7C1967EDFFBBD8873DAC /* PacingPreferences.swift */,
+				971DE22B853F6DB44BCE2E62 /* PlayerDirectory.swift */,
 				A7D42223DB45BEF77F97D3F6 /* PlayerNameStore.swift */,
 				63FDF22B7ACAB8B54DB31A63 /* RatingStore.swift */,
 				1E21004FB7C5F5948BEC71A9 /* SavedGameAvailability.swift */,
@@ -961,6 +964,7 @@
 				01EF8804262A950A081F1E65 /* OpponentProfile.swift in Sources */,
 				57EA5B6AC6CBD8DF633CAEC0 /* PacingPreferences.swift in Sources */,
 				5FD5B98FFB1669F9BE80F1DC /* PaintedChromeBackground.swift in Sources */,
+				C2576836D4CC4060178D8070 /* PlayerDirectory.swift in Sources */,
 				88CF824C3335F34CF54E08E2 /* PlayerHUDView.swift in Sources */,
 				18CC1440102EAD5B2A61EC6D /* PlayerIdentity.swift in Sources */,
 				1B2E8933650EFB5E3A65F60D /* PlayerNameStore.swift in Sources */,
