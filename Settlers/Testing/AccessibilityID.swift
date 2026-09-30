@@ -51,6 +51,7 @@ enum AccessibilityID {
         static func step(_ index: Int) -> String { "how-to-play.step.\(index)" }
         static func details(_ section: String) -> String { "how-to-play.details.\(section)" }
         static func detailsBody(_ section: String) -> String { "how-to-play.details-body.\(section)" }
+        static let rollOdds = "how-to-play.roll-odds"
     }
 
     enum GameHistory {

@@ -189,6 +189,11 @@ struct HowToPlayView: View {
                                 .fixedSize(horizontal: false, vertical: true)
                         }
                     }
+                    if section.showsRollOdds {
+                        RollOddsChart()
+                            .padding(.top, 6)
+                            .accessibilityIdentifier(AccessibilityID.HowToPlay.rollOdds)
+                    }
                 }
                 .accessibilityElement(children: .contain)
                 .accessibilityIdentifier(AccessibilityID.HowToPlay.detailsBody(section.id))

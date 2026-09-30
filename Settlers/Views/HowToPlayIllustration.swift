@@ -202,6 +202,52 @@ struct ResourceSwatch: View {
     }
 }
 
+/// How often each total of two dice comes up: a bar per total, its height the
+/// number of the 36 combinations that roll it. The board prints no pips, so
+/// this is where a player sees why a 6 or 8 is worth more than a 2 or 12.
+/// Bars take the board token's colours (6 and 8 red, the rest dark); 7 is the
+/// robber's and pays nobody, so it is drawn as the robber's dark disc.
+struct RollOddsChart: View {
+    private static let totals = Array(2...12)
+    private static let barUnit: CGFloat = 14
+
+    /// `DiceOdds.pips` is zero for 7 because no hex carries it; the dice still
+    /// roll it six ways, and the chart is about the dice.
+    private static func ways(_ total: Int) -> Int { total == 7 ? 6 : DiceOdds.pips(for: total) }
+
+    var body: some View {
+        VStack(spacing: 6) {
+            HStack(alignment: .bottom, spacing: 4) {
+                ForEach(Self.totals, id: \.self) { bar($0) }
+            }
+            Text("Ways to roll each total, out of 36")
+                .font(.system(size: 12, design: .serif))
+                .foregroundStyle(.white.opacity(0.7))
+        }
+        .frame(maxWidth: .infinity)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel("Chart: 7 rolls 6 ways in 36, 6 and 8 five, 5 and 9 four, 4 and 10 three, 3 and 11 two, 2 and 12 one")
+    }
+
+    private func bar(_ total: Int) -> some View {
+        let ways = Self.ways(total)
+        let hot = total == 6 || total == 8
+        return VStack(spacing: 3) {
+            Text("\(ways)")
+                .font(.system(size: 11, weight: .bold, design: .serif))
+                .foregroundStyle(.white.opacity(0.8))
+            RoundedRectangle(cornerRadius: 3)
+                .fill(total == 7 ? Color.black.opacity(0.75) : (hot ? CatanTheme.hotNumber : CatanTheme.numberTokenBackground))
+                .overlay(RoundedRectangle(cornerRadius: 3).stroke(CatanTheme.numberTokenEdge, lineWidth: 1))
+                .frame(height: CGFloat(ways) * Self.barUnit)
+            Text("\(total)")
+                .font(.system(size: 13, weight: .bold, design: .serif))
+                .foregroundStyle(hot ? CatanTheme.hotNumber : .white)
+        }
+        .frame(maxWidth: .infinity)
+    }
+}
+
 /// A pointy-top hexagon filling its frame.
 private struct HexagonShape: Shape {
     func path(in rect: CGRect) -> Path {
