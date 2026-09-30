@@ -274,24 +274,18 @@ public struct HumanPlayerPanel: View {
             }
             .padding(11)
             .frame(maxWidth: .infinity, alignment: .leading)
-            .background(TintedTextureBackground(tint: identity.civilization.cardBackgroundColor(active: isActive)))
-            .overlay(alignment: .bottomTrailing) {
-                // A specialized watermark just for the human's own panel -
-                // a small painted silhouette (mountains + pagodas, matching
-                // the board background's own style) tucked bottom-trailing
-                // in the panel's own empty margin (below the left-aligned
-                // content), the way the reference's player card carries its
-                // own bit of scenery instead of a flat color. Bot chips
-                // don't get this - they're small, share a row, and change
-                // occupant (civ) every game, where a baked scenic image
-                // would either look cramped or need per-civ variants; this
-                // one card is always "you" and has the room for it.
-                Image("human-card-motif")
-                    .resizable()
-                    .scaledToFit()
-                    .frame(width: 150, height: 150)
-                    .opacity(0.45)
-                    .allowsHitTesting(false)
+            .background {
+                TintedTextureBackground(tint: identity.civilization.cardBackgroundColor(active: isActive))
+                    .overlay(alignment: .bottomTrailing) {
+                        // Keep the painted scenery, but on the BACKGROUND:
+                        // above the content it overpainted card names/counts.
+                        Image("human-card-motif")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 150, height: 150)
+                            .opacity(0.45)
+                            .allowsHitTesting(false)
+                    }
             }
             .clipShape(FrameCornerRect(cornerRadius: 12, notchScale: 1.0))
             .playerCardBorder(
@@ -342,6 +336,13 @@ public struct HumanPlayerPanel: View {
     }
 }
 
+private enum HUDCardStyle {
+    // These fixed-height shortcuts use fixed-size labels too. A scaled icon
+    // alone outgrows the tile and overlaps them at accessibility text sizes;
+    // the full inventory remains the scalable inspection surface.
+    static let iconFont = Font.system(size: 12)
+}
+
 /// Permanent shelf entry. Inspection is always available; the detail surface
 /// owns the distinction between reading a card and playing it.
 private struct DevCardHUDTile: View {
@@ -352,7 +353,7 @@ private struct DevCardHUDTile: View {
         Button(action: action) {
             VStack(spacing: 2) {
                 Image(systemName: DevCardStyle.icon(for: item.type))
-                    .font(.footnote)
+                    .font(HUDCardStyle.iconFont)
                 Text(DevCardStyle.shortName(for: item.type))
                     .font(.system(size: 8, weight: .bold))
                     .lineLimit(1)
@@ -399,7 +400,7 @@ private struct ArmyHUDTile: View {
         Button(action: action) {
             VStack(spacing: 2) {
                 Image(systemName: "shield.lefthalf.filled")
-                    .font(.footnote)
+                    .font(HUDCardStyle.iconFont)
                 Text("ARMY \(strength)")
                     .font(.system(size: 8, weight: .bold))
                     .lineLimit(1)
@@ -426,7 +427,7 @@ private struct DevelopmentCardShelfButton: View {
         Button(action: action) {
             VStack(spacing: 2) {
                 Image(systemName: "rectangle.stack.fill")
-                    .font(.footnote)
+                    .font(HUDCardStyle.iconFont)
                 Text("CARDS")
                     .font(.system(size: 8, weight: .bold, design: .serif))
                 Text("\(count)")

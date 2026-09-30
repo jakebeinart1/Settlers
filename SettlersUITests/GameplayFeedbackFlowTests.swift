@@ -139,7 +139,8 @@ final class GameplayFeedbackFlowTests: XCTestCase {
     }
 
     func testYearOfPlentyNoticeNamesTheCardAfterRealSelection() {
-        let app = launch(["-qaShowDevCardHand"])
+        let app = launch(["-qaShowDevCardHand", "-UIPreferredContentSizeCategoryName",
+                          "UICTContentSizeCategoryAccessibilityXXXL"])
         XCTAssertTrue(app.buttons["dev-cards.tile.yearOfPlenty"].waitForExistence(timeout: 10))
         app.buttons["dev-cards.tile.yearOfPlenty"].tap()
         app.buttons["dev-cards.resource.ore"].tap()
