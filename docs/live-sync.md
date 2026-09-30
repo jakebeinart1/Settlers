@@ -21,6 +21,11 @@ Code: `Settlers/Sync/`. Tests: `SettlersTests/LiveSyncTests.swift`.
   Old names stay held, so nobody else can become "Jake". A name typed into
   New Game is the same preference as the ladder name, so it renames too. No
   schema change: `name` was always a field of `Player`.
+  An unchanged cached preference on another phone follows the server name;
+  only Join or a changed local preference requests a rename. Restored phones
+  discover earlier identities through claim-owned downloaded ghosts, not just
+  their local game history. The same claim-derived aliases preserve opponent
+  ghost graphs and the own-player record on observer phones.
 - **Choosing the name, all in the app.** A ladder build asks for a name on
   launch when none is set (or it is still the default "You", which is never
   claimed), and the leaderboard has "Change name". Both claim at once. The one
@@ -35,9 +40,15 @@ Code: `Settlers/Sync/`. Tests: `SettlersTests/LiveSyncTests.swift`.
   oldest first (`RatingStore.rebuild`). Elo depends on the order games are
   counted, and this fixed order is what makes every phone show the same ladder
   whatever order games arrived in.
+  Stats changes invalidate the derived ratings durably before being written,
+  so a failed pass or rating write is rebuilt after relaunch. Partial record,
+  claim, or asset-read failures fail the pass rather than advancing its cursor.
 - **Ghosts.** A player's phone trains their ghost after each game (unchanged)
-  and uploads the new version (`Ghost` record). Other phones download a ghost
-  when it has learned from more games than their copy. They accept it only from
+  and uploads the new version (`Ghost` record). Every phone, including the
+  owner's restored phone, first downloads a ghost when it has learned from
+  more games than its copy. Uploads cannot replace a higher server training
+  count, and upload watermarks are per stable ghost ID rather than per device.
+  Phones accept a ghost only from
   the Apple ID that holds the ghost's name, and rebuild its display name from
   that claim.
 - **When it syncs** (Jake, 2026-09-26: "on a periodic basis that stays within

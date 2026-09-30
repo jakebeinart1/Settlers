@@ -61,9 +61,9 @@ public struct GhostStore: Sendable {
         return current
     }
 
-    /// Points `slug` at the ghost stored as `id`. A person's own phone does
-    /// this when they rename; other phones never need to, because a ghost
-    /// travels under its stored id.
+    /// Points `slug` at the ghost stored as `id`. The owner uses this for
+    /// continued training; observers use the same claim-derived mapping to
+    /// connect the ghost's stable id with its person's renamed statistics.
     func alias(_ slug: String, to id: String) throws {
         guard slug != id else { return }
         var map = aliases()

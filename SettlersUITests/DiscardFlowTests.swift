@@ -93,6 +93,7 @@ final class DiscardFlowTests: XCTestCase {
         let standardTitle = standardApp.staticTexts["discard.editor"]
         XCTAssertTrue(standardTitle.waitForExistence(timeout: 5))
         let standardTitleHeight = standardTitle.frame.height
+        let standardBoardFrame = standardApp.otherElements["board.surface"].frame
         standardApp.terminate()
 
         let app = XCUIApplication()
@@ -137,7 +138,9 @@ final class DiscardFlowTests: XCTestCase {
         XCTAssertLessThan(dock.frame.height, 120,
                           "the reminder must stay compact enough to leave the board inspectable")
         let board = app.otherElements["board.surface"]
-        XCTAssertGreaterThan(board.frame.height, 250)
+        // SE has a 230pt viewport. A fixed 250pt threshold tested the phone,
+        // not the feature: expanding text must preserve the normal board frame.
+        XCTAssertEqual(board.frame, standardBoardFrame)
         XCTAssertLessThanOrEqual(board.frame.maxY, dock.frame.minY)
 
         let attachment = XCTAttachment(screenshot: app.screenshot())

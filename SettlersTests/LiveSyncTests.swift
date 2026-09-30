@@ -16,6 +16,10 @@ import Testing
         private(set) var names: [String: NameClaim] = [:]
         private(set) var matches: [UUID: Downloaded<SharedMatch>] = [:]
         private(set) var ghosts: [String: Downloaded<GhostProfile>] = [:]
+        var failNextRename = false
+        var failNextAccountLookup = false
+        var failClaimsAfterNextRename = false
+        var failNextClaims = false
 
         func locked<T>(_ body: (FakeCloud) throws -> T) rethrows -> T {
             lock.lock()
@@ -37,7 +41,15 @@ import Testing
         let cloud: FakeCloud
         let user: String
 
-        func currentUser() async throws -> String { user }
+        func currentUser() async throws -> String {
+            try cloud.locked { cloud in
+                if cloud.failNextAccountLookup {
+                    cloud.failNextAccountLookup = false
+                    throw CloudSyncError.unavailable
+                }
+                return user
+            }
+        }
 
         func claim(slug: String, name: String) async throws -> NameClaim {
             cloud.locked { cloud in
@@ -50,14 +62,28 @@ import Testing
 
         func rename(slug: String, to name: String) async throws {
             try cloud.locked { cloud in
+                if cloud.failNextRename {
+                    cloud.failNextRename = false
+                    throw CloudSyncError.unavailable
+                }
                 guard let existing = cloud.names[slug] else { return }
                 guard existing.owner == user else { throw CloudSyncError.failed("not creator") }
                 cloud.setName(slug, NameClaim(name: name, owner: user))
+                if cloud.failClaimsAfterNextRename {
+                    cloud.failClaimsAfterNextRename = false
+                    cloud.failNextClaims = true
+                }
             }
         }
 
         func claims(slugs: [String]) async throws -> [String: NameClaim] {
-            cloud.locked { cloud in cloud.names.filter { slugs.contains($0.key) } }
+            try cloud.locked { cloud in
+                if cloud.failNextClaims {
+                    cloud.failNextClaims = false
+                    throw CloudSyncError.unavailable
+                }
+                return cloud.names.filter { slugs.contains($0.key) }
+            }
         }
 
         func upload(_ match: SharedMatch) async throws {
@@ -251,6 +277,153 @@ import Testing
         }
         #expect(cloud.locked { $0.ghosts["jake"]?.value.gamesLearned } == 25)
         #expect(fresh.stores.ghosts.ghost(id: "jake")?.gamesLearned == 25)
+    }
+
+    @MainActor
+    @Test func aFailedRatingWriteIsRebuiltAfterRelaunchWithoutRedownloadingTheMatch() async throws {
+        let dir = root()
+        defer { try? FileManager.default.removeItem(at: dir) }
+        let cloud = FakeCloud()
+        let observer = Device("observer", in: dir)
+        _ = await observer.sync(cloud, as: "apple-observer", name: "Observer")
+        let source = Device("source", in: dir)
+        try source.play(as: "Jake")
+        _ = await source.sync(cloud, as: "apple-jake", name: "Jake")
+        let match = try #require(source.stores.seatStats.all().first?.match)
+        // The pass can persist stats and its download cursor, but writing the
+        // derived ladder fails. These paths belong to this test's temp root.
+        let ratingsDirectory = observer.root.appendingPathComponent("ratings")
+        try FileManager.default.removeItem(at: ratingsDirectory)
+        try Data("not a directory".utf8).write(to: ratingsDirectory)
+        let failed = await observer.sync(cloud, as: "apple-observer", name: "Observer")
+        guard case .failed = failed else {
+            Issue.record("Expected a rating-write failure, got \(failed)")
+            return
+        }
+        #expect(observer.stores.seatStats.contains(match: match))
+        try FileManager.default.removeItem(at: ratingsDirectory)
+
+        // Device.sync constructs a new LiveSync, so this checks the durable
+        // retry after a process restart, not an in-memory changed flag.
+        guard case .online = await observer.sync(cloud, as: "apple-observer", name: "Observer") else {
+            Issue.record("The recovered device did not come online")
+            return
+        }
+        #expect(observer.stores.ratings.load().ratedMatches == [match])
+        #expect(observer.stores.ratings.load().games["person:Jake"] == 1)
+    }
+
+    @Test func switchingAppleAccountsDoesNotSuppressTheNewOwnersGhostUpload() async throws {
+        let dir = root()
+        defer { try? FileManager.default.removeItem(at: dir) }
+        let cloud = FakeCloud()
+        let device = Device("shared-phone", in: dir)
+        try device.stores.ghosts.save(GhostProfile(id: "jake", name: "Jake's Ghost",
+            person: .anchored(at: .forMode(.classic)), lambda: 0.01, gamesLearned: 25))
+        _ = await device.sync(cloud, as: "apple-jake", name: "Jake")
+        try device.stores.ghosts.save(GhostProfile(id: "alex", name: "Alex's Ghost",
+            person: .anchored(at: .forMode(.classic)), lambda: 0.01, gamesLearned: 1))
+
+        guard case .online = await device.sync(cloud, as: "apple-alex", name: "Alex") else {
+            Issue.record("The new account did not come online")
+            return
+        }
+        #expect(cloud.locked { $0.ghosts["alex"]?.value.gamesLearned } == 1)
+        #expect(cloud.locked { $0.ghosts["alex"]?.owner } == "apple-alex")
+        #expect(cloud.locked { $0.ghosts["jake"]?.value.gamesLearned } == 25)
+    }
+
+    @Test func aFreshRenamedOwnerKeepsTrainingTheExistingCloudGhost() async throws {
+        let dir = root()
+        defer { try? FileManager.default.removeItem(at: dir) }
+        let cloud = FakeCloud()
+        let owner = Phone(cloud: cloud, user: "apple-jake")
+        _ = try await owner.claim(slug: "jake", name: "Jake")
+        try await owner.rename(slug: "jake", to: "Bein")
+        _ = try await owner.claim(slug: "bein", name: "Bein")
+        try await owner.upload(GhostProfile(id: "jake", name: "Bein's Ghost",
+            person: .anchored(at: .forMode(.classic)), lambda: 0.01, gamesLearned: 25))
+        let fresh = Device("fresh", in: dir)
+        _ = await fresh.sync(cloud, as: "apple-jake", name: "Bein")
+
+        #expect(fresh.stores.ghosts.resolve("bein") == "jake")
+        #expect(fresh.stores.ghosts.ghost(id: "bein")?.gamesLearned == 25)
+    }
+
+    @Test func legacySyncStateRetainsItsDownloadCursorAndMatchReceipts() throws {
+        let json = #"{"uploaded":["00000000-0000-0000-0000-000000000001"],"unshareable":[],"ghostGamesUploaded":25,"lastModified":123,"ratingsRebuilt":true,"claimedSlug":"jake","ownSlugs":["jake"]}"#
+        let state = try JSONDecoder().decode(SyncState.self, from: Data(json.utf8))
+
+        #expect(state.uploaded == [UUID(uuidString: "00000000-0000-0000-0000-000000000001")!])
+        #expect(state.lastModified == Date(timeIntervalSince1970: 978_307_323))
+        #expect(state.ratingsRebuilt)
+        #expect(state.ownSlugs == ["jake"])
+        #expect(state.ghostGamesUploadedByID == nil)
+    }
+
+    @Test func anotherOwnersDeviceRefreshCannotUndoARename() async throws {
+        let dir = root()
+        defer { try? FileManager.default.removeItem(at: dir) }
+        let cloud = FakeCloud()
+        let first = Device("first", in: dir)
+        let second = Device("second", in: dir)
+        _ = await first.sync(cloud, as: "apple-jake", name: "Jake")
+        _ = await second.sync(cloud, as: "apple-jake", name: "Jake")
+        _ = await first.sync(cloud, as: "apple-jake", name: "Bein")
+        _ = await second.sync(cloud, as: "apple-jake", name: "Jake")
+
+        #expect(cloud.locked { $0.names["jake"]?.name } == "Bein")
+        #expect(cloud.locked { $0.names["bein"]?.name } == "Bein")
+        let explicitJoin = LiveSync(backend: Phone(cloud: cloud, user: "apple-jake"),
+                                   stores: second.stores, displayName: { "Jake" })
+        _ = await explicitJoin.sync(renaming: true)
+        #expect(cloud.locked { $0.names["jake"]?.name } == "Jake")
+        #expect(cloud.locked { $0.names["bein"]?.name } == "Jake")
+    }
+
+    @Test(arguments: [true, false])
+    func anExplicitRenameRetriesAfterFailureAndRelaunch(failingAccountLookup: Bool) async throws {
+        let dir = root()
+        defer { try? FileManager.default.removeItem(at: dir) }
+        let cloud = FakeCloud()
+        let first = Device("first", in: dir)
+        let second = Device("second", in: dir)
+        _ = await first.sync(cloud, as: "apple-jake", name: "Jake")
+        _ = await second.sync(cloud, as: "apple-jake", name: "Jake")
+        _ = await first.sync(cloud, as: "apple-jake", name: "Bein")
+        cloud.locked {
+            $0.failNextAccountLookup = failingAccountLookup
+            $0.failNextRename = !failingAccountLookup
+        }
+        let explicitJoin = LiveSync(backend: Phone(cloud: cloud, user: "apple-jake"),
+                                   stores: second.stores, displayName: { "Jake" })
+        #expect(await explicitJoin.sync(renaming: true) == .offline)
+        guard case .online = await second.sync(cloud, as: "apple-jake", name: "Jake") else {
+            Issue.record("The requested rename was not retried after relaunch")
+            return
+        }
+        #expect(cloud.locked { $0.names["jake"]?.name } == "Jake")
+        #expect(cloud.locked { $0.names["bein"]?.name } == "Jake")
+    }
+
+    @Test func anInterruptedRenameKeepsThePriorSlugForRetry() async throws {
+        let dir = root()
+        defer { try? FileManager.default.removeItem(at: dir) }
+        let cloud = FakeCloud()
+        let first = Device("first", in: dir)
+        let second = Device("second", in: dir)
+        _ = await first.sync(cloud, as: "apple-jake", name: "Jake")
+        _ = await second.sync(cloud, as: "apple-jake", name: "Jake")
+        _ = await first.sync(cloud, as: "apple-jake", name: "Bein")
+        cloud.locked { $0.failClaimsAfterNextRename = true }
+        let explicitJoin = LiveSync(backend: Phone(cloud: cloud, user: "apple-jake"),
+                                   stores: second.stores, displayName: { "Jake" })
+        #expect(await explicitJoin.sync(renaming: true) == .offline)
+        #expect(cloud.locked { $0.names["jake"]?.name } == "Jake")
+        #expect(cloud.locked { $0.names["bein"]?.name } == "Bein")
+        _ = await second.sync(cloud, as: "apple-jake", name: "Jake")
+        #expect(cloud.locked { $0.names["bein"]?.name } == "Jake")
+        #expect(SyncState.load(from: second.stores.stateFile).pendingRename == nil)
     }
 
     /// Refreshes stay within `refreshInterval`; a finished game still syncs

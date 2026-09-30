@@ -109,7 +109,7 @@ import Testing
     func anEqualOrNewerLocalGhostKeepsTheFetchedRecord(gamesLearned: Int) throws {
         let server = CKRecord(recordType: "Ghost", recordID: CKRecord.ID(recordName: "ghost-jake"))
         server["gamesLearned"] = 25
-        let upload = try #require(CloudKitBackend.prepareGhostUpload(ghost(gamesLearned: gamesLearned), existing: server))
+        let upload = try #require(try CloudKitBackend.prepareGhostUpload(ghost(gamesLearned: gamesLearned), existing: server))
         defer { try? FileManager.default.removeItem(at: upload.assetFile) }
         let payload: GhostProfile? = try CloudKitBackend.decodedPayload(from: upload.record)
 
@@ -121,7 +121,7 @@ import Testing
     }
 
     @Test func aGhostWithoutAServerRecordCanStillBeUploaded() throws {
-        let upload = try #require(CloudKitBackend.prepareGhostUpload(ghost(gamesLearned: 1), existing: nil))
+        let upload = try #require(try CloudKitBackend.prepareGhostUpload(ghost(gamesLearned: 1), existing: nil))
         defer { try? FileManager.default.removeItem(at: upload.assetFile) }
         let payload: GhostProfile? = try CloudKitBackend.decodedPayload(from: upload.record)
 

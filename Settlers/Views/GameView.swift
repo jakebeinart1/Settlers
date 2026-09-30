@@ -95,6 +95,7 @@ public struct GameView: View {
     private var holdsGameplayFeedback: Bool {
         isBlockingOverlayPresented || showDevCardHand || isDiscardPresented
             || viewModel.boardDecisionPresentation != nil || errorMessage != nil
+            || viewModel.gameLogWarning != nil
     }
 
     public var body: some View {

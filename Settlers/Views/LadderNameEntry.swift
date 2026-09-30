@@ -48,7 +48,7 @@ struct LadderNameEntry: View {
         guard let liveSync else { return onJoined(nil) }
         isJoining = true
         Task {
-            let status = await liveSync.sync()
+            let status = await liveSync.sync(renaming: true)
             isJoining = false
             onJoined(status)
         }

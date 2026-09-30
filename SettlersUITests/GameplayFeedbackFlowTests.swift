@@ -80,7 +80,9 @@ final class GameplayFeedbackFlowTests: XCTestCase {
                           "host delay exceeded the notice age limit; this cannot test a reading-time hold")
         XCTAssertFalse(notice(in: app).exists, "the recording warning must hide public feedback")
         warning.buttons["OK"].tap()
-        XCTAssertTrue(warning.waitForNonExistence(timeout: 2))
+        // tap() already waits for native dismissal. Another polling wait burns
+        // a second of the real four-second reading window before measuring it.
+        XCTAssertFalse(warning.exists)
         let receipt = notice(in: app)
         XCTAssertTrue(receipt.waitForExistence(timeout: 3), "the unread city notice must survive the warning")
         XCTAssertEqual(receipt.label, "Player 1 gained 1 VP")
