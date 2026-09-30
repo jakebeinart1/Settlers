@@ -2,6 +2,10 @@ import XCTest
 
 @MainActor
 final class GameplayFeedbackFlowTests: XCTestCase {
+    private static let recordingWarningHoldSeconds: TimeInterval = 5
+    private static let maximumFeedbackAgeSeconds: TimeInterval = 24
+    private static let resumedNoticeReadSeconds: TimeInterval = 1
+
     func testConfirmedLongestRoadTransferShowsBothDeltasWithoutMovingTheBoard() {
         let app = launch(["-qaLongestRoadPosition"])
         let confirm = app.buttons["board-decision.confirm"]
@@ -59,6 +63,35 @@ final class GameplayFeedbackFlowTests: XCTestCase {
         XCTAssertFalse(notice(in: app).exists)
     }
 
+    func testRecordingWarningPreservesCityNoticeReadingTime() {
+        let app = launch(["-qaShowPaidCityDecision", "-qaRecordingWarningAfterCity"])
+        let confirm = app.buttons["board-decision.confirm"]
+        XCTAssertTrue(confirm.waitForExistence(timeout: 10))
+        enabledBoardButton(in: app, prefix: "board.vertex.").tap()
+        XCTAssertFalse(notice(in: app).exists, "a staged city must not announce points")
+        let committedAt = Date()
+        confirm.tap()
+        let warning = app.alerts["Game recording is unavailable"]
+        XCTAssertTrue(warning.waitForExistence(timeout: 3), "committed city must raise the real recording alert")
+        // Stay beyond the normal four-second notice window, but inside its
+        // absolute age limit. The queue and its timer remain production code.
+        XCTAssertFalse(warning.waitForNonExistence(timeout: Self.recordingWarningHoldSeconds))
+        XCTAssertLessThan(Date().timeIntervalSince(committedAt), Self.maximumFeedbackAgeSeconds,
+                          "host delay exceeded the notice age limit; this cannot test a reading-time hold")
+        XCTAssertFalse(notice(in: app).exists, "the recording warning must hide public feedback")
+        warning.buttons["OK"].tap()
+        // tap() already waits for native dismissal. Another polling wait burns
+        // a second of the real four-second reading window before measuring it.
+        XCTAssertFalse(warning.exists)
+        let receipt = notice(in: app)
+        XCTAssertTrue(receipt.waitForExistence(timeout: 3), "the unread city notice must survive the warning")
+        XCTAssertEqual(receipt.label, "Player 1 gained 1 VP")
+        XCTAssertEqual(app.staticTexts["gameplay.points.0"].label, "+1 victory points")
+        XCTAssertFalse(receipt.waitForNonExistence(timeout: Self.resumedNoticeReadSeconds),
+                       "dismissing the warning must leave actual reading time")
+        XCTAssertTrue(receipt.waitForNonExistence(timeout: 6), "resumed feedback must still expire")
+    }
+
     func testBackgroundWithCardHandOpenKeepsNewNoticeHeldBehindResult() {
         let app = launch(["-qaShowDevCardHand"])
         let monopoly = app.buttons["dev-cards.tile.monopoly"]
@@ -106,7 +139,8 @@ final class GameplayFeedbackFlowTests: XCTestCase {
     }
 
     func testYearOfPlentyNoticeNamesTheCardAfterRealSelection() {
-        let app = launch(["-qaShowDevCardHand"])
+        let app = launch(["-qaShowDevCardHand", "-UIPreferredContentSizeCategoryName",
+                          "UICTContentSizeCategoryAccessibilityXXXL"])
         XCTAssertTrue(app.buttons["dev-cards.tile.yearOfPlenty"].waitForExistence(timeout: 10))
         app.buttons["dev-cards.tile.yearOfPlenty"].tap()
         app.buttons["dev-cards.resource.ore"].tap()

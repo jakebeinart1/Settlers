@@ -117,3 +117,71 @@ The online flows are tested against an in-memory CloudKit with two simulated
 phones. No real two-device test has run: the CloudKit build signs under Alex's
 team, and Jake's Mac holds only Jake's identity. That needs a TestFlight build
 containing `6adc97f` on two phones.
+
+## Strict merged-app audit (2026-09-29)
+
+Audit base: `11cae60f873ff2d4e3bdb7604ce3a995269c2328`. Shipped Build 14
+source was `697d67cdb24c79c3a9671de02d887162d28b17f4`; the isolated audit
+integrates Jake's main through `bbc39a1d39f19b30c15114d4af7b303f793f0989`.
+Worktree: `/Users/alex/.codex/worktrees/trade-robber-feedback/Settlers`, branch
+`codex/merged-app-audit-20260929`. The primary AI-research checkout is untouched.
+
+Confirmed bugs fixed, not new strategy initiatives:
+
+- Restore an owner's server ghost before uploading local state; reject stale
+  uploads and track successful uploads per stable ghost ID, not per device.
+- Surface partial CloudKit claim/query/asset failures rather than advancing a
+  cursor over omitted records. Preserve server change tags for concurrency.
+- Follow the server's accepted name on an unchanged second phone. Persist a
+  deliberate Join/name-change request before any network operation; retry it
+  after account lookup or rename failure. Save the previous verified owner slug
+  before changing claims, so an interrupted rename can finish after relaunch.
+- Recover stable ghost aliases on restored owners and observing phones, even
+  when the downloaded ghost already has the correct display name.
+- Invalidate derived ratings durably before changing stats. A failed rating
+  write or interrupted pass then rebuilds on retry, despite an advanced cursor.
+
+### Standards review
+
+Independent review found stale-rating recovery and swallowed claim failures;
+both were reproduced and corrected. Follow-up SDK and recovery reviews found
+the cold-owner alias, stale second-phone name, observer alias and interrupted
+rename paths; regression tests reproduced those failures before their fixes.
+Final bounded source review reported **zero remaining actionable findings**.
+This verdict is source review, not a claim of physical-device CloudKit testing.
+
+### Spec review
+
+Independent review confirmed the restore-before-upload and rename/cursor
+recovery requirements. It also found that the real recording-warning alert
+consumed the queued city/VP notice while blocking the board. The view now holds
+feedback for that alert; the native Confirm → hold five seconds → dismiss flow
+passes with its unread notice still visible. Final bounded review reported
+**zero remaining source blockers**. Standards and Spec remain separate verdicts.
+
+### Observed verification and limits
+
+- `final-sync-green.xcresult`: 29 app-test functions passed across adapter,
+  sync and observer suites. Later `recovery-green.xcresult`: all three functions
+  (four parameterized executions) passed, covering the two final interruption
+  paths plus the stale-phone control. Red runs are retained beside the green.
+- At 375pt, native taps verified bank quantities/receipts, production gains,
+  score/card notices, discard minimization at maximum Dynamic Type, nonzero-seat
+  Vast robber confirmation and New Game. Four final affected flows passed after
+  correcting two test assumptions: the normal SE board is 230pt, not 250pt;
+  a redundant alert-disappearance wait consumed the notice's reading window.
+- Inspection exposed oversized compact card icons and scenery painted above
+  card labels. Fixed the compact icon font and moved scenery into the background,
+  preserving the card/board frames. A real Year of Plenty flow at maximum text
+  size passed; the final screenshot was opened and checked.
+- Jake's final dice-odds help chart was exercised through native scrolling.
+  The assertion now checks the actual scroll viewport, not mere existence or
+  the whole app frame. The complete chart screenshot was opened and checked.
+- These checks used dedicated QA simulators only. No user save, research tree,
+  production CloudKit record or signing default was reset. No new Settlers crash
+  report appeared during these focused runs. Real two-device production sync
+  remains unobserved; fake-server and real-SDK boundary tests are not that proof.
+
+Final whole-gate, CI, merge, signing, runtime and Apple delivery receipts are
+stored at `/Users/alex/Library/Application Support/EmpiresResearch/deliveries/merged-audit-20260929/STATUS.md`.
+The focused checks above do not substitute for those final release checks.

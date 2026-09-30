@@ -83,6 +83,9 @@ enum QALaunchFlag: String, CaseIterable {
     case showPaidRoadDecision = "-qaShowPaidRoadDecision"
     case showPaidSettlementDecision = "-qaShowPaidSettlementDecision"
     case showPaidCityDecision = "-qaShowPaidCityDecision"
+    /// Raises the real recording-warning alert after a committed human city
+    /// upgrade. Does not fabricate feedback or alter checkpoint/export writes.
+    case recordingWarningAfterCity = "-qaRecordingWarningAfterCity"
     /// Opens the monopoly resource picker.
     case showMonopolyPopup = "-qaShowMonopolyPopup"
     /// Installs a mixed five-type private hand and opens the real card shelf.

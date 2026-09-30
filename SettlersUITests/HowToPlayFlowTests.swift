@@ -43,6 +43,16 @@ final class HowToPlayFlowTests: XCTestCase {
         turnDetails.tap()
         XCTAssertTrue(app.descendants(matching: .any)["how-to-play.roll-odds"].waitForExistence(timeout: 2),
                       "Your turn details should show the roll-odds chart")
+        let chart = app.descendants(matching: .any)["how-to-play.roll-odds"]
+        let scroll = app.scrollViews.firstMatch
+        for _ in 0..<8 where !scroll.frame.contains(chart.frame) {
+            let upwards = chart.frame.maxY > scroll.frame.maxY
+            let start = scroll.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: upwards ? 0.7 : 0.4))
+            let end = scroll.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: upwards ? 0.5 : 0.6))
+            start.press(forDuration: 0.05, thenDragTo: end)
+        }
+        XCTAssertTrue(chart.isHittable)
+        XCTAssertTrue(scroll.frame.contains(chart.frame), "all dice-odds bars must be inside the scroll viewport")
         attach(app, "rules-roll-odds")
         turnDetails.tap()
 
