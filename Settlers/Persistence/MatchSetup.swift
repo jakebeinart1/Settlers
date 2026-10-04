@@ -1,5 +1,6 @@
 import Foundation
 import CatanEngine
+import CatanAI
 
 /// Everything chosen on the New Game screen: the match contract.
 ///
@@ -70,19 +71,24 @@ public struct MatchSetup: Codable, Equatable, Sendable {
     /// A preference read live would swap every bot's brain mid-match on the
     /// next resume, which is a rule change disguised as a setting.
     public var difficulty: BotDifficulty
+    /// Absent in old saves means the original Expert, not today's replacement.
+    /// Realized matches and restarts retain this exact checkpoint identity.
+    public var expertRevision: ExpertRevision
     /// The rule layer - Standard or Conquest - over the chosen board. Stored with
     /// the match for the same reason `mode` is: a running game keeps its rules.
     public var variant: GameVariant
 
     public init(seats: [Seat], mode: GameMode = .classic, victoryPointTarget: Int,
                 randomizedBoard: Bool, randomizeSeatOrder: Bool,
-                difficulty: BotDifficulty = .default, variant: GameVariant = .standard) {
+                difficulty: BotDifficulty = .default, variant: GameVariant = .standard,
+                expertRevision: ExpertRevision = .legacy) {
         self.seats = seats
         self.mode = mode
         self.victoryPointTarget = victoryPointTarget
         self.randomizedBoard = randomizedBoard
         self.randomizeSeatOrder = randomizeSeatOrder
         self.difficulty = difficulty
+        self.expertRevision = expertRevision
         self.variant = variant
     }
 
@@ -100,6 +106,7 @@ public struct MatchSetup: Codable, Equatable, Sendable {
         // Absent in every setup written before difficulty existed. Those games
         // were played against the heuristic and must resume against it.
         difficulty = try container.decodeIfPresent(BotDifficulty.self, forKey: .difficulty) ?? .default
+        expertRevision = try container.decodeIfPresent(ExpertRevision.self, forKey: .expertRevision) ?? .legacy
         // Absent in every setup written before Conquest. Those were standard games.
         variant = try container.decodeIfPresent(GameVariant.self, forKey: .variant) ?? .standard
     }
@@ -143,6 +150,9 @@ public struct MatchSetup: Codable, Equatable, Sendable {
         }
         guard Ruleset.forMode(mode).victoryPointTargets.contains(victoryPointTarget) else {
             return "That match length is not available in \(mode.displayName)."
+        }
+        guard expertRevision == .legacy || newMatchExpertRevision == .cityProductionV1 else {
+            return "That Expert revision is not supported by this match configuration."
         }
         return nil
     }
@@ -292,6 +302,16 @@ public struct MatchSetup: Codable, Equatable, Sendable {
     public var humanSeats: [Seat] { seats.filter(\.isHuman) }
     public var aiSeats: [Seat] { seats.filter { !$0.isHuman } }
 
+    /// Apply the measured rollout only at a fresh New Game boundary. This is
+    /// not used by resume or Restart. Three-seat/alternate-target, hot-seat,
+    /// Ghost, Conquest and large-map matches were not approved for promotion.
+    var newMatchExpertRevision: ExpertRevision {
+        guard difficulty == .expert, mode == .classic, variant == .standard,
+              victoryPointTarget == 10, seats.count == 4, humanSeats.count == 1,
+              seats.allSatisfy({ $0.ghostID == nil }) else { return .legacy }
+        return .cityProductionV1
+    }
+
     /// Civilizations a picker must show as already taken, excluding `seat`'s
     /// own choice so re-opening a picker does not grey out the current pick.
     public func civilizationsTaken(excluding seat: Int) -> Set<Civilization> {
@@ -347,6 +367,10 @@ public struct MatchSetup: Codable, Equatable, Sendable {
     /// restarting an existing match must retain the rules it was saved with.
     func normalizedForNewGame() -> MatchSetup {
         var setup = self
+        // An editable draft is not a running opponent. Restart's fallback
+        // may carry the active revision; release it only on this value copy
+        // so changing mode/difficulty cannot disable Start before selection.
+        setup.expertRevision = .legacy
         if !GameMode.newGameChoices.contains(setup.mode) { setup.mode = .classic }
         setup.normalizeNewGameOptions()
         return setup

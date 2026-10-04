@@ -41,7 +41,7 @@ extension EvaluationPolicy {
         var counted = ledger
         counted.reconcileObserverHand(from: observation.state)
         let state = observation.state
-        let evaluator = PositionEvaluator(seat: observation.seat, weights: weights(for: state))
+        let evaluator = PositionEvaluator(seat: observation.seat, weights: weights(for: state), revision: revision)
         var purchases: PurchaseGains? = PurchaseGains(
             valuation: TradeValuation(evaluator: evaluator, state: state, ledger: counted)
         )

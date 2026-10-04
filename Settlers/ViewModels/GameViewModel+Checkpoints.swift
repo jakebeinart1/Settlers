@@ -110,7 +110,8 @@ extension GameViewModel {
         if let problem = missingGhostProblem(in: profiles) { throw SavedGameRecoveryError.blocked(problem) }
         let restored = try GameSession(
             checkpoint: savedSession,
-            policies: Self.makePolicies(profiles, difficulty: match.setup.difficulty, ghosts: ghostStore)
+            policies: Self.makePolicies(profiles, difficulty: match.setup.difficulty, ghosts: ghostStore,
+                                        expertRevision: match.setup.expertRevision)
         )
         session = restored
         self.playerRoster = playerRoster

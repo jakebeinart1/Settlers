@@ -32,10 +32,12 @@ public struct PositionEvaluator: Sendable {
 
     public let seat: PlayerID
     public let weights: EvaluationWeights
+    public let revision: ExpertRevision
 
-    public init(seat: PlayerID, weights: EvaluationWeights = .default) {
+    public init(seat: PlayerID, weights: EvaluationWeights = .default, revision: ExpertRevision = .legacy) {
         self.seat = seat
         self.weights = weights
+        self.revision = revision
     }
 
     /// This seat's standing less the strongest rival's.
@@ -76,7 +78,11 @@ public struct PositionEvaluator: Sendable {
         let economy = economyTerms(of: player, rate: rate, in: state, board: board)
         let hand = handTerms(of: player, rate: rate, in: state, ledger: ledger)
         let bonuses = bonusTerms(of: player, in: state)
-        return Double(points) * weights.victoryPoint + economy + hand + bonuses + armyTerms(of: player, in: state)
+        let original = Double(points) * weights.victoryPoint + economy + hand + bonuses + armyTerms(of: player, in: state)
+        // Even adding zero could alter a floating-point tie. Preserve the
+        // baseline path exactly; the frozen candidate added this term last.
+        guard revision != .legacy else { return original }
+        return original + revision.productionValue(rate)
     }
 
     // MARK: - Conquest
