@@ -72,17 +72,20 @@ public struct EvaluationPolicy: LedgerAwarePolicy {
     /// threshold (`HandDiscipline`). Off only for the comparison arm that
     /// measures the rule; the app never turns it off.
     public let handDiscipline: Bool
+    public let revision: ExpertRevision
 
     public init(
-        id: String = "evaluation-v1",
+        id: String? = nil,
         weights: EvaluationWeights? = nil,
         tradeModel: TradeModel = .worthIt,
-        handDiscipline: Bool = true
+        handDiscipline: Bool = true,
+        revision: ExpertRevision = .legacy
     ) {
-        self.id = id
+        self.id = id ?? revision.policyID
         self.weightsOverride = weights
         self.tradeModel = tradeModel
         self.handDiscipline = handDiscipline
+        self.revision = revision
     }
 
     /// The weights this policy plays `mode` with.
@@ -135,7 +138,7 @@ public struct EvaluationPolicy: LedgerAwarePolicy {
     func best(among legal: [GameMove], state: GameState, ledger: PublicLedger) -> GameMove {
         // The ledger knows whose view this is; the policy does not carry a
         // seat of its own, so there is only one place the two can disagree.
-        let evaluator = PositionEvaluator(seat: ledger.observer, weights: weights(for: state))
+        let evaluator = PositionEvaluator(seat: ledger.observer, weights: weights(for: state), revision: revision)
 
         // Built once, and only when the bank is actually on the table, because
         // a bank trade is scored against the purchase it unlocks and that

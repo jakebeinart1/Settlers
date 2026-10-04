@@ -67,7 +67,7 @@ public enum BotDifficulty: String, Codable, CaseIterable, Sendable {
     /// fitted as one policy. That is a real difference between the tiers and
     /// is left visible here rather than papered over with a personality
     /// parameter that would be ignored.
-    public func policy(for profile: OpponentProfile) -> any Policy {
+    public func policy(for profile: OpponentProfile, expertRevision: ExpertRevision = .legacy) -> any Policy {
         switch self {
         case .classic:
             return HeuristicPolicy(
@@ -75,7 +75,7 @@ public enum BotDifficulty: String, Codable, CaseIterable, Sendable {
                 id: "heuristic-\(profile.strategy.rawValue)"
             )
         case .expert:
-            return EvaluationPolicy()
+            return EvaluationPolicy(revision: expertRevision)
         }
     }
 }

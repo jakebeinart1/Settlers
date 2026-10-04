@@ -1,5 +1,6 @@
 import Foundation
 import CatanEngine
+import CatanAI
 
 /// A compact row in the in-app archive. The URL remains attached so opening a
 /// row and sharing its source file are both direct operations.
@@ -109,11 +110,16 @@ public struct GameLogStore: Sendable {
         public let botProfileNames: [Int: String]
         public let botPersonalities: [Int: String]
         public let civilizations: [Int: String]
+        /// The ordinary Expert revision recorded at match start. Nil in old
+        /// archives and Classic games; Ghost identity still lives in profiles.
+        /// Replay applies moves and does not instantiate this policy.
+        public let expertRevision: ExpertRevision?
 
         public init(humanSeats: Set<PlayerID>, humanNames: [Int: String],
                     botProfiles: [Int: String] = [:],
                     botProfileNames: [Int: String] = [:],
-                    botPersonalities: [Int: String], civilizations: [Int: String]) {
+                    botPersonalities: [Int: String], civilizations: [Int: String],
+                    expertRevision: ExpertRevision? = nil) {
             precondition(!humanSeats.isEmpty, "a logged game must contain at least one human seat")
             self.humanSeats = humanSeats
             self.humanNames = humanNames
@@ -121,6 +127,7 @@ public struct GameLogStore: Sendable {
             self.botProfileNames = botProfileNames
             self.botPersonalities = botPersonalities
             self.civilizations = civilizations
+            self.expertRevision = expertRevision
         }
 
         public static func legacy(humanSeat: PlayerID) -> SeatRoster {
@@ -147,7 +154,7 @@ public struct GameLogStore: Sendable {
 
         private enum CodingKeys: String, CodingKey {
             case humanSeat, humanSeats, humanNames, botProfiles, botProfileNames
-            case botPersonalities, civilizations
+            case botPersonalities, civilizations, expertRevision
         }
 
         public init(from decoder: Decoder) throws {
@@ -162,6 +169,7 @@ public struct GameLogStore: Sendable {
             botProfileNames = try values.decodeIfPresent([Int: String].self, forKey: .botProfileNames) ?? [:]
             botPersonalities = try values.decode([Int: String].self, forKey: .botPersonalities)
             civilizations = try values.decode([Int: String].self, forKey: .civilizations)
+            expertRevision = try values.decodeIfPresent(ExpertRevision.self, forKey: .expertRevision)
         }
 
         public func encode(to encoder: Encoder) throws {
@@ -174,6 +182,7 @@ public struct GameLogStore: Sendable {
             try values.encode(botProfileNames, forKey: .botProfileNames)
             try values.encode(botPersonalities, forKey: .botPersonalities)
             try values.encode(civilizations, forKey: .civilizations)
+            try values.encodeIfPresent(expertRevision, forKey: .expertRevision)
         }
     }
 
@@ -266,7 +275,7 @@ public struct GameLogStore: Sendable {
             }),
             civilizations: Dictionary(uniqueKeysWithValues: setup.seats.compactMap { seat in
                 seat.civilization.map { (seat.index, $0.displayName) }
-            }))
+            }), expertRevision: setup.difficulty == .expert ? setup.expertRevision : nil)
     }
 
     public func logFiles() throws -> [URL] {

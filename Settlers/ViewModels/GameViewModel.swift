@@ -319,7 +319,9 @@ public final class GameViewModel {
     /// The two-flag compatibility entry point constructs a setup and enters
     /// this same checkpoint transaction.
     public func startNewGame(setup: MatchSetup) {
-        startNewGame(setup: setup, configuredAs: setup)
+        var fresh = setup
+        fresh.expertRevision = setup.newMatchExpertRevision
+        startNewGame(setup: fresh, configuredAs: setup)
     }
 
     func startNewGame(setup: MatchSetup, configuredAs prefill: MatchSetup) {
@@ -339,7 +341,7 @@ public final class GameViewModel {
                                              opponentProfiles: profiles, from: setup)
             let candidate = Self.makeSession(
                 state: match.state, opponentProfiles: profiles,
-                difficulty: setup.difficulty, ghosts: ghostStore
+                difficulty: setup.difficulty, ghosts: ghostStore, expertRevision: setup.expertRevision
             )
             try replaceActiveMatch(state: match.state, setup: realized, session: candidate)
             resetPerGameState()

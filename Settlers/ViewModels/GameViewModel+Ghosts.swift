@@ -40,8 +40,11 @@ extension GameViewModel {
     /// A ghost that is gone gets Expert here only so this stays total: resume
     /// refuses that save first (`missingGhostProblem`), because the checkpoint
     /// records each chair's policy and `GameSession` rejects a substitute.
-    static func policy(for profile: OpponentProfile, difficulty: BotDifficulty, ghosts: GhostStore) -> any Policy {
-        guard let id = ghostID(of: profile) else { return difficulty.policy(for: profile) }
+    static func policy(for profile: OpponentProfile, difficulty: BotDifficulty, ghosts: GhostStore,
+                       expertRevision: ExpertRevision = .legacy) -> any Policy {
+        guard let id = ghostID(of: profile) else {
+            return difficulty.policy(for: profile, expertRevision: expertRevision)
+        }
         guard let ghost = ghosts.ghost(id: id) else { return EvaluationPolicy() }
         return GhostPolicy(person: ghost.person, lambda: ghost.lambda, id: profile.id)
     }
