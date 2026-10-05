@@ -16,6 +16,9 @@ struct ContentView: View {
     @State private var isShowingUnreadableSaveAlert = false
     @State private var isShowingPersistenceError = false
     @State private var isShowingGameLogWarning = false
+    #if DEBUG
+    @State private var qaFailureMessage: String?
+    #endif
     // `-qaAutoStart`: a launch-argument escape hatch so `simctl launch ...
     // -qaAutoStart` can land directly on the board for visual QA
     // (screenshotting UI chrome, etc.) without a real tap on `MainMenuView`
@@ -59,7 +62,14 @@ struct ContentView: View {
                 #if DEBUG
                     .task {
                         if QALaunchFlag.playToEnd.isSet {
-                            viewModel.qaPlayToEnd()
+                            do { try viewModel.qaPlayToEnd() } catch let failure as MatchPersistenceFailure {
+                                // Use the actionable save alert, never the
+                                // recording warning saying gameplay may continue.
+                                viewModel.persistenceErrorMessage = failure.localizedDescription
+                            } catch {
+                                viewModel.isBlockingSurfaceOpen = true
+                                qaFailureMessage = String(describing: error)
+                            }
                             return
                         }
                     }
@@ -94,6 +104,16 @@ struct ContentView: View {
         .fullScreenCover(isPresented: $isAskingLadderName) {
             LadderNamePrompt { isAskingLadderName = false }
         }
+        #if DEBUG
+        .alert("Automated match stopped", isPresented: Binding(
+            get: { qaFailureMessage != nil },
+            set: { if !$0 { qaFailureMessage = nil } }
+        )) {
+            Button("OK", role: .cancel) { qaFailureMessage = nil }
+        } message: {
+            Text(qaFailureMessage ?? "The automated QA match could not continue.")
+        }
+        #endif
         // A save that exists but will not decode is reported, not swallowed.
         // Silently starting a fresh game in that case is how a player loses a
         // game in progress and is told nothing at all - which is exactly what

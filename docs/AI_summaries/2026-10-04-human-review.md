@@ -5,6 +5,10 @@ Integration: `/Users/alex/.codex/worktrees/expert-city-integration/Settlers`,
 branch `codex/human-review-20261004`. The primary checkout and separate Expert
 experiments belong to other agents and are not edited here.
 
+**Current release verdict, October 5: hold for the final full gate.** Two push
+attempts were refused; neither created a remote branch or delivered Build 17.
+Focused visual/interaction passes below are not a substitute for that gate.
+
 ## Interpretation, scope and acceptance
 
 | ID | What Alex is reporting | Investigation / required outcome |
@@ -200,3 +204,65 @@ gate uses QA device `07738152-016C-4216-A233-419FA732E9E4` through the existing
 as the selector requires, and was created because a different agent started
 tests against `937692FF...`; neither that runner nor its device was disturbed.
 The 375-point checks use the separate **Empires SE QA** device `2D63B5E8...`.
+
+## Full-gate failure and recovery
+
+The first attempt (`push-gate-interrupted.log` in the delivery directory) lost
+the engine coverage artifact; the cause of that disappearance remains unknown.
+Its attempted regeneration then explicitly failed with no disk space. The
+owned native runner was interrupted, not counted as a pass; Release compiled.
+
+The second attempt (`push-gate.log`) passed 309 engine tests, 260 AI tests,
+evaluation tooling, lint, generation, secret scan, coverage (96.08% engine /
+96.32% AI), and Release. It failed the app stage. Its modern result summary
+reported unknown/zero tests; the legacy action log was essential to diagnosis.
+That log explicitly confirms Cocoa error 640 / POSIX 28 while writing a
+CompleteMatch checkpoint. `qaPlayToEnd` converted the save error into a trap,
+crashing the hosted suite and aborting unrelated tests. The two later LiveSync
+host crashes hit the same catch; their individual underlying errors were not
+recovered. Do not attribute the historical human stalls to this test incident.
+
+Exact extraction command and verified error are preserved in
+`qaloop-gate-rootcause.txt` in the delivery directory. No-space is not evidence
+against the new offer policy or Expert strategy. An unchanged serial rerun of
+CompleteMatch + LiveSync passed **19 tests, 25 parameterized executions, no
+skips**, in 223.954 seconds (`qaloop-suites.log` /
+`/tmp/empires-human-review-qaloop-suites.xcresult`). The first single-method
+selection omitted Swift Testing's `()` and ran zero tests; it is not evidence.
+The corrected selection ran one test and passed in 7.327 seconds.
+
+The QA helper now throws into test callers instead of terminating the host.
+The Debug launch fixture uses the actionable save alert for persistence errors
+and a dedicated stopped-match alert for other errors; it never says gameplay
+can continue after a blocked write. Production save-error behavior is unchanged.
+A deterministic real-driver regression injects Cocoa error 640
+at the atomic write boundary without filling the disk: it passed in 0.051
+seconds and verifies the underlying error, save blocker, unchanged checkpoint,
+state/policy cursor, empty event publication, and cold read-back. Receipt:
+`diskfull-regression.log` / `/tmp/empires-human-review-diskfull-regression.xcresult`.
+The independent Spec review also found that Boolean receipt acknowledgements
+lost their underlying write error. Internal throwing seams now retain that
+error while the existing UI wrappers still report the save blocker and return
+false. The automated driver acknowledges a restored receipt before another move
+or game-over return. Purchase and effect receipt tests were seen to fail with
+four issues in two executions before that fix (`ack-red.log`, exit 65), then
+pass with unchanged state, checkpoint, private receipt, and successful retry.
+The final focused run passed **nine tests in two suites**, no failures/skips,
+in 0.300 seconds (`ack-green.log`, exit 0;
+`/tmp/empires-human-review-ack-green.xcresult`). Both independent reviewers
+rechecked the entire eleven-file delta: Standards and Spec each reported zero
+remaining verified findings. Those are source reviews, not a full-gate pass.
+One-worker gates now disable redundant simulator cloning; default two-worker
+behavior and all test targets/assertions are unchanged. This task's final gate
+uses one test worker and two compiler batches, not a relaxed test list.
+
+Only owned rebuildable SwiftPM caches were cleaned after coverage was preserved.
+The temporary SE QA device was retired after its 375-point captures and native
+passes; the manual-play simulator and other agents' devices were not erased.
+Six superseded result bundles remain recoverable in Trash and in the validated
+`superseded-test-bundles.tar.gz` (delivery directory). No user save was deleted.
+
+The local Build 17 archive/IPA was signed and exported, with Production
+CloudKit entitlements and strict signature validation. It was not uploaded.
+Its source predates this QA and receipt-error hardening; rebuild before delivery so
+the final release receipt identifies the exact verified source commit.

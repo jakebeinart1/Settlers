@@ -569,10 +569,9 @@ public final class GameViewModel {
     /// the durable game checkpoint and is intentionally untouched.
     @discardableResult
     public func dismissDevCardReveal() -> Bool {
-        guard let document = checkpointDocument else { return false }
+        guard checkpointDocument != nil else { return false }
         do {
-            try commitDocument(document.dismissingDevCardReveal())
-            pendingDevCardReveal = nil
+            try acknowledgeDevCardReveal()
             return true
         } catch {
             _ = reportPersistenceFailure(error)
@@ -584,15 +583,28 @@ public final class GameViewModel {
     /// are already committed and remain untouched.
     @discardableResult
     public func dismissDevCardResolution() -> Bool {
-        guard let document = checkpointDocument else { return false }
+        guard checkpointDocument != nil else { return false }
         do {
-            try commitDocument(document.dismissingDevCardResolution())
-            pendingDevCardResolution = nil
+            try acknowledgeDevCardResolution()
             return true
         } catch {
             _ = reportPersistenceFailure(error)
             return false
         }
+    }
+
+    /// Throwing seams retain the exact write failure for automated callers;
+    /// presentation wrappers still return Bool and surface the save blocker.
+    func acknowledgeDevCardReveal() throws {
+        guard let document = checkpointDocument else { throw MatchCheckpointStore.StoreError.staleRevision }
+        try commitDocument(document.dismissingDevCardReveal())
+        pendingDevCardReveal = nil
+    }
+
+    func acknowledgeDevCardResolution() throws {
+        guard let document = checkpointDocument else { throw MatchCheckpointStore.StoreError.staleRevision }
+        try commitDocument(document.dismissingDevCardResolution())
+        pendingDevCardResolution = nil
     }
 
     /// Resolves every Random chair strictly inside the selected pool.
@@ -744,42 +756,42 @@ public final class GameViewModel {
         persistTestingPosition()
     }
 
-    /// Plays through production session, log, stats, and save bookkeeping without UI delays.
-    func qaPlayToEnd() {
+    enum QACompleteMatchFailure: Error {
+        case stoppedBeforeGameOver, moveLimitExceeded
+    }
+
+    /// Plays production session/log/save bookkeeping without UI delays. Errors
+    /// propagate to the test runner: trapping here turned a disk-full write
+    /// into a host crash, losing the useful failure and aborting unrelated tests.
+    func qaPlayToEnd() throws {
         var humanRNG = RandomSource(seed: 12345)
         for _ in 0..<10_000 {
+            try qaAcknowledgePrivateReceipts()
             if case .gameOver = state.phase { return }
-            do {
-                var candidate = session
-                let step: GameSession.Step
-                if case .awaitingExternalSeat(let seat) = candidate.nextActor() {
-                    let observation = GameObservation(seat: seat, state: state,
-                        legalMoves: RulesEngine.legalMoves(for: state, seat: seat))
-                    let move = HeuristicPolicy(personality: .balanced, id: "qa-human").decide(observation, rng: &humanRNG)
-                    step = try candidate.applyExternal(move, by: seat)
-                } else {
-                    guard let (seat, move) = candidate.decideNext() else {
-                        preconditionFailure("QA complete match stopped before game over")
-                    }
-                    step = try candidate.commit(seat: seat, move: move)
+            var candidate = session
+            let step: GameSession.Step
+            if case .awaitingExternalSeat(let seat) = candidate.nextActor() {
+                let observation = GameObservation(seat: seat, state: state,
+                    legalMoves: RulesEngine.legalMoves(for: state, seat: seat))
+                let move = HeuristicPolicy(personality: .balanced, id: "qa-human").decide(observation, rng: &humanRNG)
+                step = try candidate.applyExternal(move, by: seat)
+            } else {
+                guard let (seat, move) = candidate.decideNext() else {
+                    throw QACompleteMatchFailure.stoppedBeforeGameOver
                 }
-                beginEventBatch()
-                try commitStep(step, candidate: candidate)
-                // This fixture owns every chair and has no person available to
-                // tap the private acknowledgement surfaces. Explicitly model
-                // those taps so receipts are cleared through the same durable
-                // APIs as production, rather than silently overwriting them.
-                if pendingDevCardReveal != nil, !dismissDevCardReveal() {
-                    preconditionFailure("QA complete match could not acknowledge a card purchase")
-                }
-                if pendingDevCardResolution != nil, !dismissDevCardResolution() {
-                    preconditionFailure("QA complete match could not acknowledge a card result")
-                }
-            } catch {
-                preconditionFailure("QA complete match failed: \(error)")
+                step = try candidate.commit(seat: seat, move: move)
             }
+            beginEventBatch()
+            try commitStep(step, candidate: candidate)
         }
-        preconditionFailure("QA complete match exceeded 10,000 moves")
+        throw QACompleteMatchFailure.moveLimitExceeded
+    }
+
+    /// The fixture owns every chair: model the real acknowledgement taps, not
+    /// a receipt overwrite. Failed writes retain the receipt and save blocker.
+    private func qaAcknowledgePrivateReceipts() throws {
+        if pendingDevCardReveal != nil { try acknowledgeDevCardReveal() }
+        if pendingDevCardResolution != nil { try acknowledgeDevCardResolution() }
     }
 
     /// QA positions are explicit new replay baselines, never unrecorded edits

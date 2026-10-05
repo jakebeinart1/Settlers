@@ -55,7 +55,7 @@ import Testing
 
         // Policies drive every chair here, including human-labelled chairs.
         // This covers app bookkeeping, not human taps, handoffs or discards.
-        model.qaPlayToEnd()
+        try model.qaPlayToEnd()
 
         guard case .gameOver(let winner) = model.state.phase else {
             Issue.record("complete-match path stopped before game over")

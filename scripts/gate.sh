@@ -202,6 +202,10 @@ gate_secrets() {
 #
 #   GATE_TEST_WORKERS=6 scripts/gate.sh
 #
+# One worker uses the dedicated QA device directly, without a redundant clone.
+# This preserves every test while reducing simulator disk/memory pressure; a
+# disk-full checkpoint write crashed the October 5 two-worker test host.
+#
 # Clones are created and reused by CoreSimulator under the names
 # "Clone N of Empires QA". They are separate devices from the `Empires QA`
 # device `select-qa-simulator.py` returns, and separate again from any
@@ -219,12 +223,14 @@ gate_app_tests() {
   local sim; sim="$(qa_iphone_simulator)"
   if [[ -z "$sim" ]]; then return 200; fi
   local workers="${GATE_TEST_WORKERS:-2}"
+  local parallel=YES
+  if [[ "$workers" == 1 ]]; then parallel=NO; fi
   echo "  QA simulator: $sim ($workers parallel workers)"
   xcodebuild test -project Settlers.xcodeproj -scheme Settlers \
     OTHER_SWIFT_FLAGS="\$(inherited) -driver-batch-count ${GATE_BUILD_JOBS:-2}" \
     -jobs "${GATE_BUILD_JOBS:-2}" \
     -destination "platform=iOS Simulator,id=$sim" \
-    -parallel-testing-enabled YES \
+    -parallel-testing-enabled "$parallel" \
     -parallel-testing-worker-count "$workers" 2>&1 \
     | grep -E "error:|✘|Test case '.*' failed|Test run with|TEST SUCCEEDED|TEST FAILED" | sort -u
   return "${PIPESTATUS[0]}"

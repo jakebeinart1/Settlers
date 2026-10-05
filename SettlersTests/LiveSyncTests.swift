@@ -169,7 +169,7 @@ import Testing
             setup.seats[2].ghostID = ghost
             #expect(setup.newGameProblem(knownGhosts: Set(stores.ghosts.pickable().map(\.id))) == nil)
             model.startNewGame(setup: setup)
-            model.qaPlayToEnd()
+            try model.qaPlayToEnd()
             guard case .gameOver = model.state.phase else { throw CancellationError() }
         }
 

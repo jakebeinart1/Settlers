@@ -51,7 +51,7 @@ struct GameViewModelCheckpointTests {
         let fixture = try CheckpointModelFixture()
         let model = fixture.makeModel()
         model.startNewGame(setup: fixture.setup)
-        model.qaPlayToEnd()
+        try model.qaPlayToEnd()
         #expect(model.statistics.gamesPlayed == 1)
         let resumed = fixture.makeModel()
         #expect(resumed.statistics == model.statistics)
@@ -264,6 +264,35 @@ struct GameViewModelCheckpointTests {
         refuseWrite = false
         try model.apply(move)
         #expect(model.state.players[0].settlements.count == 1)
+    }
+
+    /// Exercise the actual full-match driver's save path without filling the
+    /// machine's disk. A failed QA write must report an error, not kill the host.
+    @Test func automatedMatchReportsDiskFullWithoutPublishingItsMove() throws {
+        let fixture = try CheckpointModelFixture()
+        var refuseWrite = false
+        let model = fixture.makeModel(atCommitStage: { stage in
+            if refuseWrite, stage == .beforeReplace { throw CocoaError(.fileWriteOutOfSpace) }
+        })
+        model.startNewGame(setup: fixture.setup)
+        let before = model.session.checkpoint
+        let document = model.checkpointDocument
+        refuseWrite = true
+
+        do {
+            try model.qaPlayToEnd()
+            Issue.record("A disk-full write must stop the automated match")
+        } catch let failure as MatchPersistenceFailure {
+            let cause = failure.underlying as NSError
+            #expect(cause.domain == NSCocoaErrorDomain)
+            #expect(cause.code == CocoaError.fileWriteOutOfSpace.rawValue)
+        }
+
+        #expect(model.persistenceBlocked)
+        #expect(model.session.checkpoint == before)
+        #expect(model.checkpointDocument == document)
+        #expect(model.eventBatch.events.isEmpty)
+        #expect(fixture.makeModel().session.checkpoint == before)
     }
 
     @Test func failedDiscardWriteRetainsTheDraftAcrossReloadAndRetriesExactlyOnce() throws {
