@@ -5,8 +5,8 @@ Integration: `/Users/alex/.codex/worktrees/expert-city-integration/Settlers`,
 branch `codex/human-review-20261004`. The primary checkout and separate Expert
 experiments belong to other agents and are not edited here.
 
-**Current release verdict, October 5: hold for the final full gate.** Two push
-attempts were refused; neither created a remote branch or delivered Build 17.
+**Current release verdict, October 5: hold for the final full gate.** Three push
+attempts were refused; none created a remote branch or delivered Build 17.
 Focused visual/interaction passes below are not a substitute for that gate.
 
 ## Interpretation, scope and acceptance
@@ -163,8 +163,9 @@ Inspected 402-point captures: `/tmp/empires-human-review-trade-402.png` and
 availability and footer are legible; the card hand shows painted emblems,
 separate Ready/New counts, explicit effect and pinned Play/Close. These fixture
 captures prove layout, not the genuine purchase or trade flows (native tests
-provide those checks). Build 17 is reserved locally after the Apple preflight
-confirmed Build 16 was the latest; no new upload has happened yet.
+provide those checks). Build 17 was selected locally after the Apple preflight
+confirmed Build 16 was the latest; it is not an exclusive reservation. Recheck
+Apple before archiving/uploading because other release agents are active.
 
 375-point captures inspected: `/tmp/empires-human-review-trade-375.png` and
 `/tmp/empires-human-review-card-reveal-375.png`. Both trade rows and the pinned
@@ -266,3 +267,38 @@ The local Build 17 archive/IPA was signed and exported, with Production
 CloudKit entitlements and strict signature validation. It was not uploaded.
 Its source predates this QA and receipt-error hardening; rebuild before delivery so
 the final release receipt identifies the exact verified source commit.
+
+The third full gate at `1bf06b9` (`push-gate-final.log`) passed generation,
+lint, 52 evaluation-tool tests, W=E builds, 309 engine tests, 260 AI tests,
+coverage (96.08% / 96.32%), secret scan and Release. The app stage failed one
+old positive offer fixture: 628 tests, 625 passed, one failed, two skipped;
+1,115 parameterized executions passed and one failed. The native skip reasons
+were no seven in three real rolls and the 375×667-only journey running on a
+402-point destination. Dedicated 375 evidence above remains separate.
+
+The affordable 1:1 ore/grain fixture is not bank-inferior or budget-suppressed.
+It bypassed durable presentation registration and queried the card too early.
+The revised test reconciles the offer, then runs the real bot loop and requires
+the offer, state, session checkpoint and document revision to remain unchanged.
+The first focused selection named the source file rather than its global test
+functions and ran zero tests; its exit zero is explicitly not a pass receipt.
+
+A separate legacy-restore crash risk was confirmed in the shared engine:
+a legal winning move can leave a human trade pending, and constructing or
+replacing a session from that terminal state sampled a bot after game over.
+Current checkpoint restoration is guarded; old-save migration could reach the
+unsafe initializer. No affected user save was found and historical stall cause
+remains unproved. A central terminal guard preserves state, pending offers,
+engine RNG and policy RNG; no formula/schema/default changes. The staged
+regression was seen red before the guard, then green; the owned package rerun
+passed two functions/three cases, including live-response control. The fixture
+uses legal setup and a real winning upgrade, with conserved earlier VP cards
+and funding constructed—not a fully replayed match.
+
+Corrected offer selection: `hold-methods.log` /
+`/tmp/empires-human-review-hold-methods.xcresult`, exit 0, seven actual global
+test functions passed in 0.055 seconds. This includes the affordable offer
+holding the actual runner without changing state/session/revision. Engine
+receipt: `terminal-trade-owned.log`, exit 0, two functions/three cases passed.
+Strict lint and diff whitespace checks passed. The terminal fix and fixture
+correction still require the next complete gate before publication.
