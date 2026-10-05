@@ -10,7 +10,7 @@ enum DevCardChrome {
     static let ink = Color(red: 0.06, green: 0.13, blue: 0.22)
     static let borderRadius: CGFloat = 8
 
-    static func background(_ type: DevCardType) -> PaintedChromeBackground {
+    @MainActor static func background(_ type: DevCardType) -> PaintedChromeBackground {
         PaintedChromeBackground(fill: .tintedTexture(DevCardStyle.color(for: type)),
                                 cornerRadius: borderRadius, notchScale: 0.5)
     }

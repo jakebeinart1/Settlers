@@ -25,6 +25,16 @@ public struct GameLogEvent: Sendable, Equatable {
     public let timestamp: Date
     public let player: PlayerID
     public let move: GameMove
+    /// Nil means the archive did not record this move's rules version. Unlike
+    /// checkpoint schema migration, JSONL has no basis for assuming version 1.
+    public let rulesVersion: Int?
+
+    public init(timestamp: Date, player: PlayerID, move: GameMove, rulesVersion: Int? = nil) {
+        self.timestamp = timestamp
+        self.player = player
+        self.move = move
+        self.rulesVersion = rulesVersion
+    }
 }
 
 public struct GameLogDetail: Sendable, Equatable {
@@ -196,6 +206,7 @@ public struct GameLogStore: Sendable {
         var appVersion: String?
         var player: PlayerID?
         var move: GameMove?
+        var rulesVersion: Int?
         var winner: PlayerID?
         var elapsedSeconds: TimeInterval?
     }
@@ -218,7 +229,8 @@ public struct GameLogStore: Sendable {
     public func appendMove(gameID: UUID, player: PlayerID, move: GameMove) throws {
         try write(Entry(kind: .move, timestamp: Date(), logSchemaVersion: nil,
                     initialState: nil, roster: nil, appVersion: nil,
-                    player: player, move: move, winner: nil), gameID: gameID)
+                    player: player, move: move, rulesVersion: RulesEngine.currentRulesVersion,
+                    winner: nil), gameID: gameID)
     }
 
     public func finalizeGame(gameID: UUID, winner: PlayerID) throws {
@@ -240,7 +252,8 @@ public struct GameLogStore: Sendable {
                              initialState: checkpoint.initialState, roster: roster,
                              elapsedSeconds: checkpoint.elapsedSeconds)]
         entries += checkpoint.moves.map {
-            Entry(kind: .move, timestamp: $0.timestamp, player: $0.actor, move: $0.move)
+            Entry(kind: .move, timestamp: $0.timestamp, player: $0.actor, move: $0.move,
+                  rulesVersion: $0.rulesVersion)
         }
         if case .gameOver(let winner) = checkpoint.state.phase {
             entries.append(Entry(kind: .end,
@@ -360,7 +373,7 @@ public struct GameLogStore: Sendable {
 
         let moves = parsed.entries.compactMap { entry -> GameLogEvent? in
             guard entry.kind == .move, let player = entry.player, let move = entry.move else { return nil }
-            return GameLogEvent(timestamp: entry.timestamp, player: player, move: move)
+            return GameLogEvent(timestamp: entry.timestamp, player: player, move: move, rulesVersion: entry.rulesVersion)
         }
         let end = parsed.entries.last(where: { $0.kind == .end })
         let lastTimestamp = end?.timestamp ?? moves.last?.timestamp ?? start.timestamp

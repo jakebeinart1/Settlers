@@ -285,7 +285,8 @@ public struct GameView: View {
                         isShowingInGameSettings = false
                         viewModel.clearBoardDecisionForBoundary()
                         onExitToMenu()
-                    }
+                    },
+                    rulebookState: viewModel.state
                 )
             }
 
@@ -430,6 +431,10 @@ public struct GameView: View {
                 viewModel.qaPrepareMandatoryRobberDecision(selectDestination: true)
             }
             #endif
+            // The screen owns a launch/resume kick after its initial blockers
+            // and fixtures have settled; a cancelled earlier entry task cannot
+            // leave a visible CPU turn permanently idle.
+            await viewModel.runBotTurnIfNeeded()
         }
         .onChange(of: state.pendingTradeOffers.map(\.id)) { _, _ in
             handleTradeOffersChange()
@@ -829,16 +834,27 @@ public struct GameView: View {
                         // An inaccessible offer must not expire behind settings,
                         // a private card, or the preceding trade's receipt.
                         isHeld: isBlockingOverlayPresented,
+                        offerOccurrence: viewModel.tradeOfferContext(currentOffer).proposalSequence,
                         playerIdentity: viewModel.playerIdentity,
                         onAccept: { respond(to: currentOffer, accept: true) },
-                        onReject: { respond(to: currentOffer, accept: false) }
+                        onReject: { respond(to: currentOffer, accept: false) },
+                        onExpire: { respond(to: currentOffer, accept: false, explicit: false) }
                     )
                     .dynamicTypeSize(...DynamicTypeSize.large)
                 }
             case .ordinaryActions:
-                actionRow
-                    .frame(height: Self.actionRowHeight)
-                    .dynamicTypeSize(...DynamicTypeSize.large)
+                if let seat = viewModel.activeBotSeat {
+                    BotTurnStatusView(identity: viewModel.playerIdentity(for: seat),
+                                      progress: viewModel.botTurnProgress,
+                                      onSkip: viewModel.skipBotPauses,
+                                      onRetry: viewModel.retryBotProgress)
+                        .frame(height: Self.actionRowHeight)
+                        .dynamicTypeSize(...DynamicTypeSize.large)
+                } else {
+                    actionRow
+                        .frame(height: Self.actionRowHeight)
+                        .dynamicTypeSize(...DynamicTypeSize.large)
+                }
             }
         }
         .padding(6)
@@ -1131,7 +1147,7 @@ private extension GameView {
     /// one then either silently failed via `Trading.respond`'s own
     /// affordability re-check, or (worse) looked like it accepted nothing.
     private var currentIncomingOffer: TradeOffer? {
-        incomingOfferQueue.first { isOfferCurrentlyFulfillable($0) }
+        viewModel.openIncomingOffer
     }
 
     /// Whether `offer` could actually go through right now - the human
@@ -1150,10 +1166,10 @@ private extension GameView {
         Trading.bothSidesCanHonour(offer, responder: human, state: state)
     }
 
-    private func respond(to offer: TradeOffer, accept: Bool) {
+    private func respond(to offer: TradeOffer, accept: Bool, explicit: Bool = true) {
         do {
             let previousSequence = viewModel.eventBatch.sequence
-            try viewModel.apply(.respondToTrade(offerID: offer.id, accept: accept))
+            try viewModel.respondToIncomingTrade(offer, accept: accept, explicit: explicit)
             if viewModel.eventBatch.sequence != previousSequence,
                let receipt = viewModel.eventBatch.events.compactMap({ TradeReceipt(event: $0, player: human) }).last {
                 incomingTradeReceipt = receipt

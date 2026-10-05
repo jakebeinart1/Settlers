@@ -82,6 +82,38 @@ struct RobberDragRouterTests {
         #expect(router.pannedCamera(by: CGSize(width: 200, height: 0)) == nil)
     }
 
+    @Test(arguments: [BoardDecisionIntent.robberAfterSeven, .knight])
+    func releaseInsideCurrentHexCannotSnapToItsLegalNeighbors(_ intent: BoardDecisionIntent) throws {
+        let (state, decision) = try fixture(intent)
+        let fit = Settlers.HexGeometry(origin: CGPoint(x: 201, y: 150), size: 32)
+        let center = CGPoint(x: 201, y: 150)
+        for camera in [.fitted, BoardCamera(zoom: 1.5, pan: CGSize(width: 10, height: -6)),
+                       BoardCamera(zoom: 2, pan: CGSize(width: -20, height: 12))] {
+            let geometry = camera.applied(to: fit, containerCenter: center)
+            let origin = geometry.center(of: state.board.robberTile)
+            let router = BoardGestureRouter(startLocation: origin, state: state,
+                decision: decision, geometry: geometry, camera: camera,
+                containerSize: container, allowsGameCommands: true)
+            // At size 32, x + 26.9 is inside the current hex's vertical
+            // edge (27.7128), yet only 28.5256 from the legal east neighbor.
+            for direction in 0..<6 {
+                let tile = state.board.robberTile.neighbor(direction)
+                #expect(decision.legalTiles.contains(tile))
+                let neighbor = geometry.center(of: tile)
+                let distance = hypot(neighbor.x - origin.x, neighbor.y - origin.y)
+                let fraction = 26.9 * camera.zoom / distance
+                let inside = CGPoint(x: origin.x + (neighbor.x - origin.x) * fraction,
+                                     y: origin.y + (neighbor.y - origin.y) * fraction)
+                #expect(router.dropTarget(at: inside, state: state, decision: decision,
+                    geometry: geometry, containerSize: container, allowsGameCommands: true) == nil)
+            }
+            let outside = CGPoint(x: origin.x + geometry.size * sqrt(3) / 2 + 0.01, y: origin.y)
+            #expect(router.dropTarget(at: outside, state: state, decision: decision,
+                geometry: geometry, containerSize: container, allowsGameCommands: true)
+                    == .tile(HexCoordinate(q: 1, r: 0)))
+        }
+    }
+
     @Test func dropRadiusMatchesCradlePolicyButRejectsOffViewportTiles() throws {
         let (state, fullDecision) = try fixture(.robberAfterSeven)
         let tile = try #require(fullDecision.legalTiles.first)
@@ -160,8 +192,10 @@ struct RobberDragRouterTests {
         #expect(router.dropTarget(at: target, state: state, decision: nil,
             geometry: geometry, containerSize: container, allowsGameCommands: true) == nil)
         var revised = BoardDecisionCoordinator()
-        #expect(revised.begin(.knight, with: context(state)))
-        #expect(revised.select(.tile(decision.legalTiles[0])))
+        let beganRevised = revised.begin(.knight, with: context(state))
+        #expect(beganRevised)
+        let selectedRevised = revised.select(.tile(decision.legalTiles[0]))
+        #expect(selectedRevised)
         #expect(router.dropTarget(at: target, state: state, decision: revised.presentation,
             geometry: geometry, containerSize: container, allowsGameCommands: true) == nil)
         router.cancel()
@@ -190,7 +224,10 @@ struct RobberDragRouterTests {
         state.players[actor.index].devCards = [.knight]
         var coordinator = BoardDecisionCoordinator()
         coordinator.reconcile(with: context(state))
-        if intent == .knight { #expect(coordinator.begin(.knight, with: context(state))) }
+        if intent == .knight {
+            let began = coordinator.begin(.knight, with: context(state))
+            #expect(began)
+        }
         return (state, try #require(coordinator.presentation))
     }
 

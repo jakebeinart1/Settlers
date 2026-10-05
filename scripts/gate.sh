@@ -119,16 +119,18 @@ gate_evaluation_tools() {
 
 # --- 3. Compile the packages with warnings as errors ----------------------
 gate_packages_build() {
-  ( cd Packages/CatanEngine && swift build -Xswiftc -warnings-as-errors ) \
-    && ( cd Packages/CatanAI && swift build -Xswiftc -warnings-as-errors )
+  ( cd Packages/CatanEngine && swift build --jobs "${GATE_BUILD_JOBS:-2}" -Xswiftc -warnings-as-errors ) \
+    && ( cd Packages/CatanAI && swift build --jobs "${GATE_BUILD_JOBS:-2}" -Xswiftc -warnings-as-errors )
 }
 
 # --- 4. The test suites ---------------------------------------------------
 # Coverage is enabled here so the profile exists for the coverage gate below;
 # collecting it during the run this gate already pays for is free, whereas
 # re-running the suite to measure it doubled the slowest stage of the gate.
-gate_engine_tests() { ( cd Packages/CatanEngine && swift test --enable-code-coverage ); }
-gate_ai_tests()     { ( cd Packages/CatanAI && swift test --enable-code-coverage ); }
+# Limit compiler fan-out separately from test workers: independent agents must
+# not let a default all-core build exhaust a shared 16GB development machine.
+gate_engine_tests() { ( cd Packages/CatanEngine && swift test --jobs "${GATE_BUILD_JOBS:-2}" --enable-code-coverage ); }
+gate_ai_tests()     { ( cd Packages/CatanAI && swift test --jobs "${GATE_BUILD_JOBS:-2}" --enable-code-coverage ); }
 
 
 # --- 5. Coverage floors ---------------------------------------------------
@@ -217,6 +219,7 @@ gate_app_tests() {
   local workers="${GATE_TEST_WORKERS:-2}"
   echo "  QA simulator: $sim ($workers parallel workers)"
   xcodebuild test -project Settlers.xcodeproj -scheme Settlers \
+    -jobs "${GATE_BUILD_JOBS:-2}" \
     -destination "platform=iOS Simulator,id=$sim" \
     -parallel-testing-enabled YES \
     -parallel-testing-worker-count "$workers" 2>&1 \
@@ -241,6 +244,7 @@ gate_app_build() {
   local sim; sim="$(qa_iphone_simulator)"
   if [[ -z "$sim" ]]; then return 200; fi
   xcodebuild -project Settlers.xcodeproj -scheme Settlers \
+    -jobs "${GATE_BUILD_JOBS:-2}" \
     -destination "platform=iOS Simulator,id=$sim" \
     -configuration "${1:-Release}" build 2>&1 \
     | grep -E "error:|BUILD SUCCEEDED|BUILD FAILED" | sort -u

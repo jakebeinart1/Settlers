@@ -24,7 +24,7 @@ struct DevelopmentCardDisplayTests {
         #expect(DevCardDisplay.inventoryBadge(blocked) == "1 HELD · 1 NEW")
         #expect(DevCardDisplay.handBadgeStatus(blocked) == "1H · 1N")
         #expect(DevCardDisplay.accessibilityValue(blocked).contains("One card already played"))
-        #expect(!DevCardDisplay.accessibilityValue(blocked).contains("ready"))
+        #expect(DevCardDisplay.accessibilityValue(blocked) == "1 held, 1 new. One card already played")
     }
 
     @Test func everyRestrictionRemainsInspectableAndHasAReason() {

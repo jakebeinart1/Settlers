@@ -82,6 +82,19 @@ enum AccessibilityID {
         }
     }
 
+    enum ReplayExport {
+        static let open = "replay.export"
+        static let sheet = "replay-export.sheet"
+        static let names = "replay-export.names"
+        static let create = "replay-export.create"
+        static let progress = "replay-export.progress"
+        static let cancel = "replay-export.cancel"
+        static let error = "replay-export.error"
+        static let preview = "replay-export.preview"
+        static let share = "replay-export.share"
+        static let diagnostic = "replay-export.diagnostic"
+    }
+
     enum NewGame {
         static let cancel = "new-game.cancel"
         static let start = "new-game.start"
@@ -157,6 +170,9 @@ enum AccessibilityID {
 
     enum Game {
         static let settings = "game.settings"
+        static let botProgress = "bot-progress.status"
+        static let skipBotPauses = "bot-progress.skip"
+        static let retryBotProgress = "bot-progress.retry"
 
         /// The command row under the player panel - action buttons, the board
         /// decision dock, or an incoming trade card, whichever is up. Named so

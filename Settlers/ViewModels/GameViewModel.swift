@@ -186,7 +186,7 @@ public final class GameViewModel {
     /// which would also count time the app spent backgrounded/locked.
     var accumulatedActiveDuration: TimeInterval = 0
     var activeSince: Date?
-    private var appIsActive = true
+    var appIsActive = true
 
     /// The full elapsed foreground time this game, as of right now.
     var currentGameDuration: TimeInterval {
@@ -208,6 +208,7 @@ public final class GameViewModel {
     /// `scenePhase` becoming `.inactive`/`.background`, so that time doesn't
     /// silently keep counting while the app isn't actually on screen.
     public func appWillResignActive() {
+        botPacingWait?.cancel()
         resourceProductionFeedback = nil
         gameplayFeedback.clear()
         appIsActive = false
@@ -493,6 +494,9 @@ public final class GameViewModel {
 
     /// The bookkeeping every new game clears, whichever entry point started it.
     private func resetPerGameState() {
+        botPacingWait?.cancel()
+        botTurnProgress = nil
+        skipsBotPacing = false
         resourceProductionFeedback = nil
         gameplayFeedback.clear()
         gameGeneration &+= 1
@@ -509,14 +513,14 @@ public final class GameViewModel {
 
     /// Human and automatic trade responses use the same candidate-session
     /// commit as policy moves. Neither events nor UI state escape before disk.
-    private func applyLogged(_ move: GameMove, by player: PlayerID) throws {
+    private func applyLogged(_ move: GameMove, by player: PlayerID, declinedOffer: TradeOffer? = nil) throws {
         if let message = savedGameAvailability.recoveryMessage { throw SavedGameRecoveryError.blocked(message) }
         var candidate = session
         let step = try candidate.applyExternal(move, by: player)
-        try commitStep(step, candidate: candidate)
+        try commitStep(step, candidate: candidate, declinedOffer: declinedOffer)
     }
 
-    private func commitStep(_ step: GameSession.Step, candidate: GameSession) throws {
+    func commitStep(_ step: GameSession.Step, candidate: GameSession, declinedOffer: TradeOffer? = nil) throws {
         let productionBefore = state
         let productionViewer = humanPlayer
         guard let document = checkpointDocument, document.activeMatch != nil else {
@@ -525,7 +529,8 @@ public final class GameViewModel {
         let next: MatchCheckpointDocument
         do {
             next = try document.recording(step, session: candidate.checkpoint,
-                                           elapsedSeconds: currentGameDuration)
+                                           elapsedSeconds: currentGameDuration,
+                                           tradePolicies: tradePolicies(after: step, declinedOffer: declinedOffer))
             try commitDocument(next)
         } catch let failure as MatchPersistenceFailure {
             throw failure
@@ -636,7 +641,7 @@ public final class GameViewModel {
     /// The synchronous half of `apply`. Keeping scheduling outside this method
     /// gives deterministic QA one bot runner to await instead of racing the
     /// production fire-and-forget task against a second call to the loop.
-    private func commitHumanMove(_ move: GameMove) throws {
+    func commitHumanMove(_ move: GameMove, declinedOffer: TradeOffer? = nil) throws {
         if let message = savedGameAvailability.recoveryMessage {
             throw SavedGameRecoveryError.blocked(message)
         }
@@ -650,7 +655,7 @@ public final class GameViewModel {
         // not compose a trade until they declined somebody else's offer, which
         // then failed with `.offerNoLongerAvailable` because `RulesEngine`
         // drops pending offers at `endTurn` anyway.
-        try applyLogged(move, by: humanPlayer)
+        try applyLogged(move, by: humanPlayer, declinedOffer: declinedOffer)
         if case .endTurn = move {
             pendingTradeConfirmation = nil
             lastTradeOutcome = nil
@@ -1034,7 +1039,11 @@ public final class GameViewModel {
     /// `session.nextActor()` fresh every iteration, so it naturally picks up
     /// whatever new bot work the human's move created without needing a
     /// second concurrent copy of this loop.
-    private var isProcessingBotTurns = false
+    var isProcessingBotTurns = false
+    var botRestartRequested = false
+    var botPacingWait: Task<Void, Never>?
+    var skipsBotPacing = false
+    var botTurnProgress: BotTurnProgress?
 
     /// When the last bot action was shown - the deadline
     /// `waitForNextBotAction` paces against. Cleared whenever the bot loop
@@ -1058,7 +1067,7 @@ public final class GameViewModel {
     public private(set) var eventBatch = EventBatch(sequence: 0, events: [])
     private var pendingEvents: [GameEvent] = []
 
-    private func beginEventBatch() {
+    func beginEventBatch() {
         pendingEvents = []
     }
 
@@ -1072,81 +1081,11 @@ public final class GameViewModel {
     /// reading. Private receipts have their own durable gates as well.
     ///
     /// Written by `GameView`, which mirrors its own presentation state here.
-    public var isBlockingSurfaceOpen = false
-
-    public func runBotTurnIfNeeded() async {
-        guard savedGameAvailability.canResume, appIsActive, !persistenceBlocked, !isProcessingBotTurns else { return }
-        isProcessingBotTurns = true
-        let generation = gameGeneration
-        defer {
-            isProcessingBotTurns = false
-            lastBotActionAt = nil
-            if generation != gameGeneration, savedGameAvailability.canResume, !persistenceBlocked {
+    public var isBlockingSurfaceOpen = false {
+        didSet {
+            guard oldValue != isBlockingSurfaceOpen else { return }
+            if isBlockingSurfaceOpen { botPacingWait?.cancel() } else {
                 Task { await runBotTurnIfNeeded() }
-            }
-        }
-
-        // The loop is now only pacing and persistence. Choosing the move,
-        // deciding whose turn it is and the runaway-action backstop all live
-        // in `GameSession`, which a headless harness runs too - so what is
-        // measured offline is what is played here.
-        while case .seat = session.nextActor() {
-            // Stop while the human has a trade decision on screen.
-            //
-            // This is why an incoming offer used to flash: the card is a live
-            // projection of `pendingTradeOffers`, the proposing bot took its
-            // next action about a second later, and `endTurn` clears every
-            // pending offer - so the card appeared and vanished before it could
-            // be read, let alone answered.
-            //
-            // **`return`, not a parked continuation.** Parking here would hold
-            // `isProcessingBotTurns` for the whole wait, and that flag is what
-            // the restart path guards on - so the human's own move would find
-            // the loop "already running" and do nothing, and `startNewGame`
-            // would bump `gameGeneration` without ever resuming the
-            // continuation, leaving the flag stuck true and the new game's bots
-            // frozen forever. Returning lets `defer` clear it, and the restart
-            // already exists: answering the offer goes through `apply`, which
-            // ends in `Task { await runBotTurnIfNeeded() }`.
-            if openIncomingOffer != nil || pendingDevCardReveal != nil
-                || pendingDevCardResolution != nil { return }
-
-            // Same `return`-don't-park reasoning as the offer check above:
-            // parking here would hold `isProcessingBotTurns` for as long as
-            // the surface stayed open, and `GameView` restarts the loop when
-            // the final blocking surface closes.
-            if isBlockingSurfaceOpen { return }
-
-            // Pacing, not thinking: the bots decide instantly and this is the
-            // only reason a turn is watchable. See `waitForNextBotAction`.
-            await waitForNextBotAction()
-            // The game may have been restarted while this loop slept.
-            guard generation == gameGeneration, appIsActive, !Task.isCancelled,
-                  !isBlockingSurfaceOpen, openIncomingOffer == nil,
-                  pendingDevCardReveal == nil, pendingDevCardResolution == nil else { return }
-
-            let revision = checkpointDocument?.revision
-            var candidate = session
-            guard let (seat, move) = candidate.decideNext() else { break }
-            guard generation == gameGeneration, appIsActive, !Task.isCancelled, !persistenceBlocked,
-                  !isBlockingSurfaceOpen, openIncomingOffer == nil,
-                  pendingDevCardReveal == nil, pendingDevCardResolution == nil else { return }
-            guard revision == checkpointDocument?.revision else { continue }
-            do {
-                let step = try candidate.commit(seat: seat, move: move)
-                beginEventBatch()
-                try commitStep(step, candidate: candidate)
-                lastBotActionAt = Date()
-            } catch is MatchPersistenceFailure {
-                return
-            } catch {
-                // A policy chose a move the rules reject: the two disagree,
-                // which is a bug rather than a position to recover from. It was
-                // previously a bare `try?`, so the loop simply stopped and the
-                // game sat frozen on a bot's turn with nothing said. The
-                // rejected candidate never replaces the committed policy RNG.
-                assertionFailure("bot \(seat.index) played an illegal \(move): \(error)")
-                break
             }
         }
     }
@@ -1158,10 +1097,11 @@ public final class GameViewModel {
     /// engine predicate the card itself uses, so the two cannot disagree about
     /// whether an offer is live.
     var openIncomingOffer: TradeOffer? {
-        state.pendingTradeOffers.first {
-            !humanSeats.contains($0.from)
-                && Trading.bothSidesCanHonour($0, responder: humanPlayer, state: state)
-        }
+        guard let offer = rawIncomingOffer else { return nil }
+        let policy = humanTradePolicy(for: humanPlayer)
+        let context = tradeOfferContext(offer)
+        if case .notIncoming = policy.decision(for: offer, in: state, context: context) { return offer }
+        return policy.isPresented(offer: offer, context: context) ? offer : nil
     }
 
 }

@@ -261,7 +261,7 @@ public struct HumanPlayerPanel: View {
                                 onOpenDevCards(nil)
                             }
                             ForEach(devCardRows) { row in
-                                DevCardHUDTile(item: row) {
+                                DevCardHandBadge(item: row) {
                                     onOpenDevCards(row.type)
                                 }
                             }
@@ -341,52 +341,6 @@ private enum HUDCardStyle {
     // alone outgrows the tile and overlaps them at accessibility text sizes;
     // the full inventory remains the scalable inspection surface.
     static let iconFont = Font.system(size: 12)
-}
-
-/// Permanent shelf entry. Inspection is always available; the detail surface
-/// owns the distinction between reading a card and playing it.
-private struct DevCardHUDTile: View {
-    let item: DevCardInventoryItem
-    let action: () -> Void
-
-    var body: some View {
-        Button(action: action) {
-            VStack(spacing: 2) {
-                Image(systemName: DevCardStyle.icon(for: item.type))
-                    .font(HUDCardStyle.iconFont)
-                Text(DevCardStyle.shortName(for: item.type))
-                    .font(.system(size: 8, weight: .bold))
-                    .lineLimit(1)
-                    .minimumScaleFactor(0.7)
-                Text(statusLine)
-                    .font(.system(size: 8, weight: .bold))
-                    .lineLimit(1)
-                    .minimumScaleFactor(0.65)
-            }
-            .foregroundStyle(.white)
-            .frame(width: 54, height: 44)
-            .background(RoundedRectangle(cornerRadius: 8).fill(DevCardStyle.color(for: item.type).gradient))
-            .overlay(RoundedRectangle(cornerRadius: 8).strokeBorder(.white.opacity(0.4), lineWidth: 1))
-        }
-        .buttonStyle(.plain)
-        .accessibilityLabel(accessibilityLabel)
-        .accessibilityIdentifier(AccessibilityID.DevCards.tile(item.type))
-    }
-
-    private var statusLine: String {
-        if item.status == .passiveVictoryPoint { return "×\(item.held) · VP" }
-        if item.ready > 0, item.boughtThisTurn > 0 {
-            return "\(item.ready) READY · \(item.boughtThisTurn) NEW"
-        }
-        if item.ready > 0 { return "×\(item.held) · READY" }
-        return "×\(item.held) · NEW"
-    }
-
-    private var accessibilityLabel: String {
-        let name = DevCardStyle.fullName(for: item.type)
-        if item.status == .passiveVictoryPoint { return "\(name), \(item.held) owned, passive" }
-        return "\(name), \(item.held) owned, \(item.ready) ready, \(item.boughtThisTurn) new"
-    }
 }
 
 /// An army card in the player panel, in the dev-card tiles' shape: icon, name,

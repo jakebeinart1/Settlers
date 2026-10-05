@@ -89,7 +89,7 @@ struct RobberDragJourneyTests {
         #expect(model.boardDecisionPresentation?.selectedTile == tile)
     }
 
-    private func makeRouter(in model: GameViewModel, geometry: HexGeometry) throws -> BoardGestureRouter {
+    private func makeRouter(in model: GameViewModel, geometry: Settlers.HexGeometry) throws -> BoardGestureRouter {
         let decision = try #require(model.boardDecisionPresentation)
         return BoardGestureRouter(startLocation: geometry.center(of: model.state.board.robberTile),
             state: model.state, decision: decision, geometry: geometry,
@@ -97,7 +97,7 @@ struct RobberDragJourneyTests {
             containerSize: container, allowsGameCommands: true)
     }
 
-    private func displayedGeometry(for state: GameState) -> HexGeometry {
+    private func displayedGeometry(for state: GameState) -> Settlers.HexGeometry {
         let fit = BoardView.solvedFit(for: state.board, in: container)
         return BoardCamera(zoom: 1.4, pan: CGSize(width: 12, height: -8))
             .applied(to: fit.geometry, containerCenter: CGPoint(x: 201, y: 150))

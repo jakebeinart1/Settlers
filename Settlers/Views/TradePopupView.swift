@@ -131,7 +131,9 @@ public struct TradePopupView: View {
 
     private var footer: some View {
         VStack(spacing: 10) {
-            if (receipt != nil && viewModel.state.phase.isMainTurn(of: viewModel.humanPlayer.index)) || proposalOutcome != nil {
+            if receipt == nil, viewModel.pendingTradeConfirmation != nil {
+                pendingConfirmationActions
+            } else if (receipt != nil && viewModel.state.phase.isMainTurn(of: viewModel.humanPlayer.index)) || proposalOutcome != nil {
                 GoldRowButton(title: receipt != nil ? "Trade again" : "New Offer",
                               systemImage: "arrow.counterclockwise", action: resetDraft)
             } else if receipt == nil && !isShowingBotResponse {
@@ -399,40 +401,42 @@ public struct TradePopupView: View {
                         .foregroundStyle(.red.opacity(0.7))
                 }
             }
-
-            VStack(spacing: 10) {
-                GoldRowButton(title: "Decline", systemImage: "xmark", action: {
-                    viewModel.declinePendingTrade()
-                    proposalOutcome = viewModel.lastTradeOutcome
-                })
-
-                GoldRowButton(title: "Confirm Trade", systemImage: "checkmark", iconColor: .green, titleColor: .green, action: {
-                    // A failed confirm used to silently do nothing - no error,
-                    // no changed cards, no indication why - because `try?`
-                    // swallowed the failure. Now it is reported like any other
-                    // failed move.
-                    let previousSequence = viewModel.eventBatch.sequence
-                    switch viewModel.confirmPendingTrade() {
-                    case .succeeded:
-                        errorMessage = nil
-                        captureReceipt(after: previousSequence)
-                        proposalOutcome = viewModel.lastTradeOutcome
-                    case .offerNoLongerAvailable:
-                        errorMessage = "That trade is no longer available."
-                        proposalOutcome = viewModel.lastTradeOutcome
-                    case .resourcesNoLongerAvailable:
-                        errorMessage = "That trade could no longer go through - resources changed since you proposed it."
-                        proposalOutcome = viewModel.lastTradeOutcome
-                    case .persistenceFailed:
-                        errorMessage = "The trade could not be saved. Please try again."
-                    }
-                })
-            }
         }
         .padding(.horizontal, 10)
         .padding(.vertical, 10)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(Color.black.opacity(0.25), in: RoundedRectangle(cornerRadius: 10))
+    }
+
+    /// Terms and partner replies may scroll on short phones. The actions live
+    /// in the fixed footer so confirming never depends on that scroll position.
+    private var pendingConfirmationActions: some View {
+        VStack(spacing: 10) {
+            GoldRowButton(title: "Decline", systemImage: "xmark") {
+                viewModel.declinePendingTrade()
+                proposalOutcome = viewModel.lastTradeOutcome
+            }
+            GoldRowButton(title: "Confirm Trade", systemImage: "checkmark",
+                          iconColor: .green, titleColor: .green, action: confirmTrade)
+        }
+    }
+
+    private func confirmTrade() {
+        let previousSequence = viewModel.eventBatch.sequence
+        switch viewModel.confirmPendingTrade() {
+        case .succeeded:
+            errorMessage = nil
+            captureReceipt(after: previousSequence)
+            proposalOutcome = viewModel.lastTradeOutcome
+        case .offerNoLongerAvailable:
+            errorMessage = "That trade is no longer available."
+            proposalOutcome = viewModel.lastTradeOutcome
+        case .resourcesNoLongerAvailable:
+            errorMessage = "That trade could no longer go through - resources changed since you proposed it."
+            proposalOutcome = viewModel.lastTradeOutcome
+        case .persistenceFailed:
+            errorMessage = "The trade could not be saved. Please try again."
+        }
     }
 
     /// Every bot's answer and its message, not just whoever took the offer (or,

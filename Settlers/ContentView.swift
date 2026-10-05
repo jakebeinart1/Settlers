@@ -52,7 +52,10 @@ struct ContentView: View {
                             onNewGame: { if viewModel.restartCompletedMatch() { hasStartedThisSession = true } },
                             onMainMenu: { if viewModel.clearCompletedMatch() { hasStartedThisSession = false } })
             } else if hasStartedThisSession, viewModel.savedGameAvailability.recoveryMessage == nil {
-                GameView(viewModel: viewModel, onExitToMenu: { hasStartedThisSession = false })
+                GameView(viewModel: viewModel, onExitToMenu: {
+                    viewModel.isBlockingSurfaceOpen = true
+                    hasStartedThisSession = false
+                })
                 #if DEBUG
                     .task {
                         if QALaunchFlag.playToEnd.isSet {

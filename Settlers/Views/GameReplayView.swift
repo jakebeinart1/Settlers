@@ -27,6 +27,7 @@ struct GameReplayView: View {
     @State private var loadError: String?
     @State private var index = 0
     @State private var isPlaying = false
+    @State private var exportPresented = false
     /// The seat whose points are being broken down, or nil for none. The card
     /// it opens floats OVER the board rather than sitting under it: the rule
     /// this screen is built around is that everything below the board is a
@@ -54,6 +55,9 @@ struct GameReplayView: View {
         .fontDesign(.serif)
         .task { await load() }
         .task(id: isPlaying) { await advanceWhilePlaying() }
+        .sheet(isPresented: $exportPresented) {
+            ReplayExportSheet(summary: summary, store: store)
+        }
     }
 
     private var paintedBackground: some View {
@@ -131,12 +135,16 @@ struct GameReplayView: View {
                 .font(.system(size: 15, weight: .semibold, design: .serif))
                 .foregroundStyle(.white.opacity(0.85))
             Spacer()
-            ShareLink(item: summary.fileURL) {
+            Button {
+                isPlaying = false
+                exportPresented = true
+            } label: {
                 Image(systemName: "square.and.arrow.up")
                     .font(.system(size: 17, weight: .semibold))
                     .foregroundStyle(.white.opacity(0.75))
             }
-            .accessibilityLabel("Share this recording")
+            .accessibilityLabel("Share replay video")
+            .accessibilityIdentifier(AccessibilityID.ReplayExport.open)
         }
         .padding(.horizontal, 16)
     }

@@ -281,7 +281,7 @@ public struct BoardView: View {
 
     private func drawCanonicalRobber(geometry: HexGeometry, in context: GraphicsContext) {
         let number = board.tiles.first { $0.coordinate == board.robberTile }?.numberToken
-        let isDraggingRobber = boardDrag?.origin == .robber && boardDragLocation != nil
+        let isDraggingRobber = boardDrag?.origin == .robber && boardDrag?.isCancelled == false && boardDragLocation != nil
         if decision?.intent.isRobber == true, decision?.selectedTile != nil || isDraggingRobber {
             TileDrawing.drawRobberOrigin(
                 at: board.robberTile,

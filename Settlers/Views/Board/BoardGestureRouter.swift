@@ -39,6 +39,8 @@ struct BoardGestureRouter {
     /// Reject stale/privacy-boundary releases before resolving a legal tile.
     /// Radius matches the existing cradle's tile-drop policy; the viewport check
     /// also prevents an off-board release from snapping to a nearby legal tile.
+    /// Exclude the entire current hex before snapping: its edge can lie within
+    /// the minimum drop radius of a legal neighbor even though it is illegal.
     func dropTarget(at location: CGPoint, state: GameState,
                     decision: BoardDecisionPresentation?, geometry: HexGeometry,
                     containerSize: CGSize, allowsGameCommands: Bool) -> BoardTarget? {
@@ -46,6 +48,7 @@ struct BoardGestureRouter {
               decision == initialDecision,
               Self.canDragRobber(state: state, decision: decision, allowsGameCommands: allowsGameCommands),
               CGRect(origin: .zero, size: containerSize).contains(location), let decision else { return nil }
+        guard !TileDrawing.hexPath(for: state.board.robberTile, geometry: geometry).contains(location) else { return nil }
         let destinations = decision.legalTiles.filter { $0 != state.board.robberTile }
         guard let nearest = destinations.min(by: {
             Self.distance(geometry.center(of: $0), location) < Self.distance(geometry.center(of: $1), location)

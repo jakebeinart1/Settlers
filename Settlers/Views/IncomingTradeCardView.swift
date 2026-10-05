@@ -1,5 +1,6 @@
 import SwiftUI
 import CatanEngine
+import UIKit
 
 /// Small card that slides in above `HumanPlayerPanel` when a bot proposes a
 /// trade to the human - a self-contained Accept/Reject card, replacing the old
@@ -23,7 +24,13 @@ public struct IncomingTradeCardView: View {
     public let offer: TradeOffer
     public let onAccept: () -> Void
     public let onReject: () -> Void
+    /// Timeout is not an explicit refusal. Existing callers keep their old
+    /// behavior; the parent can provide an expiry action with separate policy.
+    public let onExpire: () -> Void
     public let playerIdentity: (PlayerID) -> PlayerIdentity
+    /// The committed proposal sequence distinguishes identical later proposals
+    /// whose content-derived offer ID is reused while this row stays mounted.
+    public let offerOccurrence: Int?
     /// Halts the countdown without the player having to tap the card.
     ///
     /// The only pause condition used to be a tap, so the timer kept draining
@@ -34,21 +41,24 @@ public struct IncomingTradeCardView: View {
     /// lengthen that timer.
     public var isHeld: Bool = false
 
-    public init(offer: TradeOffer, isHeld: Bool = false,
+    public init(offer: TradeOffer, isHeld: Bool = false, offerOccurrence: Int? = nil,
                 playerIdentity: @escaping (PlayerID) -> PlayerIdentity = CatanTheme.playerIdentity,
-                onAccept: @escaping () -> Void, onReject: @escaping () -> Void) {
+                onAccept: @escaping () -> Void, onReject: @escaping () -> Void,
+                onExpire: (() -> Void)? = nil) {
         self.isHeld = isHeld
         self.offer = offer
         self.playerIdentity = playerIdentity
         self.onAccept = onAccept
         self.onReject = onReject
+        self.onExpire = onExpire ?? onReject
+        self.offerOccurrence = offerOccurrence
     }
 
     /// Seconds this card is counting down from. **Zero means never** - what
     /// the player's "No Limit" choice resolves to.
     ///
-    /// Read from `PacingPreferences` once, in `startTicking`, and held for the
-    /// life of the card rather than recomputed on every render. It is the
+    /// Read from `PacingPreferences` once per offer occurrence and held for
+    /// that occurrence rather than recomputed on every render. It is the
     /// denominator of the ring below, and the player can now change the
     /// setting *while an offer is on screen* (In-Game Settings sits over the
     /// board, and the bots are held for the whole time it is open): a computed
@@ -64,12 +74,17 @@ public struct IncomingTradeCardView: View {
     @State private var remaining: Double = 0
     @State private var isPaused = false
     @State private var isExternallyHeld = false
-    /// A monotonically increasing tick source (0.1s) rather than a single
-    /// `Task.sleep(for: totalSeconds)`, so pausing on tap genuinely halts
-    /// the countdown instead of just hiding a timer that fires anyway.
-    @State private var tickTask: Task<Void, Never>?
-
     @State private var isReviewPresented = false
+    @State private var reviewTextSize: DynamicTypeSize = .large
+
+    private struct OfferPresentationIdentity: Hashable {
+        let offer: TradeOffer
+        let occurrence: Int?
+    }
+
+    private var presentationIdentity: OfferPresentationIdentity {
+        OfferPresentationIdentity(offer: offer, occurrence: offerOccurrence)
+    }
 
     public var body: some View {
         let identity = playerIdentity(offer.from)
@@ -91,17 +106,19 @@ public struct IncomingTradeCardView: View {
         .foregroundStyle(CatanTheme.onWaterText)
         .contentShape(Rectangle())
         .onTapGesture { isPaused.toggle() }
-        .onAppear {
-            isExternallyHeld = isHeld
-            startTicking()
-        }
+        .task(id: presentationIdentity) { await runOfferTimer() }
         .onChange(of: isHeld) { _, held in isExternallyHeld = held }
-        .onDisappear { tickTask?.cancel() }
         .sheet(isPresented: $isReviewPresented) {
             IncomingTradeReviewView(summary: summary, identity: identity,
                                     onAccept: { isReviewPresented = false; onAccept() },
                                     onReject: { isReviewPresented = false; onReject() },
                                     onBack: { isReviewPresented = false })
+                // A wider range would still intersect the ancestor's compact
+                // row cap. An explicit system value restores the user's size.
+                .dynamicTypeSize(reviewTextSize)
+                .onReceive(NotificationCenter.default.publisher(for: UIContentSizeCategory.didChangeNotification)) { _ in
+                    restoreReviewTextSize()
+                }
                 .presentationDetents([.large])
         }
         .transition(.move(edge: .bottom).combined(with: .opacity))
@@ -181,7 +198,10 @@ public struct IncomingTradeCardView: View {
     }
 
     private var reviewButton: some View {
-        Button { isReviewPresented = true } label: {
+        Button {
+            restoreReviewTextSize()
+            isReviewPresented = true
+        } label: {
             VStack(spacing: 2) {
                 Image(systemName: "doc.text.magnifyingglass").font(.headline)
                 Text("Review").font(.system(size: 9, weight: .bold))
@@ -203,28 +223,36 @@ public struct IncomingTradeCardView: View {
     }
 
     private static let answerButtonDiameter: CGFloat = 44
+    private static let timerTickSeconds = 0.1
 
-    private func startTicking() {
-        tickTask?.cancel()
+    private func restoreReviewTextSize() {
+        reviewTextSize = DynamicTypeSize(UIApplication.shared.preferredContentSizeCategory) ?? .large
+    }
+
+    /// SwiftUI cancels this task on replacement or disappearance. Full offer
+    /// content catches reused IDs with changed terms; the optional occurrence
+    /// also catches an identical later proposal. No old tick task survives it.
+    @MainActor
+    private func runOfferTimer() async {
+        guard !Task.isCancelled else { return }
+        isPaused = false
+        isReviewPresented = false
+        isExternallyHeld = isHeld
         totalSeconds = PacingPreferences.shared.incomingOfferTimer.seconds
         // No countdown at all when the timeout is off - not a very long one.
         // A ticking task that never fires still spins at 10 Hz for as long as
         // the card is up, and the ring would drain toward an answer that is
         // never given.
-        guard totalSeconds > 0 else {
-            remaining = 0
-            return
-        }
         remaining = totalSeconds
-        tickTask = Task {
-            while remaining > 0 {
-                try? await Task.sleep(for: .milliseconds(100))
-                if Task.isCancelled { return }
-                guard !isPaused, !isExternallyHeld, !isReviewPresented else { continue }
-                remaining = max(0, remaining - 0.1)
-            }
-            onReject()
+        guard totalSeconds > 0 else { return }
+        while remaining > 0 {
+            do { try await Task.sleep(for: .milliseconds(100)) } catch { return }
+            guard !Task.isCancelled else { return }
+            guard !isPaused, !isExternallyHeld, !isReviewPresented else { continue }
+            remaining = max(0, remaining - Self.timerTickSeconds)
         }
+        guard !Task.isCancelled else { return }
+        onExpire()
     }
 }
 
