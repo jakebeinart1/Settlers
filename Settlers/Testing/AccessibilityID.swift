@@ -234,6 +234,7 @@ enum AccessibilityID {
     }
 
     enum InGameSettings {
+        static let rulebook = "in-game-settings.rulebook"
         static let close = "in-game-settings.close"
         static let restart = "in-game-settings.restart"
         static let quit = "in-game-settings.quit"

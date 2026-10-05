@@ -47,7 +47,7 @@ extension GameViewModel {
             case .reject(let move, _):
                 var candidate = session
                 let step = try candidate.applyExternal(move, by: humanPlayer)
-                try commitStep(step, candidate: candidate)
+                try commitStep(step, candidate: candidate, isHumanDecision: false)
             }
         }
     }
@@ -62,9 +62,11 @@ extension GameViewModel {
     }
 
     /// Timeout means unanswered, not a preference against this exchange class.
+    /// Its real response stays in history, but only explicit taps may teach
+    /// a ghost; a timeout and a deliberate Decline have the same engine move.
     func respondToIncomingTrade(_ offer: TradeOffer, accept: Bool, explicit: Bool) throws {
         try commitHumanMove(.respondToTrade(offerID: offer.id, accept: accept),
-                            declinedOffer: !accept && explicit ? offer : nil)
+                            declinedOffer: !accept && explicit ? offer : nil, isHumanDecision: explicit)
         Task { await runBotTurnIfNeeded() }
     }
 }

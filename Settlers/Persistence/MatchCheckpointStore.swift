@@ -66,21 +66,27 @@ struct MatchCheckpoint: Codable, Equatable, Sendable {
         /// Missing means version 1 because checkpoints shipped before this
         /// field existed; every new move writes the current version explicitly.
         let rulesVersion: Int
+        /// False for app housekeeping attributed to a human seat (automatic
+        /// rejection or timeout), which must replay but must not teach a ghost.
+        /// Old saves lack provenance and retain the prior training behavior.
+        let isHumanDecision: Bool
 
         init(
             actor: PlayerID,
             move: GameMove,
             timestamp: Date,
-            rulesVersion: Int = RulesEngine.currentRulesVersion
+            rulesVersion: Int = RulesEngine.currentRulesVersion,
+            isHumanDecision: Bool = true
         ) {
             self.actor = actor
             self.move = move
             self.timestamp = timestamp
             self.rulesVersion = rulesVersion
+            self.isHumanDecision = isHumanDecision
         }
 
         private enum CodingKeys: String, CodingKey {
-            case actor, move, timestamp, rulesVersion
+            case actor, move, timestamp, rulesVersion, isHumanDecision
         }
 
         init(from decoder: Decoder) throws {
@@ -90,6 +96,7 @@ struct MatchCheckpoint: Codable, Equatable, Sendable {
             timestamp = try values.decode(Date.self, forKey: .timestamp)
             rulesVersion = try values.decodeIfPresent(Int.self, forKey: .rulesVersion)
                 ?? RulesEngine.oldestSupportedRulesVersion
+            isHumanDecision = try values.decodeIfPresent(Bool.self, forKey: .isHumanDecision) ?? true
         }
 
         func encode(to encoder: Encoder) throws {
@@ -98,6 +105,7 @@ struct MatchCheckpoint: Codable, Equatable, Sendable {
             try values.encode(move, forKey: .move)
             try values.encode(timestamp, forKey: .timestamp)
             try values.encode(rulesVersion, forKey: .rulesVersion)
+            try values.encode(isHumanDecision, forKey: .isHumanDecision)
         }
     }
 
@@ -122,7 +130,8 @@ struct MatchCheckpoint: Codable, Equatable, Sendable {
         _ move: GameMove,
         by actor: PlayerID,
         timestamp: Date = Date(),
-        rulesVersion: Int = RulesEngine.currentRulesVersion
+        rulesVersion: Int = RulesEngine.currentRulesVersion,
+        isHumanDecision: Bool = true
     ) throws {
         var candidate = state
         try RulesEngine.replay(move, by: actor, rulesVersion: rulesVersion, to: &candidate)
@@ -131,7 +140,8 @@ struct MatchCheckpoint: Codable, Equatable, Sendable {
             actor: actor,
             move: move,
             timestamp: timestamp,
-            rulesVersion: rulesVersion
+            rulesVersion: rulesVersion,
+            isHumanDecision: isHumanDecision
         ))
         sessionCheckpoint = nil
     }
@@ -354,12 +364,13 @@ struct MatchCheckpointDocument: Codable, Equatable, Sendable {
     /// Build an unpublished candidate. The caller commits it before exposing
     /// its state; failures leave this document unchanged. A winning move and
     /// its accounting receipt belong to the same revision.
-    func applying(_ move: GameMove, by actor: PlayerID, elapsedSeconds: TimeInterval) throws -> Self {
+    func applying(_ move: GameMove, by actor: PlayerID, elapsedSeconds: TimeInterval,
+                  isHumanDecision: Bool = true) throws -> Self {
         guard var match = activeMatch, revision < Int.max else {
             throw MatchCheckpointStore.StoreError.staleRevision
         }
         try match.recordElapsedTime(elapsedSeconds)
-        try match.apply(move, by: actor)
+        try match.apply(move, by: actor, isHumanDecision: isHumanDecision)
         var next = self
         next.activeMatch = match
         if case .gameOver = match.state.phase { try next.recordCompletion(duration: elapsedSeconds) }
@@ -372,11 +383,13 @@ struct MatchCheckpointDocument: Codable, Equatable, Sendable {
     /// disk. The caller keeps the candidate session, rather than rebuilding it.
     func recording(_ step: GameSession.Step, session: GameSession.Checkpoint,
                    elapsedSeconds: TimeInterval,
-                   tradePolicies: [Int: HumanTradeOfferPolicy]? = nil) throws -> Self {
+                   tradePolicies: [Int: HumanTradeOfferPolicy]? = nil,
+                   isHumanDecision: Bool = true) throws -> Self {
         guard pendingDevCardReveal == nil, pendingDevCardResolution == nil else {
             throw MatchCheckpointStore.StoreError.pendingAcknowledgement
         }
-        var next = try applying(step.move, by: step.actor, elapsedSeconds: elapsedSeconds)
+        var next = try applying(step.move, by: step.actor, elapsedSeconds: elapsedSeconds,
+                                isHumanDecision: isHumanDecision)
         if let tradePolicies { next.humanTradePolicies = tradePolicies }
         try next.activeMatch?.attachSession(session)
         if next.activeMatch?.setup.humanSeats.contains(where: { $0.index == step.actor.index }) == true {

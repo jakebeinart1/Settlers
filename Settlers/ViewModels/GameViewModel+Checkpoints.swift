@@ -163,6 +163,11 @@ extension GameViewModel {
         persistenceBlocked = true
         let failure = MatchPersistenceFailure(underlying: error)
         persistenceErrorMessage = failure.localizedDescription
+        if let seat = activeBotSeat {
+            // Dismissing the alert does not repair a failed write. Keep a
+            // visible Retry command instead of a Skip that cannot advance.
+            botTurnProgress = .failed(seat: seat, message: failure.localizedDescription)
+        }
         return failure
     }
 

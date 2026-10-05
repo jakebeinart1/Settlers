@@ -5,7 +5,7 @@ import Foundation
 /// The app's `GameLogStore` lines, as far as a replay needs them. Kept apart
 /// from the app type on purpose: the app target cannot be imported here, and
 /// this reader needs only the start state, the roster's human seats, and the
-/// moves. Timestamps are not read.
+/// moves with their training provenance. Timestamps are not read.
 private struct LogLine: Decodable {
     struct Roster: Decodable {
         let humanSeats: Set<PlayerID>?
@@ -16,6 +16,7 @@ private struct LogLine: Decodable {
     let roster: Roster?
     let player: PlayerID?
     let move: GameMove?
+    let isHumanDecision: Bool?
 }
 
 enum LogFileError: Error {
@@ -34,7 +35,8 @@ func loadGame(_ url: URL) throws -> LoggedGame {
         }
         if parsed.kind == "start" { start = parsed }
         if parsed.kind == "move", let player = parsed.player, let move = parsed.move {
-            events.append(LoggedMove(player: player, move: move))
+            events.append(LoggedMove(player: player, move: move,
+                                     isHumanDecision: parsed.isHumanDecision ?? true))
         }
     }
     guard let start, let initial = start.initialState else { throw LogFileError.noStart(url.lastPathComponent) }

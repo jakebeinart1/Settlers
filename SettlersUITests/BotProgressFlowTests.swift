@@ -1,7 +1,7 @@
 import XCTest
 
 /// Real New Game, CPU pacing and durable resume; no seeded gameplay positions.
-/// Seat 2 is zero-based, so two CPUs must act before the human's first setup.
+/// The human places first; CPUs then place before the human's reverse setup.
 @MainActor
 final class BotProgressFlowTests: XCTestCase {
     private enum FlowID {
@@ -25,14 +25,13 @@ final class BotProgressFlowTests: XCTestCase {
     private static let screenTimeout: TimeInterval = 5
     private static let cpuTimeout: TimeInterval = 30
     private static let minimumTapDimension: CGFloat = 44
-    // Four opening CPU actions at Slow (2s each). A broken settings hold
-    // reaches the human within this interval instead of returning CPU work.
-    private static let holdSeconds: TimeInterval = 9
+    // Three CPUs each place twice (12 actions) before reverse human setup.
+    private static let holdSeconds: TimeInterval = 26
     private static let unconfirmedSeconds: TimeInterval = 2
     private static let naturalRollLimit = 3
     private static let boundarySignalLimit = 32
     private static let scrollAttemptLimit = 4
-    private static let setupPairCount = 2
+    private static let setupPairCount = 1
     private static let discardSelectionLimit = 30
     private static let resources = ["brick", "lumber", "ore", "grain", "wool"]
 
@@ -40,7 +39,7 @@ final class BotProgressFlowTests: XCTestCase {
         continueAfterFailure = false
         let app = launchRealCPUOpening()
         let skip = requireCPUStatus(in: app)
-        attachScreenshot(in: app, name: "CPU status — real New Game, human seat 2")
+        attachScreenshot(in: app, name: "CPU status — real New Game after first human setup")
         skip.tap()
 
         confirmInitialPiece(in: app, prefix: "board.vertex.", previewID: FlowID.buildingPreview)
@@ -115,9 +114,8 @@ final class BotProgressFlowTests: XCTestCase {
 
     // MARK: - Real match configuration
 
-    /// Set Slow through a disposable real seat-0 game, not launch defaults or
-    /// QA flags. Then replace it through New Game. This makes the initial CPU
-    /// status long enough to inspect without racing Standard's short pauses.
+    /// Set Slow through the real settings screen, then finish the first human
+    /// settlement/road. The CPU phase is reached by actual play, not fixtures.
     private func launchRealCPUOpening() -> XCUIApplication {
         let app = XCUIApplication()
         app.launchArguments = ["-ui-testing", "-ui-testing-reset"]
@@ -129,29 +127,10 @@ final class BotProgressFlowTests: XCTestCase {
         app.buttons["Slow"].tap()
         app.buttons["No Limit"].tap()
         XCTAssertTrue(app.buttons["Slow"].isSelected)
-        quitToMenu(in: app)
-        startHumanSeatTwo(in: app)
+        app.buttons[FlowID.settingsClose].tap()
+        confirmInitialPiece(in: app, prefix: "board.vertex.", previewID: FlowID.buildingPreview)
+        confirmInitialPiece(in: app, prefix: "board.edge.", previewID: FlowID.roadPreview)
         return app
-    }
-
-    private func startHumanSeatTwo(in app: XCUIApplication) {
-        openNewGame(in: app)
-        tapNewGameChoice("As Shown", in: app)
-        // You is a label. Seat headers, not the label, open the real picker.
-        let header = app.buttons["Seat 1, edit turn order"]
-        for _ in 0..<Self.scrollAttemptLimit where !header.isHittable { app.scrollViews.firstMatch.swipeDown() }
-        XCTAssertTrue(app.staticTexts["new-game.seat-you.0"].exists)
-        XCTAssertTrue(header.isHittable)
-        header.tap()
-        let swap = app.buttons["Swap to seat 3"]
-        XCTAssertTrue(swap.waitForExistence(timeout: Self.screenTimeout))
-        swap.tap()
-        XCTAssertTrue(app.staticTexts["new-game.seat-you.2"].waitForExistence(timeout: Self.screenTimeout))
-        XCTAssertFalse(app.staticTexts["new-game.seat-you.0"].exists)
-        app.buttons["new-game.start"].tap()
-        let replace = app.buttons["new-game.confirm-overwrite"]
-        XCTAssertTrue(replace.waitForExistence(timeout: Self.screenTimeout))
-        replace.tap()
     }
 
     private func openNewGame(in app: XCUIApplication) {

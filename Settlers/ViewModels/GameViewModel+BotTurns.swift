@@ -6,7 +6,7 @@ import CatanEngine
 @MainActor
 extension GameViewModel {
     public func runBotTurnIfNeeded() async {
-        do { try reconcileHumanTradeOffers() } catch { return }
+        guard reconcileOffersForBotLoop() else { return }
         guard canAdvanceBots else { return }
         guard !isProcessingBotTurns else {
             botRestartRequested = true
@@ -32,7 +32,7 @@ extension GameViewModel {
         // in `GameSession`, which a headless harness runs too - so what is
         // measured offline is what is played here.
         while case .seat(let actor) = session.nextActor() {
-            do { try reconcileHumanTradeOffers() } catch { return }
+            guard reconcileOffersForBotLoop() else { return }
             // Stop while the human has a trade decision on screen.
             //
             // This is why an incoming offer used to flash: the card is a live
@@ -93,6 +93,20 @@ extension GameViewModel {
               pendingDevCardReveal == nil, pendingDevCardResolution == nil else { return false }
         if case .failed = botTurnProgress { return false }
         return true
+    }
+
+    private func reconcileOffersForBotLoop() -> Bool {
+        do {
+            try reconcileHumanTradeOffers()
+            return true
+        } catch is MatchPersistenceFailure {
+            // The atomic store already published its recovery blocker.
+            return false
+        } catch {
+            let seat = activeBotSeat ?? rawIncomingOffer?.from ?? humanPlayer
+            botTurnProgress = .failed(seat: seat, message: error.localizedDescription)
+            return false
+        }
     }
 
     private func prepareBotStep() async throws -> PreparedBotStep? {

@@ -25,7 +25,7 @@ enum ReplayExportFixtures {
     static func mixedRulesRecording(directory: URL) throws -> GameLogDetail {
         var initial = GameSetup.newGame(board: BoardGenerator.standard(), seed: 912)
         guard let target = initial.board.tiles.map(\.coordinate).first(where: { $0 != initial.board.robberTile }),
-              let vertex = HexGeometry.corners(of: target).first else {
+              let vertex = initial.board.corners(of: target).first else {
             throw ReplayVideoExportError.invalidRecording
         }
         initial.phase = .movingRobber(playerIndex: 0)

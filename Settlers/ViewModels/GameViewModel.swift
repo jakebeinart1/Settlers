@@ -513,14 +513,16 @@ public final class GameViewModel {
 
     /// Human and automatic trade responses use the same candidate-session
     /// commit as policy moves. Neither events nor UI state escape before disk.
-    private func applyLogged(_ move: GameMove, by player: PlayerID, declinedOffer: TradeOffer? = nil) throws {
+    private func applyLogged(_ move: GameMove, by player: PlayerID, declinedOffer: TradeOffer? = nil,
+                             isHumanDecision: Bool = true) throws {
         if let message = savedGameAvailability.recoveryMessage { throw SavedGameRecoveryError.blocked(message) }
         var candidate = session
         let step = try candidate.applyExternal(move, by: player)
-        try commitStep(step, candidate: candidate, declinedOffer: declinedOffer)
+        try commitStep(step, candidate: candidate, declinedOffer: declinedOffer, isHumanDecision: isHumanDecision)
     }
 
-    func commitStep(_ step: GameSession.Step, candidate: GameSession, declinedOffer: TradeOffer? = nil) throws {
+    func commitStep(_ step: GameSession.Step, candidate: GameSession, declinedOffer: TradeOffer? = nil,
+                    isHumanDecision: Bool = true) throws {
         let productionBefore = state
         let productionViewer = humanPlayer
         guard let document = checkpointDocument, document.activeMatch != nil else {
@@ -530,7 +532,8 @@ public final class GameViewModel {
         do {
             next = try document.recording(step, session: candidate.checkpoint,
                                            elapsedSeconds: currentGameDuration,
-                                           tradePolicies: tradePolicies(after: step, declinedOffer: declinedOffer))
+                                           tradePolicies: tradePolicies(after: step, declinedOffer: declinedOffer),
+                                           isHumanDecision: isHumanDecision)
             try commitDocument(next)
         } catch let failure as MatchPersistenceFailure {
             throw failure
@@ -641,7 +644,7 @@ public final class GameViewModel {
     /// The synchronous half of `apply`. Keeping scheduling outside this method
     /// gives deterministic QA one bot runner to await instead of racing the
     /// production fire-and-forget task against a second call to the loop.
-    func commitHumanMove(_ move: GameMove, declinedOffer: TradeOffer? = nil) throws {
+    func commitHumanMove(_ move: GameMove, declinedOffer: TradeOffer? = nil, isHumanDecision: Bool = true) throws {
         if let message = savedGameAvailability.recoveryMessage {
             throw SavedGameRecoveryError.blocked(message)
         }
@@ -655,7 +658,7 @@ public final class GameViewModel {
         // not compose a trade until they declined somebody else's offer, which
         // then failed with `.offerNoLongerAvailable` because `RulesEngine`
         // drops pending offers at `endTurn` anyway.
-        try applyLogged(move, by: humanPlayer, declinedOffer: declinedOffer)
+        try applyLogged(move, by: humanPlayer, declinedOffer: declinedOffer, isHumanDecision: isHumanDecision)
         if case .endTurn = move {
             pendingTradeConfirmation = nil
             lastTradeOutcome = nil
@@ -1133,6 +1136,7 @@ public extension GameViewModel {
             eventBatch = EventBatch(sequence: eventBatch.sequence + 1, events: [])
             prepareDiscardPresentation()
             persistenceErrorMessage = nil
+            botTurnProgress = nil
             return true
         } catch {
             _ = reportPersistenceFailure(error)

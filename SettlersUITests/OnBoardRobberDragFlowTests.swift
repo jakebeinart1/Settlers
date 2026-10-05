@@ -46,9 +46,7 @@ final class OnBoardRobberDragFlowTests: XCTestCase {
 
     func testOriginAndCradleDragsDoNotPanAZoomedBoard() {
         let app = launch("-qaShowMandatoryRobberDecision")
-        let board = app.otherElements["board.surface"]
-        board.pinch(withScale: 1.3, velocity: 2)
-        XCTAssertTrue(app.buttons["board.recenter"].waitForExistence(timeout: 3))
+        zoomToVisibleOrigin(in: app)
         let origin = app.otherElements[BoardDecisionUITestID.robberOrigin]
         let before = origin.frame
         let destination = visibleTile(in: app)
@@ -59,7 +57,9 @@ final class OnBoardRobberDragFlowTests: XCTestCase {
 
         app.buttons[BoardDecisionUITestID.clear].tap()
         let cradle = app.otherElements[BoardDecisionUITestID.dragCradle]
-        cradle.press(forDuration: 0.2, thenDragTo: destination)
+        let cradleStart = cradle.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5))
+        let destinationCenter = destination.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5))
+        cradleStart.press(forDuration: 0.2, thenDragTo: destinationCenter)
         XCTAssertTrue(app.otherElements[BoardDecisionUITestID.robberPreview].waitForExistence(timeout: 3))
         assertFrame(origin.frame, matches: before)
         assertFrame(destination.frame, matches: targetBefore)
@@ -97,6 +97,35 @@ final class OnBoardRobberDragFlowTests: XCTestCase {
         return app
     }
 
+    /// An outer robber can leave the clipped viewport at 1.3x. Pan from the
+    /// unclaimed board center before measuring piece drags, retaining the zoom.
+    private func zoomToVisibleOrigin(in app: XCUIApplication) {
+        let board = app.otherElements["board.surface"]
+        let origin = app.otherElements[BoardDecisionUITestID.robberOrigin]
+        let centerTile = app.buttons["board.tile.0_0"]
+        let neighborTile = app.buttons["board.tile.1_0"]
+        let fittedSeparation = separation(centerTile, neighborTile)
+        board.pinch(withScale: 1.3, velocity: 2)
+        XCTAssertTrue(app.buttons["board.recenter"].waitForExistence(timeout: 3))
+        if !board.frame.contains(origin.frame) {
+            let frame = board.frame
+            let start = board.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5))
+            let translation = CGVector(dx: frame.midX - origin.frame.midX, dy: frame.midY - origin.frame.midY)
+            start.press(forDuration: 0.2, thenDragTo: start.withOffset(translation))
+        }
+        XCTAssertTrue(board.frame.contains(origin.frame), "zoomed origin must be fully visible before dragging")
+        XCTAssertGreaterThan(separation(centerTile, neighborTile), fittedSeparation * 1.15,
+                             "revealing the origin must preserve meaningful zoom, not recenter")
+        XCTAssertFalse(app.otherElements[BoardDecisionUITestID.robberPreview].exists,
+                       "an unclaimed camera pan must not stage a robber destination")
+    }
+
+    private func separation(_ first: XCUIElement, _ second: XCUIElement) -> CGFloat {
+        let firstFrame = first.frame
+        let secondFrame = second.frame
+        return hypot(firstFrame.midX - secondFrame.midX, firstFrame.midY - secondFrame.midY)
+    }
+
     private func dragOrigin(to destination: XCUIElement, in app: XCUIApplication) {
         let origin = app.otherElements[BoardDecisionUITestID.robberOrigin]
         XCTAssertTrue(destination.exists)
@@ -115,14 +144,19 @@ final class OnBoardRobberDragFlowTests: XCTestCase {
     private func visibleTile(in app: XCUIApplication, excluding identifier: String? = nil) -> XCUIElement {
         let boardFrame = app.otherElements["board.surface"].frame
         let query = app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH %@", "board.tile."))
+        // Zoomed target bounds can cross the viewport edge. The rendered tile
+        // center, where both drags release, must still be visible and hittable.
         let targets = query.allElementsBoundByIndex.filter {
-            $0.identifier != identifier && boardFrame.contains($0.frame)
+            let frame = $0.frame
+            guard $0.identifier != identifier, frame.width > 0, frame.height > 0,
+                  boardFrame.contains(CGPoint(x: frame.midX, y: frame.midY)) else { return false }
+            return $0.isHittable
         }
         let result = targets.min {
             hypot($0.frame.midX - boardFrame.midX, $0.frame.midY - boardFrame.midY)
             < hypot($1.frame.midX - boardFrame.midX, $1.frame.midY - boardFrame.midY)
         }
-        guard let result else { XCTFail("no visible legal tile target"); return query.firstMatch }
+        guard let result else { XCTFail("no hittable legal tile center inside the viewport"); return query.firstMatch }
         return result
     }
 

@@ -76,9 +76,19 @@ struct GameViewModelCheckpointTests {
         #expect(model.state == before)
         #expect(model.persistenceBlocked)
         #expect(model.persistenceErrorMessage != nil)
+        model.dismissPersistenceError()
+        #expect(model.persistenceErrorMessage == nil)
+        guard case .failed(_, let reason) = model.botTurnProgress else {
+            Issue.record("Dismissing a failed-save alert must retain the Retry state")
+            return
+        }
+        #expect(!reason.isEmpty)
+        model.skipBotPauses()
+        #expect(model.state == before, "Skip cannot publish an unsaved candidate")
         #expect(model.retryPersistence())
         #expect(model.state == before)
         #expect(!model.persistenceBlocked)
+        #expect(model.botTurnProgress == nil, "A successful reload must remove the failed-state gate")
     }
 
     @Test func replacingReadableButRejectedRosterPreservesStatisticsAndArchivesOriginalBytes() throws {

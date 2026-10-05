@@ -126,6 +126,7 @@
 		7614D4F1B819187A5F351F07 /* ExpertArchiveRevisionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 683ECF71CF44AA2B5570CFB6 /* ExpertArchiveRevisionTests.swift */; };
 		7678F2D966C6DDD39D673266 /* IncomingTradeCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F34A579755CFBDEAF52EBB70 /* IncomingTradeCardView.swift */; };
 		77DC999EE0ACE535C8F2F602 /* BotTurnStatusView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7B68650395A19041B3EDAC40 /* BotTurnStatusView.swift */; };
+		7875258FF9B3D387486F1270 /* HumanDecisionProvenanceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1376D1017BA606A83286D8A7 /* HumanDecisionProvenanceTests.swift */; };
 		7964644D00DF2FEC1A679797 /* GhostPickerPopup.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECB51DFDE72A08093F517F2E /* GhostPickerPopup.swift */; };
 		7A06BC0D8E5BED450832FBD4 /* GameReplayNarrator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6B73E867DA1D4D948C9EE5F5 /* GameReplayNarrator.swift */; };
 		7B2C6DCA0C31BED1B3FCAE80 /* TradeDraftFeedback.swift in Sources */ = {isa = PBXBuildFile; fileRef = C6852AB7B3A78F5272250644 /* TradeDraftFeedback.swift */; };
@@ -273,6 +274,7 @@
 		10C8FB6F25F63AA920F6919E /* DevCardInventoryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DevCardInventoryView.swift; sourceTree = "<group>"; };
 		118052E72D8695833C2EC00C /* ArmyPurchasePopupView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArmyPurchasePopupView.swift; sourceTree = "<group>"; };
 		11D7DF8A5B6CAC4647065878 /* PreMergeAuditRegressionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreMergeAuditRegressionTests.swift; sourceTree = "<group>"; };
+		1376D1017BA606A83286D8A7 /* HumanDecisionProvenanceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HumanDecisionProvenanceTests.swift; sourceTree = "<group>"; };
 		142B4786F6C2B6DBAED5AA58 /* ConquestFlowTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConquestFlowTests.swift; sourceTree = "<group>"; };
 		161D4797A450338FD0A087B5 /* RatingStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RatingStoreTests.swift; sourceTree = "<group>"; };
 		16777953197BE2BC34CCFE6B /* GameStatsStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameStatsStore.swift; sourceTree = "<group>"; };
@@ -566,6 +568,7 @@
 				0DFB1FCCE94DC838E55F1479 /* GhostStoreTests.swift */,
 				1A53231ADE2BF3D84D9FFBE9 /* GhostTrainerTests.swift */,
 				55B319909FDA473CCE592E20 /* GhostTrainingQueueTests.swift */,
+				1376D1017BA606A83286D8A7 /* HumanDecisionProvenanceTests.swift */,
 				07D8C1E84B2B99F06C511D6E /* HumanTradeOfferIntegrationTests.swift */,
 				F4781E9430B5A526472E21D4 /* HumanTradeOfferPolicyTests.swift */,
 				6BF5BC6D6577182E9829230A /* IncomingOfferHoldTests.swift */,
@@ -1187,6 +1190,7 @@
 				DD9EFF1EB723C14E49780637 /* GhostStoreTests.swift in Sources */,
 				009E5CB963F6A551ADA6FF83 /* GhostTrainerTests.swift in Sources */,
 				CD10C35A37B47A9234908BF6 /* GhostTrainingQueueTests.swift in Sources */,
+				7875258FF9B3D387486F1270 /* HumanDecisionProvenanceTests.swift in Sources */,
 				4B38B410CDAA66BD81D2543D /* HumanTradeOfferIntegrationTests.swift in Sources */,
 				DFEE28875E4D265B9AF366F5 /* HumanTradeOfferPolicyTests.swift in Sources */,
 				DC62266DFBF7B3987969DA87 /* IncomingOfferHoldTests.swift in Sources */,
@@ -1415,7 +1419,7 @@
 				CODE_SIGN_ENTITLEMENTS = "$(SETTLERS_ENTITLEMENTS)";
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 16;
+				CURRENT_PROJECT_VERSION = 17;
 				DEVELOPMENT_TEAM = "$(SETTLERS_DEVELOPMENT_TEAM)";
 				GCC_TREAT_WARNINGS_AS_ERRORS = YES;
 				INFOPLIST_FILE = Settlers/Info.plist;
@@ -1441,7 +1445,7 @@
 				CODE_SIGN_ENTITLEMENTS = "$(SETTLERS_ENTITLEMENTS)";
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 16;
+				CURRENT_PROJECT_VERSION = 17;
 				DEVELOPMENT_TEAM = "$(SETTLERS_DEVELOPMENT_TEAM)";
 				GCC_TREAT_WARNINGS_AS_ERRORS = YES;
 				INFOPLIST_FILE = Settlers/Info.plist;

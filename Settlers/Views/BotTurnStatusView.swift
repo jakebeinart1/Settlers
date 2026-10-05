@@ -36,9 +36,14 @@ struct BotTurnStatusView: View {
                 }
                 .buttonStyle(.plain)
                 .accessibilityIdentifier(isFailed ? AccessibilityID.Game.retryBotProgress : AccessibilityID.Game.skipBotPauses)
-                .accessibilityHint("Skips viewing delays only. Human decisions still require your response.")
+                .accessibilityHint(isFailed
+                    ? "Retries CPU progress after reloading a failed save when necessary."
+                    : "Skips viewing delays only. Human decisions still require your response.")
             }
             .padding(.horizontal, 8)
+            // A container identifier without containment propagates to its
+            // children, replacing the Skip/Retry button's own identity.
+            .accessibilityElement(children: .contain)
             .accessibilityIdentifier(AccessibilityID.Game.botProgress)
         }
     }
@@ -54,7 +59,7 @@ struct BotTurnStatusView: View {
             let seconds = Int(ceil(max(0, deadline.timeIntervalSince(date))))
             return "Viewing pause · \(seconds)s"
         case .thinking: return "Choosing a move…"
-        case .failed: return "Turn paused. Your last saved position is safe."
+        case .failed(_, let message): return "Paused · \(message)"
         case nil: return "Preparing the next move…"
         }
     }

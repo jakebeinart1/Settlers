@@ -129,6 +129,8 @@ gate_packages_build() {
 # re-running the suite to measure it doubled the slowest stage of the gate.
 # Limit compiler fan-out separately from test workers: independent agents must
 # not let a default all-core build exhaust a shared 16GB development machine.
+# Xcode appends its own Swift -j value after OTHER_SWIFT_FLAGS; pinning the
+# batch count bounds frontend fan-out even when that later -j overrides ours.
 gate_engine_tests() { ( cd Packages/CatanEngine && swift test --jobs "${GATE_BUILD_JOBS:-2}" --enable-code-coverage ); }
 gate_ai_tests()     { ( cd Packages/CatanAI && swift test --jobs "${GATE_BUILD_JOBS:-2}" --enable-code-coverage ); }
 
@@ -219,6 +221,7 @@ gate_app_tests() {
   local workers="${GATE_TEST_WORKERS:-2}"
   echo "  QA simulator: $sim ($workers parallel workers)"
   xcodebuild test -project Settlers.xcodeproj -scheme Settlers \
+    OTHER_SWIFT_FLAGS="\$(inherited) -driver-batch-count ${GATE_BUILD_JOBS:-2}" \
     -jobs "${GATE_BUILD_JOBS:-2}" \
     -destination "platform=iOS Simulator,id=$sim" \
     -parallel-testing-enabled YES \
@@ -244,6 +247,7 @@ gate_app_build() {
   local sim; sim="$(qa_iphone_simulator)"
   if [[ -z "$sim" ]]; then return 200; fi
   xcodebuild -project Settlers.xcodeproj -scheme Settlers \
+    OTHER_SWIFT_FLAGS="\$(inherited) -driver-batch-count ${GATE_BUILD_JOBS:-2}" \
     -jobs "${GATE_BUILD_JOBS:-2}" \
     -destination "platform=iOS Simulator,id=$sim" \
     -configuration "${1:-Release}" build 2>&1 \

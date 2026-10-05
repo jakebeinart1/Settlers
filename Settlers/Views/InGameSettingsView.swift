@@ -111,7 +111,7 @@ public struct InGameSettingsView: View {
                 .fixedSize(horizontal: false, vertical: true)
             GoldRowButton(title: "Read the rulebook", systemImage: "book.fill",
                           iconColor: SettingsChrome.ornamentGold, action: { isShowingRulebook = true })
-                .accessibilityIdentifier("in-game-settings.rulebook")
+                .accessibilityIdentifier(AccessibilityID.InGameSettings.rulebook)
         }
     }
 
