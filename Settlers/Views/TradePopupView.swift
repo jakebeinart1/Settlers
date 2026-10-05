@@ -96,6 +96,7 @@ public struct TradePopupView: View {
             header
             if scrolling {
                 ScrollView { panelContent }
+                    .accessibilityIdentifier(AccessibilityID.Trade.content)
             } else {
                 panelContent.fixedSize(horizontal: false, vertical: true)
             }

@@ -152,9 +152,10 @@ final class TradeRedesignFlowTests: XCTestCase {
         let actions = ["Decline", "Confirm Trade", "Close"].map { app.buttons[$0] }
         actions.forEach { assertReachable($0, in: app) }
         let frames = actions.map(\.frame)
-        let content = app.scrollViews.firstMatch
-        // A hugging confirmation needs no scroller; when one is present its
-        // content must never carry the footer with it.
+        let content = app.scrollViews["trade.content"]
+        // Only the dialog's own scroller is relevant. Global firstMatch can
+        // resolve a covered HUD scroller whose coordinate hits the footer.
+        // A hugging confirmation needs none; a scrolling one keeps its footer.
         if content.exists {
             for swipeUp in [true, false] {
                 if swipeUp { content.swipeUp() } else { content.swipeDown() }
@@ -195,7 +196,7 @@ final class TradeRedesignFlowTests: XCTestCase {
     /// shortcuts or retries of failed product actions can hide a regression.
     private func reveal(_ element: XCUIElement, in app: XCUIApplication) {
         if isReachable(element, in: app) { return }
-        let content = app.scrollViews.firstMatch
+        let content = app.scrollViews["trade.content"]
         if content.exists {
             for swipeUp in [true, false] {
                 for _ in 0..<Layout.maximumScrolls {

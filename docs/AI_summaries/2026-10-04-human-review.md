@@ -138,6 +138,12 @@ two-axis follow-up, PR/CI/merge. Build 16 remains the last verified TestFlight
 delivery until a separate new-build receipt is recorded. No phone installation
 has been observed during this task.
 
+Final two-axis follow-up at `d5820a7`: **Standards: zero verified remaining
+blockers**; **Spec: zero verified remaining blockers**. Both reviews were
+read-only source assessments, not substitutes for the current native/gate run.
+The compiler batch count bounds per-module frontend fan-out, not peak total
+memory; no hard 10-GB guarantee is claimed.
+
 Latest native receipt: `/tmp/empires-human-review-recovery-green.xcresult`
 passed cold resume, CPU Skip with explicit human placement, incoming receipt
 and suppression, and zoomed origin/dock robber drags. Settings still exposed
@@ -161,3 +167,36 @@ confirmed Build 16 was the latest; no new upload has happened yet.
 footer fit; the Year of Plenty artwork, two-resource effect, New-this-turn
 explanation and View/Continue actions fit without clipping. A native 375-point
 run is separately exercising those actions, quantities and confirmation.
+
+Small-phone native receipt `/tmp/empires-human-review-375-final.xcresult`:
+10 of 11 tests passed, no skips. CPU Skip/mandatory confirmation, Settings
+hold/menu resume, all three card appearance/usage flows and all five trade
+clarity flows passed. The pending-confirmation test swiped a global
+`scrollViews.firstMatch`, which resolved the covered player HUD scroller at
+`(23,480,329,27.5)`, and its gesture landed on Decline. Video and hierarchy:
+`/tmp/empires-human-review-375-proof/`. Terms and every footer action fit in
+the observed confirmation frame before that erroneous gesture.
+
+An attempted global accessibility-collapse modifier did not remove covered
+elements from XCTest's queries. It was rejected, along with new assertions
+that conflated query existence with accessibility exposure. No claim is made
+that VoiceOver isolation was established by that failed experiment. The final
+fix gives the dialog's actual vertical scroller the `trade.content` identifier
+and scopes native scrolling to that element only. Exact-exchange, receipt,
+footer reachability/position, Trade again and Close assertions are unchanged;
+viewport assertions and tolerances are also unchanged.
+
+Final focused receipt `/tmp/empires-human-review-dialog-target-375.xcresult`:
+exit 0, both the actual 375×667 confirmation/exact trade/receipt/recompose/close
+journey and original six-phase viewport-invariance test passed (no skips).
+Both independent reviewers rechecked the final three-file source/test change
+and found zero verified remaining issues in their respective axes.
+
+Release evidence directory:
+`/Users/alex/Library/Application Support/EmpiresResearch/deliveries/human-review-20261004/`.
+It preserves inspected captures and logs outside transient `/tmp`. The final
+gate uses QA device `07738152-016C-4216-A233-419FA732E9E4` through the existing
+`SETTLERS_QA_SIMULATOR_ID` override. This fresh device is named **Empires QA**
+as the selector requires, and was created because a different agent started
+tests against `937692FF...`; neither that runner nor its device was disturbed.
+The 375-point checks use the separate **Empires SE QA** device `2D63B5E8...`.

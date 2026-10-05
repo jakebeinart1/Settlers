@@ -253,6 +253,7 @@ enum AccessibilityID {
     }
 
     enum Trade {
+        static let content = "trade.content"
         static func bankGive(_ resource: Resource) -> String { "trade.bank.give.\(resource.rawValue)" }
         static func bankGet(_ resource: Resource) -> String { "trade.bank.get.\(resource.rawValue)" }
         static func bankRemove(_ resource: Resource, fromGive: Bool) -> String {
