@@ -226,7 +226,7 @@ struct DevelopmentCardOverlay: View {
     private var header: some View {
         HStack(spacing: 10) {
             Image(systemName: isArmyTab ? "shield.lefthalf.filled"
-                  : mode == .hand ? "rectangle.stack.fill" : "sparkles.rectangle.stack.fill")
+                  : mode == .hand ? "rectangle.stack.fill" : "rectangle.stack.badge.plus")
                 .font(.title3)
                 .foregroundStyle(SettingsChrome.ornamentGold)
             VStack(alignment: .leading, spacing: 2) {
@@ -245,7 +245,7 @@ struct DevelopmentCardOverlay: View {
     private var handStrip: some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
-                Text("YOUR HAND")
+                Text("Your hand")
                     .font(.caption.bold())
                     .foregroundStyle(SettingsChrome.ornamentGold)
                 Spacer()
@@ -258,9 +258,9 @@ struct DevelopmentCardOverlay: View {
                 SettingsInfoPlaque(text: "Your first purchased development card will appear here.")
             } else {
                 ScrollView(.horizontal, showsIndicators: true) {
-                    HStack(spacing: 8) {
+                    HStack(alignment: .top, spacing: 8) {
                         ForEach(inventory) { item in
-                            DevCardHandTile(item: item, isSelected: displayedType == item.type) {
+                            DevCardInventoryTile(item: item, isSelected: displayedType == item.type) {
                                 selectedType = item.type
                             }
                         }
@@ -274,20 +274,7 @@ struct DevelopmentCardOverlay: View {
     private func cardDetail(_ type: DevCardType) -> some View {
         let status = displayedStatus(for: type)
         return VStack(spacing: 12) {
-            DevCardArtwork(type: type)
-
-            VStack(spacing: 5) {
-                Text(DevCardStyle.fullName(for: type))
-                    .font(.system(size: 24, weight: .bold, design: .serif))
-                    .foregroundStyle(.white)
-                    .multilineTextAlignment(.center)
-                    .accessibilityIdentifier(AccessibilityID.DevCards.detail(type))
-                Text(DevCardStyle.effect(for: type))
-                    .font(.system(size: 14, design: .serif))
-                    .foregroundStyle(.white.opacity(0.82))
-                    .multilineTextAlignment(.center)
-                    .fixedSize(horizontal: false, vertical: true)
-            }
+            DevCardFace(type: type, countLabel: detailCount(for: type))
 
             // Only when the card CANNOT be played. A playable card already
             // says so three times over - the hand tile badges it READY, the
@@ -313,6 +300,11 @@ struct DevelopmentCardOverlay: View {
                     .fixedSize(horizontal: false, vertical: true)
             }
         }
+    }
+
+    private func detailCount(for type: DevCardType) -> String {
+        if case .reveal = mode { return "+1 card" }
+        return "×\(inventory.first(where: { $0.type == type })?.held ?? 0)"
     }
 
     /// A purchase reveal describes the one card that just entered the hand,
@@ -362,27 +354,44 @@ struct DevelopmentCardOverlay: View {
             Text(title)
                 .font(.caption.bold())
                 .foregroundStyle(SettingsChrome.ornamentGold)
-            ResourceSlotRow(counts: selected, onTap: onRemove)
-            HStack(spacing: 8) {
-                ForEach(Resource.allCases, id: \.self) { resource in
-                    ResourceChip(
-                        resource: resource,
-                        count: state.bank[resource] ?? 0,
-                        isEnabled: canSelect(resource)
-                    ) {
-                        onSelect(resource)
-                    }
-                    .accessibilityIdentifier(AccessibilityID.DevCards.resource(resource))
-                }
-            }
+            Text("Selected · tap to remove")
+                .font(.caption)
+                .foregroundStyle(DevCardChrome.ivory.opacity(0.8))
+            resourceChoices(counts: selected, isSelection: true,
+                            canSelect: { selected[$0, default: 0] > 0 }, onSelect: onRemove)
+            Text("Bank supply")
+                .font(.caption)
+                .foregroundStyle(DevCardChrome.ivory.opacity(0.8))
+            resourceChoices(counts: state.bank, isSelection: false,
+                            canSelect: canSelect, onSelect: onSelect)
         }
         .padding(10)
-        .background(PaintedChromeBackground(fill: .color(SettingsChrome.plaqueFill), cornerRadius: 10))
+        .background(PaintedChromeBackground(fill: .tintedTexture(DevCardChrome.ink), cornerRadius: 10))
+    }
+
+    private func resourceChoices(
+        counts: [Resource: Int], isSelection: Bool,
+        canSelect: @escaping (Resource) -> Bool, onSelect: @escaping (Resource) -> Void
+    ) -> some View {
+        HStack(alignment: .top, spacing: 6) {
+            ForEach(Resource.allCases, id: \.self) { resource in
+                let count = counts[resource] ?? 0
+                DevCardResourceChoice(resource: resource, count: count,
+                                      isEnabled: canSelect(resource), isSelected: isSelection && count > 0) {
+                    onSelect(resource)
+                }
+                .accessibilityIdentifier(isSelection ? "dev-cards.selected.\(resource.rawValue)"
+                                         : AccessibilityID.DevCards.resource(resource))
+            }
+        }
     }
 
     private var emptyHand: some View {
         VStack(spacing: 14) {
-            DevCardArtwork(type: .victoryPoint, isEmpty: true)
+            Image(systemName: "rectangle.stack.badge.plus")
+                .font(.largeTitle)
+                .foregroundStyle(DevCardChrome.gold)
+                .accessibilityHidden(true)
             Text("No development cards yet")
                 .font(.headline)
                 .foregroundStyle(.white)
@@ -402,7 +411,7 @@ struct DevelopmentCardOverlay: View {
                 GoldRowButton(
                     title: "View My Cards",
                     systemImage: "rectangle.stack.fill",
-                    iconColor: DevCardStyle.color(for: reveal.card)
+                    iconColor: DevCardChrome.gold
                 ) {
                     onViewCards(reveal.card)
                 }
@@ -434,7 +443,7 @@ struct DevelopmentCardOverlay: View {
                         title: playButtonTitle(for: type),
                         subtitle: status.isPlayable ? playButtonSubtitle(for: type) : DevCardStyle.statusTitle(for: status),
                         systemImage: "play.fill",
-                        iconColor: DevCardStyle.color(for: type),
+                        iconColor: DevCardChrome.gold,
                         isEnabled: canSubmit(type, status: status)
                     ) {
                         submit(type)
@@ -535,28 +544,56 @@ struct DevelopmentCardResultOverlay: View {
     let onContinue: () -> Void
 
     var body: some View {
-        PopupCard(onDismiss: {}, content: {
-            VStack(spacing: 14) {
-                DevCardArtwork(type: resolution.card)
-                Text("\(DevCardStyle.fullName(for: resolution.card)) resolved")
-                    .font(.system(size: 22, weight: .bold, design: .serif))
-                    .accessibilityIdentifier(AccessibilityID.DevCards.result)
-                Text(message)
-                    .font(.system(size: 14, design: .serif))
-                    .foregroundStyle(.white.opacity(0.82))
-                    .multilineTextAlignment(.center)
-                    .fixedSize(horizontal: false, vertical: true)
-                GoldRowButton(
-                    title: isWinningResult ? "Claim Victory" : "Continue",
-                    systemImage: isWinningResult ? "crown.fill" : "checkmark",
-                    iconColor: SettingsChrome.ornamentGold,
-                    action: onContinue
-                )
-                .accessibilityIdentifier(AccessibilityID.DevCards.resultContinue)
+        GeometryReader { geometry in
+            ZStack {
+                Color.black.opacity(0.68).ignoresSafeArea()
+                ViewThatFits(in: .vertical) {
+                    panel(scrolling: false, maxHeight: nil)
+                    panel(scrolling: true, maxHeight: max(320, geometry.size.height - 28))
+                }
             }
-            .padding(18)
-            .frame(maxWidth: 330)
-        })
+        }
+        .transition(.opacity)
+    }
+
+    /// Result text can grow with names and Dynamic Type. Only the message
+    /// scrolls; the explicit acknowledgement must always remain reachable.
+    private func panel(scrolling: Bool, maxHeight: CGFloat?) -> some View {
+        VStack(spacing: 14) {
+            Text("\(DevCardStyle.fullName(for: resolution.card)) resolved")
+                .font(.title2.bold())
+                .multilineTextAlignment(.center)
+                .fixedSize(horizontal: false, vertical: true)
+                .accessibilityIdentifier(AccessibilityID.DevCards.result)
+            if scrolling {
+                ScrollView { resultContent }.scrollIndicators(.visible)
+            } else {
+                resultContent
+            }
+            GoldRowButton(
+                title: isWinningResult ? "Claim Victory" : "Continue",
+                systemImage: isWinningResult ? "crown.fill" : "checkmark",
+                iconColor: DevCardChrome.gold,
+                action: onContinue
+            )
+            .accessibilityIdentifier(AccessibilityID.DevCards.resultContinue)
+        }
+        .fontDesign(.serif)
+        .foregroundStyle(DevCardChrome.ivory)
+        .padding(18)
+        .frame(maxWidth: 366, maxHeight: maxHeight)
+        .background(PaintedChromeBackground(fill: .tintedTexture(DevCardChrome.ink), cornerRadius: 18))
+        .padding(14)
+    }
+
+    private var resultContent: some View {
+        VStack(spacing: 14) {
+            DevCardIllustration(type: resolution.card)
+            Text(message)
+                .font(.subheadline)
+                .multilineTextAlignment(.center)
+                .fixedSize(horizontal: false, vertical: true)
+        }
     }
 
     private var message: String {
@@ -581,34 +618,6 @@ struct DevelopmentCardResultOverlay: View {
     }
 }
 
-private struct DevCardArtwork: View {
-    let type: DevCardType
-    var isEmpty = false
-
-    var body: some View {
-        ZStack {
-            RoundedRectangle(cornerRadius: 16)
-                .fill(DevCardStyle.color(for: type).opacity(isEmpty ? 0.14 : 0.32).gradient)
-            Circle()
-                .stroke(SettingsChrome.ornamentGold.opacity(0.32), lineWidth: 1)
-                .frame(width: 104, height: 104)
-            Circle()
-                .stroke(.white.opacity(0.16), lineWidth: 1)
-                .frame(width: 78, height: 78)
-            Image(systemName: isEmpty ? "rectangle.stack.badge.plus" : DevCardStyle.icon(for: type))
-                .font(.system(size: 48, weight: .semibold))
-                .foregroundStyle(isEmpty ? .white.opacity(0.5) : DevCardStyle.color(for: type))
-                .shadow(color: .black.opacity(0.5), radius: 4, y: 2)
-        }
-        .frame(height: 124)
-        .overlay(
-            RoundedRectangle(cornerRadius: 16)
-                .strokeBorder(SettingsChrome.ornamentGold.opacity(0.7), lineWidth: 1.25)
-        )
-        .accessibilityHidden(true)
-    }
-}
-
 private struct DevCardStatusPlaque: View {
     let type: DevCardType
     let status: DevCardPlayStatus
@@ -616,7 +625,7 @@ private struct DevCardStatusPlaque: View {
     var body: some View {
         HStack(alignment: .top, spacing: 9) {
             Image(systemName: icon)
-                .foregroundStyle(color)
+                .foregroundStyle(DevCardChrome.gold)
                 .frame(width: 20)
             VStack(alignment: .leading, spacing: 2) {
                 Text(DevCardStyle.statusTitle(for: status))
@@ -644,71 +653,6 @@ private struct DevCardStatusPlaque: View {
         case .notOwned, .waitingForYourTurn, .alreadyPlayedThisTurn,
              .resolveRequiredAction, .noLegalChoices, .gameOver: "hourglass.circle.fill"
         }
-    }
-
-    private var color: Color {
-        status.isPlayable || status == .passiveVictoryPoint ? .green : SettingsChrome.ornamentGold
-    }
-}
-
-private struct DevCardHandTile: View {
-    let item: DevCardInventoryItem
-    let isSelected: Bool
-    let action: () -> Void
-
-    var body: some View {
-        Button(action: action) {
-            VStack(spacing: 4) {
-                Image(systemName: DevCardStyle.icon(for: item.type))
-                    .font(.title3)
-                Text(DevCardStyle.shortName(for: item.type))
-                    .font(.system(size: 10, weight: .bold, design: .serif))
-                    .lineLimit(1)
-                    .minimumScaleFactor(0.75)
-                Text("×\(item.held)")
-                    .font(.caption2.bold())
-                Text(badge)
-                    .font(.system(size: 8, weight: .bold, design: .serif))
-                    .lineLimit(1)
-                    // "1 READY · 1 NEW" is wider than the 70pt tile at 8pt
-                    // serif, and `lineLimit(1)` alone let it hang off both
-                    // sides of the tile rather than truncate. It is the
-                    // longest badge this tile can hold, so it is the one the
-                    // width has to be sized against.
-                    .minimumScaleFactor(0.62)
-            }
-            .foregroundStyle(.white)
-            .padding(.horizontal, 4)
-            .frame(width: 70, height: 76)
-            .background(
-                RoundedRectangle(cornerRadius: 11)
-                    .fill(DevCardStyle.color(for: item.type).opacity(0.48).gradient)
-            )
-            .overlay(
-                RoundedRectangle(cornerRadius: 11)
-                    .strokeBorder(isSelected ? SettingsChrome.ornamentGold : .white.opacity(0.28),
-                                  lineWidth: isSelected ? 2.5 : 1)
-            )
-        }
-        .buttonStyle(.plain)
-        .accessibilityLabel(accessibilityLabel)
-        .accessibilityAddTraits(isSelected ? [.isButton, .isSelected] : [.isButton])
-        .accessibilityIdentifier(AccessibilityID.DevCards.tile(item.type))
-    }
-
-    private var badge: String {
-        if item.status == .passiveVictoryPoint { return "PASSIVE" }
-        if item.ready > 0, item.boughtThisTurn > 0 {
-            return "\(item.ready) READY · \(item.boughtThisTurn) NEW"
-        }
-        if item.ready > 0 { return "\(item.ready) READY" }
-        return "\(item.boughtThisTurn) NEW"
-    }
-
-    private var accessibilityLabel: String {
-        let name = DevCardStyle.fullName(for: item.type)
-        if item.status == .passiveVictoryPoint { return "\(name), \(item.held) owned, passive" }
-        return "\(name), \(item.held) owned, \(item.ready) ready, \(item.boughtThisTurn) new"
     }
 }
 

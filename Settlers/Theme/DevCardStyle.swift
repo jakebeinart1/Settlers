@@ -1,8 +1,8 @@
 import SwiftUI
 import CatanEngine
 
-/// How a development card is drawn: its symbol, its colour, and the two
-/// lengths of name the UI needs.
+/// Names, rules copy, painted material colors and secondary control symbols.
+/// Card faces use `DevCardEmblem`; these SF Symbols are for menu/action chrome.
 ///
 /// This existed twice, byte-for-byte, in `PlayerHUDView` and
 /// `DevCardPopupView` - including the hand-picked
@@ -19,7 +19,7 @@ enum DevCardStyle {
         switch type {
         case .knight: return "shield.fill"
         case .roadBuilding: return "road.lanes"
-        case .yearOfPlenty: return "sparkles"
+        case .yearOfPlenty: return "leaf.fill"
         case .monopoly: return "crown.fill"
         case .victoryPoint: return "star.fill"
         }
@@ -27,11 +27,11 @@ enum DevCardStyle {
 
     static func color(for type: DevCardType) -> Color {
         switch type {
-        case .knight: return .red
-        case .roadBuilding: return .brown
-        case .yearOfPlenty: return .green
-        case .monopoly: return .purple
-        case .victoryPoint: return Color(red: 0.85, green: 0.65, blue: 0.1)
+        case .knight: return Color(red: 0.52, green: 0.25, blue: 0.22)
+        case .roadBuilding: return Color(red: 0.43, green: 0.32, blue: 0.18)
+        case .yearOfPlenty: return Color(red: 0.19, green: 0.33, blue: 0.24)
+        case .monopoly: return Color(red: 0.35, green: 0.26, blue: 0.41)
+        case .victoryPoint: return Color(red: 0.46, green: 0.36, blue: 0.16)
         }
     }
 
