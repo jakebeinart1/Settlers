@@ -155,14 +155,22 @@ private struct ReplayExportActivityView: UIViewControllerRepresentable {
     let completion: @MainActor @Sendable (String?) -> Void
 
     func makeUIViewController(context: Context) -> UIActivityViewController {
-        let controller = UIActivityViewController(activityItems: [url], applicationActivities: nil)
-        let completion = completion
-        controller.completionWithItemsHandler = { _, _, _, error in
-            let message = error?.localizedDescription
-            Task { @MainActor in completion(message) }
-        }
-        return controller
+        makeReplayShareController(url: url, completion: completion)
     }
 
     func updateUIViewController(_ controller: UIActivityViewController, context: Context) { }
+}
+
+@MainActor
+func makeReplayShareController(url: URL,
+                               completion: @escaping @MainActor @Sendable (String?) -> Void) -> UIActivityViewController {
+    let controller = UIActivityViewController(activityItems: [url], applicationActivities: nil)
+    // No Photos-saving feature or add-only purpose key ships in this release;
+    // exclude that destination as containment, not a claim of an observed crash.
+    controller.excludedActivityTypes = [.saveToCameraRoll]
+    controller.completionWithItemsHandler = { _, _, _, error in
+        let message = error?.localizedDescription
+        Task { @MainActor in completion(message) }
+    }
+    return controller
 }

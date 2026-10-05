@@ -125,6 +125,7 @@
 		758F5A022D28D6F341FF9EA4 /* ReplayVideoExport.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D006923508FC7AB94A24DE7 /* ReplayVideoExport.swift */; };
 		7614D4F1B819187A5F351F07 /* ExpertArchiveRevisionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 683ECF71CF44AA2B5570CFB6 /* ExpertArchiveRevisionTests.swift */; };
 		7678F2D966C6DDD39D673266 /* IncomingTradeCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F34A579755CFBDEAF52EBB70 /* IncomingTradeCardView.swift */; };
+		76A27E5A95C93A5C974609A8 /* ReplayShareControllerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8B1539A46D97D5DD687CEE83 /* ReplayShareControllerTests.swift */; };
 		77DC999EE0ACE535C8F2F602 /* BotTurnStatusView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7B68650395A19041B3EDAC40 /* BotTurnStatusView.swift */; };
 		7875258FF9B3D387486F1270 /* HumanDecisionProvenanceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1376D1017BA606A83286D8A7 /* HumanDecisionProvenanceTests.swift */; };
 		7964644D00DF2FEC1A679797 /* GhostPickerPopup.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECB51DFDE72A08093F517F2E /* GhostPickerPopup.swift */; };
@@ -376,6 +377,7 @@
 		88800C7E1CD92965B59C885F /* ResourceProductionFlowTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ResourceProductionFlowTests.swift; sourceTree = "<group>"; };
 		89917EB0AA326575B8F5F22C /* RulebookContentTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RulebookContentTests.swift; sourceTree = "<group>"; };
 		8B132570ABBBFF851519647A /* GhostTrainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GhostTrainer.swift; sourceTree = "<group>"; };
+		8B1539A46D97D5DD687CEE83 /* ReplayShareControllerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReplayShareControllerTests.swift; sourceTree = "<group>"; };
 		8BC4427BD3E30FD0F5F9E9CC /* SettingsChrome.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsChrome.swift; sourceTree = "<group>"; };
 		8C2F5AA2574FC0C8D7590DBB /* EloTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EloTests.swift; sourceTree = "<group>"; };
 		8DDA700575394DF91917C2EE /* GameViewModel+Recovery.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "GameViewModel+Recovery.swift"; sourceTree = "<group>"; };
@@ -590,6 +592,7 @@
 				977929BB6202A8BD5352A90D /* ReplayExportModelTests.swift */,
 				9572CD596EA70726F9201B13 /* ReplayExportPresentationTests.swift */,
 				B9E0A795717C4CDE2E7F00C5 /* ReplayExportSequenceTests.swift */,
+				8B1539A46D97D5DD687CEE83 /* ReplayShareControllerTests.swift */,
 				E691FB4FCBCA2463C32C4115 /* ReplayVideoExporterTests.swift */,
 				CBB4F92ADCFC05C7711F29E5 /* ResourceProductionFeedbackTests.swift */,
 				E0675F5FEBC91C411DE65811 /* RobberConfirmationTests.swift */,
@@ -1212,6 +1215,7 @@
 				2E3E01EFD64E98D68A9661C6 /* ReplayExportModelTests.swift in Sources */,
 				364E1C9BF8584106889C1D36 /* ReplayExportPresentationTests.swift in Sources */,
 				AD0D8966BA405421AB6B3180 /* ReplayExportSequenceTests.swift in Sources */,
+				76A27E5A95C93A5C974609A8 /* ReplayShareControllerTests.swift in Sources */,
 				A27B6514B3679A57FD9E1B4F /* ReplayVideoExporterTests.swift in Sources */,
 				B04C2FE66B8D6803F5E367F4 /* ResourceProductionFeedbackTests.swift in Sources */,
 				174F9D80368C548D93E1A7D3 /* RobberConfirmationTests.swift in Sources */,

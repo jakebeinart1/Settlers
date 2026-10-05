@@ -5,8 +5,9 @@ Integration: `/Users/alex/.codex/worktrees/expert-city-integration/Settlers`,
 branch `codex/human-review-20261004`. The primary checkout and separate Expert
 experiments belong to other agents and are not edited here.
 
-**Current release verdict, October 5: hold for the final full gate.** Three push
-attempts were refused; none created a remote branch or delivered Build 17.
+**Current release verdict, October 5: hold for the sharing follow-up and final
+release checks.** Three earlier push attempts were refused. The full gate at
+`b9753d1` passed and its branch pushed; nothing is merged or delivered yet.
 Focused visual/interaction passes below are not a substitute for that gate.
 
 ## Interpretation, scope and acceptance
@@ -302,3 +303,46 @@ holding the actual runner without changing state/session/revision. Engine
 receipt: `terminal-trade-owned.log`, exit 0, two functions/three cases passed.
 Strict lint and diff whitespace checks passed. The terminal fix and fixture
 correction still require the next complete gate before publication.
+
+## First complete green gate, then final sharing containment
+
+`push-gate-current.log` at `b9753d1f42fbebe2e2137e7bb286c216b794e9a6`
+passed every required gate: 52 evaluation-tool tests, 311 engine tests, 260 AI
+tests, 96.17% / 96.35% coverage, strict lint, generated project, W=E builds,
+secret scan, hosted/native suites and Release. App stage: 2,360 seconds; hosted
+Swift Testing: 512 functions in 70 suites, 595.701 seconds. Modern result:
+628 tests, 627 passed, zero failed, one skipped; 1,117 executions passed.
+The real seven/cold-resume journey passed. Only the 375×667 destination-specific
+case skipped; its dedicated earlier native proof is above. Debug build was not
+requested separately, but the app tests compiled Debug. Push exited 0.
+
+The source bundle in the delivery packet passed `git bundle verify` and records
+full history at that exact commit. This is not the final source after the small
+sharing containment below; regenerate the release snapshot before shipping.
+
+H7 last-mile safety review found a configuration gap, **not a reproduced crash**:
+MP4 URLs enter an unrestricted activity sheet but the bundle has no Photos
+add-only purpose key. Apple documents the write-access purpose-key requirement:
+https://developer.apple.com/documentation/bundleresources/information-property-list/nsphotolibraryaddusagedescription
+and the built-in video-saving activity:
+https://developer.apple.com/documentation/uikit/uiactivity/activitytype-swift.struct/savetocameraroll
+No claim is made about the system's permission/hiding behavior on every OS.
+Direct camera-roll saving is excluded conservatively; no Photos permission or
+feature is introduced. All other activities and callback/file lifetimes remain
+unchanged. Public MP4 preview/native sharing remain the accepted product.
+
+The SDK-controller exclusion regression was observed red (nil exclusions), one
+test/one issue, exit 65 (`share-red.log`). Callback tests use a dummy URL to
+verify real UIKit configuration and forwarding, not recipient delivery. A
+separate actual-MP4 native rerun covers creation, preview, native share-sheet
+opening/cancellation, retained preview and return to replay. Opening the sheet
+does not prove another app or person received the video.
+
+Sharing follow-up receipt: `share-green.log` /
+`/tmp/empires-human-review-share-green.xcresult`, exit 0. Three test functions /
+five executions passed, no failures/skips: exact UIKit exclusion, installed
+success/cancellation/error callbacks, and the actual MP4 native journey.
+Strict lint and whitespace checks passed. Final publication reruns every gate
+on this follow-up source with the repository's supported two-worker default
+and two compiler batches. This is one xcodebuild process using separate cloned
+QA devices, not two competing builds; current free memory/disk are rechecked.
