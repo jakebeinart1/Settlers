@@ -49,6 +49,11 @@ public struct BoardView: View {
     /// composing with the latter squares the magnification every frame.
     @State var gestureAnchor: BoardCamera?
 
+    /// Captured drag ownership and cancellation-reset finger feedback. Kept
+    /// apart from the pinch anchor so piece drags cannot pan the camera.
+    @State var boardDrag: BoardGestureRouter?
+    @GestureState var boardDragLocation: CGPoint?
+
     public init(
         state: GameState,
         playerIdentity: @escaping (PlayerID) -> PlayerIdentity = CatanTheme.playerIdentity,
@@ -153,6 +158,8 @@ public struct BoardView: View {
                         onSelectTarget: onSelectTarget
                     )
                 }
+
+                robberDragFeedback
             }
             .coordinateSpace(name: BoardDecisionCoordinateSpace.name)
             // THE VIEWPORT. Everything the board draws is cut off at this
@@ -181,7 +188,19 @@ public struct BoardView: View {
             // above they stay live during inspect-only decisions - looking
             // around the board is exactly what an inspect-only mode is for.
             .simultaneousGesture(pinch(fit: fit, container: proxy.size, center: center))
-            .simultaneousGesture(drag(fit: fit, container: proxy.size))
+            .simultaneousGesture(routedDrag(fit: fit, container: proxy.size, geometry: geometry))
+            .onChange(of: boardDragLocation) { _, location in
+                if location == nil { boardDrag = nil }
+            }
+            .onChange(of: gestureAnchor != nil) { _, isPinching in
+                if isPinching { boardDrag?.cancel() }
+            }
+            .onChange(of: allowsGameCommands) { _, isEnabled in
+                if !isEnabled { boardDrag?.cancel() }
+            }
+            .onChange(of: decision) {
+                if boardDrag?.origin == .robber { boardDrag?.cancel() }
+            }
             // Bottom-LEADING, not trailing: the bottom-right corner already
             // belongs to the drag cradle, which is centered 35pt in from both
             // edges (`BoardDecisionCradleLayer.Layout.cradleEdgeInset`) and so
@@ -262,7 +281,8 @@ public struct BoardView: View {
 
     private func drawCanonicalRobber(geometry: HexGeometry, in context: GraphicsContext) {
         let number = board.tiles.first { $0.coordinate == board.robberTile }?.numberToken
-        if decision?.intent.isRobber == true {
+        let isDraggingRobber = boardDrag?.origin == .robber && boardDragLocation != nil
+        if decision?.intent.isRobber == true, decision?.selectedTile != nil || isDraggingRobber {
             TileDrawing.drawRobberOrigin(
                 at: board.robberTile,
                 number: number,
@@ -361,6 +381,9 @@ public struct BoardView: View {
                 label: "Current robber territory",
                 value: "Origin; the robber has not moved"
             )
+            .accessibilityHint(allowsGameCommands
+                ? "Drag this robber to a highlighted territory, or tap a highlighted territory. Confirm in the board action dock."
+                : "Board inspection only.")
             if let selectedTile = decision.selectedTile {
                 boardMarker(
                     position: geometry.center(of: selectedTile),
