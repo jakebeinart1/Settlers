@@ -96,7 +96,7 @@ final class GameplayBoundaryFlowTests: XCTestCase {
         assertHumanResources(brick: 1, grain: 0, in: app)
     }
 
-    func testIncomingReceiptHoldsAnotherOfferDuringBotTurn() {
+    func testIncomingReceiptHoldsProgressThenSuppressesTheSecondOfferFromTheSameBotTurn() {
         continueAfterFailure = false
         let app = launch(arguments: ["-qaAutoStart", "-qaShowIncomingOffer", "-qaQueuedBotOffers"])
         let accept = app.buttons["incoming-trade.accept"]
@@ -108,11 +108,12 @@ final class GameplayBoundaryFlowTests: XCTestCase {
         DispatchQueue.main.asyncAfter(deadline: .now() + Self.holdPastDefaultTimerSeconds) { held.fulfill() }
         wait(for: [held], timeout: Self.timerTestTimeoutSeconds)
         XCTAssertTrue(app.staticTexts["Trade complete"].exists)
-        app.buttons["Close trade"].tap()
-        XCTAssertTrue(accept.waitForExistence(timeout: 3), "Queued offer must not auto-reject behind the receipt")
         XCTAssertEqual(resourceCount(.brick, in: app), "1")
         XCTAssertEqual(resourceCount(.grain, in: app), "1")
-        app.buttons["incoming-trade.reject"].tap()
+        app.buttons["Close trade"].tap()
+        XCTAssertTrue(app.buttons["bot-progress.skip"].waitForExistence(timeout: 3),
+                      "Closing the receipt must suppress the extra interruption and resume CPU work")
+        XCTAssertFalse(accept.exists, "One bot turn must not ask for a second human trade decision")
     }
 
     func testIncomingTradeTimerStopsWhileSettingsAreOpen() {

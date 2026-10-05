@@ -43,10 +43,14 @@ public struct DecisionRecord: Codable, Sendable, Equatable {
 public struct LoggedMove: Sendable {
     public let player: PlayerID
     public let move: GameMove
+    /// Housekeeping still changes the replay state but is not a preference.
+    /// Default true preserves callers and historical logs without provenance.
+    public let isHumanDecision: Bool
 
-    public init(player: PlayerID, move: GameMove) {
+    public init(player: PlayerID, move: GameMove, isHumanDecision: Bool = true) {
         self.player = player
         self.move = move
+        self.isHumanDecision = isHumanDecision
     }
 }
 

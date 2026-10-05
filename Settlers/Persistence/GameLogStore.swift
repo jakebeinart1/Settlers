@@ -25,6 +25,21 @@ public struct GameLogEvent: Sendable, Equatable {
     public let timestamp: Date
     public let player: PlayerID
     public let move: GameMove
+    /// Nil means the archive did not record this move's rules version. Unlike
+    /// checkpoint schema migration, JSONL has no basis for assuming version 1.
+    public let rulesVersion: Int?
+    /// False excludes an automatic seat action from training, not replay.
+    /// Archives without origin metadata retain their prior true default.
+    public let isHumanDecision: Bool
+
+    public init(timestamp: Date, player: PlayerID, move: GameMove, rulesVersion: Int? = nil,
+                isHumanDecision: Bool = true) {
+        self.timestamp = timestamp
+        self.player = player
+        self.move = move
+        self.rulesVersion = rulesVersion
+        self.isHumanDecision = isHumanDecision
+    }
 }
 
 public struct GameLogDetail: Sendable, Equatable {
@@ -196,6 +211,8 @@ public struct GameLogStore: Sendable {
         var appVersion: String?
         var player: PlayerID?
         var move: GameMove?
+        var rulesVersion: Int?
+        var isHumanDecision: Bool?
         var winner: PlayerID?
         var elapsedSeconds: TimeInterval?
     }
@@ -215,10 +232,11 @@ public struct GameLogStore: Sendable {
         return id
     }
 
-    public func appendMove(gameID: UUID, player: PlayerID, move: GameMove) throws {
+    public func appendMove(gameID: UUID, player: PlayerID, move: GameMove, isHumanDecision: Bool = true) throws {
         try write(Entry(kind: .move, timestamp: Date(), logSchemaVersion: nil,
                     initialState: nil, roster: nil, appVersion: nil,
-                    player: player, move: move, winner: nil), gameID: gameID)
+                    player: player, move: move, rulesVersion: RulesEngine.currentRulesVersion,
+                    isHumanDecision: isHumanDecision, winner: nil), gameID: gameID)
     }
 
     public func finalizeGame(gameID: UUID, winner: PlayerID) throws {
@@ -240,7 +258,8 @@ public struct GameLogStore: Sendable {
                              initialState: checkpoint.initialState, roster: roster,
                              elapsedSeconds: checkpoint.elapsedSeconds)]
         entries += checkpoint.moves.map {
-            Entry(kind: .move, timestamp: $0.timestamp, player: $0.actor, move: $0.move)
+            Entry(kind: .move, timestamp: $0.timestamp, player: $0.actor, move: $0.move,
+                  rulesVersion: $0.rulesVersion, isHumanDecision: $0.isHumanDecision)
         }
         if case .gameOver(let winner) = checkpoint.state.phase {
             entries.append(Entry(kind: .end,
@@ -360,7 +379,8 @@ public struct GameLogStore: Sendable {
 
         let moves = parsed.entries.compactMap { entry -> GameLogEvent? in
             guard entry.kind == .move, let player = entry.player, let move = entry.move else { return nil }
-            return GameLogEvent(timestamp: entry.timestamp, player: player, move: move)
+            return GameLogEvent(timestamp: entry.timestamp, player: player, move: move, rulesVersion: entry.rulesVersion,
+                                isHumanDecision: entry.isHumanDecision ?? true)
         }
         let end = parsed.entries.last(where: { $0.kind == .end })
         let lastTimestamp = end?.timestamp ?? moves.last?.timestamp ?? start.timestamp

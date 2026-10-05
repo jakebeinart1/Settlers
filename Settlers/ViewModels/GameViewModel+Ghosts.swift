@@ -78,7 +78,9 @@ extension GameViewModel {
         let entities = setup.seats.map { Self.ratedEntity(for: $0, in: setup, me: me) }
         let game = LoggedGame(id: match.id.uuidString, initialState: match.initialState,
                               humanSeats: [PlayerID(index: human.index)],
-                              events: match.moves.map { LoggedMove(player: $0.actor, move: $0.move) })
+                              events: match.moves.map {
+                                  LoggedMove(player: $0.actor, move: $0.move, isHumanDecision: $0.isHumanDecision)
+                              })
         do {
             try ratingStore.record(match: match.id, seats: entities, winner: winner.index)
             let stats = try SeatStats.compute(initial: game.initialState, moves: game.events)
@@ -150,7 +152,9 @@ extension GameViewModel {
                       detail.initialState.variant == .standard, let human = summary.humanSeats.first,
                       let name = detail.roster.humanNames[human.index] else { return nil }
                 let game = LoggedGame(id: summary.gameID.uuidString, initialState: detail.initialState, humanSeats: [human],
-                                      events: detail.events.map { LoggedMove(player: $0.player, move: $0.move) })
+                                      events: detail.events.map {
+                                          LoggedMove(player: $0.player, move: $0.move, isHumanDecision: $0.isHumanDecision)
+                                      })
                 return CatchUpGame(match: summary.gameID, game: game, human: human, personID: me, personName: name)
             }
     }

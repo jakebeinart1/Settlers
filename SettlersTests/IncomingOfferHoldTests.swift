@@ -34,10 +34,21 @@ private func gameAwaitingAnswer(humanHolds: [Resource: Int],
 }
 
 @MainActor
-@Test func anOfferTheHumanCanHonourStopsTheBots() {
+@Test func anOfferTheHumanCanHonourStopsTheBots() async throws {
     let model = gameAwaitingAnswer(humanHolds: [.grain: 2], botHolds: [.ore: 1],
                                    botOffers: [.ore: 1], botWants: [.grain: 1])
+    // Raw fixture replacement is not presentation: the runner must reserve
+    // the offer durably before either the card or its hold becomes visible.
+    try model.reconcileHumanTradeOffers()
     #expect(model.openIncomingOffer != nil, "a live, affordable offer must hold the loop")
+    let state = model.state
+    let session = model.session.checkpoint
+    let revision = model.checkpointDocument?.revision
+    await model.runBotTurnIfNeeded()
+    #expect(model.openIncomingOffer != nil, "the bot cannot clear an unanswered human decision")
+    #expect(model.state == state)
+    #expect(model.session.checkpoint == session)
+    #expect(model.checkpointDocument?.revision == revision)
 }
 
 @MainActor

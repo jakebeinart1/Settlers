@@ -1,44 +1,21 @@
 import SwiftUI
 import CatanEngine
 
-/// Shared "resource chip" button - a resource-colored rounded square with the
-/// count printed underneath - used by every give/want/discard-style popup
-/// (`TradePopupView`, `DiscardPopupView`, `DevCardPopupView`'s
-/// Monopoly/Year of Plenty picker) so their trays and slots look and behave
-/// the same.
-///
-/// ## Why this is a flat square again, not painted hex art
-/// It spent a while as painted resource-card artwork (bricks, a sheaf of
-/// wheat, ...) on a gold-rimmed hexagon, specifically so a new player could
-/// identify a resource without already knowing "grey means ore." That
-/// tradeoff is a real one - a flat color square asks the player to have
-/// learned the mapping - but Jake asked for it back explicitly: these
-/// popups should match the resource squares already on the board itself
-/// (`PlayerHUDView.resourceDot`, the human's own hand row), not introduce a
-/// second, different-shaped vocabulary for what is the same information.
-/// Consistency with the one row the player checks every turn won this over
-/// the new-player-legibility case for these transient pickers.
-///
-/// The count sits below the square as its own `Text`, matching
-/// `resourceDot` exactly, rather than a corner badge - a badge was needed
-/// only to stay legible over painted artwork; over a flat color it is not,
-/// and matching the board's own layout is the point.
+/// Shared resource button. Existing pickers keep their compact swatch;
+/// the trade composer opts into named commodity artwork because an exchange
+/// must be understandable without memorizing the HUD's five-color key.
 struct ResourceChip: View {
+    enum Appearance { case swatch, illustrated }
+
     let resource: Resource
     let count: Int?
     var isEnabled: Bool = true
-    /// A gold ring around the square. Marks a card that is actually part of
-    /// the offer, which is what distinguishes a staged slot row from the
-    /// palette below it - the rows are otherwise the same five cards.
-    ///
-    /// A stroked outline was rejected once before, on the painted-hex
-    /// version, because the art's hexagon didn't stay in register with a
-    /// drawn hex path. That problem is gone now that the shape being
-    /// stroked is the `RoundedRectangle` actually being drawn, not
-    /// artwork inset inside one - so a plain stroke is the simplest thing
-    /// that works.
+    /// Selection rims the actual button surface, never a hand-drawn hex that
+    /// could drift out of register with the resource art's painted border.
     var isSelected: Bool = false
     var size: CGFloat = ResourceChip.defaultSize
+    var appearance: Appearance = .swatch
+    var accent: Color = CatanTheme.chipGold
     let action: () -> Void
 
     /// Bigger than the 18pt swatch `PlayerHUDView.resourceDot` uses on the
@@ -52,6 +29,21 @@ struct ResourceChip: View {
 
     var body: some View {
         Button(action: action) {
+            chipContent
+                .frame(minWidth: 44, minHeight: 44)
+                .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(Text(accessibilityText))
+        .disabled(!isEnabled)
+        // Identity and staged quantity stay readable even when adding is blocked.
+        .opacity(isEnabled || (appearance == .illustrated && isSelected) ? 1 : 0.6)
+    }
+
+    @ViewBuilder
+    private var chipContent: some View {
+        switch appearance {
+        case .swatch:
             VStack(spacing: 3) {
                 RoundedRectangle(cornerRadius: 4)
                     .fill(CatanTheme.color(for: resource))
@@ -70,17 +62,34 @@ struct ResourceChip: View {
                     .foregroundStyle(CatanTheme.onWaterText)
                     .opacity(count == nil ? 0 : 1)
             }
-            // The painted square stays compact enough for five across on a
-            // 375pt phone, while the button's actual target meets the 44pt
-            // minimum used by every mandatory-decision control.
-            .frame(minWidth: 44, minHeight: 44)
-            .accessibilityLabel(Text(accessibilityText))
+        case .illustrated:
+            illustratedContent
         }
-        .disabled(!isEnabled)
-        // Gentle: a heavily faded card takes on the blue behind it. A card you
-        // cannot tap still has to be readable, because reading it is how you
-        // learn you hold none.
-        .opacity(isEnabled ? 1 : 0.6)
+    }
+
+    private var illustratedContent: some View {
+        VStack(spacing: 2) {
+            Image(CatanTheme.iconImageName(for: resource))
+                .resizable()
+                .scaledToFit()
+                .frame(width: size, height: size)
+                .accessibilityHidden(true)
+            Text(resource.rawValue.capitalized)
+                .font(.system(size: 11, weight: .semibold, design: .serif))
+                .foregroundStyle(CatanTheme.onWaterText)
+            HStack(spacing: 4) {
+                Text("\(count ?? 0)").monospacedDigit()
+                Image(systemName: "plus.circle.fill")
+                    .opacity(isEnabled ? 1 : 0.35)
+            }
+            .font(.system(size: 15, weight: .bold))
+            .foregroundStyle(accent)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 4)
+        .background(isSelected ? accent.opacity(0.13) : Color.black.opacity(0.12),
+                    in: RoundedRectangle(cornerRadius: 8))
+        .overlay(RoundedRectangle(cornerRadius: 8).strokeBorder(accent.opacity(isSelected ? 0.8 : 0.22)))
     }
 
     /// Spoken form - VoiceOver reads the color square as decorative

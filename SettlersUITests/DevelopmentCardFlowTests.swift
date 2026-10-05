@@ -94,7 +94,8 @@ final class DevelopmentCardFlowTests: XCTestCase {
         app.buttons["dev-cards.tile.roadBuilding"].tap()
 
         XCTAssertTrue(app.staticTexts["dev-cards.detail.roadBuilding"].exists)
-        XCTAssertTrue(app.staticTexts["1 READY · 1 NEW"].exists)
+        XCTAssertEqual(app.buttons["dev-cards.tile.roadBuilding"].value as? String,
+                       "1 held, 1 new. One card already played")
         XCTAssertTrue(app.staticTexts["One card already played"].exists)
         let play = app.buttons["dev-cards.play.roadBuilding"]
         XCTAssertTrue(play.exists)

@@ -30,7 +30,9 @@ public enum DecisionExtractor {
         var records: [DecisionRecord] = []
         for (index, event) in game.events.enumerated() {
             do {
-                if game.humanSeats.contains(event.player),
+                // Provenance gates learning, never application: later choices
+                // need the state after every automatic rejection and timeout.
+                if event.isHumanDecision, game.humanSeats.contains(event.player),
                    let found = try decision(for: event, in: session, game: game.id, anchor: anchor,
                                             humanTrading: humanTrading) {
                     records.append(found)

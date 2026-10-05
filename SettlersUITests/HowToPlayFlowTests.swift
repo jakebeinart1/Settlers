@@ -8,6 +8,27 @@ import XCTest
 final class HowToPlayFlowTests: XCTestCase {
     private static let walkthroughSteps = 10
 
+    func testRulebookOpensInsidePausedMatchAndReturnsToSettings() {
+        continueAfterFailure = false
+        let app = XCUIApplication()
+        app.launchArguments = ["-ui-testing", "-ui-testing-reset", "-qaAutoStart", "-qaShowPauseMenu"]
+        app.launch()
+        let settings = app.otherElements["screen.in-game-settings"]
+        XCTAssertTrue(settings.waitForExistence(timeout: 5))
+        let rulebook = app.buttons["in-game-settings.rulebook"]
+        for _ in 0..<4 where !rulebook.isHittable { app.scrollViews.firstMatch.swipeUp() }
+        XCTAssertTrue(rulebook.isHittable)
+        rulebook.tap()
+        XCTAssertTrue(app.otherElements["screen.how-to-play"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.buttons["how-to-play.details.goal"].exists, "The in-game rulebook must open Rules, not a tutorial")
+        XCTAssertTrue(app.staticTexts.containing(NSPredicate(format: "label CONTAINS %@", "points")).firstMatch.exists)
+        attach(app, "active-match-rulebook")
+        app.buttons["how-to-play.close"].tap()
+        XCTAssertTrue(settings.waitForExistence(timeout: 5), "Rulebook dismissal must return to the paused settings")
+        app.buttons["in-game-settings.close"].tap()
+        XCTAssertTrue(app.otherElements["screen.game"].waitForExistence(timeout: 5))
+    }
+
     func testWalkthroughRulesAndModesAreReachableFromTheMenu() {
         continueAfterFailure = false
         let app = XCUIApplication()

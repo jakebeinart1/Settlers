@@ -66,21 +66,27 @@ struct MatchCheckpoint: Codable, Equatable, Sendable {
         /// Missing means version 1 because checkpoints shipped before this
         /// field existed; every new move writes the current version explicitly.
         let rulesVersion: Int
+        /// False for app housekeeping attributed to a human seat (automatic
+        /// rejection or timeout), which must replay but must not teach a ghost.
+        /// Old saves lack provenance and retain the prior training behavior.
+        let isHumanDecision: Bool
 
         init(
             actor: PlayerID,
             move: GameMove,
             timestamp: Date,
-            rulesVersion: Int = RulesEngine.currentRulesVersion
+            rulesVersion: Int = RulesEngine.currentRulesVersion,
+            isHumanDecision: Bool = true
         ) {
             self.actor = actor
             self.move = move
             self.timestamp = timestamp
             self.rulesVersion = rulesVersion
+            self.isHumanDecision = isHumanDecision
         }
 
         private enum CodingKeys: String, CodingKey {
-            case actor, move, timestamp, rulesVersion
+            case actor, move, timestamp, rulesVersion, isHumanDecision
         }
 
         init(from decoder: Decoder) throws {
@@ -90,6 +96,7 @@ struct MatchCheckpoint: Codable, Equatable, Sendable {
             timestamp = try values.decode(Date.self, forKey: .timestamp)
             rulesVersion = try values.decodeIfPresent(Int.self, forKey: .rulesVersion)
                 ?? RulesEngine.oldestSupportedRulesVersion
+            isHumanDecision = try values.decodeIfPresent(Bool.self, forKey: .isHumanDecision) ?? true
         }
 
         func encode(to encoder: Encoder) throws {
@@ -98,6 +105,7 @@ struct MatchCheckpoint: Codable, Equatable, Sendable {
             try values.encode(move, forKey: .move)
             try values.encode(timestamp, forKey: .timestamp)
             try values.encode(rulesVersion, forKey: .rulesVersion)
+            try values.encode(isHumanDecision, forKey: .isHumanDecision)
         }
     }
 
@@ -122,7 +130,8 @@ struct MatchCheckpoint: Codable, Equatable, Sendable {
         _ move: GameMove,
         by actor: PlayerID,
         timestamp: Date = Date(),
-        rulesVersion: Int = RulesEngine.currentRulesVersion
+        rulesVersion: Int = RulesEngine.currentRulesVersion,
+        isHumanDecision: Bool = true
     ) throws {
         var candidate = state
         try RulesEngine.replay(move, by: actor, rulesVersion: rulesVersion, to: &candidate)
@@ -131,7 +140,8 @@ struct MatchCheckpoint: Codable, Equatable, Sendable {
             actor: actor,
             move: move,
             timestamp: timestamp,
-            rulesVersion: rulesVersion
+            rulesVersion: rulesVersion,
+            isHumanDecision: isHumanDecision
         ))
         sessionCheckpoint = nil
     }
@@ -312,6 +322,9 @@ struct MatchCheckpointDocument: Codable, Equatable, Sendable {
     /// checkpoint prevents a successful effect from becoming invisible if the
     /// process stops between the game commit and the result card rendering.
     private(set) var pendingDevCardResolution: DevCardResolution?
+    /// Optional app-owned interruption accounting. Old checkpoints decode nil;
+    /// engine state, policy revisions and saved RNG are unaffected.
+    private(set) var humanTradePolicies: [Int: HumanTradeOfferPolicy]?
 
     init(activeMatch: MatchCheckpoint?, revision: Int = 0) {
         self.schemaVersion = Self.currentSchemaVersion
@@ -351,12 +364,13 @@ struct MatchCheckpointDocument: Codable, Equatable, Sendable {
     /// Build an unpublished candidate. The caller commits it before exposing
     /// its state; failures leave this document unchanged. A winning move and
     /// its accounting receipt belong to the same revision.
-    func applying(_ move: GameMove, by actor: PlayerID, elapsedSeconds: TimeInterval) throws -> Self {
+    func applying(_ move: GameMove, by actor: PlayerID, elapsedSeconds: TimeInterval,
+                  isHumanDecision: Bool = true) throws -> Self {
         guard var match = activeMatch, revision < Int.max else {
             throw MatchCheckpointStore.StoreError.staleRevision
         }
         try match.recordElapsedTime(elapsedSeconds)
-        try match.apply(move, by: actor)
+        try match.apply(move, by: actor, isHumanDecision: isHumanDecision)
         var next = self
         next.activeMatch = match
         if case .gameOver = match.state.phase { try next.recordCompletion(duration: elapsedSeconds) }
@@ -368,11 +382,15 @@ struct MatchCheckpointDocument: Codable, Equatable, Sendable {
     /// Replay verifies the step agrees with that session before either reaches
     /// disk. The caller keeps the candidate session, rather than rebuilding it.
     func recording(_ step: GameSession.Step, session: GameSession.Checkpoint,
-                   elapsedSeconds: TimeInterval) throws -> Self {
+                   elapsedSeconds: TimeInterval,
+                   tradePolicies: [Int: HumanTradeOfferPolicy]? = nil,
+                   isHumanDecision: Bool = true) throws -> Self {
         guard pendingDevCardReveal == nil, pendingDevCardResolution == nil else {
             throw MatchCheckpointStore.StoreError.pendingAcknowledgement
         }
-        var next = try applying(step.move, by: step.actor, elapsedSeconds: elapsedSeconds)
+        var next = try applying(step.move, by: step.actor, elapsedSeconds: elapsedSeconds,
+                                isHumanDecision: isHumanDecision)
+        if let tradePolicies { next.humanTradePolicies = tradePolicies }
         try next.activeMatch?.attachSession(session)
         if next.activeMatch?.setup.humanSeats.contains(where: { $0.index == step.actor.index }) == true {
             for case .boughtDevCard(let owner, let card) in step.privateEvents {
@@ -382,6 +400,18 @@ struct MatchCheckpointDocument: Codable, Equatable, Sendable {
                 next.pendingDevCardResolution = resolution
             }
         }
+        return next
+    }
+
+    /// Reserve a presented offer before its UI appears. No engine move is
+    /// invented; write failures retain the original policy and block progress.
+    func recordingTradePresentations(_ policies: [Int: HumanTradeOfferPolicy]) throws -> Self {
+        guard activeMatch != nil, revision < Int.max else {
+            throw MatchCheckpointStore.StoreError.staleRevision
+        }
+        var next = self
+        next.humanTradePolicies = policies
+        next.revision += 1
         return next
     }
 
@@ -434,6 +464,7 @@ struct MatchCheckpointDocument: Codable, Equatable, Sendable {
         next.activeMatch = match
         next.pendingDevCardReveal = nil
         next.pendingDevCardResolution = nil
+        next.humanTradePolicies = nil
         next.revision += 1
         return next
     }
@@ -497,6 +528,7 @@ struct MatchCheckpointDocument: Codable, Equatable, Sendable {
     /// recording or an archive key referring to a different match identity.
     func validateAuthority() throws {
         try validateStatistics()
+        try validateTradePolicies()
         try validatePendingDevCardOwners()
         try activeMatch?.validateHistory(
             pendingReveal: pendingDevCardReveal,
@@ -536,6 +568,7 @@ struct MatchCheckpointDocument: Codable, Equatable, Sendable {
             return
         }
         try validateStatistics()
+        try validateTradePolicies()
         try validatePendingDevCardOwners()
         try candidate.validateHistory(
             succeeding: earlier,
@@ -552,6 +585,20 @@ struct MatchCheckpointDocument: Codable, Equatable, Sendable {
         guard pendingDevCardReveal.map({ humans.contains($0.owner.index) }) ?? true,
               pendingDevCardResolution.map({ humans.contains($0.owner.index) }) ?? true else {
             throw MatchCheckpointStore.StoreError.inconsistentHistory
+        }
+    }
+
+    private func validateTradePolicies() throws {
+        guard let policies = humanTradePolicies else { return }
+        guard let match = activeMatch else { throw MatchCheckpointStore.StoreError.inconsistentHistory }
+        let humans = Set(match.setup.humanSeats.map(\.index))
+        for (index, policy) in policies {
+            guard humans.contains(index), policy.human.index == index else {
+                throw MatchCheckpointStore.StoreError.inconsistentHistory
+            }
+            try policy.validate(for: match.state, expectedHuman: PlayerID(index: index),
+                                committedMoves: match.moves.map(\.move),
+                                initialOffers: match.initialState.pendingTradeOffers)
         }
     }
 

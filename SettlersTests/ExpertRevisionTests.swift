@@ -171,7 +171,7 @@ struct ExpertRevisionTests {
             }
             model.startNewGame(setup: expertSetup())
             let started = try requireMatch(model, revision: .cityProductionV1)
-            model.qaPlayToEnd()
+            try model.qaPlayToEnd()
             return (model, fixture, started)
         }
         // Await before any throwing post-game assertion: failed validation

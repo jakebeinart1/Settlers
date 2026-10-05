@@ -39,27 +39,6 @@ extension BoardView {
             .onEnded { _ in gestureAnchor = nil }
     }
 
-    /// Drag to pan, but only once there is something to pan to. At the fitted
-    /// scale the clamp pins the pan to zero, so attaching this there would
-    /// swallow drags to do nothing - and the board's own decision layers have
-    /// drag interactions of their own that should keep every pixel they have.
-    func drag(fit: BoardFit, container: CGSize) -> some Gesture {
-        DragGesture(minimumDistance: Self.panSlop)
-            .onChanged { value in
-                guard camera.zoom > BoardCamera.minZoom else { return }
-                let anchor = gestureAnchor ?? camera
-                gestureAnchor = anchor
-                camera = anchor
-                    .panned(by: value.translation)
-                    .clamped(fittedBounds: fit.bounds, container: container)
-            }
-            .onEnded { _ in gestureAnchor = nil }
-    }
-
-    /// Far enough that a drag is unambiguously a drag: a tap on a placement
-    /// ring must still reach the target layer underneath.
-    private static let panSlop: CGFloat = 12
-
     var recenterButton: some View {
         Button {
             withAnimation(reduceMotion ? nil : .spring(response: 0.35, dampingFraction: 0.85)) {

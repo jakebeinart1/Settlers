@@ -119,16 +119,20 @@ gate_evaluation_tools() {
 
 # --- 3. Compile the packages with warnings as errors ----------------------
 gate_packages_build() {
-  ( cd Packages/CatanEngine && swift build -Xswiftc -warnings-as-errors ) \
-    && ( cd Packages/CatanAI && swift build -Xswiftc -warnings-as-errors )
+  ( cd Packages/CatanEngine && swift build --jobs "${GATE_BUILD_JOBS:-2}" -Xswiftc -warnings-as-errors ) \
+    && ( cd Packages/CatanAI && swift build --jobs "${GATE_BUILD_JOBS:-2}" -Xswiftc -warnings-as-errors )
 }
 
 # --- 4. The test suites ---------------------------------------------------
 # Coverage is enabled here so the profile exists for the coverage gate below;
 # collecting it during the run this gate already pays for is free, whereas
 # re-running the suite to measure it doubled the slowest stage of the gate.
-gate_engine_tests() { ( cd Packages/CatanEngine && swift test --enable-code-coverage ); }
-gate_ai_tests()     { ( cd Packages/CatanAI && swift test --enable-code-coverage ); }
+# Limit compiler fan-out separately from test workers: independent agents must
+# not let a default all-core build exhaust a shared 16GB development machine.
+# Xcode appends its own Swift -j value after OTHER_SWIFT_FLAGS; pinning the
+# batch count bounds frontend fan-out even when that later -j overrides ours.
+gate_engine_tests() { ( cd Packages/CatanEngine && swift test --jobs "${GATE_BUILD_JOBS:-2}" --enable-code-coverage ); }
+gate_ai_tests()     { ( cd Packages/CatanAI && swift test --jobs "${GATE_BUILD_JOBS:-2}" --enable-code-coverage ); }
 
 
 # --- 5. Coverage floors ---------------------------------------------------
@@ -198,6 +202,10 @@ gate_secrets() {
 #
 #   GATE_TEST_WORKERS=6 scripts/gate.sh
 #
+# One worker uses the dedicated QA device directly, without a redundant clone.
+# This preserves every test while reducing simulator disk/memory pressure; a
+# disk-full checkpoint write crashed the October 5 two-worker test host.
+#
 # Clones are created and reused by CoreSimulator under the names
 # "Clone N of Empires QA". They are separate devices from the `Empires QA`
 # device `select-qa-simulator.py` returns, and separate again from any
@@ -215,10 +223,14 @@ gate_app_tests() {
   local sim; sim="$(qa_iphone_simulator)"
   if [[ -z "$sim" ]]; then return 200; fi
   local workers="${GATE_TEST_WORKERS:-2}"
+  local parallel=YES
+  if [[ "$workers" == 1 ]]; then parallel=NO; fi
   echo "  QA simulator: $sim ($workers parallel workers)"
   xcodebuild test -project Settlers.xcodeproj -scheme Settlers \
+    OTHER_SWIFT_FLAGS="\$(inherited) -driver-batch-count ${GATE_BUILD_JOBS:-2}" \
+    -jobs "${GATE_BUILD_JOBS:-2}" \
     -destination "platform=iOS Simulator,id=$sim" \
-    -parallel-testing-enabled YES \
+    -parallel-testing-enabled "$parallel" \
     -parallel-testing-worker-count "$workers" 2>&1 \
     | grep -E "error:|✘|Test case '.*' failed|Test run with|TEST SUCCEEDED|TEST FAILED" | sort -u
   return "${PIPESTATUS[0]}"
@@ -241,6 +253,8 @@ gate_app_build() {
   local sim; sim="$(qa_iphone_simulator)"
   if [[ -z "$sim" ]]; then return 200; fi
   xcodebuild -project Settlers.xcodeproj -scheme Settlers \
+    OTHER_SWIFT_FLAGS="\$(inherited) -driver-batch-count ${GATE_BUILD_JOBS:-2}" \
+    -jobs "${GATE_BUILD_JOBS:-2}" \
     -destination "platform=iOS Simulator,id=$sim" \
     -configuration "${1:-Release}" build 2>&1 \
     | grep -E "error:|BUILD SUCCEEDED|BUILD FAILED" | sort -u

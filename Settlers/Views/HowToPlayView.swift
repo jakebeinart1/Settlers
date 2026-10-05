@@ -21,6 +21,14 @@ struct HowToPlayView: View {
     }
 
     let onDismiss: () -> Void
+    let context: HowToPlayContent.Context?
+
+    init(context: HowToPlayContent.Context? = nil, initialTab: Tab = .walkthrough,
+         onDismiss: @escaping () -> Void) {
+        self.context = context
+        self.onDismiss = onDismiss
+        _tab = State(initialValue: initialTab)
+    }
 
     @State private var tab: Tab = .walkthrough
     @State private var step = 0
@@ -44,8 +52,8 @@ struct HowToPlayView: View {
                 .fixedSize(horizontal: false, vertical: true)
                 switch tab {
                 case .walkthrough: walkthrough
-                case .rules: sectionList(HowToPlayContent.rules)
-                case .modes: sectionList(HowToPlayContent.modes)
+                case .rules: sectionList(HowToPlayContent.rules(for: context))
+                case .modes: sectionList(HowToPlayContent.modes(for: context))
                 }
             }
             .padding(.horizontal, 20)
@@ -77,7 +85,7 @@ struct HowToPlayView: View {
     // MARK: - Walkthrough
 
     private var walkthrough: some View {
-        let steps = HowToPlayContent.steps
+        let steps = HowToPlayContent.steps(for: context)
         return VStack(spacing: 14) {
             TabView(selection: $step) {
                 ForEach(steps) { item in
@@ -147,10 +155,29 @@ struct HowToPlayView: View {
     private func sectionList(_ sections: [HowToPlayContent.Section]) -> some View {
         ScrollView {
             VStack(spacing: 10) {
+                guideIntroduction
                 ForEach(sections) { sectionCard($0) }
             }
             .padding(.bottom, 24)
         }
+    }
+
+    private var guideIntroduction: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            if let context {
+                Text(context.title)
+                    .font(.system(size: 17, weight: .semibold, design: .serif))
+                    .foregroundStyle(SettingsChrome.ornamentGold)
+                    .accessibilityIdentifier("how-to-play.match-context")
+            }
+            Text(HowToPlayContent.introduction)
+                .font(.system(size: 14, design: .serif))
+                .foregroundStyle(.white.opacity(0.85))
+                .lineSpacing(3)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.vertical, 6)
     }
 
     private func sectionCard(_ section: HowToPlayContent.Section) -> some View {
@@ -180,6 +207,9 @@ struct HowToPlayView: View {
             detailsToggle(section, isOpen: isOpen)
             if isOpen {
                 VStack(alignment: .leading, spacing: 6) {
+                    ForEach(section.resourceLosses) { loss in
+                        resourceLossRow(loss)
+                    }
                     ForEach(section.details, id: \.self) { line in
                         HStack(alignment: .firstTextBaseline, spacing: 8) {
                             Text("•").foregroundStyle(SettingsChrome.ornamentGold)
@@ -202,6 +232,36 @@ struct HowToPlayView: View {
         .padding(14)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(PaintedChromeBackground(fill: .color(SettingsChrome.plaqueFill), cornerRadius: 10, notchScale: 0.6))
+    }
+
+    /// Three distinct scopes, set as rows rather than squeezed into columns
+    /// that would truncate explanations on a small phone or at large text sizes.
+    private func resourceLossRow(_ loss: HowToPlayContent.ResourceLoss) -> some View {
+        HStack(alignment: .top, spacing: 12) {
+            Image(systemName: loss.icon)
+                .font(.system(size: 20))
+                .foregroundStyle(SettingsChrome.ornamentGold)
+                .frame(width: 26)
+                .padding(.top, 2)
+            VStack(alignment: .leading, spacing: 5) {
+                Text(loss.title)
+                    .font(.system(size: 17, weight: .semibold, design: .serif))
+                Text(loss.amount)
+                    .font(.system(size: 13, weight: .semibold, design: .serif))
+                    .foregroundStyle(SettingsChrome.ornamentGold)
+                Text(loss.explanation)
+                    .foregroundStyle(.white.opacity(0.9))
+                Text(loss.example)
+                    .foregroundStyle(.white.opacity(0.7))
+            }
+            .font(.system(size: 14, design: .serif))
+            .lineSpacing(3)
+            .fixedSize(horizontal: false, vertical: true)
+        }
+        .padding(.vertical, 10)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .accessibilityElement(children: .combine)
+        .accessibilityIdentifier("how-to-play.resource-loss.\(loss.id)")
     }
 
     private func detailsToggle(_ section: HowToPlayContent.Section, isOpen: Bool) -> some View {

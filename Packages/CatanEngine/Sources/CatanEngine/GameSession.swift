@@ -499,6 +499,9 @@ public struct GameSession: Sendable {
     }
 
     private mutating func queueAutomatedResponse(to offer: TradeOffer) {
+        // A legal winning move can leave an offer pending. Preserve that
+        // terminal state without sampling policies or queuing another actor.
+        if case .gameOver = state.phase { return }
         let externalCanAnswer = state.players.map(\.id).contains {
             policies[$0] == nil && $0 != offer.from
                 && Trading.bothSidesCanHonour(offer, responder: $0, state: state)

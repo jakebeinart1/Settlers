@@ -71,12 +71,6 @@ public struct GameView: View {
     /// the phase moves on and a different button takes its place.
     @State private var rollDicePulse = false
 
-    /// Queued incoming bot trade offers, shown one at a time via
-    /// `IncomingTradeCardView`. Seeded/grown by diffing
-    /// `state.pendingTradeOffers` on each render.
-    @State private var incomingOfferQueue: [TradeOffer] = []
-    @State private var seenTradeOfferIDs: Set<UUID> = []
-
     /// Tiles matching the most recent roll, briefly outlined on the board.
     /// Driven by the engine's `.rolled` event - see `handleEvents`.
     @State private var rollHighlightTiles: Set<HexCoordinate> = []
@@ -285,7 +279,8 @@ public struct GameView: View {
                         isShowingInGameSettings = false
                         viewModel.clearBoardDecisionForBoundary()
                         onExitToMenu()
-                    }
+                    },
+                    rulebookState: viewModel.state
                 )
             }
 
@@ -332,24 +327,6 @@ public struct GameView: View {
         }
         .onAppear {
             viewModel.reconcileBoardDecision()
-            // NOT `seenTradeOfferIDs = Set(state.pendingTradeOffers.map(\.id))`
-            // - that blindly marked every currently-pending offer as already
-            // shown, including one that was pending but had never actually
-            // been displayed as a card yet (a bot proposed it, then the app
-            // was closed/backgrounded before the human saw it). Since
-            // `handleTradeOffersChange`'s ingestion loop skips anything in
-            // `seenTradeOfferIDs`, that offer could never be queued, so its
-            // card could never appear - yet `GameViewModel.openIncomingOffer`
-            // (the bot loop's own gate, a live computed property with no
-            // such bookkeeping) still saw it as unanswered and parked the
-            // bot loop on it forever. A real deadlock with nothing on screen
-            // to explain it - reported as "the game just stops advancing",
-            // reproduced by `GameplayBoundaryFlowTests.
-            // testIncomingOfferSurvivesAppRelaunch`. Calling the real
-            // ingestion path here instead correctly queues anything
-            // genuinely still unanswered (and correctly leaves out anything
-            // not currently fulfillable, same as every other call site).
-            handleTradeOffersChange()
             // `-qaShowPendingTradeConfirmation`: same escape hatch pattern
             // as `-qaShowTradePopup` - opens the trade popup straight into
             // its "a bot will accept" confirmation step for QA
@@ -412,7 +389,7 @@ public struct GameView: View {
             // error can no longer produce a green result.
             if QALaunchFlag.showIncomingOffer.isSet {
                 #if DEBUG
-                incomingOfferQueue = [viewModel.qaSeedIncomingTrade()]
+                _ = viewModel.qaSeedIncomingTrade()
                 // `qaSeedIncomingTrade` goes through `replaceStateForTesting`,
                 // which persists via `persistTestingPosition()` on its own -
                 // so a UI test can `app.terminate()` right after this and
@@ -430,9 +407,10 @@ public struct GameView: View {
                 viewModel.qaPrepareMandatoryRobberDecision(selectDestination: true)
             }
             #endif
-        }
-        .onChange(of: state.pendingTradeOffers.map(\.id)) { _, _ in
-            handleTradeOffersChange()
+            // The screen owns a launch/resume kick after its initial blockers
+            // and fixtures have settled; a cancelled earlier entry task cannot
+            // leave a visible CPU turn permanently idle.
+            await viewModel.runBotTurnIfNeeded()
         }
         .onChange(of: viewModel.boardDecisionPresentation != nil) { _, isDeciding in
             guard isDeciding else { return }
@@ -761,14 +739,16 @@ public struct GameView: View {
                 // canvas stays whole.
                 .dynamicTypeSize(...DynamicTypeSize.large)
                 .allowsHitTesting(viewModel.boardDecisionPresentation == nil)
-                .accessibilityHidden(viewModel.boardDecisionPresentation != nil)
+                // A local false can re-expose descendants hidden by the outer
+                // stack. Preserve its modal cover in both local visibility gates.
+                .accessibilityHidden(viewModel.boardDecisionPresentation != nil || isBlockingOverlayPresented)
             }
 
             bottomPanel
                 .padding(.horizontal, 12)
                 .padding(.top, 8)
                 .allowsHitTesting(!isDiscardPresented)
-                .accessibilityHidden(isDiscardPresented)
+                .accessibilityHidden(isDiscardPresented || isBlockingOverlayPresented)
         }
         // Top-aligned, so a state with less in it leaves its slack at the
         // bottom rather than floating its panels into the middle of the gap.
@@ -813,32 +793,42 @@ public struct GameView: View {
                     )
                 }
             case .incomingTrade:
-                // Takes over this row for as long as the offer stays live
-                // (its own up-to-6s countdown, or until accepted/rejected) -
-                // including into the human's *own* turn if the proposing
-                // bot's turn ended before it resolved, since that's the
-                // only UI that can ever resolve a pending incoming offer
-                // (`TradePopupView` only ever proposes new trades, it
-                // doesn't surface existing `pendingTradeOffers`). Briefly
-                // gating Build/Trade/Roll-or-End behind resolving this first
-                // is an acceptable trade for that - it self-clears within
-                // the offer's own countdown.
+                // The offer owns this command row until answered or its
+                // configured timer expires (No Limit waits indefinitely).
+                // Both presentation and CPU gating read the same durable
+                // model projection; no invisible view queue can stall play.
                 if let currentOffer = currentIncomingOffer {
                     IncomingTradeCardView(
                         offer: currentOffer,
                         // An inaccessible offer must not expire behind settings,
                         // a private card, or the preceding trade's receipt.
                         isHeld: isBlockingOverlayPresented,
+                        offerOccurrence: viewModel.tradeOfferContext(currentOffer).proposalSequence,
                         playerIdentity: viewModel.playerIdentity,
                         onAccept: { respond(to: currentOffer, accept: true) },
-                        onReject: { respond(to: currentOffer, accept: false) }
+                        onReject: { respond(to: currentOffer, accept: false) },
+                        onExpire: { respond(to: currentOffer, accept: false, explicit: false) }
                     )
                     .dynamicTypeSize(...DynamicTypeSize.large)
                 }
             case .ordinaryActions:
-                actionRow
-                    .frame(height: Self.actionRowHeight)
-                    .dynamicTypeSize(...DynamicTypeSize.large)
+                // Settings covers this slot without changing its height. Do
+                // not mount commands underneath it: accessibility descendants
+                // must not be able to re-expose Skip/Retry behind the modal.
+                if interactionPriority.isSettingsCoverPresented {
+                    Color.clear.frame(height: Self.actionRowHeight)
+                } else if let seat = viewModel.activeBotSeat {
+                    BotTurnStatusView(identity: viewModel.playerIdentity(for: seat),
+                                      progress: viewModel.botTurnProgress,
+                                      onSkip: viewModel.skipBotPauses,
+                                      onRetry: viewModel.retryBotProgress)
+                        .frame(height: Self.actionRowHeight)
+                        .dynamicTypeSize(...DynamicTypeSize.large)
+                } else {
+                    actionRow
+                        .frame(height: Self.actionRowHeight)
+                        .dynamicTypeSize(...DynamicTypeSize.large)
+                }
             }
         }
         .padding(6)
@@ -1071,96 +1061,23 @@ private extension GameView {
 
     // MARK: - Incoming trade offers
 
-    /// Grows `incomingOfferQueue` with any bot-proposed offer not already
-    /// seen - `IncomingTradeCardView` shows `incomingOfferQueue.first`, so
-    /// multiple simultaneous offers queue and show one at a time. Offers
-    /// that disappear from `state.pendingTradeOffers` (accepted/rejected/
-    /// withdrawn elsewhere) are dropped from the queue too.
-    private func handleTradeOffersChange() {
-        let liveIDs = Set(state.pendingTradeOffers.map(\.id))
-        incomingOfferQueue.removeAll { !liveIDs.contains($0.id) }
-
-        // Offer IDs are content-derived (`TradeOffer.enumerated` hashes
-        // proposer + sorted give/want, per the determinism contract in
-        // `RulesEngine.legalMoves`), so a bot proposing the identical trade
-        // shape twice in one session - same partner, same resources, which
-        // a heuristic bot does often - reuses the exact UUID of an offer the
-        // human already answered. Without this line `seenTradeOfferIDs` keeps
-        // that ID forever, so the repeat offer fails `!seenTradeOfferIDs
-        // .contains` and is silently never queued - yet `GameViewModel
-        // .openIncomingOffer`, which has no such memory, still sees a live
-        // pending offer and parks the bot loop on it forever: a real
-        // deadlock with nothing on screen to explain it, reported as "the
-        // game just stops advancing" (same signature as the relaunch bug
-        // fixed in `.onAppear` above, different trigger). Intersecting with
-        // `liveIDs` here mirrors what `incomingOfferQueue.removeAll` already
-        // does two lines up: forget an ID the moment its offer is no longer
-        // pending, so if that same content hashes to it again later, it
-        // reads as unseen and gets shown.
-        seenTradeOfferIDs.formIntersection(liveIDs)
-
-        // Only ever surface an offer the human could actually accept right
-        // now - one between two bots that doesn't involve resources the
-        // human holds shouldn't interrupt them at all; bots still trade
-        // freely amongst themselves either way, this only affects what
-        // reaches this queue. This is just the ingestion-time gate, not the
-        // whole story - see `currentIncomingOffer`, which re-checks
-        // continuously, since either side's resources (not just the
-        // human's) can change while an offer sits queued.
-        for offer in state.pendingTradeOffers
-        where offer.from != human && !seenTradeOfferIDs.contains(offer.id) && isOfferCurrentlyFulfillable(offer) {
-            seenTradeOfferIDs.insert(offer.id)
-            incomingOfferQueue.append(offer)
-        }
-    }
-
-    /// The first queued offer that's still genuinely acceptable *right
-    /// now* - a pure, non-mutating scan re-evaluated on every render (this
-    /// view's `body` already re-renders on any relevant resource change,
-    /// since it reads `state.players` throughout), so a stale offer
-    /// disappears immediately rather than only the next time
-    /// `handleTradeOffersChange` happens to run. Skips past (rather than
-    /// removing) anything stale - `handleTradeOffersChange` is what
-    /// actually prunes the underlying queue, on its own trigger.
-    ///
-    /// Regression fix: the queue used to only check affordability once, at
-    /// the moment an offer first appeared - after that, neither the human
-    /// spending the wanted cards on something else, nor the *proposing*
-    /// bot spending what it offered (`offer.give`) before the human got to
-    /// it, ever un-queued an offer that had gone stale. Tapping Accept on
-    /// one then either silently failed via `Trading.respond`'s own
-    /// affordability re-check, or (worse) looked like it accepted nothing.
+    /// Share the runner's durable offer projection. A second view-owned queue
+    /// previously disagreed on relaunch and repeated content-derived IDs,
+    /// hiding the response while the engine still waited for it.
     private var currentIncomingOffer: TradeOffer? {
-        incomingOfferQueue.first { isOfferCurrentlyFulfillable($0) }
+        viewModel.openIncomingOffer
     }
 
-    /// Whether `offer` could actually go through right now - the human
-    /// currently holds `offer.want`, *and* the proposer still holds
-    /// `offer.give` (mirrors `Trading.respond`'s own re-check, so a card
-    /// shown to the human is always one `Trading.respond` will actually
-    /// honor).
-    /// Whether an offer is still honourable by both sides, per the engine.
-    ///
-    /// This used to re-derive the two affordability checks by hand. The engine
-    /// enforces the same pair in `Trading.respond` and gates on them in
-    /// `legalMoves`, so a local copy could only ever agree by luck - and the
-    /// one other place a view re-derived a trade rule is where the reported
-    /// bank-trade bug lived.
-    private func isOfferCurrentlyFulfillable(_ offer: TradeOffer) -> Bool {
-        Trading.bothSidesCanHonour(offer, responder: human, state: state)
-    }
-
-    private func respond(to offer: TradeOffer, accept: Bool) {
+    private func respond(to offer: TradeOffer, accept: Bool, explicit: Bool = true) {
         do {
             let previousSequence = viewModel.eventBatch.sequence
-            try viewModel.apply(.respondToTrade(offerID: offer.id, accept: accept))
+            try viewModel.respondToIncomingTrade(offer, accept: accept, explicit: explicit)
             if viewModel.eventBatch.sequence != previousSequence,
                let receipt = viewModel.eventBatch.events.compactMap({ TradeReceipt(event: $0, player: human) }).last {
                 incomingTradeReceipt = receipt
                 showTradePopup = true
             }
             errorMessage = nil
-            incomingOfferQueue.removeAll { $0.id == offer.id }
         } catch {
             errorMessage = error.localizedDescription
         }
@@ -1177,10 +1094,6 @@ private extension GameView {
         showArmyPurchase = false
         showDevCardHand = false
         devCardPopupType = nil
-        incomingOfferQueue = []
-        // The new owner has not seen any of these offers. The handoff callback
-        // rebuilds the queue after `seatAtDevice` changes, against that hand.
-        seenTradeOfferIDs = []
         errorMessage = nil
     }
 

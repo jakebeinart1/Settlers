@@ -4,8 +4,8 @@ import CatanEngine
 /// How fast the bots appear to play.
 ///
 /// Both rules here are presentation, not gameplay: the engine has no notion of
-/// time and `GameSession` decides a move in microseconds. Everything a player
-/// perceives as a bot "thinking" is added deliberately, and only here.
+/// time. This file adds a viewing interval; real policy calculation is separately
+/// reported as CPU thinking and runs off the UI actor.
 ///
 /// There used to be a second place: a randomized 2-4s hold before a bot could
 /// accept another seat's offer, so a bot could not snap up an offer the human
@@ -35,10 +35,21 @@ extension GameViewModel {
     /// player changes mid-turn has to reach the very next action, not the next
     /// game.
     func waitForNextBotAction() async {
+        guard !skipsBotPacing, !Task.isCancelled, let seat = activeBotSeat else { return }
         let interval = PacingPreferences.shared.aiTurnSpeed.secondsPerBotAction
         let sinceLastAction = lastBotActionAt.map { Date().timeIntervalSince($0) } ?? 0
         let remaining = interval - max(0, sinceLastAction)
         guard remaining > 0 else { return }
-        try? await Task.sleep(for: .seconds(remaining))
+        botTurnProgress = .waiting(seat: seat, until: Date().addingTimeInterval(remaining))
+        let wait = Task<Void, Never> {
+            do { try await Task.sleep(for: .seconds(remaining)) } catch { return }
+        }
+        botPacingWait = wait
+        await withTaskCancellationHandler {
+            await wait.value
+        } onCancel: {
+            wait.cancel()
+        }
+        botPacingWait = nil
     }
 }

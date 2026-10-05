@@ -129,7 +129,7 @@ import Testing
             return trainer
         }
         model.startNewGame(setup: ghostTable())
-        model.qaPlayToEnd()
+        try model.qaPlayToEnd()
         guard case .gameOver = model.state.phase else {
             Issue.record("the game did not finish")
             return

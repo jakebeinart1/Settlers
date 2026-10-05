@@ -16,7 +16,7 @@ class SimulatorConfigurationTests(unittest.TestCase):
         subprocess.run(
             [
                 "swift", "build", "--package-path", str(PACKAGE),
-                "--configuration", "release", "--product", "sim",
+                "--jobs", "2", "--configuration", "release", "--product", "sim",
             ],
             check=True,
             capture_output=True,
@@ -25,7 +25,7 @@ class SimulatorConfigurationTests(unittest.TestCase):
         result = subprocess.run(
             [
                 "swift", "build", "--package-path", str(PACKAGE),
-                "--configuration", "release", "--show-bin-path",
+                "--jobs", "2", "--configuration", "release", "--show-bin-path",
             ],
             check=True,
             capture_output=True,

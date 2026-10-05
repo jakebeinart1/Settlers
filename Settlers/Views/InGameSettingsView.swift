@@ -1,3 +1,4 @@
+import CatanEngine
 import SwiftUI
 
 /// Surface B of the settings spec: what the player can change *about a game
@@ -32,15 +33,19 @@ public struct InGameSettingsView: View {
     public let onResume: () -> Void
     public let onRestart: () -> Void
     public let onMainMenu: () -> Void
+    private let rulebookState: GameState?
 
-    public init(onResume: @escaping () -> Void, onRestart: @escaping () -> Void, onMainMenu: @escaping () -> Void) {
+    public init(onResume: @escaping () -> Void, onRestart: @escaping () -> Void, onMainMenu: @escaping () -> Void,
+                rulebookState: GameState? = nil) {
         self.onResume = onResume
         self.onRestart = onRestart
         self.onMainMenu = onMainMenu
+        self.rulebookState = rulebookState
     }
 
     @State private var isConfirmingRestart = false
     @State private var isConfirmingMainMenu = false
+    @State private var isShowingRulebook = false
     /// Which row's ⓘ is currently expanded, or `nil`. One at a time: these
     /// explanations are a sentence each, and two open at once pushed the
     /// controls under them off the screen.
@@ -71,6 +76,7 @@ public struct InGameSettingsView: View {
                         titleBlock
                         pacingSection
                         tradeTimerSection
+                        rulebookSection
                     }
                     .padding(.horizontal, Self.screenInset)
                     .padding(.top, 10)
@@ -87,6 +93,26 @@ public struct InGameSettingsView: View {
         .foregroundStyle(.white)
         // Serif everywhere, matching the board screen's painted-book type.
         .fontDesign(.serif)
+        .fullScreenCover(isPresented: $isShowingRulebook) {
+            HowToPlayView(context: rulebookState.map { HowToPlayContent.Context(state: $0) }, initialTab: .rules,
+                          onDismiss: { isShowingRulebook = false })
+        }
+    }
+
+    /// Reading rules stays inside the already-paused settings surface. The
+    /// parent supplies the match snapshot; this screen never loads another save.
+    private var rulebookSection: some View {
+        VStack(spacing: 12) {
+            SettingsSectionHeader(title: "Rules of Empires")
+            Text("Knight, Monopoly and sevens. Board sizes, card limits and Conquest.")
+                .font(.system(size: 14, design: .serif))
+                .foregroundStyle(.white.opacity(0.85))
+                .multilineTextAlignment(.center)
+                .fixedSize(horizontal: false, vertical: true)
+            GoldRowButton(title: "Read the rulebook", systemImage: "book.fill",
+                          iconColor: SettingsChrome.ornamentGold, action: { isShowingRulebook = true })
+                .accessibilityIdentifier(AccessibilityID.InGameSettings.rulebook)
+        }
     }
 
     // MARK: - Title

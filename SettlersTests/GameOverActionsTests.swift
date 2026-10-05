@@ -10,7 +10,7 @@ import Testing
 @Suite(.serialized) struct GameOverActionsTests {
 
     @MainActor
-    private func finishedGame(in root: URL, defaults: UserDefaults) -> GameViewModel {
+    private func finishedGame(in root: URL, defaults: UserDefaults) throws -> GameViewModel {
         let setupStore = MatchSetupStore()
         setupStore.defaults = defaults
         let model = GameViewModel(
@@ -23,7 +23,7 @@ import Testing
         var setup = MatchSetup.default(preferredName: "Jake", preferredCivilization: .greece)
         setup.randomizeSeatOrder = false
         model.startNewGame(setup: setup)
-        model.qaPlayToEnd()
+        try model.qaPlayToEnd()
         return model
     }
 
@@ -35,7 +35,7 @@ import Testing
         let defaults = try #require(UserDefaults(suiteName: suite))
         defer { defaults.removePersistentDomain(forName: suite) }
 
-        let model = finishedGame(in: root, defaults: defaults)
+        let model = try finishedGame(in: root, defaults: defaults)
         guard case .gameOver = model.state.phase else {
             Issue.record("fixture did not reach game over")
             return

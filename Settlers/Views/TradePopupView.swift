@@ -3,9 +3,9 @@ import CatanEngine
 
 /// In-screen popup for building and proposing a trade.
 ///
-/// Tap-to-move, colonist.io style: your hand sits in a tray, tapping a card
-/// moves one unit into "Give"; tapping a card in the "Ask for" palette adds one
-/// to "Get". Tapping a card already in a slot moves it back out.
+/// Two named quantity rows keep the local player's perspective throughout:
+/// You give and You receive. Tapping commodity art/+ adds; minus removes.
+/// Availability lives inside give cells instead of a separate inventory tray.
 ///
 /// ## Two modes, because they are two different trades
 /// The popup used to run both trades at once: one Give/Get pair, both "Propose
@@ -67,8 +67,7 @@ public struct TradePopupView: View {
     @State private var isShowingBankHelp = false
 
     private static let bankGold = CatanTheme.chipGold
-
-    private var human: Player? { viewModel.state.players.first { $0.id == viewModel.humanPlayer } }
+    private static let problemColor = Color(red: 1, green: 0.68, blue: 0.58)
 
     public var body: some View {
         GeometryReader { geometry in
@@ -82,7 +81,7 @@ public struct TradePopupView: View {
                     panel(scrolling: false, height: nil)
                     panel(scrolling: true, height: max(0, geometry.size.height - 24))
                 }
-                .padding(.horizontal, 24)
+                .padding(.horizontal, 16)
                 .padding(.vertical, 12)
             }
         }
@@ -97,15 +96,17 @@ public struct TradePopupView: View {
             header
             if scrolling {
                 ScrollView { panelContent }
+                    .accessibilityIdentifier(AccessibilityID.Trade.content)
             } else {
                 panelContent.fixedSize(horizontal: false, vertical: true)
             }
             footer
         }
         .padding(16)
-        .frame(maxWidth: 360, maxHeight: height)
-        .background(CatanTheme.panelBackground, in: RoundedRectangle(cornerRadius: 16))
-        .overlay(RoundedRectangle(cornerRadius: 16).strokeBorder(.white.opacity(0.2)))
+        .frame(maxWidth: 400, maxHeight: height)
+        .background(PaintedChromeBackground(fill: .tintedTexture(CatanTheme.waterBackground), cornerRadius: 16))
+        .foregroundStyle(CatanTheme.onWaterText)
+        .fontDesign(.serif)
         .shadow(radius: 20)
     }
 
@@ -122,7 +123,8 @@ public struct TradePopupView: View {
                 tradeBuilder
             }
             if let errorMessage {
-                Text(errorMessage).font(.caption).foregroundStyle(.red)
+                Text(errorMessage).font(.caption).foregroundStyle(Self.problemColor)
+                    .fixedSize(horizontal: false, vertical: true)
                     .frame(maxWidth: .infinity, alignment: .leading)
             }
         }
@@ -130,7 +132,9 @@ public struct TradePopupView: View {
 
     private var footer: some View {
         VStack(spacing: 10) {
-            if (receipt != nil && viewModel.state.phase.isMainTurn(of: viewModel.humanPlayer.index)) || proposalOutcome != nil {
+            if receipt == nil, viewModel.pendingTradeConfirmation != nil {
+                pendingConfirmationActions
+            } else if (receipt != nil && viewModel.state.phase.isMainTurn(of: viewModel.humanPlayer.index)) || proposalOutcome != nil {
                 GoldRowButton(title: receipt != nil ? "Trade again" : "New Offer",
                               systemImage: "arrow.counterclockwise", action: resetDraft)
             } else if receipt == nil && !isShowingBotResponse {
@@ -149,9 +153,12 @@ public struct TradePopupView: View {
     }
 
     private var header: some View {
-        Text("Trade")
-            .font(.title2.bold())
-            .frame(maxWidth: .infinity, alignment: .center)
+        HStack(spacing: 10) {
+            Image(systemName: "arrow.left.arrow.right")
+                .foregroundStyle(CatanTheme.chipGold)
+            Text("Trade").font(.title2.bold())
+            Spacer(minLength: 0)
+        }
     }
 
     /// Height of a tab. Fixed rather than derived from the label, for the
@@ -201,7 +208,7 @@ public struct TradePopupView: View {
                     // Bold on both, always: the weight is what changed the
                     // height, and colour alone carries the selection.
                     .font(.subheadline.bold())
-                    .foregroundStyle(isSelected ? CatanTheme.chipGold : Color.secondary)
+                    .foregroundStyle(isSelected ? CatanTheme.chipGold : CatanTheme.onWaterText.opacity(0.8))
                     .frame(maxWidth: .infinity)
                     .frame(height: Self.tabHeight)
                     // The whole cell is the target, not just the glyphs.
@@ -230,222 +237,83 @@ public struct TradePopupView: View {
 
     // MARK: - Building the offer
 
-    @ViewBuilder
+    private var draftFeedback: TradeDraftFeedback {
+        TradeDraftFeedback(give: give, receive: want, mode: mode == .bank ? .bank : .players,
+                           player: viewModel.humanPlayer, state: viewModel.state)
+    }
+
+    /// Both trade modes edit the same two local-perspective piles. Bank changes
+    /// the quantity step and availability, never the meaning or position of a row.
     private var tradeBuilder: some View {
-        switch mode {
-        case .players: playerBuilder
-        case .bank: bankBuilder
-        }
-    }
-
-    // MARK: Trading with players
-
-    /// Four rows, because a player trade is genuinely open-ended: any pile for
-    /// any pile. Give and Want are what you have staged (tap to take back);
-    /// Your hand and Ask for are where you add from.
-    private var playerBuilder: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            sectionLabel("You give")
-            ResourceSlotRow(counts: give) { resource in
-                give[resource] = (give[resource] ?? 0) - 1
-                if give[resource] == 0 { give[resource] = nil }
-            }
-
-            sectionLabel("You want")
-            ResourceSlotRow(counts: want) { resource in
-                want[resource] = (want[resource] ?? 0) - 1
-                if want[resource] == 0 { want[resource] = nil }
-            }
-
-            Divider().overlay(Color.white.opacity(0.2))
-
-            sectionLabel("Your hand")
-            handTray
-
-            sectionLabel("Ask for")
-            wantPalette
-        }
-    }
-
-    /// Your hand. Every resource is shown, including ones you hold none of, so
-    /// the row never reflows as cards come and go and "I have no ore" is
-    /// visible rather than inferred from an absence.
-    private var handTray: some View {
-        HStack(spacing: 8) {
-            ForEach(Resource.allCases, id: \.self) { resource in
-                let owned = human?.resources[resource] ?? 0
-                // Floored at zero because the staged pile can outlive the cards
-                // backing it: stage three ore, have a bot play a knight and
-                // steal one, and `give` now exceeds what is held. Rendering the
-                // difference raw showed "-3", which is not a hand anyone has.
-                // The stale pile is left alone rather than silently trimmed -
-                // `Trading` rejects it and `perform` surfaces the reason, which
-                // beats quietly altering an offer the player composed.
-                let remaining = max(0, owned - (give[resource] ?? 0))
-                ResourceChip(resource: resource, count: remaining, isEnabled: remaining > 0 && permitsAdding(resource, toGive: true)) {
-                    give[resource] = (give[resource] ?? 0) + 1
-                }
-                .accessibilityIdentifier(AccessibilityID.Trade.giveChip(resource))
-            }
-        }
-    }
-
-    /// All five resources, tap to add one to Want. No ownership constraint -
-    /// you are asking someone else for it.
-    private var wantPalette: some View {
-        HStack(spacing: 8) {
-            ForEach(Resource.allCases, id: \.self) { resource in
-                ResourceChip(resource: resource, count: nil, isEnabled: permitsAdding(resource, toGive: false)) {
-                    want[resource] = (want[resource] ?? 0) + 1
-                }
-                .accessibilityIdentifier(AccessibilityID.Trade.wantChip(resource))
-            }
-        }
-    }
-
-    // MARK: Trading with the bank
-
-    /// Two rows, because a bank trade is not open-ended: you hand over a whole
-    /// multiple of a card's rate and get cards back, one for one.
-    ///
-    /// ## Why this is not the player layout
-    /// It used to be. That gave the bank tab five rows of the same five
-    /// hexagons - You give, You get, Your hand, Ask for, Your rate - which is
-    /// four ways of saying the same thing plus a rate table nobody asked for.
-    ///
-    /// The give card shows the staged count and its rate, and one tap
-    /// stages a whole bundle at that rate. So the trade is legal by
-    /// construction rather than by the player working out the arithmetic, and
-    /// the "each Give resource must be a multiple of its rate" instruction -
-    /// which was the app explaining its own validation rule to the player -
-    /// stops being necessary.
-    private var bankBuilder: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            HStack(spacing: 6) {
-                sectionLabel("You give")
-                Button { isShowingBankHelp.toggle() } label: {
-                    Image(systemName: "info.circle")
-                        .font(.caption)
-                        .foregroundStyle(CatanTheme.chipGold.opacity(0.9))
-                }
-                .buttonStyle(.plain)
-                .accessibilityLabel(Text("How bank trading works"))
-                Spacer(minLength: 0)
-                if !give.isEmpty || !want.isEmpty {
-                    Button("Clear") { give = [:]; want = [:] }
-                        .font(.caption.bold())
-                        .foregroundStyle(CatanTheme.chipGold)
-                        .buttonStyle(.plain)
-                }
-            }
-
-            if isShowingBankHelp {
-                Text("The bank swaps cards at a fixed rate. Four of a kind buys one "
-                     + "of a different resource - or three, or two, if you have built on that port. "
-                     + "Tap a card to add. Use minus to take one back.")
+        VStack(alignment: .leading, spacing: 12) {
+            builderTools
+            if mode == .bank, isShowingBankHelp {
+                Text("One give bundle buys one card. Your ports set each rate. Tap + to add; minus removes a bundle.")
                     .font(.caption)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(CatanTheme.onWaterText.opacity(0.8))
                     .fixedSize(horizontal: false, vertical: true)
             }
-
-            bankGiveRow
-            sectionLabel("You get")
-            bankGetRow
-
-            Text(bankHintText)
+            TradeResourceRow(draft: draftFeedback, isGive: true,
+                             onAdd: { add($0, toGive: true) }, onRemove: { remove($0, fromGive: true) })
+            Divider().overlay(CatanTheme.chipGold.opacity(0.4))
+            TradeResourceRow(draft: draftFeedback, isGive: false,
+                             onAdd: { add($0, toGive: false) }, onRemove: { remove($0, fromGive: false) })
+            Label(draftFeedback.message,
+                  systemImage: draftFeedback.canSubmit ? "checkmark.circle" : draftFeedback.hasProblem ? "exclamationmark.circle" : "info.circle")
                 .font(.caption)
-                .foregroundStyle(isValidBankTrade ? Self.bankGold : .secondary)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .frame(minHeight: 34, alignment: .top)
+                .foregroundStyle(draftFeedback.hasProblem ? Self.problemColor : CatanTheme.onWaterText)
                 .fixedSize(horizontal: false, vertical: true)
+                .frame(maxWidth: .infinity, minHeight: 34, alignment: .leading)
+                .accessibilityIdentifier("trade.feedback")
         }
     }
 
-    /// One tap stages a whole bundle - four wheat, or two if you hold the wheat
-    /// port - so the pile is always a legal multiple and the player never does
-    /// the division. The rate is printed under the card because it is a
-    /// property of that card for that player, not a table to read elsewhere.
-    private var bankGiveRow: some View {
+    private var builderTools: some View {
         HStack(spacing: 8) {
-            ForEach(Resource.allCases, id: \.self) { resource in
-                let owned = human?.resources[resource] ?? 0
-                let staged = give[resource] ?? 0
-                let bundle = rate(for: resource)
-                VStack(spacing: 4) {
-                    ResourceChip(resource: resource,
-                                 count: staged,
-                                 isEnabled: owned - staged >= bundle && permitsAdding(resource, toGive: true),
-                                 isSelected: staged > 0) {
-                        give[resource] = staged + bundle
-                    }
-                    .accessibilityIdentifier(AccessibilityID.Trade.bankGive(resource))
-                    .accessibilityValue("\(staged)")
-                    Text("\(bundle):1")
-                        .font(.system(size: 13, weight: .bold, design: .rounded))
-                        .foregroundStyle(bundle < 4 ? CatanTheme.chipGold : Color.secondary)
-                    removeButton(resource: resource, isGive: true, count: staged) {
-                        give[resource] = staged > bundle ? staged - bundle : nil
-                    }
+            if mode == .bank {
+                Button { isShowingBankHelp.toggle() } label: {
+                    Label("Bank rates", systemImage: "info.circle")
                 }
+                .accessibilityLabel("How bank trading works")
+            } else {
+                Text("Tap + to add. Minus removes.")
+                    .foregroundStyle(CatanTheme.onWaterText.opacity(0.8))
             }
-        }
-    }
-
-    /// How many cards the staged give pile actually buys - one per whole
-    /// bundle handed over.
-    private var bundlesStaged: Int {
-        give.reduce(0) { $0 + $1.value / max(rate(for: $1.key), 1) }
-    }
-
-    /// Locked until the give pile has paid for another card.
-    ///
-    /// Asking for something you have not paid for is not a trade the bank will
-    /// take, and letting it be staged only to bounce off `Trading` makes the
-    /// player discover the rate rule by failing. Gating the row teaches the
-    /// same rule by making the illegal thing simply not tappable: hand over
-    /// four wheat and one card unlocks; hand over eight and two do.
-    private var bankGetRow: some View {
-        let unspent = bundlesStaged - want.values.reduce(0, +)
-        return HStack(spacing: 8) {
-            ForEach(Resource.allCases, id: \.self) { resource in
-                let staged = want[resource] ?? 0
-                VStack(spacing: 4) {
-                    ResourceChip(resource: resource, count: staged > 0 ? staged : nil,
-                                 isEnabled: unspent > 0 && permitsAdding(resource, toGive: false)
-                                    && staged < viewModel.state.bank[resource, default: 0],
-                                 isSelected: staged > 0) {
-                        want[resource] = staged + 1
-                    }
-                    .accessibilityIdentifier(AccessibilityID.Trade.bankGet(resource))
-                    .accessibilityValue("\(staged)")
-                    removeButton(resource: resource, isGive: false, count: staged) {
-                        want[resource] = staged > 1 ? staged - 1 : nil
-                    }
-                }
+            Spacer(minLength: 4)
+            Button("Clear") {
+                give = [:]
+                want = [:]
+                errorMessage = nil
             }
+            .disabled(give.isEmpty && want.isEmpty)
+            .accessibilityIdentifier("trade.clear")
         }
-    }
-
-    private func removeButton(resource: Resource, isGive: Bool, count: Int, action: @escaping () -> Void) -> some View {
-        Button(action: action) {
-            Image(systemName: "minus.circle")
-                .font(.system(size: 19))
-                .frame(minWidth: 44, minHeight: 44)
-                .contentShape(Rectangle())
-        }
-        .buttonStyle(.plain)
+        .font(.caption)
         .foregroundStyle(CatanTheme.chipGold)
-        .disabled(count == 0)
-        .opacity(count == 0 ? 0.25 : 1)
-        .accessibilityLabel("Remove \(isGive ? rate(for: resource) : 1) \(resource.rawValue) from \(isGive ? "give" : "get")")
-        .accessibilityIdentifier(AccessibilityID.Trade.bankRemove(resource, fromGive: isGive))
+        .buttonStyle(.plain)
+        .frame(minHeight: 32)
     }
 
-    private func sectionLabel(_ text: String) -> some View {
-        Text(text.uppercased())
-            .font(.caption2.weight(.semibold))
-            .kerning(0.8)
-            .foregroundStyle(.secondary)
+    private func add(_ resource: Resource, toGive: Bool) {
+        guard draftFeedback.canAdd(resource, toGive: toGive) else { return }
+        let step = draftFeedback.addStep(resource)
+        if toGive {
+            give[resource, default: 0] += step
+        } else {
+            want[resource, default: 0] += 1
+        }
+        errorMessage = nil
+    }
+
+    private func remove(_ resource: Resource, fromGive: Bool) {
+        if fromGive {
+            let remaining = give[resource, default: 0] - draftFeedback.removeStep(resource)
+            give[resource] = remaining > 0 ? remaining : nil
+        } else {
+            let remaining = want[resource, default: 0] - 1
+            want[resource] = remaining > 0 ? remaining : nil
+        }
+        errorMessage = nil
     }
 
     // MARK: - The one action for the current mode
@@ -457,7 +325,7 @@ public struct TradePopupView: View {
             GoldRowButton(
                 title: "Propose to Bots",
                 systemImage: "person.2.fill",
-                isEnabled: !give.isEmpty && !want.isEmpty && draftProblem(mode: .players) == nil
+                isEnabled: draftFeedback.canSubmit
             ) {
                 let offer = TradeOffer(from: viewModel.humanPlayer, give: give, want: want)
                 proposalOutcome = nil
@@ -479,7 +347,7 @@ public struct TradePopupView: View {
                 systemImage: "building.columns.fill",
                 iconColor: Self.bankGold,
                 titleColor: Self.bankGold,
-                isEnabled: isValidBankTrade
+                isEnabled: draftFeedback.canSubmit
             ) {
                 perform(.bankTrade(give: give, get: want))
             }
@@ -511,6 +379,9 @@ public struct TradePopupView: View {
     /// `GameViewModel.pendingTradeConfirmation`.
     private func pendingConfirmationBanner(_ pending: GameViewModel.PendingTradeConfirmation) -> some View {
         VStack(alignment: .leading, spacing: 8) {
+            if let offer = viewModel.state.pendingTradeOffers.first(where: { $0.id == pending.offerID }) {
+                TradeTermsView(give: offer.give, receive: offer.want)
+            }
             // One row per bot, each with its own message (see
             // `GameViewModel.tradeResponseMessage` - a bot always has something
             // to say, whether or not it took the deal). An accepting bot's row
@@ -531,40 +402,42 @@ public struct TradePopupView: View {
                         .foregroundStyle(.red.opacity(0.7))
                 }
             }
-
-            VStack(spacing: 10) {
-                GoldRowButton(title: "Decline", systemImage: "xmark", action: {
-                    viewModel.declinePendingTrade()
-                    proposalOutcome = viewModel.lastTradeOutcome
-                })
-
-                GoldRowButton(title: "Confirm Trade", systemImage: "checkmark", iconColor: .green, titleColor: .green, action: {
-                    // A failed confirm used to silently do nothing - no error,
-                    // no changed cards, no indication why - because `try?`
-                    // swallowed the failure. Now it is reported like any other
-                    // failed move.
-                    let previousSequence = viewModel.eventBatch.sequence
-                    switch viewModel.confirmPendingTrade() {
-                    case .succeeded:
-                        errorMessage = nil
-                        captureReceipt(after: previousSequence)
-                        proposalOutcome = viewModel.lastTradeOutcome
-                    case .offerNoLongerAvailable:
-                        errorMessage = "That trade is no longer available."
-                        proposalOutcome = viewModel.lastTradeOutcome
-                    case .resourcesNoLongerAvailable:
-                        errorMessage = "That trade could no longer go through - resources changed since you proposed it."
-                        proposalOutcome = viewModel.lastTradeOutcome
-                    case .persistenceFailed:
-                        errorMessage = "The trade could not be saved. Please try again."
-                    }
-                })
-            }
         }
         .padding(.horizontal, 10)
         .padding(.vertical, 10)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(Color.black.opacity(0.25), in: RoundedRectangle(cornerRadius: 10))
+    }
+
+    /// Terms and partner replies may scroll on short phones. The actions live
+    /// in the fixed footer so confirming never depends on that scroll position.
+    private var pendingConfirmationActions: some View {
+        VStack(spacing: 10) {
+            GoldRowButton(title: "Decline", systemImage: "xmark") {
+                viewModel.declinePendingTrade()
+                proposalOutcome = viewModel.lastTradeOutcome
+            }
+            GoldRowButton(title: "Confirm Trade", systemImage: "checkmark",
+                          iconColor: .green, titleColor: .green, action: confirmTrade)
+        }
+    }
+
+    private func confirmTrade() {
+        let previousSequence = viewModel.eventBatch.sequence
+        switch viewModel.confirmPendingTrade() {
+        case .succeeded:
+            errorMessage = nil
+            captureReceipt(after: previousSequence)
+            proposalOutcome = viewModel.lastTradeOutcome
+        case .offerNoLongerAvailable:
+            errorMessage = "That trade is no longer available."
+            proposalOutcome = viewModel.lastTradeOutcome
+        case .resourcesNoLongerAvailable:
+            errorMessage = "That trade could no longer go through - resources changed since you proposed it."
+            proposalOutcome = viewModel.lastTradeOutcome
+        case .persistenceFailed:
+            errorMessage = "The trade could not be saved. Please try again."
+        }
     }
 
     /// Every bot's answer and its message, not just whoever took the offer (or,
@@ -623,77 +496,6 @@ public struct TradePopupView: View {
             }
         }
         .accessibilityElement(children: .combine)
-    }
-
-    // MARK: - Bank trade
-
-    private func rate(for resource: Resource) -> Int {
-        Trading.bestRate(for: resource, player: viewModel.humanPlayer, state: viewModel.state)
-    }
-
-    /// Asks the engine rather than re-deriving the rule. A previous local copy
-    /// checked the exchange rates but not the bank's stock, so a trade the
-    /// engine would reject still lit the button up and produced a misleading
-    /// error on tap - see `Trading.bankTradeProblem`.
-    private var bankTradeProblem: MoveError? {
-        guard !give.isEmpty, !want.isEmpty else { return .illegalPlacement }
-        return Trading.bankTradeProblem(give: give, get: want,
-                                        by: viewModel.humanPlayer, state: viewModel.state)
-    }
-
-    private var isValidBankTrade: Bool { bankTradeProblem == nil }
-
-    private func draftProblem(mode: Trading.DraftMode) -> Trading.DraftProblem? {
-        Trading.draftProblem(give: give, get: want, mode: mode, by: viewModel.humanPlayer, state: viewModel.state)
-    }
-
-    /// Ask the engine about a prospective resource selection. Bank quantities
-    /// are constrained separately by the bundle/credit controls; this query is
-    /// only about which resources may share a draft.
-    private func permitsAdding(_ resource: Resource, toGive: Bool) -> Bool {
-        var proposedGive = give
-        var proposedWant = want
-        if toGive { proposedGive[resource, default: 0] += 1 } else { proposedWant[resource, default: 0] += 1 }
-        return Trading.draftProblem(give: proposedGive, get: proposedWant, mode: .players,
-                                    by: viewModel.humanPlayer, state: viewModel.state) == nil
-    }
-
-    private var bankHintText: String {
-        switch draftProblem(mode: .bank) {
-        case .overlappingResources:
-            return "Give and get must be different resources. Remove one side to continue."
-        case .invalidBankBundle(let resource, let rate):
-            return "Give \(resource.rawValue) in bundles of \(rate). Clear or remove that stack to adjust it."
-        case nil: break
-        }
-        if give.isEmpty && want.isEmpty {
-            return "Tap cards to add; minus takes them back. Each tap gives one bundle."
-        }
-        if give.isEmpty { return "Pick a card to give first - what you get unlocks once it is paid for." }
-        if want.isEmpty {
-            let buys = bundlesStaged
-            return "That buys \(buys) card\(buys == 1 ? "" : "s"). Now pick what you want."
-        }
-        switch bankTradeProblem {
-        case nil:
-            let total = want.values.reduce(0, +)
-            return "Ready to trade for \(total) card\(total == 1 ? "" : "s")."
-        case .bankCannotSupply(let resource):
-            // Name the real obstacle. This used to surface as "you don't have
-            // enough resources", which is about the player's hand and is the
-            // opposite of what has gone wrong.
-            return "The bank has no \(resource.rawValue) left. Ask for something else."
-        case .insufficientResources:
-            return "You do not hold that many cards to give."
-        case .illegalPlacement:
-            // What `Trading` returns when the piles do not balance.
-            let asked = want.values.reduce(0, +)
-            return "That buys \(bundlesStaged) card\(bundlesStaged == 1 ? "" : "s"), but you asked for \(asked)."
-        case .some(let problem):
-            // Anything else is not about rates, and saying it is would be the
-            // same misreport `.bankCannotSupply` was split out to fix.
-            return problem.localizedDescription
-        }
     }
 
     private func perform(_ move: GameMove) {

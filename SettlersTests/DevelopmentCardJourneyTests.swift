@@ -54,6 +54,41 @@ struct DevelopmentCardJourneyTests {
                 "a dismissed reveal must not return on the next launch")
     }
 
+    @Test(arguments: [false, true])
+    func automatedAcknowledgementRetainsItsDiskErrorAndPrivateReceipt(isResolution: Bool) throws {
+        let fixture = try CheckpointModelFixture()
+        var refuseWrite = false
+        let model = fixture.makeModel(atCommitStage: { stage in
+            if refuseWrite, stage == .beforeReplace { throw CocoaError(.fileWriteOutOfSpace) }
+        })
+        try seedPrivateReceipt(isResolution: isResolution, in: model)
+        let committed = model.session.checkpoint
+        let reveal = model.pendingDevCardReveal
+        let resolution = model.pendingDevCardResolution
+        refuseWrite = true
+
+        do {
+            try model.qaPlayToEnd()
+            Issue.record("A disk-full acknowledgement must stop the automated match")
+        } catch let failure as MatchPersistenceFailure {
+            let cause = failure.underlying as NSError
+            #expect(cause.domain == NSCocoaErrorDomain)
+            #expect(cause.code == CocoaError.fileWriteOutOfSpace.rawValue)
+        }
+
+        let resumed = fixture.makeModel()
+        #expect(model.persistenceBlocked)
+        #expect(model.session.checkpoint == committed)
+        #expect(resumed.session.checkpoint == committed)
+        #expect(resumed.pendingDevCardReveal == reveal)
+        #expect(resumed.pendingDevCardResolution == resolution)
+        refuseWrite = false
+        #expect(isResolution ? model.dismissDevCardResolution() : model.dismissDevCardReveal())
+        #expect(model.session.checkpoint == committed)
+        #expect(fixture.makeModel().pendingDevCardReveal == nil)
+        #expect(fixture.makeModel().pendingDevCardResolution == nil)
+    }
+
     @Test func committedResolutionSurvivesUntilAcknowledged() throws {
         let fixture = try CheckpointModelFixture()
         let model = fixture.makeModel()
@@ -144,6 +179,22 @@ struct DevelopmentCardJourneyTests {
         state.devCardDeck = [card]
         model.replaceStateForTesting(state, humanSeat: human)
         model.isBlockingSurfaceOpen = true
+    }
+
+    private func seedPrivateReceipt(isResolution: Bool, in model: GameViewModel) throws {
+        if !isResolution {
+            seedPurchasableCard(.monopoly, in: model)
+            try model.apply(.buyDevCard)
+            return
+        }
+        let human = PlayerID(index: 0)
+        var state = GameSetup.newGame(board: BoardGenerator.standard(), seed: 21, playerCount: 3)
+        state.phase = .mainTurn(playerIndex: human.index)
+        state.players[0].devCards = [.monopoly]
+        state.players[1].resources = [.ore: 2]
+        model.replaceStateForTesting(state, humanSeat: human)
+        model.isBlockingSurfaceOpen = true
+        try model.apply(.playMonopoly(.ore))
     }
 
     private func seedWinningPurchase(in model: GameViewModel) {
