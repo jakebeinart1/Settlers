@@ -318,15 +318,21 @@ actor LiveSync {
     /// the ghost of the account holding that name, so a person's ghost is one
     /// row with one rating on every phone, not "Jake's Ghost" twice. Only once
     /// that account's ghost is here: until then the old one stays playable.
+    ///
+    /// Every slug in a rename chain is looked up, not just its end: on Jake's
+    /// phone (2026-10-06) `chandy -> immanuel` left "Chandy's Ghost" twice,
+    /// and the name held online is `chandy`, not `immanuel`.
     private func joinSlugGhosts(state: inout SyncState) async throws -> Bool {
         let ghosts = stores.ghosts
         let records = stores.seatStats.all()
-        let filed = records.flatMap { $0.seats.compactMap(\.ghostID) } + ghosts.all().map(\.id)
-        let slugs = Set(filed).filter { $0 == GhostTrainer.ghostID(forPerson: $0) && ghosts.resolve($0) == $0 }
+        let isSlug = { (id: String) in !id.isEmpty && id == GhostTrainer.ghostID(forPerson: id) }
+        let filed = records.flatMap { $0.seats.compactMap(\.ghostID) } + ghosts.all().map(\.id) + ghosts.aliases().keys
+        let slugs = Set(filed).filter { isSlug($0) && isSlug(ghosts.resolve($0)) }
         if !slugs.isEmpty {
-            for (slug, owner) in try await backend.claimants(of: slugs.sorted()).sorted(by: { $0.key < $1.key })
-            where owner != slug && ghosts.ghost(id: owner) != nil {
-                try ghosts.alias(slug, to: owner)
+            for (slug, owner) in try await backend.claimants(of: slugs.sorted()).sorted(by: { $0.key < $1.key }) {
+                let root = ghosts.resolve(slug)
+                guard isSlug(root), root != owner, ghosts.ghost(id: owner) != nil else { continue }
+                try ghosts.alias(root, to: owner)
             }
         }
         var changed = false

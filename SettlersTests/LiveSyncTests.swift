@@ -703,4 +703,24 @@ import Testing
         #expect(await newcomer.sync(cloud, as: "apple-new", name: "jake") == .nameTaken("jake"))
         #expect(newcomer.name(of: "apple-new") == LiveSync.defaultName)
     }
+
+    /// Jake's phone, 2026-10-06: a ghost downloaded before player ids as
+    /// `immanuel`, renamed `chandy -> immanuel`, beside the same person's
+    /// synced ghost. Only `chandy` is claimed online.
+    @Test func aRenamedOldGhostJoinsItsOwnersSyncedGhost() async throws {
+        let dir = root()
+        defer { try? FileManager.default.removeItem(at: dir) }
+        let cloud = FakeCloud()
+        let chandy = Device("chandy", in: dir)
+        try chandy.stores.ghosts.save(trainedGhost(chandy.me, "Chandy's Ghost", games: 3))
+        _ = await chandy.sync(cloud, as: "apple-chandy", name: "Chandy")
+
+        let jake = Device("jake", in: dir)
+        try jake.stores.ghosts.save(trainedGhost("immanuel", "Chandy's Ghost", games: 2))
+        try jake.stores.ghosts.alias("chandy", to: "immanuel")
+        _ = await jake.sync(cloud, as: "apple-jake", name: "Jake")
+
+        #expect(jake.stores.ghosts.all().map(\.id) == ["apple-chandy"])
+        #expect(jake.stores.ghosts.ghost(id: "immanuel")?.gamesLearned == 3)
+    }
 }

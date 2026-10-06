@@ -100,7 +100,7 @@ public struct GhostStore: Sendable {
 
     private var aliasFile: URL { localDirectory.appendingPathComponent("aliases.json") }
 
-    private func aliases() -> [String: String] {
+    func aliases() -> [String: String] {
         (try? JSONDecoder().decode([String: String].self, from: Data(contentsOf: aliasFile))) ?? [:]
     }
 
