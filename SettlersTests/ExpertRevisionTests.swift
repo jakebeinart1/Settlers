@@ -52,19 +52,7 @@ struct ExpertRevisionTests {
             try commitFirstMove(in: model)
             let started = try requireMatch(model, revision: revision)
             #expect(model.humanPlayer == PlayerID(index: humanChair))
-            let bytes = try Data(contentsOf: model.checkpointStore.fileURL)
-
-            let restored = makeModel(fixture)
-            #expect(try requireMatch(restored, revision: revision) == started)
-            #expect(restored.session.checkpoint == model.session.checkpoint)
-            #expect(restored.humanPlayer == PlayerID(index: humanChair))
-            #expect(try Data(contentsOf: restored.checkpointStore.fileURL) == bytes)
-            restored.restartCurrentMatch(fallbackRandomizedBoard: !randomizedBoard, fallbackRandomizeSeat: true)
-            let restarted = try requireMatch(restored, revision: revision)
-            #expect(restarted.id != started.id)
-            #expect(restarted.setup.seats == started.setup.seats)
-            #expect(restarted.setup.randomizedBoard == randomizedBoard)
-            #expect(try requireMatch(makeModel(fixture), revision: revision) == restarted)
+            try requireRestoreAndRestart(started, model: model, fixture: fixture)
         }
     }
 
@@ -78,18 +66,7 @@ struct ExpertRevisionTests {
             model.startNewGame(setup: setup, configuredAs: setup)
             try commitFirstMove(in: model)
             let old = try requireMatch(model, revision: revision)
-            let bytes = try Data(contentsOf: model.checkpointStore.fileURL)
-
-            let restored = makeModel(fixture)
-            #expect(try requireMatch(restored, revision: revision) == old)
-            #expect(restored.session.checkpoint == model.session.checkpoint)
-            #expect(try Data(contentsOf: restored.checkpointStore.fileURL) == bytes)
-            restored.restartCurrentMatch(fallbackRandomizedBoard: !randomizedBoard, fallbackRandomizeSeat: true)
-            let restarted = try requireMatch(restored, revision: revision)
-            #expect(restarted.id != old.id)
-            #expect(restarted.setup.seats == old.setup.seats)
-            #expect(restarted.setup.randomizedBoard == randomizedBoard)
-            #expect(try requireMatch(makeModel(fixture), revision: revision) == restarted)
+            try requireRestoreAndRestart(old, model: model, fixture: fixture)
         }
     }
 
@@ -228,6 +205,24 @@ struct ExpertRevisionTests {
             MatchSetup.Seat(index: index, isHuman: index == humanChair,
                 name: index == humanChair ? "Alex" : "", civilization: Civilization.allCases[index])
         }, victoryPointTarget: 10, randomizedBoard: randomizedBoard, randomizeSeatOrder: false, difficulty: .expert)
+    }
+
+    private func requireRestoreAndRestart(
+        _ started: MatchCheckpoint, model: GameViewModel, fixture: CheckpointModelFixture
+    ) throws {
+        let revision = started.setup.expertRevision
+        let bytes = try Data(contentsOf: model.checkpointStore.fileURL)
+        let restored = makeModel(fixture)
+        #expect(try requireMatch(restored, revision: revision) == started)
+        #expect(restored.session.checkpoint == model.session.checkpoint)
+        #expect(restored.humanPlayer == model.humanPlayer)
+        #expect(try Data(contentsOf: restored.checkpointStore.fileURL) == bytes)
+        restored.restartCurrentMatch(fallbackRandomizedBoard: !started.setup.randomizedBoard, fallbackRandomizeSeat: true)
+        let restarted = try requireMatch(restored, revision: revision)
+        #expect(restarted.id != started.id)
+        #expect(restarted.setup.seats == started.setup.seats)
+        #expect(restarted.setup.randomizedBoard == started.setup.randomizedBoard)
+        #expect(try requireMatch(makeModel(fixture), revision: revision) == restarted)
     }
 
     private func configuredSetup(_ configuration: String, model: GameViewModel) throws -> MatchSetup {

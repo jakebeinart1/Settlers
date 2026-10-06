@@ -76,5 +76,28 @@ in `/Users/alex/.codex/worktrees/expert-city-integration/Settlers`, based on mai
 `793dfea180ac457be857e2bdea2665e9c5fcdca4` (includes PR #55's UI fixes).
 The focused Plenty regression failed before implementation and passes afterward;
 12 package tests passed. Shared skill validation and strict SwiftLint passed.
-Remaining: production parity, app/save tests, review, full gate, PR/CI, merge,
-native Release verification and TestFlight availability. Not yet merged or shipped.
+Production parity passed: 72 research/product pairs (144 games), every trajectory,
+winner, move count, points and behavior matched after policy-ID normalization
+only. The city-only baseline also matched. Artifact: `parity-receipt.json` in
+`/Users/alex/Library/Application Support/EmpiresResearch/expert-improvement/deliveries/expert-cards-20261005/`.
+Hosted app/save/archive suites passed: 14 test functions, including parameterized
+old/new revision and unsupported-domain cases. The post-review rerun passed too.
+
+## Standards
+
+The independent reviewer found one minor duplicated restore/restart assertion
+sequence. Both scenarios now use a common helper with byte equality, complete
+session/RNG, human identity, roster, recorded brain, board setting, distinct
+restart ID and subsequent cold restoration checks. The reviewer confirmed it
+resolved, with no remaining concrete issue. No functional finding was reported.
+
+## Spec
+
+The independent reviewer found no actionable issue: exact retained formula,
+scope, old brains, Ghost exclusion, archive identities and the confidence-only
+rule match the acceptance criteria. Reviews were read-only, not test evidence.
+
+Apple read-only preflight passed; latest uploaded build was 19, VALID. Reserve
+Build 20 in `project.yml`, regenerate, and verify the emitted artifact's number.
+Remaining: full pre-push gate, PR/CI, merge, native Release verification and
+TestFlight availability. Not yet merged or shipped.
