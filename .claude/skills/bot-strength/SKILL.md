@@ -27,6 +27,33 @@ seed number.
 This skill is the method. It needs no code beyond what **sim-harness** already
 provides.
 
+## Promotion rule — Alex's October 5, 2026 direction
+
+Retain a positive improvement supported by an independent, held-out comparison
+whose **two-sided confidence interval at 90% or higher lies wholly above zero**.
+A positive 95% interval satisfies this rule. There is **no minimum Elo or
+win-rate-gain cutoff**: report the estimated size and uncertainty, rather than
+discarding a reliable smaller gain for missing an artificial +20 floor.
+
+Choose the confidence level, sample and nomination rule before new games run.
+Bootstrap whole paired board-seed families, preserving all chair rotations.
+When screening several ideas, nominate before a disjoint confirmation (or use a
+predeclared multiple-testing method). Screening alone does not promote an arm;
+one may not extend samples until a result becomes positive. An interval crossing
+zero is inconclusive, not equivalence. A confidence interval is not a posterior
+probability that the policy is better.
+
+Replay/provenance, completion, legal masks, secondary-opponent checks and
+product/runtime verification remain required. Scope the claim and rollout to
+the tested population. Freeze each promoted brain under a new persisted
+revision so an update does not change saved matches or Ghosts.
+
+Historical plans and signed result receipts keep their original rules. Record
+this policy change alongside the retention decision, not by rewriting an old
+failed gate as passed. B-002's card result (+18.10 Elo, 95% [+9.73, +26.02])
+qualifies under Alex's new rule; its old +20 gate remains false. Unconfirmed
+screen arms are not retroactively promoted.
+
 ## What has actually run
 
 | Path | Status |
@@ -50,9 +77,9 @@ provides.
 - **A settled tree.** `git status` clean, or at least clean under
   `Packages/CatanAI/Sources` and `Packages/CatanEngine/Sources`. Record the SHA
   of each arm in the result.
-- **A stated effect size, chosen before the run.** "How much better does it
-  need to be to matter?" decides the sample size. Deciding it afterwards, by
-  looking at the result, is how a 3-point wobble becomes a shipped claim.
+- **Confidence and sampling chosen before the run.** Use an anticipated effect
+  to budget statistical power, not as a minimum gain required for retention.
+  Apply the promotion rule above after the complete fixed held-out sample.
 - **A declared table size.** Record `playerCount` as three or four. Pair and
   analyze within that stratum; run both strata before making a product-wide
   claim.
@@ -156,6 +183,10 @@ in a shard) and arm 1's number is meaningless.
 
 ### 4. Size the sample to the effect, before running
 
+The following 95%-level examples are planning arithmetic, not promotion floors.
+For a new 90%-level design, use its corresponding quantile (about 1.645 rather
+than 1.960) and recompute power; a larger conservative sample is also valid.
+
 For two independent proportions at `alpha = 0.05` two-sided and `power = 0.80`,
 set `p1 = 1 / playerCount` and `p2 = p1 + minimumMeaningfulDifference`:
 
@@ -244,6 +275,10 @@ its wall time. The four-player evidence already removes any excuse for running
 50 games and reporting a precise win rate.
 
 ### 5. Report the interval, never the point
+
+State the actual confidence level. The examples below use 95%; the current
+retention rule accepts a predeclared level of at least 90%. Paired experimental
+results use whole-seed-family bootstrap intervals, not independent-game errors.
 
 The 95% interval on a measured win rate `p` from `n` games is
 `p +/- 1.96 * sqrt(p(1-p)/n)`. The rough half-width depends on table size:

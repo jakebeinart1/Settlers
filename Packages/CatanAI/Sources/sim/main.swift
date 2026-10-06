@@ -206,6 +206,7 @@ private struct Options {
                         anchors:    greedy, random
                         search: eval (legacy Expert position evaluation)
                         revision: eval-city-production (confirmed city-production Expert)
+                                  eval-point-completing-cards (city production plus card readiness)
                         variant: eval-holder (eval without the hand-size rule)
                         sweep:  eval-tuned (same, with --weights)
                         anchor: eval-round3 (Expert as shipped at dac279c)
@@ -241,12 +242,12 @@ private func policy(named name: String,
     case "cautious": personality = .cautious
     case "refuses-balanced": personality = nil
     case "greedy", "random", "joint-balanced", "eval", "eval-holder", "eval-tuned", "eval-round3", "eval-worthit",
-         "eval-noarmy", "eval-v0", "eval-city-production": personality = nil
+         "eval-noarmy", "eval-v0", "eval-city-production", "eval-point-completing-cards": personality = nil
     default:
         fail(
             "unknown seat '\(name)'; expected balanced, aggressive, cautious, "
                 + "bold, targeted, eval, eval-holder, eval-noarmy, eval-v0, eval-tuned, eval-round3, greedy, random, "
-                + "refuses-balanced, joint-balanced or eval-city-production"
+                + "refuses-balanced, joint-balanced, eval-city-production or eval-point-completing-cards"
         )
     }
     if let personality {
@@ -259,6 +260,8 @@ private func policy(named name: String,
         base = EvaluationPolicy()
     } else if name == "eval-city-production" {
         base = EvaluationPolicy(revision: .cityProductionV1)
+    } else if name == "eval-point-completing-cards" {
+        base = EvaluationPolicy(revision: .pointCompletingCardsV1)
     } else if name == "eval-holder" {
         // Expert as it was before `HandDiscipline`: free to end a turn on
         // any hand size. The arm that answers whether the rule costs anything.

@@ -18,13 +18,14 @@ struct ExpertRevisionTests {
         #expect(restored.expertRevision == .legacy)
         #expect(ExpertRevision.legacy.policyID == "evaluation-v1")
         #expect(ExpertRevision.cityProductionV1.policyID == "evaluation-city-production-v1")
+        #expect(ExpertRevision.pointCompletingCardsV1.policyID == "evaluation-point-completing-cards-v1")
     }
 
     @Test func unknownRevisionBlocksColdResumeWithoutRewritingBytes() throws {
         try withFixture { fixture in
             let model = makeModel(fixture)
             model.startNewGame(setup: expertSetup())
-            _ = try requireMatch(model, revision: .cityProductionV1)
+            _ = try requireMatch(model, revision: .pointCompletingCardsV1)
             let url = model.checkpointStore.fileURL
             let bytes = try rewriteRevision(at: url, as: "future-expert-revision")
             #expect(throws: DecodingError.self) { try MatchCheckpointStore(fileURL: url).load() }
@@ -40,23 +41,55 @@ struct ExpertRevisionTests {
 
     // A nonzero human chair is the deterministic equivalent of Random seating,
     // without a probabilistic retry loop in the regression suite.
-    @Test(arguments: [0, 3])
-    func supportedNewMatchPersistsCityPolicyThroughColdResumeAndRestart(humanChair: Int) throws {
+    @Test(arguments: [0, 3], [false, true])
+    func supportedNewMatchPersistsSelectedPolicyThroughColdResumeAndRestart(humanChair: Int, randomizedBoard: Bool) throws {
         try withFixture { fixture in
             let model = makeModel(fixture)
-            model.startNewGame(setup: expertSetup(humanChair: humanChair))
-            let started = try requireMatch(model, revision: .cityProductionV1)
+            var setup = expertSetup(humanChair: humanChair, randomizedBoard: randomizedBoard)
+            setup.expertRevision = .pointCompletingCardsV1
+            let revision: ExpertRevision = randomizedBoard ? .pointCompletingCardsV1 : .cityProductionV1
+            model.startNewGame(setup: setup)
+            try commitFirstMove(in: model)
+            let started = try requireMatch(model, revision: revision)
             #expect(model.humanPlayer == PlayerID(index: humanChair))
+            let bytes = try Data(contentsOf: model.checkpointStore.fileURL)
 
             let restored = makeModel(fixture)
-            #expect(try requireMatch(restored, revision: .cityProductionV1) == started)
+            #expect(try requireMatch(restored, revision: revision) == started)
             #expect(restored.session.checkpoint == model.session.checkpoint)
             #expect(restored.humanPlayer == PlayerID(index: humanChair))
-            restored.restartCurrentMatch(fallbackRandomizedBoard: true, fallbackRandomizeSeat: true)
-            let restarted = try requireMatch(restored, revision: .cityProductionV1)
+            #expect(try Data(contentsOf: restored.checkpointStore.fileURL) == bytes)
+            restored.restartCurrentMatch(fallbackRandomizedBoard: !randomizedBoard, fallbackRandomizeSeat: true)
+            let restarted = try requireMatch(restored, revision: revision)
             #expect(restarted.id != started.id)
             #expect(restarted.setup.seats == started.setup.seats)
-            #expect(try requireMatch(makeModel(fixture), revision: .cityProductionV1) == restarted)
+            #expect(restarted.setup.randomizedBoard == randomizedBoard)
+            #expect(try requireMatch(makeModel(fixture), revision: revision) == restarted)
+        }
+    }
+
+    @Test(arguments: [ExpertRevision.legacy, .cityProductionV1], [false, true])
+    func savedExpertKeepsOriginalPolicyThroughColdResumeAndRestart(revision: ExpertRevision, randomizedBoard: Bool) throws {
+        try withFixture { fixture in
+            let model = makeModel(fixture)
+            var setup = expertSetup(randomizedBoard: randomizedBoard)
+            setup.expertRevision = revision
+            #expect(setup.newMatchExpertRevision == (randomizedBoard ? .pointCompletingCardsV1 : .cityProductionV1))
+            model.startNewGame(setup: setup, configuredAs: setup)
+            try commitFirstMove(in: model)
+            let old = try requireMatch(model, revision: revision)
+            let bytes = try Data(contentsOf: model.checkpointStore.fileURL)
+
+            let restored = makeModel(fixture)
+            #expect(try requireMatch(restored, revision: revision) == old)
+            #expect(restored.session.checkpoint == model.session.checkpoint)
+            #expect(try Data(contentsOf: restored.checkpointStore.fileURL) == bytes)
+            restored.restartCurrentMatch(fallbackRandomizedBoard: !randomizedBoard, fallbackRandomizeSeat: true)
+            let restarted = try requireMatch(restored, revision: revision)
+            #expect(restarted.id != old.id)
+            #expect(restarted.setup.seats == old.setup.seats)
+            #expect(restarted.setup.randomizedBoard == randomizedBoard)
+            #expect(try requireMatch(makeModel(fixture), revision: revision) == restarted)
         }
     }
 
@@ -67,6 +100,7 @@ struct ExpertRevisionTests {
             // Author a pre-update match through the revision-preserving path;
             // public New Game deliberately promotes this supported table.
             model.startNewGame(setup: setup, configuredAs: setup)
+            try commitFirstMove(in: model)
             let old = try requireMatch(model, revision: .legacy)
             let bytes = try rewriteRevision(at: model.checkpointStore.fileURL, as: nil)
 
@@ -81,31 +115,13 @@ struct ExpertRevisionTests {
         }
     }
 
-    @Test(arguments: ["conquest", "expanded", "vast", "threeSeats", "eightPoints", "twoHumans", "ghost"])
-    func unsupportedNewTablesSelectLegacyAndColdResume(configuration: String) throws {
+    @Test(arguments: [ExpertRevision.cityProductionV1, .pointCompletingCardsV1],
+        ["conquest", "expanded", "vast", "threeSeats", "eightPoints", "twelvePoints", "twoHumans", "ghost"])
+    func unsupportedNewTablesSelectLegacyAndColdResume(requestedRevision: ExpertRevision, configuration: String) throws {
         try withFixture { fixture in
             let model = makeModel(fixture)
-            var setup = expertSetup()
-            setup.expertRevision = .cityProductionV1
-            switch configuration {
-            case "conquest": setup.variant = .conquest
-            case "expanded":
-                setup.mode = .expanded
-                setup.victoryPointTarget = Ruleset.forMode(.expanded).defaultVictoryPointTarget
-            case "vast":
-                setup.mode = .vast
-                setup.victoryPointTarget = Ruleset.forMode(.vast).defaultVictoryPointTarget
-            case "threeSeats": setup.seats.removeLast()
-            case "eightPoints": setup.victoryPointTarget = 8
-            case "twoHumans":
-                setup.seats[1].isHuman = true
-                setup.seats[1].name = "Sam"
-            case "ghost":
-                try model.ghostStore.save(GhostProfile(id: "fixture", name: "Fixture Ghost",
-                    person: .anchored(at: .forMode(.classic)), lambda: 0.5, gamesLearned: 24))
-                setup.seats[2].ghostID = "fixture"
-            default: preconditionFailure("Unknown test configuration: \(configuration)")
-            }
+            var setup = try configuredSetup(configuration, model: model)
+            setup.expertRevision = requestedRevision
             model.startNewGame(setup: setup)
             let started = try requireMatch(model, revision: .legacy)
             #expect(started.setup.mode == setup.mode)
@@ -115,21 +131,32 @@ struct ExpertRevisionTests {
         }
     }
 
-    @Test func classicDifficultyKeepsItsHeuristicsEvenWhenCityRevisionIsRequested() throws {
+    @Test(arguments: [ExpertRevision.cityProductionV1, .pointCompletingCardsV1])
+    func classicDifficultyKeepsItsHeuristicsEvenWhenExpertRevisionIsRequested(revision: ExpertRevision) throws {
         try withFixture { fixture in
             let model = makeModel(fixture)
             var setup = expertSetup()
             setup.difficulty = .classic
-            setup.expertRevision = .cityProductionV1
+            setup.expertRevision = revision
             model.startNewGame(setup: setup)
             let started = try requireMatch(model, revision: .legacy)
             #expect(started.setup.difficulty == .classic)
             #expect(try requireMatch(makeModel(fixture), revision: .legacy) == started)
             for profile in model.opponentProfiles.values {
-                #expect(BotDifficulty.classic.policy(for: profile, expertRevision: .cityProductionV1).id
+                #expect(BotDifficulty.classic.policy(for: profile, expertRevision: revision).id
                     == "heuristic-\(profile.strategy.rawValue)")
             }
         }
+    }
+
+    @Test(arguments: [ExpertRevision.cityProductionV1, .pointCompletingCardsV1],
+        ["conquest", "expanded", "vast", "threeSeats", "eightPoints", "twelvePoints", "twoHumans", "ghost", "classicDifficulty"])
+    func unsupportedSavedRevisionBlocksColdResumeWithoutRewritingBytes(revision: ExpertRevision, configuration: String) throws {
+        try requireRejectedSavedRevision(revision, configuration: configuration)
+    }
+
+    @Test func cardRevisionOnFixedBoardBlocksColdResumeWithoutRewritingBytes() throws {
+        try requireRejectedSavedRevision(.pointCompletingCardsV1, configuration: "fixedBoard")
     }
 
     @Test func restartFallbackDoesNotPinTheEditableNewGameBrain() throws {
@@ -138,7 +165,7 @@ struct ExpertRevisionTests {
             model.startNewGame(setup: expertSetup())
             fixture.setupStore.clear()
             model.restartCurrentMatch(fallbackRandomizedBoard: false, fallbackRandomizeSeat: false)
-            _ = try requireMatch(model, revision: .cityProductionV1)
+            _ = try requireMatch(model, revision: .pointCompletingCardsV1)
             let prefill = try #require(fixture.setupStore.load().value)
             var draft = NewGameSetupView.initialSetup(from: .loaded(prefill),
                 preferredName: "Alex", preferredCivilization: Civilization.allCases[0]).setup
@@ -152,7 +179,7 @@ struct ExpertRevisionTests {
             draft.mode = .vast
             draft.normalizeNewGameOptions()
             #expect(draft.isStartable)
-            #expect(model.checkpointDocument?.activeMatch?.setup.expertRevision == .cityProductionV1)
+            #expect(model.checkpointDocument?.activeMatch?.setup.expertRevision == .pointCompletingCardsV1)
         }
     }
 
@@ -170,7 +197,7 @@ struct ExpertRevisionTests {
                 return trainer
             }
             model.startNewGame(setup: expertSetup())
-            let started = try requireMatch(model, revision: .cityProductionV1)
+            let started = try requireMatch(model, revision: .pointCompletingCardsV1)
             try model.qaPlayToEnd()
             return (model, fixture, started)
         }
@@ -185,22 +212,83 @@ struct ExpertRevisionTests {
         #expect(model.persistenceErrorMessage == nil)
         let match = try #require(model.checkpointDocument?.activeMatch)
         #expect(match.id == started.id)
-        #expect(match.setup.expertRevision == .cityProductionV1)
+        #expect(match.setup.expertRevision == .pointCompletingCardsV1)
         try match.validateHistory()
         let url = try model.gameLogStore.export(checkpoint: match)
         let detail = try model.gameLogStore.detail(for: url)
         #expect(detail.isComplete)
-        #expect(detail.roster.expertRevision == .cityProductionV1)
+        #expect(detail.roster.expertRevision == .pointCompletingCardsV1)
         #expect(detail.summary.winner == winner)
         #expect(!detail.events.isEmpty)
         #expect(try fixture.logStore.summaries().count == 1)
     }
 
-    private func expertSetup(humanChair: Int = 0) -> MatchSetup {
+    private func expertSetup(humanChair: Int = 0, randomizedBoard: Bool = true) -> MatchSetup {
         MatchSetup(seats: (0..<4).map { index in
             MatchSetup.Seat(index: index, isHuman: index == humanChair,
                 name: index == humanChair ? "Alex" : "", civilization: Civilization.allCases[index])
-        }, victoryPointTarget: 10, randomizedBoard: false, randomizeSeatOrder: false, difficulty: .expert)
+        }, victoryPointTarget: 10, randomizedBoard: randomizedBoard, randomizeSeatOrder: false, difficulty: .expert)
+    }
+
+    private func configuredSetup(_ configuration: String, model: GameViewModel) throws -> MatchSetup {
+        var setup = expertSetup()
+        switch configuration {
+        case "conquest": setup.variant = .conquest
+        case "expanded":
+            setup.mode = .expanded
+            setup.victoryPointTarget = Ruleset.forMode(.expanded).defaultVictoryPointTarget
+        case "vast":
+            setup.mode = .vast
+            setup.victoryPointTarget = Ruleset.forMode(.vast).defaultVictoryPointTarget
+        case "threeSeats": setup.seats.removeLast()
+        case "eightPoints": setup.victoryPointTarget = 8
+        case "twelvePoints": setup.victoryPointTarget = 12
+        case "twoHumans":
+            setup.seats[1].isHuman = true
+            setup.seats[1].name = "Sam"
+        case "ghost":
+            try model.ghostStore.save(GhostProfile(id: "fixture", name: "Fixture Ghost",
+                person: .anchored(at: .forMode(.classic)), lambda: 0.5, gamesLearned: 24))
+            setup.seats[2].ghostID = "fixture"
+        case "classicDifficulty": setup.difficulty = .classic
+        case "fixedBoard": setup.randomizedBoard = false
+        default: preconditionFailure("Unknown test configuration: \(configuration)")
+        }
+        return setup
+    }
+
+    private func requireRejectedSavedRevision(_ revision: ExpertRevision, configuration: String) throws {
+        try withFixture { fixture in
+            let model = makeModel(fixture)
+            model.startNewGame(setup: try configuredSetup(configuration, model: model))
+            _ = try requireMatch(model, revision: configuration == "fixedBoard" ? .cityProductionV1 : .legacy)
+            let url = model.checkpointStore.fileURL
+            let bytes = try rewriteRevision(at: url, as: revision.rawValue)
+            #expect(throws: MatchCheckpointStore.StoreError.invalidSetup) { try MatchCheckpointStore(fileURL: url).load() }
+
+            let restored = makeModel(fixture)
+
+            #expect(!restored.savedGameAvailability.canResume)
+            #expect(restored.savedGameAvailability.recoveryMessage != nil)
+            #expect(restored.persistenceBlocked)
+            #expect(try Data(contentsOf: url) == bytes)
+        }
+    }
+
+    /// Commit a real opening action without scheduling the asynchronous bot loop.
+    private func commitFirstMove(in model: GameViewModel) throws {
+        var candidate = model.session
+        let step: GameSession.Step
+        if case .awaitingExternalSeat(let seat) = candidate.nextActor() {
+            let move = try #require(RulesEngine.legalMoves(for: model.state, seat: seat).first)
+            step = try candidate.applyExternal(move, by: seat)
+        } else {
+            let decision = candidate.decideNext()
+            let (seat, move) = try #require(decision)
+            step = try candidate.commit(seat: seat, move: move)
+        }
+        model.beginEventBatch()
+        try model.commitStep(step, candidate: candidate)
     }
 
     /// Reuse checkpoint isolation while also injecting the newer stores that
@@ -249,7 +337,7 @@ struct ExpertRevisionTests {
             } else if match.setup.difficulty == .classic {
                 #expect(policy.id == "heuristic-\(profile.strategy.rawValue)")
             } else {
-                #expect(policy.id == (revision == .legacy ? "evaluation-v1" : "evaluation-city-production-v1"))
+                #expect(policy.id == revision.policyID)
             }
         }
         return match
