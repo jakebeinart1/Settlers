@@ -5,6 +5,10 @@ description: Build, install, launch and screenshot Settlers ("Empires") on a sim
 
 # Run Settlers (Empires)
 
+Before any simulator selection/create/boot, gate, or native test, read and apply
+[the simulator lifecycle policy](references/simulator-lifecycle.md). It governs
+the shared project budget, reuse, active-work protection, and storage retention.
+
 **A green `xcodebuild` is a compile claim. "The change works" is a runtime claim.** Native
 XCUITests exercise setup, settings, placement, and cold resume; an inspected screenshot
 remains the evidence for visual layout. Neither substitutes for the other.
@@ -54,8 +58,10 @@ REPO="$(git rev-parse --show-toplevel)"
 # 2) Use the dedicated QA simulator because this recipe uninstalls the app.
 #    For a user's manual-play device, install in place and omit uninstall/reset
 #    flags so their saved game survives. Never run this destructive recipe there.
-SIM="$(python3 "$REPO/scripts/select-qa-simulator.py")"
-xcrun simctl boot "$SIM" 2>/dev/null || true   # already-booted is not an error
+#    Apply the shared lifecycle allocation procedure (the selector may create),
+#    then set SIM to the confirmed ready QA UDID. This ladder never allocates
+#    outside that procedure, and an already Booted device can be reused.
+: "${SIM:?Apply the simulator lifecycle policy and supply the ready QA UDID first}"
 open -a Simulator                              # so the screenshot has something to photograph
 
 # 3) REGENERATE THE PROJECT IF THE FILE LIST CHANGED. `project.yml` globs
@@ -112,6 +118,9 @@ sleep 4
 xcrun simctl io "$SIM" screenshot "$DD/verify.png"
 echo "now READ $DD/verify.png"
 ```
+
+After inspecting the evidence, follow the lifecycle policy's finish step for any
+temporary device this workflow booted; keep it running only for ongoing work.
 
 ## The `-qa*` launch arguments
 

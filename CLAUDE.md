@@ -24,6 +24,7 @@ Every one of these is canonical for its question. Read the file, do not reason f
 | Why CI runs on Ubuntu and what it deliberately does not do | `.github/workflows/ci.yml` |
 | Why each lint threshold sits where it does | `.swiftlint.yml` |
 | Running / screenshotting the app, every `-qa*` launch flag, UI-test reset arguments, what the device path blocks on | `.claude/skills/run-settlers/SKILL.md` - **the** reference; do not re-derive it |
+| Before any simulator create/boot or native test/gate: project capacity, ownership, reuse, shutdown, and storage retention | `.claude/skills/run-settlers/references/simulator-lifecycle.md` - applies across all worktrees, including test clones |
 | Legal moves and move application (the whole ruleset) | `Packages/CatanEngine/Sources/CatanEngine/RulesEngine.swift` |
 | Save-file schema and its backward compatibility | `GameState.init(from:)`, `Models/GameState.swift:110` |
 | Randomness contract | `Models/RandomSource.swift` (doc comment is the spec) |
@@ -104,10 +105,12 @@ App/UI tests run on the dedicated `Empires QA` simulator selected by
 never replace this with "first available" or "first booted", which wiped the
 manual-play simulator during an ordinary gate on 2026-09-03.
 
-They also run **in parallel across cloned simulators** (`Clone N of Empires QA`,
+They can also run **in parallel across cloned simulators** (`Clone N of Empires QA`,
 created by xcodebuild - still not your manual-play device). Both bundles are
 marked `parallelizable` in `project.yml`; the worker count is machine-specific
-and lives in `gate.sh` (`GATE_TEST_WORKERS`, default 2). Measured on 8 cores /
+and lives in `gate.sh` (`GATE_TEST_WORKERS`, default 2), subject to the simulator
+lifecycle policy above. `GATE_TEST_WORKERS=1` uses serial testing without worker
+clones when the shared project budget requires it. Measured on 8 cores /
 16GB, same tree: 1151s serial, 731s at 2 workers, 681s at 3 - but 3 starved two
 tests into failing. **A test that fails only at a higher worker count is a
 suspect, not a verdict**: re-run it serially before believing it. `gate.sh`'s
@@ -142,6 +145,7 @@ The loop that is actually fast:
    ```bash
    xcodebuild test -project Settlers.xcodeproj -scheme Settlers \
      -destination "platform=iOS Simulator,id=$SIM" \
+     -parallel-testing-enabled NO -parallel-testing-worker-count 1 \
      -only-testing:SettlersUITests/MainMenuFlowTests        # ~2 min, not ~50
    swift test --package-path Packages/CatanEngine           # ~25s
    swiftlint --strict                                       # ~1s, catches file_length
@@ -156,9 +160,11 @@ discover them one push at a time. That is the third property above, used deliber
 not the default.
 
 **Memory, not CPU, is the constraint on this machine.** Four separate runs were killed
-mid-flight on 2026-09-16 with the Simulator open (measured: 61MB free). Quit the Simulator
-and `xcrun simctl shutdown all` before a gate or a push, and prefer `GATE_TEST_WORKERS=1`,
-which trades ~7 minutes of wall clock for not being killed at minute forty.
+mid-flight on 2026-09-16 with the Simulator open (measured: 61MB free). Before a gate or
+push, apply the shared simulator lifecycle policy above: inventory ownership and active
+work, reserve project capacity, and shut down only idle project devices when required.
+Protect ongoing tests, user sessions, and other projects. Prefer `GATE_TEST_WORKERS=1`
+when worker clones do not fit the available project budget.
 
 ## Anti-false-green - lessons this repo has already paid for
 

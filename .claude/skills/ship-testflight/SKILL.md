@@ -46,6 +46,11 @@ preflight and use the numeric app id it prints.
 
 ## Release ladder
 
+Before the gate or native UI flows, read and apply
+[the shared simulator lifecycle policy](../run-settlers/references/simulator-lifecycle.md),
+including its test-clone budget and task-finish shutdown rules. Shipping does
+not allocate a separate simulator budget.
+
 1. Run scripts/gate.sh --debug-app.
 2. Run all native UI flows on a fresh simulator install. A green package suite
    does not prove New Game, setup placement, hot-seat handoff, or settings.

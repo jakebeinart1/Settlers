@@ -25,6 +25,11 @@ that ends a turn will not show a result for half a minute.
 
 ## Setup
 
+Before selecting/creating/booting a simulator or starting `xcodebuild test`,
+read and apply [the shared simulator lifecycle policy](../run-settlers/references/simulator-lifecycle.md).
+Follow its finish/retention rules after play; user review and other active tasks
+keep their devices protected.
+
 Use the native `SettlersUITests` target for repeatable setup, settings, placement,
 and cold-resume interaction. Build, install, and launch with `run-settlers` for
 manual exploratory play.
@@ -36,6 +41,7 @@ Run a focused UI flow without inheriting simulator state:
 ```bash
 xcodebuild test -project Settlers.xcodeproj -scheme Settlers \
   -destination 'platform=iOS Simulator,id=<SIM_UDID>' \
+  -parallel-testing-enabled NO -parallel-testing-worker-count 1 \
   -only-testing:SettlersUITests/MainMenuFlowTests
 ```
 

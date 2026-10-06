@@ -1,9 +1,14 @@
 ---
 name: verify-settlers
-description: The dev-loop verification ladder for the Settlers ("Empires") iOS app - regenerate the project, run scripts/gate.sh, install FRESH on the simulator, launch, prove the process survived, and hand over a screenshot. Use before saying a change works, before opening a PR to Jake, and whenever the report is "it builds", "tests pass, ship it", "is this ready?", or the complaint is "my change didn't do anything", "it compiled but the screen is wrong", "it worked yesterday", or "did you actually check?". `scripts/gate.sh` compiles the app in RELEASE and its Debug build is opt-in (`--debug-app`), while every `-qa*` launch flag is wrapped in `#if DEBUG` - so a green gate has never once built the binary you are about to screenshot. Never pipe `xcodebuild` through `tail`, `head` or `grep`: a shell pipeline returns the LAST command's exit status, so a failed build reads as success.
+description: >-
+  The dev-loop verification ladder for the Settlers ("Empires") iOS app - regenerate the project, run scripts/gate.sh, install FRESH on the simulator, launch, prove the process survived, and hand over a screenshot. Use before saying a change works, before opening a PR to Jake, and whenever the report is "it builds", "tests pass, ship it", "is this ready?", or the complaint is "my change didn't do anything", "it compiled but the screen is wrong", "it worked yesterday", or "did you actually check?". `scripts/gate.sh` compiles the app in RELEASE and its Debug build is opt-in (`--debug-app`), while every `-qa*` launch flag is wrapped in `#if DEBUG` - so a green gate has never once built the binary you are about to screenshot. Never pipe `xcodebuild` through `tail`, `head` or `grep`: a shell pipeline returns the LAST command's exit status, so a failed build reads as success.
 ---
 
 # Verify Settlers
+
+Before simulator selection/create/boot, native tests, or the gate/push hook,
+read and apply [the shared simulator lifecycle policy](../run-settlers/references/simulator-lifecycle.md).
+It also governs test clones and finish/retention decisions across worktrees.
 
 **"It builds" is a compile claim. "It works" is a runtime claim, and no compiler
 emits one.** The app now has hosted unit tests and native XCUITests. Until
@@ -41,9 +46,12 @@ it has no right to give.
 
 ## The ladder
 
-`scripts/verify.sh` implements rungs 1-5 and stops at 6. Run that rather than
-retyping this; the block below is here so the WHY is readable without opening
-the script, and so the pieces can be run by hand when you are changing them.
+`scripts/verify.sh` implements rungs 1-5 and stops at 6, but does not enforce the
+simulator lifecycle policy. Use it only when each internal create/boot/test stage
+can receive a fresh inventory and an available, coordinated project slot. Use
+the manual rungs below when a wrapper cannot provide that control. For changes
+only to agent documentation, validate the skills, references, and instructions;
+the mobile build/install ladder does not verify a documentation edit.
 
 ```bash
 set -euo pipefail   # -e, so a rung that fails stops the ladder rather than
@@ -69,7 +77,9 @@ xcodegen generate --quiet
 #    simulator work, not after: it is the cheap half of the ladder and the
 #    common failure, and there is no point installing an app whose package
 #    tests are red.
-"$REPO/scripts/gate.sh"
+#    Apply the lifecycle policy before its selector/test stages. Serial testing
+#    avoids worker clones; the dedicated QA device must still be idle/available.
+GATE_TEST_WORKERS=1 "$REPO/scripts/gate.sh"
 
 # 3) BUILD DEBUG, OUTSIDE THE TREE, AND ASSERT THE EXIT CODE.
 #    Debug and not Release, for two reasons that are easy to get backwards:
@@ -84,8 +94,9 @@ xcodegen generate --quiet
 #    fails --strict on Xcode's own generated sources.
 #    Log to a FILE. Never `xcodebuild | tail` - see the trap below.
 DD="${TMPDIR:-/tmp}/settlers-verify-derived"; mkdir -p "$DD"
-SIM="$(python3 scripts/select-qa-simulator.py)"
-xcrun simctl boot "$SIM" 2>/dev/null || true   # already-booted exits non-zero
+#    Apply the shared lifecycle allocation procedure again after the gate,
+#    then set SIM to its confirmed ready QA UDID before the fresh install.
+: "${SIM:?Apply the simulator lifecycle policy and supply the ready QA UDID first}"
 open -a Simulator                              # so there is a window to photograph
 xcodebuild -project "$REPO/Settlers.xcodeproj" -scheme Settlers \
   -destination "platform=iOS Simulator,id=$SIM" \
@@ -139,6 +150,9 @@ CRASHED="$(comm -13 <(printf '%s\n' "$BEFORE") <(ls -1 "$CRASH_DIR" | sort) \
 xcrun simctl io "$SIM" screenshot "$DD/verify.png"
 echo "READ $DD/verify.png"
 ```
+
+After reading the screenshot and finishing the task, apply the lifecycle
+policy's shutdown step to temporary devices this workflow booted.
 
 ## Trap: the pipeline that reports a failed build as a success
 
