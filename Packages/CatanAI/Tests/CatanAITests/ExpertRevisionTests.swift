@@ -8,6 +8,8 @@ import CatanEngine
     @Test func revisionsHaveDistinctCheckpointIdentities() {
         #expect(EvaluationPolicy().id == "evaluation-v1")
         #expect(EvaluationPolicy(revision: .cityProductionV1).id == "evaluation-city-production-v1")
+        #expect(EvaluationPolicy(revision: .pointCompletingCardsV1).id == "evaluation-point-completing-cards-v1")
+        #expect(Set(ExpertRevision.allCases.map(\.policyID)).count == ExpertRevision.allCases.count)
     }
 
     /// Two 5-pip tiles: ore and grain each produce 5/36 per roll.
@@ -58,10 +60,11 @@ import CatanEngine
         #expect(abs(newScore - oldScore - 7.0 / 216.0) < 1e-12)
     }
 
-    @Test func currentExpertCheckpointContinuesTheSameMovesAndRejectsLegacyPolicies() throws {
+    @Test(arguments: [ExpertRevision.cityProductionV1, .pointCompletingCardsV1])
+    func currentExpertCheckpointContinuesTheSameMovesAndRejectsOtherRevisions(revision: ExpertRevision) throws {
         let state = GameSetup.newGame(board: BoardGenerator.randomized(seed: 741), seed: 741)
         let policies = Dictionary(uniqueKeysWithValues: state.players.map {
-            ($0.id, EvaluationPolicy(revision: .cityProductionV1) as any Policy)
+            ($0.id, EvaluationPolicy(revision: revision) as any Policy)
         })
         var original = GameSession(state: state, policies: policies, policySeed: 741)
         for _ in 0..<30 { _ = try #require(try original.step()) }
@@ -76,8 +79,12 @@ import CatanEngine
             #expect(first.events == second.events)
             #expect(original.checkpoint == resumed.checkpoint)
         }
-        let legacy = Dictionary(uniqueKeysWithValues: state.players.map { ($0.id, EvaluationPolicy() as any Policy) })
-        #expect(throws: (any Error).self) { try GameSession(checkpoint: checkpoint, policies: legacy) }
+        for other in ExpertRevision.allCases where other != revision {
+            let mismatch = Dictionary(uniqueKeysWithValues: state.players.map {
+                ($0.id, EvaluationPolicy(revision: other) as any Policy)
+            })
+            #expect(throws: (any Error).self) { try GameSession(checkpoint: checkpoint, policies: mismatch) }
+        }
     }
 
     private func standingGain(_ state: GameState, seat: PlayerID) -> Double {

@@ -206,7 +206,10 @@ public struct EvaluationPolicy: LedgerAwarePolicy {
         if case .respondToTrade(let offerID, true) = move {
             return acceptance(outcome, of: offerID, state: state, ledger: ledger, evaluator: evaluator)
         }
-        return outcome
+        guard revision == .pointCompletingCardsV1 else { return outcome }
+        return outcome + PointCompletingCards.adjustment(
+            for: move, from: state, to: next, ledger: ledger, nextLedger: nextLedger, evaluator: evaluator
+        )
     }
 
     /// A bank or port trade's score: the position after the swap, plus the

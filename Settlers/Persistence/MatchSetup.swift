@@ -151,7 +151,7 @@ public struct MatchSetup: Codable, Equatable, Sendable {
         guard Ruleset.forMode(mode).victoryPointTargets.contains(victoryPointTarget) else {
             return "That match length is not available in \(mode.displayName)."
         }
-        guard expertRevision == .legacy || newMatchExpertRevision == .cityProductionV1 else {
+        guard hasSupportedExpertRevision else {
             return "That Expert revision is not supported by this match configuration."
         }
         return nil
@@ -305,11 +305,28 @@ public struct MatchSetup: Codable, Equatable, Sendable {
     /// Apply the measured rollout only at a fresh New Game boundary. This is
     /// not used by resume or Restart. Three-seat/alternate-target, hot-seat,
     /// Ghost, Conquest and large-map matches were not approved for promotion.
+    /// Card completion was confirmed on randomized boards; fixed-board games
+    /// retain the previously approved city-production revision.
     var newMatchExpertRevision: ExpertRevision {
-        guard difficulty == .expert, mode == .classic, variant == .standard,
-              victoryPointTarget == 10, seats.count == 4, humanSeats.count == 1,
-              seats.allSatisfy({ $0.ghostID == nil }) else { return .legacy }
-        return .cityProductionV1
+        guard isStandardExpertTable else { return .legacy }
+        return randomizedBoard ? .pointCompletingCardsV1 : .cityProductionV1
+    }
+
+    /// Saved revisions have their own supported domains. Comparing a stored
+    /// revision with today's rollout would reject old city games precisely
+    /// when a fresh game on that table starts using the card-completion brain.
+    private var hasSupportedExpertRevision: Bool {
+        switch expertRevision {
+        case .legacy: return true
+        case .cityProductionV1: return isStandardExpertTable
+        case .pointCompletingCardsV1: return isStandardExpertTable && randomizedBoard
+        }
+    }
+
+    private var isStandardExpertTable: Bool {
+        difficulty == .expert && mode == .classic && variant == .standard
+            && victoryPointTarget == 10 && seats.count == 4 && humanSeats.count == 1
+            && seats.allSatisfy({ $0.ghostID == nil })
     }
 
     /// Civilizations a picker must show as already taken, excluding `seat`'s

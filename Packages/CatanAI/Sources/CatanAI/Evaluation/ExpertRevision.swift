@@ -6,11 +6,14 @@ import CatanEngine
 public enum ExpertRevision: String, Codable, Sendable, CaseIterable {
     case legacy
     case cityProductionV1
+    /// City production plus the independently confirmed B-002 card correction.
+    case pointCompletingCardsV1
 
     public var policyID: String {
         switch self {
         case .legacy: return "evaluation-v1"
         case .cityProductionV1: return "evaluation-city-production-v1"
+        case .pointCompletingCardsV1: return "evaluation-point-completing-cards-v1"
         }
     }
 
