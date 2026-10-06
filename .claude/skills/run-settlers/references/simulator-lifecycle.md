@@ -13,13 +13,17 @@ Immediately before each operation, read fresh state:
 ```bash
 xcrun simctl list devices -j
 xcrun simctl list runtimes -j
-ps -axo pid,ppid,etime,command
+ps -axo pid,ppid,etime,comm
 git worktree list --porcelain
 ```
 
 Build a project-wide table of UDID, ownership evidence, runtime, current state,
 latest known use, and active task/build/test. Connect running `xcodebuild`
 destinations, test-runner descendants, and clone UDIDs to their parent workflow.
+Start with PID/PPID/elapsed/executable names and summarize the relevant process
+groups. Inspect command arguments only for selected `xcodebuild` PIDs whose
+checkout/destination needs resolving, or selected active device app paths;
+keep captured arguments out of shared receipts and omit unrelated process data.
 Inspect installed app identity and the built artifact's `CFBundleIdentifier`;
 Empires can use Jake's default or Alex's local signing override. Keep ownership
 receipts and actual use in existing task evidence or handoffs so another
