@@ -590,9 +590,30 @@ struct DevelopmentCardResultOverlay: View {
         VStack(spacing: 14) {
             DevCardIllustration(type: resolution.card)
             message
+                .accessibilityLabel(spokenMessage)
                 .font(.subheadline)
                 .multilineTextAlignment(.center)
                 .fixedSize(horizontal: false, vertical: true)
+        }
+    }
+
+    /// The same sentence without the square glyphs, which VoiceOver would
+    /// otherwise read aloud as "square fill".
+    private var spokenMessage: String {
+        switch resolution {
+        case .knight(_, let victim, let stolen):
+            guard let victim else { return "The robber moved. No rival was eligible to steal from." }
+            let name = playerIdentity(victim).displayName
+            if let stolen { return "You stole 1 \(stolen.rawValue.capitalized) from \(name)." }
+            return "The robber moved beside \(name), who had no resource card to steal."
+        case .roadBuilding:
+            return "Both free roads were placed together and your network has been updated."
+        case .yearOfPlenty(_, let taken):
+            return "The bank gave you \(IncomingTradeSummary.resources(taken, separator: " and "))."
+        case .monopoly(_, let resource, let gained):
+            let name = resource.rawValue.capitalized
+            if gained == 0 { return "No rival held any \(name). You collected 0 cards." }
+            return "Every rival surrendered their \(name). You collected \(gained) cards."
         }
     }
 

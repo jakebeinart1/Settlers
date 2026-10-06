@@ -115,7 +115,8 @@ struct ResourceSquare: View {
         RoundedRectangle(cornerRadius: size * 0.125)
             .fill(CatanTheme.color(for: resource))
             .frame(width: size, height: size)
-            .accessibilityHidden(true)
+        // No accessibilityHidden: a shape is never an element on its own, and
+        // hiding it inside a `.combine` row made XCUITest find the row twice.
     }
 }
 

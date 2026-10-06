@@ -61,7 +61,7 @@ final class DevelopmentCardAppearanceTests: XCTestCase {
         XCTAssertTrue(play.isEnabled)
         play.tap()
         XCTAssertTrue(app.staticTexts["dev-cards.result"].waitForExistence(timeout: 3))
-        XCTAssertTrue(app.staticTexts["The bank gave you 2 ore."].exists)
+        XCTAssertTrue(app.staticTexts["The bank gave you 2 Ore."].exists)
     }
 
 }

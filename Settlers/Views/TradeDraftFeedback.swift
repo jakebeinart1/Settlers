@@ -137,10 +137,10 @@ struct IncomingTradeSummary {
     var receiveText: String { "You receive \(Self.resources(receive))" }
     var requiresReview: Bool { max(give.count, receive.count) > 2 }
 
-    static func resources(_ counts: [Resource: Int]) -> String {
+    static func resources(_ counts: [Resource: Int], separator: String = ", ") -> String {
         let terms = Resource.allCases.filter { counts[$0, default: 0] > 0 }.map {
             "\(counts[$0, default: 0]) \($0.rawValue.capitalized)"
         }
-        return terms.isEmpty ? "no cards" : terms.joined(separator: ", ")
+        return terms.isEmpty ? "no cards" : terms.joined(separator: separator)
     }
 }

@@ -113,7 +113,7 @@ final class DevelopmentCardFlowTests: XCTestCase {
         play.tap()
 
         XCTAssertTrue(app.staticTexts["dev-cards.result"].waitForExistence(timeout: 3))
-        XCTAssertTrue(app.staticTexts["No rival held any wool. You collected 0 cards."].exists)
+        XCTAssertTrue(app.staticTexts["No rival held any Wool. You collected 0 cards."].exists)
         app.buttons["dev-cards.result.continue"].tap()
         XCTAssertFalse(app.staticTexts["dev-cards.result"].exists)
     }
@@ -133,7 +133,7 @@ final class DevelopmentCardFlowTests: XCTestCase {
         play.tap()
 
         XCTAssertTrue(app.staticTexts["dev-cards.result"].waitForExistence(timeout: 3))
-        XCTAssertTrue(app.staticTexts["The bank gave you 2 ore."].exists)
+        XCTAssertTrue(app.staticTexts["The bank gave you 2 Ore."].exists)
     }
 
     func testKnightCanCancelThenResolveThroughAnAccessibleBoardTile() {
