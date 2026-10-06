@@ -35,7 +35,8 @@ extension GameViewModel {
     /// player changes mid-turn has to reach the very next action, not the next
     /// game.
     func waitForNextBotAction() async {
-        guard !skipsBotPacing, !Task.isCancelled, let seat = activeBotSeat else { return }
+        guard !skipsBotPacing, !PacingPreferences.shared.skipPauses, !Task.isCancelled,
+              let seat = activeBotSeat else { return }
         let interval = PacingPreferences.shared.aiTurnSpeed.secondsPerBotAction
         let sinceLastAction = lastBotActionAt.map { Date().timeIntervalSince($0) } ?? 0
         let remaining = interval - max(0, sinceLastAction)

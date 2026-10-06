@@ -47,7 +47,7 @@ struct TradeResourceRow: View {
         return VStack(spacing: 2) {
             ResourceChip(resource: resource, count: count,
                          isEnabled: draft.canAdd(resource, toGive: isGive),
-                         isSelected: count > 0, size: 38, appearance: .illustrated, accent: accent) {
+                         isSelected: count > 0, size: 38) {
                 onAdd(resource)
             }
             .accessibilityIdentifier(addIdentifier(resource))

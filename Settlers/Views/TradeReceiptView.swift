@@ -53,9 +53,7 @@ struct TradeReceiptView: View {
             Text(title.uppercased()).font(.caption.weight(.semibold)).foregroundStyle(.secondary)
             ForEach(Resource.allCases.filter { counts[$0, default: 0] > 0 }, id: \.self) { resource in
                 HStack(spacing: 8) {
-                    RoundedRectangle(cornerRadius: 3)
-                        .fill(CatanTheme.color(for: resource))
-                        .frame(width: 18, height: 22)
+                    ResourceSquare(resource: resource, size: 20)
                     Text("\(counts[resource, default: 0]) \(resource.rawValue.capitalized)")
                         .font(.subheadline.bold())
                 }

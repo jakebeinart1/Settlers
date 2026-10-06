@@ -171,7 +171,6 @@ enum AccessibilityID {
     enum Game {
         static let settings = "game.settings"
         static let botProgress = "bot-progress.status"
-        static let skipBotPauses = "bot-progress.skip"
         static let retryBotProgress = "bot-progress.retry"
 
         /// The command row under the player panel - action buttons, the board
@@ -238,6 +237,10 @@ enum AccessibilityID {
         static let close = "in-game-settings.close"
         static let restart = "in-game-settings.restart"
         static let quit = "in-game-settings.quit"
+        static func skipPauses(_ isOn: Bool) -> String { "in-game-settings.skip-pauses.\(isOn ? "on" : "off")" }
+        static func blockTradeOffers(_ isOn: Bool) -> String {
+            "in-game-settings.block-offers.\(isOn ? "on" : "off")"
+        }
     }
 
     enum Robber {
@@ -248,6 +251,7 @@ enum AccessibilityID {
     }
 
     enum IncomingTrade {
+        static let blockRound = "incoming-trade.block-round"
         static let reject = "incoming-trade.reject"
         static let accept = "incoming-trade.accept"
     }

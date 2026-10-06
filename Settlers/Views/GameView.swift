@@ -807,7 +807,8 @@ public struct GameView: View {
                         playerIdentity: viewModel.playerIdentity,
                         onAccept: { respond(to: currentOffer, accept: true) },
                         onReject: { respond(to: currentOffer, accept: false) },
-                        onExpire: { respond(to: currentOffer, accept: false, explicit: false) }
+                        onExpire: { respond(to: currentOffer, accept: false, explicit: false) },
+                        onBlockRound: { blockOffersThisRound(after: currentOffer) }
                     )
                     .dynamicTypeSize(...DynamicTypeSize.large)
                 }
@@ -820,7 +821,6 @@ public struct GameView: View {
                 } else if let seat = viewModel.activeBotSeat {
                     BotTurnStatusView(identity: viewModel.playerIdentity(for: seat),
                                       progress: viewModel.botTurnProgress,
-                                      onSkip: viewModel.skipBotPauses,
                                       onRetry: viewModel.retryBotProgress)
                         .frame(height: Self.actionRowHeight)
                         .dynamicTypeSize(...DynamicTypeSize.large)
@@ -1066,6 +1066,15 @@ private extension GameView {
     /// hiding the response while the engine still waited for it.
     private var currentIncomingOffer: TradeOffer? {
         viewModel.openIncomingOffer
+    }
+
+    private func blockOffersThisRound(after offer: TradeOffer) {
+        do {
+            try viewModel.blockTradeOffersThisRound(after: offer)
+            errorMessage = nil
+        } catch {
+            errorMessage = error.localizedDescription
+        }
     }
 
     private func respond(to offer: TradeOffer, accept: Bool, explicit: Bool = true) {

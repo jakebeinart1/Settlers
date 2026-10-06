@@ -11,7 +11,7 @@ struct GameplayFeedbackView: View {
         let name: (PlayerID) -> String = { playerIdentity($0).displayName }
         HStack(spacing: 4) {
             Image(systemName: feedback.symbol).foregroundStyle(CatanTheme.chipGold)
-            Text(feedback.title(name: name))
+            feedback.label(name: name)
                 .lineLimit(1)
                 .minimumScaleFactor(0.8)
         }

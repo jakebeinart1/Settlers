@@ -82,6 +82,47 @@ struct HumanTradeOfferIntegrationTests {
         #expect(reopened.checkpointDocument == persisted, "resume must not spend another interruption")
     }
 
+    /// The Block Trade Offers setting declines a presentable offer unseen,
+    /// through the same real engine response as policy suppression.
+    @Test func blockTradeOffersSettingDeclinesWithoutPresenting() throws {
+        let preferences = PacingPreferences.shared
+        preferences.setBlockTradeOffers(true)
+        defer { preferences.setBlockTradeOffers(false) }
+        let fixture = try CheckpointModelFixture()
+        let model = try installPosition(in: fixture)
+        let proposal = offer()
+        try commit(.proposeTrade(proposal), by: bot, to: model)
+        try model.reconcileHumanTradeOffers()
+        #expect(model.openIncomingOffer == nil)
+        #expect(model.state.pendingTradeOffers.isEmpty)
+        #expect(model.checkpointDocument?.activeMatch?.moves.last?.move ==
+            .respondToTrade(offerID: proposal.id, accept: false))
+        #expect(model.checkpointDocument?.humanTradePolicies == nil, "an unseen decline is not a human preference")
+    }
+
+    /// Block round declines the shown offer and the next bot's, unseen.
+    @Test func blockingARoundDeclinesLaterOffersUntilTheHumansTurn() throws {
+        let fixture = try CheckpointModelFixture()
+        let model = try installPosition(in: fixture)
+        defer { model.isBlockingSurfaceOpen = true }
+        model.isBlockingSurfaceOpen = true
+        let first = offer()
+        try commit(.proposeTrade(first), by: bot, to: model)
+        model.isBlockingSurfaceOpen = false
+        try model.reconcileHumanTradeOffers()
+        model.isBlockingSurfaceOpen = true
+        try model.blockTradeOffersThisRound(after: first)
+        #expect(model.state.pendingTradeOffers.isEmpty)
+        try nextBotMainTurn(model)
+        let second = offer(give: [.grain: 1], want: [.brick: 1], from: PlayerID(index: 2))
+        try commit(.proposeTrade(second), by: PlayerID(index: 2), to: model)
+        model.isBlockingSurfaceOpen = false
+        try model.reconcileHumanTradeOffers()
+        #expect(model.openIncomingOffer == nil)
+        #expect(model.checkpointDocument?.activeMatch?.moves.last?.move ==
+            .respondToTrade(offerID: second.id, accept: false))
+    }
+
     @Test func quantityAwareBankSuppressionCommitsARealEngineResponse() throws {
         let fixture = try CheckpointModelFixture()
         let model = try installPosition(in: fixture, bankPort: true)

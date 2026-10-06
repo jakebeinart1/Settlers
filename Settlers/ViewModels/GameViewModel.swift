@@ -497,6 +497,7 @@ public final class GameViewModel {
         botPacingWait?.cancel()
         botTurnProgress = nil
         skipsBotPacing = false
+        tradeOffersBlockedUntilTurn = nil
         resourceProductionFeedback = nil
         gameplayFeedback.clear()
         gameGeneration &+= 1
@@ -1058,6 +1059,10 @@ public final class GameViewModel {
     var botRestartRequested = false
     var botPacingWait: Task<Void, Never>?
     var skipsBotPacing = false
+    /// "Block this round" on an offer card: bot offers are declined unseen
+    /// until this many turns have ended, i.e. until the human's next turn.
+    /// ponytail: in memory only, so a cold resume mid-round shows offers again.
+    var tradeOffersBlockedUntilTurn: Int?
     var botTurnProgress: BotTurnProgress?
 
     /// When the last bot action was shown - the deadline

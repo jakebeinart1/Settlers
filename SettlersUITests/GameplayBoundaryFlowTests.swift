@@ -111,7 +111,7 @@ final class GameplayBoundaryFlowTests: XCTestCase {
         XCTAssertEqual(resourceCount(.brick, in: app), "1")
         XCTAssertEqual(resourceCount(.grain, in: app), "1")
         app.buttons["Close trade"].tap()
-        XCTAssertTrue(app.buttons["bot-progress.skip"].waitForExistence(timeout: 3),
+        XCTAssertTrue(app.otherElements["bot-progress.status"].waitForExistence(timeout: 3),
                       "Closing the receipt must suppress the extra interruption and resume CPU work")
         XCTAssertFalse(accept.exists, "One bot turn must not ask for a second human trade decision")
     }

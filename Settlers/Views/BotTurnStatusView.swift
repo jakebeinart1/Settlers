@@ -3,11 +3,15 @@ import CatanEngine
 
 /// Replaces disabled commands while a CPU owns the next action. The row has
 /// the same height as every other command dock, so no wait resizes the map.
+///
+/// Its button is the Block Trade Offers preference, not a one-turn "Skip
+/// pauses" - that became a setting (Jake, 2026-10-06), because a player who
+/// wants no pauses wants none every turn. Both live in In-Game Settings too.
 struct BotTurnStatusView: View {
     let identity: PlayerIdentity
     let progress: BotTurnProgress?
-    let onSkip: () -> Void
     let onRetry: () -> Void
+    private var preferences: PacingPreferences { .shared }
 
     var body: some View {
         TimelineView(.periodic(from: .now, by: 0.25)) { context in
@@ -23,22 +27,7 @@ struct BotTurnStatusView: View {
                         .lineLimit(2)
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
-                Button(action: isFailed ? onRetry : onSkip) {
-                    VStack(spacing: 3) {
-                        Image(systemName: isFailed ? "arrow.clockwise" : "forward.end.fill")
-                        Text(isFailed ? "Retry" : "Skip pauses")
-                            .font(.caption.bold())
-                    }
-                    .foregroundStyle(SettingsChrome.ornamentGold)
-                    .frame(minWidth: 92, minHeight: 52)
-                    .background(PaintedChromeBackground(fill: .color(CatanTheme.panelBackground),
-                                                        cornerRadius: 8))
-                }
-                .buttonStyle(.plain)
-                .accessibilityIdentifier(isFailed ? AccessibilityID.Game.retryBotProgress : AccessibilityID.Game.skipBotPauses)
-                .accessibilityHint(isFailed
-                    ? "Retries CPU progress after reloading a failed save when necessary."
-                    : "Skips viewing delays only. Human decisions still require your response.")
+                if isFailed { retryButton }
             }
             .padding(.horizontal, 8)
             // A container identifier without containment propagates to its
@@ -46,6 +35,21 @@ struct BotTurnStatusView: View {
             .accessibilityElement(children: .contain)
             .accessibilityIdentifier(AccessibilityID.Game.botProgress)
         }
+    }
+
+    private var retryButton: some View {
+        Button(action: onRetry) {
+            VStack(spacing: 3) {
+                Image(systemName: "arrow.clockwise")
+                Text("Retry").font(.caption.bold())
+            }
+            .foregroundStyle(SettingsChrome.ornamentGold)
+            .frame(minWidth: 92, minHeight: 52)
+            .background(PaintedChromeBackground(fill: .color(CatanTheme.panelBackground), cornerRadius: 8))
+        }
+        .buttonStyle(.plain)
+        .accessibilityIdentifier(AccessibilityID.Game.retryBotProgress)
+        .accessibilityHint("Retries CPU progress after reloading a failed save when necessary.")
     }
 
     private var isFailed: Bool {

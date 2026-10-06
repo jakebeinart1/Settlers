@@ -1,95 +1,56 @@
 import SwiftUI
 import CatanEngine
 
-/// Shared resource button. Existing pickers keep their compact swatch;
-/// the trade composer opts into named commodity artwork because an exchange
-/// must be understandable without memorizing the HUD's five-color key.
+/// Shared "resource chip" button - a resource-colored rounded square with the
+/// count printed underneath - used by every give/want/discard-style popup so
+/// their rows look and behave the same.
+///
+/// ## Squares, never the painted hex art
+/// Twice now these have been swapped for the gold-rimmed hexagon commodity
+/// art (`CatanTheme.iconImageName`), on the argument that a picture reads
+/// without learning the colour key. Jake has rejected that both times
+/// (2026-10-06: "keep the squares and never revert to the hexes with the
+/// small icons"). The squares match `PlayerHUDView.resourceDot`, the bank
+/// row and the board, so one colour means one resource everywhere in the
+/// game. Spoken names come from `accessibilityText`, not from art.
 struct ResourceChip: View {
-    enum Appearance { case swatch, illustrated }
-
     let resource: Resource
     let count: Int?
     var isEnabled: Bool = true
-    /// Selection rims the actual button surface, never a hand-drawn hex that
-    /// could drift out of register with the resource art's painted border.
+    /// A gold ring around the square: this card is actually part of the offer.
     var isSelected: Bool = false
     var size: CGFloat = ResourceChip.defaultSize
-    var appearance: Appearance = .swatch
-    var accent: Color = CatanTheme.chipGold
     let action: () -> Void
 
     /// Bigger than the 18pt swatch `PlayerHUDView.resourceDot` uses on the
-    /// board - these are tap targets, not a read-only glance, and 18pt is
-    /// well under Apple's comfortable-touch guidance. 32pt keeps the same
-    /// silhouette while staying under the 49.4pt-per-chip ceiling a
-    /// five-across row has on the narrowest phone this ships to (see the
-    /// arithmetic this replaced, in git history of this file, for how that
-    /// ceiling was measured).
+    /// board - these are tap targets, not a read-only glance. 32pt keeps the
+    /// same silhouette while five still fit across the narrowest phone.
     static let defaultSize: CGFloat = 32
 
     var body: some View {
         Button(action: action) {
-            chipContent
-                .frame(minWidth: 44, minHeight: 44)
-                .contentShape(Rectangle())
-        }
-        .buttonStyle(.plain)
-        .accessibilityLabel(Text(accessibilityText))
-        .disabled(!isEnabled)
-        // Identity and staged quantity stay readable even when adding is blocked.
-        .opacity(isEnabled || (appearance == .illustrated && isSelected) ? 1 : 0.6)
-    }
-
-    @ViewBuilder
-    private var chipContent: some View {
-        switch appearance {
-        case .swatch:
             VStack(spacing: 3) {
-                RoundedRectangle(cornerRadius: 4)
-                    .fill(CatanTheme.color(for: resource))
-                    .frame(width: size, height: size)
+                ResourceSquare(resource: resource, size: size)
                     .overlay(
                         RoundedRectangle(cornerRadius: 4)
                             .strokeBorder(CatanTheme.chipGold, lineWidth: isSelected ? 3 : 0)
                     )
-                // Reserves the same line whether or not there is a count,
-                // via a non-empty placeholder held at zero opacity - so a
-                // bare-palette chip (`count: nil`) and a counted one sit at
-                // identical heights in the same row instead of the row's
-                // baseline jumping card to card.
+                // Reserves the same line whether or not there is a count, so
+                // a bare-palette chip and a counted one sit at one height.
                 Text(count.map { "\($0)" } ?? "0")
                     .font(.system(size: 14, weight: .bold))
                     .foregroundStyle(CatanTheme.onWaterText)
-                    .opacity(count == nil ? 0 : 1)
+                    .opacity(count == nil ? 0 : (isEnabled || isSelected ? 1 : 0.4))
             }
-        case .illustrated:
-            illustratedContent
+            .frame(minWidth: 44, minHeight: 44)
+            .contentShape(Rectangle())
         }
-    }
-
-    private var illustratedContent: some View {
-        VStack(spacing: 2) {
-            Image(CatanTheme.iconImageName(for: resource))
-                .resizable()
-                .scaledToFit()
-                .frame(width: size, height: size)
-                .accessibilityHidden(true)
-            Text(resource.rawValue.capitalized)
-                .font(.system(size: 11, weight: .semibold, design: .serif))
-                .foregroundStyle(CatanTheme.onWaterText)
-            HStack(spacing: 4) {
-                Text("\(count ?? 0)").monospacedDigit()
-                Image(systemName: "plus.circle.fill")
-                    .opacity(isEnabled ? 1 : 0.35)
-            }
-            .font(.system(size: 15, weight: .bold))
-            .foregroundStyle(accent)
-        }
-        .frame(maxWidth: .infinity)
-        .padding(.vertical, 4)
-        .background(isSelected ? accent.opacity(0.13) : Color.black.opacity(0.12),
-                    in: RoundedRectangle(cornerRadius: 8))
-        .overlay(RoundedRectangle(cornerRadius: 8).strokeBorder(accent.opacity(isSelected ? 0.8 : 0.22)))
+        // Never fade the square itself: a translucent swatch takes on the
+        // panel behind it and stops matching the board's resource colour.
+        // `.plain` dims a disabled label, so this style draws it as-is.
+        .buttonStyle(UndimmedButtonStyle())
+        .accessibilityLabel(Text(accessibilityText))
+        .disabled(!isEnabled)
     }
 
     /// Spoken form - VoiceOver reads the color square as decorative
@@ -134,5 +95,43 @@ struct ResourceSlotRow: View {
                 .accessibilityHint(actionHint)
             }
         }
+    }
+}
+
+/// Draws a button's label as-is when disabled; resource squares must keep
+/// their exact colour. Callers dim text themselves.
+struct UndimmedButtonStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View { configuration.label }
+}
+
+/// The one drawing of "a resource" outside the board: a flat square in
+/// `CatanTheme.color(for:)`. Trade terms, dev-card choices and dev-card
+/// emblems all use this, so a colour reads the same on every screen.
+struct ResourceSquare: View {
+    let resource: Resource
+    var size: CGFloat = ResourceChip.defaultSize
+
+    var body: some View {
+        RoundedRectangle(cornerRadius: size * 0.125)
+            .fill(CatanTheme.color(for: resource))
+            .frame(width: size, height: size)
+            .accessibilityHidden(true)
+    }
+}
+
+/// Resource words inside a sentence, each with its colour square beside the
+/// name ("3 ■ Wool"). Jake reads resources by colour first (2026-10-06), so
+/// every sentence that names a resource - trades, steals, Monopoly - draws
+/// the square too. An inline glyph, not a view, so it wraps with the text.
+enum ResourceText {
+    static func term(_ resource: Resource, count: Int? = nil) -> Text {
+        let square = Text(Image(systemName: "square.fill")).foregroundStyle(CatanTheme.color(for: resource))
+        return Text(count.map { "\($0) " } ?? "") + square + Text(" \(resource.rawValue.capitalized)")
+    }
+
+    static func list(_ counts: [Resource: Int], separator: String = ", ") -> Text {
+        let terms = Resource.allCases.filter { counts[$0, default: 0] > 0 }.map { term($0, count: counts[$0]) }
+        guard let first = terms.first else { return Text("no cards") }
+        return terms.dropFirst().reduce(first) { $0 + Text(separator) + $1 }
     }
 }

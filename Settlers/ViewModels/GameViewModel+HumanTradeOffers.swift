@@ -36,6 +36,10 @@ extension GameViewModel {
             let context = tradeOfferContext(offer)
             switch policy.decision(for: offer, in: state, context: context) {
             case .notIncoming: return
+            case .present where PacingPreferences.shared.blockTradeOffers || isRoundBlocked(context):
+                // Declined unseen, so not an explicit human choice: it must not
+                // teach a ghost, and it records no rejected exchange class.
+                try commitAutomaticResponse(.respondToTrade(offerID: offer.id, accept: false))
             case .present:
                 guard !policy.isPresented(offer: offer, context: context) else { return }
                 policy.recordPresentation(of: offer, in: state, context: context)
@@ -45,11 +49,29 @@ extension GameViewModel {
                 try commitDocument(document.recordingTradePresentations(policies))
                 return
             case .reject(let move, _):
-                var candidate = session
-                let step = try candidate.applyExternal(move, by: humanPlayer)
-                try commitStep(step, candidate: candidate, isHumanDecision: false)
+                try commitAutomaticResponse(move)
             }
         }
+    }
+
+    private func isRoundBlocked(_ context: HumanTradeOfferPolicy.Context) -> Bool {
+        tradeOffersBlockedUntilTurn.map { context.completedTurns < $0 } ?? false
+    }
+
+    /// Declines this offer and every bot offer until the human's next turn.
+    /// Offers only arrive on the proposer's own turn, so the turns left in the
+    /// round are the seats between the proposer and the human.
+    func blockTradeOffersThisRound(after offer: TradeOffer) throws {
+        let seats = state.players.count
+        let turnsUntilHuman = (humanPlayer.index - offer.from.index + seats) % seats
+        tradeOffersBlockedUntilTurn = tradeOfferContext(offer).completedTurns + turnsUntilHuman
+        try respondToIncomingTrade(offer, accept: false, explicit: false)
+    }
+
+    private func commitAutomaticResponse(_ move: GameMove) throws {
+        var candidate = session
+        let step = try candidate.applyExternal(move, by: humanPlayer)
+        try commitStep(step, candidate: candidate, isHumanDecision: false)
     }
 
     func tradePolicies(after step: GameSession.Step, declinedOffer: TradeOffer?) -> [Int: HumanTradeOfferPolicy]? {

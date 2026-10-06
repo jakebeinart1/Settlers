@@ -54,6 +54,8 @@ public struct InGameSettingsView: View {
     private enum HelpTopic {
         case aiTurnSpeed
         case incomingOfferTimer
+        case skipPauses
+        case blockTradeOffers
     }
 
     /// Horizontal inset for the whole screen. 20pt each side leaves 335pt of
@@ -76,6 +78,7 @@ public struct InGameSettingsView: View {
                         titleBlock
                         pacingSection
                         tradeTimerSection
+                        skipSection
                         rulebookSection
                     }
                     .padding(.horizontal, Self.screenInset)
@@ -186,6 +189,42 @@ public struct InGameSettingsView: View {
                 )
             }
         }
+    }
+
+    // MARK: - Skipping
+
+    /// Two Off/On switches, painted like the rows above. Together they make
+    /// CPU turns run straight through to the player's own turn.
+    private var skipSection: some View {
+        VStack(spacing: 14) {
+            SettingsSectionHeader(title: "Skipping")
+            choiceRow(
+                label: "Skip Pauses",
+                help: .skipPauses,
+                helpText: "Bots act with no viewing pause. Your own decisions - placements, discards, the robber - still wait for you."
+            ) {
+                onOffRow(selection: PacingPreferences.shared.skipPauses,
+                         identifier: AccessibilityID.InGameSettings.skipPauses,
+                         onSelect: PacingPreferences.shared.setSkipPauses)
+            }
+            choiceRow(
+                label: "Block Trade Offers",
+                help: .blockTradeOffers,
+                helpText: "Every bot trade offer to you is declined without being shown, all game. "
+                    + "To block one round only, tap Block round on the offer itself. "
+                    + "With Skip Pauses on too, play jumps straight to your turn."
+            ) {
+                onOffRow(selection: PacingPreferences.shared.blockTradeOffers,
+                         identifier: AccessibilityID.InGameSettings.blockTradeOffers,
+                         onSelect: PacingPreferences.shared.setBlockTradeOffers)
+            }
+        }
+    }
+
+    private func onOffRow(selection: Bool, identifier: @escaping (Bool) -> String,
+                          onSelect: @escaping (Bool) -> Void) -> some View {
+        PaintedChoiceRow(options: [false, true], title: { $0 ? "On" : "Off" }, selection: selection,
+                         optionIdentifier: identifier, onSelect: onSelect)
     }
 
     /// Label + ⓘ above a choice control, with the explanation folding out

@@ -19,9 +19,7 @@ struct TradeTermsView: View {
             Text(title).font(.headline).foregroundStyle(accent)
             ForEach(Resource.allCases.filter { counts[$0, default: 0] > 0 }, id: \.self) { resource in
                 HStack(spacing: 8) {
-                    Image(CatanTheme.iconImageName(for: resource))
-                        .resizable().scaledToFit().frame(width: 32, height: 32)
-                        .accessibilityHidden(true)
+                    ResourceSquare(resource: resource, size: 24)
                     Text("\(counts[resource, default: 0]) \(resource.rawValue.capitalized)")
                         .font(.subheadline.bold())
                         .fixedSize(horizontal: false, vertical: true)

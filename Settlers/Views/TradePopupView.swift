@@ -104,7 +104,7 @@ public struct TradePopupView: View {
         }
         .padding(16)
         .frame(maxWidth: 400, maxHeight: height)
-        .background(PaintedChromeBackground(fill: .tintedTexture(CatanTheme.waterBackground), cornerRadius: 16))
+        .background(PaintedChromeBackground(fill: .color(CatanTheme.panelBackground), cornerRadius: 16))
         .foregroundStyle(CatanTheme.onWaterText)
         .fontDesign(.serif)
         .shadow(radius: 20)
@@ -248,7 +248,7 @@ public struct TradePopupView: View {
         VStack(alignment: .leading, spacing: 12) {
             builderTools
             if mode == .bank, isShowingBankHelp {
-                Text("One give bundle buys one card. Your ports set each rate. Tap + to add; minus removes a bundle.")
+                Text("One give bundle buys one card. Your ports set each rate. Tap a square to add; minus removes a bundle.")
                     .font(.caption)
                     .foregroundStyle(CatanTheme.onWaterText.opacity(0.8))
                     .fixedSize(horizontal: false, vertical: true)
@@ -276,7 +276,7 @@ public struct TradePopupView: View {
                 }
                 .accessibilityLabel("How bank trading works")
             } else {
-                Text("Tap + to add. Minus removes.")
+                Text("Tap a square to add. Minus removes.")
                     .foregroundStyle(CatanTheme.onWaterText.opacity(0.8))
             }
             Spacer(minLength: 4)

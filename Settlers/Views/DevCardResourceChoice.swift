@@ -1,9 +1,9 @@
 import SwiftUI
 import CatanEngine
 
-/// The development-card chooser uses the approved commodity illustrations,
-/// while shared trade/discard ResourceChip remains unchanged. Counts and
-/// legality are supplied by the existing card overlay, never inferred here.
+/// The development-card chooser draws the same resource squares as trade and
+/// the HUD. Counts and legality are supplied by the existing card overlay,
+/// never inferred here.
 struct DevCardResourceChoice: View {
     let resource: Resource
     let count: Int
@@ -14,12 +14,12 @@ struct DevCardResourceChoice: View {
     var body: some View {
         Button(action: action) {
             VStack(spacing: 3) {
-                Image(CatanTheme.iconImageName(for: resource))
-                    .resizable().scaledToFit()
-                    .frame(width: 36, height: 36)
-                    .accessibilityHidden(true)
-                Text(resource.rawValue.capitalized).font(.caption2)
-                Text("\(count)").font(.caption.bold())
+                ResourceSquare(resource: resource, size: 32)
+                Group {
+                    Text(resource.rawValue.capitalized).font(.caption2)
+                    Text("\(count)").font(.caption.bold())
+                }
+                .opacity(isEnabled ? 1 : 0.5)
             }
             .fontDesign(.serif)
             .foregroundStyle(DevCardChrome.ivory)
@@ -33,9 +33,8 @@ struct DevCardResourceChoice: View {
                 }
             }
         }
-        .buttonStyle(.plain)
+        .buttonStyle(UndimmedButtonStyle())
         .disabled(!isEnabled)
-        .opacity(isEnabled ? 1 : 0.6)
         .accessibilityLabel("\(count) \(resource.rawValue)")
     }
 }

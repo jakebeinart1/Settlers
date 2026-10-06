@@ -27,6 +27,10 @@ public struct IncomingTradeCardView: View {
     /// Timeout is not an explicit refusal. Existing callers keep their old
     /// behavior; the parent can provide an expiry action with separate policy.
     public let onExpire: () -> Void
+    /// Declines this offer and every bot offer until the player's next turn.
+    /// One round only, on the card itself; the whole-game switch is "Block
+    /// Trade Offers" in In-Game Settings (Jake, 2026-10-06).
+    public let onBlockRound: (() -> Void)?
     public let playerIdentity: (PlayerID) -> PlayerIdentity
     /// The committed proposal sequence distinguishes identical later proposals
     /// whose content-derived offer ID is reused while this row stays mounted.
@@ -44,7 +48,8 @@ public struct IncomingTradeCardView: View {
     public init(offer: TradeOffer, isHeld: Bool = false, offerOccurrence: Int? = nil,
                 playerIdentity: @escaping (PlayerID) -> PlayerIdentity = CatanTheme.playerIdentity,
                 onAccept: @escaping () -> Void, onReject: @escaping () -> Void,
-                onExpire: (() -> Void)? = nil) {
+                onExpire: (() -> Void)? = nil, onBlockRound: (() -> Void)? = nil) {
+        self.onBlockRound = onBlockRound
         self.isHeld = isHeld
         self.offer = offer
         self.playerIdentity = playerIdentity
@@ -149,11 +154,13 @@ public struct IncomingTradeCardView: View {
 
     private func exchangeSummary(_ summary: IncomingTradeSummary, fontSize: CGFloat) -> some View {
         VStack(alignment: .leading, spacing: 2) {
-            Text(summary.giveText)
+            (Text("You give ") + ResourceText.list(summary.give))
                 .foregroundStyle(CatanTheme.chipGold)
+                .accessibilityLabel(summary.giveText)
                 .accessibilityIdentifier("incoming-trade.give")
-            Text(summary.receiveText)
+            (Text("You receive ") + ResourceText.list(summary.receive))
                 .foregroundStyle(TradeResourceRow.receiveAccent)
+                .accessibilityLabel(summary.receiveText)
                 .accessibilityIdentifier("incoming-trade.receive")
         }
         .font(.system(size: fontSize, weight: .semibold))
@@ -162,6 +169,7 @@ public struct IncomingTradeCardView: View {
 
     private func answerControls(requiresReview: Bool) -> some View {
         HStack(spacing: 8) {
+            if onBlockRound != nil { blockRoundButton }
             rejectButton
             if requiresReview {
                 reviewButton
@@ -195,6 +203,27 @@ public struct IncomingTradeCardView: View {
         }
         .accessibilityLabel("Decline trade")
         .accessibilityIdentifier(AccessibilityID.IncomingTrade.reject)
+    }
+
+    /// Same footprint and gold rim as Review, so a third control sits in the
+    /// row without crowding the two answer circles.
+    private var blockRoundButton: some View {
+        Button { onBlockRound?() } label: {
+            VStack(spacing: 1) {
+                Image(systemName: "hand.raised.slash.fill").font(.system(size: 14, weight: .semibold))
+                Text("Block\nround")
+                    .font(.system(size: 8, weight: .bold))
+                    .multilineTextAlignment(.center)
+                    .lineSpacing(-1)
+            }
+            .foregroundStyle(CatanTheme.chipGold)
+            .frame(width: Self.answerButtonDiameter, height: Self.answerButtonDiameter)
+            .background(Color.black.opacity(0.25), in: RoundedRectangle(cornerRadius: 10))
+            .overlay(RoundedRectangle(cornerRadius: 10).strokeBorder(CatanTheme.chipGold.opacity(0.8)))
+        }
+        .accessibilityLabel("Block trade offers this round")
+        .accessibilityHint("Declines this offer and every bot offer until your next turn.")
+        .accessibilityIdentifier(AccessibilityID.IncomingTrade.blockRound)
     }
 
     private var reviewButton: some View {

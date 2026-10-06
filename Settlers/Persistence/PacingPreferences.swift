@@ -148,6 +148,8 @@ public final class PacingPreferences {
     /// "nothing stored" and reset the player's choice to the default.
     static let aiTurnSpeedKey = "pacing.aiTurnSpeed"
     static let incomingOfferTimerKey = "pacing.incomingOfferTimer"
+    static let skipPausesKey = "pacing.skipPauses"
+    static let blockTradeOffersKey = "pacing.blockTradeOffers"
 
     /// How long the dice-roll highlight stays on the tiles that produced.
     ///
@@ -159,6 +161,16 @@ public final class PacingPreferences {
 
     public private(set) var aiTurnSpeed: AITurnSpeed
     public private(set) var incomingOfferTimer: IncomingOfferTimer
+    /// Bots act with no viewing interval at all. Jake's ask (2026-10-06):
+    /// a setting rather than the per-turn "Skip pauses" button it replaced,
+    /// so a player who wants it does not tap it every CPU turn. This is the
+    /// one deliberate exception to B1.4's "no speed is instant" - opt-in,
+    /// off by default, and named for what it does rather than as a speed.
+    public private(set) var skipPauses: Bool
+    /// Every bot offer to the human is declined without being shown. With
+    /// `skipPauses` also on, CPU turns run straight through to the player's
+    /// own turn - the "pure simulation" table Jake asked for.
+    public private(set) var blockTradeOffers: Bool
 
     private let defaults: UserDefaults
 
@@ -169,6 +181,18 @@ public final class PacingPreferences {
         self.defaults = defaults
         self.aiTurnSpeed = Self.stored(forKey: Self.aiTurnSpeedKey, in: defaults) ?? .standard
         self.incomingOfferTimer = Self.stored(forKey: Self.incomingOfferTimerKey, in: defaults) ?? .fifteenSeconds
+        self.skipPauses = defaults.bool(forKey: Self.skipPausesKey)
+        self.blockTradeOffers = defaults.bool(forKey: Self.blockTradeOffersKey)
+    }
+
+    public func setSkipPauses(_ isOn: Bool) {
+        skipPauses = isOn
+        defaults.set(isOn, forKey: Self.skipPausesKey)
+    }
+
+    public func setBlockTradeOffers(_ isOn: Bool) {
+        blockTradeOffers = isOn
+        defaults.set(isOn, forKey: Self.blockTradeOffersKey)
     }
 
     public func select(_ speed: AITurnSpeed) {

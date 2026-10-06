@@ -86,7 +86,7 @@ struct TradeDraftFeedback {
     }
 
     private var playerMessage: String {
-        if give.isEmpty { return "Tap + to choose what you give. Your remaining cards appear below each resource." }
+        if give.isEmpty { return "Tap a square to choose what you give. Your remaining cards appear below each resource." }
         if receive.isEmpty { return "Choose what you receive. Players can exchange any quantities." }
         return "Offer \(cards(giveTotal)) for \(cards(receiveTotal)). Each bot decides whether to accept."
     }
@@ -95,7 +95,7 @@ struct TradeDraftFeedback {
         if let resource = missingStock {
             return "The bank has \(stock(resource)) \(name(resource)), but you selected \(receive[resource, default: 0]). Choose another resource or use minus."
         }
-        if give.isEmpty { return "Tap + to give a bundle at your port rate, then choose what you receive." }
+        if give.isEmpty { return "Tap a square to give a bundle at your port rate, then choose what you receive." }
         if unspentCredit > 0 { return "Choose \(unspentCredit) more \(unspentCredit == 1 ? "card" : "cards") to receive, or remove a give bundle." }
         if unspentCredit < 0 { return "Remove \(-unspentCredit) from You receive, or add another give bundle." }
         if let bankProblem { return bankProblem.localizedDescription }

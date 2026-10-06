@@ -6,7 +6,7 @@ import XCTest
 final class BotProgressFlowTests: XCTestCase {
     private enum FlowID {
         static let status = "bot-progress.status"
-        static let skip = "bot-progress.skip"
+        static let skipPausesOn = "in-game-settings.skip-pauses.on"
         static let retry = "bot-progress.retry"
         static let settings = "game.settings"
         static let settingsScreen = "screen.in-game-settings"
@@ -24,7 +24,6 @@ final class BotProgressFlowTests: XCTestCase {
 
     private static let screenTimeout: TimeInterval = 5
     private static let cpuTimeout: TimeInterval = 30
-    private static let minimumTapDimension: CGFloat = 44
     // Three CPUs each place twice (12 actions) before reverse human setup.
     private static let holdSeconds: TimeInterval = 26
     private static let unconfirmedSeconds: TimeInterval = 2
@@ -35,19 +34,19 @@ final class BotProgressFlowTests: XCTestCase {
     private static let discardSelectionLimit = 30
     private static let resources = ["brick", "lumber", "ore", "grain", "wool"]
 
-    func testCPUStatusSkipPausesStillRequiresHumanSetupConfirmation() {
+    func testSkipPausesSettingStillRequiresHumanSetupConfirmation() {
         continueAfterFailure = false
         let app = launchRealCPUOpening()
-        let skip = requireCPUStatus(in: app)
+        requireCPUStatus(in: app)
         attachScreenshot(in: app, name: "CPU status — real New Game after first human setup")
-        skip.tap()
+        enableSkipPauses(in: app)
 
         confirmInitialPiece(in: app, prefix: "board.vertex.", previewID: FlowID.buildingPreview)
         // Settlement confirmation, not Skip, must be what opens the road dock.
         XCTAssertTrue(app.otherElements[FlowID.dock].exists)
         XCTAssertFalse(app.buttons[FlowID.confirm].isEnabled)
         XCTAssertFalse(app.buttons[FlowID.cancel].exists, "An initial road is mandatory")
-        XCTAssertFalse(app.buttons[FlowID.skip].exists, "Skip must yield to the human")
+        XCTAssertFalse(app.otherElements[FlowID.status].exists, "Skip must yield to the human")
         confirmInitialPiece(in: app, prefix: "board.edge.", previewID: FlowID.roadPreview)
     }
 
@@ -59,17 +58,17 @@ final class BotProgressFlowTests: XCTestCase {
         DispatchQueue.main.asyncAfter(deadline: .now() + Self.holdSeconds) { held.fulfill() }
         wait(for: [held], timeout: Self.holdSeconds + Self.screenTimeout)
         XCTAssertTrue(app.otherElements[FlowID.settingsScreen].exists)
-        XCTAssertFalse(app.buttons[FlowID.skip].exists, "Hidden CPU commands must not remain accessible")
+        XCTAssertFalse(app.otherElements[FlowID.status].exists, "Hidden CPU commands must not remain accessible")
         app.buttons[FlowID.settingsClose].tap()
-        XCTAssertTrue(app.buttons[FlowID.skip].waitForExistence(timeout: Self.screenTimeout),
+        XCTAssertTrue(app.otherElements[FlowID.status].waitForExistence(timeout: Self.screenTimeout),
                       "CPUs advanced behind settings instead of staying held")
 
         openSettings(in: app)
         quitToMenu(in: app)
         app.buttons["main-menu.resume"].tap()
-        XCTAssertTrue(app.buttons[FlowID.skip].waitForExistence(timeout: Self.screenTimeout),
+        XCTAssertTrue(app.otherElements[FlowID.status].waitForExistence(timeout: Self.screenTimeout),
                       "Native Resume did not expose the pending CPU work")
-        app.buttons[FlowID.skip].tap()
+        enableSkipPauses(in: app)
         assertMandatorySettlement(in: app)
     }
 
@@ -80,9 +79,9 @@ final class BotProgressFlowTests: XCTestCase {
         // owned, not a human placement reached during screenshot/query work.
         openSettings(in: app)
         coldResume(in: app)
-        let skip = requireCPUStatus(in: app)
+        requireCPUStatus(in: app)
         attachScreenshot(in: app, name: "CPU status — cold resume of real opening")
-        skip.tap()
+        enableSkipPauses(in: app)
         assertMandatorySettlement(in: app)
     }
 
@@ -91,9 +90,8 @@ final class BotProgressFlowTests: XCTestCase {
     func testNaturallyPendingSevenSurvivesColdResumeWhenReachable() throws {
         continueAfterFailure = false
         let app = launchRealCPUOpening()
+        enableSkipPauses(in: app)
         for _ in 0..<Self.setupPairCount {
-            XCTAssertTrue(app.buttons[FlowID.skip].waitForExistence(timeout: Self.cpuTimeout))
-            app.buttons[FlowID.skip].tap()
             confirmInitialPiece(in: app, prefix: "board.vertex.", previewID: FlowID.buildingPreview)
             confirmInitialPiece(in: app, prefix: "board.edge.", previewID: FlowID.roadPreview)
         }
@@ -176,16 +174,18 @@ final class BotProgressFlowTests: XCTestCase {
 
     // MARK: - CPU status and mandatory placement
 
-    private func requireCPUStatus(in app: XCUIApplication) -> XCUIElement {
-        let skip = app.buttons[FlowID.skip]
-        XCTAssertTrue(skip.waitForExistence(timeout: Self.screenTimeout), "Missing CPU Skip pauses control")
-        XCTAssertTrue(app.otherElements[FlowID.status].exists, "Missing CPU status row")
-        XCTAssertTrue(skip.isEnabled)
-        XCTAssertTrue(skip.isHittable)
-        XCTAssertGreaterThanOrEqual(skip.frame.height, Self.minimumTapDimension)
-        XCTAssertGreaterThanOrEqual(skip.frame.width, Self.minimumTapDimension)
+    private func requireCPUStatus(in app: XCUIApplication) {
+        XCTAssertTrue(app.otherElements[FlowID.status].waitForExistence(timeout: Self.screenTimeout),
+                      "Missing CPU status row")
         XCTAssertFalse(app.buttons[FlowID.retry].exists, "A normal CPU opening must not be failed")
-        return skip
+    }
+
+    /// Skip Pauses is a setting now, not a per-turn button.
+    private func enableSkipPauses(in app: XCUIApplication) {
+        openSettings(in: app)
+        app.buttons[FlowID.skipPausesOn].tap()
+        XCTAssertTrue(app.buttons[FlowID.skipPausesOn].isSelected)
+        app.buttons[FlowID.settingsClose].tap()
     }
 
     private func assertMandatorySettlement(in app: XCUIApplication) {
@@ -194,7 +194,7 @@ final class BotProgressFlowTests: XCTestCase {
         XCTAssertTrue(app.otherElements[FlowID.dock].exists)
         XCTAssertFalse(confirm.isEnabled, "Unselected settlement must still require a legal target")
         XCTAssertFalse(app.buttons[FlowID.cancel].exists, "Opening placement cannot be cancelled")
-        XCTAssertFalse(app.buttons[FlowID.skip].exists)
+        XCTAssertFalse(app.otherElements[FlowID.status].exists)
         XCTAssertTrue(boardTargets(in: app, prefix: "board.vertex.").firstMatch.exists)
     }
 
@@ -240,7 +240,7 @@ final class BotProgressFlowTests: XCTestCase {
         var isSeven: Bool { self == .discard || self == .robber }
     }
 
-    /// Skip only CPU viewing delays and explicitly decline real offers. Stop
+    /// With Skip Pauses on, explicitly decline real offers. Stop
     /// on the first human obligation; never play their discard or robber here.
     private func reachHumanBoundary(in app: XCUIApplication) -> HumanBoundary {
         for _ in 0..<Self.boundarySignalLimit {
@@ -250,22 +250,15 @@ final class BotProgressFlowTests: XCTestCase {
             if app.buttons["End Turn"].exists { return .end }
             if app.buttons["incoming-trade.reject"].exists {
                 app.buttons["incoming-trade.reject"].tap()
-            } else if app.buttons[FlowID.skip].exists {
-                app.buttons[FlowID.skip].tap()
-                // Once tapped, wait for a human/offer boundary rather than
-                // tapping the disappearing Skip control a second time.
-                waitForBoundarySignal(in: app, includeCPU: false)
-                continue
             }
-            waitForBoundarySignal(in: app, includeCPU: true)
+            waitForBoundarySignal(in: app)
         }
         XCTFail("Too many incoming-offer interruptions to reach the human")
         return .roll
     }
 
-    private func waitForBoundarySignal(in app: XCUIApplication, includeCPU: Bool) {
-        var identifiers = [FlowID.discard, FlowID.robberOrigin, "incoming-trade.reject", FlowID.retry]
-        if includeCPU { identifiers.append(FlowID.skip) }
+    private func waitForBoundarySignal(in app: XCUIApplication) {
+        let identifiers = [FlowID.discard, FlowID.robberOrigin, "incoming-trade.reject", FlowID.retry]
         // Turn actions have shipping labels but no dedicated IDs. All other
         // witnesses use existing IDs; no app instrumentation is introduced.
         let signals = app.descendants(matching: .any).matching(NSPredicate(
@@ -281,7 +274,7 @@ final class BotProgressFlowTests: XCTestCase {
         coldResume(in: app)
         let obligation = boundary == .discard ? app.staticTexts[FlowID.discard] : app.otherElements[FlowID.robberOrigin]
         XCTAssertTrue(obligation.waitForExistence(timeout: Self.cpuTimeout), "Cold resume lost the real seven obligation")
-        XCTAssertFalse(app.buttons[FlowID.skip].exists, "Human seven decisions must outrank CPU Skip")
+        XCTAssertFalse(app.otherElements[FlowID.status].exists, "Human seven decisions must outrank CPU work")
         XCTAssertFalse(app.buttons["Roll Dice"].exists)
         XCTAssertFalse(app.buttons["End Turn"].exists)
         attachScreenshot(in: app, name: "Naturally pending seven — cold restored obligation")

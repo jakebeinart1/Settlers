@@ -1,4 +1,5 @@
 import Foundation
+import SwiftUI
 import CatanEngine
 
 /// Public, post-commit table news. Never infer a card's face from a purchase,
@@ -10,18 +11,24 @@ struct GameplayFeedback: Identifiable, Equatable {
         case longestRoad(previous: PlayerID?, holder: PlayerID?)
         case largestArmy(previous: PlayerID?, holder: PlayerID?)
         case points(PlayerID)
+        /// A robber or Knight steal. `resource` is set only when the viewer
+        /// is the thief or the victim - nobody else at a real table sees it.
+        case robbed(thief: PlayerID, victim: PlayerID, resource: Resource?)
     }
 
     let id = UUID()
     let kind: Kind
     let pointChanges: [PlayerID: Int]
     let occurredAt: Date
+    /// Public cards that changed hands with a card play (Monopoly's haul,
+    /// Year of Plenty's picks), drawn as squares after the title.
+    var detail: [Resource: Int] = [:]
 
     static func committed(events: [GameEvent], before: GameState, after: GameState,
                           viewer: PlayerID, now: Date = Date()) -> [Self] {
         guard !events.isEmpty, before != after else { return [] }
         let changes = pointChanges(before: before, after: after, viewer: viewer)
-        var kinds = events.compactMap(cardKind)
+        var kinds = events.flatMap { news(for: $0, viewer: viewer) }
         if before.longestRoadPlayer != after.longestRoadPlayer {
             kinds.append(.longestRoad(previous: before.longestRoadPlayer, holder: after.longestRoadPlayer))
         }
@@ -29,10 +36,13 @@ struct GameplayFeedback: Identifiable, Equatable {
             kinds.append(.largestArmy(previous: before.largestArmyPlayer, holder: after.largestArmyPlayer))
         }
         if kinds.isEmpty, let seat = changes.keys.sorted().first { kinds.append(.points(seat)) }
+        let details = Dictionary(events.compactMap(cardDetail), uniquingKeysWith: { first, _ in first })
         // Show the exact net score changes once, on the final notice for this
         // move: e.g. Knight, then Largest Army with +2 (and the old holder -2).
         return kinds.enumerated().map { index, kind in
-            Self(kind: kind, pointChanges: index == kinds.count - 1 ? changes : [:], occurredAt: now)
+            var notice = Self(kind: kind, pointChanges: index == kinds.count - 1 ? changes : [:], occurredAt: now)
+            if case .card(_, let card) = kind { notice.detail = details[card] ?? [:] }
+            return notice
         }
     }
 
@@ -44,6 +54,21 @@ struct GameplayFeedback: Identifiable, Equatable {
         case .points(let player):
             let change = pointChanges[player, default: 0]
             return "\(name(player)) \(change > 0 ? "gained" : "lost") \(abs(change)) VP"
+        case .robbed(let thief, let victim, let resource):
+            let taken = resource.map { "1 \($0.rawValue.capitalized)" } ?? "a card"
+            return "\(name(thief)) stole \(taken) from \(name(victim))"
+        }
+    }
+
+    /// `title` with every named resource drawn beside its colour square.
+    func label(name: (PlayerID) -> String) -> Text {
+        switch kind {
+        case .robbed(let thief, let victim, let resource?):
+            return Text("\(name(thief)) stole ") + ResourceText.term(resource, count: 1) + Text(" from \(name(victim))")
+        case .card where !detail.isEmpty:
+            return Text(title(name: name) + " · ") + ResourceText.list(detail)
+        default:
+            return Text(title(name: name))
         }
     }
 
@@ -57,6 +82,7 @@ struct GameplayFeedback: Identifiable, Equatable {
         case .longestRoad: "road.lanes"
         case .largestArmy: "shield.fill"
         case .points: "star.fill"
+        case .robbed: "hand.raised.fill"
         }
     }
 
@@ -79,12 +105,29 @@ struct GameplayFeedback: Identifiable, Equatable {
         return changes
     }
 
-    private static func cardKind(_ event: GameEvent) -> Kind? {
+    private static func news(for event: GameEvent, viewer: PlayerID) -> [Kind] {
         switch event {
-        case .playedKnight(let player, _, _): .card(player, .knight)
-        case .playedRoadBuilding(let player): .card(player, .roadBuilding)
-        case .playedYearOfPlenty(let player, _): .card(player, .yearOfPlenty)
-        case .playedMonopoly(let player, _, _): .card(player, .monopoly)
+        case .playedKnight(let player, let victim, let stolen):
+            [.card(player, .knight)] + robbery(player, victim, stolen, viewer: viewer)
+        case .movedRobber(let player, let victim, let stolen): robbery(player, victim, stolen, viewer: viewer)
+        case .playedRoadBuilding(let player): [.card(player, .roadBuilding)]
+        case .playedYearOfPlenty(let player, _): [.card(player, .yearOfPlenty)]
+        case .playedMonopoly(let player, _, _): [.card(player, .monopoly)]
+        default: []
+        }
+    }
+
+    private static func robbery(_ thief: PlayerID, _ victim: PlayerID?, _ stolen: Resource?,
+                                viewer: PlayerID) -> [Kind] {
+        guard let victim else { return [] }
+        let isParty = viewer == thief || viewer == victim
+        return [.robbed(thief: thief, victim: victim, resource: isParty ? stolen : nil)]
+    }
+
+    private static func cardDetail(_ event: GameEvent) -> (DevCardType, [Resource: Int])? {
+        switch event {
+        case .playedYearOfPlenty(_, let taken): (.yearOfPlenty, taken)
+        case .playedMonopoly(_, let resource, let gained) where gained > 0: (.monopoly, [resource: gained])
         default: nil
         }
     }

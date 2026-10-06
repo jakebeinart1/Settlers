@@ -2,8 +2,7 @@ import SwiftUI
 import CatanEngine
 
 /// The card family borrows the existing coastal paint and engraved frame.
-/// Native borders stay intact at hand, reveal and HUD aspect ratios; commodity
-/// art is reused directly rather than mistaking terrain textures for resources.
+/// Native borders stay intact at hand, reveal and HUD aspect ratios.
 enum DevCardChrome {
     static let ivory = Color(red: 0.97, green: 0.91, blue: 0.79)
     static let gold = Color(red: 0.89, green: 0.73, blue: 0.37)
@@ -18,8 +17,8 @@ enum DevCardChrome {
 
 /// A bold illustrated seal, with few interior strokes so it still reads at
 /// 24pt. There are no dedicated development-card paintings in approved art.
-/// Shield/roads/monument use the board's native outlined silhouette vocabulary;
-/// harvest and tribute reuse the approved gold-rimmed resource illustrations.
+/// Every emblem is a native silhouette kept inside its 100-unit square;
+/// resources appear only as the flat squares used everywhere else.
 struct DevCardEmblem: View {
     let type: DevCardType
 
@@ -44,19 +43,22 @@ struct DevCardEmblem: View {
         }
     }
 
+    /// The cross is clipped to the shield so neither arm pokes past its rim.
     private var shield: some View {
         ZStack {
-            TintedTextureBackground(tint: DevCardChrome.ivory)
-                .clipShape(DevCardSilhouette(kind: .shield))
+            ZStack {
+                TintedTextureBackground(tint: DevCardChrome.ivory)
+                Rectangle().fill(DevCardStyle.color(for: .knight))
+                    .frame(width: 11, height: 46).offset(y: -4)
+                Rectangle().fill(DevCardStyle.color(for: .knight))
+                    .frame(width: 34, height: 10).offset(y: -12)
+            }
+            .clipShape(DevCardSilhouette(kind: .shield))
             DevCardSilhouette(kind: .shield)
                 .stroke(DevCardChrome.ink, style: StrokeStyle(lineWidth: 5, lineJoin: .round))
             DevCardSilhouette(kind: .shield)
                 .stroke(DevCardChrome.gold, lineWidth: 2)
                 .padding(7)
-            Rectangle().fill(DevCardStyle.color(for: .knight))
-                .frame(width: 12, height: 51).offset(y: -6)
-            Rectangle().fill(DevCardStyle.color(for: .knight))
-                .frame(width: 42, height: 11).offset(y: -15)
         }
         .padding(9)
     }
@@ -73,27 +75,28 @@ struct DevCardEmblem: View {
         .padding(9)
     }
 
+    /// Two cards from the bank: two resource squares, fanned. The same
+    /// squares the HUD and trade use - never the hex commodity art, which
+    /// turned into clutter at hand-badge size.
     private var harvest: some View {
         ZStack {
-            commodity(.lumber, size: 44).offset(x: -24, y: 13)
-            commodity(.wool, size: 44).offset(x: 24, y: 13)
-            commodity(.grain, size: 64).offset(y: -9)
+            card(.lumber).rotationEffect(.degrees(-12)).offset(x: -13, y: 4)
+            card(.grain).rotationEffect(.degrees(10)).offset(x: 13, y: -4)
         }
     }
 
+    /// A coffer: Monopoly takes every card of one kind into one chest.
     private var tribute: some View {
         ZStack {
-            commodity(.ore, size: 38).offset(x: -27, y: -17)
-            commodity(.brick, size: 38).offset(x: 27, y: -17)
-            commodity(.grain, size: 42).offset(y: -28)
+            card(.ore, size: 30).offset(y: -22)
             TintedTextureBackground(tint: DevCardChrome.gold)
                 .clipShape(DevCardSilhouette(kind: .coffer))
                 .overlay(DevCardSilhouette(kind: .coffer).stroke(DevCardChrome.ink, lineWidth: 4))
-                .frame(width: 67, height: 46).offset(y: 19)
+                .frame(width: 70, height: 50).offset(y: 14)
             Rectangle().fill(DevCardChrome.ink)
-                .frame(width: 65, height: 4).offset(y: 14)
+                .frame(width: 68, height: 4).offset(y: 10)
             Rectangle().fill(DevCardChrome.ivory)
-                .frame(width: 9, height: 16).offset(y: 15)
+                .frame(width: 9, height: 16).offset(y: 12)
         }
     }
 
@@ -117,9 +120,12 @@ struct DevCardEmblem: View {
         .padding(8)
     }
 
-    private func commodity(_ resource: Resource, size: CGFloat) -> some View {
-        Image(CatanTheme.iconImageName(for: resource))
-            .resizable().scaledToFit()
+    /// A resource square sized for the 100-unit emblem space, inked so it
+    /// separates from the card's own painted colour.
+    private func card(_ resource: Resource, size: CGFloat = 46) -> some View {
+        RoundedRectangle(cornerRadius: 6)
+            .fill(CatanTheme.color(for: resource))
+            .overlay(RoundedRectangle(cornerRadius: 6).stroke(DevCardChrome.ink, lineWidth: 4))
             .frame(width: size, height: size)
     }
 }

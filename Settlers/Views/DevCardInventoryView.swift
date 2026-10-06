@@ -59,13 +59,15 @@ struct DevCardHandBadge: View {
     private enum Metrics {
         static let width: CGFloat = 54
         static let height: CGFloat = 44
-        static let emblem: CGFloat = 24
+        static let emblem: CGFloat = 18
         static let label: CGFloat = 8
     }
 
     var body: some View {
         Button(action: action) {
-            VStack(spacing: 1) {
+            // Three lines in 44pt only fit when each is held to one line and
+            // allowed to shrink; unbounded, the status row was cut in half.
+            VStack(spacing: 0) {
                 HStack(spacing: 3) {
                     DevCardEmblem(type: item.type).frame(width: Metrics.emblem, height: Metrics.emblem)
                     Text("\(item.held)").font(.system(size: 12, weight: .bold, design: .serif))
@@ -75,6 +77,9 @@ struct DevCardHandBadge: View {
                 Text(DevCardDisplay.handBadgeStatus(item))
                     .font(.system(size: Metrics.label, weight: .bold, design: .serif))
             }
+            .lineLimit(1)
+            .minimumScaleFactor(0.7)
+            .padding(.horizontal, 3)
             .foregroundStyle(DevCardChrome.ivory)
             .frame(width: Metrics.width, height: Metrics.height)
             .background(DevCardChrome.background(item.type))

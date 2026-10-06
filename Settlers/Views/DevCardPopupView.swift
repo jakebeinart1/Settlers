@@ -589,31 +589,30 @@ struct DevelopmentCardResultOverlay: View {
     private var resultContent: some View {
         VStack(spacing: 14) {
             DevCardIllustration(type: resolution.card)
-            Text(message)
+            message
                 .font(.subheadline)
                 .multilineTextAlignment(.center)
                 .fixedSize(horizontal: false, vertical: true)
         }
     }
 
-    private var message: String {
+    private var message: Text {
         switch resolution {
         case .knight(_, let victim, let stolen):
-            guard let victim else { return "The robber moved. No rival was eligible to steal from." }
+            guard let victim else { return Text("The robber moved. No rival was eligible to steal from.") }
             let name = playerIdentity(victim).displayName
-            if let stolen { return "You stole 1 \(stolen.rawValue) from \(name)." }
-            return "The robber moved beside \(name), who had no resource card to steal."
+            if let stolen { return Text("You stole ") + ResourceText.term(stolen, count: 1) + Text(" from \(name).") }
+            return Text("The robber moved beside \(name), who had no resource card to steal.")
         case .roadBuilding:
-            return "Both free roads were placed together and your network has been updated."
+            return Text("Both free roads were placed together and your network has been updated.")
         case .yearOfPlenty(_, let taken):
-            let parts = Resource.allCases.compactMap { resource -> String? in
-                guard let count = taken[resource], count > 0 else { return nil }
-                return "\(count) \(resource.rawValue)"
-            }
-            return "The bank gave you \(parts.joined(separator: " and "))."
+            return Text("The bank gave you ") + ResourceText.list(taken, separator: " and ") + Text(".")
         case .monopoly(_, let resource, let gained):
-            if gained == 0 { return "No rival held any \(resource.rawValue). You collected 0 cards." }
-            return "Every rival surrendered their \(resource.rawValue). You collected \(gained) cards."
+            if gained == 0 {
+                return Text("No rival held any ") + ResourceText.term(resource) + Text(". You collected 0 cards.")
+            }
+            return Text("Every rival surrendered their ") + ResourceText.term(resource)
+                + Text(". You collected \(gained) cards.")
         }
     }
 }

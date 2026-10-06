@@ -300,7 +300,7 @@ public struct HumanPlayerPanel: View {
         }
     }
 
-    /// One resource's colored square + held count, dimmed when `count` is 0
+    /// One resource's colored square + held count, the count dimmed at 0
     /// - factored out so both the spread-out (no dev cards) and tight (dev
     /// cards present) layouts above render identical squares. A rounded
     /// square rather than a circle - matches the resource swatches in
@@ -323,11 +323,14 @@ public struct HumanPlayerPanel: View {
                             .offset(y: -7)
                     }
                 }
+            // Only the number dims at zero. Fading the square let the
+            // panel's civilization colour bleed through it, so brick read
+            // maroon on Britannia's purple and no longer matched the board.
             Text("\(count)")
                 .font(.system(size: 14, weight: .bold))
                 .foregroundStyle(CatanTheme.onWaterText)
+                .opacity(count > 0 || gain > 0 ? 1 : 0.35)
         }
-        .opacity(count > 0 || gain > 0 ? 1 : 0.35)
         .accessibilityElement(children: .ignore)
         .accessibilityLabel("\(resource.rawValue.capitalized) cards")
         .accessibilityValue("\(count)")
