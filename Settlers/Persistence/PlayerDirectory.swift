@@ -51,13 +51,22 @@ public struct PlayerDirectory: Sendable {
         try JSONEncoder().encode(contents).write(to: fileURL, options: .atomic)
     }
 
-    /// The label for a player id: this phone's own preference for `me`, the
-    /// ladder's name for anyone else, or the id itself. A game filed under a
-    /// name before ids existed is keyed by that name, so it still reads right.
+    /// The label for a player id: the ladder's name for it, this phone's own
+    /// preference for `me` until the ladder has one, or the id itself. A game
+    /// filed under a name before ids existed is keyed by that name, so it
+    /// still reads right.
+    ///
+    /// The ladder's name wins for `me` too: a preference it refused belongs
+    /// to someone else, and showing it would put that name on two rows.
     func name(of id: String, preferredName: String = PlayerNameStore.shared.load()) -> String {
         let contents = load()
-        if id == contents.me, !preferredName.isEmpty { return preferredName }
-        return contents.names[id] ?? (id.hasPrefix(Self.localPrefix) ? LiveSync.defaultName : id)
+        if let name = contents.names[id] { return name }
+        guard id == contents.me, !preferredName.isEmpty else {
+            return id.hasPrefix(Self.localPrefix) ? LiveSync.defaultName : id
+        }
+        let slug = GhostTrainer.ghostID(forPerson: preferredName)
+        let held = contents.names.values.contains { GhostTrainer.ghostID(forPerson: $0) == slug }
+        return held ? LiveSync.defaultName : preferredName
     }
 
     /// Makes `id` (an iCloud user id) this phone's player. A phone still on

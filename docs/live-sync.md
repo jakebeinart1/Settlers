@@ -24,15 +24,21 @@ Code: `Settlers/Sync/`. Tests: `SettlersTests/LiveSyncTests.swift`.
 - **Names are unique.** A name is claimed by the first Apple ID to use it
   (`Player` record `name-<slug>`), and held for good, so nobody else can become
   "Jake" even after Jake renames. Choosing a taken name is refused and the
-  account keeps its old name.
+  account keeps its old name, and every row shows that account name, never
+  the refused one: a player who has not joined yet and prefers a held name is
+  shown as "You".
 - **Nothing goes up until the player chooses a name.** Until then their games
   count on their own phone only. Another phone on the same account that did
   not choose a new name follows the account's name rather than undoing it.
 - **Before 2026-09-29 players were keyed by name.** At launch each phone
   re-files its own games (those with a log on the phone) and the ghost that
   learned most under its player id, once. Downloaded games are re-filed under
-  their uploader's id by downloading them all once more. Games against another
-  player's ghost from before then keep that ghost's old id.
+  their uploader's id by downloading them all once more.
+- **One ghost per person.** A ghost still filed under a name slug - `jake`,
+  the ghost bundled with the app, or one downloaded before 2026-09-29 - joins
+  the ghost of the account holding that name once that ghost has synced
+  (`LiveSync.joinSlugGhosts`). Games against either copy are rated as the one
+  ghost, so no phone shows "Jake's Ghost" twice.
 - **Choosing the name, all in the app.** A ladder build asks for a name on
   launch when none is set (or it is still the default "You", which is never
   claimed), and the leaderboard has "Change name". Both claim at once. The one

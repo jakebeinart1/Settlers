@@ -88,6 +88,18 @@ final class CloudKitBackend: CloudBackend, @unchecked Sendable {
         }
     }
 
+    func claimants(of slugs: [String]) async throws -> [String: String] {
+        guard !slugs.isEmpty else { return [:] }
+        return try await mapped {
+            let results = try await database.records(for: slugs.map { CKRecord.ID(recordName: "name-\($0)") })
+            var owners: [String: String] = [:]
+            for record in try Self.claimRecords(from: results) {
+                owners[String(record.recordID.recordName.dropFirst("name-".count))] = try await owner(of: record)
+            }
+            return owners
+        }
+    }
+
     func upload(_ match: SharedMatch) async throws {
         try await mapped {
             let record = CKRecord(recordType: "Match", recordID: CKRecord.ID(recordName: match.match.uuidString))

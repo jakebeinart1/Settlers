@@ -77,6 +77,10 @@ import Testing
             cloud.locked { cloud in cloud.accounts.filter { ids.contains($0.key) } }
         }
 
+        func claimants(of slugs: [String]) async throws -> [String: String] {
+            cloud.locked { cloud in cloud.claims.filter { slugs.contains($0.key) }.mapValues(\.owner) }
+        }
+
         func upload(_ match: SharedMatch) async throws {
             cloud.locked { cloud in
                 guard cloud.matches[match.match] == nil else { return }
@@ -115,13 +119,13 @@ import Testing
         let stores: LiveSync.Stores
         let preference = NameBox()
 
-        init(_ name: String, in root: URL) {
+        init(_ name: String, in root: URL, bundledGhosts: [URL] = []) {
             let dir = root.appendingPathComponent(name)
             self.root = dir
             stores = LiveSync.Stores(
                 seatStats: SeatStatsStore(directory: dir.appendingPathComponent("stats")),
                 ratings: RatingStore(directory: dir.appendingPathComponent("ratings")),
-                ghosts: GhostStore(localDirectory: dir.appendingPathComponent("ghosts"), bundledGhosts: []),
+                ghosts: GhostStore(localDirectory: dir.appendingPathComponent("ghosts"), bundledGhosts: bundledGhosts),
                 logs: GameLogStore(directoryURL: dir.appendingPathComponent("logs"), maxKeptLogs: 10),
                 players: PlayerDirectory(directory: dir.appendingPathComponent("players")),
                 stateFile: dir.appendingPathComponent("sync/state.json"))
@@ -572,6 +576,7 @@ import Testing
         func claim(slug: String, name: String) async throws -> NameClaim { try await inner.claim(slug: slug, name: name) }
         func setName(_ name: String) async throws { try await inner.setName(name) }
         func names(of ids: [String]) async throws -> [String: String] { try await inner.names(of: ids) }
+        func claimants(of slugs: [String]) async throws -> [String: String] { try await inner.claimants(of: slugs) }
         func upload(_ match: SharedMatch) async throws { try await inner.upload(match) }
         func matches(modifiedAfter date: Date?) async throws -> [Downloaded<SharedMatch>] {
             try await inner.matches(modifiedAfter: date)
@@ -634,5 +639,68 @@ import Testing
             #expect(ladder.games["person:apple-jake"] == 1 && ladder.games["person:apple-alex"] == 1)
         }
         #expect(jake.stores.ratings.load().ratings == alex.stores.ratings.load().ratings)
+    }
+
+    // MARK: - One row per player
+
+    /// Every name on a phone's ladder, which must not repeat.
+    private func ladderNames(_ device: Device) -> [String] {
+        LeaderboardModel.rows(ratings: device.stores.ratings.load(), ghosts: device.stores.ghosts.all(),
+                              name: device.name(of:)).map(\.name)
+    }
+
+    /// Jake's ghost ships in the app as `jake`, and his phone uploads the same
+    /// ghost under his Apple ID. Every other phone must show one Jake's Ghost,
+    /// with the games against either copy rated as that one ghost.
+    @MainActor
+    @Test func theBundledGhostIsItsOwnersSyncedGhost() async throws {
+        let dir = root()
+        defer { try? FileManager.default.removeItem(at: dir) }
+        let cloud = FakeCloud()
+        try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+        let bundled = dir.appendingPathComponent("jake.ghost")
+        try JSONEncoder().encode(trainedGhost("jake", "Jake's Ghost", games: 24)).write(to: bundled)
+        let jake = Device("jake", in: dir)
+        let alex = Device("alex", in: dir, bundledGhosts: [bundled])
+        try alex.play(as: "Alex", against: "jake")
+        try jake.stores.ghosts.save(trainedGhost(jake.me, "Jake's Ghost", games: 30))
+        _ = await jake.sync(cloud, as: "apple-jake", name: "Jake")
+        _ = await alex.sync(cloud, as: "apple-alex", name: "Alex")
+        _ = await jake.sync(cloud, as: "apple-jake", name: "Jake")
+
+        #expect(alex.stores.ghosts.all().map(\.id) == ["apple-jake"])
+        #expect(alex.stores.ghosts.ghost(id: "jake")?.gamesLearned == 30, "the old id plays the newest ghost")
+        for device in [jake, alex] {
+            let ladder = device.stores.ratings.load()
+            #expect(ladder.games["ghost:apple-jake"] == 1 && ladder.games["ghost:jake"] == nil)
+            let names = ladderNames(device)
+            #expect(Set(names).count == names.count, "\(names)")
+        }
+        #expect(jake.stores.ratings.load().ratings == alex.stores.ratings.load().ratings)
+    }
+
+    /// A name refused because another account holds it is never shown: not
+    /// on the player's row, not on their ghost, and not on a phone that has
+    /// not joined yet. Otherwise the ladder reads "Jake" twice.
+    @Test func aRefusedNameIsNeverShownBesideItsHolder() async throws {
+        let dir = root()
+        defer { try? FileManager.default.removeItem(at: dir) }
+        let cloud = FakeCloud()
+        let jake = Device("jake", in: dir)
+        let bob = Device("bob", in: dir)
+        try jake.stores.ghosts.save(trainedGhost(jake.me, "Jake's Ghost"))
+        try bob.stores.ghosts.save(trainedGhost(bob.me, "Bob's Ghost"))
+        _ = await jake.sync(cloud, as: "apple-jake", name: "Jake")
+        _ = await bob.sync(cloud, as: "apple-bob", name: "Bob")
+
+        let refused = await bob.liveSync(Phone(cloud: cloud, user: "apple-bob"), name: "Jake").sync(renaming: true)
+        #expect(refused == .nameTaken("Jake"))
+        #expect(bob.name(of: "apple-bob") == "Bob")
+        #expect(bob.stores.ghosts.ghost(id: "apple-bob")?.name == "Bob's Ghost")
+        #expect(ladderNames(bob).filter { $0.contains("Jake") }.count == 1)
+
+        let newcomer = Device("new", in: dir)
+        #expect(await newcomer.sync(cloud, as: "apple-new", name: "jake") == .nameTaken("jake"))
+        #expect(newcomer.name(of: "apple-new") == LiveSync.defaultName)
     }
 }

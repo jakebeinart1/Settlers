@@ -51,6 +51,9 @@ protocol CloudBackend: Sendable {
     /// The ladder names of `ids`, each as set by that user; an id that has
     /// never set one is absent.
     func names(of ids: [String]) async throws -> [String: String]
+    /// The account holding each claimed name slug; an unclaimed slug is absent.
+    /// Read-only, unlike `claim`.
+    func claimants(of slugs: [String]) async throws -> [String: String]
     /// Idempotent by match id.
     func upload(_ match: SharedMatch) async throws
     /// Every game changed after `date`, or all of them for `nil`.

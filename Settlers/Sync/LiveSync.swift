@@ -171,6 +171,7 @@ actor LiveSync {
                 try await uploadGhost(me: me, state: &state)
             }
             changed = try await downloadGames(state: &state) || changed
+            changed = try await joinSlugGhosts(state: &state) || changed
             try await refreshNames(me: me)
             if changed || !state.ratingsRebuilt {
                 try stores.ratings.rebuild(from: stores.seatStats.all())
@@ -233,7 +234,9 @@ actor LiveSync {
     private func refreshNames(me: String) async throws {
         let ghosts = stores.ghosts.all()
         let people = stores.seatStats.all().flatMap { $0.seats.compactMap(\.personID) }
-        let ids = Set(people + ghosts.map(\.id)).subtracting([me]).sorted()
+        // `me` too: the row and ghost show the account's name, never a
+        // preference the ladder refused because someone else holds it.
+        let ids = Set(people + ghosts.map(\.id) + [me]).sorted()
         let names = try await backend.names(of: ids)
         var contents = stores.players.load()
         if contents.names.merging(names, uniquingKeysWith: { $1 }) != contents.names {
@@ -241,7 +244,8 @@ actor LiveSync {
             try stores.players.save(contents)
         }
         for var ghost in ghosts {
-            guard let person = ghost.id == me ? displayName() : names[ghost.id], !person.isEmpty,
+            guard let person = ghost.id == me ? stores.players.name(of: me, preferredName: displayName()) : names[ghost.id],
+                  !person.isEmpty,
                   ghost.name != Self.ghostName(person) else { continue }
             ghost.name = Self.ghostName(person)
             try stores.ghosts.save(ghost)
@@ -309,6 +313,36 @@ actor LiveSync {
         return changed
     }
 
+    /// Ghosts and ghost seats still filed under a name slug - `jake`, the
+    /// ghost bundled with the app, or one downloaded before 2026-09-29 - join
+    /// the ghost of the account holding that name, so a person's ghost is one
+    /// row with one rating on every phone, not "Jake's Ghost" twice. Only once
+    /// that account's ghost is here: until then the old one stays playable.
+    private func joinSlugGhosts(state: inout SyncState) async throws -> Bool {
+        let ghosts = stores.ghosts
+        let records = stores.seatStats.all()
+        let filed = records.flatMap { $0.seats.compactMap(\.ghostID) } + ghosts.all().map(\.id)
+        let slugs = Set(filed).filter { $0 == GhostTrainer.ghostID(forPerson: $0) && ghosts.resolve($0) == $0 }
+        if !slugs.isEmpty {
+            for (slug, owner) in try await backend.claimants(of: slugs.sorted()).sorted(by: { $0.key < $1.key })
+            where owner != slug && ghosts.ghost(id: owner) != nil {
+                try ghosts.alias(slug, to: owner)
+            }
+        }
+        var changed = false
+        for record in records {
+            let refiled = SeatStatsRecord(match: record.match, date: record.date, seats: record.seats.map { entry in
+                entry.ghostID.map { SeatStatsRecord.Entry(entity: RatedEntity.ghost(ghosts.resolve($0)).key, stats: entry.stats) }
+                    ?? entry
+            })
+            guard refiled != record else { continue }
+            try markRatingsDirty(state: &state)
+            try stores.seatStats.replace(refiled)
+            changed = true
+        }
+        return changed
+    }
+
     /// Write-ahead invalidation: a pass can fail after persisting a match or
     /// re-filing games. The next process must rebuild even when that match is
     /// no longer fresh and its download cursor has already advanced.
@@ -341,6 +375,12 @@ extension SeatStatsRecord.Entry {
     /// The player id of a person seat; `nil` for any other seat.
     var personID: String? {
         guard case .person(let id) = RatedEntity(key: entity) else { return nil }
+        return id
+    }
+
+    /// The ghost id of a ghost seat; `nil` for any other seat.
+    var ghostID: String? {
+        guard case .ghost(let id) = RatedEntity(key: entity) else { return nil }
         return id
     }
 }
