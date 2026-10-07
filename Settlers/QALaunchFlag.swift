@@ -133,6 +133,12 @@ enum QALaunchFlag: String, CaseIterable {
     /// capture, recording and save writes still use the production paths.
     case navalMode = "-qaNavalMode"
     case navalVoyagePosition = "-qaNavalVoyagePosition"
+    /// Real purchases and sea steps prepare a two-hex budget obstruction.
+    case navalBlockadePosition = "-qaNavalBlockadePosition"
+    /// A real rigged 11 offers capture of the prepared opposing blocker.
+    case navalBlockadeCapturePosition = "-qaNavalBlockadeCapturePosition"
+    /// Opposing purchased hulls occupy every owned coastal launch cell.
+    case navalBlockadeLaunchPosition = "-qaNavalBlockadeLaunchPosition"
     /// Conserved screenshot hand for construction-shortage feedback.
     case navalBuildScarcity = "-qaNavalBuildScarcity"
     case navalAdjacentShipsPosition = "-qaNavalAdjacentShipsPosition"

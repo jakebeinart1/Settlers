@@ -52,12 +52,21 @@ extension GameViewModel {
         } else if QALaunchFlag.navalVoyagePosition.isSet || QALaunchFlag.navalBuildScarcity.isSet {
             kind = .voyage
         } else { kind = nil }
-        guard let kind else { return }
+        let blockade: NavalBlockadeQAFixture.Position?
+        if QALaunchFlag.navalBlockadeCapturePosition.isSet {
+            blockade = .capture
+        } else if QALaunchFlag.navalBlockadeLaunchPosition.isSet {
+            blockade = .launch
+        } else if QALaunchFlag.navalBlockadePosition.isSet {
+            blockade = .passage
+        } else { blockade = nil }
+        guard kind != nil || blockade != nil else { return }
         let artworkAssignment = civilizationArgument.map { _ in
             state.players.map { playerIdentity(for: $0.id).civilization }
         }
         do {
-            var position = try NavalQAFixture.make(kind, options: setup.navalOptions)
+            var position = try blockade.map { try NavalBlockadeQAFixture.make($0, options: setup.navalOptions) }
+                ?? NavalQAFixture.make(kind!, options: setup.navalOptions)
             if QALaunchFlag.navalBuildScarcity.isSet {
                 NavalQAFixture.replaceHand([.lumber: 1, .wool: 10], for: PlayerID(index: 0), in: &position)
             }
