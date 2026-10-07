@@ -123,6 +123,14 @@ final class DevelopmentCardDesignTests: XCTestCase {
         XCTAssertTrue(app.buttons["dev-cards.play.monopoly"].isEnabled)
         XCTAssertFalse(app.staticTexts["Bank supply"].exists)
         capture("Naval Monopoly — bank stock does not limit selection", in: app)
+        app.buttons["dev-cards.play.monopoly"].tap()
+        XCTAssertTrue(app.staticTexts["dev-cards.result"].waitForExistence(timeout: 3))
+        capture("Naval Monopoly — collects rival stock with an empty bank", in: app)
+        app.buttons["dev-cards.result.continue"].tap()
+        let heldWool = Int(app.otherElements["human-resource.wool"].value as? String ?? "")
+        XCTAssertNotNil(heldWool)
+        XCTAssertGreaterThan(heldWool ?? 0, 0, "A zero bank must not prevent collecting rivals' Wool")
+        XCTAssertTrue(app.buttons["Roll Dice"].waitForExistence(timeout: 3))
     }
 
     /// Starts an ordinary seeded game. The audit modifier only pauses the
