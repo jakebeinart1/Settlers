@@ -53,7 +53,10 @@ import CatanEngine
             })
             state.naval!.ships[0].coordinate = destination.coordinate
         case .controller: state.naval!.ships[0].owner = PlayerID(index: 1)
-        case .movement: state.naval!.ships[0].stepsRemaining = 3
+        case .movement:
+            let allowance = Naval.movementPerTurn(in: state)
+            #expect(state.naval!.ships[0].stepsRemaining != allowance)
+            state.naval!.ships[0].stepsRemaining = allowance
         case .discovery:
             let hidden = try #require(state.board.tiles.first { !state.naval!.revealed.contains($0.coordinate) })
             state.naval!.revealed.insert(hidden.coordinate)
