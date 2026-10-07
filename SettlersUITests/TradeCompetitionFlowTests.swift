@@ -58,8 +58,8 @@ final class TradeCompetitionFlowTests: XCTestCase {
         let news = app.otherElements[FlowID.notice]
         XCTAssertTrue(news.waitForExistence(timeout: Timing.transition))
         XCTAssertEqual(news.label, "Alexander traded with Ramesses")
-        assertHand(["grain": 1], in: app)
         retainScreenshot("Cold-resumed actual rival wins; human keeps their Grain", in: app)
+        assertHand(["grain": 1], in: app)
         reachOwnTurn(in: app)
         retainScreenshot("Rival winner continues to the human's next dice roll", in: app)
     }

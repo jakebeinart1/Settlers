@@ -18,6 +18,11 @@ extension BoardView {
             ForEach(state.naval?.ships ?? [], id: \.id) { ship in
                 shipPositionMarker(ship, geometry: geometry)
             }
+            ForEach(board.tiles.filter { $0.kind == .resourceChoice }, id: \.coordinate) { tile in
+                cameraMarker(at: tile.coordinate,
+                             identifier: "naval.harvest.position.\(tile.coordinate.q)_\(tile.coordinate.r)",
+                             geometry: geometry)
+            }
         }
         .allowsHitTesting(false)
     }
