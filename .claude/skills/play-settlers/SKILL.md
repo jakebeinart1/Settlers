@@ -25,9 +25,10 @@ that ends a turn will not show a result for half a minute.
 
 ## Setup
 
-Read and apply [run-settlers' simulator lifecycle](../run-settlers/SKILL.md#simulator-lifecycle)
-before simulator selection or native tests and when finishing play. Reuse the
-confirmed task-owned device; keep other tasks' and users' sessions protected.
+Before simulator selection, creation, boot, reset, or native tests, read and apply
+the [shared simulator lifecycle policy](../run-settlers/references/simulator-lifecycle.md).
+It also governs test clones and finish/retention decisions across every Empires
+worktree. Other tasks' and users' sessions stay protected.
 
 Use the native `SettlersUITests` target for repeatable setup, settings, placement,
 and cold-resume interaction. Build, install, and launch with `run-settlers` for

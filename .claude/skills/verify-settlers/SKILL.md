@@ -6,8 +6,10 @@ description: >-
 
 # Verify Settlers
 
-Read and apply [run-settlers' simulator lifecycle](../run-settlers/SKILL.md#simulator-lifecycle)
-before the gate, push hook, or native tests and again when finishing verification.
+Before simulator selection, creation, boot, reset, native tests, or a gate/push
+hook, read and apply the [shared simulator lifecycle policy](../run-settlers/references/simulator-lifecycle.md).
+It also governs test clones and finish/retention decisions across every Empires
+worktree.
 
 **"It builds" is a compile claim. "It works" is a runtime claim, and no compiler
 emits one.** The app now has hosted unit tests and native XCUITests. Until
@@ -45,12 +47,13 @@ it has no right to give.
 
 ## The ladder
 
-`scripts/verify.sh` implements rungs 1-5 and stops at 6. Run that rather than
-retyping this; the block below is here so the WHY is readable without opening
-the script, and so the pieces can be run by hand when you are changing them.
-The script does not enforce device ownership or cleanup. Inventory and pin the
-idle QA device first, export `GATE_TEST_WORKERS=1`, and supervise its simulator
-stages; use the manual rungs when that control is needed.
+`scripts/verify.sh` implements rungs 1-5 and stops at 6, but does not enforce the
+shared lifecycle policy. Use it only when each internal create/boot/test stage
+can receive fresh inventory and an available, coordinated project slot. Pin the
+idle QA device, export `GATE_TEST_WORKERS=1`, and supervise its simulator stages;
+use the manual rungs below when a wrapper cannot provide that control. For an
+agent-documentation-only change, validate the skills, references, and instructions;
+the mobile build/install ladder does not verify a documentation edit.
 
 ```bash
 set -euo pipefail   # -e, so a rung that fails stops the ladder rather than
@@ -92,9 +95,9 @@ GATE_TEST_WORKERS=1 "$REPO/scripts/gate.sh"
 #    fails --strict on Xcode's own generated sources.
 #    Log to a FILE. Never `xcodebuild | tail` - see the trap below.
 DD="${TMPDIR:-/tmp}/settlers-verify-derived"; mkdir -p "$DD"
-SIM="$(python3 scripts/select-qa-simulator.py)"
-# Recheck ownership and idle status after the gate; bootstatus reuses Booted.
-xcrun simctl bootstatus "$SIM" -b
+# Reapply the shared lifecycle allocation procedure after the gate; it verifies
+# the selector's device and completes boot/readiness checks under the shared lock.
+SIM="$SETTLERS_QA_SIMULATOR_ID"
 open -a Simulator                              # so there is a window to photograph
 xcodebuild -project "$REPO/Settlers.xcodeproj" -scheme Settlers \
   -destination "platform=iOS Simulator,id=$SIM" \

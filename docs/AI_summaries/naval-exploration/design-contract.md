@@ -1,5 +1,14 @@
 # Voyages design and implementation contract
 
+## Build 26 contract: Monopoly quantities
+
+D54/E31 show the publicly derived aggregate supply − bank − own hand as “to
+collect”; Plenty quantities are “in bank”. Zero stays legal and explained;
+missing/invalid stock stays unknown. Header/actions and the existing grid/theme
+remain intact. No private rival composition or engine/AI/schema change is added.
+[E31](acceptance.md#build-26-follow-up-e31-verification-in-progress) owns pending verification,
+delivery and agent-authorized PR disposition; old approval waits below are historical.
+
 ## Build 25 card addendum: verified for delivery
 
 D50–D53 and [E30](acceptance.md#build-25-follow-up-e30-delivered) cover the

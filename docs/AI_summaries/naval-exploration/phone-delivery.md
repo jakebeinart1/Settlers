@@ -1,5 +1,12 @@
 # Naval phone delivery
 
+## Build 26 delivery: verification in progress
+
+The Monopoly count follow-up is being verified before a new signed delivery.
+Build 25 below remains the available internal binary. [E31](acceptance.md#build-26-follow-up-e31-verification-in-progress)
+will bind new source, gate, original captures and Apple/access readback. Alex
+now delegates review/merge to the agent; earlier human-approval waits are historical.
+
 ## Build 25 delivered
 
 Production is frozen at `a9e0e88`, 1.0/build 25, with 376 inputs; test-only

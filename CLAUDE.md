@@ -24,6 +24,7 @@ Every one of these is canonical for its question. Read the file, do not reason f
 | Why CI runs on Ubuntu and what it deliberately does not do | `.github/workflows/ci.yml` |
 | Why each lint threshold sits where it does | `.swiftlint.yml` |
 | Running / screenshotting the app, every `-qa*` launch flag, UI-test reset arguments, what the device path blocks on | `.claude/skills/run-settlers/SKILL.md` - **the** reference; do not re-derive it |
+| Before simulator selection/create/boot/reset, native tests or a gate/push hook: shared project capacity, ownership, reuse, finish and storage retention | `.claude/skills/run-settlers/references/simulator-lifecycle.md` - applies across all worktrees, including test clones |
 | Legal moves and move application (the whole ruleset) | `Packages/CatanEngine/Sources/CatanEngine/RulesEngine.swift` |
 | Save-file schema and its backward compatibility | `GameState.init(from:)`, `Models/GameState.swift:110` |
 | Randomness contract | `Models/RandomSource.swift` (doc comment is the spec) |
@@ -104,7 +105,7 @@ App/UI tests run on the dedicated `Empires QA` simulator selected by
 never replace this with "first available" or "first booted", which wiped the
 manual-play simulator during an ordinary gate on 2026-09-03.
 
-They also run **in parallel across cloned simulators** (`Clone N of Empires QA`,
+They can also run **in parallel across cloned simulators** (`Clone N of Empires QA`,
 created by xcodebuild - still not your manual-play device). Both bundles are
 marked `parallelizable` in `project.yml`; the worker count is machine-specific
 and lives in `gate.sh` (`GATE_TEST_WORKERS`, default 1 with parallel testing disabled).
@@ -157,12 +158,11 @@ discover them one push at a time. That is the third property above, used deliber
 not the default.
 
 **Memory and storage constrain simulator work on this machine.** Inventory the
-whole host before allocating devices, reuse the task's existing simulator, pin
-`SETTLERS_QA_SIMULATOR_ID`, and use `GATE_TEST_WORKERS=1` to avoid worker clones.
-Shut down idle task-owned devices after use; delete only confirmed disposable
-devices after preserving needed saves. Never shut down or delete another task's
-simulators. The [run-settlers lifecycle](.claude/skills/run-settlers/SKILL.md#simulator-lifecycle)
-is the maintained workflow; do not use `shutdown all`.
+whole host and apply the [shared simulator lifecycle policy](.claude/skills/run-settlers/references/simulator-lifecycle.md)
+before allocation, native tests or a gate/push hook, and again when finishing.
+Its capacity and storage-retention rules apply across every Empires worktree and
+test clone. Pin `SETTLERS_QA_SIMULATOR_ID` and use `GATE_TEST_WORKERS=1` to avoid
+worker clones. Preserve other tasks' and users' sessions.
 
 ## Anti-false-green - lessons this repo has already paid for
 

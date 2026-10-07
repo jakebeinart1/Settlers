@@ -1,5 +1,14 @@
 # Naval integration with the current phone release
 
+## Build 26 compatibility: presentation follow-up
+
+Public Monopoly gain previews and explicit bank/rival quantities add no rule,
+AI policy, save field, schema version or RNG use. Current main's document-only
+`bc11db4` is retained through `746e56c`; PR #58's unique lifecycle policy is
+reconciled without replacing current flags/signing or serial default-one tests.
+[E31](acceptance.md#build-26-follow-up-e31-verification-in-progress) owns fresh pending checks and
+agent-authorized merge/closure. Earlier approval waits are historical only.
+
 ## Build 25 compatibility: delivered
 
 The [final production freeze](evidence/receipts/build25-final-production-inputs.json)

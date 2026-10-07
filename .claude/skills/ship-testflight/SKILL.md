@@ -9,11 +9,11 @@ The outcome is not “archive succeeded.” A ship is complete only after the
 Release gate passes, the build number is unique, Apple accepts the upload, the
 build reaches VALID, and the intended tester can see it.
 
-Before simulator-backed release checks, apply the
-[run-settlers lifecycle](../run-settlers/SKILL.md#simulator-lifecycle): inventory
-the host, reuse a confirmed idle task-owned QA device, export its exact
-`SETTLERS_QA_SIMULATOR_ID`, and use `GATE_TEST_WORKERS=1`. Complete individual
-task-owned cleanup afterward; other projects' simulators stay protected.
+Before simulator-backed release checks or a gate/push hook, read and apply the
+[shared simulator lifecycle policy](../run-settlers/references/simulator-lifecycle.md).
+Shipping shares the same project capacity across worktrees and test clones;
+the policy also governs finish/retention decisions. Keep the confirmed QA UDID
+pinned and use `GATE_TEST_WORKERS=1`; other projects' simulators stay protected.
 
 ## Verified account and artifact state
 

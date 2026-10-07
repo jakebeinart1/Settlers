@@ -39,38 +39,11 @@ read back out of `xcodebuild`, and the bundle id is read out of the built `Info.
 
 ## Simulator lifecycle
 
-Before selecting, creating, booting, resetting, or testing on a simulator, read the
-whole host inventory and disk use, including devices belonging to other projects:
-
-```bash
-xcrun simctl list devices -j
-df -h "$HOME/Library/Developer/CoreSimulator"
-du -sh "$HOME/Library/Developer/CoreSimulator/Devices"
-```
-
-Record the total and booted counts, relevant UDIDs, runtime, ownership evidence,
-last known use, and current task/test/user review. A device name or installed app
-alone does not prove exclusive ownership. Reuse an existing compatible, idle
-task-owned device; keep its UDID across builds. Create only when none can serve
-the task, and record the new device and its eventual cleanup in task evidence.
-
-`select-qa-simulator.py` can create a device and its override validates the name
-`Empires QA`, not task ownership. Duplicate names exist. Confirm an idle dedicated
-QA device, export its exact `SETTLERS_QA_SIMULATOR_ID`, and keep it set for the
-selector, gate, verification script, and push hook. Never substitute a user's
-manual-play device for a reset or fresh install. Serialize native builds/tests
-across agents and worktrees; use `-parallel-testing-enabled NO
--parallel-testing-worker-count 1` for direct tests and `GATE_TEST_WORKERS=1` for
-the gate so repeated runs do not allocate parallel worker clones.
-
-When finished, shut down idle devices this task booted unless ongoing work or
-user review still needs them, and record/read back their state. Shutdown releases
-memory; deleting a device releases storage and loses its data. Delete only a
-known disposable task-owned device after archiving needed saves/recordings and
-confirming no other task or user relies on it. If ownership or use is uncertain,
-keep it. Never use `shutdown all`, `delete unavailable`, or blanket erase/delete;
-never stop or delete another project's device. Recheck inventory and ownership
-immediately before individual cleanup.
+Before simulator selection, creation, boot, reset, native tests, or a gate/push
+hook, read and apply the [shared lifecycle policy](references/simulator-lifecycle.md).
+It governs every Empires worktree, including test clones, and also applies when
+finishing work or cleaning storage. Complete its allocation procedure and pin the
+confirmed ready QA UDID before continuing with the ladder below.
 
 ## The ladder
 
@@ -90,10 +63,9 @@ REPO="$(git rev-parse --show-toplevel)"
 #    For a user's manual-play device, install in place and omit uninstall/reset
 #    flags so their saved game survives. Never run this destructive recipe there.
 : "${SETTLERS_QA_SIMULATOR_ID:?Inventory and pin a confirmed idle QA device first}"
-SIM="$(python3 "$REPO/scripts/select-qa-simulator.py")"
-# Boot only if the fresh inventory reports Shutdown; preserve real boot errors.
-# An already Booted device needs no boot command.
-xcrun simctl bootstatus "$SIM" -b
+# Apply the shared lifecycle allocation procedure first; it verifies the
+# selector's device and completes any boot/readiness check under the shared lock.
+SIM="$SETTLERS_QA_SIMULATOR_ID"
 open -a Simulator                              # so the screenshot has something to photograph
 
 # 3) REGENERATE THE PROJECT IF THE FILE LIST CHANGED. `project.yml` globs

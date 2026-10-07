@@ -1,5 +1,13 @@
 # Voyages visual and motion review
 
+## Build 26 count review: pending original captures
+
+Monopoly's existing resource grid now shows public combined rival quantities,
+selected gain and explicit zero outcomes; Plenty labels its own bank stock.
+Normal/maximum-text and real payout captures will receive original-pixel review
+under [E31](../acceptance.md#build-26-follow-up-e31-verification-in-progress). Build 25 captures
+below remain exact historical evidence. Agent approval now governs PR disposition.
+
 ## Build 25 final-source gallery: local review verified
 
 Root directly inspected all 27 selected originals at their original resolution:

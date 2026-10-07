@@ -1,5 +1,32 @@
 # Voyages requirements and acceptance
 
+## Build 26 follow-up (E31): verification in progress
+
+Alex requests a truthful Monopoly gain preview and resolution of every open
+Settlers PR. **D54** uses only public finite supply, bank stock and the owner's
+hand: collectible = supply − bank − own. Classic has 19 per resource,
+Expanded/Naval 38 and Vast 60. Each cell shows a number and “to collect”; the
+pinned Play action previews the selected gain. Plenty explicitly says “in bank”.
+A selected zero warns that the play collects nothing and stays legal. Missing
+or impossible legacy stock is unknown, never a fabricated zero. No individual
+rival composition, engine/AI change, save field or replay change is introduced.
+
+Hosted cases compare public-only predictions with real payouts across modes,
+three/four seats, nonzero owners, masked Naval versions, sparse/invalid input
+and Conquest bank payments. Native journeys cover normal/maximum text,
+zero consumption and an empty-bank 38-card prediction and actual payout.
+Focused execution, original screenshot review and the fresh full gate remain
+in progress; build 25 is the current delivered binary.
+
+Alex expressly delegates approval and merge decisions to the agent. The shared
+`~/.claude/rules/gitflow.md` no longer requires a human/GitHub approval. PR #58's
+unique simulator capacity/allocation/retention policy is retained through one
+canonical reference linked by four skills and CLAUDE. Current main's `bc11db4`
+document is incorporated as `746e56c`, preserving its bytes without rewriting
+published history. PR #60 will merge after new source checks and current CI;
+#58 will close as subsumed. No merge or closure is claimed yet. Historical
+“awaiting approval” statements below describe earlier snapshots only.
+
 ## Build 25 follow-up (E30): delivered
 
 Alex's follow-up requests distinct development-card aesthetics, matching HUD

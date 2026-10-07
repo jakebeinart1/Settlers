@@ -1,5 +1,13 @@
 # Naval exploration product program
 
+## Build 26 Monopoly follow-up: verification in progress
+
+[E31](acceptance.md#build-26-follow-up-e31-verification-in-progress) adds public-only
+collectible counts and selected-gain previews, while keeping bank supply distinct.
+New source verification and phone delivery are pending. Alex delegates approval
+to the agent: retain PR #58's unique simulator policy, merge ready #60 and close
+superseded #58. Earlier approval-pending statements below are historical snapshots.
+
 ## Build 25 card follow-up: delivered, October 7
 
 Alex's October 7 follow-up asks all five development cards to suit the painted
