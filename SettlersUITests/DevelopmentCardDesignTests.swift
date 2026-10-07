@@ -98,6 +98,13 @@ final class DevelopmentCardDesignTests: XCTestCase {
         XCTAssertFalse(app.buttons["dev-cards.play.yearOfPlenty"].isEnabled)
         app.buttons["dev-cards.resource.grain"].tap()
         XCTAssertLessThan(ore.frame.minX, grain.frame.minX)
+        for resource in resources {
+            let exhaustedChoice = app.buttons["dev-cards.resource.\(resource)"]
+            let disabled = XCTNSPredicateExpectation(predicate: NSPredicate(format: "isEnabled == false"),
+                                                     object: exhaustedChoice)
+            XCTAssertEqual(XCTWaiter.wait(for: [disabled], timeout: 2), .completed,
+                           "Every bank choice must be disabled once both picks are selected")
+        }
         capture("Year of Plenty — ordered mixed choices", in: app)
         app.buttons["dev-cards.play.yearOfPlenty"].tap()
         XCTAssertTrue(app.staticTexts["dev-cards.result"].waitForExistence(timeout: 3))

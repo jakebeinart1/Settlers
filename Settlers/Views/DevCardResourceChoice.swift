@@ -34,13 +34,22 @@ struct DevCardResourceChoice: View {
             .overlay(RoundedRectangle(cornerRadius: 6)
                 .strokeBorder(isSelected ? DevCardChrome.gold : DevCardChrome.gold.opacity(0.3),
                               lineWidth: isSelected ? 2 : 1))
-            .opacity(isEnabled ? 1 : 0.38)
         }
-        .buttonStyle(UndimmedButtonStyle())
+        .buttonStyle(DevCardResourceButtonStyle())
         .disabled(!isEnabled)
         .accessibilityLabel(resource.rawValue.capitalized)
         .accessibilityValue(count.map { "\($0) in the bank" } ?? (isSelected ? "Selected" : "Not selected"))
         .accessibilityAddTraits(isSelected ? [.isSelected] : [])
+    }
+}
+
+/// Availability belongs to the control environment. Styling it here updates
+/// even when a tap disables its own button while the label is being tracked.
+private struct DevCardResourceButtonStyle: ButtonStyle {
+    @Environment(\.isEnabled) private var isEnabled
+
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label.opacity(isEnabled ? (configuration.isPressed ? 0.9 : 1) : 0.38)
     }
 }
 
