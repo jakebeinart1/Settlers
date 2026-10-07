@@ -1,4 +1,6 @@
 import XCTest
+import UIKit
+import Vision
 
 /// Real controls exercise the public blockade mask, physical sea touches,
 /// capture confirmation and cold-resumed travel. Preparation is an explicit
@@ -105,7 +107,7 @@ final class NavalBlockadeFlowTests: XCTestCase {
         XCTAssertEqual(chart(in: app), charted)
     }
 
-    func testBlockadeExplanationAndWorldTouchRemainUsableAtLargestText() {
+    func testBlockadeExplanationAndWorldTouchRemainUsableAtLargestText() throws {
         let app = launch("-qaNavalBlockadePosition", largestText: true)
         let original = positions(in: app)
         let resources = holdings(in: app)
@@ -114,6 +116,7 @@ final class NavalBlockadeFlowTests: XCTestCase {
         XCTAssertTrue(detail.waitForExistence(timeout: 3))
         let dock = app.otherElements["board-decision.dock"]
         XCTAssertTrue(dock.frame.insetBy(dx: -1, dy: -1).contains(detail.frame))
+        try assertVisibleSailingText(detail, in: app)
         XCTAssertTrue(app.buttons["board-decision.cancel"].isHittable)
         XCTAssertFalse(app.buttons["board-decision.confirm"].isEnabled)
         app.buttons["naval.overview"].tap()
@@ -125,6 +128,26 @@ final class NavalBlockadeFlowTests: XCTestCase {
         retain("Blockades — maximum text retains explanation and safe World selection", app: app)
         app.buttons["board-decision.cancel"].tap()
         XCTAssertTrue(app.buttons["Build"].isHittable)
+    }
+
+    /// Accessibility exposes the full string even when SwiftUI draws an
+    /// ellipsis. Read the rendered pixels inside the observed text rectangle
+    /// so a green geometry assertion cannot hide a truncated explanation.
+    private func assertVisibleSailingText(_ detail: XCUIElement, in app: XCUIApplication) throws {
+        let pixels = try XCTUnwrap(UIImage(data: app.screenshot().pngRepresentation)?.cgImage)
+        let frame = detail.frame
+        let request = VNRecognizeTextRequest()
+        request.recognitionLevel = .accurate
+        request.usesLanguageCorrection = false
+        request.regionOfInterest = CGRect(x: frame.minX / app.frame.width,
+            y: 1 - frame.maxY / app.frame.height,
+            width: frame.width / app.frame.width, height: frame.height / app.frame.height)
+        try VNImageRequestHandler(cgImage: pixels).perform([request])
+        let visible = (request.results ?? []).compactMap { $0.topCandidates(1).first?.string }
+            .joined(separator: " ").lowercased()
+        XCTAssertTrue(visible.contains("2 hexes left"), visible)
+        XCTAssertTrue(visible.contains("opposing ships"), visible)
+        XCTAssertTrue(visible.contains("block passage"), visible)
     }
 
     private func launch(_ position: String, largestText: Bool = false) -> XCUIApplication {

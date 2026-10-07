@@ -65,6 +65,10 @@ struct BoardDecisionDockView: View {
             }
             messageOrVictims
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
+                // Maritime text shares the fixed command row with actions.
+                // Keep the full instruction visible; Fleet and the rulebook
+                // provide unrestricted large-text inspection.
+                .dynamicTypeSize(...(presentation.intent.usesMaritimePieces ? DynamicTypeSize.large : .accessibility5))
             if showsUndo { undoButton }
             if presentation.intent == .captureShip { skipCaptureButton } else { clearButton }
             if presentation.canCancel { cancelButton }
