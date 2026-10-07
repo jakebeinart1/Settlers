@@ -1,0 +1,30 @@
+[
+  {
+    "file": "screenshots/build18-release-main-menu.png",
+    "role": "fresh Release QA17Pro launch",
+    "sourceRevision": "8953413e0fe62609ebb458bcba6f941494329c7f",
+    "configuration": "Release simulator, version1.0/build18",
+    "executableSHA256": "741350c68d42bf6328d2430a25af7fed5ef1052ecac25d98082d74c234c20635",
+    "launchArguments": [],
+    "sha256": "9db344d2d5d6e4d055a89e1cf8dde99b66f87c4b1e32a35aa30f516f0104c3c0",
+    "bytes": 3645416,
+    "width": 1206,
+    "height": 2622,
+    "rootInspected": true,
+    "pixelHandling": "byte-identical original simctl capture"
+  },
+  {
+    "file": "screenshots/build18-review-main-menu.png",
+    "role": "ordinary Release17ProMax manual review launch",
+    "sourceRevision": "8953413e0fe62609ebb458bcba6f941494329c7f",
+    "configuration": "Release simulator, version1.0/build18",
+    "executableSHA256": "741350c68d42bf6328d2430a25af7fed5ef1052ecac25d98082d74c234c20635",
+    "launchArguments": [],
+    "sha256": "5d8ea6494cf6437b8bcbd934819073233688b3d2c303c274d16ae376de5e3013",
+    "bytes": 4312022,
+    "width": 1320,
+    "height": 2868,
+    "rootInspected": true,
+    "pixelHandling": "byte-identical original simctl capture"
+  }
+]

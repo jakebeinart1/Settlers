@@ -1,0 +1,37 @@
+[0/1] Planning build
+Building for debugging...
+[0/2] Write swift-version--58304C5D6DBC2206.txt
+Build complete! (0.17s)
+Test Suite 'Selected tests' started at 2026-10-04 23:43:50.450.
+Test Suite 'CatanEnginePackageTests.xctest' started at 2026-10-04 23:43:50.451.
+Test Suite 'CatanEnginePackageTests.xctest' passed at 2026-10-04 23:43:50.451.
+	 Executed 0 tests, with 0 failures (0 unexpected) in 0.000 (0.000) seconds
+Test Suite 'Selected tests' passed at 2026-10-04 23:43:50.451.
+	 Executed 0 tests, with 0 failures (0 unexpected) in 0.000 (0.001) seconds
+◇ Test run started.
+↳ Testing Library Version: 1902
+↳ Target Platform: arm64e-apple-macos14.0
+◇ Suite NavalMapTests started.
+◇ Test seededWorldStudy(family:) started.
+◇ Test sameFamilyFallbackIsValidForEitherProductionOption(family:) started.
+◇ Test togglesPreserveWorldAndRandomStream(family:) started.
+◇ Test case passing 1 argument family → .archipelago to seededWorldStudy(family:) started.
+◇ Test case passing 1 argument family → .peninsula to seededWorldStudy(family:) started.
+◇ Test case passing 1 argument family → .twinIslands to seededWorldStudy(family:) started.
+◇ Test case passing 1 argument family → .archipelago to sameFamilyFallbackIsValidForEitherProductionOption(family:) started.
+◇ Test case passing 1 argument family → .peninsula to sameFamilyFallbackIsValidForEitherProductionOption(family:) started.
+◇ Test case passing 1 argument family → .twinIslands to sameFamilyFallbackIsValidForEitherProductionOption(family:) started.
+◇ Test case passing 1 argument family → .archipelago to togglesPreserveWorldAndRandomStream(family:) started.
+◇ Test case passing 1 argument family → .peninsula to togglesPreserveWorldAndRandomStream(family:) started.
+◇ Test case passing 1 argument family → .twinIslands to togglesPreserveWorldAndRandomStream(family:) started.
+✔ Test sameFamilyFallbackIsValidForEitherProductionOption(family:) with 3 test cases passed after 2.086 seconds.
+NAVAL MAP ECONOMY family=archipelago ["size7:production=13...30,landing=6...9"]
+NAVAL MAP STUDY family=archipelago seeds=1000 geometries=1000 fallbacks=0 meanAttempts=3.361 minimumBestLandingPips=6 routeSteps=[(key: 1, value: 10808), (key: 2, value: 18910), (key: 3, value: 13179), (key: 4, value: 11023), (key: 5, value: 15958), (key: 6, value: 13019), (key: 7, value: 11023), (key: 8, value: 15958), (key: 9, value: 10080), (key: 10, value: 42)]
+NAVAL MAP ECONOMY family=twinIslands ["size3:production=7...14,landing=6...9", "size11:production=24...44,landing=6...9"]
+NAVAL MAP STUDY family=twinIslands seeds=1000 geometries=998 fallbacks=0 meanAttempts=3.634 minimumBestLandingPips=6 routeSteps=[(key: 1, value: 12072), (key: 2, value: 17154), (key: 3, value: 11950), (key: 4, value: 13604), (key: 5, value: 14524), (key: 6, value: 11872), (key: 7, value: 13604), (key: 8, value: 14524), (key: 9, value: 7786), (key: 10, value: 2910)]
+NAVAL MAP ECONOMY family=peninsula ["size3:production=7...14,landing=6...9", "size4:production=8...18,landing=6...9", "size7:production=15...29,landing=6...9", "size14:production=34...53,landing=6...9"]
+NAVAL MAP STUDY family=peninsula seeds=1000 geometries=994 fallbacks=0 meanAttempts=4.43 minimumBestLandingPips=6 routeSteps=[(key: 1, value: 7344), (key: 2, value: 19666), (key: 3, value: 15038), (key: 4, value: 11117), (key: 5, value: 13977), (key: 6, value: 14906), (key: 7, value: 11117), (key: 8, value: 13977), (key: 9, value: 10881), (key: 10, value: 1977)]
+✔ Test seededWorldStudy(family:) with 3 test cases passed after 206.585 seconds.
+✔ Test togglesPreserveWorldAndRandomStream(family:) with 3 test cases passed after 381.793 seconds.
+✔ Suite NavalMapTests passed after 381.793 seconds.
+✔ Test run with 3 tests in 1 suite passed after 381.793 seconds.

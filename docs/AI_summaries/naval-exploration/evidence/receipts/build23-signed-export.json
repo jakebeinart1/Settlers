@@ -1,0 +1,25 @@
+{
+  "verifiedAtUTC": "2026-10-07T08:11:22.156266+00:00",
+  "productionSourceSHA": "1dfae7cb8e46ca4b343c0415fef18e71cd3a6ed4",
+  "version": "1.0",
+  "build": "23",
+  "bundleIdentifier": "com.alexchandler.empires",
+  "ipaPath": "/Users/alex/.codex/artifacts/naval-exploration/build23-sprites-build-trade-safety/export/Settlers.ipa",
+  "ipaSHA256": "fce46b79f06b0ab7b292bce81168269880eb8766e7b42d980959476898c550b0",
+  "ipaMD5": "97ab94a2107eb1d39fe5b5d92bdb09ea",
+  "ipaBytes": 33718519,
+  "executableSHA256": "f54dd716d5bf3c4ca78d58d42d5f9403fc81535c402fa6b0bbd1c7d3a297f280",
+  "strictDeepSignatureExitCode": 0,
+  "profileName": "Empires App Store 20261004",
+  "profileUUID": "86da5771-8640-4c53-8867-0b4fbd4f1035",
+  "profileCertificateSHA1": [
+    "76465B06C2E157D857641F5B3D25CF5A3110C4A9"
+  ],
+  "betaReportsActive": true,
+  "getTaskAllow": false,
+  "provisionedDevicesAbsent": true,
+  "signedCloudKitEnvironment": "Production",
+  "signedCloudKitContainers": [
+    "iCloud.com.alexchandler.empires"
+  ]
+}

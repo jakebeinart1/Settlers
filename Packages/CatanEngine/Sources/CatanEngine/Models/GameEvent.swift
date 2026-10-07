@@ -37,6 +37,12 @@ public enum GameEvent: Codable, Sendable, Hashable {
     case builtRoad(PlayerID)
     case builtSettlement(PlayerID)
     case builtCity(PlayerID)
+    case builtShip(PlayerID, shipID: Int, at: HexCoordinate)
+    case sailedShip(PlayerID, shipID: Int, from: HexCoordinate, to: HexCoordinate)
+    case discovered(PlayerID, hexes: [HexCoordinate])
+    case capturedShip(PlayerID, shipID: Int, from: PlayerID)
+    case earnedColonyPoint(PlayerID, total: Int)
+    case choseResource(PlayerID, resource: Resource)
     case boughtDevCard(PlayerID)
     /// Conquest. Public: everyone sees what was paid, never the card's strength.
     case boughtArmyCard(PlayerID, paid: [Resource: Int])

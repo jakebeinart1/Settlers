@@ -1,0 +1,80 @@
+[
+  {
+    "file": "screenshots/settings-wide-regular.png",
+    "sourceCapture": "/tmp/empires-match-settings-evidence/settings-refined-attachments/36C4D6E0-1635-4AD2-BCFD-FA0DE0BA4977.png",
+    "role": "regular, widened aligned selectors",
+    "sourceRevision": "8a4093e",
+    "configuration": "XCTest-instrumented Debug, iOS26.5, before release-baseline integration; setup source retained unchanged in release source3950bfd",
+    "sha256": "3539a9dd4d7f748be447a1047a8ceca7704eb5b0fceee71a77bd3af23ed97fdd",
+    "bytes": 2772116,
+    "width": 1206,
+    "height": 2622,
+    "rootInspected": true,
+    "pixelHandling": "byte-identical original native capture"
+  },
+  {
+    "file": "screenshots/settings-help-regular.png",
+    "sourceCapture": "/tmp/empires-match-settings-evidence/settings-refined-attachments/FDBD3A43-E79F-431C-A08E-5511789BF009.png",
+    "role": "regular, complete Standard/Conquest/Naval help",
+    "sourceRevision": "8a4093e",
+    "configuration": "XCTest-instrumented Debug, iOS26.5, before release-baseline integration; setup source retained unchanged in release source3950bfd",
+    "sha256": "1a920b9fcc9188769e50597c05ecee6fec894146fa955e044eb1021aa9c52f26",
+    "bytes": 2115852,
+    "width": 1206,
+    "height": 2622,
+    "rootInspected": true,
+    "pixelHandling": "byte-identical original native capture"
+  },
+  {
+    "file": "screenshots/settings-wide-small.png",
+    "sourceCapture": "/tmp/empires-match-settings-evidence/settings-refined-small-attachments/8C84F3F1-3DB3-4F07-B3F9-85AF6A911690.png",
+    "role": "SE, widened aligned selectors",
+    "sourceRevision": "8a4093e",
+    "configuration": "XCTest-instrumented Debug, iOS26.5, before release-baseline integration; setup source retained unchanged in release source3950bfd",
+    "sha256": "4376e970350f37f5478121c0f603714784d14a18bef25fe8ef73930a46bc0a8b",
+    "bytes": 1074570,
+    "width": 750,
+    "height": 1334,
+    "rootInspected": true,
+    "pixelHandling": "byte-identical original native capture"
+  },
+  {
+    "file": "screenshots/settings-help-small.png",
+    "sourceCapture": "/tmp/empires-match-settings-evidence/settings-refined-small-attachments/6DA49720-17D7-4CDB-AAF5-A68C6720EE07.png",
+    "role": "SE, complete Rules help",
+    "sourceRevision": "8a4093e",
+    "configuration": "XCTest-instrumented Debug, iOS26.5, before release-baseline integration; setup source retained unchanged in release source3950bfd",
+    "sha256": "ba67b963123d07c784f2bb34aa460030c3f2f4f5c897e2917249c07c57b85d5f",
+    "bytes": 758912,
+    "width": 750,
+    "height": 1334,
+    "rootInspected": true,
+    "pixelHandling": "byte-identical original native capture"
+  },
+  {
+    "file": "screenshots/build18-settings-wide.png",
+    "sourceCapture": "/tmp/empires-match-settings-evidence/release-settings-attachments/F850B618-CE8D-4EF4-B842-0A3413D6B428.png",
+    "role": "build18, widened aligned selectors",
+    "sourceRevision": "8953413e0fe62609ebb458bcba6f941494329c7f",
+    "configuration": "XCTest-instrumented Debug, full serial app/UI pass, iPhone17Pro/iOS26.5, version1.0/build18",
+    "sha256": "3539a9dd4d7f748be447a1047a8ceca7704eb5b0fceee71a77bd3af23ed97fdd",
+    "bytes": 2772116,
+    "width": 1206,
+    "height": 2622,
+    "rootInspected": true,
+    "pixelHandling": "byte-identical original native capture"
+  },
+  {
+    "file": "screenshots/build18-settings-help.png",
+    "sourceCapture": "/tmp/empires-match-settings-evidence/release-settings-attachments/F5B29173-9539-4545-B74C-280E73123DAE.png",
+    "role": "build18, complete Rules explanation",
+    "sourceRevision": "8953413e0fe62609ebb458bcba6f941494329c7f",
+    "configuration": "XCTest-instrumented Debug, full serial app/UI pass, iPhone17Pro/iOS26.5, version1.0/build18",
+    "sha256": "1a920b9fcc9188769e50597c05ecee6fec894146fa955e044eb1021aa9c52f26",
+    "bytes": 2115852,
+    "width": 1206,
+    "height": 2622,
+    "rootInspected": true,
+    "pixelHandling": "byte-identical original native capture"
+  }
+]

@@ -69,7 +69,7 @@ struct GameReplayTimeline: Equatable {
         var stoppedAt: String?
         for (offset, event) in detail.events.enumerated() {
             do {
-                let events = try RulesEngine.apply(event.move, by: event.player, to: &state)
+                let events = try Self.replay(event, to: &state)
                 built.append(Frame(
                     id: offset + 1,
                     state: state,
@@ -86,6 +86,16 @@ struct GameReplayTimeline: Equatable {
         }
         frames = built
         truncation = stoppedAt
+    }
+
+    /// Interactive playback uses the same recorded rules as checkpoint and
+    /// movie reconstruction. Older logs without versions retain current-rule
+    /// fallback rather than inventing a version they did not record.
+    private static func replay(_ entry: GameLogEvent, to state: inout GameState) throws -> [GameEvent] {
+        if let version = entry.rulesVersion {
+            return try RulesEngine.replay(entry.move, by: entry.player, rulesVersion: version, to: &state)
+        }
+        return try RulesEngine.apply(entry.move, by: entry.player, to: &state)
     }
 
     /// The archived identity of a seat: the recording's name and civilization,

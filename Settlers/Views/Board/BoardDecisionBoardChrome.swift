@@ -12,6 +12,7 @@ enum BoardDecisionPieceKind: Equatable {
     case city
     case robber
     case army
+    case ship
 
     init(intent: BoardDecisionIntent) {
         switch intent {
@@ -20,6 +21,7 @@ enum BoardDecisionPieceKind: Equatable {
         case .buildCity: self = .city
         case .robberAfterSeven, .knight: self = .robber
         case .deployArmy: self = .army
+        case .buildShip, .sailShip, .captureShip: self = .ship
         }
     }
 }
@@ -176,6 +178,9 @@ private struct BoardDecisionPieceGlyph: View {
             robberGlyph
         case .army:
             armyGlyph
+        case .ship:
+            NavalShipBadge(color: civilization.accentColor, civilization: civilization)
+                .frame(width: size, height: size)
         }
     }
 

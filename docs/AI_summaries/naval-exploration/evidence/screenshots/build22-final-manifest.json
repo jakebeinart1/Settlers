@@ -1,0 +1,110 @@
+[
+  {
+    "file": "build22-home-harbors.png",
+    "sha256": "d63821a68ce959d68299581b7d9c8355c09aa87d2e2505b6b2e09d9f604fa534",
+    "sourceFile": "/Users/alex/.codex/artifacts/naval-exploration/build22-harbors-navigation/final-harbor-attachments/0AD07A14-FDA9-4C88-BE8D-A2A5395E28E9.png",
+    "nativeTestIdentifier": "NativeHarborFlowTests/testFogKeepsFourHomeHarborsAndTheirMarkersDoNotInterceptCoastalSetup()",
+    "attachment": {
+      "configurationName": "Test Scheme Action",
+      "deviceId": "937692FF-BFBF-4683-80E5-2590F5288D56",
+      "deviceName": "Empires QA",
+      "exportedFileName": "0AD07A14-FDA9-4C88-BE8D-A2A5395E28E9.png",
+      "isAssociatedWithFailure": false,
+      "suggestedHumanReadableName": "Naval harbors \u2014 coastal setup remains physically selectable_0_DF131A7A-314A-4C00-BACA-25BA4162339D.png",
+      "timestamp": 1791347026.427
+    },
+    "productionSourceSHA": "1cf1c0fde5904aa1cbeae9320cae55afb9bdfcd0",
+    "configuration": "Debug",
+    "unmodified": true,
+    "rootInspected": true
+  },
+  {
+    "file": "build22-world-return.png",
+    "sha256": "a445ce0eb4a2d31592de492974dfe43fdaa5521e114432685cdb3f6b958a273e",
+    "sourceFile": "/Users/alex/.codex/artifacts/naval-exploration/build22-harbors-navigation/final-navigation-attachments/CAB57C1F-4B5A-4B06-A64C-08BB1BDD63C7.png",
+    "nativeTestIdentifier": "NativeNavigationFlowTests/testFourSeatNavigationThroughRealSetupCPUPacingAndColdResume()",
+    "attachment": {
+      "configurationName": "Test Scheme Action",
+      "deviceId": "937692FF-BFBF-4683-80E5-2590F5288D56",
+      "deviceName": "Empires QA",
+      "exportedFileName": "CAB57C1F-4B5A-4B06-A64C-08BB1BDD63C7.png",
+      "isAssociatedWithFailure": false,
+      "suggestedHumanReadableName": "Naval navigation \u2014 4 seats World during real CPU progress_0_035A9876-A006-48AE-A7C0-EC678A6445E7.png",
+      "timestamp": 1791347170.501
+    },
+    "productionSourceSHA": "1cf1c0fde5904aa1cbeae9320cae55afb9bdfcd0",
+    "configuration": "Debug",
+    "unmodified": true,
+    "rootInspected": true
+  },
+  {
+    "file": "build22-generic-trade.png",
+    "sha256": "5f67e000a5ca4e20f3df3a897d4340105423a8fa9331fd3650e8fd70087d5157",
+    "sourceFile": "/Users/alex/.codex/artifacts/naval-exploration/build22-harbors-navigation/final-harbor-attachments/798AA906-BCD9-48AC-B6A3-49C52F1A7905.png",
+    "nativeTestIdentifier": "NativeHarborFlowTests/testOwnedGenericHarborTradesThreeLumberForOneOreOnlyAfterCommitAndResumes()",
+    "attachment": {
+      "configurationName": "Test Scheme Action",
+      "deviceId": "937692FF-BFBF-4683-80E5-2590F5288D56",
+      "deviceName": "Empires QA",
+      "exportedFileName": "798AA906-BCD9-48AC-B6A3-49C52F1A7905.png",
+      "isAssociatedWithFailure": false,
+      "suggestedHumanReadableName": "Naval harbor \u2014 committed 31 receipt_0_4C346274-7893-4523-AD06-1F56FB4E55DF.png",
+      "timestamp": 1791347053.811
+    },
+    "productionSourceSHA": "1cf1c0fde5904aa1cbeae9320cae55afb9bdfcd0",
+    "configuration": "Debug",
+    "unmodified": true,
+    "rootInspected": true
+  },
+  {
+    "file": "build22-resource-trade.png",
+    "sha256": "433ed3a7c79194a51b1446801ca665de0de07b93a5f69f1093df49682a2780c6",
+    "sourceFile": "/Users/alex/.codex/artifacts/naval-exploration/build22-harbors-navigation/final-harbor-attachments/B47FAB94-AB10-44F5-A6E7-B696B973892C.png",
+    "nativeTestIdentifier": "NativeHarborFlowTests/testOwnedResourceHarborTradesTwoGrainForOneOreOnlyAfterCommitAndResumes()",
+    "attachment": {
+      "configurationName": "Test Scheme Action",
+      "deviceId": "937692FF-BFBF-4683-80E5-2590F5288D56",
+      "deviceName": "Empires QA",
+      "exportedFileName": "B47FAB94-AB10-44F5-A6E7-B696B973892C.png",
+      "isAssociatedWithFailure": false,
+      "suggestedHumanReadableName": "Naval harbor \u2014 committed 21 receipt_0_34FFA195-D244-46AF-89DC-8746FBD99C05.png",
+      "timestamp": 1791347090.937
+    },
+    "productionSourceSHA": "1cf1c0fde5904aa1cbeae9320cae55afb9bdfcd0",
+    "configuration": "Debug",
+    "unmodified": true,
+    "rootInspected": true
+  },
+  {
+    "file": "build22-resource-trade-resume.png",
+    "sha256": "6e4906bee29cacfaf7010599d499c11e40942adb82c2972794244f4349a5ac84",
+    "sourceFile": "/Users/alex/.codex/artifacts/naval-exploration/build22-harbors-navigation/final-harbor-attachments/7974DD4B-D5FA-4075-887E-58F3DD6E9E60.png",
+    "nativeTestIdentifier": "NativeHarborFlowTests/testOwnedResourceHarborTradesTwoGrainForOneOreOnlyAfterCommitAndResumes()",
+    "attachment": {
+      "configurationName": "Test Scheme Action",
+      "deviceId": "937692FF-BFBF-4683-80E5-2590F5288D56",
+      "deviceName": "Empires QA",
+      "exportedFileName": "7974DD4B-D5FA-4075-887E-58F3DD6E9E60.png",
+      "isAssociatedWithFailure": false,
+      "suggestedHumanReadableName": "Naval harbor \u2014 21 exchange persists through cold resume_0_E67DDB81-C012-4CD6-A3B7-9DF40B07ABC2.png",
+      "timestamp": 1791347108.896
+    },
+    "productionSourceSHA": "1cf1c0fde5904aa1cbeae9320cae55afb9bdfcd0",
+    "configuration": "Debug",
+    "unmodified": true,
+    "rootInspected": true
+  },
+  {
+    "file": "build22-release-menu.png",
+    "sha256": "698cabd0d73c97a8301543bf82a8ecfd63a12fde6de2c178c2ee536e81eeee6c",
+    "sourceFile": "/Users/alex/.codex/artifacts/naval-exploration/build22-harbors-navigation/release-ordinary-menu.png",
+    "configuration": "Release",
+    "productionSourceSHA": "1cf1c0fde5904aa1cbeae9320cae55afb9bdfcd0",
+    "version": "1.0",
+    "build": "22",
+    "pid": 46232,
+    "launchArguments": [],
+    "rootInspected": true,
+    "unmodified": true
+  }
+]

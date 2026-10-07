@@ -1,0 +1,25 @@
+{
+  "verifiedAtUTC": "2026-10-07T04:54:35.806208+00:00",
+  "productionSourceSHA": "1cf1c0fde5904aa1cbeae9320cae55afb9bdfcd0",
+  "version": "1.0",
+  "build": "22",
+  "bundleIdentifier": "com.alexchandler.empires",
+  "ipaPath": "/Users/alex/.codex/artifacts/naval-exploration/build22-harbors-navigation/export/Settlers.ipa",
+  "ipaSHA256": "a5c84dba786deb498393875b9242ca99a95a64399f56c8c89de0e5ed7181d01f",
+  "ipaMD5": "267cca14142bf4e4d404083a8a094dc5",
+  "ipaBytes": 24907517,
+  "executableSHA256": "56926cdcd17ceb880dbfb053db03b886914a77590f9fb5cd1c18543d11b7853d",
+  "strictDeepSignatureExitCode": 0,
+  "profileName": "Empires App Store 20261004",
+  "profileUUID": "86da5771-8640-4c53-8867-0b4fbd4f1035",
+  "profileCertificateSHA1": [
+    "76465B06C2E157D857641F5B3D25CF5A3110C4A9"
+  ],
+  "betaReportsActive": true,
+  "getTaskAllow": false,
+  "provisionedDevicesAbsent": true,
+  "signedCloudKitEnvironment": "Production",
+  "signedCloudKitContainers": [
+    "iCloud.com.alexchandler.empires"
+  ]
+}

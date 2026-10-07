@@ -107,7 +107,7 @@ struct BoardCamera: Equatable {
 
     // MARK: - Clamping
 
-    /// This camera with its zoom held between `minZoom` and `maxZoom`, and
+    /// This camera with its zoom held between `minZoom` and `maximumZoom`, and
     /// its pan held so the board cannot be dragged away from the container.
     ///
     /// `fittedBounds` is everything drawn, at the fitted scale, in container
@@ -121,9 +121,11 @@ struct BoardCamera: Equatable {
     /// board is pinned to its fitted position on that axis. At `zoom == 1`
     /// the slack is zero on both axes, so **the clamp alone re-establishes
     /// the locked fit** - zoomed out, there is exactly one legal camera.
-    func clamped(fittedBounds: CGRect, container: CGSize) -> BoardCamera {
+    /// Maritime worlds have a much smaller fitted hex size than Classic,
+    /// so their caller supplies a larger ceiling for equivalent inspection.
+    func clamped(fittedBounds: CGRect, container: CGSize, maximumZoom: CGFloat = Self.maxZoom) -> BoardCamera {
         let center = CGPoint(x: container.width / 2, y: container.height / 2)
-        let held = BoardCamera(zoom: min(max(zoom, Self.minZoom), Self.maxZoom), pan: pan)
+        let held = BoardCamera(zoom: min(max(zoom, Self.minZoom), maximumZoom), pan: pan)
 
         // Where the board would sit with no pan at all: the position the pan
         // is measured as a departure from.

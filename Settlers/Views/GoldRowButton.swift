@@ -18,6 +18,7 @@ import SwiftUI
 /// see the "keep a colored icon/accent, gold plaque background" design
 /// decision in chat.
 struct GoldRowButton<Trailing: View>: View {
+    @ScaledMetric(relativeTo: .callout) private var iconPointSize = 17.0
     let title: String
     var subtitle: String?
     let systemImage: String
@@ -37,13 +38,15 @@ struct GoldRowButton<Trailing: View>: View {
         Button(action: action) {
             HStack(spacing: 10) {
                 Image(systemName: systemImage)
-                    .font(.callout)
-                    .foregroundStyle(iconColor)
-                    .frame(width: 22)
+                    .font(.system(size: min(44, iconPointSize)))
+                    .foregroundStyle(iconColor.opacity(isEnabled ? 1 : 0.6))
+                    // Reserve the space the enlarged symbol actually draws in.
+                    // A fixed 22pt column let large-text symbols overlap labels.
+                    .frame(width: max(22, min(44, iconPointSize)))
                 VStack(alignment: .leading, spacing: 1) {
                     Text(title)
                         .font(.subheadline.bold())
-                        .foregroundStyle(titleColor)
+                        .foregroundStyle(titleColor.opacity(isEnabled ? 1 : 0.85))
                     if let subtitle {
                         Text(subtitle)
                             .font(.caption2)
@@ -55,12 +58,22 @@ struct GoldRowButton<Trailing: View>: View {
             }
             .padding(.horizontal, 12)
             .padding(.vertical, 10)
+            .frame(minHeight: 44)
+            .contentShape(Rectangle())
             .background(
                 PaintedChromeBackground(fill: fill, cornerRadius: 10)
             )
         }
+        .buttonStyle(GoldRowButtonStyle())
         .disabled(!isEnabled)
-        .opacity(isEnabled ? 1 : 0.5)
+    }
+}
+
+/// PlainButtonStyle fades a disabled label including its plaque. Keeping the
+/// painted background opaque preserves contrast against a bright modal card.
+private struct GoldRowButtonStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label.opacity(configuration.isPressed ? 0.9 : 1)
     }
 }
 

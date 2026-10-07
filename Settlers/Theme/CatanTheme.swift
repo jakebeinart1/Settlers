@@ -20,6 +20,9 @@ public enum CatanTheme {
         switch kind {
         case .resource(let resource): return color(for: resource)
         case .desert: return desert
+        case .sea: return waterBackground
+        case .resourceChoice: return Color(red: 0.46, green: 0.41, blue: 0.54)
+        case .fog: return Color(red: 0.36, green: 0.46, blue: 0.56)
         }
     }
 
@@ -37,6 +40,8 @@ public enum CatanTheme {
         case .resource(.ore): return "tile-mountain"
         case .resource(.brick): return "tile-clay"
         case .desert: return "tile-desert"
+        case .resourceChoice: return "tile-harvest"
+        case .sea, .fog: return "board-background"
         }
     }
 

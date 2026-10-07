@@ -3,6 +3,21 @@ import CatanEngine
 
 @MainActor
 extension GameViewModel {
+    /// Resolve a roll's production and capture before ordinary negotiations.
+    /// Bots may resolve their own obligations; a human's obligation always waits.
+    var hasMandatoryNavalDecision: Bool {
+        switch state.phase {
+        case .choosingResource, .capturingShip: true
+        default: false
+        }
+    }
+
+    var hasMandatoryHumanNavalDecision: Bool {
+        hasMandatoryNavalDecision && state.phase.awaitingSeatIndex.map {
+            humanSeats.contains(PlayerID(index: $0))
+        } == true
+    }
+
     /// One projection drives both the command dock and the runner. An offer is
     /// either durably presented or actually rejected, never hidden while live.
     var rawIncomingOffer: TradeOffer? {
@@ -30,7 +45,8 @@ extension GameViewModel {
     /// All housekeeping uses the same revision-checked atomic checkpoint path.
     func reconcileHumanTradeOffers() throws {
         guard appIsActive, !isBlockingSurfaceOpen, !persistenceBlocked, savedGameAvailability.canResume,
-              pendingDevCardReveal == nil, pendingDevCardResolution == nil else { return }
+              pendingTradeConfirmation == nil, pendingDevCardReveal == nil,
+              pendingDevCardResolution == nil, !hasMandatoryNavalDecision else { return }
         while let offer = rawIncomingOffer {
             var policy = humanTradePolicy(for: humanPlayer)
             let context = tradeOfferContext(offer)

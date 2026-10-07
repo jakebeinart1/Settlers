@@ -25,6 +25,10 @@ that ends a turn will not show a result for half a minute.
 
 ## Setup
 
+Read and apply [run-settlers' simulator lifecycle](../run-settlers/SKILL.md#simulator-lifecycle)
+before simulator selection or native tests and when finishing play. Reuse the
+confirmed task-owned device; keep other tasks' and users' sessions protected.
+
 Use the native `SettlersUITests` target for repeatable setup, settings, placement,
 and cold-resume interaction. Build, install, and launch with `run-settlers` for
 manual exploratory play.
@@ -36,6 +40,7 @@ Run a focused UI flow without inheriting simulator state:
 ```bash
 xcodebuild test -project Settlers.xcodeproj -scheme Settlers \
   -destination 'platform=iOS Simulator,id=<SIM_UDID>' \
+  -parallel-testing-enabled NO -parallel-testing-worker-count 1 \
   -only-testing:SettlersUITests/MainMenuFlowTests
 ```
 

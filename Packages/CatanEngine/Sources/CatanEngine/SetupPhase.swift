@@ -7,7 +7,8 @@ enum SetupPhase {
         let player = state.players[playerIndex]
 
         if let pendingVertex = unroadedSettlement(of: player, board: state.board) {
-            return state.board.edgesTouching(pendingVertex).map { .placeInitialRoad($0) }
+            return state.board.edgesTouching(pendingVertex)
+                .filter { state.naval == nil || Naval.roadIsKnownLand($0, in: state) }.map { .placeInitialRoad($0) }
         } else {
             return legalSettlementVertices(state: state).map { .placeInitialSettlement($0) }
         }
@@ -36,17 +37,19 @@ enum SetupPhase {
             if isBackwardPass {
                 grantInitialResources(for: vertex, playerIndex: playerIndex, state: &state)
             }
-            return [.placedInitialSettlement(player)]
+            return [.placedInitialSettlement(player)] + Naval.revealBuilding(at: vertex, by: player, in: &state)
 
         case .placeInitialRoad(let edge):
             guard let pendingVertex = unroadedSettlement(of: state.players[playerIndex], board: state.board) else {
                 throw MoveError.wrongPhase
             }
-            guard state.board.edgesTouching(pendingVertex).contains(edge) else {
+            guard state.board.edgesTouching(pendingVertex).contains(edge),
+                  state.naval == nil || Naval.roadIsKnownLand(edge, in: state) else {
                 throw MoveError.illegalPlacement
             }
             state.players[playerIndex].roads.insert(edge)
             advancePhase(state: &state, justCompletedIndex: playerIndex)
+            if case .rollDice(let next) = state.phase { Naval.beginTurn(for: state.players[next].id, in: &state) }
             return [.placedInitialRoad(player)]
 
         default:
@@ -84,7 +87,9 @@ enum SetupPhase {
     }
 
     /// On-board, unoccupied vertices at least 2 edges away from every
-    /// existing settlement/city (the standard distance rule).
+    /// existing settlement/city (the standard distance rule). Naval setup is
+    /// restricted to the surveyed home island, not its coast: ship reach only
+    /// substitutes for a road when founding a later colony.
     private static func legalSettlementVertices(state: GameState) -> [VertexID] {
         let occupied = Set(state.players.flatMap { $0.settlements.union($0.cities) })
         var tooClose = Set<VertexID>()
@@ -95,6 +100,13 @@ enum SetupPhase {
         // `legalMoves` directly, and `onBoardVertices` is a `Set`.
         return state.board.onBoardVertices
             .filter { !occupied.contains($0) && !tooClose.contains($0) }
+            .filter { vertex in
+                guard state.naval != nil else { return true }
+                guard Naval.isHomeSite(vertex, in: state),
+                      let index = state.phase.awaitingSeatIndex,
+                      Naval.settlementSiteIsAvailable(vertex, by: state.players[index].id, in: state) else { return false }
+                return true
+            }
             .sorted()
     }
 

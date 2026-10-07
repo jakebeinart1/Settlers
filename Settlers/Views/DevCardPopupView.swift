@@ -697,6 +697,7 @@ public struct PopupCard<Content: View>: View {
             Color.black.opacity(0.45)
                 .ignoresSafeArea()
                 .onTapGesture(perform: onDismiss)
+                .accessibilityHidden(true)
 
             content
                 .background(

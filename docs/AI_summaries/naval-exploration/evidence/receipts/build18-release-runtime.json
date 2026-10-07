@@ -1,0 +1,16 @@
+{
+  "source": "8953413e0fe62609ebb458bcba6f941494329c7f",
+  "configuration": "Release",
+  "bundleID": "com.alexchandler.empires",
+  "version": "1.0",
+  "build": "18",
+  "executableSHA256": "741350c68d42bf6328d2430a25af7fed5ef1052ecac25d98082d74c234c20635",
+  "appPath": "/Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Products/Release-iphonesimulator/Settlers.app",
+  "simulator": "937692FF-BFBF-4683-80E5-2590F5288D56",
+  "launchedPID": 61428,
+  "launchArguments": [],
+  "processSurvived": true,
+  "newCrashReports": [],
+  "verifiedAtUTC": "2026-10-05T19:29:10Z",
+  "screenshot": "../screenshots/build18-release-main-menu.png"
+}

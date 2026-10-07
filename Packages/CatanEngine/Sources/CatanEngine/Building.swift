@@ -47,6 +47,7 @@ public enum Building {
     /// for a *further* road on the other side.
     public static func canBuildRoad(_ edge: EdgeID, for player: PlayerID, in state: GameState) -> Bool {
         guard state.board.onBoardEdges.contains(edge) else { return false }
+        if state.naval != nil && !Naval.roadIsKnownLand(edge, in: state) { return false }
         guard let owner = state.players.first(where: { $0.id == player }) else { return false }
         guard owner.roads.count < state.rules.maxRoadsPerPlayer else { return false }
         // Asked directly of each seat's own `Set` rather than by building one
@@ -77,6 +78,7 @@ public enum Building {
     /// connect to the player's own road network.
     public static func canBuildSettlement(_ vertex: VertexID, for player: PlayerID, in state: GameState) -> Bool {
         guard state.board.onBoardVertices.contains(vertex) else { return false }
+        if state.naval != nil && !Naval.settlementSiteIsAvailable(vertex, by: player, in: state) { return false }
         guard let owner = state.players.first(where: { $0.id == player }) else { return false }
         guard owner.settlements.count < state.rules.pieceLimit(for: .settlement) else { return false }
 
@@ -95,6 +97,7 @@ public enum Building {
             return true
         default:
             return state.board.edgesTouching(vertex).contains { owner.roads.contains($0) }
+                || Naval.canFoundColony(at: vertex, by: player, in: state)
         }
     }
 

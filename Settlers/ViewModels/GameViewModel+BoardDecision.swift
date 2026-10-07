@@ -5,7 +5,9 @@ extension GameViewModel {
     /// The complete semantic state SwiftUI needs. The final `GameMove` remains
     /// hidden so no tap, drag, or view can bypass explicit confirmation.
     public var boardDecisionPresentation: BoardDecisionPresentation? {
-        boardDecisionCoordinator.presentation
+        guard var result = boardDecisionCoordinator.presentation else { return nil }
+        result.sailing = NavalSailingPresentation(state: state, decision: result)
+        return result
     }
 
     @discardableResult
@@ -16,7 +18,12 @@ extension GameViewModel {
 
     @discardableResult
     public func selectBoardTarget(_ target: BoardTarget) -> Bool {
-        boardDecisionCoordinator.select(target)
+        if case .ship(let id) = target, boardDecisionPresentation == nil {
+            guard state.naval?.ships.contains(where: {
+                $0.id == id && $0.owner == humanPlayer && $0.stepsRemaining > 0
+            }) == true, beginBoardDecision(.sailShip) else { return false }
+        }
+        return boardDecisionCoordinator.select(target)
     }
 
     public func clearBoardDecisionSelection() {
@@ -44,6 +51,33 @@ extension GameViewModel {
         }
         do {
             try apply(move)
+            continueVoyage(after: move)
+            return true
+        } catch {
+            boardDecisionCoordinator.reportFailure(error.localizedDescription)
+            return false
+        }
+    }
+
+    /// Keep the selected vessel ready for any unspent travel without retaining
+    /// a stale destination. Each destination still needs explicit confirmation.
+    private func continueVoyage(after move: GameMove) {
+        let shipID: Int?
+        switch move {
+        case .sailShip(let id, _): shipID = id
+        case .buildShip: shipID = state.naval?.ships.last?.id
+        default: shipID = nil
+        }
+        guard let shipID, state.naval?.ships.contains(where: {
+            $0.id == shipID && $0.owner == humanPlayer && $0.stepsRemaining > 0
+        }) == true, beginBoardDecision(.sailShip) else { return }
+        _ = boardDecisionCoordinator.select(.ship(shipID))
+    }
+
+    @discardableResult
+    public func skipShipCapture() -> Bool {
+        do {
+            try apply(.skipShipCapture)
             return true
         } catch {
             boardDecisionCoordinator.reportFailure(error.localizedDescription)

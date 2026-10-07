@@ -1,0 +1,131 @@
+{
+  "verifiedAtUTC": "2026-10-07T05:03:10.718333+00:00",
+  "verdict": "PASS: exact build 1.0/22 is internally available to Alex; no unresolved release blocker",
+  "productionSourceSHA": "1cf1c0fde5904aa1cbeae9320cae55afb9bdfcd0",
+  "source": {
+    "independentlyVerifiedTrackedProductionInputs": 349,
+    "matchingPackageSources": 111,
+    "currentFilesAndFrozenCommitMatch": true
+  },
+  "gate": {
+    "exitCode": 0,
+    "passedStages": 11,
+    "engineFunctions": 371,
+    "engineSuites": 28,
+    "aiFunctions": 303,
+    "aiSuites": 30,
+    "engineCoveragePercent": 96.72,
+    "aiCoveragePercent": 96.01,
+    "nativeFunctions": 704,
+    "nativePassedFunctions": 703,
+    "nativeFailedFunctions": 0,
+    "nativeSkippedFunctions": 1,
+    "nativePassedRuns": 1433,
+    "nativeSkippedRuns": 1,
+    "onlySkippedTest": "TradeRedesignFlowTests/testConfirmationFooterAndNewOfferRemainReachableAt375By667()",
+    "skipReason": "Requires 375x667; destination is 402x874",
+    "nativeHarborPassed": 4,
+    "nativeNavigationPassed": 5,
+    "fittedReturnRegressionPassed": true,
+    "naturalSevenColdResumePassed": true,
+    "qaSimulatorID": "937692FF-BFBF-4683-80E5-2590F5288D56",
+    "serial": true,
+    "receipt": "full-gate-summary.json",
+    "nativeReceipt": "full-gate-native-summary.json"
+  },
+  "artifacts": {
+    "version": "1.0",
+    "build": "22",
+    "bundleID": "com.alexchandler.empires",
+    "archiveExportUploadCommandExitCodes": [
+      0,
+      0,
+      0
+    ],
+    "independentlyVerifiedStrictDeepSignatureExitCodes": {
+      "archive": 0,
+      "reviewExport": 0,
+      "uploadedPayload": 0
+    },
+    "reviewExportIPASHA256": "a5c84dba786deb498393875b9242ca99a95a64399f56c8c89de0e5ed7181d01f",
+    "uploadedIPA": "Settlers-uploaded-22.ipa",
+    "uploadedIPASHA256": "9f062568af41cf1533d558e78fc5aaee90f673afa20085f3e701aee166e02db6",
+    "uploadedIPABytes": 24907514,
+    "uploadedExecutableSHA256": "e9a66939d0edccdcb7311be0c9556e198dec45e791fc080cf74579b905b8dfb1",
+    "zipEntryCountIncludingDirectories": 14,
+    "nonDirectoryMemberCount": 10,
+    "onlyReviewUploadDifference": "Executable code signature",
+    "identicalReviewUploadExecutablePrefixBytes": 5704080,
+    "identicalPrefixSHA256": "98f6a6e0d999125e0231fd4b6edad1cb6505a826e1095f7a4e3e822a3c615f17",
+    "archiveReviewPrefixDifference": "Three bytes confined to signature-size load-command fields",
+    "signingTeam": "HXB9F28LHR",
+    "embeddedExistingDistributionCertificateSHA1": "76465B06C2E157D857641F5B3D25CF5A3110C4A9",
+    "profileUUID": "86da5771-8640-4c53-8867-0b4fbd4f1035",
+    "profileName": "Empires App Store 20261004",
+    "betaReportsActive": true,
+    "getTaskAllow": false,
+    "provisionedDevicesAbsent": true,
+    "cloudKitEnvironment": "Production",
+    "cloudKitContainers": [
+      "iCloud.com.alexchandler.empires"
+    ]
+  },
+  "contentDelivery": {
+    "id": "A51CDE9C-BC18-45B9-BA45-37E2890D8BB2",
+    "uploadedIPAMD5": "e06897305d3a2b3f1c6ed0253a24337e",
+    "checksumEncoding": "uppercase hexadecimal MD5",
+    "matchingChecksum": "E06897305D3A2B3F1C6ED0253A24337E",
+    "matchingLogLines": [
+      2576,
+      2624,
+      2886
+    ],
+    "log": "upload-distributionlogs/ContentDelivery.log",
+    "exactStagedPayloadPathMatched": true
+  },
+  "media": {
+    "finalImagesIndependentlyInspected": 6,
+    "finalCopiesHashVerified": 12,
+    "finalDebugImages": 5,
+    "ordinaryReleaseImages": 1,
+    "earlierIntermediateImagesExcluded": 2,
+    "releaseRuntimeExecutableHashIndependentlyMatched": true,
+    "releaseRuntimeReceipt": "release-runtime.json",
+    "launchArguments": [],
+    "manifest": "docs/AI_summaries/naval-exploration/evidence/screenshots/build22-final-manifest.json"
+  },
+  "aiFunctionalEvidence": {
+    "completedMatrixCells": 48,
+    "traceMoves": 28743,
+    "separateProcessRepeatPairs": 6,
+    "byteIdenticalRepeatPairs": 6,
+    "build21ResultObjectsUnchangedExceptReleaseIdentifiers": 48,
+    "artifactFilesHashVerified": 327,
+    "packageSourceFilesMatchFinalRelease": 111,
+    "newStrengthClaim": false
+  },
+  "apple": {
+    "independentVerifiedAtUTC": "2026-10-07T05:01:50.060Z",
+    "appID": "6808461623",
+    "buildID": "45c00f05-28b4-42de-93f6-016e4ed8e67a",
+    "marketingVersion": "1.0",
+    "build": "22",
+    "processingState": "VALID",
+    "expired": false,
+    "expirationDate": "2027-01-04T20:57:26-08:00",
+    "internalBuildState": "IN_BETA_TESTING",
+    "externalBuildState": "READY_FOR_BETA_SUBMISSION",
+    "tester": "Alex Chandler",
+    "internalGroup": "Internal",
+    "internalGroupID": "bf165450-034a-437d-b7f7-028bf3d57a5b",
+    "hasAccessToAllBuilds": true,
+    "independentReceipt": "asc-build22-independent.json"
+  },
+  "remainingBlockers": [],
+  "evidenceLimits": [
+    "Physical-phone installation and unscripted hardware play were not observed.",
+    "External build is READY_FOR_BETA_SUBMISSION and is not externally released.",
+    "Current final media is iPhone 17 Pro simulator evidence; the existing 375x667-only footer test was skipped on this destination.",
+    "AI results establish functional completion and sampled determinism; they make no new strength claim."
+  ]
+}

@@ -1,0 +1,1049 @@
+Command line invocation:
+    /Applications/Xcode.app/Contents/Developer/usr/bin/xcodebuild test -project Settlers.xcodeproj -scheme Settlers -configuration Debug -destination "platform=iOS Simulator,id=937692FF-BFBF-4683-80E5-2590F5288D56" -parallel-testing-enabled NO -resultBundlePath /Users/alex/.codex/artifacts/naval-exploration/map-fixes-final.xcresult "-only-testing:SettlersTests/NavalBoardGeometryTests" "-only-testing:SettlersTests/BoardLayeringTests" "-only-testing:SettlersTests/GameViewModelCheckpointTests" "-only-testing:SettlersTests/CompletedHumanTradeRestoreTests" "-only-testing:SettlersUITests/NavalFlowTests/testWorldShipTouchOpensNearbyIdentityChooserBeforeSelectingOrFocusing" "-only-testing:SettlersUITests/NavalFlowTests/testStackedWorldChooserIncludesAdjacentHullAndMovesOnlyChosenIdentity" "-only-testing:SettlersUITests/NavalFlowTests/testWorldLaunchTouchesStageTheExactSeaAndCancelWithoutPurchasing" "-only-testing:SettlersUITests/NavalReplayRenderingTests/testProductionRingsCannotRevealFoggedIslandPerimeters" "-only-testing:SettlersUITests/BankTradeFlowTests/testConfirmedPlayerTradeShowsActualReceiptAndClose" "-only-testing:SettlersUITests/GameplayBoundaryFlowTests/testTradePopupStaysOpenAfterProposingToBots" "-only-testing:SettlersUITests/NavalFlowTests/testHarvestPassesNativeAccessibilityAudit"
+
+Resolve Package Graph
+
+
+Resolved source packages:
+  CatanAI: /Users/alex/.codex/worktrees/naval-exploration/Settlers/Packages/CatanAI
+  CatanEngine: /Users/alex/.codex/worktrees/naval-exploration/Settlers/Packages/CatanEngine
+
+Writing result bundle at path:
+	/Users/alex/.codex/artifacts/naval-exploration/map-fixes-final.xcresult
+
+ComputePackagePrebuildTargetDependencyGraph
+
+Prepare packages
+
+CreateBuildRequest
+
+SendProjectDescription
+
+CreateBuildOperation
+
+ComputeTargetDependencyGraph
+note: Building targets in dependency order
+note: Target dependency graph (7 targets)
+    Target 'SettlersUITests' in project 'Settlers'
+        ➜ Explicit dependency on target 'Settlers' in project 'Settlers'
+    Target 'SettlersTests' in project 'Settlers'
+        ➜ Explicit dependency on target 'Settlers' in project 'Settlers'
+    Target 'Settlers' in project 'Settlers'
+        ➜ Explicit dependency on target 'CatanEngine' in project 'CatanEngine'
+        ➜ Explicit dependency on target 'CatanAI' in project 'CatanAI'
+    Target 'CatanAI' in project 'CatanAI'
+        ➜ Explicit dependency on target 'CatanAI' in project 'CatanAI'
+        ➜ Explicit dependency on target 'CatanEngine' in project 'CatanEngine'
+    Target 'CatanAI' in project 'CatanAI'
+        ➜ Explicit dependency on target 'CatanEngine' in project 'CatanEngine'
+    Target 'CatanEngine' in project 'CatanEngine'
+        ➜ Explicit dependency on target 'CatanEngine' in project 'CatanEngine'
+    Target 'CatanEngine' in project 'CatanEngine' (no dependencies)
+
+GatherProvisioningInputs
+
+CreateBuildDescription
+
+ClangStatCache /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang-stat-cache /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.5.sdk /Users/alex/Library/Developer/Xcode/DerivedData/SDKStatCaches.noindex/iphonesimulator26.5-23F73-6cfe768891a92b912361537c460fe42b.sdkstatcache
+    cd /Users/alex/.codex/worktrees/naval-exploration/Settlers/Settlers.xcodeproj
+    /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang-stat-cache /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.5.sdk -o /Users/alex/Library/Developer/Xcode/DerivedData/SDKStatCaches.noindex/iphonesimulator26.5-23F73-6cfe768891a92b912361537c460fe42b.sdkstatcache
+
+SwiftDriver Settlers normal arm64 com.apple.xcode.tools.swift.compiler (in target 'Settlers' from project 'Settlers')
+    cd /Users/alex/.codex/worktrees/naval-exploration/Settlers
+    builtin-SwiftDriver -- /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc -module-name Settlers -Onone @/Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/Settlers.build/Debug-iphonesimulator/Settlers.build/Objects-normal/arm64/Settlers.SwiftFileList -DDEBUG -enable-experimental-feature DebugDescriptionMacro -sdk /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.5.sdk -target arm64-apple-ios17.0-simulator -g -module-cache-path /Users/alex/Library/Developer/Xcode/DerivedData/ModuleCache.noindex -Xfrontend -serialize-debugging-options -profile-coverage-mapping -profile-generate -enable-testing -warnings-as-errors -index-store-path /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Index.noindex/DataStore -Xcc -D_LIBCPP_HARDENING_MODE\=_LIBCPP_HARDENING_MODE_DEBUG -swift-version 6 -I /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Products/Debug-iphonesimulator -F /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Products/Debug-iphonesimulator/PackageFrameworks -F /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Products/Debug-iphonesimulator/PackageFrameworks -F /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Products/Debug-iphonesimulator -c -j18 -enable-batch-mode -incremental -Xcc -ivfsstatcache -Xcc /Users/alex/Library/Developer/Xcode/DerivedData/SDKStatCaches.noindex/iphonesimulator26.5-23F73-6cfe768891a92b912361537c460fe42b.sdkstatcache -output-file-map /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/Settlers.build/Debug-iphonesimulator/Settlers.build/Objects-normal/arm64/Settlers-OutputFileMap.json -use-frontend-parseable-output -save-temps -no-color-diagnostics -explicit-module-build -module-cache-path /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/SwiftExplicitPrecompiledModules -clang-scanner-module-cache-path /Users/alex/Library/Developer/Xcode/DerivedData/ModuleCache.noindex -sdk-module-cache-path /Users/alex/Library/Developer/Xcode/DerivedData/ModuleCache.noindex -serialize-diagnostics -emit-dependencies -emit-module -emit-module-path /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/Settlers.build/Debug-iphonesimulator/Settlers.build/Objects-normal/arm64/Settlers.swiftmodule -validate-clang-modules-once -clang-build-session-file /Users/alex/Library/Developer/Xcode/DerivedData/ModuleCache.noindex/Session.modulevalidation -Xcc -I/Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/Settlers.build/Debug-iphonesimulator/Settlers.build/swift-overrides.hmap -emit-const-values -Xfrontend -const-gather-protocols-file -Xfrontend /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/Settlers.build/Debug-iphonesimulator/Settlers.build/Objects-normal/arm64/Settlers_const_extract_protocols.json -Xcc -iquote -Xcc /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/Settlers.build/Debug-iphonesimulator/Settlers.build/Settlers-generated-files.hmap -Xcc -I/Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/Settlers.build/Debug-iphonesimulator/Settlers.build/Settlers-own-target-headers.hmap -Xcc -I/Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/Settlers.build/Debug-iphonesimulator/Settlers.build/Settlers-all-non-framework-target-headers.hmap -Xcc -ivfsoverlay -Xcc /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/Settlers.build/Debug-iphonesimulator/Settlers-9ad65172c434931f4eb5300f50bbe1d2-VFS-iphonesimulator/all-product-headers.yaml -Xcc -iquote -Xcc /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/Settlers.build/Debug-iphonesimulator/Settlers.build/Settlers-project-headers.hmap -Xcc -I/Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Products/Debug-iphonesimulator/include -Xcc -I/Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/Settlers.build/Debug-iphonesimulator/Settlers.build/DerivedSources-normal/arm64 -Xcc -I/Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/Settlers.build/Debug-iphonesimulator/Settlers.build/DerivedSources/arm64 -Xcc -I/Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/Settlers.build/Debug-iphonesimulator/Settlers.build/DerivedSources -Xcc -DDEBUG\=1 -emit-objc-header -emit-objc-header-path /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/Settlers.build/Debug-iphonesimulator/Settlers.build/Objects-normal/arm64/Settlers-Swift.h -working-directory /Users/alex/.codex/worktrees/naval-exploration/Settlers -experimental-emit-module-separately -disable-cmo
+
+SwiftCompile normal arm64 Compiling\ BoardView.swift /Users/alex/.codex/worktrees/naval-exploration/Settlers/Settlers/Views/Board/BoardView.swift (in target 'Settlers' from project 'Settlers')
+
+SwiftCompile normal arm64 /Users/alex/.codex/worktrees/naval-exploration/Settlers/Settlers/Views/Board/BoardView.swift (in target 'Settlers' from project 'Settlers')
+    cd /Users/alex/.codex/worktrees/naval-exploration/Settlers
+    
+
+SwiftEmitModule normal arm64 Emitting\ module\ for\ Settlers (in target 'Settlers' from project 'Settlers')
+EmitSwiftModule normal arm64 (in target 'Settlers' from project 'Settlers')
+    cd /Users/alex/.codex/worktrees/naval-exploration/Settlers
+    
+
+SwiftDriverJobDiscovery normal arm64 Compiling BoardView.swift (in target 'Settlers' from project 'Settlers')
+
+SwiftDriverJobDiscovery normal arm64 Emitting module for Settlers (in target 'Settlers' from project 'Settlers')
+
+SwiftDriver\ Compilation\ Requirements Settlers normal arm64 com.apple.xcode.tools.swift.compiler (in target 'Settlers' from project 'Settlers')
+    cd /Users/alex/.codex/worktrees/naval-exploration/Settlers
+    builtin-Swift-Compilation-Requirements -- /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc -module-name Settlers -Onone @/Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/Settlers.build/Debug-iphonesimulator/Settlers.build/Objects-normal/arm64/Settlers.SwiftFileList -DDEBUG -enable-experimental-feature DebugDescriptionMacro -sdk /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.5.sdk -target arm64-apple-ios17.0-simulator -g -module-cache-path /Users/alex/Library/Developer/Xcode/DerivedData/ModuleCache.noindex -Xfrontend -serialize-debugging-options -profile-coverage-mapping -profile-generate -enable-testing -warnings-as-errors -index-store-path /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Index.noindex/DataStore -Xcc -D_LIBCPP_HARDENING_MODE\=_LIBCPP_HARDENING_MODE_DEBUG -swift-version 6 -I /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Products/Debug-iphonesimulator -F /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Products/Debug-iphonesimulator/PackageFrameworks -F /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Products/Debug-iphonesimulator/PackageFrameworks -F /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Products/Debug-iphonesimulator -c -j18 -enable-batch-mode -incremental -Xcc -ivfsstatcache -Xcc /Users/alex/Library/Developer/Xcode/DerivedData/SDKStatCaches.noindex/iphonesimulator26.5-23F73-6cfe768891a92b912361537c460fe42b.sdkstatcache -output-file-map /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/Settlers.build/Debug-iphonesimulator/Settlers.build/Objects-normal/arm64/Settlers-OutputFileMap.json -use-frontend-parseable-output -save-temps -no-color-diagnostics -explicit-module-build -module-cache-path /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/SwiftExplicitPrecompiledModules -clang-scanner-module-cache-path /Users/alex/Library/Developer/Xcode/DerivedData/ModuleCache.noindex -sdk-module-cache-path /Users/alex/Library/Developer/Xcode/DerivedData/ModuleCache.noindex -serialize-diagnostics -emit-dependencies -emit-module -emit-module-path /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/Settlers.build/Debug-iphonesimulator/Settlers.build/Objects-normal/arm64/Settlers.swiftmodule -validate-clang-modules-once -clang-build-session-file /Users/alex/Library/Developer/Xcode/DerivedData/ModuleCache.noindex/Session.modulevalidation -Xcc -I/Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/Settlers.build/Debug-iphonesimulator/Settlers.build/swift-overrides.hmap -emit-const-values -Xfrontend -const-gather-protocols-file -Xfrontend /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/Settlers.build/Debug-iphonesimulator/Settlers.build/Objects-normal/arm64/Settlers_const_extract_protocols.json -Xcc -iquote -Xcc /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/Settlers.build/Debug-iphonesimulator/Settlers.build/Settlers-generated-files.hmap -Xcc -I/Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/Settlers.build/Debug-iphonesimulator/Settlers.build/Settlers-own-target-headers.hmap -Xcc -I/Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/Settlers.build/Debug-iphonesimulator/Settlers.build/Settlers-all-non-framework-target-headers.hmap -Xcc -ivfsoverlay -Xcc /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/Settlers.build/Debug-iphonesimulator/Settlers-9ad65172c434931f4eb5300f50bbe1d2-VFS-iphonesimulator/all-product-headers.yaml -Xcc -iquote -Xcc /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/Settlers.build/Debug-iphonesimulator/Settlers.build/Settlers-project-headers.hmap -Xcc -I/Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Products/Debug-iphonesimulator/include -Xcc -I/Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/Settlers.build/Debug-iphonesimulator/Settlers.build/DerivedSources-normal/arm64 -Xcc -I/Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/Settlers.build/Debug-iphonesimulator/Settlers.build/DerivedSources/arm64 -Xcc -I/Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/Settlers.build/Debug-iphonesimulator/Settlers.build/DerivedSources -Xcc -DDEBUG\=1 -emit-objc-header -emit-objc-header-path /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/Settlers.build/Debug-iphonesimulator/Settlers.build/Objects-normal/arm64/Settlers-Swift.h -working-directory /Users/alex/.codex/worktrees/naval-exploration/Settlers -experimental-emit-module-separately -disable-cmo
+
+SwiftDriver\ Compilation Settlers normal arm64 com.apple.xcode.tools.swift.compiler (in target 'Settlers' from project 'Settlers')
+    cd /Users/alex/.codex/worktrees/naval-exploration/Settlers
+    builtin-Swift-Compilation -- /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc -module-name Settlers -Onone @/Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/Settlers.build/Debug-iphonesimulator/Settlers.build/Objects-normal/arm64/Settlers.SwiftFileList -DDEBUG -enable-experimental-feature DebugDescriptionMacro -sdk /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.5.sdk -target arm64-apple-ios17.0-simulator -g -module-cache-path /Users/alex/Library/Developer/Xcode/DerivedData/ModuleCache.noindex -Xfrontend -serialize-debugging-options -profile-coverage-mapping -profile-generate -enable-testing -warnings-as-errors -index-store-path /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Index.noindex/DataStore -Xcc -D_LIBCPP_HARDENING_MODE\=_LIBCPP_HARDENING_MODE_DEBUG -swift-version 6 -I /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Products/Debug-iphonesimulator -F /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Products/Debug-iphonesimulator/PackageFrameworks -F /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Products/Debug-iphonesimulator/PackageFrameworks -F /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Products/Debug-iphonesimulator -c -j18 -enable-batch-mode -incremental -Xcc -ivfsstatcache -Xcc /Users/alex/Library/Developer/Xcode/DerivedData/SDKStatCaches.noindex/iphonesimulator26.5-23F73-6cfe768891a92b912361537c460fe42b.sdkstatcache -output-file-map /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/Settlers.build/Debug-iphonesimulator/Settlers.build/Objects-normal/arm64/Settlers-OutputFileMap.json -use-frontend-parseable-output -save-temps -no-color-diagnostics -explicit-module-build -module-cache-path /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/SwiftExplicitPrecompiledModules -clang-scanner-module-cache-path /Users/alex/Library/Developer/Xcode/DerivedData/ModuleCache.noindex -sdk-module-cache-path /Users/alex/Library/Developer/Xcode/DerivedData/ModuleCache.noindex -serialize-diagnostics -emit-dependencies -emit-module -emit-module-path /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/Settlers.build/Debug-iphonesimulator/Settlers.build/Objects-normal/arm64/Settlers.swiftmodule -validate-clang-modules-once -clang-build-session-file /Users/alex/Library/Developer/Xcode/DerivedData/ModuleCache.noindex/Session.modulevalidation -Xcc -I/Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/Settlers.build/Debug-iphonesimulator/Settlers.build/swift-overrides.hmap -emit-const-values -Xfrontend -const-gather-protocols-file -Xfrontend /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/Settlers.build/Debug-iphonesimulator/Settlers.build/Objects-normal/arm64/Settlers_const_extract_protocols.json -Xcc -iquote -Xcc /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/Settlers.build/Debug-iphonesimulator/Settlers.build/Settlers-generated-files.hmap -Xcc -I/Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/Settlers.build/Debug-iphonesimulator/Settlers.build/Settlers-own-target-headers.hmap -Xcc -I/Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/Settlers.build/Debug-iphonesimulator/Settlers.build/Settlers-all-non-framework-target-headers.hmap -Xcc -ivfsoverlay -Xcc /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/Settlers.build/Debug-iphonesimulator/Settlers-9ad65172c434931f4eb5300f50bbe1d2-VFS-iphonesimulator/all-product-headers.yaml -Xcc -iquote -Xcc /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/Settlers.build/Debug-iphonesimulator/Settlers.build/Settlers-project-headers.hmap -Xcc -I/Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Products/Debug-iphonesimulator/include -Xcc -I/Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/Settlers.build/Debug-iphonesimulator/Settlers.build/DerivedSources-normal/arm64 -Xcc -I/Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/Settlers.build/Debug-iphonesimulator/Settlers.build/DerivedSources/arm64 -Xcc -I/Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/Settlers.build/Debug-iphonesimulator/Settlers.build/DerivedSources -Xcc -DDEBUG\=1 -emit-objc-header -emit-objc-header-path /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/Settlers.build/Debug-iphonesimulator/Settlers.build/Objects-normal/arm64/Settlers-Swift.h -working-directory /Users/alex/.codex/worktrees/naval-exploration/Settlers -experimental-emit-module-separately -disable-cmo
+
+Copy /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Products/Debug-iphonesimulator/Settlers.swiftmodule/Project/arm64-apple-ios-simulator.swiftsourceinfo /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/Settlers.build/Debug-iphonesimulator/Settlers.build/Objects-normal/arm64/Settlers.swiftsourceinfo (in target 'Settlers' from project 'Settlers')
+    cd /Users/alex/.codex/worktrees/naval-exploration/Settlers
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks -rename /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/Settlers.build/Debug-iphonesimulator/Settlers.build/Objects-normal/arm64/Settlers.swiftsourceinfo /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Products/Debug-iphonesimulator/Settlers.swiftmodule/Project/arm64-apple-ios-simulator.swiftsourceinfo
+
+Copy /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Products/Debug-iphonesimulator/Settlers.swiftmodule/arm64-apple-ios-simulator.abi.json /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/Settlers.build/Debug-iphonesimulator/Settlers.build/Objects-normal/arm64/Settlers.abi.json (in target 'Settlers' from project 'Settlers')
+    cd /Users/alex/.codex/worktrees/naval-exploration/Settlers
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks -rename /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/Settlers.build/Debug-iphonesimulator/Settlers.build/Objects-normal/arm64/Settlers.abi.json /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Products/Debug-iphonesimulator/Settlers.swiftmodule/arm64-apple-ios-simulator.abi.json
+
+Ld /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Products/Debug-iphonesimulator/Settlers.app/Settlers.debug.dylib normal (in target 'Settlers' from project 'Settlers')
+    cd /Users/alex/.codex/worktrees/naval-exploration/Settlers
+    /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang -Xlinker -reproducible -target arm64-apple-ios17.0-simulator -dynamiclib -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.5.sdk -O0 -L/Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/EagerLinkingTBDs/Debug-iphonesimulator -L/Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Products/Debug-iphonesimulator -F/Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/EagerLinkingTBDs/Debug-iphonesimulator -F/Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Products/Debug-iphonesimulator/PackageFrameworks -F/Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Products/Debug-iphonesimulator/PackageFrameworks -F/Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Products/Debug-iphonesimulator -filelist /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/Settlers.build/Debug-iphonesimulator/Settlers.build/Objects-normal/arm64/Settlers.LinkFileList -install_name @rpath/Settlers.debug.dylib -Xlinker -rpath -Xlinker /usr/lib/swift -Xlinker -rpath -Xlinker /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Products/Debug-iphonesimulator/PackageFrameworks -Xlinker -rpath -Xlinker @executable_path/Frameworks -Xlinker -dead_strip -Xlinker -object_path_lto -Xlinker /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/Settlers.build/Debug-iphonesimulator/Settlers.build/Objects-normal/arm64/Settlers_lto.o -rdynamic -Xlinker -no_deduplicate -Xlinker -objc_abi_version -Xlinker 2 -Xlinker -debug_variant -Xlinker -dependency_info -Xlinker /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/Settlers.build/Debug-iphonesimulator/Settlers.build/Objects-normal/arm64/Settlers_dependency_info.dat -fobjc-link-runtime -fprofile-instr-generate -L/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/iphonesimulator -L/usr/lib/swift -Xlinker -add_ast_path -Xlinker /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/Settlers.build/Debug-iphonesimulator/Settlers.build/Objects-normal/arm64/Settlers.swiftmodule @/Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/Settlers.build/Debug-iphonesimulator/Settlers.build/Objects-normal/arm64/Settlers-linker-args.resp -Wl,-no_warn_duplicate_libraries -Wl,-no_warn_duplicate_libraries -Xlinker -alias -Xlinker _main -Xlinker ___debug_main_executable_dylib_entry_point -Xlinker -no_adhoc_codesign -o /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Products/Debug-iphonesimulator/Settlers.app/Settlers.debug.dylib -Xlinker -add_ast_path -Xlinker /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/CatanEngine.build/Debug-iphonesimulator/CatanEngine.build/Objects-normal/arm64/CatanEngine.swiftmodule @/Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/CatanEngine.build/Debug-iphonesimulator/CatanEngine.build/Objects-normal/arm64/CatanEngine-linker-args.resp -Xlinker -add_ast_path -Xlinker /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/CatanAI.build/Debug-iphonesimulator/CatanAI.build/Objects-normal/arm64/CatanAI.swiftmodule @/Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/CatanAI.build/Debug-iphonesimulator/CatanAI.build/Objects-normal/arm64/CatanAI-linker-args.resp
+
+ConstructStubExecutorLinkFileList /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/Settlers.build/Debug-iphonesimulator/Settlers.build/Settlers-ExecutorLinkFileList-normal-arm64.txt (in target 'Settlers' from project 'Settlers')
+    cd /Users/alex/.codex/worktrees/naval-exploration/Settlers
+    construct-stub-executor-link-file-list /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Products/Debug-iphonesimulator/Settlers.app/Settlers.debug.dylib /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/usr/lib/libPreviewsJITStubExecutor_no_swift_entry_point.a /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/usr/lib/libPreviewsJITStubExecutor.a --output /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/Settlers.build/Debug-iphonesimulator/Settlers.build/Settlers-ExecutorLinkFileList-normal-arm64.txt
+note: Using stub executor library with Swift entry point. (in target 'Settlers' from project 'Settlers')
+
+Ld /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Products/Debug-iphonesimulator/Settlers.app/Settlers normal (in target 'Settlers' from project 'Settlers')
+    cd /Users/alex/.codex/worktrees/naval-exploration/Settlers
+    /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang -Xlinker -reproducible -target arm64-apple-ios17.0-simulator -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.5.sdk -O0 -L/Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Products/Debug-iphonesimulator -F/Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Products/Debug-iphonesimulator/PackageFrameworks -F/Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Products/Debug-iphonesimulator/PackageFrameworks -F/Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Products/Debug-iphonesimulator -Xlinker -rpath -Xlinker @executable_path -Xlinker -rpath -Xlinker /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Products/Debug-iphonesimulator/PackageFrameworks -Xlinker -rpath -Xlinker @executable_path/Frameworks -rdynamic -Xlinker -no_deduplicate -Xlinker -objc_abi_version -Xlinker 2 -Xlinker -debug_variant -e ___debug_blank_executor_main -Xlinker -sectcreate -Xlinker __TEXT -Xlinker __debug_dylib -Xlinker /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/Settlers.build/Debug-iphonesimulator/Settlers.build/Settlers-DebugDylibPath-normal-arm64.txt -Xlinker -sectcreate -Xlinker __TEXT -Xlinker __debug_instlnm -Xlinker /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/Settlers.build/Debug-iphonesimulator/Settlers.build/Settlers-DebugDylibInstallName-normal-arm64.txt -Xlinker -filelist -Xlinker /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/Settlers.build/Debug-iphonesimulator/Settlers.build/Settlers-ExecutorLinkFileList-normal-arm64.txt -Xlinker -sectcreate -Xlinker __TEXT -Xlinker __entitlements -Xlinker /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/Settlers.build/Debug-iphonesimulator/Settlers.build/Settlers.app-Simulated.xcent -Xlinker -sectcreate -Xlinker __TEXT -Xlinker __ents_der -Xlinker /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/Settlers.build/Debug-iphonesimulator/Settlers.build/Settlers.app-Simulated.xcent.der /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Products/Debug-iphonesimulator/Settlers.app/Settlers.debug.dylib -Xlinker -no_adhoc_codesign -o /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Products/Debug-iphonesimulator/Settlers.app/Settlers
+
+CopySwiftLibs /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Products/Debug-iphonesimulator/Settlers.app (in target 'Settlers' from project 'Settlers')
+    cd /Users/alex/.codex/worktrees/naval-exploration/Settlers
+    builtin-swiftStdLibTool --copy --verbose --sign - --scan-executable /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Products/Debug-iphonesimulator/Settlers.app/Settlers.debug.dylib --scan-folder /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Products/Debug-iphonesimulator/Settlers.app/Frameworks --scan-folder /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Products/Debug-iphonesimulator/Settlers.app/PlugIns --scan-folder /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Products/Debug-iphonesimulator/Settlers.app/SystemExtensions --scan-folder /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Products/Debug-iphonesimulator/Settlers.app/Extensions --platform iphonesimulator --toolchain /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain --destination /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Products/Debug-iphonesimulator/Settlers.app/Frameworks --strip-bitcode --strip-bitcode-tool /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/bitcode_strip --emit-dependency-info /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/Settlers.build/Debug-iphonesimulator/Settlers.build/SwiftStdLibToolInputDependencies.dep --filter-for-swift-os
+
+ExtractAppIntentsMetadata (in target 'Settlers' from project 'Settlers')
+    cd /Users/alex/.codex/worktrees/naval-exploration/Settlers
+    /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/appintentsmetadataprocessor --toolchain-dir /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain --module-name Settlers --sdk-root /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.5.sdk --xcode-version 17F42 --platform-family iOS --deployment-target 17.0 --bundle-identifier com.jakebeinart.settlers --output /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Products/Debug-iphonesimulator/Settlers.app --target-triple arm64-apple-ios17.0-simulator --binary-file /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Products/Debug-iphonesimulator/Settlers.app/Settlers --dependency-file /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/Settlers.build/Debug-iphonesimulator/Settlers.build/Objects-normal/arm64/Settlers_dependency_info.dat --stringsdata-file /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/Settlers.build/Debug-iphonesimulator/Settlers.build/Objects-normal/arm64/ExtractedAppShortcutsMetadata.stringsdata --source-file-list /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/Settlers.build/Debug-iphonesimulator/Settlers.build/Objects-normal/arm64/Settlers.SwiftFileList --metadata-file-list /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/Settlers.build/Debug-iphonesimulator/Settlers.build/Settlers.DependencyMetadataFileList --static-metadata-file-list /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/Settlers.build/Debug-iphonesimulator/Settlers.build/Settlers.DependencyStaticMetadataFileList --swift-const-vals-list /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/Settlers.build/Debug-iphonesimulator/Settlers.build/Objects-normal/arm64/Settlers.SwiftConstValuesFileList --compile-time-extraction --deployment-aware-processing --validate-assistant-intents --no-app-shortcuts-localization
+2026-10-05 02:09:17.797 appintentsmetadataprocessor[87161:13773154] Starting appintentsmetadataprocessor export
+2026-10-05 02:09:17.799 appintentsmetadataprocessor[87161:13773154] warning: Metadata extraction skipped. No AppIntents.framework dependency found.
+
+Ld /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Products/Debug-iphonesimulator/Settlers.app/PlugIns/SettlersTests.xctest/SettlersTests normal (in target 'SettlersTests' from project 'Settlers')
+    cd /Users/alex/.codex/worktrees/naval-exploration/Settlers
+    /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang -Xlinker -reproducible -target arm64-apple-ios17.0-simulator -bundle -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.5.sdk -O0 -L/Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/EagerLinkingTBDs/Debug-iphonesimulator -L/Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Products/Debug-iphonesimulator -L/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/usr/lib -F/Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/EagerLinkingTBDs/Debug-iphonesimulator -F/Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Products/Debug-iphonesimulator/PackageFrameworks -F/Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Products/Debug-iphonesimulator/PackageFrameworks -F/Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Products/Debug-iphonesimulator -iframework /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/Library/Frameworks -iframework /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.5.sdk/Developer/Library/Frameworks -filelist /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/Settlers.build/Debug-iphonesimulator/SettlersTests.build/Objects-normal/arm64/SettlersTests.LinkFileList -Xlinker -rpath -Xlinker /usr/lib/swift -Xlinker -rpath -Xlinker /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Products/Debug-iphonesimulator/PackageFrameworks -Xlinker -rpath -Xlinker @loader_path/Frameworks -Xlinker -rpath -Xlinker @executable_path/Frameworks -Xlinker -dead_strip -bundle_loader /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Products/Debug-iphonesimulator/Settlers.app/Settlers -Xlinker -object_path_lto -Xlinker /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/Settlers.build/Debug-iphonesimulator/SettlersTests.build/Objects-normal/arm64/SettlersTests_lto.o -rdynamic -Xlinker -no_deduplicate -Xlinker -objc_abi_version -Xlinker 2 -Xlinker -debug_variant -Xlinker -dependency_info -Xlinker /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/Settlers.build/Debug-iphonesimulator/SettlersTests.build/Objects-normal/arm64/SettlersTests_dependency_info.dat -fobjc-link-runtime -fprofile-instr-generate -L/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/iphonesimulator -L/usr/lib/swift -Xlinker -add_ast_path -Xlinker /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/Settlers.build/Debug-iphonesimulator/SettlersTests.build/Objects-normal/arm64/SettlersTests.swiftmodule @/Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/Settlers.build/Debug-iphonesimulator/SettlersTests.build/Objects-normal/arm64/SettlersTests-linker-args.resp -Wl,-no_warn_duplicate_libraries -Wl,-no_warn_duplicate_libraries -Xlinker -needed_framework -Xlinker XCTest -framework XCTest -Xlinker -needed-lXCTestSwiftSupport -lXCTestSwiftSupport /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Products/Debug-iphonesimulator/Settlers.app/Settlers.debug.dylib -Xlinker -no_adhoc_codesign -o /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Products/Debug-iphonesimulator/Settlers.app/PlugIns/SettlersTests.xctest/SettlersTests
+
+CopySwiftLibs /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Products/Debug-iphonesimulator/Settlers.app/PlugIns/SettlersTests.xctest (in target 'SettlersTests' from project 'Settlers')
+    cd /Users/alex/.codex/worktrees/naval-exploration/Settlers
+    builtin-swiftStdLibTool --copy --verbose --sign - --scan-executable /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Products/Debug-iphonesimulator/Settlers.app/PlugIns/SettlersTests.xctest/SettlersTests --scan-folder /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Products/Debug-iphonesimulator/Settlers.app/PlugIns/SettlersTests.xctest/Frameworks --scan-folder /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Products/Debug-iphonesimulator/Settlers.app/PlugIns/SettlersTests.xctest/PlugIns --scan-folder /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Products/Debug-iphonesimulator/Settlers.app/PlugIns/SettlersTests.xctest/SystemExtensions --scan-folder /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Products/Debug-iphonesimulator/Settlers.app/PlugIns/SettlersTests.xctest/Extensions --platform iphonesimulator --toolchain /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain --destination /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Products/Debug-iphonesimulator/Settlers.app/PlugIns/SettlersTests.xctest/Frameworks --strip-bitcode --scan-executable /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/usr/lib/libXCTestSwiftSupport.dylib --strip-bitcode-tool /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/bitcode_strip --emit-dependency-info /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/Settlers.build/Debug-iphonesimulator/SettlersTests.build/SwiftStdLibToolInputDependencies.dep --filter-for-swift-os
+
+ExtractAppIntentsMetadata (in target 'SettlersTests' from project 'Settlers')
+    cd /Users/alex/.codex/worktrees/naval-exploration/Settlers
+    /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/appintentsmetadataprocessor --toolchain-dir /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain --module-name SettlersTests --sdk-root /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.5.sdk --xcode-version 17F42 --platform-family iOS --deployment-target 17.0 --bundle-identifier com.jakebeinart.settlers.SettlersTests --output /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Products/Debug-iphonesimulator/Settlers.app/PlugIns/SettlersTests.xctest --target-triple arm64-apple-ios17.0-simulator --binary-file /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Products/Debug-iphonesimulator/Settlers.app/PlugIns/SettlersTests.xctest/SettlersTests --dependency-file /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/Settlers.build/Debug-iphonesimulator/SettlersTests.build/Objects-normal/arm64/SettlersTests_dependency_info.dat --stringsdata-file /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/Settlers.build/Debug-iphonesimulator/SettlersTests.build/Objects-normal/arm64/ExtractedAppShortcutsMetadata.stringsdata --source-file-list /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/Settlers.build/Debug-iphonesimulator/SettlersTests.build/Objects-normal/arm64/SettlersTests.SwiftFileList --metadata-file-list /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/Settlers.build/Debug-iphonesimulator/SettlersTests.build/SettlersTests.DependencyMetadataFileList --static-metadata-file-list /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/Settlers.build/Debug-iphonesimulator/SettlersTests.build/SettlersTests.DependencyStaticMetadataFileList --swift-const-vals-list /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/Settlers.build/Debug-iphonesimulator/SettlersTests.build/Objects-normal/arm64/SettlersTests.SwiftConstValuesFileList --compile-time-extraction --deployment-aware-processing --validate-assistant-intents --no-app-shortcuts-localization
+2026-10-05 02:09:18.001 appintentsmetadataprocessor[87166:13773185] Starting appintentsmetadataprocessor export
+2026-10-05 02:09:18.002 appintentsmetadataprocessor[87166:13773185] warning: Metadata extraction skipped. No AppIntents.framework dependency found.
+
+CodeSign /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Products/Debug-iphonesimulator/Settlers.app/PlugIns/SettlersTests.xctest (in target 'SettlersTests' from project 'Settlers')
+    cd /Users/alex/.codex/worktrees/naval-exploration/Settlers
+    
+    Signing Identity:     "Sign to Run Locally"
+    
+    /usr/bin/codesign --force --sign - --timestamp\=none --generate-entitlement-der /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Products/Debug-iphonesimulator/Settlers.app/PlugIns/SettlersTests.xctest
+
+CodeSign /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Products/Debug-iphonesimulator/Settlers.app/Settlers.debug.dylib (in target 'Settlers' from project 'Settlers')
+    cd /Users/alex/.codex/worktrees/naval-exploration/Settlers
+    
+    Signing Identity:     "Sign to Run Locally"
+    
+    /usr/bin/codesign --force --sign - --timestamp\=none --generate-entitlement-der /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Products/Debug-iphonesimulator/Settlers.app/Settlers.debug.dylib
+
+CodeSign /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Products/Debug-iphonesimulator/Settlers.app/__preview.dylib (in target 'Settlers' from project 'Settlers')
+    cd /Users/alex/.codex/worktrees/naval-exploration/Settlers
+    
+    Signing Identity:     "Sign to Run Locally"
+    
+    /usr/bin/codesign --force --sign - --timestamp\=none --generate-entitlement-der /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Products/Debug-iphonesimulator/Settlers.app/__preview.dylib
+/Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Products/Debug-iphonesimulator/Settlers.app/__preview.dylib: replacing existing signature
+
+CodeSign /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Products/Debug-iphonesimulator/Settlers.app (in target 'Settlers' from project 'Settlers')
+    cd /Users/alex/.codex/worktrees/naval-exploration/Settlers
+    
+    Signing Identity:     "Sign to Run Locally"
+    
+    /usr/bin/codesign --force --sign - --timestamp\=none --generate-entitlement-der /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Products/Debug-iphonesimulator/Settlers.app
+
+Validate /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Products/Debug-iphonesimulator/Settlers.app (in target 'Settlers' from project 'Settlers')
+    cd /Users/alex/.codex/worktrees/naval-exploration/Settlers
+    builtin-validationUtility /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Products/Debug-iphonesimulator/Settlers.app -shallow-bundle -infoplist-subpath Info.plist
+
+2026-10-05 02:09:25.883678-0400 Settlers[87432:13775909] [General] Failed to send CA Event for app launch measurements for ca_event_type: 0 event_name: com.apple.app_launch_measurement.FirstFramePresentationMetric
+2026-10-05 02:09:25.934938-0400 Settlers[87432:13775919] [General] Failed to send CA Event for app launch measurements for ca_event_type: 1 event_name: com.apple.app_launch_measurement.ExtendedLaunchMetrics
+Test Suite 'Selected tests' started at 2026-10-05 02:09:26.121.
+Test Suite 'SettlersTests.xctest' started at 2026-10-05 02:09:26.122.
+Test Suite 'SettlersTests.xctest' passed at 2026-10-05 02:09:26.122.
+	 Executed 0 tests, with 0 failures (0 unexpected) in 0.000 (0.000) seconds
+Test Suite 'Selected tests' passed at 2026-10-05 02:09:26.122.
+	 Executed 0 tests, with 0 failures (0 unexpected) in 0.000 (0.001) seconds
+◇ Test run started.
+↳ Testing Library Version: 1902
+↳ Target Platform: arm64-apple-ios13.0-simulator
+◇ Suite BoardLayeringTests started.
+◇ Test navalProductionHighlightsNeverDiscloseUnknownMatchingNumbers() started.
+✔ Test navalProductionHighlightsNeverDiscloseUnknownMatchingNumbers() passed after 0.087 seconds.
+◇ Test anyResourceAndItsDisabledReplacementUseTheSamePublicProductionRule() started.
+✔ Test anyResourceAndItsDisabledReplacementUseTheSamePublicProductionRule() passed after 0.086 seconds.
+◇ Test classicProductionHighlightsRetainOrdinaryAndRobberBehavior() started.
+✔ Test classicProductionHighlightsRetainOrdinaryAndRobberBehavior() passed after 0.001 seconds.
+◇ Test placementHighlightsDoNotRepaintPieces() started.
+IOSurfaceClientSetSurfaceNotify failed e00002c7
+✔ Test placementHighlightsDoNotRepaintPieces() passed after 0.099 seconds.
+◇ Test piecesUseTheProvidedMatchIdentityInsteadOfGlobalSeatStyling() started.
+✔ Test piecesUseTheProvidedMatchIdentityInsteadOfGlobalSeatStyling() passed after 0.016 seconds.
+◇ Test cityUpgradeGuideRemainsVisibleOutsideTheSettlementArt() started.
+✔ Test cityUpgradeGuideRemainsVisibleOutsideTheSettlementArt() passed after 0.028 seconds.
+✔ Suite BoardLayeringTests passed after 0.319 seconds.
+◇ Suite CompletedHumanTradeRestoreTests started.
+◇ Test completedCheckpointSkipsPendingHumanNegotiation() started.
+✔ Test completedCheckpointSkipsPendingHumanNegotiation() passed after 0.032 seconds.
+✔ Suite CompletedHumanTradeRestoreTests passed after 0.032 seconds.
+◇ Suite GameViewModelCheckpointTests started.
+◇ Test successfulExportOnlyClearsAnExportWarning() started.
+✔ Test successfulExportOnlyClearsAnExportWarning() passed after 0.002 seconds.
+◇ Test newGameSetupAvailabilityIsReadOnceByTheModelOwner() started.
+✔ Test newGameSetupAvailabilityIsReadOnceByTheModelOwner() passed after 0.004 seconds.
+◇ Test successfulExportDoesNotEraseUnrecoverableHistoricalStatisticsWarning() started.
+✔ Test successfulExportDoesNotEraseUnrecoverableHistoricalStatisticsWarning() passed after 0.018 seconds.
+◇ Test completedMatchStatisticsSurviveReloadAndClear() started.
+✔ Test completedMatchStatisticsSurviveReloadAndClear() passed after 3.098 seconds.
+◇ Test candidateDocumentFailureStopsBotsAsPersistenceFailure() started.
+✔ Test candidateDocumentFailureStopsBotsAsPersistenceFailure() passed after 1.120 seconds.
+◇ Test replacingReadableButRejectedRosterPreservesStatisticsAndArchivesOriginalBytes() started.
+✔ Test replacingReadableButRejectedRosterPreservesStatisticsAndArchivesOriginalBytes() passed after 0.029 seconds.
+◇ Test failedTradeConfirmationAndDeclineKeepTheOfferAvailableForRetry() started.
+✔ Test failedTradeConfirmationAndDeclineKeepTheOfferAvailableForRetry() passed after 0.030 seconds.
+◇ Test aHumanTradeConfirmationPausesQueuedRepliesEvenWithoutAnOpenPopup() started.
+✔ Test aHumanTradeConfirmationPausesQueuedRepliesEvenWithoutAnOpenPopup() passed after 0.019 seconds.
+◇ Test aPauseOpenedDuringBotPacingPreventsItsMove(background:) started.
+◇ Test case passing 1 argument background → false to aPauseOpenedDuringBotPacingPreventsItsMove(background:) started.
+​◇ Test case passing 1 argument background → true to aPauseOpenedDuringBotPacingPreventsItsMove(background:) started.
+​✔ Test aPauseOpenedDuringBotPacingPreventsItsMove(background:) with 2 test cases passed after 2.249 seconds.
+◇ Test failedBotWriteLeavesThePolicyCursorAndBoardUnchanged() started.
+✔ Test failedBotWriteLeavesThePolicyCursorAndBoardUnchanged() passed after 1.133 seconds.
+◇ Test clearedCheckpointDoesNotResurrectPreservedLegacySave() started.
+✔ Test clearedCheckpointDoesNotResurrectPreservedLegacySave() passed after 0.034 seconds.
+◇ Test bankedDurationSurvivesColdResumeWithoutCountingTimeClosed() started.
+✔ Test bankedDurationSurvivesColdResumeWithoutCountingTimeClosed() passed after 0.014 seconds.
+◇ Test exportFailureDoesNotLoseAReplacedRecording() started.
+✔ Test exportFailureDoesNotLoseAReplacedRecording() passed after 0.035 seconds.
+◇ Test failedHumanWriteDoesNotPublishBoardEventsOrPolicyProgress() started.
+✔ Test failedHumanWriteDoesNotPublishBoardEventsOrPolicyProgress() passed after 0.019 seconds.
+◇ Test failedDiscardWriteRetainsTheDraftAcrossReloadAndRetriesExactlyOnce() started.
+✔ Test failedDiscardWriteRetainsTheDraftAcrossReloadAndRetriesExactlyOnce() passed after 0.013 seconds.
+◇ Test hotSeatReloadKeepsTheClaimedDiscardersDraft() started.
+✔ Test hotSeatReloadKeepsTheClaimedDiscardersDraft() passed after 0.012 seconds.
+◇ Test lostWriteAcknowledgementPublishesExactlyTheCommittedMove() started.
+✔ Test lostWriteAcknowledgementPublishesExactlyTheCommittedMove() passed after 0.017 seconds.
+◇ Test failedReplacementKeepsTheOldTableAndLabels() started.
+✔ Test failedReplacementKeepsTheOldTableAndLabels() passed after 0.012 seconds.
+◇ Test statsOnlyMigrationSurvivesColdLaunch() started.
+✔ Test statsOnlyMigrationSurvivesColdLaunch() passed after 0.004 seconds.
+◇ Test coldResumeUsesCommittedMatchInsteadOfStaleLegacyFiles() started.
+✔ Test coldResumeUsesCommittedMatchInsteadOfStaleLegacyFiles() passed after 0.016 seconds.
+◇ Test restartingALegacyFourPlayerEpicMatchUsesAReachableTarget() started.
+✔ Test restartingALegacyFourPlayerEpicMatchUsesAReachableTarget() passed after 0.019 seconds.
+✔ Suite GameViewModelCheckpointTests passed after 7.907 seconds.
+◇ Suite NavalBoardGeometryTests started.
+◇ Test discoveringPortsDoesNotChangeTheSolvedWorldGeometry() started.
+✔ Test discoveringPortsDoesNotChangeTheSolvedWorldGeometry() passed after 0.013 seconds.
+◇ Test closerNavalInspectionStillKeepsTheWorldOnScreen(container:) started.
+◇ Test case passing 1 argument container → (402.0, 382.0) to closerNavalInspectionStillKeepsTheWorldOnScreen(container:) started.
+​◇ Test case passing 1 argument container → (320.0, 250.0) to closerNavalInspectionStillKeepsTheWorldOnScreen(container:) started.
+​✔ Test closerNavalInspectionStillKeepsTheWorldOnScreen(container:) with 2 test cases passed after 0.022 seconds.
+◇ Test islandPortsFaceWaterRatherThanTheWorldCenter(seed:) started.
+◇ Test case passing 1 argument seed → 1 to islandPortsFaceWaterRatherThanTheWorldCenter(seed:) started.
+​◇ Test case passing 1 argument seed → 17 to islandPortsFaceWaterRatherThanTheWorldCenter(seed:) started.
+​◇ Test case passing 1 argument seed → 42 to islandPortsFaceWaterRatherThanTheWorldCenter(seed:) started.
+​✔ Test islandPortsFaceWaterRatherThanTheWorldCenter(seed:) with 3 test cases passed after 0.076 seconds.
+◇ Test adjacentWorldShipTargetsAlwaysOfferBothIdentities(direction:) started.
+◇ Test case passing 1 argument direction → 0 to adjacentWorldShipTargetsAlwaysOfferBothIdentities(direction:) started.
+​◇ Test case passing 1 argument direction → 1 to adjacentWorldShipTargetsAlwaysOfferBothIdentities(direction:) started.
+​◇ Test case passing 1 argument direction → 2 to adjacentWorldShipTargetsAlwaysOfferBothIdentities(direction:) started.
+​◇ Test case passing 1 argument direction → 3 to adjacentWorldShipTargetsAlwaysOfferBothIdentities(direction:) started.
+​◇ Test case passing 1 argument direction → 4 to adjacentWorldShipTargetsAlwaysOfferBothIdentities(direction:) started.
+​◇ Test case passing 1 argument direction → 5 to adjacentWorldShipTargetsAlwaysOfferBothIdentities(direction:) started.
+​✔ Test adjacentWorldShipTargetsAlwaysOfferBothIdentities(direction:) with 6 test cases passed after 0.001 seconds.
+◇ Test stackedAndAdjacentCandidatesAreStableAndExcludeDistantShips() started.
+✔ Test stackedAndAdjacentCandidatesAreStableAndExcludeDistantShips() passed after 0.001 seconds.
+◇ Test closerInspectionKeepsIsolatedShipsDirectAndStacksExplicit() started.
+✔ Test closerInspectionKeepsIsolatedShipsDirectAndStacksExplicit() passed after 0.001 seconds.
+◇ Test nearbyShipFixturesAreConservedProductionPositions(position:) started.
+◇ Test case passing 1 argument position → .adjacentShips to nearbyShipFixturesAreConservedProductionPositions(position:) started.
+​◇ Test case passing 1 argument position → .stackedShips to nearbyShipFixturesAreConservedProductionPositions(position:) started.
+​✔ Test nearbyShipFixturesAreConservedProductionPositions(position:) with 2 test cases passed after 0.324 seconds.
+◇ Test overlappingWorldSeaTargetsResolveTheirActualCentersWithoutRevealingFog() started.
+✔ Test overlappingWorldSeaTargetsResolveTheirActualCentersWithoutRevealingFog() passed after 0.243 seconds.
+◇ Test equidistantSeaTouchesHaveStableOrderAndDistantTouchesDoNothing() started.
+✔ Test equidistantSeaTouchesHaveStableOrderAndDistantTouchesDoNothing() passed after 0.245 seconds.
+✔ Suite NavalBoardGeometryTests passed after 0.927 seconds.
+✔ Test run with 37 tests in 4 suites passed after 9.186 seconds.
+2026-10-05 02:09:36.102977-0400 SettlersUITests-Runner[87694:13777773] [Default] Running tests...
+2026-10-05 02:09:36.133463-0400 SettlersUITests-Runner[87694:13777781] [General] Failed to send CA Event for app launch measurements for ca_event_type: 0 event_name: com.apple.app_launch_measurement.FirstFramePresentationMetric
+2026-10-05 02:09:36.523380-0400 SettlersUITests-Runner[87694:13777781] [General] Failed to send CA Event for app launch measurements for ca_event_type: 1 event_name: com.apple.app_launch_measurement.ExtendedLaunchMetrics
+objc[87694]: Class UIAccessibilityLoaderWebShared is implemented in both /Library/Developer/CoreSimulator/Volumes/iOS_23F77/Library/Developer/CoreSimulator/Profiles/Runtimes/iOS 26.5.simruntime/Contents/Resources/RuntimeRoot/System/Library/AccessibilityBundles/WebCore.axbundle/WebCore (0x10915c310) and /Library/Developer/CoreSimulator/Volumes/iOS_23F77/Library/Developer/CoreSimulator/Profiles/Runtimes/iOS 26.5.simruntime/Contents/Resources/RuntimeRoot/System/Library/AccessibilityBundles/WebKit.axbundle/WebKit (0x10898c398). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+    t =      nans Interface orientation changed to Portrait
+Test Suite 'Selected tests' started at 2026-10-05 02:09:38.117.
+Test Suite 'SettlersUITests.xctest' started at 2026-10-05 02:09:38.117.
+Test Suite 'BankTradeFlowTests' started at 2026-10-05 02:09:38.117.
+Test Case '-[SettlersUITests.BankTradeFlowTests testConfirmedPlayerTradeShowsActualReceiptAndClose]' started.
+    t =     0.00s Start Test at 2026-10-05 02:09:38.118
+    t =     0.09s Set Up
+    t =     0.09s Open com.jakebeinart.settlers
+    t =     0.09s     Launch com.jakebeinart.settlers
+2026-10-05 02:09:38.247 xcodebuild[87132:13772892] [MT] IDELaunchParametersSnapshot: The operation couldn’t be completed. (DebuggerLLDB.DebuggerVersionStore.StoreError error 0.)
+2026-10-05 02:09:38.247 xcodebuild[87132:13772892] [MT] IDELaunchParametersSnapshot: no debugger version
+    t =     0.34s         Setting up automation session
+    t =     0.83s         Wait for com.jakebeinart.settlers to idle
+    t =     2.27s Waiting 10.0s for "Trade" Button to exist
+    t =     3.31s     Checking `Expect predicate `existsNoRetry == 1` for object "Trade" Button`
+    t =     3.31s         Checking existence of `"Trade" Button`
+    t =     3.35s Tap "Trade" Button
+    t =     3.35s     Wait for com.jakebeinart.settlers to idle
+    t =     3.35s     Find the "Trade" Button
+    t =     3.38s     Check for interrupting elements affecting "Trade" Button
+    t =     3.39s     Synthesize event
+    t =     3.79s     Wait for com.jakebeinart.settlers to idle
+    t =     3.79s Tap "trade.give.grain" Button
+    t =     3.79s     Wait for com.jakebeinart.settlers to idle
+    t =     3.79s     Find the "trade.give.grain" Button
+    t =     3.82s     Check for interrupting elements affecting "trade.give.grain" Button
+    t =     3.85s     Synthesize event
+    t =     4.14s     Wait for com.jakebeinart.settlers to idle
+    t =     4.14s Tap "trade.give.grain" Button
+    t =     4.14s     Wait for com.jakebeinart.settlers to idle
+    t =     4.14s     Find the "trade.give.grain" Button
+    t =     4.17s     Check for interrupting elements affecting "trade.give.grain" Button
+    t =     4.20s     Synthesize event
+    t =     4.49s     Wait for com.jakebeinart.settlers to idle
+    t =     4.49s Tap "trade.give.grain" Button
+    t =     4.49s     Wait for com.jakebeinart.settlers to idle
+    t =     4.50s     Find the "trade.give.grain" Button
+    t =     4.52s     Check for interrupting elements affecting "trade.give.grain" Button
+    t =     4.54s     Synthesize event
+    t =     4.83s     Wait for com.jakebeinart.settlers to idle
+    t =     4.83s Tap "trade.give.grain" Button
+    t =     4.83s     Wait for com.jakebeinart.settlers to idle
+    t =     4.84s     Find the "trade.give.grain" Button
+    t =     4.86s     Check for interrupting elements affecting "trade.give.grain" Button
+    t =     4.88s     Synthesize event
+    t =     5.17s     Wait for com.jakebeinart.settlers to idle
+    t =     5.18s Tap "trade.give.grain" Button
+    t =     5.18s     Wait for com.jakebeinart.settlers to idle
+    t =     5.18s     Find the "trade.give.grain" Button
+    t =     5.20s     Check for interrupting elements affecting "trade.give.grain" Button
+    t =     5.22s     Synthesize event
+    t =     5.51s     Wait for com.jakebeinart.settlers to idle
+    t =     5.52s Tap "trade.give.grain" Button
+    t =     5.52s     Wait for com.jakebeinart.settlers to idle
+    t =     5.52s     Find the "trade.give.grain" Button
+    t =     5.54s     Check for interrupting elements affecting "trade.give.grain" Button
+    t =     5.56s     Synthesize event
+    t =     5.85s     Wait for com.jakebeinart.settlers to idle
+    t =     5.86s Tap "trade.want.ore" Button
+    t =     5.86s     Wait for com.jakebeinart.settlers to idle
+    t =     5.86s     Find the "trade.want.ore" Button
+    t =     5.88s     Check for interrupting elements affecting "trade.want.ore" Button
+    t =     5.91s     Synthesize event
+    t =     6.19s     Wait for com.jakebeinart.settlers to idle
+    t =     6.20s Tap "Propose to Bots" Button
+    t =     6.20s     Wait for com.jakebeinart.settlers to idle
+    t =     6.20s     Find the "Propose to Bots" Button
+    t =     6.23s     Check for interrupting elements affecting "Propose to Bots" Button
+    t =     6.25s     Synthesize event
+    t =     6.53s     Wait for com.jakebeinart.settlers to idle
+    t =     6.54s Waiting 3.0s for "Confirm Trade" Button to exist
+    t =     7.58s     Checking `Expect predicate `existsNoRetry == 1` for object "Confirm Trade" Button`
+    t =     7.58s         Checking existence of `"Confirm Trade" Button`
+    t =     7.61s Checking existence of `"Trade complete" StaticText`
+    t =     7.64s Tap "Confirm Trade" Button
+    t =     7.64s     Wait for com.jakebeinart.settlers to idle
+    t =     7.64s     Find the "Confirm Trade" Button
+    t =     7.66s     Check for interrupting elements affecting "Confirm Trade" Button
+    t =     7.68s     Synthesize event
+    t =     7.97s     Wait for com.jakebeinart.settlers to idle
+    t =     7.97s Waiting 3.0s for "Trade complete" StaticText to exist
+    t =     9.01s     Checking `Expect predicate `existsNoRetry == 1` for object "Trade complete" StaticText`
+    t =     9.01s         Checking existence of `"Trade complete" StaticText`
+    t =     9.03s Checking existence of `"6 Grain" StaticText`
+    t =     9.05s Checking existence of `"1 Ore" StaticText`
+    t =     9.07s Checking existence of `"Trade again" Button`
+    t =     9.09s Tap "Close trade" Button
+    t =     9.09s     Wait for com.jakebeinart.settlers to idle
+    t =     9.09s     Find the "Close trade" Button
+    t =     9.11s     Check for interrupting elements affecting "Close trade" Button
+    t =     9.13s     Synthesize event
+    t =     9.42s     Wait for com.jakebeinart.settlers to idle
+    t =     9.42s Find the "human-resource.grain" Other
+    t =     9.44s Find the "human-resource.ore" Other
+    t =     9.46s Tear Down
+Test Case '-[SettlersUITests.BankTradeFlowTests testConfirmedPlayerTradeShowsActualReceiptAndClose]' passed (9.689 seconds).
+Test Suite 'BankTradeFlowTests' passed at 2026-10-05 02:09:47.807.
+	 Executed 1 test, with 0 failures (0 unexpected) in 9.689 (9.689) seconds
+Test Suite 'GameplayBoundaryFlowTests' started at 2026-10-05 02:09:47.807.
+Test Case '-[SettlersUITests.GameplayBoundaryFlowTests testTradePopupStaysOpenAfterProposingToBots]' started.
+    t =     0.00s Start Test at 2026-10-05 02:09:47.807
+    t =     0.02s Set Up
+    t =     0.02s Open com.jakebeinart.settlers
+    t =     0.02s     Launch com.jakebeinart.settlers
+    t =     0.02s         Terminate com.jakebeinart.settlers:87720
+2026-10-05 02:09:48.877 xcodebuild[87132:13772892] [MT] IDELaunchParametersSnapshot: The operation couldn’t be completed. (DebuggerLLDB.DebuggerVersionStore.StoreError error 0.)
+2026-10-05 02:09:48.877 xcodebuild[87132:13772892] [MT] IDELaunchParametersSnapshot: no debugger version
+    t =     1.27s         Setting up automation session
+    t =     1.78s         Wait for com.jakebeinart.settlers to idle
+    t =     3.33s Waiting 20.0s for "Trade" Button to exist
+    t =     4.36s     Checking `Expect predicate `existsNoRetry == 1` for object "Trade" Button`
+    t =     4.37s         Checking existence of `"Trade" Button`
+    t =     5.44s Checking `Expect predicate `isEnabled == 1` for object "Trade" Button`
+    t =     5.44s     Find the "Trade" Button
+    t =     5.48s     Capturing element debug description
+    t =     5.50s         Requesting snapshot of accessibility hierarchy for app with pid 87779
+    t =     5.53s         Find: Descendants matching type Button
+    t =     5.53s         Find: Elements matching predicate '"Trade" IN identifiers'
+    t =     5.53s         Requesting snapshot of accessibility hierarchy for app with pid 87779
+    t =     5.56s         Find: Descendants matching type Button
+    t =     5.56s         Requesting snapshot of accessibility hierarchy for app with pid 87779
+    t =     6.43s Checking `Expect predicate `isEnabled == 1` for object "Trade" Button`
+    t =     6.43s     Find the "Trade" Button
+    t =     6.47s     Capturing element debug description
+    t =     6.50s         Requesting snapshot of accessibility hierarchy for app with pid 87779
+    t =     6.57s         Find: Descendants matching type Button
+    t =     6.57s         Find: Elements matching predicate '"Trade" IN identifiers'
+    t =     6.57s         Requesting snapshot of accessibility hierarchy for app with pid 87779
+    t =     6.60s         Find: Descendants matching type Button
+    t =     6.60s         Requesting snapshot of accessibility hierarchy for app with pid 87779
+    t =     7.47s Checking `Expect predicate `isEnabled == 1` for object "Trade" Button`
+    t =     7.47s     Find the "Trade" Button
+    t =     7.51s     Capturing element debug description
+    t =     7.54s         Requesting snapshot of accessibility hierarchy for app with pid 87779
+    t =     7.56s         Find: Descendants matching type Button
+    t =     7.56s         Find: Elements matching predicate '"Trade" IN identifiers'
+    t =     7.56s         Requesting snapshot of accessibility hierarchy for app with pid 87779
+    t =     7.59s         Find: Descendants matching type Button
+    t =     7.59s         Requesting snapshot of accessibility hierarchy for app with pid 87779
+    t =     8.49s Checking `Expect predicate `isEnabled == 1` for object "Trade" Button`
+    t =     8.49s     Find the "Trade" Button
+    t =     8.51s     Capturing element debug description
+    t =     8.54s         Requesting snapshot of accessibility hierarchy for app with pid 87779
+    t =     8.57s         Find: Descendants matching type Button
+    t =     8.57s         Find: Elements matching predicate '"Trade" IN identifiers'
+    t =     8.57s         Requesting snapshot of accessibility hierarchy for app with pid 87779
+    t =     8.60s         Find: Descendants matching type Button
+    t =     8.60s         Requesting snapshot of accessibility hierarchy for app with pid 87779
+    t =     9.47s Checking `Expect predicate `isEnabled == 1` for object "Trade" Button`
+    t =     9.47s     Find the "Trade" Button
+    t =     9.50s     Capturing element debug description
+    t =     9.54s         Requesting snapshot of accessibility hierarchy for app with pid 87779
+    t =     9.56s         Find: Descendants matching type Button
+    t =     9.56s         Find: Elements matching predicate '"Trade" IN identifiers'
+    t =     9.57s         Requesting snapshot of accessibility hierarchy for app with pid 87779
+    t =     9.59s         Find: Descendants matching type Button
+    t =     9.59s         Requesting snapshot of accessibility hierarchy for app with pid 87779
+    t =    10.46s Checking `Expect predicate `isEnabled == 1` for object "Trade" Button`
+    t =    10.46s     Find the "Trade" Button
+    t =    10.49s     Capturing element debug description
+    t =    10.52s         Requesting snapshot of accessibility hierarchy for app with pid 87779
+    t =    10.54s         Find: Descendants matching type Button
+    t =    10.54s         Find: Elements matching predicate '"Trade" IN identifiers'
+    t =    10.54s         Requesting snapshot of accessibility hierarchy for app with pid 87779
+    t =    10.57s         Find: Descendants matching type Button
+    t =    10.57s         Requesting snapshot of accessibility hierarchy for app with pid 87779
+    t =    11.44s Checking `Expect predicate `isEnabled == 1` for object "Trade" Button`
+    t =    11.44s     Find the "Trade" Button
+    t =    11.47s     Capturing element debug description
+    t =    11.50s         Requesting snapshot of accessibility hierarchy for app with pid 87779
+    t =    11.53s         Find: Descendants matching type Button
+    t =    11.53s         Find: Elements matching predicate '"Trade" IN identifiers'
+    t =    11.53s         Requesting snapshot of accessibility hierarchy for app with pid 87779
+    t =    11.55s         Find: Descendants matching type Button
+    t =    11.55s         Requesting snapshot of accessibility hierarchy for app with pid 87779
+    t =    12.44s Checking `Expect predicate `isEnabled == 1` for object "Trade" Button`
+    t =    12.44s     Find the "Trade" Button
+    t =    12.47s     Capturing element debug description
+    t =    12.51s         Requesting snapshot of accessibility hierarchy for app with pid 87779
+    t =    12.53s         Find: Descendants matching type Button
+    t =    12.53s         Find: Elements matching predicate '"Trade" IN identifiers'
+    t =    12.53s         Requesting snapshot of accessibility hierarchy for app with pid 87779
+    t =    12.56s         Find: Descendants matching type Button
+    t =    12.56s         Requesting snapshot of accessibility hierarchy for app with pid 87779
+    t =    13.43s Checking `Expect predicate `isEnabled == 1` for object "Trade" Button`
+    t =    13.43s     Find the "Trade" Button
+    t =    13.46s     Capturing element debug description
+    t =    13.49s         Requesting snapshot of accessibility hierarchy for app with pid 87779
+    t =    13.52s         Find: Descendants matching type Button
+    t =    13.52s         Find: Elements matching predicate '"Trade" IN identifiers'
+    t =    13.52s         Requesting snapshot of accessibility hierarchy for app with pid 87779
+    t =    13.55s         Find: Descendants matching type Button
+    t =    13.55s         Requesting snapshot of accessibility hierarchy for app with pid 87779
+    t =    14.42s Checking `Expect predicate `isEnabled == 1` for object "Trade" Button`
+    t =    14.42s     Find the "Trade" Button
+    t =    14.44s     Capturing element debug description
+    t =    14.49s         Requesting snapshot of accessibility hierarchy for app with pid 87779
+    t =    14.52s         Find: Descendants matching type Button
+    t =    14.52s         Find: Elements matching predicate '"Trade" IN identifiers'
+    t =    14.52s         Requesting snapshot of accessibility hierarchy for app with pid 87779
+    t =    14.55s         Find: Descendants matching type Button
+    t =    14.55s         Requesting snapshot of accessibility hierarchy for app with pid 87779
+    t =    15.43s Checking `Expect predicate `isEnabled == 1` for object "Trade" Button`
+    t =    15.43s     Find the "Trade" Button
+    t =    15.54s Tap "Trade" Button
+    t =    15.54s     Wait for com.jakebeinart.settlers to idle
+    t =    15.54s     Find the "Trade" Button
+    t =    15.57s     Check for interrupting elements affecting "Trade" Button
+    t =    15.59s     Synthesize event
+    t =    15.90s     Wait for com.jakebeinart.settlers to idle
+    t =    15.90s Waiting 5.0s for "Close" Button to exist
+    t =    16.94s     Checking `Expect predicate `existsNoRetry == 1` for object "Close" Button`
+    t =    16.94s         Checking existence of `"Close" Button`
+    t =    16.97s Waiting 2.0s for "human-resource.brick" Other to exist
+    t =    18.01s     Checking `Expect predicate `existsNoRetry == 1` for object "human-resource.brick" Other`
+    t =    18.01s         Checking existence of `"human-resource.brick" Other`
+    t =    18.04s Find the "human-resource.brick" Other
+    t =    18.07s Waiting 2.0s for "human-resource.lumber" Other to exist
+    t =    19.11s     Checking `Expect predicate `existsNoRetry == 1` for object "human-resource.lumber" Other`
+    t =    19.11s         Checking existence of `"human-resource.lumber" Other`
+    t =    19.14s Find the "human-resource.lumber" Other
+    t =    19.16s Tap "trade.give.lumber" Button
+    t =    19.16s     Wait for com.jakebeinart.settlers to idle
+    t =    19.17s     Find the "trade.give.lumber" Button
+    t =    19.20s     Check for interrupting elements affecting "trade.give.lumber" Button
+    t =    19.22s     Synthesize event
+    t =    19.51s     Wait for com.jakebeinart.settlers to idle
+    t =    19.52s Tap "trade.want.brick" Button
+    t =    19.52s     Wait for com.jakebeinart.settlers to idle
+    t =    19.52s     Find the "trade.want.brick" Button
+    t =    19.55s     Check for interrupting elements affecting "trade.want.brick" Button
+    t =    19.57s     Synthesize event
+    t =    19.86s     Wait for com.jakebeinart.settlers to idle
+    t =    19.87s Find the "Propose to Bots" Button
+    t =    19.90s Tap "Propose to Bots" Button
+    t =    19.90s     Wait for com.jakebeinart.settlers to idle
+    t =    19.90s     Find the "Propose to Bots" Button
+    t =    19.93s     Check for interrupting elements affecting "Propose to Bots" Button
+    t =    19.95s     Synthesize event
+    t =    20.24s     Wait for com.jakebeinart.settlers to idle
+    t =    20.25s Checking existence of `"Close" Button`
+    t =    20.27s Waiting 2.0s for "Decline" Button to exist
+    t =    21.29s     Checking `Expect predicate `existsNoRetry == 1` for object "Decline" Button`
+    t =    21.29s         Checking existence of `"Decline" Button`
+    t =    21.32s Tap "Decline" Button
+    t =    21.32s     Wait for com.jakebeinart.settlers to idle
+    t =    21.32s     Find the "Decline" Button
+    t =    21.35s     Check for interrupting elements affecting "Decline" Button
+    t =    21.37s     Synthesize event
+    t =    21.66s     Wait for com.jakebeinart.settlers to idle
+    t =    21.66s Waiting 5.0s for "New Offer" Button to exist
+    t =    22.70s     Checking `Expect predicate `existsNoRetry == 1` for object "New Offer" Button`
+    t =    22.70s         Checking existence of `"New Offer" Button`
+    t =    22.73s Find the Target Application 'com.jakebeinart.settlers'
+    t =    22.88s Added attachment named 'trade-outcome-with-new-offer'
+    t =    22.89s Tap "New Offer" Button
+    t =    22.89s     Wait for com.jakebeinart.settlers to idle
+    t =    22.89s     Find the "New Offer" Button
+    t =    22.91s     Check for interrupting elements affecting "New Offer" Button
+    t =    22.93s     Synthesize event
+    t =    23.23s     Wait for com.jakebeinart.settlers to idle
+    t =    23.23s Waiting 3.0s for "Propose to Bots" Button to exist
+    t =    24.26s     Checking `Expect predicate `existsNoRetry == 1` for object "Propose to Bots" Button`
+    t =    24.26s         Checking existence of `"Propose to Bots" Button`
+    t =    24.29s Tear Down
+Test Case '-[SettlersUITests.GameplayBoundaryFlowTests testTradePopupStaysOpenAfterProposingToBots]' passed (24.580 seconds).
+Test Suite 'GameplayBoundaryFlowTests' passed at 2026-10-05 02:10:12.388.
+	 Executed 1 test, with 0 failures (0 unexpected) in 24.580 (24.581) seconds
+Test Suite 'NavalFlowTests' started at 2026-10-05 02:10:12.388.
+Test Case '-[SettlersUITests.NavalFlowTests testHarvestPassesNativeAccessibilityAudit]' started.
+    t =     0.00s Start Test at 2026-10-05 02:10:12.389
+    t =     0.01s Set Up
+    t =     0.02s Open com.jakebeinart.settlers
+    t =     0.02s     Launch com.jakebeinart.settlers
+    t =     0.02s         Terminate com.jakebeinart.settlers:87779
+2026-10-05 02:10:13.440 xcodebuild[87132:13772892] [MT] IDELaunchParametersSnapshot: The operation couldn’t be completed. (DebuggerLLDB.DebuggerVersionStore.StoreError error 0.)
+2026-10-05 02:10:13.440 xcodebuild[87132:13772892] [MT] IDELaunchParametersSnapshot: no debugger version
+    t =     1.26s         Setting up automation session
+    t =     1.82s         Wait for com.jakebeinart.settlers to idle
+    t =     3.81s Waiting 15.0s for "naval.resource.ore" Button to exist
+    t =     4.84s     Checking `Expect predicate `existsNoRetry == 1` for object "naval.resource.ore" Button`
+    t =     4.84s         Checking existence of `"naval.resource.ore" Button`
+    t =     4.91s Waiting 5.0s for "naval.resource.ore" Button to exist
+    t =     5.92s     Checking `Expect predicate `existsNoRetry == 1` for object "naval.resource.ore" Button`
+    t =     5.92s         Checking existence of `"naval.resource.ore" Button`
+    t =     5.95s Find the "Build" Button
+    t =     6.99s     Find the "Build" Button (retry 1)
+    t =     8.03s     Find the "Build" Button (retry 2)
+    t =     8.07s Find the "Greece" StaticText
+    t =     8.11s Find the "naval.overview" Button
+    t =    10.15s Find the Target Application 'com.jakebeinart.settlers'
+    t =    10.28s Added attachment named 'Voyages — audited island harvest'
+    t =    10.28s Tear Down
+Test Case '-[SettlersUITests.NavalFlowTests testHarvestPassesNativeAccessibilityAudit]' passed (10.499 seconds).
+Test Case '-[SettlersUITests.NavalFlowTests testStackedWorldChooserIncludesAdjacentHullAndMovesOnlyChosenIdentity]' started.
+    t =     0.00s Start Test at 2026-10-05 02:10:22.888
+    t =     0.02s Set Up
+    t =     0.02s Open com.jakebeinart.settlers
+    t =     0.02s     Launch com.jakebeinart.settlers
+    t =     0.02s         Terminate com.jakebeinart.settlers:88255
+2026-10-05 02:10:23.951 xcodebuild[87132:13772892] [MT] IDELaunchParametersSnapshot: The operation couldn’t be completed. (DebuggerLLDB.DebuggerVersionStore.StoreError error 0.)
+2026-10-05 02:10:23.951 xcodebuild[87132:13772892] [MT] IDELaunchParametersSnapshot: no debugger version
+    t =     1.27s         Setting up automation session
+    t =     1.81s         Wait for com.jakebeinart.settlers to idle
+    t =     3.79s Waiting 15.0s for "board.surface" Other to exist
+    t =     4.82s     Checking `Expect predicate `existsNoRetry == 1` for object "board.surface" Other`
+    t =     4.82s         Checking existence of `"board.surface" Other`
+    t =     4.87s Waiting 5.0s for "naval.overview" Button to exist
+    t =     5.90s     Checking `Expect predicate `existsNoRetry == 1` for object "naval.overview" Button`
+    t =     5.90s         Checking existence of `"naval.overview" Button`
+    t =     5.93s Tap "naval.overview" Button
+    t =     5.93s     Wait for com.jakebeinart.settlers to idle
+    t =     5.93s     Find the "naval.overview" Button
+    t =     5.95s     Check for interrupting elements affecting "naval.overview" Button
+    t =     5.98s     Synthesize event
+    t =     6.27s     Wait for com.jakebeinart.settlers to idle
+    t =     6.27s Checking existence of `"naval.ship.position.0" Other`
+    t =     6.29s Find the "naval.ship.position.0" Other
+    t =     6.32s Checking existence of `"naval.ship.position.1" Other`
+    t =     6.34s Find the "naval.ship.position.1" Other
+    t =     6.37s Checking existence of `"naval.ship.position.2" Other`
+    t =     6.39s Find the "naval.ship.position.2" Other
+    t =     6.41s Tap "board.ship.1" Button[0.50, 0.50]
+    t =     6.42s     Wait for com.jakebeinart.settlers to idle
+    t =     6.42s     Find the "board.ship.1" Button
+    t =     6.44s     Check for interrupting elements affecting "board.ship.1" Button
+    t =     6.46s     Synthesize event
+    t =     6.46s         Find the "board.ship.1" Button
+    t =     6.49s         Find the "board.ship.1" Button
+    t =     6.52s         Find the "board.ship.1" Button
+    t =     6.83s     Wait for com.jakebeinart.settlers to idle
+    t =     6.83s Waiting 3.0s for "naval.nearby.ship.0" Button to exist
+    t =     7.86s     Checking `Expect predicate `existsNoRetry == 1` for object "naval.nearby.ship.0" Button`
+    t =     7.86s         Checking existence of `"naval.nearby.ship.0" Button`
+    t =     7.89s Waiting 3.0s for "naval.nearby.ship.1" Button to exist
+    t =     8.92s     Checking `Expect predicate `existsNoRetry == 1` for object "naval.nearby.ship.1" Button`
+    t =     8.92s         Checking existence of `"naval.nearby.ship.1" Button`
+    t =     8.95s Waiting 3.0s for "naval.nearby.ship.2" Button to exist
+    t =     9.98s     Checking `Expect predicate `existsNoRetry == 1` for object "naval.nearby.ship.2" Button`
+    t =     9.98s         Checking existence of `"naval.nearby.ship.2" Button`
+    t =    10.01s Checking existence of `"board-decision.confirm" Button`
+    t =    10.04s Tap "naval.nearby.ship.2" Button
+    t =    10.04s     Wait for com.jakebeinart.settlers to idle
+    t =    10.04s     Find the "naval.nearby.ship.2" Button
+    t =    10.07s     Check for interrupting elements affecting "naval.nearby.ship.2" Button
+    t =    10.09s     Synthesize event
+    t =    10.38s     Wait for com.jakebeinart.settlers to idle
+    t =    10.39s Tap "naval.overview" Button
+    t =    10.39s     Wait for com.jakebeinart.settlers to idle
+    t =    10.39s     Find the "naval.overview" Button
+    t =    10.42s     Check for interrupting elements affecting "naval.overview" Button
+    t =    10.44s     Synthesize event
+    t =    10.73s     Wait for com.jakebeinart.settlers to idle
+    t =    10.74s Waiting 3.0s for Button (First Match) to exist
+    t =    11.76s     Checking `Expect predicate `existsNoRetry == 1` for object Button (First Match)`
+    t =    11.76s         Checking existence of `Button (First Match)`
+    t =    11.78s Get all elements bound by index for: Elements matching predicate 'identifier BEGINSWITH "board.tile."'
+    t =    11.80s Find the Button (Element at index 0)
+    t =    11.82s Find the Button (Element at index 1)
+    t =    11.83s Find the Button (Element at index 2)
+    t =    11.85s Find the Button (Element at index 3)
+    t =    11.87s Find the Button (Element at index 4)
+    t =    11.89s Find the "naval.overview" Button
+    t =    11.91s Find the "naval.camera.reference" Other
+    t =    11.93s Checking existence of `"naval.ship.position.0" Other`
+    t =    11.95s Find the "naval.ship.position.0" Other
+    t =    11.98s Checking existence of `"naval.ship.position.1" Other`
+    t =    12.00s Find the "naval.ship.position.1" Other
+    t =    12.02s Checking existence of `"naval.ship.position.2" Other`
+    t =    12.05s Find the "naval.ship.position.2" Other
+    t =    12.07s Find the "board.tile.-2_-1" Button
+    t =    12.10s Tap "board.tile.-2_-1" Button[0.50, 0.50]
+    t =    12.10s     Wait for com.jakebeinart.settlers to idle
+    t =    12.11s     Find the "board.tile.-2_-1" Button
+    t =    12.13s     Check for interrupting elements affecting "board.tile.-2_-1" Button
+    t =    12.15s     Synthesize event
+    t =    12.15s         Find the "board.tile.-2_-1" Button
+    t =    12.18s         Find the "board.tile.-2_-1" Button
+    t =    12.21s         Find the "board.tile.-2_-1" Button
+    t =    12.52s     Wait for com.jakebeinart.settlers to idle
+    t =    12.52s Find the "board.tile.-2_-1" Button
+    t =    12.55s Find the "naval.overview" Button
+    t =    12.57s Checking existence of `"naval.ship.position.0" Other`
+    t =    12.60s Find the "naval.ship.position.0" Other
+    t =    12.62s Checking existence of `"naval.ship.position.1" Other`
+    t =    12.64s Find the "naval.ship.position.1" Other
+    t =    12.67s Checking existence of `"naval.ship.position.2" Other`
+    t =    12.69s Find the "naval.ship.position.2" Other
+    t =    12.72s Find the "naval.camera.reference" Other
+    t =    12.74s Find the "board.tile.-3_-1" Button
+    t =    12.77s Tap "board.tile.-3_-1" Button[0.50, 0.50]
+    t =    12.77s     Wait for com.jakebeinart.settlers to idle
+    t =    12.78s     Find the "board.tile.-3_-1" Button
+    t =    12.80s     Check for interrupting elements affecting "board.tile.-3_-1" Button
+    t =    12.83s     Synthesize event
+    t =    12.83s         Find the "board.tile.-3_-1" Button
+    t =    12.86s         Find the "board.tile.-3_-1" Button
+    t =    12.89s         Find the "board.tile.-3_-1" Button
+    t =    13.20s     Wait for com.jakebeinart.settlers to idle
+    t =    13.20s Find the "board.tile.-3_-1" Button
+    t =    13.23s Find the "naval.overview" Button
+    t =    13.25s Checking existence of `"naval.ship.position.0" Other`
+    t =    13.28s Find the "naval.ship.position.0" Other
+    t =    13.30s Checking existence of `"naval.ship.position.1" Other`
+    t =    13.33s Find the "naval.ship.position.1" Other
+    t =    13.35s Checking existence of `"naval.ship.position.2" Other`
+    t =    13.38s Find the "naval.ship.position.2" Other
+    t =    13.40s Find the "naval.camera.reference" Other
+    t =    13.42s Find the "board.tile.-3_1" Button
+    t =    13.45s Tap "board.tile.-3_1" Button[0.50, 0.50]
+    t =    13.45s     Wait for com.jakebeinart.settlers to idle
+    t =    13.46s     Find the "board.tile.-3_1" Button
+    t =    13.48s     Check for interrupting elements affecting "board.tile.-3_1" Button
+    t =    13.50s     Synthesize event
+    t =    13.50s         Find the "board.tile.-3_1" Button
+    t =    13.53s         Find the "board.tile.-3_1" Button
+    t =    13.56s         Find the "board.tile.-3_1" Button
+    t =    13.87s     Wait for com.jakebeinart.settlers to idle
+    t =    13.87s Find the "board.tile.-3_1" Button
+    t =    13.90s Find the "naval.overview" Button
+    t =    13.93s Checking existence of `"naval.ship.position.0" Other`
+    t =    13.95s Find the "naval.ship.position.0" Other
+    t =    13.98s Checking existence of `"naval.ship.position.1" Other`
+    t =    14.00s Find the "naval.ship.position.1" Other
+    t =    14.03s Checking existence of `"naval.ship.position.2" Other`
+    t =    14.05s Find the "naval.ship.position.2" Other
+    t =    14.08s Find the "naval.camera.reference" Other
+    t =    14.10s Find the "board.tile.-4_0" Button
+    t =    14.13s Tap "board.tile.-4_0" Button[0.50, 0.50]
+    t =    14.13s     Wait for com.jakebeinart.settlers to idle
+    t =    14.13s     Find the "board.tile.-4_0" Button
+    t =    14.16s     Check for interrupting elements affecting "board.tile.-4_0" Button
+    t =    14.18s     Synthesize event
+    t =    14.18s         Find the "board.tile.-4_0" Button
+    t =    14.20s         Find the "board.tile.-4_0" Button
+    t =    14.23s         Find the "board.tile.-4_0" Button
+    t =    14.54s     Wait for com.jakebeinart.settlers to idle
+    t =    14.55s Find the "board.tile.-4_0" Button
+    t =    14.57s Find the "naval.overview" Button
+    t =    14.59s Checking existence of `"naval.ship.position.0" Other`
+    t =    14.62s Find the "naval.ship.position.0" Other
+    t =    14.64s Checking existence of `"naval.ship.position.1" Other`
+    t =    14.67s Find the "naval.ship.position.1" Other
+    t =    14.69s Checking existence of `"naval.ship.position.2" Other`
+    t =    14.71s Find the "naval.ship.position.2" Other
+    t =    14.74s Find the "naval.camera.reference" Other
+    t =    14.76s Find the "board.tile.-4_1" Button
+    t =    14.79s Tap "board.tile.-4_1" Button[0.50, 0.50]
+    t =    14.79s     Wait for com.jakebeinart.settlers to idle
+    t =    14.79s     Find the "board.tile.-4_1" Button
+    t =    14.82s     Check for interrupting elements affecting "board.tile.-4_1" Button
+    t =    14.84s     Synthesize event
+    t =    14.84s         Find the "board.tile.-4_1" Button
+    t =    14.87s         Find the "board.tile.-4_1" Button
+    t =    14.89s         Find the "board.tile.-4_1" Button
+    t =    15.20s     Wait for com.jakebeinart.settlers to idle
+    t =    15.21s Find the "board.tile.-4_1" Button
+    t =    15.23s Find the "naval.overview" Button
+    t =    15.26s Checking existence of `"naval.ship.position.0" Other`
+    t =    15.28s Find the "naval.ship.position.0" Other
+    t =    15.31s Checking existence of `"naval.ship.position.1" Other`
+    t =    15.34s Find the "naval.ship.position.1" Other
+    t =    15.36s Checking existence of `"naval.ship.position.2" Other`
+    t =    15.39s Find the "naval.ship.position.2" Other
+    t =    15.41s Find the "naval.camera.reference" Other
+    t =    15.44s Tap "board-decision.confirm" Button
+    t =    15.44s     Wait for com.jakebeinart.settlers to idle
+    t =    15.44s     Find the "board-decision.confirm" Button
+    t =    15.47s     Check for interrupting elements affecting "board-decision.confirm" Button
+    t =    15.49s     Synthesize event
+    t =    15.78s     Wait for com.jakebeinart.settlers to idle
+    t =    15.93s Checking existence of `"naval.ship.position.0" Other`
+    t =    15.96s Find the "naval.ship.position.0" Other
+    t =    15.98s Checking existence of `"naval.ship.position.1" Other`
+    t =    16.01s Find the "naval.ship.position.1" Other
+    t =    16.04s Checking existence of `"naval.ship.position.2" Other`
+    t =    16.07s Find the "naval.ship.position.2" Other
+    t =    16.09s Find the Target Application 'com.jakebeinart.settlers'
+    t =    16.26s Added attachment named 'Voyages — exact crowded-map sailing'
+    t =    16.26s Checking existence of `"naval.ship.position.2" Other`
+    t =    16.31s Find the "naval.ship.position.2" Other
+    t =    16.34s Terminate com.jakebeinart.settlers:88376
+    t =    17.38s Open com.jakebeinart.settlers
+    t =    17.39s     Launch com.jakebeinart.settlers
+2026-10-05 02:10:40.274 xcodebuild[87132:13772892] [MT] IDELaunchParametersSnapshot: The operation couldn’t be completed. (DebuggerLLDB.DebuggerVersionStore.StoreError error 0.)
+2026-10-05 02:10:40.274 xcodebuild[87132:13772892] [MT] IDELaunchParametersSnapshot: no debugger version
+    t =    17.59s         Setting up automation session
+    t =    18.19s         Wait for com.jakebeinart.settlers to idle
+    t =    19.39s Waiting 5.0s for "main-menu.resume" Button to exist
+    t =    20.40s     Checking `Expect predicate `existsNoRetry == 1` for object "main-menu.resume" Button`
+    t =    20.40s         Checking existence of `"main-menu.resume" Button`
+    t =    20.43s Tap "main-menu.resume" Button
+    t =    20.43s     Wait for com.jakebeinart.settlers to idle
+    t =    20.43s     Find the "main-menu.resume" Button
+    t =    20.44s     Check for interrupting elements affecting "main-menu.resume" Button
+    t =    20.45s     Synthesize event
+    t =    20.74s     Wait for com.jakebeinart.settlers to idle
+    t =    20.84s Waiting 5.0s for "naval.overview" Button to exist
+    t =    21.86s     Checking `Expect predicate `existsNoRetry == 1` for object "naval.overview" Button`
+    t =    21.86s         Checking existence of `"naval.overview" Button`
+    t =    21.89s Checking existence of `"naval.ship.position.2" Other`
+    t =    21.91s Find the "naval.ship.position.2" Other
+    t =    21.93s Checking existence of `"board.ship-preview" Other`
+    t =    21.96s Tear Down
+Test Case '-[SettlersUITests.NavalFlowTests testStackedWorldChooserIncludesAdjacentHullAndMovesOnlyChosenIdentity]' passed (22.220 seconds).
+Test Case '-[SettlersUITests.NavalFlowTests testWorldLaunchTouchesStageTheExactSeaAndCancelWithoutPurchasing]' started.
+    t =     0.00s Start Test at 2026-10-05 02:10:45.109
+    t =     0.02s Set Up
+    t =     0.02s Open com.jakebeinart.settlers
+    t =     0.02s     Launch com.jakebeinart.settlers
+    t =     0.02s         Terminate com.jakebeinart.settlers:88519
+2026-10-05 02:10:46.181 xcodebuild[87132:13772892] [MT] IDELaunchParametersSnapshot: The operation couldn’t be completed. (DebuggerLLDB.DebuggerVersionStore.StoreError error 0.)
+2026-10-05 02:10:46.181 xcodebuild[87132:13772892] [MT] IDELaunchParametersSnapshot: no debugger version
+    t =     1.28s         Setting up automation session
+    t =     1.81s         Wait for com.jakebeinart.settlers to idle
+    t =     3.53s Waiting 15.0s for "board.surface" Other to exist
+    t =     4.56s     Checking `Expect predicate `existsNoRetry == 1` for object "board.surface" Other`
+    t =     4.56s         Checking existence of `"board.surface" Other`
+    t =     4.62s Waiting 5.0s for "naval.overview" Button to exist
+    t =     5.65s     Checking `Expect predicate `existsNoRetry == 1` for object "naval.overview" Button`
+    t =     5.65s         Checking existence of `"naval.overview" Button`
+    t =     5.68s Tap "naval.overview" Button
+    t =     5.68s     Wait for com.jakebeinart.settlers to idle
+    t =     5.68s     Find the "naval.overview" Button
+    t =     5.71s     Check for interrupting elements affecting "naval.overview" Button
+    t =     5.74s     Synthesize event
+    t =     6.03s     Wait for com.jakebeinart.settlers to idle
+    t =     6.04s Find the "human-resource.lumber" Other
+    t =     6.07s Tap "Build" Button
+    t =     6.07s     Wait for com.jakebeinart.settlers to idle
+    t =     6.07s     Find the "Build" Button
+    t =     6.10s     Check for interrupting elements affecting "Build" Button
+    t =     6.13s     Synthesize event
+    t =     6.43s     Wait for com.jakebeinart.settlers to idle
+    t =     6.43s Tap "build.ship" Button
+    t =     6.43s     Wait for com.jakebeinart.settlers to idle
+    t =     6.44s     Find the "build.ship" Button
+    t =     6.49s     Check for interrupting elements affecting "build.ship" Button
+    t =     6.52s     Synthesize event
+    t =     6.82s     Wait for com.jakebeinart.settlers to idle
+    t =     6.83s Waiting 3.0s for Button (First Match) to exist
+    t =     7.85s     Checking `Expect predicate `existsNoRetry == 1` for object Button (First Match)`
+    t =     7.85s         Checking existence of `Button (First Match)`
+    t =     7.88s Get all elements bound by index for: Elements matching predicate 'identifier BEGINSWITH "board.tile."'
+    t =     7.90s Find the Button (Element at index 0)
+    t =     7.92s Find the Button (Element at index 1)
+    t =     7.94s Find the Button (Element at index 2)
+    t =     7.96s Find the "naval.overview" Button
+    t =     8.00s Find the "naval.camera.reference" Other
+    t =     8.03s Find the "board.tile.-1_-2" Button
+    t =     8.08s Tap "board.tile.-1_-2" Button[0.50, 0.50]
+    t =     8.08s     Wait for com.jakebeinart.settlers to idle
+    t =     8.09s     Find the "board.tile.-1_-2" Button
+    t =     8.12s     Check for interrupting elements affecting "board.tile.-1_-2" Button
+    t =     8.14s     Synthesize event
+    t =     8.14s         Find the "board.tile.-1_-2" Button
+    t =     8.18s         Find the "board.tile.-1_-2" Button
+    t =     8.22s         Find the "board.tile.-1_-2" Button
+    t =     8.54s     Wait for com.jakebeinart.settlers to idle
+    t =     8.55s Find the "board.tile.-1_-2" Button
+    t =     8.59s Find the "naval.overview" Button
+    t =     8.63s Find the "naval.camera.reference" Other
+    t =     8.67s Find the "board.tile.-3_0" Button
+    t =     8.71s Tap "board.tile.-3_0" Button[0.50, 0.50]
+    t =     8.71s     Wait for com.jakebeinart.settlers to idle
+    t =     8.72s     Find the "board.tile.-3_0" Button
+    t =     8.75s     Check for interrupting elements affecting "board.tile.-3_0" Button
+    t =     8.78s     Synthesize event
+    t =     8.78s         Find the "board.tile.-3_0" Button
+    t =     8.83s         Find the "board.tile.-3_0" Button
+    t =     8.87s         Find the "board.tile.-3_0" Button
+    t =     9.20s     Wait for com.jakebeinart.settlers to idle
+    t =     9.20s Find the "board.tile.-3_0" Button
+    t =     9.24s Find the "naval.overview" Button
+    t =     9.28s Find the "naval.camera.reference" Other
+    t =     9.32s Find the "board.tile.-3_1" Button
+    t =     9.36s Tap "board.tile.-3_1" Button[0.50, 0.50]
+    t =     9.36s     Wait for com.jakebeinart.settlers to idle
+    t =     9.37s     Find the "board.tile.-3_1" Button
+    t =     9.40s     Check for interrupting elements affecting "board.tile.-3_1" Button
+    t =     9.43s     Synthesize event
+    t =     9.43s         Find the "board.tile.-3_1" Button
+    t =     9.47s         Find the "board.tile.-3_1" Button
+    t =     9.51s         Find the "board.tile.-3_1" Button
+    t =     9.83s     Wait for com.jakebeinart.settlers to idle
+    t =     9.83s Find the "board.tile.-3_1" Button
+    t =     9.86s Find the "naval.overview" Button
+    t =     9.90s Find the "naval.camera.reference" Other
+    t =     9.93s Find the "human-resource.lumber" Other
+    t =     9.97s Checking existence of `"board.ship.0" Button`
+    t =    10.00s Find the Target Application 'com.jakebeinart.settlers'
+    t =    10.21s Added attachment named 'Voyages — exact World launch preview'
+    t =    10.21s Tap "board-decision.cancel" Button
+    t =    10.21s     Wait for com.jakebeinart.settlers to idle
+    t =    10.21s     Find the "board-decision.cancel" Button
+    t =    10.24s     Check for interrupting elements affecting "board-decision.cancel" Button
+    t =    10.27s     Synthesize event
+    t =    10.56s     Wait for com.jakebeinart.settlers to idle
+    t =    10.56s Find the "human-resource.lumber" Other
+    t =    10.60s Checking existence of `"board.ship-preview" Other`
+    t =    10.62s Checking existence of `"board.ship.0" Button`
+    t =    10.65s Tear Down
+Test Case '-[SettlersUITests.NavalFlowTests testWorldLaunchTouchesStageTheExactSeaAndCancelWithoutPurchasing]' passed (10.907 seconds).
+Test Case '-[SettlersUITests.NavalFlowTests testWorldShipTouchOpensNearbyIdentityChooserBeforeSelectingOrFocusing]' started.
+    t =     0.00s Start Test at 2026-10-05 02:10:56.016
+    t =     0.02s Set Up
+    t =     0.02s Open com.jakebeinart.settlers
+    t =     0.02s     Launch com.jakebeinart.settlers
+    t =     0.02s         Terminate com.jakebeinart.settlers:88558
+2026-10-05 02:10:57.055 xcodebuild[87132:13772892] [MT] IDELaunchParametersSnapshot: The operation couldn’t be completed. (DebuggerLLDB.DebuggerVersionStore.StoreError error 0.)
+2026-10-05 02:10:57.056 xcodebuild[87132:13772892] [MT] IDELaunchParametersSnapshot: no debugger version
+    t =     1.25s         Setting up automation session
+    t =     2.12s         Wait for com.jakebeinart.settlers to idle
+    t =     4.04s Waiting 15.0s for "board.surface" Other to exist
+    t =     5.07s     Checking `Expect predicate `existsNoRetry == 1` for object "board.surface" Other`
+    t =     5.07s         Checking existence of `"board.surface" Other`
+    t =     5.12s Waiting 5.0s for "naval.overview" Button to exist
+    t =     6.15s     Checking `Expect predicate `existsNoRetry == 1` for object "naval.overview" Button`
+    t =     6.15s         Checking existence of `"naval.overview" Button`
+    t =     6.17s Tap "naval.overview" Button
+    t =     6.17s     Wait for com.jakebeinart.settlers to idle
+    t =     6.17s     Find the "naval.overview" Button
+    t =     6.20s     Check for interrupting elements affecting "naval.overview" Button
+    t =     6.22s     Synthesize event
+    t =     6.50s     Wait for com.jakebeinart.settlers to idle
+    t =     6.51s Checking existence of `"naval.ship.position.0" Other`
+    t =     6.53s Find the "naval.ship.position.0" Other
+    t =     6.56s Checking existence of `"naval.ship.position.1" Other`
+    t =     6.58s Find the "naval.ship.position.1" Other
+    t =     6.60s Find the "naval.camera.reference" Other
+    t =     6.62s Find the "board.ship.0" Button
+    t =     6.65s Find the "board.ship.0" Button
+    t =     6.67s Tap "board.ship.0" Button[0.50, 0.50]
+    t =     6.67s     Wait for com.jakebeinart.settlers to idle
+    t =     6.67s     Find the "board.ship.0" Button
+    t =     6.70s     Check for interrupting elements affecting "board.ship.0" Button
+    t =     6.71s     Synthesize event
+    t =     6.71s         Find the "board.ship.0" Button
+    t =     6.74s         Find the "board.ship.0" Button
+    t =     6.76s         Find the "board.ship.0" Button
+    t =     7.06s     Wait for com.jakebeinart.settlers to idle
+    t =     7.07s Waiting 3.0s for "naval.nearby.ship.0" Button to exist
+    t =     8.08s     Checking `Expect predicate `existsNoRetry == 1` for object "naval.nearby.ship.0" Button`
+    t =     8.08s         Checking existence of `"naval.nearby.ship.0" Button`
+    t =     8.12s Checking existence of `"naval.nearby.ship.1" Button`
+    t =     8.15s Find the "naval.camera.reference" Other
+    t =     8.17s Checking existence of `"naval.ship.position.0" Other`
+    t =     8.20s Find the "naval.ship.position.0" Other
+    t =     8.22s Checking existence of `"naval.ship.position.1" Other`
+    t =     8.24s Find the "naval.ship.position.1" Other
+    t =     8.27s Checking existence of `"board-decision.confirm" Button`
+    t =     8.29s Find the Target Application 'com.jakebeinart.settlers'
+    t =     8.44s Added attachment named 'Voyages — nearby vessels at World zoom'
+    t =     8.44s Tap "naval.nearby.ship.0" Button
+    t =     8.44s     Wait for com.jakebeinart.settlers to idle
+    t =     8.45s     Find the "naval.nearby.ship.0" Button
+    t =     8.47s     Check for interrupting elements affecting "naval.nearby.ship.0" Button
+    t =     8.49s     Synthesize event
+    t =     8.78s     Wait for com.jakebeinart.settlers to idle
+    t =     8.78s Waiting 3.0s for "board-decision.cancel" Button to exist
+    t =     9.79s     Checking `Expect predicate `existsNoRetry == 1` for object "board-decision.cancel" Button`
+    t =     9.79s         Checking existence of `"board-decision.cancel" Button`
+    t =     9.83s Find the "board-decision.confirm" Button
+    t =     9.86s Tap "board-decision.cancel" Button
+    t =     9.86s     Wait for com.jakebeinart.settlers to idle
+    t =     9.86s     Find the "board-decision.cancel" Button
+    t =     9.88s     Check for interrupting elements affecting "board-decision.cancel" Button
+    t =     9.90s     Synthesize event
+    t =    10.19s     Wait for com.jakebeinart.settlers to idle
+    t =    10.19s Checking existence of `"naval.ship.position.0" Other`
+    t =    10.22s Find the "naval.ship.position.0" Other
+    t =    10.24s Checking existence of `"naval.ship.position.1" Other`
+    t =    10.26s Find the "naval.ship.position.1" Other
+    t =    10.28s Tear Down
+Test Case '-[SettlersUITests.NavalFlowTests testWorldShipTouchOpensNearbyIdentityChooserBeforeSelectingOrFocusing]' passed (10.509 seconds).
+Test Suite 'NavalFlowTests' passed at 2026-10-05 02:11:06.525.
+	 Executed 4 tests, with 0 failures (0 unexpected) in 54.135 (54.137) seconds
+Test Suite 'NavalReplayRenderingTests' started at 2026-10-05 02:11:06.526.
+Test Case '-[SettlersUITests.NavalReplayRenderingTests testProductionRingsCannotRevealFoggedIslandPerimeters]' started.
+    t =     0.00s Start Test at 2026-10-05 02:11:06.527
+    t =     0.02s Set Up
+    t =     0.02s Open com.jakebeinart.settlers
+    t =     0.02s     Launch com.jakebeinart.settlers
+    t =     0.02s         Terminate com.jakebeinart.settlers:88829
+2026-10-05 02:11:07.577 xcodebuild[87132:13772892] [MT] IDELaunchParametersSnapshot: The operation couldn’t be completed. (DebuggerLLDB.DebuggerVersionStore.StoreError error 0.)
+2026-10-05 02:11:07.577 xcodebuild[87132:13772892] [MT] IDELaunchParametersSnapshot: no debugger version
+    t =     1.26s         Setting up automation session
+    t =     1.77s         Wait for com.jakebeinart.settlers to idle
+    t =     3.60s Waiting 15.0s for "qa.production.show" Button to exist
+    t =     4.63s     Checking `Expect predicate `existsNoRetry == 1` for object "qa.production.show" Button`
+    t =     4.63s         Checking existence of `"qa.production.show" Button`
+    t =     4.68s Tap "naval.overview" Button
+    t =     4.68s     Wait for com.jakebeinart.settlers to idle
+    t =     4.69s     Find the "naval.overview" Button
+    t =     4.71s     Check for interrupting elements affecting "naval.overview" Button
+    t =     4.73s     Synthesize event
+    t =     5.02s     Wait for com.jakebeinart.settlers to idle
+    t =     6.06s Find the "naval.camera.reference" Other
+    t =     6.10s Checking existence of `"qa.production.known.0" Other`
+    t =     6.12s Checking existence of `"qa.production.known.1" Other`
+    t =     6.15s Checking existence of `"qa.production.known.2" Other`
+    t =     6.17s Checking existence of `"qa.production.known.3" Other`
+    t =     6.19s Checking existence of `"qa.production.known.4" Other`
+    t =     6.21s Checking existence of `"qa.production.known.5" Other`
+    t =     6.24s Checking existence of `"qa.production.hidden.0" Other`
+    t =     6.26s Checking existence of `"qa.production.hidden.1" Other`
+    t =     6.28s Checking existence of `"qa.production.hidden.2" Other`
+    t =     6.30s Checking existence of `"qa.production.hidden.3" Other`
+    t =     6.32s Checking existence of `"qa.production.hidden.4" Other`
+    t =     6.34s Checking existence of `"qa.production.hidden.5" Other`
+    t =     6.37s Find the "qa.production.known.0" Other
+    t =     6.39s Find the "qa.production.hidden.0" Other
+    t =     6.41s Find the Target Application 'com.jakebeinart.settlers'
+    t =     6.57s Find the "board.surface" Other
+    t =     6.60s Find the Target Application 'com.jakebeinart.settlers'
+    t =     6.61s Tap "qa.production.show" Button
+    t =     6.61s     Wait for com.jakebeinart.settlers to idle
+    t =     6.61s     Find the "qa.production.show" Button
+    t =     6.63s     Check for interrupting elements affecting "qa.production.show" Button
+    t =     6.65s     Synthesize event
+    t =     6.94s     Wait for com.jakebeinart.settlers to idle
+    t =     6.94s Find the Target Application 'com.jakebeinart.settlers'
+    t =     7.10s Find the "board.surface" Other
+    t =     7.13s Find the Target Application 'com.jakebeinart.settlers'
+    t =     7.14s Find the "qa.production.known.0" Other
+    t =     7.17s Find the "qa.production.known.0" Other
+    t =     7.26s Find the "qa.production.known.1" Other
+    t =     7.29s Find the "qa.production.known.1" Other
+    t =     7.31s Find the "qa.production.known.2" Other
+    t =     7.34s Find the "qa.production.known.2" Other
+    t =     7.36s Find the "qa.production.known.3" Other
+    t =     7.39s Find the "qa.production.known.3" Other
+    t =     7.41s Find the "qa.production.known.4" Other
+    t =     7.44s Find the "qa.production.known.4" Other
+    t =     7.46s Find the "qa.production.known.5" Other
+    t =     7.49s Find the "qa.production.known.5" Other
+    t =     7.51s Find the "qa.production.known.0" Other
+    t =     7.54s Find the "qa.production.known.0" Other
+    t =     7.56s Find the "qa.production.known.1" Other
+    t =     7.59s Find the "qa.production.known.1" Other
+    t =     7.62s Find the "qa.production.known.2" Other
+    t =     7.64s Find the "qa.production.known.2" Other
+    t =     7.66s Find the "qa.production.known.3" Other
+    t =     7.69s Find the "qa.production.known.3" Other
+    t =     7.71s Find the "qa.production.known.4" Other
+    t =     7.74s Find the "qa.production.known.4" Other
+    t =     7.77s Find the "qa.production.known.5" Other
+    t =     7.79s Find the "qa.production.known.5" Other
+    t =     7.82s Find the "qa.production.hidden.0" Other
+    t =     7.84s Find the "qa.production.hidden.0" Other
+    t =     7.87s Find the "qa.production.hidden.1" Other
+    t =     7.89s Find the "qa.production.hidden.1" Other
+    t =     7.91s Find the "qa.production.hidden.2" Other
+    t =     7.94s Find the "qa.production.hidden.2" Other
+    t =     7.96s Find the "qa.production.hidden.3" Other
+    t =     7.99s Find the "qa.production.hidden.3" Other
+    t =     8.01s Find the "qa.production.hidden.4" Other
+    t =     8.04s Find the "qa.production.hidden.4" Other
+    t =     8.06s Find the "qa.production.hidden.5" Other
+    t =     8.08s Find the "qa.production.hidden.5" Other
+    t =     8.11s Find the Target Application 'com.jakebeinart.settlers'
+    t =     8.26s Added attachment named 'Voyages — hidden production has no painted perimeter'
+    t =     8.27s Tear Down
+Test Case '-[SettlersUITests.NavalReplayRenderingTests testProductionRingsCannotRevealFoggedIslandPerimeters]' passed (8.486 seconds).
+Test Suite 'NavalReplayRenderingTests' passed at 2026-10-05 02:11:15.013.
+	 Executed 1 test, with 0 failures (0 unexpected) in 8.486 (8.487) seconds
+Test Suite 'SettlersUITests.xctest' passed at 2026-10-05 02:11:15.014.
+	 Executed 7 tests, with 0 failures (0 unexpected) in 96.890 (96.897) seconds
+Test Suite 'Selected tests' passed at 2026-10-05 02:11:15.014.
+	 Executed 7 tests, with 0 failures (0 unexpected) in 96.890 (96.898) seconds
+2026-10-05 02:11:15.338 xcodebuild[87132:13772892] [MT] IDETestOperationsObserverDebug: 117.091 elapsed -- Testing started completed.
+2026-10-05 02:11:15.338 xcodebuild[87132:13772892] [MT] IDETestOperationsObserverDebug: 0.000 sec, +0.000 sec -- start
+2026-10-05 02:11:15.338 xcodebuild[87132:13772892] [MT] IDETestOperationsObserverDebug: 117.091 sec, +117.091 sec -- end
+
+Test session results, code coverage, and logs:
+	/Users/alex/.codex/artifacts/naval-exploration/map-fixes-final.xcresult
+
+** TEST SUCCEEDED **
+
+Testing started

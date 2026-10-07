@@ -14,7 +14,8 @@ struct ReplayVideoFrameView: View {
                     .foregroundStyle(frame.isPartial ? SettingsChrome.ornamentGold : .white.opacity(0.8))
             }
             BoardView(state: frame.boardState, playerIdentity: frame.identity(for:), decision: nil,
-                      onSelectTarget: { _ in }, allowsGameCommands: false)
+                      onSelectTarget: { _ in }, allowsGameCommands: false, animatesStateChanges: false)
+                .staticWorldOverview()
                 .allowsHitTesting(false)
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             scores

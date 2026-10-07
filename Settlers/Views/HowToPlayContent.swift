@@ -23,12 +23,16 @@ enum HowToPlayContent {
         let variant: GameVariant
         let victoryPointTarget: Int
         let armyPrice: ArmyPrice
+        let navalOptions: NavalOptions?
+        let navalRulesVersion: Int?
 
         init(state: GameState) {
             mode = state.mode
             variant = state.variant
             victoryPointTarget = state.victoryPointTarget
             armyPrice = state.armyPrice
+            navalOptions = state.naval?.options
+            navalRulesVersion = state.naval?.rulesVersion
         }
 
         var ruleset: Ruleset { Ruleset.forMode(mode) }
@@ -83,9 +87,10 @@ enum HowToPlayContent {
 
     private static let classic = Ruleset.forMode(.classic)
     private static let vast = Ruleset.forMode(.vast)
+    private static let naval = Ruleset.forMode(.naval)
 
     static let introduction = "These are the rules of Empires, a game of building, trading and competing empires. "
-        + "Classic, Vast and Conquest are described here in our own terms; this is not the official CATAN rulebook."
+        + "Classic, Vast, Conquest and Naval are described here in our own terms; this is not the official CATAN rulebook."
 
     static var steps: [Step] { steps(for: nil) }
     static var rules: [Section] { rules(for: nil) }
@@ -94,18 +99,21 @@ enum HowToPlayContent {
     static func steps(for context: Context?) -> [Step] {
         let ruleset = context?.ruleset ?? classic
         let target = context?.victoryPointTarget ?? ruleset.defaultVictoryPointTarget
+        let isNaval = context?.mode == .naval
         return [
         Step(id: 0, illustration: .victory, title: "The goal",
              line: "Be the first empire to reach \(target) victory points."),
         Step(id: 1, illustration: .terrain, title: "The land",
-             line: "Each hex makes one resource: Brick, Lumber, Wool, Grain or Ore. The desert makes nothing."),
+             line: isNaval ? "Sail through sea and shared fog to discover resource islands. Sea and desert make nothing."
+                : "Each hex makes one resource: Brick, Lumber, Wool, Grain or Ore. The desert makes nothing."),
         Step(id: 2, illustration: .settlement, title: "Settlements",
              line: "Build on the corners of hexes. A settlement is worth \(ruleset.victoryPoints(for: .settlement)) point and collects from the hexes it touches.",
              cost: Building.settlementCost),
         Step(id: 3, illustration: .dice, title: "Roll for resources",
              line: "Every turn starts with two dice. Each hex showing that number pays everyone built next to it."),
         Step(id: 4, illustration: .road, title: "Roads",
-             line: "Roads run along hex edges and are how you reach new corners to settle.",
+             line: isNaval ? "Roads grow from your own settlements. Sail a ship to establish a colony before building roads on a new island."
+                : "Roads run along hex edges and are how you reach new corners to settle.",
              cost: Building.roadCost),
         Step(id: 5, illustration: .city, title: "Cities",
              line: "Upgrade a settlement to a city: \(ruleset.victoryPoints(for: .city)) points, and double the resources.",
@@ -126,6 +134,7 @@ enum HowToPlayContent {
         let ruleset = context?.ruleset ?? classic
         let target = context?.victoryPointTarget ?? ruleset.defaultVictoryPointTarget
         let boardName = context?.mode.displayName ?? GameMode.classic.displayName
+        let isNaval = context?.mode == .naval
         var sections = [
         Section(
             id: "goal", icon: "star.fill", title: "Goal",
@@ -152,6 +161,8 @@ enum HowToPlayContent {
                 "Each settlement comes with one road touching it.",
                 "Your second settlement pays you one of each resource around it straight away.",
                 "No two settlements may sit on neighbouring corners - there must be at least one empty corner between them.",
+                isNaval ? "Setup settlements may use any legal empty corner on the home island, including inland corners."
+                    : "Setup settlements may use any legal empty corner on the island.",
             ]
         ),
         Section(
@@ -172,7 +183,7 @@ enum HowToPlayContent {
             summary: "Spend resources on roads, settlements, cities and development cards.",
             details: [
                 "Road: \(costDescription(Building.roadCost)). It must connect to your own road or building.",
-                "Settlement: \(costDescription(Building.settlementCost)). It must touch one of your roads and keep one empty corner from every other settlement.",
+                settlementDescription(isNaval: isNaval),
                 "City: \(costDescription(Building.cityCost)). It replaces one of your settlements, which goes back to your supply.",
                 "Development card: \(costDescription(Building.devCardCost)).",
                 "In \(boardName) you have \(ruleset.pieceLimit(for: .settlement)) settlements, \(ruleset.pieceLimit(for: .city)) cities and \(ruleset.maxRoadsPerPlayer) roads.",
@@ -183,6 +194,8 @@ enum HowToPlayContent {
             summary: "Trade with players, or with the bank at 4 for 1.",
             details: [
                 "On your turn you can offer any cards to the other players. They can accept or decline.",
+                "When you accept a computer player's offer, other players who also accept and can pay have an equal chance "
+                    + "to complete it. Two accepters each have a 50% chance. If another player wins, the game tells you who traded.",
                 "The bank always takes 4 of one resource for 1 of any other.",
                 "A 3:1 port takes 3 of any one resource. A resource port takes 2 of its own resource.",
                 "You use a port by having a settlement or city on one of its two corners.",
@@ -193,7 +206,8 @@ enum HowToPlayContent {
             summary: "A 7 pays nobody. The roller moves the robber and steals a card.",
             details: [
                 "Anyone holding more than \(ruleset.discardThreshold) resource cards discards half of them, rounded down. Those cards return to the bank, not to the roller.",
-                "The robber moves to any other hex. That hex produces nothing while the robber sits on it.",
+                isNaval ? "The robber moves to another discovered land hex. That hex produces nothing while the robber sits on it."
+                    : "The robber moves to any other hex. That hex produces nothing while the robber sits on it.",
                 "The roller steals one random card from a player with a building next to the robber's new hex.",
                 "Choose one rival who holds resources next to the new hex. If nobody there holds resources, no card is stolen.",
                 "A Knight card moves the robber the same way, without the discard.",
@@ -226,6 +240,7 @@ enum HowToPlayContent {
         ),
         ]
         if context?.variant == .conquest { sections.append(conquest(for: context)) }
+        if isNaval { sections.append(voyages(for: context)) }
         return sections
     }
 
@@ -255,6 +270,7 @@ enum HowToPlayContent {
             ]
         ),
         conquest(for: context),
+        voyages(for: context),
         ]
         if context?.mode == .expanded {
             let legacy = Ruleset.forMode(.expanded)
@@ -287,7 +303,7 @@ enum HowToPlayContent {
     }
 
     private static func conquest(for context: Context?) -> Section {
-        let ruleset = context?.ruleset ?? classic
+        let ruleset = context?.mode == .naval ? classic : context?.ruleset ?? classic
         let price = context?.armyPrice ?? .anyThree
         let strengths = ruleset.armyDeck.keys.sorted()
         let strengthRange = "\(strengths.first ?? 1) to \(strengths.last ?? 4)"
@@ -305,6 +321,66 @@ enum HowToPlayContent {
                 "The robber still blocks an occupied hex. Conquest changes who collects from a hex, not the dice or how many cards a Knight steals.",
             ]
         )
+    }
+
+    private static func settlementDescription(isNaval: Bool) -> String {
+        let cost = "Settlement: \(costDescription(Building.settlementCost)). "
+        return cost + (isNaval
+            ? "It must touch your road or a ship beside a legal coastal corner. Keep one empty corner from every other settlement."
+            : "It must touch one of your roads and keep one empty corner from every other settlement.")
+    }
+
+    private static func voyages(for context: Context?) -> Section {
+        let options = context?.mode == .naval ? context?.navalOptions : nil
+        let fog = navalDiscoveryDescription(for: context)
+        let choices = options?.resourceChoiceEnabled == false
+            ? "Resource-choice islands are off for this match. Each producing hex supplies its printed resource."
+            : "When a harvest field's number rolls, a settlement chooses 1 resource and a city chooses 2 resources. "
+                + "Collect each card separately; choosing the same resource twice is allowed. "
+                + "Fixed production happens first; choices use the available bank."
+        let target = (context?.mode == .naval ? context?.victoryPointTarget : nil) ?? naval.defaultVictoryPointTarget
+        return Section(
+            id: "voyages", icon: "sailboat.fill", title: "Naval · Voyages",
+            summary: "Buy ships, discover islands and build colonies. First to \(target) points wins.",
+            details: [
+                "Both starting settlements may be inland or coastal on the home island. Ships launch beside your coastal settlements or cities.",
+                "A ship costs \(costDescription(Naval.shipCost)). You may purchase six hulls; capture never refunds a purchased hull.",
+                navalSailingDescription(for: context),
+                fog,
+                "Home-coast harbors are charted from setup. Other harbors appear when their coastline is discovered; "
+                    + "a settlement or city on a harbor corner activates its 2:1 or 3:1 trade rate.",
+                "World opens the overview. Return restores your previous zoom and position; Home focuses the starting island.",
+                "A ship touching a legal coastal corner lets you settle there without a road. The ship stays. "
+                    + "Establish your own settlement before building roads on a new island, then expand inland along your roads.",
+                "Your first settlement on each of your first two overseas islands earns an extra permanent point. There is no Biggest Navy bonus.",
+                "On an 11, collect resources, then capture any opponent's ship anywhere or skip. Its control is yours until another capture; ships are not destroyed.",
+                choices,
+                "Fog and resource-choice islands are optional before the match. Your shared hand funds building everywhere; ships do not carry cargo.",
+                "Choose Archipelago, Peninsula, Twin Islands or Surprise. Every match varies the island shape, coast, resources and numbers.",
+                "Longest Road and Largest Army are worth \(naval.longestRoadBonus) and \(naval.largestArmyBonus) points. Ships never count as roads. "
+                    + "Discard on a 7 only above \(naval.discardThreshold) cards.",
+                "Supply: \(naval.bankPerResource) cards of each resource and \(naval.devCardDeckSize) development cards. Naval is local and unrated; Ghosts and Conquest retain their existing modes.",
+            ], cost: Naval.shipCost)
+    }
+
+    private static func navalSailingDescription(for context: Context?) -> String {
+        let version = context?.navalRulesVersion ?? Naval.currentRulesVersion
+        let travel = version < Naval.destinationSailingRulesVersion
+            ? "This saved match gives each ship three hexes per turn, sailed one adjacent sea hex at a time."
+            : "Each ship can sail up to two sea hexes per turn. Choose any highlighted destination, "
+                + "preview its route, then confirm the voyage. Its travel cost is the number of hexes crossed."
+        return "Ships sail independently and may share water. \(travel) New or captured ships can sail immediately."
+    }
+
+    private static func navalDiscoveryDescription(for context: Context?) -> String {
+        if context?.navalOptions?.fogEnabled == false {
+            return "Fog is off for this match: sea, islands, numbers and ports are visible from the beginning."
+        }
+        let buildings = context?.navalRulesVersion == 1
+            ? "Settlements survey within two hexes of the land they touch."
+            : "Settlements survey within two hexes of their actual corner."
+        return "The home island starts charted for setup. \(buildings) Ships reveal within two hexes of their position. "
+            + "Mist withdraws and discoveries stay visible for every player."
     }
 
     private static func costDescription(_ cost: [Resource: Int]) -> String {

@@ -194,6 +194,16 @@ public struct Ruleset: Sendable, Equatable {
                 ],
                 discardThreshold: 7
             )
+        case .naval:
+            return Ruleset(
+                board: .naval, victoryPointTargets: 14...14, defaultVictoryPointTarget: 14,
+                longestRoadBonus: 2, largestArmyBonus: 2, longestRoadMinimum: 5, largestArmyMinimum: 3,
+                pieceLimits: .explicit([.settlement: 6, .city: 5]),
+                victoryPointsPerBuilding: [.settlement: 1, .city: 2], maxRoadsPerPlayer: 20,
+                bank: .explicit(38),
+                devCardDeck: [.knight: 28, .victoryPoint: 10, .roadBuilding: 4, .yearOfPlenty: 4, .monopoly: 4],
+                discardThreshold: 10
+            )
         case .expanded:
             return Ruleset(
                 board: .expanded,

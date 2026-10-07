@@ -1,0 +1,50 @@
+{
+  "evidenceKind": "historical simulator motion review",
+  "uiSourceIdentity": "02eb013",
+  "aiSourceIdentity": "2099a14691008fb86f3d610ceafd0b8f2ea41cc9 (pre-final d8639917)",
+  "appBinarySHA256": "e5410fbd1dc3f534091ff3154dd858c178cec559a187426bdd0f98e7849b4435",
+  "simulatorID": "937692FF-BFBF-4683-80E5-2590F5288D56",
+  "configuration": "Debug",
+  "mode": "Voyages",
+  "openingSeed": null,
+  "openingSeedStatus": "fresh random match; launch omitted -qaNavalSeed; checkpoint seed not recovered",
+  "movieSource": "/Users/alex/.codex/artifacts/naval-exploration/historical-opening-02eb013.mp4",
+  "movieDurationSeconds": 3.046667,
+  "launchIncluded": true,
+  "finalArtifactEvidence": false,
+  "items": [
+    {
+      "file": "opening-017.png",
+      "source": "/tmp/empires-naval-final-evidence/opening-frames/opening-017.png",
+      "sha256": "679cd57547b4d65b41a7743fd1f95a7234963fcccbc32742251bb98b189cf47e",
+      "bytes": 355737,
+      "width": 402,
+      "height": 874
+    },
+    {
+      "file": "opening-019.png",
+      "source": "/tmp/empires-naval-final-evidence/opening-frames/opening-019.png",
+      "sha256": "90d89ea6784d6336bb91090c52d0d09056f51fa5578f30d9674a9935136ff351",
+      "bytes": 398303,
+      "width": 402,
+      "height": 874
+    },
+    {
+      "file": "opening-024.png",
+      "source": "/tmp/empires-naval-final-evidence/opening-frames/opening-024.png",
+      "sha256": "3c1eb940362d964f863b6a6e1cab49106be46eaf29146b5af4cfad391f63c2fc",
+      "bytes": 413688,
+      "width": 402,
+      "height": 874
+    },
+    {
+      "file": "opening-home.png",
+      "source": "/tmp/empires-naval-final-evidence/opening-home.png",
+      "sha256": "49b55c8395e33118854ccea5c0d7b7224824502aa5a47282f0b568b61e7022a0",
+      "bytes": 4027089,
+      "width": 1206,
+      "height": 2622
+    }
+  ],
+  "movieSHA256": "b6831039fa50b7d5e2077a3eb705fcd4b1ee3f956041d62c547ce508169b4334"
+}

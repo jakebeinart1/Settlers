@@ -1,0 +1,21 @@
+{
+  "verifiedAtUTC": "2026-10-07T08:08:32.039218+00:00",
+  "productionSourceSHA": "1dfae7cb8e46ca4b343c0415fef18e71cd3a6ed4",
+  "configuration": "Release",
+  "appPath": "/Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Products/Release-iphonesimulator/Settlers.app",
+  "bundleIdentifier": "com.alexchandler.empires",
+  "version": "1.0",
+  "build": "23",
+  "freshInstall": true,
+  "launchArguments": [],
+  "pid": 54344,
+  "processSurvivedAfterSeconds": 6,
+  "newOwnCrashReports": [],
+  "executableSHA256": "2dc38e9d20c221a104cd6400e0eaceec03af2a9bdfb579e9a746c332b129250d",
+  "screenshot": "/Users/alex/.codex/artifacts/naval-exploration/build23-sprites-build-trade-safety/release-ordinary-menu.png",
+  "simulatorUDID": "937692FF-BFBF-4683-80E5-2590F5288D56",
+  "simulatorName": "Empires QA",
+  "physicalPhoneInstallationObserved": false,
+  "menuScreenshotInspected": true,
+  "visibleContent": "Empires main menu, Rules, New Game and Leaderboard; no resumed test save or blank screen"
+}

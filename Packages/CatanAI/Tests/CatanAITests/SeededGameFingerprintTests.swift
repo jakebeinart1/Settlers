@@ -212,7 +212,7 @@ private let expectedExpandedFingerprints: [UInt64: String] = [
 private func actingPlayer(_ state: GameState) -> PlayerID? {
     switch state.phase {
     case .setupForward(let i), .setupBackward(let i),
-         .rollDice(let i), .mainTurn(let i), .movingRobber(let i):
+         .rollDice(let i), .mainTurn(let i), .movingRobber(let i), .choosingResource(let i), .capturingShip(let i):
         return state.players[i].id
     case .discarding(let pending):
         return pending.sorted().first

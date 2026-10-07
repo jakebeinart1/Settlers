@@ -1,0 +1,410 @@
+Command line invocation:
+    /Applications/Xcode.app/Contents/Developer/usr/bin/xcodebuild test -project Settlers.xcodeproj -scheme Settlers -configuration Debug -destination "platform=iOS Simulator,id=2C871214-65E7-4EAD-B4C8-9D545593E9A0" -parallel-testing-enabled NO -resultBundlePath /tmp/empires-naval-rules-evidence/rules-small.xcresult "-only-testing:SettlersTests/MatchSetupValidationTests" "-only-testing:SettlersTests/MatchSetupModeTests" "-only-testing:SettlersTests/MatchSetupStoreTests" "-only-testing:SettlersUITests/NavalFlowTests/testShippingSetupSelectsFamilyTogglesAndExpertThenResumes"
+
+Resolve Package Graph
+
+
+Resolved source packages:
+  CatanAI: /Users/alex/.codex/worktrees/naval-exploration/Settlers/Packages/CatanAI
+  CatanEngine: /Users/alex/.codex/worktrees/naval-exploration/Settlers/Packages/CatanEngine
+
+Writing result bundle at path:
+	/tmp/empires-naval-rules-evidence/rules-small.xcresult
+
+ComputePackagePrebuildTargetDependencyGraph
+
+Prepare packages
+
+CreateBuildRequest
+
+SendProjectDescription
+
+CreateBuildOperation
+
+ComputeTargetDependencyGraph
+note: Building targets in dependency order
+note: Target dependency graph (7 targets)
+    Target 'SettlersUITests' in project 'Settlers'
+        ➜ Explicit dependency on target 'Settlers' in project 'Settlers'
+    Target 'SettlersTests' in project 'Settlers'
+        ➜ Explicit dependency on target 'Settlers' in project 'Settlers'
+    Target 'Settlers' in project 'Settlers'
+        ➜ Explicit dependency on target 'CatanEngine' in project 'CatanEngine'
+        ➜ Explicit dependency on target 'CatanAI' in project 'CatanAI'
+    Target 'CatanAI' in project 'CatanAI'
+        ➜ Explicit dependency on target 'CatanAI' in project 'CatanAI'
+        ➜ Explicit dependency on target 'CatanEngine' in project 'CatanEngine'
+    Target 'CatanAI' in project 'CatanAI'
+        ➜ Explicit dependency on target 'CatanEngine' in project 'CatanEngine'
+    Target 'CatanEngine' in project 'CatanEngine'
+        ➜ Explicit dependency on target 'CatanEngine' in project 'CatanEngine'
+    Target 'CatanEngine' in project 'CatanEngine' (no dependencies)
+
+GatherProvisioningInputs
+
+CreateBuildDescription
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc --version
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang -v -E -dM -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.5.sdk -x c -c /dev/null
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/actool --print-asset-tag-combinations --output-format xml1 /Users/alex/.codex/worktrees/naval-exploration/Settlers/Settlers/Assets.xcassets
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/ld -version_details
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/actool --version --output-format xml1
+
+Build description signature: 7bdc3ba418446581dcc6b16f5555d4cc
+Build description path: /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/XCBuildData/7bdc3ba418446581dcc6b16f5555d4cc.xcbuilddata
+ClangStatCache /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang-stat-cache /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.5.sdk /Users/alex/Library/Developer/Xcode/DerivedData/SDKStatCaches.noindex/iphonesimulator26.5-23F73-6cfe768891a92b912361537c460fe42b.sdkstatcache
+    cd /Users/alex/.codex/worktrees/naval-exploration/Settlers/Settlers.xcodeproj
+    /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang-stat-cache /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.5.sdk -o /Users/alex/Library/Developer/Xcode/DerivedData/SDKStatCaches.noindex/iphonesimulator26.5-23F73-6cfe768891a92b912361537c460fe42b.sdkstatcache
+
+CompileAssetCatalogVariant thinned /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Products/Debug-iphonesimulator/Settlers.app /Users/alex/.codex/worktrees/naval-exploration/Settlers/Settlers/Assets.xcassets (in target 'Settlers' from project 'Settlers')
+    cd /Users/alex/.codex/worktrees/naval-exploration/Settlers
+    /Applications/Xcode.app/Contents/Developer/usr/bin/actool /Users/alex/.codex/worktrees/naval-exploration/Settlers/Settlers/Assets.xcassets --compile /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/Settlers.build/Debug-iphonesimulator/Settlers.build/assetcatalog_output/thinned --output-format human-readable-text --notices --warnings --export-dependency-info /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/Settlers.build/Debug-iphonesimulator/Settlers.build/assetcatalog_dependencies_thinned --output-partial-info-plist /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/Settlers.build/Debug-iphonesimulator/Settlers.build/assetcatalog_generated_info.plist_thinned --app-icon AppIcon --compress-pngs --enable-on-demand-resources YES --filter-for-thinning-device-configuration iPhone14,6 --filter-for-device-os-version 26.5 --development-region en --target-device iphone --minimum-deployment-target 17.0 --platform iphonesimulator
+/* com.apple.actool.compilation-results */
+/Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/Settlers.build/Debug-iphonesimulator/Settlers.build/assetcatalog_generated_info.plist_thinned
+/Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/Settlers.build/Debug-iphonesimulator/Settlers.build/assetcatalog_output/thinned/AppIcon60x60@2x.png
+/Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/Settlers.build/Debug-iphonesimulator/Settlers.build/assetcatalog_output/thinned/AppIcon76x76@2x~ipad.png
+/Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/Settlers.build/Debug-iphonesimulator/Settlers.build/assetcatalog_output/thinned/Assets.car
+
+
+LinkAssetCatalog /Users/alex/.codex/worktrees/naval-exploration/Settlers/Settlers/Assets.xcassets (in target 'Settlers' from project 'Settlers')
+    cd /Users/alex/.codex/worktrees/naval-exploration/Settlers
+    builtin-linkAssetCatalog --thinned /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/Settlers.build/Debug-iphonesimulator/Settlers.build/assetcatalog_output/thinned --thinned-dependencies /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/Settlers.build/Debug-iphonesimulator/Settlers.build/assetcatalog_dependencies_thinned --thinned-info-plist-content /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/Settlers.build/Debug-iphonesimulator/Settlers.build/assetcatalog_generated_info.plist_thinned --unthinned /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/Settlers.build/Debug-iphonesimulator/Settlers.build/assetcatalog_output/unthinned --unthinned-dependencies /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/Settlers.build/Debug-iphonesimulator/Settlers.build/assetcatalog_dependencies_unthinned --unthinned-info-plist-content /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/Settlers.build/Debug-iphonesimulator/Settlers.build/assetcatalog_generated_info.plist_unthinned --output /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Products/Debug-iphonesimulator/Settlers.app --plist-output /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/Settlers.build/Debug-iphonesimulator/Settlers.build/assetcatalog_generated_info.plist
+note: Emplaced /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Products/Debug-iphonesimulator/Settlers.app/Assets.car (in target 'Settlers' from project 'Settlers')
+note: Emplaced /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Products/Debug-iphonesimulator/Settlers.app/AppIcon76x76@2x~ipad.png (in target 'Settlers' from project 'Settlers')
+note: Emplaced /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Products/Debug-iphonesimulator/Settlers.app/AppIcon60x60@2x.png (in target 'Settlers' from project 'Settlers')
+
+ProcessInfoPlistFile /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Products/Debug-iphonesimulator/Settlers.app/Info.plist /Users/alex/.codex/worktrees/naval-exploration/Settlers/Settlers/Info.plist (in target 'Settlers' from project 'Settlers')
+    cd /Users/alex/.codex/worktrees/naval-exploration/Settlers
+    builtin-infoPlistUtility /Users/alex/.codex/worktrees/naval-exploration/Settlers/Settlers/Info.plist -producttype com.apple.product-type.application -genpkginfo /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Products/Debug-iphonesimulator/Settlers.app/PkgInfo -expandbuildsettings -format binary -platform iphonesimulator -additionalcontentfile /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/Settlers.build/Debug-iphonesimulator/Settlers.build/assetcatalog_generated_info.plist -o /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Products/Debug-iphonesimulator/Settlers.app/Info.plist
+
+CopySwiftLibs /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Products/Debug-iphonesimulator/Settlers.app (in target 'Settlers' from project 'Settlers')
+    cd /Users/alex/.codex/worktrees/naval-exploration/Settlers
+    builtin-swiftStdLibTool --copy --verbose --sign - --scan-executable /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Products/Debug-iphonesimulator/Settlers.app/Settlers.debug.dylib --scan-folder /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Products/Debug-iphonesimulator/Settlers.app/Frameworks --scan-folder /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Products/Debug-iphonesimulator/Settlers.app/PlugIns --scan-folder /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Products/Debug-iphonesimulator/Settlers.app/SystemExtensions --scan-folder /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Products/Debug-iphonesimulator/Settlers.app/Extensions --platform iphonesimulator --toolchain /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain --destination /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Products/Debug-iphonesimulator/Settlers.app/Frameworks --strip-bitcode --strip-bitcode-tool /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/bitcode_strip --emit-dependency-info /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/Settlers.build/Debug-iphonesimulator/Settlers.build/SwiftStdLibToolInputDependencies.dep --filter-for-swift-os
+
+ProcessInfoPlistFile /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Products/Debug-iphonesimulator/Settlers.app/PlugIns/SettlersTests.xctest/Info.plist /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/Settlers.build/Debug-iphonesimulator/SettlersTests.build/empty-SettlersTests.plist (in target 'SettlersTests' from project 'Settlers')
+    cd /Users/alex/.codex/worktrees/naval-exploration/Settlers
+    builtin-infoPlistUtility /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/Settlers.build/Debug-iphonesimulator/SettlersTests.build/empty-SettlersTests.plist -producttype com.apple.product-type.bundle.unit-test -expandbuildsettings -format binary -platform iphonesimulator -o /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Products/Debug-iphonesimulator/Settlers.app/PlugIns/SettlersTests.xctest/Info.plist
+
+CopySwiftLibs /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Products/Debug-iphonesimulator/Settlers.app/PlugIns/SettlersTests.xctest (in target 'SettlersTests' from project 'Settlers')
+    cd /Users/alex/.codex/worktrees/naval-exploration/Settlers
+    builtin-swiftStdLibTool --copy --verbose --sign - --scan-executable /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Products/Debug-iphonesimulator/Settlers.app/PlugIns/SettlersTests.xctest/SettlersTests --scan-folder /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Products/Debug-iphonesimulator/Settlers.app/PlugIns/SettlersTests.xctest/Frameworks --scan-folder /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Products/Debug-iphonesimulator/Settlers.app/PlugIns/SettlersTests.xctest/PlugIns --scan-folder /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Products/Debug-iphonesimulator/Settlers.app/PlugIns/SettlersTests.xctest/SystemExtensions --scan-folder /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Products/Debug-iphonesimulator/Settlers.app/PlugIns/SettlersTests.xctest/Extensions --platform iphonesimulator --toolchain /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain --destination /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Products/Debug-iphonesimulator/Settlers.app/PlugIns/SettlersTests.xctest/Frameworks --strip-bitcode --scan-executable /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/usr/lib/libXCTestSwiftSupport.dylib --strip-bitcode-tool /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/bitcode_strip --emit-dependency-info /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/Settlers.build/Debug-iphonesimulator/SettlersTests.build/SwiftStdLibToolInputDependencies.dep --filter-for-swift-os
+
+ProcessInfoPlistFile /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Products/Debug-iphonesimulator/SettlersUITests-Runner.app/PlugIns/SettlersUITests.xctest/Info.plist /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/Settlers.build/Debug-iphonesimulator/SettlersUITests.build/empty-SettlersUITests.plist (in target 'SettlersUITests' from project 'Settlers')
+    cd /Users/alex/.codex/worktrees/naval-exploration/Settlers
+    builtin-infoPlistUtility /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/Settlers.build/Debug-iphonesimulator/SettlersUITests.build/empty-SettlersUITests.plist -producttype com.apple.product-type.bundle.ui-testing -expandbuildsettings -format binary -platform iphonesimulator -additionalcontentfile /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/Settlers.build/Debug-iphonesimulator/SettlersUITests.build/ProductTypeInfoPlistAdditions.plist -o /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Products/Debug-iphonesimulator/SettlersUITests-Runner.app/PlugIns/SettlersUITests.xctest/Info.plist
+
+CopySwiftLibs /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Products/Debug-iphonesimulator/SettlersUITests-Runner.app/PlugIns/SettlersUITests.xctest (in target 'SettlersUITests' from project 'Settlers')
+    cd /Users/alex/.codex/worktrees/naval-exploration/Settlers
+    builtin-swiftStdLibTool --copy --verbose --sign - --scan-executable /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Products/Debug-iphonesimulator/SettlersUITests-Runner.app/PlugIns/SettlersUITests.xctest/SettlersUITests --scan-folder /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Products/Debug-iphonesimulator/SettlersUITests-Runner.app/PlugIns/SettlersUITests.xctest/Frameworks --scan-folder /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Products/Debug-iphonesimulator/SettlersUITests-Runner.app/PlugIns/SettlersUITests.xctest/PlugIns --scan-folder /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Products/Debug-iphonesimulator/SettlersUITests-Runner.app/PlugIns/SettlersUITests.xctest/SystemExtensions --scan-folder /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Products/Debug-iphonesimulator/SettlersUITests-Runner.app/PlugIns/SettlersUITests.xctest/Extensions --platform iphonesimulator --toolchain /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain --destination /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Products/Debug-iphonesimulator/SettlersUITests-Runner.app/PlugIns/SettlersUITests.xctest/Frameworks --strip-bitcode --scan-executable /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/usr/lib/libXCTestSwiftSupport.dylib --strip-bitcode-tool /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/bitcode_strip --emit-dependency-info /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/Settlers.build/Debug-iphonesimulator/SettlersUITests.build/SwiftStdLibToolInputDependencies.dep --filter-for-swift-os
+
+Test Suite 'Selected tests' started at 2026-10-05 10:38:32.626.
+Test Suite 'SettlersTests.xctest' started at 2026-10-05 10:38:32.626.
+Test Suite 'SettlersTests.xctest' passed at 2026-10-05 10:38:32.626.
+	 Executed 0 tests, with 0 failures (0 unexpected) in 0.000 (0.000) seconds
+Test Suite 'Selected tests' passed at 2026-10-05 10:38:32.626.
+	 Executed 0 tests, with 0 failures (0 unexpected) in 0.000 (0.001) seconds
+◇ Test run started.
+↳ Testing Library Version: 1902
+↳ Target Platform: arm64-apple-ios13.0-simulator
+◇ Suite MatchSetupValidationTests started.
+◇ Test switchingToExpandedSnapsTheTargetToTwentyFive() started.
+✔ Test switchingToExpandedSnapsTheTargetToTwentyFive() passed after 0.001 seconds.
+◇ Test switchingBackToClassicRestoresAnOfferedTarget() started.
+✔ Test switchingBackToClassicRestoresAnOfferedTarget() passed after 0.001 seconds.
+◇ Test invalidSeatIndicesAreRefused(indices:) started.
+◇ Test case passing 1 argument indices → [0, 0, 2] to invalidSeatIndicesAreRefused(indices:) started.
+​◇ Test case passing 1 argument indices → [0, -1, 2] to invalidSeatIndicesAreRefused(indices:) started.
+​◇ Test case passing 1 argument indices → [0, 1, 3] to invalidSeatIndicesAreRefused(indices:) started.
+​◇ Test case passing 1 argument indices → [1, 0, 2] to invalidSeatIndicesAreRefused(indices:) started.
+​◇ Test case passing 1 argument indices → [0, 1, 1, 3] to invalidSeatIndicesAreRefused(indices:) started.
+​◇ Test case passing 1 argument indices → [0, 1, -1, 3] to invalidSeatIndicesAreRefused(indices:) started.
+​◇ Test case passing 1 argument indices → [0, 1, 2, 4] to invalidSeatIndicesAreRefused(indices:) started.
+​◇ Test case passing 1 argument indices → [0, 2, 1, 3] to invalidSeatIndicesAreRefused(indices:) started.
+​◇ Test case passing 1 argument indices → [9223372036854775807, 1, 2] to invalidSeatIndicesAreRefused(indices:) started.
+​◇ Test case passing 1 argument indices → [-9223372036854775808, 1, 2, 3] to invalidSeatIndicesAreRefused(indices:) started.
+​✔ Test invalidSeatIndicesAreRefused(indices:) with 10 test cases passed after 0.013 seconds.
+◇ Test orderedSeatIndicesRemainStartable(count:) started.
+◇ Test case passing 1 argument count → 3 to orderedSeatIndicesRemainStartable(count:) started.
+​◇ Test case passing 1 argument count → 4 to orderedSeatIndicesRemainStartable(count:) started.
+​✔ Test orderedSeatIndicesRemainStartable(count:) with 2 test cases passed after 0.001 seconds.
+◇ Test aFullyConfiguredTableStarts() started.
+✔ Test aFullyConfiguredTableStarts() passed after 0.001 seconds.
+◇ Test aHumanSeatCannotRetainAComputerProfile() started.
+✔ Test aHumanSeatCannotRetainAComputerProfile() passed after 0.001 seconds.
+◇ Test aComputerProfileCannotDisagreeWithItsCivilization() started.
+✔ Test aComputerProfileCannotDisagreeWithItsCivilization() passed after 0.001 seconds.
+◇ Test seatsLeftOnRandomDoNotBlockStart() started.
+✔ Test seatsLeftOnRandomDoNotBlockStart() passed after 0.008 seconds.
+◇ Test anUnnamedHumanSeatIsRefusedByName() started.
+✔ Test anUnnamedHumanSeatIsRefusedByName() passed after 0.001 seconds.
+◇ Test aWhitespaceOnlyNameCountsAsUnnamed() started.
+✔ Test aWhitespaceOnlyNameCountsAsUnnamed() passed after 0.001 seconds.
+◇ Test twoHumansCannotShareAName() started.
+✔ Test twoHumansCannotShareAName() passed after 0.001 seconds.
+◇ Test emptyAINamesAreNotDuplicates() started.
+✔ Test emptyAINamesAreNotDuplicates() passed after 0.001 seconds.
+◇ Test twoSeatsCannotShareACivilization() started.
+✔ Test twoSeatsCannotShareACivilization() passed after 0.001 seconds.
+◇ Test aTableWithNoHumanCannotStart() started.
+✔ Test aTableWithNoHumanCannotStart() passed after 0.001 seconds.
+◇ Test anAllHumanTableStarts() started.
+✔ Test anAllHumanTableStarts() passed after 0.001 seconds.
+◇ Test aTargetOutsideTheSupportedRangeIsRefused() started.
+✔ Test aTargetOutsideTheSupportedRangeIsRefused() passed after 0.001 seconds.
+◇ Test classicOffersTenAndOnlyTen() started.
+✔ Test classicOffersTenAndOnlyTen() passed after 0.001 seconds.
+◇ Test threePlayerTablesAreNoLongerOffered() started.
+✔ Test threePlayerTablesAreNoLongerOffered() passed after 0.001 seconds.
+◇ Test epicIsNotOfferedForANewFourPlayerMatch() started.
+✔ Test epicIsNotOfferedForANewFourPlayerMatch() passed after 0.001 seconds.
+◇ Test aTableOutsideTheSupportedSizesIsRefusedFirst() started.
+✔ Test aTableOutsideTheSupportedSizesIsRefusedFirst() passed after 0.001 seconds.
+✔ Suite MatchSetupValidationTests passed after 0.032 seconds.
+◇ Suite MatchSetupModeTests started.
+◇ Test savedPrefillUsesAnOfferedModeWithoutChangingTheSavedMatch(mode:) started.
+◇ Test case passing 1 argument mode → .classic to savedPrefillUsesAnOfferedModeWithoutChangingTheSavedMatch(mode:) started.
+​◇ Test case passing 1 argument mode → .expanded to savedPrefillUsesAnOfferedModeWithoutChangingTheSavedMatch(mode:) started.
+​◇ Test case passing 1 argument mode → .vast to savedPrefillUsesAnOfferedModeWithoutChangingTheSavedMatch(mode:) started.
+​✔ Test savedPrefillUsesAnOfferedModeWithoutChangingTheSavedMatch(mode:) with 3 test cases passed after 0.005 seconds.
+◇ Test aSetupDecodedWithoutAModeIsClassic() started.
+✔ Test aSetupDecodedWithoutAModeIsClassic() passed after 0.001 seconds.
+◇ Test everyModeOffersExactlyOneTarget() started.
+✔ Test everyModeOffersExactlyOneTarget() passed after 0.001 seconds.
+◇ Test expandedIsNotOfferedForANewMatch() started.
+✔ Test expandedIsNotOfferedForANewMatch() passed after 0.001 seconds.
+◇ Test anExpandedSetupAtTwentyFiveIsStartable() started.
+✔ Test anExpandedSetupAtTwentyFiveIsStartable() passed after 0.001 seconds.
+◇ Test aClassicSetupCarryingTwentyFiveIsRefused() started.
+✔ Test aClassicSetupCarryingTwentyFiveIsRefused() passed after 0.001 seconds.
+✔ Suite MatchSetupModeTests passed after 0.006 seconds.
+◇ Suite MatchSetupStoreTests started.
+◇ Test invalidDecodedIndicesAreRejectedWithoutChangingBytes(indices:active:) started.
+◇ Test case passing 2 arguments indices → [0, 0, 2], active → false to invalidDecodedIndicesAreRejectedWithoutChangingBytes(indices:active:) started.
+​◇ Test case passing 2 arguments indices → [0, 0, 2], active → true to invalidDecodedIndicesAreRejectedWithoutChangingBytes(indices:active:) started.
+​◇ Test case passing 2 arguments indices → [0, -1, 2], active → false to invalidDecodedIndicesAreRejectedWithoutChangingBytes(indices:active:) started.
+​◇ Test case passing 2 arguments indices → [0, -1, 2], active → true to invalidDecodedIndicesAreRejectedWithoutChangingBytes(indices:active:) started.
+​◇ Test case passing 2 arguments indices → [0, 1, 3], active → false to invalidDecodedIndicesAreRejectedWithoutChangingBytes(indices:active:) started.
+​◇ Test case passing 2 arguments indices → [0, 1, 3], active → true to invalidDecodedIndicesAreRejectedWithoutChangingBytes(indices:active:) started.
+​◇ Test case passing 2 arguments indices → [1, 0, 2], active → false to invalidDecodedIndicesAreRejectedWithoutChangingBytes(indices:active:) started.
+​◇ Test case passing 2 arguments indices → [1, 0, 2], active → true to invalidDecodedIndicesAreRejectedWithoutChangingBytes(indices:active:) started.
+​◇ Test case passing 2 arguments indices → [0, 1, 1, 3], active → false to invalidDecodedIndicesAreRejectedWithoutChangingBytes(indices:active:) started.
+​◇ Test case passing 2 arguments indices → [0, 1, 1, 3], active → true to invalidDecodedIndicesAreRejectedWithoutChangingBytes(indices:active:) started.
+​◇ Test case passing 2 arguments indices → [0, 1, -1, 3], active → false to invalidDecodedIndicesAreRejectedWithoutChangingBytes(indices:active:) started.
+​◇ Test case passing 2 arguments indices → [0, 1, -1, 3], active → true to invalidDecodedIndicesAreRejectedWithoutChangingBytes(indices:active:) started.
+​◇ Test case passing 2 arguments indices → [0, 1, 2, 4], active → false to invalidDecodedIndicesAreRejectedWithoutChangingBytes(indices:active:) started.
+​◇ Test case passing 2 arguments indices → [0, 1, 2, 4], active → true to invalidDecodedIndicesAreRejectedWithoutChangingBytes(indices:active:) started.
+​◇ Test case passing 2 arguments indices → [0, 2, 1, 3], active → false to invalidDecodedIndicesAreRejectedWithoutChangingBytes(indices:active:) started.
+​◇ Test case passing 2 arguments indices → [0, 2, 1, 3], active → true to invalidDecodedIndicesAreRejectedWithoutChangingBytes(indices:active:) started.
+​◇ Test case passing 2 arguments indices → [9223372036854775807, 1, 2], active → false to invalidDecodedIndicesAreRejectedWithoutChangingBytes(indices:active:) started.
+​◇ Test case passing 2 arguments indices → [9223372036854775807, 1, 2], active → true to invalidDecodedIndicesAreRejectedWithoutChangingBytes(indices:active:) started.
+​◇ Test case passing 2 arguments indices → [-9223372036854775808, 1, 2, 3], active → false to invalidDecodedIndicesAreRejectedWithoutChangingBytes(indices:active:) started.
+​◇ Test case passing 2 arguments indices → [-9223372036854775808, 1, 2, 3], active → true to invalidDecodedIndicesAreRejectedWithoutChangingBytes(indices:active:) started.
+​✔ Test invalidDecodedIndicesAreRejectedWithoutChangingBytes(indices:active:) with 20 test cases passed after 0.034 seconds.
+◇ Test validDecodedIndicesPreserveTheWholeRecord(count:active:) started.
+◇ Test case passing 2 arguments count → 3, active → false to validDecodedIndicesPreserveTheWholeRecord(count:active:) started.
+​◇ Test case passing 2 arguments count → 3, active → true to validDecodedIndicesPreserveTheWholeRecord(count:active:) started.
+​◇ Test case passing 2 arguments count → 4, active → false to validDecodedIndicesPreserveTheWholeRecord(count:active:) started.
+​◇ Test case passing 2 arguments count → 4, active → true to validDecodedIndicesPreserveTheWholeRecord(count:active:) started.
+​✔ Test validDecodedIndicesPreserveTheWholeRecord(count:active:) with 4 test cases passed after 0.005 seconds.
+◇ Test aPrefillNeedingANameIsStillReadable() started.
+✔ Test aPrefillNeedingANameIsStillReadable() passed after 0.001 seconds.
+◇ Test nothingSavedReadsAsNoStoredSetup() started.
+✔ Test nothingSavedReadsAsNoStoredSetup() passed after 0.001 seconds.
+◇ Test aSavedSetupRoundTrips() started.
+✔ Test aSavedSetupRoundTrips() passed after 0.001 seconds.
+◇ Test aThreeHumanTableComesBackAsThreeHumans() started.
+✔ Test aThreeHumanTableComesBackAsThreeHumans() passed after 0.001 seconds.
+◇ Test clearingRemovesTheStoredSetup() started.
+✔ Test clearingRemovesTheStoredSetup() passed after 0.001 seconds.
+◇ Test theRealisedMatchIsStoredSeparatelyFromThePrefill() started.
+✔ Test theRealisedMatchIsStoredSeparatelyFromThePrefill() passed after 0.001 seconds.
+◇ Test clearingTheRealisedMatchLeavesThePrefillAlone() started.
+✔ Test clearingTheRealisedMatchLeavesThePrefillAlone() passed after 0.001 seconds.
+◇ Test aTwoHumanRosterRoundTripsWithItsNames() started.
+✔ Test aTwoHumanRosterRoundTripsWithItsNames() passed after 0.001 seconds.
+✔ Suite MatchSetupStoreTests passed after 0.052 seconds.
+✔ Test run with 36 tests in 3 suites passed after 0.095 seconds.
+2026-10-05 10:38:33.520156-0400 SettlersUITests-Runner[83351:15210720] [Default] Running tests...
+2026-10-05 10:38:33.541691-0400 SettlersUITests-Runner[83351:15210741] [General] Failed to send CA Event for app launch measurements for ca_event_type: 0 event_name: com.apple.app_launch_measurement.FirstFramePresentationMetric
+2026-10-05 10:38:33.930839-0400 SettlersUITests-Runner[83351:15210742] [General] Failed to send CA Event for app launch measurements for ca_event_type: 1 event_name: com.apple.app_launch_measurement.ExtendedLaunchMetrics
+objc[83351]: Class UIAccessibilityLoaderWebShared is implemented in both /Library/Developer/CoreSimulator/Volumes/iOS_23F77/Library/Developer/CoreSimulator/Profiles/Runtimes/iOS 26.5.simruntime/Contents/Resources/RuntimeRoot/System/Library/AccessibilityBundles/WebCore.axbundle/WebCore (0x105bbc310) and /Library/Developer/CoreSimulator/Volumes/iOS_23F77/Library/Developer/CoreSimulator/Profiles/Runtimes/iOS 26.5.simruntime/Contents/Resources/RuntimeRoot/System/Library/AccessibilityBundles/WebKit.axbundle/WebKit (0x105ac0398). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+    t =      nans Interface orientation changed to Portrait
+Test Suite 'Selected tests' started at 2026-10-05 10:38:35.592.
+Test Suite 'SettlersUITests.xctest' started at 2026-10-05 10:38:35.593.
+Test Suite 'NavalFlowTests' started at 2026-10-05 10:38:35.593.
+Test Case '-[SettlersUITests.NavalFlowTests testShippingSetupSelectsFamilyTogglesAndExpertThenResumes]' started.
+    t =     0.00s Start Test at 2026-10-05 10:38:35.593
+    t =     0.12s Set Up
+    t =     0.12s Open com.jakebeinart.settlers
+    t =     0.13s     Launch com.jakebeinart.settlers
+2026-10-05 10:38:35.872 xcodebuild[82898:15208320] [MT] IDELaunchParametersSnapshot: The operation couldn’t be completed. (DebuggerLLDB.DebuggerVersionStore.StoreError error 0.)
+2026-10-05 10:38:35.872 xcodebuild[82898:15208320] [MT] IDELaunchParametersSnapshot: no debugger version
+    t =     0.49s         Setting up automation session
+    t =     1.03s         Wait for com.jakebeinart.settlers to idle
+    t =     2.42s Waiting 10.0s for "new-game.rules.naval" Button to exist
+    t =     3.45s     Checking `Expect predicate `existsNoRetry == 1` for object "new-game.rules.naval" Button`
+    t =     3.45s         Checking existence of `"new-game.rules.naval" Button`
+    t =     3.52s Find the "new-game.rules.naval" Button
+    t =     3.56s Find the "new-game.rules.naval" Button
+    t =     3.58s Find the "new-game.rules.naval" Button
+    t =     3.60s Checking existence of `"new-game.rules.standard" Button`
+    t =     3.62s Find the "new-game.rules.standard" Button
+    t =     3.64s Find the "new-game.rules.naval" Button
+    t =     3.67s Checking existence of `"new-game.rules.conquest" Button`
+    t =     3.68s Find the "new-game.rules.conquest" Button
+    t =     3.71s Find the "new-game.rules.naval" Button
+    t =     3.73s Find the Target Application 'com.jakebeinart.settlers'
+    t =     3.81s Added attachment named 'Naval — Rules option beside Standard and Conquest'
+    t =     3.81s Tap "new-game.rules.naval" Button
+    t =     3.81s     Wait for com.jakebeinart.settlers to idle
+    t =     3.81s     Find the "new-game.rules.naval" Button
+    t =     3.83s     Check for interrupting elements affecting "new-game.rules.naval" Button
+    t =     3.85s     Synthesize event
+    t =     4.24s     Wait for com.jakebeinart.settlers to idle
+    t =     4.25s Find the "new-game.rules.naval" Button
+    t =     4.27s Checking existence of `"new-game.mode.islands" StaticText`
+    t =     4.30s Checking existence of `"new-game.mode.naval" Button`
+    t =     4.32s Find the "new-game.naval.family.twinIslands" Button
+    t =     4.35s Find the "new-game.naval.family.twinIslands" Button
+    t =     4.38s Tap "new-game.naval.family.twinIslands" Button
+    t =     4.38s     Wait for com.jakebeinart.settlers to idle
+    t =     4.38s     Find the "new-game.naval.family.twinIslands" Button
+    t =     4.40s     Check for interrupting elements affecting "new-game.naval.family.twinIslands" Button
+    t =     4.42s     Synthesize event
+    t =     4.71s     Wait for com.jakebeinart.settlers to idle
+    t =     4.71s Find the "new-game.naval.fog" Button
+    t =     4.75s Swipe up ScrollView (First Match)
+    t =     4.75s     Wait for com.jakebeinart.settlers to idle
+    t =     4.75s     Find the ScrollView (First Match)
+    t =     4.76s     Check for interrupting elements affecting ScrollView
+    t =     4.78s     Synthesize event
+    t =     5.21s     Wait for com.jakebeinart.settlers to idle
+    t =     5.70s Find the "new-game.naval.fog" Button
+    t =     5.74s Find the "new-game.naval.fog" Button
+    t =     5.77s Tap "new-game.naval.fog" Button
+    t =     5.77s     Wait for com.jakebeinart.settlers to idle
+    t =     5.77s     Find the "new-game.naval.fog" Button
+    t =     5.79s     Check for interrupting elements affecting "new-game.naval.fog" Button
+    t =     5.81s     Synthesize event
+    t =     6.10s     Wait for com.jakebeinart.settlers to idle
+    t =     6.10s Find the "new-game.naval.fog" Button
+    t =     6.13s Find the "new-game.naval.resources" Button
+    t =     6.16s Find the "new-game.naval.resources" Button
+    t =     6.18s Tap "new-game.naval.resources" Button
+    t =     6.18s     Wait for com.jakebeinart.settlers to idle
+    t =     6.19s     Find the "new-game.naval.resources" Button
+    t =     6.21s     Check for interrupting elements affecting "new-game.naval.resources" Button
+    t =     6.23s     Synthesize event
+    t =     6.52s     Wait for com.jakebeinart.settlers to idle
+    t =     6.53s Find the "new-game.naval.resources" Button
+    t =     6.55s Find the "Expert" Button
+    t =     6.59s Tap "Expert" Button
+    t =     6.59s     Wait for com.jakebeinart.settlers to idle
+    t =     6.59s     Find the "Expert" Button
+    t =     6.62s     Check for interrupting elements affecting "Expert" Button
+    t =     6.65s     Synthesize event
+    t =     6.94s     Wait for com.jakebeinart.settlers to idle
+    t =     6.95s Find the "As Shown" Button
+    t =     6.98s Tap "As Shown" Button
+    t =     6.98s     Wait for com.jakebeinart.settlers to idle
+    t =     6.98s     Find the "As Shown" Button
+    t =     7.00s     Check for interrupting elements affecting "As Shown" Button
+    t =     7.03s     Synthesize event
+    t =     7.32s     Wait for com.jakebeinart.settlers to idle
+    t =     7.32s Find the Target Application 'com.jakebeinart.settlers'
+    t =     7.39s Added attachment named 'Voyages — match options'
+    t =     7.40s Tap "new-game.start" Button
+    t =     7.40s     Wait for com.jakebeinart.settlers to idle
+    t =     7.40s     Find the "new-game.start" Button
+    t =     7.42s     Check for interrupting elements affecting "new-game.start" Button
+    t =     7.45s     Synthesize event
+    t =     7.74s     Wait for com.jakebeinart.settlers to idle
+    t =     7.89s Waiting 10.0s for "naval.overview" Button to exist
+    t =     8.92s     Checking `Expect predicate `existsNoRetry == 1` for object "naval.overview" Button`
+    t =     8.92s         Checking existence of `"naval.overview" Button`
+    t =     8.95s Find the "naval.overview" Button
+    t =     8.98s Find the Target Application 'com.jakebeinart.settlers'
+    t =     9.07s Added attachment named 'Voyages — clear Twin Islands'
+    t =     9.07s Terminate com.jakebeinart.settlers:83367
+    t =    10.14s Open com.jakebeinart.settlers
+    t =    10.14s     Launch com.jakebeinart.settlers
+2026-10-05 10:38:45.732 xcodebuild[82898:15208320] [MT] IDELaunchParametersSnapshot: The operation couldn’t be completed. (DebuggerLLDB.DebuggerVersionStore.StoreError error 0.)
+2026-10-05 10:38:45.732 xcodebuild[82898:15208320] [MT] IDELaunchParametersSnapshot: no debugger version
+    t =    10.35s         Setting up automation session
+    t =    10.90s         Wait for com.jakebeinart.settlers to idle
+    t =    12.08s Tap "main-menu.resume" Button
+    t =    12.08s     Wait for com.jakebeinart.settlers to idle
+    t =    12.08s     Find the "main-menu.resume" Button
+    t =    12.11s     Check for interrupting elements affecting "main-menu.resume" Button
+    t =    12.12s     Synthesize event
+    t =    12.41s     Wait for com.jakebeinart.settlers to idle
+    t =    12.52s Waiting 10.0s for "naval.overview" Button to exist
+    t =    13.55s     Checking `Expect predicate `existsNoRetry == 1` for object "naval.overview" Button`
+    t =    13.55s         Checking existence of `"naval.overview" Button`
+    t =    13.59s Find the "naval.overview" Button
+    t =    13.62s Tap "game.settings" Button
+    t =    13.62s     Wait for com.jakebeinart.settlers to idle
+    t =    13.62s     Find the "game.settings" Button
+    t =    13.65s     Check for interrupting elements affecting "game.settings" Button
+    t =    13.67s     Synthesize event
+    t =    13.96s     Wait for com.jakebeinart.settlers to idle
+    t =    13.96s Tap "in-game-settings.quit" Button
+    t =    13.96s     Wait for com.jakebeinart.settlers to idle
+    t =    13.96s     Find the "in-game-settings.quit" Button
+    t =    14.01s     Check for interrupting elements affecting "in-game-settings.quit" Button
+    t =    14.04s     Synthesize event
+    t =    14.33s     Wait for com.jakebeinart.settlers to idle
+    t =    14.33s Tap "Main Menu" Button
+    t =    14.33s     Wait for com.jakebeinart.settlers to idle
+    t =    14.33s     Find the "Main Menu" Button
+    t =    14.38s     Check for interrupting elements affecting "Main Menu" Button
+    t =    14.41s     Synthesize event
+    t =    14.70s     Wait for com.jakebeinart.settlers to idle
+    t =    14.70s Tap "main-menu.new-game" Button
+    t =    14.70s     Wait for com.jakebeinart.settlers to idle
+    t =    14.71s     Find the "main-menu.new-game" Button
+    t =    14.72s     Check for interrupting elements affecting "main-menu.new-game" Button
+    t =    14.72s     Synthesize event
+    t =    15.01s     Wait for com.jakebeinart.settlers to idle
+    t =    15.01s Waiting 5.0s for "new-game.rules.naval" Button to exist
+    t =    16.05s     Checking `Expect predicate `existsNoRetry == 1` for object "new-game.rules.naval" Button`
+    t =    16.05s         Checking existence of `"new-game.rules.naval" Button`
+    t =    16.08s Find the "new-game.rules.naval" Button
+    t =    16.12s Find the "new-game.rules.naval" Button
+    t =    16.14s Find the "new-game.naval.family.twinIslands" Button
+    t =    16.17s Find the "new-game.naval.family.twinIslands" Button
+    t =    16.19s Find the "new-game.naval.fog" Button
+    t =    16.22s Swipe up ScrollView (First Match)
+    t =    16.22s     Wait for com.jakebeinart.settlers to idle
+    t =    16.22s     Find the ScrollView (First Match)
+    t =    16.24s     Check for interrupting elements affecting ScrollView
+    t =    16.26s     Synthesize event
+    t =    16.68s     Wait for com.jakebeinart.settlers to idle
+    t =    17.18s Find the "new-game.naval.fog" Button
+    t =    17.22s Find the "new-game.naval.fog" Button
+    t =    17.24s Find the "new-game.naval.resources" Button
+    t =    17.27s Find the "new-game.naval.resources" Button
+    t =    17.29s Find the Target Application 'com.jakebeinart.settlers'
+    t =    17.36s Added attachment named 'Naval — saved Rules selection and island options'
+    t =    17.36s Tear Down
+Test Case '-[SettlersUITests.NavalFlowTests testShippingSetupSelectsFamilyTogglesAndExpertThenResumes]' passed (17.602 seconds).
+Test Suite 'NavalFlowTests' passed at 2026-10-05 10:38:53.196.
+	 Executed 1 test, with 0 failures (0 unexpected) in 17.602 (17.603) seconds
+Test Suite 'SettlersUITests.xctest' passed at 2026-10-05 10:38:53.197.
+	 Executed 1 test, with 0 failures (0 unexpected) in 17.602 (17.604) seconds
+Test Suite 'Selected tests' passed at 2026-10-05 10:38:53.197.
+	 Executed 1 test, with 0 failures (0 unexpected) in 17.602 (17.605) seconds
+2026-10-05 10:38:53.538 xcodebuild[82898:15208320] [MT] IDETestOperationsObserverDebug: 27.533 elapsed -- Testing started completed.
+2026-10-05 10:38:53.538 xcodebuild[82898:15208320] [MT] IDETestOperationsObserverDebug: 0.000 sec, +0.000 sec -- start
+2026-10-05 10:38:53.538 xcodebuild[82898:15208320] [MT] IDETestOperationsObserverDebug: 27.533 sec, +27.533 sec -- end
+
+Test session results, code coverage, and logs:
+	/tmp/empires-naval-rules-evidence/rules-small.xcresult
+
+** TEST SUCCEEDED **
+
+Testing started

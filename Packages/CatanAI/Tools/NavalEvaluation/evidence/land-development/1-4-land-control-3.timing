@@ -1,0 +1,2 @@
+naval-sim rejection evidence: /var/folders/_m/cfbn0s7j7zx3sx1lwv6w4mr80000gn/T/naval-sim-failures/700103-4-3-land-control-archipelago-true-false
+naval-sim seed=700103 decisions=777 p95=7.202ms p99=18.152ms over50=2 over150=0

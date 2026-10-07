@@ -5,6 +5,8 @@ public enum GamePhase: Codable, Sendable, Equatable {
     case mainTurn(playerIndex: Int)
     case discarding(pending: Set<PlayerID>)
     case movingRobber(playerIndex: Int)
+    case choosingResource(playerIndex: Int)
+    case capturingShip(playerIndex: Int)
     case gameOver(winner: PlayerID)
 
     /// The seat this phase is waiting on, or `nil` when no single seat owns it.
@@ -34,10 +36,18 @@ public enum GamePhase: Codable, Sendable, Equatable {
     public var awaitingSeatIndex: Int? {
         switch self {
         case .setupForward(let index), .setupBackward(let index),
-             .rollDice(let index), .mainTurn(let index), .movingRobber(let index):
+             .rollDice(let index), .mainTurn(let index), .movingRobber(let index),
+             .choosingResource(let index), .capturingShip(let index):
             return index
         case .discarding, .gameOver:
             return nil
+        }
+    }
+
+    public var isSetup: Bool {
+        switch self {
+        case .setupForward, .setupBackward: return true
+        default: return false
         }
     }
 

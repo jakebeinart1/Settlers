@@ -1,0 +1,350 @@
+Command line invocation:
+    /Applications/Xcode.app/Contents/Developer/usr/bin/xcodebuild test -project Settlers.xcodeproj -scheme Settlers -destination "platform=iOS Simulator,id=937692FF-BFBF-4683-80E5-2590F5288D56" -parallel-testing-enabled NO -parallel-testing-worker-count 1 -jobs 2 "OTHER_SWIFT_FLAGS=$(inherited) -driver-batch-count 2" "-only-testing:SettlersTests/TradeTapSafetyFixtureTests" "-only-testing:SettlersUITests/TradeTapSafetyFlowTests/testRepeatedSkipTouchesCannotAcceptARealNavalOffer" -resultBundlePath /Users/alex/.codex/artifacts/naval-exploration/build23-sprites-build-trade-safety/trade-taps-legal-before-fix.xcresult
+
+Build settings from command line:
+    OTHER_SWIFT_FLAGS = $(inherited) -driver-batch-count 2
+
+Resolve Package Graph
+
+
+Resolved source packages:
+  CatanAI: /Users/alex/.codex/worktrees/naval-exploration/Settlers/Packages/CatanAI
+  CatanEngine: /Users/alex/.codex/worktrees/naval-exploration/Settlers/Packages/CatanEngine
+
+Writing result bundle at path:
+	/Users/alex/.codex/artifacts/naval-exploration/build23-sprites-build-trade-safety/trade-taps-legal-before-fix.xcresult
+
+Build Preparation
+Build task concurrency set to 2 via user default IDEBuildOperationMaxNumberOfConcurrentCompileTasks
+
+ComputePackagePrebuildTargetDependencyGraph
+
+Prepare packages
+
+CreateBuildRequest
+
+SendProjectDescription
+
+CreateBuildOperation
+
+ComputeTargetDependencyGraph
+note: Building targets in dependency order
+note: Target dependency graph (7 targets)
+    Target 'SettlersUITests' in project 'Settlers'
+        ➜ Explicit dependency on target 'Settlers' in project 'Settlers'
+    Target 'SettlersTests' in project 'Settlers'
+        ➜ Explicit dependency on target 'Settlers' in project 'Settlers'
+    Target 'Settlers' in project 'Settlers'
+        ➜ Explicit dependency on target 'CatanEngine' in project 'CatanEngine'
+        ➜ Explicit dependency on target 'CatanAI' in project 'CatanAI'
+    Target 'CatanAI' in project 'CatanAI'
+        ➜ Explicit dependency on target 'CatanAI' in project 'CatanAI'
+        ➜ Explicit dependency on target 'CatanEngine' in project 'CatanEngine'
+    Target 'CatanAI' in project 'CatanAI'
+        ➜ Explicit dependency on target 'CatanEngine' in project 'CatanEngine'
+    Target 'CatanEngine' in project 'CatanEngine'
+        ➜ Explicit dependency on target 'CatanEngine' in project 'CatanEngine'
+    Target 'CatanEngine' in project 'CatanEngine' (no dependencies)
+
+GatherProvisioningInputs
+
+CreateBuildDescription
+
+ClangStatCache /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang-stat-cache /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.5.sdk /Users/alex/Library/Developer/Xcode/DerivedData/SDKStatCaches.noindex/iphonesimulator26.5-23F73-6cfe768891a92b912361537c460fe42b.sdkstatcache
+    cd /Users/alex/.codex/worktrees/naval-exploration/Settlers/Settlers.xcodeproj
+    /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang-stat-cache /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.5.sdk -o /Users/alex/Library/Developer/Xcode/DerivedData/SDKStatCaches.noindex/iphonesimulator26.5-23F73-6cfe768891a92b912361537c460fe42b.sdkstatcache
+
+SwiftDriver SettlersTests normal arm64 com.apple.xcode.tools.swift.compiler (in target 'SettlersTests' from project 'Settlers')
+    cd /Users/alex/.codex/worktrees/naval-exploration/Settlers
+    builtin-SwiftDriver -- /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc -module-name SettlersTests -Onone @/Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/Settlers.build/Debug-iphonesimulator/SettlersTests.build/Objects-normal/arm64/SettlersTests.SwiftFileList -DDEBUG -driver-batch-count 2 -plugin-path /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/host/plugins/testing -enable-experimental-feature DebugDescriptionMacro -sdk /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.5.sdk -target arm64-apple-ios17.0-simulator -g -module-cache-path /Users/alex/Library/Developer/Xcode/DerivedData/ModuleCache.noindex -Xfrontend -serialize-debugging-options -profile-coverage-mapping -profile-generate -enable-testing -warnings-as-errors -index-store-path /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Index.noindex/DataStore -Xcc -D_LIBCPP_HARDENING_MODE\=_LIBCPP_HARDENING_MODE_DEBUG -swift-version 6 -I /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Products/Debug-iphonesimulator -Isystem /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/usr/lib -F /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Products/Debug-iphonesimulator/PackageFrameworks -F /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Products/Debug-iphonesimulator/PackageFrameworks -F /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Products/Debug-iphonesimulator -F /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/Library/Frameworks -F /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.5.sdk/Developer/Library/Frameworks -c -j18 -enable-batch-mode -incremental -Xcc -ivfsstatcache -Xcc /Users/alex/Library/Developer/Xcode/DerivedData/SDKStatCaches.noindex/iphonesimulator26.5-23F73-6cfe768891a92b912361537c460fe42b.sdkstatcache -output-file-map /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/Settlers.build/Debug-iphonesimulator/SettlersTests.build/Objects-normal/arm64/SettlersTests-OutputFileMap.json -use-frontend-parseable-output -save-temps -no-color-diagnostics -explicit-module-build -module-cache-path /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/SwiftExplicitPrecompiledModules -clang-scanner-module-cache-path /Users/alex/Library/Developer/Xcode/DerivedData/ModuleCache.noindex -sdk-module-cache-path /Users/alex/Library/Developer/Xcode/DerivedData/ModuleCache.noindex -serialize-diagnostics -emit-dependencies -emit-module -emit-module-path /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/Settlers.build/Debug-iphonesimulator/SettlersTests.build/Objects-normal/arm64/SettlersTests.swiftmodule -validate-clang-modules-once -clang-build-session-file /Users/alex/Library/Developer/Xcode/DerivedData/ModuleCache.noindex/Session.modulevalidation -Xcc -I/Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/Settlers.build/Debug-iphonesimulator/SettlersTests.build/swift-overrides.hmap -emit-const-values -Xfrontend -const-gather-protocols-file -Xfrontend /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/Settlers.build/Debug-iphonesimulator/SettlersTests.build/Objects-normal/arm64/SettlersTests_const_extract_protocols.json -Xcc -iquote -Xcc /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/Settlers.build/Debug-iphonesimulator/SettlersTests.build/SettlersTests-generated-files.hmap -Xcc -I/Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/Settlers.build/Debug-iphonesimulator/SettlersTests.build/SettlersTests-own-target-headers.hmap -Xcc -I/Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/Settlers.build/Debug-iphonesimulator/SettlersTests.build/SettlersTests-all-non-framework-target-headers.hmap -Xcc -ivfsoverlay -Xcc /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/Settlers.build/Debug-iphonesimulator/Settlers-9ad65172c434931f4eb5300f50bbe1d2-VFS-iphonesimulator/all-product-headers.yaml -Xcc -iquote -Xcc /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/Settlers.build/Debug-iphonesimulator/SettlersTests.build/SettlersTests-project-headers.hmap -Xcc -I/Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Products/Debug-iphonesimulator/include -Xcc -I/Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/Settlers.build/Debug-iphonesimulator/SettlersTests.build/DerivedSources-normal/arm64 -Xcc -I/Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/Settlers.build/Debug-iphonesimulator/SettlersTests.build/DerivedSources/arm64 -Xcc -I/Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/Settlers.build/Debug-iphonesimulator/SettlersTests.build/DerivedSources -Xcc -DDEBUG\=1 -emit-objc-header -emit-objc-header-path /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/Settlers.build/Debug-iphonesimulator/SettlersTests.build/Objects-normal/arm64/SettlersTests-Swift.h -working-directory /Users/alex/.codex/worktrees/naval-exploration/Settlers -experimental-emit-module-separately -disable-cmo
+
+SwiftExplicitDependencyCompileModuleFromInterface arm64 /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/SwiftExplicitPrecompiledModules/XCUIAutomation-3U0HIGM5UC7UD.swiftmodule
+
+SwiftExplicitDependencyCompileModuleFromInterface arm64 /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/SwiftExplicitPrecompiledModules/Testing-25X0XQ7HYAKSV.swiftmodule
+
+SwiftExplicitDependencyCompileModuleFromInterface arm64 /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/SwiftExplicitPrecompiledModules/XCTest-1VJDU186DMD63.swiftmodule
+
+SwiftExplicitDependencyCompileModuleFromInterface arm64 /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/SwiftExplicitPrecompiledModules/_Testing_Foundation-3G4BKKVQK67WC.swiftmodule
+
+SwiftExplicitDependencyCompileModuleFromInterface arm64 /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/SwiftExplicitPrecompiledModules/_Testing_CoreGraphics-2C2CKRHXH1P88.swiftmodule
+
+SwiftExplicitDependencyCompileModuleFromInterface arm64 /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/SwiftExplicitPrecompiledModules/_Testing_UIKit-1N9DXTKYT9CZK.swiftmodule
+
+SwiftEmitModule normal arm64 Emitting\ module\ for\ SettlersTests (in target 'SettlersTests' from project 'Settlers')
+
+EmitSwiftModule normal arm64 (in target 'SettlersTests' from project 'Settlers')
+    cd /Users/alex/.codex/worktrees/naval-exploration/Settlers
+    
+
+SwiftCompile normal arm64 Compiling\ TradeTapSafetyFixtureTests.swift /Users/alex/.codex/worktrees/naval-exploration/Settlers/SettlersTests/TradeTapSafetyFixtureTests.swift (in target 'SettlersTests' from project 'Settlers')
+
+SwiftCompile normal arm64 /Users/alex/.codex/worktrees/naval-exploration/Settlers/SettlersTests/TradeTapSafetyFixtureTests.swift (in target 'SettlersTests' from project 'Settlers')
+    cd /Users/alex/.codex/worktrees/naval-exploration/Settlers
+    
+
+SwiftDriverJobDiscovery normal arm64 Compiling TradeTapSafetyFixtureTests.swift (in target 'SettlersTests' from project 'Settlers')
+
+SwiftDriverJobDiscovery normal arm64 Emitting module for SettlersTests (in target 'SettlersTests' from project 'Settlers')
+
+SwiftDriver\ Compilation\ Requirements SettlersTests normal arm64 com.apple.xcode.tools.swift.compiler (in target 'SettlersTests' from project 'Settlers')
+    cd /Users/alex/.codex/worktrees/naval-exploration/Settlers
+    builtin-Swift-Compilation-Requirements -- /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc -module-name SettlersTests -Onone @/Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/Settlers.build/Debug-iphonesimulator/SettlersTests.build/Objects-normal/arm64/SettlersTests.SwiftFileList -DDEBUG -driver-batch-count 2 -plugin-path /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/host/plugins/testing -enable-experimental-feature DebugDescriptionMacro -sdk /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.5.sdk -target arm64-apple-ios17.0-simulator -g -module-cache-path /Users/alex/Library/Developer/Xcode/DerivedData/ModuleCache.noindex -Xfrontend -serialize-debugging-options -profile-coverage-mapping -profile-generate -enable-testing -warnings-as-errors -index-store-path /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Index.noindex/DataStore -Xcc -D_LIBCPP_HARDENING_MODE\=_LIBCPP_HARDENING_MODE_DEBUG -swift-version 6 -I /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Products/Debug-iphonesimulator -Isystem /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/usr/lib -F /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Products/Debug-iphonesimulator/PackageFrameworks -F /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Products/Debug-iphonesimulator/PackageFrameworks -F /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Products/Debug-iphonesimulator -F /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/Library/Frameworks -F /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.5.sdk/Developer/Library/Frameworks -c -j18 -enable-batch-mode -incremental -Xcc -ivfsstatcache -Xcc /Users/alex/Library/Developer/Xcode/DerivedData/SDKStatCaches.noindex/iphonesimulator26.5-23F73-6cfe768891a92b912361537c460fe42b.sdkstatcache -output-file-map /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/Settlers.build/Debug-iphonesimulator/SettlersTests.build/Objects-normal/arm64/SettlersTests-OutputFileMap.json -use-frontend-parseable-output -save-temps -no-color-diagnostics -explicit-module-build -module-cache-path /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/SwiftExplicitPrecompiledModules -clang-scanner-module-cache-path /Users/alex/Library/Developer/Xcode/DerivedData/ModuleCache.noindex -sdk-module-cache-path /Users/alex/Library/Developer/Xcode/DerivedData/ModuleCache.noindex -serialize-diagnostics -emit-dependencies -emit-module -emit-module-path /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/Settlers.build/Debug-iphonesimulator/SettlersTests.build/Objects-normal/arm64/SettlersTests.swiftmodule -validate-clang-modules-once -clang-build-session-file /Users/alex/Library/Developer/Xcode/DerivedData/ModuleCache.noindex/Session.modulevalidation -Xcc -I/Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/Settlers.build/Debug-iphonesimulator/SettlersTests.build/swift-overrides.hmap -emit-const-values -Xfrontend -const-gather-protocols-file -Xfrontend /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/Settlers.build/Debug-iphonesimulator/SettlersTests.build/Objects-normal/arm64/SettlersTests_const_extract_protocols.json -Xcc -iquote -Xcc /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/Settlers.build/Debug-iphonesimulator/SettlersTests.build/SettlersTests-generated-files.hmap -Xcc -I/Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/Settlers.build/Debug-iphonesimulator/SettlersTests.build/SettlersTests-own-target-headers.hmap -Xcc -I/Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/Settlers.build/Debug-iphonesimulator/SettlersTests.build/SettlersTests-all-non-framework-target-headers.hmap -Xcc -ivfsoverlay -Xcc /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/Settlers.build/Debug-iphonesimulator/Settlers-9ad65172c434931f4eb5300f50bbe1d2-VFS-iphonesimulator/all-product-headers.yaml -Xcc -iquote -Xcc /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/Settlers.build/Debug-iphonesimulator/SettlersTests.build/SettlersTests-project-headers.hmap -Xcc -I/Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Products/Debug-iphonesimulator/include -Xcc -I/Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/Settlers.build/Debug-iphonesimulator/SettlersTests.build/DerivedSources-normal/arm64 -Xcc -I/Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/Settlers.build/Debug-iphonesimulator/SettlersTests.build/DerivedSources/arm64 -Xcc -I/Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/Settlers.build/Debug-iphonesimulator/SettlersTests.build/DerivedSources -Xcc -DDEBUG\=1 -emit-objc-header -emit-objc-header-path /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/Settlers.build/Debug-iphonesimulator/SettlersTests.build/Objects-normal/arm64/SettlersTests-Swift.h -working-directory /Users/alex/.codex/worktrees/naval-exploration/Settlers -experimental-emit-module-separately -disable-cmo
+
+SwiftDriver\ Compilation SettlersTests normal arm64 com.apple.xcode.tools.swift.compiler (in target 'SettlersTests' from project 'Settlers')
+    cd /Users/alex/.codex/worktrees/naval-exploration/Settlers
+    builtin-Swift-Compilation -- /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc -module-name SettlersTests -Onone @/Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/Settlers.build/Debug-iphonesimulator/SettlersTests.build/Objects-normal/arm64/SettlersTests.SwiftFileList -DDEBUG -driver-batch-count 2 -plugin-path /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/host/plugins/testing -enable-experimental-feature DebugDescriptionMacro -sdk /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.5.sdk -target arm64-apple-ios17.0-simulator -g -module-cache-path /Users/alex/Library/Developer/Xcode/DerivedData/ModuleCache.noindex -Xfrontend -serialize-debugging-options -profile-coverage-mapping -profile-generate -enable-testing -warnings-as-errors -index-store-path /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Index.noindex/DataStore -Xcc -D_LIBCPP_HARDENING_MODE\=_LIBCPP_HARDENING_MODE_DEBUG -swift-version 6 -I /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Products/Debug-iphonesimulator -Isystem /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/usr/lib -F /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Products/Debug-iphonesimulator/PackageFrameworks -F /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Products/Debug-iphonesimulator/PackageFrameworks -F /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Products/Debug-iphonesimulator -F /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/Library/Frameworks -F /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.5.sdk/Developer/Library/Frameworks -c -j18 -enable-batch-mode -incremental -Xcc -ivfsstatcache -Xcc /Users/alex/Library/Developer/Xcode/DerivedData/SDKStatCaches.noindex/iphonesimulator26.5-23F73-6cfe768891a92b912361537c460fe42b.sdkstatcache -output-file-map /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/Settlers.build/Debug-iphonesimulator/SettlersTests.build/Objects-normal/arm64/SettlersTests-OutputFileMap.json -use-frontend-parseable-output -save-temps -no-color-diagnostics -explicit-module-build -module-cache-path /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/SwiftExplicitPrecompiledModules -clang-scanner-module-cache-path /Users/alex/Library/Developer/Xcode/DerivedData/ModuleCache.noindex -sdk-module-cache-path /Users/alex/Library/Developer/Xcode/DerivedData/ModuleCache.noindex -serialize-diagnostics -emit-dependencies -emit-module -emit-module-path /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/Settlers.build/Debug-iphonesimulator/SettlersTests.build/Objects-normal/arm64/SettlersTests.swiftmodule -validate-clang-modules-once -clang-build-session-file /Users/alex/Library/Developer/Xcode/DerivedData/ModuleCache.noindex/Session.modulevalidation -Xcc -I/Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/Settlers.build/Debug-iphonesimulator/SettlersTests.build/swift-overrides.hmap -emit-const-values -Xfrontend -const-gather-protocols-file -Xfrontend /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/Settlers.build/Debug-iphonesimulator/SettlersTests.build/Objects-normal/arm64/SettlersTests_const_extract_protocols.json -Xcc -iquote -Xcc /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/Settlers.build/Debug-iphonesimulator/SettlersTests.build/SettlersTests-generated-files.hmap -Xcc -I/Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/Settlers.build/Debug-iphonesimulator/SettlersTests.build/SettlersTests-own-target-headers.hmap -Xcc -I/Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/Settlers.build/Debug-iphonesimulator/SettlersTests.build/SettlersTests-all-non-framework-target-headers.hmap -Xcc -ivfsoverlay -Xcc /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/Settlers.build/Debug-iphonesimulator/Settlers-9ad65172c434931f4eb5300f50bbe1d2-VFS-iphonesimulator/all-product-headers.yaml -Xcc -iquote -Xcc /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/Settlers.build/Debug-iphonesimulator/SettlersTests.build/SettlersTests-project-headers.hmap -Xcc -I/Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Products/Debug-iphonesimulator/include -Xcc -I/Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/Settlers.build/Debug-iphonesimulator/SettlersTests.build/DerivedSources-normal/arm64 -Xcc -I/Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/Settlers.build/Debug-iphonesimulator/SettlersTests.build/DerivedSources/arm64 -Xcc -I/Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/Settlers.build/Debug-iphonesimulator/SettlersTests.build/DerivedSources -Xcc -DDEBUG\=1 -emit-objc-header -emit-objc-header-path /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/Settlers.build/Debug-iphonesimulator/SettlersTests.build/Objects-normal/arm64/SettlersTests-Swift.h -working-directory /Users/alex/.codex/worktrees/naval-exploration/Settlers -experimental-emit-module-separately -disable-cmo
+
+Copy /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Products/Debug-iphonesimulator/SettlersTests.swiftmodule/arm64-apple-ios-simulator.swiftmodule /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/Settlers.build/Debug-iphonesimulator/SettlersTests.build/Objects-normal/arm64/SettlersTests.swiftmodule (in target 'SettlersTests' from project 'Settlers')
+    cd /Users/alex/.codex/worktrees/naval-exploration/Settlers
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks -rename /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/Settlers.build/Debug-iphonesimulator/SettlersTests.build/Objects-normal/arm64/SettlersTests.swiftmodule /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Products/Debug-iphonesimulator/SettlersTests.swiftmodule/arm64-apple-ios-simulator.swiftmodule
+
+Copy /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Products/Debug-iphonesimulator/SettlersTests.swiftmodule/arm64-apple-ios-simulator.swiftdoc /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/Settlers.build/Debug-iphonesimulator/SettlersTests.build/Objects-normal/arm64/SettlersTests.swiftdoc (in target 'SettlersTests' from project 'Settlers')
+    cd /Users/alex/.codex/worktrees/naval-exploration/Settlers
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks -rename /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/Settlers.build/Debug-iphonesimulator/SettlersTests.build/Objects-normal/arm64/SettlersTests.swiftdoc /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Products/Debug-iphonesimulator/SettlersTests.swiftmodule/arm64-apple-ios-simulator.swiftdoc
+
+Copy /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Products/Debug-iphonesimulator/SettlersTests.swiftmodule/arm64-apple-ios-simulator.abi.json /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/Settlers.build/Debug-iphonesimulator/SettlersTests.build/Objects-normal/arm64/SettlersTests.abi.json (in target 'SettlersTests' from project 'Settlers')
+    cd /Users/alex/.codex/worktrees/naval-exploration/Settlers
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks -rename /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/Settlers.build/Debug-iphonesimulator/SettlersTests.build/Objects-normal/arm64/SettlersTests.abi.json /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Products/Debug-iphonesimulator/SettlersTests.swiftmodule/arm64-apple-ios-simulator.abi.json
+
+Copy /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Products/Debug-iphonesimulator/SettlersTests.swiftmodule/Project/arm64-apple-ios-simulator.swiftsourceinfo /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/Settlers.build/Debug-iphonesimulator/SettlersTests.build/Objects-normal/arm64/SettlersTests.swiftsourceinfo (in target 'SettlersTests' from project 'Settlers')
+    cd /Users/alex/.codex/worktrees/naval-exploration/Settlers
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks -rename /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/Settlers.build/Debug-iphonesimulator/SettlersTests.build/Objects-normal/arm64/SettlersTests.swiftsourceinfo /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Products/Debug-iphonesimulator/SettlersTests.swiftmodule/Project/arm64-apple-ios-simulator.swiftsourceinfo
+
+Ld /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Products/Debug-iphonesimulator/Settlers.app/PlugIns/SettlersTests.xctest/SettlersTests normal (in target 'SettlersTests' from project 'Settlers')
+    cd /Users/alex/.codex/worktrees/naval-exploration/Settlers
+    /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang -Xlinker -reproducible -target arm64-apple-ios17.0-simulator -bundle -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.5.sdk -O0 -L/Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/EagerLinkingTBDs/Debug-iphonesimulator -L/Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Products/Debug-iphonesimulator -L/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/usr/lib -F/Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/EagerLinkingTBDs/Debug-iphonesimulator -F/Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Products/Debug-iphonesimulator/PackageFrameworks -F/Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Products/Debug-iphonesimulator/PackageFrameworks -F/Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Products/Debug-iphonesimulator -iframework /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/Library/Frameworks -iframework /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.5.sdk/Developer/Library/Frameworks -filelist /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/Settlers.build/Debug-iphonesimulator/SettlersTests.build/Objects-normal/arm64/SettlersTests.LinkFileList -Xlinker -rpath -Xlinker /usr/lib/swift -Xlinker -rpath -Xlinker /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Products/Debug-iphonesimulator/PackageFrameworks -Xlinker -rpath -Xlinker @loader_path/Frameworks -Xlinker -rpath -Xlinker @executable_path/Frameworks -Xlinker -dead_strip -bundle_loader /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Products/Debug-iphonesimulator/Settlers.app/Settlers -Xlinker -object_path_lto -Xlinker /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/Settlers.build/Debug-iphonesimulator/SettlersTests.build/Objects-normal/arm64/SettlersTests_lto.o -rdynamic -Xlinker -no_deduplicate -Xlinker -objc_abi_version -Xlinker 2 -Xlinker -debug_variant -Xlinker -dependency_info -Xlinker /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/Settlers.build/Debug-iphonesimulator/SettlersTests.build/Objects-normal/arm64/SettlersTests_dependency_info.dat -fobjc-link-runtime -fprofile-instr-generate -L/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/iphonesimulator -L/usr/lib/swift -Xlinker -add_ast_path -Xlinker /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/Settlers.build/Debug-iphonesimulator/SettlersTests.build/Objects-normal/arm64/SettlersTests.swiftmodule @/Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/Settlers.build/Debug-iphonesimulator/SettlersTests.build/Objects-normal/arm64/SettlersTests-linker-args.resp -Wl,-no_warn_duplicate_libraries -Wl,-no_warn_duplicate_libraries -Xlinker -needed_framework -Xlinker XCTest -framework XCTest -Xlinker -needed-lXCTestSwiftSupport -lXCTestSwiftSupport /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Products/Debug-iphonesimulator/Settlers.app/Settlers.debug.dylib -Xlinker -no_adhoc_codesign -o /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Products/Debug-iphonesimulator/Settlers.app/PlugIns/SettlersTests.xctest/SettlersTests
+
+ExtractAppIntentsMetadata (in target 'SettlersTests' from project 'Settlers')
+    cd /Users/alex/.codex/worktrees/naval-exploration/Settlers
+    /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/appintentsmetadataprocessor --toolchain-dir /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain --module-name SettlersTests --sdk-root /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.5.sdk --xcode-version 17F42 --platform-family iOS --deployment-target 17.0 --bundle-identifier com.jakebeinart.settlers.SettlersTests --output /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Products/Debug-iphonesimulator/Settlers.app/PlugIns/SettlersTests.xctest --target-triple arm64-apple-ios17.0-simulator --binary-file /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Products/Debug-iphonesimulator/Settlers.app/PlugIns/SettlersTests.xctest/SettlersTests --dependency-file /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/Settlers.build/Debug-iphonesimulator/SettlersTests.build/Objects-normal/arm64/SettlersTests_dependency_info.dat --stringsdata-file /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/Settlers.build/Debug-iphonesimulator/SettlersTests.build/Objects-normal/arm64/ExtractedAppShortcutsMetadata.stringsdata --source-file-list /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/Settlers.build/Debug-iphonesimulator/SettlersTests.build/Objects-normal/arm64/SettlersTests.SwiftFileList --metadata-file-list /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/Settlers.build/Debug-iphonesimulator/SettlersTests.build/SettlersTests.DependencyMetadataFileList --static-metadata-file-list /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/Settlers.build/Debug-iphonesimulator/SettlersTests.build/SettlersTests.DependencyStaticMetadataFileList --swift-const-vals-list /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/Settlers.build/Debug-iphonesimulator/SettlersTests.build/Objects-normal/arm64/SettlersTests.SwiftConstValuesFileList --compile-time-extraction --deployment-aware-processing --validate-assistant-intents --no-app-shortcuts-localization
+2026-10-07 01:33:39.965 appintentsmetadataprocessor[76154:2063349] Starting appintentsmetadataprocessor export
+2026-10-07 01:33:39.966 appintentsmetadataprocessor[76154:2063349] warning: Metadata extraction skipped. No AppIntents.framework dependency found.
+
+CopySwiftLibs /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Products/Debug-iphonesimulator/Settlers.app/PlugIns/SettlersTests.xctest (in target 'SettlersTests' from project 'Settlers')
+    cd /Users/alex/.codex/worktrees/naval-exploration/Settlers
+    builtin-swiftStdLibTool --copy --verbose --sign - --scan-executable /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Products/Debug-iphonesimulator/Settlers.app/PlugIns/SettlersTests.xctest/SettlersTests --scan-folder /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Products/Debug-iphonesimulator/Settlers.app/PlugIns/SettlersTests.xctest/Frameworks --scan-folder /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Products/Debug-iphonesimulator/Settlers.app/PlugIns/SettlersTests.xctest/PlugIns --scan-folder /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Products/Debug-iphonesimulator/Settlers.app/PlugIns/SettlersTests.xctest/SystemExtensions --scan-folder /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Products/Debug-iphonesimulator/Settlers.app/PlugIns/SettlersTests.xctest/Extensions --platform iphonesimulator --toolchain /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain --destination /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Products/Debug-iphonesimulator/Settlers.app/PlugIns/SettlersTests.xctest/Frameworks --strip-bitcode --scan-executable /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/usr/lib/libXCTestSwiftSupport.dylib --strip-bitcode-tool /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/bitcode_strip --emit-dependency-info /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/Settlers.build/Debug-iphonesimulator/SettlersTests.build/SwiftStdLibToolInputDependencies.dep --filter-for-swift-os
+
+CodeSign /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Products/Debug-iphonesimulator/Settlers.app/PlugIns/SettlersTests.xctest (in target 'SettlersTests' from project 'Settlers')
+    cd /Users/alex/.codex/worktrees/naval-exploration/Settlers
+    
+    Signing Identity:     "Sign to Run Locally"
+    
+    /usr/bin/codesign --force --sign - --timestamp\=none --generate-entitlement-der /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Products/Debug-iphonesimulator/Settlers.app/PlugIns/SettlersTests.xctest
+
+CodeSign /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Products/Debug-iphonesimulator/Settlers.app/Settlers.debug.dylib (in target 'Settlers' from project 'Settlers')
+    cd /Users/alex/.codex/worktrees/naval-exploration/Settlers
+    
+    Signing Identity:     "Sign to Run Locally"
+    
+    /usr/bin/codesign --force --sign - --timestamp\=none --generate-entitlement-der /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Products/Debug-iphonesimulator/Settlers.app/Settlers.debug.dylib
+
+CodeSign /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Products/Debug-iphonesimulator/Settlers.app/__preview.dylib (in target 'Settlers' from project 'Settlers')
+    cd /Users/alex/.codex/worktrees/naval-exploration/Settlers
+    
+    Signing Identity:     "Sign to Run Locally"
+    
+    /usr/bin/codesign --force --sign - --timestamp\=none --generate-entitlement-der /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Products/Debug-iphonesimulator/Settlers.app/__preview.dylib
+/Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Products/Debug-iphonesimulator/Settlers.app/__preview.dylib: replacing existing signature
+
+CodeSign /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Products/Debug-iphonesimulator/Settlers.app (in target 'Settlers' from project 'Settlers')
+    cd /Users/alex/.codex/worktrees/naval-exploration/Settlers
+    
+    Signing Identity:     "Sign to Run Locally"
+    
+    /usr/bin/codesign --force --sign - --timestamp\=none --generate-entitlement-der /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Products/Debug-iphonesimulator/Settlers.app
+
+Validate /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Products/Debug-iphonesimulator/Settlers.app (in target 'Settlers' from project 'Settlers')
+    cd /Users/alex/.codex/worktrees/naval-exploration/Settlers
+    builtin-validationUtility /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Products/Debug-iphonesimulator/Settlers.app -shallow-bundle -infoplist-subpath Info.plist
+
+ProcessInfoPlistFile /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Products/Debug-iphonesimulator/SettlersUITests-Runner.app/PlugIns/SettlersUITests.xctest/Info.plist /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/Settlers.build/Debug-iphonesimulator/SettlersUITests.build/empty-SettlersUITests.plist (in target 'SettlersUITests' from project 'Settlers')
+    cd /Users/alex/.codex/worktrees/naval-exploration/Settlers
+    builtin-infoPlistUtility /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/Settlers.build/Debug-iphonesimulator/SettlersUITests.build/empty-SettlersUITests.plist -producttype com.apple.product-type.bundle.ui-testing -expandbuildsettings -format binary -platform iphonesimulator -additionalcontentfile /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/Settlers.build/Debug-iphonesimulator/SettlersUITests.build/ProductTypeInfoPlistAdditions.plist -o /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Products/Debug-iphonesimulator/SettlersUITests-Runner.app/PlugIns/SettlersUITests.xctest/Info.plist
+
+Test Suite 'Selected tests' started at 2026-10-07 01:33:42.570.
+Test Suite 'SettlersTests.xctest' started at 2026-10-07 01:33:42.571.
+Test Suite 'SettlersTests.xctest' passed at 2026-10-07 01:33:42.571.
+	 Executed 0 tests, with 0 failures (0 unexpected) in 0.000 (0.000) seconds
+Test Suite 'Selected tests' passed at 2026-10-07 01:33:42.571.
+	 Executed 0 tests, with 0 failures (0 unexpected) in 0.000 (0.001) seconds
+◇ Test run started.
+↳ Testing Library Version: 1902
+↳ Target Platform: arm64-apple-ios13.0-simulator
+◇ Suite TradeTapSafetyFixtureTests started.
+◇ Test aRealMaskedProposalConservesCardsAndEndsAfterEitherAnswer(bundled:mode:) started.
+◇ Test case passing 2 arguments bundled → false, mode → .classic to aRealMaskedProposalConservesCardsAndEndsAfterEitherAnswer(bundled:mode:) started.
+​◇ Test case passing 2 arguments bundled → false, mode → .naval to aRealMaskedProposalConservesCardsAndEndsAfterEitherAnswer(bundled:mode:) started.
+​◇ Test case passing 2 arguments bundled → true, mode → .classic to aRealMaskedProposalConservesCardsAndEndsAfterEitherAnswer(bundled:mode:) started.
+objc[76173]: Class UIAccessibilityLoaderWebShared is implemented in both /Library/Developer/CoreSimulator/Volumes/iOS_23F77/Library/Developer/CoreSimulator/Profiles/Runtimes/iOS 26.5.simruntime/Contents/Resources/RuntimeRoot/System/Library/AccessibilityBundles/WebCore.axbundle/WebCore (0x11657c310) and /Library/Developer/CoreSimulator/Volumes/iOS_23F77/Library/Developer/CoreSimulator/Profiles/Runtimes/iOS 26.5.simruntime/Contents/Resources/RuntimeRoot/System/Library/AccessibilityBundles/WebKit.axbundle/WebKit (0x1159b4398). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+​◇ Test case passing 2 arguments bundled → true, mode → .naval to aRealMaskedProposalConservesCardsAndEndsAfterEitherAnswer(bundled:mode:) started.
+​✔ Test aRealMaskedProposalConservesCardsAndEndsAfterEitherAnswer(bundled:mode:) with 4 test cases passed after 0.308 seconds.
+✔ Suite TradeTapSafetyFixtureTests passed after 0.311 seconds.
+✔ Test run with 1 test in 1 suite passed after 0.311 seconds.
+2026-10-07 01:33:43.919167-0400 SettlersUITests-Runner[76207:2064154] [Default] Running tests...
+2026-10-07 01:33:44.021186-0400 SettlersUITests-Runner[76207:2064246] [General] Failed to send CA Event for app launch measurements for ca_event_type: 0 event_name: com.apple.app_launch_measurement.FirstFramePresentationMetric
+    t =      nans Interface orientation changed to Portrait
+Test Suite 'Selected tests' started at 2026-10-07 01:33:44.039.
+Test Suite 'SettlersUITests.xctest' started at 2026-10-07 01:33:44.039.
+Test Suite 'TradeTapSafetyFlowTests' started at 2026-10-07 01:33:44.039.
+Test Case '-[SettlersUITests.TradeTapSafetyFlowTests testRepeatedSkipTouchesCannotAcceptARealNavalOffer]' started.
+    t =     0.00s Start Test at 2026-10-07 01:33:44.040
+    t =     0.02s Set Up
+    t =     0.02s Open com.alexchandler.empires
+    t =     0.02s     Launch com.alexchandler.empires
+2026-10-07 01:33:44.107 xcodebuild[75993:2062067] [MT] IDELaunchParametersSnapshot: The operation couldn’t be completed. (DebuggerLLDB.DebuggerVersionStore.StoreError error 0.)
+2026-10-07 01:33:44.107 xcodebuild[75993:2062067] [MT] IDELaunchParametersSnapshot: no debugger version
+2026-10-07 01:33:44.083600-0400 SettlersUITests-Runner[76207:2064244] [General] Failed to send CA Event for app launch measurements for ca_event_type: 1 event_name: com.apple.app_launch_measurement.ExtendedLaunchMetrics
+    t =     0.27s         Setting up automation session
+objc[76207]: Class UIAccessibilityLoaderWebShared is implemented in both /Library/Developer/CoreSimulator/Volumes/iOS_23F77/Library/Developer/CoreSimulator/Profiles/Runtimes/iOS 26.5.simruntime/Contents/Resources/RuntimeRoot/System/Library/AccessibilityBundles/WebCore.axbundle/WebCore (0x10b39c310) and /Library/Developer/CoreSimulator/Volumes/iOS_23F77/Library/Developer/CoreSimulator/Profiles/Runtimes/iOS 26.5.simruntime/Contents/Resources/RuntimeRoot/System/Library/AccessibilityBundles/WebKit.axbundle/WebKit (0x109fc4398). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+    t =     0.78s         Wait for com.alexchandler.empires to idle
+    t =     2.39s Waiting 10.0s for "screen.in-game-settings" Other to exist
+    t =     3.46s     Checking `Expect predicate `existsNoRetry == 1` for object "screen.in-game-settings" Other`
+    t =     3.46s         Checking existence of `"screen.in-game-settings" Other`
+    t =     3.52s Tap "Slow" Button
+    t =     3.52s     Wait for com.alexchandler.empires to idle
+    t =     3.53s     Find the "Slow" Button
+    t =     3.55s     Check for interrupting elements affecting "Slow" Button
+    t =     3.57s     Synthesize event
+    t =     3.87s     Wait for com.alexchandler.empires to idle
+    t =     3.87s Tap "No Limit" Button
+    t =     3.87s     Wait for com.alexchandler.empires to idle
+    t =     3.87s     Find the "No Limit" Button
+    t =     3.90s     Check for interrupting elements affecting "No Limit" Button
+    t =     3.92s     Synthesize event
+    t =     4.21s     Wait for com.alexchandler.empires to idle
+    t =     4.22s Find the "Slow" Button
+    t =     4.24s Tap "in-game-settings.close" Button
+    t =     4.24s     Wait for com.alexchandler.empires to idle
+    t =     4.24s     Find the "in-game-settings.close" Button
+    t =     4.27s     Check for interrupting elements affecting "in-game-settings.close" Button
+    t =     4.29s     Synthesize event
+    t =     4.58s     Wait for com.alexchandler.empires to idle
+    t =     4.58s Waiting 5.0s for "bot-progress.skip" Button to exist
+    t =     5.63s     Checking `Expect predicate `existsNoRetry == 1` for object "bot-progress.skip" Button`
+    t =     5.64s         Checking existence of `"bot-progress.skip" Button`
+    t =     5.67s Find the "bot-progress.skip" Button
+    t =     5.69s Tap Target Application 'com.alexchandler.empires'[0.00, 0.00] -> (330.0, 815.7)
+    t =     5.69s     Wait for com.alexchandler.empires to idle
+    t =     5.69s     Find the Target Application 'com.alexchandler.empires'
+    t =     5.71s     Check for interrupting elements affecting "Empires" Application
+    t =     5.72s     Synthesize event
+    t =     5.72s         Find the Target Application 'com.alexchandler.empires'
+    t =     5.74s         Find the Target Application 'com.alexchandler.empires'
+    t =     5.75s         Find the Target Application 'com.alexchandler.empires'
+    t =     6.04s     Wait for com.alexchandler.empires to idle
+    t =     6.04s Waiting 5.0s for "incoming-trade.accept" Button to exist
+    t =     7.10s     Checking `Expect predicate `existsNoRetry == 1` for object "incoming-trade.accept" Button`
+    t =     7.10s         Checking existence of `"incoming-trade.accept" Button`
+    t =     7.13s Tap Target Application 'com.alexchandler.empires'[0.00, 0.00] -> (330.0, 815.7)
+    t =     7.13s     Wait for com.alexchandler.empires to idle
+    t =     7.13s     Find the Target Application 'com.alexchandler.empires'
+    t =     7.14s     Check for interrupting elements affecting "Empires" Application
+    t =     7.16s     Synthesize event
+    t =     7.16s         Find the Target Application 'com.alexchandler.empires'
+    t =     7.17s         Find the Target Application 'com.alexchandler.empires'
+    t =     7.19s         Find the Target Application 'com.alexchandler.empires'
+    t =     7.49s     Wait for com.alexchandler.empires to idle
+    t =     7.49s Tap Target Application 'com.alexchandler.empires'[0.00, 0.00] -> (330.0, 815.7)
+    t =     7.49s     Wait for com.alexchandler.empires to idle
+    t =     7.49s     Find the Target Application 'com.alexchandler.empires'
+    t =     7.51s     Check for interrupting elements affecting "Empires" Application
+    t =     7.52s     Synthesize event
+    t =     7.53s         Find the Target Application 'com.alexchandler.empires'
+    t =     7.54s         Find the Target Application 'com.alexchandler.empires'
+    t =     7.55s         Find the Target Application 'com.alexchandler.empires'
+    t =     7.85s     Wait for com.alexchandler.empires to idle
+    t =     7.85s Tap Target Application 'com.alexchandler.empires'[0.00, 0.00] -> (330.0, 815.7)
+    t =     7.85s     Wait for com.alexchandler.empires to idle
+    t =     7.86s     Find the Target Application 'com.alexchandler.empires'
+    t =     7.87s     Check for interrupting elements affecting "Empires" Application
+    t =     7.89s     Synthesize event
+    t =     7.89s         Find the Target Application 'com.alexchandler.empires'
+    t =     7.90s         Find the Target Application 'com.alexchandler.empires'
+    t =     7.91s         Find the Target Application 'com.alexchandler.empires'
+    t =     8.21s     Wait for com.alexchandler.empires to idle
+    t =     8.22s Tap Target Application 'com.alexchandler.empires'[0.00, 0.00] -> (330.0, 815.7)
+    t =     8.22s     Wait for com.alexchandler.empires to idle
+    t =     8.22s     Find the Target Application 'com.alexchandler.empires'
+    t =     8.23s     Check for interrupting elements affecting "Empires" Application
+    t =     8.25s     Synthesize event
+    t =     8.25s         Find the Target Application 'com.alexchandler.empires'
+    t =     8.26s         Find the Target Application 'com.alexchandler.empires'
+    t =     8.28s         Find the Target Application 'com.alexchandler.empires'
+    t =     8.57s     Wait for com.alexchandler.empires to idle
+    t =     8.57s Tap Target Application 'com.alexchandler.empires'[0.00, 0.00] -> (330.0, 815.7)
+    t =     8.57s     Wait for com.alexchandler.empires to idle
+    t =     8.58s     Find the Target Application 'com.alexchandler.empires'
+    t =     8.59s     Check for interrupting elements affecting "Empires" Application
+    t =     8.61s     Synthesize event
+    t =     8.61s         Find the Target Application 'com.alexchandler.empires'
+    t =     8.62s         Find the Target Application 'com.alexchandler.empires'
+    t =     8.63s         Find the Target Application 'com.alexchandler.empires'
+    t =     8.93s     Wait for com.alexchandler.empires to idle
+    t =     8.93s Tap Target Application 'com.alexchandler.empires'[0.00, 0.00] -> (330.0, 815.7)
+    t =     8.93s     Wait for com.alexchandler.empires to idle
+    t =     8.93s     Find the Target Application 'com.alexchandler.empires'
+    t =     8.95s     Check for interrupting elements affecting "Empires" Application
+    t =     8.96s     Synthesize event
+    t =     8.96s         Find the Target Application 'com.alexchandler.empires'
+    t =     8.98s         Find the Target Application 'com.alexchandler.empires'
+    t =     8.99s         Find the Target Application 'com.alexchandler.empires'
+    t =     9.29s     Wait for com.alexchandler.empires to idle
+    t =     9.29s Tap Target Application 'com.alexchandler.empires'[0.00, 0.00] -> (330.0, 815.7)
+    t =     9.29s     Wait for com.alexchandler.empires to idle
+    t =     9.29s     Find the Target Application 'com.alexchandler.empires'
+    t =     9.31s     Check for interrupting elements affecting "Empires" Application
+    t =     9.32s     Synthesize event
+    t =     9.32s         Find the Target Application 'com.alexchandler.empires'
+    t =     9.33s         Find the Target Application 'com.alexchandler.empires'
+    t =     9.35s         Find the Target Application 'com.alexchandler.empires'
+    t =     9.64s     Wait for com.alexchandler.empires to idle
+    t =     9.64s Tap Target Application 'com.alexchandler.empires'[0.00, 0.00] -> (330.0, 815.7)
+    t =     9.64s     Wait for com.alexchandler.empires to idle
+    t =     9.65s     Find the Target Application 'com.alexchandler.empires'
+    t =     9.66s     Check for interrupting elements affecting "Empires" Application
+    t =     9.68s     Synthesize event
+    t =     9.68s         Find the Target Application 'com.alexchandler.empires'
+    t =     9.69s         Find the Target Application 'com.alexchandler.empires'
+    t =     9.70s         Find the Target Application 'com.alexchandler.empires'
+    t =    10.00s     Wait for com.alexchandler.empires to idle
+    t =    10.00s Waiting 5.0s for "incoming-trade.accept" Button to exist
+    t =    11.06s     Checking `Expect predicate `existsNoRetry == 1` for object "incoming-trade.accept" Button`
+    t =    11.07s         Checking existence of `"incoming-trade.accept" Button`
+    t =    11.09s         Capturing element debug description
+    t =    12.04s     Checking `Expect predicate `existsNoRetry == 1` for object "incoming-trade.accept" Button`
+    t =    12.04s         Checking existence of `"incoming-trade.accept" Button`
+    t =    12.06s         Capturing element debug description
+    t =    13.01s     Checking `Expect predicate `existsNoRetry == 1` for object "incoming-trade.accept" Button`
+    t =    13.02s         Checking existence of `"incoming-trade.accept" Button`
+    t =    13.04s         Capturing element debug description
+    t =    14.01s     Checking `Expect predicate `existsNoRetry == 1` for object "incoming-trade.accept" Button`
+    t =    14.01s         Checking existence of `"incoming-trade.accept" Button`
+    t =    14.03s         Capturing element debug description
+    t =    15.00s     Checking `Expect predicate `existsNoRetry == 1` for object "incoming-trade.accept" Button`
+    t =    15.00s         Checking existence of `"incoming-trade.accept" Button`
+    t =    15.02s         Capturing element debug description
+    t =    15.02s     Checking existence of `"incoming-trade.accept" Button`
+    t =    15.04s Collecting debug information to assist test failure triage
+    t =    15.04s     Requesting snapshot of accessibility hierarchy for app with pid 76214
+/Users/alex/.codex/worktrees/naval-exploration/Settlers/SettlersUITests/TradeTapSafetyFlowTests.swift:153: error: -[SettlersUITests.TradeTapSafetyFlowTests testRepeatedSkipTouchesCannotAcceptARealNavalOffer] : XCTAssertTrue failed - A stale Skip touch answered or opened the real offer
+    t =    15.11s Tear Down
+Test Case '-[SettlersUITests.TradeTapSafetyFlowTests testRepeatedSkipTouchesCannotAcceptARealNavalOffer]' failed (15.325 seconds).
+Test Suite 'TradeTapSafetyFlowTests' failed at 2026-10-07 01:33:59.365.
+	 Executed 1 test, with 1 failure (0 unexpected) in 15.325 (15.326) seconds
+Test Suite 'SettlersUITests.xctest' failed at 2026-10-07 01:33:59.366.
+	 Executed 1 test, with 1 failure (0 unexpected) in 15.325 (15.327) seconds
+Test Suite 'Selected tests' failed at 2026-10-07 01:33:59.367.
+	 Executed 1 test, with 1 failure (0 unexpected) in 15.325 (15.328) seconds
+2026-10-07 01:34:11.301 xcodebuild[75993:2062067] [MT] IDETestOperationsObserverDebug: 31.090 elapsed -- Testing started completed.
+2026-10-07 01:34:11.301 xcodebuild[75993:2062067] [MT] IDETestOperationsObserverDebug: 0.000 sec, +0.000 sec -- start
+2026-10-07 01:34:11.301 xcodebuild[75993:2062067] [MT] IDETestOperationsObserverDebug: 31.090 sec, +31.090 sec -- end
+
+Test session results, code coverage, and logs:
+	/Users/alex/.codex/artifacts/naval-exploration/build23-sprites-build-trade-safety/trade-taps-legal-before-fix.xcresult
+
+Failing tests:
+	TradeTapSafetyFlowTests.testRepeatedSkipTouchesCannotAcceptARealNavalOffer()
+
+** TEST FAILED **
+
+Testing started

@@ -1,0 +1,8 @@
+source_commit,family,island_hexes,minimum_production_pips,maximum_production_pips,minimum_best_coastal_landing_pips,maximum_best_coastal_landing_pips
+a15d72e42689cf95aa7e2bd042830286990ae74f,archipelago,7,13,30,6,9
+a15d72e42689cf95aa7e2bd042830286990ae74f,twinIslands,3,7,14,6,9
+a15d72e42689cf95aa7e2bd042830286990ae74f,twinIslands,11,24,44,6,9
+a15d72e42689cf95aa7e2bd042830286990ae74f,peninsula,3,7,14,6,9
+a15d72e42689cf95aa7e2bd042830286990ae74f,peninsula,4,8,18,6,9
+a15d72e42689cf95aa7e2bd042830286990ae74f,peninsula,7,15,29,6,9
+a15d72e42689cf95aa7e2bd042830286990ae74f,peninsula,14,34,53,6,9

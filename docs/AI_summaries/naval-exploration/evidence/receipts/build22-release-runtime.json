@@ -1,0 +1,17 @@
+{
+  "verifiedAtUTC": "2026-10-07T04:51:50.609776+00:00",
+  "productionSourceSHA": "1cf1c0fde5904aa1cbeae9320cae55afb9bdfcd0",
+  "configuration": "Release",
+  "appPath": "/Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Products/Release-iphonesimulator/Settlers.app",
+  "bundleIdentifier": "com.alexchandler.empires",
+  "version": "1.0",
+  "build": "22",
+  "freshInstall": true,
+  "launchArguments": [],
+  "pid": 46232,
+  "processSurvivedAfterSeconds": 4,
+  "newOwnCrashReports": [],
+  "executableSHA256": "02574c8d0cc653a5f23f1a150e3a13a73e92e28cc3f1b84d82fbf9824b6f0d00",
+  "screenshot": "release-ordinary-menu.png",
+  "reusedQADeviceRebootedAfterPostGateShutdown": true
+}

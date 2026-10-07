@@ -6,6 +6,46 @@
 
 # Empires visual redesign — status
 
+## October 7 — Painted any-resource harvest: runtime review pending
+
+The Naval resource-choice hex now has an original opaque sibling terrain texture:
+muted light lavender/blue-gray ground, fine painted linen grain and restrained
+antique-gold botanical strokes. Its quiet center leaves room for the ordinary
+cream production token; native hex outline and grout remain shared with the
+other resource tiles. This replaces the schematic any-resource decoration.
+
+The built-in imagegen tool edited the existing pasture texture using the
+approved full-screen reference for palette/material context. The actual
+[generation manifest](approved/tiles/harvest-generation-manifest.json) retains
+the exact prompt, source path and SHA256
+`db33ef16bf28e325c4cffa2d4639f946aa78dec85c8d30ef499a695041e9aef3`.
+The unmodified PNG is retained at `approved/tiles/tile-harvest.png` and
+`Settlers/Assets.xcassets/tile-harvest.imageset/tile-harvest.png`; source,
+approved and runtime bytes are bound by that manifest. Build 24 integration is
+in progress. Actual regular/compact/maximum-text and local/World rendering,
+number readability and fog privacy remain pending visual approval in
+[E29](../docs/AI_summaries/naval-exploration/acceptance.md#build-24-follow-up-e29-in-progress)
+and the [visual record](../docs/AI_summaries/naval-exploration/evidence/visual-review.md#build-24-visual-review-pending).
+
+## October 7 — Painted Naval fleet
+
+Eight transparent, painted vessels now replace the primitive sailboat and
+building-crest overlay. Each current controller has a distinct hull silhouette
+and broad civilization-colored sail. Britannia uses a purple cog; Greece a tan
+hooked galley; Egypt a gold crescent hull; Aztec a blue canoe; Columbia a white
+cutter; Rome a coral rammed galley; Japan a jade junk; Norse a steel longship.
+These are fantasy Empires designs, not historical reconstructions.
+
+The built-in imagegen tool produced the original alpha assets. The
+[generation manifest](approved/ships/generation-manifest.json) retains every
+prompt, source path and SHA256. Approved `ships/civ-*-ship.png` and the matching
+runtime `civ-*-ship.imageset` PNGs are identical bytes. One shared
+`NavalShipBadge` supplies map, Fleet, build, capture and proposal artwork. A thin
+bounded selection outline replaces the large dashed seal; committed and staged
+images share their sizing. Capture preview suppresses the original selected
+sprite while its owner/identity remain unchanged until confirmation.
+
+
 Direction: Avatar: The Last Airbender-style (`approved/master-reference-full-screen.png`, the original
 approved "v4" generation). Warm, legible, bird's-eye board, one dominant color per resource tile, painted
 landmark pieces with a soft textured single-color look, gold-trimmed UI chrome.

@@ -9,6 +9,12 @@ The outcome is not “archive succeeded.” A ship is complete only after the
 Release gate passes, the build number is unique, Apple accepts the upload, the
 build reaches VALID, and the intended tester can see it.
 
+Before simulator-backed release checks, apply the
+[run-settlers lifecycle](../run-settlers/SKILL.md#simulator-lifecycle): inventory
+the host, reuse a confirmed idle task-owned QA device, export its exact
+`SETTLERS_QA_SIMULATOR_ID`, and use `GATE_TEST_WORKERS=1`. Complete individual
+task-owned cleanup afterward; other projects' simulators stay protected.
+
 ## Verified account and artifact state
 
 On 2026-09-02 the workflow registered bundle identifier 7DD387DC4H, created
@@ -46,7 +52,7 @@ preflight and use the numeric app id it prints.
 
 ## Release ladder
 
-1. Run scripts/gate.sh --debug-app.
+1. Run GATE_TEST_WORKERS=1 scripts/gate.sh --debug-app with the pinned QA device.
 2. Run all native UI flows on a fresh simulator install. A green package suite
    does not prove New Game, setup placement, hot-seat handoff, or settings.
 3. Inspect current crash reports before and after a Release launch. A new report

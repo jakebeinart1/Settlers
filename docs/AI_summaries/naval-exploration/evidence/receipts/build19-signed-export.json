@@ -1,0 +1,20 @@
+{
+  "source": "5c01f39d20fe20bbae734850dd30beb9f0d1f1e8",
+  "configuration": "Release",
+  "bundleID": "com.alexchandler.empires",
+  "version": "1.0",
+  "build": "19",
+  "ipaSHA256": "99a1bf0c64e38a75a85ccc8766c1fda31a1a026907fb59796fbf503300f79703",
+  "ipaBytes": 24905357,
+  "executableSHA256": "5a2a287991a835286ca1ff037cf776c0c0e94b29ff0e89baa2cdc215070c6de9",
+  "strictCodeSignatureVerified": true,
+  "profileName": "Empires App Store 20261004",
+  "profileUUID": "86da5771-8640-4c53-8867-0b4fbd4f1035",
+  "teamID": "HXB9F28LHR",
+  "betaReportsActive": true,
+  "getTaskAllow": false,
+  "hasProvisionedDevices": false,
+  "cloudKitContainer": "iCloud.com.alexchandler.empires",
+  "cloudKitEnvironment": "Production",
+  "certificateSHA1": "76465B06C2E157D857641F5B3D25CF5A3110C4A9"
+}

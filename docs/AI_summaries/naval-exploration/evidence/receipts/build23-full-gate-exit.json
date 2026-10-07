@@ -1,0 +1,10 @@
+{
+  "sourceCommit": "1dfae7cb8e46ca4b343c0415fef18e71cd3a6ed4",
+  "version": "1.0",
+  "build": "23",
+  "sessionId": 64198,
+  "exitCode": 0,
+  "observedAt": "2026-10-07T08:07:10.109139+00:00",
+  "log": "full-gate.log",
+  "command": "SETTLERS_QA_SIMULATOR_ID=937692FF-BFBF-4683-80E5-2590F5288D56 GATE_TEST_WORKERS=1 GATE_BUILD_JOBS=2 scripts/gate.sh --debug-app"
+}

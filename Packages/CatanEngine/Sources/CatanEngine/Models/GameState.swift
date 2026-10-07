@@ -6,13 +6,14 @@ public struct GameState: Codable, Sendable, Equatable {
     /// Bumped to 3 when `declinedTradeOffersThisTurn` was added.
     /// Bumped to 4 when `mode` was added.
     /// Bumped to 5 when the Conquest fields were added.
+    /// Bumped to 6 when optional persistent naval state was added.
     ///
     /// The field decodes with `decodeIfPresent ?? Ruleset.forMode(mode).defaultVictoryPointTarget`,
     /// so a v1 save still loads and plays to ten - which is what it was
     /// started at. The version is here so a future reader can tell the
     /// difference between "this game chose ten" and "this game predates the
     /// choice", not because the decoder needs it.
-    public static let currentSchemaVersion = 5
+    public static let currentSchemaVersion = 6
 
     /// The schema version this value was decoded from (or
     /// `currentSchemaVersion` for a freshly created game). Persisted so a
@@ -39,6 +40,8 @@ public struct GameState: Codable, Sendable, Equatable {
     /// while keeping its 37-tile board - the rules and the board disagreeing
     /// mid-game.
     public var mode: GameMode
+    /// Absent from every legacy mode; all naval fields decode with defaults.
+    public var naval: NavalState?
 
     /// The quantities this game is played with. Derived, never stored, so a
     /// save cannot carry a rule set that disagrees with its own mode.
@@ -132,7 +135,8 @@ public struct GameState: Codable, Sendable, Equatable {
         garrisons: [HexCoordinate: Garrison] = [:],
         armyDeck: [Int] = [],
         armyHands: [PlayerID: [Int]] = [:],
-        armyPrice: ArmyPrice = .anyThree
+        armyPrice: ArmyPrice = .anyThree,
+        naval: NavalState? = nil
     ) {
         self.rng = rng
         self.schemaVersion = schemaVersion
@@ -157,6 +161,7 @@ public struct GameState: Codable, Sendable, Equatable {
         self.armyDeck = armyDeck
         self.armyHands = armyHands
         self.armyPrice = armyPrice
+        self.naval = naval
     }
 
     /// Decodes a saved game, tolerating fields that a *older* save predates.
@@ -239,6 +244,7 @@ public struct GameState: Codable, Sendable, Equatable {
         armyDeck = try container.decodeIfPresent([Int].self, forKey: .armyDeck) ?? []
         armyHands = try container.decodeIfPresent([PlayerID: [Int]].self, forKey: .armyHands) ?? [:]
         armyPrice = try container.decodeIfPresent(ArmyPrice.self, forKey: .armyPrice) ?? .anyThree
+        naval = try container.decodeIfPresent(NavalState.self, forKey: .naval)
     }
 
     /// Victory points that are public knowledge for `id`: buildings plus the
@@ -256,6 +262,7 @@ public struct GameState: Codable, Sendable, Equatable {
         var total = buildingPoints(for: player)
         if longestRoadPlayer == id { total += rules.longestRoadBonus }
         if largestArmyPlayer == id { total += rules.largestArmyBonus }
+        total += naval?.colonyPoints[id] ?? 0
         return total
     }
 
@@ -267,6 +274,7 @@ public struct GameState: Codable, Sendable, Equatable {
         var total = buildingAndCardPoints(for: player)
         if longestRoadPlayer == id { total += rules.longestRoadBonus }
         if largestArmyPlayer == id { total += rules.largestArmyBonus }
+        total += naval?.colonyPoints[id] ?? 0
         return total
     }
 

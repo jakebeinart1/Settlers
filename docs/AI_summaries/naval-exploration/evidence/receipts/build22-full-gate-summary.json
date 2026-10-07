@@ -1,0 +1,112 @@
+{
+  "productionSourceSHA": "1cf1c0fde5904aa1cbeae9320cae55afb9bdfcd0",
+  "command": "SETTLERS_QA_SIMULATOR_ID=937692FF-BFBF-4683-80E5-2590F5288D56 GATE_TEST_WORKERS=1 GATE_BUILD_JOBS=2 scripts/gate.sh --debug-app",
+  "exitCode": 0,
+  "allElevenStagesPassed": true,
+  "stages": [
+    {
+      "name": "xcodegen drift",
+      "seconds": 0
+    },
+    {
+      "name": "swiftlint --strict",
+      "seconds": 1
+    },
+    {
+      "name": "evaluation tooling",
+      "seconds": 9
+    },
+    {
+      "name": "packages build (W=E)",
+      "seconds": 20
+    },
+    {
+      "name": "CatanEngine tests",
+      "seconds": 35
+    },
+    {
+      "name": "CatanAI tests",
+      "seconds": 622
+    },
+    {
+      "name": "coverage floors",
+      "seconds": 1
+    },
+    {
+      "name": "gitleaks",
+      "seconds": 6
+    },
+    {
+      "name": "app tests",
+      "seconds": 3260
+    },
+    {
+      "name": "app build (Release)",
+      "seconds": 47
+    },
+    {
+      "name": "app build (Debug)",
+      "seconds": 2
+    }
+  ],
+  "engineFunctions": 371,
+  "engineSuites": 28,
+  "aiFunctions": 303,
+  "aiSuites": 30,
+  "coveragePercent": {
+    "engine": 96.72,
+    "ai": 96.01
+  },
+  "nativeSummary": {
+    "devicesAndConfigurations": [
+      {
+        "device": {
+          "architecture": "arm64",
+          "deviceId": "937692FF-BFBF-4683-80E5-2590F5288D56",
+          "deviceName": "Empires QA",
+          "modelName": "iPhone 17 Pro",
+          "osBuildNumber": "23F77",
+          "osVersion": "26.5",
+          "platform": "iOS Simulator"
+        },
+        "expectedFailures": 0,
+        "failedTests": 0,
+        "passedTests": 1433,
+        "skippedTests": 1,
+        "testPlanConfiguration": {
+          "configurationId": "1",
+          "configurationName": "Test Scheme Action"
+        }
+      }
+    ],
+    "environmentDescription": "Settlers \u00b7 Built with macOS 26.5.1",
+    "expectedFailures": 0,
+    "failedTests": 0,
+    "finishTime": 1791348490.004,
+    "passedTests": 703,
+    "result": "Passed",
+    "skippedTests": 1,
+    "startTime": 1791345235.395,
+    "statistics": [
+      {
+        "subtitle": "803 test runs",
+        "title": "73 tests ran with dynamic parameters"
+      }
+    ],
+    "testFailures": [],
+    "title": "Test - Settlers",
+    "topInsights": [
+      {
+        "category": "Longest Test Runs",
+        "impact": "17% of duration",
+        "text": "4 longest test runs with outlier durations exceeding 82.74s (three standard deviations)"
+      },
+      {
+        "category": "Longest Test Runs",
+        "impact": "71% of duration",
+        "text": "18 longest test runs with outlier durations exceeding 6.56s (three standard deviations)"
+      }
+    ],
+    "totalTestCount": 704
+  }
+}

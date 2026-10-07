@@ -1,0 +1,21 @@
+{
+  "stage": "matrix",
+  "games": 48,
+  "cellCount": 12,
+  "tables": [
+    3,
+    4
+  ],
+  "tiers": [
+    "traditional",
+    "expert"
+  ],
+  "seeds": "700000 + 100*cell, cell 0..<12",
+  "criterion": "Every complete result field including fingerprint must match the frozen d863991 matrix after removing only buildID. Timing stderr is not compared and is not performance evidence.",
+  "newSource": "a8bd01c69702e1a862d92fc923e4a78e9ca9708f",
+  "newSHA256": "72bba5d36295fa489dfe7117e0e5f50f6d18eba44f86be8c37934c3dfba69bc8",
+  "historicalSource": "d8639917f68563b6fd2ca0d38c5fc28d3fc80a18",
+  "historicalSHA256": "509f0b575250a2426c9d026ef3eab9c764dea35e5d68c7fa0e68402f6ee2c952",
+  "plannedWorkers": 2,
+  "declaredUTC": "2026-10-05T05:30:54.059344+00:00"
+}

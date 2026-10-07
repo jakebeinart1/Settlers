@@ -105,10 +105,10 @@ public enum BoardGenerator {
         let coordinates = spiralCoordinates(radius: shape.radius)
         let kinds = shape.terrain.expanded(tileCount: shape.tileCount)
         var numbers = shape.tokens
-            .expanded(count: kinds.filter { $0 != .desert }.count)
+            .expanded(count: kinds.filter(\.produces).count)
             .makeIterator()
         let tiles = zip(coordinates, kinds).map { coordinate, kind -> Tile in
-            let number = (kind == .desert) ? nil : numbers.next()
+            let number = kind.produces ? numbers.next() : nil
             return Tile(coordinate: coordinate, kind: kind, numberToken: number)
         }
         return makeBoard(tiles: tiles, shape: shape)
@@ -146,7 +146,7 @@ public enum BoardGenerator {
         let coordinates = spiralCoordinates(radius: shape.radius)
         let baseKinds = shape.terrain.expanded(tileCount: shape.tileCount)
         let baseNumbers = shape.tokens
-            .expanded(count: baseKinds.filter { $0 != .desert }.count)
+            .expanded(count: baseKinds.filter(\.produces).count)
         var kinds: [TileKind]
         var numbers: [Int]
         // The bound is already present from Task 3 - keep it.
@@ -166,7 +166,7 @@ public enum BoardGenerator {
 
         var numberIterator = numbers.makeIterator()
         let tiles = zip(coordinates, kinds).map { coordinate, kind -> Tile in
-            let number = (kind == .desert) ? nil : numberIterator.next()
+            let number = kind.produces ? numberIterator.next() : nil
             return Tile(coordinate: coordinate, kind: kind, numberToken: number)
         }
         return makeBoard(tiles: tiles, shape: shape)
@@ -178,7 +178,7 @@ public enum BoardGenerator {
         var numberIterator = numbers.makeIterator()
         var tokenByCoordinate: [HexCoordinate: Int] = [:]
         for (coordinate, kind) in zip(coordinates, kinds) {
-            if kind != .desert, let token = numberIterator.next() {
+            if kind.produces, let token = numberIterator.next() {
                 tokenByCoordinate[coordinate] = token
             }
         }
@@ -212,7 +212,7 @@ public enum BoardGenerator {
         let coordinates = spiralCoordinates(radius: radius)
         var tokenIndexByCoordinate: [HexCoordinate: Int] = [:]
         var nextToken = 0
-        for (coordinate, kind) in zip(coordinates, kinds) where kind != .desert {
+        for (coordinate, kind) in zip(coordinates, kinds) where kind.produces {
             tokenIndexByCoordinate[coordinate] = nextToken
             nextToken += 1
         }

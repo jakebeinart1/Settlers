@@ -1,0 +1,9 @@
+naval-sim seed=804000 decisions=674 p95=24.666ms p99=65.952ms over50=11 over150=0
+naval-sim seed=804001 decisions=667 p95=19.382ms p99=32.377ms over50=0 over150=0
+naval-sim rejection evidence: /var/folders/_m/cfbn0s7j7zx3sx1lwv6w4mr80000gn/T/naval-sim-failures/804002-4-2-candidate-peninsula-true-true
+naval-sim seed=804002 decisions=671 p95=9.605ms p99=16.469ms over50=0 over150=0
+naval-sim seed=804003 decisions=854 p95=13.439ms p99=31.378ms over50=2 over150=0
+naval-sim seed=804004 decisions=773 p95=21.707ms p99=37.301ms over50=4 over150=0
+naval-sim seed=804005 decisions=432 p95=9.720ms p99=19.601ms over50=0 over150=0
+naval-sim rejection evidence: /var/folders/_m/cfbn0s7j7zx3sx1lwv6w4mr80000gn/T/naval-sim-failures/804006-4-2-candidate-peninsula-true-true
+naval-sim seed=804006 decisions=787 p95=9.141ms p99=34.213ms over50=3 over150=0

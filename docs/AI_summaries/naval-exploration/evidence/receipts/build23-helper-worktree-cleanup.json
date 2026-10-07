@@ -1,0 +1,10 @@
+{
+  "managedHelperWorktreesArchivedRecoverably": [
+    "/Users/alex/.codex/worktrees/naval-build-clarity/Settlers",
+    "/Users/alex/.codex/worktrees/naval-trade-taps/Settlers"
+  ],
+  "attachmentReadbackConfirmed": true,
+  "durableEvidenceRetainedOutsideWorktrees": true,
+  "rootNavalWorktreeRetained": "/Users/alex/.codex/worktrees/naval-exploration/Settlers",
+  "ignoredFilesRequiredForRecovery": []
+}

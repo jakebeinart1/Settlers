@@ -1,0 +1,4 @@
+source_commit,map_version,family,first_seed,last_seed,seeds,distinct_land_geometries,fallbacks,mean_attempts,minimum_best_coastal_landing_pips,toggle_seeds_per_family,toggle_combinations,forced_fallback_cases_per_family,test_exit,log_sha256
+a15d72e42689cf95aa7e2bd042830286990ae74f,1,archipelago,0,999,1000,1000,0,3.361,6,1000,4,24,0,71ef78882a1ae5603bca107458ab8a4da909f358b995a2f51aecf14ced0cf1f7
+a15d72e42689cf95aa7e2bd042830286990ae74f,1,twinIslands,0,999,1000,998,0,3.634,6,1000,4,24,0,71ef78882a1ae5603bca107458ab8a4da909f358b995a2f51aecf14ced0cf1f7
+a15d72e42689cf95aa7e2bd042830286990ae74f,1,peninsula,0,999,1000,994,0,4.43,6,1000,4,24,0,71ef78882a1ae5603bca107458ab8a4da909f358b995a2f51aecf14ced0cf1f7

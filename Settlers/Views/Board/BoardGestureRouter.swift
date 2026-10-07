@@ -61,7 +61,7 @@ struct BoardGestureRouter {
                                decision: BoardDecisionPresentation?, geometry: HexGeometry,
                                containerSize: CGSize, allowsGameCommands: Bool) -> Origin {
         guard CGRect(origin: .zero, size: containerSize).contains(point) else { return .camera }
-        if allowsGameCommands, decision != nil {
+        if allowsGameCommands, let decision, !decision.intent.usesMaritimePieces {
             let cradle = CGPoint(x: max(Layout.cradleEdgeInset, containerSize.width - Layout.cradleEdgeInset),
                                  y: max(Layout.cradleEdgeInset, containerSize.height - Layout.cradleEdgeInset))
             let bounds = CGRect(x: cradle.x - Layout.cradleEdgeInset, y: cradle.y - Layout.cradleEdgeInset,
@@ -117,7 +117,7 @@ extension BoardView {
                 }
                 if gestureAnchor != nil { boardDrag?.cancel() }
                 if let panned = boardDrag?.pannedCamera(by: value.translation) {
-                    camera = panned.clamped(fittedBounds: fit.bounds, container: container)
+                    camera = panned.clamped(fittedBounds: fit.bounds, container: container, maximumZoom: cameraMaximumZoom)
                 }
             }
             .onEnded { value in

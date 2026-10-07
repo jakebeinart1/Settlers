@@ -1,0 +1,26 @@
+{
+  "verifiedAtUTC": "2026-10-07T08:17:27.360172+00:00",
+  "productionSourceSHA": "1dfae7cb8e46ca4b343c0415fef18e71cd3a6ed4",
+  "reusedQADevice": "937692FF-BFBF-4683-80E5-2590F5288D56",
+  "deviceOwnershipEvidence": "Root task assigned reused QA 937692FF, pinned to full serial gate and fresh Release install; no ongoing native build or user review requested",
+  "stateBefore": "Booted",
+  "stateAfter": "Shutdown",
+  "shutdownExitCode": 0,
+  "devicesCreatedDuringReleaseDelivery": [],
+  "devicesDeletedDuringReleaseDelivery": [],
+  "onlyDeviceOperatedDuringReleaseDelivery": "937692FF-BFBF-4683-80E5-2590F5288D56",
+  "otherProjectsDevicesUntouchedByThisAgent": true,
+  "totalDevicesAfter": 14,
+  "bootedDevicesAfter": [
+    {
+      "udid": "0E64D113-01E5-49A6-BAB0-B1D796C00780",
+      "name": "Ferrule Dice Review"
+    },
+    {
+      "udid": "90CFA3EF-5F06-4943-8940-89C2F524F00C",
+      "name": "Switchbard Small Owner Review 2a7e"
+    }
+  ],
+  "all371TrackedProductionInputsStillMatchFrozenCommitAfterDelivery": true,
+  "earlierCompactDeviceCleanupReceipt": "/Users/alex/.codex/artifacts/naval-exploration/build23-sprites-build-trade-safety/compact-cleanup.json"
+}

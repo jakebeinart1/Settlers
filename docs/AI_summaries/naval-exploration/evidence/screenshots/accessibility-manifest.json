@@ -1,0 +1,62 @@
+[
+  {
+    "file": "screenshots/fleet-accessibility-regular.png",
+    "sha256": "2d09bf3cf07e2dd2186893492e03c247d1eb274c59dbb443fb3cbcadca7bfa4c",
+    "bytes": 1705948,
+    "width": 1206,
+    "height": 2622,
+    "device": "iPhone 17 Pro",
+    "entry": "Fleet",
+    "source": "971a615ba701e2eca9e22ae538cadbfd8d243d8a",
+    "configuration": "Debug, native test scheme, iOS 26.5",
+    "launchTextCategory": "UICTContentSizeCategoryAccessibilityXXXL",
+    "seed": 7501,
+    "fixture": "-qaNavalStackedShipsPosition",
+    "inspection": "Root and independent documentation reviewer opened the original PNG; complete Ship 3 card, heading and Close are readable."
+  },
+  {
+    "file": "screenshots/nearby-accessibility-regular.png",
+    "sha256": "45de7e32b010104fab3cb9df7ee18435381fad051b30088e695b860025523880",
+    "bytes": 1614582,
+    "width": 1206,
+    "height": 2622,
+    "device": "iPhone 17 Pro",
+    "entry": "Nearby",
+    "source": "971a615ba701e2eca9e22ae538cadbfd8d243d8a",
+    "configuration": "Debug, native test scheme, iOS 26.5",
+    "launchTextCategory": "UICTContentSizeCategoryAccessibilityXXXL",
+    "seed": 7501,
+    "fixture": "-qaNavalStackedShipsPosition",
+    "inspection": "Root and independent documentation reviewer opened the original PNG; complete Ship 3 card, heading and Close are readable."
+  },
+  {
+    "file": "screenshots/fleet-accessibility-small.png",
+    "sha256": "2a595de4d23f61d0a78d0f5e21abdbcf7a45e4b3da47a848a7eca373376d84a6",
+    "bytes": 664093,
+    "width": 750,
+    "height": 1334,
+    "device": "iPhone SE (3rd generation)",
+    "entry": "Fleet",
+    "source": "971a615ba701e2eca9e22ae538cadbfd8d243d8a",
+    "configuration": "Debug, native test scheme, iOS 26.5",
+    "launchTextCategory": "UICTContentSizeCategoryAccessibilityXXXL",
+    "seed": 7501,
+    "fixture": "-qaNavalStackedShipsPosition",
+    "inspection": "Root and independent documentation reviewer opened the original PNG; complete Ship 3 card, heading and Close are readable."
+  },
+  {
+    "file": "screenshots/nearby-accessibility-small.png",
+    "sha256": "85e57ba79842ff46d3119c93b96a1980055998c92786716af42e1834c15ff66c",
+    "bytes": 610667,
+    "width": 750,
+    "height": 1334,
+    "device": "iPhone SE (3rd generation)",
+    "entry": "Nearby",
+    "source": "971a615ba701e2eca9e22ae538cadbfd8d243d8a",
+    "configuration": "Debug, native test scheme, iOS 26.5",
+    "launchTextCategory": "UICTContentSizeCategoryAccessibilityXXXL",
+    "seed": 7501,
+    "fixture": "-qaNavalStackedShipsPosition",
+    "inspection": "Root and independent documentation reviewer opened the original PNG; complete Ship 3 card, heading and Close are readable."
+  }
+]

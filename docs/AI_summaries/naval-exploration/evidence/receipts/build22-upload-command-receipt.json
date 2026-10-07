@@ -1,0 +1,12 @@
+{
+  "xcodebuildExitCode": 0,
+  "actualStagedPayloadPreserved": true,
+  "capture": {
+    "originalStagedPath": "/var/folders/_m/cfbn0s7j7zx3sx1lwv6w4mr80000gn/T/XcodeDistPipeline.~~~XxNAtj/Packages/Settlers.ipa",
+    "durableUploadedIPAPath": "/Users/alex/.codex/artifacts/naval-exploration/build22-harbors-navigation/Settlers-uploaded-22.ipa",
+    "bytes": 24907514,
+    "sha256": "9f062568af41cf1533d558e78fc5aaee90f673afa20085f3e701aee166e02db6",
+    "md5": "e06897305d3a2b3f1c6ed0253a24337e",
+    "completeZIPCRCCheck": true
+  }
+}

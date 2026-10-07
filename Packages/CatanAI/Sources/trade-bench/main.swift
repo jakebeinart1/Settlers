@@ -39,7 +39,12 @@ func parse() -> Options {
         switch flag {
         case "--games": options.games = Int(raw) ?? options.games
         case "--seed": options.seed = UInt64(raw) ?? options.seed
-        case "--mode": options.mode = GameMode(rawValue: raw) ?? .classic
+        case "--mode":
+            options.mode = GameMode(rawValue: raw) ?? .classic
+            guard options.mode != .naval else {
+                FileHandle.standardError.write(Data("trade-bench: use naval-sim for masked Voyages matches\n".utf8))
+                exit(2)
+            }
         default:
             FileHandle.standardError.write(Data("trade-bench: unknown flag \(flag)\n".utf8))
             exit(2)

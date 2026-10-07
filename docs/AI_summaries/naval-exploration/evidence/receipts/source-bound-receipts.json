@@ -1,0 +1,80 @@
+[
+  {
+    "file": "full-gate.log",
+    "source": "02eb013",
+    "result": "failed first full gate, exit 1; app/UI stage failed",
+    "sha256": "ea4fa15fd0d3f8fd6c54210ce49570613969c98b9d035beeca72509a965c4f0b"
+  },
+  {
+    "file": "full-gate-final.log",
+    "source": "a8bd01c",
+    "result": "passed core gate; pre-map fixes",
+    "sha256": "7652c153e1faa91dcd3123cb549175770a4ce7f71202a69983ca9db45154bedc"
+  },
+  {
+    "file": "map-fixes-targeted.log",
+    "source": "a19ac5d",
+    "result": "build failure; no runtime tests",
+    "sha256": "5c6abe99cd6c96060bc1db556263ea031f858ffe3344bdba9b1010c8856a2170"
+  },
+  {
+    "file": "map-fixes-targeted-typed.log",
+    "source": "65f531b",
+    "result": "build failure; no runtime tests",
+    "sha256": "2c2a7f7dd803544defac4a7355e1862d2f5e293107cc93026aff10db39f16777"
+  },
+  {
+    "file": "map-fixes-targeted-sdk.log",
+    "source": "c456592",
+    "result": "37 hosted and six native pass; one AX frame rounding assertion fails before tap",
+    "sha256": "c2f6788677e852ddb0f54309b28b91f27539f3024a0e9f9829672107002f4fac"
+  },
+  {
+    "file": "fog-negative-control.log",
+    "source": "4f9eeb0 + recorded temporary Canvas patch",
+    "result": "expected hidden-perimeter failure; adjacent ship native pass",
+    "sha256": "a34c7a3330cfe5d8bef1893da53294ec0e53df48b3162090b5a817fefa46182e"
+  },
+  {
+    "file": "map-fixes-final.log",
+    "source": "4f9eeb0",
+    "result": "37 hosted + seven native pass; exact corrected source",
+    "sha256": "e318d70fe9b0bdfc75b00024699798ab06af96a0666db956b1237c6c85720bf1"
+  },
+  {
+    "file": "map-fixes-small-final.log",
+    "source": "c00a07a",
+    "result": "10 native pass functionally; inspected maximum-text chooser has visual defect A23",
+    "sha256": "4ea5524944ee5f0159ff1c97e105a8e21093bb0965cffc8746c08c7cf24ab110"
+  },
+  {
+    "file": "integrated-tools-pytest-final.log",
+    "source": "5327a23 tools",
+    "result": "46 tests pass",
+    "sha256": "cf5a796ce0f778fcc6eea1cf79939154db1310d97b641cfce52ab517c18db432"
+  },
+  {
+    "file": "a23-regular.log",
+    "source": "971a615ba701e2eca9e22ae538cadbfd8d243d8a",
+    "result": "passed 1 native tests; inspected actual chooser painting",
+    "sha256": "ce422decd27f32e42bf1849d8207aa2d3910d6d74f0114e34b9a4a4be9b23e4b"
+  },
+  {
+    "file": "a23-small.log",
+    "source": "971a615ba701e2eca9e22ae538cadbfd8d243d8a",
+    "result": "passed 10 native tests; inspected actual chooser painting",
+    "sha256": "b672bec6c472b0e7ee216505bbdbe41f5b208cd18957b0f06f6fa4688883ddcf"
+  },
+  {
+    "file": "full-gate-971a615.log",
+    "source": "971a615ba701e2eca9e22ae538cadbfd8d243d8a",
+    "result": "passed final full gate, exit 0, all eleven stages; 552 app/UI test functions, 1211 parameterized runs, zero failed/skipped",
+    "sha256": "5c1148af4d314a682f0f3cf7fde588dc16b6703e74f92685c659ae783f8e15e4"
+  },
+  {
+    "file": "final-artifact-journeys.log",
+    "source": "971a615ba701e2eca9e22ae538cadbfd8d243d8a",
+    "result": "passed 3 native test-without-building journeys on unchanged gated Debug executable; purchase/three sailing commits/resume, capture/resume, actual system Reduce Motion",
+    "sha256": "698babce72867b91eda80eeb1444d4d426d6466bcb17b738f814d002fcf1a9b0"
+  }
+]

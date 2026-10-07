@@ -1,0 +1,22 @@
+
+Showing Recent Issues
+
+Build target Settlers of project Settlers with configuration Release
+
+CodeSign /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-gdlidoxwifbmclhdvcsysksxhhfb/Build/Intermediates.noindex/ArchiveIntermediates/Settlers/InstallationBuildProductsLocation/Applications/Settlers.app (in target 'Settlers' from project 'Settlers')
+    cd /Users/alex/.codex/artifacts/naval-exploration/build21-final/NativeArchive
+    
+    Signing Identity:     "iPhone Distribution: Alex Chandler (HXB9F28LHR)"
+    Provisioning Profile: "Empires App Store 20261004"
+                          (86da5771-8640-4c53-8867-0b4fbd4f1035)
+    
+    /usr/bin/codesign --force --sign 76465B06C2E157D857641F5B3D25CF5A3110C4A9 --entitlements /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-gdlidoxwifbmclhdvcsysksxhhfb/Build/Intermediates.noindex/ArchiveIntermediates/Settlers/IntermediateBuildFilesPath/Settlers.build/Release-iphoneos/Settlers.build/Settlers.app.xcent --generate-entitlement-der /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-gdlidoxwifbmclhdvcsysksxhhfb/Build/Intermediates.noindex/ArchiveIntermediates/Settlers/InstallationBuildProductsLocation/Applications/Settlers.app
+
+/Users/alex/Library/Developer/Xcode/DerivedData/Settlers-gdlidoxwifbmclhdvcsysksxhhfb/Build/Intermediates.noindex/ArchiveIntermediates/Settlers/InstallationBuildProductsLocation/Applications/Settlers.app: errSecInternalComponent
+Command CodeSign failed with a nonzero exit code
+
+Command CodeSign failed with a nonzero exit code
+
+
+
+Build failed    10/6/26, 8:13 PM    66.3 seconds

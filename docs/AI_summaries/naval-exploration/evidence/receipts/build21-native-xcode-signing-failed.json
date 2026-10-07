@@ -1,0 +1,32 @@
+{
+  "verifiedProductionSourceSHA": "60394e6361b2db372311920c4cc9ae481e5dec0f",
+  "headAtAttempt": "8884ce7",
+  "workflow": "native Xcode Product Archive",
+  "project": "/Users/alex/.codex/artifacts/naval-exploration/build21-final/NativeArchive/Settlers.xcodeproj",
+  "productionSourceInputsMatch": 149,
+  "resourceInputsMatch": 2,
+  "generatedInfoPlistMatchesCanonical": true,
+  "destination": "Any iOS Device (arm64)",
+  "configuration": "Release",
+  "signing": {
+    "CODE_SIGN_STYLE": "Manual",
+    "CODE_SIGN_IDENTITY": "76465B06C2E157D857641F5B3D25CF5A3110C4A9",
+    "PROVISIONING_PROFILE_SPECIFIER": "Empires App Store 20261004",
+    "DEVELOPMENT_TEAM": "HXB9F28LHR",
+    "PRODUCT_BUNDLE_IDENTIFIER": "com.alexchandler.empires",
+    "CURRENT_PROJECT_VERSION": "21",
+    "SETTLERS_CLOUDKIT_CONTAINER": "iCloud.com.alexchandler.empires",
+    "CODE_SIGN_ENTITLEMENTS": "/Users/alex/.codex/worktrees/naval-exploration/Settlers/Settlers/LiveSync.entitlements"
+  },
+  "outcome": "failed at CodeSign",
+  "reportedDurationSeconds": 66.3,
+  "error": "errSecInternalComponent",
+  "sourceReport": "/Users/alex/.codex/artifacts/naval-exploration/build21-final/NativeArchive/Build Settlers_2026-10-06T20-12-44.txt",
+  "sourceReportSHA256": "fd19724360ab8b4131341d4161202c7cb66cfcbbce57c327656aa93354936df8",
+  "nativeActivityLog": "/Users/alex/.codex/artifacts/naval-exploration/build21-final/NativeArchive/native-archive-failed.xcactivitylog",
+  "nativeActivityLogSHA256": "5a321ec7e18a36d785ca042d5ae74035988aef7ff5adb05eb687f6b93d2fab5b",
+  "newSimulatorsCreated": 0,
+  "newCertificatesCreated": 0,
+  "originalSigningLocalOverrideRestored": true,
+  "signedArtifactOrUploadClaimed": false
+}

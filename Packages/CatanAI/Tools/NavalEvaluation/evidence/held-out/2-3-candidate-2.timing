@@ -1,0 +1,11 @@
+naval-sim seed=802000 decisions=411 p95=18.242ms p99=29.229ms over50=0 over150=0
+naval-sim seed=802001 decisions=655 p95=13.066ms p99=32.331ms over50=0 over150=0
+naval-sim seed=802002 decisions=896 p95=17.696ms p99=24.805ms over50=0 over150=0
+naval-sim seed=802003 decisions=621 p95=15.784ms p99=97.183ms over50=13 over150=3
+naval-sim seed=802004 decisions=480 p95=28.737ms p99=47.575ms over50=3 over150=1
+naval-sim seed=802005 decisions=460 p95=24.341ms p99=33.101ms over50=0 over150=0
+naval-sim seed=802006 decisions=717 p95=19.093ms p99=32.450ms over50=0 over150=0
+naval-sim seed=802007 decisions=418 p95=17.737ms p99=32.430ms over50=0 over150=0
+naval-sim seed=802008 decisions=808 p95=6.800ms p99=21.743ms over50=0 over150=0
+naval-sim seed=802009 decisions=506 p95=18.417ms p99=26.844ms over50=0 over150=0
+naval-sim seed=802010 decisions=613 p95=21.878ms p99=45.134ms over50=2 over150=0

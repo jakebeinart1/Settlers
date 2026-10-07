@@ -70,6 +70,18 @@ enum GameReplayNarrator {
             return "\(name(player, roster)) ended their turn"
         case .gameWon(let player):
             return "\(name(player, roster)) wins"
+        case .builtShip(let player, _, _):
+            return "\(name(player, roster)) launched a ship"
+        case .sailedShip(let player, _, _, _):
+            return "\(name(player, roster)) sailed a ship"
+        case .discovered(let player, let hexes):
+            return "\(name(player, roster)) discovered \(NavalQuantityText.hexes(hexes.count))"
+        case .capturedShip(let player, _, let previous):
+            return "\(name(player, roster)) captured \(name(previous, roster))'s ship"
+        case .earnedColonyPoint(let player, _):
+            return "\(name(player, roster)) earned a colony point"
+        case .choseResource(let player, let resource):
+            return "\(name(player, roster)) collected \(resource.rawValue) from an island"
         }
     }
 
@@ -79,6 +91,9 @@ enum GameReplayNarrator {
                                  roster: GameLogStore.SeatRoster) -> String {
         if case .respondToTrade(_, let accept) = move {
             return "\(name(actor, roster)) \(accept ? "accepted" : "declined") a trade"
+        }
+        if case .skipShipCapture = move {
+            return "\(name(actor, roster)) passed on capturing a ship"
         }
         return "\(name(actor, roster)) moved"
     }

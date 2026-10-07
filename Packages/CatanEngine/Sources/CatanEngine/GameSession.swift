@@ -8,7 +8,9 @@ import Foundation
 /// what you play.
 ///
 /// ## On hidden information
-/// `state` is currently the full `GameState`, so an agent can see opponents'
+/// Older modes preserve their original full-state observation contract; naval games mask
+/// geography, private hands, ordered decks and future engine randomness here.
+/// `state` in older modes is the full `GameState`, so an agent can see opponents'
 /// hands. That is a deliberate, recorded decision to defer, not an oversight:
 /// hiding it changes how strong the bots are and is worth doing on purpose
 /// rather than as a side effect of this refactor. When it happens, it happens
@@ -21,18 +23,34 @@ import Foundation
 /// "'Observable' is not a member type of struct 'CatanEngine.Observation'".
 
 public struct GameObservation: Codable, Equatable, Sendable {
-    /// The seat being asked to move.
     public let seat: PlayerID
     public let state: GameState
-    /// Every move `seat` may legally make right now. Precomputed because both
-    /// the caller and every policy need it, and it is the most expensive
-    /// thing in the loop.
     public let legalMoves: [GameMove]
+    /// Counts remain public even when naval observation hands/decks are masked.
+    public let handCounts: [PlayerID: Int]
+    public let devCardCounts: [PlayerID: Int]
+    public let devCardDeckCount: Int
 
     public init(seat: PlayerID, state: GameState, legalMoves: [GameMove]) {
         self.seat = seat
-        self.state = state
+        self.handCounts = Dictionary(uniqueKeysWithValues: state.players.map { ($0.id, $0.resources.values.reduce(0, +)) })
+        self.devCardCounts = Dictionary(uniqueKeysWithValues: state.players.map { ($0.id, $0.devCards.count) })
+        self.devCardDeckCount = state.devCardDeck.count
+        self.state = Naval.observationState(state, for: seat)
         self.legalMoves = legalMoves
+    }
+
+    public init(from decoder: any Decoder) throws {
+        let values = try decoder.container(keyedBy: CodingKeys.self)
+        seat = try values.decode(PlayerID.self, forKey: .seat)
+        let decodedState = try values.decode(GameState.self, forKey: .state)
+        state = Naval.observationState(decodedState, for: seat)
+        legalMoves = try values.decode([GameMove].self, forKey: .legalMoves)
+        handCounts = try values.decodeIfPresent([PlayerID: Int].self, forKey: .handCounts)
+            ?? Dictionary(uniqueKeysWithValues: decodedState.players.map { ($0.id, $0.resources.values.reduce(0, +)) })
+        devCardCounts = try values.decodeIfPresent([PlayerID: Int].self, forKey: .devCardCounts)
+            ?? Dictionary(uniqueKeysWithValues: decodedState.players.map { ($0.id, $0.devCards.count) })
+        devCardDeckCount = try values.decodeIfPresent(Int.self, forKey: .devCardDeckCount) ?? decodedState.devCardDeck.count
     }
 }
 
@@ -125,6 +143,12 @@ public struct GameSession: Sendable {
     /// bites in `.mainTurn` - every other phase resolves in one move per seat.
     public static let maxActionsPerTurn = 25
 
+    /// Finite hull stock bounds legitimate sailing without truncating a captured fleet.
+    public static func actionLimit(in state: GameState) -> Int {
+        guard state.naval != nil else { return maxActionsPerTurn }
+        return maxActionsPerTurn + Naval.hullsPerBuilder * state.players.count * (Naval.movementPerTurn(in: state) + 1)
+    }
+
     public init(state: GameState, policies: [PlayerID: any Policy], policySeed: UInt64) {
         self.state = state
         self.policies = policies
@@ -169,7 +193,8 @@ public struct GameSession: Sendable {
                   state.players.map({ $0.id.index }).elementsEqual(state.players.indices),
                   Set(policyIDs.keys).isSubset(of: occupied),
                   currentTurnSeat.map(occupied.contains) ?? true,
-                  (0...GameSession.maxActionsPerTurn).contains(actionsThisTurn),
+                  (0..<Int.max).contains(actionsThisTurn),
+                  currentTurnSeat.map({ policyIDs[$0] == nil || actionsThisTurn <= GameSession.actionLimit(in: state) }) ?? true,
                   (currentTurnSeat == nil) == (actionsThisTurn == 0),
                   (0..<Int.max).contains(policyEvaluationCount) else {
                 throw CheckpointError.incompatibleCheckpoint
@@ -184,16 +209,20 @@ public struct GameSession: Sendable {
                     throw CheckpointError.incompatibleCheckpoint
                 }
             }
+            guard Naval.validationProblem(in: state) == nil else { throw CheckpointError.incompatibleCheckpoint }
             try validateQueuedResponse(occupied: occupied)
         }
 
         private func validateQueuedResponse(occupied: Set<PlayerID>) throws {
-            guard let queued = queuedTradeResponse else { return }
-            guard occupied.contains(queued.seat), policyIDs[queued.seat] != nil,
-                  queued.observation.seat == queued.seat, queued.observation.state == state,
+            guard let queued = try queuedResponseWithCurrentObservation() else { return }
+            guard case .mainTurn(let proposerIndex) = state.phase,
+                  occupied.contains(queued.seat), policyIDs[queued.seat] != nil,
+                  queued.observation.seat == queued.seat,
+                  queued.observation.state == Naval.observationState(state, for: queued.seat),
                   (0..<policyEvaluationCount).contains(queued.evaluationIndex),
                   case .respondToTrade(let offerID, _) = queued.move,
                   let offer = state.pendingTradeOffers.first(where: { $0.id == offerID }),
+                  state.players[proposerIndex].id == offer.from,
                   occupied.contains(offer.from), offer.from != queued.seat else {
                 throw CheckpointError.incompatibleCheckpoint
             }
@@ -201,9 +230,28 @@ public struct GameSession: Sendable {
             if Trading.bothSidesCanHonour(offer, responder: queued.seat, state: state) {
                 legal.insert(.respondToTrade(offerID: offerID, accept: true), at: 0)
             }
-            guard legal == queued.observation.legalMoves, legal.contains(queued.move) else {
+            guard queued.observation == GameObservation(seat: queued.seat, state: state, legalMoves: legal),
+                  legal.contains(queued.move) else {
                 throw CheckpointError.incompatibleCheckpoint
             }
+        }
+
+        /// Old Naval replies were sampled with coast harbors omitted until all
+        /// adjacent sea was discovered. Accept exactly that former observation,
+        /// then refresh its public chart without resampling the recorded reply.
+        fileprivate func queuedResponseWithCurrentObservation() throws -> Decision? {
+            guard let queued = queuedTradeResponse else { return nil }
+            let current = GameObservation(seat: queued.seat, state: state, legalMoves: queued.observation.legalMoves)
+            if queued.observation == current { return queued }
+            guard state.naval != nil else { throw CheckpointError.incompatibleCheckpoint }
+            var legacy = state
+            legacy.board = Naval.legacyHarborBoard(in: state)
+            guard queued.observation == GameObservation(seat: queued.seat, state: legacy,
+                                                       legalMoves: queued.observation.legalMoves) else {
+                throw CheckpointError.incompatibleCheckpoint
+            }
+            return Decision(evaluationIndex: queued.evaluationIndex, seat: queued.seat,
+                            move: queued.move, observation: current)
         }
     }
 
@@ -229,7 +277,7 @@ public struct GameSession: Sendable {
         self.policies = policies
         self.policyRNG = checkpoint.policyRNG
         self.policyEvaluationCount = checkpoint.policyEvaluationCount
-        self.queuedTradeResponse = checkpoint.queuedTradeResponse
+        self.queuedTradeResponse = try checkpoint.queuedResponseWithCurrentObservation()
         self.currentTurnSeat = checkpoint.currentTurnSeat
         self.actionsThisTurn = checkpoint.actionsThisTurn
         self.ledgers = checkpoint.ledgers
@@ -323,7 +371,8 @@ public struct GameSession: Sendable {
         let seat: PlayerID
         switch state.phase {
         case .setupForward(let index), .setupBackward(let index),
-             .rollDice(let index), .mainTurn(let index), .movingRobber(let index):
+             .rollDice(let index), .mainTurn(let index), .movingRobber(let index),
+             .choosingResource(let index), .capturingShip(let index):
             seat = state.players[index].id
         case .discarding(let pending):
             // No single seat owns this phase - anyone still pending may go.
@@ -391,7 +440,7 @@ public struct GameSession: Sendable {
             "policy \(policy.id) returned a move outside its action mask"
         )
 
-        if actionsThisTurn >= Self.maxActionsPerTurn, case .mainTurn = state.phase {
+        if actionsThisTurn >= Self.actionLimit(in: state), case .mainTurn = state.phase {
             let decision = recordedDecision(seat: seat, move: .endTurn, observation: observation)
             lastPolicyDecisions = [decision]
             return decision
@@ -407,13 +456,8 @@ public struct GameSession: Sendable {
         let stateBefore = state
         let result = try RulesEngine.applyReportingPrivateEvents(move, by: seat, to: &state)
         recordInLedgers(result.events, stateBefore: stateBefore)
-        if queuedTradeResponse?.seat == seat, queuedTradeResponse?.move == move {
-            queuedTradeResponse = nil
-        }
         recordAction(by: seat, move: move)
-        if case .proposeTrade(let offer) = move {
-            queueAutomatedResponse(to: offer)
-        }
+        maintainTradeQueue(after: move, by: seat)
         return Step(actor: seat, move: move, events: result.events, privateEvents: result.privateEvents)
     }
 
@@ -432,12 +476,50 @@ public struct GameSession: Sendable {
     /// move passes through here.
     @discardableResult
     public mutating func applyExternal(_ move: GameMove, by seat: PlayerID) throws -> Step {
+        try commit(seat: seat, move: move)
+    }
+
+    /// Accept a live bot proposal with equal odds for every willing recipient.
+    /// The human's reading window has held the position still; only now are
+    /// other seated policies asked through their ordinary response masks.
+    /// Funding alone is not willingness. A cached answer is reused, and the
+    /// selected recipient commits the ordinary response that recorded replay
+    /// already understands. Lottery randomness belongs to the policy cursor,
+    /// so choosing a recipient cannot change future dice or deck outcomes.
+    /// Call on a candidate session and publish only after its durable write.
+    /// Declines, human proposals and legacy off-turn offers keep their existing
+    /// resolution path; this operation changes only accepting a live bot offer.
+    public mutating func acceptTrade(offerID: UUID, by seat: PlayerID) throws -> Step {
+        let move = GameMove.respondToTrade(offerID: offerID, accept: true)
+        guard let offer = state.pendingTradeOffers.first(where: { $0.id == offerID }) else {
+            throw MoveError.invalidTradeTarget
+        }
+        guard policies[seat] == nil, policies[offer.from] != nil,
+              state.phase.isMainTurn(of: offer.from.index),
+              Trading.bothSidesCanHonour(offer, responder: seat, state: state) else {
+            return try applyExternal(move, by: seat)
+        }
         lastPolicyDecisions = []
-        let stateBefore = state
-        let result = try RulesEngine.applyReportingPrivateEvents(move, by: seat, to: &state)
-        recordInLedgers(result.events, stateBefore: stateBefore)
-        recordAction(by: seat, move: move)
-        return Step(actor: seat, move: move, events: result.events, privateEvents: result.privateEvents)
+        let decisions = competingTradeDecisions(to: offer)
+        let recipients = ([seat] + decisions.filter {
+            $0.move == move && Trading.bothSidesCanHonour(offer, responder: $0.seat, state: state)
+        }.map(\.seat)).sorted()
+        let winner = recipients.count == 1 ? seat : recipients.randomElement(using: &policyRNG)!
+        let step = try commit(seat: winner, move: move)
+        // commit clears transient telemetry. These replies were consumed by
+        // this resolution, including any cached answer not yet reported.
+        lastPolicyDecisions = decisions + lastPolicyDecisions
+        return step
+    }
+
+    private mutating func competingTradeDecisions(to offer: TradeOffer) -> [Decision] {
+        state.players.map(\.id).sorted().filter { $0 != offer.from && policies[$0] != nil }.compactMap { seat in
+            if let queued = queuedTradeResponse, queued.seat == seat,
+               case .respondToTrade(let offerID, _) = queued.move, offerID == offer.id {
+                return queued
+            }
+            return tradeDecision(for: seat, offer: offer)
+        }
     }
 
     /// Replaces the position wholesale - loading a save, or a QA fixture.
@@ -479,7 +561,9 @@ public struct GameSession: Sendable {
             currentTurnSeat = nil
             actionsThisTurn = 0
         } else if seat == currentTurnSeat {
-            actionsThisTurn += 1
+            // External seats have no automated backstop. Saturate only at the safe
+            // integer boundary so a legitimate imported counter cannot overflow.
+            if actionsThisTurn < Int.max - 1 { actionsThisTurn += 1 }
         } else {
             currentTurnSeat = seat
             actionsThisTurn = 1
@@ -495,6 +579,21 @@ public struct GameSession: Sendable {
     private mutating func restorePendingTradeBookkeeping() {
         queuedTradeResponse = nil
         guard let offer = state.pendingTradeOffers.first else { return }
+        queueAutomatedResponse(to: offer)
+    }
+
+    /// A cached reply belongs to one exact observation. External play may change that
+    /// position or consume its offer, so it must use the same lifecycle as a policy move.
+    private mutating func maintainTradeQueue(after move: GameMove, by seat: PlayerID) {
+        let previous = queuedTradeResponse
+        queuedTradeResponse = nil
+        if case .proposeTrade(let offer) = move {
+            queueAutomatedResponse(to: offer)
+            return
+        }
+        guard let previous, !(previous.seat == seat && previous.move == move),
+              case .respondToTrade(let offerID, _) = previous.move,
+              let offer = state.pendingTradeOffers.first(where: { $0.id == offerID }) else { return }
         queueAutomatedResponse(to: offer)
     }
 

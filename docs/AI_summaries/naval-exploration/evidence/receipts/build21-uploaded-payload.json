@@ -1,0 +1,22 @@
+{
+  "productionSourceSHA": "60394e6361b2db372311920c4cc9ae481e5dec0f",
+  "archiveHead": "d56581de31e9569ee7b7dc1319213eba4fdec942",
+  "version": "1.0",
+  "build": "21",
+  "uploadedIPAPath": "/Users/alex/.codex/artifacts/naval-exploration/build21-final/Settlers-uploaded-21.ipa",
+  "uploadedIPASHA256": "1f1d7319d182daf74783f1412cce3e2ad8d89517706ccaac8cd13f1853c83202",
+  "uploadedIPABytes": 24887137,
+  "uploadedIPAMD5": "52f1ecc02a294a79a82faa6c0b47f010",
+  "uploadedExecutableSHA256": "5d0c0af2a7547051b5fc3fedec63bf1f1d1e66a0437c9f0238fabf1bbbeba270",
+  "reviewExportIPASHA256": "a1a1b182cb3db195146ee5e1ffe5678b9e59531d6c44f13fc7f837743d5ef25c",
+  "zipEntryCount": 14,
+  "differingEntries": [
+    "Payload/Settlers.app/Settlers"
+  ],
+  "onlyDifferenceWithinCodeSignature": true,
+  "identicalExecutablePrefixBytes": 5687504,
+  "identicalExecutablePrefixSHA256": "5d77a208f82d24a183cca5ca9b6519c0ee9bded75bfca91caab43daa8ab38a81",
+  "contentDeliveryMD5ConfirmedByIndependentAudit": true,
+  "uploadCommandExitCode": 0,
+  "uploadLog": "upload-after-refresh.log"
+}

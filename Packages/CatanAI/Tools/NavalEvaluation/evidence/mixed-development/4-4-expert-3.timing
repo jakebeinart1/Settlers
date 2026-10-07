@@ -1,0 +1,2 @@
+naval-sim rejection evidence: /var/folders/_m/cfbn0s7j7zx3sx1lwv6w4mr80000gn/T/naval-sim-failures/700401-4-3-expert-peninsula-true-true
+naval-sim seed=700401 decisions=590 p95=18.017ms p99=55.830ms over50=7 over150=1

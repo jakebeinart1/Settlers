@@ -11,17 +11,22 @@ import CatanEngine
 public struct HeuristicPolicy: Policy {
     public let id: String
     private let bot: Bot
+    private let personality: BotPersonality
 
     /// - Parameter id: how this policy appears in an evaluation record. Include
     ///   the personality, because two `HeuristicPolicy` seats with different
     ///   personalities are genuinely different opponents.
     public init(personality: BotPersonality, weights: BotWeights = .default, armyBuying: ArmyBuying = .idle, id: String) {
         self.bot = Bot(personality: personality, weights: weights, armyBuying: armyBuying)
+        self.personality = personality
         self.id = id
     }
 
     public func decide(_ observation: GameObservation, rng: inout RandomSource) -> GameMove {
-        bot.decide(
+        if observation.state.mode == .naval {
+            return NavalPolicy(tier: .traditional, personality: personality).decide(observation, rng: &rng)
+        }
+        return bot.decide(
             for: observation.state,
             player: observation.seat,
             legalMoves: observation.legalMoves,

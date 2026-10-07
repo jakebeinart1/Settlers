@@ -18,6 +18,9 @@ struct BoardDecisionDockView: View {
     let onSelectVictim: (PlayerID) -> Void
     let armyPreview: String?
     let onSelectArmyCards: ([Int]) -> Void
+    let ships: [Ship]
+    let onSelectShip: (Int) -> Void
+    let onSkipCapture: () -> Void
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     init(
@@ -30,8 +33,14 @@ struct BoardDecisionDockView: View {
         onCancel: @escaping () -> Void,
         onConfirm: @escaping () -> Void,
         armyPreview: String? = nil,
-        onSelectArmyCards: @escaping ([Int]) -> Void = { _ in }
+        onSelectArmyCards: @escaping ([Int]) -> Void = { _ in },
+        ships: [Ship] = [],
+        onSelectShip: @escaping (Int) -> Void = { _ in },
+        onSkipCapture: @escaping () -> Void = {}
     ) {
+        self.ships = ships
+        self.onSelectShip = onSelectShip
+        self.onSkipCapture = onSkipCapture
         self.armyPreview = armyPreview
         self.onSelectArmyCards = onSelectArmyCards
         self.presentation = presentation
@@ -57,7 +66,7 @@ struct BoardDecisionDockView: View {
             messageOrVictims
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             if showsUndo { undoButton }
-            clearButton
+            if presentation.intent == .captureShip { skipCaptureButton } else { clearButton }
             if presentation.canCancel { cancelButton }
             confirmButton
         }
@@ -70,13 +79,41 @@ struct BoardDecisionDockView: View {
 
     @ViewBuilder
     private var messageOrVictims: some View {
-        if presentation.requiresArmyChoice {
+        if presentation.intent == .captureShip
+            || (presentation.intent == .sailShip && presentation.selectedShip == nil) {
+            shipPicker
+        } else if presentation.requiresArmyChoice {
             armyPicker
         } else if presentation.requiresVictimChoice {
             victimPicker
         } else {
             decisionMessage
         }
+    }
+
+    private var shipPicker: some View {
+        VStack(alignment: .leading, spacing: 2) {
+            Text(presentation.errorMessage ?? (presentation.intent == .captureShip ? "Take control of a ship" : "Choose your ship"))
+                .font(.system(.caption2, design: .serif, weight: .bold))
+                .foregroundStyle(presentation.errorMessage == nil ? CatanTheme.onWaterText : Color.red)
+                .lineLimit(1)
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 5) {
+                    ForEach(ships.filter { presentation.legalShips.contains($0.id) }.sorted { $0.id < $1.id }, id: \.id) { ship in
+                        DockShipButton(ship: ship, identity: playerIdentity(ship.owner),
+                                       isSelected: presentation.selectedShip == ship.id,
+                                       action: { onSelectShip(ship.id) })
+                    }
+                }
+            }
+        }
+    }
+
+    private var skipCaptureButton: some View {
+        DockActionButton(title: "Skip", systemImage: "forward.end",
+                         width: Layout.secondaryButtonWidth,
+                         fill: .color(Color(white: 0.16)),
+                         accessibilityIdentifier: "naval.capture.skip", action: onSkipCapture)
     }
 
     private var decisionMessage: some View {
@@ -209,12 +246,12 @@ struct BoardDecisionDockView: View {
     }
 
     private var showsPieceCradle: Bool {
-        !presentation.requiresVictimChoice && !presentation.canCancel
+        !presentation.intent.usesMaritimePieces && !presentation.requiresVictimChoice && !presentation.canCancel
     }
 
     private var hasSelection: Bool {
         presentation.selectedVertex != nil || !presentation.selectedEdges.isEmpty
-            || presentation.selectedTile != nil || presentation.selectedVictim != nil
+            || presentation.selectedTile != nil || presentation.selectedVictim != nil || presentation.selectedShip != nil
     }
 
     private var clearTitle: String {
@@ -398,6 +435,43 @@ private struct DockArmyCardButton: View {
     }
 }
 
+/// The stable hull ID distinguishes ships sharing a coordinate or owner.
+/// Confirm and Skip remain pinned outside this horizontally scrolling list.
+private struct DockShipButton: View {
+    let ship: Ship
+    let identity: PlayerIdentity
+    let isSelected: Bool
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            HStack(spacing: 4) {
+                NavalShipBadge(color: identity.civilization.accentColor,
+                               civilization: identity.civilization, isSelected: isSelected)
+                    .frame(width: 29, height: 29)
+                VStack(alignment: .leading, spacing: 1) {
+                    Text(identity.displayName).font(.system(size: 10, weight: .bold, design: .serif))
+                    Text(NavalShipName.name(ship.id)).font(.system(size: 10, weight: .medium, design: .serif))
+                }
+                .lineLimit(1)
+                .minimumScaleFactor(0.72)
+            }
+            .padding(5)
+            .frame(width: 104, height: 44)
+            .background(TintedTextureBackground(tint: identity.civilization.cardBackgroundColor(active: true)))
+            .clipShape(FrameCornerRect(cornerRadius: 8, notchScale: 0.7))
+            .playerCardBorder(color: isSelected ? CatanTheme.chipGold : identity.civilization.accentColor,
+                              cornerRadius: 8, lineWidth: isSelected ? 3 : 2)
+            .foregroundStyle(CatanTheme.onWaterText)
+        }
+        .buttonStyle(.plain)
+        .accessibilityIdentifier("naval.choose-ship.\(ship.id)")
+        .accessibilityLabel("\(identity.accessibilityLabel), \(NavalShipName.name(ship.id)), \(NavalQuantityText.stepsRemaining(ship.stepsRemaining))")
+        .accessibilityValue(isSelected ? "Selected" : "Not selected")
+        .accessibilityHint("Selects this vessel. Confirm in the action dock.")
+    }
+}
+
 private struct DecisionPieceCradle: View {
     let presentation: BoardDecisionPresentation
     let identity: PlayerIdentity
@@ -436,6 +510,9 @@ private struct DecisionPieceCradle: View {
                 .font(.system(size: 26, weight: .black))
                 .foregroundStyle(identity.civilization.accentColor)
                 .shadow(color: .black.opacity(0.8), radius: 1)
+        case .buildShip, .sailShip, .captureShip:
+            NavalShipBadge(color: identity.civilization.accentColor, civilization: identity.civilization)
+                .frame(width: 35, height: 35)
         }
     }
 }
@@ -572,6 +649,9 @@ private extension BoardDecisionPresentation {
         case .robberAfterSeven: "Move the robber"
         case .knight: "Play Knight"
         case .deployArmy: "Deploy army"
+        case .buildShip: "Launch a ship"
+        case .sailShip: selectedShip != nil ? "Sail your ship" : "Sail a ship"
+        case .captureShip: "Capture a ship"
         }
     }
 
@@ -597,6 +677,12 @@ private extension BoardDecisionPresentation {
             robberDetail
         case .deployArmy:
             selectedTile == nil ? "Tap a hex your buildings touch." : "Choose cards, then commit."
+        case .buildShip:
+            selectedTile == nil ? "Choose coastal sea. 2 lumber + 1 wool + 2 ore." : "Launch preview ready. Confirm or revise."
+        case .sailShip:
+            sailing?.detail ?? "Choose a ship, then a highlighted destination."
+        case .captureShip:
+            selectedShip == nil ? "Any opposing ship, anywhere. Or skip." : "Selected ship stays here and becomes yours."
         }
     }
 
@@ -609,6 +695,9 @@ private extension BoardDecisionPresentation {
         case .robberAfterSeven, .knight:
             legalVictims.isEmpty ? "Confirm Move" : "Confirm Steal"
         case .deployArmy: "Commit"
+        case .buildShip: "Launch"
+        case .sailShip: "Sail"
+        case .captureShip: "Capture"
         }
     }
 

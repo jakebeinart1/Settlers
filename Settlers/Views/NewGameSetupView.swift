@@ -40,6 +40,9 @@ struct NewGameSetupView: View {
     let onCancel: () -> Void
 
     @State private var setup: MatchSetup
+    /// Naval has its own world. Remember the land board while editing so
+    /// returning to Standard or Conquest restores the player's Classic/Vast choice.
+    @State private var landMode: GameMode
     /// Which seat's civilization picker is open, or `nil`.
     @State private var pickingCivilizationForSeat: Int?
     /// Which seat's turn-order picker is open, or `nil`. Only reachable when
@@ -57,8 +60,10 @@ struct NewGameSetupView: View {
     /// looked away has no way to get back.
     @State private var refusal: String?
     @State private var openHelp: HelpTopic?
+    @State private var isShowingNavalSettings = false
     @State private var isShowingUnreadableSetupAlert: Bool
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     /// Read once, at init. Both are App Settings *preferences* - they prefill
     /// this screen (A2.3, A3.7, C1.1, C2.1) and are never the value the game
@@ -88,6 +93,7 @@ struct NewGameSetupView: View {
             preferredCivilization: civilization
         )
         _setup = State(initialValue: initial.setup)
+        _landMode = State(initialValue: initial.setup.mode == .naval ? .classic : initial.setup.mode)
         _isShowingUnreadableSetupAlert = State(initialValue: initial.wasUnreadable)
         #if DEBUG
         _isConfirmingOverwrite = State(initialValue: QALaunchFlag.showNewGameOverwrite.isSet)
@@ -106,10 +112,19 @@ struct NewGameSetupView: View {
     /// header height that the grid can give some of it back as breathing
     /// room between cards instead.
     private static let seatGutter: CGFloat = 14
+    /// The heading and its info glyph share one touch target. This removes
+    /// the old empty label lane while giving every selector the same left edge.
+    private static let settingsHeadingWidth: CGFloat = 114
+    private static let settingsColumnGap: CGFloat = 8
+    private static let settingsChoiceHeight: CGFloat = 46
+    /// Five full-height setting rows plus the seat grid exceeded the regular
+    /// phone viewport in the spacious layout. Keep its optional padding for
+    /// taller surfaces; phone controls retain their existing touch heights.
+    private static let spaciousLayoutMinimumHeight: CGFloat = 900
 
     var body: some View {
         GeometryReader { geometry in
-            let isShortScreen = geometry.size.height < 750
+            let isShortScreen = geometry.size.height < Self.spaciousLayoutMinimumHeight
             // Explicit, not `.frame(maxWidth: .infinity)` on each card - two
             // flexible siblings in an `HStack` are not guaranteed pixel-equal
             // width by construction, only "each gets as much as it asks for,
@@ -133,6 +148,12 @@ struct NewGameSetupView: View {
                                 .id(Self.footerAnchor)
                         }
                         .scrollDismissesKeyboard(.interactively)
+                        .onChange(of: openHelp) {
+                            guard let topic = openHelp else { return }
+                            withAnimation(reduceMotion ? nil : .easeOut(duration: 0.2)) {
+                                proxy.scrollTo("new-game.row.\(topic.rawValue)", anchor: .top)
+                            }
+                        }
                         #if DEBUG
                         .task { await qaScrollToFooter(proxy) }
                         #endif
@@ -170,6 +191,10 @@ struct NewGameSetupView: View {
         .accessibilityIdentifier(AccessibilityID.Screen.newGame)
         .foregroundStyle(.white)
         .fontDesign(.serif)
+        .fullScreenCover(isPresented: $isShowingNavalSettings) {
+            NavalAdvancedSettingsView(options: $setup.navalOptions,
+                                      onDone: { isShowingNavalSettings = false })
+        }
         .alert("Couldn't open your previous setup", isPresented: $isShowingUnreadableSetupAlert) {
             Button("OK", role: .cancel) {}
         } message: {
@@ -528,7 +553,7 @@ struct NewGameSetupView: View {
 
     private var matchSettingsSection: some View {
         VStack(spacing: 10) {
-            SettingsSectionHeader(title: "Match Settings", titleColor: .white)
+            NewGameVictoryHeading(target: setup.victoryPointTarget)
             modeRow
             rulesRow
             boardRow
@@ -541,23 +566,31 @@ struct NewGameSetupView: View {
         labelledChoice(
             label: "Game Mode",
             help: .mode,
-            helpText: "Classic is the standard 19-tile board, played to 10 points. "
-                + "Vast is a 61-tile map played to 26, with room for about thirteen settlements "
-                + "each, a bigger bank and deck, and longest road and largest army worth 4 "
-                + "points each. The mode sets the target; there is no separate match length.",
-            caption: nil
+            explanations: [
+                .init("Classic", "A compact 19-tile board. First to 10 victory points wins."),
+                .init("Vast", "A 61-tile board with more pieces, resources and development cards. "
+                    + "First to 26 points wins; Longest Road and Largest Army are worth 4 points each."),
+                .init("Naval island world", "Choosing Naval under Rules opens a randomized island world. "
+                    + "Sail between islands and race to 14 victory points.")
+            ]
         ) {
-            // A chip row rather than the popup this used to open (Jake's ask,
-            // 2026-09-16): with the modes down to two, a tap-to-open sheet is a
-            // second screen to reach a binary choice, and every other setting on
-            // this page is already a `PaintedChoiceRow`.
-            PaintedChoiceRow(
-                options: GameMode.newGameChoices,
+            if setup.mode == .naval {
+                Text("Island world · \(setup.victoryPointTarget) VP")
+                    .font(.system(size: SeatCardView.bodyTextSize, weight: .semibold, design: .serif))
+                    .foregroundStyle(CatanTheme.cityPennantGold)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .accessibilityIdentifier("new-game.mode.islands")
+            } else {
+                PaintedChoiceRow(
+                options: GameMode.newGameChoices.filter { $0 != .naval },
                 title: \.displayName,
                 selection: setup.mode,
                 isCompact: true,
+                minimumHeight: Self.settingsChoiceHeight,
                 fontSize: SeatCardView.bodyTextSize,
+                optionIdentifier: { "new-game.mode.\($0.rawValue)" },
                 onSelect: { mode in
+                    landMode = mode
                     setup.mode = mode
                     // Each mode offers its own targets - Classic's 8/10/12
                     // against Vast's single 26 - so a mode change can strand a
@@ -567,47 +600,84 @@ struct NewGameSetupView: View {
                     setup.normalizeNewGameOptions()
                 }
             )
+            }
         }
     }
 
-    /// Conquest crosses every board, so it is its own row beside Game Mode
-    /// rather than a third mode.
+    /// The player's Rules vocabulary maps to the existing saved engine tags;
+    /// Naval remains a distinct world, not a Conquest overlay on a land board.
+    private enum RulesChoice: String, CaseIterable {
+        case standard, conquest, naval
+    }
+
+    private var selectedRules: RulesChoice {
+        if setup.mode == .naval { return .naval }
+        return setup.variant == .conquest ? .conquest : .standard
+    }
+
+    private func selectRules(_ choice: RulesChoice) {
+        if choice == .naval {
+            if setup.mode != .naval { landMode = setup.mode }
+            setup.mode = .naval
+        } else {
+            if setup.mode == .naval { setup.mode = landMode }
+            setup.variant = choice == .conquest ? .conquest : .standard
+        }
+        setup.normalizeNewGameOptions()
+    }
+
     private var rulesRow: some View {
         labelledChoice(
             label: "Rules",
             help: .rules,
-            helpText: "Conquest: every hex starts held by a tribe. Army cards cost any 3 resource "
-                + "cards; spend them on a hex your buildings touch to take it. Whoever holds a hex "
-                + "collects all of it, plus one. Works on Classic and Vast.",
-            caption: nil
+            explanations: [
+                .init("Standard", "Collect resources from the dice, trade, and build roads, settlements "
+                    + "and cities. Play on Classic or Vast with that board's victory target."),
+                .init("Conquest", "Tribes hold the land. Buy an Army card with any 3 resource cards "
+                    + "and spend it to capture a hex beside your buildings. Its controller collects "
+                    + "all production, plus one. Available on Classic and Vast."),
+                .init("Naval", "Buy independent ships for 2 wood, 1 sheep and 2 iron. Explore islands, "
+                    + "clear mist within two hexes and establish colonies. Discoveries stay visible "
+                    + "for everyone. An 11 lets you capture a rival ship. First to 14 points wins.")
+            ]
         ) {
             PaintedChoiceRow(
-                options: GameVariant.allCases,
-                title: \.displayName,
-                selection: setup.variant,
+                options: RulesChoice.allCases,
+                title: { $0.rawValue.capitalized },
+                selection: selectedRules,
                 isCompact: true,
+                minimumHeight: Self.settingsChoiceHeight,
                 fontSize: SeatCardView.bodyTextSize,
-                onSelect: { setup.variant = $0 }
+                optionIdentifier: { "new-game.rules.\($0.rawValue)" },
+                onSelect: selectRules
             )
         }
     }
 
     private var boardRow: some View {
         labelledChoice(
-            label: "Board",
+            label: setup.mode == .naval ? "World" : "Board",
             help: .board,
-            helpText: "Standard is the same fixed layout every game. "
-                + "Randomized reshuffles the terrain and the number tokens.",
-            caption: nil
+            explanations: setup.mode == .naval
+                ? [.init("Advanced Settings", "Choose the island layout, whether ships uncover mist, "
+                    + "and whether islands can produce a resource you choose. These choices are fixed when the match starts.")]
+                : MatchSettingHelpEntry.board(naval: false)
         ) {
-            PaintedChoiceRow(
+            if setup.mode == .naval {
+                NavalAdvancedSettingsButton(options: setup.navalOptions,
+                                            onOpen: { isShowingNavalSettings = true })
+            } else {
+                PaintedChoiceRow(
                 options: [false, true],
                 title: { $0 ? "Randomized" : "Standard" },
                 selection: setup.randomizedBoard,
                 isCompact: true,
+                minimumHeight: Self.settingsChoiceHeight,
                 fontSize: SeatCardView.bodyTextSize,
+                optionIdentifier: { "new-game.board.\($0 ? "randomized" : "standard")" },
                 onSelect: { setup.randomizedBoard = $0 }
-            )
+                )
+            }
         }
     }
 
@@ -620,17 +690,23 @@ struct NewGameSetupView: View {
         labelledChoice(
             label: "AI Opponents",
             help: .difficulty,
-            helpText: "Classic is the opponent that has always shipped. Expert plans around your "
-                + "position and your opponents' rather than scoring each move on its own. Measured "
-                + "over 1,248 Classic games with every seat rotated, Expert wins 68% against a 25% average.",
-            caption: nil
+            explanations: [
+                .init("Classic", setup.mode == .naval
+                    ? "Steady opponents that buy ships, explore, build colonies and capture vessels."
+                    : "The original opponents, following steady building and trading priorities."),
+                .init("Expert", setup.mode == .naval
+                    ? "Opponents that compare expeditions, production, settlement opportunities and rivals."
+                    : "Opponents that plan around your position and the other players' opportunities.")
+            ]
         ) {
             PaintedChoiceRow(
                 options: BotDifficulty.allCases,
                 title: \.displayName,
                 selection: setup.difficulty,
                 isCompact: true,
+                minimumHeight: Self.settingsChoiceHeight,
                 fontSize: SeatCardView.bodyTextSize,
+                optionIdentifier: { "new-game.difficulty.\($0.rawValue)" },
                 onSelect: { setup.difficulty = $0 }
             )
         }
@@ -643,26 +719,25 @@ struct NewGameSetupView: View {
         labelledChoice(
             label: "Turn Order",
             help: .seating,
-            helpText: "As Shown plays the seats in the order laid out above. Random shuffles who goes "
-                + "first — you still play the civilization and name you picked.",
-            // No standing caption: "As Shown" and "Random" already say it, and
-            // this is the last row on the screen, so a caption here is the one
-            // thing that gets clipped by the pinned bar. The fuller
-            // explanation is still a tap away on the info button.
-            caption: nil
+            explanations: [
+                .init("As Shown", "Play in the seat order displayed above. Tap a seat number to change its position."),
+                .init("Random", "Shuffle who goes first when the match starts. You keep your chosen name and civilization.")
+            ]
         ) {
             PaintedChoiceRow(
                 options: [false, true],
                 title: { $0 ? "Random" : "As Shown" },
                 selection: setup.randomizeSeatOrder,
                 isCompact: true,
+                minimumHeight: Self.settingsChoiceHeight,
                 fontSize: SeatCardView.bodyTextSize,
+                optionIdentifier: { "new-game.seating.\($0 ? "random" : "shown")" },
                 onSelect: { setup.randomizeSeatOrder = $0 }
             )
         }
     }
 
-    private enum HelpTopic {
+    private enum HelpTopic: String {
         case mode
         case rules
         case board
@@ -670,46 +745,31 @@ struct NewGameSetupView: View {
         case seating
     }
 
-    /// Label + ⓘ above a choice control, with the explanation folding out
-    /// underneath when the ⓘ is tapped, and an optional standing caption that
-    /// states the current choice in words. Matches `InGameSettingsView`'s row
-    /// shape so the two settings surfaces read as one family.
+    /// The heading and info glyph share one compact lane, leaving the saved
+    /// horizontal space for selectors. Help opens below without moving the footer.
     @ViewBuilder
     private func labelledChoice<Control: View>(
         label: String,
         help: HelpTopic,
-        helpText: String,
-        caption: String?,
+        explanations: [MatchSettingHelpEntry],
         @ViewBuilder control: () -> Control
     ) -> some View {
-        // Label beside the control, not stacked above it, and no standing
-        // caption. Stacked with a caption each row cost ~110pt, so the three of
-        // them plus a section header pushed Board, Seating and the status line
-        // off the bottom of the screen - on the screen whose entire job is to
-        // show you the configuration. `caption` is kept in the signature and
-        // shown only while help is closed for rows that genuinely need one.
         VStack(alignment: .leading, spacing: 6) {
             if dynamicTypeSize.isAccessibilitySize {
-                HStack(spacing: 8) {
-                    choiceLabel(label)
-                    Spacer(minLength: 0)
-                    helpButton(label: label, topic: help)
-                }
+                helpButton(label: label, topic: help)
                 control()
             } else {
-                HStack(alignment: .center, spacing: 8) {
-                    choiceLabel(label)
-                        .frame(width: 104, alignment: .leading)
+                HStack(alignment: .center, spacing: Self.settingsColumnGap) {
                     helpButton(label: label, topic: help)
+                        .frame(width: Self.settingsHeadingWidth)
                     control()
                 }
             }
             if openHelp == help {
-                footnote(helpText)
-            } else if let caption {
-                footnote(caption)
+                MatchSettingHelpView(entries: explanations, identifier: "new-game.help.\(help.rawValue)")
             }
         }
+        .id("new-game.row.\(help.rawValue)")
     }
 
     private func choiceLabel(_ label: String) -> some View {
@@ -724,7 +784,7 @@ struct NewGameSetupView: View {
                 weight: .semibold,
                 design: .serif
             ))
-            .lineLimit(2)
+            .lineLimit(dynamicTypeSize.isAccessibilitySize ? 2 : 1)
             .minimumScaleFactor(0.75)
             .fixedSize(horizontal: false, vertical: true)
     }
@@ -733,25 +793,19 @@ struct NewGameSetupView: View {
         Button {
             openHelp = (openHelp == topic) ? nil : topic
         } label: {
-            if dynamicTypeSize.isAccessibilitySize {
+            HStack(spacing: 4) {
+                choiceLabel(label)
+                Spacer(minLength: 0)
                 Image(systemName: "info.circle")
-                    .font(.system(size: 20))
-                    .frame(width: 44, height: 44)
-            } else {
-                Image(systemName: "info.circle")
-                    .font(.footnote)
+                    .font(.system(size: dynamicTypeSize.isAccessibilitySize ? 20 : 14))
+                    .foregroundStyle(.white.opacity(openHelp == topic ? 0.95 : 0.65))
             }
+            .frame(minHeight: 44)
+            .contentShape(Rectangle())
         }
-        .foregroundStyle(.white.opacity(openHelp == topic ? 0.95 : 0.55))
         .buttonStyle(.plain)
         .accessibilityLabel("About \(label)")
-    }
-
-    private func footnote(_ text: String) -> some View {
-        Text(text)
-            .font(.system(size: 12, design: .serif))
-            .foregroundStyle(.white.opacity(0.6))
-            .fixedSize(horizontal: false, vertical: true)
+        .accessibilityValue(openHelp == topic ? "Expanded" : "Collapsed")
     }
 
     // MARK: - Status (A6.1)
@@ -966,6 +1020,14 @@ struct NewGameSetupView: View {
             valid.resize(to: GameSetup.supportedPlayerCounts.lowerBound,
                          preferredName: "Alex", preferredCivilization: .greece)
         }
+        if QALaunchFlag.navalMode.isSet {
+            valid.mode = .naval
+            valid.victoryPointTarget = 14
+            valid.navalOptions = NavalOptions(fogEnabled: !QALaunchFlag.navalNoFog.isSet,
+                resourceChoiceEnabled: !QALaunchFlag.navalNoResourceChoice.isSet,
+                mapFamily: QALaunchOption.navalMapFamily)
+            valid.difficulty = QALaunchFlag.navalExpert.isSet ? .expert : .classic
+        }
         if QALaunchFlag.showNewGameInvalid.isSet {
             var invalid = valid
             // Whitespace-only, which A2.6 requires to read as empty.
@@ -983,4 +1045,24 @@ struct NewGameSetupView: View {
 
 #Preview {
     NewGameSetupView(onStart: { _ in }, onCancel: {})
+}
+
+/// The goal shares the existing heading row so it stays visible without
+/// adding height to the compact phone configuration.
+private struct NewGameVictoryHeading: View {
+    let target: Int
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+
+    var body: some View {
+        HStack(spacing: 10) {
+            SettingsSectionHeader(title: "Match Settings", titleColor: .white)
+            Text(VictoryTargetText.compactGoal(target))
+                .font(.system(size: dynamicTypeSize.isAccessibilitySize ? 17 : 13,
+                              weight: .semibold, design: .serif))
+                .foregroundStyle(CatanTheme.cityPennantGold)
+                .fixedSize()
+                .accessibilityLabel(VictoryTargetText.goal(target))
+                .accessibilityIdentifier("new-game.victory-target")
+        }
+    }
 }

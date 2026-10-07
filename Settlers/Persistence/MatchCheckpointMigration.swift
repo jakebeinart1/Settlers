@@ -56,7 +56,8 @@ enum MatchCheckpointMigration {
                 entry.move,
                 by: entry.player,
                 timestamp: entry.timestamp,
-                rulesVersion: RulesEngine.oldestSupportedRulesVersion
+                rulesVersion: entry.rulesVersion ?? RulesEngine.oldestSupportedRulesVersion,
+                isHumanDecision: entry.isHumanDecision
             )
         }
         guard match.state == session.state else { throw MigrationError.historyMismatch }

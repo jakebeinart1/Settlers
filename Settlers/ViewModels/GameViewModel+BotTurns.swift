@@ -50,7 +50,7 @@ extension GameViewModel {
             // frozen forever. Returning lets `defer` clear it, and the restart
             // already exists: answering the offer goes through `apply`, which
             // ends in `Task { await runBotTurnIfNeeded() }`.
-            if openIncomingOffer != nil || pendingDevCardReveal != nil
+            if pendingTradeConfirmation != nil || openIncomingOffer != nil || pendingDevCardReveal != nil
                 || pendingDevCardResolution != nil { return }
 
             // Same `return`-don't-park reasoning as the offer check above:
@@ -89,8 +89,9 @@ extension GameViewModel {
 
     private var canAdvanceBots: Bool {
         guard savedGameAvailability.canResume, appIsActive, !persistenceBlocked,
-              !isBlockingSurfaceOpen, openIncomingOffer == nil,
-              pendingDevCardReveal == nil, pendingDevCardResolution == nil else { return false }
+              !isBlockingSurfaceOpen, pendingTradeConfirmation == nil, openIncomingOffer == nil,
+              pendingDevCardReveal == nil, pendingDevCardResolution == nil,
+              !hasMandatoryHumanNavalDecision else { return false }
         if case .failed = botTurnProgress { return false }
         return true
     }

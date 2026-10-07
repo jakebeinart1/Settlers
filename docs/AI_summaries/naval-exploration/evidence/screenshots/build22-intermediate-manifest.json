@@ -1,0 +1,18 @@
+{
+  "identity": "Intermediate native Debug captures before final fitted-pose correction/version freeze",
+  "productionSourceAtCapture": "0bfc334 predecessor, behavior changes as tested before version bump",
+  "pixelsUnmodified": true,
+  "rootInspected": true,
+  "images": [
+    {
+      "path": "/Users/alex/.codex/worktrees/naval-exploration/Settlers/docs/AI_summaries/naval-exploration/evidence/screenshots/build22-home-harbors-intermediate.png",
+      "sha256": "16c9729b25cedabb3e927f180961a6e1e69357e62929afc515a7c618f72a88b6",
+      "bytes": 3474266
+    },
+    {
+      "path": "/Users/alex/.codex/worktrees/naval-exploration/Settlers/docs/AI_summaries/naval-exploration/evidence/screenshots/build22-world-return-intermediate.png",
+      "sha256": "55915e3011d142683673648c07898f105eea6005554b096b7376b25d693f1033",
+      "bytes": 3100605
+    }
+  ]
+}

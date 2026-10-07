@@ -1,0 +1,90 @@
+{
+  "devicesAndConfigurations" : [
+    {
+      "device" : {
+        "architecture" : "arm64",
+        "deviceId" : "937692FF-BFBF-4683-80E5-2590F5288D56",
+        "deviceName" : "Empires QA",
+        "modelName" : "iPhone 17 Pro",
+        "osBuildNumber" : "23F77",
+        "osVersion" : "26.5",
+        "platform" : "iOS Simulator"
+      },
+      "expectedFailures" : 0,
+      "failedTests" : 4,
+      "passedTests" : 1371,
+      "skippedTests" : 2,
+      "testPlanConfiguration" : {
+        "configurationId" : "1",
+        "configurationName" : "Test Scheme Action"
+      }
+    }
+  ],
+  "environmentDescription" : "Settlers · Built with macOS 26.5.1",
+  "expectedFailures" : 0,
+  "failedTests" : 4,
+  "finishTime" : 1791218481.107,
+  "passedTests" : 678,
+  "result" : "Failed",
+  "skippedTests" : 2,
+  "startTime" : 1791216698.316,
+  "statistics" : [
+    {
+      "subtitle" : "761 test runs",
+      "title" : "68 tests ran with dynamic parameters"
+    }
+  ],
+  "testFailures" : [
+    {
+      "failureText" : "Expectation failed: reached(): Lifecycle boundary was not reached before the safety deadline",
+      "targetName" : "SettlersTests",
+      "testIdentifier" : 617,
+      "testIdentifierString" : "BotProgressTests/aSlowBotDoesNotBlockTheMainRunLoop()",
+      "testIdentifierURL" : "test://com.apple.xcode/Settlers/SettlersTests/BotProgressTests/aSlowBotDoesNotBlockTheMainRunLoop()",
+      "testName" : "aSlowBotDoesNotBlockTheMainRunLoop()"
+    },
+    {
+      "failureText" : "Expectation failed: predicate(): Replay export did not reach the expected lifecycle state within 60 seconds",
+      "targetName" : "SettlersTests",
+      "testIdentifier" : 187,
+      "testIdentifierString" : "ReplayExportModelTests/closingDuringActualEncodingCleansUpBeforeAllowingRetry()",
+      "testIdentifierURL" : "test://com.apple.xcode/Settlers/SettlersTests/ReplayExportModelTests/closingDuringActualEncodingCleansUpBeforeAllowingRetry()",
+      "testName" : "closingDuringActualEncodingCleansUpBeforeAllowingRetry()"
+    },
+    {
+      "failureText" : "Expectation failed: reached(): Lifecycle boundary was not reached before the safety deadline",
+      "targetName" : "SettlersTests",
+      "testIdentifier" : 618,
+      "testIdentifierString" : "BotProgressTests/readerReopeningDoesNotLoseTheResumeKick(reopenBeforeDrain:)",
+      "testIdentifierURL" : "test://com.apple.xcode/Settlers/SettlersTests/BotProgressTests/readerReopeningDoesNotLoseTheResumeKick(reopenBeforeDrain:)",
+      "testName" : "readerReopeningDoesNotLoseTheResumeKick(reopenBeforeDrain:)"
+    },
+    {
+      "failureText" : "XCTAssertEqual failed: (\"q=-3;r=0;steps=3\") is not equal to (\"q=-4;r=1;steps=2\")",
+      "targetName" : "SettlersUITests",
+      "testIdentifier" : 13,
+      "testIdentifierString" : "NavalFlowTests/testStackedWorldChooserIncludesAdjacentHullAndMovesOnlyChosenIdentity()",
+      "testIdentifierURL" : "test://com.apple.xcode/Settlers/SettlersUITests/NavalFlowTests/testStackedWorldChooserIncludesAdjacentHullAndMovesOnlyChosenIdentity",
+      "testName" : "testStackedWorldChooserIncludesAdjacentHullAndMovesOnlyChosenIdentity()"
+    }
+  ],
+  "title" : "Test - Settlers",
+  "topInsights" : [
+    {
+      "category" : "Common Failures",
+      "impact" : "50% of failures",
+      "text" : "2 runs of 2 tests failed with Expectation failed: reached(): Lifecycle boundary was not reached before the safety deadline"
+    },
+    {
+      "category" : "Longest Test Runs",
+      "impact" : "11% of duration",
+      "text" : "2 longest test runs with outlier durations exceeding 74.30s (three standard deviations)"
+    },
+    {
+      "category" : "Longest Test Runs",
+      "impact" : "13% of duration",
+      "text" : "3 longest test runs with outlier durations exceeding 121.63s (three standard deviations)"
+    }
+  ],
+  "totalTestCount" : 684
+}

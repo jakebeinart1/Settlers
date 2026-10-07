@@ -1,0 +1,4 @@
+# Keep external tool receipts byte-for-byte so their recorded hashes stay valid.
+receipts/*.log -whitespace
+# The original CSV exporter uses CRLF; retain it without relaxing other checks.
+*.csv whitespace=cr-at-eol

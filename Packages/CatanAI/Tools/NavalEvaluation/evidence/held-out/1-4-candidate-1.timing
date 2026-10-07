@@ -1,0 +1,9 @@
+naval-sim seed=801000 decisions=852 p95=7.854ms p99=23.151ms over50=2 over150=0
+naval-sim seed=801001 decisions=755 p95=11.454ms p99=36.639ms over50=0 over150=0
+naval-sim seed=801002 decisions=559 p95=11.269ms p99=21.347ms over50=1 over150=1
+naval-sim seed=801003 decisions=780 p95=9.546ms p99=31.161ms over50=2 over150=0
+naval-sim rejection evidence: /var/folders/_m/cfbn0s7j7zx3sx1lwv6w4mr80000gn/T/naval-sim-failures/801004-4-1-candidate-archipelago-true-false
+naval-sim seed=801004 decisions=700 p95=27.978ms p99=44.177ms over50=1 over150=0
+naval-sim rejection evidence: /var/folders/_m/cfbn0s7j7zx3sx1lwv6w4mr80000gn/T/naval-sim-failures/801005-4-1-candidate-archipelago-true-false
+naval-sim seed=801005 decisions=859 p95=14.165ms p99=31.284ms over50=4 over150=0
+naval-sim seed=801006 decisions=673 p95=10.870ms p99=32.989ms over50=0 over150=0

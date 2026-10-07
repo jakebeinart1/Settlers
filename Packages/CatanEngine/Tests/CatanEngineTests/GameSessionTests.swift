@@ -1,3 +1,4 @@
+import Foundation
 import Testing
 @testable import CatanEngine
 
@@ -196,4 +197,73 @@ private func session(
 
     #expect(legalIncludesProposeTrade(declinedCount: 0))
     #expect(!legalIncludesProposeTrade(declinedCount: RulesEngine.maxTradeProposalsPerTurn))
+}
+
+/// A human may finish while the previously sampled bot answer is still pending.
+/// The offer stays in history; neither its answer nor policy work outlives victory.
+@Test func winningWithAnOpenTradeEndsAutomatedNegotiation() throws {
+    var game = try winningTradeSession()
+    let human = PlayerID(index: 0)
+    let evaluations = game.policyEvaluationCount
+    #expect(game.checkpoint.queuedTradeResponse != nil)
+
+    _ = try game.applyExternal(.buyDevCard, by: human)
+
+    #expect(game.nextActor() == .gameOver(winner: human))
+    #expect(game.checkpoint.queuedTradeResponse == nil)
+    #expect(game.policyEvaluationCount == evaluations)
+    #expect(game.state.pendingTradeOffers.count == 1)
+    #expect(try game.step() == nil)
+    let bytes = try JSONEncoder().encode(game.checkpoint)
+    let checkpoint = try JSONDecoder().decode(GameSession.Checkpoint.self, from: bytes)
+    let restored = try GameSession(checkpoint: checkpoint, policies: game.policies)
+    #expect(restored.checkpoint == game.checkpoint)
+}
+
+@Test func completedPositionDoesNotReconstructAnOpenTradeResponse() throws {
+    var finished = try winningTradeSession()
+    _ = try finished.applyExternal(.buyDevCard, by: PlayerID(index: 0))
+
+    let restored = GameSession(state: finished.state, policies: finished.policies, policySeed: 19)
+
+    #expect(restored.nextActor() == .gameOver(winner: PlayerID(index: 0)))
+    #expect(restored.checkpoint.queuedTradeResponse == nil)
+    #expect(restored.policyEvaluationCount == 0)
+    #expect(restored.state.pendingTradeOffers == finished.state.pendingTradeOffers)
+}
+
+@Test func aCoherentTerminalTradeQueueCannotReviveTheGame() throws {
+    let game = try winningTradeSession()
+    let original = game.checkpoint
+    let response = try #require(original.queuedTradeResponse)
+    var ended = original.state
+    ended.phase = .gameOver(winner: PlayerID(index: 0))
+    let queued = GameSession.Decision(evaluationIndex: response.evaluationIndex, seat: response.seat,
+        move: response.move, observation: GameObservation(seat: response.seat, state: ended,
+                                                        legalMoves: response.observation.legalMoves))
+    let invalid = GameSession.Checkpoint(version: original.version, state: ended, policyIDs: original.policyIDs,
+        policyRNG: original.policyRNG, policyEvaluationCount: original.policyEvaluationCount,
+        queuedTradeResponse: queued, currentTurnSeat: original.currentTurnSeat,
+        actionsThisTurn: original.actionsThisTurn, ledgers: original.ledgers)
+
+    #expect(throws: GameSession.CheckpointError.self) { try invalid.validate() }
+}
+
+private func winningTradeSession() throws -> GameSession {
+    var state = GameSetup.newGame(board: BoardGenerator.standard(), seed: 92, playerCount: 3)
+    let human = PlayerID(index: 0)
+    let vertices = state.board.onBoardVertices.sorted()
+    state.phase = .mainTurn(playerIndex: human.index)
+    state.players[0].cities = Set(vertices.prefix(3))
+    state.players[0].settlements = Set(vertices.dropFirst(20).prefix(3))
+    state.players[0].resources = [.ore: 1, .wool: 1, .grain: 5]
+    state.players[1].resources = [.brick: 2]
+    state.devCardDeck = [.victoryPoint]
+    for resource in Resource.allCases {
+        state.bank[resource, default: 0] -= state.players.reduce(0) { $0 + $1.resources[resource, default: 0] }
+    }
+    var game = GameSession(state: state, policies: [PlayerID(index: 1): FirstLegalPolicy()], policySeed: 19)
+    let offer = TradeOffer.enumerated(from: human, give: [.grain: 4], want: [.brick: 1])
+    _ = try game.applyExternal(.proposeTrade(offer), by: human)
+    return game
 }

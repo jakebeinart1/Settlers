@@ -46,7 +46,7 @@ public struct BoardShape: Sendable, Equatable {
         guard kinds.count == tileCount else {
             return "terrain declares \(kinds.count) tiles for a \(tileCount)-tile board"
         }
-        let producing = kinds.filter { $0 != .desert }.count
+        let producing = kinds.filter(\.produces).count
         let tokenTotal = tokens.expanded(count: producing).count
         guard tokenTotal == producing else {
             return "tokens declare \(tokenTotal) for \(producing) producing tiles"
@@ -56,6 +56,17 @@ public struct BoardShape: Sendable, Equatable {
 }
 
 public extension BoardShape {
+    /// Naval generation assigns land within this fixed public envelope separately.
+    static let naval = BoardShape(
+        radius: 7,
+        terrain: .counts([.sea: 122, .desert: 1, .resource(.grain): 10,
+                          .resource(.wool): 10, .resource(.lumber): 10,
+                          .resource(.brick): 8, .resource(.ore): 8]),
+        tokens: .counts([2: 3, 3: 5, 4: 5, 5: 5, 6: 5,
+                         8: 5, 9: 5, 10: 5, 11: 5, 12: 3]),
+        ports: .fixed([])
+    )
+
     /// The 19-tile board every game of Catan opens on. Literal orders, because
     /// this arrangement IS the physical board.
     static let classic = BoardShape(
@@ -207,6 +218,9 @@ private func terrainSortKey(_ kind: TileKind) -> String {
     switch kind {
     case .desert: return "desert"
     case .resource(let resource): return "resource.\(resource.rawValue)"
+    case .sea: return "sea"
+    case .resourceChoice: return "resourceChoice"
+    case .fog: return "fog"
     }
 }
 

@@ -1,0 +1,830 @@
+{
+  "allEqual": true,
+  "binaryVerification": "actual SHA-256 and Release manifest",
+  "comparedGames": 48,
+  "excludedFields": [
+    "buildID"
+  ],
+  "historicalDirectory": "/Users/alex/.codex/worktrees/naval-exploration/Settlers/Packages/CatanAI/Tools/NavalEvaluation/evidence/matrix",
+  "integratedDirectory": "/private/tmp/empires-match-settings-evidence/naval-bridge-matrix",
+  "matchedGames": 48,
+  "performanceInterpretation": "CPU-contended diagnostic timing only",
+  "records": [
+    {
+      "changedFields": [],
+      "equal": true,
+      "historicalFingerprint": "3cbbddadc1ae6de9",
+      "historicalResultSHA256": "9cf2509c816fab0e3f75d18f5c25e16018ecc72184175d54a6beca79ec4635c3",
+      "identity": [
+        "archipelago",
+        false,
+        false,
+        3,
+        700300,
+        "expert",
+        0
+      ],
+      "integratedFingerprint": "3cbbddadc1ae6de9",
+      "integratedResultSHA256": "9cf2509c816fab0e3f75d18f5c25e16018ecc72184175d54a6beca79ec4635c3"
+    },
+    {
+      "changedFields": [],
+      "equal": true,
+      "historicalFingerprint": "8e1045996026fc2e",
+      "historicalResultSHA256": "b0753f7cc572a5341776eda63fb2560b48580896a46ba793268ad915e1ba6cad",
+      "identity": [
+        "archipelago",
+        false,
+        false,
+        3,
+        700300,
+        "traditional",
+        0
+      ],
+      "integratedFingerprint": "8e1045996026fc2e",
+      "integratedResultSHA256": "b0753f7cc572a5341776eda63fb2560b48580896a46ba793268ad915e1ba6cad"
+    },
+    {
+      "changedFields": [],
+      "equal": true,
+      "historicalFingerprint": "cf07e758e023b22c",
+      "historicalResultSHA256": "4aa4a9369fe58e32ce7f7a7f537742ac483e65f6b630e9f36a31fde77c8bb2cf",
+      "identity": [
+        "archipelago",
+        false,
+        false,
+        4,
+        700300,
+        "expert",
+        0
+      ],
+      "integratedFingerprint": "cf07e758e023b22c",
+      "integratedResultSHA256": "4aa4a9369fe58e32ce7f7a7f537742ac483e65f6b630e9f36a31fde77c8bb2cf"
+    },
+    {
+      "changedFields": [],
+      "equal": true,
+      "historicalFingerprint": "a9ff26806242bf5d",
+      "historicalResultSHA256": "6422156537b152f7553fa0ecd1ea2e7ac0b1f7ddd943d47c83422c05c25c7675",
+      "identity": [
+        "archipelago",
+        false,
+        false,
+        4,
+        700300,
+        "traditional",
+        0
+      ],
+      "integratedFingerprint": "a9ff26806242bf5d",
+      "integratedResultSHA256": "6422156537b152f7553fa0ecd1ea2e7ac0b1f7ddd943d47c83422c05c25c7675"
+    },
+    {
+      "changedFields": [],
+      "equal": true,
+      "historicalFingerprint": "f66815e3c1eb5df2",
+      "historicalResultSHA256": "2cbf7689873f2472d664ac9ab9d2e13fbecb62f214d9f21732c93921d42a753a",
+      "identity": [
+        "archipelago",
+        false,
+        true,
+        3,
+        700200,
+        "expert",
+        0
+      ],
+      "integratedFingerprint": "f66815e3c1eb5df2",
+      "integratedResultSHA256": "2cbf7689873f2472d664ac9ab9d2e13fbecb62f214d9f21732c93921d42a753a"
+    },
+    {
+      "changedFields": [],
+      "equal": true,
+      "historicalFingerprint": "b0823e556b8aebdf",
+      "historicalResultSHA256": "c76a40e9afcb5ef9a1d27cdb14f018ada25a2511f5104fcff6b4ae952cb85291",
+      "identity": [
+        "archipelago",
+        false,
+        true,
+        3,
+        700200,
+        "traditional",
+        0
+      ],
+      "integratedFingerprint": "b0823e556b8aebdf",
+      "integratedResultSHA256": "c76a40e9afcb5ef9a1d27cdb14f018ada25a2511f5104fcff6b4ae952cb85291"
+    },
+    {
+      "changedFields": [],
+      "equal": true,
+      "historicalFingerprint": "3c0512818ccb48ca",
+      "historicalResultSHA256": "c3cb9935a97c367088546eda1e7269f7774f25a9346c720b69b085885c33988c",
+      "identity": [
+        "archipelago",
+        false,
+        true,
+        4,
+        700200,
+        "expert",
+        0
+      ],
+      "integratedFingerprint": "3c0512818ccb48ca",
+      "integratedResultSHA256": "c3cb9935a97c367088546eda1e7269f7774f25a9346c720b69b085885c33988c"
+    },
+    {
+      "changedFields": [],
+      "equal": true,
+      "historicalFingerprint": "47387ae098b7ed87",
+      "historicalResultSHA256": "6b07d6d4949b68a89756469ea433f884ecdf5edde0ddd9207e2a778fb7dfe418",
+      "identity": [
+        "archipelago",
+        false,
+        true,
+        4,
+        700200,
+        "traditional",
+        0
+      ],
+      "integratedFingerprint": "47387ae098b7ed87",
+      "integratedResultSHA256": "6b07d6d4949b68a89756469ea433f884ecdf5edde0ddd9207e2a778fb7dfe418"
+    },
+    {
+      "changedFields": [],
+      "equal": true,
+      "historicalFingerprint": "dd0c396f44e581f8",
+      "historicalResultSHA256": "925c1dedc9fc57b13197b64caaf5e76bed4e814d3bbf897effc82e0e33b79808",
+      "identity": [
+        "archipelago",
+        true,
+        false,
+        3,
+        700100,
+        "expert",
+        0
+      ],
+      "integratedFingerprint": "dd0c396f44e581f8",
+      "integratedResultSHA256": "925c1dedc9fc57b13197b64caaf5e76bed4e814d3bbf897effc82e0e33b79808"
+    },
+    {
+      "changedFields": [],
+      "equal": true,
+      "historicalFingerprint": "8b0ccc298c7b4d07",
+      "historicalResultSHA256": "992d10812fc074282bd36cc07724a16eab2099df493a30e69a61aa0834974d85",
+      "identity": [
+        "archipelago",
+        true,
+        false,
+        3,
+        700100,
+        "traditional",
+        0
+      ],
+      "integratedFingerprint": "8b0ccc298c7b4d07",
+      "integratedResultSHA256": "992d10812fc074282bd36cc07724a16eab2099df493a30e69a61aa0834974d85"
+    },
+    {
+      "changedFields": [],
+      "equal": true,
+      "historicalFingerprint": "8733d9bb06b7674c",
+      "historicalResultSHA256": "0e82e617fc33a2bf8a6e72acfcffec3362d1605636f7f24df2d0b9ef2239b791",
+      "identity": [
+        "archipelago",
+        true,
+        false,
+        4,
+        700100,
+        "expert",
+        0
+      ],
+      "integratedFingerprint": "8733d9bb06b7674c",
+      "integratedResultSHA256": "0e82e617fc33a2bf8a6e72acfcffec3362d1605636f7f24df2d0b9ef2239b791"
+    },
+    {
+      "changedFields": [],
+      "equal": true,
+      "historicalFingerprint": "737ec641db58b2e2",
+      "historicalResultSHA256": "28587bb5a7946cb885d96a312f2affb46c4c617499135c06e025edd1b0815c13",
+      "identity": [
+        "archipelago",
+        true,
+        false,
+        4,
+        700100,
+        "traditional",
+        0
+      ],
+      "integratedFingerprint": "737ec641db58b2e2",
+      "integratedResultSHA256": "28587bb5a7946cb885d96a312f2affb46c4c617499135c06e025edd1b0815c13"
+    },
+    {
+      "changedFields": [],
+      "equal": true,
+      "historicalFingerprint": "0fb7d98e15d8e2ad",
+      "historicalResultSHA256": "4a42b67b81c7890c80949be7068756d29bd8439623fb695e984e92a93013152d",
+      "identity": [
+        "archipelago",
+        true,
+        true,
+        3,
+        700000,
+        "expert",
+        0
+      ],
+      "integratedFingerprint": "0fb7d98e15d8e2ad",
+      "integratedResultSHA256": "4a42b67b81c7890c80949be7068756d29bd8439623fb695e984e92a93013152d"
+    },
+    {
+      "changedFields": [],
+      "equal": true,
+      "historicalFingerprint": "acc65b32068694e5",
+      "historicalResultSHA256": "267bc810d059e0f4ac0f20dc9222bf399fc9bb58bb05707014071d6dd2b3b8f0",
+      "identity": [
+        "archipelago",
+        true,
+        true,
+        3,
+        700000,
+        "traditional",
+        0
+      ],
+      "integratedFingerprint": "acc65b32068694e5",
+      "integratedResultSHA256": "267bc810d059e0f4ac0f20dc9222bf399fc9bb58bb05707014071d6dd2b3b8f0"
+    },
+    {
+      "changedFields": [],
+      "equal": true,
+      "historicalFingerprint": "3360dd54f187b7a3",
+      "historicalResultSHA256": "9a70838c4053e4020a315adaee6799fc7421cd2d7e125d3c658c57c173733452",
+      "identity": [
+        "archipelago",
+        true,
+        true,
+        4,
+        700000,
+        "expert",
+        0
+      ],
+      "integratedFingerprint": "3360dd54f187b7a3",
+      "integratedResultSHA256": "9a70838c4053e4020a315adaee6799fc7421cd2d7e125d3c658c57c173733452"
+    },
+    {
+      "changedFields": [],
+      "equal": true,
+      "historicalFingerprint": "acc29a248e6f7143",
+      "historicalResultSHA256": "cd6cd907d4c608bda017fa81e4dbb37d0c644faf8423cb48cc5caead9993bc7a",
+      "identity": [
+        "archipelago",
+        true,
+        true,
+        4,
+        700000,
+        "traditional",
+        0
+      ],
+      "integratedFingerprint": "acc29a248e6f7143",
+      "integratedResultSHA256": "cd6cd907d4c608bda017fa81e4dbb37d0c644faf8423cb48cc5caead9993bc7a"
+    },
+    {
+      "changedFields": [],
+      "equal": true,
+      "historicalFingerprint": "7d46a1ee01b80271",
+      "historicalResultSHA256": "2da5546b6ad4bd6edd8e1589776cfe34e32b225e83f6a6260311e0ed0d757ff8",
+      "identity": [
+        "peninsula",
+        false,
+        false,
+        3,
+        700700,
+        "expert",
+        0
+      ],
+      "integratedFingerprint": "7d46a1ee01b80271",
+      "integratedResultSHA256": "2da5546b6ad4bd6edd8e1589776cfe34e32b225e83f6a6260311e0ed0d757ff8"
+    },
+    {
+      "changedFields": [],
+      "equal": true,
+      "historicalFingerprint": "8aba5ff7dd6d1c3d",
+      "historicalResultSHA256": "723e5ee75b8bff71cf1d893b4aafac0dc8d4965ecf5f3c71147c55dadc9717a3",
+      "identity": [
+        "peninsula",
+        false,
+        false,
+        3,
+        700700,
+        "traditional",
+        0
+      ],
+      "integratedFingerprint": "8aba5ff7dd6d1c3d",
+      "integratedResultSHA256": "723e5ee75b8bff71cf1d893b4aafac0dc8d4965ecf5f3c71147c55dadc9717a3"
+    },
+    {
+      "changedFields": [],
+      "equal": true,
+      "historicalFingerprint": "ab7dfb2e907c4eef",
+      "historicalResultSHA256": "1cbab2163908f6498359a98afa48391b6a4e489abdc6a1d1c970aae40bcf3ea9",
+      "identity": [
+        "peninsula",
+        false,
+        false,
+        4,
+        700700,
+        "expert",
+        0
+      ],
+      "integratedFingerprint": "ab7dfb2e907c4eef",
+      "integratedResultSHA256": "1cbab2163908f6498359a98afa48391b6a4e489abdc6a1d1c970aae40bcf3ea9"
+    },
+    {
+      "changedFields": [],
+      "equal": true,
+      "historicalFingerprint": "0b2b613d1283e5d0",
+      "historicalResultSHA256": "fa63fa52c25d217026f74c1014b3b6a0e3ab456871ac0c6d5d9a386271a971f5",
+      "identity": [
+        "peninsula",
+        false,
+        false,
+        4,
+        700700,
+        "traditional",
+        0
+      ],
+      "integratedFingerprint": "0b2b613d1283e5d0",
+      "integratedResultSHA256": "fa63fa52c25d217026f74c1014b3b6a0e3ab456871ac0c6d5d9a386271a971f5"
+    },
+    {
+      "changedFields": [],
+      "equal": true,
+      "historicalFingerprint": "973a7bdf858e7134",
+      "historicalResultSHA256": "7f70dbc632c928e4d86513fd9d46e6b3d8cfdd2cffcbba30b86c0e2504b41d37",
+      "identity": [
+        "peninsula",
+        false,
+        true,
+        3,
+        700600,
+        "expert",
+        0
+      ],
+      "integratedFingerprint": "973a7bdf858e7134",
+      "integratedResultSHA256": "7f70dbc632c928e4d86513fd9d46e6b3d8cfdd2cffcbba30b86c0e2504b41d37"
+    },
+    {
+      "changedFields": [],
+      "equal": true,
+      "historicalFingerprint": "1a97cd0987b551b7",
+      "historicalResultSHA256": "34af933f90c07547df6a515eefa90936505a557704a223680765978277eb3d21",
+      "identity": [
+        "peninsula",
+        false,
+        true,
+        3,
+        700600,
+        "traditional",
+        0
+      ],
+      "integratedFingerprint": "1a97cd0987b551b7",
+      "integratedResultSHA256": "34af933f90c07547df6a515eefa90936505a557704a223680765978277eb3d21"
+    },
+    {
+      "changedFields": [],
+      "equal": true,
+      "historicalFingerprint": "3495550391189ec7",
+      "historicalResultSHA256": "376f6cad87d66f3312117431f6c72a55ef645fbfd7eef2de219e8d686ea26bce",
+      "identity": [
+        "peninsula",
+        false,
+        true,
+        4,
+        700600,
+        "expert",
+        0
+      ],
+      "integratedFingerprint": "3495550391189ec7",
+      "integratedResultSHA256": "376f6cad87d66f3312117431f6c72a55ef645fbfd7eef2de219e8d686ea26bce"
+    },
+    {
+      "changedFields": [],
+      "equal": true,
+      "historicalFingerprint": "bb360bf4852f1503",
+      "historicalResultSHA256": "1b377bba65607dbcaffba32bdc3955477a5aca76d0aae51895ed1130ad8c2f36",
+      "identity": [
+        "peninsula",
+        false,
+        true,
+        4,
+        700600,
+        "traditional",
+        0
+      ],
+      "integratedFingerprint": "bb360bf4852f1503",
+      "integratedResultSHA256": "1b377bba65607dbcaffba32bdc3955477a5aca76d0aae51895ed1130ad8c2f36"
+    },
+    {
+      "changedFields": [],
+      "equal": true,
+      "historicalFingerprint": "e1fff69fe0d9861b",
+      "historicalResultSHA256": "29fabb7cd6c6c3dc951aa0b416ac10165a5d29b7bf6463943e1d381f29d9f122",
+      "identity": [
+        "peninsula",
+        true,
+        false,
+        3,
+        700500,
+        "expert",
+        0
+      ],
+      "integratedFingerprint": "e1fff69fe0d9861b",
+      "integratedResultSHA256": "29fabb7cd6c6c3dc951aa0b416ac10165a5d29b7bf6463943e1d381f29d9f122"
+    },
+    {
+      "changedFields": [],
+      "equal": true,
+      "historicalFingerprint": "f0682df4930eeea6",
+      "historicalResultSHA256": "55de3c7cc721d972e1521e14f828ad20016c7e05d79cbf03203c1281a44e6585",
+      "identity": [
+        "peninsula",
+        true,
+        false,
+        3,
+        700500,
+        "traditional",
+        0
+      ],
+      "integratedFingerprint": "f0682df4930eeea6",
+      "integratedResultSHA256": "55de3c7cc721d972e1521e14f828ad20016c7e05d79cbf03203c1281a44e6585"
+    },
+    {
+      "changedFields": [],
+      "equal": true,
+      "historicalFingerprint": "8733219b62c87c35",
+      "historicalResultSHA256": "a9897af180dfce53a7fd7fff0bac2397740742e8efc98ab98bf62e170072a5b2",
+      "identity": [
+        "peninsula",
+        true,
+        false,
+        4,
+        700500,
+        "expert",
+        0
+      ],
+      "integratedFingerprint": "8733219b62c87c35",
+      "integratedResultSHA256": "a9897af180dfce53a7fd7fff0bac2397740742e8efc98ab98bf62e170072a5b2"
+    },
+    {
+      "changedFields": [],
+      "equal": true,
+      "historicalFingerprint": "e8d0e9a72822aa4e",
+      "historicalResultSHA256": "14365588e44c454b139defbd86a5a8124981597241af262112231fcf286466ba",
+      "identity": [
+        "peninsula",
+        true,
+        false,
+        4,
+        700500,
+        "traditional",
+        0
+      ],
+      "integratedFingerprint": "e8d0e9a72822aa4e",
+      "integratedResultSHA256": "14365588e44c454b139defbd86a5a8124981597241af262112231fcf286466ba"
+    },
+    {
+      "changedFields": [],
+      "equal": true,
+      "historicalFingerprint": "9a3c46e90187ff5b",
+      "historicalResultSHA256": "7cccf20afd38c4b6a25939a565da3925f78e041e8345e777396a0f9a0c3898f4",
+      "identity": [
+        "peninsula",
+        true,
+        true,
+        3,
+        700400,
+        "expert",
+        0
+      ],
+      "integratedFingerprint": "9a3c46e90187ff5b",
+      "integratedResultSHA256": "7cccf20afd38c4b6a25939a565da3925f78e041e8345e777396a0f9a0c3898f4"
+    },
+    {
+      "changedFields": [],
+      "equal": true,
+      "historicalFingerprint": "b41771f2048f9251",
+      "historicalResultSHA256": "1023f07f41dc166dda9cee7dbc332faba700d4af0b122162bd90166b803e0096",
+      "identity": [
+        "peninsula",
+        true,
+        true,
+        3,
+        700400,
+        "traditional",
+        0
+      ],
+      "integratedFingerprint": "b41771f2048f9251",
+      "integratedResultSHA256": "1023f07f41dc166dda9cee7dbc332faba700d4af0b122162bd90166b803e0096"
+    },
+    {
+      "changedFields": [],
+      "equal": true,
+      "historicalFingerprint": "68a936c60d957c2f",
+      "historicalResultSHA256": "04af41cb887fd7bac09989a143a24e459aba16624a37bb07b7498a2b851f7424",
+      "identity": [
+        "peninsula",
+        true,
+        true,
+        4,
+        700400,
+        "expert",
+        0
+      ],
+      "integratedFingerprint": "68a936c60d957c2f",
+      "integratedResultSHA256": "04af41cb887fd7bac09989a143a24e459aba16624a37bb07b7498a2b851f7424"
+    },
+    {
+      "changedFields": [],
+      "equal": true,
+      "historicalFingerprint": "d94d88e9aa4445e6",
+      "historicalResultSHA256": "33a3dc6e1dcab0345a81ce6ba2439790956876eac73839c2b9ed1cf8bfb58fad",
+      "identity": [
+        "peninsula",
+        true,
+        true,
+        4,
+        700400,
+        "traditional",
+        0
+      ],
+      "integratedFingerprint": "d94d88e9aa4445e6",
+      "integratedResultSHA256": "33a3dc6e1dcab0345a81ce6ba2439790956876eac73839c2b9ed1cf8bfb58fad"
+    },
+    {
+      "changedFields": [],
+      "equal": true,
+      "historicalFingerprint": "7afd0257ca75775c",
+      "historicalResultSHA256": "7db2de334575a161059978884349bb7a2243600458cc6abb414d3f0698c94410",
+      "identity": [
+        "twinIslands",
+        false,
+        false,
+        3,
+        701100,
+        "expert",
+        0
+      ],
+      "integratedFingerprint": "7afd0257ca75775c",
+      "integratedResultSHA256": "7db2de334575a161059978884349bb7a2243600458cc6abb414d3f0698c94410"
+    },
+    {
+      "changedFields": [],
+      "equal": true,
+      "historicalFingerprint": "9343b818af5cabb3",
+      "historicalResultSHA256": "981de2b473b28c56e1dacc95237a6ce34037d8d7959b13e40432002d252321d5",
+      "identity": [
+        "twinIslands",
+        false,
+        false,
+        3,
+        701100,
+        "traditional",
+        0
+      ],
+      "integratedFingerprint": "9343b818af5cabb3",
+      "integratedResultSHA256": "981de2b473b28c56e1dacc95237a6ce34037d8d7959b13e40432002d252321d5"
+    },
+    {
+      "changedFields": [],
+      "equal": true,
+      "historicalFingerprint": "82006f1840c99f69",
+      "historicalResultSHA256": "418d9449a418a4d1a557585d1395dab8abafed86f9a48ad881b060969bb50f2c",
+      "identity": [
+        "twinIslands",
+        false,
+        false,
+        4,
+        701100,
+        "expert",
+        0
+      ],
+      "integratedFingerprint": "82006f1840c99f69",
+      "integratedResultSHA256": "418d9449a418a4d1a557585d1395dab8abafed86f9a48ad881b060969bb50f2c"
+    },
+    {
+      "changedFields": [],
+      "equal": true,
+      "historicalFingerprint": "fa1e7280b1a04388",
+      "historicalResultSHA256": "82bf83693ad33bc927d6f5949bf52885506e9d26e6082543bbb9511e56582e24",
+      "identity": [
+        "twinIslands",
+        false,
+        false,
+        4,
+        701100,
+        "traditional",
+        0
+      ],
+      "integratedFingerprint": "fa1e7280b1a04388",
+      "integratedResultSHA256": "82bf83693ad33bc927d6f5949bf52885506e9d26e6082543bbb9511e56582e24"
+    },
+    {
+      "changedFields": [],
+      "equal": true,
+      "historicalFingerprint": "22486893fb69bf62",
+      "historicalResultSHA256": "1d882b047d37a8509f87bea58e4f2ca5df16324dd41c9781726d0adaca8340f3",
+      "identity": [
+        "twinIslands",
+        false,
+        true,
+        3,
+        701000,
+        "expert",
+        0
+      ],
+      "integratedFingerprint": "22486893fb69bf62",
+      "integratedResultSHA256": "1d882b047d37a8509f87bea58e4f2ca5df16324dd41c9781726d0adaca8340f3"
+    },
+    {
+      "changedFields": [],
+      "equal": true,
+      "historicalFingerprint": "724dd630da210364",
+      "historicalResultSHA256": "d61c764e7f9fdae7f0dc058ab4fb7d71a5239e6eb5b87e4dca27a3f3d2f4a469",
+      "identity": [
+        "twinIslands",
+        false,
+        true,
+        3,
+        701000,
+        "traditional",
+        0
+      ],
+      "integratedFingerprint": "724dd630da210364",
+      "integratedResultSHA256": "d61c764e7f9fdae7f0dc058ab4fb7d71a5239e6eb5b87e4dca27a3f3d2f4a469"
+    },
+    {
+      "changedFields": [],
+      "equal": true,
+      "historicalFingerprint": "e71e340a2fd3fb96",
+      "historicalResultSHA256": "85a4acd65b428f22ed85c8514b66d71a042e18ae95ce34e692e3d5678e154eba",
+      "identity": [
+        "twinIslands",
+        false,
+        true,
+        4,
+        701000,
+        "expert",
+        0
+      ],
+      "integratedFingerprint": "e71e340a2fd3fb96",
+      "integratedResultSHA256": "85a4acd65b428f22ed85c8514b66d71a042e18ae95ce34e692e3d5678e154eba"
+    },
+    {
+      "changedFields": [],
+      "equal": true,
+      "historicalFingerprint": "e9b372b57ef088dd",
+      "historicalResultSHA256": "b8c5076bf6ba1bb418eb480bf61460bf6f9347cf3f2a4ddea0a9097d7695bc61",
+      "identity": [
+        "twinIslands",
+        false,
+        true,
+        4,
+        701000,
+        "traditional",
+        0
+      ],
+      "integratedFingerprint": "e9b372b57ef088dd",
+      "integratedResultSHA256": "b8c5076bf6ba1bb418eb480bf61460bf6f9347cf3f2a4ddea0a9097d7695bc61"
+    },
+    {
+      "changedFields": [],
+      "equal": true,
+      "historicalFingerprint": "9db2824b26f6e315",
+      "historicalResultSHA256": "b29aee563ebea754aed2239682599d0431fa06772945906960202c4896685ec6",
+      "identity": [
+        "twinIslands",
+        true,
+        false,
+        3,
+        700900,
+        "expert",
+        0
+      ],
+      "integratedFingerprint": "9db2824b26f6e315",
+      "integratedResultSHA256": "b29aee563ebea754aed2239682599d0431fa06772945906960202c4896685ec6"
+    },
+    {
+      "changedFields": [],
+      "equal": true,
+      "historicalFingerprint": "b25771a0c7d82f55",
+      "historicalResultSHA256": "58d94c198b9b565416da972ce63385203f4da466dfa4d32c93105cef549eeac1",
+      "identity": [
+        "twinIslands",
+        true,
+        false,
+        3,
+        700900,
+        "traditional",
+        0
+      ],
+      "integratedFingerprint": "b25771a0c7d82f55",
+      "integratedResultSHA256": "58d94c198b9b565416da972ce63385203f4da466dfa4d32c93105cef549eeac1"
+    },
+    {
+      "changedFields": [],
+      "equal": true,
+      "historicalFingerprint": "9d4fb98632ee67a4",
+      "historicalResultSHA256": "5c7486d5effc1999d97f98ce12e8619af46b2a2c2933d60dcb9d8e2ddf1c076d",
+      "identity": [
+        "twinIslands",
+        true,
+        false,
+        4,
+        700900,
+        "expert",
+        0
+      ],
+      "integratedFingerprint": "9d4fb98632ee67a4",
+      "integratedResultSHA256": "5c7486d5effc1999d97f98ce12e8619af46b2a2c2933d60dcb9d8e2ddf1c076d"
+    },
+    {
+      "changedFields": [],
+      "equal": true,
+      "historicalFingerprint": "e5ff29f1076f2e46",
+      "historicalResultSHA256": "4f88be446917c2900f739173602cd9ad054859af442631e710a1587d355f2a39",
+      "identity": [
+        "twinIslands",
+        true,
+        false,
+        4,
+        700900,
+        "traditional",
+        0
+      ],
+      "integratedFingerprint": "e5ff29f1076f2e46",
+      "integratedResultSHA256": "4f88be446917c2900f739173602cd9ad054859af442631e710a1587d355f2a39"
+    },
+    {
+      "changedFields": [],
+      "equal": true,
+      "historicalFingerprint": "d98bb17a07d4b034",
+      "historicalResultSHA256": "3b46922da3035e7e16840ff21a2945c87f2bad71e6be5c147b1ffcb289b1b973",
+      "identity": [
+        "twinIslands",
+        true,
+        true,
+        3,
+        700800,
+        "expert",
+        0
+      ],
+      "integratedFingerprint": "d98bb17a07d4b034",
+      "integratedResultSHA256": "3b46922da3035e7e16840ff21a2945c87f2bad71e6be5c147b1ffcb289b1b973"
+    },
+    {
+      "changedFields": [],
+      "equal": true,
+      "historicalFingerprint": "e998b54a13deb8dc",
+      "historicalResultSHA256": "c283ae2234b1052df953a0e3a60f5e550db69cf1bf785df9c60b8d876e0623b9",
+      "identity": [
+        "twinIslands",
+        true,
+        true,
+        3,
+        700800,
+        "traditional",
+        0
+      ],
+      "integratedFingerprint": "e998b54a13deb8dc",
+      "integratedResultSHA256": "c283ae2234b1052df953a0e3a60f5e550db69cf1bf785df9c60b8d876e0623b9"
+    },
+    {
+      "changedFields": [],
+      "equal": true,
+      "historicalFingerprint": "dfd131f85217f132",
+      "historicalResultSHA256": "81888941263297cd29aa77cec0b95690c0bcf383edfdbd2d1e87dea107052d4a",
+      "identity": [
+        "twinIslands",
+        true,
+        true,
+        4,
+        700800,
+        "expert",
+        0
+      ],
+      "integratedFingerprint": "dfd131f85217f132",
+      "integratedResultSHA256": "81888941263297cd29aa77cec0b95690c0bcf383edfdbd2d1e87dea107052d4a"
+    },
+    {
+      "changedFields": [],
+      "equal": true,
+      "historicalFingerprint": "9364d8c500475116",
+      "historicalResultSHA256": "7b331d9ed24af608cc5479170ab543b91c3403354b16c64baefc68d8a9bfbcfe",
+      "identity": [
+        "twinIslands",
+        true,
+        true,
+        4,
+        700800,
+        "traditional",
+        0
+      ],
+      "integratedFingerprint": "9364d8c500475116",
+      "integratedResultSHA256": "7b331d9ed24af608cc5479170ab543b91c3403354b16c64baefc68d8a9bfbcfe"
+    }
+  ]
+}

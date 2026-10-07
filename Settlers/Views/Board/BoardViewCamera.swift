@@ -12,6 +12,20 @@ import CatanEngine
 /// The arithmetic itself is in `BoardCamera`, which has no SwiftUI in it and
 /// is unit-tested directly. This file is only the wiring.
 extension BoardView {
+    /// Permanent naval controls live outside the world's clipping rectangle.
+    /// This constant is independent of phase, discoveries and chooser state.
+    static let navalNavigationHeight: CGFloat = 56
+    /// A radius-seven world needs approximately three times Classic's
+    /// magnification to inspect a hex at the same readable local scale.
+    static let navalMaximumZoom: CGFloat = 9
+
+    var cameraMaximumZoom: CGFloat { state.mode == .naval ? Self.navalMaximumZoom : BoardCamera.maxZoom }
+
+    func worldViewport(in container: CGSize) -> CGSize {
+        CGSize(width: container.width,
+               height: max(1, container.height - (state.mode == .naval && showsNavigationControls ? Self.navalNavigationHeight : 0)))
+    }
+
     /// A solved fit: the geometry the board rests at, and the extent it draws
     /// into at that geometry.
     ///
@@ -34,7 +48,7 @@ extension BoardView {
                 gestureAnchor = anchor
                 camera = anchor
                     .zoomed(by: value.magnification, about: value.startLocation, containerCenter: center)
-                    .clamped(fittedBounds: fit.bounds, container: container)
+                    .clamped(fittedBounds: fit.bounds, container: container, maximumZoom: cameraMaximumZoom)
             }
             .onEnded { _ in gestureAnchor = nil }
     }
@@ -96,7 +110,16 @@ extension BoardView {
     /// container moved; fix the layout that moved it.
     /// `BoardViewportInvarianceTests` fails when it does.
     func applicableFit(for board: Board, in container: CGSize) -> BoardFit {
-        Self.solvedFit(for: board, in: container)
+        if state.mode == .naval {
+            // Ports emerge with discoveries, but the public sea envelope is
+            // fixed. Excluding badges from this fit prevents disclosure and
+            // keeps discovery from silently resizing the maritime world.
+            let envelope = Board(tiles: board.tiles, ports: [],
+                                 onBoardVertices: board.onBoardVertices,
+                                 onBoardEdges: board.onBoardEdges, robberTile: board.robberTile)
+            return Self.solvedFit(for: envelope, in: container)
+        }
+        return Self.solvedFit(for: board, in: container)
     }
 
     static func solvedFit(for board: Board, in container: CGSize) -> BoardFit {

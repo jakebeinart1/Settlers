@@ -1,0 +1,1555 @@
+{
+  "binarySHA256": "8cb2f87527191203809b1e33c2fbe2cce6128e9021e8f197366b1f654ef05988",
+  "committedActions": 28311,
+  "completeResults": [
+    {
+      "duplicateProposals": 0,
+      "engineRulesVersion": 3,
+      "family": "archipelago",
+      "fingerprint": "b332b4c64c886c64",
+      "fogEnabled": true,
+      "forcedEnds": 0,
+      "idleSailingCycles": 0,
+      "mapVersion": 1,
+      "moves": 434,
+      "playerCount": 3,
+      "policies": [
+        "naval-traditional-v1",
+        "naval-traditional-v1",
+        "naval-traditional-v1"
+      ],
+      "resourceChoiceEnabled": true,
+      "rulesVersion": 2,
+      "sailingCycles": 0,
+      "seed": 880000,
+      "tradeCycles": 0,
+      "victoryPointTarget": 14,
+      "victoryPoints": [
+        6,
+        4,
+        14
+      ],
+      "winner": 2
+    },
+    {
+      "duplicateProposals": 0,
+      "engineRulesVersion": 3,
+      "family": "archipelago",
+      "fingerprint": "0c4f70963a4c8a9f",
+      "fogEnabled": true,
+      "forcedEnds": 0,
+      "idleSailingCycles": 0,
+      "mapVersion": 1,
+      "moves": 703,
+      "playerCount": 3,
+      "policies": [
+        "naval-expert-v1",
+        "naval-expert-v1",
+        "naval-expert-v1"
+      ],
+      "resourceChoiceEnabled": true,
+      "rulesVersion": 2,
+      "sailingCycles": 1,
+      "seed": 880001,
+      "tradeCycles": 0,
+      "victoryPointTarget": 14,
+      "victoryPoints": [
+        14,
+        13,
+        10
+      ],
+      "winner": 0
+    },
+    {
+      "duplicateProposals": 0,
+      "engineRulesVersion": 3,
+      "family": "archipelago",
+      "fingerprint": "d3cdfbf49f48c8de",
+      "fogEnabled": true,
+      "forcedEnds": 0,
+      "idleSailingCycles": 0,
+      "mapVersion": 1,
+      "moves": 524,
+      "playerCount": 4,
+      "policies": [
+        "naval-traditional-v1",
+        "naval-traditional-v1",
+        "naval-traditional-v1",
+        "naval-traditional-v1"
+      ],
+      "resourceChoiceEnabled": true,
+      "rulesVersion": 2,
+      "sailingCycles": 0,
+      "seed": 880020,
+      "tradeCycles": 0,
+      "victoryPointTarget": 14,
+      "victoryPoints": [
+        5,
+        8,
+        12,
+        14
+      ],
+      "winner": 3
+    },
+    {
+      "duplicateProposals": 0,
+      "engineRulesVersion": 3,
+      "family": "archipelago",
+      "fingerprint": "c14310ca28d489e8",
+      "fogEnabled": true,
+      "forcedEnds": 0,
+      "idleSailingCycles": 0,
+      "mapVersion": 1,
+      "moves": 575,
+      "playerCount": 4,
+      "policies": [
+        "naval-expert-v1",
+        "naval-expert-v1",
+        "naval-expert-v1",
+        "naval-expert-v1"
+      ],
+      "resourceChoiceEnabled": true,
+      "rulesVersion": 2,
+      "sailingCycles": 1,
+      "seed": 880021,
+      "tradeCycles": 0,
+      "victoryPointTarget": 14,
+      "victoryPoints": [
+        7,
+        13,
+        14,
+        11
+      ],
+      "winner": 2
+    },
+    {
+      "duplicateProposals": 0,
+      "engineRulesVersion": 3,
+      "family": "archipelago",
+      "fingerprint": "8566c7684f10fa95",
+      "fogEnabled": true,
+      "forcedEnds": 0,
+      "idleSailingCycles": 0,
+      "mapVersion": 1,
+      "moves": 429,
+      "playerCount": 3,
+      "policies": [
+        "naval-traditional-v1",
+        "naval-traditional-v1",
+        "naval-traditional-v1"
+      ],
+      "resourceChoiceEnabled": false,
+      "rulesVersion": 2,
+      "sailingCycles": 0,
+      "seed": 880100,
+      "tradeCycles": 0,
+      "victoryPointTarget": 14,
+      "victoryPoints": [
+        6,
+        4,
+        14
+      ],
+      "winner": 2
+    },
+    {
+      "duplicateProposals": 0,
+      "engineRulesVersion": 3,
+      "family": "archipelago",
+      "fingerprint": "ec142c02e9c56afb",
+      "fogEnabled": true,
+      "forcedEnds": 0,
+      "idleSailingCycles": 0,
+      "mapVersion": 1,
+      "moves": 500,
+      "playerCount": 3,
+      "policies": [
+        "naval-expert-v1",
+        "naval-expert-v1",
+        "naval-expert-v1"
+      ],
+      "resourceChoiceEnabled": false,
+      "rulesVersion": 2,
+      "sailingCycles": 0,
+      "seed": 880101,
+      "tradeCycles": 0,
+      "victoryPointTarget": 14,
+      "victoryPoints": [
+        6,
+        8,
+        14
+      ],
+      "winner": 2
+    },
+    {
+      "duplicateProposals": 0,
+      "engineRulesVersion": 3,
+      "family": "archipelago",
+      "fingerprint": "643344924eb76ba3",
+      "fogEnabled": true,
+      "forcedEnds": 0,
+      "idleSailingCycles": 0,
+      "mapVersion": 1,
+      "moves": 678,
+      "playerCount": 4,
+      "policies": [
+        "naval-traditional-v1",
+        "naval-traditional-v1",
+        "naval-traditional-v1",
+        "naval-traditional-v1"
+      ],
+      "resourceChoiceEnabled": false,
+      "rulesVersion": 2,
+      "sailingCycles": 2,
+      "seed": 880120,
+      "tradeCycles": 0,
+      "victoryPointTarget": 14,
+      "victoryPoints": [
+        7,
+        11,
+        8,
+        14
+      ],
+      "winner": 3
+    },
+    {
+      "duplicateProposals": 0,
+      "engineRulesVersion": 3,
+      "family": "archipelago",
+      "fingerprint": "70a5d7d15168b69b",
+      "fogEnabled": true,
+      "forcedEnds": 0,
+      "idleSailingCycles": 0,
+      "mapVersion": 1,
+      "moves": 524,
+      "playerCount": 4,
+      "policies": [
+        "naval-expert-v1",
+        "naval-expert-v1",
+        "naval-expert-v1",
+        "naval-expert-v1"
+      ],
+      "resourceChoiceEnabled": false,
+      "rulesVersion": 2,
+      "sailingCycles": 0,
+      "seed": 880121,
+      "tradeCycles": 0,
+      "victoryPointTarget": 14,
+      "victoryPoints": [
+        6,
+        5,
+        14,
+        6
+      ],
+      "winner": 2
+    },
+    {
+      "duplicateProposals": 0,
+      "engineRulesVersion": 3,
+      "family": "archipelago",
+      "fingerprint": "6e8f3e14c09094fc",
+      "fogEnabled": false,
+      "forcedEnds": 0,
+      "idleSailingCycles": 0,
+      "mapVersion": 1,
+      "moves": 494,
+      "playerCount": 3,
+      "policies": [
+        "naval-traditional-v1",
+        "naval-traditional-v1",
+        "naval-traditional-v1"
+      ],
+      "resourceChoiceEnabled": true,
+      "rulesVersion": 2,
+      "sailingCycles": 0,
+      "seed": 880200,
+      "tradeCycles": 0,
+      "victoryPointTarget": 14,
+      "victoryPoints": [
+        14,
+        11,
+        6
+      ],
+      "winner": 0
+    },
+    {
+      "duplicateProposals": 0,
+      "engineRulesVersion": 3,
+      "family": "archipelago",
+      "fingerprint": "e117c84c46d044c1",
+      "fogEnabled": false,
+      "forcedEnds": 0,
+      "idleSailingCycles": 0,
+      "mapVersion": 1,
+      "moves": 725,
+      "playerCount": 3,
+      "policies": [
+        "naval-expert-v1",
+        "naval-expert-v1",
+        "naval-expert-v1"
+      ],
+      "resourceChoiceEnabled": true,
+      "rulesVersion": 2,
+      "sailingCycles": 0,
+      "seed": 880201,
+      "tradeCycles": 0,
+      "victoryPointTarget": 14,
+      "victoryPoints": [
+        12,
+        11,
+        14
+      ],
+      "winner": 2
+    },
+    {
+      "duplicateProposals": 0,
+      "engineRulesVersion": 3,
+      "family": "archipelago",
+      "fingerprint": "ca17b27ebb01d364",
+      "fogEnabled": false,
+      "forcedEnds": 0,
+      "idleSailingCycles": 0,
+      "mapVersion": 1,
+      "moves": 491,
+      "playerCount": 4,
+      "policies": [
+        "naval-traditional-v1",
+        "naval-traditional-v1",
+        "naval-traditional-v1",
+        "naval-traditional-v1"
+      ],
+      "resourceChoiceEnabled": true,
+      "rulesVersion": 2,
+      "sailingCycles": 0,
+      "seed": 880220,
+      "tradeCycles": 0,
+      "victoryPointTarget": 14,
+      "victoryPoints": [
+        12,
+        3,
+        14,
+        13
+      ],
+      "winner": 2
+    },
+    {
+      "duplicateProposals": 0,
+      "engineRulesVersion": 3,
+      "family": "archipelago",
+      "fingerprint": "75f18d15e0c5490b",
+      "fogEnabled": false,
+      "forcedEnds": 0,
+      "idleSailingCycles": 0,
+      "mapVersion": 1,
+      "moves": 446,
+      "playerCount": 4,
+      "policies": [
+        "naval-expert-v1",
+        "naval-expert-v1",
+        "naval-expert-v1",
+        "naval-expert-v1"
+      ],
+      "resourceChoiceEnabled": true,
+      "rulesVersion": 2,
+      "sailingCycles": 0,
+      "seed": 880221,
+      "tradeCycles": 0,
+      "victoryPointTarget": 14,
+      "victoryPoints": [
+        5,
+        8,
+        9,
+        14
+      ],
+      "winner": 3
+    },
+    {
+      "duplicateProposals": 0,
+      "engineRulesVersion": 3,
+      "family": "archipelago",
+      "fingerprint": "85979af0937364e9",
+      "fogEnabled": false,
+      "forcedEnds": 0,
+      "idleSailingCycles": 0,
+      "mapVersion": 1,
+      "moves": 675,
+      "playerCount": 3,
+      "policies": [
+        "naval-traditional-v1",
+        "naval-traditional-v1",
+        "naval-traditional-v1"
+      ],
+      "resourceChoiceEnabled": false,
+      "rulesVersion": 2,
+      "sailingCycles": 0,
+      "seed": 880300,
+      "tradeCycles": 0,
+      "victoryPointTarget": 14,
+      "victoryPoints": [
+        9,
+        10,
+        14
+      ],
+      "winner": 2
+    },
+    {
+      "duplicateProposals": 0,
+      "engineRulesVersion": 3,
+      "family": "archipelago",
+      "fingerprint": "3046f94b7d8d4f88",
+      "fogEnabled": false,
+      "forcedEnds": 0,
+      "idleSailingCycles": 0,
+      "mapVersion": 1,
+      "moves": 634,
+      "playerCount": 3,
+      "policies": [
+        "naval-expert-v1",
+        "naval-expert-v1",
+        "naval-expert-v1"
+      ],
+      "resourceChoiceEnabled": false,
+      "rulesVersion": 2,
+      "sailingCycles": 0,
+      "seed": 880301,
+      "tradeCycles": 0,
+      "victoryPointTarget": 14,
+      "victoryPoints": [
+        7,
+        10,
+        14
+      ],
+      "winner": 2
+    },
+    {
+      "duplicateProposals": 0,
+      "engineRulesVersion": 3,
+      "family": "archipelago",
+      "fingerprint": "9963ae20d12effed",
+      "fogEnabled": false,
+      "forcedEnds": 0,
+      "idleSailingCycles": 0,
+      "mapVersion": 1,
+      "moves": 613,
+      "playerCount": 4,
+      "policies": [
+        "naval-traditional-v1",
+        "naval-traditional-v1",
+        "naval-traditional-v1",
+        "naval-traditional-v1"
+      ],
+      "resourceChoiceEnabled": false,
+      "rulesVersion": 2,
+      "sailingCycles": 0,
+      "seed": 880320,
+      "tradeCycles": 0,
+      "victoryPointTarget": 14,
+      "victoryPoints": [
+        13,
+        13,
+        6,
+        14
+      ],
+      "winner": 3
+    },
+    {
+      "duplicateProposals": 0,
+      "engineRulesVersion": 3,
+      "family": "archipelago",
+      "fingerprint": "20aaff726aa55372",
+      "fogEnabled": false,
+      "forcedEnds": 0,
+      "idleSailingCycles": 0,
+      "mapVersion": 1,
+      "moves": 534,
+      "playerCount": 4,
+      "policies": [
+        "naval-expert-v1",
+        "naval-expert-v1",
+        "naval-expert-v1",
+        "naval-expert-v1"
+      ],
+      "resourceChoiceEnabled": false,
+      "rulesVersion": 2,
+      "sailingCycles": 0,
+      "seed": 880321,
+      "tradeCycles": 0,
+      "victoryPointTarget": 14,
+      "victoryPoints": [
+        7,
+        8,
+        8,
+        14
+      ],
+      "winner": 3
+    },
+    {
+      "duplicateProposals": 0,
+      "engineRulesVersion": 3,
+      "family": "peninsula",
+      "fingerprint": "760811fb4df9e8ce",
+      "fogEnabled": true,
+      "forcedEnds": 0,
+      "idleSailingCycles": 0,
+      "mapVersion": 1,
+      "moves": 718,
+      "playerCount": 3,
+      "policies": [
+        "naval-traditional-v1",
+        "naval-traditional-v1",
+        "naval-traditional-v1"
+      ],
+      "resourceChoiceEnabled": true,
+      "rulesVersion": 2,
+      "sailingCycles": 0,
+      "seed": 880400,
+      "tradeCycles": 0,
+      "victoryPointTarget": 14,
+      "victoryPoints": [
+        4,
+        11,
+        15
+      ],
+      "winner": 2
+    },
+    {
+      "duplicateProposals": 0,
+      "engineRulesVersion": 3,
+      "family": "peninsula",
+      "fingerprint": "cc2a18becdd2248b",
+      "fogEnabled": true,
+      "forcedEnds": 0,
+      "idleSailingCycles": 0,
+      "mapVersion": 1,
+      "moves": 647,
+      "playerCount": 3,
+      "policies": [
+        "naval-expert-v1",
+        "naval-expert-v1",
+        "naval-expert-v1"
+      ],
+      "resourceChoiceEnabled": true,
+      "rulesVersion": 2,
+      "sailingCycles": 0,
+      "seed": 880401,
+      "tradeCycles": 0,
+      "victoryPointTarget": 14,
+      "victoryPoints": [
+        12,
+        11,
+        14
+      ],
+      "winner": 2
+    },
+    {
+      "duplicateProposals": 0,
+      "engineRulesVersion": 3,
+      "family": "peninsula",
+      "fingerprint": "6db04dacf5a8b0f7",
+      "fogEnabled": true,
+      "forcedEnds": 0,
+      "idleSailingCycles": 0,
+      "mapVersion": 1,
+      "moves": 436,
+      "playerCount": 4,
+      "policies": [
+        "naval-traditional-v1",
+        "naval-traditional-v1",
+        "naval-traditional-v1",
+        "naval-traditional-v1"
+      ],
+      "resourceChoiceEnabled": true,
+      "rulesVersion": 2,
+      "sailingCycles": 0,
+      "seed": 880420,
+      "tradeCycles": 0,
+      "victoryPointTarget": 14,
+      "victoryPoints": [
+        8,
+        14,
+        5,
+        5
+      ],
+      "winner": 1
+    },
+    {
+      "duplicateProposals": 0,
+      "engineRulesVersion": 3,
+      "family": "peninsula",
+      "fingerprint": "a02db712b4875ae8",
+      "fogEnabled": true,
+      "forcedEnds": 0,
+      "idleSailingCycles": 0,
+      "mapVersion": 1,
+      "moves": 499,
+      "playerCount": 4,
+      "policies": [
+        "naval-expert-v1",
+        "naval-expert-v1",
+        "naval-expert-v1",
+        "naval-expert-v1"
+      ],
+      "resourceChoiceEnabled": true,
+      "rulesVersion": 2,
+      "sailingCycles": 0,
+      "seed": 880421,
+      "tradeCycles": 0,
+      "victoryPointTarget": 14,
+      "victoryPoints": [
+        8,
+        11,
+        15,
+        7
+      ],
+      "winner": 2
+    },
+    {
+      "duplicateProposals": 0,
+      "engineRulesVersion": 3,
+      "family": "peninsula",
+      "fingerprint": "408d6be828895c6a",
+      "fogEnabled": true,
+      "forcedEnds": 0,
+      "idleSailingCycles": 0,
+      "mapVersion": 1,
+      "moves": 662,
+      "playerCount": 3,
+      "policies": [
+        "naval-traditional-v1",
+        "naval-traditional-v1",
+        "naval-traditional-v1"
+      ],
+      "resourceChoiceEnabled": false,
+      "rulesVersion": 2,
+      "sailingCycles": 0,
+      "seed": 880500,
+      "tradeCycles": 0,
+      "victoryPointTarget": 14,
+      "victoryPoints": [
+        6,
+        4,
+        14
+      ],
+      "winner": 2
+    },
+    {
+      "duplicateProposals": 0,
+      "engineRulesVersion": 3,
+      "family": "peninsula",
+      "fingerprint": "79f6bcbf7ea033dc",
+      "fogEnabled": true,
+      "forcedEnds": 0,
+      "idleSailingCycles": 0,
+      "mapVersion": 1,
+      "moves": 577,
+      "playerCount": 3,
+      "policies": [
+        "naval-expert-v1",
+        "naval-expert-v1",
+        "naval-expert-v1"
+      ],
+      "resourceChoiceEnabled": false,
+      "rulesVersion": 2,
+      "sailingCycles": 1,
+      "seed": 880501,
+      "tradeCycles": 0,
+      "victoryPointTarget": 14,
+      "victoryPoints": [
+        10,
+        14,
+        10
+      ],
+      "winner": 1
+    },
+    {
+      "duplicateProposals": 0,
+      "engineRulesVersion": 3,
+      "family": "peninsula",
+      "fingerprint": "175066e1054583b3",
+      "fogEnabled": true,
+      "forcedEnds": 0,
+      "idleSailingCycles": 0,
+      "mapVersion": 1,
+      "moves": 592,
+      "playerCount": 4,
+      "policies": [
+        "naval-traditional-v1",
+        "naval-traditional-v1",
+        "naval-traditional-v1",
+        "naval-traditional-v1"
+      ],
+      "resourceChoiceEnabled": false,
+      "rulesVersion": 2,
+      "sailingCycles": 0,
+      "seed": 880520,
+      "tradeCycles": 0,
+      "victoryPointTarget": 14,
+      "victoryPoints": [
+        5,
+        5,
+        7,
+        14
+      ],
+      "winner": 3
+    },
+    {
+      "duplicateProposals": 0,
+      "engineRulesVersion": 3,
+      "family": "peninsula",
+      "fingerprint": "ac18b30d48f31de4",
+      "fogEnabled": true,
+      "forcedEnds": 0,
+      "idleSailingCycles": 0,
+      "mapVersion": 1,
+      "moves": 626,
+      "playerCount": 4,
+      "policies": [
+        "naval-expert-v1",
+        "naval-expert-v1",
+        "naval-expert-v1",
+        "naval-expert-v1"
+      ],
+      "resourceChoiceEnabled": false,
+      "rulesVersion": 2,
+      "sailingCycles": 0,
+      "seed": 880521,
+      "tradeCycles": 0,
+      "victoryPointTarget": 14,
+      "victoryPoints": [
+        10,
+        14,
+        12,
+        12
+      ],
+      "winner": 1
+    },
+    {
+      "duplicateProposals": 0,
+      "engineRulesVersion": 3,
+      "family": "peninsula",
+      "fingerprint": "30e75cd30bf08c3b",
+      "fogEnabled": false,
+      "forcedEnds": 0,
+      "idleSailingCycles": 0,
+      "mapVersion": 1,
+      "moves": 696,
+      "playerCount": 3,
+      "policies": [
+        "naval-traditional-v1",
+        "naval-traditional-v1",
+        "naval-traditional-v1"
+      ],
+      "resourceChoiceEnabled": true,
+      "rulesVersion": 2,
+      "sailingCycles": 0,
+      "seed": 880600,
+      "tradeCycles": 0,
+      "victoryPointTarget": 14,
+      "victoryPoints": [
+        12,
+        9,
+        15
+      ],
+      "winner": 2
+    },
+    {
+      "duplicateProposals": 0,
+      "engineRulesVersion": 3,
+      "family": "peninsula",
+      "fingerprint": "53ecc2bb13967edf",
+      "fogEnabled": false,
+      "forcedEnds": 0,
+      "idleSailingCycles": 0,
+      "mapVersion": 1,
+      "moves": 522,
+      "playerCount": 3,
+      "policies": [
+        "naval-expert-v1",
+        "naval-expert-v1",
+        "naval-expert-v1"
+      ],
+      "resourceChoiceEnabled": true,
+      "rulesVersion": 2,
+      "sailingCycles": 0,
+      "seed": 880601,
+      "tradeCycles": 0,
+      "victoryPointTarget": 14,
+      "victoryPoints": [
+        14,
+        11,
+        10
+      ],
+      "winner": 0
+    },
+    {
+      "duplicateProposals": 0,
+      "engineRulesVersion": 3,
+      "family": "peninsula",
+      "fingerprint": "96604cef79da8035",
+      "fogEnabled": false,
+      "forcedEnds": 0,
+      "idleSailingCycles": 0,
+      "mapVersion": 1,
+      "moves": 598,
+      "playerCount": 4,
+      "policies": [
+        "naval-traditional-v1",
+        "naval-traditional-v1",
+        "naval-traditional-v1",
+        "naval-traditional-v1"
+      ],
+      "resourceChoiceEnabled": true,
+      "rulesVersion": 2,
+      "sailingCycles": 0,
+      "seed": 880620,
+      "tradeCycles": 0,
+      "victoryPointTarget": 14,
+      "victoryPoints": [
+        14,
+        9,
+        10,
+        9
+      ],
+      "winner": 0
+    },
+    {
+      "duplicateProposals": 0,
+      "engineRulesVersion": 3,
+      "family": "peninsula",
+      "fingerprint": "4117b8ac8dc5be5c",
+      "fogEnabled": false,
+      "forcedEnds": 0,
+      "idleSailingCycles": 0,
+      "mapVersion": 1,
+      "moves": 707,
+      "playerCount": 4,
+      "policies": [
+        "naval-expert-v1",
+        "naval-expert-v1",
+        "naval-expert-v1",
+        "naval-expert-v1"
+      ],
+      "resourceChoiceEnabled": true,
+      "rulesVersion": 2,
+      "sailingCycles": 1,
+      "seed": 880621,
+      "tradeCycles": 0,
+      "victoryPointTarget": 14,
+      "victoryPoints": [
+        11,
+        12,
+        14,
+        10
+      ],
+      "winner": 2
+    },
+    {
+      "duplicateProposals": 0,
+      "engineRulesVersion": 3,
+      "family": "peninsula",
+      "fingerprint": "1641e5c47977722f",
+      "fogEnabled": false,
+      "forcedEnds": 0,
+      "idleSailingCycles": 0,
+      "mapVersion": 1,
+      "moves": 363,
+      "playerCount": 3,
+      "policies": [
+        "naval-traditional-v1",
+        "naval-traditional-v1",
+        "naval-traditional-v1"
+      ],
+      "resourceChoiceEnabled": false,
+      "rulesVersion": 2,
+      "sailingCycles": 0,
+      "seed": 880700,
+      "tradeCycles": 0,
+      "victoryPointTarget": 14,
+      "victoryPoints": [
+        2,
+        4,
+        14
+      ],
+      "winner": 2
+    },
+    {
+      "duplicateProposals": 0,
+      "engineRulesVersion": 3,
+      "family": "peninsula",
+      "fingerprint": "fe00c89b3498996a",
+      "fogEnabled": false,
+      "forcedEnds": 0,
+      "idleSailingCycles": 0,
+      "mapVersion": 1,
+      "moves": 472,
+      "playerCount": 3,
+      "policies": [
+        "naval-expert-v1",
+        "naval-expert-v1",
+        "naval-expert-v1"
+      ],
+      "resourceChoiceEnabled": false,
+      "rulesVersion": 2,
+      "sailingCycles": 1,
+      "seed": 880701,
+      "tradeCycles": 0,
+      "victoryPointTarget": 14,
+      "victoryPoints": [
+        4,
+        8,
+        14
+      ],
+      "winner": 2
+    },
+    {
+      "duplicateProposals": 0,
+      "engineRulesVersion": 3,
+      "family": "peninsula",
+      "fingerprint": "3b7929626ac4273b",
+      "fogEnabled": false,
+      "forcedEnds": 0,
+      "idleSailingCycles": 0,
+      "mapVersion": 1,
+      "moves": 615,
+      "playerCount": 4,
+      "policies": [
+        "naval-traditional-v1",
+        "naval-traditional-v1",
+        "naval-traditional-v1",
+        "naval-traditional-v1"
+      ],
+      "resourceChoiceEnabled": false,
+      "rulesVersion": 2,
+      "sailingCycles": 0,
+      "seed": 880720,
+      "tradeCycles": 0,
+      "victoryPointTarget": 14,
+      "victoryPoints": [
+        11,
+        5,
+        12,
+        14
+      ],
+      "winner": 3
+    },
+    {
+      "duplicateProposals": 0,
+      "engineRulesVersion": 3,
+      "family": "peninsula",
+      "fingerprint": "abd8161d57c4325d",
+      "fogEnabled": false,
+      "forcedEnds": 0,
+      "idleSailingCycles": 0,
+      "mapVersion": 1,
+      "moves": 678,
+      "playerCount": 4,
+      "policies": [
+        "naval-expert-v1",
+        "naval-expert-v1",
+        "naval-expert-v1",
+        "naval-expert-v1"
+      ],
+      "resourceChoiceEnabled": false,
+      "rulesVersion": 2,
+      "sailingCycles": 0,
+      "seed": 880721,
+      "tradeCycles": 0,
+      "victoryPointTarget": 14,
+      "victoryPoints": [
+        8,
+        14,
+        10,
+        6
+      ],
+      "winner": 1
+    },
+    {
+      "duplicateProposals": 0,
+      "engineRulesVersion": 3,
+      "family": "twinIslands",
+      "fingerprint": "7d015643312340ff",
+      "fogEnabled": true,
+      "forcedEnds": 0,
+      "idleSailingCycles": 0,
+      "mapVersion": 1,
+      "moves": 787,
+      "playerCount": 3,
+      "policies": [
+        "naval-traditional-v1",
+        "naval-traditional-v1",
+        "naval-traditional-v1"
+      ],
+      "resourceChoiceEnabled": true,
+      "rulesVersion": 2,
+      "sailingCycles": 2,
+      "seed": 880800,
+      "tradeCycles": 0,
+      "victoryPointTarget": 14,
+      "victoryPoints": [
+        11,
+        14,
+        9
+      ],
+      "winner": 1
+    },
+    {
+      "duplicateProposals": 0,
+      "engineRulesVersion": 3,
+      "family": "twinIslands",
+      "fingerprint": "31e8a88f2c9ce9f6",
+      "fogEnabled": true,
+      "forcedEnds": 0,
+      "idleSailingCycles": 0,
+      "mapVersion": 1,
+      "moves": 528,
+      "playerCount": 3,
+      "policies": [
+        "naval-expert-v1",
+        "naval-expert-v1",
+        "naval-expert-v1"
+      ],
+      "resourceChoiceEnabled": true,
+      "rulesVersion": 2,
+      "sailingCycles": 0,
+      "seed": 880801,
+      "tradeCycles": 0,
+      "victoryPointTarget": 14,
+      "victoryPoints": [
+        8,
+        14,
+        5
+      ],
+      "winner": 1
+    },
+    {
+      "duplicateProposals": 0,
+      "engineRulesVersion": 3,
+      "family": "twinIslands",
+      "fingerprint": "88560dc11593e269",
+      "fogEnabled": true,
+      "forcedEnds": 0,
+      "idleSailingCycles": 0,
+      "mapVersion": 1,
+      "moves": 699,
+      "playerCount": 4,
+      "policies": [
+        "naval-traditional-v1",
+        "naval-traditional-v1",
+        "naval-traditional-v1",
+        "naval-traditional-v1"
+      ],
+      "resourceChoiceEnabled": true,
+      "rulesVersion": 2,
+      "sailingCycles": 0,
+      "seed": 880820,
+      "tradeCycles": 0,
+      "victoryPointTarget": 14,
+      "victoryPoints": [
+        6,
+        14,
+        11,
+        7
+      ],
+      "winner": 1
+    },
+    {
+      "duplicateProposals": 0,
+      "engineRulesVersion": 3,
+      "family": "twinIslands",
+      "fingerprint": "917f8c2e84d177c4",
+      "fogEnabled": true,
+      "forcedEnds": 0,
+      "idleSailingCycles": 0,
+      "mapVersion": 1,
+      "moves": 934,
+      "playerCount": 4,
+      "policies": [
+        "naval-expert-v1",
+        "naval-expert-v1",
+        "naval-expert-v1",
+        "naval-expert-v1"
+      ],
+      "resourceChoiceEnabled": true,
+      "rulesVersion": 2,
+      "sailingCycles": 1,
+      "seed": 880821,
+      "tradeCycles": 0,
+      "victoryPointTarget": 14,
+      "victoryPoints": [
+        10,
+        11,
+        13,
+        14
+      ],
+      "winner": 3
+    },
+    {
+      "duplicateProposals": 0,
+      "engineRulesVersion": 3,
+      "family": "twinIslands",
+      "fingerprint": "bfb678787ac37aa8",
+      "fogEnabled": true,
+      "forcedEnds": 0,
+      "idleSailingCycles": 0,
+      "mapVersion": 1,
+      "moves": 598,
+      "playerCount": 3,
+      "policies": [
+        "naval-traditional-v1",
+        "naval-traditional-v1",
+        "naval-traditional-v1"
+      ],
+      "resourceChoiceEnabled": false,
+      "rulesVersion": 2,
+      "sailingCycles": 0,
+      "seed": 880900,
+      "tradeCycles": 0,
+      "victoryPointTarget": 14,
+      "victoryPoints": [
+        11,
+        15,
+        6
+      ],
+      "winner": 1
+    },
+    {
+      "duplicateProposals": 0,
+      "engineRulesVersion": 3,
+      "family": "twinIslands",
+      "fingerprint": "c41e6e4e3802b58a",
+      "fogEnabled": true,
+      "forcedEnds": 0,
+      "idleSailingCycles": 0,
+      "mapVersion": 1,
+      "moves": 538,
+      "playerCount": 3,
+      "policies": [
+        "naval-expert-v1",
+        "naval-expert-v1",
+        "naval-expert-v1"
+      ],
+      "resourceChoiceEnabled": false,
+      "rulesVersion": 2,
+      "sailingCycles": 0,
+      "seed": 880901,
+      "tradeCycles": 0,
+      "victoryPointTarget": 14,
+      "victoryPoints": [
+        14,
+        12,
+        11
+      ],
+      "winner": 0
+    },
+    {
+      "duplicateProposals": 0,
+      "engineRulesVersion": 3,
+      "family": "twinIslands",
+      "fingerprint": "246bf196c920a753",
+      "fogEnabled": true,
+      "forcedEnds": 0,
+      "idleSailingCycles": 0,
+      "mapVersion": 1,
+      "moves": 732,
+      "playerCount": 4,
+      "policies": [
+        "naval-traditional-v1",
+        "naval-traditional-v1",
+        "naval-traditional-v1",
+        "naval-traditional-v1"
+      ],
+      "resourceChoiceEnabled": false,
+      "rulesVersion": 2,
+      "sailingCycles": 2,
+      "seed": 880920,
+      "tradeCycles": 0,
+      "victoryPointTarget": 14,
+      "victoryPoints": [
+        7,
+        14,
+        12,
+        11
+      ],
+      "winner": 1
+    },
+    {
+      "duplicateProposals": 0,
+      "engineRulesVersion": 3,
+      "family": "twinIslands",
+      "fingerprint": "52241e79fda52c8e",
+      "fogEnabled": true,
+      "forcedEnds": 0,
+      "idleSailingCycles": 0,
+      "mapVersion": 1,
+      "moves": 463,
+      "playerCount": 4,
+      "policies": [
+        "naval-expert-v1",
+        "naval-expert-v1",
+        "naval-expert-v1",
+        "naval-expert-v1"
+      ],
+      "resourceChoiceEnabled": false,
+      "rulesVersion": 2,
+      "sailingCycles": 0,
+      "seed": 880921,
+      "tradeCycles": 0,
+      "victoryPointTarget": 14,
+      "victoryPoints": [
+        14,
+        7,
+        2,
+        7
+      ],
+      "winner": 0
+    },
+    {
+      "duplicateProposals": 0,
+      "engineRulesVersion": 3,
+      "family": "twinIslands",
+      "fingerprint": "0ae7e9f8647305bf",
+      "fogEnabled": false,
+      "forcedEnds": 0,
+      "idleSailingCycles": 0,
+      "mapVersion": 1,
+      "moves": 579,
+      "playerCount": 3,
+      "policies": [
+        "naval-traditional-v1",
+        "naval-traditional-v1",
+        "naval-traditional-v1"
+      ],
+      "resourceChoiceEnabled": true,
+      "rulesVersion": 2,
+      "sailingCycles": 0,
+      "seed": 881000,
+      "tradeCycles": 0,
+      "victoryPointTarget": 14,
+      "victoryPoints": [
+        9,
+        14,
+        8
+      ],
+      "winner": 1
+    },
+    {
+      "duplicateProposals": 0,
+      "engineRulesVersion": 3,
+      "family": "twinIslands",
+      "fingerprint": "9cc659f066119257",
+      "fogEnabled": false,
+      "forcedEnds": 0,
+      "idleSailingCycles": 0,
+      "mapVersion": 1,
+      "moves": 384,
+      "playerCount": 3,
+      "policies": [
+        "naval-expert-v1",
+        "naval-expert-v1",
+        "naval-expert-v1"
+      ],
+      "resourceChoiceEnabled": true,
+      "rulesVersion": 2,
+      "sailingCycles": 0,
+      "seed": 881001,
+      "tradeCycles": 0,
+      "victoryPointTarget": 14,
+      "victoryPoints": [
+        7,
+        14,
+        6
+      ],
+      "winner": 1
+    },
+    {
+      "duplicateProposals": 0,
+      "engineRulesVersion": 3,
+      "family": "twinIslands",
+      "fingerprint": "4cd8e3a95217361f",
+      "fogEnabled": false,
+      "forcedEnds": 0,
+      "idleSailingCycles": 0,
+      "mapVersion": 1,
+      "moves": 516,
+      "playerCount": 4,
+      "policies": [
+        "naval-traditional-v1",
+        "naval-traditional-v1",
+        "naval-traditional-v1",
+        "naval-traditional-v1"
+      ],
+      "resourceChoiceEnabled": true,
+      "rulesVersion": 2,
+      "sailingCycles": 0,
+      "seed": 881020,
+      "tradeCycles": 0,
+      "victoryPointTarget": 14,
+      "victoryPoints": [
+        14,
+        13,
+        11,
+        11
+      ],
+      "winner": 0
+    },
+    {
+      "duplicateProposals": 0,
+      "engineRulesVersion": 3,
+      "family": "twinIslands",
+      "fingerprint": "3bd51bf17b9c9b88",
+      "fogEnabled": false,
+      "forcedEnds": 0,
+      "idleSailingCycles": 0,
+      "mapVersion": 1,
+      "moves": 596,
+      "playerCount": 4,
+      "policies": [
+        "naval-expert-v1",
+        "naval-expert-v1",
+        "naval-expert-v1",
+        "naval-expert-v1"
+      ],
+      "resourceChoiceEnabled": true,
+      "rulesVersion": 2,
+      "sailingCycles": 0,
+      "seed": 881021,
+      "tradeCycles": 0,
+      "victoryPointTarget": 14,
+      "victoryPoints": [
+        6,
+        10,
+        10,
+        14
+      ],
+      "winner": 3
+    },
+    {
+      "duplicateProposals": 0,
+      "engineRulesVersion": 3,
+      "family": "twinIslands",
+      "fingerprint": "daf15b63f1c65784",
+      "fogEnabled": false,
+      "forcedEnds": 0,
+      "idleSailingCycles": 0,
+      "mapVersion": 1,
+      "moves": 583,
+      "playerCount": 3,
+      "policies": [
+        "naval-traditional-v1",
+        "naval-traditional-v1",
+        "naval-traditional-v1"
+      ],
+      "resourceChoiceEnabled": false,
+      "rulesVersion": 2,
+      "sailingCycles": 0,
+      "seed": 881100,
+      "tradeCycles": 0,
+      "victoryPointTarget": 14,
+      "victoryPoints": [
+        14,
+        8,
+        12
+      ],
+      "winner": 0
+    },
+    {
+      "duplicateProposals": 0,
+      "engineRulesVersion": 3,
+      "family": "twinIslands",
+      "fingerprint": "ed6faf0acff53eb8",
+      "fogEnabled": false,
+      "forcedEnds": 0,
+      "idleSailingCycles": 0,
+      "mapVersion": 1,
+      "moves": 660,
+      "playerCount": 3,
+      "policies": [
+        "naval-expert-v1",
+        "naval-expert-v1",
+        "naval-expert-v1"
+      ],
+      "resourceChoiceEnabled": false,
+      "rulesVersion": 2,
+      "sailingCycles": 0,
+      "seed": 881101,
+      "tradeCycles": 0,
+      "victoryPointTarget": 14,
+      "victoryPoints": [
+        10,
+        11,
+        14
+      ],
+      "winner": 2
+    },
+    {
+      "duplicateProposals": 0,
+      "engineRulesVersion": 3,
+      "family": "twinIslands",
+      "fingerprint": "6d2f284473b6627c",
+      "fogEnabled": false,
+      "forcedEnds": 0,
+      "idleSailingCycles": 0,
+      "mapVersion": 1,
+      "moves": 615,
+      "playerCount": 4,
+      "policies": [
+        "naval-traditional-v1",
+        "naval-traditional-v1",
+        "naval-traditional-v1",
+        "naval-traditional-v1"
+      ],
+      "resourceChoiceEnabled": false,
+      "rulesVersion": 2,
+      "sailingCycles": 0,
+      "seed": 881120,
+      "tradeCycles": 0,
+      "victoryPointTarget": 14,
+      "victoryPoints": [
+        12,
+        4,
+        15,
+        10
+      ],
+      "winner": 2
+    },
+    {
+      "duplicateProposals": 0,
+      "engineRulesVersion": 3,
+      "family": "twinIslands",
+      "fingerprint": "1d8a9c7646c031d3",
+      "fogEnabled": false,
+      "forcedEnds": 0,
+      "idleSailingCycles": 0,
+      "mapVersion": 1,
+      "moves": 712,
+      "playerCount": 4,
+      "policies": [
+        "naval-expert-v1",
+        "naval-expert-v1",
+        "naval-expert-v1",
+        "naval-expert-v1"
+      ],
+      "resourceChoiceEnabled": false,
+      "rulesVersion": 2,
+      "sailingCycles": 0,
+      "seed": 881121,
+      "tradeCycles": 0,
+      "victoryPointTarget": 14,
+      "victoryPoints": [
+        11,
+        8,
+        14,
+        9
+      ],
+      "winner": 2
+    }
+  ],
+  "configuration": "Release",
+  "evidence": {
+    "build-command.json": "48049a40f2ef9d535eadb8e92c0a47aac0c5b83a25f42aef9c6242a0650242af",
+    "determinism-results.json": "3761cf624d26ec1849dd5aaebe5a877ce4edba33cb4d63f01e5b11234178ce21",
+    "functional-plan.json": "861886dacca99fa63977cc9f7f931a41b0167a1996f93b7ec368c0663368bd6b",
+    "functional-results.json": "a455c9123cc91d5327b19a3b03dc45441dc66961bd2c3c0272d9ada8d629de31",
+    "matrix.stderr.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "matrix.stdout.log": "5c42821c757aaaf9d103b5a01ad40868421c24ba85b0a30d66275c40e58dcd6a",
+    "naval-package-sources-b6c75cd.tar.gz": "45a92a0d5dea186f4100ec883c14a0ef48197c31823ce245b775cc5f003c8132",
+    "provenance.json": "fd14232d8e3a8555df9c3c0bd9ace792f79e103398bc9d08e06ad87dda6acb46",
+    "raw-revisit-review.json": "1b3a027ffdefe2c282af1ea269e2afebbc7f70023102ecdfadf2befb220308b0"
+  },
+  "freshDevelopmentSeeds": "880000 + 100*cell + table4*20 + expert",
+  "matchingIntegrationSHA": "729a84f43faf41cd82babfe8591d0f655ca51fb3",
+  "matrixExitCode": 0,
+  "movesRange": [
+    363,
+    934
+  ],
+  "packageSourcesMatch": true,
+  "purpose": "Naval v2 functional completion and cross-process determinism, not strength",
+  "rawReview": "Every revisit has a new settlement/fleet opportunity or fresh publicly revealed hexes; independently reconstructed discoveries agree with CLI totals.",
+  "rawRevisitGames": 9,
+  "rawRevisits": 12,
+  "revisitInspectionExitCode": 0,
+  "separateProcessComparisons": [
+    {
+      "allResultFieldsEqual": true,
+      "byteIdentical": true,
+      "excludedFields": [],
+      "name": "cell00-3-traditional",
+      "originalSHA256": "ebc61d118389aa61ea2d283b9a38906d4e6d91ffe6313bddf012c8ea7a8f9c96",
+      "problems": [],
+      "repeatSHA256": "ebc61d118389aa61ea2d283b9a38906d4e6d91ffe6313bddf012c8ea7a8f9c96",
+      "seed": 880000
+    },
+    {
+      "allResultFieldsEqual": true,
+      "byteIdentical": true,
+      "excludedFields": [],
+      "name": "cell01-4-expert",
+      "originalSHA256": "25e348722a021d6c203e1c51bd01775d7ad9fad7657597d92f5d30753c49a94a",
+      "problems": [],
+      "repeatSHA256": "25e348722a021d6c203e1c51bd01775d7ad9fad7657597d92f5d30753c49a94a",
+      "seed": 880121
+    },
+    {
+      "allResultFieldsEqual": true,
+      "byteIdentical": true,
+      "excludedFields": [],
+      "name": "cell05-3-expert",
+      "originalSHA256": "052bd79124f3d4651d132a848062e0ccc20aa08fd165f09d8700fb60e99ba96b",
+      "problems": [],
+      "repeatSHA256": "052bd79124f3d4651d132a848062e0ccc20aa08fd165f09d8700fb60e99ba96b",
+      "seed": 880501
+    },
+    {
+      "allResultFieldsEqual": true,
+      "byteIdentical": true,
+      "excludedFields": [],
+      "name": "cell04-4-traditional",
+      "originalSHA256": "a9605786735509896dd99ebf63d79892133235c1eb964cc77809a6ed7621dc40",
+      "problems": [],
+      "repeatSHA256": "a9605786735509896dd99ebf63d79892133235c1eb964cc77809a6ed7621dc40",
+      "seed": 880420
+    },
+    {
+      "allResultFieldsEqual": true,
+      "byteIdentical": true,
+      "excludedFields": [],
+      "name": "cell08-3-traditional",
+      "originalSHA256": "ef29978935f6298118f3f9bb7c0da235b262419b4e6db7d81e4a8248f17bc44b",
+      "problems": [],
+      "repeatSHA256": "ef29978935f6298118f3f9bb7c0da235b262419b4e6db7d81e4a8248f17bc44b",
+      "seed": 880800
+    },
+    {
+      "allResultFieldsEqual": true,
+      "byteIdentical": true,
+      "excludedFields": [],
+      "name": "cell09-4-expert",
+      "originalSHA256": "7e0766c5431ce418a7e0a5164f057787780e433a409a80b9ea3c50209e962a1e",
+      "problems": [],
+      "repeatSHA256": "7e0766c5431ce418a7e0a5164f057787780e433a409a80b9ea3c50209e962a1e",
+      "seed": 880921
+    }
+  ],
+  "sourceSHA": "b6c75cd084477cf4ea51d55af24b1b57493e3805",
+  "summary": {
+    "allResultsEqual": true,
+    "byteIdenticalRepeats": 6,
+    "failed": [],
+    "functionalCases": 48,
+    "noStrengthClaim": true,
+    "passed": 48,
+    "rawRevisitCases": [
+      "cell00-3-expert",
+      "cell00-4-expert",
+      "cell01-4-traditional",
+      "cell05-3-expert",
+      "cell06-4-expert",
+      "cell07-3-expert",
+      "cell08-3-traditional",
+      "cell08-4-expert",
+      "cell09-4-traditional"
+    ],
+    "repeatCases": 6
+  },
+  "workers": 1
+}

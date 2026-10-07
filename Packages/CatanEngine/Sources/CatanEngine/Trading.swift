@@ -157,6 +157,13 @@ public enum Trading {
     /// Adds `offer` to `state.pendingTradeOffers`, after verifying the
     /// proposer actually holds the cards they're offering to give.
     public static func proposeTrade(_ offer: TradeOffer, state: inout GameState) throws {
+        try proposeTrade(offer, state: &state, allowDuplicateID: false)
+    }
+
+    static func proposeTrade(_ offer: TradeOffer, state: inout GameState, allowDuplicateID: Bool) throws {
+        guard allowDuplicateID || !state.pendingTradeOffers.contains(where: { $0.id == offer.id }) else {
+            throw MoveError.invalidTradeTarget
+        }
         guard let proposer = state.players.first(where: { $0.id == offer.from }) else {
             throw MoveError.other("unknown player")
         }

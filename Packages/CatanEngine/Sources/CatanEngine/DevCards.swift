@@ -209,7 +209,9 @@ public enum DevCards {
             return .gameOver
         case .discarding(let pending) where pending.contains(player):
             return .resolveRequiredAction
-        case .movingRobber(let seat) where seat == player.index,
+        case .choosingResource(let seat) where seat == player.index,
+             .capturingShip(let seat) where seat == player.index,
+             .movingRobber(let seat) where seat == player.index,
              .setupForward(let seat) where seat == player.index,
              .setupBackward(let seat) where seat == player.index:
             return .resolveRequiredAction

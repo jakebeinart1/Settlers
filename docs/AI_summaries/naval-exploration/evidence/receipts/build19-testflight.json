@@ -1,0 +1,36 @@
+{
+  "source": "5c01f39d20fe20bbae734850dd30beb9f0d1f1e8",
+  "appID": "6808461623",
+  "bundleID": "com.alexchandler.empires",
+  "version": "1.0",
+  "build": "19",
+  "appleBuildID": "ecd04a90-3e32-44cd-b3db-fdf4bc2c2b21",
+  "processingState": "VALID",
+  "internalBuildState": "IN_BETA_TESTING",
+  "verifiedAtUTC": "2026-10-06T00:34:31Z",
+  "testerAccess": [
+    {
+      "id": "bf165450-034a-437d-b7f7-028bf3d57a5b",
+      "name": "Internal",
+      "hasAccessToAllBuilds": true,
+      "testers": [
+        {
+          "firstName": "Alex",
+          "lastName": "Chandler"
+        }
+      ]
+    }
+  ],
+  "phoneState": "unavailable; physical installation unverified",
+  "nativeResult": "/Users/alex/.codex/artifacts/naval-exploration/build19-full-gate.xcresult",
+  "simulatorReview": {
+    "name": "Empires Build 18 Review (updated in place)",
+    "id": "FA10360F-AECA-413E-B89C-50AB68772D49",
+    "model": "iPhone17ProMax",
+    "build": "19",
+    "launchArguments": [],
+    "launchedPID": 33627,
+    "processSurvived": true,
+    "screenshot": "../screenshots/build19-review-main-menu.png"
+  }
+}

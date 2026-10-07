@@ -1,0 +1,13 @@
+{
+  "sourceSHA": "60394e6361b2db372311920c4cc9ae481e5dec0f",
+  "configuration": "Release",
+  "bundleID": "com.alexchandler.empires",
+  "marketingVersion": "1.0",
+  "build": "21",
+  "executableSHA256": "b3c0f45c26ed40364ccb17c2286c47fed11289248e7e9bab78b3ac88e52ba324",
+  "simulatorID": "937692FF-BFBF-4683-80E5-2590F5288D56",
+  "launchPID": 59749,
+  "ordinaryLaunch": true,
+  "screenInspected": true,
+  "aliveAfterLaunch": true
+}

@@ -34,7 +34,7 @@ final class MockViewModel {
     }
 
     func apply(_ move: GameMove, by player: PlayerID) {
-        try? RulesEngine.apply(move, by: player, to: &state)
+        _ = try? RulesEngine.apply(move, by: player, to: &state)
         Task { await self.runBotTurnIfNeeded() }
     }
 
@@ -64,13 +64,14 @@ final class MockViewModel {
                 let bot = Bot(personality: .balanced)
                 move = bot.decide(for: state, player: botPlayer)
             }
-            try? RulesEngine.apply(move, by: botPlayer, to: &state)
+            _ = try? RulesEngine.apply(move, by: botPlayer, to: &state)
         }
     }
 
     private func nextBotPlayer() -> PlayerID? {
         switch state.phase {
-        case .setupForward(let i), .setupBackward(let i), .rollDice(let i), .mainTurn(let i), .movingRobber(let i):
+        case .setupForward(let i), .setupBackward(let i), .rollDice(let i), .mainTurn(let i), .movingRobber(let i),
+             .choosingResource(let i), .capturingShip(let i):
             let p = PlayerID(index: i)
             return p == humanPlayer ? nil : p
         case .discarding(let pending):
@@ -165,7 +166,8 @@ private func greedyDiscard(hand: [Resource: Int], count: Int) -> [Resource: Int]
 
 private func activePlayer(_ phase: GamePhase) -> PlayerID {
     switch phase {
-    case .setupForward(let i), .setupBackward(let i), .rollDice(let i), .mainTurn(let i), .movingRobber(let i):
+    case .setupForward(let i), .setupBackward(let i), .rollDice(let i), .mainTurn(let i), .movingRobber(let i),
+         .choosingResource(let i), .capturingShip(let i):
         return PlayerID(index: i)
     case .discarding(let pending): return pending.first!
     case .gameOver: fatalError("game over")

@@ -31,10 +31,8 @@ struct BoardDecisionTargetLayer: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 
-    @ViewBuilder
     private var tileTargets: some View {
-        let legalTiles = Set(decision.legalTiles)
-        ForEach(board.tiles.filter { legalTiles.contains($0.coordinate) }, id: \.coordinate) { tile in
+        ForEach(legalTileControls, id: \.coordinate) { tile in
             let isSelected = tile.coordinate == decision.selectedTile
             TileTapTarget(
                 position: geometry.center(of: tile.coordinate),
@@ -43,11 +41,25 @@ struct BoardDecisionTargetLayer: View {
                 isSelected: isSelected,
                 accessibilityIdentifier: AccessibilityID.Board.tile(tile.coordinate),
                 accessibilityLabel: tileAccessibilityLabel(tile),
-                accessibilityValue: isSelected ? "Selected destination" : "Available destination",
+                accessibilityValue: destinationValue(tile.coordinate, selected: isSelected),
                 accessibilityHint: targetAccessibilityHint(isSelected: isSelected),
-                onTap: { onSelectTarget(.tile(tile.coordinate)) }
+                onTap: { onSelectTarget(.tile(tile.coordinate)) },
+                onTapAtPoint: maritimeTileTouch
             )
         }
+    }
+
+    /// Name the concrete inputs before entering SwiftUI's generic builder.
+    /// A ternary bound-method callback made its unrelated filter overload
+    /// ambiguous in the actual iOS Swift typecheck.
+    private var legalTileControls: [Tile] {
+        let legalTiles = Set(decision.legalTiles)
+        return board.tiles.filter { legalTiles.contains($0.coordinate) }
+    }
+
+    private var maritimeTileTouch: ((CGPoint) -> Void)? {
+        guard decision.intent.usesMaritimePieces else { return nil }
+        return { point in selectMaritimeTile(at: point) }
     }
 
     private var edgeTargets: some View {
@@ -87,6 +99,17 @@ struct BoardDecisionTargetLayer: View {
         }
     }
 
+    /// A minimum-sized sea target can intercept a neighboring hex's centre.
+    /// Resolve the actual board-space touch, while semantic activation retains
+    /// the target's own identity. The background gesture alone is underneath
+    /// these controls and cannot arbitrate an intercepted tap.
+    private func selectMaritimeTile(at point: CGPoint) {
+        guard let target = BoardDropTargetResolver.nearest(
+            to: point, decision: decision, board: board, geometry: geometry
+        ), case .tile = target else { return }
+        onSelectTarget(target)
+    }
+
     private var tileTapGesture: some Gesture {
         SpatialTapGesture().onEnded { value in
             guard let target = BoardDropTargetResolver.nearest(
@@ -107,9 +130,21 @@ struct BoardDecisionTargetLayer: View {
                 ?? resource.rawValue
         case .desert:
             contents = "desert"
+        case .sea: contents = "sea"
+        case .resourceChoice:
+            contents = tile.numberToken.map { "resource choice, number \($0)" } ?? "resource choice"
+        case .fog: contents = "unexplored territory"
         }
+        if decision.intent == .buildShip { return "Preview ship launch at \(contents)" }
+        if decision.intent == .sailShip { return "Preview sailing destination at \(contents)" }
         let source = decision.intent == .knight ? "Knight" : "rolled seven"
         return "Preview \(source) robber move to \(contents)"
+    }
+
+    private func destinationValue(_ coordinate: HexCoordinate, selected: Bool) -> String {
+        let status = selected ? "Selected destination" : "Available destination"
+        guard let route = decision.sailing?.routes[coordinate] else { return status }
+        return "\(status), \(NavalQuantityText.hexes(route.count)) of travel"
     }
 
     private func vertexAccessibilityLabel(index: Int) -> String {
@@ -220,6 +255,9 @@ struct BoardDecisionCradleLayer: View {
         case .robberAfterSeven: "Rolled seven robber drag piece"
         case .knight: "Knight robber drag piece"
         case .deployArmy: "Army drag piece"
+        case .buildShip: "Ship launch piece"
+        case .sailShip: "Sailing ship"
+        case .captureShip: "Captured ship"
         }
     }
 
@@ -229,7 +267,7 @@ struct BoardDecisionCradleLayer: View {
 }
 
 /// Pure nearest-target geometry shared by taps and drags.
-private enum BoardDropTargetResolver {
+enum BoardDropTargetResolver {
     static func nearest(
         to point: CGPoint,
         decision: BoardDecisionPresentation,
@@ -255,7 +293,7 @@ private enum BoardDropTargetResolver {
         let edges = decision.legalEdges.map {
             (BoardTarget.edge($0), geometry.edgeMidpoint($0, board: board))
         }
-        let tiles = decision.legalTiles.map {
+        let tiles = decision.legalTiles.sorted().map {
             (BoardTarget.tile($0), geometry.center(of: $0))
         }
         return vertices + edges + tiles
@@ -265,7 +303,7 @@ private enum BoardDropTargetResolver {
         switch target {
         case .tile: max(Layout.minimumRadius, geometry.size * 0.92)
         case .vertex, .edge: max(Layout.minimumRadius, geometry.size * 0.72)
-        case .victim, .armyCards: 0
+        case .victim, .armyCards, .ship: 0
         }
     }
 

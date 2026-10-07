@@ -247,13 +247,14 @@ struct RobberConfirmationScenario: CustomTestStringConvertible {
     static var withVictims: [Self] { all.filter { $0.victims > 0 } }
 
     func fixture() -> RobberConfirmationFixture {
-        var state = GameSetup.newGame(
-            board: BoardGenerator.standard(mode == .vast ? .vast : .classic),
-            seed: 9_270, playerCount: seats, mode: mode
-        )
+        var state = mode == .naval ? Naval.newGame(seed: 9_270, playerCount: seats)
+            : GameSetup.newGame(board: BoardGenerator.standard(mode == .vast ? .vast : .classic),
+                                seed: 9_270, playerCount: seats, mode: mode)
         let actor = PlayerID(index: actorIndex)
         // The outer ring exercises Vast destinations absent from Classic.
-        let destination = state.board.tiles.last { $0.coordinate != state.board.robberTile }!.coordinate
+        let destination = state.board.tiles.last {
+            $0.coordinate != state.board.robberTile && $0.kind.isLand && Naval.isRevealed($0.coordinate, in: state)
+        }!.coordinate
         let rivals = Array(state.players.map(\.id).filter { $0 != actor }.prefix(victims))
         let corners = state.board.corners(of: destination)
         for (offset, rival) in rivals.enumerated() {

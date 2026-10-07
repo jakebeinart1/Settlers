@@ -79,33 +79,13 @@ public struct EndGameView: View {
             )
             .ignoresSafeArea()
 
-            VStack(spacing: 24) {
-                Spacer()
-
-                headline
-
-                vpTable
-
-                GoldRowButton(
-                    title: "New Game",
-                    systemImage: "arrow.counterclockwise",
-                    iconColor: CatanTheme.color(for: Resource.brick)
-                ) {
-                    onNewGame()
+            GeometryReader { geometry in
+                ScrollView {
+                    resultContents
+                        .padding(.vertical, 24)
+                        .frame(minHeight: geometry.size.height)
                 }
-                .accessibilityIdentifier(AccessibilityID.GameOver.newGame)
-                .padding(.horizontal, 40)
-
-                GoldRowButton(title: "Main Menu", systemImage: "house.fill",
-                              iconColor: SettingsChrome.ornamentGold) {
-                    onMainMenu()
-                }
-                .accessibilityIdentifier(AccessibilityID.GameOver.mainMenu)
-                .padding(.horizontal, 40)
-
-                replayButton
-
-                Spacer()
+                .scrollBounceBehavior(.basedOnSize)
             }
         }
         .foregroundStyle(.white)
@@ -128,6 +108,26 @@ public struct EndGameView: View {
         }
     }
 
+    /// Results remain centered when they fit; large text and narrow screens
+    /// can scroll every score and action into view instead of clipping them.
+    private var resultContents: some View {
+        VStack(spacing: 24) {
+            headline
+            vpTable
+            GoldRowButton(title: "New Game", systemImage: "arrow.counterclockwise",
+                          iconColor: CatanTheme.color(for: Resource.brick), action: onNewGame)
+                .frame(minHeight: 44)
+                .accessibilityIdentifier(AccessibilityID.GameOver.newGame)
+                .padding(.horizontal, 40)
+            GoldRowButton(title: "Main Menu", systemImage: "house.fill",
+                          iconColor: SettingsChrome.ornamentGold, action: onMainMenu)
+                .frame(minHeight: 44)
+                .accessibilityIdentifier(AccessibilityID.GameOver.mainMenu)
+                .padding(.horizontal, 40)
+            replayButton
+        }
+    }
+
     /// Straight into the replay of the game on screen, which is the moment a
     /// player most wants it - "how did that happen" is asked while looking at
     /// the result, not later from a menu. The same replay is reachable from
@@ -139,6 +139,7 @@ public struct EndGameView: View {
                           iconColor: SettingsChrome.ornamentGold) {
                 replaySummary = recording
             }
+            .frame(minHeight: 44)
             .accessibilityIdentifier(AccessibilityID.GameOver.replay)
             .padding(.horizontal, 40)
         }
@@ -159,7 +160,7 @@ public struct EndGameView: View {
                     Text("YOU WIN!")
                         .font(.system(size: 44, weight: .black, design: .serif))
                         .tracking(3)
-                        .foregroundStyle(CatanTheme.color(for: Resource.grain))
+                        .foregroundStyle(.white)
                 } else {
                     Text("Game Over")
                         .font(.title2.bold())
@@ -167,9 +168,16 @@ public struct EndGameView: View {
                     Text((identity.displayName + " wins").uppercased())
                         .font(.system(size: 36, weight: .black, design: .serif))
                         .tracking(2)
-                        .foregroundStyle(identity.civilization.accentColor)
+                        .foregroundStyle(.white)
+                        .multilineTextAlignment(.center)
+                        .lineLimit(2)
+                        .minimumScaleFactor(0.75)
                 }
             }
+            .padding(14)
+            .frame(maxWidth: .infinity)
+            .background(PaintedChromeBackground(fill: .color(Color(white: 0.08)), cornerRadius: 12))
+            .padding(.horizontal, 40)
         } else {
             Text("GAME OVER")
                 .font(.system(size: 36, weight: .black, design: .serif))

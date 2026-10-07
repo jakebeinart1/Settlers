@@ -1,6 +1,16 @@
 import SwiftUI
 import CatanEngine
 
+/// Every surface reads the match's target, including older resumed lengths.
+nonisolated enum VictoryTargetText {
+    static func goal(_ target: Int) -> String { "First to \(target) victory points wins." }
+    static func compactGoal(_ target: Int) -> String { "Win at \(target) VP" }
+    static func score(_ points: Int, target: Int) -> String { "\(points) / \(target) VP" }
+    static func spokenScore(_ points: Int, target: Int) -> String {
+        "\(points) victory points. \(target) needed to win."
+    }
+}
+
 /// Top HUD strip: one compact chip per **bot** player (the human gets their
 /// own, more spacious panel at the bottom of the screen - see
 /// `HumanPlayerPanel`) showing name/personality, hand size, development-card
@@ -214,7 +224,10 @@ public struct HumanPlayerPanel: View {
                         .fixedSize()
                         HStack(spacing: 4) {
                             Image(systemName: "star.fill")
-                            Text("\(state.victoryPoints(for: human)) VP")
+                            Text(VictoryTargetText.score(state.victoryPoints(for: human), target: state.victoryPointTarget))
+                                .accessibilityLabel(VictoryTargetText.spokenScore(
+                                    state.victoryPoints(for: human), target: state.victoryPointTarget))
+                                .accessibilityIdentifier("game.victory-points")
                         }
                         .font(.subheadline.bold())
                         .foregroundStyle(.white)

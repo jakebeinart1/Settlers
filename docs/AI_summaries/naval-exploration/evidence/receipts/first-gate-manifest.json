@@ -1,0 +1,10 @@
+{
+  "source_commit": "02eb013ecb5a175e2b53b931a171172ca171b08d",
+  "gate_exit": 1,
+  "result_bundle": "/Users/alex/.codex/artifacts/naval-exploration/first-gate-failed.xcresult",
+  "debug_executable_sha256": "81a96f379dedd36a6b66e98894ea6c362849435b30531f5693ff4287dc59fcdb",
+  "configuration": "Debug",
+  "simulator": "937692FF-BFBF-4683-80E5-2590F5288D56",
+  "runtime": "iOS 26.5",
+  "recorded_at_utc": "2026-10-05T05:17:27.654785+00:00"
+}

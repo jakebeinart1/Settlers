@@ -1,0 +1,12 @@
+{
+  "xcodebuildExitCode": 0,
+  "actualStagedPayloadPreserved": true,
+  "capture": {
+    "originalStagedPath": "/var/folders/_m/cfbn0s7j7zx3sx1lwv6w4mr80000gn/T/XcodeDistPipeline.~~~n4eiLy/Packages/Settlers.ipa",
+    "durableUploadedIPAPath": "/Users/alex/.codex/artifacts/naval-exploration/build23-sprites-build-trade-safety/Settlers-uploaded-23.ipa",
+    "bytes": 33718518,
+    "sha256": "2707f35bbfd8c3a374773d77defc6fee4c8a4b83291efe8c07c278e93b9c8aa1",
+    "md5": "55379f183a2e383be69b7af12805c56e",
+    "completeZIPCRCCheck": true
+  }
+}

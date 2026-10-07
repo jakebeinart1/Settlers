@@ -238,8 +238,14 @@ public struct PublicLedger: Codable, Sendable, Equatable {
             // `creditInitialGrant(to:at:board:)` directly.
             break
 
-        case .placedInitialRoad, .rejectedTrade, .endedTurn, .gameWon:
+        case .placedInitialRoad, .rejectedTrade, .endedTurn, .gameWon,
+             .sailedShip, .discovered, .capturedShip, .earnedColonyPoint:
             break
+
+        case .builtShip(let seat, _, _):
+            debit(seat, Naval.shipCost)
+        case .choseResource(let seat, let resource):
+            credit(seat, [resource: 1])
 
         case .builtRoad(let seat):
             debit(seat, Building.roadCost)

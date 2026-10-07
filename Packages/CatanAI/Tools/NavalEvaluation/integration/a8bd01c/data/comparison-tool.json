@@ -1,0 +1,32 @@
+{
+  "comparisonSource": "../compare.py",
+  "comparisonSHA256": "783150ad3875ab5a0075e35605de823c271785670768e9e7dca0935c3ed119bd",
+  "comparisonTestsSource": "../test_compare.py",
+  "comparisonTestsSHA256": "2e1c60af407f2627a7f8d66bc80b9bd37696643569e6c0c7751c953b6692e4bc",
+  "completeToolTests": {
+    "command": [
+      "pytest",
+      "-q",
+      "Packages/CatanAI/Tools/NavalEvaluation"
+    ],
+    "exitCode": 0,
+    "passed": 46,
+    "seconds": 6.6
+  },
+  "blackCheck": {
+    "command": [
+      "black",
+      "--check",
+      "Packages/CatanAI/Tools/NavalEvaluation/integration/a8bd01c"
+    ],
+    "exitCode": 0
+  },
+  "isortCheck": {
+    "command": [
+      "isort",
+      "--check-only",
+      "Packages/CatanAI/Tools/NavalEvaluation/integration/a8bd01c"
+    ],
+    "exitCode": 0
+  }
+}

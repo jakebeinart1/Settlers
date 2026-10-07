@@ -149,31 +149,30 @@ import Testing
         /// Plays one whole rated game on this device as `name`, with
         /// `ghost` in seat 2 if given.
         @MainActor
-        func play(as name: String, against ghost: String? = nil) throws {
+        func play(as name: String, against ghost: String? = nil) async throws {
             let suite = "LiveSyncTests.\(UUID().uuidString)"
             let defaults = try #require(UserDefaults(suiteName: suite))
             defer { defaults.removePersistentDomain(forName: suite) }
             let setupStore = MatchSetupStore()
             setupStore.defaults = defaults
             let model = GameViewModel(
+                checkpointStore: MatchCheckpointStore(fileURL: root.appendingPathComponent("match_checkpoint.json")),
                 gameStore: GameStore(fileURL: root.appendingPathComponent("save.json")),
                 civilizationStore: CivilizationAssignmentStore(fileURL: root.appendingPathComponent("civs.json")),
                 matchSetupStore: setupStore, gameLogStore: stores.logs,
                 gameStatsStore: GameStatsStore(fileURL: root.appendingPathComponent("gamestats.json")),
                 ghostStore: stores.ghosts, ratingStore: stores.ratings, seatStatsStore: stores.seatStats,
-                playerDirectory: stores.players)
-            // Ghost training is covered elsewhere and takes minutes here.
-            model.makeGhostTrainer = { store in
-                var trainer = GhostTrainer(store: store)
-                trainer.extract = { _, _ in [] }
-                return trainer
-            }
+                playerDirectory: stores.players, makeGhostTrainer: completionBookkeepingTrainer)
+            // A second game first restores the previous completed checkpoint;
+            // finish that bounded work before replacing the table or its files.
+            await model.lastFinishedMatchWork?.value
             var setup = MatchSetup.default(preferredName: name, preferredCivilization: .greece)
             setup.randomizeSeatOrder = false
             setup.seats[2].ghostID = ghost
             #expect(setup.newGameProblem(knownGhosts: Set(stores.ghosts.pickable().map(\.id))) == nil)
             model.startNewGame(setup: setup)
             try model.qaPlayToEnd()
+            await model.lastFinishedMatchWork?.value
             guard case .gameOver = model.state.phase else { throw CancellationError() }
         }
 
@@ -205,7 +204,7 @@ import Testing
         let cloud = FakeCloud()
         let jake = Device("jake", in: dir)
         let alex = Device("alex", in: dir)
-        try jake.play(as: "Jake")
+        try await jake.play(as: "Jake")
 
         guard case .online = await jake.sync(cloud, as: "apple-jake", name: "Jake") else {
             Issue.record("Jake's phone did not come online")
@@ -244,7 +243,7 @@ import Testing
         defer { try? FileManager.default.removeItem(at: dir) }
         let cloud = FakeCloud()
         let phone = Device("phone", in: dir)
-        try phone.play(as: "You")
+        try await phone.play(as: "You")
         #expect(await phone.sync(cloud, as: "apple-new", name: "You") == .noName)
         #expect(cloud.locked { $0.matches.isEmpty && $0.accounts.isEmpty && $0.claims.isEmpty })
         #expect(phone.stores.ratings.load().games["person:apple-new"] == 1, "the game still counts on the phone")
@@ -265,7 +264,7 @@ import Testing
         defer { try? FileManager.default.removeItem(at: dir) }
         let cloud = FakeCloud()
         let source = Device("source", in: dir)
-        try source.play(as: "Jake")
+        try await source.play(as: "Jake")
         let game = try source.sharedGame()
         let truncated = SharedMatch(version: game.version, match: UUID(), date: game.date, seats: game.seats,
                                     initialState: game.initialState, moves: Array(game.moves.dropLast(40)))
@@ -328,7 +327,7 @@ import Testing
         let observer = Device("observer", in: dir)
         _ = await observer.sync(cloud, as: "apple-observer", name: "Observer")
         let source = Device("source", in: dir)
-        try source.play(as: "Jake")
+        try await source.play(as: "Jake")
         _ = await source.sync(cloud, as: "apple-jake", name: "Jake")
         let match = try #require(source.stores.seatStats.all().first?.match)
         // The pass can persist stats and its download cursor, but writing the
@@ -363,7 +362,7 @@ import Testing
         let cloud = FakeCloud()
         let device = Device("shared-phone", in: dir)
         try device.stores.ghosts.save(trainedGhost(device.me, "Jake's Ghost", games: 25))
-        try device.play(as: "Jake")
+        try await device.play(as: "Jake")
         _ = await device.sync(cloud, as: "apple-jake", name: "Jake")
 
         guard case .online = await device.sync(cloud, as: "apple-alex", name: "Alex") else {
@@ -399,7 +398,7 @@ import Testing
         let jake = Device("jake", in: dir)
         let alex = Device("alex", in: dir)
         try jake.stores.ghosts.save(trainedGhost(jake.me, "Jake's Ghost"))
-        try jake.play(as: "Jake", against: jake.me)
+        try await jake.play(as: "Jake", against: jake.me)
         _ = await jake.sync(cloud, as: "apple-jake", name: "Jake")
         _ = await alex.sync(cloud, as: "apple-alex", name: "Alex")
         let before = jake.stores.ratings.load()
@@ -431,12 +430,12 @@ import Testing
     /// Without the ladder (Jake's own builds): a name typed into New Game is
     /// the same player, not a new row.
     @MainActor
-    @Test func aRenameWithoutSyncKeepsTheSameRow() throws {
+    @Test func aRenameWithoutSyncKeepsTheSameRow() async throws {
         let dir = root()
         defer { try? FileManager.default.removeItem(at: dir) }
         let phone = Device("phone", in: dir)
-        try phone.play(as: "Jake")
-        try phone.play(as: "Bein")
+        try await phone.play(as: "Jake")
+        try await phone.play(as: "Bein")
         let people = phone.stores.ratings.load().games.keys.filter { $0.hasPrefix(RatedEntity.personPrefix) }
         #expect(people == ["person:\(phone.me)"])
         #expect(phone.stores.ratings.load().games["person:\(phone.me)"] == 2)
@@ -451,8 +450,8 @@ import Testing
         let cloud = FakeCloud()
         let phone = Device("phone", in: dir)
         let ipad = Device("ipad", in: dir)
-        try phone.play(as: "Jake")
-        try ipad.play(as: "Jake")
+        try await phone.play(as: "Jake")
+        try await ipad.play(as: "Jake")
         _ = await phone.sync(cloud, as: "apple-jake", name: "Jake")
         _ = await ipad.sync(cloud, as: "apple-jake", name: "Jake")
         _ = await phone.sync(cloud, as: "apple-jake", name: "Jake")
@@ -508,14 +507,14 @@ import Testing
     /// "person:Bein" and its ghost as `jake`. All of it becomes one player,
     /// once; a downloaded game of someone else's is left for sync to re-file.
     @MainActor
-    @Test func namedGamesFromBeforePlayerIDsBecomeOnePlayer() throws {
+    @Test func namedGamesFromBeforePlayerIDsBecomeOnePlayer() async throws {
         let dir = root()
         defer { try? FileManager.default.removeItem(at: dir) }
         let phone = Device("phone", in: dir)
         try phone.stores.ghosts.save(trainedGhost("jake", "Jake's Ghost", games: 25))
         try phone.stores.ghosts.save(trainedGhost("bein", "Bein's Ghost", games: 3))
-        try phone.play(as: "Jake")
-        try phone.play(as: "Bein")
+        try await phone.play(as: "Jake")
+        try await phone.play(as: "Bein")
         let me = phone.me
         let legacy = ["person:Jake", "person:Bein"]
         for (record, name) in zip(phone.stores.seatStats.all(), legacy) {
@@ -627,8 +626,8 @@ import Testing
         #expect(jake.stores.ghosts.pickable().map(\.name) == ["Alex's Ghost", "Jake's Ghost"])
         #expect(alex.stores.ghosts.pickable().map(\.name) == ["Alex's Ghost", "Jake's Ghost"])
 
-        try jake.play(as: "Jake", against: "apple-alex")
-        try alex.play(as: "Alex", against: "apple-jake")
+        try await jake.play(as: "Jake", against: "apple-alex")
+        try await alex.play(as: "Alex", against: "apple-jake")
         _ = await jake.sync(cloud, as: "apple-jake", name: "Jake")
         _ = await alex.sync(cloud, as: "apple-alex", name: "Alex")
         _ = await jake.sync(cloud, as: "apple-jake", name: "Jake")
@@ -662,7 +661,7 @@ import Testing
         try JSONEncoder().encode(trainedGhost("jake", "Jake's Ghost", games: 24)).write(to: bundled)
         let jake = Device("jake", in: dir)
         let alex = Device("alex", in: dir, bundledGhosts: [bundled])
-        try alex.play(as: "Alex", against: "jake")
+        try await alex.play(as: "Alex", against: "jake")
         try jake.stores.ghosts.save(trainedGhost(jake.me, "Jake's Ghost", games: 30))
         _ = await jake.sync(cloud, as: "apple-jake", name: "Jake")
         _ = await alex.sync(cloud, as: "apple-alex", name: "Alex")

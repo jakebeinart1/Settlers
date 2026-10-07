@@ -1,7 +1,8 @@
 public enum RulesEngine {
     /// Stored beside every recorded move. Version 1 predates atomic Year of
-    /// Plenty and mandatory robber-victim selection; new moves use version 2.
-    public static let currentRulesVersion = 2
+    /// Plenty and mandatory robber-victim selection. Version 3 rejects repeated
+    /// pending offer IDs while replaying version 1/2 histories unchanged.
+    public static let currentRulesVersion = 3
     public static let oldestSupportedRulesVersion = 1
 
     public static func legalMoves(for state: GameState) -> [GameMove] {
@@ -67,9 +68,15 @@ public enum RulesEngine {
                 }
                 moves.append(.respondToTrade(offerID: offer.id, accept: false))
             }
+            moves += Naval.mainMoves(for: player, in: state)
             moves += Conquest.moves(for: player, in: state)
-            moves.append(contentsOf: tradeProposals(for: player))
+            moves.append(contentsOf: tradeProposals(for: player, in: state))
             return moves
+
+        case .choosingResource:
+            return Naval.resourceMoves(in: state)
+        case .capturingShip(let index):
+            return Naval.captureMoves(for: state.players[index].id, in: state)
 
         case .discarding(let pending):
             // No single "acting player" is embedded in this phase - any player
@@ -88,7 +95,8 @@ public enum RulesEngine {
         case .movingRobber(let playerIndex):
             let thief = state.players[playerIndex].id
             var moves: [GameMove] = []
-            for tile in state.board.tiles.map(\.coordinate) where tile != state.board.robberTile {
+            for tile in state.board.tiles.map(\.coordinate) where tile != state.board.robberTile
+                && (state.naval == nil || Naval.isKnownLand(tile, in: state)) {
                 let victims = Robber.eligibleVictims(for: tile, thief: thief, in: state)
                 if victims.isEmpty {
                     moves.append(.moveRobber(tile, stealFrom: nil))
@@ -157,7 +165,8 @@ public enum RulesEngine {
     /// `maxEnumeratedTradeQuantity` on the want side, one resource type per
     /// side: 5 give types x 4 want types x 3 x 2 = 120 at the absolute most, and
     /// far fewer in practice since the proposer must hold what they offer.
-    private static func tradeProposals(for player: Player) -> [GameMove] {
+    private static func tradeProposals(for player: Player, in state: GameState) -> [GameMove] {
+        let pendingIDs = Set(state.pendingTradeOffers.map(\.id))
         var moves: [GameMove] = []
         // Driven off `Resource.allCases`, not `player.resources` - dictionary
         // iteration order is seeded per process, and these would otherwise be
@@ -168,8 +177,8 @@ public enum RulesEngine {
             for giveCount in 1...min(maxGenerousGiveQuantity, held - 1) {
                 for want in Resource.allCases where want != give {
                     for wantCount in 1...maxEnumeratedTradeQuantity {
-                        moves.append(.proposeTrade(TradeOffer.enumerated(
-                            from: player.id, give: [give: giveCount], want: [want: wantCount])))
+                        let offer = TradeOffer.enumerated(from: player.id, give: [give: giveCount], want: [want: wantCount])
+                        if !pendingIDs.contains(offer.id) { moves.append(.proposeTrade(offer)) }
                     }
                 }
             }
@@ -215,7 +224,8 @@ public enum RulesEngine {
         in state: GameState,
         legal: [GameMove]
     ) -> Bool {
-        guard case .proposeTrade(let offer) = move, offer.from == seat else { return false }
+        guard case .proposeTrade(let offer) = move, offer.from == seat,
+              !state.pendingTradeOffers.contains(where: { $0.id == offer.id }) else { return false }
         guard legal.contains(where: { if case .proposeTrade = $0 { true } else { false } }) else { return false }
         guard isWellFormedComposition(offer),
               let proposer = state.players.first(where: { $0.id == seat }),
@@ -329,10 +339,19 @@ public enum RulesEngine {
             MainPhase.rollDice(state: &state, roll: roll)
             if roll != 7 {
                 state.phase = .mainTurn(playerIndex: playerIndex)
+                Naval.beginProduction(roll: roll, rollerIndex: playerIndex, in: &state)
             }
             // A roll of 7 routes into .discarding or .movingRobber, already
             // set by MainPhase.rollDice.
             events.append(.rolled(player, total: roll))
+
+        case .choosingResource(let index):
+            guard player.index == index else { throw MoveError.notYourTurn }
+            guard case .chooseResource(let resource) = move else { throw MoveError.wrongPhase }
+            events += try Naval.choose(resource, by: player, in: &state)
+        case .capturingShip(let index):
+            guard player.index == index else { throw MoveError.notYourTurn }
+            events += try Naval.applyCapture(move, by: player, to: &state)
 
         case .discarding(let pending):
             guard pending.contains(player) else { throw MoveError.notYourTurn }
@@ -384,6 +403,8 @@ public enum RulesEngine {
             guard player.index == playerIndex else { throw MoveError.notYourTurn }
 
             switch move {
+            case .buildShip, .sailShip:
+                events += try Naval.applyMain(move, by: player, to: &state)
             case .buildRoad(let edge):
                 guard Building.canBuildRoad(edge, for: player, in: state) else { throw MoveError.illegalPlacement }
                 try deduct(Building.roadCost, from: &state, playerIndex: playerIndex)
@@ -396,9 +417,11 @@ public enum RulesEngine {
                 guard Building.canBuildSettlement(vertex, for: player, in: state) else { throw MoveError.illegalPlacement }
                 try deduct(Building.settlementCost, from: &state, playerIndex: playerIndex)
                 state.players[playerIndex].settlements.insert(vertex)
+                events.append(.builtSettlement(player))
+                events += Naval.revealBuilding(at: vertex, by: player, in: &state)
+                events += Naval.awardColony(at: vertex, by: player, in: &state)
                 state.longestRoadPlayer = LongestRoad.compute(for: state)
                 WinCondition.checkForWinner(&state)
-                events.append(.builtSettlement(player))
 
             case .buildCity(let vertex):
                 guard Building.canBuildCity(vertex, for: player, in: state) else { throw MoveError.illegalPlacement }
@@ -459,6 +482,7 @@ public enum RulesEngine {
                 state.pendingTradeOffers.removeAll()
                 let nextIndex = (playerIndex + 1) % state.players.count
                 state.phase = .rollDice(playerIndex: nextIndex)
+                Naval.beginTurn(for: state.players[nextIndex].id, in: &state)
                 events.append(.endedTurn(player))
 
             default:
@@ -485,6 +509,11 @@ public enum RulesEngine {
     ) throws -> [GameEvent] {
         guard (oldestSupportedRulesVersion...currentRulesVersion).contains(rulesVersion) else {
             throw MoveError.other("unsupported recorded rules version")
+        }
+        if rulesVersion < 3, case .proposeTrade(let offer) = move,
+           case .mainTurn(let seat) = state.phase, seat == player.index, offer.from == player {
+            try Trading.proposeTrade(offer, state: &state, allowDuplicateID: true)
+            return [.proposedTrade(player, give: offer.give, want: offer.want)]
         }
         if rulesVersion == oldestSupportedRulesVersion,
            let events = try applyRulesVersionOneException(move, by: player, to: &state) {
@@ -556,7 +585,8 @@ public enum RulesEngine {
     private static func developmentCardMoves(for player: Player, in state: GameState) -> [GameMove] {
         var moves: [GameMove] = []
         if DevCards.canPlay(.knight, by: player.id, in: state) {
-            for tile in state.board.tiles.map(\.coordinate) where tile != state.board.robberTile {
+            for tile in state.board.tiles.map(\.coordinate) where tile != state.board.robberTile
+                && (state.naval == nil || Naval.isKnownLand(tile, in: state)) {
                 let victims = Robber.eligibleVictims(for: tile, thief: player.id, in: state)
                 if victims.isEmpty {
                     moves.append(.playKnight(moveRobberTo: tile, stealFrom: nil))

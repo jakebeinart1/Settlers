@@ -1,0 +1,16 @@
+{
+  "protocolVersion": 3,
+  "sourceCommit": "d8639917f68563b6fd2ca0d38c5fc28d3fc80a18",
+  "protocolSource": "../../Sources/naval-sim/EvaluationProtocol.swift",
+  "protocolSHA256": "d5bfd89a070451471b53c77464eda10e7f1084624dab0d3fd52c1e03f382811b",
+  "arithmeticRevision": "Integer paired win differences summed before one division; same strata, seed 20261004, 20000 resamples, percentile indices 499 and 19499. Specified before held-out result interpretation after independent arithmetic counterexample.",
+  "strengthThreshold": 0.1,
+  "requireLower95BoundPositive": true,
+  "completionThreshold": 0.99,
+  "hostDecisionP95Milliseconds": 50,
+  "hostDecisionP99Milliseconds": 150,
+  "tableSizesAnalyzedSeparately": [
+    3,
+    4
+  ]
+}

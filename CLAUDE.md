@@ -107,7 +107,8 @@ manual-play simulator during an ordinary gate on 2026-09-03.
 They also run **in parallel across cloned simulators** (`Clone N of Empires QA`,
 created by xcodebuild - still not your manual-play device). Both bundles are
 marked `parallelizable` in `project.yml`; the worker count is machine-specific
-and lives in `gate.sh` (`GATE_TEST_WORKERS`, default 2). Measured on 8 cores /
+and lives in `gate.sh` (`GATE_TEST_WORKERS`, default 1 with parallel testing disabled).
+Higher worker counts explicitly opt into clones. Measured on 8 cores /
 16GB, same tree: 1151s serial, 731s at 2 workers, 681s at 3 - but 3 starved two
 tests into failing. **A test that fails only at a higher worker count is a
 suspect, not a verdict**: re-run it serially before believing it. `gate.sh`'s
@@ -155,10 +156,13 @@ name which suites it touches, and you would rather find three red stages at once
 discover them one push at a time. That is the third property above, used deliberately -
 not the default.
 
-**Memory, not CPU, is the constraint on this machine.** Four separate runs were killed
-mid-flight on 2026-09-16 with the Simulator open (measured: 61MB free). Quit the Simulator
-and `xcrun simctl shutdown all` before a gate or a push, and prefer `GATE_TEST_WORKERS=1`,
-which trades ~7 minutes of wall clock for not being killed at minute forty.
+**Memory and storage constrain simulator work on this machine.** Inventory the
+whole host before allocating devices, reuse the task's existing simulator, pin
+`SETTLERS_QA_SIMULATOR_ID`, and use `GATE_TEST_WORKERS=1` to avoid worker clones.
+Shut down idle task-owned devices after use; delete only confirmed disposable
+devices after preserving needed saves. Never shut down or delete another task's
+simulators. The [run-settlers lifecycle](.claude/skills/run-settlers/SKILL.md#simulator-lifecycle)
+is the maintained workflow; do not use `shutdown all`.
 
 ## Anti-false-green - lessons this repo has already paid for
 

@@ -176,7 +176,8 @@ import CatanAI
     private func actingSeat(_ model: GameViewModel) -> PlayerID? {
         switch model.state.phase {
         case .setupForward(let index), .setupBackward(let index),
-             .rollDice(let index), .mainTurn(let index), .movingRobber(let index):
+             .rollDice(let index), .mainTurn(let index), .movingRobber(let index),
+             .choosingResource(let index), .capturingShip(let index):
             return model.state.players[index].id
         case .discarding(let pending):
             return pending.sorted().first

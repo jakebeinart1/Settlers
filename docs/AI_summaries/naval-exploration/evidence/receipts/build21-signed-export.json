@@ -1,0 +1,23 @@
+{
+  "productionSourceSHA": "60394e6361b2db372311920c4cc9ae481e5dec0f",
+  "archiveHead": "d56581de31e9569ee7b7dc1319213eba4fdec942",
+  "marketingVersion": "1.0",
+  "build": "21",
+  "bundleID": "com.alexchandler.empires",
+  "ipaSHA256": "a1a1b182cb3db195146ee5e1ffe5678b9e59531d6c44f13fc7f837743d5ef25c",
+  "executableSHA256": "ae8a30aab990fa7a1cb59fa550a9ebf877a3dd171f403fc8158354a4c44b96bd",
+  "strictSignatureVerified": true,
+  "profileName": "Empires App Store 20261004",
+  "profileUUID": "86da5771-8640-4c53-8867-0b4fbd4f1035",
+  "profileCertificateHashes": [
+    "76465B06C2E157D857641F5B3D25CF5A3110C4A9"
+  ],
+  "betaReportsActive": true,
+  "getTaskAllow": false,
+  "provisionedDevicesAbsent": true,
+  "cloudKitEnvironment": "Production",
+  "cloudKitContainers": [
+    "iCloud.com.alexchandler.empires"
+  ],
+  "keychainRecovery": "Successful signing after user-local lock/unlock refresh"
+}

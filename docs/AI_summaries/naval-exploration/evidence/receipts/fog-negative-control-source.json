@@ -1,0 +1,8 @@
+{
+  "purpose": "Deliberate old-renderer negative control; not a shipping change",
+  "baseSource": "4f9eeb0",
+  "path": "Settlers/Views/Board/BoardView.swift",
+  "correctedSHA256": "c8e70406268768683023ddaa15ea839f847f86ae45d7fdc32e9ff49514623dc9",
+  "negativeControlSHA256": "0495ef8661eeb2abd07126f1bfb5547da945af345b681d5b13c37ceccb44ba69",
+  "change": "Remove only the producing-kind and robber Canvas guards; keep public producer and held test input unchanged"
+}

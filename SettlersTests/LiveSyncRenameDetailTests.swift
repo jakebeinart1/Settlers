@@ -40,7 +40,7 @@ import Testing
     private func seedJake(on device: LiveSyncTests.Device, cloud: LiveSyncTests.FakeCloud) async throws {
         try device.stores.ghosts.save(GhostProfile(
             id: device.me, name: "Jake's Ghost", person: .anchored(at: .forMode(.classic)), lambda: 0.01, gamesLearned: 12))
-        try device.play(as: "Jake", against: device.me)
+        try await device.play(as: "Jake", against: device.me)
         try await sync(device, cloud: cloud, user: "apple-jake", name: "Jake")
         try #require(cloud.locked { $0.ghosts["apple-jake"] != nil }, "the source ghost must reach the cloud")
     }

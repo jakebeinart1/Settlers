@@ -59,6 +59,7 @@ struct ReplayExportPresentation: Sendable {
         case .playedKnight(let actor, let victim, _): return .playedKnight(actor, from: victim, stealing: nil)
         case .placedInitialSettlement, .placedInitialRoad, .rolled, .discarded,
              .builtRoad, .builtSettlement, .builtCity, .boughtDevCard, .boughtArmyCard,
+             .builtShip, .sailedShip, .discovered, .capturedShip, .earnedColonyPoint, .choseResource,
              .deployedArmy, .playedRoadBuilding, .playedYearOfPlenty, .playedMonopoly,
              .tradedWithBank, .proposedTrade, .acceptedTrade, .rejectedTrade, .endedTurn, .gameWon:
             return event
@@ -70,10 +71,27 @@ struct ReplayExportPresentation: Sendable {
             Player(id: player.id, playedKnights: player.playedKnights, settlements: player.settlements,
                    cities: player.cities, roads: player.roads)
         }
-        return GameState(board: state.board, players: players, phase: .mainTurn(playerIndex: 0),
+        return GameState(board: Naval.visibleBoard(in: state), players: players, phase: .mainTurn(playerIndex: 0),
                          bank: [:], devCardDeck: [], lastDiceRoll: state.lastDiceRoll,
                          longestRoadPlayer: state.longestRoadPlayer, largestArmyPlayer: state.largestArmyPlayer,
                          rng: RandomSource(seed: 0), mode: state.mode, victoryPointTarget: state.victoryPointTarget,
-                         variant: state.variant, garrisons: state.garrisons)
+                         variant: state.variant, garrisons: state.naval == nil ? state.garrisons : [:],
+                         naval: publicNaval(state))
+    }
+
+    /// Copy only published Naval facts. Even a renderer inspecting this state
+    /// cannot recover concealed coastlines, component IDs or generation hints.
+    /// A Surprise family stays concealed just as it does for live policies.
+    private static func publicNaval(_ state: GameState) -> NavalState? {
+        guard let naval = state.naval else { return nil }
+        var result = NavalState(options: naval.options, revealed: naval.revealed,
+                                ships: naval.ships.filter { naval.revealed.contains($0.coordinate) },
+                                mapFamily: naval.options.mapFamily ?? .archipelago)
+        result.rulesVersion = naval.rulesVersion
+        result.mapVersion = naval.mapVersion
+        result.nextShipID = naval.nextShipID
+        result.hullsBuilt = naval.hullsBuilt
+        result.colonyPoints = naval.colonyPoints
+        return result
     }
 }

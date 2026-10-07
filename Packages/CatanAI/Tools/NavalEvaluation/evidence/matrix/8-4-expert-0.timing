@@ -1,0 +1,2 @@
+naval-sim rejection evidence: /var/folders/_m/cfbn0s7j7zx3sx1lwv6w4mr80000gn/T/naval-sim-failures/700800-4-0-expert-twinIslands-true-true
+naval-sim seed=700800 decisions=524 p95=4.819ms p99=15.848ms over50=0 over150=0

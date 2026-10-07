@@ -8,8 +8,9 @@ import UIKit
 ///
 /// Every offer reaching this card is one the human can actually fulfil (see
 /// `GameView.handleTradeOffersChange`'s affordability filter), and the bot
-/// loop stays stopped while it is open (`GameViewModel.openIncomingOffer`), so
-/// no other bot can snap up the same offer first.
+/// loop stays stopped while it is open (`GameViewModel.openIncomingOffer`).
+/// Accepting resolves equal odds among this human and any other recipients
+/// whose seated policies actually accept; reading speed never decides it.
 ///
 /// ## It no longer answers for you in six seconds
 /// This used to run a hardcoded six-second countdown and auto-Reject on
@@ -81,6 +82,8 @@ public struct IncomingTradeCardView: View {
     @State private var isExternallyHeld = false
     @State private var isReviewPresented = false
     @State private var reviewTextSize: DynamicTypeSize = .large
+    @State private var summaryMeasurement: TradeSummaryMeasurement?
+    private static let verticalPadding: CGFloat = 4
 
     private struct OfferPresentationIdentity: Hashable {
         let offer: TradeOffer
@@ -94,23 +97,35 @@ public struct IncomingTradeCardView: View {
     public var body: some View {
         let identity = playerIdentity(offer.from)
         let summary = IncomingTradeSummary(offer: offer)
-        // Names and exact terms wrap at each density. If neither fits, only
-        // the terms scroll vertically; accepting then requires complete review.
-        // Nothing changes this row's height or the board's available viewport.
-        ViewThatFits(in: .vertical) {
-            offerRow(identity, summary: summary, fontSize: 12, scrolling: false)
-            offerRow(identity, summary: summary, fontSize: 11, scrolling: false)
-            offerRow(identity, summary: summary, fontSize: 12, scrolling: true)
+        // Response controls mount once. Only terms scroll, and clipping
+        // requires full review before accepting. Occurrence-bound measurement
+        // prevents a previous short offer authorizing a new unreadable one.
+        HStack(spacing: 8) {
+            ScrollView(.vertical) {
+                offerSummary(identity, summary: summary, fontSize: 12)
+                    .background {
+                        GeometryReader { proxy in
+                            Color.clear.preference(key: TradeSummaryHeightPreference.self,
+                                value: TradeSummaryMeasurement(offer: offer, occurrence: offerOccurrence,
+                                                               height: proxy.size.height))
+                                .allowsHitTesting(false).accessibilityHidden(true)
+                        }
+                    }
+            }
+            .scrollBounceBehavior(.basedOnSize)
+            .frame(maxWidth: .infinity)
+            .frame(height: Self.summaryViewportHeight)
+            answerControls(requiresReview: summary.requiresReview || summaryNeedsReview)
         }
         .padding(.horizontal, 8)
-        .padding(.vertical, 4)
+        .padding(.vertical, Self.verticalPadding)
         .frame(maxWidth: .infinity)
         .frame(height: BottomRowMetrics.height)
         .background(PaintedChromeBackground(fill: .tintedTexture(CatanTheme.waterBackground), cornerRadius: 12))
         .playerCardBorder(color: identity.civilization.accentColor, cornerRadius: 12, lineWidth: 2)
         .foregroundStyle(CatanTheme.onWaterText)
         .contentShape(Rectangle())
-        .onTapGesture { isPaused.toggle() }
+        .onPreferenceChange(TradeSummaryHeightPreference.self) { summaryMeasurement = $0 }
         .task(id: presentationIdentity) { await runOfferTimer() }
         .onChange(of: isHeld) { _, held in isExternallyHeld = held }
         .sheet(isPresented: $isReviewPresented) {
@@ -129,10 +144,9 @@ public struct IncomingTradeCardView: View {
         .transition(.move(edge: .bottom).combined(with: .opacity))
     }
 
-    private func offerRow(_ identity: PlayerIdentity, summary: IncomingTradeSummary,
-                          fontSize: CGFloat, scrolling: Bool) -> some View {
-        HStack(spacing: 8) {
-            VStack(alignment: .leading, spacing: 2) {
+    private func offerSummary(_ identity: PlayerIdentity, summary: IncomingTradeSummary,
+                              fontSize: CGFloat) -> some View {
+        VStack(alignment: .leading, spacing: 2) {
                 HStack(alignment: .top, spacing: 4) {
                     CivilizationCrest(civilization: identity.civilization, size: 18)
                     Text("\(identity.displayName) offers a trade")
@@ -140,16 +154,12 @@ public struct IncomingTradeCardView: View {
                         .fixedSize(horizontal: false, vertical: true)
                         .accessibilityIdentifier("incoming-trade.proposer")
                 }
-                if scrolling {
-                    ScrollView(.vertical) { exchangeSummary(summary, fontSize: fontSize) }
-                } else {
-                    exchangeSummary(summary, fontSize: fontSize)
-                }
-            }
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .modifier(TradeSummarySizing(scrolling: scrolling))
-            answerControls(requiresReview: scrolling || summary.requiresReview)
+            exchangeSummary(summary, fontSize: fontSize)
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .fixedSize(horizontal: false, vertical: true)
+        .contentShape(Rectangle())
+        .onTapGesture { isPaused.toggle() }
     }
 
     private func exchangeSummary(_ summary: IncomingTradeSummary, fontSize: CGFloat) -> some View {
@@ -229,6 +239,7 @@ public struct IncomingTradeCardView: View {
     private var reviewButton: some View {
         Button {
             restoreReviewTextSize()
+            isPaused = true
             isReviewPresented = true
         } label: {
             VStack(spacing: 2) {
@@ -253,6 +264,13 @@ public struct IncomingTradeCardView: View {
 
     private static let answerButtonDiameter: CGFloat = 44
     private static let timerTickSeconds = 0.1
+    private static var summaryViewportHeight: CGFloat { BottomRowMetrics.height - verticalPadding * 2 }
+
+    private var summaryNeedsReview: Bool {
+        guard let summaryMeasurement, summaryMeasurement.offer == offer,
+              summaryMeasurement.occurrence == offerOccurrence else { return true }
+        return summaryMeasurement.height > Self.summaryViewportHeight
+    }
 
     private func restoreReviewTextSize() {
         reviewTextSize = DynamicTypeSize(UIApplication.shared.preferredContentSizeCategory) ?? .large
@@ -285,17 +303,19 @@ public struct IncomingTradeCardView: View {
     }
 }
 
-/// Non-scrolling candidates report their complete height to ViewThatFits.
-/// The final candidate takes the fixed row's proposal and scrolls only terms.
-private struct TradeSummarySizing: ViewModifier {
-    let scrolling: Bool
-
-    @ViewBuilder
-    func body(content: Content) -> some View {
-        if scrolling {
-            content
-        } else {
-            content.fixedSize(horizontal: false, vertical: true)
-        }
+/// One response-control tree retains finite hit regions through full-review
+/// dismissal. Only the summary scrolls, and hidden terms require review before
+/// accepting. A current intrinsic height replaces prior measurements.
+nonisolated private struct TradeSummaryHeightPreference: PreferenceKey {
+    static var defaultValue: TradeSummaryMeasurement? { nil }
+    static func reduce(value: inout TradeSummaryMeasurement?,
+                       nextValue: () -> TradeSummaryMeasurement?) {
+        if let next = nextValue() { value = next }
     }
+}
+
+nonisolated private struct TradeSummaryMeasurement: Equatable {
+    let offer: TradeOffer
+    let occurrence: Int?
+    let height: CGFloat
 }

@@ -64,6 +64,43 @@ final class NewGameModeFlowTests: XCTestCase {
         assertOpeningBoard(in: app, vertexCount: 54)
     }
 
+    func testNavalReturnsToClassicStandard() {
+        assertReturningFromNavalStarts(vast: false, conquest: false)
+    }
+
+    func testNavalReturnsToClassicConquest() {
+        assertReturningFromNavalStarts(vast: false, conquest: true)
+    }
+
+    func testNavalReturnsToVastStandard() {
+        assertReturningFromNavalStarts(vast: true, conquest: false)
+    }
+
+    func testNavalReturnsToVastConquest() {
+        assertReturningFromNavalStarts(vast: true, conquest: true)
+    }
+
+    private func assertReturningFromNavalStarts(vast: Bool, conquest: Bool) {
+        continueAfterFailure = false
+        let app = XCUIApplication()
+        app.launchArguments = ["-ui-testing", "-ui-testing-reset", "-qaShowNewGame"]
+        app.launch()
+        XCTAssertTrue(app.buttons["new-game.rules.naval"].waitForExistence(timeout: 10))
+        if vast { app.buttons["new-game.mode.vast"].tap() }
+        app.buttons["new-game.rules.conquest"].tap()
+        app.buttons["new-game.rules.naval"].tap()
+        XCTAssertTrue(app.buttons["new-game.rules.naval"].isSelected)
+        XCTAssertFalse(app.buttons["new-game.mode.vast"].exists)
+        let rules = app.buttons["new-game.rules.\(conquest ? "conquest" : "standard")"]
+        rules.tap()
+        XCTAssertTrue(rules.isSelected, "Returning from Naval must restore the chosen land rules")
+        XCTAssertTrue(app.buttons["new-game.mode.\(vast ? "vast" : "classic")"].isSelected)
+        XCTAssertTrue(app.buttons["new-game.start"].isEnabled)
+        app.buttons["As Shown"].tap()
+        app.buttons["new-game.start"].tap()
+        assertOpeningBoard(in: app, vertexCount: vast ? 150 : 54)
+    }
+
     private func assertOpeningBoard(in app: XCUIApplication, vertexCount: Int) {
         XCTAssertTrue(app.otherElements["screen.game"].waitForExistence(timeout: 5))
         let vertices = app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH %@", "board.vertex."))

@@ -26,6 +26,13 @@ public struct BoardView: View {
     /// technically be present, though a mandatory robber move follows a 7,
     /// which has no producing tiles to highlight.
     public let rollHighlightTiles: Set<HexCoordinate>
+    /// Replay scrubbing selects a complete historical frame. Live insertion
+    /// and discovery animations would briefly show a different board from its
+    /// score and caption, so replay opts out while retaining its camera pose.
+    public let animatesStateChanges: Bool
+    /// Movie frames use the fitted world with no nonfunctional navigation UI.
+    /// Live and interactive replay retain their existing camera controls.
+    var showsNavigationControls = true
 
     @Environment(\.accessibilityReduceMotion) var reduceMotion
 
@@ -43,12 +50,18 @@ public struct BoardView: View {
     /// by a new board.
     @State var camera: BoardCamera = .fitted
 
+    /// An explicit World excursion remembers the user's local pose, never a
+    /// fitted geometry or a container measurement. Return restores that pose.
+    @State var navalReturnCamera: BoardCamera?
+
     /// The camera each gesture started from. A gesture's value is cumulative
     /// from its own start, so it must compose with the camera as it was when
     /// the fingers went down, not with the camera as it was one frame ago -
     /// composing with the latter squares the magnification every frame.
     @State var gestureAnchor: BoardCamera?
 
+    @State var retiringMist: Set<HexCoordinate> = []
+    @State var mistProgress: CGFloat = 1
     /// Captured drag ownership and cancellation-reset finger feedback. Kept
     /// apart from the pinch anchor so piece drags cannot pan the camera.
     @State var boardDrag: BoardGestureRouter?
@@ -60,7 +73,8 @@ public struct BoardView: View {
         decision: BoardDecisionPresentation?,
         onSelectTarget: @escaping (BoardTarget) -> Void,
         allowsGameCommands: Bool = true,
-        rollHighlightTiles: Set<HexCoordinate> = []
+        rollHighlightTiles: Set<HexCoordinate> = [],
+        animatesStateChanges: Bool = true
     ) {
         self.state = state
         self.playerIdentity = playerIdentity
@@ -68,9 +82,27 @@ public struct BoardView: View {
         self.onSelectTarget = onSelectTarget
         self.allowsGameCommands = allowsGameCommands
         self.rollHighlightTiles = rollHighlightTiles
+        self.animatesStateChanges = animatesStateChanges
+        _camera = State(initialValue: state.mode == .naval ? Self.navalHomeCamera : .fitted)
     }
 
-    private var board: Board { state.board }
+    var board: Board { state.mode == .naval ? Naval.visibleBoard(in: state) : state.board }
+
+    func staticWorldOverview() -> Self {
+        var overview = self
+        overview.showsNavigationControls = false
+        overview._camera = State(initialValue: .fitted)
+        return overview
+    }
+
+    /// Production is public presentation. Reading the authoritative naval
+    /// world here used to disclose unreached islands through their roll rings.
+    static func productionHighlights(in state: GameState, forRoll roll: Int) -> Set<HexCoordinate> {
+        let visible = Naval.visibleBoard(in: state)
+        return Set(visible.tiles.filter {
+            $0.kind.produces && $0.numberToken == roll && $0.coordinate != state.board.robberTile
+        }.map(\.coordinate))
+    }
 
     public var body: some View {
         GeometryReader { proxy in
@@ -81,14 +113,28 @@ public struct BoardView: View {
             // redundant: the fit measures the badges and reserves the vertex
             // rings itself, so leaving 16 here reserved the same space a second
             // time and visibly shrank the board.
-            let fit = applicableFit(for: board, in: proxy.size)
-            let center = CGPoint(x: proxy.size.width / 2, y: proxy.size.height / 2)
+            let viewport = worldViewport(in: proxy.size)
+            let fit = applicableFit(for: board, in: viewport)
+            let center = CGPoint(x: viewport.width / 2, y: viewport.height / 2)
             let geometry = camera.applied(to: fit.geometry, containerCenter: center)
             let boardCenter = Self.boardCenter(for: board, geometry: geometry)
             let ownership = Ownership(players: state.players)
 
             ZStack {
                 boardCanvas(geometry: geometry, boardCenter: boardCenter)
+
+                if state.mode == .naval {
+                    NavalMistLayer(
+                        hidden: board.tiles.filter { $0.kind == .fog }.map(\.coordinate),
+                        retiring: retiringMist, geometry: geometry, progress: mistProgress,
+                        drifts: !reduceMotion
+                    )
+                    if let decision, decision.intent == .sailShip {
+                        NavalSailingRangeLayer(decision: decision, geometry: geometry)
+                    }
+                    NavalHarborLayer(board: board, geometry: geometry, boardCenter: boardCenter,
+                                     exposesSemantics: allowsGameCommands)
+                }
 
                 if !allowsGameCommands {
                     BoardInspectionSemantics(
@@ -126,7 +172,11 @@ public struct BoardView: View {
                 // right on the tile's corner.
                 if !rollHighlightTiles.isEmpty {
                     Canvas { context, _ in
-                        for tile in board.tiles where rollHighlightTiles.contains(tile.coordinate) {
+                        // A stale or malformed highlight list must never
+                        // outline fog above the opaque mist layer.
+                        for tile in board.tiles where tile.kind.produces
+                            && tile.coordinate != state.board.robberTile
+                            && rollHighlightTiles.contains(tile.coordinate) {
                             // Inset slightly (matches the resource-fill hex,
                             // not the full manila frame) so the ring sits
                             // cleanly within the tile's own fill rather than
@@ -141,6 +191,17 @@ public struct BoardView: View {
 
                 buildingViews(geometry: geometry, ownership: ownership)
 
+                if let naval = state.naval {
+                    NavalShipLayer(
+                        state: state, ships: naval.ships, decision: decision,
+                        geometry: geometry, containerSize: viewport, playerIdentity: playerIdentity,
+                        allowsGameCommands: allowsGameCommands, onSelectTarget: onSelectTarget,
+                        onFocus: { focusNavalShip($0.coordinate, fit: fit, container: viewport) }
+                    )
+                    .animation(animatesStateChanges && !reduceMotion ? .easeInOut(duration: 0.32) : nil, value: naval.ships)
+                    navalShipPreview(geometry: geometry)
+                }
+
                 if let decision {
                     cityUpgradeGuides(for: decision, geometry: geometry)
                     stagedBuildingPreview(for: decision, geometry: geometry)
@@ -148,19 +209,24 @@ public struct BoardView: View {
                     robberMarkerSemantics(for: decision, geometry: geometry)
                 }
 
-                if allowsGameCommands, let decision {
+                if allowsGameCommands, let decision, !decision.intent.usesMaritimePieces {
                     BoardDecisionCradleLayer(
                         board: board,
                         decision: decision,
                         geometry: geometry,
-                        containerSize: proxy.size,
+                        containerSize: viewport,
                         civilization: playerIdentity(decision.actor).civilization,
                         onSelectTarget: onSelectTarget
                     )
                 }
 
+                #if DEBUG
+                if state.mode == .naval { navalCameraReferenceMarkers(geometry: geometry) }
+                qaProductionHighlightMarkers(geometry: geometry)
+                #endif
                 robberDragFeedback
             }
+            .frame(width: viewport.width, height: viewport.height)
             .coordinateSpace(name: BoardDecisionCoordinateSpace.name)
             // THE VIEWPORT. Everything the board draws is cut off at this
             // view's own bounds, and nothing may be drawn outside them.
@@ -182,13 +248,19 @@ public struct BoardView: View {
             // so its clip left exactly that band for pieces to escape into.
             // The viewport a player perceives is the board's own rectangle.
             .clipped()
-            .animation(reduceMotion ? nil : .spring(), value: BoardSnapshot(state: state))
+            // Canvas projects the new camera immediately. Interpolating only
+            // SwiftUI piece positions detached buildings from their roads
+            // during naval focus (seen in the capture-proposal recording).
+            // Camera changes must project every layer together; actual ship
+            // moves and proposal changes still animate at a steady camera.
+            .animation(nil, value: state.mode == .naval ? camera : nil)
+            .animation(animatesStateChanges && !reduceMotion ? .spring() : nil, value: BoardSnapshot(state: state))
             .animation(reduceMotion ? nil : .spring(response: 0.3, dampingFraction: 0.82), value: decision)
             // Camera gestures are non-mutating, so unlike every target layer
             // above they stay live during inspect-only decisions - looking
             // around the board is exactly what an inspect-only mode is for.
-            .simultaneousGesture(pinch(fit: fit, container: proxy.size, center: center))
-            .simultaneousGesture(routedDrag(fit: fit, container: proxy.size, geometry: geometry))
+            .simultaneousGesture(pinch(fit: fit, container: viewport, center: center))
+            .simultaneousGesture(routedDrag(fit: fit, container: viewport, geometry: geometry))
             .onChange(of: boardDragLocation) { _, location in
                 if location == nil { boardDrag = nil }
             }
@@ -201,6 +273,9 @@ public struct BoardView: View {
             .onChange(of: decision) {
                 if boardDrag?.origin == .robber { boardDrag?.cancel() }
             }
+            // Camera math and piece drags use the map viewport, excluding the
+            // fixed maritime navigation strip in the outer board frame.
+            .frame(width: proxy.size.width, height: proxy.size.height, alignment: .top)
             // Bottom-LEADING, not trailing: the bottom-right corner already
             // belongs to the drag cradle, which is centered 35pt in from both
             // edges (`BoardDecisionCradleLayer.Layout.cradleEdgeInset`) and so
@@ -208,7 +283,9 @@ public struct BoardView: View {
             // The two are visible at the same time - a decision is precisely
             // when you most want to pan around before committing a piece.
             .overlay(alignment: .bottomLeading) {
-                if !camera.isFitted {
+                if showsNavigationControls, state.mode == .naval {
+                    navalNavigation(fit: fit, container: viewport)
+                } else if showsNavigationControls, !camera.isFitted {
                     recenterButton
                         .padding(8)
                         .transition(.opacity.combined(with: .scale))
@@ -219,8 +296,22 @@ public struct BoardView: View {
             // the only thing reset here. The FIT is not state at all any
             // more - see `solvedFit` - so there is nothing to recompute when
             // the container or the board changes.
-            .onChange(of: proxy.size) { camera = camera.clamped(fittedBounds: fit.bounds, container: proxy.size) }
-            .onChange(of: board.tiles.map(\.coordinate)) { camera = .fitted }
+            .onChange(of: proxy.size) {
+                camera = camera.clamped(fittedBounds: fit.bounds, container: viewport, maximumZoom: cameraMaximumZoom)
+            }
+            .onChange(of: board.tiles.map(\.coordinate)) {
+                navalReturnCamera = nil
+                camera = showsNavigationControls && state.mode == .naval ? Self.navalHomeCamera : .fitted
+            }
+            .onChange(of: decision?.selectedShip) { _, selected in
+                guard let selected, let ship = state.naval?.ships.first(where: { $0.id == selected }) else { return }
+                focusNavalShip(ship.coordinate, fit: fit, container: viewport)
+            }
+            .onChange(of: state.naval?.revealed) { before, after in
+                withdrawMist(newlyRevealed: (after ?? []).subtracting(before ?? []))
+            }
+            .onAppear { beginNavalOpening() }
+            .task(id: retiringMist) { await animateMistWithdrawal() }
         }
     }
 
@@ -230,16 +321,7 @@ public struct BoardView: View {
         Canvas { context, _ in
             drawTiles(geometry: geometry, in: context)
             drawRobberTargeting(geometry: geometry, in: context)
-            let portPoints = TileDrawing.portIconPoints(board: board, geometry: geometry, boardCenter: boardCenter)
-            for (index, port) in board.ports.enumerated() {
-                TileDrawing.drawPort(
-                    port,
-                    at: portPoints[index],
-                    geometry: geometry,
-                    board: board,
-                    in: context
-                )
-            }
+            if state.mode != .naval { drawPorts(geometry: geometry, boardCenter: boardCenter, in: context) }
             drawCanonicalRobber(geometry: geometry, in: context)
         }
         .contentShape(Rectangle())
@@ -248,11 +330,26 @@ public struct BoardView: View {
         .accessibilityIdentifier(AccessibilityID.Board.surface)
     }
 
+    private func drawPorts(geometry: HexGeometry, boardCenter: CGPoint, in context: GraphicsContext) {
+        let points = TileDrawing.portIconPoints(board: board, geometry: geometry, boardCenter: boardCenter)
+        for (index, port) in board.ports.enumerated() {
+            TileDrawing.drawPort(port, at: points[index], geometry: geometry, board: board, in: context)
+        }
+    }
+
     /// Tiles are completed before any target outline. Drawing highlights in
     /// the tile loop lets a later neighbor repaint half of an earlier ring.
     private func drawTiles(geometry: HexGeometry, in context: GraphicsContext) {
-        for tile in board.tiles {
-            TileDrawing.drawTile(tile, geometry: geometry, garrison: garrisonMark(at: tile.coordinate), in: context)
+        let visibleBoard = board
+        for tile in visibleBoard.tiles {
+            switch tile.kind {
+            case .sea, .fog:
+                NavalArtwork.drawSea(tile, geometry: geometry, visibleBoard: visibleBoard, in: context)
+            case .resourceChoice:
+                NavalArtwork.drawResourceChoice(tile, geometry: geometry, in: context)
+            case .resource, .desert:
+                TileDrawing.drawTile(tile, geometry: geometry, garrison: garrisonMark(at: tile.coordinate), in: context)
+            }
         }
     }
 
@@ -264,7 +361,7 @@ public struct BoardView: View {
     }
 
     private func drawRobberTargeting(geometry: HexGeometry, in context: GraphicsContext) {
-        guard let decision, decision.intent.targetsTiles else { return }
+        guard let decision, decision.intent.targetsTiles, decision.intent != .sailShip else { return }
         let legalTiles = Set(decision.legalTiles)
         for tile in board.tiles {
             let path = TileDrawing.hexPath(for: tile.coordinate, geometry: geometry)

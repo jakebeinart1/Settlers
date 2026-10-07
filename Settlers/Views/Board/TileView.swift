@@ -69,6 +69,14 @@ enum TileDrawing {
         }
     }
 
+    /// Maritime resource-choice art shares the ordinary production token so
+    /// its number carries the same visual weight and probability language.
+    static func drawProductionToken(_ tile: Tile, geometry: HexGeometry, in context: GraphicsContext) {
+        guard let number = tile.numberToken else { return }
+        drawNumberToken(number, at: geometry.center(of: tile.coordinate),
+                        size: geometry.size, garrison: nil, in: context)
+    }
+
     private static func drawNumberToken(
         _ number: Int, at point: CGPoint, size: CGFloat, garrison: GarrisonMark? = nil, in context: GraphicsContext
     ) {
@@ -306,10 +314,12 @@ enum TileDrawing {
     /// all other ports and the engine's shoreline vertices untouched. Board
     /// units keep this a pure, zoom-independent layout with no remembered fit.
     static func portIconPoints(board: Board, geometry: HexGeometry, boardCenter: CGPoint) -> [CGPoint] {
+        let isMaritime = board.tiles.contains { $0.kind == .sea || $0.kind == .fog }
         var points = board.ports.map { port in
             portIconPoint(a: geometry.vertexPosition(port.vertexA, board: board),
                           b: geometry.vertexPosition(port.vertexB, board: board),
-                          boardCenter: boardCenter, size: geometry.size)
+                          boardCenter: isMaritime ? portLandCenter(port, board: board, geometry: geometry) : boardCenter,
+                          size: geometry.size)
         }
         let clearance = geometry.size * (2 * portFrameRadiusFactor + portBadgeGapFactor)
         let vertices = board.onBoardVertices.sorted().map { geometry.vertexPosition($0, board: board) }
@@ -320,8 +330,10 @@ enum TileDrawing {
             for first in points.indices {
                 for second in points.indices where second > first {
                     if separatePortPair(first, second, points: &points, clearance: clearance) {
-                        points[first] = clearPortFromRings(points[first], vertices: vertices, center: boardCenter, size: geometry.size)
-                        points[second] = clearPortFromRings(points[second], vertices: vertices, center: boardCenter, size: geometry.size)
+                        if !isMaritime {
+                            points[first] = clearPortFromRings(points[first], vertices: vertices, center: boardCenter, size: geometry.size)
+                            points[second] = clearPortFromRings(points[second], vertices: vertices, center: boardCenter, size: geometry.size)
+                        }
                         changed = true
                     }
                 }
@@ -329,6 +341,21 @@ enum TileDrawing {
             if !changed { break }
         }
         return points
+    }
+
+    /// A global center points toward land on an island's inward-facing
+    /// coast. The known tile beside this port supplies the local landward
+    /// reference; concealed island structure cannot influence its placement.
+    private static func portLandCenter(_ port: CatanEngine.Port, board: Board, geometry: HexGeometry) -> CGPoint {
+        let shared = Set(port.vertexA.touchingTiles).intersection(port.vertexB.touchingTiles)
+        guard let land = board.tiles.first(where: { tile in
+            guard shared.contains(tile.coordinate) else { return false }
+            switch tile.kind {
+            case .resource, .desert, .resourceChoice: return true
+            case .sea, .fog: return false
+            }
+        }) else { preconditionFailure("A visible maritime port must touch discovered land") }
+        return geometry.center(of: land.coordinate)
     }
 
     private static func separatePortPair(_ first: Int, _ second: Int,
@@ -565,7 +592,7 @@ struct EdgeTapTarget: View {
     }
 }
 
-/// Semantic tile target used only while choosing a robber destination.
+/// Semantic tile target for robber, army and maritime destination previews.
 /// Visual highlighting remains in `BoardView`'s Canvas; this transparent
 /// circle gives each hex a stable, independently enabled control for assistive
 /// technology and tap-driven journey tests.
@@ -579,6 +606,7 @@ struct TileTapTarget: View {
     let accessibilityValue: String
     let accessibilityHint: String
     let onTap: () -> Void
+    var onTapAtPoint: ((CGPoint) -> Void)?
 
     var body: some View {
         Circle()
@@ -586,7 +614,9 @@ struct TileTapTarget: View {
             .frame(width: diameter, height: diameter)
             .position(position)
             .allowsHitTesting(isEnabled)
-            .onTapGesture(perform: onTap)
+            .gesture(SpatialTapGesture(coordinateSpace: .named(BoardDecisionCoordinateSpace.name)).onEnded { value in
+                if let onTapAtPoint { onTapAtPoint(value.location) } else { onTap() }
+            })
             .accessibilityElement(children: .ignore)
             .accessibilityIdentifier(accessibilityIdentifier)
             .accessibilityLabel(accessibilityLabel)
@@ -594,6 +624,9 @@ struct TileTapTarget: View {
             .accessibilityHint(accessibilityHint)
             .accessibilityAddTraits(.isButton)
             .accessibilityAddTraits(isSelected ? .isSelected : [])
+            // VoiceOver activates an identified destination, not a geometric
+            // touch. Keep its exact identity even when physical circles overlap.
+            .accessibilityAction(.default) { onTap() }
             .disabled(!isEnabled)
     }
 }
