@@ -1,11 +1,11 @@
 import SwiftUI
 import CatanEngine
 
-/// Stock is optional: Monopoly takes from rivals and must not advertise bank
-/// quantities. Plenty supplies real stock and its existing legality mask.
+/// The same resource control names the actual source of its quantity: Plenty
+/// draws from the bank, while Monopoly collects the public aggregate in rivals' hands.
 struct DevCardResourceChoice: View {
     let resource: Resource
-    let count: Int?
+    let quantity: DevCardResourceQuantity
     let isEnabled: Bool
     var isSelected = false
     let action: () -> Void
@@ -22,7 +22,10 @@ struct DevCardResourceChoice: View {
                         }
                     }
                 Text(resource.rawValue.capitalized).font(.caption2.weight(.semibold))
-                if let count { Text("\(count) left").font(.caption2).monospacedDigit() }
+                if let count = quantity.count {
+                    Text("\(count)").font(.caption.weight(.semibold)).monospacedDigit()
+                }
+                Text(quantity.caption).font(.caption2).multilineTextAlignment(.center)
             }
             .fontDesign(.serif)
             .foregroundStyle(DevCardChrome.ivory)
@@ -38,8 +41,34 @@ struct DevCardResourceChoice: View {
         .buttonStyle(DevCardResourceButtonStyle())
         .disabled(!isEnabled)
         .accessibilityLabel(resource.rawValue.capitalized)
-        .accessibilityValue(count.map { "\($0) in the bank" } ?? (isSelected ? "Selected" : "Not selected"))
+        .accessibilityValue(quantity.accessibilityValue + (isSelected ? ", Selected" : ""))
         .accessibilityAddTraits(isSelected ? [.isSelected] : [])
+    }
+}
+
+enum DevCardResourceQuantity {
+    case bank(Int)
+    case rivals(Int?)
+
+    var count: Int? {
+        switch self {
+        case .bank(let count): count
+        case .rivals(let count): count
+        }
+    }
+
+    var caption: String {
+        switch self {
+        case .bank: "in bank"
+        case .rivals(let count): count == nil ? "Amount unknown" : "to collect"
+        }
+    }
+
+    var accessibilityValue: String {
+        switch self {
+        case .bank(let count): "\(count) in the bank"
+        case .rivals(let count): count.map { "\($0) available to collect from rivals" } ?? "Amount available from rivals unknown"
+        }
     }
 }
 

@@ -365,14 +365,27 @@ struct DevelopmentCardOverlay: View {
     private var monopolyChooser: some View {
         VStack(alignment: .leading, spacing: 8) {
             Text("Collect from rivals").font(.subheadline.bold()).foregroundStyle(DevCardChrome.gold)
+            Text("Counts exclude your hand and the bank.")
+                .font(.caption).foregroundStyle(DevCardChrome.ivory.opacity(0.8))
             LazyVGrid(columns: resourceColumns, spacing: 8) {
                 ForEach(Resource.allCases, id: \.self) { resource in
-                    DevCardResourceChoice(resource: resource, count: nil, isEnabled: true,
+                    DevCardResourceChoice(resource: resource, quantity: .rivals(monopolyCount(resource)), isEnabled: true,
                                           isSelected: monopolyPick == resource) { monopolyPick = resource }
                         .accessibilityIdentifier(AccessibilityID.DevCards.resource(resource))
                 }
             }
+            if let resource = monopolyPick, monopolyCount(resource) == 0 {
+                Text("No rival holds \(resource.rawValue.capitalized). This play will collect nothing.")
+                    .font(.caption).foregroundStyle(DevCardChrome.ivory)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
         }
+    }
+
+    private func monopolyCount(_ resource: Resource) -> Int? {
+        MonopolyCollectionPreview(totalPerResource: state.rules.bankPerResource,
+                                  bank: state.bank, ownHand: state.players[player.index].resources)
+            .collectibleCount(for: resource)
     }
 
     private var plentyChooser: some View {
@@ -386,7 +399,7 @@ struct DevelopmentCardOverlay: View {
             Text("Bank supply").font(.caption).foregroundStyle(DevCardChrome.ivory.opacity(0.8))
             LazyVGrid(columns: resourceColumns, spacing: 8) {
                 ForEach(Resource.allCases, id: \.self) { resource in
-                    DevCardResourceChoice(resource: resource, count: state.bank[resource] ?? 0,
+                    DevCardResourceChoice(resource: resource, quantity: .bank(state.bank[resource] ?? 0),
                                           isEnabled: canAddYearOfPlenty(resource)) { addYearOfPlenty(resource) }
                         .accessibilityIdentifier(AccessibilityID.DevCards.resource(resource))
                 }
@@ -501,9 +514,15 @@ struct DevelopmentCardOverlay: View {
         case .knight: "Choose the robber's destination"
         case .roadBuilding: "Choose two roads on the board"
         case .yearOfPlenty: "\(yearOfPlentyPicks.count) of 2 selected"
-        case .monopoly: monopolyPick.map { $0.rawValue.capitalized } ?? "Choose a resource"
+        case .monopoly: monopolyPick.map { monopolySubtitle($0) } ?? "Choose a resource"
         case .victoryPoint: nil
         }
+    }
+
+    private func monopolySubtitle(_ resource: Resource) -> String {
+        let name = resource.rawValue.capitalized
+        guard let count = monopolyCount(resource) else { return "Collect all \(name) held by rivals" }
+        return "Collect \(count) \(name) from rivals"
     }
 
     private func canSubmit(_ type: DevCardType, status: DevCardPlayStatus) -> Bool {

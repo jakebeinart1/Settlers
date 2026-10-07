@@ -23,6 +23,14 @@ final class DevelopmentCardDesignTests: XCTestCase {
             if type == "monopoly" {
                 XCTAssertFalse(app.staticTexts["Bank supply"].exists,
                                "Monopoly collects from rivals; bank counts are irrelevant")
+                XCTAssertTrue(app.staticTexts["Counts exclude your hand and the bank."].exists)
+                for resource in resources {
+                    assertQuantity(resource, value: "0 available to collect from rivals", in: app)
+                }
+            } else if type == "yearOfPlenty" {
+                for resource in resources {
+                    assertQuantity(resource, value: "38 in the bank", in: app)
+                }
             }
             capture("Naval card — \(type) normal text", in: app)
         }
@@ -62,8 +70,14 @@ final class DevelopmentCardDesignTests: XCTestCase {
             assertActionsFit(type, in: app)
             let ore = app.buttons["dev-cards.resource.ore"]
             scrollToChoice(ore, in: app)
+            assertVisible(ore, in: contentFrame(in: app))
+            assertQuantity("ore", value: type == "monopoly"
+                           ? "0 available to collect from rivals" : "38 in the bank", in: app)
             ore.tap()
-            if type == "yearOfPlenty" {
+            if type == "monopoly" {
+                assertQuantity("ore", value: "0 available to collect from rivals, Selected", in: app)
+                XCTAssertTrue(app.buttons["dev-cards.play.monopoly"].label.contains("Collect 0 Ore from rivals"))
+            } else {
                 ore.tap()
                 XCTAssertTrue(app.buttons["dev-cards.play.yearOfPlenty"].isEnabled)
                 let selected = app.buttons["dev-cards.selected.ore"]
@@ -82,6 +96,30 @@ final class DevelopmentCardDesignTests: XCTestCase {
         assertVisible(app.buttons["dev-cards.result.continue"], in: app.frame)
         capture("Year of Plenty — largest text result and acknowledgement", in: app)
         app.buttons["dev-cards.result.continue"].tap()
+        XCTAssertTrue(app.buttons["Roll Dice"].waitForExistence(timeout: 3))
+    }
+
+    func testLargestTextMonopolyShowsAndCollectsThePredictedRivalTotal() {
+        let app = launchHand(largeText: true, extra: ["-qaDevCardBankScarce"])
+        selectCard("monopoly", in: app)
+        assertPanelFits(in: app)
+        let wool = app.buttons["dev-cards.resource.wool"]
+        scrollToChoice(wool, in: app)
+        assertVisible(wool, in: contentFrame(in: app))
+        assertQuantity("wool", value: "38 available to collect from rivals", in: app)
+        wool.tap()
+        assertQuantity("wool", value: "38 available to collect from rivals, Selected", in: app)
+        let play = app.buttons["dev-cards.play.monopoly"]
+        XCTAssertTrue(play.label.contains("Collect 38 Wool from rivals"))
+        XCTAssertTrue(play.isEnabled)
+        assertActionsFit("monopoly", in: app)
+        capture("Monopoly — largest text predicts 38 Wool with actions pinned", in: app)
+        play.tap()
+        XCTAssertTrue(app.staticTexts["dev-cards.result"].waitForExistence(timeout: 3))
+        assertVisible(app.buttons["dev-cards.result.continue"], in: app.frame)
+        capture("Monopoly — largest text actual 38-card receipt", in: app)
+        app.buttons["dev-cards.result.continue"].tap()
+        XCTAssertEqual(app.otherElements["human-resource.wool"].value as? String, "38")
         XCTAssertTrue(app.buttons["Roll Dice"].waitForExistence(timeout: 3))
     }
 
@@ -116,6 +154,9 @@ final class DevelopmentCardDesignTests: XCTestCase {
         let app = launchHand(extra: ["-qaDevCardBankScarce"])
         selectCard("yearOfPlenty", in: app)
         let ore = app.buttons["dev-cards.resource.ore"]
+        assertQuantity("ore", value: "1 in the bank", in: app)
+        assertQuantity("grain", value: "1 in the bank", in: app)
+        assertQuantity("wool", value: "0 in the bank", in: app)
         XCTAssertTrue(ore.isEnabled)
         ore.tap()
         XCTAssertFalse(ore.isEnabled, "The last bank Ore cannot be selected a second time")
@@ -124,19 +165,28 @@ final class DevelopmentCardDesignTests: XCTestCase {
         app.buttons["dev-cards.resource.grain"].tap()
         XCTAssertTrue(app.buttons["dev-cards.play.yearOfPlenty"].isEnabled)
         selectCard("monopoly", in: app)
+        for resource in resources {
+            let count = resource == "ore" || resource == "grain" ? 37 : 38
+            assertQuantity(resource, value: "\(count) available to collect from rivals", in: app)
+            assertVisible(app.buttons["dev-cards.resource.\(resource)"], in: contentFrame(in: app))
+        }
         let wool = app.buttons["dev-cards.resource.wool"]
         XCTAssertTrue(wool.isEnabled, "Monopoly may choose a resource absent from the bank")
         wool.tap()
-        XCTAssertTrue(app.buttons["dev-cards.play.monopoly"].isEnabled)
+        assertQuantity("wool", value: "38 available to collect from rivals, Selected", in: app)
+        let play = app.buttons["dev-cards.play.monopoly"]
+        XCTAssertTrue(play.isEnabled)
+        XCTAssertTrue(play.label.contains("Collect 38 Wool from rivals"))
         XCTAssertFalse(app.staticTexts["Bank supply"].exists)
-        capture("Naval Monopoly — bank stock does not limit selection", in: app)
-        app.buttons["dev-cards.play.monopoly"].tap()
+        capture("Naval Monopoly — 38 Wool to collect despite an empty bank", in: app)
+        play.tap()
         XCTAssertTrue(app.staticTexts["dev-cards.result"].waitForExistence(timeout: 3))
+        XCTAssertTrue(app.staticTexts["Every rival surrendered their Wool. You collected 38 cards."].exists)
         capture("Naval Monopoly — collects rival stock with an empty bank", in: app)
         app.buttons["dev-cards.result.continue"].tap()
         let heldWool = Int(app.otherElements["human-resource.wool"].value as? String ?? "")
         XCTAssertNotNil(heldWool)
-        XCTAssertGreaterThan(heldWool ?? 0, 0, "A zero bank must not prevent collecting rivals' Wool")
+        XCTAssertEqual(heldWool, 38, "The receipt must deliver the exact publicly predicted rival total")
         XCTAssertTrue(app.buttons["Roll Dice"].waitForExistence(timeout: 3))
     }
 
@@ -247,6 +297,12 @@ final class DevelopmentCardDesignTests: XCTestCase {
         XCTAssertTrue(element.exists)
         XCTAssertTrue(element.isHittable, "Expected the whole control to be usable: \(element.identifier)")
         assertContained(element.frame, within: frame, message: "Clipped control: \(element.identifier)")
+    }
+
+    private func assertQuantity(_ resource: String, value: String, in app: XCUIApplication) {
+        let choice = app.buttons["dev-cards.resource.\(resource)"]
+        XCTAssertTrue(choice.exists, "Expected a resource choice for \(resource)")
+        XCTAssertEqual(choice.value as? String, value, "Quantity must identify its source for \(resource)")
     }
 
     private func assertContained(_ frame: CGRect, within container: CGRect, message: String) {
