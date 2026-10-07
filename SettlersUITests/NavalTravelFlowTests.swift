@@ -15,7 +15,7 @@ final class NavalTravelFlowTests: XCTestCase {
         let entries = targets.allElementsBoundByIndex
         XCTAssertTrue(entries.contains { ($0.value as? String ?? "").contains("1 hex of travel") })
         XCTAssertTrue(entries.contains { ($0.value as? String ?? "").contains("2 hexes of travel") })
-        XCTAssertTrue(app.staticTexts["2 hexes left this turn. Choose a destination."].exists)
+        XCTAssertTrue(app.staticTexts["2 hexes left this turn. Numbers show travel cost."].exists)
         XCTAssertFalse(app.staticTexts["Sail Ship 1"].exists)
         retain("Voyages — complete two-hex sailing range", app: app)
         guard let target = entries.first(where: {

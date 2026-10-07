@@ -38,7 +38,12 @@ final class NavalHarvestArtworkFlowTests: XCTestCase {
         let board = app.otherElements["board.surface"]
         for _ in 0..<10 {
             let fields = geometry(marker.value as? String ?? "")
-            guard let x = fields["x"], let y = fields["y"] else { XCTFail("Missing public field geometry"); return }
+            guard let x = fields["x"], let y = fields["y"], let size = fields["hexSize"] else {
+                XCTFail("Missing public field geometry"); return
+            }
+            let viewport = CGRect(origin: .zero, size: board.frame.size)
+            let visibleField = CGRect(x: x - size, y: y - size, width: size * 2, height: size * 2)
+            if viewport.contains(visibleField) { return }
             let dx = board.frame.width / 2 - x, dy = board.frame.height / 2 - y
             if abs(dx) < 8 && abs(dy) < 8 { return }
             let start = board.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5))
@@ -46,7 +51,8 @@ final class NavalHarvestArtworkFlowTests: XCTestCase {
                                   dy: min(max(dy, -board.frame.height * 0.35), board.frame.height * 0.35))
             start.press(forDuration: 0.05, thenDragTo: start.withOffset(offset))
         }
-        XCTFail("Real panning did not bring the field into view")
+        retain("Harvest field framing failure", app: app)
+        XCTFail("Real panning did not bring the whole field into view: \(marker.value ?? "missing")")
     }
 
     private func geometry(_ text: String) -> [String: CGFloat] {

@@ -34,7 +34,7 @@ public struct NavalSailingPresentation: Sendable, Equatable {
     var detail: String {
         guard let remaining else { return "Choose a ship. Up to \(NavalQuantityText.hexes(allowance)) per turn." }
         guard !selectedRoute.isEmpty else {
-            return "\(NavalQuantityText.hexes(remaining)) left this turn. Choose a destination."
+            return "\(NavalQuantityText.hexes(remaining)) left this turn. Numbers show travel cost."
         }
         return "Sail \(NavalQuantityText.hexes(selectedRoute.count)). \(remaining - selectedRoute.count) left afterward."
     }

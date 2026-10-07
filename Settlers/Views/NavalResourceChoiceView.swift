@@ -95,15 +95,15 @@ struct NavalResourceChoiceView: View {
     private func header(_ harvest: NavalHarvestPresentation) -> some View {
         VStack(spacing: 7) {
             Text(harvest.source)
-                .font(.caption)
-                .foregroundStyle(.white.opacity(0.85))
+                .font(.subheadline.bold())
+                .foregroundStyle(.white)
                 .fixedSize(horizontal: false, vertical: true)
-                .accessibilityHidden(true)
+                .accessibilityIdentifier("naval.resource.source")
             Text(harvest.title)
                 .font(.system(.title2, design: .serif).bold())
                 .foregroundStyle(CatanTheme.cityPennantGold)
                 .fixedSize(horizontal: false, vertical: true)
-                .accessibilityLabel("Island harvest. \(harvest.source). \(harvest.title).")
+                .accessibilityLabel("Island harvest. \(harvest.title).")
                 .accessibilityIdentifier("naval.resource.choice")
                 .accessibilityAddTraits(.isHeader)
                 .accessibilityFocused($isHeadingFocused)
@@ -122,13 +122,18 @@ struct NavalResourceChoiceView: View {
                 .accessibilityHidden(true)
             HStack(spacing: 8) {
                 Text(harvest.collected)
+                    .accessibilityIdentifier("naval.resource.progress.collected")
                 Spacer(minLength: 0)
                 Text(harvest.remaining).bold()
+                    .accessibilityIdentifier("naval.resource.progress.remaining")
             }
             .font(.caption)
+            .foregroundStyle(.white)
             .accessibilityElement(children: .ignore)
             .accessibilityLabel("Harvest progress")
             .accessibilityValue("\(harvest.collected). \(harvest.remaining).")
+            .accessibilityAddTraits(.isStaticText)
+            .accessibilityRespondsToUserInteraction(false)
             .accessibilityIdentifier("naval.resource.progress")
         }
     }

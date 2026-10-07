@@ -362,7 +362,7 @@ final class NavalFlowTests: XCTestCase {
         XCTAssertTrue(row.exists)
         revealWholeFleetRow(row, in: scroll, chooser: chooser, app: app)
         XCTAssertTrue(row.isHittable)
-        XCTAssertTrue(row.label.contains("Ship \(id + 1)"), "Each large-text row must retain its exact identity")
+        XCTAssertEqual(row.identifier, "\(prefix).ship.\(id)", "Each large-text row must retain its exact identity")
         if id == 2 { retainScreenshot("Voyages — maximum-text \(prefix) with a complete vessel", app: app) }
         row.tap()
         XCTAssertTrue(app.staticTexts["Sail your ship"].waitForExistence(timeout: 3),
@@ -476,7 +476,8 @@ final class NavalFlowTests: XCTestCase {
     func testWildHarvestIsOneBankCardAndSurvivesColdResume() {
         let app = launch("-qaNavalResourcePosition")
         XCTAssertTrue(app.buttons["naval.resource.ore"].waitForExistence(timeout: 5))
-        XCTAssertTrue(app.staticTexts["naval.resource.choice"].label.contains("Settlement harvest. Choose 1 resource"))
+        XCTAssertEqual(app.staticTexts["naval.resource.source"].label, "Settlement harvest")
+        XCTAssertTrue(app.staticTexts["naval.resource.choice"].label.contains("Choose 1 resource"))
         let oreBefore = Int(app.buttons["naval.resource.ore"].value as? String ?? "")!
         app.buttons["naval.resource.ore"].tap()
         XCTAssertEqual(Int(app.buttons["naval.resource.ore"].value as? String ?? ""), oreBefore)
@@ -527,15 +528,16 @@ final class NavalFlowTests: XCTestCase {
     func testCityHarvestCreditsTwoChoicesAcrossColdResume() {
         let app = launch("-qaNavalCityResourcePosition")
         let ore = app.buttons["naval.resource.ore"]
-        XCTAssertTrue(app.staticTexts["naval.resource.choice"].label.contains("City harvest. Choose 2 resources"))
-        XCTAssertEqual(app.otherElements["naval.resource.progress"].value as? String, "0 of 2 collected. 2 remaining.")
+        XCTAssertEqual(app.staticTexts["naval.resource.source"].label, "City harvest")
+        XCTAssertTrue(app.staticTexts["naval.resource.choice"].label.contains("Choose 2 resources"))
+        XCTAssertEqual(app.descendants(matching: .any)["naval.resource.progress"].value as? String, "0 of 2 collected. 2 remaining.")
         retainScreenshot("Voyages — city chooses two resources with clear progress", app: app)
         let before = Int(ore.value as? String ?? "")!
         ore.tap()
         app.buttons["naval.resource.confirm"].tap()
         XCTAssertTrue(app.staticTexts["naval.resource.choice"].exists)
         XCTAssertEqual(Int(ore.value as? String ?? ""), before + 1)
-        XCTAssertEqual(app.otherElements["naval.resource.progress"].value as? String, "1 of 2 collected. 1 remaining.")
+        XCTAssertEqual(app.descendants(matching: .any)["naval.resource.progress"].value as? String, "1 of 2 collected. 1 remaining.")
         XCTAssertFalse(app.buttons["naval.resource.confirm"].isEnabled, "A second unit needs a new explicit selection")
         app.terminate()
         app.launchArguments = ["-ui-testing", "-qaAutoStart"]
@@ -543,7 +545,7 @@ final class NavalFlowTests: XCTestCase {
         XCTAssertTrue(ore.waitForExistence(timeout: 5))
         XCTAssertEqual(Int(ore.value as? String ?? ""), before + 1)
         XCTAssertTrue(app.staticTexts["naval.resource.choice"].label.contains("Choose 2 resources"))
-        XCTAssertEqual(app.otherElements["naval.resource.progress"].value as? String, "1 of 2 collected. 1 remaining.")
+        XCTAssertEqual(app.descendants(matching: .any)["naval.resource.progress"].value as? String, "1 of 2 collected. 1 remaining.")
         retainScreenshot("Voyages — city harvest progress survives cold resume", app: app)
         XCTAssertFalse(app.buttons["naval.resource.confirm"].isEnabled)
         ore.tap()
@@ -582,6 +584,19 @@ final class NavalFlowTests: XCTestCase {
         XCTAssertFalse(app.buttons["naval.overview"].isHittable, "Covered navigation must not accept interaction")
         try app.performAccessibilityAudit(for: [.contrast, .hitRegion, .sufficientElementDescription, .textClipped]) { issue in
             print("Naval accessibility audit: \(issue.detailedDescription), \(issue.element?.debugDescription ?? "no element")")
+            if issue.auditType == .contrast, let element = issue.element,
+               ["naval.resource.source", "naval.resource.progress.collected", "naval.resource.progress.remaining"]
+                .contains(element.identifier) {
+                let screenshot = element.screenshot()
+                let attachment = XCTAttachment(screenshot: screenshot)
+                attachment.name = "\(element.identifier) — independently measured rendered contrast"
+                attachment.lifetime = .keepAlways
+                self.add(attachment)
+                let ratio = WhiteTextContrast.ratio(in: screenshot.image) ?? 0
+                print("Live \(element.identifier) white-text contrast: \(ratio):1")
+                XCTAssertGreaterThanOrEqual(ratio, WhiteTextContrast.requiredRatio)
+                return ratio >= WhiteTextContrast.requiredRatio
+            }
             return false
         }
         retainScreenshot("Voyages — audited island harvest", app: app)
