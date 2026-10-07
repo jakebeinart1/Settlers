@@ -1,5 +1,90 @@
 # Naval phone delivery
 
+## Build 24 delivered
+
+**October 7: Empires 1.0/build 24 is available to Alex in internal TestFlight.**
+Apple build `9b3882ef-a85c-46c2-8d1a-2d83f5483aef` is VALID, unexpired and
+internally IN_BETA_TESTING. Alex Chandler belongs to Internal with access to all
+builds, confirmed by the [Apple/access receipt](evidence/receipts/build24-testflight.json)
+at 13:06:46 UTC (9:06:46 a.m. EDT) and independently at 13:06:40 UTC in the
+[final release audit](evidence/receipts/build24-final-independent-release-audit.json).
+The audit passes, binding 376 production inputs, 303 matrix hashes, 23 original
+capture hashes, ordinary Release runtime and actual uploaded payload/signature/
+checksum/access. External state is READY_FOR_BETA_SUBMISSION; external build 24
+is unreleased. Physical-phone installation/play, hardware timing, manual
+VoiceOver and new AI strength remain unobserved. Open TestFlight → Empires →
+Update. New Naval matches use two-hex voyages; v1/v2 saves retain their rules.
+
+D45–D49 implement painted harvest/derived progress, natural ship language,
+visible goals, accepted-bot-offer competition and Naval v3 destination voyages.
+Production source is `9bce5f77a38684bd6e011fac8838c74b38440798`; tested/archive
+head `67efbad` differs only in two test corrections. All
+[376 production inputs](evidence/receipts/build24-final-production-inputs.json)
+and 112 package files match the freeze. Naval is integrated above main `83d8525`,
+retaining its resource-square/Skip/Block/leaderboard/ghost-rename fixes. Jake's
+committed signing defaults remain unchanged.
+
+The first full pre-push gate failed two obsolete test oracles, retaining Git exit
+141/no published push. Test-only correction passes three functions/eight runs.
+The [final gate](evidence/receipts/build24-final-prepush-command.json) passes all
+ten mandatory stages, session `91604`, exit 0, and publishes `67efbad`. App/UI
+has 754 functions: 753 pass, zero failures, one size-specific skip, 1,512 passing
+runs; hosted 581/82, Engine 391/31 and AI 308/31 pass, coverage 96.78%/96.05%.
+Optional separate Debug app build skips; native tests built Debug. The sole
+375×667 footer case skips on 402×874 QA; no current compact execution is claimed.
+E29 retains all earlier failures and exact three-ID/live ≥7:1 contrast guards.
+
+Fresh [v3 evidence](evidence/receipts/build24-v3-summary.json) passes 48 matches
+and six complete-byte result/trace repeats. There are no forced ends, idle
+sailing/trade cycles or duplicate proposals; two raw revisits are productive.
+Independent reveal reconstruction covers only two retained fog-off checkpoints,
+with engine/source fog tests separate. These are functional results, not strength.
+
+The [ordinary Release receipt](evidence/receipts/build24-release-runtime.json)
+passes fresh 1.0/24 install without QA arguments, PID `93934` surviving six
+seconds, no new own crashes and root-inspected menu. Executable SHA256 is
+`33d7746154466774d4359d897e8727710515f8ba11afd595660fca25329c010b`.
+Root approves all [23 final originals](evidence/screenshots/build24-final-manifest.json):
+22 Debug attachments and its ordinary Release menu, with three informational
+caption crops. Exact source/test/time/configuration and unchanged hashes remain;
+Release capture time was unrecorded, so verification/inspection times stay
+separate. Simulator/native media and signed device payload retain attribution.
+
+The [archive/export receipt](evidence/receipts/build24-archive-command-receipt.json),
+[archive log](evidence/receipts/build24-archive.log),
+[export log](evidence/receipts/build24-export.log),
+[upload receipt](evidence/receipts/build24-upload-command-receipt.json) and
+[upload log](evidence/receipts/build24-upload.log) pass at exit 0. Both
+[review export](evidence/receipts/build24-signed-export.json) and
+[actual uploaded payload](evidence/receipts/build24-uploaded-payload-signature.json)
+pass strict/deep App Store/Production signature checks: beta reports active,
+get-task-allow false, no provisioned devices and correct Production CloudKit.
+
+| Payload | Size | SHA256 |
+|---|---|---|
+| Actual preserved uploaded IPA | 36,268,869 bytes | `0ef24d00609c2f2830448ddcdf817d167a0673d060442631c31d1e4e3f87becc` |
+| Review export | 36,268,871 bytes | `f899e4d02bc252a70eb6d675ba51741328c0d2fdf501786958769abdaef06770` |
+
+The [comparison](evidence/receipts/build24-uploaded-payload-comparison.json)
+checks 14 ZIP members; only designated executable signature bytes differ, with
+its first 5,855,808 bytes identical. Actual upload MD5
+`dfcd6ece91320bbe705a2ce46c26bd0a` matches three ContentDelivery checksum records
+and delivery ID `9b3882ef-a85c-46c2-8d1a-2d83f5483aef`, matching Apple's build.
+
+The [cleanup receipt](evidence/receipts/build24-simulator-cleanup.json) verifies
+QA `937692FF` alone is shut down at 13:07:05 UTC; no device is created/deleted.
+Ferrule Dice Review and Switchbard Small Owner Review 2a7e remain booted and
+untouched. Three implementation helpers are recoverably archived; both root
+checkouts/durable artifacts remain. All 376 inputs still match after delivery.
+
+[E29](acceptance.md#build-24-follow-up-e29-delivered) is complete for internal
+delivery. [PR #60](https://github.com/jakebeinart1/Settlers/pull/60) is attached
+and awaits at least one actual approval; no merge is recorded. Tested `67efbad`
+passes required Linux/SwiftLint [CI](evidence/receipts/build24-tested-head-github-ci.json),
+[run 37624311095](https://github.com/jakebeinart1/Settlers/actions/runs/37624311095).
+Workflow-dispatch-only project drift skips; local drift passes. Main remains
+`83d8525` at this snapshot. Build 23/22 records below preserve their attribution.
+
 ## Build 23 delivered
 
 **October 7: Empires 1.0/build 23 is available to Alex in internal TestFlight.**

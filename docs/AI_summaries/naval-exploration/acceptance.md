@@ -1,11 +1,39 @@
 # Voyages requirements and acceptance
 
 The complete mode is implemented in the isolated `codex/naval-exploration`
-worktree. C01–C13 preserve Alex's commitments. Delegated D01–D32 are recorded in the
-[design contract](design-contract.md); subsequent human D33–D44 are recorded in
+worktree. C01–C16 preserve Alex's commitments. Delegated D01–D32 are recorded in the
+[design contract](design-contract.md); subsequent human D33–D49 are recorded in
 [decisions](decisions.md). This register states their
 observable outcomes, counterexamples and available evidence. It replaces the
 planning-only register with source-bound final acceptance evidence.
+
+**Build 24: delivered to Alex in internal TestFlight (E29).** D45–D49 select
+painted harvest terrain/progress, natural ship language, visible win goals,
+accepted-bot-offer competition and Naval v3 two-hex destination voyages. Current-main
+integration is frozen at `9bce5f77a38684bd6e011fac8838c74b38440798`, version 1.0/build 24,
+with [376 production inputs](evidence/receipts/build24-final-production-inputs.json).
+The integrated focused command failed three checks; its refined follow-up failed
+one contrast audit. Subsequent harvest verification passes three native cases
+with a narrowly qualified contrast handler, retaining the raw native flags and
+requiring live screenshot ratios of at least 7:1 for three exact IDs. Fresh v3
+functional evidence passes 48 matches and six complete-byte result/trace repeats;
+it does not establish strength. Root inspected integrated harvest paint and the
+actual bot-winner notice. The first complete pre-push gate failed two test oracles;
+their test-only correction passes three functions/eight runs. The replacement
+full gate passes all ten mandatory stages, exit 0, and publishes the branch at
+test-only head `67efbad`. App/UI has 754 functions: 753 pass, zero failures,
+one skip; 1,512 passing runs. Optional Debug app build skips; the native test
+action built Debug. Ordinary Release 1.0/24 is freshly installed without QA
+arguments; PID 93934 survives six seconds with no new own crashes. Root approved
+23 unmodified final-source images, including its menu. Archive/export/upload and
+strict/deep Production signatures pass. Apple build
+`9b3882ef-a85c-46c2-8d1a-2d83f5483aef` is VALID, unexpired and internally
+IN_BETA_TESTING, with Alex's Internal all-build access independently confirmed.
+The final release audit passes. PR #60 awaits actual approval; required tested-
+head Linux/SwiftLint CI passes and no merge is recorded. External release, physical-phone play and new strength
+remain unobserved.
+[E29](#build-24-follow-up-e29-delivered) owns the receipts and limits. Build 23/22
+records below retain their original source boundaries.
 
 **Build 23: delivered to Alex in internal TestFlight (E28).**
 D42–D44 add eight painted controller styles, explicit construction availability
@@ -126,6 +154,10 @@ change presentation only. Production choices and capture are durable obligations
 optional selection and camera animation are not gameplay state. E01–E22 refer to
 the evidence index below.
 
+The closure statements below describe the original local-simulator delivery.
+D45–D49 add build 24 obligations, closed for internal delivery in E29 with
+explicit measurement limits. Historical closures retain their original source.
+
 ### F01 — Configure, understand and resume Voyages
 
 **Sources:** C03–C06, C11; D01–D02, D14, D24, D30–D31.
@@ -151,20 +183,22 @@ other contracts.
 
 ### F02 — Buy and launch independent ships
 
-**Sources:** C01–C02; D04, D10, D13, D24, D42–D43.
+**Sources:** C01–C02, C14–C15; D04, D10, D13, D24, D42–D43, D46–D47.
 A ship costs exactly two lumber, one wool and two ore. Only a sea hex touching the
 builder's own coastal settlement/city can launch it. Confirmation subtracts those
 cards once, returns them to the bank, consumes one of that builder's six lifetime
-purchasable hulls and creates a persistent ship with three steps. Capture does
+purchasable hulls and creates a persistent ship with its versioned allowance:
+two hexes in new v3 games, three in legacy v1/v2. Capture does
 not refund hull stock. A controller may own additional captured hulls.
 
 Verify unaffordable purchase, no eligible coastal building, exhausted builder
 stock, already occupied water and stacked identity selection. Preview/cancel
 spends nothing, creates nothing and reveals nothing. `NavalGameplayTests` covers
 exact accounting, stacking and builder stock; `NavalMatchFlowTests` covers durable
-confirmation. E01/E02 purchase and cancel through native controls. Display names
-are one-based (“Ship 1”); stable stored IDs and automation identifiers remain
-unchanged.
+confirmation. E01/E02 purchase and cancel through native controls. D46 uses
+natural owner/ship language; stable stored IDs and automation identifiers remain
+unchanged. Its build 24 validation is recorded in E29; E20's one-based labels remain
+historical evidence.
 
 D43's Build menu names Ready/Unavailable, exact cards-held/cost and missing
 quantities or phase/supply/location reasons. Only a legal build during the
@@ -177,17 +211,22 @@ exactly once on confirmation, including cold resume (E28 targeted checks).
 
 ### F03 — Sail with a bounded, readable allowance
 
-**Sources:** C01; D03–D05.
-Each controlled ship receives three steps at its owner's turn boundary; purchase
-and capture grant three immediately. One confirmed sail moves one hex to adjacent
-sea during the main turn. Ships can stack and pass through one another. Trading,
-cards and construction may occur between steps. A ship cannot teleport, cross
-land, leave the world, move for another controller or spend a fourth step.
+**Sources:** C01, C14; D03–D05, D47.
+New v3 matches give each controlled ship two sea hexes at its owner's turn
+boundary; purchase/capture grant two immediately. One confirmation commits a
+reachable public sea destination costing one/two hexes, bounded by remaining
+allowance, over one canonical shortest route. Legacy v1/v2 retain three hexes
+and adjacent-only actions. Ships stack/pass through one another. Trading, cards
+and construction may occur between voyages. A ship cannot cross land, leave the
+world, move for another controller or exceed its saved-version allowance.
 
 Verify explicit ship selection, stacked choices, Fleet access, destination preview,
 revision/cancel/confirm, exhausted steps, turn refresh and a captured hull's fresh
-allowance. Radius-two discovery ensures the next adjacent cell is already known;
-a preview does not probe unknown terrain. E01/E02 commit three real sailing moves
+allowance. Radius-two sight makes the complete v3 range already public; every
+reachable endpoint shows its cost above cosmetic mist. Preview/cancel reveal
+nothing; commitment reveals the same route's intermediate-radius-two union.
+E29 requires actual one/two-hex confirmation, remaining-range paint and legacy
+exact replay. E01/E02 commit three historical adjacent moves
 and cold resume; `NavalGameplayTests` exercises invalid movement and refresh.
 
 **Closure: closed for local simulator review.** Final rules, budget and routing checks pass E20. E21 commits three steps, discovery and cold resume; E22 records sequential preview/commit/remaining-step frames and World navigation.
@@ -285,11 +324,11 @@ passes unfiltered in E14 at both regular and small phone sizes. The corrected fu
 
 ### F08 — Capture a distant opposing ship on 11
 
-**Sources:** C08–C09; D09–D11.
+**Sources:** C08–C09, C14; D09–D11, D47.
 After an 11's fixed and flexible production, the roller may capture any opposing
 ship globally or explicitly skip. With no eligible opposing ships, play advances
 directly to the main turn. Confirmation changes only the selected hull's current
-controller and grants three steps; location, ID, builder stock, victim hand and
+controller and grants the saved match's allowance (v3 two; v1/v2 three); location, ID, builder stock, victim hand and
 existing colonies remain unchanged. The transfer persists until another capture.
 An unrelated 11 does not return it. Robber/Knight cannot destroy or capture ships.
 
@@ -619,6 +658,307 @@ in the active DerivedData folder at this checkpoint; the retained logs and expor
 images remain historical evidence. The `2026.10.05_00-05-12--0400` result was
 incomplete after disk exhaustion. E20/E21 retain valid final result bundles. No absent or incomplete historical receipt
 is treated as a passing final stage.
+
+## Build 24 follow-up (E29): delivered
+
+D45–D49 are integrated into the managed
+`/Users/alex/.codex/worktrees/naval24-main-integration/Settlers` checkout above
+current main `83d8525`. Naval squash `527e1ed`, artwork test port `09f5e94` and
+accessibility/travel refinement `9bce5f7` preserve main's resource-square,
+Skip/Block, leaderboard and ghost-rename fixes. Production is frozen at
+`9bce5f77a38684bd6e011fac8838c74b38440798`, version 1.0/build 24. All
+[376 app/package/configuration/asset inputs](evidence/receipts/build24-final-production-inputs.json)
+match the freeze. The first complete pre-push full gate (session `52090`) failed;
+two test-only oracle corrections are committed as `67efbad`. Production/package
+inputs remain unchanged. The replacement full gate (session `91604`) passes all
+ten mandatory stages, exit 0, and publishes `codex/naval24-main-integration` at
+`67efbad`. Ordinary Release runtime and the 23-original final gallery now pass
+local review. Archive/export/upload and strict/deep Production signing pass.
+Apple 1.0/build 24 is VALID, unexpired and internally IN_BETA_TESTING, with
+Alex's Internal all-build access confirmed at 13:06:46 UTC (9:06:46 a.m. EDT),
+October 7, and by independent fresh readback at 13:06:40 UTC. Build 24 is now the
+latest verified internal delivery.
+[PR #60](https://github.com/jakebeinart1/Settlers/pull/60) is attached and awaits
+at least one actual approval; required tested-head CI passes, no merge.
+External availability and physical-phone installation/play remain unobserved.
+
+### Retained development failures and native results
+
+The original branch's first [attempt](</Users/alex/.codex/artifacts/naval-exploration/build24-travel-harvest-trade/first-focused.log>),
+[second](</Users/alex/.codex/artifacts/naval-exploration/build24-travel-harvest-trade/second-focused.log>),
+[third](</Users/alex/.codex/artifacts/naval-exploration/build24-travel-harvest-trade/third-focused.log>)
+and [fourth](</Users/alex/.codex/artifacts/naval-exploration/build24-travel-harvest-trade/fourth-focused.log>)
+failed compilation before tests ran: initializer self-capture, internal checkpoint
+access/missing `for:`, mutating `#require`, and actor-isolated configuration.
+The repaired [fifth summary](</Users/alex/.codex/artifacts/naval-exploration/build24-travel-harvest-trade/fifth-focused-summary.json>)
+and [log](</Users/alex/.codex/artifacts/naval-exploration/build24-travel-harvest-trade/fifth-focused.log>)
+pass 71 functions/107 runs, zero failures/skips, including 58 hosted functions in
+eight suites and 13 native functions. These were intermediate 1.0/23 checks.
+Root inspected eight originals; rival image `D759D58C` was taken after timed news
+expired and remains excluded from result-news paint proof.
+
+The current-main [integrated focused summary](evidence/receipts/build24-main-integrated-focused-summary.json),
+[log](</Users/alex/.codex/artifacts/naval-exploration/build24-travel-harvest-trade/main-integrated-focused.log>)
+and [result](</Users/alex/.codex/artifacts/naval-exploration/build24-travel-harvest-trade/main-integrated-focused.xcresult>)
+report **FAILED**: 121 functions, 117 passed, three failed and one conditional
+natural-seven skip; 155 passing runs, three failed runs and one skipped run.
+The three failures exposed a 14-point progress `Other` element incorrectly marked
+interactive, an obsolete numbered-ship oracle, and an exact-centering camera
+oracle despite the full tile already being visible. The corrections expose
+noninteractive `StaticText`, use stable vessel IDs, and require complete tile
+bounds after actual camera clamping. The last two were test-oracle corrections.
+
+The [refined summary](evidence/receipts/build24-main-refined-focused-summary.json),
+[log](</Users/alex/.codex/artifacts/naval-exploration/build24-travel-harvest-trade/main-refined-focused.log>)
+and [result](</Users/alex/.codex/artifacts/naval-exploration/build24-travel-harvest-trade/main-refined-focused.xcresult>)
+still report **FAILED**: seven functions, six passed and one contrast failure.
+Travel, artwork at local/World/zoom nine, and the maximum-text chooser pass.
+Four later caption-variant audits also failed Contrast despite a visible-region
+PIL ratio of 8.27:1. Their
+[second](</Users/alex/.codex/artifacts/naval-exploration/build24-travel-harvest-trade/harvest-audit-second.log>),
+[third](</Users/alex/.codex/artifacts/naval-exploration/build24-travel-harvest-trade/harvest-audit-third.log>),
+[fourth](</Users/alex/.codex/artifacts/naval-exploration/build24-travel-harvest-trade/harvest-audit-fourth.log>)
+and [measured](</Users/alex/.codex/artifacts/naval-exploration/build24-travel-harvest-trade/harvest-audit-measured.log>)
+logs remain retained, together with the later
+[green-named failed attempt](</Users/alex/.codex/artifacts/naval-exploration/build24-travel-harvest-trade/harvest-audit-green.log>)
+and [final-named failed attempt](</Users/alex/.codex/artifacts/naval-exploration/build24-travel-harvest-trade/harvest-audit-final.log>).
+Names do not change their failed verdicts.
+
+The subsequent [verified log](evidence/receipts/build24-harvest-audit-verified.log)
+and [native result](</Users/alex/.codex/artifacts/naval-exploration/build24-travel-harvest-trade/harvest-audit-verified.xcresult>)
+pass three native cases: city two-choice harvest across cold resume, harvest
+accessibility audit, and maximum-text harvest with every choice/Collect reachable.
+The source caption is explicit white/bold and remains a separate accessible
+`StaticText`; progress captions are explicit white and their combined progress
+label is noninteractive. The audit requests Contrast, hit region, sufficient
+element description and text clipping. **The raw native Contrast flags were not
+cleared.** The handler accepts only Contrast on `naval.resource.source`,
+`naval.resource.progress.collected` and `naval.resource.progress.remaining`,
+and only when `SettlersUITests/WhiteTextContrast.swift` measures the actual live
+element screenshot in sRGB at least 7:1. Ratios are 8.1257:1, 7.9583:1 and
+7.9671:1 respectively. Missing measurement fails; every other audit issue fails.
+The helper measures white text against the dominant backing color. The narrow
+investigated false-positive workflow follows Apple's
+[Perform accessibility audits for your app](https://developer.apple.com/videos/play/wwdc2023/10035/)
+guidance on issue-specific handlers; Apple has not assessed this app's flags.
+This qualified pass is not an unfiltered audit or manual VoiceOver play.
+
+Root inspected original integrated/refined harvest images at local (`43F85FBC`),
+World (`0C35E327`), maximum zoom (`D6E58A51`) and maximum text (`DD293FD2`).
+It also inspected actual Expert-rival winner image `492962A6`, captured before
+waiting for resources, showing the fixed “X traded with Y” notice. The
+[visual record](evidence/visual-review.md#build-24-final-source-gallery-local-review-verified) links
+those development originals separately from the later 23-image final gallery.
+The generated harvest PNG was never edited.
+
+### First complete pre-push gate and test-only corrections
+
+The [completed command receipt](evidence/receipts/build24-first-full-prepush-command.json),
+[complete log](evidence/receipts/build24-first-full-prepush-gate.log),
+[native summary](evidence/receipts/build24-first-full-prepush-native-summary.json)
+and [result](</Users/alex/.codex/artifacts/naval-exploration/build24-travel-harvest-trade/full-prepush-gate.xcresult>)
+retain the first full gate separately from its replacement. Session `52090`
+reports **gate FAILED**, with Git exit 141 and SSH closure during the hook;
+`pushPublished` is false. App/UI reports 754 functions: 750 passed, two failed,
+two skipped, with 1,509 passing runs. The hosted run has 581 functions/82 suites
+and one failure; native has the second failure. Engine passes 391 functions/31
+suites, AI passes 308/31, coverage is 96.74%/96.05%, and Release compilation
+passes. Every other mandatory gate passes. The optional separate Debug app build
+is **SKIP — not requested**, not a Debug-app pass.
+
+The hosted `NavalHistoryIntegrityTests` `.movement` counterexample hardcoded
+three remaining steps, making its supposedly valid v3 state exceed the two-step
+allowance. Its correction reads `Naval.movementPerTurn(in:)` and first asserts
+that the mutation actually changes the saved value; valid-state and cold/
+incremental history-rejection assertions remain. The native
+`HowToPlayFlowTests/testRulebookOpensInsidePausedMatchAndReturnsToSettings`
+used `app.scrollViews.firstMatch`, which selected the background HUD rather than
+the visible Settings scroller. It now scopes to `settings.scrollViews.firstMatch`
+and retains existence, hittability and the rulebook round-trip assertions.
+Commit `67efbadbdb061d9ded77628cf892c72d54e17fb4` changes only these two test files.
+No product/package input changes, waived assertion or production repair is part
+of that correction.
+
+The [correction summary](evidence/receipts/build24-gate-oracle-corrections-summary.json),
+[log](evidence/receipts/build24-gate-oracle-corrections.log) and
+[result](</Users/alex/.codex/artifacts/naval-exploration/build24-travel-harvest-trade/gate-oracle-corrections.xcresult>)
+pass three functions/eight runs, zero failures/skips: one hosted parameterized
+history function with six cases and both How to Play native journeys.
+This targeted pass does not replace the complete gate. The replacement full
+pre-push session `91604` uses SSH keepalive interval 30/count 120; its completed
+verdict and publication are recorded separately below.
+
+The [helper cleanup receipt](evidence/receipts/build24-helper-worktree-cleanup.json)
+confirms three implementation helpers recoverably archived with their changes
+integrated. Both root Naval and main-integration checkouts remain retained;
+needed ignored artifacts are preserved externally. Final delivery cleanup below
+shuts down only the reused QA device.
+
+### Final complete pre-push gate and published branch
+
+The [final command receipt](evidence/receipts/build24-final-prepush-command.json),
+[complete gate log](evidence/receipts/build24-final-prepush-gate.log) and
+[native summary](evidence/receipts/build24-final-prepush-native-summary.json)
+report **PASS**, session `91604`, exit 0: all ten mandatory stages pass.
+App/UI has 754 functions: 753 passed, zero failed and one skipped; 1,512 passing
+runs plus one skipped run. Hosted tests pass 581 functions/82 suites. Engine
+passes 391/31 with 96.78% coverage; AI passes 308/31 with 96.05% coverage.
+Release compilation passes. The optional separate Debug app build is
+**SKIP — not requested**; the native Debug test action built the app/test bundles
+separately. It is not a standalone Debug app-build pass.
+
+The branch `codex/naval24-main-integration` is published with remote head
+`67efbadbdb061d9ded77628cf892c72d54e17fb4`, matching the test-only local head.
+Production remains `9bce5f77a38684bd6e011fac8838c74b38440798`, version 1.0/build 24,
+with all 376 frozen production inputs and 112 package files unchanged. The fresh
+48-match/six-repeat matrix remains bound to those production/package bytes.
+No merge, signed device artifact, upload or Apple availability follows from the
+branch push. Ordinary Release runtime, final gallery and signed/Apple delivery
+have separate receipts below. The qualified three-ID
+native contrast handler remains in place; a green gate does not mean those raw
+flags disappeared.
+
+### Final-source gallery and ordinary Release runtime
+
+The [portable final manifest](evidence/screenshots/build24-final-manifest.json)
+and [unchanged original root review](evidence/receipts/build24-final-gallery-root-review.json)
+bind 23 unmodified originals to production `9bce5f7`, tested head `67efbad`,
+version 1.0/build 24 and their configurations. Root directly opened all 22
+selected final-gate Debug attachments and the ordinary Release menu, approving
+them without a blocking visual defect. Native test IDs and exact epoch capture
+times are retained; the Release exact capture time was not recorded, so its
+verification/inspection times are kept separately. Three caption crops are
+accessibility measurements, not complete gameplay views. The
+[final gallery](evidence/visual-review.md#build-24-final-source-gallery-local-review-verified)
+links every original and retains the three-ID/live ≥7:1 contrast qualification.
+The original expired-news rival `D759D58C` remains excluded; final rival image
+`54B41E08` visibly shows the actual winner notice while the human retains Grain.
+
+The [ordinary Release receipt](evidence/receipts/build24-release-runtime.json)
+records a fresh 1.0/build 24 install on reused QA without QA arguments. PID
+`93934` survives six seconds and no new own crash reports appear. Root approves
+the menu. Executable SHA256 is
+`33d7746154466774d4359d897e8727710515f8ba11afd595660fca25329c010b`.
+This simulator Release runtime is separately attributed from native Debug
+fixtures and the separately signed device artifact. Physical-phone installation/
+play and manual VoiceOver remain unobserved.
+
+Signed device delivery and Apple availability are recorded separately below;
+simulator/native verification does not establish physical-phone installation.
+
+### Signed device delivery, Apple availability and cleanup
+
+The [archive/export receipt](evidence/receipts/build24-archive-command-receipt.json),
+[archive log](evidence/receipts/build24-archive.log) and
+[export log](evidence/receipts/build24-export.log) pass at exit 0. Archive head
+`67efbad` differs from production `9bce5f7` only in the two test corrections;
+all 376 tracked production inputs match. Jake's committed signing defaults
+remain unchanged. The [review export](evidence/receipts/build24-signed-export.json)
+and [actual uploaded payload](evidence/receipts/build24-uploaded-payload-signature.json)
+both pass strict/deep signature checks with App Store distribution, Production
+CloudKit, beta reports active, no task-allow and no provisioned-device list.
+
+The [upload command receipt](evidence/receipts/build24-upload-command-receipt.json)
+and [upload log](evidence/receipts/build24-upload.log) pass, exit 0. Actual preserved
+uploaded IPA is 36,268,869 bytes, SHA256
+`0ef24d00609c2f2830448ddcdf817d167a0673d060442631c31d1e4e3f87becc`,
+MD5 `dfcd6ece91320bbe705a2ce46c26bd0a`. Review export is 36,268,871 bytes,
+SHA256 `f899e4d02bc252a70eb6d675ba51741328c0d2fdf501786958769abdaef06770`.
+The [payload comparison](evidence/receipts/build24-uploaded-payload-comparison.json)
+compares all 14 ZIP entries: only the executable's designated code-signature
+bytes differ, with its first 5,855,808 bytes identical. ContentDelivery records
+the actual uploaded MD5 three times and delivery ID
+`9b3882ef-a85c-46c2-8d1a-2d83f5483aef`, matching Apple's build. The review export
+is not substituted for the uploaded payload.
+
+The [Apple/access receipt](evidence/receipts/build24-testflight.json) confirms
+Empires 1.0/build 24 VALID, unexpired and internally IN_BETA_TESTING, with Alex
+Chandler in Internal and that group having access to all builds, at
+`2026-10-07T13:06:46.991Z`. The
+[independent final release audit](evidence/receipts/build24-final-independent-release-audit.json)
+passes at `13:06:41.579Z`, including a fresh Apple GET at `13:06:40.044Z`,
+all 376 production inputs, all 303 matrix artifact hashes, all 23 original
+capture hashes, Release runtime and actual uploaded signature/checksum/access.
+It independently opens six selected originals. Its SHA256 is
+`b68e04bd3cd3840f55f6da1a2fd677969eb78bd82df8b2e14aee2050830b61a8`.
+External state is READY_FOR_BETA_SUBMISSION; external build 24 is unreleased.
+Physical-phone installation/play, hardware timing, manual VoiceOver and new AI
+strength remain unobserved.
+
+The only final-gate skip is
+`TradeRedesignFlowTests/testConfirmationFooterAndNewOfferRemainReachableAt375By667`:
+it requires 375×667 while this QA run is 402×874. No current compact-device
+execution is claimed. Raw native Contrast flags retain the exact three-ID/live
+≥7:1 qualification; independent reveal reconstruction remains limited to two
+retained fog-off checkpoints.
+
+The [cleanup receipt](evidence/receipts/build24-simulator-cleanup.json) confirms
+only reused QA `937692FF` is individually shut down at 13:07:05 UTC, with no
+created/deleted devices. Ferrule Dice Review and Switchbard Small Owner Review
+2a7e remain booted and untouched. Three implementation helpers are recoverably
+archived, with both root checkouts and durable artifacts retained. All 376
+production inputs still match after delivery.
+
+[PR #60](https://github.com/jakebeinart1/Settlers/pull/60) remains attached,
+awaiting the minimum one actual approval; no approval/merge is recorded. Required
+Linux/SwiftLint [CI](evidence/receipts/build24-tested-head-github-ci.json) for
+`67efbad` passes in [run 37624311095](https://github.com/jakebeinart1/Settlers/actions/runs/37624311095).
+Manual project drift skips, with local drift passing. E29 is complete for the authorized internal TestFlight delivery;
+merge/review is a separate remaining repository step.
+
+### Frozen v3 functional and determinism evidence
+
+The fresh [matrix summary](evidence/receipts/build24-v3-summary.json),
+[provenance](evidence/receipts/build24-v3-provenance.json) and
+[production binding](evidence/receipts/build24-v3-production-source-binding.json)
+bind the harness to `9bce5f7` and all 112 frozen package files. Package sources
+remain stable before the harness build through the matrix. All 48 declared
+three/four-seat, map/option/tier matches pass; six separate-process repeats match
+complete result bytes and full move traces with no excluded fields. Detailed
+[functional results](evidence/receipts/build24-v3-functional-results.json),
+[determinism results](evidence/receipts/build24-v3-determinism-results.json),
+[travel review](evidence/receipts/build24-v3-travel-review.json) and
+[revisit review](evidence/receipts/build24-v3-raw-revisit-review.json) remain
+separate receipts. The [checksum seal](evidence/receipts/build24-v3-checksums.json)
+contains 303 artifact checksums, independently matched; full traces and binaries
+remain in the external `functionalmatrix` directory rather than copied into docs.
+
+Measured route travel is 1,256 sea hexes across 687 sailing actions, including
+569 two-hex voyages. There are zero forced ends, idle sailing cycles, trade cycles
+or duplicate proposals. Two raw revisits are productive: a colony is built
+between both visits and one also includes capture. Colonization occurs in 47/48
+games; total purchases/colonies are 152 ships/276 colonies. Peak process RSS is
+22.55 MiB. These results establish functional completion and reproducibility for
+the declared harness, not comparative AI strength, human enjoyment or phone timing.
+
+Independent whole-world reveal-union reconstruction covers only the two retained
+completion/revisit checkpoints, both with fog off. Every committed move is
+checkpoint-validated and decoded by the harness, which is a different check.
+Additional fog/reveal-union evidence comes from engine/source tests. No independent
+all-48-game fog trace reconstruction is claimed.
+
+| Contract / affected requirements | Required build 24 evidence | Current status |
+|---|---|---|
+| D45 harvest; F07/F13/F14 | Original settlement one/city two/mixed entitlement and exact-once finite-bank progress after cold resume; pinned heading/Collect and real painted tile/token at all scales. | Integrated city/resume, largest-text, qualified native audit and final regression gate pass. Local/World/maximum and largest-text harvest originals are approved in the final selected gallery; native skip and physical/manual measurement limits remain explicit. |
+| D46 language; F02/F03/F08/F13/F14 | Natural Fleet/launch/capture/narration plus exact stable-ID selection in multi-owner stacks and cold resume. | Integrated journeys and final regression gate pass after replacing retired numbered-label oracle with IDs; final Fleet/travel originals approved. |
+| D47 travel/privacy; F03/F04/F08/F11/F12/F13/F14 | Complete cost-one/two public range, canonical route, single route-cost commitment and intermediate reveal union; preview/cancel privacy, blocked/exhausted/hidden-mask cases, policy costs. | Integrated native travel and fresh 48-match/six-repeat v3 matrix pass. Independent reveal reconstruction limited to two fog-off retained checkpoints; engine/source fog tests are separate. Final regression gate passes. |
+| D47 legacy; F01/F13/F15 | v1/v2 three-hex adjacent-only exact replay, absent version→v1, v3 resume; map 1/schema 6, inland growth, harbors/Return and Expert cards. | New v3 cross-process repeats and final full-gate legacy/source regressions pass; one native skip remains explicit in the final summary. |
+| D48 goal; F01/F10/F14 | Actual HUD/Settings/setup target, mode/draft/resume and nonzero human, regular/compact/maximum text. | Targeted goal/setup evidence and final full-gate layout/regressions pass; actual Settings goal/Fleet originals approved in the final gallery. |
+| D49 trade; F10/F13/F14/F15 | Real willing/funded policies, uniform sorted pool/policy RNG, ordinary winner actor/provenance, fixed news, failed-write/cold-resume/replay exact-once transfer. | Real human/rival native outcomes pass; integrated rival notice inspected. Decline/expiry/manual human paths retain selected scope; final regression gate passes. |
+| Full product/delivery | Required package/app/UI gate, ordinary Release runtime, final source-bound media and signed/Apple access receipts. | First full pre-push failure and three-function/eight-run oracle correction retained. Replacement `91604` passes all ten mandatory stages and publishes `67efbad`; 753/754 functions pass, zero failures, one skip, 1,512 passing runs. Optional separate Debug app build skipped; native test action built Debug. Frozen 376 inputs/112 packages and matrix unchanged; ordinary Release survives six seconds, all 23 final originals approved. Archive/export/upload/signatures and independent final audit pass; Apple VALID/internal IN_BETA_TESTING with Alex's access confirmed. Sole native skip is 375×667-specific; no current compact execution claimed. PR #60 awaits actual approval; tested-head CI passes, unmerged. |
+
+The [harvest manifest](../../../design-references/approved/tiles/harvest-generation-manifest.json)
+retains actual built-in imagegen source/prompt and unchanged approved/runtime PNG.
+The Debug-only `-qaTradeCompetitionWinner=human|rival` modifier pairs with
+`-qaBotTradeAfterPause`, using a bounded starting policy seed with a funded actual
+rival and its current Classic/Expert policy; it injects neither accept nor result.
+The [original run skill](../../../.claude/skills/run-settlers/SKILL.md#the--qa-launch-arguments)
+owns usage and limitations. The optional scope question has no answer: D49 changes
+only human Accept on a live bot proposal. Engine RNG/move encoding/schema do not
+change for that session operation. Build 23's unchanged-package receipt and build
+22's v2 matrix remain historical; E29 uses its own v3 evidence without a strength
+claim. [Build 24 delivery](phone-delivery.md#build-24-delivered) is verified; measurement
+limits and pending PR approval remain explicit.
 
 ## Build 23 follow-up (E28): delivered
 

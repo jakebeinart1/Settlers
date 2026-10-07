@@ -195,6 +195,7 @@ grep -rnoE '"\-qa[A-Za-z]+"' --include="*.swift" "$REPO/Settlers" | sort -u
 | `-qaShowIncomingOffer` | `GameView.swift` | `IncomingTradeCardView`, backed by a real pending engine offer and conserved deterministic hands. |
 | `-qaQueuedBotOffers` | `GameViewModel+QATrade.swift` | Modifier for `-qaShowIncomingOffer`: two affordable offers during a bot turn, for receipt/timer hold and resume checks. |
 | `-qaBotTradeAfterPause` | `GameViewModel+QATradeTapSafety.swift`, `GameView.swift` | Conserved bot main-turn baseline with no pending offer. The next deterministic QA policy choice proposes through the real session/history/checkpoint after production pacing. Pair with `-qaShowPauseMenu` to select Slow and the offer timer first; supports `-qaNavalMode`, `-qaThreePlayerTable` and `-qaBundleOffer`. Cold resume restores the production policy with its unchanged ID. |
+| `-qaTradeCompetitionWinner=human` or `-qaTradeCompetitionWinner=rival` | `Testing/GameViewModel+QATradeTapSafety.swift` | Debug-only modifier for `-qaBotTradeAfterPause` (and its `-qaAutoStart` prerequisite). Bank-conserved hands fund a real four-Brick-for-one-Grain offer, the human and one actual seated Traditional/Expert rival. A bounded search of 64 starting policy seeds selects the requested recipient while the rival chooses acceptance through its real policy. Only the proposer's existing one-proposal QA selector is substituted; neither acceptance nor the exchange result is injected. The subsequent proposal/Accept use normal session/checkpoint/history paths. Omitting this modifier preserves the older Skip fixture. Invalid values, missing rival or an exhausted search fail explicitly. This selected starting cursor proves a requested outcome path, not ordinary recipient frequencies, match economics or AI strength; native verification remains separately required. |
 | `-qaBundleOffer` | `GameViewModel+QATrade.swift` | **Modifier** for `-qaShowIncomingOffer`: widens it to the widest bundle the engine permits (four give types against one want type). The single-resource fixture cannot show what a composed Expert offer does to the card's fixed-height row — measured 2026-09-16, it silently dropped every count on the wider side. |
 | `-qaFastForwardToRollDice` | `GameView.swift` | Plays the human's setup placements and first roll, resolving a possible seven until the main-turn controls are enabled. **Applies real moves** (writes the save and game log); wait on the target control's readiness rather than a fixed delay. |
 | `-qaSeedGameHistory` | `SettlersApp.swift` | Writes one deterministic finished recording (40 moves, played by "first legal move") into the archive before the menu appears, so Game History and the replay have something real to open. Seeded AFTER `-ui-testing-reset`, which clears the archive. |
@@ -263,8 +264,8 @@ flags do not replace it. Use the ladder's task-owned clean QA container, or the
 first native test launch's `-ui-testing-reset`, for a new baseline. Cold resume
 uses `-ui-testing` without reset so the committed state/mandatory obligation survives.
 Choose one position flag. Source precedence is stacked → adjacent → city harvest
-→ settlement harvest → capture → voyage. Ship names are one-based; stored IDs
-and automation IDs remain zero-based.
+→ settlement harvest → capture → voyage. Current presentation uses natural
+owner/ship wording; stored IDs and automation IDs remain zero-based.
 
 Rare fixtures finish snake setup through legal moves, transfer supplemental cards
 from bank to hand, and install a replacement replay baseline. Each begins with

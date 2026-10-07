@@ -6,7 +6,7 @@
 
 # Empires visual redesign — status
 
-## October 7 — Painted any-resource harvest: runtime review pending
+## October 7 — Painted any-resource harvest: final rendering verified
 
 The Naval resource-choice hex now has an original opaque sibling terrain texture:
 muted light lavender/blue-gray ground, fine painted linen grain and restrained
@@ -21,11 +21,22 @@ the exact prompt, source path and SHA256
 `db33ef16bf28e325c4cffa2d4639f946aa78dec85c8d30ef499a695041e9aef3`.
 The unmodified PNG is retained at `approved/tiles/tile-harvest.png` and
 `Settlers/Assets.xcassets/tile-harvest.imageset/tile-harvest.png`; source,
-approved and runtime bytes are bound by that manifest. Build 24 integration is
-in progress. Actual regular/compact/maximum-text and local/World rendering,
-number readability and fog privacy remain pending visual approval in
-[E29](../docs/AI_summaries/naval-exploration/acceptance.md#build-24-follow-up-e29-in-progress)
-and the [visual record](../docs/AI_summaries/naval-exploration/evidence/visual-review.md#build-24-visual-review-pending).
+approved and runtime bytes are bound by that manifest. The generated PNG was
+never edited. Build 24 current-main production is frozen at `9bce5f7`, 1.0/24.
+Root inspected actual local, World, zoom-nine/token and maximum-text harvest
+originals from the integrated/refined native runs. Those development checks pass
+travel/artwork; the final three-case harvest audit pass retains three exact-ID
+native Contrast flags with live sRGB screenshot ≥7:1 guards. All other issues
+fail. The final pre-push gate passes all ten mandatory stages and publishes the
+branch at test-only `67efbad`, preserving production `9bce5f7` and all frozen
+asset bytes. Root then directly approves all 23 unmodified final originals,
+including local/World/zoom-nine harvest, maximum text and the ordinary Release
+menu; no blocking visual defect is recorded. The portable gallery retains exact
+source/test/time/configuration and the three-ID contrast qualification.
+Archive/export/upload/signatures and independent Apple/access audit pass;
+Empires 1.0/build 24 is internally available to Alex. E29 is delivered in
+[E29](../docs/AI_summaries/naval-exploration/acceptance.md#build-24-follow-up-e29-delivered)
+and the [visual record](../docs/AI_summaries/naval-exploration/evidence/visual-review.md#build-24-final-source-gallery-local-review-verified).
 
 ## October 7 — Painted Naval fleet
 

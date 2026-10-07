@@ -6,6 +6,23 @@ from the charter's human commitments. Three independent reviews examined gamepla
 engine/AI information and phone interaction before implementation. Quantitative
 balance remains a hypothesis until the acceptance evidence exists.
 
+October 7's D45–D49 revise sailing and player-facing clarity for build 24.
+This contract includes those selected changes. Current-main integration is
+frozen at `9bce5f7`, 1.0/build 24, with 376 bound inputs. The fresh v3 functional
+matrix and six full-byte repeats pass; integrated native travel/artwork pass,
+and the later three-case harvest pass retains qualified raw contrast flags.
+The first complete pre-push gate failed two obsolete test oracles; the test-only
+correction passes three functions/eight runs with production unchanged.
+Final full-gate session `91604` passes all ten mandatory stages, exit 0, and
+publishes test-only `67efbad`, preserving the 376 production inputs and 112
+package files. Optional separate Debug app build skips; native tests built Debug.
+Ordinary Release passes fresh install/no-QA six-second survival and root approves
+23 unmodified final originals. Archive/export/upload/signatures and independent
+final audit pass; Apple confirms VALID/internal IN_BETA_TESTING with Alex's
+Internal access. [E29](acceptance.md#build-24-follow-up-e29-delivered) is delivered.
+PR #60 awaits actual approval, with required tested-head CI passing and no merge. Build 23's
+passing receipts remain historical evidence for their frozen source.
+
 ## Full match rules
 
 The opening begins in opaque mist. A central survey reveals its radius-two home
@@ -13,7 +30,7 @@ island footprint, then normal snake setup places two settlements and two roads
 per seat. Both starting settlements may use any legal home site, including
 inland corners. Coastal access is required to launch a ship and to found a
 settlement by ship, not for ordinary land placement. October 5's D38 corrects
-the overly broad first-opening coast restriction. New version 2 matches measure building vision within two hexes
+the overly broad first-opening coast restriction. Version 2 and later matches measure building vision within two hexes
 of the actual corner, using its three canonical hex centers; version 1 saved
 matches retain the earlier survey from adjacent land. Ships use their actual
 hex center. Roads reveal nothing. Starting sight cannot reach overseas land.
@@ -27,13 +44,18 @@ the promise that any opposing ship may be selected. Ships may share and pass
 through sea hexes. Stacked ships get explicit identity selection, never an
 ambiguous tap that silently picks an owner.
 
-Every owned ship receives three steps at its controller's turn boundary. Newly
-purchased and newly captured ships receive three steps immediately. Each sailing
-action commits one adjacent sea step during the main turn; trading and building
-may happen between steps. Radius-two sight makes all next-step terrain known.
-Preview and cancellation reveal nothing. Each committed step reveals radius two,
-with cosmetic mist withdrawal. All ship locations are permanently discovered.
-Ships cannot enter land or leave the public world envelope.
+In new Naval v3 matches every owned ship receives two sea hexes of sailing at its
+controller's turn boundary. Newly purchased/captured ships receive the same
+allowance immediately. A main-turn action commits a reachable destination
+costing one or two hexes, bounded by remaining allowance. Trading and building
+may happen between voyages. Sorted breadth-first traversal over publicly charted
+sea selects one canonical shortest route. Preview, cost, policy evaluation and
+committed intermediate-radius-two reveal union use that same route. Radius-two
+ship sight already charts the whole v3 range. Preview/cancellation reveal nothing;
+hidden terrain cannot affect its legal mask. Cosmetic mist does not change public
+knowledge. Version 1/2 saves and replays retain three hexes per turn and one
+adjacent step per action, including launch/capture allowances. Ships cannot enter
+land or leave the public envelope. D47 records the revision and compatibility.
 
 A ship touching a coastal vertex permits a normal-cost settlement without a road,
 subject to the ordinary distance and piece limits. This also permits another
@@ -48,7 +70,7 @@ metadata must not enter policy observations or descriptions.
 An 11 produces ordinary resources, resolves resource-choice production, then lets
 the roller capture one opposing ship or skip, then enters the main turn. Every
 opposing ship qualifies globally. Capture keeps its location and ID, changes its
-controller and gives three steps; buildings, the victim's hand and hull builder
+controller and gives the match's versioned sailing allowance; buildings, the victim's hand and hull builder
 remain unchanged. Control never expires automatically. No-target rolls enter main
 turn directly. Robber and Knight retain land stealing and never affect ships.
 
@@ -83,9 +105,13 @@ than shuffling unrelated single hexes.
 Validate connected navigable sea, useful approaches, no home land bridge, at least
 three viable coastal sites per overseas component and all land within two hexes
 of reachable sea. Credible home harbors need two distinct overseas opportunities
-within six sea steps. Measure real routes and legal settlement capacity. First
-landings may take one turn; distant or around-coast voyages may take two. Do not
-derive journey duration from radial distance alone.
+within six sea steps. Measure real routes and legal settlement capacity. Apply
+the saved match's allowance when estimating voyage turns; the new two-hex cap
+cannot inherit legacy three-hex pace estimates. Do not derive journey duration
+from radial distance alone. E29's frozen v3 matrix completes 48 games with
+1,256 sea hexes/687 actions, including 569 two-hex voyages and 47 colonizing
+games. This supports functional pace observation, without a balance or strength
+conclusion.
 
 Home retains Classic's resource and token multisets. Overseas baseline contains
 six lumber, six grain, six wool, five brick and five ore. Its tokens are two each
@@ -119,7 +145,12 @@ Pay fixed yields first, then resolve flexible units in clockwise seat order
 starting with the roller. Choices include stocked resources only. If the bank is
 entirely empty, remaining units expire and the phase advances; no bank debt or
 wildcard inventory is created. After choices on an 11, capture follows. These
-obligations are durable and recover unselected after cold launch.
+obligations are durable and recover unselected after cold launch. D45 derives
+original harvest entitlement from the producing buildings and roll: settlement
+one, city two, mixed totals additive. The unchanged board/roll and durable
+remaining obligation supply “collected of total” and remaining progress after
+partial cold resume. Header and Collect stay pinned while choices scroll.
+This adds no encoded presentation fields.
 
 ## Product options and compatibility
 
@@ -155,9 +186,15 @@ Actual/proposed board ships share `max(22, hexSize × 0.92)` visual diameter;
 thin selection decoration is capped at 2.5 points and hit geometry remains
 separate. Capture changes presentation only after commitment; its preview paints
 one prospective hull and stacks retain explicit owner/identity selection.
-Resource-choice
-terrain reads as a distinct productive island feature. Mist withdrawal is the
-memorable motion; idle decoration remains restrained.
+Resource-choice terrain uses the original unmodified painted lavender/gold
+harvest texture with ordinary hex outline, grout and number token. The built-in
+imagegen [prompt/source/hash manifest](../../../design-references/approved/tiles/harvest-generation-manifest.json)
+records unchanged source/approved/runtime provenance. Root inspected integrated
+local/World/maximum-zoom and maximum-text harvest originals, then approves the
+23-image final-source gallery. E29 retains native skip and physical/manual
+measurement limits. Native caption audit
+acceptance uses three exact-ID live ≥7:1 contrast guards, retaining raw native
+flags. Mist withdrawal is the memorable motion; idle decoration remains restrained.
 
 The board and command-row frames remain fixed. Default camera focuses readable
 home on the fixed world envelope. World fits the whole map and becomes Return,
@@ -174,11 +211,20 @@ verified internal TestFlight delivery. Physical-phone installation/play and
 hardware timing remain unobserved.
 
 Build → Ship stages launch with cost feedback. A ship tap or Fleet choice stages
-sailing; a destination previews the voyage; Sail confirms one step. Settlement
+sailing; every reachable endpoint shows its one/two-hex cost above cosmetic
+mist, a destination previews the canonical route, and Sail confirms its voyage.
+Remaining range updates after commitment. Legacy saves show adjacent-only
+actions and the saved three-hex allowance. Settlement
 uses the existing reversible piece preview. Capture lists every eligible ship
-with current owner and stable ID; selecting focuses its location and Capture
+with current owner and painted vessel; stable IDs stay internal. Fleet, notices,
+board labels and replay use natural ship language without “Ship 3.” Selection focuses its location and Capture
 confirms. Skip is explicit. The bottom dock remains the one confirmation surface.
 Resource production gets a painted choice surface with bank availability.
+
+D48 displays human score/current target in the HUD, the current win goal as
+plain explanatory text in Settings, and the selected goal beside New Game's
+existing Match Settings heading. Targets derive from actual draft/saved rules,
+including resumed lengths, without an extra setup section.
 
 D43 gives each Build choice an explicit Ready/Unavailable state, symbol and
 cards-held/cost counts, with missing quantities or a phase/supply/location reason.
@@ -204,6 +250,16 @@ signed upload and verified internal TestFlight access are recorded in
 [E28](acceptance.md#build-23-follow-up-e28-delivered). External build 23 remains
 unreleased and physical-phone installation/play unobserved.
 
+D49 changes human Accept on a live bot proposal. The human and actual seated
+policies that both choose acceptance and can fund it form a sorted pool with
+equal odds through session policy RNG. The selected recipient commits ordinary
+`respondToTrade` as the actual Step actor. A bot winner retains nonhuman history
+provenance and posts “X traded with Y” in the existing fixed information area.
+Candidate state/RNG/history publish after the durable checkpoint succeeds.
+Decline, expiry and manually composed human proposals keep their existing paths;
+the optional question about widening scope is unanswered. No new engine RNG
+draw, move type, save field or schema is introduced.
+
 Action controls have 44-point targets. Board targets have selection alternatives
 through fleet/choice controls and magnification; dragging is never mandatory.
 Overlays remove hidden controls from hit testing and VoiceOver. Reduce Motion
@@ -220,6 +276,8 @@ Engine API: `GameMode.naval`; `TileKind.sea`, `.resourceChoice`, observation-onl
 `mapFamily`; `NavalState` contains `options`, `revealed`, `ships` and versioned
 bookkeeping. `Naval.newGame(seed:playerCount:options:)` constructs a coherent match.
 `Naval.visibleBoard(in:)` supplies public fog placeholders, ports and land topology.
+New matches encode Naval rules version 3; versions 1/2 retain their behavior and
+missing versions decode as 1. Map version 1 and state schema 6 remain unchanged.
 
 Moves are `buildShip(at:)`, `sailShip(id:to:)`, `captureShip(id:)`, `skipShipCapture`
 and `chooseResource`. Durable phases are `choosingResource(playerIndex:)` and
@@ -255,6 +313,23 @@ ships, first and repeat colonies, global and repeated captures, skip/no-target,
 production order/finite bank/city units, all four toggle combinations, saved
 versions, historical visibility and complete victories. Illegal actions cannot
 change state or RNG. Save/resume and replay must agree across processes.
+
+E29 reopens F03/F04/F07/F08/F10/F11/F12/F13/F14 for the build 24 changes.
+Required checks include one/two-hex voyages, tied-route determinism, launch and
+capture allowances, exhausted/rerouted/land/off-envelope targets, reveal union,
+preview privacy, legacy exact replay, policy costs and fresh-process functional
+matches. Harvest, goal and ship language need real regular/compact/maximum-text
+inspection. Trade requires both recipient outcomes, willingness/funding, failed
+checkpoint recovery and exact-once history. Frozen v3 48-match/six-repeat
+functional evidence now passes; independent reveal reconstruction is limited to
+two retained fog-off checkpoints. Engine/source fog tests are separate. Integrated
+travel/artwork and the qualified three-case native harvest audit pass, with the
+earlier integrated/refined failures retained. The final full gate passes all ten
+mandatory stages: 753/754 app/UI functions pass, zero failures, one skip and
+1,512 passing runs. The selected 23-image final gallery and ordinary Release
+fresh install/no-QA six-second survival pass local review. Signed artifact,
+upload/checksum and independent Apple/access receipts pass; E29 is delivered,
+with native skip and physical/manual/strength measurement limits explicit.
 
 Evaluate all families, both tiers, mixed tables, three/four seats, nonzero human
 positions, native setup and legacy resume. Compare identical public observations

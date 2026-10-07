@@ -14,6 +14,77 @@ settlement choices. Global ship capture adds consequential changes of ownership.
 Traditional and Expert opponents, a refined interface and complete-match evidence
 are part of the finished product.
 
+**Build 24 delivered, October 7:** D45–D49 implement
+painted any-resource terrain, original harvest entitlement/progress, natural
+ship language, current win goals and fair competition on human Accept of a bot
+proposal. New Naval v3 matches receive two sea hexes per ship turn, highlighted
+public endpoint costs and one canonical shortest route per voyage. Legacy v1/v2
+matches retain three adjacent moves and exact replay behavior.
+
+The managed `/Users/alex/.codex/worktrees/naval24-main-integration/Settlers`
+checkout integrates Naval above main `83d8525`, retaining its four recent
+resource-square/Skip/Block/leaderboard/rename fixes. Production is frozen at
+`9bce5f77a38684bd6e011fac8838c74b38440798`, version 1.0/build 24, with
+[376 matching inputs](evidence/receipts/build24-final-production-inputs.json).
+The integrated focused command failed three checks and its refined follow-up
+failed one contrast audit. The corrections and subsequent three-case native
+harvest pass retain those failures. The native audit still emits three identified
+Contrast flags; an exact-ID handler accepts each only after a live sRGB screenshot
+measures at least 7:1 (8.1257, 7.9583 and 7.9671). Every other issue fails.
+[E29](acceptance.md#build-24-follow-up-e29-delivered) gives the qualification.
+
+Fresh frozen-source [v3 functional evidence](evidence/receipts/build24-v3-summary.json)
+passes 48 matches and six complete-byte result/trace repeats, with 112 package
+files stable. Actual travel is 1,256 sea hexes/687 actions/569 two-hex voyages;
+there are no forced ends, idle sailing/trade cycles or duplicate proposals.
+Two raw revisits are productive colony/capture visits. Colonies occur in 47/48
+games; peak process RSS is 22.55 MiB. Independent reveal-union reconstruction
+covers only two retained fog-off checkpoints; engine/source fog tests are separate.
+No new strength claim follows.
+
+Root inspected four integrated/refined harvest originals at local/World/maximum
+zoom/maximum text and the actual Expert-rival notice. The generated harvest PNG
+was never edited. Those development captures retain their own attribution;
+the later final-source gallery and ordinary Release runtime have their own
+verified receipts below.
+The first complete pre-push gate (session `52090`) failed two test oracles:
+754 app/UI functions, 750 passed, two failed/two skipped, 1,509 passing runs.
+Engine 391/31, AI 308/31, coverage 96.74%/96.05%, Release and every other mandatory
+stage pass; optional Debug app build is skipped. Test-only `67efbad` fixes the
+versioned movement counterexample and scopes rulebook scrolling to Settings;
+three functions/eight runs then pass. All 376 production inputs and 112 package
+files remain unchanged. The
+[replacement full gate](evidence/receipts/build24-final-prepush-command.json)
+passes all ten mandatory stages, session `91604`, exit 0, and publishes
+`codex/naval24-main-integration` at test-only `67efbad`. App/UI passes 753 of
+754 functions, zero failures, one skip, with 1,512 passing runs; hosted 581/82,
+Engine 391/31 and AI 308/31 pass, coverage 96.78%/96.05%. Optional separate
+Debug app build skips; the native Debug test action built the app and bundles.
+Ordinary Release 1.0/24 is freshly installed without QA arguments; PID `93934`
+survives six seconds without new own crashes. Root directly approves all
+[23 unmodified final originals](evidence/screenshots/build24-final-manifest.json):
+22 Debug native attachments and its ordinary Release menu. Three caption crops
+retain the native contrast qualification. Archive/export/upload and strict/deep
+Production signatures pass. Apple build `9b3882ef-a85c-46c2-8d1a-2d83f5483aef`
+is VALID, unexpired and internally IN_BETA_TESTING, with Alex's Internal all-build
+access confirmed at 13:06:46 UTC (9:06:46 a.m. EDT), October 7, and independently
+at 13:06:40 UTC. The [final audit](evidence/receipts/build24-final-independent-release-audit.json)
+passes source, 303 matrix hashes, 23 image hashes, runtime and actual uploaded
+payload/signature/checksum/access. The preserved uploaded IPA `0ef24d0…becc`
+is distinct from review `f899e4d…6770`; only designated executable signature
+bytes differ. [E29](acceptance.md#build-24-follow-up-e29-delivered) and
+[delivery](phone-delivery.md#build-24-delivered) retain exact receipts and limits.
+[PR #60](https://github.com/jakebeinart1/Settlers/pull/60) awaits one actual
+approval, with no merge recorded. Tested `67efbad` passes required Linux/SwiftLint
+[CI](evidence/receipts/build24-tested-head-github-ci.json); manual project drift
+skips and local drift passes. QA alone is shut down; other projects' booted
+devices remain untouched. Three helpers are
+[recoverably archived](evidence/receipts/build24-helper-worktree-cleanup.json).
+External build 24 is unreleased; physical-phone installation/play, hardware
+timing, manual VoiceOver and new strength remain unobserved. The sole 375×667
+footer skip on 402×874 QA is explicit; no current compact execution is claimed.
+Build 23/22 history is preserved below.
+
 **Build 23 delivered, October 7:** Empires 1.0/build 23 is available to Alex in
 internal TestFlight, confirmed at 4:16:30 a.m. EDT. Apple build
 `cfcb926b-7b11-4178-9d19-8df7a9e5e597` is VALID, unexpired and internally
@@ -145,7 +216,7 @@ invariance, hosted setup suites, strict lint and Release/Debug builds pass.
 ## Read this program
 
 - This file owns motivations, confirmed commitments and stage completion criteria.
-- [Decisions](decisions.md) owns selected D01–D44 outcomes, alternatives and the decision process; feedback can reopen a recorded decision.
+- [Decisions](decisions.md) owns selected D01–D49 outcomes, alternatives and the decision process; feedback can reopen a recorded decision.
 - [Acceptance](acceptance.md) owns the requirement and evidence framework.
 - [Domain language](../../../CONTEXT.md) owns definitions, including the distinction
   between a player's hand and the bank.
@@ -162,11 +233,13 @@ invariance, hosted setup suites, strict lint and Release/Debug builds pass.
 | Stage 7 | 3,000-map study, both naval tiers and frozen 1,464-game confirmation complete; declared three/four-seat improvement criteria and host latency pass. [Exact AI study](evidence/ai-study.md); [integrated-engine 48-trajectory equivalence](evidence/integrated-ai-equivalence.md) passes |
 | Stage 8 | Complete: actual native journeys, cold resume, victory/painted replay, two-size accessibility refinement and independently inspected final opening/travel/capture/Reduce Motion media. E19/E21/E22 |
 | Stage 9 | Complete for local simulator handoff: final `971a615` gate passes all eleven stages, exit 0; all 23 corrections verified; exact gated binary freshly installed, surviving and ready for human review. F01–F15 closed with E20/E21/E22 |
+| Build 24 follow-up | Frozen `9bce5f7`, 1.0/24, 376 bound inputs above main `83d8525`; fresh 48-match v3 matrix and six complete-byte result/trace repeats pass. Integrated/refined failures retained; three harvest native cases pass with exact-ID, live ≥7:1 contrast qualification. Four harvest images and actual rival notice inspected. First full pre-push gate failed two obsolete test oracles; all other mandatory stages pass and optional Debug app build skips. Test-only correction passes 3 functions/8 runs; final `91604` passes all ten mandatory stages and publishes `67efbad`. App/UI 753/754 pass, zero failures, one skip, 1,512 passing runs. Ordinary Release survives six seconds and all 23 final originals are approved. Archive/export/upload/signatures and independent final audit pass; Apple VALID/internal IN_BETA_TESTING with Alex's access confirmed (E29). QA alone shut down; three helpers archived. PR #60 awaits approval, tested-head CI passes, unmerged. |
 | Build 23 follow-up | Frozen `1dfae7c`, version 1.0/23: all eleven gate stages pass, 731/732 app/UI functions pass with one size skip independently passed on compact. Seventeen images inspected; ordinary Release survives six seconds. Archive/export/upload/signature pass; Apple VALID/internal IN_BETA_TESTING with Alex's access confirmed. E28 retains targeted and reused build 22 functional evidence. |
 | Build 22 follow-up | Source `1cf1c0f`; all eleven gate stages pass, ordinary Release survives, final-source media inspected, 48 functional matches/six repeats pass. Signed upload and independent audit pass; Apple VALID/internal IN_BETA_TESTING with Alex's access confirmed (E27). |
-| Latest verified phone delivery | Empires 1.0/build 23 internally available to Alex, verified October 7 at 4:16:30 a.m. EDT. External build 23 unreleased; physical installation/play unobserved. Build 22/21 remain historical. |
-| Simulator evidence | Reused QA device `937692FF`; build 23 full-gate results and seventeen root-inspected final-source images have their own receipts. Intermediate build 23 and earlier delivered galleries retain their source identities. |
-| Worktree | `/Users/alex/.codex/worktrees/naval-exploration/Settlers` retained; two helpers recoverably archived; durable AI/release evidence retained |
+| Latest verified phone delivery | Empires 1.0/build 24 internally available to Alex, verified October 7 at 9:06:46 a.m. EDT and independently at 9:06:40. External build 24 unreleased; physical installation/play unobserved. Build 23/22/21 remain historical. |
+| Simulator evidence | Reused QA `937692FF`; build 24 full gate, ordinary Release six-second survival and 23 root-approved final originals have separate receipts. Build 23's seventeen-image gallery and all earlier/intermediate captures retain their source/configuration identities. |
+| Worktree | `/Users/alex/.codex/worktrees/naval-exploration/Settlers` and main integration retained; three implementation helpers recoverably archived with their changes integrated; durable AI/release evidence retained |
+| Build 24 integration checkout | Managed `/Users/alex/.codex/worktrees/naval24-main-integration/Settlers`, branch `codex/naval24-main-integration`; frozen production `9bce5f7` above Naval squash/main `83d8525`; test-only `67efbad` preserves production/package hashes; final pre-push `91604` passes all ten mandatory stages and publishes branch `67efbad`; PR #60 attached; gate/runtime/gallery/signatures/upload/Apple verified; tested-head CI passes, merge awaits approval |
 | Branch | `codex/naval-exploration` |
 | Planning base | `38f7885ddfd30deefdfa9b1b3bde7756804f8570`, fetched `origin/main` |
 
@@ -190,6 +263,14 @@ hardware play and new AI strength remain unmeasured. Build 23 changes app
 presentation and interaction; it has no new engine/save schema or AI strength
 claim. Its own frozen-source gate passes; the unchanged-package receipt supports
 reusing E27's functional matrix explicitly, without reporting a new experiment.
+
+Build 24 changes engine/session and Naval policy behavior. Its fresh v3 functional
+and separate-process evidence binds to frozen `9bce5f7`: 48 matches and six
+full-byte result/trace repeats pass. Neither E27's v2 matrix nor the historical
+v1 strength study establishes v3 strength. Legacy replay, declined/expired/manual human trade paths,
+the integrated inland/harbor/Return behavior and Expert-card baseline remain
+required regressions. Trade competition uses policy RNG, preserving the engine
+dice/deck sequence.
 
 The [acceptance register](acceptance.md) closes all fifteen requirements for local
 simulator review. The [audit report](audit-report.md) retains all twenty-three
@@ -263,6 +344,9 @@ recording Alex's revised direction and updating its dependent requirements.
 | C11 | Delivery uses an isolated worktree, simulator launch and real gameplay, UI refinement, screenshots and considered edge cases. | Compilation alone cannot establish product quality. |
 | C12 | New Game offers Naval in its Rules row beside Standard and Conquest. | Matches Alex's requested setup location and label; selected October 5. |
 | C13 | Match Settings selectors move left on one shared axis, provide readable option help from one info button per row, and are screenshot-reviewed before iPhone delivery. | Records Alex's latest layout and delivery request; D34. |
+| C14 | New Naval matches allow each ship at most two sea hexes per turn, selecting a highlighted reachable destination and confirming one voyage. | October 7 direction; D47 retains prior saves and public-information boundaries. |
+| C15 | Any-resource terrain is painted; harvest explains building entitlement and collection progress; ships use natural language; the current win goal is visible. | October 7 direction; D45, D46 and D48 use existing painted surfaces without extra New Game scrolling. |
+| C16 | Accepting a bot proposal gives actual willing, funded recipients an equal chance, with a visible bot-to-bot result. | October 7 direction; D49 records the narrow Accept scope while the optional question remains unanswered. |
 
 The ordinary per-player economy and settlement costs were carried forward in the
 conversation. Exact costs, supplies, score target and interactions belong in the
@@ -275,7 +359,7 @@ or hand; D09–D11 make that explicit in the selected rules and acceptance cases
 
 Alex subsequently delegated the complete design and build while retaining the
 human commitments above. The [design contract](design-contract.md) records the
-selected map families, three-step sailing, opening survey, first-colony access,
+selected map families, versioned sailing, opening survey, first-colony access,
 economy, fourteen-point target and both AI strategies. These are delegated design
 decisions with recorded alternatives and critique. Quantitative balance conclusions
 require the separate generation and policy studies; a chosen rule alone is not evidence.

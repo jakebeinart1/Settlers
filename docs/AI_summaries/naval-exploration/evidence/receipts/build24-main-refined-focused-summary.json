@@ -1,0 +1,49 @@
+{
+  "devicesAndConfigurations" : [
+    {
+      "device" : {
+        "architecture" : "arm64",
+        "deviceId" : "937692FF-BFBF-4683-80E5-2590F5288D56",
+        "deviceName" : "Empires QA",
+        "modelName" : "iPhone 17 Pro",
+        "osBuildNumber" : "23F77",
+        "osVersion" : "26.5",
+        "platform" : "iOS Simulator"
+      },
+      "expectedFailures" : 0,
+      "failedTests" : 1,
+      "passedTests" : 6,
+      "skippedTests" : 0,
+      "testPlanConfiguration" : {
+        "configurationId" : "1",
+        "configurationName" : "Test Scheme Action"
+      }
+    }
+  ],
+  "environmentDescription" : "Settlers · Built with macOS 26.5.1",
+  "expectedFailures" : 0,
+  "failedTests" : 1,
+  "finishTime" : 1791366676.465,
+  "passedTests" : 6,
+  "result" : "Failed",
+  "skippedTests" : 0,
+  "startTime" : 1791366525.022,
+  "statistics" : [
+
+  ],
+  "testFailures" : [
+    {
+      "failureText" : "Contrast failed",
+      "targetName" : "SettlersUITests",
+      "testIdentifier" : 2,
+      "testIdentifierString" : "NavalFlowTests/testHarvestPassesNativeAccessibilityAudit()",
+      "testIdentifierURL" : "test://com.apple.xcode/Settlers/SettlersUITests/NavalFlowTests/testHarvestPassesNativeAccessibilityAudit",
+      "testName" : "testHarvestPassesNativeAccessibilityAudit()"
+    }
+  ],
+  "title" : "Test - Settlers",
+  "topInsights" : [
+
+  ],
+  "totalTestCount" : 7
+}

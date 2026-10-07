@@ -1,5 +1,111 @@
 # Naval integration with the current phone release
 
+## Build 24 compatibility: delivered
+
+D45–D49 are frozen at `9bce5f77a38684bd6e011fac8838c74b38440798`, version
+1.0/build 24, with [376 matching production inputs](evidence/receipts/build24-final-production-inputs.json).
+The managed `/Users/alex/.codex/worktrees/naval24-main-integration/Settlers`
+checkout carries one Naval squash (`527e1ed`) above main `83d8525`, then test
+port `09f5e94` and accessibility/travel refinement `9bce5f7`. It retains main's
+resource-square and Skip/Block controls (`1860570`), accessibility/spoken-result
+cleanup (`0d66dbd`), person/ghost leaderboard deduplication (`4b80f51`) and
+rename-chain ghost joins (`83d8525`). The earlier
+[integration source audit](</Users/alex/.codex/artifacts/naval-exploration/build24-main-integration/source-audit.json>)
+is a conflict/input/lint snapshot, not native evidence.
+
+New Naval games encode rules version 3: two sea hexes per ship turn and one
+destination move over a canonical shortest public sea route. Refresh, launch
+and capture use the saved match allowance; commit reveals the intermediate
+radius-two union. Preview/cancellation preserve discoveries and RNG. Versions
+1/2 retain three hexes and adjacent-only moves; an absent Naval version decodes
+as 1. Version 1 retains original building sight; version 2/3 use the actual
+corner. Map version 1/state schema 6 remain unchanged. Stored versions and
+discoveries cannot be rewritten during migration.
+
+Original harvest entitlement/progress derives from board/roll plus durable
+remaining obligations with no new encoded fields. Goal text reads draft/saved
+targets. Natural ship language preserves exact internal move/history IDs. The
+[built-in imagegen manifest](../../../design-references/approved/tiles/harvest-generation-manifest.json)
+binds unchanged approved/runtime PNGs; root inspected local/World/maximum zoom
+and maximum-text harvest originals. The separate
+[visual record](evidence/visual-review.md#build-24-final-source-gallery-local-review-verified) retains
+development-versus-final media boundaries.
+
+Accepted live bot proposals compete among the human and actual willing/funded
+policies, with uniform sorted-pool selection through session policy RNG. The
+ordinary `respondToTrade` Step uses the actual winner actor and matching
+human/nonhuman provenance. No engine RNG/schema/new move/save field is added;
+failed durable writes preserve state, RNG and history. Decline, expiry and manual
+human proposals retain their existing paths while the optional scope question
+has no answer. A bot winner uses the fixed table-news area; its actual integrated
+notice is root-inspected.
+
+The [integrated focused command](evidence/receipts/build24-main-integrated-focused-summary.json)
+failed three checks, and the [refined follow-up](evidence/receipts/build24-main-refined-focused-summary.json)
+failed Contrast. Their corrections and failed caption audits remain recorded in
+[E29](acceptance.md#build-24-follow-up-e29-delivered). The
+[subsequent three-case harvest pass](evidence/receipts/build24-harvest-audit-verified.log)
+retains raw native Contrast flags on three exact caption IDs and accepts each
+only after its live sRGB screenshot ratio is ≥7:1 (8.1257/7.9583/7.9671).
+All other audit issues fail. This is a qualified audit, not cleared raw flags.
+
+Fresh [v3 functional](evidence/receipts/build24-v3-functional-results.json) and
+[determinism](evidence/receipts/build24-v3-determinism-results.json) evidence
+bind to frozen `9bce5f7`, 376 production inputs and all 112 package files.
+48/48 matches complete; six fresh-process repeats match complete result bytes
+and traces. Travel totals 1,256 sea hexes/687 actions/569 two-hex voyages, with
+zero forced ends, idle sailing/trade cycles or duplicate proposals. Two raw
+revisits are productive colony/capture visits. Independently reconstructed reveal
+union is limited to two retained fog-off checkpoints; every-move decode/validation
+and engine/source fog tests are separately scoped. No new AI strength is claimed.
+
+The [first complete pre-push gate](evidence/receipts/build24-first-full-prepush-command.json)
+failed app/UI: 754 functions, 750 pass, two fail/two skip, 1,509 passing runs.
+Engine 391/31, AI 308/31, coverage 96.74%/96.05%, Release and every other mandatory
+stage pass; optional Debug app build skips. Git exit 141 also records SSH closure
+and no published push. Test-only `67efbad` fixes the hardcoded three-step history
+counterexample and the unscoped Settings swipe; its
+[targeted correction](evidence/receipts/build24-gate-oracle-corrections-summary.json)
+passes three functions/eight runs while preserving existing assertions, production
+inputs and package hashes. Frozen `9bce5f7`, 376 inputs, 112 package files and matrix
+remain unchanged. The
+[final full gate](evidence/receipts/build24-final-prepush-command.json) passes
+all ten mandatory stages, session `91604`, exit 0, and publishes `67efbad`.
+App/UI has 754 functions: 753 pass, zero failures, one skip, 1,512 passing runs;
+hosted 581/82, Engine 391/31 and AI 308/31 pass, coverage 96.78%/96.05%.
+Release compiles. Optional separate Debug app build skips, with the native Debug
+test action built separately. The
+[ordinary Release runtime](evidence/receipts/build24-release-runtime.json)
+passes fresh 1.0/24 installation without QA arguments, PID `93934` surviving
+six seconds, no new own crashes and root-inspected menu. The
+[23-image final gallery](evidence/screenshots/build24-final-manifest.json)
+is unmodified and root-approved: 22 Debug attachments plus the ordinary Release
+menu, with exact source/test/time/configuration retained. These are distinct
+from any signed device artifact.
+
+The [archive/export](evidence/receipts/build24-archive-command-receipt.json),
+[upload](evidence/receipts/build24-upload-command-receipt.json) and
+[Production signatures](evidence/receipts/build24-uploaded-payload-signature.json)
+pass. Actual upload `0ef24d0…becc` is separately preserved from review export
+`f899e4d…6770`; [comparison](evidence/receipts/build24-uploaded-payload-comparison.json)
+finds only designated executable signature bytes differ across all 14 ZIP entries.
+Accepted ContentDelivery MD5/ID matches the actual payload and Apple build
+`9b3882ef-a85c-46c2-8d1a-2d83f5483aef`. The
+[Apple/access receipt](evidence/receipts/build24-testflight.json) confirms VALID,
+unexpired/internal IN_BETA_TESTING with Alex's Internal access at 13:06:46 UTC;
+the [independent audit](evidence/receipts/build24-final-independent-release-audit.json)
+passes with fresh 13:06:40 UTC readback. QA alone is shut down, with all 376
+inputs matching after delivery. External/physical/manual/strength and sole
+size-specific native-skip limits remain explicit. E29 is delivered.
+
+[PR #60](https://github.com/jakebeinart1/Settlers/pull/60) awaits actual approval,
+unmerged; required tested-head Linux/SwiftLint
+[CI](evidence/receipts/build24-tested-head-github-ci.json) passes, manual workflow
+project drift skips and local drift passes. Main remains `83d8525`. Legacy
+replay, inland growth, harbors/Return, controls and Expert cards retain their
+regression evidence. Build 23's source equivalence/build 22's v2 matrix remain
+historical; build 24 uses its own fresh v3 evidence.
+
 ## Build 23 compatibility: delivered
 
 D42–D44 update app presentation and interaction while retaining build 22's

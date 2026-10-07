@@ -1,0 +1,39 @@
+{
+  "recordedAt": "2026-10-07T12:52:18.876231+00:00",
+  "session": 91604,
+  "command": "GIT_SSH_COMMAND with ServerAliveInterval=30/ServerAliveCountMax=120; SETTLERS_QA_SIMULATOR_ID=937692FF-BFBF-4683-80E5-2590F5288D56 GATE_TEST_WORKERS=1 GATE_BUILD_JOBS=2 git push --set-upstream origin codex/naval24-main-integration",
+  "exitCode": 0,
+  "head": "67efbadbdb061d9ded77628cf892c72d54e17fb4",
+  "productionSource": "9bce5f77a38684bd6e011fac8838c74b38440798",
+  "remoteHead": "67efbadbdb061d9ded77628cf892c72d54e17fb4",
+  "branchPublished": true,
+  "gate": "passed",
+  "mandatoryStages": "all ten PASS",
+  "optionalDebugAppBuild": "SKIP; not requested. Native app/UI test action built Debug separately.",
+  "nativeResult": "/Users/alex/Library/Developer/Xcode/DerivedData/Settlers-ehpkozivxiwhkjbrsccrribfgemp/Logs/Test/Test-Settlers-2026.10.07_07-52-31--0400.xcresult",
+  "nativeFunctions": {
+    "total": 754,
+    "passed": 753,
+    "failed": 0,
+    "skipped": 1
+  },
+  "nativeRuns": {
+    "passed": 1512,
+    "failed": 0,
+    "skipped": 1
+  },
+  "engine": {
+    "tests": 391,
+    "suites": 31,
+    "coveragePercent": 96.78
+  },
+  "ai": {
+    "tests": 308,
+    "suites": 31,
+    "coveragePercent": 96.05
+  },
+  "hosted": {
+    "tests": 581,
+    "suites": 82
+  }
+}

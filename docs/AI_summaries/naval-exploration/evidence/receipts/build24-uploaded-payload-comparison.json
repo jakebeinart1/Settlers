@@ -1,0 +1,23 @@
+{
+  "productionSourceSHA": "9bce5f77a38684bd6e011fac8838c74b38440798",
+  "archiveHead": "67efbadbdb061d9ded77628cf892c72d54e17fb4",
+  "zipEntryCount": 14,
+  "differingEntries": [
+    "Payload/Settlers.app/Settlers"
+  ],
+  "onlyDifferenceWithinCodeSignature": true,
+  "identicalExecutablePrefixBytes": 5855808,
+  "identicalExecutablePrefixSHA256": "a37de8a4c93fa4622403054bb9bb7780b46adb87b3e7f9d1933da82d5269a36f",
+  "reviewExportIPASHA256": "f899e4d02bc252a70eb6d675ba51741328c0d2fdf501786958769abdaef06770",
+  "uploadedIPASHA256": "0ef24d00609c2f2830448ddcdf817d167a0673d060442631c31d1e4e3f87becc",
+  "uploadedIPAMD5": "dfcd6ece91320bbe705a2ce46c26bd0a",
+  "contentDeliveryChecksumHexMD5": "DFCD6ECE91320BBE705A2CE46C26BD0A",
+  "contentDeliveryChecksumOccurrences": 3,
+  "contentDeliveryIDs": [
+    "9b3882ef-a85c-46c2-8d1a-2d83f5483aef"
+  ],
+  "contentDeliveryChecksumConfirmed": true,
+  "contentDeliveryLogSHA256": "bf172ba703ca233c409ca1878ca0c04f193f7de9d7eeaecd53ff5938178f0a74",
+  "uploadCommandExitCode": 0,
+  "appleBuildID": "9b3882ef-a85c-46c2-8d1a-2d83f5483aef"
+}

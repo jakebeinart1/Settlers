@@ -1,5 +1,97 @@
 # Voyages visual and motion review
 
+## Build 24 final-source gallery: local review verified
+
+Root directly opened and approved all 23 selected originals, with no blocking
+visual defect, at `2026-10-07T12:57:51.349484+00:00`. The
+[portable final manifest](screenshots/build24-final-manifest.json) retains exact
+original names/paths, SHA256, source/test head, native test IDs and capture times,
+configuration, review time and unmodified-byte status. The
+[original root review](receipts/build24-final-gallery-root-review.json) is copied
+unchanged. Production is frozen at
+`9bce5f77a38684bd6e011fac8838c74b38440798`, version 1.0/build 24, with
+[376 matching inputs](receipts/build24-final-production-inputs.json); tested
+head `67efbad` differs only in two test files. Twenty-two images are passing final
+full-gate Debug attachments and one is the ordinary Release menu. Three of the
+Debug images are informational caption measurement crops, not whole-game views.
+No PNG was edited. The Release screenshot's exact capture time was not recorded;
+its original runtime verification and root inspection times are preserved
+separately rather than inventing a capture timestamp.
+
+- Sailing: [complete two-hex range](screenshots/build24-sailing-range.png), [staged canonical route](screenshots/build24-voyage-staged-route.png) and [one committed voyage using both hexes](screenshots/build24-voyage-committed.png).
+- Natural language/current target: [Fleet allowance](screenshots/build24-fleet-allowance.png) and [current Settings goal](screenshots/build24-settings-goal.png).
+- Painted terrain/token: [local colony scale](screenshots/build24-harvest-local.png), [charted World](screenshots/build24-harvest-world.png) and [maximum zoom](screenshots/build24-harvest-maximum-zoom.png).
+- Harvest: [settlement one-choice](screenshots/build24-settlement-harvest.png), [city two-choice](screenshots/build24-city-harvest-two-choices.png), [city 1/2 after cold resume](screenshots/build24-city-harvest-cold-resume.png), [maximum text with pinned Collect](screenshots/build24-harvest-maximum-text.png) and [audited whole harvest](screenshots/build24-harvest-audited.png).
+- Informational contrast captures: [source](screenshots/build24-harvest-source-contrast.png), [collected](screenshots/build24-harvest-collected-contrast.png) and [remaining](screenshots/build24-harvest-remaining-contrast.png). These element crops retain the exact-ID/live ≥7:1 qualification below.
+- Real rival outcome: [funded proposal before answering](screenshots/build24-rival-funded-offer.png), [cold-resumed Expert rival winner and fixed news](screenshots/build24-rival-winner-notice.png) and [continuation to the human's next roll](screenshots/build24-rival-next-roll.png).
+- Real human outcome: [funded competing proposal](screenshots/build24-human-funded-offer.png), [human exchange receipt](screenshots/build24-human-winner-receipt.png) and [continuation to the next roll](screenshots/build24-human-next-roll.png).
+- [Ordinary Release 1.0/build 24 menu](screenshots/build24-release-menu.png), separately attributed from Debug QA fixtures and any signed device artifact.
+
+Gold destination borders/cost badges and the canonical dashed route remain
+readable over sea/cosmetic mist; the dock explains remaining allowance and cost.
+The lavender/gold harvest texture preserves ordinary inset/grout/token geometry
+at local, World and maximum zoom. Its original
+[built-in imagegen manifest](../../../../design-references/approved/tiles/harvest-generation-manifest.json)
+binds source/approved/runtime PNGs, which were never edited. Settlement/city
+headings distinguish one/two choices, cold-resumed city progress remains 1/2,
+and maximum text retains heading/progress/confirmation with scrolling choices.
+The rival notice visibly reads “Alexander traded with Ramesses” while the human
+keeps one Grain; the human winner uses the ordinary exchange receipt. These
+are inspected selected captures, not claims about physical-phone play or manual
+VoiceOver use.
+
+### Ordinary Release runtime
+
+The [runtime receipt](receipts/build24-release-runtime.json) records version
+1.0/build 24 freshly installed on reused Empires QA `937692FF`, launched without
+QA arguments. PID `93934` survives six seconds; no new own crash report appears.
+Root inspected the ordinary menu above. Release executable SHA256 is
+`33d7746154466774d4359d897e8727710515f8ba11afd595660fca25329c010b`.
+This is simulator Release survival, separate from native Debug captures and the
+separately signed device archive/upload.
+
+### Retained failures and qualified accessibility evidence
+
+The original-branch fifth command passes 71 functions/107 runs after four
+compile-only failures. Its eight inspected originals remain intermediate 1.0/23
+media. Old rival image `D759D58C` followed resource waits after timed news expired
+and remains excluded from result-news paint proof. The integrated development
+rival image `492962A6` and final winner above have their own attribution.
+
+The integrated focused command failed three of 121 functions (117 pass, one
+conditional natural-seven skip): interactive 14-point progress `Other`, obsolete
+numbered-vessel oracle and exact-centering oracle despite a fully visible tile.
+Their corrections expose noninteractive `StaticText`, retain stable IDs and
+require full tile bounds after actual clamping. The refined command failed one
+Contrast audit while all travel/local/World/maximum artwork and large-chooser
+checks passed. Subsequent failed caption audits and the three-case qualified
+harvest pass remain in [E29](../acceptance.md#build-24-follow-up-e29-delivered).
+
+Raw native Contrast flags persist for `naval.resource.source`,
+`naval.resource.progress.collected` and `naval.resource.progress.remaining`.
+Only those exact IDs are accepted, after a live sRGB screenshot ratio ≥7:1;
+verified ratios are 8.1257/7.9583/7.9671. Every other audit issue and failed/missing
+measurement fails. The three cropped measurements above preserve that evidence;
+a passing gate/visual review does not clear the raw flags.
+
+The first complete pre-push gate fails two test oracles; test-only `67efbad`
+retains their assertions and its correction passes three functions/eight runs.
+The [final full gate](receipts/build24-final-prepush-command.json) then passes
+all ten mandatory stages, session `91604`, exit 0, and publishes the branch.
+App/UI has 753/754 passing functions, zero failures, one skip and 1,512 passing
+runs. Optional separate Debug app build skips; the test action built Debug.
+Archive/export/upload/Production signatures and the
+[independent final audit](receipts/build24-final-independent-release-audit.json)
+pass; the auditor directly opens six originals and matches all 23 hashes.
+Apple confirms VALID, unexpired/internal IN_BETA_TESTING for
+`9b3882ef-a85c-46c2-8d1a-2d83f5483aef`, with Alex's Internal access. QA alone
+is shut down. The sole final native skip is the 375×667 footer case on 402×874
+QA; no current compact execution is claimed. Physical/manual VoiceOver and
+strength remain unobserved. [PR #60](https://github.com/jakebeinart1/Settlers/pull/60)
+awaits actual approval, unmerged; required tested-head
+[CI](receipts/build24-tested-head-github-ci.json) passes. Build 23's delivered
+gallery below retains its original attribution.
+
 ## Build 23 final-source gallery: local review verified
 
 D42–D44 address Alex's October 7 request for painted fleets, obvious construction

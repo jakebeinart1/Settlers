@@ -1,0 +1,271 @@
+{
+  "productionSourceSHA": "9bce5f77a38684bd6e011fac8838c74b38440798",
+  "testedHead": "67efbadbdb061d9ded77628cf892c72d54e17fb4",
+  "configuration": "Debug native UI test attachments",
+  "version": "1.0",
+  "build": "24",
+  "xcresult": "/Users/alex/.codex/artifacts/naval-exploration/build24-travel-harvest-trade/final-prepush-gate.xcresult",
+  "screenshots": [
+    {
+      "name": "Voyages \u2014 current match victory goal_0_5AA516CC-AC29-4EDE-9843-787EA0634CD1.png",
+      "path": "/Users/alex/.codex/artifacts/naval-exploration/build24-travel-harvest-trade/final-travel-attachments/B5C45BAE-FAA3-4652-AA40-6BB811DB2FC0.png",
+      "sha256": "8c7c69381f64b646671c5765fce5e968ccf31fd0d40ff1309fddd7e0ab307d04",
+      "testIdentifier": "NavalTravelFlowTests/testFleetAndVictoryGoalUsePlainVisibleLanguage()",
+      "timestamp": 1791376681.551,
+      "deviceId": "937692FF-BFBF-4683-80E5-2590F5288D56",
+      "isAssociatedWithFailure": false,
+      "rootInspected": true,
+      "rootVisualVerdict": "approved; no blocking visual defect in the final original"
+    },
+    {
+      "name": "Voyages \u2014 plain fleet travel allowance_0_110C27FE-28D7-4165-8A10-77224491E030.png",
+      "path": "/Users/alex/.codex/artifacts/naval-exploration/build24-travel-harvest-trade/final-travel-attachments/BB02497C-1C51-4C1C-B112-AFAD1F3087D8.png",
+      "sha256": "e207dba942facca91f79407f9d337f084c6c148b10d30e02cbbfcd0ea6210269",
+      "testIdentifier": "NavalTravelFlowTests/testFleetAndVictoryGoalUsePlainVisibleLanguage()",
+      "timestamp": 1791376679.686,
+      "deviceId": "937692FF-BFBF-4683-80E5-2590F5288D56",
+      "isAssociatedWithFailure": false,
+      "rootInspected": true,
+      "rootVisualVerdict": "approved; no blocking visual defect in the final original"
+    },
+    {
+      "name": "Voyages \u2014 complete voyage uses both hexes_0_A62A781A-6944-430A-9F56-E8B22BF591C1.png",
+      "path": "/Users/alex/.codex/artifacts/naval-exploration/build24-travel-harvest-trade/final-travel-attachments/C00E7A23-04E5-418E-AF68-C54D906DF3D6.png",
+      "sha256": "90ec21d5b56f09e0db7d06d4e271907fb35406343df69a95eedcea177db11efd",
+      "testIdentifier": "NavalTravelFlowTests/testFullTwoHexRangePreviewsOnceAndCommitsOneVoyageThenColdResumes()",
+      "timestamp": 1791376691.741,
+      "deviceId": "937692FF-BFBF-4683-80E5-2590F5288D56",
+      "isAssociatedWithFailure": false,
+      "rootInspected": true,
+      "rootVisualVerdict": "approved; no blocking visual defect in the final original"
+    },
+    {
+      "name": "Voyages \u2014 one destination stages the complete route_0_D34B54CA-595F-4A89-960A-173F8776492E.png",
+      "path": "/Users/alex/.codex/artifacts/naval-exploration/build24-travel-harvest-trade/final-travel-attachments/BF4AF447-C45E-4238-BAA0-32938E4BF768.png",
+      "sha256": "630fb4a42637912426bf0da252088b82f2139c6976a00cc21305c1ad4f5ad007",
+      "testIdentifier": "NavalTravelFlowTests/testFullTwoHexRangePreviewsOnceAndCommitsOneVoyageThenColdResumes()",
+      "timestamp": 1791376690.037,
+      "deviceId": "937692FF-BFBF-4683-80E5-2590F5288D56",
+      "isAssociatedWithFailure": false,
+      "rootInspected": true,
+      "rootVisualVerdict": "approved; no blocking visual defect in the final original"
+    },
+    {
+      "name": "Voyages \u2014 complete two-hex sailing range_0_0B7ED5DA-76EE-4283-82C4-E921C77C5459.png",
+      "path": "/Users/alex/.codex/artifacts/naval-exploration/build24-travel-harvest-trade/final-travel-attachments/18B63E60-C53C-4E2C-A2B5-CC9E642FBB8A.png",
+      "sha256": "e98c078fd4357c7ce8fb72301bd1a74fa88798e2c196a2ae2e6ee092857c1812",
+      "testIdentifier": "NavalTravelFlowTests/testFullTwoHexRangePreviewsOnceAndCommitsOneVoyageThenColdResumes()",
+      "timestamp": 1791376689.303,
+      "deviceId": "937692FF-BFBF-4683-80E5-2590F5288D56",
+      "isAssociatedWithFailure": false,
+      "rootInspected": true,
+      "rootVisualVerdict": "approved; no blocking visual defect in the final original"
+    },
+    {
+      "name": "Painted harvest field and numbered token at maximum zoom_0_9EB894DE-B0EF-4B2E-A0F5-80C841B8DE5A.png",
+      "path": "/Users/alex/.codex/artifacts/naval-exploration/build24-travel-harvest-trade/final-harvest-artwork-attachments/E6D9E181-B178-4EB5-9C4C-616DC1528AC4.png",
+      "sha256": "1e9f00e0742f489e9a864a44810763c240d25dfe0dd3c44fa85e1a0460ad0bf9",
+      "testIdentifier": "NavalHarvestArtworkFlowTests/testPaintedHarvestFieldKeepsItsTokenAtLocalWorldAndMaximumZoom()",
+      "timestamp": 1791376385.816,
+      "deviceId": "937692FF-BFBF-4683-80E5-2590F5288D56",
+      "isAssociatedWithFailure": false,
+      "rootInspected": true,
+      "rootVisualVerdict": "approved; no blocking visual defect in the final original"
+    },
+    {
+      "name": "Painted harvest fields in the charted world_0_77CCF9BE-1344-4652-8716-F177EA8170D0.png",
+      "path": "/Users/alex/.codex/artifacts/naval-exploration/build24-travel-harvest-trade/final-harvest-artwork-attachments/47ED5110-434D-46B0-806D-66D0D8270F64.png",
+      "sha256": "fdbc00fdc98bc6388b4d72eea4e71c639cd219e0a8eda3eff89b224fc44c5adb",
+      "testIdentifier": "NavalHarvestArtworkFlowTests/testPaintedHarvestFieldKeepsItsTokenAtLocalWorldAndMaximumZoom()",
+      "timestamp": 1791376379.943,
+      "deviceId": "937692FF-BFBF-4683-80E5-2590F5288D56",
+      "isAssociatedWithFailure": false,
+      "rootInspected": true,
+      "rootVisualVerdict": "approved; no blocking visual defect in the final original"
+    },
+    {
+      "name": "Painted harvest field at local colony scale_0_1EA654A0-C959-4F23-88DE-B7F620BB0F7E.png",
+      "path": "/Users/alex/.codex/artifacts/naval-exploration/build24-travel-harvest-trade/final-harvest-artwork-attachments/F81EF7B7-81AC-465A-9B42-D02C7E82B93C.png",
+      "sha256": "c454a51d56069c0a3917c4a3266c4b3bf789e67b2f2e6cac5e9021ef62a3b259",
+      "testIdentifier": "NavalHarvestArtworkFlowTests/testPaintedHarvestFieldKeepsItsTokenAtLocalWorldAndMaximumZoom()",
+      "timestamp": 1791376379.431,
+      "deviceId": "937692FF-BFBF-4683-80E5-2590F5288D56",
+      "isAssociatedWithFailure": false,
+      "rootInspected": true,
+      "rootVisualVerdict": "approved; no blocking visual defect in the final original"
+    },
+    {
+      "name": "Voyages \u2014 city harvest progress survives cold resume_0_DFBC8F1B-369C-40C8-98F6-CC21AC51DD65.png",
+      "path": "/Users/alex/.codex/artifacts/naval-exploration/build24-travel-harvest-trade/final-naval-attachments/C182D4AA-8C0F-4603-98C5-5773CCC7422E.png",
+      "sha256": "b42a17965debe32f29aeee079927e8e7cfaf0ff33e4f5bd598cc0b02d1c5cd6e",
+      "testIdentifier": "NavalFlowTests/testCityHarvestCreditsTwoChoicesAcrossColdResume()",
+      "timestamp": 1791376118.347,
+      "deviceId": "937692FF-BFBF-4683-80E5-2590F5288D56",
+      "isAssociatedWithFailure": false,
+      "rootInspected": true,
+      "rootVisualVerdict": "approved; no blocking visual defect in the final original"
+    },
+    {
+      "name": "Voyages \u2014 city chooses two resources with clear progress_0_D8CA1E78-E95A-4D14-861D-DAE446D2D70B.png",
+      "path": "/Users/alex/.codex/artifacts/naval-exploration/build24-travel-harvest-trade/final-naval-attachments/C3040FAD-C433-4E2F-9010-41F38247BD9F.png",
+      "sha256": "7b7528ba06c617fe7372b11b6cd407d0d189baf7d4910539717c8e0ae66fcfd1",
+      "testIdentifier": "NavalFlowTests/testCityHarvestCreditsTwoChoicesAcrossColdResume()",
+      "timestamp": 1791376112.956,
+      "deviceId": "937692FF-BFBF-4683-80E5-2590F5288D56",
+      "isAssociatedWithFailure": false,
+      "rootInspected": true,
+      "rootVisualVerdict": "approved; no blocking visual defect in the final original"
+    },
+    {
+      "name": "Voyages \u2014 audited island harvest_0_4B1BADA6-2915-4F0D-95A0-BBDACAD96667.png",
+      "path": "/Users/alex/.codex/artifacts/naval-exploration/build24-travel-harvest-trade/final-naval-attachments/D908BDC4-A358-4688-8248-3BCE2F402297.png",
+      "sha256": "2fbe70fb0e72129d0f545f5e2441f1598e4fd13bff8378523637463a4194087f",
+      "testIdentifier": "NavalFlowTests/testHarvestPassesNativeAccessibilityAudit()",
+      "timestamp": 1791376165.302,
+      "deviceId": "937692FF-BFBF-4683-80E5-2590F5288D56",
+      "isAssociatedWithFailure": false,
+      "rootInspected": true,
+      "rootVisualVerdict": "approved; no blocking visual defect in the final original"
+    },
+    {
+      "name": "naval.resource.progress.remaining \u2014 independently measured rendered contrast_0_27B528A1-4CDB-488A-8B92-2844E9B87A2D.png",
+      "path": "/Users/alex/.codex/artifacts/naval-exploration/build24-travel-harvest-trade/final-naval-attachments/861300CA-F601-4637-AD51-4547A5A5D44E.png",
+      "sha256": "9db93359467a069ede4d4776bebaeb241d64bf4f6f5bcfcdaff6e9c3262b1604",
+      "testIdentifier": "NavalFlowTests/testHarvestPassesNativeAccessibilityAudit()",
+      "timestamp": 1791376165.15,
+      "deviceId": "937692FF-BFBF-4683-80E5-2590F5288D56",
+      "isAssociatedWithFailure": false,
+      "rootInspected": true,
+      "rootVisualVerdict": "approved; no blocking visual defect in the final original"
+    },
+    {
+      "name": "naval.resource.progress.collected \u2014 independently measured rendered contrast_0_BD74A604-0191-4DFE-A674-C3EE8F8DED49.png",
+      "path": "/Users/alex/.codex/artifacts/naval-exploration/build24-travel-harvest-trade/final-naval-attachments/82FDA076-0411-4249-8BC4-45E01723484C.png",
+      "sha256": "846707b233897bba0a1be219857a374e177ff02473e75d5346c4d9ad8aeb31a2",
+      "testIdentifier": "NavalFlowTests/testHarvestPassesNativeAccessibilityAudit()",
+      "timestamp": 1791376164.789,
+      "deviceId": "937692FF-BFBF-4683-80E5-2590F5288D56",
+      "isAssociatedWithFailure": false,
+      "rootInspected": true,
+      "rootVisualVerdict": "approved; no blocking visual defect in the final original"
+    },
+    {
+      "name": "naval.resource.source \u2014 independently measured rendered contrast_0_7765FDB0-E00D-47B4-A9A8-409D58068770.png",
+      "path": "/Users/alex/.codex/artifacts/naval-exploration/build24-travel-harvest-trade/final-naval-attachments/9759CDC7-D7F7-4D6D-8B3F-9ED0161D381A.png",
+      "sha256": "4b495fdda2bd5038e4a41f0d76bdbb36a6fcbf6d13f0e1a1b0623ee5ea8020b3",
+      "testIdentifier": "NavalFlowTests/testHarvestPassesNativeAccessibilityAudit()",
+      "timestamp": 1791376164.403,
+      "deviceId": "937692FF-BFBF-4683-80E5-2590F5288D56",
+      "isAssociatedWithFailure": false,
+      "rootInspected": true,
+      "rootVisualVerdict": "approved; no blocking visual defect in the final original"
+    },
+    {
+      "name": "Voyages \u2014 accessible island harvest_0_3BF4ABC9-1FE6-4765-B3C7-364348D798B3.png",
+      "path": "/Users/alex/.codex/artifacts/naval-exploration/build24-travel-harvest-trade/final-naval-attachments/B3698DF1-AEB9-4EF9-AA04-E60FFB5DCAD6.png",
+      "sha256": "9095255e69edbe65e0bed5ff316ed51a895448537febc0e5b8ee14e1d8506171",
+      "testIdentifier": "NavalFlowTests/testLargeTextHarvestKeepsEveryChoiceAndConfirmationReachable()",
+      "timestamp": 1791376175.746,
+      "deviceId": "937692FF-BFBF-4683-80E5-2590F5288D56",
+      "isAssociatedWithFailure": false,
+      "rootInspected": true,
+      "rootVisualVerdict": "approved; no blocking visual defect in the final original"
+    },
+    {
+      "name": "Voyages \u2014 island harvest_0_D56EC26A-E84E-42EF-8EBD-09643C94F622.png",
+      "path": "/Users/alex/.codex/artifacts/naval-exploration/build24-travel-harvest-trade/final-naval-attachments/EDDB4F33-D753-4D84-970C-659E7F31146E.png",
+      "sha256": "fc9d107101c994a005fe3fc4bfd9f6a7e655dd004fea418b0a869fdaa79e8ef4",
+      "testIdentifier": "NavalFlowTests/testWildHarvestIsOneBankCardAndSurvivesColdResume()",
+      "timestamp": 1791376342.341,
+      "deviceId": "937692FF-BFBF-4683-80E5-2590F5288D56",
+      "isAssociatedWithFailure": false,
+      "rootInspected": true,
+      "rootVisualVerdict": "approved; no blocking visual defect in the final original"
+    },
+    {
+      "name": "Rival winner continues to the human's next dice roll_0_CC09922B-913E-4B51-98EB-46FADB6E1D25.png",
+      "path": "/Users/alex/.codex/artifacts/naval-exploration/build24-travel-harvest-trade/final-trade-competition-attachments/C6D5CE4D-5491-40B7-9386-711786437517.png",
+      "sha256": "458f0cdcfe03ad11a5344f3676126826e3e79ce356b595213b6cf99f930fd27c",
+      "testIdentifier": "TradeCompetitionFlowTests/testActualExpertRivalWinsAfterColdResumeWithoutChangingTheHumanHand()",
+      "timestamp": 1791377076.3,
+      "deviceId": "937692FF-BFBF-4683-80E5-2590F5288D56",
+      "isAssociatedWithFailure": false,
+      "rootInspected": true,
+      "rootVisualVerdict": "approved; no blocking visual defect in the final original"
+    },
+    {
+      "name": "Cold-resumed actual rival wins; human keeps their Grain_0_67F9E6C8-B322-4119-8937-1821855F37EF.png",
+      "path": "/Users/alex/.codex/artifacts/naval-exploration/build24-travel-harvest-trade/final-trade-competition-attachments/54B41E08-691C-436F-9A87-869AE0CB202D.png",
+      "sha256": "76c4fdad69ab23bab8da9d22bcae61db402e12cfb755fb3bdc01036f63f65c76",
+      "testIdentifier": "TradeCompetitionFlowTests/testActualExpertRivalWinsAfterColdResumeWithoutChangingTheHumanHand()",
+      "timestamp": 1791377070.798,
+      "deviceId": "937692FF-BFBF-4683-80E5-2590F5288D56",
+      "isAssociatedWithFailure": false,
+      "rootInspected": true,
+      "rootVisualVerdict": "approved; no blocking visual defect in the final original"
+    },
+    {
+      "name": "Real funded competing offer before any human answer_0_06B7BA0C-0CAE-4845-B910-51A66A46D357.png",
+      "path": "/Users/alex/.codex/artifacts/naval-exploration/build24-travel-harvest-trade/final-trade-competition-attachments/AE5F1058-E82A-4B03-8636-8A2072F1DE3C.png",
+      "sha256": "2e45d96e3a58570634125bff1907b0c068d6ccba0e65cb534b78005ea0aa397a",
+      "testIdentifier": "TradeCompetitionFlowTests/testActualExpertRivalWinsAfterColdResumeWithoutChangingTheHumanHand()",
+      "timestamp": 1791377052.068,
+      "deviceId": "937692FF-BFBF-4683-80E5-2590F5288D56",
+      "isAssociatedWithFailure": false,
+      "rootInspected": true,
+      "rootVisualVerdict": "approved; no blocking visual defect in the final original"
+    },
+    {
+      "name": "Human winner continues to their next dice roll_0_F70E9000-EDDD-43A8-8F24-46CE1C42B90E.png",
+      "path": "/Users/alex/.codex/artifacts/naval-exploration/build24-travel-harvest-trade/final-trade-competition-attachments/5260A52D-4B5B-427F-B97B-2D1279191BE8.png",
+      "sha256": "dd2944e3ce07a61f7c17c452dc52ad94a24f2d5f3787a73e0464b9c380f7092f",
+      "testIdentifier": "TradeCompetitionFlowTests/testHumanWinsAgainstAWillingRecipientAndContinuesAfterTheReceipt()",
+      "timestamp": 1791377098.818,
+      "deviceId": "937692FF-BFBF-4683-80E5-2590F5288D56",
+      "isAssociatedWithFailure": false,
+      "rootInspected": true,
+      "rootVisualVerdict": "approved; no blocking visual defect in the final original"
+    },
+    {
+      "name": "Human wins the actual competing acceptance_0_A389EE1A-8EDE-44B2-92B5-45489AC85E26.png",
+      "path": "/Users/alex/.codex/artifacts/naval-exploration/build24-travel-harvest-trade/final-trade-competition-attachments/05BDCF86-5891-45C3-B3F0-8B0496180F5E.png",
+      "sha256": "7c9f7d2095be835eafcab4d522d4702ec430b9bbe6346f228843ad79db58ba93",
+      "testIdentifier": "TradeCompetitionFlowTests/testHumanWinsAgainstAWillingRecipientAndContinuesAfterTheReceipt()",
+      "timestamp": 1791377091.47,
+      "deviceId": "937692FF-BFBF-4683-80E5-2590F5288D56",
+      "isAssociatedWithFailure": false,
+      "rootInspected": true,
+      "rootVisualVerdict": "approved; no blocking visual defect in the final original"
+    },
+    {
+      "name": "Real funded competing offer before any human answer_0_ED9C9483-3302-429E-AA5E-4322DE4BCEDB.png",
+      "path": "/Users/alex/.codex/artifacts/naval-exploration/build24-travel-harvest-trade/final-trade-competition-attachments/13E312B9-977F-4809-AF88-E20E8E75C97A.png",
+      "sha256": "c99c5bbbf19d50a2cb43afec507eefd9fa8f006cd1f0f90fb0c5c802cb1fed90",
+      "testIdentifier": "TradeCompetitionFlowTests/testHumanWinsAgainstAWillingRecipientAndContinuesAfterTheReceipt()",
+      "timestamp": 1791377084.552,
+      "deviceId": "937692FF-BFBF-4683-80E5-2590F5288D56",
+      "isAssociatedWithFailure": false,
+      "rootInspected": true,
+      "rootVisualVerdict": "approved; no blocking visual defect in the final original"
+    },
+    {
+      "name": "Ordinary Release 1.0/24 menu",
+      "path": "/Users/alex/.codex/artifacts/naval-exploration/build24-travel-harvest-trade/release-ordinary-menu.png",
+      "sha256": "698cabd0d73c97a8301543bf82a8ecfd63a12fde6de2c178c2ee536e81eeee6c",
+      "configuration": "Release without QA launch arguments",
+      "rootInspected": true,
+      "rootVisualVerdict": "approved; expected ordinary main menu"
+    }
+  ],
+  "rootInspectedAt": "2026-10-07T12:57:51.349484+00:00",
+  "rootInspectedCount": 23,
+  "imageEdits": "none; original simulator/XCTest captures preserved",
+  "reviewNotes": [
+    "Gold destination borders/cost badges and the canonical dashed staged route remain readable over the sea and cosmetic mist. The dock states remaining and voyage cost without needing Fleet.",
+    "Painted harvest texture follows existing inset/grout/token geometry and is intact at local, World and maximum zoom. Maximum zoom deliberately clips other board elements at the viewport boundary.",
+    "Settlement/city headings distinguish one/two resources; city partial progress remains 1 of2 after cold resume. Largest text retains heading/progress/confirmation and uses a scrollable choices region.",
+    "Rival notice is visibly Alexander traded with Ramesses; human hand keeps one Grain. Human winner shows ordinary exact exchange receipt.",
+    "Three informational caption captures are retained as accessibility measurements, not substitute screenshots of a complete gameplay state. Native raw contrast flags retain their exact-ID/live>=7:1 qualification.",
+    "Ordinary Release menu is separately attributed from Debug QA game captures."
+  ]
+}

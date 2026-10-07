@@ -1,0 +1,15 @@
+{
+  "observedAtUTC": "2026-10-07T11:43:03.716091+00:00",
+  "command": "SETTLERS_QA_SIMULATOR_ID=937692FF-BFBF-4683-80E5-2590F5288D56 GATE_TEST_WORKERS=1 GATE_BUILD_JOBS=2 git push --set-upstream origin codex/naval24-main-integration",
+  "sourceCommit": "9bce5f77a38684bd6e011fac8838c74b38440798",
+  "sessionID": 52090,
+  "gitExitCode": 141,
+  "gateVerdict": "FAILED",
+  "appTestsFailed": true,
+  "releaseBuildPassed": true,
+  "optionalDebugBuild": "SKIP - not requested",
+  "sshConnectionClosedDuringHook": true,
+  "pushPublished": false,
+  "retainedLog": "full-prepush-gate.log",
+  "retainedResult": "full-prepush-gate.xcresult"
+}

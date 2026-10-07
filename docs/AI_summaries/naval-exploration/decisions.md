@@ -8,6 +8,113 @@ validation recorded in the acceptance register and final source-bound receipts.
 Human charter commitments remain distinct from these choices.
 Stage numbers refer to the program in `README.md`.
 
+## Build 24 decisions: selected, verified for delivery
+
+Alex's October 7 follow-up reopens the affected sailing and presentation choices.
+D45–D49 are selected contracts; [E29](acceptance.md#build-24-follow-up-e29-delivered)
+owns source-bound validation. Build 23's decisions and evidence below retain
+their original source and outcome. Current-main integration is frozen at
+`9bce5f7`, 1.0/build 24, with 376 matching production inputs. The fresh v3
+48-match/six-repeat functional evidence passes. Integrated/refined native failures
+are retained; the later three-case harvest audit pass uses three exact-ID live
+screenshot contrast guards and retains the raw flags. Four harvest originals
+and the actual rival notice are inspected. The first full pre-push gate failed
+two obsolete test oracles; test-only `67efbad` then passes three functions/eight
+runs with production unchanged. Final full-gate session `91604` passes all ten
+mandatory stages, exit 0, and publishes test-only `67efbad`; optional separate
+Debug app build skips while the native Debug test action built separately.
+Ordinary Release survives six seconds after fresh install without QA arguments,
+and root approves all 23 unmodified final originals. Archive/export/upload/
+signatures and independent final audit pass; Apple confirms VALID/internal
+IN_BETA_TESTING with Alex's Internal access. E29 is delivered. PR #60 awaits
+actual approval, with required tested-head CI passing and no merge. No new
+strength claim is made.
+
+**D45 — Painted harvest and durable progress, October 7, human-selected.**
+The any-resource tile must read as painted terrain beside the existing resource
+tiles. A muted lavender field with restrained antique-gold botanical strokes
+uses the ordinary hex outline, grout and number token. The old schematic
+decoration leaves productive land unlike its neighbors; a market scene or five
+resource symbols would compete with the production token. The selected asset
+is the unmodified built-in imagegen output. Its [prompt/source/hash manifest](../../../design-references/approved/tiles/harvest-generation-manifest.json)
+binds approved and runtime PNGs. Root inspected actual integrated local/World/
+maximum-zoom and maximum-text renderings; the original PNG was never edited.
+The later 23-original final gallery is approved at its recorded scales; native
+skip and physical/manual measurement limits remain E29. Native caption contrast
+acceptance is qualified by exact-ID live ≥7:1 guards, not cleared raw flags.
+
+Harvest explains the producing buildings: a settlement contributes one choice,
+a city two, and mixed buildings retain their combined original entitlement.
+Heading and Collect stay pinned while choices scroll. Derive the original total
+from the unchanged producing board/roll and progress from the durable remaining
+obligation. Saving an additional presentation total would duplicate truth;
+showing only remaining cards would relabel a partly collected city as a one-card
+harvest after cold launch. No new save field or schema is needed.
+
+**D46 — Natural ship language, October 7, human-selected.**
+Fleet, launch/capture notices, board labels and replay narration describe a ship
+and its current owner without labels such as “Ship 3.” Numeric IDs remain
+internal for exact selection and replay. Numbered labels expose bookkeeping;
+invented vessel names would add unrelated naming and persistence work. Painted
+controller identity and explicit stack/nearby selection remain. Validate
+multi-owner stacks and cold resume so simpler language cannot choose the wrong
+vessel.
+
+**D47 — Two-hex destination sailing, October 7, human-selected.**
+New Naval v3 matches give each ship two sea hexes per controller turn, including
+new launches and captures. Select any reachable public sea destination costing
+one or two hexes, then confirm one voyage. Stable breadth-first traversal with
+sorted neighbors picks one canonical shortest route; that same route determines
+preview, cost, policy evaluation and the union of committed intermediate reveals.
+Equal-length routes cannot change tomorrow's replay or preview a different
+discovery. The allowance itself changes, rather than only the displayed number.
+
+Adjacent-only taps add unnecessary repetition; unrestricted travel would remove
+the human-selected limit. A route picker for equal paths adds an unnecessary
+choice at this short range. Every reachable endpoint carries its cost above
+cosmetic mist, with the selected route visible. Radius-two ship sight already
+makes the complete v3 range public; concealed land cannot decide the action mask.
+Preview and cancellation reveal nothing. Version 1/2 saves and replays retain
+three hexes per turn and adjacent-only moves, including launch/capture allowances;
+missing Naval versions still decode as 1. Map version 1 and state schema 6 stay.
+Changed movement and policy costs require new functional/determinism evidence;
+build 22's matrix cannot close E29. Integrated native range/route/commitment
+journeys pass, and frozen `9bce5f7` passes 48 fresh matches plus six complete-byte
+result/trace repeats. Actual travel includes 569 two-hex voyages. Independent
+reveal reconstruction covers two retained fog-off checkpoints; engine/source
+fog tests remain separate. Final regression gate remains open; functional
+completion does not establish strength.
+
+**D48 — Visible current win goal, October 7, human-selected.**
+The human HUD shows score/current target. In-Game Settings explains the current
+target in plain text, and New Game places the selected goal beside its existing
+Match Settings heading. A new section would add the scrolling Alex rejected;
+a fixed “14” would misdescribe other modes and resumed lengths. All three read
+the actual draft or saved target. Verify compact/maximum-text layouts, mode
+changes and a nondefault resumed target.
+
+**D49 — Fair competition for an accepted bot offer, October 7, human-selected;
+scope interpretation recorded.**
+When the human accepts a live bot proposal, the human joins the other actual
+seated policies that choose acceptance through the normal response mask and can
+fund it. Uniform selection over the sorted recipient pool uses session policy
+RNG. Funding alone does not mean willingness; inventing a policy for a human
+seat would manufacture consent. Always favoring the human excludes willing
+rivals; a fixed first responder favors seat order. Decisions, including a cached
+ordinary reply, retain their telemetry.
+
+The winner commits ordinary `respondToTrade` as its actual Step actor; a bot
+winner is not recorded as a human move. A bot win posts “X traded with Y” in the
+existing fixed information area. Candidate state, policy RNG and history publish
+only after the durable checkpoint succeeds. No engine RNG, move type, save field
+or schema changes. The narrower interpretation changes only human Accept on
+live bot offers: Decline, expiry and manually composed human proposals retain
+their existing paths. The optional question about broadening those paths has no
+answer at this checkpoint, so they are not broadened. Reopen D49 if Alex answers
+it. E29 retains real human/bot winner journeys and the inspected integrated
+Expert-rival notice. Refusing/unfunded/missing policies, exact-once transfers,
+failed writes, cold resume and replay remain final regression obligations.
+
 **D42 — Painted controller fleets, October 7, human-selected.**
 Alex requested beautiful, simple painted vessels in the Empires storybook style,
 with broad controller-colored cloth and eight distinct silhouettes. The sail

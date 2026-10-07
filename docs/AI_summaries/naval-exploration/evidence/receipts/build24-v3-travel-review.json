@@ -1,0 +1,554 @@
+[
+  {
+    "case": "cell00-3-traditional",
+    "perSeatTravelledHexes": [
+      2,
+      6,
+      12
+    ],
+    "sailingActions": 10,
+    "travelledHexes": 20,
+    "twoHexActions": 10
+  },
+  {
+    "case": "cell00-3-expert",
+    "perSeatTravelledHexes": [
+      0,
+      8,
+      4
+    ],
+    "sailingActions": 7,
+    "travelledHexes": 12,
+    "twoHexActions": 5
+  },
+  {
+    "case": "cell00-4-traditional",
+    "perSeatTravelledHexes": [
+      0,
+      3,
+      2,
+      10
+    ],
+    "sailingActions": 8,
+    "travelledHexes": 15,
+    "twoHexActions": 7
+  },
+  {
+    "case": "cell00-4-expert",
+    "perSeatTravelledHexes": [
+      29,
+      6,
+      16,
+      12
+    ],
+    "sailingActions": 33,
+    "travelledHexes": 63,
+    "twoHexActions": 30
+  },
+  {
+    "case": "cell01-3-traditional",
+    "perSeatTravelledHexes": [
+      5,
+      4,
+      0
+    ],
+    "sailingActions": 5,
+    "travelledHexes": 9,
+    "twoHexActions": 4
+  },
+  {
+    "case": "cell01-3-expert",
+    "perSeatTravelledHexes": [
+      10,
+      10,
+      0
+    ],
+    "sailingActions": 11,
+    "travelledHexes": 20,
+    "twoHexActions": 9
+  },
+  {
+    "case": "cell01-4-traditional",
+    "perSeatTravelledHexes": [
+      7,
+      0,
+      14,
+      4
+    ],
+    "sailingActions": 13,
+    "travelledHexes": 25,
+    "twoHexActions": 12
+  },
+  {
+    "case": "cell01-4-expert",
+    "perSeatTravelledHexes": [
+      4,
+      11,
+      4,
+      8
+    ],
+    "sailingActions": 15,
+    "travelledHexes": 27,
+    "twoHexActions": 12
+  },
+  {
+    "case": "cell02-3-traditional",
+    "perSeatTravelledHexes": [
+      0,
+      3,
+      2
+    ],
+    "sailingActions": 3,
+    "travelledHexes": 5,
+    "twoHexActions": 2
+  },
+  {
+    "case": "cell02-3-expert",
+    "perSeatTravelledHexes": [
+      4,
+      4,
+      3
+    ],
+    "sailingActions": 6,
+    "travelledHexes": 11,
+    "twoHexActions": 5
+  },
+  {
+    "case": "cell02-4-traditional",
+    "perSeatTravelledHexes": [
+      0,
+      6,
+      0,
+      2
+    ],
+    "sailingActions": 4,
+    "travelledHexes": 8,
+    "twoHexActions": 4
+  },
+  {
+    "case": "cell02-4-expert",
+    "perSeatTravelledHexes": [
+      2,
+      0,
+      5,
+      2
+    ],
+    "sailingActions": 5,
+    "travelledHexes": 9,
+    "twoHexActions": 4
+  },
+  {
+    "case": "cell03-3-traditional",
+    "perSeatTravelledHexes": [
+      11,
+      4,
+      6
+    ],
+    "sailingActions": 11,
+    "travelledHexes": 21,
+    "twoHexActions": 10
+  },
+  {
+    "case": "cell03-3-expert",
+    "perSeatTravelledHexes": [
+      0,
+      2,
+      0
+    ],
+    "sailingActions": 1,
+    "travelledHexes": 2,
+    "twoHexActions": 1
+  },
+  {
+    "case": "cell03-4-traditional",
+    "perSeatTravelledHexes": [
+      0,
+      2,
+      7,
+      7
+    ],
+    "sailingActions": 9,
+    "travelledHexes": 16,
+    "twoHexActions": 7
+  },
+  {
+    "case": "cell03-4-expert",
+    "perSeatTravelledHexes": [
+      4,
+      6,
+      2,
+      3
+    ],
+    "sailingActions": 9,
+    "travelledHexes": 15,
+    "twoHexActions": 6
+  },
+  {
+    "case": "cell04-3-traditional",
+    "perSeatTravelledHexes": [
+      2,
+      16,
+      13
+    ],
+    "sailingActions": 17,
+    "travelledHexes": 31,
+    "twoHexActions": 14
+  },
+  {
+    "case": "cell04-3-expert",
+    "perSeatTravelledHexes": [
+      14,
+      0,
+      16
+    ],
+    "sailingActions": 16,
+    "travelledHexes": 30,
+    "twoHexActions": 14
+  },
+  {
+    "case": "cell04-4-traditional",
+    "perSeatTravelledHexes": [
+      12,
+      2,
+      6,
+      11
+    ],
+    "sailingActions": 16,
+    "travelledHexes": 31,
+    "twoHexActions": 15
+  },
+  {
+    "case": "cell04-4-expert",
+    "perSeatTravelledHexes": [
+      12,
+      10,
+      8,
+      5
+    ],
+    "sailingActions": 19,
+    "travelledHexes": 35,
+    "twoHexActions": 16
+  },
+  {
+    "case": "cell05-3-traditional",
+    "perSeatTravelledHexes": [
+      10,
+      3,
+      7
+    ],
+    "sailingActions": 11,
+    "travelledHexes": 20,
+    "twoHexActions": 9
+  },
+  {
+    "case": "cell05-3-expert",
+    "perSeatTravelledHexes": [
+      14,
+      10,
+      13
+    ],
+    "sailingActions": 21,
+    "travelledHexes": 37,
+    "twoHexActions": 16
+  },
+  {
+    "case": "cell05-4-traditional",
+    "perSeatTravelledHexes": [
+      12,
+      28,
+      7,
+      15
+    ],
+    "sailingActions": 33,
+    "travelledHexes": 62,
+    "twoHexActions": 29
+  },
+  {
+    "case": "cell05-4-expert",
+    "perSeatTravelledHexes": [
+      13,
+      17,
+      7,
+      11
+    ],
+    "sailingActions": 27,
+    "travelledHexes": 48,
+    "twoHexActions": 21
+  },
+  {
+    "case": "cell06-3-traditional",
+    "perSeatTravelledHexes": [
+      6,
+      1,
+      9
+    ],
+    "sailingActions": 10,
+    "travelledHexes": 16,
+    "twoHexActions": 6
+  },
+  {
+    "case": "cell06-3-expert",
+    "perSeatTravelledHexes": [
+      15,
+      4,
+      4
+    ],
+    "sailingActions": 14,
+    "travelledHexes": 23,
+    "twoHexActions": 9
+  },
+  {
+    "case": "cell06-4-traditional",
+    "perSeatTravelledHexes": [
+      10,
+      8,
+      5,
+      0
+    ],
+    "sailingActions": 14,
+    "travelledHexes": 23,
+    "twoHexActions": 9
+  },
+  {
+    "case": "cell06-4-expert",
+    "perSeatTravelledHexes": [
+      6,
+      10,
+      8,
+      0
+    ],
+    "sailingActions": 14,
+    "travelledHexes": 24,
+    "twoHexActions": 10
+  },
+  {
+    "case": "cell07-3-traditional",
+    "perSeatTravelledHexes": [
+      4,
+      0,
+      4
+    ],
+    "sailingActions": 4,
+    "travelledHexes": 8,
+    "twoHexActions": 4
+  },
+  {
+    "case": "cell07-3-expert",
+    "perSeatTravelledHexes": [
+      3,
+      13,
+      9
+    ],
+    "sailingActions": 14,
+    "travelledHexes": 25,
+    "twoHexActions": 11
+  },
+  {
+    "case": "cell07-4-traditional",
+    "perSeatTravelledHexes": [
+      7,
+      0,
+      5,
+      10
+    ],
+    "sailingActions": 14,
+    "travelledHexes": 22,
+    "twoHexActions": 8
+  },
+  {
+    "case": "cell07-4-expert",
+    "perSeatTravelledHexes": [
+      6,
+      8,
+      10,
+      5
+    ],
+    "sailingActions": 19,
+    "travelledHexes": 29,
+    "twoHexActions": 10
+  },
+  {
+    "case": "cell08-3-traditional",
+    "perSeatTravelledHexes": [
+      30,
+      28,
+      20
+    ],
+    "sailingActions": 41,
+    "travelledHexes": 78,
+    "twoHexActions": 37
+  },
+  {
+    "case": "cell08-3-expert",
+    "perSeatTravelledHexes": [
+      0,
+      13,
+      10
+    ],
+    "sailingActions": 12,
+    "travelledHexes": 23,
+    "twoHexActions": 11
+  },
+  {
+    "case": "cell08-4-traditional",
+    "perSeatTravelledHexes": [
+      0,
+      26,
+      4,
+      10
+    ],
+    "sailingActions": 23,
+    "travelledHexes": 40,
+    "twoHexActions": 17
+  },
+  {
+    "case": "cell08-4-expert",
+    "perSeatTravelledHexes": [
+      7,
+      0,
+      22,
+      6
+    ],
+    "sailingActions": 20,
+    "travelledHexes": 35,
+    "twoHexActions": 15
+  },
+  {
+    "case": "cell09-3-traditional",
+    "perSeatTravelledHexes": [
+      25,
+      16,
+      20
+    ],
+    "sailingActions": 31,
+    "travelledHexes": 61,
+    "twoHexActions": 30
+  },
+  {
+    "case": "cell09-3-expert",
+    "perSeatTravelledHexes": [
+      3,
+      11,
+      16
+    ],
+    "sailingActions": 16,
+    "travelledHexes": 30,
+    "twoHexActions": 14
+  },
+  {
+    "case": "cell09-4-traditional",
+    "perSeatTravelledHexes": [
+      22,
+      25,
+      19,
+      17
+    ],
+    "sailingActions": 43,
+    "travelledHexes": 83,
+    "twoHexActions": 40
+  },
+  {
+    "case": "cell09-4-expert",
+    "perSeatTravelledHexes": [
+      6,
+      4,
+      2,
+      0
+    ],
+    "sailingActions": 6,
+    "travelledHexes": 12,
+    "twoHexActions": 6
+  },
+  {
+    "case": "cell10-3-traditional",
+    "perSeatTravelledHexes": [
+      13,
+      0,
+      6
+    ],
+    "sailingActions": 10,
+    "travelledHexes": 19,
+    "twoHexActions": 9
+  },
+  {
+    "case": "cell10-3-expert",
+    "perSeatTravelledHexes": [
+      6,
+      4,
+      2
+    ],
+    "sailingActions": 6,
+    "travelledHexes": 12,
+    "twoHexActions": 6
+  },
+  {
+    "case": "cell10-4-traditional",
+    "perSeatTravelledHexes": [
+      3,
+      3,
+      6,
+      7
+    ],
+    "sailingActions": 11,
+    "travelledHexes": 19,
+    "twoHexActions": 8
+  },
+  {
+    "case": "cell10-4-expert",
+    "perSeatTravelledHexes": [
+      0,
+      0,
+      0,
+      4
+    ],
+    "sailingActions": 2,
+    "travelledHexes": 4,
+    "twoHexActions": 2
+  },
+  {
+    "case": "cell11-3-traditional",
+    "perSeatTravelledHexes": [
+      9,
+      4,
+      2
+    ],
+    "sailingActions": 8,
+    "travelledHexes": 15,
+    "twoHexActions": 7
+  },
+  {
+    "case": "cell11-3-expert",
+    "perSeatTravelledHexes": [
+      5,
+      13,
+      9
+    ],
+    "sailingActions": 15,
+    "travelledHexes": 27,
+    "twoHexActions": 12
+  },
+  {
+    "case": "cell11-4-traditional",
+    "perSeatTravelledHexes": [
+      7,
+      6,
+      13,
+      15
+    ],
+    "sailingActions": 22,
+    "travelledHexes": 41,
+    "twoHexActions": 19
+  },
+  {
+    "case": "cell11-4-expert",
+    "perSeatTravelledHexes": [
+      0,
+      5,
+      6,
+      4
+    ],
+    "sailingActions": 8,
+    "travelledHexes": 15,
+    "twoHexActions": 7
+  }
+]

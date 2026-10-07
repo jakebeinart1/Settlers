@@ -1,0 +1,25 @@
+{
+  "verifiedAtUTC": "2026-10-07T13:01:09.367592+00:00",
+  "productionSourceSHA": "9bce5f77a38684bd6e011fac8838c74b38440798",
+  "version": "1.0",
+  "build": "24",
+  "bundleIdentifier": "com.alexchandler.empires",
+  "ipaPath": "/Users/alex/.codex/artifacts/naval-exploration/build24-travel-harvest-trade/Settlers-uploaded-24.ipa",
+  "ipaSHA256": "0ef24d00609c2f2830448ddcdf817d167a0673d060442631c31d1e4e3f87becc",
+  "ipaMD5": "dfcd6ece91320bbe705a2ce46c26bd0a",
+  "ipaBytes": 36268869,
+  "executableSHA256": "91157f0a83b145fcdddec6140bf8039579e7469e758c2f26538c8f5393ff95f6",
+  "strictDeepSignatureExitCode": 0,
+  "profileName": "Empires App Store 20261004",
+  "profileUUID": "86da5771-8640-4c53-8867-0b4fbd4f1035",
+  "profileCertificateSHA1": [
+    "76465B06C2E157D857641F5B3D25CF5A3110C4A9"
+  ],
+  "betaReportsActive": true,
+  "getTaskAllow": false,
+  "provisionedDevicesAbsent": true,
+  "signedCloudKitEnvironment": "Production",
+  "signedCloudKitContainers": [
+    "iCloud.com.alexchandler.empires"
+  ]
+}

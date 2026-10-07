@@ -1,0 +1,16 @@
+{
+  "verifiedAtUTC": "2026-10-07T10:57:03.734644+00:00",
+  "helpersRecoverablyArchived": [
+    "/Users/alex/.codex/worktrees/naval-two-hex-sailing/Settlers",
+    "/Users/alex/.codex/worktrees/naval-harvest-presentation/Settlers",
+    "/Users/alex/.codex/worktrees/naval-trade-competition/Settlers"
+  ],
+  "helperChangesIntegrated": true,
+  "readbackAttachmentType": "archived_worktree",
+  "ignoredArtifactsNeededOutsideHelpers": true,
+  "keptWorktrees": [
+    "/Users/alex/.codex/worktrees/naval24-main-integration/Settlers",
+    "/Users/alex/.codex/worktrees/naval-exploration/Settlers"
+  ],
+  "simulatorCleanupPendingGateAndDelivery": true
+}
