@@ -1,0 +1,33 @@
+{
+  "zipEntryCount": 14,
+  "differingEntries": [
+    "Payload/Settlers.app/Settlers"
+  ],
+  "onlyDifferenceWithinCodeSignature": true,
+  "identicalExecutablePrefixBytes": 5924400,
+  "identicalExecutablePrefixSHA256": "8dcfcfd06a28b231ab3f2e0978982c96435e03f684b1f01a52414ac57508d417",
+  "contentDeliveryChecksumHexMD5": "534D84D459B273E5B64033F40C0003B0",
+  "contentDeliveryChecksumOccurrences": 3,
+  "contentDeliveryIDs": [
+    "a49ab68c-859a-4467-8454-c1c5fde1677a"
+  ],
+  "contentDeliveryChecksumConfirmed": true,
+  "contentDeliveryAcceptedSuccessConfirmed": true,
+  "contentDeliveryLogSHA256": "271e91f3e2bbfe1bd86a6121e08ada341dd08d5b65190c70bcdf07f7226bf0ac",
+  "contentDeliveryAssetIDs": [
+    "5cbe5de7-a6cf-4859-88f7-04959635116f"
+  ],
+  "contentDeliveryAssetFileName": "Settlers.ipa",
+  "contentDeliveryAssetBytes": 36334326,
+  "contentDeliveryExactAssetChecksumConfirmed": true,
+  "verifiedAtUTC": "2026-10-07T23:38:06.329897+00:00",
+  "productionSourceSHA": "2d985b9570efb27ae3fab8c491275427d4d44fad",
+  "archiveHeadSHA": "2d985b9570efb27ae3fab8c491275427d4d44fad",
+  "productionInputCount": 378,
+  "version": "1.0",
+  "build": "27",
+  "reviewExportIPASHA256": "d45c26610b4227eb7795879f1e2cc2d12ca790b70889abe73246a547b9d2a484",
+  "uploadedIPASHA256": "b6b899817bc508f829dfce946b9fce65178bea324993e82b4985d660d8ad2ff8",
+  "uploadedIPAMD5": "534d84d459b273e5b64033f40c0003b0",
+  "uploadCommandExitCode": 0
+}

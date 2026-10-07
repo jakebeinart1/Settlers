@@ -1,0 +1,542 @@
+{
+  "createdAtUTC": "2026-10-07T21:36:12.972201+00:00",
+  "functionalCases": 48,
+  "passed": 48,
+  "originalPlanCaseFieldsAndSixRepeatSelectionsPreserved": true,
+  "rulesVersion": 4,
+  "engineRulesVersion": 3,
+  "mapVersion": 1,
+  "moves": {
+    "min": 373,
+    "max": 885,
+    "total": 28239
+  },
+  "maxProcessSeconds": 11.284715166999376,
+  "maxProcessRSSMiB": 22.546875,
+  "totals": {
+    "forcedEnds": 0,
+    "idleSailingCycles": 0,
+    "tradeCycles": 0,
+    "duplicateProposals": 0,
+    "sailingCycles": 5
+  },
+  "behaviorTotals": {
+    "shipsBought": 152,
+    "sailingSteps": 1161,
+    "navigationProgressSteps": 789,
+    "captures": 100,
+    "colonies": 268,
+    "developmentCards": 559,
+    "cardsPlayed": 407,
+    "turns": 3659
+  },
+  "all48WinnersReach14Points": true,
+  "checkpointPolicy": "Every committed move validates checkpoint, encodes/decodes, validates decoded checkpoint, and checks exact equality in existing production naval-sim",
+  "repeatResultBytesEqual": true,
+  "repeatFullTraceBytesEqual": true,
+  "excludedRepeatFields": [],
+  "decisionLatency54Processes": {
+    "highestP95ms": 19.653,
+    "highestP99ms": 40.112,
+    "over50ms": 5,
+    "over150ms": 0,
+    "absoluteMaximumUnavailable": "Existing CLI records percentiles and threshold counts, not the absolute maximum; no source instrumentation was changed"
+  },
+  "perProcessLatency": [
+    {
+      "path": "/Users/alex/.codex/artifacts/naval-exploration/build27-ship-blockades/functionalmatrix/runs/cell00-3-expert.stderr.log",
+      "seed": 880001,
+      "decisions": 428,
+      "p95ms": 4.102,
+      "p99ms": 13.037,
+      "over50ms": 0,
+      "over150ms": 0
+    },
+    {
+      "path": "/Users/alex/.codex/artifacts/naval-exploration/build27-ship-blockades/functionalmatrix/runs/cell00-3-traditional.stderr.log",
+      "seed": 880000,
+      "decisions": 600,
+      "p95ms": 3.543,
+      "p99ms": 9.516,
+      "over50ms": 0,
+      "over150ms": 0
+    },
+    {
+      "path": "/Users/alex/.codex/artifacts/naval-exploration/build27-ship-blockades/functionalmatrix/runs/cell00-4-expert.stderr.log",
+      "seed": 880021,
+      "decisions": 602,
+      "p95ms": 7.233,
+      "p99ms": 17.826,
+      "over50ms": 2,
+      "over150ms": 0
+    },
+    {
+      "path": "/Users/alex/.codex/artifacts/naval-exploration/build27-ship-blockades/functionalmatrix/runs/cell00-4-traditional.stderr.log",
+      "seed": 880020,
+      "decisions": 373,
+      "p95ms": 7.999,
+      "p99ms": 10.85,
+      "over50ms": 0,
+      "over150ms": 0
+    },
+    {
+      "path": "/Users/alex/.codex/artifacts/naval-exploration/build27-ship-blockades/functionalmatrix/runs/cell01-3-expert.stderr.log",
+      "seed": 880101,
+      "decisions": 574,
+      "p95ms": 4.284,
+      "p99ms": 10.891,
+      "over50ms": 0,
+      "over150ms": 0
+    },
+    {
+      "path": "/Users/alex/.codex/artifacts/naval-exploration/build27-ship-blockades/functionalmatrix/runs/cell01-3-traditional.stderr.log",
+      "seed": 880100,
+      "decisions": 565,
+      "p95ms": 5.769,
+      "p99ms": 11.297,
+      "over50ms": 0,
+      "over150ms": 0
+    },
+    {
+      "path": "/Users/alex/.codex/artifacts/naval-exploration/build27-ship-blockades/functionalmatrix/runs/cell01-4-expert.stderr.log",
+      "seed": 880121,
+      "decisions": 552,
+      "p95ms": 8.644,
+      "p99ms": 12.445,
+      "over50ms": 0,
+      "over150ms": 0
+    },
+    {
+      "path": "/Users/alex/.codex/artifacts/naval-exploration/build27-ship-blockades/functionalmatrix/runs/cell01-4-traditional.stderr.log",
+      "seed": 880120,
+      "decisions": 460,
+      "p95ms": 5.822,
+      "p99ms": 13.977,
+      "over50ms": 0,
+      "over150ms": 0
+    },
+    {
+      "path": "/Users/alex/.codex/artifacts/naval-exploration/build27-ship-blockades/functionalmatrix/runs/cell02-3-expert.stderr.log",
+      "seed": 880201,
+      "decisions": 537,
+      "p95ms": 14.608,
+      "p99ms": 30.276,
+      "over50ms": 0,
+      "over150ms": 0
+    },
+    {
+      "path": "/Users/alex/.codex/artifacts/naval-exploration/build27-ship-blockades/functionalmatrix/runs/cell02-3-traditional.stderr.log",
+      "seed": 880200,
+      "decisions": 459,
+      "p95ms": 11.37,
+      "p99ms": 16.531,
+      "over50ms": 0,
+      "over150ms": 0
+    },
+    {
+      "path": "/Users/alex/.codex/artifacts/naval-exploration/build27-ship-blockades/functionalmatrix/runs/cell02-4-expert.stderr.log",
+      "seed": 880221,
+      "decisions": 588,
+      "p95ms": 15.068,
+      "p99ms": 22.758,
+      "over50ms": 0,
+      "over150ms": 0
+    },
+    {
+      "path": "/Users/alex/.codex/artifacts/naval-exploration/build27-ship-blockades/functionalmatrix/runs/cell02-4-traditional.stderr.log",
+      "seed": 880220,
+      "decisions": 412,
+      "p95ms": 9.843,
+      "p99ms": 16.304,
+      "over50ms": 0,
+      "over150ms": 0
+    },
+    {
+      "path": "/Users/alex/.codex/artifacts/naval-exploration/build27-ship-blockades/functionalmatrix/runs/cell03-3-expert.stderr.log",
+      "seed": 880301,
+      "decisions": 842,
+      "p95ms": 14.86,
+      "p99ms": 20.13,
+      "over50ms": 0,
+      "over150ms": 0
+    },
+    {
+      "path": "/Users/alex/.codex/artifacts/naval-exploration/build27-ship-blockades/functionalmatrix/runs/cell03-3-traditional.stderr.log",
+      "seed": 880300,
+      "decisions": 673,
+      "p95ms": 11.781,
+      "p99ms": 16.645,
+      "over50ms": 0,
+      "over150ms": 0
+    },
+    {
+      "path": "/Users/alex/.codex/artifacts/naval-exploration/build27-ship-blockades/functionalmatrix/runs/cell03-4-expert.stderr.log",
+      "seed": 880321,
+      "decisions": 645,
+      "p95ms": 17.649,
+      "p99ms": 24.859,
+      "over50ms": 0,
+      "over150ms": 0
+    },
+    {
+      "path": "/Users/alex/.codex/artifacts/naval-exploration/build27-ship-blockades/functionalmatrix/runs/cell03-4-traditional.stderr.log",
+      "seed": 880320,
+      "decisions": 508,
+      "p95ms": 10.573,
+      "p99ms": 15.611,
+      "over50ms": 0,
+      "over150ms": 0
+    },
+    {
+      "path": "/Users/alex/.codex/artifacts/naval-exploration/build27-ship-blockades/functionalmatrix/runs/cell04-3-expert.stderr.log",
+      "seed": 880401,
+      "decisions": 611,
+      "p95ms": 7.964,
+      "p99ms": 23.857,
+      "over50ms": 0,
+      "over150ms": 0
+    },
+    {
+      "path": "/Users/alex/.codex/artifacts/naval-exploration/build27-ship-blockades/functionalmatrix/runs/cell04-3-traditional.stderr.log",
+      "seed": 880400,
+      "decisions": 525,
+      "p95ms": 5.184,
+      "p99ms": 11.911,
+      "over50ms": 0,
+      "over150ms": 0
+    },
+    {
+      "path": "/Users/alex/.codex/artifacts/naval-exploration/build27-ship-blockades/functionalmatrix/runs/cell04-4-expert.stderr.log",
+      "seed": 880421,
+      "decisions": 635,
+      "p95ms": 6.387,
+      "p99ms": 10.594,
+      "over50ms": 0,
+      "over150ms": 0
+    },
+    {
+      "path": "/Users/alex/.codex/artifacts/naval-exploration/build27-ship-blockades/functionalmatrix/runs/cell04-4-traditional.stderr.log",
+      "seed": 880420,
+      "decisions": 523,
+      "p95ms": 5.412,
+      "p99ms": 11.098,
+      "over50ms": 0,
+      "over150ms": 0
+    },
+    {
+      "path": "/Users/alex/.codex/artifacts/naval-exploration/build27-ship-blockades/functionalmatrix/runs/cell05-3-expert.stderr.log",
+      "seed": 880501,
+      "decisions": 749,
+      "p95ms": 6.341,
+      "p99ms": 14.274,
+      "over50ms": 0,
+      "over150ms": 0
+    },
+    {
+      "path": "/Users/alex/.codex/artifacts/naval-exploration/build27-ship-blockades/functionalmatrix/runs/cell05-3-traditional.stderr.log",
+      "seed": 880500,
+      "decisions": 885,
+      "p95ms": 2.439,
+      "p99ms": 6.708,
+      "over50ms": 0,
+      "over150ms": 0
+    },
+    {
+      "path": "/Users/alex/.codex/artifacts/naval-exploration/build27-ship-blockades/functionalmatrix/runs/cell05-4-expert.stderr.log",
+      "seed": 880521,
+      "decisions": 691,
+      "p95ms": 9.86,
+      "p99ms": 13.458,
+      "over50ms": 0,
+      "over150ms": 0
+    },
+    {
+      "path": "/Users/alex/.codex/artifacts/naval-exploration/build27-ship-blockades/functionalmatrix/runs/cell05-4-traditional.stderr.log",
+      "seed": 880520,
+      "decisions": 558,
+      "p95ms": 5.386,
+      "p99ms": 15.684,
+      "over50ms": 0,
+      "over150ms": 0
+    },
+    {
+      "path": "/Users/alex/.codex/artifacts/naval-exploration/build27-ship-blockades/functionalmatrix/runs/cell06-3-expert.stderr.log",
+      "seed": 880601,
+      "decisions": 769,
+      "p95ms": 10.945,
+      "p99ms": 24.854,
+      "over50ms": 0,
+      "over150ms": 0
+    },
+    {
+      "path": "/Users/alex/.codex/artifacts/naval-exploration/build27-ship-blockades/functionalmatrix/runs/cell06-3-traditional.stderr.log",
+      "seed": 880600,
+      "decisions": 479,
+      "p95ms": 12.139,
+      "p99ms": 21.045,
+      "over50ms": 0,
+      "over150ms": 0
+    },
+    {
+      "path": "/Users/alex/.codex/artifacts/naval-exploration/build27-ship-blockades/functionalmatrix/runs/cell06-4-expert.stderr.log",
+      "seed": 880621,
+      "decisions": 811,
+      "p95ms": 15.016,
+      "p99ms": 22.539,
+      "over50ms": 0,
+      "over150ms": 0
+    },
+    {
+      "path": "/Users/alex/.codex/artifacts/naval-exploration/build27-ship-blockades/functionalmatrix/runs/cell06-4-traditional.stderr.log",
+      "seed": 880620,
+      "decisions": 515,
+      "p95ms": 17.121,
+      "p99ms": 24.078,
+      "over50ms": 0,
+      "over150ms": 0
+    },
+    {
+      "path": "/Users/alex/.codex/artifacts/naval-exploration/build27-ship-blockades/functionalmatrix/runs/cell07-3-expert.stderr.log",
+      "seed": 880701,
+      "decisions": 574,
+      "p95ms": 16.968,
+      "p99ms": 27.797,
+      "over50ms": 0,
+      "over150ms": 0
+    },
+    {
+      "path": "/Users/alex/.codex/artifacts/naval-exploration/build27-ship-blockades/functionalmatrix/runs/cell07-3-traditional.stderr.log",
+      "seed": 880700,
+      "decisions": 388,
+      "p95ms": 13.386,
+      "p99ms": 26.23,
+      "over50ms": 0,
+      "over150ms": 0
+    },
+    {
+      "path": "/Users/alex/.codex/artifacts/naval-exploration/build27-ship-blockades/functionalmatrix/runs/cell07-4-expert.stderr.log",
+      "seed": 880721,
+      "decisions": 750,
+      "p95ms": 19.653,
+      "p99ms": 28.353,
+      "over50ms": 0,
+      "over150ms": 0
+    },
+    {
+      "path": "/Users/alex/.codex/artifacts/naval-exploration/build27-ship-blockades/functionalmatrix/runs/cell07-4-traditional.stderr.log",
+      "seed": 880720,
+      "decisions": 783,
+      "p95ms": 12.695,
+      "p99ms": 21.869,
+      "over50ms": 0,
+      "over150ms": 0
+    },
+    {
+      "path": "/Users/alex/.codex/artifacts/naval-exploration/build27-ship-blockades/functionalmatrix/runs/cell08-3-expert.stderr.log",
+      "seed": 880801,
+      "decisions": 511,
+      "p95ms": 4.179,
+      "p99ms": 16.397,
+      "over50ms": 0,
+      "over150ms": 0
+    },
+    {
+      "path": "/Users/alex/.codex/artifacts/naval-exploration/build27-ship-blockades/functionalmatrix/runs/cell08-3-traditional.stderr.log",
+      "seed": 880800,
+      "decisions": 585,
+      "p95ms": 5.017,
+      "p99ms": 24.256,
+      "over50ms": 0,
+      "over150ms": 0
+    },
+    {
+      "path": "/Users/alex/.codex/artifacts/naval-exploration/build27-ship-blockades/functionalmatrix/runs/cell08-4-expert.stderr.log",
+      "seed": 880821,
+      "decisions": 702,
+      "p95ms": 3.361,
+      "p99ms": 7.714,
+      "over50ms": 0,
+      "over150ms": 0
+    },
+    {
+      "path": "/Users/alex/.codex/artifacts/naval-exploration/build27-ship-blockades/functionalmatrix/runs/cell08-4-traditional.stderr.log",
+      "seed": 880820,
+      "decisions": 601,
+      "p95ms": 1.669,
+      "p99ms": 8.932,
+      "over50ms": 0,
+      "over150ms": 0
+    },
+    {
+      "path": "/Users/alex/.codex/artifacts/naval-exploration/build27-ship-blockades/functionalmatrix/runs/cell09-3-expert.stderr.log",
+      "seed": 880901,
+      "decisions": 632,
+      "p95ms": 6.628,
+      "p99ms": 13.776,
+      "over50ms": 0,
+      "over150ms": 0
+    },
+    {
+      "path": "/Users/alex/.codex/artifacts/naval-exploration/build27-ship-blockades/functionalmatrix/runs/cell09-3-traditional.stderr.log",
+      "seed": 880900,
+      "decisions": 770,
+      "p95ms": 10.939,
+      "p99ms": 17.955,
+      "over50ms": 0,
+      "over150ms": 0
+    },
+    {
+      "path": "/Users/alex/.codex/artifacts/naval-exploration/build27-ship-blockades/functionalmatrix/runs/cell09-4-expert.stderr.log",
+      "seed": 880921,
+      "decisions": 456,
+      "p95ms": 4.897,
+      "p99ms": 9.694,
+      "over50ms": 0,
+      "over150ms": 0
+    },
+    {
+      "path": "/Users/alex/.codex/artifacts/naval-exploration/build27-ship-blockades/functionalmatrix/runs/cell09-4-traditional.stderr.log",
+      "seed": 880920,
+      "decisions": 665,
+      "p95ms": 10.247,
+      "p99ms": 32.034,
+      "over50ms": 2,
+      "over150ms": 0
+    },
+    {
+      "path": "/Users/alex/.codex/artifacts/naval-exploration/build27-ship-blockades/functionalmatrix/runs/cell10-3-expert.stderr.log",
+      "seed": 881001,
+      "decisions": 406,
+      "p95ms": 9.864,
+      "p99ms": 25.146,
+      "over50ms": 0,
+      "over150ms": 0
+    },
+    {
+      "path": "/Users/alex/.codex/artifacts/naval-exploration/build27-ship-blockades/functionalmatrix/runs/cell10-3-traditional.stderr.log",
+      "seed": 881000,
+      "decisions": 490,
+      "p95ms": 10.894,
+      "p99ms": 20.9,
+      "over50ms": 0,
+      "over150ms": 0
+    },
+    {
+      "path": "/Users/alex/.codex/artifacts/naval-exploration/build27-ship-blockades/functionalmatrix/runs/cell10-4-expert.stderr.log",
+      "seed": 881021,
+      "decisions": 422,
+      "p95ms": 9.07,
+      "p99ms": 19.868,
+      "over50ms": 0,
+      "over150ms": 0
+    },
+    {
+      "path": "/Users/alex/.codex/artifacts/naval-exploration/build27-ship-blockades/functionalmatrix/runs/cell10-4-traditional.stderr.log",
+      "seed": 881020,
+      "decisions": 375,
+      "p95ms": 17.088,
+      "p99ms": 40.112,
+      "over50ms": 0,
+      "over150ms": 0
+    },
+    {
+      "path": "/Users/alex/.codex/artifacts/naval-exploration/build27-ship-blockades/functionalmatrix/runs/cell11-3-expert.stderr.log",
+      "seed": 881101,
+      "decisions": 619,
+      "p95ms": 12.364,
+      "p99ms": 22.359,
+      "over50ms": 0,
+      "over150ms": 0
+    },
+    {
+      "path": "/Users/alex/.codex/artifacts/naval-exploration/build27-ship-blockades/functionalmatrix/runs/cell11-3-traditional.stderr.log",
+      "seed": 881100,
+      "decisions": 613,
+      "p95ms": 12.248,
+      "p99ms": 26.087,
+      "over50ms": 1,
+      "over150ms": 0
+    },
+    {
+      "path": "/Users/alex/.codex/artifacts/naval-exploration/build27-ship-blockades/functionalmatrix/runs/cell11-4-expert.stderr.log",
+      "seed": 881121,
+      "decisions": 671,
+      "p95ms": 13.838,
+      "p99ms": 22.693,
+      "over50ms": 0,
+      "over150ms": 0
+    },
+    {
+      "path": "/Users/alex/.codex/artifacts/naval-exploration/build27-ship-blockades/functionalmatrix/runs/cell11-4-traditional.stderr.log",
+      "seed": 881120,
+      "decisions": 657,
+      "p95ms": 11.898,
+      "p99ms": 23.073,
+      "over50ms": 0,
+      "over150ms": 0
+    },
+    {
+      "path": "/Users/alex/.codex/artifacts/naval-exploration/build27-ship-blockades/functionalmatrix/repeats/cell00-3-traditional.stderr.log",
+      "seed": 880000,
+      "decisions": 600,
+      "p95ms": 3.518,
+      "p99ms": 9.111,
+      "over50ms": 0,
+      "over150ms": 0
+    },
+    {
+      "path": "/Users/alex/.codex/artifacts/naval-exploration/build27-ship-blockades/functionalmatrix/repeats/cell01-4-expert.stderr.log",
+      "seed": 880121,
+      "decisions": 552,
+      "p95ms": 8.6,
+      "p99ms": 14.284,
+      "over50ms": 0,
+      "over150ms": 0
+    },
+    {
+      "path": "/Users/alex/.codex/artifacts/naval-exploration/build27-ship-blockades/functionalmatrix/repeats/cell04-4-traditional.stderr.log",
+      "seed": 880420,
+      "decisions": 523,
+      "p95ms": 5.253,
+      "p99ms": 10.802,
+      "over50ms": 0,
+      "over150ms": 0
+    },
+    {
+      "path": "/Users/alex/.codex/artifacts/naval-exploration/build27-ship-blockades/functionalmatrix/repeats/cell05-3-expert.stderr.log",
+      "seed": 880501,
+      "decisions": 749,
+      "p95ms": 6.816,
+      "p99ms": 14.95,
+      "over50ms": 0,
+      "over150ms": 0
+    },
+    {
+      "path": "/Users/alex/.codex/artifacts/naval-exploration/build27-ship-blockades/functionalmatrix/repeats/cell08-3-traditional.stderr.log",
+      "seed": 880800,
+      "decisions": 585,
+      "p95ms": 4.88,
+      "p99ms": 22.55,
+      "over50ms": 0,
+      "over150ms": 0
+    },
+    {
+      "path": "/Users/alex/.codex/artifacts/naval-exploration/build27-ship-blockades/functionalmatrix/repeats/cell09-4-expert.stderr.log",
+      "seed": 880921,
+      "decisions": 456,
+      "p95ms": 4.766,
+      "p99ms": 10.058,
+      "over50ms": 0,
+      "over150ms": 0
+    }
+  ],
+  "resourcePolicy": {
+    "ownedConcurrentGames": 1,
+    "nice": 10,
+    "maxRSSKiB": 786432,
+    "maxSeconds": 180,
+    "unrelatedResearchProcessesPresentAtStart": 8,
+    "unrelatedProcessesUntouched": true
+  },
+  "noStrengthClaim": true
+}

@@ -1,0 +1,15 @@
+{
+  "verdict": "PASS",
+  "reviewer": "root",
+  "detail": "original",
+  "imagesUnmodified": true,
+  "path": "/Users/alex/.codex/artifacts/naval-exploration/build27-ship-blockades/release-ordinary-menu.png",
+  "sha256": "698cabd0d73c97a8301543bf82a8ecfd63a12fde6de2c178c2ee536e81eeee6c",
+  "testedHeadSHA": "2d985b9570efb27ae3fab8c491275427d4d44fad",
+  "productionSourceSHA": "2d985b9570efb27ae3fab8c491275427d4d44fad",
+  "version": "1.0",
+  "build": "27",
+  "reviewedAtUTC": "2026-10-07T23:35:20.793078+00:00",
+  "observations": "Ordinary Empires menu has legible title, Rules, New Game and Leaderboard within the screen; no QA or resumed game displayed.",
+  "physicalPhoneObserved": false
+}

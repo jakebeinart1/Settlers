@@ -1,0 +1,75 @@
+{
+  "status": "attached-waiting-for-process-exit",
+  "observerPID": 21662,
+  "observerStartedAtUTC": "2026-10-07T22:21:01.740116+00:00",
+  "workspace": "/Users/alex/.codex/worktrees/naval24-main-integration/Settlers",
+  "headSHA": "2d985b9570efb27ae3fab8c491275427d4d44fad",
+  "productionSourceSHA": "2d985b9570efb27ae3fab8c491275427d4d44fad",
+  "productionInputCount": 378,
+  "version": "1.0",
+  "build": "27",
+  "targets": {
+    "gate": {
+      "pid": 12793,
+      "ppid": 12791,
+      "uid": 501,
+      "elapsedAtRegistration": "12:36",
+      "executableName": "bash",
+      "processStartTimeLocal": "Wed Oct  7 18:08:25 2026"
+    },
+    "hook": {
+      "pid": 12791,
+      "ppid": 12786,
+      "uid": 501,
+      "elapsedAtRegistration": "12:36",
+      "executableName": "bash",
+      "processStartTimeLocal": "Wed Oct  7 18:08:25 2026"
+    },
+    "git": {
+      "pid": 12786,
+      "ppid": 12779,
+      "uid": 501,
+      "elapsedAtRegistration": "12:37",
+      "executableName": "git",
+      "processStartTimeLocal": "Wed Oct  7 18:08:24 2026"
+    }
+  },
+  "method": "macOS kqueue EVFILT_PROC NOTE_EXIT+NOTE_EXITSTATUS",
+  "methodDoesNotSendSignals": true,
+  "sourceOrHookOrTargetProcessesChanged": false,
+  "nativeOrReleaseOperationsStarted": false,
+  "exitObservations": {},
+  "helperSHA256": "925433a919867093aeb4cd281c42be2483905b7b55d278f8d0d729995b3010e8",
+  "sameUIDNonParentThrowawayProof": {
+    "decodedExitCode": 37,
+    "rawWaitStatus": 9472,
+    "observerWasTargetParent": false,
+    "signalSent": false
+  },
+  "kernelVersion": "Darwin Kernel Version 25.5.0: Mon Apr 27 20:41:12 PDT 2026; root:xnu-12377.121.6~2/RELEASE_ARM64_T6050",
+  "kernelImplementation": "https://github.com/apple-oss-distributions/xnu/blob/xnu-12377.121.6/bsd/kern/kern_event.c",
+  "registrationReceipts": [
+    {
+      "pid": 12793,
+      "filter": -5,
+      "flags": 16453,
+      "data": 0,
+      "registrationSucceeded": true
+    },
+    {
+      "pid": 12791,
+      "filter": -5,
+      "flags": 16453,
+      "data": 0,
+      "registrationSucceeded": true
+    },
+    {
+      "pid": 12786,
+      "filter": -5,
+      "flags": 16453,
+      "data": 0,
+      "registrationSucceeded": true
+    }
+  ],
+  "registeredAtUTC": "2026-10-07T22:21:01.742956+00:00"
+}

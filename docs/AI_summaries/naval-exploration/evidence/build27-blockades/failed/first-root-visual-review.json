@@ -1,0 +1,171 @@
+{
+  "reviewedAtUTC": "2026-10-07T22:00:22.716099+00:00",
+  "reviewer": "root",
+  "verdict": "NOT READY",
+  "nativeCommandPassed": true,
+  "nativeSummary": "44functions/71runs/0fail/0skip",
+  "selectedOriginals": [
+    {
+      "path": "/Users/alex/.codex/artifacts/naval-exploration/build27-ship-blockades/first-blockade-attachments/367B09B8-880E-418E-94B9-02A9A0EDB64C.png",
+      "sha256": "d7d128041ce0bddfb49499cb135c08476d9bef8f3d1dafb0936161c1cf010956",
+      "name": "Blockades \u2014 maximum text retains explanation and safe World selection_0_885585D8-8F62-4876-B617-A6D9BB03E503.png",
+      "testIdentifier": "NavalBlockadeFlowTests/testBlockadeExplanationAndWorldTouchRemainUsableAtLargestText()",
+      "attachment": {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "937692FF-BFBF-4683-80E5-2590F5288D56",
+        "deviceName": "Empires QA",
+        "exportedFileName": "367B09B8-880E-418E-94B9-02A9A0EDB64C.png",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Blockades \u2014 maximum text retains explanation and safe World selection_0_885585D8-8F62-4876-B617-A6D9BB03E503.png",
+        "timestamp": 1791409193.518
+      },
+      "configuration": "Debug",
+      "version": "1.0",
+      "build": "27",
+      "originalPixelsInspected": true,
+      "verdict": "FAIL visual truncation"
+    },
+    {
+      "path": "/Users/alex/.codex/artifacts/naval-exploration/build27-ship-blockades/first-blockade-attachments/E0853835-EE2B-45CF-91EC-2987590F9DE7.png",
+      "sha256": "6bb14ff19c149aa38f6f9a5db7f1cff499d0ccf19bb84e1cd67b36be6dfc1146",
+      "name": "Blockades \u2014 ownership and completed voyage survive cold resume_0_8D9AD195-5EE1-4370-8B31-30152F4ED904.png",
+      "testIdentifier": "NavalBlockadeFlowTests/testCaptureConfirmationAndColdResumeOpenTheActualTwoHexVoyage()",
+      "attachment": {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "937692FF-BFBF-4683-80E5-2590F5288D56",
+        "deviceName": "Empires QA",
+        "exportedFileName": "E0853835-EE2B-45CF-91EC-2987590F9DE7.png",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Blockades \u2014 ownership and completed voyage survive cold resume_0_8D9AD195-5EE1-4370-8B31-30152F4ED904.png",
+        "timestamp": 1791409217.309
+      },
+      "configuration": "Debug",
+      "version": "1.0",
+      "build": "27",
+      "originalPixelsInspected": true,
+      "verdict": "PASS"
+    },
+    {
+      "path": "/Users/alex/.codex/artifacts/naval-exploration/build27-ship-blockades/first-blockade-attachments/8892E445-D49B-4155-83F5-7515892D7A5A.png",
+      "sha256": "1fbe4de5d0c11288752b139d7e9dc3229120361c9f13b2c75dd07a268c16269a",
+      "name": "Blockades \u2014 captured vessel opens a two-hex route_0_8206A4B3-7A35-49CE-807B-F16A6DFAA751.png",
+      "testIdentifier": "NavalBlockadeFlowTests/testCaptureConfirmationAndColdResumeOpenTheActualTwoHexVoyage()",
+      "attachment": {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "937692FF-BFBF-4683-80E5-2590F5288D56",
+        "deviceName": "Empires QA",
+        "exportedFileName": "8892E445-D49B-4155-83F5-7515892D7A5A.png",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Blockades \u2014 captured vessel opens a two-hex route_0_8206A4B3-7A35-49CE-807B-F16A6DFAA751.png",
+        "timestamp": 1791409210.834
+      },
+      "configuration": "Debug",
+      "version": "1.0",
+      "build": "27",
+      "originalPixelsInspected": true,
+      "verdict": "PASS"
+    },
+    {
+      "path": "/Users/alex/.codex/artifacts/naval-exploration/build27-ship-blockades/first-blockade-attachments/9413F68C-C12A-4319-87E0-1397040B7A1D.png",
+      "sha256": "0e0013c4027e144bf427c7d0e3891077e930a71615334037154c86636443b380",
+      "name": "Blockades \u2014 capture remains a proposal_0_2E843264-2755-4A0D-9C95-86CC069968D3.png",
+      "testIdentifier": "NavalBlockadeFlowTests/testCaptureConfirmationAndColdResumeOpenTheActualTwoHexVoyage()",
+      "attachment": {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "937692FF-BFBF-4683-80E5-2590F5288D56",
+        "deviceName": "Empires QA",
+        "exportedFileName": "9413F68C-C12A-4319-87E0-1397040B7A1D.png",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Blockades \u2014 capture remains a proposal_0_2E843264-2755-4A0D-9C95-86CC069968D3.png",
+        "timestamp": 1791409199.794
+      },
+      "configuration": "Debug",
+      "version": "1.0",
+      "build": "27",
+      "originalPixelsInspected": true,
+      "verdict": "PASS"
+    },
+    {
+      "path": "/Users/alex/.codex/artifacts/naval-exploration/build27-ship-blockades/first-blockade-attachments/B5DA1CF6-7DA3-4EFF-90F0-5664EB672566.png",
+      "sha256": "9877b314d6649d1f7d784bf68f5f3286f5ed170ce1cc0b9951ba18f5ccf13426",
+      "name": "Blockades \u2014 funded ship purchase explains the occupied launch coast_0_18027414-2688-4CD8-89AD-EC7FE44B5B08.png",
+      "testIdentifier": "NavalBlockadeFlowTests/testOccupiedLaunchCoastExplainsUnavailableShipWithoutChargingResources()",
+      "attachment": {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "937692FF-BFBF-4683-80E5-2590F5288D56",
+        "deviceName": "Empires QA",
+        "exportedFileName": "B5DA1CF6-7DA3-4EFF-90F0-5664EB672566.png",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Blockades \u2014 funded ship purchase explains the occupied launch coast_0_18027414-2688-4CD8-89AD-EC7FE44B5B08.png",
+        "timestamp": 1791409223.924
+      },
+      "configuration": "Debug",
+      "version": "1.0",
+      "build": "27",
+      "originalPixelsInspected": true,
+      "verdict": "PASS"
+    },
+    {
+      "path": "/Users/alex/.codex/artifacts/naval-exploration/build27-ship-blockades/first-blockade-attachments/2B7395F2-0299-4AD0-9A83-3E3F1FAD5FD3.png",
+      "sha256": "97b3b945c4f742ee8dd4ac878af93e836157f662bb43a4a4440ee9c85c7a9584",
+      "name": "Blockades \u2014 World touch cannot snap to another destination_0_CAC50EB0-86AB-4BB8-BC73-CD681FCA9170.png",
+      "testIdentifier": "NavalBlockadeFlowTests/testOpposingShipBlocksEntryAndThroughVoyageAtLocalAndWorldZoomWithoutSnapping()",
+      "attachment": {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "937692FF-BFBF-4683-80E5-2590F5288D56",
+        "deviceName": "Empires QA",
+        "exportedFileName": "2B7395F2-0299-4AD0-9A83-3E3F1FAD5FD3.png",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Blockades \u2014 World touch cannot snap to another destination_0_CAC50EB0-86AB-4BB8-BC73-CD681FCA9170.png",
+        "timestamp": 1791409239.819
+      },
+      "configuration": "Debug",
+      "version": "1.0",
+      "build": "27",
+      "originalPixelsInspected": true,
+      "verdict": "PASS"
+    },
+    {
+      "path": "/Users/alex/.codex/artifacts/naval-exploration/build27-ship-blockades/first-blockade-attachments/62599E19-7279-4FEB-9878-DFBE2BE7B17A.png",
+      "sha256": "6304101fa5f5b4371d181402dae41e75470b200d3aa124ca5e1ef4c7bf14a0da",
+      "name": "Blockades \u2014 opposing vessel closes the straight passage_0_64CACA98-71EA-4BFA-AF9C-C6F6C9D027D0.png",
+      "testIdentifier": "NavalBlockadeFlowTests/testOpposingShipBlocksEntryAndThroughVoyageAtLocalAndWorldZoomWithoutSnapping()",
+      "attachment": {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "937692FF-BFBF-4683-80E5-2590F5288D56",
+        "deviceName": "Empires QA",
+        "exportedFileName": "62599E19-7279-4FEB-9878-DFBE2BE7B17A.png",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Blockades \u2014 opposing vessel closes the straight passage_0_64CACA98-71EA-4BFA-AF9C-C6F6C9D027D0.png",
+        "timestamp": 1791409233.946
+      },
+      "configuration": "Debug",
+      "version": "1.0",
+      "build": "27",
+      "originalPixelsInspected": true,
+      "verdict": "PASS"
+    },
+    {
+      "path": "/Users/alex/.codex/artifacts/naval-exploration/build27-ship-blockades/first-match-attachments/07FE9C48-116C-48B7-8A15-7395F9E7E711.png",
+      "sha256": "77bf9be98fe4c5215510118a04bc05084a287264cf72bb20647fa29a9e5bd53b",
+      "name": "Ordinary Naval match \u2014 actual winner after card inspections_0_BE0F29E0-148D-4431-A63A-492A1633BEA2.png",
+      "testIdentifier": "DevelopmentCardDesignTests/testOrdinaryNavalMatchIncludesDeliberateCardInspectionAndReachesAnActualWinner()",
+      "attachment": {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "937692FF-BFBF-4683-80E5-2590F5288D56",
+        "deviceName": "Empires QA",
+        "exportedFileName": "07FE9C48-116C-48B7-8A15-7395F9E7E711.png",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Ordinary Naval match \u2014 actual winner after card inspections_0_BE0F29E0-148D-4431-A63A-492A1633BEA2.png",
+        "timestamp": 1791409179.807
+      },
+      "configuration": "Debug",
+      "version": "1.0",
+      "build": "27",
+      "originalPixelsInspected": true,
+      "verdict": "PASS"
+    }
+  ],
+  "finding": "At AccessibilityXXXL, semantic text and frame assertions passed while actual maritime title/detail displayed ellipses. Preserved failed original367B09B8; root caps only maritime dock message scaffold at Large, retains full Fleet/rulebook text, and adds native Vision OCR of rendered detail. Fresh test/screens remain pending.",
+  "sourceReviewScope": "Uncommitted version27 bump/currentcodebefore readability repair; no final-gate or release claim."
+}

@@ -1,0 +1,29 @@
+{
+  "observedAtUTC": "2026-10-07T22:10:14.659911+00:00",
+  "helpers": [
+    {
+      "worktree": "/Users/alex/.codex/worktrees/naval-blockade-engine/Settlers",
+      "archivedRecoverably": true,
+      "checkoutRemoved": true,
+      "toolResultInitiallyQueued": true,
+      "listArtifactsConfirmedArchived": true
+    },
+    {
+      "worktree": "/Users/alex/.codex/worktrees/naval-blockade-ai/Settlers",
+      "archivedRecoverably": true,
+      "checkoutRemoved": true,
+      "toolResultInitiallyQueued": true,
+      "listArtifactsConfirmedArchived": true
+    },
+    {
+      "worktree": "/Users/alex/.codex/worktrees/naval-blockade-play/Settlers",
+      "archivedRecoverably": true,
+      "checkoutRemoved": true,
+      "toolResultInitiallyQueued": true,
+      "listArtifactsConfirmedArchived": true
+    }
+  ],
+  "currentReviewWorktreeKept": "/Users/alex/.codex/worktrees/naval24-main-integration/Settlers",
+  "ignoredBuildCachesNotNeeded": true,
+  "sourceAndReceiptsPreservedOutsideHelpers": true
+}

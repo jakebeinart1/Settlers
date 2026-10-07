@@ -1,0 +1,62 @@
+[
+  {
+    "attachments" : [
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "937692FF-BFBF-4683-80E5-2590F5288D56",
+        "deviceName" : "Empires QA",
+        "exportedFileName" : "07FE9C48-116C-48B7-8A15-7395F9E7E711.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "Ordinary Naval match — actual winner after card inspections_0_BE0F29E0-148D-4431-A63A-492A1633BEA2.png",
+        "timestamp" : 1791409179.807
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "937692FF-BFBF-4683-80E5-2590F5288D56",
+        "deviceName" : "Empires QA",
+        "exportedFileName" : "C00CC805-D9B5-4D7A-ABA7-090534F70A04.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "Ordinary Naval match — resolution; move=177; owned=_0_5ED8FA24-8979-4CE3-9939-C5C987302D1C.png",
+        "timestamp" : 1791409096.738
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "937692FF-BFBF-4683-80E5-2590F5288D56",
+        "deviceName" : "Empires QA",
+        "exportedFileName" : "7F95B7DA-83FF-4BFD-B9FD-9234144E8658.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "Ordinary Naval match — mature-hand owned knight_0_21B3D037-644A-455D-8D10-BCA46DA1CD17.png",
+        "timestamp" : 1791409093.272
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "937692FF-BFBF-4683-80E5-2590F5288D56",
+        "deviceName" : "Empires QA",
+        "exportedFileName" : "16DF0423-AA5C-4EA4-9218-3638C7267AD0.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "Ordinary Naval match — mature-hand; move=175; owned=knight=1_0_38AFB694-67F2-42AF-972D-B820B30DBC89.png",
+        "timestamp" : 1791409087.457
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "937692FF-BFBF-4683-80E5-2590F5288D56",
+        "deviceName" : "Empires QA",
+        "exportedFileName" : "5F8DC805-89C2-47AF-8329-D3D54717DBDD.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "Ordinary Naval match — purchase owned knight_0_6A627BF3-E744-4F9A-A03B-A8AA5B773CFA.png",
+        "timestamp" : 1791409083.77
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "937692FF-BFBF-4683-80E5-2590F5288D56",
+        "deviceName" : "Empires QA",
+        "exportedFileName" : "E40C3339-67B2-4292-90C0-E584A430DB03.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "Ordinary Naval match — purchase; move=160; owned=knight=1_0_213A1304-E18D-4930-980A-81964655D5BD.png",
+        "timestamp" : 1791409077.447
+      }
+    ],
+    "testIdentifier" : "DevelopmentCardDesignTests/testOrdinaryNavalMatchIncludesDeliberateCardInspectionAndReachesAnActualWinner()",
+    "testIdentifierURL" : "test://com.apple.xcode/Settlers/SettlersUITests/DevelopmentCardDesignTests/testOrdinaryNavalMatchIncludesDeliberateCardInspectionAndReachesAnActualWinner"
+  }
+]

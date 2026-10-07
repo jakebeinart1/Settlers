@@ -1,0 +1,123 @@
+{
+  "createdAtUTC": "2026-10-07T22:06:55.979170+00:00",
+  "worktree": "/Users/alex/.codex/worktrees/naval24-main-integration/Settlers",
+  "branch": "codex/naval-blockades",
+  "baseCommit": "2ad2fb9392e20177ee2f1c82f766f0941b7aa627",
+  "reviewedHead": "2d985b9570efb27ae3fab8c491275427d4d44fad",
+  "includesCurrentTrackedUncommittedChanges": true,
+  "dirtyAtReview": [],
+  "reviewerDisclosure": "This reviewer authored the engine change a74d478 and its engine regressions; engine review is not independent. AI/UI integration and their failure seams were reviewed independently. This reviewer also ran the retained functional matrix, so that evidence is verification, not a separate independent test run.",
+  "verdict": "PASS read-only source audit; no actionable defect found in reviewed scope",
+  "actionableFindings": [],
+  "failureCases": [
+    {
+      "failureCase": "Minimum World target overlaps occupied enemy sea and snaps to another legal destination",
+      "result": "No source defect found",
+      "evidence": "BoardDropTargetResolver rejects actual occupied polygon before nearest-target selection; ordinary and World hosted/native regression assertions inspect legal alternatives and unchanged proposal/state."
+    },
+    {
+      "failureCase": "Blockade polygon prevents selecting an owned ship in a captured mixed stack",
+      "result": "No source defect found",
+      "evidence": "Polygon veto applies to tile-target resolver only. Ship selection uses separate NavalShipLayer/Fleet and legalShips derived from complete engine moves; engine seeds mixed origin and blocks neighbor entry only."
+    },
+    {
+      "failureCase": "Owner tint, outlines or destinations still use pre-capture state",
+      "result": "No source defect found",
+      "evidence": "Presentation recomputes occupancy from live state using stable owner/id ordering. Coordinator invalidates/reconciles candidates on committed move count/actor change; capture intentionally has no blockade tile veto."
+    },
+    {
+      "failureCase": "AI prices a blocked corridor as a two-hex win or funds an inaccessible island",
+      "result": "No source defect found",
+      "evidence": "Both tier distance searches filter shared engine predicate; reachableColonySites gates funding; immediate sailing uses engine canonical route. Decision caches are newly constructed per immutable observation."
+    },
+    {
+      "failureCase": "Reverse diagnostic search crosses a blocked mixed origin and reports false progress",
+      "result": "No source defect found",
+      "evidence": "Reverse graph includes origin for departure-distance comparison but stops expansion when that origin is rival-held. Other blocked coordinates are excluded."
+    },
+    {
+      "failureCase": "Enemy occupancy leaks concealed terrain into legality, art or bot evaluation",
+      "result": "No source defect found",
+      "evidence": "Ships/owners are existing public observation fields. Engine sea routes require revealed sea; UI uses public occupancy and visible board; launch reason calls engine candidate partition. AI uses masked observation tile index."
+    },
+    {
+      "failureCase": "Hull limit or missing resources is incorrectly labeled as a blockade",
+      "result": "No source defect found",
+      "evidence": "BuildActionPresentation phase/supply/missing-cost reasons precede location reason. blockadedLaunchSites shares owned/charted coastal and hull-stock candidates with launchSites."
+    },
+    {
+      "failureCase": "Friendly sharing, zero-step defenders or remaining third-party blocker handled differently between layers",
+      "result": "No source defect found",
+      "evidence": "Single owner-inequality predicate ignores steps; all engine/UI/AI filters delegate it. Existing authored engine cases cover capture, friendly/transit, zero steps and third-party residual blocks."
+    },
+    {
+      "failureCase": "Naval v1-v3 checkpoint/replay or missing-version behavior silently adopts v4",
+      "result": "No source defect found",
+      "evidence": "All new occupancy/AI bonuses/funding/UI decoration are gated by saved Naval version>=4. Missing decode remains v1. Engine version3/schema6/map1 remain unchanged; rulebook reads saved version."
+    },
+    {
+      "failureCase": "New dictionary/set traversal changes deterministic gameplay or presentation choice",
+      "result": "No source defect found",
+      "evidence": "Engine BFS expands sorted neighbors and exposes sorted destinations; policy loops use fixed direction order. UI mixed-owner tint uses sorted owner/id and rendering sorted coordinates. Fresh six-process full result+trace comparisons remain bound to all112 package inputs."
+    },
+    {
+      "failureCase": "DEBUG fixture uses hidden world geography as production policy input",
+      "result": "No source defect found",
+      "evidence": "NavalBlockadeQAFixture preparation is inside #if DEBUG and explicitly creates a replacement generated-world baseline; future native actions still use production rules and conserved supply. Historical intentional mixed-owner sail-in art fixture remains Naval v3 instead of weakening v4."
+    }
+  ],
+  "runtimeLimitations": [
+    "No native or build operations executed for this audit. The maritime Dynamic Type cap and rendered-text OCR regression require root runtime verification; source review does not establish final UI pixels or delivery readiness.",
+    "Full gate, Release signing/upload/Apple availability are outside this audit.",
+    "No new AI strength claim."
+  ],
+  "packageSourceBinding": {
+    "files": 112,
+    "equalToFreshMatrixFreeze": true,
+    "sourceSHA": "864ef8495555a21fba805746b54c5830a77cd66b",
+    "freshMatches": 48,
+    "separateProcessResultAndTraceRepeats": 6,
+    "differentCherryPickCommitIDsDoNotImplyDifferentPackageBytes": true
+  },
+  "changedFileSHA256": {
+    ".claude/skills/run-settlers/SKILL.md": "36adb1c3d7e2f89c1bd2631b751ea9ad338f83adca9af55ac524db9fde037c88",
+    "Packages/CatanAI/Sources/CatanAI/Naval/NavalEconomy.swift": "51b66e72f311998d70ce757969dd9da21ee20b5de490d342d716b0ab6b0ccb2f",
+    "Packages/CatanAI/Sources/CatanAI/Naval/NavalNavigation.swift": "f358e485c67f4466dbca16e4c6137b38c19690a9c24c2546210d7c022a57d475",
+    "Packages/CatanAI/Sources/CatanAI/Naval/NavalNavigationDiagnostics.swift": "ca016cf56fd78858b15c9e0552fed24a0e886f19b9bd3038a277f0ce4e73e991",
+    "Packages/CatanAI/Tests/CatanAITests/NavalBlockadePolicyTests.swift": "09202a4b8caa97212d50b766fce1ec25fc32d888cade3046e6c7cbe3386537df",
+    "Packages/CatanEngine/Sources/CatanEngine/Naval/Naval.swift": "b6192cb7fd04b981561b0b90ca35a69d9c251812c12639760dffc830f7f9d721",
+    "Packages/CatanEngine/Sources/CatanEngine/Naval/NavalSailing.swift": "a05f30944bf07b29e7779c4cf2d92180c8e925953df3ecb8a423234e3751ac9c",
+    "Packages/CatanEngine/Tests/CatanEngineTests/NavalBlockadeTests.swift": "5f33c8b0047de6a61049289cf970be5a79f866a878a0e0e1853ce1cb52f5cdac",
+    "Packages/CatanEngine/Tests/CatanEngineTests/NavalSailingTests.swift": "b79376d569e3e737d1011e0786190b8b34ef3161647f4546be6874b2a3c4d257",
+    "Packages/CatanEngine/Tests/CatanEngineTests/NavalVisibilityVersionTests.swift": "ef9170f152734b51f9c72c60e9f6adb0364d3b8c575eaaf9bc29e2921046e89c",
+    "Settlers.xcodeproj/project.pbxproj": "6333398b69ca1da3298e97f200f621d524bc6b7447ce3cdb8bda473c86f3e11d",
+    "Settlers/QALaunchFlag.swift": "afd598d39efb90a12cc5b695e998dee49cca1b504bea543211cf90eca39a9a80",
+    "Settlers/Testing/GameViewModel+QANaval.swift": "10413c6dcbb562c0e20506ec335e6b760ea2fefa7b62cf2cea8755bb50dedb4c",
+    "Settlers/Testing/NavalBlockadeQAFixture.swift": "57d33b32776c2dbefe677dd5a76460cf5bbbd4bfe705bd788020228c23de2efe",
+    "Settlers/Testing/NavalQAFixture.swift": "57c35645183b81d4e193a6972ee108ee721a4a366c65016cb415ed5dd63ff77d",
+    "Settlers/ViewModels/BoardDecisionCoordinator.swift": "20856df812fd160de8449f5a199841c07e5da42284606bd2fa7cc9097dcfe1bf",
+    "Settlers/ViewModels/BuildActionPresentation.swift": "24a61bbd2ac4d933ba1865b48e48d129aeb8e142f1411524a90bd56aa45b62e0",
+    "Settlers/ViewModels/GameViewModel+BoardDecision.swift": "37eedc99536747022f3cfcfa383d09e3aa728f43c20b21c37b615d979c5c077b",
+    "Settlers/ViewModels/NavalSailingPresentation.swift": "6d999a132ed4e7f6a2bc62768ae62fabd9f4ed01ccab9ccbfa0396c85a7254aa",
+    "Settlers/Views/Board/BoardDecisionInteractionLayer.swift": "35c710e0883b9e303339b229a99c1ffdc1d8623717846249282b8085d1056b2d",
+    "Settlers/Views/Board/BoardView.swift": "7d66c2a7870c97c5beb139e5879e800ed69b56d47094666fc48fa64b24f94cbe",
+    "Settlers/Views/Board/BoardViewNaval.swift": "cc4ca85cf47dc713a30a0c5f100666abf31d459e98b83c405d0192308515e485",
+    "Settlers/Views/Board/NavalArtwork.swift": "386c43334e6a13bc84a17ee8721fda57cd88db7a36ba9e3851a6e3dc0d6aebd7",
+    "Settlers/Views/Board/NavalBoardInteractions.swift": "719d654c7fd1db2bfbf91f3d24403873e595a67d8c1ac2a834066357adb4d07b",
+    "Settlers/Views/Board/NavalSailingRangeLayer.swift": "cad95efde5efc1c3c8511d3d0cef793c2a9d0e4c9da2a2c51016fdb29338e305",
+    "Settlers/Views/GameActionPanels.swift": "7a6ba26482137e1cfb59a7f598788f340a0d664cff577a29839e173ba1833a97",
+    "Settlers/Views/HowToPlayContent.swift": "3082508c60f2f4ee651b5eeec33c6a488b65c2d948ba1259052f89d0907338f3",
+    "SettlersTests/NavalBlockadePresentationTests.swift": "83e085bde535ee13ca624af36fddff6a0310fbba56d1ab521685d906d29a84c3",
+    "SettlersTests/RulebookContentTests.swift": "bc429fad6cc7576b500d7ae9adacb71b3a0dca232b1d659ab7ce0d20b1cc39b9",
+    "SettlersUITests/NavalBlockadeFlowTests.swift": "e0bb1813c637ca99cfd91288f2dd9d52bab4c141e47a1b1790e3b2a1ab40614e",
+    "SettlersUITests/NavalTravelFlowTests.swift": "db929cf231fec767120a66f8ec93b5f4fa3db4dc7697abc308a84fbc5e3dfba3",
+    "project.yml": "027b5573a845af49e198e5244552d748b230dcbafeb9cac297f6e80caa30c6e6"
+  },
+  "productionPackageChangedFiles": [
+    "Packages/CatanAI/Sources/CatanAI/Naval/NavalEconomy.swift",
+    "Packages/CatanAI/Sources/CatanAI/Naval/NavalNavigation.swift",
+    "Packages/CatanAI/Sources/CatanAI/Naval/NavalNavigationDiagnostics.swift",
+    "Packages/CatanEngine/Sources/CatanEngine/Naval/Naval.swift",
+    "Packages/CatanEngine/Sources/CatanEngine/Naval/NavalSailing.swift"
+  ]
+}

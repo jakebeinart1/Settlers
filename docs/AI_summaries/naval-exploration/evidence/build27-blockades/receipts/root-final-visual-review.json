@@ -1,0 +1,93 @@
+{
+  "verdict": "PASS",
+  "imagesUnmodified": true,
+  "reviewedAtUTC": "2026-10-07T22:06:28.977302+00:00",
+  "testedHeadSHA": "2d985b9570efb27ae3fab8c491275427d4d44fad",
+  "productionSourceSHA": "2d985b9570efb27ae3fab8c491275427d4d44fad",
+  "version": "1.0",
+  "build": "27",
+  "sourceState": "frozen bytes equal corrected native-test inputs; metadata commit only follows before gate",
+  "images": [
+    {
+      "path": "/Users/alex/.codex/artifacts/naval-exploration/build27-ship-blockades/readable-dock-attachments/F5BBF7E4-AED2-419A-8010-EB1981F09F54.png",
+      "sha256": "f36381612cd630fb74497b33177ef82dbff99aca3e9b04f3da4d23d258d15f5b",
+      "test": "NavalBlockadeFlowTests/testBlockadeExplanationAndWorldTouchRemainUsableAtLargestText()",
+      "timestamp": 1791410267.011,
+      "verdict": "PASS",
+      "reviewedBy": "root",
+      "detail": "original",
+      "observations": "Full sailing instruction and safe visible controls; blocked cells have no travel badge; capture and persisted ownership/route match expected flow."
+    },
+    {
+      "path": "/Users/alex/.codex/artifacts/naval-exploration/build27-ship-blockades/readable-dock-attachments/484FDA52-728B-42ED-BFF5-11334E6845EA.png",
+      "sha256": "6bb14ff19c149aa38f6f9a5db7f1cff499d0ccf19bb84e1cd67b36be6dfc1146",
+      "test": "NavalBlockadeFlowTests/testCaptureConfirmationAndColdResumeOpenTheActualTwoHexVoyage()",
+      "timestamp": 1791410290.699,
+      "verdict": "PASS",
+      "reviewedBy": "root",
+      "detail": "original",
+      "observations": "Full sailing instruction and safe visible controls; blocked cells have no travel badge; capture and persisted ownership/route match expected flow."
+    },
+    {
+      "path": "/Users/alex/.codex/artifacts/naval-exploration/build27-ship-blockades/readable-dock-attachments/5E45BB2A-B9EC-41E3-89F3-261CDE91FF92.png",
+      "sha256": "1fbe4de5d0c11288752b139d7e9dc3229120361c9f13b2c75dd07a268c16269a",
+      "test": "NavalBlockadeFlowTests/testCaptureConfirmationAndColdResumeOpenTheActualTwoHexVoyage()",
+      "timestamp": 1791410284.257,
+      "verdict": "PASS",
+      "reviewedBy": "root",
+      "detail": "original",
+      "observations": "Full sailing instruction and safe visible controls; blocked cells have no travel badge; capture and persisted ownership/route match expected flow."
+    },
+    {
+      "path": "/Users/alex/.codex/artifacts/naval-exploration/build27-ship-blockades/readable-dock-attachments/866AE32B-0BD4-43A3-8A96-38D6C28B9578.png",
+      "sha256": "dbc5fab498eb1adf7803217f12af5a055f2dd14d2a8ccbae3922fd07136ba758",
+      "test": "NavalBlockadeFlowTests/testCaptureConfirmationAndColdResumeOpenTheActualTwoHexVoyage()",
+      "timestamp": 1791410273.166,
+      "verdict": "PASS",
+      "reviewedBy": "root",
+      "detail": "original",
+      "observations": "Full sailing instruction and safe visible controls; blocked cells have no travel badge; capture and persisted ownership/route match expected flow."
+    },
+    {
+      "path": "/Users/alex/.codex/artifacts/naval-exploration/build27-ship-blockades/readable-dock-attachments/BADA4D9E-CD92-418A-922A-51D75C1D214F.png",
+      "sha256": "9877b314d6649d1f7d784bf68f5f3286f5ed170ce1cc0b9951ba18f5ccf13426",
+      "test": "NavalBlockadeFlowTests/testOccupiedLaunchCoastExplainsUnavailableShipWithoutChargingResources()",
+      "timestamp": 1791410297.354,
+      "verdict": "PASS",
+      "reviewedBy": "root",
+      "detail": "original",
+      "observations": "Full sailing instruction and safe visible controls; blocked cells have no travel badge; capture and persisted ownership/route match expected flow."
+    },
+    {
+      "path": "/Users/alex/.codex/artifacts/naval-exploration/build27-ship-blockades/readable-dock-attachments/9878267F-755E-42C2-8512-60AD0B2C85D6.png",
+      "sha256": "97b3b945c4f742ee8dd4ac878af93e836157f662bb43a4a4440ee9c85c7a9584",
+      "test": "NavalBlockadeFlowTests/testOpposingShipBlocksEntryAndThroughVoyageAtLocalAndWorldZoomWithoutSnapping()",
+      "timestamp": 1791410313.115,
+      "verdict": "PASS",
+      "reviewedBy": "root",
+      "detail": "original",
+      "observations": "Full sailing instruction and safe visible controls; blocked cells have no travel badge; capture and persisted ownership/route match expected flow."
+    },
+    {
+      "path": "/Users/alex/.codex/artifacts/naval-exploration/build27-ship-blockades/readable-dock-attachments/DAD3A7A4-7E0E-42AB-9D2E-3C382A231B3A.png",
+      "sha256": "6304101fa5f5b4371d181402dae41e75470b200d3aa124ca5e1ef4c7bf14a0da",
+      "test": "NavalBlockadeFlowTests/testOpposingShipBlocksEntryAndThroughVoyageAtLocalAndWorldZoomWithoutSnapping()",
+      "timestamp": 1791410307.291,
+      "verdict": "PASS",
+      "reviewedBy": "root",
+      "detail": "original",
+      "observations": "Full sailing instruction and safe visible controls; blocked cells have no travel badge; capture and persisted ownership/route match expected flow."
+    }
+  ],
+  "supersedesFailedReview": "/Users/alex/.codex/artifacts/naval-exploration/build27-ship-blockades/first-root-visual-review.json",
+  "failedOriginalPreserved": true,
+  "nativeReceipt": "/Users/alex/.codex/artifacts/naval-exploration/build27-ship-blockades/readable-dock-focused-command.json",
+  "summary": "/Users/alex/.codex/artifacts/naval-exploration/build27-ship-blockades/readable-dock-focused-summary.json",
+  "completeMatchEvidence": "/Users/alex/.codex/artifacts/naval-exploration/build27-ship-blockades/first-match-attachments/07FE9C48-116C-48B7-8A15-7395F9E7E711.png",
+  "completeMatchObserved": "Tokugawa winner14VP; human Alex7VP; native scripted ordinary game",
+  "limitations": [
+    "Maritime instruction area caps visual text at Large inside fixed command row; full spoken text and Fleet/rulebook inspection remain available.",
+    "This review covers selected original checkpoints, not exhaustive manual scrutiny of all play states."
+  ],
+  "productionInputCount": 378
+}

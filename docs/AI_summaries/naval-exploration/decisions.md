@@ -1,5 +1,22 @@
 # Naval design decisions
 
+## Build 27 decision D55: defending occupied water
+
+**D55 — Rival hulls block their sea hex, delivered.** A stationed ship blocks
+opponents entering, passing through or launching into its water, even at zero
+moves. Friendly hulls may share water. Capture may create a mixed-owner stack;
+existing ships can leave while opposing re-entry stays blocked. New matches
+encode v4; saved v1–v3 retain their behavior.
+
+The engine owns the public predicate used by previews and both AI tiers. AI
+funding excludes inaccessible colonies and sealed expedition purchases. Touches
+reject blocked water without choosing a neighbor. No combat, anchoring action
+or strength-weight change is added. [E32](acceptance.md#build-27-follow-up-e32)
+records the repaired dock, 48 functional winners, full gate, signed Internal
+TestFlight delivery and owned-QA finish. [PR #61](https://github.com/jakebeinart1/Settlers/pull/61)
+is the integration record for this verified source.
+
+
 ## Build 26 decision D54: public Monopoly gain, delivered
 
 D54 corrects D53's omitted publicly derivable quantity: finite supply minus bank

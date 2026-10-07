@@ -1,5 +1,22 @@
 # Voyages design and implementation contract
 
+## Build 27 contract: occupied-water defense delivered
+
+New v4 games block opponents entering, traversing and launching into an occupied
+sea hex, including when the defender has zero moves. Friendly hulls may share
+water. Existing ships can leave a mixed-owner stack after capture. Saved v1–v3
+behavior is preserved.
+
+Only engine-valid destinations receive previews; blocked touches cannot select
+neighbors. Owner tint, an ivory shield and launch/trapped-fleet text explain
+unavailable actions. The corrected maritime dock stays readable at maximum
+text without moving the board or command row. Both AI tiers use public routes
+and reachable funding targets. No generated art is replaced.
+[E32](acceptance.md#build-27-follow-up-e32) binds the full gate, new functional
+matches, reviewed [gallery](evidence/build27-blockades/gallery.html), verified
+Internal build 27 delivery and individual QA finish. Integration is recorded in [PR #61](https://github.com/jakebeinart1/Settlers/pull/61); agent review and passing CI govern the merge.
+
+
 ## Build 26 contract: public collection counts, delivered
 
 D54 shows supply−bank−own as “to collect”, selected exact gain and explicit zero;

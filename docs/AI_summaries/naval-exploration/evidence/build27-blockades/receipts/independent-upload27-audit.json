@@ -1,0 +1,97 @@
+{
+  "verifiedAtUTC": "2026-10-07T23:38:50.364682+00:00",
+  "status": "PASS-build27-signed-staged-payload-and-accepted-upload",
+  "scope": "Independent read-only binary/profile/signature/byte/log audit; separate extraction and receipt; no source/build/native app/simulator/archive/export/upload/signing/credential/GitHub operations",
+  "productionSourceSHAFromBinding": "2d985b9570efb27ae3fab8c491275427d4d44fad",
+  "archiveHeadSHAFromBinding": "2d985b9570efb27ae3fab8c491275427d4d44fad",
+  "sourceIndependentlyRechecked": false,
+  "reviewExport": {
+    "ipaPath": "/Users/alex/.codex/artifacts/naval-exploration/build27-ship-blockades/export/Settlers.ipa",
+    "ipaSHA256": "d45c26610b4227eb7795879f1e2cc2d12ca790b70889abe73246a547b9d2a484",
+    "ipaMD5": "a52665b00d39959ac98470b606a29070",
+    "ipaBytes": 36334324,
+    "bundleIdentifier": "com.alexchandler.empires",
+    "version": "1.0",
+    "build": "27",
+    "strictDeepSignatureExitCode": 0,
+    "profileUUID": "86da5771-8640-4c53-8867-0b4fbd4f1035",
+    "profileName": "Empires App Store 20261004",
+    "profileExpiresUTC": "2027-01-25T20:55:57+00:00",
+    "profileCertificateSHA1": [
+      "76465B06C2E157D857641F5B3D25CF5A3110C4A9"
+    ],
+    "actualSignerCertificateSHA1": "76465B06C2E157D857641F5B3D25CF5A3110C4A9",
+    "betaReportsActive": true,
+    "getTaskAllow": false,
+    "provisionedDevicesAbsent": true,
+    "signedCloudKitEnvironment": "Production",
+    "signedCloudKitContainers": [
+      "iCloud.com.alexchandler.empires"
+    ],
+    "signedCloudKitServices": [
+      "CloudKit"
+    ],
+    "executableSHA256": "0929ea4fa9f9f58943bbd25fce0f3431a8a5e055c81417247f226a3680ee96f6",
+    "extractionDirectory": "/Users/alex/.codex/artifacts/naval-exploration/build27-ship-blockades/independent-upload27-inspection-20261007T233849Z-b63099bd/review"
+  },
+  "actualStagedUploadedIPA": {
+    "ipaPath": "/Users/alex/.codex/artifacts/naval-exploration/build27-ship-blockades/Settlers-uploaded-27.ipa",
+    "ipaSHA256": "b6b899817bc508f829dfce946b9fce65178bea324993e82b4985d660d8ad2ff8",
+    "ipaMD5": "534d84d459b273e5b64033f40c0003b0",
+    "ipaBytes": 36334326,
+    "bundleIdentifier": "com.alexchandler.empires",
+    "version": "1.0",
+    "build": "27",
+    "strictDeepSignatureExitCode": 0,
+    "profileUUID": "86da5771-8640-4c53-8867-0b4fbd4f1035",
+    "profileName": "Empires App Store 20261004",
+    "profileExpiresUTC": "2027-01-25T20:55:57+00:00",
+    "profileCertificateSHA1": [
+      "76465B06C2E157D857641F5B3D25CF5A3110C4A9"
+    ],
+    "actualSignerCertificateSHA1": "76465B06C2E157D857641F5B3D25CF5A3110C4A9",
+    "betaReportsActive": true,
+    "getTaskAllow": false,
+    "provisionedDevicesAbsent": true,
+    "signedCloudKitEnvironment": "Production",
+    "signedCloudKitContainers": [
+      "iCloud.com.alexchandler.empires"
+    ],
+    "signedCloudKitServices": [
+      "CloudKit"
+    ],
+    "executableSHA256": "237fb444376d9af1999375e0e3026b5438df5fca7ca8951ff2f10c1e75b6015b",
+    "extractionDirectory": "/Users/alex/.codex/artifacts/naval-exploration/build27-ship-blockades/independent-upload27-inspection-20261007T233849Z-b63099bd/uploaded"
+  },
+  "payloadComparison": {
+    "zipEntryCount": 14,
+    "differingEntries": [
+      "Payload/Settlers.app/Settlers"
+    ],
+    "allOtherResourcesByteIdentical": true,
+    "onlyDifferenceWithinCodeSignature": true,
+    "identicalExecutablePrefixBytes": 5924400,
+    "identicalExecutablePrefixSHA256": "8dcfcfd06a28b231ab3f2e0978982c96435e03f684b1f01a52414ac57508d417",
+    "reviewSignatureSpanBytes": 31328,
+    "uploadedSignatureSpanBytes": 31328
+  },
+  "appleUploadAcceptance": {
+    "contentDeliveryAcceptedSuccessConfirmed": true,
+    "contentDeliveryIDs": [
+      "a49ab68c-859a-4467-8454-c1c5fde1677a"
+    ],
+    "contentDeliveryNamedAssetIDs": [
+      "5cbe5de7-a6cf-4859-88f7-04959635116f"
+    ],
+    "contentDeliveryAssetFileName": "Settlers.ipa",
+    "contentDeliveryAssetBytes": 36334326,
+    "contentDeliveryChecksumHexMD5": "534D84D459B273E5B64033F40C0003B0",
+    "contentDeliveryExactAssetChecksumConfirmed": true,
+    "checksumBearingAssetRecordCount": 2,
+    "checksumUnavailableRegistrationRecordCount": 2,
+    "contentDeliveryLogSHA256": "271e91f3e2bbfe1bd86a6121e08ada341dd08d5b65190c70bcdf07f7226bf0ac",
+    "uploadCommandExitCode": 0
+  },
+  "remainingProof": "Root must independently confirm this exact delivery UUID/build27 marketing1.0 VALID, nonexpired and intended tester access in App Store Connect.",
+  "inputIPAsUnchangedAfterInspection": true
+}

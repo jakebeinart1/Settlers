@@ -1,0 +1,17 @@
+{
+  "productionSourceSHA": "2d985b9570efb27ae3fab8c491275427d4d44fad",
+  "archiveHeadSHA": "2d985b9570efb27ae3fab8c491275427d4d44fad",
+  "productionInputCount": 378,
+  "version": "1.0",
+  "build": "27",
+  "xcodebuildExitCode": 0,
+  "actualStagedPayloadPreserved": true,
+  "capture": {
+    "originalStagedPath": "/var/folders/_m/cfbn0s7j7zx3sx1lwv6w4mr80000gn/T/XcodeDistPipeline.~~~ZXArA9/Packages/Settlers.ipa",
+    "durableUploadedIPAPath": "/Users/alex/.codex/artifacts/naval-exploration/build27-ship-blockades/Settlers-uploaded-27.ipa",
+    "bytes": 36334326,
+    "sha256": "b6b899817bc508f829dfce946b9fce65178bea324993e82b4985d660d8ad2ff8",
+    "md5": "534d84d459b273e5b64033f40c0003b0",
+    "completeZIPCRCCheck": true
+  }
+}

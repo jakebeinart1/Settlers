@@ -1,0 +1,237 @@
+[0/1] Planning build
+Building for debugging...
+[0/14] Write sources
+[1/14] Write swift-version--58304C5D6DBC2206.txt
+[3/18] Compiling CatanAITests JointTradeResponsePolicyTests.swift
+[4/18] Compiling CatanAITests NavalBlockadePolicyTests.swift
+[5/18] Compiling CatanAITests NavalMixedSessionTests.swift
+[6/18] Compiling CatanAITests NavalNavigationDiagnosticsTests.swift
+[7/18] Compiling CatanAITests NavalPolicyTests.swift
+[8/18] Compiling CatanAITests NavalSailingPolicyTests.swift
+[9/18] Compiling CatanAITests OpeningPlacements.swift
+[10/18] Compiling CatanAITests PlacementHeuristicsTests.swift
+[11/18] Compiling CatanAITests PlannerTradeTests.swift
+[12/18] Compiling CatanAITests PointCompletingCardsTests.swift
+[13/18] Compiling CatanAITests PolicyBehaviorMetricsTests.swift
+[14/18] Compiling CatanAITests PolicyTests.swift
+[15/18] Compiling CatanAITests PositionEvaluatorTests.swift
+[16/18] Emitting module CatanAITests
+[17/36] Compiling CatanAITests EvaluationBankTradeTests.swift
+[18/36] Compiling CatanAITests EvaluationCounterpartyTests.swift
+[19/36] Compiling CatanAITests EvaluationPolicyTests.swift
+[20/36] Compiling CatanAITests EvaluationTradeGainTests.swift
+[21/36] Compiling CatanAITests EvaluationTradeRepeatTests.swift
+[22/36] Compiling CatanAITests GhostCandidateScoringTests.swift
+[23/41] Compiling CatanAITests GhostDecisionExtractorTests.swift
+[24/41] Compiling CatanAITests GhostPolicyTests.swift
+[25/41] Compiling CatanAITests GhostSeatStatsTests.swift
+[26/41] Compiling CatanAITests GhostStyleFeaturesTests.swift
+[27/41] Compiling CatanAITests HandDisciplineTests.swift
+[28/41] Compiling CatanAITests RobberHeuristicsTests.swift
+[29/41] Compiling CatanAITests SeededGameFingerprintTests.swift
+[30/41] Compiling CatanAITests ThreatAssessmentTests.swift
+[31/41] Compiling CatanAITests ThreeSeatGameTests.swift
+[32/41] Compiling CatanAITests TradeAccountingBoundaryTests.swift
+[33/41] Compiling CatanAITests TradeAssessmentTests.swift
+[34/41] Compiling CatanAITests TradeCascadeTests.swift
+[35/41] Compiling CatanAITests TradeContributionTests.swift
+[36/41] Compiling CatanAITests TradeHeuristicsTests.swift
+[37/41] Compiling CatanAITests TradeMessagesTests.swift
+[38/41] Compiling CatanAITests TradeRefusingPolicyTests.swift
+[39/41] Compiling CatanAITests TradeReviewContextTests.swift
+[40/42] Compiling CatanAITests BuildPlannerTests.swift
+[41/44] Compiling CatanAIPackageTests runner.swift
+[42/44] Emitting module CatanAIPackageTests
+[42/44] Write Objects.LinkFileList
+[43/44] Linking CatanAIPackageTests
+Build complete! (9.19s)
+Test Suite 'Selected tests' started at 2026-10-07 17:07:21.378.
+Test Suite 'CatanAIPackageTests.xctest' started at 2026-10-07 17:07:21.378.
+Test Suite 'CatanAIPackageTests.xctest' passed at 2026-10-07 17:07:21.378.
+	 Executed 0 tests, with 0 failures (0 unexpected) in 0.000 (0.000) seconds
+Test Suite 'Selected tests' passed at 2026-10-07 17:07:21.379.
+	 Executed 0 tests, with 0 failures (0 unexpected) in 0.000 (0.001) seconds
+◇ Test run started.
+↳ Testing Library Version: 1902
+↳ Target Platform: arm64e-apple-macos14.0
+◇ Suite NavalNavigationDiagnosticsTests started.
+◇ Suite NavalPolicyTests started.
+◇ Suite NavalBlockadePolicyTests started.
+◇ Suite NavalSailingPolicyTests started.
+◇ Test aHomeCoastIsNotAnOverseasColony() started.
+◇ Test aCityUpgradeDoesNotInventNewExpeditionAccess() started.
+◇ Suite NavalMixedSessionTests started.
+◇ Test actualDiscoveryIsIndependentDestinationProgress() started.
+◇ Test anIdleReturnCannotHideBehindResourceStepOrCounterChanges() started.
+◇ Test foundingAColonyJustifiesProductiveBacktracking() started.
+◇ Test aCertainPurchaseAndLandingWinBeatsAHigherThanNinetyPercentDraw() started.
+◇ Test acceptsFundingButPreservesAnAlreadyFundedRecipe(tier:) started.
+◇ Test legacyRoutesFundingAndPurchaseScoresIgnoreRivalOccupancy(tier:version:) started.
+◇ Test sealedHarborsDoNotEarnFogOrFirstHullPurchaseBonuses(tier:) started.
+◇ Test blockersDoNotExposeConcealedTerrainHandsDeckOrFutureRandomness(tier:) started.
+◇ Test unknownComponentConnectionsCannotPromiseAColonyPoint() started.
+◇ Test friendlyHullOccupancyRetainsRoutesAndColonyFunding(tier:) started.
+◇ Test exchangesOnlyTheSurplusToCompleteAShip(tier:) started.
+◇ Test aPermanentWinningUpgradeBeatsAnotherExpedition(tier:) started.
+◇ Test aRivalCutsThePublicCorridorAndItsColonyFunding(tier:) started.
+◇ Test capturingOneHullFromAStackAllowsEscapeAndDoesNotAllowReentry(tier:) started.
+◇ Test aPubliclyCertainColonyWinBeatsAProductiveNonwinningCity(tier:) started.
+◇ Test adaptersDeliberatelySelectNavalBrains() started.
+◇ Test aWinningLargestArmyKnightClosesTheGame(tier:) started.
+◇ Test bothTiersTakeTheReachableDetourWithoutClaimingAFalseTwoHexWin(tier:) started.
+◇ Test unscopedDirectCallsDoNotRepeatAnOutstandingNegotiation(tier:) started.
+◇ Test inlandOpeningChoicesCompleteOrdinaryUnfilteredSetup(tier:family:) started.
+◇ Test yearOfPlentyFundsTheMissingExpeditionIngredients(tier:) started.
+◇ Test expertDiscountsAnUnfundedVoyageExposedToCapture() started.
+◇ Test externalResponsesCannotLeaveAStaleDurableBotAnswer(tier:) started.
+◇ Test fundedInlandOpeningMakesUsefulRoadProgress(tier:) started.
+◇ Test flexibleYieldFundsAShipAndRespectsScarceBank(tier:) started.
+◇ Test owningEveryVictoryCardRemovesTheFalseImmediateDrawPremium(tier:) started.
+◇ Test expertLaunchPlansAProvableWinningColonyWithinThisTurn() started.
+◇ Test expertDoesNotBuyDuplicateAccessWhileAnExistingHullCanDoTheJob() started.
+◇ Test capturePrefersAnOverseasLanding(tier:) started.
+◇ Test expertFundsAWinnableRoadEvenWithNoSettlementSupplyOrApproach() started.
+◇ Test recomputedMasksAndChoicesIgnoreConcealedWorldChanges(tier:) started.
+◇ Test sailsTowardKnownLandingAndFundsAColony(tier:) started.
+◇ Test anUnfundedVoyageCanImproveAPoorLandingWithoutGivingUpAccess(tier:) started.
+◇ Test roadsCannotPromiseASiteWhoseCoastIsStillHidden() started.
+◇ Test sailingValuesTheUnionOfCanonicalIntermediateSight() started.
+◇ Test expertFundsTheSameFinishingDrawThatItValuesWhenAvailable() started.
+◇ Test launchAndCaptureWinningPlansRespectTheSavedAllowance() started.
+◇ Test discardsSurplusWithoutDismantlingAFundedVoyage(tier:) started.
+◇ Test flexibleProductionIsAllocatedOnceAcrossRecipeDeficits() started.
+◇ Test case passing 1 argument tier → .traditional to acceptsFundingButPreservesAnAlreadyFundedRecipe(tier:) started.
+◇ Test case passing 1 argument tier → .traditional to blockersDoNotExposeConcealedTerrainHandsDeckOrFutureRandomness(tier:) started.
+◇ Test responseOnlyMasksPreservePolicyRNG(tier:) started.
+◇ Test case passing 1 argument tier → .traditional to sealedHarborsDoNotEarnFogOrFirstHullPurchaseBonuses(tier:) started.
+◇ Test case passing 1 argument tier → .expert to blockersDoNotExposeConcealedTerrainHandsDeckOrFutureRandomness(tier:) started.
+◇ Test case passing 1 argument tier → .expert to sealedHarborsDoNotEarnFogOrFirstHullPurchaseBonuses(tier:) started.
+◇ Test case passing 1 argument tier → .expert to acceptsFundingButPreservesAnAlreadyFundedRecipe(tier:) started.
+◇ Test navigationEvidenceCountsBothTravelledHexesOfOneVoyage() started.
+◇ Test case passing 2 arguments tier → .traditional, version → 1 to legacyRoutesFundingAndPurchaseScoresIgnoreRivalOccupancy(tier:version:) started.
+◇ Test hiddenWorldHandsDeckAndFutureRNGCannotChangeDecision(tier:) started.
+◇ Test aTwoHexActionCannotClaimAThirdHexWinningMove() started.
+◇ Test case passing 1 argument tier → .traditional to friendlyHullOccupancyRetainsRoutesAndColonyFunding(tier:) started.
+◇ Test aCertainSailingWinBeatsEvenANinetyOnePercentFinishingDraw() started.
+◇ Test case passing 2 arguments tier → .traditional, version → 2 to legacyRoutesFundingAndPurchaseScoresIgnoreRivalOccupancy(tier:version:) started.
+◇ Test buysAFirstHullThenExplores(tier:) started.
+◇ Test case passing 1 argument tier → .traditional to exchangesOnlyTheSurplusToCompleteAShip(tier:) started.
+◇ Test expertReplacementHullDoesNotRenewTheFirstExpeditionPremium() started.
+◇ Test aCompleteExternalSeatMatchStaysReloadable(players:) started.
+◇ Test case passing 1 argument tier → .expert to friendlyHullOccupancyRetainsRoutesAndColonyFunding(tier:) started.
+◇ Test case passing 1 argument tier → .traditional to aPermanentWinningUpgradeBeatsAnotherExpedition(tier:) started.
+◇ Test case passing 2 arguments tier → .traditional, version → 3 to legacyRoutesFundingAndPurchaseScoresIgnoreRivalOccupancy(tier:version:) started.
+◇ Test case passing 1 argument tier → .expert to exchangesOnlyTheSurplusToCompleteAShip(tier:) started.
+◇ Test case passing 1 argument tier → .expert to aPermanentWinningUpgradeBeatsAnotherExpedition(tier:) started.
+◇ Test case passing 2 arguments tier → .expert, version → 1 to legacyRoutesFundingAndPurchaseScoresIgnoreRivalOccupancy(tier:version:) started.
+◇ Test case passing 1 argument tier → .traditional to aRivalCutsThePublicCorridorAndItsColonyFunding(tier:) started.
+◇ Test case passing 1 argument tier → .traditional to capturingOneHullFromAStackAllowsEscapeAndDoesNotAllowReentry(tier:) started.
+◇ Test case passing 1 argument tier → .expert to aRivalCutsThePublicCorridorAndItsColonyFunding(tier:) started.
+◇ Test case passing 1 argument tier → .traditional to aPubliclyCertainColonyWinBeatsAProductiveNonwinningCity(tier:) started.
+◇ Test case passing 1 argument tier → .expert to capturingOneHullFromAStackAllowsEscapeAndDoesNotAllowReentry(tier:) started.
+◇ Test case passing 1 argument tier → .expert to aPubliclyCertainColonyWinBeatsAProductiveNonwinningCity(tier:) started.
+◇ Test case passing 2 arguments tier → .expert, version → 2 to legacyRoutesFundingAndPurchaseScoresIgnoreRivalOccupancy(tier:version:) started.
+◇ Test case passing 2 arguments tier → .expert, version → 3 to legacyRoutesFundingAndPurchaseScoresIgnoreRivalOccupancy(tier:version:) started.
+◇ Test case passing 1 argument tier → .traditional to aWinningLargestArmyKnightClosesTheGame(tier:) started.
+◇ Test case passing 1 argument tier → .traditional to bothTiersTakeTheReachableDetourWithoutClaimingAFalseTwoHexWin(tier:) started.
+◇ Test case passing 1 argument tier → .expert to aWinningLargestArmyKnightClosesTheGame(tier:) started.
+◇ Test case passing 1 argument tier → .expert to bothTiersTakeTheReachableDetourWithoutClaimingAFalseTwoHexWin(tier:) started.
+◇ Test case passing 1 argument tier → .traditional to unscopedDirectCallsDoNotRepeatAnOutstandingNegotiation(tier:) started.
+◇ Test case passing 1 argument tier → .expert to unscopedDirectCallsDoNotRepeatAnOutstandingNegotiation(tier:) started.
+◇ Test case passing 1 argument tier → .traditional to yearOfPlentyFundsTheMissingExpeditionIngredients(tier:) started.
+◇ Test case passing 2 arguments tier → .traditional, family → .archipelago to inlandOpeningChoicesCompleteOrdinaryUnfilteredSetup(tier:family:) started.
+◇ Test case passing 1 argument tier → .expert to yearOfPlentyFundsTheMissingExpeditionIngredients(tier:) started.
+◇ Test case passing 2 arguments tier → .traditional, family → .peninsula to inlandOpeningChoicesCompleteOrdinaryUnfilteredSetup(tier:family:) started.
+◇ Test case passing 2 arguments tier → .traditional, family → .twinIslands to inlandOpeningChoicesCompleteOrdinaryUnfilteredSetup(tier:family:) started.
+◇ Test case passing 2 arguments tier → .expert, family → .archipelago to inlandOpeningChoicesCompleteOrdinaryUnfilteredSetup(tier:family:) started.
+◇ Test case passing 1 argument tier → .traditional to externalResponsesCannotLeaveAStaleDurableBotAnswer(tier:) started.
+◇ Test case passing 1 argument tier → .traditional to fundedInlandOpeningMakesUsefulRoadProgress(tier:) started.
+◇ Test case passing 1 argument tier → .expert to externalResponsesCannotLeaveAStaleDurableBotAnswer(tier:) started.
+◇ Test case passing 1 argument tier → .traditional to flexibleYieldFundsAShipAndRespectsScarceBank(tier:) started.
+◇ Test case passing 2 arguments tier → .expert, family → .peninsula to inlandOpeningChoicesCompleteOrdinaryUnfilteredSetup(tier:family:) started.
+◇ Test case passing 1 argument tier → .expert to fundedInlandOpeningMakesUsefulRoadProgress(tier:) started.
+NAVAL UNFILTERED OPENING tier=traditional family=archipelago harborless=[0, 1, 2, 3]
+◇ Test case passing 1 argument tier → .traditional to owningEveryVictoryCardRemovesTheFalseImmediateDrawPremium(tier:) started.
+NAVAL UNFILTERED OPENING tier=traditional family=peninsula harborless=[0, 1, 2]
+◇ Test case passing 1 argument tier → .expert to flexibleYieldFundsAShipAndRespectsScarceBank(tier:) started.
+◇ Test case passing 2 arguments tier → .expert, family → .twinIslands to inlandOpeningChoicesCompleteOrdinaryUnfilteredSetup(tier:family:) started.
+NAVAL UNFILTERED OPENING tier=traditional family=twinIslands harborless=[1, 2]
+◇ Test case passing 1 argument tier → .expert to owningEveryVictoryCardRemovesTheFalseImmediateDrawPremium(tier:) started.
+◇ Test case passing 1 argument tier → .traditional to capturePrefersAnOverseasLanding(tier:) started.
+NAVAL INLAND ROAD tier=traditional coastDistanceBefore=Optional(1) coastDistanceAfter=Optional(1)
+◇ Test case passing 1 argument tier → .expert to capturePrefersAnOverseasLanding(tier:) started.
+NAVAL UNFILTERED OPENING tier=expert family=archipelago harborless=[0, 1, 2, 3]
+NAVAL UNFILTERED OPENING tier=expert family=peninsula harborless=[0, 1, 2]
+◇ Test case passing 1 argument tier → .traditional to recomputedMasksAndChoicesIgnoreConcealedWorldChanges(tier:) started.
+◇ Test case passing 1 argument tier → .traditional to sailsTowardKnownLandingAndFundsAColony(tier:) started.
+◇ Test case passing 1 argument tier → .traditional to anUnfundedVoyageCanImproveAPoorLandingWithoutGivingUpAccess(tier:) started.
+◇ Test case passing 1 argument tier → .expert to recomputedMasksAndChoicesIgnoreConcealedWorldChanges(tier:) started.
+NAVAL INLAND ROAD tier=expert coastDistanceBefore=Optional(1) coastDistanceAfter=Optional(1)
+◇ Test case passing 1 argument tier → .expert to sailsTowardKnownLandingAndFundsAColony(tier:) started.
+◇ Test case passing 1 argument tier → .expert to anUnfundedVoyageCanImproveAPoorLandingWithoutGivingUpAccess(tier:) started.
+NAVAL UNFILTERED OPENING tier=expert family=twinIslands harborless=[1, 2]
+◇ Test case passing 1 argument tier → .traditional to discardsSurplusWithoutDismantlingAFundedVoyage(tier:) started.
+◇ Test case passing 1 argument tier → .expert to discardsSurplusWithoutDismantlingAFundedVoyage(tier:) started.
+◇ Test case passing 1 argument tier → .traditional to responseOnlyMasksPreservePolicyRNG(tier:) started.
+◇ Test case passing 1 argument tier → .expert to responseOnlyMasksPreservePolicyRNG(tier:) started.
+◇ Test case passing 1 argument tier → .traditional to hiddenWorldHandsDeckAndFutureRNGCannotChangeDecision(tier:) started.
+◇ Test case passing 1 argument tier → .expert to hiddenWorldHandsDeckAndFutureRNGCannotChangeDecision(tier:) started.
+◇ Test case passing 1 argument tier → .traditional to buysAFirstHullThenExplores(tier:) started.
+◇ Test case passing 1 argument tier → .expert to buysAFirstHullThenExplores(tier:) started.
+◇ Test case passing 1 argument players → 3 to aCompleteExternalSeatMatchStaysReloadable(players:) started.
+◇ Test case passing 1 argument players → 4 to aCompleteExternalSeatMatchStaysReloadable(players:) started.
+✔ Test aHomeCoastIsNotAnOverseasColony() passed after 4.886 seconds.
+✔ Test sealedHarborsDoNotEarnFogOrFirstHullPurchaseBonuses(tier:) with 2 test cases passed after 4.886 seconds.
+✔ Test legacyRoutesFundingAndPurchaseScoresIgnoreRivalOccupancy(tier:version:) with 6 test cases passed after 4.886 seconds.
+✔ Test actualDiscoveryIsIndependentDestinationProgress() passed after 4.886 seconds.
+✔ Test blockersDoNotExposeConcealedTerrainHandsDeckOrFutureRandomness(tier:) with 2 test cases passed after 4.886 seconds.
+✔ Test friendlyHullOccupancyRetainsRoutesAndColonyFunding(tier:) with 2 test cases passed after 4.886 seconds.
+✔ Test foundingAColonyJustifiesProductiveBacktracking() passed after 4.886 seconds.
+✔ Test anIdleReturnCannotHideBehindResourceStepOrCounterChanges() passed after 4.886 seconds.
+✔ Test aCityUpgradeDoesNotInventNewExpeditionAccess() passed after 4.886 seconds.
+✔ Test aRivalCutsThePublicCorridorAndItsColonyFunding(tier:) with 2 test cases passed after 4.886 seconds.
+✔ Test capturingOneHullFromAStackAllowsEscapeAndDoesNotAllowReentry(tier:) with 2 test cases passed after 4.886 seconds.
+✔ Test bothTiersTakeTheReachableDetourWithoutClaimingAFalseTwoHexWin(tier:) with 2 test cases passed after 4.886 seconds.
+✔ Test exchangesOnlyTheSurplusToCompleteAShip(tier:) with 2 test cases passed after 4.886 seconds.
+✔ Test acceptsFundingButPreservesAnAlreadyFundedRecipe(tier:) with 2 test cases passed after 4.886 seconds.
+✔ Test aWinningLargestArmyKnightClosesTheGame(tier:) with 2 test cases passed after 4.886 seconds.
+✔ Test unscopedDirectCallsDoNotRepeatAnOutstandingNegotiation(tier:) with 2 test cases passed after 4.886 seconds.
+✔ Test adaptersDeliberatelySelectNavalBrains() passed after 4.886 seconds.
+✔ Test yearOfPlentyFundsTheMissingExpeditionIngredients(tier:) with 2 test cases passed after 4.886 seconds.
+✔ Test inlandOpeningChoicesCompleteOrdinaryUnfilteredSetup(tier:family:) with 6 test cases passed after 4.886 seconds.
+✔ Test flexibleYieldFundsAShipAndRespectsScarceBank(tier:) with 2 test cases passed after 4.886 seconds.
+✔ Test externalResponsesCannotLeaveAStaleDurableBotAnswer(tier:) with 2 test cases passed after 4.886 seconds.
+✔ Test fundedInlandOpeningMakesUsefulRoadProgress(tier:) with 2 test cases passed after 4.886 seconds.
+✔ Test recomputedMasksAndChoicesIgnoreConcealedWorldChanges(tier:) with 2 test cases passed after 4.886 seconds.
+✔ Test unknownComponentConnectionsCannotPromiseAColonyPoint() passed after 4.886 seconds.
+✔ Test aPermanentWinningUpgradeBeatsAnotherExpedition(tier:) with 2 test cases passed after 4.886 seconds.
+✔ Test aCertainPurchaseAndLandingWinBeatsAHigherThanNinetyPercentDraw() passed after 4.886 seconds.
+✔ Test sailingValuesTheUnionOfCanonicalIntermediateSight() passed after 4.886 seconds.
+✔ Test expertDiscountsAnUnfundedVoyageExposedToCapture() passed after 4.886 seconds.
+✔ Test aPubliclyCertainColonyWinBeatsAProductiveNonwinningCity(tier:) with 2 test cases passed after 4.886 seconds.
+✔ Test launchAndCaptureWinningPlansRespectTheSavedAllowance() passed after 4.886 seconds.
+✔ Test discardsSurplusWithoutDismantlingAFundedVoyage(tier:) with 2 test cases passed after 4.886 seconds.
+✔ Test navigationEvidenceCountsBothTravelledHexesOfOneVoyage() passed after 4.884 seconds.
+✔ Test responseOnlyMasksPreservePolicyRNG(tier:) with 2 test cases passed after 4.886 seconds.
+✔ Test owningEveryVictoryCardRemovesTheFalseImmediateDrawPremium(tier:) with 2 test cases passed after 4.886 seconds.
+✔ Test aTwoHexActionCannotClaimAThirdHexWinningMove() passed after 4.880 seconds.
+✔ Test expertDoesNotBuyDuplicateAccessWhileAnExistingHullCanDoTheJob() passed after 4.886 seconds.
+✔ Test capturePrefersAnOverseasLanding(tier:) with 2 test cases passed after 4.886 seconds.
+✔ Suite NavalNavigationDiagnosticsTests passed after 4.887 seconds.
+✔ Suite NavalBlockadePolicyTests passed after 4.887 seconds.
+✔ Suite NavalSailingPolicyTests passed after 4.887 seconds.
+✔ Test hiddenWorldHandsDeckAndFutureRNGCannotChangeDecision(tier:) with 2 test cases passed after 5.182 seconds.
+✔ Test roadsCannotPromiseASiteWhoseCoastIsStillHidden() passed after 5.451 seconds.
+✔ Test anUnfundedVoyageCanImproveAPoorLandingWithoutGivingUpAccess(tier:) with 2 test cases passed after 5.455 seconds.
+✔ Test expertFundsAWinnableRoadEvenWithNoSettlementSupplyOrApproach() passed after 5.496 seconds.
+✔ Test buysAFirstHullThenExplores(tier:) with 2 test cases passed after 5.477 seconds.
+✔ Test flexibleProductionIsAllocatedOnceAcrossRecipeDeficits() passed after 5.574 seconds.
+✔ Test expertFundsTheSameFinishingDrawThatItValuesWhenAvailable() passed after 5.593 seconds.
+✔ Test sailsTowardKnownLandingAndFundsAColony(tier:) with 2 test cases passed after 6.167 seconds.
+✔ Test expertLaunchPlansAProvableWinningColonyWithinThisTurn() passed after 6.575 seconds.
+✔ Test expertReplacementHullDoesNotRenewTheFirstExpeditionPremium() passed after 6.682 seconds.
+✔ Test aCertainSailingWinBeatsEvenANinetyOnePercentFinishingDraw() passed after 8.040 seconds.
+✔ Suite NavalPolicyTests passed after 8.040 seconds.
+✔ Test aCompleteExternalSeatMatchStaysReloadable(players:) with 2 test cases passed after 64.872 seconds.
+✔ Suite NavalMixedSessionTests passed after 64.896 seconds.
+✔ Test run with 49 tests in 5 suites passed after 64.896 seconds.

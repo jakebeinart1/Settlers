@@ -1,0 +1,48 @@
+{
+  "verifiedAtUTC": "2026-10-07T23:55:28.722395+00:00",
+  "galleryPath": "/Users/alex/.codex/worktrees/naval24-main-integration/Settlers/docs/AI_summaries/naval-exploration/evidence/build27-blockades/gallery.html",
+  "checks": {
+    "selectedSourceFiles": 75,
+    "unredactedSourceCopiesByteIdentical": 74,
+    "redactedMetadataWithExactSourceHash": 1,
+    "all18OriginalPNGsByteIdentical": true,
+    "allLocalAndFragmentLinksResolve": true,
+    "allJSONParses": true,
+    "historicalInitialAndGateStatusesByteIdentical": true,
+    "gitleaksBeforeReleaseCopy": {
+      "exitCode": 0,
+      "findings": 0
+    },
+    "gitleaksFullExport": {
+      "exitCode": 0,
+      "findings": 0
+    },
+    "sourceCommit": "2d985b9570efb27ae3fab8c491275427d4d44fad",
+    "productionInputCount": 378,
+    "nativeFunctions": 779,
+    "nativePassed": 777,
+    "nativeFailed": 0,
+    "nativeSkipped": 2,
+    "actualGateAndHookExit": 0,
+    "originalGitExit": -13,
+    "unchangedTransportRetryExit": 0,
+    "testFlight": "DELIVERED 1.0 (27), VALID/unexpired, Internal Alex access",
+    "appleBuildID": "a49ab68c-859a-4467-8454-c1c5fde1677a",
+    "sourceCIPassedApplicableChecks": true,
+    "sourceProjectDriftOnDemandSkipped": true,
+    "physicalIPhonePlayObserved": false,
+    "externalReleasePerformed": false,
+    "qaIndividuallyShutdownOther13StatesUnchanged": true,
+    "all14SimulatorDevicesRetained": true,
+    "threeHelperWorktreesArchived": true
+  },
+  "browserVisualVerification": {
+    "status": "NOT_PERFORMED",
+    "reason": "Earlier file-URL browser rejection remains in effect; no repeat or workaround attempted. Original game and Release PNGs were directly inspected."
+  },
+  "nativeSimulatorOperationsPerformedByExporter": false,
+  "gitOperationsPerformedByExporter": false,
+  "productionSourceEditsPerformedByExporter": false,
+  "editedPathsScope": "/Users/alex/.codex/worktrees/naval24-main-integration/Settlers/docs/AI_summaries/naval-exploration/evidence/build27-blockades",
+  "finalMetadataCIAndPR61Disposition": "Root-owned remaining checks"
+}

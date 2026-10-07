@@ -1,0 +1,34 @@
+{
+  "asOfUTC": "2026-10-07T23:31:11.818797+00:00",
+  "productionSourceCommit": "2d985b9570efb27ae3fab8c491275427d4d44fad",
+  "productionInputCount": 378,
+  "build": "27",
+  "version": "1.0",
+  "fullPrePushGate": "PASS",
+  "gateAndHookKernelExitCode": 0,
+  "originalGitExitCode": -13,
+  "originalGitTermination": "SIGPIPE; original receipt preserved",
+  "unchangedSourceTransportRetryExitCode": 0,
+  "nativeFunctions": 779,
+  "nativePassedFunctions": 777,
+  "nativeFailedFunctions": 0,
+  "nativeSkippedFunctions": 2,
+  "nativeRuns": 1560,
+  "nativePassedRuns": 1558,
+  "skippedCases": [
+    {
+      "test": "BotProgressFlowTests/testNaturallyPendingSevenSurvivesColdResumeWhenReachable()",
+      "reason": "No human seven obligation arose within three real human rolls and their CPU rounds."
+    },
+    {
+      "test": "TradeRedesignFlowTests/testConfirmationFooterAndNewOfferRemainReachableAt375By667()",
+      "reason": "Requires a 375\u00d7667-point iPhone; destination was 402\u00d7874."
+    }
+  ],
+  "optionalDebugGateBuild": "SKIP: not requested; focused Debug native actions previously ran",
+  "releaseArchiveAndUpload": "PENDING",
+  "testFlightAvailability": "PENDING",
+  "realPhoneInstallation": "PENDING",
+  "notAShippingReceipt": true,
+  "originalStatusAtExportPreserved": "status-at-export.json"
+}

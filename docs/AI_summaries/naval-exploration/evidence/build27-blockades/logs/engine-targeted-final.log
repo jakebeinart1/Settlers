@@ -1,0 +1,183 @@
+Building for debugging...
+[0/3] Write sources
+[1/3] Write swift-version--58304C5D6DBC2206.txt
+[3/5] Compiling CatanEngineTests NavalBlockadeTests.swift
+[4/5] Emitting module CatanEngineTests
+[4/6] Write Objects.LinkFileList
+[5/6] Linking CatanEnginePackageTests
+Build complete! (2.82s)
+Test Suite 'Selected tests' started at 2026-10-07 17:05:31.132.
+Test Suite 'CatanEnginePackageTests.xctest' started at 2026-10-07 17:05:31.133.
+Test Suite 'CatanEnginePackageTests.xctest' passed at 2026-10-07 17:05:31.133.
+	 Executed 0 tests, with 0 failures (0 unexpected) in 0.000 (0.000) seconds
+Test Suite 'Selected tests' passed at 2026-10-07 17:05:31.133.
+	 Executed 0 tests, with 0 failures (0 unexpected) in 0.000 (0.001) seconds
+◇ Test run started.
+↳ Testing Library Version: 1902
+↳ Target Platform: arm64e-apple-macos14.0
+◇ Suite NavalDeterminismTests started.
+◇ Suite NavalBlockadeTests started.
+◇ Suite NavalObservationTests started.
+◇ Suite NavalSailingTests started.
+◇ Suite NavalVisibilityVersionTests started.
+◇ Suite NavalGameplayTests started.
+◇ Suite NavalSaveTests started.
+◇ Test maskedRoutesAndActionsDoNotDependOnConcealedTerrain() started.
+◇ Test publicTranscriptHidesUninvolvedTheftIdentity() started.
+◇ Test mapFingerprintsRemainStableAcrossTestProcesses() started.
+◇ Test legacyMatchesRetainEnemyOverlapTransitLaunchAndExactReplay(version:) started.
+◇ Test theLastRivalsDepartureImmediatelyOpensItsFormerHex() started.
+◇ Test blockedLaunchReasonsUseTheSameHullSupplyAndCoastCandidates() started.
+◇ Test captureCreatedMixedStackCanDepartButNotReenterAndColdResumesExactly() started.
+◇ Test shipArrayOrderCannotChangeCanonicalRoutesMovesOrEvents() started.
+◇ Test responseOnlyInformationDoesNotExposePrivateComposition(fog:flexible:) started.
+◇ Test blockadeDetourBeyondRemainingAllowanceIsUnavailable() started.
+◇ Test oneHexVoyageRetainsOneHexAndCannotThenReachTwo() started.
+◇ Test enemyIntermediateCannotBeCrossedInATwoHexVoyage() started.
+◇ Test savedAllowanceSurvivesPurchaseSailingCaptureAndTurnRefresh(version:) started.
+◇ Test observationsMaskGeographyAndPrivateCardsWithoutLosingPublicCounts() started.
+◇ Test launchCannotBypassEnemyButFriendlyStackingStillPaysNormally() started.
+◇ Test decodedRawInputMasksAndKeepsCounts(fog:flexible:) started.
+◇ Test twoHexVoyageUsesCanonicalRouteAndRevealsIntermediateSight() started.
+◇ Test invalidDestinationsLeaveMovementFogAndRandomnessUnchanged(target:) started.
+◇ Test aMissingNavalVersionAlwaysDecodesAsLegacyOneWithoutRefogging() started.
+◇ Test fogDisabledRetainsTheEntireWorldUnderEitherVisionRule(version:) started.
+◇ Test concealedKindsCannotChangeRecomputedRoutesMasksOrObservations() started.
+◇ Test alternateRouteUsesItsActualCostSightAndStableEvents() started.
+◇ Test exhaustedShipsStillDefendAndTurnRefreshDoesNotChangeTheBlockade() started.
+◇ Test coldCheckpointKeepsItsVisionRuleAndPreviouslyDiscoveredTiles(version:) started.
+◇ Test shipsCannotTeleportCrossLandOrMoveForAnotherSeat() started.
+◇ Test validationRetainsThreeRemainingOnlyForLegacyMatches(version:) started.
+◇ Test unsupportedNavalVisionVersionsRemainRejected(version:) started.
+◇ Test queuedNavalTradeResponseUsesMaskedSnapshotAndValidatesCounts() started.
+◇ Test captureOpensAHexOnlyWhenNoThirdPartyRivalRemains() started.
+◇ Test enemyDestinationIsUnavailableAndRejectedWithoutMutation() started.
+◇ Test unobservedWorldAndFutureRandomnessDoNotChangeAnObservation() started.
+◇ Test legacyNavalOneReplaysItsOriginalExactRevealUnderEveryEngineVersion(engineVersion:) started.
+◇ Test landingRequiresSettlementBeforeRoadAndScoresDistinctIslands() started.
+◇ Test decodedCheckpointContinuesIdenticalTranscriptAndLedger(table:) started.
+◇ Test friendlyShipsAllowEntryAndPassage() started.
+◇ Test corruptNavalAuthoritativeStateIsRejected(corruption:) started.
+◇ Test aFirstColonyBonusCanCompleteTheFourteenPointWin() started.
+◇ Test captureIsGlobalOptionalAndLastsUntilRecapture() started.
+◇ Test geometricRangeCannotCrossKnownLand() started.
+◇ Test case passing 1 argument version → 1 to legacyMatchesRetainEnemyOverlapTransitLaunchAndExactReplay(version:) started.
+◇ Test case passing 1 argument version → 3 to legacyMatchesRetainEnemyOverlapTransitLaunchAndExactReplay(version:) started.
+◇ Test case passing 1 argument version → 2 to legacyMatchesRetainEnemyOverlapTransitLaunchAndExactReplay(version:) started.
+◇ Test malformedMaximumShipIDCanDecodeAndBeRejectedWithoutOverflow() started.
+◇ Test aCommittedTwoHexVoyageSurvivesColdCheckpointAndContinuesExactly() started.
+◇ Test legacySailingReplaysThreeOriginalAdjacentActions(version:) started.
+◇ Test newGamesUseCornerVisionWithoutChangingOpeningMapOrEngineVersions() started.
+◇ Test allNewFieldsDecodeDefaultsAndOldModesKeepNilNavalState() started.
+◇ Test case passing 1 argument version → 1 to savedAllowanceSurvivesPurchaseSailingCaptureAndTurnRefresh(version:) started.
+◇ Test shipsPayExactCostSailAndRefresh(table:) started.
+◇ Test case passing 1 argument version → 2 to savedAllowanceSurvivesPurchaseSailingCaptureAndTurnRefresh(version:) started.
+◇ Test case passing 2 arguments fog → true, flexible → true to responseOnlyInformationDoesNotExposePrivateComposition(fog:flexible:) started.
+◇ Test stockBelongsToBuilderAndSeaHexesAllowStacking() started.
+◇ Test case passing 1 argument version → 3 to savedAllowanceSurvivesPurchaseSailingCaptureAndTurnRefresh(version:) started.
+◇ Test case passing 2 arguments fog → true, flexible → false to responseOnlyInformationDoesNotExposePrivateComposition(fog:flexible:) started.
+◇ Test case passing 2 arguments fog → false, flexible → true to responseOnlyInformationDoesNotExposePrivateComposition(fog:flexible:) started.
+◇ Test case passing 1 argument version → 4 to savedAllowanceSurvivesPurchaseSailingCaptureAndTurnRefresh(version:) started.
+◇ Test case passing 2 arguments fog → false, flexible → false to responseOnlyInformationDoesNotExposePrivateComposition(fog:flexible:) started.
+◇ Test case passing 2 arguments fog → true, flexible → true to decodedRawInputMasksAndKeepsCounts(fog:flexible:) started.
+◇ Test case passing 2 arguments fog → true, flexible → false to decodedRawInputMasksAndKeepsCounts(fog:flexible:) started.
+◇ Test case passing 2 arguments fog → false, flexible → true to decodedRawInputMasksAndKeepsCounts(fog:flexible:) started.
+◇ Test case passing 2 arguments fog → false, flexible → false to decodedRawInputMasksAndKeepsCounts(fog:flexible:) started.
+◇ Test case passing 1 argument target → 0 to invalidDestinationsLeaveMovementFogAndRandomnessUnchanged(target:) started.
+◇ Test case passing 1 argument target → 1 to invalidDestinationsLeaveMovementFogAndRandomnessUnchanged(target:) started.
+◇ Test case passing 1 argument version → 1 to fogDisabledRetainsTheEntireWorldUnderEitherVisionRule(version:) started.
+◇ Test case passing 1 argument target → 2 to invalidDestinationsLeaveMovementFogAndRandomnessUnchanged(target:) started.
+◇ Test case passing 1 argument version → 2 to fogDisabledRetainsTheEntireWorldUnderEitherVisionRule(version:) started.
+◇ Test case passing 1 argument target → 3 to invalidDestinationsLeaveMovementFogAndRandomnessUnchanged(target:) started.
+◇ Test case passing 1 argument version → 3 to fogDisabledRetainsTheEntireWorldUnderEitherVisionRule(version:) started.
+◇ Test case passing 1 argument version → 4 to fogDisabledRetainsTheEntireWorldUnderEitherVisionRule(version:) started.
+◇ Test case passing 1 argument version → 1 to coldCheckpointKeepsItsVisionRuleAndPreviouslyDiscoveredTiles(version:) started.
+◇ Test case passing 1 argument version → 2 to coldCheckpointKeepsItsVisionRuleAndPreviouslyDiscoveredTiles(version:) started.
+◇ Test case passing 1 argument version → 3 to coldCheckpointKeepsItsVisionRuleAndPreviouslyDiscoveredTiles(version:) started.
+◇ Test case passing 1 argument version → 1 to validationRetainsThreeRemainingOnlyForLegacyMatches(version:) started.
+◇ Test case passing 1 argument version → 0 to unsupportedNavalVisionVersionsRemainRejected(version:) started.
+◇ Test case passing 1 argument version → 2 to validationRetainsThreeRemainingOnlyForLegacyMatches(version:) started.
+◇ Test case passing 1 argument version → 4 to coldCheckpointKeepsItsVisionRuleAndPreviouslyDiscoveredTiles(version:) started.
+◇ Test case passing 1 argument version → 5 to unsupportedNavalVisionVersionsRemainRejected(version:) started.
+◇ Test case passing 1 argument version → 3 to validationRetainsThreeRemainingOnlyForLegacyMatches(version:) started.
+◇ Test case passing 1 argument version → 999 to unsupportedNavalVisionVersionsRemainRejected(version:) started.
+◇ Test case passing 1 argument version → 4 to validationRetainsThreeRemainingOnlyForLegacyMatches(version:) started.
+◇ Test case passing 1 argument engineVersion → 1 to legacyNavalOneReplaysItsOriginalExactRevealUnderEveryEngineVersion(engineVersion:) started.
+◇ Test case passing 1 argument engineVersion → 2 to legacyNavalOneReplaysItsOriginalExactRevealUnderEveryEngineVersion(engineVersion:) started.
+◇ Test case passing 1 argument engineVersion → 3 to legacyNavalOneReplaysItsOriginalExactRevealUnderEveryEngineVersion(engineVersion:) started.
+◇ Test case passing 1 argument table → 3 to decodedCheckpointContinuesIdenticalTranscriptAndLedger(table:) started.
+◇ Test case passing 1 argument table → 4 to decodedCheckpointContinuesIdenticalTranscriptAndLedger(table:) started.
+◇ Test case passing 1 argument corruption → "nil" to corruptNavalAuthoritativeStateIsRejected(corruption:) started.
+◇ Test case passing 1 argument corruption → "rulesVersion" to corruptNavalAuthoritativeStateIsRejected(corruption:) started.
+◇ Test case passing 1 argument corruption → "mapVersion" to corruptNavalAuthoritativeStateIsRejected(corruption:) started.
+◇ Test case passing 1 argument corruption → "unknownReveal" to corruptNavalAuthoritativeStateIsRejected(corruption:) started.
+◇ Test case passing 1 argument corruption → "duplicateShip" to corruptNavalAuthoritativeStateIsRejected(corruption:) started.
+◇ Test case passing 1 argument corruption → "shipLand" to corruptNavalAuthoritativeStateIsRejected(corruption:) started.
+◇ Test case passing 1 argument corruption → "shipSteps" to corruptNavalAuthoritativeStateIsRejected(corruption:) started.
+◇ Test case passing 1 argument corruption → "shipOwner" to corruptNavalAuthoritativeStateIsRejected(corruption:) started.
+◇ Test case passing 1 argument corruption → "stock" to corruptNavalAuthoritativeStateIsRejected(corruption:) started.
+◇ Test case passing 1 argument corruption → "score" to corruptNavalAuthoritativeStateIsRejected(corruption:) started.
+◇ Test case passing 1 argument corruption → "topology" to corruptNavalAuthoritativeStateIsRejected(corruption:) started.
+◇ Test case passing 1 argument corruption → "choice" to corruptNavalAuthoritativeStateIsRejected(corruption:) started.
+◇ Test case passing 1 argument corruption → "garrison" to corruptNavalAuthoritativeStateIsRejected(corruption:) started.
+◇ Test case passing 1 argument corruption → "armyDeck" to corruptNavalAuthoritativeStateIsRejected(corruption:) started.
+◇ Test case passing 1 argument corruption → "armyHand" to corruptNavalAuthoritativeStateIsRejected(corruption:) started.
+✔ Test publicTranscriptHidesUninvolvedTheftIdentity() passed after 1.470 seconds.
+◇ Test case passing 1 argument version → 1 to legacySailingReplaysThreeOriginalAdjacentActions(version:) started.
+◇ Test case passing 1 argument version → 2 to legacySailingReplaysThreeOriginalAdjacentActions(version:) started.
+◇ Test case passing 1 argument table → 3 to shipsPayExactCostSailAndRefresh(table:) started.
+◇ Test case passing 1 argument table → 4 to shipsPayExactCostSailAndRefresh(table:) started.
+✔ Test responseOnlyInformationDoesNotExposePrivateComposition(fog:flexible:) with 4 test cases passed after 1.577 seconds.
+✔ Test oneHexVoyageRetainsOneHexAndCannotThenReachTwo() passed after 1.577 seconds.
+✔ Test shipArrayOrderCannotChangeCanonicalRoutesMovesOrEvents() passed after 1.577 seconds.
+✔ Test enemyIntermediateCannotBeCrossedInATwoHexVoyage() passed after 1.577 seconds.
+✔ Test blockadeDetourBeyondRemainingAllowanceIsUnavailable() passed after 1.577 seconds.
+✔ Test theLastRivalsDepartureImmediatelyOpensItsFormerHex() passed after 1.577 seconds.
+✔ Test maskedRoutesAndActionsDoNotDependOnConcealedTerrain() passed after 1.577 seconds.
+✔ Test twoHexVoyageUsesCanonicalRouteAndRevealsIntermediateSight() passed after 1.577 seconds.
+✔ Test observationsMaskGeographyAndPrivateCardsWithoutLosingPublicCounts() passed after 1.577 seconds.
+✔ Test blockedLaunchReasonsUseTheSameHullSupplyAndCoastCandidates() passed after 1.577 seconds.
+✔ Test decodedRawInputMasksAndKeepsCounts(fog:flexible:) with 4 test cases passed after 1.577 seconds.
+✔ Test legacyMatchesRetainEnemyOverlapTransitLaunchAndExactReplay(version:) with 3 test cases passed after 1.577 seconds.
+✔ Test invalidDestinationsLeaveMovementFogAndRandomnessUnchanged(target:) with 4 test cases passed after 1.577 seconds.
+✔ Test launchCannotBypassEnemyButFriendlyStackingStillPaysNormally() passed after 1.577 seconds.
+✔ Test concealedKindsCannotChangeRecomputedRoutesMasksOrObservations() passed after 1.577 seconds.
+✔ Test captureCreatedMixedStackCanDepartButNotReenterAndColdResumesExactly() passed after 1.577 seconds.
+✔ Test savedAllowanceSurvivesPurchaseSailingCaptureAndTurnRefresh(version:) with 4 test cases passed after 1.577 seconds.
+✔ Test exhaustedShipsStillDefendAndTurnRefreshDoesNotChangeTheBlockade() passed after 1.577 seconds.
+✔ Test alternateRouteUsesItsActualCostSightAndStableEvents() passed after 1.577 seconds.
+✔ Test aMissingNavalVersionAlwaysDecodesAsLegacyOneWithoutRefogging() passed after 1.577 seconds.
+✔ Test captureOpensAHexOnlyWhenNoThirdPartyRivalRemains() passed after 1.577 seconds.
+✔ Test fogDisabledRetainsTheEntireWorldUnderEitherVisionRule(version:) with 4 test cases passed after 1.577 seconds.
+✔ Test shipsCannotTeleportCrossLandOrMoveForAnotherSeat() passed after 1.577 seconds.
+✔ Test unsupportedNavalVisionVersionsRemainRejected(version:) with 3 test cases passed after 1.577 seconds.
+✔ Test validationRetainsThreeRemainingOnlyForLegacyMatches(version:) with 4 test cases passed after 1.577 seconds.
+✔ Test queuedNavalTradeResponseUsesMaskedSnapshotAndValidatesCounts() passed after 1.577 seconds.
+✔ Test enemyDestinationIsUnavailableAndRejectedWithoutMutation() passed after 1.577 seconds.
+✔ Test coldCheckpointKeepsItsVisionRuleAndPreviouslyDiscoveredTiles(version:) with 4 test cases passed after 1.577 seconds.
+✔ Test friendlyShipsAllowEntryAndPassage() passed after 1.578 seconds.
+✔ Test geometricRangeCannotCrossKnownLand() passed after 1.577 seconds.
+✔ Test unobservedWorldAndFutureRandomnessDoNotChangeAnObservation() passed after 1.577 seconds.
+✔ Test legacyNavalOneReplaysItsOriginalExactRevealUnderEveryEngineVersion(engineVersion:) with 3 test cases passed after 1.577 seconds.
+✔ Test captureIsGlobalOptionalAndLastsUntilRecapture() passed after 1.577 seconds.
+✔ Test aFirstColonyBonusCanCompleteTheFourteenPointWin() passed after 1.577 seconds.
+✔ Test malformedMaximumShipIDCanDecodeAndBeRejectedWithoutOverflow() passed after 1.577 seconds.
+✔ Test landingRequiresSettlementBeforeRoadAndScoresDistinctIslands() passed after 1.577 seconds.
+✔ Suite NavalObservationTests passed after 1.578 seconds.
+✔ Suite NavalBlockadeTests passed after 1.578 seconds.
+✔ Test legacySailingReplaysThreeOriginalAdjacentActions(version:) with 2 test cases passed after 1.638 seconds.
+✔ Test decodedCheckpointContinuesIdenticalTranscriptAndLedger(table:) with 2 test cases passed after 1.670 seconds.
+NAVAL DETERMINISM FINGERPRINT 9763491777621528290
+✔ Test mapFingerprintsRemainStableAcrossTestProcesses() passed after 1.705 seconds.
+✔ Suite NavalDeterminismTests passed after 1.705 seconds.
+✔ Test corruptNavalAuthoritativeStateIsRejected(corruption:) with 15 test cases passed after 1.740 seconds.
+✔ Test aCommittedTwoHexVoyageSurvivesColdCheckpointAndContinuesExactly() passed after 1.786 seconds.
+✔ Suite NavalSailingTests passed after 1.787 seconds.
+✔ Test allNewFieldsDecodeDefaultsAndOldModesKeepNilNavalState() passed after 1.789 seconds.
+✔ Suite NavalSaveTests passed after 1.790 seconds.
+✔ Test newGamesUseCornerVisionWithoutChangingOpeningMapOrEngineVersions() passed after 1.795 seconds.
+✔ Suite NavalVisibilityVersionTests passed after 1.796 seconds.
+✔ Test shipsPayExactCostSailAndRefresh(table:) with 2 test cases passed after 1.809 seconds.
+✔ Test stockBelongsToBuilderAndSeaHexesAllowStacking() passed after 1.811 seconds.
+✔ Suite NavalGameplayTests passed after 1.812 seconds.
+✔ Test run with 46 tests in 7 suites passed after 1.812 seconds.

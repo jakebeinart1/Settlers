@@ -1,0 +1,54 @@
+{
+  "asOfUTC": "2026-10-07T23:53:46.721961+00:00",
+  "productionSourceCommit": "2d985b9570efb27ae3fab8c491275427d4d44fad",
+  "productionInputCount": 378,
+  "build": "27",
+  "version": "1.0",
+  "fullPrePushGate": "PASS",
+  "gateAndHookKernelExitCode": 0,
+  "originalGitExitCode": -13,
+  "originalGitTermination": "SIGPIPE; original receipt preserved",
+  "unchangedSourceTransportRetryExitCode": 0,
+  "nativeFunctions": 779,
+  "nativePassedFunctions": 777,
+  "nativeFailedFunctions": 0,
+  "nativeSkippedFunctions": 2,
+  "nativeRuns": 1560,
+  "nativePassedRuns": 1558,
+  "skippedCases": [
+    {
+      "test": "BotProgressFlowTests/testNaturallyPendingSevenSurvivesColdResumeWhenReachable()",
+      "reason": "No human seven obligation arose within three real human rolls and their CPU rounds."
+    },
+    {
+      "test": "TradeRedesignFlowTests/testConfirmationFooterAndNewOfferRemainReachableAt375By667()",
+      "reason": "Requires a 375\u00d7667-point iPhone; destination was 402\u00d7874."
+    }
+  ],
+  "optionalDebugGateBuild": "SKIP: not requested; focused Debug native actions previously ran",
+  "releaseArchiveAndUpload": "PASS: actual archive/export/upload exits 0",
+  "testFlightAvailability": "DELIVERED: 1.0 (27), VALID, unexpired, Internal group and Alex access confirmed",
+  "realPhoneInstallation": "UNOBSERVED",
+  "notAShippingReceipt": false,
+  "originalStatusAtExportPreserved": "status-at-export.json",
+  "physicalPhonePlayObserved": false,
+  "externalReleasePerformed": false,
+  "deliveryScope": "Verified Internal TestFlight availability and intended tester access; physical iPhone play is not claimed.",
+  "appleBuildID": "a49ab68c-859a-4467-8454-c1c5fde1677a",
+  "appleVerifiedAtUTC": "2026-10-07T23:40:04.182Z",
+  "ordinaryReleaseRuntime": "PASS: fresh simulator install, no QA arguments, original menu reviewed",
+  "sourceCI": {
+    "headSHA": "2d985b9570efb27ae3fab8c491275427d4d44fad",
+    "Engine + AI (Linux)": "PASS, 19m31s",
+    "SwiftLint": "PASS",
+    "project.yml drift": "SKIP: on-demand workflow"
+  },
+  "finalMetadataHeadCI": "PENDING: root final metadata commit/push/check",
+  "pullRequest61Disposition": "PENDING: root final merge",
+  "ownedQAIndividuallyShutDown": true,
+  "all14SimulatorsRetained": true,
+  "allOther13SimulatorStatesUnchanged": true,
+  "threeHelperWorktreesArchived": true,
+  "historicalGateStatusPreserved": "status-after-gate.json",
+  "historicalInitialStatusPreserved": "status-at-export.json"
+}

@@ -1,0 +1,313 @@
+{
+  "purpose": "Public trace review, not AI strength or a replacement for checkpoint validation",
+  "method": "Reconstruct radius-two ship sight and corner sight plus canonical blockade routes; require final revealed and ship fields to equal retained authoritative checkpoints",
+  "cases": [
+    {
+      "name": "cell00-4-expert",
+      "rawRevisits": 1,
+      "idleRevisits": 0,
+      "tracePath": "/Users/alex/.codex/artifacts/naval-exploration/build27-ship-blockades/functionalmatrix/traces/cell00-4-expert/880021-0-functional-build27-v4.txt",
+      "traceSHA256": "4ef1777eecf53cde30b7828ecd92b175753966b6605f27f2d4f2591f1f4f0ccb",
+      "authoritativeFinalRevealAndShipEquality": true,
+      "returns": [
+        {
+          "line": 363,
+          "shipID": 2,
+          "owner": 3,
+          "from": [
+            -6,
+            2
+          ],
+          "to": [
+            -5,
+            2
+          ],
+          "route": [
+            [
+              -5,
+              2
+            ]
+          ],
+          "discoveries": [],
+          "returnToPreviousOrigin": true,
+          "previousVoyage": {
+            "line": 355,
+            "shipID": 2,
+            "owner": 3,
+            "from": [
+              -5,
+              2
+            ],
+            "to": [
+              -6,
+              2
+            ],
+            "route": [
+              [
+                -6,
+                2
+              ]
+            ],
+            "discoveries": []
+          },
+          "interveningMoves": [
+            "P3:proposeTrade[p3:lumber=1->wool=2]",
+            "P0:respondToTrade(offerID: 9DE8B262-5076-4821-D894-76B94BE3DC78, accept: false)",
+            "P3:proposeTrade[p3:grain=1->wool=2]",
+            "P0:respondToTrade(offerID: E13AD39F-E0DD-D7DC-3C1A-06513F53C44D, accept: false)",
+            "P3:proposeTrade[p3:lumber=1->wool=1]",
+            "P0:respondToTrade(offerID: 499124AB-39E7-DDD7-2830-FAA7EB113175, accept: true)",
+            "P3:buildSettlement(CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: -6, r: 1), CatanEngine.HexCoordinate(q: -6, r: 2), CatanEngine.HexCoordinate(q: -5, r: 1)]))"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "cell06-4-expert",
+      "rawRevisits": 1,
+      "idleRevisits": 0,
+      "tracePath": "/Users/alex/.codex/artifacts/naval-exploration/build27-ship-blockades/functionalmatrix/traces/cell06-4-expert/880621-0-functional-build27-v4.txt",
+      "traceSHA256": "dc4846711c3cec54a4c7f3c8e18d805e5f16a35903f79f86360029ec130bc39a",
+      "authoritativeFinalRevealAndShipEquality": true,
+      "returns": [
+        {
+          "line": 552,
+          "shipID": 0,
+          "owner": 0,
+          "from": [
+            -4,
+            -2
+          ],
+          "to": [
+            -4,
+            -1
+          ],
+          "route": [
+            [
+              -4,
+              -1
+            ]
+          ],
+          "discoveries": [],
+          "returnToPreviousOrigin": true,
+          "previousVoyage": {
+            "line": 548,
+            "shipID": 0,
+            "owner": 0,
+            "from": [
+              -4,
+              -1
+            ],
+            "to": [
+              -4,
+              -2
+            ],
+            "route": [
+              [
+                -4,
+                -2
+              ]
+            ],
+            "discoveries": []
+          },
+          "interveningMoves": [
+            "P0:bankTrade[ore=3->grain=1]",
+            "P0:bankTrade[ore=3->wool=1]",
+            "P0:buildSettlement(CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: -5, r: -2), CatanEngine.HexCoordinate(q: -5, r: -1), CatanEngine.HexCoordinate(q: -4, r: -2)]))"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "cell07-4-expert",
+      "rawRevisits": 1,
+      "idleRevisits": 0,
+      "tracePath": "/Users/alex/.codex/artifacts/naval-exploration/build27-ship-blockades/functionalmatrix/traces/cell07-4-expert/880721-0-functional-build27-v4.txt",
+      "traceSHA256": "21b13ca2db6d574ac765d35419ce01978f29c0c490ddeca74c1dc1f1bce72396",
+      "authoritativeFinalRevealAndShipEquality": true,
+      "returns": [
+        {
+          "line": 322,
+          "shipID": 0,
+          "owner": 0,
+          "from": [
+            -2,
+            5
+          ],
+          "to": [
+            -1,
+            5
+          ],
+          "route": [
+            [
+              -1,
+              5
+            ]
+          ],
+          "discoveries": [],
+          "returnToPreviousOrigin": true,
+          "previousVoyage": {
+            "line": 313,
+            "shipID": 0,
+            "owner": 0,
+            "from": [
+              -1,
+              5
+            ],
+            "to": [
+              -2,
+              5
+            ],
+            "route": [
+              [
+                -2,
+                5
+              ]
+            ],
+            "discoveries": []
+          },
+          "interveningMoves": [
+            "P0:proposeTrade[p0:brick=1->lumber=2]",
+            "P1:respondToTrade(offerID: 43EF1EE0-D993-05D6-E58C-752B77043397, accept: false)",
+            "P0:proposeTrade[p0:wool=1->lumber=2]",
+            "P1:respondToTrade(offerID: 288802A5-8912-51F0-B284-115F47223E3F, accept: false)",
+            "P0:proposeTrade[p0:brick=1->lumber=1]",
+            "P1:respondToTrade(offerID: 806384E5-19E2-0449-BD49-59D8B5BFAEAB, accept: false)",
+            "P0:bankTrade[wool=4->lumber=1]",
+            "P0:buildSettlement(CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: -3, r: 6), CatanEngine.HexCoordinate(q: -2, r: 5), CatanEngine.HexCoordinate(q: -2, r: 6)]))"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "cell08-3-expert",
+      "rawRevisits": 1,
+      "idleRevisits": 0,
+      "tracePath": "/Users/alex/.codex/artifacts/naval-exploration/build27-ship-blockades/functionalmatrix/traces/cell08-3-expert/880801-0-functional-build27-v4.txt",
+      "traceSHA256": "f41d61390ce859e11e3188b1c4bc49eb8eb3e680c5add9fc951a34330937fcd0",
+      "authoritativeFinalRevealAndShipEquality": true,
+      "returns": [
+        {
+          "line": 418,
+          "shipID": 0,
+          "owner": 2,
+          "from": [
+            6,
+            -1
+          ],
+          "to": [
+            6,
+            -2
+          ],
+          "route": [
+            [
+              6,
+              -2
+            ]
+          ],
+          "discoveries": [],
+          "returnToPreviousOrigin": true,
+          "previousVoyage": {
+            "line": 415,
+            "shipID": 0,
+            "owner": 2,
+            "from": [
+              6,
+              -2
+            ],
+            "to": [
+              6,
+              -1
+            ],
+            "route": [
+              [
+                6,
+                -1
+              ]
+            ],
+            "discoveries": [
+              [
+                4,
+                1
+              ],
+              [
+                5,
+                1
+              ],
+              [
+                6,
+                1
+              ],
+              [
+                7,
+                0
+              ]
+            ]
+          },
+          "interveningMoves": [
+            "P2:bankTrade[wool=4->lumber=1]",
+            "P2:buildSettlement(CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: -2, r: 0), CatanEngine.HexCoordinate(q: -2, r: 1), CatanEngine.HexCoordinate(q: -1, r: 0)]))"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "cell09-4-traditional",
+      "rawRevisits": 1,
+      "idleRevisits": 0,
+      "tracePath": "/Users/alex/.codex/artifacts/naval-exploration/build27-ship-blockades/functionalmatrix/traces/cell09-4-traditional/880920-0-functional-build27-v4.txt",
+      "traceSHA256": "3a06eae202247de3d7256daf672605a5e0f356a2ded9b0410480b6483dd0ce7c",
+      "authoritativeFinalRevealAndShipEquality": true,
+      "returns": [
+        {
+          "line": 507,
+          "shipID": 2,
+          "owner": 2,
+          "from": [
+            -7,
+            6
+          ],
+          "to": [
+            -7,
+            5
+          ],
+          "route": [
+            [
+              -7,
+              5
+            ]
+          ],
+          "discoveries": [],
+          "returnToPreviousOrigin": true,
+          "previousVoyage": {
+            "line": 506,
+            "shipID": 2,
+            "owner": 2,
+            "from": [
+              -7,
+              5
+            ],
+            "to": [
+              -7,
+              6
+            ],
+            "route": [
+              [
+                -7,
+                6
+              ]
+            ],
+            "discoveries": [
+              [
+                -6,
+                7
+              ]
+            ]
+          },
+          "interveningMoves": []
+        }
+      ]
+    }
+  ],
+  "qualification": "A new home-island settlement also changes the existing expedition marker; raw productive revisits alone do not establish good strategy."
+}

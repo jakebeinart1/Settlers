@@ -1,0 +1,93 @@
+{
+  "createdAtUTC": "2026-10-07T21:06:21.938377+00:00",
+  "worktree": "/Users/alex/.codex/worktrees/naval-blockade-engine/Settlers",
+  "baseCommit": "2ad2fb9392e20177ee2f1c82f766f0941b7aa627",
+  "commit": "a74d4782efe1d50ff779942c2d9a2129a893816b",
+  "scope": "Packages/CatanEngine only; no app, AI, native, gate or push action",
+  "apis": [
+    "Naval.isBlockaded(_:by:in:)",
+    "Naval.blockadedLaunchSites(for:in:)",
+    "Naval.blockadeRulesVersion"
+  ],
+  "navalRulesVersion": 4,
+  "engineRulesVersion": 3,
+  "schemaVersion": 6,
+  "mapVersion": 1,
+  "legacyBehavior": "Naval v1-v3 keep overlap/transit/launch semantics; missing Naval version decodes as v1",
+  "checks": [
+    {
+      "command": "swift test --package-path Packages/CatanEngine --jobs 2 --filter NavalBlockadeTests",
+      "exit": 1,
+      "verdict": "expected behavioral red: both regressions fail, seven expectations"
+    },
+    {
+      "command": "swift test --package-path Packages/CatanEngine --jobs 2 --filter 'Naval(Blockade|Sailing|VisibilityVersion|Gameplay|Save|Observation|Determinism)Tests'",
+      "exit": 1,
+      "verdict": "test-only compile error: GameSession.Step does not conform to Equatable; replaced equality with field assertions"
+    },
+    {
+      "command": "swift test --package-path Packages/CatanEngine --jobs 2 --filter 'Naval(Blockade|Sailing|VisibilityVersion|Gameplay|Save|Observation|Determinism)Tests'",
+      "exit": 0,
+      "verdict": "final PASS; 46 test functions in seven suites"
+    },
+    {
+      "command": "swiftlint lint --strict --no-cache <five changed Swift files>",
+      "exit": 0,
+      "verdict": "zero violations in five files"
+    },
+    {
+      "command": "git diff --check",
+      "exit": 0
+    }
+  ],
+  "mapFingerprint": "9763491777621528290",
+  "changedFiles": [
+    {
+      "path": "Packages/CatanEngine/Sources/CatanEngine/Naval/Naval.swift",
+      "sha256": "b6192cb7fd04b981561b0b90ca35a69d9c251812c12639760dffc830f7f9d721"
+    },
+    {
+      "path": "Packages/CatanEngine/Sources/CatanEngine/Naval/NavalSailing.swift",
+      "sha256": "a05f30944bf07b29e7779c4cf2d92180c8e925953df3ecb8a423234e3751ac9c"
+    },
+    {
+      "path": "Packages/CatanEngine/Tests/CatanEngineTests/NavalBlockadeTests.swift",
+      "sha256": "5f33c8b0047de6a61049289cf970be5a79f866a878a0e0e1853ce1cb52f5cdac"
+    },
+    {
+      "path": "Packages/CatanEngine/Tests/CatanEngineTests/NavalSailingTests.swift",
+      "sha256": "b79376d569e3e737d1011e0786190b8b34ef3161647f4546be6874b2a3c4d257"
+    },
+    {
+      "path": "Packages/CatanEngine/Tests/CatanEngineTests/NavalVisibilityVersionTests.swift",
+      "sha256": "ef9170f152734b51f9c72c60e9f6adb0364d3b8c575eaaf9bc29e2921046e89c"
+    }
+  ],
+  "artifacts": [
+    {
+      "path": "/Users/alex/.codex/artifacts/naval-exploration/build27-ship-blockades/engine-red.log",
+      "sha256": "c88459d98b4fd96474995d3fa8b9b021efec89e97efd4285a881538c6090e9d3"
+    },
+    {
+      "path": "/Users/alex/.codex/artifacts/naval-exploration/build27-ship-blockades/engine-targeted-compile-failure.log",
+      "sha256": "bb45ec7192c153eab5fe7c10f0622f2e24ab0b16ae683d867815c30c885ebec8"
+    },
+    {
+      "path": "/Users/alex/.codex/artifacts/naval-exploration/build27-ship-blockades/engine-targeted.log",
+      "sha256": "8c8e7c561afaa2dd582af01a8a150a004fba2c2bc166f81c6016ded986861872"
+    },
+    {
+      "path": "/Users/alex/.codex/artifacts/naval-exploration/build27-ship-blockades/engine-targeted-final.log",
+      "sha256": "5e242c6e5cbeac697688a047ced099ed6cb1bed31e18a6a407af5fb64a823c25"
+    },
+    {
+      "path": "/Users/alex/.codex/artifacts/naval-exploration/build27-ship-blockades/engine-lint.log",
+      "sha256": "210ad034c5905b241a1c948f6c512b22dff877da8abdd35b28937c4cf28be020"
+    },
+    {
+      "path": "/Users/alex/.codex/artifacts/naval-exploration/build27-ship-blockades/engine-source.tar",
+      "sha256": "bbbcfb6bec1e804f973335f430e353ca5828548882ca2dac61a236583f2b2747"
+    }
+  ],
+  "workingTreeClean": true
+}

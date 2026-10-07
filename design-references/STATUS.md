@@ -6,6 +6,20 @@
 
 # Empires visual redesign — status
 
+## October 7 — Ship-defense presentation: delivered
+
+Ship defense is live in Internal TestFlight. Owner tint, an ivory shield and
+clear sailing/launch text fit the existing painted assets. The first maximum-text
+pixel failure is retained; the repaired dock passes OCR and layout checks.
+Root approves seven final-gate blockade originals and the actual Washington winner
+in the [gallery](../docs/AI_summaries/naval-exploration/evidence/build27-blockades/gallery.html),
+and separately approves the ordinary Release menu.
+
+[E32](../docs/AI_summaries/naval-exploration/acceptance.md#build-27-follow-up-e32)
+binds the full gate, unchanged assets, verified signed Apple27 access and owned
+QA finish. Integration is recorded in [PR #61](https://github.com/jakebeinart1/Settlers/pull/61); agent review and passing CI govern the merge.
+
+
 ## October 7 — Monopoly public counts: delivered
 
 The existing painted resource controls add “to collect” and selected-gain previews;

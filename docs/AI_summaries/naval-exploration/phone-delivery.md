@@ -1,5 +1,24 @@
 # Naval phone delivery
 
+## Build 27 delivery: verified Internal TestFlight access
+
+Ship defense is available to Alex in Internal TestFlight. [Apple](evidence/build27-blockades/receipts/testflight.json)
+confirms exact 1.0/27, accepted UUID `a49ab68c-859a-4467-8454-c1c5fde1677a`,
+VALID/unexpired, Internal IN_BETA_TESTING and Alex's all-build access.
+[Delivery](evidence/build27-blockades/receipts/delivery-summary.json) binds passed gate, frozen `2d985b9`/378 inputs,
+fresh ordinary Release and actual signed payload; the [independent audit](evidence/build27-blockades/receipts/final-independent-release-audit.json)
+passes without blockers. Physical installation/play remains unobserved; no external release occurred.
+
+Archive/export/upload exit 0. Actual IPA is 36,334,326 bytes, SHA256
+`b6b899817bc508f829dfce946b9fce65178bea324993e82b4985d660d8ad2ff8`, MD5
+`534d84d459b273e5b64033f40c0003b0`, matching accepted delivery. Existing signing
+certificate/profile and CloudKit Production pass strict checks; only executable
+signature bytes differ from review. [Finish](evidence/build27-blockades/receipts/simulator-finish-and-source-guard.json) shuts down owned
+QA937 alone, retaining all 14 devices and other states; three helpers are recoverably archived.
+[E32](acceptance.md#build-27-follow-up-e32) and the [gallery](evidence/build27-blockades/gallery.html)
+retain actual proof. [PR #61](https://github.com/jakebeinart1/Settlers/pull/61) is the integration record for this verified source.
+
+
 ## Build 26 delivered
 
 Apple confirms exact1.0/26 VALID/unexpired/Internal IN_BETA_TESTING and Alex's

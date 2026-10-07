@@ -1,0 +1,89 @@
+[
+  {
+    "attachments" : [
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "937692FF-BFBF-4683-80E5-2590F5288D56",
+        "deviceName" : "Empires QA",
+        "exportedFileName" : "F5BBF7E4-AED2-419A-8010-EB1981F09F54.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "Blockades — maximum text retains explanation and safe World selection_0_1D59CC45-725E-4B19-BF58-A2DEAE20F57F.png",
+        "timestamp" : 1791410267.011
+      }
+    ],
+    "testIdentifier" : "NavalBlockadeFlowTests/testBlockadeExplanationAndWorldTouchRemainUsableAtLargestText()",
+    "testIdentifierURL" : "test://com.apple.xcode/Settlers/SettlersUITests/NavalBlockadeFlowTests/testBlockadeExplanationAndWorldTouchRemainUsableAtLargestText"
+  },
+  {
+    "attachments" : [
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "937692FF-BFBF-4683-80E5-2590F5288D56",
+        "deviceName" : "Empires QA",
+        "exportedFileName" : "484FDA52-728B-42ED-BFF5-11334E6845EA.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "Blockades — ownership and completed voyage survive cold resume_0_B0D8C675-8AC5-4BA5-83DD-D311A48628DF.png",
+        "timestamp" : 1791410290.699
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "937692FF-BFBF-4683-80E5-2590F5288D56",
+        "deviceName" : "Empires QA",
+        "exportedFileName" : "5E45BB2A-B9EC-41E3-89F3-261CDE91FF92.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "Blockades — captured vessel opens a two-hex route_0_FC73B9FF-9AD1-4C66-8D4C-6ED98D5473F7.png",
+        "timestamp" : 1791410284.257
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "937692FF-BFBF-4683-80E5-2590F5288D56",
+        "deviceName" : "Empires QA",
+        "exportedFileName" : "866AE32B-0BD4-43A3-8A96-38D6C28B9578.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "Blockades — capture remains a proposal_0_AA534AE4-CEBD-4E69-90FB-D80621E99D0F.png",
+        "timestamp" : 1791410273.166
+      }
+    ],
+    "testIdentifier" : "NavalBlockadeFlowTests/testCaptureConfirmationAndColdResumeOpenTheActualTwoHexVoyage()",
+    "testIdentifierURL" : "test://com.apple.xcode/Settlers/SettlersUITests/NavalBlockadeFlowTests/testCaptureConfirmationAndColdResumeOpenTheActualTwoHexVoyage"
+  },
+  {
+    "attachments" : [
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "937692FF-BFBF-4683-80E5-2590F5288D56",
+        "deviceName" : "Empires QA",
+        "exportedFileName" : "BADA4D9E-CD92-418A-922A-51D75C1D214F.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "Blockades — funded ship purchase explains the occupied launch coast_0_247B4A15-AE79-436A-9922-4576CFDAFF6A.png",
+        "timestamp" : 1791410297.354
+      }
+    ],
+    "testIdentifier" : "NavalBlockadeFlowTests/testOccupiedLaunchCoastExplainsUnavailableShipWithoutChargingResources()",
+    "testIdentifierURL" : "test://com.apple.xcode/Settlers/SettlersUITests/NavalBlockadeFlowTests/testOccupiedLaunchCoastExplainsUnavailableShipWithoutChargingResources"
+  },
+  {
+    "attachments" : [
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "937692FF-BFBF-4683-80E5-2590F5288D56",
+        "deviceName" : "Empires QA",
+        "exportedFileName" : "9878267F-755E-42C2-8512-60AD0B2C85D6.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "Blockades — World touch cannot snap to another destination_0_776BF10C-83A1-4648-BB7E-8E8AD3F4B675.png",
+        "timestamp" : 1791410313.115
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "937692FF-BFBF-4683-80E5-2590F5288D56",
+        "deviceName" : "Empires QA",
+        "exportedFileName" : "DAD3A7A4-7E0E-42AB-9D2E-3C382A231B3A.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "Blockades — opposing vessel closes the straight passage_0_B677847E-6288-419C-9611-45CB7319405F.png",
+        "timestamp" : 1791410307.291
+      }
+    ],
+    "testIdentifier" : "NavalBlockadeFlowTests/testOpposingShipBlocksEntryAndThroughVoyageAtLocalAndWorldZoomWithoutSnapping()",
+    "testIdentifierURL" : "test://com.apple.xcode/Settlers/SettlersUITests/NavalBlockadeFlowTests/testOpposingShipBlocksEntryAndThroughVoyageAtLocalAndWorldZoomWithoutSnapping"
+  }
+]
