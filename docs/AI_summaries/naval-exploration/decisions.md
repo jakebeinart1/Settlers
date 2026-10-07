@@ -1,5 +1,64 @@
 # Naval design decisions
 
+## Build 25 card decisions: selected, verified for delivery
+
+Alex's current direction concerns all five cards, HUD count alignment, clean
+compact names, fit and a deliberate full-match audit. D50–D53 apply to the current
+production freeze `a9e0e88` (376 inputs); [E30](acceptance.md#build-25-follow-up-e30-delivered)
+owns intermediate evidence. All 112 package inputs match build 24, whose 48-match/six-repeat evidence is
+reused. The failed first full gate and test-only correction remain recorded; the
+replacement gate passes all ten mandatory stages at `cffe613` and publishes the
+branch. Ordinary Release runtime and root review of 27 unchanged final originals
+pass. Signed archive/export/upload, payload comparison, Apple/access and QA cleanup
+pass. Apple confirms VALID/unexpired internal IN_BETA_TESTING for
+Alex. Tested-head CI passes; PR #60 remains unmerged, awaiting approval.
+These choices do not reopen build 24's delivered rules or asset provenance.
+
+**D50 — Distinct engraved card emblems and one HUD rhythm, selected.**
+Knight uses a shield, Road Building a road, Year of Plenty two resource cards,
+Monopoly a coffer and Victory Point a star/laurels. Native paths inherit the
+painted navy, ivory and gold material. Shared 44-point icon/name/count slots and
+fonts align resource and card counts. Compact card names omit READY/NEW/PLAYED;
+availability remains in accessible values and the selected detail. A separate
+status row displaces the count baseline, while the old generic symbol set does
+not distinguish the five cards clearly enough. Dedicated raster paintings would
+add an asset-generation dependency without improving these small emblems.
+The native path correction replaces `addLines` after an existing move with
+explicit continuations where a reset would break the intended outline.
+
+**D51 — Compact browsing, one selected detail, selected.**
+The hand shows compact emblem/name/held-count selectors and one compact effect
+detail. Large art remains appropriate to a purchase reveal; the existing result
+receipt also retains its illustration. Repeating expanded art and effect text
+in every selector wastes the middle viewport and makes it harder to compare
+cards. A name-only list loses recognition; compact emblems retain it. Every held
+card stays inspectable when Play is unavailable, with the actual timing/reason
+in its detail rather than a misleading READY suffix.
+
+**D52 — Match the chooser to the card's source, selected.**
+Monopoly says “Collect from rivals” and offers all five resources without bank
+stock or private rival counts: bank scarcity does not limit this card. Year of
+Plenty shows two ordered removable picks, selection progress and actual bank
+stock; exhausted options cannot be added and the same resource can be chosen
+twice when stock permits. At two picks every bank choice dims/disables while
+removable picks stay bright. A cached last-choice highlight required an
+environment-aware button-style correction and original-image review after
+green tests. A common bank-labelled picker would misstate Monopoly,
+while an unordered aggregate hides which Plenty pick a tap removes.
+
+**D53 — Fit real controls and audit real ownership, selected.**
+Normal resource choices use one row; accessibility sizes use two columns. Header
+and actions stay pinned, while the middle scrolls. Only the fixed scaffold caps
+at accessibility size 1; effect text and choices keep the full requested size.
+Selectors receive their exact available width before wrapping and align within
+the horizontal viewport. Debug frame markers sit behind controls, reject
+interaction and do not intercept native taps. Merely shrinking the whole panel
+or checking its outline would miss clipped choices and unusable actions.
+Rare fixtures start from actual Naval legal setup and conserve bank/deck totals.
+A separate ordinary Expert match pauses at natural purchase/mature-hand/result
+checkpoints, inspects genuinely owned cards, and continues to a real winner;
+seeding midgame cards would make that complete-match claim weaker.
+
 The [charter](README.md#confirmed-commitments) owns confirmed commitments. Every
 entry below records the questions analyzed before building. Under Alex's subsequent
 instruction to build fully, D01–D32 have delegated selections in the

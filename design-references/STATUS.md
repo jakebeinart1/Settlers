@@ -6,6 +6,32 @@
 
 # Empires visual redesign — status
 
+## October 7 — Development-card native art: final rendering verified
+
+All five cards have engraved native emblems: Knight shield, Road Building route,
+Plenty paired cards, Monopoly coffer and Victory Point star/laurels. Ivory/gold/
+navy matches painted chrome. Shared 44-point HUD slots align resource/card counts;
+compact selectors and one selected detail avoid repeated large art. Purchase
+and existing result receipts keep their larger illustration.
+
+These are native paths/SF Symbols, not new generated PNGs. Explicit continuations
+fix the `addLines` restart after a prior move. Original generated art, prompt/
+manifests and historical status definitions below remain unchanged. Prototype
+`1908cd0` passes 24 focused cases but leaves the selected Grain highlight bright
+after two Plenty picks. Final production `a9e0e88`, 1.0/build 25, fixes the
+disabled style and passes three availability cases; root/independent original
+`AA7` review confirms all five bank choices dim while removable picks stay bright.
+Replacement full gate passes all ten mandatory stages, preserving 376 production
+and 112 build24-equivalent package inputs.
+[E30](../docs/AI_summaries/naval-exploration/acceptance.md#build-25-follow-up-e30-delivered)
+retains failed commands/first gate and the test-only correction. Root approves
+all 27 unchanged final originals (26 Debug plus one ordinary Release); fresh
+ordinary Release runtime passes. Signed upload/checksum comparison and tested-head
+CI pass. Apple confirms VALID/unexpired internal IN_BETA_TESTING with Alex's
+access; owned QA cleanup passes. E30 is delivered. PR approval is outstanding. The
+[portable gallery](../docs/AI_summaries/naval-exploration/evidence/screenshots/build25-final-manifest.json)
+retains source/test/time/configuration and original hashes.
+
 ## October 7 — Painted any-resource harvest: final rendering verified
 
 The Naval resource-choice hex now has an original opaque sibling terrain texture:

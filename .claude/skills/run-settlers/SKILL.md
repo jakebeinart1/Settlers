@@ -169,6 +169,7 @@ grep -rnoE '"\-qa[A-Za-z]+"' --include="*.swift" "$REPO/Settlers" | sort -u
 | `-qaAutoStart` | `ContentView.swift` | Skips `MainMenuView`, lands on the board. **Prerequisite for every GameView flag below.** |
 | `-qaShowEndGame` | `ContentView.swift` | `EndGameView` ("YOU WIN!") via a forced human win. |
 | `-qaPlayToEnd` | `ContentView.swift` | Plays every seat without presentation delays through the real app session, persistence, statistics, and game log until `EndGameView` renders. Needs `-qaAutoStart`. |
+| `-qaInspectCompleteMatch` | `GameViewModel+QACompleteMatch.swift`, `GameView+QA.swift` | Debug-only modifier for `-qaPlayToEnd` + `-qaAutoStart`. Pauses the existing driver once at each naturally reached human purchase, mature playable hand, active-card result and late-game held hand. Native tests inspect/acknowledge ordinary surfaces, then tap `qa.complete-match.continue`. It changes no hand, bank, RNG or game state; a match need not reach every checkpoint/type. This adds deliberate usability inspection to completion evidence, not human selection of every move. |
 | `-qaShowPauseMenu` | `GameView.swift` | The "Game Menu" pause sheet. |
 | `-qaShowTradePopup` | `GameView.swift` | `TradePopupView`. |
 | `-qaBankTradePosition` | `GameView.swift` | Conserved seven-grain hand with a grain port; tap Trade → Bank to exercise six grain for three ore. |
@@ -182,6 +183,7 @@ grep -rnoE '"\-qa[A-Za-z]+"' --include="*.swift" "$REPO/Settlers" | sort -u
 | `-qaRecordingWarningAfterCity` | `GameView.swift` | Modifier for `-qaShowPaidCityDecision`: Confirm a legal city upgrade to raise the real recording-warning alert through the existing export-warning state. Only the warning is injected; the city, +1 VP notice, queue and timer use the production commit path. No archive write is forced to fail. |
 | `-qaShowMonopolyPopup` | `GameView.swift` | The Monopoly resource picker in `DevCardPopupView` (Year of Plenty shares the layout). |
 | `-qaShowDevCardHand` | `GameView.swift` | A mixed private hand containing every card type, including ready, new, and passive states. |
+| `-qaDevCardBankScarce` | `GameViewModel+QADevCards.swift` | Debug-only modifier for `-qaShowDevCardHand`. Leaves one Ore and one Grain in the bank and transfers the rest to a rival without changing total supply. Exercises Plenty shortages and Monopoly selection/collection with an empty bank. Naval mixed-hand/purchase fixtures now retain an actual Naval world and complete legal setup; these are explicit rare-state baselines, separate from ordinary match economics. |
 | `-qaDevCardPurchase` | `GameView.swift` | Backward-compatible shorthand for `-qaDevCardPurchase=monopoly`. |
 | `-qaDevCardPurchase=<type>` | `GameView.swift` | A legal Build position with `knight`, `roadBuilding`, `yearOfPlenty`, `monopoly`, or `victoryPoint` on top. An older matching card makes active types playable after the tapped purchase, while the new copy remains visibly marked New. |
 | `-qaShowDevCardReveal` | `GameView.swift` | A real committed Year of Plenty purchase waiting on its durable private acknowledgement. |

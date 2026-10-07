@@ -1,0 +1,309 @@
+{
+  "scope": "Build 25 development/final gates, root-approved final gallery, ordinary Release runtime, signed upload and actual-payload verification, fresh Apple/internal-access readback and owned-QA cleanup: delivered.",
+  "source_qualification": "Early commands are separate working-tree snapshots above d7938fd; final 24-case focus uses prototype 1908cd0. Final production is a9e0e88 with 376 bound inputs. Test-only cffe613 passes the replacement complete gate; 112 package inputs match build24 9bce5f7 exactly.",
+  "artifact_base": "/Users/alex/.codex/artifacts/naval-exploration/build25-development-cards",
+  "files": [
+    {
+      "source": "/Users/alex/.codex/artifacts/naval-exploration/build25-development-cards/first-focused-summary.json",
+      "portable_file": "build25-first-focused-summary.json",
+      "sha256": "8fa55c59b98805580753638543ac5612a1cf76600f7e1f0086964acd9b1c20bd",
+      "result": "Failed",
+      "total_functions": 28,
+      "passed": 17,
+      "failed": 11,
+      "skipped": 0,
+      "start_unix": 1791380992.732,
+      "finish_unix": 1791381350.591
+    },
+    {
+      "source": "/Users/alex/.codex/artifacts/naval-exploration/build25-development-cards/second-focused-summary.json",
+      "portable_file": "build25-second-focused-summary.json",
+      "sha256": "ea5feaee3e9350eec5816125632fe6ba4f45943064ab1d5b7f1ec427ea447343",
+      "result": "Failed",
+      "total_functions": 28,
+      "passed": 25,
+      "failed": 3,
+      "skipped": 0,
+      "start_unix": 1791381725.181,
+      "finish_unix": 1791382203.289
+    },
+    {
+      "source": "/Users/alex/.codex/artifacts/naval-exploration/build25-development-cards/third-focused-summary.json",
+      "portable_file": "build25-third-focused-summary.json",
+      "sha256": "52f26a8ae136fd1ddc1a640a0835df1bbbdf40b6ffffe2758c6e9dfb6247282f",
+      "result": "Failed",
+      "total_functions": 10,
+      "passed": 9,
+      "failed": 1,
+      "skipped": 0,
+      "start_unix": 1791382341.45,
+      "finish_unix": 1791382611.508
+    },
+    {
+      "source": "/Users/alex/.codex/artifacts/naval-exploration/build25-development-cards/fourth-focused-summary.json",
+      "portable_file": "build25-fourth-focused-summary.json",
+      "sha256": "d87bc488916acc4956706f13dcba3e0ca643f9f42e7caaca1b4d3682d64f2a2d",
+      "result": "Failed",
+      "total_functions": 2,
+      "passed": 1,
+      "failed": 1,
+      "skipped": 0,
+      "start_unix": 1791382698.997,
+      "finish_unix": 1791382740.635
+    },
+    {
+      "source": "/Users/alex/.codex/artifacts/naval-exploration/build25-development-cards/fifth-focused-summary.json",
+      "portable_file": "build25-fifth-focused-summary.json",
+      "sha256": "e0ebea4f36c21ce8f5b7dab5fcbf556fc190133b745ddb00adc3ba56267ba82e",
+      "result": "Failed",
+      "total_functions": 3,
+      "passed": 2,
+      "failed": 1,
+      "skipped": 0,
+      "start_unix": 1791382939.101,
+      "finish_unix": 1791383021.914
+    },
+    {
+      "source": "/Users/alex/.codex/artifacts/naval-exploration/build25-development-cards/sixth-focused-summary.json",
+      "portable_file": "build25-sixth-focused-summary.json",
+      "sha256": "7931ea3a40fefc2291b98bfe79d41addbf3d9ea881251df5fb1831e21b563e70",
+      "result": "Failed",
+      "total_functions": 2,
+      "passed": 1,
+      "failed": 1,
+      "skipped": 0,
+      "start_unix": 1791383532.48,
+      "finish_unix": 1791383604.603
+    },
+    {
+      "source": "/Users/alex/.codex/artifacts/naval-exploration/build25-development-cards/seventh-focused-summary.json",
+      "portable_file": "build25-seventh-focused-summary.json",
+      "sha256": "7d246417e925cf826196b6f1705de7592c85c3943cce077a2d6035e5219a4e6b",
+      "result": "Passed",
+      "total_functions": 1,
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "start_unix": 1791383701.918,
+      "finish_unix": 1791383746.156
+    },
+    {
+      "source": "/Users/alex/.codex/artifacts/naval-exploration/build25-development-cards/selector-probe-summary.json",
+      "portable_file": "build25-selector-probe-summary.json",
+      "sha256": "cf7e7c8f0852dfcaa8985e12c9724783cd3b1f1f5a2e6a1c11b8c69afe974662",
+      "result": "Failed",
+      "total_functions": 1,
+      "passed": 0,
+      "failed": 1,
+      "skipped": 0,
+      "start_unix": 1791383158.419,
+      "finish_unix": 1791383191.263
+    },
+    {
+      "source": "/Users/alex/.codex/artifacts/naval-exploration/build25-development-cards/final-production-inputs.json",
+      "portable_file": "build25-final-production-inputs.json",
+      "sha256": "16b4a308971fa2c84345a24f9e381c959e92aecb86be60f0194653bfe2f460e1"
+    },
+    {
+      "source": "/Users/alex/.codex/artifacts/naval-exploration/build25-development-cards/engine-ai-source-equivalence.json",
+      "portable_file": "build25-engine-ai-source-equivalence.json",
+      "sha256": "12effa6a8fe2c47a7b0c643a1cc9a0461f16e7b862247e6d7f9c5c54c7b68c51"
+    },
+    {
+      "source": "/Users/alex/.codex/artifacts/naval-exploration/build25-development-cards/production-inputs-1908-prototype.json",
+      "portable_file": "build25-production-inputs-1908-prototype.json",
+      "sha256": "6e3099c1925d942fd106984477552edb3e38c802c4b1ab5e49913839fd0a0967"
+    },
+    {
+      "source": "/Users/alex/.codex/artifacts/naval-exploration/build25-development-cards/final-focused-summary.json",
+      "portable_file": "build25-final-focused-summary.json",
+      "sha256": "e02ff5a316dd21587bbb89597e2b8a4697a4f682d6c7a0ca7bffefdbdf6c3bb6",
+      "result": "Passed",
+      "total_functions": 24,
+      "passed": 24,
+      "failed": 0,
+      "skipped": 0,
+      "start_unix": 1791384071.677,
+      "finish_unix": 1791384516.189
+    },
+    {
+      "source": "/Users/alex/.codex/artifacts/naval-exploration/build25-development-cards/availability-focused-summary.json",
+      "portable_file": "build25-availability-focused-summary.json",
+      "sha256": "d530d1fe60ef288185fee94e3f5a023574de24085db2744f44dc75a33e3ebeb8",
+      "result": "Passed",
+      "total_functions": 3,
+      "passed": 3,
+      "failed": 0,
+      "skipped": 0,
+      "start_unix": 1791385403.37,
+      "finish_unix": 1791385512.813
+    },
+    {
+      "source": "/Users/alex/.codex/artifacts/naval-exploration/build25-development-cards/monopoly-positive-summary.json",
+      "portable_file": "build25-monopoly-positive-summary.json",
+      "sha256": "d79eb136f1728bdf6a9466a6532661b4e62900753847b43bf28b2cbadf730f1e",
+      "result": "Passed",
+      "total_functions": 1,
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "start_unix": 1791384821.374,
+      "finish_unix": 1791384847.534
+    },
+    {
+      "source": "/Users/alex/.codex/artifacts/naval-exploration/build25-development-cards/feedback-correction-summary.json",
+      "portable_file": "build25-feedback-correction-summary.json",
+      "sha256": "d1c517a26b22f8360e4d13ab8c1f5ca0bdd76bda6279ea336fbf205bae98b7b9",
+      "result": "Passed",
+      "total_functions": 2,
+      "passed": 2,
+      "failed": 0,
+      "skipped": 0,
+      "start_unix": 1791390131.326,
+      "finish_unix": 1791390207.707
+    },
+    {
+      "source": "/Users/alex/.codex/artifacts/naval-exploration/build25-development-cards/first-full-prepush-command.json",
+      "portable_file": "build25-first-full-prepush-command.json",
+      "sha256": "a787a5173758dc0053bd84291e732b9dd9c2b3207149fa6cad1dd3e0e51d436d"
+    },
+    {
+      "source": "/Users/alex/.codex/artifacts/naval-exploration/build25-development-cards/first-full-prepush-native-summary.json",
+      "portable_file": "build25-first-full-prepush-native-summary.json",
+      "sha256": "c70ecad2d04ec1a2ad45293b9a17663394db97d23885b0a332d92e2ede2fc5ef",
+      "result": "Failed",
+      "total_functions": 760,
+      "passed": 758,
+      "failed": 1,
+      "skipped": 1,
+      "start_unix": 1791386145.654,
+      "finish_unix": 1791389926.739
+    },
+    {
+      "source": "/Users/alex/.codex/artifacts/naval-exploration/build25-development-cards/first-full-prepush-gate.log",
+      "portable_file": "build25-first-full-prepush-gate.log",
+      "sha256": "fd6b8d528ace0e0a83d727fd3f7c898b60f4b0f7d9c1eb23f5f175762d1a84c3"
+    },
+    {
+      "source": "/Users/alex/.codex/artifacts/naval-exploration/build25-development-cards/final-prepush-command.json",
+      "portable_file": "build25-final-prepush-command.json",
+      "sha256": "d3f375dce4a6393c2a5f6b00858c9e64020e39e4a22857f42bcb64973ca6feb6"
+    },
+    {
+      "source": "/Users/alex/.codex/artifacts/naval-exploration/build25-development-cards/final-prepush-native-summary.json",
+      "portable_file": "build25-final-prepush-native-summary.json",
+      "sha256": "e3c757111409e5d02e0b40a3258cf8c72ee0791e2f42915ce3099ed8c4a3b53c",
+      "result": "Passed",
+      "total_functions": 760,
+      "passed": 759,
+      "failed": 0,
+      "skipped": 1,
+      "start_unix": 1791390720.12,
+      "finish_unix": 1791394468.171
+    },
+    {
+      "source": "/Users/alex/.codex/artifacts/naval-exploration/build25-development-cards/final-prepush-gate.log",
+      "portable_file": "build25-final-prepush-gate.log",
+      "sha256": "45077c30abde687855f48d0eee4d36357098b3b148727cc0e284c10373d9fd47"
+    },
+    {
+      "source": "/Users/alex/.codex/artifacts/naval-exploration/build25-development-cards/helper-worktree-cleanup.json",
+      "portable_file": "build25-helper-worktree-cleanup.json",
+      "sha256": "1ae2154cd1a25dc48d82062297757d56e78dd9fc52516306aea6002faeb1f06b"
+    },
+    {
+      "source": "/Users/alex/.codex/artifacts/naval-exploration/build25-development-cards/final-gallery-root-review.json",
+      "portable_file": "build25-final-gallery-root-review.json",
+      "sha256": "e1f0a81d7611f4cb2b62b05022885d1614ddf0d58bd84aefc3a375d9655403c4"
+    },
+    {
+      "source": "/Users/alex/.codex/artifacts/naval-exploration/build25-development-cards/final-gallery-export-manifest.json",
+      "portable_file": "build25-final-gallery-export-manifest.json",
+      "sha256": "99b0b0837c1e902053fd76247eb0204fc5b6e361f1b09821384aab85a30d425d"
+    },
+    {
+      "source": "/Users/alex/.codex/artifacts/naval-exploration/build25-development-cards/release-runtime.json",
+      "portable_file": "build25-release-runtime.json",
+      "sha256": "94311927593ef8a775cd612a839bda305e76898342c5bf2c9923b0f22338836e"
+    },
+    {
+      "source": "/Users/alex/.codex/artifacts/naval-exploration/build25-development-cards/archive-command-receipt.json",
+      "portable_file": "build25-archive-command-receipt.json",
+      "sha256": "6c9bd8d340f40c14b2d0e32c8814a5a3fb5edd08fd74f7b36e6efe3d3b6ecfff"
+    },
+    {
+      "source": "/Users/alex/.codex/artifacts/naval-exploration/build25-development-cards/export-command-receipt.json",
+      "portable_file": "build25-export-command-receipt.json",
+      "sha256": "87dccac8e3470ea375a2d8f4f0be19aec78d999e10189ca9d88bbe29f38e0e14"
+    },
+    {
+      "source": "/Users/alex/.codex/artifacts/naval-exploration/build25-development-cards/signed-export.json",
+      "portable_file": "build25-signed-export.json",
+      "sha256": "0d701309d94f14da5baf1f9ab117a7b2cb2d5aeb4f76b3b4c5237bf0987445f1"
+    },
+    {
+      "source": "/Users/alex/.codex/artifacts/naval-exploration/build25-development-cards/upload-command-receipt.json",
+      "portable_file": "build25-upload-command-receipt.json",
+      "sha256": "3341f3366f5a906991ed537fef131a534d6aba6e0cd00883def4aa1d8e6db3c0"
+    },
+    {
+      "source": "/Users/alex/.codex/artifacts/naval-exploration/build25-development-cards/uploaded-payload-signature.json",
+      "portable_file": "build25-uploaded-payload-signature.json",
+      "sha256": "acc3ba52dc82a68f0e10e58fa0218c009e350f7a58067e5693b8f51cd5a6ec77"
+    },
+    {
+      "source": "/Users/alex/.codex/artifacts/naval-exploration/build25-development-cards/uploaded-payload-comparison.json",
+      "portable_file": "build25-uploaded-payload-comparison.json",
+      "sha256": "0ab2355e431ae6695dc183c8aa93ad4c85aeee43f5880c3d1b89b7e038170f4d"
+    },
+    {
+      "source": "/Users/alex/.codex/artifacts/naval-exploration/build25-development-cards/tested-head-github-ci.json",
+      "portable_file": "build25-tested-head-github-ci.json",
+      "sha256": "388a74feab5898ff1e83caa522262ac00d42efb74c224f0b581bd9d87647e8f8"
+    },
+    {
+      "source": "/Users/alex/.codex/artifacts/naval-exploration/build25-development-cards/testflight.json",
+      "portable_file": "build25-testflight.json",
+      "sha256": "8ac4d0dc0eb1f9348f446a62d881be094e420081ae47925321ff14805c09b057"
+    },
+    {
+      "source": "/Users/alex/.codex/artifacts/naval-exploration/build25-development-cards/simulator-cleanup.json",
+      "portable_file": "build25-simulator-cleanup.json",
+      "sha256": "fed73117d88201a840116a463e8397ff399e49ad0a67dc3d191f5159f678a186"
+    },
+    {
+      "source": "/Users/alex/.codex/artifacts/naval-exploration/build25-development-cards/simulators-before-release.json",
+      "portable_file": "build25-simulators-before-release.json",
+      "sha256": "f537701e016388edf0f584f3bcb85d497592bd96c55b012a0042e26819344ae8"
+    },
+    {
+      "source": "/Users/alex/.codex/artifacts/naval-exploration/build25-development-cards/simulators-immediate-before-release-cleanup.json",
+      "portable_file": "build25-simulators-immediate-before-release-cleanup.json",
+      "sha256": "8ebca0caa05d87857a83b2c0b9cc36bca79fc4518190715b0fdca66df2b5c142"
+    },
+    {
+      "source": "/Users/alex/.codex/artifacts/naval-exploration/build25-development-cards/simulators-after-release.json",
+      "portable_file": "build25-simulators-after-release.json",
+      "sha256": "49cf59b3f5653dbd3ac5992903cbe601bf332ee4bbaf958dc941d3c01bf3c4a5"
+    },
+    {
+      "source": "/Users/alex/.codex/artifacts/naval-exploration/build25-development-cards/root-final-release-readback.json",
+      "portable_file": "build25-root-final-release-readback.json",
+      "sha256": "f9b08e8925dc95e9d8f850e7c4379a4a836df189fe11884acb9bd5e63dedf07c"
+    },
+    {
+      "source": "/Users/alex/.codex/artifacts/naval-exploration/build25-development-cards/final-independent-release-audit.json",
+      "portable_file": "build25-final-independent-release-audit.json",
+      "sha256": "430895413ef55dc2202cb1b488e871064e625815a87141b5aecfc6d13a3e056c"
+    },
+    {
+      "source": "/Users/alex/.codex/artifacts/naval-exploration/build25-development-cards/independent-apple-readback.json",
+      "portable_file": "build25-independent-apple-readback.json",
+      "sha256": "6f1bdbf0027a23d29dd814dab9ad0bb5df26c6e1bcc907ae0f0093ffdbe4ac64"
+    }
+  ],
+  "retained_logs_and_results": "/Users/alex/.codex/artifacts/naval-exploration/build25-development-cards",
+  "production_source": "a9e0e88eb30e5bd0c5f96c6b1354ed2e7b7023c1",
+  "tested_head": "cffe613a3c112c6f99f5e6c1d4dca36c7fa719a0",
+  "release_status": "DELIVERED: exact 1.0/25 VALID/unexpired and internal IN_BETA_TESTING for Alex; owned QA shut down. External release and physical-device installation/gameplay not observed."
+}

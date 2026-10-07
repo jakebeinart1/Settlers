@@ -1,5 +1,38 @@
 # Voyages design and implementation contract
 
+## Build 25 card addendum: verified for delivery
+
+D50–D53 and [E30](acceptance.md#build-25-follow-up-e30-delivered) cover the
+current card follow-up. All five types have distinct native engraved emblems.
+Resource and development-card HUD counts share 44-point icon/name/count slots
+and typography. Compact card names have no READY status suffix; actual held
+counts and accessible availability remain available. Inspecting a blocked card
+must still explain its timing or rule restriction.
+
+The private hand has a compact horizontal selector and one compact selected
+detail. Purchase and existing result receipts keep their larger illustration.
+Monopoly selects a rival resource without bank or private-hand quantities.
+Year of Plenty presents two ordered removable picks, progress and stocked-bank
+choices, then commits exactly two legal resources. A repeated resource requires
+sufficient stock. At two picks all bank choices disable/dim while removable
+slots stay bright. Ordinary rows become two-column grids at accessibility sizes.
+Header/actions remain inside the safe panel with the middle scrollable; only the
+fixed scaffold caps at accessibility size 1. Full-scale choices and effect text
+must remain reachable. Width is constrained before selector text wraps.
+
+Native frame markers are Debug-only, behind controls and noninteractive. Rare
+Naval fixtures use legal setup and conserved bank/deck contents. The ordinary
+match inspects naturally held Knight, then reaches a winner; all five types are
+covered by separate fixture/purchase flows. Intermediate failures are retained.
+Final production `a9e0e88`, 1.0/build 25, binds 376 inputs; all 112 package inputs
+match build 24. Prototype focus passes 24 cases, final-style availability three,
+and the test-only feedback correction two. The first failed full gate remains
+retained. Replacement gate at `cffe613` passes all ten mandatory stages and
+publishes the branch. Ordinary Release runtime and root review of all 27 selected
+originals pass. Signed upload/checksum comparison and tested-head CI pass. Fresh
+Apple readback confirms VALID/unexpired internal IN_BETA_TESTING and Alex's access;
+owned QA cleanup passes. E30 is delivered, with PR approval outstanding. Build 24's complete contract below keeps its original identity.
+
 Selected October 4, 2026 under Alex's instruction to build the complete mode and
 resolve its remaining design work. These are delegated product decisions, distinct
 from the charter's human commitments. Three independent reviews examined gameplay,

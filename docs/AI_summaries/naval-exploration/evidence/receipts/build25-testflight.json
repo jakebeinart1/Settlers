@@ -1,0 +1,79 @@
+{
+  "verifiedAtUTC": "2026-10-07T17:57:29.535Z",
+  "appID": "6808461623",
+  "builds": [
+    {
+      "id": "409a8bbf-4931-4a9b-b70d-da2c8bbc4860",
+      "version": "25",
+      "uploadedDate": "2026-10-07T10:55:05-07:00",
+      "expirationDate": "2027-01-05T09:55:05-08:00",
+      "expired": false,
+      "minOsVersion": "17.0",
+      "lsMinimumSystemVersion": null,
+      "computedMinMacOsVersion": "14.0",
+      "computedMinVisionOsVersion": "1.0",
+      "iconAssetToken": {
+        "templateUrl": "https://is1-ssl.mzstatic.com/image/thumb/Purple211/v4/bf/40/ef/bf40ef16-04df-d32d-61bc-8dae1901f17c/AppIcon60x60@2x.png/{w}x{h}bb.{f}",
+        "width": 120,
+        "height": 120
+      },
+      "processingState": "VALID",
+      "buildAudienceType": "APP_STORE_ELIGIBLE",
+      "usesNonExemptEncryption": false,
+      "marketingVersion": "1.0",
+      "betaDetail": {
+        "autoNotifyEnabled": true,
+        "internalBuildState": "IN_BETA_TESTING",
+        "externalBuildState": "READY_FOR_BETA_SUBMISSION"
+      }
+    }
+  ],
+  "internalGroups": [
+    {
+      "id": "bf165450-034a-437d-b7f7-028bf3d57a5b",
+      "publicLinkLimit": null,
+      "iosBuildsAvailableForAppleSiliconMac": true,
+      "createdDate": "2026-09-04T02:55:32.94Z",
+      "publicLinkEnabled": null,
+      "publicLink": null,
+      "hasAccessToAllBuilds": true,
+      "publicLinkId": null,
+      "isInternalGroup": true,
+      "name": "Internal",
+      "feedbackEnabled": true,
+      "publicLinkLimitEnabled": null,
+      "iosBuildsAvailableForAppleVision": true,
+      "testers": [
+        {
+          "id": "a8ee9090-8182-4804-b5f9-eead9c032495",
+          "firstName": "Alex",
+          "lastName": "Chandler"
+        }
+      ]
+    }
+  ],
+  "distributionProfiles": [
+    {
+      "id": "FKY3A9256J",
+      "name": "Empires App Store 20261004",
+      "profileState": "ACTIVE",
+      "profileType": "IOS_APP_STORE",
+      "expirationDate": "2027-01-25T20:55:57.000+00:00"
+    }
+  ],
+  "productionSourceSHA": "a9e0e88eb30e5bd0c5f96c6b1354ed2e7b7023c1",
+  "archiveHeadSHA": "cffe613a3c112c6f99f5e6c1d4dca36c7fa719a0",
+  "version": "1.0",
+  "build": "25",
+  "intendedTesterAccessConfirmed": true,
+  "intendedTesterID": "a8ee9090-8182-4804-b5f9-eead9c032495",
+  "accessibleInternalGroupIDs": [
+    "bf165450-034a-437d-b7f7-028bf3d57a5b"
+  ],
+  "acceptedContentDeliveryIDMatchesExactAppleBuildID": true,
+  "uploadedIPASHA256": "5b020ca35ac4dfed60fc4a428ce241e282ff47f8c8e47252cbbf23dba5926691",
+  "uploadedIPAMD5": "8443b7a3de5668f16c46a99f243568d0",
+  "physicalPhoneInstallationObserved": false,
+  "physicalPhoneGameplayObserved": false,
+  "externalReleasePerformed": false
+}

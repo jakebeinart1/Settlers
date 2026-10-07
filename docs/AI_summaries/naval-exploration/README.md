@@ -1,5 +1,33 @@
 # Naval exploration product program
 
+## Build 25 card follow-up: delivered, October 7
+
+Alex's October 7 follow-up asks all five development cards to suit the painted
+interface, align HUD counts with resources, remove READY from compact names,
+fit their choices/actions and receive deliberate inspection in a complete Naval
+match. D50–D53 select native engraved emblems, shared 44-point HUD slots,
+compact browsing and rule-correct resource choosers. No generated PNG is replaced.
+
+[E30](acceptance.md#build-25-follow-up-e30-delivered) freezes production at
+`a9e0e88eb30e5bd0c5f96c6b1354ed2e7b7023c1`, 1.0/build 25, with
+[376 matching inputs](evidence/receipts/build25-final-production-inputs.json).
+All [112 package inputs](evidence/receipts/build25-engine-ai-source-equivalence.json)
+match build 24 exactly, so its 48-match/six-repeat functional evidence is reused
+without a new strength claim. The ordinary match naturally owns Knight at
+purchase/maturity/result moves 160/175/177 and reaches a winner; all five types
+are covered separately by conserved fixtures and actual purchases.
+
+The failed first complete gate remains recorded. Test-only `cffe613` corrects
+large-text test navigation and passes the replacement full gate, all ten mandatory
+stages, then publishes the branch. Native: 760 functions, 759 passed, zero failed,
+one skipped; 1,518 passing runs. Root approves all 27 unchanged final originals (26 Debug plus one Release).
+Ordinary fresh Release survives six seconds without QA arguments or new crashes.
+Archive/export/upload and actual payload signing/checksum comparison pass; Apple
+confirms VALID/unexpired internal IN_BETA_TESTING for Alex. Owned QA cleanup
+passes, preserving the other 13 devices and other projects' booted states. PR #60 is unmerged, awaiting approval;
+[tested-head CI](evidence/receipts/build25-tested-head-github-ci.json) passes. Main's later `bc11db4` adds only a research document; `83d8525` remains
+the historical integration base. Build 24's delivered record below is unchanged.
+
 Created October 4, 2026, from Alex's design conversation. This is the canonical
 product charter and delivery record for the complete Empires naval mode, Voyages.
 Gameplay, map generation, both AI tiers, setup, persistence and presentation are

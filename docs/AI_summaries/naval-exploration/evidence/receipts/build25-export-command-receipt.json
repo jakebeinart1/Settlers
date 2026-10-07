@@ -1,0 +1,25 @@
+{
+  "productionSourceSHA": "a9e0e88eb30e5bd0c5f96c6b1354ed2e7b7023c1",
+  "archiveHeadSHA": "cffe613a3c112c6f99f5e6c1d4dca36c7fa719a0",
+  "version": "1.0",
+  "build": "25",
+  "startedAtUTC": "2026-10-07T17:46:33.456861+00:00",
+  "command": [
+    "xcodebuild",
+    "-exportArchive",
+    "-archivePath",
+    "/Users/alex/.codex/artifacts/naval-exploration/build25-development-cards/Empires-25.xcarchive",
+    "-exportPath",
+    "/Users/alex/.codex/artifacts/naval-exploration/build25-development-cards/export",
+    "-exportOptionsPlist",
+    "/Users/alex/.codex/artifacts/naval-exploration/build25-development-cards/ExportOptions.plist",
+    "-authenticationKeyPath",
+    "/Users/alex/.appstoreconnect/private_keys/AuthKey_R7AQ2QHN3X.p8",
+    "-authenticationKeyID",
+    "R7AQ2QHN3X",
+    "-authenticationKeyIssuerID",
+    "e02eba85-9a60-477a-b3f3-c4d86bbc598d"
+  ],
+  "exportExitCode": 0,
+  "finishedAtUTC": "2026-10-07T17:46:45.336746+00:00"
+}

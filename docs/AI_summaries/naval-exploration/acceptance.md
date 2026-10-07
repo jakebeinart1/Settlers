@@ -1,5 +1,159 @@
 # Voyages requirements and acceptance
 
+## Build 25 follow-up (E30): delivered
+
+Alex's follow-up requests distinct development-card aesthetics, matching HUD
+count baselines, compact names without READY, panels whose actual choices/actions
+fit, and deliberate card inspection during a complete Naval match. D50–D53
+record the choices and alternatives in [decisions](decisions.md#build-25-card-decisions-selected-verified-for-delivery).
+Production freezes at `a9e0e88eb30e5bd0c5f96c6b1354ed2e7b7023c1`, 1.0/build 25,
+with [376 matching inputs](evidence/receipts/build25-final-production-inputs.json).
+The [112 package inputs](evidence/receipts/build25-engine-ai-source-equivalence.json)
+match build 24 `9bce5f7` exactly, reusing its 48 matches/six complete-byte repeats
+without a new strength claim. The [1908 prototype binding](evidence/receipts/build25-production-inputs-1908-prototype.json)
+remains distinct from the final freeze.
+
+The hand uses five native engraved emblems, shared 44-point resource/card HUD
+slots and fonts, compact selectors and one compact selected detail. Purchase
+and existing result receipts retain large illustrations. Monopoly chooses a
+resource collected from rivals without misleading bank/private quantities.
+Plenty shows two ordered removable picks, actual stocked-bank choices and progress.
+Normal choices use one row and accessibility choices two columns. Header/actions
+stay pinned; only that scaffold caps at accessibility size 1, while the middle,
+effect text and choices retain full scaling. Exact width precedes wrapping and
+horizontal selectors align within their viewport. Debug geometry markers are
+behind controls and noninteractive after the first overlay marker blocked taps.
+
+### Retained native command history
+
+Portable [focused evidence provenance](evidence/receipts/build25-focused-evidence-manifest.json)
+binds the unchanged summary bytes, original paths and command times. The logs,
+xcresults, source snapshots and attachments remain in the original
+[artifact directory](</Users/alex/.codex/artifacts/naval-exploration/build25-development-cards>).
+Counts below are functions/runs, all with zero skips.
+
+| Command | Verdict and passing/failed functions | Finding |
+|---|---|---|
+| [First](evidence/receipts/build25-first-focused-summary.json) | FAILED, 17/11 of 28 | Overlay geometry markers intercepted native card taps; first flow/invariance cases passed. |
+| [Second](evidence/receipts/build25-second-focused-summary.json) | FAILED, 25/3 of 28 | Existing flows passed; Plenty selector reachability and largest-text resource clipping remained. |
+| [Third](evidence/receipts/build25-third-focused-summary.json) | FAILED, 9/1 of 10 | All five normal details, HUD, scarcity and ordinary complete-match audit passed; largest-text selector failed. |
+| [Fourth](evidence/receipts/build25-fourth-focused-summary.json) | FAILED, 1/1 of 2 | Conquest army passed; Monopoly selector extended beyond the horizontal viewport. |
+| [Fifth](evidence/receipts/build25-fifth-focused-summary.json) | FAILED, 2/1 of 3 | Victory Point and normal detail passed; largest selector remained clipped. |
+| [Selector probe](evidence/receipts/build25-selector-probe-summary.json) | FAILED, 0/1 of 1 | Retains the same measured 392-versus-409-point boundary failure. |
+| [Sixth](evidence/receipts/build25-sixth-focused-summary.json) | FAILED, 1/1 of 2 | Normal details passed and selector geometry advanced; the remaining resource lookup failed on a lazy offscreen element. |
+| [Seventh](evidence/receipts/build25-seventh-focused-summary.json) | PASS, 1/0 of 1 | Bounded largest-text Monopoly/Plenty fit, scrolling and pinned-action case. |
+| [Prototype final focus](evidence/receipts/build25-final-focused-summary.json) | PASS, 24/0 of 24 | Session `10784`, exit 0, at `1908cd0`; not the final style freeze. |
+| [Positive Monopoly](evidence/receipts/build25-monopoly-positive-summary.json) | PASS, 1/0 of 1 | Test-only `f7c6090` proves actual rival collection with an empty bank. |
+| [Final availability](evidence/receipts/build25-availability-focused-summary.json) | PASS, 3/0 of 3 | Session `34838`, exit 0, at `a9e0e88`: all five disabled bank choices, largest-text commit/result and empty-bank Monopoly collecting 38 wool, then returning to Roll. |
+
+Controlled fixtures now construct actual Naval legal setup and conserve finite
+bank/deck totals. They inspect all five types and scarcity semantics; the rare
+winning Victory Point fixture remains separate. The ordinary Expert Naval match
+uses seed 7501 and raw Debug `-qaInspectCompleteMatch` only to pause production
+play at natural purchase, mature-hand and resolution checkpoints. Native taps
+inspect actually owned cards and acknowledge actual receipts. Root inspected
+third-run originals at moves 160/175/177 and the actual winner. Knight is the
+only naturally held type inspected in this ordinary match; all five types are
+covered separately by conserved fixtures and actual purchases. This is one
+functional complete match, not a strength measurement or physical-device play.
+
+The green prototype did not close visual review: original `0CAB` still showed
+the last tapped Grain brightly after two Plenty picks. The environment-aware
+button style in `a9e0e88` fixes that cached label state. Root and independent
+visual review approve original `AA7` (SHA256
+`709e9b304fb0735f124819a9767a50dd6b9c6d5d939ea30471739f66af8b6dc4`):
+all five bank choices dim while removable picks stay bright. Scaled-preview
+clipping concerns were withdrawn after reading the same-hash A66/F9 originals;
+no source change was made for those concerns. This closes those intermediate
+defects, not approval of every final-gate image.
+
+### Failed first full gate and replacement pass
+
+The [first command](evidence/receipts/build25-first-full-prepush-command.json)
+and [log](evidence/receipts/build25-first-full-prepush-gate.log) retain session
+`4387`, exit 1, with push refused. Native [summary](evidence/receipts/build25-first-full-prepush-native-summary.json):
+760 functions, 758 passed, one failed, one skipped; 1,517 passing runs plus one
+failure/one skip. Hosted 581/82 and every other mandatory stage, including Release,
+passed. The failure was
+`GameplayFeedbackFlowTests/testYearOfPlentyNoticeNamesTheCardAfterRealSelection`:
+the XXXL test tapped Ore before revealing the lazy grid; no card commit occurred.
+The same full-gate large-card journey passed.
+
+Test-only `cffe613` uses the existing shared measured-scroll helper before the
+feedback choices, preserving exact notices and strict whole-control bounds.
+The [correction focus](evidence/receipts/build25-feedback-correction-summary.json)
+passes two functions/runs, zero failures/skips, exit 0, session `48432`.
+Only two test files differ from production; all 376 production and 112 package
+inputs remain unchanged.
+
+Replacement [command](evidence/receipts/build25-final-prepush-command.json)
+and [log](evidence/receipts/build25-final-prepush-gate.log), session `13288`,
+exit 0, pass all ten mandatory stages and publish remote
+`cffe613a3c112c6f99f5e6c1d4dca36c7fa719a0`. Final native [summary](evidence/receipts/build25-final-prepush-native-summary.json):
+760 functions, 759 passed, zero failed, one skipped; 1,518 passing runs plus one
+skip. Hosted 581/82; Engine 391/31, coverage 96.74%; AI 308/31, coverage 96.07%.
+Optional standalone Debug skips because it was not requested; native Debug ran
+and Release compiled. The sole native skip is the 375×667 trade-footer flow on
+the 402×874 QA device; no new compact-phone proof is inferred. Existing native
+caption Contrast flags retain their three exact-ID/live ≥7:1 qualification.
+These are the replacement gate's coverage values.
+
+[Helper cleanup](evidence/receipts/build25-helper-worktree-cleanup.json) confirms
+recoverable archive/readback of `cards-qa-audit`, with no needed ignored files.
+### Final-source gallery, ordinary Release and accepted upload
+
+Root directly inspected all 27 selected original-resolution captures: 26 final
+full-gate Debug images plus the ordinary Release menu, with no blocking defect.
+The [review](evidence/receipts/build25-final-gallery-root-review.json),
+[export metadata](evidence/receipts/build25-final-gallery-export-manifest.json)
+and [portable gallery](evidence/screenshots/build25-final-manifest.json) retain
+exact source/test/time/configuration and unchanged original hashes. This covers
+all five hand details/purchase reveals, aligned HUD counts, largest-text choices/
+results, real mixed/empty-bank outcomes, natural Knight checkpoints/winner,
+Conquest Army, the committed public Plenty notice and the ordinary menu.
+
+[Release runtime](evidence/receipts/build25-release-runtime.json) confirms a
+fresh install of 1.0/build 25, no QA arguments, PID `2755` alive after six seconds,
+no new own crash reports, expected menu, executable SHA256
+`44209bea08cab40efb995b2a43e8c9e172189f8fcf4c41aee65e174390df2127`.
+[Archive](evidence/receipts/build25-archive-command-receipt.json) and
+[export](evidence/receipts/build25-export-command-receipt.json) exit 0, with
+strict [review-export signing](evidence/receipts/build25-signed-export.json).
+[Upload](evidence/receipts/build25-upload-command-receipt.json) exits 0 and
+preserves the actual staged IPA. Its [signature](evidence/receipts/build25-uploaded-payload-signature.json)
+binds SHA256 `5b020ca35ac4dfed60fc4a428ce241e282ff47f8c8e47252cbbf23dba5926691`,
+36,308,759 bytes and MD5 `8443b7a3de5668f16c46a99f243568d0`.
+The [comparison](evidence/receipts/build25-uploaded-payload-comparison.json)
+checks all 14 ZIP entries: only the executable's code signature differs from
+the review export (`aa03560724b57ae5bc121e214bdd8d9e3a8c6a458c19f9d25e7e882f0b62d205`,
+36,308,763 bytes); its first 5,874,672 executable bytes match. ContentDelivery
+confirms the actual MD5 three times and accepts UUID
+`409a8bbf-4931-4a9b-b70d-da2c8bbc4860`. The fresh [Apple readback](evidence/receipts/build25-testflight.json) at
+17:57:29.535 UTC confirms the matching ID, 1.0/build 25, VALID/unexpired
+(expires January 5, 2027), internal IN_BETA_TESTING. Alex's exact tester ID
+`a8ee9090-8182-4804-b5f9-eead9c032495` has all-build access through Internal
+group `bf165450-034a-437d-b7f7-028bf3d57a5b`. External state remains
+READY_FOR_BETA_SUBMISSION; no external release or physical-device install/play
+is recorded.
+
+[Tested-head CI](evidence/receipts/build25-tested-head-github-ci.json) passes at
+`cffe613`: Linux Engine/AI and SwiftLint succeed in run `37660184339`.
+Hosted project drift skips as workflow-dispatch-only; mandatory local drift
+passed in the full gate. Later metadata CI is separate. PR #60 is published,
+unmerged and awaiting approval. Live main `bc11db4` adds one research document
+without production/package changes; `83d8525` remains the historical integration
+base. [QA cleanup](evidence/receipts/build25-simulator-cleanup.json) shuts down
+only owned `937692FF-BFBF-4683-80E5-2590F5288D56`, exit 0, with Shutdown
+readback at 17:59:07 UTC. All 14 devices remain; Ferrule Dice Review and
+Switchbard Small Owner Review stay Booted, untouched. Exact [before](evidence/receipts/build25-simulators-immediate-before-release-cleanup.json)/[after](evidence/receipts/build25-simulators-after-release.json)
+inventories and 376 matching production inputs confirm cleanup boundaries.
+The [root final readback](evidence/receipts/build25-root-final-release-readback.json)
+binds 376 current hashes, Apple/access, upload UUID, QA cleanup, tested CI and
+27-image approval. The [independent final audit](evidence/receipts/build25-final-independent-release-audit.json)
+passes with no blockers, including a fresh 18:01:59 UTC Apple readback, both IPA
+signatures, accepted payload/UUID, original gallery hashes and cleanup. E30 is
+complete for internal TestFlight delivery; PR approval remains outstanding. Every build 24 and older historical body below is unchanged.
+
 The complete mode is implemented in the isolated `codex/naval-exploration`
 worktree. C01–C16 preserve Alex's commitments. Delegated D01–D32 are recorded in the
 [design contract](design-contract.md); subsequent human D33–D49 are recorded in

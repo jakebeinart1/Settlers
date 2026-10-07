@@ -1,0 +1,149 @@
+{
+  "verifiedAtUTC": "2026-10-07T18:05:49.468646+00:00",
+  "reviewer": "naval24_final_audit",
+  "verdict": "PASS release25 internal TestFlight delivery; no source or release blocker found",
+  "productionSourceSHA": "a9e0e88eb30e5bd0c5f96c6b1354ed2e7b7023c1",
+  "testedArchiveHeadSHA": "cffe613a3c112c6f99f5e6c1d4dca36c7fa719a0",
+  "version": "1.0",
+  "build": "25",
+  "source": {
+    "all376CurrentReceiptAndFrozenCommitInputsIndependentlyEqual": true,
+    "packageInputs112ByteIdenticalToBuild24": true,
+    "productionChangeAfterFreeze": false,
+    "testOnlyCorrection": "cffe613 changes two UI-test files, scrolls real middle viewport to materialize Ore, preserves precommit/private/public notice assertions; raw focused 2/2 PASS"
+  },
+  "gate": {
+    "mandatoryStagesPassed": 10,
+    "nativeFunctions": 760,
+    "passedFunctions": 759,
+    "failedFunctions": 0,
+    "skippedFunctions": 1,
+    "passingParameterizedRuns": 1518,
+    "rawXCResultSummaryEqualsSavedReceipt": true,
+    "soleNativeSkip": "TradeRedesignFlowTests/testConfirmationFooterAndNewOfferRemainReachableAt375By667: required 375\u00d7667, actual QA 402\u00d7874. No compact-phone proof from this run.",
+    "optionalStandaloneDebugBuild": "SKIP not requested; native Debug test action ran",
+    "firstGateFailureRetained": true
+  },
+  "visual": {
+    "all27GalleryHashesIndependentlyEqual": true,
+    "rootReviewed27Originals": true,
+    "independentlyReviewedCurrentFinalOriginals": [
+      "release-ordinary-menu.png",
+      "final-card-design-attachments/E2DEBDA5-B7DE-4A4B-8341-C0B1A0BE498E.png",
+      "final-card-flow-attachments/663CDD6B-0481-4A92-8A1F-0EC57D1AB78E.png"
+    ],
+    "earlierSixOriginalFocusedAndAvailabilityCapturesIndependentlyInspected": true,
+    "noBlockedPinnedActionsOrInconsistentDisabledBankChoicesFound": true
+  },
+  "ordinaryReleaseRuntime": {
+    "actualInfoVersion": "1.0/25",
+    "actualExecutableSHA256": "44209bea08cab40efb995b2a43e8c9e172189f8fcf4c41aee65e174390df2127",
+    "actualExecutableAndScreenshotHashesEqualReceipt": true,
+    "freshInstallNoLaunchArgumentsSixSecondSurvivalAndNoOwnCrashReports": "root/delivery observed, recorded in release-runtime.json; independently bound to on-disk app and original screenshot",
+    "physicalPhoneInstallOrPlayObserved": false
+  },
+  "payload": {
+    "reviewIPA": {
+      "ipaPath": "/Users/alex/.codex/artifacts/naval-exploration/build25-development-cards/export/Settlers.ipa",
+      "ipaBytes": 36308763,
+      "ipaSHA256": "aa03560724b57ae5bc121e214bdd8d9e3a8c6a458c19f9d25e7e882f0b62d205",
+      "ipaMD5": "0fd7f94b28df75bc93352161c20c972f",
+      "executableSHA256": "19e001c1bda7bfa9f5305d53c5a04027736adbc92053dc30f74e32bfdbdac35d"
+    },
+    "actualUploadedIPA": {
+      "ipaPath": "/Users/alex/.codex/artifacts/naval-exploration/build25-development-cards/Settlers-uploaded-25.ipa",
+      "ipaBytes": 36308759,
+      "ipaSHA256": "5b020ca35ac4dfed60fc4a428ce241e282ff47f8c8e47252cbbf23dba5926691",
+      "ipaMD5": "8443b7a3de5668f16c46a99f243568d0",
+      "executableSHA256": "2fc18f40f5b0c187f41ac72f6f4c07c56708fa7f01672ee92854552e06175414"
+    },
+    "actualFileHashesAndBytesEqualReceipts": true,
+    "unpackedInspectionFilesByteEqualAll10ZIPFiles": true,
+    "zipNamesIdentical14": true,
+    "onlyChangedZIPMember": "Payload/Settlers.app/Settlers",
+    "codeSignatureDataOffset": 5874672,
+    "codeSignatureDataSize": 31232,
+    "allExecutableBytesOutsideDeclaredSignatureIdentical": true,
+    "strictDeepVerificationBothExit0IndependentlyObserved": true,
+    "actualLeafCertificateMatchesProfileSHA1": "76465B06C2E157D857641F5B3D25CF5A3110C4A9",
+    "profileUUID": "86da5771-8640-4c53-8867-0b4fbd4f1035",
+    "betaReportsActive": true,
+    "getTaskAllow": false,
+    "provisionedDevicesAbsent": true,
+    "cloudKitEnvironment": "Production",
+    "cloudKitContainer": "iCloud.com.alexchandler.empires"
+  },
+  "transport": {
+    "rawServerPayloadState": "COMPLETE",
+    "rawServerFileID": "6b0fbdd5-2731-43e9-a4c7-942cf4375712",
+    "rawServerMD5": "8443B7A3DE5668F16C46A99F243568D0",
+    "rawServerBytes": 36308759,
+    "errors": [],
+    "warnings": [],
+    "uploadSuccessMarkerAndExportSuccessMarkerPresent": true,
+    "acceptedDeliveryUUID": "409a8bbf-4931-4a9b-b70d-da2c8bbc4860",
+    "exactAppleBuildIDEqualsAcceptedUploadID": true
+  },
+  "apple": {
+    "independentFreshReadbackAtUTC": "2026-10-07T18:01:59.446Z",
+    "appID": "6808461623",
+    "buildID": "409a8bbf-4931-4a9b-b70d-da2c8bbc4860",
+    "marketingVersion": "1.0",
+    "build": "25",
+    "processingState": "VALID",
+    "expired": false,
+    "expirationDate": "2027-01-05T09:55:05-08:00",
+    "internalBuildState": "IN_BETA_TESTING",
+    "externalBuildState": "READY_FOR_BETA_SUBMISSION",
+    "intendedTesterID": "a8ee9090-8182-4804-b5f9-eead9c032495",
+    "internalAllBuildsAccessGroupIDs": [
+      "bf165450-034a-437d-b7f7-028bf3d57a5b"
+    ],
+    "externalReleaseClaim": false
+  },
+  "cleanup": {
+    "rawBeforeAfterSame14IDs": true,
+    "ownQASimulator": "937692FF-BFBF-4683-80E5-2590F5288D56",
+    "ownOnlyStateTransition": "Booted to Shutdown",
+    "allOtherDeviceStatesUnchangedIndependentlyCompared": true,
+    "noDevicesCreatedOrDeleted": true
+  },
+  "git": {
+    "pr": "https://github.com/jakebeinart1/Settlers/pull/60",
+    "lastReadHeadSHA": "cffe613a3c112c6f99f5e6c1d4dca36c7fa719a0",
+    "lastReadGitHubMainSHA": "bc11db46a20b4de05d7d48fdceccf113c47bd744",
+    "newMainScope": "one unrelated 48-line research document only; no production/package change",
+    "prState": "OPEN",
+    "approvalCountAtReadback": 0,
+    "mergeAuthorized": false,
+    "futureApprovedMergeMustRetainNewMainDocumentAndRecheckStatus": true
+  },
+  "claimLimits": [
+    "No stronger-AI conclusion; unchanged package sources reuse build24 functional matrix only.",
+    "Natural full Naval match inspection held Knight only; all five types separately purchased/played through rare-state fixtures.",
+    "Native complete match driver advances real policy/production commit path; not a manual all-human full game.",
+    "Compact 375\u00d7667 footer flow explicitly skipped on QA device.",
+    "No raw accessibility-audit-all-clear claim; prior disclosed native caption false positives stay qualified.",
+    "No physical iPhone install/gameplay observation; verified internal TestFlight availability."
+  ],
+  "evidenceSHA256": {
+    "final-production-inputs.json": "16b4a308971fa2c84345a24f9e381c959e92aecb86be60f0194653bfe2f460e1",
+    "engine-ai-source-equivalence.json": "12effa6a8fe2c47a7b0c643a1cc9a0461f16e7b862247e6d7f9c5c54c7b68c51",
+    "final-prepush-command.json": "d3f375dce4a6393c2a5f6b00858c9e64020e39e4a22857f42bcb64973ca6feb6",
+    "final-prepush-native-summary.json": "e3c757111409e5d02e0b40a3258cf8c72ee0791e2f42915ce3099ed8c4a3b53c",
+    "first-full-prepush-command.json": "a787a5173758dc0053bd84291e732b9dd9c2b3207149fa6cad1dd3e0e51d436d",
+    "feedback-correction-summary.json": "d1c517a26b22f8360e4d13ab8c1f5ca0bdd76bda6279ea336fbf205bae98b7b9",
+    "final-gallery-root-review.json": "e1f0a81d7611f4cb2b62b05022885d1614ddf0d58bd84aefc3a375d9655403c4",
+    "release-runtime.json": "94311927593ef8a775cd612a839bda305e76898342c5bf2c9923b0f22338836e",
+    "archive-command-receipt.json": "6c9bd8d340f40c14b2d0e32c8814a5a3fb5edd08fd74f7b36e6efe3d3b6ecfff",
+    "signed-export.json": "0d701309d94f14da5baf1f9ab117a7b2cb2d5aeb4f76b3b4c5237bf0987445f1",
+    "uploaded-payload-signature.json": "acc3ba52dc82a68f0e10e58fa0218c009e350f7a58067e5693b8f51cd5a6ec77",
+    "upload-command-receipt.json": "3341f3366f5a906991ed537fef131a534d6aba6e0cd00883def4aa1d8e6db3c0",
+    "testflight.json": "8ac4d0dc0eb1f9348f446a62d881be094e420081ae47925321ff14805c09b057",
+    "independent-apple-readback.json": "6f1bdbf0027a23d29dd814dab9ad0bb5df26c6e1bcc907ae0f0093ffdbe4ac64",
+    "simulator-cleanup.json": "fed73117d88201a840116a463e8397ff399e49ad0a67dc3d191f5159f678a186",
+    "simulators-immediate-before-release-cleanup.json": "8ebca0caa05d87857a83b2c0b9cc36bca79fc4518190715b0fdca66df2b5c142",
+    "simulators-after-release.json": "49cf59b3f5653dbd3ac5992903cbe601bf332ee4bbaf958dc941d3c01bf3c4a5"
+  },
+  "blockers": []
+}

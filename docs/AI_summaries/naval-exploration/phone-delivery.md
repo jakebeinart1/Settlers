@@ -1,5 +1,43 @@
 # Naval phone delivery
 
+## Build 25 delivered
+
+Production is frozen at `a9e0e88`, 1.0/build 25, with 376 inputs; test-only
+`cffe613` passes/publishes the replacement full gate, all ten mandatory stages.
+[E30](acceptance.md#build-25-follow-up-e30-delivered) retains the failed first
+gate and correction. All 112 package inputs match build 24 exactly. Fresh ordinary
+Release survives six seconds without QA arguments or new own crashes; root
+approves 26 final-gate Debug originals plus the ordinary Release menu.
+
+[Archive](evidence/receipts/build25-archive-command-receipt.json) and
+[export](evidence/receipts/build25-export-command-receipt.json) exit 0, with
+strict [review-export signing](evidence/receipts/build25-signed-export.json).
+[Upload](evidence/receipts/build25-upload-command-receipt.json) exits 0 and
+preserves the actual [signed payload](evidence/receipts/build25-uploaded-payload-signature.json):
+SHA256 `5b020ca35ac4dfed60fc4a428ce241e282ff47f8c8e47252cbbf23dba5926691`,
+36,308,759 bytes; MD5 `8443b7a3de5668f16c46a99f243568d0`.
+The [comparison](evidence/receipts/build25-uploaded-payload-comparison.json)
+checks all 14 ZIP entries, only executable signature differs from the review
+export, with 5,874,672 identical prefix bytes. ContentDelivery confirms MD5 three
+times and accepts UUID `409a8bbf-4931-4a9b-b70d-da2c8bbc4860`.
+
+Fresh [Apple readback](evidence/receipts/build25-testflight.json) at
+17:57:29.535 UTC confirms the same exact UUID, marketing 1.0/build 25,
+VALID/unexpired until January 5, 2027, internal IN_BETA_TESTING. Alex's exact
+tester ID has access through Internal's all-build group. External state is
+READY_FOR_BETA_SUBMISSION; no external release or physical-device install/play
+is recorded.
+
+[Owned QA cleanup](evidence/receipts/build25-simulator-cleanup.json) exits 0,
+readback Shutdown at 17:59:07 UTC, only device `937692FF-BFBF-4683-80E5-2590F5288D56`.
+All 14 devices remain; Ferrule/Switchbard's Booted states are untouched. All
+376 production inputs still match. [Tested-head CI](evidence/receipts/build25-tested-head-github-ci.json)
+passes; later metadata CI is separate. PR #60 remains unmerged, awaiting approval.
+The [independent final audit](evidence/receipts/build25-final-independent-release-audit.json)
+passes with no blockers, binding the fresh Apple readback, both signed payloads,
+accepted checksum/UUID, original gallery and cleanup. E30 is complete for internal
+delivery; build 24's exact historical facts remain below.
+
 ## Build 24 delivered
 
 **October 7: Empires 1.0/build 24 is available to Alex in internal TestFlight.**

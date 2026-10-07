@@ -1,0 +1,13 @@
+{
+  "verifiedAtUTC": "2026-10-07T15:20:43.470545+00:00",
+  "worktree": "/Users/alex/.codex/worktrees/cards-qa-audit/Settlers",
+  "snapshotHead": "39f45f4578ef4fd0bffed80cb621d042990c7479",
+  "workingTreeAndIgnoredFilesWereEmptyBeforeArchive": true,
+  "neededIgnoredFiles": [],
+  "archiveTool": "archive_worktree",
+  "listArtifactsReadback": "archived_worktree",
+  "neededChangesIntegratedAs": "d7938fd",
+  "rootWorktreeRetained": "/Users/alex/.codex/worktrees/naval24-main-integration/Settlers",
+  "simulatorsCreated": 0,
+  "simulatorCleanup": "Pending completion of the current root gate/release workflow; other projects protected"
+}

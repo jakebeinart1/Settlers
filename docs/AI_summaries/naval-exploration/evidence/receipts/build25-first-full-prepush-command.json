@@ -1,0 +1,72 @@
+{
+  "recordedAtUTC": "2026-10-07T16:21:10.931853+00:00",
+  "session": 4387,
+  "exitCode": 1,
+  "gate": "FAILED",
+  "pushPublished": false,
+  "productionSource": "a9e0e88eb30e5bd0c5f96c6b1354ed2e7b7023c1",
+  "allOtherMandatoryStages": "PASS",
+  "optionalStandaloneDebugBuild": "SKIP not requested; Debug native test action ran",
+  "failure": "GameplayFeedbackFlowTests/testYearOfPlentyNoticeNamesTheCardAfterRealSelection: XXXL test did not reveal the offscreen lazy bank grid before tapping Ore",
+  "nativeSummary": {
+    "devicesAndConfigurations": [
+      {
+        "device": {
+          "architecture": "arm64",
+          "deviceId": "937692FF-BFBF-4683-80E5-2590F5288D56",
+          "deviceName": "Empires QA",
+          "modelName": "iPhone 17 Pro",
+          "osBuildNumber": "23F77",
+          "osVersion": "26.5",
+          "platform": "iOS Simulator"
+        },
+        "expectedFailures": 0,
+        "failedTests": 1,
+        "passedTests": 1517,
+        "skippedTests": 1,
+        "testPlanConfiguration": {
+          "configurationId": "1",
+          "configurationName": "Test Scheme Action"
+        }
+      }
+    ],
+    "environmentDescription": "Settlers \u00b7 Built with macOS 26.5.1",
+    "expectedFailures": 0,
+    "failedTests": 1,
+    "finishTime": 1791389926.739,
+    "passedTests": 758,
+    "result": "Failed",
+    "skippedTests": 1,
+    "startTime": 1791386145.654,
+    "statistics": [
+      {
+        "subtitle": "843 test runs",
+        "title": "84 tests ran with dynamic parameters"
+      }
+    ],
+    "testFailures": [
+      {
+        "failureText": "Failed to tap \"dev-cards.resource.ore\" Button: No matches found for Elements matching predicate '\"dev-cards.resource.ore\" IN identifiers' from input {(\n    Button, identifier: 'game.settings', label: 'menu-icon',\n    Button, identifier: 'dev-cards.play.yearOfPlenty', label: 'Play Year of Plenty, 0 of 2 selected', Disabled,\n    Button, identifier: 'dev-cards.close', label: 'Close',\n    Button, identifier: 'dev-cards.tile.knight', label: 'Knight, 2 owned', value: 1 ready, 1 new. Re...,\n    Button, identifier: 'dev-cards.tile.roadBuilding', label: 'Road Building, 2 owned', value: 1 ready, 1 new. Re...,\n    Button, identifier: 'dev-cards.tile.yearOfPlenty', label: 'Year of Plenty, 1 owned', value: 1 ready, 0 new. Re..., Selected,\n    Button, identifier: 'dev-cards.tile.monopoly', label: 'Monopoly, 1 owned', value: 1 ready, 0 new. Re...,\n    Button, identifier: 'dev-cards.tile.victoryPoint', label: 'Victory Point, 1 owned', value: Counts automatically\n)}",
+        "targetName": "SettlersUITests",
+        "testIdentifier": 666,
+        "testIdentifierString": "GameplayFeedbackFlowTests/testYearOfPlentyNoticeNamesTheCardAfterRealSelection()",
+        "testIdentifierURL": "test://com.apple.xcode/Settlers/SettlersUITests/GameplayFeedbackFlowTests/testYearOfPlentyNoticeNamesTheCardAfterRealSelection",
+        "testName": "testYearOfPlentyNoticeNamesTheCardAfterRealSelection()"
+      }
+    ],
+    "title": "Test - Settlers",
+    "topInsights": [
+      {
+        "category": "Longest Test Runs",
+        "impact": "19% of duration",
+        "text": "6 longest test runs with outlier durations exceeding 83.80s (three standard deviations)"
+      },
+      {
+        "category": "Longest Test Runs",
+        "impact": "68% of duration",
+        "text": "18 longest test runs with outlier durations exceeding 4.63s (three standard deviations)"
+      }
+    ],
+    "totalTestCount": 760
+  }
+}

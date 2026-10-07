@@ -1,5 +1,29 @@
 # Naval integration with the current phone release
 
+## Build 25 compatibility: delivered
+
+The [final production freeze](evidence/receipts/build25-final-production-inputs.json)
+is `a9e0e88eb30e5bd0c5f96c6b1354ed2e7b7023c1`, 1.0/build 25, with 376 inputs.
+The [112 package inputs](evidence/receipts/build25-engine-ai-source-equivalence.json)
+match build 24 `9bce5f7` exactly; its 48-match/six-repeat functional evidence is
+reused without a new strength claim. Card presentation adds no engine move, save
+field, schema/rules version or policy revision. Original generated assets remain
+unchanged; new engraved emblems are native code.
+
+[E30](acceptance.md#build-25-follow-up-e30-delivered) retains separate prototype
+and final-style focused evidence, the failed first full gate, and the two-case
+test-only navigation correction. Replacement gate/push `13288` exits 0, passing
+all ten mandatory stages at `cffe613`; only two test files differ from production.
+Native: 760 functions, 759 passed, zero failed, one skipped; 1,518 passing runs.
+Optional standalone Debug skips, while native Debug ran and Release compiled.
+Ordinary Release runtime and root review of all 27 selected original captures
+pass. Signed archive/export/upload, actual payload comparison and tested-head CI
+pass. Fresh Apple readback confirms the matching upload ID, VALID/unexpired
+internal IN_BETA_TESTING and Alex's Internal all-build access. Owned QA cleanup
+passes with other devices unchanged. E30 is delivered; PR approval is outstanding.
+Main now includes document-only `bc11db4`; historical integration base `83d8525`
+and all build 24 compatibility evidence below retain their original identity.
+
 ## Build 24 compatibility: delivered
 
 D45–D49 are frozen at `9bce5f77a38684bd6e011fac8838c74b38440798`, version

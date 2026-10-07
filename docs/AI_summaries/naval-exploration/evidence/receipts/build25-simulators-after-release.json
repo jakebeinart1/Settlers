@@ -1,0 +1,174 @@
+{
+  "devices": {
+    "com.apple.CoreSimulator.SimRuntime.iOS-26-5": [
+      {
+        "lastBootedAt": "2026-10-05T08:31:18Z",
+        "dataPath": "/Users/alex/Library/Developer/CoreSimulator/Devices/07738152-016C-4216-A233-419FA732E9E4/data",
+        "dataPathSize": 2794598400,
+        "logPath": "/Users/alex/Library/Logs/CoreSimulator/07738152-016C-4216-A233-419FA732E9E4",
+        "udid": "07738152-016C-4216-A233-419FA732E9E4",
+        "isAvailable": true,
+        "logPathSize": 561152,
+        "deviceTypeIdentifier": "com.apple.CoreSimulator.SimDeviceType.iPhone-17-Pro",
+        "state": "Shutdown",
+        "name": "Empires QA"
+      },
+      {
+        "lastBootedAt": "2026-10-07T13:49:46Z",
+        "dataPath": "/Users/alex/Library/Developer/CoreSimulator/Devices/937692FF-BFBF-4683-80E5-2590F5288D56/data",
+        "dataPathSize": 5117284352,
+        "logPath": "/Users/alex/Library/Logs/CoreSimulator/937692FF-BFBF-4683-80E5-2590F5288D56",
+        "udid": "937692FF-BFBF-4683-80E5-2590F5288D56",
+        "isAvailable": true,
+        "logPathSize": 1089536,
+        "deviceTypeIdentifier": "com.apple.CoreSimulator.SimDeviceType.iPhone-17-Pro",
+        "state": "Shutdown",
+        "name": "Empires QA"
+      },
+      {
+        "lastBootedAt": "2026-10-07T05:06:49Z",
+        "dataPath": "/Users/alex/Library/Developer/CoreSimulator/Devices/0E64D113-01E5-49A6-BAB0-B1D796C00780/data",
+        "dataPathSize": 2320703488,
+        "logPath": "/Users/alex/Library/Logs/CoreSimulator/0E64D113-01E5-49A6-BAB0-B1D796C00780",
+        "udid": "0E64D113-01E5-49A6-BAB0-B1D796C00780",
+        "isAvailable": true,
+        "logPathSize": 606208,
+        "deviceTypeIdentifier": "com.apple.CoreSimulator.SimDeviceType.iPhone-17-Pro",
+        "state": "Booted",
+        "name": "Ferrule Dice Review"
+      },
+      {
+        "lastBootedAt": "2026-10-05T15:44:11Z",
+        "dataPath": "/Users/alex/Library/Developer/CoreSimulator/Devices/175016BD-5123-479A-AC91-4E852DF2FE06/data",
+        "dataPathSize": 6289330176,
+        "logPath": "/Users/alex/Library/Logs/CoreSimulator/175016BD-5123-479A-AC91-4E852DF2FE06",
+        "udid": "175016BD-5123-479A-AC91-4E852DF2FE06",
+        "isAvailable": true,
+        "logPathSize": 1449984,
+        "deviceTypeIdentifier": "com.apple.CoreSimulator.SimDeviceType.iPhone-17-Pro",
+        "state": "Shutdown",
+        "name": "iPhone 17 Pro"
+      },
+      {
+        "lastBootedAt": "2026-10-05T19:33:15Z",
+        "dataPath": "/Users/alex/Library/Developer/CoreSimulator/Devices/FA10360F-AECA-413E-B89C-50AB68772D49/data",
+        "dataPathSize": 1454522368,
+        "logPath": "/Users/alex/Library/Logs/CoreSimulator/FA10360F-AECA-413E-B89C-50AB68772D49",
+        "udid": "FA10360F-AECA-413E-B89C-50AB68772D49",
+        "isAvailable": true,
+        "logPathSize": 262144,
+        "deviceTypeIdentifier": "com.apple.CoreSimulator.SimDeviceType.iPhone-17-Pro-Max",
+        "state": "Shutdown",
+        "name": "Empires Build 18 Review"
+      },
+      {
+        "lastBootedAt": "2026-10-04T13:40:02Z",
+        "dataPath": "/Users/alex/Library/Developer/CoreSimulator/Devices/5818B01B-FA82-49AE-AE4A-C24F00E8222D/data",
+        "dataPathSize": 8909029376,
+        "logPath": "/Users/alex/Library/Logs/CoreSimulator/5818B01B-FA82-49AE-AE4A-C24F00E8222D",
+        "udid": "5818B01B-FA82-49AE-AE4A-C24F00E8222D",
+        "isAvailable": true,
+        "logPathSize": 581632,
+        "deviceTypeIdentifier": "com.apple.CoreSimulator.SimDeviceType.iPhone-17-Pro-Max",
+        "state": "Shutdown",
+        "name": "iPhone 17 Pro Max"
+      },
+      {
+        "lastBootedAt": "2026-10-04T15:58:03Z",
+        "dataPath": "/Users/alex/Library/Developer/CoreSimulator/Devices/7F763B21-D0B5-4A62-813C-FABC85C46B46/data",
+        "dataPathSize": 3401838592,
+        "logPath": "/Users/alex/Library/Logs/CoreSimulator/7F763B21-D0B5-4A62-813C-FABC85C46B46",
+        "udid": "7F763B21-D0B5-4A62-813C-FABC85C46B46",
+        "isAvailable": true,
+        "logPathSize": 548864,
+        "deviceTypeIdentifier": "com.apple.CoreSimulator.SimDeviceType.iPhone-17e",
+        "state": "Shutdown",
+        "name": "iPhone 17e"
+      },
+      {
+        "lastBootedAt": "2026-10-03T01:06:01Z",
+        "dataPath": "/Users/alex/Library/Developer/CoreSimulator/Devices/0DF39D03-39AA-40E8-8014-643A725BDC70/data",
+        "dataPathSize": 4171399168,
+        "logPath": "/Users/alex/Library/Logs/CoreSimulator/0DF39D03-39AA-40E8-8014-643A725BDC70",
+        "udid": "0DF39D03-39AA-40E8-8014-643A725BDC70",
+        "isAvailable": true,
+        "logPathSize": 524288,
+        "deviceTypeIdentifier": "com.apple.CoreSimulator.SimDeviceType.iPhone-17e",
+        "state": "Shutdown",
+        "name": "Switchbard iPhone Review"
+      },
+      {
+        "lastBootedAt": "2026-10-05T16:37:55Z",
+        "dataPath": "/Users/alex/Library/Developer/CoreSimulator/Devices/E30A2231-9F4F-4E53-9C35-C2B650115B4D/data",
+        "dataPathSize": 2393145344,
+        "logPath": "/Users/alex/Library/Logs/CoreSimulator/E30A2231-9F4F-4E53-9C35-C2B650115B4D",
+        "udid": "E30A2231-9F4F-4E53-9C35-C2B650115B4D",
+        "isAvailable": true,
+        "logPathSize": 184320,
+        "deviceTypeIdentifier": "com.apple.CoreSimulator.SimDeviceType.iPhone-17e",
+        "state": "Shutdown",
+        "name": "Switchbard Owner Workspace Review 20261005"
+      },
+      {
+        "lastBootedAt": "2026-10-03T14:41:19Z",
+        "dataPath": "/Users/alex/Library/Developer/CoreSimulator/Devices/E25FE1D5-1CBD-4D02-A479-3A645E75144C/data",
+        "dataPathSize": 2743382016,
+        "logPath": "/Users/alex/Library/Logs/CoreSimulator/E25FE1D5-1CBD-4D02-A479-3A645E75144C",
+        "udid": "E25FE1D5-1CBD-4D02-A479-3A645E75144C",
+        "isAvailable": true,
+        "logPathSize": 278528,
+        "deviceTypeIdentifier": "com.apple.CoreSimulator.SimDeviceType.iPhone-17e",
+        "state": "Shutdown",
+        "name": "SwitchbardOnboardingPrimaryReview"
+      },
+      {
+        "lastBootedAt": "2026-10-03T13:48:20Z",
+        "dataPath": "/Users/alex/Library/Developer/CoreSimulator/Devices/CE177653-E396-4BED-8C36-E777C2A24866/data",
+        "dataPathSize": 2880114688,
+        "logPath": "/Users/alex/Library/Logs/CoreSimulator/CE177653-E396-4BED-8C36-E777C2A24866",
+        "udid": "CE177653-E396-4BED-8C36-E777C2A24866",
+        "isAvailable": true,
+        "logPathSize": 368640,
+        "deviceTypeIdentifier": "com.apple.CoreSimulator.SimDeviceType.iPhone-SE-3rd-generation",
+        "state": "Shutdown",
+        "name": "Switchbard Onboarding Small Review"
+      },
+      {
+        "lastBootedAt": "2026-10-03T02:22:52Z",
+        "dataPath": "/Users/alex/Library/Developer/CoreSimulator/Devices/3E015E9A-B7C4-41ED-897B-FA53F9D51CDF/data",
+        "dataPathSize": 3357855744,
+        "logPath": "/Users/alex/Library/Logs/CoreSimulator/3E015E9A-B7C4-41ED-897B-FA53F9D51CDF",
+        "udid": "3E015E9A-B7C4-41ED-897B-FA53F9D51CDF",
+        "isAvailable": true,
+        "logPathSize": 438272,
+        "deviceTypeIdentifier": "com.apple.CoreSimulator.SimDeviceType.iPhone-SE-3rd-generation",
+        "state": "Shutdown",
+        "name": "Switchbard Small iPhone Review"
+      },
+      {
+        "lastBootedAt": "2026-10-07T03:32:50Z",
+        "dataPath": "/Users/alex/Library/Developer/CoreSimulator/Devices/90CFA3EF-5F06-4943-8940-89C2F524F00C/data",
+        "dataPathSize": 2395361280,
+        "logPath": "/Users/alex/Library/Logs/CoreSimulator/90CFA3EF-5F06-4943-8940-89C2F524F00C",
+        "udid": "90CFA3EF-5F06-4943-8940-89C2F524F00C",
+        "isAvailable": true,
+        "logPathSize": 307200,
+        "deviceTypeIdentifier": "com.apple.CoreSimulator.SimDeviceType.iPhone-SE-3rd-generation",
+        "state": "Booted",
+        "name": "Switchbard Small Owner Review 2a7e"
+      },
+      {
+        "lastBootedAt": "2026-10-04T13:39:28Z",
+        "dataPath": "/Users/alex/Library/Developer/CoreSimulator/Devices/975F26F2-905D-4498-A4BE-E91BB7AD5ECC/data",
+        "dataPathSize": 3309228032,
+        "logPath": "/Users/alex/Library/Logs/CoreSimulator/975F26F2-905D-4498-A4BE-E91BB7AD5ECC",
+        "udid": "975F26F2-905D-4498-A4BE-E91BB7AD5ECC",
+        "isAvailable": true,
+        "logPathSize": 483328,
+        "deviceTypeIdentifier": "com.apple.CoreSimulator.SimDeviceType.iPad-mini-A17-Pro",
+        "state": "Shutdown",
+        "name": "iPad mini (A17 Pro)"
+      }
+    ]
+  }
+}

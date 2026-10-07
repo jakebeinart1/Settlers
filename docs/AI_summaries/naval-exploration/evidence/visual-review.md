@@ -1,5 +1,45 @@
 # Voyages visual and motion review
 
+## Build 25 final-source gallery: local review verified
+
+Root directly inspected all 27 selected originals at their original resolution:
+26 passing final-gate Debug native captures plus the ordinary fresh Release menu.
+No blocking visual defect is recorded. [Review](receipts/build25-final-gallery-root-review.json),
+[export metadata](receipts/build25-final-gallery-export-manifest.json) and the
+[portable manifest](screenshots/build25-final-manifest.json) bind production
+`a9e0e88`, tested `cffe613`, exact tests/times/configuration and unmodified hashes.
+All five bank choices dim after two Plenty picks; removable slots stay bright.
+Largest-text titles, effects and pinned actions remain reachable. A partial next
+badge in the scrolling HUD is intentional. The 26 selected images come from 39
+exported PNGs; approval applies to the selected originals.
+
+| Surface | Original captures |
+|---|---|
+| Five normal hand details | [Knight](screenshots/build25-knight-normal.png), [Roads](screenshots/build25-road-building-normal.png), [Plenty](screenshots/build25-plenty-normal.png), [Monopoly](screenshots/build25-monopoly-normal.png), [Point](screenshots/build25-victory-point-normal.png) |
+| HUD baseline | [Aligned card/resource counts](screenshots/build25-hud-aligned-counts.png) |
+| Largest text | [Monopoly](screenshots/build25-monopoly-largest-selected.png), [Plenty selections](screenshots/build25-plenty-largest-selected.png), [Plenty result](screenshots/build25-plenty-largest-result.png) |
+| Natural Knight and actual winner | [Purchase 160](screenshots/build25-natural-match-purchase-160.png), [purchased Knight](screenshots/build25-natural-match-purchase-knight.png), [maturity 175](screenshots/build25-natural-match-mature-175.png), [mature Knight](screenshots/build25-natural-match-mature-knight.png), [resolution 177](screenshots/build25-natural-match-resolution-177.png), [winner](screenshots/build25-natural-match-winner.png) |
+| Rule-correct resource choices | [Ordered Plenty picks](screenshots/build25-plenty-ordered-mixed.png), [mixed result](screenshots/build25-plenty-mixed-result.png), [bank-independent Monopoly](screenshots/build25-monopoly-independent-bank-selection.png), [empty-bank rival collection](screenshots/build25-monopoly-empty-bank-result.png) |
+| Five actual purchase reveals | [Knight](screenshots/build25-purchase-knight.png), [Roads](screenshots/build25-purchase-road-building.png), [Plenty](screenshots/build25-purchase-plenty.png), [Monopoly](screenshots/build25-purchase-monopoly.png), [Point](screenshots/build25-purchase-victory-point.png) |
+| Integration/result notice | [Conquest Army](screenshots/build25-conquest-army-tab.png), [committed public Plenty notice](screenshots/build25-plenty-public-notice.png) |
+| Ordinary Release | [Fresh menu](screenshots/build25-ordinary-release-menu.png) |
+
+[Release runtime](receipts/build25-release-runtime.json) confirms 1.0/build 25,
+fresh install, no QA arguments, PID `2755` alive after six seconds and no new own
+crash reports. Its expected Rules/New Game/Leaderboard menu is separately
+attributed from the Debug captures. Runtime verification time is retained;
+this ordinary screenshot has no XCTest capture timestamp.
+
+[E30](../acceptance.md#build-25-follow-up-e30-delivered) retains the failed
+focused commands, green-prototype cached-highlight defect, original `AA7` gray
+closure, withdrawn scaled-preview concerns and failed first-gate test navigation.
+The naturally completed match inspects Knight only; separate conserved fixtures
+and actual purchases cover all five types. Final complete gate, runtime/gallery,
+tested-head CI and signed upload/checksum comparison pass. Fresh Apple readback
+confirms VALID/unexpired internal IN_BETA_TESTING with Alex's access; owned QA
+cleanup passes. E30 is delivered, with PR approval outstanding. Every build 24 and
+older original below retains its exact source, configuration and approval scope.
+
 ## Build 24 final-source gallery: local review verified
 
 Root directly opened and approved all 23 selected originals, with no blocking
