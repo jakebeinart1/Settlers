@@ -85,7 +85,7 @@ struct NavalSailingTests {
         #expect(state == before)
     }
 
-    @Test(arguments: [1, 2, 3])
+    @Test(arguments: [1, 2, 3, 4])
     func savedAllowanceSurvivesPurchaseSailingCaptureAndTurnRefresh(version: Int) throws {
         var state = try NavalTestSupport.ready(fog: false, rulesVersion: version)
         let allowance = version < 3 ? 3 : 2
@@ -153,12 +153,12 @@ struct NavalSailingTests {
         #expect(first.events == second.events && original.checkpoint == resumed.checkpoint)
     }
 
-    @Test(arguments: [1, 2, 3])
+    @Test(arguments: [1, 2, 3, 4])
     func validationRetainsThreeRemainingOnlyForLegacyMatches(version: Int) throws {
         var state = try NavalTestSupport.ready(rulesVersion: version)
         let launch = try #require(Naval.launchSites(for: owner, in: state).first)
         NavalTestSupport.addShip(at: launch, player: 0, steps: 3, in: &state)
-        if version == 3 {
+        if version >= Naval.destinationSailingRulesVersion {
             #expect(Naval.validationProblem(in: state) == "naval ship position/movement")
         } else {
             #expect(Naval.validationProblem(in: state) == nil)

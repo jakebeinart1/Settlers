@@ -19,7 +19,7 @@ struct NavalVisibilityVersionTests {
     @Test func newGamesUseCornerVisionWithoutChangingOpeningMapOrEngineVersions() throws {
         var state = Naval.newGame(seed: 19)
         let opening = Set(BoardGenerator.spiralCoordinates(radius: 2))
-        #expect(state.naval?.rulesVersion == 3)
+        #expect(state.naval?.rulesVersion == 4)
         #expect(state.naval?.mapVersion == 1)
         #expect(state.schemaVersion == 6)
         #expect(RulesEngine.currentRulesVersion == 3)
@@ -49,7 +49,7 @@ struct NavalVisibilityVersionTests {
         #expect(Naval.validationProblem(in: replay) == nil)
     }
 
-    @Test(arguments: [1, 2, 3])
+    @Test(arguments: [1, 2, 3, 4])
     func coldCheckpointKeepsItsVisionRuleAndPreviouslyDiscoveredTiles(version: Int) throws {
         var state = Naval.newGame(seed: 19)
         state.naval?.rulesVersion = version
@@ -92,7 +92,7 @@ struct NavalVisibilityVersionTests {
         try GameSession(state: restored, policies: [:], policySeed: 71).checkpoint.validate()
     }
 
-    @Test(arguments: [1, 2, 3])
+    @Test(arguments: [1, 2, 3, 4])
     func fogDisabledRetainsTheEntireWorldUnderEitherVisionRule(version: Int) throws {
         var state = Naval.newGame(seed: 19, options: NavalOptions(fogEnabled: false))
         state.naval?.rulesVersion = version
@@ -104,7 +104,7 @@ struct NavalVisibilityVersionTests {
         #expect(Naval.validationProblem(in: state) == nil)
     }
 
-    @Test(arguments: [0, 4, 999])
+    @Test(arguments: [0, 5, 999])
     func unsupportedNavalVisionVersionsRemainRejected(version: Int) {
         var state = Naval.newGame(seed: 19)
         state.naval?.rulesVersion = version

@@ -2,13 +2,15 @@ import Foundation
 
 /// Authoritative naval rules and public geometry. UI and policies share these predicates.
 public enum Naval {
-    /// Version 3 sails to a destination within two sea hexes. Earlier saves retain three adjacent moves;
-    /// version 1 also retains its original land-centered building vision.
-    public static let currentRulesVersion = 3
+    /// Version 4 makes rival ships block entry, passage and launching in their sea hex.
+    /// Version 3 introduced two-hex destination sailing; earlier saves retain three adjacent moves,
+    /// and version 1 also retains its original land-centered building vision.
+    public static let currentRulesVersion = 4
     public static let oldestSupportedRulesVersion = 1
     public static let currentMapVersion = 1
     public static let movementPerTurn = 2
     public static let destinationSailingRulesVersion = 3
+    public static let blockadeRulesVersion = 4
     private static let legacyMovementPerTurn = 3
     public static let viewingRange = 2
     public static let hullsPerBuilder = 6
@@ -53,8 +55,26 @@ public enum Naval {
         isRevealed(coordinate, in: state) && state.board.tiles.contains { $0.coordinate == coordinate && $0.kind.isLand }
     }
 
-    /// Every ship-launch sea hex touches an owned building and is publicly known.
+    /// Rival ownership blocks entry, regardless of remaining movement. Earlier matches keep
+    /// their original overlap rules. Friendly ships may stack; capture may create a mixed stack,
+    /// whose ships can leave because route searches test entry rather than their starting hex.
+    public static func isBlockaded(_ coordinate: HexCoordinate, by player: PlayerID, in state: GameState) -> Bool {
+        guard let naval = state.naval, naval.rulesVersion >= blockadeRulesVersion else { return false }
+        return naval.ships.contains { $0.owner != player && $0.coordinate == coordinate }
+    }
+
+    /// Every available launch sea hex touches an owned building, is publicly known, and has no rival ship.
     public static func launchSites(for player: PlayerID, in state: GameState) -> [HexCoordinate] {
+        coastalLaunchSites(for: player, in: state).filter { !isBlockaded($0, by: player, in: state) }
+    }
+
+    /// Otherwise valid launches prevented by rival ships. UI explanations share the exact
+    /// ownership, charted coast and hull-supply checks used by legal moves and move application.
+    public static func blockadedLaunchSites(for player: PlayerID, in state: GameState) -> [HexCoordinate] {
+        coastalLaunchSites(for: player, in: state).filter { isBlockaded($0, by: player, in: state) }
+    }
+
+    private static func coastalLaunchSites(for player: PlayerID, in state: GameState) -> [HexCoordinate] {
         guard let owner = state.players.first(where: { $0.id == player }), let naval = state.naval,
               naval.hullsBuilt[player, default: 0] < hullsPerBuilder else { return [] }
         let buildings = owner.settlements.union(owner.cities)
