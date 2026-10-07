@@ -3,6 +3,25 @@ import CatanAI
 import SwiftUI
 
 extension GameView {
+    /// Kept outside the game layout: this Debug-only inspector cannot resize
+    /// the board or replace a production action. It releases an ordinary
+    /// policy-driven match only after native card inspection has finished.
+    @ViewBuilder
+    func qaCompleteMatchInspectionControl() -> some View {
+        #if DEBUG
+        if QACompleteMatchInspection.isEnabled, QACompleteMatchInspection.shared.isPaused {
+            Button("Continue inspected match") { QACompleteMatchInspection.shared.resume() }
+                .buttonStyle(.plain)
+                .font(.system(size: 12, weight: .bold))
+                .foregroundStyle(.yellow)
+                .padding(8)
+                .background(.black)
+                .accessibilityIdentifier("qa.complete-match.continue")
+                .accessibilityValue(QACompleteMatchInspection.shared.message)
+        }
+        #endif
+    }
+
     /// A held, deliberately overbroad highlight list lets native pixel tests
     /// exercise the renderer's fog guard independently of the roll producer.
     /// No move, discovery, production, or persistence is fabricated.
