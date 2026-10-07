@@ -1,11 +1,19 @@
 # Naval phone delivery
 
-## Build 26 delivery: verification in progress
+## Build 26 delivered
 
-The Monopoly count follow-up is being verified before a new signed delivery.
-Build 25 below remains the available internal binary. [E31](acceptance.md#build-26-follow-up-e31-verification-in-progress)
-will bind new source, gate, original captures and Apple/access readback. Alex
-now delegates review/merge to the agent; earlier human-approval waits are historical.
+Apple confirms exact1.0/26 VALID/unexpired/Internal IN_BETA_TESTING and Alex's
+all-build access, with accepted payload UUID/checksum matching. [E31](acceptance.md#build-26-follow-up-e31-delivered)
+binds source `e13`/tested/archive `f1`,377 frozen inputs, full gate,11 originals,
+ordinary Release, strict signing and individually completed QA cleanup.
+[Apple receipt](evidence/receipts/build26-testflight.json) and [independent delivery](evidence/receipts/build26-final-independent-delivery-audit.json)
+retain actual proof. Physical installation/play is unobserved. Alex delegates
+merge approval to the agent; live PR records own final disposition and earlier
+approval waits below are historical.
+
+[Final independent release audit](evidence/receipts/build26-final-independent-release-audit.json)
+passes strict signatures, actual uploaded bytes, fresh Apple access and raw
+individual cleanup inventories, with no blockers.
 
 ## Build 25 delivered
 

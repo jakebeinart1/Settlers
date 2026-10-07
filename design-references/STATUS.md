@@ -6,12 +6,13 @@
 
 # Empires visual redesign — status
 
-## October 7 — Monopoly public counts: verification in progress
+## October 7 — Monopoly public counts: delivered
 
 The existing painted resource controls add “to collect” and selected-gain previews;
 Plenty quantities explicitly say “in bank”. Native art and the current frame remain.
-[E31](../docs/AI_summaries/naval-exploration/acceptance.md#build-26-follow-up-e31-verification-in-progress)
-tracks fresh original-pixel review, gate/delivery and agent-authorized PR resolution.
+[E31](../docs/AI_summaries/naval-exploration/acceptance.md#build-26-follow-up-e31-delivered)
+records eleven unchanged original reviews, full gate, strict signed Apple26
+delivery and owned-QA cleanup, with agent-authorized PR resolution.
 Earlier approval-pending records below are historical snapshots.
 
 

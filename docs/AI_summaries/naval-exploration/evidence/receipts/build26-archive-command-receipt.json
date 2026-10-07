@@ -1,0 +1,43 @@
+{
+  "startedAtUTC": "2026-10-07T20:04:54.915313+00:00",
+  "version": "1.0",
+  "build": "26",
+  "productionSourceSHA": "e13d4a1cac8930063ee89438207a5da56f215e26",
+  "archiveHeadSHA": "f1b9b1442defadc5ce7f9d45eb012e4858765a32",
+  "productionInputCount": 377,
+  "allProductionInputsVerifiedBeforeArchive": true,
+  "command": [
+    "xcodebuild",
+    "-project",
+    "/Users/alex/.codex/worktrees/naval24-main-integration/Settlers/Settlers.xcodeproj",
+    "-scheme",
+    "Settlers",
+    "-configuration",
+    "Release",
+    "-destination",
+    "generic/platform=iOS",
+    "-derivedDataPath",
+    "/Users/alex/.codex/artifacts/naval-exploration/build26-monopoly-counts/archive-derived",
+    "-archivePath",
+    "/Users/alex/.codex/artifacts/naval-exploration/build26-monopoly-counts/Empires-26.xcarchive",
+    "-jobs",
+    "2",
+    "OTHER_SWIFT_FLAGS=$(inherited) -driver-batch-count 2",
+    "CODE_SIGN_STYLE=Manual",
+    "DEVELOPMENT_TEAM=HXB9F28LHR",
+    "PROVISIONING_PROFILE_SPECIFIER=Empires App Store 20261004",
+    "CODE_SIGN_IDENTITY=76465B06C2E157D857641F5B3D25CF5A3110C4A9",
+    "OTHER_CODE_SIGN_FLAGS=--keychain /Users/alex/Library/Keychains/login.keychain-db",
+    "SETTLERS_CLOUDKIT_CONTAINER=iCloud.com.alexchandler.empires",
+    "SETTLERS_ENTITLEMENTS=Settlers/LiveSync.entitlements",
+    "archive"
+  ],
+  "archivePath": "/Users/alex/.codex/artifacts/naval-exploration/build26-monopoly-counts/Empires-26.xcarchive",
+  "dirtyPathsBeforeArchive": [
+    "docs/AI_summaries/naval-exploration/acceptance.md",
+    "docs/AI_summaries/naval-exploration/evidence/visual-review.md"
+  ],
+  "dirtyPathsOutsideProductionInputs": true,
+  "archiveExitCode": 0,
+  "finishedAtUTC": "2026-10-07T20:05:44.542985+00:00"
+}

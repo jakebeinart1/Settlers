@@ -1,0 +1,64 @@
+{
+  "verifiedAtUTC": "2026-10-07T20:15:15.090Z",
+  "appID": "6808461623",
+  "builds": [
+    {
+      "id": "9f7d32a2-5336-4278-bf47-dab480ad46e5",
+      "version": "26",
+      "uploadedDate": "2026-10-07T13:09:11-07:00",
+      "expirationDate": "2027-01-05T12:09:11-08:00",
+      "expired": false,
+      "minOsVersion": "17.0",
+      "lsMinimumSystemVersion": null,
+      "computedMinMacOsVersion": "14.0",
+      "computedMinVisionOsVersion": "1.0",
+      "iconAssetToken": {
+        "templateUrl": "https://is1-ssl.mzstatic.com/image/thumb/Purple221/v4/f6/66/cb/f666cbd6-970f-2be5-e8c2-7a304c2d577b/AppIcon60x60@2x.png/{w}x{h}bb.{f}",
+        "width": 120,
+        "height": 120
+      },
+      "processingState": "VALID",
+      "buildAudienceType": "APP_STORE_ELIGIBLE",
+      "usesNonExemptEncryption": false,
+      "marketingVersion": "1.0",
+      "betaDetail": {
+        "autoNotifyEnabled": true,
+        "internalBuildState": "IN_BETA_TESTING",
+        "externalBuildState": "READY_FOR_BETA_SUBMISSION"
+      }
+    }
+  ],
+  "internalGroups": [
+    {
+      "id": "bf165450-034a-437d-b7f7-028bf3d57a5b",
+      "publicLinkLimit": null,
+      "iosBuildsAvailableForAppleSiliconMac": true,
+      "createdDate": "2026-09-04T02:55:32.94Z",
+      "publicLinkEnabled": null,
+      "publicLink": null,
+      "hasAccessToAllBuilds": true,
+      "publicLinkId": null,
+      "isInternalGroup": true,
+      "name": "Internal",
+      "feedbackEnabled": true,
+      "publicLinkLimitEnabled": null,
+      "iosBuildsAvailableForAppleVision": true,
+      "testers": [
+        {
+          "id": "a8ee9090-8182-4804-b5f9-eead9c032495",
+          "firstName": "Alex",
+          "lastName": "Chandler"
+        }
+      ]
+    }
+  ],
+  "distributionProfiles": [
+    {
+      "id": "FKY3A9256J",
+      "name": "Empires App Store 20261004",
+      "profileState": "ACTIVE",
+      "profileType": "IOS_APP_STORE",
+      "expirationDate": "2027-01-25T20:55:57.000+00:00"
+    }
+  ]
+}

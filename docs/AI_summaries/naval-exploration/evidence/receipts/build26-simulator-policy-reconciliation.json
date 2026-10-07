@@ -1,0 +1,187 @@
+{
+  "verifiedAtUTC": "2026-10-07T18:21:13.591723+00:00",
+  "workspace": "/Users/alex/.codex/worktrees/naval24-main-integration/Settlers",
+  "baselineHead": "1e026fb70d12850a9aa5dfd1cc28da38fad74b7a",
+  "originalPolicyPR": 58,
+  "originalPolicyHead": "2a1ee9a9edd294cee60a6f5ee58c3f5d74fd461d",
+  "canonicalReference": ".claude/skills/run-settlers/references/simulator-lifecycle.md",
+  "scope": "Five existing documentation files and one new shared reference only; no source/process/build/native/commit/push/merge/close operation.",
+  "policy": {
+    "sharedBootedDeviceLimit": 3,
+    "includesAllEmpiresWorktreesAndTestClones": true,
+    "hostAllocationLock": "$HOME/Library/Caches/empires-simulator-allocation.lock",
+    "deleteRetention": "Strictly more than 48 hours since latest credible actual activity; confirm disposable task ownership and no live task/user/build/test claim.",
+    "gateDefault": 1,
+    "serialDirectNativeTestsPreserved": true,
+    "otherProjectsAndUncertainDevicesProtected": true,
+    "blanketCleanupProhibited": true,
+    "allocationLockDoesNotClaimWrapperEnforcement": true
+  },
+  "validation": {
+    "skills": {
+      ".claude/skills/run-settlers/SKILL.md": {
+        "quickValidateExit": 0,
+        "message": "Skill is valid!",
+        "frontmatterPreserved": true
+      },
+      ".claude/skills/play-settlers/SKILL.md": {
+        "quickValidateExit": 0,
+        "message": "Skill is valid!",
+        "frontmatterPreserved": true
+      },
+      ".claude/skills/verify-settlers/SKILL.md": {
+        "quickValidateExit": 0,
+        "message": "Skill is valid!",
+        "frontmatterPreserved": true
+      },
+      ".claude/skills/ship-testflight/SKILL.md": {
+        "quickValidateExit": 0,
+        "message": "Skill is valid!",
+        "frontmatterPreserved": true
+      }
+    },
+    "localReferences": [
+      {
+        "file": ".claude/skills/run-settlers/SKILL.md",
+        "reference": "references/simulator-lifecycle.md"
+      },
+      {
+        "file": ".claude/skills/run-settlers/SKILL.md",
+        "reference": "#simulator-lifecycle"
+      },
+      {
+        "file": ".claude/skills/play-settlers/SKILL.md",
+        "reference": "../run-settlers/references/simulator-lifecycle.md"
+      },
+      {
+        "file": ".claude/skills/verify-settlers/SKILL.md",
+        "reference": "../run-settlers/references/simulator-lifecycle.md"
+      },
+      {
+        "file": ".claude/skills/ship-testflight/SKILL.md",
+        "reference": "../run-settlers/references/simulator-lifecycle.md"
+      },
+      {
+        "file": "CLAUDE.md",
+        "reference": ".claude/skills/run-settlers/references/simulator-lifecycle.md"
+      },
+      {
+        "file": "CLAUDE.md",
+        "reference": "docs/AI_summaries/2026-09-28-ghost-hoarding-and-rename.md"
+      }
+    ],
+    "bashSyntaxChecks": [
+      {
+        "file": ".claude/skills/run-settlers/SKILL.md",
+        "block": 0,
+        "exitCode": 0
+      },
+      {
+        "file": ".claude/skills/run-settlers/SKILL.md",
+        "block": 1,
+        "exitCode": 0
+      },
+      {
+        "file": ".claude/skills/run-settlers/SKILL.md",
+        "block": 2,
+        "exitCode": 0
+      },
+      {
+        "file": ".claude/skills/run-settlers/SKILL.md",
+        "block": 3,
+        "exitCode": 0
+      },
+      {
+        "file": ".claude/skills/run-settlers/SKILL.md",
+        "block": 4,
+        "exitCode": 0
+      },
+      {
+        "file": ".claude/skills/run-settlers/SKILL.md",
+        "block": 5,
+        "exitCode": 0
+      },
+      {
+        "file": ".claude/skills/play-settlers/SKILL.md",
+        "block": 0,
+        "exitCode": 0
+      },
+      {
+        "file": ".claude/skills/verify-settlers/SKILL.md",
+        "block": 0,
+        "exitCode": 0
+      },
+      {
+        "file": ".claude/skills/verify-settlers/SKILL.md",
+        "block": 1,
+        "exitCode": 0
+      },
+      {
+        "file": "CLAUDE.md",
+        "block": 0,
+        "exitCode": 0
+      },
+      {
+        "file": "CLAUDE.md",
+        "block": 1,
+        "exitCode": 0
+      },
+      {
+        "file": "CLAUDE.md",
+        "block": 2,
+        "exitCode": 0
+      },
+      {
+        "file": "CLAUDE.md",
+        "block": 3,
+        "exitCode": 2,
+        "qualification": "Unchanged preexisting illustrative feat/<thing> token is shell redirection; syntax passes after template substitution. No runtime command executed.",
+        "error": "/bin/bash: line 6: syntax error near unexpected token `newline'\n/bin/bash: line 6: `git -C \"<repo>\" branch -d feat/<thing>'\n",
+        "templateSubstitutionSyntaxExit": 0
+      },
+      {
+        "file": ".claude/skills/run-settlers/references/simulator-lifecycle.md",
+        "block": 0,
+        "exitCode": 0
+      }
+    ],
+    "gitDiffCheckExit": 0,
+    "gitleaksExit": 0,
+    "build25QALaunchFlagsAndAllSubsequentRunGuidanceBytePreserved": true,
+    "shipVerifiedAccountAndSigningGuidanceBytePreserved": true,
+    "defaultHomebrewPythonQuickValidatorAttempt": "Missing PyYAML; retried all four successfully with existing Anaconda Python/PyYAML6.0; no install performed.",
+    "initialBashValidationAttempt": "Detected unchanged CLAUDE illustrative feat/<thing> placeholder; qualified baseline rather than silently report raw success."
+  },
+  "files": [
+    {
+      "path": ".claude/skills/run-settlers/SKILL.md",
+      "sha256": "e0646a5abf8aebe7a6275e7b685406f7e4a6e36c555e78314b773e2658ee77fc",
+      "bytes": 36699
+    },
+    {
+      "path": ".claude/skills/play-settlers/SKILL.md",
+      "sha256": "e0fe086baef685d9254e5caaf6e79c17ad3153d2347117b69233ce7c04682966",
+      "bytes": 3792
+    },
+    {
+      "path": ".claude/skills/verify-settlers/SKILL.md",
+      "sha256": "729a11a85996e616fe0b2c20478f34f7b35371c7685702bcf968b9d67379eedb",
+      "bytes": 17080
+    },
+    {
+      "path": ".claude/skills/ship-testflight/SKILL.md",
+      "sha256": "485985ffe146ff2ba49c773e899ddd78d713e33439fcfbd756b5a7832a60caeb",
+      "bytes": 4514
+    },
+    {
+      "path": "CLAUDE.md",
+      "sha256": "15875abe4959f3d29538a700351dd8265627b8bbc65db8487dddd154f54fcccf",
+      "bytes": 36583
+    },
+    {
+      "path": ".claude/skills/run-settlers/references/simulator-lifecycle.md",
+      "sha256": "fdc8e08d25c9da9cae3008306d6cfe1d5749512ee0f8d44f3ce41b08625c9435",
+      "bytes": 7461
+    }
+  ]
+}

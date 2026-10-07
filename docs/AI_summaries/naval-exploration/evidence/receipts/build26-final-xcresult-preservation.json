@@ -1,0 +1,17 @@
+{
+  "startedAtUTC": "2026-10-07T19:56:47.106162+00:00",
+  "finishedAtUTC": "2026-10-07T19:56:49.274262+00:00",
+  "productionSourceSHA": "e13d4a1cac8930063ee89438207a5da56f215e26",
+  "testedHeadSHA": "f1b9b1442defadc5ce7f9d45eb012e4858765a32",
+  "version": "1.0",
+  "build": "26",
+  "sourcePath": "/Users/alex/Library/Developer/Xcode/DerivedData/Settlers-ehpkozivxiwhkjbrsccrribfgemp/Logs/Test/Test-Settlers-2026.10.07_14-45-42--0400.xcresult",
+  "durablePath": "/Users/alex/.codex/artifacts/naval-exploration/build26-monopoly-counts/final-prepush-gate.xcresult",
+  "files": 3540,
+  "totalBytes": 591703721,
+  "fullFileHashesMatch": true,
+  "treeDigestSHA256": "7657343d8a05b68794715902789d514a40fa21a770b92a608a5d05fac0531f62",
+  "copiedResultSummaryReadbackExitCode": 0,
+  "copiedResultSummaryEqualsFinalGate": true,
+  "readbackVerifiedAtUTC": "2026-10-07T20:09:35.616953+00:00"
+}

@@ -1,0 +1,217 @@
+{
+  "copiedAtUTC": "2026-10-07T20:23:57.999170+00:00",
+  "filesUnmodified": true,
+  "receipts": [
+    {
+      "source": "/Users/alex/.codex/artifacts/naval-exploration/build26-monopoly-counts/final-production-inputs.json",
+      "file": "build26-final-production-inputs.json",
+      "sha256": "a5b0c954e47bb962e740620ea3cac334d1e76c058de577ca82e53cf4bc615143",
+      "bytes": 62862
+    },
+    {
+      "source": "/Users/alex/.codex/artifacts/naval-exploration/build26-monopoly-counts/engine-ai-source-equivalence.json",
+      "file": "build26-engine-ai-source-equivalence.json",
+      "sha256": "325889c797382baec1525e361ec0d856da256d7421be4caefafba55eb4ecd2fa",
+      "bytes": 19872
+    },
+    {
+      "source": "/Users/alex/.codex/artifacts/naval-exploration/build26-monopoly-counts/focused-command.json",
+      "file": "build26-focused-command.json",
+      "sha256": "52bc4262727b8e95369df20d7df6b3c8fa158ea2dc8e84577c1919afec1f846a",
+      "bytes": 1108
+    },
+    {
+      "source": "/Users/alex/.codex/artifacts/naval-exploration/build26-monopoly-counts/focused-summary.json",
+      "file": "build26-focused-summary.json",
+      "sha256": "6f49ce71dafb9f7c2f4c97f3b528040a875f3d1a56e26af5749a4cc5535c975c",
+      "bytes": 1225
+    },
+    {
+      "source": "/Users/alex/.codex/artifacts/naval-exploration/build26-monopoly-counts/focused-root-review.json",
+      "file": "build26-focused-root-review.json",
+      "sha256": "b2fe0c8ba7e1b2aa1409aaca95ac7eca9b4e40ddb05f864d7289aa020fc3a4ce",
+      "bytes": 10433
+    },
+    {
+      "source": "/Users/alex/.codex/artifacts/naval-exploration/build26-monopoly-counts/final-candidate-audit.json",
+      "file": "build26-final-candidate-audit.json",
+      "sha256": "61e88804b42d6dae3541e3663db20d041ea3a79c04d34deddc7a10738cded269",
+      "bytes": 8367
+    },
+    {
+      "source": "/Users/alex/.codex/artifacts/naval-exploration/build26-monopoly-counts/final-prepush-command.json",
+      "file": "build26-final-prepush-command.json",
+      "sha256": "469f80b35e8a838d30519a7ffa6f7d6d465c24df33020159ed96b5e17e99c249",
+      "bytes": 577
+    },
+    {
+      "source": "/Users/alex/.codex/artifacts/naval-exploration/build26-monopoly-counts/final-prepush-gate.log",
+      "file": "build26-final-prepush-gate.log",
+      "sha256": "56877570345b8400e594e311a350a9f83886a8c2e73938d1b365eaa480d7c32d",
+      "bytes": 281539
+    },
+    {
+      "source": "/Users/alex/.codex/artifacts/naval-exploration/build26-monopoly-counts/final-native-summary.json",
+      "file": "build26-final-native-summary.json",
+      "sha256": "941fb9e1110020a65fae197b7e85609aebbf8e3f5351cf7806db6a24b1e3b103",
+      "bytes": 1422
+    },
+    {
+      "source": "/Users/alex/.codex/artifacts/naval-exploration/build26-monopoly-counts/final-gallery-export-manifest.json",
+      "file": "build26-final-gallery-export-manifest.json",
+      "sha256": "1e6efbd897533dc4de502b9380cc8ad406a566b422379f21d7b80d5bea3f2a05",
+      "bytes": 10195
+    },
+    {
+      "source": "/Users/alex/.codex/artifacts/naval-exploration/build26-monopoly-counts/final-gallery-root-review.json",
+      "file": "build26-final-gallery-root-review.json",
+      "sha256": "e0cdf1f9ac0322bf1abc1a7476d8878fb6aff41b4409d313654e25314e685f7d",
+      "bytes": 11996
+    },
+    {
+      "source": "/Users/alex/.codex/artifacts/naval-exploration/build26-monopoly-counts/main-integration-preflight.json",
+      "file": "build26-main-integration-preflight.json",
+      "sha256": "af6c933910bc0f918f23280b9cb7f16099ba96666f1bf073bca1d9bb4da1db7b",
+      "bytes": 446
+    },
+    {
+      "source": "/Users/alex/.codex/artifacts/naval-exploration/build26-monopoly-counts/release-preflight.json",
+      "file": "build26-release-preflight.json",
+      "sha256": "f4397bcd7d0dce1795b51985a59fa090ff34b45f312617d4995e55fa2a04a110",
+      "bytes": 3323
+    },
+    {
+      "source": "/Users/alex/.codex/artifacts/naval-exploration/build26-monopoly-counts/release-tool-audit.json",
+      "file": "build26-release-tool-audit.json",
+      "sha256": "aadd9d13aa3b6f1a39e5e264dc840d45304f786ff5842fb2613446e35a698b63",
+      "bytes": 1108
+    },
+    {
+      "source": "/Users/alex/.codex/artifacts/naval-exploration/build26-monopoly-counts/source-freeze-preflight.json",
+      "file": "build26-source-freeze-preflight.json",
+      "sha256": "7f43c9e470db702454b529ac265e65dc7737c49fb94dea4a378ee06b4398dfb0",
+      "bytes": 951
+    },
+    {
+      "source": "/Users/alex/.codex/artifacts/naval-exploration/pr-resolution-20261007/simulator-policy-reconciliation.json",
+      "file": "build26-simulator-policy-reconciliation.json",
+      "sha256": "3c99f814966877d65a5a1858849405bb24c9f74531e9f46b4a8b75b187d71163",
+      "bytes": 6298
+    },
+    {
+      "source": "/Users/alex/.codex/artifacts/naval-exploration/build26-monopoly-counts/release-runtime.json",
+      "file": "build26-release-runtime.json",
+      "sha256": "9e8bcab71036bb668881d9e964675d60c3ffb610183142d3782ec42819ca2b32",
+      "bytes": 1529
+    },
+    {
+      "source": "/Users/alex/.codex/artifacts/naval-exploration/build26-monopoly-counts/archive-command-receipt.json",
+      "file": "build26-archive-command-receipt.json",
+      "sha256": "181e49967cc8dd1ae6d663d88a67aa105326cd500c997769002c157e01a986b1",
+      "bytes": 1711
+    },
+    {
+      "source": "/Users/alex/.codex/artifacts/naval-exploration/build26-monopoly-counts/export-command-receipt.json",
+      "file": "build26-export-command-receipt.json",
+      "sha256": "94a9adeeb8e4aeeadfbff6f73cf13a206b842c0d68b06e70752354c9f572f8cc",
+      "bytes": 968
+    },
+    {
+      "source": "/Users/alex/.codex/artifacts/naval-exploration/build26-monopoly-counts/signed-export.json",
+      "file": "build26-signed-export.json",
+      "sha256": "f981edae92a1a4635f1ce1fbe04f48a1733938f7059d5e77441df7f7a60809d9",
+      "bytes": 1222
+    },
+    {
+      "source": "/Users/alex/.codex/artifacts/naval-exploration/build26-monopoly-counts/final-source-gate-audit.json",
+      "file": "build26-final-source-gate-audit.json",
+      "sha256": "bcb64b557b616fa1a5a2e881d6067599468ab72d319f0a9f61f961fa64e97c47",
+      "bytes": 9708
+    },
+    {
+      "source": "/Users/alex/.codex/artifacts/naval-exploration/build26-monopoly-counts/final-debug-gallery-root-review.json",
+      "file": "build26-final-debug-gallery-root-review.json",
+      "sha256": "a33cc60eba022fe9de4c8ab678974320e675d027b56bd3c430f9ec9ba0155350",
+      "bytes": 11467
+    },
+    {
+      "source": "/Users/alex/.codex/artifacts/naval-exploration/build26-monopoly-counts/uploaded-payload-signature.json",
+      "file": "build26-uploaded-payload-signature.json",
+      "sha256": "e195c95fdbb60514537853bbb0b58e32fb0b0e325a8dcc8808c6ebc54f9f515a",
+      "bytes": 1227
+    },
+    {
+      "source": "/Users/alex/.codex/artifacts/naval-exploration/build26-monopoly-counts/uploaded-payload-comparison.json",
+      "file": "build26-uploaded-payload-comparison.json",
+      "sha256": "52b799b7de0b1fc5d891171142a2c1d30e1b857afa5e69c8d4f949a9dfc8a4b2",
+      "bytes": 1144
+    },
+    {
+      "source": "/Users/alex/.codex/artifacts/naval-exploration/build26-monopoly-counts/upload-command-receipt.json",
+      "file": "build26-upload-command-receipt.json",
+      "sha256": "b82b4308e6402bbb09c223da5d8688a57f74d14fce781d6846bba7a7aa1a6ccf",
+      "bytes": 732
+    },
+    {
+      "source": "/Users/alex/.codex/artifacts/naval-exploration/build26-monopoly-counts/testflight.json",
+      "file": "build26-testflight.json",
+      "sha256": "06e95366bebdf42865cece191c92b0f90214c1371e4cddf581671d445d5f590d",
+      "bytes": 2412
+    },
+    {
+      "source": "/Users/alex/.codex/artifacts/naval-exploration/build26-monopoly-counts/simulator-finish-and-source-guard.json",
+      "file": "build26-simulator-finish-and-source-guard.json",
+      "sha256": "0ef4cb461a8728c1e7e8d05fdd7155308ec5b9e6d53223a79a0bac4cac796cd2",
+      "bytes": 1154
+    },
+    {
+      "source": "/Users/alex/.codex/artifacts/naval-exploration/build26-monopoly-counts/delivery-summary.json",
+      "file": "build26-delivery-summary.json",
+      "sha256": "794aa716d20e08000b82332a2a7aee59abb6fb68fead312c6a7a04d01e9b2867",
+      "bytes": 2748
+    },
+    {
+      "source": "/Users/alex/.codex/artifacts/naval-exploration/build26-monopoly-counts/final-independent-delivery-audit.json",
+      "file": "build26-final-independent-delivery-audit.json",
+      "sha256": "ca7aa2f3681111cd1561e330de9b7f93671da8283efb328085671173efd7248e",
+      "bytes": 1071
+    },
+    {
+      "source": "/Users/alex/.codex/artifacts/naval-exploration/build26-monopoly-counts/tested-head-github-ci.json",
+      "file": "build26-tested-head-github-ci.json",
+      "sha256": "7e1ec831adb50c70bc68d0062f17151ccadda8ee67e8041e05e888d70a111b87",
+      "bytes": 5524
+    },
+    {
+      "source": "/Users/alex/.codex/artifacts/naval-exploration/build26-monopoly-counts/final-xcresult-preservation.json",
+      "file": "build26-final-xcresult-preservation.json",
+      "sha256": "4c358320a80a03301268d147d7910c492e6b85c210e66ede3f91d1c0ab55ae3f",
+      "bytes": 882
+    },
+    {
+      "source": "/Users/alex/.codex/artifacts/naval-exploration/build26-monopoly-counts/final-independent-release-audit.json",
+      "file": "build26-final-independent-release-audit.json",
+      "sha256": "6ee4dac1840a39fe95b2ddef6f4757e2300f9747bd21d1723f5bda2369ca6117",
+      "bytes": 8842
+    },
+    {
+      "source": "/Users/alex/.codex/artifacts/naval-exploration/build26-monopoly-counts/independent-apple-readback.json",
+      "file": "build26-independent-apple-readback.json",
+      "sha256": "1dd499ffef5b7488f2801a88a7914acb66c776633da11fff94afe74e8b376ddf",
+      "bytes": 1954
+    },
+    {
+      "source": "/Users/alex/.codex/artifacts/naval-exploration/build26-monopoly-counts/independent-payload-runtime-audit.json",
+      "file": "build26-independent-payload-runtime-audit.json",
+      "sha256": "4f8870ad9bde26f44f40c4fe5915b003f934919ab8f8e82e3b5160c28ec7b64a",
+      "bytes": 3695
+    },
+    {
+      "source": "/Users/alex/.codex/artifacts/naval-exploration/build26-monopoly-counts/final-doc-validation.json",
+      "file": "build26-final-doc-validation.json",
+      "sha256": "beb5ee4b51fe59d248c8d165689d1ed6233f0a36e851d4dddfa82d13b66ff1fd",
+      "bytes": 232
+    }
+  ],
+  "galleryReviewHistory": "Source audit hashed the exact10-image Debug review before ordinary Release was appended. Those original bytes are retained in build26-final-debug-gallery-root-review.json; combined11-image review is separate."
+}

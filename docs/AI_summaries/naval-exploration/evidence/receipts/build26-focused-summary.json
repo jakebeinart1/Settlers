@@ -1,0 +1,47 @@
+{
+  "devicesAndConfigurations": [
+    {
+      "device": {
+        "architecture": "arm64",
+        "deviceId": "937692FF-BFBF-4683-80E5-2590F5288D56",
+        "deviceName": "Empires QA",
+        "modelName": "iPhone 17 Pro",
+        "osBuildNumber": "23F77",
+        "osVersion": "26.5",
+        "platform": "iOS Simulator"
+      },
+      "expectedFailures": 0,
+      "failedTests": 0,
+      "passedTests": 44,
+      "skippedTests": 0,
+      "testPlanConfiguration": {
+        "configurationId": "1",
+        "configurationName": "Test Scheme Action"
+      }
+    }
+  ],
+  "environmentDescription": "Settlers \u00b7 Built with macOS 26.5.1",
+  "expectedFailures": 0,
+  "failedTests": 0,
+  "finishTime": 1791397934.203,
+  "passedTests": 28,
+  "result": "Passed",
+  "skippedTests": 0,
+  "startTime": 1791397444.914,
+  "statistics": [
+    {
+      "subtitle": "20 test runs",
+      "title": "4 tests ran with dynamic parameters"
+    }
+  ],
+  "testFailures": [],
+  "title": "Test - Settlers",
+  "topInsights": [
+    {
+      "category": "Longest Test Runs",
+      "impact": "27% of duration",
+      "text": "1 longest test run with outlier durations exceeding 99.83s (three standard deviations)"
+    }
+  ],
+  "totalTestCount": 28
+}

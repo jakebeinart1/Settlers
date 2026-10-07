@@ -1,0 +1,27 @@
+{
+  "verifiedAtUTC": "2026-10-07T20:12:39.454325+00:00",
+  "version": "1.0",
+  "build": "26",
+  "productionSourceSHA": "e13d4a1cac8930063ee89438207a5da56f215e26",
+  "archiveHeadSHA": "f1b9b1442defadc5ce7f9d45eb012e4858765a32",
+  "currentCheckoutHeadSHA": "f1b9b1442defadc5ce7f9d45eb012e4858765a32",
+  "productionInputCount": 377,
+  "allFinalProductionInputHashesMatch": true,
+  "ownedSimulatorID": "937692FF-BFBF-4683-80E5-2590F5288D56",
+  "ownershipEvidence": [
+    "/Users/alex/.codex/artifacts/naval-exploration/build26-monopoly-counts/final-prepush-command.json",
+    "/Users/alex/.codex/artifacts/naval-exploration/build26-monopoly-counts/release-runtime.json"
+  ],
+  "finishReason": "All authorized native checks and exact Apple26 availability verification completed; root requires no further QA use.",
+  "terminateExitCode": 0,
+  "shutdownExitCode": 0,
+  "ownedSimulatorReadbackState": "Shutdown",
+  "totalDeviceCountBefore": 14,
+  "totalDeviceCountAfter": 14,
+  "bootedDeviceCountBefore": 3,
+  "bootedDeviceCountAfter": 2,
+  "otherDeviceStatesUnchanged": true,
+  "createdDevices": [],
+  "deletedDevices": [],
+  "sharedAllocationLockHeld": true
+}

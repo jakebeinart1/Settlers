@@ -1,13 +1,13 @@
 # Voyages design and implementation contract
 
-## Build 26 contract: Monopoly quantities
+## Build 26 contract: public collection counts, delivered
 
-D54/E31 show the publicly derived aggregate supply − bank − own hand as “to
-collect”; Plenty quantities are “in bank”. Zero stays legal and explained;
-missing/invalid stock stays unknown. Header/actions and the existing grid/theme
-remain intact. No private rival composition or engine/AI/schema change is added.
-[E31](acceptance.md#build-26-follow-up-e31-verification-in-progress) owns pending verification,
-delivery and agent-authorized PR disposition; old approval waits below are historical.
+D54 shows supply−bank−own as “to collect”, selected exact gain and explicit zero;
+Plenty says “in bank”, unknown stock stays unknown. The grid, art, pinned actions
+and existing legality remain. [E31](acceptance.md#build-26-follow-up-e31-delivered)
+verifies actual payouts, maximum text, full gate, eleven originals and internal
+Apple delivery. No rule, AI, persistence or private-composition change is added.
+Agent review governs PR disposition; older approval waits below are historical.
 
 ## Build 25 card addendum: verified for delivery
 

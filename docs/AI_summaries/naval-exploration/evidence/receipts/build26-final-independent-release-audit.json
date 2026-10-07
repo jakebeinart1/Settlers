@@ -1,0 +1,172 @@
+{
+  "verifiedAtUTC": "2026-10-07T20:21:51.241315+00:00",
+  "reviewer": "pr_resolution_audit",
+  "verdict": "PASS build 26 internal TestFlight delivery, signatures, preserved payload and cleanup; no blockers.",
+  "productionSourceSHA": "e13d4a1cac8930063ee89438207a5da56f215e26",
+  "testedArchiveHeadSHA": "f1b9b1442defadc5ce7f9d45eb012e4858765a32",
+  "version": "1.0",
+  "build": "26",
+  "sourceAndGate": {
+    "receipt": "final-source-gate-audit.json",
+    "all377CurrentFrozenTestedInputsMatch": true,
+    "all112PackagesMatchBuild25And24": true,
+    "mandatoryStagesPassed": 10,
+    "nativeFunctions": 768,
+    "passedFunctions": 767,
+    "failedFunctions": 0,
+    "skippedFunctions": 1,
+    "passingParameterizedRuns": 1542,
+    "soleSkip": "375\u00d7667 footer flow requires compact destination; actual QA is402\u00d7874.",
+    "testedHeadApplicableCI": "PASS Linux Engine/AI and SwiftLint; hosted workflow-dispatch drift SKIP, local drift PASS."
+  },
+  "runtimeAndGallery": {
+    "onDiskReleaseInfo1_0_26AndExecutableHashesMatchReceipt": true,
+    "observedSurvival": "Delivery/root recorded PID49545 alive6s without QA args or new owncrash; this auditor independently bound actualReleaseapp/screen bytes and inspected ordinarymenu.",
+    "physicalPhonePlayObserved": false,
+    "allCurrent11OriginalHashesEqual": true,
+    "rootReviewedDebug10Release1": true,
+    "independentReleaseMenuInspected": true,
+    "independentCountOriginalsInspected": 4,
+    "original10ReviewBytesPreserved": "/Users/alex/.codex/artifacts/naval-exploration/build26-monopoly-counts/final-debug-gallery-root-review.json",
+    "original10ReviewSHA256": "a33cc60eba022fe9de4c8ab678974320e675d027b56bd3c430f9ec9ba0155350",
+    "oldSourceAuditReferenceStillValid": true,
+    "current11ReviewSHA256": "e0cdf1f9ac0322bf1abc1a7476d8878fb6aff41b4409d313654e25314e685f7d"
+  },
+  "payload": {
+    "strictIndependentFreshExtractions": [
+      {
+        "receipt": "signed-export.json",
+        "ipaPath": "/Users/alex/.codex/artifacts/naval-exploration/build26-monopoly-counts/export/Settlers.ipa",
+        "ipaSHA256": "9cf2017c46f05c6f97bdf948e159dec548106bc4dfb78bff7228dfb73bce9a29",
+        "ipaMD5": "a2c1526e9a8272da6be3ade802ef6825",
+        "ipaBytes": 36313585,
+        "actualExecutableSHA256": "b1b237265cf28a21658bc3166ef18b6e12aa41c83aa962a3e4d0687ef18b8a96",
+        "strictDeepCodesignExit": 0,
+        "actualSignerLeafCertificateSHA1": "76465B06C2E157D857641F5B3D25CF5A3110C4A9",
+        "profileUUID": "86da5771-8640-4c53-8867-0b4fbd4f1035",
+        "profileExpiration": "2027-01-25T20:55:57+00:00",
+        "ProductionCloudKit": true,
+        "profileAndSignedEntitlementsExpected": true,
+        "freshTemporaryExtractionRemoved": true
+      },
+      {
+        "receipt": "uploaded-payload-signature.json",
+        "ipaPath": "/Users/alex/.codex/artifacts/naval-exploration/build26-monopoly-counts/Settlers-uploaded-26.ipa",
+        "ipaSHA256": "81bc6674970f56080f24295ca5c5535a8e48055e40dcc63d2728ea282db0f983",
+        "ipaMD5": "3eb9b75e358b124642ef2fb71d4be03f",
+        "ipaBytes": 36313582,
+        "actualExecutableSHA256": "95ad2d5d70f5484cb6803c837b80b42ef962343c8a0e6f833d5a0ae9bbf86d6a",
+        "strictDeepCodesignExit": 0,
+        "actualSignerLeafCertificateSHA1": "76465B06C2E157D857641F5B3D25CF5A3110C4A9",
+        "profileUUID": "86da5771-8640-4c53-8867-0b4fbd4f1035",
+        "profileExpiration": "2027-01-25T20:55:57+00:00",
+        "ProductionCloudKit": true,
+        "profileAndSignedEntitlementsExpected": true,
+        "freshTemporaryExtractionRemoved": true
+      }
+    ],
+    "allTemporaryExtractionsRemoved": true,
+    "equivalence": {
+      "zipEntryNames14Equal": true,
+      "onlyChangedMember": "Payload/Settlers.app/Settlers",
+      "signatureSpans": [
+        [
+          5907456,
+          31296
+        ],
+        [
+          5907456,
+          31296
+        ]
+      ],
+      "allBytesOutsideSignatureEqual": true,
+      "identicalExecutablePrefixBytes": 5907456,
+      "identicalExecutablePrefixSHA256": "abfc88a932142e78838607edfe91c5f05a60aaf87c6405f0a9cb99d8128a72e6"
+    },
+    "transport": {
+      "rawContentDeliveryMD5": "3EB9B75E358B124642EF2FB71D4BE03F",
+      "rawChecksumMatchesActualZIP": true,
+      "checksumOccurrences": 3,
+      "acceptedDeliveryUUID": "9f7d32a2-5336-4278-bf47-dab480ad46e5",
+      "completePayloadStatePresent": true,
+      "contentDeliveryLogSHA256": "1af875c39dbc4c1be5e45d99f1890964e746d335c251ad6d20852803be6d433b",
+      "rawCompleteJSONResponseParsedIndependently": true,
+      "rawResponseErrors": [],
+      "rawResponseWarnings": []
+    }
+  },
+  "apple": {
+    "independentFreshGETAtUTC": "2026-10-07T20:15:15.090Z",
+    "appID": "6808461623",
+    "buildID": "9f7d32a2-5336-4278-bf47-dab480ad46e5",
+    "marketingVersion": "1.0",
+    "build": "26",
+    "processingState": "VALID",
+    "expired": false,
+    "expirationDate": "2027-01-05T12:09:11-08:00",
+    "internalBuildState": "IN_BETA_TESTING",
+    "externalBuildState": "READY_FOR_BETA_SUBMISSION",
+    "intendedTesterID": "a8ee9090-8182-4804-b5f9-eead9c032495",
+    "internalAllBuildsGroupIDs": [
+      "bf165450-034a-437d-b7f7-028bf3d57a5b"
+    ],
+    "acceptedDeliveryUUIDEqualsExactAppleBuildID": true,
+    "externalReleasePerformed": false
+  },
+  "cleanup": {
+    "rawBeforeAfterSame14DeviceIDs": true,
+    "ownedQA": "937692FF-BFBF-4683-80E5-2590F5288D56",
+    "ownOnlyStateTransition": "Booted to Shutdown",
+    "allOtherRawDeviceStatesUnchanged": true,
+    "otherBootedDevicesPreserved": [
+      {
+        "udid": "0E64D113-01E5-49A6-BAB0-B1D796C00780",
+        "name": "Ferrule Dice Review",
+        "state": "Booted"
+      },
+      {
+        "udid": "90CFA3EF-5F06-4943-8940-89C2F524F00C",
+        "name": "Switchbard Small Owner Review 2a7e",
+        "state": "Booted"
+      }
+    ],
+    "shutdownExitCode": 0,
+    "createdOrDeletedDevices": false,
+    "allocationLockHeld": true,
+    "shutdownVerifiedAtUTC": "2026-10-07T20:12:39.454325+00:00",
+    "all377ProductionInputsStillMatchAfterCleanupIndependently": true
+  },
+  "approvalAndMerge": {
+    "agentReviewedReadySourceAndRelease": true,
+    "humanApprovalMinimumRemovedInSharedRule": true,
+    "PR60MergeAndPR58SupersededClosure": "Authorized root action remains after final metadata checks/current CI. This audit performs no GitHub mutation."
+  },
+  "claimLimits": [
+    "No physical-phone install or gameplay observed; internal TestFlight availability verified.",
+    "No external release performed.",
+    "No new AI-strength claim; unchanged packages retain earlier functional evidence.",
+    "The complete Naval match uses the production session/policy driver with natural card inspection checkpoints; all five types are separately exercised in fixtures.",
+    "Subsequent documentation publication and PR disposition are separate facts.",
+    "The earlier source-audit gallery binding points to exact preserved ten-image review; current review adds one independently inspected ordinary Release menu."
+  ],
+  "evidenceSHA256": {
+    "final-source-gate-audit.json": "bcb64b557b616fa1a5a2e881d6067599468ab72d319f0a9f61f961fa64e97c47",
+    "independent-payload-runtime-audit.json": "4f8870ad9bde26f44f40c4fe5915b003f934919ab8f8e82e3b5160c28ec7b64a",
+    "independent-apple-readback.json": "1dd499ffef5b7488f2801a88a7914acb66c776633da11fff94afe74e8b376ddf",
+    "testflight.json": "06e95366bebdf42865cece191c92b0f90214c1371e4cddf581671d445d5f590d",
+    "release-runtime.json": "9e8bcab71036bb668881d9e964675d60c3ffb610183142d3782ec42819ca2b32",
+    "final-debug-gallery-root-review.json": "a33cc60eba022fe9de4c8ab678974320e675d027b56bd3c430f9ec9ba0155350",
+    "final-gallery-root-review.json": "e0cdf1f9ac0322bf1abc1a7476d8878fb6aff41b4409d313654e25314e685f7d",
+    "signed-export.json": "f981edae92a1a4635f1ce1fbe04f48a1733938f7059d5e77441df7f7a60809d9",
+    "uploaded-payload-signature.json": "e195c95fdbb60514537853bbb0b58e32fb0b0e325a8dcc8808c6ebc54f9f515a",
+    "uploaded-payload-comparison.json": "52b799b7de0b1fc5d891171142a2c1d30e1b857afa5e69c8d4f949a9dfc8a4b2",
+    "archive-command-receipt.json": "181e49967cc8dd1ae6d663d88a67aa105326cd500c997769002c157e01a986b1",
+    "export-command-receipt.json": "94a9adeeb8e4aeeadfbff6f73cf13a206b842c0d68b06e70752354c9f572f8cc",
+    "upload-command-receipt.json": "b82b4308e6402bbb09c223da5d8688a57f74d14fce781d6846bba7a7aa1a6ccf",
+    "simulator-finish-and-source-guard.json": "0ef4cb461a8728c1e7e8d05fdd7155308ec5b9e6d53223a79a0bac4cac796cd2",
+    "simulator-finish-inventory-before.json": "0e871b809dcc94a1e49935fb1bfcce2ee90b771b48881754261fabc9e8798c74",
+    "simulator-finish-inventory-after.json": "d1708bbc0cc2728d1d4fb701ffefc15ec207ed81e237f30f5c3003c4452dccb4",
+    "tested-head-github-ci.json": "7e1ec831adb50c70bc68d0062f17151ccadda8ee67e8041e05e888d70a111b87"
+  },
+  "blockers": []
+}

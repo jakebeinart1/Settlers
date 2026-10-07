@@ -1,31 +1,76 @@
 # Voyages requirements and acceptance
 
-## Build 26 follow-up (E31): verification in progress
+## Build 26 follow-up (E31): delivered
 
-Alex requests a truthful Monopoly gain preview and resolution of every open
-Settlers PR. **D54** uses only public finite supply, bank stock and the owner's
-hand: collectible = supply − bank − own. Classic has 19 per resource,
-Expanded/Naval 38 and Vast 60. Each cell shows a number and “to collect”; the
-pinned Play action previews the selected gain. Plenty explicitly says “in bank”.
-A selected zero warns that the play collects nothing and stays legal. Missing
-or impossible legacy stock is unknown, never a fabricated zero. No individual
-rival composition, engine/AI change, save field or replay change is introduced.
+D54 fixes an omitted public quantity: Monopoly collects finite supply minus
+bank stock minus your own hand. Classic has 19 per resource, Expanded/Naval 38
+and Vast 60. Each choice shows “N to collect”; Play previews “Collect N Wool
+from rivals”. Zero remains legal with a plain warning. Missing/impossible legacy
+stock is unknown, never fabricated. Plenty explicitly says “in bank”. The
+adapter accepts only public inputs; no private rival composition, rule, AI,
+save field, replay or RNG behavior changes.
 
-Hosted cases compare public-only predictions with real payouts across modes,
-three/four seats, nonzero owners, masked Naval versions, sparse/invalid input
-and Conquest bank payments. Native journeys cover normal/maximum text,
-zero consumption and an empty-bank 38-card prediction and actual payout.
-Focused execution, original screenshot review and the fresh full gate remain
-in progress; build 25 is the current delivered binary.
+[Production](evidence/receipts/build26-final-production-inputs.json) freezes at
+`e13d4a1cac8930063ee89438207a5da56f215e26`, 1.0/build 26, 377 inputs. All
+[112 package inputs](evidence/receipts/build26-engine-ai-source-equivalence.json)
+match build 24/25, retaining 48 matches/six fresh-process byte repeats without
+an AI-strength claim. [Focused](evidence/receipts/build26-focused-summary.json)
+checks pass 28 functions/44 runs, zero failures/skips, including actual payouts,
+zero consumption, public masked equivalence, mode supplies and maximum text.
 
-Alex expressly delegates approval and merge decisions to the agent. The shared
-`~/.claude/rules/gitflow.md` no longer requires a human/GitHub approval. PR #58's
-unique simulator capacity/allocation/retention policy is retained through one
-canonical reference linked by four skills and CLAUDE. Current main's `bc11db4`
-document is incorporated as `746e56c`, preserving its bytes without rewriting
-published history. PR #60 will merge after new source checks and current CI;
-#58 will close as subsumed. No merge or closure is claimed yet. Historical
-“awaiting approval” statements below describe earlier snapshots only.
+The [full pre-push](evidence/receipts/build26-final-prepush-command.json) exits 0
+at `f1b9b1442defadc5ce7f9d45eb012e4858765a32`, all ten mandatory stages PASS.
+[Native](evidence/receipts/build26-final-native-summary.json): 768 functions,
+767 passed, zero failed, one skipped; 1,542 passing runs. The sole skip requires
+375×667 while QA is402×874. Hosted 588/83, Engine 391/31, AI 308/31;
+coverage 96.74%/96.05%. Release compiles; optional standalone Debug was not
+requested, while the native test action ran Debug. [Independent source audit](evidence/receipts/build26-final-source-gate-audit.json)
+reproduces the raw verdict, frozen inputs and exact current-main composite tree.
+[Source CI](evidence/receipts/build26-tested-head-github-ci.json) passes Linux
+Engine/AI and SwiftLint; hosted drift is workflow-dispatch-only SKIP and local
+mandatory drift passed. Later metadata CI is a separate run.
+
+Root reviews all 11 selected unchanged [originals](evidence/screenshots/build26-final-manifest.json):
+ten full-gate Debug captures plus the ordinary Release menu. Counts, zero warning,
+38-card prediction/receipt, pinned maximum-text actions and uniform disabled bank
+choices pass. The ordinary inspected match reaches Tokugawa 14 VP/human Alex 5 VP;
+natural Knight checkpoints are separate from conserved all-type fixtures.
+[Combined review](evidence/receipts/build26-final-gallery-root-review.json) adds
+Release to the exact [earlier Debug-only review](evidence/receipts/build26-final-debug-gallery-root-review.json),
+preserving the original source-audit hash. [Runtime](evidence/receipts/build26-release-runtime.json):
+fresh ordinary 1.0/26, no QA arguments, PID 49545 survives 6 seconds, no own new crash.
+Prior accessibility qualifications remain exact and narrow; no blanket audit
+or physical-phone-play claim is made.
+
+Archive/export/upload exit 0. [Strict signing](evidence/receipts/build26-signed-export.json)
+and the [actual payload](evidence/receipts/build26-uploaded-payload-signature.json)
+verify the existing leaf/profile and signed CloudKit Production. Actual IPA:
+36,313,582 bytes, SHA256 `81bc6674970f56080f24295ca5c5535a8e48055e40dcc63d2728ea282db0f983`,
+MD5 `3eb9b75e358b124642ef2fb71d4be03f`. [Comparison](evidence/receipts/build26-uploaded-payload-comparison.json)
+checks 14 ZIP entries, only executable signature differs from review export;
+5,907,456 prefix bytes match. ContentDelivery confirms MD5 three times and
+accepts UUID `9f7d32a2-5336-4278-bf47-dab480ad46e5`. [Apple](evidence/receipts/build26-testflight.json)
+at 20:11:04UTC confirms that exact 1.0/26 UUID VALID, unexpired until January 5, 2027,
+Internal IN_BETA_TESTING and Alex's exact all-build access. [Independent delivery](evidence/receipts/build26-final-independent-delivery-audit.json)
+agrees. No external release or physical installation/play is observed.
+
+[Finish/source guard](evidence/receipts/build26-simulator-finish-and-source-guard.json)
+records owned QA937 shutdown exit 0/readback Shutdown at 20:12:39UTC,14 devices
+retained, every other state unchanged, no create/delete and 377 matching inputs.
+The [retained policy](evidence/receipts/build26-simulator-policy-reconciliation.json)
+subsumes PR #58's shared maximum-three devices, allocation lock and >48-hour latest
+credible activity retention, preserving current flags/signing/default-one worker.
+Alex explicitly delegates approval/merge to the agent; canonical
+`~/.claude/rules/gitflow.md` removes a minimum human/GitHub approval. Dispositions:
+[PR #60](https://github.com/jakebeinart1/Settlers/pull/60) merges the verified integrated
+work; [PR #58](https://github.com/jakebeinart1/Settlers/pull/58) closes as subsumed after
+the retained policy lands. Live GitHub records own their final status. Main's
+`bc11db4` document is preserved via `746e56c`, and the clean composed tree equals
+the fully gated tree. All build 25 and earlier approval waits below are historical.
+
+[Final independent release audit](evidence/receipts/build26-final-independent-release-audit.json)
+passes strict signatures, actual uploaded bytes, fresh Apple access and raw
+individual cleanup inventories, with no blockers.
 
 ## Build 25 follow-up (E30): delivered
 

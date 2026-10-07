@@ -1,13 +1,15 @@
 # Naval integration with the current phone release
 
-## Build 26 compatibility: presentation follow-up
+## Build 26 compatibility: delivered
 
-Public Monopoly gain previews and explicit bank/rival quantities add no rule,
-AI policy, save field, schema version or RNG use. Current main's document-only
-`bc11db4` is retained through `746e56c`; PR #58's unique lifecycle policy is
-reconciled without replacing current flags/signing or serial default-one tests.
-[E31](acceptance.md#build-26-follow-up-e31-verification-in-progress) owns fresh pending checks and
-agent-authorized merge/closure. Earlier approval waits are historical only.
+Public-only Monopoly previews add no rule/AI/save/schema/RNG changes. All112
+package inputs retain build 24/25 behavior and functional evidence. Sourcee13,
+tested/archive `f1` and 377 inputs bind the new UI, full gate and Apple26 delivery
+in [E31](acceptance.md#build-26-follow-up-e31-delivered). Current main's document-only
+bc11 is byte-preserved, with a clean composite tree equal to the gated tree.
+PR #58's unique lifecycle policy is retained without replacing flags/signing or
+serial default-one tests. Agent approval governs ready PRs; earlier waits are
+historical. Current GitHub records own actual merge/closure state.
 
 ## Build 25 compatibility: delivered
 

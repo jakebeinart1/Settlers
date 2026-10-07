@@ -1,12 +1,22 @@
 # Voyages visual and motion review
 
-## Build 26 count review: pending original captures
+## Build 26 count review: final originals approved
 
 Monopoly's existing resource grid now shows public combined rival quantities,
 selected gain and explicit zero outcomes; Plenty labels its own bank stock.
-Normal/maximum-text and real payout captures will receive original-pixel review
-under [E31](../acceptance.md#build-26-follow-up-e31-verification-in-progress). Build 25 captures
-below remain exact historical evidence. Agent approval now governs PR disposition.
+Ten final-gate Debug originals plus the ordinary Release menu pass root original-pixel review, with exact
+[portable provenance](screenshots/build26-final-manifest.json). Normal/maximum-text
+counts, zero warnings, pinned actions, explicit bank labels, uniform disabled
+choices and the actual 38-card receipt are verified. The ordinary inspected
+match finishes at 14 points. Fresh ordinary Release 1.0/26 survives six seconds without a new own crash; its
+[menu](screenshots/build26-release-menu.png) passes root original-pixel review
+under [E31](../acceptance.md#build-26-follow-up-e31-delivered). Build25 captures
+below remain exact historical evidence. Full gate, exact Apple26 delivery and
+owned-QA cleanup pass. Agent approval now governs PR disposition.
+
+- [Monopoly gain preview](screenshots/build26-monopoly-positive-selected.png) and [zero warning](screenshots/build26-monopoly-zero-warning.png).
+- [Largest-text selected gain](screenshots/build26-monopoly-largest-positive-selected.png) and [actual receipt](screenshots/build26-monopoly-largest-result.png).
+- [Explicit bank supply](screenshots/build26-plenty-normal.png), [disabled choices](screenshots/build26-plenty-mixed-picked.png) and [actual winner](screenshots/build26-natural-match-winner.png).
 
 ## Build 25 final-source gallery: local review verified
 

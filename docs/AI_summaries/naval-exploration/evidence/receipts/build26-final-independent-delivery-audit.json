@@ -1,0 +1,20 @@
+{
+  "verifiedAtUTC": "2026-10-07T20:14:16.714752+00:00",
+  "auditor": "/root/build23_delivery/build26_release_tool_audit",
+  "verdict": "PASS",
+  "blockers": [],
+  "productionSourceSHA": "e13d4a1cac8930063ee89438207a5da56f215e26",
+  "archiveHeadSHA": "f1b9b1442defadc5ce7f9d45eb012e4858765a32",
+  "productionInputCount": 377,
+  "actualPayloadSHA256": "81bc6674970f56080f24295ca5c5535a8e48055e40dcc63d2728ea282db0f983",
+  "actualPayloadMD5": "3eb9b75e358b124642ef2fb71d4be03f",
+  "zipEntryCount": 14,
+  "onlyExecutableSignatureDiffers": true,
+  "identicalExecutablePrefixBytes": 5907456,
+  "acceptedDeliveryID": "9f7d32a2-5336-4278-bf47-dab480ad46e5",
+  "appleExact26ValidUnexpiredInternalAlexAccessConfirmed": true,
+  "independentAppleReceipt": "/Users/alex/.codex/artifacts/naval-exploration/build26-monopoly-counts/independent-apple-audit-20261007T201034Z.json",
+  "independentAppleReceiptSHA256": "626a32366799f531d096c8d5666bb9428357c617b1bb100925f0c0ec3a693b69",
+  "currentExecutedHelperHashesMatchBinding": true,
+  "additionalReleaseOrNativeOperationsRun": false
+}

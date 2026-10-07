@@ -1,0 +1,17 @@
+{
+  "productionSourceSHA": "e13d4a1cac8930063ee89438207a5da56f215e26",
+  "archiveHeadSHA": "f1b9b1442defadc5ce7f9d45eb012e4858765a32",
+  "productionInputCount": 377,
+  "version": "1.0",
+  "build": "26",
+  "xcodebuildExitCode": 0,
+  "actualStagedPayloadPreserved": true,
+  "capture": {
+    "originalStagedPath": "/var/folders/_m/cfbn0s7j7zx3sx1lwv6w4mr80000gn/T/XcodeDistPipeline.~~~kfUHxR/Packages/Settlers.ipa",
+    "durableUploadedIPAPath": "/Users/alex/.codex/artifacts/naval-exploration/build26-monopoly-counts/Settlers-uploaded-26.ipa",
+    "bytes": 36313582,
+    "sha256": "81bc6674970f56080f24295ca5c5535a8e48055e40dcc63d2728ea282db0f983",
+    "md5": "3eb9b75e358b124642ef2fb71d4be03f",
+    "completeZIPCRCCheck": true
+  }
+}

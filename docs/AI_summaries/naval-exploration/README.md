@@ -1,12 +1,14 @@
 # Naval exploration product program
 
-## Build 26 Monopoly follow-up: verification in progress
+## Build 26 Monopoly follow-up: delivered
 
-[E31](acceptance.md#build-26-follow-up-e31-verification-in-progress) adds public-only
-collectible counts and selected-gain previews, while keeping bank supply distinct.
-New source verification and phone delivery are pending. Alex delegates approval
-to the agent: retain PR #58's unique simulator policy, merge ready #60 and close
-superseded #58. Earlier approval-pending statements below are historical snapshots.
+[E31](acceptance.md#build-26-follow-up-e31-delivered) adds exact public collectible
+counts, selected-gain previews and explicit bank/rival quantities without rule,
+AI or save changes. Full gate,11 original reviews, ordinary Release, strict signed
+payload, Apple26/Alex internal access and owned-QA cleanup pass. Agent review
+now supplies approval: PR #60 integrates verified work; PR #58 is subsumed after its
+unique simulator safeguards are retained. Live GitHub records own final status;
+older approval-pending statements below are historical snapshots.
 
 ## Build 25 card follow-up: delivered, October 7
 

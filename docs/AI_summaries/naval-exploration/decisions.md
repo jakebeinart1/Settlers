@@ -1,18 +1,15 @@
 # Naval design decisions
 
-## Build 26 decision D54: public Monopoly collection preview
+## Build 26 decision D54: public Monopoly gain, delivered
 
-The user correctly identifies a publicly computable quantity omitted in D53:
-finite resource supply minus public bank stock minus the owner's own cards is
-the combined rival holding. D54 displays that exact new gain as “N to collect”,
-with “Collect N Wool from rivals” on Play and a plain zero-gain explanation.
-Typed bank/rival quantities prevent Plenty's “in bank” label from being reused
-for Monopoly. Missing/invalid legacy stock remains unknown. The adapter accepts
-only public inputs; it cannot inspect individual rival resources.
-
-This changes presentation, not Monopoly legality or privacy. [E31](acceptance.md#build-26-follow-up-e31-verification-in-progress)
-tracks new verification/delivery. Alex authorizes agent review and merge without
-a human-approval minimum; earlier approval-pending snapshots below are historical.
+D54 corrects D53's omitted publicly derivable quantity: finite supply minus bank
+minus your own cards is the combined rival holding. Choices show “N to collect”,
+Play previews the exact gain and zero is plainly explained while staying legal.
+Typed quantities distinguish Plenty's bank supply; missing/invalid stock remains
+unknown. No private rival composition or rule/AI/schema change is added.
+[E31](acceptance.md#build-26-follow-up-e31-delivered) binds all verification, eleven
+reviewed originals and exact Apple26 delivery. Alex delegates approval and PR
+resolution to the agent; earlier human-approval waits below are historical.
 
 ## Build 25 card decisions: selected, verified for delivery
 
