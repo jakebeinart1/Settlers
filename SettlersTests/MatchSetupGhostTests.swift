@@ -93,4 +93,34 @@ import Testing
         setup.resize(to: 4, preferredName: "Jake", preferredCivilization: .greece)
         #expect(setup.seats.map(\.isHuman) == [true, false, false, false])
     }
+
+    @Test(arguments: [false, true])
+    func navalGhostIdentitiesAreRejectedAtTheSavedMatchBoundary(profileOnly: Bool) throws {
+        var setup = table()
+        setup.mode = .naval
+        setup.victoryPointTarget = 14
+        for index in setup.seats.indices {
+            let civilization = Civilization.allCases[index]
+            setup.seats[index].civilization = civilization
+            if !setup.seats[index].isHuman {
+                setup.seats[index].opponentProfile = .forCivilization(civilization)
+            }
+        }
+        if profileOnly {
+            setup.seats[2].opponentProfile = OpponentProfile(
+                id: OpponentProfile.ghostProfilePrefix + "jake", name: "Jake's Ghost",
+                civilization: setup.seats[2].civilization!, strategy: .balanced)
+        } else {
+            setup.seats[2].ghostID = "jake"
+        }
+        #expect(setup.matchProblem == "Ghosts play Classic only.")
+        #expect(setup.realizedIdentityProblem == "Ghosts play Classic only.")
+        let state = Naval.newGame(seed: 7, playerCount: 4, options: setup.navalOptions)
+        let match = MatchCheckpoint(id: UUID(), initialState: state, setup: setup)
+        #expect(throws: MatchCheckpointStore.StoreError.invalidSetup) { try match.validateHistory() }
+        setup.mode = .classic
+        setup.victoryPointTarget = 10
+        #expect(setup.matchProblem == nil, "Existing Classic ghost matches must remain resumable")
+        #expect(setup.realizedIdentityProblem == nil)
+    }
 }

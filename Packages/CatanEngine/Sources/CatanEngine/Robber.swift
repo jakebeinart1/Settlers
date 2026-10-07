@@ -28,6 +28,7 @@ public enum Robber {
         to state: inout GameState
     ) throws -> Resource? {
         guard state.board.tiles.contains(where: { $0.coordinate == robberTo }),
+              state.naval == nil || Naval.isKnownLand(robberTo, in: state),
               robberTo != state.board.robberTile,
               let thiefIndex = state.players.firstIndex(where: { $0.id == player }) else {
             throw MoveError.illegalPlacement

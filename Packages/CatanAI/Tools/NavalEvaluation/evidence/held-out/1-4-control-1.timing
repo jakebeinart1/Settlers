@@ -1,0 +1,8 @@
+naval-sim seed=801000 decisions=1035 p95=6.041ms p99=21.386ms over50=0 over150=0
+naval-sim seed=801001 decisions=703 p95=4.333ms p99=17.640ms over50=0 over150=0
+naval-sim rejection evidence: /var/folders/_m/cfbn0s7j7zx3sx1lwv6w4mr80000gn/T/naval-sim-failures/801002-4-1-control-archipelago-true-false
+naval-sim seed=801002 decisions=670 p95=7.865ms p99=23.041ms over50=0 over150=0
+naval-sim seed=801003 decisions=722 p95=11.125ms p99=33.205ms over50=0 over150=0
+naval-sim seed=801004 decisions=406 p95=5.264ms p99=23.880ms over50=0 over150=0
+naval-sim seed=801005 decisions=865 p95=5.613ms p99=42.494ms over50=3 over150=0
+naval-sim seed=801006 decisions=814 p95=5.443ms p99=26.364ms over50=0 over150=0

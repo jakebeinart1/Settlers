@@ -1,0 +1,14 @@
+{
+  "platform": "macOS-26.5.1-arm64-arm-64bit-Mach-O",
+  "pythonVersion": "3.14.7",
+  "pythonExecutable": "/opt/homebrew/opt/python@3.14/bin/python3.14",
+  "swiftVersion": "Apple Swift version 6.3.2 (swiftlang-6.3.2.1.108 clang-2100.1.1.101)\nTarget: arm64-apple-macosx26.0",
+  "physicalCPU": 18,
+  "logicalCPU": 18,
+  "memoryBytes": 51539607552,
+  "confirmationWorkers": 8,
+  "uncontendedLatencyWorkers": 1,
+  "uncontendedLatencyRoster": "all Expert, balanced personalities, all12development cells at3/4 seats",
+  "latencyScope": "GameSession.decideNextDetailed only; engine apply, JSON checkpoint validation, UI and physical phone excluded",
+  "physicalPhoneMeasured": false
+}

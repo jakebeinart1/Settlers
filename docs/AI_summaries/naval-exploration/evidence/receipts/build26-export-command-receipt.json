@@ -1,0 +1,26 @@
+{
+  "productionSourceSHA": "e13d4a1cac8930063ee89438207a5da56f215e26",
+  "archiveHeadSHA": "f1b9b1442defadc5ce7f9d45eb012e4858765a32",
+  "version": "1.0",
+  "build": "26",
+  "productionInputCount": 377,
+  "startedAtUTC": "2026-10-07T20:06:11.576178+00:00",
+  "command": [
+    "xcodebuild",
+    "-exportArchive",
+    "-archivePath",
+    "/Users/alex/.codex/artifacts/naval-exploration/build26-monopoly-counts/Empires-26.xcarchive",
+    "-exportPath",
+    "/Users/alex/.codex/artifacts/naval-exploration/build26-monopoly-counts/export",
+    "-exportOptionsPlist",
+    "/Users/alex/.codex/artifacts/naval-exploration/build26-monopoly-counts/ExportOptions.plist",
+    "-authenticationKeyPath",
+    "/Users/alex/.appstoreconnect/private_keys/AuthKey_R7AQ2QHN3X.p8",
+    "-authenticationKeyID",
+    "R7AQ2QHN3X",
+    "-authenticationKeyIssuerID",
+    "e02eba85-9a60-477a-b3f3-c4d86bbc598d"
+  ],
+  "exportExitCode": 0,
+  "finishedAtUTC": "2026-10-07T20:06:22.287204+00:00"
+}

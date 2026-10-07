@@ -1,0 +1,451 @@
+{
+  "productionSourceSHA": "1cf1c0fde5904aa1cbeae9320cae55afb9bdfcd0",
+  "packageSourceFileCount": 111,
+  "allCurrentFilesMatchFrozenCommit": true,
+  "files": [
+    {
+      "path": "Packages/CatanAI/Package.swift",
+      "sha256": "33be561b50476e48eb84402c5db73b5ca9c9a29a00784366bddc4db3ff0593d3"
+    },
+    {
+      "path": "Packages/CatanAI/Sources/CatanAI/Bot.swift",
+      "sha256": "091fdbad302182f463e740e3888564d5de67d117b6d519a59c0061fddcffb6a2"
+    },
+    {
+      "path": "Packages/CatanAI/Sources/CatanAI/BotPersonality.swift",
+      "sha256": "f82c27cd8949f52132b80a3b44bb941fc857f67ea3e270c21cc4c9d485c9d2ff"
+    },
+    {
+      "path": "Packages/CatanAI/Sources/CatanAI/BotWeights.swift",
+      "sha256": "996b67fbe1ed3541463a4434eea28db9b52986c2c2956e9379b823e054d0270b"
+    },
+    {
+      "path": "Packages/CatanAI/Sources/CatanAI/BuildPlanner.swift",
+      "sha256": "b9095624f350f61328ef82c7ca7ce9cd1fd90141d808fb12116827cca9b5c890"
+    },
+    {
+      "path": "Packages/CatanAI/Sources/CatanAI/CatanAI.swift",
+      "sha256": "91432e413467b9fab0e12030e88838e4217430529005a3a7d4da0b930aa1ba20"
+    },
+    {
+      "path": "Packages/CatanAI/Sources/CatanAI/ConquestHeuristics.swift",
+      "sha256": "ad2962f03f67d97cb16dfb8761878c27674e262c23588129b0174709f1bc5ac8"
+    },
+    {
+      "path": "Packages/CatanAI/Sources/CatanAI/DevCardHeuristics.swift",
+      "sha256": "b5013672c759813793c2e3ac5a147dc531cff13bc626f5d6a3c62bd7d618adec"
+    },
+    {
+      "path": "Packages/CatanAI/Sources/CatanAI/Evaluation/BoardIndex.swift",
+      "sha256": "86c95e996110e4d4f9ede4ab1dcbc49f31705218f9d2454bcb0a6a40c9139f05"
+    },
+    {
+      "path": "Packages/CatanAI/Sources/CatanAI/Evaluation/EvaluationPolicy.swift",
+      "sha256": "3a5a2398368db19fa04f1641f5326de94b69ca825d2590beb565cc0f4aa2604f"
+    },
+    {
+      "path": "Packages/CatanAI/Sources/CatanAI/Evaluation/EvaluationProjections.swift",
+      "sha256": "56e87c6fca9c22846dfac16d076d42b3a4eab8d35b16dbf9886279b840a26a3b"
+    },
+    {
+      "path": "Packages/CatanAI/Sources/CatanAI/Evaluation/EvaluationWeights.swift",
+      "sha256": "4b224a4b12b3b0552a2e44ec6a3114de086cc3d25294b7e9802465b28d6decc3"
+    },
+    {
+      "path": "Packages/CatanAI/Sources/CatanAI/Evaluation/ExpertRevision.swift",
+      "sha256": "e1e1d0029ca51c384053ad89351fdd7a7667084586a12207dc94c43696bac58b"
+    },
+    {
+      "path": "Packages/CatanAI/Sources/CatanAI/Evaluation/HandDiscipline.swift",
+      "sha256": "de882d40c4bc6aef265ffa0dd0536755582b3b6df5aaa51be153010982e89f7d"
+    },
+    {
+      "path": "Packages/CatanAI/Sources/CatanAI/Evaluation/PointCompletingCards.swift",
+      "sha256": "eee84219a87e9536697a566e0f839a3b549990ce3b5263d08e76dda5fd6aea19"
+    },
+    {
+      "path": "Packages/CatanAI/Sources/CatanAI/Evaluation/PositionEvaluator.swift",
+      "sha256": "b4d966f0e3919e02365709044f7623f0cfc5f513466b588a154545ccbbfab149"
+    },
+    {
+      "path": "Packages/CatanAI/Sources/CatanAI/Evaluation/TradeCascade.swift",
+      "sha256": "48f1b7ad52bc1ddbb2d397c8f52b81414f078e2ffc2dfc100af93bc70db9cad6"
+    },
+    {
+      "path": "Packages/CatanAI/Sources/CatanAI/Evaluation/TradeValuation.swift",
+      "sha256": "a8434270d9282eea7dc16010cb57e21c161c4a10bccbe32e61c713fb75fbd06f"
+    },
+    {
+      "path": "Packages/CatanAI/Sources/CatanAI/Ghost/CandidateScoring.swift",
+      "sha256": "1d3e08fdb149e2c94a5a8c8d91a6222a823cb5ec0b39f26ad8459e90a6bd5fcd"
+    },
+    {
+      "path": "Packages/CatanAI/Sources/CatanAI/Ghost/DecisionExtractor.swift",
+      "sha256": "1c557ed4155f566f08e30df8957ecb3126b7997ca746a2c81011c0ab5372f041"
+    },
+    {
+      "path": "Packages/CatanAI/Sources/CatanAI/Ghost/DecisionRecord.swift",
+      "sha256": "3e6194fa35504197d2ada13c83878a77266da17f60576ed091be798ac92f4745"
+    },
+    {
+      "path": "Packages/CatanAI/Sources/CatanAI/Ghost/GhostPolicy.swift",
+      "sha256": "deb97af9c26069c4b1997c9208145c90e2e85593aeaa2472fe26d8f1ad01bec7"
+    },
+    {
+      "path": "Packages/CatanAI/Sources/CatanAI/Ghost/GhostProfile.swift",
+      "sha256": "9938b0a4b4c4dbb632c2a84b4495a92e1916a2a2fccf73aa8d1aafef72cc3546"
+    },
+    {
+      "path": "Packages/CatanAI/Sources/CatanAI/Ghost/PersonFitter.swift",
+      "sha256": "304bd0400f55fccde180e58a5a6775e7f5a7ab546998177f715e8a0e0710b1dd"
+    },
+    {
+      "path": "Packages/CatanAI/Sources/CatanAI/Ghost/PersonModel.swift",
+      "sha256": "993c77eecab6664dc950cb998c4d10a8293a083ea6926f1eb0cb3984d003c52d"
+    },
+    {
+      "path": "Packages/CatanAI/Sources/CatanAI/Ghost/SeatStats.swift",
+      "sha256": "8bd26967527645c44824c5cbed38895ad175a46a5c675088cbfdf74f1691b0f6"
+    },
+    {
+      "path": "Packages/CatanAI/Sources/CatanAI/Ghost/StyleFeatures.swift",
+      "sha256": "744d151fe1b438c9402b7c4430dd85732ce393ded2eec8bb26684b0622e5ca4b"
+    },
+    {
+      "path": "Packages/CatanAI/Sources/CatanAI/GreedyPolicy.swift",
+      "sha256": "dae4b94ee72ede7f02ed2d662c7c4e4bcf5eaf25245fb52c6615e2586c583b85"
+    },
+    {
+      "path": "Packages/CatanAI/Sources/CatanAI/HeuristicPolicy.swift",
+      "sha256": "ad16cc00d24cbf78210d3d11b9e692318efb4d123a79006b96635b42ca1a1714"
+    },
+    {
+      "path": "Packages/CatanAI/Sources/CatanAI/JointTradeResponsePolicy.swift",
+      "sha256": "a5bf87106826ee6ec8a1b2a03d9bb1be905cddade9573be715cd171b44e8515d"
+    },
+    {
+      "path": "Packages/CatanAI/Sources/CatanAI/Naval/NavalCards.swift",
+      "sha256": "255752f0d16be17c027f9525cbc277da6d8cdc855d540b137604a747fc6751b9"
+    },
+    {
+      "path": "Packages/CatanAI/Sources/CatanAI/Naval/NavalDecisionContext.swift",
+      "sha256": "d9f34a24204fb5a5a6419cd9e4e2f27f80e50e256d1f5593dd7244188a43976e"
+    },
+    {
+      "path": "Packages/CatanAI/Sources/CatanAI/Naval/NavalEconomy.swift",
+      "sha256": "07c860ec4e47421b8cd51f02b858539850eeb521657a5dedd9c3e72bd8ff2704"
+    },
+    {
+      "path": "Packages/CatanAI/Sources/CatanAI/Naval/NavalLandControl.swift",
+      "sha256": "7a386f65712188ac8dfaa00f7adf40fa7d966c4ca3fca6bfe9066cbf9d766cda"
+    },
+    {
+      "path": "Packages/CatanAI/Sources/CatanAI/Naval/NavalNavigation.swift",
+      "sha256": "86197f1cffa108ac1e4aacf4142668064be3f918993be3a57cdd5ad4f073850b"
+    },
+    {
+      "path": "Packages/CatanAI/Sources/CatanAI/Naval/NavalNavigationDiagnostics.swift",
+      "sha256": "c70010a3049cd8157ead4a9e937c0fdd076b36fa8b919e05b60e38407d00b62d"
+    },
+    {
+      "path": "Packages/CatanAI/Sources/CatanAI/Naval/NavalPolicy.swift",
+      "sha256": "e4c81b44d53961995be6fa857c2d2ad862de37c21c5c2254ae5a03e835702568"
+    },
+    {
+      "path": "Packages/CatanAI/Sources/CatanAI/Naval/NavalTrading.swift",
+      "sha256": "58049c83cac7e1f48b75a70fa88a69e5a5634fbbbe6379ef1b77b13c3d3a1afe"
+    },
+    {
+      "path": "Packages/CatanAI/Sources/CatanAI/PlacementHeuristics.swift",
+      "sha256": "d5b4d5a164d20450ef6e3ee00a3d9abe093a9764e3a114da0a2b7ff15de00e11"
+    },
+    {
+      "path": "Packages/CatanAI/Sources/CatanAI/Planner/PlannerTradeEvaluator.swift",
+      "sha256": "87f004ba8c1fe90dfdaa708e9fecf023c8c8a307dce634bfa459d57807c15153"
+    },
+    {
+      "path": "Packages/CatanAI/Sources/CatanAI/Planner/ProductionModel.swift",
+      "sha256": "f5289d5cfe9bef90a4113fc70e743380e45bdb38b535e87a3f02049d2d341f36"
+    },
+    {
+      "path": "Packages/CatanAI/Sources/CatanAI/PlanningContext.swift",
+      "sha256": "19f8d334e6fb177c0ab678d7ee4e85a423a27081f71772c4680d7fb00aeab88a"
+    },
+    {
+      "path": "Packages/CatanAI/Sources/CatanAI/PolicyBehaviorMetrics.swift",
+      "sha256": "098c6db028a84c1764875392da25dec6ae194b99ffd42345105d4480efac5ca3"
+    },
+    {
+      "path": "Packages/CatanAI/Sources/CatanAI/RobberHeuristics.swift",
+      "sha256": "1c97827548e03a0957257f35aec17bce2a20ae7c6387c8fdf8b4ae7c06cc0fb0"
+    },
+    {
+      "path": "Packages/CatanAI/Sources/CatanAI/ThreatAssessment.swift",
+      "sha256": "837ffcc4a36ece58946f4fa8faa3cb93d5a88a4d50fc3834f3f66a2445330718"
+    },
+    {
+      "path": "Packages/CatanAI/Sources/CatanAI/TradeAssessment.swift",
+      "sha256": "b7705b436374e0a8cb920d06172dbfc238672e5558cb9283b57fc020442868a6"
+    },
+    {
+      "path": "Packages/CatanAI/Sources/CatanAI/TradeHeuristics.swift",
+      "sha256": "e18505240f6de06db6a15e163cf3b19d27b817cf5daa8ff00348b0ee69ae5f18"
+    },
+    {
+      "path": "Packages/CatanAI/Sources/CatanAI/TradeMessages.swift",
+      "sha256": "acc70c4902e1d3e14060ef84c5387c81ac9e35acd116dd9e957b5f2a62e60246"
+    },
+    {
+      "path": "Packages/CatanAI/Sources/CatanAI/TradeRefusingPolicy.swift",
+      "sha256": "a809476c110976275efb8e22ada525307c4e49b5780c90d83f47f75aff603ee9"
+    },
+    {
+      "path": "Packages/CatanAI/Sources/CatanAI/TradeReviewContext.swift",
+      "sha256": "a6228f2805f9d61f90148df497d2f35cf32c8efc0c3888bfe9a2d4df0db8777d"
+    },
+    {
+      "path": "Packages/CatanAI/Sources/arena/main.swift",
+      "sha256": "40b72921e3ee2c5193ba83175c21eef40ff48153a5d859950b7006616b004941"
+    },
+    {
+      "path": "Packages/CatanAI/Sources/ghost/LogFile.swift",
+      "sha256": "b901e505e53b9c06631569eb04795bd012d624d9d6c3590093461bf8fce9e284"
+    },
+    {
+      "path": "Packages/CatanAI/Sources/ghost/Selftest.swift",
+      "sha256": "077b721e56a36c8706062beba73cd1bf6b313c56395e32f74b4e22f837484391"
+    },
+    {
+      "path": "Packages/CatanAI/Sources/ghost/Strength.swift",
+      "sha256": "5eb9097e676c7bdd20c217bd9d25c23f221db495d601b1b3c76d4e109b892539"
+    },
+    {
+      "path": "Packages/CatanAI/Sources/ghost/main.swift",
+      "sha256": "32b89d2079eca3ff388ff0dd617c960250978fcb6042e2d68706fbe76d130856"
+    },
+    {
+      "path": "Packages/CatanAI/Sources/naval-sim/Audit.swift",
+      "sha256": "841e629842e113708331f82f38d8993309b90ae0fdf0beab7ebb52f3f68d7b5b"
+    },
+    {
+      "path": "Packages/CatanAI/Sources/naval-sim/Diagnostics.swift",
+      "sha256": "608ad147cfd844e10addb621d349f923d5acd72be7097fa4aad1a1bfea4540b9"
+    },
+    {
+      "path": "Packages/CatanAI/Sources/naval-sim/EvaluationProtocol.swift",
+      "sha256": "d5bfd89a070451471b53c77464eda10e7f1084624dab0d3fd52c1e03f382811b"
+    },
+    {
+      "path": "Packages/CatanAI/Sources/naval-sim/Options.swift",
+      "sha256": "8d2c4b945ec42c0c5ee693081c903c460e4faf28c4be925a86017434ff0d46aa"
+    },
+    {
+      "path": "Packages/CatanAI/Sources/naval-sim/Rendering.swift",
+      "sha256": "fb0695b731c11074620b3ac3b7323bd6743ec5f3a55896235a3def396bd70bb2"
+    },
+    {
+      "path": "Packages/CatanAI/Sources/naval-sim/main.swift",
+      "sha256": "7175fb2a26f3e2baeb19ffd10fbe0b7c0f2cfb20cd3f99f2c80b80a41a313337"
+    },
+    {
+      "path": "Packages/CatanAI/Sources/sim/main.swift",
+      "sha256": "c677c48d29c2044f8f4f1de99857cf40e085380efe4f75be62f761e77ec366d2"
+    },
+    {
+      "path": "Packages/CatanAI/Sources/trade-bench/main.swift",
+      "sha256": "6cdefe878180d8a35a78e4e7873e5ecb35c94c15b45dc3b910169fa0213616c7"
+    },
+    {
+      "path": "Packages/CatanEngine/Package.swift",
+      "sha256": "d9d7370e92cbc2e08a598906efab8380e3287716f584c7a0b709245911506db4"
+    },
+    {
+      "path": "Packages/CatanEngine/Sources/CatanEngine/Board.swift",
+      "sha256": "cde7948ef6b31a7300c59ffaf9197f42b8c434ba1631f508ae92f377d98a6f4b"
+    },
+    {
+      "path": "Packages/CatanEngine/Sources/CatanEngine/BoardGeneration.swift",
+      "sha256": "16ff2d89567a85dddd03a07fa9d3cc19ab4b5054c9efda67681794140f02c479"
+    },
+    {
+      "path": "Packages/CatanEngine/Sources/CatanEngine/BoardShape.swift",
+      "sha256": "894c0a27c5827d43197e3c43bfa27004e374b4d00e90c085239043e3aa574c2e"
+    },
+    {
+      "path": "Packages/CatanEngine/Sources/CatanEngine/Building.swift",
+      "sha256": "482bc25c173d5da367812f32311cd82a47736a1d875e9013583d94fc85f73c94"
+    },
+    {
+      "path": "Packages/CatanEngine/Sources/CatanEngine/CatanEngine.swift",
+      "sha256": "2f828498bf59b90935568e4ffaf23e34b27ea5ba643630714f53c9d16ed60cfa"
+    },
+    {
+      "path": "Packages/CatanEngine/Sources/CatanEngine/Conquest.swift",
+      "sha256": "f36e67de96ac137871e50ef1ee91693377a13f3209bf1da9c977d20b91a7d01f"
+    },
+    {
+      "path": "Packages/CatanEngine/Sources/CatanEngine/DevCards.swift",
+      "sha256": "af0b71a67df60bb45a32702df31985b357b0d269b2d71508566f923486414c25"
+    },
+    {
+      "path": "Packages/CatanEngine/Sources/CatanEngine/DiceOdds.swift",
+      "sha256": "28376655b0486ad36b99a4074b367357dba792e76db9411300c28bc6e9c53472"
+    },
+    {
+      "path": "Packages/CatanEngine/Sources/CatanEngine/GameSession.swift",
+      "sha256": "c708eb6046b70c1ec7658a9857e7101d4737018d690bcf6040e53b81b778e1d2"
+    },
+    {
+      "path": "Packages/CatanEngine/Sources/CatanEngine/LongestRoad.swift",
+      "sha256": "a68dbedb12f49459ba243b8150f56d7697c8614e58ee6b2e2f8027d04a9781c9"
+    },
+    {
+      "path": "Packages/CatanEngine/Sources/CatanEngine/MainPhase.swift",
+      "sha256": "574d1fa519353d60a97430c6296a6339bafe64f6a04f5fc94f3557247d81c242"
+    },
+    {
+      "path": "Packages/CatanEngine/Sources/CatanEngine/Models/DevCardPlayStatus.swift",
+      "sha256": "3b2daed2439bfd89fea904ee055d3595abe4f3a5e9436a8f79adce12359c2531"
+    },
+    {
+      "path": "Packages/CatanEngine/Sources/CatanEngine/Models/DevCardType.swift",
+      "sha256": "46325f1d34d8ae0355561eb946b1a8ac10ff57848b8c30fbaaa31e5129875ec5"
+    },
+    {
+      "path": "Packages/CatanEngine/Sources/CatanEngine/Models/EdgeID.swift",
+      "sha256": "cbda64c301e2d49474082b7e0e72933b2ceba6fe097bc684fb44c8283524a7e7"
+    },
+    {
+      "path": "Packages/CatanEngine/Sources/CatanEngine/Models/GameEvent.swift",
+      "sha256": "ae57e8fcae57aa8e6da5c1d430af2b674910c0d46adf48e50f9fe17979c659f6"
+    },
+    {
+      "path": "Packages/CatanEngine/Sources/CatanEngine/Models/GameMode.swift",
+      "sha256": "3beb5eef35a2cce7a0d250613085a26922b2045b8d0339b44e490994935697fd"
+    },
+    {
+      "path": "Packages/CatanEngine/Sources/CatanEngine/Models/GamePhase.swift",
+      "sha256": "ca88fc079c42ecd15e86583d187c00029f290173b1cc264d675e76809dc7d184"
+    },
+    {
+      "path": "Packages/CatanEngine/Sources/CatanEngine/Models/GameState.swift",
+      "sha256": "bac2e92dd211f1bcfc60cffbf42384fd07699714d8edc2681ab55c4b81ea24ca"
+    },
+    {
+      "path": "Packages/CatanEngine/Sources/CatanEngine/Models/GameVariant.swift",
+      "sha256": "abcfd1dfff88eee95334b554d1478d83887c56286f4f24e26fa8347c0a4688b0"
+    },
+    {
+      "path": "Packages/CatanEngine/Sources/CatanEngine/Models/HexCoordinate.swift",
+      "sha256": "b9786aef6cdee21a4b0bf22bbd318e289bdd751e5804b4fd3e928e5581c8438e"
+    },
+    {
+      "path": "Packages/CatanEngine/Sources/CatanEngine/Models/Move.swift",
+      "sha256": "844e36a605a47c944cb98c3900d453487bd4eb1cd570ce31f07fb4e9af05c7af"
+    },
+    {
+      "path": "Packages/CatanEngine/Sources/CatanEngine/Models/Player.swift",
+      "sha256": "b33a66c79347ae2b866332d0ad3ccb9c610081a1c271ab5f09de8a2345d58dc6"
+    },
+    {
+      "path": "Packages/CatanEngine/Sources/CatanEngine/Models/PlayerID.swift",
+      "sha256": "f5004295de77ccd0d9c9c3c0b9ba88abe46ab118f281e84820496d4ec9cd0e8f"
+    },
+    {
+      "path": "Packages/CatanEngine/Sources/CatanEngine/Models/Port.swift",
+      "sha256": "41c468985ebc824c3131b083cbbf9624ebc79e133a6fe4ddc9ddfe7680283fca"
+    },
+    {
+      "path": "Packages/CatanEngine/Sources/CatanEngine/Models/RandomSource.swift",
+      "sha256": "7752917a5b52941c9da6f3ab5e15fbe66845644e4a36827d588779ae74ba47d8"
+    },
+    {
+      "path": "Packages/CatanEngine/Sources/CatanEngine/Models/Resource.swift",
+      "sha256": "dfe094d98ad29bb18e8a9acc166f6350956675569f518e13eb965079c9ae8f9c"
+    },
+    {
+      "path": "Packages/CatanEngine/Sources/CatanEngine/Models/Tile.swift",
+      "sha256": "7f7997e06327d50d9531f21c76dc1b69e46c13fd71771160f3ae28e9263495a0"
+    },
+    {
+      "path": "Packages/CatanEngine/Sources/CatanEngine/Models/VertexID.swift",
+      "sha256": "a0c781f00576d6cbf75e0a97b45dbc3cdf467d18d950e014300fe014a8f7e21b"
+    },
+    {
+      "path": "Packages/CatanEngine/Sources/CatanEngine/Naval/Naval.swift",
+      "sha256": "7d7ea7df7c26de099ac35dbcabbe3086e2e9cb0783796ea54a431744a3520765"
+    },
+    {
+      "path": "Packages/CatanEngine/Sources/CatanEngine/Naval/NavalFallback.swift",
+      "sha256": "24a7995f3ca3aecc53b486431c8e480bf67ef189c75d44e3f9459ef43764d8f7"
+    },
+    {
+      "path": "Packages/CatanEngine/Sources/CatanEngine/Naval/NavalMapGenerator.swift",
+      "sha256": "ebd73356201296c6211446a21dc178a5b5f8c1c25fc47f947fad3b5768bf0eca"
+    },
+    {
+      "path": "Packages/CatanEngine/Sources/CatanEngine/Naval/NavalMapValidation.swift",
+      "sha256": "e9a0ec6901aac8af8b06e92709e3af5c6d93c2bc3b8ccdfa68cb5210a8138cb5"
+    },
+    {
+      "path": "Packages/CatanEngine/Sources/CatanEngine/Naval/NavalModels.swift",
+      "sha256": "062132832c4ede50716a70e772d8ccdafcebb2e4716e0e676130f2c020b3a366"
+    },
+    {
+      "path": "Packages/CatanEngine/Sources/CatanEngine/Naval/NavalMoves.swift",
+      "sha256": "904c1a8967ed246b8905a730e86e0974b96406b1220eba644ec8c7466c9be83f"
+    },
+    {
+      "path": "Packages/CatanEngine/Sources/CatanEngine/Naval/NavalPorts.swift",
+      "sha256": "7a14e3395c55de09b7fd1c391552982c192639bf6716ce8e2abf680b5df6dfa4"
+    },
+    {
+      "path": "Packages/CatanEngine/Sources/CatanEngine/Naval/NavalProduction.swift",
+      "sha256": "98cbef0be4653a3ec7181d53127b422f45ac90dcee6a3b8a9c17ec417b0e6147"
+    },
+    {
+      "path": "Packages/CatanEngine/Sources/CatanEngine/Naval/NavalSightGeometry.swift",
+      "sha256": "04ab51c0bbb8af1abeee4505ae2e723587395ebd8444fbb37217565564eb6c9f"
+    },
+    {
+      "path": "Packages/CatanEngine/Sources/CatanEngine/Naval/NavalStateValidation.swift",
+      "sha256": "4aaf3e23e0b66427ce3757ba500133097f8015b429306b6d83e0a5c4b98a58d0"
+    },
+    {
+      "path": "Packages/CatanEngine/Sources/CatanEngine/Naval/NavalTerrain.swift",
+      "sha256": "5721b4e9d72fbb1fa3785a3bcedde491799dd5bc14efd57b825fad5b356b9b88"
+    },
+    {
+      "path": "Packages/CatanEngine/Sources/CatanEngine/Naval/NavalVisibility.swift",
+      "sha256": "07d4a0ecdd54b57a0d1018b8a6283b6e10fbad6ebe16bc7196292be4ad8b92c6"
+    },
+    {
+      "path": "Packages/CatanEngine/Sources/CatanEngine/PublicLedger.swift",
+      "sha256": "7f2475e94d835cb001030a1180559a1ac1251954afe665d59da5c9348bec88df"
+    },
+    {
+      "path": "Packages/CatanEngine/Sources/CatanEngine/Robber.swift",
+      "sha256": "6bfccece62879a7c423f23fa3a0b58dc13f5851d2d222469701527960cc0e6c0"
+    },
+    {
+      "path": "Packages/CatanEngine/Sources/CatanEngine/RulesEngine.swift",
+      "sha256": "c945dd442dc6af7529429256e6b2b28d3df4229339141a18129eae5db5a9af30"
+    },
+    {
+      "path": "Packages/CatanEngine/Sources/CatanEngine/Ruleset.swift",
+      "sha256": "17ee2cf034acb5ae9954164a563007630f1aab77f36ddba0e1b886e6738f3caa"
+    },
+    {
+      "path": "Packages/CatanEngine/Sources/CatanEngine/SetupPhase.swift",
+      "sha256": "4b98b1430b7f508b6e2d6235ee5d8b8ad8bfbabef0d34e3b67baed4001faabb8"
+    },
+    {
+      "path": "Packages/CatanEngine/Sources/CatanEngine/Trading.swift",
+      "sha256": "2d7b82f3ebc9aeeb11657c42cb88dd8f190d63f0f8badcc766012657b625f11d"
+    },
+    {
+      "path": "Packages/CatanEngine/Sources/CatanEngine/WinCondition.swift",
+      "sha256": "7376840cef5d8db06ed01d377a0c3ee38ff55a682bb818b1aa37b145c85c069b"
+    }
+  ]
+}

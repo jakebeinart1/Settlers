@@ -179,6 +179,32 @@ struct GameplayFeedbackTests {
         #expect(queue.deadline == nil)
     }
 
+    @Test func otherRecipientsCompletedTradesNameBothPlayersWithoutImplyingTheViewerTraded() throws {
+        var before = fixture()
+        before.players[rival.index].resources = [.grain: 1]
+        let proposer = PlayerID(index: 1)
+        before.players[proposer.index].resources = [.brick: 1]
+        let offer = TradeOffer.enumerated(from: proposer, give: [.brick: 1], want: [.grain: 1])
+        before.pendingTradeOffers = [offer]
+        var after = before
+        let events = try RulesEngine.apply(.respondToTrade(offerID: offer.id, accept: true), by: rival, to: &after)
+        let notice = try #require(notices(events, before, after).first)
+        #expect(notice.kind == .traded(proposer, rival))
+        #expect(notice.title { $0 == proposer ? "Rome" : "Greece" } == "Rome traded with Greece")
+        #expect(notice.pointChanges.isEmpty)
+        #expect(TradeReceipt(event: events[0], player: viewer) == nil)
+        #expect(notices(events, before, before).isEmpty)
+    }
+
+    @Test func shipNewsUsesNaturalNamesWhileKeepingItsIdentityPayload() {
+        let launch = GameplayFeedback(kind: .launched(rival, 3), pointChanges: [:], occurredAt: now)
+        let capture = GameplayFeedback(kind: .captured(rival, 3, viewer), pointChanges: [:], occurredAt: now)
+        #expect(launch.title(name: name) == "Sam launched a ship")
+        #expect(capture.title(name: name) == "Sam captured Alex’s ship")
+        #expect(launch.kind == .launched(rival, 3))
+        #expect(capture.kind == .captured(rival, 3, viewer))
+    }
+
     private func fixture() -> GameState {
         var state = GameSetup.newGame(board: BoardGenerator.standard(), seed: 32)
         state.phase = .mainTurn(playerIndex: viewer.index)

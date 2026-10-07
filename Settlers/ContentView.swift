@@ -62,9 +62,9 @@ struct ContentView: View {
                 #if DEBUG
                     .task {
                         if QALaunchFlag.playToEnd.isSet {
-                            do { try viewModel.qaPlayToEnd() } catch let failure as MatchPersistenceFailure {
-                                // Use the actionable save alert, never the
-                                // recording warning saying gameplay may continue.
+                            do { try await viewModel.qaPlayToEndOnscreen() } catch is CancellationError {
+                                return
+                            } catch let failure as MatchPersistenceFailure {
                                 viewModel.persistenceErrorMessage = failure.localizedDescription
                             } catch {
                                 viewModel.isBlockingSurfaceOpen = true
@@ -165,7 +165,9 @@ struct ContentView: View {
             if QALaunchFlag.autoStart.isSet {
                 if viewModel.savedGameAvailability == .absent {
                     let conquest = QALaunchFlag.conquestMode.isSet
-                    if QALaunchFlag.vastMode.isSet {
+                    if QALaunchFlag.navalMode.isSet {
+                        viewModel.qaStartNavalGame()
+                    } else if QALaunchFlag.vastMode.isSet {
                         viewModel.qaStartVastGame(variant: conquest ? .conquest : .standard)
                     } else if conquest {
                         viewModel.qaStartClassicConquestGame()

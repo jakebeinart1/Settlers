@@ -1,0 +1,82 @@
+{
+  "verifiedAtUTC": "2026-10-07T20:14:47.640830+00:00",
+  "reviewer": "pr_resolution_audit",
+  "productionSourceSHA": "e13d4a1cac8930063ee89438207a5da56f215e26",
+  "testedArchiveHeadSHA": "f1b9b1442defadc5ce7f9d45eb012e4858765a32",
+  "version": "1.0",
+  "build": "26",
+  "strictIndependentIPAInspections": [
+    {
+      "receipt": "signed-export.json",
+      "ipaPath": "/Users/alex/.codex/artifacts/naval-exploration/build26-monopoly-counts/export/Settlers.ipa",
+      "ipaSHA256": "9cf2017c46f05c6f97bdf948e159dec548106bc4dfb78bff7228dfb73bce9a29",
+      "ipaMD5": "a2c1526e9a8272da6be3ade802ef6825",
+      "ipaBytes": 36313585,
+      "actualExecutableSHA256": "b1b237265cf28a21658bc3166ef18b6e12aa41c83aa962a3e4d0687ef18b8a96",
+      "strictDeepCodesignExit": 0,
+      "actualSignerLeafCertificateSHA1": "76465B06C2E157D857641F5B3D25CF5A3110C4A9",
+      "profileUUID": "86da5771-8640-4c53-8867-0b4fbd4f1035",
+      "profileExpiration": "2027-01-25T20:55:57+00:00",
+      "ProductionCloudKit": true,
+      "profileAndSignedEntitlementsExpected": true,
+      "freshTemporaryExtractionRemoved": true
+    },
+    {
+      "receipt": "uploaded-payload-signature.json",
+      "ipaPath": "/Users/alex/.codex/artifacts/naval-exploration/build26-monopoly-counts/Settlers-uploaded-26.ipa",
+      "ipaSHA256": "81bc6674970f56080f24295ca5c5535a8e48055e40dcc63d2728ea282db0f983",
+      "ipaMD5": "3eb9b75e358b124642ef2fb71d4be03f",
+      "ipaBytes": 36313582,
+      "actualExecutableSHA256": "95ad2d5d70f5484cb6803c837b80b42ef962343c8a0e6f833d5a0ae9bbf86d6a",
+      "strictDeepCodesignExit": 0,
+      "actualSignerLeafCertificateSHA1": "76465B06C2E157D857641F5B3D25CF5A3110C4A9",
+      "profileUUID": "86da5771-8640-4c53-8867-0b4fbd4f1035",
+      "profileExpiration": "2027-01-25T20:55:57+00:00",
+      "ProductionCloudKit": true,
+      "profileAndSignedEntitlementsExpected": true,
+      "freshTemporaryExtractionRemoved": true
+    }
+  ],
+  "equivalence": {
+    "zipEntryNames14Equal": true,
+    "onlyChangedMember": "Payload/Settlers.app/Settlers",
+    "signatureSpans": [
+      [
+        5907456,
+        31296
+      ],
+      [
+        5907456,
+        31296
+      ]
+    ],
+    "allBytesOutsideSignatureEqual": true,
+    "identicalExecutablePrefixBytes": 5907456,
+    "identicalExecutablePrefixSHA256": "abfc88a932142e78838607edfe91c5f05a60aaf87c6405f0a9cb99d8128a72e6"
+  },
+  "transport": {
+    "rawContentDeliveryMD5": "3EB9B75E358B124642EF2FB71D4BE03F",
+    "rawChecksumMatchesActualZIP": true,
+    "checksumOccurrences": 3,
+    "acceptedDeliveryUUID": "9f7d32a2-5336-4278-bf47-dab480ad46e5",
+    "completePayloadStatePresent": true,
+    "contentDeliveryLogSHA256": "1af875c39dbc4c1be5e45d99f1890964e746d335c251ad6d20852803be6d433b"
+  },
+  "runtime": {
+    "onDiskReleaseInfo1_0_26AndExecutableHashesMatchReceipt": true,
+    "observedSurvival": "Delivery/root recorded PID49545 alive6s without QA args or new owncrash; this auditor independently bound actualReleaseapp/screen bytes and inspected ordinarymenu.",
+    "physicalPhonePlayObserved": false
+  },
+  "gallery": {
+    "allCurrent11HashesIndependentlyVerified": true,
+    "original10ImageReviewPreservedAt": "/Users/alex/.codex/artifacts/naval-exploration/build26-monopoly-counts/final-debug-gallery-root-review.json",
+    "original10ImageReviewSHA256": "a33cc60eba022fe9de4c8ab678974320e675d027b56bd3c430f9ec9ba0155350",
+    "oldSourceAuditReferenceMatchesPreservedOldBytes": true,
+    "current11ImageReviewSHA256": "e0cdf1f9ac0322bf1abc1a7476d8878fb6aff41b4409d313654e25314e685f7d",
+    "independentlyViewedReleaseMenu": true
+  },
+  "remaining": [
+    "Fresh exact Apple26/Alex readback",
+    "Raw individual owned-QA cleanup readback"
+  ]
+}

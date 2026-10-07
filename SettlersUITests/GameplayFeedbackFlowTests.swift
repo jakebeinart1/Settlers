@@ -143,8 +143,11 @@ final class GameplayFeedbackFlowTests: XCTestCase {
                           "UICTContentSizeCategoryAccessibilityXXXL"])
         XCTAssertTrue(app.buttons["dev-cards.tile.yearOfPlenty"].waitForExistence(timeout: 10))
         app.buttons["dev-cards.tile.yearOfPlenty"].tap()
-        app.buttons["dev-cards.resource.ore"].tap()
-        app.buttons["dev-cards.resource.ore"].tap()
+        let ore = app.buttons["dev-cards.resource.ore"]
+        DevelopmentCardUITestScroll.reveal(ore, in: app)
+        XCTAssertTrue(ore.isEnabled)
+        ore.tap()
+        ore.tap()
         XCTAssertFalse(notice(in: app).exists)
         app.buttons["dev-cards.play.yearOfPlenty"].tap()
         acknowledgeResult(in: app, card: "Year of Plenty")

@@ -31,6 +31,13 @@ public enum OpponentStrategy: String, Codable, CaseIterable, Sendable {
 /// exists, difficulty can be composed alongside this profile without changing
 /// the opponent's identity or voice.
 public struct OpponentProfile: Codable, Sendable, Equatable, Identifiable {
+    /// Persisted ghost identities share this prefix across setup and resume.
+    static let ghostProfilePrefix = "ghost-"
+
+    var ghostID: String? {
+        id.hasPrefix(Self.ghostProfilePrefix) ? String(id.dropFirst(Self.ghostProfilePrefix.count)) : nil
+    }
+
     public let id: String
     public let name: String
     public let civilization: Civilization

@@ -1,0 +1,152 @@
+{
+  "auditedAtUTC": "2026-10-07T08:21:23.098842+00:00",
+  "verdict": "PASS",
+  "productionSourceSHA": "1dfae7cb8e46ca4b343c0415fef18e71cd3a6ed4",
+  "version": "1.0",
+  "build": "23",
+  "bundleIdentifier": "com.alexchandler.empires",
+  "source": {
+    "productionInputCount": 371,
+    "recordedCurrentAndFrozenGitHashesIndependentlyMatch": true,
+    "packageInputCount": 111,
+    "packagesIdenticalToBuild22Source": "1cf1c0fde5904aa1cbeae9320cae55afb9bdfcd0",
+    "committedJakeSigningDefaultsPreserved": {
+      "team": "KDM65HE483",
+      "bundleIdentifier": "com.jakebeinart.settlers"
+    },
+    "productionInputsReceiptSHA256": "edf3f53aebade66ba4428017dfa2a0149eb30a02466ceb318c4d3897c8b5e81d"
+  },
+  "gate": {
+    "exitCode": 0,
+    "all11StagesPass": true,
+    "xcresult": "full-gate.xcresult",
+    "actualXcresultSummaryAndTestTreeMatchSavedJSON": true,
+    "functions": 732,
+    "passedFunctions": 731,
+    "failedFunctions": 0,
+    "skippedFunctions": 1,
+    "totalRuns": 1477,
+    "passedRuns": 1476,
+    "skippedRuns": 1,
+    "onlySkip": {
+      "test": "TradeRedesignFlowTests/testConfirmationFooterAndNewOfferRemainReachableAt375By667()",
+      "reason": "Requires 375\u00d7667; QA937 destination is 402\u00d7874",
+      "separateCompactReceiptPassed": true
+    },
+    "engineTests": 371,
+    "engineSuites": 28,
+    "aiTests": 303,
+    "aiSuites": 30,
+    "appTests": 565,
+    "appSuites": 80,
+    "coveragePercent": {
+      "engine": 96.67,
+      "ai": 96.01
+    },
+    "focusSuitesAllPassed": {
+      "BuildClarityFlowTests": 4,
+      "TradeTapSafetyFlowTests": 5,
+      "NavalShipArtworkFlowTests": 3,
+      "NativeHarborFlowTests": 4,
+      "NativeNavigationFlowTests": 5
+    },
+    "fittedReturnRegressionPassed": true
+  },
+  "functionalBaseline": {
+    "unchangedPackages": true,
+    "reusedBuild22Games": 48,
+    "traceActions": 28743,
+    "freshProcessRepeatPairs": 6,
+    "retainedArtifactHashesChecked": 327,
+    "newStrengthClaim": false
+  },
+  "signing": {
+    "archiveExitCode": 0,
+    "exportExitCode": 0,
+    "exportExitRecordedIn": "archive-command-receipt.json",
+    "archiveReviewAndActualUploadStrictDeepSignatureExitCodes": [
+      0,
+      0,
+      0
+    ],
+    "team": "HXB9F28LHR",
+    "certificateSHA1": "76465B06C2E157D857641F5B3D25CF5A3110C4A9",
+    "actualExecutableCMSCertificateIndependentlyMatched": true,
+    "profileUUID": "86da5771-8640-4c53-8867-0b4fbd4f1035",
+    "getTaskAllow": false,
+    "betaReportsActive": true,
+    "provisionedDevicesAbsent": true,
+    "actualSignedCloudKitEnvironment": "Production",
+    "actualSignedCloudKitContainers": [
+      "iCloud.com.alexchandler.empires"
+    ]
+  },
+  "payload": {
+    "reviewIPA": "export/Settlers.ipa",
+    "reviewIPASHA256": "fce46b79f06b0ab7b292bce81168269880eb8766e7b42d980959476898c550b0",
+    "actualUploadedIPA": "Settlers-uploaded-23.ipa",
+    "actualUploadedBytes": 33718518,
+    "actualUploadedSHA256": "2707f35bbfd8c3a374773d77defc6fee4c8a4b83291efe8c07c278e93b9c8aa1",
+    "actualUploadedMD5": "55379f183a2e383be69b7af12805c56e",
+    "zipCRCCheckPassed": true,
+    "zipEntryCount": 14,
+    "zipFileCount": 10,
+    "onlyDifferingReviewUploadEntry": "Payload/Settlers.app/Settlers",
+    "onlyDifferenceWithinCodeSignature": true,
+    "identicalExecutablePrefixBytes": 5771184,
+    "identicalExecutablePrefixSHA256": "631fef2c9fd0899d595a90eff8bba53e195edd9f171539dd46264d91abc3e2fd",
+    "archiveExportPrefixDifferenceBytes": 3,
+    "archiveExportPrefixDifferencesConfinedToLinkeditAndSignatureLengthFields": true,
+    "bothExistingIPAExtractionsMatchZIPBytes": true,
+    "uploadCommandExitCode": 0,
+    "contentDeliveryID": "cfcb926b-7b11-4178-9d19-8df7a9e5e597",
+    "contentDeliveryMD5Encoding": "uppercase hexadecimal",
+    "contentDeliveryMD5Occurrences": 3,
+    "contentDeliveryMD5LineNumbers": [
+      2852,
+      2900,
+      3211
+    ],
+    "contentDeliveryLogSHA256": "3b1a995dc8ca8414f96cff65275e72c880341a88a8d1e9cccc823cf341a2514f"
+  },
+  "media": {
+    "manifest": "/Users/alex/.codex/worktrees/naval-exploration/Settlers/docs/AI_summaries/naval-exploration/evidence/screenshots/build23-final-manifest.json",
+    "count": 17,
+    "debugCaptures": 16,
+    "ordinaryReleaseCaptures": 1,
+    "allManifestAndOriginalHashesMatch": true,
+    "allBindToFrozenProductionSource": true,
+    "manifestSHA256": "5cb565f6917048250d9ce22bd2f5e7ca7fd19d4c84c47764eb82b823dd7e81a2",
+    "ordinaryReleaseMenuIndependentlyInspected": true,
+    "finalImagesIndependentlyInspected": [
+      "ready-build",
+      "scarce-build",
+      "leading-skip",
+      "ship-nine-zoom",
+      "mixed-stack-world"
+    ],
+    "allEightOriginalShipAssetsIndependentlyInspected": true,
+    "intermediateCapturesExcludedFromFinalMediaVerdict": true
+  },
+  "apple": {
+    "independentReadback": "asc-build23-independent.json",
+    "verifiedAtUTC": "2026-10-07T08:18:25.844Z",
+    "buildID": "cfcb926b-7b11-4178-9d19-8df7a9e5e597",
+    "exactVersion": "1.0/23",
+    "processingState": "VALID",
+    "internalState": "IN_BETA_TESTING",
+    "expired": false,
+    "expirationDate": "2027-01-05T00:14:38-08:00",
+    "internalGroup": "Internal",
+    "internalGroupAllBuildAccess": true,
+    "alexChandlerMemberVerified": true,
+    "externalState": "READY_FOR_BETA_SUBMISSION"
+  },
+  "blockingDefects": [],
+  "remainingLimits": [
+    "Physical phone installation was not observed.",
+    "Gameplay/native screenshots use Debug fixtures; ordinary Release evidence is fresh launch and inspected main menu.",
+    "Reused build22 AI evidence establishes functional preservation and sampled determinism, not new strength.",
+    "External beta remains READY_FOR_BETA_SUBMISSION; intended delivery uses Internal access."
+  ]
+}

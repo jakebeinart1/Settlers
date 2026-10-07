@@ -1,0 +1,2 @@
+naval-sim rejection evidence: /var/folders/_m/cfbn0s7j7zx3sx1lwv6w4mr80000gn/T/naval-sim-failures/700101-4-3-expert-archipelago-true-false
+naval-sim seed=700101 decisions=613 p95=17.415ms p99=47.021ms over50=5 over150=0

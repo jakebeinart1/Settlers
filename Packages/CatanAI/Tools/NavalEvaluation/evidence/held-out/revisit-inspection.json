@@ -1,0 +1,1496 @@
+{
+  "artifactDirectory": "/Users/alex/.codex/artifacts/naval-ai/d863991/revisit-traces",
+  "gamesInspected": 124,
+  "idleRevisits": 0,
+  "rawRevisits": 152,
+  "records": [
+    {
+      "fingerprint": "33bd772fde4f27f9",
+      "idleRevisits": 0,
+      "name": "800006-3-0-candidate-archipelago-true-true",
+      "rawRevisits": 1,
+      "sha256": {
+        "800006-3-0-candidate-archipelago-true-true.failure": "e2c60510b4d4c4c8c35d49484c53c921eb6214bf282632960e77df9a669bd1ad",
+        "800006-3-0-candidate-archipelago-true-true.json": "11e7b2fbfbf4a86b38405e1c3256844453071b5d7ddbd252c6b16d68372cf7d8",
+        "800006-3-0-candidate-archipelago-true-true.txt": "d12d35688721868821c64989dab8e1ed87ce108807082fc1409095a04d8c3c56"
+      },
+      "winner": 0
+    },
+    {
+      "fingerprint": "b8f2c4aa3149a32a",
+      "idleRevisits": 0,
+      "name": "800007-3-0-candidate-archipelago-true-true",
+      "rawRevisits": 1,
+      "sha256": {
+        "800007-3-0-candidate-archipelago-true-true.failure": "bbdd8eb416b52b09b90827a9241e99130044157ab41e85daf73abdb632453d12",
+        "800007-3-0-candidate-archipelago-true-true.json": "127083f4a98a470ad0f125da997e15623d7aa9a7e7bfc9d02a2a341cf2af546c",
+        "800007-3-0-candidate-archipelago-true-true.txt": "6680bf273c8263af01eab17156bececb92bbdd1b36b9f205d5a15d784d813e51"
+      },
+      "winner": 2
+    },
+    {
+      "fingerprint": "49513d57aa62ba8f",
+      "idleRevisits": 0,
+      "name": "800010-3-1-candidate-archipelago-true-true",
+      "rawRevisits": 1,
+      "sha256": {
+        "800010-3-1-candidate-archipelago-true-true.failure": "ab436903391b39b72fd26e7d29a72df89bbe5f6eda604bb00bb306bc5ab1b815",
+        "800010-3-1-candidate-archipelago-true-true.json": "5d7fbfaa2a44a42ff1f306b2562f8bd02c220fbb08b2aa9a35a36356f1d38a39",
+        "800010-3-1-candidate-archipelago-true-true.txt": "f51d4765753277c34003c77c321e9072ab7856cf27c0bc1930bcc8834036c61c"
+      },
+      "winner": 1
+    },
+    {
+      "fingerprint": "071e9e67adacd40d",
+      "idleRevisits": 0,
+      "name": "800001-3-0-control-archipelago-true-true",
+      "rawRevisits": 2,
+      "sha256": {
+        "800001-3-0-control-archipelago-true-true.failure": "78495b706e2f548fa9033a8cbf8ef2eedab6cca94ff5a24444be2e7b32163f04",
+        "800001-3-0-control-archipelago-true-true.json": "84f7fec281873f839e27cdcec6f50cd99ebccb45d7097d84afc7dcfef7f130b3",
+        "800001-3-0-control-archipelago-true-true.txt": "097db1c80c77842f1e48ff6d88fb63b0f6bcfd45c760aebf8c29dc2daee8a113"
+      },
+      "winner": 2
+    },
+    {
+      "fingerprint": "071e9e67adacd40d",
+      "idleRevisits": 0,
+      "name": "800001-3-1-control-archipelago-true-true",
+      "rawRevisits": 2,
+      "sha256": {
+        "800001-3-1-control-archipelago-true-true.failure": "78495b706e2f548fa9033a8cbf8ef2eedab6cca94ff5a24444be2e7b32163f04",
+        "800001-3-1-control-archipelago-true-true.json": "a27fe88d861a9fc009117098d71863150af3dfd62d26a7e351a45e76aa996842",
+        "800001-3-1-control-archipelago-true-true.txt": "097db1c80c77842f1e48ff6d88fb63b0f6bcfd45c760aebf8c29dc2daee8a113"
+      },
+      "winner": 2
+    },
+    {
+      "fingerprint": "071e9e67adacd40d",
+      "idleRevisits": 0,
+      "name": "800001-3-2-control-archipelago-true-true",
+      "rawRevisits": 2,
+      "sha256": {
+        "800001-3-2-control-archipelago-true-true.failure": "78495b706e2f548fa9033a8cbf8ef2eedab6cca94ff5a24444be2e7b32163f04",
+        "800001-3-2-control-archipelago-true-true.json": "45a890a564307817db6e34473cb6a001d30867216d4988d7a084e243dd59b211",
+        "800001-3-2-control-archipelago-true-true.txt": "097db1c80c77842f1e48ff6d88fb63b0f6bcfd45c760aebf8c29dc2daee8a113"
+      },
+      "winner": 2
+    },
+    {
+      "fingerprint": "eec5a9dae8339c13",
+      "idleRevisits": 0,
+      "name": "800000-4-0-candidate-archipelago-true-true",
+      "rawRevisits": 1,
+      "sha256": {
+        "800000-4-0-candidate-archipelago-true-true.failure": "ab436903391b39b72fd26e7d29a72df89bbe5f6eda604bb00bb306bc5ab1b815",
+        "800000-4-0-candidate-archipelago-true-true.json": "5f45ac6d6e87f955896e0bc989afd91e287e33fa868f8ce383c3df468016a011",
+        "800000-4-0-candidate-archipelago-true-true.txt": "30d2d335de7f5b54fcabcb8d9bc214aa1af7eb7f053bd2764a15a1886bea4043"
+      },
+      "winner": 1
+    },
+    {
+      "fingerprint": "dcf5d069a57c25e3",
+      "idleRevisits": 0,
+      "name": "800001-4-0-candidate-archipelago-true-true",
+      "rawRevisits": 1,
+      "sha256": {
+        "800001-4-0-candidate-archipelago-true-true.failure": "eb1aaf4419785438de021526ba1a39de8b262de00fc1eebee4e291afed69bb13",
+        "800001-4-0-candidate-archipelago-true-true.json": "b4a49c5bf510f18584b088da834cf089b7ee6c16f032a652897ea61933f6c0a9",
+        "800001-4-0-candidate-archipelago-true-true.txt": "411659a86495d8446bea86bd8d213d8270a29ce83d0ff1beaa84e9f42bac1303"
+      },
+      "winner": 3
+    },
+    {
+      "fingerprint": "4010b40b8fcaa3d4",
+      "idleRevisits": 0,
+      "name": "800002-4-0-candidate-archipelago-true-true",
+      "rawRevisits": 1,
+      "sha256": {
+        "800002-4-0-candidate-archipelago-true-true.failure": "bbdd8eb416b52b09b90827a9241e99130044157ab41e85daf73abdb632453d12",
+        "800002-4-0-candidate-archipelago-true-true.json": "953820954a57605715c4e54b5650416ad4345eb0f94d19cd8f8ee2569e3dad83",
+        "800002-4-0-candidate-archipelago-true-true.txt": "f0d0487c425b79b8902905d0c2522322bd1771c424b330b1a59fa0d4fc9e7fdf"
+      },
+      "winner": 2
+    },
+    {
+      "fingerprint": "64f88b3c9ba293f1",
+      "idleRevisits": 0,
+      "name": "800004-4-0-candidate-archipelago-true-true",
+      "rawRevisits": 1,
+      "sha256": {
+        "800004-4-0-candidate-archipelago-true-true.failure": "bbdd8eb416b52b09b90827a9241e99130044157ab41e85daf73abdb632453d12",
+        "800004-4-0-candidate-archipelago-true-true.json": "40f873df0a8d767b749a50b8faed9de3fc4b75bacd857049e4f10198f808593e",
+        "800004-4-0-candidate-archipelago-true-true.txt": "b90de93660b075562329172db38d3938a952514d3ae4ceb06486f5c8a0c9a914"
+      },
+      "winner": 2
+    },
+    {
+      "fingerprint": "d17d1a423e2dfb8c",
+      "idleRevisits": 0,
+      "name": "800003-4-1-candidate-archipelago-true-true",
+      "rawRevisits": 1,
+      "sha256": {
+        "800003-4-1-candidate-archipelago-true-true.failure": "e2c60510b4d4c4c8c35d49484c53c921eb6214bf282632960e77df9a669bd1ad",
+        "800003-4-1-candidate-archipelago-true-true.json": "a0f4e3240a511aa70dd5b5884fc30474a41c9469f8aa7d6e2692847f5a53a034",
+        "800003-4-1-candidate-archipelago-true-true.txt": "01de6f4df16ab995e81fd5029bae4f9e21fe1bead12c359da62d10d10944038b"
+      },
+      "winner": 0
+    },
+    {
+      "fingerprint": "adf914adc98bb391",
+      "idleRevisits": 0,
+      "name": "800006-4-1-candidate-archipelago-true-true",
+      "rawRevisits": 1,
+      "sha256": {
+        "800006-4-1-candidate-archipelago-true-true.failure": "eb1aaf4419785438de021526ba1a39de8b262de00fc1eebee4e291afed69bb13",
+        "800006-4-1-candidate-archipelago-true-true.json": "9d0a461e6400072ca910a437a333c43506c1ccc22ff98854d57637863d4f95e3",
+        "800006-4-1-candidate-archipelago-true-true.txt": "22ae594d65446b22d2c24f59d7fd6284d50072034c46f3a0985936531957e81b"
+      },
+      "winner": 3
+    },
+    {
+      "fingerprint": "73d994378ad04603",
+      "idleRevisits": 0,
+      "name": "800001-4-2-candidate-archipelago-true-true",
+      "rawRevisits": 1,
+      "sha256": {
+        "800001-4-2-candidate-archipelago-true-true.failure": "eb1aaf4419785438de021526ba1a39de8b262de00fc1eebee4e291afed69bb13",
+        "800001-4-2-candidate-archipelago-true-true.json": "ba57cf83e0429c6a7b2a410eb92161af98fab9650c516da5c85c2a576e819728",
+        "800001-4-2-candidate-archipelago-true-true.txt": "4283d1522d78623cd400db0d77c437ee89da0336b3cfdc26b1f5b83e17b11219"
+      },
+      "winner": 3
+    },
+    {
+      "fingerprint": "bc1f7b8019d3bc26",
+      "idleRevisits": 0,
+      "name": "800005-4-2-candidate-archipelago-true-true",
+      "rawRevisits": 1,
+      "sha256": {
+        "800005-4-2-candidate-archipelago-true-true.failure": "bbdd8eb416b52b09b90827a9241e99130044157ab41e85daf73abdb632453d12",
+        "800005-4-2-candidate-archipelago-true-true.json": "0fd06144b49783c896cd47cf46146464d51f0d666e58c91deb556fa06417e32c",
+        "800005-4-2-candidate-archipelago-true-true.txt": "acd97377802f1775581bfcb087647372529bd2f07fa7f2ea5851b6610e622e89"
+      },
+      "winner": 2
+    },
+    {
+      "fingerprint": "64be5df3171b6820",
+      "idleRevisits": 0,
+      "name": "800000-4-0-control-archipelago-true-true",
+      "rawRevisits": 1,
+      "sha256": {
+        "800000-4-0-control-archipelago-true-true.failure": "b844f237bdcc04a7ca74f4aee1f3a78374b1c3af980a5ab31db7f7e5ac523114",
+        "800000-4-0-control-archipelago-true-true.json": "52e15400bd7df2b2f54e49ecac940eeb3073db7682646dfd87d84b73aaa7de32",
+        "800000-4-0-control-archipelago-true-true.txt": "b3323c90004de9c5e75e625c77899e760cf34c61efc9d88506565e03a7c65588"
+      },
+      "winner": 2
+    },
+    {
+      "fingerprint": "e1e1f521b28827f3",
+      "idleRevisits": 0,
+      "name": "800001-4-0-control-archipelago-true-true",
+      "rawRevisits": 2,
+      "sha256": {
+        "800001-4-0-control-archipelago-true-true.failure": "11db44da48f1e4e6f5f7850436b2faa375265740af762e4854f25ebe4d1f5b5d",
+        "800001-4-0-control-archipelago-true-true.json": "35c53f5ca0ace07a6052647b27ea0009f98b8fb1b820b0ae9d6a6b5a30d5d945",
+        "800001-4-0-control-archipelago-true-true.txt": "d3187f6d28e7ffdddcc50dea66c96eb8c29e69efecceb88600925d53934e85a8"
+      },
+      "winner": 3
+    },
+    {
+      "fingerprint": "b99964d217b1e325",
+      "idleRevisits": 0,
+      "name": "800002-4-0-control-archipelago-true-true",
+      "rawRevisits": 1,
+      "sha256": {
+        "800002-4-0-control-archipelago-true-true.failure": "b844f237bdcc04a7ca74f4aee1f3a78374b1c3af980a5ab31db7f7e5ac523114",
+        "800002-4-0-control-archipelago-true-true.json": "8eacb4e3064a4f76a82cfc859f0113b9b39f98d0de5c970a30f6b466956e646f",
+        "800002-4-0-control-archipelago-true-true.txt": "361696095abcc5aa56279ca8691f5ce765812cc69535a0fe0c913c4ab66c79a3"
+      },
+      "winner": 2
+    },
+    {
+      "fingerprint": "64be5df3171b6820",
+      "idleRevisits": 0,
+      "name": "800000-4-1-control-archipelago-true-true",
+      "rawRevisits": 1,
+      "sha256": {
+        "800000-4-1-control-archipelago-true-true.failure": "b844f237bdcc04a7ca74f4aee1f3a78374b1c3af980a5ab31db7f7e5ac523114",
+        "800000-4-1-control-archipelago-true-true.json": "20f77303926f24f6a430c513288da3c42c57fd9d685e9f668b4efe4adc20e104",
+        "800000-4-1-control-archipelago-true-true.txt": "b3323c90004de9c5e75e625c77899e760cf34c61efc9d88506565e03a7c65588"
+      },
+      "winner": 2
+    },
+    {
+      "fingerprint": "e1e1f521b28827f3",
+      "idleRevisits": 0,
+      "name": "800001-4-1-control-archipelago-true-true",
+      "rawRevisits": 2,
+      "sha256": {
+        "800001-4-1-control-archipelago-true-true.failure": "11db44da48f1e4e6f5f7850436b2faa375265740af762e4854f25ebe4d1f5b5d",
+        "800001-4-1-control-archipelago-true-true.json": "19debfc688afa62e67442627df1abf53d807ca107d9c0f1b541f323a434478de",
+        "800001-4-1-control-archipelago-true-true.txt": "d3187f6d28e7ffdddcc50dea66c96eb8c29e69efecceb88600925d53934e85a8"
+      },
+      "winner": 3
+    },
+    {
+      "fingerprint": "b99964d217b1e325",
+      "idleRevisits": 0,
+      "name": "800002-4-1-control-archipelago-true-true",
+      "rawRevisits": 1,
+      "sha256": {
+        "800002-4-1-control-archipelago-true-true.failure": "b844f237bdcc04a7ca74f4aee1f3a78374b1c3af980a5ab31db7f7e5ac523114",
+        "800002-4-1-control-archipelago-true-true.json": "a4e7e3b489c90c6bdf296b9f844da57c9f49b3df7b9bb4ef9142b0bb175fbde4",
+        "800002-4-1-control-archipelago-true-true.txt": "361696095abcc5aa56279ca8691f5ce765812cc69535a0fe0c913c4ab66c79a3"
+      },
+      "winner": 2
+    },
+    {
+      "fingerprint": "64be5df3171b6820",
+      "idleRevisits": 0,
+      "name": "800000-4-2-control-archipelago-true-true",
+      "rawRevisits": 1,
+      "sha256": {
+        "800000-4-2-control-archipelago-true-true.failure": "b844f237bdcc04a7ca74f4aee1f3a78374b1c3af980a5ab31db7f7e5ac523114",
+        "800000-4-2-control-archipelago-true-true.json": "9d8ad9cc76c27a0af20c52e98f1bd87ca1045227457a4c8dc982cceda473d4fe",
+        "800000-4-2-control-archipelago-true-true.txt": "b3323c90004de9c5e75e625c77899e760cf34c61efc9d88506565e03a7c65588"
+      },
+      "winner": 2
+    },
+    {
+      "fingerprint": "e1e1f521b28827f3",
+      "idleRevisits": 0,
+      "name": "800001-4-2-control-archipelago-true-true",
+      "rawRevisits": 2,
+      "sha256": {
+        "800001-4-2-control-archipelago-true-true.failure": "11db44da48f1e4e6f5f7850436b2faa375265740af762e4854f25ebe4d1f5b5d",
+        "800001-4-2-control-archipelago-true-true.json": "f3f14f27b3e9a010ef3108a69e81e2150952bc5074e0bef1b04fcabe1634c846",
+        "800001-4-2-control-archipelago-true-true.txt": "d3187f6d28e7ffdddcc50dea66c96eb8c29e69efecceb88600925d53934e85a8"
+      },
+      "winner": 3
+    },
+    {
+      "fingerprint": "b99964d217b1e325",
+      "idleRevisits": 0,
+      "name": "800002-4-2-control-archipelago-true-true",
+      "rawRevisits": 1,
+      "sha256": {
+        "800002-4-2-control-archipelago-true-true.failure": "b844f237bdcc04a7ca74f4aee1f3a78374b1c3af980a5ab31db7f7e5ac523114",
+        "800002-4-2-control-archipelago-true-true.json": "bfa0b7f48ad65954ff71929eecb1260e0940a7a58c5150e12693fe13b66eb5da",
+        "800002-4-2-control-archipelago-true-true.txt": "361696095abcc5aa56279ca8691f5ce765812cc69535a0fe0c913c4ab66c79a3"
+      },
+      "winner": 2
+    },
+    {
+      "fingerprint": "64be5df3171b6820",
+      "idleRevisits": 0,
+      "name": "800000-4-3-control-archipelago-true-true",
+      "rawRevisits": 1,
+      "sha256": {
+        "800000-4-3-control-archipelago-true-true.failure": "b844f237bdcc04a7ca74f4aee1f3a78374b1c3af980a5ab31db7f7e5ac523114",
+        "800000-4-3-control-archipelago-true-true.json": "ce90c4ad12fa02efd4d1273f37159a8367049444c8d32bc38847bddf73969be5",
+        "800000-4-3-control-archipelago-true-true.txt": "b3323c90004de9c5e75e625c77899e760cf34c61efc9d88506565e03a7c65588"
+      },
+      "winner": 2
+    },
+    {
+      "fingerprint": "e1e1f521b28827f3",
+      "idleRevisits": 0,
+      "name": "800001-4-3-control-archipelago-true-true",
+      "rawRevisits": 2,
+      "sha256": {
+        "800001-4-3-control-archipelago-true-true.failure": "11db44da48f1e4e6f5f7850436b2faa375265740af762e4854f25ebe4d1f5b5d",
+        "800001-4-3-control-archipelago-true-true.json": "420ea164db52af2c48f3e3ef79873651711cf497c8bc275918438c906bc4410a",
+        "800001-4-3-control-archipelago-true-true.txt": "d3187f6d28e7ffdddcc50dea66c96eb8c29e69efecceb88600925d53934e85a8"
+      },
+      "winner": 3
+    },
+    {
+      "fingerprint": "b99964d217b1e325",
+      "idleRevisits": 0,
+      "name": "800002-4-3-control-archipelago-true-true",
+      "rawRevisits": 1,
+      "sha256": {
+        "800002-4-3-control-archipelago-true-true.failure": "b844f237bdcc04a7ca74f4aee1f3a78374b1c3af980a5ab31db7f7e5ac523114",
+        "800002-4-3-control-archipelago-true-true.json": "06bb949aeede29a66352e6972b78f2be30a6901a7b9707f1470b03ef1ee94c1c",
+        "800002-4-3-control-archipelago-true-true.txt": "361696095abcc5aa56279ca8691f5ce765812cc69535a0fe0c913c4ab66c79a3"
+      },
+      "winner": 2
+    },
+    {
+      "fingerprint": "afa36fdf71086187",
+      "idleRevisits": 0,
+      "name": "801008-3-0-candidate-archipelago-true-false",
+      "rawRevisits": 1,
+      "sha256": {
+        "801008-3-0-candidate-archipelago-true-false.failure": "e2c60510b4d4c4c8c35d49484c53c921eb6214bf282632960e77df9a669bd1ad",
+        "801008-3-0-candidate-archipelago-true-false.json": "d8c486ee8883bdd7b3911cf8e5152fff11ae9067cca15c43d522b7a87422b50e",
+        "801008-3-0-candidate-archipelago-true-false.txt": "56a54fc5667388eff15b2d59daeeb98dfa618f9940a0fc82754ced0176ee4ab6"
+      },
+      "winner": 0
+    },
+    {
+      "fingerprint": "81cd44a09ee2e78e",
+      "idleRevisits": 0,
+      "name": "801004-3-1-candidate-archipelago-true-false",
+      "rawRevisits": 2,
+      "sha256": {
+        "801004-3-1-candidate-archipelago-true-false.failure": "f3e6e7b8d43e32b77f85cfafab925606830d2c513e4c21935379758cd85e592c",
+        "801004-3-1-candidate-archipelago-true-false.json": "39e86055897e4f188fb32ae17a58a28859312ba6b962fb7f8688f9cb281963e9",
+        "801004-3-1-candidate-archipelago-true-false.txt": "36532e9e2c73b2bbc55e011296ebf42329ce825e58b90523b700ce2ade2c3ace"
+      },
+      "winner": 1
+    },
+    {
+      "fingerprint": "5a85c578582d578c",
+      "idleRevisits": 0,
+      "name": "801000-3-2-candidate-archipelago-true-false",
+      "rawRevisits": 1,
+      "sha256": {
+        "801000-3-2-candidate-archipelago-true-false.failure": "e2c60510b4d4c4c8c35d49484c53c921eb6214bf282632960e77df9a669bd1ad",
+        "801000-3-2-candidate-archipelago-true-false.json": "a9e9dc6de576c4e2b6d42880fc288879e442dbed5890971773c6726b81b75d5b",
+        "801000-3-2-candidate-archipelago-true-false.txt": "681dcd9cf27efa9e24e92c8f6a6a8b6a99494f3eb5b1af4324218543ef456ba9"
+      },
+      "winner": 0
+    },
+    {
+      "fingerprint": "e5f9ec8fe5a4d8d0",
+      "idleRevisits": 0,
+      "name": "801002-3-2-candidate-archipelago-true-false",
+      "rawRevisits": 3,
+      "sha256": {
+        "801002-3-2-candidate-archipelago-true-false.failure": "74f309000cf6e47bbb00cfd70d1bde5028a789587cdceb3073d8e3b0e4545c85",
+        "801002-3-2-candidate-archipelago-true-false.json": "0e9289f1fa4567538e48e8430c015ffdb2d116c00446cff1433941f0fe04a091",
+        "801002-3-2-candidate-archipelago-true-false.txt": "38ed76615a48a45933835dd51af5af820d15d4d03e85fd083be74613da3ef1d6"
+      },
+      "winner": 2
+    },
+    {
+      "fingerprint": "be6a394f26242591",
+      "idleRevisits": 0,
+      "name": "801000-3-0-control-archipelago-true-false",
+      "rawRevisits": 1,
+      "sha256": {
+        "801000-3-0-control-archipelago-true-false.failure": "2c62914c7aea306928b519bfd9ca9d695a952df7452b585cb31173c566a35b7c",
+        "801000-3-0-control-archipelago-true-false.json": "d4055aaa40480b14474e74c9a999b3283bb04ab7d615f7f3815c8f436196142e",
+        "801000-3-0-control-archipelago-true-false.txt": "1d2452c0f505f0384c74b9ed80044a27a9df2f4c2ebe667cf51dd444af73006f"
+      },
+      "winner": 0
+    },
+    {
+      "fingerprint": "bda7c89933efb3cb",
+      "idleRevisits": 0,
+      "name": "801006-3-0-control-archipelago-true-false",
+      "rawRevisits": 2,
+      "sha256": {
+        "801006-3-0-control-archipelago-true-false.failure": "78495b706e2f548fa9033a8cbf8ef2eedab6cca94ff5a24444be2e7b32163f04",
+        "801006-3-0-control-archipelago-true-false.json": "fd38d28c2ff55da57d03881fe681856524126f33979aa95022f66fa830a5bc31",
+        "801006-3-0-control-archipelago-true-false.txt": "92c5f68d35b769699d0070058e1f8e912b20de574b11c8a8b8620e9d06af020d"
+      },
+      "winner": 2
+    },
+    {
+      "fingerprint": "0a5e9cdf51fbc382",
+      "idleRevisits": 0,
+      "name": "801009-3-0-control-archipelago-true-false",
+      "rawRevisits": 1,
+      "sha256": {
+        "801009-3-0-control-archipelago-true-false.failure": "746be4246abd603d7c949f101632432226c855a501364598dc2feacf875c624b",
+        "801009-3-0-control-archipelago-true-false.json": "912f60e442fa12ef5953fa8fda2f4f01decf5feec53cdedc67678411ec31c9cb",
+        "801009-3-0-control-archipelago-true-false.txt": "383c14ebd9f70600a2174c44f4dae6579f4749a8cd0038b45a8e02ca8431697a"
+      },
+      "winner": 1
+    },
+    {
+      "fingerprint": "be6a394f26242591",
+      "idleRevisits": 0,
+      "name": "801000-3-1-control-archipelago-true-false",
+      "rawRevisits": 1,
+      "sha256": {
+        "801000-3-1-control-archipelago-true-false.failure": "2c62914c7aea306928b519bfd9ca9d695a952df7452b585cb31173c566a35b7c",
+        "801000-3-1-control-archipelago-true-false.json": "dc89ae62a2104fbeb7e08d6ca5e2634f70f1cbcc6951c52caaee44306c85e333",
+        "801000-3-1-control-archipelago-true-false.txt": "1d2452c0f505f0384c74b9ed80044a27a9df2f4c2ebe667cf51dd444af73006f"
+      },
+      "winner": 0
+    },
+    {
+      "fingerprint": "bda7c89933efb3cb",
+      "idleRevisits": 0,
+      "name": "801006-3-1-control-archipelago-true-false",
+      "rawRevisits": 2,
+      "sha256": {
+        "801006-3-1-control-archipelago-true-false.failure": "78495b706e2f548fa9033a8cbf8ef2eedab6cca94ff5a24444be2e7b32163f04",
+        "801006-3-1-control-archipelago-true-false.json": "7b3275cea9a1d19becf990e2b42ffb71f1cfd4f859f2306774b759bcb57923e4",
+        "801006-3-1-control-archipelago-true-false.txt": "92c5f68d35b769699d0070058e1f8e912b20de574b11c8a8b8620e9d06af020d"
+      },
+      "winner": 2
+    },
+    {
+      "fingerprint": "0a5e9cdf51fbc382",
+      "idleRevisits": 0,
+      "name": "801009-3-1-control-archipelago-true-false",
+      "rawRevisits": 1,
+      "sha256": {
+        "801009-3-1-control-archipelago-true-false.failure": "746be4246abd603d7c949f101632432226c855a501364598dc2feacf875c624b",
+        "801009-3-1-control-archipelago-true-false.json": "b7d7bbd96edcb4b4f4dc5cc7b74fa375d6ed49b73a3577439252ea7855bc4cc3",
+        "801009-3-1-control-archipelago-true-false.txt": "383c14ebd9f70600a2174c44f4dae6579f4749a8cd0038b45a8e02ca8431697a"
+      },
+      "winner": 1
+    },
+    {
+      "fingerprint": "be6a394f26242591",
+      "idleRevisits": 0,
+      "name": "801000-3-2-control-archipelago-true-false",
+      "rawRevisits": 1,
+      "sha256": {
+        "801000-3-2-control-archipelago-true-false.failure": "2c62914c7aea306928b519bfd9ca9d695a952df7452b585cb31173c566a35b7c",
+        "801000-3-2-control-archipelago-true-false.json": "1bf87ee69c59753c4994bc0d55fbee2ec855e151778fd14a58cdcdccaee979fc",
+        "801000-3-2-control-archipelago-true-false.txt": "1d2452c0f505f0384c74b9ed80044a27a9df2f4c2ebe667cf51dd444af73006f"
+      },
+      "winner": 0
+    },
+    {
+      "fingerprint": "bda7c89933efb3cb",
+      "idleRevisits": 0,
+      "name": "801006-3-2-control-archipelago-true-false",
+      "rawRevisits": 2,
+      "sha256": {
+        "801006-3-2-control-archipelago-true-false.failure": "78495b706e2f548fa9033a8cbf8ef2eedab6cca94ff5a24444be2e7b32163f04",
+        "801006-3-2-control-archipelago-true-false.json": "57c5497f759ed7af31d725a7d355499b76b5ffcea827e397a0f247de7e1f0007",
+        "801006-3-2-control-archipelago-true-false.txt": "92c5f68d35b769699d0070058e1f8e912b20de574b11c8a8b8620e9d06af020d"
+      },
+      "winner": 2
+    },
+    {
+      "fingerprint": "0a5e9cdf51fbc382",
+      "idleRevisits": 0,
+      "name": "801009-3-2-control-archipelago-true-false",
+      "rawRevisits": 1,
+      "sha256": {
+        "801009-3-2-control-archipelago-true-false.failure": "746be4246abd603d7c949f101632432226c855a501364598dc2feacf875c624b",
+        "801009-3-2-control-archipelago-true-false.json": "87d0b432ef9ffec94a6eeef2149236d181480b261a29c51c11d0ceef1a3572a2",
+        "801009-3-2-control-archipelago-true-false.txt": "383c14ebd9f70600a2174c44f4dae6579f4749a8cd0038b45a8e02ca8431697a"
+      },
+      "winner": 1
+    },
+    {
+      "fingerprint": "9cf4bf0334c21c52",
+      "idleRevisits": 0,
+      "name": "801004-4-0-candidate-archipelago-true-false",
+      "rawRevisits": 2,
+      "sha256": {
+        "801004-4-0-candidate-archipelago-true-false.failure": "b66051fd3730067ed2e56632754e1d9782f7ff1e1bc46e3f0ce7bcfb9a19e032",
+        "801004-4-0-candidate-archipelago-true-false.json": "23fccd11c0c1cac6e845b91526cb7f3c7fe81656b259aef10641d40e38ae443f",
+        "801004-4-0-candidate-archipelago-true-false.txt": "81e1ec5d428058426ee6ba945721b810d9e583b0f506729e95bb6878a5b80786"
+      },
+      "winner": 2
+    },
+    {
+      "fingerprint": "5cb65ba760d31722",
+      "idleRevisits": 0,
+      "name": "801005-4-0-candidate-archipelago-true-false",
+      "rawRevisits": 1,
+      "sha256": {
+        "801005-4-0-candidate-archipelago-true-false.failure": "eb1aaf4419785438de021526ba1a39de8b262de00fc1eebee4e291afed69bb13",
+        "801005-4-0-candidate-archipelago-true-false.json": "9ced50d3f8ea6a10afcbc3409dbca71ed1b2e30aeb56e8fd9e30ad16cfde7b0d",
+        "801005-4-0-candidate-archipelago-true-false.txt": "fcd306e63fa454d0d38da477969c0ea27f5f4f7fd02a8cb63b243a3c71b7bac9"
+      },
+      "winner": 3
+    },
+    {
+      "fingerprint": "a29d06bb30ac64b7",
+      "idleRevisits": 0,
+      "name": "801004-4-1-candidate-archipelago-true-false",
+      "rawRevisits": 3,
+      "sha256": {
+        "801004-4-1-candidate-archipelago-true-false.failure": "e772921573185e67fb6eb610a2a965063c1b16c01c837ce5bbec129dfd9b0723",
+        "801004-4-1-candidate-archipelago-true-false.json": "4219d610b37978177fac3352085d932f3e48a0e1d2ddf02d9a51d10a8c778ea9",
+        "801004-4-1-candidate-archipelago-true-false.txt": "5465dd51f96cfd1346180b9c6a6f00642aed128c18c04b34b1137a9b7415507d"
+      },
+      "winner": 1
+    },
+    {
+      "fingerprint": "e225fd081f5ae805",
+      "idleRevisits": 0,
+      "name": "801005-4-1-candidate-archipelago-true-false",
+      "rawRevisits": 1,
+      "sha256": {
+        "801005-4-1-candidate-archipelago-true-false.failure": "ab436903391b39b72fd26e7d29a72df89bbe5f6eda604bb00bb306bc5ab1b815",
+        "801005-4-1-candidate-archipelago-true-false.json": "e2bf123a35437399e2d49eb39177fa752eabe2e8f796594ed9ac17c87676af4a",
+        "801005-4-1-candidate-archipelago-true-false.txt": "f3fb6fa59df931af364b6e227dae2d635b382d46bab90a7eb92b3e1f2d37d7d6"
+      },
+      "winner": 1
+    },
+    {
+      "fingerprint": "8a8d59cdbfcecfca",
+      "idleRevisits": 0,
+      "name": "801000-4-2-candidate-archipelago-true-false",
+      "rawRevisits": 1,
+      "sha256": {
+        "801000-4-2-candidate-archipelago-true-false.failure": "bbdd8eb416b52b09b90827a9241e99130044157ab41e85daf73abdb632453d12",
+        "801000-4-2-candidate-archipelago-true-false.json": "ef3f8e595a86c3761bf685ff7abb90408a364426a239f988e136f748d708323e",
+        "801000-4-2-candidate-archipelago-true-false.txt": "046872e3612f1029bff52d290d348dd5fcd5087ae4a5a7f02900a231527a21b6"
+      },
+      "winner": 2
+    },
+    {
+      "fingerprint": "f19dbedb47007373",
+      "idleRevisits": 0,
+      "name": "801002-4-0-control-archipelago-true-false",
+      "rawRevisits": 1,
+      "sha256": {
+        "801002-4-0-control-archipelago-true-false.failure": "746be4246abd603d7c949f101632432226c855a501364598dc2feacf875c624b",
+        "801002-4-0-control-archipelago-true-false.json": "391db9dd66fbe0e7c8141aeff764477c39d26e6c9b93d6aa6553e6dd6dd07a89",
+        "801002-4-0-control-archipelago-true-false.txt": "18278f1eff2f8f54a9c81f019bc9d126c3e1b67434c2a1e32d564125ed16a3a7"
+      },
+      "winner": 1
+    },
+    {
+      "fingerprint": "f19dbedb47007373",
+      "idleRevisits": 0,
+      "name": "801002-4-1-control-archipelago-true-false",
+      "rawRevisits": 1,
+      "sha256": {
+        "801002-4-1-control-archipelago-true-false.failure": "746be4246abd603d7c949f101632432226c855a501364598dc2feacf875c624b",
+        "801002-4-1-control-archipelago-true-false.json": "cf9692f87c71bb164fbd8105a4f6dedc20386a1abc6caf642192e1e4901592c7",
+        "801002-4-1-control-archipelago-true-false.txt": "18278f1eff2f8f54a9c81f019bc9d126c3e1b67434c2a1e32d564125ed16a3a7"
+      },
+      "winner": 1
+    },
+    {
+      "fingerprint": "f19dbedb47007373",
+      "idleRevisits": 0,
+      "name": "801002-4-2-control-archipelago-true-false",
+      "rawRevisits": 1,
+      "sha256": {
+        "801002-4-2-control-archipelago-true-false.failure": "746be4246abd603d7c949f101632432226c855a501364598dc2feacf875c624b",
+        "801002-4-2-control-archipelago-true-false.json": "6b459ed71346cdeb5e683bbd209eef1dfd4d5c5fea317df06425818bf25f1c03",
+        "801002-4-2-control-archipelago-true-false.txt": "18278f1eff2f8f54a9c81f019bc9d126c3e1b67434c2a1e32d564125ed16a3a7"
+      },
+      "winner": 1
+    },
+    {
+      "fingerprint": "f19dbedb47007373",
+      "idleRevisits": 0,
+      "name": "801002-4-3-control-archipelago-true-false",
+      "rawRevisits": 1,
+      "sha256": {
+        "801002-4-3-control-archipelago-true-false.failure": "746be4246abd603d7c949f101632432226c855a501364598dc2feacf875c624b",
+        "801002-4-3-control-archipelago-true-false.json": "41b1fd7487e1772d17216e21c0dd4ff41825cecf84cb047574fc502560eda95e",
+        "801002-4-3-control-archipelago-true-false.txt": "18278f1eff2f8f54a9c81f019bc9d126c3e1b67434c2a1e32d564125ed16a3a7"
+      },
+      "winner": 1
+    },
+    {
+      "fingerprint": "1fda936fffdeffc6",
+      "idleRevisits": 0,
+      "name": "802001-3-1-candidate-archipelago-false-true",
+      "rawRevisits": 1,
+      "sha256": {
+        "802001-3-1-candidate-archipelago-false-true.failure": "ab436903391b39b72fd26e7d29a72df89bbe5f6eda604bb00bb306bc5ab1b815",
+        "802001-3-1-candidate-archipelago-false-true.json": "a8ca65d90478a40e991f6e4982ecd11c78eb69bccc29fd050d7e9256d853b345",
+        "802001-3-1-candidate-archipelago-false-true.txt": "66f7d8dad1f35f8126a75add07c43b30c336c59adfc7fc8073cc4a4949fe7231"
+      },
+      "winner": 1
+    },
+    {
+      "fingerprint": "c1f35bd0c5824fb0",
+      "idleRevisits": 0,
+      "name": "802000-4-2-candidate-archipelago-false-true",
+      "rawRevisits": 1,
+      "sha256": {
+        "802000-4-2-candidate-archipelago-false-true.failure": "ab436903391b39b72fd26e7d29a72df89bbe5f6eda604bb00bb306bc5ab1b815",
+        "802000-4-2-candidate-archipelago-false-true.json": "6aa00d9f3f875314a3258c348b3b7429aaf16de5169c42d29cca18e55e0f6e6f",
+        "802000-4-2-candidate-archipelago-false-true.txt": "93ecf7e3a8f036bc5186794152a2aded59caea2357cc54c7cd1fc1ff3ab9c39b"
+      },
+      "winner": 1
+    },
+    {
+      "fingerprint": "b3cdb621adec3900",
+      "idleRevisits": 0,
+      "name": "803006-4-3-candidate-archipelago-false-false",
+      "rawRevisits": 1,
+      "sha256": {
+        "803006-4-3-candidate-archipelago-false-false.failure": "bbdd8eb416b52b09b90827a9241e99130044157ab41e85daf73abdb632453d12",
+        "803006-4-3-candidate-archipelago-false-false.json": "58ceffba82c0383d1874417412faa8df7cb0e9b72cd3e445a1c3b17c10f16e8f",
+        "803006-4-3-candidate-archipelago-false-false.txt": "b72c09f2ce15596e28d7797a4cc137374340e8595d1d23cc57d038b38a431be4"
+      },
+      "winner": 2
+    },
+    {
+      "fingerprint": "72e737b98a116743",
+      "idleRevisits": 0,
+      "name": "804005-3-1-candidate-peninsula-true-true",
+      "rawRevisits": 1,
+      "sha256": {
+        "804005-3-1-candidate-peninsula-true-true.failure": "bbdd8eb416b52b09b90827a9241e99130044157ab41e85daf73abdb632453d12",
+        "804005-3-1-candidate-peninsula-true-true.json": "717579cd06adea6609913c73b5c05499a608b9ce5c6184d361735786b855d48d",
+        "804005-3-1-candidate-peninsula-true-true.txt": "a3a13371fb641b45a2c6f2334a8c3515019c2c4eb75b4dd16c42b3b4d66b7567"
+      },
+      "winner": 2
+    },
+    {
+      "fingerprint": "3ea20214719c0e85",
+      "idleRevisits": 0,
+      "name": "804002-3-0-control-peninsula-true-true",
+      "rawRevisits": 1,
+      "sha256": {
+        "804002-3-0-control-peninsula-true-true.failure": "2c62914c7aea306928b519bfd9ca9d695a952df7452b585cb31173c566a35b7c",
+        "804002-3-0-control-peninsula-true-true.json": "1561c9d084939a024ec4f4163bf8ef23c28cdd8b13af568823a271258292ec86",
+        "804002-3-0-control-peninsula-true-true.txt": "76193cb10d5cb0e4b9bc32921b6e7dbc48a653538680f38725c8e5a21d3d4687"
+      },
+      "winner": 0
+    },
+    {
+      "fingerprint": "6fe84a359e37cd39",
+      "idleRevisits": 0,
+      "name": "804007-3-0-control-peninsula-true-true",
+      "rawRevisits": 1,
+      "sha256": {
+        "804007-3-0-control-peninsula-true-true.failure": "b844f237bdcc04a7ca74f4aee1f3a78374b1c3af980a5ab31db7f7e5ac523114",
+        "804007-3-0-control-peninsula-true-true.json": "d421d2138eaae3f2dacaec3caca3620d5ba5db8c5d34781459ce96aa0f3a4c10",
+        "804007-3-0-control-peninsula-true-true.txt": "6472f950632341c14aa1db746fbd2371aa39d4bf548750febf4ed78a41883475"
+      },
+      "winner": 2
+    },
+    {
+      "fingerprint": "3ea20214719c0e85",
+      "idleRevisits": 0,
+      "name": "804002-3-1-control-peninsula-true-true",
+      "rawRevisits": 1,
+      "sha256": {
+        "804002-3-1-control-peninsula-true-true.failure": "2c62914c7aea306928b519bfd9ca9d695a952df7452b585cb31173c566a35b7c",
+        "804002-3-1-control-peninsula-true-true.json": "a0f5d24e2f56d2d708683304d7dd59cd9a565d2f86ae93dff66910cc83c04e1a",
+        "804002-3-1-control-peninsula-true-true.txt": "76193cb10d5cb0e4b9bc32921b6e7dbc48a653538680f38725c8e5a21d3d4687"
+      },
+      "winner": 0
+    },
+    {
+      "fingerprint": "6fe84a359e37cd39",
+      "idleRevisits": 0,
+      "name": "804007-3-1-control-peninsula-true-true",
+      "rawRevisits": 1,
+      "sha256": {
+        "804007-3-1-control-peninsula-true-true.failure": "b844f237bdcc04a7ca74f4aee1f3a78374b1c3af980a5ab31db7f7e5ac523114",
+        "804007-3-1-control-peninsula-true-true.json": "0c0854bbfd1ec52ac5b5b4c7e19f346d3ac974760df1b76b462611b525430a2d",
+        "804007-3-1-control-peninsula-true-true.txt": "6472f950632341c14aa1db746fbd2371aa39d4bf548750febf4ed78a41883475"
+      },
+      "winner": 2
+    },
+    {
+      "fingerprint": "3ea20214719c0e85",
+      "idleRevisits": 0,
+      "name": "804002-3-2-control-peninsula-true-true",
+      "rawRevisits": 1,
+      "sha256": {
+        "804002-3-2-control-peninsula-true-true.failure": "2c62914c7aea306928b519bfd9ca9d695a952df7452b585cb31173c566a35b7c",
+        "804002-3-2-control-peninsula-true-true.json": "9e1e3d8d3c84598ab2b402166e1d647b0fefbb96bac444deda139aba3c541353",
+        "804002-3-2-control-peninsula-true-true.txt": "76193cb10d5cb0e4b9bc32921b6e7dbc48a653538680f38725c8e5a21d3d4687"
+      },
+      "winner": 0
+    },
+    {
+      "fingerprint": "6fe84a359e37cd39",
+      "idleRevisits": 0,
+      "name": "804007-3-2-control-peninsula-true-true",
+      "rawRevisits": 1,
+      "sha256": {
+        "804007-3-2-control-peninsula-true-true.failure": "b844f237bdcc04a7ca74f4aee1f3a78374b1c3af980a5ab31db7f7e5ac523114",
+        "804007-3-2-control-peninsula-true-true.json": "bec9f8c23236bbfd9cf2a7405b0d78e8a2397b6dec64f6d9b15727f6cbf9bc08",
+        "804007-3-2-control-peninsula-true-true.txt": "6472f950632341c14aa1db746fbd2371aa39d4bf548750febf4ed78a41883475"
+      },
+      "winner": 2
+    },
+    {
+      "fingerprint": "bd619eca9cc71945",
+      "idleRevisits": 0,
+      "name": "804003-4-0-candidate-peninsula-true-true",
+      "rawRevisits": 1,
+      "sha256": {
+        "804003-4-0-candidate-peninsula-true-true.failure": "eb1aaf4419785438de021526ba1a39de8b262de00fc1eebee4e291afed69bb13",
+        "804003-4-0-candidate-peninsula-true-true.json": "d0902f572e6ee69fce0ac154791c910a17e30f873bb143a2001a94576bae3462",
+        "804003-4-0-candidate-peninsula-true-true.txt": "229a1e0f52adc8f54aa69bcafba0aafaa970e90e883161ff8938e1f651e46cf3"
+      },
+      "winner": 3
+    },
+    {
+      "fingerprint": "e79d69a942b04539",
+      "idleRevisits": 0,
+      "name": "804005-4-0-candidate-peninsula-true-true",
+      "rawRevisits": 1,
+      "sha256": {
+        "804005-4-0-candidate-peninsula-true-true.failure": "e2c60510b4d4c4c8c35d49484c53c921eb6214bf282632960e77df9a669bd1ad",
+        "804005-4-0-candidate-peninsula-true-true.json": "da4194cf59b5e138eef36e6ca705f619d53f70024b055f6c6a2f53af2666aabb",
+        "804005-4-0-candidate-peninsula-true-true.txt": "0d2ca9a3ce47f8db0cdde314282ca8f93b585c96fc3a723d63717b00c9f304a5"
+      },
+      "winner": 0
+    },
+    {
+      "fingerprint": "490c81cd76c2496e",
+      "idleRevisits": 0,
+      "name": "804002-4-1-candidate-peninsula-true-true",
+      "rawRevisits": 2,
+      "sha256": {
+        "804002-4-1-candidate-peninsula-true-true.failure": "f3e6e7b8d43e32b77f85cfafab925606830d2c513e4c21935379758cd85e592c",
+        "804002-4-1-candidate-peninsula-true-true.json": "7d175a710fefa339b71ff00ef0c31fd0ba26dad6e426cfca97c028928dcfc160",
+        "804002-4-1-candidate-peninsula-true-true.txt": "eac09dad51c71dc6308edf681b93fd71dc280f10a0532cdc0d6a0e4221964a0f"
+      },
+      "winner": 1
+    },
+    {
+      "fingerprint": "998f3ba713aa6879",
+      "idleRevisits": 0,
+      "name": "804002-4-2-candidate-peninsula-true-true",
+      "rawRevisits": 1,
+      "sha256": {
+        "804002-4-2-candidate-peninsula-true-true.failure": "eb1aaf4419785438de021526ba1a39de8b262de00fc1eebee4e291afed69bb13",
+        "804002-4-2-candidate-peninsula-true-true.json": "2b88a26fe2d9992d2e5eced22d4421bc8c0d5003bd347fb4b3b8a3d998df45b8",
+        "804002-4-2-candidate-peninsula-true-true.txt": "ecce350ad19b992a9c0e6bf6edb09f46ac673d8d649e6b408c992aa1199e2ba3"
+      },
+      "winner": 3
+    },
+    {
+      "fingerprint": "8ed5f516b4e43c9c",
+      "idleRevisits": 0,
+      "name": "804006-4-2-candidate-peninsula-true-true",
+      "rawRevisits": 1,
+      "sha256": {
+        "804006-4-2-candidate-peninsula-true-true.failure": "ab436903391b39b72fd26e7d29a72df89bbe5f6eda604bb00bb306bc5ab1b815",
+        "804006-4-2-candidate-peninsula-true-true.json": "4cd88944783479bd831bad2052f17398a397896ae90969eac507cc018fc69c47",
+        "804006-4-2-candidate-peninsula-true-true.txt": "7d2130930104c3d195df40a95fe789d7f9080c4d1daa4d25ce07cc8455236b53"
+      },
+      "winner": 1
+    },
+    {
+      "fingerprint": "3f4a7669b500714a",
+      "idleRevisits": 0,
+      "name": "805002-3-0-candidate-peninsula-true-false",
+      "rawRevisits": 1,
+      "sha256": {
+        "805002-3-0-candidate-peninsula-true-false.failure": "bbdd8eb416b52b09b90827a9241e99130044157ab41e85daf73abdb632453d12",
+        "805002-3-0-candidate-peninsula-true-false.json": "6618051f58a580dd08b9be98d9cb80191f66cae5cda85b2b741121aae6bf6733",
+        "805002-3-0-candidate-peninsula-true-false.txt": "711b847abe4e4c57129bbf72ab8041e7d44d4d1465804e823fbbd7ebf1efba9f"
+      },
+      "winner": 2
+    },
+    {
+      "fingerprint": "e05ba6b81610f4e3",
+      "idleRevisits": 0,
+      "name": "805009-3-0-candidate-peninsula-true-false",
+      "rawRevisits": 1,
+      "sha256": {
+        "805009-3-0-candidate-peninsula-true-false.failure": "e2c60510b4d4c4c8c35d49484c53c921eb6214bf282632960e77df9a669bd1ad",
+        "805009-3-0-candidate-peninsula-true-false.json": "f8e9bb9f3dd57625601019284cf369c1e6d65a6b011bd5cc3b8b3f43b0bddbcd",
+        "805009-3-0-candidate-peninsula-true-false.txt": "33cd1a8c16669b9436b6502dda7eb0851555337252afe80319fdd4d31bdc21c4"
+      },
+      "winner": 0
+    },
+    {
+      "fingerprint": "171554acf9a829b0",
+      "idleRevisits": 0,
+      "name": "805008-3-1-candidate-peninsula-true-false",
+      "rawRevisits": 1,
+      "sha256": {
+        "805008-3-1-candidate-peninsula-true-false.failure": "e2c60510b4d4c4c8c35d49484c53c921eb6214bf282632960e77df9a669bd1ad",
+        "805008-3-1-candidate-peninsula-true-false.json": "2296fdfa4604d23e0eac93418134769d90fba7e41819794fb6cfb9313162d9b7",
+        "805008-3-1-candidate-peninsula-true-false.txt": "95a2af7566e6f29b0739803e0a9f48845197845a3db3799c01ab50ee2a4af191"
+      },
+      "winner": 0
+    },
+    {
+      "fingerprint": "01a639c0f46e917b",
+      "idleRevisits": 0,
+      "name": "805010-3-1-candidate-peninsula-true-false",
+      "rawRevisits": 2,
+      "sha256": {
+        "805010-3-1-candidate-peninsula-true-false.failure": "b66051fd3730067ed2e56632754e1d9782f7ff1e1bc46e3f0ce7bcfb9a19e032",
+        "805010-3-1-candidate-peninsula-true-false.json": "d6d0e9c31c076cf993e9eba0f331f6f15c9970870a844c5f70826e6742d1c982",
+        "805010-3-1-candidate-peninsula-true-false.txt": "9f3b6b511a3f72a245c38709e2a0e553155f6960a0518610c515033e25dbdeba"
+      },
+      "winner": 2
+    },
+    {
+      "fingerprint": "2c599732722948fa",
+      "idleRevisits": 0,
+      "name": "805008-3-2-candidate-peninsula-true-false",
+      "rawRevisits": 1,
+      "sha256": {
+        "805008-3-2-candidate-peninsula-true-false.failure": "bbdd8eb416b52b09b90827a9241e99130044157ab41e85daf73abdb632453d12",
+        "805008-3-2-candidate-peninsula-true-false.json": "4c8814e7b1af6600650f4846ef151b49b893dae68984389d9e8a48fbbfb7bfe9",
+        "805008-3-2-candidate-peninsula-true-false.txt": "cac9c7a339eaddd2378be2a4f34ecca1242b17f2358a8cb8f14ee2a4dc8a7165"
+      },
+      "winner": 2
+    },
+    {
+      "fingerprint": "359ae4b919d222b7",
+      "idleRevisits": 0,
+      "name": "805002-3-0-control-peninsula-true-false",
+      "rawRevisits": 1,
+      "sha256": {
+        "805002-3-0-control-peninsula-true-false.failure": "b844f237bdcc04a7ca74f4aee1f3a78374b1c3af980a5ab31db7f7e5ac523114",
+        "805002-3-0-control-peninsula-true-false.json": "39365d1f323d87a9faf604d3b2f8541e0cdf5c68b90e38e4eff807dae9f1dea3",
+        "805002-3-0-control-peninsula-true-false.txt": "3e1d73ad686327a07aa1feb8a9a023cfc2c939fc17ee1f93a6213c432f4a16e8"
+      },
+      "winner": 2
+    },
+    {
+      "fingerprint": "341af1208d8acb34",
+      "idleRevisits": 0,
+      "name": "805005-3-0-control-peninsula-true-false",
+      "rawRevisits": 1,
+      "sha256": {
+        "805005-3-0-control-peninsula-true-false.failure": "2c62914c7aea306928b519bfd9ca9d695a952df7452b585cb31173c566a35b7c",
+        "805005-3-0-control-peninsula-true-false.json": "d7386b79061f12c2b36c899da9e744ad281b73e0196301958d659ce1babcdf03",
+        "805005-3-0-control-peninsula-true-false.txt": "10e262c33ddca68632095952d7206d0e86285c2294feaaca807925848e6f2d5b"
+      },
+      "winner": 0
+    },
+    {
+      "fingerprint": "fc8dac340d89ca25",
+      "idleRevisits": 0,
+      "name": "805010-3-0-control-peninsula-true-false",
+      "rawRevisits": 1,
+      "sha256": {
+        "805010-3-0-control-peninsula-true-false.failure": "746be4246abd603d7c949f101632432226c855a501364598dc2feacf875c624b",
+        "805010-3-0-control-peninsula-true-false.json": "16126f149e4b72c2601e233d9c9fddb8de4d6492841b49b50fa17a219d18ee4b",
+        "805010-3-0-control-peninsula-true-false.txt": "29b622aa8f143eed7c3a9ea181ef0d693f2ada55ae187acfb4a49c0f251a7ffe"
+      },
+      "winner": 1
+    },
+    {
+      "fingerprint": "359ae4b919d222b7",
+      "idleRevisits": 0,
+      "name": "805002-3-1-control-peninsula-true-false",
+      "rawRevisits": 1,
+      "sha256": {
+        "805002-3-1-control-peninsula-true-false.failure": "b844f237bdcc04a7ca74f4aee1f3a78374b1c3af980a5ab31db7f7e5ac523114",
+        "805002-3-1-control-peninsula-true-false.json": "95554fb75a7b9017f691cb63349cec58c776f80d89c464e20a5395aecdedd9ce",
+        "805002-3-1-control-peninsula-true-false.txt": "3e1d73ad686327a07aa1feb8a9a023cfc2c939fc17ee1f93a6213c432f4a16e8"
+      },
+      "winner": 2
+    },
+    {
+      "fingerprint": "341af1208d8acb34",
+      "idleRevisits": 0,
+      "name": "805005-3-1-control-peninsula-true-false",
+      "rawRevisits": 1,
+      "sha256": {
+        "805005-3-1-control-peninsula-true-false.failure": "2c62914c7aea306928b519bfd9ca9d695a952df7452b585cb31173c566a35b7c",
+        "805005-3-1-control-peninsula-true-false.json": "84af00b45424cb73cdf9762c39e6fc8bdc9dd9c4a2737caa944bd2b305defc40",
+        "805005-3-1-control-peninsula-true-false.txt": "10e262c33ddca68632095952d7206d0e86285c2294feaaca807925848e6f2d5b"
+      },
+      "winner": 0
+    },
+    {
+      "fingerprint": "fc8dac340d89ca25",
+      "idleRevisits": 0,
+      "name": "805010-3-1-control-peninsula-true-false",
+      "rawRevisits": 1,
+      "sha256": {
+        "805010-3-1-control-peninsula-true-false.failure": "746be4246abd603d7c949f101632432226c855a501364598dc2feacf875c624b",
+        "805010-3-1-control-peninsula-true-false.json": "195ab0637afceb5e4e267dfd2e869f641f3da676e7b51dc2a48fd988187987da",
+        "805010-3-1-control-peninsula-true-false.txt": "29b622aa8f143eed7c3a9ea181ef0d693f2ada55ae187acfb4a49c0f251a7ffe"
+      },
+      "winner": 1
+    },
+    {
+      "fingerprint": "359ae4b919d222b7",
+      "idleRevisits": 0,
+      "name": "805002-3-2-control-peninsula-true-false",
+      "rawRevisits": 1,
+      "sha256": {
+        "805002-3-2-control-peninsula-true-false.failure": "b844f237bdcc04a7ca74f4aee1f3a78374b1c3af980a5ab31db7f7e5ac523114",
+        "805002-3-2-control-peninsula-true-false.json": "cce854255df416dc510bd5a0fef1bba8d8b3304649e5047de9117cbad979db96",
+        "805002-3-2-control-peninsula-true-false.txt": "3e1d73ad686327a07aa1feb8a9a023cfc2c939fc17ee1f93a6213c432f4a16e8"
+      },
+      "winner": 2
+    },
+    {
+      "fingerprint": "341af1208d8acb34",
+      "idleRevisits": 0,
+      "name": "805005-3-2-control-peninsula-true-false",
+      "rawRevisits": 1,
+      "sha256": {
+        "805005-3-2-control-peninsula-true-false.failure": "2c62914c7aea306928b519bfd9ca9d695a952df7452b585cb31173c566a35b7c",
+        "805005-3-2-control-peninsula-true-false.json": "027086b290ccbe8899e16e3018654eea57d0cbbb7f8fcc0624bf3c520e27f92c",
+        "805005-3-2-control-peninsula-true-false.txt": "10e262c33ddca68632095952d7206d0e86285c2294feaaca807925848e6f2d5b"
+      },
+      "winner": 0
+    },
+    {
+      "fingerprint": "fc8dac340d89ca25",
+      "idleRevisits": 0,
+      "name": "805010-3-2-control-peninsula-true-false",
+      "rawRevisits": 1,
+      "sha256": {
+        "805010-3-2-control-peninsula-true-false.failure": "746be4246abd603d7c949f101632432226c855a501364598dc2feacf875c624b",
+        "805010-3-2-control-peninsula-true-false.json": "5cb05ce4885b93996807481e7e0acc3264a219be8a8eb9088f116bc13fa89c7b",
+        "805010-3-2-control-peninsula-true-false.txt": "29b622aa8f143eed7c3a9ea181ef0d693f2ada55ae187acfb4a49c0f251a7ffe"
+      },
+      "winner": 1
+    },
+    {
+      "fingerprint": "4bc25949142dff64",
+      "idleRevisits": 0,
+      "name": "805005-4-0-candidate-peninsula-true-false",
+      "rawRevisits": 1,
+      "sha256": {
+        "805005-4-0-candidate-peninsula-true-false.failure": "e2c60510b4d4c4c8c35d49484c53c921eb6214bf282632960e77df9a669bd1ad",
+        "805005-4-0-candidate-peninsula-true-false.json": "64b514b79a981413b725fc39f8a870befef2acc02eb7445a9088c9219a31184e",
+        "805005-4-0-candidate-peninsula-true-false.txt": "a1bb7e2f10fd2199f0aea7e868335370d96deac0cd90974a519a96a53491ad3c"
+      },
+      "winner": 0
+    },
+    {
+      "fingerprint": "6ae8aa7173377350",
+      "idleRevisits": 0,
+      "name": "805006-4-0-candidate-peninsula-true-false",
+      "rawRevisits": 1,
+      "sha256": {
+        "805006-4-0-candidate-peninsula-true-false.failure": "eb1aaf4419785438de021526ba1a39de8b262de00fc1eebee4e291afed69bb13",
+        "805006-4-0-candidate-peninsula-true-false.json": "aef29fe8c95490c49eeae6c47e381aa44df720266c3e83dc70b04d49a1077d13",
+        "805006-4-0-candidate-peninsula-true-false.txt": "9a247ef7f9e55fde6b06df16d18e90e8891b1cf568053569667c23ccd465a11d"
+      },
+      "winner": 3
+    },
+    {
+      "fingerprint": "22f2490ffe927829",
+      "idleRevisits": 0,
+      "name": "805000-4-1-candidate-peninsula-true-false",
+      "rawRevisits": 2,
+      "sha256": {
+        "805000-4-1-candidate-peninsula-true-false.failure": "f3e6e7b8d43e32b77f85cfafab925606830d2c513e4c21935379758cd85e592c",
+        "805000-4-1-candidate-peninsula-true-false.json": "6f542374bfc809121d9d8c51a8e6411cce8edc24930cbe4894dc5d79cb9ca93d",
+        "805000-4-1-candidate-peninsula-true-false.txt": "847832158f4031adc8642357404d7783b01726112fb073a6a6d2f0fb4cf4aa71"
+      },
+      "winner": 1
+    },
+    {
+      "fingerprint": "acef14306d74916b",
+      "idleRevisits": 0,
+      "name": "805002-4-1-candidate-peninsula-true-false",
+      "rawRevisits": 2,
+      "sha256": {
+        "805002-4-1-candidate-peninsula-true-false.failure": "f3e6e7b8d43e32b77f85cfafab925606830d2c513e4c21935379758cd85e592c",
+        "805002-4-1-candidate-peninsula-true-false.json": "9e5b6ddbd43014e6942c55161f66f263f5f7a5cca7bf4a4cbb074f20ef276e33",
+        "805002-4-1-candidate-peninsula-true-false.txt": "3458fe0f7152338f5e617299cca478934bef6eea6bac808cf01c9b5a0883b9a6"
+      },
+      "winner": 1
+    },
+    {
+      "fingerprint": "6ec3eced82e91c54",
+      "idleRevisits": 0,
+      "name": "805003-4-1-candidate-peninsula-true-false",
+      "rawRevisits": 1,
+      "sha256": {
+        "805003-4-1-candidate-peninsula-true-false.failure": "ab436903391b39b72fd26e7d29a72df89bbe5f6eda604bb00bb306bc5ab1b815",
+        "805003-4-1-candidate-peninsula-true-false.json": "e7e74d2926bd9a50fd45fe72bd8f518518d6ef6b79b410b03e8476e3916f71ec",
+        "805003-4-1-candidate-peninsula-true-false.txt": "9b7a702ae3826138f4130f37d18ad8c94c0567d5a2d9723abb80105cd8d969ff"
+      },
+      "winner": 1
+    },
+    {
+      "fingerprint": "d2dc09962d5d14f1",
+      "idleRevisits": 0,
+      "name": "805000-4-2-candidate-peninsula-true-false",
+      "rawRevisits": 2,
+      "sha256": {
+        "805000-4-2-candidate-peninsula-true-false.failure": "b66051fd3730067ed2e56632754e1d9782f7ff1e1bc46e3f0ce7bcfb9a19e032",
+        "805000-4-2-candidate-peninsula-true-false.json": "821fa641685c7a4b25eb2fc0964f5b01cb4f68d848f46702df500b6b0c90fa3a",
+        "805000-4-2-candidate-peninsula-true-false.txt": "3a5eba540b2b45820e9342906bc4b811702ff4be956d9f926b8a62a4e144ac9a"
+      },
+      "winner": 2
+    },
+    {
+      "fingerprint": "71314b36a45919e3",
+      "idleRevisits": 0,
+      "name": "805005-4-2-candidate-peninsula-true-false",
+      "rawRevisits": 1,
+      "sha256": {
+        "805005-4-2-candidate-peninsula-true-false.failure": "e2c60510b4d4c4c8c35d49484c53c921eb6214bf282632960e77df9a669bd1ad",
+        "805005-4-2-candidate-peninsula-true-false.json": "e0643f2082294f6788b1e1ac6e08a52bb060fef75f272f2dde227fca945f72a8",
+        "805005-4-2-candidate-peninsula-true-false.txt": "b531f58486d4de1d21c0b8c849c4abe215dbbd6979b247df5bc89f7a63cc83c5"
+      },
+      "winner": 0
+    },
+    {
+      "fingerprint": "c66c1925842d7fc6",
+      "idleRevisits": 0,
+      "name": "805002-4-3-candidate-peninsula-true-false",
+      "rawRevisits": 1,
+      "sha256": {
+        "805002-4-3-candidate-peninsula-true-false.failure": "eb1aaf4419785438de021526ba1a39de8b262de00fc1eebee4e291afed69bb13",
+        "805002-4-3-candidate-peninsula-true-false.json": "7e1ec27e2381079dcf1ef9bb42ef510fdee8dab54a072bcd087d6a09e09afe06",
+        "805002-4-3-candidate-peninsula-true-false.txt": "ba3bb4ccba5266807b58a8dc97b8101077054c0e3eb4cd742417ca294aaf8429"
+      },
+      "winner": 3
+    },
+    {
+      "fingerprint": "ca31725681612b6f",
+      "idleRevisits": 0,
+      "name": "805000-4-0-control-peninsula-true-false",
+      "rawRevisits": 1,
+      "sha256": {
+        "805000-4-0-control-peninsula-true-false.failure": "746be4246abd603d7c949f101632432226c855a501364598dc2feacf875c624b",
+        "805000-4-0-control-peninsula-true-false.json": "6c867c9df0ac10f02685e31d9d3173c37a263051ee83ce3b7e6b3445c226eb62",
+        "805000-4-0-control-peninsula-true-false.txt": "932e4eedf4fe0d16d36c7d0810e5855b7210d3dbe4a93a9bf9533d9998989555"
+      },
+      "winner": 1
+    },
+    {
+      "fingerprint": "884c9baccc5af0bd",
+      "idleRevisits": 0,
+      "name": "805002-4-0-control-peninsula-true-false",
+      "rawRevisits": 1,
+      "sha256": {
+        "805002-4-0-control-peninsula-true-false.failure": "746be4246abd603d7c949f101632432226c855a501364598dc2feacf875c624b",
+        "805002-4-0-control-peninsula-true-false.json": "e76fea479503872968d7712c78ac41fd2592bac356a931f2c36ceeddd8fd96ec",
+        "805002-4-0-control-peninsula-true-false.txt": "7bd041c22ddb8b226b51a4c746e30f2a2540f3ffba6c410a3959dacef415be8c"
+      },
+      "winner": 1
+    },
+    {
+      "fingerprint": "e787b339f971c2aa",
+      "idleRevisits": 0,
+      "name": "805004-4-0-control-peninsula-true-false",
+      "rawRevisits": 1,
+      "sha256": {
+        "805004-4-0-control-peninsula-true-false.failure": "746be4246abd603d7c949f101632432226c855a501364598dc2feacf875c624b",
+        "805004-4-0-control-peninsula-true-false.json": "0e829d9f3c6f12ea0b5a2f4b2e5607c4ebf91ea585c852b6da1f4ff10f26f736",
+        "805004-4-0-control-peninsula-true-false.txt": "25ee6679a45513d6198962074ebf65b9c7828cbad0b45db09cf0d8ee92f536db"
+      },
+      "winner": 1
+    },
+    {
+      "fingerprint": "ca31725681612b6f",
+      "idleRevisits": 0,
+      "name": "805000-4-1-control-peninsula-true-false",
+      "rawRevisits": 1,
+      "sha256": {
+        "805000-4-1-control-peninsula-true-false.failure": "746be4246abd603d7c949f101632432226c855a501364598dc2feacf875c624b",
+        "805000-4-1-control-peninsula-true-false.json": "a45e7f42dd52be8a00bf137932ea104e8a6bd8959bb64af126a739352fce9494",
+        "805000-4-1-control-peninsula-true-false.txt": "932e4eedf4fe0d16d36c7d0810e5855b7210d3dbe4a93a9bf9533d9998989555"
+      },
+      "winner": 1
+    },
+    {
+      "fingerprint": "884c9baccc5af0bd",
+      "idleRevisits": 0,
+      "name": "805002-4-1-control-peninsula-true-false",
+      "rawRevisits": 1,
+      "sha256": {
+        "805002-4-1-control-peninsula-true-false.failure": "746be4246abd603d7c949f101632432226c855a501364598dc2feacf875c624b",
+        "805002-4-1-control-peninsula-true-false.json": "6dbfb7660f4bc6565ee92d6e3457a586df64056c572ef5f1083729a0395be354",
+        "805002-4-1-control-peninsula-true-false.txt": "7bd041c22ddb8b226b51a4c746e30f2a2540f3ffba6c410a3959dacef415be8c"
+      },
+      "winner": 1
+    },
+    {
+      "fingerprint": "e787b339f971c2aa",
+      "idleRevisits": 0,
+      "name": "805004-4-1-control-peninsula-true-false",
+      "rawRevisits": 1,
+      "sha256": {
+        "805004-4-1-control-peninsula-true-false.failure": "746be4246abd603d7c949f101632432226c855a501364598dc2feacf875c624b",
+        "805004-4-1-control-peninsula-true-false.json": "ad3331a18ec17896a5359dc6f4f1730ba78ee97263a5ddd1e439f05e8e4b1847",
+        "805004-4-1-control-peninsula-true-false.txt": "25ee6679a45513d6198962074ebf65b9c7828cbad0b45db09cf0d8ee92f536db"
+      },
+      "winner": 1
+    },
+    {
+      "fingerprint": "ca31725681612b6f",
+      "idleRevisits": 0,
+      "name": "805000-4-2-control-peninsula-true-false",
+      "rawRevisits": 1,
+      "sha256": {
+        "805000-4-2-control-peninsula-true-false.failure": "746be4246abd603d7c949f101632432226c855a501364598dc2feacf875c624b",
+        "805000-4-2-control-peninsula-true-false.json": "713f1de30bdf11aae6bd0fa5bb6b69abddf1999dd7042216e3717320f0cbaa29",
+        "805000-4-2-control-peninsula-true-false.txt": "932e4eedf4fe0d16d36c7d0810e5855b7210d3dbe4a93a9bf9533d9998989555"
+      },
+      "winner": 1
+    },
+    {
+      "fingerprint": "884c9baccc5af0bd",
+      "idleRevisits": 0,
+      "name": "805002-4-2-control-peninsula-true-false",
+      "rawRevisits": 1,
+      "sha256": {
+        "805002-4-2-control-peninsula-true-false.failure": "746be4246abd603d7c949f101632432226c855a501364598dc2feacf875c624b",
+        "805002-4-2-control-peninsula-true-false.json": "89d90c9d40d19e79e6adf6b662aac631b31ba899fb23bf6d2b57e3e13eb6d7a7",
+        "805002-4-2-control-peninsula-true-false.txt": "7bd041c22ddb8b226b51a4c746e30f2a2540f3ffba6c410a3959dacef415be8c"
+      },
+      "winner": 1
+    },
+    {
+      "fingerprint": "e787b339f971c2aa",
+      "idleRevisits": 0,
+      "name": "805004-4-2-control-peninsula-true-false",
+      "rawRevisits": 1,
+      "sha256": {
+        "805004-4-2-control-peninsula-true-false.failure": "746be4246abd603d7c949f101632432226c855a501364598dc2feacf875c624b",
+        "805004-4-2-control-peninsula-true-false.json": "4f271962c3af405ddf6928ffa9809255fa54ea4a0c2386e98d1f57ca4925b588",
+        "805004-4-2-control-peninsula-true-false.txt": "25ee6679a45513d6198962074ebf65b9c7828cbad0b45db09cf0d8ee92f536db"
+      },
+      "winner": 1
+    },
+    {
+      "fingerprint": "ca31725681612b6f",
+      "idleRevisits": 0,
+      "name": "805000-4-3-control-peninsula-true-false",
+      "rawRevisits": 1,
+      "sha256": {
+        "805000-4-3-control-peninsula-true-false.failure": "746be4246abd603d7c949f101632432226c855a501364598dc2feacf875c624b",
+        "805000-4-3-control-peninsula-true-false.json": "83cae8fdb55a6c6e8afa72cdda0d5f5f60901c8c695a0a0ed6ec2d82e7f2e98a",
+        "805000-4-3-control-peninsula-true-false.txt": "932e4eedf4fe0d16d36c7d0810e5855b7210d3dbe4a93a9bf9533d9998989555"
+      },
+      "winner": 1
+    },
+    {
+      "fingerprint": "884c9baccc5af0bd",
+      "idleRevisits": 0,
+      "name": "805002-4-3-control-peninsula-true-false",
+      "rawRevisits": 1,
+      "sha256": {
+        "805002-4-3-control-peninsula-true-false.failure": "746be4246abd603d7c949f101632432226c855a501364598dc2feacf875c624b",
+        "805002-4-3-control-peninsula-true-false.json": "0120ad198869c076df7076384f9ad953b1a734e27f011bae44f0c5c05a1e48a4",
+        "805002-4-3-control-peninsula-true-false.txt": "7bd041c22ddb8b226b51a4c746e30f2a2540f3ffba6c410a3959dacef415be8c"
+      },
+      "winner": 1
+    },
+    {
+      "fingerprint": "e787b339f971c2aa",
+      "idleRevisits": 0,
+      "name": "805004-4-3-control-peninsula-true-false",
+      "rawRevisits": 1,
+      "sha256": {
+        "805004-4-3-control-peninsula-true-false.failure": "746be4246abd603d7c949f101632432226c855a501364598dc2feacf875c624b",
+        "805004-4-3-control-peninsula-true-false.json": "a43ad6ccc903ad4581ed6b93f178a387e82c85de829668ceb8c27222600f8b48",
+        "805004-4-3-control-peninsula-true-false.txt": "25ee6679a45513d6198962074ebf65b9c7828cbad0b45db09cf0d8ee92f536db"
+      },
+      "winner": 1
+    },
+    {
+      "fingerprint": "e44251a91ebc6c20",
+      "idleRevisits": 0,
+      "name": "808000-3-0-candidate-twinIslands-true-true",
+      "rawRevisits": 1,
+      "sha256": {
+        "808000-3-0-candidate-twinIslands-true-true.failure": "ab436903391b39b72fd26e7d29a72df89bbe5f6eda604bb00bb306bc5ab1b815",
+        "808000-3-0-candidate-twinIslands-true-true.json": "eb5e1a6fb6563e1fde441b31796752c8dc351f23a9cce8d3d9d03f505e08255d",
+        "808000-3-0-candidate-twinIslands-true-true.txt": "c642922e5a326693abdca179a810c0f7b7badfebe28635cda9a570df8664f244"
+      },
+      "winner": 1
+    },
+    {
+      "fingerprint": "197284ec89411376",
+      "idleRevisits": 0,
+      "name": "808007-3-0-candidate-twinIslands-true-true",
+      "rawRevisits": 1,
+      "sha256": {
+        "808007-3-0-candidate-twinIslands-true-true.failure": "e2c60510b4d4c4c8c35d49484c53c921eb6214bf282632960e77df9a669bd1ad",
+        "808007-3-0-candidate-twinIslands-true-true.json": "676b0d4a4575ae842eb8c37b50c398cfcbe67f2c7ee8e2d6e7877a3c91761d73",
+        "808007-3-0-candidate-twinIslands-true-true.txt": "049c80a5328337bfd9bc4dc4ea0c5fd0e864d9c1e197fdda76c427fe222c3874"
+      },
+      "winner": 0
+    },
+    {
+      "fingerprint": "ab35e284265767dd",
+      "idleRevisits": 0,
+      "name": "808008-3-0-candidate-twinIslands-true-true",
+      "rawRevisits": 3,
+      "sha256": {
+        "808008-3-0-candidate-twinIslands-true-true.failure": "e772921573185e67fb6eb610a2a965063c1b16c01c837ce5bbec129dfd9b0723",
+        "808008-3-0-candidate-twinIslands-true-true.json": "65daf3cf32a5a933dc72fdbc0b433a22cab4bb9d018fb70cf454b81bd78fd73e",
+        "808008-3-0-candidate-twinIslands-true-true.txt": "7f96da206a98dde9a91a947407e5ad7011f76ed550b29de4bfaafed6b75e291e"
+      },
+      "winner": 1
+    },
+    {
+      "fingerprint": "3605e8382916c4a9",
+      "idleRevisits": 0,
+      "name": "808004-3-1-candidate-twinIslands-true-true",
+      "rawRevisits": 1,
+      "sha256": {
+        "808004-3-1-candidate-twinIslands-true-true.failure": "bbdd8eb416b52b09b90827a9241e99130044157ab41e85daf73abdb632453d12",
+        "808004-3-1-candidate-twinIslands-true-true.json": "51131569179f764de4d8be0e705fd276c608dfa17bb9b4025474fd67c59dc8fc",
+        "808004-3-1-candidate-twinIslands-true-true.txt": "bc4cfcef59376b55e221467ff8801ea1de5d8d972602ad7abb2c822b47cbf85a"
+      },
+      "winner": 2
+    },
+    {
+      "fingerprint": "2b753f744e77510b",
+      "idleRevisits": 0,
+      "name": "808000-3-2-candidate-twinIslands-true-true",
+      "rawRevisits": 1,
+      "sha256": {
+        "808000-3-2-candidate-twinIslands-true-true.failure": "e2c60510b4d4c4c8c35d49484c53c921eb6214bf282632960e77df9a669bd1ad",
+        "808000-3-2-candidate-twinIslands-true-true.json": "b1910a932304f6e7dd0960cf71d45796a4765d82f48b57e4cefe129ce7ff045f",
+        "808000-3-2-candidate-twinIslands-true-true.txt": "8d532be4e6fea03b1babae573821aaafb753cf1b661173b0d90ad74fcc178d3a"
+      },
+      "winner": 0
+    },
+    {
+      "fingerprint": "8b622548021c197e",
+      "idleRevisits": 0,
+      "name": "808003-3-0-control-twinIslands-true-true",
+      "rawRevisits": 1,
+      "sha256": {
+        "808003-3-0-control-twinIslands-true-true.failure": "b844f237bdcc04a7ca74f4aee1f3a78374b1c3af980a5ab31db7f7e5ac523114",
+        "808003-3-0-control-twinIslands-true-true.json": "157e0aa047dce467275626482298125f05c3aab60c9b31c270847077c3750259",
+        "808003-3-0-control-twinIslands-true-true.txt": "ba41cf3d5981f3dbbda0952d43c9f29d1bc63774896d4bde68728771d2ea049d"
+      },
+      "winner": 2
+    },
+    {
+      "fingerprint": "8b622548021c197e",
+      "idleRevisits": 0,
+      "name": "808003-3-1-control-twinIslands-true-true",
+      "rawRevisits": 1,
+      "sha256": {
+        "808003-3-1-control-twinIslands-true-true.failure": "b844f237bdcc04a7ca74f4aee1f3a78374b1c3af980a5ab31db7f7e5ac523114",
+        "808003-3-1-control-twinIslands-true-true.json": "7db6f8bee97913cfed9015b6f76d4400b654daacdb7196fb4299a1645f6a85cb",
+        "808003-3-1-control-twinIslands-true-true.txt": "ba41cf3d5981f3dbbda0952d43c9f29d1bc63774896d4bde68728771d2ea049d"
+      },
+      "winner": 2
+    },
+    {
+      "fingerprint": "8b622548021c197e",
+      "idleRevisits": 0,
+      "name": "808003-3-2-control-twinIslands-true-true",
+      "rawRevisits": 1,
+      "sha256": {
+        "808003-3-2-control-twinIslands-true-true.failure": "b844f237bdcc04a7ca74f4aee1f3a78374b1c3af980a5ab31db7f7e5ac523114",
+        "808003-3-2-control-twinIslands-true-true.json": "471342e015b764d3ea4ed384979a12df9802634a359ad0ce6a383bc0179991dd",
+        "808003-3-2-control-twinIslands-true-true.txt": "ba41cf3d5981f3dbbda0952d43c9f29d1bc63774896d4bde68728771d2ea049d"
+      },
+      "winner": 2
+    },
+    {
+      "fingerprint": "6eeadc0cc426c386",
+      "idleRevisits": 0,
+      "name": "808000-4-0-candidate-twinIslands-true-true",
+      "rawRevisits": 1,
+      "sha256": {
+        "808000-4-0-candidate-twinIslands-true-true.failure": "e2c60510b4d4c4c8c35d49484c53c921eb6214bf282632960e77df9a669bd1ad",
+        "808000-4-0-candidate-twinIslands-true-true.json": "de36bc19734977e493d317b3ad3ce22d29e57594d98184888fe84b9eb6367c83",
+        "808000-4-0-candidate-twinIslands-true-true.txt": "bba101d3410b2dc84b81b4b5be3ee7f358c83a9a2cf372d5bfe6abe4560cff5a"
+      },
+      "winner": 0
+    },
+    {
+      "fingerprint": "6310c4333eeb0d00",
+      "idleRevisits": 0,
+      "name": "808003-4-0-candidate-twinIslands-true-true",
+      "rawRevisits": 3,
+      "sha256": {
+        "808003-4-0-candidate-twinIslands-true-true.failure": "74f309000cf6e47bbb00cfd70d1bde5028a789587cdceb3073d8e3b0e4545c85",
+        "808003-4-0-candidate-twinIslands-true-true.json": "121736a887bb79693df2bc339f79882b008b4b9edd2500021430cdcd997368fe",
+        "808003-4-0-candidate-twinIslands-true-true.txt": "0665dfc9304479a608738a7e12b83298417ec34db38ed6450108ac7c5cecca5b"
+      },
+      "winner": 2
+    },
+    {
+      "fingerprint": "86c973f960f1899e",
+      "idleRevisits": 0,
+      "name": "808005-4-0-candidate-twinIslands-true-true",
+      "rawRevisits": 1,
+      "sha256": {
+        "808005-4-0-candidate-twinIslands-true-true.failure": "e2c60510b4d4c4c8c35d49484c53c921eb6214bf282632960e77df9a669bd1ad",
+        "808005-4-0-candidate-twinIslands-true-true.json": "0bc2a0ec9e352439c70c14c4bee9754caecf2956616a7baf97bb006b16b4d374",
+        "808005-4-0-candidate-twinIslands-true-true.txt": "caa2f7146b9f2e95ab5f972f0aa944dacbf3980b54e5638366d82baeff1bc168"
+      },
+      "winner": 0
+    },
+    {
+      "fingerprint": "e3ee01fc261966d0",
+      "idleRevisits": 0,
+      "name": "808001-4-1-candidate-twinIslands-true-true",
+      "rawRevisits": 1,
+      "sha256": {
+        "808001-4-1-candidate-twinIslands-true-true.failure": "ab436903391b39b72fd26e7d29a72df89bbe5f6eda604bb00bb306bc5ab1b815",
+        "808001-4-1-candidate-twinIslands-true-true.json": "2251a79bb6062bfc64708b5c4f7812332314a65b20573abe708831a798a4f148",
+        "808001-4-1-candidate-twinIslands-true-true.txt": "1bcba14fa24c4364e76bbd8fb4ed9a5276b82b1befc68780ee4576c650bef3f9"
+      },
+      "winner": 1
+    },
+    {
+      "fingerprint": "7331a21c94660090",
+      "idleRevisits": 0,
+      "name": "808003-4-1-candidate-twinIslands-true-true",
+      "rawRevisits": 1,
+      "sha256": {
+        "808003-4-1-candidate-twinIslands-true-true.failure": "bbdd8eb416b52b09b90827a9241e99130044157ab41e85daf73abdb632453d12",
+        "808003-4-1-candidate-twinIslands-true-true.json": "f1f91d67d66fa5d8afab3b09f4089ac481ec8062c7480b79a82b017b7c37c9fe",
+        "808003-4-1-candidate-twinIslands-true-true.txt": "0256268aaa5c428812db3245894c08a176388b61dd667182332076a6e828a3e4"
+      },
+      "winner": 2
+    },
+    {
+      "fingerprint": "dfd5430563817bc5",
+      "idleRevisits": 0,
+      "name": "808003-4-3-candidate-twinIslands-true-true",
+      "rawRevisits": 1,
+      "sha256": {
+        "808003-4-3-candidate-twinIslands-true-true.failure": "eb1aaf4419785438de021526ba1a39de8b262de00fc1eebee4e291afed69bb13",
+        "808003-4-3-candidate-twinIslands-true-true.json": "ae7a726716c3d73d0f554780800ce4d2d38116d385b2e2e5233218dcb85e58b0",
+        "808003-4-3-candidate-twinIslands-true-true.txt": "b28fa648ad43c3fd60c1d106e557605c4a4d72b8e67c99147cecb7b753c17eba"
+      },
+      "winner": 3
+    },
+    {
+      "fingerprint": "bb751fba83b2f78e",
+      "idleRevisits": 0,
+      "name": "808005-4-3-candidate-twinIslands-true-true",
+      "rawRevisits": 1,
+      "sha256": {
+        "808005-4-3-candidate-twinIslands-true-true.failure": "e2c60510b4d4c4c8c35d49484c53c921eb6214bf282632960e77df9a669bd1ad",
+        "808005-4-3-candidate-twinIslands-true-true.json": "d61ab7e3ebec95a38a23f4fcdfa8a13bf713a2229944abe9a309ddc4efd1a735",
+        "808005-4-3-candidate-twinIslands-true-true.txt": "95fe0b8a02038de50fb08c65925f2de140b5adc0b7fb58c3d16a1a006a85c8c5"
+      },
+      "winner": 0
+    },
+    {
+      "fingerprint": "7f5ad794cec932e6",
+      "idleRevisits": 0,
+      "name": "808002-4-0-control-twinIslands-true-true",
+      "rawRevisits": 1,
+      "sha256": {
+        "808002-4-0-control-twinIslands-true-true.failure": "2c62914c7aea306928b519bfd9ca9d695a952df7452b585cb31173c566a35b7c",
+        "808002-4-0-control-twinIslands-true-true.json": "a6d8c9a0c2ada5f9f3c42d5ce9c9f21bfad7b5bf0b3b954822bb4e1994323be7",
+        "808002-4-0-control-twinIslands-true-true.txt": "029d86b2ccbd97c012cc255f7c253b96866914d9cf54d7878edc33d7e9704d38"
+      },
+      "winner": 0
+    },
+    {
+      "fingerprint": "7f5ad794cec932e6",
+      "idleRevisits": 0,
+      "name": "808002-4-1-control-twinIslands-true-true",
+      "rawRevisits": 1,
+      "sha256": {
+        "808002-4-1-control-twinIslands-true-true.failure": "2c62914c7aea306928b519bfd9ca9d695a952df7452b585cb31173c566a35b7c",
+        "808002-4-1-control-twinIslands-true-true.json": "13b1c9973d734e650fae14c1874f34bc866585a5a8b24f6dc4de7812baf4721c",
+        "808002-4-1-control-twinIslands-true-true.txt": "029d86b2ccbd97c012cc255f7c253b96866914d9cf54d7878edc33d7e9704d38"
+      },
+      "winner": 0
+    },
+    {
+      "fingerprint": "7f5ad794cec932e6",
+      "idleRevisits": 0,
+      "name": "808002-4-2-control-twinIslands-true-true",
+      "rawRevisits": 1,
+      "sha256": {
+        "808002-4-2-control-twinIslands-true-true.failure": "2c62914c7aea306928b519bfd9ca9d695a952df7452b585cb31173c566a35b7c",
+        "808002-4-2-control-twinIslands-true-true.json": "b5bedcc872b8b842c96edce4f7c875ec307b595ceac0c72aae5f35137c023a26",
+        "808002-4-2-control-twinIslands-true-true.txt": "029d86b2ccbd97c012cc255f7c253b96866914d9cf54d7878edc33d7e9704d38"
+      },
+      "winner": 0
+    },
+    {
+      "fingerprint": "7f5ad794cec932e6",
+      "idleRevisits": 0,
+      "name": "808002-4-3-control-twinIslands-true-true",
+      "rawRevisits": 1,
+      "sha256": {
+        "808002-4-3-control-twinIslands-true-true.failure": "2c62914c7aea306928b519bfd9ca9d695a952df7452b585cb31173c566a35b7c",
+        "808002-4-3-control-twinIslands-true-true.json": "e83d2dc72bac280834016eb4f38feba69ad33c3afaca054610a42ccbe5cf4a81",
+        "808002-4-3-control-twinIslands-true-true.txt": "029d86b2ccbd97c012cc255f7c253b96866914d9cf54d7878edc33d7e9704d38"
+      },
+      "winner": 0
+    },
+    {
+      "fingerprint": "8b1881c9af7f8fe0",
+      "idleRevisits": 0,
+      "name": "809009-3-0-candidate-twinIslands-true-false",
+      "rawRevisits": 2,
+      "sha256": {
+        "809009-3-0-candidate-twinIslands-true-false.failure": "f3e6e7b8d43e32b77f85cfafab925606830d2c513e4c21935379758cd85e592c",
+        "809009-3-0-candidate-twinIslands-true-false.json": "7a27664c9e9c65662ea873274ed421861cbc324fdd87709d9ff2a93c06cf9352",
+        "809009-3-0-candidate-twinIslands-true-false.txt": "5b48abfd59534f9be32d6c3c54b7b50d303d083074bbb438606c381fcdb7a9cf"
+      },
+      "winner": 1
+    },
+    {
+      "fingerprint": "5f9aab0727076961",
+      "idleRevisits": 0,
+      "name": "809000-3-1-candidate-twinIslands-true-false",
+      "rawRevisits": 1,
+      "sha256": {
+        "809000-3-1-candidate-twinIslands-true-false.failure": "ab436903391b39b72fd26e7d29a72df89bbe5f6eda604bb00bb306bc5ab1b815",
+        "809000-3-1-candidate-twinIslands-true-false.json": "44e18a3c714d9a72b3a6027dc3f9a1785eede04aef98bb84ef1345db0309c03a",
+        "809000-3-1-candidate-twinIslands-true-false.txt": "20ef01c718321e67b94cf877b6bb8fbdd31b713e687e4ea5b5064a484fc82582"
+      },
+      "winner": 1
+    },
+    {
+      "fingerprint": "1f6d3a27c8b1f09a",
+      "idleRevisits": 0,
+      "name": "809005-3-1-candidate-twinIslands-true-false",
+      "rawRevisits": 1,
+      "sha256": {
+        "809005-3-1-candidate-twinIslands-true-false.failure": "ab436903391b39b72fd26e7d29a72df89bbe5f6eda604bb00bb306bc5ab1b815",
+        "809005-3-1-candidate-twinIslands-true-false.json": "93dbdbad8ce83d15e863243e50b73459ae8ea2d1e620fe0b67add3875611f8a2",
+        "809005-3-1-candidate-twinIslands-true-false.txt": "1a162837a3fba420545c5c6c596a253fe07e1707e90072b0dbfe0684efd1d649"
+      },
+      "winner": 1
+    },
+    {
+      "fingerprint": "83886c41f706503d",
+      "idleRevisits": 0,
+      "name": "809000-4-0-candidate-twinIslands-true-false",
+      "rawRevisits": 3,
+      "sha256": {
+        "809000-4-0-candidate-twinIslands-true-false.failure": "f35ab47be4d7d8bd27dd7787ff4dd45261ac7ff80fc2a99746713f93fa02c3f9",
+        "809000-4-0-candidate-twinIslands-true-false.json": "6e9691f3d6e647a4a430f009345dcf66410b2d5331495f2aaca1f1e2c4674857",
+        "809000-4-0-candidate-twinIslands-true-false.txt": "d8f1fd31137805df06c8ed032fffb8084db8703f5090def4d3b82be23b58fa50"
+      },
+      "winner": 3
+    },
+    {
+      "fingerprint": "7bc475ac897c15f6",
+      "idleRevisits": 0,
+      "name": "809004-4-0-candidate-twinIslands-true-false",
+      "rawRevisits": 1,
+      "sha256": {
+        "809004-4-0-candidate-twinIslands-true-false.failure": "eb1aaf4419785438de021526ba1a39de8b262de00fc1eebee4e291afed69bb13",
+        "809004-4-0-candidate-twinIslands-true-false.json": "adccdf23c16be0e7910f7b3913dd8d8796d8f60f1c9b7c13ff44a4ba9c0bda1d",
+        "809004-4-0-candidate-twinIslands-true-false.txt": "fa439d39b232846c8c8954a9dbd2f83c83d6d3bcbb677f18b4d66480b7bfa971"
+      },
+      "winner": 3
+    },
+    {
+      "fingerprint": "0fc1070ba4cd3b98",
+      "idleRevisits": 0,
+      "name": "809001-4-2-candidate-twinIslands-true-false",
+      "rawRevisits": 1,
+      "sha256": {
+        "809001-4-2-candidate-twinIslands-true-false.failure": "eb1aaf4419785438de021526ba1a39de8b262de00fc1eebee4e291afed69bb13",
+        "809001-4-2-candidate-twinIslands-true-false.json": "72289af2482a65407b6fad608bcef631e6ddac4148ccebd438d2400ba3fd0f67",
+        "809001-4-2-candidate-twinIslands-true-false.txt": "44c247ffc30b1fc3fbbd90ba507f894797f945b4d4593fa97158e79a45fc06b7"
+      },
+      "winner": 3
+    },
+    {
+      "fingerprint": "bbfbf5187d52fbcf",
+      "idleRevisits": 0,
+      "name": "809004-4-2-candidate-twinIslands-true-false",
+      "rawRevisits": 1,
+      "sha256": {
+        "809004-4-2-candidate-twinIslands-true-false.failure": "bbdd8eb416b52b09b90827a9241e99130044157ab41e85daf73abdb632453d12",
+        "809004-4-2-candidate-twinIslands-true-false.json": "6641092545779434600d13038e731e408c6af42b9a7d34b32917473ec1102ba4",
+        "809004-4-2-candidate-twinIslands-true-false.txt": "ec20f8cb18f302cea84fca8b51ec10e3cf9b240088b13a715148cfe87f7a5a96"
+      },
+      "winner": 2
+    },
+    {
+      "fingerprint": "0db51a7bc48de2dd",
+      "idleRevisits": 0,
+      "name": "810006-3-2-candidate-twinIslands-false-true",
+      "rawRevisits": 1,
+      "sha256": {
+        "810006-3-2-candidate-twinIslands-false-true.failure": "bbdd8eb416b52b09b90827a9241e99130044157ab41e85daf73abdb632453d12",
+        "810006-3-2-candidate-twinIslands-false-true.json": "6beaf653683dc411b924a1e39b23a281d407a974c43d1ce30cc446d3b9ad95c4",
+        "810006-3-2-candidate-twinIslands-false-true.txt": "8908e82f099483a2037883288b23d18a5082eeee0b6c79e4540bb4478fe4cf4f"
+      },
+      "winner": 2
+    }
+  ]
+}

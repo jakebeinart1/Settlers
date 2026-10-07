@@ -1,0 +1,56 @@
+{
+  "simulatorID": "1F7385BD-18DD-4C36-98D0-4C9B52F82295",
+  "simulatorName": "Empires Voyages Review",
+  "device": "iPhone 17 Pro",
+  "runtime": "iOS 26.5 (23F77)",
+  "configuration": "Debug",
+  "sourceRevision": "971a615ba701e2eca9e22ae538cadbfd8d243d8a",
+  "appBinarySHA256": "2ab9e0852e6e5db7ef13f9b3eaeba8bf7291bc315e6abeadf5e1ea2dc1c458f8",
+  "freshInstall": true,
+  "bundleID": "com.jakebeinart.settlers",
+  "ordinaryOpeningProcess": 28765,
+  "reviewProcessPID": 36072,
+  "reviewProcessAlive": true,
+  "newSettlersCrashReports": [],
+  "fixtureBound": "Conserved completed setup; human main turn and extra cards sufficient for a real purchase; no human ship prepurchased. This is a review position, not an ordinary match opening.",
+  "statusBarOverride": "9:41, Wi-Fi three bars, charged battery 100%; normalized cosmetic status bar only",
+  "leftVisibleForHumanReview": true,
+  "actualCheckpoint": "match_checkpoint.json, activeMatch.state/setup",
+  "actualMapFamily": "archipelago",
+  "actualNavalOptions": {
+    "fogEnabled": true,
+    "resourceChoiceEnabled": true
+  },
+  "actualDifficulty": "expert",
+  "actualExpertRevision": "navalV1",
+  "tableSize": 4,
+  "phase": {
+    "mainTurn": {
+      "playerIndex": 0
+    }
+  },
+  "chartedHexCount": 46,
+  "humanShipCount": 0,
+  "measuredAtUTC": "2026-10-05T07:31:23.199602+00:00",
+  "ordinaryOpeningProcessWasAliveBeforeIntentionalReviewRelaunch": true,
+  "installedVersion": "1.0",
+  "installedBuild": "16",
+  "preparationLaunchArguments": [
+    "-ui-testing",
+    "-ui-testing-reset",
+    "-qaAutoStart",
+    "-qaNavalMode",
+    "-qaNavalExpert",
+    "-qaNavalSeed=7501",
+    "-qaNavalVoyagePosition"
+  ],
+  "preparedReviewProcessPID": 29459,
+  "currentLaunchArguments": [
+    "-ui-testing",
+    "-qaAutoStart"
+  ],
+  "reviewBaselineAndResumedStateSemanticSHA256": "3b972b338e0e437c532d08f42869083bc78bce25d21578534d301eba2b64db06",
+  "stateComparison": "No moves after replaced QA baseline; initialState equals resumed active state after canonicalizing only resource/island dictionary pairs and settlement/road/board/revealed Sets. Ordered player/deck arrays and RNG remain exact. Raw Codable JSON ordering differs across processes and is not state identity.",
+  "cleanLaunchStatePreserved": true,
+  "randomnessNote": "The current process has no navalSeed or rare-position flags. It resumes the prepared checkpoint; future New Game uses ordinary randomized generation without reapplying the fixture."
+}

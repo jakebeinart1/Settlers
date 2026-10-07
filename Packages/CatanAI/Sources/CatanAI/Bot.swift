@@ -85,6 +85,12 @@ public struct Bot: Sendable {
         recordingAssessments: Bool
     ) -> GameMove {
         precondition(!legal.isEmpty, "asked to decide with no legal moves")
+        if state.mode == .naval {
+            var navalRNG = RandomSource(seed: 0)
+            return NavalPolicy(tier: .traditional, personality: personality).decide(
+                GameObservation(seat: player, state: state, legalMoves: legal), rng: &navalRNG
+            )
+        }
 
         let chosen: GameMove
         switch state.phase {
@@ -103,6 +109,9 @@ public struct Bot: Sendable {
 
         case .movingRobber:
             chosen = decideRobber(legal: legal, state: state, player: player)
+
+        case .choosingResource, .capturingShip:
+            preconditionFailure("Naval phases must dispatch through NavalPolicy")
 
         case .gameOver:
             // `RulesEngine.legalMoves` always returns `[]` for `.gameOver`

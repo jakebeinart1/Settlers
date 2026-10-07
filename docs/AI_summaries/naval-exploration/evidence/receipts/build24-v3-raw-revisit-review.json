@@ -1,0 +1,84 @@
+[
+  {
+    "case": "cell06-4-expert",
+    "discoveries": 0,
+    "idleRevisits": 0,
+    "rawRevisits": 1,
+    "revisits": [
+      {
+        "coordinate": [
+          -4,
+          -1
+        ],
+        "expeditionChangesInTrace": [
+          {
+            "action": "P0:captureShip(id: 2)",
+            "line": 541
+          },
+          {
+            "action": "P0:buildSettlement(CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: -5, r: -2), CatanEngine.HexCoordinate(q: -5, r: -1), CatanEngine.HexCoordinate(q: -4, r: -2)]))",
+            "line": 551
+          }
+        ],
+        "previousLine": 540,
+        "publicDiscoveriesBetweenVisits": [],
+        "returnLine": 552,
+        "ship": 0,
+        "surroundingActions": [
+          "P0:rollDice",
+          "P0:captureShip(id: 2)",
+          "P0:proposeTrade[p0:ore=2->grain=1,wool=1]",
+          "P1:respondToTrade(offerID: 06248CF0-4FD2-E400-8E9E-FBAFA9FB52F4, accept: false)",
+          "P0:proposeTrade[p0:ore=2->brick=1,lumber=1]",
+          "P2:respondToTrade(offerID: A0D3E7D6-808A-DBBA-F1FB-CD707A8B8CF0, accept: true)",
+          "P0:proposeTrade[p0:ore=3->grain=1,wool=1]",
+          "P1:respondToTrade(offerID: B7B33696-D10E-520B-B959-92005AD7D6D7, accept: false)",
+          "P0:sailShip(id: 0, to: CatanEngine.HexCoordinate(q: -4, r: -2))",
+          "P0:bankTrade[ore=3->grain=1]",
+          "P0:bankTrade[ore=3->wool=1]",
+          "P0:buildSettlement(CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: -5, r: -2), CatanEngine.HexCoordinate(q: -5, r: -1), CatanEngine.HexCoordinate(q: -4, r: -2)]))",
+          "P0:sailShip(id: 0, to: CatanEngine.HexCoordinate(q: -4, r: -1))"
+        ]
+      }
+    ],
+    "trace": "/Users/alex/.codex/artifacts/naval-exploration/build24-travel-harvest-trade/functionalmatrix/traces/cell06-4-expert/880621-0-functional-build24-v3.txt"
+  },
+  {
+    "case": "cell07-4-expert",
+    "discoveries": 0,
+    "idleRevisits": 0,
+    "rawRevisits": 1,
+    "revisits": [
+      {
+        "coordinate": [
+          -1,
+          5
+        ],
+        "expeditionChangesInTrace": [
+          {
+            "action": "P0:buildSettlement(CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: -3, r: 6), CatanEngine.HexCoordinate(q: -2, r: 5), CatanEngine.HexCoordinate(q: -2, r: 6)]))",
+            "line": 321
+          }
+        ],
+        "previousLine": 312,
+        "publicDiscoveriesBetweenVisits": [],
+        "returnLine": 322,
+        "ship": 0,
+        "surroundingActions": [
+          "P0:rollDice",
+          "P0:sailShip(id: 0, to: CatanEngine.HexCoordinate(q: -2, r: 5))",
+          "P0:proposeTrade[p0:brick=1->lumber=2]",
+          "P1:respondToTrade(offerID: 43EF1EE0-D993-05D6-E58C-752B77043397, accept: false)",
+          "P0:proposeTrade[p0:wool=1->lumber=2]",
+          "P1:respondToTrade(offerID: 288802A5-8912-51F0-B284-115F47223E3F, accept: false)",
+          "P0:proposeTrade[p0:brick=1->lumber=1]",
+          "P1:respondToTrade(offerID: 806384E5-19E2-0449-BD49-59D8B5BFAEAB, accept: false)",
+          "P0:bankTrade[wool=4->lumber=1]",
+          "P0:buildSettlement(CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: -3, r: 6), CatanEngine.HexCoordinate(q: -2, r: 5), CatanEngine.HexCoordinate(q: -2, r: 6)]))",
+          "P0:sailShip(id: 0, to: CatanEngine.HexCoordinate(q: -1, r: 5))"
+        ]
+      }
+    ],
+    "trace": "/Users/alex/.codex/artifacts/naval-exploration/build24-travel-harvest-trade/functionalmatrix/traces/cell07-4-expert/880721-0-functional-build24-v3.txt"
+  }
+]

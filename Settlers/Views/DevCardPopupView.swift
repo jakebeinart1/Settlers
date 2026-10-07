@@ -31,9 +31,10 @@ struct DevelopmentCardOverlay: View {
     @State private var tab: HandTab = .development
     @State private var armyStrength: Int?
 
-    @State private var yearOfPlentyPicks: [Resource: Int] = [:]
+    @State private var yearOfPlentyPicks: [Resource] = []
     @State private var monopolyPick: Resource?
     @State private var errorMessage: String?
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     private var inventory: [DevCardInventoryItem] {
         DevCardInventoryItem.all(for: player, in: state)
@@ -68,8 +69,8 @@ struct DevelopmentCardOverlay: View {
                 // height, which is the same empty panel with the buttons
                 // floating in the middle of it.
                 ViewThatFits(in: .vertical) {
-                    panel(scrolling: false, maxHeight: nil)
-                    panel(scrolling: true, maxHeight: max(320, geometry.size.height - 28))
+                    panel(scrolling: false, maxHeight: nil, width: geometry.size.width)
+                    panel(scrolling: true, maxHeight: geometry.size.height - 28, width: geometry.size.width)
                 }
             }
         }
@@ -82,9 +83,11 @@ struct DevelopmentCardOverlay: View {
     /// The sheet itself. `maxHeight` is `nil` for the hugging variant, which
     /// is what lets `ViewThatFits` measure its true height and reject it when
     /// it is too tall.
-    private func panel(scrolling: Bool, maxHeight: CGFloat?) -> some View {
+    private func panel(scrolling: Bool, maxHeight: CGFloat?, width: CGFloat) -> some View {
         VStack(spacing: 0) {
             header
+                .dynamicTypeSize(...DynamicTypeSize.accessibility1)
+                .fixedSize(horizontal: false, vertical: true)
                 .padding(.horizontal, 18)
                 .padding(.top, 16)
                 .padding(.bottom, 10)
@@ -92,14 +95,18 @@ struct DevelopmentCardOverlay: View {
             Divider().overlay(SettingsChrome.ornamentGold.opacity(0.35))
 
             if scrolling {
-                ScrollView { middle }
+                ScrollView { middle(width: width) }
                     .scrollIndicators(.visible)
+                    .accessibilityIdentifier("dev-cards.middle-scroll")
+                    .background { cardFrameMarker("dev-cards.content-frame") }
             } else {
-                middle
+                middle(width: width).background { cardFrameMarker("dev-cards.content-frame") }
             }
 
             Divider().overlay(SettingsChrome.ornamentGold.opacity(0.35))
             actionArea
+                .dynamicTypeSize(...DynamicTypeSize.accessibility1)
+                .fixedSize(horizontal: false, vertical: true)
                 .padding(14)
         }
         .frame(maxWidth: 366)
@@ -111,12 +118,13 @@ struct DevelopmentCardOverlay: View {
                 notchScale: 0.9
             )
         )
+        .background { cardFrameMarker("dev-cards.panel-frame") }
         .padding(.horizontal, 14)
         .padding(.vertical, 14)
         .shadow(color: .black.opacity(0.65), radius: 28, y: 12)
     }
 
-    private var middle: some View {
+    private func middle(width: CGFloat) -> some View {
         VStack(spacing: 14) {
             if showsArmyTab {
                 PaintedChoiceRow(
@@ -133,7 +141,7 @@ struct DevelopmentCardOverlay: View {
                 armyStrip
                 armyDetail
             } else {
-                if mode == .hand { handStrip }
+                if mode == .hand, !inventory.isEmpty { handStrip(width: min(366, width - 28) - 32) }
                 if let type = displayedType {
                     cardDetail(type)
                 } else {
@@ -142,6 +150,16 @@ struct DevelopmentCardOverlay: View {
             }
         }
         .padding(16)
+    }
+
+    @ViewBuilder
+    private func cardFrameMarker(_ identifier: String) -> some View {
+#if DEBUG
+        Color.clear.accessibilityElement(children: .ignore)
+            .accessibilityLabel("Development card content frame")
+            .accessibilityIdentifier(identifier)
+            .accessibilityRespondsToUserInteraction(false).allowsHitTesting(false)
+#endif
     }
 
     // MARK: - Army tab (Conquest)
@@ -242,14 +260,15 @@ struct DevelopmentCardOverlay: View {
         }
     }
 
-    private var handStrip: some View {
+    private func handStrip(width: CGFloat) -> some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
                 Text("Your hand")
                     .font(.caption.bold())
                     .foregroundStyle(SettingsChrome.ornamentGold)
                 Spacer()
-                Text("\(inventory.reduce(0) { $0 + $1.held }) cards")
+                let count = inventory.reduce(0) { $0 + $1.held }
+                Text("\(count) \(count == 1 ? "card" : "cards")")
                     .font(.caption)
                     .foregroundStyle(.white.opacity(0.68))
             }
@@ -260,13 +279,18 @@ struct DevelopmentCardOverlay: View {
                 ScrollView(.horizontal, showsIndicators: true) {
                     HStack(alignment: .top, spacing: 8) {
                         ForEach(inventory) { item in
-                            DevCardInventoryTile(item: item, isSelected: displayedType == item.type) {
+                            DevCardInventoryTile(item: item, isSelected: displayedType == item.type,
+                                                 maximumWidth: width) {
                                 selectedType = item.type
                             }
                         }
                     }
                     .padding(.vertical, 2)
+                    .scrollTargetLayout()
                 }
+                .accessibilityIdentifier("dev-cards.hand-scroll")
+                .scrollTargetBehavior(.viewAligned)
+                .fixedSize(horizontal: false, vertical: true)
             }
         }
     }
@@ -274,7 +298,14 @@ struct DevelopmentCardOverlay: View {
     private func cardDetail(_ type: DevCardType) -> some View {
         let status = displayedStatus(for: type)
         return VStack(spacing: 12) {
-            DevCardFace(type: type, countLabel: detailCount(for: type))
+            DevCardFace(type: type, countLabel: detailCount(for: type), isCompact: mode == .hand)
+            if mode == .hand, type != .victoryPoint,
+               let item = inventory.first(where: { $0.type == type }),
+               item.ready > 0, item.boughtThisTurn > 0 {
+                Text(DevCardDisplay.inventoryBadge(item))
+                    .font(.caption).foregroundStyle(DevCardChrome.ivory.opacity(0.8))
+                    .frame(maxWidth: .infinity, alignment: .leading)
+            }
 
             // Only when the card CANNOT be played. A playable card already
             // says so three times over - the hand tile badges it READY, the
@@ -323,66 +354,74 @@ struct DevelopmentCardOverlay: View {
     private func choiceArea(for type: DevCardType) -> some View {
         switch type {
         case .yearOfPlenty:
-            resourceChooser(
-                title: "Choose two from the bank",
-                selected: yearOfPlentyPicks,
-                canSelect: canAddYearOfPlenty,
-                onSelect: addYearOfPlenty,
-                onRemove: removeYearOfPlenty
-            )
+            plentyChooser
         case .monopoly:
-            resourceChooser(
-                title: "Name one resource",
-                selected: monopolyPick.map { [$0: 1] } ?? [:],
-                canSelect: { _ in true },
-                onSelect: { monopolyPick = $0 },
-                onRemove: { _ in monopolyPick = nil }
-            )
+            monopolyChooser
         case .knight, .roadBuilding, .victoryPoint:
             EmptyView()
         }
     }
 
-    private func resourceChooser(
-        title: String,
-        selected: [Resource: Int],
-        canSelect: @escaping (Resource) -> Bool,
-        onSelect: @escaping (Resource) -> Void,
-        onRemove: @escaping (Resource) -> Void
-    ) -> some View {
+    private var monopolyChooser: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text(title)
-                .font(.caption.bold())
-                .foregroundStyle(SettingsChrome.ornamentGold)
-            Text("Selected · tap to remove")
-                .font(.caption)
-                .foregroundStyle(DevCardChrome.ivory.opacity(0.8))
-            resourceChoices(counts: selected, isSelection: true,
-                            canSelect: { selected[$0, default: 0] > 0 }, onSelect: onRemove)
-            Text("Bank supply")
-                .font(.caption)
-                .foregroundStyle(DevCardChrome.ivory.opacity(0.8))
-            resourceChoices(counts: state.bank, isSelection: false,
-                            canSelect: canSelect, onSelect: onSelect)
+            Text("Collect from rivals").font(.subheadline.bold()).foregroundStyle(DevCardChrome.gold)
+            Text("Counts exclude your hand and the bank.")
+                .font(.caption).foregroundStyle(DevCardChrome.ivory.opacity(0.8))
+            LazyVGrid(columns: resourceColumns, spacing: 8) {
+                ForEach(Resource.allCases, id: \.self) { resource in
+                    DevCardResourceChoice(resource: resource, quantity: .rivals(monopolyCount(resource)), isEnabled: true,
+                                          isSelected: monopolyPick == resource) { monopolyPick = resource }
+                        .accessibilityIdentifier(AccessibilityID.DevCards.resource(resource))
+                }
+            }
+            if let resource = monopolyPick, monopolyCount(resource) == 0 {
+                Text("No rival holds \(resource.rawValue.capitalized). This play will collect nothing.")
+                    .font(.caption).foregroundStyle(DevCardChrome.ivory)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+        }
+    }
+
+    private func monopolyCount(_ resource: Resource) -> Int? {
+        MonopolyCollectionPreview(totalPerResource: state.rules.bankPerResource,
+                                  bank: state.bank, ownHand: state.players[player.index].resources)
+            .collectibleCount(for: resource)
+    }
+
+    private var plentyChooser: some View {
+        VStack(alignment: .leading, spacing: 9) {
+            Text("Choose two resources").font(.subheadline.bold()).foregroundStyle(DevCardChrome.gold)
+            Text("\(yearOfPlentyPicks.count) of 2 selected · tap a chosen card to remove it")
+                .font(.caption).foregroundStyle(DevCardChrome.ivory.opacity(0.8))
+            HStack(spacing: 8) {
+                ForEach(0..<2, id: \.self) { index in plentySlot(index) }
+            }
+            Text("Bank supply").font(.caption).foregroundStyle(DevCardChrome.ivory.opacity(0.8))
+            LazyVGrid(columns: resourceColumns, spacing: 8) {
+                ForEach(Resource.allCases, id: \.self) { resource in
+                    DevCardResourceChoice(resource: resource, quantity: .bank(state.bank[resource] ?? 0),
+                                          isEnabled: canAddYearOfPlenty(resource)) { addYearOfPlenty(resource) }
+                        .accessibilityIdentifier(AccessibilityID.DevCards.resource(resource))
+                }
+            }
         }
         .padding(10)
         .background(PaintedChromeBackground(fill: .tintedTexture(DevCardChrome.ink), cornerRadius: 10))
     }
 
-    private func resourceChoices(
-        counts: [Resource: Int], isSelection: Bool,
-        canSelect: @escaping (Resource) -> Bool, onSelect: @escaping (Resource) -> Void
-    ) -> some View {
-        HStack(alignment: .top, spacing: 6) {
-            ForEach(Resource.allCases, id: \.self) { resource in
-                let count = counts[resource] ?? 0
-                DevCardResourceChoice(resource: resource, count: count,
-                                      isEnabled: canSelect(resource), isSelected: isSelection && count > 0) {
-                    onSelect(resource)
-                }
-                .accessibilityIdentifier(isSelection ? "dev-cards.selected.\(resource.rawValue)"
-                                         : AccessibilityID.DevCards.resource(resource))
-            }
+    private var resourceColumns: [GridItem] {
+        Array(repeating: GridItem(.flexible(), spacing: 6),
+              count: dynamicTypeSize.isAccessibilitySize ? 2 : Resource.allCases.count)
+    }
+
+    private func plentySlot(_ index: Int) -> some View {
+        let picks = yearOfPlentyPicks
+        let resource = index < picks.count ? picks[index] : nil
+        let identifier = resource.map {
+            picks.firstIndex(of: $0) == index ? "dev-cards.selected.\($0.rawValue)" : "dev-cards.selected.slot.\(index)"
+        } ?? "dev-cards.selected.slot.\(index)"
+        return DevCardPickSlot(resource: resource, identifier: identifier) {
+            if let resource { removeYearOfPlenty(resource) }
         }
     }
 
@@ -474,16 +513,22 @@ struct DevelopmentCardOverlay: View {
         switch type {
         case .knight: "Choose the robber's destination"
         case .roadBuilding: "Choose two roads on the board"
-        case .yearOfPlenty: "\(yearOfPlentyPicks.values.reduce(0, +)) of 2 selected"
-        case .monopoly: monopolyPick.map { $0.rawValue.capitalized } ?? "Choose a resource"
+        case .yearOfPlenty: "\(yearOfPlentyPicks.count) of 2 selected"
+        case .monopoly: monopolyPick.map { monopolySubtitle($0) } ?? "Choose a resource"
         case .victoryPoint: nil
         }
+    }
+
+    private func monopolySubtitle(_ resource: Resource) -> String {
+        let name = resource.rawValue.capitalized
+        guard let count = monopolyCount(resource) else { return "Collect all \(name) held by rivals" }
+        return "Collect \(count) \(name) from rivals"
     }
 
     private func canSubmit(_ type: DevCardType, status: DevCardPlayStatus) -> Bool {
         guard status.isPlayable else { return false }
         switch type {
-        case .yearOfPlenty: return yearOfPlentyPicks.values.reduce(0, +) == 2
+        case .yearOfPlenty: return yearOfPlentyPicks.count == 2
         case .monopoly: return monopolyPick != nil
         case .knight, .roadBuilding: return true
         case .victoryPoint: return false
@@ -508,7 +553,7 @@ struct DevelopmentCardOverlay: View {
 
     private var expandedYearOfPlenty: [Resource] {
         Resource.allCases.flatMap { resource in
-            Array(repeating: resource, count: yearOfPlentyPicks[resource] ?? 0)
+            yearOfPlentyPicks.filter { $0 == resource }
         }
     }
 
@@ -521,16 +566,16 @@ struct DevelopmentCardOverlay: View {
 
     private func addYearOfPlenty(_ resource: Resource) {
         guard canAddYearOfPlenty(resource) else { return }
-        yearOfPlentyPicks[resource, default: 0] += 1
+        yearOfPlentyPicks.append(resource)
     }
 
     private func removeYearOfPlenty(_ resource: Resource) {
-        yearOfPlentyPicks[resource, default: 0] -= 1
-        if yearOfPlentyPicks[resource] == 0 { yearOfPlentyPicks[resource] = nil }
+        guard let index = yearOfPlentyPicks.firstIndex(of: resource) else { return }
+        yearOfPlentyPicks.remove(at: index)
     }
 
     private func resetChoices() {
-        yearOfPlentyPicks = [:]
+        yearOfPlentyPicks = []
         monopolyPick = nil
         errorMessage = nil
     }
@@ -697,6 +742,7 @@ public struct PopupCard<Content: View>: View {
             Color.black.opacity(0.45)
                 .ignoresSafeArea()
                 .onTapGesture(perform: onDismiss)
+                .accessibilityHidden(true)
 
             content
                 .background(

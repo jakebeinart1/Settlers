@@ -1,0 +1,149 @@
+{
+  "sourceRevision": "971a615ba701e2eca9e22ae538cadbfd8d243d8a",
+  "appBinarySHA256": "2ab9e0852e6e5db7ef13f9b3eaeba8bf7291bc315e6abeadf5e1ea2dc1c458f8",
+  "configuration": "Debug",
+  "runtime": "iOS26.5",
+  "seed": 7501,
+  "fogEnabled": true,
+  "resourceChoiceEnabled": true,
+  "tableSize": 4,
+  "openingSimulator": "1F7385BD-18DD-4C36-98D0-4C9B52F82295",
+  "journeysSimulator": "937692FF-BFBF-4683-80E5-2590F5288D56",
+  "actionSequence": "Build\u2192Ship\u2192launch preview\u2192Cancel\u2192Build\u2192Ship\u2192confirm actual launch\u2192Fleet/select/preview/commit three steps\u2192World\u2192terminate\u2192cold Resume; separate capture fixture select\u2192terminate\u2192cold Resume\u2192reselect/confirm capture; actual Settings Reduce Motion ON\u2192Home/World\u2192restore OFF",
+  "openingArguments": [
+    "-ui-testing",
+    "-ui-testing-reset",
+    "-qaAutoStart",
+    "-qaNavalMode",
+    "-qaNavalExpert",
+    "-qaNavalSeed=7501"
+  ],
+  "fixtureBound": "Opening has no fixture grants. The separate native purchase/capture journeys begin in conserved rare-state QA baselines; subsequent interactions commit real rules/session/persistence. They do not prove ordinary expedition pacing.",
+  "videos": [
+    {
+      "path": "/Users/alex/.codex/artifacts/naval-exploration/final-opening-971a615.mp4",
+      "role": "ordinary seeded fresh opening",
+      "durationSeconds": 3.245,
+      "sha256": "77f9e9eff999dd32dd6fc9452ca83fa89a757845a84ff2971be940897ffc5d77",
+      "bytes": 7753961,
+      "width": 1206,
+      "height": 2622,
+      "motionReview": "sequential decoded frames at listed times plus passing native camera/state assertions; no quantitative frame-rate or physical-phone latency claim"
+    },
+    {
+      "path": "/Users/alex/.codex/artifacts/naval-exploration/final-native-journeys-971a615.mp4",
+      "role": "exact-binary native purchase/sailing/capture/resume/system-Reduce-Motion journeys",
+      "durationSeconds": 73.461667,
+      "sha256": "bb0d4c92d2007ad19b89d21a90c699f812c411086aefaf1162050bc18160cdfc",
+      "bytes": 107919056,
+      "width": 1206,
+      "height": 2622,
+      "motionReview": "sequential decoded frames at listed times plus passing native camera/state assertions; no quantitative frame-rate or physical-phone latency claim"
+    }
+  ],
+  "items": [
+    {
+      "file": "final-opening-heavy-mist.png",
+      "sourceFrame": "/tmp/empires-naval-final-evidence/final-motion-frames/opening-2.4.png",
+      "role": "ordinary seeded opening: heavy home mist",
+      "sha256": "f91bbf3289d1fdbe976476cc1adc0eeb94de8dee4ee4f7d6de532fa02887949f",
+      "width": 1206,
+      "height": 2622,
+      "bytes": 2290764,
+      "inspected": true,
+      "derivation": "ffmpeg single raw video frame, original1206x2622; no crop or paint editing"
+    },
+    {
+      "file": "final-opening-withdrawing.png",
+      "sourceFrame": "/tmp/empires-naval-final-evidence/final-motion-frames/opening-2.8.png",
+      "role": "ordinary seeded opening: withdrawing mist",
+      "sha256": "7c6a7fb6a30f4644d198ba0e7370a3530174e7e2f7ad7ff260b7e16f6b3c4185",
+      "width": 1206,
+      "height": 2622,
+      "bytes": 2582492,
+      "inspected": true,
+      "derivation": "ffmpeg single raw video frame, original1206x2622; no crop or paint editing"
+    },
+    {
+      "file": "final-opening-clear.png",
+      "sourceFrame": "/tmp/empires-naval-final-evidence/final-motion-frames/opening-3.1.png",
+      "role": "ordinary seeded opening: surveyed home clear",
+      "sha256": "c92b5f38764fb275778cfdf8b918c5cbb27f9a8bc44c5833978aabf7986bb563",
+      "width": 1206,
+      "height": 2622,
+      "bytes": 2629031,
+      "inspected": true,
+      "derivation": "ffmpeg single raw video frame, original1206x2622; no crop or paint editing"
+    },
+    {
+      "file": "final-sail-preview.png",
+      "sourceFrame": "/tmp/empires-naval-final-evidence/final-motion-frames/journey-28.5.png",
+      "role": "second-step uncommitted preview; original ship still in origin hex",
+      "sha256": "c2b5bb221a87001ecb3d4617d8775aa5144b12c4c0c5034ccb9e36c6d1b8de88",
+      "width": 1206,
+      "height": 2622,
+      "bytes": 2660371,
+      "inspected": true,
+      "derivation": "ffmpeg single raw video frame, original1206x2622; no crop or paint editing"
+    },
+    {
+      "file": "final-sail-discovery.png",
+      "sourceFrame": "/tmp/empires-naval-final-evidence/final-motion-frames/journey-29.0.png",
+      "role": "second-step commit with retreating mist over newly visible sea; dock and viewport unchanged",
+      "sha256": "56b18f7256253163d13e0c303d097b7fd72ec5793c13af746f78835ffc8dced5",
+      "width": 1206,
+      "height": 2622,
+      "bytes": 2752707,
+      "inspected": true,
+      "derivation": "ffmpeg single raw video frame, original1206x2622; no crop or paint editing"
+    },
+    {
+      "file": "final-sail-remaining.png",
+      "sourceFrame": "/tmp/empires-naval-final-evidence/final-motion-frames/journey-29.5.png",
+      "role": "after committed second step: global Fleet reports one step remaining",
+      "sha256": "f778f5a26b46229b178498b0e606c35076c3061ce55dc4231cda9b5afd84bbcd",
+      "width": 1206,
+      "height": 2622,
+      "bytes": 2508655,
+      "inspected": true,
+      "derivation": "ffmpeg single raw video frame, original1206x2622; no crop or paint editing"
+    },
+    {
+      "file": "final-third-step.png",
+      "sourceFrame": "/tmp/empires-naval-final-evidence/final-motion-frames/journey-33.1.png",
+      "role": "after committed third step: actual hull at new position and main commands restored",
+      "sha256": "1fc9fafd1627e95b18c1965c4b0d71ba5851d784c41119b77893a2705a6f996f",
+      "width": 1206,
+      "height": 2622,
+      "bytes": 2829975,
+      "inspected": true,
+      "derivation": "ffmpeg single raw video frame, original1206x2622; no crop or paint editing"
+    },
+    {
+      "file": "final-capture-control.png",
+      "sourceFrame": "/tmp/empires-naval-final-evidence/final-motion-frames/journey-54.2.png",
+      "role": "confirmed capture after cold resume: flag/owner badge and durable receipt changed",
+      "sha256": "ea6b02bb76a464db64b874ee0e672e5249527f133af273cdc10977734812fc2f",
+      "width": 1206,
+      "height": 2622,
+      "bytes": 2704322,
+      "inspected": true,
+      "derivation": "ffmpeg single raw video frame, original1206x2622; no crop or paint editing"
+    },
+    {
+      "file": "final-reduce-motion.png",
+      "sourceFrame": "/tmp/empires-naval-final-evidence/final-motion-frames/journey-69.2.png",
+      "role": "actual system Reduce Motion ON, Home navigation result",
+      "sha256": "14481ba2a1d71a3cf1c90a7c85ea318b324f87cb7b164d155ac16f37fc44d095",
+      "width": 1206,
+      "height": 2622,
+      "bytes": 3175961,
+      "inspected": true,
+      "derivation": "ffmpeg single raw video frame, original1206x2622; no crop or paint editing"
+    }
+  ],
+  "ordinaryOpeningDifficulty": "expert",
+  "nativeFixtureDifficulty": "traditional",
+  "nativeFixtureFamily": "archipelago",
+  "reviewPositionDifficulty": "expert"
+}

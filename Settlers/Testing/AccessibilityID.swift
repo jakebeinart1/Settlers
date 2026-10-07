@@ -100,6 +100,8 @@ enum AccessibilityID {
         static let start = "new-game.start"
         static let confirmOverwrite = "new-game.confirm-overwrite"
         static let modePicker = "new-game.mode.picker"
+        static let navalSettings = "new-game.naval.advanced"
+        static let navalSettingsDone = "new-game.naval.advanced.done"
 
         static func modeOption(_ mode: GameMode) -> String { "new-game.mode.\(mode.rawValue)" }
 
@@ -171,6 +173,7 @@ enum AccessibilityID {
     enum Game {
         static let settings = "game.settings"
         static let botProgress = "bot-progress.status"
+        static let skipBotPauses = "bot-progress.skip"
         static let retryBotProgress = "bot-progress.retry"
 
         /// The command row under the player panel - action buttons, the board

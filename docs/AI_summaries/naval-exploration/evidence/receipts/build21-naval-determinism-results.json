@@ -1,0 +1,62 @@
+[
+  {
+    "allResultFieldsEqual": true,
+    "byteIdentical": true,
+    "excludedFields": [],
+    "name": "cell00-3-traditional",
+    "originalSHA256": "1ff9356da41fce38569364e137111f64f4bffc357c839b58330f51781bfa183d",
+    "problems": [],
+    "repeatSHA256": "1ff9356da41fce38569364e137111f64f4bffc357c839b58330f51781bfa183d",
+    "seed": 880000
+  },
+  {
+    "allResultFieldsEqual": true,
+    "byteIdentical": true,
+    "excludedFields": [],
+    "name": "cell01-4-expert",
+    "originalSHA256": "39642bb504d75cd53dab38784db8ed5c49d855980e8b77729a313aa9713cc153",
+    "problems": [],
+    "repeatSHA256": "39642bb504d75cd53dab38784db8ed5c49d855980e8b77729a313aa9713cc153",
+    "seed": 880121
+  },
+  {
+    "allResultFieldsEqual": true,
+    "byteIdentical": true,
+    "excludedFields": [],
+    "name": "cell05-3-expert",
+    "originalSHA256": "cf8e3890c529c4c6a72f3274b606bf16e63c4b45137dc32099322f94dfb45b55",
+    "problems": [],
+    "repeatSHA256": "cf8e3890c529c4c6a72f3274b606bf16e63c4b45137dc32099322f94dfb45b55",
+    "seed": 880501
+  },
+  {
+    "allResultFieldsEqual": true,
+    "byteIdentical": true,
+    "excludedFields": [],
+    "name": "cell04-4-traditional",
+    "originalSHA256": "c3a03c030d5cd949fe20eefdb5f7921a2790e52674fba69297094a29fba091ca",
+    "problems": [],
+    "repeatSHA256": "c3a03c030d5cd949fe20eefdb5f7921a2790e52674fba69297094a29fba091ca",
+    "seed": 880420
+  },
+  {
+    "allResultFieldsEqual": true,
+    "byteIdentical": true,
+    "excludedFields": [],
+    "name": "cell08-3-traditional",
+    "originalSHA256": "65a4758a985a3164a268ba55e81aac6405a611f75a0fe90f2aeb236fb06174bf",
+    "problems": [],
+    "repeatSHA256": "65a4758a985a3164a268ba55e81aac6405a611f75a0fe90f2aeb236fb06174bf",
+    "seed": 880800
+  },
+  {
+    "allResultFieldsEqual": true,
+    "byteIdentical": true,
+    "excludedFields": [],
+    "name": "cell09-4-expert",
+    "originalSHA256": "f106221f20d4454d40865b4edc7fb00ab830ce8bfb9f1507e868ca8887216f79",
+    "problems": [],
+    "repeatSHA256": "f106221f20d4454d40865b4edc7fb00ab830ce8bfb9f1507e868ca8887216f79",
+    "seed": 880921
+  }
+]

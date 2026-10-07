@@ -1,0 +1,196 @@
+[
+  {
+    "attachments" : [
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "937692FF-BFBF-4683-80E5-2590F5288D56",
+        "deviceName" : "Empires QA",
+        "exportedFileName" : "9B32C6DF-37C7-4E6F-BD0D-DC7E2900D501.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "Voyages — city harvest progress survives cold resume_0_CEC97F86-0EC4-477D-A11A-6C36AC968CDA.png",
+        "timestamp" : 1791366543.67
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "937692FF-BFBF-4683-80E5-2590F5288D56",
+        "deviceName" : "Empires QA",
+        "exportedFileName" : "F75E5AAC-72EB-4BFB-BDCA-977236A198E6.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "Voyages — city chooses two resources with clear progress_0_5C0D9FC2-F6E2-4FCA-9807-77A6425AC1FD.png",
+        "timestamp" : 1791366538.103
+      }
+    ],
+    "testIdentifier" : "NavalFlowTests/testCityHarvestCreditsTwoChoicesAcrossColdResume()",
+    "testIdentifierURL" : "test://com.apple.xcode/Settlers/SettlersUITests/NavalFlowTests/testCityHarvestCreditsTwoChoicesAcrossColdResume"
+  },
+  {
+    "attachments" : [
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "937692FF-BFBF-4683-80E5-2590F5288D56",
+        "deviceName" : "Empires QA",
+        "exportedFileName" : "3F808E47-7C00-4401-93A8-DEBC681AB3C2.mp4",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "Screen Recording 2026-10-07 at 05.49.06 AM.mp4",
+        "timestamp" : 1791366546.191
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "937692FF-BFBF-4683-80E5-2590F5288D56",
+        "deviceName" : "Empires QA",
+        "exportedFileName" : "9D8CCBA5-C2A9-4CA7-8CA6-4C904EBFDB7D.txt",
+        "isAssociatedWithFailure" : true,
+        "suggestedHumanReadableName" : "Complete Issue Description.txt"
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "937692FF-BFBF-4683-80E5-2590F5288D56",
+        "deviceName" : "Empires QA",
+        "exportedFileName" : "25C7ECA1-101D-4AA1-97BC-DE69812D73A4.png",
+        "isAssociatedWithFailure" : true,
+        "suggestedHumanReadableName" : "App Screenshot_0_572F6E8C-BDFD-4CED-9852-4A88173A9B76.png",
+        "timestamp" : 1791366556.104
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "937692FF-BFBF-4683-80E5-2590F5288D56",
+        "deviceName" : "Empires QA",
+        "exportedFileName" : "05D33853-BB91-4A62-813D-155202AF1234.png",
+        "isAssociatedWithFailure" : true,
+        "suggestedHumanReadableName" : "Element Screenshot_1_06D2EB65-3112-4C6D-A78E-307B8D1FA510.png",
+        "timestamp" : 1791366556.104
+      }
+    ],
+    "testIdentifier" : "NavalFlowTests/testHarvestPassesNativeAccessibilityAudit()",
+    "testIdentifierURL" : "test://com.apple.xcode/Settlers/SettlersUITests/NavalFlowTests/testHarvestPassesNativeAccessibilityAudit"
+  },
+  {
+    "attachments" : [
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "937692FF-BFBF-4683-80E5-2590F5288D56",
+        "deviceName" : "Empires QA",
+        "exportedFileName" : "DD293FD2-39A5-4E1C-A06F-BAB31643E831.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "Voyages — accessible island harvest_0_CF37C63F-2448-4ACE-B7C0-65F74048B5FF.png",
+        "timestamp" : 1791366566.324
+      }
+    ],
+    "testIdentifier" : "NavalFlowTests/testLargeTextHarvestKeepsEveryChoiceAndConfirmationReachable()",
+    "testIdentifierURL" : "test://com.apple.xcode/Settlers/SettlersUITests/NavalFlowTests/testLargeTextHarvestKeepsEveryChoiceAndConfirmationReachable"
+  },
+  {
+    "attachments" : [
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "937692FF-BFBF-4683-80E5-2590F5288D56",
+        "deviceName" : "Empires QA",
+        "exportedFileName" : "D7104F0A-6524-4A4E-B4E4-3A7954C75443.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "Voyages — maximum-text naval.fleet with a complete vessel_0_1CBE8815-FB7C-4A6F-A2A1-6BB2FF2CF574.png",
+        "timestamp" : 1791366616.208
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "937692FF-BFBF-4683-80E5-2590F5288D56",
+        "deviceName" : "Empires QA",
+        "exportedFileName" : "E15428E7-3D43-40C9-8CC9-156A16E672CE.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "Voyages — maximum-text naval.nearby with a complete vessel_0_B45A0262-A081-45F1-B6D9-60C5F4635B8E.png",
+        "timestamp" : 1791366591.477
+      }
+    ],
+    "testIdentifier" : "NavalFlowTests/testNearbyChooserKeepsEveryHullReachableAtMaximumTextWithoutCommitting()",
+    "testIdentifierURL" : "test://com.apple.xcode/Settlers/SettlersUITests/NavalFlowTests/testNearbyChooserKeepsEveryHullReachableAtMaximumTextWithoutCommitting"
+  },
+  {
+    "attachments" : [
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "937692FF-BFBF-4683-80E5-2590F5288D56",
+        "deviceName" : "Empires QA",
+        "exportedFileName" : "D6E58A51-19EB-4508-8E4A-50A6C1737B4B.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "Painted harvest field and numbered token at maximum zoom_0_8FB88C32-7DD2-46EB-9050-A74CCECEC072.png",
+        "timestamp" : 1791366639.752
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "937692FF-BFBF-4683-80E5-2590F5288D56",
+        "deviceName" : "Empires QA",
+        "exportedFileName" : "0C35E327-0AF7-437C-9716-92ABB3EF5E3F.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "Painted harvest fields in the charted world_0_D9F341B6-7EF8-4572-B27E-CEF173B3D8E6.png",
+        "timestamp" : 1791366633.976
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "937692FF-BFBF-4683-80E5-2590F5288D56",
+        "deviceName" : "Empires QA",
+        "exportedFileName" : "43F85FBC-1718-44B0-A5DF-64D97B7A9D91.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "Painted harvest field at local colony scale_0_EE3ACFFE-9CCE-4F14-A739-A2FA92B2060A.png",
+        "timestamp" : 1791366633.485
+      }
+    ],
+    "testIdentifier" : "NavalHarvestArtworkFlowTests/testPaintedHarvestFieldKeepsItsTokenAtLocalWorldAndMaximumZoom()",
+    "testIdentifierURL" : "test://com.apple.xcode/Settlers/SettlersUITests/NavalHarvestArtworkFlowTests/testPaintedHarvestFieldKeepsItsTokenAtLocalWorldAndMaximumZoom"
+  },
+  {
+    "attachments" : [
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "937692FF-BFBF-4683-80E5-2590F5288D56",
+        "deviceName" : "Empires QA",
+        "exportedFileName" : "D159177B-3D58-4174-B428-E20060C32D89.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "Voyages — current match victory goal_0_5051C64B-15B0-4F3B-99AF-7AB6EBD2CAB8.png",
+        "timestamp" : 1791366650.546
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "937692FF-BFBF-4683-80E5-2590F5288D56",
+        "deviceName" : "Empires QA",
+        "exportedFileName" : "B7C2444E-AC9F-4CF5-80D8-6042E0718294.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "Voyages — plain fleet travel allowance_0_E607533D-37FA-49F9-96CD-AC6381FC814F.png",
+        "timestamp" : 1791366648.712
+      }
+    ],
+    "testIdentifier" : "NavalTravelFlowTests/testFleetAndVictoryGoalUsePlainVisibleLanguage()",
+    "testIdentifierURL" : "test://com.apple.xcode/Settlers/SettlersUITests/NavalTravelFlowTests/testFleetAndVictoryGoalUsePlainVisibleLanguage"
+  },
+  {
+    "attachments" : [
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "937692FF-BFBF-4683-80E5-2590F5288D56",
+        "deviceName" : "Empires QA",
+        "exportedFileName" : "C506D2D5-C527-474C-A348-2EBCC973C3DA.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "Voyages — complete voyage uses both hexes_0_7DA226D8-1D5E-4EC4-A838-E5269B46BB39.png",
+        "timestamp" : 1791366660.81
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "937692FF-BFBF-4683-80E5-2590F5288D56",
+        "deviceName" : "Empires QA",
+        "exportedFileName" : "195044BC-4EFA-4030-96D1-FF066D9E9B90.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "Voyages — one destination stages the complete route_0_A79CB465-E118-49FC-A0EC-2C1E2638034B.png",
+        "timestamp" : 1791366659.128
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "937692FF-BFBF-4683-80E5-2590F5288D56",
+        "deviceName" : "Empires QA",
+        "exportedFileName" : "43CD71FE-D3D8-452C-93FA-C2579D10C82E.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "Voyages — complete two-hex sailing range_0_0C878AB0-72E3-403B-B1E5-2B47A63E1F3F.png",
+        "timestamp" : 1791366658.421
+      }
+    ],
+    "testIdentifier" : "NavalTravelFlowTests/testFullTwoHexRangePreviewsOnceAndCommitsOneVoyageThenColdResumes()",
+    "testIdentifierURL" : "test://com.apple.xcode/Settlers/SettlersUITests/NavalTravelFlowTests/testFullTwoHexRangePreviewsOnceAndCommitsOneVoyageThenColdResumes"
+  }
+]

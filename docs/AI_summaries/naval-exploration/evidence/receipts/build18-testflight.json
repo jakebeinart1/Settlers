@@ -1,0 +1,38 @@
+{
+  "source": "8953413e0fe62609ebb458bcba6f941494329c7f",
+  "appID": "6808461623",
+  "bundleID": "com.alexchandler.empires",
+  "marketingVersion": "1.0",
+  "build": "18",
+  "appleBuildID": "0be8eac0-2a08-4756-ba47-701e4d1f6ccb",
+  "processingState": "VALID",
+  "internalBuildState": "IN_BETA_TESTING",
+  "uploadedDate": "2026-10-05T12:33:35-07:00",
+  "verifiedAtUTC": "2026-10-05T19:36:07Z",
+  "intendedTesterAccess": [
+    {
+      "id": "bf165450-034a-437d-b7f7-028bf3d57a5b",
+      "name": "Internal",
+      "hasAccessToAllBuilds": true,
+      "isInternalGroup": true,
+      "testers": [
+        {
+          "firstName": "Alex",
+          "lastName": "Chandler"
+        }
+      ]
+    }
+  ],
+  "phoneState": "unavailable; physical installation not verified",
+  "simulatorReview": {
+    "id": "FA10360F-AECA-413E-B89C-50AB68772D49",
+    "name": "Empires Build 18 Review",
+    "model": "iPhone17ProMax",
+    "launchArguments": [],
+    "processSurvived": true
+  },
+  "signedExportReceipt": "build18-signed-export.json",
+  "releaseRuntimeReceipt": "build18-release-runtime.json",
+  "nativeResult": "/Users/alex/.codex/artifacts/naval-exploration/release-app-ui-serial.xcresult",
+  "originalFailedGateResult": "/Users/alex/.codex/artifacts/naval-exploration/full-release-gate-failed.xcresult"
+}

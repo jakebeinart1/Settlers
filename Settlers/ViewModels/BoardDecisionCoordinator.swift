@@ -17,11 +17,15 @@ public enum BoardDecisionIntent: Sendable, Equatable {
     case knight
     /// Conquest: tap a hex, then choose the army cards to commit to it.
     case deployArmy
+    case buildShip
+    case sailShip
+    case captureShip
 
     public var canCancel: Bool {
         switch self {
-        case .initialSettlement, .initialRoad, .robberAfterSeven: false
-        case .buildRoad, .buildSettlement, .buildCity, .roadBuilding, .knight, .deployArmy: true
+        case .initialSettlement, .initialRoad, .robberAfterSeven, .captureShip: false
+        case .buildRoad, .buildSettlement, .buildCity, .roadBuilding, .knight, .deployArmy,
+             .buildShip, .sailShip: true
         }
     }
 
@@ -29,7 +33,9 @@ public enum BoardDecisionIntent: Sendable, Equatable {
 
     /// Decisions whose first choice is a hex: the robber's, and a Conquest deploy.
     /// Board targeting (gold rings, tap targets) keys on this, not on `isRobber`.
-    public var targetsTiles: Bool { isRobber || self == .deployArmy }
+    public var targetsTiles: Bool {
+        isRobber || self == .deployArmy || self == .buildShip || self == .sailShip
+    }
 }
 
 /// One input vocabulary for taps, drags, VoiceOver, and UI automation.
@@ -40,6 +46,7 @@ public enum BoardTarget: Sendable, Hashable {
     case victim(PlayerID)
     /// Conquest: the chosen set of army-card strengths, ascending.
     case armyCards([Int])
+    case ship(Int)
 }
 
 /// Semantic projection consumed by the board and its command dock.
@@ -66,6 +73,9 @@ public struct BoardDecisionPresentation: Sendable, Equatable {
     public var legalArmyCards: [Int] = []
     /// Conquest: the cards chosen so far, ascending.
     public var selectedArmyCards: [Int] = []
+    public var legalShips: [Int] = []
+    public var selectedShip: Int?
+    public var sailing: NavalSailingPresentation?
 }
 
 /// Identifies the canonical position a thought belongs to. A failed move keeps
@@ -114,7 +124,7 @@ struct BoardDecisionCoordinator: Sendable {
             setupRound: draft.setupRound,
             legalVertices: boardTargets.compactMap(\.vertex),
             legalEdges: boardTargets.compactMap(\.edge),
-            legalTiles: firstTargets(in: draft).compactMap(\.tile),
+            legalTiles: boardTargets.compactMap(\.tile),
             legalVictims: victimTargets(in: draft),
             selectedVertex: draft.selection.compactMap(\.vertex).first,
             selectedEdges: draft.selection.compactMap(\.edge),
@@ -130,6 +140,8 @@ struct BoardDecisionCoordinator: Sendable {
                 .max { $0.count < $1.count } ?? []
             result.selectedArmyCards = draft.selection.dropFirst().first?.armyCards ?? []
         }
+        result.legalShips = firstTargets(in: draft).compactMap(\.ship)
+        result.selectedShip = draft.selection.compactMap(\.ship).first
         return result
     }
 
@@ -252,6 +264,8 @@ struct BoardDecisionCoordinator: Sendable {
             return nil
         case .movingRobber:
             return .robberAfterSeven
+        case .capturingShip:
+            return .captureShip
         default:
             return nil
         }
@@ -279,11 +293,24 @@ struct BoardDecisionCoordinator: Sendable {
             return selectRoadBuilding(target, in: &draft)
         case .deployArmy:
             return selectArmy(target, in: &draft)
+        case .sailShip:
+            return selectShipVoyage(target, in: &draft)
         default:
             guard firstTargets(in: draft).contains(target) else { return false }
             draft.selection = [target]
             return true
         }
+    }
+
+    private func selectShipVoyage(_ target: BoardTarget, in draft: inout Draft) -> Bool {
+        if case .ship = target, firstTargets(in: draft).contains(target) {
+            draft.selection = [target]
+            return true
+        }
+        guard case .tile = target, draft.selection.first?.ship != nil,
+              nextTargets(in: draft, after: 1).contains(target) else { return false }
+        draft.selection = [draft.selection[0], target]
+        return true
     }
 
     private func selectRobber(_ target: BoardTarget, in draft: inout Draft) -> Bool {
@@ -337,6 +364,8 @@ struct BoardDecisionCoordinator: Sendable {
     private func boardTargets(for draft: Draft) -> [BoardTarget] {
         switch draft.intent {
         case .roadBuilding where !draft.selection.isEmpty:
+            return nextTargets(in: draft, after: 1)
+        case .sailShip where !draft.selection.isEmpty:
             return nextTargets(in: draft, after: 1)
         default:
             return firstTargets(in: draft)
@@ -399,6 +428,12 @@ struct BoardDecisionCoordinator: Sendable {
             return [.tile(tile)] + (victim.map { [.victim($0)] } ?? [])
         case (.deployArmy, .deployArmy(let hex, let strengths)):
             return [.tile(hex), .armyCards(strengths)]
+        case (.buildShip, .buildShip(let hex)):
+            return [.tile(hex)]
+        case (.sailShip, .sailShip(let id, let hex)):
+            return [.ship(id), .tile(hex)]
+        case (.captureShip, .captureShip(let id)):
+            return [.ship(id)]
         default:
             return nil
         }
@@ -411,4 +446,5 @@ private extension BoardTarget {
     var tile: HexCoordinate? { if case .tile(let value) = self { value } else { nil } }
     var victim: PlayerID? { if case .victim(let value) = self { value } else { nil } }
     var armyCards: [Int]? { if case .armyCards(let value) = self { value } else { nil } }
+    var ship: Int? { if case .ship(let value) = self { value } else { nil } }
 }

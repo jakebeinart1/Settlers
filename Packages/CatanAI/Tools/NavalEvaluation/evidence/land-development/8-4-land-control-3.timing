@@ -1,0 +1,2 @@
+naval-sim rejection evidence: /var/folders/_m/cfbn0s7j7zx3sx1lwv6w4mr80000gn/T/naval-sim-failures/700803-4-3-land-control-twinIslands-true-true
+naval-sim seed=700803 decisions=708 p95=13.274ms p99=24.582ms over50=0 over150=0

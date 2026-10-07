@@ -1,0 +1,74 @@
+[
+  {
+    "file": "screenshots/build19-compact-setup.png",
+    "sourceCapture": "/tmp/empires-naval-refinement19/gate-NewGameMatchSettingsFlowTests-attachments/038A9644-17A7-4131-AB2D-8CC83D6BFE15.png",
+    "sourceRevision": "5c01f39d20fe20bbae734850dd30beb9f0d1f1e8",
+    "configuration": "XCTest-instrumented Debug, build19, full passing gate, iPhone17Pro/iOS26.5",
+    "sha256": "6e592b43a1b20acbfc6ae68009912667baa0844ff2b6989f5c6b25fb3ccbca53",
+    "bytes": 2861819,
+    "width": 1206,
+    "height": 2622,
+    "pixelHandling": "byte-identical original native capture",
+    "rootOrIndependentInspected": true
+  },
+  {
+    "file": "screenshots/build19-advanced-settings.png",
+    "sourceCapture": "/tmp/empires-naval-refinement19/gate-NewGameMatchSettingsFlowTests-attachments/5ED1AA29-2C07-422A-9DB9-C4C960F25872.png",
+    "sourceRevision": "5c01f39d20fe20bbae734850dd30beb9f0d1f1e8",
+    "configuration": "XCTest-instrumented Debug, build19, full passing gate, iPhone17Pro/iOS26.5",
+    "sha256": "709fa4670911bf97167c3f380c4683e4bd67496a9e486168689914c5a6964e86",
+    "bytes": 1516849,
+    "width": 1206,
+    "height": 2622,
+    "pixelHandling": "byte-identical original native capture",
+    "rootOrIndependentInspected": true
+  },
+  {
+    "file": "screenshots/build19-advanced-accessibility.png",
+    "sourceCapture": "/tmp/empires-naval-refinement19/gate-NewGameMatchSettingsFlowTests-attachments/55B3E695-CE22-4408-9C68-3A2E78BC39FC.png",
+    "sourceRevision": "5c01f39d20fe20bbae734850dd30beb9f0d1f1e8",
+    "configuration": "XCTest-instrumented Debug, build19, full passing gate, iPhone17Pro/iOS26.5",
+    "sha256": "101f94d645fb0578b28f2e0e93060d45e177438dd708083491e475edbf19dd1d",
+    "bytes": 1121706,
+    "width": 1206,
+    "height": 2622,
+    "pixelHandling": "byte-identical original native capture",
+    "rootOrIndependentInspected": true
+  },
+  {
+    "file": "screenshots/build19-corner-discovery.png",
+    "sourceCapture": "/tmp/empires-naval-refinement19/gate-NavalFlowTests-attachments/1C715E35-3AD1-460A-9FD4-4593FE3F1D7C.png",
+    "sourceRevision": "5c01f39d20fe20bbae734850dd30beb9f0d1f1e8",
+    "configuration": "XCTest-instrumented Debug, build19, full passing gate, iPhone17Pro/iOS26.5",
+    "sha256": "a920c4faa792e46f1106b81909ea556eac6051fe3c155ac592fd5fc74c796a70",
+    "bytes": 3502752,
+    "width": 1206,
+    "height": 2622,
+    "pixelHandling": "byte-identical original native capture",
+    "rootOrIndependentInspected": true
+  },
+  {
+    "file": "screenshots/build19-world-fog.png",
+    "sourceCapture": "/tmp/empires-naval-refinement19/gate-NavalFlowTests-attachments/599DB32E-28CB-4CA2-A720-7D7D73088FCC.png",
+    "sourceRevision": "5c01f39d20fe20bbae734850dd30beb9f0d1f1e8",
+    "configuration": "XCTest-instrumented Debug, build19, full passing gate, iPhone17Pro/iOS26.5",
+    "sha256": "9cbafad76dd3478c3ff7431082b3aad18094a6f2b550aac074c9f9a496a87ee5",
+    "bytes": 3530062,
+    "width": 1206,
+    "height": 2622,
+    "pixelHandling": "byte-identical original native capture",
+    "rootOrIndependentInspected": true
+  },
+  {
+    "file": "screenshots/build19-maximum-sea-fog.png",
+    "sourceCapture": "/tmp/empires-naval-refinement19/gate-NavalFlowTests-attachments/A32FC41A-77A4-49F7-8045-66DD1A1FCF4E.png",
+    "sourceRevision": "5c01f39d20fe20bbae734850dd30beb9f0d1f1e8",
+    "configuration": "XCTest-instrumented Debug, build19, full passing gate, iPhone17Pro/iOS26.5",
+    "sha256": "121c3da57cbfc50fb1454eadcbf6c5f5f5fef26be499c3bc5ca0595056db3aa5",
+    "bytes": 3152715,
+    "width": 1206,
+    "height": 2622,
+    "pixelHandling": "byte-identical original native capture",
+    "rootOrIndependentInspected": true
+  }
+]

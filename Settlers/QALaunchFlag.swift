@@ -75,6 +75,9 @@ enum QALaunchFlag: String, CaseIterable {
     case longestRoadPosition = "-qaLongestRoadPosition"
     /// Modifier for incoming offers: two affordable offers during a bot turn.
     case queuedBotOffers = "-qaQueuedBotOffers"
+    /// A conserved bot turn whose real next policy action proposes a trade.
+    /// Pair with the settings cover to configure pacing before revealing it.
+    case botTradeAfterPause = "-qaBotTradeAfterPause"
     /// Opens the build popup.
     case showBuildPopup = "-qaShowBuildPopup"
     /// Installs a main-turn position where every paid construction is legal.
@@ -126,6 +129,25 @@ enum QALaunchFlag: String, CaseIterable {
     /// render size. Whether that board is legible on a phone is the one
     /// question about the mode that simulation cannot answer.
     case vastMode = "-qaVastMode"
+    /// Voyage fixtures remain explicit baselines. Movement, purchase, harvest,
+    /// capture, recording and save writes still use the production paths.
+    case navalMode = "-qaNavalMode"
+    case navalVoyagePosition = "-qaNavalVoyagePosition"
+    /// Conserved screenshot hand for construction-shortage feedback.
+    case navalBuildScarcity = "-qaNavalBuildScarcity"
+    case navalAdjacentShipsPosition = "-qaNavalAdjacentShipsPosition"
+    case navalStackedShipsPosition = "-qaNavalStackedShipsPosition"
+    case navalMixedShipsPosition = "-qaNavalMixedShipsPosition"
+    case navalCapturePosition = "-qaNavalCapturePosition"
+    case navalResourcePosition = "-qaNavalResourcePosition"
+    case navalCityResourcePosition = "-qaNavalCityResourcePosition"
+    /// Real setup claims a home harbor; supplemental trade cards come from
+    /// the bank so port exchanges can be exercised without a long match.
+    case navalGenericPortPosition = "-qaNavalGenericPortPosition"
+    case navalResourcePortPosition = "-qaNavalResourcePortPosition"
+    case navalExpert = "-qaNavalExpert"
+    case navalNoFog = "-qaNavalNoFog"
+    case navalNoResourceChoice = "-qaNavalNoResourceChoice"
     /// **Modifier** for `-qaAutoStart`: starts the game under Conquest rules
     /// (combinable with `-qaVastMode`), so a real Conquest game - setup, the
     /// dealt army card, bot deploys - can be driven or played to the end.
@@ -178,6 +200,37 @@ enum QALaunchFlag: String, CaseIterable {
 /// same hard boundary: no QA argument can alter a player build.
 enum QALaunchOption {
     private static let devCardPurchasePrefix = "-qaDevCardPurchase="
+
+    static var navalSeed: UInt64? {
+        #if DEBUG
+        let prefix = "-qaNavalSeed="
+        guard let argument = ProcessInfo.processInfo.arguments.first(where: { $0.hasPrefix(prefix) }) else {
+            return nil
+        }
+        guard let seed = UInt64(argument.dropFirst(prefix.count)) else {
+            preconditionFailure("Invalid naval QA seed")
+        }
+        return seed
+        #else
+        return nil
+        #endif
+    }
+
+    static var navalMapFamily: NavalMapFamily? {
+        #if DEBUG
+        let prefix = "-qaNavalFamily="
+        guard let argument = ProcessInfo.processInfo.arguments.first(where: { $0.hasPrefix(prefix) }) else {
+            return nil
+        }
+        let rawValue = String(argument.dropFirst(prefix.count))
+        guard let family = NavalMapFamily(rawValue: rawValue) else {
+            preconditionFailure("Unknown naval map family: \(rawValue)")
+        }
+        return family
+        #else
+        return nil
+        #endif
+    }
 
     static var devCardPurchase: DevCardType? {
         #if DEBUG

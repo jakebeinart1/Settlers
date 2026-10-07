@@ -1,0 +1,11 @@
+{
+  "approximatelyFreedMiB": 289.7421875,
+  "cleanedAtUTC": "2026-10-06T01:31:30.040909+00:00",
+  "noSimulatorsCreatedOrOperated": true,
+  "removedOnlyTaskOwnedCompileCaches": [
+    "/tmp/empires-inland-fix20/ai-scratch",
+    "/tmp/empires-inland-fix20/naval-sim"
+  ],
+  "retainedBinarySHA256": "d0f51055d86854c6813b7bcae9106fa2a5922b8e3d9d48f034208cf2b6f7b554",
+  "retainedEvidenceDirectory": "/Users/alex/.codex/artifacts/naval-ai/voyages-build21"
+}

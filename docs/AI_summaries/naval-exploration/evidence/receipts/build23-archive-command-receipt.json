@@ -1,0 +1,17 @@
+{
+  "productionSourceSHA": "1dfae7cb8e46ca4b343c0415fef18e71cd3a6ed4",
+  "archiveHead": "1dfae7cb8e46ca4b343c0415fef18e71cd3a6ed4",
+  "version": "1.0",
+  "build": "23",
+  "archiveExitCode": 0,
+  "archiveStartedUTC": "2026-10-07T08:09:36.951329+00:00",
+  "archiveFinishedUTC": "2026-10-07T08:10:26.947680+00:00",
+  "signingTeam": "HXB9F28LHR",
+  "signingCertificateSHA1": "76465B06C2E157D857641F5B3D25CF5A3110C4A9",
+  "profileUUID": "86da5771-8640-4c53-8867-0b4fbd4f1035",
+  "archivePath": "/Users/alex/.codex/artifacts/naval-exploration/build23-sprites-build-trade-safety/Empires-23.xcarchive",
+  "all371TrackedProductionInputsMatchFrozenCommit": true,
+  "jakeCommittedSigningDefaultsUnchanged": true,
+  "exportExitCode": 0,
+  "exportFinishedUTC": "2026-10-07T08:11:22.017560+00:00"
+}

@@ -1,0 +1,42 @@
+[
+  {
+    "file": "build23-scarce-build-intermediate.png",
+    "sourceFile": "/Users/alex/.codex/artifacts/naval-exploration/build23-sprites-build-trade-safety/fourth-green-attachments/0560D54A-5D5C-4021-A30E-93292C06AEA1.png",
+    "sha256": "65c43b85bfef3e49fe39f188856ff45d674458b8f56414c516ec1e724397b7f1",
+    "nativeTestIdentifier": "BuildClarityFlowTests/testScarceHandNamesShortagesAndDisabledRowsCannotStartOrSpend()",
+    "configuration": "Debug",
+    "sourceBoundary": "Integrated root prototype before1df freeze/version23, not finalgate media",
+    "rootInspected": true,
+    "unmodified": true
+  },
+  {
+    "file": "build23-ready-build-intermediate.png",
+    "sourceFile": "/Users/alex/.codex/artifacts/naval-exploration/build23-sprites-build-trade-safety/fourth-green-attachments/9D13509C-1792-4199-ADF0-1FA5048D6A61.png",
+    "sha256": "890a8879e80e1445d8414a8e19f4351883ce09224141f95d7dc8b0346a3bb16a",
+    "nativeTestIdentifier": "BuildClarityFlowTests/testReadyShipRowPreviewsCancelsCommitsAndPersistsExactCost()",
+    "configuration": "Debug",
+    "sourceBoundary": "Integrated root prototype before1df freeze/version23, not finalgate media",
+    "rootInspected": true,
+    "unmodified": true
+  },
+  {
+    "file": "build23-visible-ship-nine-intermediate.png",
+    "sourceFile": "/Users/alex/.codex/artifacts/naval-exploration/build23-sprites-build-trade-safety/visible-maximum-attachments/C62B963A-F715-413C-AADB-B1DBE1427A0A.png",
+    "sha256": "4cab768b087bde652579eba224d5aad26fa16f105da7c7041eb674e6822eb988",
+    "nativeTestIdentifier": "NavalShipArtworkFlowTests/testPaintedVesselAtMaximumZoomKeepsItsCoastalHarborAndViewport()",
+    "configuration": "Debug",
+    "sourceBoundary": "Integrated root prototype before1df freeze/version23, not finalgate media",
+    "rootInspected": true,
+    "unmodified": true
+  },
+  {
+    "file": "build23-unanswered-offer-intermediate.png",
+    "sourceFile": "/Users/alex/.codex/artifacts/naval-exploration/build23-sprites-build-trade-safety/fourth-green-attachments/433ECE66-0159-45FB-8EE3-D885741FC769.png",
+    "sha256": "7ebb02adf56391e39f0fd08f92b2c19ff2323fad6e6507ae0f905c167dde5077",
+    "nativeTestIdentifier": "TradeTapSafetyFlowTests/testRepeatedSkipTouchesCannotAcceptARealNavalOffer()",
+    "configuration": "Debug",
+    "sourceBoundary": "Integrated root prototype before1df freeze/version23, not finalgate media",
+    "rootInspected": true,
+    "unmodified": true
+  }
+]

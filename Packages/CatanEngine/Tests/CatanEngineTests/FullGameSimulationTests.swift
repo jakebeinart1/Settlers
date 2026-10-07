@@ -34,57 +34,35 @@ import Testing
     }
 }
 
-/// Plays `state` to `.gameOver` by picking uniformly among legal moves.
-/// Lifted unchanged from `randomLegalPlayReachesGameOverWithoutErrors` so the
-/// classic and Expanded cases cannot drift apart. Returns the winner, or
-/// `nil` if `moveLimit` was reached first.
+/// Uniform random choices run through the production session: offers receive live
+/// replies and the bot action backstop prevents an unresolved negotiation from owning
+/// the whole simulation. Raw rule application is covered by the focused rule tests.
 private func playRandomlyToCompletion(
     _ state: inout GameState, rng: inout SeededGenerator, moveLimit: Int
 ) -> PlayerID? {
-    var iterations = 0
-    while true {
-        if case .gameOver(let winner) = state.phase { return winner }
-        iterations += 1
-        if iterations >= moveLimit { return nil }
-        let moves = RulesEngine.legalMoves(for: state)
-        #expect(!moves.isEmpty, "no legal moves in phase \(state.phase)")
-
-        // `.discarding` is the one phase where several players can act
-        // concurrently and `legalMoves` returns the union of every pending
-        // player's legal `.discard` combinations (see RulesEngine.swift). A
-        // `GameMove.discard` payload carries no player identity - by design,
-        // matching every other move type, where the actor is always supplied
-        // separately via `apply(_:by:)` - so a move picked at random from
-        // that merged list isn't necessarily legal for an arbitrarily-picked
-        // pending player. Pick the acting player first, then restrict the
-        // random choice to moves that are actually legal for them.
-        let player: PlayerID
-        let candidateMoves: [GameMove]
-        if case .discarding(let pending) = state.phase {
-            player = pending.sorted().randomElement(using: &rng)!
-            let hand = state.players[player.index].resources
-            let count = Robber.discardCount(for: state.players[player.index])
-            candidateMoves = moves.filter { move in
-                guard case .discard(let discarded) = move else { return false }
-                guard discarded.values.reduce(0, +) == count else { return false }
-                return discarded.allSatisfy { resource, amount in (hand[resource] ?? 0) >= amount }
+    let policies = Dictionary(uniqueKeysWithValues: state.players.map { ($0.id, UniformSimulationPolicy() as any Policy) })
+    var session = GameSession(state: state, policies: policies, policySeed: rng.next())
+    defer { state = session.state }
+    for _ in 0..<moveLimit {
+        if case .gameOver(let winner) = session.nextActor() { return winner }
+        do {
+            guard try session.step() != nil else {
+                Issue.record("a fully automated table stopped in \(session.state.phase)")
+                return nil
             }
-        } else {
-            player = activePlayer(state.phase)
-            candidateMoves = moves
+        } catch {
+            Issue.record("a legal simulation move failed: \(error)")
+            return nil
         }
-        #expect(!candidateMoves.isEmpty, "no legal moves for acting player in phase \(state.phase)")
-        guard let move = candidateMoves.randomElement(using: &rng) else { return nil }
-        try! RulesEngine.apply(move, by: player, to: &state)
     }
+    return nil
 }
 
-private func activePlayer(_ phase: GamePhase) -> PlayerID {
-    switch phase {
-    case .setupForward(let i), .setupBackward(let i), .rollDice(let i), .mainTurn(let i), .movingRobber(let i):
-        return PlayerID(index: i)
-    case .discarding(let pending): return pending.first!
-    case .gameOver: fatalError("game over")
+private struct UniformSimulationPolicy: Policy {
+    let id = "uniform-engine-simulation"
+    func decide(_ observation: GameObservation, rng: inout RandomSource) -> GameMove {
+        precondition(!observation.legalMoves.isEmpty, "no legal move for simulation seat \(observation.seat)")
+        return observation.legalMoves.randomElement(using: &rng)!
     }
 }
 

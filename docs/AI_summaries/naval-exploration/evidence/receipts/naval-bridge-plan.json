@@ -1,0 +1,20 @@
+{
+  "stage": "matrix",
+  "games": 48,
+  "cellCount": 12,
+  "tables": [
+    3,
+    4
+  ],
+  "tiers": [
+    "traditional",
+    "expert"
+  ],
+  "seeds": "700000 + 100*cell, cell 0..<12",
+  "criterion": "Every result field including ordered move fingerprint must match frozen d863991 matrix after excluding only buildID. Timings are not performance evidence.",
+  "newSource": "3950bfdd1b409a4cb49fa7d5f5bccb34d90f0869",
+  "newSHA256": "a6a88117a12c8598728977854521efdf6270d0e9ae59e7ba4f448fa2335c36a1",
+  "historicalSource": "d8639917f68563b6fd2ca0d38c5fc28d3fc80a18",
+  "workers": 2,
+  "declaredUTC": "2026-10-05T16:01:07.876809+00:00"
+}

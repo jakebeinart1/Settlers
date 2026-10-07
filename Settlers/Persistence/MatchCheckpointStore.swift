@@ -22,36 +22,20 @@ import CatanEngine
 ///
 /// The fix is not to loosen `GameState.Equatable` itself - other code
 /// (determinism tests among them) may depend on its current strictness, and
-/// this is the only call site with a reason to differ. Every field `==`
-/// checks is checked here too, in the same list order as the struct
-/// declaration, EXCEPT `declinedTradeOffersThisTurn`: turn-scoped AI
+/// this is the only call site with a reason to differ. Normalize only
+/// `declinedTradeOffersThisTurn` before strict equality: turn-scoped AI
 /// bookkeeping with no bearing on move legality, win conditions, or the RNG
 /// position - unlike, say, `rng` or `board`, which `validateHistory`'s own
 /// doc comment calls out by name as exactly what exact equality here needs to
-/// keep certifying. Add a case here, not to `GameState.==`, for the next
-/// field that turns out to have the same shape (turn-scoped, save-invisible
-/// bookkeeping recorded only from the moment a feature shipped).
+/// keep certifying. Strict equality includes new rule fields automatically;
+/// a handwritten list silently omitted naval control, movement and discovery.
 extension GameState {
     func matchesForReplayValidationExcludingDeclinedTradeHistory(_ other: GameState) -> Bool {
-        schemaVersion == other.schemaVersion
-            && mode == other.mode
-            && victoryPointTarget == other.victoryPointTarget
-            && rng == other.rng
-            && board == other.board
-            && players == other.players
-            && phase == other.phase
-            && bank == other.bank
-            && devCardDeck == other.devCardDeck
-            && lastDiceRoll == other.lastDiceRoll
-            && longestRoadPlayer == other.longestRoadPlayer
-            && largestArmyPlayer == other.largestArmyPlayer
-            && pendingTradeOffers == other.pendingTradeOffers
-            && robberMoverIndex == other.robberMoverIndex
-            && devCardsBoughtThisTurn == other.devCardsBoughtThisTurn
-            && devCardPlayedThisTurn == other.devCardPlayedThisTurn
-            && tradesAcceptedThisTurn == other.tradesAcceptedThisTurn
-        // declinedTradeOffersThisTurn deliberately excluded - see the doc
-        // comment above.
+        var replay = self
+        var persisted = other
+        replay.declinedTradeOffersThisTurn = [:]
+        persisted.declinedTradeOffersThisTurn = [:]
+        return replay == persisted
     }
 }
 
@@ -294,6 +278,12 @@ struct MatchCheckpoint: Codable, Equatable, Sendable {
               state.players.map(\.id.index).elementsEqual(setup.seats.indices),
               initialState.players.map(\.id.index).elementsEqual(setup.seats.indices) else {
             throw MatchCheckpointStore.StoreError.invalidSetup
+        }
+        if state.mode == .naval {
+            guard state.naval?.options == setup.navalOptions,
+                  initialState.naval?.options == setup.navalOptions else {
+                throw MatchCheckpointStore.StoreError.invalidSetup
+            }
         }
     }
 }

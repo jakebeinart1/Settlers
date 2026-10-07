@@ -185,7 +185,7 @@ gate_secrets() {
 #   2 workers            731s   pass
 #   3 workers            681s   TWO FAILURES
 #
-# Three buys 7% and costs correctness, so the default is two. The two failures
+# Three buys 7% and costs correctness. The two failures
 # are worth naming, because both look like bugs and neither is:
 #
 #   * testRealAutomatedMatchReachesGameOverAndClearsItsSave -
@@ -202,9 +202,10 @@ gate_secrets() {
 #
 #   GATE_TEST_WORKERS=6 scripts/gate.sh
 #
-# One worker uses the dedicated QA device directly, without a redundant clone.
+# The default is now one worker on the existing dedicated QA device, without a redundant clone.
 # This preserves every test while reducing simulator disk/memory pressure; a
 # disk-full checkpoint write crashed the October 5 two-worker test host.
+# More workers are an explicit resource-budget decision, never automatic fan-out.
 #
 # Clones are created and reused by CoreSimulator under the names
 # "Clone N of Empires QA". They are separate devices from the `Empires QA`
@@ -222,7 +223,7 @@ gate_secrets() {
 gate_app_tests() {
   local sim; sim="$(qa_iphone_simulator)"
   if [[ -z "$sim" ]]; then return 200; fi
-  local workers="${GATE_TEST_WORKERS:-2}"
+  local workers="${GATE_TEST_WORKERS:-1}"
   local parallel=YES
   if [[ "$workers" == 1 ]]; then parallel=NO; fi
   echo "  QA simulator: $sim ($workers parallel workers)"

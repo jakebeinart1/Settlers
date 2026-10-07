@@ -10,32 +10,39 @@ import Testing
 @Suite(.serialized) struct GameOverActionsTests {
 
     @MainActor
-    private func finishedGame(in root: URL, defaults: UserDefaults) throws -> GameViewModel {
+    private func finishedGame(in root: URL, defaults: UserDefaults) async throws -> GameViewModel {
         let setupStore = MatchSetupStore()
         setupStore.defaults = defaults
         let model = GameViewModel(
+            checkpointStore: MatchCheckpointStore(fileURL: root.appendingPathComponent("match_checkpoint.json")),
             gameStore: GameStore(fileURL: root.appendingPathComponent("save.json")),
             civilizationStore: CivilizationAssignmentStore(fileURL: root.appendingPathComponent("civs.json")),
             matchSetupStore: setupStore,
             gameLogStore: GameLogStore(directoryURL: root.appendingPathComponent("logs"), maxKeptLogs: 10),
-            gameStatsStore: GameStatsStore(fileURL: root.appendingPathComponent("stats.json"))
+            gameStatsStore: GameStatsStore(fileURL: root.appendingPathComponent("stats.json")),
+            ghostStore: GhostStore(localDirectory: root.appendingPathComponent("ghosts"), bundledGhosts: []),
+            ratingStore: RatingStore(directory: root.appendingPathComponent("ratings")),
+            seatStatsStore: SeatStatsStore(directory: root.appendingPathComponent("seat-stats")),
+            playerDirectory: PlayerDirectory(directory: root.appendingPathComponent("players")),
+            makeGhostTrainer: completionBookkeepingTrainer
         )
         var setup = MatchSetup.default(preferredName: "Jake", preferredCivilization: .greece)
         setup.randomizeSeatOrder = false
         model.startNewGame(setup: setup)
         try model.qaPlayToEnd()
+        await model.lastFinishedMatchWork?.value
         return model
     }
 
     @MainActor
-    @Test func newGameRestartsTheFinishedTable() throws {
+    @Test func newGameRestartsTheFinishedTable() async throws {
         let root = FileManager.default.temporaryDirectory.appendingPathComponent("GameOverActions.\(UUID().uuidString)")
         defer { try? FileManager.default.removeItem(at: root) }
         let suite = "GameOverActions.\(UUID().uuidString)"
         let defaults = try #require(UserDefaults(suiteName: suite))
         defer { defaults.removePersistentDomain(forName: suite) }
 
-        let model = try finishedGame(in: root, defaults: defaults)
+        let model = try await finishedGame(in: root, defaults: defaults)
         guard case .gameOver = model.state.phase else {
             Issue.record("fixture did not reach game over")
             return

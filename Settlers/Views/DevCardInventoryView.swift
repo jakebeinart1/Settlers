@@ -1,37 +1,30 @@
 import SwiftUI
 import CatanEngine
 
-/// A readable private-hand charter. Blocked cards keep full contrast and a
-/// working inspection action; play permission belongs to the detail surface.
+/// A compact selector: the selected detail owns effect and timing copy.
+/// Repeating full faces consumed the space needed for resource choices.
 struct DevCardInventoryTile: View {
     let item: DevCardInventoryItem
     let isSelected: Bool
+    var maximumWidth: CGFloat = .infinity
     let action: () -> Void
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     var body: some View {
         Button(action: action) {
-            VStack(alignment: .leading, spacing: 6) {
-                HStack {
-                    DevCardEmblem(type: item.type).frame(width: 48, height: 48)
-                    Spacer(minLength: 0)
-                    Text("×\(item.held)").font(.headline)
-                }
+            HStack(spacing: 8) {
+                DevCardEmblem(type: item.type).frame(width: 28, height: 28)
                 Text(DevCardStyle.fullName(for: item.type))
-                    .font(.subheadline.bold())
-                    .frame(minHeight: 38, alignment: .topLeading)
-                Text(DevCardDisplay.summary(item.type)).font(.caption)
-                Divider().overlay(DevCardChrome.gold.opacity(0.6))
-                Text(DevCardDisplay.inventoryBadge(item))
-                    .font(.caption.bold())
-                if !item.status.isPlayable && item.status != .passiveVictoryPoint && item.status != .boughtThisTurn {
-                    Text(DevCardStyle.statusTitle(for: item.status)).font(.caption)
-                }
+                    .font(.subheadline.weight(.semibold)).fixedSize(horizontal: false, vertical: true)
+                Text("×\(item.held)").font(.subheadline.bold()).monospacedDigit().fixedSize()
             }
+            .frame(width: dynamicTypeSize.isAccessibilitySize ? maximumWidth - 24 : nil)
             .fontDesign(.serif)
             .foregroundStyle(DevCardChrome.ivory)
             .fixedSize(horizontal: false, vertical: true)
-            .padding(12)
-            .frame(width: 150, alignment: .topLeading)
+            .padding(.horizontal, 12)
+            .padding(.vertical, 9)
+            .frame(minHeight: 44)
             .background(DevCardChrome.background(item.type))
             .overlay {
                 if isSelected {
@@ -48,45 +41,75 @@ struct DevCardInventoryTile: View {
     }
 }
 
-/// Additive replacement for PlayerHUDView's private DevCardHUDTile. The exact
-/// 54×44 footprint preserves the hand shelf and board viewport. Full names,
-/// mixed counts and disabled reasons remain available through accessibility
-/// and the scalable inventory opened by the existing action.
+/// The existing 54×44 footprint keeps the board viewport stable. Availability
+/// stays in spoken status and full details, rather than a third tiny title.
 struct DevCardHandBadge: View {
     let item: DevCardInventoryItem
     let action: () -> Void
 
-    private enum Metrics {
-        static let width: CGFloat = 54
-        static let height: CGFloat = 44
-        static let emblem: CGFloat = 18
-        static let label: CGFloat = 8
+    var body: some View {
+        ZStack(alignment: .bottom) {
+            Button(action: action) {
+                HUDCardLabel(title: DevCardStyle.shortName(for: item.type), count: item.held) {
+                    DevCardEmblem(type: item.type)
+                }
+                .foregroundStyle(DevCardChrome.ivory)
+                .frame(width: 54, height: HUDCardMetrics.height)
+                .background(DevCardChrome.background(item.type))
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel("\(DevCardStyle.fullName(for: item.type)), \(item.held) owned")
+            .accessibilityValue(DevCardDisplay.accessibilityValue(item))
+            .accessibilityIdentifier(AccessibilityID.DevCards.tile(item.type))
+            HUDCardCountFrame(identifier: "dev-cards.hud-count.\(item.type.rawValue)")
+        }
     }
+}
+
+/// Fixed slots put all private-hand counts on one baseline. Compact shortcuts
+/// remain fixed at accessibility sizes; the opened inspection surface scales.
+enum HUDCardMetrics {
+    static let height: CGFloat = 44
+    static let iconHeight: CGFloat = 16
+    static let titleHeight: CGFloat = 11
+    static let countHeight: CGFloat = 17
+}
+
+struct HUDCardLabel<Icon: View>: View {
+    let title: String
+    let count: Int
+    @ViewBuilder let icon: Icon
 
     var body: some View {
-        Button(action: action) {
-            // Three lines in 44pt only fit when each is held to one line and
-            // allowed to shrink; unbounded, the status row was cut in half.
-            VStack(spacing: 0) {
-                HStack(spacing: 3) {
-                    DevCardEmblem(type: item.type).frame(width: Metrics.emblem, height: Metrics.emblem)
-                    Text("\(item.held)").font(.system(size: 12, weight: .bold, design: .serif))
-                }
-                Text(DevCardStyle.shortName(for: item.type))
-                    .font(.system(size: Metrics.label, weight: .bold, design: .serif))
-                Text(DevCardDisplay.handBadgeStatus(item))
-                    .font(.system(size: Metrics.label, weight: .bold, design: .serif))
-            }
-            .lineLimit(1)
-            .minimumScaleFactor(0.7)
-            .padding(.horizontal, 3)
-            .foregroundStyle(DevCardChrome.ivory)
-            .frame(width: Metrics.width, height: Metrics.height)
-            .background(DevCardChrome.background(item.type))
+        VStack(spacing: 0) {
+            icon.frame(width: 18, height: HUDCardMetrics.iconHeight)
+            Text(title)
+                .font(.system(size: 9, weight: .bold, design: .serif))
+                .frame(height: HUDCardMetrics.titleHeight)
+            Text("\(count)")
+                .font(.system(size: 14, weight: .bold, design: .serif))
+                .monospacedDigit()
+                .frame(height: HUDCardMetrics.countHeight)
         }
-        .buttonStyle(.plain)
-        .accessibilityLabel("\(DevCardStyle.fullName(for: item.type)), \(item.held) owned")
-        .accessibilityValue(DevCardDisplay.accessibilityValue(item))
-        .accessibilityIdentifier(AccessibilityID.DevCards.tile(item.type))
+        .lineLimit(1)
+        .minimumScaleFactor(0.8)
+        .padding(.horizontal, 3)
+    }
+}
+
+/// A Debug sibling leaf measures layout without becoming an accessibility
+/// ancestor of the real button or changing the button's spoken content.
+struct HUDCardCountFrame: View {
+    let identifier: String
+
+    var body: some View {
+#if DEBUG
+        Color.clear.frame(height: HUDCardMetrics.countHeight)
+            .accessibilityElement(children: .ignore)
+            .accessibilityLabel("Hand count frame")
+            .accessibilityIdentifier(identifier)
+            .accessibilityRespondsToUserInteraction(false)
+            .allowsHitTesting(false)
+#endif
     }
 }

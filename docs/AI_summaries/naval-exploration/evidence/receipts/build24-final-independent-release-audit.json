@@ -1,0 +1,174 @@
+{
+  "verifiedAtUTC": "2026-10-07T13:06:41.579Z",
+  "auditor": "naval24_final_audit",
+  "verdict": "PASS; merge still requires PR approval",
+  "workspace": "/Users/alex/.codex/worktrees/naval24-main-integration/Settlers",
+  "productionSourceSHA": "9bce5f77a38684bd6e011fac8838c74b38440798",
+  "testedHead": "67efbadbdb061d9ded77628cf892c72d54e17fb4",
+  "version": "1.0",
+  "build": "24",
+  "production": {
+    "inputCount": 376,
+    "allCurrentInputsMatchFrozenReceipt": true,
+    "sourceReceiptSHA256": "4ddce068c9316807858ec744cc5ff14d8a3c667f8b119c99a602506f5afab065",
+    "mismatches": []
+  },
+  "gate": {
+    "commandExitCode": 0,
+    "allTenMandatoryStagesPassed": true,
+    "nativeResult": "Passed",
+    "functions": {
+      "total": 754,
+      "passed": 753,
+      "failed": 0,
+      "skipped": 1
+    },
+    "passingRuns": 1512,
+    "soleSkip": "TradeRedesignFlowTests/testConfirmationFooterAndNewOfferRemainReachableAt375By667 requires375x667; actual402x874",
+    "optionalDebugAppBuild": "SKIP; not requested. Debug native app/UI action ran.",
+    "remoteBranchPublished": true
+  },
+  "matrix": {
+    "artifactsVerified": 303,
+    "allRecordedArtifactHashesMatch": true,
+    "functionalCases": 48,
+    "completedWinners": 48,
+    "fullResultAndTraceByteIdenticalFreshProcessRepeats": 6,
+    "noStrengthClaim": true,
+    "revealReconstructionScope": "Two retained fog-off checkpoints; source and engine fog tests separately cover reveal behavior"
+  },
+  "gallery": {
+    "originalCaptureHashesVerified": 23,
+    "allHashesMatch": true,
+    "rootInspectedOriginals": 23,
+    "independentlyInspected": [
+      "Complete two-hex sailing range",
+      "One destination stages the complete route",
+      "City harvest 1 of 2 after cold resume",
+      "Actual Expert rival notice and unchanged Grain",
+      "Maximum zoom painted harvest field",
+      "Ordinary Release menu"
+    ],
+    "blockingVisualDefectsFound": 0,
+    "configuration": "22 Debug native original attachments plus separately attributed ordinaryRelease menu",
+    "imageEdits": "none"
+  },
+  "ordinaryReleaseRuntime": {
+    "receipt": "release-runtime.json",
+    "actualBundleInfoAndExecutableHashRechecked": true,
+    "recordedFreshInstall": true,
+    "recordedLaunchArguments": [],
+    "recordedPid": 93934,
+    "recordedSurvivalSeconds": 6,
+    "recordedNewOwnCrashReports": [],
+    "physicalPhoneInstallationObserved": false
+  },
+  "reviewedIPA": {
+    "sha256": "f899e4d02bc252a70eb6d675ba51741328c0d2fdf501786958769abdaef06770",
+    "md5": "c9efb1fda393bf16ecb09ef77d70095d",
+    "bytes": 36268871,
+    "all14ZIPEntriesMatchInspectionDirectory": true,
+    "strictDeepSignatureIndependentlyVerifiedExitCode": 0
+  },
+  "uploadedIPA": {
+    "sha256": "0ef24d00609c2f2830448ddcdf817d167a0673d060442631c31d1e4e3f87becc",
+    "md5": "dfcd6ece91320bbe705a2ce46c26bd0a",
+    "bytes": 36268869,
+    "completeZIPCRCIndependentlyChecked": true,
+    "all14ZIPNamesMatchReview": true,
+    "onlyChangedZIPMember": "Payload/Settlers.app/Settlers",
+    "machoSignatureOffset": 5855808,
+    "machoSignatureBytes": 31200,
+    "executablePrefixBeforeSignatureExactlyEqual": true,
+    "onlyDesignatedCodeSignatureBytesMayDiffer": true,
+    "strictDeepSignatureIndependentlyVerifiedExitCode": 0,
+    "betaReportsActive": true,
+    "getTaskAllow": false,
+    "provisionedDevicesAbsent": true,
+    "actualProfileUUID": "86da5771-8640-4c53-8867-0b4fbd4f1035",
+    "actualCertificateSHA1": "76465B06C2E157D857641F5B3D25CF5A3110C4A9",
+    "actualSignedCloudKitEnvironment": "Production",
+    "actualSignedCloudKitContainer": "iCloud.com.alexchandler.empires",
+    "all14ZIPEntriesMatchInspectionDirectory": true
+  },
+  "contentDelivery": {
+    "deliveryUUID": "9b3882ef-a85c-46c2-8d1a-2d83f5483aef",
+    "fileMD5MatchesPreservedUploadedIPA": true,
+    "fileBytes": 36268869,
+    "checksumMatchMessagesObserved": true,
+    "uploadCommandExitCode": 0
+  },
+  "appleReadback": {
+    "verifiedAtUTC": "2026-10-07T13:06:40.044Z",
+    "appID": "6808461623",
+    "builds": [
+      {
+        "id": "9b3882ef-a85c-46c2-8d1a-2d83f5483aef",
+        "version": "24",
+        "uploadedDate": "2026-10-07T06:03:20-07:00",
+        "expirationDate": "2027-01-05T05:03:20-08:00",
+        "expired": false,
+        "minOsVersion": "17.0",
+        "lsMinimumSystemVersion": null,
+        "computedMinMacOsVersion": "14.0",
+        "computedMinVisionOsVersion": "1.0",
+        "iconAssetToken": {
+          "templateUrl": "https://is1-ssl.mzstatic.com/image/thumb/Purple211/v4/8c/9b/7d/8c9b7da4-9853-1378-1a68-9d5c5a81e9c5/AppIcon60x60@2x.png/{w}x{h}bb.{f}",
+          "width": 120,
+          "height": 120
+        },
+        "processingState": "VALID",
+        "buildAudienceType": "APP_STORE_ELIGIBLE",
+        "usesNonExemptEncryption": false,
+        "marketingVersion": "1.0",
+        "betaDetail": {
+          "autoNotifyEnabled": true,
+          "internalBuildState": "IN_BETA_TESTING",
+          "externalBuildState": "READY_FOR_BETA_SUBMISSION"
+        }
+      }
+    ],
+    "internalGroups": [
+      {
+        "id": "bf165450-034a-437d-b7f7-028bf3d57a5b",
+        "publicLinkLimit": null,
+        "iosBuildsAvailableForAppleSiliconMac": true,
+        "createdDate": "2026-09-04T02:55:32.94Z",
+        "publicLinkEnabled": null,
+        "publicLink": null,
+        "hasAccessToAllBuilds": true,
+        "publicLinkId": null,
+        "isInternalGroup": true,
+        "name": "Internal",
+        "feedbackEnabled": true,
+        "publicLinkLimitEnabled": null,
+        "iosBuildsAvailableForAppleVision": true,
+        "testers": [
+          {
+            "id": "a8ee9090-8182-4804-b5f9-eead9c032495",
+            "firstName": "Alex",
+            "lastName": "Chandler"
+          }
+        ]
+      }
+    ]
+  },
+  "qualifications": [
+    "No physical iPhone installation or play observed.",
+    "No external TestFlight availability; external state READY_FOR_BETA_SUBMISSION.",
+    "No AI strength claim; functional and deterministic behavior only.",
+    "Raw iOS26.5 native contrast flags remain for three exact informational captions; exceptions require actual live screenshot contrast >= 7:1 and all other issues remain failures.",
+    "Final regression run skipped only the 375 x 667 device-specific flow; no claim that this run executed compact-device coverage.",
+    "Creating and attaching the PR is authorized; canonical minimum one actual approval still required before merge."
+  ],
+  "checksums": {
+    "gateReceipt": "c62ca8e968e3054122da7cf689960a652ad398854c2ae26d8f6e9bb2b17ec910",
+    "nativeSummary": "323f0e53b827b214143333b8f4f805a16127dbc26adb2eb27fc45e4a1237eef8",
+    "rootGalleryReview": "bcc7822cb21ebc7be20d10e1b1746bb733aeb5b4bf49f7ffe10663526a7bec6b",
+    "runtime": "a3f05c0ca8dcade8fac5db9e3a6d7b2188c12ea78690b3661e76b94b83ef826e",
+    "archiveReceipt": "7fbc53672178074d715de9a282166667971b1e62e0c971027368e5e40d8abaed",
+    "reviewedIPAReceipt": "ef4451b2b5a6df19d72e9b57555ba5583258eb131028252980a2fde8a7627cdf",
+    "uploadedIPAReceipt": "2b812a92989f3857b713cbbe6effddc6d67b86fdf268456a359f3057b6d6d793",
+    "uploadCommandReceipt": "628a244f8452695fdaea02396f636afdbb2e1df69ba53dce1c8197dc145fb90e"
+  }
+}

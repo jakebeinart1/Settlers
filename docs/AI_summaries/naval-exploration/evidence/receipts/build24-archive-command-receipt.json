@@ -1,0 +1,22 @@
+{
+  "productionSourceSHA": "9bce5f77a38684bd6e011fac8838c74b38440798",
+  "archiveHead": "67efbadbdb061d9ded77628cf892c72d54e17fb4",
+  "version": "1.0",
+  "build": "24",
+  "archiveExitCode": 0,
+  "archiveStartedUTC": "2026-10-07T12:57:06.667265+00:00",
+  "archiveFinishedUTC": "2026-10-07T12:58:06.317799+00:00",
+  "signingTeam": "HXB9F28LHR",
+  "signingCertificateSHA1": "76465B06C2E157D857641F5B3D25CF5A3110C4A9",
+  "profileUUID": "86da5771-8640-4c53-8867-0b4fbd4f1035",
+  "archivePath": "/Users/alex/.codex/artifacts/naval-exploration/build24-travel-harvest-trade/Empires-24.xcarchive",
+  "all376TrackedProductionInputsMatchFrozenCommit": true,
+  "headDiffersFromProductionFreezeOnlyInTestsOrDocumentation": true,
+  "headDifferenceFiles": [
+    "SettlersTests/NavalHistoryIntegrityTests.swift",
+    "SettlersUITests/HowToPlayFlowTests.swift"
+  ],
+  "jakeCommittedSigningDefaultsUnchanged": true,
+  "exportExitCode": 0,
+  "exportFinishedUTC": "2026-10-07T12:58:53.081401+00:00"
+}

@@ -20,6 +20,9 @@ let package = Package(
         // executable product for an `.executableTarget`, which is all
         // `swift run --package-path Packages/CatanAI sim` needs.
         .executableTarget(name: "sim", dependencies: ["CatanAI", "CatanEngine"]),
+        // Separate naval provenance/diagnostics keep the historical schema-5
+        // sim output and its independent fingerprint guards unchanged.
+        .executableTarget(name: "naval-sim", dependencies: ["CatanAI", "CatanEngine"]),
         // Trade behaviour on sampled positions, without playing games out.
         .executableTarget(name: "trade-bench", dependencies: ["CatanAI", "CatanEngine"]),
         // A person model from recorded games, and its ghost. Not a product, for

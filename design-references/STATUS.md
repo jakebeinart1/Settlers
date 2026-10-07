@@ -6,6 +6,93 @@
 
 # Empires visual redesign — status
 
+## October 7 — Monopoly public counts: delivered
+
+The existing painted resource controls add “to collect” and selected-gain previews;
+Plenty quantities explicitly say “in bank”. Native art and the current frame remain.
+[E31](../docs/AI_summaries/naval-exploration/acceptance.md#build-26-follow-up-e31-delivered)
+records eleven unchanged original reviews, full gate, strict signed Apple26
+delivery and owned-QA cleanup, with agent-authorized PR resolution.
+Earlier approval-pending records below are historical snapshots.
+
+
+## October 7 — Development-card native art: final rendering verified
+
+All five cards have engraved native emblems: Knight shield, Road Building route,
+Plenty paired cards, Monopoly coffer and Victory Point star/laurels. Ivory/gold/
+navy matches painted chrome. Shared 44-point HUD slots align resource/card counts;
+compact selectors and one selected detail avoid repeated large art. Purchase
+and existing result receipts keep their larger illustration.
+
+These are native paths/SF Symbols, not new generated PNGs. Explicit continuations
+fix the `addLines` restart after a prior move. Original generated art, prompt/
+manifests and historical status definitions below remain unchanged. Prototype
+`1908cd0` passes 24 focused cases but leaves the selected Grain highlight bright
+after two Plenty picks. Final production `a9e0e88`, 1.0/build 25, fixes the
+disabled style and passes three availability cases; root/independent original
+`AA7` review confirms all five bank choices dim while removable picks stay bright.
+Replacement full gate passes all ten mandatory stages, preserving 376 production
+and 112 build24-equivalent package inputs.
+[E30](../docs/AI_summaries/naval-exploration/acceptance.md#build-25-follow-up-e30-delivered)
+retains failed commands/first gate and the test-only correction. Root approves
+all 27 unchanged final originals (26 Debug plus one ordinary Release); fresh
+ordinary Release runtime passes. Signed upload/checksum comparison and tested-head
+CI pass. Apple confirms VALID/unexpired internal IN_BETA_TESTING with Alex's
+access; owned QA cleanup passes. E30 is delivered. PR approval is outstanding. The
+[portable gallery](../docs/AI_summaries/naval-exploration/evidence/screenshots/build25-final-manifest.json)
+retains source/test/time/configuration and original hashes.
+
+## October 7 — Painted any-resource harvest: final rendering verified
+
+The Naval resource-choice hex now has an original opaque sibling terrain texture:
+muted light lavender/blue-gray ground, fine painted linen grain and restrained
+antique-gold botanical strokes. Its quiet center leaves room for the ordinary
+cream production token; native hex outline and grout remain shared with the
+other resource tiles. This replaces the schematic any-resource decoration.
+
+The built-in imagegen tool edited the existing pasture texture using the
+approved full-screen reference for palette/material context. The actual
+[generation manifest](approved/tiles/harvest-generation-manifest.json) retains
+the exact prompt, source path and SHA256
+`db33ef16bf28e325c4cffa2d4639f946aa78dec85c8d30ef499a695041e9aef3`.
+The unmodified PNG is retained at `approved/tiles/tile-harvest.png` and
+`Settlers/Assets.xcassets/tile-harvest.imageset/tile-harvest.png`; source,
+approved and runtime bytes are bound by that manifest. The generated PNG was
+never edited. Build 24 current-main production is frozen at `9bce5f7`, 1.0/24.
+Root inspected actual local, World, zoom-nine/token and maximum-text harvest
+originals from the integrated/refined native runs. Those development checks pass
+travel/artwork; the final three-case harvest audit pass retains three exact-ID
+native Contrast flags with live sRGB screenshot ≥7:1 guards. All other issues
+fail. The final pre-push gate passes all ten mandatory stages and publishes the
+branch at test-only `67efbad`, preserving production `9bce5f7` and all frozen
+asset bytes. Root then directly approves all 23 unmodified final originals,
+including local/World/zoom-nine harvest, maximum text and the ordinary Release
+menu; no blocking visual defect is recorded. The portable gallery retains exact
+source/test/time/configuration and the three-ID contrast qualification.
+Archive/export/upload/signatures and independent Apple/access audit pass;
+Empires 1.0/build 24 is internally available to Alex. E29 is delivered in
+[E29](../docs/AI_summaries/naval-exploration/acceptance.md#build-24-follow-up-e29-delivered)
+and the [visual record](../docs/AI_summaries/naval-exploration/evidence/visual-review.md#build-24-final-source-gallery-local-review-verified).
+
+## October 7 — Painted Naval fleet
+
+Eight transparent, painted vessels now replace the primitive sailboat and
+building-crest overlay. Each current controller has a distinct hull silhouette
+and broad civilization-colored sail. Britannia uses a purple cog; Greece a tan
+hooked galley; Egypt a gold crescent hull; Aztec a blue canoe; Columbia a white
+cutter; Rome a coral rammed galley; Japan a jade junk; Norse a steel longship.
+These are fantasy Empires designs, not historical reconstructions.
+
+The built-in imagegen tool produced the original alpha assets. The
+[generation manifest](approved/ships/generation-manifest.json) retains every
+prompt, source path and SHA256. Approved `ships/civ-*-ship.png` and the matching
+runtime `civ-*-ship.imageset` PNGs are identical bytes. One shared
+`NavalShipBadge` supplies map, Fleet, build, capture and proposal artwork. A thin
+bounded selection outline replaces the large dashed seal; committed and staged
+images share their sizing. Capture preview suppresses the original selected
+sprite while its owner/identity remain unchanged until confirmation.
+
+
 Direction: Avatar: The Last Airbender-style (`approved/master-reference-full-screen.png`, the original
 approved "v4" generation). Warm, legible, bird's-eye board, one dominant color per resource tile, painted
 landmark pieces with a soft textured single-color look, gold-trimmed UI chrome.

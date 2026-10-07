@@ -1,0 +1,7 @@
+naval-sim seed=809000 decisions=684 p95=12.694ms p99=33.948ms over50=1 over150=0
+naval-sim seed=809001 decisions=865 p95=9.762ms p99=20.378ms over50=0 over150=0
+naval-sim seed=809002 decisions=674 p95=12.043ms p99=31.990ms over50=0 over150=0
+naval-sim seed=809003 decisions=649 p95=7.982ms p99=20.235ms over50=0 over150=0
+naval-sim seed=809004 decisions=867 p95=5.820ms p99=20.471ms over50=0 over150=0
+naval-sim seed=809005 decisions=791 p95=22.474ms p99=33.031ms over50=2 over150=0
+naval-sim seed=809006 decisions=581 p95=12.306ms p99=23.374ms over50=0 over150=0

@@ -1,0 +1,11 @@
+{
+  "managedHelperWorktreesArchivedRecoverably": [
+    "/Users/alex/.codex/worktrees/naval-navigation-regressions/Settlers",
+    "/Users/alex/.codex/worktrees/naval-harbor-visibility/Settlers"
+  ],
+  "attachmentReadbackConfirmed": true,
+  "durableEvidenceRetainedOutsideWorktrees": true,
+  "rootNavalWorktreeRetained": "/Users/alex/.codex/worktrees/naval-exploration/Settlers",
+  "ignoredFilesRequiredForRecovery": [],
+  "ignoredEngineBuildCacheWasDisposable": true
+}

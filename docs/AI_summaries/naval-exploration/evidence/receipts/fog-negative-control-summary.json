@@ -1,0 +1,49 @@
+{
+  "devicesAndConfigurations" : [
+    {
+      "device" : {
+        "architecture" : "arm64",
+        "deviceId" : "937692FF-BFBF-4683-80E5-2590F5288D56",
+        "deviceName" : "Empires QA",
+        "modelName" : "iPhone 17 Pro",
+        "osBuildNumber" : "23F77",
+        "osVersion" : "26.5",
+        "platform" : "iOS Simulator"
+      },
+      "expectedFailures" : 0,
+      "failedTests" : 1,
+      "passedTests" : 1,
+      "skippedTests" : 0,
+      "testPlanConfiguration" : {
+        "configurationId" : "1",
+        "configurationName" : "Test Scheme Action"
+      }
+    }
+  ],
+  "environmentDescription" : "Settlers · Built with macOS 26.5.1",
+  "expectedFailures" : 0,
+  "failedTests" : 1,
+  "finishTime" : 1791180451.972,
+  "passedTests" : 1,
+  "result" : "Failed",
+  "skippedTests" : 0,
+  "startTime" : 1791180414.997,
+  "statistics" : [
+
+  ],
+  "testFailures" : [
+    {
+      "failureText" : "XCTAssertLessThan failed: (\"0.5157906949762153\") is not less than (\"0.02\") - A white production perimeter disclosed terrain through opaque fog",
+      "targetName" : "SettlersUITests",
+      "testIdentifier" : 2,
+      "testIdentifierString" : "NavalReplayRenderingTests/testProductionRingsCannotRevealFoggedIslandPerimeters()",
+      "testIdentifierURL" : "test://com.apple.xcode/Settlers/SettlersUITests/NavalReplayRenderingTests/testProductionRingsCannotRevealFoggedIslandPerimeters",
+      "testName" : "testProductionRingsCannotRevealFoggedIslandPerimeters()"
+    }
+  ],
+  "title" : "Test - Settlers",
+  "topInsights" : [
+
+  ],
+  "totalTestCount" : 2
+}

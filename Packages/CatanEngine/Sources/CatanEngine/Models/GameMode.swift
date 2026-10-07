@@ -32,6 +32,8 @@ public enum GameMode: String, Codable, CaseIterable, Sendable {
     /// The 61-tile board played to 26, sized so that the target is reachable by
     /// building rather than only by emptying the development deck.
     case vast
+    /// Independent sailing, public discovery and overseas colonies.
+    case naval
 
     /// The modes a new game may be started in, in the order they are offered.
     ///
@@ -40,13 +42,14 @@ public enum GameMode: String, Codable, CaseIterable, Sendable {
     /// this, so retiring a mode is one edit here rather than a filter repeated
     /// at every call site - the copy-the-decision pattern that has already cost
     /// this repository a seat-numbering bug in four places.
-    public static let newGameChoices: [GameMode] = [.classic, .vast]
+    public static let newGameChoices: [GameMode] = [.classic, .vast, .naval]
 
     public var displayName: String {
         switch self {
         case .classic: return "Classic"
         case .expanded: return "Expanded"
         case .vast: return "Vast"
+        case .naval: return "Voyages"
         }
     }
 
@@ -56,6 +59,7 @@ public enum GameMode: String, Codable, CaseIterable, Sendable {
         case .classic: return "The standard 19-tile board, played to 8, 10 or 12 points."
         case .expanded: return "A 37-tile map played to 25 points, with twice the pieces and 4-point bonuses."
         case .vast: return "A 61-tile map played to 26 points, with room to build your way there."
+        case .naval: return "Sail, discover mist-covered islands and establish colonies. First to 14 points."
         }
     }
 }

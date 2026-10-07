@@ -24,6 +24,7 @@ Every one of these is canonical for its question. Read the file, do not reason f
 | Why CI runs on Ubuntu and what it deliberately does not do | `.github/workflows/ci.yml` |
 | Why each lint threshold sits where it does | `.swiftlint.yml` |
 | Running / screenshotting the app, every `-qa*` launch flag, UI-test reset arguments, what the device path blocks on | `.claude/skills/run-settlers/SKILL.md` - **the** reference; do not re-derive it |
+| Before simulator selection/create/boot/reset, native tests or a gate/push hook: shared project capacity, ownership, reuse, finish and storage retention | `.claude/skills/run-settlers/references/simulator-lifecycle.md` - applies across all worktrees, including test clones |
 | Legal moves and move application (the whole ruleset) | `Packages/CatanEngine/Sources/CatanEngine/RulesEngine.swift` |
 | Save-file schema and its backward compatibility | `GameState.init(from:)`, `Models/GameState.swift:110` |
 | Randomness contract | `Models/RandomSource.swift` (doc comment is the spec) |
@@ -104,10 +105,11 @@ App/UI tests run on the dedicated `Empires QA` simulator selected by
 never replace this with "first available" or "first booted", which wiped the
 manual-play simulator during an ordinary gate on 2026-09-03.
 
-They also run **in parallel across cloned simulators** (`Clone N of Empires QA`,
+They can also run **in parallel across cloned simulators** (`Clone N of Empires QA`,
 created by xcodebuild - still not your manual-play device). Both bundles are
 marked `parallelizable` in `project.yml`; the worker count is machine-specific
-and lives in `gate.sh` (`GATE_TEST_WORKERS`, default 2). Measured on 8 cores /
+and lives in `gate.sh` (`GATE_TEST_WORKERS`, default 1 with parallel testing disabled).
+Higher worker counts explicitly opt into clones. Measured on 8 cores /
 16GB, same tree: 1151s serial, 731s at 2 workers, 681s at 3 - but 3 starved two
 tests into failing. **A test that fails only at a higher worker count is a
 suspect, not a verdict**: re-run it serially before believing it. `gate.sh`'s
@@ -155,10 +157,12 @@ name which suites it touches, and you would rather find three red stages at once
 discover them one push at a time. That is the third property above, used deliberately -
 not the default.
 
-**Memory, not CPU, is the constraint on this machine.** Four separate runs were killed
-mid-flight on 2026-09-16 with the Simulator open (measured: 61MB free). Quit the Simulator
-and `xcrun simctl shutdown all` before a gate or a push, and prefer `GATE_TEST_WORKERS=1`,
-which trades ~7 minutes of wall clock for not being killed at minute forty.
+**Memory and storage constrain simulator work on this machine.** Inventory the
+whole host and apply the [shared simulator lifecycle policy](.claude/skills/run-settlers/references/simulator-lifecycle.md)
+before allocation, native tests or a gate/push hook, and again when finishing.
+Its capacity and storage-retention rules apply across every Empires worktree and
+test clone. Pin `SETTLERS_QA_SIMULATOR_ID` and use `GATE_TEST_WORKERS=1` to avoid
+worker clones. Preserve other tasks' and users' sessions.
 
 ## Anti-false-green - lessons this repo has already paid for
 

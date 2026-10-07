@@ -1,0 +1,48 @@
+Building for debugging...
+[0/3] Write sources
+[1/3] Write swift-version--58304C5D6DBC2206.txt
+[3/5] Compiling CatanEngineTests NavalSettlementScopeTests.swift
+[4/5] Emitting module CatanEngineTests
+[4/6] Write Objects.LinkFileList
+[5/6] Linking CatanEnginePackageTests
+Build complete! (5.39s)
+Test Suite 'Selected tests' started at 2026-10-05 21:03:14.264.
+Test Suite 'CatanEnginePackageTests.xctest' started at 2026-10-05 21:03:14.266.
+Test Suite 'CatanEnginePackageTests.xctest' passed at 2026-10-05 21:03:14.266.
+	 Executed 0 tests, with 0 failures (0 unexpected) in 0.000 (0.000) seconds
+Test Suite 'Selected tests' passed at 2026-10-05 21:03:14.266.
+	 Executed 0 tests, with 0 failures (0 unexpected) in 0.000 (0.001) seconds
+◇ Test run started.
+↳ Testing Library Version: 1902
+↳ Target Platform: arm64e-apple-macos14.0
+◇ Suite NavalSettlementScopeTests started.
+◇ Test inlandOpeningIsLegalWithEitherFogSetting(family:fog:) started.
+◇ Test foundedIslandCanExpandInlandByRoadAfterItsShipLeaves() started.
+◇ Test setupStillCannotSkipToAnOverseasIslandOrIgnoreDistance() started.
+◇ Test bothOpeningSettlementsCanBeInland(family:count:) started.
+◇ Test foundingNeedsAnOwnedShipAtThatExactCoastalCorner() started.
+◇ Test case passing 2 arguments family → .archipelago, fog → false to inlandOpeningIsLegalWithEitherFogSetting(family:fog:) started.
+◇ Test inlandPaidSettlementRequiresOwnRoadAndShipDoesNotSubstitute() started.
+◇ Test case passing 2 arguments family → .peninsula, fog → false to inlandOpeningIsLegalWithEitherFogSetting(family:fog:) started.
+◇ Test resumedSetupOffersInlandSitesWithoutChangingSavedVision(version:) started.
+◇ Test case passing 2 arguments family → .archipelago, fog → true to inlandOpeningIsLegalWithEitherFogSetting(family:fog:) started.
+◇ Test case passing 2 arguments family → .twinIslands, fog → false to inlandOpeningIsLegalWithEitherFogSetting(family:fog:) started.
+◇ Test case passing 2 arguments family → .archipelago, count → 3 to bothOpeningSettlementsCanBeInland(family:count:) started.
+◇ Test case passing 2 arguments family → .peninsula, fog → true to inlandOpeningIsLegalWithEitherFogSetting(family:fog:) started.
+◇ Test case passing 2 arguments family → .twinIslands, fog → true to inlandOpeningIsLegalWithEitherFogSetting(family:fog:) started.
+◇ Test case passing 2 arguments family → .archipelago, count → 4 to bothOpeningSettlementsCanBeInland(family:count:) started.
+◇ Test case passing 2 arguments family → .peninsula, count → 4 to bothOpeningSettlementsCanBeInland(family:count:) started.
+◇ Test case passing 2 arguments family → .peninsula, count → 3 to bothOpeningSettlementsCanBeInland(family:count:) started.
+◇ Test case passing 2 arguments family → .twinIslands, count → 3 to bothOpeningSettlementsCanBeInland(family:count:) started.
+◇ Test case passing 2 arguments family → .twinIslands, count → 4 to bothOpeningSettlementsCanBeInland(family:count:) started.
+◇ Test case passing 1 argument version → 1 to resumedSetupOffersInlandSitesWithoutChangingSavedVision(version:) started.
+◇ Test case passing 1 argument version → 2 to resumedSetupOffersInlandSitesWithoutChangingSavedVision(version:) started.
+✔ Test foundedIslandCanExpandInlandByRoadAfterItsShipLeaves() passed after 0.293 seconds.
+✔ Test inlandPaidSettlementRequiresOwnRoadAndShipDoesNotSubstitute() passed after 0.430 seconds.
+✔ Test foundingNeedsAnOwnedShipAtThatExactCoastalCorner() passed after 0.498 seconds.
+✔ Test resumedSetupOffersInlandSitesWithoutChangingSavedVision(version:) with 2 test cases passed after 0.553 seconds.
+✔ Test setupStillCannotSkipToAnOverseasIslandOrIgnoreDistance() passed after 0.556 seconds.
+✔ Test bothOpeningSettlementsCanBeInland(family:count:) with 6 test cases passed after 0.641 seconds.
+✔ Test inlandOpeningIsLegalWithEitherFogSetting(family:fog:) with 6 test cases passed after 0.709 seconds.
+✔ Suite NavalSettlementScopeTests passed after 0.709 seconds.
+✔ Test run with 7 tests in 1 suite passed after 0.709 seconds.

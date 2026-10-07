@@ -1,0 +1,47 @@
+{
+  "verifiedAtUTC": "2026-10-07T13:14:28.729629+00:00",
+  "checkedHead": "67efbadbdb061d9ded77628cf892c72d54e17fb4",
+  "productionSource": "9bce5f77a38684bd6e011fac8838c74b38440798",
+  "pr": {
+    "baseRefOid": "83d85250a15c57e2ead0c96ce27ff74a3a1b1ffe",
+    "headRefOid": "67efbadbdb061d9ded77628cf892c72d54e17fb4",
+    "isDraft": true,
+    "reviewDecision": "",
+    "statusCheckRollup": [
+      {
+        "__typename": "CheckRun",
+        "completedAt": "2026-10-07T13:12:10Z",
+        "conclusion": "SUCCESS",
+        "detailsUrl": "https://github.com/jakebeinart1/Settlers/actions/runs/37624311095/job/112802061192",
+        "name": "Engine + AI (Linux)",
+        "startedAt": "2026-10-07T12:53:40Z",
+        "status": "COMPLETED",
+        "workflowName": "CI"
+      },
+      {
+        "__typename": "CheckRun",
+        "completedAt": "2026-10-07T12:54:29Z",
+        "conclusion": "SUCCESS",
+        "detailsUrl": "https://github.com/jakebeinart1/Settlers/actions/runs/37624311095/job/112802061839",
+        "name": "SwiftLint",
+        "startedAt": "2026-10-07T12:53:39Z",
+        "status": "COMPLETED",
+        "workflowName": "CI"
+      },
+      {
+        "__typename": "CheckRun",
+        "completedAt": "2026-10-07T12:53:37Z",
+        "conclusion": "SKIPPED",
+        "detailsUrl": "https://github.com/jakebeinart1/Settlers/actions/runs/37624311095/job/112802063053",
+        "name": "project.yml drift",
+        "startedAt": "2026-10-07T12:53:38Z",
+        "status": "COMPLETED",
+        "workflowName": "CI"
+      }
+    ],
+    "url": "https://github.com/jakebeinart1/Settlers/pull/60"
+  },
+  "requiredLinuxAndLint": "PASS",
+  "generatedProjectJob": "SKIP; workflow_dispatch only. Local mandatory drift gate passed.",
+  "mergeApproval": "No approval; not merged."
+}

@@ -1,0 +1,167 @@
+{
+  "verifiedAtUTC": "2026-10-07T20:03:58.528004+00:00",
+  "reviewer": "pr_resolution_audit",
+  "verdict": "PASS source, complete gate and clean composite integration. No source blocker; current-head CI and final release verification remain separate.",
+  "productionSourceSHA": "e13d4a1cac8930063ee89438207a5da56f215e26",
+  "testedArchiveHeadSHA": "f1b9b1442defadc5ce7f9d45eb012e4858765a32",
+  "version": "1.0",
+  "build": "26",
+  "source": {
+    "productionInputs377CurrentFrozenAndTestedHeadIndependentlyEqual": true,
+    "packageInputs112CurrentFreezeTestedAndBuild25Build24IndependentlyEqual": true,
+    "metadataOnlyDeltaBetweenProductionAndTestedCommit": true,
+    "productionWorktreeClean": true,
+    "workingTreeEvidenceMetadataUnderConstruction": true,
+    "uncommittedEvidencePaths": [
+      " M docs/AI_summaries/naval-exploration/acceptance.md",
+      " M docs/AI_summaries/naval-exploration/evidence/visual-review.md",
+      "?? docs/AI_summaries/naval-exploration/evidence/receipts/build26-engine-ai-source-equivalence.json",
+      "?? docs/AI_summaries/naval-exploration/evidence/receipts/build26-final-candidate-audit.json",
+      "?? docs/AI_summaries/naval-exploration/evidence/receipts/build26-final-gallery-export-manifest.json",
+      "?? docs/AI_summaries/naval-exploration/evidence/receipts/build26-final-gallery-root-review.json",
+      "?? docs/AI_summaries/naval-exploration/evidence/receipts/build26-final-native-summary.json",
+      "?? docs/AI_summaries/naval-exploration/evidence/receipts/build26-final-prepush-command.json",
+      "?? docs/AI_summaries/naval-exploration/evidence/receipts/build26-final-prepush-gate.log",
+      "?? docs/AI_summaries/naval-exploration/evidence/receipts/build26-final-production-inputs.json",
+      "?? docs/AI_summaries/naval-exploration/evidence/receipts/build26-focused-command.json",
+      "?? docs/AI_summaries/naval-exploration/evidence/receipts/build26-focused-root-review.json",
+      "?? docs/AI_summaries/naval-exploration/evidence/receipts/build26-focused-summary.json",
+      "?? docs/AI_summaries/naval-exploration/evidence/receipts/build26-main-integration-preflight.json",
+      "?? docs/AI_summaries/naval-exploration/evidence/receipts/build26-receipt-provenance.json",
+      "?? docs/AI_summaries/naval-exploration/evidence/receipts/build26-release-preflight.json",
+      "?? docs/AI_summaries/naval-exploration/evidence/receipts/build26-release-tool-audit.json",
+      "?? docs/AI_summaries/naval-exploration/evidence/receipts/build26-simulator-policy-reconciliation.json",
+      "?? docs/AI_summaries/naval-exploration/evidence/receipts/build26-source-freeze-preflight.json",
+      "?? docs/AI_summaries/naval-exploration/evidence/screenshots/build26-final-manifest.json",
+      "?? docs/AI_summaries/naval-exploration/evidence/screenshots/build26-monopoly-largest-positive-selected.png",
+      "?? docs/AI_summaries/naval-exploration/evidence/screenshots/build26-monopoly-largest-result.png",
+      "?? docs/AI_summaries/naval-exploration/evidence/screenshots/build26-monopoly-largest-zero-selected.png",
+      "?? docs/AI_summaries/naval-exploration/evidence/screenshots/build26-monopoly-normal.png",
+      "?? docs/AI_summaries/naval-exploration/evidence/screenshots/build26-monopoly-positive-selected.png",
+      "?? docs/AI_summaries/naval-exploration/evidence/screenshots/build26-monopoly-zero-warning.png",
+      "?? docs/AI_summaries/naval-exploration/evidence/screenshots/build26-natural-match-winner.png",
+      "?? docs/AI_summaries/naval-exploration/evidence/screenshots/build26-plenty-largest-selected.png",
+      "?? docs/AI_summaries/naval-exploration/evidence/screenshots/build26-plenty-mixed-picked.png",
+      "?? docs/AI_summaries/naval-exploration/evidence/screenshots/build26-plenty-normal.png"
+    ]
+  },
+  "gate": {
+    "normalPrepushExitCode": 0,
+    "noVerifyUsed": false,
+    "mandatoryStages": [
+      "xcodegen drift",
+      "swiftlint --strict",
+      "evaluation tooling",
+      "packages build (W=E)",
+      "CatanEngine tests",
+      "CatanAI tests",
+      "coverage floors",
+      "gitleaks",
+      "app tests",
+      "app build (Release)"
+    ],
+    "optionalStandaloneDebug": "SKIP not requested; native Debug test action ran",
+    "rawXCResultSummaryAndTestsEqualSavedReceipts": true,
+    "nativeFunctions": 768,
+    "passedFunctions": 767,
+    "failedFunctions": 0,
+    "skippedFunctions": 1,
+    "passingParameterizedRuns": 1542,
+    "hostedTests": 588,
+    "hostedSuites": 83,
+    "engineCoverage": "96.74%",
+    "aiCoverage": "96.05%",
+    "soleSkip": {
+      "identifier": "TradeRedesignFlowTests/testConfirmationFooterAndNewOfferRemainReachableAt375By667()",
+      "reason": "Test skipped - Requires a 375\u00d7667-point iPhone; this destination is (402.0, 874.0)"
+    },
+    "rawXCResult": "/Users/alex/Library/Developer/Xcode/DerivedData/Settlers-ehpkozivxiwhkjbrsccrribfgemp/Logs/Test/Test-Settlers-2026.10.07_14-45-42--0400.xcresult"
+  },
+  "integration": {
+    "freshMainSHA": "bc11db46a20b4de05d7d48fdceccf113c47bd744",
+    "synthesizedMergeExit": 0,
+    "synthesizedTreeSHA": "9c9e5dc08afe988bd3d4a3159e57998b532ff891",
+    "synthesizedTreeEqualsGatedCommitTree": true,
+    "mainResearchDocumentBytePreserved": true,
+    "mainDirectAncestor": false,
+    "qualification": "Main doc replayed in746e56c; currentbc11 main commit is not an ancestor, but clean composed tree equals fully gatedf1b9 head. No forced shared-history rewrite needed."
+  },
+  "policy": {
+    "pr58UsefulUniquePolicyRetained": true,
+    "canonicalReference": ".claude/skills/run-settlers/references/simulator-lifecycle.md",
+    "allSixFilesMatchReconciliationReceiptHashes": true,
+    "defaultOneWorkerPreserved": true,
+    "globalRuleActuallyRemovesMinimumHumanApproval": true,
+    "agentReviewActsAsApproval": true,
+    "globalRuleSHA256": "601dd47a3373ce13e247678bb804aff2e1f0a04b4a84e5b5594e1949feae7908"
+  },
+  "visual": {
+    "allTenDebugHashesEqualManifestRootReviewAndOriginalFiles": true,
+    "independentlyInspectedFourOriginals": [
+      "final-count-attachments/7260924A-1DF9-4E80-B799-CAAE6C04EE8D.png",
+      "final-count-attachments/2411A299-7B2D-4A0C-B7D4-D18F80F51AD9.png",
+      "final-count-attachments/F8BCE399-B747-4DC9-B100-4C7123380FC8.png",
+      "final-zero-attachments/1872A433-5A46-4904-9020-DC2EBA5C3649.png"
+    ],
+    "observations": "Normal quantities and zero warning clear. XXXL38Wool preview matches38-card receipt, with reachable pinned actions. Scrolled content clips intentionally.",
+    "releaseMenuPendingForThisAudit": true
+  },
+  "monopoly": {
+    "previewReadsOnlyPublicSupplyBankAndOwnHand": true,
+    "rivalHandsNotReadByPreview": true,
+    "correctlyExcludesOwnHandAndBank": true,
+    "missingOrImpossibleStockUnknownInsteadOfZero": true,
+    "zeroRemainsLegal": true,
+    "actualZeroAnd38CardNativeCommitsCovered": true,
+    "rulesAndPackageSourcesUnchanged": true
+  },
+  "github": {
+    "pr": 60,
+    "head": "f1b9b1442defadc5ce7f9d45eb012e4858765a32",
+    "mergeable": "MERGEABLE",
+    "mergeStateStatus": "UNSTABLE",
+    "checks": [
+      {
+        "name": "Engine + AI (Linux)",
+        "status": "IN_PROGRESS",
+        "conclusion": "",
+        "detailsUrl": "https://github.com/jakebeinart1/Settlers/actions/runs/37677543403/job/112984814199"
+      },
+      {
+        "name": "SwiftLint",
+        "status": "COMPLETED",
+        "conclusion": "SUCCESS",
+        "detailsUrl": "https://github.com/jakebeinart1/Settlers/actions/runs/37677543403/job/112984813829"
+      },
+      {
+        "name": "project.yml drift",
+        "status": "COMPLETED",
+        "conclusion": "SKIPPED",
+        "detailsUrl": "https://github.com/jakebeinart1/Settlers/actions/runs/37677543403/job/112984815917"
+      }
+    ],
+    "humanApprovalPrerequisite": false,
+    "nextMergeStep": "Wait for current-head Linux CI success and recheck current main/head; merge PR 60 and close PR 58 as superseded after its useful policy lands."
+  },
+  "claimLimits": [
+    "This source-only audit does not yet verify build 26 signatures, upload acceptance or Apple availability.",
+    "No physical-phone install or gameplay observed.",
+    "No stronger-AI claim; 112 package inputs unchanged, retaining prior 48 matches and six fresh-process repeats.",
+    "No raw all-clear accessibility claim; prior exact-label qualifications retained.",
+    "The 375\u00d7667 footer flow skipped on 402\u00d7874 QA; this run supplies no compact-device proof.",
+    "Ten Debug originals have verified hashes. Four independently viewed here; root reviewed all ten.",
+    "The full Naval match uses the real UI-hosted production session and policy driver with deliberate checkpoints; a human does not choose every move."
+  ],
+  "blockers": [],
+  "evidenceSHA256": {
+    "final-production-inputs.json": "a5b0c954e47bb962e740620ea3cac334d1e76c058de577ca82e53cf4bc615143",
+    "engine-ai-source-equivalence.json": "325889c797382baec1525e361ec0d856da256d7421be4caefafba55eb4ecd2fa",
+    "final-prepush-command.json": "469f80b35e8a838d30519a7ffa6f7d6d465c24df33020159ed96b5e17e99c249",
+    "final-prepush-gate.log": "56877570345b8400e594e311a350a9f83886a8c2e73938d1b365eaa480d7c32d",
+    "audit-raw-native-summary.json": "701ccf486af2f5f8a41ba77fd9ab909af2c89f4d67382d8fefaac306cbe864dc",
+    "audit-raw-native-tests.json": "38962c495ff64e72b62d084ae5fd5e07ba2d269de121f7f1035a0f67d2ff9237",
+    "final-gallery-export-manifest.json": "1e6efbd897533dc4de502b9380cc8ad406a566b422379f21d7b80d5bea3f2a05",
+    "final-gallery-root-review.json": "a33cc60eba022fe9de4c8ab678974320e675d027b56bd3c430f9ec9ba0155350",
+    "final-candidate-audit.json": "61e88804b42d6dae3541e3663db20d041ea3a79c04d34deddc7a10738cded269"
+  }
+}

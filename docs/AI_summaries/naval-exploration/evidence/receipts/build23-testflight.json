@@ -1,0 +1,58 @@
+{
+  "verifiedAtUTC": "2026-10-07T08:16:30.732Z",
+  "appID": "6808461623",
+  "builds": [
+    {
+      "id": "cfcb926b-7b11-4178-9d19-8df7a9e5e597",
+      "version": "23",
+      "uploadedDate": "2026-10-07T01:14:38-07:00",
+      "expirationDate": "2027-01-05T00:14:38-08:00",
+      "expired": false,
+      "minOsVersion": "17.0",
+      "lsMinimumSystemVersion": null,
+      "computedMinMacOsVersion": "14.0",
+      "computedMinVisionOsVersion": "1.0",
+      "iconAssetToken": {
+        "templateUrl": "https://is1-ssl.mzstatic.com/image/thumb/Purple221/v4/62/28/a7/6228a7fa-7b97-1058-b0f7-7b65ac26268c/AppIcon60x60@2x.png/{w}x{h}bb.{f}",
+        "width": 120,
+        "height": 120
+      },
+      "processingState": "VALID",
+      "buildAudienceType": "APP_STORE_ELIGIBLE",
+      "usesNonExemptEncryption": false,
+      "marketingVersion": "1.0",
+      "betaDetail": {
+        "autoNotifyEnabled": true,
+        "internalBuildState": "IN_BETA_TESTING",
+        "externalBuildState": "READY_FOR_BETA_SUBMISSION"
+      }
+    }
+  ],
+  "internalGroups": [
+    {
+      "id": "bf165450-034a-437d-b7f7-028bf3d57a5b",
+      "publicLinkLimit": null,
+      "iosBuildsAvailableForAppleSiliconMac": true,
+      "createdDate": "2026-09-04T02:55:32.94Z",
+      "publicLinkEnabled": null,
+      "publicLink": null,
+      "hasAccessToAllBuilds": true,
+      "publicLinkId": null,
+      "isInternalGroup": true,
+      "name": "Internal",
+      "feedbackEnabled": true,
+      "publicLinkLimitEnabled": null,
+      "iosBuildsAvailableForAppleVision": true,
+      "testers": [
+        {
+          "id": "a8ee9090-8182-4804-b5f9-eead9c032495",
+          "firstName": "Alex",
+          "lastName": "Chandler"
+        }
+      ]
+    }
+  ],
+  "productionSourceSHA": "1dfae7cb8e46ca4b343c0415fef18e71cd3a6ed4",
+  "intendedTesterAccessConfirmed": true,
+  "physicalPhoneInstallationObserved": false
+}

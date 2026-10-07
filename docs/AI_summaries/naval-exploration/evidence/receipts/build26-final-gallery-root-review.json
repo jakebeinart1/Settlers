@@ -1,0 +1,212 @@
+{
+  "reviewedAtUTC": "2026-10-07T19:53:58.180622+00:00",
+  "reviewer": "root",
+  "productionSourceSHA": "e13d4a1cac8930063ee89438207a5da56f215e26",
+  "testedHeadSHA": "f1b9b1442defadc5ce7f9d45eb012e4858765a32",
+  "version": "1.0",
+  "build": "26",
+  "verdict": "PASS",
+  "debugOriginals": 10,
+  "releaseOriginals": 1,
+  "imagesUnmodified": true,
+  "notes": [
+    "All10 selected final full-gate originals inspected at original resolution.",
+    "Normal counts, selected-gain footer and zero explanation are clear; quantities distinguish bank stock from collectible rival totals.",
+    "Largest-text selected controls and pinned actions remain reachable; offscreen rows are intentionally clipped to the scroll viewport.",
+    "Plenty completed-selection bank controls dim uniformly.",
+    "Actual38-card result matches preview; ordinary inspected match finishes with Tokugawa14VP and humanAlex5VP.",
+    "Ordinary fresh Release menu inspected separately: Rules/New Game/Leaderboard render normally without QA state; physical-phone play remains unobserved."
+  ],
+  "screenshots": [
+    {
+      "path": "/Users/alex/.codex/artifacts/naval-exploration/build26-monopoly-counts/final-count-attachments/7260924A-1DF9-4E80-B799-CAAE6C04EE8D.png",
+      "sha256": "2ebdd0c99f7c34ef5ea409e4919e0d35415195e00f8cac50c720b74ef88740f8",
+      "name": "Naval card \u2014 monopoly normal text_0_73E4D638-CF37-4BD8-82CB-26F39BEC2D9B.png",
+      "testIdentifier": "DevelopmentCardDesignTests/testAllFiveNavalCardDetailsKeepNormalTextChoicesAndActionsInsideThePanel()",
+      "attachment": {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "937692FF-BFBF-4683-80E5-2590F5288D56",
+        "deviceName": "Empires QA",
+        "exportedFileName": "7260924A-1DF9-4E80-B799-CAAE6C04EE8D.png",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Naval card \u2014 monopoly normal text_0_73E4D638-CF37-4BD8-82CB-26F39BEC2D9B.png",
+        "timestamp": 1791399857.534
+      },
+      "configuration": "Debug",
+      "originalPixelsInspected": true,
+      "verdict": "PASS"
+    },
+    {
+      "path": "/Users/alex/.codex/artifacts/naval-exploration/build26-monopoly-counts/final-count-attachments/2AA70C82-CEAB-4B6C-9DA0-C24127FFB54E.png",
+      "sha256": "a0e073b476c8ac189f867babe3391a0ab712ae093faba24a2679d99600a375c6",
+      "name": "Naval card \u2014 yearOfPlenty normal text_0_148DCF0D-8D19-4BE1-95FD-926DA33C7C2A.png",
+      "testIdentifier": "DevelopmentCardDesignTests/testAllFiveNavalCardDetailsKeepNormalTextChoicesAndActionsInsideThePanel()",
+      "attachment": {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "937692FF-BFBF-4683-80E5-2590F5288D56",
+        "deviceName": "Empires QA",
+        "exportedFileName": "2AA70C82-CEAB-4B6C-9DA0-C24127FFB54E.png",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Naval card \u2014 yearOfPlenty normal text_0_148DCF0D-8D19-4BE1-95FD-926DA33C7C2A.png",
+        "timestamp": 1791399850.306
+      },
+      "configuration": "Debug",
+      "originalPixelsInspected": true,
+      "verdict": "PASS"
+    },
+    {
+      "path": "/Users/alex/.codex/artifacts/naval-exploration/build26-monopoly-counts/final-count-attachments/E23EF168-9C13-4A34-8FE5-0E4FD63F25BF.png",
+      "sha256": "fdd58fea376aa75978a22abdc68cb59e4cb005ebe65ef163fe68c585ebcb6cf7",
+      "name": "Naval card \u2014 yearOfPlenty largest text selected_0_EF8AFEF5-B6FE-493B-ACD1-26933637CE58.png",
+      "testIdentifier": "DevelopmentCardDesignTests/testLargestTextMonopolyAndPlentyKeepChoicesScrollableAndActionsPinned()",
+      "attachment": {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "937692FF-BFBF-4683-80E5-2590F5288D56",
+        "deviceName": "Empires QA",
+        "exportedFileName": "E23EF168-9C13-4A34-8FE5-0E4FD63F25BF.png",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Naval card \u2014 yearOfPlenty largest text selected_0_EF8AFEF5-B6FE-493B-ACD1-26933637CE58.png",
+        "timestamp": 1791399932.701
+      },
+      "configuration": "Debug",
+      "originalPixelsInspected": true,
+      "verdict": "PASS"
+    },
+    {
+      "path": "/Users/alex/.codex/artifacts/naval-exploration/build26-monopoly-counts/final-count-attachments/FFC3F462-4E87-4EDD-A2E5-C80D91759C27.png",
+      "sha256": "f147946789568395555234d10e334938366c396830883583a556a8171f185bc4",
+      "name": "Naval card \u2014 monopoly largest text selected_0_EEA45FDD-62BE-43E8-B838-E12E04B62823.png",
+      "testIdentifier": "DevelopmentCardDesignTests/testLargestTextMonopolyAndPlentyKeepChoicesScrollableAndActionsPinned()",
+      "attachment": {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "937692FF-BFBF-4683-80E5-2590F5288D56",
+        "deviceName": "Empires QA",
+        "exportedFileName": "FFC3F462-4E87-4EDD-A2E5-C80D91759C27.png",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Naval card \u2014 monopoly largest text selected_0_EEA45FDD-62BE-43E8-B838-E12E04B62823.png",
+        "timestamp": 1791399898.387
+      },
+      "configuration": "Debug",
+      "originalPixelsInspected": true,
+      "verdict": "PASS"
+    },
+    {
+      "path": "/Users/alex/.codex/artifacts/naval-exploration/build26-monopoly-counts/final-count-attachments/F8BCE399-B747-4DC9-B100-4C7123380FC8.png",
+      "sha256": "5ebe9449b4996ca074125135bb1fe69ef4407c09e39a7c37f02b33e7746d6658",
+      "name": "Monopoly \u2014 largest text actual 38-card receipt_0_77E36DCB-4D56-4C5A-BB12-FE11F7B09836.png",
+      "testIdentifier": "DevelopmentCardDesignTests/testLargestTextMonopolyShowsAndCollectsThePredictedRivalTotal()",
+      "attachment": {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "937692FF-BFBF-4683-80E5-2590F5288D56",
+        "deviceName": "Empires QA",
+        "exportedFileName": "F8BCE399-B747-4DC9-B100-4C7123380FC8.png",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Monopoly \u2014 largest text actual 38-card receipt_0_77E36DCB-4D56-4C5A-BB12-FE11F7B09836.png",
+        "timestamp": 1791399960.383
+      },
+      "configuration": "Debug",
+      "originalPixelsInspected": true,
+      "verdict": "PASS"
+    },
+    {
+      "path": "/Users/alex/.codex/artifacts/naval-exploration/build26-monopoly-counts/final-count-attachments/2411A299-7B2D-4A0C-B7D4-D18F80F51AD9.png",
+      "sha256": "5d5abd949ca765ff914c2490f422dbe44239f13f7d8ceebcbd5dca4410b2f5f5",
+      "name": "Monopoly \u2014 largest text predicts 38 Wool with actions pinned_0_805A31A3-E3D0-4B3F-ADC5-E57F1CA76115.png",
+      "testIdentifier": "DevelopmentCardDesignTests/testLargestTextMonopolyShowsAndCollectsThePredictedRivalTotal()",
+      "attachment": {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "937692FF-BFBF-4683-80E5-2590F5288D56",
+        "deviceName": "Empires QA",
+        "exportedFileName": "2411A299-7B2D-4A0C-B7D4-D18F80F51AD9.png",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Monopoly \u2014 largest text predicts 38 Wool with actions pinned_0_805A31A3-E3D0-4B3F-ADC5-E57F1CA76115.png",
+        "timestamp": 1791399958.008
+      },
+      "configuration": "Debug",
+      "originalPixelsInspected": true,
+      "verdict": "PASS"
+    },
+    {
+      "path": "/Users/alex/.codex/artifacts/naval-exploration/build26-monopoly-counts/final-count-attachments/CFBF0933-A8E0-4810-AA00-33D4140FF23F.png",
+      "sha256": "2b469078a4be166d2ef845762e4d8be4bd5e340846bc88da845994f5c60a209a",
+      "name": "Ordinary Naval match \u2014 actual winner after card inspections_0_3B3214EB-0C35-4130-A938-EB34102D3894.png",
+      "testIdentifier": "DevelopmentCardDesignTests/testOrdinaryNavalMatchIncludesDeliberateCardInspectionAndReachesAnActualWinner()",
+      "attachment": {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "937692FF-BFBF-4683-80E5-2590F5288D56",
+        "deviceName": "Empires QA",
+        "exportedFileName": "CFBF0933-A8E0-4810-AA00-33D4140FF23F.png",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Ordinary Naval match \u2014 actual winner after card inspections_0_3B3214EB-0C35-4130-A938-EB34102D3894.png",
+        "timestamp": 1791400083.909
+      },
+      "configuration": "Debug",
+      "originalPixelsInspected": true,
+      "verdict": "PASS"
+    },
+    {
+      "path": "/Users/alex/.codex/artifacts/naval-exploration/build26-monopoly-counts/final-count-attachments/099996D6-1531-4C0F-926E-5E0950480957.png",
+      "sha256": "07f9ec5665775df363e397dac5ea0acf7cd5f287e8c5c1deacb7cc3b0310391e",
+      "name": "Year of Plenty \u2014 ordered mixed choices_0_37FDE3E3-8842-4741-A043-320510A971D3.png",
+      "testIdentifier": "DevelopmentCardDesignTests/testPlentyKeepsChosenCardsInPickOrderAndPaysTheMixedPair()",
+      "attachment": {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "937692FF-BFBF-4683-80E5-2590F5288D56",
+        "deviceName": "Empires QA",
+        "exportedFileName": "099996D6-1531-4C0F-926E-5E0950480957.png",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Year of Plenty \u2014 ordered mixed choices_0_37FDE3E3-8842-4741-A043-320510A971D3.png",
+        "timestamp": 1791400104.929
+      },
+      "configuration": "Debug",
+      "originalPixelsInspected": true,
+      "verdict": "PASS"
+    },
+    {
+      "path": "/Users/alex/.codex/artifacts/naval-exploration/build26-monopoly-counts/final-count-attachments/46AF2574-1467-44BE-A218-092D09B27D96.png",
+      "sha256": "384e2f94e5005789017034a327814b6ef62c97e09808ba5e0434f92411f94be1",
+      "name": "Naval Monopoly \u2014 38 Wool to collect despite an empty bank_0_649B20B8-140C-4211-A53A-D050497DAEA7.png",
+      "testIdentifier": "DevelopmentCardDesignTests/testPlentyScarcityAndMonopolyBankIndependenceUseTheirActualRules()",
+      "attachment": {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "937692FF-BFBF-4683-80E5-2590F5288D56",
+        "deviceName": "Empires QA",
+        "exportedFileName": "46AF2574-1467-44BE-A218-092D09B27D96.png",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Naval Monopoly \u2014 38 Wool to collect despite an empty bank_0_649B20B8-140C-4211-A53A-D050497DAEA7.png",
+        "timestamp": 1791400125.601
+      },
+      "configuration": "Debug",
+      "originalPixelsInspected": true,
+      "verdict": "PASS"
+    },
+    {
+      "path": "/Users/alex/.codex/artifacts/naval-exploration/build26-monopoly-counts/final-zero-attachments/1872A433-5A46-4904-9020-DC2EBA5C3649.png",
+      "sha256": "6084bd50444c355cdcc6352042479938a50144c237c687df0de4381c317ac3c8",
+      "name": "Monopoly \u2014 zero collection explained before a legal play_0_5FA28CAF-6180-4B27-AC6E-70CD64786FE5.png",
+      "testIdentifier": "DevelopmentCardFlowTests/testMonopolyZeroResultIsExplicit()",
+      "attachment": {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "937692FF-BFBF-4683-80E5-2590F5288D56",
+        "deviceName": "Empires QA",
+        "exportedFileName": "1872A433-5A46-4904-9020-DC2EBA5C3649.png",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Monopoly \u2014 zero collection explained before a legal play_0_5FA28CAF-6180-4B27-AC6E-70CD64786FE5.png",
+        "timestamp": 1791400166.964
+      },
+      "configuration": "Debug",
+      "originalPixelsInspected": true,
+      "verdict": "PASS"
+    },
+    {
+      "path": "/Users/alex/.codex/artifacts/naval-exploration/build26-monopoly-counts/release-ordinary-menu.png",
+      "sha256": "698cabd0d73c97a8301543bf82a8ecfd63a12fde6de2c178c2ee536e81eeee6c",
+      "name": "Ordinary Release 1.0/26 menu",
+      "configuration": "Release",
+      "originalPixelsInspected": true,
+      "verdict": "PASS",
+      "runtimeReceipt": "release-runtime.json"
+    }
+  ],
+  "releaseMenuReviewedAtUTC": "2026-10-07T20:04:41.950243+00:00"
+}

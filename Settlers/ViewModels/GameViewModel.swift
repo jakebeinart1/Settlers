@@ -31,7 +31,8 @@ public final class GameViewModel {
     let playerDirectory: PlayerDirectory
     /// Rating and ghost training for the game that just ended; a test awaits it.
     var lastFinishedMatchWork: Task<Void, Never>?
-    /// The ghost trainer the completion hook uses; a test swaps in a fast one.
+    /// The completion trainer is injected before checkpoint restoration, which
+    /// can itself finish a previously interrupted match's bookkeeping.
     var makeGhostTrainer: @Sendable (GhostStore) -> GhostTrainer = { GhostTrainer(store: $0) }
     let checkpointStore: MatchCheckpointStore
     var checkpointDocument: MatchCheckpointDocument?
@@ -247,7 +248,8 @@ public final class GameViewModel {
          civilizationStore: CivilizationAssignmentStore, matchSetupStore: MatchSetupStore,
          gameLogStore: GameLogStore, gameStatsStore: GameStatsStore, ghostStore: GhostStore = .shared,
          ratingStore: RatingStore = .shared, seatStatsStore: SeatStatsStore = .shared,
-         playerDirectory: PlayerDirectory = .shared) {
+         playerDirectory: PlayerDirectory = .shared,
+         makeGhostTrainer: @escaping @Sendable (GhostStore) -> GhostTrainer = { GhostTrainer(store: $0) }) {
         self.checkpointStore = checkpointStore
         self.gameStore = gameStore
         self.civilizationStore = civilizationStore
@@ -260,6 +262,7 @@ public final class GameViewModel {
         self.ratingStore = ratingStore
         self.seatStatsStore = seatStatsStore
         self.playerDirectory = playerDirectory
+        self.makeGhostTrainer = makeGhostTrainer
         newGameSetupLoadResult = matchSetupStore.load()
         persistenceErrorMessage = nil
         gameLogWarningState = nil
@@ -395,6 +398,10 @@ public final class GameViewModel {
     }
 
     private static func makeInitialState(for setup: MatchSetup, playerCount: Int) -> GameState {
+        if setup.mode == .naval {
+            return Naval.newGame(seed: QALaunchOption.navalSeed ?? UInt64.random(in: .min ... .max),
+                                 playerCount: playerCount, options: setup.navalOptions)
+        }
         let shape = Ruleset.forMode(setup.mode).board
         let board = setup.randomizedBoard
             ? BoardGenerator.randomized(seed: UInt64.random(in: .min ... .max), shape: shape)
@@ -518,8 +525,14 @@ public final class GameViewModel {
                              isHumanDecision: Bool = true) throws {
         if let message = savedGameAvailability.recoveryMessage { throw SavedGameRecoveryError.blocked(message) }
         var candidate = session
-        let step = try candidate.applyExternal(move, by: player)
-        try commitStep(step, candidate: candidate, declinedOffer: declinedOffer, isHumanDecision: isHumanDecision)
+        let step: GameSession.Step
+        if case .respondToTrade(let offerID, true) = move, humanSeats.contains(player) {
+            step = try candidate.acceptTrade(offerID: offerID, by: player)
+        } else {
+            step = try candidate.applyExternal(move, by: player)
+        }
+        try commitStep(step, candidate: candidate, declinedOffer: declinedOffer,
+                       isHumanDecision: isHumanDecision && step.actor == player)
     }
 
     func commitStep(_ step: GameSession.Step, candidate: GameSession, declinedOffer: TradeOffer? = nil,
@@ -711,12 +724,14 @@ public final class GameViewModel {
     /// positions - a bot offer the human can afford, one they cannot, one the
     /// proposer can no longer honour - which is how `openIncomingOffer` is
     /// pinned in both directions.
-    func replaceStateForTesting(_ newState: GameState, humanSeat: PlayerID) {
-        replaceStateForTesting(newState, humanSeats: [humanSeat])
+    func replaceStateForTesting(_ newState: GameState, humanSeat: PlayerID, difficulty: BotDifficulty = .default,
+                                civilizations: [Civilization]? = nil) {
+        replaceStateForTesting(newState, humanSeats: [humanSeat], difficulty: difficulty, civilizations: civilizations)
     }
 
     /// Multi-seat overload, for hot-seat tests.
-    func replaceStateForTesting(_ newState: GameState, humanSeats seats: Set<PlayerID>) {
+    func replaceStateForTesting(_ newState: GameState, humanSeats seats: Set<PlayerID>, difficulty: BotDifficulty = .default,
+                                civilizations requestedCivilizations: [Civilization]? = nil) {
         gameplayFeedback.clear()
         precondition(!seats.isEmpty, "a game must have at least one human seat")
         seatAtDevice = seats.sorted().first
@@ -725,7 +740,9 @@ public final class GameViewModel {
         // a three-seat table while this one installs four seats. The old
         // helper did not need the mapping; profiles do, so give tests their
         // own deterministic complete assignment.
-        let civilizations = Array(Civilization.allCases.prefix(newState.players.count))
+        let civilizations = requestedCivilizations ?? Array(Civilization.allCases.prefix(newState.players.count))
+        precondition(civilizations.count == newState.players.count && Set(civilizations).count == civilizations.count,
+                     "QA requires one distinct civilization per seat")
         CivilizationAssignment.current = civilizations
         let profiles = Self.opponentProfiles(
             for: newState, humanSeats: seats, civilizations: civilizations
@@ -740,10 +757,11 @@ public final class GameViewModel {
         )
         CivilizationAssignment.humanNames = names
         session = Self.makeSession(
-            state: newState, opponentProfiles: profiles, difficulty: .default, ghosts: ghostStore
+            state: newState, opponentProfiles: profiles, difficulty: difficulty, ghosts: ghostStore,
+            expertRevision: newState.mode == .naval && difficulty == .expert ? .navalV1 : .legacy
         )
         resetDiscardPresentation()
-        persistTestingPosition()
+        persistTestingPosition(difficulty: difficulty)
         reconcileBoardDecision()
     }
 
@@ -757,47 +775,15 @@ public final class GameViewModel {
         persistTestingPosition()
     }
 
-    enum QACompleteMatchFailure: Error {
-        case stoppedBeforeGameOver, moveLimitExceeded
-    }
-
-    /// Plays production session/log/save bookkeeping without UI delays. Errors
-    /// propagate to the test runner: trapping here turned a disk-full write
-    /// into a host crash, losing the useful failure and aborting unrelated tests.
-    func qaPlayToEnd() throws {
-        var humanRNG = RandomSource(seed: 12345)
-        for _ in 0..<10_000 {
-            try qaAcknowledgePrivateReceipts()
-            if case .gameOver = state.phase { return }
-            var candidate = session
-            let step: GameSession.Step
-            if case .awaitingExternalSeat(let seat) = candidate.nextActor() {
-                let observation = GameObservation(seat: seat, state: state,
-                    legalMoves: RulesEngine.legalMoves(for: state, seat: seat))
-                let move = HeuristicPolicy(personality: .balanced, id: "qa-human").decide(observation, rng: &humanRNG)
-                step = try candidate.applyExternal(move, by: seat)
-            } else {
-                guard let (seat, move) = candidate.decideNext() else {
-                    throw QACompleteMatchFailure.stoppedBeforeGameOver
-                }
-                step = try candidate.commit(seat: seat, move: move)
-            }
-            beginEventBatch()
-            try commitStep(step, candidate: candidate)
-        }
-        throw QACompleteMatchFailure.moveLimitExceeded
-    }
-
-    /// The fixture owns every chair: model the real acknowledgement taps, not
-    /// a receipt overwrite. Failed writes retain the receipt and save blocker.
-    private func qaAcknowledgePrivateReceipts() throws {
-        if pendingDevCardReveal != nil { try acknowledgeDevCardReveal() }
-        if pendingDevCardResolution != nil { try acknowledgeDevCardResolution() }
+    /// The Debug driver shares the same private transaction as live moves.
+    func qaCommitStep(_ step: GameSession.Step, candidate: GameSession) throws {
+        beginEventBatch()
+        try commitStep(step, candidate: candidate)
     }
 
     /// QA positions are explicit new replay baselines, never unrecorded edits
     /// to a production history. Real bot policy identities stay unchanged.
-    private func persistTestingPosition() {
+    private func persistTestingPosition(difficulty: BotDifficulty? = nil) {
         let chairs = state.players.map { player in
             let identity = playerIdentity(for: player.id)
             return MatchSetup.Seat(index: player.id.index, isHuman: humanSeats.contains(player.id),
@@ -805,8 +791,18 @@ public final class GameViewModel {
                 civilization: identity.civilization,
                 opponentProfile: opponentProfiles[player.id])
         }
-        let setup = MatchSetup(seats: chairs, mode: state.mode, victoryPointTarget: state.victoryPointTarget,
-                               randomizedBoard: false, randomizeSeatOrder: false)
+        var setup = checkpointDocument?.activeMatch?.setup ?? MatchSetup(seats: chairs,
+            mode: state.mode, victoryPointTarget: state.victoryPointTarget,
+            randomizedBoard: state.mode == .naval, randomizeSeatOrder: false)
+        setup.seats = chairs
+        setup.mode = state.mode
+        setup.victoryPointTarget = state.victoryPointTarget
+        setup.variant = state.variant
+        if let difficulty {
+            setup.difficulty = difficulty
+            setup.expertRevision = difficulty == .expert && state.mode == .naval ? .navalV1 : .legacy
+        }
+        setup.navalOptions = state.naval?.options ?? NavalOptions()
         do {
             try replaceActiveMatch(state: state, setup: setup, session: session)
             accumulatedActiveDuration = 0
@@ -1117,6 +1113,7 @@ public final class GameViewModel {
     /// engine predicate the card itself uses, so the two cannot disagree about
     /// whether an offer is live.
     var openIncomingOffer: TradeOffer? {
+        guard !hasMandatoryNavalDecision else { return nil }
         guard let offer = rawIncomingOffer else { return nil }
         let policy = humanTradePolicy(for: humanPlayer)
         let context = tradeOfferContext(offer)

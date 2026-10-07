@@ -1,0 +1,12 @@
+{
+  "xcodebuildExitCode": 0,
+  "actualStagedPayloadPreserved": true,
+  "capture": {
+    "originalStagedPath": "/var/folders/_m/cfbn0s7j7zx3sx1lwv6w4mr80000gn/T/XcodeDistPipeline.~~~KfWUKg/Packages/Settlers.ipa",
+    "durableUploadedIPAPath": "/Users/alex/.codex/artifacts/naval-exploration/build24-travel-harvest-trade/Settlers-uploaded-24.ipa",
+    "bytes": 36268869,
+    "sha256": "0ef24d00609c2f2830448ddcdf817d167a0673d060442631c31d1e4e3f87becc",
+    "md5": "dfcd6ece91320bbe705a2ce46c26bd0a",
+    "completeZIPCRCCheck": true
+  }
+}

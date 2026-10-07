@@ -286,6 +286,7 @@ public struct EvaluationWeights: Sendable, Equatable, Codable {
         // what the interval was always saying. It is recorded because it is the
         // one cell that does not favour this change, not because it decided it.
         case .vast: return .default
+        case .naval: return .default
         }
     }
 

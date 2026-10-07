@@ -1,0 +1,21 @@
+[project]
+name = "empires-naval-evaluation"
+version = "1.0.0"
+requires-python = ">=3.9"
+dependencies = []
+
+[project.optional-dependencies]
+test = ["pytest==7.4.0"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]
+
+[tool.black]
+line-length = 88
+extend-exclude = "/frozen/"
+
+[tool.isort]
+profile = "black"
+line_length = 88
+skip_glob = ["*/frozen/*"]

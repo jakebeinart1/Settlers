@@ -1,0 +1,14 @@
+{
+  "sourceCommit": "a316139bb2daa22d7224c19953f4a2e32c699c2f",
+  "sha256": "1b0117a4d44fbe4888ab4868f7c4cb0a22001213766ea284bc4b9c4afa9bd582",
+  "engineOriginalCommit": "81bb29c5a6c4acc35ff268976aef4c58c71b0a03",
+  "protocolVersion": 3,
+  "schemaVersion": 3,
+  "mapVersion": 1,
+  "navalRulesVersion": 1,
+  "engineRulesVersion": 3,
+  "configuration": "Release",
+  "traditionalPolicyID": "naval-traditional-v1",
+  "expertPolicyID": "naval-expert-v1",
+  "anchorRationale": "9fd0f8d retained; publicly proven colony wins, dominant landing improvements and known-victory-deck corrections before Expert-only refinement; no held-out seeds examined"
+}

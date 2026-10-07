@@ -22,7 +22,8 @@ extension GameViewModel {
         var seedSource = state.rng
         return GameSession(
             state: state,
-            policies: makePolicies(opponentProfiles, difficulty: difficulty, ghosts: ghosts, expertRevision: expertRevision),
+            policies: makePolicies(opponentProfiles, difficulty: difficulty, ghosts: ghosts,
+                                   expertRevision: expertRevision, mode: state.mode),
             policySeed: seedSource.next()
         )
     }
@@ -37,9 +38,16 @@ extension GameViewModel {
         _ profiles: [PlayerID: OpponentProfile],
         difficulty: BotDifficulty,
         ghosts: GhostStore,
-        expertRevision: ExpertRevision = .legacy
+        expertRevision: ExpertRevision = .legacy,
+        mode: GameMode = .classic
     ) -> [PlayerID: any Policy] {
-        profiles.mapValues { policy(for: $0, difficulty: difficulty, ghosts: ghosts, expertRevision: expertRevision) }
+        profiles.mapValues {
+            if mode == .naval {
+                return NavalPolicy(tier: difficulty == .expert ? .expert : .traditional,
+                                   personality: $0.strategicPersonality) as any Policy
+            }
+            return policy(for: $0, difficulty: difficulty, ghosts: ghosts, expertRevision: expertRevision)
+        }
     }
 
     /// Human-offer presentation uses the seated policy, including its counted

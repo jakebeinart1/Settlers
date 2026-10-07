@@ -1,0 +1,167 @@
+{
+  "verifiedAtUTC": "2026-10-07T17:58:45.203005+00:00",
+  "testedHeadSHA": "cffe613a3c112c6f99f5e6c1d4dca36c7fa719a0",
+  "workflowRun": {
+    "conclusion": "success",
+    "createdAt": "2026-10-07T17:34:59Z",
+    "headSha": "cffe613a3c112c6f99f5e6c1d4dca36c7fa719a0",
+    "jobs": [
+      {
+        "completedAt": "2026-10-07T17:36:02Z",
+        "conclusion": "success",
+        "databaseId": 112925410931,
+        "name": "SwiftLint",
+        "startedAt": "2026-10-07T17:35:02Z",
+        "status": "completed",
+        "steps": [
+          {
+            "completedAt": "2026-10-07T17:35:04Z",
+            "conclusion": "success",
+            "name": "Set up job",
+            "number": 1,
+            "startedAt": "2026-10-07T17:35:03Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-07T17:35:21Z",
+            "conclusion": "success",
+            "name": "Initialize containers",
+            "number": 2,
+            "startedAt": "2026-10-07T17:35:04Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-07T17:35:54Z",
+            "conclusion": "success",
+            "name": "Run actions/checkout@v5",
+            "number": 3,
+            "startedAt": "2026-10-07T17:35:21Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-07T17:35:57Z",
+            "conclusion": "success",
+            "name": "Run swiftlint lint --strict --reporter github-actions-logging",
+            "number": 4,
+            "startedAt": "2026-10-07T17:35:54Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-07T17:35:57Z",
+            "conclusion": "success",
+            "name": "Post Run actions/checkout@v5",
+            "number": 7,
+            "startedAt": "2026-10-07T17:35:57Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-07T17:36:00Z",
+            "conclusion": "success",
+            "name": "Stop containers",
+            "number": 8,
+            "startedAt": "2026-10-07T17:35:57Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-07T17:36:00Z",
+            "conclusion": "success",
+            "name": "Complete job",
+            "number": 9,
+            "startedAt": "2026-10-07T17:36:00Z",
+            "status": "completed"
+          }
+        ],
+        "url": "https://github.com/jakebeinart1/Settlers/actions/runs/37660184339/job/112925410931"
+      },
+      {
+        "completedAt": "2026-10-07T17:50:17Z",
+        "conclusion": "success",
+        "databaseId": 112925411362,
+        "name": "Engine + AI (Linux)",
+        "startedAt": "2026-10-07T17:35:02Z",
+        "status": "completed",
+        "steps": [
+          {
+            "completedAt": "2026-10-07T17:35:03Z",
+            "conclusion": "success",
+            "name": "Set up job",
+            "number": 1,
+            "startedAt": "2026-10-07T17:35:03Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-07T17:35:34Z",
+            "conclusion": "success",
+            "name": "Initialize containers",
+            "number": 2,
+            "startedAt": "2026-10-07T17:35:03Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-07T17:35:55Z",
+            "conclusion": "success",
+            "name": "Run actions/checkout@v5",
+            "number": 3,
+            "startedAt": "2026-10-07T17:35:34Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-07T17:36:15Z",
+            "conclusion": "success",
+            "name": "Build with warnings as errors",
+            "number": 4,
+            "startedAt": "2026-10-07T17:35:55Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-07T17:50:13Z",
+            "conclusion": "success",
+            "name": "Test",
+            "number": 5,
+            "startedAt": "2026-10-07T17:36:15Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-07T17:50:14Z",
+            "conclusion": "success",
+            "name": "Post Run actions/checkout@v5",
+            "number": 9,
+            "startedAt": "2026-10-07T17:50:13Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-07T17:50:15Z",
+            "conclusion": "success",
+            "name": "Stop containers",
+            "number": 10,
+            "startedAt": "2026-10-07T17:50:14Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-07T17:50:15Z",
+            "conclusion": "success",
+            "name": "Complete job",
+            "number": 11,
+            "startedAt": "2026-10-07T17:50:15Z",
+            "status": "completed"
+          }
+        ],
+        "url": "https://github.com/jakebeinart1/Settlers/actions/runs/37660184339/job/112925411362"
+      },
+      {
+        "completedAt": "2026-10-07T17:35:00Z",
+        "conclusion": "skipped",
+        "databaseId": 112925412701,
+        "name": "project.yml drift",
+        "startedAt": "2026-10-07T17:35:00Z",
+        "status": "completed",
+        "steps": [],
+        "url": "https://github.com/jakebeinart1/Settlers/actions/runs/37660184339/job/112925412701"
+      }
+    ],
+    "status": "completed",
+    "updatedAt": "2026-10-07T17:50:18Z",
+    "url": "https://github.com/jakebeinart1/Settlers/actions/runs/37660184339"
+  },
+  "localProjectDrift": "PASS in mandatory complete pre-push gate; hosted drift job is workflow_dispatch only"
+}

@@ -129,6 +129,14 @@ public struct InGameSettingsView: View {
                 .font(.system(size: 29, weight: .bold, design: .serif))
                 .lineLimit(1)
                 .minimumScaleFactor(0.8)
+            if let rulebookState {
+                Text(VictoryTargetText.goal(rulebookState.victoryPointTarget))
+                    .font(.system(size: 17, weight: .semibold, design: .serif))
+                    .foregroundStyle(CatanTheme.cityPennantGold)
+                    .multilineTextAlignment(.center)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .accessibilityIdentifier("in-game-settings.victory-target")
+            }
             // This line used to be a `SettingsInfoPlaque` of its own, a
             // bordered gold-hairline card reading "These settings do not
             // change match rules." A plaque is the chrome this app uses for
@@ -337,6 +345,7 @@ public struct InGameSettingsView: View {
             title: "Restart Game?",
             message: "This throws away the current board and starts a brand new game.",
             confirmTitle: "Restart",
+            confirmIdentifier: "in-game-settings.restart-confirm",
             onConfirm: onRestart,
             onCancel: { isConfirmingRestart = false }
         )

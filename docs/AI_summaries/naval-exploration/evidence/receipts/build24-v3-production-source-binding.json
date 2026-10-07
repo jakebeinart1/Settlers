@@ -1,0 +1,10 @@
+{
+  "allMatrixPackageInputsMatchFrozenProductionInputs": true,
+  "build": "24",
+  "frozenProductionInputs": "/Users/alex/.codex/artifacts/naval-exploration/build24-travel-harvest-trade/final-production-inputs.json",
+  "frozenProductionInputsSHA256": "4ddce068c9316807858ec744cc5ff14d8a3c667f8b119c99a602506f5afab065",
+  "matrixPackageInputCount": 112,
+  "productionInputCount": 376,
+  "sourceCommit": "9bce5f77a38684bd6e011fac8838c74b38440798",
+  "version": "1.0"
+}

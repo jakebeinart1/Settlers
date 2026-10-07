@@ -53,12 +53,14 @@ public struct BoardIndex: Sendable {
             reachable.insert(a)
             reachable.insert(b)
         }
+        if state.mode == .naval {
+            reachable.formUnion(Naval.potentialColonySites(for: player, in: state).filter {
+                Naval.canFoundColony(at: $0, by: player, in: state)
+            })
+        }
 
         return reachable
-            .filter { vertex in
-                guard !occupied.contains(vertex) else { return false }
-                return !state.board.adjacentVertices(of: vertex).contains { occupied.contains($0) }
-            }
+            .filter { isSettlementSite($0, in: state) }
             .sorted()
     }
 
@@ -101,9 +103,17 @@ public struct BoardIndex: Sendable {
             .sorted { $0.roads != $1.roads ? $0.roads < $1.roads : $0.vertex < $1.vertex }
     }
 
-    /// Whether a settlement could stand at `vertex` under the distance rule.
+    /// A future road cannot reveal fog. Both immediate and approached naval
+    /// sites therefore require the same public terrain availability as building.
     private func isSettlementSite(_ vertex: VertexID, in state: GameState) -> Bool {
         guard !occupied.contains(vertex) else { return false }
+        if state.mode == .naval {
+            let touching = vertex.touchingTiles.compactMap { tiles[$0] }
+            guard touching.contains(where: { Naval.isKnownLand($0.coordinate, in: state) }),
+                  touching.allSatisfy({ Naval.isRevealed($0.coordinate, in: state) && $0.kind != .fog }) else {
+                return false
+            }
+        }
         return !state.board.adjacentVertices(of: vertex).contains { occupied.contains($0) }
     }
 
@@ -130,6 +140,10 @@ public struct BoardIndex: Sendable {
             let distance = distances[vertex] ?? 0
             guard distance < limit else { continue }
             for edge in state.board.edgesTouching(vertex).sorted() where !theirRoads.contains(edge) {
+                if state.mode == .naval {
+                    let touching = Set(edge.a.touchingTiles).intersection(edge.b.touchingTiles)
+                    guard touching.contains(where: { Naval.isKnownLand($0, in: state) }) else { continue }
+                }
                 let (a, b) = state.board.vertices(of: edge)
                 let next = a == vertex ? b : a
                 guard distances[next] == nil, !theirBuildings.contains(next) else { continue }

@@ -1,0 +1,12 @@
+naval-sim seed=808000 decisions=703 p95=4.898ms p99=18.505ms over50=0 over150=0
+naval-sim seed=808001 decisions=538 p95=8.557ms p99=19.702ms over50=0 over150=0
+naval-sim seed=808002 decisions=592 p95=8.241ms p99=19.170ms over50=0 over150=0
+naval-sim rejection evidence: /var/folders/_m/cfbn0s7j7zx3sx1lwv6w4mr80000gn/T/naval-sim-failures/808003-3-1-control-twinIslands-true-true
+naval-sim seed=808003 decisions=625 p95=12.753ms p99=27.331ms over50=0 over150=0
+naval-sim seed=808004 decisions=617 p95=2.848ms p99=17.190ms over50=1 over150=0
+naval-sim seed=808005 decisions=629 p95=11.994ms p99=29.205ms over50=0 over150=0
+naval-sim seed=808006 decisions=691 p95=8.058ms p99=17.030ms over50=0 over150=0
+naval-sim seed=808007 decisions=775 p95=3.517ms p99=25.982ms over50=2 over150=0
+naval-sim seed=808008 decisions=523 p95=15.645ms p99=30.401ms over50=0 over150=0
+naval-sim seed=808009 decisions=457 p95=2.059ms p99=9.558ms over50=0 over150=0
+naval-sim seed=808010 decisions=865 p95=6.262ms p99=21.975ms over50=0 over150=0

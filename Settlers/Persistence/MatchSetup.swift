@@ -77,6 +77,8 @@ public struct MatchSetup: Codable, Equatable, Sendable {
     /// The rule layer - Standard or Conquest - over the chosen board. Stored with
     /// the match for the same reason `mode` is: a running game keeps its rules.
     public var variant: GameVariant
+    /// Mode-specific rules travel with this match, including Restart/resume.
+    public var navalOptions = NavalOptions()
 
     public init(seats: [Seat], mode: GameMode = .classic, victoryPointTarget: Int,
                 randomizedBoard: Bool, randomizeSeatOrder: Bool,
@@ -109,6 +111,7 @@ public struct MatchSetup: Codable, Equatable, Sendable {
         expertRevision = try container.decodeIfPresent(ExpertRevision.self, forKey: .expertRevision) ?? .legacy
         // Absent in every setup written before Conquest. Those were standard games.
         variant = try container.decodeIfPresent(GameVariant.self, forKey: .variant) ?? .standard
+        navalOptions = try container.decodeIfPresent(NavalOptions.self, forKey: .navalOptions) ?? NavalOptions()
     }
 
     // MARK: - Validity
@@ -150,6 +153,17 @@ public struct MatchSetup: Codable, Equatable, Sendable {
         }
         guard Ruleset.forMode(mode).victoryPointTargets.contains(victoryPointTarget) else {
             return "That match length is not available in \(mode.displayName)."
+        }
+        guard mode != .naval || variant == .standard else {
+            return "Voyages uses Standard rules. Conquest is available on Classic and Vast."
+        }
+        // A restored roster must identify the policy that actually plays it.
+        // Ghost policies have never supported Voyages; substituting NavalPolicy
+        // underneath a ghost's saved identity would silently change opponents.
+        if mode == .naval, seats.contains(where: {
+            $0.ghostID != nil || $0.opponentProfile?.ghostID != nil
+        }) {
+            return "Ghosts play Classic only."
         }
         guard hasSupportedExpertRevision else {
             return "That Expert revision is not supported by this match configuration."
@@ -296,6 +310,7 @@ public struct MatchSetup: Codable, Equatable, Sendable {
         // 26 is derived from how much of a 61-tile board a player can actually
         // claim, so an 18 or a 34 beside it would not be the same game.
         case .vast: return [26]
+        case .naval: return [14]
         }
     }
 
@@ -308,6 +323,7 @@ public struct MatchSetup: Codable, Equatable, Sendable {
     /// Card completion was confirmed on randomized boards; fixed-board games
     /// retain the previously approved city-production revision.
     var newMatchExpertRevision: ExpertRevision {
+        if difficulty == .expert, mode == .naval { return .navalV1 }
         guard isStandardExpertTable else { return .legacy }
         return randomizedBoard ? .pointCompletingCardsV1 : .cityProductionV1
     }
@@ -320,6 +336,7 @@ public struct MatchSetup: Codable, Equatable, Sendable {
         case .legacy: return true
         case .cityProductionV1: return isStandardExpertTable
         case .pointCompletingCardsV1: return isStandardExpertTable && randomizedBoard
+        case .navalV1: return difficulty == .expert && mode == .naval
         }
     }
 
@@ -396,6 +413,10 @@ public struct MatchSetup: Codable, Equatable, Sendable {
     /// Normalizes the target within the chosen mode, including legacy modes
     /// used by restart. Mode retirement belongs only to `normalizedForNewGame`.
     mutating func normalizeNewGameOptions() {
+        if mode == .naval {
+            variant = .standard
+            randomizedBoard = true
+        }
         if !Self.newGameVictoryPointTargets(for: seats.count, mode: mode).contains(victoryPointTarget) {
             victoryPointTarget = Ruleset.forMode(mode).defaultVictoryPointTarget
         }

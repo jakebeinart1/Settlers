@@ -1,0 +1,3335 @@
+{
+  "cases": [
+    {
+      "case": "cell00-3-traditional",
+      "colonies": [
+        0,
+        1,
+        2
+      ],
+      "family": "archipelago",
+      "firstHarborEvidence": [
+        {
+          "action": "P2:buildSettlement(CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: 0, r: 2), CatanEngine.HexCoordinate(q: 1, r: 1), CatanEngine.HexCoordinate(q: 1, r: 2)]))",
+          "initial": false,
+          "line": 160,
+          "seat": 2
+        },
+        {
+          "action": "P0:buildSettlement(CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: 1, r: 1), CatanEngine.HexCoordinate(q: 2, r: 0), CatanEngine.HexCoordinate(q: 2, r: 1)]))",
+          "initial": false,
+          "line": 466,
+          "seat": 0
+        }
+      ],
+      "firstHomeHarborLines": [
+        466,
+        null,
+        160
+      ],
+      "fog": true,
+      "initialHomeHarbors": [
+        0,
+        0,
+        0
+      ],
+      "initialInlandSettlements": [
+        2,
+        2,
+        2
+      ],
+      "laterHomeHarbors": [
+        2,
+        0,
+        2
+      ],
+      "players": 3,
+      "sailingSteps": [
+        5,
+        2,
+        9
+      ],
+      "seed": 880000,
+      "shipsBought": [
+        1,
+        0,
+        1
+      ],
+      "tier": "naval-traditional-v1",
+      "trace": "/Users/alex/.codex/artifacts/naval-ai/voyages-build22/traces/cell00-3-traditional/880000-0-functional-build22.txt",
+      "wild": true,
+      "winner": 1
+    },
+    {
+      "case": "cell00-3-expert",
+      "colonies": [
+        0,
+        4,
+        4
+      ],
+      "family": "archipelago",
+      "firstHarborEvidence": [
+        {
+          "action": "P1:buildSettlement(CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: 2, r: -1), CatanEngine.HexCoordinate(q: 2, r: 0), CatanEngine.HexCoordinate(q: 3, r: -1)]))",
+          "initial": false,
+          "line": 207,
+          "seat": 1
+        },
+        {
+          "action": "P2:buildSettlement(CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: -1, r: -2), CatanEngine.HexCoordinate(q: -1, r: -1), CatanEngine.HexCoordinate(q: 0, r: -2)]))",
+          "initial": false,
+          "line": 327,
+          "seat": 2
+        }
+      ],
+      "firstHomeHarborLines": [
+        null,
+        207,
+        327
+      ],
+      "fog": true,
+      "initialHomeHarbors": [
+        0,
+        0,
+        0
+      ],
+      "initialInlandSettlements": [
+        2,
+        2,
+        2
+      ],
+      "laterHomeHarbors": [
+        0,
+        1,
+        1
+      ],
+      "players": 3,
+      "sailingSteps": [
+        0,
+        7,
+        7
+      ],
+      "seed": 880001,
+      "shipsBought": [
+        0,
+        1,
+        1
+      ],
+      "tier": "naval-expert-v1",
+      "trace": "/Users/alex/.codex/artifacts/naval-ai/voyages-build22/traces/cell00-3-expert/880001-0-functional-build22.txt",
+      "wild": true,
+      "winner": 1
+    },
+    {
+      "case": "cell00-4-traditional",
+      "colonies": [
+        1,
+        0,
+        1,
+        4
+      ],
+      "family": "archipelago",
+      "firstHarborEvidence": [
+        {
+          "action": "P3:buildSettlement(CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: -1, r: 2), CatanEngine.HexCoordinate(q: -1, r: 3), CatanEngine.HexCoordinate(q: 0, r: 2)]))",
+          "initial": false,
+          "line": 35,
+          "seat": 3
+        },
+        {
+          "action": "P1:buildSettlement(CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: -1, r: -2), CatanEngine.HexCoordinate(q: -1, r: -1), CatanEngine.HexCoordinate(q: 0, r: -2)]))",
+          "initial": false,
+          "line": 362,
+          "seat": 1
+        },
+        {
+          "action": "P0:buildSettlement(CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: -2, r: -1), CatanEngine.HexCoordinate(q: -2, r: 0), CatanEngine.HexCoordinate(q: -1, r: -1)]))",
+          "initial": false,
+          "line": 385,
+          "seat": 0
+        }
+      ],
+      "firstHomeHarborLines": [
+        385,
+        362,
+        null,
+        35
+      ],
+      "fog": true,
+      "initialHomeHarbors": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "initialInlandSettlements": [
+        2,
+        2,
+        2,
+        2
+      ],
+      "laterHomeHarbors": [
+        1,
+        1,
+        0,
+        2
+      ],
+      "players": 4,
+      "sailingSteps": [
+        1,
+        3,
+        1,
+        13
+      ],
+      "seed": 880020,
+      "shipsBought": [
+        0,
+        2,
+        0,
+        3
+      ],
+      "tier": "naval-traditional-v1",
+      "trace": "/Users/alex/.codex/artifacts/naval-ai/voyages-build22/traces/cell00-4-traditional/880020-0-functional-build22.txt",
+      "wild": true,
+      "winner": 3
+    },
+    {
+      "case": "cell00-4-expert",
+      "colonies": [
+        4,
+        1,
+        0,
+        3
+      ],
+      "family": "archipelago",
+      "firstHarborEvidence": [
+        {
+          "action": "P0:buildSettlement(CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: -2, r: 2), CatanEngine.HexCoordinate(q: -2, r: 3), CatanEngine.HexCoordinate(q: -1, r: 2)]))",
+          "initial": false,
+          "line": 65,
+          "seat": 0
+        },
+        {
+          "action": "P1:buildSettlement(CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: 1, r: -2), CatanEngine.HexCoordinate(q: 2, r: -3), CatanEngine.HexCoordinate(q: 2, r: -2)]))",
+          "initial": false,
+          "line": 386,
+          "seat": 1
+        },
+        {
+          "action": "P2:buildSettlement(CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: 1, r: 1), CatanEngine.HexCoordinate(q: 2, r: 0), CatanEngine.HexCoordinate(q: 2, r: 1)]))",
+          "initial": false,
+          "line": 440,
+          "seat": 2
+        },
+        {
+          "action": "P3:buildSettlement(CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: -3, r: 2), CatanEngine.HexCoordinate(q: -2, r: 1), CatanEngine.HexCoordinate(q: -2, r: 2)]))",
+          "initial": false,
+          "line": 496,
+          "seat": 3
+        }
+      ],
+      "firstHomeHarborLines": [
+        65,
+        386,
+        440,
+        496
+      ],
+      "fog": true,
+      "initialHomeHarbors": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "initialInlandSettlements": [
+        2,
+        2,
+        2,
+        2
+      ],
+      "laterHomeHarbors": [
+        1,
+        2,
+        2,
+        2
+      ],
+      "players": 4,
+      "sailingSteps": [
+        22,
+        4,
+        3,
+        6
+      ],
+      "seed": 880021,
+      "shipsBought": [
+        2,
+        1,
+        1,
+        0
+      ],
+      "tier": "naval-expert-v1",
+      "trace": "/Users/alex/.codex/artifacts/naval-ai/voyages-build22/traces/cell00-4-expert/880021-0-functional-build22.txt",
+      "wild": true,
+      "winner": 0
+    },
+    {
+      "case": "cell01-3-traditional",
+      "colonies": [
+        1,
+        0,
+        0
+      ],
+      "family": "archipelago",
+      "firstHarborEvidence": [
+        {
+          "action": "P1:buildSettlement(CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: -1, r: 2), CatanEngine.HexCoordinate(q: -1, r: 3), CatanEngine.HexCoordinate(q: 0, r: 2)]))",
+          "initial": false,
+          "line": 111,
+          "seat": 1
+        },
+        {
+          "action": "P0:buildSettlement(CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: 2, r: -2), CatanEngine.HexCoordinate(q: 2, r: -1), CatanEngine.HexCoordinate(q: 3, r: -2)]))",
+          "initial": false,
+          "line": 343,
+          "seat": 0
+        }
+      ],
+      "firstHomeHarborLines": [
+        343,
+        111,
+        null
+      ],
+      "fog": true,
+      "initialHomeHarbors": [
+        0,
+        0,
+        0
+      ],
+      "initialInlandSettlements": [
+        2,
+        2,
+        2
+      ],
+      "laterHomeHarbors": [
+        2,
+        3,
+        0
+      ],
+      "players": 3,
+      "sailingSteps": [
+        3,
+        3,
+        0
+      ],
+      "seed": 880100,
+      "shipsBought": [
+        1,
+        1,
+        0
+      ],
+      "tier": "naval-traditional-v1",
+      "trace": "/Users/alex/.codex/artifacts/naval-ai/voyages-build22/traces/cell01-3-traditional/880100-0-functional-build22.txt",
+      "wild": false,
+      "winner": 0
+    },
+    {
+      "case": "cell01-3-expert",
+      "colonies": [
+        1,
+        1,
+        0
+      ],
+      "family": "archipelago",
+      "firstHarborEvidence": [
+        {
+          "action": "P0:placeInitialSettlement(CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: -2, r: 2), CatanEngine.HexCoordinate(q: -2, r: 3), CatanEngine.HexCoordinate(q: -1, r: 2)]))",
+          "initial": true,
+          "line": 11,
+          "seat": 0
+        },
+        {
+          "action": "P1:buildSettlement(CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: -3, r: 1), CatanEngine.HexCoordinate(q: -3, r: 2), CatanEngine.HexCoordinate(q: -2, r: 1)]))",
+          "initial": false,
+          "line": 240,
+          "seat": 1
+        }
+      ],
+      "firstHomeHarborLines": [
+        11,
+        240,
+        null
+      ],
+      "fog": true,
+      "initialHomeHarbors": [
+        1,
+        0,
+        0
+      ],
+      "initialInlandSettlements": [
+        1,
+        2,
+        2
+      ],
+      "laterHomeHarbors": [
+        1,
+        1,
+        0
+      ],
+      "players": 3,
+      "sailingSteps": [
+        8,
+        1,
+        0
+      ],
+      "seed": 880101,
+      "shipsBought": [
+        1,
+        0,
+        0
+      ],
+      "tier": "naval-expert-v1",
+      "trace": "/Users/alex/.codex/artifacts/naval-ai/voyages-build22/traces/cell01-3-expert/880101-0-functional-build22.txt",
+      "wild": false,
+      "winner": 2
+    },
+    {
+      "case": "cell01-4-traditional",
+      "colonies": [
+        0,
+        4,
+        3,
+        1
+      ],
+      "family": "archipelago",
+      "firstHarborEvidence": [
+        {
+          "action": "P0:placeInitialSettlement(CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: -2, r: -1), CatanEngine.HexCoordinate(q: -2, r: 0), CatanEngine.HexCoordinate(q: -1, r: -1)]))",
+          "initial": true,
+          "line": 15,
+          "seat": 0
+        },
+        {
+          "action": "P2:buildSettlement(CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: -3, r: 2), CatanEngine.HexCoordinate(q: -2, r: 1), CatanEngine.HexCoordinate(q: -2, r: 2)]))",
+          "initial": false,
+          "line": 133,
+          "seat": 2
+        },
+        {
+          "action": "P3:buildSettlement(CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: 0, r: 2), CatanEngine.HexCoordinate(q: 1, r: 1), CatanEngine.HexCoordinate(q: 1, r: 2)]))",
+          "initial": false,
+          "line": 313,
+          "seat": 3
+        },
+        {
+          "action": "P1:buildSettlement(CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: 1, r: -3), CatanEngine.HexCoordinate(q: 1, r: -2), CatanEngine.HexCoordinate(q: 2, r: -3)]))",
+          "initial": false,
+          "line": 448,
+          "seat": 1
+        }
+      ],
+      "firstHomeHarborLines": [
+        15,
+        448,
+        133,
+        313
+      ],
+      "fog": true,
+      "initialHomeHarbors": [
+        1,
+        0,
+        0,
+        0
+      ],
+      "initialInlandSettlements": [
+        1,
+        2,
+        2,
+        2
+      ],
+      "laterHomeHarbors": [
+        3,
+        1,
+        3,
+        2
+      ],
+      "players": 4,
+      "sailingSteps": [
+        4,
+        6,
+        10,
+        4
+      ],
+      "seed": 880120,
+      "shipsBought": [
+        2,
+        0,
+        1,
+        1
+      ],
+      "tier": "naval-traditional-v1",
+      "trace": "/Users/alex/.codex/artifacts/naval-ai/voyages-build22/traces/cell01-4-traditional/880120-0-functional-build22.txt",
+      "wild": false,
+      "winner": 2
+    },
+    {
+      "case": "cell01-4-expert",
+      "colonies": [
+        4,
+        3,
+        3,
+        1
+      ],
+      "family": "archipelago",
+      "firstHarborEvidence": [
+        {
+          "action": "P2:placeInitialSettlement(CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: 2, r: -2), CatanEngine.HexCoordinate(q: 2, r: -1), CatanEngine.HexCoordinate(q: 3, r: -2)]))",
+          "initial": true,
+          "line": 11,
+          "seat": 2
+        },
+        {
+          "action": "P3:buildSettlement(CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: -1, r: -2), CatanEngine.HexCoordinate(q: -1, r: -1), CatanEngine.HexCoordinate(q: 0, r: -2)]))",
+          "initial": false,
+          "line": 66,
+          "seat": 3
+        }
+      ],
+      "firstHomeHarborLines": [
+        null,
+        null,
+        11,
+        66
+      ],
+      "fog": true,
+      "initialHomeHarbors": [
+        0,
+        0,
+        1,
+        0
+      ],
+      "initialInlandSettlements": [
+        2,
+        2,
+        1,
+        2
+      ],
+      "laterHomeHarbors": [
+        0,
+        0,
+        1,
+        2
+      ],
+      "players": 4,
+      "sailingSteps": [
+        8,
+        12,
+        10,
+        6
+      ],
+      "seed": 880121,
+      "shipsBought": [
+        0,
+        0,
+        2,
+        2
+      ],
+      "tier": "naval-expert-v1",
+      "trace": "/Users/alex/.codex/artifacts/naval-ai/voyages-build22/traces/cell01-4-expert/880121-0-functional-build22.txt",
+      "wild": false,
+      "winner": 0
+    },
+    {
+      "case": "cell02-3-traditional",
+      "colonies": [
+        0,
+        3,
+        0
+      ],
+      "family": "archipelago",
+      "firstHarborEvidence": [
+        {
+          "action": "P1:buildSettlement(CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: 0, r: -2), CatanEngine.HexCoordinate(q: 1, r: -3), CatanEngine.HexCoordinate(q: 1, r: -2)]))",
+          "initial": false,
+          "line": 223,
+          "seat": 1
+        },
+        {
+          "action": "P2:buildSettlement(CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: 0, r: 2), CatanEngine.HexCoordinate(q: 1, r: 1), CatanEngine.HexCoordinate(q: 1, r: 2)]))",
+          "initial": false,
+          "line": 260,
+          "seat": 2
+        },
+        {
+          "action": "P0:buildSettlement(CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: 1, r: 1), CatanEngine.HexCoordinate(q: 2, r: 0), CatanEngine.HexCoordinate(q: 2, r: 1)]))",
+          "initial": false,
+          "line": 424,
+          "seat": 0
+        }
+      ],
+      "firstHomeHarborLines": [
+        424,
+        223,
+        260
+      ],
+      "fog": false,
+      "initialHomeHarbors": [
+        0,
+        0,
+        0
+      ],
+      "initialInlandSettlements": [
+        2,
+        2,
+        2
+      ],
+      "laterHomeHarbors": [
+        1,
+        1,
+        1
+      ],
+      "players": 3,
+      "sailingSteps": [
+        0,
+        4,
+        4
+      ],
+      "seed": 880200,
+      "shipsBought": [
+        0,
+        1,
+        2
+      ],
+      "tier": "naval-traditional-v1",
+      "trace": "/Users/alex/.codex/artifacts/naval-ai/voyages-build22/traces/cell02-3-traditional/880200-0-functional-build22.txt",
+      "wild": true,
+      "winner": 1
+    },
+    {
+      "case": "cell02-3-expert",
+      "colonies": [
+        0,
+        3,
+        2
+      ],
+      "family": "archipelago",
+      "firstHarborEvidence": [
+        {
+          "action": "P0:placeInitialSettlement(CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: -2, r: -1), CatanEngine.HexCoordinate(q: -2, r: 0), CatanEngine.HexCoordinate(q: -1, r: -1)]))",
+          "initial": true,
+          "line": 11,
+          "seat": 0
+        },
+        {
+          "action": "P1:buildSettlement(CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: -1, r: -2), CatanEngine.HexCoordinate(q: -1, r: -1), CatanEngine.HexCoordinate(q: 0, r: -2)]))",
+          "initial": false,
+          "line": 95,
+          "seat": 1
+        },
+        {
+          "action": "P2:buildSettlement(CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: 0, r: 2), CatanEngine.HexCoordinate(q: 1, r: 1), CatanEngine.HexCoordinate(q: 1, r: 2)]))",
+          "initial": false,
+          "line": 343,
+          "seat": 2
+        }
+      ],
+      "firstHomeHarborLines": [
+        11,
+        95,
+        343
+      ],
+      "fog": false,
+      "initialHomeHarbors": [
+        1,
+        0,
+        0
+      ],
+      "initialInlandSettlements": [
+        1,
+        2,
+        2
+      ],
+      "laterHomeHarbors": [
+        3,
+        1,
+        2
+      ],
+      "players": 3,
+      "sailingSteps": [
+        4,
+        3,
+        3
+      ],
+      "seed": 880201,
+      "shipsBought": [
+        2,
+        0,
+        1
+      ],
+      "tier": "naval-expert-v1",
+      "trace": "/Users/alex/.codex/artifacts/naval-ai/voyages-build22/traces/cell02-3-expert/880201-0-functional-build22.txt",
+      "wild": true,
+      "winner": 1
+    },
+    {
+      "case": "cell02-4-traditional",
+      "colonies": [
+        0,
+        3,
+        0,
+        1
+      ],
+      "family": "archipelago",
+      "firstHarborEvidence": [
+        {
+          "action": "P1:buildSettlement(CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: -1, r: 2), CatanEngine.HexCoordinate(q: -1, r: 3), CatanEngine.HexCoordinate(q: 0, r: 2)]))",
+          "initial": false,
+          "line": 116,
+          "seat": 1
+        },
+        {
+          "action": "P0:buildSettlement(CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: -2, r: 2), CatanEngine.HexCoordinate(q: -2, r: 3), CatanEngine.HexCoordinate(q: -1, r: 2)]))",
+          "initial": false,
+          "line": 301,
+          "seat": 0
+        },
+        {
+          "action": "P2:buildSettlement(CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: -3, r: 1), CatanEngine.HexCoordinate(q: -3, r: 2), CatanEngine.HexCoordinate(q: -2, r: 1)]))",
+          "initial": false,
+          "line": 318,
+          "seat": 2
+        },
+        {
+          "action": "P3:buildSettlement(CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: -2, r: -1), CatanEngine.HexCoordinate(q: -2, r: 0), CatanEngine.HexCoordinate(q: -1, r: -1)]))",
+          "initial": false,
+          "line": 401,
+          "seat": 3
+        }
+      ],
+      "firstHomeHarborLines": [
+        301,
+        116,
+        318,
+        401
+      ],
+      "fog": false,
+      "initialHomeHarbors": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "initialInlandSettlements": [
+        2,
+        2,
+        2,
+        2
+      ],
+      "laterHomeHarbors": [
+        2,
+        1,
+        2,
+        1
+      ],
+      "players": 4,
+      "sailingSteps": [
+        3,
+        7,
+        0,
+        2
+      ],
+      "seed": 880220,
+      "shipsBought": [
+        1,
+        1,
+        0,
+        1
+      ],
+      "tier": "naval-traditional-v1",
+      "trace": "/Users/alex/.codex/artifacts/naval-ai/voyages-build22/traces/cell02-4-traditional/880220-0-functional-build22.txt",
+      "wild": true,
+      "winner": 3
+    },
+    {
+      "case": "cell02-4-expert",
+      "colonies": [
+        0,
+        0,
+        1,
+        1
+      ],
+      "family": "archipelago",
+      "firstHarborEvidence": [
+        {
+          "action": "P2:placeInitialSettlement(CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: 0, r: -2), CatanEngine.HexCoordinate(q: 1, r: -3), CatanEngine.HexCoordinate(q: 1, r: -2)]))",
+          "initial": true,
+          "line": 11,
+          "seat": 2
+        },
+        {
+          "action": "P0:buildSettlement(CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: -1, r: -2), CatanEngine.HexCoordinate(q: -1, r: -1), CatanEngine.HexCoordinate(q: 0, r: -2)]))",
+          "initial": false,
+          "line": 458,
+          "seat": 0
+        },
+        {
+          "action": "P1:buildSettlement(CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: 1, r: 1), CatanEngine.HexCoordinate(q: 2, r: 0), CatanEngine.HexCoordinate(q: 2, r: 1)]))",
+          "initial": false,
+          "line": 539,
+          "seat": 1
+        }
+      ],
+      "firstHomeHarborLines": [
+        458,
+        539,
+        11,
+        null
+      ],
+      "fog": false,
+      "initialHomeHarbors": [
+        0,
+        0,
+        1,
+        0
+      ],
+      "initialInlandSettlements": [
+        2,
+        2,
+        1,
+        2
+      ],
+      "laterHomeHarbors": [
+        1,
+        1,
+        3,
+        0
+      ],
+      "players": 4,
+      "sailingSteps": [
+        0,
+        0,
+        3,
+        2
+      ],
+      "seed": 880221,
+      "shipsBought": [
+        0,
+        0,
+        1,
+        0
+      ],
+      "tier": "naval-expert-v1",
+      "trace": "/Users/alex/.codex/artifacts/naval-ai/voyages-build22/traces/cell02-4-expert/880221-0-functional-build22.txt",
+      "wild": true,
+      "winner": 1
+    },
+    {
+      "case": "cell03-3-traditional",
+      "colonies": [
+        4,
+        0,
+        0
+      ],
+      "family": "archipelago",
+      "firstHarborEvidence": [
+        {
+          "action": "P0:buildSettlement(CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: 2, r: -2), CatanEngine.HexCoordinate(q: 2, r: -1), CatanEngine.HexCoordinate(q: 3, r: -2)]))",
+          "initial": false,
+          "line": 273,
+          "seat": 0
+        },
+        {
+          "action": "P1:buildSettlement(CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: -2, r: 2), CatanEngine.HexCoordinate(q: -2, r: 3), CatanEngine.HexCoordinate(q: -1, r: 2)]))",
+          "initial": false,
+          "line": 600,
+          "seat": 1
+        },
+        {
+          "action": "P2:buildSettlement(CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: -1, r: -2), CatanEngine.HexCoordinate(q: -1, r: -1), CatanEngine.HexCoordinate(q: 0, r: -2)]))",
+          "initial": false,
+          "line": 609,
+          "seat": 2
+        }
+      ],
+      "firstHomeHarborLines": [
+        273,
+        600,
+        609
+      ],
+      "fog": false,
+      "initialHomeHarbors": [
+        0,
+        0,
+        0
+      ],
+      "initialInlandSettlements": [
+        2,
+        2,
+        2
+      ],
+      "laterHomeHarbors": [
+        2,
+        1,
+        1
+      ],
+      "players": 3,
+      "sailingSteps": [
+        8,
+        5,
+        5
+      ],
+      "seed": 880300,
+      "shipsBought": [
+        2,
+        2,
+        2
+      ],
+      "tier": "naval-traditional-v1",
+      "trace": "/Users/alex/.codex/artifacts/naval-ai/voyages-build22/traces/cell03-3-traditional/880300-0-functional-build22.txt",
+      "wild": false,
+      "winner": 0
+    },
+    {
+      "case": "cell03-3-expert",
+      "colonies": [
+        0,
+        0,
+        0
+      ],
+      "family": "archipelago",
+      "firstHarborEvidence": [
+        {
+          "action": "P1:buildSettlement(CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: 0, r: -2), CatanEngine.HexCoordinate(q: 1, r: -3), CatanEngine.HexCoordinate(q: 1, r: -2)]))",
+          "initial": false,
+          "line": 686,
+          "seat": 1
+        },
+        {
+          "action": "P0:buildSettlement(CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: -2, r: -1), CatanEngine.HexCoordinate(q: -2, r: 0), CatanEngine.HexCoordinate(q: -1, r: -1)]))",
+          "initial": false,
+          "line": 705,
+          "seat": 0
+        },
+        {
+          "action": "P2:buildSettlement(CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: 0, r: 2), CatanEngine.HexCoordinate(q: 1, r: 1), CatanEngine.HexCoordinate(q: 1, r: 2)]))",
+          "initial": false,
+          "line": 831,
+          "seat": 2
+        }
+      ],
+      "firstHomeHarborLines": [
+        705,
+        686,
+        831
+      ],
+      "fog": false,
+      "initialHomeHarbors": [
+        0,
+        0,
+        0
+      ],
+      "initialInlandSettlements": [
+        2,
+        2,
+        2
+      ],
+      "laterHomeHarbors": [
+        3,
+        4,
+        3
+      ],
+      "players": 3,
+      "sailingSteps": [
+        0,
+        2,
+        0
+      ],
+      "seed": 880301,
+      "shipsBought": [
+        0,
+        1,
+        0
+      ],
+      "tier": "naval-expert-v1",
+      "trace": "/Users/alex/.codex/artifacts/naval-ai/voyages-build22/traces/cell03-3-expert/880301-0-functional-build22.txt",
+      "wild": false,
+      "winner": 0
+    },
+    {
+      "case": "cell03-4-traditional",
+      "colonies": [
+        0,
+        0,
+        1,
+        2
+      ],
+      "family": "archipelago",
+      "firstHarborEvidence": [
+        {
+          "action": "P1:buildSettlement(CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: -1, r: -2), CatanEngine.HexCoordinate(q: -1, r: -1), CatanEngine.HexCoordinate(q: 0, r: -2)]))",
+          "initial": false,
+          "line": 174,
+          "seat": 1
+        },
+        {
+          "action": "P2:buildSettlement(CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: 2, r: -2), CatanEngine.HexCoordinate(q: 2, r: -1), CatanEngine.HexCoordinate(q: 3, r: -2)]))",
+          "initial": false,
+          "line": 272,
+          "seat": 2
+        },
+        {
+          "action": "P3:buildSettlement(CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: -2, r: 2), CatanEngine.HexCoordinate(q: -2, r: 3), CatanEngine.HexCoordinate(q: -1, r: 2)]))",
+          "initial": false,
+          "line": 342,
+          "seat": 3
+        }
+      ],
+      "firstHomeHarborLines": [
+        null,
+        174,
+        272,
+        342
+      ],
+      "fog": false,
+      "initialHomeHarbors": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "initialInlandSettlements": [
+        2,
+        2,
+        2,
+        2
+      ],
+      "laterHomeHarbors": [
+        0,
+        1,
+        2,
+        1
+      ],
+      "players": 4,
+      "sailingSteps": [
+        0,
+        2,
+        3,
+        6
+      ],
+      "seed": 880320,
+      "shipsBought": [
+        0,
+        1,
+        1,
+        1
+      ],
+      "tier": "naval-traditional-v1",
+      "trace": "/Users/alex/.codex/artifacts/naval-ai/voyages-build22/traces/cell03-4-traditional/880320-0-functional-build22.txt",
+      "wild": false,
+      "winner": 2
+    },
+    {
+      "case": "cell03-4-expert",
+      "colonies": [
+        0,
+        3,
+        1,
+        1
+      ],
+      "family": "archipelago",
+      "firstHarborEvidence": [
+        {
+          "action": "P0:placeInitialSettlement(CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: -3, r: 2), CatanEngine.HexCoordinate(q: -2, r: 1), CatanEngine.HexCoordinate(q: -2, r: 2)]))",
+          "initial": true,
+          "line": 15,
+          "seat": 0
+        },
+        {
+          "action": "P3:buildSettlement(CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: -1, r: -2), CatanEngine.HexCoordinate(q: -1, r: -1), CatanEngine.HexCoordinate(q: 0, r: -2)]))",
+          "initial": false,
+          "line": 35,
+          "seat": 3
+        },
+        {
+          "action": "P1:buildSettlement(CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: -2, r: -1), CatanEngine.HexCoordinate(q: -2, r: 0), CatanEngine.HexCoordinate(q: -1, r: -1)]))",
+          "initial": false,
+          "line": 370,
+          "seat": 1
+        }
+      ],
+      "firstHomeHarborLines": [
+        15,
+        370,
+        null,
+        35
+      ],
+      "fog": false,
+      "initialHomeHarbors": [
+        1,
+        0,
+        0,
+        0
+      ],
+      "initialInlandSettlements": [
+        1,
+        2,
+        2,
+        2
+      ],
+      "laterHomeHarbors": [
+        2,
+        1,
+        0,
+        4
+      ],
+      "players": 4,
+      "sailingSteps": [
+        3,
+        3,
+        2,
+        3
+      ],
+      "seed": 880321,
+      "shipsBought": [
+        1,
+        1,
+        0,
+        1
+      ],
+      "tier": "naval-expert-v1",
+      "trace": "/Users/alex/.codex/artifacts/naval-ai/voyages-build22/traces/cell03-4-expert/880321-0-functional-build22.txt",
+      "wild": false,
+      "winner": 2
+    },
+    {
+      "case": "cell04-3-traditional",
+      "colonies": [
+        2,
+        4,
+        3
+      ],
+      "family": "peninsula",
+      "firstHarborEvidence": [
+        {
+          "action": "P1:buildSettlement(CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: 2, r: -2), CatanEngine.HexCoordinate(q: 2, r: -1), CatanEngine.HexCoordinate(q: 3, r: -2)]))",
+          "initial": false,
+          "line": 236,
+          "seat": 1
+        },
+        {
+          "action": "P2:buildSettlement(CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: -2, r: 2), CatanEngine.HexCoordinate(q: -2, r: 3), CatanEngine.HexCoordinate(q: -1, r: 2)]))",
+          "initial": false,
+          "line": 296,
+          "seat": 2
+        },
+        {
+          "action": "P0:buildSettlement(CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: -2, r: -1), CatanEngine.HexCoordinate(q: -2, r: 0), CatanEngine.HexCoordinate(q: -1, r: -1)]))",
+          "initial": false,
+          "line": 436,
+          "seat": 0
+        }
+      ],
+      "firstHomeHarborLines": [
+        436,
+        236,
+        296
+      ],
+      "fog": true,
+      "initialHomeHarbors": [
+        0,
+        0,
+        0
+      ],
+      "initialInlandSettlements": [
+        2,
+        2,
+        2
+      ],
+      "laterHomeHarbors": [
+        1,
+        1,
+        1
+      ],
+      "players": 3,
+      "sailingSteps": [
+        16,
+        28,
+        23
+      ],
+      "seed": 880400,
+      "shipsBought": [
+        2,
+        2,
+        3
+      ],
+      "tier": "naval-traditional-v1",
+      "trace": "/Users/alex/.codex/artifacts/naval-ai/voyages-build22/traces/cell04-3-traditional/880400-0-functional-build22.txt",
+      "wild": true,
+      "winner": 1
+    },
+    {
+      "case": "cell04-3-expert",
+      "colonies": [
+        3,
+        1,
+        2
+      ],
+      "family": "peninsula",
+      "firstHarborEvidence": [
+        {
+          "action": "P2:buildSettlement(CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: -1, r: 2), CatanEngine.HexCoordinate(q: -1, r: 3), CatanEngine.HexCoordinate(q: 0, r: 2)]))",
+          "initial": false,
+          "line": 58,
+          "seat": 2
+        },
+        {
+          "action": "P1:buildSettlement(CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: 0, r: -2), CatanEngine.HexCoordinate(q: 1, r: -3), CatanEngine.HexCoordinate(q: 1, r: -2)]))",
+          "initial": false,
+          "line": 387,
+          "seat": 1
+        },
+        {
+          "action": "P0:buildSettlement(CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: -2, r: -1), CatanEngine.HexCoordinate(q: -2, r: 0), CatanEngine.HexCoordinate(q: -1, r: -1)]))",
+          "initial": false,
+          "line": 542,
+          "seat": 0
+        }
+      ],
+      "firstHomeHarborLines": [
+        542,
+        387,
+        58
+      ],
+      "fog": true,
+      "initialHomeHarbors": [
+        0,
+        0,
+        0
+      ],
+      "initialInlandSettlements": [
+        2,
+        2,
+        2
+      ],
+      "laterHomeHarbors": [
+        1,
+        2,
+        2
+      ],
+      "players": 3,
+      "sailingSteps": [
+        5,
+        9,
+        21
+      ],
+      "seed": 880401,
+      "shipsBought": [
+        1,
+        1,
+        2
+      ],
+      "tier": "naval-expert-v1",
+      "trace": "/Users/alex/.codex/artifacts/naval-ai/voyages-build22/traces/cell04-3-expert/880401-0-functional-build22.txt",
+      "wild": true,
+      "winner": 1
+    },
+    {
+      "case": "cell04-4-traditional",
+      "colonies": [
+        1,
+        0,
+        0,
+        3
+      ],
+      "family": "peninsula",
+      "firstHarborEvidence": [
+        {
+          "action": "P2:buildSettlement(CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: 2, r: -1), CatanEngine.HexCoordinate(q: 2, r: 0), CatanEngine.HexCoordinate(q: 3, r: -1)]))",
+          "initial": false,
+          "line": 186,
+          "seat": 2
+        },
+        {
+          "action": "P1:buildSettlement(CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: -3, r: 1), CatanEngine.HexCoordinate(q: -2, r: 0), CatanEngine.HexCoordinate(q: -2, r: 1)]))",
+          "initial": false,
+          "line": 251,
+          "seat": 1
+        },
+        {
+          "action": "P3:buildSettlement(CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: 0, r: -2), CatanEngine.HexCoordinate(q: 1, r: -3), CatanEngine.HexCoordinate(q: 1, r: -2)]))",
+          "initial": false,
+          "line": 296,
+          "seat": 3
+        },
+        {
+          "action": "P0:buildSettlement(CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: -1, r: -2), CatanEngine.HexCoordinate(q: 0, r: -3), CatanEngine.HexCoordinate(q: 0, r: -2)]))",
+          "initial": false,
+          "line": 476,
+          "seat": 0
+        }
+      ],
+      "firstHomeHarborLines": [
+        476,
+        251,
+        186,
+        296
+      ],
+      "fog": true,
+      "initialHomeHarbors": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "initialInlandSettlements": [
+        2,
+        2,
+        2,
+        2
+      ],
+      "laterHomeHarbors": [
+        1,
+        3,
+        2,
+        2
+      ],
+      "players": 4,
+      "sailingSteps": [
+        4,
+        2,
+        6,
+        9
+      ],
+      "seed": 880420,
+      "shipsBought": [
+        0,
+        0,
+        2,
+        3
+      ],
+      "tier": "naval-traditional-v1",
+      "trace": "/Users/alex/.codex/artifacts/naval-ai/voyages-build22/traces/cell04-4-traditional/880420-0-functional-build22.txt",
+      "wild": true,
+      "winner": 3
+    },
+    {
+      "case": "cell04-4-expert",
+      "colonies": [
+        3,
+        1,
+        1,
+        2
+      ],
+      "family": "peninsula",
+      "firstHarborEvidence": [
+        {
+          "action": "P2:buildSettlement(CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: -3, r: 1), CatanEngine.HexCoordinate(q: -2, r: 0), CatanEngine.HexCoordinate(q: -2, r: 1)]))",
+          "initial": false,
+          "line": 192,
+          "seat": 2
+        },
+        {
+          "action": "P0:buildSettlement(CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: 1, r: -2), CatanEngine.HexCoordinate(q: 2, r: -3), CatanEngine.HexCoordinate(q: 2, r: -2)]))",
+          "initial": false,
+          "line": 203,
+          "seat": 0
+        },
+        {
+          "action": "P3:buildSettlement(CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: -2, r: 2), CatanEngine.HexCoordinate(q: -2, r: 3), CatanEngine.HexCoordinate(q: -1, r: 2)]))",
+          "initial": false,
+          "line": 224,
+          "seat": 3
+        }
+      ],
+      "firstHomeHarborLines": [
+        203,
+        null,
+        192,
+        224
+      ],
+      "fog": true,
+      "initialHomeHarbors": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "initialInlandSettlements": [
+        2,
+        2,
+        2,
+        2
+      ],
+      "laterHomeHarbors": [
+        1,
+        0,
+        3,
+        3
+      ],
+      "players": 4,
+      "sailingSteps": [
+        12,
+        13,
+        2,
+        12
+      ],
+      "seed": 880421,
+      "shipsBought": [
+        1,
+        0,
+        1,
+        2
+      ],
+      "tier": "naval-expert-v1",
+      "trace": "/Users/alex/.codex/artifacts/naval-ai/voyages-build22/traces/cell04-4-expert/880421-0-functional-build22.txt",
+      "wild": true,
+      "winner": 3
+    },
+    {
+      "case": "cell05-3-traditional",
+      "colonies": [
+        0,
+        2,
+        1
+      ],
+      "family": "peninsula",
+      "firstHarborEvidence": [
+        {
+          "action": "P0:buildSettlement(CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: -3, r: 1), CatanEngine.HexCoordinate(q: -2, r: 0), CatanEngine.HexCoordinate(q: -2, r: 1)]))",
+          "initial": false,
+          "line": 481,
+          "seat": 0
+        },
+        {
+          "action": "P2:buildSettlement(CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: 2, r: -1), CatanEngine.HexCoordinate(q: 2, r: 0), CatanEngine.HexCoordinate(q: 3, r: -1)]))",
+          "initial": false,
+          "line": 558,
+          "seat": 2
+        }
+      ],
+      "firstHomeHarborLines": [
+        481,
+        null,
+        558
+      ],
+      "fog": true,
+      "initialHomeHarbors": [
+        0,
+        0,
+        0
+      ],
+      "initialInlandSettlements": [
+        2,
+        2,
+        2
+      ],
+      "laterHomeHarbors": [
+        2,
+        0,
+        3
+      ],
+      "players": 3,
+      "sailingSteps": [
+        15,
+        2,
+        5
+      ],
+      "seed": 880500,
+      "shipsBought": [
+        2,
+        0,
+        2
+      ],
+      "tier": "naval-traditional-v1",
+      "trace": "/Users/alex/.codex/artifacts/naval-ai/voyages-build22/traces/cell05-3-traditional/880500-0-functional-build22.txt",
+      "wild": false,
+      "winner": 2
+    },
+    {
+      "case": "cell05-3-expert",
+      "colonies": [
+        2,
+        2,
+        1
+      ],
+      "family": "peninsula",
+      "firstHarborEvidence": [
+        {
+          "action": "P2:buildSettlement(CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: 0, r: 2), CatanEngine.HexCoordinate(q: 1, r: 1), CatanEngine.HexCoordinate(q: 1, r: 2)]))",
+          "initial": false,
+          "line": 285,
+          "seat": 2
+        },
+        {
+          "action": "P0:buildSettlement(CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: -3, r: 2), CatanEngine.HexCoordinate(q: -2, r: 1), CatanEngine.HexCoordinate(q: -2, r: 2)]))",
+          "initial": false,
+          "line": 322,
+          "seat": 0
+        },
+        {
+          "action": "P1:buildSettlement(CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: 1, r: 1), CatanEngine.HexCoordinate(q: 2, r: 0), CatanEngine.HexCoordinate(q: 2, r: 1)]))",
+          "initial": false,
+          "line": 407,
+          "seat": 1
+        }
+      ],
+      "firstHomeHarborLines": [
+        322,
+        407,
+        285
+      ],
+      "fog": true,
+      "initialHomeHarbors": [
+        0,
+        0,
+        0
+      ],
+      "initialInlandSettlements": [
+        2,
+        2,
+        2
+      ],
+      "laterHomeHarbors": [
+        1,
+        1,
+        2
+      ],
+      "players": 3,
+      "sailingSteps": [
+        16,
+        6,
+        4
+      ],
+      "seed": 880501,
+      "shipsBought": [
+        1,
+        1,
+        1
+      ],
+      "tier": "naval-expert-v1",
+      "trace": "/Users/alex/.codex/artifacts/naval-ai/voyages-build22/traces/cell05-3-expert/880501-0-functional-build22.txt",
+      "wild": false,
+      "winner": 2
+    },
+    {
+      "case": "cell05-4-traditional",
+      "colonies": [
+        2,
+        4,
+        4,
+        4
+      ],
+      "family": "peninsula",
+      "firstHarborEvidence": [
+        {
+          "action": "P0:placeInitialSettlement(CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: -3, r: 2), CatanEngine.HexCoordinate(q: -2, r: 1), CatanEngine.HexCoordinate(q: -2, r: 2)]))",
+          "initial": true,
+          "line": 15,
+          "seat": 0
+        },
+        {
+          "action": "P1:buildSettlement(CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: 1, r: -2), CatanEngine.HexCoordinate(q: 2, r: -3), CatanEngine.HexCoordinate(q: 2, r: -2)]))",
+          "initial": false,
+          "line": 163,
+          "seat": 1
+        },
+        {
+          "action": "P3:buildSettlement(CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: 2, r: -2), CatanEngine.HexCoordinate(q: 3, r: -3), CatanEngine.HexCoordinate(q: 3, r: -2)]))",
+          "initial": false,
+          "line": 293,
+          "seat": 3
+        }
+      ],
+      "firstHomeHarborLines": [
+        15,
+        163,
+        null,
+        293
+      ],
+      "fog": true,
+      "initialHomeHarbors": [
+        1,
+        0,
+        0,
+        0
+      ],
+      "initialInlandSettlements": [
+        1,
+        2,
+        2,
+        2
+      ],
+      "laterHomeHarbors": [
+        1,
+        1,
+        0,
+        1
+      ],
+      "players": 4,
+      "sailingSteps": [
+        11,
+        27,
+        12,
+        20
+      ],
+      "seed": 880520,
+      "shipsBought": [
+        2,
+        1,
+        0,
+        2
+      ],
+      "tier": "naval-traditional-v1",
+      "trace": "/Users/alex/.codex/artifacts/naval-ai/voyages-build22/traces/cell05-4-traditional/880520-0-functional-build22.txt",
+      "wild": false,
+      "winner": 3
+    },
+    {
+      "case": "cell05-4-expert",
+      "colonies": [
+        2,
+        4,
+        3,
+        2
+      ],
+      "family": "peninsula",
+      "firstHarborEvidence": [
+        {
+          "action": "P3:buildSettlement(CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: -3, r: 0), CatanEngine.HexCoordinate(q: -2, r: -1), CatanEngine.HexCoordinate(q: -2, r: 0)]))",
+          "initial": false,
+          "line": 126,
+          "seat": 3
+        },
+        {
+          "action": "P0:buildSettlement(CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: -1, r: -2), CatanEngine.HexCoordinate(q: -1, r: -1), CatanEngine.HexCoordinate(q: 0, r: -2)]))",
+          "initial": false,
+          "line": 136,
+          "seat": 0
+        },
+        {
+          "action": "P1:buildSettlement(CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: 1, r: 1), CatanEngine.HexCoordinate(q: 2, r: 0), CatanEngine.HexCoordinate(q: 2, r: 1)]))",
+          "initial": false,
+          "line": 299,
+          "seat": 1
+        },
+        {
+          "action": "P2:buildSettlement(CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: 1, r: -2), CatanEngine.HexCoordinate(q: 2, r: -3), CatanEngine.HexCoordinate(q: 2, r: -2)]))",
+          "initial": false,
+          "line": 396,
+          "seat": 2
+        }
+      ],
+      "firstHomeHarborLines": [
+        136,
+        299,
+        396,
+        126
+      ],
+      "fog": true,
+      "initialHomeHarbors": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "initialInlandSettlements": [
+        2,
+        2,
+        2,
+        2
+      ],
+      "laterHomeHarbors": [
+        2,
+        1,
+        1,
+        1
+      ],
+      "players": 4,
+      "sailingSteps": [
+        10,
+        13,
+        4,
+        9
+      ],
+      "seed": 880521,
+      "shipsBought": [
+        2,
+        1,
+        0,
+        2
+      ],
+      "tier": "naval-expert-v1",
+      "trace": "/Users/alex/.codex/artifacts/naval-ai/voyages-build22/traces/cell05-4-expert/880521-0-functional-build22.txt",
+      "wild": false,
+      "winner": 1
+    },
+    {
+      "case": "cell06-3-traditional",
+      "colonies": [
+        2,
+        1,
+        0
+      ],
+      "family": "peninsula",
+      "firstHarborEvidence": [
+        {
+          "action": "P0:buildSettlement(CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: -2, r: 2), CatanEngine.HexCoordinate(q: -2, r: 3), CatanEngine.HexCoordinate(q: -1, r: 2)]))",
+          "initial": false,
+          "line": 137,
+          "seat": 0
+        },
+        {
+          "action": "P2:buildSettlement(CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: -1, r: 2), CatanEngine.HexCoordinate(q: -1, r: 3), CatanEngine.HexCoordinate(q: 0, r: 2)]))",
+          "initial": false,
+          "line": 218,
+          "seat": 2
+        }
+      ],
+      "firstHomeHarborLines": [
+        137,
+        null,
+        218
+      ],
+      "fog": false,
+      "initialHomeHarbors": [
+        0,
+        0,
+        0
+      ],
+      "initialInlandSettlements": [
+        2,
+        2,
+        2
+      ],
+      "laterHomeHarbors": [
+        2,
+        0,
+        1
+      ],
+      "players": 3,
+      "sailingSteps": [
+        3,
+        5,
+        6
+      ],
+      "seed": 880600,
+      "shipsBought": [
+        0,
+        1,
+        2
+      ],
+      "tier": "naval-traditional-v1",
+      "trace": "/Users/alex/.codex/artifacts/naval-ai/voyages-build22/traces/cell06-3-traditional/880600-0-functional-build22.txt",
+      "wild": true,
+      "winner": 0
+    },
+    {
+      "case": "cell06-3-expert",
+      "colonies": [
+        3,
+        2,
+        2
+      ],
+      "family": "peninsula",
+      "firstHarborEvidence": [
+        {
+          "action": "P2:buildSettlement(CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: 1, r: 1), CatanEngine.HexCoordinate(q: 2, r: 0), CatanEngine.HexCoordinate(q: 2, r: 1)]))",
+          "initial": false,
+          "line": 185,
+          "seat": 2
+        },
+        {
+          "action": "P1:buildSettlement(CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: -2, r: 2), CatanEngine.HexCoordinate(q: -2, r: 3), CatanEngine.HexCoordinate(q: -1, r: 2)]))",
+          "initial": false,
+          "line": 597,
+          "seat": 1
+        }
+      ],
+      "firstHomeHarborLines": [
+        null,
+        597,
+        185
+      ],
+      "fog": false,
+      "initialHomeHarbors": [
+        0,
+        0,
+        0
+      ],
+      "initialInlandSettlements": [
+        2,
+        2,
+        2
+      ],
+      "laterHomeHarbors": [
+        0,
+        1,
+        1
+      ],
+      "players": 3,
+      "sailingSteps": [
+        6,
+        4,
+        8
+      ],
+      "seed": 880601,
+      "shipsBought": [
+        0,
+        0,
+        2
+      ],
+      "tier": "naval-expert-v1",
+      "trace": "/Users/alex/.codex/artifacts/naval-ai/voyages-build22/traces/cell06-3-expert/880601-0-functional-build22.txt",
+      "wild": true,
+      "winner": 1
+    },
+    {
+      "case": "cell06-4-traditional",
+      "colonies": [
+        4,
+        0,
+        1,
+        0
+      ],
+      "family": "peninsula",
+      "firstHarborEvidence": [
+        {
+          "action": "P1:placeInitialSettlement(CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: -3, r: 1), CatanEngine.HexCoordinate(q: -2, r: 0), CatanEngine.HexCoordinate(q: -2, r: 1)]))",
+          "initial": true,
+          "line": 13,
+          "seat": 1
+        },
+        {
+          "action": "P0:placeInitialSettlement(CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: -3, r: 2), CatanEngine.HexCoordinate(q: -2, r: 1), CatanEngine.HexCoordinate(q: -2, r: 2)]))",
+          "initial": true,
+          "line": 15,
+          "seat": 0
+        },
+        {
+          "action": "P2:buildSettlement(CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: -1, r: -2), CatanEngine.HexCoordinate(q: -1, r: -1), CatanEngine.HexCoordinate(q: 0, r: -2)]))",
+          "initial": false,
+          "line": 445,
+          "seat": 2
+        },
+        {
+          "action": "P3:buildSettlement(CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: -3, r: 0), CatanEngine.HexCoordinate(q: -2, r: -1), CatanEngine.HexCoordinate(q: -2, r: 0)]))",
+          "initial": false,
+          "line": 451,
+          "seat": 3
+        }
+      ],
+      "firstHomeHarborLines": [
+        15,
+        13,
+        445,
+        451
+      ],
+      "fog": false,
+      "initialHomeHarbors": [
+        1,
+        1,
+        0,
+        0
+      ],
+      "initialInlandSettlements": [
+        1,
+        1,
+        2,
+        2
+      ],
+      "laterHomeHarbors": [
+        0,
+        0,
+        1,
+        1
+      ],
+      "players": 4,
+      "sailingSteps": [
+        13,
+        5,
+        4,
+        6
+      ],
+      "seed": 880620,
+      "shipsBought": [
+        1,
+        1,
+        1,
+        2
+      ],
+      "tier": "naval-traditional-v1",
+      "trace": "/Users/alex/.codex/artifacts/naval-ai/voyages-build22/traces/cell06-4-traditional/880620-0-functional-build22.txt",
+      "wild": true,
+      "winner": 2
+    },
+    {
+      "case": "cell06-4-expert",
+      "colonies": [
+        1,
+        3,
+        2,
+        0
+      ],
+      "family": "peninsula",
+      "firstHarborEvidence": [
+        {
+          "action": "P2:placeInitialSettlement(CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: 1, r: 1), CatanEngine.HexCoordinate(q: 2, r: 0), CatanEngine.HexCoordinate(q: 2, r: 1)]))",
+          "initial": true,
+          "line": 11,
+          "seat": 2
+        },
+        {
+          "action": "P0:placeInitialSettlement(CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: -3, r: 2), CatanEngine.HexCoordinate(q: -2, r: 1), CatanEngine.HexCoordinate(q: -2, r: 2)]))",
+          "initial": true,
+          "line": 15,
+          "seat": 0
+        },
+        {
+          "action": "P1:buildSettlement(CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: -3, r: 1), CatanEngine.HexCoordinate(q: -2, r: 0), CatanEngine.HexCoordinate(q: -2, r: 1)]))",
+          "initial": false,
+          "line": 303,
+          "seat": 1
+        }
+      ],
+      "firstHomeHarborLines": [
+        15,
+        303,
+        11,
+        null
+      ],
+      "fog": false,
+      "initialHomeHarbors": [
+        1,
+        0,
+        1,
+        0
+      ],
+      "initialInlandSettlements": [
+        1,
+        2,
+        1,
+        2
+      ],
+      "laterHomeHarbors": [
+        1,
+        2,
+        0,
+        0
+      ],
+      "players": 4,
+      "sailingSteps": [
+        4,
+        7,
+        6,
+        0
+      ],
+      "seed": 880621,
+      "shipsBought": [
+        1,
+        1,
+        1,
+        0
+      ],
+      "tier": "naval-expert-v1",
+      "trace": "/Users/alex/.codex/artifacts/naval-ai/voyages-build22/traces/cell06-4-expert/880621-0-functional-build22.txt",
+      "wild": true,
+      "winner": 2
+    },
+    {
+      "case": "cell07-3-traditional",
+      "colonies": [
+        1,
+        0,
+        3
+      ],
+      "family": "peninsula",
+      "firstHarborEvidence": [
+        {
+          "action": "P0:buildSettlement(CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: -3, r: 0), CatanEngine.HexCoordinate(q: -3, r: 1), CatanEngine.HexCoordinate(q: -2, r: 0)]))",
+          "initial": false,
+          "line": 140,
+          "seat": 0
+        },
+        {
+          "action": "P2:buildSettlement(CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: 2, r: -2), CatanEngine.HexCoordinate(q: 2, r: -1), CatanEngine.HexCoordinate(q: 3, r: -2)]))",
+          "initial": false,
+          "line": 164,
+          "seat": 2
+        },
+        {
+          "action": "P1:buildSettlement(CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: 1, r: 1), CatanEngine.HexCoordinate(q: 1, r: 2), CatanEngine.HexCoordinate(q: 2, r: 1)]))",
+          "initial": false,
+          "line": 388,
+          "seat": 1
+        }
+      ],
+      "firstHomeHarborLines": [
+        140,
+        388,
+        164
+      ],
+      "fog": false,
+      "initialHomeHarbors": [
+        0,
+        0,
+        0
+      ],
+      "initialInlandSettlements": [
+        2,
+        2,
+        2
+      ],
+      "laterHomeHarbors": [
+        1,
+        1,
+        2
+      ],
+      "players": 3,
+      "sailingSteps": [
+        4,
+        0,
+        3
+      ],
+      "seed": 880700,
+      "shipsBought": [
+        1,
+        0,
+        1
+      ],
+      "tier": "naval-traditional-v1",
+      "trace": "/Users/alex/.codex/artifacts/naval-ai/voyages-build22/traces/cell07-3-traditional/880700-0-functional-build22.txt",
+      "wild": false,
+      "winner": 2
+    },
+    {
+      "case": "cell07-3-expert",
+      "colonies": [
+        0,
+        4,
+        4
+      ],
+      "family": "peninsula",
+      "firstHarborEvidence": [
+        {
+          "action": "P2:buildSettlement(CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: -2, r: -1), CatanEngine.HexCoordinate(q: -2, r: 0), CatanEngine.HexCoordinate(q: -1, r: -1)]))",
+          "initial": false,
+          "line": 169,
+          "seat": 2
+        },
+        {
+          "action": "P1:buildSettlement(CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: -1, r: -2), CatanEngine.HexCoordinate(q: -1, r: -1), CatanEngine.HexCoordinate(q: 0, r: -2)]))",
+          "initial": false,
+          "line": 189,
+          "seat": 1
+        },
+        {
+          "action": "P0:buildSettlement(CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: 2, r: -2), CatanEngine.HexCoordinate(q: 2, r: -1), CatanEngine.HexCoordinate(q: 3, r: -2)]))",
+          "initial": false,
+          "line": 538,
+          "seat": 0
+        }
+      ],
+      "firstHomeHarborLines": [
+        538,
+        189,
+        169
+      ],
+      "fog": false,
+      "initialHomeHarbors": [
+        0,
+        0,
+        0
+      ],
+      "initialInlandSettlements": [
+        2,
+        2,
+        2
+      ],
+      "laterHomeHarbors": [
+        1,
+        1,
+        1
+      ],
+      "players": 3,
+      "sailingSteps": [
+        2,
+        13,
+        7
+      ],
+      "seed": 880701,
+      "shipsBought": [
+        1,
+        1,
+        1
+      ],
+      "tier": "naval-expert-v1",
+      "trace": "/Users/alex/.codex/artifacts/naval-ai/voyages-build22/traces/cell07-3-expert/880701-0-functional-build22.txt",
+      "wild": false,
+      "winner": 2
+    },
+    {
+      "case": "cell07-4-traditional",
+      "colonies": [
+        3,
+        0,
+        2,
+        1
+      ],
+      "family": "peninsula",
+      "firstHarborEvidence": [
+        {
+          "action": "P0:placeInitialSettlement(CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: -1, r: -2), CatanEngine.HexCoordinate(q: -1, r: -1), CatanEngine.HexCoordinate(q: 0, r: -2)]))",
+          "initial": true,
+          "line": 15,
+          "seat": 0
+        },
+        {
+          "action": "P2:buildSettlement(CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: 1, r: -2), CatanEngine.HexCoordinate(q: 2, r: -3), CatanEngine.HexCoordinate(q: 2, r: -2)]))",
+          "initial": false,
+          "line": 318,
+          "seat": 2
+        },
+        {
+          "action": "P1:buildSettlement(CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: -2, r: -1), CatanEngine.HexCoordinate(q: -2, r: 0), CatanEngine.HexCoordinate(q: -1, r: -1)]))",
+          "initial": false,
+          "line": 432,
+          "seat": 1
+        },
+        {
+          "action": "P3:buildSettlement(CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: -1, r: 2), CatanEngine.HexCoordinate(q: -1, r: 3), CatanEngine.HexCoordinate(q: 0, r: 2)]))",
+          "initial": false,
+          "line": 601,
+          "seat": 3
+        }
+      ],
+      "firstHomeHarborLines": [
+        15,
+        432,
+        318,
+        601
+      ],
+      "fog": false,
+      "initialHomeHarbors": [
+        1,
+        0,
+        0,
+        0
+      ],
+      "initialInlandSettlements": [
+        1,
+        2,
+        2,
+        2
+      ],
+      "laterHomeHarbors": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "players": 4,
+      "sailingSteps": [
+        5,
+        0,
+        1,
+        3
+      ],
+      "seed": 880720,
+      "shipsBought": [
+        1,
+        0,
+        0,
+        0
+      ],
+      "tier": "naval-traditional-v1",
+      "trace": "/Users/alex/.codex/artifacts/naval-ai/voyages-build22/traces/cell07-4-traditional/880720-0-functional-build22.txt",
+      "wild": false,
+      "winner": 3
+    },
+    {
+      "case": "cell07-4-expert",
+      "colonies": [
+        3,
+        1,
+        3,
+        2
+      ],
+      "family": "peninsula",
+      "firstHarborEvidence": [
+        {
+          "action": "P0:buildSettlement(CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: 1, r: 1), CatanEngine.HexCoordinate(q: 2, r: 0), CatanEngine.HexCoordinate(q: 2, r: 1)]))",
+          "initial": false,
+          "line": 189,
+          "seat": 0
+        },
+        {
+          "action": "P2:buildSettlement(CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: -3, r: 0), CatanEngine.HexCoordinate(q: -3, r: 1), CatanEngine.HexCoordinate(q: -2, r: 0)]))",
+          "initial": false,
+          "line": 195,
+          "seat": 2
+        },
+        {
+          "action": "P3:buildSettlement(CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: -3, r: 2), CatanEngine.HexCoordinate(q: -2, r: 1), CatanEngine.HexCoordinate(q: -2, r: 2)]))",
+          "initial": false,
+          "line": 218,
+          "seat": 3
+        },
+        {
+          "action": "P1:buildSettlement(CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: 1, r: -2), CatanEngine.HexCoordinate(q: 2, r: -3), CatanEngine.HexCoordinate(q: 2, r: -2)]))",
+          "initial": false,
+          "line": 237,
+          "seat": 1
+        }
+      ],
+      "firstHomeHarborLines": [
+        189,
+        237,
+        195,
+        218
+      ],
+      "fog": false,
+      "initialHomeHarbors": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "initialInlandSettlements": [
+        2,
+        2,
+        2,
+        2
+      ],
+      "laterHomeHarbors": [
+        1,
+        2,
+        2,
+        2
+      ],
+      "players": 4,
+      "sailingSteps": [
+        6,
+        2,
+        5,
+        8
+      ],
+      "seed": 880721,
+      "shipsBought": [
+        1,
+        1,
+        1,
+        2
+      ],
+      "tier": "naval-expert-v1",
+      "trace": "/Users/alex/.codex/artifacts/naval-ai/voyages-build22/traces/cell07-4-expert/880721-0-functional-build22.txt",
+      "wild": false,
+      "winner": 3
+    },
+    {
+      "case": "cell08-3-traditional",
+      "colonies": [
+        4,
+        2,
+        1
+      ],
+      "family": "twinIslands",
+      "firstHarborEvidence": [
+        {
+          "action": "P0:buildSettlement(CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: -3, r: 1), CatanEngine.HexCoordinate(q: -2, r: 0), CatanEngine.HexCoordinate(q: -2, r: 1)]))",
+          "initial": false,
+          "line": 86,
+          "seat": 0
+        },
+        {
+          "action": "P2:buildSettlement(CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: 0, r: 2), CatanEngine.HexCoordinate(q: 1, r: 1), CatanEngine.HexCoordinate(q: 1, r: 2)]))",
+          "initial": false,
+          "line": 224,
+          "seat": 2
+        },
+        {
+          "action": "P1:buildSettlement(CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: 2, r: -1), CatanEngine.HexCoordinate(q: 2, r: 0), CatanEngine.HexCoordinate(q: 3, r: -1)]))",
+          "initial": false,
+          "line": 345,
+          "seat": 1
+        }
+      ],
+      "firstHomeHarborLines": [
+        86,
+        345,
+        224
+      ],
+      "fog": true,
+      "initialHomeHarbors": [
+        0,
+        0,
+        0
+      ],
+      "initialInlandSettlements": [
+        2,
+        2,
+        2
+      ],
+      "laterHomeHarbors": [
+        2,
+        2,
+        2
+      ],
+      "players": 3,
+      "sailingSteps": [
+        21,
+        9,
+        20
+      ],
+      "seed": 880800,
+      "shipsBought": [
+        2,
+        1,
+        1
+      ],
+      "tier": "naval-traditional-v1",
+      "trace": "/Users/alex/.codex/artifacts/naval-ai/voyages-build22/traces/cell08-3-traditional/880800-0-functional-build22.txt",
+      "wild": true,
+      "winner": 0
+    },
+    {
+      "case": "cell08-3-expert",
+      "colonies": [
+        0,
+        3,
+        4
+      ],
+      "family": "twinIslands",
+      "firstHarborEvidence": [
+        {
+          "action": "P1:buildSettlement(CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: 1, r: -2), CatanEngine.HexCoordinate(q: 2, r: -3), CatanEngine.HexCoordinate(q: 2, r: -2)]))",
+          "initial": false,
+          "line": 176,
+          "seat": 1
+        },
+        {
+          "action": "P2:buildSettlement(CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: -1, r: -2), CatanEngine.HexCoordinate(q: -1, r: -1), CatanEngine.HexCoordinate(q: 0, r: -2)]))",
+          "initial": false,
+          "line": 195,
+          "seat": 2
+        }
+      ],
+      "firstHomeHarborLines": [
+        null,
+        176,
+        195
+      ],
+      "fog": true,
+      "initialHomeHarbors": [
+        0,
+        0,
+        0
+      ],
+      "initialInlandSettlements": [
+        2,
+        2,
+        2
+      ],
+      "laterHomeHarbors": [
+        0,
+        1,
+        1
+      ],
+      "players": 3,
+      "sailingSteps": [
+        0,
+        10,
+        6
+      ],
+      "seed": 880801,
+      "shipsBought": [
+        0,
+        2,
+        0
+      ],
+      "tier": "naval-expert-v1",
+      "trace": "/Users/alex/.codex/artifacts/naval-ai/voyages-build22/traces/cell08-3-expert/880801-0-functional-build22.txt",
+      "wild": true,
+      "winner": 2
+    },
+    {
+      "case": "cell08-4-traditional",
+      "colonies": [
+        0,
+        0,
+        0,
+        3
+      ],
+      "family": "twinIslands",
+      "firstHarborEvidence": [
+        {
+          "action": "P1:placeInitialSettlement(CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: -3, r: 2), CatanEngine.HexCoordinate(q: -2, r: 1), CatanEngine.HexCoordinate(q: -2, r: 2)]))",
+          "initial": true,
+          "line": 13,
+          "seat": 1
+        },
+        {
+          "action": "P2:buildSettlement(CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: -3, r: 0), CatanEngine.HexCoordinate(q: -3, r: 1), CatanEngine.HexCoordinate(q: -2, r: 0)]))",
+          "initial": false,
+          "line": 304,
+          "seat": 2
+        },
+        {
+          "action": "P3:buildSettlement(CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: 0, r: -2), CatanEngine.HexCoordinate(q: 1, r: -3), CatanEngine.HexCoordinate(q: 1, r: -2)]))",
+          "initial": false,
+          "line": 369,
+          "seat": 3
+        }
+      ],
+      "firstHomeHarborLines": [
+        null,
+        13,
+        304,
+        369
+      ],
+      "fog": true,
+      "initialHomeHarbors": [
+        0,
+        1,
+        0,
+        0
+      ],
+      "initialInlandSettlements": [
+        2,
+        1,
+        2,
+        2
+      ],
+      "laterHomeHarbors": [
+        0,
+        0,
+        1,
+        1
+      ],
+      "players": 4,
+      "sailingSteps": [
+        0,
+        9,
+        2,
+        3
+      ],
+      "seed": 880820,
+      "shipsBought": [
+        0,
+        3,
+        1,
+        0
+      ],
+      "tier": "naval-traditional-v1",
+      "trace": "/Users/alex/.codex/artifacts/naval-ai/voyages-build22/traces/cell08-4-traditional/880820-0-functional-build22.txt",
+      "wild": true,
+      "winner": 3
+    },
+    {
+      "case": "cell08-4-expert",
+      "colonies": [
+        0,
+        2,
+        5,
+        3
+      ],
+      "family": "twinIslands",
+      "firstHarborEvidence": [
+        {
+          "action": "P0:placeInitialSettlement(CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: 2, r: -1), CatanEngine.HexCoordinate(q: 2, r: 0), CatanEngine.HexCoordinate(q: 3, r: -1)]))",
+          "initial": true,
+          "line": 15,
+          "seat": 0
+        },
+        {
+          "action": "P3:buildSettlement(CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: -2, r: -1), CatanEngine.HexCoordinate(q: -2, r: 0), CatanEngine.HexCoordinate(q: -1, r: -1)]))",
+          "initial": false,
+          "line": 248,
+          "seat": 3
+        }
+      ],
+      "firstHomeHarborLines": [
+        15,
+        null,
+        null,
+        248
+      ],
+      "fog": true,
+      "initialHomeHarbors": [
+        1,
+        0,
+        0,
+        0
+      ],
+      "initialInlandSettlements": [
+        1,
+        2,
+        2,
+        2
+      ],
+      "laterHomeHarbors": [
+        0,
+        0,
+        0,
+        2
+      ],
+      "players": 4,
+      "sailingSteps": [
+        3,
+        5,
+        8,
+        25
+      ],
+      "seed": 880821,
+      "shipsBought": [
+        1,
+        0,
+        1,
+        2
+      ],
+      "tier": "naval-expert-v1",
+      "trace": "/Users/alex/.codex/artifacts/naval-ai/voyages-build22/traces/cell08-4-expert/880821-0-functional-build22.txt",
+      "wild": true,
+      "winner": 2
+    },
+    {
+      "case": "cell09-3-traditional",
+      "colonies": [
+        2,
+        1,
+        0
+      ],
+      "family": "twinIslands",
+      "firstHarborEvidence": [
+        {
+          "action": "P1:buildSettlement(CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: 2, r: -3), CatanEngine.HexCoordinate(q: 2, r: -2), CatanEngine.HexCoordinate(q: 3, r: -3)]))",
+          "initial": false,
+          "line": 83,
+          "seat": 1
+        },
+        {
+          "action": "P0:buildSettlement(CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: 0, r: 2), CatanEngine.HexCoordinate(q: 1, r: 1), CatanEngine.HexCoordinate(q: 1, r: 2)]))",
+          "initial": false,
+          "line": 277,
+          "seat": 0
+        },
+        {
+          "action": "P2:buildSettlement(CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: -3, r: 1), CatanEngine.HexCoordinate(q: -2, r: 0), CatanEngine.HexCoordinate(q: -2, r: 1)]))",
+          "initial": false,
+          "line": 465,
+          "seat": 2
+        }
+      ],
+      "firstHomeHarborLines": [
+        277,
+        83,
+        465
+      ],
+      "fog": true,
+      "initialHomeHarbors": [
+        0,
+        0,
+        0
+      ],
+      "initialInlandSettlements": [
+        2,
+        2,
+        2
+      ],
+      "laterHomeHarbors": [
+        2,
+        5,
+        2
+      ],
+      "players": 3,
+      "sailingSteps": [
+        16,
+        3,
+        24
+      ],
+      "seed": 880900,
+      "shipsBought": [
+        1,
+        1,
+        2
+      ],
+      "tier": "naval-traditional-v1",
+      "trace": "/Users/alex/.codex/artifacts/naval-ai/voyages-build22/traces/cell09-3-traditional/880900-0-functional-build22.txt",
+      "wild": false,
+      "winner": 1
+    },
+    {
+      "case": "cell09-3-expert",
+      "colonies": [
+        1,
+        3,
+        2
+      ],
+      "family": "twinIslands",
+      "firstHarborEvidence": [
+        {
+          "action": "P2:buildSettlement(CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: -1, r: 2), CatanEngine.HexCoordinate(q: -1, r: 3), CatanEngine.HexCoordinate(q: 0, r: 2)]))",
+          "initial": false,
+          "line": 251,
+          "seat": 2
+        },
+        {
+          "action": "P1:buildSettlement(CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: -3, r: 1), CatanEngine.HexCoordinate(q: -2, r: 0), CatanEngine.HexCoordinate(q: -2, r: 1)]))",
+          "initial": false,
+          "line": 275,
+          "seat": 1
+        },
+        {
+          "action": "P0:buildSettlement(CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: 1, r: 1), CatanEngine.HexCoordinate(q: 1, r: 2), CatanEngine.HexCoordinate(q: 2, r: 1)]))",
+          "initial": false,
+          "line": 453,
+          "seat": 0
+        }
+      ],
+      "firstHomeHarborLines": [
+        453,
+        275,
+        251
+      ],
+      "fog": true,
+      "initialHomeHarbors": [
+        0,
+        0,
+        0
+      ],
+      "initialInlandSettlements": [
+        2,
+        2,
+        2
+      ],
+      "laterHomeHarbors": [
+        2,
+        3,
+        1
+      ],
+      "players": 3,
+      "sailingSteps": [
+        2,
+        21,
+        6
+      ],
+      "seed": 880901,
+      "shipsBought": [
+        0,
+        1,
+        1
+      ],
+      "tier": "naval-expert-v1",
+      "trace": "/Users/alex/.codex/artifacts/naval-ai/voyages-build22/traces/cell09-3-expert/880901-0-functional-build22.txt",
+      "wild": false,
+      "winner": 0
+    },
+    {
+      "case": "cell09-4-traditional",
+      "colonies": [
+        3,
+        3,
+        2,
+        2
+      ],
+      "family": "twinIslands",
+      "firstHarborEvidence": [
+        {
+          "action": "P0:placeInitialSettlement(CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: -2, r: 2), CatanEngine.HexCoordinate(q: -2, r: 3), CatanEngine.HexCoordinate(q: -1, r: 2)]))",
+          "initial": true,
+          "line": 15,
+          "seat": 0
+        },
+        {
+          "action": "P1:buildSettlement(CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: 1, r: 1), CatanEngine.HexCoordinate(q: 2, r: 0), CatanEngine.HexCoordinate(q: 2, r: 1)]))",
+          "initial": false,
+          "line": 101,
+          "seat": 1
+        },
+        {
+          "action": "P3:buildSettlement(CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: 2, r: -1), CatanEngine.HexCoordinate(q: 2, r: 0), CatanEngine.HexCoordinate(q: 3, r: -1)]))",
+          "initial": false,
+          "line": 187,
+          "seat": 3
+        },
+        {
+          "action": "P2:buildSettlement(CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: -2, r: -1), CatanEngine.HexCoordinate(q: -2, r: 0), CatanEngine.HexCoordinate(q: -1, r: -1)]))",
+          "initial": false,
+          "line": 242,
+          "seat": 2
+        }
+      ],
+      "firstHomeHarborLines": [
+        15,
+        101,
+        242,
+        187
+      ],
+      "fog": true,
+      "initialHomeHarbors": [
+        1,
+        0,
+        0,
+        0
+      ],
+      "initialInlandSettlements": [
+        1,
+        2,
+        2,
+        2
+      ],
+      "laterHomeHarbors": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "players": 4,
+      "sailingSteps": [
+        23,
+        27,
+        13,
+        9
+      ],
+      "seed": 880920,
+      "shipsBought": [
+        0,
+        2,
+        1,
+        2
+      ],
+      "tier": "naval-traditional-v1",
+      "trace": "/Users/alex/.codex/artifacts/naval-ai/voyages-build22/traces/cell09-4-traditional/880920-0-functional-build22.txt",
+      "wild": false,
+      "winner": 0
+    },
+    {
+      "case": "cell09-4-expert",
+      "colonies": [
+        4,
+        0,
+        2,
+        0
+      ],
+      "family": "twinIslands",
+      "firstHarborEvidence": [
+        {
+          "action": "P2:buildSettlement(CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: 2, r: -2), CatanEngine.HexCoordinate(q: 2, r: -1), CatanEngine.HexCoordinate(q: 3, r: -2)]))",
+          "initial": false,
+          "line": 195,
+          "seat": 2
+        },
+        {
+          "action": "P0:buildSettlement(CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: 2, r: -1), CatanEngine.HexCoordinate(q: 2, r: 0), CatanEngine.HexCoordinate(q: 3, r: -1)]))",
+          "initial": false,
+          "line": 251,
+          "seat": 0
+        },
+        {
+          "action": "P1:buildSettlement(CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: -1, r: 2), CatanEngine.HexCoordinate(q: -1, r: 3), CatanEngine.HexCoordinate(q: 0, r: 2)]))",
+          "initial": false,
+          "line": 256,
+          "seat": 1
+        }
+      ],
+      "firstHomeHarborLines": [
+        251,
+        256,
+        195,
+        null
+      ],
+      "fog": true,
+      "initialHomeHarbors": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "initialInlandSettlements": [
+        2,
+        2,
+        2,
+        2
+      ],
+      "laterHomeHarbors": [
+        2,
+        1,
+        2,
+        0
+      ],
+      "players": 4,
+      "sailingSteps": [
+        13,
+        7,
+        4,
+        0
+      ],
+      "seed": 880921,
+      "shipsBought": [
+        1,
+        2,
+        1,
+        0
+      ],
+      "tier": "naval-expert-v1",
+      "trace": "/Users/alex/.codex/artifacts/naval-ai/voyages-build22/traces/cell09-4-expert/880921-0-functional-build22.txt",
+      "wild": false,
+      "winner": 0
+    },
+    {
+      "case": "cell10-3-traditional",
+      "colonies": [
+        3,
+        0,
+        2
+      ],
+      "family": "twinIslands",
+      "firstHarborEvidence": [
+        {
+          "action": "P0:placeInitialSettlement(CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: 0, r: 2), CatanEngine.HexCoordinate(q: 1, r: 1), CatanEngine.HexCoordinate(q: 1, r: 2)]))",
+          "initial": true,
+          "line": 11,
+          "seat": 0
+        },
+        {
+          "action": "P1:buildSettlement(CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: -2, r: 2), CatanEngine.HexCoordinate(q: -2, r: 3), CatanEngine.HexCoordinate(q: -1, r: 2)]))",
+          "initial": false,
+          "line": 557,
+          "seat": 1
+        },
+        {
+          "action": "P2:buildSettlement(CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: -2, r: -1), CatanEngine.HexCoordinate(q: -2, r: 0), CatanEngine.HexCoordinate(q: -1, r: -1)]))",
+          "initial": false,
+          "line": 582,
+          "seat": 2
+        }
+      ],
+      "firstHomeHarborLines": [
+        11,
+        557,
+        582
+      ],
+      "fog": false,
+      "initialHomeHarbors": [
+        1,
+        0,
+        0
+      ],
+      "initialInlandSettlements": [
+        1,
+        2,
+        2
+      ],
+      "laterHomeHarbors": [
+        2,
+        1,
+        2
+      ],
+      "players": 3,
+      "sailingSteps": [
+        8,
+        0,
+        4
+      ],
+      "seed": 881000,
+      "shipsBought": [
+        1,
+        0,
+        2
+      ],
+      "tier": "naval-traditional-v1",
+      "trace": "/Users/alex/.codex/artifacts/naval-ai/voyages-build22/traces/cell10-3-traditional/881000-0-functional-build22.txt",
+      "wild": true,
+      "winner": 2
+    },
+    {
+      "case": "cell10-3-expert",
+      "colonies": [
+        4,
+        0,
+        1
+      ],
+      "family": "twinIslands",
+      "firstHarborEvidence": [
+        {
+          "action": "P1:buildSettlement(CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: -2, r: 2), CatanEngine.HexCoordinate(q: -2, r: 3), CatanEngine.HexCoordinate(q: -1, r: 2)]))",
+          "initial": false,
+          "line": 66,
+          "seat": 1
+        },
+        {
+          "action": "P2:buildSettlement(CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: -3, r: 1), CatanEngine.HexCoordinate(q: -3, r: 2), CatanEngine.HexCoordinate(q: -2, r: 1)]))",
+          "initial": false,
+          "line": 230,
+          "seat": 2
+        }
+      ],
+      "firstHomeHarborLines": [
+        null,
+        66,
+        230
+      ],
+      "fog": false,
+      "initialHomeHarbors": [
+        0,
+        0,
+        0
+      ],
+      "initialInlandSettlements": [
+        2,
+        2,
+        2
+      ],
+      "laterHomeHarbors": [
+        0,
+        1,
+        1
+      ],
+      "players": 3,
+      "sailingSteps": [
+        1,
+        2,
+        2
+      ],
+      "seed": 881001,
+      "shipsBought": [
+        1,
+        1,
+        0
+      ],
+      "tier": "naval-expert-v1",
+      "trace": "/Users/alex/.codex/artifacts/naval-ai/voyages-build22/traces/cell10-3-expert/881001-0-functional-build22.txt",
+      "wild": true,
+      "winner": 0
+    },
+    {
+      "case": "cell10-4-traditional",
+      "colonies": [
+        0,
+        2,
+        1,
+        0
+      ],
+      "family": "twinIslands",
+      "firstHarborEvidence": [
+        {
+          "action": "P0:placeInitialSettlement(CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: -3, r: 1), CatanEngine.HexCoordinate(q: -2, r: 0), CatanEngine.HexCoordinate(q: -2, r: 1)]))",
+          "initial": true,
+          "line": 15,
+          "seat": 0
+        },
+        {
+          "action": "P2:buildSettlement(CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: 2, r: -1), CatanEngine.HexCoordinate(q: 2, r: 0), CatanEngine.HexCoordinate(q: 3, r: -1)]))",
+          "initial": false,
+          "line": 28,
+          "seat": 2
+        },
+        {
+          "action": "P1:buildSettlement(CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: -1, r: 2), CatanEngine.HexCoordinate(q: -1, r: 3), CatanEngine.HexCoordinate(q: 0, r: 2)]))",
+          "initial": false,
+          "line": 41,
+          "seat": 1
+        }
+      ],
+      "firstHomeHarborLines": [
+        15,
+        41,
+        28,
+        null
+      ],
+      "fog": false,
+      "initialHomeHarbors": [
+        1,
+        0,
+        0,
+        0
+      ],
+      "initialInlandSettlements": [
+        1,
+        2,
+        2,
+        2
+      ],
+      "laterHomeHarbors": [
+        1,
+        2,
+        2,
+        0
+      ],
+      "players": 4,
+      "sailingSteps": [
+        3,
+        2,
+        6,
+        0
+      ],
+      "seed": 881020,
+      "shipsBought": [
+        1,
+        0,
+        1,
+        0
+      ],
+      "tier": "naval-traditional-v1",
+      "trace": "/Users/alex/.codex/artifacts/naval-ai/voyages-build22/traces/cell10-4-traditional/881020-0-functional-build22.txt",
+      "wild": true,
+      "winner": 1
+    },
+    {
+      "case": "cell10-4-expert",
+      "colonies": [
+        0,
+        0,
+        0,
+        2
+      ],
+      "family": "twinIslands",
+      "firstHarborEvidence": [
+        {
+          "action": "P1:placeInitialSettlement(CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: -3, r: 2), CatanEngine.HexCoordinate(q: -2, r: 1), CatanEngine.HexCoordinate(q: -2, r: 2)]))",
+          "initial": true,
+          "line": 13,
+          "seat": 1
+        },
+        {
+          "action": "P3:buildSettlement(CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: -1, r: 2), CatanEngine.HexCoordinate(q: -1, r: 3), CatanEngine.HexCoordinate(q: 0, r: 2)]))",
+          "initial": false,
+          "line": 271,
+          "seat": 3
+        }
+      ],
+      "firstHomeHarborLines": [
+        null,
+        13,
+        null,
+        271
+      ],
+      "fog": false,
+      "initialHomeHarbors": [
+        0,
+        1,
+        0,
+        0
+      ],
+      "initialInlandSettlements": [
+        2,
+        1,
+        2,
+        2
+      ],
+      "laterHomeHarbors": [
+        0,
+        1,
+        0,
+        1
+      ],
+      "players": 4,
+      "sailingSteps": [
+        0,
+        0,
+        0,
+        5
+      ],
+      "seed": 881021,
+      "shipsBought": [
+        0,
+        0,
+        0,
+        1
+      ],
+      "tier": "naval-expert-v1",
+      "trace": "/Users/alex/.codex/artifacts/naval-ai/voyages-build22/traces/cell10-4-expert/881021-0-functional-build22.txt",
+      "wild": true,
+      "winner": 3
+    },
+    {
+      "case": "cell11-3-traditional",
+      "colonies": [
+        3,
+        0,
+        1
+      ],
+      "family": "twinIslands",
+      "firstHarborEvidence": [
+        {
+          "action": "P1:buildSettlement(CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: 2, r: -1), CatanEngine.HexCoordinate(q: 2, r: 0), CatanEngine.HexCoordinate(q: 3, r: -1)]))",
+          "initial": false,
+          "line": 112,
+          "seat": 1
+        },
+        {
+          "action": "P0:buildSettlement(CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: -3, r: 1), CatanEngine.HexCoordinate(q: -2, r: 0), CatanEngine.HexCoordinate(q: -2, r: 1)]))",
+          "initial": false,
+          "line": 267,
+          "seat": 0
+        },
+        {
+          "action": "P2:buildSettlement(CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: 1, r: 1), CatanEngine.HexCoordinate(q: 1, r: 2), CatanEngine.HexCoordinate(q: 2, r: 1)]))",
+          "initial": false,
+          "line": 317,
+          "seat": 2
+        }
+      ],
+      "firstHomeHarborLines": [
+        267,
+        112,
+        317
+      ],
+      "fog": false,
+      "initialHomeHarbors": [
+        0,
+        0,
+        0
+      ],
+      "initialInlandSettlements": [
+        2,
+        2,
+        2
+      ],
+      "laterHomeHarbors": [
+        1,
+        4,
+        1
+      ],
+      "players": 3,
+      "sailingSteps": [
+        6,
+        1,
+        2
+      ],
+      "seed": 881100,
+      "shipsBought": [
+        1,
+        1,
+        1
+      ],
+      "tier": "naval-traditional-v1",
+      "trace": "/Users/alex/.codex/artifacts/naval-ai/voyages-build22/traces/cell11-3-traditional/881100-0-functional-build22.txt",
+      "wild": false,
+      "winner": 0
+    },
+    {
+      "case": "cell11-3-expert",
+      "colonies": [
+        2,
+        2,
+        3
+      ],
+      "family": "twinIslands",
+      "firstHarborEvidence": [
+        {
+          "action": "P0:buildSettlement(CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: -3, r: 1), CatanEngine.HexCoordinate(q: -3, r: 2), CatanEngine.HexCoordinate(q: -2, r: 1)]))",
+          "initial": false,
+          "line": 112,
+          "seat": 0
+        },
+        {
+          "action": "P1:buildSettlement(CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: 0, r: -2), CatanEngine.HexCoordinate(q: 1, r: -3), CatanEngine.HexCoordinate(q: 1, r: -2)]))",
+          "initial": false,
+          "line": 280,
+          "seat": 1
+        },
+        {
+          "action": "P2:buildSettlement(CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: -2, r: 2), CatanEngine.HexCoordinate(q: -2, r: 3), CatanEngine.HexCoordinate(q: -1, r: 2)]))",
+          "initial": false,
+          "line": 584,
+          "seat": 2
+        }
+      ],
+      "firstHomeHarborLines": [
+        112,
+        280,
+        584
+      ],
+      "fog": false,
+      "initialHomeHarbors": [
+        0,
+        0,
+        0
+      ],
+      "initialInlandSettlements": [
+        2,
+        2,
+        2
+      ],
+      "laterHomeHarbors": [
+        4,
+        1,
+        1
+      ],
+      "players": 3,
+      "sailingSteps": [
+        10,
+        9,
+        9
+      ],
+      "seed": 881101,
+      "shipsBought": [
+        1,
+        2,
+        0
+      ],
+      "tier": "naval-expert-v1",
+      "trace": "/Users/alex/.codex/artifacts/naval-ai/voyages-build22/traces/cell11-3-expert/881101-0-functional-build22.txt",
+      "wild": false,
+      "winner": 2
+    },
+    {
+      "case": "cell11-4-traditional",
+      "colonies": [
+        2,
+        2,
+        2,
+        4
+      ],
+      "family": "twinIslands",
+      "firstHarborEvidence": [
+        {
+          "action": "P0:placeInitialSettlement(CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: 2, r: -1), CatanEngine.HexCoordinate(q: 2, r: 0), CatanEngine.HexCoordinate(q: 3, r: -1)]))",
+          "initial": true,
+          "line": 15,
+          "seat": 0
+        },
+        {
+          "action": "P2:buildSettlement(CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: -3, r: 2), CatanEngine.HexCoordinate(q: -2, r: 1), CatanEngine.HexCoordinate(q: -2, r: 2)]))",
+          "initial": false,
+          "line": 102,
+          "seat": 2
+        },
+        {
+          "action": "P3:buildSettlement(CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: 0, r: 2), CatanEngine.HexCoordinate(q: 1, r: 1), CatanEngine.HexCoordinate(q: 1, r: 2)]))",
+          "initial": false,
+          "line": 281,
+          "seat": 3
+        }
+      ],
+      "firstHomeHarborLines": [
+        15,
+        null,
+        102,
+        281
+      ],
+      "fog": false,
+      "initialHomeHarbors": [
+        1,
+        0,
+        0,
+        0
+      ],
+      "initialInlandSettlements": [
+        1,
+        2,
+        2,
+        2
+      ],
+      "laterHomeHarbors": [
+        2,
+        0,
+        2,
+        1
+      ],
+      "players": 4,
+      "sailingSteps": [
+        0,
+        6,
+        14,
+        9
+      ],
+      "seed": 881120,
+      "shipsBought": [
+        0,
+        0,
+        2,
+        2
+      ],
+      "tier": "naval-traditional-v1",
+      "trace": "/Users/alex/.codex/artifacts/naval-ai/voyages-build22/traces/cell11-4-traditional/881120-0-functional-build22.txt",
+      "wild": false,
+      "winner": 0
+    },
+    {
+      "case": "cell11-4-expert",
+      "colonies": [
+        0,
+        1,
+        3,
+        2
+      ],
+      "family": "twinIslands",
+      "firstHarborEvidence": [
+        {
+          "action": "P1:buildSettlement(CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: 2, r: -2), CatanEngine.HexCoordinate(q: 2, r: -1), CatanEngine.HexCoordinate(q: 3, r: -2)]))",
+          "initial": false,
+          "line": 419,
+          "seat": 1
+        },
+        {
+          "action": "P2:buildSettlement(CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: 1, r: 1), CatanEngine.HexCoordinate(q: 2, r: 0), CatanEngine.HexCoordinate(q: 2, r: 1)]))",
+          "initial": false,
+          "line": 544,
+          "seat": 2
+        }
+      ],
+      "firstHomeHarborLines": [
+        null,
+        419,
+        544,
+        null
+      ],
+      "fog": false,
+      "initialHomeHarbors": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "initialInlandSettlements": [
+        2,
+        2,
+        2,
+        2
+      ],
+      "laterHomeHarbors": [
+        0,
+        4,
+        3,
+        0
+      ],
+      "players": 4,
+      "sailingSteps": [
+        0,
+        4,
+        5,
+        2
+      ],
+      "seed": 881121,
+      "shipsBought": [
+        0,
+        2,
+        1,
+        0
+      ],
+      "tier": "naval-expert-v1",
+      "trace": "/Users/alex/.codex/artifacts/naval-ai/voyages-build22/traces/cell11-4-expert/881121-0-functional-build22.txt",
+      "wild": false,
+      "winner": 2
+    }
+  ],
+  "method": "Canonical traces independently classify home corners using the public radius-two island and sea ring-three contract; ship, sailing, overseas settlement counts must equal independently emitted CLI diagnostics.",
+  "summary": {
+    "cases": 48,
+    "casesWithColonies": 47,
+    "casesWithSailing": 48,
+    "casesWithShips": 48,
+    "casesWithoutShips": [],
+    "complete": 48,
+    "initialHomeHarbors": 19,
+    "initialInlandSettlements": 317,
+    "initiallyHarborlessSeats": 149,
+    "initiallyHarborlessSeatsBuyingShips": 97,
+    "initiallyHarborlessSeatsOpeningHomeHarbor": 121,
+    "laterHomeHarbors": 223,
+    "noStrengthClaim": true,
+    "totalColonies": 274,
+    "totalSailingSteps": 1086,
+    "totalShipsBought": 158
+  }
+}

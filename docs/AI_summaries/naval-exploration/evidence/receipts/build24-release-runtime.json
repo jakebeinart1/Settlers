@@ -1,0 +1,22 @@
+{
+  "verifiedAtUTC": "2026-10-07T12:55:44.678986+00:00",
+  "productionSourceSHA": "9bce5f77a38684bd6e011fac8838c74b38440798",
+  "testedHead": "67efbadbdb061d9ded77628cf892c72d54e17fb4",
+  "configuration": "Release",
+  "appPath": "/Users/alex/Library/Developer/Xcode/DerivedData/Settlers-ehpkozivxiwhkjbrsccrribfgemp/Build/Products/Release-iphonesimulator/Settlers.app",
+  "bundleIdentifier": "com.alexchandler.empires",
+  "version": "1.0",
+  "build": "24",
+  "freshInstall": true,
+  "launchArguments": [],
+  "pid": 93934,
+  "processSurvivedAfterSeconds": 6,
+  "newOwnCrashReports": [],
+  "executableSHA256": "33d7746154466774d4359d897e8727710515f8ba11afd595660fca25329c010b",
+  "screenshot": "/Users/alex/.codex/artifacts/naval-exploration/build24-travel-harvest-trade/release-ordinary-menu.png",
+  "simulatorUDID": "937692FF-BFBF-4683-80E5-2590F5288D56",
+  "simulatorName": "Empires QA",
+  "physicalPhoneInstallationObserved": false,
+  "menuScreenshotInspected": true,
+  "visibleContent": "Empires main menu, Rules, New Game and Leaderboard; no resumed test save or blank view"
+}

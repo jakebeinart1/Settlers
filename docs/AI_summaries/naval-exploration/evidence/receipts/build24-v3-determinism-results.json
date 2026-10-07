@@ -1,0 +1,80 @@
+[
+  {
+    "allResultFieldsEqual": true,
+    "byteIdentical": true,
+    "byteIdenticalTrace": true,
+    "excludedFields": [],
+    "name": "cell00-3-traditional",
+    "originalSHA256": "79b2fb487b78080049035e194743c6b3bece825ea67a0a1f940557ddf08f6432",
+    "originalTraceSHA256": "5bf4b19754f1585b04a7d022e54b534003b7227b0c9fffa75219a57047c029c8",
+    "problems": [],
+    "repeatSHA256": "79b2fb487b78080049035e194743c6b3bece825ea67a0a1f940557ddf08f6432",
+    "repeatTraceSHA256": "5bf4b19754f1585b04a7d022e54b534003b7227b0c9fffa75219a57047c029c8",
+    "seed": 880000
+  },
+  {
+    "allResultFieldsEqual": true,
+    "byteIdentical": true,
+    "byteIdenticalTrace": true,
+    "excludedFields": [],
+    "name": "cell01-4-expert",
+    "originalSHA256": "d3eac32a909b772f39ca17059abfd9f125a96db9f1f9c7b855586e660e7ac7c2",
+    "originalTraceSHA256": "825433f9721584486ff1077571e3c9fcc810552bf76964abefa6753196d04c77",
+    "problems": [],
+    "repeatSHA256": "d3eac32a909b772f39ca17059abfd9f125a96db9f1f9c7b855586e660e7ac7c2",
+    "repeatTraceSHA256": "825433f9721584486ff1077571e3c9fcc810552bf76964abefa6753196d04c77",
+    "seed": 880121
+  },
+  {
+    "allResultFieldsEqual": true,
+    "byteIdentical": true,
+    "byteIdenticalTrace": true,
+    "excludedFields": [],
+    "name": "cell05-3-expert",
+    "originalSHA256": "725d6567c946aafb0fb94f3ca738d9be752c3de06ece1ddf17ab66b7433f44a6",
+    "originalTraceSHA256": "e89a3cac4c9dbd88f06c737595f31096150b255f6f1bed549f865a4cda96d80f",
+    "problems": [],
+    "repeatSHA256": "725d6567c946aafb0fb94f3ca738d9be752c3de06ece1ddf17ab66b7433f44a6",
+    "repeatTraceSHA256": "e89a3cac4c9dbd88f06c737595f31096150b255f6f1bed549f865a4cda96d80f",
+    "seed": 880501
+  },
+  {
+    "allResultFieldsEqual": true,
+    "byteIdentical": true,
+    "byteIdenticalTrace": true,
+    "excludedFields": [],
+    "name": "cell04-4-traditional",
+    "originalSHA256": "84bd3260727c8e5b728b75b894963fd80d137da7300e8f5f7ecfc0806c9aaf4a",
+    "originalTraceSHA256": "c04678c286080f0bc8b69d4f51dff480a1fff41463ef63d726cf9117cef991b2",
+    "problems": [],
+    "repeatSHA256": "84bd3260727c8e5b728b75b894963fd80d137da7300e8f5f7ecfc0806c9aaf4a",
+    "repeatTraceSHA256": "c04678c286080f0bc8b69d4f51dff480a1fff41463ef63d726cf9117cef991b2",
+    "seed": 880420
+  },
+  {
+    "allResultFieldsEqual": true,
+    "byteIdentical": true,
+    "byteIdenticalTrace": true,
+    "excludedFields": [],
+    "name": "cell08-3-traditional",
+    "originalSHA256": "6b6b50aaeda4222fe6aabe10159c98275b9185553322dc29c69c8f3e22a3e520",
+    "originalTraceSHA256": "30a1bfecbe8dc93ad939e52b34774cac0e0479fbb53ac0f34b0f576fe4540cdb",
+    "problems": [],
+    "repeatSHA256": "6b6b50aaeda4222fe6aabe10159c98275b9185553322dc29c69c8f3e22a3e520",
+    "repeatTraceSHA256": "30a1bfecbe8dc93ad939e52b34774cac0e0479fbb53ac0f34b0f576fe4540cdb",
+    "seed": 880800
+  },
+  {
+    "allResultFieldsEqual": true,
+    "byteIdentical": true,
+    "byteIdenticalTrace": true,
+    "excludedFields": [],
+    "name": "cell09-4-expert",
+    "originalSHA256": "1026d95d029dc6a69f08459e779ac765359b2ce1497678f11362c69e23b5b583",
+    "originalTraceSHA256": "8d52963c2a71fa9678c89eff288858f63a96d28f5f22a905280220a2781fddf4",
+    "problems": [],
+    "repeatSHA256": "1026d95d029dc6a69f08459e779ac765359b2ce1497678f11362c69e23b5b583",
+    "repeatTraceSHA256": "8d52963c2a71fa9678c89eff288858f63a96d28f5f22a905280220a2781fddf4",
+    "seed": 880921
+  }
+]

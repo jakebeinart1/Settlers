@@ -14,6 +14,11 @@ struct GameplayFeedback: Identifiable, Equatable {
         /// A robber or Knight steal. `resource` is set only when the viewer
         /// is the thief or the victim - nobody else at a real table sees it.
         case robbed(thief: PlayerID, victim: PlayerID, resource: Resource?)
+        case launched(PlayerID, Int)
+        case captured(PlayerID, Int, PlayerID)
+        case colony(PlayerID)
+        case harvest(PlayerID, Resource)
+        case traded(PlayerID, PlayerID)
     }
 
     let id = UUID()
@@ -28,7 +33,8 @@ struct GameplayFeedback: Identifiable, Equatable {
                           viewer: PlayerID, now: Date = Date()) -> [Self] {
         guard !events.isEmpty, before != after else { return [] }
         let changes = pointChanges(before: before, after: after, viewer: viewer)
-        var kinds = events.flatMap { news(for: $0, viewer: viewer) }
+        var kinds = events.flatMap { news(for: $0, viewer: viewer) } + events.compactMap(navalKind)
+            + events.compactMap { tradeKind($0, viewer: viewer) }
         if before.longestRoadPlayer != after.longestRoadPlayer {
             kinds.append(.longestRoad(previous: before.longestRoadPlayer, holder: after.longestRoadPlayer))
         }
@@ -57,6 +63,12 @@ struct GameplayFeedback: Identifiable, Equatable {
         case .robbed(let thief, let victim, let resource):
             let taken = resource.map { "1 \($0.rawValue.capitalized)" } ?? "a card"
             return "\(name(thief)) stole \(taken) from \(name(victim))"
+        case .launched(let player, _): return "\(name(player)) launched a ship"
+        case .captured(let player, _, let previous):
+            return "\(name(player)) captured \(name(previous))’s ship"
+        case .colony(let player): return "\(name(player)) established a new colony"
+        case .harvest(let player, let resource): return "\(name(player)) harvested \(resource.rawValue.capitalized)"
+        case .traded(let proposer, let recipient): return "\(name(proposer)) traded with \(name(recipient))"
         }
     }
 
@@ -67,6 +79,8 @@ struct GameplayFeedback: Identifiable, Equatable {
             return Text("\(name(thief)) stole ") + ResourceText.term(resource, count: 1) + Text(" from \(name(victim))")
         case .card where !detail.isEmpty:
             return Text(title(name: name) + " · ") + ResourceText.list(detail)
+        case .harvest(let player, let resource):
+            return Text("\(name(player)) harvested ") + ResourceText.term(resource, count: 1)
         default:
             return Text(title(name: name))
         }
@@ -83,6 +97,10 @@ struct GameplayFeedback: Identifiable, Equatable {
         case .largestArmy: "shield.fill"
         case .points: "star.fill"
         case .robbed: "hand.raised.fill"
+        case .launched, .captured: "sailboat.fill"
+        case .colony: "flag.fill"
+        case .harvest: "sun.max.fill"
+        case .traded: "arrow.left.arrow.right"
         }
     }
 
@@ -130,6 +148,24 @@ struct GameplayFeedback: Identifiable, Equatable {
         case .playedMonopoly(_, let resource, let gained) where gained > 0: (.monopoly, [resource: gained])
         default: nil
         }
+    }
+
+    private static func navalKind(_ event: GameEvent) -> Kind? {
+        switch event {
+        case .builtShip(let player, let id, _): .launched(player, id)
+        case .capturedShip(let player, let id, let previous): .captured(player, id, previous)
+        case .earnedColonyPoint(let player, _): .colony(player)
+        case .choseResource(let player, let resource): .harvest(player, resource)
+        default: nil
+        }
+    }
+
+    /// A player who lost an acceptance draw still needs the table's outcome.
+    /// Their own completed exchange already has a detailed trade receipt.
+    private static func tradeKind(_ event: GameEvent, viewer: PlayerID) -> Kind? {
+        guard case .acceptedTrade(let recipient, let proposer, _, _) = event,
+              recipient != viewer, proposer != viewer else { return nil }
+        return .traded(proposer, recipient)
     }
 }
 

@@ -1,0 +1,33 @@
+{
+  "verifiedAtUTC": "2026-10-07T17:59:07.177710+00:00",
+  "ownedSimulatorID": "937692FF-BFBF-4683-80E5-2590F5288D56",
+  "ownershipEvidence": "Root assigned this QA device exclusively; pinned final gate and ordinary Release operations reused it. No new devices allocated.",
+  "ownedSimulatorStateBefore": "Booted",
+  "shutdownExitCode": 0,
+  "ownedSimulatorStateAfter": "Shutdown",
+  "totalDeviceCountBefore": 14,
+  "totalDeviceCountAfter": 14,
+  "otherDeviceStatesUnchanged": true,
+  "operatedSimulatorIDs": [
+    "937692FF-BFBF-4683-80E5-2590F5288D56"
+  ],
+  "createdSimulatorIDs": [],
+  "deletedSimulatorIDs": [],
+  "protectedBootedDevicesAfter": [
+    {
+      "udid": "0E64D113-01E5-49A6-BAB0-B1D796C00780",
+      "name": "Ferrule Dice Review",
+      "state": "Booted"
+    },
+    {
+      "udid": "90CFA3EF-5F06-4943-8940-89C2F524F00C",
+      "name": "Switchbard Small Owner Review 2a7e",
+      "state": "Booted"
+    }
+  ],
+  "all376ProductionInputsStillMatchFrozenManifest": true,
+  "productionSourceSHA": "a9e0e88eb30e5bd0c5f96c6b1354ed2e7b7023c1",
+  "archiveHeadSHA": "cffe613a3c112c6f99f5e6c1d4dca36c7fa719a0",
+  "headAtCleanup": "cffe613a3c112c6f99f5e6c1d4dca36c7fa719a0",
+  "appleExact25VALIDAndAlexAccessVerifiedBeforeCleanup": true
+}

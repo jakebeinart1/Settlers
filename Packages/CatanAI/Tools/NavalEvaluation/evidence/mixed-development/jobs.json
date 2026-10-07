@@ -1,0 +1,590 @@
+[
+  {
+    "name": "0-3-expert-0",
+    "returncode": 0,
+    "games": 1,
+    "rejects": 0,
+    "seconds": 11.978
+  },
+  {
+    "name": "0-3-expert-1",
+    "returncode": 0,
+    "games": 1,
+    "rejects": 0,
+    "seconds": 10.373
+  },
+  {
+    "name": "0-3-expert-2",
+    "returncode": 0,
+    "games": 1,
+    "rejects": 0,
+    "seconds": 8.595
+  },
+  {
+    "name": "0-4-expert-0",
+    "returncode": 0,
+    "games": 1,
+    "rejects": 0,
+    "seconds": 12.501
+  },
+  {
+    "name": "0-4-expert-1",
+    "returncode": 0,
+    "games": 1,
+    "rejects": 0,
+    "seconds": 12.728
+  },
+  {
+    "name": "0-4-expert-2",
+    "returncode": 0,
+    "games": 1,
+    "rejects": 0,
+    "seconds": 10.267
+  },
+  {
+    "name": "0-4-expert-3",
+    "returncode": 0,
+    "games": 1,
+    "rejects": 0,
+    "seconds": 9.509
+  },
+  {
+    "name": "1-3-expert-0",
+    "returncode": 0,
+    "games": 1,
+    "rejects": 0,
+    "seconds": 10.744
+  },
+  {
+    "name": "1-3-expert-1",
+    "returncode": 0,
+    "games": 1,
+    "rejects": 0,
+    "seconds": 11.109
+  },
+  {
+    "name": "1-3-expert-2",
+    "returncode": 0,
+    "games": 1,
+    "rejects": 0,
+    "seconds": 12.145
+  },
+  {
+    "name": "1-4-expert-0",
+    "returncode": 0,
+    "games": 1,
+    "rejects": 0,
+    "seconds": 16.964
+  },
+  {
+    "name": "1-4-expert-1",
+    "returncode": 0,
+    "games": 1,
+    "rejects": 0,
+    "seconds": 12.306
+  },
+  {
+    "name": "1-4-expert-2",
+    "returncode": 0,
+    "games": 1,
+    "rejects": 0,
+    "seconds": 19.134
+  },
+  {
+    "name": "1-4-expert-3",
+    "returncode": 0,
+    "games": 1,
+    "rejects": 0,
+    "seconds": 14.522
+  },
+  {
+    "name": "2-3-expert-0",
+    "returncode": 0,
+    "games": 1,
+    "rejects": 0,
+    "seconds": 14.333
+  },
+  {
+    "name": "2-3-expert-1",
+    "returncode": 0,
+    "games": 1,
+    "rejects": 0,
+    "seconds": 17.212
+  },
+  {
+    "name": "2-3-expert-2",
+    "returncode": 0,
+    "games": 1,
+    "rejects": 0,
+    "seconds": 13.75
+  },
+  {
+    "name": "2-4-expert-0",
+    "returncode": 0,
+    "games": 1,
+    "rejects": 0,
+    "seconds": 13.761
+  },
+  {
+    "name": "2-4-expert-1",
+    "returncode": 0,
+    "games": 1,
+    "rejects": 0,
+    "seconds": 16.994
+  },
+  {
+    "name": "2-4-expert-2",
+    "returncode": 0,
+    "games": 1,
+    "rejects": 0,
+    "seconds": 11.264
+  },
+  {
+    "name": "2-4-expert-3",
+    "returncode": 0,
+    "games": 1,
+    "rejects": 0,
+    "seconds": 16.115
+  },
+  {
+    "name": "3-3-expert-0",
+    "returncode": 0,
+    "games": 1,
+    "rejects": 0,
+    "seconds": 11.892
+  },
+  {
+    "name": "3-3-expert-1",
+    "returncode": 0,
+    "games": 1,
+    "rejects": 0,
+    "seconds": 9.362
+  },
+  {
+    "name": "3-3-expert-2",
+    "returncode": 0,
+    "games": 1,
+    "rejects": 0,
+    "seconds": 14.52
+  },
+  {
+    "name": "3-4-expert-0",
+    "returncode": 0,
+    "games": 1,
+    "rejects": 0,
+    "seconds": 22.979
+  },
+  {
+    "name": "3-4-expert-1",
+    "returncode": 0,
+    "games": 1,
+    "rejects": 0,
+    "seconds": 18.729
+  },
+  {
+    "name": "3-4-expert-2",
+    "returncode": 0,
+    "games": 1,
+    "rejects": 0,
+    "seconds": 20.204
+  },
+  {
+    "name": "3-4-expert-3",
+    "returncode": 0,
+    "games": 1,
+    "rejects": 0,
+    "seconds": 11.195
+  },
+  {
+    "name": "4-3-expert-0",
+    "returncode": 0,
+    "games": 1,
+    "rejects": 0,
+    "seconds": 13.163
+  },
+  {
+    "name": "4-3-expert-1",
+    "returncode": 0,
+    "games": 1,
+    "rejects": 0,
+    "seconds": 12.078
+  },
+  {
+    "name": "4-3-expert-2",
+    "returncode": 0,
+    "games": 1,
+    "rejects": 0,
+    "seconds": 20.38
+  },
+  {
+    "name": "4-4-expert-0",
+    "returncode": 0,
+    "games": 1,
+    "rejects": 0,
+    "seconds": 13.906
+  },
+  {
+    "name": "4-4-expert-1",
+    "returncode": 0,
+    "games": 1,
+    "rejects": 0,
+    "seconds": 13.694
+  },
+  {
+    "name": "4-4-expert-2",
+    "returncode": 0,
+    "games": 1,
+    "rejects": 0,
+    "seconds": 13.175
+  },
+  {
+    "name": "4-4-expert-3",
+    "returncode": 0,
+    "games": 1,
+    "rejects": 0,
+    "seconds": 13.621
+  },
+  {
+    "name": "5-3-expert-0",
+    "returncode": 0,
+    "games": 1,
+    "rejects": 0,
+    "seconds": 17.709
+  },
+  {
+    "name": "5-3-expert-1",
+    "returncode": 0,
+    "games": 1,
+    "rejects": 0,
+    "seconds": 10.22
+  },
+  {
+    "name": "5-3-expert-2",
+    "returncode": 0,
+    "games": 1,
+    "rejects": 0,
+    "seconds": 11.432
+  },
+  {
+    "name": "5-4-expert-0",
+    "returncode": 0,
+    "games": 1,
+    "rejects": 0,
+    "seconds": 16.069
+  },
+  {
+    "name": "5-4-expert-1",
+    "returncode": 0,
+    "games": 1,
+    "rejects": 0,
+    "seconds": 13.599
+  },
+  {
+    "name": "5-4-expert-2",
+    "returncode": 0,
+    "games": 1,
+    "rejects": 0,
+    "seconds": 19.319
+  },
+  {
+    "name": "5-4-expert-3",
+    "returncode": 0,
+    "games": 1,
+    "rejects": 0,
+    "seconds": 17.102
+  },
+  {
+    "name": "6-3-expert-0",
+    "returncode": 0,
+    "games": 1,
+    "rejects": 0,
+    "seconds": 12.425
+  },
+  {
+    "name": "6-3-expert-1",
+    "returncode": 0,
+    "games": 1,
+    "rejects": 0,
+    "seconds": 14.981
+  },
+  {
+    "name": "6-3-expert-2",
+    "returncode": 0,
+    "games": 1,
+    "rejects": 0,
+    "seconds": 23.638
+  },
+  {
+    "name": "6-4-expert-0",
+    "returncode": 0,
+    "games": 1,
+    "rejects": 0,
+    "seconds": 17.82
+  },
+  {
+    "name": "6-4-expert-1",
+    "returncode": 0,
+    "games": 1,
+    "rejects": 0,
+    "seconds": 21.095
+  },
+  {
+    "name": "6-4-expert-2",
+    "returncode": 0,
+    "games": 1,
+    "rejects": 0,
+    "seconds": 19.039
+  },
+  {
+    "name": "6-4-expert-3",
+    "returncode": 0,
+    "games": 1,
+    "rejects": 0,
+    "seconds": 19.303
+  },
+  {
+    "name": "7-3-expert-0",
+    "returncode": 0,
+    "games": 1,
+    "rejects": 0,
+    "seconds": 19.189
+  },
+  {
+    "name": "7-3-expert-1",
+    "returncode": 0,
+    "games": 1,
+    "rejects": 0,
+    "seconds": 22.447
+  },
+  {
+    "name": "7-3-expert-2",
+    "returncode": 0,
+    "games": 1,
+    "rejects": 0,
+    "seconds": 20.163
+  },
+  {
+    "name": "7-4-expert-0",
+    "returncode": 0,
+    "games": 1,
+    "rejects": 0,
+    "seconds": 14.396
+  },
+  {
+    "name": "7-4-expert-1",
+    "returncode": 0,
+    "games": 1,
+    "rejects": 0,
+    "seconds": 14.865
+  },
+  {
+    "name": "7-4-expert-2",
+    "returncode": 0,
+    "games": 1,
+    "rejects": 0,
+    "seconds": 14.84
+  },
+  {
+    "name": "7-4-expert-3",
+    "returncode": 0,
+    "games": 1,
+    "rejects": 0,
+    "seconds": 11.498
+  },
+  {
+    "name": "8-3-expert-0",
+    "returncode": 0,
+    "games": 1,
+    "rejects": 0,
+    "seconds": 9.389
+  },
+  {
+    "name": "8-3-expert-1",
+    "returncode": 0,
+    "games": 1,
+    "rejects": 0,
+    "seconds": 9.189
+  },
+  {
+    "name": "8-3-expert-2",
+    "returncode": 0,
+    "games": 1,
+    "rejects": 0,
+    "seconds": 14.966
+  },
+  {
+    "name": "8-4-expert-0",
+    "returncode": 0,
+    "games": 1,
+    "rejects": 0,
+    "seconds": 18.884
+  },
+  {
+    "name": "8-4-expert-1",
+    "returncode": 0,
+    "games": 1,
+    "rejects": 0,
+    "seconds": 16.879
+  },
+  {
+    "name": "8-4-expert-2",
+    "returncode": 0,
+    "games": 1,
+    "rejects": 0,
+    "seconds": 23.029
+  },
+  {
+    "name": "8-4-expert-3",
+    "returncode": 0,
+    "games": 1,
+    "rejects": 0,
+    "seconds": 17.232
+  },
+  {
+    "name": "9-3-expert-0",
+    "returncode": 0,
+    "games": 1,
+    "rejects": 0,
+    "seconds": 28.013
+  },
+  {
+    "name": "9-3-expert-1",
+    "returncode": 0,
+    "games": 1,
+    "rejects": 0,
+    "seconds": 19.354
+  },
+  {
+    "name": "9-3-expert-2",
+    "returncode": 0,
+    "games": 1,
+    "rejects": 0,
+    "seconds": 16.193
+  },
+  {
+    "name": "9-4-expert-0",
+    "returncode": 0,
+    "games": 1,
+    "rejects": 0,
+    "seconds": 23.692
+  },
+  {
+    "name": "9-4-expert-1",
+    "returncode": 0,
+    "games": 1,
+    "rejects": 0,
+    "seconds": 22.847
+  },
+  {
+    "name": "9-4-expert-2",
+    "returncode": 0,
+    "games": 1,
+    "rejects": 0,
+    "seconds": 12.879
+  },
+  {
+    "name": "9-4-expert-3",
+    "returncode": 0,
+    "games": 1,
+    "rejects": 0,
+    "seconds": 20.171
+  },
+  {
+    "name": "10-3-expert-0",
+    "returncode": 0,
+    "games": 1,
+    "rejects": 0,
+    "seconds": 15.67
+  },
+  {
+    "name": "10-3-expert-1",
+    "returncode": 0,
+    "games": 1,
+    "rejects": 0,
+    "seconds": 15.051
+  },
+  {
+    "name": "10-3-expert-2",
+    "returncode": 0,
+    "games": 1,
+    "rejects": 0,
+    "seconds": 20.034
+  },
+  {
+    "name": "10-4-expert-0",
+    "returncode": 0,
+    "games": 1,
+    "rejects": 0,
+    "seconds": 24.318
+  },
+  {
+    "name": "10-4-expert-1",
+    "returncode": 0,
+    "games": 1,
+    "rejects": 0,
+    "seconds": 26.237
+  },
+  {
+    "name": "10-4-expert-2",
+    "returncode": 0,
+    "games": 1,
+    "rejects": 0,
+    "seconds": 30.22
+  },
+  {
+    "name": "10-4-expert-3",
+    "returncode": 0,
+    "games": 1,
+    "rejects": 0,
+    "seconds": 23.371
+  },
+  {
+    "name": "11-3-expert-0",
+    "returncode": 0,
+    "games": 1,
+    "rejects": 0,
+    "seconds": 30.137
+  },
+  {
+    "name": "11-3-expert-1",
+    "returncode": 0,
+    "games": 1,
+    "rejects": 0,
+    "seconds": 29.446
+  },
+  {
+    "name": "11-3-expert-2",
+    "returncode": 0,
+    "games": 1,
+    "rejects": 0,
+    "seconds": 28.472
+  },
+  {
+    "name": "11-4-expert-0",
+    "returncode": 0,
+    "games": 1,
+    "rejects": 0,
+    "seconds": 28.878
+  },
+  {
+    "name": "11-4-expert-1",
+    "returncode": 0,
+    "games": 1,
+    "rejects": 0,
+    "seconds": 21.153
+  },
+  {
+    "name": "11-4-expert-2",
+    "returncode": 0,
+    "games": 1,
+    "rejects": 0,
+    "seconds": 17.763
+  },
+  {
+    "name": "11-4-expert-3",
+    "returncode": 0,
+    "games": 1,
+    "rejects": 0,
+    "seconds": 22.888
+  }
+]

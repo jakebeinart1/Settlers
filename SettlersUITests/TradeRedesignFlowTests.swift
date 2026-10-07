@@ -19,6 +19,38 @@ final class TradeRedesignFlowTests: XCTestCase {
 
     private static let resources = ["brick", "lumber", "wool", "grain", "ore"]
 
+    /// A willing reply is held for the human. Closing the popup must leave a
+    /// reachable way to resume it, including after a real process restart.
+    func testClosedAndColdResumedHumanProposalCanBeReopenedAndConfirmed() {
+        for coldResume in [false, true] {
+            let app = launchBankPosition()
+            tap("Trade", in: app)
+            tap("trade.give.grain", times: 6, in: app)
+            tap("trade.want.ore", in: app)
+            tap("Propose to Bots", in: app)
+            XCTAssertTrue(app.buttons["Confirm Trade"].waitForExistence(timeout: Timing.transition))
+            tap("Close", in: app)
+            if coldResume {
+                app.terminate()
+                app.launchArguments = ["-ui-testing"]
+                app.launch()
+                XCTAssertTrue(app.buttons["main-menu.resume"].waitForExistence(timeout: Timing.launch))
+                app.buttons["main-menu.resume"].tap()
+            }
+            XCTAssertTrue(app.buttons["Trade"].waitForExistence(timeout: Timing.transition),
+                          "A held human confirmation must retain the Trade command, not an idle CPU row")
+            XCTAssertFalse(app.buttons["bot-progress.skip"].exists)
+            tap("Trade", in: app)
+            XCTAssertTrue(app.buttons["Confirm Trade"].waitForExistence(timeout: Timing.transition))
+            assertVisibleTerms(["6 Grain", "1 Ore"], in: app)
+            tap("Confirm Trade", in: app)
+            assertReceipt(gave: "6 Grain", received: "1 Ore", in: app)
+            tap("Close trade", in: app)
+            assertClosedHand(grain: "1", ore: "1", in: app)
+            app.terminate()
+        }
+    }
+
     func testBankPlusMinusThenTradeAgainCommitsANewExactReceiptAndCloses() {
         let app = launchBankPosition()
         defer { app.terminate() }

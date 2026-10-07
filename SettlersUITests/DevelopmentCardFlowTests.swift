@@ -74,7 +74,7 @@ final class DevelopmentCardFlowTests: XCTestCase {
 
     func testPurchasedVictoryPointRevealsAsPassiveAndAppearsInHand() {
         let app = purchase(card: "victoryPoint", expectedRevealStatus: "Counts automatically")
-        openPurchasedCardHand(in: app, card: "victoryPoint", expectedStatus: "PASSIVE")
+        openPurchasedCardHand(in: app, card: "victoryPoint", expectedStatus: "Counts automatically")
         XCTAssertTrue(app.buttons["dev-cards.tile.victoryPoint"].exists)
         XCTAssertFalse(app.buttons["dev-cards.play.victoryPoint"].exists)
     }
@@ -107,15 +107,32 @@ final class DevelopmentCardFlowTests: XCTestCase {
         let app = launchReset(arguments: ["-qaAutoStart", "-qaShowDevCardHand"])
         XCTAssertTrue(app.otherElements["dev-cards.overlay"].waitForExistence(timeout: 5))
         app.buttons["dev-cards.tile.monopoly"].tap()
-        app.buttons["dev-cards.resource.wool"].tap()
+        let wool = app.buttons["dev-cards.resource.wool"]
+        XCTAssertEqual(wool.value as? String, "0 available to collect from rivals")
+        XCTAssertTrue(wool.isEnabled, "Zero collection remains a legal Monopoly choice")
+        wool.tap()
+        XCTAssertEqual(wool.value as? String, "0 available to collect from rivals, Selected")
+        XCTAssertTrue(app.staticTexts["No rival holds Wool. This play will collect nothing."].exists)
         let play = app.buttons["dev-cards.play.monopoly"]
         XCTAssertTrue(play.isEnabled)
+        XCTAssertTrue(play.label.contains("Collect 0 Wool from rivals"))
+        let preview = XCTAttachment(screenshot: app.screenshot())
+        preview.name = "Monopoly — zero collection explained before a legal play"
+        preview.lifetime = .keepAlways
+        add(preview)
         play.tap()
 
         XCTAssertTrue(app.staticTexts["dev-cards.result"].waitForExistence(timeout: 3))
         XCTAssertTrue(app.staticTexts["No rival held any Wool. You collected 0 cards."].exists)
         app.buttons["dev-cards.result.continue"].tap()
         XCTAssertFalse(app.staticTexts["dev-cards.result"].exists)
+        XCTAssertEqual(app.otherElements["human-resource.wool"].value as? String, "0")
+        XCTAssertEqual(app.buttons["dev-cards.shelf"].value as? String, "6",
+                       "Zero collection must consume one card from the original seven-card hand")
+        app.buttons["dev-cards.shelf"].tap()
+        XCTAssertTrue(app.otherElements["dev-cards.overlay"].waitForExistence(timeout: 3))
+        XCTAssertFalse(app.buttons["dev-cards.tile.monopoly"].exists,
+                       "A legal zero collection still consumes the played Monopoly card")
     }
 
     func testYearOfPlentyChoosesExactlyTwoCardsAndReportsThem() {
@@ -294,6 +311,10 @@ final class DevelopmentCardFlowTests: XCTestCase {
         XCTAssertTrue(app.otherElements["dev-cards.overlay"].waitForExistence(timeout: 3))
         XCTAssertTrue(app.staticTexts["dev-cards.detail.\(card)"].exists)
         XCTAssertTrue(app.staticTexts[expectedRevealStatus].exists)
+        let screenshot = XCTAttachment(screenshot: app.screenshot())
+        screenshot.name = "Development card — \(card) actual purchase reveal"
+        screenshot.lifetime = .keepAlways
+        add(screenshot)
         return app
     }
 

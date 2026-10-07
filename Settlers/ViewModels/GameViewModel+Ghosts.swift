@@ -12,11 +12,11 @@ import CatanEngine
 /// the rule), and a resumed game finds its ghost from the profile alone.
 extension GameViewModel {
 
-    static let ghostProfilePrefix = "ghost-"
+    static let ghostProfilePrefix = OpponentProfile.ghostProfilePrefix
 
     /// The ghost behind a profile, if it is a ghost's.
     static func ghostID(of profile: OpponentProfile) -> String? {
-        profile.id.hasPrefix(ghostProfilePrefix) ? String(profile.id.dropFirst(ghostProfilePrefix.count)) : nil
+        profile.ghostID
     }
 
     /// Profiles for the chairs a ghost sits in: the chair's own drawn

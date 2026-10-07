@@ -3,19 +3,19 @@ import CatanEngine
 
 /// Replaces disabled commands while a CPU owns the next action. The row has
 /// the same height as every other command dock, so no wait resizes the map.
-///
-/// Its button is the Block Trade Offers preference, not a one-turn "Skip
-/// pauses" - that became a setting (Jake, 2026-10-06), because a player who
-/// wants no pauses wants none every turn. Both live in In-Game Settings too.
+/// Pacing lives on the leading side; incoming trade answers live on the
+/// trailing side. Repeated physical Skip touches therefore cannot turn into
+/// acceptance or refusal when an offer replaces this row.
 struct BotTurnStatusView: View {
     let identity: PlayerIdentity
     let progress: BotTurnProgress?
+    let onSkip: () -> Void
     let onRetry: () -> Void
-    private var preferences: PacingPreferences { .shared }
 
     var body: some View {
         TimelineView(.periodic(from: .now, by: 0.25)) { context in
             HStack(spacing: 10) {
+                pacingControl
                 CivilizationCrest(civilization: identity.civilization, size: 36)
                 VStack(alignment: .leading, spacing: 4) {
                     Text("\(identity.displayName) · CPU")
@@ -27,7 +27,6 @@ struct BotTurnStatusView: View {
                         .lineLimit(2)
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
-                if isFailed { retryButton }
             }
             .padding(.horizontal, 8)
             // A container identifier without containment propagates to its
@@ -37,20 +36,28 @@ struct BotTurnStatusView: View {
         }
     }
 
-    private var retryButton: some View {
-        Button(action: onRetry) {
+    /// The complete painted rectangle is one predictable target, including
+    /// padding. Its position never shares an incoming answer's hit region.
+    private var pacingControl: some View {
+        Button(action: isFailed ? onRetry : onSkip) {
             VStack(spacing: 3) {
-                Image(systemName: "arrow.clockwise")
-                Text("Retry").font(.caption.bold())
+                Image(systemName: isFailed ? "arrow.clockwise" : "forward.end.fill")
+                Text(isFailed ? "Retry" : "Skip pauses").font(.caption.bold())
             }
             .foregroundStyle(SettingsChrome.ornamentGold)
-            .frame(minWidth: 92, minHeight: 52)
+            .frame(width: Self.pacingButtonWidth, height: Self.pacingButtonHeight)
             .background(PaintedChromeBackground(fill: .color(CatanTheme.panelBackground), cornerRadius: 8))
+            .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
-        .accessibilityIdentifier(AccessibilityID.Game.retryBotProgress)
-        .accessibilityHint("Retries CPU progress after reloading a failed save when necessary.")
+        .accessibilityIdentifier(isFailed ? AccessibilityID.Game.retryBotProgress : AccessibilityID.Game.skipBotPauses)
+        .accessibilityHint(isFailed
+            ? "Retries CPU progress after reloading a failed save when necessary."
+            : "Skips viewing delays only. Human decisions still require your response.")
     }
+
+    private static let pacingButtonWidth: CGFloat = 92
+    private static let pacingButtonHeight: CGFloat = 52
 
     private var isFailed: Bool {
         if case .failed = progress { return true }

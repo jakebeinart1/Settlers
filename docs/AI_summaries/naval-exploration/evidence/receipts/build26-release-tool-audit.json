@@ -1,0 +1,23 @@
+{
+  "verifiedAtUTC": "2026-10-07T18:29:08.882673+00:00",
+  "auditAgent": "/root/build23_delivery/build26_release_tool_audit",
+  "scope": "Artifact-only release tooling preflight; no native, simulator or release operations",
+  "build": "26",
+  "status": "PASS",
+  "isolatedGuardCasesPassed": 63,
+  "guardCasesBlockedBeforeReceiptReadsWritesOrSubprocesses": true,
+  "freshBuild26OrdinaryReleaseRuntimeGuardsPassed": true,
+  "manualSigningOptionsPassed": true,
+  "correctCertificateExtractionSyntax": true,
+  "payloadChecksumAndUniqueDeliveryUUIDMockPassed": true,
+  "pythonAndNodeSyntaxPassed": true,
+  "build25GateOrRuntimeEvidenceReused": false,
+  "nativeActionsRun": false,
+  "releaseActionsRun": false,
+  "scriptHashes": {
+    "inspect-ipa.py": "0586a2d8fb5011f0c9b7c1279ed71f1b3894721b2d4610874f2e9e7a4fef7d2a",
+    "upload-preserve.py": "9aac1f7913158041e607fd917375bf77612d7f1cb2409d48e1decfd1b37a0cce",
+    "compare-uploaded-payload.py": "8bae3a44ca469901921af87e2fe79832cd5021c31a6e45eb774e998de70211c8",
+    "asc-build26.mjs": "4ed303f201f1c7565952e88e7981d5b3b44f7dc15d8e9b79e1aa783d8cf92341"
+  }
+}

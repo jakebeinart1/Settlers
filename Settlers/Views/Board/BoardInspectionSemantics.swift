@@ -14,9 +14,11 @@ struct BoardInspectionSemantics: View {
     let boardCenter: CGPoint
     let playerIdentity: (PlayerID) -> PlayerIdentity
 
+    private var visibleBoard: Board { state.mode == .naval ? Naval.visibleBoard(in: state) : state.board }
+
     var body: some View {
         ZStack {
-            ForEach(state.board.tiles, id: \.coordinate) { tile in
+            ForEach(visibleBoard.tiles.filter { $0.kind != .fog }, id: \.coordinate) { tile in
                 marker(
                     at: geometry.center(of: tile.coordinate),
                     label: tileLabel(tile),
@@ -24,11 +26,11 @@ struct BoardInspectionSemantics: View {
                 )
             }
 
-            let portPoints = TileDrawing.portIconPoints(board: state.board, geometry: geometry, boardCenter: boardCenter)
-            ForEach(Array(state.board.ports.enumerated()), id: \.offset) { index, port in
+            let portPoints = TileDrawing.portIconPoints(board: visibleBoard, geometry: geometry, boardCenter: boardCenter)
+            ForEach(Array(visibleBoard.ports.enumerated()), id: \.offset) { index, port in
                 marker(
                     at: portPoints[index],
-                    label: portLabel(port),
+                    label: Self.portLabel(port),
                     identifier: AccessibilityID.Board.inspectionPort(index)
                 )
             }
@@ -77,12 +79,18 @@ struct BoardInspectionSemantics: View {
             contents = tile.numberToken.map { "\(resource.rawValue), number \($0)" } ?? resource.rawValue
         case .desert:
             contents = "Desert"
+        case .sea:
+            contents = "Sea"
+        case .resourceChoice:
+            contents = tile.numberToken.map { "Resource choice, number \($0)" } ?? "Resource choice"
+        case .fog:
+            contents = "Unexplored territory"
         }
         let robber = tile.coordinate == state.board.robberTile ? ", blocked by the robber" : ""
         return "\(contents) tile\(robber)"
     }
 
-    private func portLabel(_ port: CatanEngine.Port) -> String {
+    static func portLabel(_ port: CatanEngine.Port) -> String {
         switch port.kind {
         case .generic:
             return "Three for one port"

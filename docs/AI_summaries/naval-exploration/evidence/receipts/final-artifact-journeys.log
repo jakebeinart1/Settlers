@@ -1,0 +1,494 @@
+Command line invocation:
+    /Applications/Xcode.app/Contents/Developer/usr/bin/xcodebuild test-without-building -project Settlers.xcodeproj -scheme Settlers -configuration Debug -destination "platform=iOS Simulator,id=937692FF-BFBF-4683-80E5-2590F5288D56" -parallel-testing-enabled NO -resultBundlePath /Users/alex/.codex/artifacts/naval-exploration/final-artifact-journeys-971a615.xcresult "-only-testing:SettlersUITests/NavalFlowTests/testBuyShipPreviewCancelSailAndColdResume" "-only-testing:SettlersUITests/NavalFlowTests/testGlobalCaptureRequiresConfirmationAndCanBeSkippedAfterResume" "-only-testing:SettlersUITests/NavalFlowTests/testReducedMotionNavigationUsesTheSystemPreference"
+
+Resolve Package Graph
+
+
+Resolved source packages:
+  CatanAI: /Users/alex/.codex/worktrees/naval-exploration/Settlers/Packages/CatanAI
+  CatanEngine: /Users/alex/.codex/worktrees/naval-exploration/Settlers/Packages/CatanEngine
+
+Writing result bundle at path:
+	/Users/alex/.codex/artifacts/naval-exploration/final-artifact-journeys-971a615.xcresult
+
+2026-10-05 03:06:36.294377-0400 SettlersUITests-Runner[25899:14032053] [Default] Running tests...
+2026-10-05 03:06:36.315345-0400 SettlersUITests-Runner[25899:14032131] [General] Failed to send CA Event for app launch measurements for ca_event_type: 0 event_name: com.apple.app_launch_measurement.FirstFramePresentationMetric
+2026-10-05 03:06:36.356588-0400 SettlersUITests-Runner[25899:14032134] [General] Failed to send CA Event for app launch measurements for ca_event_type: 1 event_name: com.apple.app_launch_measurement.ExtendedLaunchMetrics
+objc[25899]: Class UIAccessibilityLoaderWebShared is implemented in both /Library/Developer/CoreSimulator/Volumes/iOS_23F77/Library/Developer/CoreSimulator/Profiles/Runtimes/iOS 26.5.simruntime/Contents/Resources/RuntimeRoot/System/Library/AccessibilityBundles/WebCore.axbundle/WebCore (0x1093dc310) and /Library/Developer/CoreSimulator/Volumes/iOS_23F77/Library/Developer/CoreSimulator/Profiles/Runtimes/iOS 26.5.simruntime/Contents/Resources/RuntimeRoot/System/Library/AccessibilityBundles/WebKit.axbundle/WebKit (0x108c2c398). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+    t =      nans Interface orientation changed to Portrait
+Test Suite 'Selected tests' started at 2026-10-05 03:06:38.397.
+Test Suite 'SettlersUITests.xctest' started at 2026-10-05 03:06:38.397.
+Test Suite 'NavalFlowTests' started at 2026-10-05 03:06:38.397.
+Test Case '-[SettlersUITests.NavalFlowTests testBuyShipPreviewCancelSailAndColdResume]' started.
+    t =     0.00s Start Test at 2026-10-05 03:06:38.398
+    t =     0.02s Set Up
+    t =     0.03s Open com.jakebeinart.settlers
+    t =     0.03s     Launch com.jakebeinart.settlers
+2026-10-05 03:06:38.455 xcodebuild[25874:14031534] [MT] IDELaunchParametersSnapshot: The operation couldn’t be completed. (DebuggerLLDB.DebuggerVersionStore.StoreError error 0.)
+2026-10-05 03:06:38.455 xcodebuild[25874:14031534] [MT] IDELaunchParametersSnapshot: no debugger version
+    t =     0.67s         Setting up automation session
+    t =     1.31s         Wait for com.jakebeinart.settlers to idle
+    t =     3.17s Waiting 15.0s for "board.surface" Other to exist
+    t =     4.21s     Checking `Expect predicate `existsNoRetry == 1` for object "board.surface" Other`
+    t =     4.21s         Checking existence of `"board.surface" Other`
+    t =     4.26s Waiting 5.0s for "naval.overview" Button to exist
+    t =     5.30s     Checking `Expect predicate `existsNoRetry == 1` for object "naval.overview" Button`
+    t =     5.30s         Checking existence of `"naval.overview" Button`
+    t =     5.33s Find the "human-resource.lumber" Other
+    t =     5.35s Find the "naval.overview" Button
+    t =     5.38s Tap "Build" Button
+    t =     5.38s     Wait for com.jakebeinart.settlers to idle
+    t =     5.38s     Find the "Build" Button
+    t =     5.40s     Check for interrupting elements affecting "Build" Button
+    t =     5.42s     Synthesize event
+    t =     5.81s     Wait for com.jakebeinart.settlers to idle
+    t =     5.82s Tap "build.ship" Button
+    t =     5.82s     Wait for com.jakebeinart.settlers to idle
+    t =     5.82s     Find the "build.ship" Button
+    t =     5.85s     Check for interrupting elements affecting "build.ship" Button
+    t =     5.88s     Synthesize event
+    t =     6.17s     Wait for com.jakebeinart.settlers to idle
+    t =     6.17s Waiting 5.0s for Button (First Match) to exist
+    t =     7.21s     Checking `Expect predicate `existsNoRetry == 1` for object Button (First Match)`
+    t =     7.21s         Checking existence of `Button (First Match)`
+    t =     7.22s Get all elements bound by index for: Elements matching predicate 'identifier BEGINSWITH "board.tile."'
+    t =     7.24s Find the Button (Element at index 0)
+    t =     7.27s Find the Button (Element at index 1)
+    t =     7.29s Find the Button (Element at index 2)
+    t =     7.32s Find the "board.tile.-1_-2" Button
+    t =     7.33s Find the "board.tile.-3_0" Button
+    t =     7.35s Find the "board.tile.-1_-2" Button
+    t =     7.37s Find the "board.tile.-3_1" Button
+    t =     7.39s Tap "board.tile.-1_-2" Button
+    t =     7.39s     Wait for com.jakebeinart.settlers to idle
+    t =     7.39s     Find the "board.tile.-1_-2" Button
+    t =     7.41s     Check for interrupting elements affecting "board.tile.-1_-2" Button
+    t =     7.43s     Synthesize event
+    t =     7.71s     Wait for com.jakebeinart.settlers to idle
+    t =     7.72s Checking existence of `"board.ship-preview" Other`
+    t =     7.74s Find the "human-resource.lumber" Other
+    t =     7.77s Find the "naval.overview" Button
+    t =     7.79s Tap "board-decision.cancel" Button
+    t =     7.79s     Wait for com.jakebeinart.settlers to idle
+    t =     7.79s     Find the "board-decision.cancel" Button
+    t =     7.82s     Check for interrupting elements affecting "board-decision.cancel" Button
+    t =     7.84s     Synthesize event
+    t =     8.12s     Wait for com.jakebeinart.settlers to idle
+    t =     8.12s Checking existence of `"board.ship.0" Button`
+    t =     8.15s Find the "naval.overview" Button
+    t =     8.17s Tap "Build" Button
+    t =     8.17s     Wait for com.jakebeinart.settlers to idle
+    t =     8.17s     Find the "Build" Button
+    t =     8.19s     Check for interrupting elements affecting "Build" Button
+    t =     8.21s     Synthesize event
+    t =     8.50s     Wait for com.jakebeinart.settlers to idle
+    t =     8.51s Tap "build.ship" Button
+    t =     8.51s     Wait for com.jakebeinart.settlers to idle
+    t =     8.51s     Find the "build.ship" Button
+    t =     8.55s     Check for interrupting elements affecting "build.ship" Button
+    t =     8.57s     Synthesize event
+    t =     8.86s     Wait for com.jakebeinart.settlers to idle
+    t =     8.86s Waiting 5.0s for Button (First Match) to exist
+    t =     9.90s     Checking `Expect predicate `existsNoRetry == 1` for object Button (First Match)`
+    t =     9.90s         Checking existence of `Button (First Match)`
+    t =     9.92s Get all elements bound by index for: Elements matching predicate 'identifier BEGINSWITH "board.tile."'
+    t =     9.93s Find the Button (Element at index 0)
+    t =     9.95s Find the Button (Element at index 1)
+    t =     9.99s Find the Button (Element at index 2)
+    t =    10.01s Find the "board.tile.-1_-2" Button
+    t =    10.03s Find the "board.tile.-3_0" Button
+    t =    10.04s Find the "board.tile.-1_-2" Button
+    t =    10.06s Find the "board.tile.-3_1" Button
+    t =    10.08s Tap "board.tile.-1_-2" Button
+    t =    10.08s     Wait for com.jakebeinart.settlers to idle
+    t =    10.08s     Find the "board.tile.-1_-2" Button
+    t =    10.10s     Check for interrupting elements affecting "board.tile.-1_-2" Button
+    t =    10.12s     Synthesize event
+    t =    10.40s     Wait for com.jakebeinart.settlers to idle
+    t =    10.40s Tap "board-decision.confirm" Button
+    t =    10.40s     Wait for com.jakebeinart.settlers to idle
+    t =    10.41s     Find the "board-decision.confirm" Button
+    t =    10.43s     Check for interrupting elements affecting "board-decision.confirm" Button
+    t =    10.46s     Synthesize event
+    t =    10.74s     Wait for com.jakebeinart.settlers to idle
+    t =    10.82s Waiting 5.0s for "board.ship.0" Button to exist
+    t =    11.85s     Checking `Expect predicate `existsNoRetry == 1` for object "board.ship.0" Button`
+    t =    11.85s         Checking existence of `"board.ship.0" Button`
+    t =    11.88s Find the "human-resource.lumber" Other
+    t =    11.90s Find the Target Application 'com.jakebeinart.settlers'
+    t =    12.05s Added attachment named 'Voyages — launched vessel'
+    t =    12.05s Tap "naval.fleet.open" Button
+    t =    12.05s     Wait for com.jakebeinart.settlers to idle
+    t =    12.05s     Find the "naval.fleet.open" Button
+    t =    12.08s     Check for interrupting elements affecting "naval.fleet.open" Button
+    t =    12.10s     Synthesize event
+    t =    12.39s     Wait for com.jakebeinart.settlers to idle
+    t =    12.39s Waiting 3.0s for "naval.fleet.ship.0" Button to exist
+    t =    13.43s     Checking `Expect predicate `existsNoRetry == 1` for object "naval.fleet.ship.0" Button`
+    t =    13.43s         Checking existence of `"naval.fleet.ship.0" Button`
+    t =    13.46s Tap "naval.fleet.ship.0" Button
+    t =    13.46s     Wait for com.jakebeinart.settlers to idle
+    t =    13.47s     Find the "naval.fleet.ship.0" Button
+    t =    13.49s     Check for interrupting elements affecting "naval.fleet.ship.0" Button
+    t =    13.51s     Synthesize event
+    t =    13.80s     Wait for com.jakebeinart.settlers to idle
+    t =    13.81s Find the "naval.camera.reference" Other
+    t =    13.84s Find the "naval.overview" Button
+    t =    13.86s Waiting 5.0s for Button (First Match) to exist
+    t =    14.90s     Checking `Expect predicate `existsNoRetry == 1` for object Button (First Match)`
+    t =    14.90s         Checking existence of `Button (First Match)`
+    t =    14.92s Get all elements bound by index for: Elements matching predicate 'identifier BEGINSWITH "board.tile."'
+    t =    14.94s Find the Button (Element at index 0)
+    t =    14.96s Find the Button (Element at index 1)
+    t =    14.99s Find the Button (Element at index 2)
+    t =    15.01s Find the Button (Element at index 3)
+    t =    15.03s Find the "board.tile.0_-3" Button
+    t =    15.05s Find the "board.tile.-2_-1" Button
+    t =    15.06s Find the "board.tile.0_-3" Button
+    t =    15.08s Find the "board.tile.-1_-3" Button
+    t =    15.10s Find the "board.tile.-1_-3" Button
+    t =    15.12s Find the "board.tile.-2_-2" Button
+    t =    15.13s Tap "board.tile.-1_-3" Button
+    t =    15.13s     Wait for com.jakebeinart.settlers to idle
+    t =    15.13s     Find the "board.tile.-1_-3" Button
+    t =    15.15s     Check for interrupting elements affecting "board.tile.-1_-3" Button
+    t =    15.17s     Synthesize event
+    t =    15.46s     Wait for com.jakebeinart.settlers to idle
+    t =    15.46s Find the "naval.overview" Button
+    t =    15.49s Find the "board-decision.confirm" Button
+    t =    15.51s Tap "board-decision.confirm" Button
+    t =    15.51s     Wait for com.jakebeinart.settlers to idle
+    t =    15.52s     Find the "board-decision.confirm" Button
+    t =    15.54s     Check for interrupting elements affecting "board-decision.confirm" Button
+    t =    15.56s     Synthesize event
+    t =    15.85s     Wait for com.jakebeinart.settlers to idle
+    t =    15.85s Find the "naval.camera.reference" Other
+    t =    15.88s Tap "naval.fleet.open" Button
+    t =    15.88s     Wait for com.jakebeinart.settlers to idle
+    t =    15.88s     Find the "naval.fleet.open" Button
+    t =    15.91s     Check for interrupting elements affecting "naval.fleet.open" Button
+    t =    15.93s     Synthesize event
+    t =    16.22s     Wait for com.jakebeinart.settlers to idle
+    t =    16.23s Waiting 3.0s for "naval.fleet.ship.0" Button to exist
+    t =    17.27s     Checking `Expect predicate `existsNoRetry == 1` for object "naval.fleet.ship.0" Button`
+    t =    17.27s         Checking existence of `"naval.fleet.ship.0" Button`
+    t =    17.30s Tap "naval.fleet.ship.0" Button
+    t =    17.30s     Wait for com.jakebeinart.settlers to idle
+    t =    17.30s     Find the "naval.fleet.ship.0" Button
+    t =    17.33s     Check for interrupting elements affecting "naval.fleet.ship.0" Button
+    t =    17.35s     Synthesize event
+    t =    17.64s     Wait for com.jakebeinart.settlers to idle
+    t =    17.64s Find the "naval.camera.reference" Other
+    t =    17.67s Find the "naval.overview" Button
+    t =    17.69s Waiting 5.0s for Button (First Match) to exist
+    t =    18.72s     Checking `Expect predicate `existsNoRetry == 1` for object Button (First Match)`
+    t =    18.72s         Checking existence of `Button (First Match)`
+    t =    18.74s Get all elements bound by index for: Elements matching predicate 'identifier BEGINSWITH "board.tile."'
+    t =    18.76s Find the Button (Element at index 0)
+    t =    18.79s Find the Button (Element at index 1)
+    t =    18.82s Find the Button (Element at index 2)
+    t =    18.85s Find the Button (Element at index 3)
+    t =    18.87s Find the Button (Element at index 4)
+    t =    18.89s Find the Button (Element at index 5)
+    t =    18.91s Find the "board.tile.0_-3" Button
+    t =    18.93s Find the "board.tile.-1_-2" Button
+    t =    18.95s Find the "board.tile.0_-3" Button
+    t =    18.97s Find the "board.tile.0_-4" Button
+    t =    18.99s Find the "board.tile.0_-4" Button
+    t =    19.01s Find the "board.tile.-2_-2" Button
+    t =    19.03s Find the "board.tile.0_-4" Button
+    t =    19.04s Find the "board.tile.-1_-4" Button
+    t =    19.06s Find the "board.tile.-1_-4" Button
+    t =    19.08s Find the "board.tile.-2_-3" Button
+    t =    19.10s Tap "board.tile.-1_-4" Button
+    t =    19.10s     Wait for com.jakebeinart.settlers to idle
+    t =    19.10s     Find the "board.tile.-1_-4" Button
+    t =    19.12s     Check for interrupting elements affecting "board.tile.-1_-4" Button
+    t =    19.14s     Synthesize event
+    t =    19.43s     Wait for com.jakebeinart.settlers to idle
+    t =    19.43s Find the "naval.overview" Button
+    t =    19.46s Find the "board-decision.confirm" Button
+    t =    19.48s Tap "board-decision.confirm" Button
+    t =    19.48s     Wait for com.jakebeinart.settlers to idle
+    t =    19.48s     Find the "board-decision.confirm" Button
+    t =    19.51s     Check for interrupting elements affecting "board-decision.confirm" Button
+    t =    19.53s     Synthesize event
+    t =    19.82s     Wait for com.jakebeinart.settlers to idle
+    t =    19.82s Find the "naval.camera.reference" Other
+    t =    19.85s Tap "naval.fleet.open" Button
+    t =    19.85s     Wait for com.jakebeinart.settlers to idle
+    t =    19.85s     Find the "naval.fleet.open" Button
+    t =    19.88s     Check for interrupting elements affecting "naval.fleet.open" Button
+    t =    19.95s     Synthesize event
+    t =    20.25s     Wait for com.jakebeinart.settlers to idle
+    t =    20.29s Waiting 3.0s for "naval.fleet.ship.0" Button to exist
+    t =    21.33s     Checking `Expect predicate `existsNoRetry == 1` for object "naval.fleet.ship.0" Button`
+    t =    21.33s         Checking existence of `"naval.fleet.ship.0" Button`
+    t =    21.36s Tap "naval.fleet.ship.0" Button
+    t =    21.36s     Wait for com.jakebeinart.settlers to idle
+    t =    21.37s     Find the "naval.fleet.ship.0" Button
+    t =    21.39s     Check for interrupting elements affecting "naval.fleet.ship.0" Button
+    t =    21.41s     Synthesize event
+    t =    21.70s     Wait for com.jakebeinart.settlers to idle
+    t =    21.71s Find the "naval.camera.reference" Other
+    t =    21.73s Find the "naval.overview" Button
+    t =    21.75s Waiting 5.0s for Button (First Match) to exist
+    t =    22.80s     Checking `Expect predicate `existsNoRetry == 1` for object Button (First Match)`
+    t =    22.80s         Checking existence of `Button (First Match)`
+    t =    22.82s Get all elements bound by index for: Elements matching predicate 'identifier BEGINSWITH "board.tile."'
+    t =    22.84s Find the Button (Element at index 0)
+    t =    22.87s Find the Button (Element at index 1)
+    t =    22.90s Find the Button (Element at index 2)
+    t =    22.93s Find the Button (Element at index 3)
+    t =    22.96s Find the Button (Element at index 4)
+    t =    22.99s Find the Button (Element at index 5)
+    t =    23.02s Find the "board.tile.0_-4" Button
+    t =    23.05s Find the "board.tile.-1_-3" Button
+    t =    23.07s Find the "board.tile.0_-4" Button
+    t =    23.09s Find the "board.tile.0_-5" Button
+    t =    23.11s Find the "board.tile.0_-5" Button
+    t =    23.13s Find the "board.tile.-2_-3" Button
+    t =    23.16s Find the "board.tile.0_-5" Button
+    t =    23.18s Find the "board.tile.-1_-5" Button
+    t =    23.20s Find the "board.tile.-1_-5" Button
+    t =    23.22s Find the "board.tile.-2_-4" Button
+    t =    23.25s Tap "board.tile.-1_-5" Button
+    t =    23.25s     Wait for com.jakebeinart.settlers to idle
+    t =    23.25s     Find the "board.tile.-1_-5" Button
+    t =    23.28s     Check for interrupting elements affecting "board.tile.-1_-5" Button
+    t =    23.31s     Synthesize event
+    t =    23.61s     Wait for com.jakebeinart.settlers to idle
+    t =    23.61s Find the "naval.overview" Button
+    t =    23.64s Find the "board-decision.confirm" Button
+    t =    23.67s Tap "board-decision.confirm" Button
+    t =    23.67s     Wait for com.jakebeinart.settlers to idle
+    t =    23.67s     Find the "board-decision.confirm" Button
+    t =    23.71s     Check for interrupting elements affecting "board-decision.confirm" Button
+    t =    23.73s     Synthesize event
+    t =    24.02s     Wait for com.jakebeinart.settlers to idle
+    t =    24.03s Find the "naval.camera.reference" Other
+    t =    24.06s Find the "naval.overview" Button
+    t =    24.12s Tap "naval.overview" Button
+    t =    24.12s     Wait for com.jakebeinart.settlers to idle
+    t =    24.13s     Find the "naval.overview" Button
+    t =    24.16s     Check for interrupting elements affecting "naval.overview" Button
+    t =    24.19s     Synthesize event
+    t =    24.59s     Wait for com.jakebeinart.settlers to idle
+    t =    24.60s Find the Target Application 'com.jakebeinart.settlers'
+    t =    24.80s Added attachment named 'Voyages — discovery and world overview'
+    t =    24.80s Checking existence of `"End Turn" Button`
+    t =    24.84s Find the "human-resource.lumber" Other
+    t =    24.88s Terminate com.jakebeinart.settlers:25924
+    t =    25.92s Open com.jakebeinart.settlers
+    t =    25.92s     Launch com.jakebeinart.settlers
+2026-10-05 03:07:04.317 xcodebuild[25874:14031534] [MT] IDELaunchParametersSnapshot: The operation couldn’t be completed. (DebuggerLLDB.DebuggerVersionStore.StoreError error 0.)
+2026-10-05 03:07:04.317 xcodebuild[25874:14031534] [MT] IDELaunchParametersSnapshot: no debugger version
+    t =    26.13s         Setting up automation session
+    t =    26.91s         Wait for com.jakebeinart.settlers to idle
+    t =    28.14s Waiting 5.0s for "main-menu.resume" Button to exist
+    t =    29.18s     Checking `Expect predicate `existsNoRetry == 1` for object "main-menu.resume" Button`
+    t =    29.18s         Checking existence of `"main-menu.resume" Button`
+    t =    29.21s Tap "main-menu.resume" Button
+    t =    29.21s     Wait for com.jakebeinart.settlers to idle
+    t =    29.21s     Find the "main-menu.resume" Button
+    t =    29.22s     Check for interrupting elements affecting "main-menu.resume" Button
+    t =    29.24s     Synthesize event
+    t =    29.54s     Wait for com.jakebeinart.settlers to idle
+    t =    29.67s Waiting 5.0s for "naval.overview" Button to exist
+    t =    30.71s     Checking `Expect predicate `existsNoRetry == 1` for object "naval.overview" Button`
+    t =    30.71s         Checking existence of `"naval.overview" Button`
+    t =    30.74s Find the "human-resource.lumber" Other
+    t =    30.76s Find the "naval.overview" Button
+    t =    30.78s Checking existence of `"board.ship.0" Button`
+    t =    30.80s Checking existence of `"board.ship-preview" Other`
+    t =    30.83s Tear Down
+Test Case '-[SettlersUITests.NavalFlowTests testBuyShipPreviewCancelSailAndColdResume]' passed (31.122 seconds).
+Test Case '-[SettlersUITests.NavalFlowTests testGlobalCaptureRequiresConfirmationAndCanBeSkippedAfterResume]' started.
+    t =     0.00s Start Test at 2026-10-05 03:07:09.521
+    t =     0.02s Set Up
+    t =     0.02s Open com.jakebeinart.settlers
+    t =     0.02s     Launch com.jakebeinart.settlers
+    t =     0.02s         Terminate com.jakebeinart.settlers:26193
+2026-10-05 03:07:10.638 xcodebuild[25874:14031534] [MT] IDELaunchParametersSnapshot: The operation couldn’t be completed. (DebuggerLLDB.DebuggerVersionStore.StoreError error 0.)
+2026-10-05 03:07:10.638 xcodebuild[25874:14031534] [MT] IDELaunchParametersSnapshot: no debugger version
+    t =     1.32s         Setting up automation session
+    t =     1.85s         Wait for com.jakebeinart.settlers to idle
+    t =     3.79s Waiting 15.0s for "board.surface" Other to exist
+    t =     4.82s     Checking `Expect predicate `existsNoRetry == 1` for object "board.surface" Other`
+    t =     4.82s         Checking existence of `"board.surface" Other`
+    t =     4.86s Waiting 5.0s for "naval.overview" Button to exist
+    t =     5.88s     Checking `Expect predicate `existsNoRetry == 1` for object "naval.overview" Button`
+    t =     5.88s         Checking existence of `"naval.overview" Button`
+    t =     5.91s Find the "board.ship.0" Button
+    t =     5.94s Waiting 5.0s for "naval.choose-ship.0" Button to exist
+    t =     6.96s     Checking `Expect predicate `existsNoRetry == 1` for object "naval.choose-ship.0" Button`
+    t =     6.96s         Checking existence of `"naval.choose-ship.0" Button`
+    t =     6.99s Tap "naval.choose-ship.0" Button
+    t =     6.99s     Wait for com.jakebeinart.settlers to idle
+    t =     6.99s     Find the "naval.choose-ship.0" Button
+    t =     7.02s     Check for interrupting elements affecting "naval.choose-ship.0" Button
+    t =     7.04s     Synthesize event
+    t =     7.33s     Wait for com.jakebeinart.settlers to idle
+    t =     7.33s Find the "board.ship.0" Button
+    t =     7.36s Checking existence of `"board.ship-capture-preview" Other`
+    t =     7.38s Find the Target Application 'com.jakebeinart.settlers'
+    t =     7.54s Added attachment named 'Voyages — capture proposal'
+    t =     7.54s Terminate com.jakebeinart.settlers:26301
+    t =     8.60s Open com.jakebeinart.settlers
+    t =     8.60s     Launch com.jakebeinart.settlers
+2026-10-05 03:07:18.120 xcodebuild[25874:14031534] [MT] IDELaunchParametersSnapshot: The operation couldn’t be completed. (DebuggerLLDB.DebuggerVersionStore.StoreError error 0.)
+2026-10-05 03:07:18.120 xcodebuild[25874:14031534] [MT] IDELaunchParametersSnapshot: no debugger version
+    t =     8.81s         Setting up automation session
+    t =     9.39s         Wait for com.jakebeinart.settlers to idle
+    t =    11.00s Waiting 5.0s for "naval.capture.skip" Button to exist
+    t =    12.02s     Checking `Expect predicate `existsNoRetry == 1` for object "naval.capture.skip" Button`
+    t =    12.02s         Checking existence of `"naval.capture.skip" Button`
+    t =    12.06s Find the "board-decision.confirm" Button
+    t =    12.09s Tap "naval.choose-ship.0" Button
+    t =    12.09s     Wait for com.jakebeinart.settlers to idle
+    t =    12.09s     Find the "naval.choose-ship.0" Button
+    t =    12.12s     Check for interrupting elements affecting "naval.choose-ship.0" Button
+    t =    12.14s     Synthesize event
+    t =    12.43s     Wait for com.jakebeinart.settlers to idle
+    t =    12.44s Tap "board-decision.confirm" Button
+    t =    12.44s     Wait for com.jakebeinart.settlers to idle
+    t =    12.44s     Find the "board-decision.confirm" Button
+    t =    12.47s     Check for interrupting elements affecting "board-decision.confirm" Button
+    t =    12.50s     Synthesize event
+    t =    12.79s     Wait for com.jakebeinart.settlers to idle
+    t =    12.79s Waiting 5.0s for "End Turn" Button to exist
+    t =    13.82s     Checking `Expect predicate `existsNoRetry == 1` for object "End Turn" Button`
+    t =    13.82s         Checking existence of `"End Turn" Button`
+    t =    13.85s Find the "board.ship.0" Button
+    t =    13.88s Find the Target Application 'com.jakebeinart.settlers'
+    t =    14.03s Added attachment named 'Voyages — captured vessel'
+    t =    14.03s Tear Down
+Test Case '-[SettlersUITests.NavalFlowTests testGlobalCaptureRequiresConfirmationAndCanBeSkippedAfterResume]' passed (14.281 seconds).
+Test Case '-[SettlersUITests.NavalFlowTests testReducedMotionNavigationUsesTheSystemPreference]' started.
+    t =     0.00s Start Test at 2026-10-05 03:07:23.802
+    t =     0.01s Set Up
+    t =     0.02s Open com.apple.Preferences
+    t =     0.02s     Launch com.apple.Preferences
+    t =     0.10s         Setting up automation session
+    t =     0.79s         Wait for com.apple.Preferences to idle
+    t =     2.81s Waiting 1.0s for "Reduce Motion" Switch to exist
+    t =     3.81s     Checking `Expect predicate `existsNoRetry == 1` for object "Reduce Motion" Switch`
+    t =     3.81s         Checking existence of `"Reduce Motion" Switch`
+    t =     3.88s         Capturing element debug description
+    t =     3.88s     Checking existence of `"Reduce Motion" Switch`
+    t =     3.90s Collecting debug information to assist test failure triage
+    t =     3.90s     Requesting snapshot of accessibility hierarchy for app with pid 26391
+    t =     3.94s Find the "Accessibility" StaticText
+    t =     3.97s Find the "Accessibility" StaticText
+    t =     4.00s Find the "Accessibility" StaticText
+    t =     4.03s Find the "Accessibility" StaticText
+    t =     4.06s Find the "Accessibility" StaticText
+    t =     4.09s Find the "Accessibility" StaticText
+    t =     4.13s Find the "Accessibility" StaticText
+    t =     4.17s Find the "Accessibility" StaticText
+    t =     4.19s Find the "Accessibility" StaticText
+    t =     4.23s Find the "Accessibility" StaticText
+    t =     4.25s Find the "Accessibility" StaticText
+    t =     4.28s Tap "Accessibility" StaticText
+    t =     4.28s     Wait for com.apple.Preferences to idle
+    t =     4.28s     Find the "Accessibility" StaticText
+    t =     4.30s     Check for interrupting elements affecting "Accessibility" StaticText
+    t =     4.32s     Synthesize event
+    t =     4.62s     Wait for com.apple.Preferences to idle
+    t =     5.09s Find the "Motion" StaticText
+    t =     5.23s Find the "Motion" StaticText
+    t =     5.30s Find the "Motion" StaticText
+    t =     5.37s Find the "Motion" StaticText
+    t =     5.45s Find the "Motion" StaticText
+    t =     5.54s Find the "Motion" StaticText
+    t =     5.59s Find the "Motion" StaticText
+    t =     5.62s Find the "Motion" StaticText
+    t =     5.66s Find the "Motion" StaticText
+    t =     5.69s Find the "Motion" StaticText
+    t =     5.72s Find the "Motion" StaticText
+    t =     5.76s Tap "Motion" StaticText
+    t =     5.76s     Wait for com.apple.Preferences to idle
+    t =     6.12s     Find the "Motion" StaticText
+    t =     6.14s     Check for interrupting elements affecting "Motion" StaticText
+    t =     6.17s     Synthesize event
+    t =     6.47s     Wait for com.apple.Preferences to idle
+    t =     6.82s Waiting 5.0s for "Reduce Motion" Switch to exist
+    t =     7.85s     Checking `Expect predicate `existsNoRetry == 1` for object "Reduce Motion" Switch`
+    t =     7.85s         Checking existence of `"Reduce Motion" Switch`
+    t =     7.88s Find the "Reduce Motion" Switch
+    t =     7.90s Tap "REDUCE_MOTION" Switch[0.90, 0.50]
+    t =     7.90s     Wait for com.apple.Preferences to idle
+    t =     7.90s     Find the "REDUCE_MOTION" Switch
+    t =     7.91s     Check for interrupting elements affecting "REDUCE_MOTION" Switch
+    t =     7.93s     Synthesize event
+    t =     7.93s         Find the "REDUCE_MOTION" Switch
+    t =     7.95s         Find the "REDUCE_MOTION" Switch
+    t =     7.96s         Find the "REDUCE_MOTION" Switch
+    t =     8.26s     Wait for com.apple.Preferences to idle
+    t =    10.23s Checking `Expect predicate `value == "1"` for object "REDUCE_MOTION" Switch`
+    t =    10.23s     Find the "REDUCE_MOTION" Switch
+    t =    10.26s Find the "REDUCE_MOTION" Switch
+    t =    10.28s Open com.jakebeinart.settlers
+    t =    10.28s     Launch com.jakebeinart.settlers
+    t =    10.28s         Terminate com.jakebeinart.settlers:26357
+2026-10-05 03:07:35.134 xcodebuild[25874:14031534] [MT] IDELaunchParametersSnapshot: The operation couldn’t be completed. (DebuggerLLDB.DebuggerVersionStore.StoreError error 0.)
+2026-10-05 03:07:35.134 xcodebuild[25874:14031534] [MT] IDELaunchParametersSnapshot: no debugger version
+    t =    11.54s         Setting up automation session
+    t =    12.05s         Wait for com.jakebeinart.settlers to idle
+    t =    13.92s Waiting 15.0s for "board.surface" Other to exist
+    t =    14.95s     Checking `Expect predicate `existsNoRetry == 1` for object "board.surface" Other`
+    t =    14.95s         Checking existence of `"board.surface" Other`
+    t =    14.99s Waiting 5.0s for "naval.overview" Button to exist
+    t =    16.02s     Checking `Expect predicate `existsNoRetry == 1` for object "naval.overview" Button`
+    t =    16.02s         Checking existence of `"naval.overview" Button`
+    t =    16.04s Find the "naval.camera.reference" Other
+    t =    16.07s Find the "board.surface" Other
+    t =    16.09s Tap "naval.overview" Button
+    t =    16.09s     Wait for com.jakebeinart.settlers to idle
+    t =    16.09s     Find the "naval.overview" Button
+    t =    16.12s     Check for interrupting elements affecting "naval.overview" Button
+    t =    16.13s     Synthesize event
+    t =    16.42s     Wait for com.jakebeinart.settlers to idle
+    t =    16.42s Tap "naval.home" Button
+    t =    16.42s     Wait for com.jakebeinart.settlers to idle
+    t =    16.43s     Find the "naval.home" Button
+    t =    16.45s     Check for interrupting elements affecting "naval.home" Button
+    t =    16.47s     Synthesize event
+    t =    16.76s     Wait for com.jakebeinart.settlers to idle
+    t =    16.76s Find the "board.surface" Other
+    t =    16.78s Find the "Build" Button
+    t =    16.81s Find the Target Application 'com.jakebeinart.settlers'
+    t =    16.97s Added attachment named 'Voyages — system Reduce Motion'
+    t =    16.97s Terminate com.jakebeinart.settlers:26504
+    t =    18.02s Open com.apple.Preferences
+    t =    18.02s     Activate com.apple.Preferences
+    t =    18.04s         Wait for com.apple.Preferences to idle
+    t =    18.08s Find the "REDUCE_MOTION" Switch
+    t =    18.11s Tap "REDUCE_MOTION" Switch[0.90, 0.50]
+    t =    18.11s     Wait for com.apple.Preferences to idle
+    t =    18.12s     Find the "REDUCE_MOTION" Switch
+    t =    18.14s     Check for interrupting elements affecting "REDUCE_MOTION" Switch
+    t =    18.16s     Synthesize event
+    t =    18.17s         Find the "REDUCE_MOTION" Switch
+    t =    18.19s         Find the "REDUCE_MOTION" Switch
+    t =    18.20s         Find the "REDUCE_MOTION" Switch
+    t =    18.50s     Wait for com.apple.Preferences to idle
+    t =    18.51s Terminate com.apple.Preferences:26391
+    t =    19.59s Tear Down
+Test Case '-[SettlersUITests.NavalFlowTests testReducedMotionNavigationUsesTheSystemPreference]' passed (19.636 seconds).
+Test Suite 'NavalFlowTests' passed at 2026-10-05 03:07:43.438.
+	 Executed 3 tests, with 0 failures (0 unexpected) in 65.039 (65.041) seconds
+Test Suite 'SettlersUITests.xctest' passed at 2026-10-05 03:07:43.438.
+	 Executed 3 tests, with 0 failures (0 unexpected) in 65.039 (65.041) seconds
+Test Suite 'Selected tests' passed at 2026-10-05 03:07:43.439.
+	 Executed 3 tests, with 0 failures (0 unexpected) in 65.039 (65.042) seconds
+2026-10-05 03:07:43.757 xcodebuild[25874:14031534] [MT] IDETestOperationsObserverDebug: 72.655 elapsed -- Testing started completed.
+2026-10-05 03:07:43.757 xcodebuild[25874:14031534] [MT] IDETestOperationsObserverDebug: 0.000 sec, +0.000 sec -- start
+2026-10-05 03:07:43.757 xcodebuild[25874:14031534] [MT] IDETestOperationsObserverDebug: 72.655 sec, +72.655 sec -- end
+
+Test session results, code coverage, and logs:
+	/Users/alex/.codex/artifacts/naval-exploration/final-artifact-journeys-971a615.xcresult
+
+** TEST EXECUTE SUCCEEDED **
+
+Testing started

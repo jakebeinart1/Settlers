@@ -1,0 +1,439 @@
+{
+  "cases": [
+    {
+      "case": "cell00-3-expert",
+      "idleRevisits": 0,
+      "rawRevisits": 1,
+      "revisits": [
+        {
+          "classification": "explicit settlement/fleet opportunity change between visits",
+          "coordinate": [
+            -4,
+            -1
+          ],
+          "expeditionChangesInTrace": [
+            "P1:buildSettlement(CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: -6, r: -1), CatanEngine.HexCoordinate(q: -5, r: -2), CatanEngine.HexCoordinate(q: -5, r: -1)]))"
+          ],
+          "previousLine": 679,
+          "publicDiscoveriesBetweenVisits": [],
+          "returnLine": 690,
+          "ship": 0,
+          "surroundingActions": [
+            "P1:rollDice",
+            "P1:moveRobber(CatanEngine.HexCoordinate(q: 1, r: 0), stealFrom: Optional(CatanEngine.PlayerID(index: 0)))",
+            "P1:sailShip(id: 0, to: CatanEngine.HexCoordinate(q: -5, r: -1))",
+            "P1:proposeTrade[p1:grain=1,wool=1->brick=1,lumber=1]",
+            "P0:respondToTrade(offerID: 4953C01B-68B2-EFBF-C0E3-195B19F57951, accept: false)",
+            "P1:proposeTrade[p1:grain=1,wool=2->brick=1,lumber=1]",
+            "P0:respondToTrade(offerID: 92097DA3-3604-EF37-BEFF-2C82B3E14C97, accept: false)",
+            "P1:proposeTrade[p1:grain=1->lumber=2]",
+            "P2:respondToTrade(offerID: E41B9F81-1796-BDE9-2BF0-D4AC76B3CBD4, accept: true)",
+            "P1:bankTrade[wool=2->brick=1]",
+            "P1:buildSettlement(CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: -6, r: -1), CatanEngine.HexCoordinate(q: -5, r: -2), CatanEngine.HexCoordinate(q: -5, r: -1)]))",
+            "P1:sailShip(id: 0, to: CatanEngine.HexCoordinate(q: -4, r: -1))"
+          ]
+        }
+      ],
+      "seed": 880001,
+      "trace": "/Users/alex/.codex/artifacts/naval-ai/voyages-build19/traces/cell00-3-expert/880001-0-functional-build19.txt"
+    },
+    {
+      "case": "cell00-4-expert",
+      "idleRevisits": 0,
+      "rawRevisits": 1,
+      "revisits": [
+        {
+          "classification": "explicit settlement/fleet opportunity change between visits",
+          "coordinate": [
+            1,
+            -4
+          ],
+          "expeditionChangesInTrace": [
+            "P3:buildSettlement(CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: 0, r: -5), CatanEngine.HexCoordinate(q: 0, r: -4), CatanEngine.HexCoordinate(q: 1, r: -5)]))"
+          ],
+          "previousLine": 549,
+          "publicDiscoveriesBetweenVisits": [],
+          "returnLine": 560,
+          "ship": 0,
+          "surroundingActions": [
+            "P3:sailShip(id: 0, to: CatanEngine.HexCoordinate(q: 1, r: -4))",
+            "P3:sailShip(id: 0, to: CatanEngine.HexCoordinate(q: 0, r: -4))",
+            "P3:buyDevCard",
+            "P3:sailShip(id: 1, to: CatanEngine.HexCoordinate(q: -4, r: 5))",
+            "P3:sailShip(id: 1, to: CatanEngine.HexCoordinate(q: -3, r: 5))",
+            "P3:sailShip(id: 1, to: CatanEngine.HexCoordinate(q: -2, r: 5))",
+            "P3:bankTrade[lumber=3->brick=1]",
+            "P3:buildSettlement(CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: 0, r: -5), CatanEngine.HexCoordinate(q: 0, r: -4), CatanEngine.HexCoordinate(q: 1, r: -5)]))",
+            "P3:proposeTrade[p3:wool=1->grain=1]",
+            "P2:respondToTrade(offerID: 9F3C687B-FDBA-62A5-BD77-9232A276761A, accept: true)",
+            "P3:buyDevCard",
+            "P3:sailShip(id: 0, to: CatanEngine.HexCoordinate(q: 1, r: -4))"
+          ]
+        }
+      ],
+      "seed": 880021,
+      "trace": "/Users/alex/.codex/artifacts/naval-ai/voyages-build19/traces/cell00-4-expert/880021-0-functional-build19.txt"
+    },
+    {
+      "case": "cell01-4-traditional",
+      "idleRevisits": 0,
+      "rawRevisits": 2,
+      "revisits": [
+        {
+          "classification": "new public discoveries between visits, independently reconstructed from geometry",
+          "coordinate": [
+            5,
+            -1
+          ],
+          "expeditionChangesInTrace": [],
+          "previousLine": 554,
+          "publicDiscoveriesBetweenVisits": [
+            {
+              "action": "P2:sailShip(id: 4, to: CatanEngine.HexCoordinate(q: 5, r: 0))",
+              "hexes": 2,
+              "line": 557
+            }
+          ],
+          "returnLine": 560,
+          "ship": 4,
+          "surroundingActions": [
+            "P2:sailShip(id: 4, to: CatanEngine.HexCoordinate(q: 5, r: -1))",
+            "P2:bankTrade[lumber=3->ore=1]",
+            "P2:buyDevCard",
+            "P2:sailShip(id: 4, to: CatanEngine.HexCoordinate(q: 5, r: 0))",
+            "P2:proposeTrade[p2:brick=1->ore=1]",
+            "P0:respondToTrade(offerID: D07872AF-4C75-6625-D90E-23BC31EEDB93, accept: false)",
+            "P2:sailShip(id: 4, to: CatanEngine.HexCoordinate(q: 5, r: -1))"
+          ]
+        },
+        {
+          "classification": "new public discoveries between visits, independently reconstructed from geometry",
+          "coordinate": [
+            6,
+            -4
+          ],
+          "expeditionChangesInTrace": [],
+          "previousLine": 635,
+          "publicDiscoveriesBetweenVisits": [
+            {
+              "action": "P2:sailShip(id: 4, to: CatanEngine.HexCoordinate(q: 6, r: -5))",
+              "hexes": 1,
+              "line": 641
+            }
+          ],
+          "returnLine": 642,
+          "ship": 4,
+          "surroundingActions": [
+            "P2:rollDice",
+            "P2:discard[lumber=2,grain=3]",
+            "P3:discard[lumber=2,grain=3]",
+            "P2:moveRobber(CatanEngine.HexCoordinate(q: 1, r: -2), stealFrom: Optional(CatanEngine.PlayerID(index: 1)))",
+            "P2:proposeTrade[p2:brick=1->ore=1]",
+            "P0:respondToTrade(offerID: D07872AF-4C75-6625-D90E-23BC31EEDB93, accept: false)",
+            "P2:sailShip(id: 4, to: CatanEngine.HexCoordinate(q: 6, r: -5))",
+            "P2:sailShip(id: 4, to: CatanEngine.HexCoordinate(q: 6, r: -4))"
+          ]
+        }
+      ],
+      "seed": 880120,
+      "trace": "/Users/alex/.codex/artifacts/naval-ai/voyages-build19/traces/cell01-4-traditional/880120-0-functional-build19.txt"
+    },
+    {
+      "case": "cell05-3-expert",
+      "idleRevisits": 0,
+      "rawRevisits": 1,
+      "revisits": [
+        {
+          "classification": "explicit settlement/fleet opportunity change between visits",
+          "coordinate": [
+            -5,
+            3
+          ],
+          "expeditionChangesInTrace": [
+            "P1:captureShip(id: 1)",
+            "P1:buildSettlement(CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: 5, r: -4), CatanEngine.HexCoordinate(q: 6, r: -5), CatanEngine.HexCoordinate(q: 6, r: -4)]))"
+          ],
+          "previousLine": 352,
+          "publicDiscoveriesBetweenVisits": [
+            {
+              "action": "P1:sailShip(id: 1, to: CatanEngine.HexCoordinate(q: 5, r: -2))",
+              "hexes": 4,
+              "line": 355
+            },
+            {
+              "action": "P1:sailShip(id: 1, to: CatanEngine.HexCoordinate(q: 5, r: -3))",
+              "hexes": 5,
+              "line": 356
+            },
+            {
+              "action": "P1:sailShip(id: 1, to: CatanEngine.HexCoordinate(q: 5, r: -4))",
+              "hexes": 5,
+              "line": 357
+            }
+          ],
+          "returnLine": 361,
+          "ship": 0,
+          "surroundingActions": [
+            "P1:rollDice",
+            "P1:captureShip(id: 1)",
+            "P1:buildCity(CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: -1, r: 0), CatanEngine.HexCoordinate(q: 0, r: -1), CatanEngine.HexCoordinate(q: 0, r: 0)]))",
+            "P1:sailShip(id: 1, to: CatanEngine.HexCoordinate(q: 5, r: -2))",
+            "P1:sailShip(id: 1, to: CatanEngine.HexCoordinate(q: 5, r: -3))",
+            "P1:sailShip(id: 1, to: CatanEngine.HexCoordinate(q: 5, r: -4))",
+            "P1:sailShip(id: 0, to: CatanEngine.HexCoordinate(q: -5, r: 4))",
+            "P1:bankTrade[grain=4->brick=1]",
+            "P1:buildSettlement(CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: 5, r: -4), CatanEngine.HexCoordinate(q: 6, r: -5), CatanEngine.HexCoordinate(q: 6, r: -4)]))",
+            "P1:sailShip(id: 0, to: CatanEngine.HexCoordinate(q: -5, r: 3))"
+          ]
+        }
+      ],
+      "seed": 880501,
+      "trace": "/Users/alex/.codex/artifacts/naval-ai/voyages-build19/traces/cell05-3-expert/880501-0-functional-build19.txt"
+    },
+    {
+      "case": "cell06-4-expert",
+      "idleRevisits": 0,
+      "rawRevisits": 1,
+      "revisits": [
+        {
+          "classification": "explicit settlement/fleet opportunity change between visits",
+          "coordinate": [
+            5,
+            -4
+          ],
+          "expeditionChangesInTrace": [
+            "P2:buildSettlement(CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: 5, r: -3), CatanEngine.HexCoordinate(q: 6, r: -4), CatanEngine.HexCoordinate(q: 6, r: -3)]))"
+          ],
+          "previousLine": 658,
+          "publicDiscoveriesBetweenVisits": [],
+          "returnLine": 669,
+          "ship": 0,
+          "surroundingActions": [
+            "P2:sailShip(id: 0, to: CatanEngine.HexCoordinate(q: 5, r: -4))",
+            "P2:sailShip(id: 0, to: CatanEngine.HexCoordinate(q: 5, r: -3))",
+            "P2:proposeTrade[p2:lumber=1->brick=1]",
+            "P0:respondToTrade(offerID: 37DDB7E2-7D63-0267-9B89-0A5563B65F44, accept: false)",
+            "P2:proposeTrade[p2:lumber=2->brick=2]",
+            "P0:respondToTrade(offerID: 8FD675E9-EA89-0616-64EF-A099DC3ABFD3, accept: false)",
+            "P2:proposeTrade[p2:grain=1->brick=1]",
+            "P0:respondToTrade(offerID: 81D108C5-668E-0DEA-3E06-A72639C768C7, accept: true)",
+            "P2:buildSettlement(CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: 5, r: -3), CatanEngine.HexCoordinate(q: 6, r: -4), CatanEngine.HexCoordinate(q: 6, r: -3)]))",
+            "P2:proposeTrade[p2:lumber=1->grain=2]",
+            "P0:respondToTrade(offerID: 8DF3F2D3-FCD2-9D6A-D6BA-D93725373D76, accept: false)",
+            "P2:sailShip(id: 0, to: CatanEngine.HexCoordinate(q: 5, r: -4))"
+          ]
+        }
+      ],
+      "seed": 880621,
+      "trace": "/Users/alex/.codex/artifacts/naval-ai/voyages-build19/traces/cell06-4-expert/880621-0-functional-build19.txt"
+    },
+    {
+      "case": "cell07-3-expert",
+      "idleRevisits": 0,
+      "rawRevisits": 1,
+      "revisits": [
+        {
+          "classification": "explicit settlement/fleet opportunity change between visits",
+          "coordinate": [
+            -2,
+            -4
+          ],
+          "expeditionChangesInTrace": [
+            "P2:buildSettlement(CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: -2, r: -5), CatanEngine.HexCoordinate(q: -1, r: -6), CatanEngine.HexCoordinate(q: -1, r: -5)]))"
+          ],
+          "previousLine": 291,
+          "publicDiscoveriesBetweenVisits": [],
+          "returnLine": 295,
+          "ship": 1,
+          "surroundingActions": [
+            "P2:sailShip(id: 1, to: CatanEngine.HexCoordinate(q: -2, r: -4))",
+            "P2:sailShip(id: 1, to: CatanEngine.HexCoordinate(q: -2, r: -5))",
+            "P2:bankTrade[grain=3->lumber=1]",
+            "P2:buildSettlement(CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: -2, r: -5), CatanEngine.HexCoordinate(q: -1, r: -6), CatanEngine.HexCoordinate(q: -1, r: -5)]))",
+            "P2:sailShip(id: 1, to: CatanEngine.HexCoordinate(q: -2, r: -4))"
+          ]
+        }
+      ],
+      "seed": 880701,
+      "trace": "/Users/alex/.codex/artifacts/naval-ai/voyages-build19/traces/cell07-3-expert/880701-0-functional-build19.txt"
+    },
+    {
+      "case": "cell08-3-traditional",
+      "idleRevisits": 0,
+      "rawRevisits": 2,
+      "revisits": [
+        {
+          "classification": "new public discoveries between visits, independently reconstructed from geometry",
+          "coordinate": [
+            4,
+            -1
+          ],
+          "expeditionChangesInTrace": [],
+          "previousLine": 535,
+          "publicDiscoveriesBetweenVisits": [
+            {
+              "action": "P1:sailShip(id: 0, to: CatanEngine.HexCoordinate(q: 5, r: -2))",
+              "hexes": 5,
+              "line": 537
+            },
+            {
+              "action": "P1:sailShip(id: 2, to: CatanEngine.HexCoordinate(q: 4, r: -5))",
+              "hexes": 3,
+              "line": 538
+            },
+            {
+              "action": "P1:sailShip(id: 2, to: CatanEngine.HexCoordinate(q: 5, r: -5))",
+              "hexes": 3,
+              "line": 539
+            }
+          ],
+          "returnLine": 542,
+          "ship": 0,
+          "surroundingActions": [
+            "P1:rollDice",
+            "P1:playKnight(moveRobberTo: CatanEngine.HexCoordinate(q: -1, r: -1), stealFrom: Optional(CatanEngine.PlayerID(index: 0)))",
+            "P1:sailShip(id: 0, to: CatanEngine.HexCoordinate(q: 5, r: -2))",
+            "P1:sailShip(id: 2, to: CatanEngine.HexCoordinate(q: 4, r: -5))",
+            "P1:sailShip(id: 2, to: CatanEngine.HexCoordinate(q: 5, r: -5))",
+            "P1:proposeTrade[p1:wool=2->ore=2]",
+            "P0:respondToTrade(offerID: A5835240-1135-A254-476E-02E783471B78, accept: false)",
+            "P1:sailShip(id: 0, to: CatanEngine.HexCoordinate(q: 4, r: -1))"
+          ]
+        },
+        {
+          "classification": "new public discoveries between visits, independently reconstructed from geometry",
+          "coordinate": [
+            4,
+            0
+          ],
+          "expeditionChangesInTrace": [],
+          "previousLine": 572,
+          "publicDiscoveriesBetweenVisits": [
+            {
+              "action": "P1:sailShip(id: 0, to: CatanEngine.HexCoordinate(q: 5, r: 0))",
+              "hexes": 4,
+              "line": 573
+            }
+          ],
+          "returnLine": 580,
+          "ship": 0,
+          "surroundingActions": [
+            "P1:rollDice",
+            "P1:sailShip(id: 0, to: CatanEngine.HexCoordinate(q: 5, r: 0))",
+            "P1:sailShip(id: 2, to: CatanEngine.HexCoordinate(q: 3, r: -4))",
+            "P1:sailShip(id: 2, to: CatanEngine.HexCoordinate(q: 2, r: -4))",
+            "P1:sailShip(id: 2, to: CatanEngine.HexCoordinate(q: 1, r: -4))",
+            "P1:sailShip(id: 1, to: CatanEngine.HexCoordinate(q: 3, r: 0))",
+            "P1:sailShip(id: 1, to: CatanEngine.HexCoordinate(q: 3, r: -1))",
+            "P1:sailShip(id: 1, to: CatanEngine.HexCoordinate(q: 3, r: -2))",
+            "P1:sailShip(id: 0, to: CatanEngine.HexCoordinate(q: 4, r: 0))"
+          ]
+        }
+      ],
+      "seed": 880800,
+      "trace": "/Users/alex/.codex/artifacts/naval-ai/voyages-build19/traces/cell08-3-traditional/880800-0-functional-build19.txt"
+    },
+    {
+      "case": "cell08-4-expert",
+      "idleRevisits": 0,
+      "rawRevisits": 1,
+      "revisits": [
+        {
+          "classification": "new public discoveries between visits, independently reconstructed from geometry",
+          "coordinate": [
+            3,
+            -6
+          ],
+          "expeditionChangesInTrace": [],
+          "previousLine": 865,
+          "publicDiscoveriesBetweenVisits": [
+            {
+              "action": "P2:sailShip(id: 2, to: CatanEngine.HexCoordinate(q: 3, r: -7))",
+              "hexes": 1,
+              "line": 876
+            }
+          ],
+          "returnLine": 877,
+          "ship": 2,
+          "surroundingActions": [
+            "P2:rollDice",
+            "P2:chooseResource(CatanEngine.Resource.ore)",
+            "P2:chooseResource(CatanEngine.Resource.ore)",
+            "P2:chooseResource(CatanEngine.Resource.ore)",
+            "P2:buyDevCard",
+            "P2:proposeTrade[p2:wool=2->grain=2]",
+            "P0:respondToTrade(offerID: 7660EC1E-E9A5-A105-BFDA-F38AA006E639, accept: false)",
+            "P2:proposeTrade[p2:wool=1->ore=2]",
+            "P0:respondToTrade(offerID: C2F879C3-E190-11A5-3E37-915E4A348739, accept: false)",
+            "P2:proposeTrade[p2:wool=1->grain=1]",
+            "P0:respondToTrade(offerID: 822937A4-59D5-2607-D0B2-C235BCAB29AF, accept: false)",
+            "P2:sailShip(id: 2, to: CatanEngine.HexCoordinate(q: 3, r: -7))",
+            "P2:sailShip(id: 2, to: CatanEngine.HexCoordinate(q: 3, r: -6))"
+          ]
+        }
+      ],
+      "seed": 880821,
+      "trace": "/Users/alex/.codex/artifacts/naval-ai/voyages-build19/traces/cell08-4-expert/880821-0-functional-build19.txt"
+    },
+    {
+      "case": "cell09-4-traditional",
+      "idleRevisits": 0,
+      "rawRevisits": 2,
+      "revisits": [
+        {
+          "classification": "explicit settlement/fleet opportunity change between visits",
+          "coordinate": [
+            -2,
+            5
+          ],
+          "expeditionChangesInTrace": [
+            "P2:buildSettlement(CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: -1, r: 5), CatanEngine.HexCoordinate(q: -1, r: 6), CatanEngine.HexCoordinate(q: 0, r: 5)]))"
+          ],
+          "previousLine": 530,
+          "publicDiscoveriesBetweenVisits": [],
+          "returnLine": 535,
+          "ship": 0,
+          "surroundingActions": [
+            "P2:rollDice",
+            "P2:proposeTrade[p2:brick=1->lumber=1]",
+            "P0:respondToTrade(offerID: 7D122A18-6F10-3966-094E-7F8F5240F809, accept: true)",
+            "P2:sailShip(id: 0, to: CatanEngine.HexCoordinate(q: -1, r: 5))",
+            "P2:buildSettlement(CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: -1, r: 5), CatanEngine.HexCoordinate(q: -1, r: 6), CatanEngine.HexCoordinate(q: 0, r: 5)]))",
+            "P2:sailShip(id: 0, to: CatanEngine.HexCoordinate(q: -2, r: 5))"
+          ]
+        },
+        {
+          "classification": "new public discoveries between visits, independently reconstructed from geometry",
+          "coordinate": [
+            6,
+            -3
+          ],
+          "expeditionChangesInTrace": [],
+          "previousLine": 638,
+          "publicDiscoveriesBetweenVisits": [
+            {
+              "action": "P3:sailShip(id: 3, to: CatanEngine.HexCoordinate(q: 7, r: -3))",
+              "hexes": 1,
+              "line": 642
+            }
+          ],
+          "returnLine": 643,
+          "ship": 3,
+          "surroundingActions": [
+            "P3:sailShip(id: 3, to: CatanEngine.HexCoordinate(q: 6, r: -3))",
+            "P3:bankTrade[wool=3->ore=1]",
+            "P3:proposeTrade[p3:brick=1->ore=1]",
+            "P0:respondToTrade(offerID: 04350D81-7428-FC87-A666-4D81D6008553, accept: false)",
+            "P3:sailShip(id: 3, to: CatanEngine.HexCoordinate(q: 7, r: -3))",
+            "P3:sailShip(id: 3, to: CatanEngine.HexCoordinate(q: 6, r: -3))"
+          ]
+        }
+      ],
+      "seed": 880920,
+      "trace": "/Users/alex/.codex/artifacts/naval-ai/voyages-build19/traces/cell09-4-traditional/880920-0-functional-build19.txt"
+    }
+  ],
+  "explanation": "Raw revisits are retained. Trace inspection independently locates every raw revisit and reconstructs all public discoveries from the 19-hex opening plus exact corner/ship geometry. Reconstructed discovery totals agree with CLI event totals. Each revisit has explicit intervening settlement/fleet actions or fresh discoveries, listed with line numbers.",
+  "rawRevisitGames": 9,
+  "rawRevisits": 12
+}

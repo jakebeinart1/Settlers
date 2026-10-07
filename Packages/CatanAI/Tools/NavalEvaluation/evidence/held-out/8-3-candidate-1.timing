@@ -1,0 +1,12 @@
+naval-sim seed=808000 decisions=589 p95=11.987ms p99=27.340ms over50=2 over150=0
+naval-sim seed=808001 decisions=453 p95=13.451ms p99=19.152ms over50=0 over150=0
+naval-sim seed=808002 decisions=432 p95=7.577ms p99=14.877ms over50=0 over150=0
+naval-sim seed=808003 decisions=660 p95=11.277ms p99=35.210ms over50=3 over150=0
+naval-sim rejection evidence: /var/folders/_m/cfbn0s7j7zx3sx1lwv6w4mr80000gn/T/naval-sim-failures/808004-3-1-candidate-twinIslands-true-true
+naval-sim seed=808004 decisions=827 p95=5.104ms p99=18.261ms over50=2 over150=0
+naval-sim seed=808005 decisions=776 p95=7.535ms p99=15.290ms over50=0 over150=0
+naval-sim seed=808006 decisions=706 p95=5.112ms p99=22.692ms over50=0 over150=0
+naval-sim seed=808007 decisions=922 p95=4.326ms p99=20.492ms over50=2 over150=0
+naval-sim seed=808008 decisions=483 p95=6.839ms p99=11.169ms over50=0 over150=0
+naval-sim seed=808009 decisions=527 p95=7.157ms p99=69.400ms over50=6 over150=0
+naval-sim seed=808010 decisions=852 p95=6.865ms p99=26.129ms over50=0 over150=0

@@ -1,0 +1,1492 @@
+Command line invocation:
+    /Applications/Xcode.app/Contents/Developer/usr/bin/xcodebuild test -project Settlers.xcodeproj -scheme Settlers -destination "platform=iOS Simulator,id=175C3674-BA5B-40B5-97C6-CF472CE572E1" -parallel-testing-enabled NO -parallel-testing-worker-count 1 -jobs 2 "OTHER_SWIFT_FLAGS=$(inherited) -driver-batch-count 2" "-only-testing:SettlersUITests/BuildClarityFlowTests" "-only-testing:SettlersUITests/TradeTapSafetyFlowTests/testRepeatedSkipTouchesCannotAcceptARealNavalOffer" "-only-testing:SettlersUITests/TradeTapSafetyFlowTests/testWideOfferStillRequiresReviewAndHoldsWhileReading" "-only-testing:SettlersUITests/NavalShipArtworkFlowTests/testPaintedVesselAtMaximumZoomKeepsItsCoastalHarborAndViewport" "-only-testing:SettlersUITests/TradeRedesignFlowTests/testConfirmationFooterAndNewOfferRemainReachableAt375By667" -resultBundlePath /Users/alex/.codex/artifacts/naval-exploration/build23-sprites-build-trade-safety/compact-focused.xcresult
+
+Build settings from command line:
+    OTHER_SWIFT_FLAGS = $(inherited) -driver-batch-count 2
+
+Resolve Package Graph
+
+
+Resolved source packages:
+  CatanEngine: /Users/alex/.codex/worktrees/naval-exploration/Settlers/Packages/CatanEngine
+  CatanAI: /Users/alex/.codex/worktrees/naval-exploration/Settlers/Packages/CatanAI
+
+Writing result bundle at path:
+	/Users/alex/.codex/artifacts/naval-exploration/build23-sprites-build-trade-safety/compact-focused.xcresult
+
+Build Preparation
+Build task concurrency set to 2 via user default IDEBuildOperationMaxNumberOfConcurrentCompileTasks
+
+ComputePackagePrebuildTargetDependencyGraph
+
+Prepare packages
+
+CreateBuildRequest
+
+SendProjectDescription
+
+CreateBuildOperation
+
+ComputeTargetDependencyGraph
+note: Building targets in dependency order
+note: Target dependency graph (7 targets)
+    Target 'SettlersUITests' in project 'Settlers'
+        ➜ Explicit dependency on target 'Settlers' in project 'Settlers'
+    Target 'SettlersTests' in project 'Settlers'
+        ➜ Explicit dependency on target 'Settlers' in project 'Settlers'
+    Target 'Settlers' in project 'Settlers'
+        ➜ Explicit dependency on target 'CatanEngine' in project 'CatanEngine'
+        ➜ Explicit dependency on target 'CatanAI' in project 'CatanAI'
+    Target 'CatanAI' in project 'CatanAI'
+        ➜ Explicit dependency on target 'CatanAI' in project 'CatanAI'
+        ➜ Explicit dependency on target 'CatanEngine' in project 'CatanEngine'
+    Target 'CatanAI' in project 'CatanAI'
+        ➜ Explicit dependency on target 'CatanEngine' in project 'CatanEngine'
+    Target 'CatanEngine' in project 'CatanEngine'
+        ➜ Explicit dependency on target 'CatanEngine' in project 'CatanEngine'
+    Target 'CatanEngine' in project 'CatanEngine' (no dependencies)
+
+GatherProvisioningInputs
+
+CreateBuildDescription
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang -v -E -dM -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.5.sdk -x c -c /dev/null
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc --version
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/actool --print-asset-tag-combinations --output-format xml1 /Users/alex/.codex/worktrees/naval-exploration/Settlers/Settlers/Assets.xcassets
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/ld -version_details
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/actool --version --output-format xml1
+
+Build description signature: 106f60547088d7518d92dc115a29b763
+Build description path: /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/XCBuildData/106f60547088d7518d92dc115a29b763.xcbuilddata
+ClangStatCache /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang-stat-cache /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.5.sdk /Users/alex/Library/Developer/Xcode/DerivedData/SDKStatCaches.noindex/iphonesimulator26.5-23F73-6cfe768891a92b912361537c460fe42b.sdkstatcache
+    cd /Users/alex/.codex/worktrees/naval-exploration/Settlers/Settlers.xcodeproj
+    /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang-stat-cache /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.5.sdk -o /Users/alex/Library/Developer/Xcode/DerivedData/SDKStatCaches.noindex/iphonesimulator26.5-23F73-6cfe768891a92b912361537c460fe42b.sdkstatcache
+
+CompileAssetCatalogVariant thinned /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Products/Debug-iphonesimulator/Settlers.app /Users/alex/.codex/worktrees/naval-exploration/Settlers/Settlers/Assets.xcassets (in target 'Settlers' from project 'Settlers')
+    cd /Users/alex/.codex/worktrees/naval-exploration/Settlers
+    /Applications/Xcode.app/Contents/Developer/usr/bin/actool /Users/alex/.codex/worktrees/naval-exploration/Settlers/Settlers/Assets.xcassets --compile /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/Settlers.build/Debug-iphonesimulator/Settlers.build/assetcatalog_output/thinned --output-format human-readable-text --notices --warnings --export-dependency-info /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/Settlers.build/Debug-iphonesimulator/Settlers.build/assetcatalog_dependencies_thinned --output-partial-info-plist /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/Settlers.build/Debug-iphonesimulator/Settlers.build/assetcatalog_generated_info.plist_thinned --app-icon AppIcon --compress-pngs --enable-on-demand-resources YES --filter-for-thinning-device-configuration iPhone14,6 --filter-for-device-os-version 26.5 --development-region en --target-device iphone --minimum-deployment-target 17.0 --platform iphonesimulator
+/* com.apple.actool.compilation-results */
+/Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/Settlers.build/Debug-iphonesimulator/Settlers.build/assetcatalog_generated_info.plist_thinned
+/Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/Settlers.build/Debug-iphonesimulator/Settlers.build/assetcatalog_output/thinned/AppIcon60x60@2x.png
+/Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/Settlers.build/Debug-iphonesimulator/Settlers.build/assetcatalog_output/thinned/AppIcon76x76@2x~ipad.png
+/Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/Settlers.build/Debug-iphonesimulator/Settlers.build/assetcatalog_output/thinned/Assets.car
+
+
+LinkAssetCatalog /Users/alex/.codex/worktrees/naval-exploration/Settlers/Settlers/Assets.xcassets (in target 'Settlers' from project 'Settlers')
+    cd /Users/alex/.codex/worktrees/naval-exploration/Settlers
+    builtin-linkAssetCatalog --thinned /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/Settlers.build/Debug-iphonesimulator/Settlers.build/assetcatalog_output/thinned --thinned-dependencies /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/Settlers.build/Debug-iphonesimulator/Settlers.build/assetcatalog_dependencies_thinned --thinned-info-plist-content /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/Settlers.build/Debug-iphonesimulator/Settlers.build/assetcatalog_generated_info.plist_thinned --unthinned /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/Settlers.build/Debug-iphonesimulator/Settlers.build/assetcatalog_output/unthinned --unthinned-dependencies /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/Settlers.build/Debug-iphonesimulator/Settlers.build/assetcatalog_dependencies_unthinned --unthinned-info-plist-content /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/Settlers.build/Debug-iphonesimulator/Settlers.build/assetcatalog_generated_info.plist_unthinned --output /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Products/Debug-iphonesimulator/Settlers.app --plist-output /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/Settlers.build/Debug-iphonesimulator/Settlers.build/assetcatalog_generated_info.plist
+note: Emplaced /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Products/Debug-iphonesimulator/Settlers.app/Assets.car (in target 'Settlers' from project 'Settlers')
+note: Emplaced /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Products/Debug-iphonesimulator/Settlers.app/AppIcon76x76@2x~ipad.png (in target 'Settlers' from project 'Settlers')
+note: Emplaced /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Products/Debug-iphonesimulator/Settlers.app/AppIcon60x60@2x.png (in target 'Settlers' from project 'Settlers')
+
+ProcessInfoPlistFile /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Products/Debug-iphonesimulator/Settlers.app/Info.plist /Users/alex/.codex/worktrees/naval-exploration/Settlers/Settlers/Info.plist (in target 'Settlers' from project 'Settlers')
+    cd /Users/alex/.codex/worktrees/naval-exploration/Settlers
+    builtin-infoPlistUtility /Users/alex/.codex/worktrees/naval-exploration/Settlers/Settlers/Info.plist -producttype com.apple.product-type.application -genpkginfo /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Products/Debug-iphonesimulator/Settlers.app/PkgInfo -expandbuildsettings -format binary -platform iphonesimulator -additionalcontentfile /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/Settlers.build/Debug-iphonesimulator/Settlers.build/assetcatalog_generated_info.plist -o /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Products/Debug-iphonesimulator/Settlers.app/Info.plist
+
+CopySwiftLibs /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Products/Debug-iphonesimulator/Settlers.app (in target 'Settlers' from project 'Settlers')
+    cd /Users/alex/.codex/worktrees/naval-exploration/Settlers
+    builtin-swiftStdLibTool --copy --verbose --sign - --scan-executable /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Products/Debug-iphonesimulator/Settlers.app/Settlers.debug.dylib --scan-folder /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Products/Debug-iphonesimulator/Settlers.app/Frameworks --scan-folder /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Products/Debug-iphonesimulator/Settlers.app/PlugIns --scan-folder /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Products/Debug-iphonesimulator/Settlers.app/SystemExtensions --scan-folder /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Products/Debug-iphonesimulator/Settlers.app/Extensions --platform iphonesimulator --toolchain /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain --destination /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Products/Debug-iphonesimulator/Settlers.app/Frameworks --strip-bitcode --strip-bitcode-tool /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/bitcode_strip --emit-dependency-info /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/Settlers.build/Debug-iphonesimulator/Settlers.build/SwiftStdLibToolInputDependencies.dep --filter-for-swift-os
+
+ProcessInfoPlistFile /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Products/Debug-iphonesimulator/Settlers.app/PlugIns/SettlersTests.xctest/Info.plist /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/Settlers.build/Debug-iphonesimulator/SettlersTests.build/empty-SettlersTests.plist (in target 'SettlersTests' from project 'Settlers')
+    cd /Users/alex/.codex/worktrees/naval-exploration/Settlers
+    builtin-infoPlistUtility /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/Settlers.build/Debug-iphonesimulator/SettlersTests.build/empty-SettlersTests.plist -producttype com.apple.product-type.bundle.unit-test -expandbuildsettings -format binary -platform iphonesimulator -o /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Products/Debug-iphonesimulator/Settlers.app/PlugIns/SettlersTests.xctest/Info.plist
+
+ProcessInfoPlistFile /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Products/Debug-iphonesimulator/SettlersUITests-Runner.app/PlugIns/SettlersUITests.xctest/Info.plist /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/Settlers.build/Debug-iphonesimulator/SettlersUITests.build/empty-SettlersUITests.plist (in target 'SettlersUITests' from project 'Settlers')
+    cd /Users/alex/.codex/worktrees/naval-exploration/Settlers
+    builtin-infoPlistUtility /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/Settlers.build/Debug-iphonesimulator/SettlersUITests.build/empty-SettlersUITests.plist -producttype com.apple.product-type.bundle.ui-testing -expandbuildsettings -format binary -platform iphonesimulator -additionalcontentfile /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/Settlers.build/Debug-iphonesimulator/SettlersUITests.build/ProductTypeInfoPlistAdditions.plist -o /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Products/Debug-iphonesimulator/SettlersUITests-Runner.app/PlugIns/SettlersUITests.xctest/Info.plist
+
+CopySwiftLibs /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Products/Debug-iphonesimulator/SettlersUITests-Runner.app/PlugIns/SettlersUITests.xctest (in target 'SettlersUITests' from project 'Settlers')
+    cd /Users/alex/.codex/worktrees/naval-exploration/Settlers
+    builtin-swiftStdLibTool --copy --verbose --sign - --scan-executable /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Products/Debug-iphonesimulator/SettlersUITests-Runner.app/PlugIns/SettlersUITests.xctest/SettlersUITests --scan-folder /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Products/Debug-iphonesimulator/SettlersUITests-Runner.app/PlugIns/SettlersUITests.xctest/Frameworks --scan-folder /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Products/Debug-iphonesimulator/SettlersUITests-Runner.app/PlugIns/SettlersUITests.xctest/PlugIns --scan-folder /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Products/Debug-iphonesimulator/SettlersUITests-Runner.app/PlugIns/SettlersUITests.xctest/SystemExtensions --scan-folder /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Products/Debug-iphonesimulator/SettlersUITests-Runner.app/PlugIns/SettlersUITests.xctest/Extensions --platform iphonesimulator --toolchain /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain --destination /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Products/Debug-iphonesimulator/SettlersUITests-Runner.app/PlugIns/SettlersUITests.xctest/Frameworks --strip-bitcode --scan-executable /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/usr/lib/libXCTestSwiftSupport.dylib --strip-bitcode-tool /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/bitcode_strip --emit-dependency-info /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/Settlers.build/Debug-iphonesimulator/SettlersUITests.build/SwiftStdLibToolInputDependencies.dep --filter-for-swift-os
+
+2026-10-07 02:47:29.647639-0400 SettlersUITests-Runner[10587:2339500] [Default] Running tests...
+2026-10-07 02:47:29.668340-0400 SettlersUITests-Runner[10587:2339766] [General] Failed to send CA Event for app launch measurements for ca_event_type: 0 event_name: com.apple.app_launch_measurement.FirstFramePresentationMetric
+2026-10-07 02:47:29.710037-0400 SettlersUITests-Runner[10587:2339766] [General] Failed to send CA Event for app launch measurements for ca_event_type: 1 event_name: com.apple.app_launch_measurement.ExtendedLaunchMetrics
+objc[10587]: Class UIAccessibilityLoaderWebShared is implemented in both /Library/Developer/CoreSimulator/Volumes/iOS_23F77/Library/Developer/CoreSimulator/Profiles/Runtimes/iOS 26.5.simruntime/Contents/Resources/RuntimeRoot/System/Library/AccessibilityBundles/WebCore.axbundle/WebCore (0x106d20310) and /Library/Developer/CoreSimulator/Volumes/iOS_23F77/Library/Developer/CoreSimulator/Profiles/Runtimes/iOS 26.5.simruntime/Contents/Resources/RuntimeRoot/System/Library/AccessibilityBundles/WebKit.axbundle/WebKit (0x106574398). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+    t =      nans Interface orientation changed to Portrait
+Test Suite 'Selected tests' started at 2026-10-07 02:47:31.794.
+Test Suite 'SettlersUITests.xctest' started at 2026-10-07 02:47:31.794.
+Test Suite 'BuildClarityFlowTests' started at 2026-10-07 02:47:31.794.
+Test Case '-[SettlersUITests.BuildClarityFlowTests testClassicConstructionStillUsesOriginalStableRowsAndRealPreview]' started.
+    t =     0.00s Start Test at 2026-10-07 02:47:31.795
+    t =     0.10s Set Up
+    t =     0.10s Open com.alexchandler.empires
+    t =     0.10s     Launch com.alexchandler.empires
+2026-10-07 02:47:31.924 xcodebuild[10508:2338601] [MT] IDELaunchParametersSnapshot: The operation couldn’t be completed. (DebuggerLLDB.DebuggerVersionStore.StoreError error 0.)
+2026-10-07 02:47:31.924 xcodebuild[10508:2338601] [MT] IDELaunchParametersSnapshot: no debugger version
+    t =     0.75s         Setting up automation session
+    t =     1.26s         Wait for com.alexchandler.empires to idle
+    t =     3.09s Waiting 15.0s for "Build" Button to exist
+    t =     4.12s     Checking `Expect predicate `existsNoRetry == 1` for object "Build" Button`
+    t =     4.12s         Checking existence of `"Build" Button`
+    t =     4.16s Find the "human-resource.brick" Other
+    t =     4.18s Find the "human-resource.lumber" Other
+    t =     4.20s Find the "human-resource.ore" Other
+    t =     4.22s Find the "human-resource.grain" Other
+    t =     4.24s Find the "human-resource.wool" Other
+    t =     4.25s Tap "Build" Button
+    t =     4.25s     Wait for com.alexchandler.empires to idle
+    t =     4.26s     Find the "Build" Button
+    t =     4.27s     Check for interrupting elements affecting "Build" Button
+    t =     4.29s     Synthesize event
+    t =     4.69s     Wait for com.alexchandler.empires to idle
+    t =     4.69s Checking existence of `"build.ship" Button`
+    t =     4.73s Find the "build.road" Button
+    t =     4.75s Find the "build.road" Button
+    t =     4.78s Find the "build.settlement" Button
+    t =     4.80s Find the "build.settlement" Button
+    t =     4.83s Find the "build.city" Button
+    t =     4.85s Find the "build.city" Button
+    t =     4.88s Find the "build.dev-card" Button
+    t =     4.90s Find the "build.dev-card" Button
+    t =     4.93s Find the Target Application 'com.alexchandler.empires'
+    t =     5.00s Added attachment named 'Build — Classic ready construction'
+    t =     5.00s Tap "build.road" Button
+    t =     5.00s     Wait for com.alexchandler.empires to idle
+    t =     5.00s     Find the "build.road" Button
+    t =     5.03s     Check for interrupting elements affecting "build.road" Button
+    t =     5.05s     Synthesize event
+    t =     5.34s     Wait for com.alexchandler.empires to idle
+    t =     5.34s Waiting 3.0s for Button (First Match) to exist
+    t =     6.37s     Checking `Expect predicate `existsNoRetry == 1` for object Button (First Match)`
+    t =     6.37s         Checking existence of `Button (First Match)`
+    t =     6.40s Tap Button (First Match)
+    t =     6.40s     Wait for com.alexchandler.empires to idle
+    t =     6.40s     Find the Button (First Match)
+    t =     6.42s     Check for interrupting elements affecting "board.edge.board.vertex.-3_0.-3_1.-2_0.board.vertex.-3_1.-2_0.-2_1" Button
+    t =     6.44s     Synthesize event
+    t =     6.73s     Wait for com.alexchandler.empires to idle
+    t =     6.73s Find the "human-resource.brick" Other
+    t =     6.76s Find the "human-resource.lumber" Other
+    t =     6.78s Find the "human-resource.ore" Other
+    t =     6.80s Find the "human-resource.grain" Other
+    t =     6.82s Find the "human-resource.wool" Other
+    t =     6.84s Tap "board-decision.cancel" Button
+    t =     6.84s     Wait for com.alexchandler.empires to idle
+    t =     6.84s     Find the "board-decision.cancel" Button
+    t =     6.86s     Check for interrupting elements affecting "board-decision.cancel" Button
+    t =     6.87s     Synthesize event
+    t =     7.16s     Wait for com.alexchandler.empires to idle
+    t =     7.16s Find the "human-resource.brick" Other
+    t =     7.18s Find the "human-resource.lumber" Other
+    t =     7.20s Find the "human-resource.ore" Other
+    t =     7.22s Find the "human-resource.grain" Other
+    t =     7.23s Find the "human-resource.wool" Other
+    t =     7.25s Tear Down
+Test Case '-[SettlersUITests.BuildClarityFlowTests testClassicConstructionStillUsesOriginalStableRowsAndRealPreview]' passed (7.472 seconds).
+Test Case '-[SettlersUITests.BuildClarityFlowTests testConquestArmyRowsRemainReachableAtLargestTextWithPinnedClose]' started.
+    t =     0.00s Start Test at 2026-10-07 02:47:39.267
+    t =     0.02s Set Up
+    t =     0.02s Open com.alexchandler.empires
+    t =     0.02s     Launch com.alexchandler.empires
+    t =     0.02s         Terminate com.alexchandler.empires:10634
+2026-10-07 02:47:40.351 xcodebuild[10508:2338601] [MT] IDELaunchParametersSnapshot: The operation couldn’t be completed. (DebuggerLLDB.DebuggerVersionStore.StoreError error 0.)
+2026-10-07 02:47:40.351 xcodebuild[10508:2338601] [MT] IDELaunchParametersSnapshot: no debugger version
+    t =     1.29s         Setting up automation session
+    t =     1.78s         Wait for com.alexchandler.empires to idle
+    t =     3.46s Waiting 15.0s for "Build" Button to exist
+    t =     4.50s     Checking `Expect predicate `existsNoRetry == 1` for object "Build" Button`
+    t =     4.50s         Checking existence of `"Build" Button`
+    t =     4.56s Tap "Build" Button
+    t =     4.56s     Wait for com.alexchandler.empires to idle
+    t =     4.56s     Find the "Build" Button
+    t =     4.59s     Check for interrupting elements affecting "Build" Button
+    t =     4.60s     Synthesize event
+    t =     4.89s     Wait for com.alexchandler.empires to idle
+    t =     4.89s Waiting 3.0s for "Close" Button to exist
+    t =     5.94s     Checking `Expect predicate `existsNoRetry == 1` for object "Close" Button`
+    t =     5.94s         Checking existence of `"Close" Button`
+    t =     5.99s Find the "Close" Button
+    t =     6.03s Find the Target Application 'com.alexchandler.empires'
+    t =     6.04s Find the "Close" Button
+    t =     6.07s Waiting 3.0s for "build.choices" ScrollView to exist
+    t =     7.08s     Checking `Expect predicate `existsNoRetry == 1` for object "build.choices" ScrollView`
+    t =     7.08s         Checking existence of `"build.choices" ScrollView`
+    t =     7.11s Find the "build.army-card" Button
+    t =     7.14s Swipe up "build.choices" ScrollView
+    t =     7.14s     Wait for com.alexchandler.empires to idle
+    t =     7.14s     Find the "build.choices" ScrollView
+    t =     7.17s     Check for interrupting elements affecting "build.choices" ScrollView
+    t =     7.19s     Synthesize event
+    t =     7.62s     Wait for com.alexchandler.empires to idle
+    t =     9.73s Find the "build.army-card" Button
+    t =     9.77s Swipe up "build.choices" ScrollView
+    t =     9.77s     Wait for com.alexchandler.empires to idle
+    t =     9.77s     Find the "build.choices" ScrollView
+    t =     9.79s     Check for interrupting elements affecting "build.choices" ScrollView
+    t =     9.82s     Synthesize event
+    t =    10.24s     Wait for com.alexchandler.empires to idle
+    t =    12.37s Find the "build.army-card" Button
+    t =    12.43s Swipe up "build.choices" ScrollView
+    t =    12.43s     Wait for com.alexchandler.empires to idle
+    t =    12.43s     Find the "build.choices" ScrollView
+    t =    12.46s     Check for interrupting elements affecting "build.choices" ScrollView
+    t =    12.48s     Synthesize event
+    t =    12.91s     Wait for com.alexchandler.empires to idle
+    t =    15.04s Find the "build.army-card" Button
+    t =    15.09s Find the "build.army-card" Button
+    t =    15.12s Find the "build.army-card" Button
+    t =    15.16s Find the "build.army-card" Button
+    t =    15.19s Find the "build.army-card" Button
+    t =    15.22s Find the "build.army-card" Button
+    t =    15.25s Find the "build.army-card" Button
+    t =    15.27s Waiting 3.0s for "build.choices" ScrollView to exist
+    t =    16.32s     Checking `Expect predicate `existsNoRetry == 1` for object "build.choices" ScrollView`
+    t =    16.32s         Checking existence of `"build.choices" ScrollView`
+    t =    16.36s Find the "build.deploy-army" Button
+    t =    16.40s Find the "build.deploy-army" Button
+    t =    16.44s Find the "build.deploy-army" Button
+    t =    16.47s Find the "build.deploy-army" Button
+    t =    16.50s Find the "build.deploy-army" Button
+    t =    16.53s Find the "build.deploy-army" Button
+    t =    16.56s Find the "build.deploy-army" Button
+    t =    16.59s Find the "build.deploy-army" Button
+    t =    16.63s Find the "build.deploy-army" Button
+    t =    16.66s Find the "build.deploy-army" Button
+    t =    16.68s Find the "build.deploy-army" Button
+    t =    16.71s Find the Target Application 'com.alexchandler.empires'
+    t =    16.77s Added attachment named 'Build — accessible Conquest choices and fixed Close'
+    t =    16.77s Tap "Close" Button
+    t =    16.77s     Wait for com.alexchandler.empires to idle
+    t =    16.77s     Find the "Close" Button
+    t =    16.80s     Check for interrupting elements affecting "Close" Button
+    t =    16.82s     Synthesize event
+    t =    17.10s     Wait for com.alexchandler.empires to idle
+    t =    17.10s Find the "Build" Button
+    t =    17.14s Tear Down
+Test Case '-[SettlersUITests.BuildClarityFlowTests testConquestArmyRowsRemainReachableAtLargestTextWithPinnedClose]' passed (17.354 seconds).
+Test Case '-[SettlersUITests.BuildClarityFlowTests testReadyShipRowPreviewsCancelsCommitsAndPersistsExactCost]' started.
+    t =     0.00s Start Test at 2026-10-07 02:47:56.621
+    t =     0.02s Set Up
+    t =     0.02s Open com.alexchandler.empires
+    t =     0.02s     Launch com.alexchandler.empires
+    t =     0.02s         Terminate com.alexchandler.empires:10703
+2026-10-07 02:47:57.705 xcodebuild[10508:2338601] [MT] IDELaunchParametersSnapshot: The operation couldn’t be completed. (DebuggerLLDB.DebuggerVersionStore.StoreError error 0.)
+2026-10-07 02:47:57.706 xcodebuild[10508:2338601] [MT] IDELaunchParametersSnapshot: no debugger version
+    t =     1.30s         Setting up automation session
+    t =     1.77s         Wait for com.alexchandler.empires to idle
+    t =     3.66s Waiting 15.0s for "Build" Button to exist
+    t =     4.69s     Checking `Expect predicate `existsNoRetry == 1` for object "Build" Button`
+    t =     4.69s         Checking existence of `"Build" Button`
+    t =     4.76s Find the "human-resource.brick" Other
+    t =     4.79s Find the "human-resource.lumber" Other
+    t =     4.81s Find the "human-resource.ore" Other
+    t =     4.83s Find the "human-resource.grain" Other
+    t =     4.85s Find the "human-resource.wool" Other
+    t =     4.87s Tap "Build" Button
+    t =     4.87s     Wait for com.alexchandler.empires to idle
+    t =     4.87s     Find the "Build" Button
+    t =     4.89s     Check for interrupting elements affecting "Build" Button
+    t =     4.90s     Synthesize event
+    t =     5.19s     Wait for com.alexchandler.empires to idle
+    t =     5.20s Waiting 3.0s for "build.ship" Button to exist
+    t =     6.23s     Checking `Expect predicate `existsNoRetry == 1` for object "build.ship" Button`
+    t =     6.23s         Checking existence of `"build.ship" Button`
+    t =     6.29s Find the "build.ship" Button
+    t =     6.33s Find the "build.ship" Button
+    t =     6.36s Find the "build.settlement" Button
+    t =     6.39s Find the "build.settlement" Button
+    t =     6.42s Find the Target Application 'com.alexchandler.empires'
+    t =     6.49s Added attachment named 'Build — ready ship contrasts with blocked construction'
+    t =     6.49s Tap "build.ship" Button
+    t =     6.49s     Wait for com.alexchandler.empires to idle
+    t =     6.49s     Find the "build.ship" Button
+    t =     6.52s     Check for interrupting elements affecting "build.ship" Button
+    t =     6.55s     Synthesize event
+    t =     6.83s     Wait for com.alexchandler.empires to idle
+    t =     6.83s Waiting 5.0s for Button (First Match) to exist
+    t =     7.88s     Checking `Expect predicate `existsNoRetry == 1` for object Button (First Match)`
+    t =     7.88s         Checking existence of `Button (First Match)`
+    t =     7.91s Get all elements bound by index for: Elements matching predicate 'identifier BEGINSWITH "board.tile."'
+    t =     7.93s Find the Button (Element at index 0)
+    t =     7.96s Tap "board.tile.-1_-2" Button
+    t =     7.96s     Wait for com.alexchandler.empires to idle
+    t =     7.96s     Find the "board.tile.-1_-2" Button
+    t =     7.98s     Check for interrupting elements affecting "board.tile.-1_-2" Button
+    t =     7.99s     Synthesize event
+    t =     8.28s     Wait for com.alexchandler.empires to idle
+    t =     8.28s Checking existence of `"board.ship-preview" Other`
+    t =     8.31s Find the "human-resource.brick" Other
+    t =     8.33s Find the "human-resource.lumber" Other
+    t =     8.36s Find the "human-resource.ore" Other
+    t =     8.38s Find the "human-resource.grain" Other
+    t =     8.40s Find the "human-resource.wool" Other
+    t =     8.42s Tap "board-decision.cancel" Button
+    t =     8.42s     Wait for com.alexchandler.empires to idle
+    t =     8.42s     Find the "board-decision.cancel" Button
+    t =     8.44s     Check for interrupting elements affecting "board-decision.cancel" Button
+    t =     8.46s     Synthesize event
+    t =     8.75s     Wait for com.alexchandler.empires to idle
+    t =     8.75s Checking existence of `"board.ship.0" Button`
+    t =     8.78s Find the "human-resource.brick" Other
+    t =     8.80s Find the "human-resource.lumber" Other
+    t =     8.82s Find the "human-resource.ore" Other
+    t =     8.84s Find the "human-resource.grain" Other
+    t =     8.86s Find the "human-resource.wool" Other
+    t =     8.88s Tap "Build" Button
+    t =     8.88s     Wait for com.alexchandler.empires to idle
+    t =     8.88s     Find the "Build" Button
+    t =     8.90s     Check for interrupting elements affecting "Build" Button
+    t =     8.92s     Synthesize event
+    t =     9.21s     Wait for com.alexchandler.empires to idle
+    t =     9.21s Tap "build.ship" Button
+    t =     9.21s     Wait for com.alexchandler.empires to idle
+    t =     9.22s     Find the "build.ship" Button
+    t =     9.25s     Check for interrupting elements affecting "build.ship" Button
+    t =     9.27s     Synthesize event
+    t =     9.56s     Wait for com.alexchandler.empires to idle
+    t =     9.56s Waiting 5.0s for Button (First Match) to exist
+    t =    10.58s     Checking `Expect predicate `existsNoRetry == 1` for object Button (First Match)`
+    t =    10.58s         Checking existence of `Button (First Match)`
+    t =    10.60s Get all elements bound by index for: Elements matching predicate 'identifier BEGINSWITH "board.tile."'
+    t =    10.61s Find the Button (Element at index 0)
+    t =    10.64s Tap "board.tile.-1_-2" Button
+    t =    10.64s     Wait for com.alexchandler.empires to idle
+    t =    10.64s     Find the "board.tile.-1_-2" Button
+    t =    10.66s     Check for interrupting elements affecting "board.tile.-1_-2" Button
+    t =    10.67s     Synthesize event
+    t =    10.96s     Wait for com.alexchandler.empires to idle
+    t =    10.96s Find the "board-decision.confirm" Button
+    t =    10.99s Tap "board-decision.confirm" Button
+    t =    10.99s     Wait for com.alexchandler.empires to idle
+    t =    10.99s     Find the "board-decision.confirm" Button
+    t =    11.01s     Check for interrupting elements affecting "board-decision.confirm" Button
+    t =    11.03s     Synthesize event
+    t =    11.31s     Wait for com.alexchandler.empires to idle
+    t =    11.41s Waiting 5.0s for "board.ship.0" Button to exist
+    t =    12.43s     Checking `Expect predicate `existsNoRetry == 1` for object "board.ship.0" Button`
+    t =    12.43s         Checking existence of `"board.ship.0" Button`
+    t =    12.46s Find the "human-resource.brick" Other
+    t =    12.48s Find the "human-resource.lumber" Other
+    t =    12.50s Find the "human-resource.ore" Other
+    t =    12.52s Find the "human-resource.grain" Other
+    t =    12.54s Find the "human-resource.wool" Other
+    t =    12.56s Find the Target Application 'com.alexchandler.empires'
+    t =    12.64s Added attachment named 'Build — confirmed vessel with exact payment'
+    t =    12.64s Tap "board-decision.cancel" Button
+    t =    12.64s     Wait for com.alexchandler.empires to idle
+    t =    12.64s     Find the "board-decision.cancel" Button
+    t =    12.67s     Check for interrupting elements affecting "board-decision.cancel" Button
+    t =    12.68s     Synthesize event
+    t =    12.98s     Wait for com.alexchandler.empires to idle
+    t =    12.98s Terminate com.alexchandler.empires:10764
+    t =    14.06s Open com.alexchandler.empires
+    t =    14.06s     Launch com.alexchandler.empires
+2026-10-07 02:48:10.678 xcodebuild[10508:2338601] [MT] IDELaunchParametersSnapshot: The operation couldn’t be completed. (DebuggerLLDB.DebuggerVersionStore.StoreError error 0.)
+2026-10-07 02:48:10.678 xcodebuild[10508:2338601] [MT] IDELaunchParametersSnapshot: no debugger version
+    t =    14.26s         Setting up automation session
+    t =    14.82s         Wait for com.alexchandler.empires to idle
+    t =    16.00s Waiting 5.0s for "main-menu.resume" Button to exist
+    t =    17.04s     Checking `Expect predicate `existsNoRetry == 1` for object "main-menu.resume" Button`
+    t =    17.05s         Checking existence of `"main-menu.resume" Button`
+    t =    17.09s Tap "main-menu.resume" Button
+    t =    17.09s     Wait for com.alexchandler.empires to idle
+    t =    17.09s     Find the "main-menu.resume" Button
+    t =    17.10s     Check for interrupting elements affecting "main-menu.resume" Button
+    t =    17.11s     Synthesize event
+    t =    17.39s     Wait for com.alexchandler.empires to idle
+    t =    17.44s Waiting 5.0s for "naval.overview" Button to exist
+    t =    18.48s     Checking `Expect predicate `existsNoRetry == 1` for object "naval.overview" Button`
+    t =    18.48s         Checking existence of `"naval.overview" Button`
+    t =    18.53s Find the "human-resource.brick" Other
+    t =    18.55s Find the "human-resource.lumber" Other
+    t =    18.57s Find the "human-resource.ore" Other
+    t =    18.59s Find the "human-resource.grain" Other
+    t =    18.61s Find the "human-resource.wool" Other
+    t =    18.63s Checking existence of `"board.ship.0" Button`
+    t =    18.65s Checking existence of `"board.ship-preview" Other`
+    t =    18.67s Tear Down
+Test Case '-[SettlersUITests.BuildClarityFlowTests testReadyShipRowPreviewsCancelsCommitsAndPersistsExactCost]' passed (18.896 seconds).
+Test Case '-[SettlersUITests.BuildClarityFlowTests testScarceHandNamesShortagesAndDisabledRowsCannotStartOrSpend]' started.
+    t =     0.00s Start Test at 2026-10-07 02:48:15.518
+    t =     0.02s Set Up
+    t =     0.02s Open com.alexchandler.empires
+    t =     0.02s     Launch com.alexchandler.empires
+    t =     0.02s         Terminate com.alexchandler.empires:11100
+2026-10-07 02:48:16.604 xcodebuild[10508:2338601] [MT] IDELaunchParametersSnapshot: The operation couldn’t be completed. (DebuggerLLDB.DebuggerVersionStore.StoreError error 0.)
+2026-10-07 02:48:16.604 xcodebuild[10508:2338601] [MT] IDELaunchParametersSnapshot: no debugger version
+    t =     1.30s         Setting up automation session
+    t =     1.76s         Wait for com.alexchandler.empires to idle
+    t =     3.33s Waiting 15.0s for "Build" Button to exist
+    t =     4.35s     Checking `Expect predicate `existsNoRetry == 1` for object "Build" Button`
+    t =     4.35s         Checking existence of `"Build" Button`
+    t =     4.39s Find the "human-resource.brick" Other
+    t =     4.41s Find the "human-resource.lumber" Other
+    t =     4.44s Find the "human-resource.ore" Other
+    t =     4.46s Find the "human-resource.grain" Other
+    t =     4.48s Find the "human-resource.wool" Other
+    t =     4.50s Find the "naval.overview" Button
+    t =     4.52s Tap "Build" Button
+    t =     4.52s     Wait for com.alexchandler.empires to idle
+    t =     4.52s     Find the "Build" Button
+    t =     4.54s     Check for interrupting elements affecting "Build" Button
+    t =     4.56s     Synthesize event
+    t =     4.85s     Wait for com.alexchandler.empires to idle
+    t =     4.85s Waiting 3.0s for "build.ship" Button to exist
+    t =     5.90s     Checking `Expect predicate `existsNoRetry == 1` for object "build.ship" Button`
+    t =     5.90s         Checking existence of `"build.ship" Button`
+    t =     5.96s Find the "build.ship" Button
+    t =     6.00s Find the "build.road" Button
+    t =     6.03s Find the "build.ship" Button
+    t =     6.06s Find the "build.road" Button
+    t =     6.09s Find the "build.settlement" Button
+    t =     6.12s Find the "build.city" Button
+    t =     6.15s Find the "build.dev-card" Button
+    t =     6.18s Find the Target Application 'com.alexchandler.empires'
+    t =     6.25s Added attachment named 'Build — exact scarce hand and readable shortages'
+    t =     6.25s Checking existence of `"build.ship" Button`
+    t =     6.28s Find the "build.ship" Button
+    t =     6.31s Find the "build.ship" Button
+    t =     6.34s Tap "build.ship" Button[0.50, 0.50]
+    t =     6.34s     Wait for com.alexchandler.empires to idle
+    t =     6.35s     Find the "build.ship" Button
+    t =     6.38s     Check for interrupting elements affecting "build.ship" Button
+    t =     6.41s     Synthesize event
+    t =     6.41s         Find the "build.ship" Button
+    t =     6.44s         Find the "build.ship" Button
+    t =     6.47s         Find the "build.ship" Button
+    t =     6.79s     Wait for com.alexchandler.empires to idle
+    t =     6.79s Checking existence of `"Close" Button`
+    t =     6.84s Find the "build.ship" Button
+    t =     6.87s Find the "build.road" Button
+    t =     6.91s Find the "build.settlement" Button
+    t =     6.94s Find the "build.city" Button
+    t =     6.97s Find the "build.dev-card" Button
+    t =     7.00s Checking existence of `"build.road" Button`
+    t =     7.03s Find the "build.road" Button
+    t =     7.06s Find the "build.road" Button
+    t =     7.09s Tap "build.road" Button[0.50, 0.50]
+    t =     7.09s     Wait for com.alexchandler.empires to idle
+    t =     7.09s     Find the "build.road" Button
+    t =     7.12s     Check for interrupting elements affecting "build.road" Button
+    t =     7.14s     Synthesize event
+    t =     7.14s         Find the "build.road" Button
+    t =     7.18s         Find the "build.road" Button
+    t =     7.21s         Find the "build.road" Button
+    t =     7.52s     Wait for com.alexchandler.empires to idle
+    t =     7.52s Checking existence of `"Close" Button`
+    t =     7.56s Find the "build.ship" Button
+    t =     7.59s Find the "build.road" Button
+    t =     7.62s Find the "build.settlement" Button
+    t =     7.65s Find the "build.city" Button
+    t =     7.68s Find the "build.dev-card" Button
+    t =     7.71s Checking existence of `"build.settlement" Button`
+    t =     7.74s Find the "build.settlement" Button
+    t =     7.77s Find the "build.settlement" Button
+    t =     7.80s Tap "build.settlement" Button[0.50, 0.50]
+    t =     7.80s     Wait for com.alexchandler.empires to idle
+    t =     7.80s     Find the "build.settlement" Button
+    t =     7.83s     Check for interrupting elements affecting "build.settlement" Button
+    t =     7.85s     Synthesize event
+    t =     7.85s         Find the "build.settlement" Button
+    t =     7.89s         Find the "build.settlement" Button
+    t =     7.92s         Find the "build.settlement" Button
+    t =     8.23s     Wait for com.alexchandler.empires to idle
+    t =     8.24s Checking existence of `"Close" Button`
+    t =     8.27s Find the "build.ship" Button
+    t =     8.31s Find the "build.road" Button
+    t =     8.34s Find the "build.settlement" Button
+    t =     8.37s Find the "build.city" Button
+    t =     8.40s Find the "build.dev-card" Button
+    t =     8.43s Checking existence of `"build.city" Button`
+    t =     8.46s Find the "build.city" Button
+    t =     8.49s Find the "build.city" Button
+    t =     8.53s Tap "build.city" Button[0.50, 0.50]
+    t =     8.53s     Wait for com.alexchandler.empires to idle
+    t =     8.53s     Find the "build.city" Button
+    t =     8.56s     Check for interrupting elements affecting "build.city" Button
+    t =     8.58s     Synthesize event
+    t =     8.59s         Find the "build.city" Button
+    t =     8.62s         Find the "build.city" Button
+    t =     8.65s         Find the "build.city" Button
+    t =     8.97s     Wait for com.alexchandler.empires to idle
+    t =     8.97s Checking existence of `"Close" Button`
+    t =     9.02s Find the "build.ship" Button
+    t =     9.05s Find the "build.road" Button
+    t =     9.08s Find the "build.settlement" Button
+    t =     9.11s Find the "build.city" Button
+    t =     9.14s Find the "build.dev-card" Button
+    t =     9.17s Checking existence of `"build.dev-card" Button`
+    t =     9.20s Find the "build.dev-card" Button
+    t =     9.23s Find the "build.dev-card" Button
+    t =     9.26s Tap "build.dev-card" Button[0.50, 0.50]
+    t =     9.26s     Wait for com.alexchandler.empires to idle
+    t =     9.26s     Find the "build.dev-card" Button
+    t =     9.29s     Check for interrupting elements affecting "build.dev-card" Button
+    t =     9.32s     Synthesize event
+    t =     9.32s         Find the "build.dev-card" Button
+    t =     9.35s         Find the "build.dev-card" Button
+    t =     9.38s         Find the "build.dev-card" Button
+    t =     9.70s     Wait for com.alexchandler.empires to idle
+    t =     9.70s Checking existence of `"Close" Button`
+/Users/alex/.codex/worktrees/naval-exploration/Settlers/SettlersUITests/BuildClarityFlowTests.swift:29: error: -[SettlersUITests.BuildClarityFlowTests testScarceHandNamesShortagesAndDisabledRowsCannotStartOrSpend] : XCTAssertTrue failed
+    t =     9.93s Tear Down
+Test Case '-[SettlersUITests.BuildClarityFlowTests testScarceHandNamesShortagesAndDisabledRowsCannotStartOrSpend]' failed (10.164 seconds).
+Test Suite 'BuildClarityFlowTests' failed at 2026-10-07 02:48:25.683.
+	 Executed 4 tests, with 1 failure (0 unexpected) in 53.886 (53.889) seconds
+Test Suite 'NavalShipArtworkFlowTests' started at 2026-10-07 02:48:25.684.
+Test Case '-[SettlersUITests.NavalShipArtworkFlowTests testPaintedVesselAtMaximumZoomKeepsItsCoastalHarborAndViewport]' started.
+    t =     0.00s Start Test at 2026-10-07 02:48:25.685
+    t =     0.02s Set Up
+    t =     0.02s Open com.alexchandler.empires
+    t =     0.02s     Launch com.alexchandler.empires
+    t =     0.02s         Terminate com.alexchandler.empires:11145
+2026-10-07 02:48:26.781 xcodebuild[10508:2338601] [MT] IDELaunchParametersSnapshot: The operation couldn’t be completed. (DebuggerLLDB.DebuggerVersionStore.StoreError error 0.)
+2026-10-07 02:48:26.781 xcodebuild[10508:2338601] [MT] IDELaunchParametersSnapshot: no debugger version
+    t =     1.30s         Setting up automation session
+    t =     1.75s         Wait for com.alexchandler.empires to idle
+    t =     3.42s Waiting 15.0s for "Build" Button to exist
+    t =     4.45s     Checking `Expect predicate `existsNoRetry == 1` for object "Build" Button`
+    t =     4.45s         Checking existence of `"Build" Button`
+    t =     4.51s Tap "Build" Button
+    t =     4.51s     Wait for com.alexchandler.empires to idle
+    t =     4.51s     Find the "Build" Button
+    t =     4.54s     Check for interrupting elements affecting "Build" Button
+    t =     4.56s     Synthesize event
+    t =     4.84s     Wait for com.alexchandler.empires to idle
+    t =     4.84s Waiting 5.0s for "build.ship" Button to exist
+    t =     5.86s     Checking `Expect predicate `existsNoRetry == 1` for object "build.ship" Button`
+    t =     5.86s         Checking existence of `"build.ship" Button`
+    t =     5.92s Find the "build.ship" Button
+    t =     5.95s Tap "build.ship" Button
+    t =     5.95s     Wait for com.alexchandler.empires to idle
+    t =     5.96s     Find the "build.ship" Button
+    t =     5.98s     Check for interrupting elements affecting "build.ship" Button
+    t =     6.01s     Synthesize event
+    t =     6.30s     Wait for com.alexchandler.empires to idle
+    t =     6.30s Waiting 5.0s for Button (First Match) to exist
+    t =     7.33s     Checking `Expect predicate `existsNoRetry == 1` for object Button (First Match)`
+    t =     7.33s         Checking existence of `Button (First Match)`
+    t =     7.36s Get all elements bound by index for: Elements matching predicate 'identifier BEGINSWITH "board.tile."'
+    t =     7.38s Find the Button (Element at index 0)
+    t =     7.40s Tap "board.tile.-1_-2" Button
+    t =     7.40s     Wait for com.alexchandler.empires to idle
+    t =     7.41s     Find the "board.tile.-1_-2" Button
+    t =     7.42s     Check for interrupting elements affecting "board.tile.-1_-2" Button
+    t =     7.44s     Synthesize event
+    t =     7.72s     Wait for com.alexchandler.empires to idle
+    t =     7.73s Tap "board-decision.confirm" Button
+    t =     7.73s     Wait for com.alexchandler.empires to idle
+    t =     7.73s     Find the "board-decision.confirm" Button
+    t =     7.76s     Check for interrupting elements affecting "board-decision.confirm" Button
+    t =     7.78s     Synthesize event
+    t =     8.06s     Wait for com.alexchandler.empires to idle
+    t =     8.09s Waiting 5.0s for "board.ship.0" Button to exist
+    t =     9.15s     Checking `Expect predicate `existsNoRetry == 1` for object "board.ship.0" Button`
+    t =     9.15s         Checking existence of `"board.ship.0" Button`
+    t =     9.18s Tap "naval.fleet.open" Button
+    t =     9.18s     Wait for com.alexchandler.empires to idle
+    t =     9.18s     Find the "naval.fleet.open" Button
+    t =     9.21s     Check for interrupting elements affecting "naval.fleet.open" Button
+    t =     9.23s     Synthesize event
+    t =     9.52s     Wait for com.alexchandler.empires to idle
+    t =     9.52s Tap "naval.fleet.ship.0" Button
+    t =     9.52s     Wait for com.alexchandler.empires to idle
+    t =     9.53s     Find the "naval.fleet.ship.0" Button
+    t =     9.56s     Check for interrupting elements affecting "naval.fleet.ship.0" Button
+    t =     9.58s     Synthesize event
+    t =     9.87s     Wait for com.alexchandler.empires to idle
+    t =     9.87s Find the "board.surface" Other
+    t =     9.91s Pinch with scale 4, velocity 2 in "board.surface" Other
+    t =     9.91s     Wait for com.alexchandler.empires to idle
+    t =     9.91s     Find the "board.surface" Other
+    t =     9.93s     Check for interrupting elements affecting "board.surface" Other
+    t =     9.95s     Synthesize event
+    t =     9.96s         Pinching with rect {{50, 180}, {275, 174}}
+    t =    12.30s     Wait for com.alexchandler.empires to idle
+    t =    12.30s Find the "naval.camera.reference" Other
+    t =    12.33s Find the "naval.camera.reference" Other
+    t =    12.35s Find the "naval.ship.position.0" Other
+    t =    12.37s Find the "board.surface" Other
+    t =    12.40s Find the "board.surface" Other
+    t =    12.42s Find the "board.surface" Other
+    t =    12.45s Find the "board.surface" Other
+    t =    12.47s Find the "board.surface" Other
+    t =    12.50s Find the "board.surface" Other
+    t =    12.52s Press "board.surface" Other[0.50, 0.50] for 0.1 seconds, then drag to "board.surface" Other[0.50, 0.50] -> (-131.2, -60.9) with velocity of 500.00 pixels per second, and then hold for 0.0 seconds 
+    t =    12.52s     Wait for com.alexchandler.empires to idle
+    t =    12.52s     Find the "board.surface" Other
+    t =    12.54s     Check for interrupting elements affecting "board.surface" Other
+    t =    12.56s     Synthesize event
+    t =    12.56s         Find the "board.surface" Other
+    t =    12.58s         Find the "board.surface" Other
+    t =    12.60s         Find the "board.surface" Other
+    t =    12.63s         Find the "board.surface" Other
+    t =    12.65s         Find the "board.surface" Other
+    t =    13.25s     Wait for com.alexchandler.empires to idle
+    t =    13.25s Find the "naval.camera.reference" Other
+    t =    13.29s Find the "naval.ship.position.0" Other
+    t =    13.31s Find the "board.surface" Other
+    t =    13.34s Find the "board.surface" Other
+    t =    13.36s Find the "board.surface" Other
+    t =    13.39s Find the "board.surface" Other
+    t =    13.41s Find the "board.surface" Other
+    t =    13.43s Find the "board.surface" Other
+    t =    13.45s Press "board.surface" Other[0.50, 0.50] for 0.1 seconds, then drag to "board.surface" Other[0.50, 0.50] -> (-97.9, -60.9) with velocity of 500.00 pixels per second, and then hold for 0.0 seconds 
+    t =    13.45s     Wait for com.alexchandler.empires to idle
+    t =    13.46s     Find the "board.surface" Other
+    t =    13.48s     Check for interrupting elements affecting "board.surface" Other
+    t =    13.49s     Synthesize event
+    t =    13.49s         Find the "board.surface" Other
+    t =    13.52s         Find the "board.surface" Other
+    t =    13.54s         Find the "board.surface" Other
+    t =    13.57s         Find the "board.surface" Other
+    t =    13.59s         Find the "board.surface" Other
+    t =    14.12s     Wait for com.alexchandler.empires to idle
+    t =    14.12s Find the "naval.camera.reference" Other
+    t =    14.15s Find the "naval.ship.position.0" Other
+    t =    14.18s Find the "board.surface" Other
+    t =    14.20s Find the "board.surface" Other
+    t =    14.23s Find the "board.surface" Other
+    t =    14.25s Find the "board.surface" Other
+    t =    14.28s Find the "board.surface" Other
+    t =    14.30s Find the "board.surface" Other
+    t =    14.32s Press "board.surface" Other[0.50, 0.50] for 0.1 seconds, then drag to "board.surface" Other[0.50, 0.50] -> (0.1, -60.9) with velocity of 500.00 pixels per second, and then hold for 0.0 seconds 
+    t =    14.32s     Wait for com.alexchandler.empires to idle
+    t =    14.32s     Find the "board.surface" Other
+    t =    14.34s     Check for interrupting elements affecting "board.surface" Other
+    t =    14.36s     Synthesize event
+    t =    14.36s         Find the "board.surface" Other
+    t =    14.39s         Find the "board.surface" Other
+    t =    14.41s         Find the "board.surface" Other
+    t =    14.44s         Find the "board.surface" Other
+    t =    14.46s         Find the "board.surface" Other
+    t =    14.90s     Wait for com.alexchandler.empires to idle
+    t =    14.90s Find the "naval.camera.reference" Other
+    t =    14.93s Find the "naval.ship.position.0" Other
+    t =    14.96s Find the "board.surface" Other
+    t =    14.98s Find the "board.surface" Other
+    t =    15.00s Find the "board.surface" Other
+    t =    15.03s Find the "board.surface" Other
+    t =    15.05s Find the "board.surface" Other
+    t =    15.08s Find the "board.surface" Other
+    t =    15.10s Press "board.surface" Other[0.50, 0.50] for 0.1 seconds, then drag to "board.surface" Other[0.50, 0.50] -> (0.1, -53.6) with velocity of 500.00 pixels per second, and then hold for 0.0 seconds 
+    t =    15.10s     Wait for com.alexchandler.empires to idle
+    t =    15.10s     Find the "board.surface" Other
+    t =    15.12s     Check for interrupting elements affecting "board.surface" Other
+    t =    15.14s     Synthesize event
+    t =    15.14s         Find the "board.surface" Other
+    t =    15.17s         Find the "board.surface" Other
+    t =    15.19s         Find the "board.surface" Other
+    t =    15.21s         Find the "board.surface" Other
+    t =    15.24s         Find the "board.surface" Other
+    t =    15.65s     Wait for com.alexchandler.empires to idle
+    t =    15.66s Find the "naval.camera.reference" Other
+    t =    15.68s Find the "naval.ship.position.0" Other
+    t =    15.71s Find the "board.surface" Other
+    t =    15.73s Find the "board.surface" Other
+    t =    15.76s Find the "board.surface" Other
+    t =    15.78s Find the "board.surface" Other
+    t =    15.80s Find the "board.ship.0" Button
+    t =    15.83s Find the "board.ship.0" Button
+    t =    15.85s Find the Target Application 'com.alexchandler.empires'
+    t =    15.91s Added attachment named 'Painted Britannia vessel and harbor at maximum zoom'
+    t =    15.91s Find the "naval.home" Button
+    t =    15.94s Tap "naval.home" Button
+    t =    15.94s     Wait for com.alexchandler.empires to idle
+    t =    15.94s     Find the "naval.home" Button
+    t =    15.96s     Check for interrupting elements affecting "naval.home" Button
+    t =    15.98s     Synthesize event
+    t =    16.26s     Wait for com.alexchandler.empires to idle
+    t =    16.27s Find the "board.surface" Other
+    t =    16.30s Terminate com.alexchandler.empires:11296
+    t =    17.35s Tear Down
+Test Case '-[SettlersUITests.NavalShipArtworkFlowTests testPaintedVesselAtMaximumZoomKeepsItsCoastalHarborAndViewport]' passed (17.394 seconds).
+Test Suite 'NavalShipArtworkFlowTests' passed at 2026-10-07 02:48:43.080.
+	 Executed 1 test, with 0 failures (0 unexpected) in 17.394 (17.395) seconds
+Test Suite 'TradeRedesignFlowTests' started at 2026-10-07 02:48:43.080.
+Test Case '-[SettlersUITests.TradeRedesignFlowTests testConfirmationFooterAndNewOfferRemainReachableAt375By667]' started.
+    t =     0.00s Start Test at 2026-10-07 02:48:43.082
+    t =     0.02s Set Up
+    t =     0.02s Open com.alexchandler.empires
+    t =     0.02s     Launch com.alexchandler.empires
+2026-10-07 02:48:43.101 xcodebuild[10508:2338601] [MT] IDELaunchParametersSnapshot: The operation couldn’t be completed. (DebuggerLLDB.DebuggerVersionStore.StoreError error 0.)
+2026-10-07 02:48:43.101 xcodebuild[10508:2338601] [MT] IDELaunchParametersSnapshot: no debugger version
+    t =     0.22s         Setting up automation session
+    t =     0.69s         Wait for com.alexchandler.empires to idle
+    t =     2.08s Waiting 10.0s for "screen.game" Other to exist
+    t =     3.10s     Checking `Expect predicate `existsNoRetry == 1` for object "screen.game" Other`
+    t =     3.10s         Checking existence of `"screen.game" Other`
+    t =     3.15s Waiting 3.0s for "Trade" Button to exist
+    t =     4.18s     Checking `Expect predicate `existsNoRetry == 1` for object "Trade" Button`
+    t =     4.18s         Checking existence of `"Trade" Button`
+    t =     4.21s Find the Target Application 'com.alexchandler.empires'
+    t =     4.23s Find the Target Application 'com.alexchandler.empires'
+    t =     4.24s Checking existence of `"Trade" Button`
+    t =     4.26s Find the "Trade" Button
+    t =     4.28s Find the Target Application 'com.alexchandler.empires'
+    t =     4.29s Find the "Trade" Button
+    t =     4.31s Find the "Trade" Button
+    t =     4.33s Tap "Trade" Button
+    t =     4.33s     Wait for com.alexchandler.empires to idle
+    t =     4.33s     Find the "Trade" Button
+    t =     4.35s     Check for interrupting elements affecting "Trade" Button
+    t =     4.36s     Synthesize event
+    t =     4.65s     Wait for com.alexchandler.empires to idle
+    t =     4.65s Checking existence of `"trade.give.grain" Button`
+    t =     4.69s Find the "trade.give.grain" Button
+    t =     4.73s Find the Target Application 'com.alexchandler.empires'
+    t =     4.74s Find the "trade.give.grain" Button
+    t =     4.78s Find the "trade.give.grain" Button
+    t =     4.80s Tap "trade.give.grain" Button
+    t =     4.80s     Wait for com.alexchandler.empires to idle
+    t =     4.81s     Find the "trade.give.grain" Button
+    t =     4.84s     Check for interrupting elements affecting "trade.give.grain" Button
+    t =     4.86s     Synthesize event
+    t =     5.15s     Wait for com.alexchandler.empires to idle
+    t =     5.15s Checking existence of `"trade.give.grain" Button`
+    t =     5.19s Find the "trade.give.grain" Button
+    t =     5.24s Find the Target Application 'com.alexchandler.empires'
+    t =     5.25s Find the "trade.give.grain" Button
+    t =     5.29s Find the "trade.give.grain" Button
+    t =     5.32s Tap "trade.give.grain" Button
+    t =     5.32s     Wait for com.alexchandler.empires to idle
+    t =     5.32s     Find the "trade.give.grain" Button
+    t =     5.35s     Check for interrupting elements affecting "trade.give.grain" Button
+    t =     5.37s     Synthesize event
+    t =     5.65s     Wait for com.alexchandler.empires to idle
+    t =     5.66s Checking existence of `"trade.give.grain" Button`
+    t =     5.70s Find the "trade.give.grain" Button
+    t =     5.74s Find the Target Application 'com.alexchandler.empires'
+    t =     5.76s Find the "trade.give.grain" Button
+    t =     5.79s Find the "trade.give.grain" Button
+    t =     5.82s Tap "trade.give.grain" Button
+    t =     5.82s     Wait for com.alexchandler.empires to idle
+    t =     5.83s     Find the "trade.give.grain" Button
+    t =     5.85s     Check for interrupting elements affecting "trade.give.grain" Button
+    t =     5.88s     Synthesize event
+    t =     6.17s     Wait for com.alexchandler.empires to idle
+    t =     6.17s Checking existence of `"trade.give.grain" Button`
+    t =     6.22s Find the "trade.give.grain" Button
+    t =     6.25s Find the Target Application 'com.alexchandler.empires'
+    t =     6.27s Find the "trade.give.grain" Button
+    t =     6.30s Find the "trade.give.grain" Button
+    t =     6.33s Tap "trade.give.grain" Button
+    t =     6.33s     Wait for com.alexchandler.empires to idle
+    t =     6.34s     Find the "trade.give.grain" Button
+    t =     6.37s     Check for interrupting elements affecting "trade.give.grain" Button
+    t =     6.39s     Synthesize event
+    t =     6.67s     Wait for com.alexchandler.empires to idle
+    t =     6.68s Checking existence of `"trade.give.grain" Button`
+    t =     6.72s Find the "trade.give.grain" Button
+    t =     6.76s Find the Target Application 'com.alexchandler.empires'
+    t =     6.78s Find the "trade.give.grain" Button
+    t =     6.81s Find the "trade.give.grain" Button
+    t =     6.84s Tap "trade.give.grain" Button
+    t =     6.84s     Wait for com.alexchandler.empires to idle
+    t =     6.84s     Find the "trade.give.grain" Button
+    t =     6.87s     Check for interrupting elements affecting "trade.give.grain" Button
+    t =     6.89s     Synthesize event
+    t =     7.19s     Wait for com.alexchandler.empires to idle
+    t =     7.19s Checking existence of `"trade.give.grain" Button`
+    t =     7.23s Find the "trade.give.grain" Button
+    t =     7.27s Find the Target Application 'com.alexchandler.empires'
+    t =     7.29s Find the "trade.give.grain" Button
+    t =     7.32s Find the "trade.give.grain" Button
+    t =     7.35s Tap "trade.give.grain" Button
+    t =     7.35s     Wait for com.alexchandler.empires to idle
+    t =     7.35s     Find the "trade.give.grain" Button
+    t =     7.38s     Check for interrupting elements affecting "trade.give.grain" Button
+    t =     7.40s     Synthesize event
+    t =     7.69s     Wait for com.alexchandler.empires to idle
+    t =     7.69s Checking existence of `"trade.want.ore" Button`
+    t =     7.73s Find the "trade.want.ore" Button
+    t =     7.77s Find the Target Application 'com.alexchandler.empires'
+    t =     7.79s Find the "trade.want.ore" Button
+    t =     7.83s Find the "trade.want.ore" Button
+    t =     7.86s Tap "trade.want.ore" Button
+    t =     7.86s     Wait for com.alexchandler.empires to idle
+    t =     7.86s     Find the "trade.want.ore" Button
+    t =     7.90s     Check for interrupting elements affecting "trade.want.ore" Button
+    t =     7.92s     Synthesize event
+    t =     8.21s     Wait for com.alexchandler.empires to idle
+    t =     8.21s Checking existence of `"Propose to Bots" Button`
+    t =     8.25s Find the "Propose to Bots" Button
+    t =     8.29s Find the Target Application 'com.alexchandler.empires'
+    t =     8.31s Find the "Propose to Bots" Button
+    t =     8.34s Find the "Propose to Bots" Button
+    t =     8.37s Tap "Propose to Bots" Button
+    t =     8.38s     Wait for com.alexchandler.empires to idle
+    t =     8.38s     Find the "Propose to Bots" Button
+    t =     8.41s     Check for interrupting elements affecting "Propose to Bots" Button
+    t =     8.43s     Synthesize event
+    t =     8.72s     Wait for com.alexchandler.empires to idle
+    t =     8.72s Waiting 3.0s for "Confirm Trade" Button to exist
+    t =     9.74s     Checking `Expect predicate `existsNoRetry == 1` for object "Confirm Trade" Button`
+    t =     9.74s         Checking existence of `"Confirm Trade" Button`
+    t =     9.78s Checking existence of `"Trade complete" StaticText`
+    t =     9.81s Waiting 3.0s for "Decline" Button to exist
+    t =    10.82s     Checking `Expect predicate `existsNoRetry == 1` for object "Decline" Button`
+    t =    10.82s         Checking existence of `"Decline" Button`
+    t =    10.86s Find the "Decline" Button
+    t =    10.89s Find the Target Application 'com.alexchandler.empires'
+    t =    10.91s Find the "Decline" Button
+    t =    10.93s Waiting 3.0s for "Confirm Trade" Button to exist
+    t =    11.93s     Checking `Expect predicate `existsNoRetry == 1` for object "Confirm Trade" Button`
+    t =    11.93s         Checking existence of `"Confirm Trade" Button`
+    t =    11.97s Find the "Confirm Trade" Button
+    t =    12.00s Find the Target Application 'com.alexchandler.empires'
+    t =    12.02s Find the "Confirm Trade" Button
+    t =    12.04s Waiting 3.0s for "Close" Button to exist
+    t =    13.05s     Checking `Expect predicate `existsNoRetry == 1` for object "Close" Button`
+    t =    13.05s         Checking existence of `"Close" Button`
+    t =    13.09s Find the "Close" Button
+    t =    13.12s Find the Target Application 'com.alexchandler.empires'
+    t =    13.14s Find the "Close" Button
+    t =    13.16s Find the "Decline" Button
+    t =    13.18s Find the "Confirm Trade" Button
+    t =    13.20s Find the "Close" Button
+    t =    13.22s Checking existence of `"trade.content" ScrollView`
+    t =    13.24s Checking existence of `"You give" StaticText`
+    t =    13.26s Find the "You give" StaticText
+    t =    13.28s Find the Target Application 'com.alexchandler.empires'
+    t =    13.30s Find the "You give" StaticText
+    t =    13.32s Find the "You give" StaticText
+    t =    13.34s Waiting 3.0s for "You give" StaticText to exist
+    t =    14.37s     Checking `Expect predicate `existsNoRetry == 1` for object "You give" StaticText`
+    t =    14.37s         Checking existence of `"You give" StaticText`
+    t =    14.39s Find the "You give" StaticText
+    t =    14.42s Find the Target Application 'com.alexchandler.empires'
+    t =    14.44s Find the "You give" StaticText
+    t =    14.46s Checking existence of `"6 Grain" StaticText`
+    t =    14.48s Find the "6 Grain" StaticText
+    t =    14.50s Find the Target Application 'com.alexchandler.empires'
+    t =    14.51s Find the "6 Grain" StaticText
+    t =    14.53s Find the "6 Grain" StaticText
+    t =    14.56s Waiting 3.0s for "6 Grain" StaticText to exist
+    t =    15.58s     Checking `Expect predicate `existsNoRetry == 1` for object "6 Grain" StaticText`
+    t =    15.59s         Checking existence of `"6 Grain" StaticText`
+    t =    15.63s Find the "6 Grain" StaticText
+    t =    15.66s Find the Target Application 'com.alexchandler.empires'
+    t =    15.67s Find the "6 Grain" StaticText
+    t =    15.69s Checking existence of `"You receive" StaticText`
+    t =    15.71s Find the "You receive" StaticText
+    t =    15.73s Find the Target Application 'com.alexchandler.empires'
+    t =    15.75s Find the "You receive" StaticText
+    t =    15.77s Find the "You receive" StaticText
+    t =    15.79s Waiting 3.0s for "You receive" StaticText to exist
+    t =    16.82s     Checking `Expect predicate `existsNoRetry == 1` for object "You receive" StaticText`
+    t =    16.82s         Checking existence of `"You receive" StaticText`
+    t =    16.86s Find the "You receive" StaticText
+    t =    16.89s Find the Target Application 'com.alexchandler.empires'
+    t =    16.91s Find the "You receive" StaticText
+    t =    16.93s Checking existence of `"1 Ore" StaticText`
+    t =    16.95s Find the "1 Ore" StaticText
+    t =    16.98s Find the Target Application 'com.alexchandler.empires'
+    t =    16.99s Find the "1 Ore" StaticText
+    t =    17.01s Find the "1 Ore" StaticText
+    t =    17.03s Waiting 3.0s for "1 Ore" StaticText to exist
+    t =    18.05s     Checking `Expect predicate `existsNoRetry == 1` for object "1 Ore" StaticText`
+    t =    18.05s         Checking existence of `"1 Ore" StaticText`
+    t =    18.08s Find the "1 Ore" StaticText
+    t =    18.10s Find the Target Application 'com.alexchandler.empires'
+    t =    18.12s Find the "1 Ore" StaticText
+    t =    18.14s Waiting 3.0s for "Decline" Button to exist
+    t =    19.17s     Checking `Expect predicate `existsNoRetry == 1` for object "Decline" Button`
+    t =    19.17s         Checking existence of `"Decline" Button`
+    t =    19.21s Find the "Decline" Button
+    t =    19.24s Find the Target Application 'com.alexchandler.empires'
+    t =    19.25s Find the "Decline" Button
+    t =    19.28s Waiting 3.0s for "Confirm Trade" Button to exist
+    t =    20.30s     Checking `Expect predicate `existsNoRetry == 1` for object "Confirm Trade" Button`
+    t =    20.30s         Checking existence of `"Confirm Trade" Button`
+    t =    20.34s Find the "Confirm Trade" Button
+    t =    20.37s Find the Target Application 'com.alexchandler.empires'
+    t =    20.39s Find the "Confirm Trade" Button
+    t =    20.41s Waiting 3.0s for "Close" Button to exist
+    t =    21.43s     Checking `Expect predicate `existsNoRetry == 1` for object "Close" Button`
+    t =    21.43s         Checking existence of `"Close" Button`
+    t =    21.47s Find the "Close" Button
+    t =    21.51s Find the Target Application 'com.alexchandler.empires'
+    t =    21.52s Find the "Close" Button
+    t =    21.54s Find the "Decline" Button
+    t =    21.56s Find the "Confirm Trade" Button
+    t =    21.58s Find the "Close" Button
+    t =    21.60s Checking existence of `"trade.content" ScrollView`
+    t =    21.62s Find the Target Application 'com.alexchandler.empires'
+    t =    21.71s Added attachment named '375×667 pending player-trade confirmation'
+    t =    21.71s Checking existence of `"Confirm Trade" Button`
+    t =    21.73s Find the "Confirm Trade" Button
+    t =    21.75s Find the Target Application 'com.alexchandler.empires'
+    t =    21.76s Find the "Confirm Trade" Button
+    t =    21.78s Find the "Confirm Trade" Button
+    t =    21.80s Tap "Confirm Trade" Button
+    t =    21.80s     Wait for com.alexchandler.empires to idle
+    t =    21.80s     Find the "Confirm Trade" Button
+    t =    21.82s     Check for interrupting elements affecting "Confirm Trade" Button
+    t =    21.84s     Synthesize event
+    t =    22.13s     Wait for com.alexchandler.empires to idle
+    t =    22.13s Waiting 3.0s for "Trade complete" StaticText to exist
+    t =    23.14s     Checking `Expect predicate `existsNoRetry == 1` for object "Trade complete" StaticText`
+    t =    23.14s         Checking existence of `"Trade complete" StaticText`
+    t =    23.17s Checking existence of `"YOU GAVE" StaticText`
+    t =    23.19s Find the "YOU GAVE" StaticText
+    t =    23.22s Find the Target Application 'com.alexchandler.empires'
+    t =    23.23s Find the "trade.receipt" StaticText
+    t =    23.25s Find the "trade.receipt" StaticText
+    t =    23.27s Waiting 3.0s for "trade.receipt" StaticText to exist
+    t =    24.32s     Checking `Expect predicate `existsNoRetry == 1` for object "trade.receipt" StaticText`
+    t =    24.32s         Checking existence of `"trade.receipt" StaticText`
+    t =    24.34s Find the "trade.receipt" StaticText
+    t =    24.36s Find the Target Application 'com.alexchandler.empires'
+    t =    24.37s Find the "trade.receipt" StaticText
+    t =    24.39s Checking existence of `"6 Grain" StaticText`
+    t =    24.41s Find the "6 Grain" StaticText
+    t =    24.43s Find the Target Application 'com.alexchandler.empires'
+    t =    24.44s Find the "trade.receipt" StaticText
+    t =    24.46s Find the "trade.receipt" StaticText
+    t =    24.48s Waiting 3.0s for "trade.receipt" StaticText to exist
+    t =    25.49s     Checking `Expect predicate `existsNoRetry == 1` for object "trade.receipt" StaticText`
+    t =    25.49s         Checking existence of `"trade.receipt" StaticText`
+    t =    25.53s Find the "trade.receipt" StaticText
+    t =    25.56s Find the Target Application 'com.alexchandler.empires'
+    t =    25.57s Find the "trade.receipt" StaticText
+    t =    25.59s Checking existence of `"YOU RECEIVED" StaticText`
+    t =    25.61s Find the "YOU RECEIVED" StaticText
+    t =    25.63s Find the Target Application 'com.alexchandler.empires'
+    t =    25.64s Find the "trade.receipt" StaticText
+    t =    25.66s Find the "trade.receipt" StaticText
+    t =    25.68s Waiting 3.0s for "trade.receipt" StaticText to exist
+    t =    26.69s     Checking `Expect predicate `existsNoRetry == 1` for object "trade.receipt" StaticText`
+    t =    26.69s         Checking existence of `"trade.receipt" StaticText`
+    t =    26.73s Find the "trade.receipt" StaticText
+    t =    26.76s Find the Target Application 'com.alexchandler.empires'
+    t =    26.77s Find the "trade.receipt" StaticText
+    t =    26.79s Checking existence of `"1 Ore" StaticText`
+    t =    26.81s Find the "1 Ore" StaticText
+    t =    26.83s Find the Target Application 'com.alexchandler.empires'
+    t =    26.84s Find the "trade.receipt" StaticText
+    t =    26.86s Find the "trade.receipt" StaticText
+    t =    26.88s Waiting 3.0s for "trade.receipt" StaticText to exist
+    t =    27.90s     Checking `Expect predicate `existsNoRetry == 1` for object "trade.receipt" StaticText`
+    t =    27.90s         Checking existence of `"trade.receipt" StaticText`
+    t =    27.94s Find the "trade.receipt" StaticText
+    t =    27.97s Find the Target Application 'com.alexchandler.empires'
+    t =    27.98s Find the "trade.receipt" StaticText
+    t =    28.00s Waiting 3.0s for "Trade again" Button to exist
+    t =    29.00s     Checking `Expect predicate `existsNoRetry == 1` for object "Trade again" Button`
+    t =    29.00s         Checking existence of `"Trade again" Button`
+    t =    29.03s Find the "Trade again" Button
+    t =    29.06s Find the Target Application 'com.alexchandler.empires'
+    t =    29.07s Find the "Trade again" Button
+    t =    29.09s Waiting 3.0s for "Close trade" Button to exist
+    t =    30.12s     Checking `Expect predicate `existsNoRetry == 1` for object "Close trade" Button`
+    t =    30.12s         Checking existence of `"Close trade" Button`
+    t =    30.16s Find the "Close trade" Button
+    t =    30.19s Find the Target Application 'com.alexchandler.empires'
+    t =    30.20s Find the "Close trade" Button
+    t =    30.22s Checking existence of `"Trade again" Button`
+    t =    30.23s Find the "Trade again" Button
+    t =    30.26s Find the Target Application 'com.alexchandler.empires'
+    t =    30.27s Find the "Trade again" Button
+    t =    30.29s Find the "Trade again" Button
+    t =    30.30s Tap "Trade again" Button
+    t =    30.30s     Wait for com.alexchandler.empires to idle
+    t =    30.30s     Find the "Trade again" Button
+    t =    30.32s     Check for interrupting elements affecting "Trade again" Button
+    t =    30.34s     Synthesize event
+    t =    30.62s     Wait for com.alexchandler.empires to idle
+    t =    30.62s Waiting 3.0s for "Trade complete" StaticText to not exist
+    t =    31.63s     Checking `Expect predicate `existsNoRetry == 0` for object "Trade complete" StaticText`
+    t =    31.63s         Checking existence of `"Trade complete" StaticText`
+    t =    31.69s Waiting 3.0s for "trade.give.brick" Button to exist
+    t =    32.70s     Checking `Expect predicate `existsNoRetry == 1` for object "trade.give.brick" Button`
+    t =    32.70s         Checking existence of `"trade.give.brick" Button`
+    t =    32.75s Find the "trade.give.brick" Button
+    t =    32.79s Waiting 3.0s for "trade.want.brick" Button to exist
+    t =    33.80s     Checking `Expect predicate `existsNoRetry == 1` for object "trade.want.brick" Button`
+    t =    33.80s         Checking existence of `"trade.want.brick" Button`
+    t =    33.86s Find the "trade.want.brick" Button
+    t =    33.89s Find the "trade.give.remove.brick" Button
+    t =    33.92s Find the "trade.want.remove.brick" Button
+    t =    33.95s Waiting 3.0s for "trade.give.lumber" Button to exist
+    t =    34.97s     Checking `Expect predicate `existsNoRetry == 1` for object "trade.give.lumber" Button`
+    t =    34.97s         Checking existence of `"trade.give.lumber" Button`
+    t =    35.02s Find the "trade.give.lumber" Button
+    t =    35.06s Waiting 3.0s for "trade.want.lumber" Button to exist
+    t =    36.07s     Checking `Expect predicate `existsNoRetry == 1` for object "trade.want.lumber" Button`
+    t =    36.07s         Checking existence of `"trade.want.lumber" Button`
+    t =    36.12s Find the "trade.want.lumber" Button
+    t =    36.15s Find the "trade.give.remove.lumber" Button
+    t =    36.18s Find the "trade.want.remove.lumber" Button
+    t =    36.21s Waiting 3.0s for "trade.give.wool" Button to exist
+    t =    37.23s     Checking `Expect predicate `existsNoRetry == 1` for object "trade.give.wool" Button`
+    t =    37.23s         Checking existence of `"trade.give.wool" Button`
+    t =    37.26s Find the "trade.give.wool" Button
+    t =    37.29s Waiting 3.0s for "trade.want.wool" Button to exist
+    t =    38.31s     Checking `Expect predicate `existsNoRetry == 1` for object "trade.want.wool" Button`
+    t =    38.31s         Checking existence of `"trade.want.wool" Button`
+    t =    38.34s Find the "trade.want.wool" Button
+    t =    38.37s Find the "trade.give.remove.wool" Button
+    t =    38.41s Find the "trade.want.remove.wool" Button
+    t =    38.44s Waiting 3.0s for "trade.give.grain" Button to exist
+    t =    39.45s     Checking `Expect predicate `existsNoRetry == 1` for object "trade.give.grain" Button`
+    t =    39.45s         Checking existence of `"trade.give.grain" Button`
+    t =    39.50s Find the "trade.give.grain" Button
+    t =    39.54s Waiting 3.0s for "trade.want.grain" Button to exist
+    t =    40.55s     Checking `Expect predicate `existsNoRetry == 1` for object "trade.want.grain" Button`
+    t =    40.55s         Checking existence of `"trade.want.grain" Button`
+    t =    40.61s Find the "trade.want.grain" Button
+    t =    40.64s Find the "trade.give.remove.grain" Button
+    t =    40.67s Find the "trade.want.remove.grain" Button
+    t =    40.70s Waiting 3.0s for "trade.give.ore" Button to exist
+    t =    41.70s     Checking `Expect predicate `existsNoRetry == 1` for object "trade.give.ore" Button`
+    t =    41.70s         Checking existence of `"trade.give.ore" Button`
+    t =    41.75s Find the "trade.give.ore" Button
+    t =    41.79s Waiting 3.0s for "trade.want.ore" Button to exist
+    t =    42.80s     Checking `Expect predicate `existsNoRetry == 1` for object "trade.want.ore" Button`
+    t =    42.80s         Checking existence of `"trade.want.ore" Button`
+    t =    42.85s Find the "trade.want.ore" Button
+    t =    42.89s Find the "trade.give.remove.ore" Button
+    t =    42.92s Find the "trade.want.remove.ore" Button
+    t =    42.95s Find the "Propose to Bots" Button
+    t =    42.97s Find the "trade.clear" Button
+    t =    43.00s Checking existence of `"Confirm Trade" Button`
+    t =    43.03s Waiting 3.0s for "Propose to Bots" Button to exist
+    t =    44.05s     Checking `Expect predicate `existsNoRetry == 1` for object "Propose to Bots" Button`
+    t =    44.05s         Checking existence of `"Propose to Bots" Button`
+    t =    44.10s Find the "Propose to Bots" Button
+    t =    44.14s Find the Target Application 'com.alexchandler.empires'
+    t =    44.16s Find the "Propose to Bots" Button
+    t =    44.19s Checking existence of `"Close" Button`
+    t =    44.22s Find the "Close" Button
+    t =    44.25s Find the Target Application 'com.alexchandler.empires'
+    t =    44.27s Find the "Close" Button
+    t =    44.30s Find the "Close" Button
+    t =    44.33s Tap "Close" Button
+    t =    44.33s     Wait for com.alexchandler.empires to idle
+    t =    44.33s     Find the "Close" Button
+    t =    44.36s     Check for interrupting elements affecting "Close" Button
+    t =    44.39s     Synthesize event
+    t =    44.67s     Wait for com.alexchandler.empires to idle
+    t =    44.68s Waiting 3.0s for "End Turn" Button to exist
+    t =    45.70s     Checking `Expect predicate `existsNoRetry == 1` for object "End Turn" Button`
+    t =    45.70s         Checking existence of `"End Turn" Button`
+    t =    45.73s Checking existence of `"Trade complete" StaticText`
+    t =    45.74s Find the "human-resource.grain" Other
+    t =    45.76s Find the "human-resource.ore" Other
+    t =    45.78s Find the "human-resource.brick" Other
+    t =    45.80s Find the "human-resource.lumber" Other
+    t =    45.81s Find the "human-resource.wool" Other
+    t =    45.83s Terminate com.alexchandler.empires:11352
+    t =    46.86s Tear Down
+Test Case '-[SettlersUITests.TradeRedesignFlowTests testConfirmationFooterAndNewOfferRemainReachableAt375By667]' passed (46.881 seconds).
+Test Suite 'TradeRedesignFlowTests' passed at 2026-10-07 02:49:29.962.
+	 Executed 1 test, with 0 failures (0 unexpected) in 46.881 (46.882) seconds
+Test Suite 'TradeTapSafetyFlowTests' started at 2026-10-07 02:49:29.962.
+Test Case '-[SettlersUITests.TradeTapSafetyFlowTests testRepeatedSkipTouchesCannotAcceptARealNavalOffer]' started.
+    t =     0.00s Start Test at 2026-10-07 02:49:29.963
+    t =     0.02s Set Up
+    t =     0.02s Open com.alexchandler.empires
+    t =     0.02s     Launch com.alexchandler.empires
+2026-10-07 02:49:29.984 xcodebuild[10508:2338601] [MT] IDELaunchParametersSnapshot: The operation couldn’t be completed. (DebuggerLLDB.DebuggerVersionStore.StoreError error 0.)
+2026-10-07 02:49:29.984 xcodebuild[10508:2338601] [MT] IDELaunchParametersSnapshot: no debugger version
+    t =     0.23s         Setting up automation session
+    t =     0.69s         Wait for com.alexchandler.empires to idle
+    t =     2.34s Waiting 10.0s for "screen.in-game-settings" Other to exist
+    t =     3.38s     Checking `Expect predicate `existsNoRetry == 1` for object "screen.in-game-settings" Other`
+    t =     3.38s         Checking existence of `"screen.in-game-settings" Other`
+    t =     3.45s Tap "Slow" Button
+    t =     3.45s     Wait for com.alexchandler.empires to idle
+    t =     3.46s     Find the "Slow" Button
+    t =     3.48s     Check for interrupting elements affecting "Slow" Button
+    t =     3.50s     Synthesize event
+    t =     3.79s     Wait for com.alexchandler.empires to idle
+    t =     3.79s Tap "No Limit" Button
+    t =     3.79s     Wait for com.alexchandler.empires to idle
+    t =     3.79s     Find the "No Limit" Button
+    t =     3.83s     Check for interrupting elements affecting "No Limit" Button
+    t =     3.85s     Synthesize event
+    t =     4.14s     Wait for com.alexchandler.empires to idle
+    t =     4.15s Find the "Slow" Button
+    t =     4.18s Tap "in-game-settings.close" Button
+    t =     4.18s     Wait for com.alexchandler.empires to idle
+    t =     4.19s     Find the "in-game-settings.close" Button
+    t =     4.21s     Check for interrupting elements affecting "in-game-settings.close" Button
+    t =     4.23s     Synthesize event
+    t =     4.52s     Wait for com.alexchandler.empires to idle
+    t =     4.52s Waiting 5.0s for "bot-progress.skip" Button to exist
+    t =     5.55s     Checking `Expect predicate `existsNoRetry == 1` for object "bot-progress.skip" Button`
+    t =     5.55s         Checking existence of `"bot-progress.skip" Button`
+    t =     5.59s Find the "bot-progress.skip" Button
+    t =     5.62s Find the Target Application 'com.alexchandler.empires'
+    t =     5.69s Added attachment named 'CPU viewing pause with separate Skip target'
+    t =     5.69s Tap Target Application 'com.alexchandler.empires'[0.00, 0.00] -> (72.0, 623.0)
+    t =     5.69s     Wait for com.alexchandler.empires to idle
+    t =     5.69s     Find the Target Application 'com.alexchandler.empires'
+    t =     5.71s     Check for interrupting elements affecting "Empires" Application
+    t =     5.72s     Synthesize event
+    t =     5.72s         Find the Target Application 'com.alexchandler.empires'
+    t =     5.74s         Find the Target Application 'com.alexchandler.empires'
+    t =     5.75s         Find the Target Application 'com.alexchandler.empires'
+    t =     6.04s     Wait for com.alexchandler.empires to idle
+    t =     6.04s Waiting 5.0s for "incoming-trade.accept" Button to exist
+    t =     7.07s     Checking `Expect predicate `existsNoRetry == 1` for object "incoming-trade.accept" Button`
+    t =     7.07s         Checking existence of `"incoming-trade.accept" Button`
+    t =     7.11s Tap Target Application 'com.alexchandler.empires'[0.00, 0.00] -> (72.0, 623.0)
+    t =     7.11s     Wait for com.alexchandler.empires to idle
+    t =     7.11s     Find the Target Application 'com.alexchandler.empires'
+    t =     7.13s     Check for interrupting elements affecting "Empires" Application
+    t =     7.15s     Synthesize event
+    t =     7.15s         Find the Target Application 'com.alexchandler.empires'
+    t =     7.16s         Find the Target Application 'com.alexchandler.empires'
+    t =     7.17s         Find the Target Application 'com.alexchandler.empires'
+    t =     7.47s     Wait for com.alexchandler.empires to idle
+    t =     7.47s Tap Target Application 'com.alexchandler.empires'[0.00, 0.00] -> (72.0, 623.0)
+    t =     7.47s     Wait for com.alexchandler.empires to idle
+    t =     7.48s     Find the Target Application 'com.alexchandler.empires'
+    t =     7.50s     Check for interrupting elements affecting "Empires" Application
+    t =     7.52s     Synthesize event
+    t =     7.53s         Find the Target Application 'com.alexchandler.empires'
+    t =     7.54s         Find the Target Application 'com.alexchandler.empires'
+    t =     7.55s         Find the Target Application 'com.alexchandler.empires'
+    t =     7.85s     Wait for com.alexchandler.empires to idle
+    t =     7.85s Tap Target Application 'com.alexchandler.empires'[0.00, 0.00] -> (72.0, 623.0)
+    t =     7.85s     Wait for com.alexchandler.empires to idle
+    t =     7.85s     Find the Target Application 'com.alexchandler.empires'
+    t =     7.86s     Check for interrupting elements affecting "Empires" Application
+    t =     7.88s     Synthesize event
+    t =     7.88s         Find the Target Application 'com.alexchandler.empires'
+    t =     7.89s         Find the Target Application 'com.alexchandler.empires'
+    t =     7.91s         Find the Target Application 'com.alexchandler.empires'
+    t =     8.21s     Wait for com.alexchandler.empires to idle
+    t =     8.21s Tap Target Application 'com.alexchandler.empires'[0.00, 0.00] -> (72.0, 623.0)
+    t =     8.21s     Wait for com.alexchandler.empires to idle
+    t =     8.21s     Find the Target Application 'com.alexchandler.empires'
+    t =     8.24s     Check for interrupting elements affecting "Empires" Application
+    t =     8.26s     Synthesize event
+    t =     8.26s         Find the Target Application 'com.alexchandler.empires'
+    t =     8.27s         Find the Target Application 'com.alexchandler.empires'
+    t =     8.29s         Find the Target Application 'com.alexchandler.empires'
+    t =     8.58s     Wait for com.alexchandler.empires to idle
+    t =     8.58s Tap Target Application 'com.alexchandler.empires'[0.00, 0.00] -> (72.0, 623.0)
+    t =     8.58s     Wait for com.alexchandler.empires to idle
+    t =     8.59s     Find the Target Application 'com.alexchandler.empires'
+    t =     8.61s     Check for interrupting elements affecting "Empires" Application
+    t =     8.63s     Synthesize event
+    t =     8.63s         Find the Target Application 'com.alexchandler.empires'
+    t =     8.65s         Find the Target Application 'com.alexchandler.empires'
+    t =     8.66s         Find the Target Application 'com.alexchandler.empires'
+    t =     8.96s     Wait for com.alexchandler.empires to idle
+    t =     8.96s Tap Target Application 'com.alexchandler.empires'[0.00, 0.00] -> (72.0, 623.0)
+    t =     8.96s     Wait for com.alexchandler.empires to idle
+    t =     8.96s     Find the Target Application 'com.alexchandler.empires'
+    t =     8.98s     Check for interrupting elements affecting "Empires" Application
+    t =     9.00s     Synthesize event
+    t =     9.00s         Find the Target Application 'com.alexchandler.empires'
+    t =     9.01s         Find the Target Application 'com.alexchandler.empires'
+    t =     9.02s         Find the Target Application 'com.alexchandler.empires'
+    t =     9.32s     Wait for com.alexchandler.empires to idle
+    t =     9.32s Tap Target Application 'com.alexchandler.empires'[0.00, 0.00] -> (72.0, 623.0)
+    t =     9.32s     Wait for com.alexchandler.empires to idle
+    t =     9.32s     Find the Target Application 'com.alexchandler.empires'
+    t =     9.35s     Check for interrupting elements affecting "Empires" Application
+    t =     9.37s     Synthesize event
+    t =     9.37s         Find the Target Application 'com.alexchandler.empires'
+    t =     9.38s         Find the Target Application 'com.alexchandler.empires'
+    t =     9.40s         Find the Target Application 'com.alexchandler.empires'
+    t =     9.69s     Wait for com.alexchandler.empires to idle
+    t =     9.69s Tap Target Application 'com.alexchandler.empires'[0.00, 0.00] -> (72.0, 623.0)
+    t =     9.69s     Wait for com.alexchandler.empires to idle
+    t =     9.70s     Find the Target Application 'com.alexchandler.empires'
+    t =     9.72s     Check for interrupting elements affecting "Empires" Application
+    t =     9.74s     Synthesize event
+    t =     9.74s         Find the Target Application 'com.alexchandler.empires'
+    t =     9.76s         Find the Target Application 'com.alexchandler.empires'
+    t =     9.77s         Find the Target Application 'com.alexchandler.empires'
+    t =    10.07s     Wait for com.alexchandler.empires to idle
+    t =    10.07s Waiting 5.0s for "incoming-trade.accept" Button to exist
+    t =    11.08s     Checking `Expect predicate `existsNoRetry == 1` for object "incoming-trade.accept" Button`
+    t =    11.08s         Checking existence of `"incoming-trade.accept" Button`
+    t =    11.11s Find the "incoming-trade.reject" Button
+    t =    11.13s Checking existence of `"bot-progress.skip" Button`
+    t =    11.15s Checking existence of `"incoming-trade.review.close" Button`
+    t =    11.17s Checking existence of `"Trade complete" StaticText`
+    t =    11.19s Waiting 5.0s for "human-resource.brick" Other to exist
+    t =    12.22s     Checking `Expect predicate `existsNoRetry == 1` for object "human-resource.brick" Other`
+    t =    12.22s         Checking existence of `"human-resource.brick" Other`
+    t =    12.25s Find the "human-resource.brick" Other
+    t =    12.27s Waiting 5.0s for "human-resource.lumber" Other to exist
+    t =    13.31s     Checking `Expect predicate `existsNoRetry == 1` for object "human-resource.lumber" Other`
+    t =    13.31s         Checking existence of `"human-resource.lumber" Other`
+    t =    13.35s Find the "human-resource.lumber" Other
+    t =    13.38s Waiting 5.0s for "human-resource.ore" Other to exist
+    t =    14.40s     Checking `Expect predicate `existsNoRetry == 1` for object "human-resource.ore" Other`
+    t =    14.40s         Checking existence of `"human-resource.ore" Other`
+    t =    14.43s Find the "human-resource.ore" Other
+    t =    14.45s Waiting 5.0s for "human-resource.grain" Other to exist
+    t =    15.47s     Checking `Expect predicate `existsNoRetry == 1` for object "human-resource.grain" Other`
+    t =    15.47s         Checking existence of `"human-resource.grain" Other`
+    t =    15.51s Find the "human-resource.grain" Other
+    t =    15.53s Waiting 5.0s for "human-resource.wool" Other to exist
+    t =    16.55s     Checking `Expect predicate `existsNoRetry == 1` for object "human-resource.wool" Other`
+    t =    16.56s         Checking existence of `"human-resource.wool" Other`
+    t =    16.60s Find the "human-resource.wool" Other
+    t =    16.62s Checking existence of `"incoming-trade.accept" Button`
+    t =    16.64s Find the "incoming-trade.accept" Button
+    t =    16.67s Find the "incoming-trade.accept" Button
+    t =    16.69s Find the "incoming-trade.accept" Button
+    t =    16.71s Find the "incoming-trade.accept" Button
+    t =    16.73s Find the Target Application 'com.alexchandler.empires'
+    t =    16.74s Find the "incoming-trade.accept" Button
+    t =    16.76s Checking existence of `"incoming-trade.reject" Button`
+    t =    16.78s Find the "incoming-trade.reject" Button
+    t =    16.80s Find the "incoming-trade.reject" Button
+    t =    16.82s Find the "incoming-trade.reject" Button
+    t =    16.84s Find the "incoming-trade.reject" Button
+    t =    16.86s Find the Target Application 'com.alexchandler.empires'
+    t =    16.88s Find the "incoming-trade.reject" Button
+    t =    16.90s Checking existence of `"incoming-trade.review" Button`
+    t =    16.91s Find the "game.command-row" Other
+    t =    16.93s Find the Target Application 'com.alexchandler.empires'
+    t =    17.01s Added attachment named 'Real offer remains unanswered after repeated Skip-coordinate taps'
+    t =    17.01s Tap "incoming-trade.accept" Button
+    t =    17.01s     Wait for com.alexchandler.empires to idle
+    t =    17.01s     Find the "incoming-trade.accept" Button
+    t =    17.03s     Check for interrupting elements affecting "incoming-trade.accept" Button
+    t =    17.05s     Synthesize event
+    t =    17.34s     Wait for com.alexchandler.empires to idle
+    t =    17.34s Waiting 5.0s for "Trade complete" StaticText to exist
+    t =    18.35s     Checking `Expect predicate `existsNoRetry == 1` for object "Trade complete" StaticText`
+    t =    18.35s         Checking existence of `"Trade complete" StaticText`
+    t =    18.39s Checking existence of `"1 Grain" StaticText`
+    t =    18.42s Checking existence of `"1 Brick" StaticText`
+    t =    18.44s Tap "Close trade" Button
+    t =    18.44s     Wait for com.alexchandler.empires to idle
+    t =    18.44s     Find the "Close trade" Button
+    t =    18.46s     Check for interrupting elements affecting "Close trade" Button
+    t =    18.47s     Synthesize event
+    t =    18.76s     Wait for com.alexchandler.empires to idle
+    t =    18.76s Checking existence of `"Trade complete" StaticText`
+    t =    18.79s Waiting 5.0s for "human-resource.brick" Other to exist
+    t =    19.80s     Checking `Expect predicate `existsNoRetry == 1` for object "human-resource.brick" Other`
+    t =    19.81s         Checking existence of `"human-resource.brick" Other`
+    t =    19.85s Find the "human-resource.brick" Other
+    t =    19.87s Waiting 5.0s for "human-resource.lumber" Other to exist
+    t =    20.90s     Checking `Expect predicate `existsNoRetry == 1` for object "human-resource.lumber" Other`
+    t =    20.90s         Checking existence of `"human-resource.lumber" Other`
+    t =    20.93s Find the "human-resource.lumber" Other
+    t =    20.95s Waiting 5.0s for "human-resource.ore" Other to exist
+    t =    21.97s     Checking `Expect predicate `existsNoRetry == 1` for object "human-resource.ore" Other`
+    t =    21.97s         Checking existence of `"human-resource.ore" Other`
+    t =    22.01s Find the "human-resource.ore" Other
+    t =    22.04s Waiting 5.0s for "human-resource.grain" Other to exist
+    t =    23.05s     Checking `Expect predicate `existsNoRetry == 1` for object "human-resource.grain" Other`
+    t =    23.06s         Checking existence of `"human-resource.grain" Other`
+    t =    23.08s Find the "human-resource.grain" Other
+    t =    23.11s Waiting 5.0s for "human-resource.wool" Other to exist
+    t =    24.12s     Checking `Expect predicate `existsNoRetry == 1` for object "human-resource.wool" Other`
+    t =    24.13s         Checking existence of `"human-resource.wool" Other`
+    t =    24.16s Find the "human-resource.wool" Other
+    t =    24.19s Terminate com.alexchandler.empires:11611
+    t =    25.25s Tear Down
+Test Case '-[SettlersUITests.TradeTapSafetyFlowTests testRepeatedSkipTouchesCannotAcceptARealNavalOffer]' passed (25.281 seconds).
+Test Case '-[SettlersUITests.TradeTapSafetyFlowTests testWideOfferStillRequiresReviewAndHoldsWhileReading]' started.
+    t =     0.00s Start Test at 2026-10-07 02:49:55.245
+    t =     0.02s Set Up
+    t =     0.02s Open com.alexchandler.empires
+    t =     0.02s     Launch com.alexchandler.empires
+2026-10-07 02:49:55.266 xcodebuild[10508:2338601] [MT] IDELaunchParametersSnapshot: The operation couldn’t be completed. (DebuggerLLDB.DebuggerVersionStore.StoreError error 0.)
+2026-10-07 02:49:55.266 xcodebuild[10508:2338601] [MT] IDELaunchParametersSnapshot: no debugger version
+    t =     0.23s         Setting up automation session
+    t =     0.70s         Wait for com.alexchandler.empires to idle
+    t =     2.28s Waiting 10.0s for "screen.in-game-settings" Other to exist
+    t =     3.32s     Checking `Expect predicate `existsNoRetry == 1` for object "screen.in-game-settings" Other`
+    t =     3.32s         Checking existence of `"screen.in-game-settings" Other`
+    t =     3.39s Tap "Slow" Button
+    t =     3.39s     Wait for com.alexchandler.empires to idle
+    t =     3.39s     Find the "Slow" Button
+    t =     3.42s     Check for interrupting elements affecting "Slow" Button
+    t =     3.44s     Synthesize event
+    t =     3.72s     Wait for com.alexchandler.empires to idle
+    t =     3.73s Tap "15s" Button
+    t =     3.73s     Wait for com.alexchandler.empires to idle
+    t =     3.73s     Find the "15s" Button
+    t =     3.77s     Check for interrupting elements affecting "15s" Button
+    t =     3.79s     Synthesize event
+    t =     4.07s     Wait for com.alexchandler.empires to idle
+    t =     4.08s Find the "Slow" Button
+    t =     4.11s Tap "in-game-settings.close" Button
+    t =     4.11s     Wait for com.alexchandler.empires to idle
+    t =     4.11s     Find the "in-game-settings.close" Button
+    t =     4.14s     Check for interrupting elements affecting "in-game-settings.close" Button
+    t =     4.16s     Synthesize event
+    t =     4.45s     Wait for com.alexchandler.empires to idle
+    t =     4.46s Waiting 5.0s for "bot-progress.skip" Button to exist
+    t =     5.49s     Checking `Expect predicate `existsNoRetry == 1` for object "bot-progress.skip" Button`
+    t =     5.49s         Checking existence of `"bot-progress.skip" Button`
+    t =     5.53s Find the "bot-progress.skip" Button
+    t =     5.56s Find the Target Application 'com.alexchandler.empires'
+    t =     5.62s Added attachment named 'CPU viewing pause with separate Skip target'
+    t =     5.62s Tap Target Application 'com.alexchandler.empires'[0.00, 0.00] -> (72.0, 623.0)
+    t =     5.62s     Wait for com.alexchandler.empires to idle
+    t =     5.63s     Find the Target Application 'com.alexchandler.empires'
+    t =     5.64s     Check for interrupting elements affecting "Empires" Application
+    t =     5.66s     Synthesize event
+    t =     5.66s         Find the Target Application 'com.alexchandler.empires'
+    t =     5.67s         Find the Target Application 'com.alexchandler.empires'
+    t =     5.68s         Find the Target Application 'com.alexchandler.empires'
+    t =     5.97s     Wait for com.alexchandler.empires to idle
+    t =     5.98s Waiting 5.0s for "incoming-trade.review" Button to exist
+    t =     7.00s     Checking `Expect predicate `existsNoRetry == 1` for object "incoming-trade.review" Button`
+    t =     7.00s         Checking existence of `"incoming-trade.review" Button`
+    t =     7.04s Tap Target Application 'com.alexchandler.empires'[0.00, 0.00] -> (72.0, 623.0)
+    t =     7.04s     Wait for com.alexchandler.empires to idle
+    t =     7.05s     Find the Target Application 'com.alexchandler.empires'
+    t =     7.06s     Check for interrupting elements affecting "Empires" Application
+    t =     7.08s     Synthesize event
+    t =     7.08s         Find the Target Application 'com.alexchandler.empires'
+    t =     7.10s         Find the Target Application 'com.alexchandler.empires'
+    t =     7.11s         Find the Target Application 'com.alexchandler.empires'
+    t =     7.40s     Wait for com.alexchandler.empires to idle
+    t =     7.41s Tap Target Application 'com.alexchandler.empires'[0.00, 0.00] -> (72.0, 623.0)
+    t =     7.41s     Wait for com.alexchandler.empires to idle
+    t =     7.41s     Find the Target Application 'com.alexchandler.empires'
+    t =     7.44s     Check for interrupting elements affecting "Empires" Application
+    t =     7.46s     Synthesize event
+    t =     7.46s         Find the Target Application 'com.alexchandler.empires'
+    t =     7.47s         Find the Target Application 'com.alexchandler.empires'
+    t =     7.49s         Find the Target Application 'com.alexchandler.empires'
+    t =     7.78s     Wait for com.alexchandler.empires to idle
+    t =     7.78s Waiting 5.0s for "incoming-trade.review" Button to exist
+    t =     8.80s     Checking `Expect predicate `existsNoRetry == 1` for object "incoming-trade.review" Button`
+    t =     8.80s         Checking existence of `"incoming-trade.review" Button`
+    t =     8.84s Find the "incoming-trade.reject" Button
+    t =     8.87s Checking existence of `"bot-progress.skip" Button`
+    t =     8.90s Checking existence of `"incoming-trade.review.close" Button`
+    t =     8.91s Checking existence of `"Trade complete" StaticText`
+    t =     8.93s Waiting 5.0s for "human-resource.brick" Other to exist
+    t =     9.95s     Checking `Expect predicate `existsNoRetry == 1` for object "human-resource.brick" Other`
+    t =     9.96s         Checking existence of `"human-resource.brick" Other`
+    t =    10.00s Find the "human-resource.brick" Other
+    t =    10.02s Waiting 5.0s for "human-resource.lumber" Other to exist
+    t =    11.05s     Checking `Expect predicate `existsNoRetry == 1` for object "human-resource.lumber" Other`
+    t =    11.06s         Checking existence of `"human-resource.lumber" Other`
+    t =    11.10s Find the "human-resource.lumber" Other
+    t =    11.12s Waiting 5.0s for "human-resource.ore" Other to exist
+    t =    12.15s     Checking `Expect predicate `existsNoRetry == 1` for object "human-resource.ore" Other`
+    t =    12.15s         Checking existence of `"human-resource.ore" Other`
+    t =    12.20s Find the "human-resource.ore" Other
+    t =    12.22s Waiting 5.0s for "human-resource.grain" Other to exist
+    t =    13.24s     Checking `Expect predicate `existsNoRetry == 1` for object "human-resource.grain" Other`
+    t =    13.24s         Checking existence of `"human-resource.grain" Other`
+    t =    13.26s Find the "human-resource.grain" Other
+    t =    13.29s Waiting 5.0s for "human-resource.wool" Other to exist
+    t =    14.30s     Checking `Expect predicate `existsNoRetry == 1` for object "human-resource.wool" Other`
+    t =    14.30s         Checking existence of `"human-resource.wool" Other`
+    t =    14.34s Find the "human-resource.wool" Other
+    t =    14.37s Checking existence of `"incoming-trade.accept" Button`
+    t =    14.39s Checking existence of `"incoming-trade.reject" Button`
+    t =    14.41s Find the "incoming-trade.reject" Button
+    t =    14.43s Find the "incoming-trade.reject" Button
+    t =    14.45s Find the "incoming-trade.reject" Button
+    t =    14.48s Find the "incoming-trade.reject" Button
+    t =    14.50s Find the Target Application 'com.alexchandler.empires'
+    t =    14.51s Find the "incoming-trade.reject" Button
+    t =    14.53s Checking existence of `"incoming-trade.review" Button`
+    t =    14.55s Find the "incoming-trade.review" Button
+    t =    14.57s Find the "incoming-trade.review" Button
+    t =    14.59s Find the "incoming-trade.review" Button
+    t =    14.62s Find the "incoming-trade.review" Button
+    t =    14.64s Find the Target Application 'com.alexchandler.empires'
+    t =    14.65s Find the "incoming-trade.review" Button
+    t =    14.67s Find the "game.command-row" Other
+    t =    14.69s Tap "incoming-trade.review" Button
+    t =    14.69s     Wait for com.alexchandler.empires to idle
+    t =    14.69s     Find the "incoming-trade.review" Button
+    t =    14.71s     Check for interrupting elements affecting "incoming-trade.review" Button
+    t =    14.73s     Synthesize event
+    t =    15.02s     Wait for com.alexchandler.empires to idle
+    t =    15.44s Waiting 5.0s for "incoming-trade.review.close" Button to exist
+    t =    16.45s     Checking `Expect predicate `existsNoRetry == 1` for object "incoming-trade.review.close" Button`
+    t =    16.46s         Checking existence of `"incoming-trade.review.close" Button`
+    t =    32.59s Checking existence of `"incoming-trade.accept" Button`
+    t =    32.64s Checking existence of `"Trade complete" StaticText`
+    t =    32.67s Tap "incoming-trade.review.close" Button
+    t =    32.67s     Wait for com.alexchandler.empires to idle
+    t =    32.67s     Find the "incoming-trade.review.close" Button
+    t =    32.69s     Check for interrupting elements affecting "incoming-trade.review.close" Button
+    t =    32.72s     Synthesize event
+    t =    33.00s     Wait for com.alexchandler.empires to idle
+    t =    33.42s Waiting 5.0s for "incoming-trade.review" Button to exist
+    t =    34.44s     Checking `Expect predicate `existsNoRetry == 1` for object "incoming-trade.review" Button`
+    t =    34.44s         Checking existence of `"incoming-trade.review" Button`
+    t =    34.46s Find the "incoming-trade.reject" Button
+    t =    34.49s Checking existence of `"bot-progress.skip" Button`
+    t =    34.51s Checking existence of `"incoming-trade.review.close" Button`
+    t =    34.53s Checking existence of `"Trade complete" StaticText`
+    t =    34.55s Waiting 5.0s for "human-resource.brick" Other to exist
+    t =    35.59s     Checking `Expect predicate `existsNoRetry == 1` for object "human-resource.brick" Other`
+    t =    35.59s         Checking existence of `"human-resource.brick" Other`
+    t =    35.63s Find the "human-resource.brick" Other
+    t =    35.65s Waiting 5.0s for "human-resource.lumber" Other to exist
+    t =    36.67s     Checking `Expect predicate `existsNoRetry == 1` for object "human-resource.lumber" Other`
+    t =    36.67s         Checking existence of `"human-resource.lumber" Other`
+    t =    36.71s Find the "human-resource.lumber" Other
+    t =    36.73s Waiting 5.0s for "human-resource.ore" Other to exist
+    t =    37.75s     Checking `Expect predicate `existsNoRetry == 1` for object "human-resource.ore" Other`
+    t =    37.76s         Checking existence of `"human-resource.ore" Other`
+    t =    37.80s Find the "human-resource.ore" Other
+    t =    37.82s Waiting 5.0s for "human-resource.grain" Other to exist
+    t =    38.86s     Checking `Expect predicate `existsNoRetry == 1` for object "human-resource.grain" Other`
+    t =    38.86s         Checking existence of `"human-resource.grain" Other`
+    t =    38.90s Find the "human-resource.grain" Other
+    t =    38.92s Waiting 5.0s for "human-resource.wool" Other to exist
+    t =    39.97s     Checking `Expect predicate `existsNoRetry == 1` for object "human-resource.wool" Other`
+    t =    39.97s         Checking existence of `"human-resource.wool" Other`
+    t =    39.99s Find the "human-resource.wool" Other
+    t =    40.01s Tap "incoming-trade.reject" Button
+    t =    40.01s     Wait for com.alexchandler.empires to idle
+    t =    40.01s     Find the "incoming-trade.reject" Button
+    t =    40.04s     Check for interrupting elements affecting "incoming-trade.reject" Button
+    t =    40.05s     Synthesize event
+    t =    40.34s     Wait for com.alexchandler.empires to idle
+    t =    40.34s Waiting 5.0s for "incoming-trade.reject" Button to not exist
+    t =    41.37s     Checking `Expect predicate `existsNoRetry == 0` for object "incoming-trade.reject" Button`
+    t =    41.37s         Checking existence of `"incoming-trade.reject" Button`
+    t =    41.41s Waiting 5.0s for "human-resource.brick" Other to exist
+    t =    42.45s     Checking `Expect predicate `existsNoRetry == 1` for object "human-resource.brick" Other`
+    t =    42.45s         Checking existence of `"human-resource.brick" Other`
+    t =    42.48s Find the "human-resource.brick" Other
+    t =    42.50s Waiting 5.0s for "human-resource.lumber" Other to exist
+    t =    43.53s     Checking `Expect predicate `existsNoRetry == 1` for object "human-resource.lumber" Other`
+    t =    43.53s         Checking existence of `"human-resource.lumber" Other`
+    t =    43.56s Find the "human-resource.lumber" Other
+    t =    43.58s Waiting 5.0s for "human-resource.ore" Other to exist
+    t =    44.59s     Checking `Expect predicate `existsNoRetry == 1` for object "human-resource.ore" Other`
+    t =    44.59s         Checking existence of `"human-resource.ore" Other`
+    t =    44.61s Find the "human-resource.ore" Other
+    t =    44.63s Waiting 5.0s for "human-resource.grain" Other to exist
+    t =    45.63s     Checking `Expect predicate `existsNoRetry == 1` for object "human-resource.grain" Other`
+    t =    45.63s         Checking existence of `"human-resource.grain" Other`
+    t =    45.66s Find the "human-resource.grain" Other
+    t =    45.68s Waiting 5.0s for "human-resource.wool" Other to exist
+    t =    46.72s     Checking `Expect predicate `existsNoRetry == 1` for object "human-resource.wool" Other`
+    t =    46.72s         Checking existence of `"human-resource.wool" Other`
+    t =    46.74s Find the "human-resource.wool" Other
+    t =    46.76s Terminate com.alexchandler.empires:11689
+    t =    47.82s Tear Down
+Test Case '-[SettlersUITests.TradeTapSafetyFlowTests testWideOfferStillRequiresReviewAndHoldsWhileReading]' passed (47.839 seconds).
+Test Suite 'TradeTapSafetyFlowTests' passed at 2026-10-07 02:50:43.084.
+	 Executed 2 tests, with 0 failures (0 unexpected) in 73.121 (73.122) seconds
+Test Suite 'SettlersUITests.xctest' failed at 2026-10-07 02:50:43.085.
+	 Executed 8 tests, with 1 failure (0 unexpected) in 191.281 (191.290) seconds
+Test Suite 'Selected tests' failed at 2026-10-07 02:50:43.085.
+	 Executed 8 tests, with 1 failure (0 unexpected) in 191.281 (191.291) seconds
+2026-10-07 02:50:54.514 xcodebuild[10508:2338601] [MT] IDETestOperationsObserverDebug: 208.343 elapsed -- Testing started completed.
+2026-10-07 02:50:54.514 xcodebuild[10508:2338601] [MT] IDETestOperationsObserverDebug: 0.000 sec, +0.000 sec -- start
+2026-10-07 02:50:54.514 xcodebuild[10508:2338601] [MT] IDETestOperationsObserverDebug: 208.343 sec, +208.343 sec -- end
+
+Test session results, code coverage, and logs:
+	/Users/alex/.codex/artifacts/naval-exploration/build23-sprites-build-trade-safety/compact-focused.xcresult
+
+Failing tests:
+	BuildClarityFlowTests.testScarceHandNamesShortagesAndDisabledRowsCannotStartOrSpend()
+
+** TEST FAILED **
+
+Testing started

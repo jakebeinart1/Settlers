@@ -406,6 +406,7 @@ private func table(withSeatIndices indices: [Int]) -> MatchSetup {
     @Test func everyModeOffersExactlyOneTarget() {
         #expect(MatchSetup.newGameVictoryPointTargets(for: 4, mode: .classic) == [10])
         #expect(MatchSetup.newGameVictoryPointTargets(for: 4, mode: .vast) == [26])
+        #expect(MatchSetup.newGameVictoryPointTargets(for: 4, mode: .naval) == [14])
         #expect(MatchSetup.newGameVictoryPointTargets(for: 4, mode: .expanded) == [25],
                 "retired from the picker, but an Expanded save still resumes at 25")
     }
@@ -413,7 +414,7 @@ private func table(withSeatIndices indices: [Int]) -> MatchSetup {
     /// Expanded is gone from the New Game screen and must not come back by
     /// accident; deleting the case outright would make in-progress saves throw.
     @Test func expandedIsNotOfferedForANewMatch() {
-        #expect(GameMode.newGameChoices == [.classic, .vast])
+        #expect(GameMode.newGameChoices == [.classic, .vast, .naval])
         #expect(GameMode(rawValue: "expanded") == .expanded)
     }
 

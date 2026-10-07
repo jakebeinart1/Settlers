@@ -1,0 +1,95 @@
+{
+  "tool": "built-in image_gen",
+  "transparentBackground": true,
+  "intendedRole": "Current controller-themed ship artwork; presentation only",
+  "assets": [
+    {
+      "key": "britannia",
+      "path": "/Users/alex/.codex/generated_images/01a109cf-f013-7423-9fd8-aac75f42fd79/exec-7432c1ba-782c-46a3-b50c-44bf501afefb.png",
+      "prompt": "Use case: stylized-concept. Asset type: transparent game-piece sprite for the Empires hex-board iPhone game. Create ONE beautiful simplified hand-painted medieval merchant cog for Britannia, warm storybook / minimalist Studio Ghibli-inspired animation aesthetic matching softly painted medieval game pieces. Three-quarter side view, bow pointing right, slightly elevated eye level; clear flat silhouette, one rounded wooden brown hull with lifted bow and stern, one large broad PURPLE cloth square sail (saturated royal violet #9234C5), single mast, tiny plain purple pennant. Broad owner-colored sail is the primary identification cue. Subtle gouache grain and restrained two-tone highlights, medium dark charcoal contour, warm natural wood, cream edge highlight. Clean geometric silhouette readable at 24px and handsome at 300px. NOT photorealistic or 3D plastic, not an emoji or SF Symbol, not crude triangle sailboat. No castle, building, crest, badge, emblem, text, lettering, numbers, people, ropes/rigging clutter, glow, circular token, water, waves, wake or scenery. ONE isolated complete ship centered, filling about 84% width and 78% height of a square canvas, small even margins; transparent background with genuine alpha. All visible pixels belong to the ship only. This is the first asset of a coherent fleet with identical bow-right view and light from upper left.",
+      "assetName": "civ-britannia-ship",
+      "approvedPath": "design-references/approved/ships/civ-britannia-ship.png",
+      "runtimePath": "Settlers/Assets.xcassets/civ-britannia-ship.imageset/civ-britannia-ship.png",
+      "sha256": "fe2e407ed39bf6a1d5670791b6320ef87463ad81835888b479a19f4c11bd56ed",
+      "rootInspected": true,
+      "unmodifiedGeneration": true
+    },
+    {
+      "key": "greece",
+      "path": "/Users/alex/.codex/generated_images/01a109cf-f013-7423-9fd8-aac75f42fd79/exec-bdb8f5f6-5d40-409e-86af-f19cceb0bda8.png",
+      "prompt": "Use case: stylized-concept. Asset type: ONE transparent hand-painted game-piece ship sprite for the Empires hex-board iPhone game. Warm storybook / minimalist Studio Ghibli-inspired animation aesthetic, coherent fleet of simplified wooden ships with broad civilization-colored sails. Three-quarter side view, bow RIGHT, slightly elevated eye level, light from upper LEFT. Subtle gouache grain, restrained two-tone highlights, warm golden brown planked wood hull, medium dark charcoal contour, cream rim highlights. The broad colored cloth sail is the primary owner cue. Strong clean complete silhouette that remains legible at24px and beautiful at300px; no micro-detail. Subject: a slender wooden merchant galley with gently hooked bow, one broad TAN / ivory sand square sail #E3CDA4, plain tan pennant; long slim hull. One mast or two when needed by the requested silhouette; simplify deck structures and omit rigging. No castle, building, crest, badge, emblem, letters, numbers, people, water, waves, wake, scenery, glow, circular token or background shadow. NOT an emoji or SF Symbol, not crude black triangle geometry, not photorealistic, not plastic 3D. ONE isolated complete ship centered on a square canvas, filling about84% width and78% height, small even margins, genuine transparent alpha background. All visible pixels belong to this ship. Match a purple merchant cog from the same fleet: rounded warm wood rim, clear broad painted sail, gouache texture, sparse dark contour, restrained warm highlights.",
+      "assetName": "civ-greece-ship",
+      "approvedPath": "design-references/approved/ships/civ-greece-ship.png",
+      "runtimePath": "Settlers/Assets.xcassets/civ-greece-ship.imageset/civ-greece-ship.png",
+      "sha256": "91f54e98f2ba710e6e8add76cbe5e8b300edf7e49751e75d2578d82a7f87cd6c",
+      "rootInspected": true,
+      "unmodifiedGeneration": true
+    },
+    {
+      "key": "egypt",
+      "path": "/Users/alex/.codex/generated_images/01a109cf-f013-7423-9fd8-aac75f42fd79/exec-1687d79b-b9c7-4da3-aaba-e19a3c843a07.png",
+      "prompt": "Use case: stylized-concept. Asset type: ONE transparent hand-painted game-piece ship sprite for the Empires hex-board iPhone game. Warm storybook / minimalist Studio Ghibli-inspired animation aesthetic, coherent fleet of simplified wooden ships with broad civilization-colored sails. Three-quarter side view, bow RIGHT, slightly elevated eye level, light from upper LEFT. Subtle gouache grain, restrained two-tone highlights, warm golden brown planked wood hull, medium dark charcoal contour, cream rim highlights. The broad colored cloth sail is the primary owner cue. Strong clean complete silhouette that remains legible at24px and beautiful at300px; no micro-detail. Subject: a crescent-shaped warm cedar and reed-inspired wooden hull with high curved pointed ends, one broad ochre GOLD square sail #C79C50, plain gold pennant. One mast or two when needed by the requested silhouette; simplify deck structures and omit rigging. No castle, building, crest, badge, emblem, letters, numbers, people, water, waves, wake, scenery, glow, circular token or background shadow. NOT an emoji or SF Symbol, not crude black triangle geometry, not photorealistic, not plastic 3D. ONE isolated complete ship centered on a square canvas, filling about84% width and78% height, small even margins, genuine transparent alpha background. All visible pixels belong to this ship. Match a purple merchant cog from the same fleet: rounded warm wood rim, clear broad painted sail, gouache texture, sparse dark contour, restrained warm highlights.",
+      "assetName": "civ-egypt-ship",
+      "approvedPath": "design-references/approved/ships/civ-egypt-ship.png",
+      "runtimePath": "Settlers/Assets.xcassets/civ-egypt-ship.imageset/civ-egypt-ship.png",
+      "sha256": "98865296bf05beab4d2adaee33b54628689580252d1d24f505cb126d1ab7e45d",
+      "rootInspected": true,
+      "unmodifiedGeneration": true
+    },
+    {
+      "key": "aztec",
+      "path": "/Users/alex/.codex/generated_images/01a109cf-f013-7423-9fd8-aac75f42fd79/exec-ed45b91d-9f41-4260-9496-2dba65296d0c.png",
+      "prompt": "Use case: stylized-concept. Asset type: ONE transparent hand-painted game-piece ship sprite for the Empires hex-board iPhone game. Warm storybook / minimalist Studio Ghibli-inspired animation aesthetic, coherent fleet of simplified wooden ships with broad civilization-colored sails. Three-quarter side view, bow RIGHT, slightly elevated eye level, light from upper LEFT. Subtle gouache grain, restrained two-tone highlights, warm golden brown planked wood hull, medium dark charcoal contour, cream rim highlights. The broad colored cloth sail is the primary owner cue. Strong clean complete silhouette that remains legible at24px and beautiful at300px; no micro-detail. Subject: a low simple wooden canoe-like trading vessel with a clean rising bow, one large broad BLUE triangular sail #6BA6DA, plain blue pennant. One mast or two when needed by the requested silhouette; simplify deck structures and omit rigging. No castle, building, crest, badge, emblem, letters, numbers, people, water, waves, wake, scenery, glow, circular token or background shadow. NOT an emoji or SF Symbol, not crude black triangle geometry, not photorealistic, not plastic 3D. ONE isolated complete ship centered on a square canvas, filling about84% width and78% height, small even margins, genuine transparent alpha background. All visible pixels belong to this ship. Match a purple merchant cog from the same fleet: rounded warm wood rim, clear broad painted sail, gouache texture, sparse dark contour, restrained warm highlights.",
+      "assetName": "civ-aztec-ship",
+      "approvedPath": "design-references/approved/ships/civ-aztec-ship.png",
+      "runtimePath": "Settlers/Assets.xcassets/civ-aztec-ship.imageset/civ-aztec-ship.png",
+      "sha256": "6fadf3bb6171ea8b7d9affabfe322f1c5ce099394b9ce4a58d6e1c7db0b8115c",
+      "rootInspected": true,
+      "unmodifiedGeneration": true
+    },
+    {
+      "key": "columbia",
+      "path": "/Users/alex/.codex/generated_images/01a109cf-f013-7423-9fd8-aac75f42fd79/exec-841db731-f480-40e5-9ce8-17eb6937d886.png",
+      "prompt": "Use case: stylized-concept. Asset type: ONE transparent hand-painted game-piece ship sprite for the Empires hex-board iPhone game. Warm storybook / minimalist Studio Ghibli-inspired animation aesthetic, coherent fleet of simplified wooden ships with broad civilization-colored sails. Three-quarter side view, bow RIGHT, slightly elevated eye level, light from upper LEFT. Subtle gouache grain, restrained two-tone highlights, warm golden brown planked wood hull, medium dark charcoal contour, cream rim highlights. The broad colored cloth sail is the primary owner cue. Strong clean complete silhouette that remains legible at24px and beautiful at300px; no micro-detail. Subject: a classic compact wooden cutter with two broad WHITE/pearl triangular sails #F4F4F4, plain white pennant; distinctly modern merchant sloop silhouette. One mast or two when needed by the requested silhouette; simplify deck structures and omit rigging. No castle, building, crest, badge, emblem, letters, numbers, people, water, waves, wake, scenery, glow, circular token or background shadow. NOT an emoji or SF Symbol, not crude black triangle geometry, not photorealistic, not plastic 3D. ONE isolated complete ship centered on a square canvas, filling about84% width and78% height, small even margins, genuine transparent alpha background. All visible pixels belong to this ship. Match a purple merchant cog from the same fleet: rounded warm wood rim, clear broad painted sail, gouache texture, sparse dark contour, restrained warm highlights.",
+      "assetName": "civ-columbia-ship",
+      "approvedPath": "design-references/approved/ships/civ-columbia-ship.png",
+      "runtimePath": "Settlers/Assets.xcassets/civ-columbia-ship.imageset/civ-columbia-ship.png",
+      "sha256": "c1d0b9215e7f43c89cc63df04c9ca6bbeb7c66604001225e2f85f72ae73b0919",
+      "rootInspected": true,
+      "unmodifiedGeneration": true
+    },
+    {
+      "key": "rome",
+      "path": "/Users/alex/.codex/generated_images/01a109cf-f013-7423-9fd8-aac75f42fd79/exec-8d68adfd-3076-480a-8dcf-85c65106f1c9.png",
+      "prompt": "Use case: stylized-concept. Asset type: ONE transparent hand-painted game-piece ship sprite for the Empires hex-board iPhone game. Warm storybook / minimalist Studio Ghibli-inspired animation aesthetic, coherent fleet of simplified wooden ships with broad civilization-colored sails. Three-quarter side view, bow RIGHT, slightly elevated eye level, light from upper LEFT. Subtle gouache grain, restrained two-tone highlights, warm golden brown planked wood hull, medium dark charcoal contour, cream rim highlights. The broad colored cloth sail is the primary owner cue. Strong clean complete silhouette that remains legible at24px and beautiful at300px; no micro-detail. Subject: a short stout wooden galley with a simple low projecting ram at the right bow, one broad CORAL RED square sail #E16256, plain coral pennant. One mast or two when needed by the requested silhouette; simplify deck structures and omit rigging. No castle, building, crest, badge, emblem, letters, numbers, people, water, waves, wake, scenery, glow, circular token or background shadow. NOT an emoji or SF Symbol, not crude black triangle geometry, not photorealistic, not plastic 3D. ONE isolated complete ship centered on a square canvas, filling about84% width and78% height, small even margins, genuine transparent alpha background. All visible pixels belong to this ship. Match a purple merchant cog from the same fleet: rounded warm wood rim, clear broad painted sail, gouache texture, sparse dark contour, restrained warm highlights.",
+      "assetName": "civ-rome-ship",
+      "approvedPath": "design-references/approved/ships/civ-rome-ship.png",
+      "runtimePath": "Settlers/Assets.xcassets/civ-rome-ship.imageset/civ-rome-ship.png",
+      "sha256": "9f7c8af8ed4ec9b9d8330815b14b3a4c9e6af91f70c9a273cff1aa340848052a",
+      "rootInspected": true,
+      "unmodifiedGeneration": true
+    },
+    {
+      "key": "japan",
+      "path": "/Users/alex/.codex/generated_images/01a109cf-f013-7423-9fd8-aac75f42fd79/exec-3c6eae06-6442-4dcf-a2a9-253b6a1447b1.png",
+      "prompt": "Use case: stylized-concept. Asset type: ONE transparent hand-painted game-piece ship sprite for the Empires hex-board iPhone game. Warm storybook / minimalist Studio Ghibli-inspired animation aesthetic, coherent fleet of simplified wooden ships with broad civilization-colored sails. Three-quarter side view, bow RIGHT, slightly elevated eye level, light from upper LEFT. Subtle gouache grain, restrained two-tone highlights, warm golden brown planked wood hull, medium dark charcoal contour, cream rim highlights. The broad colored cloth sail is the primary owner cue. Strong clean complete silhouette that remains legible at24px and beautiful at300px; no micro-detail. Subject: a compact wooden junk with distinctive blunt raised stern, one broad JADE GREEN gently curved battened sail #498E65, plain jade pennant; only four broad sail ribs. One mast or two when needed by the requested silhouette; simplify deck structures and omit rigging. No castle, building, crest, badge, emblem, letters, numbers, people, water, waves, wake, scenery, glow, circular token or background shadow. NOT an emoji or SF Symbol, not crude black triangle geometry, not photorealistic, not plastic 3D. ONE isolated complete ship centered on a square canvas, filling about84% width and78% height, small even margins, genuine transparent alpha background. All visible pixels belong to this ship. Match a purple merchant cog from the same fleet: rounded warm wood rim, clear broad painted sail, gouache texture, sparse dark contour, restrained warm highlights.",
+      "assetName": "civ-japan-ship",
+      "approvedPath": "design-references/approved/ships/civ-japan-ship.png",
+      "runtimePath": "Settlers/Assets.xcassets/civ-japan-ship.imageset/civ-japan-ship.png",
+      "sha256": "d25cd32b14ab2292355ab2c90e5337f36084b2c66b8a3ad0c6f2831ce12aac20",
+      "rootInspected": true,
+      "unmodifiedGeneration": true
+    },
+    {
+      "key": "norse",
+      "path": "/Users/alex/.codex/generated_images/01a109cf-f013-7423-9fd8-aac75f42fd79/exec-26e355ea-9176-4e62-9a7d-45ec73dd4b23.png",
+      "prompt": "Use case: stylized-concept. Asset type: ONE transparent hand-painted game-piece ship sprite for the Empires hex-board iPhone game. Warm storybook / minimalist Studio Ghibli-inspired animation aesthetic, coherent fleet of simplified wooden ships with broad civilization-colored sails. Three-quarter side view, bow RIGHT, slightly elevated eye level, light from upper LEFT. Subtle gouache grain, restrained two-tone highlights, warm golden brown planked wood hull, medium dark charcoal contour, cream rim highlights. The broad colored cloth sail is the primary owner cue. Strong clean complete silhouette that remains legible at24px and beautiful at300px; no micro-detail. Subject: a long shallow wooden longship with strongly upswept pointed bow and stern, one broad STEEL BLUE square sail #809EB0, plain steel pennant; no animal head or shields. One mast or two when needed by the requested silhouette; simplify deck structures and omit rigging. No castle, building, crest, badge, emblem, letters, numbers, people, water, waves, wake, scenery, glow, circular token or background shadow. NOT an emoji or SF Symbol, not crude black triangle geometry, not photorealistic, not plastic 3D. ONE isolated complete ship centered on a square canvas, filling about84% width and78% height, small even margins, genuine transparent alpha background. All visible pixels belong to this ship. Match a purple merchant cog from the same fleet: rounded warm wood rim, clear broad painted sail, gouache texture, sparse dark contour, restrained warm highlights.",
+      "assetName": "civ-norse-ship",
+      "approvedPath": "design-references/approved/ships/civ-norse-ship.png",
+      "runtimePath": "Settlers/Assets.xcassets/civ-norse-ship.imageset/civ-norse-ship.png",
+      "sha256": "184cdcd488b993e387da408d4247d527ef5e957c3f12a551a3bb09aac3afafe6",
+      "rootInspected": true,
+      "unmodifiedGeneration": true
+    }
+  ]
+}

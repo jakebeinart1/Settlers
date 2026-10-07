@@ -24,11 +24,10 @@ import CatanEngine
 /// to conceal, and hiding the cards would leave exactly the unexplained gap
 /// this type exists to close.
 struct VictoryPointBreakdown: Equatable {
-    /// The five ways a seat can hold points, in the order they are shown.
-    /// Every one is always present even at zero, so the card has one shape
-    /// for every seat at every frame of a scrub.
+    /// Every applicable source is present even at zero, so the card has one
+    /// shape for every seat at every frame of a scrub in the same mode.
     enum Source: String, CaseIterable {
-        case settlements, cities, victoryCards, longestRoad, largestArmy
+        case settlements, cities, victoryCards, longestRoad, largestArmy, colonies
     }
 
     struct Line: Identifiable, Equatable {
@@ -65,7 +64,7 @@ struct VictoryPointBreakdown: Equatable {
         let holdsRoad = state.longestRoadPlayer == seat
         let holdsArmy = state.largestArmyPlayer == seat
 
-        lines = [
+        var sources = [
             Line(source: .settlements, icon: "house.fill", label: "Settlements",
                  quantity: player.settlements.count,
                  points: player.settlements.count * Self.settlementPoints),
@@ -85,6 +84,12 @@ struct VictoryPointBreakdown: Equatable {
                  quantity: player.playedKnights,
                  points: holdsArmy ? state.rules.largestArmyBonus : 0)
         ]
+        if state.mode == .naval {
+            let colonyPoints = Naval.colonyPoints(for: seat, in: state)
+            sources.append(Line(source: .colonies, icon: "flag.fill", label: "Overseas colonies",
+                                quantity: colonyPoints, points: colonyPoints))
+        }
+        lines = sources
     }
 
     /// True while this seat holds the bonus, for the two badges the score

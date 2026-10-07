@@ -1,0 +1,22 @@
+{
+  "sourceCommit": "d8639917f68563b6fd2ca0d38c5fc28d3fc80a18",
+  "sha256": "509f0b575250a2426c9d026ef3eab9c764dea35e5d68c7fa0e68402f6ee2c952",
+  "engineOriginalCommit": "81bb29c5a6c4acc35ff268976aef4c58c71b0a03",
+  "protocolVersion": 3,
+  "schemaVersion": 3,
+  "mapVersion": 1,
+  "navalRulesVersion": 1,
+  "engineRulesVersion": 3,
+  "configuration": "Release",
+  "traditionalPolicyID": "naval-traditional-v1",
+  "expertPolicyID": "naval-expert-v1",
+  "anchorRationale": "9fd0f8d retained; publicly proven colony wins, dominant landing improvements and known-victory-deck corrections before Expert-only refinement; no held-out seeds examined",
+  "anchorSourceCommit": "a316139bb2daa22d7224c19953f4a2e32c699c2f",
+  "anchorSHA256": "1b0117a4d44fbe4888ab4868f7c4cb0a22001213766ea284bc4b9c4afa9bd582",
+  "refinement": "Expert certainty bands, consistent finishing recipe/card values, independently funded Longest Road, marginal hull access and bounded public colony plans",
+  "measurementScripts": {
+    "/tmp/naval-ai-evidence/run_measurement.py": "e97b51d97b9c89aa3934dca596a251f5c4f9491fc2cd484fd0e0e35b2002597b",
+    "/tmp/naval-ai-evidence/analyze_measurement.py": "cb99704bc5250bb513470247e901f8c329eeeecf0815ecb78c1837fbab9b1672",
+    "/tmp/naval-ai-evidence/check_traditional_invariance.py": "187d0523a67b746b57f6301a1558a46dc64328c8a9e3657fc6bf96323c2e7e87"
+  }
+}

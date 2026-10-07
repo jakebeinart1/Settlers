@@ -1,0 +1,523 @@
+P0:placeInitialSettlement(CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: 1, r: -2), CatanEngine.HexCoordinate(q: 2, r: -3), CatanEngine.HexCoordinate(q: 2, r: -2)]))
+P0:placeInitialRoad(CatanEngine.EdgeID(a: CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: 1, r: -2), CatanEngine.HexCoordinate(q: 1, r: -1), CatanEngine.HexCoordinate(q: 2, r: -2)]), b: CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: 1, r: -2), CatanEngine.HexCoordinate(q: 2, r: -3), CatanEngine.HexCoordinate(q: 2, r: -2)])))
+P1:placeInitialSettlement(CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: 0, r: -2), CatanEngine.HexCoordinate(q: 1, r: -3), CatanEngine.HexCoordinate(q: 1, r: -2)]))
+P1:placeInitialRoad(CatanEngine.EdgeID(a: CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: 0, r: -2), CatanEngine.HexCoordinate(q: 0, r: -1), CatanEngine.HexCoordinate(q: 1, r: -2)]), b: CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: 0, r: -2), CatanEngine.HexCoordinate(q: 1, r: -3), CatanEngine.HexCoordinate(q: 1, r: -2)])))
+P2:placeInitialSettlement(CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: 2, r: -2), CatanEngine.HexCoordinate(q: 2, r: -1), CatanEngine.HexCoordinate(q: 3, r: -2)]))
+P2:placeInitialRoad(CatanEngine.EdgeID(a: CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: 1, r: -1), CatanEngine.HexCoordinate(q: 2, r: -2), CatanEngine.HexCoordinate(q: 2, r: -1)]), b: CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: 2, r: -2), CatanEngine.HexCoordinate(q: 2, r: -1), CatanEngine.HexCoordinate(q: 3, r: -2)])))
+P2:placeInitialSettlement(CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: 0, r: 1), CatanEngine.HexCoordinate(q: 1, r: 0), CatanEngine.HexCoordinate(q: 1, r: 1)]))
+P2:placeInitialRoad(CatanEngine.EdgeID(a: CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: 0, r: 0), CatanEngine.HexCoordinate(q: 0, r: 1), CatanEngine.HexCoordinate(q: 1, r: 0)]), b: CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: 0, r: 1), CatanEngine.HexCoordinate(q: 1, r: 0), CatanEngine.HexCoordinate(q: 1, r: 1)])))
+P1:placeInitialSettlement(CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: -2, r: 2), CatanEngine.HexCoordinate(q: -1, r: 1), CatanEngine.HexCoordinate(q: -1, r: 2)]))
+P1:placeInitialRoad(CatanEngine.EdgeID(a: CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: -2, r: 2), CatanEngine.HexCoordinate(q: -1, r: 1), CatanEngine.HexCoordinate(q: -1, r: 2)]), b: CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: -1, r: 1), CatanEngine.HexCoordinate(q: -1, r: 2), CatanEngine.HexCoordinate(q: 0, r: 1)])))
+P0:placeInitialSettlement(CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: -1, r: 1), CatanEngine.HexCoordinate(q: 0, r: 0), CatanEngine.HexCoordinate(q: 0, r: 1)]))
+P0:placeInitialRoad(CatanEngine.EdgeID(a: CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: -1, r: 0), CatanEngine.HexCoordinate(q: -1, r: 1), CatanEngine.HexCoordinate(q: 0, r: 0)]), b: CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: -1, r: 1), CatanEngine.HexCoordinate(q: 0, r: 0), CatanEngine.HexCoordinate(q: 0, r: 1)])))
+P0:rollDice
+P0:buildRoad(CatanEngine.EdgeID(a: CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: -1, r: 0), CatanEngine.HexCoordinate(q: -1, r: 1), CatanEngine.HexCoordinate(q: 0, r: 0)]), b: CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: -1, r: 0), CatanEngine.HexCoordinate(q: 0, r: -1), CatanEngine.HexCoordinate(q: 0, r: 0)])))
+P0:endTurn
+P1:rollDice
+P1:buildRoad(CatanEngine.EdgeID(a: CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: 0, r: -2), CatanEngine.HexCoordinate(q: 0, r: -1), CatanEngine.HexCoordinate(q: 1, r: -2)]), b: CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: 0, r: -1), CatanEngine.HexCoordinate(q: 1, r: -2), CatanEngine.HexCoordinate(q: 1, r: -1)])))
+P1:endTurn
+P2:rollDice
+P2:proposeTrade[p2:brick=1->lumber=1]
+P0:respondToTrade(offerID: 7D122A18-6F10-3966-094E-7F8F5240F809, accept: false)
+P2:buyDevCard
+P2:proposeTrade[p2:brick=1->ore=1]
+P0:respondToTrade(offerID: D07872AF-4C75-6625-D90E-23BC31EEDB93, accept: false)
+P2:proposeTrade[p2:brick=1->wool=1]
+P1:respondToTrade(offerID: 8A1053F6-932D-29DB-B0E3-9012E50B7CCF, accept: true)
+P2:endTurn
+P0:rollDice
+P0:proposeTrade[p0:grain=1->brick=1]
+P1:respondToTrade(offerID: 004078FF-4B92-FFDA-C13B-41A14EB8093F, accept: false)
+P0:endTurn
+P1:rollDice
+P1:buildRoad(CatanEngine.EdgeID(a: CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: 0, r: -1), CatanEngine.HexCoordinate(q: 0, r: 0), CatanEngine.HexCoordinate(q: 1, r: -1)]), b: CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: 0, r: -1), CatanEngine.HexCoordinate(q: 1, r: -2), CatanEngine.HexCoordinate(q: 1, r: -1)])))
+P1:endTurn
+P2:rollDice
+P2:playKnight(moveRobberTo: CatanEngine.HexCoordinate(q: -1, r: 1), stealFrom: Optional(CatanEngine.PlayerID(index: 0)))
+P2:proposeTrade[p2:wool=1->ore=1]
+P0:respondToTrade(offerID: F527296E-6806-29CB-4613-3006111E305A, accept: false)
+P2:buyDevCard
+P2:buyDevCard
+P2:endTurn
+P0:rollDice
+P0:moveRobber(CatanEngine.HexCoordinate(q: 1, r: 0), stealFrom: Optional(CatanEngine.PlayerID(index: 2)))
+P0:buildSettlement(CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: -1, r: 0), CatanEngine.HexCoordinate(q: 0, r: -1), CatanEngine.HexCoordinate(q: 0, r: 0)]))
+P0:endTurn
+P1:rollDice
+P1:proposeTrade[p1:wool=2->brick=1,lumber=1]
+P0:respondToTrade(offerID: 8ABA8F3F-CD47-4BBB-28F3-1EF60F7200E0, accept: false)
+P1:proposeTrade[p1:wool=1->lumber=1]
+P0:respondToTrade(offerID: FB9B225A-A6D0-42F4-CE33-9387E183316D, accept: false)
+P1:proposeTrade[p1:wool=1->grain=1]
+P2:respondToTrade(offerID: C7C0F9C1-A244-8A66-F976-AEABB551EF50, accept: true)
+P1:endTurn
+P2:rollDice
+P2:playRoadBuilding(CatanEngine.EdgeID(a: CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: 0, r: 0), CatanEngine.HexCoordinate(q: 0, r: 1), CatanEngine.HexCoordinate(q: 1, r: 0)]), b: CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: 0, r: 0), CatanEngine.HexCoordinate(q: 1, r: -1), CatanEngine.HexCoordinate(q: 1, r: 0)])), CatanEngine.EdgeID(a: CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: 0, r: -1), CatanEngine.HexCoordinate(q: 0, r: 0), CatanEngine.HexCoordinate(q: 1, r: -1)]), b: CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: 0, r: 0), CatanEngine.HexCoordinate(q: 1, r: -1), CatanEngine.HexCoordinate(q: 1, r: 0)])))
+P2:endTurn
+P0:rollDice
+P0:proposeTrade[p0:grain=1->lumber=1]
+P1:respondToTrade(offerID: A45083A3-B270-0C78-CE11-A290FE10DD0D, accept: false)
+P0:proposeTrade[p0:grain=1->ore=1]
+P1:respondToTrade(offerID: 05625F6F-A2F3-8929-8457-674A4EAAEF13, accept: false)
+P0:endTurn
+P1:rollDice
+P1:proposeTrade[p1:brick=1->lumber=1]
+P0:respondToTrade(offerID: 7D578ED6-CAEA-F722-162F-18FD5A58460D, accept: false)
+P1:proposeTrade[p1:grain=1->lumber=1]
+P0:respondToTrade(offerID: FFE0108C-3FAD-6EE9-1665-E1F058579CFD, accept: false)
+P1:proposeTrade[p1:wool=1->lumber=1]
+P0:respondToTrade(offerID: FB9B225A-A6D0-42F4-CE33-9387E183316D, accept: false)
+P1:endTurn
+P2:rollDice
+P2:playKnight(moveRobberTo: CatanEngine.HexCoordinate(q: -1, r: 1), stealFrom: Optional(CatanEngine.PlayerID(index: 0)))
+P2:buildRoad(CatanEngine.EdgeID(a: CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: 0, r: 0), CatanEngine.HexCoordinate(q: 1, r: -1), CatanEngine.HexCoordinate(q: 1, r: 0)]), b: CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: 1, r: -1), CatanEngine.HexCoordinate(q: 1, r: 0), CatanEngine.HexCoordinate(q: 2, r: -1)])))
+P2:endTurn
+P0:rollDice
+P0:moveRobber(CatanEngine.HexCoordinate(q: 1, r: 0), stealFrom: Optional(CatanEngine.PlayerID(index: 2)))
+P0:buildRoad(CatanEngine.EdgeID(a: CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: -2, r: 1), CatanEngine.HexCoordinate(q: -1, r: 0), CatanEngine.HexCoordinate(q: -1, r: 1)]), b: CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: -1, r: 0), CatanEngine.HexCoordinate(q: -1, r: 1), CatanEngine.HexCoordinate(q: 0, r: 0)])))
+P0:proposeTrade[p0:grain=1->lumber=1]
+P1:respondToTrade(offerID: A45083A3-B270-0C78-CE11-A290FE10DD0D, accept: false)
+P0:proposeTrade[p0:grain=2->lumber=2]
+P1:respondToTrade(offerID: 8675794D-C0D8-77A7-11DE-F9A5070D8847, accept: false)
+P0:proposeTrade[p0:wool=1->lumber=1]
+P1:respondToTrade(offerID: 3459A660-C304-9DB0-76F1-09212C9894BE, accept: false)
+P0:endTurn
+P1:rollDice
+P1:moveRobber(CatanEngine.HexCoordinate(q: 2, r: -2), stealFrom: Optional(CatanEngine.PlayerID(index: 0)))
+P1:proposeTrade[p1:brick=1->lumber=1]
+P0:respondToTrade(offerID: 7D578ED6-CAEA-F722-162F-18FD5A58460D, accept: false)
+P1:proposeTrade[p1:brick=2->lumber=2]
+P0:respondToTrade(offerID: C02B6650-BF96-5CE1-EB57-1FFD9718BC29, accept: false)
+P1:proposeTrade[p1:brick=2->lumber=1]
+P0:respondToTrade(offerID: BEA64D69-821C-48AC-D7D4-99C62525299F, accept: false)
+P1:endTurn
+P2:rollDice
+P2:endTurn
+P0:rollDice
+P0:proposeTrade[p0:grain=2->ore=2]
+P1:respondToTrade(offerID: B4D4F6BB-1143-33A4-7255-E115116BE216, accept: false)
+P0:proposeTrade[p0:grain=3->ore=2]
+P1:respondToTrade(offerID: EDB52DDC-C593-B11F-10CF-EF8E5CE4904D, accept: false)
+P0:proposeTrade[p0:grain=2->lumber=2]
+P1:respondToTrade(offerID: 8675794D-C0D8-77A7-11DE-F9A5070D8847, accept: false)
+P0:bankTrade[grain=4->ore=1]
+P0:endTurn
+P1:rollDice
+P1:proposeTrade[p1:brick=1->lumber=1]
+P0:respondToTrade(offerID: 7D578ED6-CAEA-F722-162F-18FD5A58460D, accept: false)
+P1:proposeTrade[p1:brick=2->lumber=2]
+P0:respondToTrade(offerID: C02B6650-BF96-5CE1-EB57-1FFD9718BC29, accept: false)
+P1:proposeTrade[p1:wool=1->lumber=1]
+P0:respondToTrade(offerID: FB9B225A-A6D0-42F4-CE33-9387E183316D, accept: false)
+P1:endTurn
+P2:rollDice
+P2:moveRobber(CatanEngine.HexCoordinate(q: -1, r: 1), stealFrom: Optional(CatanEngine.PlayerID(index: 0)))
+P2:buyDevCard
+P2:endTurn
+P0:rollDice
+P0:buyDevCard
+P0:endTurn
+P1:rollDice
+P1:proposeTrade[p1:brick=1->lumber=1]
+P0:respondToTrade(offerID: 7D578ED6-CAEA-F722-162F-18FD5A58460D, accept: false)
+P1:proposeTrade[p1:brick=2->lumber=2]
+P0:respondToTrade(offerID: C02B6650-BF96-5CE1-EB57-1FFD9718BC29, accept: false)
+P1:proposeTrade[p1:wool=1->lumber=1]
+P0:respondToTrade(offerID: FB9B225A-A6D0-42F4-CE33-9387E183316D, accept: false)
+P1:endTurn
+P2:rollDice
+P2:playKnight(moveRobberTo: CatanEngine.HexCoordinate(q: 0, r: 0), stealFrom: Optional(CatanEngine.PlayerID(index: 0)))
+P2:proposeTrade[p2:grain=2->ore=2]
+P0:respondToTrade(offerID: 9A1C416D-F19C-3E5B-3BEB-51FB1F9C2F87, accept: false)
+P2:proposeTrade[p2:grain=2->lumber=2]
+P0:respondToTrade(offerID: A707D3E7-FBEB-658A-5CCD-2DCFE707C016, accept: false)
+P2:proposeTrade[p2:grain=3->lumber=2]
+P0:respondToTrade(offerID: 7021AD0C-71AF-7CAE-C3D8-14F43CC21723, accept: false)
+P2:buyDevCard
+P2:endTurn
+P0:rollDice
+P0:playKnight(moveRobberTo: CatanEngine.HexCoordinate(q: 1, r: 0), stealFrom: Optional(CatanEngine.PlayerID(index: 2)))
+P0:proposeTrade[p0:grain=1->brick=2]
+P1:respondToTrade(offerID: 22C10A96-05EE-9A0A-3317-4B825F55FD0C, accept: false)
+P0:proposeTrade[p0:grain=1->brick=1]
+P1:respondToTrade(offerID: 004078FF-4B92-FFDA-C13B-41A14EB8093F, accept: false)
+P0:proposeTrade[p0:grain=1->lumber=1]
+P1:respondToTrade(offerID: A45083A3-B270-0C78-CE11-A290FE10DD0D, accept: false)
+P0:endTurn
+P1:rollDice
+P1:buildSettlement(CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: 0, r: -1), CatanEngine.HexCoordinate(q: 1, r: -2), CatanEngine.HexCoordinate(q: 1, r: -1)]))
+P1:buildRoad(CatanEngine.EdgeID(a: CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: -1, r: -1), CatanEngine.HexCoordinate(q: 0, r: -2), CatanEngine.HexCoordinate(q: 0, r: -1)]), b: CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: 0, r: -2), CatanEngine.HexCoordinate(q: 0, r: -1), CatanEngine.HexCoordinate(q: 1, r: -2)])))
+P1:proposeTrade[p1:wool=2->lumber=1,grain=1]
+P0:respondToTrade(offerID: E8325A50-1D71-A14C-4E71-42627460A731, accept: false)
+P1:proposeTrade[p1:wool=3->lumber=1,grain=1]
+P0:respondToTrade(offerID: D88CEAE5-EBAB-B843-C0D4-FC16CF4D01BE, accept: false)
+P1:proposeTrade[p1:wool=1->lumber=1]
+P0:respondToTrade(offerID: FB9B225A-A6D0-42F4-CE33-9387E183316D, accept: false)
+P1:endTurn
+P2:rollDice
+P2:playKnight(moveRobberTo: CatanEngine.HexCoordinate(q: -1, r: 1), stealFrom: Optional(CatanEngine.PlayerID(index: 0)))
+P2:proposeTrade[p2:grain=2->lumber=2]
+P0:respondToTrade(offerID: A707D3E7-FBEB-658A-5CCD-2DCFE707C016, accept: false)
+P2:proposeTrade[p2:grain=2->ore=2]
+P0:respondToTrade(offerID: 9A1C416D-F19C-3E5B-3BEB-51FB1F9C2F87, accept: false)
+P2:proposeTrade[p2:grain=1->wool=2]
+P1:respondToTrade(offerID: B2A623F0-0164-ED77-E63D-8F95B0E5CF59, accept: true)
+P2:proposeTrade[p2:grain=1->brick=1]
+P0:respondToTrade(offerID: 81D108C5-668E-0DEA-3E06-A72639C768C7, accept: false)
+P2:endTurn
+P0:rollDice
+P0:proposeTrade[p0:grain=1->brick=1]
+P1:respondToTrade(offerID: 004078FF-4B92-FFDA-C13B-41A14EB8093F, accept: false)
+P0:endTurn
+P1:rollDice
+P1:buildSettlement(CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: -1, r: -1), CatanEngine.HexCoordinate(q: 0, r: -2), CatanEngine.HexCoordinate(q: 0, r: -1)]))
+P1:buyDevCard
+P1:endTurn
+P2:rollDice
+P2:moveRobber(CatanEngine.HexCoordinate(q: 0, r: -1), stealFrom: Optional(CatanEngine.PlayerID(index: 0)))
+P2:proposeTrade[p2:grain=2->lumber=2]
+P0:respondToTrade(offerID: A707D3E7-FBEB-658A-5CCD-2DCFE707C016, accept: false)
+P2:proposeTrade[p2:grain=1->brick=1]
+P1:respondToTrade(offerID: 81D108C5-668E-0DEA-3E06-A72639C768C7, accept: true)
+P2:proposeTrade[p2:grain=1->lumber=1]
+P0:respondToTrade(offerID: 2F485970-C946-1241-4FAB-80F7CDFA88D5, accept: false)
+P2:proposeTrade[p2:wool=1->lumber=1]
+P0:respondToTrade(offerID: 7981F16A-0748-A7D0-465D-231B044D53D2, accept: false)
+P2:endTurn
+P0:rollDice
+P0:endTurn
+P1:rollDice
+P1:playKnight(moveRobberTo: CatanEngine.HexCoordinate(q: 2, r: -2), stealFrom: Optional(CatanEngine.PlayerID(index: 0)))
+P1:proposeTrade[p1:grain=2->lumber=2]
+P0:respondToTrade(offerID: D997CE9D-9EEB-F0E3-FBDA-FA6721555182, accept: false)
+P1:proposeTrade[p1:wool=1->ore=1]
+P0:respondToTrade(offerID: 5B2C5611-FBC9-CE1B-F65C-EE7B55C2E729, accept: false)
+P1:buyDevCard
+P1:endTurn
+P2:rollDice
+P2:proposeTrade[p2:grain=1->lumber=1]
+P0:respondToTrade(offerID: 2F485970-C946-1241-4FAB-80F7CDFA88D5, accept: false)
+P2:proposeTrade[p2:grain=2->lumber=2]
+P0:respondToTrade(offerID: A707D3E7-FBEB-658A-5CCD-2DCFE707C016, accept: false)
+P2:proposeTrade[p2:wool=1->lumber=1]
+P0:respondToTrade(offerID: 7981F16A-0748-A7D0-465D-231B044D53D2, accept: false)
+P2:buyDevCard
+P2:endTurn
+P0:rollDice
+P0:proposeTrade[p0:grain=1->brick=1]
+P1:respondToTrade(offerID: 004078FF-4B92-FFDA-C13B-41A14EB8093F, accept: false)
+P0:proposeTrade[p0:grain=1->lumber=1]
+P1:respondToTrade(offerID: A45083A3-B270-0C78-CE11-A290FE10DD0D, accept: false)
+P0:proposeTrade[p0:grain=1->ore=1]
+P1:respondToTrade(offerID: 05625F6F-A2F3-8929-8457-674A4EAAEF13, accept: false)
+P0:endTurn
+P1:rollDice
+P1:endTurn
+P2:rollDice
+P2:playYearOfPlenty(CatanEngine.Resource.brick, CatanEngine.Resource.lumber)
+P2:buildRoad(CatanEngine.EdgeID(a: CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: 1, r: -1), CatanEngine.HexCoordinate(q: 1, r: 0), CatanEngine.HexCoordinate(q: 2, r: -1)]), b: CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: 1, r: -1), CatanEngine.HexCoordinate(q: 2, r: -2), CatanEngine.HexCoordinate(q: 2, r: -1)])))
+P2:proposeTrade[p2:grain=1->lumber=1]
+P0:respondToTrade(offerID: 2F485970-C946-1241-4FAB-80F7CDFA88D5, accept: false)
+P2:proposeTrade[p2:grain=1->ore=2]
+P1:respondToTrade(offerID: EBA280EC-2A5B-E930-9F18-F0284CC91DE6, accept: true)
+P2:proposeTrade[p2:ore=1->lumber=1]
+P0:respondToTrade(offerID: 60166D48-ED33-C01D-ECD3-EE755A986266, accept: false)
+P2:buyDevCard
+P2:endTurn
+P0:rollDice
+P0:proposeTrade[p0:grain=2->ore=2]
+P1:respondToTrade(offerID: B4D4F6BB-1143-33A4-7255-E115116BE216, accept: false)
+P0:proposeTrade[p0:grain=2->lumber=2]
+P1:respondToTrade(offerID: 8675794D-C0D8-77A7-11DE-F9A5070D8847, accept: false)
+P0:proposeTrade[p0:grain=1->brick=1]
+P1:respondToTrade(offerID: 004078FF-4B92-FFDA-C13B-41A14EB8093F, accept: false)
+P0:endTurn
+P1:rollDice
+P1:moveRobber(CatanEngine.HexCoordinate(q: 0, r: 1), stealFrom: Optional(CatanEngine.PlayerID(index: 0)))
+P1:buildCity(CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: -2, r: 2), CatanEngine.HexCoordinate(q: -1, r: 1), CatanEngine.HexCoordinate(q: -1, r: 2)]))
+P1:endTurn
+P2:rollDice
+P2:endTurn
+P0:rollDice
+P0:proposeTrade[p0:grain=2->ore=2]
+P1:respondToTrade(offerID: B4D4F6BB-1143-33A4-7255-E115116BE216, accept: false)
+P0:proposeTrade[p0:grain=2->lumber=2]
+P1:respondToTrade(offerID: 8675794D-C0D8-77A7-11DE-F9A5070D8847, accept: false)
+P0:proposeTrade[p0:grain=1->brick=1]
+P1:respondToTrade(offerID: 004078FF-4B92-FFDA-C13B-41A14EB8093F, accept: false)
+P0:endTurn
+P1:rollDice
+P1:moveRobber(CatanEngine.HexCoordinate(q: 2, r: -2), stealFrom: Optional(CatanEngine.PlayerID(index: 0)))
+P1:proposeTrade[p1:grain=2->ore=2]
+P0:respondToTrade(offerID: 0986748D-57C1-F72F-96C9-B1C636C9A3A7, accept: false)
+P1:proposeTrade[p1:brick=1,grain=1->ore=2]
+P0:respondToTrade(offerID: 40E58859-D7CA-5C2D-72EB-5C2904FCDE3B, accept: false)
+P1:proposeTrade[p1:brick=1,wool=1->ore=2]
+P0:respondToTrade(offerID: 26E2F60C-CB6F-8ECD-FD1D-7829D0A8B4BC, accept: false)
+P1:buildRoad(CatanEngine.EdgeID(a: CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: -1, r: 1), CatanEngine.HexCoordinate(q: -1, r: 2), CatanEngine.HexCoordinate(q: 0, r: 1)]), b: CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: -1, r: 2), CatanEngine.HexCoordinate(q: 0, r: 1), CatanEngine.HexCoordinate(q: 0, r: 2)])))
+P1:endTurn
+P2:rollDice
+P2:endTurn
+P0:rollDice
+P0:bankTrade[grain=4->lumber=1]
+P0:buildRoad(CatanEngine.EdgeID(a: CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: -2, r: 0), CatanEngine.HexCoordinate(q: -2, r: 1), CatanEngine.HexCoordinate(q: -1, r: 0)]), b: CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: -2, r: 1), CatanEngine.HexCoordinate(q: -1, r: 0), CatanEngine.HexCoordinate(q: -1, r: 1)])))
+P0:endTurn
+P1:rollDice
+P1:buildSettlement(CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: -1, r: 2), CatanEngine.HexCoordinate(q: 0, r: 1), CatanEngine.HexCoordinate(q: 0, r: 2)]))
+P1:proposeTrade[p1:grain=2->ore=2]
+P0:respondToTrade(offerID: 0986748D-57C1-F72F-96C9-B1C636C9A3A7, accept: false)
+P1:proposeTrade[p1:brick=2->ore=2]
+P0:respondToTrade(offerID: 0B8005A9-3831-8EAB-88EB-DB5127A24672, accept: false)
+P1:proposeTrade[p1:brick=1,grain=1->ore=2]
+P0:respondToTrade(offerID: 40E58859-D7CA-5C2D-72EB-5C2904FCDE3B, accept: false)
+P1:buildRoad(CatanEngine.EdgeID(a: CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: -2, r: 1), CatanEngine.HexCoordinate(q: -2, r: 2), CatanEngine.HexCoordinate(q: -1, r: 1)]), b: CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: -2, r: 2), CatanEngine.HexCoordinate(q: -1, r: 1), CatanEngine.HexCoordinate(q: -1, r: 2)])))
+P1:buildRoad(CatanEngine.EdgeID(a: CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: -2, r: 1), CatanEngine.HexCoordinate(q: -2, r: 2), CatanEngine.HexCoordinate(q: -1, r: 1)]), b: CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: -2, r: 1), CatanEngine.HexCoordinate(q: -1, r: 0), CatanEngine.HexCoordinate(q: -1, r: 1)])))
+P1:endTurn
+P2:rollDice
+P2:endTurn
+P0:rollDice
+P0:proposeTrade[p0:grain=1->lumber=1]
+P1:respondToTrade(offerID: A45083A3-B270-0C78-CE11-A290FE10DD0D, accept: false)
+P0:endTurn
+P1:rollDice
+P1:proposeTrade[p1:grain=2->lumber=2]
+P0:respondToTrade(offerID: D997CE9D-9EEB-F0E3-FBDA-FA6721555182, accept: false)
+P1:proposeTrade[p1:grain=2->ore=2]
+P0:respondToTrade(offerID: 0986748D-57C1-F72F-96C9-B1C636C9A3A7, accept: false)
+P1:proposeTrade[p1:brick=1->lumber=2]
+P0:respondToTrade(offerID: D8D5AB51-7276-02EC-3CBB-E6AA08328B03, accept: false)
+P1:bankTrade[grain=4->lumber=1]
+P1:buildSettlement(CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: -2, r: 1), CatanEngine.HexCoordinate(q: -1, r: 0), CatanEngine.HexCoordinate(q: -1, r: 1)]))
+P1:endTurn
+P2:rollDice
+P2:proposeTrade[p2:brick=1->lumber=1]
+P0:respondToTrade(offerID: 7D122A18-6F10-3966-094E-7F8F5240F809, accept: false)
+P2:endTurn
+P0:rollDice
+P0:buildRoad(CatanEngine.EdgeID(a: CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: -2, r: 0), CatanEngine.HexCoordinate(q: -2, r: 1), CatanEngine.HexCoordinate(q: -1, r: 0)]), b: CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: -2, r: 0), CatanEngine.HexCoordinate(q: -1, r: -1), CatanEngine.HexCoordinate(q: -1, r: 0)])))
+P0:buildRoad(CatanEngine.EdgeID(a: CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: -3, r: 1), CatanEngine.HexCoordinate(q: -2, r: 0), CatanEngine.HexCoordinate(q: -2, r: 1)]), b: CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: -2, r: 0), CatanEngine.HexCoordinate(q: -2, r: 1), CatanEngine.HexCoordinate(q: -1, r: 0)])))
+P0:proposeTrade[p0:grain=2->ore=2]
+P1:respondToTrade(offerID: B4D4F6BB-1143-33A4-7255-E115116BE216, accept: false)
+P0:proposeTrade[p0:grain=1->ore=1]
+P1:respondToTrade(offerID: 05625F6F-A2F3-8929-8457-674A4EAAEF13, accept: false)
+P0:proposeTrade[p0:grain=2->ore=1]
+P1:respondToTrade(offerID: F87991A7-EC1A-9F27-8938-955918C2501E, accept: false)
+P0:endTurn
+P1:rollDice
+P1:proposeTrade[p1:grain=2->lumber=2]
+P0:respondToTrade(offerID: D997CE9D-9EEB-F0E3-FBDA-FA6721555182, accept: false)
+P1:proposeTrade[p1:grain=2->ore=2]
+P0:respondToTrade(offerID: 0986748D-57C1-F72F-96C9-B1C636C9A3A7, accept: false)
+P1:proposeTrade[p1:brick=2->lumber=2]
+P0:respondToTrade(offerID: C02B6650-BF96-5CE1-EB57-1FFD9718BC29, accept: false)
+P1:bankTrade[brick=4->ore=1]
+P1:bankTrade[grain=4->ore=1]
+P1:endTurn
+P2:rollDice
+P2:proposeTrade[p2:brick=1->lumber=2]
+P0:respondToTrade(offerID: EC6789B4-69CE-952F-B429-FC03AD54B34E, accept: false)
+P2:proposeTrade[p2:brick=2->lumber=2]
+P0:respondToTrade(offerID: 107E45DC-DE56-5DD5-2709-07C0B7163E61, accept: false)
+P2:proposeTrade[p2:brick=1->lumber=1]
+P0:respondToTrade(offerID: 7D122A18-6F10-3966-094E-7F8F5240F809, accept: false)
+P2:endTurn
+P0:rollDice
+P0:buildRoad(CatanEngine.EdgeID(a: CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: -3, r: 1), CatanEngine.HexCoordinate(q: -3, r: 2), CatanEngine.HexCoordinate(q: -2, r: 1)]), b: CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: -3, r: 1), CatanEngine.HexCoordinate(q: -2, r: 0), CatanEngine.HexCoordinate(q: -2, r: 1)])))
+P0:proposeTrade[p0:grain=2->ore=2]
+P1:respondToTrade(offerID: B4D4F6BB-1143-33A4-7255-E115116BE216, accept: false)
+P0:proposeTrade[p0:grain=3->ore=2]
+P1:respondToTrade(offerID: EDB52DDC-C593-B11F-10CF-EF8E5CE4904D, accept: false)
+P0:proposeTrade[p0:grain=1->brick=2]
+P1:respondToTrade(offerID: 22C10A96-05EE-9A0A-3317-4B825F55FD0C, accept: false)
+P0:bankTrade[grain=4->brick=1]
+P0:buildRoad(CatanEngine.EdgeID(a: CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: -3, r: 1), CatanEngine.HexCoordinate(q: -3, r: 2), CatanEngine.HexCoordinate(q: -2, r: 1)]), b: CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: -3, r: 2), CatanEngine.HexCoordinate(q: -2, r: 1), CatanEngine.HexCoordinate(q: -2, r: 2)])))
+P0:endTurn
+P1:rollDice
+P1:buildCity(CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: -2, r: 1), CatanEngine.HexCoordinate(q: -1, r: 0), CatanEngine.HexCoordinate(q: -1, r: 1)]))
+P1:buildRoad(CatanEngine.EdgeID(a: CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: -3, r: 2), CatanEngine.HexCoordinate(q: -2, r: 1), CatanEngine.HexCoordinate(q: -2, r: 2)]), b: CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: -2, r: 1), CatanEngine.HexCoordinate(q: -2, r: 2), CatanEngine.HexCoordinate(q: -1, r: 1)])))
+P1:proposeTrade[p1:brick=1->lumber=1]
+P0:respondToTrade(offerID: 7D578ED6-CAEA-F722-162F-18FD5A58460D, accept: false)
+P1:proposeTrade[p1:grain=1->lumber=1]
+P0:respondToTrade(offerID: FFE0108C-3FAD-6EE9-1665-E1F058579CFD, accept: false)
+P1:proposeTrade[p1:ore=1->lumber=1]
+P0:respondToTrade(offerID: 29A7BF15-2E30-1906-58E5-8B11BE48F7DC, accept: false)
+P1:endTurn
+P2:rollDice
+P2:moveRobber(CatanEngine.HexCoordinate(q: -1, r: 1), stealFrom: Optional(CatanEngine.PlayerID(index: 0)))
+P2:proposeTrade[p2:grain=1->lumber=1]
+P0:respondToTrade(offerID: 2F485970-C946-1241-4FAB-80F7CDFA88D5, accept: false)
+P2:proposeTrade[p2:grain=1->wool=1]
+P0:respondToTrade(offerID: 608461D0-6565-9D4E-4AD9-D7EC32FA73B2, accept: false)
+P2:proposeTrade[p2:grain=1->ore=1]
+P0:respondToTrade(offerID: 000DB5CC-EBB4-30D0-460B-3D9F10D3871D, accept: false)
+P2:endTurn
+P0:rollDice
+P0:endTurn
+P1:rollDice
+P1:proposeTrade[p1:grain=2->lumber=2]
+P0:respondToTrade(offerID: D997CE9D-9EEB-F0E3-FBDA-FA6721555182, accept: false)
+P1:proposeTrade[p1:wool=1->ore=2]
+P0:respondToTrade(offerID: F8941A51-E1FA-D2AA-3758-E95B1C108084, accept: false)
+P1:proposeTrade[p1:brick=2->ore=2]
+P0:respondToTrade(offerID: 0B8005A9-3831-8EAB-88EB-DB5127A24672, accept: false)
+P1:buyDevCard
+P1:endTurn
+P2:rollDice
+P2:buildCity(CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: 0, r: 1), CatanEngine.HexCoordinate(q: 1, r: 0), CatanEngine.HexCoordinate(q: 1, r: 1)]))
+P2:proposeTrade[p2:brick=1->lumber=1]
+P0:respondToTrade(offerID: 7D122A18-6F10-3966-094E-7F8F5240F809, accept: false)
+P2:proposeTrade[p2:brick=2->lumber=2]
+P0:respondToTrade(offerID: 107E45DC-DE56-5DD5-2709-07C0B7163E61, accept: false)
+P2:proposeTrade[p2:wool=1->lumber=1]
+P0:respondToTrade(offerID: 7981F16A-0748-A7D0-465D-231B044D53D2, accept: false)
+P2:endTurn
+P0:rollDice
+P0:proposeTrade[p0:grain=1->brick=2]
+P1:respondToTrade(offerID: 22C10A96-05EE-9A0A-3317-4B825F55FD0C, accept: false)
+P0:proposeTrade[p0:wool=1->brick=2]
+P1:respondToTrade(offerID: BA75FBF4-EF7F-EC69-2321-4A30A710DC06, accept: false)
+P0:proposeTrade[p0:grain=1->brick=1]
+P1:respondToTrade(offerID: 004078FF-4B92-FFDA-C13B-41A14EB8093F, accept: false)
+P0:endTurn
+P1:rollDice
+P1:playKnight(moveRobberTo: CatanEngine.HexCoordinate(q: 1, r: 0), stealFrom: Optional(CatanEngine.PlayerID(index: 2)))
+P1:proposeTrade[p1:brick=2,grain=2->lumber=2]
+P0:respondToTrade(offerID: 168650E8-2EDD-D52E-4111-B6B2C999E76E, accept: false)
+P1:proposeTrade[p1:brick=2,grain=1->lumber=2]
+P0:respondToTrade(offerID: B0A69630-6185-17FF-455D-8767DB240BF9, accept: false)
+P1:proposeTrade[p1:brick=1,grain=2->lumber=2]
+P0:respondToTrade(offerID: B5740618-13D1-BB78-B704-FB4C5EA39236, accept: false)
+P1:bankTrade[grain=4->lumber=1]
+P1:buildSettlement(CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: -3, r: 2), CatanEngine.HexCoordinate(q: -2, r: 1), CatanEngine.HexCoordinate(q: -2, r: 2)]))
+P1:endTurn
+P2:rollDice
+P2:proposeTrade[p2:brick=1->lumber=1]
+P0:respondToTrade(offerID: 7D122A18-6F10-3966-094E-7F8F5240F809, accept: false)
+P2:proposeTrade[p2:wool=1->lumber=1]
+P0:respondToTrade(offerID: 7981F16A-0748-A7D0-465D-231B044D53D2, accept: false)
+P2:proposeTrade[p2:wool=1->ore=2]
+P0:respondToTrade(offerID: C2F879C3-E190-11A5-3E37-915E4A348739, accept: false)
+P2:endTurn
+P0:rollDice
+P0:proposeTrade[p0:grain=1->ore=2]
+P1:respondToTrade(offerID: 76FE79C3-A780-6ADC-1797-45775EEAAD06, accept: false)
+P0:proposeTrade[p0:wool=1->ore=2]
+P1:respondToTrade(offerID: 9A0C35D5-8DC6-7A61-AA93-2B7337A59CAE, accept: false)
+P0:proposeTrade[p0:grain=2->ore=2]
+P1:respondToTrade(offerID: B4D4F6BB-1143-33A4-7255-E115116BE216, accept: false)
+P0:endTurn
+P1:rollDice
+P1:proposeTrade[p1:brick=1->lumber=2]
+P0:respondToTrade(offerID: D8D5AB51-7276-02EC-3CBB-E6AA08328B03, accept: false)
+P1:proposeTrade[p1:ore=1->lumber=2]
+P0:respondToTrade(offerID: 894E024C-2D39-9ADA-CEE5-33F63682CC19, accept: false)
+P1:proposeTrade[p1:ore=2->lumber=2]
+P0:respondToTrade(offerID: A0E10B8A-BD93-A152-2EDC-C7CEF1190736, accept: false)
+P1:bankTrade[ore=3->grain=1]
+P1:buildCity(CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: -1, r: -1), CatanEngine.HexCoordinate(q: 0, r: -2), CatanEngine.HexCoordinate(q: 0, r: -1)]))
+P1:endTurn
+P2:rollDice
+P2:proposeTrade[p2:brick=1->lumber=2]
+P0:respondToTrade(offerID: EC6789B4-69CE-952F-B429-FC03AD54B34E, accept: false)
+P2:proposeTrade[p2:brick=1->lumber=1]
+P0:respondToTrade(offerID: 7D122A18-6F10-3966-094E-7F8F5240F809, accept: true)
+P2:buildSettlement(CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: 0, r: 0), CatanEngine.HexCoordinate(q: 1, r: -1), CatanEngine.HexCoordinate(q: 1, r: 0)]))
+P2:proposeTrade[p2:brick=1->lumber=1]
+P0:respondToTrade(offerID: 7D122A18-6F10-3966-094E-7F8F5240F809, accept: false)
+P2:proposeTrade[p2:wool=1->lumber=1]
+P0:respondToTrade(offerID: 7981F16A-0748-A7D0-465D-231B044D53D2, accept: false)
+P2:endTurn
+P0:rollDice
+P0:buildSettlement(CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: -2, r: 0), CatanEngine.HexCoordinate(q: -1, r: -1), CatanEngine.HexCoordinate(q: -1, r: 0)]))
+P0:proposeTrade[p0:grain=2->ore=2]
+P1:respondToTrade(offerID: B4D4F6BB-1143-33A4-7255-E115116BE216, accept: false)
+P0:proposeTrade[p0:grain=2->lumber=2]
+P1:respondToTrade(offerID: 8675794D-C0D8-77A7-11DE-F9A5070D8847, accept: false)
+P0:proposeTrade[p0:wool=1->brick=2]
+P1:respondToTrade(offerID: BA75FBF4-EF7F-EC69-2321-4A30A710DC06, accept: false)
+P0:endTurn
+P1:rollDice
+P1:buyDevCard
+P1:proposeTrade[p1:brick=2->lumber=2]
+P0:respondToTrade(offerID: C02B6650-BF96-5CE1-EB57-1FFD9718BC29, accept: false)
+P1:proposeTrade[p1:brick=2,wool=1->lumber=2]
+P0:respondToTrade(offerID: 039DD074-F8A2-441F-6A17-A820266D3197, accept: false)
+P1:proposeTrade[p1:brick=1->grain=2]
+P0:respondToTrade(offerID: E405E890-E4DA-4665-EE13-682FB3BC3F73, accept: true)
+P1:buyDevCard
+P1:buyDevCard
+P1:endTurn
+P2:rollDice
+P2:buildRoad(CatanEngine.EdgeID(a: CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: 1, r: -1), CatanEngine.HexCoordinate(q: 1, r: 0), CatanEngine.HexCoordinate(q: 2, r: -1)]), b: CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: 1, r: 0), CatanEngine.HexCoordinate(q: 2, r: -1), CatanEngine.HexCoordinate(q: 2, r: 0)])))
+P2:proposeTrade[p2:brick=1->lumber=2]
+P0:respondToTrade(offerID: EC6789B4-69CE-952F-B429-FC03AD54B34E, accept: false)
+P2:proposeTrade[p2:grain=1->lumber=2]
+P0:respondToTrade(offerID: D04C1117-8D78-7BC3-E604-376B6F72767A, accept: false)
+P2:proposeTrade[p2:brick=1->lumber=1]
+P0:respondToTrade(offerID: 7D122A18-6F10-3966-094E-7F8F5240F809, accept: false)
+P2:endTurn
+P0:rollDice
+P0:buildSettlement(CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: -3, r: 1), CatanEngine.HexCoordinate(q: -2, r: 0), CatanEngine.HexCoordinate(q: -2, r: 1)]))
+P0:proposeTrade[p0:wool=1->lumber=1]
+P1:respondToTrade(offerID: 3459A660-C304-9DB0-76F1-09212C9894BE, accept: false)
+P0:endTurn
+P1:rollDice
+P1:playKnight(moveRobberTo: CatanEngine.HexCoordinate(q: 2, r: -2), stealFrom: Optional(CatanEngine.PlayerID(index: 0)))
+P1:proposeTrade[p1:brick=1->ore=1]
+P0:respondToTrade(offerID: E022F596-2059-31EF-6FE4-B321BD74A05F, accept: false)
+P1:proposeTrade[p1:wool=2->ore=1]
+P0:respondToTrade(offerID: 6BA6AF41-ED81-0F6A-855F-BE5A0A5CF03B, accept: false)
+P1:proposeTrade[p1:brick=1,grain=1->ore=1]
+P0:respondToTrade(offerID: CC09CFB8-DB7E-3395-3729-31FC6B8FBEDF, accept: false)
+P1:bankTrade[wool=3->ore=1]
+P1:endTurn
+P2:rollDice
+P2:moveRobber(CatanEngine.HexCoordinate(q: -1, r: 1), stealFrom: Optional(CatanEngine.PlayerID(index: 0)))
+P2:bankTrade[grain=4->lumber=1]
+P2:buildSettlement(CatanEngine.VertexID(touchingTiles: [CatanEngine.HexCoordinate(q: 1, r: 0), CatanEngine.HexCoordinate(q: 2, r: -1), CatanEngine.HexCoordinate(q: 2, r: 0)]))
+P2:proposeTrade[p2:brick=1->lumber=1]
+P0:respondToTrade(offerID: 7D122A18-6F10-3966-094E-7F8F5240F809, accept: false)
+P2:proposeTrade[p2:brick=1->ore=1]
+P0:respondToTrade(offerID: D07872AF-4C75-6625-D90E-23BC31EEDB93, accept: false)
+P2:endTurn
+P0:rollDice
+P0:proposeTrade[p0:grain=1->lumber=1]
+P1:respondToTrade(offerID: A45083A3-B270-0C78-CE11-A290FE10DD0D, accept: false)
+P0:proposeTrade[p0:grain=1->ore=1]
+P1:respondToTrade(offerID: 05625F6F-A2F3-8929-8457-674A4EAAEF13, accept: false)
+P0:proposeTrade[p0:wool=1->lumber=1]
+P1:respondToTrade(offerID: 3459A660-C304-9DB0-76F1-09212C9894BE, accept: false)
+P0:endTurn
+P1:rollDice
+P1:playKnight(moveRobberTo: CatanEngine.HexCoordinate(q: 1, r: 0), stealFrom: Optional(CatanEngine.PlayerID(index: 2)))
+P1:buyDevCard
+P1:proposeTrade[p1:grain=2->ore=2]
+P0:respondToTrade(offerID: 0986748D-57C1-F72F-96C9-B1C636C9A3A7, accept: false)
+P1:proposeTrade[p1:grain=3->ore=2]
+P2:respondToTrade(offerID: E01C2926-350D-41D5-AEE3-EC13A2BD83DF, accept: true)
+P1:proposeTrade[p1:brick=1->ore=1]
+P0:respondToTrade(offerID: E022F596-2059-31EF-6FE4-B321BD74A05F, accept: false)
+P1:proposeTrade[p1:brick=1,grain=1->ore=1]
+P0:respondToTrade(offerID: CC09CFB8-DB7E-3395-3729-31FC6B8FBEDF, accept: false)
+P1:endTurn
+P2:rollDice
+P2:proposeTrade[p2:brick=1->ore=2]
+P0:respondToTrade(offerID: C9920191-9D36-F244-63A5-110987863A6C, accept: false)
+P2:proposeTrade[p2:wool=1->ore=2]
+P0:respondToTrade(offerID: C2F879C3-E190-11A5-3E37-915E4A348739, accept: false)
+P2:proposeTrade[p2:brick=1->ore=1]
+P0:respondToTrade(offerID: D07872AF-4C75-6625-D90E-23BC31EEDB93, accept: false)
+P2:buyDevCard
+P2:buyDevCard
+P2:endTurn
+P0:rollDice
+P0:moveRobber(CatanEngine.HexCoordinate(q: -1, r: 1), stealFrom: Optional(CatanEngine.PlayerID(index: 1)))
+P0:proposeTrade[p0:grain=2->ore=2]
+P1:respondToTrade(offerID: B4D4F6BB-1143-33A4-7255-E115116BE216, accept: false)
+P0:proposeTrade[p0:wool=2->ore=2]
+P1:respondToTrade(offerID: 36E6ADB6-97A1-7FDA-B885-2BFFD9F4081D, accept: false)
+P0:bankTrade[grain=4->lumber=1]
+P0:proposeTrade[p0:wool=1->ore=1]
+P1:respondToTrade(offerID: 5434272F-EFCE-48D4-5CF0-ADFC1A6CCE45, accept: false)
+P0:endTurn
+P1:playKnight(moveRobberTo: CatanEngine.HexCoordinate(q: 0, r: 0), stealFrom: Optional(CatanEngine.PlayerID(index: 0)))

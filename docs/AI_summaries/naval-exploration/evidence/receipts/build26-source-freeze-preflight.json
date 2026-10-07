@@ -1,0 +1,18 @@
+{
+  "verifiedAtUTC": "2026-10-07T18:38:09.313850+00:00",
+  "productionSourceSHA": "e13d4a1cac8930063ee89438207a5da56f215e26",
+  "candidateHeadSHA": "f1b9b1442defadc5ce7f9d45eb012e4858765a32",
+  "inputCount": 377,
+  "allCurrentInputHashesMatch": true,
+  "productionInputsChangedBetweenFreezeAndCandidateHead": [],
+  "manifestSHA256": "a5b0c954e47bb962e740620ea3cac334d1e76c058de577ca82e53cf4bc615143",
+  "candidateReceiptHashes": {
+    "focused-command.json": "52bc4262727b8e95369df20d7df6b3c8fa158ea2dc8e84577c1919afec1f846a",
+    "focused-summary.json": "6f49ce71dafb9f7c2f4c97f3b528040a875f3d1a56e26af5749a4cc5535c975c",
+    "focused-root-review.json": "b2fe0c8ba7e1b2aa1409aaca95ac7eca9b4e40ddb05f864d7289aa020fc3a4ce",
+    "engine-ai-source-equivalence.json": "325889c797382baec1525e361ec0d856da256d7421be4caefafba55eb4ecd2fa"
+  },
+  "copiedToolProductionCountHardcodingFound": false,
+  "finalGatePassed": false,
+  "releaseOperationsRun": false
+}

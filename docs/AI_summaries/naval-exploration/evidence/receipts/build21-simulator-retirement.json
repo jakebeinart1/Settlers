@@ -1,0 +1,42 @@
+{
+  "recordedAt": "2026-10-06T01:01:29.295034+00:00",
+  "devices": [
+    {
+      "udid": "1F7385BD-18DD-4C36-98D0-4C9B52F82295",
+      "ownership": "Created by this Naval thread; recorded in task receipts",
+      "appDataBackups": [
+        {
+          "bundle": "com.jakebeinart.settlers",
+          "archive": "/Users/alex/.codex/artifacts/naval-exploration/simulator-retirement-20261005/1F7385BD-18DD-4C36-98D0-4C9B52F82295-com.jakebeinart.settlers.tar.gz",
+          "bytes": 219601,
+          "sha256": "e9cb01e774a7c920ce2364c759907d40d7f8f326d905cf603c8b88f6562f0b6a"
+        }
+      ],
+      "status": "deleted-after-verified-app-data-backup",
+      "deviceDataBytesBeforeDelete": 2599165952
+    },
+    {
+      "udid": "2C871214-65E7-4EAD-B4C8-9D545593E9A0",
+      "ownership": "Created by this Naval thread; recorded in task receipts",
+      "appDataBackups": [
+        {
+          "bundle": "com.jakebeinart.settlers",
+          "archive": "/Users/alex/.codex/artifacts/naval-exploration/simulator-retirement-20261005/2C871214-65E7-4EAD-B4C8-9D545593E9A0-com.jakebeinart.settlers.tar.gz",
+          "bytes": 299193,
+          "sha256": "d76ac6a90e07246b181dd23296a4eb7215ab7ece8049e56283091703dc1f0067"
+        },
+        {
+          "bundle": "com.alexchandler.empires",
+          "archive": "/Users/alex/.codex/artifacts/naval-exploration/simulator-retirement-20261005/2C871214-65E7-4EAD-B4C8-9D545593E9A0-com.alexchandler.empires.tar.gz",
+          "bytes": 220845,
+          "sha256": "42b10460d648a2378e097027200d983567cf07794e5452684329d0d5857b84ca"
+        }
+      ],
+      "status": "deleted-after-verified-app-data-backup",
+      "deviceDataBytesBeforeDelete": 2747359232
+    }
+  ],
+  "completedAt": "2026-10-06T01:01:53.614664+00:00",
+  "remainingDevices": 13,
+  "remainingBooted": 4
+}

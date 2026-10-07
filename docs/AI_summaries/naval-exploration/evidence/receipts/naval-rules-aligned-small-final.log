@@ -1,0 +1,193 @@
+Command line invocation:
+    /Applications/Xcode.app/Contents/Developer/usr/bin/xcodebuild test-without-building -project Settlers.xcodeproj -scheme Settlers -configuration Debug -destination "platform=iOS Simulator,id=2C871214-65E7-4EAD-B4C8-9D545593E9A0" -parallel-testing-enabled NO -resultBundlePath /tmp/empires-naval-rules-evidence/rules-aligned-small-final.xcresult "-only-testing:SettlersUITests/NavalFlowTests/testShippingSetupSelectsFamilyTogglesAndExpertThenResumes"
+
+Resolve Package Graph
+
+
+Resolved source packages:
+  CatanEngine: /Users/alex/.codex/worktrees/naval-exploration/Settlers/Packages/CatanEngine
+  CatanAI: /Users/alex/.codex/worktrees/naval-exploration/Settlers/Packages/CatanAI
+
+Writing result bundle at path:
+	/tmp/empires-naval-rules-evidence/rules-aligned-small-final.xcresult
+
+2026-10-05 10:40:52.653497-0400 SettlersUITests-Runner[84634:15229981] [Default] Running tests...
+    t =      nans Interface orientation changed to Portrait
+Test Suite 'Selected tests' started at 2026-10-05 10:40:53.048.
+Test Suite 'SettlersUITests.xctest' started at 2026-10-05 10:40:53.049.
+Test Suite 'NavalFlowTests' started at 2026-10-05 10:40:53.049.
+Test Case '-[SettlersUITests.NavalFlowTests testShippingSetupSelectsFamilyTogglesAndExpertThenResumes]' started.
+    t =     0.00s Start Test at 2026-10-05 10:40:53.049
+    t =     0.02s Set Up
+    t =     0.02s Open com.jakebeinart.settlers
+    t =     0.02s     Launch com.jakebeinart.settlers
+2026-10-05 10:40:53.104 xcodebuild[84613:15229584] [MT] IDELaunchParametersSnapshot: The operation couldn’t be completed. (DebuggerLLDB.DebuggerVersionStore.StoreError error 0.)
+2026-10-05 10:40:53.104 xcodebuild[84613:15229584] [MT] IDELaunchParametersSnapshot: no debugger version
+objc[84634]: Class UIAccessibilityLoaderWebShared is implemented in both /Library/Developer/CoreSimulator/Volumes/iOS_23F77/Library/Developer/CoreSimulator/Profiles/Runtimes/iOS 26.5.simruntime/Contents/Resources/RuntimeRoot/System/Library/AccessibilityBundles/WebCore.axbundle/WebCore (0x108ab0310) and /Library/Developer/CoreSimulator/Volumes/iOS_23F77/Library/Developer/CoreSimulator/Profiles/Runtimes/iOS 26.5.simruntime/Contents/Resources/RuntimeRoot/System/Library/AccessibilityBundles/WebKit.axbundle/WebKit (0x108848398). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+    t =     0.66s         Setting up automation session
+    t =     1.19s         Wait for com.jakebeinart.settlers to idle
+    t =     2.55s Waiting 10.0s for "new-game.rules.naval" Button to exist
+    t =     3.59s     Checking `Expect predicate `existsNoRetry == 1` for object "new-game.rules.naval" Button`
+    t =     3.59s         Checking existence of `"new-game.rules.naval" Button`
+    t =     3.64s Find the "new-game.rules.naval" Button
+    t =     3.68s Find the "new-game.rules.naval" Button
+    t =     3.70s Find the "new-game.rules.naval" Button
+    t =     3.72s Checking existence of `"new-game.rules.standard" Button`
+    t =     3.74s Find the "new-game.rules.standard" Button
+    t =     3.77s Find the "new-game.rules.naval" Button
+    t =     3.79s Checking existence of `"new-game.rules.conquest" Button`
+    t =     3.81s Find the "new-game.rules.conquest" Button
+    t =     3.84s Find the "new-game.rules.naval" Button
+    t =     3.86s Find the Target Application 'com.jakebeinart.settlers'
+    t =     3.94s Added attachment named 'Naval — Rules option beside Standard and Conquest'
+    t =     3.95s Tap "new-game.rules.naval" Button
+    t =     3.95s     Wait for com.jakebeinart.settlers to idle
+    t =     3.95s     Find the "new-game.rules.naval" Button
+    t =     3.97s     Check for interrupting elements affecting "new-game.rules.naval" Button
+    t =     3.99s     Synthesize event
+    t =     4.28s     Wait for com.jakebeinart.settlers to idle
+    t =     4.28s Find the "new-game.rules.naval" Button
+    t =     4.31s Checking existence of `"new-game.mode.islands" StaticText`
+    t =     4.33s Find the "Game Mode" StaticText
+    t =     4.35s Find the "Rules" StaticText
+    t =     4.38s Checking existence of `"new-game.mode.naval" Button`
+    t =     4.40s Find the "new-game.naval.family.twinIslands" Button
+    t =     4.43s Find the "new-game.naval.family.twinIslands" Button
+    t =     4.46s Tap "new-game.naval.family.twinIslands" Button
+    t =     4.46s     Wait for com.jakebeinart.settlers to idle
+    t =     4.46s     Find the "new-game.naval.family.twinIslands" Button
+    t =     4.49s     Check for interrupting elements affecting "new-game.naval.family.twinIslands" Button
+    t =     4.51s     Synthesize event
+    t =     4.80s     Wait for com.jakebeinart.settlers to idle
+    t =     4.80s Find the "new-game.naval.fog" Button
+    t =     4.84s Swipe up ScrollView (First Match)
+    t =     4.84s     Wait for com.jakebeinart.settlers to idle
+    t =     4.84s     Find the ScrollView (First Match)
+    t =     4.85s     Check for interrupting elements affecting ScrollView
+    t =     4.87s     Synthesize event
+    t =     5.30s     Wait for com.jakebeinart.settlers to idle
+    t =     5.78s Find the "new-game.naval.fog" Button
+    t =     5.82s Find the "new-game.naval.fog" Button
+    t =     5.85s Tap "new-game.naval.fog" Button
+    t =     5.85s     Wait for com.jakebeinart.settlers to idle
+    t =     5.85s     Find the "new-game.naval.fog" Button
+    t =     5.87s     Check for interrupting elements affecting "new-game.naval.fog" Button
+    t =     5.89s     Synthesize event
+    t =     6.18s     Wait for com.jakebeinart.settlers to idle
+    t =     6.18s Find the "new-game.naval.fog" Button
+    t =     6.21s Find the "new-game.naval.resources" Button
+    t =     6.25s Find the "new-game.naval.resources" Button
+    t =     6.27s Tap "new-game.naval.resources" Button
+    t =     6.27s     Wait for com.jakebeinart.settlers to idle
+    t =     6.27s     Find the "new-game.naval.resources" Button
+    t =     6.30s     Check for interrupting elements affecting "new-game.naval.resources" Button
+    t =     6.32s     Synthesize event
+    t =     6.61s     Wait for com.jakebeinart.settlers to idle
+    t =     6.62s Find the "new-game.naval.resources" Button
+    t =     6.65s Find the "Expert" Button
+    t =     6.68s Tap "Expert" Button
+    t =     6.68s     Wait for com.jakebeinart.settlers to idle
+    t =     6.68s     Find the "Expert" Button
+    t =     6.71s     Check for interrupting elements affecting "Expert" Button
+    t =     6.73s     Synthesize event
+    t =     7.02s     Wait for com.jakebeinart.settlers to idle
+    t =     7.02s Find the "As Shown" Button
+    t =     7.06s Tap "As Shown" Button
+    t =     7.06s     Wait for com.jakebeinart.settlers to idle
+    t =     7.06s     Find the "As Shown" Button
+    t =     7.08s     Check for interrupting elements affecting "As Shown" Button
+    t =     7.10s     Synthesize event
+    t =     7.40s     Wait for com.jakebeinart.settlers to idle
+    t =     7.40s Find the Target Application 'com.jakebeinart.settlers'
+    t =     7.48s Added attachment named 'Voyages — match options'
+    t =     7.48s Tap "new-game.start" Button
+    t =     7.48s     Wait for com.jakebeinart.settlers to idle
+    t =     7.48s     Find the "new-game.start" Button
+    t =     7.51s     Check for interrupting elements affecting "new-game.start" Button
+    t =     7.53s     Synthesize event
+    t =     7.82s     Wait for com.jakebeinart.settlers to idle
+    t =     7.97s Waiting 10.0s for "naval.overview" Button to exist
+    t =     9.00s     Checking `Expect predicate `existsNoRetry == 1` for object "naval.overview" Button`
+    t =     9.00s         Checking existence of `"naval.overview" Button`
+    t =     9.04s Find the "naval.overview" Button
+    t =     9.07s Find the Target Application 'com.jakebeinart.settlers'
+    t =     9.18s Added attachment named 'Voyages — clear Twin Islands'
+    t =     9.18s Terminate com.jakebeinart.settlers:84640
+    t =    10.23s Open com.jakebeinart.settlers
+    t =    10.23s     Launch com.jakebeinart.settlers
+2026-10-05 10:41:03.286 xcodebuild[84613:15229584] [MT] IDELaunchParametersSnapshot: The operation couldn’t be completed. (DebuggerLLDB.DebuggerVersionStore.StoreError error 0.)
+2026-10-05 10:41:03.286 xcodebuild[84613:15229584] [MT] IDELaunchParametersSnapshot: no debugger version
+    t =    10.44s         Setting up automation session
+    t =    11.02s         Wait for com.jakebeinart.settlers to idle
+    t =    12.21s Tap "main-menu.resume" Button
+    t =    12.21s     Wait for com.jakebeinart.settlers to idle
+    t =    12.21s     Find the "main-menu.resume" Button
+    t =    12.23s     Check for interrupting elements affecting "main-menu.resume" Button
+    t =    12.24s     Synthesize event
+    t =    12.53s     Wait for com.jakebeinart.settlers to idle
+    t =    12.62s Waiting 10.0s for "naval.overview" Button to exist
+    t =    13.65s     Checking `Expect predicate `existsNoRetry == 1` for object "naval.overview" Button`
+    t =    13.65s         Checking existence of `"naval.overview" Button`
+    t =    13.69s Find the "naval.overview" Button
+    t =    13.71s Tap "game.settings" Button
+    t =    13.71s     Wait for com.jakebeinart.settlers to idle
+    t =    13.71s     Find the "game.settings" Button
+    t =    13.74s     Check for interrupting elements affecting "game.settings" Button
+    t =    13.76s     Synthesize event
+    t =    14.05s     Wait for com.jakebeinart.settlers to idle
+    t =    14.05s Tap "in-game-settings.quit" Button
+    t =    14.05s     Wait for com.jakebeinart.settlers to idle
+    t =    14.05s     Find the "in-game-settings.quit" Button
+    t =    14.10s     Check for interrupting elements affecting "in-game-settings.quit" Button
+    t =    14.13s     Synthesize event
+    t =    14.42s     Wait for com.jakebeinart.settlers to idle
+    t =    14.42s Tap "Main Menu" Button
+    t =    14.42s     Wait for com.jakebeinart.settlers to idle
+    t =    14.42s     Find the "Main Menu" Button
+    t =    14.47s     Check for interrupting elements affecting "Main Menu" Button
+    t =    14.50s     Synthesize event
+    t =    14.79s     Wait for com.jakebeinart.settlers to idle
+    t =    14.79s Tap "main-menu.new-game" Button
+    t =    14.80s     Wait for com.jakebeinart.settlers to idle
+    t =    14.80s     Find the "main-menu.new-game" Button
+    t =    14.81s     Check for interrupting elements affecting "main-menu.new-game" Button
+    t =    14.82s     Synthesize event
+    t =    15.11s     Wait for com.jakebeinart.settlers to idle
+    t =    15.11s Waiting 5.0s for "new-game.rules.naval" Button to exist
+    t =    16.15s     Checking `Expect predicate `existsNoRetry == 1` for object "new-game.rules.naval" Button`
+    t =    16.15s         Checking existence of `"new-game.rules.naval" Button`
+    t =    16.19s Find the "new-game.rules.naval" Button
+    t =    16.23s Find the "new-game.rules.naval" Button
+    t =    16.25s Find the "new-game.naval.family.twinIslands" Button
+    t =    16.28s Find the "new-game.naval.family.twinIslands" Button
+    t =    16.31s Find the "new-game.naval.fog" Button
+    t =    16.34s Swipe up ScrollView (First Match)
+    t =    16.34s     Wait for com.jakebeinart.settlers to idle
+    t =    16.34s     Find the ScrollView (First Match)
+    t =    16.35s     Check for interrupting elements affecting ScrollView
+    t =    16.37s     Synthesize event
+    t =    16.80s     Wait for com.jakebeinart.settlers to idle
+    t =    17.28s Find the "new-game.naval.fog" Button
+    t =    17.33s Find the "new-game.naval.fog" Button
+    t =    17.35s Find the "new-game.naval.resources" Button
+    t =    17.38s Find the "new-game.naval.resources" Button
+    t =    17.41s Find the Target Application 'com.jakebeinart.settlers'
+    t =    17.47s Added attachment named 'Naval — saved Rules selection and island options'
+    t =    17.47s Tear Down
+Test Case '-[SettlersUITests.NavalFlowTests testShippingSetupSelectsFamilyTogglesAndExpertThenResumes]' passed (17.710 seconds).
+Test Suite 'NavalFlowTests' passed at 2026-10-05 10:41:10.760.
+	 Executed 1 test, with 0 failures (0 unexpected) in 17.710 (17.711) seconds
+Test Suite 'SettlersUITests.xctest' passed at 2026-10-05 10:41:10.761.
+	 Executed 1 test, with 0 failures (0 unexpected) in 17.710 (17.712) seconds
+Test Suite 'Selected tests' passed at 2026-10-05 10:41:10.762.
+	 Executed 1 test, with 0 failures (0 unexpected) in 17.710 (17.713) seconds
+2026-10-05 10:41:11.085 xcodebuild[84613:15229584] [MT] IDETestOperationsObserverDebug: 19.372 elapsed -- Testing started completed.
+2026-10-05 10:41:11.085 xcodebuild[84613:15229584] [MT] IDETestOperationsObserverDebug: 0.000 sec, +0.000 sec -- start
+2026-10-05 10:41:11.085 xcodebuild[84613:15229584] [MT] IDETestOperationsObserverDebug: 19.372 sec, +19.372 sec -- end
+
+Test session results, code coverage, and logs:
+	/tmp/empires-naval-rules-evidence/rules-aligned-small-final.xcresult
+
+** TEST EXECUTE SUCCEEDED **
+
+Testing started

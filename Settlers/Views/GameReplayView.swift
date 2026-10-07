@@ -90,7 +90,8 @@ struct GameReplayView: View {
                         playerIdentity: timeline.identity(for:),
                         decision: nil,
                         onSelectTarget: { _ in },
-                        allowsGameCommands: false
+                        allowsGameCommands: false,
+                        animatesStateChanges: false
                     )
                     .frame(height: max(0, geometry.size.height
                                        - Self.headerHeight - Self.belowBoardReserve))
@@ -252,6 +253,8 @@ struct GameReplayView: View {
                     Image(systemName: "xmark")
                         .font(.system(size: 11, weight: .bold))
                         .foregroundStyle(.white.opacity(0.6))
+                        .frame(width: 44, height: 44)
+                        .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
                 .accessibilityIdentifier(AccessibilityID.Replay.breakdownClose)
@@ -300,7 +303,7 @@ struct GameReplayView: View {
     /// and still worth seeing.
     private func quantityText(_ line: VictoryPointBreakdown.Line) -> String {
         switch line.source {
-        case .settlements, .cities, .victoryCards: return "\(line.quantity)"
+        case .settlements, .cities, .victoryCards, .colonies: return "\(line.quantity)"
         case .longestRoad: return "\(line.quantity) long"
         case .largestArmy: return "\(line.quantity) knight\(line.quantity == 1 ? "" : "s")"
         }

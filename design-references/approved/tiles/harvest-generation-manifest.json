@@ -1,0 +1,9 @@
+{
+  "tool": "built-in image_gen",
+  "prompt": "Use case: style-transfer. Asset type: square opaque painted terrain texture for Empires' choose-any-resource harvest hex. Input Image 1 is the existing pastel-green pasture tile texture: edit this into a distinct sibling HARVEST tile, retaining its fine linen/canvas grain and restrained painterly flat terrain character. Input Image 2 is the approved full-screen board reference, for palette/material context ONLY; do not reproduce its UI. Change the green ground to a muted light slate-lavender / blue-gray-violet ground, with subtle broad antique-gold botanical brush strokes (abstract ears of harvest grain and soft branching leaves) concentrated toward outer edges. Keep the central circular area approximately 42% of the image width quiet and low-contrast so a native cream number token will remain readable. Warm but subdued, minimalist storybook/Ghibli-inspired hand-painted board-game material, consistent with the reference's flat dominant resource colors. Fill the entire square edge to edge; subtle texture rather than a scene. No text, numbers, icons, colored gems, resource-card emblems, UI, borders, hexagon outline, grid, buildings, market stalls, objects, white margins, transparent areas, glowing magical effects or 3D perspective. One final sibling texture only.",
+  "sourcePath": "/Users/alex/.codex/generated_images/01a109cf-f013-7423-9fd8-aac75f42fd79/exec-0eaf5bb3-74cc-4e28-9e42-c503051151a8.png",
+  "approvedPath": "design-references/approved/tiles/tile-harvest.png",
+  "runtimePath": "Settlers/Assets.xcassets/tile-harvest.imageset/tile-harvest.png",
+  "imageModified": false,
+  "sha256": "db33ef16bf28e325c4cffa2d4639f946aa78dec85c8d30ef499a695041e9aef3"
+}

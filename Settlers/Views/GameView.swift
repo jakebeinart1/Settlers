@@ -224,7 +224,7 @@ public struct GameView: View {
                 ) {
                     _ = viewModel.dismissDevCardResolution()
                 }
-            } else if !isDiscardPresented,
+            } else if !isDiscardPresented, !isNavalResourceChoice,
                       viewModel.boardDecisionPresentation == nil,
                       showDevCardHand {
                 DevelopmentCardOverlay(
@@ -285,8 +285,21 @@ public struct GameView: View {
             }
 
         }
+        .overlay(alignment: .topLeading) { qaCompleteMatchInspectionControl().padding(8) }
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier(AccessibilityID.Screen.game)
+        // The native presentation boundary excludes the covered game from
+        // accessibility navigation. A dimmed in-stack popup retained HUD
+        // labels despite hiding the gameplay subtree. Only the durable
+        // production phase can close this mandatory resource choice.
+        .fullScreenCover(isPresented: Binding(
+            get: { isNavalResourceChoice && !interactionPriority.isSettingsCoverPresented },
+            set: { _ in }
+        )) {
+            NavalResourceChoiceView(viewModel: viewModel)
+                .presentationBackground(.clear)
+                .interactiveDismissDisabled()
+        }
         // Measured from a reader that still SITS in the safe area, because
         // that is the only kind that reports one: a reader inside the
         // background layer, which ignores the safe area, was handed the whole
@@ -397,6 +410,9 @@ public struct GameView: View {
                 #endif
             }
             #if DEBUG
+            if QALaunchFlag.botTradeAfterPause.isSet {
+                viewModel.qaPrepareBotTradeAfterPause()
+            }
             if QALaunchFlag.showConquest.isSet || QALaunchFlag.showDeployArmy.isSet {
                 viewModel.qaPrepareConquestPosition()
                 if QALaunchFlag.showDeployArmy.isSet { _ = viewModel.beginBoardDecision(.deployArmy) }
@@ -566,6 +582,7 @@ public struct GameView: View {
                 allowsGameCommands: !isDiscardPresented && !isBlockingOverlayPresented,
                 rollHighlightTiles: rollHighlightTiles
             )
+            .overlay(alignment: .topLeading) { qaProductionHighlightControl { rollHighlightTiles = $0 } }
             // Clears the dice and bank/deck chips that float over this area.
             //
             // MEASURED, not guessed. This was a constant that grew 18 -> 30 ->
@@ -742,6 +759,7 @@ public struct GameView: View {
                 // A local false can re-expose descendants hidden by the outer
                 // stack. Preserve its modal cover in both local visibility gates.
                 .accessibilityHidden(viewModel.boardDecisionPresentation != nil || isBlockingOverlayPresented)
+                .background(humanPanelFrameMarker)
             }
 
             bottomPanel
@@ -789,7 +807,10 @@ public struct GameView: View {
                         onCancel: { _ = viewModel.cancelBoardDecision() },
                         onConfirm: { _ = viewModel.confirmBoardDecision() },
                         armyPreview: viewModel.armyDeploymentPreview,
-                        onSelectArmyCards: { _ = viewModel.selectBoardTarget(.armyCards($0)) }
+                        onSelectArmyCards: { _ = viewModel.selectBoardTarget(.armyCards($0)) },
+                        ships: state.naval?.ships ?? [],
+                        onSelectShip: { _ = viewModel.selectBoardTarget(.ship($0)) },
+                        onSkipCapture: { _ = viewModel.skipShipCapture() }
                     )
                 }
             case .incomingTrade:
@@ -818,9 +839,10 @@ public struct GameView: View {
                 // must not be able to re-expose Skip/Retry behind the modal.
                 if interactionPriority.isSettingsCoverPresented {
                     Color.clear.frame(height: Self.actionRowHeight)
-                } else if let seat = viewModel.activeBotSeat {
+                } else if viewModel.pendingTradeConfirmation == nil, let seat = viewModel.activeBotSeat {
                     BotTurnStatusView(identity: viewModel.playerIdentity(for: seat),
                                       progress: viewModel.botTurnProgress,
+                                      onSkip: viewModel.skipBotPauses,
                                       onRetry: viewModel.retryBotProgress)
                         .frame(height: Self.actionRowHeight)
                         .dynamicTypeSize(...DynamicTypeSize.large)
@@ -864,6 +886,20 @@ public struct GameView: View {
             .accessibilityIdentifier(AccessibilityID.Game.commandRow)
         #else
         Color.clear
+        #endif
+    }
+
+    /// A sibling leaf measures the painted panel without becoming an ancestor
+    /// of its private inventory or the board decision dock.
+    @ViewBuilder
+    private var humanPanelFrameMarker: some View {
+        #if DEBUG
+        Color.clear.accessibilityElement()
+            .accessibilityIdentifier("game.human-panel.frame")
+            .accessibilityRespondsToUserInteraction(false)
+            .allowsHitTesting(false)
+        #else
+        EmptyView()
         #endif
     }
 
@@ -984,6 +1020,11 @@ private extension GameView {
         viewModel.currentDiscardObligation != nil
     }
 
+    private var isNavalResourceChoice: Bool {
+        if case .choosingResource(let index) = state.phase { return index == human.index }
+        return false
+    }
+
     private var interactionPriority: GameInteractionPriorityResolution {
         let decision = viewModel.boardDecisionPresentation
         let hasPrivateReceipt = showDevCardHand
@@ -991,7 +1032,7 @@ private extension GameView {
             || viewModel.pendingDevCardResolution?.owner == human
         return GameInteractionPriority.resolve(GameInteractionPriorityInput(
             hasRecoveryFailure: viewModel.persistenceErrorMessage != nil,
-            hasMandatoryDiscard: isDiscardPresented,
+            hasMandatoryDiscard: isDiscardPresented || isNavalResourceChoice,
             hasMandatoryBoardDecision: decision?.canCancel == false,
             hasPrivateReceipt: hasPrivateReceipt,
             hasOptionalBoardDecision: decision?.canCancel == true,
@@ -1001,7 +1042,7 @@ private extension GameView {
     }
 
     private var canPresentBoardPopup: Bool {
-        !isDiscardPresented && viewModel.boardDecisionPresentation == nil
+        !isDiscardPresented && !isNavalResourceChoice && viewModel.boardDecisionPresentation == nil
     }
 
     private var isBlockingOverlayPresented: Bool {
@@ -1011,6 +1052,7 @@ private extension GameView {
         }
         return (canPresentBoardPopup && (showBuildPopup || showArmyPurchase || showTradePopup))
             || (isDiscardPresented && !viewModel.isDiscardEditorMinimized)
+            || isNavalResourceChoice
             || interactionPriority.isSettingsCoverPresented || winnerBlocksBoard
     }
 
@@ -1122,13 +1164,13 @@ private extension GameView {
         }
     }
 
-    /// Briefly outlines every non-robbed producing tile matching `roll`.
+    /// Briefly outlines publicly discovered, non-robbed production matching `roll`.
     private func highlightProducingTiles(for roll: Int) {
-        let producingTiles = state.board.tiles.filter { $0.numberToken == roll && $0.coordinate != state.board.robberTile }
+        let producingTiles = BoardView.productionHighlights(in: state, forRoll: roll)
         guard !producingTiles.isEmpty else { return }
 
         withAnimation(.easeIn(duration: 0.15)) {
-            rollHighlightTiles = Set(producingTiles.map(\.coordinate))
+            rollHighlightTiles = producingTiles
         }
         Task {
             try? await Task.sleep(for: .seconds(PacingPreferences.rollHighlightSeconds))

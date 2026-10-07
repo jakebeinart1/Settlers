@@ -14,6 +14,13 @@ public struct HexCoordinate: Hashable, Codable, Sendable, Comparable {
     public static let neighborDirections: [(Int, Int)] =
         [(1, 0), (1, -1), (0, -1), (-1, 0), (-1, 1), (0, 1)]
 
+    /// Hex-step distance, using the third cube coordinate q+r.
+    public func distance(to other: HexCoordinate) -> Int {
+        let dq = q - other.q
+        let dr = r - other.r
+        return max(abs(dq), abs(dr), abs(dq + dr))
+    }
+
     public func neighbor(_ direction: Int) -> HexCoordinate {
         let d = HexCoordinate.neighborDirections[((direction % 6) + 6) % 6]
         return HexCoordinate(q: q + d.0, r: r + d.1)

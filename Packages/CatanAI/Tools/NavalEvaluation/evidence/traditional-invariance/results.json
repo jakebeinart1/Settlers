@@ -1,0 +1,146 @@
+[
+  {
+    "cell": 0,
+    "players": 3,
+    "fingerprint": "acc65b32068694e5",
+    "identical": true
+  },
+  {
+    "cell": 0,
+    "players": 4,
+    "fingerprint": "acc29a248e6f7143",
+    "identical": true
+  },
+  {
+    "cell": 1,
+    "players": 3,
+    "fingerprint": "8b0ccc298c7b4d07",
+    "identical": true
+  },
+  {
+    "cell": 1,
+    "players": 4,
+    "fingerprint": "737ec641db58b2e2",
+    "identical": true
+  },
+  {
+    "cell": 2,
+    "players": 3,
+    "fingerprint": "b0823e556b8aebdf",
+    "identical": true
+  },
+  {
+    "cell": 2,
+    "players": 4,
+    "fingerprint": "47387ae098b7ed87",
+    "identical": true
+  },
+  {
+    "cell": 3,
+    "players": 3,
+    "fingerprint": "8e1045996026fc2e",
+    "identical": true
+  },
+  {
+    "cell": 3,
+    "players": 4,
+    "fingerprint": "a9ff26806242bf5d",
+    "identical": true
+  },
+  {
+    "cell": 4,
+    "players": 3,
+    "fingerprint": "b41771f2048f9251",
+    "identical": true
+  },
+  {
+    "cell": 4,
+    "players": 4,
+    "fingerprint": "d94d88e9aa4445e6",
+    "identical": true
+  },
+  {
+    "cell": 5,
+    "players": 3,
+    "fingerprint": "f0682df4930eeea6",
+    "identical": true
+  },
+  {
+    "cell": 5,
+    "players": 4,
+    "fingerprint": "e8d0e9a72822aa4e",
+    "identical": true
+  },
+  {
+    "cell": 6,
+    "players": 3,
+    "fingerprint": "1a97cd0987b551b7",
+    "identical": true
+  },
+  {
+    "cell": 6,
+    "players": 4,
+    "fingerprint": "bb360bf4852f1503",
+    "identical": true
+  },
+  {
+    "cell": 7,
+    "players": 3,
+    "fingerprint": "8aba5ff7dd6d1c3d",
+    "identical": true
+  },
+  {
+    "cell": 7,
+    "players": 4,
+    "fingerprint": "0b2b613d1283e5d0",
+    "identical": true
+  },
+  {
+    "cell": 8,
+    "players": 3,
+    "fingerprint": "e998b54a13deb8dc",
+    "identical": true
+  },
+  {
+    "cell": 8,
+    "players": 4,
+    "fingerprint": "9364d8c500475116",
+    "identical": true
+  },
+  {
+    "cell": 9,
+    "players": 3,
+    "fingerprint": "b25771a0c7d82f55",
+    "identical": true
+  },
+  {
+    "cell": 9,
+    "players": 4,
+    "fingerprint": "e5ff29f1076f2e46",
+    "identical": true
+  },
+  {
+    "cell": 10,
+    "players": 3,
+    "fingerprint": "724dd630da210364",
+    "identical": true
+  },
+  {
+    "cell": 10,
+    "players": 4,
+    "fingerprint": "e9b372b57ef088dd",
+    "identical": true
+  },
+  {
+    "cell": 11,
+    "players": 3,
+    "fingerprint": "9343b818af5cabb3",
+    "identical": true
+  },
+  {
+    "cell": 11,
+    "players": 4,
+    "fingerprint": "fa1e7280b1a04388",
+    "identical": true
+  }
+]

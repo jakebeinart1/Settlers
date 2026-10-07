@@ -16,7 +16,9 @@ final class HowToPlayFlowTests: XCTestCase {
         let settings = app.otherElements["screen.in-game-settings"]
         XCTAssertTrue(settings.waitForExistence(timeout: 5))
         let rulebook = app.buttons["in-game-settings.rulebook"]
-        for _ in 0..<4 where !rulebook.isHittable { app.scrollViews.firstMatch.swipeUp() }
+        let content = settings.scrollViews.firstMatch
+        XCTAssertTrue(content.waitForExistence(timeout: 2))
+        for _ in 0..<4 where !rulebook.isHittable { content.swipeUp() }
         XCTAssertTrue(rulebook.isHittable)
         rulebook.tap()
         XCTAssertTrue(app.otherElements["screen.how-to-play"].waitForExistence(timeout: 5))

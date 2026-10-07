@@ -1,0 +1,23 @@
+{
+  "sourceSHA": "60394e6361b2db372311920c4cc9ae481e5dec0f",
+  "identity": "XCTest-instrumented Debug, build21, full passing gate",
+  "pixelsUnmodified": true,
+  "images": [
+    {
+      "path": "/Users/alex/.codex/worktrees/naval-exploration/Settlers/docs/AI_summaries/naval-exploration/evidence/screenshots/build21-final-inland-options.png",
+      "sha256": "184c370c06ca8aafbab5ee447176f3f65941d996b1ee4e0898569b719c04214b",
+      "bytes": 3440862
+    },
+    {
+      "path": "/Users/alex/.codex/worktrees/naval-exploration/Settlers/docs/AI_summaries/naval-exploration/evidence/screenshots/build21-final-inland-settlement.png",
+      "sha256": "bec6a07723f04021445d6787e2e7e4e07e4f8d7fae95330a76ffac080a43f11a",
+      "bytes": 3431972
+    },
+    {
+      "path": "/Users/alex/.codex/worktrees/naval-exploration/Settlers/docs/AI_summaries/naval-exploration/evidence/screenshots/build21-final-inland-resume.png",
+      "sha256": "bec6a07723f04021445d6787e2e7e4e07e4f8d7fae95330a76ffac080a43f11a",
+      "bytes": 3431972
+    }
+  ],
+  "rootInspected": true
+}

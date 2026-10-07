@@ -41,6 +41,59 @@ struct BoardLayeringTests {
     private static let patchSide = 9
     private static let canvasSide: CGFloat = 700
 
+    @Test func navalProductionHighlightsNeverDiscloseUnknownMatchingNumbers() throws {
+        var state = Naval.newGame(seed: 7_501)
+        let revealed = try #require(state.naval?.revealed)
+        let known = try #require(state.board.tiles.first { candidate in
+            candidate.kind.produces && revealed.contains(candidate.coordinate) && candidate.coordinate != state.board.robberTile
+                && state.board.tiles.contains { hidden in
+                    hidden.kind.produces && !revealed.contains(hidden.coordinate) && hidden.numberToken == candidate.numberToken
+                }
+        })
+        let number = try #require(known.numberToken)
+        let hidden = try #require(state.board.tiles.first {
+            $0.kind.produces && !revealed.contains($0.coordinate) && $0.numberToken == number
+        })
+        let before = BoardView.productionHighlights(in: state, forRoll: number)
+        #expect(before.contains(known.coordinate))
+        #expect(!before.contains(hidden.coordinate), "A matching authoritative number disclosed an unreached island")
+        state.naval?.revealed.insert(hidden.coordinate)
+        #expect(BoardView.productionHighlights(in: state, forRoll: number).contains(hidden.coordinate))
+        state.board.robberTile = hidden.coordinate
+        #expect(!BoardView.productionHighlights(in: state, forRoll: number).contains(hidden.coordinate))
+        let clear = Naval.newGame(seed: 7_501, options: .init(fogEnabled: false))
+        #expect(BoardView.productionHighlights(in: clear, forRoll: number).contains(hidden.coordinate))
+    }
+
+    @Test func anyResourceAndItsDisabledReplacementUseTheSamePublicProductionRule() throws {
+        var choices = Naval.newGame(seed: 7_501)
+        let tile = try #require(choices.board.tiles.first { $0.kind == .resourceChoice })
+        let number = try #require(tile.numberToken)
+        #expect(!BoardView.productionHighlights(in: choices, forRoll: number).contains(tile.coordinate))
+        choices.naval?.revealed.insert(tile.coordinate)
+        #expect(BoardView.productionHighlights(in: choices, forRoll: number).contains(tile.coordinate))
+        choices.board.robberTile = tile.coordinate
+        #expect(!BoardView.productionHighlights(in: choices, forRoll: number).contains(tile.coordinate))
+
+        var ordinary = Naval.newGame(seed: 7_501, options: .init(resourceChoiceEnabled: false))
+        let replacement = try #require(ordinary.board.tiles.first { $0.coordinate == tile.coordinate })
+        #expect(replacement.kind.produces && replacement.kind != .resourceChoice)
+        #expect(replacement.numberToken == number)
+        #expect(!BoardView.productionHighlights(in: ordinary, forRoll: number).contains(tile.coordinate))
+        ordinary.naval?.revealed.insert(tile.coordinate)
+        #expect(BoardView.productionHighlights(in: ordinary, forRoll: number).contains(tile.coordinate))
+    }
+
+    @Test func classicProductionHighlightsRetainOrdinaryAndRobberBehavior() throws {
+        var state = GameSetup.newGame(board: BoardGenerator.standard())
+        let tile = try #require(state.board.tiles.first { $0.kind.produces && $0.numberToken != nil })
+        let number = try #require(tile.numberToken)
+        #expect(BoardView.productionHighlights(in: state, forRoll: number).contains(tile.coordinate))
+        #expect(BoardView.productionHighlights(in: state, forRoll: 7).isEmpty)
+        state.board.robberTile = tile.coordinate
+        #expect(!BoardView.productionHighlights(in: state, forRoll: number).contains(tile.coordinate))
+    }
+
     @Test func placementHighlightsDoNotRepaintPieces() throws {
         var state = GameSetup.newGame(board: BoardGenerator.standard())
         let vertex = try #require(Self.mostCentralVertex(of: state.board))

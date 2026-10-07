@@ -36,7 +36,7 @@ import Testing
 
         let breakdown = VictoryPointBreakdown(seat: PlayerID(index: 0), state: state)
 
-        #expect(breakdown.lines.map(\.source) == VictoryPointBreakdown.Source.allCases)
+        #expect(breakdown.lines.map(\.source) == [.settlements, .cities, .victoryCards, .longestRoad, .largestArmy])
         #expect(breakdown.total == 0)
         #expect(breakdown.lines.allSatisfy { !$0.isScoring })
     }

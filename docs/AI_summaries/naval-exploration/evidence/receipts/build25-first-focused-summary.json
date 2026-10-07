@@ -1,0 +1,143 @@
+{
+  "devicesAndConfigurations" : [
+    {
+      "device" : {
+        "architecture" : "arm64",
+        "deviceId" : "937692FF-BFBF-4683-80E5-2590F5288D56",
+        "deviceName" : "Empires QA",
+        "modelName" : "iPhone 17 Pro",
+        "osBuildNumber" : "23F77",
+        "osVersion" : "26.5",
+        "platform" : "iOS Simulator"
+      },
+      "expectedFailures" : 0,
+      "failedTests" : 11,
+      "passedTests" : 17,
+      "skippedTests" : 0,
+      "testPlanConfiguration" : {
+        "configurationId" : "1",
+        "configurationName" : "Test Scheme Action"
+      }
+    }
+  ],
+  "environmentDescription" : "Settlers · Built with macOS 26.5.1",
+  "expectedFailures" : 0,
+  "failedTests" : 11,
+  "finishTime" : 1791381350.591,
+  "passedTests" : 17,
+  "result" : "Failed",
+  "skippedTests" : 0,
+  "startTime" : 1791380992.732,
+  "statistics" : [
+
+  ],
+  "testFailures" : [
+    {
+      "failureText" : "XCTAssertTrue failed - Card selector must be reachable: knight",
+      "targetName" : "SettlersUITests",
+      "testIdentifier" : 10,
+      "testIdentifierString" : "DevelopmentCardDesignTests/testAllFiveNavalCardDetailsKeepNormalTextChoicesAndActionsInsideThePanel()",
+      "testIdentifierURL" : "test://com.apple.xcode/Settlers/SettlersUITests/DevelopmentCardDesignTests/testAllFiveNavalCardDetailsKeepNormalTextChoicesAndActionsInsideThePanel",
+      "testName" : "testAllFiveNavalCardDetailsKeepNormalTextChoicesAndActionsInsideThePanel()"
+    },
+    {
+      "failureText" : "Failed to not hittable: Button, {{74.0, 335.3}, {161.0, 44.0}}, identifier: 'dev-cards.tile.monopoly', label: 'Monopoly, 1 owned', value: 1 ready, 0 new. Re...",
+      "targetName" : "SettlersUITests",
+      "testIdentifier" : 15,
+      "testIdentifierString" : "DevelopmentCardFlowTests/testBlockedCardRemainsInspectableAndPlayExplainsWhy()",
+      "testIdentifierURL" : "test://com.apple.xcode/Settlers/SettlersUITests/DevelopmentCardFlowTests/testBlockedCardRemainsInspectableAndPlayExplainsWhy",
+      "testName" : "testBlockedCardRemainsInspectableAndPlayExplainsWhy()"
+    },
+    {
+      "failureText" : "Failed to not hittable: Button, {{74.0, 335.3}, {161.0, 44.0}}, identifier: 'dev-cards.tile.monopoly', label: 'Monopoly, 1 owned', value: 1 ready, 0 new. Re...",
+      "targetName" : "SettlersUITests",
+      "testIdentifier" : 7,
+      "testIdentifierString" : "DevelopmentCardAppearanceTests/testBlockedMixedStackDoesNotAdvertiseReadyAndStillOpens()",
+      "testIdentifierURL" : "test://com.apple.xcode/Settlers/SettlersUITests/DevelopmentCardAppearanceTests/testBlockedMixedStackDoesNotAdvertiseReadyAndStillOpens",
+      "testName" : "testBlockedMixedStackDoesNotAdvertiseReadyAndStillOpens()"
+    },
+    {
+      "failureText" : "Failed to not hittable: Button, {{34.0, 335.3}, {136.7, 44.0}}, identifier: 'dev-cards.tile.knight', label: 'Knight, 2 owned', value: 1 ready, 1 new. Re..., Selected",
+      "targetName" : "SettlersUITests",
+      "testIdentifier" : 18,
+      "testIdentifierString" : "DevelopmentCardFlowTests/testKnightCanCancelThenResolveThroughAnAccessibleBoardTile()",
+      "testIdentifierURL" : "test://com.apple.xcode/Settlers/SettlersUITests/DevelopmentCardFlowTests/testKnightCanCancelThenResolveThroughAnAccessibleBoardTile",
+      "testName" : "testKnightCanCancelThenResolveThroughAnAccessibleBoardTile()"
+    },
+    {
+      "failureText" : "XCTAssertTrue failed - Card selector must be reachable: monopoly",
+      "targetName" : "SettlersUITests",
+      "testIdentifier" : 12,
+      "testIdentifierString" : "DevelopmentCardDesignTests/testLargestTextMonopolyAndPlentyKeepChoicesScrollableAndActionsPinned()",
+      "testIdentifierURL" : "test://com.apple.xcode/Settlers/SettlersUITests/DevelopmentCardDesignTests/testLargestTextMonopolyAndPlentyKeepChoicesScrollableAndActionsPinned",
+      "testName" : "testLargestTextMonopolyAndPlentyKeepChoicesScrollableAndActionsPinned()"
+    },
+    {
+      "failureText" : "Failed to not hittable: Button, {{74.0, 335.3}, {161.0, 44.0}}, identifier: 'dev-cards.tile.monopoly', label: 'Monopoly, 1 owned', value: 1 ready, 0 new. Re...",
+      "targetName" : "SettlersUITests",
+      "testIdentifier" : 19,
+      "testIdentifierString" : "DevelopmentCardFlowTests/testMonopolyZeroResultIsExplicit()",
+      "testIdentifierURL" : "test://com.apple.xcode/Settlers/SettlersUITests/DevelopmentCardFlowTests/testMonopolyZeroResultIsExplicit",
+      "testName" : "testMonopolyZeroResultIsExplicit()"
+    },
+    {
+      "failureText" : "XCTAssertTrue failed - Card selector must be reachable: knight",
+      "targetName" : "SettlersUITests",
+      "testIdentifier" : 13,
+      "testIdentifierString" : "DevelopmentCardDesignTests/testOrdinaryNavalMatchIncludesDeliberateCardInspectionAndReachesAnActualWinner()",
+      "testIdentifierURL" : "test://com.apple.xcode/Settlers/SettlersUITests/DevelopmentCardDesignTests/testOrdinaryNavalMatchIncludesDeliberateCardInspectionAndReachesAnActualWinner",
+      "testName" : "testOrdinaryNavalMatchIncludesDeliberateCardInspectionAndReachesAnActualWinner()"
+    },
+    {
+      "failureText" : "Failed to not hittable: Button, {{74.0, 335.3}, {188.7, 44.0}}, identifier: 'dev-cards.tile.yearOfPlenty', label: 'Year of Plenty, 1 owned', value: 1 ready, 0 new. Re...",
+      "targetName" : "SettlersUITests",
+      "testIdentifier" : 9,
+      "testIdentifierString" : "DevelopmentCardAppearanceTests/testPaintedPlentyChooserCanRemoveAndReselectTheSameResource()",
+      "testIdentifierURL" : "test://com.apple.xcode/Settlers/SettlersUITests/DevelopmentCardAppearanceTests/testPaintedPlentyChooserCanRemoveAndReselectTheSameResource",
+      "testName" : "testPaintedPlentyChooserCanRemoveAndReselectTheSameResource()"
+    },
+    {
+      "failureText" : "XCTAssertTrue failed - Card selector must be reachable: yearOfPlenty",
+      "targetName" : "SettlersUITests",
+      "testIdentifier" : 14,
+      "testIdentifierString" : "DevelopmentCardDesignTests/testPlentyScarcityAndMonopolyBankIndependenceUseTheirActualRules()",
+      "testIdentifierURL" : "test://com.apple.xcode/Settlers/SettlersUITests/DevelopmentCardDesignTests/testPlentyScarcityAndMonopolyBankIndependenceUseTheirActualRules",
+      "testName" : "testPlentyScarcityAndMonopolyBankIndependenceUseTheirActualRules()"
+    },
+    {
+      "failureText" : "Failed to not hittable: Button, {{74.0, 335.3}, {191.3, 44.0}}, identifier: 'dev-cards.tile.roadBuilding', label: 'Road Building, 2 owned', value: 1 ready, 1 new. Re...",
+      "targetName" : "SettlersUITests",
+      "testIdentifier" : 26,
+      "testIdentifierString" : "DevelopmentCardFlowTests/testRoadBuildingSupportsUndoAndCommitsBothRoadsTogether()",
+      "testIdentifierURL" : "test://com.apple.xcode/Settlers/SettlersUITests/DevelopmentCardFlowTests/testRoadBuildingSupportsUndoAndCommitsBothRoadsTogether",
+      "testName" : "testRoadBuildingSupportsUndoAndCommitsBothRoadsTogether()"
+    },
+    {
+      "failureText" : "Failed to not hittable: Button, {{74.0, 335.3}, {188.7, 44.0}}, identifier: 'dev-cards.tile.yearOfPlenty', label: 'Year of Plenty, 1 owned', value: 1 ready, 0 new. Re...",
+      "targetName" : "SettlersUITests",
+      "testIdentifier" : 28,
+      "testIdentifierString" : "DevelopmentCardFlowTests/testYearOfPlentyChoosesExactlyTwoCardsAndReportsThem()",
+      "testIdentifierURL" : "test://com.apple.xcode/Settlers/SettlersUITests/DevelopmentCardFlowTests/testYearOfPlentyChoosesExactlyTwoCardsAndReportsThem",
+      "testName" : "testYearOfPlentyChoosesExactlyTwoCardsAndReportsThem()"
+    }
+  ],
+  "title" : "Test - Settlers",
+  "topInsights" : [
+    {
+      "category" : "Common Failures",
+      "impact" : "27% of failures",
+      "text" : "3 runs of 3 tests failed with Failed to not hittable: Button, {{74.0, 335.3}, {161.0, 44.0}}, identifier: 'dev-cards.tile.monopoly', label: 'Monopoly, 1 owned', value: 1 ready, 0 new. Re..."
+    },
+    {
+      "category" : "Common Failures",
+      "impact" : "18% of failures",
+      "text" : "2 runs of 2 tests failed with XCTAssertTrue failed - Card selector must be reachable: knight"
+    },
+    {
+      "category" : "Common Failures",
+      "impact" : "18% of failures",
+      "text" : "2 runs of 2 tests failed with Failed to not hittable: Button, {{74.0, 335.3}, {188.7, 44.0}}, identifier: 'dev-cards.tile.yearOfPlenty', label: 'Year of Plenty, 1 owned', value: 1 ready, 0 new. Re..."
+    }
+  ],
+  "totalTestCount" : 28
+}

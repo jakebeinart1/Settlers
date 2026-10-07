@@ -1,0 +1,2 @@
+naval-sim seed=700014 decisions=679 p95=9.182ms p99=34.607ms over50=4 over150=0
+naval-sim seed=700015 decisions=820 p95=5.461ms p99=22.415ms over50=1 over150=0

@@ -115,7 +115,8 @@ private func movesMatch(_ a: GameMove, _ b: GameMove) -> Bool {
 
 private func activePlayer(_ phase: GamePhase) -> PlayerID {
     switch phase {
-    case .setupForward(let i), .setupBackward(let i), .rollDice(let i), .mainTurn(let i), .movingRobber(let i):
+    case .setupForward(let i), .setupBackward(let i), .rollDice(let i), .mainTurn(let i), .movingRobber(let i),
+         .choosingResource(let i), .capturingShip(let i):
         return PlayerID(index: i)
     case .discarding(let pending): return pending.first!
     case .gameOver: fatalError("game over")

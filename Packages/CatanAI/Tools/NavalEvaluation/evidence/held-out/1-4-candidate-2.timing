@@ -1,0 +1,8 @@
+naval-sim rejection evidence: /var/folders/_m/cfbn0s7j7zx3sx1lwv6w4mr80000gn/T/naval-sim-failures/801000-4-2-candidate-archipelago-true-false
+naval-sim seed=801000 decisions=816 p95=7.875ms p99=18.303ms over50=1 over150=0
+naval-sim seed=801001 decisions=733 p95=6.273ms p99=16.041ms over50=0 over150=0
+naval-sim seed=801002 decisions=713 p95=9.374ms p99=27.517ms over50=0 over150=0
+naval-sim seed=801003 decisions=717 p95=6.155ms p99=17.977ms over50=1 over150=0
+naval-sim seed=801004 decisions=617 p95=19.595ms p99=34.474ms over50=1 over150=0
+naval-sim seed=801005 decisions=769 p95=5.313ms p99=19.390ms over50=3 over150=0
+naval-sim seed=801006 decisions=717 p95=12.196ms p99=26.879ms over50=0 over150=0

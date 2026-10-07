@@ -1,4 +1,5 @@
 import CatanEngine
+import Foundation
 import Testing
 @testable import Settlers
 
@@ -8,7 +9,7 @@ import Testing
     @Test func menuGuideKeepsClassicDefaultsAndTheExistingWalkthrough() throws {
         #expect(HowToPlayContent.steps.count == 10)
         #expect(HowToPlayContent.steps.first?.line.contains("10 victory points") == true)
-        #expect(HowToPlayContent.modes.map(\.id) == ["classic", "vast", "conquest"])
+        #expect(HowToPlayContent.modes.map(\.id) == ["classic", "vast", "conquest", "voyages"])
         #expect(HowToPlayContent.introduction.contains("rules of Empires"))
         #expect(HowToPlayContent.introduction.contains("not the official CATAN rulebook"))
         let losses = try section("resource-loss", in: HowToPlayContent.rules).resourceLosses
@@ -35,6 +36,26 @@ import Testing
         let context = makeContext(mode: .classic, target: 12)
         #expect(try section("goal", in: HowToPlayContent.rules(for: context)).summary.contains("12 victory points"))
         #expect(context.title == "Classic · Standard · 12 points")
+    }
+
+    @Test(arguments: [8, 10, 12])
+    func resumedVictoryPresentationUsesTheSavedTarget(target: Int) throws {
+        let original = GameSetup.newGame(board: BoardGenerator.standard(), seed: 7, victoryPointTarget: target)
+        let restored = try JSONDecoder().decode(GameState.self, from: JSONEncoder().encode(original))
+        #expect(VictoryTargetText.goal(restored.victoryPointTarget) == "First to \(target) victory points wins.")
+        #expect(VictoryTargetText.compactGoal(restored.victoryPointTarget) == "Win at \(target) VP")
+        #expect(VictoryTargetText.score(2, target: restored.victoryPointTarget) == "2 / \(target) VP")
+        #expect(VictoryTargetText.spokenScore(2, target: restored.victoryPointTarget).contains("\(target) needed to win"))
+    }
+
+    @Test func harvestRulebookExplainsTheNumberAndBothBuildingYields() throws {
+        let state = Naval.newGame(seed: 7501)
+        let voyages = try section("voyages", in: HowToPlayContent.rules(for: HowToPlayContent.Context(state: state)))
+        let copy = voyages.details.joined(separator: " ")
+        #expect(copy.contains("harvest field's number rolls"))
+        #expect(copy.contains("settlement chooses 1 resource"))
+        #expect(copy.contains("city chooses 2 resources"))
+        #expect(copy.contains("same resource twice is allowed"))
     }
 
     @Test(arguments: ArmyPrice.allCases)
@@ -78,8 +99,48 @@ import Testing
         #expect(!HowToPlayContent.modes.contains { $0.id == "expanded" })
     }
 
+    @Test func navalGuideUsesSavedFogAndResourceOptionsAndColonizationRules() throws {
+        let state = Naval.newGame(seed: 7501, options: NavalOptions(fogEnabled: false,
+            resourceChoiceEnabled: false, mapFamily: .twinIslands))
+        let context = HowToPlayContent.Context(state: state)
+        let rules = HowToPlayContent.rules(for: context)
+        let voyages = try section("voyages", in: rules)
+        let text = voyages.details.joined(separator: " ")
+        #expect(try section("goal", in: rules).summary.contains("14 victory points"))
+        #expect(text.contains("Fog is off for this match"))
+        #expect(text.contains("Resource-choice islands are off for this match"))
+        #expect(text.contains("Establish your own settlement before building roads"))
+        #expect(text.contains("first two overseas islands"))
+        #expect(text.contains("capture any opponent's ship anywhere or skip"))
+        #expect(text.contains("38 cards of each resource and 50 development cards"))
+        #expect(text.contains("local and unrated"))
+        #expect(text.contains("six hulls"))
+        #expect(text.contains("Both starting settlements may be inland or coastal on the home island"))
+        #expect(text.contains("then expand inland along your roads"))
+        #expect(try section("setup", in: rules).details.joined().contains("including inland corners"))
+        #expect(try section("build", in: rules).details.joined().contains("a ship beside a legal coastal corner"))
+        #expect(try section("robber", in: rules).details.joined().contains("discovered land hex"))
+    }
+
     private func section(_ id: String, in sections: [HowToPlayContent.Section]) throws -> HowToPlayContent.Section {
         try #require(sections.first { $0.id == id })
+    }
+
+    @Test(arguments: [1, 2, 3])
+    func navalTravelGuideMatchesTheSavedRuleVersion(_ version: Int) throws {
+        var state = Naval.newGame(seed: 7501)
+        state.naval?.rulesVersion = version
+        let context = HowToPlayContent.Context(state: state)
+        let voyages = try section("voyages", in: HowToPlayContent.rules(for: context))
+        let text = voyages.details.joined(separator: " ")
+        if version < Naval.destinationSailingRulesVersion {
+            #expect(text.contains("three hexes per turn, sailed one adjacent sea hex at a time"))
+            #expect(!text.contains("up to two sea hexes"))
+        } else {
+            #expect(text.contains("up to two sea hexes"))
+            #expect(text.contains("Choose any highlighted destination"))
+            #expect(!text.contains("three hexes per turn"))
+        }
     }
 
     private func makeContext(mode: GameMode, variant: GameVariant = .standard,

@@ -1,0 +1,22 @@
+{
+  "verifiedAtUTC": "2026-10-07T17:43:39.164141+00:00",
+  "productionSourceSHA": "a9e0e88eb30e5bd0c5f96c6b1354ed2e7b7023c1",
+  "testedHeadSHA": "cffe613a3c112c6f99f5e6c1d4dca36c7fa719a0",
+  "version": "1.0",
+  "build": "25",
+  "bundleIdentifier": "com.alexchandler.empires",
+  "configuration": "Release",
+  "appPath": "/Users/alex/Library/Developer/Xcode/DerivedData/Settlers-ehpkozivxiwhkjbrsccrribfgemp/Build/Products/Release-iphonesimulator/Settlers.app",
+  "executableSHA256": "44209bea08cab40efb995b2a43e8c9e172189f8fcf4c41aee65e174390df2127",
+  "simulatorID": "937692FF-BFBF-4683-80E5-2590F5288D56",
+  "freshUninstallInstall": true,
+  "launchArguments": [],
+  "pid": 2755,
+  "aliveAfterSeconds": 6,
+  "newOwnCrashReports": [],
+  "screenshotPath": "/Users/alex/.codex/artifacts/naval-exploration/build25-development-cards/release-ordinary-menu.png",
+  "screenshotSHA256": "698cabd0d73c97a8301543bf82a8ecfd63a12fde6de2c178c2ee536e81eeee6c",
+  "menuScreenshotInspected": true,
+  "physicalPhoneInstallationObserved": false,
+  "menuInspection": "Empires menu is rendered; Rules, New Game and Leaderboard are legible and reachable. Fresh ordinary Release launch, no resumed QA state."
+}

@@ -77,8 +77,10 @@ extension GameViewModel {
                 name: roster.names[player.id] ?? (roster.seats.contains(player.id) ? "You" : ""),
                 civilization: civilizations[player.id.index], opponentProfile: profiles[player.id])
         }
-        return MatchSetup(seats: chairs, mode: state.mode, victoryPointTarget: state.victoryPointTarget,
-                          randomizedBoard: active.value?.randomizedBoard ?? false, randomizeSeatOrder: false)
+        var setup = MatchSetup(seats: chairs, mode: state.mode, victoryPointTarget: state.victoryPointTarget,
+                              randomizedBoard: active.value?.randomizedBoard ?? false, randomizeSeatOrder: false)
+        setup.navalOptions = state.naval?.options ?? NavalOptions()
+        return setup
     }
 
     /// Restore the saved policy cursor, never rebuild it from today's board.
@@ -111,7 +113,7 @@ extension GameViewModel {
         let restored = try GameSession(
             checkpoint: savedSession,
             policies: Self.makePolicies(profiles, difficulty: match.setup.difficulty, ghosts: ghostStore,
-                                        expertRevision: match.setup.expertRevision)
+                                        expertRevision: match.setup.expertRevision, mode: match.state.mode)
         )
         session = restored
         self.playerRoster = playerRoster

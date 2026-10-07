@@ -14,6 +14,11 @@ public enum GameMove: Codable, Sendable, Hashable {
     case buildRoad(EdgeID)
     case buildSettlement(VertexID)
     case buildCity(VertexID)
+    case buildShip(at: HexCoordinate)
+    case sailShip(id: Int, to: HexCoordinate)
+    case captureShip(id: Int)
+    case skipShipCapture
+    case chooseResource(Resource)
     case buyDevCard
     /// Conquest: the top army card, paid for with exactly these cards - any the
     /// buyer holds that make up `GameState.armyPrice`. `legalMoves` lists one

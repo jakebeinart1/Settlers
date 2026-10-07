@@ -1,0 +1,15 @@
+{
+  "productionSourceSHA": "1cf1c0fde5904aa1cbeae9320cae55afb9bdfcd0",
+  "archiveHead": "1cf1c0fde5904aa1cbeae9320cae55afb9bdfcd0",
+  "version": "1.0",
+  "build": "22",
+  "archiveExitCode": 0,
+  "exportExitCode": 0,
+  "signingTeam": "HXB9F28LHR",
+  "signingCertificateSHA1": "76465B06C2E157D857641F5B3D25CF5A3110C4A9",
+  "profileUUID": "86da5771-8640-4c53-8867-0b4fbd4f1035",
+  "archivePath": "/Users/alex/.codex/artifacts/naval-exploration/build22-harbors-navigation/Empires-22.xcarchive",
+  "documentationOnlyUncommittedChangesAtArchive": true,
+  "all349TrackedProductionInputsMatchFrozenCommit": true,
+  "jakeCommittedSigningDefaultsUnchanged": true
+}

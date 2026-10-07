@@ -37,6 +37,14 @@ read back out of `xcodebuild`, and the bundle id is read out of the built `Info.
   from `devicectl`, *and* a codesigning identity for whichever team `project.yml` names.
   Alex's gitignored signing override supplies his team without changing Jake's defaults.
 
+## Simulator lifecycle
+
+Before simulator selection, creation, boot, reset, native tests, or a gate/push
+hook, read and apply the [shared lifecycle policy](references/simulator-lifecycle.md).
+It governs every Empires worktree, including test clones, and also applies when
+finishing work or cleaning storage. Complete its allocation procedure and pin the
+confirmed ready QA UDID before continuing with the ladder below.
+
 ## The ladder
 
 Run it top to bottom. Every step asserts its own exit code; nothing here parses output to
@@ -54,8 +62,10 @@ REPO="$(git rev-parse --show-toplevel)"
 # 2) Use the dedicated QA simulator because this recipe uninstalls the app.
 #    For a user's manual-play device, install in place and omit uninstall/reset
 #    flags so their saved game survives. Never run this destructive recipe there.
-SIM="$(python3 "$REPO/scripts/select-qa-simulator.py")"
-xcrun simctl boot "$SIM" 2>/dev/null || true   # already-booted is not an error
+: "${SETTLERS_QA_SIMULATOR_ID:?Inventory and pin a confirmed idle QA device first}"
+# Apply the shared lifecycle allocation procedure first; it verifies the
+# selector's device and completes any boot/readiness check under the shared lock.
+SIM="$SETTLERS_QA_SIMULATOR_ID"
 open -a Simulator                              # so the screenshot has something to photograph
 
 # 3) REGENERATE THE PROJECT IF THE FILE LIST CHANGED. `project.yml` globs
@@ -113,6 +123,9 @@ xcrun simctl io "$SIM" screenshot "$DD/verify.png"
 echo "now READ $DD/verify.png"
 ```
 
+After reading the screenshot, apply [Simulator lifecycle](#simulator-lifecycle)
+to devices this workflow used.
+
 ## The `-qa*` launch arguments
 
 Each is a plain
@@ -128,6 +141,7 @@ grep -rnoE '"\-qa[A-Za-z]+"' --include="*.swift" "$REPO/Settlers" | sort -u
 | `-qaAutoStart` | `ContentView.swift` | Skips `MainMenuView`, lands on the board. **Prerequisite for every GameView flag below.** |
 | `-qaShowEndGame` | `ContentView.swift` | `EndGameView` ("YOU WIN!") via a forced human win. |
 | `-qaPlayToEnd` | `ContentView.swift` | Plays every seat without presentation delays through the real app session, persistence, statistics, and game log until `EndGameView` renders. Needs `-qaAutoStart`. |
+| `-qaInspectCompleteMatch` | `GameViewModel+QACompleteMatch.swift`, `GameView+QA.swift` | Debug-only modifier for `-qaPlayToEnd` + `-qaAutoStart`. Pauses the existing driver once at each naturally reached human purchase, mature playable hand, active-card result and late-game held hand. Native tests inspect/acknowledge ordinary surfaces, then tap `qa.complete-match.continue`. It changes no hand, bank, RNG or game state; a match need not reach every checkpoint/type. This adds deliberate usability inspection to completion evidence, not human selection of every move. |
 | `-qaShowPauseMenu` | `GameView.swift` | The "Game Menu" pause sheet. |
 | `-qaShowTradePopup` | `GameView.swift` | `TradePopupView`. |
 | `-qaBankTradePosition` | `GameView.swift` | Conserved seven-grain hand with a grain port; tap Trade → Bank to exercise six grain for three ore. |
@@ -141,6 +155,7 @@ grep -rnoE '"\-qa[A-Za-z]+"' --include="*.swift" "$REPO/Settlers" | sort -u
 | `-qaRecordingWarningAfterCity` | `GameView.swift` | Modifier for `-qaShowPaidCityDecision`: Confirm a legal city upgrade to raise the real recording-warning alert through the existing export-warning state. Only the warning is injected; the city, +1 VP notice, queue and timer use the production commit path. No archive write is forced to fail. |
 | `-qaShowMonopolyPopup` | `GameView.swift` | The Monopoly resource picker in `DevCardPopupView` (Year of Plenty shares the layout). |
 | `-qaShowDevCardHand` | `GameView.swift` | A mixed private hand containing every card type, including ready, new, and passive states. |
+| `-qaDevCardBankScarce` | `GameViewModel+QADevCards.swift` | Debug-only modifier for `-qaShowDevCardHand`. Leaves one Ore and one Grain in the bank and transfers the rest to a rival without changing total supply. Exercises Plenty shortages and Monopoly selection/collection with an empty bank. Naval mixed-hand/purchase fixtures now retain an actual Naval world and complete legal setup; these are explicit rare-state baselines, separate from ordinary match economics. |
 | `-qaDevCardPurchase` | `GameView.swift` | Backward-compatible shorthand for `-qaDevCardPurchase=monopoly`. |
 | `-qaDevCardPurchase=<type>` | `GameView.swift` | A legal Build position with `knight`, `roadBuilding`, `yearOfPlenty`, `monopoly`, or `victoryPoint` on top. An older matching card makes active types playable after the tapped purchase, while the new copy remains visibly marked New. |
 | `-qaShowDevCardReveal` | `GameView.swift` | A real committed Year of Plenty purchase waiting on its durable private acknowledgement. |
@@ -153,6 +168,8 @@ grep -rnoE '"\-qa[A-Za-z]+"' --include="*.swift" "$REPO/Settlers" | sort -u
 | `-qaShowDiscard` | `GameView.swift` | A real conserved eight-card hand in a mandatory four-card discard, for expanded/minimized inspection and submission. **Needs `-qaAutoStart`.** |
 | `-qaShowIncomingOffer` | `GameView.swift` | `IncomingTradeCardView`, backed by a real pending engine offer and conserved deterministic hands. |
 | `-qaQueuedBotOffers` | `GameViewModel+QATrade.swift` | Modifier for `-qaShowIncomingOffer`: two affordable offers during a bot turn, for receipt/timer hold and resume checks. |
+| `-qaBotTradeAfterPause` | `GameViewModel+QATradeTapSafety.swift`, `GameView.swift` | Conserved bot main-turn baseline with no pending offer. The next deterministic QA policy choice proposes through the real session/history/checkpoint after production pacing. Pair with `-qaShowPauseMenu` to select Slow and the offer timer first; supports `-qaNavalMode`, `-qaThreePlayerTable` and `-qaBundleOffer`. Cold resume restores the production policy with its unchanged ID. |
+| `-qaTradeCompetitionWinner=human` or `-qaTradeCompetitionWinner=rival` | `Testing/GameViewModel+QATradeTapSafety.swift` | Debug-only modifier for `-qaBotTradeAfterPause` (and its `-qaAutoStart` prerequisite). Bank-conserved hands fund a real four-Brick-for-one-Grain offer, the human and one actual seated Traditional/Expert rival. A bounded search of 64 starting policy seeds selects the requested recipient while the rival chooses acceptance through its real policy. Only the proposer's existing one-proposal QA selector is substituted; neither acceptance nor the exchange result is injected. The subsequent proposal/Accept use normal session/checkpoint/history paths. Omitting this modifier preserves the older Skip fixture. Invalid values, missing rival or an exhausted search fail explicitly. This selected starting cursor proves a requested outcome path, not ordinary recipient frequencies, match economics or AI strength; native verification remains separately required. |
 | `-qaBundleOffer` | `GameViewModel+QATrade.swift` | **Modifier** for `-qaShowIncomingOffer`: widens it to the widest bundle the engine permits (four give types against one want type). The single-resource fixture cannot show what a composed Expert offer does to the card's fixed-height row — measured 2026-09-16, it silently dropped every count on the wider side. |
 | `-qaFastForwardToRollDice` | `GameView.swift` | Plays the human's setup placements and first roll, resolving a possible seven until the main-turn controls are enabled. **Applies real moves** (writes the save and game log); wait on the target control's readiness rather than a fixed delay. |
 | `-qaSeedGameHistory` | `SettlersApp.swift` | Writes one deterministic finished recording (40 moves, played by "first legal move") into the archive before the menu appears, so Game History and the replay have something real to open. Seeded AFTER `-ui-testing-reset`, which clears the archive. |
@@ -176,10 +193,92 @@ own. Measured on 2026-08-29: `-qaShowEndGame` alone left the app sitting on the 
 `-qaAutoStart -qaShowEndGame` rendered the win screen. If a flag "does nothing", check this
 before suspecting the flag.
 
-**Debug only.** All reads are consolidated into
-`Settlers/QALaunchFlag.swift`, whose `isSet` is wrapped in `#if DEBUG` — so in a Release
-build the flags are inert whatever you pass. If that file exists, do not try to screenshot a
-Release build with them.
+**Debug only.** Boolean flags normally use `Settlers/QALaunchFlag.swift`'s
+`isSet`; parameterized values use `QALaunchOption`. Their reads are wrapped in
+`#if DEBUG`, so Release ignores them. The naval production-highlight probe below
+is a deliberately local Debug-only raw argument in `GameView+QA.swift`. Its
+helper and markers are also compiled out of Release. Build Debug for these fixtures.
+
+### Voyages launch arguments and fixture bounds
+
+Read `QALaunchFlag.swift`, `Testing/GameViewModel+QANaval.swift`,
+`Testing/NavalQAFixture.swift` and `Testing/GameView+QA.swift` when changing this
+branch. The table covers every actual `-qaNaval*` flag and value. At the October 5
+checkpoint, adjacent/stacked fixtures from `2201653` are integrated as `5b00914`,
+and the highlight probe from `4dce712` as `f602187` (pixel wait `a19ac5d`). Regular
+World/fog native checks and largest-text Nearby/global Fleet choice pass on both
+regular and SE devices. Frozen source `971a615` passes the complete gate; the
+exact gated Debug binary also passes purchase/sailing/capture/cold-resume and
+actual system Reduce Motion journeys. The final source-bound receipts live in
+`docs/AI_summaries/naval-exploration/evidence/`. An older installed binary cannot
+exercise the additions; build/install integrated Debug source first. The table
+describes source behavior; a launch fixture alone is not a runtime pass.
+
+| Flag/value | Consumed in | Behavior |
+|---|---|---|
+| `-qaNavalMode` | `ContentView.swift`, `NewGameSetupView.swift`, `GameViewModel+QANaval.swift` | With `-qaAutoStart` and no saved match, starts fresh Standard Voyages: four seats, human seat 0, no seat shuffle, 14 points. With `-qaShowNewGame`, prefills Voyages in the setup fixture instead. |
+| `-qaNavalBuildScarcity` | `GameViewModel+QANaval.swift`, `NavalQAFixture.swift` | Real setup/coastal voyage baseline, with the bank-conserved hand 0 brick, 1 lumber, 0 ore, 0 grain and 10 wool. Exercises unavailable construction, shortages and disabled physical taps. |
+| `-qaNavalCivilization=<rawValue>` | `GameViewModel+QANaval.swift` | Explicitly retains the chosen current-controller roster when replacing a rare baseline. All eight fleet styles can be bought and inspected; ordinary fixtures keep their original deterministic assignment. |
+| `-qaNavalMixedShipsPosition` | `NavalQAFixture.swift` | Two real purchases by different owners, followed by legal sea steps, produce an actual mixed-owner stack. As with harvest fixtures, QA only refreshes travel steps between sailing rounds. |
+| `-qaNavalExpert` | `GameViewModel+QANaval.swift`, `NewGameSetupView.swift` | Naval QA modifier selecting Expert and the naval revision; default is Traditional. It does not turn the complete-match driver's external human chair into Expert. |
+| `-qaNavalNoFog` | `GameViewModel+QANaval.swift`, `NewGameSetupView.swift` | Naval QA modifier disabling fog. Omission leaves fog on. |
+| `-qaNavalNoResourceChoice` | Same setup handlers | Naval QA modifier disabling flexible production. Omission leaves it on. Harvest fixtures require flexible production enabled. |
+| `-qaNavalSeed=<UInt64>` | `QALaunchOption`, `GameViewModel.makeInitialState` | Seed for an ordinary fresh naval game, including one started from the setup screen. Omission chooses a fresh random seed; invalid values fail. Rare-state `NavalQAFixture` positions below use fixed seed 7501 regardless of this value. |
+| `-qaNavalFamily=archipelago`, `-qaNavalFamily=peninsula`, or `-qaNavalFamily=twinIslands` | `QALaunchOption`, both naval setup handlers | Selects the exact raw family spelling. Omission leaves Surprise me; unknown values fail. Applies to normal naval QA setup and rare-state fixture options. |
+| `-qaNavalVoyagePosition` | `GameViewModel+QANaval.swift`, `NavalQAFixture` | Completed setup, human main turn, no pre-purchased human ship and conserved extra cards sufficient for a real purchase. Use Build → Ship, preview/cancel/confirm, then select and sail through normal controls. |
+| `-qaNavalAdjacentShipsPosition` | Same fixture handlers, `2201653` | Two owned ships purchased through rules, then one actual step by ship ID 1 makes them occupy adjacent sea hexes. World zoom exercises overlapping minimum hit regions and explicit identity choice. |
+| `-qaNavalStackedShipsPosition` | Same fixture handlers, `2201653` | Three owned hulls purchased; ship ID 1 takes one step. Two remain stacked at launch with the third adjacent, covering same-cell plus neighbor ambiguity. It is not three ships all at one coordinate. |
+| `-qaNavalCapturePosition` | `GameViewModel+QANaval.swift`, `NavalQAFixture` | A rival purchases one eligible hull, then a rigged real roll of 11 reaches the human's durable capture phase. Capture or Skip uses normal confirmation/persistence; no transfer is pre-committed. |
+| `-qaNavalResourcePosition` | Same fixture handlers | An actual ship, discovery and first colony reach a flexible-production tile; a rigged real matching roll opens one settlement harvest unit. Requires resource choice on. |
+| `-qaNavalCityResourcePosition` | Same fixture handlers | Upgrades that colony through a real city move, then opens two separately chosen harvest units for the same human. Requires resource choice on; useful for cold resume between units. |
+| `-qaNavalProductionHighlights` | `Testing/GameView+QA.swift`, `4dce712` | Shows Debug control `qa.production.show` (“Show held production rings”). A native tap injects known and hidden same-number coordinates directly into the renderer; six perimeter probes per tile expose actual coordinates/numbers to automation. Requires a fogged naval world with suitable known/hidden production; do not pair with `-qaNavalNoFog` or a fully charted world. |
+
+**Fresh game versus fixture.** `-qaAutoStart` resumes an existing save; naval start
+flags do not replace it. Use the ladder's task-owned clean QA container, or the
+first native test launch's `-ui-testing-reset`, for a new baseline. Cold resume
+uses `-ui-testing` without reset so the committed state/mandatory obligation survives.
+Choose one position flag. Source precedence is stacked → adjacent → city harvest
+→ settlement harvest → capture → voyage. Current presentation uses natural
+owner/ship wording; stored IDs and automation IDs remain zero-based.
+
+Rare fixtures finish snake setup through legal moves, transfer supplemental cards
+from bank to hand, and install a replacement replay baseline. Each begins with
+extra 3 lumber, 2 wool, 2 ore, 1 grain and 1 brick in the human hand, in addition
+to ordinary setup grants. Capture and nearby-hull preparation transfer additional
+ship costs; city preparation transfers its upgrade cost. Counts are conserved,
+but the resources were granted for QA rather than earned through ordinary turns.
+Fixture construction also sets phases and rigs roll RNG; harvest travel refreshes
+steps between fixture-only rounds. These shortcuts do not run in normal gameplay.
+Subsequent tapped purchase, movement, capture and resource choice use real rules,
+session, save and history transactions. Layout fixtures do not establish expedition
+pace or full-match economics.
+
+The production-highlight probe changes only ephemeral presentation: it commits no
+roll, production, discovery or save. Its hidden-coordinate/number labels are
+intentional Debug instrumentation, not evidence of ordinary VoiceOver concealment.
+The native counterexample compares a changed known perimeter with unchanged hidden
+fog; hosted producer tests separately cover real roll visibility and robber blocking.
+
+Use `$SIM` from the ladder with the task-owned QA UUID. For concurrent work, set
+`SETTLERS_QA_SIMULATOR_ID` to that task's assigned simulator before selecting it;
+never reset a different chat's device. After installing a Debug artifact and
+terminating its prior process, an ordinary reproducible opening is:
+
+```bash
+xcrun simctl launch "$SIM" "$BUNDLE_ID" -qaAutoStart -qaNavalMode \
+  -qaNavalSeed=7501 -qaNavalExpert
+```
+
+For a purchase/sailing baseline add `-qaNavalVoyagePosition`; for overlap or held
+highlight checks add the specific fixture/probe from the table only after its
+source is integrated into the installed build. Use native XCUITest for the taps.
+`-qaAutoStart -qaNavalMode -qaNavalSeed=7501 -qaNavalExpert -qaPlayToEnd` drives
+actual app session/persistence to victory, with a 10,000-move cap and yielding
+between committed moves. It supplies the external human chair with balanced
+`HeuristicPolicy` and acknowledges durable card receipts; configured bot chairs
+retain their selected tier. This is an automated complete match, not unscripted
+human play or all-Expert strength measurement. `-qaShowEndGame` instead forces a
+win for layout and cannot substitute for that complete-match route.
 
 ## Trap: a new .swift file without `xcodegen generate` (measured 2026-08-29)
 
@@ -300,8 +399,8 @@ impossible. Reset support is compiled out of Release builds.
 ## Before saying a change works
 
 ```bash
-"$REPO/scripts/gate.sh"              # 10 gates, including app and native UI tests
-"$REPO/scripts/gate.sh --debug-app"  # Release included; also compile the screenshot binary
+GATE_TEST_WORKERS=1 "$REPO/scripts/gate.sh"              # app and native UI tests
+GATE_TEST_WORKERS=1 "$REPO/scripts/gate.sh --debug-app"  # also build the screenshot binary
 ```
 
 The gate is the merge gate here, because branch protection is unavailable on this repository

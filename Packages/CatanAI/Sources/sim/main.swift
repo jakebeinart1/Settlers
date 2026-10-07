@@ -375,6 +375,7 @@ private func parseOptions(_ arguments: [String]) -> Options {
                 options.configuration.mode = .vast
                 options.configuration.victoryPointTarget =
                     Ruleset.forMode(.vast).defaultVictoryPointTarget
+            case "naval": fail("use naval-sim for Voyages family, fog and resource-choice provenance")
             default: fail("--mode must be classic, expanded or vast")
             }
         case "--variant":

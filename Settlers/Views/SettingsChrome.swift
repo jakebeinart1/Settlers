@@ -187,6 +187,9 @@ struct PaintedChoiceRow<Option: Hashable>: View {
     /// passes the civilization row's own padding here so the two boxes come
     /// out the same height (Jake's ask, 2026-09-03).
     var verticalPadding: CGFloat?
+    /// A caller can guarantee a complete touch target without changing the
+    /// compact text padding or other screens' established row geometry.
+    var minimumHeight: CGFloat?
     /// Overrides the fixed 15pt option text size - `SeatCardView`'s Human/AI
     /// row passes its own `bodyTextSize` here so that text is guaranteed
     /// identical to every other label on the card rather than coincidentally
@@ -224,6 +227,8 @@ struct PaintedChoiceRow<Option: Hashable>: View {
                 // and has to fit the whole configuration above the fold, so it
                 // asks for the compact height.
                 .padding(.vertical, verticalPadding ?? (isCompact ? 6 : 13))
+                .frame(minHeight: minimumHeight)
+                .contentShape(Rectangle())
                 .background {
                     if isSelected {
                         // Inset by a point so this chip's own gold hairline sits
@@ -237,6 +242,8 @@ struct PaintedChoiceRow<Option: Hashable>: View {
                         .padding(1)
                     }
                 }
+                .accessibilityElement(children: .ignore)
+                .accessibilityLabel(title(option))
         }
         .buttonStyle(.plain)
         .accessibilityAddTraits(isSelected ? [.isButton, .isSelected] : [.isButton])

@@ -8,7 +8,7 @@ import Testing
     // well as the suite, and avoid racing the app's shared civilization labels.
     @MainActor
     @Test(.serialized, arguments: AppMatchCase.supportedMatrix)
-    func sampledAutomatedMatchesCompletePersistAndReplay(match: AppMatchCase) throws {
+    func sampledAutomatedMatchesCompletePersistAndReplay(match: AppMatchCase) async throws {
         let root = FileManager.default.temporaryDirectory
             .appendingPathComponent("CompleteMatchTests.\(UUID().uuidString)")
         // Cleanup failure must not replace a gameplay assertion's diagnosis.
@@ -22,11 +22,17 @@ import Testing
         let logStore = GameLogStore(directoryURL: root.appendingPathComponent("logs"), maxKeptLogs: 2)
         let statsStore = GameStatsStore(fileURL: root.appendingPathComponent("stats.json"))
         let model = GameViewModel(
+            checkpointStore: MatchCheckpointStore(fileURL: root.appendingPathComponent("match_checkpoint.json")),
             gameStore: gameStore,
             civilizationStore: CivilizationAssignmentStore(fileURL: root.appendingPathComponent("civs.json")),
             matchSetupStore: setupStore,
             gameLogStore: logStore,
-            gameStatsStore: statsStore
+            gameStatsStore: statsStore,
+            ghostStore: GhostStore(localDirectory: root.appendingPathComponent("ghosts"), bundledGhosts: []),
+            ratingStore: RatingStore(directory: root.appendingPathComponent("ratings")),
+            seatStatsStore: SeatStatsStore(directory: root.appendingPathComponent("seat-stats")),
+            playerDirectory: PlayerDirectory(directory: root.appendingPathComponent("players")),
+            makeGhostTrainer: completionBookkeepingTrainer
         )
         model.startNewGame(setup: match.setup)
         let initialState = model.state
@@ -56,6 +62,7 @@ import Testing
         // Policies drive every chair here, including human-labelled chairs.
         // This covers app bookkeeping, not human taps, handoffs or discards.
         try model.qaPlayToEnd()
+        await model.lastFinishedMatchWork?.value
 
         guard case .gameOver(let winner) = model.state.phase else {
             Issue.record("complete-match path stopped before game over")
@@ -88,12 +95,19 @@ import Testing
         #expect(replay == model.state)
 
         let restored = GameViewModel(
+            checkpointStore: MatchCheckpointStore(fileURL: root.appendingPathComponent("match_checkpoint.json")),
             gameStore: gameStore,
             civilizationStore: CivilizationAssignmentStore(fileURL: root.appendingPathComponent("civs.json")),
             matchSetupStore: setupStore,
             gameLogStore: logStore,
-            gameStatsStore: statsStore
+            gameStatsStore: statsStore,
+            ghostStore: GhostStore(localDirectory: root.appendingPathComponent("ghosts"), bundledGhosts: []),
+            ratingStore: RatingStore(directory: root.appendingPathComponent("ratings")),
+            seatStatsStore: SeatStatsStore(directory: root.appendingPathComponent("seat-stats")),
+            playerDirectory: PlayerDirectory(directory: root.appendingPathComponent("players")),
+            makeGhostTrainer: completionBookkeepingTrainer
         )
+        await restored.lastFinishedMatchWork?.value
         #expect(restored.state == model.state)
         #expect(restored.humanSeats == realisedHumanSeats)
         #expect(CivilizationAssignment.humanNames == realisedNames)

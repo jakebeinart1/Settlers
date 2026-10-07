@@ -1,0 +1,60 @@
+{
+  "devicesAndConfigurations" : [
+    {
+      "device" : {
+        "architecture" : "arm64",
+        "deviceId" : "937692FF-BFBF-4683-80E5-2590F5288D56",
+        "deviceName" : "Empires QA",
+        "modelName" : "iPhone 17 Pro",
+        "osBuildNumber" : "23F77",
+        "osVersion" : "26.5",
+        "platform" : "iOS Simulator"
+      },
+      "expectedFailures" : 0,
+      "failedTests" : 2,
+      "passedTests" : 21,
+      "skippedTests" : 0,
+      "testPlanConfiguration" : {
+        "configurationId" : "1",
+        "configurationName" : "Test Scheme Action"
+      }
+    }
+  ],
+  "environmentDescription" : "Settlers · Built with macOS 26.5.1",
+  "expectedFailures" : 0,
+  "failedTests" : 2,
+  "finishTime" : 1791354717.515,
+  "passedTests" : 14,
+  "result" : "Failed",
+  "skippedTests" : 0,
+  "startTime" : 1791354394.646,
+  "statistics" : [
+    {
+      "subtitle" : "8 test runs",
+      "title" : "1 test ran with dynamic parameters"
+    }
+  ],
+  "testFailures" : [
+    {
+      "failureText" : "Expectation failed: (state.players[0].resources → [CatanEngine.Resource.wool: 10, CatanEngine.Resource.brick: 0, CatanEngine.Resource.ore: 0, CatanEngine.Resource.grain: 0, CatanEngine.Resource.lumber: 1]) == ([.lumber: 1, .wool: 10] → [CatanEngine.Resource.wool: 10, CatanEngine.Resource.lumber: 1])",
+      "targetName" : "SettlersTests",
+      "testIdentifier" : 3,
+      "testIdentifierString" : "NavalShipArtworkTests/scarcityHandPreservesRealSetupAndEveryResourceSupply()",
+      "testIdentifierURL" : "test://com.apple.xcode/Settlers/SettlersTests/NavalShipArtworkTests/scarcityHandPreservesRealSetupAndEveryResourceSupply()",
+      "testName" : "scarcityHandPreservesRealSetupAndEveryResourceSupply()"
+    },
+    {
+      "failureText" : "XCTAssertTrue failed",
+      "targetName" : "SettlersUITests",
+      "testIdentifier" : 10,
+      "testIdentifierString" : "NavalShipArtworkFlowTests/testAllEightPaintedFleetsThroughRealPurchaseWorldHomeAndFleet()",
+      "testIdentifierURL" : "test://com.apple.xcode/Settlers/SettlersUITests/NavalShipArtworkFlowTests/testAllEightPaintedFleetsThroughRealPurchaseWorldHomeAndFleet",
+      "testName" : "testAllEightPaintedFleetsThroughRealPurchaseWorldHomeAndFleet()"
+    }
+  ],
+  "title" : "Test - Settlers",
+  "topInsights" : [
+
+  ],
+  "totalTestCount" : 16
+}

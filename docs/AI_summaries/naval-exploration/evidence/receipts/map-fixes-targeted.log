@@ -1,0 +1,290 @@
+Command line invocation:
+    /Applications/Xcode.app/Contents/Developer/usr/bin/xcodebuild test -project Settlers.xcodeproj -scheme Settlers -configuration Debug -destination "platform=iOS Simulator,id=937692FF-BFBF-4683-80E5-2590F5288D56" -parallel-testing-enabled NO -resultBundlePath /Users/alex/.codex/artifacts/naval-exploration/map-fixes-a19ac5d.xcresult "-only-testing:SettlersTests/NavalBoardGeometryTests" "-only-testing:SettlersTests/BoardLayeringTests" "-only-testing:SettlersTests/GameViewModelCheckpointTests" "-only-testing:SettlersTests/CompletedHumanTradeRestoreTests" "-only-testing:SettlersUITests/NavalFlowTests/testWorldShipTouchOpensNearbyIdentityChooserBeforeSelectingOrFocusing" "-only-testing:SettlersUITests/NavalFlowTests/testStackedWorldChooserIncludesAdjacentHullAndMovesOnlyChosenIdentity" "-only-testing:SettlersUITests/NavalFlowTests/testWorldLaunchTouchesStageTheExactSeaAndCancelWithoutPurchasing" "-only-testing:SettlersUITests/NavalReplayRenderingTests/testProductionRingsCannotRevealFoggedIslandPerimeters" "-only-testing:SettlersUITests/BankTradeFlowTests/testBankTradeReceiptAppearsThenDisappears" "-only-testing:SettlersUITests/GameplayBoundaryTests/testTradePopupKeepsNewOfferOpen" "-only-testing:SettlersUITests/NavalFlowTests/testHarvestPassesNativeAccessibilityAudit"
+
+Resolve Package Graph
+
+
+Resolved source packages:
+  CatanAI: /Users/alex/.codex/worktrees/naval-exploration/Settlers/Packages/CatanAI
+  CatanEngine: /Users/alex/.codex/worktrees/naval-exploration/Settlers/Packages/CatanEngine
+
+Writing result bundle at path:
+	/Users/alex/.codex/artifacts/naval-exploration/map-fixes-a19ac5d.xcresult
+
+ComputePackagePrebuildTargetDependencyGraph
+
+Prepare packages
+
+CreateBuildRequest
+
+SendProjectDescription
+
+CreateBuildOperation
+
+ComputeTargetDependencyGraph
+note: Building targets in dependency order
+note: Target dependency graph (7 targets)
+    Target 'SettlersUITests' in project 'Settlers'
+        ➜ Explicit dependency on target 'Settlers' in project 'Settlers'
+    Target 'SettlersTests' in project 'Settlers'
+        ➜ Explicit dependency on target 'Settlers' in project 'Settlers'
+    Target 'Settlers' in project 'Settlers'
+        ➜ Explicit dependency on target 'CatanEngine' in project 'CatanEngine'
+        ➜ Explicit dependency on target 'CatanAI' in project 'CatanAI'
+    Target 'CatanAI' in project 'CatanAI'
+        ➜ Explicit dependency on target 'CatanAI' in project 'CatanAI'
+        ➜ Explicit dependency on target 'CatanEngine' in project 'CatanEngine'
+    Target 'CatanAI' in project 'CatanAI'
+        ➜ Explicit dependency on target 'CatanEngine' in project 'CatanEngine'
+    Target 'CatanEngine' in project 'CatanEngine'
+        ➜ Explicit dependency on target 'CatanEngine' in project 'CatanEngine'
+    Target 'CatanEngine' in project 'CatanEngine' (no dependencies)
+
+GatherProvisioningInputs
+
+CreateBuildDescription
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang -v -E -dM -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.5.sdk -x c -c /dev/null
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc --version
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/actool --print-asset-tag-combinations --output-format xml1 /Users/alex/.codex/worktrees/naval-exploration/Settlers/Settlers/Assets.xcassets
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/actool --version --output-format xml1
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/ld -version_details
+
+Build description signature: d375874a55893ae14a1f7e281521a887
+Build description path: /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/XCBuildData/d375874a55893ae14a1f7e281521a887.xcbuilddata
+ClangStatCache /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang-stat-cache /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.5.sdk /Users/alex/Library/Developer/Xcode/DerivedData/SDKStatCaches.noindex/iphonesimulator26.5-23F73-6cfe768891a92b912361537c460fe42b.sdkstatcache
+    cd /Users/alex/.codex/worktrees/naval-exploration/Settlers/Settlers.xcodeproj
+    /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang-stat-cache /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.5.sdk -o /Users/alex/Library/Developer/Xcode/DerivedData/SDKStatCaches.noindex/iphonesimulator26.5-23F73-6cfe768891a92b912361537c460fe42b.sdkstatcache
+
+MkDir /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Products/Debug-iphonesimulator/Settlers.app/PlugIns/SettlersTests.xctest (in target 'SettlersTests' from project 'Settlers')
+    cd /Users/alex/.codex/worktrees/naval-exploration/Settlers
+    /bin/mkdir -p /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Products/Debug-iphonesimulator/Settlers.app/PlugIns/SettlersTests.xctest
+
+MkDir /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Products/Debug-iphonesimulator/Settlers.app/Frameworks (in target 'Settlers' from project 'Settlers')
+    cd /Users/alex/.codex/worktrees/naval-exploration/Settlers
+    /bin/mkdir -p /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Products/Debug-iphonesimulator/Settlers.app/Frameworks
+
+MkDir /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Products/Debug-iphonesimulator/Settlers.app/PlugIns (in target 'Settlers' from project 'Settlers')
+    cd /Users/alex/.codex/worktrees/naval-exploration/Settlers
+    /bin/mkdir -p /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Products/Debug-iphonesimulator/Settlers.app/PlugIns
+
+ProcessProductPackaging "" /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/Settlers.build/Debug-iphonesimulator/Settlers.build/Settlers.app-Simulated.xcent (in target 'Settlers' from project 'Settlers')
+    cd /Users/alex/.codex/worktrees/naval-exploration/Settlers
+    
+    Entitlements:
+    
+    {
+    "application-identifier" = "KDM65HE483.com.jakebeinart.settlers";
+}
+    
+    builtin-productPackagingUtility -entitlements -format xml -o /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/Settlers.build/Debug-iphonesimulator/Settlers.build/Settlers.app-Simulated.xcent
+
+ProcessProductPackagingDER /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/Settlers.build/Debug-iphonesimulator/Settlers.build/Settlers.app-Simulated.xcent /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/Settlers.build/Debug-iphonesimulator/Settlers.build/Settlers.app-Simulated.xcent.der (in target 'Settlers' from project 'Settlers')
+    cd /Users/alex/.codex/worktrees/naval-exploration/Settlers
+    /usr/bin/derq query -f xml -i /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/Settlers.build/Debug-iphonesimulator/Settlers.build/Settlers.app-Simulated.xcent -o /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/Settlers.build/Debug-iphonesimulator/Settlers.build/Settlers.app-Simulated.xcent.der --raw
+
+Copy /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Products/Debug-iphonesimulator/Settlers.app/Frameworks/XCTestCore.framework /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/Library/PrivateFrameworks/XCTestCore.framework (in target 'Settlers' from project 'Settlers')
+    cd /Users/alex/.codex/worktrees/naval-exploration/Settlers
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -exclude Headers -exclude PrivateHeaders -exclude Modules -exclude \*.tbd -resolve-src-symlinks /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/Library/PrivateFrameworks/XCTestCore.framework /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Products/Debug-iphonesimulator/Settlers.app/Frameworks
+
+Copy /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Products/Debug-iphonesimulator/Settlers.app/Frameworks/XCUIAutomation.framework /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/Library/Frameworks/XCUIAutomation.framework (in target 'Settlers' from project 'Settlers')
+    cd /Users/alex/.codex/worktrees/naval-exploration/Settlers
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -exclude Headers -exclude PrivateHeaders -exclude Modules -exclude \*.tbd -resolve-src-symlinks /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/Library/Frameworks/XCUIAutomation.framework /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Products/Debug-iphonesimulator/Settlers.app/Frameworks
+
+Copy /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Products/Debug-iphonesimulator/Settlers.app/Frameworks/XCUnit.framework /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/Library/PrivateFrameworks/XCUnit.framework (in target 'Settlers' from project 'Settlers')
+    cd /Users/alex/.codex/worktrees/naval-exploration/Settlers
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -exclude Headers -exclude PrivateHeaders -exclude Modules -exclude \*.tbd -resolve-src-symlinks /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/Library/PrivateFrameworks/XCUnit.framework /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Products/Debug-iphonesimulator/Settlers.app/Frameworks
+
+Copy /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Products/Debug-iphonesimulator/Settlers.app/Frameworks/libXCTestSwiftSupport.dylib /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/usr/lib/libXCTestSwiftSupport.dylib (in target 'Settlers' from project 'Settlers')
+    cd /Users/alex/.codex/worktrees/naval-exploration/Settlers
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -exclude Headers -exclude PrivateHeaders -exclude Modules -exclude \*.tbd -resolve-src-symlinks /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/usr/lib/libXCTestSwiftSupport.dylib /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Products/Debug-iphonesimulator/Settlers.app/Frameworks
+
+Copy /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Products/Debug-iphonesimulator/Settlers.app/Frameworks/XCTest.framework /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/Library/Frameworks/XCTest.framework (in target 'Settlers' from project 'Settlers')
+    cd /Users/alex/.codex/worktrees/naval-exploration/Settlers
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -exclude Headers -exclude PrivateHeaders -exclude Modules -exclude \*.tbd -resolve-src-symlinks /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/Library/Frameworks/XCTest.framework /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Products/Debug-iphonesimulator/Settlers.app/Frameworks
+
+Copy /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Products/Debug-iphonesimulator/Settlers.app/Frameworks/libXCTestBundleInject.dylib /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/usr/lib/libXCTestBundleInject.dylib (in target 'Settlers' from project 'Settlers')
+    cd /Users/alex/.codex/worktrees/naval-exploration/Settlers
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -exclude Headers -exclude PrivateHeaders -exclude Modules -exclude \*.tbd -resolve-src-symlinks /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/usr/lib/libXCTestBundleInject.dylib /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Products/Debug-iphonesimulator/Settlers.app/Frameworks
+
+Copy /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Products/Debug-iphonesimulator/Settlers.app/Frameworks/XCTAutomationSupport.framework /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/Library/PrivateFrameworks/XCTAutomationSupport.framework (in target 'Settlers' from project 'Settlers')
+    cd /Users/alex/.codex/worktrees/naval-exploration/Settlers
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -exclude Headers -exclude PrivateHeaders -exclude Modules -exclude \*.tbd -resolve-src-symlinks /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/Library/PrivateFrameworks/XCTAutomationSupport.framework /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Products/Debug-iphonesimulator/Settlers.app/Frameworks
+
+SwiftDriver Settlers normal arm64 com.apple.xcode.tools.swift.compiler (in target 'Settlers' from project 'Settlers')
+    cd /Users/alex/.codex/worktrees/naval-exploration/Settlers
+    builtin-SwiftDriver -- /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc -module-name Settlers -Onone @/Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/Settlers.build/Debug-iphonesimulator/Settlers.build/Objects-normal/arm64/Settlers.SwiftFileList -DDEBUG -enable-experimental-feature DebugDescriptionMacro -sdk /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.5.sdk -target arm64-apple-ios17.0-simulator -g -module-cache-path /Users/alex/Library/Developer/Xcode/DerivedData/ModuleCache.noindex -Xfrontend -serialize-debugging-options -profile-coverage-mapping -profile-generate -enable-testing -warnings-as-errors -index-store-path /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Index.noindex/DataStore -Xcc -D_LIBCPP_HARDENING_MODE\=_LIBCPP_HARDENING_MODE_DEBUG -swift-version 6 -I /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Products/Debug-iphonesimulator -F /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Products/Debug-iphonesimulator/PackageFrameworks -F /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Products/Debug-iphonesimulator/PackageFrameworks -F /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Products/Debug-iphonesimulator -c -j18 -enable-batch-mode -incremental -Xcc -ivfsstatcache -Xcc /Users/alex/Library/Developer/Xcode/DerivedData/SDKStatCaches.noindex/iphonesimulator26.5-23F73-6cfe768891a92b912361537c460fe42b.sdkstatcache -output-file-map /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/Settlers.build/Debug-iphonesimulator/Settlers.build/Objects-normal/arm64/Settlers-OutputFileMap.json -use-frontend-parseable-output -save-temps -no-color-diagnostics -explicit-module-build -module-cache-path /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/SwiftExplicitPrecompiledModules -clang-scanner-module-cache-path /Users/alex/Library/Developer/Xcode/DerivedData/ModuleCache.noindex -sdk-module-cache-path /Users/alex/Library/Developer/Xcode/DerivedData/ModuleCache.noindex -serialize-diagnostics -emit-dependencies -emit-module -emit-module-path /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/Settlers.build/Debug-iphonesimulator/Settlers.build/Objects-normal/arm64/Settlers.swiftmodule -validate-clang-modules-once -clang-build-session-file /Users/alex/Library/Developer/Xcode/DerivedData/ModuleCache.noindex/Session.modulevalidation -Xcc -I/Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/Settlers.build/Debug-iphonesimulator/Settlers.build/swift-overrides.hmap -emit-const-values -Xfrontend -const-gather-protocols-file -Xfrontend /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/Settlers.build/Debug-iphonesimulator/Settlers.build/Objects-normal/arm64/Settlers_const_extract_protocols.json -Xcc -iquote -Xcc /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/Settlers.build/Debug-iphonesimulator/Settlers.build/Settlers-generated-files.hmap -Xcc -I/Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/Settlers.build/Debug-iphonesimulator/Settlers.build/Settlers-own-target-headers.hmap -Xcc -I/Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/Settlers.build/Debug-iphonesimulator/Settlers.build/Settlers-all-non-framework-target-headers.hmap -Xcc -ivfsoverlay -Xcc /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/Settlers.build/Debug-iphonesimulator/Settlers-9ad65172c434931f4eb5300f50bbe1d2-VFS-iphonesimulator/all-product-headers.yaml -Xcc -iquote -Xcc /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/Settlers.build/Debug-iphonesimulator/Settlers.build/Settlers-project-headers.hmap -Xcc -I/Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Products/Debug-iphonesimulator/include -Xcc -I/Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/Settlers.build/Debug-iphonesimulator/Settlers.build/DerivedSources-normal/arm64 -Xcc -I/Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/Settlers.build/Debug-iphonesimulator/Settlers.build/DerivedSources/arm64 -Xcc -I/Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/Settlers.build/Debug-iphonesimulator/Settlers.build/DerivedSources -Xcc -DDEBUG\=1 -emit-objc-header -emit-objc-header-path /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/Settlers.build/Debug-iphonesimulator/Settlers.build/Objects-normal/arm64/Settlers-Swift.h -working-directory /Users/alex/.codex/worktrees/naval-exploration/Settlers -experimental-emit-module-separately -disable-cmo
+
+Copy /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Products/Debug-iphonesimulator/Settlers.app/Frameworks/Testing.framework /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/Library/Frameworks/Testing.framework (in target 'Settlers' from project 'Settlers')
+    cd /Users/alex/.codex/worktrees/naval-exploration/Settlers
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -exclude Headers -exclude PrivateHeaders -exclude Modules -exclude \*.tbd -resolve-src-symlinks /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/Library/Frameworks/Testing.framework /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Products/Debug-iphonesimulator/Settlers.app/Frameworks
+
+Copy /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Products/Debug-iphonesimulator/Settlers.app/Frameworks/XCTestSupport.framework /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/Library/PrivateFrameworks/XCTestSupport.framework (in target 'Settlers' from project 'Settlers')
+    cd /Users/alex/.codex/worktrees/naval-exploration/Settlers
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -exclude Headers -exclude PrivateHeaders -exclude Modules -exclude \*.tbd -resolve-src-symlinks /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/Library/PrivateFrameworks/XCTestSupport.framework /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Products/Debug-iphonesimulator/Settlers.app/Frameworks
+
+ProcessInfoPlistFile /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Products/Debug-iphonesimulator/Settlers.app/Info.plist /Users/alex/.codex/worktrees/naval-exploration/Settlers/Settlers/Info.plist (in target 'Settlers' from project 'Settlers')
+    cd /Users/alex/.codex/worktrees/naval-exploration/Settlers
+    builtin-infoPlistUtility /Users/alex/.codex/worktrees/naval-exploration/Settlers/Settlers/Info.plist -producttype com.apple.product-type.application -genpkginfo /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Products/Debug-iphonesimulator/Settlers.app/PkgInfo -expandbuildsettings -format binary -platform iphonesimulator -additionalcontentfile /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/Settlers.build/Debug-iphonesimulator/Settlers.build/assetcatalog_generated_info.plist -o /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Products/Debug-iphonesimulator/Settlers.app/Info.plist
+
+SwiftCompile normal arm64 Compiling\ BoardViewNaval.swift /Users/alex/.codex/worktrees/naval-exploration/Settlers/Settlers/Views/Board/BoardViewNaval.swift (in target 'Settlers' from project 'Settlers')
+
+SwiftCompile normal arm64 /Users/alex/.codex/worktrees/naval-exploration/Settlers/Settlers/Views/Board/BoardViewNaval.swift (in target 'Settlers' from project 'Settlers')
+    cd /Users/alex/.codex/worktrees/naval-exploration/Settlers
+    
+
+SwiftCompile normal arm64 Compiling\ GameView+QA.swift /Users/alex/.codex/worktrees/naval-exploration/Settlers/Settlers/Testing/GameView+QA.swift (in target 'Settlers' from project 'Settlers')
+
+SwiftCompile normal arm64 /Users/alex/.codex/worktrees/naval-exploration/Settlers/Settlers/Testing/GameView+QA.swift (in target 'Settlers' from project 'Settlers')
+    cd /Users/alex/.codex/worktrees/naval-exploration/Settlers
+    
+
+SwiftCompile normal arm64 Compiling\ BoardDecisionInteractionLayer.swift /Users/alex/.codex/worktrees/naval-exploration/Settlers/Settlers/Views/Board/BoardDecisionInteractionLayer.swift (in target 'Settlers' from project 'Settlers')
+Failed frontend command:
+/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swift-frontend -frontend -c /Users/alex/.codex/worktrees/naval-exploration/Settlers/Settlers/Testing/AccessibilityID.swift /Users/alex/.codex/worktrees/naval-exploration/Settlers/Settlers/Views/ArmyHandViews.swift /Users/alex/.codex/worktrees/naval-exploration/Settlers/Settlers/Views/ArmyPurchasePopupView.swift /Users/alex/.codex/worktrees/naval-exploration/Settlers/Settlers/Views/Board/BoardCamera.swift /Users/alex/.codex/worktrees/naval-exploration/Settlers/Settlers/Views/BoardChips.swift /Users/alex/.codex/worktrees/naval-exploration/Settlers/Settlers/Views/Board/BoardDecisionBoardChrome.swift /Users/alex/.codex/worktrees/naval-exploration/Settlers/Settlers/ViewModels/BoardDecisionCoordinator.swift -primary-file /Users/alex/.codex/worktrees/naval-exploration/Settlers/Settlers/Views/Board/BoardDecisionInteractionLayer.swift /Users/alex/.codex/worktrees/naval-exploration/Settlers/Settlers/Views/Board/BoardInspectionSemantics.swift /Users/alex/.codex/worktrees/naval-exploration/Settlers/Settlers/Views/Board/BoardView.swift /Users/alex/.codex/worktrees/naval-exploration/Settlers/Settlers/Views/Board/BoardViewCamera.swift /Users/alex/.codex/worktrees/naval-exploration/Settlers/Settlers/Views/Board/BoardViewNaval.swift /Users/alex/.codex/worktrees/naval-exploration/Settlers/Settlers/Models/BotDifficulty.swift /Users/alex/.codex/worktrees/naval-exploration/Settlers/Settlers/Views/BottomSafeInsetKey.swift /Users/alex/.codex/worktrees/naval-exploration/Settlers/Settlers/Views/BuildPopupView.swift /Users/alex/.codex/worktrees/naval-exploration/Settlers/Settlers/Theme/CatanTheme.swift /Users/alex/.codex/worktrees/naval-exploration/Settlers/Settlers/Testing/CheckpointProcessProbe.swift /Users/alex/.codex/worktrees/naval-exploration/Settlers/Settlers/Theme/Civilization.swift /Users/alex/.codex/worktrees/naval-exploration/Settlers/Settlers/Persistence/CivilizationAssignmentStore.swift /Users/alex/.codex/worktrees/naval-exploration/Settlers/Settlers/Views/Board/CivilizationBadge.swift /Users/alex/.codex/worktrees/naval-exploration/Settlers/Settlers/Views/CivilizationPickerPopup.swift /Users/alex/.codex/worktrees/naval-exploration/Settlers/Settlers/Views/Board/CivilizationPieceShapes.swift /Users/alex/.codex/worktrees/naval-exploration/Settlers/Settlers/Persistence/CivilizationSettingsStore.swift /Users/alex/.codex/worktrees/naval-exploration/Settlers/Settlers/Sync/CloudBackend.swift /Users/alex/.codex/worktrees/naval-exploration/Settlers/Settlers/Sync/CloudKitBackend.swift /Users/alex/.codex/worktrees/naval-exploration/Settlers/Settlers/ContentView.swift /Users/alex/.codex/worktrees/naval-exploration/Settlers/Settlers/Views/CornerAccent.swift /Users/alex/.codex/worktrees/naval-exploration/Settlers/Settlers/Views/DevCardPopupView.swift /Users/alex/.codex/worktrees/naval-exploration/Settlers/Settlers/Theme/DevCardStyle.swift /Users/alex/.codex/worktrees/naval-exploration/Settlers/Settlers/ViewModels/DevelopmentCardPresentationState.swift /Users/alex/.codex/worktrees/naval-exploration/Settlers/Settlers/Views/DiscardPopupView.swift /Users/alex/.codex/worktrees/naval-exploration/Settlers/Settlers/ViewModels/DiscardPresentationState.swift /Users/alex/.codex/worktrees/naval-exploration/Settlers/Settlers/Models/Elo.swift /Users/alex/.codex/worktrees/naval-exploration/Settlers/Settlers/Views/EndGameView.swift /Users/alex/.codex/worktrees/naval-exploration/Settlers/Settlers/Views/GameActionPanels.swift /Users/alex/.codex/worktrees/naval-exploration/Settlers/Settlers/Views/GameHistoryView.swift /Users/alex/.codex/worktrees/naval-exploration/Settlers/Settlers/Persistence/GameLogStore.swift /Users/alex/.codex/worktrees/naval-exploration/Settlers/Settlers/Models/GameReplayNarrator.swift /Users/alex/.codex/worktrees/naval-exploration/Settlers/Settlers/Models/GameReplayTimeline.swift /Users/alex/.codex/worktrees/naval-exploration/Settlers/Settlers/Views/GameReplayView.swift /Users/alex/.codex/worktrees/naval-exploration/Settlers/Settlers/Persistence/GameStatsStore.swift /Users/alex/.codex/worktrees/naval-exploration/Settlers/Settlers/Persistence/GameStore.swift /Users/alex/.codex/worktrees/naval-exploration/Settlers/Settlers/Testing/GameView+QA.swift /Users/alex/.codex/worktrees/naval-exploration/Settlers/Settlers/Views/GameView.swift /Users/alex/.codex/worktrees/naval-exploration/Settlers/Settlers/Views/GameViewLayoutSupport.swift /Users/alex/.codex/worktrees/naval-exploration/Settlers/Settlers/ViewModels/GameViewModel+BoardDecision.swift /Users/alex/.codex/worktrees/naval-exploration/Settlers/Settlers/ViewModels/GameViewModel+BotPacing.swift /Users/alex/.codex/worktrees/naval-exploration/Settlers/Settlers/ViewModels/GameViewModel+Checkpoints.swift /Users/alex/.codex/worktrees/naval-exploration/Settlers/Settlers/ViewModels/GameViewModel+Conquest.swift /Users/alex/.codex/worktrees/naval-exploration/Settlers/Settlers/ViewModels/GameViewModel+GameOver.swift /Users/alex/.codex/worktrees/naval-exploration/Settlers/Settlers/ViewModels/GameViewModel+Ghosts.swift /Users/alex/.codex/worktrees/naval-exploration/Settlers/Settlers/ViewModels/GameViewModel+OpponentProfiles.swift /Users/alex/.codex/worktrees/naval-exploration/Settlers/Settlers/ViewModels/GameViewModel+Policies.swift /Users/alex/.codex/worktrees/naval-exploration/Settlers/Settlers/Testing/GameViewModel+QABoardDecision.swift /Users/alex/.codex/worktrees/naval-exploration/Settlers/Settlers/Testing/GameViewModel+QACompleteMatch.swift /Users/alex/.codex/worktrees/naval-exploration/Settlers/Settlers/Testing/GameViewModel+QAConquest.swift /Users/alex/.codex/worktrees/naval-exploration/Settlers/Settlers/Testing/GameViewModel+QADevCards.swift /Users/alex/.codex/worktrees/naval-exploration/Settlers/Settlers/Testing/GameViewModel+QADiscard.swift /Users/alex/.codex/worktrees/naval-exploration/Settlers/Settlers/Testing/GameViewModel+QAFeedback.swift /Users/alex/.codex/worktrees/naval-exploration/Settlers/Settlers/Testing/GameViewModel+QANaval.swift /Users/alex/.codex/worktrees/naval-exploration/Settlers/Settlers/Testing/GameViewModel+QAProduction.swift /Users/alex/.codex/worktrees/naval-exploration/Settlers/Settlers/Testing/GameViewModel+QATrade.swift /Users/alex/.codex/worktrees/naval-exploration/Settlers/Settlers/Testing/GameViewModel+QAVast.swift /Users/alex/.codex/worktrees/naval-exploration/Settlers/Settlers/ViewModels/GameViewModel+Recovery.swift /Users/alex/.codex/worktrees/naval-exploration/Settlers/Settlers/ViewModels/GameViewModel.swift /Users/alex/.codex/worktrees/naval-exploration/Settlers/Settlers/Models/GameplayFeedback.swift /Users/alex/.codex/worktrees/naval-exploration/Settlers/Settlers/Views/GameplayFeedbackView.swift /Users/alex/.codex/worktrees/naval-exploration/Settlers/Settlers/Views/GhostPickerPopup.swift /Users/alex/.codex/worktrees/naval-exploration/Settlers/Settlers/Persistence/GhostStore.swift /Users/alex/.codex/worktrees/naval-exploration/Settlers/Settlers/ViewModels/GhostTrainer.swift /Users/alex/.codex/worktrees/naval-exploration/Settlers/Settlers/Views/GoldRowButton.swift /Users/alex/.codex/worktrees/naval-exploration/Settlers/Settlers/Views/Board/HexGeometry.swift /Users/alex/.codex/worktrees/naval-exploration/Settlers/Settlers/Views/HowToPlayContent.swift /Users/alex/.codex/worktrees/naval-exploration/Settlers/Settlers/Views/HowToPlayIllustration.swift /Users/alex/.codex/worktrees/naval-exploration/Settlers/Settlers/Views/HowToPlayView.swift /Users/alex/.codex/worktrees/naval-exploration/Settlers/Settlers/Persistence/HumanSeatStore.swift /Users/alex/.codex/worktrees/naval-exploration/Settlers/Settlers/Views/InGameSettingsView.swift /Users/alex/.codex/worktrees/naval-exploration/Settlers/Settlers/Views/IncomingTradeCardView.swift /Users/alex/.codex/worktrees/naval-exploration/Settlers/Settlers/Views/LadderNameEntry.swift /Users/alex/.codex/worktrees/naval-exploration/Settlers/Settlers/Models/Leaderboard.swift /Users/alex/.codex/worktrees/naval-exploration/Settlers/Settlers/Views/LeaderboardView.swift /Users/alex/.codex/worktrees/naval-exploration/Settlers/Settlers/Sync/LiveSync.swift /Users/alex/.codex/worktrees/naval-exploration/Settlers/Settlers/Views/MainMenuView.swift /Users/alex/.codex/worktrees/naval-exploration/Settlers/Settlers/Persistence/MatchCheckpointMigration.swift /Users/alex/.codex/worktrees/naval-exploration/Settlers/Settlers/Persistence/MatchCheckpointStore.swift /Users/alex/.codex/worktrees/naval-exploration/Settlers/Settlers/ViewModels/MatchPersistenceTransaction.swift /Users/alex/.codex/worktrees/naval-exploration/Settlers/Settlers/Persistence/MatchSetup.swift /Users/alex/.codex/worktrees/naval-exploration/Settlers/Settlers/Views/Board/NavalArtwork.swift /Users/alex/.codex/worktrees/naval-exploration/Settlers/Settlers/Views/Board/NavalBoardInteractions.swift /Users/alex/.codex/worktrees/naval-exploration/Settlers/Settlers/Testing/NavalQAFixture.swift /Users/alex/.codex/worktrees/naval-exploration/Settlers/Settlers/Views/NavalResourceChoiceView.swift /Users/alex/.codex/worktrees/naval-exploration/Settlers/Settlers/Views/NavalSetupOptionsView.swift /Users/alex/.codex/worktrees/naval-exploration/Settlers/Settlers/Views/NewGameSetupView.swift /Users/alex/.codex/worktrees/naval-exploration/Settlers/Settlers/Models/OpponentProfile.swift /Users/alex/.codex/worktrees/naval-exploration/Settlers/Settlers/Persistence/PacingPreferences.swift /Users/alex/.codex/worktrees/naval-exploration/Settlers/Settlers/Views/PaintedChromeBackground.swift /Users/alex/.codex/worktrees/naval-exploration/Settlers/Settlers/Persistence/PlayerDirectory.swift /Users/alex/.codex/worktrees/naval-exploration/Settlers/Settlers/Views/PlayerHUDView.swift /Users/alex/.codex/worktrees/naval-exploration/Settlers/Settlers/Theme/PlayerIdentity.swift /Users/alex/.codex/worktrees/naval-exploration/Settlers/Settlers/Persistence/PlayerNameStore.swift /Users/alex/.codex/worktrees/naval-exploration/Settlers/Settlers/Testing/QAGameHistoryFixture.swift /Users/alex/.codex/worktrees/naval-exploration/Settlers/Settlers/QALaunchFlag.swift /Users/alex/.codex/worktrees/naval-exploration/Settlers/Settlers/Views/RadarChartView.swift /Users/alex/.codex/worktrees/naval-exploration/Settlers/Settlers/Views/RatedEntityDetailView.swift /Users/alex/.codex/worktrees/naval-exploration/Settlers/Settlers/Persistence/RatingStore.swift /Users/alex/.codex/worktrees/naval-exploration/Settlers/Settlers/Views/ResourceChip.swift /Users/alex/.codex/worktrees/naval-exploration/Settlers/Settlers/Models/ResourceProductionFeedback.swift /Users/alex/.codex/worktrees/naval-exploration/Settlers/Settlers/Views/ResourceProductionFeedbackView.swift /Users/alex/.codex/worktrees/naval-exploration/Settlers/Settlers/Persistence/SavedGameAvailability.swift /Users/alex/.codex/worktrees/naval-exploration/Settlers/Settlers/Views/SeatCardView.swift /Users/alex/.codex/worktrees/naval-exploration/Settlers/Settlers/Views/SeatNumberPickerPopup.swift /Users/alex/.codex/worktrees/naval-exploration/Settlers/Settlers/Persistence/SeatStatsStore.swift /Users/alex/.codex/worktrees/naval-exploration/Settlers/Settlers/Views/SettingsChrome.swift /Users/alex/.codex/worktrees/naval-exploration/Settlers/Settlers/SettlersApp.swift /Users/alex/.codex/worktrees/naval-exploration/Settlers/Settlers/Sync/SharedMatch.swift /Users/alex/.codex/worktrees/naval-exploration/Settlers/Settlers/Views/Board/TileView.swift /Users/alex/.codex/worktrees/naval-exploration/Settlers/Settlers/Views/TopChipHeightKey.swift /Users/alex/.codex/worktrees/naval-exploration/Settlers/Settlers/Views/TradePopupView.swift /Users/alex/.codex/worktrees/naval-exploration/Settlers/Settlers/ViewModels/TradePresentationState.swift /Users/alex/.codex/worktrees/naval-exploration/Settlers/Settlers/Views/TradeReceiptView.swift /Users/alex/.codex/worktrees/naval-exploration/Settlers/Settlers/Testing/UITestBootstrap.swift /Users/alex/.codex/worktrees/naval-exploration/Settlers/Settlers/Views/UniformActionButton.swift /Users/alex/.codex/worktrees/naval-exploration/Settlers/Settlers/Models/VictoryPointBreakdown.swift /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/Settlers.build/Debug-iphonesimulator/Settlers.build/DerivedSources/GeneratedAssetSymbols.swift -emit-dependencies-path /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/Settlers.build/Debug-iphonesimulator/Settlers.build/Objects-normal/arm64/BoardDecisionInteractionLayer.d -emit-const-values-path /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/Settlers.build/Debug-iphonesimulator/Settlers.build/Objects-normal/arm64/BoardDecisionInteractionLayer.swiftconstvalues -emit-reference-dependencies-path /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/Settlers.build/Debug-iphonesimulator/Settlers.build/Objects-normal/arm64/BoardDecisionInteractionLayer.swiftdeps -serialize-diagnostics-path /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/Settlers.build/Debug-iphonesimulator/Settlers.build/Objects-normal/arm64/BoardDecisionInteractionLayer.dia -target arm64-apple-ios17.0-simulator -module-can-import-version DeveloperToolsSupport 23.40.26 23.40.26 -load-resolved-plugin /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/usr/lib/swift/host/plugins/libFoundationMacros.dylib\#/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/usr/bin/swift-plugin-server\#FoundationMacros -load-resolved-plugin /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/usr/lib/swift/host/plugins/libObservationMacros.dylib\#/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/usr/bin/swift-plugin-server\#ObservationMacros -load-resolved-plugin /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/usr/lib/swift/host/plugins/libPreviewsMacros.dylib\#/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/usr/bin/swift-plugin-server\#PreviewsMacros -load-resolved-plugin /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/usr/lib/swift/host/plugins/libSwiftMacros.dylib\#/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/usr/bin/swift-plugin-server\#SwiftMacros -load-resolved-plugin /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/usr/lib/swift/host/plugins/libSwiftUIMacros.dylib\#/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/usr/bin/swift-plugin-server\#SwiftUIMacros -disable-implicit-swift-modules -Xcc -fno-implicit-modules -Xcc -fno-implicit-module-maps -explicit-swift-module-map-file /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/Settlers.build/Debug-iphonesimulator/Settlers.build/Objects-normal/arm64/Settlers-dependencies-1.json -debug-module-path /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/Settlers.build/Debug-iphonesimulator/Settlers.build/Objects-normal/arm64/Settlers.swiftmodule -Xllvm -aarch64-use-tbi -enable-objc-interop -sdk /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.5.sdk -I /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Products/Debug-iphonesimulator -F /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Products/Debug-iphonesimulator/PackageFrameworks -F /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Products/Debug-iphonesimulator/PackageFrameworks -F /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Products/Debug-iphonesimulator -no-color-diagnostics -Xcc -fno-color-diagnostics -enable-testing -g -debug-info-format\=dwarf -dwarf-version\=4 -module-cache-path /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/SwiftExplicitPrecompiledModules -profile-generate -profile-coverage-mapping -warnings-as-errors -warnings-as-errors -swift-version 6 -Onone -D DEBUG -serialize-debugging-options -const-gather-protocols-file /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/Settlers.build/Debug-iphonesimulator/Settlers.build/Objects-normal/arm64/Settlers_const_extract_protocols.json -enable-experimental-feature DebugDescriptionMacro -empty-abi-descriptor -validate-clang-modules-once -clang-build-session-file /Users/alex/Library/Developer/Xcode/DerivedData/ModuleCache.noindex/Session.modulevalidation -Xcc -working-directory -Xcc /Users/alex/.codex/worktrees/naval-exploration/Settlers -enable-anonymous-context-mangled-names -file-compilation-dir /Users/alex/.codex/worktrees/naval-exploration/Settlers -Xcc -D_LIBCPP_HARDENING_MODE\=_LIBCPP_HARDENING_MODE_DEBUG -Xcc -ivfsstatcache -Xcc /Users/alex/Library/Developer/Xcode/DerivedData/SDKStatCaches.noindex/iphonesimulator26.5-23F73-6cfe768891a92b912361537c460fe42b.sdkstatcache -Xcc -I/Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/Settlers.build/Debug-iphonesimulator/Settlers.build/swift-overrides.hmap -Xcc -iquote -Xcc /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/Settlers.build/Debug-iphonesimulator/Settlers.build/Settlers-generated-files.hmap -Xcc -I/Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/Settlers.build/Debug-iphonesimulator/Settlers.build/Settlers-own-target-headers.hmap -Xcc -I/Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/Settlers.build/Debug-iphonesimulator/Settlers.build/Settlers-all-non-framework-target-headers.hmap -Xcc -ivfsoverlay -Xcc /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/Settlers.build/Debug-iphonesimulator/Settlers-9ad65172c434931f4eb5300f50bbe1d2-VFS-iphonesimulator/all-product-headers.yaml -Xcc -iquote -Xcc /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/Settlers.build/Debug-iphonesimulator/Settlers.build/Settlers-project-headers.hmap -Xcc -I/Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Products/Debug-iphonesimulator/include -Xcc -I/Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/Settlers.build/Debug-iphonesimulator/Settlers.build/DerivedSources-normal/arm64 -Xcc -I/Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/Settlers.build/Debug-iphonesimulator/Settlers.build/DerivedSources/arm64 -Xcc -I/Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/Settlers.build/Debug-iphonesimulator/Settlers.build/DerivedSources -Xcc -DDEBUG\=1 -no-auto-bridging-header-chaining -module-name Settlers -frontend-parseable-output -disable-clang-spi -clang-target arm64-apple-ios26.5-simulator -target-sdk-version 26.5 -target-sdk-name iphonesimulator26.5 -in-process-plugin-server-path /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/host/libSwiftInProcPluginServer.dylib -o /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Build/Intermediates.noindex/Settlers.build/Debug-iphonesimulator/Settlers.build/Objects-normal/arm64/BoardDecisionInteractionLayer.o -index-unit-output-path /Settlers.build/Debug-iphonesimulator/Settlers.build/Objects-normal/arm64/BoardDecisionInteractionLayer.o -index-store-path /Users/alex/Library/Developer/Xcode/DerivedData/Settlers-bqwdcayamsmaxsekctdqetlegmaf/Index.noindex/DataStore -index-system-modules
+
+SwiftCompile normal arm64 /Users/alex/.codex/worktrees/naval-exploration/Settlers/Settlers/Views/Board/BoardDecisionInteractionLayer.swift (in target 'Settlers' from project 'Settlers')
+    cd /Users/alex/.codex/worktrees/naval-exploration/Settlers
+    
+/Users/alex/.codex/worktrees/naval-exploration/Settlers/Settlers/Views/Board/BoardDecisionInteractionLayer.swift:37:29: error: ambiguous use of 'filter'
+        ForEach(board.tiles.filter { legalTiles.contains($0.coordinate) }, id: \.coordinate) { tile in
+                            ^
+Swift.RangeReplaceableCollection.filter:3:38: note: found this candidate in module 'Swift'
+  @inlinable public __consuming func filter(_ isIncluded: (Self.Element) throws -> Bool) rethrows -> Self}
+                                     ^
+Swift.Sequence.filter:2:36: note: found this candidate in module 'Swift'
+@inlinable public __consuming func filter(_ isIncluded: (Self.Element) throws -> Bool) rethrows -> [Self.Element]}
+                                   ^
+Swift._ArrayProtocol.filter:2:36: note: found this candidate in module 'Swift'
+@inlinable public __consuming func filter(_ isIncluded: (Self.Element) throws -> Bool) rethrows -> [Self.Element]}
+                                   ^
+
+SwiftCompile normal arm64 Compiling\ GameView.swift /Users/alex/.codex/worktrees/naval-exploration/Settlers/Settlers/Views/GameView.swift (in target 'Settlers' from project 'Settlers')
+SwiftCompile normal arm64 /Users/alex/.codex/worktrees/naval-exploration/Settlers/Settlers/Views/GameView.swift (in target 'Settlers' from project 'Settlers')
+    cd /Users/alex/.codex/worktrees/naval-exploration/Settlers
+    
+
+SwiftCompile normal arm64 Compiling\ BoardView.swift /Users/alex/.codex/worktrees/naval-exploration/Settlers/Settlers/Views/Board/BoardView.swift (in target 'Settlers' from project 'Settlers')
+
+SwiftCompile normal arm64 /Users/alex/.codex/worktrees/naval-exploration/Settlers/Settlers/Views/Board/BoardView.swift (in target 'Settlers' from project 'Settlers')
+    cd /Users/alex/.codex/worktrees/naval-exploration/Settlers
+    
+
+SwiftCompile normal arm64 Compiling\ GameViewModel+QANaval.swift /Users/alex/.codex/worktrees/naval-exploration/Settlers/Settlers/Testing/GameViewModel+QANaval.swift (in target 'Settlers' from project 'Settlers')
+
+SwiftCompile normal arm64 /Users/alex/.codex/worktrees/naval-exploration/Settlers/Settlers/Testing/GameViewModel+QANaval.swift (in target 'Settlers' from project 'Settlers')
+    cd /Users/alex/.codex/worktrees/naval-exploration/Settlers
+    
+
+SwiftCompile normal arm64 Compiling\ TileView.swift /Users/alex/.codex/worktrees/naval-exploration/Settlers/Settlers/Views/Board/TileView.swift (in target 'Settlers' from project 'Settlers')
+
+SwiftCompile normal arm64 /Users/alex/.codex/worktrees/naval-exploration/Settlers/Settlers/Views/Board/TileView.swift (in target 'Settlers' from project 'Settlers')
+    cd /Users/alex/.codex/worktrees/naval-exploration/Settlers
+    
+
+SwiftCompile normal arm64 Compiling\ NavalQAFixture.swift /Users/alex/.codex/worktrees/naval-exploration/Settlers/Settlers/Testing/NavalQAFixture.swift (in target 'Settlers' from project 'Settlers')
+
+SwiftCompile normal arm64 /Users/alex/.codex/worktrees/naval-exploration/Settlers/Settlers/Testing/NavalQAFixture.swift (in target 'Settlers' from project 'Settlers')
+    cd /Users/alex/.codex/worktrees/naval-exploration/Settlers
+    
+
+SwiftCompile normal arm64 Compiling\ NavalBoardInteractions.swift /Users/alex/.codex/worktrees/naval-exploration/Settlers/Settlers/Views/Board/NavalBoardInteractions.swift (in target 'Settlers' from project 'Settlers')
+SwiftCompile normal arm64 /Users/alex/.codex/worktrees/naval-exploration/Settlers/Settlers/Views/Board/NavalBoardInteractions.swift (in target 'Settlers' from project 'Settlers')
+    cd /Users/alex/.codex/worktrees/naval-exploration/Settlers
+    
+
+SwiftCompile normal arm64 Compiling\ QALaunchFlag.swift /Users/alex/.codex/worktrees/naval-exploration/Settlers/Settlers/QALaunchFlag.swift (in target 'Settlers' from project 'Settlers')
+
+SwiftCompile normal arm64 /Users/alex/.codex/worktrees/naval-exploration/Settlers/Settlers/QALaunchFlag.swift (in target 'Settlers' from project 'Settlers')
+    cd /Users/alex/.codex/worktrees/naval-exploration/Settlers
+    
+
+SwiftEmitModule normal arm64 Emitting\ module\ for\ Settlers (in target 'Settlers' from project 'Settlers')
+EmitSwiftModule normal arm64 (in target 'Settlers' from project 'Settlers')
+    cd /Users/alex/.codex/worktrees/naval-exploration/Settlers
+    
+
+SwiftDriverJobDiscovery normal arm64 Compiling QALaunchFlag.swift (in target 'Settlers' from project 'Settlers')
+
+SwiftCompile normal arm64 Compiling\ GameViewModel+Ghosts.swift /Users/alex/.codex/worktrees/naval-exploration/Settlers/Settlers/ViewModels/GameViewModel+Ghosts.swift (in target 'Settlers' from project 'Settlers')
+
+SwiftCompile normal arm64 /Users/alex/.codex/worktrees/naval-exploration/Settlers/Settlers/ViewModels/GameViewModel+Ghosts.swift (in target 'Settlers' from project 'Settlers')
+    cd /Users/alex/.codex/worktrees/naval-exploration/Settlers
+    
+
+SwiftCompile normal arm64 Compiling\ GameViewModel+QABoardDecision.swift /Users/alex/.codex/worktrees/naval-exploration/Settlers/Settlers/Testing/GameViewModel+QABoardDecision.swift (in target 'Settlers' from project 'Settlers')
+
+SwiftCompile normal arm64 /Users/alex/.codex/worktrees/naval-exploration/Settlers/Settlers/Testing/GameViewModel+QABoardDecision.swift (in target 'Settlers' from project 'Settlers')
+    cd /Users/alex/.codex/worktrees/naval-exploration/Settlers
+    
+
+SwiftCompile normal arm64 Compiling\ ContentView.swift /Users/alex/.codex/worktrees/naval-exploration/Settlers/Settlers/ContentView.swift (in target 'Settlers' from project 'Settlers')
+
+SwiftCompile normal arm64 /Users/alex/.codex/worktrees/naval-exploration/Settlers/Settlers/ContentView.swift (in target 'Settlers' from project 'Settlers')
+    cd /Users/alex/.codex/worktrees/naval-exploration/Settlers
+    
+
+SwiftCompile normal arm64 Compiling\ GameHistoryView.swift /Users/alex/.codex/worktrees/naval-exploration/Settlers/Settlers/Views/GameHistoryView.swift (in target 'Settlers' from project 'Settlers')
+
+SwiftCompile normal arm64 /Users/alex/.codex/worktrees/naval-exploration/Settlers/Settlers/Views/GameHistoryView.swift (in target 'Settlers' from project 'Settlers')
+    cd /Users/alex/.codex/worktrees/naval-exploration/Settlers
+    
+
+SwiftCompile normal arm64 Compiling\ MainMenuView.swift /Users/alex/.codex/worktrees/naval-exploration/Settlers/Settlers/Views/MainMenuView.swift (in target 'Settlers' from project 'Settlers')
+
+SwiftCompile normal arm64 /Users/alex/.codex/worktrees/naval-exploration/Settlers/Settlers/Views/MainMenuView.swift (in target 'Settlers' from project 'Settlers')
+    cd /Users/alex/.codex/worktrees/naval-exploration/Settlers
+    
+
+SwiftCompile normal arm64 Compiling\ LadderNameEntry.swift /Users/alex/.codex/worktrees/naval-exploration/Settlers/Settlers/Views/LadderNameEntry.swift (in target 'Settlers' from project 'Settlers')
+
+SwiftCompile normal arm64 /Users/alex/.codex/worktrees/naval-exploration/Settlers/Settlers/Views/LadderNameEntry.swift (in target 'Settlers' from project 'Settlers')
+    cd /Users/alex/.codex/worktrees/naval-exploration/Settlers
+    
+
+SwiftCompile normal arm64 Compiling\ QAGameHistoryFixture.swift /Users/alex/.codex/worktrees/naval-exploration/Settlers/Settlers/Testing/QAGameHistoryFixture.swift (in target 'Settlers' from project 'Settlers')
+
+SwiftCompile normal arm64 /Users/alex/.codex/worktrees/naval-exploration/Settlers/Settlers/Testing/QAGameHistoryFixture.swift (in target 'Settlers' from project 'Settlers')
+    cd /Users/alex/.codex/worktrees/naval-exploration/Settlers
+    
+
+SwiftCompile normal arm64 Compiling\ GameViewModel+QATrade.swift /Users/alex/.codex/worktrees/naval-exploration/Settlers/Settlers/Testing/GameViewModel+QATrade.swift (in target 'Settlers' from project 'Settlers')
+
+SwiftCompile normal arm64 /Users/alex/.codex/worktrees/naval-exploration/Settlers/Settlers/Testing/GameViewModel+QATrade.swift (in target 'Settlers' from project 'Settlers')
+    cd /Users/alex/.codex/worktrees/naval-exploration/Settlers
+    
+
+SwiftCompile normal arm64 Compiling\ LeaderboardView.swift /Users/alex/.codex/worktrees/naval-exploration/Settlers/Settlers/Views/LeaderboardView.swift (in target 'Settlers' from project 'Settlers')
+
+SwiftCompile normal arm64 /Users/alex/.codex/worktrees/naval-exploration/Settlers/Settlers/Views/LeaderboardView.swift (in target 'Settlers' from project 'Settlers')
+    cd /Users/alex/.codex/worktrees/naval-exploration/Settlers
+    
+
+SwiftDriverJobDiscovery normal arm64 Compiling NavalQAFixture.swift (in target 'Settlers' from project 'Settlers')
+
+SwiftCompile normal arm64 Compiling\ BoardChips.swift /Users/alex/.codex/worktrees/naval-exploration/Settlers/Settlers/Views/BoardChips.swift (in target 'Settlers' from project 'Settlers')
+
+SwiftDriverJobDiscovery normal arm64 Compiling GameViewModel+QANaval.swift (in target 'Settlers' from project 'Settlers')
+
+SwiftCompile normal arm64 Compiling\ NewGameSetupView.swift /Users/alex/.codex/worktrees/naval-exploration/Settlers/Settlers/Views/NewGameSetupView.swift (in target 'Settlers' from project 'Settlers')
+
+
+Test session results, code coverage, and logs:
+	/Users/alex/.codex/artifacts/naval-exploration/map-fixes-a19ac5d.xcresult
+
+Testing failed:
+	Ambiguous use of 'filter'
+	Testing cancelled because the build failed.
+
+** TEST FAILED **
+
+
+The following build commands failed:
+	SwiftCompile normal arm64 Compiling\ BoardDecisionInteractionLayer.swift /Users/alex/.codex/worktrees/naval-exploration/Settlers/Settlers/Views/Board/BoardDecisionInteractionLayer.swift (in target 'Settlers' from project 'Settlers')
+	SwiftCompile normal arm64 /Users/alex/.codex/worktrees/naval-exploration/Settlers/Settlers/Views/Board/BoardDecisionInteractionLayer.swift (in target 'Settlers' from project 'Settlers')
+	Testing project Settlers with scheme Settlers
+(3 failures)

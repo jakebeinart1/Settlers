@@ -1,0 +1,254 @@
+{
+  "sourceRevision": "ac3dec5493567b09b985a2e445f2194047415318",
+  "changes": "New Game Rules: Standard / Conquest / Naval; app presentation and native tests only",
+  "fullGameplayGateSource": "971a615ba701e2eca9e22ae538cadbfd8d243d8a",
+  "fullGateRerunForThisSetupOnlyCorrection": false,
+  "engineAIAndMatchSetupSourceUnchanged": true,
+  "postTestDebugBuildExitCode": 0,
+  "releaseBuildExitCode": 0,
+  "strictLintExitCode": 0,
+  "nativeAndHostedRuns": [
+    {
+      "name": "rules-setup",
+      "sourceRevision": "c40104c",
+      "result": "Passed",
+      "commandExitCode": 0,
+      "functions": 22,
+      "actualRuns": 24,
+      "failed": 0,
+      "skipped": 0,
+      "durableResult": "/Users/alex/.codex/artifacts/naval-exploration/naval-rules-setup.xcresult",
+      "summary": "receipts/naval-rules-setup-summary.json"
+    },
+    {
+      "name": "rules-final",
+      "sourceRevision": "c40104c",
+      "result": "Passed",
+      "commandExitCode": 0,
+      "functions": 6,
+      "actualRuns": 6,
+      "failed": 0,
+      "skipped": 0,
+      "durableResult": "/Users/alex/.codex/artifacts/naval-exploration/naval-rules-final.xcresult",
+      "summary": "receipts/naval-rules-final-summary.json"
+    },
+    {
+      "name": "rules-small",
+      "sourceRevision": "c40104c",
+      "result": "Passed",
+      "commandExitCode": 0,
+      "functions": 37,
+      "actualRuns": 71,
+      "failed": 0,
+      "skipped": 0,
+      "durableResult": "/Users/alex/.codex/artifacts/naval-exploration/naval-rules-small.xcresult",
+      "summary": "receipts/naval-rules-small-summary.json"
+    },
+    {
+      "name": "rules-aligned-regular-final",
+      "sourceRevision": "ac3dec5493567b09b985a2e445f2194047415318",
+      "result": "Passed",
+      "commandExitCode": 0,
+      "functions": 1,
+      "actualRuns": 1,
+      "failed": 0,
+      "skipped": 0,
+      "durableResult": "/Users/alex/.codex/artifacts/naval-exploration/naval-rules-aligned-regular-final.xcresult",
+      "summary": "receipts/naval-rules-aligned-regular-final-summary.json"
+    },
+    {
+      "name": "rules-aligned-small-final",
+      "sourceRevision": "ac3dec5493567b09b985a2e445f2194047415318",
+      "result": "Passed",
+      "commandExitCode": 0,
+      "functions": 1,
+      "actualRuns": 1,
+      "failed": 0,
+      "skipped": 0,
+      "durableResult": "/Users/alex/.codex/artifacts/naval-exploration/naval-rules-aligned-small-final.xcresult",
+      "summary": "receipts/naval-rules-aligned-small-final-summary.json"
+    }
+  ],
+  "selectionFilterNote": "Initial filename-style NewGameSetupTests selection matched no Swift Testing suites; corrected on SE using actual MatchSetupValidationTests, MatchSetupModeTests and MatchSetupStoreTests IDs (36 functions, 70 runs).",
+  "retainedFailedTest": {
+    "sourceRevision": "a0d198b",
+    "exitCode": 65,
+    "cause": "Unscoped staticTexts[Rules] matched setup and underlying main-menu text; scoped to screen.new-game in ac3dec5 and reran successfully on both sizes.",
+    "durableResult": "/Users/alex/.codex/artifacts/naval-exploration/naval-rules-alignment-test-failure.xcresult"
+  },
+  "installedReview": {
+    "simulator": "Empires Voyages Review",
+    "simulatorID": "1F7385BD-18DD-4C36-98D0-4C9B52F82295",
+    "device": "iPhone 17 Pro",
+    "runtime": "iOS 26.5",
+    "version": "1.0",
+    "build": "16",
+    "bundleID": "com.jakebeinart.settlers",
+    "appBinarySHA256": "57b468641d73c2c4bbafbb92eea097849abc9b3280844e71771e9c8aa8422bee",
+    "debugDylibSHA256": "beb634129e0b225cb50d5ec59a0acc44e7046d07599628ec7504f68bb3109c7f",
+    "installMethod": "in place, original manual-review checkpoint byte-identical before and after update/clean launch",
+    "originalCheckpointSHA256": "d3e1904a864ff88ec9e507cc21738d51b1e9fee8169325a0176f86f48b859ac5",
+    "captureOnlyProcessPID": 86020,
+    "captureOnlyArguments": [
+      "-ui-testing",
+      "-qaShowNewGame"
+    ],
+    "currentProcessPID": 86428,
+    "currentArguments": [
+      "-ui-testing"
+    ],
+    "currentScreen": "main menu; New Game opens shipping setup and Resume keeps saved match",
+    "processAlive": true,
+    "newCrashReports": [],
+    "noFixedSeedOrRarePositionFlags": true
+  },
+  "phoneDelivery": "Not performed. CoreDevice reports paired Alex iPhone unavailable; the phone screenshot does not establish installation of this isolated build.",
+  "images": [
+    {
+      "file": "screenshots/naval-rules-selector.png",
+      "sourceCapture": "/tmp/empires-naval-rules-evidence/naval-rules-live.png",
+      "role": "exact Debug build, temporary Classic setup fixture; Naval visible under Rules",
+      "sourceRevision": "ac3dec5493567b09b985a2e445f2194047415318",
+      "sha256": "91df40643f845393e2d32a4f5dbcfb8363fd0d5a5bf21e497b8df8b841d26ab7",
+      "bytes": 3321806,
+      "width": 1206,
+      "height": 2622,
+      "pixelHandling": "byte-identical original capture; no editing",
+      "rootInspected": true,
+      "appBinarySHA256": "57b468641d73c2c4bbafbb92eea097849abc9b3280844e71771e9c8aa8422bee",
+      "debugDylibSHA256": "beb634129e0b225cb50d5ec59a0acc44e7046d07599628ec7504f68bb3109c7f"
+    },
+    {
+      "file": "screenshots/naval-rules-selected.png",
+      "sourceCapture": "/tmp/empires-naval-rules-evidence/rules-aligned-regular-final-attachments/4D53D752-B403-498D-85F5-A22C38452AF1.png",
+      "role": "actual native Naval selection and island settings; final-source instrumented Debug",
+      "sourceRevision": "ac3dec5493567b09b985a2e445f2194047415318",
+      "sha256": "d8c6980439e114ad991bee907a5d8acb8774f04e7560a62f05a1c8166f9056ca",
+      "bytes": 2636676,
+      "width": 1206,
+      "height": 2622,
+      "pixelHandling": "byte-identical original capture; no editing",
+      "rootInspected": true,
+      "binaryIdentity": "XCTest-instrumented Debug at exact final source; not assigned post-build hash"
+    },
+    {
+      "file": "screenshots/naval-rules-small.png",
+      "sourceCapture": "/tmp/empires-naval-rules-evidence/rules-aligned-small-final-attachments/70986DB5-4A3F-4559-86C1-25B8098A02D1.png",
+      "role": "native SE Rules selector before actual selection/start/resume",
+      "sourceRevision": "ac3dec5493567b09b985a2e445f2194047415318",
+      "sha256": "a5b3611ffe226fa82649d2c8ceb83def425426aa9e6e527e854528fc479c38e2",
+      "bytes": 1103230,
+      "width": 750,
+      "height": 1334,
+      "pixelHandling": "byte-identical original capture; no editing",
+      "rootInspected": true,
+      "binaryIdentity": "XCTest-instrumented Debug at exact final source; not assigned post-build hash"
+    },
+    {
+      "file": "screenshots/naval-rules-accessibility-small.png",
+      "sourceCapture": "/tmp/empires-naval-rules-evidence/naval-rules-accessibility-small-row.png",
+      "role": "exact Debug build, maximum-text SE scrolled setup; Rules row readable",
+      "sourceRevision": "ac3dec5493567b09b985a2e445f2194047415318",
+      "sha256": "65b7d6c897d4804f350f367cdefb5c14aa6d2abfa550d1124833c8bb412bd267",
+      "bytes": 1279774,
+      "width": 750,
+      "height": 1334,
+      "pixelHandling": "byte-identical original capture; no editing",
+      "rootInspected": true,
+      "appBinarySHA256": "57b468641d73c2c4bbafbb92eea097849abc9b3280844e71771e9c8aa8422bee",
+      "debugDylibSHA256": "beb634129e0b225cb50d5ec59a0acc44e7046d07599628ec7504f68bb3109c7f"
+    },
+    {
+      "file": "screenshots/review-after-rule-fix.png",
+      "sourceCapture": "/tmp/empires-naval-rules-evidence/review-after-rule-fix.png",
+      "role": "current clean-argument review process on main menu, existing game available",
+      "sourceRevision": "ac3dec5493567b09b985a2e445f2194047415318",
+      "sha256": "ba3c1c42647529711344e8e6cae36b6aaf44fe34c570f03f6fa67cc482a469fb",
+      "bytes": 3368950,
+      "width": 1206,
+      "height": 2622,
+      "pixelHandling": "byte-identical original capture; no editing",
+      "rootInspected": true,
+      "appBinarySHA256": "57b468641d73c2c4bbafbb92eea097849abc9b3280844e71771e9c8aa8422bee",
+      "debugDylibSHA256": "beb634129e0b225cb50d5ec59a0acc44e7046d07599628ec7504f68bb3109c7f"
+    }
+  ],
+  "receipts": [
+    {
+      "file": "receipts/naval-debug-build.log",
+      "sha256": "6cf2b4a75788379f0f4e161b6b2bd455fdfffae4337dcc0b8071cc359179776a",
+      "bytes": 57914
+    },
+    {
+      "file": "receipts/naval-lint-final.log",
+      "sha256": "694d4b8b3ad467c20b1852371b9ea09b5793dca1dda85daeee30784265298cb9",
+      "bytes": 18075
+    },
+    {
+      "file": "receipts/naval-release-build.log",
+      "sha256": "278545cd0426c07cccfc7bcea8edeca6da7d446395357dbedbf8278c537cd7ee",
+      "bytes": 253797
+    },
+    {
+      "file": "receipts/naval-rules-aligned-regular-final-summary.json",
+      "sha256": "b211e4741f4cb6ad0e0a34ecb90c4f1d3f76fd3d6e219818249847dd7113ec7d",
+      "bytes": 964
+    },
+    {
+      "file": "receipts/naval-rules-aligned-regular-final.log",
+      "sha256": "2926df8bfe4906c96f16c8aabac9f730e84e09076d77b8752c36e6ddf809463b",
+      "bytes": 47564
+    },
+    {
+      "file": "receipts/naval-rules-aligned-regular.log",
+      "sha256": "133e5d707b95973f83f6ea45193ade944c803f01bddc1ce66ab76a4c1bffa0c8",
+      "bytes": 117473
+    },
+    {
+      "file": "receipts/naval-rules-aligned-small-final-summary.json",
+      "sha256": "86665b3ed69cef953e8553dfc9dac169b69139fbdc08a2c6bb45b6158e0ee71b",
+      "bytes": 992
+    },
+    {
+      "file": "receipts/naval-rules-aligned-small-final.log",
+      "sha256": "98356cca6217a7404d97ebfa51a42717e512355f4053c680319b2662b8ef89c0",
+      "bytes": 13060
+    },
+    {
+      "file": "receipts/naval-rules-alignment-test-failure-summary.json",
+      "sha256": "ab1b1d8ae02b040359a84cd072a5602344fd82e351bf0bf16c8f98f23037af3c",
+      "bytes": 2055
+    },
+    {
+      "file": "receipts/naval-rules-final-summary.json",
+      "sha256": "63000efb2820babd59db94508460b15e374b320d337dc686f3a566b15d5b2a3d",
+      "bytes": 964
+    },
+    {
+      "file": "receipts/naval-rules-final.log",
+      "sha256": "c40e03dfc987f2e5476b26f3fbef9472d70dcf01925dde912e1241fc3a9cd0c9",
+      "bytes": 71395
+    },
+    {
+      "file": "receipts/naval-rules-setup-summary.json",
+      "sha256": "cc0820e7f0a400266ed38d44702510b92eec5a4d7f672a2fb4f1dd990ef23c33",
+      "bytes": 1066
+    },
+    {
+      "file": "receipts/naval-rules-setup.log",
+      "sha256": "62aa59fa5d04f05659b62f16650ff50d749a1338431ac84ec8bdfd13aa9ef0ab",
+      "bytes": 190548
+    },
+    {
+      "file": "receipts/naval-rules-small-summary.json",
+      "sha256": "2715ac1d8c9c9f03a22da25bd80a35d215a6133817d49abd9658e2e5a7715967",
+      "bytes": 1095
+    },
+    {
+      "file": "receipts/naval-rules-small.log",
+      "sha256": "a798a5eeef310426e00b7fec594555e6a91d94bd535aedc6ac4de7b66ec86f84",
+      "bytes": 42740
+    }
+  ],
+  "measuredAtUTC": "2026-10-05T14:46:29.512507+00:00"
+}

@@ -1,0 +1,47 @@
+{
+  "verifiedAtUTC": "2026-10-07T20:11:04.060Z",
+  "appID": "6808461623",
+  "bundleIdentifier": "com.alexchandler.empires",
+  "version": "1.0",
+  "build": "26",
+  "productionSourceSHA": "e13d4a1cac8930063ee89438207a5da56f215e26",
+  "archiveHeadSHA": "f1b9b1442defadc5ce7f9d45eb012e4858765a32",
+  "productionInputCount": 377,
+  "appleBuildID": "9f7d32a2-5336-4278-bf47-dab480ad46e5",
+  "processingState": "VALID",
+  "expired": false,
+  "expirationDate": "2027-01-05T12:09:11-08:00",
+  "internalBuildState": "IN_BETA_TESTING",
+  "internalGroup": {
+    "id": "bf165450-034a-437d-b7f7-028bf3d57a5b",
+    "name": "Internal",
+    "hasAccessToAllBuilds": true
+  },
+  "tester": {
+    "id": "a8ee9090-8182-4804-b5f9-eead9c032495",
+    "firstName": "Alex",
+    "lastName": "Chandler"
+  },
+  "intendedTesterAccessConfirmed": true,
+  "actualStagedUploadIPA": "/Users/alex/.codex/artifacts/naval-exploration/build26-monopoly-counts/Settlers-uploaded-26.ipa",
+  "actualUploadedIPASHA256": "81bc6674970f56080f24295ca5c5535a8e48055e40dcc63d2728ea282db0f983",
+  "actualUploadedIPAMD5": "3eb9b75e358b124642ef2fb71d4be03f",
+  "actualUploadedIPABytes": 36313582,
+  "contentDeliveryUUIDMatchesAppleBuildID": true,
+  "strictDeepSignatureVerified": true,
+  "signedCloudKitEnvironment": "Production",
+  "physicalPhoneInstalledOrPlayedObserved": false,
+  "externalReleasePerformed": false,
+  "evidenceSHA256": {
+    "asc-build26.json": "c0215c8059cce3b0e38cc5051fa0ba554cf3b2473d5082a0b5f0fc72f65df807",
+    "uploaded-payload-signature.json": "e195c95fdbb60514537853bbb0b58e32fb0b0e325a8dcc8808c6ebc54f9f515a",
+    "uploaded-payload-comparison.json": "52b799b7de0b1fc5d891171142a2c1d30e1b857afa5e69c8d4f949a9dfc8a4b2",
+    "upload-command-receipt.json": "b82b4308e6402bbb09c223da5d8688a57f74d14fce781d6846bba7a7aa1a6ccf",
+    "signed-export.json": "f981edae92a1a4635f1ce1fbe04f48a1733938f7059d5e77441df7f7a60809d9",
+    "release-runtime.json": "9e8bcab71036bb668881d9e964675d60c3ffb610183142d3782ec42819ca2b32",
+    "final-gallery-root-review.json": "e0cdf1f9ac0322bf1abc1a7476d8878fb6aff41b4409d313654e25314e685f7d",
+    "archive-command-receipt.json": "181e49967cc8dd1ae6d663d88a67aa105326cd500c997769002c157e01a986b1",
+    "final-prepush-command.json": "469f80b35e8a838d30519a7ffa6f7d6d465c24df33020159ed96b5e17e99c249",
+    "final-xcresult-preservation.json": "4c358320a80a03301268d147d7910c492e6b85c210e66ede3f91d1c0ab55ae3f"
+  }
+}

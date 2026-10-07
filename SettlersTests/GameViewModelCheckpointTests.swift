@@ -47,13 +47,15 @@ struct GameViewModelCheckpointTests {
     /// lifetime totals. There is no longer a stats reset anywhere in the app,
     /// so this is the only thing standing between a played game and its
     /// disappearance from the menu's stats row.
-    @Test func completedMatchStatisticsSurviveReloadAndClear() throws {
+    @Test func completedMatchStatisticsSurviveReloadAndClear() async throws {
         let fixture = try CheckpointModelFixture()
         let model = fixture.makeModel()
         model.startNewGame(setup: fixture.setup)
         try model.qaPlayToEnd()
+        await model.lastFinishedMatchWork?.value
         #expect(model.statistics.gamesPlayed == 1)
         let resumed = fixture.makeModel()
+        await resumed.lastFinishedMatchWork?.value
         #expect(resumed.statistics == model.statistics)
         #expect(resumed.clearCompletedMatch())
         let cleared = fixture.makeModel()
@@ -155,6 +157,37 @@ struct GameViewModelCheckpointTests {
         #expect(model.pendingTradeConfirmation == nil)
         #expect(model.state.players[0].resources[.brick] == 1)
         #expect(fixture.makeModel().state == model.state)
+    }
+
+    @Test func aHumanTradeConfirmationPausesQueuedRepliesEvenWithoutAnOpenPopup() async throws {
+        let fixture = try CheckpointModelFixture()
+        let model = fixture.makeModel()
+        var position = GameSetup.newGame(board: BoardGenerator.standard(), seed: 33, playerCount: 3)
+        position.phase = .mainTurn(playerIndex: 0)
+        position.players[0].resources = [.grain: 6]
+        position.players[1].resources = [.brick: 2]
+        position.bank[.grain] = 13
+        position.bank[.brick] = 17
+        model.replaceStateForTesting(position, humanSeat: PlayerID(index: 0))
+        let offer = TradeOffer(from: model.humanPlayer, give: [.grain: 4], want: [.brick: 1])
+        try model.apply(.proposeTrade(offer))
+        let pending = try #require(model.pendingTradeConfirmation)
+        let before = model.session.checkpoint
+
+        await model.runBotTurnIfNeeded()
+        #expect(model.session.checkpoint == before)
+        #expect(model.pendingTradeConfirmation?.offerID == pending.offerID)
+        let restored = fixture.makeModel()
+        await restored.runBotTurnIfNeeded()
+        #expect(restored.session.checkpoint == before)
+        #expect(restored.pendingTradeConfirmation?.offerID == pending.offerID)
+
+        #expect(model.confirmPendingTrade() == .succeeded)
+        #expect(model.state.players[0].resources[.grain] == 2)
+        #expect(model.state.players[0].resources[.brick] == 1)
+        let confirmed = model.session.checkpoint
+        #expect(model.confirmPendingTrade() == .succeeded)
+        #expect(model.session.checkpoint == confirmed)
     }
 
     @Test(arguments: [false, true])
@@ -511,17 +544,32 @@ final class CheckpointModelFixture {
         statsStore = GameStatsStore(fileURL: root.appendingPathComponent("stats.json"))
     }
 
-    func makeModel(atCommitStage: @escaping (MatchCheckpointStore.CommitStage) throws -> Void = { _ in }) -> GameViewModel {
+    func makeModel(makeGhostTrainer: @escaping @Sendable (GhostStore) -> GhostTrainer = completionBookkeepingTrainer,
+                   atCommitStage: @escaping (MatchCheckpointStore.CommitStage) throws -> Void = { _ in }) -> GameViewModel {
         let store = MatchCheckpointStore(fileURL: root.appendingPathComponent("match_checkpoint.json"),
                                          atCommitStage: atCommitStage)
         return GameViewModel(checkpointStore: store, gameStore: gameStore, civilizationStore: civilizationStore,
-                      matchSetupStore: setupStore, gameLogStore: logStore, gameStatsStore: statsStore)
+                      matchSetupStore: setupStore, gameLogStore: logStore, gameStatsStore: statsStore,
+                      ghostStore: GhostStore(localDirectory: root.appendingPathComponent("ghosts"), bundledGhosts: []),
+                      ratingStore: RatingStore(directory: root.appendingPathComponent("ratings")),
+                      seatStatsStore: SeatStatsStore(directory: root.appendingPathComponent("seat-stats")),
+                      playerDirectory: PlayerDirectory(directory: root.appendingPathComponent("players")),
+                      makeGhostTrainer: makeGhostTrainer)
     }
 
     deinit {
         UserDefaults.standard.removePersistentDomain(forName: defaultsName)
         try? FileManager.default.removeItem(at: root)
     }
+}
+
+/// Completion and persistence tests still exercise the real rating, statistics,
+/// queue and trainer paths. Candidate extraction belongs to GhostTrainerTests;
+/// unrelated full matches must not enqueue minutes of work after fixture cleanup.
+func completionBookkeepingTrainer(store: GhostStore) -> GhostTrainer {
+    var trainer = GhostTrainer(store: store)
+    trainer.extract = { _, _ in [] }
+    return trainer
 }
 
 /// Legacy view-model tests also need isolated checkpoint authority. Retain the
