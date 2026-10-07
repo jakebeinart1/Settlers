@@ -77,6 +77,32 @@ final class DevelopmentCardDesignTests: XCTestCase {
             assertActionsFit(type, in: app)
             capture("Naval card — \(type) largest text selected", in: app)
         }
+        app.buttons["dev-cards.play.yearOfPlenty"].tap()
+        XCTAssertTrue(app.staticTexts["dev-cards.result"].waitForExistence(timeout: 3))
+        assertVisible(app.buttons["dev-cards.result.continue"], in: app.frame)
+        capture("Year of Plenty — largest text result and acknowledgement", in: app)
+        app.buttons["dev-cards.result.continue"].tap()
+        XCTAssertTrue(app.buttons["Roll Dice"].waitForExistence(timeout: 3))
+    }
+
+    func testPlentyKeepsChosenCardsInPickOrderAndPaysTheMixedPair() {
+        let app = launchHand()
+        selectCard("yearOfPlenty", in: app)
+        app.buttons["dev-cards.resource.grain"].tap()
+        app.buttons["dev-cards.resource.ore"].tap()
+        let grain = app.buttons["dev-cards.selected.grain"]
+        let ore = app.buttons["dev-cards.selected.ore"]
+        XCTAssertLessThan(grain.frame.minX, ore.frame.minX,
+                          "The first chosen card must not jump when the second resource sorts earlier")
+        grain.tap()
+        XCTAssertFalse(app.buttons["dev-cards.play.yearOfPlenty"].isEnabled)
+        app.buttons["dev-cards.resource.grain"].tap()
+        XCTAssertLessThan(ore.frame.minX, grain.frame.minX)
+        capture("Year of Plenty — ordered mixed choices", in: app)
+        app.buttons["dev-cards.play.yearOfPlenty"].tap()
+        XCTAssertTrue(app.staticTexts["dev-cards.result"].waitForExistence(timeout: 3))
+        XCTAssertTrue(app.staticTexts["The bank gave you 1 Ore and 1 Grain."].exists)
+        capture("Year of Plenty — actual mixed resource receipt", in: app)
     }
 
     func testPlentyScarcityAndMonopolyBankIndependenceUseTheirActualRules() {
@@ -161,9 +187,19 @@ final class DevelopmentCardDesignTests: XCTestCase {
             middle.swipeDown()
         }
         for _ in 0..<6 where !card.isHittable {
-            if card.frame.minX < hand.frame.minX { hand.swipeRight() } else { hand.swipeLeft() }
+            reveal(card, inside: hand, viewport: hand.frame, horizontally: true)
         }
         XCTAssertTrue(card.isHittable, "Card selector must be reachable: \(type)")
+        XCTAssertLessThanOrEqual(card.frame.width, hand.frame.width + 1)
+        for _ in 0..<6 where !hand.frame.insetBy(dx: -1, dy: -1).contains(card.frame) {
+            reveal(card, inside: hand, viewport: hand.frame, horizontally: true)
+        }
+        if !hand.frame.insetBy(dx: -1, dy: -1).contains(card.frame) {
+            print("CARD SELECTOR FRAMES \(type): hand=\(hand.frame), card=\(card.frame), content=\(contentFrame(in: app))")
+            print(app.debugDescription)
+            capture("Card selector frame counterexample — \(type)", in: app)
+        }
+        assertContained(card.frame, within: hand.frame, message: "Clipped selector: \(type)")
         card.tap()
         XCTAssertTrue(app.staticTexts["dev-cards.detail.\(type)"].waitForExistence(timeout: 2))
     }
@@ -209,12 +245,41 @@ final class DevelopmentCardDesignTests: XCTestCase {
 
     private func scrollToChoice(_ choice: XCUIElement, in app: XCUIApplication, direction: ScrollDirection = .up) {
         let scroll = app.scrollViews["dev-cards.middle-scroll"]
-        for _ in 0..<6 {
+        for _ in 0..<10 {
+            if !choice.exists {
+                XCTAssertTrue(scroll.exists, "A deferred resource choice needs its visible middle scroller")
+                if direction == .up { scroll.swipeUp() } else { scroll.swipeDown() }
+                continue
+            }
             if choice.isHittable && contentFrame(in: app).insetBy(dx: -1, dy: -1).contains(choice.frame) { return }
             XCTAssertTrue(scroll.exists, "Overflowing detail needs the dedicated middle scroller")
-            if direction == .up { scroll.swipeUp() } else { scroll.swipeDown() }
+            reveal(choice, inside: scroll, viewport: contentFrame(in: app), horizontally: false)
         }
         assertVisible(choice, in: contentFrame(in: app))
+    }
+
+    /// Direction follows current geometry so an overshoot is corrected rather
+    /// than amplified. Native drags stay inside the observed scroll viewport.
+    private func reveal(_ target: XCUIElement, inside scroll: XCUIElement,
+                        viewport: CGRect, horizontally: Bool) {
+        let frame = target.frame
+        if horizontally, frame.width > viewport.width * 0.8 {
+            if frame.minX < viewport.minX - 1 { scroll.swipeRight() } else { scroll.swipeLeft() }
+            return
+        }
+        let length = horizontally ? viewport.width : viewport.height
+        let before = horizontally ? viewport.minX - frame.minX : viewport.minY - frame.minY
+        let after = horizontally ? frame.maxX - viewport.maxX : frame.maxY - viewport.maxY
+        XCTAssertLessThanOrEqual(horizontally ? frame.width : frame.height, length + 1,
+                                 "A control larger than its viewport cannot become fully visible")
+        let positive = before > 1
+        let overflow = positive ? before : max(after, 0)
+        let fraction = min(0.45, max(0.12, (overflow + 12) / length))
+        let start = scroll.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5))
+        let end = scroll.coordinate(withNormalizedOffset: CGVector(
+            dx: horizontally ? 0.5 + (positive ? fraction : -fraction) : 0.5,
+            dy: horizontally ? 0.5 : 0.5 + (positive ? fraction : -fraction)))
+        start.press(forDuration: 0.05, thenDragTo: end)
     }
 
     private func acknowledgeReceipt(in app: XCUIApplication) {

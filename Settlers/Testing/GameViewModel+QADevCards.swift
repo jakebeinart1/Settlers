@@ -75,8 +75,9 @@ extension GameViewModel {
             while fixture.phase.isSetup {
                 let actor = PlayerID(index: fixture.phase.awaitingSeatIndex!)
                 let move = RulesEngine.legalMoves(for: fixture, seat: actor).first!
-                do { try RulesEngine.apply(move, by: actor, to: &fixture) }
-                catch { preconditionFailure("Naval card setup failed: \(error)") }
+                do { try RulesEngine.apply(move, by: actor, to: &fixture) } catch {
+                    preconditionFailure("Naval card setup failed: \(error)")
+                }
             }
         } else {
             fixture = GameSetup.newGame(board: BoardGenerator.standard(), seed: seed,

@@ -74,7 +74,7 @@ final class DevelopmentCardFlowTests: XCTestCase {
 
     func testPurchasedVictoryPointRevealsAsPassiveAndAppearsInHand() {
         let app = purchase(card: "victoryPoint", expectedRevealStatus: "Counts automatically")
-        openPurchasedCardHand(in: app, card: "victoryPoint", expectedStatus: "PASSIVE")
+        openPurchasedCardHand(in: app, card: "victoryPoint", expectedStatus: "Counts automatically")
         XCTAssertTrue(app.buttons["dev-cards.tile.victoryPoint"].exists)
         XCTAssertFalse(app.buttons["dev-cards.play.victoryPoint"].exists)
     }
@@ -294,6 +294,10 @@ final class DevelopmentCardFlowTests: XCTestCase {
         XCTAssertTrue(app.otherElements["dev-cards.overlay"].waitForExistence(timeout: 3))
         XCTAssertTrue(app.staticTexts["dev-cards.detail.\(card)"].exists)
         XCTAssertTrue(app.staticTexts[expectedRevealStatus].exists)
+        let screenshot = XCTAttachment(screenshot: app.screenshot())
+        screenshot.name = "Development card — \(card) actual purchase reveal"
+        screenshot.lifetime = .keepAlways
+        add(screenshot)
         return app
     }
 

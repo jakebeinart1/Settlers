@@ -285,6 +285,7 @@ public struct GameView: View {
             }
 
         }
+        .overlay(alignment: .topLeading) { qaCompleteMatchInspectionControl().padding(8) }
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier(AccessibilityID.Screen.game)
         // The native presentation boundary excludes the covered game from

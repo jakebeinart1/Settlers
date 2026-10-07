@@ -320,6 +320,19 @@ public struct HumanPlayerPanel: View {
     /// `MainMenuView`'s title block, per Jake's ask to keep the same shape
     /// language on the board's own resource counts instead of a dot.
     private func resourceDot(_ resource: Resource, count: Int, gain: Int) -> some View {
+        ZStack(alignment: .bottom) {
+            resourceContents(resource, count: count, gain: gain)
+                .accessibilityElement(children: .ignore)
+                .accessibilityLabel("\(resource.rawValue.capitalized) cards")
+                .accessibilityValue("\(count)")
+                .accessibilityHint(gain > 0 ? "Received \(gain) from the roll" : "")
+                .accessibilityIdentifier(AccessibilityID.Game.humanResource(resource))
+            HUDCardCountFrame(identifier: "human-resource.count.\(resource.rawValue)")
+        }
+        .frame(height: HUDCardMetrics.height)
+    }
+
+    private func resourceContents(_ resource: Resource, count: Int, gain: Int) -> some View {
         VStack(spacing: 3) {
             RoundedRectangle(cornerRadius: 3)
                 .fill(CatanTheme.color(for: resource))
@@ -340,15 +353,12 @@ public struct HumanPlayerPanel: View {
             // panel's civilization colour bleed through it, so brick read
             // maroon on Britannia's purple and no longer matched the board.
             Text("\(count)")
-                .font(.system(size: 14, weight: .bold))
+                .font(.system(size: 14, weight: .bold, design: .serif))
                 .foregroundStyle(CatanTheme.onWaterText)
                 .opacity(count > 0 || gain > 0 ? 1 : 0.35)
+                .frame(height: HUDCardMetrics.countHeight)
         }
-        .accessibilityElement(children: .ignore)
-        .accessibilityLabel("\(resource.rawValue.capitalized) cards")
-        .accessibilityValue("\(count)")
-        .accessibilityHint(gain > 0 ? "Received \(gain) from the roll" : "")
-        .accessibilityIdentifier(AccessibilityID.Game.humanResource(resource))
+        .frame(height: HUDCardMetrics.height, alignment: .bottom)
     }
 }
 
@@ -368,15 +378,9 @@ private struct ArmyHUDTile: View {
 
     var body: some View {
         Button(action: action) {
-            VStack(spacing: 2) {
+            HUDCardLabel(title: "Army \(strength)", count: count) {
                 Image(systemName: "shield.lefthalf.filled")
                     .font(HUDCardStyle.iconFont)
-                Text("ARMY \(strength)")
-                    .font(.system(size: 8, weight: .bold))
-                    .lineLimit(1)
-                    .minimumScaleFactor(0.7)
-                Text("×\(count)")
-                    .font(.system(size: 8, weight: .bold))
             }
             .foregroundStyle(.white)
             .frame(width: 54, height: 44)
@@ -394,29 +398,27 @@ private struct DevelopmentCardShelfButton: View {
     let action: () -> Void
 
     var body: some View {
-        Button(action: action) {
-            VStack(spacing: 2) {
-                Image(systemName: "rectangle.stack.fill")
-                    .font(HUDCardStyle.iconFont)
-                Text("CARDS")
-                    .font(.system(size: 8, weight: .bold, design: .serif))
-                Text("\(count)")
-                    .font(.system(size: 10, weight: .bold))
-            }
-            .foregroundStyle(.white)
-            .frame(width: 48, height: 44)
-            .background(
-                PaintedChromeBackground(
-                    fill: .color(SettingsChrome.plaqueFill),
-                    cornerRadius: 8,
-                    notchScale: 0.45
+        ZStack(alignment: .bottom) {
+            Button(action: action) {
+                HUDCardLabel(title: "Cards", count: count) {
+                    Image(systemName: "rectangle.stack.fill").font(HUDCardStyle.iconFont)
+                }
+                .foregroundStyle(.white)
+                .frame(width: 48, height: 44)
+                .background(
+                    PaintedChromeBackground(
+                        fill: .color(SettingsChrome.plaqueFill),
+                        cornerRadius: 8,
+                        notchScale: 0.45
+                    )
                 )
-            )
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel("Development cards")
+            .accessibilityValue("\(count)")
+            .accessibilityIdentifier(AccessibilityID.DevCards.shelf)
+            HUDCardCountFrame(identifier: "dev-cards.hud-count.shelf")
         }
-        .buttonStyle(.plain)
-        .accessibilityLabel("Development cards")
-        .accessibilityValue("\(count)")
-        .accessibilityIdentifier(AccessibilityID.DevCards.shelf)
     }
 }
 
