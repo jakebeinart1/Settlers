@@ -6,9 +6,13 @@ import CatanEngine
 struct NavalSailingRangeLayer: View {
     let decision: BoardDecisionPresentation
     let geometry: HexGeometry
+    let playerIdentity: (PlayerID) -> PlayerIdentity
 
     var body: some View {
         Canvas { context, _ in
+            for coordinate in decision.blockadedTiles.keys.sorted() {
+                drawBlockade(coordinate, in: context)
+            }
             guard let sailing = decision.sailing else { return }
             for coordinate in decision.legalTiles {
                 guard let route = sailing.routes[coordinate] else { continue }
@@ -17,6 +21,19 @@ struct NavalSailingRangeLayer: View {
         }
         .allowsHitTesting(false)
         .accessibilityHidden(true)
+    }
+
+    private func drawBlockade(_ coordinate: HexCoordinate, in context: GraphicsContext) {
+        guard let owner = decision.blockadedTiles[coordinate] else { return }
+        let path = TileDrawing.hexPath(for: coordinate, geometry: geometry, scale: 0.92)
+        let tint = playerIdentity(owner).civilization.accentColor
+        context.stroke(path, with: .color(tint.opacity(0.85)),
+                       style: StrokeStyle(lineWidth: 1.8, dash: [4, 3]))
+        let center = geometry.center(of: coordinate)
+        let point = CGPoint(x: center.x, y: center.y - geometry.size * 0.53)
+        context.draw(Text(Image(systemName: "shield.fill"))
+            .font(.system(size: max(8, geometry.size * 0.22)))
+            .foregroundColor(CatanTheme.onWaterText), at: point)
     }
 
     private func drawDestination(_ coordinate: HexCoordinate, cost: Int, in context: GraphicsContext) {

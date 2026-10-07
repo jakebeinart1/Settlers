@@ -126,13 +126,20 @@ import Testing
         try #require(sections.first { $0.id == id })
     }
 
-    @Test(arguments: [1, 2, 3])
+    @Test(arguments: [1, 2, 3, 4])
     func navalTravelGuideMatchesTheSavedRuleVersion(_ version: Int) throws {
         var state = Naval.newGame(seed: 7501)
         state.naval?.rulesVersion = version
         let context = HowToPlayContent.Context(state: state)
         let voyages = try section("voyages", in: HowToPlayContent.rules(for: context))
         let text = voyages.details.joined(separator: " ")
+        if version >= Naval.blockadeRulesVersion {
+            #expect(text.contains("Your own ships may share water"))
+            #expect(text.contains("Opposing ships block entry, passage and launches"))
+        } else {
+            #expect(text.contains("Ships sail independently and may share water"))
+            #expect(!text.contains("Opposing ships block entry"))
+        }
         if version < Naval.destinationSailingRulesVersion {
             #expect(text.contains("three hexes per turn, sailed one adjacent sea hex at a time"))
             #expect(!text.contains("up to two sea hexes"))

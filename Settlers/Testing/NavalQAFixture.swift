@@ -13,6 +13,9 @@ enum NavalQAFixture {
 
     static func make(_ position: Position, options: NavalOptions = NavalOptions()) throws -> GameState {
         var state = Naval.newGame(seed: seed, options: options)
+        // This historical art fixture deliberately sails rivals onto one cell.
+        // v4 captures may create mixed stacks, but entering one is now prohibited.
+        if position == .mixedShips { state.naval?.rulesVersion = 3 }
         while state.phase.isSetup {
             let seat = PlayerID(index: state.phase.awaitingSeatIndex!)
             let move = setupMove(for: seat, position: position, in: state)

@@ -76,6 +76,8 @@ public struct BoardDecisionPresentation: Sendable, Equatable {
     public var legalShips: [Int] = []
     public var selectedShip: Int?
     public var sailing: NavalSailingPresentation?
+    /// Public rival occupancy, used to explain and reject touches on blocked sea cells.
+    public var blockadedTiles: [HexCoordinate: PlayerID] = [:]
 }
 
 /// Identifies the canonical position a thought belongs to. A failed move keeps

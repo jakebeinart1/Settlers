@@ -12,6 +12,13 @@ nonisolated enum NavalQuantityText {
     static func stepsRemaining(_ count: Int) -> String {
         count == 0 ? "No sailing left this turn" : "\(hexes(count)) of sailing left"
     }
+
+    static func sailingStatus(for ship: Ship, in state: GameState) -> String {
+        let allowance = stepsRemaining(ship.stepsRemaining)
+        guard (state.naval?.rulesVersion ?? 0) >= Naval.blockadeRulesVersion,
+              ship.stepsRemaining > 0, Naval.sailingDestinations(for: ship, in: state).isEmpty else { return allowance }
+        return "\(allowance) · No open sailing route"
+    }
 }
 
 /// Sea and resource-choice materials reuse the board's painted blues and gold.
