@@ -259,18 +259,7 @@ final class DevelopmentCardDesignTests: XCTestCase {
     private enum ScrollDirection { case up, down }
 
     private func scrollToChoice(_ choice: XCUIElement, in app: XCUIApplication, direction: ScrollDirection = .up) {
-        let scroll = app.scrollViews["dev-cards.middle-scroll"]
-        for _ in 0..<10 {
-            if !choice.exists {
-                XCTAssertTrue(scroll.exists, "A deferred resource choice needs its visible middle scroller")
-                if direction == .up { scroll.swipeUp() } else { scroll.swipeDown() }
-                continue
-            }
-            if choice.isHittable && contentFrame(in: app).insetBy(dx: -1, dy: -1).contains(choice.frame) { return }
-            XCTAssertTrue(scroll.exists, "Overflowing detail needs the dedicated middle scroller")
-            reveal(choice, inside: scroll, viewport: contentFrame(in: app), horizontally: false)
-        }
-        assertVisible(choice, in: contentFrame(in: app))
+        DevelopmentCardUITestScroll.reveal(choice, in: app, initiallyDown: direction == .down)
     }
 
     /// Direction follows current geometry so an overshoot is corrected rather
@@ -328,5 +317,46 @@ final class DevelopmentCardDesignTests: XCTestCase {
         attachment.name = name
         attachment.lifetime = .keepAlways
         add(attachment)
+    }
+}
+
+/// Card tests share the actual middle viewport. Lazy cells must first be
+/// materialized through scrolling; an accessibility existence check alone
+/// cannot stand in for a fully visible, tappable resource control.
+@MainActor
+enum DevelopmentCardUITestScroll {
+    static func reveal(_ choice: XCUIElement, in app: XCUIApplication, initiallyDown: Bool = false) {
+        let scroll = app.scrollViews["dev-cards.middle-scroll"]
+        let viewport = app.descendants(matching: .any)["dev-cards.content-frame"]
+        XCTAssertTrue(viewport.exists)
+        for _ in 0..<10 {
+            if !choice.exists {
+                XCTAssertTrue(scroll.exists)
+                if initiallyDown { scroll.swipeDown() } else { scroll.swipeUp() }
+                continue
+            }
+            let bounds = viewport.frame.insetBy(dx: -1, dy: -1)
+            if choice.isHittable && bounds.contains(choice.frame) { return }
+            XCTAssertTrue(scroll.exists)
+            dragToReveal(choice, in: scroll, viewport: viewport.frame)
+        }
+        XCTAssertTrue(choice.exists)
+        XCTAssertTrue(choice.isHittable)
+        XCTAssertTrue(viewport.frame.insetBy(dx: -1, dy: -1).contains(choice.frame),
+                      "The whole resource choice must fit inside the visible content viewport")
+    }
+
+    private static func dragToReveal(_ choice: XCUIElement, in scroll: XCUIElement, viewport: CGRect) {
+        let frame = choice.frame
+        XCTAssertLessThanOrEqual(frame.height, viewport.height + 1)
+        let above = viewport.minY - frame.minY
+        let below = frame.maxY - viewport.maxY
+        let down = above > 1
+        let overflow = down ? above : max(below, 0)
+        let fraction = min(0.45, max(0.12, (overflow + 12) / viewport.height))
+        let start = scroll.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5))
+        let end = scroll.coordinate(withNormalizedOffset: CGVector(dx: 0.5,
+            dy: 0.5 + (down ? fraction : -fraction)))
+        start.press(forDuration: 0.05, thenDragTo: end)
     }
 }
