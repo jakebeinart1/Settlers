@@ -244,7 +244,8 @@ struct NavalAIRevisionTests {
             let move = try #require(RulesEngine.legalMoves(for: candidate.state, seat: seat).first)
             step = try candidate.applyExternal(move, by: seat)
         } else {
-            let (seat, move) = try #require(candidate.decideNext())
+            let decision = candidate.decideNext()
+            let (seat, move) = try #require(decision)
             step = try candidate.commit(seat: seat, move: move)
         }
         try model.qaCommitStep(step, candidate: candidate)
