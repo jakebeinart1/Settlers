@@ -15,11 +15,15 @@ struct VictoryCutsceneView: View {
 
     private static let pieceBeat = 0.55
     private static let bonusBeat = 1.0
+    private static let cardBeat = 1.1
+    private static let cardSize: CGFloat = 48
     private static let bannerHold = 2.6
 
     @State private var revealed = 0
     @State private var spotlight = BoardSpotlight()
     @State private var caption: String?
+    /// Dev cards that scored, in the order they flipped in.
+    @State private var cards: [DevCardType] = []
     @State private var showsBanner = false
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
@@ -39,6 +43,7 @@ struct VictoryCutsceneView: View {
                     // whole board offscreen on every camera step of the tour.
                     .overlay(Color(red: 0.05, green: 0.07, blue: 0.12)
                         .opacity(isHumanWin ? 0 : 0.4).allowsHitTesting(false))
+                cardShelf
                 captionRow
             }
             .padding(.vertical, 24)
@@ -59,7 +64,7 @@ struct VictoryCutsceneView: View {
     private func play() async {
         for beat in tally.beats {
             withAnimation(.easeInOut(duration: 0.45)) { show(beat) }
-            guard await pause(isOnBoard(beat) ? Self.pieceBeat : Self.bonusBeat) else { return }
+            guard await pause(duration(of: beat)) else { return }
         }
         withAnimation(.easeInOut(duration: 0.4)) {
             spotlight.focus = nil
@@ -87,18 +92,28 @@ struct VictoryCutsceneView: View {
             spotlight.label = nil
             caption = "Longest Road  \(plus)"
         case .largestArmy:
-            caption = "Largest Army  \(plus)"
-        case .victoryCards(let count):
-            caption = (count == 1 ? "Victory Point card  " : "\(count) Victory Point cards  ") + plus
+            reveal(.knight, caption: "Largest Army  \(plus)")
+        case .victoryCard:
+            reveal(.victoryPoint, caption: "Victory Point card  \(plus)")
         case .colonies:
             caption = "Colonies  \(plus)"
         }
     }
 
-    private func isOnBoard(_ beat: VictoryTally.Beat) -> Bool {
+    /// Cards score off the board, so the lens pulls back to the whole island
+    /// while they flip in under it.
+    private func reveal(_ card: DevCardType, caption text: String) {
+        spotlight.focus = nil
+        spotlight.label = nil
+        cards.append(card)
+        caption = text
+    }
+
+    private func duration(of beat: VictoryTally.Beat) -> Double {
         switch beat.source {
-        case .settlement, .city: return true
-        default: return false
+        case .settlement, .city: return Self.pieceBeat
+        case .victoryCard: return Self.cardBeat
+        default: return Self.bonusBeat
         }
     }
 
@@ -138,6 +153,42 @@ struct VictoryCutsceneView: View {
                 .accessibilityIdentifier(AccessibilityID.GameOver.cutsceneScore)
         }
         .padding(.horizontal, 20)
+    }
+
+    /// Scoring cards, lit like the board's pieces: the same wide translucent
+    /// ring under a narrow gold one, and a "+N" on the card that just landed.
+    /// Fixed height from the first frame, so the board never resizes.
+    private var cardShelf: some View {
+        HStack(spacing: 14) {
+            ForEach(Array(cards.enumerated()), id: \.offset) { index, card in
+                cardTile(card, plus: index == cards.count - 1 ? (card == .knight ? 2 : 1) : nil)
+                    .transition(.modifier(active: CardFlip(angle: -90), identity: CardFlip(angle: 0)))
+            }
+        }
+        .frame(height: Self.cardSize + 36)
+    }
+
+    private func cardTile(_ card: DevCardType, plus: Int?) -> some View {
+        let gold = CatanTheme.cityPennantGold
+        let shape = RoundedRectangle(cornerRadius: DevCardChrome.borderRadius)
+        return DevCardEmblem(type: card)
+            .frame(width: Self.cardSize, height: Self.cardSize)
+            .padding(6)
+            .background(DevCardChrome.background(card))
+            .overlay(shape.stroke(gold.opacity(0.35), lineWidth: 9).padding(-4))
+            .overlay(shape.stroke(gold, lineWidth: 2.5).padding(-2))
+            .overlay(alignment: .top) {
+                if let plus {
+                    Text("+\(plus)")
+                        .font(.system(size: 15, weight: .black, design: .serif))
+                        .foregroundStyle(gold)
+                        .padding(.horizontal, 6)
+                        .background(Capsule().fill(.black.opacity(0.75)))
+                        .overlay(Capsule().stroke(gold, lineWidth: 1))
+                        .offset(y: -14)
+                        .transition(.opacity)
+                }
+            }
     }
 
     /// Fixed height whether or not a caption is up, so the board above it
@@ -194,5 +245,16 @@ struct VictoryCutsceneView: View {
             .padding(.trailing, 16)
             .padding(.bottom, 4)
             .accessibilityIdentifier(AccessibilityID.GameOver.skipCutscene)
+    }
+}
+
+/// A card turning face-up about its vertical axis; edge-on is invisible.
+private struct CardFlip: ViewModifier {
+    let angle: Double
+
+    func body(content: Content) -> some View {
+        content
+            .rotation3DEffect(.degrees(angle), axis: (x: 0, y: 1, z: 0), perspective: 0.6)
+            .opacity(1 - abs(angle) / 90)
     }
 }

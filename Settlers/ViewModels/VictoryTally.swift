@@ -11,7 +11,8 @@ struct VictoryTally: Equatable {
         case city(VertexID)
         case longestRoad(Set<EdgeID>)
         case largestArmy
-        case victoryCards(Int)
+        /// One beat per card, so each one lands and counts on its own.
+        case victoryCard
         case colonies
     }
 
@@ -41,8 +42,7 @@ struct VictoryTally: Equatable {
         if state.largestArmyPlayer == winner {
             beats.append(Beat(source: .largestArmy, points: rules.largestArmyBonus))
         }
-        let cards = player.devCards.filter { $0 == .victoryPoint }.count
-        if cards > 0 { beats.append(Beat(source: .victoryCards(cards), points: cards)) }
+        beats += player.devCards.filter { $0 == .victoryPoint }.map { _ in Beat(source: .victoryCard, points: 1) }
         if let colonies = state.naval?.colonyPoints[winner], colonies > 0 {
             beats.append(Beat(source: .colonies, points: colonies))
         }

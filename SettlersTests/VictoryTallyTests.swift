@@ -21,7 +21,7 @@ import Testing
         #expect(tally.total == state.victoryPoints(for: winner))
         #expect(tally.total == 2 + 4 + 2 + 2 + 2)
         #expect(tally.beats.first?.source == .settlement(vertices[0]))
-        #expect(tally.beats.last?.source == .victoryCards(2))
+        #expect(tally.beats.suffix(2).map(\.source) == [.victoryCard, .victoryCard])
     }
 
     @Test func noTallyBeforeTheGameEnds() {
