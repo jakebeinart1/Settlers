@@ -64,6 +64,7 @@ public struct InGameSettingsView: View {
     @State private var isConfirmingMainMenu = false
     @State private var isShowingRulebook = false
     @State private var isConfirmingStatsReset = false
+    @State private var isShowingGhosts = false
     /// Which row's ⓘ is currently expanded, or `nil`. One at a time: these
     /// explanations are a sentence each, and two open at once pushed the
     /// controls under them off the screen.
@@ -108,7 +109,10 @@ public struct InGameSettingsView: View {
                         tradeTimerSection
                         skipSection
                         rulebookSection
-                        if onResetStats != nil { dataSection }
+                        if onResetStats != nil {
+                            ghostsSection
+                            dataSection
+                        }
                     }
                     .padding(.horizontal, Self.screenInset)
                     .padding(.top, 10)
@@ -120,6 +124,9 @@ public struct InGameSettingsView: View {
             if isConfirmingRestart { restartConfirmation }
             if isConfirmingMainMenu { mainMenuConfirmation }
             if isConfirmingStatsReset { statsResetConfirmation }
+            if isShowingGhosts {
+                ManageGhostsView(onClose: { isShowingGhosts = false }).transition(.identity)
+            }
         }
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier(AccessibilityID.Screen.inGameSettings)
@@ -182,6 +189,28 @@ public struct InGameSettingsView: View {
                 .multilineTextAlignment(.center)
                 .fixedSize(horizontal: false, vertical: true)
         }
+    }
+
+    // MARK: - Ghosts
+
+    private var ghostsSection: some View {
+        VStack(spacing: 12) {
+            SettingsSectionHeader(title: "Ghosts")
+            Text(ghostSummary)
+                .font(.system(size: 14, design: .serif))
+                .foregroundStyle(.white.opacity(0.85))
+                .multilineTextAlignment(.center)
+            GoldRowButton(title: "Manage Ghosts", systemImage: "person.2.fill",
+                          iconColor: SettingsChrome.ornamentGold, action: { isShowingGhosts = true })
+                .accessibilityIdentifier(AccessibilityID.InGameSettings.manageGhosts)
+        }
+    }
+
+    private var ghostSummary: String {
+        let me = PlayerDirectory.shared.me
+        guard let ghost = GhostStore.shared.ghost(id: me) else { return "You have no ghost yet." }
+        return "\(ghost.name): " + GhostStatusText.line(
+            for: ghost, isTraining: GhostTrainingStatus.shared.trainingIDs.contains(me))
     }
 
     // MARK: - Your data

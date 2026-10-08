@@ -188,6 +188,9 @@ enum QALaunchFlag: String, CaseIterable {
     /// way to reach the archive in a test that has not spent a minute playing
     /// one.
     case seedGameHistory = "-qaSeedGameHistory"
+    /// Your ghost at 7 of 10 games, an Old Ghost and a rival's ghost, for
+    /// Manage Ghosts (`QAGhostFixture`).
+    case seedGhosts = "-qaSeedGhosts"
     /// Opens the newest recording's replay directly, so the board, the score
     /// strip and the transport controls can be photographed without a tap.
     /// Pair with `-qaSeedGameHistory`.

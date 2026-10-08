@@ -17,6 +17,7 @@ struct SettlersApp: App {
         // a recording and then delete it.
         #if DEBUG
         QAGameHistoryFixture.seedIfRequested()
+        QAGhostFixture.seedIfRequested()
         #endif
         viewModel = GameViewModel()
         viewModel.migrateLegacyPlayerNames()

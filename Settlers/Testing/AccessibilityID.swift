@@ -15,6 +15,7 @@ enum AccessibilityID {
         static let newGame = "screen.new-game"
         static let game = "screen.game"
         static let inGameSettings = "screen.in-game-settings"
+        static let manageGhosts = "screen.manage-ghosts"
         static let gameHistory = "screen.game-history"
         static let replay = "screen.replay"
         static let leaderboard = "screen.leaderboard"
@@ -236,6 +237,21 @@ enum AccessibilityID {
         }
     }
 
+    enum Ghosts {
+        static let close = "manage-ghosts.close"
+        static let reset = "manage-ghosts.reset"
+        static let remove = "manage-ghosts.remove"
+        static let restart = "manage-ghosts.restart"
+        static let confirm = "manage-ghosts.confirm"
+        static let nameField = "manage-ghosts.name-field"
+        static let saveName = "manage-ghosts.save-name"
+        static func training(_ isOn: Bool) -> String { "manage-ghosts.training.\(isOn ? "on" : "off")" }
+        static func rename(_ id: String) -> String { "manage-ghosts.rename.\(id)" }
+        static func status(_ id: String) -> String { "manage-ghosts.status.\(id)" }
+        static func removeOld(_ id: String) -> String { "manage-ghosts.remove-old.\(id)" }
+        static func hide(_ id: String) -> String { "manage-ghosts.hide.\(id)" }
+    }
+
     enum InGameSettings {
         static let rulebook = "in-game-settings.rulebook"
         static let close = "in-game-settings.close"
@@ -244,6 +260,7 @@ enum AccessibilityID {
         static let resetStats = "in-game-settings.reset-stats"
         static let resetStatsConfirm = "in-game-settings.reset-stats.confirm"
         static func theme(_ id: String) -> String { "in-game-settings.theme.\(id)" }
+        static let manageGhosts = "settings.manage-ghosts"
         static func skipPauses(_ isOn: Bool) -> String { "in-game-settings.skip-pauses.\(isOn ? "on" : "off")" }
         static func blockTradeOffers(_ isOn: Bool) -> String {
             "in-game-settings.block-offers.\(isOn ? "on" : "off")"

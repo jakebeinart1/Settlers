@@ -44,6 +44,47 @@ final class MainMenuFlowTests: XCTestCase {
         XCTAssertTrue(app.buttons["in-game-settings.reset-stats.confirm"].waitForExistence(timeout: 2))
     }
 
+    /// Jake, 2026-10-08: manage ghosts from Settings. A fresh install has no
+    /// ghost yet, and the screen says how to get one.
+    func testManageGhostsOpensFromSettings() {
+        continueAfterFailure = false
+        let app = launchResetApp()
+        app.buttons["main-menu.settings"].tap()
+        let manage = app.buttons["settings.manage-ghosts"]
+        for _ in 0..<5 where !manage.isHittable { app.swipeUp() }
+        manage.tap()
+        XCTAssertTrue(app.otherElements["screen.manage-ghosts"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.staticTexts["You have no ghost yet. Play a rated Classic game to start one."].exists)
+        let screen = XCTAttachment(screenshot: app.screenshot())
+        screen.name = "Manage Ghosts — fresh install"
+        screen.lifetime = .keepAlways
+        add(screen)
+        app.buttons["manage-ghosts.close"].tap()
+        XCTAssertTrue(app.otherElements["screen.in-game-settings"].waitForExistence(timeout: 2))
+    }
+
+    /// The status line says how far the ghost is from playable, and turning
+    /// training off says so at once.
+    func testManageGhostsShowsProgressAndPausesTraining() {
+        continueAfterFailure = false
+        let app = XCUIApplication()
+        app.launchArguments = ["-ui-testing", "-ui-testing-reset", "-qaSeedGhosts"]
+        app.launch()
+        app.buttons["main-menu.settings"].tap()
+        let manage = app.buttons["settings.manage-ghosts"]
+        for _ in 0..<5 where !manage.isHittable { app.swipeUp() }
+        manage.tap()
+        XCTAssertTrue(app.otherElements["screen.manage-ghosts"].waitForExistence(timeout: 5))
+        let status = app.staticTexts.matching(NSPredicate(format: "identifier BEGINSWITH 'manage-ghosts.status.' AND NOT identifier CONTAINS '~'")).firstMatch
+        XCTAssertEqual(status.label, "Learning - 3 more games until others can play it")
+        let shot = XCTAttachment(screenshot: app.screenshot())
+        shot.name = "Manage Ghosts — seeded"
+        shot.lifetime = .keepAlways
+        add(shot)
+        app.buttons["manage-ghosts.training.off"].tap()
+        XCTAssertEqual(status.label, "Paused - your games are not being taught")
+    }
+
     func testConfiguredMatchStarts() {
         continueAfterFailure = false
         let app = launchResetApp()
