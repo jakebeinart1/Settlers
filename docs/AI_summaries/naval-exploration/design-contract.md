@@ -4,19 +4,23 @@
 
 New Naval games use v5 and discard half a resource hand above seven cards,
 rounded down, after a rolled seven and before moving the robber. Development
-cards are excluded; Knight play does not discard. Saved v1–v4 games retain their
-ten-card limit, movement, capture choice and historical policy identity.
+cards are excluded; Knight play does not discard. Resume and replay retain
+v1–v4 games' recorded ten-card limit, movement and saved capture/brain choices.
+Restart creates a fresh current-v5 board and rules with a new policy cursor,
+retaining the realized roster, stealing choice and saved brain identity. The
+game-over screen's New Game button follows the same restart contract. Main Menu
+→ New Game setup additionally chooses V2 and normalizes implicit stealing Off.
 
 Ship stealing is an explained Advanced Settings switch, Off for new games.
 Missing old option data means the historical enabled rule in an active match;
-only a fresh New Game normalizes that implicit choice to Off. Explicit On
+only Main Menu → New Game setup normalizes that implicit choice to Off. Explicit On
 preferences stay remembered. Enabled capture follows ordinary 11 production,
 selects any opposing hull globally and transfers lasting control. Human loss or
 gain has a saved receipt from the committed public event. The painted native
 cover blocks the board and Settings, rejects dismissal, and stays owed across
 cold resume or failed acknowledgement writes. Save recovery stays reachable.
 
-Fresh Naval Traditional and Expert save `scoutingV2` and their matching v2
+Main Menu → New Game setup saves `scoutingV2` for Traditional/Expert and matching v2
 policy IDs. Expert also saves `navalV2`. Missing saved brain fields mean V1;
 resume/Restart never silently upgrade them. Both tiers scout only public sea and
 fog boundaries, reserve realistically fundable landings and avoid redundant
@@ -27,8 +31,10 @@ capture and the owner's next turn release obsolete history. City upgrades retain
 it. Human return routes stay legal. The new metadata defaults nil on old ships.
 
 [E35](acceptance.md#build-29-follow-up-e35) retains the two initial matrix failures,
-actual regressions and verification limits. Final acceptance and delivery are
-pending. Earlier build sections retain their version-specific history.
+actual regressions and verification limits. Final build 29 acceptance and Internal delivery are verified by E35, with
+[normal push/full-gate receipt](/Users/alex/.codex/artifacts/naval-exploration/build29-diagnostics/final-prepush-command.json), [ordinary Release runtime](/Users/alex/.codex/artifacts/naval-exploration/build29-diagnostics/release-runtime.json) and [Apple/Internal access](/Users/alex/.codex/artifacts/naval-exploration/build29-diagnostics/testflight.json).
+No physical-device or comparative-strength claim follows. Earlier build sections
+retain their version-specific history.
 
 ## Build 27 contract: occupied-water defense delivered
 

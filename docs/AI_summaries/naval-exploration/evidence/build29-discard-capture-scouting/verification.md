@@ -1,10 +1,10 @@
 # Build 29 verification status
 
-October 8, 2026, candidate `5851930`. [E35](../../acceptance.md#build-29-follow-up-e35)
-is open. Retained helper diagnostics establish specific corrected behaviors;
-the final focused native retry/eight original reviews and corrected-source
-matrix/repeats/transitions pass. Complete gate, complete-match review, ordinary
-Release and delivery checks remain pending.
+October 8, 2026: [E35](../../acceptance.md#build-29-follow-up-e35) is closed for
+Internal delivery. Production/focused source `5851930` and final tested/archive
+head `c09e084` retain their exact identities. All 386 [frozen production inputs](/Users/alex/.codex/artifacts/naval-exploration/build29-diagnostics/final-production-input-manifest.json)
+match. The retained diagnostics below keep their original scopes and verdicts;
+final-gate/runtime/delivery evidence is recorded separately.
 
 | Actual retained command | Exit / scope | Attribution |
 |---|---|---|
@@ -60,18 +60,69 @@ production digest `30a8ca0aeff943b6147a038d33086e68a194858bd2511b024d4dff2b09f09
 executable `5f69d47d34fccb2ac18c442a4a6e4298cd42722764ab68fcb335498e5ebe70b2`.
 These are functional checks, not an improved-strength estimate.
 
-## Final closure still required
+## First full gate and fixture correction
 
-- Bind the full app production-input manifest to the exact corrected package
-  inputs and separately verified functional/native receipts above.
-- Full-gate regressions must retain the focused native/hosted passes above;
-  complete-match native victory and its original screenshot review are pending.
-- Every mandatory full-gate stage, fresh ordinary Release survival, exact signed
-  upload payload and Apple accepted build/Alex access; individual owned-device
-  cleanup without touching other projects.
+The [actual push/hook command](/Users/alex/.codex/artifacts/naval-exploration/build29-diagnostics/final-attempt1-prepush-command.json)
+at `416a0c6dd9d466ff7802795337cc51dc8cac18a6` exits 1; the [gate log](/Users/alex/.codex/artifacts/naval-exploration/build29-diagnostics/final-attempt1-prepush-gate.log)
+and [native summary](/Users/alex/.codex/artifacts/naval-exploration/build29-diagnostics/final-attempt1-native-summary.json)
+retain the failed verdict: 805 functions/1,610 runs passed, four functions/nine
+runs failed, one existing compact-device skip. No upload followed. All nine
+failed runs are in NavalBlockadePresentationTests: six stale version assertions,
+one stale equality assertion after real discovery, and two invalid synthetic
+saved states rejected by the strict validator. [Diagnosis](diagnosis.md#first-full-gate-stale-blockade-fixtures)
+links the exact failure values and crash evidence.
 
-Until those receipts are final, build 29 is pending. Earlier failures remain
-retained; helper counts are not substituted for final gate/native counts.
-The previous delivered [build 28 Apple/access receipt](/Users/alex/.codex/artifacts/naval-exploration/build28-victory-emblem/testflight.json) verifies Internal 1.0/28
-access; build 29 still has no Apple receipt. No improved-strength, physical-iPhone
-install/play or manual VoiceOver claim.
+Test-only correction `c4d0bee60b8b0516a69648c4275815ede95d4445` updates these
+fixtures and asserts validation before saving; production/package files remain
+unchanged. Its [first focused command](/Users/alex/.codex/artifacts/naval-exploration/build29-diagnostics/blockade-v5-fixture-correction-command.json)
+exits 65 at the same unchanged source; the [compile log](/Users/alex/.codex/artifacts/naval-exploration/build29-diagnostics/blockade-v5-fixture-correction.log)
+shows a nested throwing `#require` on the right of `&&` inside `#expect`.
+No tests ran in that attempt. A separate [retry command](/Users/alex/.codex/artifacts/naval-exploration/build29-diagnostics/blockade-v5-fixture-correction-retry-command.json)
+at unchanged `c09e084528b7cdcb6cef02653adddb11294c5a90` exits 0; its [summary](/Users/alex/.codex/artifacts/naval-exploration/build29-diagnostics/blockade-v5-fixture-correction-retry-summary.json)
+passes all seven affected functions/12 runs, zero failures/skips. This is the
+complete affected suite, not a full-gate verdict. Earlier failures remain failed,
+regardless of the replacement gate's result.
+
+## Final gate, runtime and Internal delivery
+
+[normal push/full-gate receipt](/Users/alex/.codex/artifacts/naval-exploration/build29-diagnostics/final-prepush-command.json) passes all ten mandatory stages; the optional standalone Debug build is explicitly skipped, while native Debug app/UI did run at tested `c09e084`.
+[full-gate native summary](/Users/alex/.codex/artifacts/naval-exploration/build29-diagnostics/final-attempt2-native-summary.json) reports 809 functions/1,619 runs passed, zero failures and one existing 375×667 destination skip; [final original-image review](/Users/alex/.codex/artifacts/naval-exploration/build29-diagnostics/final-gate-originals-review.json)
+records complete native play and original-image approval. [independent static review](/Users/alex/.codex/artifacts/naval-exploration/build29-diagnostics/independent-code-review.json)
+reports no P1/P2 findings. [ordinary Release runtime](/Users/alex/.codex/artifacts/naval-exploration/build29-diagnostics/release-runtime.json) records ordinary fresh Release,
+no QA arguments, surviving six seconds without a new own crash and approved original menu.
+The [Release executable origin](/Users/alex/.codex/artifacts/naval-exploration/build29-diagnostics/release-binary-origin.json) retains a cached compilation at `416a0c6` with all
+386 production inputs unchanged, revalidated by the `c09e084` gate. That gate
+did not recompile the executable. [archive visual approval](/Users/alex/.codex/artifacts/naval-exploration/build29-diagnostics/root-archive-visual-go.json) approves the ordinary
+menu and 12 unchanged final native originals; the [final screenshot gallery](/Users/alex/.codex/artifacts/naval-exploration/build29-diagnostics/final-reviewed-screenshots.md)
+includes actual Traditional/Expert winners and final replay exploration.
+
+[uploaded payload comparison](/Users/alex/.codex/artifacts/naval-exploration/build29-diagnostics/uploaded-payload-comparison.json) verifies actual uploaded signed bytes, accepted checksum/UUID
+and [Apple/Internal access](/Users/alex/.codex/artifacts/naval-exploration/build29-diagnostics/testflight.json): exact 1.0/29 VALID/unexpired, internally IN_BETA_TESTING,
+Alex's access at `2026-10-08T08:35:27.164Z`. [owned simulator cleanup](/Users/alex/.codex/artifacts/naval-exploration/build29-diagnostics/simulator-finish.json) verifies individual
+owned cleanup. [PR #63](https://github.com/jakebeinart1/Settlers/pull/63) identifies the integration;
+[final integration proof](/Users/alex/.codex/artifacts/naval-exploration/build29-diagnostics/final-merge-source-proof.json) owns final PR disposition and source equivalence
+after integration. The tested/archive
+head stays `c09e084` through later source-equivalent documentation updates.
+
+[Archive](/Users/alex/.codex/artifacts/naval-exploration/build29-diagnostics/archive-command-receipt.json),
+[export](/Users/alex/.codex/artifacts/naval-exploration/build29-diagnostics/export-command-receipt.json)
+and [actual upload](/Users/alex/.codex/artifacts/naval-exploration/build29-diagnostics/upload-command-receipt.json)
+all exit 0 at frozen `c09e084`. [Strict staged-payload signing](/Users/alex/.codex/artifacts/naval-exploration/build29-diagnostics/uploaded-payload-signature.json)
+uses the existing profile/certificate and CloudKit Production. The actual upload
+is 37,472,832 bytes, SHA256
+`172ce1698918cff776be8b4e8aa118afabfa005eca7d475d9c900776e1df404c`,
+MD5 `d4ae6dd918f26c5137321e8605e7a355`. The signed review export differs only
+within the code signature; the staged payload's exact asset checksum and accepted
+UUID match. The [actual ASC record](/Users/alex/.codex/artifacts/naval-exploration/build29-diagnostics/asc-build29.json)
+confirms build `980b2f6c-fae9-4e1f-a858-f14287baeee5`, VALID/unexpired and
+internally IN_BETA_TESTING, with Alex's membership and all-build access confirmed.
+No physical installation/play or external release was observed.
+
+[Executed owned compiler/cache cleanup](/Users/alex/.codex/artifacts/naval-exploration/build29-diagnostics/storage-cleanup/compiler-cleanup-execution.json)
+removes eleven exact owned paths, about 1.31 GiB allocated at planning. Every
+non-cache file/link was byte-identical before/after cleanup; Products, standalone
+binaries, screenshots, xcresults, payloads and receipts are preserved.
+
+Earlier failures remain retained; helper/focused counts are not substituted for
+final-gate counts. Earlier build28 delivery remains historical. No comparative
+strength, physical-iPhone install/play, external release or manual VoiceOver claim.

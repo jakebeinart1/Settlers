@@ -32,7 +32,7 @@ human returns remain legal. Discovery, a new settlement, capture and the next
 owner turn release obsolete history; upgrading a city does not.
 
 **Ship stealing / capture**: An optional transfer of a selected opposing ship's
-control after an 11's production. Fresh games default Off; Naval Advanced
+control after an 11's production. New Game setup defaults Off; Naval Advanced
 Settings explains and enables it. When enabled, control persists until a
 subsequent capture, without an automatic reset. Old saved matches retain their
 original enabled rule. A human-involved transfer has an acknowledged receipt.
@@ -79,8 +79,15 @@ _Avoid_: A sixth resource, five simultaneous resource yields.
 difficulty, distinct from the Classic game mode.
 
 **Naval brain revision**: Both Traditional and Expert remember their Naval
-strategy in the match. New matches select scoutingV2; missing old fields mean
-legacyV1. Resume and Restart keep the saved choice.
+strategy in the match. Main Menu → New Game setup selects scoutingV2;
+missing old fields mean legacyV1. Resume and Restart keep the saved brain identity.
+
+**Restart**: A new match using the current board generator and rules, with a
+fresh policy cursor. It keeps the realized roster, saved brain identity and
+ship-stealing choice. The game-over screen's New Game button does the same.
+Resume and replay keep the existing match's recorded rules. Main Menu → New
+Game setup additionally selects the latest brain and normalizes an old implicit
+stealing preference Off.
 
 **Expert bot**: The existing Expert difficulty, with its strategy version
 remembered by saved games.
