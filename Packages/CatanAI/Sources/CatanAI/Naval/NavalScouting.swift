@@ -14,6 +14,7 @@ extension NavalDecisionContext {
         if tier == .expert, canAfford(Building.settlementCost, from: me.resources),
            reachesWinningColony(from: coordinate, steps: ship.stepsRemaining - route.count),
            winningColonyDistance(from: coordinate) < winningColonyDistance(from: ship.coordinate) { return 18_500 }
+        if unproductiveReturn(ship: ship, route: route, to: coordinate) { return Self.negativeScore }
         if reservesLanding(ship), !improvesLanding(from: ship.coordinate, to: coordinate) { return Self.negativeScore }
         let discovery = Double(unknownCellsSeen(along: route)) * (tier == .expert ? 0.075 : 0.10)
         let weight = tier == .expert ? 1.35 : 1.10
@@ -28,6 +29,17 @@ extension NavalDecisionContext {
         let before = scouting ? frontier : voyagePotential(at: ship.coordinate, shipID: shipID)
         let after = scouting ? frontierPotential(at: coordinate) : voyagePotential(at: coordinate, shipID: shipID)
         return (after - before) * weight + discovery - 0.005
+    }
+
+    /// Our own purchases can change funding and flip the travel objective.
+    /// Preserve public turn history across those purchases, while permitting
+    /// actual discoveries and an immediately affordable improved landing.
+    private func unproductiveReturn(ship: Ship, route: [HexCoordinate], to coordinate: HexCoordinate) -> Bool {
+        guard let origin = ship.previousSailingOrigin, route.contains(origin), unknownCellsSeen(along: route) == 0 else { return false }
+        guard canAfford(Building.settlementCost, from: me.resources),
+              let next = landingSites(at: coordinate).map(settlementValue).max() else { return true }
+        let current = landingSites(at: ship.coordinate).map(settlementValue).max() ?? 0
+        return next <= current + 0.001
     }
 
     /// A friend's hull can preserve this exact building opportunity regardless

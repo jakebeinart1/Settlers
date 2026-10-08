@@ -43,6 +43,9 @@ extension Naval {
         guard let index = state.naval?.ships.firstIndex(where: { $0.id == id }),
               let ship = state.naval?.ships[index], ship.owner == player,
               let route = sailingRoute(for: ship, to: coordinate, in: state) else { throw MoveError.illegalPlacement }
+        if (state.naval?.rulesVersion ?? 0) >= sailingHistoryRulesVersion {
+            state.naval?.ships[index].previousSailingOrigin = ship.coordinate
+        }
         state.naval?.ships[index].coordinate = coordinate
         state.naval?.ships[index].stepsRemaining -= route.count
         return [.sailedShip(player, shipID: id, from: ship.coordinate, to: coordinate)]
@@ -65,6 +68,7 @@ extension Naval {
             let allowance = movementPerTurn(in: state)
             state.naval?.ships[index].owner = player
             state.naval?.ships[index].stepsRemaining = allowance
+            if naval.rulesVersion >= sailingHistoryRulesVersion { state.naval?.ships[index].previousSailingOrigin = nil }
             state.naval?.capturePending = false
             state.naval?.productionRollerIndex = nil
             state.phase = .mainTurn(playerIndex: player.index)
@@ -78,6 +82,16 @@ extension Naval {
         let allowance = movementPerTurn(in: state)
         for index in ships.indices where ships[index].owner == player {
             state.naval?.ships[index].stepsRemaining = allowance
+        }
+        clearSailingOrigins(for: player, in: &state)
+    }
+
+    /// Discovery and a new settlement change expedition opportunities; resource
+    /// spending and city upgrades do not. Older matches never record this history.
+    static func clearSailingOrigins(for player: PlayerID? = nil, in state: inout GameState) {
+        guard let naval = state.naval, naval.rulesVersion >= sailingHistoryRulesVersion else { return }
+        for index in naval.ships.indices where player == nil || naval.ships[index].owner == player {
+            state.naval?.ships[index].previousSailingOrigin = nil
         }
     }
 }

@@ -13,6 +13,7 @@ public enum Naval {
     public static let destinationSailingRulesVersion = 3
     public static let blockadeRulesVersion = 4
     public static let sevenRulesVersion = 5
+    public static let sailingHistoryRulesVersion = 5
     private static let legacyMovementPerTurn = 3
     public static let viewingRange = 2
     public static let hullsPerBuilder = 6

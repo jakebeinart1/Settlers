@@ -74,13 +74,17 @@ public struct Ship: Codable, Sendable, Equatable, Identifiable {
     public var owner: PlayerID
     public var coordinate: HexCoordinate
     public var stepsRemaining: Int
+    /// Public voyage history protects AI planning across saves and resource
+    /// spending. Humans keep every legal route, including a return voyage.
+    public var previousSailingOrigin: HexCoordinate?
 
     public init(id: Int, owner: PlayerID, coordinate: HexCoordinate,
-                stepsRemaining: Int = Naval.movementPerTurn) {
+                stepsRemaining: Int = Naval.movementPerTurn, previousSailingOrigin: HexCoordinate? = nil) {
         self.id = id
         self.owner = owner
         self.coordinate = coordinate
         self.stepsRemaining = stepsRemaining
+        self.previousSailingOrigin = previousSailingOrigin
     }
 }
 

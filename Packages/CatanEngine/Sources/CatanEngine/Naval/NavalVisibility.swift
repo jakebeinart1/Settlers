@@ -72,11 +72,13 @@ extension Naval {
             !naval.revealed.contains(coordinate) && isWithinRange(coordinate)
         }.sorted()
         state.naval?.revealed.formUnion(discovered)
+        if !discovered.isEmpty { clearSailingOrigins(in: &state) }
         return discovered.isEmpty ? [] : [.discovered(player, hexes: discovered)]
     }
 
     static func revealBuilding(at vertex: VertexID, by player: PlayerID, in state: inout GameState) -> [GameEvent] {
         guard let naval = state.naval else { return [] }
+        clearSailingOrigins(for: player, in: &state)
         if naval.rulesVersion == oldestSupportedRulesVersion {
             let centers = state.board.tiles.filter { vertex.touchingTiles.contains($0.coordinate) && $0.kind.isLand }.map(\.coordinate)
             return reveal(around: centers, by: player, in: &state)
