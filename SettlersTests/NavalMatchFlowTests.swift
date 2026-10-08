@@ -233,9 +233,10 @@ struct NavalMatchFlowTests {
         #expect(model.state.naval?.options == setup.navalOptions)
         let restored = fixture.makeModel()
         #expect(restored.state == model.state)
-        #expect(restored.checkpointDocument?.activeMatch?.setup.expertRevision == .navalV1)
+        #expect(restored.checkpointDocument?.activeMatch?.setup.expertRevision == .navalV2)
+        #expect(restored.checkpointDocument?.activeMatch?.setup.navalAIRevision == .scoutingV2)
         #expect(restored.state.naval?.revealed.count == 169)
         #expect(!restored.state.board.tiles.contains { $0.kind == .resourceChoice })
-        #expect(restored.session.policies.values.allSatisfy { $0.id == "naval-expert-v1" })
+        #expect(restored.session.policies.values.allSatisfy { $0.id == "naval-expert-v2" })
     }
 }

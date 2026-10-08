@@ -258,6 +258,7 @@
 		D16CC8C90FB7F755636F3397 /* GameStatsStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 16777953197BE2BC34CCFE6B /* GameStatsStore.swift */; };
 		D22C3A2E80F1FC2B69A2926A /* LiveSyncTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 41620E9C1682D3B0588CE14D /* LiveSyncTests.swift */; };
 		D29E33187E5FE82FF22B9C6F /* CloudKitBackendTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0AE92337AA13178C682DF685 /* CloudKitBackendTests.swift */; };
+		D5A9A93FCCD5D1B74707ED68 /* NavalAIRevisionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F17906ACEF8014819E18100 /* NavalAIRevisionTests.swift */; };
 		D60440D0F2E4C24383EBBCCA /* GameViewModel+QAVast.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDC27F9952EDC7F3F2607D46 /* GameViewModel+QAVast.swift */; };
 		D64F537A73A0182B86EE502A /* BotDifficulty.swift in Sources */ = {isa = PBXBuildFile; fileRef = 51734632231393886280C1ED /* BotDifficulty.swift */; };
 		D79308E2266D7C121F7150A7 /* ArmyUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9AEFB97E94522F96868B7B54 /* ArmyUITests.swift */; };
@@ -369,6 +370,7 @@
 		3DE0DE7814B4DBCFD64A4645 /* GameViewModel+BoardDecision.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "GameViewModel+BoardDecision.swift"; sourceTree = "<group>"; };
 		3E3C8B037D3ABE41F499A347 /* TradeTapSafetyFixtureTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TradeTapSafetyFixtureTests.swift; sourceTree = "<group>"; };
 		3EC109896B54D2C35CDF0011 /* DiscardPresentationState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiscardPresentationState.swift; sourceTree = "<group>"; };
+		3F17906ACEF8014819E18100 /* NavalAIRevisionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NavalAIRevisionTests.swift; sourceTree = "<group>"; };
 		3FA7F3591BB698FCF24505B4 /* GameHistoryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameHistoryView.swift; sourceTree = "<group>"; };
 		404DB13ADA6DAEE228F89357 /* NavalBlockadeQAFixture.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NavalBlockadeQAFixture.swift; sourceTree = "<group>"; };
 		41620E9C1682D3B0588CE14D /* LiveSyncTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveSyncTests.swift; sourceTree = "<group>"; };
@@ -702,6 +704,7 @@
 				FDDC6BE523633D50F2BBE0CF /* MatchCheckpointStoreTests.swift */,
 				EB35F43AB81A0869D3F28DF0 /* MatchSetupGhostTests.swift */,
 				D0860044C723FF120F754C5E /* MonopolyCollectionPreviewTests.swift */,
+				3F17906ACEF8014819E18100 /* NavalAIRevisionTests.swift */,
 				F4CD322B61C57D97EDC5F7E9 /* NavalBlockadePresentationTests.swift */,
 				4EB742E7FB85C9C243899E6D /* NavalBoardGeometryTests.swift */,
 				CB6334569C3BD392CF736F31 /* NavalHarborFixtureTests.swift */,
@@ -1413,6 +1416,7 @@
 				C834783EE1638B259EFA3035 /* MatchCheckpointStoreTests.swift in Sources */,
 				84A0406C03AD9D91A9DC0B32 /* MatchSetupGhostTests.swift in Sources */,
 				6553262E983A713E67F3C9D5 /* MonopolyCollectionPreviewTests.swift in Sources */,
+				D5A9A93FCCD5D1B74707ED68 /* NavalAIRevisionTests.swift in Sources */,
 				0F7E41774CAC3CD3D8EBC72F /* NavalBlockadePresentationTests.swift in Sources */,
 				C8843401D8D205D07A80AA10 /* NavalBoardGeometryTests.swift in Sources */,
 				360EA5C6C51E15E6719FEFFF /* NavalHarborFixtureTests.swift in Sources */,
@@ -1659,7 +1663,7 @@
 				CODE_SIGN_ENTITLEMENTS = "$(SETTLERS_ENTITLEMENTS)";
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 28;
+				CURRENT_PROJECT_VERSION = 29;
 				DEVELOPMENT_TEAM = "$(SETTLERS_DEVELOPMENT_TEAM)";
 				GCC_TREAT_WARNINGS_AS_ERRORS = YES;
 				INFOPLIST_FILE = Settlers/Info.plist;
@@ -1685,7 +1689,7 @@
 				CODE_SIGN_ENTITLEMENTS = "$(SETTLERS_ENTITLEMENTS)";
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 28;
+				CURRENT_PROJECT_VERSION = 29;
 				DEVELOPMENT_TEAM = "$(SETTLERS_DEVELOPMENT_TEAM)";
 				GCC_TREAT_WARNINGS_AS_ERRORS = YES;
 				INFOPLIST_FILE = Settlers/Info.plist;

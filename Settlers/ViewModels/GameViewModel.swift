@@ -329,6 +329,8 @@ public final class GameViewModel {
     public func startNewGame(setup: MatchSetup) {
         var fresh = setup
         fresh.expertRevision = setup.newMatchExpertRevision
+        fresh.navalAIRevision = setup.newMatchNavalAIRevision
+        fresh.navalOptions.normalizeForNewGame()
         startNewGame(setup: fresh, configuredAs: setup)
     }
 
@@ -349,7 +351,8 @@ public final class GameViewModel {
                                              opponentProfiles: profiles, from: setup)
             let candidate = Self.makeSession(
                 state: match.state, opponentProfiles: profiles,
-                difficulty: setup.difficulty, ghosts: ghostStore, expertRevision: setup.expertRevision
+                difficulty: setup.difficulty, ghosts: ghostStore, expertRevision: setup.expertRevision,
+                navalAIRevision: setup.navalAIRevision
             )
             try replaceActiveMatch(state: match.state, setup: realized, session: candidate)
             resetPerGameState()
@@ -771,11 +774,19 @@ public final class GameViewModel {
         CivilizationAssignment.humanNames = names
         session = Self.makeSession(
             state: newState, opponentProfiles: profiles, difficulty: difficulty, ghosts: ghostStore,
-            expertRevision: newState.mode == .naval && difficulty == .expert ? .navalV1 : .legacy
+            expertRevision: Self.testingExpertRevision(for: newState, difficulty: difficulty),
+            navalAIRevision: NavalPolicy.Revision.forGame(newState)
         )
         resetDiscardPresentation()
         persistTestingPosition(difficulty: difficulty)
         reconcileBoardDecision()
+    }
+
+    /// Only replaced Debug baselines derive their brain from the fixture's
+    /// recorded rules. Production restore always uses MatchSetup provenance.
+    private static func testingExpertRevision(for state: GameState, difficulty: BotDifficulty) -> ExpertRevision {
+        guard state.mode == .naval, difficulty == .expert else { return .legacy }
+        return NavalPolicy.Revision.forGame(state) == .scoutingV2 ? .navalV2 : .navalV1
     }
 
     /// Forces `state.phase` straight to a human win, for screenshotting
@@ -813,7 +824,8 @@ public final class GameViewModel {
         setup.variant = state.variant
         if let difficulty {
             setup.difficulty = difficulty
-            setup.expertRevision = difficulty == .expert && state.mode == .naval ? .navalV1 : .legacy
+            setup.expertRevision = Self.testingExpertRevision(for: state, difficulty: difficulty)
+            setup.navalAIRevision = NavalPolicy.Revision.forGame(state)
         }
         setup.navalOptions = state.naval?.options ?? NavalOptions()
         do {

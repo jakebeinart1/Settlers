@@ -17,13 +17,14 @@ extension GameViewModel {
         opponentProfiles: [PlayerID: OpponentProfile],
         difficulty: BotDifficulty,
         ghosts: GhostStore,
-        expertRevision: ExpertRevision = .legacy
+        expertRevision: ExpertRevision = .legacy,
+        navalAIRevision: NavalPolicy.Revision = .legacyV1
     ) -> GameSession {
         var seedSource = state.rng
         return GameSession(
             state: state,
             policies: makePolicies(opponentProfiles, difficulty: difficulty, ghosts: ghosts,
-                                   expertRevision: expertRevision, mode: state.mode),
+                                   expertRevision: expertRevision, mode: state.mode, navalAIRevision: navalAIRevision),
             policySeed: seedSource.next()
         )
     }
@@ -39,12 +40,13 @@ extension GameViewModel {
         difficulty: BotDifficulty,
         ghosts: GhostStore,
         expertRevision: ExpertRevision = .legacy,
-        mode: GameMode = .classic
+        mode: GameMode = .classic,
+        navalAIRevision: NavalPolicy.Revision = .legacyV1
     ) -> [PlayerID: any Policy] {
         profiles.mapValues {
             if mode == .naval {
                 return NavalPolicy(tier: difficulty == .expert ? .expert : .traditional,
-                                   personality: $0.strategicPersonality) as any Policy
+                                   personality: $0.strategicPersonality, revision: navalAIRevision) as any Policy
             }
             return policy(for: $0, difficulty: difficulty, ghosts: ghosts, expertRevision: expertRevision)
         }
