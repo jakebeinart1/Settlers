@@ -21,9 +21,21 @@ public struct GhostProfile: Codable, Sendable, Equatable, Identifiable {
     /// as the prior for its next retraining (`FitOptions.priorEvidence`).
     public var decisionsLearned: Int
     public var civilization: String?
+    /// Bumped by every learned game, rename, reset, remove and pause toggle.
+    /// The ladder accepts a ghost only when this goes up; it rides in the
+    /// CloudKit record field still named `gamesLearned`, so no schema change.
+    public var revision: Int
+    /// Set by the owner's rename; `LiveSync.refreshNames` then leaves `name` alone.
+    public var isNameCustom: Bool
+    /// The owner stopped training: finished games are skipped, never taught later.
+    public var isTrainingPaused: Bool
+    /// A tombstone: the owner removed this ghost. Kept so the removal syncs.
+    public var isRemoved: Bool
 
     public init(id: String, name: String, person: PersonModel, lambda: Double,
-                gamesLearned: Int, decisionsLearned: Int = 0, civilization: String? = nil) {
+                gamesLearned: Int, decisionsLearned: Int = 0, civilization: String? = nil,
+                revision: Int? = nil, isNameCustom: Bool = false,
+                isTrainingPaused: Bool = false, isRemoved: Bool = false) {
         self.id = id
         self.name = name
         self.person = person
@@ -31,9 +43,16 @@ public struct GhostProfile: Codable, Sendable, Equatable, Identifiable {
         self.gamesLearned = gamesLearned
         self.decisionsLearned = decisionsLearned
         self.civilization = civilization
+        self.revision = revision ?? gamesLearned
+        self.isNameCustom = isNameCustom
+        self.isTrainingPaused = isTrainingPaused
+        self.isRemoved = isRemoved
     }
 
-    private enum CodingKeys: String, CodingKey { case id, name, person, lambda, gamesLearned, decisionsLearned, civilization }
+    private enum CodingKeys: String, CodingKey {
+        case id, name, person, lambda, gamesLearned, decisionsLearned, civilization
+        case revision, isNameCustom, isTrainingPaused, isRemoved
+    }
 
     /// Hand-written so a field added later cannot make an older ghost vanish:
     /// a ghost that fails to decode drops out of the picker without a word.
@@ -46,5 +65,9 @@ public struct GhostProfile: Codable, Sendable, Equatable, Identifiable {
         gamesLearned = try values.decodeIfPresent(Int.self, forKey: .gamesLearned) ?? 0
         decisionsLearned = try values.decodeIfPresent(Int.self, forKey: .decisionsLearned) ?? 0
         civilization = try values.decodeIfPresent(String.self, forKey: .civilization)
+        revision = try values.decodeIfPresent(Int.self, forKey: .revision) ?? gamesLearned
+        isNameCustom = try values.decodeIfPresent(Bool.self, forKey: .isNameCustom) ?? false
+        isTrainingPaused = try values.decodeIfPresent(Bool.self, forKey: .isTrainingPaused) ?? false
+        isRemoved = try values.decodeIfPresent(Bool.self, forKey: .isRemoved) ?? false
     }
 }
