@@ -210,6 +210,7 @@
 		A27B6514B3679A57FD9E1B4F /* ReplayVideoExporterTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E691FB4FCBCA2463C32C4115 /* ReplayVideoExporterTests.swift */; };
 		A2CFF095F8825C96A23CC43F /* HumanTradeOfferPolicy.swift in Sources */ = {isa = PBXBuildFile; fileRef = A813107E879882546580E0E2 /* HumanTradeOfferPolicy.swift */; };
 		A308DC7B3BAB65262908E6B2 /* ReplayVideoExporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = BFE27F00E830BAF3C7BE41FF /* ReplayVideoExporter.swift */; };
+		A347DDA657559F7BB44B0881 /* GhostTrainingStatus.swift in Sources */ = {isa = PBXBuildFile; fileRef = D6DB3A89C6321ACF4E3B1F67 /* GhostTrainingStatus.swift */; };
 		A3875B327B70080CD123396D /* ArmyPurchasePopupView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 118052E72D8695833C2EC00C /* ArmyPurchasePopupView.swift */; };
 		A9002B5DF68F880457EFFBC1 /* NavalQAFixture.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83E92E59192658788217FF19 /* NavalQAFixture.swift */; };
 		AA7FD2DE92FE61DED92BA92B /* NavalBlockadeFlowTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7B394F6904579BCD764343A /* NavalBlockadeFlowTests.swift */; };
@@ -571,6 +572,7 @@
 		D5F1D0F7BFD00C785501001C /* BoardDecisionCoordinatorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BoardDecisionCoordinatorTests.swift; sourceTree = "<group>"; };
 		D64CA86D7B5FE711AD994243 /* TradePresentationState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TradePresentationState.swift; sourceTree = "<group>"; };
 		D6C6EA9E052430871400D65A /* QAGameHistoryFixture.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QAGameHistoryFixture.swift; sourceTree = "<group>"; };
+		D6DB3A89C6321ACF4E3B1F67 /* GhostTrainingStatus.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GhostTrainingStatus.swift; sourceTree = "<group>"; };
 		D8D1AFE0C7F7D10A6DA20975 /* NavalMatchFlowTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NavalMatchFlowTests.swift; sourceTree = "<group>"; };
 		D9213F426A0E166A3E30E84B /* SettlersUITests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = SettlersUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		D97A6418E0830002529DB62C /* DevelopmentCardAppearanceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DevelopmentCardAppearanceTests.swift; sourceTree = "<group>"; };
@@ -1076,6 +1078,7 @@
 				8DDA700575394DF91917C2EE /* GameViewModel+Recovery.swift */,
 				D2FB251623A50CE0FDC971CD /* GameViewModel+ShipCapture.swift */,
 				8B132570ABBBFF851519647A /* GhostTrainer.swift */,
+				D6DB3A89C6321ACF4E3B1F67 /* GhostTrainingStatus.swift */,
 				68F460B80CB6CE897A077356 /* MatchPersistenceTransaction.swift */,
 				04E02702962AB338818768C8 /* NavalSailingPresentation.swift */,
 				C55B1300742FFBFA0194D2FB /* ReplayExportModel.swift */,
@@ -1303,6 +1306,7 @@
 				7964644D00DF2FEC1A679797 /* GhostPickerPopup.swift in Sources */,
 				083F184813E8CD8A7E763264 /* GhostStore.swift in Sources */,
 				13004C279D6FA79C03B66CB1 /* GhostTrainer.swift in Sources */,
+				A347DDA657559F7BB44B0881 /* GhostTrainingStatus.swift in Sources */,
 				73E0287081669C06B076C233 /* GoldRowButton.swift in Sources */,
 				AF899EB36C3533A4C9F0472D /* HexGeometry.swift in Sources */,
 				3DD57F560189E3A8DBDCA125 /* HowToPlayContent.swift in Sources */,

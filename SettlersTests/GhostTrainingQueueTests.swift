@@ -1,6 +1,7 @@
 import CatanAI
 import CatanEngine
 import Foundation
+import os
 import Testing
 @testable import Settlers
 
@@ -38,6 +39,23 @@ import Testing
         _ = await (first, second)
         #expect(ghosts.ghost(id: "sam")?.gamesLearned == 1)
         #expect(ghosts.versions(of: "sam").count == 1)
+    }
+
+    /// Manage Ghosts shows "Training now..." while the fit runs, and only then.
+    @Test func trainingStatusIsUpOnlyWhileTheGhostTrains() async throws {
+        let (ghosts, root) = store()
+        defer { try? FileManager.default.removeItem(at: root) }
+        let (logged, human) = try game()
+        let seen = OSAllocatedUnfairLock<Set<String>>(initialState: [])
+        var trainer = GhostTrainer(store: ghosts)
+        trainer.extract = { game, anchor in
+            let during = DispatchQueue.main.sync { MainActor.assumeIsolated { GhostTrainingStatus.shared.trainingIDs } }
+            seen.withLock { $0 = during }
+            return try DecisionExtractor.decisions(in: game, anchor: anchor, humanTrading: true)
+        }
+        _ = await GhostTrainingQueue().learn(trainer, match: UUID(), game: logged, human: human, personID: "sam", personName: "Sam")
+        #expect(seen.withLock { $0 } == ["sam"])
+        #expect(await MainActor.run { GhostTrainingStatus.shared.trainingIDs }.isEmpty)
     }
 
     /// I3: a game with no decisions by the human teaches nothing and does not

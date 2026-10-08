@@ -102,6 +102,35 @@ import Testing
         #expect(!records.isEmpty)
     }
 
+    /// Jake: pause when happy. A game played while paused is never taught,
+    /// not even by launch catch-up after training is switched back on.
+    @Test func aGamePlayedWhilePausedIsNeverTaught() throws {
+        let (ghosts, root) = store()
+        defer { try? FileManager.default.removeItem(at: root) }
+        let (logged, human) = try game()
+        let trainer = GhostTrainer(store: ghosts)
+        _ = try trainer.learn(match: UUID(), game: logged, human: human, personID: "sam", personName: "Sam")
+        try ghosts.setTrainingPaused("sam", true)
+        let paused = UUID()
+        #expect(try trainer.learn(match: paused, game: logged, human: human, personID: "sam", personName: "Sam") == nil)
+        try ghosts.setTrainingPaused("sam", false)
+        #expect(try trainer.learn(match: paused, game: logged, human: human, personID: "sam", personName: "Sam") == nil)
+        #expect(ghosts.ghost(id: "sam")?.gamesLearned == 1)
+    }
+
+    /// A learned game must raise the revision, or it never syncs.
+    @Test func learningBumpsRevisionAndKeepsACustomName() throws {
+        let (ghosts, root) = store()
+        defer { try? FileManager.default.removeItem(at: root) }
+        let (logged, human) = try game()
+        let trainer = GhostTrainer(store: ghosts)
+        _ = try trainer.learn(match: UUID(), game: logged, human: human, personID: "sam", personName: "Sam")
+        try ghosts.rename("sam", to: "The Wall")
+        let learned = try #require(try trainer.learn(match: UUID(), game: logged, human: human, personID: "sam", personName: "Sam"))
+        #expect(learned.revision == 3)
+        #expect(learned.name == "The Wall")
+    }
+
     @Test func personNamesBecomeStableIDs() {
         #expect(GhostTrainer.ghostID(forPerson: "Jake") == "jake")
         #expect(GhostTrainer.ghostID(forPerson: " Mary Jo! ") == "maryjo")

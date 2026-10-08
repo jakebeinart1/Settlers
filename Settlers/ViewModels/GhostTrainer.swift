@@ -50,6 +50,17 @@ struct GhostTrainer: Sendable {
         let id = store.resolve(personID)
         let record = store.decisionsDirectory(for: id).appendingPathComponent("\(match.uuidString).jsonl")
         guard !FileManager.default.fileExists(atPath: record.path) else { return nil }
+        // Paused (Jake, 2026-10-08: "pause training on a ghost if happy with
+        // it"): the game is marked skipped for good, so catch-up never
+        // teaches it later, including after training is switched back on.
+        let skipped = Self.skippedMarker(for: match, ghost: id, store: store)
+        guard !FileManager.default.fileExists(atPath: skipped.path) else { return nil }
+        let stored = store.ghost(id: id, includingRemoved: true)
+        if stored?.isTrainingPaused == true {
+            try FileManager.default.createDirectory(at: skipped.deletingLastPathComponent(), withIntermediateDirectories: true)
+            try Data().write(to: skipped)
+            return nil
+        }
         let previous = store.ghost(id: id) ?? GhostProfile(
             id: id, name: "\(personName.trimmingCharacters(in: .whitespacesAndNewlines))'s Ghost",
             person: .anchored(at: .forMode(.classic)), lambda: Self.defaultLambda, gamesLearned: 0
@@ -61,12 +72,20 @@ struct GhostTrainer: Sendable {
         guard !decisions.isEmpty else { return nil }
         var learned = previous
         learned.person = try fit(decisions, previous)
-        learned.name = "\(personName.trimmingCharacters(in: .whitespacesAndNewlines))'s Ghost"
+        if !previous.isNameCustom {
+            learned.name = "\(personName.trimmingCharacters(in: .whitespacesAndNewlines))'s Ghost"
+        }
         learned.gamesLearned += 1
+        // Every learned game is a new revision, or it would never sync.
+        learned.revision = (stored?.revision ?? 0) + 1
         learned.decisionsLearned += decisions.count
         try store.save(learned)
         try write(decisions, to: record)
         return learned
+    }
+
+    static func skippedMarker(for match: UUID, ghost id: String, store: GhostStore) -> URL {
+        store.localDirectory.appendingPathComponent(id).appendingPathComponent("skipped").appendingPathComponent(match.uuidString)
     }
 
     static func incrementalFit(_ decisions: [DecisionRecord], previous: GhostProfile) throws -> PersonModel {
@@ -110,10 +129,16 @@ struct CatchUpGame: Sendable {
 actor GhostTrainingQueue {
     static let shared = GhostTrainingQueue()
 
+    /// The two awaits only publish status. `trainer.learn` itself has no
+    /// suspension point, so each training still runs whole before the next
+    /// reads the ghost - the guarantee this actor exists for.
     @discardableResult
     func learn(_ trainer: GhostTrainer, match: UUID, game: LoggedGame, human: PlayerID,
-               personID: String, personName: String) -> GhostProfile? {
-        try? trainer.learn(match: match, game: game, human: human, personID: personID, personName: personName)
+               personID: String, personName: String) async -> GhostProfile? {
+        await MainActor.run { GhostTrainingStatus.shared.begin(personID) }
+        let learned = try? trainer.learn(match: match, game: game, human: human, personID: personID, personName: personName)
+        await MainActor.run { GhostTrainingStatus.shared.end(personID) }
+        return learned
     }
 
     /// Teaches rated games whose training never finished (the app was killed
@@ -121,10 +146,12 @@ actor GhostTrainingQueue {
     /// they were played after ghosts existed, so the bundled ghost's own 24
     /// games, which were never rated here, cannot be taught twice. A game
     /// already taught is skipped by its decision record. Returns how many were taught.
-    func catchUp(_ trainer: GhostTrainer, games: [CatchUpGame], ratedMatches: Set<UUID>) -> Int {
-        games.filter { ratedMatches.contains($0.match) }.reduce(0) { taught, game in
-            taught + (learn(trainer, match: game.match, game: game.game, human: game.human,
-                            personID: game.personID, personName: game.personName) == nil ? 0 : 1)
+    func catchUp(_ trainer: GhostTrainer, games: [CatchUpGame], ratedMatches: Set<UUID>) async -> Int {
+        var taught = 0
+        for game in games where ratedMatches.contains(game.match) {
+            if await learn(trainer, match: game.match, game: game.game, human: game.human,
+                           personID: game.personID, personName: game.personName) != nil { taught += 1 }
         }
+        return taught
     }
 }
