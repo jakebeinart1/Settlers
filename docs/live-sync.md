@@ -58,11 +58,22 @@ Code: `Settlers/Sync/`. Tests: `SettlersTests/LiveSyncTests.swift`.
   claim, or asset-read failures fail the pass rather than advancing its cursor.
 - **Ghosts.** A player's phone trains their ghost after each game (unchanged)
   and uploads the new version (`Ghost` record). Every phone, including the
-  owner's restored phone, first downloads a ghost when it has learned from
-  more games than its copy. Uploads cannot replace a higher server training
-  count, and upload watermarks are per stable ghost ID rather than per device.
-  Phones accept a ghost only from
-  the Apple ID it is filed under, and name it after that account.
+  owner's restored phone, downloads a ghost when its **revision** is higher
+  than its copy's (`LiveSync.accepts`). Uploads cannot replace a higher server
+  revision, and upload watermarks are per stable ghost ID rather than per
+  device. Phones accept a ghost only from the Apple ID it is filed under, and
+  name it after that account unless the owner renamed it (`isNameCustom`).
+- **Revision, not games learned (2026-10-08).** Every learned game, rename,
+  reset, removal and training pause adds 1 to `GhostProfile.revision`. The
+  rule used to be "more games learned wins", which a reset or rename never
+  satisfies: the next sync pulled the old ghost straight back down over a
+  reset one (caught by `LiveSyncTests.aRenameResetAndRemovalReachEveryPhone`).
+  The CloudKit field is still named `gamesLearned` - renaming it would need a
+  Dashboard schema deploy - but carries the revision. A removed ghost syncs as
+  a tombstone (`isRemoved`). Old Ghosts kept by a reset (`<id>~<n>`) never
+  leave their phone. Older app versions ignore the new payload fields, so they
+  keep the old name until they update. Managed from Settings -> Manage Ghosts
+  (`docs/superpowers/specs/2026-10-08-ghost-management-design.md`).
 - **When it syncs** (Jake, 2026-09-26: "on a periodic basis that stays within
   limits of needed, otherwise it should just refresh once a game is
   completed"):
