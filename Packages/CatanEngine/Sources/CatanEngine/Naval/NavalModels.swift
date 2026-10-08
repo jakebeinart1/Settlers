@@ -13,17 +13,30 @@ public enum NavalMapFamily: String, Codable, CaseIterable, Sendable {
     }
 }
 
-/// Settings are saved with the match; neither toggle changes its underlying seeded world.
+/// Settings are saved with the match; toggles do not change its underlying seeded world.
 public struct NavalOptions: Codable, Sendable, Equatable {
     public var fogEnabled: Bool
     public var resourceChoiceEnabled: Bool
     public var mapFamily: NavalMapFamily?
+    /// Missing means the original always-enabled rule. Keep that distinction
+    /// through active saves/replays, but normalize an old editable prefill to Off.
+    private var shipStealingChoice: Bool?
+
+    public var shipStealingEnabled: Bool {
+        get { shipStealingChoice ?? true }
+        set { shipStealingChoice = newValue }
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case fogEnabled, resourceChoiceEnabled, mapFamily, shipStealingEnabled
+    }
 
     public init(fogEnabled: Bool = true, resourceChoiceEnabled: Bool = true,
-                mapFamily: NavalMapFamily? = nil) {
+                mapFamily: NavalMapFamily? = nil, shipStealingEnabled: Bool = false) {
         self.fogEnabled = fogEnabled
         self.resourceChoiceEnabled = resourceChoiceEnabled
         self.mapFamily = mapFamily
+        self.shipStealingChoice = shipStealingEnabled
     }
 
     public init(from decoder: any Decoder) throws {
@@ -31,6 +44,27 @@ public struct NavalOptions: Codable, Sendable, Equatable {
         fogEnabled = try values.decodeIfPresent(Bool.self, forKey: .fogEnabled) ?? true
         resourceChoiceEnabled = try values.decodeIfPresent(Bool.self, forKey: .resourceChoiceEnabled) ?? true
         mapFamily = try values.decodeIfPresent(NavalMapFamily.self, forKey: .mapFamily)
+        shipStealingChoice = try values.decodeIfPresent(Bool.self, forKey: .shipStealingEnabled)
+    }
+
+    public func encode(to encoder: any Encoder) throws {
+        var values = encoder.container(keyedBy: CodingKeys.self)
+        try values.encode(fogEnabled, forKey: .fogEnabled)
+        try values.encode(resourceChoiceEnabled, forKey: .resourceChoiceEnabled)
+        try values.encodeIfPresent(mapFamily, forKey: .mapFamily)
+        try values.encodeIfPresent(shipStealingChoice, forKey: .shipStealingEnabled)
+    }
+
+    /// Called only for New Game drafts, never for Restart or resumed matches.
+    public mutating func normalizeForNewGame() {
+        if shipStealingChoice == nil { shipStealingChoice = false }
+    }
+
+    /// Defaults for an authoritative save that predates the options field.
+    public static var legacyDefaults: Self {
+        var options = Self()
+        options.shipStealingChoice = nil
+        return options
     }
 }
 
@@ -124,7 +158,7 @@ public struct NavalState: Codable, Sendable, Equatable {
 
     public init(from decoder: any Decoder) throws {
         let values = try decoder.container(keyedBy: CodingKeys.self)
-        options = try values.decodeIfPresent(NavalOptions.self, forKey: .options) ?? NavalOptions()
+        options = try values.decodeIfPresent(NavalOptions.self, forKey: .options) ?? .legacyDefaults
         revealed = try values.decodeIfPresent(Set<HexCoordinate>.self, forKey: .revealed) ?? []
         ships = try values.decodeIfPresent([Ship].self, forKey: .ships) ?? []
         mapFamily = try values.decodeIfPresent(NavalMapFamily.self, forKey: .mapFamily) ?? .archipelago

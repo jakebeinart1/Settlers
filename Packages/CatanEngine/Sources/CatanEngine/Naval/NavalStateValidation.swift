@@ -63,7 +63,8 @@ extension Naval {
         case .choosingResource(let index):
             return choiceProblem(naval, index: index, in: state)
         case .capturingShip(let index):
-            guard state.lastDiceRoll == 11, naval.capturePending, naval.productionRollerIndex == index,
+            guard naval.options.shipStealingEnabled, state.lastDiceRoll == 11,
+                  naval.capturePending, naval.productionRollerIndex == index,
                   naval.pendingResourceChoices.isEmpty,
                   naval.ships.contains(where: { $0.owner.index != index }) else { return "naval capture phase" }
         default:

@@ -4,7 +4,8 @@ import Testing
 
 enum NavalTestSupport {
     static func ready(seed: UInt64 = 73, playerCount: Int = 4, fog: Bool = true, rulesVersion: Int? = nil) throws -> GameState {
-        var state = Naval.newGame(seed: seed, playerCount: playerCount, options: NavalOptions(fogEnabled: fog))
+        var state = Naval.newGame(seed: seed, playerCount: playerCount,
+                                 options: NavalOptions(fogEnabled: fog, shipStealingEnabled: true))
         if let rulesVersion { state.naval?.rulesVersion = rulesVersion }
         while state.phase.isSetup {
             let index = try #require(state.phase.awaitingSeatIndex)

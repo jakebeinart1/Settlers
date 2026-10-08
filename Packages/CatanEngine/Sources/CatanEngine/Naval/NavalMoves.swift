@@ -14,6 +14,7 @@ extension Naval {
     }
 
     static func captureMoves(for player: PlayerID, in state: GameState) -> [GameMove] {
+        guard state.naval?.options.shipStealingEnabled == true else { return [] }
         let ships = (state.naval?.ships ?? []).filter { $0.owner != player }.sorted { $0.id < $1.id }
         return ships.map { .captureShip(id: $0.id) } + [.skipShipCapture]
     }
@@ -49,7 +50,7 @@ extension Naval {
     }
 
     static func applyCapture(_ move: GameMove, by player: PlayerID, to state: inout GameState) throws -> [GameEvent] {
-        guard let naval = state.naval else { throw MoveError.wrongPhase }
+        guard let naval = state.naval, naval.options.shipStealingEnabled else { throw MoveError.wrongPhase }
         switch move {
         case .skipShipCapture:
             state.naval?.capturePending = false
