@@ -23,19 +23,20 @@ Status line for your ghost, one of:
 
 ## Rules
 
-1. **Training is on by default.** Off is a per-phone preference keyed by ghost id. While off, each
+1. **Training is on by default.** Off is `GhostProfile.isTrainingPaused` (synced). While off, each
    finished rated game is marked *skipped* (`<ghost>/skipped/<match>`), so launch catch-up never
    teaches it later, including after training is switched back on. Resuming teaches from the next
    game.
 2. **Reset = fresh start.** The current ghost's versions move to a new id `<me>~<n>` and become an
    Old ghost (playable, renamable, removable, local to this phone). The live ghost restarts from
-   the anchor with `gamesSinceReset = 0`; its decision records stay, so catch-up does not re-teach
-   pre-reset games.
-3. **Remove your ghost** = Reset without keeping an Old ghost. **Remove an Old ghost** deletes it
+   the anchor with `gamesLearned = 0` (so it leaves the picker until 10 new games); its decision
+   records stay, so catch-up does not re-teach pre-reset games.
+3. **Remove your ghost** = Reset without keeping an Old ghost, plus training off; it uploads as a
+   tombstone. Turning training back on starts a fresh ghost. **Remove an Old ghost** deletes it
    from the picker. Files go to `Application Support/GhostArchive/` rather than being deleted
    (Jake, 2026-09-25: "All the data needs to be saved").
-4. **Rename** sets `GhostProfile.customName`, which wins over the automatic `"<player>'s Ghost"`
-   that `LiveSync.refreshNames` writes on every sync.
+4. **Rename** sets `GhostProfile.name` and `isNameCustom = true`; `LiveSync.refreshNames` leaves a
+   custom name alone instead of rewriting `"<player>'s Ghost"` on every sync.
 
 ## Sync for everyone, with no CloudKit schema change
 
@@ -47,8 +48,8 @@ re-download the old ghost over a reset one.
 `GhostProfile` gains `revision`: bumped by every learned game AND by every rename, reset and
 remove. It is decoded with a default of `gamesLearned`, so every existing ghost starts at the
 number the server already holds. The record field keeps its name `gamesLearned` (no Dashboard
-deploy) but carries `revision`. `customName`, `gamesSinceReset` and the training flag travel in
-the JSON payload, which older app versions decode and ignore.
+deploy) but carries `revision`. `isNameCustom`, `isTrainingPaused` and `isRemoved` travel in the
+JSON payload, which older app versions decode and ignore.
 
 A removed ghost uploads a tombstone (`isRemoved = true`, higher revision): other phones drop it
 from their pickers. Older app versions keep showing it until they update - acceptable, they also
@@ -67,5 +68,5 @@ only ever runs on the owner's phone.
 - `GhostProfile` decodes old files with `revision == gamesLearned` (CatanAI).
 - Upload/download accept a higher revision with fewer games; reject a lower one.
 - Catch-up skips matches marked skipped, and pre-reset matches.
-- `refreshNames` leaves a `customName` alone.
+- `refreshNames` leaves a custom name alone.
 - UI: Manage Ghosts shows the status line and toggles training.
