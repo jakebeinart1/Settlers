@@ -122,7 +122,8 @@ struct NavalReleaseCompatibilityTests {
         setup.mode = .naval
         setup.victoryPointTarget = initial.victoryPointTarget
         setup.navalOptions = try #require(initial.naval?.options)
-        setup.expertRevision = setup.newMatchExpertRevision
+        setup.expertRevision = setup.difficulty == .expert ? .navalV1 : .legacy
+        setup.navalAIRevision = .legacyV1
         let civilizations = Array(Civilization.allCases.prefix(initial.players.count))
         let profiles = GameViewModel.opponentProfiles(for: initial, humanSeats: [human], civilizations: civilizations)
         setup = GameViewModel.realisedMatch(chairs: setup.seats, civilizations: civilizations,

@@ -4,7 +4,8 @@ import Testing
 
 enum NavalTestSupport {
     static func ready(seed: UInt64 = 73, playerCount: Int = 4, fog: Bool = true, rulesVersion: Int? = nil) throws -> GameState {
-        var state = Naval.newGame(seed: seed, playerCount: playerCount, options: NavalOptions(fogEnabled: fog))
+        var state = Naval.newGame(seed: seed, playerCount: playerCount,
+                                 options: NavalOptions(fogEnabled: fog, shipStealingEnabled: true))
         if let rulesVersion { state.naval?.rulesVersion = rulesVersion }
         while state.phase.isSetup {
             let index = try #require(state.phase.awaitingSeatIndex)
@@ -25,13 +26,19 @@ enum NavalTestSupport {
 
     @discardableResult
     static func roll(_ total: Int, player: Int, state: inout GameState) throws -> [GameEvent] {
+        try prepareRoll(total, player: player, state: &state)
+        return try RulesEngine.apply(.rollDice, by: state.players[player].id, to: &state)
+    }
+
+    /// Exposes the pre-roll baseline so exact replay checks use the same seeded
+    /// dice preparation as ordinary Naval rule tests, without duplicating it.
+    static func prepareRoll(_ total: Int, player: Int, state: inout GameState) throws {
         let seed = try #require((0..<1_000).first { seed in
             var rng = RandomSource(seed: UInt64(seed))
             return Int.random(in: 1...6, using: &rng) + Int.random(in: 1...6, using: &rng) == total
         })
         state.rng = RandomSource(seed: UInt64(seed))
         state.phase = .rollDice(playerIndex: player)
-        return try RulesEngine.apply(.rollDice, by: state.players[player].id, to: &state)
     }
 
     static func addShip(at coordinate: HexCoordinate, player: Int, steps: Int? = nil, in state: inout GameState) {

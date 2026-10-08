@@ -29,11 +29,14 @@ extension GameViewModel {
         setup.difficulty = QALaunchFlag.navalExpert.isSet ? .expert : .classic
         setup.navalOptions = NavalOptions(fogEnabled: !QALaunchFlag.navalNoFog.isSet,
             resourceChoiceEnabled: !QALaunchFlag.navalNoResourceChoice.isSet,
-            mapFamily: QALaunchOption.navalMapFamily)
+            mapFamily: QALaunchOption.navalMapFamily,
+            shipStealingEnabled: QALaunchFlag.navalShipStealing.isSet)
         setup.expertRevision = setup.newMatchExpertRevision
         startNewGame(setup: setup)
         let kind: NavalQAFixture.Position?
-        if QALaunchFlag.navalGenericPortPosition.isSet {
+        if QALaunchFlag.navalShipLossPosition.isSet {
+            kind = .shipLoss
+        } else if QALaunchFlag.navalGenericPortPosition.isSet {
             kind = .genericPort
         } else if QALaunchFlag.navalResourcePortPosition.isSet {
             kind = .resourcePort

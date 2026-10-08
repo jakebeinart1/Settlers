@@ -17,7 +17,7 @@ import CatanEngine
     private func opening(tier: NavalPolicy.Tier, fog: Bool = true,
                          family: NavalMapFamily = .archipelago, coastalFirst: Bool = false) throws -> GameState {
         var state = Naval.newGame(seed: 700_019,
-            options: NavalOptions(fogEnabled: fog, mapFamily: family))
+            options: NavalOptions(fogEnabled: fog, mapFamily: family, shipStealingEnabled: true))
         var rng = RandomSource(seed: 12)
         while state.phase.isSetup {
             let seat = state.players[state.phase.awaitingSeatIndex!].id
@@ -276,7 +276,7 @@ import CatanEngine
         let seat = state.players[0].id
         let observation = GameObservation(seat: seat, state: state, legalMoves: RulesEngine.legalMoves(for: state, seat: seat))
         var rng = RandomSource(seed: 33)
-        let traditional = NavalPolicy(tier: .traditional).decide(observation, rng: &rng)
+        let traditional = NavalPolicy(tier: .traditional, revision: .forGame(state)).decide(observation, rng: &rng)
         #expect(HeuristicPolicy(personality: .balanced, id: "adapter").decide(observation, rng: &rng) == traditional)
         let expert = NavalPolicy(tier: .expert).decide(observation, rng: &rng)
         #expect(EvaluationPolicy(revision: .navalV1).decide(observation, rng: &rng) == expert)

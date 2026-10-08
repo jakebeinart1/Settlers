@@ -46,7 +46,8 @@ extension GameViewModel {
         let setup = legacyRealizedSetup(state: state, active: active, seat: seat)
         let profiles = Self.profiles(in: setup)
         let candidate = Self.makeSession(
-            state: state, opponentProfiles: profiles, difficulty: setup.difficulty, ghosts: ghostStore
+            state: state, opponentProfiles: profiles, difficulty: setup.difficulty, ghosts: ghostStore,
+            expertRevision: setup.expertRevision, navalAIRevision: setup.navalAIRevision
         )
         let document = try MatchCheckpointMigration.prepare(
             session: candidate.checkpoint, setup: setup, statistics: gameStatsStore,
@@ -78,7 +79,10 @@ extension GameViewModel {
                 civilization: civilizations[player.id.index], opponentProfile: profiles[player.id])
         }
         var setup = MatchSetup(seats: chairs, mode: state.mode, victoryPointTarget: state.victoryPointTarget,
-                              randomizedBoard: active.value?.randomizedBoard ?? false, randomizeSeatOrder: false)
+                              randomizedBoard: active.value?.randomizedBoard ?? false, randomizeSeatOrder: false,
+                              difficulty: active.value?.difficulty ?? .default,
+                              expertRevision: active.value?.expertRevision ?? .legacy,
+                              navalAIRevision: active.value?.navalAIRevision ?? .legacyV1)
         setup.navalOptions = state.naval?.options ?? NavalOptions()
         return setup
     }
@@ -113,12 +117,14 @@ extension GameViewModel {
         let restored = try GameSession(
             checkpoint: savedSession,
             policies: Self.makePolicies(profiles, difficulty: match.setup.difficulty, ghosts: ghostStore,
-                                        expertRevision: match.setup.expertRevision, mode: match.state.mode)
+                                        expertRevision: match.setup.expertRevision, mode: match.state.mode,
+                                        navalAIRevision: match.setup.navalAIRevision)
         )
         session = restored
         self.playerRoster = playerRoster
         pendingDevCardReveal = checkpointDocument?.pendingDevCardReveal
         pendingDevCardResolution = checkpointDocument?.pendingDevCardResolution
+        pendingShipCapture = checkpointDocument?.pendingShipCapture
         seatAtDevice = sortedHumanSeats.first
         CivilizationAssignment.humanSeat = humanPlayer
         CivilizationAssignment.humanNames = playerRoster.humanNames

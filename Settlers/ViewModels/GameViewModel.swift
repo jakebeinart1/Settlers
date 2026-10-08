@@ -139,6 +139,7 @@ public final class GameViewModel {
         // tell the cover who may safely read the result.
         if let owner = pendingDevCardReveal?.owner, humanSeats.contains(owner) { return owner }
         if let owner = pendingDevCardResolution?.owner, humanSeats.contains(owner) { return owner }
+        if let reader = pendingShipCapture?.reader, humanSeats.contains(reader) { return reader }
         if case .discarding(let pending) = state.phase {
             // Sorted: `pending` is a `Set` and Swift seeds hash order per
             // process, so `.first` on it would pick a different seat between
@@ -164,6 +165,9 @@ public final class GameViewModel {
     public internal(set) var pendingDevCardReveal: DevCardReveal?
     /// A human card's exact committed outcome, retained until acknowledged.
     public internal(set) var pendingDevCardResolution: DevCardResolution?
+    /// The involved human must read a committed ownership transfer before
+    /// either chair continues. It survives relaunch in the match checkpoint.
+    public internal(set) var pendingShipCapture: NavalShipCaptureReceipt?
     /// Ephemeral local-hand receipt; never part of saved rules state.
     public internal(set) var resourceProductionFeedback: ResourceProductionFeedback?
     /// Readable public notices; never saved, replayed, or awaited by the bots.
@@ -325,6 +329,8 @@ public final class GameViewModel {
     public func startNewGame(setup: MatchSetup) {
         var fresh = setup
         fresh.expertRevision = setup.newMatchExpertRevision
+        fresh.navalAIRevision = setup.newMatchNavalAIRevision
+        fresh.navalOptions.normalizeForNewGame()
         startNewGame(setup: fresh, configuredAs: setup)
     }
 
@@ -345,7 +351,8 @@ public final class GameViewModel {
                                              opponentProfiles: profiles, from: setup)
             let candidate = Self.makeSession(
                 state: match.state, opponentProfiles: profiles,
-                difficulty: setup.difficulty, ghosts: ghostStore, expertRevision: setup.expertRevision
+                difficulty: setup.difficulty, ghosts: ghostStore, expertRevision: setup.expertRevision,
+                navalAIRevision: setup.navalAIRevision
             )
             try replaceActiveMatch(state: match.state, setup: realized, session: candidate)
             resetPerGameState()
@@ -513,6 +520,7 @@ public final class GameViewModel {
         pendingTradeConfirmation = nil
         pendingDevCardReveal = nil
         pendingDevCardResolution = nil
+        pendingShipCapture = nil
         lastTradeOutcome = nil
         eventBatch = EventBatch(sequence: eventBatch.sequence + 1, events: [])
         accumulatedActiveDuration = 0
@@ -555,8 +563,13 @@ public final class GameViewModel {
             throw reportPersistenceFailure(error)
         }
         session = candidate
+        pendingShipCapture = next.pendingShipCapture
+        let noticeEvents = step.events.filter { event in
+            if case .capturedShip = event { return next.pendingShipCapture == nil }
+            return true
+        }
         gameplayFeedback.enqueue(GameplayFeedback.committed(
-            events: step.events, before: productionBefore, after: state, viewer: productionViewer
+            events: noticeEvents, before: productionBefore, after: state, viewer: productionViewer
         ))
         if case .rollDice = step.move {
             resourceProductionFeedback = ResourceProductionFeedback(
@@ -677,6 +690,9 @@ public final class GameViewModel {
         guard pendingDevCardReveal == nil, pendingDevCardResolution == nil else {
             throw MoveError.other("Review the development card before continuing.")
         }
+        guard pendingShipCapture == nil else {
+            throw MoveError.other("Review the ship's change of ownership before continuing.")
+        }
         beginEventBatch()
         // A bot negotiation belongs to the turn that started it. Left standing
         // across `endTurn`, the next player's Trade screen opened on the
@@ -758,11 +774,19 @@ public final class GameViewModel {
         CivilizationAssignment.humanNames = names
         session = Self.makeSession(
             state: newState, opponentProfiles: profiles, difficulty: difficulty, ghosts: ghostStore,
-            expertRevision: newState.mode == .naval && difficulty == .expert ? .navalV1 : .legacy
+            expertRevision: Self.testingExpertRevision(for: newState, difficulty: difficulty),
+            navalAIRevision: NavalPolicy.Revision.forGame(newState)
         )
         resetDiscardPresentation()
         persistTestingPosition(difficulty: difficulty)
         reconcileBoardDecision()
+    }
+
+    /// Only replaced Debug baselines derive their brain from the fixture's
+    /// recorded rules. Production restore always uses MatchSetup provenance.
+    private static func testingExpertRevision(for state: GameState, difficulty: BotDifficulty) -> ExpertRevision {
+        guard state.mode == .naval, difficulty == .expert else { return .legacy }
+        return NavalPolicy.Revision.forGame(state) == .scoutingV2 ? .navalV2 : .navalV1
     }
 
     /// Forces `state.phase` straight to a human win, for screenshotting
@@ -800,7 +824,8 @@ public final class GameViewModel {
         setup.variant = state.variant
         if let difficulty {
             setup.difficulty = difficulty
-            setup.expertRevision = difficulty == .expert && state.mode == .naval ? .navalV1 : .legacy
+            setup.expertRevision = Self.testingExpertRevision(for: state, difficulty: difficulty)
+            setup.navalAIRevision = NavalPolicy.Revision.forGame(state)
         }
         setup.navalOptions = state.naval?.options ?? NavalOptions()
         do {

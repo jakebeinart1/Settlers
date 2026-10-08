@@ -129,12 +129,16 @@ public struct GameLogStore: Sendable {
         /// archives and Classic games; Ghost identity still lives in profiles.
         /// Replay applies moves and does not instantiate this policy.
         public let expertRevision: ExpertRevision?
+        /// Both Naval tiers' match-start brain. Nil means the archive did not
+        /// record Naval provenance; playback still applies its recorded moves.
+        public let navalAIRevision: NavalPolicy.Revision?
 
         public init(humanSeats: Set<PlayerID>, humanNames: [Int: String],
                     botProfiles: [Int: String] = [:],
                     botProfileNames: [Int: String] = [:],
                     botPersonalities: [Int: String], civilizations: [Int: String],
-                    expertRevision: ExpertRevision? = nil) {
+                    expertRevision: ExpertRevision? = nil,
+                    navalAIRevision: NavalPolicy.Revision? = nil) {
             precondition(!humanSeats.isEmpty, "a logged game must contain at least one human seat")
             self.humanSeats = humanSeats
             self.humanNames = humanNames
@@ -143,6 +147,7 @@ public struct GameLogStore: Sendable {
             self.botPersonalities = botPersonalities
             self.civilizations = civilizations
             self.expertRevision = expertRevision
+            self.navalAIRevision = navalAIRevision
         }
 
         public static func legacy(humanSeat: PlayerID) -> SeatRoster {
@@ -169,7 +174,7 @@ public struct GameLogStore: Sendable {
 
         private enum CodingKeys: String, CodingKey {
             case humanSeat, humanSeats, humanNames, botProfiles, botProfileNames
-            case botPersonalities, civilizations, expertRevision
+            case botPersonalities, civilizations, expertRevision, navalAIRevision
         }
 
         public init(from decoder: Decoder) throws {
@@ -185,6 +190,7 @@ public struct GameLogStore: Sendable {
             botPersonalities = try values.decode([Int: String].self, forKey: .botPersonalities)
             civilizations = try values.decode([Int: String].self, forKey: .civilizations)
             expertRevision = try values.decodeIfPresent(ExpertRevision.self, forKey: .expertRevision)
+            navalAIRevision = try values.decodeIfPresent(NavalPolicy.Revision.self, forKey: .navalAIRevision)
         }
 
         public func encode(to encoder: Encoder) throws {
@@ -198,6 +204,7 @@ public struct GameLogStore: Sendable {
             try values.encode(botPersonalities, forKey: .botPersonalities)
             try values.encode(civilizations, forKey: .civilizations)
             try values.encodeIfPresent(expertRevision, forKey: .expertRevision)
+            try values.encodeIfPresent(navalAIRevision, forKey: .navalAIRevision)
         }
     }
 
@@ -294,7 +301,8 @@ public struct GameLogStore: Sendable {
             }),
             civilizations: Dictionary(uniqueKeysWithValues: setup.seats.compactMap { seat in
                 seat.civilization.map { (seat.index, $0.displayName) }
-            }), expertRevision: setup.difficulty == .expert ? setup.expertRevision : nil)
+            }), expertRevision: setup.difficulty == .expert ? setup.expertRevision : nil,
+            navalAIRevision: setup.mode == .naval ? setup.navalAIRevision : nil)
     }
 
     public func logFiles() throws -> [URL] {

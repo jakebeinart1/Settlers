@@ -133,6 +133,9 @@ enum QALaunchFlag: String, CaseIterable {
     /// capture, recording and save writes still use the production paths.
     case navalMode = "-qaNavalMode"
     case navalVoyagePosition = "-qaNavalVoyagePosition"
+    /// Conserved eight-resource pre-roll hand plus a Knight and purchased hull;
+    /// native taps must cause and submit the real seven-driven discard.
+    case navalSevenPosition = "-qaNavalSevenPosition"
     /// Real purchases and sea steps prepare a two-hex budget obstruction.
     case navalBlockadePosition = "-qaNavalBlockadePosition"
     /// A real rigged 11 offers capture of the prepared opposing blocker.
@@ -145,6 +148,11 @@ enum QALaunchFlag: String, CaseIterable {
     case navalStackedShipsPosition = "-qaNavalStackedShipsPosition"
     case navalMixedShipsPosition = "-qaNavalMixedShipsPosition"
     case navalCapturePosition = "-qaNavalCapturePosition"
+    /// Opts an ordinary Naval match into the disabled-by-default capture rule.
+    case navalShipStealing = "-qaNavalShipStealing"
+    /// A real bot roll of 11 can steal the prepared human-owned hull. No
+    /// ownership transfer or receipt is seeded; the ordinary bot commits it.
+    case navalShipLossPosition = "-qaNavalShipLossPosition"
     case navalResourcePosition = "-qaNavalResourcePosition"
     case navalCityResourcePosition = "-qaNavalCityResourcePosition"
     /// Real setup claims a home harbor; supplemental trade cards come from

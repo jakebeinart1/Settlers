@@ -165,6 +165,7 @@ struct NavalBlockadeTests {
 
     @Test func captureOpensAHexOnlyWhenNoThirdPartyRivalRemains() throws {
         var state = seaPosition()
+        state.naval?.options.shipStealingEnabled = true
         NavalTestSupport.addShip(at: intermediate, player: 1, in: &state)
         NavalTestSupport.addShip(at: intermediate, player: 2, in: &state)
         try NavalTestSupport.roll(11, player: owner.index, state: &state)

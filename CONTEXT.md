@@ -22,13 +22,26 @@ sailing ships, discovering randomized geography and establishing settlements.
 It sails independently and retains its identity when captured.
 _Avoid_: Shipping-route segment, sea road.
 
-**Sailing allowance**: Three one-hex sea steps available to each controlled ship
-on its owner's turn. Newly launched or captured ships also receive three steps.
+**Sailing allowance**: Two sea hexes per controlled ship on its owner's turn in
+Naval v3 and later. One voyage selects a reachable destination; v1/v2 recordings
+retain their original three adjacent steps.
 
-**Ship capture**: A transfer of a selected opposing ship's control enabled by
-rolling 11. Control persists until a subsequent capture; it does not expire
-automatically on the next 11.
+**Public voyage history**: In v5, the previous sailing origin survives same-turn
+spending and cold resume. V2 uses it to avoid undiscovering immediate returns;
+human returns remain legal. Discovery, a new settlement, capture and the next
+owner turn release obsolete history; upgrading a city does not.
+
+**Ship stealing / capture**: An optional transfer of a selected opposing ship's
+control after an 11's production. New Game setup defaults Off; Naval Advanced
+Settings explains and enables it. When enabled, control persists until a
+subsequent capture, without an automatic reset. Old saved matches retain their
+original enabled rule. A human-involved transfer has an acknowledged receipt.
 _Avoid_: Temporary loan, automatic ownership reset, ship destruction.
+
+**Seven-card discard limit**: New Naval v5 games discard half a player's resource
+cards, rounded down, when a seven rolls and that player's resource hand exceeds
+seven. Development cards do not count. A Knight does not trigger discarding.
+Naval v1–v4 recordings retain their original ten-card limit.
 
 **Discovery**: The public, permanent revelation of previously fogged geography.
 Once discovered, a hex stays revealed for all players.
@@ -64,6 +77,17 @@ _Avoid_: A sixth resource, five simultaneous resource yields.
 
 **Traditional bot**: Alex's term for the existing Classic difficulty. This is a
 difficulty, distinct from the Classic game mode.
+
+**Naval brain revision**: Both Traditional and Expert remember their Naval
+strategy in the match. Main Menu → New Game setup selects scoutingV2;
+missing old fields mean legacyV1. Resume and Restart keep the saved brain identity.
+
+**Restart**: A new match using the current board generator and rules, with a
+fresh policy cursor. It keeps the realized roster, saved brain identity and
+ship-stealing choice. The game-over screen's New Game button does the same.
+Resume and replay keep the existing match's recorded rules. Main Menu → New
+Game setup additionally selects the latest brain and normalizes an old implicit
+stealing preference Off.
 
 **Expert bot**: The existing Expert difficulty, with its strategy version
 remembered by saved games.

@@ -39,8 +39,17 @@ extension Naval {
                 && state.board.tiles.contains { $0.coordinate == ship.coordinate && $0.kind == .sea }
                 && state.board.tiles.filter { $0.coordinate.distance(to: ship.coordinate) <= viewingRange }
                     .allSatisfy { naval.revealed.contains($0.coordinate) }
+                && validSailingOrigin(for: ship, naval: naval, in: state)
         }) else { return "naval ship position/movement" }
         return nil
+    }
+
+    private static func validSailingOrigin(for ship: Ship, naval: NavalState, in state: GameState) -> Bool {
+        guard let origin = ship.previousSailingOrigin else { return true }
+        return naval.rulesVersion >= sailingHistoryRulesVersion && ship.stepsRemaining < movementPerTurn(in: state)
+            && (1...movementPerTurn(in: state)).contains(origin.distance(to: ship.coordinate))
+            && naval.revealed.contains(origin)
+            && state.board.tiles.contains { $0.coordinate == origin && $0.kind == .sea }
     }
 
     private static func colonyProblem(_ naval: NavalState, in state: GameState) -> String? {
@@ -63,7 +72,8 @@ extension Naval {
         case .choosingResource(let index):
             return choiceProblem(naval, index: index, in: state)
         case .capturingShip(let index):
-            guard state.lastDiceRoll == 11, naval.capturePending, naval.productionRollerIndex == index,
+            guard naval.options.shipStealingEnabled, state.lastDiceRoll == 11,
+                  naval.capturePending, naval.productionRollerIndex == index,
                   naval.pendingResourceChoices.isEmpty,
                   naval.ships.contains(where: { $0.owner.index != index }) else { return "naval capture phase" }
         default:

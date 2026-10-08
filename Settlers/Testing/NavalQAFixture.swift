@@ -6,13 +6,14 @@ import CatanEngine
 /// The only travel shortcut refreshes steps between fixture-only sailing
 /// rounds; ordinary gameplay never calls this type.
 enum NavalQAFixture {
-    enum Position: Sendable { case voyage, capture, harvest, cityHarvest, adjacentShips, stackedShips, mixedShips, genericPort, resourcePort }
+    enum Position: Sendable { case voyage, capture, shipLoss, harvest, cityHarvest, adjacentShips, stackedShips, mixedShips, genericPort, resourcePort }
     private static let actor = PlayerID(index: 0)
     private static let seed: UInt64 = 7_501
     private static let portTradeCards = 9
 
     static func make(_ position: Position, options: NavalOptions = NavalOptions()) throws -> GameState {
         var state = Naval.newGame(seed: seed, options: options)
+        if position == .capture || position == .shipLoss { state.naval?.options.shipStealingEnabled = true }
         // This historical art fixture deliberately sails rivals onto one cell.
         // v4 captures may create mixed stacks, but entering one is now prohibited.
         if position == .mixedShips { state.naval?.rulesVersion = 3 }
@@ -26,6 +27,7 @@ enum NavalQAFixture {
         switch position {
         case .voyage: break
         case .capture: try prepareCapture(in: &state)
+        case .shipLoss: try prepareShipLoss(in: &state)
         case .harvest: try prepareHarvest(in: &state)
         case .cityHarvest: try prepareHarvest(upgradeToCity: true, in: &state)
         case .adjacentShips: try prepareNearbyShips(stacked: false, in: &state)
@@ -35,6 +37,14 @@ enum NavalQAFixture {
         case .resourcePort: grant([.grain: portTradeCards], to: actor, in: &state)
         }
         return state
+    }
+
+    /// Preparation purchases a human hull and rigs the rival's next roll.
+    /// The runner must still roll, choose capture and durably transfer it.
+    private static func prepareShipLoss(in state: inout GameState) throws {
+        _ = try purchase(for: actor, in: &state)
+        state.phase = .rollDice(playerIndex: 1)
+        state.rng = rollSource(total: 11)
     }
 
     /// Only harbor fixtures choose the actor's first legal home-port corner.

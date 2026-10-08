@@ -48,6 +48,7 @@ struct ContentView: View {
             if case .gameOver = viewModel.state.phase, hasStartedThisSession,
                viewModel.pendingDevCardReveal == nil,
                viewModel.pendingDevCardResolution == nil,
+               viewModel.pendingShipCapture == nil,
                viewModel.savedGameAvailability.recoveryMessage == nil {
                 EndGameView(state: viewModel.state, humanSeats: viewModel.humanSeats,
                             playerIdentity: viewModel.playerIdentity,
@@ -167,6 +168,9 @@ struct ContentView: View {
                     let conquest = QALaunchFlag.conquestMode.isSet
                     if QALaunchFlag.navalMode.isSet {
                         viewModel.qaStartNavalGame()
+                        if QALaunchFlag.navalSevenPosition.isSet {
+                            viewModel.qaPrepareNavalSevenPosition()
+                        }
                     } else if QALaunchFlag.vastMode.isSet {
                         viewModel.qaStartVastGame(variant: conquest ? .conquest : .standard)
                     } else if conquest {

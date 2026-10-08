@@ -74,6 +74,9 @@ public struct MatchSetup: Codable, Equatable, Sendable {
     /// Absent in old saves means the original Expert, not today's replacement.
     /// Realized matches and restarts retain this exact checkpoint identity.
     public var expertRevision: ExpertRevision
+    /// Both Voyages tiers keep the brain that actually started the match.
+    /// Missing in older setups means V1; only a fresh New Game selects V2.
+    public var navalAIRevision: NavalPolicy.Revision
     /// The rule layer - Standard or Conquest - over the chosen board. Stored with
     /// the match for the same reason `mode` is: a running game keeps its rules.
     public var variant: GameVariant
@@ -83,7 +86,8 @@ public struct MatchSetup: Codable, Equatable, Sendable {
     public init(seats: [Seat], mode: GameMode = .classic, victoryPointTarget: Int,
                 randomizedBoard: Bool, randomizeSeatOrder: Bool,
                 difficulty: BotDifficulty = .default, variant: GameVariant = .standard,
-                expertRevision: ExpertRevision = .legacy) {
+                expertRevision: ExpertRevision = .legacy,
+                navalAIRevision: NavalPolicy.Revision = .legacyV1) {
         self.seats = seats
         self.mode = mode
         self.victoryPointTarget = victoryPointTarget
@@ -91,6 +95,7 @@ public struct MatchSetup: Codable, Equatable, Sendable {
         self.randomizeSeatOrder = randomizeSeatOrder
         self.difficulty = difficulty
         self.expertRevision = expertRevision
+        self.navalAIRevision = navalAIRevision
         self.variant = variant
     }
 
@@ -109,9 +114,10 @@ public struct MatchSetup: Codable, Equatable, Sendable {
         // were played against the heuristic and must resume against it.
         difficulty = try container.decodeIfPresent(BotDifficulty.self, forKey: .difficulty) ?? .default
         expertRevision = try container.decodeIfPresent(ExpertRevision.self, forKey: .expertRevision) ?? .legacy
+        navalAIRevision = try container.decodeIfPresent(NavalPolicy.Revision.self, forKey: .navalAIRevision) ?? .legacyV1
         // Absent in every setup written before Conquest. Those were standard games.
         variant = try container.decodeIfPresent(GameVariant.self, forKey: .variant) ?? .standard
-        navalOptions = try container.decodeIfPresent(NavalOptions.self, forKey: .navalOptions) ?? NavalOptions()
+        navalOptions = try container.decodeIfPresent(NavalOptions.self, forKey: .navalOptions) ?? .legacyDefaults
     }
 
     // MARK: - Validity
@@ -167,6 +173,9 @@ public struct MatchSetup: Codable, Equatable, Sendable {
         }
         guard hasSupportedExpertRevision else {
             return "That Expert revision is not supported by this match configuration."
+        }
+        guard hasSupportedNavalAIRevision else {
+            return "That Voyages AI revision is not supported by this match configuration."
         }
         return nil
     }
@@ -323,9 +332,14 @@ public struct MatchSetup: Codable, Equatable, Sendable {
     /// Card completion was confirmed on randomized boards; fixed-board games
     /// retain the previously approved city-production revision.
     var newMatchExpertRevision: ExpertRevision {
-        if difficulty == .expert, mode == .naval { return .navalV1 }
+        if difficulty == .expert, mode == .naval { return .navalV2 }
         guard isStandardExpertTable else { return .legacy }
         return randomizedBoard ? .pointCompletingCardsV1 : .cityProductionV1
+    }
+
+    /// Editable choices select a brain at start, without changing a live match.
+    var newMatchNavalAIRevision: NavalPolicy.Revision {
+        mode == .naval ? .scoutingV2 : .legacyV1
     }
 
     /// Saved revisions have their own supported domains. Comparing a stored
@@ -336,7 +350,18 @@ public struct MatchSetup: Codable, Equatable, Sendable {
         case .legacy: return true
         case .cityProductionV1: return isStandardExpertTable
         case .pointCompletingCardsV1: return isStandardExpertTable && randomizedBoard
-        case .navalV1: return difficulty == .expert && mode == .naval
+        case .navalV1: return difficulty == .expert && mode == .naval && navalAIRevision == .legacyV1
+        case .navalV2: return difficulty == .expert && mode == .naval && navalAIRevision == .scoutingV2
+        }
+    }
+
+    /// Expert provenance and the shared Naval policy must identify the same
+    /// brain. Old Expert setups lacking either tag retain their V1 policy.
+    private var hasSupportedNavalAIRevision: Bool {
+        switch navalAIRevision {
+        case .legacyV1: return true
+        case .scoutingV2:
+            return mode == .naval && (difficulty == .classic ? expertRevision == .legacy : expertRevision == .navalV2)
         }
     }
 
@@ -405,6 +430,8 @@ public struct MatchSetup: Codable, Equatable, Sendable {
         // may carry the active revision; release it only on this value copy
         // so changing mode/difficulty cannot disable Start before selection.
         setup.expertRevision = .legacy
+        setup.navalAIRevision = .legacyV1
+        setup.navalOptions.normalizeForNewGame()
         if !GameMode.newGameChoices.contains(setup.mode) { setup.mode = .classic }
         setup.normalizeNewGameOptions()
         return setup

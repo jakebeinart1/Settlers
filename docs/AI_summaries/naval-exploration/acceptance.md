@@ -1,5 +1,74 @@
 # Voyages requirements and acceptance
 
+<a id="build-29-follow-up-e35"></a>
+## Build 29 follow-up (E35): delivered, October 8, 2026
+
+Production `5851930`, tested/archive `c09e084`, version 1.0/build 29, addresses the real seven/8-card bypass,
+default ship-stealing behavior, unread ownership transfers and idle AI vessels.
+[Diagnosis](evidence/build29-discard-capture-scouting/diagnosis.md) binds the
+reported states, retained failures and selected fixes. [Verification status](evidence/build29-discard-capture-scouting/verification.md)
+links actual exit receipts and distinguishes helper checks from final acceptance.
+Earlier E32 and other release entries remain historical.
+
+| Requirement / boundary | Selected behavior | Acceptance status |
+|---|---|---|
+| Rolled seven, finite hands and robber order | New v5: above seven resource cards, discard half rounded down first; no development-card count or Knight discard. Existing v1–v4 matches stay at ten on Resume/replay; Restart creates current-v5 rules while retaining the roster, stealing choice and brain identity. | Natural-roll red→green engine proof retained. Final native eight→four discard/cold-resume and maximum-text actions and final full-gate regressions pass. |
+| Stealing configuration and durable ownership | Advanced switch defaults Off for fresh/implicit-prefill games; old active matches and explicit On retain their choice. Human gain/loss requires durable acknowledgement; covered game controls stay inaccessible. | Actual disabled-11 red→green engine proof retained. Hosted save/failure tests and native refinements retain their source attribution; final native cover isolation/cold-resume and maximum-text review pass after the retained failures. |
+| Both tiers and saved identity | New Game setup selects saved scoutingV2 for Traditional/Expert; missing old fields remain V1 through cold restore, Restart and export. Unknown/contradictory identities are blocked. | Actual hosted tests pass in the focused command and final full gate. |
+| Exploration without waste or hidden knowledge | Public routes/fog/frontiers and fundable colony access; public same-turn history rejects idle returns after spending, while useful funded/winning returns and all human legal routes remain. | Initial 96-case run exposed cases 47/77; exact committed regressions fail before fix and pass afterward. Corrected-source 96 winners/six byte-exact repeats/ten complete transition inspections pass, including both failed cells; legacy V4 traces remain exact. |
+| Complete presentation and delivery | Actual captures, continued voyages, harvests, natural seven, cold resume, maximum text, complete match to a winner, original screenshot review and ordinary Release survival. | Final focused native passes 61 functions/101 runs, zero failures/skips; eight originals root-approved. Complete-match/media, every mandatory gate, ordinary Release and signed Apple/access verification pass under the receipts below. No physical-phone play or new strength claim. |
+
+[final focused native command](/Users/alex/.codex/artifacts/naval-exploration/build29-diagnostics/final-naval-acceptance-command.json) exits 0 at unchanged `5851930`; [native summary](/Users/alex/.codex/artifacts/naval-exploration/build29-diagnostics/final-naval-summary.json)
+reports 61 functions/101 runs with no failures/skips. Actual nonzero-seat seven
+discards, capture loss/gain, acknowledgement→two-hex travel and cold resume pass.
+Reachable settlement/city harvests pass through the shared presenter. Root
+approves eight unchanged originals from the [original attachment manifest](/Users/alex/.codex/artifacts/naval-exploration/build29-diagnostics/final-naval-attachments/manifest.json), including
+maximum-text ownership/Continue and discard controls. This focused evidence
+does not substitute for the complete gate or complete-match acceptance.
+
+[corrected functional summary](/Users/alex/.codex/artifacts/naval-exploration/build29-diagnostics/ai-final/corrected/summary.json) and [independent readback](/Users/alex/.codex/artifacts/naval-exploration/build29-diagnostics/ai-final/corrected/independent-matrix-readback.json)
+verify all 96 option cells at unchanged `5851930`: every winner reaches at least
+14 points, with no forced ends, idle sailing/trade cycles, duplicate proposals
+or captures with stealing Off. Six new processes match complete result/trace/
+audit bytes. Ten full transition inspections check 6,126 actions, 14,280 legal
+sea routes, 4,877 blockade cases, 172 cold reloads and 118 sevens/63 discard
+obligations. Both originally idle V1 seed traces replay byte-exact under V4/V1;
+the corrected 47/77 V5 cells have no idle or raw sailing cycles. All 1,302
+package inputs/113 production inputs remain matched. This is functional proof,
+not comparative strength or complete native-match acceptance.
+
+The [first full-gate command](/Users/alex/.codex/artifacts/naval-exploration/build29-diagnostics/final-attempt1-prepush-command.json)
+at `416a0c6` exits 1. Its [native summary](/Users/alex/.codex/artifacts/naval-exploration/build29-diagnostics/final-attempt1-native-summary.json)
+records 805 functions/1,610 runs passed, four functions/nine runs failed and one
+existing compact-device skip. Stale v4 assertions and invalid synthetic ship
+history caused the failures; the strict validator remains unchanged. The first
+test-only correction `c4d0bee` then [fails to compile](/Users/alex/.codex/artifacts/naval-exploration/build29-diagnostics/blockade-v5-fixture-correction-command.json),
+exit 65, before running tests. [Diagnosis](evidence/build29-discard-capture-scouting/diagnosis.md#first-full-gate-stale-blockade-fixtures)
+keeps these actual sources/verdicts separate from any later pass. No upload was
+performed from either failed attempt. The [focused retry](/Users/alex/.codex/artifacts/naval-exploration/build29-diagnostics/blockade-v5-fixture-correction-retry-command.json)
+at `c09e084528b7cdcb6cef02653adddb11294c5a90` exits 0; its [summary](/Users/alex/.codex/artifacts/naval-exploration/build29-diagnostics/blockade-v5-fixture-correction-retry-summary.json)
+passes all seven affected functions/12 runs, with no failures/skips. This targeted
+pass does not replace the full gate.
+
+The final [normal push/full-gate receipt](/Users/alex/.codex/artifacts/naval-exploration/build29-diagnostics/final-prepush-command.json) passes all ten mandatory stages; the optional standalone Debug build is explicitly skipped, while native Debug app/UI did run at exact `c09e084`;
+[full-gate native summary](/Users/alex/.codex/artifacts/naval-exploration/build29-diagnostics/final-attempt2-native-summary.json) records 809 functions/1,619 runs passed, zero failures and one existing 375×667 destination skip. [final original-image review](/Users/alex/.codex/artifacts/naval-exploration/build29-diagnostics/final-gate-originals-review.json)
+verifies complete native play and unchanged originals. All 386 [frozen production inputs](/Users/alex/.codex/artifacts/naval-exploration/build29-diagnostics/final-production-input-manifest.json)
+match. The [Release executable origin](/Users/alex/.codex/artifacts/naval-exploration/build29-diagnostics/release-binary-origin.json) records a cached `416a0c6` executable
+revalidated at `c09e084` with identical production inputs; the final gate did
+not recompile it. [archive visual approval](/Users/alex/.codex/artifacts/naval-exploration/build29-diagnostics/root-archive-visual-go.json) approves the freshly installed
+ordinary menu and the [final screenshot gallery](/Users/alex/.codex/artifacts/naval-exploration/build29-diagnostics/final-reviewed-screenshots.md) contains 12 reviewed unchanged
+originals, including actual Traditional/Expert winners. [ordinary Release runtime](/Users/alex/.codex/artifacts/naval-exploration/build29-diagnostics/release-runtime.json) proves fresh ordinary Release/runtime review.
+[uploaded payload comparison](/Users/alex/.codex/artifacts/naval-exploration/build29-diagnostics/uploaded-payload-comparison.json) binds actual signed upload bytes/checksum to [Apple/Internal access](/Users/alex/.codex/artifacts/naval-exploration/build29-diagnostics/testflight.json):
+exact 1.0/29 VALID/unexpired/Internal IN_BETA_TESTING and Alex's access at
+`2026-10-08T08:35:27.164Z`. [owned simulator cleanup](/Users/alex/.codex/artifacts/naval-exploration/build29-diagnostics/simulator-finish.json) proves owned-only cleanup;
+[PR #63](https://github.com/jakebeinart1/Settlers/pull/63) identifies the integration; [final integration proof](/Users/alex/.codex/artifacts/naval-exploration/build29-diagnostics/final-merge-source-proof.json) owns final
+PR disposition and source equivalence after integration. [independent static review](/Users/alex/.codex/artifacts/naval-exploration/build29-diagnostics/independent-code-review.json) has no P1/P2 findings.
+
+E35 is closed for Internal delivery. The initial failed commands/images retain
+their original source and never become green retroactively. Helper/focused counts
+remain distinct from final-gate counts. Physical-device installation/play,
+external release, manual VoiceOver and relative AI strength remain unobserved.
+
 <a id="build-27-follow-up-e32"></a>
 ## Build 27 follow-up (E32): delivered
 

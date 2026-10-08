@@ -111,7 +111,7 @@ import Testing
         #expect(text.contains("Resource-choice islands are off for this match"))
         #expect(text.contains("Establish your own settlement before building roads"))
         #expect(text.contains("first two overseas islands"))
-        #expect(text.contains("capture any opponent's ship anywhere or skip"))
+        #expect(text.contains("Ship stealing is off for this match"))
         #expect(text.contains("38 cards of each resource and 50 development cards"))
         #expect(text.contains("local and unrated"))
         #expect(text.contains("six hulls"))
@@ -122,11 +122,21 @@ import Testing
         #expect(try section("robber", in: rules).details.joined().contains("discovered land hex"))
     }
 
+    @Test func navalCaptureGuideReflectsTheActualMatchOption() throws {
+        let state = Naval.newGame(seed: 7501, options: NavalOptions(shipStealingEnabled: true))
+        let voyages = try section("voyages", in: HowToPlayContent.rules(for: .init(state: state)))
+        let text = voyages.details.joined(separator: " ")
+        #expect(text.contains("Ship stealing is on for this match"))
+        #expect(text.contains("On an 11, collect resources"))
+        #expect(text.contains("acknowledge the ownership notice"))
+        #expect(!text.contains("Ship stealing is off by default"))
+    }
+
     private func section(_ id: String, in sections: [HowToPlayContent.Section]) throws -> HowToPlayContent.Section {
         try #require(sections.first { $0.id == id })
     }
 
-    @Test(arguments: [1, 2, 3, 4])
+    @Test(arguments: [1, 2, 3, 4, 5])
     func navalTravelGuideMatchesTheSavedRuleVersion(_ version: Int) throws {
         var state = Naval.newGame(seed: 7501)
         state.naval?.rulesVersion = version
@@ -148,6 +158,21 @@ import Testing
             #expect(text.contains("Choose any highlighted destination"))
             #expect(!text.contains("three hexes per turn"))
         }
+    }
+
+    @Test(arguments: [1, 2, 3, 4, 5])
+    func navalDiscardGuideUsesTheSavedThresholdEverywhere(_ version: Int) throws {
+        var state = Naval.newGame(seed: 7501)
+        state.naval?.rulesVersion = version
+        let context = HowToPlayContent.Context(state: state)
+        let threshold = version < Naval.sevenRulesVersion ? 10 : 7
+        let rules = HowToPlayContent.rules(for: context)
+        #expect(context.ruleset == state.rules)
+        #expect(try section("robber", in: rules).details.joined().contains("more than \(threshold)"))
+        let seven = try #require(HowToPlayContent.resourceLosses(for: context).first { $0.id == "seven" })
+        #expect(seven.explanation.contains("Above \(threshold) resources"))
+        #expect(try section("voyages", in: rules).details.joined().contains("above \(threshold) cards"))
+        #expect(try section("voyages", in: HowToPlayContent.modes(for: context)).details.joined().contains("above \(threshold) cards"))
     }
 
     private func makeContext(mode: GameMode, variant: GameVariant = .standard,

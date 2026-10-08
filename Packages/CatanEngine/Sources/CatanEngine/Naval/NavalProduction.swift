@@ -3,11 +3,11 @@ import Foundation
 extension Naval {
     /// Fixed payouts have already been applied. Clockwise choice obligations precede capture.
     static func beginProduction(roll: Int, rollerIndex: Int, in state: inout GameState) {
-        guard state.naval != nil else { return }
+        guard let naval = state.naval else { return }
         let choices = resourceChoices(for: roll, rollerIndex: rollerIndex, in: state)
         state.naval?.pendingResourceChoices = choices
         state.naval?.productionRollerIndex = rollerIndex
-        state.naval?.capturePending = roll == 11
+        state.naval?.capturePending = roll == 11 && naval.options.shipStealingEnabled
         advanceProduction(in: &state)
     }
 

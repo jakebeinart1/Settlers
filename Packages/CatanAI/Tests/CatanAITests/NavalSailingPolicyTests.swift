@@ -98,7 +98,7 @@ struct NavalSailingPolicyTests {
     }
 
     private func fundedWinningPosition() -> GameState {
-        var state = Naval.newGame(seed: 700_019, options: NavalOptions(fogEnabled: false))
+        var state = Naval.newGame(seed: 700_019, options: NavalOptions(fogEnabled: false, shipStealingEnabled: true))
         state.phase = .mainTurn(playerIndex: 0)
         state.players[0].devCards = Array(repeating: .victoryPoint, count: 12)
         state.players[0].resources = Resource.allCases.reduce(into: [:]) {

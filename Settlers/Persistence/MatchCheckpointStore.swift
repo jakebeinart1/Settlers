@@ -157,12 +157,14 @@ struct MatchCheckpoint: Codable, Equatable, Sendable {
     /// field once deleted every player's in-progress save").
     func validateHistory(
         pendingReveal: DevCardReveal? = nil,
-        pendingResolution: DevCardResolution? = nil
+        pendingResolution: DevCardResolution? = nil,
+        pendingShipCapture: NavalShipCaptureReceipt? = nil
     ) throws {
         try validateSetup()
         var replay = initialState
         var revealWasRecorded = pendingReveal == nil
         var resolutionWasRecorded = pendingResolution == nil
+        var captureWasRecorded = pendingShipCapture == nil
         for (index, entry) in moves.enumerated() {
             let drawn = entry.move == .buyDevCard ? replay.devCardDeck.first : nil
             let events = try RulesEngine.replay(
@@ -172,6 +174,10 @@ struct MatchCheckpoint: Codable, Equatable, Sendable {
                 to: &replay
             )
             let isReceiptSource = index == moves.indices.last
+            if isReceiptSource, let pendingShipCapture,
+               events.contains(where: { pendingShipCapture.matches($0, in: replay) }) {
+                captureWasRecorded = true
+            }
             if isReceiptSource, let pendingReveal, entry.actor == pendingReveal.owner,
                drawn == pendingReveal.card {
                 revealWasRecorded = true
@@ -183,7 +189,7 @@ struct MatchCheckpoint: Codable, Equatable, Sendable {
                 resolutionWasRecorded = true
             }
         }
-        guard revealWasRecorded, resolutionWasRecorded,
+        guard revealWasRecorded, resolutionWasRecorded, captureWasRecorded,
               replay.matchesForReplayValidationExcludingDeclinedTradeHistory(state) else {
             throw MatchCheckpointStore.StoreError.inconsistentHistory
         }
@@ -227,12 +233,14 @@ struct MatchCheckpoint: Codable, Equatable, Sendable {
     func validateHistory(
         succeeding previous: MatchCheckpoint,
         pendingReveal: DevCardReveal? = nil,
-        pendingResolution: DevCardResolution? = nil
+        pendingResolution: DevCardResolution? = nil,
+        pendingShipCapture: NavalShipCaptureReceipt? = nil
     ) throws {
         try validateSetup()
         var replay = previous.state
         var revealWasRecorded = pendingReveal == nil
         var resolutionWasRecorded = pendingResolution == nil
+        var captureWasRecorded = pendingShipCapture == nil
         for index in previous.moves.count..<moves.count {
             let entry = moves[index]
             let drawn = entry.move == .buyDevCard ? replay.devCardDeck.first : nil
@@ -243,6 +251,10 @@ struct MatchCheckpoint: Codable, Equatable, Sendable {
                 to: &replay
             )
             let isReceiptSource = index == moves.indices.last
+            if isReceiptSource, let pendingShipCapture,
+               events.contains(where: { pendingShipCapture.matches($0, in: replay) }) {
+                captureWasRecorded = true
+            }
             if isReceiptSource, let pendingReveal, entry.actor == pendingReveal.owner,
                drawn == pendingReveal.card {
                 revealWasRecorded = true
@@ -254,7 +266,7 @@ struct MatchCheckpoint: Codable, Equatable, Sendable {
                 resolutionWasRecorded = true
             }
         }
-        guard revealWasRecorded, resolutionWasRecorded,
+        guard revealWasRecorded, resolutionWasRecorded, captureWasRecorded,
               replay.matchesForReplayValidationExcludingDeclinedTradeHistory(state) else {
             throw MatchCheckpointStore.StoreError.inconsistentHistory
         }
@@ -312,6 +324,9 @@ struct MatchCheckpointDocument: Codable, Equatable, Sendable {
     /// checkpoint prevents a successful effect from becoming invisible if the
     /// process stops between the game commit and the result card rendering.
     private(set) var pendingDevCardResolution: DevCardResolution?
+    /// Ownership loss/gain must survive a stopped process and remain readable
+    /// until its involved human acknowledges the actual committed transfer.
+    private(set) var pendingShipCapture: NavalShipCaptureReceipt?
     /// Optional app-owned interruption accounting. Old checkpoints decode nil;
     /// engine state, policy revisions and saved RNG are unaffected.
     private(set) var humanTradePolicies: [Int: HumanTradeOfferPolicy]?
@@ -375,13 +390,17 @@ struct MatchCheckpointDocument: Codable, Equatable, Sendable {
                    elapsedSeconds: TimeInterval,
                    tradePolicies: [Int: HumanTradeOfferPolicy]? = nil,
                    isHumanDecision: Bool = true) throws -> Self {
-        guard pendingDevCardReveal == nil, pendingDevCardResolution == nil else {
+        guard pendingDevCardReveal == nil, pendingDevCardResolution == nil, pendingShipCapture == nil else {
             throw MatchCheckpointStore.StoreError.pendingAcknowledgement
         }
         var next = try applying(step.move, by: step.actor, elapsedSeconds: elapsedSeconds,
                                 isHumanDecision: isHumanDecision)
         if let tradePolicies { next.humanTradePolicies = tradePolicies }
         try next.activeMatch?.attachSession(session)
+        let humans = Set(next.activeMatch?.setup.humanSeats.map { PlayerID(index: $0.index) } ?? [])
+        next.pendingShipCapture = step.events.compactMap {
+            NavalShipCaptureReceipt.committed($0, in: session.state, humanSeats: humans)
+        }.first
         if next.activeMatch?.setup.humanSeats.contains(where: { $0.index == step.actor.index }) == true {
             for case .boughtDevCard(let owner, let card) in step.privateEvents {
                 next.pendingDevCardReveal = DevCardReveal(owner: owner, card: card)
@@ -423,6 +442,15 @@ struct MatchCheckpointDocument: Codable, Equatable, Sendable {
         return next
     }
 
+    func dismissingShipCapture() throws -> Self {
+        guard pendingShipCapture != nil else { return self }
+        guard revision < Int.max else { throw MatchCheckpointStore.StoreError.staleRevision }
+        var next = self
+        next.pendingShipCapture = nil
+        next.revision += 1
+        return next
+    }
+
     /// Bank foreground duration without manufacturing a game action. Finished
     /// matches keep their frozen duration, and identical values are retry-safe.
     func recordingElapsedTime(_ seconds: TimeInterval) throws -> Self {
@@ -454,6 +482,7 @@ struct MatchCheckpointDocument: Codable, Equatable, Sendable {
         next.activeMatch = match
         next.pendingDevCardReveal = nil
         next.pendingDevCardResolution = nil
+        next.pendingShipCapture = nil
         next.humanTradePolicies = nil
         next.revision += 1
         return next
@@ -522,7 +551,8 @@ struct MatchCheckpointDocument: Codable, Equatable, Sendable {
         try validatePendingDevCardOwners()
         try activeMatch?.validateHistory(
             pendingReveal: pendingDevCardReveal,
-            pendingResolution: pendingDevCardResolution
+            pendingResolution: pendingDevCardResolution,
+            pendingShipCapture: pendingShipCapture
         )
         for id in pendingExports.keys.sorted(by: { $0.uuidString < $1.uuidString }) {
             guard let match = pendingExports[id], match.id == id, id != activeMatch?.id else {
@@ -552,7 +582,8 @@ struct MatchCheckpointDocument: Codable, Equatable, Sendable {
               candidate.isExtending(earlier),
               candidate.moves.count > earlier.moves.count
                   || (pendingDevCardReveal == previous.pendingDevCardReveal
-                      && pendingDevCardResolution == previous.pendingDevCardResolution)
+                      && pendingDevCardResolution == previous.pendingDevCardResolution
+                      && pendingShipCapture == nil && previous.pendingShipCapture == nil)
         else {
             try validateAuthority()
             return
@@ -563,17 +594,32 @@ struct MatchCheckpointDocument: Codable, Equatable, Sendable {
         try candidate.validateHistory(
             succeeding: earlier,
             pendingReveal: pendingDevCardReveal,
-            pendingResolution: pendingDevCardResolution
+            pendingResolution: pendingDevCardResolution,
+            pendingShipCapture: pendingShipCapture
         )
         try validateCompletions()
     }
 
     private func validatePendingDevCardOwners() throws {
+        try validatePendingShipCapture()
         guard pendingDevCardReveal != nil || pendingDevCardResolution != nil else { return }
         guard let match = activeMatch else { throw MatchCheckpointStore.StoreError.inconsistentHistory }
         let humans = Set(match.setup.humanSeats.map(\.index))
         guard pendingDevCardReveal.map({ humans.contains($0.owner.index) }) ?? true,
               pendingDevCardResolution.map({ humans.contains($0.owner.index) }) ?? true else {
+            throw MatchCheckpointStore.StoreError.inconsistentHistory
+        }
+    }
+
+    private func validatePendingShipCapture() throws {
+        guard let receipt = pendingShipCapture else { return }
+        guard let match = activeMatch,
+              match.setup.humanSeats.contains(where: { $0.index == receipt.reader.index }),
+              receipt.reader == receipt.previousOwner || receipt.reader == receipt.newOwner,
+              receipt.previousOwner != receipt.newOwner,
+              match.state.players.contains(where: { $0.id == receipt.previousOwner }),
+              match.state.players.contains(where: { $0.id == receipt.newOwner }),
+              pendingDevCardReveal == nil, pendingDevCardResolution == nil else {
             throw MatchCheckpointStore.StoreError.inconsistentHistory
         }
     }

@@ -1,5 +1,42 @@
 # Naval phone delivery
 
+## Build 29 delivered — October 8, 2026
+
+[Apple/Internal access](/Users/alex/.codex/artifacts/naval-exploration/build29-diagnostics/testflight.json) verifies exact 1.0/29, build `980b2f6c-fae9-4e1f-a858-f14287baeee5`,
+VALID/unexpired and internally IN_BETA_TESTING, with Alex's Internal all-build
+access at `2026-10-08T08:35:27.164Z`. [uploaded payload comparison](/Users/alex/.codex/artifacts/naval-exploration/build29-diagnostics/uploaded-payload-comparison.json) binds the actual signed
+uploaded payload/checksum and accepted UUID. [PR #63](https://github.com/jakebeinart1/Settlers/pull/63) identifies the integration; [final integration proof](/Users/alex/.codex/artifacts/naval-exploration/build29-diagnostics/final-merge-source-proof.json) owns final
+PR disposition and source equivalence after integration.
+Physical install/play is unobserved; no external release occurred.
+
+Tested/archive head remains `c09e084528b7cdcb6cef02653adddb11294c5a90`, with
+all 386 [frozen production inputs](/Users/alex/.codex/artifacts/naval-exploration/build29-diagnostics/final-production-input-manifest.json). [normal push/full-gate receipt](/Users/alex/.codex/artifacts/naval-exploration/build29-diagnostics/final-prepush-command.json) passes all ten mandatory stages; the optional standalone Debug build is explicitly skipped, while native Debug app/UI did run;
+[full-gate native summary](/Users/alex/.codex/artifacts/naval-exploration/build29-diagnostics/final-attempt2-native-summary.json) records 809 functions/1,619 runs passed, zero failures and one existing 375×667 destination skip. [final original-image review](/Users/alex/.codex/artifacts/naval-exploration/build29-diagnostics/final-gate-originals-review.json)
+records complete native play and reviewed original media. [ordinary Release runtime](/Users/alex/.codex/artifacts/naval-exploration/build29-diagnostics/release-runtime.json)
+verifies ordinary fresh Release without QA flags, alive six seconds without a new own crash and
+its original menu approved. [owned simulator cleanup](/Users/alex/.codex/artifacts/naval-exploration/build29-diagnostics/simulator-finish.json) records individual owned-device
+completion, preserving other projects' states. Later evidence-only commits do
+not rename the tested/source/archive head or alter the uploaded binary.
+
+The [Release executable origin](/Users/alex/.codex/artifacts/naval-exploration/build29-diagnostics/release-binary-origin.json) retains compilation source `416a0c6`; the final
+`c09e084` gate revalidated identical production inputs without recompiling that
+executable. Root approves its fresh ordinary-menu image and 12 final native
+originals, including actual Traditional/Expert winners, in the [archive visual approval](/Users/alex/.codex/artifacts/naval-exploration/build29-diagnostics/root-archive-visual-go.json) and [final screenshot gallery](/Users/alex/.codex/artifacts/naval-exploration/build29-diagnostics/final-reviewed-screenshots.md).
+Cleanup shuts down only owned QA: all 14 devices remain and the other 13 states
+are unchanged, with no new/deleted devices.
+
+Main Menu → New Game setup selects v5 seven-card discarding, stealing Off by
+default and V2 scouting. Resume and replay preserve old v1–v4 rules and saved policy identity,
+including the ten-card limit and enabled legacy capture choice. Restart creates
+a fresh current-v5 board and rules with a fresh policy cursor, retaining the
+realized roster, stealing choice and saved brain identity. The game-over screen's
+New Game button also restarts that saved table. To choose the updated AI/default
+settings, use **Main Menu → New Game** setup: it selects V2 and normalizes an old
+implicit capture preference Off; explicit On stays remembered. Updating the app
+does not silently rewrite an ongoing match.
+[E35](acceptance.md#build-29-follow-up-e35) retains exact evidence and limits.
+Earlier delivery sections below remain dated historical records.
+
 ## Build 27 delivery: verified Internal TestFlight access
 
 Ship defense is available to Alex in Internal TestFlight. [Apple](evidence/build27-blockades/receipts/testflight.json)
@@ -21,7 +58,7 @@ retain actual proof. [PR #61](https://github.com/jakebeinart1/Settlers/pull/61) 
 
 ## Build 26 delivered
 
-Apple confirms exact1.0/26 VALID/unexpired/Internal IN_BETA_TESTING and Alex's
+Apple confirms exact 1.0/26 VALID/unexpired/Internal IN_BETA_TESTING and Alex's
 all-build access, with accepted payload UUID/checksum matching. [E31](acceptance.md#build-26-follow-up-e31-delivered)
 binds source `e13`/tested/archive `f1`,377 frozen inputs, full gate,11 originals,
 ordinary Release, strict signing and individually completed QA cleanup.

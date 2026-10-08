@@ -67,6 +67,7 @@ struct NavalAdvancedSettingsView: View {
                     VStack(spacing: 20) {
                         islandsSection
                         discoverySection
+                        shipRulesSection
                     }
                     .padding(.horizontal, Self.inset)
                     .padding(.top, 8)
@@ -165,5 +166,12 @@ struct NavalAdvancedSettingsView: View {
         }
         .background(SettingsChrome.screenBackground.opacity(0.95))
         .dynamicTypeSize(.large)
+    }
+
+    private var shipRulesSection: some View {
+        VStack(spacing: 10) {
+            SettingsSectionHeader(title: "Ship Rules", titleColor: .white)
+            NavalShipStealingOptionView(options: $options)
+        }
     }
 }

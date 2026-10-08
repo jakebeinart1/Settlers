@@ -16,7 +16,9 @@ struct NavalBlockadePresentationTests {
     @Test(arguments: NavalBlockadeQAFixture.Position.allCases, [false, true])
     func generatedBlockadeBaselinesConserveSupplyAndValidate(position: NavalBlockadeQAFixture.Position, fog: Bool) throws {
         let state = try NavalBlockadeQAFixture.make(position, options: NavalOptions(fogEnabled: fog))
-        #expect(state.naval?.rulesVersion == Naval.blockadeRulesVersion)
+        let rulesVersion = try #require(state.naval?.rulesVersion)
+        #expect(rulesVersion == Naval.currentRulesVersion)
+        #expect(rulesVersion >= Naval.blockadeRulesVersion)
         #expect(state.players.allSatisfy { $0.settlements.count == 2 && $0.roads.count == 2 })
         #expect(state.naval?.ships.filter { $0.owner == rival }.allSatisfy { $0.stepsRemaining == 0 } == true)
         for resource in Resource.allCases {
@@ -64,8 +66,15 @@ struct NavalBlockadePresentationTests {
         let blocker = try #require(before.naval?.ships.first { $0.id == 1 })
         #expect(model.selectBoardTarget(.ship(ship.id)))
         let decision = try #require(model.boardDecisionPresentation)
-        let alternate = try #require(decision.legalTiles.first {
-            ship.coordinate.distance(to: $0) == 2 && blocker.coordinate.distance(to: $0) == 1
+        let revealed = try #require(before.naval?.revealed)
+        let alternate = try #require(decision.legalTiles.sorted().first { coordinate in
+            guard ship.coordinate.distance(to: coordinate) == 2,
+                  blocker.coordinate.distance(to: coordinate) == 1,
+                  let route = decision.sailing?.routes[coordinate] else { return false }
+            return before.board.tiles.contains { tile in
+                !revealed.contains(tile.coordinate)
+                    && route.contains { $0.distance(to: tile.coordinate) <= Naval.viewingRange }
+            }
         })
         let route = try #require(decision.sailing?.routes[alternate])
         #expect(route.count == 2 && !route.contains(blocker.coordinate))
@@ -75,7 +84,17 @@ struct NavalBlockadePresentationTests {
         #expect(model.confirmBoardDecision())
         #expect(model.state.naval?.ships.first { $0.id == ship.id }?.coordinate == alternate)
         #expect(model.state.naval?.ships.first { $0.id == ship.id }?.stepsRemaining == 0)
-        #expect(model.state.naval?.ships.first { $0.id == blocker.id } == blocker)
+        let defender = try #require(model.state.naval?.ships.first { $0.id == blocker.id })
+        #expect(defender.id == blocker.id && defender.owner == blocker.owner)
+        #expect(defender.coordinate == blocker.coordinate && defender.stepsRemaining == blocker.stepsRemaining)
+        let revealedAfter = try #require(model.state.naval?.revealed)
+        let discoveries = revealedAfter.subtracting(revealed)
+        #expect(!discoveries.isEmpty && revealed.isSubset(of: revealedAfter))
+        // A real public discovery invalidates every hull's old travel objective,
+        // including the stationary defender; its physical blockade stays intact.
+        #expect(blocker.previousSailingOrigin != nil && defender.previousSailingOrigin == nil)
+        #expect(model.state.naval?.ships.first { $0.id == ship.id }?.previousSailingOrigin == nil)
+        #expect(Naval.isBlockaded(blocker.coordinate, by: actor, in: model.state))
         #expect(model.state.players == before.players)
         #expect(fixture.makeModel().state == model.state)
     }
@@ -95,6 +114,7 @@ struct NavalBlockadePresentationTests {
         #expect(captured.owner == actor && captured.stepsRemaining == Naval.movementPerTurn)
         #expect(captured.coordinate == before.naval?.ships.first { $0.id == 1 }?.coordinate)
         #expect(resumed.state.players == before.players && resumed.state.naval?.hullsBuilt == before.naval?.hullsBuilt)
+        #expect(resumed.pendingShipCapture != nil && resumed.dismissShipCapture())
         #expect(resumed.selectBoardTarget(.ship(0)))
         let destination = NavalBlockadeQAFixture.destination(in: before)
         #expect(resumed.boardDecisionPresentation?.blockadedTiles.isEmpty == true)
@@ -111,7 +131,11 @@ struct NavalBlockadePresentationTests {
         let model = fixture.makeModel()
         var before = try NavalBlockadeQAFixture.make(.passage)
         before.phase = .mainTurn(playerIndex: rival.index)
-        before.naval!.ships[1].stepsRemaining = Naval.movementPerTurn
+        before.naval!.ships[1].stepsRemaining = Naval.movementPerTurn(in: before)
+        // Starting the defender's next turn refreshes both its allowance and
+        // its public travel history, as Naval.beginTurn does in real play.
+        before.naval!.ships[1].previousSailingOrigin = nil
+        try GameSession(state: before, policies: [:], policySeed: 0).checkpoint.validate()
         model.replaceStateForTesting(before, humanSeat: rival)
         #expect(model.selectBoardTarget(.ship(1)))
         let original = try #require(before.naval?.ships.first { $0.id == 0 })
@@ -143,6 +167,12 @@ struct NavalBlockadePresentationTests {
     @Test func legacyWaterOverlapKeepsItsOriginalMaskAndHasNoBlockadeDecoration() throws {
         var before = try NavalBlockadeQAFixture.make(.passage)
         before.naval?.rulesVersion = 3
+        // A historical v3 baseline never carried v5 voyage history. Downgrading
+        // the version alone would produce an impossible saved ship state.
+        for index in before.naval!.ships.indices {
+            before.naval!.ships[index].previousSailingOrigin = nil
+        }
+        try GameSession(state: before, policies: [:], policySeed: 0).checkpoint.validate()
         let model = isolatedGameViewModel()
         model.replaceStateForTesting(before, humanSeat: actor)
         #expect(model.selectBoardTarget(.ship(0)))

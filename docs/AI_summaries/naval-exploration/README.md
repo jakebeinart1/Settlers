@@ -1,5 +1,103 @@
 # Naval exploration product program
 
+## Build 29 final acceptance and delivery — October 8, 2026
+
+Empires 1.0/build 29 is available to Alex in Internal TestFlight, verified by
+[Apple/Internal access](/Users/alex/.codex/artifacts/naval-exploration/build29-diagnostics/testflight.json) at `2026-10-08T08:35:27.164Z`. The exact Apple build is
+`980b2f6c-fae9-4e1f-a858-f14287baeee5`, VALID/unexpired and internally IN_BETA_TESTING; Alex has
+access through Internal. Physical iPhone installation/play is unobserved;
+no external release or new AI-strength claim is made.
+
+Tested/archive head `c09e084528b7cdcb6cef02653adddb11294c5a90` freezes all 386
+[frozen production inputs](/Users/alex/.codex/artifacts/naval-exploration/build29-diagnostics/final-production-input-manifest.json). Earlier focused native and corrected functional
+runs at `5851930` use the same production inputs. [normal push/full-gate receipt](/Users/alex/.codex/artifacts/naval-exploration/build29-diagnostics/final-prepush-command.json) passes
+all ten mandatory stages; the optional standalone Debug build is explicitly skipped, while native Debug app/UI did run; [full-gate native summary](/Users/alex/.codex/artifacts/naval-exploration/build29-diagnostics/final-attempt2-native-summary.json) reports 809 functions/1,619 runs passed, zero failures and one existing 375×667 destination skip.
+[final original-image review](/Users/alex/.codex/artifacts/naval-exploration/build29-diagnostics/final-gate-originals-review.json) verifies the complete native match and original media.
+[ordinary Release runtime](/Users/alex/.codex/artifacts/naval-exploration/build29-diagnostics/release-runtime.json) records fresh ordinary Release without QA flags, surviving
+six seconds without a new own crash, with its original menu reviewed. [uploaded payload comparison](/Users/alex/.codex/artifacts/naval-exploration/build29-diagnostics/uploaded-payload-comparison.json) verifies
+the actual uploaded payload and accepted checksum/UUID. Tester access is
+verified by the Apple/Internal access receipt linked above.
+[owned simulator cleanup](/Users/alex/.codex/artifacts/naval-exploration/build29-diagnostics/simulator-finish.json) records individually completed owned-device cleanup while
+preserving other projects. [PR #63](https://github.com/jakebeinart1/Settlers/pull/63) identifies this integration; [final integration proof](/Users/alex/.codex/artifacts/naval-exploration/build29-diagnostics/final-merge-source-proof.json) owns final
+PR disposition and source equivalence after integration.
+
+The [Release executable origin](/Users/alex/.codex/artifacts/naval-exploration/build29-diagnostics/release-binary-origin.json) records a cached `416a0c6` compilation,
+revalidated by the successful `c09e084` gate with all 386 production inputs
+unchanged. It was freshly installed and launched, but the executable was not
+recompiled during that final gate. Root approves the ordinary menu and all 12
+unchanged final-gate originals in the [archive visual approval](/Users/alex/.codex/artifacts/naval-exploration/build29-diagnostics/root-archive-visual-go.json) and [final screenshot gallery](/Users/alex/.codex/artifacts/naval-exploration/build29-diagnostics/final-reviewed-screenshots.md).
+Only owned QA was shut down; all 14 devices remain, with the other 13 states
+unchanged and no device creation or deletion.
+
+The independent static review and final corrected matrix remain bound separately:
+96 winners, six exact fresh-process result/trace/audit repeats, ten complete
+transition inspections and old V4/V1 trace equivalence. Initial seven/capture
+failures and the two idle return cases 47/77 remain below as dated evidence.
+[E35](acceptance.md#build-29-follow-up-e35) closes the new rules, durable ownership
+receipts and saved scouting revisions with these explicit limits. The first full
+gate at `416a0c6` failed four stale blockade-test functions; the test-only
+correction and its initial compile failure remain [retained diagnostics](evidence/build29-discard-capture-scouting/verification.md#first-full-gate-and-fixture-correction).
+
+Alex's screenshots `IMG_1770.PNG` / `IMG_1769.PNG` show a real seven followed by
+robber placement while the human retains eight resource cards. Naval used a
+ten-card threshold. New Naval v5 matches now discard half the resource hand,
+rounded down, above seven cards before moving the robber. Development cards do
+not count; a Knight does not trigger discarding. Shipped v1–v4 matches retain
+their ten-card threshold on Resume and replay. Restart creates a new v5 board
+and rules while retaining the realized roster, stealing choice and saved brain
+identity, with a fresh policy cursor. The game-over screen's New Game button
+does the same. To choose the updated AI and default settings, use **Main Menu →
+New Game** setup: it selects V2 and normalizes an old implicit stealing preference
+Off. No automatic ongoing-match rule upgrade is implemented.
+
+Naval Advanced Settings explains ship stealing, Off for fresh games and old
+implicit New Game prefills; an explicit On choice stays remembered. Old active
+matches retain their saved enabled rule. An enabled human-involved transfer
+creates a durable painted receipt naming the former and new controllers. A
+mandatory native cover isolates the board and Settings until acknowledgement is
+saved; cold resume or a failed acknowledgement write leaves the receipt owed.
+
+Main Menu → New Game setup selects a saved `scoutingV2` revision for both Naval
+tiers. Older missing
+brain fields decode to `legacyV1`; resume, Restart and export retain that choice.
+The new brain reserves realistically fundable landings and explores useful
+public frontiers. The first 96-case matrix finished every game but exposed two
+idle return voyages after the bot's own spending (cases 47/77). Exact checkpoint
+regressions fail before the correction and pass afterward. Public v5 sailing
+history now prevents those same-turn zero-discovery returns, while actual
+funded improved landings, proven wins and human legal returns remain supported.
+The corrected-source matrix passes 96 winners and six byte-exact repeats; ten
+complete transition inspections and two exact legacy V4 traces also pass.
+[Verification](evidence/build29-discard-capture-scouting/verification.md) binds
+the source, results and limits. No new strength claim.
+
+<scratchpad>
+
+Data flow: saved Naval version/options → effective engine rules → actual roll
+and legal mask → session transaction → atomic checkpoint → discard/transfer UI
+and policy observation. Scouting scores consume that public observation, never
+authoritative hidden terrain. Receipts publish only after the same transaction
+commits and must hold further gameplay until acknowledgement.
+
+Constraints: exact old recordings and policy identities, conserved cards,
+unchanged current ship identity/colonies, stable board viewport and command-row
+reserve, one owned native test device and no other project's simulator changes.
+Naive failure boundaries include seven resources plus development cards, odd
+hand totals, another seat rolling seven, several simultaneous discarders,
+Knight versus rolled seven, cold resume mid-discard, capture disabled during
+ordinary eleven production, human loss behind a modal, failed receipt writes, a funded
+landing, duplicate friendly landing reservations and a rival-blocked route.
+
+Alternatives rejected: changing the threshold globally would rewrite old
+replays; defaulting every missing capture key to Off would erase old pending
+captures; a longer transient toast still expires unseen; unconditional voyage
+bonuses reward aimless movement. Verification must start before a real seven,
+perform actual captures, acknowledge/resume receipts, reproduce the identified
+idle decisions and finish real app-hosted matches. Directly seeded discard or
+win screens cannot prove those transitions.
+
+</scratchpad>
+
 ## Build 27 ship defense: delivered
 
 Ship defense is live in Alex's Internal TestFlight. In new Naval games, an
@@ -277,10 +375,14 @@ invariance, hosted setup suites, strict lint and Release/Debug builds pass.
 - Repository `CLAUDE.md`, its referenced global rules, and original project skills
   remain the operational guidance. This program does not replace them.
 
-## Current state and isolation
+## Current state and historical isolation
+
+Build 29 is the active follow-up; older stage/build rows retain their original
+source-bound acceptance and do not establish build 29 readiness.
 
 | Item | State |
 |---|---|
+| Build 29 current status | Tested/archive `c09e084`, 1.0/29, 386 frozen inputs. All required gate stages, native complete-match/media, ordinary Release, signed upload/Apple Alex access and individual owned cleanup verified. New v5 rules/V2 brains; exact old saves retained. E35 closes final acceptance; final PR disposition/source equivalence belong to [final integration proof](/Users/alex/.codex/artifacts/naval-exploration/build29-diagnostics/final-merge-source-proof.json). |
 | Stage 0 | Charter and planning framework recorded; independently reviewed |
 | Stages 1 through 5 | Delegated design selected, critiqued and implemented; [contract](design-contract.md) |
 | Stage 6 | Complete: engine/session/app/persistence/replay implemented; terminal and human-confirmation repairs plus map/interaction corrections pass final E20 gate and E21 exact-binary native journeys |
@@ -290,7 +392,7 @@ invariance, hosted setup suites, strict lint and Release/Debug builds pass.
 | Build 24 follow-up | Frozen `9bce5f7`, 1.0/24, 376 bound inputs above main `83d8525`; fresh 48-match v3 matrix and six complete-byte result/trace repeats pass. Integrated/refined failures retained; three harvest native cases pass with exact-ID, live ≥7:1 contrast qualification. Four harvest images and actual rival notice inspected. First full pre-push gate failed two obsolete test oracles; all other mandatory stages pass and optional Debug app build skips. Test-only correction passes 3 functions/8 runs; final `91604` passes all ten mandatory stages and publishes `67efbad`. App/UI 753/754 pass, zero failures, one skip, 1,512 passing runs. Ordinary Release survives six seconds and all 23 final originals are approved. Archive/export/upload/signatures and independent final audit pass; Apple VALID/internal IN_BETA_TESTING with Alex's access confirmed (E29). QA alone shut down; three helpers archived. PR #60 awaits approval, tested-head CI passes, unmerged. |
 | Build 23 follow-up | Frozen `1dfae7c`, version 1.0/23: all eleven gate stages pass, 731/732 app/UI functions pass with one size skip independently passed on compact. Seventeen images inspected; ordinary Release survives six seconds. Archive/export/upload/signature pass; Apple VALID/internal IN_BETA_TESTING with Alex's access confirmed. E28 retains targeted and reused build 22 functional evidence. |
 | Build 22 follow-up | Source `1cf1c0f`; all eleven gate stages pass, ordinary Release survives, final-source media inspected, 48 functional matches/six repeats pass. Signed upload and independent audit pass; Apple VALID/internal IN_BETA_TESTING with Alex's access confirmed (E27). |
-| Latest verified phone delivery | Empires 1.0/build 24 internally available to Alex, verified October 7 at 9:06:46 a.m. EDT and independently at 9:06:40. External build 24 unreleased; physical installation/play unobserved. Build 23/22/21 remain historical. |
+| Phone delivery status | Internal 1.0/29 VALID/unexpired/IN_BETA_TESTING with Alex access at `2026-10-08T08:35:27.164Z`; [Apple/Internal access](/Users/alex/.codex/artifacts/naval-exploration/build29-diagnostics/testflight.json). Physical install/play unobserved. Earlier28/27 and older delivery sections remain dated history. |
 | Simulator evidence | Reused QA `937692FF`; build 24 full gate, ordinary Release six-second survival and 23 root-approved final originals have separate receipts. Build 23's seventeen-image gallery and all earlier/intermediate captures retain their source/configuration identities. |
 | Worktree | `/Users/alex/.codex/worktrees/naval-exploration/Settlers` and main integration retained; three implementation helpers recoverably archived with their changes integrated; durable AI/release evidence retained |
 | Build 24 integration checkout | Managed `/Users/alex/.codex/worktrees/naval24-main-integration/Settlers`, branch `codex/naval24-main-integration`; frozen production `9bce5f7` above Naval squash/main `83d8525`; test-only `67efbad` preserves production/package hashes; final pre-push `91604` passes all ten mandatory stages and publishes branch `67efbad`; PR #60 attached; gate/runtime/gallery/signatures/upload/Apple verified; tested-head CI passes, merge awaits approval |
@@ -304,7 +406,7 @@ It stays attached for the program's continuation. Implementation contributors
 need separate checkouts under the repository's concurrent-agent guidance;
 read-only review can inspect this checkout. Heavy simulator/gate runs serialize.
 
-Current AI conclusions apply to the frozen naval-capable Traditional/Expert pair
+Historical v1 AI conclusions apply to the frozen naval-capable Traditional/Expert pair
 with balanced personalities: paired improvements +18.43 percentage points at three
 seats (95% CI +13.64–23.23) and +20.83 at four (+16.37–25.30), with every chair
 and all twelve map/option cells. Host timing excludes rendering and physical-phone
@@ -392,7 +494,7 @@ recording Alex's revised direction and updating its dependent requirements.
 | C05 | Discovery is permanent and public for every player. The map starts fogged and mist clears with an impressive animation, including the opening. | Exploration is shared world knowledge and an important visual event. C04's disabled setting takes precedence over concealment. |
 | C06 | Optional resource-choice production must be valued appropriately. | Requires desirable flexible output with proper opportunity cost. Delegated D18–D20 settle representation, frequency, entitlement and bank resolution. |
 | C07 | Ordinary construction uses each player's hand across locations; a player establishes a settlement on new land before building roads there. | Preserves the economy and settlement-established access. Delegated D07–D08 settle coastal landing, eligibility, island components and continued ship use. |
-| C08 | Rolling 11 allows the roller to capture any opponent's ship, regardless of distance. Control persists until that ship is captured again. | Locks global persistent control. Delegated D09–D11 settle production/capture order, allowance and identity bookkeeping. |
+| C08 | When Ship stealing is enabled, rolling 11 allows the roller to capture any opponent's ship, regardless of distance. Control persists until captured again. Fresh-game default is Off, with an explained Advanced Settings switch. | October 8 revises the earlier unconditional rule; old saved rules remain versioned. D09–D11 retain enabled production/capture order, allowance and identity bookkeeping. |
 | C09 | Ship destruction and a Biggest Navy award are absent from the current design. | Preserves the human exclusions. Delegated D12–D13 retain Road/Army awards and settle the remaining score/supply rules. |
 | C10 | Traditional and Expert AI are both required, including substantial refinement and evidence. | A legal fallback or an unsupported difficulty is not the finished experience. |
 | C11 | Delivery uses an isolated worktree, simulator launch and real gameplay, UI refinement, screenshots and considered edge cases. | Compilation alone cannot establish product quality. |
@@ -401,6 +503,8 @@ recording Alex's revised direction and updating its dependent requirements.
 | C14 | New Naval matches allow each ship at most two sea hexes per turn, selecting a highlighted reachable destination and confirming one voyage. | October 7 direction; D47 retains prior saves and public-information boundaries. |
 | C15 | Any-resource terrain is painted; harvest explains building entitlement and collection progress; ships use natural language; the current win goal is visible. | October 7 direction; D45, D46 and D48 use existing painted surfaces without extra New Game scrolling. |
 | C16 | Accepting a bot proposal gives actual willing, funded recipients an equal chance, with a visible bot-to-bot result. | October 7 direction; D49 records the narrow Accept scope while the optional question remains unanswered. |
+| C17 | A rolled seven requires every player with more than seven resource cards to discard half, rounded down; ship theft must be clearly acknowledged when enabled. | October 8 corrects the accidental ten-card Naval limit and the easily missed ownership notice. |
+| C18 | Both AI tiers must scout useful reachable terrain rather than remain indefinitely at an unfunded landing. | October 8 requires decision-level reproduction, public-information correctness and complete-match verification. |
 
 The ordinary per-player economy and settlement costs were carried forward in the
 conversation. Exact costs, supplies, score target and interactions belong in the

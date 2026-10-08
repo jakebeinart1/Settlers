@@ -24,7 +24,8 @@ public struct HeuristicPolicy: Policy {
 
     public func decide(_ observation: GameObservation, rng: inout RandomSource) -> GameMove {
         if observation.state.mode == .naval {
-            return NavalPolicy(tier: .traditional, personality: personality).decide(observation, rng: &rng)
+            return NavalPolicy(tier: .traditional, personality: personality,
+                               revision: .forGame(observation.state)).decide(observation, rng: &rng)
         }
         return bot.decide(
             for: observation.state,

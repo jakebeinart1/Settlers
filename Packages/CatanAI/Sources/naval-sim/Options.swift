@@ -9,6 +9,8 @@ struct Options {
     var family = NavalMapFamily.archipelago
     var fog = true
     var wild = true
+    var shipStealing = false
+    var brainRevision: NavalPolicy.Revision?
     var seats: [String] = []
     var buildID = "working-tree"
     var arm = "diagnostic"
@@ -30,6 +32,10 @@ struct Options {
             case "--family": guard let family = NavalMapFamily(rawValue: value) else { fail("Unknown family") }; result.family = family
             case "--fog": result.fog = boolean(value)
             case "--wild": result.wild = boolean(value)
+            case "--ship-stealing": result.shipStealing = boolean(value)
+            case "--brain-revision":
+                guard let revision = NavalPolicy.Revision(rawValue: value) else { fail("Unknown naval brain revision") }
+                result.brainRevision = revision
             case "--seats": result.seats = value.split(separator: ",").map {
                 guard ["traditional", "expert", "land-control"].contains(String($0)) else { fail("Unknown policy \($0)") }
                 return String($0)
@@ -64,12 +70,16 @@ struct Options {
         exit(2)
     }
 
-    func policy(at index: Int) -> any Policy {
+    func policy(at index: Int, in state: GameState) -> any Policy {
         switch seats[index] {
-        case "traditional": NavalPolicy(tier: .traditional)
-        case "expert": NavalPolicy(tier: .expert)
+        case "traditional": NavalPolicy(tier: .traditional, revision: revision(in: state))
+        case "expert": NavalPolicy(tier: .expert, revision: revision(in: state))
         case "land-control": NavalLandControl()
         default: Self.fail("Unknown policy")
         }
+    }
+
+    func revision(in state: GameState) -> NavalPolicy.Revision {
+        brainRevision ?? .forGame(state)
     }
 }

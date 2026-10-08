@@ -11,13 +11,29 @@ public struct NavalPolicy: LedgerAwarePolicy {
         case traditional, expert
     }
 
+    /// A saved brain identifies its strategy as well as its difficulty. Version
+    /// one retains the original landing reservation for existing checkpoints.
+    public enum Revision: String, Codable, Sendable {
+        case legacyV1, scoutingV2
+
+        /// Direct-state adapters have no MatchSetup. Their saved naval rules
+        /// select the historical strategy; the app uses its explicit saved brain.
+        public static func forGame(_ state: GameState) -> Revision {
+            (state.naval?.rulesVersion ?? 0) >= scoutingRulesVersion ? .scoutingV2 : .legacyV1
+        }
+
+        private static let scoutingRulesVersion = 5
+    }
+
     public let tier: Tier
     public let personality: BotPersonality
-    public var id: String { "naval-\(tier.rawValue)-v1" }
+    public let revision: Revision
+    public var id: String { "naval-\(tier.rawValue)-\(revision == .legacyV1 ? "v1" : "v2")" }
 
-    public init(tier: Tier, personality: BotPersonality = .balanced) {
+    public init(tier: Tier, personality: BotPersonality = .balanced, revision: Revision = .legacyV1) {
         self.tier = tier
         self.personality = personality
+        self.revision = revision
     }
 
     public func decide(_ observation: GameObservation, rng: inout RandomSource) -> GameMove {
@@ -48,7 +64,7 @@ public struct NavalPolicy: LedgerAwarePolicy {
                      "NavalPolicy requires a complete Voyages observation")
         let context = NavalDecisionContext(
             observation: observation, ledger: ledger ?? Self.positionLedger(observation),
-            tier: tier, personality: personality, voyagesEnabled: voyagesEnabled
+            tier: tier, personality: personality, voyagesEnabled: voyagesEnabled, revision: revision
         )
         let legal = observation.legalMoves.filter { move in
             guard !voyagesEnabled else { return true }

@@ -13,6 +13,7 @@ extension GameViewModel {
 
     @discardableResult
     public func beginBoardDecision(_ intent: BoardDecisionIntent) -> Bool {
+        guard pendingShipCapture == nil else { return false }
         reconcileBoardDecision()
         return boardDecisionCoordinator.begin(intent, with: boardDecisionContext)
     }
@@ -93,6 +94,10 @@ extension GameViewModel {
     }
 
     func reconcileBoardDecision() {
+        guard pendingShipCapture == nil else {
+            boardDecisionCoordinator.clear()
+            return
+        }
         guard humanSeats.count == 1 || seatAtDevice != nil else {
             boardDecisionCoordinator.clear()
             return

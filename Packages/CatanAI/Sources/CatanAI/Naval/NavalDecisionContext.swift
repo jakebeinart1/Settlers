@@ -14,14 +14,17 @@ final class NavalDecisionContext {
     let tiles: [HexCoordinate: Tile]
     let boardIndex: BoardIndex
     let voyagesEnabled: Bool
+    let revision: NavalPolicy.Revision
 
     init(observation: GameObservation, ledger: PublicLedger,
-         tier: NavalPolicy.Tier, personality: BotPersonality, voyagesEnabled: Bool = true) {
+         tier: NavalPolicy.Tier, personality: BotPersonality, voyagesEnabled: Bool = true,
+         revision: NavalPolicy.Revision = .legacyV1) {
         self.observation = observation
         self.ledger = ledger
         self.tier = tier
         self.personality = personality
         self.voyagesEnabled = voyagesEnabled
+        self.revision = revision
         self.state = observation.state
         self.seat = observation.seat
         guard let me = observation.state.players.first(where: { $0.id == observation.seat }) else {

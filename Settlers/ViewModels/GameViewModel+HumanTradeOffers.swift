@@ -46,7 +46,7 @@ extension GameViewModel {
     func reconcileHumanTradeOffers() throws {
         guard appIsActive, !isBlockingSurfaceOpen, !persistenceBlocked, savedGameAvailability.canResume,
               pendingTradeConfirmation == nil, pendingDevCardReveal == nil,
-              pendingDevCardResolution == nil, !hasMandatoryNavalDecision else { return }
+              pendingDevCardResolution == nil, pendingShipCapture == nil, !hasMandatoryNavalDecision else { return }
         while let offer = rawIncomingOffer {
             var policy = humanTradePolicy(for: humanPlayer)
             let context = tradeOfferContext(offer)
