@@ -1,0 +1,29 @@
+{
+  "finishedAtUTC": "2026-10-08T02:16:33.789356+00:00",
+  "productionSourceSHA": "cf9b5a4af2ee4f5aca77450d3fe7413210ef3160",
+  "archiveHeadSHA": "cf9b5a4af2ee4f5aca77450d3fe7413210ef3160",
+  "productionInputCount": 380,
+  "version": "1.0",
+  "build": "28",
+  "ownedQA": "937692FF-BFBF-4683-80E5-2590F5288D56",
+  "allocationLockHeld": true,
+  "qaWasIdleAgainstNativeBuildTestProcesses": true,
+  "individualShutdownExitCode": 0,
+  "qaStateReadback": "Shutdown",
+  "totalDevicesBefore": 14,
+  "totalDevicesAfter": 14,
+  "bootedDevicesBefore": 3,
+  "bootedDevicesAfter": 2,
+  "allOtherDeviceStatesUnchanged": true,
+  "devicesCreatedOrDeleted": false,
+  "blanketOperationUsed": false,
+  "sourceInputsStillMatchFrozen380": true,
+  "sourceInputsStillMatchFrozenCommit": true,
+  "sourceHeadStillFrozen": true,
+  "inventorySHA256": {
+    "before": "9694d6758f5bf36da4350ddccfd15c2454598257942a4e6a81ffe482c5f77e97",
+    "after": "0edc9ce02c8a18a9a46f20413fdd35a6f1126bdb4286130fdfdba59dbcfe1dfe"
+  },
+  "shutdownCommandReceiptSHA256": "473ccd2f25f28b660cb980b7e51f720fea9d52bf763287dc6891bf5c46d4e187",
+  "independentlyVerifiedInventoryAndReceiptHashes": true
+}

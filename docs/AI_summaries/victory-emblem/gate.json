@@ -1,0 +1,51 @@
+{
+  "verifiedAtUTC": "2026-10-08T02:09:39.891729+00:00",
+  "productionSourceSHA": "cf9b5a4af2ee4f5aca77450d3fe7413210ef3160",
+  "testedHeadSHA": "cf9b5a4af2ee4f5aca77450d3fe7413210ef3160",
+  "version": "1.0",
+  "build": "28",
+  "productionInputCount": 380,
+  "normalPushExitCode": 0,
+  "noVerifyUsed": false,
+  "mandatoryStagesPassed": 10,
+  "stageResults": [
+    "PASS  xcodegen drift  (0s)",
+    "PASS  swiftlint --strict  (0s)",
+    "PASS  evaluation tooling  (7s)",
+    "PASS  packages build (W=E)  (13s)",
+    "PASS  CatanEngine tests  (21s)",
+    "PASS  CatanAI tests  (380s)",
+    "PASS  coverage floors  (1s)",
+    "PASS  gitleaks  (4s)",
+    "PASS  app tests  (3912s)",
+    "PASS  app build (Release)  (51s)",
+    "SKIP  app build (Debug)  -- not requested; pass --debug-app"
+  ],
+  "coveragePercent": {
+    "CatanEngine": 96.81,
+    "CatanAI": 96.09
+  },
+  "nativePassedFunctions": 778,
+  "nativeFailedFunctions": 0,
+  "nativeSkippedFunctions": 1,
+  "nativeTotalFunctions": 779,
+  "passingParameterizedRuns": 1559,
+  "nativeSkippedCases": [
+    {
+      "name": "testConfirmationFooterAndNewOfferRemainReachableAt375By667()",
+      "nodeIdentifier": "TradeRedesignFlowTests/testConfirmationFooterAndNewOfferRemainReachableAt375By667()",
+      "nodeType": "Test Case",
+      "result": "Skipped"
+    }
+  ],
+  "nativeSummarySHA256": "cb4a2786e396e19edc63a9b1239045d480cbaae989f0396a93a5670241468f1f",
+  "gateCommandReceiptSHA256": "714117f921eab514245ee809c19b85c8dd571351edb531b67c7050902f498a5e",
+  "originalFinalCaptureReview": "final-gate-visual-review.json",
+  "focusedOriginalScreens": [
+    "normal.png",
+    "maximum-title.png",
+    "maximum-actions.png"
+  ],
+  "focusedOriginalsRetainedUnmodified": true,
+  "physicalPhoneInstallOrPlayObserved": false
+}

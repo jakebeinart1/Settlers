@@ -1,0 +1,52 @@
+{
+  "verdict": "PASS",
+  "scope": "Original victory emblem at 76 points, normal/max headline rendering and preserved native result-action reachability",
+  "imagesUnmodified": true,
+  "testedHeadSHA": "cf9b5a4af2ee4f5aca77450d3fe7413210ef3160",
+  "productionSourceSHA": "cf9b5a4af2ee4f5aca77450d3fe7413210ef3160",
+  "version": "1.0",
+  "build": "28",
+  "productionInputCount": 380,
+  "reviewedAtUTC": "2026-10-08T02:06:44.912382+00:00",
+  "reviewer": "/root/victory_delivery_orchestrator",
+  "rootReviewAuthorityDelegated": true,
+  "images": [
+    {
+      "path": "/Users/alex/.codex/artifacts/naval-exploration/build28-victory-emblem/final-normal-attachments/486821F7-F57E-40C7-AB3C-76EFD951AB7B.png",
+      "sha256": "6ca8670f98909e2396ac8553b9d20d860b0acd96ce15bbe0ec7198eaeb116343",
+      "test": "GameplayBoundaryFlowTests/testCompletedGameReturnsToMainMenuWithoutAResumeButton()",
+      "timestamp": 1791422669.021,
+      "suggestedName": "Victory \u2014 painted emblem at normal text_0_951C7D42-1D20-4B5E-9FF5-FFF707FE5C4A.png",
+      "reviewer": "/root/victory_delivery_orchestrator",
+      "detail": "original",
+      "verdict": "PASS for requested emblem/headline or native action reachability; see limitations"
+    },
+    {
+      "path": "/Users/alex/.codex/artifacts/naval-exploration/build28-victory-emblem/final-large-attachments/7DD27F2E-A158-4941-9618-D4F134A9CA4B.png",
+      "sha256": "6b59808ff9fdce3ea816c91515a01ae3e9dc4f145558cc61657962dbfde72fe1",
+      "test": "NavalFlowTests/testResultsRemainReachableAtMaximumTextSize()",
+      "timestamp": 1791423784.236,
+      "suggestedName": "Voyages \u2014 accessible results_0_74C1B12C-4581-4CC2-9E61-AC195F4BE297.png",
+      "reviewer": "/root/victory_delivery_orchestrator",
+      "detail": "original",
+      "verdict": "PASS for requested emblem/headline or native action reachability; see limitations"
+    },
+    {
+      "path": "/Users/alex/.codex/artifacts/naval-exploration/build28-victory-emblem/final-large-attachments/ABCF0CF9-8340-42F7-B7D9-D2C29AAF3AC8.png",
+      "sha256": "8a67e65bf081ef217d2376eb71f290fcfe99a20468ef13f4c91e099d0822f2ed",
+      "test": "NavalFlowTests/testResultsRemainReachableAtMaximumTextSize()",
+      "timestamp": 1791423781.553,
+      "suggestedName": "Victory \u2014 painted emblem before scrolling at maximum text_0_5F34BDA4-6DD0-491A-9713-4C7D1A2745BF.png",
+      "reviewer": "/root/victory_delivery_orchestrator",
+      "detail": "original",
+      "verdict": "PASS for requested emblem/headline or native action reachability; see limitations"
+    }
+  ],
+  "observations": "Gold hex, sunrise and ivory banner remain clear and unclipped in exact-gated captures. YOU WIN! is fully readable at normal and maximum text. Normal standings/actions fit. All three affected native action flows passed in this completed gate.",
+  "limitations": [
+    "Forced-win captures have zero-VP standings/no replay; they prove layout and tapped result controls. Separate complete matches passed in the full gate.",
+    "Existing maximum-text standings wrap long names/civilizations and VP labels; these rows are unchanged and outside the emblem scope.",
+    "The final full-gate maximum-text footer capture shows Main Menu only partially; its subsequent native tap passed. Prior focused original maximum-actions capture shows both full controls. This review does not claim both controls are fully visible in the full-gate footer image.",
+    "Actual VoiceOver navigation and physical-phone install/play remain unobserved."
+  ]
+}
