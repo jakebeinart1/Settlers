@@ -85,10 +85,14 @@ public struct BoardView: View {
         self.allowsGameCommands = allowsGameCommands
         self.rollHighlightTiles = rollHighlightTiles
         self.animatesStateChanges = animatesStateChanges
+        board = state.mode == .naval ? Naval.visibleBoard(in: state) : state.board
         _camera = State(initialValue: state.mode == .naval ? Self.navalHomeCamera : .fitted)
     }
 
-    var board: Board { state.mode == .naval ? Naval.visibleBoard(in: state) : state.board }
+    /// Built once per view. A computed property rebuilt the naval world on
+    /// every read - three times per road edge per frame - which was ~65% of
+    /// the main thread in a naval match and timed out the full-match UI test.
+    let board: Board
 
     func staticWorldOverview() -> Self {
         var overview = self
