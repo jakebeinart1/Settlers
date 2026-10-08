@@ -228,8 +228,17 @@ final class GameplayBoundaryFlowTests: XCTestCase {
         continueAfterFailure = false
         let app = launch(arguments: ["-qaAutoStart", "-qaPlayToEnd"])
 
+        // The winning move plays the cutscene first; it ends on its own.
+        let cutscene = app.staticTexts["game-over.cutscene.score"]
+        XCTAssertTrue(cutscene.waitForExistence(timeout: Self.completeMatchTimeoutSeconds),
+                      "A live game end must play the victory cutscene before the results")
+        let tour = XCTAttachment(screenshot: app.screenshot())
+        tour.name = "Victory cutscene — board tour"
+        tour.lifetime = .keepAlways
+        add(tour)
+
         let newGame = app.buttons["game-over.new-game"]
-        XCTAssertTrue(newGame.waitForExistence(timeout: Self.completeMatchTimeoutSeconds))
+        XCTAssertTrue(newGame.waitForExistence(timeout: 60))
 
         // Existence only, and deliberately no tap. What this test uniquely
         // proves is that the button resolves the recording of the match that

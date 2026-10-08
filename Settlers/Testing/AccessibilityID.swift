@@ -274,5 +274,8 @@ enum AccessibilityID {
         static let newGame = "game-over.new-game"
         static let replay = "game-over.replay"
         static let mainMenu = "game-over.main-menu"
+        static let cutscene = "game-over.cutscene"
+        static let cutsceneScore = "game-over.cutscene.score"
+        static let skipCutscene = "game-over.cutscene.skip"
     }
 }

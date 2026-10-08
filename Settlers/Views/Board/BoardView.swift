@@ -33,6 +33,8 @@ public struct BoardView: View {
     /// Movie frames use the fitted world with no nonfunctional navigation UI.
     /// Live and interactive replay retain their existing camera controls.
     var showsNavigationControls = true
+    /// Victory cutscene only; see `BoardViewSpotlight.swift`.
+    var spotlight: BoardSpotlight?
 
     @Environment(\.accessibilityReduceMotion) var reduceMotion
 
@@ -189,7 +191,11 @@ public struct BoardView: View {
                     .allowsHitTesting(false)
                 }
 
+                if let spotlight, !spotlight.edges.isEmpty { spotlightRoads(spotlight, geometry: geometry) }
+
                 buildingViews(geometry: geometry, ownership: ownership)
+
+                if let spotlight { spotlightLayer(spotlight, geometry: geometry) }
 
                 if let naval = state.naval {
                     NavalShipLayer(
@@ -311,6 +317,9 @@ public struct BoardView: View {
                 withdrawMist(newlyRevealed: (after ?? []).subtracting(before ?? []))
             }
             .onAppear { beginNavalOpening() }
+            .task(id: spotlight?.focus) {
+                if spotlight != nil { await glideCamera(to: spotlight?.focus, fit: fit, container: viewport) }
+            }
             .task(id: retiringMist) { await animateMistWithdrawal() }
         }
     }
@@ -617,7 +626,7 @@ public struct BoardView: View {
     /// the square of a network's size: measured 13ms at 20 roads and 91ms at
     /// 60, per path, two paths per player, re-run on every bot move and every
     /// pan or pinch frame. That is the late-game lag on a Vast board.
-    private func roadNetworkPath(for edges: Set<EdgeID>, geometry: HexGeometry) -> Path {
+    func roadNetworkPath(for edges: Set<EdgeID>, geometry: HexGeometry) -> Path {
         var path = Path()
         for edge in edges {
             let (a, b) = board.vertices(of: edge)
@@ -627,7 +636,7 @@ public struct BoardView: View {
         return path
     }
 
-    private func roadStroke(width: CGFloat) -> StrokeStyle {
+    func roadStroke(width: CGFloat) -> StrokeStyle {
         StrokeStyle(lineWidth: width, lineCap: .round, lineJoin: .round)
     }
 

@@ -168,6 +168,10 @@ public final class GameViewModel {
     /// The involved human must read a committed ownership transfer before
     /// either chair continues. It survives relaunch in the match checkpoint.
     public internal(set) var pendingShipCapture: NavalShipCaptureReceipt?
+    /// True from the move that ends a game until the victory cutscene ends.
+    /// Set only on that live commit, so a resumed finished game, and the QA
+    /// forced win, go straight to the results.
+    public var victoryCutscenePending = false
     /// Ephemeral local-hand receipt; never part of saved rules state.
     public internal(set) var resourceProductionFeedback: ResourceProductionFeedback?
     /// Readable public notices; never saved, replayed, or awaited by the bots.
@@ -586,6 +590,7 @@ public final class GameViewModel {
             accumulatedActiveDuration = next.activeMatch?.elapsedSeconds ?? currentGameDuration
             activeSince = nil
             if let finished = next.activeMatch { lastFinishedMatchWork = recordFinishedMatch(finished) }
+            victoryCutscenePending = true
         }
         exportCommittedRecordings(after: step.move, in: next)
     }

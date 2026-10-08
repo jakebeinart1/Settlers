@@ -50,11 +50,18 @@ struct ContentView: View {
                viewModel.pendingDevCardResolution == nil,
                viewModel.pendingShipCapture == nil,
                viewModel.savedGameAvailability.recoveryMessage == nil {
-                EndGameView(state: viewModel.state, humanSeats: viewModel.humanSeats,
-                            playerIdentity: viewModel.playerIdentity,
-                            replayGameID: viewModel.currentGameLogID,
-                            onNewGame: { if viewModel.restartCompletedMatch() { hasStartedThisSession = true } },
-                            onMainMenu: { if viewModel.clearCompletedMatch() { hasStartedThisSession = false } })
+                if viewModel.victoryCutscenePending, let tally = VictoryTally(state: viewModel.state) {
+                    VictoryCutsceneView(state: viewModel.state, tally: tally,
+                                        isHumanWin: viewModel.humanSeats.contains(tally.winner),
+                                        playerIdentity: viewModel.playerIdentity,
+                                        onFinish: { viewModel.victoryCutscenePending = false })
+                } else {
+                    EndGameView(state: viewModel.state, humanSeats: viewModel.humanSeats,
+                                playerIdentity: viewModel.playerIdentity,
+                                replayGameID: viewModel.currentGameLogID,
+                                onNewGame: { if viewModel.restartCompletedMatch() { hasStartedThisSession = true } },
+                                onMainMenu: { if viewModel.clearCompletedMatch() { hasStartedThisSession = false } })
+                }
             } else if hasStartedThisSession, viewModel.savedGameAvailability.recoveryMessage == nil {
                 GameView(viewModel: viewModel, onExitToMenu: {
                     viewModel.isBlockingSurfaceOpen = true

@@ -280,6 +280,15 @@ final class DevelopmentCardFlowTests: XCTestCase {
         XCTAssertEqual(claim.label, "Claim Victory")
         claim.tap()
 
+        let skip = app.buttons["game-over.cutscene.skip"]
+        XCTAssertTrue(skip.waitForExistence(timeout: 5), "The winning move plays the victory cutscene")
+        XCTAssertTrue(app.staticTexts["VICTORY!"].waitForExistence(timeout: 30),
+                      "A human win ends the tour on the victory banner")
+        let banner = XCTAttachment(screenshot: app.screenshot())
+        banner.name = "Victory cutscene — banner"
+        banner.lifetime = .keepAlways
+        add(banner)
+        skip.tap()
         XCTAssertTrue(app.buttons["game-over.new-game"].waitForExistence(timeout: 3))
     }
 
