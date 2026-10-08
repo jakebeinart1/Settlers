@@ -120,6 +120,18 @@ import Testing
         #expect(payload?.gamesLearned == gamesLearned)
     }
 
+    /// A reset ghost has fewer games than the server's copy but a higher
+    /// revision, and the record field carries the revision.
+    @Test func aResetGhostWithAHigherRevisionUploadsOverMoreGames() throws {
+        let server = CKRecord(recordType: "Ghost", recordID: CKRecord.ID(recordName: "ghost-jake"))
+        server["gamesLearned"] = 30
+        var reset = ghost(gamesLearned: 0)
+        reset.revision = 31
+        let upload = try #require(try CloudKitBackend.prepareGhostUpload(reset, existing: server))
+        defer { try? FileManager.default.removeItem(at: upload.assetFile) }
+        #expect(upload.record["gamesLearned"] as? Int == 31)
+    }
+
     @Test func aGhostWithoutAServerRecordCanStillBeUploaded() throws {
         let upload = try #require(try CloudKitBackend.prepareGhostUpload(ghost(gamesLearned: 1), existing: nil))
         defer { try? FileManager.default.removeItem(at: upload.assetFile) }

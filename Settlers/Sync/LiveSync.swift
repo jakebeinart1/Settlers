@@ -244,7 +244,8 @@ actor LiveSync {
             try stores.players.save(contents)
         }
         for var ghost in ghosts {
-            guard let person = ghost.id == me ? stores.players.name(of: me, preferredName: displayName()) : names[ghost.id],
+            guard !ghost.isNameCustom,
+                  let person = ghost.id == me ? stores.players.name(of: me, preferredName: displayName()) : names[ghost.id],
                   !person.isEmpty,
                   ghost.name != Self.ghostName(person) else { continue }
             ghost.name = Self.ghostName(person)
@@ -253,6 +254,14 @@ actor LiveSync {
     }
 
     static func ghostName(_ person: String) -> String { "\(person)'s Ghost" }
+
+    /// The one rule every phone applies to a ghost from the server: a higher
+    /// revision wins. Not games learned - a reset, rename or removal adds no
+    /// game, and by that rule the server's old ghost came straight back down
+    /// over a reset one on the next sync.
+    static func accepts(_ incoming: GhostProfile, over local: GhostProfile?) -> Bool {
+        incoming.revision > (local?.revision ?? -1)
+    }
 
     // MARK: - Games and ghosts
 
@@ -282,11 +291,13 @@ actor LiveSync {
     }
 
     private func uploadGhost(me: String, state: inout SyncState) async throws {
-        guard let ghost = stores.ghosts.ghost(id: me), ghost.id == me else { return }
+        // Including a removed one: the tombstone is how the removal spreads.
+        guard let ghost = stores.ghosts.ghost(id: me, includingRemoved: true), ghost.id == me else { return }
+        // Holds revisions now; the key name predates them.
         var uploaded = state.ghostGamesUploadedByID ?? [:]
-        guard ghost.gamesLearned > (uploaded[ghost.id] ?? -1) else { return }
+        guard ghost.revision > (uploaded[ghost.id] ?? -1) else { return }
         try await backend.upload(ghost)
-        uploaded[ghost.id] = ghost.gamesLearned
+        uploaded[ghost.id] = ghost.revision
         state.ghostGamesUploadedByID = uploaded
         try state.save(to: stores.stateFile)
     }
@@ -369,7 +380,7 @@ actor LiveSync {
             let ghost = item.value
             guard !ghost.id.isEmpty, ghost.id == item.owner,
                   ghost.person.weights.count == shape.weights.count, ghost.person.theta.count == shape.theta.count,
-                  ghost.gamesLearned > (stores.ghosts.ghost(id: ghost.id)?.gamesLearned ?? -1) else { continue }
+                  Self.accepts(ghost, over: stores.ghosts.ghost(id: ghost.id, includingRemoved: true)) else { continue }
             try stores.ghosts.save(ghost)
             changed = true
         }

@@ -297,6 +297,46 @@ import Testing
         #expect(alex.stores.ghosts.all().map(\.id) == ["apple-jake"])
     }
 
+    /// Jake, 2026-10-08: "The rename and sync should be for everyone."
+    /// None of these adds a game, so before `revision` none of them left
+    /// the phone, and a reset was undone by the next download.
+    @Test func aRenameResetAndRemovalReachEveryPhone() async throws {
+        let dir = root()
+        defer { try? FileManager.default.removeItem(at: dir) }
+        let cloud = FakeCloud()
+        let jake = Device("jake", in: dir)
+        let alex = Device("alex", in: dir)
+        try jake.stores.ghosts.save(trainedGhost(jake.me, "Jake's Ghost"))
+        _ = await jake.sync(cloud, as: "apple-jake", name: "Jake")
+
+        try jake.stores.ghosts.rename("apple-jake", to: "The Wall")
+        _ = await jake.sync(cloud, as: "apple-jake", name: "Jake")
+        _ = await alex.sync(cloud, as: "apple-alex", name: "Alex")
+        #expect(alex.stores.ghosts.ghost(id: "apple-jake")?.name == "The Wall", "a custom name survives refreshNames")
+
+        try jake.stores.ghosts.reset("apple-jake", keepingOld: true)
+        _ = await jake.sync(cloud, as: "apple-jake", name: "Jake")
+        _ = await alex.sync(cloud, as: "apple-alex", name: "Alex")
+        #expect(jake.stores.ghosts.ghost(id: "apple-jake")?.gamesLearned == 0, "the old ghost must not come back down")
+        #expect(alex.stores.ghosts.ghost(id: "apple-jake")?.gamesLearned == 0)
+        #expect(cloud.locked { $0.ghosts["apple-jake~1"] } == nil, "old ghosts stay on their phone")
+
+        try jake.stores.ghosts.setRemoved("apple-jake")
+        _ = await jake.sync(cloud, as: "apple-jake", name: "Jake")
+        _ = await alex.sync(cloud, as: "apple-alex", name: "Alex")
+        #expect(!alex.stores.ghosts.all().contains { $0.id == "apple-jake" })
+    }
+
+    @Test func aGhostIsAcceptedOnlyAtAHigherRevision() {
+        let base = trainedGhost("apple-jake", "Jake's Ghost", games: 30)
+        var reset = base
+        reset.gamesLearned = 0
+        reset.revision = 31
+        #expect(LiveSync.accepts(reset, over: base))
+        #expect(!LiveSync.accepts(base, over: reset), "the server's old ghost must not undo a reset")
+        #expect(LiveSync.accepts(base, over: nil))
+    }
+
     @Test(arguments: [true, false])
     func aFreshOwnerRestoresTheNewerCloudGhostWithoutDowngradingIt(hasOlderCopy: Bool) async throws {
         let dir = root()

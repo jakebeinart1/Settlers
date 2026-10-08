@@ -215,10 +215,13 @@ final class CloudKitBackend: CloudBackend, @unchecked Sendable {
     /// Compare before mutating the fetched record, and keep its change tag so
     /// a concurrent server update still fails the save and retries next pass.
     static func prepareGhostUpload(_ ghost: GhostProfile, existing: CKRecord?) throws -> (record: CKRecord, assetFile: URL)? {
-        if let learned = existing?["gamesLearned"] as? Int, learned > ghost.gamesLearned { return nil }
+        // The field is still named `gamesLearned` (a rename would need a
+        // CloudKit schema deploy) but has carried `GhostProfile.revision`
+        // since 2026-10-08, the number every phone compares (`LiveSync.accepts`).
+        if let revision = existing?["gamesLearned"] as? Int, revision > ghost.revision { return nil }
         let record = existing ?? CKRecord(recordType: "Ghost", recordID: CKRecord.ID(recordName: "ghost-\(ghost.id)"))
         let file = try temporaryFile(JSONEncoder().encode(ghost))
-        record["gamesLearned"] = ghost.gamesLearned
+        record["gamesLearned"] = ghost.revision
         record["payload"] = CKAsset(fileURL: file)
         return (record, file)
     }
