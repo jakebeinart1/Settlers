@@ -167,6 +167,9 @@ struct ContentView: View {
                     let conquest = QALaunchFlag.conquestMode.isSet
                     if QALaunchFlag.navalMode.isSet {
                         viewModel.qaStartNavalGame()
+                        if QALaunchFlag.navalSevenPosition.isSet {
+                            viewModel.qaPrepareNavalSevenPosition()
+                        }
                     } else if QALaunchFlag.vastMode.isSet {
                         viewModel.qaStartVastGame(variant: conquest ? .conquest : .standard)
                     } else if conquest {

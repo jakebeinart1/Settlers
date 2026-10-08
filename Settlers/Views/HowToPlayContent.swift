@@ -355,15 +355,25 @@ enum HowToPlayContent {
                 "A ship touching a legal coastal corner lets you settle there without a road. The ship stays. "
                     + "Establish your own settlement before building roads on a new island, then expand inland along your roads.",
                 "Your first settlement on each of your first two overseas islands earns an extra permanent point. There is no Biggest Navy bonus.",
-                "On an 11, collect resources, then capture any opponent's ship anywhere or skip. Its control is yours until another capture; ships are not destroyed.",
+                navalCaptureDescription(options),
                 choices,
-                "Fog and resource-choice islands are optional before the match. Your shared hand funds building everywhere; ships do not carry cargo.",
+                "Fog, resource-choice islands and ship stealing can be chosen in Advanced settings before the match. "
+                    + "Your shared hand funds building everywhere; ships do not carry cargo.",
                 "Choose Archipelago, Peninsula, Twin Islands or Surprise. Every match varies the island shape, coast, resources and numbers.",
                 "Longest Road and Largest Army are worth \(navalRules.longestRoadBonus) and \(navalRules.largestArmyBonus) points. Ships never count as roads. "
                     + "Discard on a 7 only above \(navalRules.discardThreshold) cards.",
                 "Supply: \(navalRules.bankPerResource) cards of each resource and \(navalRules.devCardDeckSize) development cards. "
                     + "Naval is local and unrated; Ghosts and Conquest retain their existing modes.",
             ], cost: Naval.shipCost)
+    }
+
+    private static func navalCaptureDescription(_ options: NavalOptions?) -> String {
+        guard options?.shipStealingEnabled == true else {
+            return "Ship stealing is off by default. An 11 produces resources normally and cannot take a ship."
+        }
+        return "Ship stealing is on for this match. On an 11, collect resources, then take any opponent's ship "
+            + "or skip. Control lasts until another capture; ships are not destroyed. "
+            + "If one of your ships changes hands, acknowledge the ownership notice before continuing."
     }
 
     private static func navalSailingDescription(for context: Context?) -> String {
