@@ -660,8 +660,11 @@ final class NavalFlowTests: XCTestCase {
 
     func testARealNavalExpertMatchReachesGameOverAndArchives() {
         let app = launch("-qaNavalExpert", extra: ["-qaPlayToEnd", "-qaNavalSeed=7501"], waitsForBoard: false)
-        XCTAssertTrue(app.buttons["game-over.new-game"].waitForExistence(timeout: 240),
-                      "A production naval session must reach an actual winner")
+        // ~650 moves at onscreen Debug speed is ~200s, then the victory cutscene.
+        let skip = app.buttons["game-over.cutscene.skip"]
+        XCTAssertTrue(skip.waitForExistence(timeout: 360), "A production naval session must reach an actual winner")
+        skip.tap()
+        XCTAssertTrue(app.buttons["game-over.new-game"].waitForExistence(timeout: 10))
         retainScreenshot("Voyages — complete Expert match", app: app)
         XCTAssertTrue(app.buttons["game-over.replay"].waitForExistence(timeout: 10))
         app.buttons["game-over.replay"].tap()

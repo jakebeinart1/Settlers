@@ -50,7 +50,7 @@ final class NavalShipStealingFlowTests: XCTestCase {
         let acknowledgement = app.buttons["naval.capture.continue"]
         XCTAssertTrue(acknowledgement.isHittable)
         acknowledgement.tap()
-        XCTAssertFalse(receipt.exists)
+        XCTAssertTrue(receipt.waitForNonExistence(timeout: 5), "The receipt is a full-screen cover; it animates out after Continue")
         let owner = app.otherElements["naval.ship.owner.0"]
         XCTAssertTrue(owner.waitForExistence(timeout: 5))
         XCTAssertEqual(owner.value as? String, "1")
@@ -76,7 +76,7 @@ final class NavalShipStealingFlowTests: XCTestCase {
         XCTAssertTrue(acknowledgement.isHittable)
         retain("Naval — maximum text ownership and location are scrollable", in: app)
         acknowledgement.tap()
-        XCTAssertFalse(receipt.exists)
+        XCTAssertTrue(receipt.waitForNonExistence(timeout: 5), "The receipt is a full-screen cover; it animates out after Continue")
     }
 
     func testConfirmedHumanCaptureRetainsItsOwnershipReceiptAfterColdResumeAndThenSails() throws {

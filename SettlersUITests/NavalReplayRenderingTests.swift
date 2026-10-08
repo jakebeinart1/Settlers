@@ -103,7 +103,10 @@ final class NavalReplayRenderingTests: XCTestCase {
         app.launchArguments = ["-ui-testing", "-ui-testing-reset", "-qaAutoStart", "-qaNavalMode",
                                "-qaNavalExpert", "-qaPlayToEnd", "-qaNavalSeed=7501"]
         app.launch()
-        XCTAssertTrue(app.buttons["game-over.replay"].waitForExistence(timeout: 240))
+        let skip = app.buttons["game-over.cutscene.skip"]
+        XCTAssertTrue(skip.waitForExistence(timeout: 360), "The match must end in the victory cutscene")
+        skip.tap()
+        XCTAssertTrue(app.buttons["game-over.replay"].waitForExistence(timeout: 10))
         app.buttons["game-over.replay"].tap()
         XCTAssertTrue(app.buttons["replay.end"].waitForExistence(timeout: 30))
         return app
