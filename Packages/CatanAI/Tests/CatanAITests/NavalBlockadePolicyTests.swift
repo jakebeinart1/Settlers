@@ -160,7 +160,7 @@ import Testing
     }
 
     private func corridor(detourEnabled: Bool = false, hiddenFog: Bool = false, harbor: Bool = false) -> GameState {
-        var state = Naval.newGame(seed: 73, options: NavalOptions(fogEnabled: hiddenFog))
+        var state = Naval.newGame(seed: 73, options: NavalOptions(fogEnabled: hiddenFog, shipStealingEnabled: true))
         state.phase = .mainTurn(playerIndex: 0)
         var sea = [origin, obstruction, landing]
         if detourEnabled { sea += [HexCoordinate(q: 3, r: 1), detour] }

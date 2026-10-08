@@ -68,6 +68,13 @@ extension NavalDecisionContext {
     }
 
     func sailingGain(shipID: Int, to coordinate: HexCoordinate) -> Double {
+        if revision == .scoutingV2 { return scoutingSailingGain(shipID: shipID, to: coordinate) }
+        return legacySailingGain(shipID: shipID, to: coordinate)
+    }
+
+    /// Frozen version-one valuation remains separate because existing saved
+    /// decisions and checkpoints must retain their original action sequence.
+    private func legacySailingGain(shipID: Int, to coordinate: HexCoordinate) -> Double {
         guard let ship = ownedShips.first(where: { $0.id == shipID }),
               let route = Naval.sailingRoute(for: ship, to: coordinate, in: state) else {
             return Self.negativeScore
@@ -105,7 +112,8 @@ extension NavalDecisionContext {
         guard usefulColony || unseen else { return -1 }
         let fleetSize = ownedShips.count
         let dilution = 1 + Double(fleetSize) * 1.2
-        let access = tier == .expert ? marginalVoyagePotential(at: coordinate) : voyagePotential(at: coordinate, shipID: nil)
+        let marginal = tier == .expert || revision == .scoutingV2
+        let access = marginal ? marginalVoyagePotential(at: coordinate) : voyagePotential(at: coordinate, shipID: nil)
         if (state.naval?.rulesVersion ?? 0) >= Naval.blockadeRulesVersion, access <= 0 { return -1 }
         if tier == .expert, fleetSize > 0, access <= 0.05 { return -1 }
         let exploration = unseen ? (tier == .expert ? min(1.4, access) : 1.4) : 0
@@ -140,7 +148,7 @@ extension NavalDecisionContext {
             return max(0, access(coordinate, to: site) - existing)
         }.max() ?? 0
         let scouts = ownedShips.filter { ship in
-            !colonySites.contains { $0.touchingTiles.contains(ship.coordinate) }
+            revision == .scoutingV2 ? !reservesLanding(ship) : !colonySites.contains { $0.touchingTiles.contains(ship.coordinate) }
         }
         let frontier = distances.keys.sorted().map { candidate -> Double in
             let unknown = unknownCellsSeen(from: candidate)
@@ -159,6 +167,7 @@ extension NavalDecisionContext {
     /// while its settlement recipe and public route are unfinished. Expected
     /// funding allocates wild yield once and reserves the ship's actual cost.
     func expeditionRetention(from coordinate: HexCoordinate) -> Double {
+        if revision == .scoutingV2, state.naval?.options.shipStealingEnabled == false { return 1 }
         let hand = spending(Self.shipCost, from: me.resources)
         let funding = recipeRolls(Building.settlementCost, hand: hand,
                                   fixed: fixedProduction, flexible: flexibleProduction) / Double(state.players.count)

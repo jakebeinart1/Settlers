@@ -31,6 +31,6 @@ let package = Package(
         // Tournament referee: seats from any commit at one table, played by
         // today's rules. See its header and `scripts/tournament/`.
         .executableTarget(name: "arena", dependencies: ["CatanAI", "CatanEngine"]),
-        .testTarget(name: "CatanAITests", dependencies: ["CatanAI"])
+        .testTarget(name: "CatanAITests", dependencies: ["CatanAI"], exclude: ["Fixtures"])
     ]
 )

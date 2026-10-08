@@ -110,7 +110,8 @@ public struct EvaluationPolicy: LedgerAwarePolicy {
         rng: inout RandomSource
     ) -> GameMove {
         if observation.state.mode == .naval {
-            return NavalPolicy(tier: .expert).decide(observation, ledger: ledger, rng: &rng)
+            return NavalPolicy(tier: .expert, revision: revision == .navalV2 ? .scoutingV2 : .legacyV1)
+                .decide(observation, ledger: ledger, rng: &rng)
         }
         let legal = observation.legalMoves
         precondition(!legal.isEmpty, "asked to decide with no legal moves")

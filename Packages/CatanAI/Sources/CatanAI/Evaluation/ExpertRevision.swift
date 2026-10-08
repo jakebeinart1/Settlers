@@ -9,6 +9,7 @@ public enum ExpertRevision: String, Codable, Sendable, CaseIterable {
     /// City production plus the independently confirmed B-002 card correction.
     case pointCompletingCardsV1
     case navalV1
+    case navalV2
 
     public var policyID: String {
         switch self {
@@ -16,6 +17,7 @@ public enum ExpertRevision: String, Codable, Sendable, CaseIterable {
         case .cityProductionV1: return "evaluation-city-production-v1"
         case .pointCompletingCardsV1: return "evaluation-point-completing-cards-v1"
         case .navalV1: return "naval-expert-v1"
+        case .navalV2: return "naval-expert-v2"
         }
     }
 

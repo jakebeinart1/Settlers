@@ -27,10 +27,13 @@ struct AuditRow: Encodable {
     let ownShipsBefore: [Ship]
     let ownShipsAfter: [Ship]
     let colonyPoints: Int
+    let fogRemaining: Int
+    let maxDiscoveryFromLegalSailing: Int
+    let bestSailingScore: Double?
     let alternatives: [Alternative]
 
     init(seed: UInt64, action: Int, decision: GameSession.Decision,
-         ledger: PublicLedger, after: GameState, tier: NavalPolicy.Tier) {
+         ledger: PublicLedger, after: GameState, tier: NavalPolicy.Tier, revision: NavalPolicy.Revision) {
         let state = decision.observation.state
         let actor = decision.seat
         self.seed = seed
@@ -49,9 +52,26 @@ struct AuditRow: Encodable {
         self.ownShipsBefore = (state.naval?.ships ?? []).filter { $0.owner == actor }
         self.ownShipsAfter = (after.naval?.ships ?? []).filter { $0.owner == actor }
         self.colonyPoints = Naval.colonyPoints(for: actor, in: state)
-        let scores = NavalPolicy(tier: tier).assess(decision.observation, ledger: ledger)
+        let scores = NavalPolicy(tier: tier, revision: revision).assess(decision.observation, ledger: ledger)
+        self.fogRemaining = state.board.tiles.filter { $0.kind == .fog }.count
+        self.maxDiscoveryFromLegalSailing = Self.maxDiscovery(in: decision.observation)
+        self.bestSailingScore = scores.compactMap { assessment in
+            if case .sailShip = assessment.move { return assessment.score }
+            return nil
+        }.max()
         self.alternatives = scores.enumerated().sorted {
             $0.element.score != $1.element.score ? $0.element.score > $1.element.score : $0.offset < $1.offset
         }.prefix(6).map { Alternative(move: Rendering.canonical($0.element.move), score: $0.element.score, reason: $0.element.reason) }
+    }
+
+    private static func maxDiscovery(in observation: GameObservation) -> Int {
+        let state = observation.state
+        let fog = state.board.tiles.filter { $0.kind == .fog }
+        return observation.legalMoves.compactMap { move -> Int? in
+            guard case .sailShip(let id, let destination) = move,
+                  let ship = state.naval?.ships.first(where: { $0.id == id }),
+                  let route = Naval.sailingRoute(for: ship, to: destination, in: state) else { return nil }
+            return fog.filter { tile in route.contains { tile.coordinate.distance(to: $0) <= Naval.viewingRange } }.count
+        }.max() ?? 0
     }
 }

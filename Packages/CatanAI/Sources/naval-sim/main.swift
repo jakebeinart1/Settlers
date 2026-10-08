@@ -5,7 +5,7 @@ import Foundation
 /// Separate from the historical schema-5 sim: naval topology and settings are
 /// explicit provenance, never labels inferred from an older board generator.
 private struct Result: Encodable {
-    let schemaVersion = 3
+    let schemaVersion = 4
     let protocolVersion = EvaluationProtocol.version
     let rulesVersion = Naval.currentRulesVersion
     let engineRulesVersion = RulesEngine.currentRulesVersion
@@ -17,6 +17,8 @@ private struct Result: Encodable {
     let family: NavalMapFamily
     let fogEnabled: Bool
     let resourceChoiceEnabled: Bool
+    let shipStealingEnabled: Bool
+    let navalAIRevision: NavalPolicy.Revision
     let policies: [String]
     let seed: UInt64
     let actionLimit = EvaluationProtocol.actionLimit
@@ -35,9 +37,10 @@ private struct Result: Encodable {
 
 private func play(seed: UInt64, options: Options) throws -> Result {
     let state = Naval.newGame(seed: seed, playerCount: options.players,
-        options: NavalOptions(fogEnabled: options.fog, resourceChoiceEnabled: options.wild, mapFamily: options.family))
+        options: NavalOptions(fogEnabled: options.fog, resourceChoiceEnabled: options.wild,
+                              mapFamily: options.family, shipStealingEnabled: options.shipStealing))
     let policies = Dictionary(uniqueKeysWithValues: state.players.map {
-        ($0.id, options.policy(at: $0.id.index))
+        ($0.id, options.policy(at: $0.id.index, in: state))
     })
     var session = GameSession(state: state, policies: policies, policySeed: seed &* 31 &+ 7)
     var diagnostics = Diagnostics(players: options.players)
@@ -70,7 +73,8 @@ private func play(seed: UInt64, options: Options) throws -> Result {
         if let beforeLedger, decision.seat.index == options.focalChair,
            options.seats[decision.seat.index] != "land-control" {
             audits.append(AuditRow(seed: seed, action: trace.count - 1, decision: decision, ledger: beforeLedger,
-                after: session.state, tier: options.seats[decision.seat.index] == "expert" ? .expert : .traditional))
+                after: session.state, tier: options.seats[decision.seat.index] == "expert" ? .expert : .traditional,
+                revision: options.revision(in: state)))
         }
     }
     let winner: Int?
@@ -96,6 +100,7 @@ private func play(seed: UInt64, options: Options) throws -> Result {
     return Result(mapVersion: Naval.currentMapVersion, buildID: options.buildID, arm: options.arm,
         focalChair: options.focalChair, playerCount: options.players, family: options.family,
         fogEnabled: options.fog, resourceChoiceEnabled: options.wild,
+        shipStealingEnabled: options.shipStealing, navalAIRevision: options.revision(in: state),
         policies: state.players.map { policies[$0.id]!.id }, seed: seed,
         victoryPointTarget: state.victoryPointTarget, moves: trace.count, winner: winner,
         victoryPoints: session.state.players.map { session.state.victoryPoints(for: $0.id) },

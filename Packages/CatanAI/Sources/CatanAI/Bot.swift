@@ -87,7 +87,7 @@ public struct Bot: Sendable {
         precondition(!legal.isEmpty, "asked to decide with no legal moves")
         if state.mode == .naval {
             var navalRNG = RandomSource(seed: 0)
-            return NavalPolicy(tier: .traditional, personality: personality).decide(
+            return NavalPolicy(tier: .traditional, personality: personality, revision: .forGame(state)).decide(
                 GameObservation(seat: player, state: state, legalMoves: legal), rng: &navalRNG
             )
         }
