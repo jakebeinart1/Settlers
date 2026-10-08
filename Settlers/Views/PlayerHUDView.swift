@@ -5,7 +5,9 @@ import CatanEngine
 nonisolated enum VictoryTargetText {
     static func goal(_ target: Int) -> String { "First to \(target) victory points wins." }
     static func compactGoal(_ target: Int) -> String { "Win at \(target) VP" }
-    static func score(_ points: Int, target: Int) -> String { "\(points) / \(target) VP" }
+    /// Just the points (Jake, 2026-10-08: "I don't like the 2/10 victory
+    /// points. Just do 2"). The target stays in `spokenScore` and Settings.
+    static func score(_ points: Int) -> String { "\(points) VP" }
     static func spokenScore(_ points: Int, target: Int) -> String {
         "\(points) victory points. \(target) needed to win."
     }
@@ -224,7 +226,7 @@ public struct HumanPlayerPanel: View {
                         .fixedSize()
                         HStack(spacing: 4) {
                             Image(systemName: "star.fill")
-                            Text(VictoryTargetText.score(state.victoryPoints(for: human), target: state.victoryPointTarget))
+                            Text(VictoryTargetText.score(state.victoryPoints(for: human)))
                                 .accessibilityLabel(VictoryTargetText.spokenScore(
                                     state.victoryPoints(for: human), target: state.victoryPointTarget))
                                 .accessibilityIdentifier("game.victory-points")

@@ -15,7 +15,9 @@ struct BotTurnStatusView: View {
     var body: some View {
         TimelineView(.periodic(from: .now, by: 0.25)) { context in
             HStack(spacing: 10) {
-                pacingControl
+                if Self.showsPacingControl(progress: progress, skipPausesIsOn: PacingPreferences.shared.skipPauses) {
+                    pacingControl
+                }
                 CivilizationCrest(civilization: identity.civilization, size: 36)
                 VStack(alignment: .leading, spacing: 4) {
                     Text("\(identity.displayName) · CPU")
@@ -54,6 +56,14 @@ struct BotTurnStatusView: View {
         .accessibilityHint(isFailed
             ? "Retries CPU progress after reloading a failed save when necessary."
             : "Skips viewing delays only. Human decisions still require your response.")
+    }
+
+    /// With Skip Pauses already on in Settings the Skip button does nothing
+    /// (Jake, 2026-10-08), so it is left out. Retry always shows: it is the
+    /// only way out of a failed CPU step.
+    static func showsPacingControl(progress: BotTurnProgress?, skipPausesIsOn: Bool) -> Bool {
+        if case .failed = progress { return true }
+        return !skipPausesIsOn
     }
 
     private static let pacingButtonWidth: CGFloat = 92

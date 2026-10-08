@@ -6,6 +6,15 @@ import CatanEngine
 @MainActor
 @Suite(.serialized)
 struct BotProgressTests {
+    /// Jake, 2026-10-08: with Skip Pauses already on in Settings the button
+    /// does nothing, so it goes. Retry never goes: it is the only way out of a failure.
+    @Test func theSkipButtonShowsOnlyWhenItWouldDoSomething() {
+        let seat = PlayerID(index: 1)
+        #expect(BotTurnStatusView.showsPacingControl(progress: .thinking(seat: seat), skipPausesIsOn: false))
+        #expect(!BotTurnStatusView.showsPacingControl(progress: .thinking(seat: seat), skipPausesIsOn: true))
+        #expect(BotTurnStatusView.showsPacingControl(progress: .failed(seat: seat, message: "x"), skipPausesIsOn: true))
+    }
+
     /// Reaching the barrier from the main actor proves responsiveness without
     /// a subsecond performance threshold. Every worker has a finite fallback.
     @Test func aSlowBotDoesNotBlockTheMainRunLoop() async throws {

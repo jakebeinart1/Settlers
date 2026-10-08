@@ -44,7 +44,8 @@ import Testing
         let restored = try JSONDecoder().decode(GameState.self, from: JSONEncoder().encode(original))
         #expect(VictoryTargetText.goal(restored.victoryPointTarget) == "First to \(target) victory points wins.")
         #expect(VictoryTargetText.compactGoal(restored.victoryPointTarget) == "Win at \(target) VP")
-        #expect(VictoryTargetText.score(2, target: restored.victoryPointTarget) == "2 / \(target) VP")
+        // Jake, 2026-10-08: "I don't like the 2/10 victory points. Just do 2".
+        #expect(VictoryTargetText.score(2) == "2 VP")
         #expect(VictoryTargetText.spokenScore(2, target: restored.victoryPointTarget).contains("\(target) needed to win"))
     }
 
