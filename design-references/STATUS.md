@@ -120,6 +120,17 @@ OpenRouter key spend so far: **$56.46 of $67 bought, ~$10.54 left** (read live f
 after it stopped being true, and was quoted back to Jake as fact - read the endpoint, do
 not trust this number without checking it.
 
+## Oct 8: dev-card emblems and background themes
+
+- `approved/dev-cards/` - five painted emblems (Knight, Road Building, Year of Plenty, Monopoly,
+  Victory Point) in the pieces' rugged style, wired in as `devcard-*` through `DevCardEmblem`.
+  Made on `openai/gpt-5.4-image-2`; prompts in that folder's README.
+- `approved/themes/` - Winter Fjord, Desert Dunes, Cherry Blossom, War-Torn: image-to-image
+  restyles of `board-background` with the composition held fixed, so the HUD-tuned ship and
+  mountain placement carried over. Wired in as `bg-*` (JPEG) through `ThemedBackgroundImage`;
+  picked in Settings. Drafted on `google/gemini-3.1-flash-image` at ~$0.07 each - Jake's rule
+  (2026-10-08): draft on a cheap model first, escalate only on a quality miss.
+
 ## Folder layout
 
 - `approved/` — the actual current deliverables. Everything in here is wired into the app or ready to be.
