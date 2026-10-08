@@ -31,9 +31,14 @@ import SwiftUI
 /// The painted equivalents live in `SettingsChrome`.
 public struct InGameSettingsView: View {
     public let onResume: () -> Void
-    public let onRestart: () -> Void
-    public let onMainMenu: () -> Void
+    /// Both `nil` when opened from the main menu: there is no match to
+    /// restart or quit, so the bottom bar is Close alone.
+    public let onRestart: (() -> Void)?
+    public let onMainMenu: (() -> Void)?
     private let rulebookState: GameState?
+    /// Main menu only: called after the lifetime stats are wiped, so the
+    /// menu's stats row can drop them without a relaunch.
+    private var onResetStats: (() -> Void)?
 
     public init(onResume: @escaping () -> Void, onRestart: @escaping () -> Void, onMainMenu: @escaping () -> Void,
                 rulebookState: GameState? = nil) {
@@ -43,9 +48,22 @@ public struct InGameSettingsView: View {
         self.rulebookState = rulebookState
     }
 
+    /// The main menu's Settings: the same screen, minus the match exits.
+    public init(onClose: @escaping () -> Void, onResetStats: @escaping () -> Void) {
+        onResume = onClose
+        self.onResetStats = onResetStats
+        onRestart = nil
+        onMainMenu = nil
+        rulebookState = nil
+    }
+
+    @AppStorage(BackgroundTheme.storageKey) private var theme: BackgroundTheme = .goldenDawn
+    private static let themeThumbnail = CGSize(width: 58, height: 96)
+
     @State private var isConfirmingRestart = false
     @State private var isConfirmingMainMenu = false
     @State private var isShowingRulebook = false
+    @State private var isConfirmingStatsReset = false
     /// Which row's ⓘ is currently expanded, or `nil`. One at a time: these
     /// explanations are a sentence each, and two open at once pushed the
     /// controls under them off the screen.
@@ -65,7 +83,16 @@ public struct InGameSettingsView: View {
 
     public var body: some View {
         ZStack {
-            SettingsChrome.screenBackground.ignoresSafeArea()
+            // The chosen theme shows through, so picking one repaints this
+            // screen the moment it is tapped.
+            GeometryReader { geo in
+                ThemedBackgroundImage()
+                    .scaledToFill()
+                    .frame(width: geo.size.width, height: geo.size.height)
+                    .clipped()
+            }
+            .ignoresSafeArea()
+            SettingsChrome.screenBackground.opacity(0.78).ignoresSafeArea()
 
             VStack(spacing: 0) {
                 // Top-pinned, and the slack under the two controls is left
@@ -76,10 +103,12 @@ public struct InGameSettingsView: View {
                 ScrollView {
                     VStack(spacing: 22) {
                         titleBlock
+                        themeSection
                         pacingSection
                         tradeTimerSection
                         skipSection
                         rulebookSection
+                        if onResetStats != nil { dataSection }
                     }
                     .padding(.horizontal, Self.screenInset)
                     .padding(.top, 10)
@@ -90,6 +119,7 @@ public struct InGameSettingsView: View {
 
             if isConfirmingRestart { restartConfirmation }
             if isConfirmingMainMenu { mainMenuConfirmation }
+            if isConfirmingStatsReset { statsResetConfirmation }
         }
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier(AccessibilityID.Screen.inGameSettings)
@@ -125,7 +155,7 @@ public struct InGameSettingsView: View {
     /// section headers.
     private var titleBlock: some View {
         VStack(spacing: 6) {
-            Text("In-Game Settings")
+            Text(onRestart == nil ? "Settings" : "In-Game Settings")
                 .font(.system(size: 29, weight: .bold, design: .serif))
                 .lineLimit(1)
                 .minimumScaleFactor(0.8)
@@ -145,12 +175,85 @@ public struct InGameSettingsView: View {
             // claim still matters (spec B4: nothing here touches the rules),
             // so it survives as the screen's own subtitle, where a sentence
             // explaining a screen belongs.
-            Text("Presentation and pacing only — nothing here changes the rules of the game in progress.")
+            Text(onRestart == nil ? "Look, pacing and your data. Nothing here changes the rules."
+                                  : "Presentation and pacing only — nothing here changes the rules of the game in progress.")
                 .font(.system(size: 14, design: .serif))
                 .foregroundStyle(.white.opacity(0.6))
                 .multilineTextAlignment(.center)
                 .fixedSize(horizontal: false, vertical: true)
         }
+    }
+
+    // MARK: - Your data
+
+    private var dataSection: some View {
+        VStack(spacing: 12) {
+            SettingsSectionHeader(title: "Your Data")
+            Text("Clears Played, Win Rate, Avg Time and Avg VP on the main menu. "
+                 + "Your rating, game history and ghost are kept.")
+                .font(.system(size: 14, design: .serif))
+                .foregroundStyle(.white.opacity(0.85))
+                .multilineTextAlignment(.center)
+                .fixedSize(horizontal: false, vertical: true)
+            GoldRowButton(title: "Reset Stats", systemImage: "arrow.counterclockwise",
+                          iconColor: CatanTheme.color(for: Resource.brick), action: { isConfirmingStatsReset = true })
+                .accessibilityIdentifier(AccessibilityID.InGameSettings.resetStats)
+        }
+    }
+
+    private var statsResetConfirmation: some View {
+        ConfirmationPopupCard(
+            title: "Reset Stats?",
+            message: "Played, Win Rate, Avg Time and Avg VP go back to zero. This cannot be undone.",
+            confirmTitle: "Reset",
+            confirmIdentifier: AccessibilityID.InGameSettings.resetStatsConfirm,
+            onConfirm: {
+                GameStatsStore.shared.clear()
+                onResetStats?()
+                isConfirmingStatsReset = false
+            },
+            onCancel: { isConfirmingStatsReset = false }
+        )
+    }
+
+    // MARK: - Theme
+
+    /// All five fit one row at 335pt, so there is nothing to scroll past.
+    private var themeSection: some View {
+        VStack(spacing: 14) {
+            SettingsSectionHeader(title: "Theme")
+            HStack(spacing: 8) {
+                ForEach(BackgroundTheme.allCases) { option in
+                    themeButton(option)
+                }
+            }
+        }
+    }
+
+    private func themeButton(_ option: BackgroundTheme) -> some View {
+        let isSelected = option == theme
+        let shape = RoundedRectangle(cornerRadius: 9)
+        return Button { theme = option } label: {
+            VStack(spacing: 6) {
+                Image(option.imageName)
+                    .resizable()
+                    .scaledToFill()
+                    .frame(width: Self.themeThumbnail.width, height: Self.themeThumbnail.height)
+                    .clipShape(shape)
+                    .overlay(shape.stroke(isSelected ? CatanTheme.cityPennantGold : .white.opacity(0.25),
+                                          lineWidth: isSelected ? 3 : 1))
+                Text(option.displayName)
+                    .font(.system(size: 11, weight: isSelected ? .bold : .regular, design: .serif))
+                    .lineLimit(2)
+                    .multilineTextAlignment(.center)
+                    .frame(height: 28, alignment: .top)
+            }
+            .frame(width: Self.themeThumbnail.width + 4)
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(option.displayName)
+        .accessibilityAddTraits(isSelected ? .isSelected : [])
+        .accessibilityIdentifier(AccessibilityID.InGameSettings.theme(option.rawValue))
     }
 
     // MARK: - Pacing (B1)
@@ -309,6 +412,7 @@ public struct InGameSettingsView: View {
                 // the game away, and dropping the texture from Restart and
                 // Quit left them as flat grey slabs with none of the gold
                 // hairline the rest of the screen is drawn with.
+                if onRestart != nil {
                 UniformActionButton(
                     title: "Restart",
                     systemImage: "arrow.triangle.2.circlepath",
@@ -325,6 +429,7 @@ public struct InGameSettingsView: View {
                     action: { isConfirmingMainMenu = true }
                 )
                 .accessibilityIdentifier(AccessibilityID.InGameSettings.quit)
+                }
             }
             // `UniformActionButton` grows to whatever height it is given
             // (`maxHeight: .infinity`), so the row has to state one.
@@ -346,7 +451,7 @@ public struct InGameSettingsView: View {
             message: "This throws away the current board and starts a brand new game.",
             confirmTitle: "Restart",
             confirmIdentifier: "in-game-settings.restart-confirm",
-            onConfirm: onRestart,
+            onConfirm: { onRestart?() },
             onCancel: { isConfirmingRestart = false }
         )
     }
@@ -356,7 +461,7 @@ public struct InGameSettingsView: View {
             title: "Quit to Main Menu?",
             message: "Your progress is saved, so you can pick up this game again from Resume.",
             confirmTitle: "Main Menu",
-            onConfirm: onMainMenu,
+            onConfirm: { onMainMenu?() },
             onCancel: { isConfirmingMainMenu = false }
         )
     }

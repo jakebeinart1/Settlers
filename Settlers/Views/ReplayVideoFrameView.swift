@@ -55,7 +55,7 @@ struct ReplayVideoFrameView: View {
 
     private var background: some View {
         GeometryReader { geometry in
-            Image("board-background").resizable().scaledToFill()
+            ThemedBackgroundImage().scaledToFill()
                 .frame(width: geometry.size.width, height: geometry.size.height).clipped()
                 .overlay(Color.black.opacity(0.7))
         }

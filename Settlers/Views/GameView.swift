@@ -118,8 +118,7 @@ public struct GameView: View {
                 // net in case that math is ever off on some other device's
                 // aspect ratio - it matches the painting's own water tone.
                 let backgroundZoomOut: CGFloat = 0.90
-                Image("board-background")
-                    .resizable()
+                ThemedBackgroundImage()
                     .scaledToFill()
                     .frame(width: geo.size.width, height: geo.size.height * backgroundZoomOut, alignment: .leading)
                     .clipped()

@@ -53,6 +53,10 @@ public struct MainMenuView: View {
         || QALaunchFlag.showReplay.isSet
     @State private var isShowingLeaderboard = false
     @State private var isShowingHowToPlay = QALaunchFlag.showHowToPlay.isSet
+    @State private var isShowingSettings = false
+    /// Set by Settings' Reset Stats; `statistics` is a value handed in at
+    /// launch, so the row would otherwise show the wiped numbers until relaunch.
+    @State private var statsWereReset = false
     /// Whether the archive holds anything worth opening. A directory listing,
     /// not a parse: the count only decides whether to show a button, and
     /// decoding every recording to answer that would make the menu pay for a
@@ -76,8 +80,7 @@ public struct MainMenuView: View {
             // scrim over it keeps the wordmark and buttons legible against
             // the painting's own bright sky and water.
             GeometryReader { geo in
-                Image("board-background")
-                    .resizable()
+                ThemedBackgroundImage()
                     .scaledToFill()
                     .frame(width: geo.size.width, height: geo.size.height)
                     .clipped()
@@ -162,6 +165,13 @@ public struct MainMenuView: View {
                 )
                 .transition(.identity)
             }
+            // In place, like New Game: no slide-up, and the theme picked in
+            // it repaints the menu underneath the moment Close is tapped.
+            if isShowingSettings {
+                InGameSettingsView(onClose: { isShowingSettings = false },
+                                   onResetStats: { statsWereReset = true })
+                    .transition(.identity)
+            }
         }
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier(AccessibilityID.Screen.mainMenu)
@@ -182,26 +192,35 @@ public struct MainMenuView: View {
     /// 2026-09-28) rather than added as a fifth gold row: a returning player
     /// never needs it, so it should be findable without competing with New
     /// Game for the middle of the screen.
+    /// Settings sits above it (Jake, 2026-10-08), in the same pill.
     private var howToPlayButton: some View {
         VStack {
             HStack {
                 Spacer()
-                Button { isShowingHowToPlay = true } label: {
-                    Label("Rules", systemImage: "book.fill")
-                        .font(.system(size: 15, weight: .semibold, design: .serif))
-                        .padding(.horizontal, 12)
-                        .padding(.vertical, 7)
-                        .background(PaintedChromeBackground(fill: .color(SettingsChrome.plaqueFill), cornerRadius: 10,
-                                                            notchScale: 0.6))
+                VStack(alignment: .trailing, spacing: 8) {
+                    cornerPill("Settings", systemImage: "gearshape.fill") { isShowingSettings = true }
+                        .accessibilityIdentifier(AccessibilityID.MainMenu.settings)
+                    cornerPill("Rules", systemImage: "book.fill") { isShowingHowToPlay = true }
+                        .accessibilityLabel("How to Play")
+                        .accessibilityIdentifier(AccessibilityID.MainMenu.howToPlay)
                 }
-                .buttonStyle(.plain)
-                .accessibilityLabel("How to Play")
-                .accessibilityIdentifier(AccessibilityID.MainMenu.howToPlay)
             }
             Spacer()
         }
         .padding(.horizontal, 16)
         .padding(.top, 8)
+    }
+
+    private func cornerPill(_ title: String, systemImage: String, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            Label(title, systemImage: systemImage)
+                .font(.system(size: 15, weight: .semibold, design: .serif))
+                .padding(.horizontal, 12)
+                .padding(.vertical, 7)
+                .background(PaintedChromeBackground(fill: .color(SettingsChrome.plaqueFill), cornerRadius: 10,
+                                                    notchScale: 0.6))
+        }
+        .buttonStyle(.plain)
     }
 
     /// The way back into games already played, sitting directly above the
@@ -231,7 +250,7 @@ public struct MainMenuView: View {
     /// nothing meaningful to show yet.
     @ViewBuilder
     private var statsRow: some View {
-        let stats = statistics
+        let stats = statsWereReset ? GameStats() : statistics
         if stats.gamesPlayed > 0 {
             HStack(spacing: 20) {
                 statTile(value: "\(stats.gamesPlayed)", label: "Played")

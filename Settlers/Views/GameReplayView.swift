@@ -63,8 +63,7 @@ struct GameReplayView: View {
     private var paintedBackground: some View {
         ZStack {
             GeometryReader { geo in
-                Image("board-background")
-                    .resizable()
+                ThemedBackgroundImage()
                     .scaledToFill()
                     .frame(width: geo.size.width, height: geo.size.height)
                     .clipped()

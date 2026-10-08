@@ -41,6 +41,7 @@ enum AccessibilityID {
         static let gameHistory = "main-menu.game-history"
         static let leaderboard = "main-menu.leaderboard"
         static let howToPlay = "main-menu.how-to-play"
+        static let settings = "main-menu.settings"
     }
 
     enum HowToPlay {
@@ -240,6 +241,9 @@ enum AccessibilityID {
         static let close = "in-game-settings.close"
         static let restart = "in-game-settings.restart"
         static let quit = "in-game-settings.quit"
+        static let resetStats = "in-game-settings.reset-stats"
+        static let resetStatsConfirm = "in-game-settings.reset-stats.confirm"
+        static func theme(_ id: String) -> String { "in-game-settings.theme.\(id)" }
         static func skipPauses(_ isOn: Bool) -> String { "in-game-settings.skip-pauses.\(isOn ? "on" : "off")" }
         static func blockTradeOffers(_ isOn: Bool) -> String {
             "in-game-settings.block-offers.\(isOn ? "on" : "off")"

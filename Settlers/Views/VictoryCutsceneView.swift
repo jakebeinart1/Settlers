@@ -126,8 +126,7 @@ struct VictoryCutsceneView: View {
 
     private var backdrop: some View {
         GeometryReader { geo in
-            Image("win-background")
-                .resizable()
+            ThemedBackgroundImage(isVictory: true)
                 .scaledToFill()
                 .frame(width: geo.size.width, height: geo.size.height)
                 .clipped()

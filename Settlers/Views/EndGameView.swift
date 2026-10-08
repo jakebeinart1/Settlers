@@ -62,8 +62,7 @@ public struct EndGameView: View {
             // screen would've read as "back at the menu", not a moment of
             // its own.
             GeometryReader { geo in
-                Image("win-background")
-                    .resizable()
+                ThemedBackgroundImage(isVictory: true)
                     .scaledToFill()
                     .frame(width: geo.size.width, height: geo.size.height)
                     .clipped()

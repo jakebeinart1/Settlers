@@ -118,6 +118,7 @@
 		5B9C9BED053A1BD0289B2138 /* GameViewModel+QAProduction.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2DE411A98E45FFEC5D7D955 /* GameViewModel+QAProduction.swift */; };
 		5D9BC2890AFB1BDBE7B09D9A /* BoardCamera.swift in Sources */ = {isa = PBXBuildFile; fileRef = DEE2D0E9206ECE031A6A3A29 /* BoardCamera.swift */; };
 		5E6BD20480004B7ABB999F50 /* GameViewModel+Checkpoints.swift in Sources */ = {isa = PBXBuildFile; fileRef = 338D27A9E7D0498A2F649C2E /* GameViewModel+Checkpoints.swift */; };
+		5E7B89EC1F13082D09335D29 /* BackgroundTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 962370A487B6E7731D3733AB /* BackgroundTheme.swift */; };
 		5EC08F362C9C36984096D63B /* NavalBlockadeQAFixture.swift in Sources */ = {isa = PBXBuildFile; fileRef = 404DB13ADA6DAEE228F89357 /* NavalBlockadeQAFixture.swift */; };
 		5F4982074BC66FB97F145BC0 /* VictoryPointBreakdownTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = EB6E7FEA396F945A8263666A /* VictoryPointBreakdownTests.swift */; };
 		5FB79751BAE3B20DE98AFE8C /* ResourceProductionFlowTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 88800C7E1CD92965B59C885F /* ResourceProductionFlowTests.swift */; };
@@ -487,6 +488,7 @@
 		92F9BFE16D19CFD1ABEC5B88 /* IncrementalCheckpointValidationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IncrementalCheckpointValidationTests.swift; sourceTree = "<group>"; };
 		9572CD596EA70726F9201B13 /* ReplayExportPresentationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReplayExportPresentationTests.swift; sourceTree = "<group>"; };
 		95CF01E3C9518CFFC7C0AF1F /* GameplayBoundaryFlowTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameplayBoundaryFlowTests.swift; sourceTree = "<group>"; };
+		962370A487B6E7731D3733AB /* BackgroundTheme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackgroundTheme.swift; sourceTree = "<group>"; };
 		96572AA0664ABBE89C37F610 /* GameInteractionPriorityTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameInteractionPriorityTests.swift; sourceTree = "<group>"; };
 		971DE22B853F6DB44BCE2E62 /* PlayerDirectory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerDirectory.swift; sourceTree = "<group>"; };
 		977929BB6202A8BD5352A90D /* ReplayExportModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReplayExportModelTests.swift; sourceTree = "<group>"; };
@@ -839,6 +841,7 @@
 		7A3FE361B8B55261C4EC9E28 /* Theme */ = {
 			isa = PBXGroup;
 			children = (
+				962370A487B6E7731D3733AB /* BackgroundTheme.swift */,
 				4B89EE635B1E470682ED1D4B /* CatanTheme.swift */,
 				C47D8E51CEBC82766DDDF936 /* Civilization.swift */,
 				83696D4DDB3CF619E4125832 /* Civilization+NavalArtwork.swift */,
@@ -1214,6 +1217,7 @@
 				83C2D6F2A6B7F67093D579CB /* AccessibilityID.swift in Sources */,
 				ED5DEDE275F7FA08368C0F1F /* ArmyHandViews.swift in Sources */,
 				A3875B327B70080CD123396D /* ArmyPurchasePopupView.swift in Sources */,
+				5E7B89EC1F13082D09335D29 /* BackgroundTheme.swift in Sources */,
 				5D9BC2890AFB1BDBE7B09D9A /* BoardCamera.swift in Sources */,
 				17B209D17F882202517AC5D8 /* BoardChips.swift in Sources */,
 				0CC77716B1B04BB85F41BFD2 /* BoardDecisionBoardChrome.swift in Sources */,

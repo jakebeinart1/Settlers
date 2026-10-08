@@ -17,6 +17,33 @@ final class MainMenuFlowTests: XCTestCase {
         XCTAssertTrue(mainMenu.waitForExistence(timeout: 2))
     }
 
+    /// Settings opens from the menu corner; a theme sticks across a reopen,
+    /// and Reset Stats asks before it wipes anything.
+    func testMenuSettingsPicksAThemeAndConfirmsStatsReset() {
+        continueAfterFailure = false
+        let app = launchResetApp()
+        app.buttons["main-menu.settings"].tap()
+        XCTAssertTrue(app.otherElements["screen.in-game-settings"].waitForExistence(timeout: 5))
+        XCTAssertFalse(app.buttons["in-game-settings.restart"].exists, "No match to restart from the menu")
+
+        let warTorn = app.buttons["in-game-settings.theme.warTorn"]
+        warTorn.tap()
+        XCTAssertTrue(warTorn.isSelected)
+        let themed = XCTAttachment(screenshot: app.screenshot())
+        themed.name = "Settings — War-Torn theme"
+        themed.lifetime = .keepAlways
+        add(themed)
+
+        app.buttons["in-game-settings.close"].tap()
+        app.buttons["main-menu.settings"].tap()
+        XCTAssertTrue(app.buttons["in-game-settings.theme.warTorn"].isSelected, "The theme must persist")
+
+        let reset = app.buttons["in-game-settings.reset-stats"]
+        for _ in 0..<5 where !reset.isHittable { app.swipeUp() }
+        reset.tap()
+        XCTAssertTrue(app.buttons["in-game-settings.reset-stats.confirm"].waitForExistence(timeout: 2))
+    }
+
     func testConfiguredMatchStarts() {
         continueAfterFailure = false
         let app = launchResetApp()
