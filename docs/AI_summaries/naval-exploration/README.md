@@ -1,5 +1,58 @@
 # Naval exploration product program
 
+## October 8 follow-up: discard, optional stealing and purposeful scouting
+
+Alex's screenshots `IMG_1770.PNG` / `IMG_1769.PNG` show a real seven followed by
+robber placement while the human retains eight resource cards. The diagnosed
+cause is Naval's ten-card rules configuration, not a missed discard editor.
+New Naval v5 games must use seven: above seven resources, discard half rounded
+down before moving the robber. Development cards do not count and a Knight
+does not trigger discarding. Recorded v1–v4 games retain their original rules;
+an explicit ongoing-match upgrade is a separate decision.
+
+Ship stealing becomes an explained Naval Advanced Settings choice, Off for a
+fresh game or an old implicit New Game prefill, while an explicit future On
+choice remains remembered. Enabled stealing retains the existing after-production
+11 rule, global selection and lasting control. A human-involved transfer must
+produce an acknowledged, durable painted receipt identifying the former and
+new controller. It cannot expire unseen in the ordinary notice queue. Ships,
+colonies, builder hull stock and resource ownership otherwise retain their rules.
+
+Both AI tiers currently hard-reject leaving any useful landing, even when they
+cannot fund its settlement. Frozen, repeated real matches demonstrate waits
+despite public voyages revealing three or nine hexes. A separately persisted
+scouting revision must reserve a realistically fundable landing, avoid redundant
+friendly reservations and value genuine frontier progress separately from the
+best visible landing. It must respect fog, rival blockades, legal routes and
+the two-hex allowance. No sailing merely for animation and no new strength claim.
+
+<scratchpad>
+
+Data flow: saved Naval version/options → effective engine rules → actual roll
+and legal mask → session transaction → atomic checkpoint → discard/transfer UI
+and policy observation. Scouting scores consume that public observation, never
+authoritative hidden terrain. Receipts publish only after the same transaction
+commits and must hold further gameplay until acknowledgement.
+
+Constraints: exact old recordings and policy identities, conserved cards,
+unchanged current ship identity/colonies, stable board viewport and command-row
+reserve, one owned native test device and no other project's simulator changes.
+Naive failure boundaries include seven resources plus development cards, odd
+hand totals, another seat rolling seven, several simultaneous discarders,
+Knight versus rolled seven, cold resume mid-discard, capture disabled during
+an eleven harvest, human loss behind a modal, failed receipt writes, a funded
+landing, duplicate friendly landing reservations and a rival-blocked route.
+
+Alternatives rejected: changing the threshold globally would rewrite old
+replays; defaulting every missing capture key to Off would erase old pending
+captures; a longer transient toast still expires unseen; unconditional voyage
+bonuses reward aimless movement. Verification must start before a real seven,
+perform actual captures, acknowledge/resume receipts, reproduce the identified
+idle decisions and finish real app-hosted matches. Directly seeded discard or
+win screens cannot prove those transitions.
+
+</scratchpad>
+
 ## Build 27 ship defense: delivered
 
 Ship defense is live in Alex's Internal TestFlight. In new Naval games, an
@@ -392,7 +445,7 @@ recording Alex's revised direction and updating its dependent requirements.
 | C05 | Discovery is permanent and public for every player. The map starts fogged and mist clears with an impressive animation, including the opening. | Exploration is shared world knowledge and an important visual event. C04's disabled setting takes precedence over concealment. |
 | C06 | Optional resource-choice production must be valued appropriately. | Requires desirable flexible output with proper opportunity cost. Delegated D18–D20 settle representation, frequency, entitlement and bank resolution. |
 | C07 | Ordinary construction uses each player's hand across locations; a player establishes a settlement on new land before building roads there. | Preserves the economy and settlement-established access. Delegated D07–D08 settle coastal landing, eligibility, island components and continued ship use. |
-| C08 | Rolling 11 allows the roller to capture any opponent's ship, regardless of distance. Control persists until that ship is captured again. | Locks global persistent control. Delegated D09–D11 settle production/capture order, allowance and identity bookkeeping. |
+| C08 | When Ship stealing is enabled, rolling 11 allows the roller to capture any opponent's ship, regardless of distance. Control persists until captured again. Fresh-game default is Off, with an explained Advanced Settings switch. | October 8 revises the earlier unconditional rule; old saved rules remain versioned. D09–D11 retain enabled production/capture order, allowance and identity bookkeeping. |
 | C09 | Ship destruction and a Biggest Navy award are absent from the current design. | Preserves the human exclusions. Delegated D12–D13 retain Road/Army awards and settle the remaining score/supply rules. |
 | C10 | Traditional and Expert AI are both required, including substantial refinement and evidence. | A legal fallback or an unsupported difficulty is not the finished experience. |
 | C11 | Delivery uses an isolated worktree, simulator launch and real gameplay, UI refinement, screenshots and considered edge cases. | Compilation alone cannot establish product quality. |
@@ -401,6 +454,8 @@ recording Alex's revised direction and updating its dependent requirements.
 | C14 | New Naval matches allow each ship at most two sea hexes per turn, selecting a highlighted reachable destination and confirming one voyage. | October 7 direction; D47 retains prior saves and public-information boundaries. |
 | C15 | Any-resource terrain is painted; harvest explains building entitlement and collection progress; ships use natural language; the current win goal is visible. | October 7 direction; D45, D46 and D48 use existing painted surfaces without extra New Game scrolling. |
 | C16 | Accepting a bot proposal gives actual willing, funded recipients an equal chance, with a visible bot-to-bot result. | October 7 direction; D49 records the narrow Accept scope while the optional question remains unanswered. |
+| C17 | A rolled seven requires every player with more than seven resource cards to discard half, rounded down; ship theft must be clearly acknowledged when enabled. | October 8 corrects the accidental ten-card Naval limit and the easily missed ownership notice. |
+| C18 | Both AI tiers must scout useful reachable terrain rather than remain indefinitely at an unfunded landing. | October 8 requires decision-level reproduction, public-information correctness and complete-match verification. |
 
 The ordinary per-player economy and settlement costs were carried forward in the
 conversation. Exact costs, supplies, score target and interactions belong in the

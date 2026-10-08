@@ -22,13 +22,21 @@ sailing ships, discovering randomized geography and establishing settlements.
 It sails independently and retains its identity when captured.
 _Avoid_: Shipping-route segment, sea road.
 
-**Sailing allowance**: Three one-hex sea steps available to each controlled ship
-on its owner's turn. Newly launched or captured ships also receive three steps.
+**Sailing allowance**: Two sea hexes per controlled ship on its owner's turn in
+Naval v3 and later. One voyage selects a reachable destination; v1/v2 recordings
+retain their original three adjacent steps.
 
-**Ship capture**: A transfer of a selected opposing ship's control enabled by
-rolling 11. Control persists until a subsequent capture; it does not expire
-automatically on the next 11.
+**Ship stealing / capture**: An optional transfer of a selected opposing ship's
+control after an 11's production. Fresh games default Off; Naval Advanced
+Settings explains and enables it. When enabled, control persists until a
+subsequent capture, without an automatic reset. Old saved matches retain their
+original enabled rule. A human-involved transfer has an acknowledged receipt.
 _Avoid_: Temporary loan, automatic ownership reset, ship destruction.
+
+**Seven-card discard limit**: New Naval v5 games discard half a player's resource
+cards, rounded down, when a seven rolls and that player's resource hand exceeds
+seven. Development cards do not count. A Knight does not trigger discarding.
+Naval v1–v4 recordings retain their original ten-card limit.
 
 **Discovery**: The public, permanent revelation of previously fogged geography.
 Once discovered, a hex stays revealed for all players.
