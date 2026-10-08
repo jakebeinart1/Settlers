@@ -16,6 +16,14 @@ struct DevelopmentCardDisplayTests {
         #expect(DevCardStyle.icon(for: .yearOfPlenty) != "sparkles")
     }
 
+    /// A misspelt asset name renders blank without any error; this is what catches it.
+    @Test func everyCardHasItsOwnBundledEmblem() throws {
+        let images = try DevCardType.allCases.map {
+            try #require(UIImage(named: DevCardEmblem.imageName(for: $0))?.pngData())
+        }
+        #expect(Set(images).count == DevCardType.allCases.count)
+    }
+
     @Test func mixedStackReportsReadyOnlyWhenEngineAllowsPlay() {
         let playable = item(status: .playable)
         #expect(DevCardDisplay.inventoryBadge(playable) == "1 READY · 1 NEW")
