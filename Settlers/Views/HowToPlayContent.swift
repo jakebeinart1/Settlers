@@ -369,7 +369,8 @@ enum HowToPlayContent {
 
     private static func navalCaptureDescription(_ options: NavalOptions?) -> String {
         guard options?.shipStealingEnabled == true else {
-            return "Ship stealing is off by default. An 11 produces resources normally and cannot take a ship."
+            let status = options == nil ? "off by default" : "off for this match"
+            return "Ship stealing is \(status). An 11 produces resources normally and cannot take a ship."
         }
         return "Ship stealing is on for this match. On an 11, collect resources, then take any opponent's ship "
             + "or skip. Control lasts until another capture; ships are not destroyed. "

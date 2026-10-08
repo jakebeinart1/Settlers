@@ -111,7 +111,7 @@ import Testing
         #expect(text.contains("Resource-choice islands are off for this match"))
         #expect(text.contains("Establish your own settlement before building roads"))
         #expect(text.contains("first two overseas islands"))
-        #expect(text.contains("Ship stealing is off by default"))
+        #expect(text.contains("Ship stealing is off for this match"))
         #expect(text.contains("38 cards of each resource and 50 development cards"))
         #expect(text.contains("local and unrated"))
         #expect(text.contains("six hulls"))
