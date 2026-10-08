@@ -18,7 +18,7 @@ struct NavalShipCaptureReceiptTests {
         model.isBlockingSurfaceOpen = true
         let actor = loss ? rival : human
         let old = try #require(position.naval?.ships.first)
-        try model.applyLogged(.captureShip(id: old.id), by: actor, isHumanDecision: !loss)
+        try commitCapture(id: old.id, by: actor, in: model)
         let receipt = try #require(model.pendingShipCapture)
         #expect(receipt.previousOwner == old.owner && receipt.newOwner == actor)
         #expect(receipt.coordinate == old.coordinate && receipt.reader == human)
@@ -49,7 +49,7 @@ struct NavalShipCaptureReceiptTests {
         let before = model.session.checkpoint
         refusesWrite = true
         #expect(throws: MatchPersistenceFailure.self) {
-            try model.applyLogged(.captureShip(id: 0), by: rival, isHumanDecision: false)
+            try commitCapture(id: 0, by: rival, in: model)
         }
         #expect(model.session.checkpoint == before && model.pendingShipCapture == nil)
         let resumed = fixture.makeModel()
@@ -64,7 +64,7 @@ struct NavalShipCaptureReceiptTests {
         })
         model.replaceStateForTesting(try capturePosition(loss: true), humanSeat: human)
         model.isBlockingSurfaceOpen = true
-        try model.applyLogged(.captureShip(id: 0), by: rival, isHumanDecision: false)
+        try commitCapture(id: 0, by: rival, in: model)
         let committed = model.session.checkpoint
         let receipt = try #require(model.pendingShipCapture)
         refusesWrite = true
@@ -83,7 +83,7 @@ struct NavalShipCaptureReceiptTests {
         let model = fixture.makeModel()
         model.replaceStateForTesting(try capturePosition(loss: true), humanSeat: human)
         model.isBlockingSurfaceOpen = true
-        try model.applyLogged(.captureShip(id: 0), by: rival, isHumanDecision: false)
+        try commitCapture(id: 0, by: rival, in: model)
         let receipt = try #require(model.pendingShipCapture)
         let document = try #require(model.checkpointDocument)
         let elapsed = try #require(document.activeMatch?.elapsedSeconds)
@@ -99,7 +99,7 @@ struct NavalShipCaptureReceiptTests {
         state.naval?.hullsBuilt = [PlayerID(index: 2): 1]
         model.replaceStateForTesting(state, humanSeat: human)
         model.isBlockingSurfaceOpen = true
-        try model.applyLogged(.captureShip(id: 0), by: rival, isHumanDecision: false)
+        try commitCapture(id: 0, by: rival, in: model)
         #expect(model.pendingShipCapture == nil)
         #expect(model.gameplayFeedback.current?.kind == .captured(rival, 0, PlayerID(index: 2)))
     }
@@ -109,7 +109,7 @@ struct NavalShipCaptureReceiptTests {
         let model = fixture.makeModel()
         model.replaceStateForTesting(try capturePosition(loss: true), humanSeat: human)
         model.isBlockingSurfaceOpen = true
-        try model.applyLogged(.captureShip(id: 0), by: rival, isHumanDecision: false)
+        try commitCapture(id: 0, by: rival, in: model)
         let document = try #require(model.checkpointDocument)
         for field in ["coordinate", "newOwner", "reader", "shipID"] {
             var object = try #require(JSONSerialization.jsonObject(with: JSONEncoder().encode(document)) as? [String: Any])
@@ -137,7 +137,7 @@ struct NavalShipCaptureReceiptTests {
         #expect(resumed.state == position && resumed.state.naval?.options.shipStealingEnabled == true)
         #expect(resumed.checkpointDocument?.activeMatch?.setup.navalOptions == position.naval?.options)
         resumed.isBlockingSurfaceOpen = true
-        try resumed.applyLogged(.captureShip(id: 0), by: rival, isHumanDecision: false)
+        try commitCapture(id: 0, by: rival, in: resumed)
         #expect(fixture.makeModel().pendingShipCapture == resumed.pendingShipCapture)
     }
 
@@ -156,6 +156,75 @@ struct NavalShipCaptureReceiptTests {
             let restored = try JSONDecoder().decode(MatchSetup.self, from: JSONEncoder().encode(setup))
             #expect(restored.normalizedForNewGame().navalOptions.shipStealingEnabled == enabled)
         }
+    }
+
+    @Test(arguments: [1, 2, 3])
+    func aNonzeroHumanReceivesTheirActualLossAfterColdResume(index: Int) throws {
+        let fixture = try CheckpointModelFixture()
+        let reader = PlayerID(index: index)
+        var position = try capturePosition(loss: false)
+        position.naval?.ships[0].owner = reader
+        let model = fixture.makeModel()
+        model.replaceStateForTesting(position, humanSeat: reader)
+        try commitCapture(id: 0, by: human, in: model)
+        let receipt = try #require(model.pendingShipCapture)
+        #expect(receipt.previousOwner == reader && receipt.newOwner == human && receipt.reader == reader)
+        let resumed = fixture.makeModel()
+        #expect(resumed.humanSeats == [reader] && resumed.humanPlayer == reader)
+        #expect(resumed.seatOwedATurn == reader && resumed.pendingShipCapture == receipt)
+        #expect(resumed.boardDecisionPresentation == nil)
+        let committed = resumed.session.checkpoint
+        try resumed.acknowledgeShipCapture()
+        #expect(resumed.session.checkpoint == committed && resumed.pendingShipCapture == nil)
+        #expect(fixture.makeModel().pendingShipCapture == nil)
+    }
+
+    @Test func anUnreadReceiptAloneStopsTheLiveBotRunner() async throws {
+        let fixture = try CheckpointModelFixture()
+        let model = fixture.makeModel()
+        model.replaceStateForTesting(try capturePosition(loss: true), humanSeat: human)
+        try commitCapture(id: 0, by: rival, in: model)
+        #expect(model.pendingShipCapture != nil && model.session.nextActor() == .seat(rival))
+        #expect(model.appIsActive && !model.persistenceBlocked)
+        model.isBlockingSurfaceOpen = false
+        let session = model.session.checkpoint
+        let document = model.checkpointDocument
+        model.skipBotPauses()
+        await model.runBotTurnIfNeeded()
+        #expect(model.session.checkpoint == session && model.checkpointDocument == document)
+        #expect(fixture.makeModel().session.checkpoint == session)
+        #expect(model.pendingShipCapture != nil && !model.isProcessingBotTurns)
+    }
+
+    @Test func aNonzeroHumanCanSailTheCapturedHullAfterDurableAcknowledgement() throws {
+        let fixture = try CheckpointModelFixture()
+        let model = fixture.makeModel()
+        let position = try capturePosition(loss: true)
+        model.replaceStateForTesting(position, humanSeat: rival)
+        let original = try #require(position.naval?.ships.first)
+        #expect(model.selectBoardTarget(.ship(original.id)) && model.confirmBoardDecision())
+        #expect(model.pendingShipCapture?.reader == rival)
+        #expect(!model.beginBoardDecision(.sailShip))
+        let captured = model.state
+        try model.acknowledgeShipCapture()
+        #expect(model.state == captured && model.pendingShipCapture == nil)
+        #expect(model.selectBoardTarget(.ship(original.id)))
+        let sailing = try #require(model.boardDecisionPresentation?.sailing)
+        let destination = try #require(sailing.routes.keys.sorted().first { sailing.routes[$0]?.count == 2 })
+        #expect(model.selectBoardTarget(.tile(destination)) && model.confirmBoardDecision())
+        let sailed = try #require(model.state.naval?.ships.first { $0.id == original.id })
+        #expect(sailed.owner == rival && sailed.coordinate == destination && sailed.stepsRemaining == 0)
+        #expect(model.checkpointDocument?.activeMatch?.moves.map(\.move) == [
+            .captureShip(id: original.id), .sailShip(id: original.id, to: destination)
+        ])
+        let resumed = fixture.makeModel()
+        #expect(resumed.state == model.state && resumed.pendingShipCapture == nil)
+    }
+
+    private func commitCapture(id: Int, by actor: PlayerID, in model: GameViewModel) throws {
+        var candidate = model.session
+        let step = try candidate.applyExternal(.captureShip(id: id), by: actor)
+        try model.qaCommitStep(step, candidate: candidate)
     }
 
     private func capturePosition(loss: Bool) throws -> GameState {
