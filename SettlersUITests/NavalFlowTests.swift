@@ -460,7 +460,7 @@ final class NavalFlowTests: XCTestCase {
         XCTAssertFalse(app.buttons["board-decision.confirm"].isEnabled)
         app.buttons["naval.choose-ship.0"].tap()
         app.buttons["board-decision.confirm"].tap()
-        XCTAssertTrue(app.otherElements["naval.capture.receipt"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.alerts["naval.capture.receipt"].waitForExistence(timeout: 5))
         XCTAssertFalse(app.buttons["End Turn"].exists)
         retainScreenshot("Voyages — acknowledged ownership notice", app: app)
         app.buttons["naval.capture.continue"].tap()

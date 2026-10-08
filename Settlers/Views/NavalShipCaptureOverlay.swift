@@ -9,6 +9,7 @@ struct NavalShipCaptureOverlay: View {
     let playerIdentity: (PlayerID) -> PlayerIdentity
     let onContinue: () -> Void
     @AccessibilityFocusState private var isTitleFocused: Bool
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     var body: some View {
         GeometryReader { geometry in
@@ -70,27 +71,55 @@ struct NavalShipCaptureOverlay: View {
     }
 
     private var ownershipChange: some View {
-        HStack(alignment: .top, spacing: 12) {
-            owner(receipt.previousOwner, caption: "Before")
-            Image(systemName: "arrow.right")
-                .font(.title2.weight(.semibold))
-                .foregroundStyle(CatanTheme.cityPennantGold)
-                .padding(.top, 30)
-                .accessibilityHidden(true)
-            owner(receipt.newOwner, caption: "Now")
+        VStack(spacing: 14) {
+            if dynamicTypeSize.isAccessibilitySize {
+                HStack(spacing: 12) {
+                    vessel(receipt.previousOwner)
+                    transferArrow
+                    vessel(receipt.newOwner)
+                }
+                ownerName(receipt.previousOwner, caption: "Before")
+                ownerName(receipt.newOwner, caption: "Now")
+            } else {
+                HStack(alignment: .top, spacing: 12) {
+                    owner(receipt.previousOwner, caption: "Before")
+                    transferArrow.padding(.top, 30)
+                    owner(receipt.newOwner, caption: "Now")
+                }
+            }
         }
         .accessibilityElement(children: .combine)
         .accessibilityLabel("Ownership changed from \(playerIdentity(receipt.previousOwner).displayName) to \(playerIdentity(receipt.newOwner).displayName)")
     }
 
-    private func owner(_ player: PlayerID, caption: String) -> some View {
+    private var transferArrow: some View {
+        Image(systemName: "arrow.right")
+            .font(.system(size: 24, weight: .semibold))
+            .foregroundStyle(CatanTheme.cityPennantGold)
+            .accessibilityHidden(true)
+    }
+
+    private func vessel(_ player: PlayerID) -> some View {
         let identity = playerIdentity(player)
-        return VStack(spacing: 5) {
-            NavalShipBadge(color: identity.civilization.accentColor, civilization: identity.civilization)
-                .frame(width: 88, height: 88)
+        return NavalShipBadge(color: identity.civilization.accentColor, civilization: identity.civilization)
+            .frame(width: 88, height: 88)
+    }
+
+    /// Accessible names use the whole card width so a long owner name does
+    /// not break into fragments under a fixed-width vessel illustration.
+    private func ownerName(_ player: PlayerID, caption: String) -> some View {
+        VStack(spacing: 5) {
             Text(caption).font(.caption).foregroundStyle(CatanTheme.cityPennantGold)
-            Text(identity.displayName).font(.subheadline.bold())
+            Text(playerIdentity(player).displayName).font(.subheadline.bold())
                 .multilineTextAlignment(.center).fixedSize(horizontal: false, vertical: true)
+        }
+        .frame(maxWidth: .infinity)
+    }
+
+    private func owner(_ player: PlayerID, caption: String) -> some View {
+        return VStack(spacing: 5) {
+            vessel(player)
+            ownerName(player, caption: caption)
         }
         .frame(maxWidth: .infinity)
     }

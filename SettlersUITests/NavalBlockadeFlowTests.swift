@@ -61,7 +61,7 @@ final class NavalBlockadeFlowTests: XCTestCase {
         XCTAssertEqual(owner(1, in: app), "1")
         app.buttons["naval.choose-ship.1"].tap()
         app.buttons["board-decision.confirm"].tap()
-        XCTAssertTrue(app.otherElements["naval.capture.receipt"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.alerts["naval.capture.receipt"].waitForExistence(timeout: 5))
         XCTAssertFalse(app.buttons["End Turn"].exists)
         app.buttons["naval.capture.continue"].tap()
         XCTAssertTrue(app.buttons["End Turn"].waitForExistence(timeout: 5))

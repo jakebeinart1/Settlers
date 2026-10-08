@@ -29,7 +29,7 @@ final class NavalShipStealingFlowTests: XCTestCase {
 
     func testActualBotStealRemainsExplicitAcrossColdResumeUntilAcknowledged() {
         let app = launchLoss(largestText: false)
-        let receipt = app.otherElements["naval.capture.receipt"]
+        let receipt = app.alerts["naval.capture.receipt"]
         XCTAssertTrue(receipt.waitForExistence(timeout: 20), "The ordinary rival must roll 11 and commit capture")
         XCTAssertTrue(app.staticTexts["Your ship was stolen"].exists)
         XCTAssertTrue(app.otherElements["naval.capture.location"].exists)
@@ -37,7 +37,7 @@ final class NavalShipStealingFlowTests: XCTestCase {
         XCTAssertFalse(app.buttons["board.ship.0"].isHittable)
         retain("Naval — actual rival capture explains the lost vessel", in: app)
         coldResume(app)
-        XCTAssertTrue(app.otherElements["naval.capture.receipt"].waitForExistence(timeout: 10))
+        XCTAssertTrue(app.alerts["naval.capture.receipt"].waitForExistence(timeout: 10))
         XCTAssertTrue(app.staticTexts["Your ship was stolen"].exists)
         retain("Naval — unread ship loss survives a fresh process", in: app)
         let acknowledgement = app.buttons["naval.capture.continue"]
@@ -57,16 +57,72 @@ final class NavalShipStealingFlowTests: XCTestCase {
 
     func testLossReceiptKeepsContinueReachableAtMaximumText() {
         let app = launchLoss(largestText: true)
-        XCTAssertTrue(app.otherElements["naval.capture.receipt"].waitForExistence(timeout: 20))
+        let receipt = app.alerts["naval.capture.receipt"]
+        XCTAssertTrue(receipt.waitForExistence(timeout: 20))
         let acknowledgement = app.buttons["naval.capture.continue"]
         XCTAssertTrue(acknowledgement.isHittable)
         XCTAssertTrue(app.frame.insetBy(dx: 1, dy: 1).contains(acknowledgement.frame))
         retain("Naval — maximum text ship loss keeps Continue visible", in: app)
-        app.swipeUp()
+        let content = receipt.scrollViews.firstMatch
+        XCTAssertTrue(content.exists && content.isHittable, "Large text must have an actual readable content scroll area")
+        content.swipeUp()
         XCTAssertTrue(acknowledgement.isHittable)
         retain("Naval — maximum text ownership and location are scrollable", in: app)
         acknowledgement.tap()
-        XCTAssertFalse(app.otherElements["naval.capture.receipt"].exists)
+        XCTAssertFalse(receipt.exists)
+    }
+
+    func testConfirmedHumanCaptureRetainsItsOwnershipReceiptAfterColdResumeAndThenSails() throws {
+        continueAfterFailure = false
+        let app = XCUIApplication()
+        app.launchArguments = ["-ui-testing", "-ui-testing-reset", "-qaAutoStart", "-qaNavalMode",
+                               "-qaNavalCapturePosition"]
+        app.launch()
+        let choice = app.buttons["naval.choose-ship.0"]
+        XCTAssertTrue(choice.waitForExistence(timeout: 5))
+        XCTAssertEqual(app.otherElements["naval.ship.owner.0"].value as? String, "1")
+        choice.tap()
+        app.buttons["board-decision.confirm"].tap()
+        let receipt = app.alerts["naval.capture.receipt"]
+        XCTAssertTrue(receipt.waitForExistence(timeout: 5))
+        XCTAssertTrue(receipt.staticTexts["You took control of a ship"].exists)
+        XCTAssertTrue(receipt.otherElements["naval.capture.location"].exists)
+        XCTAssertFalse(app.buttons["End Turn"].isHittable)
+        retain("Naval — human-confirmed capture has an ownership receipt", in: app)
+        coldResume(app)
+        XCTAssertTrue(receipt.waitForExistence(timeout: 5))
+        XCTAssertTrue(receipt.staticTexts["You took control of a ship"].exists)
+        retain("Naval — the human's unread gained ship survives cold resume", in: app)
+        app.buttons["naval.capture.continue"].tap()
+        XCTAssertTrue(app.buttons["End Turn"].waitForExistence(timeout: 5))
+        XCTAssertEqual(app.otherElements["naval.ship.owner.0"].value as? String, "0")
+        try sailCapturedHull(in: app)
+    }
+
+    private func sailCapturedHull(in app: XCUIApplication) throws {
+        app.buttons["naval.fleet.open"].tap()
+        let hull = app.buttons["naval.fleet.ship.0"]
+        XCTAssertTrue(hull.waitForExistence(timeout: 5))
+        hull.tap()
+        let targets = app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH %@", "board.tile."))
+        XCTAssertTrue(targets.firstMatch.waitForExistence(timeout: 5))
+        let target = try XCTUnwrap(targets.allElementsBoundByIndex.first {
+            $0.isHittable && ($0.value as? String ?? "").contains("2 hexes of travel")
+        }, "The gained vessel must expose a reachable two-hex destination")
+        let coordinate = try XCTUnwrap(target.identifier.split(separator: ".").last)
+            .split(separator: "_").compactMap { Int($0) }
+        XCTAssertEqual(coordinate.count, 2)
+        let original = app.otherElements["naval.ship.position.0"].value as? String
+        target.tap()
+        XCTAssertEqual(app.otherElements["naval.ship.position.0"].value as? String, original)
+        app.buttons["board-decision.confirm"].tap()
+        let expected = "q=\(coordinate[0]);r=\(coordinate[1]);steps=0"
+        XCTAssertEqual(app.otherElements["naval.ship.position.0"].value as? String, expected)
+        retain("Naval — acknowledged gained vessel commits its two-hex voyage", in: app)
+        coldResume(app)
+        XCTAssertTrue(app.otherElements["naval.ship.position.0"].waitForExistence(timeout: 5))
+        XCTAssertEqual(app.otherElements["naval.ship.position.0"].value as? String, expected)
+        XCTAssertFalse(app.alerts["naval.capture.receipt"].exists)
     }
 
     private func launchLoss(largestText: Bool) -> XCUIApplication {
