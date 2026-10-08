@@ -111,7 +111,7 @@ import Testing
         #expect(text.contains("Resource-choice islands are off for this match"))
         #expect(text.contains("Establish your own settlement before building roads"))
         #expect(text.contains("first two overseas islands"))
-        #expect(text.contains("capture any opponent's ship anywhere or skip"))
+        #expect(text.contains("Ship stealing is off by default"))
         #expect(text.contains("38 cards of each resource and 50 development cards"))
         #expect(text.contains("local and unrated"))
         #expect(text.contains("six hulls"))
@@ -120,6 +120,16 @@ import Testing
         #expect(try section("setup", in: rules).details.joined().contains("including inland corners"))
         #expect(try section("build", in: rules).details.joined().contains("a ship beside a legal coastal corner"))
         #expect(try section("robber", in: rules).details.joined().contains("discovered land hex"))
+    }
+
+    @Test func navalCaptureGuideReflectsTheActualMatchOption() throws {
+        let state = Naval.newGame(seed: 7501, options: NavalOptions(shipStealingEnabled: true))
+        let voyages = try section("voyages", in: HowToPlayContent.rules(for: .init(state: state)))
+        let text = voyages.details.joined(separator: " ")
+        #expect(text.contains("Ship stealing is on for this match"))
+        #expect(text.contains("On an 11, collect resources"))
+        #expect(text.contains("acknowledge the ownership notice"))
+        #expect(!text.contains("Ship stealing is off by default"))
     }
 
     private func section(_ id: String, in sections: [HowToPlayContent.Section]) throws -> HowToPlayContent.Section {
