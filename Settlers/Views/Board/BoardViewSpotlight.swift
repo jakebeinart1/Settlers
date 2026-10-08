@@ -15,8 +15,6 @@ extension BoardView {
     /// Close enough that one piece and its neighbours fill the board, far
     /// enough that the tour still reads as one island rather than one hex.
     static let spotlightZoom: CGFloat = 1.9
-    private static let glideFrames = 24
-    private static let glideFrameDuration = Duration.milliseconds(16)
 
     func spotlighting(_ spotlight: BoardSpotlight?) -> Self {
         var lit = self
@@ -25,32 +23,37 @@ extension BoardView {
     }
 
     /// Drawn below the buildings, so a lit network rims the road under the
-    /// settlements rather than smearing over them.
+    /// settlements rather than smearing over them. Glows here are a wide
+    /// translucent stroke under a narrow one, never `.shadow`: a blur is
+    /// expensive to composite, and the tour lights up to fifteen at once.
     func spotlightRoads(_ spotlight: BoardSpotlight, geometry: HexGeometry) -> some View {
-        roadNetworkPath(for: spotlight.edges, geometry: geometry)
-            .stroke(CatanTheme.cityPennantGold, style: roadStroke(width: geometry.size * 0.26))
-            .shadow(color: CatanTheme.cityPennantGold, radius: 8)
-            .allowsHitTesting(false)
+        let network = roadNetworkPath(for: spotlight.edges, geometry: geometry)
+        return ZStack {
+            network.stroke(CatanTheme.cityPennantGold.opacity(0.35), style: roadStroke(width: geometry.size * 0.42))
+            network.stroke(CatanTheme.cityPennantGold, style: roadStroke(width: geometry.size * 0.24))
+        }
+        .allowsHitTesting(false)
     }
 
     func spotlightLayer(_ spotlight: BoardSpotlight, geometry: HexGeometry) -> some View {
         let gold = CatanTheme.cityPennantGold
         return ZStack {
             ForEach(spotlight.vertices.sorted(), id: \.self) { vertex in
-                Circle()
-                    .stroke(gold, lineWidth: geometry.size * 0.09)
-                    .shadow(color: gold, radius: 10)
-                    .frame(width: geometry.size * 1.15, height: geometry.size * 1.15)
-                    .position(geometry.vertexPosition(vertex, board: board))
+                ZStack {
+                    Circle().stroke(gold.opacity(0.35), lineWidth: geometry.size * 0.22)
+                    Circle().stroke(gold, lineWidth: geometry.size * 0.08)
+                }
+                .frame(width: geometry.size * 1.15, height: geometry.size * 1.15)
+                .position(geometry.vertexPosition(vertex, board: board))
             }
             if let focus = spotlight.focus, let label = spotlight.label {
                 let piece = geometry.vertexPosition(focus, board: board)
                 Text(label)
-                    .font(.system(size: max(22, geometry.size * 0.7), weight: .black, design: .serif))
+                    .font(.system(size: 17, weight: .black, design: .serif))
                     .foregroundStyle(gold)
-                    .padding(.horizontal, 10)
+                    .padding(.horizontal, 6)
                     .background(Capsule().fill(.black.opacity(0.75)))
-                    .overlay(Capsule().stroke(gold, lineWidth: 2))
+                    .overlay(Capsule().stroke(gold, lineWidth: 1))
                     .position(x: piece.x, y: piece.y - geometry.size * 1.1)
                     .id(focus)
                     .transition(.opacity.combined(with: .offset(y: 12)))
@@ -59,27 +62,18 @@ extension BoardView {
         .allowsHitTesting(false)
     }
 
-    /// Steps the camera rather than animating it. The tile `Canvas` projects
-    /// a new camera at once while SwiftUI pieces interpolate, so an animated
-    /// camera tears the pieces off their hexes mid-move - the same reason
-    /// naval focus disables camera animation in `body`.
-    func glideCamera(to focus: VertexID?, fit: BoardFit, container: CGSize) async {
-        guard !reduceMotion else { return }
-        let target = spotlightCamera(on: focus, fit: fit, container: container)
-        let start = camera
-        for frame in 1...Self.glideFrames {
-            let progress = Double(frame) / Double(Self.glideFrames)
-            let eased = CGFloat(progress * progress * (3 - 2 * progress))
-            camera = BoardCamera(
-                zoom: start.zoom + (target.zoom - start.zoom) * eased,
-                pan: CGSize(width: start.pan.width + (target.pan.width - start.pan.width) * eased,
-                            height: start.pan.height + (target.pan.height - start.pan.height) * eased))
-            do { try await Task.sleep(for: Self.glideFrameDuration) } catch { return }
-        }
-    }
-
-    private func spotlightCamera(on focus: VertexID?, fit: BoardFit, container: CGSize) -> BoardCamera {
-        guard let focus else { return .fitted }
+    /// Where the tour's lens sits: the zoom and pan to apply to the whole
+    /// drawn board as ONE transform (`body` applies it before the clip).
+    ///
+    /// Not the camera. Stepping `camera` re-renders every board layer each
+    /// frame, and the recorded glide ran at ~20-25fps on the simulator; it
+    /// cannot be animated either, because the tile `Canvas` takes a camera
+    /// change at once while SwiftUI pieces interpolate, tearing pieces off
+    /// their hexes (the reason naval focus disables camera animation). A
+    /// transform over the composited board animates on the GPU with every
+    /// layer moving together.
+    func spotlightLens(fit: BoardFit, container: CGSize) -> BoardCamera {
+        guard let focus = spotlight?.focus, !reduceMotion else { return .fitted }
         let zoom = Self.spotlightZoom
         let center = CGPoint(x: container.width / 2, y: container.height / 2)
         let point = fit.geometry.vertexPosition(focus, board: board)

@@ -35,8 +35,10 @@ struct VictoryCutsceneView: View {
                           onSelectTarget: { _ in }, allowsGameCommands: false, animatesStateChanges: false)
                     .staticWorldOverview()
                     .spotlighting(spotlight)
-                    .saturation(isHumanWin ? 1 : 0.45)
-                    .brightness(isHumanWin ? 0 : -0.08)
+                    // A tint, not `.saturation`: a colour filter re-renders the
+                    // whole board offscreen on every camera step of the tour.
+                    .overlay(Color(red: 0.05, green: 0.07, blue: 0.12)
+                        .opacity(isHumanWin ? 0 : 0.4).allowsHitTesting(false))
                 captionRow
             }
             .padding(.vertical, 24)
@@ -56,7 +58,7 @@ struct VictoryCutsceneView: View {
 
     private func play() async {
         for beat in tally.beats {
-            withAnimation(.spring(response: 0.35, dampingFraction: 0.7)) { show(beat) }
+            withAnimation(.easeInOut(duration: 0.45)) { show(beat) }
             guard await pause(isOnBoard(beat) ? Self.pieceBeat : Self.bonusBeat) else { return }
         }
         withAnimation(.easeInOut(duration: 0.4)) {

@@ -121,6 +121,7 @@ public struct BoardView: View {
             let geometry = camera.applied(to: fit.geometry, containerCenter: center)
             let boardCenter = Self.boardCenter(for: board, geometry: geometry)
             let ownership = Ownership(players: state.players)
+            let lens = spotlightLens(fit: fit, container: viewport)
 
             ZStack {
                 boardCanvas(geometry: geometry, boardCenter: boardCenter)
@@ -233,6 +234,8 @@ public struct BoardView: View {
                 robberDragFeedback
             }
             .frame(width: viewport.width, height: viewport.height)
+            .scaleEffect(lens.zoom)
+            .offset(lens.pan)
             .coordinateSpace(name: BoardDecisionCoordinateSpace.name)
             // THE VIEWPORT. Everything the board draws is cut off at this
             // view's own bounds, and nothing may be drawn outside them.
@@ -317,9 +320,6 @@ public struct BoardView: View {
                 withdrawMist(newlyRevealed: (after ?? []).subtracting(before ?? []))
             }
             .onAppear { beginNavalOpening() }
-            .task(id: spotlight?.focus) {
-                if spotlight != nil { await glideCamera(to: spotlight?.focus, fit: fit, container: viewport) }
-            }
             .task(id: retiringMist) { await animateMistWithdrawal() }
         }
     }
