@@ -162,6 +162,7 @@
 		83C2D6F2A6B7F67093D579CB /* AccessibilityID.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2FA5615D7AB20666AEB04B43 /* AccessibilityID.swift */; };
 		84A0406C03AD9D91A9DC0B32 /* MatchSetupGhostTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = EB35F43AB81A0869D3F28DF0 /* MatchSetupGhostTests.swift */; };
 		85F2ED311872E6FE30EF2372 /* GameViewModelCheckpointTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E1449FD2095D36C126206BA /* GameViewModelCheckpointTests.swift */; };
+		87FCA2E00ACA0E0E6A1D6304 /* GameViewModel+QANavalSeven.swift in Sources */ = {isa = PBXBuildFile; fileRef = DEBF7E817E06B93369D5F30E /* GameViewModel+QANavalSeven.swift */; };
 		88CF824C3335F34CF54E08E2 /* PlayerHUDView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77BA2122016739392CF5DF22 /* PlayerHUDView.swift */; };
 		895E3168C84B21B63AD67E4E /* SettingsChrome.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8BC4427BD3E30FD0F5F9E9CC /* SettingsChrome.swift */; };
 		898285DA1B59EB36B8BFAD0B /* NativeNavigationFlowTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E74CBDDF6D7CE04F3610BC7A /* NativeNavigationFlowTests.swift */; };
@@ -179,6 +180,7 @@
 		917E8B9490D1B99CFFA7AAF6 /* DiscardDraftTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AEA920BF49EA01E0CB03070F /* DiscardDraftTests.swift */; };
 		92132CBB983451AA16576354 /* NativeHarborFlowTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5AD92B20B6980B25841D988D /* NativeHarborFlowTests.swift */; };
 		92A35E7291EA81AF8A6CCB08 /* jake.ghost in Resources */ = {isa = PBXBuildFile; fileRef = 325AC0C64B02A426FFC40EC6 /* jake.ghost */; };
+		930DEFAB54A21800165DC0E2 /* NavalSevenDiscardFlowTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 84CD83F0E3B455C8EE168E54 /* NavalSevenDiscardFlowTests.swift */; };
 		939488D783754D61B58A8D3F /* GameViewModel+QANaval.swift in Sources */ = {isa = PBXBuildFile; fileRef = 90BCD23B0DD382D073F20E18 /* GameViewModel+QANaval.swift */; };
 		964410CEE782E5E7D77FC5DC /* TradeComposerClarityTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 101013D2D4EA6A4A92F20BDB /* TradeComposerClarityTests.swift */; };
 		96E9A0F7E1CC5EDC00265E47 /* ResourceProductionFeedback.swift in Sources */ = {isa = PBXBuildFile; fileRef = DAE86C5408798C13B4847320 /* ResourceProductionFeedback.swift */; };
@@ -444,6 +446,7 @@
 		83696D4DDB3CF619E4125832 /* Civilization+NavalArtwork.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Civilization+NavalArtwork.swift"; sourceTree = "<group>"; };
 		83ABF1BEB91221BFB90E929D /* ArmyHandViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArmyHandViews.swift; sourceTree = "<group>"; };
 		83E92E59192658788217FF19 /* NavalQAFixture.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NavalQAFixture.swift; sourceTree = "<group>"; };
+		84CD83F0E3B455C8EE168E54 /* NavalSevenDiscardFlowTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NavalSevenDiscardFlowTests.swift; sourceTree = "<group>"; };
 		84F795F09EC5364848D39C15 /* BuildClarityFlowTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BuildClarityFlowTests.swift; sourceTree = "<group>"; };
 		859E263A00119BF52F19D867 /* PacingPreferencesTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PacingPreferencesTests.swift; sourceTree = "<group>"; };
 		85B6069622A8A50F3F60184A /* OpponentProfile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OpponentProfile.swift; sourceTree = "<group>"; };
@@ -560,6 +563,7 @@
 		DDEC87B3C860C54365AEE88F /* GameViewModel+QAConquest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "GameViewModel+QAConquest.swift"; sourceTree = "<group>"; };
 		DDF1F85E001A7B74407061E4 /* BuildPopupView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BuildPopupView.swift; sourceTree = "<group>"; };
 		DEB787CD9ABDC20E57B98FC9 /* BoardDecisionCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BoardDecisionCoordinator.swift; sourceTree = "<group>"; };
+		DEBF7E817E06B93369D5F30E /* GameViewModel+QANavalSeven.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "GameViewModel+QANavalSeven.swift"; sourceTree = "<group>"; };
 		DEE2D0E9206ECE031A6A3A29 /* BoardCamera.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BoardCamera.swift; sourceTree = "<group>"; };
 		E03F792FF88D24A73F2BC944 /* NewGameKeyboardInvarianceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewGameKeyboardInvarianceTests.swift; sourceTree = "<group>"; };
 		E0675F5FEBC91C411DE65811 /* RobberConfirmationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RobberConfirmationTests.swift; sourceTree = "<group>"; };
@@ -791,6 +795,7 @@
 				F42228CB12352CF88F39073F /* GameViewModel+QADiscard.swift */,
 				CDE70297843DFDE9C4AC9297 /* GameViewModel+QAFeedback.swift */,
 				90BCD23B0DD382D073F20E18 /* GameViewModel+QANaval.swift */,
+				DEBF7E817E06B93369D5F30E /* GameViewModel+QANavalSeven.swift */,
 				B2DE411A98E45FFEC5D7D955 /* GameViewModel+QAProduction.swift */,
 				7E281605A981DE27D853BE66 /* GameViewModel+QATrade.swift */,
 				F571982A9B4228E722408CE9 /* GameViewModel+QATradeTapSafety.swift */,
@@ -851,6 +856,7 @@
 				2A7F48AEBE8E1C727F18ABF6 /* NavalFlowTests.swift */,
 				6F381C35295A63A19790AD00 /* NavalHarvestArtworkFlowTests.swift */,
 				B514AD07E06E6E1E69DDA4C6 /* NavalReplayRenderingTests.swift */,
+				84CD83F0E3B455C8EE168E54 /* NavalSevenDiscardFlowTests.swift */,
 				34585BFA5B2B557B7C5A7BE8 /* NavalShipArtworkFlowTests.swift */,
 				C4219681121890E8182B71E2 /* NavalTravelFlowTests.swift */,
 				E03F792FF88D24A73F2BC944 /* NewGameKeyboardInvarianceTests.swift */,
@@ -1242,6 +1248,7 @@
 				2B2694527149AFE648143CE0 /* GameViewModel+QADiscard.swift in Sources */,
 				0CD9C62D7B0BE6FCA927C71C /* GameViewModel+QAFeedback.swift in Sources */,
 				939488D783754D61B58A8D3F /* GameViewModel+QANaval.swift in Sources */,
+				87FCA2E00ACA0E0E6A1D6304 /* GameViewModel+QANavalSeven.swift in Sources */,
 				5B9C9BED053A1BD0289B2138 /* GameViewModel+QAProduction.swift in Sources */,
 				F196BA189817672BCD58FBA7 /* GameViewModel+QATrade.swift in Sources */,
 				BF87EB53DC2EBDFBC362B62F /* GameViewModel+QATradeTapSafety.swift in Sources */,
@@ -1447,6 +1454,7 @@
 				E965E66D59360F88DFCDD719 /* NavalFlowTests.swift in Sources */,
 				466C306F9F5693344D696C15 /* NavalHarvestArtworkFlowTests.swift in Sources */,
 				D1326E7EC8DB5718E1352545 /* NavalReplayRenderingTests.swift in Sources */,
+				930DEFAB54A21800165DC0E2 /* NavalSevenDiscardFlowTests.swift in Sources */,
 				F711A204B952FC725B2E35A6 /* NavalShipArtworkFlowTests.swift in Sources */,
 				BCC8F9F88F043A3CD5D9C3F5 /* NavalTravelFlowTests.swift in Sources */,
 				A080B035D28E1023EE94C946 /* NewGameKeyboardInvarianceTests.swift in Sources */,

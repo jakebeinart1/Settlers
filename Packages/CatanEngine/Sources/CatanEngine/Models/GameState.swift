@@ -43,9 +43,12 @@ public struct GameState: Codable, Sendable, Equatable {
     /// Absent from every legacy mode; all naval fields decode with defaults.
     public var naval: NavalState?
 
-    /// The quantities this game is played with. Derived, never stored, so a
-    /// save cannot carry a rule set that disagrees with its own mode.
-    public var rules: Ruleset { Ruleset.forMode(mode) }
+    /// Quantities derive from the mode and saved Naval version. Keeping the
+    /// historical discard threshold makes old seven-roll trajectories replay
+    /// exactly while new matches use the corrected seven-card limit.
+    public var rules: Ruleset {
+        Ruleset.forMode(mode, navalRulesVersion: naval?.rulesVersion ?? Naval.currentRulesVersion)
+    }
 
     /// Seeded generator for every random outcome the rules produce - dice
     /// rolls and robber steals. Stored here rather than passed in so that a

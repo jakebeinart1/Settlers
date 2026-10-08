@@ -11,6 +11,7 @@
 private enum ClassicBaseline {
     static let pieceLimits: [BuildingKind: Int] = [.settlement: 5, .city: 4]
     static let bankPerResource = 19
+    static let discardThreshold = 7
 }
 
 /// How many of each piece a player owns.
@@ -70,6 +71,7 @@ public enum BankAllowance: Sendable, Equatable {
 /// classic-valued default is the supported way to grow this; every other mode
 /// keeps compiling.
 public struct Ruleset: Sendable, Equatable {
+    private static let legacyNavalDiscardThreshold = 10
     public let board: BoardShape
     public let victoryPointTargets: ClosedRange<Int>
     public let defaultVictoryPointTarget: Int
@@ -171,9 +173,12 @@ public struct Ruleset: Sendable, Equatable {
         return nil
     }
 
-    /// The rules for `mode`. Exhaustive on purpose: a new `GameMode` case fails
+    /// The rules for `mode`, retaining the saved Naval version's discard threshold.
+    /// Old trajectories must reproduce their original seven-roll phase; changing
+    /// that phase would make the next recorded robber move illegal on replay.
+    /// Exhaustive on purpose: a new `GameMode` case fails
     /// to compile until it is given values here, which is the point of the tag.
-    public static func forMode(_ mode: GameMode) -> Ruleset {
+    public static func forMode(_ mode: GameMode, navalRulesVersion: Int = Naval.currentRulesVersion) -> Ruleset {
         switch mode {
         case .classic:
             return Ruleset(
@@ -192,7 +197,7 @@ public struct Ruleset: Sendable, Equatable {
                     .knight: 14, .victoryPoint: 5, .roadBuilding: 2,
                     .yearOfPlenty: 2, .monopoly: 2,
                 ],
-                discardThreshold: 7
+                discardThreshold: ClassicBaseline.discardThreshold
             )
         case .naval:
             return Ruleset(
@@ -202,7 +207,8 @@ public struct Ruleset: Sendable, Equatable {
                 victoryPointsPerBuilding: [.settlement: 1, .city: 2], maxRoadsPerPlayer: 20,
                 bank: .explicit(38),
                 devCardDeck: [.knight: 28, .victoryPoint: 10, .roadBuilding: 4, .yearOfPlenty: 4, .monopoly: 4],
-                discardThreshold: 10
+                discardThreshold: navalRulesVersion < Naval.sevenRulesVersion
+                    ? legacyNavalDiscardThreshold : ClassicBaseline.discardThreshold
             )
         case .expanded:
             return Ruleset(

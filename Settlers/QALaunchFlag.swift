@@ -133,6 +133,9 @@ enum QALaunchFlag: String, CaseIterable {
     /// capture, recording and save writes still use the production paths.
     case navalMode = "-qaNavalMode"
     case navalVoyagePosition = "-qaNavalVoyagePosition"
+    /// Conserved eight-resource pre-roll hand plus a Knight and purchased hull;
+    /// native taps must cause and submit the real seven-driven discard.
+    case navalSevenPosition = "-qaNavalSevenPosition"
     /// Real purchases and sea steps prepare a two-hex budget obstruction.
     case navalBlockadePosition = "-qaNavalBlockadePosition"
     /// A real rigged 11 offers capture of the prepared opposing blocker.
