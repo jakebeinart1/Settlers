@@ -108,6 +108,7 @@ extension GameViewModel {
     private func qaAcknowledgeCards() throws {
         if pendingDevCardReveal != nil { try acknowledgeDevCardReveal() }
         if pendingDevCardResolution != nil { try acknowledgeDevCardResolution() }
+        if pendingShipCapture != nil { try acknowledgeShipCapture() }
     }
 
     /// Four opportunities, each at most once: an actual purchase, mature hand,

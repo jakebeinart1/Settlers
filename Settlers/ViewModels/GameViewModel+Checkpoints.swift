@@ -119,6 +119,7 @@ extension GameViewModel {
         self.playerRoster = playerRoster
         pendingDevCardReveal = checkpointDocument?.pendingDevCardReveal
         pendingDevCardResolution = checkpointDocument?.pendingDevCardResolution
+        pendingShipCapture = checkpointDocument?.pendingShipCapture
         seatAtDevice = sortedHumanSeats.first
         CivilizationAssignment.humanSeat = humanPlayer
         CivilizationAssignment.humanNames = playerRoster.humanNames

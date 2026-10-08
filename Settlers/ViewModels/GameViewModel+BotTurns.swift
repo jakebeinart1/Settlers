@@ -51,7 +51,7 @@ extension GameViewModel {
             // already exists: answering the offer goes through `apply`, which
             // ends in `Task { await runBotTurnIfNeeded() }`.
             if pendingTradeConfirmation != nil || openIncomingOffer != nil || pendingDevCardReveal != nil
-                || pendingDevCardResolution != nil { return }
+                || pendingDevCardResolution != nil || pendingShipCapture != nil { return }
 
             // Same `return`-don't-park reasoning as the offer check above:
             // parking here would hold `isProcessingBotTurns` for as long as
@@ -90,7 +90,7 @@ extension GameViewModel {
     private var canAdvanceBots: Bool {
         guard savedGameAvailability.canResume, appIsActive, !persistenceBlocked,
               !isBlockingSurfaceOpen, pendingTradeConfirmation == nil, openIncomingOffer == nil,
-              pendingDevCardReveal == nil, pendingDevCardResolution == nil,
+              pendingDevCardReveal == nil, pendingDevCardResolution == nil, pendingShipCapture == nil,
               !hasMandatoryHumanNavalDecision else { return false }
         if case .failed = botTurnProgress { return false }
         return true

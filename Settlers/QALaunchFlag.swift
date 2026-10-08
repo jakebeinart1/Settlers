@@ -148,6 +148,11 @@ enum QALaunchFlag: String, CaseIterable {
     case navalStackedShipsPosition = "-qaNavalStackedShipsPosition"
     case navalMixedShipsPosition = "-qaNavalMixedShipsPosition"
     case navalCapturePosition = "-qaNavalCapturePosition"
+    /// Opts an ordinary Naval match into the disabled-by-default capture rule.
+    case navalShipStealing = "-qaNavalShipStealing"
+    /// A real bot roll of 11 can steal the prepared human-owned hull. No
+    /// ownership transfer or receipt is seeded; the ordinary bot commits it.
+    case navalShipLossPosition = "-qaNavalShipLossPosition"
     case navalResourcePosition = "-qaNavalResourcePosition"
     case navalCityResourcePosition = "-qaNavalCityResourcePosition"
     /// Real setup claims a home harbor; supplemental trade cards come from

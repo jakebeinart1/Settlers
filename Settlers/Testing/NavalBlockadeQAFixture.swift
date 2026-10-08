@@ -18,6 +18,7 @@ enum NavalBlockadeQAFixture {
         } else {
             try blockPassage(in: &state)
             if position == .capture {
+                state.naval?.options.shipStealingEnabled = true
                 state.phase = .rollDice(playerIndex: actor.index)
                 state.rng = NavalQAFixture.rollSource(total: 11)
                 try RulesEngine.apply(.rollDice, by: actor, to: &state)

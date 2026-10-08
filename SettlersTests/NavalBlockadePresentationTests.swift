@@ -95,6 +95,7 @@ struct NavalBlockadePresentationTests {
         #expect(captured.owner == actor && captured.stepsRemaining == Naval.movementPerTurn)
         #expect(captured.coordinate == before.naval?.ships.first { $0.id == 1 }?.coordinate)
         #expect(resumed.state.players == before.players && resumed.state.naval?.hullsBuilt == before.naval?.hullsBuilt)
+        #expect(resumed.pendingShipCapture != nil && resumed.dismissShipCapture())
         #expect(resumed.selectBoardTarget(.ship(0)))
         let destination = NavalBlockadeQAFixture.destination(in: before)
         #expect(resumed.boardDecisionPresentation?.blockadedTiles.isEmpty == true)

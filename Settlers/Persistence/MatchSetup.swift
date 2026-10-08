@@ -111,7 +111,7 @@ public struct MatchSetup: Codable, Equatable, Sendable {
         expertRevision = try container.decodeIfPresent(ExpertRevision.self, forKey: .expertRevision) ?? .legacy
         // Absent in every setup written before Conquest. Those were standard games.
         variant = try container.decodeIfPresent(GameVariant.self, forKey: .variant) ?? .standard
-        navalOptions = try container.decodeIfPresent(NavalOptions.self, forKey: .navalOptions) ?? NavalOptions()
+        navalOptions = try container.decodeIfPresent(NavalOptions.self, forKey: .navalOptions) ?? .legacyDefaults
     }
 
     // MARK: - Validity
@@ -405,6 +405,7 @@ public struct MatchSetup: Codable, Equatable, Sendable {
         // may carry the active revision; release it only on this value copy
         // so changing mode/difficulty cannot disable Start before selection.
         setup.expertRevision = .legacy
+        setup.navalOptions.normalizeForNewGame()
         if !GameMode.newGameChoices.contains(setup.mode) { setup.mode = .classic }
         setup.normalizeNewGameOptions()
         return setup

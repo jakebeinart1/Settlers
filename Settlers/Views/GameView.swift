@@ -224,6 +224,12 @@ public struct GameView: View {
                 ) {
                     _ = viewModel.dismissDevCardResolution()
                 }
+            } else if interactionPriority.winner == .privateReceipt,
+                      let receipt = viewModel.pendingShipCapture, receipt.reader == human {
+                NavalShipCaptureOverlay(receipt: receipt, state: state,
+                                        playerIdentity: viewModel.playerIdentity) {
+                    _ = viewModel.dismissShipCapture()
+                }
             } else if !isDiscardPresented, !isNavalResourceChoice,
                       viewModel.boardDecisionPresentation == nil,
                       showDevCardHand {
@@ -1033,6 +1039,7 @@ private extension GameView {
         let hasPrivateReceipt = showDevCardHand
             || viewModel.pendingDevCardReveal?.owner == human
             || viewModel.pendingDevCardResolution?.owner == human
+            || viewModel.pendingShipCapture?.reader == human
         return GameInteractionPriority.resolve(GameInteractionPriorityInput(
             hasRecoveryFailure: viewModel.persistenceErrorMessage != nil,
             hasMandatoryDiscard: isDiscardPresented || isNavalResourceChoice,

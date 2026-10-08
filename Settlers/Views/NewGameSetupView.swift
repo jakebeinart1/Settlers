@@ -638,7 +638,7 @@ struct NewGameSetupView: View {
                     + "all production, plus one. Available on Classic and Vast."),
                 .init("Naval", "Buy independent ships for 2 wood, 1 sheep and 2 iron. Explore islands, "
                     + "clear mist within two hexes and establish colonies. Discoveries stay visible "
-                    + "for everyone. An 11 lets you capture a rival ship. First to 14 points wins.")
+                    + "for everyone. Optional ship stealing is off by default; enable it in Advanced Settings. First to 14 points wins.")
             ]
         ) {
             PaintedChoiceRow(
@@ -660,7 +660,7 @@ struct NewGameSetupView: View {
             help: .board,
             explanations: setup.mode == .naval
                 ? [.init("Advanced Settings", "Choose the island layout, whether ships uncover mist, "
-                    + "and whether islands can produce a resource you choose. These choices are fixed when the match starts.")]
+                    + "whether islands can produce a resource you choose, and ship stealing. These choices are fixed when the match starts.")]
                 : MatchSettingHelpEntry.board(naval: false)
         ) {
             if setup.mode == .naval {
@@ -692,7 +692,7 @@ struct NewGameSetupView: View {
             help: .difficulty,
             explanations: [
                 .init("Classic", setup.mode == .naval
-                    ? "Steady opponents that buy ships, explore, build colonies and capture vessels."
+                    ? "Steady opponents that buy ships, explore and build colonies, following your selected ship rules."
                     : "The original opponents, following steady building and trading priorities."),
                 .init("Expert", setup.mode == .naval
                     ? "Opponents that compare expeditions, production, settlement opportunities and rivals."

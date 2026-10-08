@@ -48,6 +48,7 @@ struct ContentView: View {
             if case .gameOver = viewModel.state.phase, hasStartedThisSession,
                viewModel.pendingDevCardReveal == nil,
                viewModel.pendingDevCardResolution == nil,
+               viewModel.pendingShipCapture == nil,
                viewModel.savedGameAvailability.recoveryMessage == nil {
                 EndGameView(state: viewModel.state, humanSeats: viewModel.humanSeats,
                             playerIdentity: viewModel.playerIdentity,
