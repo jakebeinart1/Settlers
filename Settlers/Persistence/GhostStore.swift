@@ -40,13 +40,20 @@ public struct GhostStore: Sendable {
             if let ghost = latest(of: id) { byID[id] = ghost }
         }
         let moved = aliases()
-        return byID.values.filter { moved[$0.id] == nil }.sorted { ($0.name, $0.id) < ($1.name, $1.id) }
+        return byID.values.filter { moved[$0.id] == nil && !$0.isRemoved }.sorted { ($0.name, $0.id) < ($1.name, $1.id) }
     }
 
-    /// The ghost behind `id`, following a rename (`alias`).
+    /// The ghost behind `id`, following a rename (`alias`). A removed ghost
+    /// (a tombstone) answers `nil`, so a save seating it refuses to resume
+    /// through `missingGhostProblem` rather than seating a ghost that is gone.
     func ghost(id: String) -> GhostProfile? {
+        ghost(id: id, includingRemoved: false)
+    }
+
+    func ghost(id: String, includingRemoved: Bool) -> GhostProfile? {
         let id = resolve(id)
-        return latest(of: id) ?? bundledGhosts.compactMap(Self.read).first { $0.id == id }
+        let found = latest(of: id) ?? bundledGhosts.compactMap(Self.read).first { $0.id == id }
+        return includingRemoved || found?.isRemoved != true ? found : nil
     }
 
     // MARK: - Renames
@@ -84,7 +91,8 @@ public struct GhostStore: Sendable {
         let from = decisionsDirectory(for: old)
         try save(GhostProfile(id: new, name: ghost.name, person: ghost.person, lambda: ghost.lambda,
                               gamesLearned: ghost.gamesLearned, decisionsLearned: ghost.decisionsLearned,
-                              civilization: ghost.civilization))
+                              civilization: ghost.civilization, revision: ghost.revision,
+                              isNameCustom: ghost.isNameCustom, isTrainingPaused: ghost.isTrainingPaused))
         if FileManager.default.fileExists(atPath: from.path) {
             let to = localDirectory.appendingPathComponent(new).appendingPathComponent("decisions")
             try? FileManager.default.removeItem(at: to)
@@ -105,7 +113,8 @@ public struct GhostStore: Sendable {
     }
 
     func pickable() -> [GhostProfile] {
-        all().filter { $0.gamesLearned >= Self.minimumGamesToPlay }
+        let hidden = hiddenIDs()
+        return all().filter { $0.gamesLearned >= Self.minimumGamesToPlay && !hidden.contains($0.id) }
     }
 
     /// Writes the next version; earlier versions stay.
@@ -128,6 +137,111 @@ public struct GhostStore: Sendable {
 
     func decisionsDirectory(for id: String) -> URL {
         localDirectory.appendingPathComponent(resolve(id)).appendingPathComponent("decisions")
+    }
+
+    // MARK: - Management (Jake, 2026-10-08)
+    //
+    // Every owner edit is a new version with `revision + 1`, which is what
+    // carries it to other phones (`LiveSync.accepts`). Nothing is deleted:
+    // replaced versions move to `archiveDirectory`.
+
+    enum ManagementError: Error, Equatable { case emptyName, noSuchGhost }
+
+    var archiveDirectory: URL {
+        localDirectory.deletingLastPathComponent().appendingPathComponent("GhostArchive")
+    }
+
+    func rename(_ id: String, to name: String) throws {
+        let trimmed = name.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { throw ManagementError.emptyName }
+        try update(id) {
+            $0.name = trimmed
+            $0.isNameCustom = true
+        }
+    }
+
+    /// Resuming training also brings a removed ghost back, as a fresh one.
+    func setTrainingPaused(_ id: String, _ paused: Bool) throws {
+        try update(id) {
+            $0.isTrainingPaused = paused
+            if !paused { $0.isRemoved = false }
+        }
+    }
+
+    func setRemoved(_ id: String) throws {
+        try update(id) {
+            $0.isRemoved = true
+            $0.isTrainingPaused = true
+        }
+    }
+
+    /// Fresh start. The decision records stay under `id`: they are the
+    /// "already taught" markers, so launch catch-up never re-teaches a game
+    /// from before the reset.
+    @discardableResult
+    func reset(_ id: String, keepingOld: Bool) throws -> GhostProfile {
+        let id = resolve(id)
+        guard let current = ghost(id: id, includingRemoved: true) else { throw ManagementError.noSuchGhost }
+        if keepingOld {
+            let number = (localIDs().filter { $0.hasPrefix("\(id)~") }.compactMap { Int($0.split(separator: "~").last ?? "") }.max() ?? 0) + 1
+            try save(GhostProfile(id: "\(id)~\(number)", name: "\(current.name) (old \(number))", person: current.person,
+                                  lambda: current.lambda, gamesLearned: current.gamesLearned,
+                                  decisionsLearned: current.decisionsLearned, civilization: current.civilization,
+                                  isNameCustom: true, isTrainingPaused: true))
+        }
+        try archiveVersions(of: id)
+        let fresh = GhostProfile(id: id, name: current.name, person: .anchored(at: .forMode(.classic)),
+                                 lambda: current.lambda, gamesLearned: 0, civilization: current.civilization,
+                                 revision: current.revision + 1, isNameCustom: current.isNameCustom,
+                                 isTrainingPaused: current.isTrainingPaused)
+        try save(fresh)
+        return fresh
+    }
+
+    /// Earlier generations of `id`, kept by `reset`. They never sync.
+    func oldGhosts(of id: String) -> [GhostProfile] {
+        let id = resolve(id)
+        return localIDs().filter { $0.hasPrefix("\(id)~") }.compactMap { ghost(id: $0) }
+    }
+
+    func removeOld(_ oldID: String) throws {
+        guard oldID.contains("~"), latest(of: oldID) != nil else { throw ManagementError.noSuchGhost }
+        try archiveVersions(of: oldID)
+        try FileManager.default.removeItem(at: localDirectory.appendingPathComponent(oldID))
+    }
+
+    private var hiddenFile: URL { localDirectory.appendingPathComponent("hidden.json") }
+
+    /// Other players' ghosts this phone keeps out of the picker.
+    func hiddenIDs() -> Set<String> {
+        Set((try? JSONDecoder().decode([String].self, from: Data(contentsOf: hiddenFile))) ?? [])
+    }
+
+    func setHidden(_ id: String, _ hidden: Bool) throws {
+        var ids = hiddenIDs()
+        if hidden { ids.insert(id) } else { ids.remove(id) }
+        try FileManager.default.createDirectory(at: localDirectory, withIntermediateDirectories: true)
+        try JSONEncoder().encode(ids.sorted()).write(to: hiddenFile, options: .atomic)
+    }
+
+    private func update(_ id: String, _ change: (inout GhostProfile) -> Void) throws {
+        guard var ghost = ghost(id: id, includingRemoved: true) else { throw ManagementError.noSuchGhost }
+        change(&ghost)
+        ghost.revision += 1
+        try save(ghost)
+    }
+
+    /// Moves `v*.json` to `archiveDirectory/<id>-<timestamp>/`. Decision
+    /// records stay where they are.
+    private func archiveVersions(of id: String) throws {
+        let versions = versions(of: id)
+        guard !versions.isEmpty else { return }
+        let stamp = Int(Date().timeIntervalSince1970 * 1000)
+        let target = archiveDirectory.appendingPathComponent("\(id)-\(stamp)")
+        try FileManager.default.createDirectory(at: target, withIntermediateDirectories: true)
+        for version in versions {
+            try FileManager.default.moveItem(at: version.url, to: target.appendingPathComponent(version.url.lastPathComponent))
+        }
     }
 
     private func latest(of id: String) -> GhostProfile? {
