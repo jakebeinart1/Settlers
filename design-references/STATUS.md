@@ -6,6 +6,10 @@
 
 # Empires visual redesign — status
 
+## October7 — Original victory emblem: native review verified
+
+`victory-emblem.imageset` replaces the human-win party-popper with a gold territory hex, rising sun and ivory banner, generated with the built-in image tool. Selected source PNG is unchanged; first finial-heavy candidate was refined. The existing76-point slot, original palette and decorative accessibility treatment preserve result controls and winner text. [Prompts, original captures and review](../docs/AI_summaries/2026-10-07-victory-emblem.md) pass the three affected native flows. Full gate and Internal build28 delivery are pending; prior art history below is retained.
+
 ## October 7 — Ship-defense presentation: delivered
 
 Ship defense is live in Internal TestFlight. Owner tint, an ivory shield and

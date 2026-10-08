@@ -608,6 +608,8 @@ final class NavalFlowTests: XCTestCase {
         ], waitsForBoard: false)
         let menu = app.buttons["game-over.main-menu"]
         XCTAssertTrue(menu.waitForExistence(timeout: 10))
+        XCTAssertTrue(app.staticTexts["YOU WIN!"].exists)
+        retainScreenshot("Victory — painted emblem before scrolling at maximum text", app: app)
         reveal(menu, in: app)
         XCTAssertGreaterThanOrEqual(menu.frame.height, 44)
         retainScreenshot("Voyages — accessible results", app: app)
