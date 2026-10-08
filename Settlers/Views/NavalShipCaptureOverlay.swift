@@ -7,7 +7,9 @@ struct NavalShipCaptureOverlay: View {
     let receipt: NavalShipCaptureReceipt
     let state: GameState
     let playerIdentity: (PlayerID) -> PlayerIdentity
+    let recoveryMessage: String?
     let onContinue: () -> Void
+    let onReloadSavedGame: () -> Void
     @AccessibilityFocusState private var isTitleFocused: Bool
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
@@ -67,6 +69,25 @@ struct NavalShipCaptureOverlay: View {
                 .font(.subheadline)
                 .multilineTextAlignment(.center)
                 .fixedSize(horizontal: false, vertical: true)
+            if let recoveryMessage {
+                recovery(recoveryMessage)
+            }
+        }
+    }
+
+    /// The native cover also covers ContentView's recovery controls. Keep the
+    /// uncertain acknowledgement recoverable without bypassing its durable write.
+    private func recovery(_ message: String) -> some View {
+        VStack(spacing: 10) {
+            Text(message)
+                .font(.caption)
+                .foregroundStyle(Color(red: 1, green: 0.8, blue: 0.72))
+                .fixedSize(horizontal: false, vertical: true)
+                .accessibilityIdentifier("naval.capture.save-error")
+            GoldRowButton(title: "Reload saved game", systemImage: "arrow.clockwise",
+                          action: onReloadSavedGame)
+                .accessibilityIdentifier("naval.capture.reload")
+                .dynamicTypeSize(...DynamicTypeSize.accessibility1)
         }
     }
 

@@ -224,12 +224,6 @@ public struct GameView: View {
                 ) {
                     _ = viewModel.dismissDevCardResolution()
                 }
-            } else if interactionPriority.winner == .privateReceipt,
-                      let receipt = viewModel.pendingShipCapture, receipt.reader == human {
-                NavalShipCaptureOverlay(receipt: receipt, state: state,
-                                        playerIdentity: viewModel.playerIdentity) {
-                    _ = viewModel.dismissShipCapture()
-                }
             } else if !isDiscardPresented, !isNavalResourceChoice,
                       viewModel.boardDecisionPresentation == nil,
                       showDevCardHand {
@@ -299,15 +293,27 @@ public struct GameView: View {
         .accessibilityIdentifier(AccessibilityID.Screen.game)
         // The native presentation boundary excludes the covered game from
         // accessibility navigation. A dimmed in-stack popup retained HUD
-        // labels despite hiding the gameplay subtree. Only the durable
-        // production phase can close this mandatory resource choice.
+        // labels and hittable ships despite hiding the gameplay subtree.
+        // Resource choices and capture receipts share one presenter so a
+        // transition between them cannot race two native covers. A capture
+        // stays presented across Settings and closes only after durable Continue.
         .fullScreenCover(isPresented: Binding(
-            get: { isNavalResourceChoice && !interactionPriority.isSettingsCoverPresented },
+            get: { isNavalMandatoryPresentation },
             set: { _ in }
         )) {
-            NavalResourceChoiceView(viewModel: viewModel)
-                .presentationBackground(.clear)
-                .interactiveDismissDisabled()
+            Group {
+                if let receipt = viewModel.pendingShipCapture, receipt.reader == human {
+                    NavalShipCaptureOverlay(receipt: receipt, state: state,
+                                            playerIdentity: viewModel.playerIdentity,
+                                            recoveryMessage: viewModel.persistenceErrorMessage,
+                                            onContinue: { _ = viewModel.dismissShipCapture() },
+                                            onReloadSavedGame: { _ = viewModel.retryPersistence() })
+                } else if isNavalResourceChoice {
+                    NavalResourceChoiceView(viewModel: viewModel)
+                }
+            }
+            .presentationBackground(.clear)
+            .interactiveDismissDisabled()
         }
         // Measured from a reader that still SITS in the safe area, because
         // that is the only kind that reports one: a reader inside the
@@ -1032,6 +1038,11 @@ private extension GameView {
     private var isNavalResourceChoice: Bool {
         if case .choosingResource(let index) = state.phase { return index == human.index }
         return false
+    }
+
+    private var isNavalMandatoryPresentation: Bool {
+        viewModel.pendingShipCapture?.reader == human
+            || (isNavalResourceChoice && !interactionPriority.isSettingsCoverPresented)
     }
 
     private var interactionPriority: GameInteractionPriorityResolution {

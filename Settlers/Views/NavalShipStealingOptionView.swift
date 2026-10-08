@@ -5,7 +5,7 @@ import CatanEngine
 /// harvest choices. Its consequence stays visible beside its On/Off value.
 struct NavalShipStealingOptionView: View {
     @Binding var options: NavalOptions
-    private let explanation = "On an 11, after collecting resources, take control of one rival ship anywhere or skip. "
+    private let explanation = "When enabled, on an 11, after collecting resources, take control of one rival ship anywhere or skip. "
         + "It keeps its location and stays with its new owner until stolen again."
 
     var body: some View {
