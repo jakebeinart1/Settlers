@@ -26,6 +26,11 @@ _Avoid_: Shipping-route segment, sea road.
 Naval v3 and later. One voyage selects a reachable destination; v1/v2 recordings
 retain their original three adjacent steps.
 
+**Public voyage history**: In v5, the previous sailing origin survives same-turn
+spending and cold resume. V2 uses it to avoid undiscovering immediate returns;
+human returns remain legal. Discovery, a new settlement, capture and the next
+owner turn release obsolete history; upgrading a city does not.
+
 **Ship stealing / capture**: An optional transfer of a selected opposing ship's
 control after an 11's production. Fresh games default Off; Naval Advanced
 Settings explains and enables it. When enabled, control persists until a
@@ -72,6 +77,10 @@ _Avoid_: A sixth resource, five simultaneous resource yields.
 
 **Traditional bot**: Alex's term for the existing Classic difficulty. This is a
 difficulty, distinct from the Classic game mode.
+
+**Naval brain revision**: Both Traditional and Expert remember their Naval
+strategy in the match. New matches select scoutingV2; missing old fields mean
+legacyV1. Resume and Restart keep the saved choice.
 
 **Expert bot**: The existing Expert difficulty, with its strategy version
 remembered by saved games.

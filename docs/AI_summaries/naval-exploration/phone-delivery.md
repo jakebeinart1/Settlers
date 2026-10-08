@@ -1,5 +1,24 @@
 # Naval phone delivery
 
+## Build 29 delivery status: pending verification, October 8
+
+Version 1.0/build 29 is the current candidate. [E35](acceptance.md#build-29-follow-up-e35)
+records implemented v5 discarding, stealing Off by default, durable capture
+receipts and saved V2 scouting, with the final focused native retry and eight original reviews passed.
+The corrected matrix, separate-process repeats and transition checks also pass.
+Complete-match, full gate and ordinary Release acceptance remain pending. No build 29 archive/upload/Apple tester-access or physical-phone
+installation is claimed yet. Earlier delivery sections are dated history. The [build 28 Apple/access receipt](/Users/alex/.codex/artifacts/naval-exploration/build28-victory-emblem/testflight.json)
+confirms 1.0/28 VALID/unexpired, internally IN_BETA_TESTING and Alex's access at
+02:15:07 UTC October 8 (10:15:07 p.m. EDT October 7). Physical install/play
+was not observed.
+
+New matches receive the corrections. Resume and Restart preserve old v1–v4
+rules and V1 brain identity, including their ten-card discard limit and enabled
+capture choice; updating the app does not silently rewrite a recorded match.
+Fresh New Game normalizes an old implicit capture preference to Off, while an
+explicit On preference stays remembered. The final delivery record must identify
+the exact accepted build and Alex's access separately from any observed install.
+
 ## Build 27 delivery: verified Internal TestFlight access
 
 Ship defense is available to Alex in Internal TestFlight. [Apple](evidence/build27-blockades/receipts/testflight.json)

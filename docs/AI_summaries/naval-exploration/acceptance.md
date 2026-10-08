@@ -1,5 +1,49 @@
 # Voyages requirements and acceptance
 
+<a id="build-29-follow-up-e35"></a>
+## Build 29 follow-up (E35): final verification pending, October 8
+
+Candidate `5851930`, version 1.0/build 29, addresses the real seven/8-card bypass,
+default ship-stealing behavior, unread ownership transfers and idle AI vessels.
+[Diagnosis](evidence/build29-discard-capture-scouting/diagnosis.md) binds the
+reported states, retained failures and selected fixes. [Verification status](evidence/build29-discard-capture-scouting/verification.md)
+links actual exit receipts and distinguishes helper checks from final acceptance.
+Earlier E32 and other release entries remain historical.
+
+| Requirement / boundary | Selected behavior | Acceptance status |
+|---|---|---|
+| Rolled seven, finite hands and robber order | New v5: above seven resource cards, discard half rounded down first; no development-card count or Knight discard. Old v1–v4 remains ten. | Natural-roll red→green engine proof retained. Final native eight→four discard/cold-resume and maximum-text actions pass; full gate pending. |
+| Stealing configuration and durable ownership | Advanced switch defaults Off for fresh/implicit-prefill games; old active matches and explicit On retain their choice. Human gain/loss requires durable acknowledgement; covered game controls stay inaccessible. | Actual disabled-11 red→green engine proof retained. Hosted save/failure tests and native refinements retain their source attribution; final native cover isolation/cold-resume and maximum-text review pass after the retained failures. |
+| Both tiers and saved identity | Fresh Traditional/Expert use saved scoutingV2; missing old fields remain V1 through cold restore, Restart and export. Unknown/contradictory identities are blocked. | Actual hosted tests pass in the final integrated focused command; full gate pending. |
+| Exploration without waste or hidden knowledge | Public routes/fog/frontiers and fundable colony access; public same-turn history rejects idle returns after spending, while useful funded/winning returns and all human legal routes remain. | Initial 96-case run exposed cases 47/77; exact committed regressions fail before fix and pass afterward. Corrected-source 96 winners/six byte-exact repeats/ten complete transition inspections pass, including both failed cells; legacy V4 traces remain exact. |
+| Complete presentation and delivery | Actual captures, continued voyages, harvests, natural seven, cold resume, maximum text, complete match to a winner, original screenshot review and ordinary Release survival. | Final focused native passes 61 functions/101 runs, zero failures/skips; eight originals root-approved. Complete-match, full gate, ordinary Release and signed Apple/access verification pending. No physical-phone play or new strength claim. |
+
+[final focused native command](/Users/alex/.codex/artifacts/naval-exploration/build29-diagnostics/final-naval-acceptance-command.json) exits 0 at unchanged `5851930`; [native summary](/Users/alex/.codex/artifacts/naval-exploration/build29-diagnostics/final-naval-summary.json)
+reports 61 functions/101 runs with no failures/skips. Actual nonzero-seat seven
+discards, capture loss/gain, acknowledgement→two-hex travel and cold resume pass.
+Reachable settlement/city harvests pass through the shared presenter. Root
+approves eight unchanged originals from the [original attachment manifest](/Users/alex/.codex/artifacts/naval-exploration/build29-diagnostics/final-naval-attachments/manifest.json), including
+maximum-text ownership/Continue and discard controls. This focused evidence
+does not substitute for the complete gate or complete-match acceptance.
+
+[corrected functional summary](/Users/alex/.codex/artifacts/naval-exploration/build29-diagnostics/ai-final/corrected/summary.json) and [independent readback](/Users/alex/.codex/artifacts/naval-exploration/build29-diagnostics/ai-final/corrected/independent-matrix-readback.json)
+verify all 96 option cells at unchanged `5851930`: every winner reaches at least
+14 points, with no forced ends, idle sailing/trade cycles, duplicate proposals
+or captures with stealing Off. Six new processes match complete result/trace/
+audit bytes. Ten full transition inspections check 6,126 actions, 14,280 legal
+sea routes, 4,877 blockade cases, 172 cold reloads and 118 sevens/63 discard
+obligations. Both originally idle V1 seed traces replay byte-exact under V4/V1;
+the corrected 47/77 V5 cells have no idle or raw sailing cycles. All 1,302
+package inputs/113 production inputs remain matched. This is functional proof,
+not comparative strength or complete native-match acceptance.
+
+The final receipt must bind the corrected production inputs to the full matrix,
+separate-process repeats, every mandatory gate, actual native transitions and
+reviewed unchanged originals. A completed game count cannot waive idle voyages,
+covered-board input or unread receipt defects. Preserve every earlier failing
+command and image. No build 29 upload, TestFlight availability, simulator cleanup
+or complete-match acceptance is asserted by these interim diagnostics.
+
 <a id="build-27-follow-up-e32"></a>
 ## Build 27 follow-up (E32): delivered
 

@@ -1,0 +1,75 @@
+# Build 29 diagnosis and correction boundaries
+
+October 8, 2026. These are retained diagnostics, not final release acceptance.
+[E35](../../acceptance.md#build-29-follow-up-e35) owns the pending closure.
+
+## Seven with eight resources
+
+`IMG_1770.PNG` showed a natural seven at robber placement with eight resources
+and one Knight. The engine used Naval's ten-card limit; the discard editor was
+never owed. [Natural-roll proof](/Users/alex/.codex/artifacts/naval-exploration/build29-diagnostics/seven/proof.json)
+records actual red exit 1 before the fix, scoped green exit 0 (44 functions),
+and the helper's complete Engine suite exit 0 (413 functions). These numbers
+belong to that helper source, not the final integrated gate.
+
+[Effective rules](../../../../../Packages/CatanEngine/Sources/CatanEngine/Models/GameState.swift)
+now resolve the saved Naval version. New v5 uses seven; shipped v1–v4 keeps ten.
+[NavalSevenTests](../../../../../Packages/CatanEngine/Tests/CatanEngineTests/NavalSevenTests.swift)
+cover actual rolls, development-card exclusion, Knight, odd totals, other
+rollers, simultaneous obligations, atomic rejection, replay and cold checkpoints.
+No automatic ongoing-match rule upgrade is implemented.
+
+## Optional capture and an unread transfer
+
+[Capture proof](/Users/alex/.codex/artifacts/naval-exploration/build29-diagnostics/capture/proof.md)
+retains disabled-11 red behavior (capture still opened) and 41-function scoped
+engine green. Old absent option data means historical On in an active match;
+fresh New Game normalizes that implicit choice Off. Explicit On remains On.
+[Receipt transactions](../../../../../Settlers/ViewModels/GameViewModel+ShipCapture.swift)
+publish only committed transfers and require a saved acknowledgement. Cold
+resume and failed writes cannot quietly consume the owed receipt.
+
+The initial native run's four receipt queries used the wrong accessibility
+element type. Extracted actual images then exposed fragmented maximum-text
+owner labels; full-width labels replaced them. The following real native loss
+flow still found the covered ship hittable. Root `3a9abe2` moved the painted
+receipt into the shared mandatory native cover, preserving the original failing
+assertion and adding Settings, swipe-dismiss and cold-resume isolation checks.
+The [final focused native command](/Users/alex/.codex/artifacts/naval-exploration/build29-diagnostics/final-naval-acceptance-command.json) now exits 0 at unchanged `5851930`,
+including that preserved covered-ship assertion. Root approved the final loss/
+gain and maximum-text originals. Earlier failing commands remain retained; the
+full gate remains pending. The final corrected-source matrix and transition
+checks subsequently pass under the separate receipts linked in verification.md.
+
+A wildcard harvest followed by capture on the same 11 is unreachable in valid
+supported maps: wildcard tokens are 4/10 and checkpoint validation enforces it.
+No invalid 11-wildcard fixture was created. Actual 4/10 settlement/city harvests
+and 11 loss/gain flows instead verify the shared native presenter.
+
+## Frozen scouting failures and own-spending returns
+
+Frozen masked V1 decisions chose End turn despite voyages exposing three or
+nine new hexes. Scouting V2 reserves realistically near-funded landings, prices
+public frontiers and avoids redundant hull reservations. It uses a separately
+saved brain identity so shipped V1 decisions are preserved.
+
+The first 96-case functional matrix reached every winner with no forced ends,
+but cases 47/77 had an idle same-turn return. Case 47 sailed away, made a rejected
+trade proposal and bought a development card, then sailed back without new
+terrain. Case 77 built a road between departure and return. Spending flipped
+the chosen travel objective; those voyages are defects, not successful play.
+[Exact red](/Users/alex/.codex/artifacts/naval-exploration/build29-diagnostics/ai-final/return-red2-receipt.json)
+exits 1 with both actual bad choices reproduced, including checkpoint reload.
+
+[Return policy](../../../../../Packages/CatanAI/Sources/CatanAI/Naval/NavalScouting.swift)
+now uses optional public v5 sailing origin history, retained through spending.
+It rejects a zero-discovery immediate return unless an actually funded landing
+strictly improves or a colony proves a win. [Exact stored sequences](../../../../../Packages/CatanAI/Tests/CatanAITests/NavalReturnPolicyTests.swift)
+pass after the fix; [engine history cases](../../../../../Packages/CatanEngine/Tests/CatanEngineTests/NavalSailingHistoryTests.swift)
+preserve human returns, old absent fields, v1–v4 replay, capture/turn resets,
+discovery, settlement beyond the bonus cap and city history. Rival hands,
+concealed geography, decks and engine RNG remain masked. The corrected full
+matrix now passes 96 winners and six byte-exact repeats. Ten full transition
+inspections pass, including 47/77; the shipped V4/V1 baseline traces remain
+byte-exact. See [verification](verification.md) for bound source and limits.
+No strength or physical-phone claim follows.

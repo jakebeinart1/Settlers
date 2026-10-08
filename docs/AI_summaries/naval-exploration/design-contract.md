@@ -1,5 +1,35 @@
 # Voyages design and implementation contract
 
+## Build 29 contract: v5 rules and saved scouting revision
+
+New Naval games use v5 and discard half a resource hand above seven cards,
+rounded down, after a rolled seven and before moving the robber. Development
+cards are excluded; Knight play does not discard. Saved v1–v4 games retain their
+ten-card limit, movement, capture choice and historical policy identity.
+
+Ship stealing is an explained Advanced Settings switch, Off for new games.
+Missing old option data means the historical enabled rule in an active match;
+only a fresh New Game normalizes that implicit choice to Off. Explicit On
+preferences stay remembered. Enabled capture follows ordinary 11 production,
+selects any opposing hull globally and transfers lasting control. Human loss or
+gain has a saved receipt from the committed public event. The painted native
+cover blocks the board and Settings, rejects dismissal, and stays owed across
+cold resume or failed acknowledgement writes. Save recovery stays reachable.
+
+Fresh Naval Traditional and Expert save `scoutingV2` and their matching v2
+policy IDs. Expert also saves `navalV2`. Missing saved brain fields mean V1;
+resume/Restart never silently upgrade them. Both tiers scout only public sea and
+fog boundaries, reserve realistically fundable landings and avoid redundant
+fleet coverage. Public v5 `previousSailingOrigin` persists through purchases and
+cold resume; V2 rejects an immediate return with no discovery unless it improves
+an actually funded landing or proves a winning colony. Discovery, a settlement,
+capture and the owner's next turn release obsolete history. City upgrades retain
+it. Human return routes stay legal. The new metadata defaults nil on old ships.
+
+[E35](acceptance.md#build-29-follow-up-e35) retains the two initial matrix failures,
+actual regressions and verification limits. Final acceptance and delivery are
+pending. Earlier build sections retain their version-specific history.
+
 ## Build 27 contract: occupied-water defense delivered
 
 New v4 games block opponents entering, traversing and launching into an occupied
@@ -126,8 +156,9 @@ point. This rewards completed expansion rather than discovering empty sea or
 holding a large fleet. Public point totals expose earned bonuses; hidden component
 metadata must not enter policy observations or descriptions.
 
-An 11 produces ordinary resources, resolves resource-choice production, then lets
-the roller capture one opposing ship or skip, then enters the main turn. Every
+When ship stealing is enabled, an 11 produces ordinary resources, then lets
+the roller capture one opposing ship or skip before the main turn. Disabled
+stealing produces normally without a capture obligation. Every
 opposing ship qualifies globally. Capture keeps its location and ID, changes its
 controller and gives the match's versioned sailing allowance; buildings, the victim's hand and hull builder
 remain unchanged. Control never expires automatically. No-target rolls enter main
@@ -135,8 +166,8 @@ turn directly. Robber and Knight retain land stealing and never affect ships.
 
 Voyages uses 14 points, two-point Longest Road and Largest Army, their existing
 five-road/three-knight thresholds, six settlements, five cities, twenty roads,
-38 bank cards per resource, a doubled 50-card development deck and a ten-card
-discard threshold. Ships do not count as roads. Colony points provide at most two
+38 bank cards per resource and a doubled 50-card development deck. The discard
+threshold is seven in new v5 matches and ten in saved v1–v4 matches. Ships do not count as roads. Colony points provide at most two
 points per player. Ordinary production and trades use each player's normal hand.
 
 ## Geography and controlled variation
@@ -217,8 +248,9 @@ Preserve current New Game's four-seat, one-human configuration and civilization
 assignment. The engine, replay and evaluation support three/four seats and legacy
 multi-human matches. Do not restore removed pass-and-play controls as unrelated
 scope. Both Traditional and Expert support Voyages; mixed tables are evaluated
-through the shared policy/session interface. Naval Expert has a new persisted
-revision; existing Expert revisions retain their existing meaning.
+through the shared policy/session interface. Both Naval tiers persist their
+brain revision; fresh matches select scoutingV2 and Expert selects navalV2.
+Missing older fields select legacyV1; existing revisions retain their meaning.
 
 New Game presents **Rules → Standard / Conquest / Naval** (Alex, October 5).
 Naval selects the existing naval world and Standard engine variant, with its
@@ -330,13 +362,17 @@ drafts and reconstructs mandatory obligations without old selections.
 ## State and policy boundaries
 
 Engine API: `GameMode.naval`; `TileKind.sea`, `.resourceChoice`, observation-only
-`.fog`; `GameState.naval: NavalState?`; `Ship(id, owner, coordinate, stepsRemaining)`.
-`NavalOptions` contains `fogEnabled`, `resourceChoiceEnabled` and optional
+`.fog`; `GameState.naval: NavalState?`; ships include location, controller,
+remaining moves and optional public `previousSailingOrigin`. `NavalOptions`
+contains `fogEnabled`, `resourceChoiceEnabled`, `shipStealingEnabled` and optional
 `mapFamily`; `NavalState` contains `options`, `revealed`, `ships` and versioned
 bookkeeping. `Naval.newGame(seed:playerCount:options:)` constructs a coherent match.
 `Naval.visibleBoard(in:)` supplies public fog placeholders, ports and land topology.
-New matches encode Naval rules version 3; versions 1/2 retain their behavior and
-missing versions decode as 1. Map version 1 and state schema 6 remain unchanged.
+New matches encode Naval rules version 5; versions 1–4 retain their recorded
+behavior and missing versions decode as 1. Map version 1 and state schema 6
+remain unchanged; optional ship history decodes nil when absent. MatchSetup
+saves both-tier Naval brain identity, and archives optionally record it in the
+seat roster. Missing brain provenance remains historical, not guessed as V2.
 
 Moves are `buildShip(at:)`, `sailShip(id:to:)`, `captureShip(id:)`, `skipShipCapture`
 and `chooseResource`. Durable phases are `choosingResource(playerIndex:)` and

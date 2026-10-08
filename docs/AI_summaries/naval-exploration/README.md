@@ -1,30 +1,44 @@
 # Naval exploration product program
 
-## October 8 follow-up: discard, optional stealing and purposeful scouting
+## Build 29 follow-up: implemented, final verification pending (October 8)
+
+Candidate `5851930` implements the discard, optional stealing and scouting
+corrections. [E35](acceptance.md#build-29-follow-up-e35) separates the retained
+red/green diagnostics from final acceptance. The focused native retry passes
+61 functions/101 runs, zero failures/skips, and root approves eight originals.
+The corrected functional matrix passes 96 winners/six byte-exact repeats and
+ten complete transition inspections. Full gate, complete-match/Release review
+and delivery remain pending.
+Build 29 is not yet accepted or verified as available in TestFlight. Earlier
+build-specific delivery sections are historical records.
 
 Alex's screenshots `IMG_1770.PNG` / `IMG_1769.PNG` show a real seven followed by
-robber placement while the human retains eight resource cards. The diagnosed
-cause is Naval's ten-card rules configuration, not a missed discard editor.
-New Naval v5 games must use seven: above seven resources, discard half rounded
-down before moving the robber. Development cards do not count and a Knight
-does not trigger discarding. Recorded v1–v4 games retain their original rules;
-an explicit ongoing-match upgrade is a separate decision.
+robber placement while the human retains eight resource cards. Naval used a
+ten-card threshold. New Naval v5 matches now discard half the resource hand,
+rounded down, above seven cards before moving the robber. Development cards do
+not count; a Knight does not trigger discarding. Shipped v1–v4 matches retain
+their ten-card threshold on resume, Restart and replay. Start a new match to use
+v5; no automatic ongoing-match upgrade is implemented.
 
-Ship stealing becomes an explained Naval Advanced Settings choice, Off for a
-fresh game or an old implicit New Game prefill, while an explicit future On
-choice remains remembered. Enabled stealing retains the existing after-production
-11 rule, global selection and lasting control. A human-involved transfer must
-produce an acknowledged, durable painted receipt identifying the former and
-new controller. It cannot expire unseen in the ordinary notice queue. Ships,
-colonies, builder hull stock and resource ownership otherwise retain their rules.
+Naval Advanced Settings explains ship stealing, Off for fresh games and old
+implicit New Game prefills; an explicit On choice stays remembered. Old active
+matches retain their saved enabled rule. An enabled human-involved transfer
+creates a durable painted receipt naming the former and new controllers. A
+mandatory native cover isolates the board and Settings until acknowledgement is
+saved; cold resume or a failed acknowledgement write leaves the receipt owed.
 
-Both AI tiers currently hard-reject leaving any useful landing, even when they
-cannot fund its settlement. Frozen, repeated real matches demonstrate waits
-despite public voyages revealing three or nine hexes. A separately persisted
-scouting revision must reserve a realistically fundable landing, avoid redundant
-friendly reservations and value genuine frontier progress separately from the
-best visible landing. It must respect fog, rival blockades, legal routes and
-the two-hex allowance. No sailing merely for animation and no new strength claim.
+Both tiers use a saved `scoutingV2` revision for new Naval matches. Older missing
+brain fields decode to `legacyV1`; resume, Restart and export retain that choice.
+The new brain reserves realistically fundable landings and explores useful
+public frontiers. The first 96-case matrix finished every game but exposed two
+idle return voyages after the bot's own spending (cases 47/77). Exact checkpoint
+regressions fail before the correction and pass afterward. Public v5 sailing
+history now prevents those same-turn zero-discovery returns, while actual
+funded improved landings, proven wins and human legal returns remain supported.
+The corrected-source matrix passes 96 winners and six byte-exact repeats; ten
+complete transition inspections and two exact legacy V4 traces also pass.
+[Verification](evidence/build29-discard-capture-scouting/verification.md) binds
+the source, results and limits. No new strength claim.
 
 <scratchpad>
 
@@ -40,7 +54,7 @@ reserve, one owned native test device and no other project's simulator changes.
 Naive failure boundaries include seven resources plus development cards, odd
 hand totals, another seat rolling seven, several simultaneous discarders,
 Knight versus rolled seven, cold resume mid-discard, capture disabled during
-an eleven harvest, human loss behind a modal, failed receipt writes, a funded
+ordinary eleven production, human loss behind a modal, failed receipt writes, a funded
 landing, duplicate friendly landing reservations and a rival-blocked route.
 
 Alternatives rejected: changing the threshold globally would rewrite old
@@ -330,10 +344,14 @@ invariance, hosted setup suites, strict lint and Release/Debug builds pass.
 - Repository `CLAUDE.md`, its referenced global rules, and original project skills
   remain the operational guidance. This program does not replace them.
 
-## Current state and isolation
+## Current state and historical isolation
+
+Build 29 is the active follow-up; older stage/build rows retain their original
+source-bound acceptance and do not establish build 29 readiness.
 
 | Item | State |
 |---|---|
+| Build 29 current status | Candidate `5851930`, version 1.0/29; new v5 rules and saved V2 brains implemented. E35 retains initial failures and scoped fixes. Final focused native passes 61 functions/101 runs, zero failures/skips; eight originals approved. Corrected-source 96 winners/six exact repeats/ten complete transition inspections pass. Full gate, complete-match/Release review and Apple delivery remain pending. |
 | Stage 0 | Charter and planning framework recorded; independently reviewed |
 | Stages 1 through 5 | Delegated design selected, critiqued and implemented; [contract](design-contract.md) |
 | Stage 6 | Complete: engine/session/app/persistence/replay implemented; terminal and human-confirmation repairs plus map/interaction corrections pass final E20 gate and E21 exact-binary native journeys |
@@ -343,7 +361,7 @@ invariance, hosted setup suites, strict lint and Release/Debug builds pass.
 | Build 24 follow-up | Frozen `9bce5f7`, 1.0/24, 376 bound inputs above main `83d8525`; fresh 48-match v3 matrix and six complete-byte result/trace repeats pass. Integrated/refined failures retained; three harvest native cases pass with exact-ID, live ≥7:1 contrast qualification. Four harvest images and actual rival notice inspected. First full pre-push gate failed two obsolete test oracles; all other mandatory stages pass and optional Debug app build skips. Test-only correction passes 3 functions/8 runs; final `91604` passes all ten mandatory stages and publishes `67efbad`. App/UI 753/754 pass, zero failures, one skip, 1,512 passing runs. Ordinary Release survives six seconds and all 23 final originals are approved. Archive/export/upload/signatures and independent final audit pass; Apple VALID/internal IN_BETA_TESTING with Alex's access confirmed (E29). QA alone shut down; three helpers archived. PR #60 awaits approval, tested-head CI passes, unmerged. |
 | Build 23 follow-up | Frozen `1dfae7c`, version 1.0/23: all eleven gate stages pass, 731/732 app/UI functions pass with one size skip independently passed on compact. Seventeen images inspected; ordinary Release survives six seconds. Archive/export/upload/signature pass; Apple VALID/internal IN_BETA_TESTING with Alex's access confirmed. E28 retains targeted and reused build 22 functional evidence. |
 | Build 22 follow-up | Source `1cf1c0f`; all eleven gate stages pass, ordinary Release survives, final-source media inspected, 48 functional matches/six repeats pass. Signed upload and independent audit pass; Apple VALID/internal IN_BETA_TESTING with Alex's access confirmed (E27). |
-| Latest verified phone delivery | Empires 1.0/build 24 internally available to Alex, verified October 7 at 9:06:46 a.m. EDT and independently at 9:06:40. External build 24 unreleased; physical installation/play unobserved. Build 23/22/21 remain historical. |
+| Phone delivery status | Build 29 awaits new Apple/access verification. [build 28 Apple/access receipt](/Users/alex/.codex/artifacts/naval-exploration/build28-victory-emblem/testflight.json) confirms 1.0/28 VALID/unexpired, internally IN_BETA_TESTING with Alex's all-build access at 02:15:07 UTC October 8. Earlier deliveries retain dated receipts; physical installation/play remains unobserved. |
 | Simulator evidence | Reused QA `937692FF`; build 24 full gate, ordinary Release six-second survival and 23 root-approved final originals have separate receipts. Build 23's seventeen-image gallery and all earlier/intermediate captures retain their source/configuration identities. |
 | Worktree | `/Users/alex/.codex/worktrees/naval-exploration/Settlers` and main integration retained; three implementation helpers recoverably archived with their changes integrated; durable AI/release evidence retained |
 | Build 24 integration checkout | Managed `/Users/alex/.codex/worktrees/naval24-main-integration/Settlers`, branch `codex/naval24-main-integration`; frozen production `9bce5f7` above Naval squash/main `83d8525`; test-only `67efbad` preserves production/package hashes; final pre-push `91604` passes all ten mandatory stages and publishes branch `67efbad`; PR #60 attached; gate/runtime/gallery/signatures/upload/Apple verified; tested-head CI passes, merge awaits approval |
@@ -357,7 +375,7 @@ It stays attached for the program's continuation. Implementation contributors
 need separate checkouts under the repository's concurrent-agent guidance;
 read-only review can inspect this checkout. Heavy simulator/gate runs serialize.
 
-Current AI conclusions apply to the frozen naval-capable Traditional/Expert pair
+Historical v1 AI conclusions apply to the frozen naval-capable Traditional/Expert pair
 with balanced personalities: paired improvements +18.43 percentage points at three
 seats (95% CI +13.64–23.23) and +20.83 at four (+16.37–25.30), with every chair
 and all twelve map/option cells. Host timing excludes rendering and physical-phone
