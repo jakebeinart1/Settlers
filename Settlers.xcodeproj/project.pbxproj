@@ -129,6 +129,7 @@
 		60CFBB658CC55BE950007EA1 /* GameViewModel+QACompleteMatch.swift in Sources */ = {isa = PBXBuildFile; fileRef = FC1D1F7B15E7311C725E6608 /* GameViewModel+QACompleteMatch.swift */; };
 		62B8F10F089B70D0027BF30D /* VictoryTallyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C3FD34FA52640FE04C156FD0 /* VictoryTallyTests.swift */; };
 		648C33E0171B7088E9DA1DC2 /* GhostOpponentFlowTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BFD60E7B13505C8C0D2C0A8A /* GhostOpponentFlowTests.swift */; };
+		651CE052934FF361043043A1 /* TheatreCurtain.swift in Sources */ = {isa = PBXBuildFile; fileRef = B01D18708C98A7DF1FD84870 /* TheatreCurtain.swift */; };
 		6550ED481CBA2A0062722CCD /* NewGameSetupView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A2D1519676D42C401001336 /* NewGameSetupView.swift */; };
 		6553262E983A713E67F3C9D5 /* MonopolyCollectionPreviewTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0860044C723FF120F754C5E /* MonopolyCollectionPreviewTests.swift */; };
 		6581FCDAA2DEE5C62E0C694D /* NavalShipStealingOptionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6F6F575C858A99608CCA5A58 /* NavalShipStealingOptionView.swift */; };
@@ -521,6 +522,7 @@
 		AEA920BF49EA01E0CB03070F /* DiscardDraftTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiscardDraftTests.swift; sourceTree = "<group>"; };
 		AF68AEB9AD0DD219D7E84E99 /* MatchSetup.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MatchSetup.swift; sourceTree = "<group>"; };
 		AFE46EFA5240D8C313A1994C /* TopChipHeightKey.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TopChipHeightKey.swift; sourceTree = "<group>"; };
+		B01D18708C98A7DF1FD84870 /* TheatreCurtain.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TheatreCurtain.swift; sourceTree = "<group>"; };
 		B0A975D333BC9759A83497B5 /* GameViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameViewModel.swift; sourceTree = "<group>"; };
 		B104F168E625B9E66CA71A2E /* DiscardFlowTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiscardFlowTests.swift; sourceTree = "<group>"; };
 		B26D9133BC8A526E79680726 /* SettlersTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = SettlersTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -976,6 +978,7 @@
 				7B3D502345F41546FE4903CE /* SeatCardView.swift */,
 				D9D4E1C56EC91FE0C881DA59 /* SeatNumberPickerPopup.swift */,
 				8BC4427BD3E30FD0F5F9E9CC /* SettingsChrome.swift */,
+				B01D18708C98A7DF1FD84870 /* TheatreCurtain.swift */,
 				AFE46EFA5240D8C313A1994C /* TopChipHeightKey.swift */,
 				C6852AB7B3A78F5272250644 /* TradeDraftFeedback.swift */,
 				5DA573A3A82A8F2F109FA437 /* TradePopupView.swift */,
@@ -1390,6 +1393,7 @@
 				895E3168C84B21B63AD67E4E /* SettingsChrome.swift in Sources */,
 				B6FC9BE50ABFF3D68CF98B29 /* SettlersApp.swift in Sources */,
 				49A50A7F00CDEB07F7CCE5B6 /* SharedMatch.swift in Sources */,
+				651CE052934FF361043043A1 /* TheatreCurtain.swift in Sources */,
 				0BBF451A08F935DC2BB22743 /* TileView.swift in Sources */,
 				9C6AB72E4AC52714E00EDD3A /* TopChipHeightKey.swift in Sources */,
 				7B2C6DCA0C31BED1B3FCAE80 /* TradeDraftFeedback.swift in Sources */,

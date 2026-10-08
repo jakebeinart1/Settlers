@@ -25,6 +25,11 @@ struct VictoryCutsceneView: View {
     /// Dev cards that scored, in the order they flipped in.
     @State private var cards: [DevCardType] = []
     @State private var showsBanner = false
+    /// Closed stage curtains open the scene (Jake, 2026-10-08).
+    @State private var showsCurtain = true
+    @State private var curtainOpenness: CGFloat = 0
+    private static let curtainHold = 0.9
+    private static let curtainOpening = 1.3
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     private var winnerIdentity: PlayerIdentity { playerIdentity(tally.winner) }
@@ -48,6 +53,9 @@ struct VictoryCutsceneView: View {
             }
             .padding(.vertical, 24)
             if showsBanner { ending }
+            if showsCurtain {
+                TheatreCurtain(openness: curtainOpenness, title: "The Final Tally")
+            }
         }
         .foregroundStyle(.white)
         .fontDesign(.serif)
@@ -62,6 +70,7 @@ struct VictoryCutsceneView: View {
     // MARK: - Sequence
 
     private func play() async {
+        guard await raiseCurtain() else { return }
         for beat in tally.beats {
             withAnimation(.easeInOut(duration: 0.45)) { show(beat) }
             guard await pause(duration(of: beat)) else { return }
@@ -75,6 +84,21 @@ struct VictoryCutsceneView: View {
         withAnimation(.spring(response: 0.5, dampingFraction: 0.6)) { showsBanner = true }
         guard await pause(Self.bannerHold) else { return }
         onFinish()
+    }
+
+    /// The game screen has already faded into the closed curtain
+    /// (`ContentView`); hold it a beat, then part it onto the board. Reduce
+    /// Motion skips straight to the board.
+    private func raiseCurtain() async -> Bool {
+        guard !reduceMotion else {
+            showsCurtain = false
+            return true
+        }
+        guard await pause(Self.curtainHold) else { return false }
+        withAnimation(.easeInOut(duration: Self.curtainOpening)) { curtainOpenness = 1 }
+        guard await pause(Self.curtainOpening) else { return false }
+        showsCurtain = false
+        return true
     }
 
     private func show(_ beat: VictoryTally.Beat) {

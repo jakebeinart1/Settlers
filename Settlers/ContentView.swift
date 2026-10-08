@@ -55,6 +55,7 @@ struct ContentView: View {
                                         isHumanWin: viewModel.humanSeats.contains(tally.winner),
                                         playerIdentity: viewModel.playerIdentity,
                                         onFinish: { viewModel.victoryCutscenePending = false })
+                        .transition(.opacity)
                 } else {
                     EndGameView(state: viewModel.state, humanSeats: viewModel.humanSeats,
                                 playerIdentity: viewModel.playerIdentity,
@@ -109,6 +110,9 @@ struct ContentView: View {
                 )
             }
         }
+        // The board fades into the cutscene's closed curtain, and the
+        // cutscene fades into the results; nothing else switches on this.
+        .animation(.easeInOut(duration: 0.9), value: viewModel.victoryCutscenePending)
         .fullScreenCover(isPresented: $isAskingLadderName) {
             LadderNamePrompt { isAskingLadderName = false }
         }
