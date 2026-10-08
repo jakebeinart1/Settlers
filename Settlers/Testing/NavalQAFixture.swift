@@ -13,6 +13,9 @@ enum NavalQAFixture {
 
     static func make(_ position: Position, options: NavalOptions = NavalOptions()) throws -> GameState {
         var state = Naval.newGame(seed: seed, options: options)
+        // This historical art fixture deliberately sails rivals onto one cell.
+        // v4 captures may create mixed stacks, but entering one is now prohibited.
+        if position == .mixedShips { state.naval?.rulesVersion = 3 }
         while state.phase.isSetup {
             let seat = PlayerID(index: state.phase.awaitingSeatIndex!)
             let move = setupMove(for: seat, position: position, in: state)
@@ -57,7 +60,7 @@ enum NavalQAFixture {
         }!
     }
 
-    private static func grant(_ cards: [Resource: Int], to player: PlayerID, in state: inout GameState) {
+    static func grant(_ cards: [Resource: Int], to player: PlayerID, in state: inout GameState) {
         for resource in Resource.allCases {
             let amount = cards[resource, default: 0]
             precondition(state.bank[resource, default: 0] >= amount)
@@ -76,7 +79,7 @@ enum NavalQAFixture {
         grant(cards, to: player, in: &state)
     }
 
-    private static func purchase(for player: PlayerID, in state: inout GameState) throws -> Int {
+    static func purchase(for player: PlayerID, in state: inout GameState) throws -> Int {
         state.phase = .mainTurn(playerIndex: player.index)
         let move = RulesEngine.legalMoves(for: state, seat: player).first {
             if case .buildShip = $0 { return true }
@@ -158,8 +161,8 @@ enum NavalQAFixture {
         precondition(state.phase == .choosingResource(playerIndex: actor.index))
     }
 
-    private static func shortestPath(from start: HexCoordinate, to goals: Set<HexCoordinate>,
-                                     sea: Set<HexCoordinate>) -> [HexCoordinate] {
+    static func shortestPath(from start: HexCoordinate, to goals: Set<HexCoordinate>,
+                             sea: Set<HexCoordinate>) -> [HexCoordinate] {
         var queue = [start]
         var visited: Set<HexCoordinate> = [start]
         var paths: [HexCoordinate: [HexCoordinate]] = [start: []]
@@ -177,7 +180,7 @@ enum NavalQAFixture {
         preconditionFailure("Naval fixture has no navigable route to its harvest island")
     }
 
-    private static func rollSource(total: Int) -> RandomSource {
+    static func rollSource(total: Int) -> RandomSource {
         for candidate in UInt64(0)..<10_000 {
             var source = RandomSource(seed: candidate)
             let sum = Int.random(in: 1...6, using: &source) + Int.random(in: 1...6, using: &source)

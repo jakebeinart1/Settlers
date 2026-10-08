@@ -1,0 +1,38 @@
+{
+  "startedAtUTC": "2026-10-07T23:53:46.568345+00:00",
+  "finishedAtUTC": "2026-10-07T23:53:46.684868+00:00",
+  "command": [
+    "gitleaks",
+    "dir",
+    "/Users/alex/.codex/artifacts/naval-exploration/build27-ship-blockades/gallery-release-staging",
+    "--redact",
+    "--no-banner",
+    "--no-color",
+    "--report-format",
+    "json",
+    "--report-path",
+    "/Users/alex/.codex/artifacts/naval-exploration/build27-ship-blockades/gallery-release-gitleaks-report.json"
+  ],
+  "exitCode": 0,
+  "findings": 0,
+  "redactedOutput": true,
+  "stagedFiles": 18,
+  "scanBeforeRepositoryCopy": true,
+  "reportPath": "/Users/alex/.codex/artifacts/naval-exploration/build27-ship-blockades/gallery-release-gitleaks-report.json",
+  "reportSHA256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+  "excludedActualFiles": [
+    "Private keys",
+    "Provisioning profiles",
+    "IPA payloads",
+    "Raw transporter logs",
+    "Signed URLs",
+    "Full archive log containing user provisioning-directory paths"
+  ],
+  "metadataRedactions": [
+    {
+      "file": "receipts/simulator-finish-and-source-guard.json",
+      "omitted": "Names of two other-project simulators only; source hash, identifiers and unchanged-state proof retained."
+    }
+  ],
+  "signingProfileMetadataOnly": true
+}

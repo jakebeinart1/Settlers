@@ -1,0 +1,11 @@
+{
+  "asOfUTC": "2026-10-07T22:14:00.299948+00:00",
+  "productionSourceCommit": "2d985b9570efb27ae3fab8c491275427d4d44fad",
+  "build": "27",
+  "version": "1.0",
+  "fullPrePushGate": "PENDING: no final completion receipt imported at gallery export time",
+  "releaseArchiveAndUpload": "PENDING",
+  "testFlightAvailability": "PENDING",
+  "realPhoneInstallation": "PENDING",
+  "notAShippingReceipt": true
+}

@@ -1,0 +1,188 @@
+{
+  "schemaVersion": 1,
+  "reviewedAtUTC": "2026-10-07T22:09:12.515022+00:00",
+  "reviewer": "/root/blockade_ui_design",
+  "authorshipDisclosure": "This agent authored the initial blockade QA fixture and hosted/native test files. This is a follow-up audit of root-authored readability correction and OCR additions; it is not independent of original test authorship.",
+  "scope": "Read-only source audit plus direct original-resolution inspection of seven root-exported corrected native screenshots. No build, simulator, native interaction, source edit, or delivery action performed by this reviewer.",
+  "workspace": "/Users/alex/.codex/worktrees/naval24-main-integration/Settlers",
+  "reviewedHEAD": "2d985b9570efb27ae3fab8c491275427d4d44fad",
+  "reviewedCommitTitle": "fix(naval): keep blockade instructions visible and prepare build 27",
+  "sourceFiles": [
+    {
+      "path": "/Users/alex/.codex/worktrees/naval24-main-integration/Settlers/Settlers/Views/GameActionPanels.swift",
+      "sha256": "7a6ba26482137e1cfb59a7f598788f340a0d664cff577a29839e173ba1833a97"
+    },
+    {
+      "path": "/Users/alex/.codex/worktrees/naval24-main-integration/Settlers/SettlersUITests/NavalBlockadeFlowTests.swift",
+      "sha256": "e0bb1813c637ca99cfd91288f2dd9d52bab4c141e47a1b1790e3b2a1ab40614e"
+    },
+    {
+      "path": "/Users/alex/.codex/worktrees/naval24-main-integration/Settlers/Settlers/Views/Board/BoardDecisionInteractionLayer.swift",
+      "sha256": "35c710e0883b9e303339b229a99c1ffdc1d8623717846249282b8085d1056b2d"
+    },
+    {
+      "path": "/Users/alex/.codex/worktrees/naval24-main-integration/Settlers/Settlers/Views/Board/NavalBoardInteractions.swift",
+      "sha256": "719d654c7fd1db2bfbf91f3d24403873e595a67d8c1ac2a834066357adb4d07b"
+    },
+    {
+      "path": "/Users/alex/.codex/worktrees/naval24-main-integration/Settlers/Settlers/Views/Board/BoardViewNaval.swift",
+      "sha256": "cc4ca85cf47dc713a30a0c5f100666abf31d459e98b83c405d0192308515e485"
+    },
+    {
+      "path": "/Users/alex/.codex/worktrees/naval24-main-integration/Settlers/Settlers/Views/Board/NavalSailingRangeLayer.swift",
+      "sha256": "cad95efde5efc1c3c8511d3d0cef793c2a9d0e4c9da2a2c51016fdb29338e305"
+    },
+    {
+      "path": "/Users/alex/.codex/worktrees/naval24-main-integration/Settlers/Settlers/Views/InGameSettingsView.swift",
+      "sha256": "15bc07ff46db12efdee249c26e748360dd2487f0b6b918d485cdecb17c79c0a8"
+    },
+    {
+      "path": "/Users/alex/.codex/worktrees/naval24-main-integration/Settlers/Settlers/Views/HowToPlayView.swift",
+      "sha256": "3883f80848891095f61c4143d0aaa2eafb280185b32d2629c75cc6836d5d05a9"
+    },
+    {
+      "path": "/Users/alex/.codex/worktrees/naval24-main-integration/Settlers/Settlers/Views/HowToPlayContent.swift",
+      "sha256": "3082508c60f2f4ee651b5eeec33c6a488b65c2d948ba1259052f89d0907338f3"
+    }
+  ],
+  "verdict": "PASS_FOR_SCOPED_READABILITY_AND_BLOCKADE_INTERACTION_REVIEW",
+  "concreteRequiredFixes": [],
+  "evidence": {
+    "commandReceiptPath": "/Users/alex/.codex/artifacts/naval-exploration/build27-ship-blockades/readable-dock-focused-command.json",
+    "commandReceiptSHA256": "2f6982b9ed111f933bf7a8b4542639e4fd3d77eb9f1890e36e7286bfef9dc333",
+    "commandExitCode": 0,
+    "configuration": "Debug",
+    "build": "27",
+    "focusedSuiteSelectors": [
+      "-only-testing:SettlersUITests/NavalBlockadeFlowTests",
+      "-only-testing:SettlersUITests/NavalTravelFlowTests",
+      "-only-testing:SettlersUITests/BoardViewportInvarianceTests",
+      "-only-testing:SettlersUITests/BelowBoardInvarianceTests"
+    ],
+    "rawResultBundle": "/Users/alex/.codex/artifacts/naval-exploration/build27-ship-blockades/readable-dock-focused.xcresult",
+    "independentlyReadResultSummary": {
+      "devicesAndConfigurations": [
+        {
+          "device": {
+            "architecture": "arm64",
+            "deviceId": "937692FF-BFBF-4683-80E5-2590F5288D56",
+            "deviceName": "Empires QA",
+            "modelName": "iPhone 17 Pro",
+            "osBuildNumber": "23F77",
+            "osVersion": "26.5",
+            "platform": "iOS Simulator"
+          },
+          "expectedFailures": 0,
+          "failedTests": 0,
+          "passedTests": 8,
+          "skippedTests": 0,
+          "testPlanConfiguration": {
+            "configurationId": "1",
+            "configurationName": "Test Scheme Action"
+          }
+        }
+      ],
+      "environmentDescription": "Settlers \u00b7 Built with macOS 26.5.1",
+      "expectedFailures": 0,
+      "failedTests": 0,
+      "finishTime": 1791410341.948,
+      "passedTests": 8,
+      "result": "Passed",
+      "skippedTests": 0,
+      "startTime": 1791410184.028,
+      "statistics": [],
+      "testFailures": [],
+      "title": "Test - Settlers",
+      "topInsights": [],
+      "totalTestCount": 8
+    },
+    "attachmentManifestPath": "/Users/alex/.codex/artifacts/naval-exploration/build27-ship-blockades/readable-dock-attachments/manifest.json",
+    "attachmentManifestSHA256": "c763698940467e5488dfbc0e45e1b054263424ad6d6057dac1ee52e74250ccf7",
+    "originalScreenshots": [
+      {
+        "path": "/Users/alex/.codex/artifacts/naval-exploration/build27-ship-blockades/readable-dock-attachments/F5BBF7E4-AED2-419A-8010-EB1981F09F54.png",
+        "sha256": "f36381612cd630fb74497b33177ef82dbff99aca3e9b04f3da4d23d258d15f5b",
+        "testIdentifier": "NavalBlockadeFlowTests/testBlockadeExplanationAndWorldTouchRemainUsableAtLargestText()",
+        "captureTimestampUnix": 1791410267.011,
+        "reviewedAtOriginalResolution": true,
+        "visualVerdict": "PASS",
+        "observation": "Accessibility XXXL: full Sail your ship title and the complete two-line 2 hexes left. Opposing ships block passage. detail are visible. Clear, Cancel and disabled Sail remain distinct."
+      },
+      {
+        "path": "/Users/alex/.codex/artifacts/naval-exploration/build27-ship-blockades/readable-dock-attachments/484FDA52-728B-42ED-BFF5-11334E6845EA.png",
+        "sha256": "6bb14ff19c149aa38f6f9a5db7f1cff499d0ccf19bb84e1cd67b36be6dfc1146",
+        "testIdentifier": "NavalBlockadeFlowTests/testCaptureConfirmationAndColdResumeOpenTheActualTwoHexVoyage()",
+        "captureTimestampUnix": 1791410290.699,
+        "reviewedAtOriginalResolution": true,
+        "visualVerdict": "PASS",
+        "observation": "Cold resume: two purple vessels are visible on the charted home coast, the completed voyage proposal is dismissed, and standard action buttons remain readable."
+      },
+      {
+        "path": "/Users/alex/.codex/artifacts/naval-exploration/build27-ship-blockades/readable-dock-attachments/5E45BB2A-B9EC-41E3-89F3-261CDE91FF92.png",
+        "sha256": "1fbe4de5d0c11288752b139d7e9dc3229120361c9f13b2c75dd07a268c16269a",
+        "testIdentifier": "NavalBlockadeFlowTests/testCaptureConfirmationAndColdResumeOpenTheActualTwoHexVoyage()",
+        "captureTimestampUnix": 1791410284.257,
+        "reviewedAtOriginalResolution": true,
+        "visualVerdict": "PASS",
+        "observation": "Selected two-hex voyage: route and numbered range are visible; full Sail 2 hexes. 0 left afterward. detail and enabled Sail fit."
+      },
+      {
+        "path": "/Users/alex/.codex/artifacts/naval-exploration/build27-ship-blockades/readable-dock-attachments/866AE32B-0BD4-43A3-8A96-38D6C28B9578.png",
+        "sha256": "dbc5fab498eb1adf7803217f12af5a055f2dd14d2a8ccbae3922fd07136ba758",
+        "testIdentifier": "NavalBlockadeFlowTests/testCaptureConfirmationAndColdResumeOpenTheActualTwoHexVoyage()",
+        "captureTimestampUnix": 1791410273.166,
+        "reviewedAtOriginalResolution": true,
+        "visualVerdict": "PASS",
+        "observation": "Capture proposal: full Take control of a ship title, Alexander Ship choice, Skip and Capture are readable within the command dock."
+      },
+      {
+        "path": "/Users/alex/.codex/artifacts/naval-exploration/build27-ship-blockades/readable-dock-attachments/BADA4D9E-CD92-418A-922A-51D75C1D214F.png",
+        "sha256": "9877b314d6649d1f7d784bf68f5f3286f5ed170ce1cc0b9951ba18f5ccf13426",
+        "testIdentifier": "NavalBlockadeFlowTests/testOccupiedLaunchCoastExplainsUnavailableShipWithoutChargingResources()",
+        "captureTimestampUnix": 1791410297.354,
+        "reviewedAtOriginalResolution": true,
+        "visualVerdict": "PASS",
+        "observation": "Funded blocked launch: disabled Ship and full Your launch coast is blocked by opposing ships explanation are visible alongside exact cost holdings."
+      },
+      {
+        "path": "/Users/alex/.codex/artifacts/naval-exploration/build27-ship-blockades/readable-dock-attachments/9878267F-755E-42C2-8512-60AD0B2C85D6.png",
+        "sha256": "97b3b945c4f742ee8dd4ac878af93e836157f662bb43a4a4440ee9c85c7a9584",
+        "testIdentifier": "NavalBlockadeFlowTests/testOpposingShipBlocksEntryAndThroughVoyageAtLocalAndWorldZoomWithoutSnapping()",
+        "captureTimestampUnix": 1791410313.115,
+        "reviewedAtOriginalResolution": true,
+        "visualVerdict": "PASS",
+        "observation": "World view after blocked touch: full title and blockade instruction remain visible, with Sail disabled and Return available."
+      },
+      {
+        "path": "/Users/alex/.codex/artifacts/naval-exploration/build27-ship-blockades/readable-dock-attachments/DAD3A7A4-7E0E-42AB-9D2E-3C382A231B3A.png",
+        "sha256": "6304101fa5f5b4371d181402dae41e75470b200d3aa124ca5e1ef4c7bf14a0da",
+        "testIdentifier": "NavalBlockadeFlowTests/testOpposingShipBlocksEntryAndThroughVoyageAtLocalAndWorldZoomWithoutSnapping()",
+        "captureTimestampUnix": 1791410307.291,
+        "reviewedAtOriginalResolution": true,
+        "visualVerdict": "PASS",
+        "observation": "Local view: ivory rival vessel has the dashed defensive hex and shield, occupied and straight beyond cell have no legal range outline, and full sailing instruction fits."
+      }
+    ]
+  },
+  "assessment": {
+    "visualReadability": "All seven corrected originals pass direct visual inspection. Largest-text dock title and full two-line sailing instruction are visible; selected voyage and capture strings fit; blocked launch reason is clear without a resource charge.",
+    "fontCapScope": "The new cap is on messageOrVictims only when usesMaritimePieces is true. It does not cap the parent BoardDecisionDockView environment or alter dockHeight, action widths, below-board reserve, camera fit, legal target geometry, or non-maritime messages.",
+    "dynamicTypeTradeoff": "At accessibility sizes the dense maritime command message is visually capped at DynamicTypeSize.large. This intentionally preserves complete instructions inside the fixed command row. Fleet and the in-game rulebook remain unrestricted native full-screen inspection paths. This is not a claim that the dock fully honors the largest visual text preference.",
+    "voiceOverAndFullText": "The correction adds no accessibilityHidden or replacement/truncated accessibility label. The Text and Label retain complete presentation strings, and the native full-label lookup passes. Fleet rows preserve full name and sailing-status labels. Actual VoiceOver navigation/audio was not exercised by this reviewer.",
+    "OCRReliability": "The new Vision assertion recognizes the rendered screenshot pixels within the observed detail rectangle, so an accessibility label containing undisplayed text cannot produce the prior false green. Accurate recognition with language correction disabled requires all three instruction phrases. Normalized point coordinates cancel the screenshot scale and invert y for the current portrait full-screen app frame.",
+    "boardSnapAndLayout": "The readability correction does not touch board layout or input resolution. The existing blocked-hex polygon veto precedes nearest legal-target snapping. Corrected native evidence includes both local and World physical blocked-center touches, camera-value invariance, unchanged resources/positions/chart, capture confirmation with cold resumes, and the BoardViewportInvarianceTests and BelowBoardInvarianceTests selectors."
+  },
+  "limitationsAndNonBlockingObservations": [
+    "The OCR test currently asserts the detail phrases, not the title. The corrected title was verified manually in the original screenshot; adding an independent title pixel assertion would be an optional test improvement.",
+    "Vision recognition may produce false negatives after OS, typography or locale changes. Such failures should retain and inspect the original screenshot; they should not be waived solely because the accessibility label is complete.",
+    "ROI math assumes the current full-screen portrait app frame starts at zero. A future nonzero-origin or differently oriented test surface would need coordinate normalization relative to app.frame origin.",
+    "This receipt verifies the specified focused correction and native suite. It does not assert a fresh full quality gate, release archive, TestFlight availability, or device installation."
+  ],
+  "preservedEarlierFailure": {
+    "path": "/Users/alex/.codex/artifacts/naval-exploration/build27-ship-blockades/first-blockade-attachments/367B09B8-880E-418E-94B9-02A9A0EDB64C.png",
+    "sha256": "d7d128041ce0bddfb49499cb135c08476d9bef8f3d1dafb0936161c1cf010956",
+    "observedVisualFailure": "Before the scoped font cap, actual largest-text pixels truncated the title and detail despite passing full accessibility-label and dock-frame assertions.",
+    "rootReviewReceipt": "/Users/alex/.codex/artifacts/naval-exploration/build27-ship-blockades/first-root-visual-review.json",
+    "status": "Retained as failed predecessor; it is not the corrected current image."
+  }
+}

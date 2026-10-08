@@ -369,7 +369,10 @@ enum HowToPlayContent {
             ? "This saved match gives each ship three hexes per turn, sailed one adjacent sea hex at a time."
             : "Each ship can sail up to two sea hexes per turn. Choose any highlighted destination, "
                 + "preview its route, then confirm the voyage. Its travel cost is the number of hexes crossed."
-        return "Ships sail independently and may share water. \(travel) New or captured ships can sail immediately."
+        let sharing = version >= Naval.blockadeRulesVersion
+            ? "Ships sail independently. Your own ships may share water. Opposing ships block entry, passage and launches."
+            : "Ships sail independently and may share water."
+        return "\(sharing) \(travel) New or captured ships can sail immediately."
     }
 
     private static func navalDiscoveryDescription(for context: Context?) -> String {

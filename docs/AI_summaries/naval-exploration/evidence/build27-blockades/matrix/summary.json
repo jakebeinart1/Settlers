@@ -1,0 +1,21 @@
+{
+  "allResultsEqual": true,
+  "buildID": "864ef8495555a21fba805746b54c5830a77cd66b-packages-acec122584de",
+  "byteIdenticalRepeatTraces": 6,
+  "byteIdenticalRepeats": 6,
+  "failed": [],
+  "functionalCases": 48,
+  "maxProcessRSSMiB": 22.546875,
+  "noStrengthClaim": true,
+  "packageSourcesStableBeforeBuildThroughMatrix": true,
+  "passed": 48,
+  "rawRevisitCases": [
+    "cell00-4-expert",
+    "cell06-4-expert",
+    "cell07-4-expert",
+    "cell08-3-expert",
+    "cell09-4-traditional"
+  ],
+  "repeatCases": 6,
+  "sourceSHA": "864ef8495555a21fba805746b54c5830a77cd66b"
+}

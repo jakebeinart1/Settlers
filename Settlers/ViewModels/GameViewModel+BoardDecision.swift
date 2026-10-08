@@ -7,6 +7,7 @@ extension GameViewModel {
     public var boardDecisionPresentation: BoardDecisionPresentation? {
         guard var result = boardDecisionCoordinator.presentation else { return nil }
         result.sailing = NavalSailingPresentation(state: state, decision: result)
+        result.blockadedTiles = NavalBlockadePresentation.tiles(in: state, decision: result)
         return result
     }
 

@@ -129,8 +129,8 @@ public struct BoardView: View {
                         retiring: retiringMist, geometry: geometry, progress: mistProgress,
                         drifts: !reduceMotion
                     )
-                    if let decision, decision.intent == .sailShip {
-                        NavalSailingRangeLayer(decision: decision, geometry: geometry)
+                    if let decision, decision.intent == .sailShip || decision.intent == .buildShip {
+                        NavalSailingRangeLayer(decision: decision, geometry: geometry, playerIdentity: playerIdentity)
                     }
                     NavalHarborLayer(board: board, geometry: geometry, boardCenter: boardCenter,
                                      exposesSemantics: allowsGameCommands)

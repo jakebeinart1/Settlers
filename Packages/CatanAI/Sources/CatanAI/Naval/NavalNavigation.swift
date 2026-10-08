@@ -4,6 +4,8 @@ import Foundation
 extension NavalDecisionContext {
     /// Shortest routes through the public sea graph. Fog is not treated as
     /// guaranteed water; new information is available only after committed sailing.
+    /// Enemy hulls cut version 4 routes. Seeding, rather than unblocking, the
+    /// origin permits a captured ship to leave a mixed-owner stack once.
     func seaDistances(from origin: HexCoordinate) -> [HexCoordinate: Int] {
         if let cached = cachedSeaDistances[origin] { return cached }
         var distances: [HexCoordinate: Int] = [origin: 0]
@@ -14,7 +16,8 @@ extension NavalDecisionContext {
             cursor += 1
             for direction in 0..<6 {
                 let next = current.neighbor(direction)
-                guard tiles[next]?.kind == .sea, distances[next] == nil else { continue }
+                guard tiles[next]?.kind == .sea, distances[next] == nil,
+                      !Naval.isBlockaded(next, by: seat, in: state) else { continue }
                 distances[next] = (distances[current] ?? 0) + 1
                 queue.append(next)
             }
@@ -103,11 +106,24 @@ extension NavalDecisionContext {
         let fleetSize = ownedShips.count
         let dilution = 1 + Double(fleetSize) * 1.2
         let access = tier == .expert ? marginalVoyagePotential(at: coordinate) : voyagePotential(at: coordinate, shipID: nil)
+        if (state.naval?.rulesVersion ?? 0) >= Naval.blockadeRulesVersion, access <= 0 { return -1 }
         if tier == .expert, fleetSize > 0, access <= 0.05 { return -1 }
         let exploration = unseen ? (tier == .expert ? min(1.4, access) : 1.4) : 0
         let firstHull = fleetSize == 0 && (tier != .expert || Naval.shipsBuilt(by: seat, in: state) == 0)
         let value = ((firstHull ? 2.2 : 0.35) + exploration + min(2.8, access)) / dilution
         return tier == .expert ? value * expeditionRetention(from: coordinate) : value
+    }
+
+    /// Fund a future landing only while this fleet has a public route to it.
+    /// A rival may move later, but no hypothetical opening earns present funding.
+    /// Earlier matches retain their original unrestricted recipe valuation.
+    var reachableColonySites: [VertexID] {
+        guard (state.naval?.rulesVersion ?? 0) >= Naval.blockadeRulesVersion else { return colonySites }
+        return colonySites.filter { site in
+            ownedShips.contains { ship in
+                site.touchingTiles.contains { seaDistances(from: ship.coordinate)[$0] != nil }
+            }
+        }
     }
 
     /// A new hull earns only access that improves on the fleet's existing public

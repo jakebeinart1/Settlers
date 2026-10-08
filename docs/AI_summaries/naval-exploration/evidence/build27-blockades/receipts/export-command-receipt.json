@@ -1,0 +1,20 @@
+{
+  "startedAtUTC": "2026-10-07T23:35:15.325761+00:00",
+  "command": [
+    "xcodebuild",
+    "-exportArchive",
+    "-archivePath",
+    "/Users/alex/.codex/artifacts/naval-exploration/build27-ship-blockades/Empires-27.xcarchive",
+    "-exportPath",
+    "/Users/alex/.codex/artifacts/naval-exploration/build27-ship-blockades/export",
+    "-exportOptionsPlist",
+    "/Users/alex/.codex/artifacts/naval-exploration/build27-ship-blockades/ExportOptions.plist"
+  ],
+  "productionSourceSHA": "2d985b9570efb27ae3fab8c491275427d4d44fad",
+  "archiveHeadSHA": "2d985b9570efb27ae3fab8c491275427d4d44fad",
+  "productionInputCount": 378,
+  "version": "1.0",
+  "build": "27",
+  "exportExitCode": 0,
+  "finishedAtUTC": "2026-10-07T23:35:16.742897+00:00"
+}

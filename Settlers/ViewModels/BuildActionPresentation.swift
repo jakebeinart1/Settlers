@@ -156,7 +156,10 @@ private extension BuildActionPresentation.Kind {
 
     func locationReason(for player: Player, in state: GameState) -> String {
         switch self {
-        case .ship: return "Requires your settlement or city on a charted coast"
+        case .ship:
+            return Naval.blockadedLaunchSites(for: player.id, in: state).isEmpty
+                ? "Requires your settlement or city on a charted coast"
+                : "Your launch coast is blocked by opposing ships"
         case .road: return "No connected land edge available"
         case .settlement:
             return state.mode == .naval ? "No legal corner reached by your roads or ships" : "No legal corner reached by your roads"

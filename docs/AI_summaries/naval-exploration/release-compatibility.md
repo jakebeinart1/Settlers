@@ -1,5 +1,22 @@
 # Naval integration with the current phone release
 
+## Build 27 compatibility: versioned defense delivered
+
+New games encode Naval v4; saved v1–v3 retain movement, routes, launches, AI
+scores and policy IDs. Engine rules version 3, schema 6 and map version 1 stay
+unchanged. Ships already in a mixed-owner stack after capture can leave; further
+opposing entry remains blocked.
+
+Both tiers use public occupancy and reachable funding. Concealed terrain,
+private rival cards and future RNG remain unavailable. The [new v4 matrix](evidence/build27-blockades/matrix/final-functional-receipt.json)
+passes 48 winners and six exact result/trace repeats. The [gate/source audit](evidence/build27-blockades/receipts/final-gate-source-audit.json)
+verifies frozen `2d985b9`, 378 production inputs and 112 matching package inputs.
+Original SIGPIPE−13 and successful same-source transport retry remain separate.
+[E32](acceptance.md#build-27-follow-up-e32) records explicit native skips,
+approved originals, exact Apple27 delivery and individual simulator finish.
+[Independent release audit](evidence/build27-blockades/receipts/final-independent-release-audit.json) passes. Integration is recorded in [PR #61](https://github.com/jakebeinart1/Settlers/pull/61); agent review and passing CI govern the merge. No strength or physical-phone-play claim follows.
+
+
 ## Build 26 compatibility: delivered
 
 Public-only Monopoly previews add no rule/AI/save/schema/RNG changes. All112

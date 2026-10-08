@@ -1,0 +1,40 @@
+{
+  "finishedAtUTC": "2026-10-07T23:42:46.179265+00:00",
+  "productionSourceSHA": "2d985b9570efb27ae3fab8c491275427d4d44fad",
+  "archiveHeadSHA": "2d985b9570efb27ae3fab8c491275427d4d44fad",
+  "productionInputCount": 378,
+  "version": "1.0",
+  "build": "27",
+  "ownedQA": "937692FF-BFBF-4683-80E5-2590F5288D56",
+  "ownershipAuthority": "Root task handed off previously reserved QA for Release27 runtime and individual finish",
+  "allocationLockHeld": true,
+  "qaWasIdleAgainstNativeBuildTestProcesses": true,
+  "individualShutdownExitCode": 0,
+  "qaStateReadback": "Shutdown",
+  "totalDevicesBefore": 14,
+  "totalDevicesAfter": 14,
+  "bootedDevicesBefore": 3,
+  "bootedDevicesAfter": 2,
+  "stateChanges": {
+    "937692FF-BFBF-4683-80E5-2590F5288D56": {
+      "before": "Booted",
+      "after": "Shutdown"
+    }
+  },
+  "allOtherDeviceStatesUnchanged": true,
+  "devicesCreatedOrDeleted": false,
+  "blanketOperationUsed": false,
+  "protectedBootedDevicesRemaining": [
+    {
+      "udid": "0E64D113-01E5-49A6-BAB0-B1D796C00780"
+    },
+    {
+      "udid": "90CFA3EF-5F06-4943-8940-89C2F524F00C"
+    }
+  ],
+  "sourceInputsStillMatchFrozen378": true,
+  "inventorySHA256": {
+    "before": "d7fec5697d557c10b2284839a151a2aab7eed797fa4e43bf9a1b74bcbfe342f6",
+    "after": "90382aef7c628ff237fbc38f187fe140fe37669bd39813bd9f16d6ae44414e05"
+  }
+}

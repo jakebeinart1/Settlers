@@ -1,5 +1,21 @@
 # Naval exploration product program
 
+## Build 27 ship defense: delivered
+
+Ship defense is live in Alex's Internal TestFlight. In new Naval games, an
+opposing ship blocks entry, passage and launches into its sea hex, even after
+its moves run out. Friendly ships may share water; an existing ship can leave
+a mixed-owner stack after capture. Saved v1–v3 games keep their original rules.
+
+[E32](acceptance.md#build-27-follow-up-e32) records 48 new functional winners,
+six exact process repeats, the full gate and verified signed Apple delivery.
+Root reviewed the [final gallery](evidence/build27-blockades/gallery.html),
+including the actual Washington winner, and separately approved the ordinary Release menu. Owned QA is
+shut down; other projects and all 14 devices remain intact. Both AI tiers use
+public blockades, with no strength claim. [PR #61](https://github.com/jakebeinart1/Settlers/pull/61)
+is the integration record for this verified source.
+
+
 ## Build 26 Monopoly follow-up: delivered
 
 [E31](acceptance.md#build-26-follow-up-e31-delivered) adds exact public collectible

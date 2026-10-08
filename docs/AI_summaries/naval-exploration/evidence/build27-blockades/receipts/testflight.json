@@ -1,0 +1,59 @@
+{
+  "verifiedAtUTC": "2026-10-07T23:40:04.182Z",
+  "appID": "6808461623",
+  "bundleIdentifier": "com.alexchandler.empires",
+  "version": "1.0",
+  "build": "27",
+  "productionSourceSHA": "2d985b9570efb27ae3fab8c491275427d4d44fad",
+  "archiveHeadSHA": "2d985b9570efb27ae3fab8c491275427d4d44fad",
+  "productionInputCount": 378,
+  "appleBuildID": "a49ab68c-859a-4467-8454-c1c5fde1677a",
+  "processingState": "VALID",
+  "expired": false,
+  "expirationDate": "2027-01-05T15:38:28-08:00",
+  "internalBuildState": "IN_BETA_TESTING",
+  "internalGroup": {
+    "id": "bf165450-034a-437d-b7f7-028bf3d57a5b",
+    "name": "Internal",
+    "hasAccessToAllBuilds": true
+  },
+  "tester": {
+    "id": "a8ee9090-8182-4804-b5f9-eead9c032495",
+    "firstName": "Alex",
+    "lastName": "Chandler"
+  },
+  "intendedTesterAccessConfirmed": true,
+  "actualStagedUploadIPA": "/Users/alex/.codex/artifacts/naval-exploration/build27-ship-blockades/Settlers-uploaded-27.ipa",
+  "actualUploadedIPASHA256": "b6b899817bc508f829dfce946b9fce65178bea324993e82b4985d660d8ad2ff8",
+  "actualUploadedIPAMD5": "534d84d459b273e5b64033f40c0003b0",
+  "actualUploadedIPABytes": 36334326,
+  "contentDeliveryUUIDMatchesAppleBuildID": true,
+  "strictDeepSignatureVerified": true,
+  "signedCloudKitEnvironment": "Production",
+  "signedCloudKitContainers": [
+    "iCloud.com.alexchandler.empires"
+  ],
+  "onlyDifferenceFromReviewWithinCodeSignature": true,
+  "identicalExecutablePrefixBytes": 5924400,
+  "identicalExecutablePrefixSHA256": "8dcfcfd06a28b231ab3f2e0978982c96435e03f684b1f01a52414ac57508d417",
+  "namedIPAASSETSizeAndMD5MatchAcceptedDelivery": true,
+  "physicalPhoneInstalledOrPlayedObserved": false,
+  "externalReleasePerformed": false,
+  "evidenceSHA256": {
+    "asc-build27.json": "e0b9890c08b5b5271016073af909fa0b2f713adcef6a72eeeff969c1b30f7f42",
+    "asc-build27-prearchive.json": "0ab0260ebf2384ea97a780adf585b4e879b332040da9be7d87f676e54ef2aa1f",
+    "uploaded-payload-signature.json": "5c0a11d946e79c4d55541fcbbe6a085e9488c673fb1127c468937ec6c901b83e",
+    "uploaded-payload-comparison.json": "98f62825e015c8b9f32ce9607672d09ab2809a7270086b411d9b4b61e44168dd",
+    "upload-command-receipt.json": "f42378f8770a485eaba233a8963053826ceb2d00d97b368fc4a4933362894177",
+    "signed-export.json": "33bfb2e9e8ced9a0586cacce5164b17a8bb5a059008dbfa7ec90558129abdb5e",
+    "release-runtime.json": "40fdcb8766db4a17180590f96fe9fcae1d7e68bf12b3ba05cf008ea89f6a1f8c",
+    "root-release-menu-review.json": "c49e59a985eabc0332d60a67067e4ea79315e22b70df1b5e0219bea9fa9dfab2",
+    "archive-command-receipt.json": "f80eb2eefb66e03e0ceadab24761857eb73f9fa788b174d64d8b246873759827",
+    "export-command-receipt.json": "41229f6383c858f315e31d1b093da9d59067c5ae0227d3c6f903df1208945065",
+    "final-gate-success.json": "43cd93bd823d93251ba1e9c8dd75e9d6ae7eff668f745a41de777a94a0b13195",
+    "final-native-summary.json": "86c8ebb7cb1e9500911b678e4140842894d17d8b929a6a0bc5f48a811f4339d0",
+    "root-final-gate-visual-review.json": "91853804b7001c10a4a410277c0002df0007e3fb9c21936974b6f484f0c48b3e",
+    "final-production-input-manifest.json": "7eb2ea7fc3d65f161b6a11951c1b90675d829594b6c3cbbfef4b30fa3c20617a",
+    "independent-upload27-audit-20261007T233849Z-b63099bd.json": "8515c75410b64b767b72ac511b378c6265ef04fdb927d45b726b07c009fa0774"
+  }
+}

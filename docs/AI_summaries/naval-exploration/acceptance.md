@@ -1,5 +1,56 @@
 # Voyages requirements and acceptance
 
+<a id="build-27-follow-up-e32"></a>
+## Build 27 follow-up (E32): delivered
+
+[D55](decisions.md#build-27-decision-d55-defending-occupied-water) makes stationed
+ships a passive defense. New Naval v4 games block opposing sea entry, transit
+and launches, including at zero moves. Friendly hulls may share water; existing
+ships can leave a mixed-owner stack after capture. Saved v1–v3 preserve rules,
+movement, AI scores and policy IDs. Build 27 is available to Alex in Internal TestFlight.
+
+[Production](evidence/build27-blockades/manifests/final-production-input-manifest.json)
+freezes at `2d985b9570efb27ae3fab8c491275427d4d44fad`, 1.0/27, 378 inputs.
+The [source audit](evidence/build27-blockades/receipts/final-gate-source-audit.json) matches all 112 package inputs to the
+[new v4 matrix](evidence/build27-blockades/matrix/final-functional-receipt.json):
+48 winners reach 14 points over 28,239 actions; six fresh-process repeats match
+complete result/trace bytes. [Metrics](evidence/build27-blockades/matrix/metrics.json)
+record no forced ends, idle sailing/trade cycles or duplicate proposals;
+[five raw revisits](evidence/build27-blockades/matrix/raw-revisit-review.json)
+retain their productive settlement/discovery context. No strength claim follows.
+
+The [first native pass](evidence/build27-blockades/receipts/first-focused-summary.json)
+(44 functions/71 runs) still [fails maximum-text pixels](evidence/build27-blockades/failed/first-root-visual-review.json).
+The repaired maritime scaffold, Vision OCR, blockade/cold-resume flows and layout
+invariance [pass eight checks](evidence/build27-blockades/receipts/readable-dock-focused-summary.json),
+zero failures/skips. Earlier focused Tokugawa evidence remains separate from
+final-gate Washington 14 VP, Alex 7, Charlemagne 8 and Ragnar 11.
+
+All ten mandatory stages [pass](evidence/build27-blockades/receipts/final-gate-success.json); optional standalone Debug skips,
+while native Debug ran and Release compiled. Native: 779 functions, 777 passed,
+zero failed, two skipped; 1,560 runs, 1,558 passed. Skips are an unreached natural
+seven and a 375×667 check on 402×874 QA. Actual kernel gate/hook exits are 0;
+original Git SIGPIPE−13 remains preserved. The [same-source transport-only retry](evidence/build27-blockades/receipts/transport-only-retry.json)
+exits 0 with `--no-verify` after verified checks, bypassing no failed gate.
+Root approves [eight final-gate originals](evidence/build27-blockades/receipts/root-final-gate-visual-review.json) and the ordinary
+[Release runtime](evidence/build27-blockades/receipts/release-runtime.json): fresh 1.0/27, no QA arguments, alive six
+seconds, no new own crash, with its original menu separately approved by root.
+
+Archive/export/upload exit 0. [Strict payload signing](evidence/build27-blockades/receipts/uploaded-payload-signature.json)
+uses the existing certificate/profile and CloudKit Production; [comparison](evidence/build27-blockades/receipts/uploaded-payload-comparison.json)
+finds only signature bytes differ from the review export. Actual IPA is
+36,334,326 bytes, SHA256 `b6b899817bc508f829dfce946b9fce65178bea324993e82b4985d660d8ad2ff8`,
+MD5 `534d84d459b273e5b64033f40c0003b0`. [Apple](evidence/build27-blockades/receipts/testflight.json) confirms the
+accepted UUID `a49ab68c-859a-4467-8454-c1c5fde1677a`, VALID/unexpired,
+Internal IN_BETA_TESTING and Alex's all-build access. [Independent release audit](evidence/build27-blockades/receipts/final-independent-release-audit.json)
+passes with no blockers. Physical installation/play is unobserved; no external release occurred.
+
+[Finish](evidence/build27-blockades/receipts/simulator-finish-and-source-guard.json) individually shuts QA937 down, retaining all 14 devices
+and the other 13 states. [Three helper checkouts](evidence/build27-blockades/receipts/helper-worktree-cleanup.json) are recoverably
+archived. [PR #61](https://github.com/jakebeinart1/Settlers/pull/61) is the integration record for this verified source. Earlier pending
+delivery snapshots retain their original identities.
+
+
 ## Build 26 follow-up (E31): delivered
 
 D54 fixes an omitted public quantity: Monopoly collects finite supply minus

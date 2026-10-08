@@ -274,6 +274,11 @@ enum BoardDropTargetResolver {
         board: Board,
         geometry: HexGeometry
     ) -> BoardTarget? {
+        // At World zoom a minimum-sized legal target can cover the actual
+        // blocked hex. Its polygon must veto both taps and drops before snapping.
+        guard !decision.blockadedTiles.keys.contains(where: {
+            TileDrawing.hexPath(for: $0, geometry: geometry).contains(point)
+        }) else { return nil }
         let candidates = legalTargets(decision: decision, board: board, geometry: geometry)
         guard let nearest = candidates.min(by: {
             distance($0.point, point) < distance($1.point, point)

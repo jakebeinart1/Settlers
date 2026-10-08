@@ -1,0 +1,51 @@
+{
+  "status": "PASS",
+  "sourceSHA": "e3a0a9e858034217ac73610fd5023b2dc2133ee3",
+  "sourceBase": "2ad2fb9392e20177ee2f1c82f766f0941b7aa627",
+  "engineDependencyOriginal": "a74d4782efe1d50ff779942c2d9a2129a893816b",
+  "engineDependencyLocal": "b10e9a89acb18ecead92308634cdd2f233b2e043",
+  "ownedPaths": [
+    {
+      "path": "Packages/CatanAI/Sources/CatanAI/Naval/NavalEconomy.swift",
+      "sha256": "51b66e72f311998d70ce757969dd9da21ee20b5de490d342d716b0ab6b0ccb2f"
+    },
+    {
+      "path": "Packages/CatanAI/Sources/CatanAI/Naval/NavalNavigation.swift",
+      "sha256": "f358e485c67f4466dbca16e4c6137b38c19690a9c24c2546210d7c022a57d475"
+    },
+    {
+      "path": "Packages/CatanAI/Sources/CatanAI/Naval/NavalNavigationDiagnostics.swift",
+      "sha256": "ca016cf56fd78858b15c9e0552fed24a0e886f19b9bd3038a277f0ce4e73e991"
+    },
+    {
+      "path": "Packages/CatanAI/Tests/CatanAITests/NavalBlockadePolicyTests.swift",
+      "sha256": "09202a4b8caa97212d50b766fce1ec25fc32d888cade3046e6c7cbe3386537df"
+    }
+  ],
+  "focusedCommand": "swift test --package-path Packages/CatanAI --jobs 2 --filter Naval",
+  "focusedExitCode": 0,
+  "testFunctions": 49,
+  "suites": 5,
+  "testingSummary": "Test run with 49 tests in 5 suites passed after 64.896 seconds.",
+  "log": "/Users/alex/.codex/artifacts/naval-exploration/build27-ship-blockades/ai-policy/second-focused-navals.log",
+  "logSHA256": "db0ff981a31a0ce1e1e8da627030768209cf7f7b6581fca7276151eb0cc926c8",
+  "earlierCompileFailure": {
+    "log": "/Users/alex/.codex/artifacts/naval-exploration/build27-ship-blockades/ai-policy/focused-navals.log",
+    "reason": "Two new Swift Testing assertions invoked mutating diagnostics within #expect; store result before asserting. No tests ran."
+  },
+  "legacyVersions": [
+    1,
+    2,
+    3
+  ],
+  "newBlockadeRulesVersion": 4,
+  "policyIDsUnchanged": true,
+  "newPolicyTestFunctions": 7,
+  "newPolicyParameterizedCases": 18,
+  "strictLint": "PASS",
+  "diffCheck": "PASS",
+  "fullGateRun": false,
+  "nativeSimulatorRun": false,
+  "strengthClaim": false,
+  "functionalMatrix": "Root-owned integration step; not performed in helper checkout."
+}

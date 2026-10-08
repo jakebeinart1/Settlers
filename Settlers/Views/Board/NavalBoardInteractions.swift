@@ -94,7 +94,8 @@ struct NavalShipLayer: View {
             onSelect: { ship in focusOrSelect(ship); nearbyShipIDs = nil },
             onClose: { nearbyShipIDs = nil },
             maximumListHeight: max(44, min(174, containerSize.height - 92)),
-            title: "Nearby ships", accessibilityPrefix: "naval.nearby", fillsScreen: fillsScreen
+            title: "Nearby ships", accessibilityPrefix: "naval.nearby", fillsScreen: fillsScreen,
+            sailingStatus: { NavalQuantityText.sailingStatus(for: $0, in: state) }
         )
     }
 
@@ -194,11 +195,12 @@ struct NavalShipLayer: View {
         guard case .mainTurn(let playerIndex) = state.phase else { return false }
         return ship.owner.index == playerIndex && ship.stepsRemaining > 0
             && playerIdentity(ship.owner).controller == .human
+            && !Naval.sailingDestinations(for: ship, in: state).isEmpty
     }
 
     private func shipLabel(_ ship: Ship) -> String {
         let identity = playerIdentity(ship.owner)
-        return "\(identity.displayName), \(identity.civilization.displayName) vessel, \(NavalShipName.name(ship.id)), \(NavalQuantityText.stepsRemaining(ship.stepsRemaining))"
+        return "\(identity.displayName), \(identity.civilization.displayName) vessel, \(NavalShipName.name(ship.id)), \(NavalQuantityText.sailingStatus(for: ship, in: state))"
     }
 }
 
@@ -215,6 +217,7 @@ struct NavalFleetChooser: View {
     var title: String = "Fleet"
     var accessibilityPrefix: String = "naval.fleet"
     var fillsScreen = false
+    var sailingStatus: (Ship) -> String = { NavalQuantityText.stepsRemaining($0.stepsRemaining) }
     @AccessibilityFocusState private var isHeadingFocused: Bool
 
     var body: some View {
@@ -317,7 +320,7 @@ struct NavalFleetChooser: View {
         }
         .buttonStyle(.plain)
         .accessibilityIdentifier("\(accessibilityPrefix).ship.\(ship.id)")
-        .accessibilityLabel("\(identity.displayName), \(NavalShipName.name(ship.id)), \(NavalQuantityText.stepsRemaining(ship.stepsRemaining))")
+        .accessibilityLabel("\(identity.displayName), \(NavalShipName.name(ship.id)), \(sailingStatus(ship))")
         .accessibilityValue(ship.id == selectedShip ? "Selected" : "Not selected")
         .accessibilityHint(canSelect(ship) ? "Focus and select this ship for a preview" : "Focus this public ship without changing the game")
     }
@@ -329,8 +332,9 @@ struct NavalFleetChooser: View {
                 .frame(width: 36, height: 36)
             VStack(alignment: .leading, spacing: 2) {
                 Text("\(identity.displayName)'s ship").font(.caption.bold())
-                Text(NavalQuantityText.stepsRemaining(ship.stepsRemaining))
+                Text(sailingStatus(ship))
                     .font(.caption2).foregroundStyle(.white.opacity(0.75))
+                    .fixedSize(horizontal: false, vertical: true)
             }
             Spacer(minLength: 0)
             if ship.id == selectedShip { Image(systemName: "checkmark") }
@@ -356,7 +360,7 @@ struct NavalFleetChooser: View {
             }
             Text(identity.displayName).font(.body)
                 .fixedSize(horizontal: false, vertical: true)
-            Text(NavalQuantityText.stepsRemaining(ship.stepsRemaining))
+            Text(sailingStatus(ship))
                 .font(.subheadline).foregroundStyle(.white.opacity(0.85))
                 .fixedSize(horizontal: false, vertical: true)
         }

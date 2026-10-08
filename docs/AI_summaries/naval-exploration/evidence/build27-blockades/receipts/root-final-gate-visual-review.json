@@ -1,0 +1,92 @@
+{
+  "verdict": "PASS",
+  "imagesUnmodified": true,
+  "testedHeadSHA": "2d985b9570efb27ae3fab8c491275427d4d44fad",
+  "productionSourceSHA": "2d985b9570efb27ae3fab8c491275427d4d44fad",
+  "version": "1.0",
+  "build": "27",
+  "productionInputCount": 378,
+  "reviewedAtUTC": "2026-10-07T23:26:35.904081+00:00",
+  "images": [
+    {
+      "path": "/Users/alex/.codex/artifacts/naval-exploration/build27-ship-blockades/final-blockade-attachments/ED54FBFB-33BF-4459-848D-63280D622982.png",
+      "sha256": "f36381612cd630fb74497b33177ef82dbff99aca3e9b04f3da4d23d258d15f5b",
+      "test": "NavalBlockadeFlowTests/testBlockadeExplanationAndWorldTouchRemainUsableAtLargestText()",
+      "timestamp": 1791413825.774,
+      "reviewedBy": "root",
+      "detail": "original",
+      "verdict": "PASS"
+    },
+    {
+      "path": "/Users/alex/.codex/artifacts/naval-exploration/build27-ship-blockades/final-blockade-attachments/E1054412-FDFB-471C-8B73-25FDF5CEDAE5.png",
+      "sha256": "6bb14ff19c149aa38f6f9a5db7f1cff499d0ccf19bb84e1cd67b36be6dfc1146",
+      "test": "NavalBlockadeFlowTests/testCaptureConfirmationAndColdResumeOpenTheActualTwoHexVoyage()",
+      "timestamp": 1791413849.402,
+      "reviewedBy": "root",
+      "detail": "original",
+      "verdict": "PASS"
+    },
+    {
+      "path": "/Users/alex/.codex/artifacts/naval-exploration/build27-ship-blockades/final-blockade-attachments/0B5CA64D-75CE-4EE6-AB9A-91F05C360C90.png",
+      "sha256": "1fbe4de5d0c11288752b139d7e9dc3229120361c9f13b2c75dd07a268c16269a",
+      "test": "NavalBlockadeFlowTests/testCaptureConfirmationAndColdResumeOpenTheActualTwoHexVoyage()",
+      "timestamp": 1791413842.97,
+      "reviewedBy": "root",
+      "detail": "original",
+      "verdict": "PASS"
+    },
+    {
+      "path": "/Users/alex/.codex/artifacts/naval-exploration/build27-ship-blockades/final-blockade-attachments/96D41074-3627-4CA0-95B3-54F2ED4DD223.png",
+      "sha256": "b09ed8248b01901eef8c26fc3f2af2ca84f016a30b90ac529837587200fe0bc0",
+      "test": "NavalBlockadeFlowTests/testCaptureConfirmationAndColdResumeOpenTheActualTwoHexVoyage()",
+      "timestamp": 1791413831.999,
+      "reviewedBy": "root",
+      "detail": "original",
+      "verdict": "PASS"
+    },
+    {
+      "path": "/Users/alex/.codex/artifacts/naval-exploration/build27-ship-blockades/final-blockade-attachments/5F979667-C38C-4F95-B9DB-8CDBD9855EFE.png",
+      "sha256": "9877b314d6649d1f7d784bf68f5f3286f5ed170ce1cc0b9951ba18f5ccf13426",
+      "test": "NavalBlockadeFlowTests/testOccupiedLaunchCoastExplainsUnavailableShipWithoutChargingResources()",
+      "timestamp": 1791413855.996,
+      "reviewedBy": "root",
+      "detail": "original",
+      "verdict": "PASS"
+    },
+    {
+      "path": "/Users/alex/.codex/artifacts/naval-exploration/build27-ship-blockades/final-blockade-attachments/3AA1C058-3566-45B5-AE8B-88751AAE423D.png",
+      "sha256": "97b3b945c4f742ee8dd4ac878af93e836157f662bb43a4a4440ee9c85c7a9584",
+      "test": "NavalBlockadeFlowTests/testOpposingShipBlocksEntryAndThroughVoyageAtLocalAndWorldZoomWithoutSnapping()",
+      "timestamp": 1791413871.809,
+      "reviewedBy": "root",
+      "detail": "original",
+      "verdict": "PASS"
+    },
+    {
+      "path": "/Users/alex/.codex/artifacts/naval-exploration/build27-ship-blockades/final-blockade-attachments/DB2AFBA3-E830-4538-88E2-43FCE57F273F.png",
+      "sha256": "6304101fa5f5b4371d181402dae41e75470b200d3aa124ca5e1ef4c7bf14a0da",
+      "test": "NavalBlockadeFlowTests/testOpposingShipBlocksEntryAndThroughVoyageAtLocalAndWorldZoomWithoutSnapping()",
+      "timestamp": 1791413865.992,
+      "reviewedBy": "root",
+      "detail": "original",
+      "verdict": "PASS"
+    },
+    {
+      "path": "/Users/alex/.codex/artifacts/naval-exploration/build27-ship-blockades/final-match-attachments/464B30FB-4931-43AB-AEDC-1E0ED5C746E5.png",
+      "sha256": "7ee7d7860ae3068d34e6f5efb7f63c8c7c8d39c657e2b8c1800f297b99176e13",
+      "test": "DevelopmentCardDesignTests/testOrdinaryNavalMatchIncludesDeliberateCardInspectionAndReachesAnActualWinner()",
+      "timestamp": 1791412792.038,
+      "reviewedBy": "root",
+      "detail": "original",
+      "verdict": "PASS"
+    }
+  ],
+  "actualWinner": "Washington14VP; Alex7VP; Charlemagne8VP; Ragnar11VP",
+  "priorVisualFailurePreserved": "/Users/alex/.codex/artifacts/naval-exploration/build27-ship-blockades/first-root-visual-review.json",
+  "nativeSummary": "/Users/alex/.codex/artifacts/naval-exploration/build27-ship-blockades/final-native-summary.json",
+  "maritimeLargeTextTradeoff": "Only fixed command-row maritime message visually caps at Large; full spoken text, Fleet and rulebook remain available.",
+  "limitations": [
+    "Only selected checkpoints receive direct original-pixel review.",
+    "UI-hosted full match uses production policies and deliberate UI checkpoints; human does not choose every move."
+  ]
+}

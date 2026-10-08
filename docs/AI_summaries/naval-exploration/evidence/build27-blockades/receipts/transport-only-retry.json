@@ -1,0 +1,19 @@
+{
+  "startedAtUTC": "2026-10-07T23:26:35.904449+00:00",
+  "finishedAtUTC": "2026-10-07T23:26:37.584019+00:00",
+  "command": [
+    "git",
+    "push",
+    "--no-verify",
+    "--set-upstream",
+    "origin",
+    "HEAD:codex/naval-blockades"
+  ],
+  "exitCode": 0,
+  "noVerifyUsed": true,
+  "reason": "Transport-only retry after actual gate and hook exited0; original Git lost SSH and receivedSIGPIPE. Same378frozen inputs, no source changes.",
+  "headSHA": "2d985b9570efb27ae3fab8c491275427d4d44fad",
+  "gateSuccessReceipt": "/Users/alex/.codex/artifacts/naval-exploration/build27-ship-blockades/final-gate-success.json",
+  "sshKeepaliveSeconds": 30,
+  "noFailedGateBypassed": true
+}

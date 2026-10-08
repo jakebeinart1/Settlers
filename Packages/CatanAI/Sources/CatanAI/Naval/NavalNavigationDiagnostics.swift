@@ -84,7 +84,10 @@ public struct NavalNavigationDiagnostics {
 
     private func approachesColony(from origin: HexCoordinate, to destination: HexCoordinate,
                                   for actor: PlayerID, in state: GameState) -> Bool {
-        let sea = Set(state.board.tiles.filter { $0.kind == .sea && Naval.isRevealed($0.coordinate, in: state) }.map(\.coordinate))
+        let sea = Set(state.board.tiles.filter {
+            $0.kind == .sea && Naval.isRevealed($0.coordinate, in: state)
+                && ($0.coordinate == origin || !Naval.isBlockaded($0.coordinate, by: actor, in: state))
+        }.map(\.coordinate))
         let targets = Set(Naval.potentialColonySites(for: actor, in: state)
             .filter { Self.isOverseasSite($0, in: state) }.flatMap(\.touchingTiles)).intersection(sea)
         guard !targets.isEmpty else { return false }
@@ -94,6 +97,9 @@ public struct NavalNavigationDiagnostics {
         while cursor < queue.count {
             let current = queue[cursor]
             cursor += 1
+            // Reverse search may reach a mixed-owner starting hex, but passing
+            // through it would invent a route forbidden by the forward engine.
+            if current == origin, Naval.isBlockaded(origin, by: actor, in: state) { continue }
             for direction in 0..<6 {
                 let next = current.neighbor(direction)
                 guard sea.contains(next), distances[next] == nil else { continue }

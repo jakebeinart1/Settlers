@@ -1,0 +1,29 @@
+{
+  "verifiedAtUTC": "2026-10-07T23:37:40.323713+00:00",
+  "productionSourceSHA": "2d985b9570efb27ae3fab8c491275427d4d44fad",
+  "archiveHeadSHA": "2d985b9570efb27ae3fab8c491275427d4d44fad",
+  "productionInputCount": 378,
+  "version": "1.0",
+  "build": "27",
+  "bundleIdentifier": "com.alexchandler.empires",
+  "ipaPath": "/Users/alex/.codex/artifacts/naval-exploration/build27-ship-blockades/Settlers-uploaded-27.ipa",
+  "ipaSHA256": "b6b899817bc508f829dfce946b9fce65178bea324993e82b4985d660d8ad2ff8",
+  "ipaMD5": "534d84d459b273e5b64033f40c0003b0",
+  "ipaBytes": 36334326,
+  "executableSHA256": "237fb444376d9af1999375e0e3026b5438df5fca7ca8951ff2f10c1e75b6015b",
+  "strictDeepSignatureExitCode": 0,
+  "profileName": "Empires App Store 20261004",
+  "profileUUID": "86da5771-8640-4c53-8867-0b4fbd4f1035",
+  "profileCertificateSHA1": [
+    "76465B06C2E157D857641F5B3D25CF5A3110C4A9"
+  ],
+  "actualSignerCertificateSHA1": "76465B06C2E157D857641F5B3D25CF5A3110C4A9",
+  "profileExpiresUTC": "2027-01-25T20:55:57+00:00",
+  "betaReportsActive": true,
+  "getTaskAllow": false,
+  "provisionedDevicesAbsent": true,
+  "signedCloudKitEnvironment": "Production",
+  "signedCloudKitContainers": [
+    "iCloud.com.alexchandler.empires"
+  ]
+}

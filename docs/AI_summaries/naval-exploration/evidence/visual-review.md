@@ -1,5 +1,26 @@
 # Voyages visual and motion review
 
+## Build 27 blockade review: final originals approved, delivered
+
+Defensive water uses restrained owner tint, an ivory shield and clear sailing/
+launch explanations. Existing ships, painted chrome and board geometry remain;
+blocked touches cannot select neighboring destinations.
+
+The [failed predecessor](build27-blockades/failed/first-root-visual-review.json)
+retains maximum-text truncation despite passing semantics. Corrected OCR and
+fixed-layout checks [pass eight checks](build27-blockades/receipts/readable-dock-focused-summary.json).
+Root approves [eight final-gate originals](build27-blockades/receipts/root-final-gate-visual-review.json): seven
+blockade checkpoints and Washington 14 VP, Alex 7, Charlemagne 8, Ragnar 11.
+The [gallery](build27-blockades/gallery.html) preserves earlier focused captures
+and the Tokugawa winner separately. Final PNGs remain unchanged and source-bound.
+
+The ordinary [Release runtime](build27-blockades/receipts/release-runtime.json) is fresh 1.0/27 without
+QA arguments, survives six seconds without a new own crash, and its original
+menu passes root review. [E32](../acceptance.md#build-27-follow-up-e32) records
+full gate, exact Apple delivery and individual simulator finish. Integration is recorded in [PR #61](https://github.com/jakebeinart1/Settlers/pull/61); agent review and passing CI govern the merge. Selected checkpoints do not imply exhaustive manual
+play or physical-device installation/play.
+
+
 ## Build 26 count review: final originals approved
 
 Monopoly's existing resource grid now shows public combined rival quantities,

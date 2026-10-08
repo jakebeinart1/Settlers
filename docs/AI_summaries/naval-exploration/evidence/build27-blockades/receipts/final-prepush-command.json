@@ -1,0 +1,22 @@
+{
+  "startedAtUTC": "2026-10-07T22:08:24.609313+00:00",
+  "finishedAtUTC": "2026-10-07T23:23:31.388450+00:00",
+  "command": [
+    "git",
+    "push",
+    "--set-upstream",
+    "origin",
+    "HEAD:codex/naval-blockades"
+  ],
+  "exitCode": -13,
+  "headSHA": "2d985b9570efb27ae3fab8c491275427d4d44fad",
+  "productionSourceSHA": "2d985b9570efb27ae3fab8c491275427d4d44fad",
+  "productionInputCount": 378,
+  "qa": "937692FF-BFBF-4683-80E5-2590F5288D56",
+  "gateTestWorkers": 1,
+  "gateBuildJobs": 2,
+  "sharedAllocationLockHeld": true,
+  "noVerifyUsed": false,
+  "version": "1.0",
+  "build": "27"
+}

@@ -1,0 +1,26 @@
+{
+  "verifiedAtUTC": "2026-10-07T22:14:58.410562+00:00",
+  "galleryPath": "/Users/alex/.codex/worktrees/naval24-main-integration/Settlers/docs/AI_summaries/naval-exploration/evidence/build27-blockades/gallery.html",
+  "checks": {
+    "all34SelectedCopiesByteIdentical": true,
+    "selectedPNGCount": 9,
+    "correctedPNGCount": 7,
+    "earlierWinnerPNGCount": 1,
+    "separatelyMarkedFailedPredecessorCount": 1,
+    "allLocalImageAndEvidenceLinksResolve": true,
+    "allFragmentLinksResolve": true,
+    "duplicateHTMLIds": false,
+    "allImagesHaveAltTextAndOriginalDimensions": true,
+    "allJSONParses": true,
+    "exportBytes": 28805417
+  },
+  "browserVisualVerification": {
+    "status": "NOT_PERFORMED",
+    "reason": "In-app browser was unavailable. Chrome file URL navigation was rejected by browser security policy, which allows only HTTP/HTTPS protocols. No server, alternate surface or other workaround was attempted.",
+    "directOriginalCaptureReview": "All nine selected originals were inspected previously through view_image, with the failed predecessor explicitly FAIL."
+  },
+  "nativeSimulatorOperationsPerformed": false,
+  "gitOperationsPerformed": false,
+  "sourceEditsPerformed": false,
+  "editedPathsScope": "/Users/alex/.codex/worktrees/naval24-main-integration/Settlers/docs/AI_summaries/naval-exploration/evidence/build27-blockades"
+}

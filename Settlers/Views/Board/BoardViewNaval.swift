@@ -18,6 +18,9 @@ extension BoardView {
             ForEach(state.naval?.ships ?? [], id: \.id) { ship in
                 shipPositionMarker(ship, geometry: geometry)
             }
+            ForEach((decision?.blockadedTiles.keys.map { $0 } ?? []).sorted(), id: \.self) { coordinate in
+                cameraMarker(at: coordinate, identifier: "naval.blockade.\(coordinate.q)_\(coordinate.r)", geometry: geometry)
+            }
             ForEach(board.tiles.filter { $0.kind == .resourceChoice }, id: \.coordinate) { tile in
                 cameraMarker(at: tile.coordinate,
                              identifier: "naval.harvest.position.\(tile.coordinate.q)_\(tile.coordinate.r)",
@@ -30,14 +33,22 @@ extension BoardView {
     /// Public committed ship positions give native tests independent evidence
     /// of which hull moved. They are siblings, never AX ancestors of controls.
     private func shipPositionMarker(_ ship: Ship, geometry: HexGeometry) -> some View {
-        Color.white.opacity(0.001)
-            .frame(width: 1, height: 1)
-            .position(geometry.center(of: ship.coordinate))
-            .accessibilityElement(children: .ignore)
-            .accessibilityIdentifier("naval.ship.position.\(ship.id)")
-            .accessibilityLabel("Committed public ship position")
-            .accessibilityValue("q=\(ship.coordinate.q);r=\(ship.coordinate.r);steps=\(ship.stepsRemaining)")
-            .accessibilityRespondsToUserInteraction(false)
+        ZStack {
+            Color.white.opacity(0.001)
+                .frame(width: 1, height: 1).position(geometry.center(of: ship.coordinate))
+                .accessibilityElement(children: .ignore)
+                .accessibilityIdentifier("naval.ship.position.\(ship.id)")
+                .accessibilityLabel("Committed public ship position")
+                .accessibilityValue("q=\(ship.coordinate.q);r=\(ship.coordinate.r);steps=\(ship.stepsRemaining)")
+                .accessibilityRespondsToUserInteraction(false)
+            Color.white.opacity(0.001)
+                .frame(width: 1, height: 1).position(geometry.center(of: ship.coordinate))
+                .accessibilityElement(children: .ignore)
+                .accessibilityIdentifier("naval.ship.owner.\(ship.id)")
+                .accessibilityLabel("Committed public ship owner")
+                .accessibilityValue(String(ship.owner.index))
+                .accessibilityRespondsToUserInteraction(false)
+        }
     }
 
     private func cameraMarker(at coordinate: HexCoordinate, identifier: String,
@@ -104,7 +115,7 @@ extension BoardView {
 
     func navalNavigation(fit: BoardFit, container: CGSize) -> some View {
         NavalNavigationControls(
-            ships: state.naval?.ships ?? [], decision: decision,
+            ships: state.naval?.ships ?? [], state: state, decision: decision,
             canReturn: navalReturnCamera != nil,
             availableHeight: container.height, discoverySummary: discoverySummary,
             playerIdentity: playerIdentity,
@@ -141,6 +152,7 @@ extension BoardView {
         guard case .mainTurn(let index) = state.phase else { return false }
         return ship.owner.index == index && ship.stepsRemaining > 0
             && playerIdentity(ship.owner).controller == .human
+            && !Naval.sailingDestinations(for: ship, in: state).isEmpty
     }
 
     @ViewBuilder
@@ -189,6 +201,7 @@ extension BoardView {
 
 private struct NavalNavigationControls: View {
     let ships: [Ship]
+    let state: GameState
     let decision: BoardDecisionPresentation?
     let canReturn: Bool
     let availableHeight: CGFloat
@@ -248,7 +261,8 @@ private struct NavalNavigationControls: View {
                           onSelect: { ship in onSelect(ship); isFleetOpen = false },
                           onClose: { isFleetOpen = false },
                           maximumListHeight: max(44, min(174, availableHeight - 144)),
-                          fillsScreen: fillsScreen)
+                          fillsScreen: fillsScreen,
+                          sailingStatus: { NavalQuantityText.sailingStatus(for: $0, in: state) })
     }
 
     private func navigationButton(_ title: String, symbol: String, id: String,

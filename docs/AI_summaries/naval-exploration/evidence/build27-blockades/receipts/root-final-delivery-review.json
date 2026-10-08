@@ -1,0 +1,20 @@
+{
+  "verdict": "PASS",
+  "reviewer": "root",
+  "verifiedAtUTC": "2026-10-07T23:46:19.920483+00:00",
+  "sourceCommit": "2d985b9570efb27ae3fab8c491275427d4d44fad",
+  "inputCount": 378,
+  "allProductionInputBytesUnchanged": true,
+  "allTestflightEvidenceHashesMatch": true,
+  "uploadedIPASHA256": "b6b899817bc508f829dfce946b9fce65178bea324993e82b4985d660d8ad2ff8",
+  "uploadedIPAMD5": "534d84d459b273e5b64033f40c0003b0",
+  "uploadedIPABytes": 36334326,
+  "actualAppleBuildID": "a49ab68c-859a-4467-8454-c1c5fde1677a",
+  "version": "1.0",
+  "build": "27",
+  "processingState": "VALID",
+  "intendedTesterAccessConfirmed": true,
+  "independentSignatureAndPayloadAudit": "/Users/alex/.codex/artifacts/naval-exploration/build27-ship-blockades/final-independent-release-audit.json",
+  "physicalPhoneObserved": false,
+  "headMayNowAdvanceForMetadataOnly": true
+}

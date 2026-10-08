@@ -133,7 +133,7 @@ extension NavalDecisionContext {
         // A ship not yet at its coast still needs settlement funding. Without
         // this target the fleet explores while its owner trades away the supplies.
         if !ownedShips.isEmpty, tier == .expert || bestSettlement == nil,
-           let best = colonySites.map({ settlementValue($0) + pointPremium(colonyPoints($0)) }).max() {
+           let best = reachableColonySites.map({ settlementValue($0) + pointPremium(colonyPoints($0)) }).max() {
             targets.append(NavalPurchaseTarget(cost: Building.settlementCost, value: best * 0.85))
         }
         return targets
