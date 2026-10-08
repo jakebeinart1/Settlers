@@ -16,8 +16,9 @@ struct NavalBlockadePresentationTests {
     @Test(arguments: NavalBlockadeQAFixture.Position.allCases, [false, true])
     func generatedBlockadeBaselinesConserveSupplyAndValidate(position: NavalBlockadeQAFixture.Position, fog: Bool) throws {
         let state = try NavalBlockadeQAFixture.make(position, options: NavalOptions(fogEnabled: fog))
-        #expect(state.naval?.rulesVersion == Naval.currentRulesVersion)
-        #expect(try #require(state.naval?.rulesVersion) >= Naval.blockadeRulesVersion)
+        let rulesVersion = try #require(state.naval?.rulesVersion)
+        #expect(rulesVersion == Naval.currentRulesVersion)
+        #expect(rulesVersion >= Naval.blockadeRulesVersion)
         #expect(state.players.allSatisfy { $0.settlements.count == 2 && $0.roads.count == 2 })
         #expect(state.naval?.ships.filter { $0.owner == rival }.allSatisfy { $0.stepsRemaining == 0 } == true)
         for resource in Resource.allCases {
@@ -86,8 +87,9 @@ struct NavalBlockadePresentationTests {
         let defender = try #require(model.state.naval?.ships.first { $0.id == blocker.id })
         #expect(defender.id == blocker.id && defender.owner == blocker.owner)
         #expect(defender.coordinate == blocker.coordinate && defender.stepsRemaining == blocker.stepsRemaining)
-        let discoveries = try #require(model.state.naval?.revealed).subtracting(revealed)
-        #expect(!discoveries.isEmpty && revealed.isSubset(of: try #require(model.state.naval?.revealed)))
+        let revealedAfter = try #require(model.state.naval?.revealed)
+        let discoveries = revealedAfter.subtracting(revealed)
+        #expect(!discoveries.isEmpty && revealed.isSubset(of: revealedAfter))
         // A real public discovery invalidates every hull's old travel objective,
         // including the stationary defender; its physical blockade stays intact.
         #expect(blocker.previousSailingOrigin != nil && defender.previousSailingOrigin == nil)
