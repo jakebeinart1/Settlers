@@ -269,9 +269,13 @@ actor LiveSync {
     /// gone cannot be verified by anyone else, so it stays local; one that
     /// fails its own verification is marked and never retried.
     private func uploadGames(me: String, state: inout SyncState) async throws -> Bool {
+        // A game seating an Old Ghost (`<id>~<n>`, kept by a reset) stays
+        // here: that ghost never syncs, so every other phone would show a
+        // nameless row for it.
         let pending = stores.seatStats.all().filter { record in
             !state.uploaded.contains(record.match) && !state.unshareable.contains(record.match)
                 && record.seats.contains { $0.personID == me }
+                && !record.seats.contains { $0.ghostID?.contains("~") == true }
         }
         guard !pending.isEmpty else { return false }
         let logs = Dictionary(((try? stores.logs.summaries()) ?? []).map { ($0.gameID, $0) }, uniquingKeysWith: { first, _ in first })

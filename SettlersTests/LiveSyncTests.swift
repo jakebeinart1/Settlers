@@ -327,6 +327,21 @@ import Testing
         #expect(!alex.stores.ghosts.all().contains { $0.id == "apple-jake" })
     }
 
+    /// An Old Ghost (`<id>~<n>`) exists only on the phone that reset, so a
+    /// game against it would put a nameless row on every other leaderboard.
+    @Test func aGameAgainstAnOldGhostStaysOnThePhone() async throws {
+        let dir = root()
+        defer { try? FileManager.default.removeItem(at: dir) }
+        let cloud = FakeCloud()
+        let jake = Device("jake", in: dir)
+        try jake.stores.ghosts.save(trainedGhost(jake.me, "Jake's Ghost"))
+        _ = await jake.sync(cloud, as: "apple-jake", name: "Jake")
+        try jake.stores.ghosts.reset("apple-jake", keepingOld: true)
+        try await jake.play(as: "Jake", against: "apple-jake~1")
+        _ = await jake.sync(cloud, as: "apple-jake", name: "Jake")
+        #expect(cloud.locked { $0.matches.isEmpty })
+    }
+
     @Test func aGhostIsAcceptedOnlyAtAHigherRevision() {
         let base = trainedGhost("apple-jake", "Jake's Ghost", games: 30)
         var reset = base
