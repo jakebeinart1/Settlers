@@ -9,6 +9,8 @@ import CatanEngine
 /// finished match and goes home (`onMainMenu`). They used to be one button,
 /// titled New Game, that went to the menu (Jake, 2026-09-25).
 public struct EndGameView: View {
+    private static let victoryEmblemSize: CGFloat = 76
+
     public let state: GameState
     public let humanSeats: Set<PlayerID>
     public let playerIdentity: (PlayerID) -> PlayerIdentity
@@ -151,8 +153,12 @@ public struct EndGameView: View {
             let identity = playerIdentity(winner)
             VStack(spacing: 8) {
                 if humanSeats.count == 1, humanSeats.contains(winner) {
-                    Text("🎉")
-                        .font(.system(size: 64))
+                    Image("victory-emblem")
+                        .resizable()
+                        .renderingMode(.original)
+                        .scaledToFit()
+                        .frame(width: Self.victoryEmblemSize, height: Self.victoryEmblemSize)
+                        .accessibilityHidden(true)
                     // Same serif/black/tracking treatment as the
                     // "EMPIRES" wordmark on `MainMenuView` - a win screen
                     // is the one other moment that deserves that same

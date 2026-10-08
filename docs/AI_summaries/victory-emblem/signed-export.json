@@ -1,0 +1,29 @@
+{
+  "verifiedAtUTC": "2026-10-08T02:11:20.331181+00:00",
+  "productionSourceSHA": "cf9b5a4af2ee4f5aca77450d3fe7413210ef3160",
+  "archiveHeadSHA": "cf9b5a4af2ee4f5aca77450d3fe7413210ef3160",
+  "productionInputCount": 380,
+  "version": "1.0",
+  "build": "28",
+  "bundleIdentifier": "com.alexchandler.empires",
+  "ipaPath": "/Users/alex/.codex/artifacts/naval-exploration/build28-victory-emblem/export/Settlers.ipa",
+  "ipaSHA256": "73ffa9067087cec00176e070677696c049b527aa0d7ec6374de082747136c86a",
+  "ipaMD5": "5d71501fa3e77f3231d400cdc11f2c18",
+  "ipaBytes": 37366514,
+  "executableSHA256": "9d5b0a6fceb469e7b4c0872dd2671dd9c0ab57a74f94c2e2ee498753cc4f24e7",
+  "strictDeepSignatureExitCode": 0,
+  "profileName": "Empires App Store 20261004",
+  "profileUUID": "86da5771-8640-4c53-8867-0b4fbd4f1035",
+  "profileCertificateSHA1": [
+    "76465B06C2E157D857641F5B3D25CF5A3110C4A9"
+  ],
+  "actualSignerCertificateSHA1": "76465B06C2E157D857641F5B3D25CF5A3110C4A9",
+  "profileExpiresUTC": "2027-01-25T20:55:57+00:00",
+  "betaReportsActive": true,
+  "getTaskAllow": false,
+  "provisionedDevicesAbsent": true,
+  "signedCloudKitEnvironment": "Production",
+  "signedCloudKitContainers": [
+    "iCloud.com.alexchandler.empires"
+  ]
+}

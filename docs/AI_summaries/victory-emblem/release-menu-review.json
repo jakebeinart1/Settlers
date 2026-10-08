@@ -1,0 +1,15 @@
+{
+  "reviewer": "/root/victory_delivery_orchestrator",
+  "reviewedAtUTC": "2026-10-08T02:10:30.715112+00:00",
+  "verdict": "PASS",
+  "scope": "Exact gated ordinary Release28 fresh launch/menu",
+  "imagePath": "/Users/alex/.codex/artifacts/naval-exploration/build28-victory-emblem/release-ordinary-menu.png",
+  "screenshotSHA256": "698cabd0d73c97a8301543bf82a8ecfd63a12fde6de2c178c2ee536e81eeee6c",
+  "imagesUnmodified": true,
+  "detail": "original",
+  "observations": "EMPIRES title, Rules, New Game and Leaderboard render fully. No launch error or QA fixture is shown. Runtime receipt independently read: fresh installation, no launch arguments, gate-compiled installed executable identical, alive6seconds/no new owncrash.",
+  "productionSourceSHA": "cf9b5a4af2ee4f5aca77450d3fe7413210ef3160",
+  "version": "1.0",
+  "build": "28",
+  "physicalPhoneInstallationObserved": false
+}

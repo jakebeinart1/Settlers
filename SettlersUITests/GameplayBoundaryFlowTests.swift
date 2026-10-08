@@ -142,6 +142,11 @@ final class GameplayBoundaryFlowTests: XCTestCase {
 
         let newGame = app.buttons["game-over.new-game"]
         XCTAssertTrue(newGame.waitForExistence(timeout: 5))
+        XCTAssertTrue(app.staticTexts["YOU WIN!"].exists)
+        let victory = XCTAttachment(screenshot: app.screenshot())
+        victory.name = "Victory — painted emblem at normal text"
+        victory.lifetime = .keepAlways
+        add(victory)
         // No replay here, and that is the assertion. `-qaShowEndGame` forces
         // the win through `qaForceHumanWin`, which replaces the active match
         // with a fresh one carrying no moves - so its id names a recording

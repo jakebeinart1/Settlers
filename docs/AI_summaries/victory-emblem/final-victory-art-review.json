@@ -1,0 +1,45 @@
+{
+  "reviewer": "/root/victory_ui_audit",
+  "reviewedAtUTC": "2026-10-08T00:46:10Z",
+  "verdict": "PASS within the requested victory-emblem scope",
+  "sourceBase": "2fc137d62f0cef405b2513c48f1ef9ba98642f76",
+  "sourceState": "Uncommitted candidate; this receipt approves the stated file bytes, not a future freeze, full gate, upload or merge.",
+  "scope": "Replace only the decorative party-popper in the single-human winner branch. Preserve headline, standings, actions, result layout and all game rules.",
+  "reviewedSource": {
+    "EndGameView.swiftSHA256": "d360f33b2e6943f2628c220899e7c825a01aa370ee2dd82137bbaf24a19d7c04",
+    "assetContentsSHA256": "1959966804d2314b42a8aa05877c039f25369736224779361acd6d8f110d13e4",
+    "assetPNG_SHA256": "aad28d20a142006267bdcbe1d399bac885313829bdbd6a4922ccdfa97f3d6fe9",
+    "assetEqualsSelectedGeneratedOriginal": true,
+    "sizePoints": [76, 76],
+    "rendersOriginalColors": true,
+    "decorativeAccessibilityHidden": true,
+    "botAndMultipleHumanElseBranchUnchanged": true,
+    "engineAndAIChanges": false
+  },
+  "artCritique": "The large ivory banner and gold hex form a coherent silhouette. The rising sun and two broad landscape facets remain legible at native 76 points. Restrained navy edging, warm gold and painted shading match the existing gold-trimmed results panel and landscape. No civilization-specific architecture, ship, lettering, confetti or award clutter makes the emblem suitable across modes and civilizations. At the reviewed size it reads as a triumphal empire seal beside the explicit YOU WIN! headline. No replacement-blocking artistic issue was found.",
+  "originalCapturesViewed": [
+    {
+      "path": "/Users/alex/.codex/artifacts/naval-exploration/build28-victory-emblem/normal-attachments/C04D7349-8364-430A-811F-AD36B8D76EE3.png",
+      "sha256": "77bee827dca0dcf4f1d0d25c80647b6b16bd5e0cfe88ff4395e6f593fc76d335",
+      "viewedDetail": "original",
+      "verdict": "PASS",
+      "observation": "Generated emblem visibly renders above the complete YOU WIN! headline. Panel, all four standings and both actions fit without overlap. Gold/ivory icon remains clear against charcoal."
+    },
+    {
+      "path": "/Users/alex/.codex/artifacts/naval-exploration/build28-victory-emblem/large-attachments/FD827AE3-8516-4A1D-AD20-6DE0ECB19AA5.png",
+      "sha256": "0f273da2249917cd9b3f1ae11a3706be329b7c84393afe9ca3dd5bb9c4615d03",
+      "viewedDetail": "original",
+      "verdict": "PASS for replacement emblem and headline",
+      "observation": "Maximum-text initial view retains the complete emblem and YOU WIN! headline. Existing standings are tall and wrap or hyphenate names and scores; their source is unchanged and this review does not approve the whole maximum-text standings design."
+    },
+    {
+      "path": "/Users/alex/.codex/artifacts/naval-exploration/build28-victory-emblem/large-attachments/E04D04F1-1F84-478B-8D34-ED7BEE927A65.png",
+      "sha256": "6a82f136200ce3f1c007b7a7d98648f899c1bee8d5291c22c172c461792cc188",
+      "viewedDetail": "original",
+      "verdict": "PASS for continued action reachability",
+      "observation": "After scrolling the enlarged results, New Game and Main Menu are visible and separate. No art-induced obstruction is apparent. This is not an approval of pre-existing standings wrapping."
+    }
+  ],
+  "requiredIssues": [],
+  "qualification": "Forced winner QA positions legitimately show 0 VP; these images prove appearance and action reachability, not an actual match win. Bot result branch is verified unchanged by source comparison, not a fresh bot-win screenshot. Native test pass counts were reported by root; this independent review inspected original pixels and source only."
+}

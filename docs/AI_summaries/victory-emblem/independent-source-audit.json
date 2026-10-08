@@ -1,0 +1,155 @@
+{
+  "reviewer": "/root/victory_source_audit",
+  "reviewedAtUTC": "2026-10-08T00:55:22.839191+00:00",
+  "verdict": "PASS for frozen production source and focused native evidence; full gate and delivery pending",
+  "sourceCommit": "cf9b5a4af2ee4f5aca77450d3fe7413210ef3160",
+  "sourceBase": "2fc137d62f0cef405b2513c48f1ef9ba98642f76",
+  "version": "1.0",
+  "build": "28",
+  "scope": "Replace the decorative party-popper in the single-human winner branch with reviewed original generated art. Version bump, generated project, screenshot checkpoints and art metadata are the remaining changes.",
+  "requiredProductionIssues": [],
+  "sourceChecks": {
+    "currentHeadExactlyFrozenCommit": true,
+    "all380CurrentInputsMatchManifestHashesAndByteCounts": true,
+    "all380CurrentInputsExactlyEqualGitFrozenBytes": true,
+    "dynamicCurrentAndFrozenInventoryComplete": true,
+    "productionManifestSHA256": "5de3dbbcedf1cb22ecf9a4658c52e6996fa8dbe6e96fbe3ca27ebe396be6cde0",
+    "inputCount": 380,
+    "newProductionFiles": [
+      "Settlers/Assets.xcassets/victory-emblem.imageset/Contents.json",
+      "Settlers/Assets.xcassets/victory-emblem.imageset/victory-emblem.png"
+    ],
+    "changedProductionFiles": [
+      "Settlers/Views/EndGameView.swift",
+      "project.yml",
+      "Settlers.xcodeproj/project.pbxproj"
+    ],
+    "noRemovedProductionInputs": true,
+    "all112PackageInputsEqualBuild27TestedManifest": true,
+    "all112PackageInputsEqualBuild27MatrixProvenance": true,
+    "all112PackageInputsEqualMergedMainBase": true,
+    "rulesAIAndSaveCodeUnchanged": true,
+    "generatedProjectDiffOnlyVersion27To28": true,
+    "signingDefaultsUnchanged": true,
+    "gitDiffCheckExitCode": 0,
+    "gitDiffCheckEarlierExtraPromptBlankLineCorrectedByRootAsMetadataOnly": true
+  },
+  "integrationReview": {
+    "displayPoints": [
+      76,
+      76
+    ],
+    "originalPalette": true,
+    "decorativeAccessibilityHidden": true,
+    "existingYouWinTextPreserved": true,
+    "botAndMultipleHumanBranchesUnchanged": true,
+    "standingsActionsReplayAndCallbacksUnchanged": true,
+    "noParentAccessibilityContainerAdded": true,
+    "imageNameExactlyMatchesCatalog": true,
+    "assetUniversalCatalogEntryValid": true,
+    "slotBoundedAndAspectFitted": true,
+    "noGameplayOrStateMutationsIntroduced": true
+  },
+  "asset": {
+    "EndGameViewSHA256": "d360f33b2e6943f2628c220899e7c825a01aa370ee2dd82137bbaf24a19d7c04",
+    "assetContentsSHA256": "1959966804d2314b42a8aa05877c039f25369736224779361acd6d8f110d13e4",
+    "assetPNG_SHA256": "aad28d20a142006267bdcbe1d399bac885313829bdbd6a4922ccdfa97f3d6fe9",
+    "assetBytesExactlySelectedGeneratedOriginal": true,
+    "sizePixels": [
+      1254,
+      1254
+    ],
+    "colorType": "RGBA",
+    "bitDepth": 8,
+    "alphaExtrema": [
+      0,
+      255
+    ],
+    "transparentPixels": 945229,
+    "totalPixels": 1572516,
+    "alphaVerifiedIndependentlyViaStandardLibraryPNGUnfilter": true
+  },
+  "generationReview": {
+    "firstAndRefinedGeneratedOriginalHashesMatchReceipt": true,
+    "bothOriginalsViewedAtOriginalResolution": true,
+    "firstCandidateFinialCritiquePreserved": true,
+    "selectedRefinementRemovesTallFinialAndSimplifiesSunLandscape": true,
+    "fullPromptsRetained": true,
+    "artCritique": "A gold territory hex, rising sun and sweeping ivory banner form a cohesive emblem. Broad light shapes read clearly at the actual 76-point native size; restrained gold, ivory and navy match the painted gold border and charcoal panel. The refinement removes the finial crowded against the first canvas edge. The symbol complements YOU WIN! without selecting a civilization."
+  },
+  "focusedNative": {
+    "rawXcresultReadIndependently": true,
+    "rawSummaryExactlyStoredSummary": true,
+    "passed": 3,
+    "failed": 0,
+    "skipped": 0,
+    "totalFunctions": 3,
+    "commandExitCode": 0,
+    "fixtureQualification": "Forced-win fixtures have zero-VP rows and no replay; this proves rendering and result actions, not a natural match win.",
+    "rawSummarySHA256": "e111306e4b57ebfcf8c9d87cfd612f02d15878d5e7a4a8b2d6f86403f67e8279"
+  },
+  "images": [
+    {
+      "path": "/Users/alex/.codex/artifacts/naval-exploration/build28-victory-emblem/normal-attachments/C04D7349-8364-430A-811F-AD36B8D76EE3.png",
+      "sha256": "77bee827dca0dcf4f1d0d25c80647b6b16bd5e0cfe88ff4395e6f593fc76d335",
+      "test": "GameplayBoundaryFlowTests/testCompletedGameReturnsToMainMenuWithoutAResumeButton()",
+      "timestamp": 1791420078.24,
+      "reviewer": "root",
+      "detail": "original",
+      "verdict": "PASS for requested emblem and reachable result actions",
+      "independentReview": "Viewed original resolution; PASS for emblem/headline or continued action reachability",
+      "bytesMatchRootHash": true,
+      "repositoryCopyUnmodified": true
+    },
+    {
+      "path": "/Users/alex/.codex/artifacts/naval-exploration/build28-victory-emblem/large-attachments/E04D04F1-1F84-478B-8D34-ED7BEE927A65.png",
+      "sha256": "6a82f136200ce3f1c007b7a7d98648f899c1bee8d5291c22c172c461792cc188",
+      "test": "NavalFlowTests/testResultsRemainReachableAtMaximumTextSize()",
+      "timestamp": 1791420092.219,
+      "reviewer": "root",
+      "detail": "original",
+      "verdict": "PASS for requested emblem and reachable result actions",
+      "independentReview": "Viewed original resolution; PASS for emblem/headline or continued action reachability",
+      "bytesMatchRootHash": true,
+      "repositoryCopyUnmodified": true
+    },
+    {
+      "path": "/Users/alex/.codex/artifacts/naval-exploration/build28-victory-emblem/large-attachments/FD827AE3-8516-4A1D-AD20-6DE0ECB19AA5.png",
+      "sha256": "0f273da2249917cd9b3f1ae11a3706be329b7c84393afe9ca3dd5bb9c4615d03",
+      "test": "NavalFlowTests/testResultsRemainReachableAtMaximumTextSize()",
+      "timestamp": 1791420090.293,
+      "reviewer": "root",
+      "detail": "original",
+      "verdict": "PASS for requested emblem and reachable result actions",
+      "independentReview": "Viewed original resolution; PASS for emblem/headline or continued action reachability",
+      "bytesMatchRootHash": true,
+      "repositoryCopyUnmodified": true
+    }
+  ],
+  "metadataSafety": {
+    "generationPromptsAndNewReceiptsInspected": true,
+    "gitleaksScope": "docs/AI_summaries/victory-emblem",
+    "gitleaksExitCode": 0,
+    "gitleaksFindings": 0,
+    "reportSHA256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+    "documentationDoesNotClaimFullGateOrDeliveryComplete": true
+  },
+  "limitations": [
+    "Full pre-push gate is root-owned and pending; this receipt does not approve its outcome, release, upload, Apple processing or merge.",
+    "Existing maximum-text standings wrap names and some VP labels. Those unchanged rows are outside this replacement approval.",
+    "Actual VoiceOver navigation and a fresh bot-win capture were not exercised; decorative hiding and unchanged bot branch were verified in source.",
+    "This art-only change does not justify any AI strength improvement claim.",
+    "Default python lacks Pillow; asset alpha was independently inspected with standard-library PNG decoding instead."
+  ],
+  "actionsPerformed": {
+    "nativeSimulatorOperations": false,
+    "buildOrPackageCommands": false,
+    "gitMutations": false,
+    "sourceEdits": false,
+    "createdWorktrees": false,
+    "artifactsWritten": [
+      "source-audit-metadata-gitleaks.json",
+      "final-independent-source-audit.json"
+    ]
+  }
+}
