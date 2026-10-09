@@ -108,8 +108,7 @@ struct BuildChoiceRow: View {
     private var costTokens: some View {
         ForEach(presentation.costs) { cost in
             HStack(spacing: 4) {
-                Image(CatanTheme.iconImageName(for: cost.resource))
-                    .resizable().scaledToFit().frame(width: 18, height: 18)
+                ResourceSquare(resource: cost.resource, size: 18)
                 Text("\(cost.held)/\(cost.required)")
                     .font(.caption.weight(.semibold)).monospacedDigit()
                 if cost.missing > 0 {

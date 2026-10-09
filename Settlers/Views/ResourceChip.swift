@@ -7,12 +7,14 @@ import CatanEngine
 ///
 /// ## Squares, never the painted hex art
 /// Twice now these have been swapped for the gold-rimmed hexagon commodity
-/// art (`CatanTheme.iconImageName`), on the argument that a picture reads
+/// art, on the argument that a picture reads
 /// without learning the colour key. Jake has rejected that both times
 /// (2026-10-06: "keep the squares and never revert to the hexes with the
 /// small icons"). The squares match `PlayerHUDView.resourceDot`, the bank
 /// row and the board, so one colour means one resource everywhere in the
-/// game. Spoken names come from `accessibilityText`, not from art.
+/// game. Spoken names come from `accessibilityText`, not from art. The hex
+/// art itself was deleted from the asset catalog on 2026-10-09 after it
+/// resurfaced a third time in the Build popup, so it cannot come back.
 struct ResourceChip: View {
     let resource: Resource
     let count: Int?
