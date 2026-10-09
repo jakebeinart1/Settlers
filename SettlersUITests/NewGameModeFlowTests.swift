@@ -80,25 +80,78 @@ final class NewGameModeFlowTests: XCTestCase {
         assertReturningFromNavalStarts(vast: true, conquest: true)
     }
 
-    private func assertReturningFromNavalStarts(vast: Bool, conquest: Bool) {
+    func testNavalReturnsToFixedClassicStandard() {
+        assertReturningFromNavalStarts(vast: false, conquest: false, randomized: false)
+    }
+
+    func testNavalReturnsToFixedClassicConquest() {
+        assertReturningFromNavalStarts(vast: false, conquest: true, randomized: false)
+    }
+
+    func testNavalReturnsToFixedVastStandard() {
+        assertReturningFromNavalStarts(vast: true, conquest: false, randomized: false)
+    }
+
+    func testNavalReturnsToFixedVastConquest() {
+        assertReturningFromNavalStarts(vast: true, conquest: true, randomized: false)
+    }
+
+    func testNavalRoundTripUsesUpdatedLandChoices() {
+        continueAfterFailure = false
+        let app = XCUIApplication()
+        app.launchArguments = ["-ui-testing", "-ui-testing-reset", "-qaShowNewGame"]
+        app.launch()
+        XCTAssertTrue(app.buttons["new-game.rules.naval"].waitForExistence(timeout: 10))
+        app.buttons["new-game.board.standard"].tap()
+        visitNavalAndReturn(in: app, conquest: false)
+        XCTAssertTrue(app.buttons["new-game.board.standard"].isSelected)
+        app.buttons["new-game.mode.vast"].tap()
+        app.buttons["new-game.board.randomized"].tap()
+        visitNavalAndReturn(in: app, conquest: true)
+        XCTAssertTrue(app.buttons["new-game.mode.vast"].isSelected)
+        XCTAssertTrue(app.buttons["new-game.board.randomized"].isSelected)
+        app.buttons["new-game.mode.classic"].tap()
+        app.buttons["new-game.board.standard"].tap()
+        visitNavalAndReturn(in: app, conquest: false)
+        XCTAssertTrue(app.buttons["new-game.mode.classic"].isSelected)
+        XCTAssertTrue(app.buttons["new-game.board.standard"].isSelected)
+        XCTAssertTrue(app.buttons["new-game.start"].isEnabled)
+    }
+
+    /// Visiting Naval must preserve the land-board choice alongside its mode.
+    /// Naval's randomized island generation cannot replace a fixed land board
+    /// that the player already selected before exploring the Rules options.
+    private func assertReturningFromNavalStarts(vast: Bool, conquest: Bool, randomized: Bool = true) {
         continueAfterFailure = false
         let app = XCUIApplication()
         app.launchArguments = ["-ui-testing", "-ui-testing-reset", "-qaShowNewGame"]
         app.launch()
         XCTAssertTrue(app.buttons["new-game.rules.naval"].waitForExistence(timeout: 10))
         if vast { app.buttons["new-game.mode.vast"].tap() }
+        let boardChoice = "new-game.board.\(randomized ? "randomized" : "standard")"
+        app.buttons[boardChoice].tap()
+        XCTAssertTrue(app.buttons[boardChoice].isSelected)
         app.buttons["new-game.rules.conquest"].tap()
-        app.buttons["new-game.rules.naval"].tap()
-        XCTAssertTrue(app.buttons["new-game.rules.naval"].isSelected)
-        XCTAssertFalse(app.buttons["new-game.mode.vast"].exists)
-        let rules = app.buttons["new-game.rules.\(conquest ? "conquest" : "standard")"]
-        rules.tap()
-        XCTAssertTrue(rules.isSelected, "Returning from Naval must restore the chosen land rules")
+        visitNavalAndReturn(in: app, conquest: conquest)
         XCTAssertTrue(app.buttons["new-game.mode.\(vast ? "vast" : "classic")"].isSelected)
+        XCTAssertTrue(app.buttons[boardChoice].isSelected,
+                      "Visiting Naval replaced the selected land-board layout")
         XCTAssertTrue(app.buttons["new-game.start"].isEnabled)
         app.buttons["As Shown"].tap()
         app.buttons["new-game.start"].tap()
         assertOpeningBoard(in: app, vertexCount: vast ? 150 : 54)
+    }
+
+    private func visitNavalAndReturn(in app: XCUIApplication, conquest: Bool) {
+        let naval = app.buttons["new-game.rules.naval"]
+        naval.tap()
+        XCTAssertTrue(naval.isSelected)
+        // Tapping the selected rule cannot replace the remembered land choice.
+        naval.tap()
+        XCTAssertFalse(app.buttons["new-game.mode.vast"].exists)
+        let rules = app.buttons["new-game.rules.\(conquest ? "conquest" : "standard")"]
+        rules.tap()
+        XCTAssertTrue(rules.isSelected, "Returning from Naval must restore the chosen land rules")
     }
 
     private func assertOpeningBoard(in app: XCUIApplication, vertexCount: Int) {

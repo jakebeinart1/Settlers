@@ -1,5 +1,45 @@
 # Naval exploration product program
 
+## October 9 mode-isolation follow-up
+
+Fog belongs only to Naval. Ordinary Classic, Vast, retained Expanded and
+Conquest boards expose their complete terrain and harbors. The audit found no
+reachable ordinary-mode fog defect in the current source. Its engine feedback
+loop exercised 300 configurations and 4,800 setup moves, save/checkpoint
+round trips, complete ordinary observations and six Naval fog controls.
+[Engine receipt](/Users/alex/.codex/artifacts/naval-exploration/mode-isolation-audit/engine/feedback-receipt.json)
+keeps the synthetic negative control distinct from a production reproduction.
+
+The audit did reproduce an adjacent setup defect: selecting a Standard land
+board, visiting Naval, then returning selected Randomized. The native regression
+failed before the correction and passed afterward. The draft now remembers both
+land mode and board randomization; active matches and saved rules are untouched.
+Tests cover all eight fixed/randomized Classic/Vast and Standard/Conquest
+round trips, repeated Naval selection and editing the choice between visits.
+
+The first focused native run passed 21 tests and completed an ordinary match
+after an actual Naval game. Its [original screenshots](/Users/alex/.codex/artifacts/naval-exploration/mode-isolation-audit/focused-originals/manifest.json)
+show full ordinary boards through placement, resume, restart and replay.
+Two later test improvements verify the actual Conquest variant and distinguish
+the restarted settlement phase from the preceding road phase; first-run results
+alone do not prove those stronger assertions. Debug leaf markers inspect the
+actual board consumed by Canvas and the actual mist subtree. Release retains
+its original mist rendering. New main's themes, card art, victory cutscene and
+Ghost management are preserved from integration base `9ce1ecf`.
+
+Completion evidence for this follow-up is kept together:
+[final source manifest](/Users/alex/.codex/artifacts/naval-exploration/mode-isolation-audit/final-production-input-manifest.json),
+[full pre-push gate](/Users/alex/.codex/artifacts/naval-exploration/mode-isolation-audit/final-prepush-command.json),
+[final native summary](/Users/alex/.codex/artifacts/naval-exploration/mode-isolation-audit/final-native-summary.json),
+[reviewed screenshots](/Users/alex/.codex/artifacts/naval-exploration/mode-isolation-audit/final-reviewed-screenshots.md),
+[ordinary Release runtime](/Users/alex/.codex/artifacts/naval-exploration/mode-isolation-audit/release-runtime.json),
+[exact Apple/Internal delivery](/Users/alex/.codex/artifacts/naval-exploration/mode-isolation-audit/delivery/testflight.json),
+and [merge/source equivalence](/Users/alex/.codex/artifacts/naval-exploration/mode-isolation-audit/final-merge-source-proof.json).
+Their actual statuses own the completion verdict; absent or unfinished receipts
+are not a pass. Physical-phone play and new AI strength are not established by
+this mode-isolation audit. QA937 is reused under the shared allocation lock;
+other projects' devices remain protected.
+
 ## Build 29 final acceptance and delivery — October 8, 2026
 
 Empires 1.0/build 29 is available to Alex in Internal TestFlight, verified by
