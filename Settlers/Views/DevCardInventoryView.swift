@@ -54,8 +54,8 @@ struct DevCardHandBadge: View {
                     DevCardEmblem(type: item.type)
                 }
                 .foregroundStyle(DevCardChrome.ivory)
-                .frame(width: 54, height: HUDCardMetrics.height)
-                .background(DevCardChrome.background(item.type))
+                .frame(width: 58, height: HUDCardMetrics.height)
+                .background { DevCardChrome.background(item.type).padding(.vertical, -HUDCardMetrics.tileBleed) }
             }
             .buttonStyle(.plain)
             .accessibilityLabel("\(DevCardStyle.fullName(for: item.type)), \(item.held) owned")
@@ -73,6 +73,13 @@ enum HUDCardMetrics {
     static let iconHeight: CGFloat = 16
     static let titleHeight: CGFloat = 11
     static let countHeight: CGFloat = 17
+    /// How far a tile's painted background reaches past its 44pt slot, top
+    /// and bottom. The slot stays 44pt so the panel (and so the board) never
+    /// changes height; only the frame grows, so the emblem and count stop
+    /// touching its edge (Jake, 2026-10-09: "crammed ... on the edge").
+    static let tileBleed: CGFloat = 4
+    /// Width of the fade at the hand row's right edge.
+    static let scrollFade: CGFloat = 24
 }
 
 struct HUDCardLabel<Icon: View>: View {

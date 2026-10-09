@@ -39,7 +39,11 @@ struct BuildActionPresentation: Identifiable, Equatable {
 
     let kind: Kind
     let isEnabled: Bool
-    let detail: String
+    /// Nil when a cost shortfall is the only reason: the red-ringed squares
+    /// already say it (Jake, 2026-10-09: drop the "Need 1 brick" line).
+    let detail: String?
+    /// Pieces or cards still in supply, drawn small beside the title.
+    let remaining: String
     let costs: [Cost]
     let flexibleCost: String?
     let inventoryDetail: String?
@@ -47,7 +51,7 @@ struct BuildActionPresentation: Identifiable, Equatable {
     var title: String { kind.title }
     var status: String { isEnabled ? "Ready" : "Unavailable" }
     var accessibilityValue: String {
-        ([status, detail] + costs.map {
+        ([status, remaining, detail].compactMap { $0 } + costs.map {
             "\($0.resource.rawValue.capitalized): have \($0.held), cost \($0.required), missing \($0.missing)"
         } + [flexibleCost, inventoryDetail].compactMap { $0 }).joined(separator: ". ")
     }
@@ -72,7 +76,8 @@ struct BuildActionPresentation: Identifiable, Equatable {
             let enabled = legal.contains(where: kind.matches)
             let detail = enabled ? kind.readyDetail(for: player, in: state)
                 : kind.unavailableDetail(for: player, in: state, costs: costs)
-            return Self(kind: kind, isEnabled: enabled, detail: detail, costs: costs,
+            return Self(kind: kind, isEnabled: enabled, detail: detail,
+                        remaining: kind.remaining(for: player, in: state), costs: costs,
                         flexibleCost: kind.flexibleCost(for: player, in: state),
                         inventoryDetail: kind.inventoryDetail(for: player, in: state))
         }
@@ -105,25 +110,34 @@ private extension BuildActionPresentation.Kind {
         return cards.isEmpty ? "No army cards held" : "Yours: " + cards.map(String.init).joined(separator: ", ")
     }
 
-    func readyDetail(for player: Player, in state: GameState) -> String {
+    func remaining(for player: Player, in state: GameState) -> String {
         switch self {
-        case .ship: return "Launch at your coast · \(hullsRemaining(for: player, in: state)) hulls left"
-        case .road: return "Choose an edge · \(state.rules.maxRoadsPerPlayer - player.roads.count) pieces left"
-        case .settlement: return "Choose a corner · \(state.rules.pieceLimit(for: .settlement) - player.settlements.count) pieces left"
-        case .city: return "Upgrade a settlement · \(state.rules.pieceLimit(for: .city) - player.cities.count) pieces left"
-        case .devCard: return "Buy a card · \(state.devCardDeck.count) left"
-        case .armyCard: return "Choose your payment · \(state.armyDeck.count) left"
-        case .deployArmy: return "Choose a hex · \(state.armyHands[player.id, default: []].count) army cards"
+        case .ship: return "\(hullsRemaining(for: player, in: state)) left"
+        case .road: return "\(state.rules.maxRoadsPerPlayer - player.roads.count) left"
+        case .settlement: return "\(state.rules.pieceLimit(for: .settlement) - player.settlements.count) left"
+        case .city: return "\(state.rules.pieceLimit(for: .city) - player.cities.count) left"
+        case .devCard: return "\(state.devCardDeck.count) in deck"
+        case .armyCard: return "\(state.armyDeck.count) in deck"
+        case .deployArmy: return "\(state.armyHands[player.id, default: []].count) held"
         }
     }
 
-    func unavailableDetail(for player: Player, in state: GameState, costs: [BuildActionPresentation.Cost]) -> String {
+    func readyDetail(for player: Player, in state: GameState) -> String {
+        switch self {
+        case .ship: return "Launch at your coast"
+        case .road: return "Choose an edge"
+        case .settlement: return "Choose a corner"
+        case .city: return "Upgrade a settlement"
+        case .devCard: return "Buy a card"
+        case .armyCard: return "Choose your payment"
+        case .deployArmy: return "Choose a hex"
+        }
+    }
+
+    func unavailableDetail(for player: Player, in state: GameState, costs: [BuildActionPresentation.Cost]) -> String? {
         if let phaseReason = phaseReason(for: player.id, in: state) { return phaseReason }
         if let supplyReason = supplyReason(for: player, in: state) { return supplyReason }
-        let missing = costs.filter { $0.missing > 0 }
-        if !missing.isEmpty {
-            return "Need " + missing.map { "\($0.missing) \($0.resource.rawValue)" }.joined(separator: " · ")
-        }
+        if costs.contains(where: { $0.missing > 0 }) { return nil }
         if self == .armyCard, state.armyPrice != .oneOfEach {
             let count = state.armyPrice == .anyOne ? 1 : 3
             return "Need \(max(0, count - player.resources.values.reduce(0, +))) more resource cards"

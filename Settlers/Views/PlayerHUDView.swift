@@ -271,7 +271,7 @@ public struct HumanPlayerPanel: View {
                         .overlay(Color.white.opacity(0.25))
 
                     ScrollView(.horizontal, showsIndicators: false) {
-                        HStack(spacing: 6) {
+                        HStack(spacing: 8) {
                             DevelopmentCardShelfButton(count: devCardRows.reduce(0) { $0 + $1.held }) {
                                 onOpenDevCards(nil)
                             }
@@ -284,7 +284,22 @@ public struct HumanPlayerPanel: View {
                                 ArmyHUDTile(strength: row.strength, count: row.count, action: onDeployArmy)
                             }
                         }
+                        // Room inside the scroll clip for the tiles' bleed,
+                        // taken back outside so the row stays 44pt tall.
+                        .padding(.vertical, HUDCardMetrics.tileBleed)
+                        // Lets the last tile scroll clear of the fade.
+                        .padding(.trailing, HUDCardMetrics.scrollFade)
                     }
+                    // A tile half-dissolving into the right edge says "swipe
+                    // for more" now that whole tiles no longer peek past it.
+                    .mask {
+                        HStack(spacing: 0) {
+                            Color.black
+                            LinearGradient(colors: [.black, .clear], startPoint: .leading, endPoint: .trailing)
+                                .frame(width: HUDCardMetrics.scrollFade)
+                        }
+                    }
+                    .padding(.vertical, -HUDCardMetrics.tileBleed)
                 }
             }
             .padding(11)
@@ -385,9 +400,12 @@ private struct ArmyHUDTile: View {
                     .font(HUDCardStyle.iconFont)
             }
             .foregroundStyle(.white)
-            .frame(width: 54, height: 44)
-            .background(RoundedRectangle(cornerRadius: 8).fill(Color(red: 0.62, green: 0.16, blue: 0.14).gradient))
-            .overlay(RoundedRectangle(cornerRadius: 8).strokeBorder(.white.opacity(0.4), lineWidth: 1))
+            .frame(width: 58, height: HUDCardMetrics.height)
+            .background {
+                RoundedRectangle(cornerRadius: 8).fill(Color(red: 0.62, green: 0.16, blue: 0.14).gradient)
+                    .overlay(RoundedRectangle(cornerRadius: 8).strokeBorder(.white.opacity(0.4), lineWidth: 1))
+                    .padding(.vertical, -HUDCardMetrics.tileBleed)
+            }
         }
         .buttonStyle(.plain)
         .accessibilityLabel("Army card, strength \(strength), \(count) held. Deploy.")
@@ -406,14 +424,11 @@ private struct DevelopmentCardShelfButton: View {
                     Image(systemName: "rectangle.stack.fill").font(HUDCardStyle.iconFont)
                 }
                 .foregroundStyle(.white)
-                .frame(width: 48, height: 44)
-                .background(
-                    PaintedChromeBackground(
-                        fill: .color(SettingsChrome.plaqueFill),
-                        cornerRadius: 8,
-                        notchScale: 0.45
-                    )
-                )
+                .frame(width: 52, height: HUDCardMetrics.height)
+                .background {
+                    PaintedChromeBackground(fill: .color(SettingsChrome.plaqueFill), cornerRadius: 8, notchScale: 0.45)
+                        .padding(.vertical, -HUDCardMetrics.tileBleed)
+                }
             }
             .buttonStyle(.plain)
             .accessibilityLabel("Development cards")

@@ -15,11 +15,11 @@ struct BuildActionPresentationTests {
         let ship = try choice(.ship, from: choices)
         #expect(!ship.isEnabled)
         #expect(ship.status == "Unavailable")
-        #expect(ship.detail == "Need 1 lumber · 2 ore")
+        #expect(ship.detail == nil, "The red-ringed squares already show the shortfall")
         #expect(ship.costs.map(\.missing) == [1, 2, 0])
         #expect(ship.accessibilityValue.contains("Wool: have 10, cost 1, missing 0"))
-        #expect(try choice(.road, from: choices).detail == "Need 1 brick")
-        #expect(try choice(.city, from: choices).detail == "Need 3 ore · 2 grain")
+        #expect(try choice(.road, from: choices).detail == nil)
+        #expect(try choice(.city, from: choices).detail == nil)
         #expect(choices.allSatisfy { !$0.isEnabled })
     }
 
@@ -30,7 +30,8 @@ struct BuildActionPresentationTests {
         #expect(ship.isEnabled)
         #expect(ship.status == "Ready")
         #expect(ship.costs.allSatisfy { $0.missing == 0 })
-        #expect(ship.detail.contains("Launch at your coast"))
+        #expect(ship.detail == "Launch at your coast")
+        #expect(ship.remaining == "\(Naval.hullsPerBuilder - Naval.shipsBuilt(by: actor, in: state)) left")
         let settlement = try choice(.settlement, from: choices)
         #expect(!settlement.isEnabled)
         #expect(settlement.costs.allSatisfy { $0.missing == 0 })
@@ -69,8 +70,8 @@ struct BuildActionPresentationTests {
         }
         let presentation = try choice(kind, in: state)
         #expect(!presentation.isEnabled)
-        #expect(presentation.detail.hasPrefix("No \(kind.rawValue) pieces left"))
-        #expect(!presentation.detail.hasPrefix("Need"))
+        #expect(presentation.detail?.hasPrefix("No \(kind.rawValue) pieces left") == true)
+        #expect(presentation.remaining == "0 left")
     }
 
     @Test func emptyDevelopmentDeckExplainsBlockEvenWithAffordableCost() throws {
@@ -132,7 +133,7 @@ struct BuildActionPresentationTests {
             #expect(!card.isEnabled)
             #expect(card.flexibleCost == nil)
             #expect(card.costs.count == 5)
-            #expect(card.detail == "Need 1 brick · 1 lumber · 1 ore · 1 grain")
+            #expect(card.detail == nil, "The squares show the shortfall")
         }
     }
 

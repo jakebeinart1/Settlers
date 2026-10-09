@@ -14,8 +14,11 @@ final class BuildClarityFlowTests: XCTestCase {
         XCTAssertEqual(before, [0, 1, 0, 0, 10])
         app.buttons["Build"].tap()
         XCTAssertTrue(app.buttons["build.ship"].waitForExistence(timeout: 3))
-        XCTAssertTrue(app.buttons["build.ship"].valueAsString.contains("Need 1 lumber · 2 ore"))
-        XCTAssertTrue(app.buttons["build.road"].valueAsString.contains("Need 1 brick"))
+        // Shortfalls are read per cost; the on-screen "Need" line was dropped
+        // because the red-ringed squares already show it.
+        XCTAssertTrue(app.buttons["build.ship"].valueAsString.contains("Lumber: have 1, cost 2, missing 1"))
+        XCTAssertTrue(app.buttons["build.ship"].valueAsString.contains("Ore: have 0, cost 2, missing 2"))
+        XCTAssertTrue(app.buttons["build.road"].valueAsString.contains("Brick: have 0, cost 1, missing 1"))
         let menuBefore = navalRows.map { app.buttons["build.\($0)"].valueAsString }
         retain("Build — exact scarce hand and readable shortages", app: app)
         for identifier in navalRows {

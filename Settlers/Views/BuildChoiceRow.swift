@@ -22,10 +22,12 @@ struct BuildChoiceRow: View {
                 if let flexibleCost = presentation.flexibleCost {
                     Text(flexibleCost).font(.caption.weight(.semibold))
                 }
-                Text(presentation.detail)
-                    .font(.caption)
-                    .foregroundStyle(presentation.isEnabled ? CatanTheme.onWaterText : Self.mutedText)
-                    .fixedSize(horizontal: false, vertical: true)
+                if let detail = presentation.detail {
+                    Text(detail)
+                        .font(.caption)
+                        .foregroundStyle(presentation.isEnabled ? CatanTheme.onWaterText : Self.mutedText)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
                 if let inventory = presentation.inventoryDetail {
                     Text(inventory).font(.caption).foregroundStyle(Self.mutedText)
                 }
@@ -71,6 +73,9 @@ struct BuildChoiceRow: View {
                 .font(.subheadline.bold())
                 .foregroundStyle(presentation.isEnabled ? CatanTheme.onWaterText : Self.mutedText)
                 .fixedSize(horizontal: false, vertical: true)
+            Text(presentation.remaining)
+                .font(.caption)
+                .foregroundStyle(Self.mutedText)
         }
     }
 
