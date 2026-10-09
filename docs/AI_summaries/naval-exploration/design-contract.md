@@ -120,7 +120,13 @@ passing receipts remain historical evidence for their frozen source.
 
 ## Full match rules
 
-The opening begins in opaque mist. A central survey reveals its radius-two home
+Fog belongs only to Naval. Classic, Vast, retained Expanded and Conquest land
+boards remain fully visible during setup, play, cold resume, Restart and replay,
+even when next-game preferences remember Naval mist settings. Visiting Naval
+in the editable New Game draft must preserve both the selected land mode and
+its Standard/Randomized board choice when returning to Standard or Conquest.
+
+When Naval mist is enabled, the opening begins in opaque mist. A central survey reveals its radius-two home
 island footprint, then normal snake setup places two settlements and two roads
 per seat. Both starting settlements may use any legal home site, including
 inland corners. Coastal access is required to launch a ship and to found a

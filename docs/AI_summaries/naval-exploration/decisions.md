@@ -396,6 +396,24 @@ The previous Voyages entry in Game Mode is removed from this screen only;
 the mode remains supported by engine and prefill normalization. Validate actual
 selection, saved prefill and all four land-board/rules return combinations.
 
+**October 8 clarification and adjacent regression.** Alex requires fog only in
+Naval: Classic, Vast, retained Expanded and Conquest land boards remain fully
+visible during setup, play, cold resume, Restart and replay, regardless of
+remembered Naval options. No reachable ordinary-mode fog leak has been
+reproduced in the current audit. A shipping-control test did reproduce a related
+setup leak: choosing a fixed land board, visiting Naval, then returning to land
+silently selected Randomized (native failure after 7.572 seconds). The correction
+remembers the draft's land randomization choice alongside its land mode and
+restores both on leaving Naval. Naval match normalization and active saves remain
+unchanged. Coverage includes fixed/randomized Classic/Vast with either land
+rules choice, repeated Naval taps and later edits before another round trip.
+The first corrected native focus passes 21 tests, including the real ordinary
+match and replay. The final strengthened assertions additionally check actual
+variant and the new settlement phase after Restart; their completion verdict is
+owned by the [final full-gate receipt](/Users/alex/.codex/artifacts/naval-exploration/mode-isolation-audit/final-prepush-command.json),
+not the earlier focused run. The audit keeps its unreproduced fog symptom
+distinct from the reproduced board-choice defect.
+
 ## Decision record
 
 For each decision, record:

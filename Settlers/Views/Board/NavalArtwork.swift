@@ -62,6 +62,27 @@ nonisolated struct NavalMistLayer: View, Animatable {
     }
 
     var body: some View {
+        #if DEBUG
+        ZStack {
+            mistCanvas
+            // Lives inside the actual mist subtree: absence assertions cannot
+            // pass merely because another marker guessed which mode is active.
+            Color.white.opacity(0.001)
+                .frame(width: 1, height: 1)
+                .accessibilityElement(children: .ignore)
+                .accessibilityIdentifier("board.mist-field")
+                .accessibilityLabel("Rendered mist field")
+                .accessibilityValue("hidden=\(hidden.count);retiring=\(progress < 1 ? retiring.count : 0);progress=\(progress)")
+                .accessibilityRespondsToUserInteraction(false)
+        }
+        .allowsHitTesting(false)
+        #else
+        mistCanvas
+        #endif
+    }
+
+    /// Release retains the original hidden, noninteractive Canvas subtree.
+    private var mistCanvas: some View {
         Canvas { context, size in
             NavalMistDrawing.draw(hidden, geometry: geometry, viewport: size,
                                   opacity: 1, withdrawal: 0, in: context)

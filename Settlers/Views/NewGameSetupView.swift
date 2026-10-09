@@ -43,6 +43,9 @@ struct NewGameSetupView: View {
     /// Naval has its own world. Remember the land board while editing so
     /// returning to Standard or Conquest restores the player's Classic/Vast choice.
     @State private var landMode: GameMode
+    /// Naval always generates islands at random. Keep that requirement from
+    /// replacing a fixed land board chosen before visiting the Naval rules.
+    @State private var landRandomizedBoard: Bool
     /// Which seat's civilization picker is open, or `nil`.
     @State private var pickingCivilizationForSeat: Int?
     /// Which seat's turn-order picker is open, or `nil`. Only reachable when
@@ -94,6 +97,7 @@ struct NewGameSetupView: View {
         )
         _setup = State(initialValue: initial.setup)
         _landMode = State(initialValue: initial.setup.mode == .naval ? .classic : initial.setup.mode)
+        _landRandomizedBoard = State(initialValue: initial.setup.randomizedBoard)
         _isShowingUnreadableSetupAlert = State(initialValue: initial.wasUnreadable)
         #if DEBUG
         _isConfirmingOverwrite = State(initialValue: QALaunchFlag.showNewGameOverwrite.isSet)
@@ -616,10 +620,16 @@ struct NewGameSetupView: View {
 
     private func selectRules(_ choice: RulesChoice) {
         if choice == .naval {
-            if setup.mode != .naval { landMode = setup.mode }
+            if setup.mode != .naval {
+                landMode = setup.mode
+                landRandomizedBoard = setup.randomizedBoard
+            }
             setup.mode = .naval
         } else {
-            if setup.mode == .naval { setup.mode = landMode }
+            if setup.mode == .naval {
+                setup.mode = landMode
+                setup.randomizedBoard = landRandomizedBoard
+            }
             setup.variant = choice == .conquest ? .conquest : .standard
         }
         setup.normalizeNewGameOptions()

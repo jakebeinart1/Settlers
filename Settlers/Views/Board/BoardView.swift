@@ -234,6 +234,7 @@ public struct BoardView: View {
                 #if DEBUG
                 if state.mode == .naval { navalCameraReferenceMarkers(geometry: geometry) }
                 qaProductionHighlightMarkers(geometry: geometry)
+                qaPublicProjectionMarker
                 #endif
                 robberDragFeedback
             }
@@ -329,6 +330,28 @@ public struct BoardView: View {
     }
 
     // MARK: - Board decision layers
+
+    #if DEBUG
+    /// A leaf sibling observes the exact board Canvas consumes. It does not
+    /// become an accessibility ancestor of placement or inspection controls,
+    /// and it never reads unrevealed authoritative terrain in a Naval match.
+    private var qaPublicProjectionMarker: some View {
+        let fog = board.tiles.filter { $0.kind == .fog }.count
+        let sea = board.tiles.filter { $0.kind == .sea }.count
+        let choices = board.tiles.filter { $0.kind == .resourceChoice }.count
+        let genericPorts = board.ports.filter { $0.kind == .generic }.count
+        let projection = "mode=\(state.mode.rawValue);variant=\(state.variant.rawValue);tiles=\(board.tiles.count);"
+            + "fog=\(fog);sea=\(sea);choices=\(choices);ports=\(board.ports.count);genericPorts=\(genericPorts)"
+        return Color.white.opacity(0.001)
+            .frame(width: 1, height: 1)
+            .accessibilityElement(children: .ignore)
+            .accessibilityIdentifier("board.public-projection")
+            .accessibilityLabel("Rendered public board")
+            .accessibilityValue(projection)
+            .accessibilityRespondsToUserInteraction(false)
+            .allowsHitTesting(false)
+    }
+    #endif
 
     private func boardCanvas(geometry: HexGeometry, boardCenter: CGPoint) -> some View {
         Canvas { context, _ in
