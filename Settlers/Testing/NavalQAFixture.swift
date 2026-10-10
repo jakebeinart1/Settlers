@@ -149,17 +149,13 @@ enum NavalQAFixture {
 
     private static func prepareHarvest(upgradeToCity: Bool = false, addsSettlement: Bool = false,
                                        in state: inout GameState) throws {
-        let tile = state.board.tiles.first { $0.kind == .resourceChoice }!
+        let coasts = addsSettlement ? try mixedHarvestCoasts(in: state) : nil
+        let tile = coasts?.tile ?? state.board.tiles.first { $0.kind == .resourceChoice }!
         let shipID = try purchase(for: actor, in: &state)
-        let sea = Set(state.board.tiles.filter { $0.kind == .sea }.map(\.coordinate))
-        let goals = Set(state.board.corners(of: tile.coordinate).flatMap(\.touchingTiles)).intersection(sea)
-        let origin = state.naval!.ships.first { $0.id == shipID }!.coordinate
-        for destination in shortestPath(from: origin, to: goals, sea: sea) {
-            let index = state.naval!.ships.firstIndex { $0.id == shipID }!
-            state.naval!.ships[index].stepsRemaining = Naval.movementPerTurn(in: state)
-            try RulesEngine.apply(.sailShip(id: shipID, to: destination), by: actor, to: &state)
-        }
-        let vertex = state.board.corners(of: tile.coordinate).first {
+        let goals = coasts.map { Set($0.first.touchingTiles) }
+            ?? Set(state.board.corners(of: tile.coordinate).flatMap(\.touchingTiles))
+        try sailHarvestShip(shipID, to: goals, in: &state)
+        let vertex = coasts?.first ?? state.board.corners(of: tile.coordinate).first {
             Naval.canFoundColony(at: $0, by: actor, in: state)
         }!
         try RulesEngine.apply(.buildSettlement(vertex), by: actor, to: &state)
@@ -167,32 +163,49 @@ enum NavalQAFixture {
             grant(Building.cityCost, to: actor, in: &state)
             try RulesEngine.apply(.buildCity(vertex), by: actor, to: &state)
         }
-        if addsSettlement { try addHarvestSettlement(beside: tile, shipID: shipID, in: &state) }
+        if let coasts { try addHarvestSettlement(at: coasts.second, shipID: shipID, in: &state) }
         state.phase = .rollDice(playerIndex: actor.index)
         state.rng = rollSource(total: tile.numberToken!)
         try RulesEngine.apply(.rollDice, by: actor, to: &state)
         precondition(state.phase == .choosingResource(playerIndex: actor.index))
     }
 
-    /// The mixed fixture sails to a second legal coast and purchases another
-    /// settlement. Only sailing-round refresh and bank-funded QA grants shortcut
-    /// the journey; buildings, discovery and the producing roll use real moves.
-    private static func addHarvestSettlement(beside tile: Tile, shipID: Int, in state: inout GameState) throws {
-        let sea = Set(state.board.tiles.filter { $0.kind == .sea }.map(\.coordinate))
+    /// Reserve both distance-legal coasts before founding the first colony.
+    /// The first reachable corner alone may exclude every other coast on a
+    /// narrow harvest field; the mixed position requires a compatible pair.
+    private static func mixedHarvestCoasts(in state: GameState) throws -> (tile: Tile, first: VertexID, second: VertexID) {
         let occupied = state.players.flatMap { Array($0.settlements.union($0.cities)) }
-        let vertex = state.board.corners(of: tile.coordinate).sorted().first { corner in
-            !occupied.contains(corner) && !state.board.adjacentVertices(of: corner).contains(where: occupied.contains)
-                && corner.touchingTiles.contains(where: sea.contains)
-        }!
-        let goals = Set(vertex.touchingTiles).intersection(sea)
+        let fields = state.board.tiles.filter { $0.kind == .resourceChoice }.sorted { $0.coordinate < $1.coordinate }
+        for tile in fields {
+            let coasts = state.board.corners(of: tile.coordinate).sorted().filter { corner in
+                Naval.isCoastal(corner, in: state) && !occupied.contains(corner)
+                    && !state.board.adjacentVertices(of: corner).contains(where: occupied.contains)
+            }
+            for first in coasts {
+                if let second = coasts.first(where: {
+                    $0 != first && !state.board.adjacentVertices(of: first).contains($0)
+                }) { return (tile, first, second) }
+            }
+        }
+        throw MoveError.other("The mixed harvest fixture needs two distance-legal coasts beside a harvest field.")
+    }
+
+    /// Only sailing-round refresh and bank-funded QA grants shortcut the
+    /// journey. Each settlement and its discovery use ordinary legal moves.
+    private static func addHarvestSettlement(at vertex: VertexID, shipID: Int, in state: inout GameState) throws {
+        try sailHarvestShip(shipID, to: Set(vertex.touchingTiles), in: &state)
+        grant(Building.settlementCost, to: actor, in: &state)
+        try RulesEngine.apply(.buildSettlement(vertex), by: actor, to: &state)
+    }
+
+    private static func sailHarvestShip(_ shipID: Int, to destinations: Set<HexCoordinate>, in state: inout GameState) throws {
+        let sea = Set(state.board.tiles.filter { $0.kind == .sea }.map(\.coordinate))
         let index = state.naval!.ships.firstIndex { $0.id == shipID }!
         let origin = state.naval!.ships[index].coordinate
-        for destination in shortestPath(from: origin, to: goals, sea: sea) {
+        for destination in shortestPath(from: origin, to: destinations.intersection(sea), sea: sea) {
             state.naval!.ships[index].stepsRemaining = Naval.movementPerTurn(in: state)
             try RulesEngine.apply(.sailShip(id: shipID, to: destination), by: actor, to: &state)
         }
-        grant(Building.settlementCost, to: actor, in: &state)
-        try RulesEngine.apply(.buildSettlement(vertex), by: actor, to: &state)
     }
 
     /// Transfer excess bank stock to a rival for shortage tests, retaining the

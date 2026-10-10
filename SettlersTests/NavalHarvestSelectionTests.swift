@@ -63,6 +63,11 @@ struct NavalHarvestSelectionTests {
         let state = try NavalQAFixture.make(.mixedHarvest, options: NavalOptions(mapFamily: family))
         let progress = try #require(Naval.harvestProgress(for: actor, in: state))
         #expect(progress.settlements == 1 && progress.cities == 1 && progress.total == 3)
+        let field = try #require(state.board.tiles.first { $0.kind == .resourceChoice && $0.numberToken == state.lastDiceRoll })
+        let settlement = try #require(state.players[actor.index].settlements.first { $0.touchingTiles.contains(field.coordinate) })
+        let city = try #require(state.players[actor.index].cities.first { $0.touchingTiles.contains(field.coordinate) })
+        #expect(Naval.isCoastal(settlement, in: state) && Naval.isCoastal(city, in: state))
+        #expect(!state.board.adjacentVertices(of: settlement).contains(city))
         #expect(Naval.validationProblem(in: state) == nil)
         for resource in Resource.allCases {
             let held = state.players.reduce(0) { $0 + $1.resources[resource, default: 0] }

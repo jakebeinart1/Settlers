@@ -25,6 +25,8 @@ nonisolated struct NavalHarvestPresentation: Equatable {
 /// A quantity draft for one complete harvest. Taps select cards, including
 /// repeated resources; confirmation credits them in one durable transaction.
 struct NavalResourceChoiceView: View {
+    // Display rounding must leave the realized quantity target above 44 points.
+    private static let quantityControlSize: CGFloat = 48
     let viewModel: GameViewModel
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @AccessibilityFocusState private var isHeadingFocused: Bool
@@ -191,7 +193,7 @@ struct NavalResourceChoiceView: View {
             Button { viewModel.deselectFromNavalHarvest(resource) } label: {
                 Image(systemName: "minus.circle.fill")
                     .font(.system(size: 21))
-                    .frame(width: 44, height: 44)
+                    .frame(width: Self.quantityControlSize, height: Self.quantityControlSize)
                     .foregroundStyle(picked > 0 ? CatanTheme.cityPennantGold : .white.opacity(0.35))
                     .contentShape(Rectangle())
             }
