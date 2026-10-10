@@ -79,12 +79,11 @@ public struct BoardIndex: Sendable {
     /// two roads away - and proposed refused trades until the move cap.
     ///
     /// ## What a road may not pass
-    /// Breadth-first over free edges, never through an opponent's road or an
-    /// opponent's building. The engine forbids extending a road past an
-    /// opponent's settlement (`Building.canBuildRoad`), so a search that walked
-    /// through one would point the bot at a site it cannot reach - which is
-    /// just a different stall. Sorted enumeration throughout, because this
-    /// feeds a floating-point maximum and `Set` order is seeded per process.
+    /// Breadth-first over free edges, never along an opponent's road. Rival
+    /// towns stop expansion under the match's construction rule; Naval v6 may
+    /// continue through them. The shared engine predicate keeps planning in
+    /// agreement with actual placement. Sorted enumeration throughout, because
+    /// this feeds a floating-point maximum and `Set` order is seeded per process.
     public func approachableSites(
         for player: PlayerID,
         in state: GameState,
@@ -123,12 +122,11 @@ public struct BoardIndex: Sendable {
             .filter { $0.id != owner.id }
             .reduce(into: Set<EdgeID>()) { $0.formUnion($1.roads) }
         let ownBuildings = owner.settlements.union(owner.cities)
-        let theirBuildings = occupied.subtracting(ownBuildings)
 
         var distances: [VertexID: Int] = [:]
         var frontier: [VertexID] = []
         let seeds = owner.roads.flatMap { [$0.a, $0.b] } + Array(ownBuildings)
-        for vertex in Set(seeds).sorted() where !theirBuildings.contains(vertex) {
+        for vertex in Set(seeds).sorted() where Building.roadCanExtendThrough(vertex, for: owner.id, in: state) {
             distances[vertex] = 0
             frontier.append(vertex)
         }
@@ -146,7 +144,7 @@ public struct BoardIndex: Sendable {
                 }
                 let (a, b) = state.board.vertices(of: edge)
                 let next = a == vertex ? b : a
-                guard distances[next] == nil, !theirBuildings.contains(next) else { continue }
+                guard distances[next] == nil, Building.roadCanExtendThrough(next, for: owner.id, in: state) else { continue }
                 distances[next] = distance + 1
                 frontier.append(next)
             }

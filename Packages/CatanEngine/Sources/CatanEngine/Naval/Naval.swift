@@ -2,11 +2,12 @@ import Foundation
 
 /// Authoritative naval rules and public geometry. UI and policies share these predicates.
 public enum Naval {
+    /// Version 6 permits road construction through rival towns while preserving their Longest Road interruption.
     /// Version 5 restores discarding above seven cards; earlier matches keep their ten-card threshold.
     /// Version 4 makes rival ships block entry, passage and launching in their sea hex.
     /// Version 3 introduced two-hex destination sailing; earlier saves retain three adjacent moves,
     /// and version 1 also retains its original land-centered building vision.
-    public static let currentRulesVersion = 5
+    public static let currentRulesVersion = 6
     public static let oldestSupportedRulesVersion = 1
     public static let currentMapVersion = 1
     public static let movementPerTurn = 2
@@ -14,6 +15,7 @@ public enum Naval {
     public static let blockadeRulesVersion = 4
     public static let sevenRulesVersion = 5
     public static let sailingHistoryRulesVersion = 5
+    public static let roadContinuationRulesVersion = 6
     private static let legacyMovementPerTurn = 3
     public static let viewingRange = 2
     public static let hullsPerBuilder = 6

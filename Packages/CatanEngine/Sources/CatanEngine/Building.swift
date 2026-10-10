@@ -37,14 +37,9 @@ public enum Building {
     /// Roads must sit on an unoccupied on-board edge and connect to the
     /// player's existing road/settlement/city network.
     ///
-    /// An opponent's settlement/city at a vertex cuts the road network there
-    /// (matches real Catan rules): reaching a vertex through your own road
-    /// only counts as connectivity if that vertex isn't occupied by another
-    /// player's building - otherwise you could keep extending a road straight
-    /// through/past an opponent's settlement. Ending a road *at* that vertex
-    /// is still fine (that's a distance-rule/city question elsewhere, not a
-    /// road-building one); what's blocked is treating it as a through-point
-    /// for a *further* road on the other side.
+    /// Naval v6 may extend through a rival's town to claim the free edges beyond
+    /// it. Other matches stop at rival towns. This is construction connectivity;
+    /// rival towns still interrupt Longest Road in every mode.
     public static func canBuildRoad(_ edge: EdgeID, for player: PlayerID, in state: GameState) -> Bool {
         guard state.board.onBoardEdges.contains(edge) else { return false }
         if state.naval != nil && !Naval.roadIsKnownLand(edge, in: state) { return false }
@@ -57,21 +52,29 @@ public enum Building {
         // were a quarter of the bots' time on the 61-tile board.
         guard !state.players.contains(where: { $0.roads.contains(edge) }) else { return false }
 
-        func opponentBuilds(at vertex: VertexID) -> Bool {
-            state.players.contains { $0.id != player && ($0.settlements.contains(vertex) || $0.cities.contains(vertex)) }
-        }
-
         let (a, b) = state.board.vertices(of: edge)
         let touchesOwnBuilding = owner.settlements.contains(a) || owner.settlements.contains(b)
             || owner.cities.contains(a) || owner.cities.contains(b)
 
         func connectsThroughOwnRoad(at vertex: VertexID) -> Bool {
-            guard !opponentBuilds(at: vertex) else { return false }
+            guard roadCanExtendThrough(vertex, for: player, in: state) else { return false }
             return state.board.edgesTouching(vertex).contains { owner.roads.contains($0) }
         }
         let touchesOwnRoad = connectsThroughOwnRoad(at: a) || connectsThroughOwnRoad(at: b)
 
         return touchesOwnBuilding || touchesOwnRoad
+    }
+
+    /// Whether a town stops construction along an already connected road.
+    /// This does not supply a road connection or authorize an occupied/fogged
+    /// edge. Expansion planning shares it so both Naval tiers can see the same
+    /// routes players can build. Longest Road uses its separate scoring rule.
+    public static func roadCanExtendThrough(_ vertex: VertexID, for player: PlayerID, in state: GameState) -> Bool {
+        if state.mode == .naval, let version = state.naval?.rulesVersion,
+           version >= Naval.roadContinuationRulesVersion { return true }
+        return !state.players.contains {
+            $0.id != player && ($0.settlements.contains(vertex) || $0.cities.contains(vertex))
+        }
     }
 
     /// Distance rule (no adjacent building) plus - outside setup - must
