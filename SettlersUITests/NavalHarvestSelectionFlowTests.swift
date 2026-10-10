@@ -4,6 +4,7 @@ import XCTest
 /// locations, permit editing, and collect the whole obligation with one tap.
 @MainActor
 final class NavalHarvestSelectionFlowTests: XCTestCase {
+    private static let maximumCollectionHeight: CGFloat = 100
     func testCityHarvestDraftResetsOnColdResumeAndBothChoicesCollectOnce() {
         let app = launch("-qaNavalCityResourcePosition")
         let ore = app.buttons["naval.resource.ore"]
@@ -121,18 +122,23 @@ final class NavalHarvestSelectionFlowTests: XCTestCase {
         let app = launch(extra: ["-UIPreferredContentSizeCategoryName", "UICTContentSizeCategoryAccessibilityXXXL"])
         let confirm = app.buttons["naval.resource.confirm"]
         XCTAssertTrue(confirm.isHittable)
+        XCTAssertLessThanOrEqual(confirm.frame.height, Self.maximumCollectionHeight,
+                                 "The capped collection scaffold cannot consume the choice region")
         assertProgress(0, required: 3, app: app)
+        retain("Harvest — maximum text before selection", app: app)
         for index in 1...3 {
             reveal("naval.resource.wool", app: app)
             app.buttons["naval.resource.wool"].tap()
             assertProgress(index, required: 3, app: app)
             XCTAssertTrue(confirm.isHittable, "The complete-choice action must stay pinned")
+            XCTAssertLessThanOrEqual(confirm.frame.height, Self.maximumCollectionHeight)
+            retain("Harvest — maximum text \(index) of 3 identical resources selected", app: app)
         }
         let remove = app.buttons["naval.resource.remove.wool"]
         XCTAssertTrue(remove.isEnabled && remove.isHittable)
         remove.tap()
         assertProgress(2, required: 3, app: app)
-        reveal("naval.resource.ore", app: app, downward: true)
+        reveal("naval.resource.ore", app: app)
         app.buttons["naval.resource.ore"].tap()
         assertProgress(3, required: 3, app: app)
         retain("Harvest — maximum text preserves editable quantities and pinned collection", app: app)
@@ -170,12 +176,8 @@ final class NavalHarvestSelectionFlowTests: XCTestCase {
         }
     }
 
-    private func reveal(_ identifier: String, app: XCUIApplication, downward: Bool = false) {
-        for _ in 0..<10 where !app.buttons[identifier].isHittable {
-            let scroll = app.scrollViews["naval.resource.scroll"]
-            if downward { scroll.swipeDown() } else { scroll.swipeUp() }
-        }
-        XCTAssertTrue(app.buttons[identifier].isHittable)
+    private func reveal(_ identifier: String, app: XCUIApplication) {
+        NavalResourceOracle.revealHarvestControl(app.buttons[identifier], in: app)
     }
 
     private func coldResume(_ app: XCUIApplication) {

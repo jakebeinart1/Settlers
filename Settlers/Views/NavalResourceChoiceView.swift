@@ -77,6 +77,8 @@ struct NavalResourceChoiceView: View {
                                   fill: viewModel.canSubmitNavalHarvest
                                     ? .tintedTexture(SettingsChrome.selectedOptionFill) : .color(Color(white: 0.18)),
                                   action: collect)
+                        .dynamicTypeSize(...DynamicTypeSize.accessibility1)
+                        .fixedSize(horizontal: false, vertical: true)
                         .frame(minHeight: 44)
                         .accessibilityLabel("Collect resources")
                         .accessibilityValue(selectionProgress)
@@ -100,12 +102,12 @@ struct NavalResourceChoiceView: View {
     private func header(_ harvest: NavalHarvestPresentation) -> some View {
         VStack(spacing: 7) {
             Text(harvest.source)
-                .font(.subheadline.bold())
+                .font(dynamicTypeSize.isAccessibilitySize ? .caption.bold() : .subheadline.bold())
                 .foregroundStyle(.white)
                 .fixedSize(horizontal: false, vertical: true)
                 .accessibilityIdentifier("naval.resource.source")
             Text("Choose \(requiredCount) \(requiredCount == 1 ? "resource" : "resources")")
-                .font(.system(.title2, design: .serif).bold())
+                .font(.system(dynamicTypeSize.isAccessibilitySize ? .headline : .title2, design: .serif).bold())
                 .foregroundStyle(CatanTheme.cityPennantGold)
                 .fixedSize(horizontal: false, vertical: true)
                 .accessibilityLabel("Island harvest. Choose \(requiredCount) \(requiredCount == 1 ? "resource" : "resources").")
@@ -141,7 +143,8 @@ struct NavalResourceChoiceView: View {
                 Text(selectionProgress)
                     .accessibilityIdentifier("naval.resource.progress.collected")
                 Spacer(minLength: 0)
-                Text(remainingCount == 0 ? "Ready to collect" : "\(remainingCount) remaining").bold()
+                Text(remainingCount == 0
+                    ? (dynamicTypeSize.isAccessibilitySize ? "Ready" : "Ready to collect") : "\(remainingCount) remaining").bold()
                     .accessibilityIdentifier("naval.resource.progress.remaining")
             }
             .font(.caption)
@@ -163,13 +166,67 @@ struct NavalResourceChoiceView: View {
         }
     }
 
+    @ViewBuilder
     private func resourceRow(_ resource: Resource) -> some View {
         let picked = viewModel.navalHarvestDraft.counts[resource, default: 0]
         let canAdd = obligation.map {
             viewModel.navalHarvestDraft.canAdd(resource, bank: $0.bank, required: $0.requiredCount)
         } ?? false
-        return HStack(spacing: 7) {
-            GoldRowButton(
+        if dynamicTypeSize.isAccessibilitySize {
+            accessibilityResourceRow(resource, picked: picked, canAdd: canAdd)
+        } else {
+            HStack(spacing: 7) {
+                addResourceButton(resource, picked: picked, canAdd: canAdd)
+                removeResourceButton(resource, picked: picked)
+            }
+        }
+    }
+
+    /// Full-size names and stock have the whole card width. The quantity strip
+    /// puts both controls together rather than beside a tall wrapping label.
+    private func accessibilityResourceRow(_ resource: Resource, picked: Int, canAdd: Bool) -> some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Text(resource.rawValue.capitalized)
+                .font(.subheadline.bold()).foregroundStyle(.white)
+                .fixedSize(horizontal: false, vertical: true)
+                .accessibilityIdentifier("naval.resource.title.\(resource.rawValue)")
+            VStack(alignment: .leading, spacing: 2) {
+                Text("You have \(owned(resource))")
+                Text("Bank \(viewModel.state.bank[resource, default: 0])")
+            }
+            .font(.caption2).foregroundStyle(.white.opacity(0.85))
+            .fixedSize(horizontal: false, vertical: true)
+            HStack(spacing: 12) {
+                removeResourceButton(resource, picked: picked)
+                Spacer(minLength: 0)
+                Text("\(picked)")
+                    .font(.subheadline.bold()).monospacedDigit()
+                    .foregroundStyle(.white)
+                    .accessibilityHidden(true)
+                Spacer(minLength: 0)
+                addResourceButton(resource, picked: picked, canAdd: canAdd)
+            }
+        }
+        .padding(12)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(PaintedChromeBackground(fill: picked > 0
+            ? .tintedTexture(SettingsChrome.selectedOptionFill) : .color(Color(white: 0.18)), cornerRadius: 10))
+    }
+
+    private func addResourceButton(_ resource: Resource, picked: Int, canAdd: Bool) -> some View {
+        Group {
+            if dynamicTypeSize.isAccessibilitySize {
+                Button { viewModel.selectForNavalHarvest(resource) } label: {
+                    Image(systemName: "plus.circle.fill")
+                        .font(.system(size: 21))
+                        .frame(width: Self.quantityControlSize, height: Self.quantityControlSize)
+                        .foregroundStyle(canAdd
+                            ? (picked > 0 ? CatanTheme.cityPennantGold : CatanTheme.color(for: resource)) : .white.opacity(0.35))
+                        .contentShape(Rectangle())
+                }
+                .disabled(!canAdd)
+            } else {
+                GoldRowButton(
                     title: resource.rawValue.capitalized,
                     subtitle: "You have \(owned(resource)) · Bank \(viewModel.state.bank[resource, default: 0])",
                     systemImage: picked > 0 ? "checkmark.circle.fill" : "plus.circle",
@@ -184,24 +241,28 @@ struct NavalResourceChoiceView: View {
                     },
                     action: { viewModel.selectForNavalHarvest(resource) }
                 )
-                .buttonStyle(.plain)
-                .accessibilityIdentifier("naval.resource.\(resource.rawValue)")
-                .accessibilityLabel("Add \(resource.rawValue.capitalized)")
-                .accessibilityValue("\(picked) selected. You have \(owned(resource)). Bank \(viewModel.state.bank[resource, default: 0]).")
-                .accessibilityHint("Select one card. You may choose the same resource more than once.")
-                .accessibilityAddTraits(picked > 0 ? .isSelected : [])
-            Button { viewModel.deselectFromNavalHarvest(resource) } label: {
-                Image(systemName: "minus.circle.fill")
-                    .font(.system(size: 21))
-                    .frame(width: Self.quantityControlSize, height: Self.quantityControlSize)
-                    .foregroundStyle(picked > 0 ? CatanTheme.cityPennantGold : .white.opacity(0.35))
-                    .contentShape(Rectangle())
             }
-            .buttonStyle(.plain)
-            .disabled(picked == 0)
-            .accessibilityLabel("Remove one \(resource.rawValue.capitalized)")
-            .accessibilityIdentifier("naval.resource.remove.\(resource.rawValue)")
         }
+        .buttonStyle(.plain)
+        .accessibilityIdentifier("naval.resource.\(resource.rawValue)")
+        .accessibilityLabel("Add \(resource.rawValue.capitalized)")
+        .accessibilityValue("\(picked) selected. You have \(owned(resource)). Bank \(viewModel.state.bank[resource, default: 0]).")
+        .accessibilityHint("Select one card. You may choose the same resource more than once.")
+        .accessibilityAddTraits(picked > 0 ? .isSelected : [])
+    }
+
+    private func removeResourceButton(_ resource: Resource, picked: Int) -> some View {
+        Button { viewModel.deselectFromNavalHarvest(resource) } label: {
+            Image(systemName: "minus.circle.fill")
+                .font(.system(size: 21))
+                .frame(width: Self.quantityControlSize, height: Self.quantityControlSize)
+                .foregroundStyle(picked > 0 ? CatanTheme.cityPennantGold : .white.opacity(0.35))
+                .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .disabled(picked == 0)
+        .accessibilityLabel("Remove one \(resource.rawValue.capitalized)")
+        .accessibilityIdentifier("naval.resource.remove.\(resource.rawValue)")
     }
 
     private func owned(_ resource: Resource) -> Int {

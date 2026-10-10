@@ -558,16 +558,13 @@ final class NavalFlowTests: XCTestCase {
         for resource in ["brick", "lumber", "ore", "grain", "wool"] {
             if let selected {
                 let remove = app.buttons["naval.resource.remove.\(selected)"]
-                for _ in 0..<10 where !remove.isHittable { app.scrollViews["naval.resource.scroll"].swipeDown() }
-                XCTAssertTrue(remove.isHittable)
+                XCTAssertTrue(remove.isEnabled)
+                NavalResourceOracle.revealHarvestControl(remove, in: app)
                 XCTAssertGreaterThanOrEqual(remove.frame.height, 44)
                 remove.tap()
             }
             let choice = app.buttons["naval.resource.\(resource)"]
-            for _ in 0..<10 where !choice.isHittable {
-                app.scrollViews["naval.resource.scroll"].swipeUp()
-            }
-            XCTAssertTrue(choice.isHittable, "The harvest choice cannot be reached: \(resource)")
+            NavalResourceOracle.revealHarvestControl(choice, in: app)
             XCTAssertGreaterThanOrEqual(choice.frame.height, 44)
             choice.tap()
             selected = resource

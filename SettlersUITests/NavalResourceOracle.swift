@@ -4,6 +4,20 @@ import XCTest
 /// Read its visible resource rows until collection dismisses that modal.
 @MainActor
 enum NavalResourceOracle {
+    /// A visible part of a tall resource card does not imply that its quantity
+    /// control is visible. Scroll toward the control's actual projected frame.
+    static func revealHarvestControl(_ element: XCUIElement, in app: XCUIApplication,
+                                     file: StaticString = #filePath, line: UInt = #line) {
+        XCTAssertTrue(element.exists, "Missing harvest control: \(element.identifier)", file: file, line: line)
+        let scroll = app.scrollViews["naval.resource.scroll"]
+        for _ in 0..<10 {
+            if element.isHittable && scroll.frame.contains(element.frame) { return }
+            if element.frame.midY < scroll.frame.midY { scroll.swipeDown() } else { scroll.swipeUp() }
+        }
+        XCTAssertTrue(element.isHittable, "The harvest control cannot be reached: \(element.identifier)", file: file, line: line)
+        XCTAssertTrue(scroll.frame.contains(element.frame), "The whole harvest control must be visible", file: file, line: line)
+    }
+
     static func ownedCount(_ resource: String, in app: XCUIApplication,
                            file: StaticString = #filePath, line: UInt = #line) -> Int {
         let row = app.buttons["naval.resource.\(resource)"]
