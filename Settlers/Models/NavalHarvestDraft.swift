@@ -50,5 +50,6 @@ nonisolated struct NavalHarvestDraft: Equatable {
     }
 
     mutating func fail(_ error: Error) { errorMessage = error.localizedDescription }
+    mutating func clearFailure() { errorMessage = nil }
     mutating func reset() { self = NavalHarvestDraft() }
 }

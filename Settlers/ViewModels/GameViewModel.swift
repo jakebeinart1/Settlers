@@ -1191,6 +1191,7 @@ public extension GameViewModel {
             prepareDiscardPresentation()
             prepareNavalHarvestPresentation()
             persistenceErrorMessage = nil
+            navalHarvestDraft.clearFailure()
             botTurnProgress = nil
             return true
         } catch {

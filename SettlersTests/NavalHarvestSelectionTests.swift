@@ -129,6 +129,8 @@ struct NavalHarvestSelectionTests {
         refusesWrite = false
         #expect(model.retryPersistence())
         #expect(model.navalHarvestDraft.counts == [.ore: 1, .grain: 1])
+        #expect(model.navalHarvestDraft.errorMessage == nil)
+        #expect(model.navalHarvestErrorMessage == nil, "A successful reload removes the obsolete failure caption")
         #expect(model.canSubmitNavalHarvest && model.submitNavalHarvest())
         assertCredit([.ore: 1, .grain: 1], before: before, after: model.state)
     }
@@ -170,6 +172,7 @@ struct NavalHarvestSelectionTests {
         #expect(model.navalHarvestErrorMessage != firstError)
         #expect(model.navalHarvestErrorMessage?.contains("checkpoint is missing") == true)
         #expect(model.navalHarvestDraft.counts == [.ore: 1, .grain: 1])
+        #expect(model.navalHarvestDraft.errorMessage == firstError, "A failed reload retains the original draft failure")
     }
 
     @Test func coldResumeDiscardsOnlyTheDraftAndKeepsLegacyPartialCollection() throws {
