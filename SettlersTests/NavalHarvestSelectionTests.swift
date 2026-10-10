@@ -229,12 +229,119 @@ struct NavalHarvestSelectionTests {
         #expect(model.navalHarvestDraft.counts == [.ore: 1])
     }
 
+    @Test func nonzeroHumanCollectsABotRollOnceThenResumesThatBotsTurn() throws {
+        let human = PlayerID(index: 2), roller = PlayerID(index: 1)
+        let fixture = try CheckpointModelFixture()
+        var writes = 0
+        let model = fixture.makeModel(atCommitStage: { if $0 == .beforeReplace { writes += 1 } })
+        model.replaceStateForTesting(try cityBeforeBotRoll(human: human, roller: roller), humanSeat: human)
+        // Stand in for the mandatory popup's hold. The test commits the next
+        // actual policy step explicitly, without racing its queued bot task.
+        model.isBlockingSurfaceOpen = true
+        let rolled = try commitPolicyStep(in: model)
+        #expect(rolled.actor == roller && rolled.move == .rollDice)
+        #expect(model.humanPlayer == human && model.state.phase == .choosingResource(playerIndex: human.index))
+        #expect(model.currentNavalHarvestObligation?.requiredCount == 2)
+        let before = model.state
+        let document = try #require(model.checkpointDocument)
+        #expect(document.activeMatch?.moves.last?.actor == roller)
+        #expect(document.activeMatch?.moves.last?.isHumanDecision == false)
+        writes = 0
+        model.selectForNavalHarvest(.ore)
+        #expect(!model.canSubmitNavalHarvest && model.state == before)
+        model.selectForNavalHarvest(.grain)
+        #expect(model.canSubmitNavalHarvest && model.state == before)
+        #expect(model.submitNavalHarvest())
+        #expect(writes == 1, "The nonzero human's whole harvest has one checkpoint replacement")
+        try assertNonzeroBatch(model, before: before, document: document, human: human, roller: roller)
+        #expect(!model.submitNavalHarvest() && writes == 1, "A repeated confirmation cannot collect another batch")
+        try assertResumedBotContinuation(model, fixture: fixture, human: human, roller: roller)
+    }
+
+    /// Generated terrain and setup are retained. This prepares a real ship,
+    /// landing and city for seat two; only the established QA travel refresh
+    /// and matching-roll cursor shortcut ordinary intervening rounds.
+    private func cityBeforeBotRoll(human: PlayerID, roller: PlayerID) throws -> GameState {
+        var state = try NavalQAFixture.make(.voyage)
+        let field = try #require(state.board.tiles.filter { tile in
+            tile.kind == .resourceChoice && state.board.corners(of: tile.coordinate).contains {
+                Naval.isCoastal($0, in: state)
+            }
+        }.sorted { $0.coordinate < $1.coordinate }.first)
+        NavalQAFixture.grant(Naval.shipCost, to: human, in: &state)
+        let shipID = try NavalQAFixture.purchase(for: human, in: &state)
+        let sea = Set(state.board.tiles.filter { $0.kind == .sea }.map(\.coordinate))
+        let goals = Set(state.board.corners(of: field.coordinate).flatMap(\.touchingTiles)).intersection(sea)
+        _ = try #require(goals.isEmpty ? nil : goals, "The harvest field needs an actual sea approach")
+        let index = try #require(state.naval?.ships.firstIndex { $0.id == shipID })
+        let origin = try #require(state.naval?.ships[index].coordinate)
+        for destination in NavalQAFixture.shortestPath(from: origin, to: goals, sea: sea) {
+            let allowance = Naval.movementPerTurn(in: state)
+            state.naval?.ships[index].stepsRemaining = allowance
+            try RulesEngine.apply(.sailShip(id: shipID, to: destination), by: human, to: &state)
+        }
+        let coast = try #require(state.board.corners(of: field.coordinate).sorted().first {
+            Naval.canFoundColony(at: $0, by: human, in: state)
+        })
+        NavalQAFixture.grant(Building.settlementCost, to: human, in: &state)
+        try RulesEngine.apply(.buildSettlement(coast), by: human, to: &state)
+        NavalQAFixture.grant(Building.cityCost, to: human, in: &state)
+        try RulesEngine.apply(.buildCity(coast), by: human, to: &state)
+        state.phase = .rollDice(playerIndex: roller.index)
+        state.rng = NavalQAFixture.rollSource(total: try #require(field.numberToken))
+        #expect(Naval.validationProblem(in: state) == nil)
+        for resource in Resource.allCases {
+            #expect(state.players.reduce(0) { $0 + $1.resources[resource, default: 0] }
+                + state.bank[resource, default: 0] == state.rules.bankPerResource)
+        }
+        return state
+    }
+
+    private func commitPolicyStep(in model: GameViewModel) throws -> GameSession.Step {
+        var candidate = model.session
+        let step = try #require(try candidate.step())
+        model.beginEventBatch()
+        try model.commitStep(step, candidate: candidate, isHumanDecision: false)
+        return step
+    }
+
+    private func assertNonzeroBatch(_ model: GameViewModel, before: GameState, document: MatchCheckpointDocument,
+                                    human: PlayerID, roller: PlayerID) throws {
+        #expect(model.checkpointDocument?.revision == document.revision + 1)
+        let moves = try #require(model.checkpointDocument?.activeMatch?.moves.suffix(2))
+        #expect(moves.map(\.actor) == [human, human])
+        #expect(moves.map(\.move) == [.chooseResource(.ore), .chooseResource(.grain)])
+        #expect(moves.allSatisfy { $0.isHumanDecision })
+        assertCredit([.ore: 1, .grain: 1], before: before, after: model.state, owner: human)
+        for player in before.players where player.id != human {
+            #expect(model.state.players[player.id.index].resources == player.resources)
+        }
+        #expect(model.state.phase == .mainTurn(playerIndex: roller.index))
+        #expect(model.session.nextActor() == .seat(roller))
+        #expect(model.state.naval?.pendingResourceChoices.isEmpty == true)
+        try model.checkpointDocument?.validateAuthority()
+    }
+
+    private func assertResumedBotContinuation(_ model: GameViewModel, fixture: CheckpointModelFixture,
+                                              human: PlayerID, roller: PlayerID) throws {
+        let restored = fixture.makeModel()
+        restored.isBlockingSurfaceOpen = true
+        #expect(restored.humanPlayer == human && restored.session.checkpoint == model.session.checkpoint)
+        #expect(restored.state.phase == .mainTurn(playerIndex: roller.index))
+        let step = try commitPolicyStep(in: restored)
+        #expect(step.actor == roller, "Collection returns control to the bot whose roll produced the harvest")
+        #expect(restored.checkpointDocument?.activeMatch?.moves.last?.actor == roller)
+        #expect(restored.checkpointDocument?.activeMatch?.moves.last?.isHumanDecision == false)
+        try restored.checkpointDocument?.validateAuthority()
+    }
+
     private func assertCredit(_ cards: [Resource: Int], before: GameState, after: GameState,
+                              owner: PlayerID = PlayerID(index: 0),
                               sourceLocation: SourceLocation = #_sourceLocation) {
         for resource in Resource.allCases {
             let amount = cards[resource, default: 0]
-            #expect(after.players[actor.index].resources[resource, default: 0]
-                == before.players[actor.index].resources[resource, default: 0] + amount, sourceLocation: sourceLocation)
+            #expect(after.players[owner.index].resources[resource, default: 0]
+                == before.players[owner.index].resources[resource, default: 0] + amount, sourceLocation: sourceLocation)
             #expect(after.bank[resource, default: 0] == before.bank[resource, default: 0] - amount,
                     sourceLocation: sourceLocation)
         }
