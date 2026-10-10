@@ -20,6 +20,7 @@
 		083F184813E8CD8A7E763264 /* GhostStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC426BE6A4FDB88C268644E6 /* GhostStore.swift */; };
 		08572217A242A44981A040EB /* SavedGameAvailability.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E21004FB7C5F5948BEC71A9 /* SavedGameAvailability.swift */; };
 		0AF839BA0DBC818CC82119C9 /* DevelopmentCardJourneyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6EA6414242A6D72E151D2F11 /* DevelopmentCardJourneyTests.swift */; };
+		0B57BB49613674AB2AF3A9D2 /* NavalResourceOracle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0D6896A6B7EA72E80332333A /* NavalResourceOracle.swift */; };
 		0BBF451A08F935DC2BB22743 /* TileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC9BE64D33337CB59DE2D79D /* TileView.swift */; };
 		0C001867D26CBDBAA67CDC72 /* BoardLayeringTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56E4A8873ADD3D6574E7A3D3 /* BoardLayeringTests.swift */; };
 		0CC77716B1B04BB85F41BFD2 /* BoardDecisionBoardChrome.swift in Sources */ = {isa = PBXBuildFile; fileRef = 508E724EE652E4C341C3BAC8 /* BoardDecisionBoardChrome.swift */; };
@@ -349,6 +350,7 @@
 		094066516FB9FCC3D028672A /* GameViewModel+Policies.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "GameViewModel+Policies.swift"; sourceTree = "<group>"; };
 		0AC74C3A12A7CDE5AE1B1546 /* CivilizationPieceShapes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CivilizationPieceShapes.swift; sourceTree = "<group>"; };
 		0AE92337AA13178C682DF685 /* CloudKitBackendTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CloudKitBackendTests.swift; sourceTree = "<group>"; };
+		0D6896A6B7EA72E80332333A /* NavalResourceOracle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NavalResourceOracle.swift; sourceTree = "<group>"; };
 		0DFB1FCCE94DC838E55F1479 /* GhostStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GhostStoreTests.swift; sourceTree = "<group>"; };
 		101013D2D4EA6A4A92F20BDB /* TradeComposerClarityTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TradeComposerClarityTests.swift; sourceTree = "<group>"; };
 		105D0E931F81E1D94E669E07 /* NavalShipArtworkTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NavalShipArtworkTests.swift; sourceTree = "<group>"; };
@@ -915,6 +917,7 @@
 				6F381C35295A63A19790AD00 /* NavalHarvestArtworkFlowTests.swift */,
 				C198822FB0234F11DF0E9C03 /* NavalHarvestSelectionFlowTests.swift */,
 				B514AD07E06E6E1E69DDA4C6 /* NavalReplayRenderingTests.swift */,
+				0D6896A6B7EA72E80332333A /* NavalResourceOracle.swift */,
 				84CD83F0E3B455C8EE168E54 /* NavalSevenDiscardFlowTests.swift */,
 				34585BFA5B2B557B7C5A7BE8 /* NavalShipArtworkFlowTests.swift */,
 				4BD66D01D47E41F66CDD5DD8 /* NavalShipStealingFlowTests.swift */,
@@ -1548,6 +1551,7 @@
 				466C306F9F5693344D696C15 /* NavalHarvestArtworkFlowTests.swift in Sources */,
 				837C4874C1BDB475E5689D23 /* NavalHarvestSelectionFlowTests.swift in Sources */,
 				D1326E7EC8DB5718E1352545 /* NavalReplayRenderingTests.swift in Sources */,
+				0B57BB49613674AB2AF3A9D2 /* NavalResourceOracle.swift in Sources */,
 				930DEFAB54A21800165DC0E2 /* NavalSevenDiscardFlowTests.swift in Sources */,
 				F711A204B952FC725B2E35A6 /* NavalShipArtworkFlowTests.swift in Sources */,
 				722E1841E68816E762FF1348 /* NavalShipStealingFlowTests.swift in Sources */,

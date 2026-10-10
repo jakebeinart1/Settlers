@@ -697,10 +697,9 @@ final class NavalFlowTests: XCTestCase {
         return app
     }
 
-    private func resource(_ resource: String, in app: XCUIApplication) -> Int {
-        let value = app.otherElements["human-resource.\(resource)"].value as? String
-        XCTAssertNotNil(value)
-        return Int(value ?? "") ?? -1
+    private func resource(_ resource: String, in app: XCUIApplication,
+                          file: StaticString = #filePath, line: UInt = #line) -> Int {
+        NavalResourceOracle.ownedCount(resource, in: app, file: file, line: line)
     }
 
     private func charted(in app: XCUIApplication) -> Int {

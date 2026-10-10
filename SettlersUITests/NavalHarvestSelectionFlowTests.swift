@@ -159,15 +159,14 @@ final class NavalHarvestSelectionFlowTests: XCTestCase {
         XCTAssertEqual(confirm.isEnabled, selected == required, file: file, line: line)
     }
 
-    private func resource(_ resource: String, in app: XCUIApplication) -> Int {
-        let value = app.otherElements["human-resource.\(resource)"].value as? String
-        XCTAssertNotNil(value)
-        return Int(value ?? "") ?? -1
+    private func resource(_ resource: String, in app: XCUIApplication,
+                          file: StaticString = #filePath, line: UInt = #line) -> Int {
+        NavalResourceOracle.ownedCount(resource, in: app, file: file, line: line)
     }
 
     private func holdings(_ app: XCUIApplication) -> [Int] {
         ["brick", "lumber", "ore", "grain", "wool"].map {
-            Int(app.otherElements["human-resource.\($0)"].value as? String ?? "") ?? -1
+            resource($0, in: app)
         }
     }
 
