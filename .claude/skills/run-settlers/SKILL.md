@@ -233,18 +233,24 @@ describes source behavior; a launch fixture alone is not a runtime pass.
 | `-qaNavalStackedShipsPosition` | Same fixture handlers, `2201653` | Three owned hulls purchased; ship ID 1 takes one step. Two remain stacked at launch with the third adjacent, covering same-cell plus neighbor ambiguity. It is not three ships all at one coordinate. |
 | `-qaNavalCapturePosition` | `GameViewModel+QANaval.swift`, `NavalQAFixture` | A rival purchases one eligible hull, then a rigged real roll of 11 reaches the human's durable capture phase. Capture or Skip uses normal confirmation/persistence; no transfer is pre-committed. |
 | `-qaNavalResourcePosition` | Same fixture handlers | An actual ship, discovery and first colony reach a flexible-production tile; a rigged real matching roll opens one settlement harvest unit. Requires resource choice on. |
-| `-qaNavalCityResourcePosition` | Same fixture handlers | Upgrades that colony through a real city move, then opens two separately chosen harvest units for the same human. Requires resource choice on; useful for cold resume between units. |
+| `-qaNavalCityResourcePosition` | Same fixture handlers | Upgrades that colony through a real city move, then opens a two-card harvest. Stage both quantities before one collection; cold resume discards the uncommitted draft and retains the owed harvest. |
+| `-qaNavalMixedResourcePosition` | Same fixture handlers | A real city upgrade and second ship-founded settlement share a harvest field. A real matching roll owes three cards. Verify heading/action counts 0/3 through 3/3, repeated choices, removal, one atomic collection and cold resume. |
+| `-qaNavalHarvestBankScarce` | `NavalQAFixture` | Modifier reducing the entire bank to one Ore and one Grain, conserving cards in rival hands. The three-card harvest must explain the shortage and collect the two available cards without deadlock. |
+| `-qaNavalHarvestPartial` | Same fixture handlers | Modifier applying one real resource choice before installing the baseline. Restored partial harvests must credit only the outstanding cards; the already collected card remains visible in the explanation. |
+| `-qaNavalRoadJunctionPosition` | `NavalRoadJunctionQAFixture`, `GameViewModel+QANaval` | Generated seed-73 world with an explicitly replaced coastal settlement, two-road approach and rival inland town. Bank funds two further roads. New Naval v6 allows both free branches; native Build/preview/Confirm must spend the right cards and preserve the roads on resume. This baseline does not establish founding or full-match economics. |
+| `-qaNavalRoadJunctionInspection` | Debug `BoardView` sibling leaf | Reads actual public committed road ownership and projected junction geometry without changing state or camera. Keep this modifier alone during cold resume; omit the position flag and reset so the saved roads are tested. |
 | `-qaNavalProductionHighlights` | `Testing/GameView+QA.swift`, `4dce712` | Shows Debug control `qa.production.show` (“Show held production rings”). A native tap injects known and hidden same-number coordinates directly into the renderer; six perimeter probes per tile expose actual coordinates/numbers to automation. Requires a fogged naval world with suitable known/hidden production; do not pair with `-qaNavalNoFog` or a fully charted world. |
 
 **Fresh game versus fixture.** `-qaAutoStart` resumes an existing save; naval start
 flags do not replace it. Use the ladder's task-owned clean QA container, or the
 first native test launch's `-ui-testing-reset`, for a new baseline. Cold resume
 uses `-ui-testing` without reset so the committed state/mandatory obligation survives.
-Choose one position flag. Source precedence is stacked → adjacent → city harvest
-→ settlement harvest → capture → voyage. Current presentation uses natural
+Choose one position flag. The road junction has an early dedicated handler;
+otherwise consult `qaStartNavalGame` for the ordered rare-fixture dispatch.
+Current presentation uses natural
 owner/ship wording; stored IDs and automation IDs remain zero-based.
 
-Rare fixtures finish snake setup through legal moves, transfer supplemental cards
+Ship and harvest fixtures finish snake setup through legal moves, transfer supplemental cards
 from bank to hand, and install a replacement replay baseline. Each begins with
 extra 3 lumber, 2 wool, 2 ore, 1 grain and 1 brick in the human hand, in addition
 to ordinary setup grants. Capture and nearby-hull preparation transfer additional
@@ -255,6 +261,9 @@ steps between fixture-only rounds. These shortcuts do not run in normal gameplay
 Subsequent tapped purchase, movement, capture and resource choice use real rules,
 session, save and history transactions. Layout fixtures do not establish expedition
 pace or full-match economics.
+The road-junction fixture instead installs explicit historical towns, two approach
+roads and colony facts on generated terrain. Its baseline is qualified; only the
+subsequent tapped exit construction establishes real gameplay behavior.
 
 The production-highlight probe changes only ephemeral presentation: it commits no
 roll, production, discovery or save. Its hidden-coordinate/number labels are

@@ -161,6 +161,10 @@ enum QALaunchFlag: String, CaseIterable {
     case navalHarvestBankScarce = "-qaNavalHarvestBankScarce"
     /// One real resource choice precedes installation of the partial baseline.
     case navalHarvestPartial = "-qaNavalHarvestPartial"
+    /// Generated overseas two-road approach to an existing rival inland town.
+    case navalRoadJunctionPosition = "-qaNavalRoadJunctionPosition"
+    /// Public committed road/geometry leaf; safe to retain without resetting a save.
+    case navalRoadJunctionInspection = "-qaNavalRoadJunctionInspection"
     /// Real setup claims a home harbor; supplemental trade cards come from
     /// the bank so port exchanges can be exercised without a long match.
     case navalGenericPortPosition = "-qaNavalGenericPortPosition"

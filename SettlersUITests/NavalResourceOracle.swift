@@ -10,9 +10,16 @@ enum NavalResourceOracle {
                                      file: StaticString = #filePath, line: UInt = #line) {
         XCTAssertTrue(element.exists, "Missing harvest control: \(element.identifier)", file: file, line: line)
         let scroll = app.scrollViews["naval.resource.scroll"]
-        for _ in 0..<10 {
+        for _ in 0..<20 {
             if element.isHittable && scroll.frame.contains(element.frame) { return }
-            if element.frame.midY < scroll.frame.midY { scroll.swipeDown() } else { scroll.swipeUp() }
+            // A full swipe can jump past a small quantity control and oscillate
+            // forever. Move only toward its measured position, then stop the drag.
+            let gap = scroll.frame.midY - element.frame.midY
+            let distance = min(max(abs(gap), 24), scroll.frame.height * 0.35)
+            let start = scroll.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5))
+            let end = start.withOffset(CGVector(dx: 0, dy: gap < 0 ? -distance : distance))
+            start.press(forDuration: 0.05, thenDragTo: end, withVelocity: .slow,
+                        thenHoldForDuration: 0.2)
         }
         XCTAssertTrue(element.isHittable, "The harvest control cannot be reached: \(element.identifier)", file: file, line: line)
         XCTAssertTrue(scroll.frame.contains(element.frame), "The whole harvest control must be visible", file: file, line: line)

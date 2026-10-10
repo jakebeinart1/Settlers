@@ -33,6 +33,10 @@ extension GameViewModel {
             shipStealingEnabled: QALaunchFlag.navalShipStealing.isSet)
         setup.expertRevision = setup.newMatchExpertRevision
         startNewGame(setup: setup)
+        if QALaunchFlag.navalRoadJunctionPosition.isSet {
+            qaStartRoadJunction(difficulty: setup.difficulty)
+            return
+        }
         let kind: NavalQAFixture.Position?
         if QALaunchFlag.navalShipLossPosition.isSet {
             kind = .shipLoss
@@ -84,6 +88,11 @@ extension GameViewModel {
             replaceStateForTesting(position, humanSeat: PlayerID(index: 0), difficulty: setup.difficulty,
                                    civilizations: artworkAssignment)
         } catch { preconditionFailure("Naval QA fixture is invalid: \(error)") }
+    }
+
+    private func qaStartRoadJunction(difficulty: BotDifficulty) {
+        replaceStateForTesting(NavalRoadJunctionQAFixture.make(), humanSeat: PlayerID(index: 0),
+            difficulty: difficulty, civilizations: [.medieval, .aztec, .egypt, .norse])
     }
 }
 #endif

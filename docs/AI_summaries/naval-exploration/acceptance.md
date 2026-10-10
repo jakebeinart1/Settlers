@@ -1,5 +1,23 @@
 # Voyages requirements and acceptance
 
+## Build 31 follow-up (E37): implemented, release verification separate
+
+D56 and D57 address Alex's harvest and rival-junction screenshots. The original
+native city-harvest regression fails at the incomplete selection assertion
+(actual xcodebuild exit 65, one test/one failure). Independent engine and AI
+regressions reproduce the blocked continuation and omitted future expansion.
+Evidence is being retained under
+`/Users/alex/.codex/artifacts/naval-exploration/build31-harvest-roads`.
+
+Required acceptance: mixed settlement/city 0/3→3/3 selection and one collection,
+repeated/mixed picks and removal, available-bank limits, failed-write and cold
+resume accounting; both photographed junction branches through Build/preview/
+Confirm, rival city and occupied/fogged edges, ordinary and old-version rules,
+Longest Road splits, shared AI planning, native full-match play, reviewed
+original screenshots, complete gate and verified signed Internal delivery.
+[Development evidence](evidence/build31-harvest-roads/verification.md) records the actual targeted/native/simulation results and the eight reviewed original captures. The complete mandatory gate and signed delivery remain separately source-bound operation receipts; this development record does not claim their outcome.
+
+
 <a id="build-29-follow-up-e35"></a>
 ## Build 29 follow-up (E35): delivered, October 8, 2026
 

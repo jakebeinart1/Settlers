@@ -1,5 +1,24 @@
 # Naval design decisions
 
+## Build 31 decisions D56–D57: batch harvest and rival junctions
+
+**D56 — Select the complete harvest before collecting, human-selected.**
+Alex wants 0/N, 1/N through N/N in the heading and Collect resources action,
+with one enabled confirmation only when all owed resources are chosen. Quantity
+controls permit repeats and correction without applying moves. The save commits
+the whole batch atomically; individual engine choices remain the replay format.
+Old partial saves retain their original yield and request the outstanding cards.
+Bank shortages remain visible and bounded by actual supply.
+
+**D57 — Continue Naval roads past rival towns, human-selected strategy.**
+The screenshot's two-road approach to a rival town should offer both unoccupied
+branches. New v6 Naval construction and AI expansion share that permission;
+ordinary modes and saved v1–v5 matches retain the old rule. All other construction
+checks remain. Longest Road scoring continues to break at a rival building;
+claiming surrounding edges is the selected strategy. Native tests must reproduce
+the actual junction and commit both branches through normal controls.
+
+
 ## Build 27 decision D55: defending occupied water
 
 **D55 — Rival hulls block their sea hex, delivered.** A stationed ship blocks

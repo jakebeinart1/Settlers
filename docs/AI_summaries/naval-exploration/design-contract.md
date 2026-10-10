@@ -1,5 +1,26 @@
 # Voyages design and implementation contract
 
+## Build 31 contract: batch harvest and road continuation
+
+Selected from Alex's October 9 screenshots. The implementation follows this
+contract; release acceptance requires its separate observed receipts. A harvest
+stages quantities from the available bank. Both heading
+and pinned Collect resources action show selected/required counts; collection
+is disabled until complete. Repeated resources and removing a selection are
+supported. One confirmation publishes one durable transaction, retaining the
+existing per-card engine moves and replay history. Failed writes award nothing;
+restored old partial harvests request only the remaining entitlement. A depleted
+bank limits the collectable batch and explains the shortage.
+
+New Naval games encode v6. An owned road may continue through a rival settlement
+or city onto a free, discovered land edge. Costs, road stock, ownership,
+connectivity and founding rules still apply. The shared construction predicate
+also governs both AI tiers' expansion planning. Rival buildings still split
+Longest Road. Ordinary modes and saved v1–v5 Naval construction are unchanged;
+Restart starts a new current-version match. This does not change saved AI brains
+or claim stronger play.
+
+
 ## Build 29 contract: v5 rules and saved scouting revision
 
 New Naval games use v5 and discard half a resource hand above seven cards,

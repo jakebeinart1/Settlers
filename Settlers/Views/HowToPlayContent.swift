@@ -338,7 +338,7 @@ enum HowToPlayContent {
         let choices = options?.resourceChoiceEnabled == false
             ? "Resource-choice islands are off for this match. Each producing hex supplies its printed resource."
             : "When a harvest field's number rolls, a settlement chooses 1 resource and a city chooses 2 resources. "
-                + "Collect each card separately; choosing the same resource twice is allowed. "
+                + "Choose all your resources, then collect them together; choosing the same resource twice is allowed. "
                 + "Fixed production happens first; choices use the available bank."
         let target = (context?.mode == .naval ? context?.victoryPointTarget : nil) ?? naval.defaultVictoryPointTarget
         return Section(
@@ -354,6 +354,7 @@ enum HowToPlayContent {
                 "World opens the overview. Return restores your previous zoom and position; Home focuses the starting island.",
                 "A ship touching a legal coastal corner lets you settle there without a road. The ship stays. "
                     + "Establish your own settlement before building roads on a new island, then expand inland along your roads.",
+                navalRoadDescription(for: context),
                 "Your first settlement on each of your first two overseas islands earns an extra permanent point. There is no Biggest Navy bonus.",
                 navalCaptureDescription(options),
                 choices,
@@ -365,6 +366,16 @@ enum HowToPlayContent {
                 "Supply: \(navalRules.bankPerResource) cards of each resource and \(navalRules.devCardDeckSize) development cards. "
                     + "Naval is local and unrated; Ghosts and Conquest retain their existing modes.",
             ], cost: Naval.shipCost)
+    }
+
+    private static func navalRoadDescription(for context: Context?) -> String {
+        let version = context?.navalRulesVersion ?? Naval.currentRulesVersion
+        if version >= Naval.roadContinuationRulesVersion {
+            return "You may extend your roads past another player's settlement or city onto an unoccupied land edge. "
+                + "You still need your own connected road. Rival buildings still break Longest Road."
+        }
+        return "In this saved match, another player's settlement or city blocks road construction through its corner. "
+            + "New Naval games allow roads to extend past rival buildings; rival buildings still break Longest Road."
     }
 
     private static func navalCaptureDescription(_ options: NavalOptions?) -> String {

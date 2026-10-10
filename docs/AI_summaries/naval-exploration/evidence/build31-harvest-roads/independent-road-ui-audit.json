@@ -1,0 +1,81 @@
+{
+  "status": "APPROVED_SCOPED_ROAD_SOURCE_AND_NATIVE_JOURNEY_WITH_QUALIFICATIONS",
+  "reviewer": "harvest_roads_audit",
+  "checkout": "/Users/alex/.codex/worktrees/naval31-harvest-roads/Settlers",
+  "reviewed_head": "832fa587b0930d97ed26317fd44cf28e5f0f236e",
+  "dirty_tree_qualification": "Known pending QA, rulebook, Build31 and evidence changes are outside the frozen three-file road production review. Later harvest layout edits are not licensed by this scoped approval.",
+  "road_production_sha256": {
+    "Packages/CatanEngine/Sources/CatanEngine/Building.swift": "6b8d5272be78ec9a662270e18aa51320d3736f272db00ebedda55d8e18f360b4",
+    "Packages/CatanEngine/Sources/CatanEngine/Naval/Naval.swift": "3d1e0940186098deb0cf22fb2dd376d8d31c24daf83657b5148df2e3a1bbbc41",
+    "Packages/CatanAI/Sources/CatanAI/Evaluation/BoardIndex.swift": "7dc9840e0027d46292a0ee21bd49943c99cbd3bfb41f8302db1b706ee356e840"
+  },
+  "unchanged_longest_road": {
+    "base": "d85b124",
+    "file": "Packages/CatanEngine/Sources/CatanEngine/LongestRoad.swift",
+    "sha256": "a68dbedb12f49459ba243b8150f56d7697c8614e58ee6b2e2f8027d04a9781c9",
+    "git_diff_empty": true
+  },
+  "reviewed_qa_sha256": {
+    "Settlers/Testing/NavalRoadJunctionQAFixture.swift": "27f64dba217e6f1fd292774da628740abff12bd7b55bc64924822bba54fde926",
+    "SettlersUITests/NavalRoadJunctionFlowTests.swift": "dc2d4d463bf32b1ed473a41b6476304f4e818fe43398de1208245bfe553e8382"
+  },
+  "contracts_checked": [
+    "The photographed interior rival corner has three known-land touching hexes and two free exits beyond the owned two-road approach.",
+    "Only Naval v6 changes road construction transit; old Naval v1-v5 and ordinary modes retain the rival-town stop.",
+    "A rival building supplies no road connection. Owned-network connection, unoccupied land edges, funding and piece stock remain required.",
+    "Both AI tiers share the engine transit predicate at initial road-network seeds and subsequently entered vertices, with stable traversal order.",
+    "Longest Road remains split at rival buildings. No score bonus, founding rule, saved brain or engine wire move was changed.",
+    "The rare native baseline directly installs historical towns/roads/colony facts and conserves the bank; it does not prove actual founding or complete-match economics.",
+    "Actual native Build, each branch preview, Clear/Cancel, separate confirmations, resource charges, two cold resumes and World/Return use the ordinary production paths."
+  ],
+  "road_native_result": {
+    "test": "NavalRoadJunctionFlowTests.testBothRivalTownExitsCanBePreviewedBuiltAndResumed",
+    "passed": 1,
+    "failed": 0,
+    "duration_seconds": 91.144,
+    "overall_targeted_run_exit": 65,
+    "qualification": "The broader attempt3 remains failed because separate harvest cases failed. This receipt approves only the passing road journey and inspected original road captures.",
+    "command_receipt": "/Users/alex/.codex/artifacts/naval-exploration/build31-harvest-roads/naval31-targeted-attempt3.json",
+    "command_receipt_sha256": "1bbd2e2fd7c2b72bf690f059f275dd3581c6677de5e6c2b857a551faee69225c",
+    "raw_log": "/Users/alex/.codex/artifacts/naval-exploration/build31-harvest-roads/naval31-targeted-attempt3.log",
+    "raw_log_sha256": "6542272172ffdee366167534dc990969e46e32ca29ce5c479d1eda7fcf567fdc"
+  },
+  "opened_original_screenshots": [
+    {
+      "file": "/Users/alex/.codex/artifacts/naval-exploration/build31-harvest-roads/attempt3-attachments/DDE12B1B-E94C-429F-B2CA-7453E5FDD995.png",
+      "sha256": "7705b7867a2e390668368769ea49f4e262c7df6ea1147c7c0395933b23ac0f81",
+      "verdict": "The purple two-road approach reaches the blue interior town; all three incident land edges and the unchanged themed layout are visible."
+    },
+    {
+      "file": "/Users/alex/.codex/artifacts/naval-exploration/build31-harvest-roads/attempt3-attachments/37F67206-85A8-4558-BF81-BEA335ABC1F7.png",
+      "sha256": "26f00c644ebe11760a17ea1a3c3e0dcbd7bfaf390c95df71679fdd964ee176e7",
+      "verdict": "Upper exit has an explicit provisional gold outline and a reachable Confirm Road action; the other exit remains offered and resources are unspent."
+    },
+    {
+      "file": "/Users/alex/.codex/artifacts/naval-exploration/build31-harvest-roads/attempt3-attachments/6534F1B5-E279-4942-8607-C0EA0530E0FA.png",
+      "sha256": "047b7dfb94721aaf72d4ebafa75aad132174230b3e390f57c697db8ec7ff8406",
+      "verdict": "The separate lower exit is visibly selectable; the blue town remains above the road preview."
+    },
+    {
+      "file": "/Users/alex/.codex/artifacts/naval-exploration/build31-harvest-roads/attempt3-attachments/1196DF61-909E-41F5-B0B4-D908D933E4F2.png",
+      "sha256": "32abf62278f2a761e77da6adab1895c16fddcc024b8a0764386af13b5cf1c5fd",
+      "verdict": "Both further purple roads survive cold resume, the blue town remains owned by its rival, and the two funded road costs have been spent."
+    }
+  ],
+  "road_p1_p2_findings": [],
+  "adjacent_review_findings": [
+    {
+      "file": "SettlersUITests/NavalCurrentMatchFlowTests.swift",
+      "issue": "An absent Resume button alone does not prove Main Menu was reached after the results action.",
+      "recommendation": "Wait for screen.main-menu or its New Game control before asserting Resume is absent.",
+      "reported_to_parent": true
+    }
+  ],
+  "additional_source_reviews": {
+    "rulebook_and_guide": "Current/saved road rules, atomic harvest copy and explicitly qualified junction baseline are faithful. Acceptance remains marked in progress.",
+    "harvest_compatible_coasts_6b18e1e": "Sorted compatible coast-pair planning fixes the reproduced fixture-family trap; subsequent sailing, buildings and roll remain ordinary legal moves with conserved funding. Family runtime remains root's responsibility.",
+    "accessibility_layout_5f445b0": "Independent full-width text and sibling quantity controls preserve identifiers and visible-count oracles; no nested button or accessibility-ancestor trap was found. Final native pixels remain unapproved here."
+  },
+  "runtime_limits": "Reviewer performed no native commands, simulator allocation or independent full games. Native proof was read from the root's actual test log and opened original attachments. Root retains the allocation lock and must complete refined harvest checks, complete match/replay, final gate, merge and verified phone delivery.",
+  "strength_claim": false
+}
