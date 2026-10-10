@@ -529,6 +529,24 @@ final class NavalFlowTests: XCTestCase {
         XCTAssertTrue(app.buttons["End Turn"].isHittable)
     }
 
+    func testCityHarvestRequiresBothSelectionsBeforeOneCollection() {
+        let app = launch("-qaNavalCityResourcePosition")
+        let ore = app.buttons["naval.resource.ore"]
+        let confirm = app.buttons["naval.resource.confirm"]
+        XCTAssertTrue(ore.waitForExistence(timeout: 5))
+        let before = resource("ore", in: app)
+        XCTAssertFalse(confirm.isEnabled)
+        ore.tap()
+        XCTAssertFalse(confirm.isEnabled, "Selecting one of two cards must not enable collection")
+        XCTAssertEqual(resource("ore", in: app), before, "A selection cannot collect a card")
+        ore.tap()
+        XCTAssertTrue(confirm.isEnabled, "Repeated selection must allow two of the same resource")
+        XCTAssertEqual(resource("ore", in: app), before)
+        confirm.tap()
+        XCTAssertTrue(app.buttons["End Turn"].waitForExistence(timeout: 5))
+        XCTAssertEqual(resource("ore", in: app), before + 2)
+    }
+
     func testCityHarvestCreditsTwoChoicesAcrossColdResume() {
         let app = launch("-qaNavalCityResourcePosition")
         let ore = app.buttons["naval.resource.ore"]
