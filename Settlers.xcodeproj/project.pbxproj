@@ -170,9 +170,11 @@
 		7E536728A6D243AA853BBD67 /* TradeResourceRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4B879B461E39E5DFAC2824C1 /* TradeResourceRow.swift */; };
 		82772E4A5ECBA817A966B46B /* GameView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6F0C19DF5E22050B860A7094 /* GameView.swift */; };
 		82F087D94201BDEDFBBB4BA8 /* CivilizationBadge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8E616D996C5EBA2DBFC75D9D /* CivilizationBadge.swift */; };
+		837C4874C1BDB475E5689D23 /* NavalHarvestSelectionFlowTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C198822FB0234F11DF0E9C03 /* NavalHarvestSelectionFlowTests.swift */; };
 		83C2D6F2A6B7F67093D579CB /* AccessibilityID.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2FA5615D7AB20666AEB04B43 /* AccessibilityID.swift */; };
 		84A0406C03AD9D91A9DC0B32 /* MatchSetupGhostTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = EB35F43AB81A0869D3F28DF0 /* MatchSetupGhostTests.swift */; };
 		85F2ED311872E6FE30EF2372 /* GameViewModelCheckpointTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E1449FD2095D36C126206BA /* GameViewModelCheckpointTests.swift */; };
+		86B0CF9F98E5E64292126E30 /* NavalHarvestDraft.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13AC50B024FAEC148D3E627B /* NavalHarvestDraft.swift */; };
 		87FCA2E00ACA0E0E6A1D6304 /* GameViewModel+QANavalSeven.swift in Sources */ = {isa = PBXBuildFile; fileRef = DEBF7E817E06B93369D5F30E /* GameViewModel+QANavalSeven.swift */; };
 		88CF824C3335F34CF54E08E2 /* PlayerHUDView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77BA2122016739392CF5DF22 /* PlayerHUDView.swift */; };
 		895E3168C84B21B63AD67E4E /* SettingsChrome.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8BC4427BD3E30FD0F5F9E9CC /* SettingsChrome.swift */; };
@@ -261,6 +263,8 @@
 		C8843401D8D205D07A80AA10 /* NavalBoardGeometryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4EB742E7FB85C9C243899E6D /* NavalBoardGeometryTests.swift */; };
 		C8E69DBE9224CF89AA37E420 /* NavalAdvancedSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0556C7E386D89ABA3E46C09D /* NavalAdvancedSettingsView.swift */; };
 		C8EBD90EAF2F47466F8B5A2C /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CB7D94876E201553696FE24C /* ContentView.swift */; };
+		CAE100BE88984BC0D71214A4 /* NavalHarvestSelectionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4BCC015B51D9D238E9C7ED3 /* NavalHarvestSelectionTests.swift */; };
+		CAF4BE7C65B949EE533DFCA6 /* GameViewModel+NavalHarvest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C2498DC2FB70BE57B58AF10 /* GameViewModel+NavalHarvest.swift */; };
 		CB1B7B5D513B44AC7115433C /* RatingStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 161D4797A450338FD0A087B5 /* RatingStoreTests.swift */; };
 		CB58570AE806ACE6BFC462C1 /* TradePopupView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5DA573A3A82A8F2F109FA437 /* TradePopupView.swift */; };
 		CD10C35A37B47A9234908BF6 /* GhostTrainingQueueTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55B319909FDA473CCE592E20 /* GhostTrainingQueueTests.swift */; };
@@ -352,6 +356,7 @@
 		118052E72D8695833C2EC00C /* ArmyPurchasePopupView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArmyPurchasePopupView.swift; sourceTree = "<group>"; };
 		11D7DF8A5B6CAC4647065878 /* PreMergeAuditRegressionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreMergeAuditRegressionTests.swift; sourceTree = "<group>"; };
 		1376D1017BA606A83286D8A7 /* HumanDecisionProvenanceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HumanDecisionProvenanceTests.swift; sourceTree = "<group>"; };
+		13AC50B024FAEC148D3E627B /* NavalHarvestDraft.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NavalHarvestDraft.swift; sourceTree = "<group>"; };
 		142B4786F6C2B6DBAED5AA58 /* ConquestFlowTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConquestFlowTests.swift; sourceTree = "<group>"; };
 		15B72849277F820BFE45CE54 /* OrdinaryModeVisibilityTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OrdinaryModeVisibilityTests.swift; sourceTree = "<group>"; };
 		161D4797A450338FD0A087B5 /* RatingStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RatingStoreTests.swift; sourceTree = "<group>"; };
@@ -461,6 +466,7 @@
 		7A53ECD05D7E8073C7BEDC19 /* BoardFitTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BoardFitTests.swift; sourceTree = "<group>"; };
 		7B3D502345F41546FE4903CE /* SeatCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SeatCardView.swift; sourceTree = "<group>"; };
 		7B68650395A19041B3EDAC40 /* BotTurnStatusView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BotTurnStatusView.swift; sourceTree = "<group>"; };
+		7C2498DC2FB70BE57B58AF10 /* GameViewModel+NavalHarvest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "GameViewModel+NavalHarvest.swift"; sourceTree = "<group>"; };
 		7C6B5A50434C5A75C4169C02 /* DevelopmentCardDesignTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DevelopmentCardDesignTests.swift; sourceTree = "<group>"; };
 		7CECF5639AE6110AD5C7475C /* GameViewModel+GameOver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "GameViewModel+GameOver.swift"; sourceTree = "<group>"; };
 		7D006923508FC7AB94A24DE7 /* ReplayVideoExport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReplayVideoExport.swift; sourceTree = "<group>"; };
@@ -555,12 +561,14 @@
 		BFE27F00E830BAF3C7BE41FF /* ReplayVideoExporter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReplayVideoExporter.swift; sourceTree = "<group>"; };
 		C112C5D5A27EC971416706D0 /* CivilizationAssignmentStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CivilizationAssignmentStore.swift; sourceTree = "<group>"; };
 		C1260D7913BDEBEB7F3D3D42 /* NavalSailingRangeLayer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NavalSailingRangeLayer.swift; sourceTree = "<group>"; };
+		C198822FB0234F11DF0E9C03 /* NavalHarvestSelectionFlowTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NavalHarvestSelectionFlowTests.swift; sourceTree = "<group>"; };
 		C1BD3E13799BE187AEB0F4E6 /* CheckpointProcessProbe.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CheckpointProcessProbe.swift; sourceTree = "<group>"; };
 		C267D2BD50E26FCD707474EF /* SaveRecoveryFlowTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SaveRecoveryFlowTests.swift; sourceTree = "<group>"; };
 		C34E239F6C210A9578B2BF3B /* InGameSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InGameSettingsView.swift; sourceTree = "<group>"; };
 		C3FD34FA52640FE04C156FD0 /* VictoryTallyTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VictoryTallyTests.swift; sourceTree = "<group>"; };
 		C4219681121890E8182B71E2 /* NavalTravelFlowTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NavalTravelFlowTests.swift; sourceTree = "<group>"; };
 		C47D8E51CEBC82766DDDF936 /* Civilization.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Civilization.swift; sourceTree = "<group>"; };
+		C4BCC015B51D9D238E9C7ED3 /* NavalHarvestSelectionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NavalHarvestSelectionTests.swift; sourceTree = "<group>"; };
 		C55B1300742FFBFA0194D2FB /* ReplayExportModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReplayExportModel.swift; sourceTree = "<group>"; };
 		C573A2705EB596C02D47F5DB /* NavalMistDrawing.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NavalMistDrawing.swift; sourceTree = "<group>"; };
 		C6852AB7B3A78F5272250644 /* TradeDraftFeedback.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TradeDraftFeedback.swift; sourceTree = "<group>"; };
@@ -735,6 +743,7 @@
 				F4CD322B61C57D97EDC5F7E9 /* NavalBlockadePresentationTests.swift */,
 				4EB742E7FB85C9C243899E6D /* NavalBoardGeometryTests.swift */,
 				CB6334569C3BD392CF736F31 /* NavalHarborFixtureTests.swift */,
+				C4BCC015B51D9D238E9C7ED3 /* NavalHarvestSelectionTests.swift */,
 				DD868AF2DB121900324A0E5B /* NavalHistoryIntegrityTests.swift */,
 				D8D1AFE0C7F7D10A6DA20975 /* NavalMatchFlowTests.swift */,
 				B641B0A34469CDFF617C7A6B /* NavalReleaseCompatibilityTests.swift */,
@@ -806,6 +815,7 @@
 				A813107E879882546580E0E2 /* HumanTradeOfferPolicy.swift */,
 				9C4E6FC1FB1577D2EF3F61B2 /* Leaderboard.swift */,
 				8A1288E1E7E420D449899B1B /* MonopolyCollectionPreview.swift */,
+				13AC50B024FAEC148D3E627B /* NavalHarvestDraft.swift */,
 				B9DE39AB52B4552600464A8F /* NavalShipCaptureReceipt.swift */,
 				85B6069622A8A50F3F60184A /* OpponentProfile.swift */,
 				67D4279B56AA610334086D36 /* ReplayExportPresentation.swift */,
@@ -903,6 +913,7 @@
 				C7B394F6904579BCD764343A /* NavalBlockadeFlowTests.swift */,
 				2A7F48AEBE8E1C727F18ABF6 /* NavalFlowTests.swift */,
 				6F381C35295A63A19790AD00 /* NavalHarvestArtworkFlowTests.swift */,
+				C198822FB0234F11DF0E9C03 /* NavalHarvestSelectionFlowTests.swift */,
 				B514AD07E06E6E1E69DDA4C6 /* NavalReplayRenderingTests.swift */,
 				84CD83F0E3B455C8EE168E54 /* NavalSevenDiscardFlowTests.swift */,
 				34585BFA5B2B557B7C5A7BE8 /* NavalShipArtworkFlowTests.swift */,
@@ -1091,6 +1102,7 @@
 				7CECF5639AE6110AD5C7475C /* GameViewModel+GameOver.swift */,
 				EC579AD42504AEED661414A6 /* GameViewModel+Ghosts.swift */,
 				90D002632E02ECBEFDD9F6A8 /* GameViewModel+HumanTradeOffers.swift */,
+				7C2498DC2FB70BE57B58AF10 /* GameViewModel+NavalHarvest.swift */,
 				ACBC9F02C56C7D94404C8B98 /* GameViewModel+OpponentProfiles.swift */,
 				094066516FB9FCC3D028672A /* GameViewModel+Policies.swift */,
 				8DDA700575394DF91917C2EE /* GameViewModel+Recovery.swift */,
@@ -1302,6 +1314,7 @@
 				67CDF1CCB39F37559B973DF7 /* GameViewModel+GameOver.swift in Sources */,
 				D056E44741C6A5840747E3B6 /* GameViewModel+Ghosts.swift in Sources */,
 				2BF55253952B9CDACE274BAE /* GameViewModel+HumanTradeOffers.swift in Sources */,
+				CAF4BE7C65B949EE533DFCA6 /* GameViewModel+NavalHarvest.swift in Sources */,
 				98BA6BD782CD84C83F73A13D /* GameViewModel+OpponentProfiles.swift in Sources */,
 				8A5B37B298841D14AF9DFD02 /* GameViewModel+Policies.swift in Sources */,
 				2C238B27886B9AF5E803D348 /* GameViewModel+QABoardDecision.swift in Sources */,
@@ -1352,6 +1365,7 @@
 				5EC08F362C9C36984096D63B /* NavalBlockadeQAFixture.swift in Sources */,
 				89FBE44673ED345F99B949FE /* NavalBoardInteractions.swift in Sources */,
 				3B7D2A23C2E2A1A031725EBE /* NavalHarborLayer.swift in Sources */,
+				86B0CF9F98E5E64292126E30 /* NavalHarvestDraft.swift in Sources */,
 				53394E22466F35AE456C7F13 /* NavalMistDrawing.swift in Sources */,
 				A9002B5DF68F880457EFFBC1 /* NavalQAFixture.swift in Sources */,
 				EB687D3017DAF27FF81C4D0A /* NavalResourceChoiceView.swift in Sources */,
@@ -1470,6 +1484,7 @@
 				0F7E41774CAC3CD3D8EBC72F /* NavalBlockadePresentationTests.swift in Sources */,
 				C8843401D8D205D07A80AA10 /* NavalBoardGeometryTests.swift in Sources */,
 				360EA5C6C51E15E6719FEFFF /* NavalHarborFixtureTests.swift in Sources */,
+				CAE100BE88984BC0D71214A4 /* NavalHarvestSelectionTests.swift in Sources */,
 				41960920464509E1B37DAE2D /* NavalHistoryIntegrityTests.swift in Sources */,
 				1F361684B42DE747F3E3657A /* NavalMatchFlowTests.swift in Sources */,
 				B795F3A1159B2792DCF53C9F /* NavalReleaseCompatibilityTests.swift in Sources */,
@@ -1531,6 +1546,7 @@
 				AA7FD2DE92FE61DED92BA92B /* NavalBlockadeFlowTests.swift in Sources */,
 				E965E66D59360F88DFCDD719 /* NavalFlowTests.swift in Sources */,
 				466C306F9F5693344D696C15 /* NavalHarvestArtworkFlowTests.swift in Sources */,
+				837C4874C1BDB475E5689D23 /* NavalHarvestSelectionFlowTests.swift in Sources */,
 				D1326E7EC8DB5718E1352545 /* NavalReplayRenderingTests.swift in Sources */,
 				930DEFAB54A21800165DC0E2 /* NavalSevenDiscardFlowTests.swift in Sources */,
 				F711A204B952FC725B2E35A6 /* NavalShipArtworkFlowTests.swift in Sources */,

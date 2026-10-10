@@ -46,6 +46,8 @@ extension GameViewModel {
             kind = .stackedShips
         } else if QALaunchFlag.navalAdjacentShipsPosition.isSet {
             kind = .adjacentShips
+        } else if QALaunchFlag.navalMixedResourcePosition.isSet {
+            kind = .mixedHarvest
         } else if QALaunchFlag.navalCityResourcePosition.isSet {
             kind = .cityHarvest
         } else if QALaunchFlag.navalResourcePosition.isSet {
@@ -72,6 +74,12 @@ extension GameViewModel {
                 ?? NavalQAFixture.make(kind!, options: setup.navalOptions)
             if QALaunchFlag.navalBuildScarcity.isSet {
                 NavalQAFixture.replaceHand([.lumber: 1, .wool: 10], for: PlayerID(index: 0), in: &position)
+            }
+            if QALaunchFlag.navalHarvestBankScarce.isSet {
+                NavalQAFixture.limitHarvestBank(to: [.ore: 1, .grain: 1], in: &position)
+            }
+            if QALaunchFlag.navalHarvestPartial.isSet {
+                try RulesEngine.apply(.chooseResource(.ore), by: PlayerID(index: 0), to: &position)
             }
             replaceStateForTesting(position, humanSeat: PlayerID(index: 0), difficulty: setup.difficulty,
                                    civilizations: artworkAssignment)

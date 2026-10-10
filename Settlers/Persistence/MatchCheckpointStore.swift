@@ -412,6 +412,29 @@ struct MatchCheckpointDocument: Codable, Equatable, Sendable {
         return next
     }
 
+    /// A complete island harvest is one durable revision containing the
+    /// existing individual resource-choice moves. Reuse each step's replay
+    /// and session attachment checks while the document is unpublished, then
+    /// advance the revision once for the single atomic store replacement.
+    func recordingHarvest(_ frames: [NavalHarvestStep], elapsedSeconds: TimeInterval) throws -> Self {
+        guard let match = activeMatch, let actor = frames.first?.step.actor,
+              match.setup.humanSeats.contains(where: { $0.index == actor.index }),
+              let progress = Naval.harvestProgress(for: actor, in: match.state),
+              revision < Int.max else { throw MatchCheckpointStore.StoreError.staleRevision }
+        let stock = Resource.allCases.reduce(0) { $0 + match.state.bank[$1, default: 0] }
+        guard !frames.isEmpty, frames.count == min(progress.remaining, stock),
+              frames.allSatisfy({ frame in
+                  guard frame.step.actor == actor, case .chooseResource = frame.step.move else { return false }
+                  return true
+              }) else { throw MatchCheckpointStore.StoreError.inconsistentHistory }
+        var next = self
+        for frame in frames {
+            next = try next.recording(frame.step, session: frame.checkpoint, elapsedSeconds: elapsedSeconds)
+        }
+        next.revision = revision + 1
+        return next
+    }
+
     /// Reserve a presented offer before its UI appears. No engine move is
     /// invented; write failures retain the original policy and block progress.
     func recordingTradePresentations(_ policies: [Int: HumanTradeOfferPolicy]) throws -> Self {

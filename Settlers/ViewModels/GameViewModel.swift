@@ -183,6 +183,10 @@ public final class GameViewModel {
     var discardDraft = DiscardDraft()
     public internal(set) var isDiscardEditorMinimized = false
 
+    /// Island harvest selections remain uncommitted until the whole choice is
+    /// confirmed. Keeping the draft here preserves it through popup rebuilds.
+    var navalHarvestDraft = NavalHarvestDraft()
+
     /// Owns uncommitted board choices beside the durable session so write
     /// failures retain them and hot-seat handoffs can clear them centrally.
     var boardDecisionCoordinator = BoardDecisionCoordinator()
@@ -520,6 +524,7 @@ public final class GameViewModel {
         gameplayFeedback.clear()
         gameGeneration &+= 1
         resetDiscardPresentation()
+        navalHarvestDraft.reset()
         boardDecisionCoordinator.clear()
         pendingTradeConfirmation = nil
         pendingDevCardReveal = nil
@@ -549,8 +554,6 @@ public final class GameViewModel {
 
     func commitStep(_ step: GameSession.Step, candidate: GameSession, declinedOffer: TradeOffer? = nil,
                     isHumanDecision: Bool = true) throws {
-        let productionBefore = state
-        let productionViewer = humanPlayer
         guard let document = checkpointDocument, document.activeMatch != nil else {
             throw SavedGameRecoveryError.blocked("Start a game before making a move.")
         }
@@ -566,23 +569,34 @@ public final class GameViewModel {
         } catch {
             throw reportPersistenceFailure(error)
         }
+        publishCommittedSteps([step], candidate: candidate, document: next)
+    }
+
+    /// Gameplay and feedback are published only after one durable replacement.
+    /// A harvest can record several existing unit moves in that replacement,
+    /// without exposing partial credit or starting bots between selections.
+    func publishCommittedSteps(_ steps: [GameSession.Step], candidate: GameSession,
+                               document next: MatchCheckpointDocument) {
+        let productionBefore = state
+        let productionViewer = humanPlayer
         session = candidate
         pendingShipCapture = next.pendingShipCapture
-        let noticeEvents = step.events.filter { event in
+        let events = steps.flatMap(\.events)
+        let noticeEvents = events.filter { event in
             if case .capturedShip = event { return next.pendingShipCapture == nil }
             return true
         }
         gameplayFeedback.enqueue(GameplayFeedback.committed(
             events: noticeEvents, before: productionBefore, after: state, viewer: productionViewer
         ))
-        if case .rollDice = step.move {
+        if let step = steps.first(where: { $0.move == .rollDice }) {
             resourceProductionFeedback = ResourceProductionFeedback(
                 events: step.events, before: productionBefore, after: state, viewer: productionViewer
             )
         }
         if resourceProductionFeedback?.owner != humanPlayer { resourceProductionFeedback = nil }
         reconcileBoardDecision()
-        pendingEvents += step.events
+        pendingEvents += events
         eventBatch = EventBatch(sequence: eventBatch.sequence + 1, events: pendingEvents)
         pendingDevCardReveal = next.pendingDevCardReveal
         pendingDevCardResolution = next.pendingDevCardResolution
@@ -592,7 +606,11 @@ public final class GameViewModel {
             if let finished = next.activeMatch { lastFinishedMatchWork = recordFinishedMatch(finished) }
             victoryCutscenePending = true
         }
-        exportCommittedRecordings(after: step.move, in: next)
+        if next.activeMatch?.moves.count == steps.count {
+            exportCommittedRecordings()
+        } else if let last = steps.last {
+            exportCommittedRecordings(after: last.move, in: next)
+        }
     }
 
     public func dismissGameLogWarning() { gameLogWarningState = nil }
@@ -689,15 +707,7 @@ public final class GameViewModel {
     /// gives deterministic QA one bot runner to await instead of racing the
     /// production fire-and-forget task against a second call to the loop.
     func commitHumanMove(_ move: GameMove, declinedOffer: TradeOffer? = nil, isHumanDecision: Bool = true) throws {
-        if let message = savedGameAvailability.recoveryMessage {
-            throw SavedGameRecoveryError.blocked(message)
-        }
-        guard pendingDevCardReveal == nil, pendingDevCardResolution == nil else {
-            throw MoveError.other("Review the development card before continuing.")
-        }
-        guard pendingShipCapture == nil else {
-            throw MoveError.other("Review the ship's change of ownership before continuing.")
-        }
+        try validateHumanDecision()
         beginEventBatch()
         // A bot negotiation belongs to the turn that started it. Left standing
         // across `endTurn`, the next player's Trade screen opened on the
@@ -1179,6 +1189,7 @@ public extension GameViewModel {
             gameplayFeedback.clear()
             eventBatch = EventBatch(sequence: eventBatch.sequence + 1, events: [])
             prepareDiscardPresentation()
+            prepareNavalHarvestPresentation()
             persistenceErrorMessage = nil
             botTurnProgress = nil
             return true

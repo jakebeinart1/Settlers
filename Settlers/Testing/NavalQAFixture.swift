@@ -6,7 +6,7 @@ import CatanEngine
 /// The only travel shortcut refreshes steps between fixture-only sailing
 /// rounds; ordinary gameplay never calls this type.
 enum NavalQAFixture {
-    enum Position: Sendable { case voyage, capture, shipLoss, harvest, cityHarvest, adjacentShips, stackedShips, mixedShips, genericPort, resourcePort }
+    enum Position: Sendable { case voyage, capture, shipLoss, harvest, cityHarvest, mixedHarvest, adjacentShips, stackedShips, mixedShips, genericPort, resourcePort }
     private static let actor = PlayerID(index: 0)
     private static let seed: UInt64 = 7_501
     private static let portTradeCards = 9
@@ -30,6 +30,7 @@ enum NavalQAFixture {
         case .shipLoss: try prepareShipLoss(in: &state)
         case .harvest: try prepareHarvest(in: &state)
         case .cityHarvest: try prepareHarvest(upgradeToCity: true, in: &state)
+        case .mixedHarvest: try prepareHarvest(upgradeToCity: true, addsSettlement: true, in: &state)
         case .adjacentShips: try prepareNearbyShips(stacked: false, in: &state)
         case .stackedShips: try prepareNearbyShips(stacked: true, in: &state)
         case .mixedShips: try prepareMixedShips(in: &state)
@@ -146,7 +147,8 @@ enum NavalQAFixture {
         precondition(state.naval!.ships.allSatisfy { $0.coordinate == destination })
     }
 
-    private static func prepareHarvest(upgradeToCity: Bool = false, in state: inout GameState) throws {
+    private static func prepareHarvest(upgradeToCity: Bool = false, addsSettlement: Bool = false,
+                                       in state: inout GameState) throws {
         let tile = state.board.tiles.first { $0.kind == .resourceChoice }!
         let shipID = try purchase(for: actor, in: &state)
         let sea = Set(state.board.tiles.filter { $0.kind == .sea }.map(\.coordinate))
@@ -165,10 +167,45 @@ enum NavalQAFixture {
             grant(Building.cityCost, to: actor, in: &state)
             try RulesEngine.apply(.buildCity(vertex), by: actor, to: &state)
         }
+        if addsSettlement { try addHarvestSettlement(beside: tile, shipID: shipID, in: &state) }
         state.phase = .rollDice(playerIndex: actor.index)
         state.rng = rollSource(total: tile.numberToken!)
         try RulesEngine.apply(.rollDice, by: actor, to: &state)
         precondition(state.phase == .choosingResource(playerIndex: actor.index))
+    }
+
+    /// The mixed fixture sails to a second legal coast and purchases another
+    /// settlement. Only sailing-round refresh and bank-funded QA grants shortcut
+    /// the journey; buildings, discovery and the producing roll use real moves.
+    private static func addHarvestSettlement(beside tile: Tile, shipID: Int, in state: inout GameState) throws {
+        let sea = Set(state.board.tiles.filter { $0.kind == .sea }.map(\.coordinate))
+        let occupied = state.players.flatMap { Array($0.settlements.union($0.cities)) }
+        let vertex = state.board.corners(of: tile.coordinate).sorted().first { corner in
+            !occupied.contains(corner) && !state.board.adjacentVertices(of: corner).contains(where: occupied.contains)
+                && corner.touchingTiles.contains(where: sea.contains)
+        }!
+        let goals = Set(vertex.touchingTiles).intersection(sea)
+        let index = state.naval!.ships.firstIndex { $0.id == shipID }!
+        let origin = state.naval!.ships[index].coordinate
+        for destination in shortestPath(from: origin, to: goals, sea: sea) {
+            state.naval!.ships[index].stepsRemaining = Naval.movementPerTurn(in: state)
+            try RulesEngine.apply(.sailShip(id: shipID, to: destination), by: actor, to: &state)
+        }
+        grant(Building.settlementCost, to: actor, in: &state)
+        try RulesEngine.apply(.buildSettlement(vertex), by: actor, to: &state)
+    }
+
+    /// Transfer excess bank stock to a rival for shortage tests, retaining the
+    /// resource supply and the actor's real production obligation.
+    static func limitHarvestBank(to stock: [Resource: Int], in state: inout GameState) {
+        precondition(state.phase == .choosingResource(playerIndex: actor.index))
+        for resource in Resource.allCases {
+            let retained = stock[resource, default: 0]
+            let excess = state.bank[resource, default: 0] - retained
+            precondition(excess >= 0)
+            state.bank[resource] = retained
+            state.players[1].resources[resource, default: 0] += excess
+        }
     }
 
     static func shortestPath(from start: HexCoordinate, to goals: Set<HexCoordinate>,
