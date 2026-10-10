@@ -167,97 +167,110 @@ struct NavalResourceChoiceView: View {
         }
     }
 
-    @ViewBuilder
     private func resourceRow(_ resource: Resource) -> some View {
         let picked = viewModel.navalHarvestDraft.counts[resource, default: 0]
         let canAdd = obligation.map {
             viewModel.navalHarvestDraft.canAdd(resource, bank: $0.bank, required: $0.requiredCount)
         } ?? false
-        if dynamicTypeSize.isAccessibilitySize {
-            accessibilityResourceRow(resource, picked: picked, canAdd: canAdd)
-        } else {
-            HStack(spacing: 7) {
-                addResourceButton(resource, picked: picked, canAdd: canAdd)
-                removeResourceButton(resource, picked: picked)
+        return Group {
+            if dynamicTypeSize.isAccessibilitySize {
+                VStack(alignment: .leading, spacing: 4) {
+                    resourceLabelButton(resource, picked: picked, canAdd: canAdd)
+                    HStack(spacing: 0) {
+                        Spacer(minLength: 0)
+                        quantityControls(resource, picked: picked, canAdd: canAdd)
+                    }
+                }
+            } else {
+                HStack(spacing: 0) {
+                    resourceLabelButton(resource, picked: picked, canAdd: canAdd)
+                    quantityControls(resource, picked: picked, canAdd: canAdd)
+                }
             }
         }
-    }
-
-    /// Full-size names and stock have the whole card width. The quantity strip
-    /// puts both controls together rather than beside a tall wrapping label.
-    private func accessibilityResourceRow(_ resource: Resource, picked: Int, canAdd: Bool) -> some View {
-        VStack(alignment: .leading, spacing: 10) {
-            Text(resource.rawValue.capitalized)
-                .font(.subheadline.bold()).foregroundStyle(.white)
-                .fixedSize(horizontal: false, vertical: true)
-                .accessibilityIdentifier("naval.resource.title.\(resource.rawValue)")
-            VStack(alignment: .leading, spacing: 2) {
-                Text("You have \(owned(resource))")
-                Text("Bank \(viewModel.state.bank[resource, default: 0])")
-            }
-            .font(.caption2).foregroundStyle(picked > 0 ? .white : .white.opacity(0.85))
-            .fixedSize(horizontal: false, vertical: true)
-            HStack(spacing: 12) {
-                removeResourceButton(resource, picked: picked)
-                Spacer(minLength: 0)
-                Text("\(picked)")
-                    .font(.subheadline.bold()).monospacedDigit()
-                    .foregroundStyle(.white)
-                    .accessibilityHidden(true)
-                Spacer(minLength: 0)
-                addResourceButton(resource, picked: picked, canAdd: canAdd)
-            }
-        }
-        .padding(12)
-        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.horizontal, 8)
+        .padding(.vertical, 5)
         .background(PaintedChromeBackground(fill: picked > 0
             ? .tintedTexture(SettingsChrome.selectedOptionFill) : .color(Color(white: 0.18)), cornerRadius: 10))
     }
 
-    private func addResourceButton(_ resource: Resource, picked: Int, canAdd: Bool) -> some View {
-        Group {
-            if dynamicTypeSize.isAccessibilitySize {
-                Button { viewModel.selectForNavalHarvest(resource) } label: {
-                    Image(systemName: "plus.circle.fill")
-                        .font(.system(size: 21))
-                        .frame(width: Self.quantityControlSize, height: Self.quantityControlSize)
-                        .foregroundStyle(canAdd
-                            ? (picked > 0 ? CatanTheme.cityPennantGold : CatanTheme.color(for: resource)) : .white.opacity(0.35))
-                        .contentShape(Rectangle())
-                }
-                .disabled(!canAdd)
-            } else {
-                GoldRowButton(
-                    title: resource.rawValue.capitalized,
-                    subtitle: "You have \(owned(resource)) · Bank \(viewModel.state.bank[resource, default: 0])",
-                    systemImage: picked > 0 ? "checkmark.circle.fill" : "plus.circle",
-                    iconColor: picked > 0 ? CatanTheme.cityPennantGold : CatanTheme.color(for: resource),
-                    subtitleColor: picked > 0 ? .white : .white.opacity(0.7),
-                    disabledTitleOpacity: picked > 0 ? 1 : 0.85,
-                    isEnabled: canAdd,
-                    fill: picked > 0
-                        ? .tintedTexture(SettingsChrome.selectedOptionFill) : .color(Color(white: 0.18)),
-                    trailing: {
-                        Text("\(picked)")
-                            .font(.subheadline.bold()).monospacedDigit()
-                            .foregroundStyle(picked > 0 ? .white : .white.opacity(0.6))
-                    },
-                    action: { viewModel.selectForNavalHarvest(resource) }
-                )
+    /// The label and quantity controls are sibling buttons. A row-wide gesture
+    /// would also add a resource when its minus button is tapped.
+    private func resourceLabelButton(_ resource: Resource, picked: Int, canAdd: Bool) -> some View {
+        Button { viewModel.selectForNavalHarvest(resource) } label: {
+            HStack(spacing: 8) {
+                Image(systemName: picked > 0 ? "checkmark.circle.fill" : "circle.fill")
+                    .font(.system(size: 17))
+                    .foregroundStyle(picked > 0 ? CatanTheme.cityPennantGold : CatanTheme.color(for: resource))
+                    .accessibilityHidden(true)
+                resourceLabel(resource, picked: picked)
             }
+            .padding(.vertical, 5)
+            .frame(maxWidth: .infinity, minHeight: Self.quantityControlSize, alignment: .leading)
+            .contentShape(Rectangle())
         }
-        .buttonStyle(.plain)
+        .buttonStyle(HarvestLabelButtonStyle())
+        .disabled(!canAdd)
         .accessibilityIdentifier("naval.resource.\(resource.rawValue)")
         .accessibilityLabel("Add \(resource.rawValue.capitalized)")
-        .accessibilityValue("\(picked) selected. You have \(owned(resource)). Bank \(viewModel.state.bank[resource, default: 0]).")
-        .accessibilityHint("Select one card. You may choose the same resource more than once.")
+        .accessibilityValue(selectionValue(resource, picked: picked))
+        .accessibilityHint(addHint(resource, canAdd: canAdd))
         .accessibilityAddTraits(picked > 0 ? .isSelected : [])
+    }
+
+    private func resourceLabel(_ resource: Resource, picked: Int) -> some View {
+        VStack(alignment: .leading, spacing: 2) {
+            Text(resource.rawValue.capitalized)
+                .font(.subheadline.bold()).foregroundStyle(.white)
+                .accessibilityIdentifier("naval.resource.title.\(resource.rawValue)")
+            Group {
+                if dynamicTypeSize.isAccessibilitySize {
+                    Text("You have \(owned(resource))")
+                    Text("Bank \(viewModel.state.bank[resource, default: 0])")
+                } else {
+                    Text("You have \(owned(resource)) · Bank \(viewModel.state.bank[resource, default: 0])")
+                }
+            }
+            .font(.caption2).foregroundStyle(picked > 0 ? .white : .white.opacity(0.85))
+        }
+        .fixedSize(horizontal: false, vertical: true)
+    }
+
+    private func quantityControls(_ resource: Resource, picked: Int, canAdd: Bool) -> some View {
+        HStack(spacing: 0) {
+            Text("\(picked)")
+                .font(.subheadline.bold()).monospacedDigit()
+                .foregroundStyle(.white)
+                .dynamicTypeSize(...DynamicTypeSize.accessibility1)
+                .frame(minWidth: 18)
+                .accessibilityLabel("\(resource.rawValue.capitalized) selected")
+                .accessibilityValue("\(picked)")
+                .accessibilityIdentifier("naval.resource.quantity.\(resource.rawValue)")
+            addResourceButton(resource, picked: picked, canAdd: canAdd)
+            removeResourceButton(resource, picked: picked)
+        }
+    }
+
+    private func addResourceButton(_ resource: Resource, picked: Int, canAdd: Bool) -> some View {
+        Button { viewModel.selectForNavalHarvest(resource) } label: {
+            Image(systemName: "plus.circle.fill")
+                .font(.system(size: 24))
+                .frame(width: Self.quantityControlSize, height: Self.quantityControlSize)
+                .foregroundStyle(canAdd ? CatanTheme.cityPennantGold : .white.opacity(0.35))
+                .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .disabled(!canAdd)
+        .accessibilityIdentifier("naval.resource.add.\(resource.rawValue)")
+        .accessibilityLabel("Add one \(resource.rawValue.capitalized)")
+        .accessibilityValue(selectionValue(resource, picked: picked))
+        .accessibilityHint(addHint(resource, canAdd: canAdd))
     }
 
     private func removeResourceButton(_ resource: Resource, picked: Int) -> some View {
         Button { viewModel.deselectFromNavalHarvest(resource) } label: {
             Image(systemName: "minus.circle.fill")
-                .font(.system(size: 21))
+                .font(.system(size: 24))
                 .frame(width: Self.quantityControlSize, height: Self.quantityControlSize)
                 .foregroundStyle(picked > 0 ? CatanTheme.cityPennantGold : .white.opacity(0.35))
                 .contentShape(Rectangle())
@@ -265,7 +278,25 @@ struct NavalResourceChoiceView: View {
         .buttonStyle(.plain)
         .disabled(picked == 0)
         .accessibilityLabel("Remove one \(resource.rawValue.capitalized)")
+        .accessibilityValue("\(picked) selected")
         .accessibilityIdentifier("naval.resource.remove.\(resource.rawValue)")
+    }
+
+    private func selectionValue(_ resource: Resource, picked: Int) -> String {
+        "\(picked) selected. You have \(owned(resource)). Bank \(viewModel.state.bank[resource, default: 0])."
+    }
+
+    private func addHint(_ resource: Resource, canAdd: Bool) -> String {
+        if canAdd { return "Select one card. You may choose the same resource more than once." }
+        if remainingCount == 0 { return "All resources selected. Remove one to change your choice." }
+        return "No more \(resource.rawValue.capitalized) is available in the bank."
+    }
+
+    /// Disabled additions must not fade the selected name or stock information.
+    private struct HarvestLabelButtonStyle: ButtonStyle {
+        func makeBody(configuration: Configuration) -> some View {
+            configuration.label.opacity(configuration.isPressed ? 0.9 : 1)
+        }
     }
 
     private func owned(_ resource: Resource) -> Int {

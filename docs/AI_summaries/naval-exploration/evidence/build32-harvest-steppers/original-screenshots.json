@@ -1,0 +1,36 @@
+{
+  "scope": "Actual Debug UI source hash; version metadata was31 before final build32 bump",
+  "uiSourceSHA256": "3553fa081cc5205be4f62c2c48333a74f30cde64374ccd1f525bc97503dcbb99",
+  "sourceUnchangedBetweenBothFocusedRuns": true,
+  "originals": [
+    {
+      "path": "harvest-empty.png",
+      "originalPath": "/Users/alex/.codex/artifacts/naval-exploration/build32-harvest-steppers/attempt1-original-attachments/FCC72880-FBEA-49B9-92C8-842C0FF48A9C.png",
+      "sha256": "6ed48f1ea5f1f2581114ebaba2fcb8c7456ed56bede70e861af141e041707b7d",
+      "unalteredNativeAttachment": true,
+      "rootOpenedOriginal": true
+    },
+    {
+      "path": "harvest-complete.png",
+      "originalPath": "/Users/alex/.codex/artifacts/naval-exploration/build32-harvest-steppers/attempt1-original-attachments/8D3E71F7-63FF-4FC0-BDD0-B19D4D494FEF.png",
+      "sha256": "c14f04c2590f43642660c6f62eb702ab0ec14cdaa2605a164c71a5e9a9712385",
+      "unalteredNativeAttachment": true,
+      "rootOpenedOriginal": true
+    },
+    {
+      "path": "harvest-maximum-text.png",
+      "originalPath": "/Users/alex/.codex/artifacts/naval-exploration/build32-harvest-steppers/attempt1-original-attachments/979FA0A2-9ABE-4828-B6BA-9D11ACF79852.png",
+      "sha256": "a085c25cb2fd192c5ea8a05e1976d068d05700a0c154352fc101207a0c582a57",
+      "unalteredNativeAttachment": true,
+      "rootOpenedOriginal": true
+    },
+    {
+      "path": "harvest-maximum-text-edited.png",
+      "originalPath": "/Users/alex/.codex/artifacts/naval-exploration/build32-harvest-steppers/attempt1-original-attachments/60CFE14F-686C-49DE-BF4A-888DA34BEE57.png",
+      "sha256": "0b0c3a606b784bc4b30e53f564845a92d596ef02a4aa8b65a79e4bde4d9e273a",
+      "unalteredNativeAttachment": true,
+      "rootOpenedOriginal": true
+    }
+  ],
+  "maximumTextEditedLimit": "Ore1 visible; selectedWool2 outside deliberate scroll window, exactWool2+Ore1 credit/coldresume separately passesattempt2"
+}
