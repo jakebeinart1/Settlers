@@ -152,6 +152,26 @@ struct NavalHarvestSelectionTests {
         #expect(fixture.makeModel().state == model.state)
     }
 
+    @Test func failedReloadShowsItsNewErrorWhileRetainingTheOriginalDraft() throws {
+        let fixture = try CheckpointModelFixture()
+        var refusesWrite = false
+        let model = fixture.makeModel(atCommitStage: { stage in
+            if refusesWrite && stage == .beforeReplace { throw CocoaError(.fileWriteNoPermission) }
+        })
+        model.replaceStateForTesting(try NavalQAFixture.make(.cityHarvest), humanSeat: actor)
+        model.selectForNavalHarvest(.ore)
+        model.selectForNavalHarvest(.grain)
+        refusesWrite = true
+        #expect(!model.submitNavalHarvest())
+        let firstError = model.navalHarvestDraft.errorMessage
+        try FileManager.default.removeItem(at: fixture.root.appendingPathComponent("match_checkpoint.json"))
+        #expect(!model.retryPersistence())
+        #expect(model.navalHarvestErrorMessage == model.persistenceErrorMessage)
+        #expect(model.navalHarvestErrorMessage != firstError)
+        #expect(model.navalHarvestErrorMessage?.contains("checkpoint is missing") == true)
+        #expect(model.navalHarvestDraft.counts == [.ore: 1, .grain: 1])
+    }
+
     @Test func coldResumeDiscardsOnlyTheDraftAndKeepsLegacyPartialCollection() throws {
         let fixture = try CheckpointModelFixture()
         let model = fixture.makeModel()

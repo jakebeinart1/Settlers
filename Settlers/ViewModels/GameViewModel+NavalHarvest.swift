@@ -66,6 +66,9 @@ extension GameViewModel {
             && navalHarvestDraft.selectedCount == obligation.requiredCount
     }
 
+    /// A failed reload supplies newer evidence than the original write error.
+    var navalHarvestErrorMessage: String? { persistenceErrorMessage ?? navalHarvestDraft.errorMessage }
+
     @discardableResult
     func submitNavalHarvest() -> Bool {
         prepareNavalHarvestPresentation()

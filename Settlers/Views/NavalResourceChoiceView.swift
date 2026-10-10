@@ -49,7 +49,7 @@ struct NavalResourceChoiceView: View {
                     ScrollView {
                         VStack(spacing: 14) {
                             resources
-                            if let errorMessage = viewModel.navalHarvestDraft.errorMessage {
+                            if let errorMessage = viewModel.navalHarvestErrorMessage {
                                 Text(errorMessage)
                                     .font(.caption)
                                     .foregroundStyle(Color(red: 1, green: 0.8, blue: 0.72))
