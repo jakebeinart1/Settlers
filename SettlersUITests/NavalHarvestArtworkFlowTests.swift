@@ -12,8 +12,8 @@ final class NavalHarvestArtworkFlowTests: XCTestCase {
         for _ in 0..<2 {
             XCTAssertTrue(app.buttons["naval.resource.ore"].waitForExistence(timeout: 10))
             app.buttons["naval.resource.ore"].tap()
-            app.buttons["naval.resource.confirm"].tap()
         }
+        app.buttons["naval.resource.confirm"].tap()
         XCTAssertTrue(app.buttons["End Turn"].waitForExistence(timeout: 5))
         app.buttons["naval.fleet.open"].tap()
         app.buttons["naval.fleet.ship.0"].tap()

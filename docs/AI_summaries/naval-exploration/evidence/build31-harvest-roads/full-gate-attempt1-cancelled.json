@@ -1,0 +1,21 @@
+{
+  "status": "FAIL",
+  "sourceCommit": "2320ec7913fecca617a6332c44f2574a4b1756ee",
+  "startedAtUnix": 1791606907.6064909,
+  "command": [
+    "git",
+    "-c",
+    "core.hooksPath=/Users/alex/.codex/artifacts/naval-exploration/build31-harvest-roads/delivery/push-hooks",
+    "-c",
+    "core.sshCommand=ssh -o ServerAliveInterval=30 -o ServerAliveCountMax=180",
+    "push",
+    "-u",
+    "origin",
+    "codex/naval31-harvest-roads"
+  ],
+  "mandatoryGateIncludesDebug": true,
+  "actualExitCode": 1,
+  "policy": "One serial canonical gate; invocation-only adapter and observer. No shared Git config edits.",
+  "elapsedSeconds": 1159.5,
+  "sourceUnchanged": true
+}

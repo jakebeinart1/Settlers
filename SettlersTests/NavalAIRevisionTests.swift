@@ -212,14 +212,14 @@ struct NavalAIRevisionTests {
         }
     }
 
-    @Test(arguments: BotDifficulty.allCases, [4, 5])
+    @Test(arguments: BotDifficulty.allCases, [4, 5, 6])
     func replacedDebugBaselinesPersistTheFixtureBrain(difficulty: BotDifficulty, rulesVersion: Int) throws {
         try withFixture { fixture in
             let model = fixture.makeModel()
             var state = try NavalQAFixture.make(.voyage)
             state.naval?.rulesVersion = rulesVersion
             model.replaceStateForTesting(state, humanSeat: PlayerID(index: 2), difficulty: difficulty)
-            let revision: NavalPolicy.Revision = rulesVersion == 5 ? .scoutingV2 : .legacyV1
+            let revision: NavalPolicy.Revision = rulesVersion >= 5 ? .scoutingV2 : .legacyV1
             let match = try requireMatch(model, revision: revision)
             let restored = fixture.makeModel()
             #expect(try requireMatch(restored, revision: revision) == match)

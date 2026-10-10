@@ -57,6 +57,23 @@ import Testing
         #expect(copy.contains("settlement chooses 1 resource"))
         #expect(copy.contains("city chooses 2 resources"))
         #expect(copy.contains("same resource twice is allowed"))
+        #expect(copy.contains("Choose all your resources, then collect them together"))
+    }
+
+    @Test(arguments: [1, 2, 3, 4, 5, 6])
+    func navalRoadGuideMatchesSavedConstructionRules(_ version: Int) throws {
+        var state = Naval.newGame(seed: 73)
+        state.naval?.rulesVersion = version
+        let voyages = try section("voyages", in: HowToPlayContent.rules(for: .init(state: state)))
+        let copy = voyages.details.joined(separator: " ")
+        #expect(copy.contains("Rival buildings still break Longest Road")
+            || copy.contains("rival buildings still break Longest Road"))
+        if version >= Naval.roadContinuationRulesVersion {
+            #expect(copy.contains("extend your roads past another player's settlement or city"))
+            #expect(copy.contains("unoccupied land edge"))
+        } else {
+            #expect(copy.contains("blocks road construction through its corner"))
+        }
     }
 
     @Test(arguments: ArmyPrice.allCases)

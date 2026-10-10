@@ -33,6 +33,10 @@ extension GameViewModel {
             shipStealingEnabled: QALaunchFlag.navalShipStealing.isSet)
         setup.expertRevision = setup.newMatchExpertRevision
         startNewGame(setup: setup)
+        if QALaunchFlag.navalRoadJunctionPosition.isSet {
+            qaStartRoadJunction(difficulty: setup.difficulty)
+            return
+        }
         let kind: NavalQAFixture.Position?
         if QALaunchFlag.navalShipLossPosition.isSet {
             kind = .shipLoss
@@ -46,6 +50,8 @@ extension GameViewModel {
             kind = .stackedShips
         } else if QALaunchFlag.navalAdjacentShipsPosition.isSet {
             kind = .adjacentShips
+        } else if QALaunchFlag.navalMixedResourcePosition.isSet {
+            kind = .mixedHarvest
         } else if QALaunchFlag.navalCityResourcePosition.isSet {
             kind = .cityHarvest
         } else if QALaunchFlag.navalResourcePosition.isSet {
@@ -73,9 +79,20 @@ extension GameViewModel {
             if QALaunchFlag.navalBuildScarcity.isSet {
                 NavalQAFixture.replaceHand([.lumber: 1, .wool: 10], for: PlayerID(index: 0), in: &position)
             }
+            if QALaunchFlag.navalHarvestBankScarce.isSet {
+                NavalQAFixture.limitHarvestBank(to: [.ore: 1, .grain: 1], in: &position)
+            }
+            if QALaunchFlag.navalHarvestPartial.isSet {
+                try RulesEngine.apply(.chooseResource(.ore), by: PlayerID(index: 0), to: &position)
+            }
             replaceStateForTesting(position, humanSeat: PlayerID(index: 0), difficulty: setup.difficulty,
                                    civilizations: artworkAssignment)
         } catch { preconditionFailure("Naval QA fixture is invalid: \(error)") }
+    }
+
+    private func qaStartRoadJunction(difficulty: BotDifficulty) {
+        replaceStateForTesting(NavalRoadJunctionQAFixture.make(), humanSeat: PlayerID(index: 0),
+            difficulty: difficulty, civilizations: [.medieval, .aztec, .egypt, .norse])
     }
 }
 #endif

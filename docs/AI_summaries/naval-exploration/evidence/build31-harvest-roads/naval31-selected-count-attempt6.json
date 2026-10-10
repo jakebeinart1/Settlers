@@ -1,0 +1,30 @@
+{
+  "args": [
+    "xcodebuild",
+    "test",
+    "-project",
+    "Settlers.xcodeproj",
+    "-scheme",
+    "Settlers",
+    "-destination",
+    "platform=iOS Simulator,id=937692FF-BFBF-4683-80E5-2590F5288D56",
+    "-parallel-testing-enabled",
+    "NO",
+    "-parallel-testing-worker-count",
+    "1",
+    "-jobs",
+    "2",
+    "OTHER_SWIFT_FLAGS=$(inherited) -driver-batch-count 2",
+    "-only-testing:SettlersUITests/NavalHarvestSelectionFlowTests",
+    "-only-testing:SettlersUITests/NavalFlowTests/testHarvestPassesNativeAccessibilityAudit",
+    "-derivedDataPath",
+    "/Users/alex/.codex/artifacts/naval-exploration/build31-harvest-roads/native-derived",
+    "-resultBundlePath",
+    "/Users/alex/.codex/artifacts/naval-exploration/build31-harvest-roads/naval31-selected-count-attempt6.xcresult"
+  ],
+  "startedAtUnix": 1791608431.053804,
+  "source_head": "2320ec7913fecca617a6332c44f2574a4b1756ee",
+  "working_diff_sha256": "d628ed52aff64cd8ddd46cc976de6143ec0c139adcd5cede6f52873dd8291747",
+  "exit_code": 0,
+  "elapsed_seconds": 112.9
+}

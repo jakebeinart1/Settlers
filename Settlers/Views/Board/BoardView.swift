@@ -233,6 +233,7 @@ public struct BoardView: View {
 
                 #if DEBUG
                 if state.mode == .naval { navalCameraReferenceMarkers(geometry: geometry) }
+                qaNavalRoadJunctionMarkers(geometry: geometry)
                 qaProductionHighlightMarkers(geometry: geometry)
                 qaPublicProjectionMarker
                 #endif

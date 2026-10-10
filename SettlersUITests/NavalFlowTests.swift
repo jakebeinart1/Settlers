@@ -482,9 +482,9 @@ final class NavalFlowTests: XCTestCase {
         XCTAssertTrue(app.buttons["naval.resource.ore"].waitForExistence(timeout: 5))
         XCTAssertEqual(app.staticTexts["naval.resource.source"].label, "Settlement harvest")
         XCTAssertTrue(app.staticTexts["naval.resource.choice"].label.contains("Choose 1 resource"))
-        let oreBefore = Int(app.buttons["naval.resource.ore"].value as? String ?? "")!
+        let oreBefore = resource("ore", in: app)
         app.buttons["naval.resource.ore"].tap()
-        XCTAssertEqual(Int(app.buttons["naval.resource.ore"].value as? String ?? ""), oreBefore)
+        XCTAssertEqual(resource("ore", in: app), oreBefore)
         retainScreenshot("Voyages — island harvest", app: app)
         app.terminate()
         app.launchArguments = ["-ui-testing", "-qaAutoStart"]
@@ -529,31 +529,20 @@ final class NavalFlowTests: XCTestCase {
         XCTAssertTrue(app.buttons["End Turn"].isHittable)
     }
 
-    func testCityHarvestCreditsTwoChoicesAcrossColdResume() {
+    func testCityHarvestRequiresBothSelectionsBeforeOneCollection() {
         let app = launch("-qaNavalCityResourcePosition")
         let ore = app.buttons["naval.resource.ore"]
-        XCTAssertEqual(app.staticTexts["naval.resource.source"].label, "City harvest")
-        XCTAssertTrue(app.staticTexts["naval.resource.choice"].label.contains("Choose 2 resources"))
-        XCTAssertEqual(app.descendants(matching: .any)["naval.resource.progress"].value as? String, "0 of 2 collected. 2 remaining.")
-        retainScreenshot("Voyages — city chooses two resources with clear progress", app: app)
-        let before = Int(ore.value as? String ?? "")!
-        ore.tap()
-        app.buttons["naval.resource.confirm"].tap()
-        XCTAssertTrue(app.staticTexts["naval.resource.choice"].exists)
-        XCTAssertEqual(Int(ore.value as? String ?? ""), before + 1)
-        XCTAssertEqual(app.descendants(matching: .any)["naval.resource.progress"].value as? String, "1 of 2 collected. 1 remaining.")
-        XCTAssertFalse(app.buttons["naval.resource.confirm"].isEnabled, "A second unit needs a new explicit selection")
-        app.terminate()
-        app.launchArguments = ["-ui-testing", "-qaAutoStart"]
-        app.launch()
+        let confirm = app.buttons["naval.resource.confirm"]
         XCTAssertTrue(ore.waitForExistence(timeout: 5))
-        XCTAssertEqual(Int(ore.value as? String ?? ""), before + 1)
-        XCTAssertTrue(app.staticTexts["naval.resource.choice"].label.contains("Choose 2 resources"))
-        XCTAssertEqual(app.descendants(matching: .any)["naval.resource.progress"].value as? String, "1 of 2 collected. 1 remaining.")
-        retainScreenshot("Voyages — city harvest progress survives cold resume", app: app)
-        XCTAssertFalse(app.buttons["naval.resource.confirm"].isEnabled)
+        let before = resource("ore", in: app)
+        XCTAssertFalse(confirm.isEnabled)
         ore.tap()
-        app.buttons["naval.resource.confirm"].tap()
+        XCTAssertFalse(confirm.isEnabled, "Selecting one of two cards must not enable collection")
+        XCTAssertEqual(resource("ore", in: app), before, "A selection cannot collect a card")
+        ore.tap()
+        XCTAssertTrue(confirm.isEnabled, "Repeated selection must allow two of the same resource")
+        XCTAssertEqual(resource("ore", in: app), before)
+        confirm.tap()
         XCTAssertTrue(app.buttons["End Turn"].waitForExistence(timeout: 5))
         XCTAssertEqual(resource("ore", in: app), before + 2)
     }
@@ -565,15 +554,22 @@ final class NavalFlowTests: XCTestCase {
         let collect = app.buttons["naval.resource.confirm"]
         XCTAssertTrue(collect.isHittable)
         XCTAssertGreaterThanOrEqual(collect.frame.height, 44)
+        var selected: String?
         for resource in ["brick", "lumber", "ore", "grain", "wool"] {
-            let choice = app.buttons["naval.resource.\(resource)"]
-            for _ in 0..<10 where !choice.isHittable {
-                app.scrollViews["naval.resource.scroll"].swipeUp()
+            if let selected {
+                let remove = app.buttons["naval.resource.remove.\(selected)"]
+                XCTAssertTrue(remove.isEnabled)
+                NavalResourceOracle.revealHarvestControl(remove, in: app)
+                XCTAssertGreaterThanOrEqual(remove.frame.height, 44)
+                remove.tap()
             }
-            XCTAssertTrue(choice.isHittable, "The harvest choice cannot be reached: \(resource)")
+            let choice = app.buttons["naval.resource.\(resource)"]
+            NavalResourceOracle.revealHarvestControl(choice, in: app)
             XCTAssertGreaterThanOrEqual(choice.frame.height, 44)
             choice.tap()
+            selected = resource
             XCTAssertTrue(collect.isHittable, "Confirmation must remain pinned while the choices scroll")
+            XCTAssertEqual(collect.value as? String, "1 of 1 selected")
         }
         retainScreenshot("Voyages — accessible island harvest", app: app)
         collect.tap()
@@ -698,10 +694,9 @@ final class NavalFlowTests: XCTestCase {
         return app
     }
 
-    private func resource(_ resource: String, in app: XCUIApplication) -> Int {
-        let value = app.otherElements["human-resource.\(resource)"].value as? String
-        XCTAssertNotNil(value)
-        return Int(value ?? "") ?? -1
+    private func resource(_ resource: String, in app: XCUIApplication,
+                          file: StaticString = #filePath, line: UInt = #line) -> Int {
+        NavalResourceOracle.ownedCount(resource, in: app, file: file, line: line)
     }
 
     private func charted(in app: XCUIApplication) -> Int {
