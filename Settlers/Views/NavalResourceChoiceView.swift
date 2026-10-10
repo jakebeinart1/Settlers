@@ -73,6 +73,7 @@ struct NavalResourceChoiceView: View {
                                   subtitle: selectionProgress,
                                   systemImage: "checkmark",
                                   iconColor: viewModel.canSubmitNavalHarvest ? CatanTheme.cityPennantGold : .white.opacity(0.5),
+                                  subtitleColor: .white,
                                   isEnabled: viewModel.canSubmitNavalHarvest,
                                   fill: viewModel.canSubmitNavalHarvest
                                     ? .tintedTexture(SettingsChrome.selectedOptionFill) : .color(Color(white: 0.18)),
@@ -194,7 +195,7 @@ struct NavalResourceChoiceView: View {
                 Text("You have \(owned(resource))")
                 Text("Bank \(viewModel.state.bank[resource, default: 0])")
             }
-            .font(.caption2).foregroundStyle(.white.opacity(0.85))
+            .font(.caption2).foregroundStyle(picked > 0 ? .white : .white.opacity(0.85))
             .fixedSize(horizontal: false, vertical: true)
             HStack(spacing: 12) {
                 removeResourceButton(resource, picked: picked)
@@ -231,13 +232,15 @@ struct NavalResourceChoiceView: View {
                     subtitle: "You have \(owned(resource)) · Bank \(viewModel.state.bank[resource, default: 0])",
                     systemImage: picked > 0 ? "checkmark.circle.fill" : "plus.circle",
                     iconColor: picked > 0 ? CatanTheme.cityPennantGold : CatanTheme.color(for: resource),
+                    subtitleColor: picked > 0 ? .white : .white.opacity(0.7),
+                    disabledTitleOpacity: picked > 0 ? 1 : 0.85,
                     isEnabled: canAdd,
                     fill: picked > 0
                         ? .tintedTexture(SettingsChrome.selectedOptionFill) : .color(Color(white: 0.18)),
                     trailing: {
                         Text("\(picked)")
                             .font(.subheadline.bold()).monospacedDigit()
-                            .foregroundStyle(picked > 0 ? CatanTheme.cityPennantGold : .white.opacity(0.6))
+                            .foregroundStyle(picked > 0 ? .white : .white.opacity(0.6))
                     },
                     action: { viewModel.selectForNavalHarvest(resource) }
                 )

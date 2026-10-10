@@ -1,0 +1,31 @@
+{
+  "args": [
+    "xcodebuild",
+    "test",
+    "-project",
+    "Settlers.xcodeproj",
+    "-scheme",
+    "Settlers",
+    "-destination",
+    "platform=iOS Simulator,id=937692FF-BFBF-4683-80E5-2590F5288D56",
+    "-parallel-testing-enabled",
+    "NO",
+    "-parallel-testing-worker-count",
+    "1",
+    "-jobs",
+    "2",
+    "OTHER_SWIFT_FLAGS=$(inherited) -driver-batch-count 2",
+    "-only-testing:SettlersUITests/NavalHarvestSelectionFlowTests/testSelectedQuantitiesAndStockStayReadableBeforeSingleCollection",
+    "-only-testing:SettlersUITests/NavalHarvestSelectionFlowTests/testMixedHarvestCountsEveryPickAndAllowsEditingAtFullAllocation",
+    "-only-testing:SettlersUITests/NavalHarvestSelectionFlowTests/testMaximumTextKeepsProgressEditingAndConfirmationReachable",
+    "-derivedDataPath",
+    "/Users/alex/.codex/artifacts/naval-exploration/build31-harvest-roads/native-derived",
+    "-resultBundlePath",
+    "/Users/alex/.codex/artifacts/naval-exploration/build31-harvest-roads/naval31-selected-count-attempt7.xcresult"
+  ],
+  "startedAtUnix": 1791608624.941917,
+  "source_head": "2320ec7913fecca617a6332c44f2574a4b1756ee",
+  "working_diff_sha256": "d0ec9a8ee6c0fd899931f967f56f7059e6e840d87ce72c924b5904892bdf0ec8",
+  "exit_code": 0,
+  "elapsed_seconds": 60.2
+}

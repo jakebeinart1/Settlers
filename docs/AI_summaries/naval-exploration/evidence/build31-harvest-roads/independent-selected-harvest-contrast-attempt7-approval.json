@@ -1,0 +1,382 @@
+{
+  "attempt7_recorded_working_diff_sha256": "d0ec9a8ee6c0fd899931f967f56f7059e6e840d87ce72c924b5904892bdf0ec8",
+  "color_space": "Embedded sRGB IEC61966-2.1, verified by PNG sRGB chunk and sips",
+  "maximum_text_original": "/Users/alex/.codex/artifacts/naval-exploration/build31-harvest-roads/attempt7-attachments/553195BE-E6AE-4C48-8D44-13EFB632E3DF.png",
+  "maximum_text_original_sha256": "f3f48188835ad28afde268ef2d64c853d0a6c2bad60cbce3f0c4095990d93c64",
+  "maximum_text_visual_review": [
+    "Viewed original pixels. Full-scale resource words/hand/bank labels have full card width and remain legible.",
+    "Header and collection footer stay compact; both display3of3 completion clearly.",
+    "Displayed partial preceding/following cards are normal ScrollView clipping, with fixed header/footer unobscured.",
+    "Selected white text contrasts clearly with the painted gold; unavailable plus buttons remain visibly disabled while remove controls stay distinct.",
+    "No new layout or contrast blocker found in this original."
+  ],
+  "method": "No whole-canvas/dominant backing bucket. Opaque white glyph cores in issue-specific original pixel ROIs paired with their nearest clean texture within8pixels. Blank nearby fill verified blue22; this mask excludes glyph antialiasing. WCAG sRGB luminance. Original images unchanged.",
+  "native_receipt_qualification": {
+    "executed_by": "Root QA coordinator, not this reviewer",
+    "failed": 0,
+    "observed_exit_code": 0,
+    "passed": 3,
+    "receipt": "/Users/alex/.codex/artifacts/naval-exploration/build31-harvest-roads/naval31-selected-count-attempt7.json",
+    "skipped": 0,
+    "summary": "/Users/alex/.codex/artifacts/naval-exploration/build31-harvest-roads/attempt7-summary.json"
+  },
+  "normal_original": "/Users/alex/.codex/artifacts/naval-exploration/build31-harvest-roads/attempt7-attachments/BC4D5DC4-4A8B-4582-B4D2-A3947143A248.png",
+  "normal_original_sha256": "e3806825a62fcbfed9d3dec8d72815d58c8a723593d528082789bf7c7f4f4ad8",
+  "previous_rejected_contrast_receipt": "/Users/alex/.codex/artifacts/naval-exploration/build31-harvest-roads/independent-selected-harvest-contrast.json",
+  "qualification": [
+    "Approval is limited to the inspected original images, measured text roles and reviewed source patch. It is not full-gate, Release, phone, merge or delivery approval.",
+    "Defaults subtitleColor white70% and disabledTitleOpacity85% preserve existing GoldRow callers. Only selected Naval callers override opacity/color.",
+    "WCAG text-size/CSS-unit ambiguity is avoided here by requiring4.5:1 for all measured informational roles, including selected titles.",
+    "Prior rejected original and its contrast receipt remain preserved."
+  ],
+  "results": {
+    "footer_progress": {
+      "contrast_min_median_max": [
+        6.273,
+        6.942,
+        7.775
+      ],
+      "nearest_clean_texture_pairs": 767,
+      "neighbor_texture_modes": [
+        [
+          [
+            110,
+            88,
+            22
+          ],
+          45
+        ],
+        [
+          [
+            106,
+            85,
+            22
+          ],
+          44
+        ],
+        [
+          [
+            109,
+            88,
+            22
+          ],
+          41
+        ]
+      ],
+      "opaque_white_core_pixels": 593,
+      "passes_4_5": true,
+      "roi_original_pixels": [
+        277,
+        2043,
+        560,
+        2076
+      ]
+    },
+    "footer_title": {
+      "contrast_min_median_max": [
+        5.748,
+        6.612,
+        7.242
+      ],
+      "nearest_clean_texture_pairs": 957,
+      "neighbor_texture_modes": [
+        [
+          [
+            111,
+            89,
+            22
+          ],
+          76
+        ],
+        [
+          [
+            116,
+            93,
+            22
+          ],
+          61
+        ],
+        [
+          [
+            117,
+            94,
+            22
+          ],
+          46
+        ]
+      ],
+      "opaque_white_core_pixels": 768,
+      "passes_4_5": true,
+      "roi_original_pixels": [
+        276,
+        1999,
+        720,
+        2029
+      ]
+    },
+    "grain_owned_bank_caption": {
+      "contrast_min_median_max": [
+        5.427,
+        6.168,
+        6.868
+      ],
+      "nearest_clean_texture_pairs": 1338,
+      "neighbor_texture_modes": [
+        [
+          [
+            119,
+            96,
+            22
+          ],
+          159
+        ],
+        [
+          [
+            116,
+            94,
+            22
+          ],
+          144
+        ],
+        [
+          [
+            115,
+            93,
+            22
+          ],
+          122
+        ]
+      ],
+      "opaque_white_core_pixels": 1056,
+      "passes_4_5": true,
+      "roi_original_pixels": [
+        276,
+        1514,
+        607,
+        1548
+      ]
+    },
+    "grain_quantity_1": {
+      "contrast_min_median_max": [
+        5.427,
+        6.053,
+        6.446
+      ],
+      "nearest_clean_texture_pairs": 236,
+      "neighbor_texture_modes": [
+        [
+          [
+            119,
+            96,
+            22
+          ],
+          43
+        ],
+        [
+          [
+            116,
+            94,
+            22
+          ],
+          29
+        ],
+        [
+          [
+            117,
+            95,
+            22
+          ],
+          23
+        ]
+      ],
+      "opaque_white_core_pixels": 219,
+      "passes_4_5": true,
+      "roi_original_pixels": [
+        818,
+        1473,
+        866,
+        1524
+      ]
+    },
+    "grain_title": {
+      "contrast_min_median_max": [
+        5.107,
+        5.966,
+        6.542
+      ],
+      "nearest_clean_texture_pairs": 1253,
+      "neighbor_texture_modes": [
+        [
+          [
+            120,
+            97,
+            22
+          ],
+          180
+        ],
+        [
+          [
+            119,
+            96,
+            22
+          ],
+          118
+        ],
+        [
+          [
+            121,
+            98,
+            22
+          ],
+          110
+        ]
+      ],
+      "opaque_white_core_pixels": 1062,
+      "passes_4_5": true,
+      "roi_original_pixels": [
+        278,
+        1447,
+        448,
+        1507
+      ]
+    },
+    "ore_owned_bank_caption": {
+      "contrast_min_median_max": [
+        5.505,
+        6.168,
+        6.868
+      ],
+      "nearest_clean_texture_pairs": 1451,
+      "neighbor_texture_modes": [
+        [
+          [
+            119,
+            96,
+            22
+          ],
+          183
+        ],
+        [
+          [
+            116,
+            94,
+            22
+          ],
+          180
+        ],
+        [
+          [
+            115,
+            93,
+            22
+          ],
+          126
+        ]
+      ],
+      "opaque_white_core_pixels": 1141,
+      "passes_4_5": true,
+      "roi_original_pixels": [
+        276,
+        1338,
+        607,
+        1372
+      ]
+    },
+    "ore_quantity_2": {
+      "contrast_min_median_max": [
+        5.329,
+        5.966,
+        6.667
+      ],
+      "nearest_clean_texture_pairs": 252,
+      "neighbor_texture_modes": [
+        [
+          [
+            121,
+            98,
+            22
+          ],
+          32
+        ],
+        [
+          [
+            120,
+            97,
+            22
+          ],
+          31
+        ],
+        [
+          [
+            119,
+            96,
+            22
+          ],
+          28
+        ]
+      ],
+      "opaque_white_core_pixels": 206,
+      "passes_4_5": true,
+      "roi_original_pixels": [
+        818,
+        1294,
+        866,
+        1349
+      ]
+    },
+    "ore_title": {
+      "contrast_min_median_max": [
+        5.18,
+        5.966,
+        6.472
+      ],
+      "nearest_clean_texture_pairs": 793,
+      "neighbor_texture_modes": [
+        [
+          [
+            120,
+            97,
+            22
+          ],
+          111
+        ],
+        [
+          [
+            122,
+            98,
+            22
+          ],
+          84
+        ],
+        [
+          [
+            119,
+            96,
+            22
+          ],
+          76
+        ]
+      ],
+      "opaque_white_core_pixels": 682,
+      "passes_4_5": true,
+      "roi_original_pixels": [
+        278,
+        1269,
+        386,
+        1328
+      ]
+    }
+  },
+  "reviewed_at_utc": "2026-10-10T05:10:21.435090+00:00",
+  "reviewed_source_sha256": {
+    "Settlers/Views/GoldRowButton.swift": "023bf0147d0410b23d327ddc782dbb237c414b075a6df2ca3c0f8fff6b1d2f4d",
+    "Settlers/Views/NavalResourceChoiceView.swift": "5f9479ed1582c6d816162d44fb6501cbe4ee97fba3a833ef6f255a434c4b651e",
+    "SettlersUITests/NavalHarvestSelectionFlowTests.swift": "159dafe337605f6d5e02a0a208971524a32f3584027228144e9b2ea4b0b9720a"
+  },
+  "reviewer": "/root/harvest_design",
+  "source_diff_matches_attempt7_receipt": true,
+  "source_file_classification": "Two production view sources and one native test source; uncommitted atop source_head during capture.",
+  "source_head": "2320ec7913fecca617a6332c44f2574a4b1756ee",
+  "status": "APPROVED_SCOPED_RENDERED_HARVEST_TEXT_CONTRAST_AND_MAXIMUM_TEXT_LAYOUT",
+  "three_source_file_diff_sha256": "d0ec9a8ee6c0fd899931f967f56f7059e6e840d87ce72c924b5904892bdf0ec8"
+}

@@ -24,6 +24,8 @@ struct GoldRowButton<Trailing: View>: View {
     let systemImage: String
     var iconColor: Color = .white
     var titleColor: Color = .white
+    var subtitleColor: Color = .white.opacity(0.7)
+    var disabledTitleOpacity = 0.85
     var isEnabled: Bool = true
     /// The plaque's interior. Defaults to the flat dark swatch every popup row
     /// has always used, so no existing call site changes; `InGameSettingsView`
@@ -46,11 +48,11 @@ struct GoldRowButton<Trailing: View>: View {
                 VStack(alignment: .leading, spacing: 1) {
                     Text(title)
                         .font(.subheadline.bold())
-                        .foregroundStyle(titleColor.opacity(isEnabled ? 1 : 0.85))
+                        .foregroundStyle(titleColor.opacity(isEnabled ? 1 : disabledTitleOpacity))
                     if let subtitle {
                         Text(subtitle)
                             .font(.caption2)
-                            .foregroundStyle(.white.opacity(0.7))
+                            .foregroundStyle(subtitleColor)
                     }
                 }
                 Spacer(minLength: 8)
@@ -84,6 +86,8 @@ extension GoldRowButton where Trailing == EmptyView {
         systemImage: String,
         iconColor: Color = .white,
         titleColor: Color = .white,
+        subtitleColor: Color = .white.opacity(0.7),
+        disabledTitleOpacity: Double = 0.85,
         isEnabled: Bool = true,
         fill: PaintedChromeBackground.Fill = .color(Color(white: 0.18)),
         action: @escaping () -> Void
@@ -94,6 +98,8 @@ extension GoldRowButton where Trailing == EmptyView {
             systemImage: systemImage,
             iconColor: iconColor,
             titleColor: titleColor,
+            subtitleColor: subtitleColor,
+            disabledTitleOpacity: disabledTitleOpacity,
             isEnabled: isEnabled,
             fill: fill,
             trailing: { EmptyView() },

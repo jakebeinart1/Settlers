@@ -1,21 +1,31 @@
 [
   {
     "galleryPath": "harvest-empty.png",
-    "sourcePath": "/Users/alex/.codex/artifacts/naval-exploration/build31-harvest-roads/attempt4-attachments/4373D1B3-2A18-423C-BA36-A8E172C75757.png",
-    "sha256": "6a17f841f3d57756630eaa4455e9c2f6204b0ab92954406b3380ae75fb3354e4",
+    "sourcePath": "/Users/alex/.codex/artifacts/naval-exploration/build31-harvest-roads/attempt7-attachments/30BA5FBC-DA82-40E7-BDD3-21A493CD91BB.png",
+    "sha256": "a8c64af2ade41f382a4a9cea679520a0e9331f01f850fa77d09a9a15bf395b39",
     "nativeTest": "NavalHarvestSelectionFlowTests/testMixedHarvestCountsEveryPickAndAllowsEditingAtFullAllocation()",
-    "attachmentName": "Harvest \u2014 mixed buildings before selection_0_B9236357-6CB7-475D-BF95-0D7BC8171C1E.png",
+    "attachmentName": "Harvest \u2014 mixed buildings before selection_0_A6D9E045-463F-4E79-AADA-9E741E4E85C1.png",
     "originalUnmodifiedScreenshot": true,
-    "openedByRoot": true
+    "openedByRoot": true,
+    "supersededOriginal": {
+      "sourcePath": "/Users/alex/.codex/artifacts/naval-exploration/build31-harvest-roads/attempt4-attachments/4373D1B3-2A18-423C-BA36-A8E172C75757.png",
+      "sha256": "6a17f841f3d57756630eaa4455e9c2f6204b0ab92954406b3380ae75fb3354e4",
+      "reason": "Selected informational ink contrast corrected; previous original retained in task artifacts and committed history."
+    }
   },
   {
     "galleryPath": "harvest-complete.png",
-    "sourcePath": "/Users/alex/.codex/artifacts/naval-exploration/build31-harvest-roads/attempt4-attachments/9C2B429F-1C91-48BE-98F2-9D41A1709729.png",
-    "sha256": "6c3194eabc2c393189b5d4ca9812221c1361a13d69f29259a53c7e78c3912cc8",
-    "nativeTest": "NavalHarvestSelectionFlowTests/testMixedHarvestCountsEveryPickAndAllowsEditingAtFullAllocation()",
-    "attachmentName": "Harvest \u2014 complete three-card choice_0_368CA235-5C08-47B4-BF91-A79AFC7DC625.png",
+    "sourcePath": "/Users/alex/.codex/artifacts/naval-exploration/build31-harvest-roads/attempt7-attachments/BC4D5DC4-4A8B-4582-B4D2-A3947143A248.png",
+    "sha256": "e3806825a62fcbfed9d3dec8d72815d58c8a723593d528082789bf7c7f4f4ad8",
+    "nativeTest": "NavalHarvestSelectionFlowTests/testSelectedQuantitiesAndStockStayReadableBeforeSingleCollection()",
+    "attachmentName": "Harvest \u2014 selected quantities and stock with readable white ink_0_6C62DC1E-4B34-4585-AA0C-F3DDC6FCCDE3.png",
     "originalUnmodifiedScreenshot": true,
-    "openedByRoot": true
+    "openedByRoot": true,
+    "supersededOriginal": {
+      "sourcePath": "/Users/alex/.codex/artifacts/naval-exploration/build31-harvest-roads/attempt4-attachments/9C2B429F-1C91-48BE-98F2-9D41A1709729.png",
+      "sha256": "6c3194eabc2c393189b5d4ca9812221c1361a13d69f29259a53c7e78c3912cc8",
+      "reason": "Selected informational ink contrast corrected; previous original retained in task artifacts and committed history."
+    }
   },
   {
     "galleryPath": "both-road-exits.png",
@@ -55,20 +65,30 @@
   },
   {
     "galleryPath": "harvest-maximum-text-empty.png",
-    "sourcePath": "/Users/alex/.codex/artifacts/naval-exploration/build31-harvest-roads/attempt5-attachments/F83D3B6B-DD0D-47F7-8DE3-3604815D31C1.png",
-    "sha256": "c80d6d9138af0a383fd5a5c55c9fc6ce0bf2471542cb4e69d1025f0c12103cd6",
+    "sourcePath": "/Users/alex/.codex/artifacts/naval-exploration/build31-harvest-roads/attempt7-attachments/86BFBD32-1AE2-480F-987B-BE3F154A3E34.png",
+    "sha256": "4dfb1756743e202e3dee1260b3860baed0de059aae6bc1a2d09bb7e3fc16d6e1",
     "nativeTest": "NavalHarvestSelectionFlowTests/testMaximumTextKeepsProgressEditingAndConfirmationReachable()",
-    "attachmentName": "Harvest \u2014 maximum text before selection_0_42049B27-6CAA-4BCB-814C-32D2E1815E65.png",
+    "attachmentName": "Harvest \u2014 maximum text before selection_0_CD0FB533-829B-43E6-9C42-DC06BB2E8DE6.png",
     "originalUnmodifiedScreenshot": true,
-    "openedByRoot": true
+    "openedByRoot": true,
+    "supersededOriginal": {
+      "sourcePath": "/Users/alex/.codex/artifacts/naval-exploration/build31-harvest-roads/attempt5-attachments/F83D3B6B-DD0D-47F7-8DE3-3604815D31C1.png",
+      "sha256": "c80d6d9138af0a383fd5a5c55c9fc6ce0bf2471542cb4e69d1025f0c12103cd6",
+      "reason": "Selected informational ink contrast corrected; previous original retained in task artifacts and committed history."
+    }
   },
   {
     "galleryPath": "harvest-maximum-text-complete.png",
-    "sourcePath": "/Users/alex/.codex/artifacts/naval-exploration/build31-harvest-roads/attempt5-attachments/1D714704-2325-421F-BB10-00881425EF5F.png",
-    "sha256": "ddbe9cca507b65de33de07e2ed8d7e129b6c9b7e1bb7ae071fae2232c416137d",
+    "sourcePath": "/Users/alex/.codex/artifacts/naval-exploration/build31-harvest-roads/attempt7-attachments/553195BE-E6AE-4C48-8D44-13EFB632E3DF.png",
+    "sha256": "f3f48188835ad28afde268ef2d64c853d0a6c2bad60cbce3f0c4095990d93c64",
     "nativeTest": "NavalHarvestSelectionFlowTests/testMaximumTextKeepsProgressEditingAndConfirmationReachable()",
-    "attachmentName": "Harvest \u2014 maximum text preserves editable quantities and pinned collection_0_D8F2E289-224E-4E72-B838-25A52F6D7E49.png",
+    "attachmentName": "Harvest \u2014 maximum text preserves editable quantities and pinned collection_0_586A2177-219C-4B99-98AB-B35C103EF4E4.png",
     "originalUnmodifiedScreenshot": true,
-    "openedByRoot": true
+    "openedByRoot": true,
+    "supersededOriginal": {
+      "sourcePath": "/Users/alex/.codex/artifacts/naval-exploration/build31-harvest-roads/attempt5-attachments/1D714704-2325-421F-BB10-00881425EF5F.png",
+      "sha256": "ddbe9cca507b65de33de07e2ed8d7e129b6c9b7e1bb7ae071fae2232c416137d",
+      "reason": "Selected informational ink contrast corrected; previous original retained in task artifacts and committed history."
+    }
   }
 ]

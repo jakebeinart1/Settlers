@@ -1,10 +1,12 @@
 import XCTest
+import UIKit
 
 /// Real quantity taps keep the hand unchanged, expose completion in both
 /// locations, permit editing, and collect the whole obligation with one tap.
 @MainActor
 final class NavalHarvestSelectionFlowTests: XCTestCase {
     private static let maximumCollectionHeight: CGFloat = 100
+    private static let minimumInformationalTextContrast = 4.5
     func testCityHarvestDraftResetsOnColdResumeAndBothChoicesCollectOnce() {
         let app = launch("-qaNavalCityResourcePosition")
         let ore = app.buttons["naval.resource.ore"]
@@ -96,6 +98,28 @@ final class NavalHarvestSelectionFlowTests: XCTestCase {
         retain("Harvest — scarce bank explains two available cards", app: app)
         app.buttons["naval.resource.confirm"].tap()
         XCTAssertTrue(app.buttons["End Turn"].waitForExistence(timeout: 5), "Empty supply cannot leave a mandatory harvest blocked")
+    }
+
+    func testSelectedQuantitiesAndStockStayReadableBeforeSingleCollection() throws {
+        let app = launch()
+        let ore = app.buttons["naval.resource.ore"]
+        ore.tap()
+        assertProgress(1, required: 3, app: app)
+        try assertSelectedRowContrast(ore, name: "Ore one selected")
+        ore.tap()
+        app.buttons["naval.resource.grain"].tap()
+        assertProgress(3, required: 3, app: app)
+        for resource in ["ore", "grain"] {
+            let row = app.buttons["naval.resource.\(resource)"]
+            XCTAssertFalse(row.isEnabled)
+            try assertSelectedRowContrast(row, name: "\(resource) at complete allocation")
+        }
+        try assertWhiteContrast(app.buttons["naval.resource.confirm"],
+                                region: CGRect(x: 0.14, y: 0.55, width: 0.78, height: 0.28),
+                                name: "Completed collection progress")
+        retain("Harvest — selected quantities and stock with readable white ink", app: app)
+        app.buttons["naval.resource.confirm"].tap()
+        XCTAssertTrue(app.buttons["End Turn"].waitForExistence(timeout: 5))
     }
 
     func testPreviouslyCollectedUnitSurvivesColdResumeWithoutBeingCollectedAgain() {
@@ -192,5 +216,32 @@ final class NavalHarvestSelectionFlowTests: XCTestCase {
         shot.name = name
         shot.lifetime = .keepAlways
         add(shot)
+    }
+
+    private func assertSelectedRowContrast(_ row: XCUIElement, name: String) throws {
+        // Separate interior crops prevent the white title or gold frame from
+        // masking a low-contrast quantity or owned/bank caption regression.
+        try assertWhiteContrast(row, region: CGRect(x: 0.88, y: 0.22, width: 0.09, height: 0.55),
+                                name: "\(name) quantity")
+        try assertWhiteContrast(row, region: CGRect(x: 0.18, y: 0.13, width: 0.66, height: 0.4),
+                                name: "\(name) title")
+        try assertWhiteContrast(row, region: CGRect(x: 0.18, y: 0.55, width: 0.66, height: 0.28),
+                                name: "\(name) owned and bank caption")
+    }
+
+    private func assertWhiteContrast(_ element: XCUIElement, region: CGRect, name: String) throws {
+        let screenshot = element.screenshot().image
+        let source = try XCTUnwrap(screenshot.cgImage)
+        let bounds = CGRect(x: region.minX * CGFloat(source.width), y: region.minY * CGFloat(source.height),
+                            width: region.width * CGFloat(source.width), height: region.height * CGFloat(source.height))
+        let cropped = UIImage(cgImage: try XCTUnwrap(source.cropping(to: bounds.integral)))
+        let attachment = XCTAttachment(image: cropped)
+        attachment.name = "\(name) — actual rendered contrast crop"
+        attachment.lifetime = .keepAlways
+        add(attachment)
+        let ratio = try XCTUnwrap(WhiteTextContrast.ratio(in: cropped), "\(name) must contain actual white text")
+        print("Live selected harvest \(name): \(ratio):1")
+        XCTAssertGreaterThanOrEqual(ratio, Self.minimumInformationalTextContrast,
+                                    "Informational text must retain contrast on its painted backing")
     }
 }
