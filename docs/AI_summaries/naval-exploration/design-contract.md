@@ -2,7 +2,7 @@
 
 ## Build 32 contract: explicit harvest quantity controls
 
-Each resource uses one painted plaque with a tappable resource area, visible quantity, then right-side plus and minus sibling buttons. The resource area and plus share the same one-card addition and availability predicate; minus alone removes one. Full quota disables both additions while preserving removal of selected cards; zero disables removal. The controls keep 48-point targets and aligned columns. Maximum accessibility text puts the full-width label above the right-aligned quantity strip to keep names and bank stock readable. Header/footer progress and one atomic collection retain D56. No rule, AI, saved match or schema change follows.
+Each resource uses one painted plaque with a tappable resource area, visible quantity, then right-side minus and plus sibling buttons. The resource area and plus share the same one-card addition and availability predicate; minus alone removes one. Full quota disables both additions while preserving removal of selected cards; zero disables removal. The controls keep 48-point targets and aligned columns. Maximum accessibility text puts the full-width label above the right-aligned quantity strip to keep names and bank stock readable. Header/footer progress and one atomic collection retain D56. No rule, AI, saved match or schema change follows.
 
 
 ## Build 31 contract: batch harvest and road continuation
