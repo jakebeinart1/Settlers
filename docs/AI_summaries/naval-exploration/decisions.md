@@ -1,5 +1,10 @@
 # Naval design decisions
 
+## Build 32 decision D58: right-side resource steppers
+
+**D58 — A plus and minus for every resource, human-selected.** Alex requested a clear right-side plus immediately left of minus, using the space beside bank stock. The leading resource area remains an add action. One painted row contains sibling buttons so tapping minus cannot propagate to a parent add gesture. Selected quantities and bank information stay readable when additions disable. Large accessibility text keeps an adaptive trailing control strip and pinned collection action. D56 batch/durable/replay behavior and D57 road rules are unchanged.
+
+
 ## Build 31 decisions D56–D57: batch harvest and rival junctions
 
 **D56 — Select the complete harvest before collecting, human-selected.**

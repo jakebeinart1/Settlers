@@ -57,7 +57,7 @@ final class NavalHarvestSelectionFlowTests: XCTestCase {
         app.buttons["naval.resource.ore"].tap()
         assertProgress(1, required: 3, app: app)
         retain("Harvest — one of three selected", app: app)
-        app.buttons["naval.resource.ore"].tap()
+        app.buttons["naval.resource.add.ore"].tap()
         assertProgress(2, required: 3, app: app)
         retain("Harvest — two identical resources selected", app: app)
         app.buttons["naval.resource.grain"].tap()
@@ -71,7 +71,7 @@ final class NavalHarvestSelectionFlowTests: XCTestCase {
         retain("Harvest — complete three-card choice", app: app)
         remove.tap()
         assertProgress(2, required: 3, app: app)
-        app.buttons["naval.resource.lumber"].tap()
+        app.buttons["naval.resource.add.lumber"].tap()
         assertProgress(3, required: 3, app: app)
         XCTAssertEqual(holdings(app), before)
         confirm.tap()
@@ -86,18 +86,73 @@ final class NavalHarvestSelectionFlowTests: XCTestCase {
 
     func testBankShortageAllowsOnlyStockedQuantitiesAndExplainsReducedCollection() {
         let app = launch(extra: ["-qaNavalHarvestBankScarce"])
+        let before = holdings(app)
         XCTAssertTrue(app.staticTexts["naval.resource.bank-shortage"].exists)
         XCTAssertTrue(app.staticTexts["naval.resource.choice"].label.contains("Choose 2 resources"))
         assertProgress(0, required: 2, app: app)
         XCTAssertFalse(app.buttons["naval.resource.brick"].isEnabled)
-        app.buttons["naval.resource.ore"].tap()
+        XCTAssertFalse(app.buttons["naval.resource.add.brick"].isEnabled)
+        app.buttons["naval.resource.add.ore"].tap()
         XCTAssertFalse(app.buttons["naval.resource.ore"].isEnabled, "The only Ore is already reserved")
+        XCTAssertFalse(app.buttons["naval.resource.add.ore"].isEnabled)
         assertProgress(1, required: 2, app: app)
-        app.buttons["naval.resource.grain"].tap()
+        app.buttons["naval.resource.remove.ore"].tap()
+        assertProgress(0, required: 2, app: app)
+        XCTAssertTrue(app.buttons["naval.resource.ore"].isEnabled)
+        XCTAssertTrue(app.buttons["naval.resource.add.ore"].isEnabled)
+        app.buttons["naval.resource.ore"].tap()
+        app.buttons["naval.resource.add.grain"].tap()
         assertProgress(2, required: 2, app: app)
+        XCTAssertEqual(holdings(app), before)
         retain("Harvest — scarce bank explains two available cards", app: app)
         app.buttons["naval.resource.confirm"].tap()
         XCTAssertTrue(app.buttons["End Turn"].waitForExistence(timeout: 5), "Empty supply cannot leave a mandatory harvest blocked")
+        XCTAssertEqual(holdings(app), before.enumerated().map { index, count in count + ([2, 3].contains(index) ? 1 : 0) })
+    }
+
+    func testRightSidePlusAndMinusRemainSeparateAndAlignedForEveryResource() {
+        let app = launch()
+        let scroll = app.scrollViews["naval.resource.scroll"]
+        var plusX: CGFloat?
+        var minusX: CGFloat?
+        for resource in ["brick", "lumber", "ore", "grain", "wool"] {
+            let row = app.buttons["naval.resource.\(resource)"]
+            let plus = app.buttons["naval.resource.add.\(resource)"]
+            let minus = app.buttons["naval.resource.remove.\(resource)"]
+            XCTAssertTrue(plus.exists && plus.isHittable)
+            XCTAssertGreaterThanOrEqual(plus.frame.width, 44)
+            XCTAssertGreaterThanOrEqual(plus.frame.height, 44)
+            XCTAssertGreaterThanOrEqual(minus.frame.width, 44)
+            XCTAssertGreaterThanOrEqual(minus.frame.height, 44)
+            XCTAssertEqual(row.frame.midY, plus.frame.midY, accuracy: 1)
+            XCTAssertEqual(plus.frame.midY, minus.frame.midY, accuracy: 1)
+            XCTAssertLessThanOrEqual(row.frame.maxX, plus.frame.minX)
+            XCTAssertLessThanOrEqual(plus.frame.maxX, minus.frame.minX)
+            XCTAssertTrue(scroll.frame.contains(plus.frame) && scroll.frame.contains(minus.frame))
+            XCTAssertFalse(minus.isEnabled)
+            if let plusX, let minusX {
+                XCTAssertEqual(plus.frame.minX, plusX, accuracy: 1)
+                XCTAssertEqual(minus.frame.minX, minusX, accuracy: 1)
+            }
+            plusX = plus.frame.minX; minusX = minus.frame.minX
+            plus.tap()
+            assertProgress(1, required: 3, app: app)
+            XCTAssertEqual(app.staticTexts["naval.resource.quantity.\(resource)"].value as? String, "1")
+            minus.tap()
+            assertProgress(0, required: 3, app: app)
+            XCTAssertEqual(app.staticTexts["naval.resource.quantity.\(resource)"].value as? String, "0")
+        }
+        retain("Harvest — explicit right-side plus and minus for every resource", app: app)
+        let orePlus = app.buttons["naval.resource.add.ore"]
+        orePlus.tap()
+        XCTAssertEqual(app.staticTexts["naval.resource.quantity.ore"].value as? String, "1")
+        app.buttons["naval.resource.remove.ore"].tap()
+        assertProgress(0, required: 3, app: app)
+        XCTAssertEqual(app.staticTexts["naval.resource.quantity.ore"].value as? String, "0")
+        let minus = app.buttons["naval.resource.remove.ore"]
+        XCTAssertFalse(minus.isEnabled)
+        minus.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
+        assertProgress(0, required: 3, app: app)
     }
 
     func testSelectedQuantitiesAndStockStayReadableBeforeSingleCollection() throws {
@@ -105,14 +160,16 @@ final class NavalHarvestSelectionFlowTests: XCTestCase {
         let ore = app.buttons["naval.resource.ore"]
         ore.tap()
         assertProgress(1, required: 3, app: app)
-        try assertSelectedRowContrast(ore, name: "Ore one selected")
+        try assertSelectedRowContrast(ore, quantity: app.staticTexts["naval.resource.quantity.ore"], name: "Ore one selected")
         ore.tap()
         app.buttons["naval.resource.grain"].tap()
         assertProgress(3, required: 3, app: app)
         for resource in ["ore", "grain"] {
             let row = app.buttons["naval.resource.\(resource)"]
             XCTAssertFalse(row.isEnabled)
-            try assertSelectedRowContrast(row, name: "\(resource) at complete allocation")
+            XCTAssertFalse(app.buttons["naval.resource.add.\(resource)"].isEnabled)
+            try assertSelectedRowContrast(row, quantity: app.staticTexts["naval.resource.quantity.\(resource)"],
+                                          name: "\(resource) at complete allocation")
         }
         try assertWhiteContrast(app.buttons["naval.resource.confirm"],
                                 region: CGRect(x: 0.14, y: 0.55, width: 0.78, height: 0.28),
@@ -144,6 +201,7 @@ final class NavalHarvestSelectionFlowTests: XCTestCase {
 
     func testMaximumTextKeepsProgressEditingAndConfirmationReachable() {
         let app = launch(extra: ["-UIPreferredContentSizeCategoryName", "UICTContentSizeCategoryAccessibilityXXXL"])
+        let before = holdings(app)
         let confirm = app.buttons["naval.resource.confirm"]
         XCTAssertTrue(confirm.isHittable)
         XCTAssertLessThanOrEqual(confirm.frame.height, Self.maximumCollectionHeight,
@@ -151,23 +209,49 @@ final class NavalHarvestSelectionFlowTests: XCTestCase {
         assertProgress(0, required: 3, app: app)
         retain("Harvest — maximum text before selection", app: app)
         for index in 1...3 {
-            reveal("naval.resource.wool", app: app)
-            app.buttons["naval.resource.wool"].tap()
+            let identifier = index == 1 ? "naval.resource.wool" : "naval.resource.add.wool"
+            reveal(identifier, app: app)
+            app.buttons[identifier].tap()
             assertProgress(index, required: 3, app: app)
             XCTAssertTrue(confirm.isHittable, "The complete-choice action must stay pinned")
             XCTAssertLessThanOrEqual(confirm.frame.height, Self.maximumCollectionHeight)
             retain("Harvest — maximum text \(index) of 3 identical resources selected", app: app)
         }
         let remove = app.buttons["naval.resource.remove.wool"]
+        reveal("naval.resource.remove.wool", app: app)
         XCTAssertTrue(remove.isEnabled && remove.isHittable)
         remove.tap()
         assertProgress(2, required: 3, app: app)
-        reveal("naval.resource.ore", app: app)
-        app.buttons["naval.resource.ore"].tap()
+        reveal("naval.resource.add.ore", app: app)
+        app.buttons["naval.resource.add.ore"].tap()
         assertProgress(3, required: 3, app: app)
         retain("Harvest — maximum text preserves editable quantities and pinned collection", app: app)
         confirm.tap()
         XCTAssertTrue(app.buttons["End Turn"].waitForExistence(timeout: 5))
+        let expected = before.enumerated().map { index, count in count + (index == 4 ? 2 : (index == 2 ? 1 : 0)) }
+        XCTAssertEqual(holdings(app), expected)
+        coldResume(app)
+        XCTAssertEqual(holdings(app), expected)
+    }
+
+    func testLargestStandardTextPreservesRightSideControlsAndFullLabels() throws {
+        let app = launch(extra: ["-UIPreferredContentSizeCategoryName", "UICTContentSizeCategoryXXXL"])
+        for resource in ["brick", "lumber", "ore", "grain", "wool"] {
+            reveal("naval.resource.add.\(resource)", app: app)
+            let plus = app.buttons["naval.resource.add.\(resource)"]
+            let minus = app.buttons["naval.resource.remove.\(resource)"]
+            let row = app.buttons["naval.resource.\(resource)"]
+            XCTAssertEqual(row.frame.midY, plus.frame.midY, accuracy: 1)
+            XCTAssertLessThanOrEqual(plus.frame.maxX, minus.frame.minX)
+            plus.tap()
+            assertProgress(1, required: 3, app: app)
+            XCTAssertEqual(app.staticTexts["naval.resource.quantity.\(resource)"].value as? String, "1")
+            minus.tap()
+            assertProgress(0, required: 3, app: app)
+        }
+        reveal("naval.resource.ore", app: app)
+        try app.performAccessibilityAudit(for: [.textClipped])
+        retain("Harvest — largest standard text keeps names and right-side controls", app: app)
     }
 
     private func launch(_ fixture: String = "-qaNavalMixedResourcePosition", extra: [String] = []) -> XCUIApplication {
@@ -218,14 +302,15 @@ final class NavalHarvestSelectionFlowTests: XCTestCase {
         add(shot)
     }
 
-    private func assertSelectedRowContrast(_ row: XCUIElement, name: String) throws {
+    private func assertSelectedRowContrast(_ row: XCUIElement, quantity: XCUIElement, name: String) throws {
         // Separate interior crops prevent the white title or gold frame from
         // masking a low-contrast quantity or owned/bank caption regression.
-        try assertWhiteContrast(row, region: CGRect(x: 0.88, y: 0.22, width: 0.09, height: 0.55),
+        XCTAssertTrue(quantity.exists && quantity.isHittable)
+        try assertWhiteContrast(quantity, region: CGRect(x: 0, y: 0, width: 1, height: 1),
                                 name: "\(name) quantity")
-        try assertWhiteContrast(row, region: CGRect(x: 0.18, y: 0.13, width: 0.66, height: 0.4),
+        try assertWhiteContrast(row, region: CGRect(x: 0.14, y: 0.12, width: 0.8, height: 0.42),
                                 name: "\(name) title")
-        try assertWhiteContrast(row, region: CGRect(x: 0.18, y: 0.55, width: 0.66, height: 0.28),
+        try assertWhiteContrast(row, region: CGRect(x: 0.14, y: 0.6, width: 0.8, height: 0.3),
                                 name: "\(name) owned and bank caption")
     }
 

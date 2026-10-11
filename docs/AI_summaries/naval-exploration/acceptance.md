@@ -1,5 +1,10 @@
 # Voyages requirements and acceptance
 
+## Build 32 follow-up E37: harvest stepper presentation
+
+D58 implements explicit plus/minus controls for each resource, card/plus addition and correction before one collection. [Focused development evidence](evidence/build32-harvest-steppers/verification.md) retains actual 23/23 and 8/8 native passes, finite-bank and cold-resume behavior, rendered contrast, default aligned 48-point targets, large-text checks, original captures and their limits. UI code remained unchanged across the two focused runs; their build metadata was 31 before the final 32 bump. Complete gate, ordinary Release and signed TestFlight delivery require their separate frozen-source receipts under `/Users/alex/.codex/artifacts/naval-exploration/build32-harvest-steppers/delivery`.
+
+
 ## Build 31 follow-up (E37): implemented, release verification separate
 
 D56 and D57 address Alex's harvest and rival-junction screenshots. The original
