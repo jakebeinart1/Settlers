@@ -126,8 +126,8 @@ final class NavalHarvestSelectionFlowTests: XCTestCase {
             XCTAssertGreaterThanOrEqual(minus.frame.height, 44)
             XCTAssertEqual(row.frame.midY, plus.frame.midY, accuracy: 1)
             XCTAssertEqual(plus.frame.midY, minus.frame.midY, accuracy: 1)
-            XCTAssertLessThanOrEqual(row.frame.maxX, plus.frame.minX)
-            XCTAssertLessThanOrEqual(plus.frame.maxX, minus.frame.minX)
+            XCTAssertLessThanOrEqual(row.frame.maxX, minus.frame.minX)
+            XCTAssertLessThanOrEqual(minus.frame.maxX, plus.frame.minX)
             XCTAssertTrue(scroll.frame.contains(plus.frame) && scroll.frame.contains(minus.frame))
             XCTAssertFalse(minus.isEnabled)
             if let plusX, let minusX {
@@ -242,7 +242,7 @@ final class NavalHarvestSelectionFlowTests: XCTestCase {
             let minus = app.buttons["naval.resource.remove.\(resource)"]
             let row = app.buttons["naval.resource.\(resource)"]
             XCTAssertEqual(row.frame.midY, plus.frame.midY, accuracy: 1)
-            XCTAssertLessThanOrEqual(plus.frame.maxX, minus.frame.minX)
+            XCTAssertLessThanOrEqual(minus.frame.maxX, plus.frame.minX)
             plus.tap()
             assertProgress(1, required: 3, app: app)
             XCTAssertEqual(app.staticTexts["naval.resource.quantity.\(resource)"].value as? String, "1")

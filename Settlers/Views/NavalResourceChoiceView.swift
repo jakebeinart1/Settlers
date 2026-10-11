@@ -246,8 +246,8 @@ struct NavalResourceChoiceView: View {
                 .accessibilityLabel("\(resource.rawValue.capitalized) selected")
                 .accessibilityValue("\(picked)")
                 .accessibilityIdentifier("naval.resource.quantity.\(resource.rawValue)")
-            addResourceButton(resource, picked: picked, canAdd: canAdd)
             removeResourceButton(resource, picked: picked)
+            addResourceButton(resource, picked: picked, canAdd: canAdd)
         }
     }
 
