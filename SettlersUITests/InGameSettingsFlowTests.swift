@@ -26,6 +26,29 @@ final class InGameSettingsFlowTests: XCTestCase {
         XCTAssertTrue(app.buttons["No Limit"].isSelected)
     }
 
+    /// Auto Robber sits below the fold, under the two Skipping switches.
+    func testAutoRobberIsReachableAndPersists() {
+        continueAfterFailure = false
+        let app = XCUIApplication()
+        app.launchArguments = ["-ui-testing", "-ui-testing-reset", "-qaAutoStart", "-qaShowPauseMenu"]
+        app.launch()
+        XCTAssertTrue(app.otherElements["screen.in-game-settings"].waitForExistence(timeout: 5))
+
+        let on = app.buttons["in-game-settings.auto-robber.on"]
+        app.swipeUp()
+        XCTAssertTrue(on.waitForExistence(timeout: 2))
+        XCTAssertTrue(app.buttons["in-game-settings.auto-robber.off"].isSelected, "off by default")
+        on.tap()
+        XCTAssertTrue(on.isSelected)
+        add(XCTAttachment(screenshot: app.screenshot()))
+
+        app.buttons["in-game-settings.close"].tap()
+        app.buttons["game.settings"].tap()
+        app.swipeUp()
+        XCTAssertTrue(on.waitForExistence(timeout: 2))
+        XCTAssertTrue(on.isSelected)
+    }
+
     /// The pause screen used to offer Close and "Resume Game" side by side and
     /// then repeat all three exits as a "Game Control" section above them. One
     /// row of three, one meaning each.

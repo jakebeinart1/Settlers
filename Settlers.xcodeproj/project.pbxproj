@@ -294,6 +294,7 @@
 		DFEE28875E4D265B9AF366F5 /* HumanTradeOfferPolicyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4781E9430B5A526472E21D4 /* HumanTradeOfferPolicyTests.swift */; };
 		E0D4D23541A27CBEFB15DF73 /* BoardCameraTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 03EAB3CE8A50ABA81E547D16 /* BoardCameraTests.swift */; };
 		E117B2BCB38DA3FABD17B6DE /* ConquestSetupTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A469428A7A7C53B82AAA7CF0 /* ConquestSetupTests.swift */; };
+		E1C2D523DF1651AA4EBF8315 /* AutoRobberTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B81F2B20D2D68062CEB95C68 /* AutoRobberTests.swift */; };
 		E3A6D0C733055C91F0E356FE /* BoardFitTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A53ECD05D7E8073C7BEDC19 /* BoardFitTests.swift */; };
 		E47E806640E19E4105F9FEDF /* UITestBootstrap.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5CF7C06392E2A4F1B15C8411 /* UITestBootstrap.swift */; };
 		E57E5D87F6EA20F8888CD1F6 /* BuildActionPresentationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1B8CA524F487F6150A8F021 /* BuildActionPresentationTests.swift */; };
@@ -546,6 +547,7 @@
 		B514AD07E06E6E1E69DDA4C6 /* NavalReplayRenderingTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NavalReplayRenderingTests.swift; sourceTree = "<group>"; };
 		B5BF359507B1F781FDA749F5 /* Settlers.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = Settlers.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		B641B0A34469CDFF617C7A6B /* NavalReleaseCompatibilityTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NavalReleaseCompatibilityTests.swift; sourceTree = "<group>"; };
+		B81F2B20D2D68062CEB95C68 /* AutoRobberTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AutoRobberTests.swift; sourceTree = "<group>"; };
 		B85DFE6B9036A8B370C38457 /* GameReplayTimelineTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameReplayTimelineTests.swift; sourceTree = "<group>"; };
 		B8A660BA455654D7EF99604A /* AppSettingsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppSettingsTests.swift; sourceTree = "<group>"; };
 		B9062DD5BFD8C1DB511F0B59 /* ReplayExportFixtures.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReplayExportFixtures.swift; sourceTree = "<group>"; };
@@ -700,6 +702,7 @@
 				26C8E728C5FF85E8400CFE1A /* .swiftlint.yml */,
 				B8A660BA455654D7EF99604A /* AppSettingsTests.swift */,
 				9AEFB97E94522F96868B7B54 /* ArmyUITests.swift */,
+				B81F2B20D2D68062CEB95C68 /* AutoRobberTests.swift */,
 				03EAB3CE8A50ABA81E547D16 /* BoardCameraTests.swift */,
 				D5F1D0F7BFD00C785501001C /* BoardDecisionCoordinatorTests.swift */,
 				45A122812CFE78D1726B5A3A /* BoardDecisionViewModelTests.swift */,
@@ -1446,6 +1449,7 @@
 			files = (
 				6FB745378D21899B29284FC8 /* AppSettingsTests.swift in Sources */,
 				D79308E2266D7C121F7150A7 /* ArmyUITests.swift in Sources */,
+				E1C2D523DF1651AA4EBF8315 /* AutoRobberTests.swift in Sources */,
 				E0D4D23541A27CBEFB15DF73 /* BoardCameraTests.swift in Sources */,
 				8AF726AC5707B3AA0DDBB903 /* BoardDecisionCoordinatorTests.swift in Sources */,
 				B0677FA19846EE5018AE2166 /* BoardDecisionViewModelTests.swift in Sources */,

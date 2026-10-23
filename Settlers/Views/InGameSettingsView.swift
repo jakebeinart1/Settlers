@@ -75,6 +75,7 @@ public struct InGameSettingsView: View {
         case incomingOfferTimer
         case skipPauses
         case blockTradeOffers
+        case autoRobber
     }
 
     /// Horizontal inset for the whole screen. 20pt each side leaves 335pt of
@@ -333,7 +334,7 @@ public struct InGameSettingsView: View {
 
     // MARK: - Skipping
 
-    /// Two Off/On switches, painted like the rows above. Together they make
+    /// Three Off/On switches, painted like the rows above. Together they make
     /// CPU turns run straight through to the player's own turn.
     private var skipSection: some View {
         VStack(spacing: 14) {
@@ -357,6 +358,16 @@ public struct InGameSettingsView: View {
                 onOffRow(selection: PacingPreferences.shared.blockTradeOffers,
                          identifier: AccessibilityID.InGameSettings.blockTradeOffers,
                          onSelect: PacingPreferences.shared.setBlockTradeOffers)
+            }
+            choiceRow(
+                label: "Auto Robber",
+                help: .autoRobber,
+                helpText: "When you roll a seven, the robber is placed for you on the leader's best tile, "
+                    + "never one of yours, and steals from them. Knights you play are still yours to aim."
+            ) {
+                onOffRow(selection: PacingPreferences.shared.autoRobber,
+                         identifier: AccessibilityID.InGameSettings.autoRobber,
+                         onSelect: PacingPreferences.shared.setAutoRobber)
             }
         }
     }

@@ -265,6 +265,7 @@ enum AccessibilityID {
         static func blockTradeOffers(_ isOn: Bool) -> String {
             "in-game-settings.block-offers.\(isOn ? "on" : "off")"
         }
+        static func autoRobber(_ isOn: Bool) -> String { "in-game-settings.auto-robber.\(isOn ? "on" : "off")" }
     }
 
     enum Robber {

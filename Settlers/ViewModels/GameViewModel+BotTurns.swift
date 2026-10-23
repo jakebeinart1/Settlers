@@ -1,4 +1,5 @@
 import Foundation
+import CatanAI
 import CatanEngine
 
 /// Policy evaluation and rule application run on a value snapshot off the UI
@@ -84,6 +85,28 @@ extension GameViewModel {
                 botTurnProgress = .failed(seat: actor, message: error.localizedDescription)
                 return
             }
+        }
+        autoPlaceRobberIfNeeded()
+    }
+
+    /// The "Auto Robber" setting: the human's post-seven robber move, chosen
+    /// by the bots' own `RobberHeuristics` (through `Bot.decide`, which also
+    /// matches the pick to an eligible victim). Here rather than in `apply`
+    /// because the bot loop is where every route into `.movingRobber` ends -
+    /// the human's own roll, and the last bot discard after it.
+    ///
+    /// `isHumanDecision: false` keeps the move out of the human's ghost
+    /// training: the player did not choose it.
+    private func autoPlaceRobberIfNeeded() {
+        guard PacingPreferences.shared.autoRobber, canAdvanceBots,
+              case .movingRobber(let index) = state.phase, state.players[index].id == humanPlayer else { return }
+        let move = Bot(personality: .balanced).decide(for: state, player: humanPlayer)
+        do {
+            try commitHumanMove(move, isHumanDecision: false)
+        } catch is MatchPersistenceFailure {
+            return
+        } catch {
+            persistenceErrorMessage = error.localizedDescription
         }
     }
 

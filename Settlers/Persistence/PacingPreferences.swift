@@ -150,6 +150,7 @@ public final class PacingPreferences {
     static let incomingOfferTimerKey = "pacing.incomingOfferTimer"
     static let skipPausesKey = "pacing.skipPauses"
     static let blockTradeOffersKey = "pacing.blockTradeOffers"
+    static let autoRobberKey = "pacing.autoRobber"
 
     /// How long the dice-roll highlight stays on the tiles that produced.
     ///
@@ -171,6 +172,14 @@ public final class PacingPreferences {
     /// `skipPauses` also on, CPU turns run straight through to the player's
     /// own turn - the "pure simulation" table Jake asked for.
     public private(set) var blockTradeOffers: Bool
+    /// The player's own robber move after a seven is placed for them, by the
+    /// same `RobberHeuristics` the bots use: the most productive tile of the
+    /// leading opponent, never one of the player's own, stealing from the
+    /// biggest threat on it. Jake's ask (2026-10-23): with the two switches
+    /// above, a seven was the last thing between CPU turns that stopped play.
+    /// A knight is still the player's own choice - it is a card they chose to
+    /// play, not an interruption.
+    public private(set) var autoRobber: Bool
 
     private let defaults: UserDefaults
 
@@ -183,6 +192,12 @@ public final class PacingPreferences {
         self.incomingOfferTimer = Self.stored(forKey: Self.incomingOfferTimerKey, in: defaults) ?? .fifteenSeconds
         self.skipPauses = defaults.bool(forKey: Self.skipPausesKey)
         self.blockTradeOffers = defaults.bool(forKey: Self.blockTradeOffersKey)
+        self.autoRobber = defaults.bool(forKey: Self.autoRobberKey)
+    }
+
+    public func setAutoRobber(_ isOn: Bool) {
+        autoRobber = isOn
+        defaults.set(isOn, forKey: Self.autoRobberKey)
     }
 
     public func setSkipPauses(_ isOn: Bool) {
