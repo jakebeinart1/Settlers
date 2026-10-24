@@ -8,6 +8,9 @@ public enum ExpertRevision: String, Codable, Sendable, CaseIterable {
     case cityProductionV1
     /// City production plus the independently confirmed B-002 card correction.
     case pointCompletingCardsV1
+    /// Card completion plus Jake's timing: one knight and one road ahead, a
+    /// knight before the roll to free a blocked tile, lean hands. `TimingPolicy`.
+    case timingOneAheadV1
     case navalV1
     case navalV2
 
@@ -16,9 +19,15 @@ public enum ExpertRevision: String, Codable, Sendable, CaseIterable {
         case .legacy: return "evaluation-v1"
         case .cityProductionV1: return "evaluation-city-production-v1"
         case .pointCompletingCardsV1: return "evaluation-point-completing-cards-v1"
+        case .timingOneAheadV1: return "evaluation-timing-one-ahead-v1"
         case .navalV1: return "naval-expert-v1"
         case .navalV2: return "naval-expert-v2"
         }
+    }
+
+    /// The Expert this revision plays.
+    public var policy: any LedgerAwarePolicy {
+        self == .timingOneAheadV1 ? TimingPolicy.oneAheadV1 : EvaluationPolicy(revision: self)
     }
 
     /// Frozen B-001 hypothesis, confirmed against Jake's Expert, not fitted

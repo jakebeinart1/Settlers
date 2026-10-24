@@ -75,7 +75,7 @@ public enum BotDifficulty: String, Codable, CaseIterable, Sendable {
                 id: "heuristic-\(profile.strategy.rawValue)"
             )
         case .expert:
-            return EvaluationPolicy(revision: expertRevision)
+            return expertRevision.policy
         }
     }
 }

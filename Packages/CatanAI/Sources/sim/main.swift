@@ -234,6 +234,12 @@ private struct Options {
 /// claim gets made.
 private func policy(named name: String,
                     tunedWeights: EvaluationWeights = .default) -> any Policy {
+    if name.hasPrefix("eval-timing-") {
+        let names = name.dropFirst("eval-timing-".count).split(separator: "+").map(String.init)
+        let rules = names.compactMap(TimingPolicy.Rule.init(rawValue:))
+        guard rules.count == names.count, !rules.isEmpty else { fail("unknown timing rule in '\(name)'") }
+        return TimingPolicy(rules: Set(rules))
+    }
     let base: any Policy
     let personality: BotPersonality?
     switch name {

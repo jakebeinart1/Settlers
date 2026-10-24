@@ -60,11 +60,11 @@ import CatanEngine
         #expect(abs(newScore - oldScore - 7.0 / 216.0) < 1e-12)
     }
 
-    @Test(arguments: [ExpertRevision.cityProductionV1, .pointCompletingCardsV1])
+    @Test(arguments: [ExpertRevision.cityProductionV1, .pointCompletingCardsV1, .timingOneAheadV1])
     func currentExpertCheckpointContinuesTheSameMovesAndRejectsOtherRevisions(revision: ExpertRevision) throws {
         let state = GameSetup.newGame(board: BoardGenerator.randomized(seed: 741), seed: 741)
         let policies = Dictionary(uniqueKeysWithValues: state.players.map {
-            ($0.id, EvaluationPolicy(revision: revision) as any Policy)
+            ($0.id, revision.policy as any Policy)
         })
         var original = GameSession(state: state, policies: policies, policySeed: 741)
         for _ in 0..<30 { _ = try #require(try original.step()) }
@@ -81,7 +81,7 @@ import CatanEngine
         }
         for other in ExpertRevision.allCases where other != revision {
             let mismatch = Dictionary(uniqueKeysWithValues: state.players.map {
-                ($0.id, EvaluationPolicy(revision: other) as any Policy)
+                ($0.id, other.policy as any Policy)
             })
             #expect(throws: (any Error).self) { try GameSession(checkpoint: checkpoint, policies: mismatch) }
         }
