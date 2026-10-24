@@ -21,6 +21,10 @@ struct SharedMatch: Codable, Sendable {
     struct Move: Codable, Sendable {
         let player: PlayerID
         let move: GameMove
+        /// False for a move the app made for the person (a timeout, Auto
+        /// Robber), so a ghost never learns it as theirs. Absent in games
+        /// uploaded before 2026-10-24; older phones ignore it.
+        var isHumanDecision: Bool?
     }
 
     /// Bumped when the payload changes shape; a phone skips versions it does
@@ -82,7 +86,7 @@ extension SharedMatch {
             version: Self.currentVersion, match: record.match, date: record.date,
             seats: record.seats.map(\.entity),
             initialState: log.initialState,
-            moves: log.events.map { Move(player: $0.player, move: $0.move) }
+            moves: log.events.map { Move(player: $0.player, move: $0.move, isHumanDecision: $0.isHumanDecision) }
         )
     }
 }

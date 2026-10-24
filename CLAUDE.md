@@ -20,6 +20,15 @@ their decisions (`ghost fidelity`, see the pointer table) and their results (a w
 rate near the person's). A ghost that copies moves but loses far more often than
 its person has not met the goal.
 
+### Alex: "deploy and make sure it's ready for the latest commit"
+
+Follow `docs/cloudkit-server-key.md`, "For Alex's agent". In short:
+1. Ship TestFlight (`ship-testflight` skill).
+2. Confirm the CloudKit Production indexes.
+3. Create the CloudKit server-to-server key that lets Jake's Mac read every ranked game.
+
+That key is how ghosts get tested and trained against each person's own games.
+
 ## READ-FIRST - where truth lives (pointer map)
 
 Every one of these is canonical for its question. Read the file, do not reason from this list.
@@ -46,6 +55,7 @@ Every one of these is canonical for its question. Read the file, do not reason f
 | Why no bot ends a turn holding more than 7 cards (Jake's rule) | `HandDiscipline`'s doc comment (`Packages/CatanAI/Sources/CatanAI/Evaluation/`) |
 | How strong every Expert and Classic that ever shipped is, and how to seat old commits at one table | `docs/AI_summaries/2026-09-29-every-bot-tournament.md` + `arena`'s header (`Packages/CatanAI/Sources/arena/`) |
 | How faithfully a ghost plays like its person, moment by moment, and why ghosts play by a choice model | `docs/AI_summaries/2026-10-24-ghost-fidelity.md` + `ghost fidelity` (`Packages/CatanAI/Sources/ghost/`) |
+| Every ranked game on a Mac, from CloudKit (server key, Alex's setup steps) | `docs/cloudkit-server-key.md` + `scripts/cloudkit-games.py` |
 | Replaying a real game off Jake's iPhone (TestFlight data is readable) | `docs/AI_summaries/2026-09-28-ghost-hoarding-and-rename.md`, "How it was found" |
 | What is persisted, where, and why | `Settlers/Persistence/` - 7 stores, each with the rationale in its doc comment |
 | Art assets: what is wired in, what is retired, how it was generated | `design-references/STATUS.md` |

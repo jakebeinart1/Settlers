@@ -15,6 +15,12 @@ import Foundation
 //   ghost baseline [--games 200] [--policy classic]     (self-play averages: the spider graph's reference, and the AI rows' own graphs)
 //   ghost timing --person P.json --lambda L                (one game: ghost move time, then one retrain)
 //   ghost selftest [--games 12] [--seed 700000] [--rounds 3] (recover a known synthetic person)
+//   ghost fidelity [--cv 4 | --profile G.json | --choices C.json] [--detail] LOG...  (does the ghost make the person's moves?)
+//   ghost choices --out C.json LOG...                   (fit a person's choice model)
+//   ghost candidates --out cands.jsonl LOG...           (every option at each decision, for study)
+//
+// LOG is a phone's GameLogs/*.jsonl, or a ranked game from CloudKit (*.json,
+// `scripts/cloudkit-games.py fetch`), whose person seat is its uploader.
 
 // Line-buffered so a run that dies still leaves its progress: the first
 // selftest crashed after 19 minutes with an empty log.

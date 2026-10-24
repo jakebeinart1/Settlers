@@ -158,7 +158,7 @@ TestFlight build (`com.alexchandler.empires`, team `HXB9F28LHR`).
 - **There is no second player on one phone.** A guest who plays on your phone
   plays as you. Creating a separate player would be an explicit leaderboard
   action, not built yet.
-- **Not built yet: a Mac job that trains the shared AIs on every player's
-  games.** The data is already there: every uploaded `Match` carries the full
-  move log. The job needs a CloudKit server-to-server key from the same
-  account.
+- **Every player's games on a Mac:** `scripts/cloudkit-games.py` downloads
+  every uploaded `Match` (full move log) with a CloudKit server-to-server key
+  from the same account (`docs/cloudkit-server-key.md`). Training the shared
+  AIs on them is the next step.

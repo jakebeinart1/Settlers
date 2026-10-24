@@ -24,7 +24,25 @@ enum LogFileError: Error {
     case malformed(String, line: Int)
 }
 
+/// A ranked game fetched from CloudKit (`scripts/cloudkit-games.py`): the
+/// app's `SharedMatch` plus its uploader. The person seat is the uploader's.
+private struct CloudGame: Decodable {
+    struct Game: Decodable {
+        struct Move: Decodable {
+            let player: PlayerID
+            let move: GameMove
+            let isHumanDecision: Bool?
+        }
+        let seats: [String]
+        let initialState: GameState
+        let moves: [Move]
+    }
+    let owner: String
+    let game: Game
+}
+
 func loadGame(_ url: URL) throws -> LoggedGame {
+    if url.pathExtension == "json" { return try loadCloudGame(url) }
     let lines = try String(contentsOf: url, encoding: .utf8).split(separator: "\n")
     let decoder = JSONDecoder()
     var start: LogLine?
@@ -43,4 +61,14 @@ func loadGame(_ url: URL) throws -> LoggedGame {
     let humans = start.roster?.humanSeats ?? start.roster?.humanSeat.map { [$0] } ?? []
     return LoggedGame(id: url.deletingPathExtension().lastPathComponent, initialState: initial,
                       humanSeats: humans, events: events)
+}
+
+func loadCloudGame(_ url: URL) throws -> LoggedGame {
+    let cloud = try JSONDecoder().decode(CloudGame.self, from: Data(contentsOf: url))
+    let people = cloud.game.seats.indices.filter { cloud.game.seats[$0].hasPrefix("person:") }
+    return LoggedGame(id: url.deletingPathExtension().lastPathComponent, initialState: cloud.game.initialState,
+                      humanSeats: Set(people.map { cloud.game.initialState.players[$0].id }),
+                      events: cloud.game.moves.map {
+                          LoggedMove(player: $0.player, move: $0.move, isHumanDecision: $0.isHumanDecision ?? true)
+                      })
 }
