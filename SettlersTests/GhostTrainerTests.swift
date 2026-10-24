@@ -131,6 +131,83 @@ import Testing
         #expect(learned.name == "The Wall")
     }
 
+    // MARK: - Choice model (2026-10-24)
+
+    /// Enough choices to fit: the short test game's own, repeated past the minimum.
+    private func plentiful(_ trainer: inout GhostTrainer) {
+        trainer.extractChoices = { game in
+            let records = try ChoiceRecord.records(in: game)
+            return Array(repeating: records, count: ChoiceFitter.minimumDecisions / max(records.count, 1) + 1).flatMap { $0 }
+        }
+    }
+
+    /// Each game leaves its choice records, and enough of them make the
+    /// ghost play by its person's own choices.
+    @Test func aLearnedGameRecordsChoicesAndFitsTheChoiceModel() throws {
+        let (ghosts, root) = store()
+        defer { try? FileManager.default.removeItem(at: root) }
+        let (logged, human) = try game()
+        let match = UUID()
+        var trainer = GhostTrainer(store: ghosts)
+        plentiful(&trainer)
+        let learned = try #require(try trainer.learn(match: match, game: logged, human: human, personID: "sam", personName: "Sam"))
+        #expect(FileManager.default.fileExists(atPath: ghosts.choicesDirectory(for: "sam")
+            .appendingPathComponent("\(match.uuidString).jsonl").path))
+        #expect(try #require(learned.choices).decisions >= ChoiceFitter.minimumDecisions)
+        #expect(ghosts.ghost(id: "sam")?.choices == learned.choices)
+    }
+
+    /// One short game is too few choices: the ghost keeps its person model.
+    @Test func tooFewChoicesLeaveTheGhostOnItsPersonModel() throws {
+        let (ghosts, root) = store()
+        defer { try? FileManager.default.removeItem(at: root) }
+        let (logged, human) = try game()
+        let learned = try #require(try GhostTrainer(store: ghosts).learn(match: UUID(), game: logged, human: human,
+                                                                         personID: "sam", personName: "Sam"))
+        #expect(learned.choices == nil)
+    }
+
+    /// A ghost that learned its games before choice models reads them once
+    /// from the logs on the phone, and syncs the result as a new revision.
+    @Test func gamesLearnedBeforeChoiceModelsAreReadOnce() throws {
+        let (ghosts, root) = store()
+        defer { try? FileManager.default.removeItem(at: root) }
+        let (logged, human) = try game()
+        var trainer = GhostTrainer(store: ghosts)
+        trainer.extractChoices = { _ in [] }
+        let match = UUID()
+        _ = try trainer.learn(match: match, game: logged, human: human, personID: "sam", personName: "Sam")
+        try FileManager.default.removeItem(at: ghosts.choicesDirectory(for: "sam"))
+        let before = try #require(ghosts.ghost(id: "sam"))
+        plentiful(&trainer)
+        let games = [CatchUpGame(match: match, game: logged, human: human, personID: "sam", personName: "Sam"),
+                     CatchUpGame(match: UUID(), game: logged, human: human, personID: "sam", personName: "Sam")]
+        let backfilled = try #require(try trainer.backfillChoices(games, personID: "sam"))
+        #expect(backfilled.choices != nil)
+        #expect(backfilled.revision == before.revision + 1)
+        #expect(backfilled.gamesLearned == before.gamesLearned, "reading old games again is not learning new ones")
+        let files = try FileManager.default.contentsOfDirectory(atPath: ghosts.choicesDirectory(for: "sam").path)
+        #expect(files.filter { $0.hasSuffix(".jsonl") } == ["\(match.uuidString).jsonl"], "only games already learned")
+        #expect(try trainer.backfillChoices(games, personID: "sam") == nil)
+    }
+
+    /// A reset ghost starts over: old games are not read back into it.
+    @Test func aResetGhostIsNotBackfilledFromBeforeTheReset() throws {
+        let (ghosts, root) = store()
+        defer { try? FileManager.default.removeItem(at: root) }
+        let (logged, human) = try game()
+        var trainer = GhostTrainer(store: ghosts)
+        plentiful(&trainer)
+        let match = UUID()
+        _ = try trainer.learn(match: match, game: logged, human: human, personID: "sam", personName: "Sam")
+        let fresh = try ghosts.reset("sam", keepingOld: true)
+        #expect(fresh.choices == nil)
+        #expect(ghosts.oldGhosts(of: "sam").first?.choices != nil, "the kept generation keeps its choices")
+        let games = [CatchUpGame(match: match, game: logged, human: human, personID: "sam", personName: "Sam")]
+        #expect(try trainer.backfillChoices(games, personID: "sam") == nil)
+        #expect(trainer.refitChoices("sam") == nil)
+    }
+
     @Test func personNamesBecomeStableIDs() {
         #expect(GhostTrainer.ghostID(forPerson: "Jake") == "jake")
         #expect(GhostTrainer.ghostID(forPerson: " Mary Jo! ") == "maryjo")

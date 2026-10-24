@@ -18,14 +18,19 @@ public struct GhostPolicy: LedgerAwarePolicy {
     public let lambda: Double
     /// See `EvaluationPolicy.handDiscipline`: off only to measure the rule.
     public let handDiscipline: Bool
+    /// The person's own choices, once fitted (`ChoiceModel`). When present it
+    /// decides, and `lambda` and the person model are not consulted.
+    public let choices: ChoiceModel?
     private let expert = EvaluationPolicy()
     private let personal: EvaluationPolicy
 
-    public init(person: PersonModel, lambda: Double, id: String = "ghost", handDiscipline: Bool = true) {
+    public init(person: PersonModel, lambda: Double, id: String = "ghost", handDiscipline: Bool = true,
+                choices: ChoiceModel? = nil) {
         self.id = id
         self.handDiscipline = handDiscipline
         self.person = person
         self.lambda = lambda
+        self.choices = choices
         self.personal = EvaluationPolicy(weights: EvaluationWeights(vector: person.weights))
     }
 
@@ -36,11 +41,16 @@ public struct GhostPolicy: LedgerAwarePolicy {
     public func decide(_ observation: GameObservation, ledger: PublicLedger, rng: inout RandomSource) -> GameMove {
         let legal = observation.legalMoves
         guard legal.count > 1 else { return legal[0] }
-        if legal.contains(.rollDice) { return .rollDice }
+        if legal.contains(.rollDice) { return choices == nil ? .rollDice : beforeTheRoll(observation) }
         var counted = ledger
         counted.reconcileObserverHand(from: observation.state)
         let judged = expertOptions(observation, ledger: counted)
         guard !judged.isEmpty else { return legal[0] }
+        if let choices {
+            let person = choices.needsPerson ? personScores(observation, ledger: ledger) : nil
+            return disciplined(choices.choose(judged, seat: observation.seat, state: observation.state, person: person),
+                               judged: judged, observation: observation)
+        }
         // At lambda 0 the person cannot change the answer; skip scoring them.
         let habits: [GameMove: Double] = lambda == 0 ? [:] : Dictionary(
             personal.candidateScores(observation, ledger: ledger).map { ($0.move, $0.score) },
@@ -61,9 +71,33 @@ public struct GhostPolicy: LedgerAwarePolicy {
                 bestValue = value
             }
         }
-        return handDiscipline && judged[best].move == .endTurn && HandDiscipline.mustSpend(observation.seat, in: observation.state)
+        return disciplined(judged[best].move, judged: judged, observation: observation)
+    }
+
+    /// The person model's value per move, the term `lambda` scales:
+    /// `beta · S_person + theta · style`.
+    public func personScores(_ observation: GameObservation, ledger: PublicLedger) -> [GameMove: Double] {
+        Dictionary(personal.candidateScores(observation, ledger: ledger).map { candidate in
+            (candidate.move, person.beta * candidate.score
+                + person.habit(StyleFeatures.of(candidate.move, by: observation.seat, in: observation.state)))
+        }, uniquingKeysWith: { first, _ in first })
+    }
+
+    private func disciplined(_ move: GameMove, judged: [ScoredCandidate], observation: GameObservation) -> GameMove {
+        handDiscipline && move == .endTurn && HandDiscipline.mustSpend(observation.seat, in: observation.state)
             ? spendDown(judged) ?? .endTurn
-            : judged[best].move
+            : move
+    }
+
+    /// Roll, unless a knight wins the game now. Jake played 8 knights before
+    /// the dice in 136 chances across 25 games, with no situation that
+    /// predicted them on games left out of the fit (robber on his own hex
+    /// did not); always rolling matched him 94% of the time, every fitted
+    /// rule less.
+    private func beforeTheRoll(_ observation: GameObservation) -> GameMove {
+        observation.legalMoves.first {
+            TimingPolicy.isKnight($0) && TimingPolicy.wins($0, observation.seat, observation.state)
+        } ?? .rollDice
     }
 
     /// Expert's best spending move, when the ghost would otherwise end a turn
@@ -85,7 +119,7 @@ public struct GhostPolicy: LedgerAwarePolicy {
     /// the Expert tier lambda is calibrated against. This mirrors `best`: the
     /// non-proposal moves `score` accepts, in legal order, then the offers that
     /// clear the bar, Expert's own pick first so ties resolve its way.
-    func expertOptions(_ observation: GameObservation, ledger: PublicLedger) -> [ScoredCandidate] {
+    public func expertOptions(_ observation: GameObservation, ledger: PublicLedger) -> [ScoredCandidate] {
         let state = observation.state
         let legal = observation.legalMoves
         let evaluator = PositionEvaluator(seat: observation.seat, weights: expert.weights(for: state))

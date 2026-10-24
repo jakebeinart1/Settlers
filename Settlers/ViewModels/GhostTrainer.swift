@@ -33,6 +33,9 @@ struct GhostTrainer: Sendable {
     var extract: @Sendable (_ game: LoggedGame, _ anchor: EvaluationWeights) throws -> [DecisionRecord] = {
         try DecisionExtractor.decisions(in: $0, anchor: $1, humanTrading: true)
     }
+    /// The same game read for the choice model (`ChoiceModel`), which is
+    /// what a ghost with enough of its person's choices plays by.
+    var extractChoices: @Sendable (_ game: LoggedGame) throws -> [ChoiceRecord] = { try ChoiceRecord.records(in: $0) }
 
     /// Lowercase letters and digits of a name: "Jake" -> "jake". The key a
     /// name is claimed under on the ladder, and the id ghosts had before they
@@ -72,6 +75,9 @@ struct GhostTrainer: Sendable {
         guard !decisions.isEmpty else { return nil }
         var learned = previous
         learned.person = try fit(decisions, previous)
+        try writeLines(try extractChoices(personOnly), to: store.choicesDirectory(for: id)
+            .appendingPathComponent("\(match.uuidString).jsonl"))
+        learned.choices = refitChoices(id)
         if !previous.isNameCustom {
             learned.name = "\(personName.trimmingCharacters(in: .whitespacesAndNewlines))'s Ghost"
         }
@@ -80,8 +86,51 @@ struct GhostTrainer: Sendable {
         learned.revision = (stored?.revision ?? 0) + 1
         learned.decisionsLearned += decisions.count
         try store.save(learned)
-        try write(decisions, to: record)
+        try writeLines(decisions, to: record)
         return learned
+    }
+
+    /// The choice model from every choice record on this phone, or `nil`
+    /// below `ChoiceFitter.minimumDecisions`, where the ghost keeps playing
+    /// by its person model. A refit from scratch: the records are small and
+    /// the fit takes seconds, so no prior from an earlier fit is needed.
+    func refitChoices(_ id: String) -> ChoiceModel? {
+        let directory = store.choicesDirectory(for: id)
+        let files = ((try? FileManager.default.contentsOfDirectory(at: directory, includingPropertiesForKeys: nil)) ?? [])
+            .filter { $0.pathExtension == "jsonl" }.sorted { $0.lastPathComponent < $1.lastPathComponent }
+        let records = files.flatMap { file in
+            ((try? String(contentsOf: file, encoding: .utf8)) ?? "").split(separator: "\n")
+                .compactMap { try? JSONDecoder().decode(ChoiceRecord.self, from: Data($0.utf8)) }
+        }
+        return records.count < ChoiceFitter.minimumDecisions ? nil : ChoiceFitter.fit(records)
+    }
+
+    /// Once per ghost: choice records for the games it learned before choice
+    /// models existed (2026-10-24), from the logs still on this phone, then
+    /// one refit. Without it a ghost would wait for new games to play like
+    /// its person. Returns the refitted ghost, or `nil` if nothing changed.
+    func backfillChoices(_ games: [CatchUpGame], personID: String) throws -> GhostProfile? {
+        let id = store.resolve(personID)
+        let marker = store.choicesDirectory(for: id).appendingPathComponent(GhostStore.backfilledMarker)
+        guard var ghost = store.ghost(id: id), !ghost.isTrainingPaused,
+              !FileManager.default.fileExists(atPath: marker.path) else { return nil }
+        for game in games where store.resolve(game.personID) == id {
+            let learned = store.decisionsDirectory(for: id).appendingPathComponent("\(game.match.uuidString).jsonl")
+            let choices = store.choicesDirectory(for: id).appendingPathComponent("\(game.match.uuidString).jsonl")
+            guard FileManager.default.fileExists(atPath: learned.path),
+                  !FileManager.default.fileExists(atPath: choices.path) else { continue }
+            let personOnly = LoggedGame(id: game.game.id, initialState: game.game.initialState, humanSeats: [game.human],
+                                        events: game.game.events)
+            try writeLines(try extractChoices(personOnly), to: choices)
+        }
+        try FileManager.default.createDirectory(at: marker.deletingLastPathComponent(), withIntermediateDirectories: true)
+        try Data().write(to: marker)
+        let choices = refitChoices(id)
+        guard choices != ghost.choices else { return nil }
+        ghost.choices = choices
+        ghost.revision += 1
+        try store.save(ghost)
+        return ghost
     }
 
     static func skippedMarker(for match: UUID, ghost id: String, store: GhostStore) -> URL {
@@ -98,12 +147,12 @@ struct GhostTrainer: Sendable {
         return PersonFitter.fit(decisions, anchor: .forMode(.classic), start: previous.person, options: options)
     }
 
-    private func write(_ decisions: [DecisionRecord], to url: URL) throws {
+    private func writeLines<Record: Encodable>(_ records: [Record], to url: URL) throws {
         try FileManager.default.createDirectory(at: url.deletingLastPathComponent(), withIntermediateDirectories: true)
         let encoder = JSONEncoder()
         var data = Data()
-        for decision in decisions {
-            data.append(try encoder.encode(decision))
+        for record in records {
+            data.append(try encoder.encode(record))
             data.append(0x0A)
         }
         try data.write(to: url, options: .atomic)
@@ -148,9 +197,16 @@ actor GhostTrainingQueue {
     /// already taught is skipped by its decision record. Returns how many were taught.
     func catchUp(_ trainer: GhostTrainer, games: [CatchUpGame], ratedMatches: Set<UUID>) async -> Int {
         var taught = 0
-        for game in games where ratedMatches.contains(game.match) {
-            if await learn(trainer, match: game.match, game: game.game, human: game.human,
-                           personID: game.personID, personName: game.personName) != nil { taught += 1 }
+        let rated = games.filter { ratedMatches.contains($0.match) }
+        for game in rated {
+            let learned = await learn(trainer, match: game.match, game: game.game, human: game.human,
+                                      personID: game.personID, personName: game.personName)
+            if learned != nil { taught += 1 }
+        }
+        for personID in Set(rated.map(\.personID)).sorted() {
+            await MainActor.run { GhostTrainingStatus.shared.begin(personID) }
+            _ = try? trainer.backfillChoices(rated, personID: personID)
+            await MainActor.run { GhostTrainingStatus.shared.end(personID) }
         }
         return taught
     }

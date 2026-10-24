@@ -38,20 +38,26 @@ struct WinRate {
 /// The ghost in every chair of each seed, the other three seats the tier:
 /// the bot-strength protocol's rotation, so turn order cancels. Seeds start
 /// at 900,000, the held-out range, never the ones anything was fitted on.
-func ghostWinRate(person: PersonModel, lambda: Double, tier: Tier, games: Int) throws -> WinRate {
+///
+/// `shard` (index, count) plays only every count-th game, so one run can be
+/// split across processes and the win counts summed.
+func ghostWinRate(person: PersonModel, lambda: Double, tier: Tier, games: Int, choices: ChoiceModel? = nil,
+                  shard: (index: Int, count: Int) = (0, 1)) throws -> WinRate {
     var wins = 0
-    for game in 0..<games {
+    var played = 0
+    for game in stride(from: shard.index, to: games, by: shard.count) {
+        played += 1
         let seed = 900_000 + UInt64(game / 4)
         let initial = GameSetup.newGame(board: BoardGenerator.randomized(seed: seed), seed: seed)
         var policies: [PlayerID: any Policy] = [:]
         for player in initial.players { policies[player.id] = tier.policy() }
         let chair = initial.players[game % initial.players.count].id
-        policies[chair] = GhostPolicy(person: person, lambda: lambda)
+        policies[chair] = GhostPolicy(person: person, lambda: lambda, choices: choices)
         var session = GameSession(state: initial, policies: policies, policySeed: seed)
         _ = try session.run()
         if case .gameOver(let winner) = session.state.phase, winner == chair { wins += 1 }
     }
-    return WinRate(wins: wins, games: games)
+    return WinRate(wins: wins, games: played)
 }
 
 func readPerson(_ path: String) throws -> PersonModel {

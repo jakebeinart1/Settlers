@@ -46,7 +46,7 @@ extension GameViewModel {
             return difficulty.policy(for: profile, expertRevision: expertRevision)
         }
         guard let ghost = ghosts.ghost(id: id) else { return EvaluationPolicy() }
-        return GhostPolicy(person: ghost.person, lambda: ghost.lambda, id: profile.id)
+        return ghost.policy(id: profile.id)
     }
 
     /// Why a saved game cannot resume because a ghost in it is gone, naming

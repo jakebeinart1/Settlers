@@ -78,9 +78,11 @@ func extract(_ games: [LoggedGame], at weights: EvaluationWeights = anchor,
 }
 
 /// Every fourth game, in id order, is held out: deterministic, and whole games, not decisions.
+/// `GHOST_FOLD` (0-3, default 3) picks which fourth, for cross-validating a fit.
+let heldOutFold = Int(ProcessInfo.processInfo.environment["GHOST_FOLD"] ?? "3") ?? 3
 func split(_ records: [DecisionRecord]) -> (train: [DecisionRecord], heldOut: [DecisionRecord]) {
     let games = Array(Set(records.map(\.game))).sorted()
-    let heldOut = Set(games.enumerated().filter { $0.offset % 4 == 3 }.map(\.element))
+    let heldOut = Set(games.enumerated().filter { $0.offset % 4 == heldOutFold }.map(\.element))
     return (records.filter { !heldOut.contains($0.game) }, records.filter { heldOut.contains($0.game) })
 }
 
@@ -216,7 +218,12 @@ case "strength":
     }
     let games = Int(option("--games") ?? "1248") ?? 1248
     guard let tier = Tier(rawValue: option("--tier") ?? "expert") else { fail("--tier must be classic or expert") }
-    let result = try ghostWinRate(person: try readPerson(path), lambda: lambda, tier: tier, games: games)
+    let choices = try option("--choices").map {
+        try JSONDecoder().decode(ChoiceModel.self, from: Data(contentsOf: URL(fileURLWithPath: $0)))
+    }
+    let shard = option("--shard").map { $0.split(separator: "/").compactMap { Int($0) } } ?? [0, 1]
+    let result = try ghostWinRate(person: try readPerson(path), lambda: lambda, tier: tier, games: games,
+                                  choices: choices, shard: (shard[0], shard[1]))
     print("ghost vs three \(tier.rawValue) bots: " + result.summary + "  (null 0.250)")
     let (low, high) = result.interval
     print(low > 0.25 ? "BETTER than \(tier.rawValue) at 95%" : high < 0.25 ? "WORSE than \(tier.rawValue) at 95%"
@@ -277,6 +284,67 @@ case "timing":
     let fitStart = Date()
     _ = PersonFitter.fit(decisions, anchor: .forMode(.classic), start: person, options: options)
     print("retrain: extract \(decisions.count) decisions " + number(extractTime) + "s, fit " + number(Date().timeIntervalSince(fitStart)) + "s")
+case "fidelity":
+    // A ghost profile, or a person model, at each lambda in turn.
+    let lambdas = option("--lambdas").map { $0.split(separator: ",").compactMap { Double($0) } }
+    let detail = arguments.contains("--detail")
+    arguments.removeAll { $0 == "--detail" }
+    var seats: [(String, any LedgerAwarePolicy)] = []
+    if let path = option("--profile") {
+        let profile = try JSONDecoder().decode(GhostProfile.self, from: Data(contentsOf: URL(fileURLWithPath: path)))
+        for lambda in lambdas ?? [profile.lambda] {
+            seats.append(("\(profile.name) lambda \(lambda)", GhostPolicy(person: profile.person, lambda: lambda)))
+        }
+    } else if let path = option("--choices") {
+        let model = try JSONDecoder().decode(ChoiceModel.self, from: Data(contentsOf: URL(fileURLWithPath: path)))
+        seats.append(("choice model", GhostPolicy(person: .anchored(at: anchor), lambda: 0, choices: model)))
+    } else if let path = option("--person") {
+        let person = try readPerson(path)
+        for lambda in lambdas ?? [0] { seats.append(("person lambda \(lambda)", GhostPolicy(person: person, lambda: lambda))) }
+    } else {
+        seats.append(("Expert", EvaluationPolicy()))
+    }
+    let dump = option("--dump")
+    let folds = option("--cv").flatMap { Int($0) }
+    let personFolds = option("--person-folds")
+    let outcomes = option("--outcomes")
+    let games = try arguments.map { try loadGame(URL(fileURLWithPath: $0)) }
+        .filter { $0.humanSeats.count == 1 && $0.initialState.mode == .classic }
+    if let folds {
+        let persons = try personFolds.map { prefix in try (0..<folds).map { try readPerson("\(prefix)\($0).json") } }
+        if let lambdas, let persons {
+            for lambda in lambdas {
+                let moments = try crossValidated(games, folds: folds, persons: persons, personLambda: lambda)
+                fidelityReport(moments, label: "person model alone, lambda \(lambda), \(folds)-fold by game", detail: detail)
+                try outcomes.map { try writeOutcomes(moments, to: $0) }
+            }
+            break
+        }
+        let moments = try crossValidated(games, folds: folds, persons: persons)
+        fidelityReport(moments, label: "choice model\(persons == nil ? "" : " + person"), \(folds)-fold by game", detail: detail)
+        try outcomes.map { try writeOutcomes(moments, to: $0) }
+        break
+    }
+    for (label, policy) in seats {
+        let moments = try games.flatMap { try GhostFidelity.moments(in: $0, policy: policy) }
+        fidelityReport(moments, label: label, detail: detail)
+        if let dump { try moments.map { try JSONEncoder().encode($0) + Data([0x0A]) }.reduce(Data(), +)
+            .write(to: URL(fileURLWithPath: dump)) }
+    }
+case "choices":
+    // Fit a person's choice model on all their games.
+    guard let out = option("--out") else { fail("choices needs --out and log files") }
+    let games = try arguments.map { try loadGame(URL(fileURLWithPath: $0)) }
+        .filter { $0.humanSeats.count == 1 && $0.initialState.mode == .classic }
+    let model = ChoiceFitter.fit(try games.flatMap { try ChoiceRecord.records(in: $0) })
+    let encoder = JSONEncoder()
+    encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
+    try encoder.encode(model).write(to: URL(fileURLWithPath: out))
+    print("\(model.decisions) decisions -> \(out)")
+case "candidates":
+    guard let out = option("--out") else { fail("candidates needs --out and log files") }
+    try dumpCandidates(try arguments.map { try loadGame(URL(fileURLWithPath: $0)) }
+        .filter { $0.humanSeats.count == 1 && $0.initialState.mode == .classic }, to: out)
 case "bundle":
     guard let path = option("--person"), let lambda = Double(option("--lambda") ?? ""),
           let id = option("--id"), let name = option("--name"), let out = option("--out") else {

@@ -31,11 +31,14 @@ public struct GhostProfile: Codable, Sendable, Equatable, Identifiable {
     public var isTrainingPaused: Bool
     /// A tombstone: the owner removed this ghost. Kept so the removal syncs.
     public var isRemoved: Bool
+    /// The person's own choices (`ChoiceModel`), fitted on their games on
+    /// their phone. When present the ghost plays by it, not by `lambda`.
+    public var choices: ChoiceModel?
 
     public init(id: String, name: String, person: PersonModel, lambda: Double,
                 gamesLearned: Int, decisionsLearned: Int = 0, civilization: String? = nil,
                 revision: Int? = nil, isNameCustom: Bool = false,
-                isTrainingPaused: Bool = false, isRemoved: Bool = false) {
+                isTrainingPaused: Bool = false, isRemoved: Bool = false, choices: ChoiceModel? = nil) {
         self.id = id
         self.name = name
         self.person = person
@@ -47,11 +50,12 @@ public struct GhostProfile: Codable, Sendable, Equatable, Identifiable {
         self.isNameCustom = isNameCustom
         self.isTrainingPaused = isTrainingPaused
         self.isRemoved = isRemoved
+        self.choices = choices
     }
 
     private enum CodingKeys: String, CodingKey {
         case id, name, person, lambda, gamesLearned, decisionsLearned, civilization
-        case revision, isNameCustom, isTrainingPaused, isRemoved
+        case revision, isNameCustom, isTrainingPaused, isRemoved, choices
     }
 
     /// Hand-written so a field added later cannot make an older ghost vanish:
@@ -69,5 +73,11 @@ public struct GhostProfile: Codable, Sendable, Equatable, Identifiable {
         isNameCustom = try values.decodeIfPresent(Bool.self, forKey: .isNameCustom) ?? false
         isTrainingPaused = try values.decodeIfPresent(Bool.self, forKey: .isTrainingPaused) ?? false
         isRemoved = try values.decodeIfPresent(Bool.self, forKey: .isRemoved) ?? false
+        choices = try values.decodeIfPresent(ChoiceModel.self, forKey: .choices)
+    }
+
+    /// The seat this ghost plays from.
+    public func policy(id: String) -> GhostPolicy {
+        GhostPolicy(person: person, lambda: lambda, id: id, choices: choices)
     }
 }

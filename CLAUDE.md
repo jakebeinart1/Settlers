@@ -11,6 +11,15 @@ private). Alex owns engineering and work goes back to Jake as **pull requests** 
 `push` but **not `admin`** (`gh api repos/jakebeinart1/Settlers --jq .permissions` →
 `admin: false`). Jake's own history is direct-to-`main`. Do not push to `main`.
 
+## North star for ghosts (Jake, 2026-10-24)
+
+**Playing a friend's ghost should feel like playing that friend.** Waiting for a live
+game takes too long, so ghosts carry the competition with friends; the game stays
+fast-paced and fun. Judge every ghost change by both halves of "plays like them":
+their decisions (`ghost fidelity`, see the pointer table) and their results (a win
+rate near the person's). A ghost that copies moves but loses far more often than
+its person has not met the goal.
+
 ## READ-FIRST - where truth lives (pointer map)
 
 Every one of these is canonical for its question. Read the file, do not reason from this list.
@@ -36,6 +45,7 @@ Every one of these is canonical for its question. Read the file, do not reason f
 | Who a player is: an iCloud account id, never a name, so a rename keeps score and ghost | `PlayerDirectory`'s doc comment + `docs/live-sync.md` "Identity" |
 | Why no bot ends a turn holding more than 7 cards (Jake's rule) | `HandDiscipline`'s doc comment (`Packages/CatanAI/Sources/CatanAI/Evaluation/`) |
 | How strong every Expert and Classic that ever shipped is, and how to seat old commits at one table | `docs/AI_summaries/2026-09-29-every-bot-tournament.md` + `arena`'s header (`Packages/CatanAI/Sources/arena/`) |
+| How faithfully a ghost plays like its person, moment by moment, and why ghosts play by a choice model | `docs/AI_summaries/2026-10-24-ghost-fidelity.md` + `ghost fidelity` (`Packages/CatanAI/Sources/ghost/`) |
 | Replaying a real game off Jake's iPhone (TestFlight data is readable) | `docs/AI_summaries/2026-09-28-ghost-hoarding-and-rename.md`, "How it was found" |
 | What is persisted, where, and why | `Settlers/Persistence/` - 7 stores, each with the rationale in its doc comment |
 | Art assets: what is wired in, what is retired, how it was generated | `design-references/STATUS.md` |

@@ -92,11 +92,13 @@ public struct GhostStore: Sendable {
         try save(GhostProfile(id: new, name: ghost.name, person: ghost.person, lambda: ghost.lambda,
                               gamesLearned: ghost.gamesLearned, decisionsLearned: ghost.decisionsLearned,
                               civilization: ghost.civilization, revision: ghost.revision,
-                              isNameCustom: ghost.isNameCustom, isTrainingPaused: ghost.isTrainingPaused))
-        if FileManager.default.fileExists(atPath: from.path) {
-            let to = localDirectory.appendingPathComponent(new).appendingPathComponent("decisions")
+                              isNameCustom: ghost.isNameCustom, isTrainingPaused: ghost.isTrainingPaused,
+                              choices: ghost.choices))
+        for (records, name) in [(from, "decisions"), (choicesDirectory(for: old), "choices")]
+        where FileManager.default.fileExists(atPath: records.path) {
+            let to = localDirectory.appendingPathComponent(new).appendingPathComponent(name)
             try? FileManager.default.removeItem(at: to)
-            try FileManager.default.moveItem(at: from, to: to)
+            try FileManager.default.moveItem(at: records, to: to)
         }
         try alias(old, to: new)
     }
@@ -138,6 +140,16 @@ public struct GhostStore: Sendable {
     func decisionsDirectory(for id: String) -> URL {
         localDirectory.appendingPathComponent(resolve(id)).appendingPathComponent("decisions")
     }
+
+    /// The person's choice records (`ChoiceRecord`), which the ghost's choice
+    /// model is refitted from after every game.
+    func choicesDirectory(for id: String) -> URL {
+        localDirectory.appendingPathComponent(resolve(id)).appendingPathComponent("choices")
+    }
+
+    /// In `choicesDirectory`: games learned before choice models were read
+    /// for them once (`GhostTrainer.backfillChoices`), or a reset said not to.
+    static let backfilledMarker = ".backfilled"
 
     // MARK: - Management (Jake, 2026-10-08)
     //
@@ -187,9 +199,10 @@ public struct GhostStore: Sendable {
             try save(GhostProfile(id: "\(id)~\(number)", name: "\(current.name) (old \(number))", person: current.person,
                                   lambda: current.lambda, gamesLearned: current.gamesLearned,
                                   decisionsLearned: current.decisionsLearned, civilization: current.civilization,
-                                  isNameCustom: true, isTrainingPaused: true))
+                                  isNameCustom: true, isTrainingPaused: true, choices: current.choices))
         }
         try archiveVersions(of: id)
+        try archiveChoices(of: id)
         let fresh = GhostProfile(id: id, name: current.name, person: .anchored(at: .forMode(.classic)),
                                  lambda: current.lambda, gamesLearned: 0, civilization: current.civilization,
                                  revision: current.revision + 1, isNameCustom: current.isNameCustom,
@@ -242,6 +255,19 @@ public struct GhostStore: Sendable {
         for version in versions {
             try FileManager.default.moveItem(at: version.url, to: target.appendingPathComponent(version.url.lastPathComponent))
         }
+    }
+
+    /// A reset ghost starts from no choices: its records move to the archive,
+    /// and the backfill marker stops old games being read for it again.
+    private func archiveChoices(of id: String) throws {
+        let directory = choicesDirectory(for: id)
+        if FileManager.default.fileExists(atPath: directory.path) {
+            let stamp = Int(Date().timeIntervalSince1970 * 1000)
+            try FileManager.default.createDirectory(at: archiveDirectory, withIntermediateDirectories: true)
+            try FileManager.default.moveItem(at: directory, to: archiveDirectory.appendingPathComponent("\(id)-choices-\(stamp)"))
+        }
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        try Data().write(to: directory.appendingPathComponent(Self.backfilledMarker))
     }
 
     private func latest(of id: String) -> GhostProfile? {
