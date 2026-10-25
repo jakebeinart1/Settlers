@@ -22,6 +22,10 @@ public struct LeaderPolicy: LedgerAwarePolicy {
         /// pips over 3.9 resources, Expert on 19.1 over 4.7, and out-produced
         /// it 3.2-3.4 cards a turn to 2.9.
         case opening
+        /// Refuse a trade that would let a proposer level with or ahead of
+        /// this seat afford a settlement or city at once: 66 of the 158
+        /// offers Experts accepted from a human were followed by one that turn.
+        case deny
     }
 
     public let rules: Set<Rule>
@@ -54,6 +58,12 @@ public struct LeaderPolicy: LedgerAwarePolicy {
            state.pendingTradeOffers.first(where: { $0.id == id })?.from == leader {
             return .respondToTrade(offerID: id, accept: false)
         }
+        if rules.contains(.deny), case .respondToTrade(let id, true) = move,
+           let offer = state.pendingTradeOffers.first(where: { $0.id == id }),
+           Self.threat(of: offer.from, for: seat, in: state, ledger: ledger) >= Double(state.victoryPoints(for: seat) - 1),
+           Self.enablesBuilding(offer, ledger: ledger) {
+            return .respondToTrade(offerID: id, accept: false)
+        }
         if rules.contains(.rob), Self.robs(move) {
             let aimed = observation.legalMoves.filter { Self.robs($0) && Self.isKnight($0) == Self.isKnight(move) }
                 .filter { Self.victim($0) == leader && Self.blocks($0, leader, state) }
@@ -70,16 +80,33 @@ public struct LeaderPolicy: LedgerAwarePolicy {
     /// each unplayed development card times the share of unseen cards that
     /// are victory points.
     static func threatLeader(for seat: PlayerID, in state: GameState, ledger: PublicLedger) -> PlayerID? {
-        let printed = state.rules.devCardDeck[.victoryPoint] ?? 0
-        let mineHidden = state.players[seat.index].devCards.filter { $0 == .victoryPoint }.count
         let rivals = state.players.map(\.id).filter { $0 != seat }.sorted()
-        let unseen = state.devCardDeck.count + rivals.map { ledger.belief(of: $0).devCardCount }.reduce(0, +)
-        let share = unseen == 0 ? 0 : Double(max(0, printed - mineHidden)) / Double(unseen)
-        func threat(_ id: PlayerID) -> Double {
-            Double(state.publicVictoryPoints(for: id)) + share * Double(ledger.belief(of: id).devCardCount)
-        }
+        func threat(_ id: PlayerID) -> Double { Self.threat(of: id, for: seat, in: state, ledger: ledger) }
         guard let top = rivals.max(by: { threat($0) < threat($1) }) else { return nil }
         return threat(top) >= Double(state.victoryPoints(for: seat)) ? top : nil
+    }
+
+    /// `rival`'s public points plus each unplayed development card times the
+    /// share of the cards `seat` has not seen that are victory points.
+    static func threat(of rival: PlayerID, for seat: PlayerID, in state: GameState, ledger: PublicLedger) -> Double {
+        let printed = state.rules.devCardDeck[.victoryPoint] ?? 0
+        let mineHidden = state.players[seat.index].devCards.filter { $0 == .victoryPoint }.count
+        let others = state.players.map(\.id).filter { $0 != seat }
+        let unseen = state.devCardDeck.count + others.map { ledger.belief(of: $0).devCardCount }.reduce(0, +)
+        let share = unseen == 0 ? 0 : Double(max(0, printed - mineHidden)) / Double(unseen)
+        return Double(state.publicVictoryPoints(for: rival)) + share * Double(ledger.belief(of: rival).devCardCount)
+    }
+
+    /// Whether the proposer's believed hand, after `offer`, covers a settlement or a city.
+    static func enablesBuilding(_ offer: TradeOffer, ledger: PublicLedger) -> Bool {
+        var holding = believedHolding(from: ledger.belief(of: offer.from))
+        for resource in Resource.allCases {
+            holding[resource, default: 0] += Double(offer.want[resource] ?? 0) - Double(offer.give[resource] ?? 0)
+        }
+        func covers(_ cost: [Resource: Int]) -> Bool {
+            Resource.allCases.allSatisfy { holding[$0, default: 0] + 0.5 >= Double(cost[$0] ?? 0) }
+        }
+        return covers(Building.settlementCost) || covers(Building.cityCost)
     }
 
     static func isSetup(_ state: GameState) -> Bool {
