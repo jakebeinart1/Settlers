@@ -26,6 +26,11 @@ public struct LeaderPolicy: LedgerAwarePolicy {
         /// this seat afford a settlement or city at once: 66 of the 158
         /// offers Experts accepted from a human were followed by one that turn.
         case deny
+        /// Jake: refuse a trade the bot can tell helps the proposer more than
+        /// it helps the bot. Both gains are judged from public information:
+        /// standings before and after, plus a point for a build the proposer's
+        /// believed hand could then afford.
+        case fair
     }
 
     public let rules: Set<Rule>
@@ -64,6 +69,11 @@ public struct LeaderPolicy: LedgerAwarePolicy {
            Self.enablesBuilding(offer, ledger: ledger) {
             return .respondToTrade(offerID: id, accept: false)
         }
+        if rules.contains(.fair), case .respondToTrade(let id, true) = move,
+           let offer = state.pendingTradeOffers.first(where: { $0.id == id }),
+           helpsProposerMore(move, offer: offer, seat: seat, state: state, ledger: ledger) {
+            return .respondToTrade(offerID: id, accept: false)
+        }
         if rules.contains(.rob), Self.robs(move) {
             let aimed = observation.legalMoves.filter { Self.robs($0) && Self.isKnight($0) == Self.isKnight(move) }
                 .filter { Self.victim($0) == leader && Self.blocks($0, leader, state) }
@@ -73,6 +83,30 @@ public struct LeaderPolicy: LedgerAwarePolicy {
             return base.best(among: aimed, state: state, ledger: counted)
         }
         return move
+    }
+
+    private func helpsProposerMore(_ accept: GameMove, offer: TradeOffer, seat: PlayerID, state: GameState,
+                                   ledger: PublicLedger) -> Bool {
+        var counted = ledger
+        counted.reconcileObserverHand(from: state)
+        guard let (after, afterLedger) = base.applied(accept, to: state, ledger: counted, by: seat) else { return false }
+        let evaluator = PositionEvaluator(seat: seat, weights: base.weights(for: state), revision: .pointCompletingCardsV1)
+        let before = BoardIndex(state: state), later = BoardIndex(state: after)
+        func gain(_ id: PlayerID) -> Double {
+            evaluator.standing(of: id, in: after, ledger: afterLedger, board: later)
+                - evaluator.standing(of: id, in: state, ledger: counted, board: before)
+        }
+        let point = evaluator.weights.victoryPoint
+        let theirs = Self.enablesBuilding(offer, ledger: counted) ? point : 0
+        let mine = !Self.affords(state.players[seat.index].resources) && Self.affords(after.players[seat.index].resources)
+            ? point : 0
+        return gain(offer.from) + theirs > gain(seat) + mine
+    }
+
+    static func affords(_ hand: [Resource: Int]) -> Bool {
+        [Building.settlementCost, Building.cityCost].contains { cost in
+            Resource.allCases.allSatisfy { hand[$0, default: 0] >= cost[$0] ?? 0 }
+        }
     }
 
     /// The rival with the most points counting the hidden ones they probably
