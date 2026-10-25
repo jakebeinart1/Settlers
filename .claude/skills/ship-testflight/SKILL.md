@@ -1,13 +1,14 @@
 ---
 name: ship-testflight
-description: Build, upload, and verify an Empires iOS build in TestFlight. Use when asked to ship, upload to TestFlight, cut a build, put the latest build on a real phone, or diagnose why TestFlight still shows an older build. This is the Alex-owned com.alexchandler.empires distribution path; it must never change Jake's committed signing defaults.
+description: Build, upload, and verify an Empires iOS build in TestFlight for both Alex and Jake. Use when asked to ship, upload to TestFlight, cut a build, put the latest build on a real phone, or diagnose why TestFlight still shows an older build. This is the Alex-owned com.alexchandler.empires distribution path; it must never change Jake's committed signing defaults.
 ---
 
 # Ship Empires to TestFlight
 
 The outcome is not “archive succeeded.” A ship is complete only after the
 Release gate passes, the build number is unique, Apple accepts the upload, the
-build reaches VALID, and the intended tester can see it.
+build reaches VALID, and delivery to both Alex and Jake passes the recipient
+checks below. Every update includes both people by default.
 
 Before simulator-backed release checks or a gate/push hook, read and apply the
 [shared simulator lifecycle policy](../run-settlers/references/simulator-lifecycle.md).
@@ -50,6 +51,37 @@ Store Connect choose Apps → + → New App and use:
 Do not select or reuse another app's bundle id. After the record exists, rerun
 preflight and use the numeric app id it prints.
 
+## Delivery to Alex and Jake
+
+Resolve both existing audiences before uploading, then verify the exact same
+app, marketing version, build number and Apple build UUID for both after release:
+
+- **Alex:** the existing internal group contains his tester account and grants
+  access to this build; the build's `internalBuildState` is `IN_BETA_TESTING`.
+- **Jake:** his existing external group contains this exact build and retains
+  his existing tester/public-link access; its beta review is `APPROVED` and the
+  build's `externalBuildState` is `IN_BETA_TESTING`.
+
+For external delivery, complete the build's **What to Test** text, add the build
+to Jake's existing group, submit it for beta review, and distribute the approved
+build according to the existing notification setting. Read back both review
+status and group/build membership. Keep the group, older builds, public link,
+testers and notification preferences intact; releasing an update requires no
+new invitation or internal-account role for Jake.
+
+Verified lookup hints: app `6808461623` / `com.alexchandler.empires`; Alex's
+internal group `bf165450-034a-437d-b7f7-028bf3d57a5b`, tester
+`a8ee9090-8182-4804-b5f9-eead9c032495`; external group **Jake Beinart**
+`04e08478-4a27-41a3-a63e-3abce2133155`. Verify these against live account data.
+
+The delivery receipt must record both audiences' group IDs, access checks,
+exact build UUID and separate internal/external states. Upload acceptance,
+`VALID`, or Alex's internal access alone cannot complete delivery. The read-only
+preflight reports prerequisites and the latest upload; it does not certify both
+audiences. If external approval or distribution is pending, report that state
+and keep the release pending. Claim a phone installation only when observed;
+a tester's invitation state does not establish which build is on their phone.
+
 ## Release ladder
 
 1. Run GATE_TEST_WORKERS=1 scripts/gate.sh --debug-app with the pinned QA device.
@@ -71,8 +103,8 @@ preflight and use the numeric app id it prints.
    Never copy the private key into this repository.
 9. Poll App Store Connect until the exact version/build is VALID or a terminal
    failure. Silence is not success.
-10. Confirm an internal group with hasAccessToAllBuilds=true exists and report
-    which tester Apple says can access the build.
+10. Complete **Delivery to Alex and Jake** above and preserve live proof for both
+    audiences before reporting the update as shipped.
 
 The API key currently available on this machine is team-scoped and may be
 reused; its id and issuer are non-secret metadata in the preflight script. The
