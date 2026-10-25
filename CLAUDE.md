@@ -495,16 +495,16 @@ That last line is not optional. Skipping it is what left `main` on a stale commi
   that "`TODO.md` item 1 still names `ClaudeDesignExport/` as the vehicle for the next design
   pass"; `TODO.md` no longer mentions it anywhere (checked 2026-09-09), so that warning is
   retired too.
-- **One app test is an unexplained flake.**
-  `CheckpointExportTests.retryReplacesATruncatedArchiveWithoutDuplicatingMoves` asserts byte
-  equality across two exports of one checkpoint. Measured 2026-09-09 on one tree: **failed**
-  under the gate at 2 workers and again in a serial full-suite run, then **passed** in a
-  second serial full-suite run, in isolation, and in the gate run that landed `67b8bb6`.
-  Clean `HEAD` passed a full suite too. So it is not tied to a change, and it does not
-  reproduce in isolation - only under full-suite conditions. **The cause was not found.** A
-  `Set<PlayerID>` encoded as an unordered JSON array in `GameLogStore.SeatRoster.encode` was
-  the obvious suspect and is probably *not* it (two identically-built Sets share an iteration
-  order within one process). Worth solving before it fails a run that matters.
+- **Checkpoint export retries need canonical roster arrays.** The byte-equality failure in
+  `CheckpointExportTests.retryReplacesATruncatedArchiveWithoutDuplicatingMoves` recurred during
+  the 2026-10-25 release check. Each export rebuilds `SeatRoster.humanSeats`; encoding that Set
+  directly can reorder its JSON array. The earlier dismissal here was wrong: Swift uses a
+  per-storage hash seed, so fresh equal Sets can differ **within one process**. A retained-Set
+  probe produced all 24 four-seat permutations, and the native wire-order regression failed
+  against the old encoder. `SeatRoster.encode` now sorts seats; the decoder still accepts old
+  unsorted arrays and legacy single-seat records. Keep the retry byte-equality and replay
+  assertions. `.sortedKeys` orders object keys, not arrays; this fix does not claim that every
+  collection in an entire reloaded game state has canonical JSON ordering.
 
 ## Settled dead ends - do not re-litigate
 

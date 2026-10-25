@@ -33,6 +33,42 @@ import Testing
         #expect(model.eventBatch.events.isEmpty == false)
     }
 
+    @Test func humanRosterWireOrderIsCanonicalAcrossFreshSets() throws {
+        let freshRosterCount = 64
+        // Retain distinct tables: allocator reuse can hide per-instance hash order.
+        let rosters = (0..<freshRosterCount).map { offset in
+            var seats = Set<PlayerID>(minimumCapacity: offset + 4)
+            for index in [3, 1, 2, 0] { seats.insert(PlayerID(index: index)) }
+            return GameLogStore.SeatRoster(
+                humanSeats: seats, humanNames: [:], botPersonalities: [:], civilizations: [:])
+        }
+        let encoder = JSONEncoder()
+        encoder.outputFormatting = [.sortedKeys]
+        for roster in rosters {
+            let data = try encoder.encode(roster)
+            let wire = try #require(JSONSerialization.jsonObject(with: data) as? [String: Any])
+            let seats = try #require(wire["humanSeats"] as? [[String: Int]])
+            #expect(seats.compactMap { $0["index"] } == [0, 1, 2, 3])
+            #expect(wire["humanSeat"] as? [String: Int] == ["index": 0])
+            #expect(try JSONDecoder().decode(GameLogStore.SeatRoster.self, from: data) == roster)
+        }
+    }
+
+    @Test func historicalUnsortedFourHumanRosterStillDecodes() throws {
+        let json = """
+        {"humanSeat":{"index":0},"humanSeats":[{"index":3},{"index":1},{"index":0},{"index":2}],
+         "humanNames":{"0":"P0","1":"P1","2":"P2","3":"P3"},
+         "botPersonalities":{},"civilizations":{}}
+        """
+
+        let roster = try JSONDecoder().decode(GameLogStore.SeatRoster.self, from: Data(json.utf8))
+
+        #expect(roster.humanSeats == Set((0..<4).map { PlayerID(index: $0) }))
+        #expect(roster.humanNames == [0: "P0", 1: "P1", 2: "P2", 3: "P3"])
+        #expect(roster.botProfiles.isEmpty)
+        #expect(roster.expertRevision == nil)
+    }
+
     @Test func hotSeatRosterAndCompletedResultAreReadable() throws {
         try withStore { store in
             let state = GameSetup.newGame(

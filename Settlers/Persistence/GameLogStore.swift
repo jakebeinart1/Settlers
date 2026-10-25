@@ -197,7 +197,8 @@ public struct GameLogStore: Sendable {
             var values = encoder.container(keyedBy: CodingKeys.self)
             let first = humanSeats.min { $0.index < $1.index }
             try values.encode(first, forKey: .humanSeat)
-            try values.encode(humanSeats, forKey: .humanSeats)
+            // Sort set-backed seats so repeated exports remain byte-identical.
+            try values.encode(humanSeats.sorted(), forKey: .humanSeats)
             try values.encode(humanNames, forKey: .humanNames)
             try values.encode(botProfiles, forKey: .botProfiles)
             try values.encode(botProfileNames, forKey: .botProfileNames)
