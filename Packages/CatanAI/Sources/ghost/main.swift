@@ -390,6 +390,9 @@ case "duel":
     let shard = option("--shard").map { $0.split(separator: "/").compactMap { Int($0) } } ?? [0, 1]
     try duel(candidate: candidate, anchor: anchorName, firstSeed: first, seeds: seeds,
              lone: arguments.contains("--lone"), shard: (shard[0], shard[1]))
+case "refusals":
+    print("game\tpersonBuiltThatTurn\tstarve\tdeny\tfair")
+    for path in arguments { try refusalAudit(URL(fileURLWithPath: path)).forEach { print($0) } }
 case "bundle":
     guard let path = option("--person"), let lambda = Double(option("--lambda") ?? ""),
           let id = option("--id"), let name = option("--name"), let out = option("--out") else {

@@ -1,4 +1,5 @@
 import CatanEngine
+import Foundation
 
 /// The timing Expert, aimed at whoever is actually winning.
 ///
@@ -75,19 +76,7 @@ public struct LeaderPolicy: LedgerAwarePolicy {
         }
         let move = timing.decide(observation, ledger: ledger, rng: &rng)
         guard let leader = Self.threatLeader(for: seat, in: state, ledger: ledger) else { return move }
-        if rules.contains(.starve), case .respondToTrade(let id, true) = move,
-           state.pendingTradeOffers.first(where: { $0.id == id })?.from == leader {
-            return .respondToTrade(offerID: id, accept: false)
-        }
-        if rules.contains(.deny), case .respondToTrade(let id, true) = move,
-           let offer = state.pendingTradeOffers.first(where: { $0.id == id }),
-           Self.threat(of: offer.from, for: seat, in: state, ledger: ledger) >= Double(state.victoryPoints(for: seat) - 1),
-           Self.enablesBuilding(offer, ledger: ledger) {
-            return .respondToTrade(offerID: id, accept: false)
-        }
-        if rules.contains(.fair), case .respondToTrade(let id, true) = move,
-           let offer = state.pendingTradeOffers.first(where: { $0.id == id }),
-           helpsProposerMore(move, offer: offer, seat: seat, state: state, ledger: ledger) {
+        if case .respondToTrade(let id, true) = move, refuses(move, seat: seat, state: state, ledger: ledger) {
             return .respondToTrade(offerID: id, accept: false)
         }
         if rules.contains(.rob), Self.robs(move) {
@@ -99,6 +88,19 @@ public struct LeaderPolicy: LedgerAwarePolicy {
             return base.best(among: aimed, state: state, ledger: counted)
         }
         return move
+    }
+
+    /// Whether this policy's trade rules turn down `accept`, an acceptance
+    /// this seat's Expert would make. Public, so `ghost` can ask it of real games.
+    public func refuses(_ accept: GameMove, seat: PlayerID, state: GameState, ledger: PublicLedger) -> Bool {
+        guard case .respondToTrade(let id, true) = accept,
+              let offer = state.pendingTradeOffers.first(where: { $0.id == id }),
+              let leader = Self.threatLeader(for: seat, in: state, ledger: ledger) else { return false }
+        if rules.contains(.starve), offer.from == leader { return true }
+        if rules.contains(.deny),
+           Self.threat(of: offer.from, for: seat, in: state, ledger: ledger) >= Double(state.victoryPoints(for: seat) - 1),
+           Self.enablesBuilding(offer, ledger: ledger) { return true }
+        return rules.contains(.fair) && helpsProposerMore(accept, offer: offer, seat: seat, state: state, ledger: ledger)
     }
 
     private func helpsProposerMore(_ accept: GameMove, offer: TradeOffer, seat: PlayerID, state: GameState,
@@ -147,6 +149,11 @@ public struct LeaderPolicy: LedgerAwarePolicy {
         return Double(state.publicVictoryPoints(for: rival)) + share * Double(ledger.belief(of: rival).devCardCount)
     }
 
+    /// Cards a believed hand may be short of a building, in total, and still
+    /// count as affording it: the ledger knows a rival's hand only in part.
+    /// `EMPIRES_BUILD_SLACK` overrides it for `ghost refusals` audits only.
+    static let buildSlack = Double(ProcessInfo.processInfo.environment["EMPIRES_BUILD_SLACK"] ?? "") ?? 1.0
+
     /// Whether the proposer's believed hand, after `offer`, covers a settlement or a city.
     static func enablesBuilding(_ offer: TradeOffer, ledger: PublicLedger) -> Bool {
         var holding = believedHolding(from: ledger.belief(of: offer.from))
@@ -154,7 +161,7 @@ public struct LeaderPolicy: LedgerAwarePolicy {
             holding[resource, default: 0] += Double(offer.want[resource] ?? 0) - Double(offer.give[resource] ?? 0)
         }
         func covers(_ cost: [Resource: Int]) -> Bool {
-            Resource.allCases.allSatisfy { holding[$0, default: 0] + 0.5 >= Double(cost[$0] ?? 0) }
+            Resource.allCases.reduce(0.0) { $0 + max(0, Double(cost[$1] ?? 0) - holding[$1, default: 0]) } <= Self.buildSlack
         }
         return covers(Building.settlementCost) || covers(Building.cityCost)
     }

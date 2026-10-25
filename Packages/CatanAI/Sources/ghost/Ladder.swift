@@ -175,3 +175,36 @@ func leaderDiagnosis(_ url: URL) throws -> [String] {
     }
     return lines
 }
+
+/// Every trade an Expert seat accepted from the person in a ranked game,
+/// and whether each `LeaderPolicy` trade rule would have refused it: what
+/// the rules would have changed against a real human, which self-play
+/// cannot show (bots do not propose what people do). `ghost refusals`.
+func refusalAudit(_ url: URL) throws -> [String] {
+    let seats = try JSONDecoder().decode(CloudSeats.self, from: Data(contentsOf: url)).game.seats
+    let game = try loadCloudGame(url)
+    guard let person = seats.firstIndex(where: { $0.hasPrefix("person") }) else { return [] }
+    let rules: [LeaderPolicy.Rule] = [.starve, .deny, .fair]
+    var lines: [String] = []
+    var session = GameSession(state: game.initialState, policies: [:], policySeed: 0)
+    for (index, event) in game.events.enumerated() {
+        let state = session.state
+        if case .respondToTrade(let id, true) = event.move, seats[event.player.index] == "expert",
+           state.pendingTradeOffers.first(where: { $0.id == id })?.from.index == person {
+            var ledger = session.ledger(for: event.player)
+            ledger.reconcileObserverHand(from: state)
+            let refused = rules.map { LeaderPolicy(rules: [$0]).refuses(event.move, seat: event.player, state: state, ledger: ledger) }
+            let built = game.events[(index + 1)...].prefix { !($0.move == .endTurn && $0.player.index == person) }
+                .contains { logged in
+                    guard logged.player.index == person else { return false }
+                    switch logged.move {
+                    case .buildSettlement, .buildCity: return true
+                    default: return false
+                    }
+                }
+            lines.append(([game.id, built ? "built" : "-"] + refused.map { $0 ? "refuse" : "accept" }).joined(separator: "\t"))
+        }
+        _ = try session.applyExternal(event.move, by: event.player)
+    }
+    return lines
+}
