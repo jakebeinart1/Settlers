@@ -22,6 +22,9 @@ public struct LeaderPolicy: LedgerAwarePolicy {
         /// pips over 3.9 resources, Expert on 19.1 over 4.7, and out-produced
         /// it 3.2-3.4 cards a turn to 2.9.
         case opening
+        /// Opening settlements on the most pips (within one of the best),
+        /// Expert choosing among those; roads as Expert places them.
+        case pips
         /// Refuse a trade that would let a proposer level with or ahead of
         /// this seat afford a settlement or city at once: 66 of the 158
         /// offers Experts accepted from a human were followed by one that turn.
@@ -56,6 +59,19 @@ public struct LeaderPolicy: LedgerAwarePolicy {
             weights.variety = 0
             return EvaluationPolicy(weights: weights, revision: .pointCompletingCardsV1)
                 .best(among: observation.legalMoves, state: state, ledger: counted)
+        }
+        if rules.contains(.pips), Self.isSetup(state), observation.legalMoves.count > 1,
+           case .placeInitialSettlement = observation.legalMoves[0] {
+            let pips = { (move: GameMove) -> Int in
+                guard case .placeInitialSettlement(let vertex) = move else { return 0 }
+                return vertex.touchingTiles.reduce(0) { total, hex in
+                    total + (state.board.tiles.first { $0.coordinate == hex }?.numberToken.map(DiceOdds.pips(for:)) ?? 0)
+                }
+            }
+            let best = observation.legalMoves.map(pips).max() ?? 0
+            var counted = ledger
+            counted.reconcileObserverHand(from: state)
+            return base.best(among: observation.legalMoves.filter { pips($0) >= best - 1 }, state: state, ledger: counted)
         }
         let move = timing.decide(observation, ledger: ledger, rng: &rng)
         guard let leader = Self.threatLeader(for: seat, in: state, ledger: ledger) else { return move }
