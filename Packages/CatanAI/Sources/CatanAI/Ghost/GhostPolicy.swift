@@ -21,16 +21,20 @@ public struct GhostPolicy: LedgerAwarePolicy {
     /// The person's own choices, once fitted (`ChoiceModel`). When present it
     /// decides, and `lambda` and the person model are not consulted.
     public let choices: ChoiceModel?
+    /// With `choices`: the person picks only among moves Expert scores within
+    /// this much of its best. `nil` lets the person pick anything.
+    public let regret: Double?
     private let expert = EvaluationPolicy()
     private let personal: EvaluationPolicy
 
     public init(person: PersonModel, lambda: Double, id: String = "ghost", handDiscipline: Bool = true,
-                choices: ChoiceModel? = nil) {
+                choices: ChoiceModel? = nil, regret: Double? = nil) {
         self.id = id
         self.handDiscipline = handDiscipline
         self.person = person
         self.lambda = lambda
         self.choices = choices
+        self.regret = regret
         self.personal = EvaluationPolicy(weights: EvaluationWeights(vector: person.weights))
     }
 
@@ -48,7 +52,9 @@ public struct GhostPolicy: LedgerAwarePolicy {
         guard !judged.isEmpty else { return legal[0] }
         if let choices {
             let person = choices.needsPerson ? personScores(observation, ledger: ledger) : nil
-            return disciplined(choices.choose(judged, seat: observation.seat, state: observation.state, person: person),
+            let top = judged.map(\.score).max() ?? 0
+            let allowed = regret.map { limit in judged.filter { $0.score >= top - limit } } ?? judged
+            return disciplined(choices.choose(allowed, seat: observation.seat, state: observation.state, person: person),
                                judged: judged, observation: observation)
         }
         // At lambda 0 the person cannot change the answer; skip scoring them.
