@@ -74,6 +74,15 @@ Code: `Settlers/Sync/`. Tests: `SettlersTests/LiveSyncTests.swift`.
   leave their phone. Older app versions ignore the new payload fields, so they
   keep the old name until they update. Managed from Settings -> Manage Ghosts
   (`docs/superpowers/specs/2026-10-08-ghost-management-design.md`).
+- **Restarts are counted, never rated (Jake, 2026-10-25).** Starting a new
+  game while a rated one is unfinished (Restart, or New Game from the menu)
+  uploads the unfinished one as an ordinary `Match` with `abandoned: true` in
+  its payload, so no schema change. Every phone, older versions included,
+  rejects it in `SharedMatch.verified` as unfinished, so it never touches
+  Elo or stats. `scripts/cloudkit-games.py players` counts restarts per
+  player; `restarts` lists each with how far the game had gone. A restart
+  waits on the phone (`LiveSync/Abandoned/`) until the player has a name,
+  like any game.
 - **When it syncs** (Jake, 2026-09-26: "on a periodic basis that stays within
   limits of needed, otherwise it should just refresh once a game is
   completed"):

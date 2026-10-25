@@ -153,16 +153,7 @@ import Testing
             let suite = "LiveSyncTests.\(UUID().uuidString)"
             let defaults = try #require(UserDefaults(suiteName: suite))
             defer { defaults.removePersistentDomain(forName: suite) }
-            let setupStore = MatchSetupStore()
-            setupStore.defaults = defaults
-            let model = GameViewModel(
-                checkpointStore: MatchCheckpointStore(fileURL: root.appendingPathComponent("match_checkpoint.json")),
-                gameStore: GameStore(fileURL: root.appendingPathComponent("save.json")),
-                civilizationStore: CivilizationAssignmentStore(fileURL: root.appendingPathComponent("civs.json")),
-                matchSetupStore: setupStore, gameLogStore: stores.logs,
-                gameStatsStore: GameStatsStore(fileURL: root.appendingPathComponent("gamestats.json")),
-                ghostStore: stores.ghosts, ratingStore: stores.ratings, seatStatsStore: stores.seatStats,
-                playerDirectory: stores.players, makeGhostTrainer: completionBookkeepingTrainer)
+            let model = makeModel(defaults: defaults)
             // A second game first restores the previous completed checkpoint;
             // finish that bounded work before replacing the table or its files.
             await model.lastFinishedMatchWork?.value
@@ -174,6 +165,21 @@ import Testing
             try model.qaPlayToEnd()
             await model.lastFinishedMatchWork?.value
             guard case .gameOver = model.state.phase else { throw CancellationError() }
+        }
+
+        /// A game model on this device's stores.
+        @MainActor
+        func makeModel(defaults: UserDefaults) -> GameViewModel {
+            let setupStore = MatchSetupStore()
+            setupStore.defaults = defaults
+            return GameViewModel(
+                checkpointStore: MatchCheckpointStore(fileURL: root.appendingPathComponent("match_checkpoint.json")),
+                gameStore: GameStore(fileURL: root.appendingPathComponent("save.json")),
+                civilizationStore: CivilizationAssignmentStore(fileURL: root.appendingPathComponent("civs.json")),
+                matchSetupStore: setupStore, gameLogStore: stores.logs,
+                gameStatsStore: GameStatsStore(fileURL: root.appendingPathComponent("gamestats.json")),
+                ghostStore: stores.ghosts, ratingStore: stores.ratings, seatStatsStore: stores.seatStats,
+                playerDirectory: stores.players, makeGhostTrainer: completionBookkeepingTrainer)
         }
 
         /// This device's first game in shared form.
@@ -221,6 +227,60 @@ import Testing
         #expect(ladder.games["person:apple-jake"] == 1)
         #expect(alex.name(of: "apple-jake") == "Jake")
         #expect(ladder.ratings == jake.stores.ratings.load().ratings, "both phones show the same Elo")
+    }
+
+    /// Jake, 2026-10-25: count restarts, never rate them. An abandoned game
+    /// goes up flagged, and no phone's ladder counts it.
+    @MainActor
+    @Test func anAbandonedGameGoesUpButNeverCounts() async throws {
+        let dir = root()
+        defer { try? FileManager.default.removeItem(at: dir) }
+        let cloud = FakeCloud()
+        let jake = Device("jake", in: dir)
+        try await jake.play(as: "Jake")
+        let game = try jake.sharedGame()
+        let left = SharedMatch(version: game.version, match: UUID(), date: game.date, seats: game.seats,
+                               initialState: game.initialState, moves: Array(game.moves.prefix(30)), abandoned: true)
+        let sync = jake.liveSync(Phone(cloud: cloud, user: "apple-jake"), name: "Jake")
+        try await sync.recordAbandoned(left)
+        guard case .online = await sync.sync() else {
+            Issue.record("Jake's phone did not come online")
+            return
+        }
+        #expect(cloud.locked { $0.matches[left.match]?.value.abandoned } == true)
+        #expect(cloud.locked { $0.matches.count } == 2)
+        let waiting = try FileManager.default.contentsOfDirectory(at: jake.stores.abandonedDirectory,
+                                                                  includingPropertiesForKeys: nil)
+        #expect(waiting.isEmpty, "sent once, then forgotten")
+
+        let alex = Device("alex", in: dir)
+        guard case .online = await alex.sync(cloud, as: "apple-alex", name: "Alex") else {
+            Issue.record("Alex's phone did not come online")
+            return
+        }
+        #expect(alex.stores.ratings.load().games["person:apple-jake"] == 1, "only the finished game is rated")
+        #expect(jake.stores.ratings.load().games["person:apple-jake"] == 1)
+    }
+
+    /// A rated game replaced mid-play is the abandoned one; a finished one is not.
+    @MainActor
+    @Test func startingANewGameMidGameAbandonsTheRatedOne() async throws {
+        let dir = root()
+        defer { try? FileManager.default.removeItem(at: dir) }
+        let suite = "LiveSyncTests.\(UUID().uuidString)"
+        let defaults = try #require(UserDefaults(suiteName: suite))
+        defer { defaults.removePersistentDomain(forName: suite) }
+        let model = Device("jake", in: dir).makeModel(defaults: defaults)
+        var setup = MatchSetup.default(preferredName: "Jake", preferredCivilization: .greece)
+        setup.randomizeSeatOrder = false
+        model.startNewGame(setup: setup)
+        let left = try #require(model.abandonedRatedMatch())
+        #expect(left.abandoned == true)
+        #expect(left.match == model.currentGameLogID)
+        #expect(left.seats.filter { $0.hasPrefix(RatedEntity.personPrefix) }.count == 1)
+        try model.qaPlayToEnd()
+        await model.lastFinishedMatchWork?.value
+        #expect(model.abandonedRatedMatch() == nil, "a finished game is not abandoned")
     }
 
     @Test func aClaimedNameCannotBeTakenByAnotherAppleID() async throws {

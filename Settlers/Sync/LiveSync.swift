@@ -169,6 +169,7 @@ actor LiveSync {
             if naming.joined {
                 changed = try await uploadGames(me: me, state: &state) || changed
                 try await uploadGhost(me: me, state: &state)
+                try await uploadAbandoned()
             }
             changed = try await downloadGames(state: &state) || changed
             changed = try await joinSlugGhosts(state: &state) || changed
@@ -294,6 +295,30 @@ actor LiveSync {
         return false
     }
 
+    /// A rated game its player left unfinished for a new one, kept until the
+    /// next pass sends it. Jake, 2026-10-25: "track how many times people
+    /// restart their games. They won't count towards their Elo; I just want to
+    /// see them". The Match record is ordinary, so no schema change; every
+    /// phone's `verified` rejects it as unfinished, so no ladder counts it.
+    /// `scripts/cloudkit-games.py players` counts them per player.
+    func recordAbandoned(_ match: SharedMatch) throws {
+        let directory = stores.abandonedDirectory
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        try JSONEncoder().encode(match).write(to: directory.appendingPathComponent("\(match.match.uuidString).json"),
+                                              options: .atomic)
+    }
+
+    /// Sends each recorded abandoned game once, then forgets it.
+    private func uploadAbandoned() async throws {
+        let directory = stores.abandonedDirectory
+        let files = ((try? FileManager.default.contentsOfDirectory(at: directory, includingPropertiesForKeys: nil)) ?? [])
+            .filter { $0.pathExtension == "json" }.sorted { $0.lastPathComponent < $1.lastPathComponent }
+        for file in files {
+            try await backend.upload(try JSONDecoder().decode(SharedMatch.self, from: Data(contentsOf: file)))
+            try FileManager.default.removeItem(at: file)
+        }
+    }
+
     private func uploadGhost(me: String, state: inout SyncState) async throws {
         // Including a removed one: the tombstone is how the removal spreads.
         guard let ghost = stores.ghosts.ghost(id: me, includingRemoved: true), ghost.id == me else { return }
@@ -407,6 +432,9 @@ extension SeatStatsRecord.Entry {
 }
 
 extension LiveSync.Stores {
+    /// Abandoned rated games waiting to go up, beside the sync state.
+    var abandonedDirectory: URL { stateFile.deletingLastPathComponent().appendingPathComponent("Abandoned") }
+
     static let standard = LiveSync.Stores(
         seatStats: .shared, ratings: .shared, ghosts: .shared, logs: .shared, players: .shared,
         stateFile: FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]

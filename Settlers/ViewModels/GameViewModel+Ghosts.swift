@@ -108,6 +108,25 @@ extension GameViewModel {
         }
     }
 
+    /// The rated game a new game is about to replace unfinished, in shared
+    /// form, or `nil`. Rated as `recordFinishedMatch` rates: Classic standard,
+    /// one human. Kept even with no moves made, since a restart on seeing the
+    /// board is a restart too. See `LiveSync.recordAbandoned`.
+    func abandonedRatedMatch() -> SharedMatch? {
+        guard let match = checkpointDocument?.activeMatch else { return nil }
+        if case .gameOver = match.state.phase { return nil }
+        let setup = match.setup
+        guard setup.mode == .classic, setup.variant == .standard, setup.humanSeats.count == 1 else { return nil }
+        let me = playerDirectory.me
+        return SharedMatch(version: SharedMatch.currentVersion, match: match.id, date: Date(),
+                           seats: setup.seats.map { Self.ratedEntity(for: $0, in: setup, me: me).key },
+                           initialState: match.initialState,
+                           moves: match.moves.map {
+                               SharedMatch.Move(player: $0.actor, move: $0.move, isHumanDecision: $0.isHumanDecision)
+                           },
+                           abandoned: true)
+    }
+
     /// Who sat in a chair, for the ladder: the person is this phone's player
     /// (`me`) whatever name they typed, a ghost by id, any other AI as its
     /// tier. Only one-human games are rated, so the human is always `me`.

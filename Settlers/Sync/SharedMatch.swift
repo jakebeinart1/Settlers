@@ -38,6 +38,11 @@ struct SharedMatch: Codable, Sendable {
     let seats: [String]
     let initialState: GameState
     let moves: [Move]
+    /// Set on a rated game its player left unfinished by starting another
+    /// (`LiveSync.recordAbandoned`). Shared so restarts can be counted; it
+    /// never counts toward Elo, because `verified` rejects an unfinished game
+    /// on every phone, old versions included.
+    var abandoned: Bool?
 
     enum Rejection: Error, Equatable {
         case unknownVersion(Int)

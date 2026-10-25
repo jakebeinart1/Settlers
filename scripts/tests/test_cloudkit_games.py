@@ -80,15 +80,20 @@ class RecordTests(unittest.TestCase):
 
 
 class CommandTests(unittest.TestCase):
-    def test_players_counts_games_per_uploader(self):
+    def test_players_counts_games_and_restarts_per_uploader(self):
         with tempfile.TemporaryDirectory() as directory:
-            for index, (user, name) in enumerate([("_kyle", "Kbeast"), ("_kyle", "Kbeast"), ("_jake", "Bein")]):
-                (Path(directory) / f"{index}.json").write_text(json.dumps({"owner": user, "ownerName": name, "game": {}}))
+            games = [("_kyle", "Kbeast", {}), ("_kyle", "Kbeast", {}), ("_jake", "Bein", {}),
+                     ("_kyle", "Kbeast", {"abandoned": True, "date": 0, "moves": []})]
+            for index, (user, name, game) in enumerate(games):
+                (Path(directory) / f"{index}.json").write_text(json.dumps({"owner": user, "ownerName": name, "game": game}))
             output = io.StringIO()
             with contextlib.redirect_stdout(output):
                 MODULE.main(["players", "--out", directory])
+                MODULE.main(["restarts", "--out", directory])
         lines = output.getvalue().splitlines()
-        self.assertTrue(lines[0].split()[:2] == ["2", "Kbeast"], lines)
+        self.assertEqual(lines[0].split()[:5], ["2", "games", "1", "restarts", "Kbeast"], lines)
+        self.assertEqual(lines[1].split()[:5], ["1", "games", "0", "restarts", "Bein"], lines)
+        self.assertIn("Kbeast", lines[2])
 
     def test_no_key_says_where_it_comes_from(self):
         with tempfile.TemporaryDirectory() as directory, mock.patch.object(MODULE, "CONFIG", Path(directory)), \

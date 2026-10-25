@@ -12,7 +12,8 @@ the container's owner (Alex) can create: `docs/cloudkit-server-key.md`.
 
 Usage:
   scripts/cloudkit-games.py fetch [--out DIR] [--environment production]
-  scripts/cloudkit-games.py players [--out DIR]     # who is in DIR, with game counts
+  scripts/cloudkit-games.py players [--out DIR]     # who is in DIR: finished games and restarts
+  scripts/cloudkit-games.py restarts [--out DIR]    # each restart: when, who, how far in
 
 Key: `$EMPIRES_CLOUDKIT_KEY_ID` and `$EMPIRES_CLOUDKIT_KEY` (a PEM path), or
 `~/.config/empires/cloudkit/key-id` and `~/.config/empires/cloudkit/key.pem`.
@@ -145,26 +146,44 @@ def fetch(args):
             payload = json.load(response)
         file.write_text(json.dumps(kept(record, payload, owner_names)))
         new += 1
-    print(f"{len(records)} ranked games on CloudKit, {new} new -> {out}")
+    print(f"{len(records)} ranked games and restarts on CloudKit, {new} new -> {out}")
     players(args)
 
 
 def players(args):
-    counts = Counter()
+    """Finished games and restarts per player. A restart is a rated game left
+    unfinished for a new one (`SharedMatch.abandoned`); it never counts toward Elo."""
+    finished, restarts = Counter(), Counter()
     for file in Path(args.out).glob("*.json"):
         game = json.loads(file.read_text())
-        counts[(game.get("ownerName") or "?", game["owner"])] += 1
-    for (name, user), count in counts.most_common():
-        print(f"{count:4d}  {name:16s} {user}")
+        who = (game.get("ownerName") or "?", game["owner"])
+        (restarts if game["game"].get("abandoned") else finished)[who] += 1
+    for who in sorted(set(finished) | set(restarts), key=lambda w: (-finished[w], w)):
+        print(f"{finished[who]:4d} games {restarts[who]:4d} restarts  {who[0]:16s} {who[1]}")
+
+
+def restarts(args):
+    """Each restart: when, by whom, and how far the game had gone."""
+    rows = []
+    for file in Path(args.out).glob("*.json"):
+        game = json.loads(file.read_text())
+        if not game["game"].get("abandoned"):
+            continue
+        moves = game["game"].get("moves", [])
+        rolls = sum(1 for m in moves if "rollDice" in m["move"])
+        when = datetime.datetime(2001, 1, 1) + datetime.timedelta(seconds=game["game"]["date"])
+        rows.append((when, game.get("ownerName") or "?", len(moves), rolls, file.stem))
+    for when, name, moves, rolls, match in sorted(rows):
+        print(f"{when:%Y-%m-%d %H:%M}  {name:16s} {moves:4d} moves {rolls:3d} rolls  {match}")
 
 
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    parser.add_argument("command", choices=["fetch", "players"])
+    parser.add_argument("command", choices=["fetch", "players", "restarts"])
     parser.add_argument("--out", default=str(DEFAULT_OUT))
     parser.add_argument("--environment", default="production", choices=["production", "development"])
     args = parser.parse_args(argv)
-    {"fetch": fetch, "players": players}[args.command](args)
+    {"fetch": fetch, "players": players, "restarts": restarts}[args.command](args)
 
 
 if __name__ == "__main__":

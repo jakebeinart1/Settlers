@@ -350,6 +350,7 @@ public final class GameViewModel {
         // `MatchSetup.matchProblem` documents that line; the screen still checks
         // `isStartable` before calling.
         precondition(setup.isValidMatch, "refusing to start an incoherent match: \(setup.matchProblem ?? "")")
+        let abandoned = abandonedRatedMatch()
         let match = Self.prepareMatch(from: setup)
         let profiles = match.opponentProfiles.merging(
             Self.ghostOpponentProfiles(chairs: match.chairs, civilizations: match.civilizations, store: ghostStore)
@@ -365,6 +366,10 @@ public final class GameViewModel {
             try replaceActiveMatch(state: match.state, setup: realized, session: candidate)
             resetPerGameState()
             try installCheckpointMatch()
+            if let abandoned, let sync = LiveSync.shared {
+                // Bookkeeping only: losing one restart must never stop a game starting.
+                Task.detached(priority: .background) { try? await sync.recordAbandoned(abandoned) }
+            }
             do {
                 try matchSetupStore.save(prefill)
                 newGameSetupLoadResult = .loaded(prefill)
