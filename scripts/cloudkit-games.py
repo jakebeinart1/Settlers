@@ -152,7 +152,7 @@ def fetch(args):
 
 def players(args):
     """Finished games and restarts per player. A restart is a rated game left
-    unfinished for a new one (`SharedMatch.abandoned`); it never counts toward Elo."""
+    unfinished for a new one (`SharedMatch.abandoned`); Elo rates it as a loss."""
     finished, restarts = Counter(), Counter()
     for file in Path(args.out).glob("*.json"):
         game = json.loads(file.read_text())

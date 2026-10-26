@@ -229,10 +229,10 @@ import Testing
         #expect(ladder.ratings == jake.stores.ratings.load().ratings, "both phones show the same Elo")
     }
 
-    /// Jake, 2026-10-25: count restarts, never rate them. An abandoned game
-    /// goes up flagged, and no phone's ladder counts it.
+    /// Jake, 2026-10-26: a restart counts as a loss. An abandoned game goes up
+    /// flagged, and every phone rates it as a forfeit to the leading AI seat.
     @MainActor
-    @Test func anAbandonedGameGoesUpButNeverCounts() async throws {
+    @Test func anAbandonedGameIsRatedAsALoss() async throws {
         let dir = root()
         defer { try? FileManager.default.removeItem(at: dir) }
         let cloud = FakeCloud()
@@ -258,8 +258,16 @@ import Testing
             Issue.record("Alex's phone did not come online")
             return
         }
-        #expect(alex.stores.ratings.load().games["person:apple-jake"] == 1, "only the finished game is rated")
-        #expect(jake.stores.ratings.load().games["person:apple-jake"] == 1)
+        let record = try left.verified(owner: "apple-jake")
+        let person = try #require(record.seats.firstIndex { $0.entity == "person:apple-jake" })
+        let winner = try #require(record.seats.firstIndex { $0.stats.won })
+        #expect(winner != person, "the person forfeits")
+        #expect(record.seats.allSatisfy { $0.stats.finalVP <= record.seats[winner].stats.finalVP })
+        #expect(alex.stores.ratings.load().games["person:apple-jake"] == 2, "the restart is rated too")
+        #expect(jake.stores.ratings.load().games["person:apple-jake"] == 2)
+        let history = alex.stores.ratings.load().history
+        let change = try #require(history.first { $0.match == left.match && $0.entity == "person:apple-jake" })
+        #expect(change.after < change.before, "a restart costs Elo")
     }
 
     /// A rated game replaced mid-play is the abandoned one; a finished one is not.

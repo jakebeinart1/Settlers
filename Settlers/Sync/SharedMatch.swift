@@ -39,9 +39,9 @@ struct SharedMatch: Codable, Sendable {
     let initialState: GameState
     let moves: [Move]
     /// Set on a rated game its player left unfinished by starting another
-    /// (`LiveSync.recordAbandoned`). Shared so restarts can be counted; it
-    /// never counts toward Elo, because `verified` rejects an unfinished game
-    /// on every phone, old versions included.
+    /// (`LiveSync.recordAbandoned`). Rated as a forfeit (`verified`), so a
+    /// restart costs the same Elo as a loss. Phones older than 2026-10-26
+    /// reject it as unfinished and leave it unrated until they update.
     var abandoned: Bool?
 
     enum Rejection: Error, Equatable {
@@ -69,18 +69,28 @@ struct SharedMatch: Codable, Sendable {
         guard seats.filter({ $0.hasPrefix(RatedEntity.personPrefix) }).count == 1, !owner.isEmpty else {
             throw Rejection.personIsNotUploader
         }
-        let stats: [SeatStats]
+        var stats: [SeatStats]
         do {
             stats = try SeatStats.compute(initial: initialState, moves: moves.map { LoggedMove(player: $0.player, move: $0.move) })
         } catch {
             throw Rejection.replayFailed
         }
+        if abandoned == true, !stats.contains(where: \.won) { forfeit(&stats) }
         guard stats.filter(\.won).count == 1 else { throw Rejection.notFinished }
         return SeatStatsRecord(match: match, date: date,
                                seats: zip(seats, stats).map { entity, stats in
                                    SeatStatsRecord.Entry(entity: entity.hasPrefix(RatedEntity.personPrefix)
                                                              ? RatedEntity.person(owner).key : entity, stats: stats)
                                })
+    }
+
+    /// Jake, 2026-10-26: "make it a restart counts towards a loss in elo". The
+    /// person loses; the AI seat with the most points takes the win, the
+    /// earliest seat on a tie, so every phone picks the same one.
+    private func forfeit(_ stats: inout [SeatStats]) {
+        let bots = seats.indices.filter { !seats[$0].hasPrefix(RatedEntity.personPrefix) }
+        guard let winner = bots.max(by: { (stats[$0].finalVP, -$0) < (stats[$1].finalVP, -$1) }) else { return }
+        stats[winner].won = true
     }
 }
 
