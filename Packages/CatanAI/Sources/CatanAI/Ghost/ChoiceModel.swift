@@ -24,11 +24,19 @@ public struct ChoiceModel: Codable, Sendable, Equatable {
     public var families: [String: [String: Double]]
     /// How many decisions it was fitted on.
     public var decisions: Int
+    /// Added to the fitted weight on Expert's score at both steps: how much
+    /// the ghost cares how good a move is. Fitted alone that weight came out
+    /// near zero (0.001 on Kbeast's 2,735 decisions), so whether to build a
+    /// city or end the turn was decided by habit, and choice ghosts won 2% of
+    /// games against three Experts while their people won 40-84%
+    /// (2026-10-25). `nil` in models fitted before it, which play as before.
+    public var anchor: Double?
 
-    public init(kinds: [String: Double], families: [String: [String: Double]], decisions: Int) {
+    public init(kinds: [String: Double], families: [String: [String: Double]], decisions: Int, anchor: Double? = nil) {
         self.kinds = kinds
         self.families = families
         self.decisions = decisions
+        self.anchor = anchor
     }
 
     /// Whether it was fitted with the person model's value as a feature, so
@@ -40,12 +48,13 @@ public struct ChoiceModel: Codable, Sendable, Equatable {
     public func choose(_ options: [ScoredCandidate], seat: PlayerID, state: GameState,
                        person: [GameMove: Double]? = nil) -> GameMove {
         let (kinds, rows) = ChoiceFeatures.kindRows(options, seat: seat, state: state, person: person)
-        let kind = kinds[Self.argmax(rows.map { Self.dot($0, self.kinds) })]
+        let lean = anchor ?? 0
+        let kind = kinds[Self.argmax(rows.map { Self.dot($0, self.kinds) + lean * ($0["expert"] ?? 0) })]
         let mine = options.filter { ChoiceFeatures.kind($0.move) == kind }
         guard mine.count > 1 else { return mine[0].move }
         guard let weights = families[ChoiceFeatures.family(kind)] else { return mine[Self.argmax(mine.map(\.score))].move }
         let mineRows = ChoiceRecord.optionRows(mine, among: options, seat: seat, state: state, person: person)
-        return mine[Self.argmax(mineRows.map { Self.dot($0, weights) })].move
+        return mine[Self.argmax(mineRows.map { Self.dot($0, weights) + lean * ($0["expert"] ?? 0) })].move
     }
 
     /// Summed in key order: a `Dictionary`'s order changes between launches,

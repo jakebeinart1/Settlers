@@ -11,10 +11,12 @@ import Foundation
 /// tallies, so behaviour and strength come from the same games.
 func seatPolicy(_ name: String) throws -> any Policy {
     if name.hasPrefix("choices:") {
-        // choices:<path>[@delta]: a fitted choice model, optionally held to
-        // moves within delta of Expert's best.
-        let spec = name.dropFirst("choices:".count).split(separator: "@").map(String.init)
-        let model = try JSONDecoder().decode(ChoiceModel.self, from: Data(contentsOf: URL(fileURLWithPath: spec[0])))
+        // choices:<path>[@delta][#anchor]: a fitted choice model, optionally
+        // held to moves within delta of Expert's best, or anchored to Expert.
+        let anchored = name.dropFirst("choices:".count).split(separator: "#").map(String.init)
+        let spec = anchored[0].split(separator: "@").map(String.init)
+        var model = try JSONDecoder().decode(ChoiceModel.self, from: Data(contentsOf: URL(fileURLWithPath: spec[0])))
+        if anchored.count > 1 { model.anchor = Double(anchored[1]) }
         let regret = spec.count > 1 ? Double(spec[1]) : nil
         return GhostPolicy(person: .anchored(at: anchor), lambda: 0, choices: model, regret: regret)
     }

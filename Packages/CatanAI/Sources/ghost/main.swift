@@ -314,6 +314,7 @@ case "fidelity":
     }
     let dump = option("--dump")
     let folds = option("--cv").flatMap { Int($0) }
+    let choiceAnchor = option("--anchor").flatMap(Double.init)
     let personFolds = option("--person-folds")
     let outcomes = option("--outcomes")
     let games = try arguments.map { try loadGame(URL(fileURLWithPath: $0)) }
@@ -328,8 +329,9 @@ case "fidelity":
             }
             break
         }
-        let moments = try crossValidated(games, folds: folds, persons: persons)
-        fidelityReport(moments, label: "choice model\(persons == nil ? "" : " + person"), \(folds)-fold by game", detail: detail)
+        let moments = try crossValidated(games, folds: folds, persons: persons, choiceAnchor: choiceAnchor)
+        fidelityReport(moments, label: "choice model\(persons == nil ? "" : " + person")"
+                       + (choiceAnchor.map { " anchor \($0)" } ?? "") + ", \(folds)-fold by game", detail: detail)
         try outcomes.map { try writeOutcomes(moments, to: $0) }
         break
     }
