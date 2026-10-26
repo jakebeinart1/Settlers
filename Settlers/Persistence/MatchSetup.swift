@@ -330,12 +330,13 @@ public struct MatchSetup: Codable, Equatable, Sendable {
     /// not used by resume or Restart. Three-seat/alternate-target, hot-seat,
     /// Ghost, Conquest and large-map matches were not approved for promotion.
     /// Card completion, then Jake's timing rules on top of it, were confirmed
-    /// on four-seat randomized boards; fixed-board games retain the previously
-    /// approved city-production revision.
+    /// on four-seat randomized boards; Jake's trade guard rides on timing there
+    /// (his rule, measured as no loss, not as a gain). Fixed-board games retain
+    /// the previously approved city-production revision.
     var newMatchExpertRevision: ExpertRevision {
         if difficulty == .expert, mode == .naval { return .navalV2 }
         guard isStandardExpertTable else { return .legacy }
-        return randomizedBoard ? .timingOneAheadV1 : .cityProductionV1
+        return randomizedBoard ? .timingTradeGuardV1 : .cityProductionV1
     }
 
     /// Editable choices select a brain at start, without changing a live match.
@@ -350,7 +351,7 @@ public struct MatchSetup: Codable, Equatable, Sendable {
         switch expertRevision {
         case .legacy: return true
         case .cityProductionV1: return isStandardExpertTable
-        case .pointCompletingCardsV1, .timingOneAheadV1: return isStandardExpertTable && randomizedBoard
+        case .pointCompletingCardsV1, .timingOneAheadV1, .timingTradeGuardV1: return isStandardExpertTable && randomizedBoard
         case .navalV1: return difficulty == .expert && mode == .naval && navalAIRevision == .legacyV1
         case .navalV2: return difficulty == .expert && mode == .naval && navalAIRevision == .scoutingV2
         }

@@ -11,6 +11,10 @@ public enum ExpertRevision: String, Codable, Sendable, CaseIterable {
     /// Card completion plus Jake's timing: one knight and one road ahead, a
     /// knight before the roll to free a blocked tile, lean hands. `TimingPolicy`.
     case timingOneAheadV1
+    /// Timing plus Jake's trade rule (2026-10-25): refuse a trade whose
+    /// proposer, level with or ahead of this seat, could then afford a
+    /// settlement or city, judged from public information only. `TradeGuardPolicy`.
+    case timingTradeGuardV1
     case navalV1
     case navalV2
 
@@ -20,6 +24,7 @@ public enum ExpertRevision: String, Codable, Sendable, CaseIterable {
         case .cityProductionV1: return "evaluation-city-production-v1"
         case .pointCompletingCardsV1: return "evaluation-point-completing-cards-v1"
         case .timingOneAheadV1: return "evaluation-timing-one-ahead-v1"
+        case .timingTradeGuardV1: return "evaluation-timing-trade-guard-v1"
         case .navalV1: return "naval-expert-v1"
         case .navalV2: return "naval-expert-v2"
         }
@@ -27,7 +32,11 @@ public enum ExpertRevision: String, Codable, Sendable, CaseIterable {
 
     /// The Expert this revision plays.
     public var policy: any LedgerAwarePolicy {
-        self == .timingOneAheadV1 ? TimingPolicy.oneAheadV1 : EvaluationPolicy(revision: self)
+        switch self {
+        case .timingOneAheadV1: TimingPolicy.oneAheadV1
+        case .timingTradeGuardV1: TradeGuardPolicy.v1
+        default: EvaluationPolicy(revision: self)
+        }
     }
 
     /// Frozen B-001 hypothesis, confirmed against Jake's Expert, not fitted

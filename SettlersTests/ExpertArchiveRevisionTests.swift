@@ -6,7 +6,7 @@ import CatanAI
 
 @MainActor @Suite(.serialized)
 struct ExpertArchiveRevisionTests {
-    @Test(arguments: [ExpertRevision.legacy, .cityProductionV1, .pointCompletingCardsV1, .timingOneAheadV1])
+    @Test(arguments: [ExpertRevision.legacy, .cityProductionV1, .pointCompletingCardsV1, .timingOneAheadV1, .timingTradeGuardV1])
     func archiveKeepsPolicyProvenanceAndRecordedReplay(revision: ExpertRevision) throws {
         try requireArchive(revision: revision, randomizedBoard: true)
     }
@@ -28,7 +28,7 @@ struct ExpertArchiveRevisionTests {
         }, victoryPointTarget: 10, randomizedBoard: randomizedBoard, randomizeSeatOrder: false,
             difficulty: .expert, expertRevision: revision)
         #expect(setup.isValidMatch)
-        #expect(setup.newMatchExpertRevision == (randomizedBoard ? .timingOneAheadV1 : .cityProductionV1))
+        #expect(setup.newMatchExpertRevision == (randomizedBoard ? .timingTradeGuardV1 : .cityProductionV1))
         var match = MatchCheckpoint(id: UUID(), initialState: state, setup: setup)
         let move = try #require(RulesEngine.legalMoves(for: state, seat: state.players[0].id).first)
         try match.apply(move, by: state.players[0].id)

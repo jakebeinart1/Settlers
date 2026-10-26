@@ -60,7 +60,7 @@ import CatanEngine
         #expect(abs(newScore - oldScore - 7.0 / 216.0) < 1e-12)
     }
 
-    @Test(arguments: [ExpertRevision.cityProductionV1, .pointCompletingCardsV1, .timingOneAheadV1])
+    @Test(arguments: [ExpertRevision.cityProductionV1, .pointCompletingCardsV1, .timingOneAheadV1, .timingTradeGuardV1])
     func currentExpertCheckpointContinuesTheSameMovesAndRejectsOtherRevisions(revision: ExpertRevision) throws {
         let state = GameSetup.newGame(board: BoardGenerator.randomized(seed: 741), seed: 741)
         let policies = Dictionary(uniqueKeysWithValues: state.players.map {

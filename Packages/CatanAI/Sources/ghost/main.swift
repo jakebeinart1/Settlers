@@ -18,6 +18,8 @@ import Foundation
 //   ghost fidelity [--cv 4 | --profile G.json | --choices C.json] [--detail] LOG...  (does the ghost make the person's moves?)
 //   ghost choices --out C.json LOG...                   (fit a person's choice model)
 //   ghost candidates --out cands.jsonl LOG...           (every option at each decision, for study)
+//   ghost duel --candidate C --anchor A --seed S --seeds N [--lone] [--shard i/n]   (C in every chair vs three A)
+//   ghost ladder GAME.json...                           (every seat of ranked CloudKit games: wins, how points were made)
 //
 // LOG is a phone's GameLogs/*.jsonl, or a ranked game from CloudKit (*.json,
 // `scripts/cloudkit-games.py fetch`), whose person seat is its uploader.
@@ -312,6 +314,10 @@ case "fidelity":
     }
     let dump = option("--dump")
     let folds = option("--cv").flatMap { Int($0) }
+    // --regret R: the person picks among moves within R of Expert's best;
+    // --regret none: anything (the 2026-10-24 choice ghost).
+    let regretOption = option("--regret")
+    let regret: Double? = regretOption == "none" ? nil : regretOption.flatMap(Double.init) ?? GhostPolicy.choiceRegret
     let personFolds = option("--person-folds")
     let outcomes = option("--outcomes")
     let games = try arguments.map { try loadGame(URL(fileURLWithPath: $0)) }
@@ -326,8 +332,10 @@ case "fidelity":
             }
             break
         }
-        let moments = try crossValidated(games, folds: folds, persons: persons)
-        fidelityReport(moments, label: "choice model\(persons == nil ? "" : " + person"), \(folds)-fold by game", detail: detail)
+        let moments = try crossValidated(games, folds: folds, persons: persons, regret: regret)
+        fidelityReport(moments, label: "choice model\(persons == nil ? "" : " + person")"
+                       + (regret.map { " regret \($0)" } ?? " unrestricted")
+                       + ", \(folds)-fold by game", detail: detail)
         try outcomes.map { try writeOutcomes(moments, to: $0) }
         break
     }
@@ -351,6 +359,46 @@ case "candidates":
     guard let out = option("--out") else { fail("candidates needs --out and log files") }
     try dumpCandidates(try arguments.map { try loadGame(URL(fileURLWithPath: $0)) }
         .filter { $0.humanSeats.count == 1 && $0.initialState.mode == .classic }, to: out)
+case "ladder":
+    // Every seat of every ranked CloudKit game, one JSON line each.
+    let encoder = JSONEncoder()
+    encoder.outputFormatting = .sortedKeys
+    for path in arguments {
+        for seat in try ladderSeats(URL(fileURLWithPath: path)) {
+            print(String(bytes: try encoder.encode(seat), encoding: .utf8) ?? "")
+        }
+    }
+case "revision":
+    // Which Expert played a ranked game's bot seats: replay each "expert"
+    // seat's decisions through every classic revision and count agreement.
+    for path in arguments {
+        let url = URL(fileURLWithPath: path)
+        let game = try loadCloudGame(url)
+        let seats = try JSONDecoder().decode(CloudSeats.self, from: Data(contentsOf: url)).game.seats
+        let experts = seats.indices.filter { seats[$0] == "expert" }.map { game.initialState.players[$0].id }
+        guard !experts.isEmpty else { continue }
+        let botGame = LoggedGame(id: game.id, initialState: game.initialState, humanSeats: Set(experts), events: game.events)
+        var line = game.id
+        for revision in [ExpertRevision.legacy, .cityProductionV1, .pointCompletingCardsV1, .timingOneAheadV1] {
+            let moments = try GhostFidelity.moments(in: botGame, policy: revision.policy)
+            line += String(format: "  %@ %.3f", revision.rawValue, Double(moments.filter(\.exact).count) / Double(max(moments.count, 1)))
+        }
+        print(line)
+    }
+case "leader":
+    print("game\tbelievedStrongest\ttrueLeader\tpublicLeader\tvictim\twinner\tleaderVP\tleaderPublicVP")
+    for path in arguments { try leaderDiagnosis(URL(fileURLWithPath: path)).forEach { print($0) } }
+case "duel":
+    guard let candidate = option("--candidate"), let anchorName = option("--anchor"),
+          let first = UInt64(option("--seed") ?? ""), let seeds = Int(option("--seeds") ?? "") else {
+        fail("duel needs --candidate --anchor --seed --seeds")
+    }
+    let shard = option("--shard").map { $0.split(separator: "/").compactMap { Int($0) } } ?? [0, 1]
+    try duel(candidate: candidate, anchor: anchorName, firstSeed: first, seeds: seeds,
+             lone: arguments.contains("--lone"), shard: (shard[0], shard[1]))
+case "refusals":
+    print("game\tpersonBuiltThatTurn\ttradeGuard")
+    for path in arguments { try refusalAudit(URL(fileURLWithPath: path)).forEach { print($0) } }
 case "bundle":
     guard let path = option("--person"), let lambda = Double(option("--lambda") ?? ""),
           let id = option("--id"), let name = option("--name"), let out = option("--out") else {

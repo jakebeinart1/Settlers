@@ -39,7 +39,7 @@ private func shortKind(_ move: GameMove) -> String {
 /// `personLambda` instead seats fold k's person model alone, at that lambda,
 /// as the app seated ghosts before choice models.
 func crossValidated(_ games: [LoggedGame], folds: Int, persons: [PersonModel]? = nil,
-                    personLambda: Double? = nil) throws -> [GhostFidelity.Moment] {
+                    personLambda: Double? = nil, regret: Double? = GhostPolicy.choiceRegret) throws -> [GhostFidelity.Moment] {
     let sorted = try games.filter { !(try ChoiceRecord.records(in: $0).isEmpty) }.sorted { $0.id < $1.id }
     var moments: [GhostFidelity.Moment] = []
     for fold in 0..<folds {
@@ -51,7 +51,8 @@ func crossValidated(_ games: [LoggedGame], folds: Int, persons: [PersonModel]? =
         }
         let training = try sorted.indices.filter { $0 % folds != fold }
             .flatMap { try ChoiceRecord.records(in: sorted[$0], person: person) }
-        let ghost = GhostPolicy(person: person ?? .anchored(at: anchor), lambda: 0, choices: ChoiceFitter.fit(training))
+        let ghost = GhostPolicy(person: person ?? .anchored(at: anchor), lambda: 0, choices: ChoiceFitter.fit(training),
+                                regret: regret)
         for index in sorted.indices where index % folds == fold {
             moments += try GhostFidelity.moments(in: sorted[index], policy: ghost)
         }

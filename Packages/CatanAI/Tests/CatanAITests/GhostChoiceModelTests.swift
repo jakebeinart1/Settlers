@@ -95,6 +95,26 @@ import CatanEngine
         #expect(builder.choose(options, seat: seat, state: state) == roads.max { $0.score < $1.score }?.move)
     }
 
+    /// Seated, a habit picks only among moves within `choiceRegret` of
+    /// Expert's best: an "end the turn" habit cannot throw away a clearly
+    /// better build. Unrestricted, it did, and choice ghosts won 2% of games.
+    @Test func aHabitCannotThrowAwayAClearlyBetterMove() {
+        let (state, seat) = midGame()
+        let observation = GameObservation(seat: seat, state: state, legalMoves: RulesEngine.legalMoves(for: state, seat: seat))
+        let ender = ChoiceModel(kinds: ["k_endTurn": 10], families: [:], decisions: 1)
+        let ghost = GhostPolicy(person: .anchored(at: .forMode(.classic)), lambda: 0, choices: ender)
+        var ledger = PublicLedger.fromPositionAlone(state, observer: seat)
+        ledger.reconcileObserverHand(from: state)
+        let options = ghost.expertOptions(observation, ledger: ledger)
+        let top = options.map(\.score).max() ?? 0
+        let ending = options.first { $0.move == .endTurn }?.score ?? top
+        #expect(ending < top - GhostPolicy.choiceRegret, "the fixture must offer a clearly better move than ending")
+        var rng = RandomSource(seed: 1)
+        #expect(ghost.decide(observation, rng: &rng) != .endTurn)
+        let unrestricted = GhostPolicy(person: .anchored(at: .forMode(.classic)), lambda: 0, choices: ender, regret: nil)
+        #expect(unrestricted.decide(observation, rng: &rng) == .endTurn)
+    }
+
     /// A seeded game replays move for move only if a fit is the same on every
     /// launch, whatever order its dictionaries iterate in.
     @Test func fittingIsDeterministic() {

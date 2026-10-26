@@ -10,7 +10,7 @@ import CatanEngine
     @Test func revisionSeatsTheFrozenTimingBrainAndOthersTheirEvaluationPolicy() {
         #expect(ExpertRevision.timingOneAheadV1.policy.id == "evaluation-timing-one-ahead-v1")
         #expect(TimingPolicy.oneAheadV1.rules == [.margin, .preroll, .lean])
-        for revision in ExpertRevision.allCases where revision != .timingOneAheadV1 {
+        for revision in ExpertRevision.allCases where revision != .timingOneAheadV1 && revision != .timingTradeGuardV1 {
             #expect(revision.policy is EvaluationPolicy)
             #expect(revision.policy.id == revision.policyID)
         }

@@ -21,16 +21,32 @@ public struct GhostPolicy: LedgerAwarePolicy {
     /// The person's own choices, once fitted (`ChoiceModel`). When present it
     /// decides, and `lambda` and the person model are not consulted.
     public let choices: ChoiceModel?
+    /// With `choices`: the person picks only among moves Expert scores within
+    /// this much of its best (`choiceRegret`). `nil` lets the person pick anything.
+    public let regret: Double?
+
+    /// How far below Expert's best a ghost may go to play its person's move.
+    ///
+    /// Unrestricted, a choice ghost copied habits and ignored how good a move
+    /// was (the fitted weight on Expert's score was ~0.001): 2,735 of Kbeast's
+    /// decisions made a ghost that won 2.2% against three Experts while Kbeast
+    /// won 84%, playing 0.2 knights a game to his 2.6. Within this limit it
+    /// plays at Expert strength and still matches its person far more often
+    /// than Expert does. Measured 2026-10-25, every chair vs three
+    /// `pointCompletingCardsV1` Experts, seeds 1200000-1200099, and 4-fold
+    /// held-out fidelity: docs/AI_summaries/2026-10-25-ladder-games.md.
+    public static let choiceRegret = 0.15
     private let expert = EvaluationPolicy()
     private let personal: EvaluationPolicy
 
     public init(person: PersonModel, lambda: Double, id: String = "ghost", handDiscipline: Bool = true,
-                choices: ChoiceModel? = nil) {
+                choices: ChoiceModel? = nil, regret: Double? = GhostPolicy.choiceRegret) {
         self.id = id
         self.handDiscipline = handDiscipline
         self.person = person
         self.lambda = lambda
         self.choices = choices
+        self.regret = regret
         self.personal = EvaluationPolicy(weights: EvaluationWeights(vector: person.weights))
     }
 
@@ -48,7 +64,9 @@ public struct GhostPolicy: LedgerAwarePolicy {
         guard !judged.isEmpty else { return legal[0] }
         if let choices {
             let person = choices.needsPerson ? personScores(observation, ledger: ledger) : nil
-            return disciplined(choices.choose(judged, seat: observation.seat, state: observation.state, person: person),
+            let top = judged.map(\.score).max() ?? 0
+            let allowed = regret.map { limit in judged.filter { $0.score >= top - limit } } ?? judged
+            return disciplined(choices.choose(allowed, seat: observation.seat, state: observation.state, person: person),
                                judged: judged, observation: observation)
         }
         // At lambda 0 the person cannot change the answer; skip scoring them.

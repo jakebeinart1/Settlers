@@ -20,13 +20,14 @@ struct ExpertRevisionTests {
         #expect(ExpertRevision.cityProductionV1.policyID == "evaluation-city-production-v1")
         #expect(ExpertRevision.pointCompletingCardsV1.policyID == "evaluation-point-completing-cards-v1")
         #expect(ExpertRevision.timingOneAheadV1.policyID == "evaluation-timing-one-ahead-v1")
+        #expect(ExpertRevision.timingTradeGuardV1.policyID == "evaluation-timing-trade-guard-v1")
     }
 
     @Test func unknownRevisionBlocksColdResumeWithoutRewritingBytes() throws {
         try withFixture { fixture in
             let model = makeModel(fixture)
             model.startNewGame(setup: expertSetup())
-            _ = try requireMatch(model, revision: .timingOneAheadV1)
+            _ = try requireMatch(model, revision: .timingTradeGuardV1)
             let url = model.checkpointStore.fileURL
             let bytes = try rewriteRevision(at: url, as: "future-expert-revision")
             #expect(throws: DecodingError.self) { try MatchCheckpointStore(fileURL: url).load() }
@@ -48,7 +49,7 @@ struct ExpertRevisionTests {
             let model = makeModel(fixture)
             var setup = expertSetup(humanChair: humanChair, randomizedBoard: randomizedBoard)
             setup.expertRevision = .pointCompletingCardsV1
-            let revision: ExpertRevision = randomizedBoard ? .timingOneAheadV1 : .cityProductionV1
+            let revision: ExpertRevision = randomizedBoard ? .timingTradeGuardV1 : .cityProductionV1
             model.startNewGame(setup: setup)
             try commitFirstMove(in: model)
             let started = try requireMatch(model, revision: revision)
@@ -63,7 +64,7 @@ struct ExpertRevisionTests {
             let model = makeModel(fixture)
             var setup = expertSetup(randomizedBoard: randomizedBoard)
             setup.expertRevision = revision
-            #expect(setup.newMatchExpertRevision == (randomizedBoard ? .timingOneAheadV1 : .cityProductionV1))
+            #expect(setup.newMatchExpertRevision == (randomizedBoard ? .timingTradeGuardV1 : .cityProductionV1))
             model.startNewGame(setup: setup, configuredAs: setup)
             try commitFirstMove(in: model)
             let old = try requireMatch(model, revision: revision)
@@ -106,7 +107,7 @@ struct ExpertRevisionTests {
         }
     }
 
-    @Test(arguments: [ExpertRevision.cityProductionV1, .pointCompletingCardsV1, .timingOneAheadV1],
+    @Test(arguments: [ExpertRevision.cityProductionV1, .pointCompletingCardsV1, .timingOneAheadV1, .timingTradeGuardV1],
         ["conquest", "expanded", "vast", "threeSeats", "eightPoints", "twelvePoints", "twoHumans", "ghost"])
     func unsupportedNewTablesSelectLegacyAndColdResume(requestedRevision: ExpertRevision, configuration: String) throws {
         try withFixture { fixture in
@@ -122,7 +123,7 @@ struct ExpertRevisionTests {
         }
     }
 
-    @Test(arguments: [ExpertRevision.cityProductionV1, .pointCompletingCardsV1, .timingOneAheadV1])
+    @Test(arguments: [ExpertRevision.cityProductionV1, .pointCompletingCardsV1, .timingOneAheadV1, .timingTradeGuardV1])
     func classicDifficultyKeepsItsHeuristicsEvenWhenExpertRevisionIsRequested(revision: ExpertRevision) throws {
         try withFixture { fixture in
             let model = makeModel(fixture)
@@ -140,13 +141,13 @@ struct ExpertRevisionTests {
         }
     }
 
-    @Test(arguments: [ExpertRevision.cityProductionV1, .pointCompletingCardsV1, .timingOneAheadV1],
+    @Test(arguments: [ExpertRevision.cityProductionV1, .pointCompletingCardsV1, .timingOneAheadV1, .timingTradeGuardV1],
         ["conquest", "expanded", "vast", "threeSeats", "eightPoints", "twelvePoints", "twoHumans", "ghost", "classicDifficulty"])
     func unsupportedSavedRevisionBlocksColdResumeWithoutRewritingBytes(revision: ExpertRevision, configuration: String) throws {
         try requireRejectedSavedRevision(revision, configuration: configuration)
     }
 
-    @Test(arguments: [ExpertRevision.pointCompletingCardsV1, .timingOneAheadV1])
+    @Test(arguments: [ExpertRevision.pointCompletingCardsV1, .timingOneAheadV1, .timingTradeGuardV1])
     func randomizedOnlyRevisionOnFixedBoardBlocksColdResumeWithoutRewritingBytes(revision: ExpertRevision) throws {
         try requireRejectedSavedRevision(revision, configuration: "fixedBoard")
     }
@@ -157,7 +158,7 @@ struct ExpertRevisionTests {
             model.startNewGame(setup: expertSetup())
             fixture.setupStore.clear()
             model.restartCurrentMatch(fallbackRandomizedBoard: false, fallbackRandomizeSeat: false)
-            _ = try requireMatch(model, revision: .timingOneAheadV1)
+            _ = try requireMatch(model, revision: .timingTradeGuardV1)
             let prefill = try #require(fixture.setupStore.load().value)
             var draft = NewGameSetupView.initialSetup(from: .loaded(prefill),
                 preferredName: "Alex", preferredCivilization: Civilization.allCases[0]).setup
@@ -171,7 +172,7 @@ struct ExpertRevisionTests {
             draft.mode = .vast
             draft.normalizeNewGameOptions()
             #expect(draft.isStartable)
-            #expect(model.checkpointDocument?.activeMatch?.setup.expertRevision == .timingOneAheadV1)
+            #expect(model.checkpointDocument?.activeMatch?.setup.expertRevision == .timingTradeGuardV1)
         }
     }
 
@@ -189,7 +190,7 @@ struct ExpertRevisionTests {
                 return trainer
             }
             model.startNewGame(setup: expertSetup())
-            let started = try requireMatch(model, revision: .timingOneAheadV1)
+            let started = try requireMatch(model, revision: .timingTradeGuardV1)
             try model.qaPlayToEnd()
             return (model, fixture, started)
         }
@@ -204,12 +205,12 @@ struct ExpertRevisionTests {
         #expect(model.persistenceErrorMessage == nil)
         let match = try #require(model.checkpointDocument?.activeMatch)
         #expect(match.id == started.id)
-        #expect(match.setup.expertRevision == .timingOneAheadV1)
+        #expect(match.setup.expertRevision == .timingTradeGuardV1)
         try match.validateHistory()
         let url = try model.gameLogStore.export(checkpoint: match)
         let detail = try model.gameLogStore.detail(for: url)
         #expect(detail.isComplete)
-        #expect(detail.roster.expertRevision == .timingOneAheadV1)
+        #expect(detail.roster.expertRevision == .timingTradeGuardV1)
         #expect(detail.summary.winner == winner)
         #expect(!detail.events.isEmpty)
         #expect(try fixture.logStore.summaries().count == 1)
