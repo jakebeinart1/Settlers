@@ -379,7 +379,7 @@ case "revision":
         guard !experts.isEmpty else { continue }
         let botGame = LoggedGame(id: game.id, initialState: game.initialState, humanSeats: Set(experts), events: game.events)
         var line = game.id
-        for revision in [ExpertRevision.legacy, .cityProductionV1, .pointCompletingCardsV1, .timingOneAheadV1] {
+        for revision in [ExpertRevision.legacy, .cityProductionV1, .pointCompletingCardsV1, .timingOneAheadV1, .timingTradeGuardV1, .openingOreGrainV1] {
             let moments = try GhostFidelity.moments(in: botGame, policy: revision.policy)
             line += String(format: "  %@ %.3f", revision.rawValue, Double(moments.filter(\.exact).count) / Double(max(moments.count, 1)))
         }
@@ -396,6 +396,37 @@ case "duel":
     let shard = option("--shard").map { $0.split(separator: "/").compactMap { Int($0) } } ?? [0, 1]
     try duel(candidate: candidate, anchor: anchorName, firstSeed: first, seeds: seeds,
              lone: arguments.contains("--lone"), shard: (shard[0], shard[1]))
+case "improve":
+    // Expert's own mistakes: rollouts from its choice and its next-best moves, in self-play.
+    guard let first = UInt64(option("--seed") ?? ""), let count = UInt64(option("--seeds") ?? "") else {
+        fail("improve needs --seed --seeds [--opponents a,b,c] [--sample 40] [--alternatives 2] [--rollouts 24]")
+    }
+    let opponents = (option("--opponents") ?? "trade-guard,trade-guard,trade-guard").split(separator: ",").map(String.init)
+    let sample = UInt64(option("--sample") ?? "40") ?? 40
+    let alternatives = Int(option("--alternatives") ?? "2") ?? 2
+    let rollouts = Int(option("--rollouts") ?? "24") ?? 24
+    let revision = ExpertRevision(rawValue: option("--expert") ?? "timingTradeGuardV1") ?? .timingTradeGuardV1
+    let encoder = JSONEncoder()
+    encoder.outputFormatting = .sortedKeys
+    for seed in first..<(first + count) {
+        for record in try improve(seed: seed, opponents: opponents, sampleOneIn: sample, alternatives: alternatives,
+                                  rollouts: rollouts, expert: revision, openings: arguments.contains("--openings")) {
+            print(String(bytes: try encoder.encode(record), encoding: .utf8) ?? "")
+        }
+    }
+case "shoes":
+    // Expert in the person's shoes: rollouts from the person's move and Expert's.
+    let rollouts = Int(option("--rollouts") ?? "16") ?? 16
+    let revision = ExpertRevision(rawValue: option("--expert") ?? "timingTradeGuardV1") ?? .timingTradeGuardV1
+    let encoder = JSONEncoder()
+    encoder.outputFormatting = .sortedKeys
+    for path in arguments {
+        let game = try loadGame(URL(fileURLWithPath: path))
+        guard game.humanSeats.count == 1, game.initialState.mode == .classic else { continue }
+        for record in try shoes(game, rollouts: rollouts, expert: revision) {
+            print(String(bytes: try encoder.encode(record), encoding: .utf8) ?? "")
+        }
+    }
 case "refusals":
     print("game\tpersonBuiltThatTurn\ttradeGuard")
     for path in arguments { try refusalAudit(URL(fileURLWithPath: path)).forEach { print($0) } }

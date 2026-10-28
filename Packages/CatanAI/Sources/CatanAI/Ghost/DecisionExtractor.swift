@@ -81,7 +81,7 @@ public enum DecisionExtractor {
     /// What `event.player` could have done. A reply to someone else's offer
     /// is not in `legalMoves`, which lists the *acting* seat's moves in that
     /// phase; the responder's choice is built the way `GameSession` builds it.
-    static func options(for event: LoggedMove, in state: GameState, humanTrading: Bool) -> [GameMove] {
+    public static func options(for event: LoggedMove, in state: GameState, humanTrading: Bool) -> [GameMove] {
         guard case .respondToTrade(let id, _) = event.move,
               let offer = state.pendingTradeOffers.first(where: { $0.id == id }) else {
             let legal = RulesEngine.legalMoves(for: state, seat: event.player)

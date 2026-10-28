@@ -15,6 +15,9 @@ public enum ExpertRevision: String, Codable, Sendable, CaseIterable {
     /// proposer, level with or ahead of this seat, could then afford a
     /// settlement or city, judged from public information only. `TradeGuardPolicy`.
     case timingTradeGuardV1
+    /// Trade guard plus opening settlements scored by rollout wins (2026-10-28):
+    /// ore and grain pips about twice the rest, new types on the second. `OpeningPolicy`.
+    case openingOreGrainV1
     case navalV1
     case navalV2
 
@@ -25,6 +28,7 @@ public enum ExpertRevision: String, Codable, Sendable, CaseIterable {
         case .pointCompletingCardsV1: return "evaluation-point-completing-cards-v1"
         case .timingOneAheadV1: return "evaluation-timing-one-ahead-v1"
         case .timingTradeGuardV1: return "evaluation-timing-trade-guard-v1"
+        case .openingOreGrainV1: return "evaluation-opening-ore-grain-v1"
         case .navalV1: return "naval-expert-v1"
         case .navalV2: return "naval-expert-v2"
         }
@@ -35,6 +39,7 @@ public enum ExpertRevision: String, Codable, Sendable, CaseIterable {
         switch self {
         case .timingOneAheadV1: TimingPolicy.oneAheadV1
         case .timingTradeGuardV1: TradeGuardPolicy.v1
+        case .openingOreGrainV1: OpeningPolicy.v1
         default: EvaluationPolicy(revision: self)
         }
     }

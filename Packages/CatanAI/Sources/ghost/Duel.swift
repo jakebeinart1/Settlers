@@ -18,13 +18,22 @@ func seatPolicy(_ name: String) throws -> any Policy {
         let regret = spec.count > 1 ? Double(spec[1]) : GhostPolicy.choiceRegret
         return GhostPolicy(person: .anchored(at: anchor), lambda: 0, choices: model, regret: regret)
     }
+    if name.hasPrefix("opening") {
+        // opening[:og,new]: OpeningPolicy.v1, or its opening weights swept (in pips).
+        let w = name.split(separator: ":").dropFirst().first?.split(separator: ",").compactMap { Double($0) } ?? []
+        guard !w.isEmpty else { return OpeningPolicy.v1 }
+        return OpeningPolicy(oreGrain: w[0], newType: w.count > 1 ? w[1] : OpeningPolicy.v1.newType, id: name)
+    }
     switch name {
     case "timing": return TimingPolicy.oneAheadV1
     case "trade-guard": return TradeGuardPolicy.v1
     case "pcc": return EvaluationPolicy(revision: .pointCompletingCardsV1)
     case "legacy": return EvaluationPolicy()
     case "classic": return HeuristicPolicy(personality: .balanced, id: "balanced")
-    default: fail("unknown seat \(name)")
+    default:
+        // Any other Expert revision by its raw name, e.g. cityProductionV1.
+        guard let revision = ExpertRevision(rawValue: name) else { fail("unknown seat \(name)") }
+        return revision.policy
     }
 }
 
