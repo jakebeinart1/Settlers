@@ -152,11 +152,14 @@ actor LiveSync {
                 state.pendingRename = preferredName
                 try state.save(to: stores.stateFile)
             }
-            if state.filedByPlayerID != true {
-                // Games downloaded under names are re-filed under their
-                // uploaders' ids by downloading them all once more.
+            if state.filedByPlayerID != true || state.ratedAbandonedMatches != true {
+                // Re-file legacy names and recover restarts skipped by older
+                // builds even when they predate the incremental overlap. Save
+                // the nil cursor with these flags so interrupted passes retry
+                // the full query until downloadGames commits its new cursor.
                 state.lastModified = nil
                 state.filedByPlayerID = true
+                state.ratedAbandonedMatches = true
                 try state.save(to: stores.stateFile)
             }
             let me = try await backend.currentUser()
@@ -296,10 +299,10 @@ actor LiveSync {
     }
 
     /// A rated game its player left unfinished for a new one, kept until the
-    /// next pass sends it. Jake, 2026-10-25: "track how many times people
-    /// restart their games. They won't count towards their Elo; I just want to
-    /// see them". The Match record is ordinary, so no schema change; every
-    /// phone's `verified` rejects it as unfinished, so no ladder counts it.
+    /// next pass sends it. Jake changed the rule on 2026-10-26: restarting
+    /// counts as a loss. The ordinary Match payload needs no schema change;
+    /// current phones verify and rate it as a forfeit, while older builds
+    /// reject it as unfinished until their one-time upgrade backfill.
     /// `scripts/cloudkit-games.py players` counts them per player.
     func recordAbandoned(_ match: SharedMatch) throws {
         let directory = stores.abandonedDirectory
@@ -460,6 +463,10 @@ struct SyncState: Codable, Equatable, Sendable {
     /// Set once downloads are filed by uploader id rather than typed name
     /// (2026-09-29). A phone without it downloads everything once more.
     var filedByPlayerID: Bool?
+    /// Older builds advanced their cursor past unfinished restarts without
+    /// rating them. Missing on upgrade, so reset the cursor once to recover
+    /// those now-valid forfeits without discarding any upload receipts.
+    var ratedAbandonedMatches: Bool?
     /// The newest server modification date seen.
     var lastModified: Date?
     /// False until the first rebuild, so a phone joining the ladder converts
