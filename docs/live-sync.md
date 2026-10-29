@@ -80,7 +80,10 @@ Code: `Settlers/Sync/`. Tests: `SettlersTests/LiveSyncTests.swift`.
   `abandoned: true` in its payload, so no schema change. `SharedMatch.verified`
   rates it as a forfeit: the person loses, and the AI seat with the most
   points (earliest seat on a tie) wins. Phones older than 2026-10-26 reject
-  it as unfinished, so their ladder lacks it until they update.
+  it as unfinished, so their ladder lacks it until they update. The first
+  sync after updating re-fetches all games once, including restarts older
+  than the normal one-hour query overlap. Interrupted backfills retry after
+  relaunch; subsequent successful passes resume incremental queries.
   `scripts/cloudkit-games.py players` counts restarts per player; `restarts`
   lists each with how far the game had gone. A restart waits on the phone
   (`LiveSync/Abandoned/`) until the player has a name, like any game.

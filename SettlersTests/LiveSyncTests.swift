@@ -19,9 +19,11 @@ import Testing
         private(set) var claims: [String: NameClaim] = [:]
         private(set) var accounts: [String: String] = [:]
         private(set) var matches: [UUID: Downloaded<SharedMatch>] = [:]
+        private(set) var matchQueries: [Date?] = []
         private(set) var ghosts: [String: Downloaded<GhostProfile>] = [:]
         var failNextSetName = false
         var failNextAccountLookup = false
+        var failNextMatches = false
 
         func locked<T>(_ body: (FakeCloud) throws -> T) rethrows -> T {
             lock.lock()
@@ -37,6 +39,7 @@ import Testing
         fileprivate func setClaim(_ slug: String, _ claim: NameClaim) { claims[slug] = claim }
         fileprivate func setAccount(_ id: String, _ name: String) { accounts[id] = name }
         fileprivate func setMatch(_ match: Downloaded<SharedMatch>) { matches[match.value.match] = match }
+        fileprivate func recordMatchQuery(_ date: Date?) { matchQueries.append(date) }
         fileprivate func setGhost(_ ghost: Downloaded<GhostProfile>) { ghosts[ghost.value.id] = ghost }
     }
 
@@ -89,7 +92,14 @@ import Testing
         }
 
         func matches(modifiedAfter date: Date?) async throws -> [Downloaded<SharedMatch>] {
-            cloud.locked { cloud in cloud.matches.values.filter { $0.modified > (date ?? .distantPast) } }
+            try cloud.locked { cloud in
+                cloud.recordMatchQuery(date)
+                if cloud.failNextMatches {
+                    cloud.failNextMatches = false
+                    throw CloudSyncError.unavailable
+                }
+                return cloud.matches.values.filter { $0.modified > (date ?? .distantPast) }
+            }
         }
 
         func upload(_ ghost: GhostProfile) async throws {
@@ -844,5 +854,62 @@ import Testing
 
         #expect(jake.stores.ghosts.all().map(\.id) == ["apple-chandy"])
         #expect(jake.stores.ghosts.ghost(id: "immanuel")?.gamesLearned == 3)
+    }
+}
+
+// MARK: - Upgrading previously skipped restart records
+
+extension LiveSyncTests {
+    /// The previous app rejected both restarts but still advanced past them.
+    /// Starting a rated table and immediately restarting it is a legal forfeit;
+    /// no simulated finished game is needed to exercise download migration.
+    private func seedLegacyRestartCursor(on device: Device, cloud: FakeCloud) throws -> Date {
+        let latest = Date(timeIntervalSince1970: 1_000_000)
+        let initial = GameSetup.newGame(board: BoardGenerator.standard(), seed: 7)
+        for offset in [-2 * LiveSync.queryOverlap, 0] {
+            let date = latest.addingTimeInterval(offset)
+            let match = SharedMatch(version: SharedMatch.currentVersion, match: UUID(), date: date,
+                                    seats: ["person:apple-jake", "expert", "classic", "expert"],
+                                    initialState: initial, moves: [], abandoned: true)
+            cloud.locked { $0.setMatch(Downloaded(value: match, owner: "apple-jake", modified: date)) }
+        }
+        var legacy = SyncState()
+        legacy.filedByPlayerID = true
+        legacy.lastModified = latest
+        legacy.ratingsRebuilt = true
+        try legacy.save(to: device.stores.stateFile)
+        return latest
+    }
+
+    /// An upgraded phone must converge with a fresh install even when the old
+    /// app skipped a restart older than its ordinary incremental-query overlap.
+    @Test(arguments: [false, true])
+    func anUpgradeRecoversOldRestartsOnceAndRetriesAfterOffline(failFirstQuery: Bool) async throws {
+        let dir = root()
+        defer { try? FileManager.default.removeItem(at: dir) }
+        let cloud = FakeCloud()
+        let upgraded = Device("upgraded", in: dir)
+        let latest = try seedLegacyRestartCursor(on: upgraded, cloud: cloud)
+        if failFirstQuery {
+            cloud.locked { $0.failNextMatches = true }
+            #expect(await upgraded.sync(cloud, as: "apple-observer", name: "Observer") == .offline)
+        }
+        // Each call constructs a new LiveSync, including after the failed pass.
+        guard case .online = await upgraded.sync(cloud, as: "apple-observer", name: "Observer") else {
+            Issue.record("The upgraded phone did not come online")
+            return
+        }
+        let firstPass = upgraded.stores.ratings.load()
+        #expect(firstPass.games["person:apple-jake"] == 2, "recover the restart before the old overlap window")
+        _ = await upgraded.sync(cloud, as: "apple-observer", name: "Observer")
+        #expect(upgraded.stores.ratings.load() == firstPass, "a second pass cannot count a restart twice")
+        let queries = cloud.locked { $0.matchQueries }
+        #expect(queries.count == (failFirstQuery ? 3 : 2))
+        #expect(queries.dropLast().allSatisfy { $0 == nil }, "migration and its offline retry both fetch all games")
+        let finalQuery = try #require(queries.last)
+        #expect(finalQuery == latest.addingTimeInterval(-LiveSync.queryOverlap), "then resume incremental queries")
+        let fresh = Device("fresh", in: dir)
+        _ = await fresh.sync(cloud, as: "apple-fresh", name: "Fresh")
+        #expect(fresh.stores.ratings.load() == firstPass, "updated and fresh phones show the exact same ladder")
     }
 }
