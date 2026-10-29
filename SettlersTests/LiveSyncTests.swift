@@ -211,27 +211,6 @@ import Testing
         GhostProfile(id: id, name: name, person: .anchored(at: .forMode(.classic)), lambda: 0.01, gamesLearned: games)
     }
 
-    /// The previous app rejected both restarts but still advanced past them.
-    /// Starting a rated table and immediately restarting it is a legal forfeit;
-    /// no simulated finished game is needed to exercise download migration.
-    private func seedLegacyRestartCursor(on device: Device, cloud: FakeCloud) throws -> Date {
-        let latest = Date(timeIntervalSince1970: 1_000_000)
-        let initial = GameSetup.newGame(board: BoardGenerator.standard(), seed: 7)
-        for offset in [-2 * LiveSync.queryOverlap, 0] {
-            let date = latest.addingTimeInterval(offset)
-            let match = SharedMatch(version: SharedMatch.currentVersion, match: UUID(), date: date,
-                                    seats: ["person:apple-jake", "expert", "classic", "expert"],
-                                    initialState: initial, moves: [], abandoned: true)
-            cloud.locked { $0.setMatch(Downloaded(value: match, owner: "apple-jake", modified: date)) }
-        }
-        var legacy = SyncState()
-        legacy.filedByPlayerID = true
-        legacy.lastModified = latest
-        legacy.ratingsRebuilt = true
-        try legacy.save(to: device.stores.stateFile)
-        return latest
-    }
-
     // MARK: - Tests
 
     @MainActor
@@ -299,38 +278,6 @@ import Testing
         let history = alex.stores.ratings.load().history
         let change = try #require(history.first { $0.match == left.match && $0.entity == "person:apple-jake" })
         #expect(change.after < change.before, "a restart costs Elo")
-    }
-
-    /// An upgraded phone must converge with a fresh install even when the old
-    /// app skipped a restart older than its ordinary incremental-query overlap.
-    @Test(arguments: [false, true])
-    func anUpgradeRecoversOldRestartsOnceAndRetriesAfterOffline(failFirstQuery: Bool) async throws {
-        let dir = root()
-        defer { try? FileManager.default.removeItem(at: dir) }
-        let cloud = FakeCloud()
-        let upgraded = Device("upgraded", in: dir)
-        let latest = try seedLegacyRestartCursor(on: upgraded, cloud: cloud)
-        if failFirstQuery {
-            cloud.locked { $0.failNextMatches = true }
-            #expect(await upgraded.sync(cloud, as: "apple-observer", name: "Observer") == .offline)
-        }
-        // Each call constructs a new LiveSync, including after the failed pass.
-        guard case .online = await upgraded.sync(cloud, as: "apple-observer", name: "Observer") else {
-            Issue.record("The upgraded phone did not come online")
-            return
-        }
-        let firstPass = upgraded.stores.ratings.load()
-        #expect(firstPass.games["person:apple-jake"] == 2, "recover the restart before the old overlap window")
-        _ = await upgraded.sync(cloud, as: "apple-observer", name: "Observer")
-        #expect(upgraded.stores.ratings.load() == firstPass, "a second pass cannot count a restart twice")
-        let queries = cloud.locked { $0.matchQueries }
-        #expect(queries.count == (failFirstQuery ? 3 : 2))
-        #expect(queries.dropLast().allSatisfy { $0 == nil }, "migration and its offline retry both fetch all games")
-        let finalQuery = try #require(queries.last)
-        #expect(finalQuery == latest.addingTimeInterval(-LiveSync.queryOverlap), "then resume incremental queries")
-        let fresh = Device("fresh", in: dir)
-        _ = await fresh.sync(cloud, as: "apple-fresh", name: "Fresh")
-        #expect(fresh.stores.ratings.load() == firstPass, "updated and fresh phones show the exact same ladder")
     }
 
     /// A rated game replaced mid-play is the abandoned one; a finished one is not.
@@ -907,5 +854,62 @@ import Testing
 
         #expect(jake.stores.ghosts.all().map(\.id) == ["apple-chandy"])
         #expect(jake.stores.ghosts.ghost(id: "immanuel")?.gamesLearned == 3)
+    }
+}
+
+// MARK: - Upgrading previously skipped restart records
+
+extension LiveSyncTests {
+    /// The previous app rejected both restarts but still advanced past them.
+    /// Starting a rated table and immediately restarting it is a legal forfeit;
+    /// no simulated finished game is needed to exercise download migration.
+    private func seedLegacyRestartCursor(on device: Device, cloud: FakeCloud) throws -> Date {
+        let latest = Date(timeIntervalSince1970: 1_000_000)
+        let initial = GameSetup.newGame(board: BoardGenerator.standard(), seed: 7)
+        for offset in [-2 * LiveSync.queryOverlap, 0] {
+            let date = latest.addingTimeInterval(offset)
+            let match = SharedMatch(version: SharedMatch.currentVersion, match: UUID(), date: date,
+                                    seats: ["person:apple-jake", "expert", "classic", "expert"],
+                                    initialState: initial, moves: [], abandoned: true)
+            cloud.locked { $0.setMatch(Downloaded(value: match, owner: "apple-jake", modified: date)) }
+        }
+        var legacy = SyncState()
+        legacy.filedByPlayerID = true
+        legacy.lastModified = latest
+        legacy.ratingsRebuilt = true
+        try legacy.save(to: device.stores.stateFile)
+        return latest
+    }
+
+    /// An upgraded phone must converge with a fresh install even when the old
+    /// app skipped a restart older than its ordinary incremental-query overlap.
+    @Test(arguments: [false, true])
+    func anUpgradeRecoversOldRestartsOnceAndRetriesAfterOffline(failFirstQuery: Bool) async throws {
+        let dir = root()
+        defer { try? FileManager.default.removeItem(at: dir) }
+        let cloud = FakeCloud()
+        let upgraded = Device("upgraded", in: dir)
+        let latest = try seedLegacyRestartCursor(on: upgraded, cloud: cloud)
+        if failFirstQuery {
+            cloud.locked { $0.failNextMatches = true }
+            #expect(await upgraded.sync(cloud, as: "apple-observer", name: "Observer") == .offline)
+        }
+        // Each call constructs a new LiveSync, including after the failed pass.
+        guard case .online = await upgraded.sync(cloud, as: "apple-observer", name: "Observer") else {
+            Issue.record("The upgraded phone did not come online")
+            return
+        }
+        let firstPass = upgraded.stores.ratings.load()
+        #expect(firstPass.games["person:apple-jake"] == 2, "recover the restart before the old overlap window")
+        _ = await upgraded.sync(cloud, as: "apple-observer", name: "Observer")
+        #expect(upgraded.stores.ratings.load() == firstPass, "a second pass cannot count a restart twice")
+        let queries = cloud.locked { $0.matchQueries }
+        #expect(queries.count == (failFirstQuery ? 3 : 2))
+        #expect(queries.dropLast().allSatisfy { $0 == nil }, "migration and its offline retry both fetch all games")
+        let finalQuery = try #require(queries.last)
+        #expect(finalQuery == latest.addingTimeInterval(-LiveSync.queryOverlap), "then resume incremental queries")
+        let fresh = Device("fresh", in: dir)
+        _ = await fresh.sync(cloud, as: "apple-fresh", name: "Fresh")
+        #expect(fresh.stores.ratings.load() == firstPass, "updated and fresh phones show the exact same ladder")
     }
 }
