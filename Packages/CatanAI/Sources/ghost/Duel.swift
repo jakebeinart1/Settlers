@@ -24,6 +24,21 @@ func seatPolicy(_ name: String) throws -> any Policy {
         guard !w.isEmpty else { return OpeningPolicy.v1 }
         return OpeningPolicy(oreGrain: w[0], newType: w.count > 1 ? w[1] : OpeningPolicy.v1.newType, id: name)
     }
+    if name.hasPrefix("weights:") {
+        // weights:production=0.5,roadLength=0.05: OpeningPolicy.v1 evaluating
+        // with Classic's shipping weights, the named ones replaced.
+        var json = try JSONSerialization.jsonObject(with: JSONEncoder().encode(EvaluationWeights.default)) as? [String: Any] ?? [:]
+        for pair in name.dropFirst("weights:".count).split(separator: ",") {
+            let parts = pair.split(separator: "=")
+            guard parts.count == 2, json[String(parts[0])] != nil, let value = Double(parts[1]) else { fail("bad weight \(pair)") }
+            json[String(parts[0])] = value
+        }
+        let weights = try JSONDecoder().decode(EvaluationWeights.self, from: JSONSerialization.data(withJSONObject: json))
+        let timing = TimingPolicy(rules: [.margin, .preroll, .lean], id: name, weights: weights)
+        let base = OpeningPolicy.v1
+        return OpeningPolicy(oreGrain: base.oreGrain, newType: base.newType, id: name,
+                             rest: TradeGuardPolicy(timing: timing, id: name))
+    }
     switch name {
     case "timing": return TimingPolicy.oneAheadV1
     case "trade-guard": return TradeGuardPolicy.v1

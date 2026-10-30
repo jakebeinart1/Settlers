@@ -399,20 +399,35 @@ case "duel":
 case "improve":
     // Expert's own mistakes: rollouts from its choice and its next-best moves, in self-play.
     guard let first = UInt64(option("--seed") ?? ""), let count = UInt64(option("--seeds") ?? "") else {
-        fail("improve needs --seed --seeds [--opponents a,b,c] [--sample 40] [--alternatives 2] [--rollouts 24]")
+        fail("improve needs --seed --seeds [--opponents a,b,c] [--sample 40] [--alternatives 2] [--rollouts 24] [--rolls 11-30] [--all-seats] [--openings]")
     }
     let opponents = (option("--opponents") ?? "trade-guard,trade-guard,trade-guard").split(separator: ",").map(String.init)
-    let sample = UInt64(option("--sample") ?? "40") ?? 40
+    var sampling = ImproveSampling(oneIn: UInt64(option("--sample") ?? "40") ?? 40,
+                                   openings: arguments.contains("--openings"),
+                                   allExpertSeats: arguments.contains("--all-seats"))
+    if let window = option("--rolls")?.split(separator: "-").compactMap({ Int($0) }), window.count == 2 {
+        sampling.rolls = window[0]...window[1]
+    }
     let alternatives = Int(option("--alternatives") ?? "2") ?? 2
     let rollouts = Int(option("--rollouts") ?? "24") ?? 24
     let revision = ExpertRevision(rawValue: option("--expert") ?? "timingTradeGuardV1") ?? .timingTradeGuardV1
     let encoder = JSONEncoder()
     encoder.outputFormatting = .sortedKeys
     for seed in first..<(first + count) {
-        for record in try improve(seed: seed, opponents: opponents, sampleOneIn: sample, alternatives: alternatives,
-                                  rollouts: rollouts, expert: revision, openings: arguments.contains("--openings")) {
+        for record in try improve(seed: seed, opponents: opponents, sampling: sampling, alternatives: alternatives,
+                                  rollouts: rollouts, expert: revision) {
             print(String(bytes: try encoder.encode(record), encoding: .utf8) ?? "")
         }
+    }
+case "terms":
+    // Expert's evaluation terms for every branch of `improve` records, for fitting weights to rollouts.
+    let revision = ExpertRevision(rawValue: option("--expert") ?? "openingOreGrainV1") ?? .openingOreGrainV1
+    let encoder = JSONEncoder()
+    encoder.outputFormatting = .sortedKeys
+    let lines = try arguments.filter { $0.hasSuffix(".jsonl") }
+        .flatMap { try String(contentsOfFile: $0, encoding: .utf8).split(separator: "\n").map(String.init) }
+    for record in try terms(lines: lines, expert: revision) {
+        print(String(bytes: try encoder.encode(record), encoding: .utf8) ?? "")
     }
 case "shoes":
     // Expert in the person's shoes: rollouts from the person's move and Expert's.

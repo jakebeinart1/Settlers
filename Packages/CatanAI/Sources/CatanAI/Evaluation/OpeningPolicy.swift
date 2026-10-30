@@ -29,11 +29,14 @@ public struct OpeningPolicy: LedgerAwarePolicy {
     /// Value per resource type the second settlement adds, in pips.
     public let newType: Double
     public let id: String
+    /// Every move but an opening settlement.
+    let rest: TradeGuardPolicy
 
-    public init(oreGrain: Double, newType: Double, id: String) {
+    public init(oreGrain: Double, newType: Double, id: String, rest: TradeGuardPolicy = .v1) {
         self.oreGrain = oreGrain
         self.newType = newType
         self.id = id
+        self.rest = rest
     }
 
     public func decide(_ observation: GameObservation, rng: inout RandomSource) -> GameMove {
@@ -45,7 +48,7 @@ public struct OpeningPolicy: LedgerAwarePolicy {
             if case .placeInitialSettlement(let vertex) = move { vertex } else { nil }
         }
         guard !spots.isEmpty, spots.count == observation.legalMoves.count else {
-            return TradeGuardPolicy.v1.decide(observation, ledger: ledger, rng: &rng)
+            return rest.decide(observation, ledger: ledger, rng: &rng)
         }
         let state = observation.state
         let owned = Set(state.players[observation.seat.index].settlements.flatMap { Self.pips(at: $0, state).keys })

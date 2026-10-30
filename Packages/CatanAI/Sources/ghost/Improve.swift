@@ -37,40 +37,82 @@ struct ImproveRecord: Encodable {
     let rollouts: Int
 }
 
-/// `openings`: every seat's opening settlements instead of a sample of one
-/// seat's decisions. Openings were the most frequent mistake (2026-10-28).
-func improve(seed: UInt64, opponents: [String], sampleOneIn: UInt64, alternatives: Int, rollouts: Int,
-             expert: ExpertRevision, openings: Bool = false) throws -> [ImproveRecord] {
-    let initial = GameSetup.newGame(board: BoardGenerator.randomized(seed: seed), seed: seed)
-    let studied = initial.players[Int(seed % UInt64(initial.players.count))].id
-    var policies: [PlayerID: any Policy] = [studied: expert.policy]
-    for (player, name) in zip(initial.players.filter { $0.id != studied }, opponents) {
-        policies[player.id] = try seatPolicy(name)
-    }
-    let table = opponents.joined(separator: ",")
-    var session = GameSession(state: initial, policies: policies, policySeed: seed &* 31 &+ 7)
-    let run = Study(scorer: GhostPolicy(person: .anchored(at: anchor), lambda: 0), seed: seed, table: table,
-                    alternatives: alternatives, rollouts: rollouts, policies: policies)
+/// Which decisions `ghost improve` studies.
+struct ImproveSampling {
+    /// One in this many eligible decisions.
+    var oneIn: UInt64 = 40
+    /// Every seat's opening settlements instead of a sample of one seat's
+    /// decisions. Openings were the most frequent mistake (2026-10-28).
+    var openings = false
+    /// Only decisions made while the table's dice-roll count is in range:
+    /// rolls 11-30 lost the most per decision once openings were fixed.
+    var rolls: ClosedRange<Int>?
+    /// Also study opponents seated as the same Expert revision. In self-play
+    /// every seat is Expert, so this quadruples the decisions per main line.
+    var allExpertSeats = false
+}
+
+func improve(seed: UInt64, opponents: [String], sampling: ImproveSampling, alternatives: Int, rollouts: Int,
+             expert: ExpertRevision) throws -> [ImproveRecord] {
+    let line = try ImproveLine(seed: seed, opponents: opponents, expert: expert, allExpertSeats: sampling.allExpertSeats)
+    let run = Study(scorer: GhostPolicy(person: .anchored(at: anchor), lambda: 0), seed: seed, table: line.table,
+                    alternatives: alternatives, rollouts: rollouts, policies: line.policies)
     var records: [ImproveRecord] = []
-    var rolls = 0
-    var index = 0
-    while index < 3000, let decision = session.decideNextDetailed() {
+    try line.play { session, decision, index, rolls in
         let observation = decision.observation
         var pick = RandomSource(seed: seed &* 1_000_003 &+ UInt64(index))
-        let sampled = openings
+        let inWindow = sampling.rolls.map { $0.contains(rolls) } ?? true
+        let sampled = sampling.openings
             ? { if case .placeInitialSettlement = decision.move { true } else { false } }()
-            : decision.seat == studied && !isTrade(decision.move) && pick.next() % sampleOneIn == 0
-        if sampled, observation.legalMoves.count > 1 {
-            let record: ImproveRecord? = autoreleasepoolIfAvailable {
-                try? run.study(session, decision: decision, index: index, rolls: rolls)
-            }
-            if let record { records.append(record) }
+            : line.studied.contains(decision.seat) && inWindow && !isTrade(decision.move)
+                && pick.next() % sampling.oneIn == 0
+        guard sampled, observation.legalMoves.count > 1 else { return }
+        let record: ImproveRecord? = autoreleasepoolIfAvailable {
+            try? run.study(session, decision: decision, index: index, rolls: rolls)
         }
-        if decision.move == .rollDice { rolls += 1 }
-        _ = try session.commit(seat: decision.seat, move: decision.move)
-        index += 1
+        if let record { records.append(record) }
     }
     return records
+}
+
+/// The main line `ghost improve` studies: one Expert seat (chair `seed % 4`)
+/// and its opponents, played move by move. Deterministic, so `ghost terms`
+/// replays it to the same positions the study sampled.
+struct ImproveLine {
+    let seed: UInt64
+    let table: String
+    let initial: GameState
+    let policies: [PlayerID: any Policy]
+    let studied: Set<PlayerID>
+
+    init(seed: UInt64, opponents: [String], expert: ExpertRevision, allExpertSeats: Bool) throws {
+        let initial = GameSetup.newGame(board: BoardGenerator.randomized(seed: seed), seed: seed)
+        let first = initial.players[Int(seed % UInt64(initial.players.count))].id
+        var policies: [PlayerID: any Policy] = [first: expert.policy]
+        var studied: Set<PlayerID> = [first]
+        for (player, name) in zip(initial.players.filter { $0.id != first }, opponents) {
+            policies[player.id] = try seatPolicy(name)
+            if allExpertSeats, name == expert.rawValue { studied.insert(player.id) }
+        }
+        self.seed = seed
+        self.table = opponents.joined(separator: ",")
+        self.initial = initial
+        self.policies = policies
+        self.studied = studied
+    }
+
+    /// Calls `body` before each move is committed, with the dice-roll count so far.
+    func play(_ body: (GameSession, GameSession.Decision, Int, Int) throws -> Void) throws {
+        var session = GameSession(state: initial, policies: policies, policySeed: seed &* 31 &+ 7)
+        var rolls = 0
+        var index = 0
+        while index < 3000, let decision = session.decideNextDetailed() {
+            try body(session, decision, index, rolls)
+            if decision.move == .rollDice { rolls += 1 }
+            _ = try session.commit(seat: decision.seat, move: decision.move)
+            index += 1
+        }
+    }
 }
 
 /// A refused offer changes nothing and Expert makes its real move next step,

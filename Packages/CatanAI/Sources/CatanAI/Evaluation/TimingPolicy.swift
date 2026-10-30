@@ -36,16 +36,21 @@ public struct TimingPolicy: LedgerAwarePolicy {
 
     public let rules: Set<Rule>
     public let id: String
-    private let base = EvaluationPolicy(revision: .pointCompletingCardsV1)
+    /// Weights to evaluate with instead of the mode's shipping set; nil in
+    /// every shipped revision. `ghost duel` sets it to test a refit.
+    public let weights: EvaluationWeights?
+    private let base: EvaluationPolicy
     private static let leanThreshold = 5
 
     /// The brain `ExpertRevision.timingOneAheadV1` names. Frozen: a change is a new revision.
     public static let oneAheadV1 = TimingPolicy(rules: [.margin, .preroll, .lean],
                                                 id: ExpertRevision.timingOneAheadV1.policyID)
 
-    public init(rules: Set<Rule>, id: String? = nil) {
+    public init(rules: Set<Rule>, id: String? = nil, weights: EvaluationWeights? = nil) {
         self.rules = rules
         self.id = id ?? "evaluation-timing-" + Rule.allCases.filter(rules.contains).map(\.rawValue).joined(separator: "+")
+        self.weights = weights
+        self.base = EvaluationPolicy(weights: weights, revision: .pointCompletingCardsV1)
     }
 
     public func decide(_ observation: GameObservation, rng: inout RandomSource) -> GameMove {
@@ -62,7 +67,7 @@ public struct TimingPolicy: LedgerAwarePolicy {
            Self.robberBlocks(seat, in: state) || knights.contains(where: { Self.wins($0, seat, state) }) {
             return base.best(among: knights, state: state, ledger: counted)
         }
-        let base = rules.contains(.margin) ? Self.marginBase(seat, state) : self.base
+        let base = rules.contains(.margin) ? Self.marginBase(seat, state, weights: weights) : self.base
         let pounces = rules.contains(.margin) ? knights.filter { Self.restoresLead($0, seat, state) } : []
         if case .mainTurn = state.phase, !pounces.isEmpty {
             return base.best(among: pounces, state: state, ledger: counted)
@@ -100,8 +105,8 @@ public struct TimingPolicy: LedgerAwarePolicy {
 
     /// The shipped weights with road length zeroed past a two-segment lead
     /// and doubled while the road is within one segment either way.
-    static func marginBase(_ seat: PlayerID, _ state: GameState) -> EvaluationPolicy {
-        var weights = EvaluationWeights.forMode(state.mode)
+    static func marginBase(_ seat: PlayerID, _ state: GameState, weights base: EvaluationWeights? = nil) -> EvaluationPolicy {
+        var weights = base ?? EvaluationWeights.forMode(state.mode)
         let me = state.players[seat.index]
         let mine = LongestRoad.length(for: me, in: state)
         let rival = state.players.filter { $0.id != seat }.map { LongestRoad.length(for: $0, in: state) }.max() ?? 0

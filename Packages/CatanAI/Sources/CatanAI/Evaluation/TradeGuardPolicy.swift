@@ -24,8 +24,13 @@ public struct TradeGuardPolicy: LedgerAwarePolicy {
     /// The brain `ExpertRevision.timingTradeGuardV1` names. Frozen: a change is a new revision.
     public static let v1 = TradeGuardPolicy()
 
-    public let id = ExpertRevision.timingTradeGuardV1.policyID
-    private let timing = TimingPolicy.oneAheadV1
+    public let id: String
+    private let timing: TimingPolicy
+
+    public init(timing: TimingPolicy = .oneAheadV1, id: String = ExpertRevision.timingTradeGuardV1.policyID) {
+        self.timing = timing
+        self.id = id
+    }
 
     /// Cards a believed hand may be short of a building, in total, and still
     /// count as affording it: the ledger knows a rival's hand only in part.
