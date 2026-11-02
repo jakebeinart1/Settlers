@@ -63,33 +63,29 @@ extension GameViewModel {
 
     /// A finished game: rate every seat, then teach the human's ghost.
     ///
-    /// Only Classic standard games with exactly one human are rated or taught,
-    /// the same scope ghosts play in, so the ladder compares like with like.
-    /// Rating is idempotent by match id, so calling this again for the same
-    /// match (a resume after a crash) is safe. Training runs in the background
-    /// and never blocks the end screen; a failure leaves the ghost as it was.
+    /// Ordinary AI games rate in their own mode/tier pool. The historic ghost
+    /// ladder and training remain Classic/Standard only. Full replay evidence
+    /// is queued before derived stats so offline archive pruning cannot lose
+    /// a completed match; a resumed completion is idempotent by match ID.
     func recordFinishedMatch(_ match: MatchCheckpoint) -> Task<Void, Never>? {
-        guard case .gameOver(let winner) = match.state.phase else { return nil }
+        guard case .gameOver = match.state.phase else { return nil }
         let setup = match.setup
         // A match with no moves is a QA forced win, not a game (final review).
-        guard setup.mode == .classic, setup.variant == .standard, setup.humanSeats.count == 1,
-              !match.moves.isEmpty, let human = setup.humanSeats.first else { return nil }
-        let me = playerDirectory.me
-        let entities = setup.seats.map { Self.ratedEntity(for: $0, in: setup, me: me) }
+        guard !match.moves.isEmpty, let shared = sharedRatedMatch(match, abandoned: false),
+              let human = setup.humanSeats.first else { return nil }
+        let me = playerDirectory.resolvedID(match.playerID ?? playerDirectory.me)
         let game = LoggedGame(id: match.id.uuidString, initialState: match.initialState,
                               humanSeats: [PlayerID(index: human.index)],
                               events: match.moves.map {
                                   LoggedMove(player: $0.actor, move: $0.move, isHumanDecision: $0.isHumanDecision)
                               })
         do {
-            try ratingStore.record(match: match.id, seats: entities, winner: winner.index)
-            let stats = try SeatStats.compute(initial: game.initialState, moves: game.events)
-            try seatStatsStore.record(SeatStatsRecord(
-                match: match.id, date: Date(),
-                seats: zip(entities, stats).map { SeatStatsRecord.Entry(entity: $0.key, stats: $1) }
-            ))
+            try persistRatingMatch(shared)
         } catch {
             gameLogWarning = "This game's rating or stats could not be saved: \(error.localizedDescription)"
+        }
+        guard setup.mode == .classic, setup.variant == .standard else {
+            return Task { await LiveSync.shared?.sync() }
         }
         #if DEBUG
         // -qaPlayToEnd plays the human's seat with a bot; it must not teach
@@ -109,22 +105,13 @@ extension GameViewModel {
     }
 
     /// The rated game a new game is about to replace unfinished, in shared
-    /// form, or `nil`. Rated as `recordFinishedMatch` rates: Classic standard,
-    /// one human. Kept even with no moves made, since a restart on seeing the
+    /// form, or `nil`. All ordinary AI pools plus the historic Classic ghost
+    /// ladder. Kept even with no moves made, since a restart on seeing the
     /// board is a restart too. See `LiveSync.recordAbandoned`.
     func abandonedRatedMatch() -> SharedMatch? {
         guard let match = checkpointDocument?.activeMatch else { return nil }
         if case .gameOver = match.state.phase { return nil }
-        let setup = match.setup
-        guard setup.mode == .classic, setup.variant == .standard, setup.humanSeats.count == 1 else { return nil }
-        let me = playerDirectory.me
-        return SharedMatch(version: SharedMatch.currentVersion, match: match.id, date: Date(),
-                           seats: setup.seats.map { Self.ratedEntity(for: $0, in: setup, me: me).key },
-                           initialState: match.initialState,
-                           moves: match.moves.map {
-                               SharedMatch.Move(player: $0.actor, move: $0.move, isHumanDecision: $0.isHumanDecision)
-                           },
-                           abandoned: true)
+        return sharedRatedMatch(match, abandoned: true)
     }
 
     /// Who sat in a chair, for the ladder: the person is this phone's player
@@ -140,21 +127,25 @@ extension GameViewModel {
     /// before 2026-09-29 move to this phone's player id, and ratings follow.
     func migrateLegacyPlayerNames() {
         do {
-            guard try playerDirectory.migrateLegacyNames(seatStats: seatStatsStore, ghosts: ghostStore,
-                                                         logs: gameLogStore) else { return }
-            try ratingStore.rebuild(from: seatStatsStore.all())
+            let refiled = try playerDirectory.migrateLegacyNames(seatStats: seatStatsStore, ghosts: ghostStore,
+                                                               logs: gameLogStore)
+            let recovered = try recoverCompletedRatingRecords()
+            if refiled || recovered { try ratingStore.rebuild(from: seatStatsStore.all()) }
         } catch {
-            gameLogWarning = "Your rated games could not be moved to your player: \(error.localizedDescription)"
+            gameLogWarning = "Your game ratings could not be restored: \(error.localizedDescription)"
         }
     }
 
     /// At launch, teaches any rated game whose training was cut off.
     func startGhostCatchUp() {
         let logs = gameLogStore
-        let rated = Set(ratingStore.load().ratedMatches)
+        let me = playerDirectory.me
+        let rated = Set(seatStatsStore.all().filter { record in
+            record.seats.contains { $0.personID == me }
+                && (record.ratingPool == nil || (record.ratingPool?.mode == .classic && record.ratingPool?.variant == .standard))
+        }.map(\.match))
         guard !rated.isEmpty else { return }
         let trainer = GhostTrainer(store: ghostStore)
-        let me = playerDirectory.me
         Task.detached(priority: .background) {
             let games = Self.catchUpGames(logs: logs, rated: rated, me: me)
             _ = await GhostTrainingQueue.shared.catchUp(trainer, games: games, ratedMatches: rated)

@@ -13,6 +13,12 @@ struct SeatStatsRecord: Codable, Equatable, Sendable {
     let match: UUID
     let date: Date
     let seats: [Entry]
+    /// The rules and AI tier actually played. Missing in legacy records,
+    /// which the personal ledger only classifies when ordinary AI seats
+    /// prove a single tier on the old Classic/Standard ladder.
+    var ratingPool: RatingPool?
+    /// A displaced unfinished match counts as one loss, including offline.
+    var abandoned: Bool?
 }
 
 public struct SeatStatsStore: Sendable {

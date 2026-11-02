@@ -37,6 +37,11 @@ enum QALaunchFlag: String, CaseIterable {
     /// "Jake" and Jake's bundled ghost (plus two Classic seats), so the ghost
     /// page shows a record and a spider graph on a fresh install.
     case seedLeaderboard = "-qaSeedLeaderboard"
+    /// Summary-only historical data for ratings layout, never synced.
+    case seedPlayerRatings = "-qaSeedPlayerRatings"
+    /// Explicit result previews; separate from a real played-to-completion match.
+    case showRatingWin = "-qaShowRatingWin"
+    case showRatingLoss = "-qaShowRatingLoss"
     /// Shows the launch name prompt (`LadderNamePrompt`), which a build
     /// without the online ladder never asks.
     case askLadderName = "-qaAskLadderName"

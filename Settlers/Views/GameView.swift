@@ -279,7 +279,8 @@ public struct GameView: View {
                         viewModel.clearBoardDecisionForBoundary()
                         onExitToMenu()
                     },
-                    rulebookState: viewModel.state
+                    rulebookState: viewModel.state,
+                    ratingLossOnRestart: viewModel.abandoningChangesRating
                 )
             }
 

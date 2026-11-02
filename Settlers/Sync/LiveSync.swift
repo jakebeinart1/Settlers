@@ -152,7 +152,7 @@ actor LiveSync {
                 state.pendingRename = preferredName
                 try state.save(to: stores.stateFile)
             }
-            if state.filedByPlayerID != true || state.ratedAbandonedMatches != true {
+            if state.filedByPlayerID != true || state.ratedAbandonedMatches != true || state.modeRatingRecords != true {
                 // Re-file legacy names and recover restarts skipped by older
                 // builds even when they predate the incremental overlap. Save
                 // the nil cursor with these flags so interrupted passes retry
@@ -160,19 +160,21 @@ actor LiveSync {
                 state.lastModified = nil
                 state.filedByPlayerID = true
                 state.ratedAbandonedMatches = true
+                state.modeRatingRecords = true
                 try state.save(to: stores.stateFile)
             }
             let me = try await backend.currentUser()
             if stores.players.me != me {
                 try markRatingsDirty(state: &state)
+                try materializeLocalQueueBeforeAdoption()
                 try stores.players.adopt(me, seatStats: stores.seatStats, ghosts: stores.ghosts)
             }
             let naming = try await nameSelf(me, preferredName: preferredName, state: &state)
             var changed = try await downloadGhosts()
             if naming.joined {
+                changed = try await uploadPendingMatches(me: me, state: &state) || changed
                 changed = try await uploadGames(me: me, state: &state) || changed
                 try await uploadGhost(me: me, state: &state)
-                try await uploadAbandoned()
             }
             changed = try await downloadGames(state: &state) || changed
             changed = try await joinSlugGhosts(state: &state) || changed
@@ -305,21 +307,55 @@ actor LiveSync {
     /// reject it as unfinished until their one-time upgrade backfill.
     /// `scripts/cloudkit-games.py players` counts them per player.
     func recordAbandoned(_ match: SharedMatch) throws {
-        let directory = stores.abandonedDirectory
-        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
-        try JSONEncoder().encode(match).write(to: directory.appendingPathComponent("\(match.match.uuidString).json"),
-                                              options: .atomic)
+        let queued = try stores.seatStats.queueForUpload(match)
+        let record = try queued.verified(owner: stores.players.me)
+        try stores.seatStats.record(record)
+        try stores.ratings.rebuild(from: stores.seatStats.all())
     }
 
-    /// Sends each recorded abandoned game once, then forgets it.
-    private func uploadAbandoned() async throws {
-        let directory = stores.abandonedDirectory
-        let files = ((try? FileManager.default.contentsOfDirectory(at: directory, includingPropertiesForKeys: nil)) ?? [])
-            .filter { $0.pathExtension == "json" }.sorted { $0.lastPathComponent < $1.lastPathComponent }
-        for file in files {
-            try await backend.upload(try JSONDecoder().decode(SharedMatch.self, from: Data(contentsOf: file)))
+    /// Finished and restarted games survive offline archive pruning. Retain
+    /// a previous account's queue when accounts change; its games must never
+    /// be posted as the new account's. Local IDs belong to the first account
+    /// adopted by a phone which played before signing into iCloud.
+    private func uploadPendingMatches(me: String, state: inout SyncState) async throws -> Bool {
+        var changed = false
+        for file in try stores.pendingGameFiles() {
+            let match = try stores.seatStats.queuedMatch(at: file)
+            guard !match.containsArchivedGhost else { continue }
+            let persons = match.personIDs
+            let held = stores.seatStats.record(for: match.match)?.seats.compactMap(\.personID)
+            guard persons.count == 1, stores.players.resolvedID(persons[0]) == me
+                    || (persons[0].hasPrefix(PlayerDirectory.localPrefix) && held == [me]) else { continue }
+            changed = try await uploadPendingMatch(match, me: me, state: &state) || changed
             try FileManager.default.removeItem(at: file)
         }
+        return changed
+    }
+
+    /// A crash can leave replay evidence in the outbox before stats exist.
+    /// Materialize only this phone's exact unclaimed ID before adoption,
+    /// letting PlayerDirectory bind it to the first iCloud account durably
+    /// with the other local stats. Later account changes never reassign it.
+    private func materializeLocalQueueBeforeAdoption() throws {
+        let local = stores.players.me
+        guard local.hasPrefix(PlayerDirectory.localPrefix) else { return }
+        for file in try stores.pendingGameFiles() {
+            let match = try stores.seatStats.queuedMatch(at: file)
+            guard match.personIDs == [local] else { continue }
+            try stores.seatStats.record(match.verified(owner: local))
+        }
+    }
+
+    private func uploadPendingMatch(_ match: SharedMatch, me: String, state: inout SyncState) async throws -> Bool {
+        guard !state.uploaded.contains(match.match) else { return false }
+        let record = try match.verified(owner: me)
+        let incoming = Self.mergingRatingMetadata(record, with: stores.seatStats.record(for: record.match))
+        try markRatingsDirty(state: &state)
+        try stores.seatStats.replace(incoming)
+        try await backend.upload(match.refilingSeats(incoming.seats.map(\.entity)))
+        state.uploaded.append(match.match)
+        try state.save(to: stores.stateFile)
+        return true
     }
 
     private func uploadGhost(me: String, state: inout SyncState) async throws {
@@ -344,9 +380,10 @@ actor LiveSync {
         for game in downloaded {
             guard let record = try? game.value.verified(owner: game.owner) else { continue }
             let held = stores.seatStats.record(for: record.match)
-            guard held?.seats.compactMap(\.personID) != record.seats.compactMap(\.personID) else { continue }
+            let incoming = Self.mergingRatingMetadata(record, with: held)
+            guard held != incoming else { continue }
             try markRatingsDirty(state: &state)
-            try stores.seatStats.replace(record)
+            try stores.seatStats.replace(incoming)
             changed = true
         }
         if let latest = downloaded.map(\.modified).max() {
@@ -354,6 +391,17 @@ actor LiveSync {
             try state.save(to: stores.stateFile)
         }
         return changed
+    }
+
+    /// Match IDs identify immutable replay evidence. Keep local ghost aliases
+    /// when its person is already filed correctly, while accepting newly
+    /// available mode/restart metadata instead of skipping that match forever.
+    private static func mergingRatingMetadata(_ incoming: SeatStatsRecord,
+                                              with held: SeatStatsRecord?) -> SeatStatsRecord {
+        guard let held, held.seats.compactMap(\.personID) == incoming.seats.compactMap(\.personID) else { return incoming }
+        return SeatStatsRecord(match: held.match, date: held.date, seats: held.seats,
+                               ratingPool: incoming.ratingPool ?? held.ratingPool,
+                               abandoned: incoming.abandoned ?? held.abandoned)
     }
 
     /// Ghosts and ghost seats still filed under a name slug - `jake`, the
@@ -383,7 +431,7 @@ actor LiveSync {
             let refiled = SeatStatsRecord(match: record.match, date: record.date, seats: record.seats.map { entry in
                 entry.ghostID.map { SeatStatsRecord.Entry(entity: RatedEntity.ghost(ghosts.resolve($0)).key, stats: entry.stats) }
                     ?? entry
-            })
+            }, ratingPool: record.ratingPool, abandoned: record.abandoned)
             guard refiled != record else { continue }
             try markRatingsDirty(state: &state)
             try stores.seatStats.replace(refiled)
@@ -438,6 +486,17 @@ extension LiveSync.Stores {
     /// Abandoned rated games waiting to go up, beside the sync state.
     var abandonedDirectory: URL { stateFile.deletingLastPathComponent().appendingPathComponent("Abandoned") }
 
+    /// Include the previous queue location until old offline restarts have
+    /// uploaded. This is a read/drain migration, never a second copy.
+    func pendingGameFiles() throws -> [URL] {
+        var files = try seatStats.pendingUploadFiles()
+        if FileManager.default.fileExists(atPath: abandonedDirectory.path) {
+            files += try FileManager.default.contentsOfDirectory(at: abandonedDirectory, includingPropertiesForKeys: nil)
+                .filter { $0.pathExtension == "json" }
+        }
+        return files.sorted { $0.path < $1.path }
+    }
+
     static let standard = LiveSync.Stores(
         seatStats: .shared, ratings: .shared, ghosts: .shared, logs: .shared, players: .shared,
         stateFile: FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
@@ -467,6 +526,10 @@ struct SyncState: Codable, Equatable, Sendable {
     /// rating them. Missing on upgrade, so reset the cursor once to recover
     /// those now-valid forfeits without discarding any upload receipts.
     var ratedAbandonedMatches: Bool?
+    /// Older versions rejected non-Classic games before advancing their
+    /// cursor. Re-query once when mode-aware verification becomes available;
+    /// persisting the nil cursor first makes interrupted upgrades retryable.
+    var modeRatingRecords: Bool?
     /// The newest server modification date seen.
     var lastModified: Date?
     /// False until the first rebuild, so a phone joining the ladder converts

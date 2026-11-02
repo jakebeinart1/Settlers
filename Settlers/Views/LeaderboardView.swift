@@ -12,6 +12,8 @@ struct LeaderboardView: View {
 
     @State private var rows: [LeaderboardRow] = []
     @State private var selected: EntityDetail?
+    @State private var selectedPersonID: String?
+    @State private var ratingPage: RatingPageSelection?
     /// `nil` when this build has no sync: the ladder is this phone's alone,
     /// and the screen says nothing about it.
     @State private var syncStatus: LiveSync.Status?
@@ -37,8 +39,14 @@ struct LeaderboardView: View {
                     nameControls(syncStatus)
                 }
                 if let selected {
-                    RatedEntityDetailView(detail: selected, onBack: { self.selected = nil })
+                    RatedEntityDetailView(detail: selected, onBack: {
+                        self.selected = nil
+                        selectedPersonID = nil
+                    }, onAIRatings: personalRatingAction)
                 } else {
+                    Text("Classic Standard · includes ghost games")
+                        .font(.system(.caption, design: .serif))
+                        .foregroundStyle(.white.opacity(0.7))
                     list
                 }
             }
@@ -61,6 +69,10 @@ struct LeaderboardView: View {
                 reload()
                 try? await Task.sleep(for: Self.recheckInterval)
             }
+        }
+        .fullScreenCover(item: $ratingPage) { page in
+            PlayerRatingsView(playerID: page.playerID, initialPool: page.pool,
+                              isOwnProfile: page.playerID == players.me, onDismiss: { ratingPage = nil })
         }
     }
 
@@ -163,25 +175,36 @@ struct LeaderboardView: View {
 
     private func subtitle(_ row: LeaderboardRow) -> String {
         if row.isFixed { return "AI · fixed reference" }
+        if row.kind == .player { return "Player · Classic & ghost ladder" }
         let games = row.games == 0 ? "unrated" : "\(row.games) rated game\(row.games == 1 ? "" : "s")"
         return "\(row.kind.rawValue) · \(games)"
     }
 
     private func open(_ row: LeaderboardRow) {
         let ratings = ratingStore.load()
-        let stats = statsStore.all()
+        // A mode record is not a game in the original combined ladder. Its
+        // existing receipt list is the authority for the radar's population too.
+        let ratedMatches = Set(ratings.ratedMatches)
+        let stats = statsStore.all().filter { ratedMatches.contains($0.match) }
+        selectedPersonID = nil
         switch row.kind {
         case .ghost:
             let id = String(row.key.dropFirst("ghost:".count))
             guard let ghost = ghostStore.ghost(id: id) else { return }
             selected = EntityDetail.ghost(ghost, ratings: ratings, stats: stats, resolve: ghostStore.resolve)
         case .player:
-            selected = EntityDetail.person(String(row.key.dropFirst("person:".count)), name: row.name,
-                                           ratings: ratings, stats: stats)
+            let id = String(row.key.dropFirst("person:".count))
+            selectedPersonID = id
+            selected = EntityDetail.person(id, name: row.name, ratings: ratings, stats: stats)
         case .ai:
             guard let tier = RatedEntity(key: row.key) else { return }
             selected = EntityDetail.ai(tier, name: row.name, elo: row.elo, stats: stats)
         }
+    }
+
+    private var personalRatingAction: (() -> Void)? {
+        guard let selectedPersonID else { return nil }
+        return { ratingPage = RatingPageSelection(playerID: selectedPersonID, pool: RatingPoolPreference.load()) }
     }
 }
 

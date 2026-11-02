@@ -80,8 +80,10 @@ struct NewGameSetupView: View {
     /// paid a full decode of a 17-40KB state per body evaluation to answer the
     /// same question.
     private let hasSavedGame: Bool
+    private let ratingLossOnReplacement: Bool
 
-    init(hasSavedGame: Bool = false, setupLoadResult: MatchSetupStore.LoadResult = .none,
+    init(hasSavedGame: Bool = false, ratingLossOnReplacement: Bool = false,
+         setupLoadResult: MatchSetupStore.LoadResult = .none,
          onStart: @escaping (MatchSetup) -> Void, onCancel: @escaping () -> Void) {
         self.onStart = onStart
         self.onCancel = onCancel
@@ -90,6 +92,7 @@ struct NewGameSetupView: View {
         preferredName = name
         preferredCivilization = civilization
         self.hasSavedGame = hasSavedGame
+        self.ratingLossOnReplacement = ratingLossOnReplacement
         let initial = Self.initialSetup(
             from: setupLoadResult,
             preferredName: name,
@@ -975,19 +978,6 @@ struct NewGameSetupView: View {
         }
     }
 
-    /// A6.2. Cancelling touches nothing: the save is only ever destroyed by
-    /// `startNewGame` overwriting it, and that is downstream of `onStart`.
-    private var overwriteConfirmation: some View {
-        ConfirmationPopupCard(
-            title: "Replace your saved game?",
-            message: "Starting a new game replaces the saved table. Its recording will be preserved.",
-            confirmTitle: "Start New Game",
-            confirmIdentifier: AccessibilityID.NewGame.confirmOverwrite,
-            onConfirm: { onStart(setup) },
-            onCancel: { isConfirmingOverwrite = false }
-        )
-    }
-
     // MARK: - QA fixtures
 
     /// Identity of the whole scrollable column, used only as a scroll target.
@@ -1054,6 +1044,22 @@ struct NewGameSetupView: View {
 
 #Preview {
     NewGameSetupView(onStart: { _ in }, onCancel: {})
+}
+
+private extension NewGameSetupView {
+    /// Cancelling leaves the save intact; the parent replaces it only after
+    /// this confirmation discloses the rating consequence of abandonment.
+    var overwriteConfirmation: some View {
+        ConfirmationPopupCard(
+            title: "Replace your saved game?",
+            message: "Starting a new game replaces the saved table. Its recording will be preserved."
+                + (ratingLossOnReplacement ? " The unfinished game will count as a loss in its rating record." : ""),
+            confirmTitle: "Start New Game",
+            confirmIdentifier: AccessibilityID.NewGame.confirmOverwrite,
+            onConfirm: { onStart(setup) },
+            onCancel: { isConfirmingOverwrite = false }
+        )
+    }
 }
 
 /// The goal shares the existing heading row so it stays visible without

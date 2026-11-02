@@ -4,8 +4,9 @@ import CatanEngine
 extension GameViewModel {
     /// New Game is one durable table switch. Recovery copies are completed
     /// before replacement, and ordinary legacy files remain untouched.
-    func replaceActiveMatch(state: GameState, setup: MatchSetup, session: GameSession) throws {
-        var match = MatchCheckpoint(id: UUID(), initialState: state, setup: setup)
+    func replaceActiveMatch(state: GameState, setup: MatchSetup, session: GameSession,
+                            recordsDisplacedLoss: Bool = false) throws {
+        var match = MatchCheckpoint(id: UUID(), initialState: state, setup: setup, playerID: playerDirectory.me)
         try match.attachSession(session.checkpoint)
         if savedGameAvailability.recoveryMessage != nil {
             let backup = try preserveRecoveryArtifacts(reason: savedGameAvailability.recoveryMessage!)
@@ -32,7 +33,7 @@ extension GameViewModel {
         let duration = max(document.activeMatch?.elapsedSeconds ?? 0, currentGameDuration)
         try commitDocument(document.recordingElapsedTime(duration))
         guard let timedDocument = checkpointDocument else { preconditionFailure("duration commit lost its document") }
-        try commitDocument(timedDocument.replacingActiveMatch(with: match))
+        try commitDocument(timedDocument.replacingActiveMatch(with: match, recordAbandonment: recordsDisplacedLoss))
     }
 
     /// Raw source bytes, not decoded values: damaged bytes are what recovery

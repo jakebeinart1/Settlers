@@ -43,6 +43,10 @@ struct SharedMatch: Codable, Sendable {
     /// restart costs the same Elo as a loss. Phones older than 2026-10-26
     /// reject it as unfinished and leave it unrated until they update.
     var abandoned: Bool?
+    /// Additive payload metadata; the existing CloudKit asset/schema stays
+    /// unchanged. Old payloads are Classic/Standard, as that was the only
+    /// scope recorded before personal mode ratings existed.
+    var ratingPool: RatingPool?
 
     enum Rejection: Error, Equatable {
         case unknownVersion(Int)
@@ -52,6 +56,7 @@ struct SharedMatch: Codable, Sendable {
         case personIsNotUploader
         case replayFailed
         case notFinished
+        case invalidRatingPool
     }
 
     /// The per-seat stats this game really produced, or why it is not a
@@ -64,7 +69,16 @@ struct SharedMatch: Codable, Sendable {
     /// its uploader's row too.
     func verified(owner: String) throws -> SeatStatsRecord {
         guard version == Self.currentVersion else { throw Rejection.unknownVersion(version) }
-        guard initialState.mode == .classic, initialState.variant == .standard else { throw Rejection.notClassicStandard }
+        if let ratingPool {
+            guard ratingPool.mode == initialState.mode, ratingPool.variant == initialState.variant,
+                  ratingPool.mode != .naval || ratingPool.variant == .standard else { throw Rejection.invalidRatingPool }
+            let expected = ratingPool.difficulty == .expert ? RatedEntity.expert.key : RatedEntity.classic.key
+            guard seats.filter({ !$0.hasPrefix(RatedEntity.personPrefix) }).allSatisfy({ $0 == expected }) else {
+                throw Rejection.invalidRatingPool
+            }
+        } else {
+            guard initialState.mode == .classic, initialState.variant == .standard else { throw Rejection.notClassicStandard }
+        }
         guard seats.count == initialState.players.count else { throw Rejection.seatCountMismatch }
         guard seats.filter({ $0.hasPrefix(RatedEntity.personPrefix) }).count == 1, !owner.isEmpty else {
             throw Rejection.personIsNotUploader
@@ -81,7 +95,7 @@ struct SharedMatch: Codable, Sendable {
                                seats: zip(seats, stats).map { entity, stats in
                                    SeatStatsRecord.Entry(entity: entity.hasPrefix(RatedEntity.personPrefix)
                                                              ? RatedEntity.person(owner).key : entity, stats: stats)
-                               })
+                               }, ratingPool: ratingPool, abandoned: abandoned)
     }
 
     /// Jake, 2026-10-26: "make it a restart counts towards a loss in elo". The
@@ -95,13 +109,40 @@ struct SharedMatch: Codable, Sendable {
 }
 
 extension SharedMatch {
+    /// Archived ghosts belong only to the phone that kept them on reset.
+    /// Publishing their games would create a nameless, unplayable ghost row
+    /// on every other phone, so the historic privacy rule also binds outboxes.
+    var containsArchivedGhost: Bool {
+        seats.contains { key in
+            guard case .ghost(let id) = RatedEntity(key: key) else { return false }
+            return id.contains("~")
+        }
+    }
+
+    /// Adoption re-files stats and ghosts while queued replay evidence stays
+    /// immutable. Publish those canonical seat IDs with exactly the same
+    /// match, timestamp and moves instead of leaking obsolete local IDs.
+    func refilingSeats(_ canonical: [String]) throws -> Self {
+        guard canonical.count == seats.count else { throw Rejection.seatCountMismatch }
+        return Self(version: version, match: match, date: date, seats: canonical,
+                    initialState: initialState, moves: moves, abandoned: abandoned, ratingPool: ratingPool)
+    }
+
+    var personIDs: [String] {
+        seats.compactMap { key in
+            guard case .person(let id) = RatedEntity(key: key) else { return nil }
+            return id
+        }
+    }
+
     /// The shared form of a game this phone played, seats as recorded.
     init(record: SeatStatsRecord, log: GameLogDetail) {
         self.init(
             version: Self.currentVersion, match: record.match, date: record.date,
             seats: record.seats.map(\.entity),
             initialState: log.initialState,
-            moves: log.events.map { Move(player: $0.player, move: $0.move, isHumanDecision: $0.isHumanDecision) }
+            moves: log.events.map { Move(player: $0.player, move: $0.move, isHumanDecision: $0.isHumanDecision) },
+            abandoned: record.abandoned, ratingPool: record.ratingPool
         )
     }
 }

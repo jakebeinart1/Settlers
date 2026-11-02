@@ -661,6 +661,8 @@ final class NavalFlowTests: XCTestCase {
         XCTAssertTrue(skip.waitForExistence(timeout: 360), "A production naval session must reach an actual winner")
         skip.tap()
         XCTAssertTrue(app.buttons["game-over.new-game"].waitForExistence(timeout: 10))
+        XCTAssertTrue(app.buttons["game-over.rating"].waitForExistence(timeout: 10),
+                      "An actual Naval Expert game must create its separate Expert Elo receipt")
         retainScreenshot("Voyages — complete Expert match", app: app)
         XCTAssertTrue(app.buttons["game-over.replay"].waitForExistence(timeout: 10))
         app.buttons["game-over.replay"].tap()

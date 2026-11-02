@@ -21,6 +21,9 @@ public struct PlayerDirectory: Sendable {
         var names: [String: String] = [:]
         /// Set once this phone's name-keyed games have been re-filed under `me`.
         var migratedLegacyNames = false
+        /// A game started offline keeps its first adopted account even if
+        /// another iCloud account later signs into this same phone.
+        var localOwnerBindings: [String: String]?
     }
 
     static let localPrefix = "local-"
@@ -34,6 +37,10 @@ public struct PlayerDirectory: Sendable {
     /// This phone's player. Made on first use, and never replaced except by
     /// `adopt`, so two early readers cannot end up with different ids.
     var me: String { load().me }
+
+    func resolvedID(_ savedID: String) -> String {
+        load().localOwnerBindings?[savedID] ?? savedID
+    }
 
     func load() -> Contents {
         if let data = try? Data(contentsOf: fileURL), let contents = try? JSONDecoder().decode(Contents.self, from: data) {
@@ -80,8 +87,17 @@ public struct PlayerDirectory: Sendable {
         guard contents.me != id else { return false }
         var refiled = false
         if contents.me.hasPrefix(Self.localPrefix) {
+            var bindings = contents.localOwnerBindings ?? [:]
+            let owner = bindings[contents.me] ?? id
+            if bindings[contents.me] == nil {
+                // Write-ahead ownership survives a crash partway through the
+                // multi-file refile. A later account cannot steal its intent.
+                bindings[contents.me] = owner
+                contents.localOwnerBindings = bindings
+                try save(contents)
+            }
             refiled = try Self.refile(persons: [contents.me], ghostIDs: Set([contents.me]).filter { ghosts.isLocal($0) },
-                                      onlyMatches: nil, to: id, seatStats: seatStats, ghosts: ghosts)
+                                      onlyMatches: nil, to: owner, seatStats: seatStats, ghosts: ghosts)
         }
         contents.me = id
         try save(contents)
@@ -138,7 +154,7 @@ public struct PlayerDirectory: Sendable {
                     return SeatStatsRecord.Entry(entity: RatedEntity.ghost(id).key, stats: entry.stats)
                 }
                 return entry
-            })
+            }, ratingPool: record.ratingPool, abandoned: record.abandoned)
             guard refiled != record else { continue }
             try seatStats.replace(refiled)
             changed = true

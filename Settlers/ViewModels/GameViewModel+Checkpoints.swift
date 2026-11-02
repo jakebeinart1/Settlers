@@ -214,6 +214,7 @@ extension GameViewModel {
             }
             for id in document.pendingExports.keys.sorted(by: { $0.uuidString < $1.uuidString }) {
                 guard let match = checkpointDocument?.pendingExports[id], let current = checkpointDocument else { continue }
+                try persistDisplacedRatingMatch(match)
                 _ = try gameLogStore.export(checkpoint: match)
                 try commitDocument(current.acknowledgingExport(of: match))
             }

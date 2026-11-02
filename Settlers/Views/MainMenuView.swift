@@ -5,7 +5,7 @@ import CatanEngine
 /// display name - the underlying Xcode project/module is still named
 /// `Settlers`, a deliberately untouched implementation detail), "New Game",
 /// "Resume Game" (only when a save exists), "Game History" (only when
-/// something has been recorded), the lifetime stats row, and a Rules pill in
+/// something has been recorded), shared ratings, local averages, and a Rules pill in
 /// the top-right corner that opens `HowToPlayView`.
 ///
 /// ## Why there is no Settings button any more
@@ -36,17 +36,20 @@ public struct MainMenuView: View {
     public let statistics: GameStats
     public let requiresSaveReplacementConfirmation: Bool
     public let newGameSetupLoadResult: MatchSetupStore.LoadResult
+    public let savedGameHasRatingAtStake: Bool
 
     public init(canResumeSavedGame: Bool, onStart: @escaping (MatchSetup) -> Void,
                 onResume: @escaping () -> Void, statistics: GameStats = GameStats(),
                 requiresSaveReplacementConfirmation: Bool = false,
-                newGameSetupLoadResult: MatchSetupStore.LoadResult = .none) {
+                newGameSetupLoadResult: MatchSetupStore.LoadResult = .none,
+                savedGameHasRatingAtStake: Bool = false) {
         self.canResumeSavedGame = canResumeSavedGame
         self.onStart = onStart
         self.onResume = onResume
         self.statistics = statistics
         self.requiresSaveReplacementConfirmation = requiresSaveReplacementConfirmation
         self.newGameSetupLoadResult = newGameSetupLoadResult
+        self.savedGameHasRatingAtStake = savedGameHasRatingAtStake
     }
 
     @State private var isShowingGameHistory = QALaunchFlag.showGameHistory.isSet
@@ -54,6 +57,8 @@ public struct MainMenuView: View {
     @State private var isShowingLeaderboard = false
     @State private var isShowingHowToPlay = QALaunchFlag.showHowToPlay.isSet
     @State private var isShowingSettings = false
+    @State private var ratingPage: RatingPageSelection?
+    @State private var ratingsRefreshToken = 0
     /// Set by Settings' Reset Stats; `statistics` is a value handed in at
     /// launch, so the row would otherwise show the wiped numbers until relaunch.
     @State private var statsWereReset = false
@@ -98,66 +103,24 @@ public struct MainMenuView: View {
             )
             .ignoresSafeArea()
 
-            VStack(spacing: 28) {
-                Spacer()
-
-                titleBlock
-
-                Spacer()
-
-                VStack(spacing: 16) {
-                    GoldRowButton(
-                        title: "New Game",
-                        systemImage: "plus.circle.fill",
-                        iconColor: CatanTheme.color(for: Resource.brick)
-                    ) {
-                        isShowingNewGame = true
-                    }
-                    .accessibilityIdentifier(AccessibilityID.MainMenu.newGame)
-                    .padding(.horizontal, 40)
-
-                    if canResumeSavedGame {
-                        GoldRowButton(title: "Resume Game", systemImage: "play.fill") {
-                            onResume()
-                        }
-                        .accessibilityIdentifier(AccessibilityID.MainMenu.resume)
-                        .padding(.horizontal, 40)
-                    }
+            GeometryReader { geometry in
+                ScrollView {
+                    menuContents
+                        .frame(minHeight: geometry.size.height)
                 }
-
-                historyButton
-
-                GoldRowButton(title: "Leaderboard", systemImage: "trophy.fill",
-                              iconColor: SettingsChrome.ornamentGold) {
-                    isShowingLeaderboard = true
-                }
-                .accessibilityIdentifier(AccessibilityID.MainMenu.leaderboard)
-                .padding(.horizontal, 40)
-
-                statsRow
-
-                Spacer()
+                .scrollBounceBehavior(.basedOnSize)
             }
 
             howToPlayButton
 
-            // An in-place overlay rather than `.fullScreenCover`, and with no
-            // transition - Jake's ask, 2026-09-03: a modal cover always plays
-            // UIKit's slide-up presentation animation, which cannot be turned
-            // off from the modifier itself. Layering the screen directly into
-            // this ZStack (last, so it's on top) instead swaps straight to it
-            // with no animation at all. `NewGameSetupView` already draws its
-            // own full-bleed background and ignores the safe area, so it
-            // still reads as a full screen rather than a sheet.
+            // Setup is an in-place overlay: the established transition stays
+            // immediate and no presenter can outlive the game it starts.
             if isShowingNewGame {
                 NewGameSetupView(
                     hasSavedGame: requiresSaveReplacementConfirmation,
+                    ratingLossOnReplacement: savedGameHasRatingAtStake,
                     setupLoadResult: newGameSetupLoadResult,
                     onStart: { setup in
-                        // Dismissed first: `onStart` replaces this whole view
-                        // with the board, and tearing down a presenter while
-                        // its cover is still up leaves the cover orphaned on
-                        // screen.
                         isShowingNewGame = false
                         onStart(setup)
                     },
@@ -165,8 +128,6 @@ public struct MainMenuView: View {
                 )
                 .transition(.identity)
             }
-            // In place, like New Game: no slide-up, and the theme picked in
-            // it repaints the menu underneath the moment Close is tapped.
             if isShowingSettings {
                 InGameSettingsView(onClose: { isShowingSettings = false },
                                    onResetStats: { statsWereReset = true })
@@ -186,6 +147,62 @@ public struct MainMenuView: View {
         .fullScreenCover(isPresented: $isShowingHowToPlay) {
             HowToPlayView(onDismiss: { isShowingHowToPlay = false })
         }
+        .fullScreenCover(item: $ratingPage, onDismiss: { ratingsRefreshToken += 1 }, content: { page in
+            PlayerRatingsView(playerID: page.playerID, initialPool: page.pool, isOwnProfile: true,
+                              onDismiss: { ratingPage = nil })
+        })
+    }
+
+    /// The ordinary menu still fits without scrolling; a small display or
+    /// accessibility text can reach every action instead of clipping the footer.
+    private var menuContents: some View {
+        VStack(spacing: 20) {
+            Spacer()
+
+            titleBlock
+
+            Spacer()
+
+            VStack(spacing: 16) {
+                GoldRowButton(
+                    title: "New Game",
+                    systemImage: "plus.circle.fill",
+                    iconColor: CatanTheme.color(for: Resource.brick)
+                ) {
+                    isShowingNewGame = true
+                }
+                .accessibilityIdentifier(AccessibilityID.MainMenu.newGame)
+                .padding(.horizontal, 40)
+
+                if canResumeSavedGame {
+                    GoldRowButton(title: "Resume Game", systemImage: "play.fill") {
+                        onResume()
+                    }
+                    .accessibilityIdentifier(AccessibilityID.MainMenu.resume)
+                    .padding(.horizontal, 40)
+                }
+            }
+
+            historyButton
+
+            GoldRowButton(title: "Leaderboard", systemImage: "trophy.fill",
+                          iconColor: SettingsChrome.ornamentGold) {
+                isShowingLeaderboard = true
+            }
+            .accessibilityIdentifier(AccessibilityID.MainMenu.leaderboard)
+            .padding(.horizontal, 40)
+
+            PlayerRatingMenuPlaque(refreshToken: ratingsRefreshToken) { player, pool in
+                ratingPage = RatingPageSelection(playerID: player, pool: pool)
+            }
+            .padding(.horizontal, 40)
+
+            statsRow
+
+            Spacer()
+        }
+        .padding(.top, 74)
+        .padding(.bottom, 22)
     }
 
     /// Rules and the walkthrough, pinned to the top-right corner (Jake,
@@ -244,19 +261,21 @@ public struct MainMenuView: View {
         }
     }
 
-    /// A compact row of running personal stats (win rate, average game
-    /// length, average final VP) below the New Game/Resume buttons -
-    /// hidden entirely before a first game has finished, since there's
-    /// nothing meaningful to show yet.
+    /// Completed-game averages remain useful on this device. The shared
+    /// plaque owns wins and losses, including restarts and other devices;
+    /// repeating the old local win rate beside it would contradict that record.
     @ViewBuilder
     private var statsRow: some View {
         let stats = statsWereReset ? GameStats() : statistics
         if stats.gamesPlayed > 0 {
-            HStack(spacing: 20) {
-                statTile(value: "\(stats.gamesPlayed)", label: "Played")
-                statTile(value: "\(Int((stats.winRate * 100).rounded()))%", label: "Win Rate")
-                statTile(value: formattedDuration(stats.averageDurationSeconds), label: "Avg Time")
-                statTile(value: String(format: "%.1f", stats.averageFinalVP), label: "Avg VP")
+            VStack(spacing: 7) {
+                Text("Finished games on this device")
+                    .font(.system(.caption, design: .serif))
+                    .foregroundStyle(.white.opacity(0.7))
+                HStack(spacing: 20) {
+                    statTile(value: formattedDuration(stats.averageDurationSeconds), label: "Average time")
+                    statTile(value: String(format: "%.1f", stats.averageFinalVP), label: "Average VP")
+                }
             }
             .padding(.horizontal, 40)
         }

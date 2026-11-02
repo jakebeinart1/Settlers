@@ -132,13 +132,17 @@ public struct GameLogStore: Sendable {
         /// Both Naval tiers' match-start brain. Nil means the archive did not
         /// record Naval provenance; playback still applies its recorded moves.
         public let navalAIRevision: NavalPolicy.Revision?
+        /// The chosen tier, recorded independently of policy revisions so
+        /// retained archives can recover their personal rating pool. Nil in
+        /// old logs is unknown, rather than evidence of Classic difficulty.
+        public let difficulty: BotDifficulty?
 
         public init(humanSeats: Set<PlayerID>, humanNames: [Int: String],
                     botProfiles: [Int: String] = [:],
                     botProfileNames: [Int: String] = [:],
                     botPersonalities: [Int: String], civilizations: [Int: String],
                     expertRevision: ExpertRevision? = nil,
-                    navalAIRevision: NavalPolicy.Revision? = nil) {
+                    navalAIRevision: NavalPolicy.Revision? = nil, difficulty: BotDifficulty? = nil) {
             precondition(!humanSeats.isEmpty, "a logged game must contain at least one human seat")
             self.humanSeats = humanSeats
             self.humanNames = humanNames
@@ -148,6 +152,7 @@ public struct GameLogStore: Sendable {
             self.civilizations = civilizations
             self.expertRevision = expertRevision
             self.navalAIRevision = navalAIRevision
+            self.difficulty = difficulty
         }
 
         public static func legacy(humanSeat: PlayerID) -> SeatRoster {
@@ -174,7 +179,7 @@ public struct GameLogStore: Sendable {
 
         private enum CodingKeys: String, CodingKey {
             case humanSeat, humanSeats, humanNames, botProfiles, botProfileNames
-            case botPersonalities, civilizations, expertRevision, navalAIRevision
+            case botPersonalities, civilizations, expertRevision, navalAIRevision, difficulty
         }
 
         public init(from decoder: Decoder) throws {
@@ -191,6 +196,7 @@ public struct GameLogStore: Sendable {
             civilizations = try values.decode([Int: String].self, forKey: .civilizations)
             expertRevision = try values.decodeIfPresent(ExpertRevision.self, forKey: .expertRevision)
             navalAIRevision = try values.decodeIfPresent(NavalPolicy.Revision.self, forKey: .navalAIRevision)
+            difficulty = try values.decodeIfPresent(BotDifficulty.self, forKey: .difficulty)
         }
 
         public func encode(to encoder: Encoder) throws {
@@ -206,6 +212,7 @@ public struct GameLogStore: Sendable {
             try values.encode(civilizations, forKey: .civilizations)
             try values.encodeIfPresent(expertRevision, forKey: .expertRevision)
             try values.encodeIfPresent(navalAIRevision, forKey: .navalAIRevision)
+            try values.encodeIfPresent(difficulty, forKey: .difficulty)
         }
     }
 
@@ -303,7 +310,7 @@ public struct GameLogStore: Sendable {
             civilizations: Dictionary(uniqueKeysWithValues: setup.seats.compactMap { seat in
                 seat.civilization.map { (seat.index, $0.displayName) }
             }), expertRevision: setup.difficulty == .expert ? setup.expertRevision : nil,
-            navalAIRevision: setup.mode == .naval ? setup.navalAIRevision : nil)
+            navalAIRevision: setup.mode == .naval ? setup.navalAIRevision : nil, difficulty: setup.difficulty)
     }
 
     public func logFiles() throws -> [URL] {
