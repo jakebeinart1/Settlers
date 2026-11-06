@@ -1,4 +1,4 @@
-# Online and local multiplayer — product and architecture proposal
+# Online multiplayer — deferred product and architecture proposal
 
 ## Confirmed direction
 
@@ -8,10 +8,16 @@ identical to reviewed head `5d4646f`. Hosted Engine + AI builds/tests and
 SwiftLint passed. The compact-phone run and full current-head Mac gate remain
 unrun because of disk capacity; merging did not turn those into passes.
 
-The next feature must support people playing **on separate phones**, alongside
-**pass-and-play on one device**. Alex explicitly selected **both live sessions
-and asynchronous play**. This document proposes the complete feature and its
-stages; it does not authorize silently changing game rules or deploy a backend.
+Alex subsequently prioritized **pass-and-play on one device before online
+multiplayer**. Local human play will be designed first using the repository's
+grill-me workflow. This online proposal remains deferred until that foundation
+is settled; its suggested local UI and handoff details are not locked decisions.
+
+For the later online feature, Alex explicitly selected **both live sessions
+and asynchronous play**, using **existing three/four-seat tables with optional
+AI seats**. A distinct two-player ruleset is outside this plan. This document
+proposes the online feature and its stages; it does not authorize silently
+changing game rules or deploy a backend.
 
 The experience should remain Empires: the existing board, painted navy/gold
 controls, civilizations and clear action dock. The motivation is to let Alex,
@@ -31,8 +37,8 @@ phone or losing progress when somebody disconnects.
   pending decisions until the relevant person returns or the agreed room
   policy resolves a deadline.
 - Reuse supported three/four-seat tables, allowing two or more human players
-  with AI filling chosen seats. A true two-seat duel is a separate rules and
-  balance decision, not an incidental networking change.
+  with optional AI seats. Alex selected this approach; a true two-seat duel is
+  outside scope.
 - The complete release covers the supported Classic, Conquest, Vast, Vast
   Conquest and Voyages configurations, including fog, ships, resource choices,
   cards and ordinary trading. The lobby locks a shared rules/version contract.
@@ -256,7 +262,8 @@ timer. Preserve local saves and historical replay decoding independently.
 
 ## Development stages and acceptance
 
-1. **Product decisions and flows.** Settle table sizes, pace/deadline behavior,
+1. **Product decisions and flows.** After the separate local-play design and
+   implementation, settle online pace/deadline behavior,
    trade competition, quitting and rating policy. Review lobby, active-games,
    handoff, pending-action and reconnection wireframes in the existing theme.
 2. **Viewer and controller separation.** Restore selectable pass-and-play with
@@ -290,7 +297,6 @@ exchange alone does not satisfy the feature.
 
 ## Decisions still open
 
-- Existing three/four-seat games with AI fill, or also a distinct two-seat duel?
 - Exact live/async decision windows, pause behavior and mandatory-choice timeout
   policy, including service downtime; whether players can opt into standing
   choices or bot takeover, and what resignation does to the remaining table.
@@ -301,5 +307,6 @@ exchange alone does not satisfy the feature.
 - Hosting/provider/budget and operational ownership, after the architecture
   comparison and protocol proof are reviewed.
 
-Live **and** asynchronous play is already decided. These remaining decisions
-should be explored deliberately before multiplayer implementation begins.
+Live **and** asynchronous play and existing three/four-seat tables with optional
+AI seats are already decided for online. Local human play comes first. These
+remaining online decisions should be explored before networking implementation.
