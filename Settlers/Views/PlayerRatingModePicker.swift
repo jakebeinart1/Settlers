@@ -35,7 +35,10 @@ struct PlayerRatingModePicker: View {
                 .accessibilityFocused($isHeadingFocused)
             if scrolling {
                 ScrollView { rows }.scrollIndicators(.visible)
-            } else { rows }
+                    .background(RatingViewportMarker(identifier: "ratings.mode-options-frame"))
+            } else {
+                rows.background(RatingViewportMarker(identifier: "ratings.mode-options-frame"))
+            }
             GoldRowButton(title: "Cancel", systemImage: "xmark", action: onCancel)
                 .dynamicTypeSize(...DynamicTypeSize.accessibility1)
                 .fixedSize(horizontal: false, vertical: true)
@@ -45,6 +48,7 @@ struct PlayerRatingModePicker: View {
         .frame(maxWidth: 366, maxHeight: maxHeight)
         .foregroundStyle(.white)
         .fontDesign(.serif)
+        .background(RatingViewportMarker(identifier: "ratings.mode-frame"))
     }
 
     private var rows: some View {

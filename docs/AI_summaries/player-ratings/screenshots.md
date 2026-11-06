@@ -1,4 +1,19 @@
-# Native screenshot review
+# Rejected native screenshot baseline
+
+**The following gallery is retained failure evidence, not approval of the
+current layout.** Review on November 2 rejected the separate home rating plaque,
+the overview that cuts off Kyle, and the largest-text spacing. The old tests
+made those sections reachable by scrolling and did not establish initial fit.
+
+The unified Leaderboard revision needs a replacement gallery from actual
+402×874 and 375×667-point native destinations, at ordinary and accessibility
+text sizes. Capture the restored home, complete initial standings, profile,
+game history, filters, empty/Unrated states, account details and preserved ghost
+routes. Every image must be inspected uncropped for text, borders, navigation
+and safe-area fit. A hosted render or wrong-size skipped test is not actual
+compact-device proof. New native verification is currently pending.
+
+## Baseline provenance
 
 These are actual iPhone 17 Pro / iOS 26.5 simulator captures from native taps.
 The record fixtures intentionally contain synthetic summary history for Alex,

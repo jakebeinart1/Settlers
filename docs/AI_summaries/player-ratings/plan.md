@@ -17,11 +17,18 @@ with native screenshots, not a production release or an automatic merge.
   loss or restart lowers it. Quitting to the menu preserves the active match.
 - Only one-human games against ordinary, homogeneous AI qualify. Ghost games
   and legacy pass-and-play remain outside this record. Their established
-  Classic ghost ladder and training remain available separately.
-- Show the selected pool's Elo on the menu, alongside overall wins/losses.
-  Never average Elo across pools. A zero-game pool says Unrated.
-- A personal page offers a mode chooser, two AI-tier choices, current Elo,
-  record, rating trend, every game's before/after change, and shared standings.
+  Classic ghost ladder and training remain available in Leaderboard's Ghosts
+  scope, with their existing rating policy.
+- Keep a single Leaderboard entry on the menu. Its small trailing accessory
+  may show the selected pool's Elo; never add a separate ratings section.
+  Overall wins/losses belong inside Leaderboard. Never average Elo across
+  pools. A zero-game pool says Unrated.
+- The initial Leaderboard shows side-by-side mode/tier selectors and a compact
+  table of people plus one shared AI. Alex, Jake and Kyle must all fit before
+  scrolling on ordinary 402×874 and 375×667-point phones.
+- A person opens a distinct profile with Elo, record and a modest rating
+  trend. Games opens a separate bounded result list. Back preserves person,
+  mode and difficulty; results deep-link into this same Leaderboard flow.
 - A finished game shows its own before/after rating and signed change. Integer
   changes equal the difference between the displayed rounded endpoints.
 - Make offline/local progress, pending sync, no iCloud account and empty
@@ -76,11 +83,41 @@ Keep Classic-only ghost learning separate from the broadened recording scope.
 ## Visual direction
 
 Reuse the painted sea background, dark navy plaques, notched gold borders,
-serif typography, existing crests and spacing. The menu gains one compact
-personal standing panel; the detailed page contains the graph and filters.
+serif typography, existing crests and spacing. Preserve the established menu
+composition; ratings live in its existing Leaderboard action. The overview
+contains one comparison table, with profiles and game history as drill-ins.
 Gold emphasizes rating, muted white labels context, and signed text communicates
-gains/losses independently of color. Keep actions reachable with large text and
-on shorter devices. Do not add a second dashboard aesthetic or new artwork.
+gains/losses independently of color. Keep navigation, filters and footer inside
+the safe-area layout. Accessibility text may scroll within a framed table or
+profile body, while navigation remains pinned. Do not shrink all body text to
+force fit, or add a second dashboard aesthetic or new artwork.
+
+## Layout correction and acceptance
+
+The original gallery at `bf0f804` is a rejected baseline. Its tests scrolled to
+Kyle and back to the filters, so they established eventual reachability while
+missing an oversized overview. The independent audits agreed that clipping,
+smaller padding or another scroll helper would preserve the wrong hierarchy.
+
+The correction separates one snapshot-owning Leaderboard host from pure
+standings/profile/history presentations and the established ghost pane.
+Account naming and long sync explanations have their own sheet. Ghost radar
+continues to filter through the old ladder's `ratedMatches`; mode-only results
+must not enter that population. Parent-owned stable selection restores a ghost
+detail after visiting the person's AI record.
+
+First-screen tests now require full peer-row and shared-AI containment, equal
+row geometry, disjoint sections, complete touch targets and pinned navigation.
+Profile and history tests preserve selected context, and bounded accessibility
+drags must not move the page chrome. Busy-menu, maximum-width valid names,
+Unrated, empty history, help and account states also need visual review.
+
+The initial two regression tests were written against the old source. Native
+execution is held by the machine-wide storage coordinator; a retained baseline
+source packet allows those tests to run against the rejected implementation
+before qualifying the new source. Source lint and project generation are not
+native layout evidence. Do not visually approve or merge this revision until the
+new screenshots have been inspected and actual destination coverage recorded.
 
 ## Verification and review
 

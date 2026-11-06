@@ -5,7 +5,7 @@ import CatanEngine
 /// display name - the underlying Xcode project/module is still named
 /// `Settlers`, a deliberately untouched implementation detail), "New Game",
 /// "Resume Game" (only when a save exists), "Game History" (only when
-/// something has been recorded), shared ratings, local averages, and a Rules pill in
+/// something has been recorded), Leaderboard, local averages, and a Rules pill in
 /// the top-right corner that opens `HowToPlayView`.
 ///
 /// ## Why there is no Settings button any more
@@ -57,7 +57,6 @@ public struct MainMenuView: View {
     @State private var isShowingLeaderboard = false
     @State private var isShowingHowToPlay = QALaunchFlag.showHowToPlay.isSet
     @State private var isShowingSettings = false
-    @State private var ratingPage: RatingPageSelection?
     @State private var ratingsRefreshToken = 0
     /// Set by Settings' Reset Stats; `statistics` is a value handed in at
     /// launch, so the row would otherwise show the wiped numbers until relaunch.
@@ -103,12 +102,9 @@ public struct MainMenuView: View {
             )
             .ignoresSafeArea()
 
-            GeometryReader { geometry in
-                ScrollView {
-                    menuContents
-                        .frame(minHeight: geometry.size.height)
-                }
-                .scrollBounceBehavior(.basedOnSize)
+            ViewThatFits(in: .vertical) {
+                menuContents
+                accessibleMenuContents
             }
 
             howToPlayButton
@@ -141,68 +137,57 @@ public struct MainMenuView: View {
         .fullScreenCover(isPresented: $isShowingGameHistory) {
             GameHistoryView(onDismiss: { isShowingGameHistory = false })
         }
-        .fullScreenCover(isPresented: $isShowingLeaderboard) {
+        .fullScreenCover(isPresented: $isShowingLeaderboard, onDismiss: { ratingsRefreshToken += 1 }, content: {
             LeaderboardView(onDismiss: { isShowingLeaderboard = false })
-        }
+        })
         .fullScreenCover(isPresented: $isShowingHowToPlay) {
             HowToPlayView(onDismiss: { isShowingHowToPlay = false })
         }
-        .fullScreenCover(item: $ratingPage, onDismiss: { ratingsRefreshToken += 1 }, content: { page in
-            PlayerRatingsView(playerID: page.playerID, initialPool: page.pool, isOwnProfile: true,
-                              onDismiss: { ratingPage = nil })
-        })
+
     }
 
-    /// The ordinary menu still fits without scrolling; a small display or
-    /// accessibility text can reach every action instead of clipping the footer.
+    /// The established title and actions fit the ordinary phone viewport.
+    /// Only the action region scrolls when accessibility text needs more room.
     private var menuContents: some View {
-        VStack(spacing: 20) {
-            Spacer()
-
+        VStack(spacing: 24) {
+            Spacer(minLength: 0)
             titleBlock
-
-            Spacer()
-
-            VStack(spacing: 16) {
-                GoldRowButton(
-                    title: "New Game",
-                    systemImage: "plus.circle.fill",
-                    iconColor: CatanTheme.color(for: Resource.brick)
-                ) {
-                    isShowingNewGame = true
-                }
-                .accessibilityIdentifier(AccessibilityID.MainMenu.newGame)
-                .padding(.horizontal, 40)
-
-                if canResumeSavedGame {
-                    GoldRowButton(title: "Resume Game", systemImage: "play.fill") {
-                        onResume()
-                    }
-                    .accessibilityIdentifier(AccessibilityID.MainMenu.resume)
-                    .padding(.horizontal, 40)
-                }
-            }
-
-            historyButton
-
-            GoldRowButton(title: "Leaderboard", systemImage: "trophy.fill",
-                          iconColor: SettingsChrome.ornamentGold) {
-                isShowingLeaderboard = true
-            }
-            .accessibilityIdentifier(AccessibilityID.MainMenu.leaderboard)
-            .padding(.horizontal, 40)
-
-            PlayerRatingMenuPlaque(refreshToken: ratingsRefreshToken) { player, pool in
-                ratingPage = RatingPageSelection(playerID: player, pool: pool)
-            }
-            .padding(.horizontal, 40)
-
-            statsRow
-
-            Spacer()
+            Spacer(minLength: 0)
+            menuActions
+            Spacer(minLength: 0)
         }
         .padding(.top, 74)
         .padding(.bottom, 22)
+    }
+
+    private var accessibleMenuContents: some View {
+        VStack(spacing: 18) {
+            titleBlock.padding(.top, 92)
+            ScrollView { menuActions.padding(.vertical, 3) }
+                .scrollBounceBehavior(.basedOnSize)
+        }
+        .padding(.bottom, 16)
+    }
+
+    private var menuActions: some View {
+        VStack(spacing: 20) {
+            VStack(spacing: 16) {
+                GoldRowButton(title: "New Game", systemImage: "plus.circle.fill",
+                              iconColor: CatanTheme.color(for: Resource.brick)) { isShowingNewGame = true }
+                    .dynamicTypeSize(...DynamicTypeSize.accessibility1)
+                    .accessibilityIdentifier(AccessibilityID.MainMenu.newGame)
+                if canResumeSavedGame {
+                    GoldRowButton(title: "Resume Game", systemImage: "play.fill", action: onResume)
+                        .dynamicTypeSize(...DynamicTypeSize.accessibility1)
+                        .accessibilityIdentifier(AccessibilityID.MainMenu.resume)
+                }
+            }
+            historyButton
+            LeaderboardMenuButton(refreshToken: ratingsRefreshToken) { isShowingLeaderboard = true }
+                .dynamicTypeSize(...DynamicTypeSize.accessibility1)
+            statsRow
+        }
+        .padding(.horizontal, 40)
     }
 
     /// Rules and the walkthrough, pinned to the top-right corner (Jake,
@@ -256,13 +241,13 @@ public struct MainMenuView: View {
                           iconColor: SettingsChrome.ornamentGold) {
                 isShowingGameHistory = true
             }
+            .dynamicTypeSize(...DynamicTypeSize.accessibility1)
             .accessibilityIdentifier(AccessibilityID.MainMenu.gameHistory)
-            .padding(.horizontal, 40)
         }
     }
 
     /// Completed-game averages remain useful on this device. The shared
-    /// plaque owns wins and losses, including restarts and other devices;
+    /// leaderboard owns wins and losses, including restarts and other devices;
     /// repeating the old local win rate beside it would contradict that record.
     @ViewBuilder
     private var statsRow: some View {
@@ -277,7 +262,6 @@ public struct MainMenuView: View {
                     statTile(value: String(format: "%.1f", stats.averageFinalVP), label: "Average VP")
                 }
             }
-            .padding(.horizontal, 40)
         }
     }
 
@@ -315,6 +299,8 @@ public struct MainMenuView: View {
             Text("EMPIRES")
                 .font(.system(size: 50, weight: .black, design: .serif))
                 .tracking(6)
+                .lineLimit(1)
+                .minimumScaleFactor(0.7)
 
             Text("Choose your empire. Conquer the board.")
                 .font(.system(.subheadline, design: .serif))

@@ -39,6 +39,10 @@ enum QALaunchFlag: String, CaseIterable {
     case seedLeaderboard = "-qaSeedLeaderboard"
     /// Summary-only historical data for ratings layout, never synced.
     case seedPlayerRatings = "-qaSeedPlayerRatings"
+    /// Modifiers for the summary fixture: real menu overflow conditions and
+    /// valid maximum-length names made from unusually wide glyphs.
+    case playerRatingsBusyMenu = "-qaPlayerRatingsBusyMenu"
+    case playerRatingsWideNames = "-qaPlayerRatingsWideNames"
     /// Explicit result previews; separate from a real played-to-completion match.
     case showRatingWin = "-qaShowRatingWin"
     case showRatingLoss = "-qaShowRatingLoss"

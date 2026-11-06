@@ -1,260 +1,364 @@
-import CatanAI
+import CatanEngine
 import SwiftUI
 
-/// Everyone on the ladder: players, every ghost on the phone, and both AI
-/// tiers (Jake, 2026-09-25). Tapping any row opens its page.
+/// One home for people, their AI records, and the existing ghost ladder. The
+/// overview has a finite table; charts and past games are navigated to, never
+/// appended below the last visible player.
 struct LeaderboardView: View {
     let onDismiss: () -> Void
-    var ratingStore = RatingStore.shared
-    var ghostStore = GhostStore.shared
     var statsStore = SeatStatsStore.shared
     var players = PlayerDirectory.shared
-
-    @State private var rows: [LeaderboardRow] = []
-    @State private var selected: EntityDetail?
-    @State private var selectedPersonID: String?
-    @State private var ratingPage: RatingPageSelection?
-    /// `nil` when this build has no sync: the ladder is this phone's alone,
-    /// and the screen says nothing about it.
-    @State private var syncStatus: LiveSync.Status?
-    @State private var isEditingName = false
     var liveSync = LiveSync.shared
 
-    /// How often an open leaderboard asks for a refresh. The request only
-    /// reaches CloudKit when `LiveSync.refreshInterval` has passed; in
-    /// between it re-reads this phone's stores, which is free.
-    static let recheckInterval: Duration = .seconds(60)
+    @State private var snapshot = PlayerRatingSnapshot.empty
+    @State private var pool: RatingPool
+    @State private var destination: RatingDestination
+    @State private var followsOwnProfile: Bool
+    @State private var scope = LeaderboardScope.players
+    @State private var overlay: RatingOverlay?
+    @State private var sheet: RatingSheet?
+    @State private var syncStatus: LiveSync.Status? = LiveSync.shared == nil ? nil : .never
+    @State private var refreshToken = 0
+    @State private var ghostRefreshToken = 0
+    @State private var selectedGhostRowKey: String?
+    @Environment(\.scenePhase) private var scenePhase
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+
+    init(initialSelection: RatingPageSelection? = nil, onDismiss: @escaping () -> Void) {
+        self.onDismiss = onDismiss
+        _pool = State(initialValue: initialSelection?.pool ?? RatingPoolPreference.load())
+        _destination = State(initialValue: initialSelection.map { .profile($0.playerID) } ?? .standings)
+        // A result link belongs to that match's owner, even if this device
+        // subsequently changes accounts. Only opening your own row follows me.
+        _followsOwnProfile = State(initialValue: false)
+    }
 
     var body: some View {
         ZStack {
             PaintedScreenBackground()
-            VStack(spacing: 14) {
+            VStack(spacing: 12) {
                 header
-                if let syncStatus {
-                    Text(Self.describe(syncStatus))
-                        .font(.system(size: 12, design: .serif))
-                        .foregroundStyle(.white.opacity(0.7))
-                        .multilineTextAlignment(.center)
-                        .accessibilityIdentifier(AccessibilityID.Leaderboard.syncStatus)
-                    nameControls(syncStatus)
-                }
-                if let selected {
-                    RatedEntityDetailView(detail: selected, onBack: {
-                        self.selected = nil
-                        selectedPersonID = nil
-                    }, onAIRatings: personalRatingAction)
+                if destination == .standings {
+                    scopeControl
+                    if scope == .players { overview } else {
+                        GhostLeaderboardView(refreshToken: ghostRefreshToken, selectedRowKey: $selectedGhostRowKey,
+                                             onPersonRatings: openPlayer)
+                    }
+                    accountButton
                 } else {
-                    Text("Classic Standard · includes ghost games")
-                        .font(.system(.caption, design: .serif))
-                        .foregroundStyle(.white.opacity(0.7))
-                    list
+                    contextControls
+                    detail
                 }
             }
-            .padding(.horizontal, 20)
-            .padding(.top, 14)
+            .padding(.horizontal, 18)
+            .padding(.top, 8)
+            .padding(.bottom, 10)
+            .background(RatingViewportMarker(identifier: "leaderboard.content-frame"))
+            .accessibilityHidden(overlay != nil)
+            if let overlay { picker(overlay) }
         }
-        .accessibilityElement(children: .contain)
-        .accessibilityIdentifier(AccessibilityID.Screen.leaderboard)
         .foregroundStyle(.white)
         .fontDesign(.serif)
-        .task {
-            #if DEBUG
-            if QALaunchFlag.seedLeaderboard.isSet { Self.seedForQA(ratings: ratingStore, stats: statsStore, players: players) }
-            #endif
-            reload()
-            guard let liveSync else { return }
-            syncStatus = await liveSync.status
-            while !Task.isCancelled {
-                syncStatus = await liveSync.refreshIfDue()
-                reload()
-                try? await Task.sleep(for: Self.recheckInterval)
+        .accessibilityElement(children: .contain)
+        .accessibilityIdentifier(AccessibilityID.Screen.leaderboard)
+        .task(id: refreshToken) { await refresh() }
+        .onChange(of: scenePhase) { _, phase in
+            if phase == .active { refreshToken += 1 }
+        }
+        .sheet(item: $sheet) { sheet in
+            switch sheet {
+            case .help: PlayerRatingHelpView(onClose: { self.sheet = nil })
+            case .account:
+                LeaderboardAccountView(status: syncStatus, onRefresh: refreshNow, onJoined: { status in
+                    syncStatus = status
+                    refreshToken += 1
+                }, onClose: { self.sheet = nil })
             }
-        }
-        .fullScreenCover(item: $ratingPage) { page in
-            PlayerRatingsView(playerID: page.playerID, initialPool: page.pool,
-                              isOwnProfile: page.playerID == players.me, onDismiss: { ratingPage = nil })
-        }
-    }
-
-    private func reload() {
-        let players = players
-        rows = LeaderboardModel.rows(ratings: ratingStore.load(), ghosts: ghostStore.all()) { players.name(of: $0) }
-    }
-
-    static func describe(_ status: LiveSync.Status) -> String {
-        switch status {
-        case .never: return "Connecting to the online ladder…"
-        case .online(let date): return "Online ladder · updated \(date.formatted(date: .omitted, time: .shortened))"
-        case .noName: return "Choose a name to join the online ladder."
-        case .nameTaken(let name): return "“\(name)” is taken online. Choose another name."
-        // Apps cannot sign a phone into iCloud; only the iPhone's Settings app can.
-        case .noAccount: return "Sign in to iCloud in your iPhone's Settings app to join the online ladder."
-        case .offline: return "Offline · showing the ladder as last synced."
-        case .failed: return "The online ladder could not be reached. Showing the ladder as last synced."
-        }
-    }
-
-    static func needsName(_ status: LiveSync.Status) -> Bool {
-        switch status {
-        case .noName, .nameTaken: return true
-        default: return false
-        }
-    }
-
-    /// Where a player sets or changes their ladder name (Jake, 2026-09-27):
-    /// open when the ladder needs one, behind "Change name" otherwise.
-    @ViewBuilder private func nameControls(_ status: LiveSync.Status) -> some View {
-        if Self.needsName(status) || isEditingName {
-            LadderNameEntry { newStatus in
-                isEditingName = false
-                if let newStatus { syncStatus = newStatus }
-                reload()
-            }
-        } else if case .online = status {
-            Button("Change name") { isEditingName = true }
-                .font(.system(size: 13, weight: .semibold, design: .serif))
-                .foregroundStyle(SettingsChrome.ornamentGold)
-                .accessibilityIdentifier(AccessibilityID.Leaderboard.changeName)
         }
     }
 
     private var header: some View {
-        ZStack {
-            Text("Leaderboard")
-                .font(.system(size: 26, weight: .bold, design: .serif))
-            HStack {
-                Spacer()
-                Button { onDismiss() } label: {
-                    Image(systemName: "xmark.circle.fill")
-                        .font(.system(size: 24))
-                        .foregroundStyle(.white.opacity(0.7))
-                }
-                .accessibilityIdentifier(AccessibilityID.Leaderboard.close)
+        HStack(spacing: 2) {
+            if destination != .standings {
+                Button(action: goBack) { Image(systemName: "chevron.left").font(.system(size: 20, weight: .semibold)) }
+                    .frame(width: 44, height: 44)
+                    .accessibilityLabel("Back")
+                    .accessibilityIdentifier("ratings.back")
+            }
+            Text(title).font(.system(.title2, design: .serif, weight: .bold))
+                .dynamicTypeSize(...DynamicTypeSize.xxxLarge)
+                .lineLimit(1).truncationMode(.middle)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .accessibilityAddTraits(.isHeader)
+                .accessibilityIdentifier("leaderboard.title")
+            Button { sheet = .help } label: { Image(systemName: "info.circle").font(.system(size: 22)) }
+                .frame(width: 44, height: 44)
+                .accessibilityLabel("About ratings")
+                .accessibilityIdentifier("ratings.help")
+            Button(action: onDismiss) { Image(systemName: "xmark.circle.fill").font(.system(size: 22)) }
+                .foregroundStyle(.white.opacity(0.75))
+                .frame(width: 44, height: 44)
                 .accessibilityLabel("Close leaderboard")
-            }
+                .accessibilityIdentifier(AccessibilityID.Leaderboard.close)
         }
     }
 
-    private var list: some View {
-        ScrollView {
-            VStack(spacing: 8) {
-                ForEach(Array(rows.enumerated()), id: \.element.id) { rank, row in
-                    rowView(row, rank: rank + 1)
-                }
-            }
-            .padding(.bottom, 24)
+    private var title: String {
+        switch destination {
+        case .standings: return "Leaderboard"
+        case .profile(let id): return snapshot.me.isEmpty ? "Player record" : snapshot.name(for: id)
+        case .games: return "Games"
+        case .trend: return "Rating history"
         }
     }
 
-    private func rowView(_ row: LeaderboardRow, rank: Int) -> some View {
-        Button { open(row) } label: {
-            HStack(spacing: 10) {
-                Text("\(rank)")
-                    .font(.system(size: 15, weight: .bold, design: .serif))
-                    .frame(width: 26)
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(row.name)
-                        .font(.system(size: 16, weight: .semibold, design: .serif))
-                        .lineLimit(1)
-                    Text(subtitle(row))
-                        .font(.system(size: 11, design: .serif))
-                        .foregroundStyle(.white.opacity(0.65))
-                }
-                Spacer()
-                Text(verbatim: String(Int(row.elo.rounded())))
-                    .font(.system(size: 18, weight: .bold, design: .serif))
-                    .foregroundStyle(SettingsChrome.ornamentGold)
+    private var scopeControl: some View {
+        PaintedChoiceRow(options: LeaderboardScope.allCases, title: \.rawValue, selection: scope,
+                         minimumHeight: 44, optionIdentifier: { "leaderboard.scope.\($0.id)" },
+                         onSelect: { scope = $0 })
+            .dynamicTypeSize(...DynamicTypeSize.accessibility1)
+            .frame(height: 44)
+    }
+
+    private var overview: some View {
+        VStack(spacing: dynamicTypeSize.isAccessibilitySize ? 8 : 12) {
+            contextControls
+            if snapshot.me.isEmpty { loading("Loading standings…") } else {
+                overallRecord
+                PlayerRatingStandingsView(snapshot: snapshot, pool: pool, onPlayer: openPlayer)
+            }
+            if !dynamicTypeSize.isAccessibilitySize { Spacer(minLength: 0) }
+        }
+    }
+
+    private var contextControls: some View {
+        HStack(spacing: 10) {
+            contextButton(modeTitle, identifier: "ratings.mode") { overlay = .mode }
+                .accessibilityValue(pool.displayName)
+            contextButton("\(pool.difficulty.displayName) AI", identifier: "ratings.tier") { overlay = .tier }
+        }
+    }
+
+    private var modeTitle: String {
+        pool.mode == .classic && pool.variant == .conquest ? "Conquest" : pool.displayName
+    }
+
+    private func contextButton(_ title: String, identifier: String, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            HStack(spacing: 6) {
+                Text(title).font(.system(.subheadline, design: .serif, weight: .semibold))
+                    .dynamicTypeSize(...DynamicTypeSize.xxxLarge)
+                    .lineLimit(2).fixedSize(horizontal: false, vertical: true)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                Image(systemName: "chevron.up.chevron.down").font(.system(size: 11, weight: .semibold))
+                    .accessibilityHidden(true)
             }
             .padding(.horizontal, 12)
-            .padding(.vertical, 10)
-            .background(PaintedChromeBackground(fill: .color(SettingsChrome.plaqueFill), cornerRadius: 10, notchScale: 0.5))
+            .padding(.vertical, 8)
+            .frame(maxWidth: .infinity, minHeight: 44)
+            .background(PaintedChromeBackground(fill: .color(SettingsChrome.plaqueFill), cornerRadius: 10))
         }
         .buttonStyle(.plain)
-        .accessibilityIdentifier(AccessibilityID.Leaderboard.row(row.key))
+        .accessibilityIdentifier(identifier)
     }
 
-    private func subtitle(_ row: LeaderboardRow) -> String {
-        if row.isFixed { return "AI · fixed reference" }
-        if row.kind == .player { return "Player · Classic & ghost ladder" }
-        let games = row.games == 0 ? "unrated" : "\(row.games) rated game\(row.games == 1 ? "" : "s")"
-        return "\(row.kind.rawValue) · \(games)"
-    }
-
-    private func open(_ row: LeaderboardRow) {
-        let ratings = ratingStore.load()
-        // A mode record is not a game in the original combined ladder. Its
-        // existing receipt list is the authority for the radar's population too.
-        let ratedMatches = Set(ratings.ratedMatches)
-        let stats = statsStore.all().filter { ratedMatches.contains($0.match) }
-        selectedPersonID = nil
-        switch row.kind {
-        case .ghost:
-            let id = String(row.key.dropFirst("ghost:".count))
-            guard let ghost = ghostStore.ghost(id: id) else { return }
-            selected = EntityDetail.ghost(ghost, ratings: ratings, stats: stats, resolve: ghostStore.resolve)
-        case .player:
-            let id = String(row.key.dropFirst("person:".count))
-            selectedPersonID = id
-            selected = EntityDetail.person(id, name: row.name, ratings: ratings, stats: stats)
-        case .ai:
-            guard let tier = RatedEntity(key: row.key) else { return }
-            selected = EntityDetail.ai(tier, name: row.name, elo: row.elo, stats: stats)
+    private var overallRecord: some View {
+        let record = snapshot.ratings.overallRecord(for: snapshot.me)
+        return ViewThatFits(in: .horizontal) {
+            Text("Your overall record · \(record.wins)W · \(record.losses)L")
+                .fixedSize()
+            Text("All modes · \(record.wins)W · \(record.losses)L")
+                .fixedSize(horizontal: false, vertical: true)
         }
+        .font(.system(.subheadline, design: .serif))
+        .foregroundStyle(.white.opacity(0.8))
+        .frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
+        .dynamicTypeSize(...DynamicTypeSize.accessibility1)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel("Your overall record, \(RatingPresentation.record(wins: record.wins, losses: record.losses))")
+        .accessibilityIdentifier("ratings.overall")
     }
 
-    private var personalRatingAction: (() -> Void)? {
-        guard let selectedPersonID else { return nil }
-        return { ratingPage = RatingPageSelection(playerID: selectedPersonID, pool: RatingPoolPreference.load()) }
-    }
-}
-
-#if DEBUG
-extension LeaderboardView {
-    /// `-qaSeedLeaderboard`: three rated games, Jake against his ghost and two
-    /// Classic seats, the ghost winning two. Idempotent by fixed match ids.
-    /// Jake's player id is `jake`, his bundled ghost's, so the ghost is his.
-    static func seedForQA(ratings: RatingStore, stats: SeatStatsStore, players: PlayerDirectory) {
-        var contents = players.load()
-        contents.names["jake"] = "Jake"
-        try? players.save(contents)
-        let seats: [RatedEntity] = [.person("jake"), .ghost("jake"), .classic, .classic]
-        for game in 0..<3 {
-            let match = UUID(uuidString: "00000000-0000-0000-0000-00000000000\(game + 1)")!
-            let winner = game == 1 ? 0 : 1
-            try? ratings.record(match: match, seats: seats, winner: winner)
-            let entries = seats.enumerated().map { index, entity -> SeatStatsRecord.Entry in
-                var seat = SeatStats(seat: index, target: 10)
-                seat.turns = 22
-                seat.productionCards = [80, 74, 66, 61][index]
-                seat.settlementsBuilt = [3, 4, 2, 2][index]
-                seat.citiesBuilt = [2, 1, 1, 2][index]
-                seat.tradesCompleted = [4, 5, 3, 2][index]
-                seat.devCardsPlayed = [1, 1, 2, 1][index]
-                seat.robberMoves = 2
-                seat.robberHitsLeader = [2, 1, 1, 1][index]
-                seat.won = index == winner
-                seat.finalVP = seat.won ? 10 : [8, 7, 5, 6][index]
-                return SeatStatsRecord.Entry(entity: entity.key, stats: seat)
+    @ViewBuilder private var detail: some View {
+        if snapshot.me.isEmpty { loading("Loading record…") } else {
+            switch destination {
+            case .standings: EmptyView()
+            case .profile(let id):
+                PlayerRatingsView(snapshot: snapshot, playerID: id, pool: pool,
+                                  onGames: { destination = .games(id) }, onTrend: { destination = .trend(id) })
+            case .games(let id):
+                recordContext(id)
+                PlayerRatingGamesView(changes: changes(for: id))
+            case .trend(let id):
+                recordContext(id)
+                ScrollView { PlayerRatingChart(changes: changes(for: id)).padding(14) }
+                    .background(PaintedChromeBackground(fill: .color(SettingsChrome.plaqueFill), cornerRadius: 12))
+                    .background(RatingViewportMarker(identifier: "ratings.trend-frame"))
             }
-            try? stats.record(SeatStatsRecord(match: match, date: Date(timeIntervalSince1970: Double(game)), seats: entries))
+        }
+    }
+
+    private func loading(_ title: String) -> some View {
+        ProgressView(title).tint(SettingsChrome.ornamentGold)
+            .font(.system(.subheadline, design: .serif))
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+
+    private func recordContext(_ id: String) -> some View {
+        Text("\(snapshot.name(for: id)) · \(pool.displayName) · \(pool.difficulty.displayName) AI")
+            .font(.system(.subheadline, design: .serif)).foregroundStyle(.white.opacity(0.75))
+            .dynamicTypeSize(...DynamicTypeSize.accessibility1)
+            .fixedSize(horizontal: false, vertical: true)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .accessibilityIdentifier("ratings.record-context")
+    }
+
+    private var accountButton: some View {
+        Button { sheet = .account } label: {
+            HStack(spacing: 7) {
+                Image(systemName: "person.crop.circle").font(.system(size: 17))
+                Text(accountTitle).font(.system(.caption, design: .serif))
+                    .dynamicTypeSize(...DynamicTypeSize.accessibility1)
+                    .lineLimit(2).fixedSize(horizontal: false, vertical: true)
+                Spacer(minLength: 0)
+                Image(systemName: "chevron.right").font(.system(size: 11))
+            }
+            .foregroundStyle(.white.opacity(0.7))
+            .frame(minHeight: 44)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .accessibilityIdentifier("leaderboard.account")
+    }
+
+    private var accountTitle: String {
+        switch syncStatus {
+        case nil: return "Saved on this device"
+        case .never: return "Connecting records…"
+        case .online(let date): return "Records synced · \(date.formatted(date: .omitted, time: .shortened))"
+        case .offline: return "Offline · saved records"
+        case .failed: return "Sync unavailable · saved records"
+        case .noName, .nameTaken: return "Choose your leaderboard name"
+        case .noAccount: return "Set up iCloud sync"
+        }
+    }
+
+    @ViewBuilder private func picker(_ picker: RatingOverlay) -> some View {
+        switch picker {
+        case .mode:
+            PlayerRatingModePicker(options: snapshot.ratings.pools.filter { $0.difficulty == pool.difficulty },
+                                   selection: pool, onSelect: select, onCancel: { overlay = nil })
+        case .tier:
+            PlayerRatingTierPicker(selection: pool.difficulty, onSelect: { difficulty in
+                select(RatingPool(mode: pool.mode, variant: pool.variant, difficulty: difficulty))
+            }, onCancel: { overlay = nil })
+        }
+    }
+
+    private func select(_ selection: RatingPool) {
+        pool = selection
+        overlay = nil
+        RatingPoolPreference.save(selection)
+    }
+
+    private func openPlayer(_ id: String) {
+        followsOwnProfile = id == snapshot.me
+        destination = .profile(id)
+    }
+
+    private func goBack() {
+        switch destination {
+        case .games(let id), .trend(let id): destination = .profile(id)
+        case .profile, .standings: destination = .standings
+        }
+    }
+
+    private func changes(for id: String) -> [PlayerRatingChange] {
+        snapshot.ratings.changes.filter { $0.playerID == id && $0.pool == pool }
+    }
+
+    private func refresh() async {
+        #if DEBUG
+        if QALaunchFlag.seedLeaderboard.isSet {
+            GhostLeaderboardView.seedForQA(ratings: .shared, stats: statsStore, players: players)
+        }
+        #endif
+        while !Task.isCancelled {
+            await readSnapshot()
+            guard !Task.isCancelled else { return }
+            if let liveSync {
+                let status = await liveSync.refreshIfDue()
+                guard !Task.isCancelled else { return }
+                syncStatus = status
+                await readSnapshot()
+            }
+            do { try await Task.sleep(for: .seconds(60)) } catch { return }
+        }
+    }
+
+    private func refreshNow() async -> LiveSync.Status? {
+        if let liveSync {
+            let status = await liveSync.sync()
+            guard !Task.isCancelled else { return syncStatus }
+            syncStatus = status
+        }
+        await readSnapshot()
+        return syncStatus
+    }
+
+    private func readSnapshot() async {
+        let updated = await PlayerRatingSnapshot.load(stats: statsStore, players: players)
+        guard !Task.isCancelled else { return }
+        snapshot = updated
+        if followsOwnProfile { destination = destination.replacingPlayer(with: updated.me) } else if let id = destination.playerID {
+            destination = destination.replacingPlayer(with: updated.resolvedPlayerID(id))
+        }
+        ghostRefreshToken += 1
+    }
+}
+
+private enum LeaderboardScope: String, CaseIterable {
+    case players = "Players"
+    case ghosts = "Ghosts"
+    var id: String { self == .players ? "players" : "ghosts" }
+}
+
+private enum RatingDestination: Equatable {
+    case standings, profile(String), games(String), trend(String)
+
+    var playerID: String? {
+        switch self {
+        case .standings: return nil
+        case .profile(let id), .games(let id), .trend(let id): return id
+        }
+    }
+
+    func replacingPlayer(with id: String) -> Self {
+        switch self {
+        case .standings: return .standings
+        case .profile: return .profile(id)
+        case .games: return .games(id)
+        case .trend: return .trend(id)
         }
     }
 }
-#endif
 
-/// The painted board scene behind a scrim: the chrome `GameHistoryView` uses.
+private enum RatingOverlay { case mode, tier }
+private enum RatingSheet: String, Identifiable {
+    case help, account
+    var id: String { rawValue }
+}
+
+/// The painted board scene behind a scrim, shared by the app's records pages.
 struct PaintedScreenBackground: View {
     var body: some View {
         ZStack {
-            GeometryReader { geo in
-                ThemedBackgroundImage()
-                    .scaledToFill()
-                    .frame(width: geo.size.width, height: geo.size.height)
-                    .clipped()
+            GeometryReader { geometry in
+                ThemedBackgroundImage().scaledToFill()
+                    .frame(width: geometry.size.width, height: geometry.size.height).clipped()
             }
-            LinearGradient(
-                colors: [Color.black.opacity(0.62), Color.black.opacity(0.4), Color.black.opacity(0.7)],
-                startPoint: .top, endPoint: .bottom)
+            LinearGradient(colors: [.black.opacity(0.62), .black.opacity(0.4), .black.opacity(0.7)],
+                           startPoint: .top, endPoint: .bottom)
         }
         .ignoresSafeArea()
     }

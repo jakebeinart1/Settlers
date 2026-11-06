@@ -30,8 +30,8 @@ struct MatchRatingReceiptView: View {
         .task(id: matchID) { await loadChange() }
         .fullScreenCover(isPresented: $showingRatings, onDismiss: { Task { await loadChange() } }, content: {
             if let change {
-                PlayerRatingsView(playerID: change.playerID, initialPool: change.pool,
-                                  onDismiss: { showingRatings = false })
+                LeaderboardView(initialSelection: RatingPageSelection(playerID: change.playerID, pool: change.pool),
+                                onDismiss: { showingRatings = false })
             }
         })
     }
@@ -69,11 +69,11 @@ struct MatchRatingReceiptView: View {
 
     private func endpoints(_ change: PlayerRatingChange) -> some View {
         HStack(alignment: .firstTextBaseline, spacing: 10) {
-            Text(verbatim: "\(Int(change.before.rounded()))")
+            Text(verbatim: Int(change.before.rounded()).formatted())
                 .foregroundStyle(.white.opacity(0.7))
             Image(systemName: "arrow.right").font(.body)
                 .foregroundStyle(.white.opacity(0.6))
-            Text(verbatim: "\(Int(change.after.rounded()))")
+            Text(verbatim: Int(change.after.rounded()).formatted())
                 .foregroundStyle(SettingsChrome.ornamentGold)
         }
         .font(.system(.title2, design: .serif).bold())

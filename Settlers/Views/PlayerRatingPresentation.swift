@@ -36,24 +36,55 @@ struct PlayerRatingSnapshot: Sendable {
     let me: String
     let names: [String: String]
     let ratings: PlayerRatings
+    var localOwnerBindings: [String: String] = [:]
 
     static let empty = Self(me: "", names: [:], ratings: PlayerRatings(records: []))
 
     static func load(stats: SeatStatsStore = .shared, players: PlayerDirectory = .shared) async -> Self {
         await Task.detached(priority: .userInitiated) {
             let directory = players.load()
-            var names = directory.names
-            names[directory.me] = players.name(of: directory.me)
-            return Self(me: directory.me, names: names, ratings: PlayerRatings(records: stats.all()))
+            let bindings = directory.localOwnerBindings ?? [:]
+            let me = bindings[directory.me] ?? directory.me
+            var names = canonicalNames(directory.names, bindings: bindings)
+            if names[me] == nil { names[me] = players.name(of: directory.me) }
+            // A durable adoption binding can precede its record refiles. Normalize
+            // before replay so split local/account records share one Elo history.
+            let records = canonicalRecords(stats.all(), bindings: bindings)
+            return Self(me: me, names: names, ratings: PlayerRatings(records: records),
+                        localOwnerBindings: bindings)
         }.value
     }
 
-    func name(for player: String) -> String { names[player] ?? "Player" }
+    private static func canonicalNames(_ names: [String: String], bindings: [String: String]) -> [String: String] {
+        var canonical = names.filter { bindings[$0.key] == nil }
+        for (id, name) in names.sorted(by: { $0.key < $1.key }) {
+            let owner = bindings[id] ?? id
+            if canonical[owner] == nil { canonical[owner] = name }
+        }
+        return canonical
+    }
+
+    private static func canonicalRecords(_ records: [SeatStatsRecord],
+                                         bindings: [String: String]) -> [SeatStatsRecord] {
+        records.map { record in
+            let seats = record.seats.map { entry in
+                guard case .person(let id) = RatedEntity(key: entry.entity),
+                      let owner = bindings[id] else { return entry }
+                return SeatStatsRecord.Entry(entity: RatedEntity.person(owner).key, stats: entry.stats)
+            }
+            return SeatStatsRecord(match: record.match, date: record.date, seats: seats,
+                                   ratingPool: record.ratingPool, abandoned: record.abandoned)
+        }
+    }
+
+    func resolvedPlayerID(_ player: String) -> String { localOwnerBindings[player] ?? player }
+
+    func name(for player: String) -> String { names[resolvedPlayerID(player)] ?? names[player] ?? "Player" }
 
     /// People known online appear even before their first game in this pool.
     /// Ghosts have their own established page and are never mistaken for people.
     var playerIDs: [String] {
-        Set(ratings.playerIDs + Array(names.keys) + (me.isEmpty ? [] : [me])).sorted {
+        Set((ratings.playerIDs + Array(names.keys) + (me.isEmpty ? [] : [me])).map(resolvedPlayerID)).sorted {
             (name(for: $0).localizedLowercase, $0) < (name(for: $1).localizedLowercase, $1)
         }
     }
@@ -79,85 +110,6 @@ enum RatingPresentation {
         case .noAccount: return "Sign in to iCloud in Settings to sync across devices"
         case .noName: return "Choose a leaderboard name to sync your records"
         case .nameTaken: return "Choose another leaderboard name to sync your records"
-        }
-    }
-}
-
-/// A single framed standing belongs on the title screen; the chart and every
-/// mode's record remain one tap away instead of turning the menu into a dashboard.
-struct PlayerRatingMenuPlaque: View {
-    var refreshToken = 0
-    let onOpen: (String, RatingPool) -> Void
-
-    @State private var snapshot = PlayerRatingSnapshot.empty
-    @State private var pool = RatingPoolPreference.load()
-    @State private var foregroundToken = 0
-    @Environment(\.scenePhase) private var scenePhase
-
-    var body: some View {
-        Button { onOpen(snapshot.me, pool) } label: {
-            VStack(alignment: .leading, spacing: 9) {
-                standingRow
-                Rectangle().fill(SettingsChrome.ornamentGold.opacity(0.28)).frame(height: 1)
-                overallRow
-            }
-            .padding(.horizontal, 15)
-            .padding(.vertical, 13)
-            .background(PaintedChromeBackground(fill: .color(SettingsChrome.plaqueFill), cornerRadius: 12))
-        }
-        .buttonStyle(.plain)
-        .disabled(snapshot.me.isEmpty)
-        .accessibilityIdentifier("main-menu.ratings")
-        .task(id: "\(refreshToken):\(foregroundToken)") { await refresh() }
-        .onChange(of: scenePhase) { _, phase in
-            if phase == .active { foregroundToken += 1 }
-        }
-    }
-
-    private var standingRow: some View {
-        let standing = snapshot.ratings.standing(for: snapshot.me, in: pool)
-        return HStack(alignment: .firstTextBaseline, spacing: 12) {
-            VStack(alignment: .leading, spacing: 3) {
-                Text(snapshot.me.isEmpty ? "Your rating" : snapshot.name(for: snapshot.me))
-                    .font(.system(.headline, design: .serif))
-                    .lineLimit(1)
-                Text("\(pool.displayName) · \(pool.difficulty.displayName) AI")
-                    .font(.system(.caption, design: .serif))
-                    .foregroundStyle(.white.opacity(0.75))
-            }
-            Spacer(minLength: 0)
-            VStack(alignment: .trailing, spacing: 1) {
-                Text(standing.isRated ? "\(standing.displayedRating)" : "Unrated")
-                    .font(.system(.title3, design: .serif, weight: .bold))
-                    .foregroundStyle(SettingsChrome.ornamentGold)
-                Text("Elo").font(.system(.caption2, design: .serif)).foregroundStyle(.white.opacity(0.7))
-            }
-        }
-    }
-
-    private var overallRow: some View {
-        let record = snapshot.ratings.overallRecord(for: snapshot.me)
-        return HStack(alignment: .firstTextBaseline, spacing: 8) {
-            Text(record.games == 0 ? "Play against AI to begin your record" :
-                    "All modes: \(RatingPresentation.record(wins: record.wins, losses: record.losses))")
-                .font(.system(.caption, design: .serif))
-                .foregroundStyle(.white.opacity(0.85))
-                .fixedSize(horizontal: false, vertical: true)
-            Spacer(minLength: 0)
-            Image(systemName: "chevron.right").font(.caption.weight(.semibold))
-                .foregroundStyle(SettingsChrome.ornamentGold)
-        }
-    }
-
-    private func refresh() async {
-        while !Task.isCancelled {
-            snapshot = await PlayerRatingSnapshot.load()
-            pool = RatingPoolPreference.load()
-            if let liveSync = LiveSync.shared {
-                await liveSync.refreshIfDue()
-                snapshot = await PlayerRatingSnapshot.load()
-            }
-            do { try await Task.sleep(for: .seconds(60)) } catch { return }
         }
     }
 }

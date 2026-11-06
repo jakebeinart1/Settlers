@@ -16,15 +16,27 @@ enum QAPlayerRatingsFixture {
             var players = PlayerDirectory.shared.load()
             players.me = playerID
             players.names = [playerID: "Alex", "ratings-preview-jake": "Jake", "ratings-preview-kyle": "Kyle"]
+            if QALaunchFlag.playerRatingsWideNames.isSet {
+                players.names = [playerID: "WWWWWWWWWWWW", "ratings-preview-jake": "Maximilian W",
+                                 "ratings-preview-kyle": "ChristopherW"]
+            }
             players.migratedLegacyNames = true
             try PlayerDirectory.shared.save(players)
-            PlayerNameStore.shared.save("Alex")
+            PlayerNameStore.shared.save(players.names[playerID] ?? "Alex")
             try seedRecords()
+            if QALaunchFlag.playerRatingsBusyMenu.isSet { try seedMenuStatistics() }
             try RatingStore.shared.rebuild(from: SeatStatsStore.shared.all())
             RatingPoolPreference.save(RatingPool(mode: .classic, difficulty: .expert))
         } catch {
             preconditionFailure("Could not seed the ratings layout fixture: \(error)")
         }
+    }
+
+    /// Layout data, never evidence of a completed legal match. Resume in the
+    /// UI test is created by actually starting and leaving a separate game.
+    private static func seedMenuStatistics() throws {
+        let statistics = GameStats(gamesPlayed: 22, gamesWon: 13, totalFinalVP: 198, totalDurationSeconds: 26_400)
+        try JSONEncoder().encode(statistics).write(to: GameStatsStore.shared.fileURL, options: .atomic)
     }
 
     private static func seedRecords() throws {

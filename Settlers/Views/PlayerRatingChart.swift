@@ -12,11 +12,13 @@ struct PlayerRatingChart: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            HStack(alignment: .firstTextBaseline) {
-                Text("Rating history").font(.system(.subheadline, design: .serif, weight: .semibold))
-                Spacer()
-                Text("\(changes.count) \(changes.count == 1 ? "game" : "games")")
-                    .font(.system(.caption, design: .serif)).foregroundStyle(.white.opacity(0.7))
+            ViewThatFits(in: .horizontal) {
+                HStack(alignment: .firstTextBaseline) {
+                    chartTitle.fixedSize()
+                    Spacer(minLength: 8)
+                    gameCount.fixedSize()
+                }
+                VStack(alignment: .leading, spacing: 3) { chartTitle; gameCount }
             }
             HStack(spacing: 8) {
                 VStack(alignment: .trailing) {
@@ -41,14 +43,32 @@ struct PlayerRatingChart: View {
             .accessibilityElement(children: .ignore)
             .accessibilityLabel(chartDescription)
             .accessibilityIdentifier("ratings.chart")
-            HStack {
-                Text(changes.first?.date.formatted(date: .abbreviated, time: .omitted) ?? "")
-                Spacer()
-                Text(changes.last?.date.formatted(date: .abbreviated, time: .omitted) ?? "")
+            ViewThatFits(in: .horizontal) {
+                HStack {
+                    dateLabel(changes.first?.date).fixedSize()
+                    Spacer(minLength: 8)
+                    dateLabel(changes.last?.date).fixedSize()
+                }
+                VStack(alignment: .leading, spacing: 3) {
+                    dateLabel(changes.first?.date)
+                    dateLabel(changes.last?.date)
+                }
             }
-            .font(.system(.caption2, design: .serif))
-            .foregroundStyle(.white.opacity(0.65))
         }
+    }
+
+    private var chartTitle: some View {
+        Text("Rating history").font(.system(.subheadline, design: .serif, weight: .semibold))
+    }
+
+    private var gameCount: some View {
+        Text("\(changes.count) \(changes.count == 1 ? "game" : "games")")
+            .font(.system(.caption, design: .serif)).foregroundStyle(.white.opacity(0.7))
+    }
+
+    private func dateLabel(_ date: Date?) -> some View {
+        Text(date?.formatted(date: .abbreviated, time: .omitted) ?? "")
+            .font(.system(.caption2, design: .serif)).foregroundStyle(.white.opacity(0.65))
     }
 
     private var grid: some View {

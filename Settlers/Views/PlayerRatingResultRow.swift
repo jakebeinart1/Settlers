@@ -86,7 +86,12 @@ struct PlayerRatingHelpView: View {
                 }
                 ScrollView {
                     VStack(alignment: .leading, spacing: 22) {
-                        explanation("A rating for each challenge", "Classic, Conquest, Vast and Naval each have separate records. "
+                        explanation("Players and Ghosts", "Players compares each person's record against ordinary AI, "
+                            + "with one shared opponent for each mode and difficulty. The explanations below describe "
+                            + "that record. Ghosts keeps the original Classic Standard ladder, including ghost games, "
+                            + "AI reference ratings and play-style graphs. Its ratings are separate.")
+                        explanation("A rating for each challenge", "Classic, Classic Conquest, Vast, Vast Conquest "
+                            + "and Voyages (Naval) each have separate records. "
                             + "Classic AI and Expert AI are separate ladders too. There is no combined Elo across modes.")
                         explanation("One game, one result", "Beat the table to gain Elo. A loss lowers it. "
                             + "Every player and the shared AI entry start each ladder at 1000. At the same Elo as the AI, "
@@ -96,12 +101,12 @@ struct PlayerRatingHelpView: View {
                             + "Returning to the menu and resuming later does not. Ghost tables and pass-and-play games "
                             + "stay outside these AI-only ratings.")
                         explanation("Your earlier games", "Existing rated Classic Standard games against ordinary AI are "
-                            + "recalculated in their matching difficulty. Older Naval, Vast and Conquest recordings "
+                            + "recalculated in their matching difficulty. Older Voyages, Vast and Conquest recordings "
                             + "without a verified player identity and recorded AI difficulty are not guessed into a ladder.")
                         explanation("The same player on every device", "Your iCloud account keeps your identity. "
                             + "Changing your name keeps your games and ratings. Records sync across your devices and "
-                            + "appear in other players' standings when connected. Pull down on your record to refresh "
-                            + "shared standings.")
+                            + "appear in other players' standings when connected. Open the sync status at the bottom "
+                            + "of Leaderboard and choose Refresh to update shared standings.")
                         explanation("When older games arrive", "Ratings follow games in date order. If a device syncs "
                             + "an older result, later ratings and game-by-game changes are recalculated so everyone with "
                             + "the same games sees the same record.")
