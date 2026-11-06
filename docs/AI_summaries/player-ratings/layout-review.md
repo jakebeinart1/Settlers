@@ -1,11 +1,17 @@
-# Leaderboard layout audit — November 2, 2026
+# Leaderboard layout audit — November 6, 2026
 
 ## Status
 
 PR 71 was moved from draft to ready at Alex’s explicit request, before the
 requested code review. It remains open and unmerged. The published `bf0f804`
-gallery is a rejected baseline; its historical gate does not qualify this
-local redesign.
+gallery is a rejected baseline; its historical gate does not qualify the
+redesign. The replacement gallery now presents reviewed native captures in one
+column, with per-image provenance and explicit remaining acceptance.
+
+Fetching main on November 6 confirmed `b6eef2b` as the latest base. This branch
+already contains it; `git rebase origin/main` reported up to date. A fresh source
+review found no additional functional defect. Its comment correction identifies
+the legacy Classic anchor and evolving Expert reference accurately.
 
 The five independent published-source review perspectives completed: standards,
 introduced bugs, history, prior discussions and comment contracts. They found
@@ -66,17 +72,25 @@ native verification.
 
 ## Remaining acceptance
 
-Actual **375×667** verification is pending. The guarded compact journeys cover
+Actual **375×667** verification is pending. The November 2 attempt stopped during
+build when observed disk growth exceeded its allowance, before tests executed;
+that attempt establishes neither a compact UI pass nor failure. The temporary
+SE was subsequently retired with its diagnostics and source preserved.
+
+The guarded compact journeys cover
 ordinary Unrated standings, largest text with the widest permitted name and
 Vast Conquest context, full Unrated/Elo/explanation text, bounded empty history,
 and invariant navigation while scrolling. Wrong-size skips do not establish
 compact fit. Pre-fit screenshots are captured before assertions, with separate
 accessibility top and bottom evidence.
 
-The final gallery, exact-commit maintained gate and PR source update remain
-pending. No merge, TestFlight delivery or live multi-account iCloud acceptance
-is claimed. Synthetic screenshot records prove presentation; the replay and
-fake-cloud tests provide their separate functional evidence.
+The reviewed standard-phone gallery and source form a feature-branch review
+checkpoint. It uses the repository’s documented save-progress exception; the
+full pre-push gate is not claimed for this checkpoint. Compact captures, the
+post-capture copy/context refinements and the final exact-commit maintained gate
+remain pending capacity. No merge, TestFlight delivery or live multi-account
+iCloud acceptance is claimed. Synthetic screenshot records prove presentation;
+the replay and fake-cloud tests provide their separate functional evidence.
 
 Private source-bound logs, manifests, full-resolution originals and failed
 iterations remain under `player-ratings-redesign-20261102` in the local task

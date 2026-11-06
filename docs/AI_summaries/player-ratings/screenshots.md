@@ -1,131 +1,153 @@
-# Rejected native screenshot baseline
+# Reviewed native Leaderboard screenshots
 
-**The following gallery is retained failure evidence, not approval of the
-current layout.** Review on November 2 rejected the separate home rating plaque,
-the overview that cuts off Kyle, and the largest-text spacing. The old tests
-made those sections reachable by scrolling and did not establish initial fit.
+Updated November 6, 2026. These are the accepted **November 2 R6 native captures** from an actual **402×874-point iPhone 17 Pro / iOS 26.5**, presented in one column. All images retain the complete device frame.
 
-The unified Leaderboard revision needs a replacement gallery from actual
-402×874 and 375×667-point native destinations, at ordinary and accessibility
-text sizes. Capture the restored home, complete initial standings, profile,
-game history, filters, empty/Unrated states, account details and preserved ghost
-routes. Every image must be inspected uncropped for text, borders, navigation
-and safe-area fit. A hosted render or wrong-size skipped test is not actual
-compact-device proof. New native verification is currently pending.
+The run passed **23 checks, zero failed, three compact-only checks skipped**. Each selected original was visually reviewed. [Provenance](screenshots/reviewed/provenance.json) records original and JPEG hashes, producing tests, device and source guard. The [rejected earlier gallery](rejected-baseline.md) is retained as failure evidence.
 
-## Baseline provenance
+**Review checkpoint:** actual 375×667 verification and the final exact-commit gate remain pending disk capacity. Help wording and the accessibility context size were refined after these captures; their images below are marked for recapture. These images do not establish a fresh run of the November 6 commit.
 
-These are actual iPhone 17 Pro / iOS 26.5 simulator captures from native taps.
-The record fixtures intentionally contain synthetic summary history for Alex,
-Jake and Kyle. The win/loss previews inject their outcomes and representative
-scores; they prove layout, not legal gameplay or real account ratings.
+Fixtures contain synthetic records; outcome previews inject results. These images prove presentation, not real player performance, legal match completion or live multi-account iCloud delivery.
 
-`focused-green-02` passed 44 focused model, sync and UI checks. The final picker
-and history refinements passed three additional native UI journeys. Original
-full-resolution PNGs and source-bound receipts remain in the local task evidence;
-these 804-pixel-wide copies keep the PR lightweight. The manifest records hashes
-and the producing native run. Cross-device convergence uses a replay-verifying
-fake CloudKit backend; these images do not establish live iCloud delivery.
+## Home
 
-The full repository gate and ordinary completed-match checks are required on
-this exact change before PR delivery. The PR records their actual outcome.
+### Single Leaderboard action
 
-## Menu rating and record
+<img src="screenshots/reviewed/home.jpg" alt="Single Leaderboard action" width="402">
 
-![Menu rating and record](screenshots/01-menu-rating-and-record.jpg)
+### Resume, history and statistics
 
-## Menu new player
+<img src="screenshots/reviewed/busy-home.jpg" alt="Resume, history and statistics" width="402">
 
-![Menu new player](screenshots/02-menu-new-player.jpg)
+## Standings
 
-## New player record
+### All three people and the shared AI in the initial frame
 
-![New player record](screenshots/03-new-player-record.jpg)
+<img src="screenshots/reviewed/standings.jpg" alt="All three people and the shared AI in the initial frame" width="402">
 
-## Personal expert rating
+### Maximum-width names
 
-![Personal expert rating](screenshots/04-personal-expert-rating.jpg)
+<img src="screenshots/reviewed/wide-names.jpg" alt="Maximum-width names" width="402">
 
-## Voyages independent rating
+## Player records
 
-![Voyages independent rating](screenshots/05-voyages-independent-rating.jpg)
+### Another player’s record
 
-## Conquest classic ai
+<img src="screenshots/reviewed/profile.jpg" alt="Another player’s record" width="402">
 
-![Conquest classic ai](screenshots/06-conquest-classic-ai.jpg)
+### Wide-name profile
 
-## Shared player standings
+<img src="screenshots/reviewed/wide-name-profile.jpg" alt="Wide-name profile" width="402">
 
-![Shared player standings](screenshots/07-shared-player-standings.jpg)
+### Independent Voyages record
 
-## Game by game rating changes
+<img src="screenshots/reviewed/voyages.jpg" alt="Independent Voyages record" width="402">
 
-![Game by game rating changes](screenshots/08-game-by-game-rating-changes.jpg)
+### New player: Unrated
 
-## Rating help
+<img src="screenshots/reviewed/unrated.jpg" alt="New player: Unrated" width="402">
 
-![Rating help](screenshots/09-rating-help.jpg)
+## Game history
 
-## Local record status
+### Recorded rating changes
 
-![Local record status](screenshots/10-local-record-status.jpg)
+<img src="screenshots/reviewed/history.jpg" alt="Recorded rating changes" width="402">
 
-## Win rating receipt
+### Empty history
 
-![Win rating receipt](screenshots/11-win-rating-receipt.jpg)
+<img src="screenshots/reviewed/empty.jpg" alt="Empty history" width="402">
 
-## Loss rating receipt
+## Competition controls
 
-![Loss rating receipt](screenshots/12-loss-rating-receipt.jpg)
+### Mode chooser
 
-## Restart loss disclosure
+<img src="screenshots/reviewed/mode.jpg" alt="Mode chooser" width="402">
 
-![Restart loss disclosure](screenshots/13-restart-loss-disclosure.jpg)
+### AI tier chooser
 
-## Replacement loss disclosure
+<img src="screenshots/reviewed/tier.jpg" alt="AI tier chooser" width="402">
 
-![Replacement loss disclosure](screenshots/14-replacement-loss-disclosure.jpg)
+### Mode chooser at largest text
 
-## Ratings largest text
+<img src="screenshots/reviewed/ax-mode.jpg" alt="Mode chooser at largest text" width="402">
 
-![Ratings largest text](screenshots/15-ratings-largest-text.jpg)
+### AI tier chooser at largest text
 
-## Legacy and ghost ladder context
+<img src="screenshots/reviewed/ax-tier.jpg" alt="AI tier chooser at largest text" width="402">
 
-![Legacy and ghost ladder context](screenshots/16-legacy-and-ghost-ladder-context.jpg)
+## Help and account
 
-## Jake personal record
+### Rating help
 
-![Jake personal record](screenshots/17-jake-personal-record.jpg)
+<img src="screenshots/reviewed/help.jpg" alt="Rating help" width="402">
 
-## Legacy player record and ai link
+Captured before the current Voyages (Naval) and AI-reference wording refinement; recapture pending.
 
-![Legacy player record and ai link](screenshots/18-legacy-player-record-and-ai-link.jpg)
+### Account and local sync status
 
-## Painted mode chooser classic
+<img src="screenshots/reviewed/account.jpg" alt="Account and local sync status" width="402">
 
-![Painted mode chooser classic](screenshots/19-painted-mode-chooser-classic.jpg)
+## Game outcomes
 
-## Painted mode chooser naval
+### Win and Elo receipt
 
-![Painted mode chooser naval](screenshots/19-painted-mode-chooser-naval.jpg)
+<img src="screenshots/reviewed/win.jpg" alt="Win and Elo receipt" width="402">
 
-## Standings largest text
+### Loss and Elo receipt
 
-![Standings largest text](screenshots/20-standings-largest-text.jpg)
+<img src="screenshots/reviewed/loss.jpg" alt="Loss and Elo receipt" width="402">
 
-## Game record largest text
+### Restart loss disclosure
 
-![Game record largest text](screenshots/21-game-record-largest-text.jpg)
+<img src="screenshots/reviewed/restart.jpg" alt="Restart loss disclosure" width="402">
 
-## Mode chooser largest text
+### Saved-game replacement disclosure
 
-![Mode chooser largest text](screenshots/22-mode-chooser-largest-text.jpg)
+<img src="screenshots/reviewed/replacement.jpg" alt="Saved-game replacement disclosure" width="402">
 
-## Help largest text
+## Largest text
 
-![Help largest text](screenshots/23-help-largest-text.jpg)
+### Wide-name standings: top
 
-## Menu largest text
+<img src="screenshots/reviewed/ax-overview-top.jpg" alt="Wide-name standings: top" width="402">
 
-![Menu largest text](screenshots/24-menu-largest-text.jpg)
+### Wide-name standings: bottom
+
+<img src="screenshots/reviewed/ax-overview-bottom.jpg" alt="Wide-name standings: bottom" width="402">
+
+### Personal record
+
+<img src="screenshots/reviewed/ax-profile.jpg" alt="Personal record" width="402">
+
+### Bounded game history
+
+<img src="screenshots/reviewed/ax-history.jpg" alt="Bounded game history" width="402">
+
+Captured before the current context-text size cap; recapture pending.
+
+### Rating history
+
+<img src="screenshots/reviewed/ax-trend.jpg" alt="Rating history" width="402">
+
+Captured before the current context-text size cap; recapture pending.
+
+## Preserved Ghost routes
+
+### Ghost leaderboard
+
+<img src="screenshots/reviewed/ghosts.jpg" alt="Ghost leaderboard" width="402">
+
+### Person’s Ghost record and AI records link
+
+<img src="screenshots/reviewed/ghost-person.jpg" alt="Person’s Ghost record and AI records link" width="402">
+
+### Back stays visible after reading style
+
+<img src="screenshots/reviewed/ghost-back.jpg" alt="Back stays visible after reading style" width="402">
+
+### Classic AI fixed anchor
+
+<img src="screenshots/reviewed/classic-reference.jpg" alt="Classic AI fixed anchor" width="402">
+
+### Expert AI reference
+
+<img src="screenshots/reviewed/expert-reference.jpg" alt="Expert AI reference" width="402">

@@ -112,12 +112,18 @@ Profile and history tests preserve selected context, and bounded accessibility
 drags must not move the page chrome. Busy-menu, maximum-width valid names,
 Unrated, empty history, help and account states also need visual review.
 
-The initial two regression tests were written against the old source. Native
-execution is held by the machine-wide storage coordinator; a retained baseline
-source packet allows those tests to run against the rejected implementation
-before qualifying the new source. Source lint and project generation are not
-native layout evidence. Do not visually approve or merge this revision until the
-new screenshots have been inspected and actual destination coverage recorded.
+The first redesigned native run exposed real fit failures; its retained results
+are the regression evidence. The refined 402×874 run passed 23 checks with zero
+failures and three compact-only skips. Its complete device captures received
+independent visual review. The 375×667 attempt stopped during build on the disk
+growth guard before executing tests, so compact fit remains unverified.
+
+On November 6, fetching main confirmed that `b6eef2b` remains the latest base;
+the branch already contains it and rebase reported up to date. The reviewed
+standard-phone captures and source are being published as a review checkpoint.
+Their provenance identifies the captured source; later Help copy and context
+size refinements still need recapture. The final exact-commit gate and compact
+acceptance remain required before merge.
 
 ## Verification and review
 
@@ -132,7 +138,8 @@ screenshots of the menu (new and established players), detailed record,
 another mode/tier, shared standings, win/loss receipts, restart disclosure and
 offline presentation. Include large-text/compact checks without allocating
 unnecessary simulator devices. Run the repository's complete declared gate,
-Debug and Release, and independent source/visual review before opening the PR.
+Debug and Release, and independent source/visual review before merge. The PR
+was opened before the requested review, at Alex’s explicit instruction.
 
 Design reference: [Chess.com statistics](https://support.chess.com/en/articles/8705902-what-does-my-stats-page-show)
 informs clear records and trends; [its rating explanation](https://support.chess.com/en/articles/8566476-how-do-ratings-work-on-chess-com)

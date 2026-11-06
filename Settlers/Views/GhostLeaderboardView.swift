@@ -2,7 +2,7 @@ import CatanAI
 import SwiftUI
 
 /// The established Classic Standard ladder inside the shared leaderboard hub.
-/// Its fixed AI references and ghost radar use only the original rated matches;
+/// Its Classic anchor, Expert reference and ghost radar use only the original rated matches;
 /// ordinary-AI mode records must not change that population or those ratings.
 struct GhostLeaderboardView: View {
     var ratingStore = RatingStore.shared

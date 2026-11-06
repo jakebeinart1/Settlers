@@ -1,0 +1,980 @@
+{
+  "schema_version": 1,
+  "scope": "Reviewed standard-phone checkpoint; compact and final exact-commit gate pending",
+  "run": "refined-standard-r2",
+  "test_counts": {
+    "total": 26,
+    "passed": 23,
+    "failed": 0,
+    "skipped_compact_only": 3
+  },
+  "source_guard_sha256": "c128dec6b6aeac610dc6b2c2978b08df6d0d9e354f22be8eb632a1d703f35887",
+  "transform": "Uncropped sips resize to804px, JPEG85; original full PNGs unchanged",
+  "post_capture_changes": [
+    "Pinned game/trend record-context text capped at accessibility1",
+    "Help clarifies Voyages (Naval) and AI reference wording",
+    "Ghost header comment now distinguishes Classic anchor and Expert reference; no render change"
+  ],
+  "images": [
+    {
+      "slot": "home",
+      "original_sha256": "c6f25209887d93714535e2c80775e8a7a6c904a5044abe7fa53ccf7bd6553575",
+      "original_pixels": [
+        1206,
+        2622
+      ],
+      "viewport_points": [
+        402,
+        874
+      ],
+      "run": "refined-standard-r2",
+      "source_guard_sha256": "c128dec6b6aeac610dc6b2c2978b08df6d0d9e354f22be8eb632a1d703f35887",
+      "captured_head": "bf0f8040e7b0abac0c89fa4eb7c84e4f7f0dd360",
+      "test": "PlayerRatingsFlowTests/testHomeHasOneLeaderboardEntryWithoutASeparateRatingSection()",
+      "test_identifier_url": "test://com.apple.xcode/Settlers/SettlersUITests/PlayerRatingsFlowTests/testHomeHasOneLeaderboardEntryWithoutASeparateRatingSection",
+      "device_id": "3F1AF757-2349-441E-B651-50BFE17F7502",
+      "device_name": "Empires QA",
+      "capture_timestamp": 1793650334.919,
+      "manifest_name": "01-restored-home-402x874_0_D1185587-9F13-46CE-87DE-BB80B27ABB8F.png",
+      "approval": {
+        "path": "r6-independent-visual-review.json",
+        "sha256": "e6a6c6c89947bd57c168feb5c639cbde058dd7396d9111ad44498af1541ab712"
+      },
+      "original_png": "refined-standard-r2-attachments/CC793081-687D-4137-969C-C23B89760779.png",
+      "jpeg_sha256": "f6c861650f68df78f9dfd7d6f65bd91309e037a60b75bd0aac2e16d20a823002",
+      "jpeg_bytes": 280703,
+      "jpeg_pixels": [
+        804,
+        1748
+      ]
+    },
+    {
+      "slot": "busy-home",
+      "original_sha256": "ece639e7ec44cf9975dabcb588ac5f8d165ac115af3d2ac2ebb04bdca67f3d73",
+      "original_pixels": [
+        1206,
+        2622
+      ],
+      "viewport_points": [
+        402,
+        874
+      ],
+      "run": "refined-standard-r2",
+      "source_guard_sha256": "c128dec6b6aeac610dc6b2c2978b08df6d0d9e354f22be8eb632a1d703f35887",
+      "captured_head": "bf0f8040e7b0abac0c89fa4eb7c84e4f7f0dd360",
+      "test": "PlayerRatingsFlowTests/testReturningHomeFitsResumeHistoryAndTheSingleLeaderboardEntry()",
+      "test_identifier_url": "test://com.apple.xcode/Settlers/SettlersUITests/PlayerRatingsFlowTests/testReturningHomeFitsResumeHistoryAndTheSingleLeaderboardEntry",
+      "device_id": "3F1AF757-2349-441E-B651-50BFE17F7502",
+      "device_name": "Empires QA",
+      "capture_timestamp": 1793650750.423,
+      "manifest_name": "04-returning-home-with-real-resume-and-history-402x874_0_1F202C5F-CCFC-486E-B58B-3A6941C71392.png",
+      "approval": {
+        "path": "r6-independent-visual-review.json",
+        "sha256": "e6a6c6c89947bd57c168feb5c639cbde058dd7396d9111ad44498af1541ab712"
+      },
+      "original_png": "refined-standard-r2-attachments/66EEAD0F-72ED-4608-A539-734B028DEFE6.png",
+      "jpeg_sha256": "c4f28b40853c4a577ad264f26e54dd08334f98ae01a8369391209908e96ec431",
+      "jpeg_bytes": 296856,
+      "jpeg_pixels": [
+        804,
+        1748
+      ]
+    },
+    {
+      "slot": "standings",
+      "original_sha256": "81b81040d1d51a87eb546a7250e584069a7a97376d2d85ba5689803057e552ac",
+      "original_pixels": [
+        1206,
+        2622
+      ],
+      "viewport_points": [
+        402,
+        874
+      ],
+      "run": "refined-standard-r2",
+      "source_guard_sha256": "c128dec6b6aeac610dc6b2c2978b08df6d0d9e354f22be8eb632a1d703f35887",
+      "captured_head": "bf0f8040e7b0abac0c89fa4eb7c84e4f7f0dd360",
+      "test": "PlayerRatingsFlowTests/testStandardPhoneOverviewFitsAt402By874WithoutSwiping()",
+      "test_identifier_url": "test://com.apple.xcode/Settlers/SettlersUITests/PlayerRatingsFlowTests/testStandardPhoneOverviewFitsAt402By874WithoutSwiping",
+      "device_id": "3F1AF757-2349-441E-B651-50BFE17F7502",
+      "device_name": "Empires QA",
+      "capture_timestamp": 1793650917.494,
+      "manifest_name": "02-complete-player-leaderboard-402x874_0_7F4CEFC2-1E62-4644-B835-0D6336C2BF00.png",
+      "approval": {
+        "path": "r6-independent-visual-review.json",
+        "sha256": "e6a6c6c89947bd57c168feb5c639cbde058dd7396d9111ad44498af1541ab712"
+      },
+      "original_png": "refined-standard-r2-attachments/4A9E24A0-9015-47A3-9BEE-18492D35E556.png",
+      "jpeg_sha256": "33dc6694ee5a6e802d5acfae03f8c052000cc1128a64e7e9f836175009c018e2",
+      "jpeg_bytes": 243298,
+      "jpeg_pixels": [
+        804,
+        1748
+      ]
+    },
+    {
+      "slot": "wide-names",
+      "original_sha256": "772c3203ef5453ac189a4b286d4066b8bfaf5e8f803307b436758c91991e4fe9",
+      "original_pixels": [
+        1206,
+        2622
+      ],
+      "viewport_points": [
+        402,
+        874
+      ],
+      "run": "refined-standard-r2",
+      "source_guard_sha256": "c128dec6b6aeac610dc6b2c2978b08df6d0d9e354f22be8eb632a1d703f35887",
+      "captured_head": "bf0f8040e7b0abac0c89fa4eb7c84e4f7f0dd360",
+      "test": "PlayerRatingsFlowTests/testMaximumWidthPlayerNamesKeepTheOverviewAligned()",
+      "test_identifier_url": "test://com.apple.xcode/Settlers/SettlersUITests/PlayerRatingsFlowTests/testMaximumWidthPlayerNamesKeepTheOverviewAligned",
+      "device_id": "3F1AF757-2349-441E-B651-50BFE17F7502",
+      "device_name": "Empires QA",
+      "capture_timestamp": 1793650586.027,
+      "manifest_name": "04-wide-player-names-402x874_0_2C3DA22D-E0EC-4B74-A8A2-F244CDCD5EFD.png",
+      "approval": {
+        "path": "r6-independent-visual-review.json",
+        "sha256": "e6a6c6c89947bd57c168feb5c639cbde058dd7396d9111ad44498af1541ab712"
+      },
+      "original_png": "refined-standard-r2-attachments/F5F36F90-7C71-49FA-836A-19ABFF64C1AB.png",
+      "jpeg_sha256": "1c7c37c8b41dc715fde36631941a45e40b775744666a5458a48e2cc642fa38b4",
+      "jpeg_bytes": 254742,
+      "jpeg_pixels": [
+        804,
+        1748
+      ]
+    },
+    {
+      "slot": "wide-name-profile",
+      "original_sha256": "0c49057a7e08a445e66a68cb2cf785907c6fbf10a431f758791ffe31f61254ff",
+      "original_pixels": [
+        1206,
+        2622
+      ],
+      "viewport_points": [
+        402,
+        874
+      ],
+      "run": "refined-standard-r2",
+      "source_guard_sha256": "c128dec6b6aeac610dc6b2c2978b08df6d0d9e354f22be8eb632a1d703f35887",
+      "captured_head": "bf0f8040e7b0abac0c89fa4eb7c84e4f7f0dd360",
+      "test": "PlayerRatingsFlowTests/testMaximumWidthPlayerNamesKeepTheOverviewAligned()",
+      "test_identifier_url": "test://com.apple.xcode/Settlers/SettlersUITests/PlayerRatingsFlowTests/testMaximumWidthPlayerNamesKeepTheOverviewAligned",
+      "device_id": "3F1AF757-2349-441E-B651-50BFE17F7502",
+      "device_name": "Empires QA",
+      "capture_timestamp": 1793650613.095,
+      "manifest_name": "04-wide-name-profile-402x874_0_1B347B04-7038-4B5C-AF39-73E624A35576.png",
+      "approval": {
+        "path": "r6-independent-visual-review.json",
+        "sha256": "e6a6c6c89947bd57c168feb5c639cbde058dd7396d9111ad44498af1541ab712"
+      },
+      "original_png": "refined-standard-r2-attachments/C793CBCB-F8A1-4135-BC5C-76753EA6D08A.png",
+      "jpeg_sha256": "8c648b98425abb9b3048073fd0c42ad2fbb8ce4305240d29f1c62f61c3100615",
+      "jpeg_bytes": 237192,
+      "jpeg_pixels": [
+        804,
+        1748
+      ]
+    },
+    {
+      "slot": "profile",
+      "original_sha256": "d8693196faad1410253db25433e0f0d5c0a499d6527cbbc86e00facc83a1a4e4",
+      "original_pixels": [
+        1206,
+        2622
+      ],
+      "viewport_points": [
+        402,
+        874
+      ],
+      "run": "refined-standard-r2",
+      "source_guard_sha256": "c128dec6b6aeac610dc6b2c2978b08df6d0d9e354f22be8eb632a1d703f35887",
+      "captured_head": "bf0f8040e7b0abac0c89fa4eb7c84e4f7f0dd360",
+      "test": "PlayerRatingsFlowTests/testSharedPlayersOpenTheirOwnRecordAndBoundedHistory()",
+      "test_identifier_url": "test://com.apple.xcode/Settlers/SettlersUITests/PlayerRatingsFlowTests/testSharedPlayersOpenTheirOwnRecordAndBoundedHistory",
+      "device_id": "3F1AF757-2349-441E-B651-50BFE17F7502",
+      "device_name": "Empires QA",
+      "capture_timestamp": 1793650827.055,
+      "manifest_name": "07-kyle-personal-record-402x874_0_C68D9B20-3D7E-49C3-9C29-F20D20818542.png",
+      "approval": {
+        "path": "r6-independent-visual-review.json",
+        "sha256": "e6a6c6c89947bd57c168feb5c639cbde058dd7396d9111ad44498af1541ab712"
+      },
+      "original_png": "refined-standard-r2-attachments/A6AA6D05-0280-4A92-B678-1E90EFAF25D6.png",
+      "jpeg_sha256": "1ac3a4fdfd4b48e713c4454a19f91421e32ac3d40ebe7ec1662a4643b6a2eceb",
+      "jpeg_bytes": 230588,
+      "jpeg_pixels": [
+        804,
+        1748
+      ]
+    },
+    {
+      "slot": "voyages",
+      "original_sha256": "6d18a8472da6fbf792a60ac271127521f53c00d5554848eb4b7e2fd25dec0c3a",
+      "original_pixels": [
+        1206,
+        2622
+      ],
+      "viewport_points": [
+        402,
+        874
+      ],
+      "run": "refined-standard-r2",
+      "source_guard_sha256": "c128dec6b6aeac610dc6b2c2978b08df6d0d9e354f22be8eb632a1d703f35887",
+      "captured_head": "bf0f8040e7b0abac0c89fa4eb7c84e4f7f0dd360",
+      "test": "PlayerRatingsFlowTests/testFiltersKeepModeAndDifficultyRatingsIndependentAndPersist()",
+      "test_identifier_url": "test://com.apple.xcode/Settlers/SettlersUITests/PlayerRatingsFlowTests/testFiltersKeepModeAndDifficultyRatingsIndependentAndPersist",
+      "device_id": "3F1AF757-2349-441E-B651-50BFE17F7502",
+      "device_name": "Empires QA",
+      "capture_timestamp": 1793650235.229,
+      "manifest_name": "04-voyages-personal-record-402x874_0_F7D69C45-5746-47D5-A4E6-097D677CDD14.png",
+      "approval": {
+        "path": "r6-independent-visual-review.json",
+        "sha256": "e6a6c6c89947bd57c168feb5c639cbde058dd7396d9111ad44498af1541ab712"
+      },
+      "original_png": "refined-standard-r2-attachments/49CC09D1-71E1-483E-8FF1-13EBA5E6F801.png",
+      "jpeg_sha256": "f8f766a80b3384174e78f5498c761591d1875ba88ce3e675994f8a8049fd71ed",
+      "jpeg_bytes": 229529,
+      "jpeg_pixels": [
+        804,
+        1748
+      ]
+    },
+    {
+      "slot": "history",
+      "original_sha256": "47df785654098a2b227a8b6054bf84338757588918e1877a7a9e0630e67b0d12",
+      "original_pixels": [
+        1206,
+        2622
+      ],
+      "viewport_points": [
+        402,
+        874
+      ],
+      "run": "refined-standard-r2",
+      "source_guard_sha256": "c128dec6b6aeac610dc6b2c2978b08df6d0d9e354f22be8eb632a1d703f35887",
+      "captured_head": "bf0f8040e7b0abac0c89fa4eb7c84e4f7f0dd360",
+      "test": "PlayerRatingsFlowTests/testSharedPlayersOpenTheirOwnRecordAndBoundedHistory()",
+      "test_identifier_url": "test://com.apple.xcode/Settlers/SettlersUITests/PlayerRatingsFlowTests/testSharedPlayersOpenTheirOwnRecordAndBoundedHistory",
+      "device_id": "3F1AF757-2349-441E-B651-50BFE17F7502",
+      "device_name": "Empires QA",
+      "capture_timestamp": 1793650848.325,
+      "manifest_name": "08-bounded-game-history-402x874_0_06F8D0FD-653F-4652-8210-D3DE932AD241.png",
+      "approval": {
+        "path": "r6-independent-visual-review.json",
+        "sha256": "e6a6c6c89947bd57c168feb5c639cbde058dd7396d9111ad44498af1541ab712"
+      },
+      "original_png": "refined-standard-r2-attachments/F7E8F197-F126-4482-B592-A633BE7CAE09.png",
+      "jpeg_sha256": "e549897cae8a5a4877d875400d56f0ed715b98008c880aa61ca1f5c438f5fb7d",
+      "jpeg_bytes": 308890,
+      "jpeg_pixels": [
+        804,
+        1748
+      ]
+    },
+    {
+      "slot": "unrated",
+      "original_sha256": "3c63e81554f091fe737b781dc8b23959e8d7e3a3382261e2a2da485c58df3b73",
+      "original_pixels": [
+        1206,
+        2622
+      ],
+      "viewport_points": [
+        402,
+        874
+      ],
+      "run": "refined-standard-r2",
+      "source_guard_sha256": "c128dec6b6aeac610dc6b2c2978b08df6d0d9e354f22be8eb632a1d703f35887",
+      "captured_head": "bf0f8040e7b0abac0c89fa4eb7c84e4f7f0dd360",
+      "test": "PlayerRatingsFlowTests/testNewPlayerSeesAnHonestUnratedRecordAndEmptyHistory()",
+      "test_identifier_url": "test://com.apple.xcode/Settlers/SettlersUITests/PlayerRatingsFlowTests/testNewPlayerSeesAnHonestUnratedRecordAndEmptyHistory",
+      "device_id": "3F1AF757-2349-441E-B651-50BFE17F7502",
+      "device_name": "Empires QA",
+      "capture_timestamp": 1793650654.424,
+      "manifest_name": "05-unrated-personal-record-402x874_0_B54036DC-F9C3-424E-9385-CD2A657F766C.png",
+      "approval": {
+        "path": "r6-independent-visual-review.json",
+        "sha256": "e6a6c6c89947bd57c168feb5c639cbde058dd7396d9111ad44498af1541ab712"
+      },
+      "original_png": "refined-standard-r2-attachments/FB4D5B73-450F-4277-AC41-B8CA38790AC7.png",
+      "jpeg_sha256": "9d874848965bbab105d15dc007125ec06a68f545b7e183835a36ec31cfe53aeb",
+      "jpeg_bytes": 237321,
+      "jpeg_pixels": [
+        804,
+        1748
+      ]
+    },
+    {
+      "slot": "empty",
+      "original_sha256": "697738ecd1b798e81e93a5f361c7adfedeb7fa6990c962347014df576b592c58",
+      "original_pixels": [
+        1206,
+        2622
+      ],
+      "viewport_points": [
+        402,
+        874
+      ],
+      "run": "refined-standard-r2",
+      "source_guard_sha256": "c128dec6b6aeac610dc6b2c2978b08df6d0d9e354f22be8eb632a1d703f35887",
+      "captured_head": "bf0f8040e7b0abac0c89fa4eb7c84e4f7f0dd360",
+      "test": "PlayerRatingsFlowTests/testNewPlayerSeesAnHonestUnratedRecordAndEmptyHistory()",
+      "test_identifier_url": "test://com.apple.xcode/Settlers/SettlersUITests/PlayerRatingsFlowTests/testNewPlayerSeesAnHonestUnratedRecordAndEmptyHistory",
+      "device_id": "3F1AF757-2349-441E-B651-50BFE17F7502",
+      "device_name": "Empires QA",
+      "capture_timestamp": 1793650671.296,
+      "manifest_name": "06-empty-game-history-402x874_0_E4A129ED-AFF1-479C-BD55-0CF324AED2E6.png",
+      "approval": {
+        "path": "r6-independent-visual-review.json",
+        "sha256": "e6a6c6c89947bd57c168feb5c639cbde058dd7396d9111ad44498af1541ab712"
+      },
+      "original_png": "refined-standard-r2-attachments/7FC4A0C1-E76A-4723-8C30-6B95AC5B52D7.png",
+      "jpeg_sha256": "343e330c70fb3e7ec62277faf61788063f359a816203457a8ded2b28fe54ad8e",
+      "jpeg_bytes": 252404,
+      "jpeg_pixels": [
+        804,
+        1748
+      ]
+    },
+    {
+      "slot": "mode",
+      "original_sha256": "90f3f16790ff96c4354a333489a0a48a94484e81d7b935611eb303487f2ddebe",
+      "original_pixels": [
+        1206,
+        2622
+      ],
+      "viewport_points": [
+        402,
+        874
+      ],
+      "run": "refined-standard-r2",
+      "source_guard_sha256": "c128dec6b6aeac610dc6b2c2978b08df6d0d9e354f22be8eb632a1d703f35887",
+      "captured_head": "bf0f8040e7b0abac0c89fa4eb7c84e4f7f0dd360",
+      "test": "PlayerRatingsFlowTests/testFiltersKeepModeAndDifficultyRatingsIndependentAndPersist()",
+      "test_identifier_url": "test://com.apple.xcode/Settlers/SettlersUITests/PlayerRatingsFlowTests/testFiltersKeepModeAndDifficultyRatingsIndependentAndPersist",
+      "device_id": "3F1AF757-2349-441E-B651-50BFE17F7502",
+      "device_name": "Empires QA",
+      "capture_timestamp": 1793650229.657,
+      "manifest_name": "mode-chooser-naval_0_6B093E0A-C6B9-4657-8EE7-712BC7101B9C.standard-402x874",
+      "approval": {
+        "path": "r6-independent-visual-review.json",
+        "sha256": "e6a6c6c89947bd57c168feb5c639cbde058dd7396d9111ad44498af1541ab712"
+      },
+      "original_png": "refined-standard-r2-attachments/D8E0CE04-8510-4200-9BFC-893B7E81E02C.png",
+      "jpeg_sha256": "56031ced39df3a380b5fe5b2d5a3b3193f49d936adbb0a310be843fa726302a1",
+      "jpeg_bytes": 237510,
+      "jpeg_pixels": [
+        804,
+        1748
+      ]
+    },
+    {
+      "slot": "ax-mode",
+      "original_sha256": "349e05afc565f82b3ea843eee457a524890a75314a827fac515137bf29f337b8",
+      "original_pixels": [
+        1206,
+        2622
+      ],
+      "viewport_points": [
+        402,
+        874
+      ],
+      "run": "refined-standard-r2",
+      "source_guard_sha256": "c128dec6b6aeac610dc6b2c2978b08df6d0d9e354f22be8eb632a1d703f35887",
+      "captured_head": "bf0f8040e7b0abac0c89fa4eb7c84e4f7f0dd360",
+      "test": "PlayerRatingsFlowTests/testLargeTextKeepsProfileHistoryAndChoiceControlsWithinTheViewport()",
+      "test_identifier_url": "test://com.apple.xcode/Settlers/SettlersUITests/PlayerRatingsFlowTests/testLargeTextKeepsProfileHistoryAndChoiceControlsWithinTheViewport",
+      "device_id": "3F1AF757-2349-441E-B651-50BFE17F7502",
+      "device_name": "Empires QA",
+      "capture_timestamp": 1793650452.514,
+      "manifest_name": "mode-chooser-naval_0_63AA9B94-9C7A-4C51-A273-13358BC3E093.standard-402x874",
+      "approval": {
+        "path": "r6-independent-visual-review.json",
+        "sha256": "e6a6c6c89947bd57c168feb5c639cbde058dd7396d9111ad44498af1541ab712"
+      },
+      "original_png": "refined-standard-r2-attachments/798D5024-A38B-4226-BF2A-61F2EED8343B.png",
+      "jpeg_sha256": "bb3022ac911c77546dfb7888ee6519ea7e269fb1abfd592ffa2ff98eb84a41df",
+      "jpeg_bytes": 274764,
+      "jpeg_pixels": [
+        804,
+        1748
+      ]
+    },
+    {
+      "slot": "tier",
+      "original_sha256": "0ba1064a92d7b98dadc2bbc9821c19a04558877af6d64b9615e9a254bb5d91ed",
+      "original_pixels": [
+        1206,
+        2622
+      ],
+      "viewport_points": [
+        402,
+        874
+      ],
+      "run": "refined-standard-r2",
+      "source_guard_sha256": "c128dec6b6aeac610dc6b2c2978b08df6d0d9e354f22be8eb632a1d703f35887",
+      "captured_head": "bf0f8040e7b0abac0c89fa4eb7c84e4f7f0dd360",
+      "test": "PlayerRatingsFlowTests/testFiltersKeepModeAndDifficultyRatingsIndependentAndPersist()",
+      "test_identifier_url": "test://com.apple.xcode/Settlers/SettlersUITests/PlayerRatingsFlowTests/testFiltersKeepModeAndDifficultyRatingsIndependentAndPersist",
+      "device_id": "3F1AF757-2349-441E-B651-50BFE17F7502",
+      "device_name": "Empires QA",
+      "capture_timestamp": 1793650219.408,
+      "manifest_name": "tier-chooser-expert-402x874_0_549C3948-D623-47ED-953A-4FCCA0A718D0.png",
+      "approval": {
+        "path": "r6-independent-visual-review.json",
+        "sha256": "e6a6c6c89947bd57c168feb5c639cbde058dd7396d9111ad44498af1541ab712"
+      },
+      "original_png": "refined-standard-r2-attachments/12D2EA3C-2E2E-473C-808B-32ED027D59CD.png",
+      "jpeg_sha256": "2131e54cb3756d068a3ba25989cb250b53b7f642772ec64049224d05c2f78524",
+      "jpeg_bytes": 215086,
+      "jpeg_pixels": [
+        804,
+        1748
+      ]
+    },
+    {
+      "slot": "ax-tier",
+      "original_sha256": "2f0c72c63a1d310b62db17caeaae5640e94858aa43611a2bc306183b069abbab",
+      "original_pixels": [
+        1206,
+        2622
+      ],
+      "viewport_points": [
+        402,
+        874
+      ],
+      "run": "refined-standard-r2",
+      "source_guard_sha256": "c128dec6b6aeac610dc6b2c2978b08df6d0d9e354f22be8eb632a1d703f35887",
+      "captured_head": "bf0f8040e7b0abac0c89fa4eb7c84e4f7f0dd360",
+      "test": "PlayerRatingsFlowTests/testLargeTextKeepsProfileHistoryAndChoiceControlsWithinTheViewport()",
+      "test_identifier_url": "test://com.apple.xcode/Settlers/SettlersUITests/PlayerRatingsFlowTests/testLargeTextKeepsProfileHistoryAndChoiceControlsWithinTheViewport",
+      "device_id": "3F1AF757-2349-441E-B651-50BFE17F7502",
+      "device_name": "Empires QA",
+      "capture_timestamp": 1793650520.958,
+      "manifest_name": "tier-chooser-classic-402x874_0_8AF2C6B4-EF76-480B-811C-EDAB1EEA1AF2.png",
+      "approval": {
+        "path": "r6-independent-visual-review.json",
+        "sha256": "e6a6c6c89947bd57c168feb5c639cbde058dd7396d9111ad44498af1541ab712"
+      },
+      "original_png": "refined-standard-r2-attachments/E398BEB0-F962-4890-81B4-726EA23CF21E.png",
+      "jpeg_sha256": "65e580e994c6649d7a0581ab0a9996b98553b872016369e53e693eb671d8cb37",
+      "jpeg_bytes": 246554,
+      "jpeg_pixels": [
+        804,
+        1748
+      ]
+    },
+    {
+      "slot": "account",
+      "original_sha256": "c1a5f734ecf4ac21488e4b7ab6386950adb5482956f4a205a67a8bce11fe3ff9",
+      "original_pixels": [
+        1206,
+        2622
+      ],
+      "viewport_points": [
+        402,
+        874
+      ],
+      "run": "refined-standard-r2",
+      "source_guard_sha256": "c128dec6b6aeac610dc6b2c2978b08df6d0d9e354f22be8eb632a1d703f35887",
+      "captured_head": "bf0f8040e7b0abac0c89fa4eb7c84e4f7f0dd360",
+      "test": "PlayerRatingsFlowTests/testRatingHelpAndAccountStatusAreReachableFromLeaderboard()",
+      "test_identifier_url": "test://com.apple.xcode/Settlers/SettlersUITests/PlayerRatingsFlowTests/testRatingHelpAndAccountStatusAreReachableFromLeaderboard",
+      "device_id": "3F1AF757-2349-441E-B651-50BFE17F7502",
+      "device_name": "Empires QA",
+      "capture_timestamp": 1793650687.255,
+      "manifest_name": "10-account-and-sync-status-402x874_0_77DB33DD-4E74-4948-B8BF-A6B084B445F2.png",
+      "approval": {
+        "path": "r6-independent-visual-review.json",
+        "sha256": "e6a6c6c89947bd57c168feb5c639cbde058dd7396d9111ad44498af1541ab712"
+      },
+      "original_png": "refined-standard-r2-attachments/CFE6FC94-5960-4C41-8159-8BC44A9AAE57.png",
+      "jpeg_sha256": "2f5c1b11a56cc84533eb3c5dd39e3a7586cc84f39844f4de5231014292162d2a",
+      "jpeg_bytes": 253232,
+      "jpeg_pixels": [
+        804,
+        1748
+      ]
+    },
+    {
+      "slot": "win",
+      "original_sha256": "ea57431137d8c19d69f4fcfe218e50fbb3e2b3445c045da898e308d00f1996d3",
+      "original_pixels": [
+        1206,
+        2622
+      ],
+      "viewport_points": [
+        402,
+        874
+      ],
+      "run": "refined-standard-r2",
+      "source_guard_sha256": "c128dec6b6aeac610dc6b2c2978b08df6d0d9e354f22be8eb632a1d703f35887",
+      "captured_head": "bf0f8040e7b0abac0c89fa4eb7c84e4f7f0dd360",
+      "test": "PlayerRatingsFlowTests/testWinReceiptOpensTheSameRatingPool()",
+      "test_identifier_url": "test://com.apple.xcode/Settlers/SettlersUITests/PlayerRatingsFlowTests/testWinReceiptOpensTheSameRatingPool",
+      "device_id": "3F1AF757-2349-441E-B651-50BFE17F7502",
+      "device_name": "Empires QA",
+      "capture_timestamp": 1793650922.717,
+      "manifest_name": "13-win-rating-receipt-402x874_0_D7FAE79E-BAA9-4E04-9503-887F397E7D3E.png",
+      "approval": {
+        "path": "r6-independent-visual-review.json",
+        "sha256": "e6a6c6c89947bd57c168feb5c639cbde058dd7396d9111ad44498af1541ab712"
+      },
+      "original_png": "refined-standard-r2-attachments/C14CDB45-8166-495B-85F5-1A510DD9BE57.png",
+      "jpeg_sha256": "a2648c3e0a6ebf48989d7252172dc79b9d7bb786a02a1a5983462a738d391513",
+      "jpeg_bytes": 264396,
+      "jpeg_pixels": [
+        804,
+        1748
+      ]
+    },
+    {
+      "slot": "loss",
+      "original_sha256": "a853996f9fbfdf759bd0708fb7687f4ed0183089c8a53d7c36f7f9571abb3904",
+      "original_pixels": [
+        1206,
+        2622
+      ],
+      "viewport_points": [
+        402,
+        874
+      ],
+      "run": "refined-standard-r2",
+      "source_guard_sha256": "c128dec6b6aeac610dc6b2c2978b08df6d0d9e354f22be8eb632a1d703f35887",
+      "captured_head": "bf0f8040e7b0abac0c89fa4eb7c84e4f7f0dd360",
+      "test": "PlayerRatingsFlowTests/testLossReceiptOpensTheSameRatingPool()",
+      "test_identifier_url": "test://com.apple.xcode/Settlers/SettlersUITests/PlayerRatingsFlowTests/testLossReceiptOpensTheSameRatingPool",
+      "device_id": "3F1AF757-2349-441E-B651-50BFE17F7502",
+      "device_name": "Empires QA",
+      "capture_timestamp": 1793650527.705,
+      "manifest_name": "14-loss-rating-receipt-402x874_0_E0C3741B-726B-46B4-B0D8-72B50BC89A4B.png",
+      "approval": {
+        "path": "r6-independent-visual-review.json",
+        "sha256": "e6a6c6c89947bd57c168feb5c639cbde058dd7396d9111ad44498af1541ab712"
+      },
+      "original_png": "refined-standard-r2-attachments/F7C17104-1C9F-4E1E-829D-E8253F844073.png",
+      "jpeg_sha256": "717521220f608844a2c1acc9e4ffc7de94a6802f24ff5081a5cce5be3e8525af",
+      "jpeg_bytes": 273059,
+      "jpeg_pixels": [
+        804,
+        1748
+      ]
+    },
+    {
+      "slot": "restart",
+      "original_sha256": "e9df9f6975de5280b5849e19a243b02f1d5407b9a70f203f7ad876740479d379",
+      "original_pixels": [
+        1206,
+        2622
+      ],
+      "viewport_points": [
+        402,
+        874
+      ],
+      "run": "refined-standard-r2",
+      "source_guard_sha256": "c128dec6b6aeac610dc6b2c2978b08df6d0d9e354f22be8eb632a1d703f35887",
+      "captured_head": "bf0f8040e7b0abac0c89fa4eb7c84e4f7f0dd360",
+      "test": "PlayerRatingsFlowTests/testRestartAndReplacementExplainTheRatingLoss()",
+      "test_identifier_url": "test://com.apple.xcode/Settlers/SettlersUITests/PlayerRatingsFlowTests/testRestartAndReplacementExplainTheRatingLoss",
+      "device_id": "3F1AF757-2349-441E-B651-50BFE17F7502",
+      "device_name": "Empires QA",
+      "capture_timestamp": 1793650722.506,
+      "manifest_name": "18-restart-loss-disclosure-402x874_0_1C2D50ED-C398-40ED-854F-04E40B179993.png",
+      "approval": {
+        "path": "r6-root-supplemental-visual-review.json",
+        "sha256": "37eab579393a8c9ba8a2aee1d23e97c5249331d642f636c9259256a4f56070a9"
+      },
+      "original_png": "refined-standard-r2-attachments/5C96D7EF-F986-45C2-9AAB-3EBB38AD48FD.png",
+      "jpeg_sha256": "4f5067b357d3964743d76740bafc2f1e160eb35b1b693386df4b2d463a43c807",
+      "jpeg_bytes": 266173,
+      "jpeg_pixels": [
+        804,
+        1748
+      ]
+    },
+    {
+      "slot": "replacement",
+      "original_sha256": "ac29ef0a45e5d4614a668a4e99bb7cddeca7b996e029da07ad63b36dd22646ab",
+      "original_pixels": [
+        1206,
+        2622
+      ],
+      "viewport_points": [
+        402,
+        874
+      ],
+      "run": "refined-standard-r2",
+      "source_guard_sha256": "c128dec6b6aeac610dc6b2c2978b08df6d0d9e354f22be8eb632a1d703f35887",
+      "captured_head": "bf0f8040e7b0abac0c89fa4eb7c84e4f7f0dd360",
+      "test": "PlayerRatingsFlowTests/testRestartAndReplacementExplainTheRatingLoss()",
+      "test_identifier_url": "test://com.apple.xcode/Settlers/SettlersUITests/PlayerRatingsFlowTests/testRestartAndReplacementExplainTheRatingLoss",
+      "device_id": "3F1AF757-2349-441E-B651-50BFE17F7502",
+      "device_name": "Empires QA",
+      "capture_timestamp": 1793650728.322,
+      "manifest_name": "19-replacement-loss-disclosure-402x874_0_5C14643F-E515-44A2-A23E-CABDA08D204B.png",
+      "approval": {
+        "path": "r6-root-supplemental-visual-review.json",
+        "sha256": "37eab579393a8c9ba8a2aee1d23e97c5249331d642f636c9259256a4f56070a9"
+      },
+      "original_png": "refined-standard-r2-attachments/1206B414-6654-4187-A587-680EB7687236.png",
+      "jpeg_sha256": "c5f9af5661ca81789f59b0fe5e6a139e62faa939c5a9d9f2eec3799279ffc153",
+      "jpeg_bytes": 323581,
+      "jpeg_pixels": [
+        804,
+        1748
+      ]
+    },
+    {
+      "slot": "ax-overview-top",
+      "original_sha256": "a29698f32c9465fb922b3693ef9d6516edb37901a738a7bc4455cdad6d6e525d",
+      "original_pixels": [
+        1206,
+        2622
+      ],
+      "viewport_points": [
+        402,
+        874
+      ],
+      "run": "refined-standard-r2",
+      "source_guard_sha256": "c128dec6b6aeac610dc6b2c2978b08df6d0d9e354f22be8eb632a1d703f35887",
+      "captured_head": "bf0f8040e7b0abac0c89fa4eb7c84e4f7f0dd360",
+      "test": "PlayerRatingsFlowTests/testLargestTextAndWideNamesKeepRowsInsideTheBoundedTable()",
+      "test_identifier_url": "test://com.apple.xcode/Settlers/SettlersUITests/PlayerRatingsFlowTests/testLargestTextAndWideNamesKeepRowsInsideTheBoundedTable",
+      "device_id": "3F1AF757-2349-441E-B651-50BFE17F7502",
+      "device_name": "Empires QA",
+      "capture_timestamp": 1793650348.14,
+      "manifest_name": "15-accessibility-standings-top-before-fit-402x874_0_9DE119C2-3826-4445-8D3B-DB187B9ABA1F.png",
+      "approval": {
+        "path": "r6-independent-visual-review.json",
+        "sha256": "e6a6c6c89947bd57c168feb5c639cbde058dd7396d9111ad44498af1541ab712"
+      },
+      "original_png": "refined-standard-r2-attachments/9DEE00F4-87D1-4741-B522-86EEA5E160A4.png",
+      "jpeg_sha256": "66a3887f0e2b850b85741e61cc06239fb71b75da3526a812127573dd92f0c26e",
+      "jpeg_bytes": 268382,
+      "jpeg_pixels": [
+        804,
+        1748
+      ]
+    },
+    {
+      "slot": "ax-overview-bottom",
+      "original_sha256": "3d7340d64a369e0129a40a946cbb74d84474616f8c0daa59919a46ff8f045876",
+      "original_pixels": [
+        1206,
+        2622
+      ],
+      "viewport_points": [
+        402,
+        874
+      ],
+      "run": "refined-standard-r2",
+      "source_guard_sha256": "c128dec6b6aeac610dc6b2c2978b08df6d0d9e354f22be8eb632a1d703f35887",
+      "captured_head": "bf0f8040e7b0abac0c89fa4eb7c84e4f7f0dd360",
+      "test": "PlayerRatingsFlowTests/testLargestTextAndWideNamesKeepRowsInsideTheBoundedTable()",
+      "test_identifier_url": "test://com.apple.xcode/Settlers/SettlersUITests/PlayerRatingsFlowTests/testLargestTextAndWideNamesKeepRowsInsideTheBoundedTable",
+      "device_id": "3F1AF757-2349-441E-B651-50BFE17F7502",
+      "device_name": "Empires QA",
+      "capture_timestamp": 1793650375.733,
+      "manifest_name": "15-accessibility-wide-name-standings-bottom-402x874_0_7C5329B5-C1AD-4BF3-860E-F08838986E63.png",
+      "approval": {
+        "path": "r6-independent-visual-review.json",
+        "sha256": "e6a6c6c89947bd57c168feb5c639cbde058dd7396d9111ad44498af1541ab712"
+      },
+      "original_png": "refined-standard-r2-attachments/AE190B3B-8280-4194-B573-F4FF9F0D0ACA.png",
+      "jpeg_sha256": "17547b7ff35f6d11605392ed69ae56342ca17fa297fe4f7a1bf09b8e211a4053",
+      "jpeg_bytes": 256748,
+      "jpeg_pixels": [
+        804,
+        1748
+      ]
+    },
+    {
+      "slot": "ax-profile",
+      "original_sha256": "f6974bc3ec74285a845f108d280cec161126f4d07c374323f0a58440f7234cd0",
+      "original_pixels": [
+        1206,
+        2622
+      ],
+      "viewport_points": [
+        402,
+        874
+      ],
+      "run": "refined-standard-r2",
+      "source_guard_sha256": "c128dec6b6aeac610dc6b2c2978b08df6d0d9e354f22be8eb632a1d703f35887",
+      "captured_head": "bf0f8040e7b0abac0c89fa4eb7c84e4f7f0dd360",
+      "test": "PlayerRatingsFlowTests/testLargeTextKeepsProfileHistoryAndChoiceControlsWithinTheViewport()",
+      "test_identifier_url": "test://com.apple.xcode/Settlers/SettlersUITests/PlayerRatingsFlowTests/testLargeTextKeepsProfileHistoryAndChoiceControlsWithinTheViewport",
+      "device_id": "3F1AF757-2349-441E-B651-50BFE17F7502",
+      "device_name": "Empires QA",
+      "capture_timestamp": 1793650443.877,
+      "manifest_name": "16-accessibility-personal-record-402x874_0_6F1B232D-DCF7-4367-A662-D8D2DC439021.png",
+      "approval": {
+        "path": "r6-independent-visual-review.json",
+        "sha256": "e6a6c6c89947bd57c168feb5c639cbde058dd7396d9111ad44498af1541ab712"
+      },
+      "original_png": "refined-standard-r2-attachments/EF6A6A68-D922-419A-9694-9F448453B065.png",
+      "jpeg_sha256": "8af11f9b2db77323ec787c3bc1172483aaa6d6f51e43c8e7825ba405eddcb39e",
+      "jpeg_bytes": 234744,
+      "jpeg_pixels": [
+        804,
+        1748
+      ]
+    },
+    {
+      "slot": "ghosts",
+      "original_sha256": "2a09941340f1bf0ccc9c73ec509ee6bedd3239dfa1734729d891b37d483040b4",
+      "original_pixels": [
+        1206,
+        2622
+      ],
+      "viewport_points": [
+        402,
+        874
+      ],
+      "run": "refined-standard-r2",
+      "source_guard_sha256": "c128dec6b6aeac610dc6b2c2978b08df6d0d9e354f22be8eb632a1d703f35887",
+      "captured_head": "bf0f8040e7b0abac0c89fa4eb7c84e4f7f0dd360",
+      "test": "PlayerRatingsFlowTests/testGhostsAndTheirAIReferencesRemainWithinLeaderboard()",
+      "test_identifier_url": "test://com.apple.xcode/Settlers/SettlersUITests/PlayerRatingsFlowTests/testGhostsAndTheirAIReferencesRemainWithinLeaderboard",
+      "device_id": "3F1AF757-2349-441E-B651-50BFE17F7502",
+      "device_name": "Empires QA",
+      "capture_timestamp": 1793650325.355,
+      "manifest_name": "11-ghost-and-legacy-ai-ladder-402x874_0_D48687B8-810E-4803-BE90-76ABFEA40DB0.png",
+      "approval": {
+        "path": "r6-independent-visual-review.json",
+        "sha256": "e6a6c6c89947bd57c168feb5c639cbde058dd7396d9111ad44498af1541ab712"
+      },
+      "original_png": "refined-standard-r2-attachments/415E5197-2337-4BC2-B1D6-C4D049858BAF.png",
+      "jpeg_sha256": "c6726cbcfb8d646755fd525b0fce37ef546f6d79c4f82b45a137e357ad6f25a8",
+      "jpeg_bytes": 280968,
+      "jpeg_pixels": [
+        804,
+        1748
+      ]
+    },
+    {
+      "slot": "ghost-person",
+      "original_sha256": "08ca24e3f29cd4051d6e2f6bba536cbd09da958763d032b1089424c11e475419",
+      "original_pixels": [
+        1206,
+        2622
+      ],
+      "viewport_points": [
+        402,
+        874
+      ],
+      "run": "refined-standard-r2",
+      "source_guard_sha256": "c128dec6b6aeac610dc6b2c2978b08df6d0d9e354f22be8eb632a1d703f35887",
+      "captured_head": "bf0f8040e7b0abac0c89fa4eb7c84e4f7f0dd360",
+      "test": "PlayerRatingsFlowTests/testGhostPersonModeRecordReturnsToTheSameGhostDetail()",
+      "test_identifier_url": "test://com.apple.xcode/Settlers/SettlersUITests/PlayerRatingsFlowTests/testGhostPersonModeRecordReturnsToTheSameGhostDetail",
+      "device_id": "3F1AF757-2349-441E-B651-50BFE17F7502",
+      "device_name": "Empires QA",
+      "capture_timestamp": 1793650305.038,
+      "manifest_name": "20-ghost-ladder-person-and-ai-records-link-402x874_0_B889483E-16F4-4A89-8603-E561BC1373C9.png",
+      "approval": {
+        "path": "r6-independent-visual-review.json",
+        "sha256": "e6a6c6c89947bd57c168feb5c639cbde058dd7396d9111ad44498af1541ab712"
+      },
+      "original_png": "refined-standard-r2-attachments/CB37089B-99E4-4305-8FFE-8F0D71FE07C7.png",
+      "jpeg_sha256": "6b9f95e16f96bd828a374bbf0f0ac1e5c842ae00a737185f76fd9ccded6593ef",
+      "jpeg_bytes": 279414,
+      "jpeg_pixels": [
+        804,
+        1748
+      ]
+    },
+    {
+      "slot": "ghost-back",
+      "original_sha256": "26d51d5634588ece9d9f3fd670baa4fa112491da5055239416018987d1fb87d0",
+      "original_pixels": [
+        1206,
+        2622
+      ],
+      "viewport_points": [
+        402,
+        874
+      ],
+      "run": "refined-standard-r2",
+      "source_guard_sha256": "c128dec6b6aeac610dc6b2c2978b08df6d0d9e354f22be8eb632a1d703f35887",
+      "captured_head": "bf0f8040e7b0abac0c89fa4eb7c84e4f7f0dd360",
+      "test": "PlayerRatingsFlowTests/testGhostDetailBackStaysPinnedWhileReadingItsStyle()",
+      "test_identifier_url": "test://com.apple.xcode/Settlers/SettlersUITests/PlayerRatingsFlowTests/testGhostDetailBackStaysPinnedWhileReadingItsStyle",
+      "device_id": "3F1AF757-2349-441E-B651-50BFE17F7502",
+      "device_name": "Empires QA",
+      "capture_timestamp": 1793650290.483,
+      "manifest_name": "21-ghost-detail-pinned-back-after-style-402x874_0_2FE0FC30-2BE2-42BF-8DA5-6751FDE9F1C7.png",
+      "approval": {
+        "path": "r6-independent-visual-review.json",
+        "sha256": "e6a6c6c89947bd57c168feb5c639cbde058dd7396d9111ad44498af1541ab712"
+      },
+      "original_png": "refined-standard-r2-attachments/146B2A44-76DB-4B71-9DC5-152E3DCDD748.png",
+      "jpeg_sha256": "4577f2130d9746b4844be43f64ca901e63ee54ce655fae9064e237e48b75d2ad",
+      "jpeg_bytes": 293474,
+      "jpeg_pixels": [
+        804,
+        1748
+      ]
+    },
+    {
+      "slot": "help",
+      "original_sha256": "ccd20bf7a710882fc3849fb5692bf4e2d58ce7ed5b0ede6761ffa35d7375b359",
+      "original_pixels": [
+        1206,
+        2622
+      ],
+      "viewport_points": [
+        402,
+        874
+      ],
+      "run": "refined-standard-r2",
+      "source_guard_sha256": "c128dec6b6aeac610dc6b2c2978b08df6d0d9e354f22be8eb632a1d703f35887",
+      "captured_head": "bf0f8040e7b0abac0c89fa4eb7c84e4f7f0dd360",
+      "test": "PlayerRatingsFlowTests/testRatingHelpAndAccountStatusAreReachableFromLeaderboard()",
+      "test_identifier_url": "test://com.apple.xcode/Settlers/SettlersUITests/PlayerRatingsFlowTests/testRatingHelpAndAccountStatusAreReachableFromLeaderboard",
+      "device_id": "3F1AF757-2349-441E-B651-50BFE17F7502",
+      "device_name": "Empires QA",
+      "capture_timestamp": 1793650683.372,
+      "manifest_name": "09-rating-help-402x874_0_2032E706-D336-4E78-9052-D571F76E4EAF.png",
+      "approval": {
+        "path": "r6-independent-visual-review.json",
+        "sha256": "e6a6c6c89947bd57c168feb5c639cbde058dd7396d9111ad44498af1541ab712"
+      },
+      "original_png": "refined-standard-r2-attachments/61129A96-8F9F-4401-A4DA-D2F43534AB5B.png",
+      "jpeg_sha256": "859d6d726316ae9dc7e5f4f26aa901562544441b212dacc27857baf01a77ac4b",
+      "jpeg_bytes": 467477,
+      "jpeg_pixels": [
+        804,
+        1748
+      ]
+    },
+    {
+      "slot": "ax-history",
+      "original_sha256": "6c5db9a999b22674a11fd57acee0e0234aa3c541faba0506b570630a80cac789",
+      "original_pixels": [
+        1206,
+        2622
+      ],
+      "viewport_points": [
+        402,
+        874
+      ],
+      "run": "refined-standard-r2",
+      "source_guard_sha256": "c128dec6b6aeac610dc6b2c2978b08df6d0d9e354f22be8eb632a1d703f35887",
+      "captured_head": "bf0f8040e7b0abac0c89fa4eb7c84e4f7f0dd360",
+      "test": "PlayerRatingsFlowTests/testLargeTextKeepsProfileHistoryAndChoiceControlsWithinTheViewport()",
+      "test_identifier_url": "test://com.apple.xcode/Settlers/SettlersUITests/PlayerRatingsFlowTests/testLargeTextKeepsProfileHistoryAndChoiceControlsWithinTheViewport",
+      "device_id": "3F1AF757-2349-441E-B651-50BFE17F7502",
+      "device_name": "Empires QA",
+      "capture_timestamp": 1793650515.624,
+      "manifest_name": "18-accessibility-game-history-402x874_0_C5CBC710-FC95-4A5B-B5CD-172E287F5085.png",
+      "approval": {
+        "path": "r6-independent-visual-review.json",
+        "sha256": "e6a6c6c89947bd57c168feb5c639cbde058dd7396d9111ad44498af1541ab712"
+      },
+      "original_png": "refined-standard-r2-attachments/BBD18BFD-0B97-4979-9F21-64BA1291C10D.png",
+      "jpeg_sha256": "9fb0ea1442848dde3cbc71cabdb8cbbfd83608cabcb7c0538bb6504e30e3e92a",
+      "jpeg_bytes": 265385,
+      "jpeg_pixels": [
+        804,
+        1748
+      ]
+    },
+    {
+      "slot": "ax-trend",
+      "original_sha256": "a4b867bbcc26e188b1938507805ce304efb28158effe36ffa2418abb781d23d9",
+      "original_pixels": [
+        1206,
+        2622
+      ],
+      "viewport_points": [
+        402,
+        874
+      ],
+      "run": "refined-standard-r2",
+      "source_guard_sha256": "c128dec6b6aeac610dc6b2c2978b08df6d0d9e354f22be8eb632a1d703f35887",
+      "captured_head": "bf0f8040e7b0abac0c89fa4eb7c84e4f7f0dd360",
+      "test": "PlayerRatingsFlowTests/testLargeTextKeepsProfileHistoryAndChoiceControlsWithinTheViewport()",
+      "test_identifier_url": "test://com.apple.xcode/Settlers/SettlersUITests/PlayerRatingsFlowTests/testLargeTextKeepsProfileHistoryAndChoiceControlsWithinTheViewport",
+      "device_id": "3F1AF757-2349-441E-B651-50BFE17F7502",
+      "device_name": "Empires QA",
+      "capture_timestamp": 1793650478.139,
+      "manifest_name": "17-accessibility-rating-history-402x874_0_61E0F01B-4F3A-4414-AA3D-82B96610A247.png",
+      "approval": {
+        "path": "r6-independent-visual-review.json",
+        "sha256": "e6a6c6c89947bd57c168feb5c639cbde058dd7396d9111ad44498af1541ab712"
+      },
+      "original_png": "refined-standard-r2-attachments/35CEB8CA-EF50-473E-A4F0-5FC0FD634F06.png",
+      "jpeg_sha256": "2cdbf5d36ea3cdd56f0d3a93507ecb6d5c1f9b439c2301b1d4a0d5557e62e6cf",
+      "jpeg_bytes": 248498,
+      "jpeg_pixels": [
+        804,
+        1748
+      ]
+    },
+    {
+      "slot": "classic-reference",
+      "original_sha256": "20da9998878a2af8bc259dd9e07b57ead209e53548fb78286b1f2e04e74501ec",
+      "original_pixels": [
+        1206,
+        2622
+      ],
+      "viewport_points": [
+        402,
+        874
+      ],
+      "run": "refined-standard-r2",
+      "source_guard_sha256": "c128dec6b6aeac610dc6b2c2978b08df6d0d9e354f22be8eb632a1d703f35887",
+      "captured_head": "bf0f8040e7b0abac0c89fa4eb7c84e4f7f0dd360",
+      "test": "GhostOpponentFlowTests/testTheAITiersHaveSpiderGraphs()",
+      "test_identifier_url": "test://com.apple.xcode/Settlers/SettlersUITests/GhostOpponentFlowTests/testTheAITiersHaveSpiderGraphs",
+      "device_id": "3F1AF757-2349-441E-B651-50BFE17F7502",
+      "device_name": "Empires QA",
+      "capture_timestamp": 1793650154.915,
+      "manifest_name": "classic-ai-page_0_ED1E034F-CD6D-4630-B386-2B79AA301D67.png",
+      "approval": {
+        "path": "r6-ai-reference-visual-review-20261106.json",
+        "sha256": "debd1450bc1e10333c537204580474c2ac0a683f99504e41559e14ff5bd39379"
+      },
+      "original_png": "refined-standard-r2-attachments/1054B26A-6EFE-4E6F-B249-29805878D5B3.png",
+      "jpeg_sha256": "27a14b36c9444012eb317d76a4fb13d8c04c585d98c5715cb05b37fb6ed68a8e",
+      "jpeg_bytes": 279867,
+      "jpeg_pixels": [
+        804,
+        1748
+      ]
+    },
+    {
+      "slot": "expert-reference",
+      "original_sha256": "374250f0c67794caa5eb23dcfd430b8f7fd17a603058a723d22bdd5b084c1421",
+      "original_pixels": [
+        1206,
+        2622
+      ],
+      "viewport_points": [
+        402,
+        874
+      ],
+      "run": "refined-standard-r2",
+      "source_guard_sha256": "c128dec6b6aeac610dc6b2c2978b08df6d0d9e354f22be8eb632a1d703f35887",
+      "captured_head": "bf0f8040e7b0abac0c89fa4eb7c84e4f7f0dd360",
+      "test": "GhostOpponentFlowTests/testTheAITiersHaveSpiderGraphs()",
+      "test_identifier_url": "test://com.apple.xcode/Settlers/SettlersUITests/GhostOpponentFlowTests/testTheAITiersHaveSpiderGraphs",
+      "device_id": "3F1AF757-2349-441E-B651-50BFE17F7502",
+      "device_name": "Empires QA",
+      "capture_timestamp": 1793650151.9,
+      "manifest_name": "expert-ai-page_0_6D220A52-CE4D-4F09-BCFD-D3B8197F9FCA.png",
+      "approval": {
+        "path": "r6-ai-reference-visual-review-20261106.json",
+        "sha256": "debd1450bc1e10333c537204580474c2ac0a683f99504e41559e14ff5bd39379"
+      },
+      "original_png": "refined-standard-r2-attachments/797EE712-7AC7-4515-9D70-62F38875F25C.png",
+      "jpeg_sha256": "f0d356e5a3878e547897547a96d73d255cd82fa73bd1b90af9f1878fe09fd306",
+      "jpeg_bytes": 282347,
+      "jpeg_pixels": [
+        804,
+        1748
+      ]
+    }
+  ]
+}
