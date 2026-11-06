@@ -36,16 +36,18 @@ public struct InGameSettingsView: View {
     public let onRestart: (() -> Void)?
     public let onMainMenu: (() -> Void)?
     private let rulebookState: GameState?
+    private let ratingLossOnRestart: Bool
     /// Main menu only: called after the lifetime stats are wiped, so the
     /// menu's stats row can drop them without a relaunch.
     private var onResetStats: (() -> Void)?
 
     public init(onResume: @escaping () -> Void, onRestart: @escaping () -> Void, onMainMenu: @escaping () -> Void,
-                rulebookState: GameState? = nil) {
+                rulebookState: GameState? = nil, ratingLossOnRestart: Bool = false) {
         self.onResume = onResume
         self.onRestart = onRestart
         self.onMainMenu = onMainMenu
         self.rulebookState = rulebookState
+        self.ratingLossOnRestart = ratingLossOnRestart
     }
 
     /// The main menu's Settings: the same screen, minus the match exits.
@@ -55,6 +57,7 @@ public struct InGameSettingsView: View {
         onRestart = nil
         onMainMenu = nil
         rulebookState = nil
+        ratingLossOnRestart = false
     }
 
     @AppStorage(BackgroundTheme.storageKey) private var theme: BackgroundTheme = .goldenDawn
@@ -482,13 +485,13 @@ public struct InGameSettingsView: View {
 
     // MARK: - Confirmations (B3.2, B3.3)
 
-    /// Both wordings are carried over unchanged from `PauseMenuView`: Restart
-    /// says what is lost, Quit says what is *not*, which is the difference
-    /// between the two and the only thing worth reading in the moment.
+    /// Disclose the rating consequence before replacing a rated match.
+    /// Returning to the menu keeps the same resumable match instead.
     private var restartConfirmation: some View {
         ConfirmationPopupCard(
             title: "Restart Game?",
-            message: "This throws away the current board and starts a brand new game.",
+            message: "This throws away the current board and starts a brand new game."
+                + (ratingLossOnRestart ? " This game will count as a loss in its rating record." : ""),
             confirmTitle: "Restart",
             confirmIdentifier: "in-game-settings.restart-confirm",
             onConfirm: { onRestart?() },

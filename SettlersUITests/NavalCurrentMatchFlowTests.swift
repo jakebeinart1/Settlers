@@ -14,6 +14,8 @@ final class NavalCurrentMatchFlowTests: XCTestCase {
         XCTAssertTrue(skip.waitForExistence(timeout: 360), "Traditional Naval must reach an actual winner")
         skip.tap()
         XCTAssertTrue(app.buttons["game-over.new-game"].waitForExistence(timeout: 10))
+        XCTAssertTrue(app.buttons["game-over.rating"].waitForExistence(timeout: 10),
+                      "An actual Naval win or loss must create its Classic AI Elo receipt")
         retain("Naval v6 — completed Traditional match", app: app)
         app.buttons["game-over.replay"].tap()
         XCTAssertTrue(app.buttons["replay.end"].waitForExistence(timeout: 30))

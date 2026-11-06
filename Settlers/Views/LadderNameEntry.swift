@@ -23,12 +23,14 @@ struct LadderNameEntry: View {
                 .onSubmit(join)
                 .onChange(of: draft) { _, new in draft = String(new.prefix(PlayerNameStore.maximumLength)) }
                 .padding(.horizontal, 10)
-                .frame(height: 38)
+                .frame(height: 44)
                 .background(PaintedChromeBackground(fill: .color(SettingsChrome.plaqueFill), cornerRadius: 8, notchScale: 0.45))
                 .accessibilityIdentifier(AccessibilityID.Leaderboard.nameField)
             Button(isJoining ? "Joining…" : "Join", action: join)
                 .font(.system(size: 16, weight: .bold, design: .serif))
                 .foregroundStyle(SettingsChrome.ornamentGold)
+                .frame(minWidth: 44, minHeight: 44)
+                .contentShape(Rectangle())
                 .disabled(isJoining || trimmed.isEmpty)
                 .accessibilityIdentifier(AccessibilityID.Leaderboard.joinButton)
         }

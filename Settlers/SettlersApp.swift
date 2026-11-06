@@ -18,6 +18,7 @@ struct SettlersApp: App {
         #if DEBUG
         QAGameHistoryFixture.seedIfRequested()
         QAGhostFixture.seedIfRequested()
+        QAPlayerRatingsFixture.seedIfRequested()
         #endif
         viewModel = GameViewModel()
         viewModel.migrateLegacyPlayerNames()

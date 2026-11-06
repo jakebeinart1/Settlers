@@ -350,7 +350,6 @@ public final class GameViewModel {
         // `MatchSetup.matchProblem` documents that line; the screen still checks
         // `isStartable` before calling.
         precondition(setup.isValidMatch, "refusing to start an incoherent match: \(setup.matchProblem ?? "")")
-        let abandoned = abandonedRatedMatch()
         let match = Self.prepareMatch(from: setup)
         let profiles = match.opponentProfiles.merging(
             Self.ghostOpponentProfiles(chairs: match.chairs, civilizations: match.civilizations, store: ghostStore)
@@ -363,13 +362,9 @@ public final class GameViewModel {
                 difficulty: setup.difficulty, ghosts: ghostStore, expertRevision: setup.expertRevision,
                 navalAIRevision: setup.navalAIRevision
             )
-            try replaceActiveMatch(state: match.state, setup: realized, session: candidate)
+            try replaceActiveMatch(state: match.state, setup: realized, session: candidate, recordsDisplacedLoss: true)
             resetPerGameState()
             try installCheckpointMatch()
-            if let abandoned, let sync = LiveSync.shared {
-                // Bookkeeping only: losing one restart must never stop a game starting.
-                Task.detached(priority: .background) { try? await sync.recordAbandoned(abandoned) }
-            }
             do {
                 try matchSetupStore.save(prefill)
                 newGameSetupLoadResult = .loaded(prefill)
@@ -1219,3 +1214,22 @@ public extension GameViewModel {
     /// rather than offering a button that cannot work.
     var hasBotSeats: Bool { humanSeats.count < state.players.count }
 }
+
+#if DEBUG
+extension GameViewModel {
+    /// A presentation-only result preview with representative scores. Cards
+    /// and the outcome are injected; this is never evidence of legal play.
+    /// Preserve the original roster so the score and rating name agree.
+    func qaForceRatingResult(won: Bool) {
+        var forced = session.state
+        let winner = won ? humanPlayer : forced.players.first { !humanSeats.contains($0.id) }!.id
+        for index in forced.players.indices {
+            let score = index == winner.index ? forced.victoryPointTarget : [8, 7, 6, 5][index]
+            forced.players[index].devCards = Array(repeating: .victoryPoint, count: score)
+        }
+        forced.phase = .gameOver(winner: winner)
+        session.replace(state: forced)
+        persistTestingPosition(difficulty: .expert)
+    }
+}
+#endif

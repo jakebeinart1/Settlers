@@ -1,0 +1,227 @@
+[
+  {
+    "name": "01-menu-rating-and-record",
+    "image": "01-menu-rating-and-record.jpg",
+    "native_run": "focused-green-02",
+    "original_png_sha256": "d7045e8a006be7f34ffdd09caa80f2570f9b8abc1501fb4972d3f0b4fc863b87",
+    "review_image_sha256": "3cda581047ec5c01965e9d4a0eeece953046ecb64109c6e04329293b0955f8cf",
+    "test": "PlayerRatingsFlowTests/testMenuShowsPersonalRatingAndOverallRecord()",
+    "processing": "Native screenshot resized to 804 pixels wide and encoded as JPEG for review; no content edits."
+  },
+  {
+    "name": "02-menu-new-player",
+    "image": "02-menu-new-player.jpg",
+    "native_run": "focused-green-02",
+    "original_png_sha256": "e73ab7e8e39dd6c9ab4036b3bab65adb7047697821ef80455a54a1b24bd1d94e",
+    "review_image_sha256": "bbe003795499b996a71f3082b0237228452e43f7e3917e78d6b33eea61f1da2d",
+    "test": "PlayerRatingsFlowTests/testNewPlayerSeesAnHonestUnratedState()",
+    "processing": "Native screenshot resized to 804 pixels wide and encoded as JPEG for review; no content edits."
+  },
+  {
+    "name": "03-new-player-record",
+    "image": "03-new-player-record.jpg",
+    "native_run": "focused-green-02",
+    "original_png_sha256": "1d82df60cfd6f9613114f2ec3a128e71f817bae1a22cb7b30e0ed36d159872dd",
+    "review_image_sha256": "b02e3ef951cbc9cce30ff9a49a3c6942e7581fd09b058bcf85f9e32a189305ee",
+    "test": "PlayerRatingsFlowTests/testNewPlayerSeesAnHonestUnratedState()",
+    "processing": "Native screenshot resized to 804 pixels wide and encoded as JPEG for review; no content edits."
+  },
+  {
+    "name": "04-personal-expert-rating",
+    "image": "04-personal-expert-rating.jpg",
+    "native_run": "final-visual-checks",
+    "original_png_sha256": "b4f07bd90886d18541bce152cf002fc0a9c139c6f54f9f60bf1cbea51c49263f",
+    "review_image_sha256": "2dc2c3d008540fe803a4ba390c1e2c10f4385db8d6a195d5949ec62dcdc9cbea",
+    "test": "PlayerRatingsFlowTests/testFiltersKeepModeAndDifficultyRatingsIndependent()",
+    "processing": "Native screenshot resized to 804 pixels wide and encoded as JPEG for review; no content edits."
+  },
+  {
+    "name": "05-voyages-independent-rating",
+    "image": "05-voyages-independent-rating.jpg",
+    "native_run": "final-visual-checks",
+    "original_png_sha256": "ec9691784357dbb99324554044735a50d3059ab68446a458552817c76438d4cf",
+    "review_image_sha256": "500ff23b28dc9c4ca20c89464c1829f9197e9827bb2d5bb9691902b76aa1cb86",
+    "test": "PlayerRatingsFlowTests/testFiltersKeepModeAndDifficultyRatingsIndependent()",
+    "processing": "Native screenshot resized to 804 pixels wide and encoded as JPEG for review; no content edits."
+  },
+  {
+    "name": "06-conquest-classic-ai",
+    "image": "06-conquest-classic-ai.jpg",
+    "native_run": "final-visual-checks",
+    "original_png_sha256": "7efdea7c729cdadc76e87c15f0957c156c80894ad5e869918a5040a721168d71",
+    "review_image_sha256": "da167d7e8317d6a4c4e08400e59b5e591c414d11adbabe4881fdbd7d58beca7c",
+    "test": "PlayerRatingsFlowTests/testFiltersKeepModeAndDifficultyRatingsIndependent()",
+    "processing": "Native screenshot resized to 804 pixels wide and encoded as JPEG for review; no content edits."
+  },
+  {
+    "name": "07-shared-player-standings",
+    "image": "07-shared-player-standings.jpg",
+    "native_run": "final-visual-checks",
+    "original_png_sha256": "ad9884bf57659d83963969ce3cdd886e4d8ed7e9c5b7ea0d0a426fef71378a9b",
+    "review_image_sha256": "c1ffd291c8107c2cbab8f6d0b10e5a0afb47636af36bc034d13eddd80566e70a",
+    "test": "PlayerRatingsFlowTests/testStandingsOpenOtherPlayersAndEveryGameHasADelta()",
+    "processing": "Native screenshot resized to 804 pixels wide and encoded as JPEG for review; no content edits."
+  },
+  {
+    "name": "08-game-by-game-rating-changes",
+    "image": "08-game-by-game-rating-changes.jpg",
+    "native_run": "final-visual-checks",
+    "original_png_sha256": "f60c038d2dedf82c15227f2419c75d88aca9e549a75de23afcc0a2e99715fa0b",
+    "review_image_sha256": "3203b059c524fd60a12d1b77218e749b691d5f3516de0623c462f0eedf8845de",
+    "test": "PlayerRatingsFlowTests/testStandingsOpenOtherPlayersAndEveryGameHasADelta()",
+    "processing": "Native screenshot resized to 804 pixels wide and encoded as JPEG for review; no content edits."
+  },
+  {
+    "name": "09-rating-help",
+    "image": "09-rating-help.jpg",
+    "native_run": "focused-green-02",
+    "original_png_sha256": "fb10f6ca3a4d1a37d00d30f55ec8f41ae82a459ddb8ca9760875fed8d10818e3",
+    "review_image_sha256": "d9fdcc2b46e06702f4cd55f551fc001f4c9e9853b0bb2c9f34b600b3de74992c",
+    "test": "PlayerRatingsFlowTests/testRatingHelpAndLocalSyncStateAreReachable()",
+    "processing": "Native screenshot resized to 804 pixels wide and encoded as JPEG for review; no content edits."
+  },
+  {
+    "name": "10-local-record-status",
+    "image": "10-local-record-status.jpg",
+    "native_run": "focused-green-02",
+    "original_png_sha256": "f2075e972bf287331447633c77106e3a5943451e8286fcbe9795bb2fa1acdd53",
+    "review_image_sha256": "58e2cd47d2ff951307175b0bcd41e7a8f3434926bb5a4447ff2ad289fbb4551e",
+    "test": "PlayerRatingsFlowTests/testRatingHelpAndLocalSyncStateAreReachable()",
+    "processing": "Native screenshot resized to 804 pixels wide and encoded as JPEG for review; no content edits."
+  },
+  {
+    "name": "11-win-rating-receipt",
+    "image": "11-win-rating-receipt.jpg",
+    "native_run": "focused-green-02",
+    "original_png_sha256": "805b3eaae00cfc4903f2990e788fee7fe50f89f21fc39afedb631dc82f53697d",
+    "review_image_sha256": "c2d6163a6d78ee370af3827a9adb58141be206b5a8fe8ff570eddfc1cec22881",
+    "test": "PlayerRatingsFlowTests/testWinReceiptOpensTheSameRatingPool()",
+    "processing": "Native screenshot resized to 804 pixels wide and encoded as JPEG for review; no content edits."
+  },
+  {
+    "name": "12-loss-rating-receipt",
+    "image": "12-loss-rating-receipt.jpg",
+    "native_run": "focused-green-02",
+    "original_png_sha256": "42eca57b291f8082dbef6adf472a96232abdeab8a2d2fe621fd1b278badddc24",
+    "review_image_sha256": "7da0fd12808adc9ab403ba4084a4bcdfac3f186e51b3b41230ce9bfe72d9a3a2",
+    "test": "PlayerRatingsFlowTests/testLossReceiptOpensTheSameRatingPool()",
+    "processing": "Native screenshot resized to 804 pixels wide and encoded as JPEG for review; no content edits."
+  },
+  {
+    "name": "13-restart-loss-disclosure",
+    "image": "13-restart-loss-disclosure.jpg",
+    "native_run": "focused-green-02",
+    "original_png_sha256": "8013051b084908c23122376718b6b44791ae01821b5563df0935feeb66346c95",
+    "review_image_sha256": "f02bac625dd90c1bba802dfcff1ee1df9a4c8252a3682e336b99ade4970add1a",
+    "test": "PlayerRatingsFlowTests/testRestartAndReplacementExplainTheRatingLoss()",
+    "processing": "Native screenshot resized to 804 pixels wide and encoded as JPEG for review; no content edits."
+  },
+  {
+    "name": "14-replacement-loss-disclosure",
+    "image": "14-replacement-loss-disclosure.jpg",
+    "native_run": "focused-green-02",
+    "original_png_sha256": "cee79cb5b18a974d132c3e147c5c1bceb647d90a2f1b3298ac1a707ce8789670",
+    "review_image_sha256": "526c2ec9ec79bfbd22479bfcc444f8c5449732cc91b8752d4da4f4284368c5c4",
+    "test": "PlayerRatingsFlowTests/testRestartAndReplacementExplainTheRatingLoss()",
+    "processing": "Native screenshot resized to 804 pixels wide and encoded as JPEG for review; no content edits."
+  },
+  {
+    "name": "15-ratings-largest-text",
+    "image": "15-ratings-largest-text.jpg",
+    "native_run": "final-visual-checks",
+    "original_png_sha256": "f27c366faedcd5226de20b6de52076b762f57167d89587e8bfb34be769c0c95b",
+    "review_image_sha256": "1b187aebed4cfc7ade76ee54a5dae4a820ad7df5672bbaa1b534cc78097f21b4",
+    "test": "PlayerRatingsFlowTests/testLargeTextKeepsFiltersAndCloseUsable()",
+    "processing": "Native screenshot resized to 804 pixels wide and encoded as JPEG for review; no content edits."
+  },
+  {
+    "name": "16-legacy-and-ghost-ladder-context",
+    "image": "16-legacy-and-ghost-ladder-context.jpg",
+    "native_run": "focused-green-02",
+    "original_png_sha256": "c05b960b747821c544dcfb5252f5af2114c32eb6e8d0196e3cc50b0eeb9ed0aa",
+    "review_image_sha256": "b15793b11a53c9aaaf0a733f487f3fcc4478d61bd5ad0f7cee0c6875553a72c3",
+    "test": "PlayerRatingsFlowTests/testLegacyLeaderboardRoutesPeopleToTheirModeRecords()",
+    "processing": "Native screenshot resized to 804 pixels wide and encoded as JPEG for review; no content edits."
+  },
+  {
+    "name": "17-jake-personal-record",
+    "image": "17-jake-personal-record.jpg",
+    "native_run": "focused-green-02",
+    "original_png_sha256": "dd1b1a1dd0421ea4f497b06ee324c9c4c02d8d4145cca80188f7e629dfccc550",
+    "review_image_sha256": "0f36bf8061e56126cbd132672b8dd95d82db59adf09d20aa18372da2c06441fa",
+    "test": "PlayerRatingsFlowTests/testLegacyLeaderboardRoutesPeopleToTheirModeRecords()",
+    "processing": "Native screenshot resized to 804 pixels wide and encoded as JPEG for review; no content edits."
+  },
+  {
+    "name": "18-legacy-player-record-and-ai-link",
+    "image": "18-legacy-player-record-and-ai-link.jpg",
+    "native_run": "focused-green-02",
+    "original_png_sha256": "ab543dda87e381c39e6e7fe168c6caca7b03be6f9932aac8f99967e2733f9863",
+    "review_image_sha256": "ea53e4f9f84c912f4736df44635b66bcd900be89cb781597850788a3887e2239",
+    "test": "PlayerRatingsFlowTests/testLegacyLeaderboardRoutesPeopleToTheirModeRecords()",
+    "processing": "Native screenshot resized to 804 pixels wide and encoded as JPEG for review; no content edits."
+  },
+  {
+    "name": "19-painted-mode-chooser-classic",
+    "image": "19-painted-mode-chooser-classic.jpg",
+    "native_run": "final-visual-checks",
+    "original_png_sha256": "6fb1509588250605343901295ac4e4f57ab04c195045a87869d80fb407b36fc2",
+    "review_image_sha256": "964c0389f970493bcbff31da4e1635480190881c076b2cc34e1e17ae6fa1423e",
+    "test": "PlayerRatingsFlowTests/testFiltersKeepModeAndDifficultyRatingsIndependent()",
+    "processing": "Native screenshot resized to 804 pixels wide and encoded as JPEG for review; no content edits."
+  },
+  {
+    "name": "19-painted-mode-chooser-naval",
+    "image": "19-painted-mode-chooser-naval.jpg",
+    "native_run": "final-visual-checks",
+    "original_png_sha256": "a89616c2c481b052af50bf818b2bb3f19da54aff668b1db9ff27458e67f301a7",
+    "review_image_sha256": "8573746b614143aabe77672cf9cf8ac63d97705d5e6c8f0ecffe7992f2d86427",
+    "test": "PlayerRatingsFlowTests/testFiltersKeepModeAndDifficultyRatingsIndependent()",
+    "processing": "Native screenshot resized to 804 pixels wide and encoded as JPEG for review; no content edits."
+  },
+  {
+    "name": "20-standings-largest-text",
+    "image": "20-standings-largest-text.jpg",
+    "native_run": "final-visual-checks",
+    "original_png_sha256": "32dafb4dfaf03c46ac61ce891749efca5b6900519b288dbc264971df29c5cdfb",
+    "review_image_sha256": "6a9baddcbb911985df5a2f393047b047515008d52696daac5c9de31b78cfc955",
+    "test": "PlayerRatingsFlowTests/testLargeTextKeepsFiltersAndCloseUsable()",
+    "processing": "Native screenshot resized to 804 pixels wide and encoded as JPEG for review; no content edits."
+  },
+  {
+    "name": "21-game-record-largest-text",
+    "image": "21-game-record-largest-text.jpg",
+    "native_run": "final-visual-checks",
+    "original_png_sha256": "16212ed8b2973b3996b37254a542d0dd707070c56140ee73a1d573a7c9cdbd8c",
+    "review_image_sha256": "57cbb6aee6a25268c26c4e9d8070c5dccbe3f5a03ea251f861450835e831cca7",
+    "test": "PlayerRatingsFlowTests/testLargeTextKeepsFiltersAndCloseUsable()",
+    "processing": "Native screenshot resized to 804 pixels wide and encoded as JPEG for review; no content edits."
+  },
+  {
+    "name": "22-mode-chooser-largest-text",
+    "image": "22-mode-chooser-largest-text.jpg",
+    "native_run": "final-visual-checks",
+    "original_png_sha256": "73cedd331568c2ee8856557f4ed48a191161e92a662e26bfda56c2534326d0fc",
+    "review_image_sha256": "6698f34ce535a4220e10fa5d35eba48f4be1f2f0344bea58b7692dad3036fa78",
+    "test": "PlayerRatingsFlowTests/testLargeTextKeepsFiltersAndCloseUsable()",
+    "processing": "Native screenshot resized to 804 pixels wide and encoded as JPEG for review; no content edits."
+  },
+  {
+    "name": "23-help-largest-text",
+    "image": "23-help-largest-text.jpg",
+    "native_run": "final-visual-checks",
+    "original_png_sha256": "1ca5cb02abc47904e97c7990212ffc7c794d88079737d5d28c7d58217623e6d0",
+    "review_image_sha256": "51be740ba791ed495c1e06d02f80db1cc5559828400d18209eb77e0d4b9ec94a",
+    "test": "PlayerRatingsFlowTests/testLargeTextKeepsFiltersAndCloseUsable()",
+    "processing": "Native screenshot resized to 804 pixels wide and encoded as JPEG for review; no content edits."
+  },
+  {
+    "name": "24-menu-largest-text",
+    "image": "24-menu-largest-text.jpg",
+    "native_run": "final-visual-checks",
+    "original_png_sha256": "cff6b3f219d3a1c5fda8596c7b9d09dcf6be3698819491c032f7ad98b271deef",
+    "review_image_sha256": "4306486828d84fa23032832cf2e3e31fbb8d0fe8f56e517310f1a6f12922b13d",
+    "test": "PlayerRatingsFlowTests/testLargeTextKeepsFiltersAndCloseUsable()",
+    "processing": "Native screenshot resized to 804 pixels wide and encoded as JPEG for review; no content edits."
+  }
+]

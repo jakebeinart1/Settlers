@@ -91,6 +91,9 @@ public struct RatingStore: Sendable {
         var rebuilt = Ratings()
         let ordered = records.sorted { ($0.date, $0.match.uuidString) < ($1.date, $1.match.uuidString) }
         for record in ordered where !rebuilt.ratedMatches.contains(record.match) {
+            // The historic people/ghost ladder keeps its original domain.
+            // Personal mode ratings are derived separately by PlayerRatings.
+            if let pool = record.ratingPool, pool.mode != .classic || pool.variant != .standard { continue }
             let seats = record.seats.compactMap { RatedEntity(key: $0.entity) }
             let winners = record.seats.indices.filter { record.seats[$0].stats.won }
             guard seats.count == record.seats.count, winners.count == 1 else { continue }

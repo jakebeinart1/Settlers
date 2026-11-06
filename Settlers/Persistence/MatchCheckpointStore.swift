@@ -97,17 +97,29 @@ struct MatchCheckpoint: Codable, Equatable, Sendable {
     let startedAt: Date
     let initialState: GameState
     let setup: MatchSetup
+    /// The account that started this game. Nil in old checkpoints, whose
+    /// ownership predates this provenance; new games never follow a later
+    /// iCloud account switch. A local ID resolves through PlayerDirectory.
+    let playerID: String?
+    /// Set only by a real New Game/Restart replacement, in that same atomic
+    /// checkpoint transaction. Fixture replacements are never forfeits.
+    private(set) var abandonedAt: Date?
     private(set) var state: GameState
     private(set) var moves: [RecordedMove] = []
     private(set) var elapsedSeconds: TimeInterval = 0
     private(set) var sessionCheckpoint: GameSession.Checkpoint?
 
-    init(id: UUID, initialState: GameState, setup: MatchSetup, startedAt: Date = Date()) {
+    init(id: UUID, initialState: GameState, setup: MatchSetup, startedAt: Date = Date(), playerID: String? = nil) {
         self.id = id
         self.startedAt = startedAt
         self.initialState = initialState
         self.state = initialState
         self.setup = setup
+        self.playerID = playerID
+    }
+
+    mutating func recordAbandonment(at date: Date) {
+        if abandonedAt == nil { abandonedAt = date }
     }
 
     mutating func apply(
@@ -207,6 +219,7 @@ struct MatchCheckpoint: Codable, Equatable, Sendable {
     func isExtending(_ previous: MatchCheckpoint) -> Bool {
         id == previous.id && startedAt == previous.startedAt
             && setup == previous.setup && initialState == previous.initialState
+            && playerID == previous.playerID && abandonedAt == previous.abandonedAt
             && moves.count >= previous.moves.count
             && moves.prefix(previous.moves.count).elementsEqual(previous.moves)
     }
@@ -491,7 +504,7 @@ struct MatchCheckpointDocument: Codable, Equatable, Sendable {
 
     /// Switching or clearing the table retains the displaced recording in the
     /// same atomic revision. Export failure must never make New Game lose it.
-    func replacingActiveMatch(with match: MatchCheckpoint?) throws -> Self {
+    func replacingActiveMatch(with match: MatchCheckpoint?, recordAbandonment: Bool = false) throws -> Self {
         guard revision < Int.max else { throw MatchCheckpointStore.StoreError.staleRevision }
         if let match {
             guard match.id != activeMatch?.id, pendingExports[match.id] == nil,
@@ -501,7 +514,14 @@ struct MatchCheckpointDocument: Codable, Equatable, Sendable {
             try match.validateHistory()
         }
         var next = self
-        if let activeMatch { next.pendingExports[activeMatch.id] = activeMatch }
+        if var displaced = activeMatch {
+            if recordAbandonment, case .gameOver = displaced.state.phase {
+                // Completed matches are not forfeits.
+            } else if recordAbandonment {
+                displaced.recordAbandonment(at: match?.startedAt ?? Date())
+            }
+            next.pendingExports[displaced.id] = displaced
+        }
         next.activeMatch = match
         next.pendingDevCardReveal = nil
         next.pendingDevCardResolution = nil

@@ -43,6 +43,9 @@ import Testing
         try await device.play(as: "Jake", against: device.me)
         try await sync(device, cloud: cloud, user: "apple-jake", name: "Jake")
         try #require(cloud.locked { $0.ghosts["apple-jake"] != nil }, "the source ghost must reach the cloud")
+        let posted = try #require(cloud.locked { $0.matches.values.first?.value })
+        #expect(posted.seats.contains("ghost:apple-jake"), "queued replay seats use the adopted ghost identity")
+        #expect(!posted.seats.contains { $0.hasPrefix("ghost:local-") })
     }
 
     private func sync(_ device: LiveSyncTests.Device, cloud: LiveSyncTests.FakeCloud,

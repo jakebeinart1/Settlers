@@ -21,10 +21,12 @@ public struct EndGameView: View {
     /// that failed and is queued for retry), and the right answer to that is
     /// one fewer button, not a button that opens an error.
     public let replayGameID: UUID?
+    public let unratedReason: String?
 
     public init(state: GameState, humanSeats: Set<PlayerID>,
                 playerIdentity: @escaping (PlayerID) -> PlayerIdentity = CatanTheme.playerIdentity,
                 replayGameID: UUID? = nil,
+                unratedReason: String? = nil,
                 onNewGame: @escaping () -> Void,
                 onMainMenu: @escaping () -> Void) {
         self.state = state
@@ -32,6 +34,7 @@ public struct EndGameView: View {
         self.humanSeats = humanSeats
         self.playerIdentity = playerIdentity
         self.replayGameID = replayGameID
+        self.unratedReason = unratedReason
         self.onNewGame = onNewGame
         self.onMainMenu = onMainMenu
     }
@@ -114,6 +117,8 @@ public struct EndGameView: View {
     private var resultContents: some View {
         VStack(spacing: 24) {
             headline
+            MatchRatingReceiptView(matchID: replayGameID, unratedReason: unratedReason)
+                .padding(.horizontal, 40)
             vpTable
             GoldRowButton(title: "New Game", systemImage: "arrow.counterclockwise",
                           iconColor: CatanTheme.color(for: Resource.brick), action: onNewGame)

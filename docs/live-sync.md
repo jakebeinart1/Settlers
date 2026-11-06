@@ -3,6 +3,74 @@
 Every rated game, every Elo rating and every ghost, shared by all players.
 Code: `Settlers/Sync/`. Tests: `SettlersTests/LiveSyncTests.swift`.
 
+## Personal ratings against AI
+
+The menu's personal rating and record are separate from the historic ghost
+ladder. Each board, rule set and ordinary AI tier has its own `RatingPool`:
+Classic, Classic Conquest, Vast, Vast Conquest and Voyages, each against
+Classic or Expert AI. A retained Expanded checkpoint can still finish and
+keep its own pool. A game with a ghost, mixed tiers or multiple humans does
+not enter an ordinary AI pool; the existing Classic/Standard ghost ladder
+continues to work as before.
+
+`SeatStatsRecord` is the durable per-match authority, with optional
+`ratingPool` and `abandoned` metadata. `PlayerRatings(records:)` derives every
+personal and AI standing and each before/after receipt in `(date, match UUID)`
+order. There is one computer reference per pool, shared by all human accounts,
+and exactly one update per game regardless of the number of computer chairs.
+Both people and the AI start at 1000; K is 32. With `n` computer opponents,
+the person's expected game-win probability is
+`1 / (1 + n × 10^((AI rating − personal rating) / 400))`. A win scores 1 and
+a loss scores 0; the single AI entry receives the opposite change. This
+accounts for three- and four-seat saved tables without treating the losing
+seats as draws, and ensures an ordinary loss cannot increase personal Elo.
+These are separate competition ratings, not a new claim about AI strength.
+
+Every new match snapshots its owner's ID in `MatchCheckpoint.playerID`.
+Starting offline uses the local ID; `PlayerDirectory.localOwnerBindings`
+durably binds it to its first iCloud account **before** refiling records.
+An interrupted adoption cannot be reassigned by a later account switch.
+Finishing that saved match later still belongs to its original owner.
+Old checkpoints without this provenance retain their previous current-device
+ownership behavior; names are never used to guess or combine accounts.
+
+Real New Game/Restart replacements stamp `MatchCheckpoint.abandonedAt` in
+the same atomic revision that retains the displaced match in `pendingExports`.
+Its loss is saved locally, including offline, before that recording can be
+acknowledged. Export failures retry the same timestamp and ID. QA fixture
+replacements do not stamp abandonment and do not manufacture restart losses.
+Full replay payloads wait under `SeatStats/PendingUploads` until upload
+receipts are durable. Production Game History currently retains all logs;
+this outbox additionally survives failed exports and any future retention
+policy. Valid JSON with a mismatched match ID/filename is rejected and kept.
+The previous `LiveSync/Abandoned` directory is still drained on upgrade.
+An outbox upload uses the account and ghost seat IDs already refiled in the
+authoritative stats, preserving the original match, timestamp and moves.
+Archived `~` ghosts retain their existing local-only policy: their games do
+not enter a new upload queue, and any prior queued evidence stays private.
+
+An additive payload field uses the existing CloudKit `Match.payload` asset;
+no schema, index, permission, credential or signing change is required. Older
+clients keep their Classic/Standard ladder and reject other modes. Updated
+clients reset the incremental download cursor once (`modeRatingRecords`),
+keeping upload receipts and persisting retry intent before network requests.
+Records already held under the correct person can gain mode metadata without
+losing locally resolved ghost aliases. All devices with the same verified
+records derive the same personal ledger, even after late or duplicate delivery.
+
+Migration is conservative. Legacy homogeneous ordinary-AI records classify
+as their historically recorded Classic/Standard pool. Matching local archives
+can enrich an existing, owner-proven record with exact mode metadata. Old
+unrecorded Naval/Vast games have no stable account ownership and sometimes no
+proven AI tier; they remain in Game History and are not invented as rated
+results. Renames preserve all IDs and records. Offline pages show local data
+until the next successful sync; another device's late game may legitimately
+revise chronological historical deltas.
+
+Focused integration coverage is in `RatingSyncTests`, with existing identity,
+ownership, replay and durability coverage in `LiveSyncTests`. Pure rating
+math and ordering coverage is in `PlayerRatingsTests`.
+
 ## How it works
 
 - **Identity: a player is their iCloud account, never their name** (Jake,
@@ -49,7 +117,8 @@ Code: `Settlers/Sync/`. Tests: `SettlersTests/LiveSyncTests.swift`.
   stats itself, so a record claiming a win its moves don't produce is rejected.
   A game's person seat is always filed under the account that uploaded it,
   so nobody can post a game as someone else.
-- **Elo.** Each phone recomputes every rating from all the games it holds,
+- **Historic ladder Elo.** Each phone recomputes its original Classic/Standard
+  people-and-ghost ladder rating from the games it holds,
   oldest first (`RatingStore.rebuild`). Elo depends on the order games are
   counted, and this fixed order is what makes every phone show the same ladder
   whatever order games arrived in.
@@ -152,7 +221,7 @@ TestFlight build (`com.alexchandler.empires`, team `HXB9F28LHR`).
 | Sign in to iCloud in your iPhone's Settings… | No iCloud account on the device. iOS offers apps no way to sign in, so this one step is outside the app |
 | Offline · … | No network, or CloudKit is busy. The next sync retries |
 
-## What the ratings mean (Jake, 2026-09-26)
+## What the historic ghost ladder ratings mean (Jake, 2026-09-26)
 
 - **Beating the bots raises your Elo.** Classic is fixed at 1000. Expert
   starts at 1229 and moves with its results against people, so a player who

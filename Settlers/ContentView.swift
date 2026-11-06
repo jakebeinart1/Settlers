@@ -60,6 +60,7 @@ struct ContentView: View {
                     EndGameView(state: viewModel.state, humanSeats: viewModel.humanSeats,
                                 playerIdentity: viewModel.playerIdentity,
                                 replayGameID: viewModel.currentGameLogID,
+                                unratedReason: viewModel.unratedMatchExplanation,
                                 onNewGame: { if viewModel.restartCompletedMatch() { hasStartedThisSession = true } },
                                 onMainMenu: { if viewModel.clearCompletedMatch() { hasStartedThisSession = false } })
                 }
@@ -106,7 +107,8 @@ struct ContentView: View {
                     },
                     statistics: viewModel.statistics,
                     requiresSaveReplacementConfirmation: viewModel.requiresSaveReplacementConfirmation,
-                    newGameSetupLoadResult: viewModel.newGameSetupLoadResult
+                    newGameSetupLoadResult: viewModel.newGameSetupLoadResult,
+                    savedGameHasRatingAtStake: viewModel.abandoningChangesRating
                 )
             }
         }
@@ -199,6 +201,9 @@ struct ContentView: View {
             }
             if QALaunchFlag.showEndGame.isSet {
                 viewModel.qaForceHumanWin()
+            }
+            if QALaunchFlag.showRatingWin.isSet || QALaunchFlag.showRatingLoss.isSet {
+                viewModel.qaShowPlayerRatingResult(won: QALaunchFlag.showRatingWin.isSet)
             }
             #endif
         }

@@ -24,6 +24,7 @@ import Testing
         var failNextSetName = false
         var failNextAccountLookup = false
         var failNextMatches = false
+        var failNextMatchUpload = false
 
         func locked<T>(_ body: (FakeCloud) throws -> T) rethrows -> T {
             lock.lock()
@@ -85,7 +86,11 @@ import Testing
         }
 
         func upload(_ match: SharedMatch) async throws {
-            cloud.locked { cloud in
+            try cloud.locked { cloud in
+                if cloud.failNextMatchUpload {
+                    cloud.failNextMatchUpload = false
+                    throw CloudSyncError.unavailable
+                }
                 guard cloud.matches[match.match] == nil else { return }
                 cloud.setMatch(Downloaded(value: match, owner: user, modified: cloud.tick()))
             }
@@ -259,8 +264,7 @@ import Testing
         }
         #expect(cloud.locked { $0.matches[left.match]?.value.abandoned } == true)
         #expect(cloud.locked { $0.matches.count } == 2)
-        let waiting = try FileManager.default.contentsOfDirectory(at: jake.stores.abandonedDirectory,
-                                                                  includingPropertiesForKeys: nil)
+        let waiting = try jake.stores.seatStats.pendingUploadFiles()
         #expect(waiting.isEmpty, "sent once, then forgotten")
 
         let alex = Device("alex", in: dir)

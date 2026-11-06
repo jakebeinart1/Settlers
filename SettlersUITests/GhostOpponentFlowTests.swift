@@ -63,6 +63,9 @@ final class GhostOpponentFlowTests: XCTestCase {
         app.launch()
         app.buttons["main-menu.leaderboard"].tap()
         XCTAssertTrue(app.otherElements["screen.leaderboard"].waitForExistence(timeout: 5))
+        let ghosts = app.buttons["leaderboard.scope.ghosts"]
+        XCTAssertTrue(ghosts.isHittable)
+        ghosts.tap()
         let classic = app.buttons["leaderboard.row.classic"]
         XCTAssertTrue(classic.waitForExistence(timeout: 3))
         XCTAssertTrue(classic.label.contains("1000"), classic.label)
@@ -78,6 +81,9 @@ final class GhostOpponentFlowTests: XCTestCase {
         app.launchArguments = ["-ui-testing", "-ui-testing-reset", "-qaSeedLeaderboard"]
         app.launch()
         app.buttons["main-menu.leaderboard"].tap()
+        let ghosts = app.buttons["leaderboard.scope.ghosts"]
+        XCTAssertTrue(ghosts.waitForExistence(timeout: 5) && ghosts.isHittable)
+        ghosts.tap()
         let jake = app.buttons["leaderboard.row.ghost:jake"]
         XCTAssertTrue(jake.waitForExistence(timeout: 5))
         let list = XCTAttachment(screenshot: app.screenshot())
@@ -109,6 +115,9 @@ final class GhostOpponentFlowTests: XCTestCase {
         app.launchArguments = ["-ui-testing", "-ui-testing-reset", "-qaSeedLeaderboard"]
         app.launch()
         app.buttons["main-menu.leaderboard"].tap()
+        let ghosts = app.buttons["leaderboard.scope.ghosts"]
+        XCTAssertTrue(ghosts.waitForExistence(timeout: 5) && ghosts.isHittable)
+        ghosts.tap()
         for (row, caption, shot) in [("expert", "From its own self-play · Expert is 75", "expert-ai-page"),
                                      ("classic", "1–99 · Expert is 75", "classic-ai-page")] {
             let button = app.buttons["leaderboard.row.\(row)"]

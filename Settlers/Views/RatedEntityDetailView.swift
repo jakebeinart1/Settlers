@@ -6,21 +6,37 @@ import SwiftUI
 struct RatedEntityDetailView: View {
     let detail: EntityDetail
     let onBack: () -> Void
+    /// A person keeps their original radar and overall ladder standing. The
+    /// separate action names the switch to mode-specific games against AI.
+    var onAIRatings: (() -> Void)?
 
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 14) {
-                Button(action: onBack) {
-                    Label("Leaderboard", systemImage: "chevron.left")
-                        .font(.system(size: 14, weight: .semibold, design: .serif))
-                }
-                .accessibilityIdentifier(AccessibilityID.Leaderboard.back)
-                header
-                recordBlock
-                radarBlock
-                if !detail.style.isEmpty { styleBlock }
+        VStack(alignment: .leading, spacing: 14) {
+            Button(action: onBack) {
+                Label("Leaderboard", systemImage: "chevron.left")
+                    .font(.system(size: 14, weight: .semibold, design: .serif))
+                    .frame(minHeight: 44)
+                    .contentShape(Rectangle())
             }
-            .padding(.bottom, 24)
+            .accessibilityIdentifier(AccessibilityID.Leaderboard.back)
+            ScrollView {
+                VStack(alignment: .leading, spacing: 14) {
+                    header
+                    if onAIRatings != nil {
+                        Text("Classic Standard · includes ghost games")
+                            .font(.system(.caption, design: .serif)).foregroundStyle(.white.opacity(0.7))
+                    }
+                    recordBlock
+                    if let onAIRatings {
+                        GoldRowButton(title: "AI ratings by mode", systemImage: "chart.line.uptrend.xyaxis",
+                                      iconColor: SettingsChrome.ornamentGold, action: onAIRatings)
+                            .accessibilityIdentifier("leaderboard.ai-ratings")
+                    }
+                    radarBlock
+                    if !detail.style.isEmpty { styleBlock }
+                }
+                .padding(.bottom, 24)
+            }
         }
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier(AccessibilityID.Screen.ratedEntity)
@@ -37,7 +53,8 @@ struct RatedEntityDetailView: View {
                 Text(verbatim: String(Int(detail.elo.rounded())))
                     .font(.system(size: 26, weight: .bold, design: .serif))
                     .foregroundStyle(SettingsChrome.ornamentGold)
-                Text("Elo").font(.system(size: 11, design: .serif)).foregroundStyle(.white.opacity(0.7))
+                Text(onAIRatings == nil ? "Elo" : "Overall Elo")
+                    .font(.system(size: 11, design: .serif)).foregroundStyle(.white.opacity(0.7))
             }
         }
     }
@@ -45,7 +62,7 @@ struct RatedEntityDetailView: View {
     private var recordBlock: some View {
         VStack(alignment: .leading, spacing: 6) {
             if let learned = detail.gamesLearned { line("Games learned from its player", "\(learned)") }
-            line("Games against humans", "\(detail.record.played)")
+            line(onAIRatings == nil ? "Games against humans" : "Games in this ladder", "\(detail.record.played)")
             if detail.record.played > 0 {
                 line("Won – lost", "\(detail.record.won) – \(detail.record.played - detail.record.won)")
                 line("Win rate", "\(Int((detail.record.winRate * 100).rounded()))%")

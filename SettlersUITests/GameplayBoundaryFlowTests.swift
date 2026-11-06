@@ -252,11 +252,22 @@ final class GameplayBoundaryFlowTests: XCTestCase {
         // the gate red twice (2026-09-08) without a bug behind it.
         XCTAssertTrue(app.buttons["game-over.replay"].waitForExistence(timeout: 10),
                       "The win screen offered no replay of the match just played")
+        let rating = app.buttons["game-over.rating"]
+        XCTAssertTrue(rating.waitForExistence(timeout: 10),
+                      "A completed ordinary AI match must record its actual Elo change")
+        let result = XCTAttachment(screenshot: app.screenshot())
+        result.name = "Real completed match — AI rating receipt"
+        result.lifetime = .keepAlways
+        add(result)
 
         app.buttons["game-over.main-menu"].tap()
 
         XCTAssertTrue(app.otherElements["screen.main-menu"].waitForExistence(timeout: 2))
         XCTAssertFalse(app.buttons["main-menu.resume"].exists)
+        let menu = XCTAttachment(screenshot: app.screenshot())
+        menu.name = "Real completed match — menu record and finished-game averages"
+        menu.lifetime = .keepAlways
+        add(menu)
     }
 
     /// Repro for Jake's "trade popup shouldn't close when a trade is
