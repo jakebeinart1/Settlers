@@ -100,7 +100,7 @@ import Testing
         let privateDirectory = root.appendingPathComponent("support")
         let logs = GameLogStore(directoryURL: publicDirectory, maxKeptLogs: 2, privateDirectoryURL: privateDirectory)
         let state = GameSetup.newGame(board: BoardGenerator.standard(), seed: 471)
-        let roster = GameLogStore.SeatRoster(humanSeats: Set(state.players.map(\.id)), humanNames: [:])
+        let roster = sharedRoster(for: state)
         let id = try logs.startNewGame(initialState: state, roster: roster)
         let soloID = try logs.startNewGame(initialState: state, roster: .legacy(humanSeat: PlayerID(index: 0)))
         let legacyURL = try #require(try logs.summary(for: id)?.fileURL)
@@ -133,7 +133,7 @@ import Testing
         defer { try? FileManager.default.removeItem(at: root) } // Test-owned directory only.
         let logs = GameLogStore(directoryURL: root, maxKeptLogs: 2)
         let state = GameSetup.newGame(board: BoardGenerator.standard(), seed: 471)
-        let roster = GameLogStore.SeatRoster(humanSeats: Set(state.players.map(\.id)), humanNames: [:])
+        let roster = sharedRoster(for: state)
         let id = try logs.startNewGame(initialState: state, roster: roster)
         let publicURL = try #require(try logs.summary(for: id)?.fileURL)
         let corrupt = try Data(contentsOf: publicURL) + Data(damagedSuffix.utf8)
@@ -211,7 +211,7 @@ import Testing
         let privateDirectory = root.appendingPathComponent("private")
         let logs = GameLogStore(directoryURL: root, maxKeptLogs: 8, privateDirectoryURL: privateDirectory)
         let state = GameSetup.newGame(board: BoardGenerator.standard(), seed: 471)
-        let roster = GameLogStore.SeatRoster(humanSeats: Set(state.players.map(\.id)), humanNames: [:])
+        let roster = sharedRoster(for: state)
         let orphan = try logs.startNewGame(initialState: state, roster: roster)
         let damaged = try logs.startNewGame(initialState: state, roster: roster)
         let finished = try logs.startNewGame(initialState: state, roster: roster)
@@ -242,7 +242,7 @@ import Testing
         defer { try? FileManager.default.removeItem(at: root) } // Test-owned directory only.
         let logs = GameLogStore(directoryURL: root, maxKeptLogs: 2)
         var state = GameSetup.newGame(board: BoardGenerator.standard(), seed: 471)
-        let roster = GameLogStore.SeatRoster(humanSeats: Set(state.players.map(\.id)), humanNames: [:])
+        let roster = sharedRoster(for: state)
         let id = try logs.startNewGame(initialState: state, roster: roster)
         state.phase = .gameOver(winner: PlayerID(index: 0))
         let complete = MatchCheckpoint(id: id, initialState: state, setup: sharedSetup(for: state))
@@ -252,6 +252,11 @@ import Testing
 
         #expect(try logs.summary(for: id)?.isComplete == true)
         #expect(try logs.logFiles() == [completedURL])
+    }
+
+    private func sharedRoster(for state: GameState) -> GameLogStore.SeatRoster {
+        GameLogStore.SeatRoster(humanSeats: Set(state.players.map(\.id)), humanNames: [:],
+                                botPersonalities: [:], civilizations: [:])
     }
 
     private func sharedSetup(for state: GameState) -> MatchSetup {
