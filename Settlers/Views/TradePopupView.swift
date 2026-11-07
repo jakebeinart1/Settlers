@@ -293,13 +293,17 @@ public struct TradePopupView: View {
             Divider().overlay(CatanTheme.chipGold.opacity(0.4))
             TradeResourceRow(draft: draftFeedback, isGive: false,
                              onAdd: { add($0, toGive: false) }, onRemove: { remove($0, fromGive: false) })
-            Label(draftFeedback.message,
-                  systemImage: draftFeedback.canSubmit ? "checkmark.circle" : draftFeedback.hasProblem ? "exclamationmark.circle" : "info.circle")
-                .font(.caption)
-                .foregroundStyle(draftFeedback.hasProblem ? Self.problemColor : CatanTheme.onWaterText)
-                .fixedSize(horizontal: false, vertical: true)
-                .frame(maxWidth: .infinity, minHeight: 34, alignment: .leading)
-                .accessibilityIdentifier("trade.feedback")
+            HStack(alignment: .firstTextBaseline, spacing: 6) {
+                Image(systemName: draftFeedback.canSubmit ? "checkmark.circle"
+                      : draftFeedback.hasProblem ? "exclamationmark.circle" : "info.circle")
+                    .accessibilityHidden(true)
+                Text(draftFeedback.message)
+                    .accessibilityIdentifier("trade.feedback")
+            }
+            .font(.caption)
+            .foregroundStyle(draftFeedback.hasProblem ? Self.problemColor : CatanTheme.onWaterText)
+            .fixedSize(horizontal: false, vertical: true)
+            .frame(maxWidth: .infinity, minHeight: 34, alignment: .leading)
         }
     }
 

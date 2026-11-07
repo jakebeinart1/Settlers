@@ -790,11 +790,15 @@ public struct GameView: View {
                 .background(humanPanelFrameMarker)
             }
 
-            bottomPanel
-                .padding(.horizontal, 12)
-                .padding(.top, 8)
-                .allowsHitTesting(!isDiscardPresented)
-                .accessibilityHidden(isDiscardPresented || isBlockingOverlayPresented)
+            // Local accessibility modifiers can re-expose a hidden ancestor.
+            // Omit the commands while covered. The reserve still holds the board in place.
+            if !viewModel.needsLocalHandoff {
+                bottomPanel
+                    .padding(.horizontal, 12)
+                    .padding(.top, 8)
+                    .allowsHitTesting(!isDiscardPresented)
+                    .accessibilityHidden(isDiscardPresented || isBlockingOverlayPresented)
+            }
         }
         // Top-aligned, so a state with less in it leaves its slack at the
         // bottom rather than floating its panels into the middle of the gap.
@@ -1086,7 +1090,8 @@ private extension GameView {
         case .recoveryFailure, .privateReceipt: true
         default: false
         }
-        return (canPresentBoardPopup && (showBuildPopup || showArmyPurchase || showTradePopup))
+        return viewModel.needsLocalHandoff
+            || (canPresentBoardPopup && (showBuildPopup || showArmyPurchase || showTradePopup))
             || (isDiscardPresented && !viewModel.isDiscardEditorMinimized)
             || isNavalResourceChoice
             || interactionPriority.isSettingsCoverPresented || winnerBlocksBoard

@@ -26,6 +26,7 @@ struct VictoryCutsceneView: View {
     /// Dev cards that scored, in the order they flipped in.
     @State private var cards: [DevCardType] = []
     @State private var showsBanner = false
+    @State private var bannerSettled = false
     /// Closed stage curtains open the scene (Jake, 2026-10-08).
     @State private var showsCurtain = true
     @State private var curtainOpenness: CGFloat = 0
@@ -83,7 +84,12 @@ struct VictoryCutsceneView: View {
             caption = nil
         }
         guard await pause(0.6) else { return }
-        withAnimation(.spring(response: 0.5, dampingFraction: 0.6)) { showsBanner = true }
+        withAnimation(reduceMotion ? nil : .spring(response: 0.5, dampingFraction: 0.6),
+                      completionCriteria: .removed) {
+            showsBanner = true
+        } completion: {
+            bannerSettled = true
+        }
         guard await pause(Self.bannerHold) else { return }
         onFinish()
     }
@@ -243,13 +249,14 @@ struct VictoryCutsceneView: View {
         }
         VStack(spacing: 6) {
             Text(isLocalMultiplayer ? "\(winnerIdentity.displayName) wins" : (isHumanWin ? "VICTORY!" : "YOU LOSE!"))
-                .font(.system(size: 46, weight: .black, design: .serif))
-                .tracking(3)
+                .font(.system(size: isLocalMultiplayer ? 36 : 46, weight: .black, design: .serif))
+                .tracking(isLocalMultiplayer ? 0 : 3)
                 .multilineTextAlignment(.center)
                 .lineLimit(2)
                 .minimumScaleFactor(0.55)
                 .foregroundStyle(celebratesWinner ? CatanTheme.cityPennantGold : Color(white: 0.82))
                 .accessibilityIdentifier(AccessibilityID.GameOver.cutsceneWinner)
+                .accessibilityHidden(!bannerSettled)
             Text(endingSubtitle)
                 .font(.headline)
                 .multilineTextAlignment(.center)

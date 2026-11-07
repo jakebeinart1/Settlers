@@ -12,23 +12,26 @@ struct PassAndPlayCover: View {
     let onRetry: () -> Void
     let onMenu: () -> Void
     @AccessibilityFocusState private var isPromptFocused: Bool
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     var body: some View {
-        GeometryReader { geometry in
-            ScrollView {
-                VStack(spacing: 24) {
-                    Spacer(minLength: 20)
+        VStack(spacing: 12) {
+            GeometryReader { geometry in
+                ScrollView {
                     heading
-                    Spacer(minLength: 20)
-                    controls
+                        .padding(.horizontal, 24)
+                        .padding(.vertical, 12)
+                        .frame(maxWidth: 440)
+                        .frame(maxWidth: .infinity, minHeight: geometry.size.height)
                 }
-                .padding(.horizontal, 24)
-                .padding(.vertical, 20)
-                .frame(minHeight: geometry.size.height)
-                .frame(maxWidth: 440)
-                .frame(maxWidth: .infinity)
+                .scrollBounceBehavior(.basedOnSize)
+                .clipped()
             }
-            .scrollBounceBehavior(.basedOnSize)
+            // A long message can scroll while the receiver can always reach the actions.
+            controls
+                .padding(.horizontal, 24)
+                .frame(maxWidth: 440)
+                .padding(.bottom, 12)
         }
         .background {
             GeometryReader { geometry in
@@ -45,19 +48,20 @@ struct PassAndPlayCover: View {
         .foregroundStyle(.white)
         .fontDesign(.serif)
         .onChange(of: recipient?.id, initial: true) { _, _ in isPromptFocused = true }
+        .onChange(of: retryTitle) { _, _ in isPromptFocused = true }
     }
 
     private var heading: some View {
         VStack(spacing: 12) {
             Text("Pass & Play")
-                .font(.subheadline.weight(.semibold))
+                .font(.caption2.weight(.semibold))
                 .tracking(2)
                 .textCase(.uppercase)
                 .foregroundStyle(SettingsChrome.ornamentGold)
                 .accessibilityAddTraits(.isHeader)
 
             if let recipient, retryTitle == nil {
-                CivilizationCrest(civilization: recipient.civilization, size: 88)
+                CivilizationCrest(civilization: recipient.civilization, size: 72)
                     .accessibilityHidden(true)
                 Text("Pass to \(recipient.displayName)")
                     .font(.largeTitle.bold())
@@ -65,22 +69,22 @@ struct PassAndPlayCover: View {
                     .accessibilityFocused($isPromptFocused)
                     .accessibilityIdentifier(AccessibilityID.Handoff.recipient)
             } else {
-                Image(systemName: "hourglass")
-                    .font(.largeTitle)
+                Image(systemName: retryTitle == nil ? "hourglass" : "arrow.clockwise")
+                    .font(.system(size: 32, weight: .semibold))
                     .accessibilityHidden(true)
                 Text(retryTitle == nil ? "Waiting for the next player" : "Game paused")
-                    .font(.largeTitle.bold())
+                    .font(.title2.bold())
                     .accessibilityAddTraits(.isHeader)
                     .accessibilityFocused($isPromptFocused)
             }
 
             if let turnTitle, turnTitle != context {
                 Text(turnTitle)
-                    .font(.callout.weight(.semibold))
+                    .font(.footnote.weight(.semibold))
                     .foregroundStyle(SettingsChrome.ornamentGold)
             }
             Text(context)
-                .font(.callout)
+                .font(.footnote)
                 .foregroundStyle(.white.opacity(0.86))
         }
         .multilineTextAlignment(.center)
@@ -96,7 +100,7 @@ struct PassAndPlayCover: View {
                     .accessibilityIdentifier(AccessibilityID.Game.retryBotProgress)
             } else if let recipient {
                 GoldRowButton(title: "I'm \(recipient.displayName)",
-                              subtitle: "Show my hand",
+                              subtitle: dynamicTypeSize.isAccessibilitySize ? nil : "Continue privately",
                               systemImage: "hand.tap",
                               iconColor: SettingsChrome.ornamentGold, action: onReady)
                     .accessibilityIdentifier(AccessibilityID.Handoff.ready)
@@ -143,10 +147,11 @@ extension GameView {
         let seat = viewModel.seatOwedATurn
         let recipient = seat.map { viewModel.playerIdentity(for: $0) }
         let failure = localHandoffRecoveryMessage
+        let context = failure ?? seat.map(localHandoffContext) ?? "The game is catching up."
         return PassAndPlayCover(
             recipient: recipient,
-            context: failure ?? seat.map(localHandoffContext) ?? localTurnTitle ?? "The game is catching up.",
-            turnTitle: localTurnTitle,
+            context: context,
+            turnTitle: failure == nil && seat != viewModel.localTurnOwner ? localTurnTitle : nil,
             retryTitle: failure.map { _ in viewModel.persistenceBlocked ? "Reload saved game" : "Retry" },
             onReady: {
                 guard let seat, viewModel.claimLocalDevice(for: seat) else { return }
@@ -159,7 +164,7 @@ extension GameView {
 
     private var localHandoffRecoveryMessage: String? {
         if viewModel.persistenceBlocked {
-            return viewModel.persistenceErrorMessage ?? "Reload to continue from the last saved move."
+            return "The game couldn’t save. Reload to continue."
         }
         if case .failed(_, let message) = viewModel.botTurnProgress { return message }
         return nil
@@ -175,7 +180,9 @@ extension GameView {
         case .discarding: return "Choose cards to discard."
         case .choosingResource: return "Collect your island resources."
         case .setupForward, .setupBackward: return "Place your settlement and road."
-        default: return localTurnTitle ?? "Your decision is ready."
+        case .rollDice: return "Roll the dice to start your turn."
+        case .mainTurn: return "Continue your turn."
+        default: return "Your decision is ready."
         }
     }
 }

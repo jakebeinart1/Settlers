@@ -106,14 +106,14 @@ final class PassAndPlayFlowTests: XCTestCase {
         retain("Pass & Play – covered save recovery at maximum text", in: app)
 
         let reload = app.buttons["bot-progress.retry"]
-        revealCoverControl(app.buttons["Main Menu"], in: app)
-        revealCoverControl(reload, in: app)
+        assertCoverControl(app.buttons["Main Menu"], in: app)
+        assertCoverControl(reload, in: app)
         XCTAssertTrue(reload.label.contains("Reload saved game"))
         retain("Pass & Play – reload action reachable at maximum text", in: app)
         reload.tap()
 
         let ready = app.buttons["handoff.ready"]
-        revealCoverControl(ready, in: app)
+        assertCoverControl(ready, in: app)
         XCTAssertFalse(paused.exists)
         claim("Player 1", in: app, capture: "Pass & Play – reload restores the named claimant at maximum text")
         assertHandVisible(in: app)
@@ -163,7 +163,9 @@ final class PassAndPlayFlowTests: XCTestCase {
         XCTAssertTrue(winner.waitForExistence(timeout: 20))
         XCTAssertEqual(winner.label, "Player 2 wins")
         retain("Pass & Play – the victory cutscene names the winner", in: app)
-        XCTAssertTrue(app.staticTexts["PLAYER 2 WINS"].waitForExistence(timeout: 25))
+        let result = app.staticTexts["game-over.winner"]
+        XCTAssertTrue(result.waitForExistence(timeout: 25))
+        XCTAssertEqual(result.label, "Player 2 wins")
         let receipt = app.staticTexts["game-over.unrated"]
         XCTAssertTrue(receipt.waitForExistence(timeout: timeout))
         XCTAssertTrue(receipt.label.contains("AI rating"))
@@ -249,7 +251,9 @@ final class PassAndPlayFlowTests: XCTestCase {
         XCTAssertEqual(grain.value as? String, String(askingGrain))
         let send = app.buttons["Send offer"]
         XCTAssertTrue(send.exists && send.isEnabled)
-        assertNamed("trade.feedback", player: "Player 2 can accept or decline", in: app)
+        let feedback = app.staticTexts["trade.feedback"]
+        XCTAssertTrue(feedback.waitForExistence(timeout: timeout))
+        XCTAssertTrue(feedback.label.contains("Player 2 can accept or decline"), feedback.label)
         if let capture { retain(capture, in: app) }
         send.tap()
     }
@@ -379,14 +383,9 @@ final class PassAndPlayFlowTests: XCTestCase {
         XCTAssertTrue(control.isHittable)
     }
 
-    private func revealCoverControl(_ control: XCUIElement, in app: XCUIApplication) {
-        let scroll = app.scrollViews.firstMatch
-        XCTAssertTrue(scroll.waitForExistence(timeout: timeout))
-        let viewport = scroll.frame.insetBy(dx: -1, dy: -1)
-        for _ in 0..<4 where !(control.isHittable && viewport.contains(control.frame)) {
-            if control.exists && control.frame.minY < viewport.minY { scroll.swipeDown() } else { scroll.swipeUp() }
-        }
-        XCTAssertTrue(control.isHittable && viewport.contains(control.frame), "Cover action must be reachable in full")
+    private func assertCoverControl(_ control: XCUIElement, in app: XCUIApplication) {
+        XCTAssertTrue(control.waitForExistence(timeout: timeout) && control.isHittable
+                      && app.frame.contains(control.frame), "Cover action must be reachable without scrolling")
     }
 
     private func claim(_ player: String, in app: XCUIApplication, capture: String? = nil) {
@@ -424,7 +423,7 @@ final class PassAndPlayFlowTests: XCTestCase {
         XCTAssertFalse(resources.firstMatch.exists, "The unclaimed hand leaked through accessibility")
         let privateCards = app.staticTexts.matching(NSPredicate(format: "identifier BEGINSWITH %@", "dev-cards.detail."))
         XCTAssertFalse(privateCards.firstMatch.exists, "The covered card identity leaked through accessibility")
-        for identifier in ["dev-cards.view-hand", "board-decision.confirm", "Roll Dice", "discard.submit",
+        for identifier in ["dev-cards.view-hand", "board-decision.confirm", "Roll Dice", "End Turn", "Build", "Trade", "discard.submit",
                            "incoming-trade.accept", "naval.resource.confirm", "naval.capture.continue"] {
             XCTAssertFalse(app.buttons[identifier].exists, "The covered player can still reach \(identifier)")
         }
