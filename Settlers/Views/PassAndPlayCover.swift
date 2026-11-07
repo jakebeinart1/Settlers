@@ -131,9 +131,11 @@ struct PassAndPlayCover: View {
     private func claimButton(for recipient: PlayerIdentity) -> some View {
         Button(action: onReady) {
             HStack(spacing: 12) {
-                Image(systemName: "hand.tap.fill")
-                    .font(.title3.weight(.semibold))
-                    .foregroundStyle(SettingsChrome.ornamentGold)
+                if !dynamicTypeSize.isAccessibilitySize {
+                    Image(systemName: "hand.tap.fill")
+                        .font(.title3.weight(.semibold))
+                        .foregroundStyle(SettingsChrome.ornamentGold)
+                }
                 VStack(spacing: 3) {
                     Text(dynamicTypeSize.isAccessibilitySize ? "Continue" : "I'm \(recipient.displayName)")
                         .font(.title3.bold())
