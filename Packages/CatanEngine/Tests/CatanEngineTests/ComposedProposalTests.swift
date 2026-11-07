@@ -45,6 +45,15 @@ import Testing
         #expect(!permitted(random, state, me))
     }
 
+    @Test func aBroadcastIDCannotAuthorizeADirectedPolicyOffer() {
+        let (state, me) = table()
+        let broadcast = TradeOffer.enumerated(from: me, give: [.brick: 2, .lumber: 2], want: [.grain: 1])
+        let directed = TradeOffer(id: broadcast.id, from: me, recipient: state.players[1].id,
+                                  give: broadcast.give, want: broadcast.want)
+        #expect(permitted(.proposeTrade(broadcast), state, me))
+        #expect(!permitted(.proposeTrade(directed), state, me))
+    }
+
     @Test func malformedOrExcessiveCompositionsAreRefused() {
         let (state, me) = table()
         #expect(!permitted(composed(me, give: [.brick: 1, .grain: 1], want: [.grain: 1]), state, me),

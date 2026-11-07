@@ -170,6 +170,38 @@ struct HumanTradeOfferIntegrationTests {
             offer: proposal, context: model.tradeOfferContext(proposal)))
     }
 
+    @Test func personalRoundBlockDoesNotDeclineForAnotherFundedLocalPlayer() throws {
+        let fixture = try CheckpointModelFixture()
+        let model = try installPosition(in: fixture)
+        let recipient = PlayerID(index: 2)
+        var state = model.state
+        state.players[recipient.index].resources = [.lumber: 3]
+        for resource in Resource.allCases {
+            state.bank[resource] = state.rules.bankPerResource
+                - state.players.reduce(0) { $0 + $1.resources[resource, default: 0] }
+        }
+        model.replaceStateForTesting(state, humanSeats: [human, recipient])
+        model.tradeOffersBlockedUntilTurn[human] = 1
+        let proposal = offer()
+        try commit(.proposeTrade(proposal), by: bot, to: model)
+        #expect(Trading.bothSidesCanHonour(proposal, responder: human, state: model.state))
+        #expect(Trading.bothSidesCanHonour(proposal, responder: recipient, state: model.state))
+        #expect(model.owedTradeResponseSeat == recipient)
+        #expect(model.tradeResponseOffer(for: human) == nil)
+        try model.reconcileHumanTradeOffers()
+        #expect(model.state.pendingTradeOffers == [proposal])
+        #expect(model.claimLocalDevice(for: recipient))
+        try model.reconcileHumanTradeOffers()
+        #expect(model.openIncomingOffer == proposal)
+        #expect(model.checkpointDocument?.humanTradePolicies?[human.index] == nil)
+
+        let resumed = fixture.makeModel()
+        #expect(resumed.tradeOffersBlockedUntilTurn.isEmpty)
+        #expect(resumed.owedTradeResponseSeat == recipient)
+        #expect(resumed.claimLocalDevice(for: recipient))
+        #expect(resumed.openIncomingOffer == proposal)
+    }
+
     @Test(arguments: ["settings", "round", "bank"])
     func suppressedBotOfferReconcilesWithoutAClaim(reason: String) throws {
         let preferences = PacingPreferences.shared
@@ -179,7 +211,12 @@ struct HumanTradeOfferIntegrationTests {
         let fixture = try CheckpointModelFixture()
         let model = try installPosition(in: fixture, bankPort: reason == "bank")
         let otherHuman = PlayerID(index: 2)
-        model.replaceStateForTesting(model.state, humanSeats: [human, otherHuman])
+        var state = model.state
+        if reason == "settings" {
+            state.players[otherHuman.index].resources[.lumber] = 1
+            state.bank[.lumber, default: 0] -= 1
+        }
+        model.replaceStateForTesting(state, humanSeats: [human, otherHuman])
         model.seatAtDevice = otherHuman
         if reason == "round" { model.tradeOffersBlockedUntilTurn[human] = 1 }
         let proposal = reason == "bank" ? offer(give: [.ore: 2], want: [.lumber: 4]) : offer()

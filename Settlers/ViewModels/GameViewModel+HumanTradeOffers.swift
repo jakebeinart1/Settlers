@@ -19,41 +19,56 @@ extension GameViewModel {
     }
 
     /// A named offer always needs a reply, even when its recipient lacks
-    /// cards. A bot broadcast keeps the existing funded-recipient rule.
-    /// The first eligible human seat gets that broadcast's response window,
-    /// independently of who happened to hold the phone before the offer.
-    private var nextTradeResponse: (seat: PlayerID, offer: TradeOffer)? {
+    /// cards. A bot broadcast only considers people who can pay for it.
+    private var incomingTradeCandidates: (offer: TradeOffer, seats: [PlayerID])? {
         guard case .mainTurn = state.phase else { return nil }
         if let directed = state.pendingTradeOffers.first(where: { $0.recipient != nil }),
            let recipient = directed.recipient {
-            return humanSeats.contains(recipient) ? (recipient, directed) : nil
+            return humanSeats.contains(recipient) ? (directed, [recipient]) : nil
         }
         for offer in state.pendingTradeOffers where !humanSeats.contains(offer.from) {
-            if let seat = sortedHumanSeats.first(where: { Trading.bothSidesCanHonour(offer, responder: $0, state: state) }) {
-                return (seat, offer)
-            }
+            let seats = sortedHumanSeats.filter { Trading.bothSidesCanHonour(offer, responder: $0, state: state) }
+            if !seats.isEmpty { return (offer, seats) }
         }
         return nil
     }
 
     /// The runner must settle an unresolved bot proposal even when it won't
     /// ask a person to answer it.
-    var hasUnresolvedTradeResponse: Bool { nextTradeResponse != nil }
+    var hasUnresolvedTradeResponse: Bool { incomingTradeCandidates != nil }
+
+    /// Personal suppression skips that seat without declining for the whole
+    /// table. A durably presented offer keeps its eligible recipient on cold
+    /// resume, when an earlier seat's temporary round block has reset.
+    private var nextTradeResponse: (seat: PlayerID, offer: TradeOffer, needsReply: Bool)? {
+        guard let (offer, seats) = incomingTradeCandidates, let first = seats.first else { return nil }
+        guard isLocalMultiplayer, offer.recipient == nil else { return (first, offer, true) }
+
+        let context = tradeOfferContext(offer)
+        var firstAvailable: PlayerID?
+        for seat in seats {
+            let policy = humanTradePolicy(for: seat)
+            let decision = policy.decision(for: offer, in: state, context: context)
+            guard automaticTradeResponse(to: offer, by: seat, decision: decision, context: context) == nil else { continue }
+            if policy.isPresented(offer: offer, context: context) { return (seat, offer, true) }
+            if firstAvailable == nil { firstAvailable = seat }
+        }
+        return (firstAvailable ?? first, offer, firstAvailable != nil)
+    }
 
     var owedTradeResponseSeat: PlayerID? {
-        guard let response = nextTradeResponse, requiresHumanReply(to: response.offer, by: response.seat) else { return nil }
+        guard let response = nextTradeResponse, response.needsReply else { return nil }
         return response.seat
     }
 
     func tradeResponseOffer(for seat: PlayerID) -> TradeOffer? {
-        guard let response = nextTradeResponse, response.seat == seat,
-              requiresHumanReply(to: response.offer, by: seat) else { return nil }
+        guard let response = nextTradeResponse, response.seat == seat, response.needsReply else { return nil }
         return response.offer
     }
 
     /// The suppression and presentation budget applies only to bot offers.
     var rawIncomingOffer: TradeOffer? {
-        guard let response = nextTradeResponse, response.offer.recipient == nil else { return nil }
+        guard let response = incomingTradeCandidates, response.offer.recipient == nil else { return nil }
         return response.offer
     }
 
@@ -101,7 +116,7 @@ extension GameViewModel {
               pendingTradeConfirmation == nil, pendingDevCardReveal == nil,
               pendingDevCardResolution == nil, pendingShipCapture == nil, !hasMandatoryNavalDecision else { return }
         while let response = nextTradeResponse, response.offer.recipient == nil {
-            let (seat, offer) = response
+            let (seat, offer, _) = response
             var policy = humanTradePolicy(for: seat)
             let context = tradeOfferContext(offer)
             let decision = policy.decision(for: offer, in: state, context: context)
@@ -118,15 +133,6 @@ extension GameViewModel {
             try commitDocument(document.recordingTradePresentations(policies))
             return
         }
-    }
-
-    private func requiresHumanReply(to offer: TradeOffer, by seat: PlayerID) -> Bool {
-        // The solo path has no handoff to suppress. Named offers are exempt
-        // from bot-offer preferences even in a mixed game.
-        guard isLocalMultiplayer, offer.recipient == nil else { return true }
-        let context = tradeOfferContext(offer)
-        let decision = humanTradePolicy(for: seat).decision(for: offer, in: state, context: context)
-        return automaticTradeResponse(to: offer, by: seat, decision: decision, context: context) == nil
     }
 
     private func automaticTradeResponse(

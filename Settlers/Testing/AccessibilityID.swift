@@ -303,6 +303,7 @@ enum AccessibilityID {
         static let mainMenu = "game-over.main-menu"
         static let cutscene = "game-over.cutscene"
         static let cutsceneScore = "game-over.cutscene.score"
+        static let cutsceneWinner = "game-over.cutscene.winner"
         static let skipCutscene = "game-over.cutscene.skip"
     }
 }

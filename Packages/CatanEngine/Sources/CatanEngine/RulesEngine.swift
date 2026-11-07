@@ -207,8 +207,8 @@ public enum RulesEngine {
     /// - Proposing must be allowed right now: `legal` offers at least one
     ///   proposal, which carries the phase, the turn, the pending-offer rule
     ///   and the per-turn cap with it rather than restating them here.
-    /// - It comes from `seat`, asks for and gives something, never the same
-    ///   resource on both sides, and stays within the composed limits.
+    /// - It is a broadcast from `seat`, asks for and gives something, never
+    ///   the same resource on both sides, and stays within the composed limits.
     /// - `seat` can afford its side.
     /// - Its id is the content-derived `TradeOffer.enumerated` id, so a seeded
     ///   game that makes it replays identically in every process.
@@ -218,7 +218,7 @@ public enum RulesEngine {
         in state: GameState,
         legal: [GameMove]
     ) -> Bool {
-        guard case .proposeTrade(let offer) = move, offer.from == seat,
+        guard case .proposeTrade(let offer) = move, offer.from == seat, offer.recipient == nil,
               !state.pendingTradeOffers.contains(where: { $0.id == offer.id }) else { return false }
         guard legal.contains(where: { if case .proposeTrade = $0 { true } else { false } }) else { return false }
         guard isWellFormedComposition(offer),

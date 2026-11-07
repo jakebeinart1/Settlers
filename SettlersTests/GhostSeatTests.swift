@@ -150,8 +150,8 @@ import Testing
         #expect(seats.all == [[PlayerID(index: 0)]], "only Jake's own seat is read, never the ghost's")
     }
 
-    /// Review Focus 1: pass-and-play is gone, but an old two-human save still
-    /// plays. Whoever the game waits on acts - no hand-off cover, no claim.
+    /// A saved two-human table opens behind the same privacy cover as a
+    /// newly started match.
     @MainActor
     @Test func anOldTwoHumanGameStillPlays() throws {
         let f = try fixture()
@@ -162,13 +162,19 @@ import Testing
         setup.seats[1].name = "Sam"
         f.model().startNewGame(setup: setup)
         let restored = f.model()
-        #expect(restored.humanPlayer == PlayerID(index: 0))
+        let first = PlayerID(index: 0)
+        let second = PlayerID(index: 1)
+        #expect(restored.needsLocalHandoff)
+        #expect(restored.seatAtDevice == nil)
+        #expect(restored.claimLocalDevice(for: first))
         for _ in 0..<2 {
-            let move = try #require(RulesEngine.legalMoves(for: restored.state, seat: PlayerID(index: 0)).first)
+            let move = try #require(RulesEngine.legalMoves(for: restored.state, seat: first).first)
             try restored.apply(move)
         }
-        #expect(restored.state.phase.awaitingSeatIndex == 1)
-        #expect(restored.humanPlayer == PlayerID(index: 1), "the second person acts without claiming the phone")
+        #expect(restored.seatOwedATurn == second)
+        #expect(restored.needsLocalHandoff)
+        #expect(restored.claimLocalDevice(for: second))
+        #expect(restored.humanPlayer == second)
     }
 }
 

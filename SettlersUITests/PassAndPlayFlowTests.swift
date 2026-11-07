@@ -12,6 +12,7 @@ final class PassAndPlayFlowTests: XCTestCase {
 
     func testMixedTableHandoffAndColdResumeProtectTheGuestHand() throws {
         continueAfterFailure = false
+        let guest = "Willa Morgan"
         let app = openNewGame()
         setHuman(guest, at: 1, in: app)
         XCTAssertTrue(app.staticTexts["Pass & Play • 2 people • 2 AI"].exists)
@@ -20,13 +21,13 @@ final class PassAndPlayFlowTests: XCTestCase {
 
         claim(owner, in: app, capture: "Pass & Play – initial handoff to the owner")
         try placeOpeningPair(in: app)
-        claim(guest, in: app, capture: "Pass & Play – private handoff to Mira")
-        retain("Pass & Play – Mira's first placement", in: app)
+        claim(guest, in: app, capture: "Pass & Play – private handoff with a maximum-length name")
+        retain("Pass & Play – Willa's first placement", in: app)
         try place(settlementPrefix, in: app)
         XCTAssertTrue(targets(roadPrefix, in: app).firstMatch.waitForExistence(timeout: timeout))
 
         coldResume(in: app)
-        claim(guest, in: app, capture: "Pass & Play – cold resume re-covers Mira's hand")
+        claim(guest, in: app, capture: "Pass & Play – cold resume re-covers Willa's hand")
         XCTAssertFalse(targets(settlementPrefix, in: app).firstMatch.exists,
                        "Resuming must preserve the settlement and its pending road")
         retain("Pass & Play – committed settlement and pending road after resume", in: app)
@@ -56,10 +57,11 @@ final class PassAndPlayFlowTests: XCTestCase {
         app.buttons["End Turn"].tap()
         claim(guest, in: app, capture: "Pass & Play – handoff on an ordinary turn")
         XCTAssertTrue(roll.waitForExistence(timeout: timeout))
+        assertHandVisible(in: app)
         retain("Pass & Play – Mira's regular turn after claiming", in: app)
     }
 
-    func testRolledSevenPassesToTheOtherDiscarderAndBackToTheRoller() {
+    func testRolledSevenPassesToTheOtherDiscarderAndBackToTheRoller() throws {
         let app = launchFixture("-qaPassAndPlayDiscard")
         claim("Player 1", in: app)
         app.buttons["Roll Dice"].tap()
@@ -73,7 +75,8 @@ final class PassAndPlayFlowTests: XCTestCase {
         discard("ore", in: app)
 
         claim("Player 1", in: app, capture: "Pass & Play – return to the seven's roller")
-        XCTAssertTrue(targets("board.tile.", in: app).firstMatch.waitForExistence(timeout: timeout))
+        try resolveRobber(in: app)
+        assertHandVisible(in: app)
         XCTAssertEqual(resource("brick", in: app), "4")
     }
 
@@ -88,6 +91,7 @@ final class PassAndPlayFlowTests: XCTestCase {
         XCTAssertTrue(app.buttons["handoff.ready"].waitForExistence(timeout: 30))
         claim("Player 3", in: app, capture: "Pass & Play – AI returns control to a named person")
         XCTAssertTrue(app.buttons["Roll Dice"].waitForExistence(timeout: timeout))
+        assertHandVisible(in: app)
     }
 
     func testGuestsActualWinningCityShowsANamedUnratedResult() throws {
@@ -99,8 +103,10 @@ final class PassAndPlayFlowTests: XCTestCase {
         city.tap()
         try place(settlementPrefix, in: app)
 
-        let skip = app.buttons["game-over.cutscene.skip"]
-        if skip.waitForExistence(timeout: timeout) { skip.tap() }
+        let winner = app.staticTexts["game-over.cutscene.winner"]
+        XCTAssertTrue(winner.waitForExistence(timeout: 20))
+        XCTAssertEqual(winner.label, "Player 2 wins")
+        retain("Pass & Play – the victory cutscene names the winner", in: app)
         XCTAssertTrue(app.staticTexts["PLAYER 2 WINS"].waitForExistence(timeout: 25))
         let receipt = app.staticTexts["game-over.unrated"]
         XCTAssertTrue(receipt.waitForExistence(timeout: timeout))
@@ -116,17 +122,7 @@ final class PassAndPlayFlowTests: XCTestCase {
     func testDirectedTradeReturnsToTheProposerAfterTheOtherPersonAccepts() {
         let app = launchFixture("-qaPassAndPlayTrade")
         claim("Player 1", in: app)
-        app.buttons["Trade"].tap()
-        let recipient = app.buttons["trade.recipient"]
-        XCTAssertTrue(recipient.waitForExistence(timeout: timeout))
-        recipient.tap()
-        app.buttons["Player 2"].tap()
-        app.buttons["trade.give.lumber"].tap()
-        app.buttons["trade.want.grain"].tap()
-        let send = app.buttons["Send offer"]
-        XCTAssertTrue(send.exists && send.isEnabled)
-        retain("Pass & Play – named recipient and directed trade terms", in: app)
-        send.tap()
+        sendDirectedTrade(in: app, capture: "Pass & Play – named recipient and directed trade terms")
 
         acknowledgeHandoff("Player 2", in: app, capture: "Pass & Play – private incoming trade handoff")
         assertNamed("incoming-trade.proposer", player: "Player 1", in: app)
@@ -137,9 +133,66 @@ final class PassAndPlayFlowTests: XCTestCase {
 
         claim("Player 1", in: app)
         XCTAssertTrue(app.staticTexts["Player 2 accepted the trade"].waitForExistence(timeout: timeout))
+        assertHandVisible(in: app)
         XCTAssertEqual(resource("lumber", in: app), "1")
         XCTAssertEqual(resource("grain", in: app), "1")
         retain("Pass & Play – trade accepted and control returned", in: app)
+    }
+
+    func testDecliningADirectedTradeReturnsControlWithoutChangingResources() {
+        let app = launchFixture("-qaPassAndPlayTrade")
+        claim("Player 1", in: app)
+        sendDirectedTrade(in: app)
+        acknowledgeHandoff("Player 2", in: app)
+        let decline = app.buttons["incoming-trade.reject"]
+        XCTAssertTrue(decline.waitForExistence(timeout: timeout) && decline.isHittable)
+        decline.tap()
+
+        claim("Player 1", in: app)
+        XCTAssertTrue(app.staticTexts["Player 2 declined the trade"].waitForExistence(timeout: timeout))
+        XCTAssertFalse(app.buttons["incoming-trade.accept"].exists)
+        assertHandVisible(in: app)
+        XCTAssertEqual(resource("lumber", in: app), "2")
+        XCTAssertEqual(resource("grain", in: app), "0")
+        retain("Pass & Play – trade declined and original hand preserved", in: app)
+    }
+
+    private func sendDirectedTrade(in app: XCUIApplication, capture: String? = nil) {
+        app.buttons["Trade"].tap()
+        let recipient = app.buttons["trade.recipient"]
+        XCTAssertTrue(recipient.waitForExistence(timeout: timeout))
+        recipient.tap()
+        app.buttons["Player 2"].tap()
+        app.buttons["trade.give.lumber"].tap()
+        app.buttons["trade.want.grain"].tap()
+        let send = app.buttons["Send offer"]
+        XCTAssertTrue(send.exists && send.isEnabled)
+        if let capture { retain(capture, in: app) }
+        send.tap()
+    }
+
+    func testPrivateCardReceiptSurvivesColdResumeBehindTheOwnersHandoff() {
+        let app = launchFixture("-qaPassAndPlayDevCard")
+        claim("Player 2", in: app)
+        app.buttons["Build"].tap()
+        let buy = app.buttons["build.dev-card"]
+        XCTAssertTrue(buy.waitForExistence(timeout: timeout) && buy.isEnabled)
+        buy.tap()
+        let monopoly = app.staticTexts["dev-cards.detail.monopoly"]
+        XCTAssertTrue(monopoly.waitForExistence(timeout: timeout))
+
+        coldResume(in: app)
+        acknowledgeHandoff("Player 2", in: app, capture: "Pass & Play – resume keeps the purchased card covered")
+        XCTAssertTrue(monopoly.waitForExistence(timeout: timeout))
+        retain("Pass & Play – the purchaser sees the resumed card receipt", in: app)
+        app.buttons["dev-cards.continue"].tap()
+        XCTAssertTrue(app.buttons["End Turn"].waitForExistence(timeout: timeout))
+
+        coldResume(in: app)
+        claim("Player 2", in: app)
+        XCTAssertFalse(monopoly.exists, "The acknowledged receipt must stay closed after another resume")
+        assertHandVisible(in: app)
+        XCTAssertEqual(resource("ore", in: app), "0")
     }
 
     func testVoyagesHarvestPassesToTheIslandOwnerThenBackToTheRoller() {
@@ -216,6 +269,9 @@ final class PassAndPlayFlowTests: XCTestCase {
     private func claim(_ player: String, in app: XCUIApplication, capture: String? = nil) {
         acknowledgeHandoff(player, in: app, capture: capture)
         assertNamed("game.local-turn", player: player, in: app)
+    }
+
+    private func assertHandVisible(in app: XCUIApplication) {
         XCTAssertTrue(app.otherElements["human-resource.ore"].waitForExistence(timeout: timeout),
                       "The claimed reader must regain access to their own hand")
     }
@@ -243,6 +299,8 @@ final class PassAndPlayFlowTests: XCTestCase {
         let resources = app.descendants(matching: .any)
             .matching(NSPredicate(format: "identifier BEGINSWITH %@", "human-resource."))
         XCTAssertFalse(resources.firstMatch.exists, "The unclaimed hand leaked through accessibility")
+        let privateCards = app.staticTexts.matching(NSPredicate(format: "identifier BEGINSWITH %@", "dev-cards.detail."))
+        XCTAssertFalse(privateCards.firstMatch.exists, "The covered card identity leaked through accessibility")
         for identifier in ["dev-cards.view-hand", "board-decision.confirm", "Roll Dice", "discard.submit",
                            "incoming-trade.accept", "naval.resource.confirm"] {
             XCTAssertFalse(app.buttons[identifier].exists, "The covered player can still reach \(identifier)")
@@ -306,6 +364,10 @@ final class PassAndPlayFlowTests: XCTestCase {
 
         // Starting hands hold at most three cards. A seven can require the
         // robber placement and victim choice, but cannot require a discard.
+        try resolveRobber(in: app)
+    }
+
+    private func resolveRobber(in app: XCUIApplication) throws {
         let tiles = targets("board.tile.", in: app)
         XCTAssertTrue(tiles.firstMatch.waitForExistence(timeout: timeout))
         let tile = try XCTUnwrap(tiles.allElementsBoundByIndex.first(where: \.isHittable))
@@ -316,7 +378,7 @@ final class PassAndPlayFlowTests: XCTestCase {
             victim.tap()
         }
         confirmBoardDecision(in: app)
-        XCTAssertTrue(end.waitForExistence(timeout: timeout))
+        XCTAssertTrue(app.buttons["End Turn"].waitForExistence(timeout: timeout))
     }
 
     private func retain(_ name: String, in app: XCUIApplication) {

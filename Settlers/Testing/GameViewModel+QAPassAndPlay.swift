@@ -2,7 +2,7 @@
 import CatanEngine
 
 enum QAPassAndPlayFixture {
-    case discard, botWait, win, trade, harvest
+    case discard, botWait, win, trade, harvest, devCard
 
     static var requested: Self? {
         if QALaunchFlag.passAndPlayDiscard.isSet { return .discard }
@@ -10,6 +10,7 @@ enum QAPassAndPlayFixture {
         if QALaunchFlag.passAndPlayWin.isSet { return .win }
         if QALaunchFlag.passAndPlayTrade.isSet { return .trade }
         if QALaunchFlag.passAndPlayHarvest.isSet { return .harvest }
+        if QALaunchFlag.passAndPlayDevCard.isSet { return .devCard }
         return nil
     }
 }
@@ -43,6 +44,15 @@ extension GameViewModel {
             position.phase = .mainTurn(playerIndex: 0)
         case .harvest:
             humans = [PlayerID(index: 0), PlayerID(index: 1)]
+        case .devCard:
+            humans = [PlayerID(index: 0), PlayerID(index: 1)]
+            qaFundPassAndPlayHand(Building.devCardCost, seat: 1, in: &position)
+            guard let card = position.devCardDeck.firstIndex(of: .monopoly) else {
+                preconditionFailure("Pass & Play fixture requires a Monopoly card")
+            }
+            position.devCardDeck.remove(at: card)
+            position.devCardDeck.insert(.monopoly, at: 0)
+            position.phase = .mainTurn(playerIndex: 1)
         }
         replaceStateForTesting(position, humanSeats: humans)
         releaseLocalDevice()

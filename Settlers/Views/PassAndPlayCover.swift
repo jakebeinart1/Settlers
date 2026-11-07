@@ -7,7 +7,7 @@ struct PassAndPlayCover: View {
     let recipient: PlayerIdentity?
     let context: String
     let turnTitle: String?
-    let canRetry: Bool
+    let retryTitle: String?
     let onReady: () -> Void
     let onRetry: () -> Void
     let onMenu: () -> Void
@@ -56,7 +56,7 @@ struct PassAndPlayCover: View {
                 .foregroundStyle(SettingsChrome.ornamentGold)
                 .accessibilityAddTraits(.isHeader)
 
-            if let recipient {
+            if let recipient, retryTitle == nil {
                 CivilizationCrest(civilization: recipient.civilization, size: 88)
                     .accessibilityHidden(true)
                 Text("Pass to \(recipient.displayName)")
@@ -68,7 +68,7 @@ struct PassAndPlayCover: View {
                 Image(systemName: "hourglass")
                     .font(.largeTitle)
                     .accessibilityHidden(true)
-                Text(canRetry ? "Game paused" : "Waiting for the next player")
+                Text(retryTitle == nil ? "Waiting for the next player" : "Game paused")
                     .font(.largeTitle.bold())
                     .accessibilityAddTraits(.isHeader)
                     .accessibilityFocused($isPromptFocused)
@@ -91,14 +91,15 @@ struct PassAndPlayCover: View {
 
     private var controls: some View {
         VStack(spacing: 8) {
-            if let recipient {
+            if let retryTitle {
+                GoldRowButton(title: retryTitle, systemImage: "arrow.clockwise", action: onRetry)
+                    .accessibilityIdentifier(AccessibilityID.Game.retryBotProgress)
+            } else if let recipient {
                 GoldRowButton(title: "I'm \(recipient.displayName)",
                               subtitle: "Show my hand",
                               systemImage: "hand.tap",
                               iconColor: SettingsChrome.ornamentGold, action: onReady)
                     .accessibilityIdentifier(AccessibilityID.Handoff.ready)
-            } else if canRetry {
-                GoldRowButton(title: "Retry", systemImage: "arrow.clockwise", action: onRetry)
             }
             Button(action: onMenu) {
                 Text("Main Menu")
@@ -141,16 +142,12 @@ extension GameView {
     var localHandoffCover: some View {
         let seat = viewModel.seatOwedATurn
         let recipient = seat.map { viewModel.playerIdentity(for: $0) }
-        let failure: String? = if case .failed(_, let message) = viewModel.botTurnProgress {
-            message
-        } else {
-            nil
-        }
+        let failure = localHandoffRecoveryMessage
         return PassAndPlayCover(
             recipient: recipient,
-            context: seat.map(localHandoffContext) ?? failure ?? localTurnTitle ?? "The game is catching up.",
+            context: failure ?? seat.map(localHandoffContext) ?? localTurnTitle ?? "The game is catching up.",
             turnTitle: localTurnTitle,
-            canRetry: failure != nil,
+            retryTitle: failure.map { _ in viewModel.persistenceBlocked ? "Reload saved game" : "Retry" },
             onReady: {
                 guard let seat else { return }
                 claimLocalSeat(seat)
@@ -158,6 +155,14 @@ extension GameView {
             onRetry: viewModel.retryBotProgress,
             onMenu: onExitToMenu
         )
+    }
+
+    private var localHandoffRecoveryMessage: String? {
+        if viewModel.persistenceBlocked {
+            return viewModel.persistenceErrorMessage ?? "Reload to continue from the last saved move."
+        }
+        if case .failed(_, let message) = viewModel.botTurnProgress { return message }
+        return nil
     }
 
     private func localHandoffContext(for seat: PlayerID) -> String {

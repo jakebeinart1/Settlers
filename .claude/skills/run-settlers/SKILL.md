@@ -139,6 +139,7 @@ grep -rnoE '"\-qa[A-Za-z]+"' --include="*.swift" "$REPO/Settlers" | sort -u
 | Flag | Consumed in | Screen it reaches |
 |---|---|---|
 | `-qaAutoStart` | `ContentView.swift` | Skips `MainMenuView`, lands on the board. **Prerequisite for every GameView flag below.** |
+| `-qaPassAndPlayDiscard`, `-qaPassAndPlayBotWait`, `-qaPassAndPlayWin`, `-qaPassAndPlayTrade`, `-qaPassAndPlayHarvest`, `-qaPassAndPlayDevCard` | `GameViewModel+QAPassAndPlay.swift` | Seed a two-human match for the named handoff. Use Debug, `-qaAutoStart` and a fresh save slot. The fixtures supply positions. Drive the actual roll, trade, purchase or handoff through `PassAndPlayFlowTests`. |
 | `-qaShowEndGame` | `ContentView.swift` | `EndGameView` ("YOU WIN!") via a forced human win. |
 | `-qaPlayToEnd` | `ContentView.swift` | Plays every seat without presentation delays through the real app session, persistence, statistics, and game log until `EndGameView` renders. Needs `-qaAutoStart`. |
 | `-qaInspectCompleteMatch` | `GameViewModel+QACompleteMatch.swift`, `GameView+QA.swift` | Debug-only modifier for `-qaPlayToEnd` + `-qaAutoStart`. Pauses the existing driver once at each naturally reached human purchase, mature playable hand, active-card result and late-game held hand. Native tests inspect/acknowledge ordinary surfaces, then tap `qa.complete-match.continue`. It changes no hand, bank, RNG or game state; a match need not reach every checkpoint/type. This adds deliberate usability inspection to completion evidence, not human selection of every move. |
@@ -176,10 +177,10 @@ grep -rnoE '"\-qa[A-Za-z]+"' --include="*.swift" "$REPO/Settlers" | sort -u
 | `-qaShowHowToPlay` | `MainMenuView.swift` | `HowToPlayView` over the main menu, on its Walkthrough tab. |
 | `-qaShowGameHistory` | `MainMenuView.swift` | `GameHistoryView` over the main menu. Pair with `-qaSeedGameHistory`, or it correctly shows its empty state. **Must NOT be combined with `-qaAutoStart`.** |
 | `-qaShowReplay` | `MainMenuView.swift` / `GameHistoryView.swift` | Opens the newest recording's `GameReplayView` directly - board, score strip and transport controls, no tap needed. Pair with `-qaSeedGameHistory`. |
-| `-qaShowNewGame` | `MainMenuView.swift` / `NewGameSetupView.swift` | `NewGameSetupView` over the main menu, on a startable two-human/two-AI fixture (green ready plaque, Start enabled). **Must NOT be combined with `-qaAutoStart`.** |
+| `-qaShowNewGame` | `MainMenuView.swift` / `NewGameSetupView.swift` | `NewGameSetupView` over the main menu, with Alex and three AI seats. Select Human on another card to set up Pass & Play. **Must NOT be combined with `-qaAutoStart`.** |
 | `-qaSeedLeaderboard` | `LeaderboardView.swift` | Records three rated games (Jake vs Jake's bundled ghost + two Classic seats) before the leaderboard loads, so the ghost page shows a record and a spider graph on a fresh install. Open the leaderboard from the main menu. |
 | `-qaAskLadderName` | `LadderNamePrompt` | Shows the first-launch leaderboard name prompt even with simulator CloudKit disabled; Join saves the name used to prefill New Game. |
-| `-qaShowNewGameInvalid` | `NewGameSetupView.swift` | Same screen, seat 2's name whitespace-only — the amber problem plaque and a disabled Start. |
+| `-qaShowNewGameInvalid` | `NewGameSetupView.swift` | Same screen, seat 1's name whitespace-only, with the amber problem plaque and a disabled Start. |
 | `-qaShowNewGameOverwrite` | `NewGameSetupView.swift` | Same screen with the "Replace your saved game?" confirmation already raised. Pair with a real save (run `-qaAutoStart -qaFastForwardToRollDice` first) to also get the amber saved-game plaque behind it. |
 | `-qaShowNewGameCivilizationPicker` | `NewGameSetupView.swift` | Same screen with seat 2's civilization grid open — the only way to see a taken civilization greyed out. |
 | `-qaNewGameThreeSeats` | `NewGameSetupView.swift` | **Modifier**, combines with any of the four above: shrinks the fixture to a three-player table. |

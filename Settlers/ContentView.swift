@@ -53,6 +53,7 @@ struct ContentView: View {
                 if viewModel.victoryCutscenePending, let tally = VictoryTally(state: viewModel.state) {
                     VictoryCutsceneView(state: viewModel.state, tally: tally,
                                         isHumanWin: viewModel.humanSeats.contains(tally.winner),
+                                        isLocalMultiplayer: viewModel.isLocalMultiplayer,
                                         playerIdentity: viewModel.playerIdentity,
                                         onFinish: { viewModel.victoryCutscenePending = false })
                         .transition(.opacity)

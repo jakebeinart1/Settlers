@@ -10,6 +10,7 @@ struct VictoryCutsceneView: View {
     let state: GameState
     let tally: VictoryTally
     let isHumanWin: Bool
+    var isLocalMultiplayer = false
     let playerIdentity: (PlayerID) -> PlayerIdentity
     let onFinish: () -> Void
 
@@ -33,6 +34,7 @@ struct VictoryCutsceneView: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     private var winnerIdentity: PlayerIdentity { playerIdentity(tally.winner) }
+    private var celebratesWinner: Bool { isHumanWin || isLocalMultiplayer }
     private var score: Int { tally.beats.prefix(revealed).reduce(0) { $0 + $1.points } }
 
     var body: some View {
@@ -47,7 +49,7 @@ struct VictoryCutsceneView: View {
                     // A tint, not `.saturation`: a colour filter re-renders the
                     // whole board offscreen on every camera step of the tour.
                     .overlay(Color(red: 0.05, green: 0.07, blue: 0.12)
-                        .opacity(isHumanWin ? 0 : 0.4).allowsHitTesting(false))
+                        .opacity(celebratesWinner ? 0 : 0.4).allowsHitTesting(false))
                 cardShelf
                 captionRow
             }
@@ -154,10 +156,10 @@ struct VictoryCutsceneView: View {
                 .scaledToFill()
                 .frame(width: geo.size.width, height: geo.size.height)
                 .clipped()
-                .saturation(isHumanWin ? 1 : 0.3)
+                .saturation(celebratesWinner ? 1 : 0.3)
         }
         .ignoresSafeArea()
-        .overlay(Color.black.opacity(isHumanWin ? 0.35 : 0.6).ignoresSafeArea())
+        .overlay(Color.black.opacity(celebratesWinner ? 0.35 : 0.6).ignoresSafeArea())
     }
 
     private var scoreHeader: some View {
@@ -172,7 +174,7 @@ struct VictoryCutsceneView: View {
                 .font(.system(size: 52, weight: .black, design: .serif))
                 .monospacedDigit()
                 .contentTransition(.numericText(value: Double(score)))
-                .foregroundStyle(isHumanWin ? CatanTheme.cityPennantGold : Color(white: 0.85))
+                .foregroundStyle(celebratesWinner ? CatanTheme.cityPennantGold : Color(white: 0.85))
                 .accessibilityIdentifier(AccessibilityID.GameOver.cutsceneScore)
         }
         .padding(.horizontal, 20)
@@ -234,18 +236,21 @@ struct VictoryCutsceneView: View {
     @ViewBuilder
     private var ending: some View {
         if !reduceMotion {
-            CelebrationParticles(mood: isHumanWin
+            CelebrationParticles(mood: celebratesWinner
                 ? .confetti([winnerIdentity.civilization.accentColor, CatanTheme.cityPennantGold, DevCardChrome.ivory])
                 : .rain)
                 .ignoresSafeArea()
         }
         VStack(spacing: 6) {
-            Text(isHumanWin ? "VICTORY!" : "YOU LOSE!")
+            Text(isLocalMultiplayer ? "\(winnerIdentity.displayName) wins" : (isHumanWin ? "VICTORY!" : "YOU LOSE!"))
                 .font(.system(size: 46, weight: .black, design: .serif))
                 .tracking(3)
-                .foregroundStyle(isHumanWin ? CatanTheme.cityPennantGold : Color(white: 0.82))
-            Text(isHumanWin ? "\(tally.total) points. The island is yours."
-                            : "\(winnerIdentity.displayName) took the island. Get better at the game!")
+                .multilineTextAlignment(.center)
+                .lineLimit(2)
+                .minimumScaleFactor(0.55)
+                .foregroundStyle(celebratesWinner ? CatanTheme.cityPennantGold : Color(white: 0.82))
+                .accessibilityIdentifier(AccessibilityID.GameOver.cutsceneWinner)
+            Text(endingSubtitle)
                 .font(.headline)
                 .multilineTextAlignment(.center)
                 .foregroundStyle(.white.opacity(0.85))
@@ -253,10 +258,16 @@ struct VictoryCutsceneView: View {
         .padding(.vertical, 18)
         .padding(.horizontal, 24)
         .background(PaintedChromeBackground(
-            fill: .color(isHumanWin ? Color(white: 0.08) : Color(red: 0.08, green: 0.1, blue: 0.14)), cornerRadius: 14))
+            fill: .color(celebratesWinner ? Color(white: 0.08) : Color(red: 0.08, green: 0.1, blue: 0.14)), cornerRadius: 14))
         .padding(.horizontal, 28)
-        .rotationEffect(.degrees(isHumanWin ? 0 : -3))
-        .transition(.scale(scale: isHumanWin ? 1.6 : 0.7).combined(with: .opacity))
+        .rotationEffect(.degrees(celebratesWinner ? 0 : -3))
+        .transition(.scale(scale: celebratesWinner ? 1.6 : 0.7).combined(with: .opacity))
+    }
+
+    private var endingSubtitle: String {
+        if isLocalMultiplayer { return "\(tally.total) points" }
+        return isHumanWin ? "\(tally.total) points. The island is yours."
+            : "\(winnerIdentity.displayName) took the island. Get better at the game!"
     }
 
     private var skipButton: some View {
