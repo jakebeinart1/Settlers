@@ -210,7 +210,19 @@ public struct GameSession: Sendable {
                 }
             }
             guard Naval.validationProblem(in: state) == nil else { throw CheckpointError.incompatibleCheckpoint }
+            try validateDirectedOffer(occupied: occupied)
             try validateQueuedResponse(occupied: occupied)
+        }
+
+        private func validateDirectedOffer(occupied: Set<PlayerID>) throws {
+            let directed = state.pendingTradeOffers.filter { $0.recipient != nil }
+            guard let offer = directed.first, let recipient = offer.recipient else { return }
+            guard directed.count == 1, state.phase.isMainTurn(of: offer.from.index),
+                  occupied.contains(offer.from), occupied.contains(recipient),
+                  offer.canRespond(recipient), !offer.give.isEmpty, !offer.want.isEmpty,
+                  offer.give.values.allSatisfy({ $0 > 0 }), offer.want.values.allSatisfy({ $0 > 0 }) else {
+                throw CheckpointError.incompatibleCheckpoint
+            }
         }
 
         private func validateQueuedResponse(occupied: Set<PlayerID>) throws {
@@ -223,13 +235,10 @@ public struct GameSession: Sendable {
                   case .respondToTrade(let offerID, _) = queued.move,
                   let offer = state.pendingTradeOffers.first(where: { $0.id == offerID }),
                   state.players[proposerIndex].id == offer.from,
-                  occupied.contains(offer.from), offer.from != queued.seat else {
+                  occupied.contains(offer.from), offer.canRespond(queued.seat) else {
                 throw CheckpointError.incompatibleCheckpoint
             }
-            var legal: [GameMove] = [.respondToTrade(offerID: offerID, accept: false)]
-            if Trading.bothSidesCanHonour(offer, responder: queued.seat, state: state) {
-                legal.insert(.respondToTrade(offerID: offerID, accept: true), at: 0)
-            }
+            let legal = Trading.responseMoves(to: offer, by: queued.seat, in: state)
             guard queued.observation == GameObservation(seat: queued.seat, state: state, legalMoves: legal),
                   legal.contains(queued.move) else {
                 throw CheckpointError.incompatibleCheckpoint
@@ -368,6 +377,10 @@ public struct GameSession: Sendable {
 
     public func nextActor() -> NextActor {
         if let queuedTradeResponse { return .seat(queuedTradeResponse.seat) }
+        if case .mainTurn = state.phase,
+           let recipient = state.pendingTradeOffers.first(where: { $0.recipient != nil })?.recipient {
+            return policies[recipient] == nil ? .awaitingExternalSeat(recipient) : .seat(recipient)
+        }
         let seat: PlayerID
         switch state.phase {
         case .setupForward(let index), .setupBackward(let index),
@@ -494,7 +507,7 @@ public struct GameSession: Sendable {
         guard let offer = state.pendingTradeOffers.first(where: { $0.id == offerID }) else {
             throw MoveError.invalidTradeTarget
         }
-        guard policies[seat] == nil, policies[offer.from] != nil,
+        guard offer.recipient == nil, policies[seat] == nil, policies[offer.from] != nil,
               state.phase.isMainTurn(of: offer.from.index),
               Trading.bothSidesCanHonour(offer, responder: seat, state: state) else {
             return try applyExternal(move, by: seat)
@@ -578,7 +591,8 @@ public struct GameSession: Sendable {
     /// between proposal and response cannot change how the turn continues.
     private mutating func restorePendingTradeBookkeeping() {
         queuedTradeResponse = nil
-        guard let offer = state.pendingTradeOffers.first else { return }
+        let directed = state.pendingTradeOffers.first { $0.recipient != nil }
+        guard let offer = directed ?? state.pendingTradeOffers.first else { return }
         queueAutomatedResponse(to: offer)
     }
 
@@ -602,13 +616,13 @@ public struct GameSession: Sendable {
         // terminal state without sampling policies or queuing another actor.
         if case .gameOver = state.phase { return }
         let externalCanAnswer = state.players.map(\.id).contains {
-            policies[$0] == nil && $0 != offer.from
-                && Trading.bothSidesCanHonour(offer, responder: $0, state: state)
+            policies[$0] == nil && offer.canRespond($0)
+                && (offer.recipient != nil || Trading.bothSidesCanHonour(offer, responder: $0, state: state))
         }
         guard !externalCanAnswer else { return }
 
         let responders = state.players.map(\.id).sorted().filter {
-            $0 != offer.from && policies[$0] != nil
+            offer.canRespond($0) && policies[$0] != nil
         }
         var firstRejection: Decision?
         for seat in responders {
@@ -651,12 +665,7 @@ public struct GameSession: Sendable {
     }
 
     private func tradeObservation(for seat: PlayerID, offer: TradeOffer) -> GameObservation {
-        let reject = GameMove.respondToTrade(offerID: offer.id, accept: false)
-        var legal = [reject]
-        if Trading.bothSidesCanHonour(offer, responder: seat, state: state) {
-            legal.insert(.respondToTrade(offerID: offer.id, accept: true), at: 0)
-        }
-        return GameObservation(seat: seat, state: state, legalMoves: legal)
+        GameObservation(seat: seat, state: state, legalMoves: Trading.responseMoves(to: offer, by: seat, in: state))
     }
 
     /// The queued reply is reported when it becomes the next decision. The

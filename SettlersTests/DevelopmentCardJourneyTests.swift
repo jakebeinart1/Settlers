@@ -144,6 +144,88 @@ struct DevelopmentCardJourneyTests {
                 == DevCardReveal(owner: model.humanPlayer, card: .victoryPoint))
         #expect(fixture.makeModel().pendingDevCardReveal == model.pendingDevCardReveal,
                 "the winning card must survive a cold resume before the standings replace it")
+        let id = try #require(model.currentGameLogID)
+        #expect(try fixture.logStore.summary(for: id)?.isComplete == true)
+    }
+
+    @Test func sharedWinningReplayWaitsForDurableAcknowledgement() throws {
+        let fixture = try CheckpointModelFixture()
+        let model = fixture.makeModel()
+        let owner = PlayerID(index: 0)
+        seedWinningPurchase(in: model, shared: true)
+        try model.apply(.buyDevCard)
+        let id = try #require(model.currentGameLogID)
+        #expect(model.state.phase == .gameOver(winner: owner))
+        #expect(try fixture.logStore.summary(for: id) == nil)
+
+        var refuseWrite = false
+        let resumed = fixture.makeModel(atCommitStage: { stage in
+            if refuseWrite, stage == .beforeReplace { throw CocoaError(.fileWriteOutOfSpace) }
+        })
+        #expect(resumed.needsLocalHandoff)
+        #expect(resumed.pendingDevCardReveal == DevCardReveal(owner: owner, card: .victoryPoint))
+        #expect(try fixture.logStore.summary(for: id) == nil)
+        try #require(resumed.claimLocalDevice(for: owner))
+        refuseWrite = true
+        #expect(!resumed.dismissDevCardReveal())
+        #expect(try fixture.logStore.summary(for: id) == nil)
+
+        refuseWrite = false
+        try #require(resumed.dismissDevCardReveal())
+        #expect(resumed.pendingDevCardReveal == nil)
+        let summary = try #require(try fixture.logStore.summary(for: id))
+        #expect(summary.isComplete && summary.winner == owner && summary.moveCount == 1)
+    }
+
+    @Test func reloadPublishesAReceiptAcknowledgementWhoseWriteReadbackFailed() throws {
+        let fixture = try CheckpointModelFixture()
+        let file = fixture.root.appendingPathComponent("match_checkpoint.json")
+        var loseReadback = false
+        var acknowledgedBytes: Data?
+        let model = fixture.makeModel(atCommitStage: { stage in
+            guard loseReadback, stage == .afterReplace else { return }
+            acknowledgedBytes = try Data(contentsOf: file)
+            try Data("unreadable".utf8).write(to: file, options: .atomic)
+            throw CocoaError(.fileWriteUnknown)
+        })
+        seedWinningPurchase(in: model, shared: true)
+        try model.apply(.buyDevCard)
+        let id = try #require(model.currentGameLogID)
+        loseReadback = true
+        #expect(!model.dismissDevCardReveal())
+        #expect(try fixture.logStore.summary(for: id) == nil)
+
+        loseReadback = false
+        try #require(acknowledgedBytes).write(to: file, options: .atomic)
+        try #require(model.retryPersistence())
+        #expect(model.pendingDevCardReveal == nil)
+        #expect(try fixture.logStore.summary(for: id)?.isComplete == true)
+    }
+
+    @Test func replacedSharedWinWithAnUnreadReceiptStaysPrivateAcrossExportRetry() throws {
+        let fixture = try CheckpointModelFixture()
+        let model = fixture.makeModel()
+        seedWinningPurchase(in: model, shared: true)
+        try model.apply(.buyDevCard)
+        let id = try #require(model.currentGameLogID)
+        let directory = fixture.privateGameLogs
+        let preserved = fixture.root.appendingPathComponent("retained-private-archive")
+        try FileManager.default.moveItem(at: directory, to: preserved)
+        try Data().write(to: directory)
+
+        model.startNewGame(setup: fixture.setup)
+
+        #expect(model.currentGameLogID != id)
+        #expect(try model.checkpointStore.load()?.pendingExports[id]?.displacedWithPrivateReceipt == true)
+        #expect(try fixture.logStore.summary(for: id) == nil)
+        try FileManager.default.removeItem(at: directory)
+        try FileManager.default.moveItem(at: preserved, to: directory)
+
+        let resumed = fixture.makeModel()
+        #expect(resumed.checkpointDocument?.pendingExports[id] == nil)
+        #expect(try fixture.logStore.summary(for: id) == nil)
+        let held = directory.appendingPathComponent("\(id.uuidString).jsonl")
+        #expect(try fixture.logStore.detail(for: held).summary.winner == PlayerID(index: 0))
     }
 
     @Test func inventorySeparatesReadyNewAndPassiveCards() throws {
@@ -197,7 +279,7 @@ struct DevelopmentCardJourneyTests {
         try model.apply(.playMonopoly(.ore))
     }
 
-    private func seedWinningPurchase(in model: GameViewModel) {
+    private func seedWinningPurchase(in model: GameViewModel, shared: Bool = false) {
         let human = PlayerID(index: 0)
         var state = GameSetup.newGame(board: BoardGenerator.standard(), seed: 92, playerCount: 3)
         let vertices = state.board.onBoardVertices.sorted()
@@ -206,7 +288,8 @@ struct DevelopmentCardJourneyTests {
         state.players[human.index].settlements = Set(vertices.dropFirst(20).prefix(3))
         state.players[human.index].resources = [.ore: 1, .wool: 1, .grain: 1]
         state.devCardDeck = [.victoryPoint]
-        model.replaceStateForTesting(state, humanSeat: human)
+        let humans: Set<PlayerID> = shared ? [human, PlayerID(index: 1)] : [human]
+        model.replaceStateForTesting(state, humanSeats: humans)
         model.isBlockingSurfaceOpen = true
     }
 }

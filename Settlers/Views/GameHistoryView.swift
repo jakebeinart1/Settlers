@@ -188,7 +188,9 @@ struct GameHistoryView: View {
         }.value
         switch scan {
         case .success(let scan):
-            summaries = scan.summaries
+            // An unfinished shared replay contains hidden cards and offers.
+            // Older public archives still go through this visibility check.
+            summaries = scan.summaries.filter { $0.isComplete || $0.humanSeats.count == 1 }
             failures = scan.failures
             #if DEBUG
             if QALaunchFlag.showReplay.isSet { replaying = summaries.first }

@@ -61,14 +61,25 @@ public struct GameLogScan: Sendable, Equatable {
     public let failures: [Failure]
 }
 
-/// Durable JSONL game archive stored in Documents so TestFlight players can
-/// inspect and export it without a development-signed container download.
+/// Durable JSONL archive. Shared games stay in Application Support until play
+/// and any private receipts are finished. Solo games are available in Documents.
 public struct GameLogStore: Sendable {
     public static let shared = GameLogStore()
     public static let currentLogSchemaVersion = 4
 
+    private static let privateArchiveName = "PrivateGameLogs"
+    private static let legacyMigrationMarker = ".shared-recordings-migrated"
+    // Publication and migration must agree on a file's visibility at the
+    // moment it moves. Encode outside this lock and migrate one file at a time.
+    private static let archiveLock = NSLock()
     private let directoryURL: URL
+    private let privateDirectoryURL: URL
     private let maxKeptLogs: Int
+
+    static var privateArchiveDirectory: URL {
+        let support = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
+        return support.appendingPathComponent(privateArchiveName, isDirectory: true)
+    }
 
     /// The app keeps every game. Jake, 2026-09-25: "All the data needs to be
     /// saved" - these logs are what ghosts learn from and what can make Expert
@@ -79,14 +90,19 @@ public struct GameLogStore: Sendable {
 
     private init() {
         let baseURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
-        self.init(directoryURL: baseURL.appendingPathComponent("GameLogs"), maxKeptLogs: Self.productionRetention)
+        self.init(directoryURL: baseURL.appendingPathComponent("GameLogs"), maxKeptLogs: Self.productionRetention,
+                  privateDirectoryURL: Self.privateArchiveDirectory)
     }
 
     /// Injectable archive location keeps tests away from the simulator's real
     /// logs. The retention limit is injectable so pruning can be tested cheaply.
-    init(directoryURL: URL, maxKeptLogs: Int) {
+    init(directoryURL: URL, maxKeptLogs: Int, privateDirectoryURL: URL? = nil) {
         precondition(maxKeptLogs > 0)
+        let privateDirectory = privateDirectoryURL
+            ?? directoryURL.appendingPathComponent(Self.privateArchiveName, isDirectory: true)
+        precondition(directoryURL.standardizedFileURL != privateDirectory.standardizedFileURL)
         self.directoryURL = directoryURL
+        self.privateDirectoryURL = privateDirectory
         self.maxKeptLogs = maxKeptLogs
     }
 
@@ -234,7 +250,7 @@ public struct GameLogStore: Sendable {
 
     public func startNewGame(initialState: GameState, roster: SeatRoster) throws -> UUID {
         let id = UUID()
-        try createLogDirectory()
+        try createLogDirectory(at: directoryURL)
         let entry = Entry(
             kind: .start, timestamp: Date(),
             logSchemaVersion: Self.currentLogSchemaVersion,
@@ -265,7 +281,7 @@ public struct GameLogStore: Sendable {
     /// JSONL is a derived view of committed history. Replace the entire stable
     /// match-ID file atomically: retries cannot duplicate moves or append after
     /// a partial trailing line. Retention runs separately after acknowledgement.
-    func export(checkpoint: MatchCheckpoint) throws -> URL {
+    func export(checkpoint: MatchCheckpoint, holdingPrivateReceipt: Bool = false) throws -> URL {
         try checkpoint.validateHistory()
         let roster = try exportRoster(for: checkpoint.setup)
         var entries = [Entry(kind: .start, timestamp: checkpoint.startedAt,
@@ -285,10 +301,138 @@ public struct GameLogStore: Sendable {
         encoder.outputFormatting = [.sortedKeys]
         var data = Data()
         for entry in entries { data.append(try encoder.encode(entry)); data.append(0x0A) }
-        try createLogDirectory()
-        let url = fileURL(for: checkpoint.id)
-        try data.write(to: url, options: .atomic)
-        return url
+        let isShared = roster.humanSeats.count > 1
+        let isComplete = entries.last?.kind == .end
+        let isPrivate = isShared && (!isComplete || holdingPrivateReceipt)
+        return try Self.archiveLock.withLock {
+            let directory = isPrivate ? privateDirectoryURL : directoryURL
+            try createLogDirectory(at: directory)
+            let url = fileURL(for: checkpoint.id, in: directory)
+            try data.write(to: url, options: .atomic)
+            if isPrivate {
+                try retirePublicCopy(of: checkpoint.id, hidingCompletion: isComplete)
+            } else if isShared {
+                try removePrivateSnapshot(of: checkpoint.id)
+            }
+            return url
+        }
+    }
+
+    /// A legacy copy may exist from before shared games had a private archive.
+    /// The caller has already replaced the private file. Preserve the older
+    /// public bytes separately, since they may include a different revision.
+    private func retirePublicCopy(of gameID: UUID, hidingCompletion: Bool) throws {
+        let url = fileURL(for: gameID)
+        guard try isRegularFile(url) else { return }
+        let disposition: PublicArchiveDisposition
+        do {
+            disposition = try publicArchiveDisposition(at: url)
+        } catch is ReadError {
+            // The authoritative shared checkpoint identifies the file even
+            // when its original contents can no longer be read.
+            disposition = .unidentified
+        }
+        switch disposition {
+        case .unfinishedShared, .damagedShared, .unidentified: try quarantinePublicCopy(at: url)
+        case .completedShared where hidingCompletion: try quarantinePublicCopy(at: url)
+        case .solo, .completedShared: break
+        }
+    }
+
+    /// A completed public archive supersedes the in-progress snapshot.
+    /// Displaced unfinished games and quarantined originals keep their files.
+    private func removePrivateSnapshot(of gameID: UUID) throws {
+        let url = fileURL(for: gameID, in: privateDirectoryURL)
+        if try isRegularFile(url) { try FileManager.default.removeItem(at: url) }
+    }
+
+    /// Run off the UI actor after restoring known checkpoints. A persisted
+    /// marker avoids rescanning the public archive on subsequent launches.
+    func migrateLegacyUnfinishedSharedRecordings() throws {
+        let files = FileManager.default
+        let marker = privateDirectoryURL.appendingPathComponent(Self.legacyMigrationMarker)
+        guard !files.fileExists(atPath: marker.path) else { return }
+        var firstError: Error?
+        if files.fileExists(atPath: directoryURL.path) {
+            let archives = try files.contentsOfDirectory(at: directoryURL, includingPropertiesForKeys: nil)
+            for archive in archives where archive.pathExtension == "jsonl" {
+                do {
+                    try Self.archiveLock.withLock { try migrateLegacyRecording(at: archive) }
+                } catch {
+                    // An unreadable file must not leave other shared games
+                    // exposed. An incomplete migration still retries later.
+                    if firstError == nil { firstError = error }
+                }
+            }
+        }
+        if let firstError { throw firstError }
+        try Self.archiveLock.withLock {
+            try createLogDirectory(at: privateDirectoryURL)
+            try Data().write(to: marker, options: .atomic)
+        }
+    }
+
+    private func migrateLegacyRecording(at url: URL) throws {
+        guard let gameID = UUID(uuidString: url.deletingPathExtension().lastPathComponent),
+              try isRegularFile(url) else { return }
+        let files = FileManager.default
+        switch try publicArchiveDisposition(at: url) {
+        case .unfinishedShared:
+            let target = fileURL(for: gameID, in: privateDirectoryURL)
+            if files.fileExists(atPath: target.path) {
+                try quarantinePublicCopy(at: url)
+            } else {
+                try createLogDirectory(at: privateDirectoryURL)
+                try files.moveItem(at: url, to: target)
+            }
+        case .damagedShared: try quarantinePublicCopy(at: url)
+        case .solo, .completedShared, .unidentified: break
+        }
+    }
+
+    private func quarantinePublicCopy(at url: URL) throws {
+        // Preserve the exact original without replacing any canonical snapshot.
+        try createLogDirectory(at: privateDirectoryURL)
+        let name = url.deletingPathExtension().lastPathComponent
+        let quarantine = privateDirectoryURL.appendingPathComponent("\(name)-\(UUID()).quarantined")
+        try FileManager.default.moveItem(at: url, to: quarantine)
+    }
+
+    private func isRegularFile(_ url: URL) throws -> Bool {
+        guard FileManager.default.fileExists(atPath: url.path) else { return false }
+        return try url.resourceValues(forKeys: [.isRegularFileKey]).isRegularFile == true
+    }
+
+    private enum PublicArchiveDisposition {
+        case solo, completedShared, unfinishedShared, damagedShared, unidentified
+    }
+
+    private struct ArchiveHeader: Decodable {
+        struct Roster: Decodable {
+            let humanSeat: PlayerID?
+            let humanSeats: Set<PlayerID>?
+        }
+        let kind: Entry.Kind
+        let roster: Roster
+    }
+
+    private func publicArchiveDisposition(at url: URL) throws -> PublicArchiveDisposition {
+        let data = try archiveData(at: url)
+        // A malformed or absent header cannot establish a shared orphan's
+        // ownership. Read only roster fields, which may survive other damage.
+        guard let line = data.split(separator: 0x0A, maxSplits: 1).first,
+              let header = try? JSONDecoder().decode(ArchiveHeader.self, from: Data(line)),
+              header.kind == .start else { return .unidentified }
+        let humanCount = header.roster.humanSeats?.count ?? (header.roster.humanSeat == nil ? 0 : 1)
+        guard humanCount > 1 else { return humanCount == 1 ? .solo : .unidentified }
+        do {
+            let parsed = try decodeEntries(data, fileName: url.lastPathComponent)
+            if parsed.entries.contains(where: { $0.kind == .end }) { return .completedShared }
+            if parsed.ignoredTruncatedLine || parsed.entries.first?.initialState == nil { return .damagedShared }
+            return .unfinishedShared
+        } catch is ReadError {
+            return .damagedShared
+        }
     }
 
     private func exportRoster(for setup: MatchSetup) throws -> SeatRoster {
@@ -316,19 +460,24 @@ public struct GameLogStore: Sendable {
     public func logFiles() throws -> [URL] {
         guard FileManager.default.fileExists(atPath: directoryURL.path) else { return [] }
         do {
-            let files = try FileManager.default.contentsOfDirectory(
+            let manager = FileManager.default
+            let files = try manager.contentsOfDirectory(
                 at: directoryURL, includingPropertiesForKeys: [.contentModificationDateKey])
-            return try files.filter { $0.pathExtension == "jsonl" }
-                .map { ($0, try modified($0)) }
-                .sorted { $0.1 > $1.1 }
-                .map(\.0)
+            let dated: [(URL, Date)] = try files.filter { $0.pathExtension == "jsonl" }.compactMap { file in
+                do {
+                    return (file, try modified(file))
+                } catch where !manager.fileExists(atPath: file.path) {
+                    return nil
+                }
+            }
+            return dated.sorted { $0.1 > $1.1 }.map(\.0)
         } catch {
             throw ioError("Could not enumerate game logs", error)
         }
     }
 
     public func logDirectory() throws -> URL {
-        try createLogDirectory()
+        try createLogDirectory(at: directoryURL)
         return directoryURL
     }
 
@@ -343,7 +492,11 @@ public struct GameLogStore: Sendable {
             do {
                 summaries.append(try detail(for: file).summary)
             } catch {
-                failures.append(.init(fileURL: file, message: error.localizedDescription))
+                // The migration may have moved an old private recording after
+                // enumeration. Report damaged files that are still public.
+                if FileManager.default.fileExists(atPath: file.path) {
+                    failures.append(.init(fileURL: file, message: error.localizedDescription))
+                }
             }
         }
         return GameLogScan(summaries: summaries, failures: failures)
@@ -379,9 +532,11 @@ public struct GameLogStore: Sendable {
     /// is named after the match id, so the lookup is a path, and only the file
     /// that was asked for is ever parsed.
     public func summary(for gameID: UUID) throws -> GameLogSummary? {
-        let url = fileURL(for: gameID)
-        guard FileManager.default.fileExists(atPath: url.path) else { return nil }
-        return try detail(for: url).summary
+        try Self.archiveLock.withLock {
+            let url = fileURL(for: gameID)
+            guard FileManager.default.fileExists(atPath: url.path) else { return nil }
+            return try detail(for: url).summary
+        }
     }
 
     public func detail(for fileURL: URL) throws -> GameLogDetail {
@@ -416,13 +571,19 @@ public struct GameLogStore: Sendable {
         return GameLogDetail(initialState: initialState, summary: summary, roster: roster, events: moves)
     }
 
-    private func entries(in fileURL: URL) throws -> (entries: [Entry], ignoredTruncatedLine: Bool) {
-        let data: Data
+    private func archiveData(at fileURL: URL) throws -> Data {
         do {
-            data = try Data(contentsOf: fileURL)
+            return try Data(contentsOf: fileURL)
         } catch {
             throw ReadError.unreadableFile(fileURL.lastPathComponent)
         }
+    }
+
+    private func entries(in fileURL: URL) throws -> (entries: [Entry], ignoredTruncatedLine: Bool) {
+        try decodeEntries(archiveData(at: fileURL), fileName: fileURL.lastPathComponent)
+    }
+
+    private func decodeEntries(_ data: Data, fileName: String) throws -> (entries: [Entry], ignoredTruncatedLine: Bool) {
         let parts = data.split(separator: 0x0A, omittingEmptySubsequences: false)
         var entries: [Entry] = []
         var ignoredTruncatedLine = false
@@ -434,14 +595,14 @@ public struct GameLogStore: Sendable {
                     ignoredTruncatedLine = true
                     break
                 }
-                throw ReadError.malformedLine(file: fileURL.lastPathComponent, line: offset + 1)
+                throw ReadError.malformedLine(file: fileName, line: offset + 1)
             }
         }
         return (entries, ignoredTruncatedLine)
     }
 
-    private func fileURL(for gameID: UUID) -> URL {
-        directoryURL.appendingPathComponent("\(gameID.uuidString).jsonl")
+    private func fileURL(for gameID: UUID, in directory: URL? = nil) -> URL {
+        (directory ?? directoryURL).appendingPathComponent("\(gameID.uuidString).jsonl")
     }
 
     var activeGameIDURL: URL { directoryURL.appendingPathComponent("active-game-id") }
@@ -499,9 +660,9 @@ public struct GameLogStore: Sendable {
         }
     }
 
-    private func createLogDirectory() throws {
+    private func createLogDirectory(at directory: URL) throws {
         do {
-            try FileManager.default.createDirectory(at: directoryURL, withIntermediateDirectories: true)
+            try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
         } catch {
             throw ioError("Could not create game-log directory", error)
         }
@@ -510,7 +671,7 @@ public struct GameLogStore: Sendable {
     private func setActiveGameID(_ gameID: UUID?) throws {
         do {
             if let gameID {
-                try createLogDirectory()
+                try createLogDirectory(at: directoryURL)
                 try Data(gameID.uuidString.utf8).write(to: activeGameIDURL, options: .atomic)
             } else if FileManager.default.fileExists(atPath: activeGameIDURL.path) {
                 try FileManager.default.removeItem(at: activeGameIDURL)

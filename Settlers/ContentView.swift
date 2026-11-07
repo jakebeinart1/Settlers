@@ -43,16 +43,34 @@ struct ContentView: View {
     @State private var isAskingLadderName = LadderNamePrompt.isNeeded
     @Environment(\.scenePhase) private var scenePhase
 
+    private var isShowingMatchResult: Bool {
+        guard case .gameOver = viewModel.state.phase else { return false }
+        return hasStartedThisSession && viewModel.pendingDevCardReveal == nil
+            && viewModel.pendingDevCardResolution == nil && viewModel.pendingShipCapture == nil
+            && viewModel.savedGameAvailability.recoveryMessage == nil
+    }
+
+    /// A covered table has its own recovery action. A competing alert on the
+    /// underlying presenter can obscure that action while the phone is locked.
+    private var persistenceAlert: Binding<Bool> {
+        Binding(
+            get: {
+                let coveredTable = hasStartedThisSession && !isShowingMatchResult
+                    && viewModel.savedGameAvailability.recoveryMessage == nil && viewModel.needsLocalHandoff
+                return isShowingPersistenceError && viewModel.persistenceErrorMessage != nil
+                    && !(coveredTable && viewModel.persistenceBlocked)
+            },
+            set: { isShowingPersistenceError = $0 }
+        )
+    }
+
     var body: some View {
         Group {
-            if case .gameOver = viewModel.state.phase, hasStartedThisSession,
-               viewModel.pendingDevCardReveal == nil,
-               viewModel.pendingDevCardResolution == nil,
-               viewModel.pendingShipCapture == nil,
-               viewModel.savedGameAvailability.recoveryMessage == nil {
+            if isShowingMatchResult {
                 if viewModel.victoryCutscenePending, let tally = VictoryTally(state: viewModel.state) {
                     VictoryCutsceneView(state: viewModel.state, tally: tally,
                                         isHumanWin: viewModel.humanSeats.contains(tally.winner),
+                                        isLocalMultiplayer: viewModel.isLocalMultiplayer,
                                         playerIdentity: viewModel.playerIdentity,
                                         onFinish: { viewModel.victoryCutscenePending = false })
                         .transition(.opacity)
@@ -67,6 +85,7 @@ struct ContentView: View {
             } else if hasStartedThisSession, viewModel.savedGameAvailability.recoveryMessage == nil {
                 GameView(viewModel: viewModel, onExitToMenu: {
                     viewModel.isBlockingSurfaceOpen = true
+                    viewModel.releaseLocalDevice()
                     hasStartedThisSession = false
                 })
                 #if DEBUG
@@ -138,7 +157,7 @@ struct ContentView: View {
             Text(viewModel.savedGameAvailability.recoveryMessage
                  ?? "Your saved game cannot be resumed. The original files have been left in place.")
         }
-        .alert("Couldn't save the game", isPresented: $isShowingPersistenceError) {
+        .alert("Couldn't save the game", isPresented: persistenceAlert) {
             Button("Reload saved game") {
                 if viewModel.retryPersistence(), hasStartedThisSession {
                     Task { await viewModel.runBotTurnIfNeeded() }
@@ -190,6 +209,9 @@ struct ContentView: View {
                         viewModel.qaStartClassicConquestGame()
                     } else {
                         viewModel.startNewGame(randomizedBoard: false, randomizeSeat: false)
+                    }
+                    if let fixture = QAPassAndPlayFixture.requested {
+                        viewModel.qaSetUpPassAndPlay(fixture)
                     }
                 }
                 // Set only now that `savedGameAvailability`/`gameGeneration`
@@ -266,7 +288,7 @@ struct ContentView: View {
     /// for itself. A seat left on Random is not recorded - the player did not
     /// choose a civilization, so there is nothing to remember.
     private func rememberPreferredIdentity(from setup: MatchSetup) {
-        guard let seat = setup.seats.first(where: \.isHuman) else { return }
+        guard setup.humanSeats.count == 1, let seat = setup.humanSeats.first else { return }
         PlayerNameStore.shared.save(seat.name)
         guard let civilization = seat.civilization else { return }
         var settings = CivilizationSettingsStore.shared.load()

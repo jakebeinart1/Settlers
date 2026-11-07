@@ -104,6 +104,9 @@ struct MatchCheckpoint: Codable, Equatable, Sendable {
     /// Set only by a real New Game/Restart replacement, in that same atomic
     /// checkpoint transaction. Fixture replacements are never forfeits.
     private(set) var abandonedAt: Date?
+    /// A replaced shared match can no longer present its final private receipt.
+    /// Keep its recording private through export retries and cold launch.
+    fileprivate(set) var displacedWithPrivateReceipt: Bool?
     private(set) var state: GameState
     private(set) var moves: [RecordedMove] = []
     private(set) var elapsedSeconds: TimeInterval = 0
@@ -220,6 +223,7 @@ struct MatchCheckpoint: Codable, Equatable, Sendable {
         id == previous.id && startedAt == previous.startedAt
             && setup == previous.setup && initialState == previous.initialState
             && playerID == previous.playerID && abandonedAt == previous.abandonedAt
+            && displacedWithPrivateReceipt == previous.displacedWithPrivateReceipt
             && moves.count >= previous.moves.count
             && moves.prefix(previous.moves.count).elementsEqual(previous.moves)
     }
@@ -343,6 +347,12 @@ struct MatchCheckpointDocument: Codable, Equatable, Sendable {
     /// Optional app-owned interruption accounting. Old checkpoints decode nil;
     /// engine state, policy revisions and saved RNG are unaffected.
     private(set) var humanTradePolicies: [Int: HumanTradeOfferPolicy]?
+
+    var holdsTerminalSharedReplay: Bool {
+        guard let match = activeMatch, case .gameOver = match.state.phase,
+              match.setup.humanSeats.count > 1 else { return false }
+        return pendingDevCardReveal != nil || pendingDevCardResolution != nil || pendingShipCapture != nil
+    }
 
     init(activeMatch: MatchCheckpoint?, revision: Int = 0) {
         self.schemaVersion = Self.currentSchemaVersion
@@ -515,6 +525,7 @@ struct MatchCheckpointDocument: Codable, Equatable, Sendable {
         }
         var next = self
         if var displaced = activeMatch {
+            if holdsTerminalSharedReplay { displaced.displacedWithPrivateReceipt = true }
             if recordAbandonment, case .gameOver = displaced.state.phase {
                 // Completed matches are not forfeits.
             } else if recordAbandonment {
@@ -592,6 +603,9 @@ struct MatchCheckpointDocument: Codable, Equatable, Sendable {
         try validateStatistics()
         try validateTradePolicies()
         try validatePendingDevCardOwners()
+        guard activeMatch?.displacedWithPrivateReceipt == nil else {
+            throw MatchCheckpointStore.StoreError.inconsistentHistory
+        }
         try activeMatch?.validateHistory(
             pendingReveal: pendingDevCardReveal,
             pendingResolution: pendingDevCardResolution,
@@ -600,6 +614,11 @@ struct MatchCheckpointDocument: Codable, Equatable, Sendable {
         for id in pendingExports.keys.sorted(by: { $0.uuidString < $1.uuidString }) {
             guard let match = pendingExports[id], match.id == id, id != activeMatch?.id else {
                 throw MatchCheckpointStore.StoreError.inconsistentHistory
+            }
+            if let held = match.displacedWithPrivateReceipt {
+                guard held, case .gameOver = match.state.phase, match.setup.humanSeats.count > 1 else {
+                    throw MatchCheckpointStore.StoreError.inconsistentHistory
+                }
             }
             try match.validateHistory()
         }

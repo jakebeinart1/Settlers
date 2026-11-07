@@ -30,23 +30,6 @@ import Testing
         #expect(setup.newGameProblem(knownGhosts: ["jake"]) == nil)
     }
 
-    /// Pass-and-play is gone from New Game (Jake, 2026-09-25).
-    @Test func twoHumansCannotStartButStillResume() {
-        var setup = table()
-        setup.seats[1].isHuman = true
-        setup.seats[1].name = "Sam"
-        #expect(setup.newGameProblem(knownGhosts: []) != nil)
-        #expect(setup.matchProblem == nil, "an old pass-and-play save must stay resumable")
-    }
-
-    @Test func theHumanMustBeSeatOne() {
-        var setup = table()
-        setup.seats[0].isHuman = false
-        setup.seats[3].isHuman = true
-        setup.seats[3].name = "Jake"
-        #expect(setup.newGameProblem(knownGhosts: []) != nil)
-    }
-
     @Test func ghostsPlayClassicOnly() {
         var setup = table()
         setup.seats[2].ghostID = "jake"
@@ -74,17 +57,10 @@ import Testing
         #expect(setup.newGameProblem(knownGhosts: ["jake"]) == "Seat 4's ghost is no longer on this phone.")
     }
 
-    /// A prefill saved in the pass-and-play era opens as you plus opponents.
-    @Test func anOldTwoHumanPrefillOpensWithOneHuman() {
+    @Test func aHumanCannotAlsoBeAGhost() {
         var setup = table()
-        setup.seats[2].isHuman = true
-        setup.seats[2].name = "Sam"
-        setup.seats[0].ghostID = "stale"
-        setup.normalizeToOneHuman()
-        #expect(setup.seats.map(\.isHuman) == [true, false, false, false])
-        #expect(setup.seats[2].name.isEmpty)
-        #expect(setup.seats[0].ghostID == nil)
-        #expect(setup.newGameProblem(knownGhosts: []) == nil)
+        setup.seats[0].ghostID = "jake"
+        #expect(setup.newGameProblem(knownGhosts: ["jake"]) == "Seat 1 cannot be both Human and Ghost.")
     }
 
     @Test func growingTheTableNeverAddsAHuman() {

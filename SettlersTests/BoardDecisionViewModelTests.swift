@@ -174,28 +174,23 @@ struct BoardDecisionViewModelTests {
         let model = isolatedGameViewModel()
         let first = PlayerID(index: 0)
         let second = PlayerID(index: 1)
-        var state = GameSetup.newGame(board: BoardGenerator.standard(), seed: 52)
-        state.phase = .mainTurn(playerIndex: first.index)
-        model.replaceStateForTesting(state, humanSeats: [first, second])
-        let beganUnavailableKnight = model.beginBoardDecision(.knight)
-        #expect(!beganUnavailableKnight)
-
-        let vertex = state.board.onBoardVertices.sorted().first!
-        state.players[first.index].settlements.insert(vertex)
-        state.players[first.index].resources = [.brick: 1, .lumber: 1]
-        state.bank[.brick, default: 0] -= 1
-        state.bank[.lumber, default: 0] -= 1
-        model.replaceStateForTesting(state, humanSeats: [first, second])
-        let beganRoad = model.beginBoardDecision(.buildRoad)
-        #expect(beganRoad)
+        model.replaceStateForTesting(paidRoadState(actor: first), humanSeats: [first, second])
+        #expect(model.beginBoardDecision(.buildRoad))
         let edge = try #require(model.boardDecisionPresentation?.legalEdges.first)
-        let selected = model.selectBoardTarget(.edge(edge))
-        #expect(selected)
+        #expect(model.selectBoardTarget(.edge(edge)))
 
-        try model.apply(.endTurn)
+        try model.commitHumanMove(.endTurn)
 
-        #expect(model.humanPlayer == second, "the next human acts with no hand-off")
+        #expect(model.needsLocalHandoff && model.seatAtDevice == nil)
+        #expect(model.seatOwedATurn == second)
         #expect(model.boardDecisionPresentation == nil)
+        #expect(!model.claimLocalDevice(for: first), "the outgoing player is not owed an action")
+        let before = model.checkpointDocument
+        #expect(throws: MoveError.self) { try model.commitHumanMove(.rollDice) }
+        #expect(model.checkpointDocument == before, "an unclaimed player cannot commit the next roll")
+        #expect(model.claimLocalDevice(for: second))
+        #expect(model.seatAtDevice == second && !model.needsLocalHandoff)
+        #expect(model.humanPlayer == second && model.boardDecisionPresentation == nil)
     }
 
     @Test func paidRoadSpendsNothingUntilOneSuccessfulConfirmation() throws {

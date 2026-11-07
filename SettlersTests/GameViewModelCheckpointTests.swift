@@ -388,6 +388,8 @@ struct GameViewModelCheckpointTests {
         position.robberMoverIndex = first.index
         position.phase = .discarding(pending: [discarder])
         model.replaceStateForTesting(position, humanSeats: [first, discarder])
+        #expect(model.needsLocalHandoff && model.seatOwedATurn == discarder)
+        #expect(model.claimLocalDevice(for: discarder))
         for _ in 0..<4 { model.selectForDiscard(.brick) }
 
         refuseWrite = true
@@ -399,6 +401,69 @@ struct GameViewModelCheckpointTests {
         #expect(model.retryPersistence())
         #expect(model.humanPlayer == discarder)
         #expect(model.discardDraft.counts == [.brick: 4])
+    }
+
+    @Test func sequentialOffTurnDiscardsReturnControlToTheOriginalRoller() throws {
+        let model = isolatedGameViewModel()
+        let roller = PlayerID(index: 0), first = PlayerID(index: 1), second = PlayerID(index: 2)
+        try rollSevenInSharedGame(model, roller: roller, discards: [first: .brick, second: .ore])
+
+        #expect(model.localTurnOwner == roller && model.seatOwedATurn == first)
+        #expect(model.needsLocalHandoff && model.currentDiscardObligation == nil)
+        #expect(!model.claimLocalDevice(for: second), "two pending discards are routed in a stable order")
+        #expect(model.claimLocalDevice(for: first))
+        try model.commitHumanMove(.discard([.brick: 4]))
+
+        #expect(model.localTurnOwner == roller && model.seatOwedATurn == second)
+        #expect(model.needsLocalHandoff && model.currentDiscardObligation == nil)
+        #expect(model.claimLocalDevice(for: second))
+        try model.commitHumanMove(.discard([.ore: 4]))
+
+        #expect(model.state.phase == .movingRobber(playerIndex: roller.index))
+        #expect(model.localTurnOwner == roller && model.seatOwedATurn == roller)
+        #expect(model.needsLocalHandoff && model.boardDecisionPresentation == nil)
+        #expect(model.claimLocalDevice(for: roller))
+        #expect(model.boardDecisionPresentation?.intent == .robberAfterSeven)
+        #expect(model.checkpointDocument?.activeMatch?.moves.map(\.actor) == [roller, first, second])
+    }
+
+    @Test func backgroundAndColdResumeConcealAPendingDiscardUntilAClaim() throws {
+        let fixture = try CheckpointModelFixture()
+        let model = fixture.makeModel()
+        let roller = PlayerID(index: 0), discarder = PlayerID(index: 2)
+        try rollSevenInSharedGame(model, roller: roller, discards: [discarder: .wool])
+        #expect(model.claimLocalDevice(for: discarder))
+        model.selectForDiscard(.wool)
+        #expect(model.discardDraft.counts == [.wool: 1])
+
+        model.appWillResignActive()
+
+        #expect(model.seatAtDevice == nil && model.needsLocalHandoff)
+        #expect(model.currentDiscardObligation == nil && model.discardDraft.counts.isEmpty)
+        #expect(!model.claimLocalDevice(for: discarder))
+        model.appDidBecomeActive()
+        #expect(model.needsLocalHandoff && model.currentDiscardObligation == nil)
+
+        let resumed = fixture.makeModel()
+        #expect(resumed.state == model.state && resumed.seatAtDevice == nil)
+        #expect(resumed.needsLocalHandoff && resumed.currentDiscardObligation == nil)
+        #expect(resumed.localTurnOwner == roller && resumed.seatOwedATurn == discarder)
+        #expect(resumed.claimLocalDevice(for: discarder))
+        #expect(resumed.currentDiscardObligation?.holding == [.wool: 8])
+        #expect(resumed.discardDraft.counts.isEmpty, "reclaim the committed obligation without the old private draft")
+    }
+
+    private func rollSevenInSharedGame(_ model: GameViewModel, roller: PlayerID, discards: [PlayerID: Resource]) throws {
+        var state = GameSetup.newGame(board: BoardGenerator.standard(), seed: 4_207, playerCount: 3)
+        state.phase = .rollDice(playerIndex: roller.index)
+        state.rng = NavalQAFixture.rollSource(total: 7)
+        for (seat, resource) in discards {
+            state.players[seat.index].resources = [resource: 8]
+            state.bank[resource, default: 0] -= 8
+        }
+        model.replaceStateForTesting(state, humanSeats: Set(state.players.map(\.id)))
+        try model.commitHumanMove(.rollDice)
+        #expect(model.state.phase == .discarding(pending: Set(discards.keys)))
     }
 
     @Test func lostWriteAcknowledgementPublishesExactlyTheCommittedMove() throws {
@@ -521,6 +586,7 @@ final class CheckpointModelFixture {
     let setupStore: MatchSetupStore
     let civilizationStore: CivilizationAssignmentStore
     let logStore: GameLogStore
+    let privateGameLogs: URL
     let statsStore: GameStatsStore
 
     var setup: MatchSetup {
@@ -540,7 +606,9 @@ final class CheckpointModelFixture {
         setupStore = store
         gameStore = GameStore(fileURL: root.appendingPathComponent("save.json"))
         civilizationStore = CivilizationAssignmentStore(fileURL: root.appendingPathComponent("civilizations.json"))
-        logStore = GameLogStore(directoryURL: root.appendingPathComponent("logs"), maxKeptLogs: 10)
+        privateGameLogs = root.appendingPathComponent("private-logs")
+        logStore = GameLogStore(directoryURL: root.appendingPathComponent("logs"), maxKeptLogs: 10,
+                               privateDirectoryURL: privateGameLogs)
         statsStore = GameStatsStore(fileURL: root.appendingPathComponent("stats.json"))
     }
 

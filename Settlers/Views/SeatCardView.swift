@@ -24,10 +24,9 @@ import SwiftUI
 /// - Civilization row: 13pt glyph + 7 + "Britannia" at 15pt serif (~66pt) +
 ///   chevron + 20pt padding = ~120pt.
 ///
-/// Every text size on the card - header, Human/AI toggle, name field,
-/// general name, civilization row - is the same 15pt (`bodyTextSize`),
-/// except the "Optional" pill, a badge rather than a content line (Jake's
-/// ask, 2026-09-03). The Human/AI box's vertical padding is pulled from the
+/// The header, name, and civilization share `bodyTextSize`. The three role
+/// labels use `roleTextSize` to keep breathing room on the compact card.
+/// The role box's vertical padding is pulled from the
 /// civilization row's own so the two boxes come out the same height
 /// (`civilizationRowVerticalPadding`), also Jake's ask.
 ///
@@ -45,9 +44,7 @@ struct SeatCardView: View {
     /// (`MatchSetup.resize` shrinks off the end), so the pill is telling the
     /// truth about which chair disappears rather than decorating the last card.
     let isOptional: Bool
-    /// AI or Ghost, for any seat but the human's (Jake, 2026-09-25: pass-and-play
-    /// is gone, seat 1 is you, every other seat is an opponent).
-    let onSetGhost: (Bool) -> Void
+    let onSelectRole: (MatchSetup.Seat.Role) -> Void
     let onRename: (String) -> Void
     let onEditCivilization: () -> Void
     /// Raises `SeatNumberPickerPopup` for this seat. Only reachable when
@@ -79,16 +76,9 @@ struct SeatCardView: View {
     /// Strategist", which read as the general's actual name.
     static let undrawnGeneralName = "Random Player"
 
-    /// One text size for every label in the card - header, Human/AI toggle,
-    /// name field, general name, civilization row - so nothing reads as
-    /// bigger or smaller than its neighbour. The "Optional" pill is the one
-    /// deliberate exception (Jake's ask, 2026-09-03): it is a badge, not a
-    /// line of the card's own content. Was 15pt in the first pass at this,
-    /// which Jake still read as too large - dropped to 13pt, his second ask
-    /// the same day. Internal, not private: `NewGameSetupView`'s Match
-    /// Settings rows reuse it (his third ask) so the two sit at one size by
-    /// construction rather than by two literals coincidentally agreeing.
+    /// Matches the main labels in the player cards and Match Settings.
     static let bodyTextSize: CGFloat = 13
+    private static let roleTextSize: CGFloat = 12
 
     var body: some View {
         // Tight on purpose. Four of these have to fit above the fold alongside
@@ -195,29 +185,17 @@ struct SeatCardView: View {
     /// Refusing the last human seat (A1.3) is `NewGameSetupView`'s job, not
     /// this row's: the rule is about the *table*, and a card cannot see the
     /// other three.
-    @ViewBuilder
     private var rolePicker: some View {
-        if seat.isHuman {
-            // Same text size and padding as the row it replaces, so all four
-            // cards stay one height.
-            Text("You")
-                .font(.system(size: Self.bodyTextSize, weight: .bold, design: .serif))
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, civilizationRowVerticalPadding)
-                .background(PaintedChromeBackground(fill: .color(SettingsChrome.plaqueFill), cornerRadius: 10,
-                                                    notchScale: 0.6))
-                .accessibilityIdentifier(AccessibilityID.NewGame.seatYou(seat.index))
-        } else {
-            PaintedChoiceRow(
-                options: [false, true],
-                title: { $0 ? "Ghost" : "AI" },
-                selection: seat.ghostID != nil,
-                verticalPadding: civilizationRowVerticalPadding,
-                fontSize: Self.bodyTextSize,
-                optionIdentifier: { AccessibilityID.NewGame.seatKind(seat.index, ghost: $0) },
-                onSelect: onSetGhost
-            )
-        }
+        PaintedChoiceRow(
+            options: MatchSetup.Seat.Role.allCases,
+            title: \.rawValue,
+            selection: seat.role,
+            verticalPadding: civilizationRowVerticalPadding,
+            // Keep a margin between the three labels and their painted edges.
+            fontSize: Self.roleTextSize,
+            optionIdentifier: { AccessibilityID.NewGame.seatKind(seat.index, role: $0) },
+            onSelect: onSelectRole
+        )
     }
 
     // MARK: - Identity (A2)
@@ -271,6 +249,7 @@ struct SeatCardView: View {
             .padding(.horizontal, 9)
             .frame(height: identityRowHeight)
             .background(PaintedChromeBackground(fill: .color(Self.fieldFill), cornerRadius: 8, notchScale: 0.45))
+            .accessibilityLabel("Player \(seat.index + 1) name")
             .accessibilityIdentifier(AccessibilityID.NewGame.seatName(seat.index))
     }
 
@@ -337,14 +316,14 @@ struct SeatCardView: View {
             SeatCardView(
                 seat: MatchSetup.Seat(index: 0, isHuman: true, name: "Alex", civilization: .greece),
                 isOptional: false,
-                onSetGhost: { _ in },
+                onSelectRole: { _ in },
                 onRename: { _ in },
                 onEditCivilization: {}
             )
             SeatCardView(
                 seat: MatchSetup.Seat(index: 3, isHuman: false, name: "", civilization: nil),
                 isOptional: true,
-                onSetGhost: { _ in },
+                onSelectRole: { _ in },
                 onRename: { _ in },
                 onEditCivilization: {}
             )

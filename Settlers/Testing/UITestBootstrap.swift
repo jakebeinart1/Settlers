@@ -78,12 +78,14 @@ enum UITestBootstrap {
     private static func clearGameLogs() {
         let documents = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
         let logs = documents.appendingPathComponent("GameLogs", isDirectory: true)
-        do {
-            try FileManager.default.removeItem(at: logs)
-        } catch where (error as NSError).code == NSFileNoSuchFileError {
-            // A fresh test container has no archive yet.
-        } catch {
-            preconditionFailure("Could not reset UI-test game logs: \(error)")
+        for directory in [logs, GameLogStore.privateArchiveDirectory] {
+            do {
+                try FileManager.default.removeItem(at: directory)
+            } catch where (error as NSError).code == NSFileNoSuchFileError {
+                // A fresh test container has no archive yet.
+            } catch {
+                preconditionFailure("Could not reset UI-test game logs: \(error)")
+            }
         }
     }
     #endif

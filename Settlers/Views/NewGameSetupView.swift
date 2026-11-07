@@ -40,6 +40,9 @@ struct NewGameSetupView: View {
     let onCancel: () -> Void
 
     @State private var setup: MatchSetup
+    /// Keeps an unfinished solo edit if the player briefly adds guests, then
+    /// returns to one human. Guests never supply the phone owner's defaults.
+    @State private var soloIdentityDraft: MatchSetup.Seat?
     /// Naval has its own world. Remember the land board while editing so
     /// returning to Standard or Conquest restores the player's Classic/Vast choice.
     @State private var landMode: GameMode
@@ -286,9 +289,6 @@ struct NewGameSetupView: View {
         // Retired modes and targets must be representable by today's controls;
         // normalize only this prefill copy, never the active match or restart.
         saved = saved.normalizedForNewGame()
-        // Pass-and-play is gone (Jake, 2026-09-25): an older prefill with
-        // several humans opens as you plus opponents.
-        saved.normalizeToOneHuman()
         // Realized profiles belong to a saved match, not next-game preferences.
         // Clear only this value copy; resume/restart retain their stored roster.
         for index in saved.seats.indices { saved.seats[index].opponentProfile = nil }
@@ -300,19 +300,19 @@ struct NewGameSetupView: View {
         return (saved, false)
     }
 
-    /// App Settings are defaults for the next match, not merely for the first
-    /// match ever created. Preserve the rest of the previous layout while
-    /// moving an occupied preferred civilization instead of creating a
-    /// duplicate that would silently disable Start.
+    /// The phone owner's defaults prefill solo games. A shared table already
+    /// carries its own names and civilizations, independent of those defaults.
+    /// Swap an occupied solo civilization to keep both choices available.
     private static func applyAppPreferences(
         to setup: inout MatchSetup,
         preferredName: String,
-        preferredCivilization: Civilization
+        preferredCivilization: Civilization?
     ) {
-        guard let humanIndex = setup.seats.firstIndex(where: \.isHuman) else { return }
+        guard setup.humanSeats.count == 1,
+              let humanIndex = setup.seats.firstIndex(where: \.isHuman) else { return }
         let previousCivilization = setup.seats[humanIndex].civilization
-        if let occupiedIndex = setup.seats.firstIndex(where: {
-            $0.index != setup.seats[humanIndex].index && $0.civilization == preferredCivilization
+        if let preferredCivilization, let occupiedIndex = setup.seats.firstIndex(where: {
+            $0.index != humanIndex && $0.civilization == preferredCivilization
         }) {
             setup.seats[occupiedIndex].civilization = previousCivilization
         }
@@ -440,50 +440,13 @@ struct NewGameSetupView: View {
             // becomes a choice again.
             isOptional: GameSetup.newGameTableSizes.count > 1
                 && seat.index == GameSetup.supportedPlayerCounts.upperBound - 1,
-            onSetGhost: { setSeat(seat.index, ghost: $0) },
+            onSelectRole: { setSeatRole($0, at: seat.index) },
             onRename: { setup.seats[seat.index].name = $0 },
             onEditCivilization: { pickingCivilizationForSeat = seat.index },
             onEditSeatNumber: { pickingSeatNumberForSeat = seat.index },
             seatOrderIsRandom: setup.randomizeSeatOrder,
             isShortScreen: isShortScreen,
             ghostName: seat.ghostID.flatMap { id in ghosts.first { $0.id == id }?.name }
-        )
-    }
-
-    /// AI or Ghost for an opponent's seat. Choosing Ghost opens the picker;
-    /// a tap that cannot work says why rather than silently doing nothing.
-    private func setSeat(_ index: Int, ghost: Bool) {
-        refusal = nil
-        // A profile is a snapshot of a realized AI opponent, not editable New
-        // Game input. A role change must not leave a hidden second identity in
-        // the same chair for `startNewGame` to discover later.
-        setup.seats[index].opponentProfile = nil
-        guard ghost else {
-            setup.seats[index].ghostID = nil
-            return
-        }
-        guard setup.mode == .classic, setup.variant == .standard else {
-            refusal = "Ghosts play Classic only."
-            return
-        }
-        guard !ghosts.isEmpty else {
-            refusal = "No ghosts yet: a player's ghost joins after \(GhostStore.minimumGamesToPlay) finished Classic games."
-            return
-        }
-        pickingGhostForSeat = index
-    }
-
-    private func ghostPicker(for seatIndex: Int) -> some View {
-        GhostPickerPopup(
-            seatIndex: seatIndex,
-            ghosts: ghosts,
-            taken: Set(setup.seats.filter { $0.index != seatIndex }.compactMap(\.ghostID)),
-            ratings: RatingStore.shared.load(),
-            onSelect: { id in
-                setup.seats[seatIndex].ghostID = id
-                pickingGhostForSeat = nil
-            },
-            onCancel: { pickingGhostForSeat = nil }
         )
     }
 
@@ -498,7 +461,7 @@ struct NewGameSetupView: View {
         refusal = "Ghosts play Classic only, so \(seats) is AI again."
     }
 
-    /// The New Game contract: one human in seat 1, ghosts only where they can play.
+    /// People need names and ghosts are only available for supported rules.
     private var startProblem: String? { setup.newGameProblem(knownGhosts: knownGhosts) }
 
     /// A3.3 is served by handing the picker exactly the set `MatchSetup`
@@ -543,16 +506,9 @@ struct NewGameSetupView: View {
     private func setSeatNumber(_ seatIndex: Int, to number: Int) {
         let targetIndex = number - 1
         guard targetIndex != seatIndex, setup.seats.indices.contains(targetIndex) else { return }
-        let moved = setup.seats[seatIndex]
-        let displaced = setup.seats[targetIndex]
-        setup.seats[seatIndex].isHuman = displaced.isHuman
-        setup.seats[seatIndex].name = displaced.name
-        setup.seats[seatIndex].civilization = displaced.civilization
-        setup.seats[seatIndex].opponentProfile = displaced.opponentProfile
-        setup.seats[targetIndex].isHuman = moved.isHuman
-        setup.seats[targetIndex].name = moved.name
-        setup.seats[targetIndex].civilization = moved.civilization
-        setup.seats[targetIndex].opponentProfile = moved.opponentProfile
+        setup.seats.swapAt(seatIndex, targetIndex)
+        setup.seats[seatIndex].index = seatIndex
+        setup.seats[targetIndex].index = targetIndex
     }
 
     // MARK: - Match settings (A4, A5)
@@ -853,6 +809,13 @@ struct NewGameSetupView: View {
     private var readySummary: String {
         let ghostCount = setup.seats.filter { $0.ghostID != nil }.count
         let bots = setup.aiSeats.count - ghostCount
+        if setup.humanSeats.count > 1 {
+            var parts = ["Pass & Play", "\(setup.humanSeats.count) people"]
+            if bots > 0 { parts.append("\(bots) AI") }
+            if ghostCount > 0 { parts.append("\(ghostCount) Ghost\(ghostCount == 1 ? "" : "s")") }
+            if hasSavedGame { parts.append("replaces saved game") }
+            return parts.joined(separator: " • ")
+        }
         let composition = "You • \(bots) AI" + (ghostCount == 0 ? "" : " • \(ghostCount) Ghost\(ghostCount == 1 ? "" : "s")")
         return hasSavedGame
             ? "Ready • \(composition) • replaces your saved game"
@@ -1044,6 +1007,74 @@ struct NewGameSetupView: View {
 
 #Preview {
     NewGameSetupView(onStart: { _ in }, onCancel: {})
+}
+
+// MARK: - Seat role editing
+
+private extension NewGameSetupView {
+    /// Only a confirmed Ghost pick changes the seat. A canceled picker leaves
+    /// the player and their place in the current setup intact.
+    func setSeatRole(_ role: MatchSetup.Seat.Role, at index: Int) {
+        refusal = nil
+        if role == .ghost {
+            openGhostPicker(at: index)
+            return
+        }
+        guard role != setup.seats[index].role else { return }
+        changeSeat(at: index, isHuman: role == .human)
+    }
+
+    func openGhostPicker(at index: Int) {
+        guard canReplaceHuman(at: index) else { return }
+        guard setup.mode == .classic, setup.variant == .standard else {
+            refusal = "Ghosts play Classic only."
+            return
+        }
+        guard !ghosts.isEmpty else {
+            refusal = "No ghosts yet: a player's ghost joins after \(GhostStore.minimumGamesToPlay) finished Classic games."
+            return
+        }
+        pickingGhostForSeat = index
+    }
+
+    func canReplaceHuman(at index: Int) -> Bool {
+        if setup.seats[index].isHuman && setup.humanSeats.count == 1 {
+            refusal = "Keep at least one Human seat."
+            return false
+        }
+        return true
+    }
+
+    func changeSeat(at index: Int, isHuman: Bool, ghostID: String? = nil) {
+        guard isHuman || canReplaceHuman(at: index) else { return }
+        let humansBeforeEdit = setup.humanSeats
+        if isHuman && humansBeforeEdit.count == 1 { soloIdentityDraft = humansBeforeEdit.first }
+        setup.seats[index].isHuman = isHuman
+        setup.seats[index].ghostID = ghostID
+        setup.seats[index].opponentProfile = nil
+        if humansBeforeEdit.count == 2 && setup.humanSeats.count == 1 { restoreSoloIdentity() }
+    }
+
+    func restoreSoloIdentity() {
+        let identity = soloIdentityDraft.map { (name: $0.name, civilization: $0.civilization) }
+            ?? (name: preferredName, civilization: preferredCivilization)
+        Self.applyAppPreferences(to: &setup, preferredName: identity.name, preferredCivilization: identity.civilization)
+        soloIdentityDraft = nil
+    }
+
+    func ghostPicker(for seatIndex: Int) -> some View {
+        GhostPickerPopup(
+            seatIndex: seatIndex,
+            ghosts: ghosts,
+            taken: Set(setup.seats.filter { $0.index != seatIndex }.compactMap(\.ghostID)),
+            ratings: RatingStore.shared.load(),
+            onSelect: { id in
+                changeSeat(at: seatIndex, isHuman: false, ghostID: id)
+                pickingGhostForSeat = nil
+            },
+            onCancel: { pickingGhostForSeat = nil }
+        )
+    }
 }
 
 private extension NewGameSetupView {

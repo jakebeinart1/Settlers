@@ -76,7 +76,8 @@ struct BoardDecisionTargetLayer: View {
                 accessibilityLabel: edgeAccessibilityLabel(index: index),
                 accessibilityValue: isSelected ? "Selected" : "Available",
                 accessibilityHint: targetAccessibilityHint(isSelected: isSelected),
-                onTap: { onSelectTarget(.edge(edge)) }
+                onTap: { onSelectTarget(.edge(edge)) },
+                onTapAtPoint: selectRoadEdge
             )
         }
     }
@@ -107,6 +108,15 @@ struct BoardDecisionTargetLayer: View {
         guard let target = BoardDropTargetResolver.nearest(
             to: point, decision: decision, board: board, geometry: geometry
         ), case .tile = target else { return }
+        onSelectTarget(target)
+    }
+
+    /// The enlarged road targets can overlap at a fitted compact board.
+    /// Resolve the touch in board coordinates instead of taking layer order.
+    private func selectRoadEdge(at point: CGPoint) {
+        guard let target = BoardDropTargetResolver.nearest(
+            to: point, decision: decision, board: board, geometry: geometry
+        ), case .edge = target else { return }
         onSelectTarget(target)
     }
 

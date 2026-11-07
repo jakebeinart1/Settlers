@@ -547,6 +547,7 @@ struct EdgeTapTarget: View {
     let accessibilityValue: String
     let accessibilityHint: String
     let onTap: () -> Void
+    let onTapAtPoint: (CGPoint) -> Void
 
     private let touchWidth: CGFloat = 44
     private let highlightWidth: CGFloat = 12
@@ -580,7 +581,9 @@ struct EdgeTapTarget: View {
         .position(midpoint)
         .allowsHitTesting(isEnabled)
         .opacity(isEnabled ? 1 : 0.4)
-        .onTapGesture(perform: onTap)
+        .gesture(SpatialTapGesture(coordinateSpace: .named(BoardDecisionCoordinateSpace.name)).onEnded { value in
+            onTapAtPoint(value.location)
+        })
         .accessibilityElement(children: .ignore)
         .accessibilityIdentifier(accessibilityIdentifier)
         .accessibilityLabel(accessibilityLabel)
@@ -588,6 +591,7 @@ struct EdgeTapTarget: View {
         .accessibilityHint(accessibilityHint)
         .accessibilityAddTraits(.isButton)
         .accessibilityAddTraits(isSelected ? .isSelected : [])
+        .accessibilityAction(.default) { onTap() }
         .disabled(!isEnabled)
     }
 }

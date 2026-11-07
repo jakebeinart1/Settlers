@@ -196,6 +196,18 @@ enum QALaunchFlag: String, CaseIterable {
     case showRobberVictimPicker = "-qaShowRobberVictimPicker"
     /// Installs a conserved eight-card hand owing a four-card discard.
     case showDiscard = "-qaShowDiscard"
+    /// Shared-table fixtures for actual off-turn discard, live bot wait and
+    /// the last paid move before a local result.
+    case passAndPlayDiscard = "-qaPassAndPlayDiscard"
+    case passAndPlayBotWait = "-qaPassAndPlayBotWait"
+    case passAndPlayWin = "-qaPassAndPlayWin"
+    case passAndPlayTrade = "-qaPassAndPlayTrade"
+    case passAndPlayHarvest = "-qaPassAndPlayHarvest"
+    /// A guest can buy Monopoly through Build and privately reopen its receipt on Resume.
+    case passAndPlayDevCard = "-qaPassAndPlayDevCard"
+    /// Seeds a blocked handoff over a valid checkpoint for real Reload taps.
+    case passAndPlayRecovery = "-qaPassAndPlayRecovery"
+    case passAndPlayShipTransfer = "-qaPassAndPlayShipTransfer"
     /// Opens `GameHistoryView` over the main menu. Pair with
     /// `-qaSeedGameHistory`, or the screen correctly shows its empty state.
     case showGameHistory = "-qaShowGameHistory"

@@ -118,6 +118,13 @@ public struct EndGameView: View {
         VStack(spacing: 24) {
             headline
             MatchRatingReceiptView(matchID: replayGameID, unratedReason: unratedReason)
+                .padding(.vertical, humanSeats.count > 1 ? 8 : 0)
+                .padding(.horizontal, humanSeats.count > 1 ? 12 : 0)
+                .background {
+                    if humanSeats.count > 1 {
+                        RoundedRectangle(cornerRadius: 8).fill(SettingsChrome.plaqueFill)
+                    }
+                }
                 .padding(.horizontal, 40)
             vpTable
             GoldRowButton(title: "New Game", systemImage: "arrow.counterclockwise",
@@ -175,13 +182,16 @@ public struct EndGameView: View {
                     Text("Game Over")
                         .font(.title2.bold())
                         .foregroundStyle(.white.opacity(0.7))
-                    Text((identity.displayName + " wins").uppercased())
-                        .font(.system(size: 36, weight: .black, design: .serif))
-                        .tracking(2)
+                    let sharedMatch = humanSeats.count > 1
+                    let winnerTitle = "\(identity.displayName) wins"
+                    Text(sharedMatch ? winnerTitle : winnerTitle.uppercased())
+                        .font(.system(size: sharedMatch ? 32 : 36, weight: .black, design: .serif))
+                        .tracking(sharedMatch ? 0 : 2)
                         .foregroundStyle(.white)
                         .multilineTextAlignment(.center)
                         .lineLimit(2)
                         .minimumScaleFactor(0.75)
+                        .accessibilityIdentifier(AccessibilityID.GameOver.winner)
                 }
             }
             .padding(14)

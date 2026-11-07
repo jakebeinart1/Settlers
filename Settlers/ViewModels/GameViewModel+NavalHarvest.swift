@@ -15,6 +15,9 @@ extension GameViewModel {
         if let message = savedGameAvailability.recoveryMessage {
             throw SavedGameRecoveryError.blocked(message)
         }
+        guard !needsLocalHandoff else {
+            throw MoveError.other("Pass the phone to the player who needs to act.")
+        }
         guard pendingDevCardReveal == nil, pendingDevCardResolution == nil else {
             throw MoveError.other("Review the development card before continuing.")
         }
@@ -33,6 +36,7 @@ extension GameViewModel {
     }
 
     var currentNavalHarvestObligation: NavalHarvestObligation? {
+        guard !needsLocalHandoff else { return nil }
         let owner = humanPlayer
         guard let progress = Naval.harvestProgress(for: owner, in: state) else { return nil }
         let context = NavalHarvestDraft.Context(matchID: checkpointDocument?.activeMatch?.id,

@@ -1,7 +1,6 @@
 import XCTest
 
-/// Jake, 2026-09-25: seat 1 is always you; every other seat is AI or Ghost, and
-/// choosing Ghost offers the ghosts to pick from. Ghosts play Classic only.
+/// Choosing Ghost opens the list of playable ghosts. Ghosts play Classic only.
 @MainActor
 final class GhostOpponentFlowTests: XCTestCase {
 
@@ -14,12 +13,12 @@ final class GhostOpponentFlowTests: XCTestCase {
         return app
     }
 
-    func testSeatOneIsYouAndTheOthersOfferAGhost() {
+    func testSeatRolesOfferHumansAIAndGhosts() {
         continueAfterFailure = false
         let app = openNewGame()
-        XCTAssertTrue(app.staticTexts["new-game.seat-you.0"].exists, "seat 1 is you, with no role control")
-        XCTAssertFalse(app.buttons["new-game.seat-kind.0.ghost"].exists)
-        for seat in 1...3 {
+        XCTAssertTrue(app.textFields["new-game.seat-name.0"].exists, "seat 1 starts as Human")
+        for seat in 0...3 {
+            XCTAssertTrue(app.buttons["new-game.seat-kind.\(seat).human"].exists)
             XCTAssertTrue(app.buttons["new-game.seat-kind.\(seat).ghost"].exists, "seat \(seat + 1) offers a ghost")
             XCTAssertTrue(app.buttons["new-game.seat-kind.\(seat).ai"].exists)
         }

@@ -1,0 +1,234 @@
+{
+  "collectorIndexSHA256": "ec91d8594dd08a6e6d635ea08068ec7df3f41e7b5719c29ec8505862a75bcf25",
+  "nativeManifestSHA256": "64d68f7a8841a5aaa640276c92a8cbe68b32e21f39be86ab206ab46960b9cc49",
+  "expectedManifestSHA256": "ab9273bc5e06df7e9a9d894920ed3f41e2d4e210695c4b1a6d302859506ec154",
+  "sourceCommit": "c0856c9dfc9d0f203513baea34b69fea528522b7",
+  "sourceTree": "a8469368473df822d196095d9ee1bc0381f704e0",
+  "run": "compact-c0856c9-982791bb937349b509645789e2a0822c5138e177fda18c222d26f71956146918",
+  "runSourceRecordSHA256": "648744f4e2939c9b8be5dd399a55d8a351dbbb23ac26ccf4ac740d9bcd8a81d9",
+  "runLogSHA256": "c9307de1579faf31ecb39eb0f9c5371003d7ad7513e52f91efe60290ce7ae2c2",
+  "testSuite": "SettlersUITests/PassAndPlayFlowTests",
+  "passed": 4,
+  "failed": 0,
+  "model": "iPhone SE (3rd generation)",
+  "deviceId": "F05AD8A6-B449-4121-9950-18CE9B577590",
+  "os": "iOS 26.5",
+  "points": [
+    375,
+    667
+  ],
+  "originalPixels": [
+    750,
+    1334
+  ],
+  "reviewPixels": [
+    750,
+    1334
+  ],
+  "groups": {
+    "Setup, long name, and cold resume": [
+      "01-two-people-and-two-ai-seats.jpg",
+      "02-initial-handoff-to-the-owner.jpg",
+      "03-private-handoff-with-a-maximum-length-name.jpg",
+      "04-willa-s-first-placement.jpg",
+      "05-cold-resume-re-covers-willa-s-hand.jpg",
+      "06-committed-settlement-and-pending-road-after-resume.jpg"
+    ],
+    "Maximum text recovery": [
+      "07-covered-save-recovery-at-maximum-text.jpg",
+      "08-reload-action-reachable-at-maximum-text.jpg",
+      "09-reload-restores-the-named-claimant-at-maximum-text.jpg"
+    ],
+    "Expanded trade review": [
+      "12-resumed-offer-stays-private-until-its-recipient-claims.jpg",
+      "13-unaffordable-offer-can-be-declined.jpg",
+      "14-trade-declined-and-original-hand-preserved.jpg"
+    ],
+    "Shared victory": [
+      "10-the-victory-cutscene-names-the-winner.jpg",
+      "11-guest-wins-with-no-solo-ai-elo-change.jpg"
+    ],
+    "Game History": [
+      "15-game-history-keeps-the-unfinished-shared-match-private.jpg",
+      "16-completed-shared-match-appears-in-game-history.jpg"
+    ]
+  },
+  "images": [
+    {
+      "title": "two people and two AI seats",
+      "label": "Pass & Play – two people and two AI seats",
+      "file": "01-two-people-and-two-ai-seats.jpg",
+      "test": "PassAndPlayFlowTests/testMixedTableHandoffAndColdResumeProtectTheGuestHand",
+      "testSourceLine": 19,
+      "originalAttachment": "8E0F740F-7141-48B5-905A-91B73BD1ED16.png",
+      "originalSHA256": "d251a5fab33c610dd784df8b98484909d8f7a6b57d45eeb89165b787e72b4557",
+      "gallerySHA256": "48938c37e2662234c593b8ad5e786950ab3236a09139219387b42474a4266e48",
+      "captureTimestamp": 1794051753.743
+    },
+    {
+      "title": "initial handoff to the owner",
+      "label": "Pass & Play – initial handoff to the owner",
+      "file": "02-initial-handoff-to-the-owner.jpg",
+      "test": "PassAndPlayFlowTests/testMixedTableHandoffAndColdResumeProtectTheGuestHand",
+      "testSourceLine": 22,
+      "originalAttachment": "88116693-7421-4CBD-B2C7-CDF143530CC2.png",
+      "originalSHA256": "f3633848eba27d9a7ae52f9d79031086a05d756d95dc123e2a9e60915fbaab0f",
+      "gallerySHA256": "40658f32441b984c92d2106d2f3efe6c3a131daa8e0acc723fbf3eb4c77f8ade",
+      "captureTimestamp": 1794051758.789
+    },
+    {
+      "title": "private handoff with a maximum-length name",
+      "label": "Pass & Play – private handoff with a maximum-length name",
+      "file": "03-private-handoff-with-a-maximum-length-name.jpg",
+      "test": "PassAndPlayFlowTests/testMixedTableHandoffAndColdResumeProtectTheGuestHand",
+      "testSourceLine": 25,
+      "originalAttachment": "02F9149D-9993-450F-871B-61924BE9977E.png",
+      "originalSHA256": "c35b017c47c1459032294714cd81d3cbddfa2f57acfb8dc78eb3727fbced9e5a",
+      "gallerySHA256": "418f61252f22af47bce17e5da7eb7b32da18daff416e51fb1755d544ca4647b5",
+      "captureTimestamp": 1794051777.621
+    },
+    {
+      "title": "Willa's first placement",
+      "label": "Pass & Play – Willa's first placement",
+      "file": "04-willa-s-first-placement.jpg",
+      "test": "PassAndPlayFlowTests/testMixedTableHandoffAndColdResumeProtectTheGuestHand",
+      "testSourceLine": 26,
+      "originalAttachment": "5350BE2E-5411-481F-BA5F-B3A5EEFDDF5B.png",
+      "originalSHA256": "db98871aa77a45682016fa58a1b60f94aeb1237d07387a7adabfe0355028005b",
+      "gallerySHA256": "9f92651350154f7fbe05dd277c9890c43420c5a02242dbd57244770f9930b685",
+      "captureTimestamp": 1794051780.729
+    },
+    {
+      "title": "cold resume re-covers Willa's hand",
+      "label": "Pass & Play – cold resume re-covers Willa's hand",
+      "file": "05-cold-resume-re-covers-willa-s-hand.jpg",
+      "test": "PassAndPlayFlowTests/testMixedTableHandoffAndColdResumeProtectTheGuestHand",
+      "testSourceLine": 31,
+      "originalAttachment": "BA881996-3E74-44E3-B7A3-7289A8D1F306.png",
+      "originalSHA256": "1011b30da040d14fa595f10d993f6c47ba7204fa2d08b2d4c67ef95d587e26a2",
+      "gallerySHA256": "313ad597d5caa53150219b9d8d186f82005899b48d9d835b0bbecd8e95a74322",
+      "captureTimestamp": 1794051792.462
+    },
+    {
+      "title": "committed settlement and pending road after resume",
+      "label": "Pass & Play – committed settlement and pending road after resume",
+      "file": "06-committed-settlement-and-pending-road-after-resume.jpg",
+      "test": "PassAndPlayFlowTests/testMixedTableHandoffAndColdResumeProtectTheGuestHand",
+      "testSourceLine": 34,
+      "originalAttachment": "13DF0F20-5E92-417B-B08A-DE29D039C9D1.png",
+      "originalSHA256": "8a91f7888d59687452a6eae58e8134f1ed00cff775fe0dd2a078e0307a8eabac",
+      "gallerySHA256": "861bb11bde5940eeb43c4f419313b279c30df797916dfa56532e759cfe8fbf2e",
+      "captureTimestamp": 1794051795.583
+    },
+    {
+      "title": "covered save recovery at maximum text",
+      "label": "Pass & Play – covered save recovery at maximum text",
+      "file": "07-covered-save-recovery-at-maximum-text.jpg",
+      "test": "PassAndPlayFlowTests/testCoveredSaveRecoveryReloadsTheSameClaimantAtMaximumText",
+      "testSourceLine": 110,
+      "originalAttachment": "43BEB77B-F8DD-4372-828F-44FBA9A39137.png",
+      "originalSHA256": "8400930f58c0587841b37bbbcfd8ffb407090e2bd2301e990cdae3f1648a66a2",
+      "gallerySHA256": "0ca72f2d42007dd80ea8f192cfff5eae8e4d29ae4c8ffea3aeb278ceb106adc7",
+      "captureTimestamp": 1794051699.698
+    },
+    {
+      "title": "reload action reachable at maximum text",
+      "label": "Pass & Play – reload action reachable at maximum text",
+      "file": "08-reload-action-reachable-at-maximum-text.jpg",
+      "test": "PassAndPlayFlowTests/testCoveredSaveRecoveryReloadsTheSameClaimantAtMaximumText",
+      "testSourceLine": 116,
+      "originalAttachment": "4DE4F82C-BE63-4C2C-AE98-023C63643277.png",
+      "originalSHA256": "8400930f58c0587841b37bbbcfd8ffb407090e2bd2301e990cdae3f1648a66a2",
+      "gallerySHA256": "0ca72f2d42007dd80ea8f192cfff5eae8e4d29ae4c8ffea3aeb278ceb106adc7",
+      "captureTimestamp": 1794051702.035
+    },
+    {
+      "title": "reload restores the named claimant at maximum text",
+      "label": "Pass & Play – reload restores the named claimant at maximum text",
+      "file": "09-reload-restores-the-named-claimant-at-maximum-text.jpg",
+      "test": "PassAndPlayFlowTests/testCoveredSaveRecoveryReloadsTheSameClaimantAtMaximumText",
+      "testSourceLine": 123,
+      "originalAttachment": "5F603213-A847-4379-96D9-DD139FCD0651.png",
+      "originalSHA256": "fc96c8303ad1289822867feac61cf3f1c8329dd8867da1c2239948ce3bed8f66",
+      "gallerySHA256": "6946d211996cb45e7fc3eef55e94dd50c42018ae74f1c0095dddfa86d6d52446",
+      "captureTimestamp": 1794051707.945
+    },
+    {
+      "title": "the victory cutscene names the winner",
+      "label": "Pass & Play – the victory cutscene names the winner",
+      "file": "10-the-victory-cutscene-names-the-winner.jpg",
+      "test": "PassAndPlayFlowTests/testGuestsActualWinningCityShowsANamedUnratedResult",
+      "testSourceLine": 170,
+      "originalAttachment": "8C3B2870-23EB-45A1-AF3D-097059888452.png",
+      "originalSHA256": "28f376ffeff3832e0926edc72d28938ddb5955bbf37ca86126490c7b85d6aad7",
+      "gallerySHA256": "1bd6cdd48735ebf55817fce12d15b36f3559e7bde629d54d7c793b921c71be59",
+      "captureTimestamp": 1794051734.018
+    },
+    {
+      "title": "guest wins with no solo AI Elo change",
+      "label": "Pass & Play – guest wins with no solo AI Elo change",
+      "file": "11-guest-wins-with-no-solo-ai-elo-change.jpg",
+      "test": "PassAndPlayFlowTests/testGuestsActualWinningCityShowsANamedUnratedResult",
+      "testSourceLine": 178,
+      "originalAttachment": "A4338D63-5539-450B-AF9F-0463BCAFE7A8.png",
+      "originalSHA256": "a6ea1d260cc0bcb362e0614be634ac75c6d0e4de4bd70dc5c29039cfeb997992",
+      "gallerySHA256": "2eeb09a1edc5613b351bf3ae4d7d834afe7e523722d5bc5bfa73d4d77fa73f2c",
+      "captureTimestamp": 1794051737.173
+    },
+    {
+      "title": "resumed offer stays private until its recipient claims",
+      "label": "Pass & Play – resumed offer stays private until its recipient claims",
+      "file": "12-resumed-offer-stays-private-until-its-recipient-claims.jpg",
+      "test": "PassAndPlayFlowTests/testUnaffordableDirectedTradeSurvivesResumeAndCanBeDeclined",
+      "testSourceLine": 215,
+      "originalAttachment": "4150F857-C43D-4CE2-9D76-79C6767B9EA1.png",
+      "originalSHA256": "f154a39b7400d3857776c10ffa70481e94ec4088469f3a627d59d4d15d2266f4",
+      "gallerySHA256": "b44c0bebb48daf7e730c08499841bd889ad08e2fcce4f5f3ec87a4b4fca4930c",
+      "captureTimestamp": 1794051826.863
+    },
+    {
+      "title": "unaffordable offer can be declined",
+      "label": "Pass & Play – unaffordable offer can be declined",
+      "file": "13-unaffordable-offer-can-be-declined.jpg",
+      "test": "PassAndPlayFlowTests/testUnaffordableDirectedTradeSurvivesResumeAndCanBeDeclined",
+      "testSourceLine": 230,
+      "originalAttachment": "232371B7-D26C-40D8-9518-B9015061C441.png",
+      "originalSHA256": "9d7e62437c6d16fb8094af0b0be1abf808815119e240e7aad562e2d5c9822476",
+      "gallerySHA256": "2ec074f5b4f12c89f58d2d93fb6869e78c64b4e518138e051ec6479931c3c04a",
+      "captureTimestamp": 1794051837.134
+    },
+    {
+      "title": "trade declined and original hand preserved",
+      "label": "Pass & Play – trade declined and original hand preserved",
+      "file": "14-trade-declined-and-original-hand-preserved.jpg",
+      "test": "PassAndPlayFlowTests/testUnaffordableDirectedTradeSurvivesResumeAndCanBeDeclined",
+      "testSourceLine": 239,
+      "originalAttachment": "51A3F0CC-85B9-4766-BEB7-F023AEA66AC7.png",
+      "originalSHA256": "fa86e961fd43726aa9ce5bb95224eb78d56a3a96a970db36e01a2f48733ca3d0",
+      "gallerySHA256": "7639606e82ff0e5ab31f7abcf8387f2a6f247600d24900d91fe51fb4e9ec8a5a",
+      "captureTimestamp": 1794051845.801
+    },
+    {
+      "title": "Game History keeps the unfinished shared match private",
+      "label": "Pass & Play – Game History keeps the unfinished shared match private",
+      "file": "15-game-history-keeps-the-unfinished-shared-match-private.jpg",
+      "test": "PassAndPlayFlowTests/testMixedTableHandoffAndColdResumeProtectTheGuestHand",
+      "testSourceLine": 366,
+      "originalAttachment": "6D75D5E5-F634-4F02-AA7C-D1D96550072F.png",
+      "originalSHA256": "f4a50dbd15488a0f9a2fb7d1cd3be8c514a53023ae1383ac6d8ccb48bb1a80b5",
+      "gallerySHA256": "f9680a780d50207a75f9b219668249819ba7cfd8a8300d774674fb245c5b9af6",
+      "captureTimestamp": 1794051772.546
+    },
+    {
+      "title": "completed shared match appears in Game History",
+      "label": "Pass & Play – completed shared match appears in Game History",
+      "file": "16-completed-shared-match-appears-in-game-history.jpg",
+      "test": "PassAndPlayFlowTests/testGuestsActualWinningCityShowsANamedUnratedResult",
+      "testSourceLine": 185,
+      "originalAttachment": "82640386-C2CE-46BC-922D-6DCCAE913961.png",
+      "originalSHA256": "d57b15cdb02497f159c2cbc184485dda30cdcf4124bdb1e505d356bd945159ae",
+      "gallerySHA256": "15887266aab95ba59a65aeabd4543502da48220760d75186e728daeb0a741e36",
+      "captureTimestamp": 1794051741.426
+    }
+  ]
+}

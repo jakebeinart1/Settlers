@@ -1,3 +1,4 @@
+import OSLog
 import SwiftUI
 
 @main
@@ -22,6 +23,16 @@ struct SettlersApp: App {
         #endif
         viewModel = GameViewModel()
         viewModel.migrateLegacyPlayerNames()
+        // Restore known checkpoints first, then retire any older public
+        // shared recordings whose checkpoints are no longer available.
+        Task.detached(priority: .utility) {
+            do {
+                try GameLogStore.shared.migrateLegacyUnfinishedSharedRecordings()
+            } catch {
+                Logger(subsystem: Bundle.main.bundleIdentifier ?? "Empires", category: "GameHistory")
+                    .error("Could not move older shared recordings: \(error.localizedDescription, privacy: .private)")
+            }
+        }
     }
 
     // Startup used to force-read the retired YAML pacing configuration. The

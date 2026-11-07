@@ -21,7 +21,7 @@ extension GameViewModel {
         guard let setup = checkpointDocument?.activeMatch?.setup else {
             return "This game has no recorded AI rating."
         }
-        if setup.humanSeats.count != 1 { return "Pass-and-play games do not change your AI rating." }
+        if setup.humanSeats.count != 1 { return "Pass & Play doesn’t change your AI rating." }
         if activeAIRatingPool == nil { return "Ghost games use the ghost ladder, separate from your AI record." }
         return nil
     }
