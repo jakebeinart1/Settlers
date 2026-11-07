@@ -434,9 +434,10 @@ final class PassAndPlayFlowTests: XCTestCase {
         XCTAssertTrue(prompt.waitForExistence(timeout: timeout))
         XCTAssertGreaterThanOrEqual(ready.frame.height, 71)
         XCTAssertGreaterThanOrEqual(ready.frame.width, min(app.frame.width - 48, 320) - 1)
-        let gap = ready.frame.minY - prompt.frame.maxY
-        XCTAssertGreaterThan(gap, 0)
-        XCTAssertLessThanOrEqual(gap, 48, "Claim must sit directly below the handoff prompt")
+        // Accessibility hit bounds can extend beyond the painted border inside a scroll view.
+        let distance = ready.frame.midY - prompt.frame.midY
+        XCTAssertGreaterThan(distance, 0)
+        XCTAssertLessThanOrEqual(distance, 105, "Claim must sit directly below the handoff prompt")
     }
 
     private func claim(_ player: String, in app: XCUIApplication, capture: String? = nil) {
