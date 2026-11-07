@@ -24,10 +24,9 @@ import SwiftUI
 /// - Civilization row: 13pt glyph + 7 + "Britannia" at 15pt serif (~66pt) +
 ///   chevron + 20pt padding = ~120pt.
 ///
-/// Every text size on the card - header, Human/AI toggle, name field,
-/// general name, civilization row - is the same 15pt (`bodyTextSize`),
-/// except the "Optional" pill, a badge rather than a content line (Jake's
-/// ask, 2026-09-03). The Human/AI box's vertical padding is pulled from the
+/// The header, name, and civilization share `bodyTextSize`. The three role
+/// labels use `roleTextSize` to keep breathing room on the compact card.
+/// The role box's vertical padding is pulled from the
 /// civilization row's own so the two boxes come out the same height
 /// (`civilizationRowVerticalPadding`), also Jake's ask.
 ///
@@ -77,16 +76,9 @@ struct SeatCardView: View {
     /// Strategist", which read as the general's actual name.
     static let undrawnGeneralName = "Random Player"
 
-    /// One text size for every label in the card - header, Human/AI toggle,
-    /// name field, general name, civilization row - so nothing reads as
-    /// bigger or smaller than its neighbour. The "Optional" pill is the one
-    /// deliberate exception (Jake's ask, 2026-09-03): it is a badge, not a
-    /// line of the card's own content. Was 15pt in the first pass at this,
-    /// which Jake still read as too large - dropped to 13pt, his second ask
-    /// the same day. Internal, not private: `NewGameSetupView`'s Match
-    /// Settings rows reuse it (his third ask) so the two sit at one size by
-    /// construction rather than by two literals coincidentally agreeing.
+    /// Matches the main labels in the player cards and Match Settings.
     static let bodyTextSize: CGFloat = 13
+    private static let roleTextSize: CGFloat = 12
 
     var body: some View {
         // Tight on purpose. Four of these have to fit above the fold alongside
@@ -199,7 +191,8 @@ struct SeatCardView: View {
             title: \.rawValue,
             selection: seat.role,
             verticalPadding: civilizationRowVerticalPadding,
-            fontSize: Self.bodyTextSize,
+            // Keep a margin between the three labels and their painted edges.
+            fontSize: Self.roleTextSize,
             optionIdentifier: { AccessibilityID.NewGame.seatKind(seat.index, role: $0) },
             onSelect: onSelectRole
         )

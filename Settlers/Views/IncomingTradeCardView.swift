@@ -95,25 +95,26 @@ public struct IncomingTradeCardView: View {
     public var body: some View {
         let identity = playerIdentity(offer.from)
         let summary = IncomingTradeSummary(offer: offer)
-        // Response controls mount once. Only terms scroll, and clipping
-        // requires full review before accepting. Occurrence-bound measurement
-        // prevents a previous short offer authorizing a new unreadable one.
+        // The sheet owns the terms and response controls during full review.
+        // Keep the fixed command-row frame without duplicate controls below it.
         HStack(spacing: 8) {
-            ScrollView(.vertical) {
-                offerSummary(identity, summary: summary, fontSize: 12)
-                    .background {
-                        GeometryReader { proxy in
-                            Color.clear.preference(key: TradeSummaryHeightPreference.self,
-                                value: TradeSummaryMeasurement(offer: offer, occurrence: offerOccurrence,
-                                                               height: proxy.size.height))
-                                .allowsHitTesting(false).accessibilityHidden(true)
+            if !isReviewPresented {
+                ScrollView(.vertical) {
+                    offerSummary(identity, summary: summary, fontSize: 12)
+                        .background {
+                            GeometryReader { proxy in
+                                Color.clear.preference(key: TradeSummaryHeightPreference.self,
+                                    value: TradeSummaryMeasurement(offer: offer, occurrence: offerOccurrence,
+                                                                   height: proxy.size.height))
+                                    .allowsHitTesting(false).accessibilityHidden(true)
+                            }
                         }
-                    }
+                }
+                .scrollBounceBehavior(.basedOnSize)
+                .frame(maxWidth: .infinity)
+                .frame(height: Self.summaryViewportHeight)
+                answerControls(requiresReview: summary.requiresReview || summaryNeedsReview)
             }
-            .scrollBounceBehavior(.basedOnSize)
-            .frame(maxWidth: .infinity)
-            .frame(height: Self.summaryViewportHeight)
-            answerControls(requiresReview: summary.requiresReview || summaryNeedsReview)
         }
         .padding(.horizontal, 8)
         .padding(.vertical, Self.verticalPadding)

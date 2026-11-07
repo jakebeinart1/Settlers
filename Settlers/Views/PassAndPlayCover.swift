@@ -53,12 +53,14 @@ struct PassAndPlayCover: View {
 
     private var heading: some View {
         VStack(spacing: 12) {
-            Text("Pass & Play")
-                .font(.caption2.weight(.semibold))
-                .tracking(2)
-                .textCase(.uppercase)
-                .foregroundStyle(SettingsChrome.ornamentGold)
-                .accessibilityAddTraits(.isHeader)
+            if !dynamicTypeSize.isAccessibilitySize {
+                Text("Pass & Play")
+                    .font(.caption2.weight(.semibold))
+                    .tracking(2)
+                    .textCase(.uppercase)
+                    .foregroundStyle(SettingsChrome.ornamentGold)
+                    .accessibilityAddTraits(.isHeader)
+            }
 
             if let recipient, retryTitle == nil {
                 CivilizationCrest(civilization: recipient.civilization, size: 72)
@@ -69,9 +71,11 @@ struct PassAndPlayCover: View {
                     .accessibilityFocused($isPromptFocused)
                     .accessibilityIdentifier(AccessibilityID.Handoff.recipient)
             } else {
-                Image(systemName: retryTitle == nil ? "hourglass" : "arrow.clockwise")
-                    .font(.system(size: 32, weight: .semibold))
-                    .accessibilityHidden(true)
+                if !dynamicTypeSize.isAccessibilitySize {
+                    Image(systemName: retryTitle == nil ? "hourglass" : "arrow.clockwise")
+                        .font(.system(size: 32, weight: .semibold))
+                        .accessibilityHidden(true)
+                }
                 Text(retryTitle == nil ? "Waiting for the next player" : "Game paused")
                     .font(.title2.bold())
                     .accessibilityAddTraits(.isHeader)
@@ -99,10 +103,11 @@ struct PassAndPlayCover: View {
                 GoldRowButton(title: retryTitle, systemImage: "arrow.clockwise", action: onRetry)
                     .accessibilityIdentifier(AccessibilityID.Game.retryBotProgress)
             } else if let recipient {
-                GoldRowButton(title: "I'm \(recipient.displayName)",
+                GoldRowButton(title: dynamicTypeSize.isAccessibilitySize ? "Continue" : "I'm \(recipient.displayName)",
                               subtitle: dynamicTypeSize.isAccessibilitySize ? nil : "Continue privately",
                               systemImage: "hand.tap",
                               iconColor: SettingsChrome.ornamentGold, action: onReady)
+                    .accessibilityLabel("I'm \(recipient.displayName). Continue privately.")
                     .accessibilityIdentifier(AccessibilityID.Handoff.ready)
             }
             Button(action: onMenu) {
@@ -152,7 +157,7 @@ extension GameView {
             recipient: recipient,
             context: context,
             turnTitle: failure == nil && seat != viewModel.localTurnOwner ? localTurnTitle : nil,
-            retryTitle: failure.map { _ in viewModel.persistenceBlocked ? "Reload saved game" : "Retry" },
+            retryTitle: failure.map { _ in viewModel.persistenceBlocked ? "Reload save" : "Retry" },
             onReady: {
                 guard let seat, viewModel.claimLocalDevice(for: seat) else { return }
                 Task { await viewModel.runBotTurnIfNeeded() }
@@ -164,7 +169,7 @@ extension GameView {
 
     private var localHandoffRecoveryMessage: String? {
         if viewModel.persistenceBlocked {
-            return "The game couldn’t save. Reload to continue."
+            return "The game couldn’t save."
         }
         if case .failed(_, let message) = viewModel.botTurnProgress { return message }
         return nil

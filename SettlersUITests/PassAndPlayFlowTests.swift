@@ -101,6 +101,9 @@ final class PassAndPlayFlowTests: XCTestCase {
         let paused = app.staticTexts["Game paused"]
         XCTAssertTrue(paused.waitForExistence(timeout: timeout))
         XCTAssertGreaterThan(paused.frame.height, 50, "The maximum text preference did not reach the cover")
+        let message = app.staticTexts["The game couldn’t save."]
+        XCTAssertTrue(message.waitForExistence(timeout: timeout))
+        XCTAssertTrue(app.scrollViews.firstMatch.frame.contains(message.frame))
         XCTAssertFalse(app.buttons["handoff.ready"].exists)
         assertPrivateContentHidden(in: app)
         retain("Pass & Play – covered save recovery at maximum text", in: app)
@@ -108,12 +111,13 @@ final class PassAndPlayFlowTests: XCTestCase {
         let reload = app.buttons["bot-progress.retry"]
         assertCoverControl(app.buttons["Main Menu"], in: app)
         assertCoverControl(reload, in: app)
-        XCTAssertTrue(reload.label.contains("Reload saved game"))
+        XCTAssertTrue(reload.label.contains("Reload save"))
         retain("Pass & Play – reload action reachable at maximum text", in: app)
         reload.tap()
 
         let ready = app.buttons["handoff.ready"]
         assertCoverControl(ready, in: app)
+        assertCoverControl(app.buttons["Main Menu"], in: app)
         XCTAssertFalse(paused.exists)
         claim("Player 1", in: app, capture: "Pass & Play – reload restores the named claimant at maximum text")
         assertHandVisible(in: app)
@@ -213,6 +217,7 @@ final class PassAndPlayFlowTests: XCTestCase {
             XCTAssertTrue(review.waitForExistence(timeout: timeout))
             review.tap()
             XCTAssertTrue(app.staticTexts["3 Grain"].waitForExistence(timeout: timeout))
+            XCTAssertTrue(review.waitForNonExistence(timeout: timeout))
         }
         let decline = app.buttons["incoming-trade.reject"]
         XCTAssertTrue(accept.waitForExistence(timeout: timeout) && !accept.isEnabled)
