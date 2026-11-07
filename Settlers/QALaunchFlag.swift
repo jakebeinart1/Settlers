@@ -207,6 +207,7 @@ enum QALaunchFlag: String, CaseIterable {
     case passAndPlayDevCard = "-qaPassAndPlayDevCard"
     /// Seeds a blocked handoff over a valid checkpoint for real Reload taps.
     case passAndPlayRecovery = "-qaPassAndPlayRecovery"
+    case passAndPlayShipTransfer = "-qaPassAndPlayShipTransfer"
     /// Opens `GameHistoryView` over the main menu. Pair with
     /// `-qaSeedGameHistory`, or the screen correctly shows its empty state.
     case showGameHistory = "-qaShowGameHistory"

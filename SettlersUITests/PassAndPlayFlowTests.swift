@@ -165,13 +165,28 @@ final class PassAndPlayFlowTests: XCTestCase {
         retain("Pass & Play – trade accepted and control returned", in: app)
     }
 
-    func testDecliningADirectedTradeReturnsControlWithoutChangingResources() {
+    func testUnaffordableDirectedTradeSurvivesResumeAndCanBeDeclined() {
         let app = launchFixture("-qaPassAndPlayTrade")
         claim("Player 1", in: app)
-        sendDirectedTrade(in: app)
-        acknowledgeHandoff("Player 2", in: app)
+        sendDirectedTrade(in: app, askingGrain: 3)
+        assertNamed("handoff.recipient", player: "Player 2", in: app)
+
+        coldResume(in: app)
+        acknowledgeHandoff("Player 2", in: app, capture: "Pass & Play – resumed offer stays private until its recipient claims")
+        let accept = app.buttons["incoming-trade.accept"]
+        if accept.waitForExistence(timeout: 2) {
+            XCTAssertEqual(app.staticTexts["incoming-trade.give"].label, "You give 3 Grain")
+        } else {
+            let review = app.buttons["incoming-trade.review"]
+            XCTAssertTrue(review.waitForExistence(timeout: timeout))
+            review.tap()
+            XCTAssertTrue(app.staticTexts["3 Grain"].waitForExistence(timeout: timeout))
+        }
         let decline = app.buttons["incoming-trade.reject"]
-        XCTAssertTrue(decline.waitForExistence(timeout: timeout) && decline.isHittable)
+        XCTAssertTrue(accept.waitForExistence(timeout: timeout) && !accept.isEnabled)
+        XCTAssertTrue(app.staticTexts["You don’t have the cards to accept."].exists)
+        XCTAssertTrue(decline.waitForExistence(timeout: timeout) && decline.isEnabled && decline.isHittable)
+        retain("Pass & Play – unaffordable offer can be declined", in: app)
         decline.tap()
 
         claim("Player 1", in: app)
@@ -181,9 +196,15 @@ final class PassAndPlayFlowTests: XCTestCase {
         XCTAssertEqual(resource("lumber", in: app), "2")
         XCTAssertEqual(resource("grain", in: app), "0")
         retain("Pass & Play – trade declined and original hand preserved", in: app)
+
+        app.buttons["End Turn"].tap()
+        claim("Player 2", in: app)
+        assertHandVisible(in: app)
+        XCTAssertEqual(resource("grain", in: app), "2")
+        XCTAssertEqual(resource("lumber", in: app), "0")
     }
 
-    private func sendDirectedTrade(in app: XCUIApplication, capture: String? = nil) {
+    private func sendDirectedTrade(in app: XCUIApplication, askingGrain: Int = 1, capture: String? = nil) {
         app.buttons["Trade"].tap()
         let recipient = app.buttons["trade.recipient"]
         XCTAssertTrue(recipient.waitForExistence(timeout: timeout))
@@ -193,7 +214,9 @@ final class PassAndPlayFlowTests: XCTestCase {
         if capture != nil { retain("Pass & Play – recipient picker shows the named player", in: app) }
         player.tap()
         app.buttons["trade.give.lumber"].tap()
-        app.buttons["trade.want.grain"].tap()
+        let grain = app.buttons["trade.want.grain"]
+        for _ in 0..<askingGrain { grain.tap() }
+        XCTAssertEqual(grain.value as? String, String(askingGrain))
         let send = app.buttons["Send offer"]
         XCTAssertTrue(send.exists && send.isEnabled)
         if let capture { retain(capture, in: app) }
@@ -241,6 +264,36 @@ final class PassAndPlayFlowTests: XCTestCase {
         claim("Player 2", in: app, capture: "Pass & Play – Voyages return to the roller")
         XCTAssertTrue(app.buttons["End Turn"].waitForExistence(timeout: timeout))
         XCTAssertFalse(app.staticTexts["naval.resource.choice"].exists)
+    }
+
+    func testShipTransferWaitsForItsOldOwnerAcrossColdResume() {
+        let app = launchFixture("-qaPassAndPlayShipTransfer")
+        claim("Player 1", in: app)
+        let ship = app.buttons["naval.choose-ship.0"]
+        let owner = app.otherElements["naval.ship.owner.0"]
+        XCTAssertTrue(ship.waitForExistence(timeout: timeout))
+        XCTAssertEqual(owner.value as? String, "1")
+        ship.tap()
+        confirmBoardDecision(in: app)
+
+        let prompt = app.staticTexts["Review the ship transfer."]
+        XCTAssertTrue(prompt.waitForExistence(timeout: timeout))
+        assertNamed("handoff.recipient", player: "Player 2", in: app)
+        assertPrivateContentHidden(in: app)
+        retain("Pass & Play – Voyages ship loss handoff keeps the receipt private", in: app)
+
+        coldResume(in: app)
+        XCTAssertTrue(prompt.waitForExistence(timeout: timeout))
+        acknowledgeHandoff("Player 2", in: app)
+        let receipt = app.alerts["naval.capture.receipt"]
+        XCTAssertTrue(receipt.waitForExistence(timeout: timeout))
+        XCTAssertTrue(receipt.staticTexts["Your ship was stolen"].exists)
+        retain("Pass & Play – the former owner reads the resumed ship loss receipt", in: app)
+        app.buttons["naval.capture.continue"].tap()
+
+        claim("Player 1", in: app)
+        XCTAssertTrue(app.buttons["End Turn"].waitForExistence(timeout: timeout))
+        XCTAssertEqual(owner.value as? String, "0")
     }
 
     private func openNewGame() -> XCUIApplication {
@@ -341,9 +394,10 @@ final class PassAndPlayFlowTests: XCTestCase {
         let privateCards = app.staticTexts.matching(NSPredicate(format: "identifier BEGINSWITH %@", "dev-cards.detail."))
         XCTAssertFalse(privateCards.firstMatch.exists, "The covered card identity leaked through accessibility")
         for identifier in ["dev-cards.view-hand", "board-decision.confirm", "Roll Dice", "discard.submit",
-                           "incoming-trade.accept", "naval.resource.confirm"] {
+                           "incoming-trade.accept", "naval.resource.confirm", "naval.capture.continue"] {
             XCTAssertFalse(app.buttons[identifier].exists, "The covered player can still reach \(identifier)")
         }
+        XCTAssertFalse(app.alerts["naval.capture.receipt"].exists, "The covered ship receipt leaked through accessibility")
         XCTAssertFalse(targets(settlementPrefix, in: app).firstMatch.exists)
         XCTAssertFalse(targets(roadPrefix, in: app).firstMatch.exists)
     }

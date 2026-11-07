@@ -3,7 +3,7 @@ import CatanEngine
 import Foundation
 
 enum QAPassAndPlayFixture {
-    case discard, botWait, win, trade, harvest, devCard, recovery
+    case discard, botWait, win, trade, harvest, devCard, recovery, shipTransfer
 
     static var requested: Self? {
         if QALaunchFlag.passAndPlayDiscard.isSet { return .discard }
@@ -13,6 +13,7 @@ enum QAPassAndPlayFixture {
         if QALaunchFlag.passAndPlayHarvest.isSet { return .harvest }
         if QALaunchFlag.passAndPlayDevCard.isSet { return .devCard }
         if QALaunchFlag.passAndPlayRecovery.isSet { return .recovery }
+        if QALaunchFlag.passAndPlayShipTransfer.isSet { return .shipTransfer }
         return nil
     }
 }
@@ -22,7 +23,7 @@ extension GameViewModel {
     /// Real bot turns, dice, discard submissions, building and result
     /// recording still travel through the ordinary session and UI.
     func qaSetUpPassAndPlay(_ fixture: QAPassAndPlayFixture) {
-        var position = fixture == .harvest ? qaPassAndPlayHarvest() : qaPassAndPlayPosition()
+        var position = qaPassAndPlayPosition(for: fixture)
         let humans: Set<PlayerID>
         switch fixture {
         case .discard:
@@ -44,7 +45,7 @@ extension GameViewModel {
             qaFundPassAndPlayHand([.lumber: 2], seat: 0, in: &position)
             qaFundPassAndPlayHand([.grain: 2], seat: 1, in: &position)
             position.phase = .mainTurn(playerIndex: 0)
-        case .harvest:
+        case .harvest, .shipTransfer:
             humans = [PlayerID(index: 0), PlayerID(index: 1)]
         case .devCard:
             humans = [PlayerID(index: 0), PlayerID(index: 1)]
@@ -62,6 +63,19 @@ extension GameViewModel {
             // Seed the presentation boundary only. The valid checkpoint above
             // is still read by the production reload action on the cover.
             _ = reportPersistenceFailure(CocoaError(.fileWriteUnknown))
+        }
+    }
+
+    private func qaPassAndPlayPosition(for fixture: QAPassAndPlayFixture) -> GameState {
+        switch fixture {
+        case .harvest: return qaPassAndPlayHarvest()
+        case .shipTransfer:
+            do {
+                return try NavalQAFixture.make(.capture)
+            } catch {
+                preconditionFailure("Pass & Play ship transfer fixture is invalid: \(error)")
+            }
+        default: return qaPassAndPlayPosition()
         }
     }
 
