@@ -14,11 +14,15 @@ struct PassAndPlayCover: View {
     @AccessibilityFocusState private var isPromptFocused: Bool
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
+    private var claimBelowPrompt: Bool {
+        recipient != nil && retryTitle == nil && !dynamicTypeSize.isAccessibilitySize
+    }
+
     var body: some View {
         VStack(spacing: 12) {
             GeometryReader { geometry in
                 ScrollView {
-                    heading
+                    prompt
                         .padding(.horizontal, 24)
                         .padding(.vertical, 12)
                         .frame(maxWidth: 440)
@@ -27,7 +31,7 @@ struct PassAndPlayCover: View {
                 .scrollBounceBehavior(.basedOnSize)
                 .clipped()
             }
-            // A long message can scroll while the receiver can always reach the actions.
+            // At accessibility sizes the claim stays reachable while long prompts scroll.
             controls
                 .padding(.horizontal, 24)
                 .frame(maxWidth: 440)
@@ -49,6 +53,15 @@ struct PassAndPlayCover: View {
         .fontDesign(.serif)
         .onChange(of: recipient?.id, initial: true) { _, _ in isPromptFocused = true }
         .onChange(of: retryTitle) { _, _ in isPromptFocused = true }
+    }
+
+    private var prompt: some View {
+        VStack(spacing: 12) {
+            heading
+            if claimBelowPrompt, let recipient {
+                claimButton(for: recipient)
+            }
+        }
     }
 
     private var heading: some View {
@@ -102,13 +115,8 @@ struct PassAndPlayCover: View {
             if let retryTitle {
                 GoldRowButton(title: retryTitle, systemImage: "arrow.clockwise", action: onRetry)
                     .accessibilityIdentifier(AccessibilityID.Game.retryBotProgress)
-            } else if let recipient {
-                GoldRowButton(title: dynamicTypeSize.isAccessibilitySize ? "Continue" : "I'm \(recipient.displayName)",
-                              subtitle: dynamicTypeSize.isAccessibilitySize ? nil : "Continue privately",
-                              systemImage: "hand.tap",
-                              iconColor: SettingsChrome.ornamentGold, action: onReady)
-                    .accessibilityLabel("I'm \(recipient.displayName). Continue privately.")
-                    .accessibilityIdentifier(AccessibilityID.Handoff.ready)
+            } else if !claimBelowPrompt, let recipient {
+                claimButton(for: recipient)
             }
             Button(action: onMenu) {
                 Text("Main Menu")
@@ -118,6 +126,37 @@ struct PassAndPlayCover: View {
             }
             .buttonStyle(.plain)
         }
+    }
+
+    private func claimButton(for recipient: PlayerIdentity) -> some View {
+        Button(action: onReady) {
+            HStack(spacing: 12) {
+                if !dynamicTypeSize.isAccessibilitySize {
+                    Image(systemName: "hand.tap.fill")
+                        .font(.title3.weight(.semibold))
+                        .foregroundStyle(SettingsChrome.ornamentGold)
+                }
+                VStack(spacing: 3) {
+                    Text(dynamicTypeSize.isAccessibilitySize ? "Continue" : "I'm \(recipient.displayName)")
+                        .font(.title3.bold())
+                    if !dynamicTypeSize.isAccessibilitySize {
+                        Text("Continue privately")
+                            .font(.footnote)
+                            .foregroundStyle(.white.opacity(0.86))
+                    }
+                }
+            }
+            .multilineTextAlignment(.center)
+            .fixedSize(horizontal: false, vertical: true)
+            .padding(.horizontal, 16)
+            .padding(.vertical, 10)
+            .frame(maxWidth: .infinity, minHeight: 72)
+            .contentShape(Rectangle())
+            .background(PaintedChromeBackground(textureImageName: "button-fill-turn", cornerRadius: 12))
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel("I'm \(recipient.displayName). Continue privately.")
+        .accessibilityIdentifier(AccessibilityID.Handoff.ready)
     }
 }
 

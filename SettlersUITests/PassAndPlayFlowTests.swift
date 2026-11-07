@@ -22,6 +22,7 @@ final class PassAndPlayFlowTests: XCTestCase {
         claim(owner, in: app, capture: "Pass & Play – initial handoff to the owner")
         try placeOpeningPair(in: app)
         checkHistoryWhileCovered(in: app)
+        assertClaimNearPrompt(in: app)
         claim(guest, in: app, capture: "Pass & Play – private handoff with a maximum-length name")
         retain("Pass & Play – Willa's first placement", in: app)
         try place(settlementPrefix, in: app)
@@ -424,6 +425,19 @@ final class PassAndPlayFlowTests: XCTestCase {
     private func assertCoverControl(_ control: XCUIElement, in app: XCUIApplication) {
         XCTAssertTrue(control.waitForExistence(timeout: timeout) && control.isHittable
                       && app.frame.contains(control.frame), "Cover action must be reachable without scrolling")
+    }
+
+    private func assertClaimNearPrompt(in app: XCUIApplication) {
+        let ready = app.buttons["handoff.ready"]
+        let prompt = app.staticTexts["Place your settlement and road."]
+        assertCoverControl(ready, in: app)
+        XCTAssertTrue(prompt.waitForExistence(timeout: timeout))
+        XCTAssertGreaterThanOrEqual(ready.frame.height, 71)
+        XCTAssertGreaterThanOrEqual(ready.frame.width, min(app.frame.width - 48, 320) - 1)
+        // Accessibility hit bounds can extend beyond the painted border inside a scroll view.
+        let distance = ready.frame.midY - prompt.frame.midY
+        XCTAssertGreaterThan(distance, 0)
+        XCTAssertLessThanOrEqual(distance, 105, "Claim must sit directly below the handoff prompt")
     }
 
     private func claim(_ player: String, in app: XCUIApplication, capture: String? = nil) {
