@@ -234,7 +234,7 @@ struct NavalHarvestSelectionTests {
         let fixture = try CheckpointModelFixture()
         var writes = 0
         let model = fixture.makeModel(atCommitStage: { if $0 == .beforeReplace { writes += 1 } })
-        model.replaceStateForTesting(try cityBeforeBotRoll(human: human, roller: roller), humanSeat: human)
+        model.replaceStateForTesting(try cityBeforeRoll(human: human, roller: roller), humanSeat: human)
         // Stand in for the mandatory popup's hold. The test commits the next
         // actual policy step explicitly, without racing its queued bot task.
         model.isBlockingSurfaceOpen = true
@@ -258,10 +258,32 @@ struct NavalHarvestSelectionTests {
         try assertResumedBotContinuation(model, fixture: fixture, human: human, roller: roller)
     }
 
+    @Test func sharedTableHandsOffHarvestAndReturnsToTheRoller() throws {
+        let harvester = PlayerID(index: 2), roller = PlayerID(index: 1)
+        let model = isolatedGameViewModel()
+        model.replaceStateForTesting(try cityBeforeRoll(human: harvester, roller: roller),
+                                     humanSeats: [roller, harvester])
+        try model.commitHumanMove(.rollDice)
+        let before = model.state
+
+        #expect(model.localTurnOwner == roller && model.seatOwedATurn == harvester)
+        #expect(model.needsLocalHandoff && model.currentNavalHarvestObligation == nil)
+        #expect(!model.claimLocalDevice(for: roller))
+        try #require(model.claimLocalDevice(for: harvester))
+        #expect(model.currentNavalHarvestObligation?.requiredCount == 2)
+        try model.commitNavalHarvest([.ore, .grain])
+
+        assertCredit([.ore: 1, .grain: 1], before: before, after: model.state, owner: harvester)
+        #expect(model.state.phase == .mainTurn(playerIndex: roller.index))
+        #expect(model.localTurnOwner == roller && model.seatOwedATurn == roller && model.needsLocalHandoff)
+        #expect(model.claimLocalDevice(for: roller))
+        #expect(!model.needsLocalHandoff)
+    }
+
     /// Generated terrain and setup are retained. This prepares a real ship,
     /// landing and city for seat two; only the established QA travel refresh
     /// and matching-roll cursor shortcut ordinary intervening rounds.
-    private func cityBeforeBotRoll(human: PlayerID, roller: PlayerID) throws -> GameState {
+    private func cityBeforeRoll(human: PlayerID, roller: PlayerID) throws -> GameState {
         var state = try NavalQAFixture.make(.voyage)
         let field = try #require(state.board.tiles.filter { tile in
             tile.kind == .resourceChoice && state.board.corners(of: tile.coordinate).contains {

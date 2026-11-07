@@ -180,7 +180,7 @@ public struct GameView: View {
                 })
             }
 
-            if interactionPriority.winner == .privateReceipt,
+            if !viewModel.needsLocalHandoff, interactionPriority.winner == .privateReceipt,
                let reveal = viewModel.pendingDevCardReveal, reveal.owner == human {
                 DevelopmentCardOverlay(
                     // A winning receipt remains while its hand is inspected;
@@ -210,7 +210,7 @@ public struct GameView: View {
                         }
                     }
                 )
-            } else if interactionPriority.winner == .privateReceipt,
+            } else if !viewModel.needsLocalHandoff, interactionPriority.winner == .privateReceipt,
                       let resolution = viewModel.pendingDevCardResolution,
                       resolution.owner == human {
                 DevelopmentCardResultOverlay(
@@ -223,7 +223,7 @@ public struct GameView: View {
                 ) {
                     _ = viewModel.dismissDevCardResolution()
                 }
-            } else if !isDiscardPresented, !isNavalResourceChoice,
+            } else if !viewModel.needsLocalHandoff, !isDiscardPresented, !isNavalResourceChoice,
                       viewModel.boardDecisionPresentation == nil,
                       showDevCardHand {
                 DevelopmentCardOverlay(
@@ -252,11 +252,11 @@ public struct GameView: View {
             // merely painting Settings above it left the hidden dock in the
             // VoiceOver tree, where it could still be activated through a
             // visually opaque screen.
-            if isDiscardPresented && !interactionPriority.isSettingsCoverPresented {
+            if !viewModel.needsLocalHandoff, isDiscardPresented, !interactionPriority.isSettingsCoverPresented {
                 DiscardPopupView(viewModel: viewModel)
             }
 
-            if interactionPriority.isSettingsCoverPresented {
+            if !viewModel.needsLocalHandoff, interactionPriority.isSettingsCoverPresented {
                 // Surface B: painted pacing, trade-timer, and match controls.
                 InGameSettingsView(
                     onResume: { isShowingInGameSettings = false },
@@ -289,6 +289,10 @@ public struct GameView: View {
         #if DEBUG
         .overlay(alignment: .topLeading) { qaNavalSevenAuditMarker() }
         #endif
+        .opacity(viewModel.needsLocalHandoff ? 0 : 1)
+        .allowsHitTesting(!viewModel.needsLocalHandoff)
+        .accessibilityHidden(viewModel.needsLocalHandoff)
+        .background(CatanTheme.waterBackground.ignoresSafeArea())
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier(AccessibilityID.Screen.game)
         // The native presentation boundary excludes the covered game from
@@ -298,11 +302,13 @@ public struct GameView: View {
         // transition between them cannot race two native covers. A capture
         // stays presented across Settings and closes only after durable Continue.
         .fullScreenCover(isPresented: Binding(
-            get: { isNavalMandatoryPresentation },
+            get: { viewModel.needsLocalHandoff || isNavalMandatoryPresentation },
             set: { _ in }
         )) {
             Group {
-                if let receipt = viewModel.pendingShipCapture, receipt.reader == human {
+                if viewModel.needsLocalHandoff {
+                    localHandoffCover
+                } else if let receipt = viewModel.pendingShipCapture, receipt.reader == human {
                     NavalShipCaptureOverlay(receipt: receipt, state: state,
                                             playerIdentity: viewModel.playerIdentity,
                                             recoveryMessage: viewModel.persistenceErrorMessage,
@@ -482,6 +488,11 @@ public struct GameView: View {
             viewModel.gameplayFeedback.suspend(held)
         }
         .onChange(of: human) { _, _ in viewModel.gameplayFeedback.clear() }
+        .onChange(of: viewModel.needsLocalHandoff, initial: true) { _, covered in
+            guard covered else { return }
+            clearSeatInteractionState()
+            isShowingInGameSettings = false
+        }
         .onDisappear { viewModel.gameplayFeedback.clear() }
         .task(id: viewModel.gameplayFeedback.deadline) {
             guard let deadline = viewModel.gameplayFeedback.deadline else { return }
@@ -737,6 +748,8 @@ public struct GameView: View {
                         .foregroundStyle(.red)
                         .lineLimit(1)
                         .minimumScaleFactor(0.75)
+                } else if viewModel.isLocalMultiplayer, let title = localTurnTitle {
+                    localTurnStatus(title)
                 } else if let feedback = visibleFeedback {
                     GameplayFeedbackView(feedback: feedback, playerIdentity: viewModel.playerIdentity)
                 } else {
@@ -750,7 +763,7 @@ public struct GameView: View {
             // against the banner slot above it (board -> banner ->
             // here reads as one continuous stack, not three separate
             // boxes with gaps between them).
-            if !isDiscardPresented {
+            if !viewModel.needsLocalHandoff, !isDiscardPresented {
                 HumanPlayerPanel(
                     state: state,
                     human: human,
@@ -840,11 +853,12 @@ public struct GameView: View {
                         // a private card, or the preceding trade's receipt.
                         isHeld: isBlockingOverlayPresented,
                         offerOccurrence: viewModel.tradeOfferContext(currentOffer).proposalSequence,
+                        canAccept: Trading.bothSidesCanHonour(currentOffer, responder: human, state: state),
                         playerIdentity: viewModel.playerIdentity,
                         onAccept: { respond(to: currentOffer, accept: true) },
                         onReject: { respond(to: currentOffer, accept: false) },
                         onExpire: { respond(to: currentOffer, accept: false, explicit: false) },
-                        onBlockRound: { blockOffersThisRound(after: currentOffer) }
+                        onBlockRound: currentOffer.recipient == nil ? { blockOffersThisRound(after: currentOffer) } : nil
                     )
                     .dynamicTypeSize(...DynamicTypeSize.large)
                 }
@@ -1063,7 +1077,8 @@ private extension GameView {
     }
 
     private var canPresentBoardPopup: Bool {
-        !isDiscardPresented && !isNavalResourceChoice && viewModel.boardDecisionPresentation == nil
+        !viewModel.needsLocalHandoff && !isDiscardPresented && !isNavalResourceChoice
+            && viewModel.boardDecisionPresentation == nil
     }
 
     private var isBlockingOverlayPresented: Bool {
@@ -1079,7 +1094,8 @@ private extension GameView {
 
     /// Surfaces that can remain open while a bot otherwise has work.
     private var isBotBlockingSurfaceOpen: Bool {
-        interactionPriority.blocksBotProgress || incomingTradeReceipt != nil
+        guard !viewModel.needsLocalHandoff else { return false }
+        return interactionPriority.blocksBotProgress || incomingTradeReceipt != nil
     }
 
     private func handleDevCardPlay(_ type: DevCardType) {
@@ -1128,7 +1144,7 @@ private extension GameView {
     /// previously disagreed on relaunch and repeated content-derived IDs,
     /// hiding the response while the engine still waited for it.
     private var currentIncomingOffer: TradeOffer? {
-        viewModel.openIncomingOffer
+        viewModel.needsLocalHandoff ? nil : viewModel.openIncomingOffer
     }
 
     private func blockOffersThisRound(after offer: TradeOffer) {
@@ -1141,11 +1157,13 @@ private extension GameView {
     }
 
     private func respond(to offer: TradeOffer, accept: Bool, explicit: Bool = true) {
+        let responder = human
         do {
             let previousSequence = viewModel.eventBatch.sequence
             try viewModel.respondToIncomingTrade(offer, accept: accept, explicit: explicit)
-            if viewModel.eventBatch.sequence != previousSequence,
-               let receipt = viewModel.eventBatch.events.compactMap({ TradeReceipt(event: $0, player: human) }).last {
+            if !viewModel.needsLocalHandoff, responder == human,
+               viewModel.eventBatch.sequence != previousSequence,
+               let receipt = viewModel.eventBatch.events.compactMap({ TradeReceipt(event: $0, player: responder) }).last {
                 incomingTradeReceipt = receipt
                 showTradePopup = true
             }
@@ -1153,6 +1171,11 @@ private extension GameView {
         } catch {
             errorMessage = error.localizedDescription
         }
+    }
+
+    internal func claimLocalSeat(_ seat: PlayerID) {
+        guard viewModel.claimLocalDevice(for: seat) else { return }
+        Task { await viewModel.runBotTurnIfNeeded() }
     }
 
     /// Drops every ephemeral surface owned by the outgoing player. Spatial

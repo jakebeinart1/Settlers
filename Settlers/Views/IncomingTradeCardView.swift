@@ -2,15 +2,11 @@ import SwiftUI
 import CatanEngine
 import UIKit
 
-/// Small card that slides in above `HumanPlayerPanel` when a bot proposes a
-/// trade to the human - a self-contained Accept/Reject card, replacing the old
-/// "wants to trade" toast that just jumped to the trade sheet.
+/// A self-contained Accept/Decline card for bot and named local offers.
 ///
-/// Every offer reaching this card is one the human can actually fulfil (see
-/// `GameView.handleTradeOffersChange`'s affordability filter), and the bot
-/// loop stays stopped while it is open (`GameViewModel.openIncomingOffer`).
-/// Accepting resolves equal odds among this human and any other recipients
-/// whose seated policies actually accept; reading speed never decides it.
+/// A named offer still reaches the other person if they cannot pay for it.
+/// An affordable bot offer retains equal odds among the human and any
+/// other recipients whose seated policies actually accept.
 ///
 /// ## It no longer answers for you in six seconds
 /// This used to run a hardcoded six-second countdown and auto-Reject on
@@ -33,6 +29,7 @@ public struct IncomingTradeCardView: View {
     /// Trade Offers" in In-Game Settings (Jake, 2026-10-06).
     public let onBlockRound: (() -> Void)?
     public let playerIdentity: (PlayerID) -> PlayerIdentity
+    public let canAccept: Bool
     /// The committed proposal sequence distinguishes identical later proposals
     /// whose content-derived offer ID is reused while this row stays mounted.
     public let offerOccurrence: Int?
@@ -46,13 +43,14 @@ public struct IncomingTradeCardView: View {
     /// lengthen that timer.
     public var isHeld: Bool = false
 
-    public init(offer: TradeOffer, isHeld: Bool = false, offerOccurrence: Int? = nil,
+    public init(offer: TradeOffer, isHeld: Bool = false, offerOccurrence: Int? = nil, canAccept: Bool = true,
                 playerIdentity: @escaping (PlayerID) -> PlayerIdentity = CatanTheme.playerIdentity,
                 onAccept: @escaping () -> Void, onReject: @escaping () -> Void,
                 onExpire: (() -> Void)? = nil, onBlockRound: (() -> Void)? = nil) {
-        self.onBlockRound = onBlockRound
+        self.onBlockRound = offer.recipient == nil ? onBlockRound : nil
         self.isHeld = isHeld
         self.offer = offer
+        self.canAccept = canAccept
         self.playerIdentity = playerIdentity
         self.onAccept = onAccept
         self.onReject = onReject
@@ -129,7 +127,8 @@ public struct IncomingTradeCardView: View {
         .task(id: presentationIdentity) { await runOfferTimer() }
         .onChange(of: isHeld) { _, held in isExternallyHeld = held }
         .sheet(isPresented: $isReviewPresented) {
-            IncomingTradeReviewView(summary: summary, identity: identity,
+            IncomingTradeReviewView(summary: summary, identity: identity, canAccept: canAccept,
+                                    hasTimer: totalSeconds > 0,
                                     onAccept: { isReviewPresented = false; onAccept() },
                                     onReject: { isReviewPresented = false; onReject() },
                                     onBack: { isReviewPresented = false })
@@ -155,6 +154,11 @@ public struct IncomingTradeCardView: View {
                         .accessibilityIdentifier("incoming-trade.proposer")
                 }
             exchangeSummary(summary, fontSize: fontSize)
+            if !canAccept {
+                Text("You don’t have the cards to accept.")
+                    .font(.system(size: fontSize))
+                    .foregroundStyle(CatanTheme.onWaterText.opacity(0.76))
+            }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .fixedSize(horizontal: false, vertical: true)
@@ -187,8 +191,9 @@ public struct IncomingTradeCardView: View {
                 Button(action: onAccept) {
                     Image(systemName: "checkmark").font(.headline.bold())
                         .frame(width: Self.answerButtonDiameter, height: Self.answerButtonDiameter)
-                        .background(Color.green.opacity(0.85), in: Circle())
+                        .background(canAccept ? Color.green.opacity(0.85) : Color.white.opacity(0.17), in: Circle())
                 }
+                .disabled(!canAccept)
                 .accessibilityLabel("Accept trade")
                 .accessibilityIdentifier(AccessibilityID.IncomingTrade.accept)
             }
@@ -285,7 +290,7 @@ public struct IncomingTradeCardView: View {
         isPaused = false
         isReviewPresented = false
         isExternallyHeld = isHeld
-        totalSeconds = PacingPreferences.shared.incomingOfferTimer.seconds
+        totalSeconds = offer.recipient == nil ? PacingPreferences.shared.incomingOfferTimer.seconds : 0
         // No countdown at all when the timeout is off - not a very long one.
         // A ticking task that never fires still spins at 10 Hz for as long as
         // the card is up, and the ring would drain toward an answer that is

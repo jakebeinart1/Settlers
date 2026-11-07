@@ -32,7 +32,7 @@ extension GameViewModel {
         // deciding whose turn it is and the runaway-action backstop all live
         // in `GameSession`, which a headless harness runs too - so what is
         // measured offline is what is played here.
-        while case .seat(let actor) = session.nextActor() {
+        while true {
             guard reconcileOffersForBotLoop() else { return }
             // Stop while the human has a trade decision on screen.
             //
@@ -51,14 +51,8 @@ extension GameViewModel {
             // frozen forever. Returning lets `defer` clear it, and the restart
             // already exists: answering the offer goes through `apply`, which
             // ends in `Task { await runBotTurnIfNeeded() }`.
-            if pendingTradeConfirmation != nil || openIncomingOffer != nil || pendingDevCardReveal != nil
-                || pendingDevCardResolution != nil || pendingShipCapture != nil { return }
-
-            // Same `return`-don't-park reasoning as the offer check above:
-            // parking here would hold `isProcessingBotTurns` for as long as
-            // the surface stayed open, and `GameView` restarts the loop when
-            // the final blocking surface closes.
-            if isBlockingSurfaceOpen { return }
+            guard canAdvanceBots else { return }
+            guard case .seat(let actor) = session.nextActor() else { break }
 
             // The deliberate viewing interval is separate from real CPU work.
             await waitForNextBotAction()
@@ -98,7 +92,7 @@ extension GameViewModel {
     /// `isHumanDecision: false` keeps the move out of the human's ghost
     /// training: the player did not choose it.
     private func autoPlaceRobberIfNeeded() {
-        guard PacingPreferences.shared.autoRobber, canAdvanceBots,
+        guard PacingPreferences.shared.autoRobber, canAdvanceBots, !needsLocalHandoff,
               case .movingRobber(let index) = state.phase, state.players[index].id == humanPlayer else { return }
         let move = Bot(personality: .balanced).decide(for: state, player: humanPlayer)
         do {
@@ -112,7 +106,7 @@ extension GameViewModel {
 
     private var canAdvanceBots: Bool {
         guard savedGameAvailability.canResume, appIsActive, !persistenceBlocked,
-              !isBlockingSurfaceOpen, pendingTradeConfirmation == nil, openIncomingOffer == nil,
+              !isBlockingSurfaceOpen, pendingTradeConfirmation == nil, !hasUnresolvedTradeResponse,
               pendingDevCardReveal == nil, pendingDevCardResolution == nil, pendingShipCapture == nil,
               !hasMandatoryHumanNavalDecision else { return false }
         if case .failed = botTurnProgress { return false }

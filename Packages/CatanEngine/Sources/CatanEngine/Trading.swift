@@ -154,6 +154,16 @@ public enum Trading {
             && RulesEngine.canAfford(offer.give, player: proposer)
     }
 
+    static func responseMoves(to offer: TradeOffer, by seat: PlayerID, in state: GameState) -> [GameMove] {
+        guard offer.canRespond(seat) else { return [] }
+        var moves: [GameMove] = []
+        if bothSidesCanHonour(offer, responder: seat, state: state) {
+            moves.append(.respondToTrade(offerID: offer.id, accept: true))
+        }
+        moves.append(.respondToTrade(offerID: offer.id, accept: false))
+        return moves
+    }
+
     /// Adds `offer` to `state.pendingTradeOffers`, after verifying the
     /// proposer actually holds the cards they're offering to give.
     public static func proposeTrade(_ offer: TradeOffer, state: inout GameState) throws {
@@ -166,6 +176,10 @@ public enum Trading {
         }
         guard let proposer = state.players.first(where: { $0.id == offer.from }) else {
             throw MoveError.other("unknown player")
+        }
+        if let recipient = offer.recipient {
+            guard offer.canRespond(recipient), state.players.contains(where: { $0.id == recipient }),
+                  !offer.give.isEmpty, !offer.want.isEmpty else { throw MoveError.invalidTradeTarget }
         }
         // Strictly-positive amounts only - see `bankTrade` for why a
         // zero/negative entry is dangerous, not just meaningless.
@@ -186,7 +200,7 @@ public enum Trading {
         guard let offer = state.pendingTradeOffers.first(where: { $0.id == offerID }) else {
             throw MoveError.invalidTradeTarget
         }
-        guard responder != offer.from else { throw MoveError.invalidTradeTarget }
+        guard offer.canRespond(responder) else { throw MoveError.invalidTradeTarget }
         guard let proposerIndex = state.players.firstIndex(where: { $0.id == offer.from }),
               let responderIndex = state.players.firstIndex(where: { $0.id == responder }) else {
             throw MoveError.other("unknown player")

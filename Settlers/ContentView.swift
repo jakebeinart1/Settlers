@@ -67,6 +67,7 @@ struct ContentView: View {
             } else if hasStartedThisSession, viewModel.savedGameAvailability.recoveryMessage == nil {
                 GameView(viewModel: viewModel, onExitToMenu: {
                     viewModel.isBlockingSurfaceOpen = true
+                    viewModel.releaseLocalDevice()
                     hasStartedThisSession = false
                 })
                 #if DEBUG
@@ -191,6 +192,9 @@ struct ContentView: View {
                     } else {
                         viewModel.startNewGame(randomizedBoard: false, randomizeSeat: false)
                     }
+                    if let fixture = QAPassAndPlayFixture.requested {
+                        viewModel.qaSetUpPassAndPlay(fixture)
+                    }
                 }
                 // Set only now that `savedGameAvailability`/`gameGeneration`
                 // have already reached whatever they're going to be for this
@@ -266,7 +270,7 @@ struct ContentView: View {
     /// for itself. A seat left on Random is not recorded - the player did not
     /// choose a civilization, so there is nothing to remember.
     private func rememberPreferredIdentity(from setup: MatchSetup) {
-        guard let seat = setup.seats.first(where: \.isHuman) else { return }
+        guard setup.humanSeats.count == 1, let seat = setup.humanSeats.first else { return }
         PlayerNameStore.shared.save(seat.name)
         guard let civilization = seat.civilization else { return }
         var settings = CivilizationSettingsStore.shared.load()

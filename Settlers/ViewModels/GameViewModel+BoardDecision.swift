@@ -5,7 +5,7 @@ extension GameViewModel {
     /// The complete semantic state SwiftUI needs. The final `GameMove` remains
     /// hidden so no tap, drag, or view can bypass explicit confirmation.
     public var boardDecisionPresentation: BoardDecisionPresentation? {
-        guard var result = boardDecisionCoordinator.presentation else { return nil }
+        guard !needsLocalHandoff, var result = boardDecisionCoordinator.presentation else { return nil }
         result.sailing = NavalSailingPresentation(state: state, decision: result)
         result.blockadedTiles = NavalBlockadePresentation.tiles(in: state, decision: result)
         return result
@@ -13,7 +13,7 @@ extension GameViewModel {
 
     @discardableResult
     public func beginBoardDecision(_ intent: BoardDecisionIntent) -> Bool {
-        guard pendingShipCapture == nil else { return false }
+        guard !needsLocalHandoff, pendingShipCapture == nil else { return false }
         reconcileBoardDecision()
         return boardDecisionCoordinator.begin(intent, with: boardDecisionContext)
     }
@@ -98,7 +98,7 @@ extension GameViewModel {
             boardDecisionCoordinator.clear()
             return
         }
-        guard humanSeats.count == 1 || seatAtDevice != nil else {
+        guard !needsLocalHandoff else {
             boardDecisionCoordinator.clear()
             return
         }

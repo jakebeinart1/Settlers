@@ -6,7 +6,7 @@ extension GameViewModel {
     /// a failed acknowledgement leaves the transfer receipt available on retry.
     @discardableResult
     public func dismissShipCapture() -> Bool {
-        guard checkpointDocument != nil else { return false }
+        guard !needsLocalHandoff, checkpointDocument != nil else { return false }
         do {
             try acknowledgeShipCapture()
             Task { await runBotTurnIfNeeded() }

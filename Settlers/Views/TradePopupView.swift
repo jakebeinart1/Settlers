@@ -22,12 +22,9 @@ import CatanEngine
 /// rule, which is how the bug Jake reported (validating the exchange rate but
 /// not the bank's stock) got in the first time.
 ///
-/// ## The proposal goes to every bot at once
-/// There is no "trade with this player" picker, because `TradeOffer` carries no
-/// recipient - `proposeTrade` is broadcast to the table and each bot answers
-/// for itself. When more than one says yes, `pendingConfirmationBanner` is
-/// where you choose between them, which is the only point at which picking a
-/// partner is a real decision.
+/// A local player can name the person who will receive the phone and answer.
+/// Asking the AI still opens the existing set of bot replies, with the
+/// proposer selecting a willing partner before confirming.
 public struct TradePopupView: View {
     public let viewModel: GameViewModel
     public let onDismiss: () -> Void
@@ -56,9 +53,8 @@ public struct TradePopupView: View {
         var systemImage: String { self == .players ? "person.2.fill" : "building.columns.fill" }
     }
 
-    /// Starts on Bank when there is no bot to trade with - an all-human table
-    /// has nobody to answer a proposal (see `GameViewModel.hasBotSeats`).
     @State private var mode: Mode = .players
+    @State private var recipient: PlayerID?
     @State private var give: [Resource: Int] = [:]
     @State private var want: [Resource: Int] = [:]
     @State private var errorMessage: String?
@@ -86,7 +82,7 @@ public struct TradePopupView: View {
             }
         }
         .onAppear {
-            if !viewModel.hasBotSeats { mode = .bank }
+            recipient = localRecipients.first
             receipt = initialReceipt
         }
     }
@@ -184,16 +180,9 @@ public struct TradePopupView: View {
     /// Selection changes colour and background only, never metrics, which is
     /// what makes the highlight move horizontally and nothing else move at
     /// all.
-    /// The Players tab is absent entirely when no bot can answer a proposal,
-    /// rather than present-but-disabled: a tab that cannot ever be selected in
-    /// this game is not a state worth explaining.
-    private var availableModes: [Mode] {
-        viewModel.hasBotSeats ? Mode.allCases : [.bank]
-    }
-
     private var modePicker: some View {
         HStack(spacing: 0) {
-            ForEach(availableModes, id: \.self) { candidate in
+            ForEach(Mode.allCases, id: \.self) { candidate in
                 let isSelected = candidate == mode
                 Button {
                     // Clearing the error is the point: "the bank has no ore
@@ -237,6 +226,47 @@ public struct TradePopupView: View {
 
     // MARK: - Building the offer
 
+    private var localRecipients: [PlayerID] {
+        viewModel.sortedHumanSeats.filter { $0 != viewModel.humanPlayer }
+    }
+
+    private var recipientPicker: some View {
+        Menu {
+            ForEach(localRecipients, id: \.self) { seat in
+                Button {
+                    recipient = seat
+                } label: {
+                    let identity = viewModel.playerIdentity(for: seat)
+                    if recipient == seat {
+                        Label(identity.displayName, systemImage: "checkmark")
+                    } else {
+                        Text(identity.displayName)
+                    }
+                }
+            }
+            if viewModel.hasBotSeats {
+                Button { recipient = nil } label: {
+                    Label("AI players", systemImage: recipient == nil ? "checkmark" : "cpu")
+                }
+            }
+        } label: {
+            HStack {
+                Text("Offer to")
+                    .foregroundStyle(CatanTheme.onWaterText.opacity(0.8))
+                Spacer(minLength: 6)
+                Text(recipient.map { viewModel.playerIdentity(for: $0).displayName } ?? "AI players")
+                    .lineLimit(1)
+                Image(systemName: "chevron.up.chevron.down").font(.caption)
+            }
+            .font(.subheadline.bold())
+            .foregroundStyle(CatanTheme.chipGold)
+            .padding(.horizontal, 12)
+            .frame(minHeight: 44)
+            .background(Color.black.opacity(0.24), in: RoundedRectangle(cornerRadius: 8))
+        }
+        .accessibilityIdentifier("trade.recipient")
+    }
+
     private var draftFeedback: TradeDraftFeedback {
         TradeDraftFeedback(give: give, receive: want, mode: mode == .bank ? .bank : .players,
                            player: viewModel.humanPlayer, state: viewModel.state)
@@ -246,6 +276,7 @@ public struct TradePopupView: View {
     /// the quantity step and availability, never the meaning or position of a row.
     private var tradeBuilder: some View {
         VStack(alignment: .leading, spacing: 12) {
+            if mode == .players, !localRecipients.isEmpty { recipientPicker }
             builderTools
             if mode == .bank, isShowingBankHelp {
                 Text("One give bundle buys one card. Your ports set each rate. Tap a square to add; minus removes a bundle.")
@@ -323,24 +354,11 @@ public struct TradePopupView: View {
         switch mode {
         case .players:
             GoldRowButton(
-                title: "Propose to Bots",
-                systemImage: "person.2.fill",
-                isEnabled: draftFeedback.canSubmit
-            ) {
-                let offer = TradeOffer(from: viewModel.humanPlayer, give: give, want: want)
-                proposalOutcome = nil
-                perform(.proposeTrade(offer))
-                // Every bot's willingness is evaluated synchronously inside
-                // `apply` (see `GameViewModel.resolveHumanProposedTrade`), so by
-                // the time `perform` returns either `pendingTradeConfirmation`
-                // is set (somebody would accept - the banner takes over, and
-                // nothing is applied until the human confirms) or
-                // `lastTradeOutcome` already reflects that nobody would.
-                // Neither applies if the proposal itself failed.
-                if errorMessage == nil, viewModel.pendingTradeConfirmation == nil {
-                    proposalOutcome = viewModel.lastTradeOutcome
-                }
-            }
+                title: recipient == nil ? "Propose to Bots" : "Send offer",
+                systemImage: recipient == nil ? "person.2.fill" : "paperplane.fill",
+                isEnabled: draftFeedback.canSubmit && (recipient != nil || viewModel.hasBotSeats),
+                action: proposeTrade
+            )
         case .bank:
             GoldRowButton(
                 title: "Trade with Bank",
@@ -351,6 +369,18 @@ public struct TradePopupView: View {
             ) {
                 perform(.bankTrade(give: give, get: want))
             }
+        }
+    }
+
+    private func proposeTrade() {
+        let offer = TradeOffer(from: viewModel.humanPlayer, recipient: recipient, give: give, want: want)
+        proposalOutcome = nil
+        perform(.proposeTrade(offer))
+        guard errorMessage == nil else { return }
+        if offer.recipient != nil {
+            onDismiss()
+        } else if viewModel.pendingTradeConfirmation == nil {
+            proposalOutcome = viewModel.lastTradeOutcome
         }
     }
 

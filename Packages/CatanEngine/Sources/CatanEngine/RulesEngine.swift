@@ -17,6 +17,10 @@ public enum RulesEngine {
             return moves
 
         case .mainTurn(let playerIndex):
+            if let offer = state.pendingTradeOffers.first(where: { $0.recipient != nil }),
+               let recipient = offer.recipient {
+                return Trading.responseMoves(to: offer, by: recipient, in: state)
+            }
             let player = state.players[playerIndex]
             var moves: [GameMove] = [.endTurn]
 
@@ -55,18 +59,8 @@ public enum RulesEngine {
                     moves.append(.bankTrade(give: [resource: rate], get: [other: 1]))
                 }
             }
-            for offer in state.pendingTradeOffers where offer.from != player.id {
-                // Accepting is only actually legal if the responder currently
-                // holds what's wanted and the proposer still holds what they
-                // offered (either side may have spent/traded cards since the
-                // offer was made) - `Trading.respond` re-validates both and
-                // throws otherwise, so `legalMoves` must match.
-                if let proposer = state.players.first(where: { $0.id == offer.from }),
-                   canAfford(offer.want, player: player),
-                   canAfford(offer.give, player: proposer) {
-                    moves.append(.respondToTrade(offerID: offer.id, accept: true))
-                }
-                moves.append(.respondToTrade(offerID: offer.id, accept: false))
+            for offer in state.pendingTradeOffers {
+                moves += Trading.responseMoves(to: offer, by: player.id, in: state)
             }
             moves += Naval.mainMoves(for: player, in: state)
             moves += Conquest.moves(for: player, in: state)
@@ -267,6 +261,9 @@ public enum RulesEngine {
     /// wrong as an action space: it teaches a learner that illegal moves are
     /// options.
     public static func legalMoves(for state: GameState, seat: PlayerID) -> [GameMove] {
+        if case .mainTurn = state.phase, let offer = state.pendingTradeOffers.first(where: { $0.recipient != nil }) {
+            return Trading.responseMoves(to: offer, by: seat, in: state)
+        }
         if case .discarding(let pending) = state.phase {
             guard pending.contains(seat) else { return [] }
             return discardMoves(for: seat, in: state)
@@ -385,6 +382,7 @@ public enum RulesEngine {
             events.append(.movedRobber(player, from: stealFrom, stealing: stolen))
 
         case .mainTurn(let playerIndex):
+            try validateDirectedResponse(move, by: player, in: state)
             // Trade responses come from whichever player the offer is
             // directed at, not necessarily the active turn player, so this
             // is handled before the "is it your turn" guard below.
@@ -494,6 +492,12 @@ public enum RulesEngine {
         }
         events += winEvent(state)
         return AppliedMoveResult(events: events, privateEvents: privateEvents)
+    }
+
+    private static func validateDirectedResponse(_ move: GameMove, by player: PlayerID, in state: GameState) throws {
+        guard let directed = state.pendingTradeOffers.first(where: { $0.recipient != nil }) else { return }
+        guard case .respondToTrade(let offerID, _) = move, offerID == directed.id,
+              directed.canRespond(player) else { throw MoveError.invalidTradeTarget }
     }
 
     /// Replays one persisted move under the rule behavior recorded with it.

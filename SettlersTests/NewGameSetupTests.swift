@@ -59,6 +59,24 @@ private func table(withSeatIndices indices: [Int]) -> MatchSetup {
 
 @Suite struct MatchSetupValidationTests {
 
+    @Test(arguments: [2, 3, 4])
+    func newGamesAllowEachSharedRosterSize(humanCount: Int) {
+        var table = MatchSetup.default(preferredName: "Alex", preferredCivilization: .greece)
+        for index in 1..<humanCount {
+            table.seats[index].isHuman = true
+            table.seats[index].name = "Guest \(index)"
+        }
+        #expect(table.newGameProblem(knownGhosts: []) == nil)
+    }
+
+    @Test func aSoloPlayerMayChooseADifferentTurnOrderSeat() {
+        var table = MatchSetup.default(preferredName: "Alex", preferredCivilization: .greece)
+        table.seats[0].isHuman = false
+        table.seats[3].isHuman = true
+        table.seats[3].name = "Alex"
+        #expect(table.newGameProblem(knownGhosts: []) == nil)
+    }
+
     @Test func switchingToExpandedSnapsTheTargetToTwentyFive() {
         var table = MatchSetup.default(preferredName: "Alex", preferredCivilization: Civilization.allCases[0])
         table.mode = .classic
@@ -372,9 +390,6 @@ private func table(withSeatIndices indices: [Int]) -> MatchSetup {
         let initial = NewGameSetupView.initialSetup(
             from: .loaded(decoded), preferredName: "Alex", preferredCivilization: .greece)
         var expected = saved
-        // Pass-and-play is gone (2026-09-25): a saved two-human prefill opens
-        // as one human. The mode, which is what this test pins, is untouched.
-        expected.normalizeToOneHuman()
         if mode == .expanded {
             expected.mode = .classic
             expected.victoryPointTarget = Ruleset.forMode(.classic).defaultVictoryPointTarget
@@ -387,6 +402,14 @@ private func table(withSeatIndices indices: [Int]) -> MatchSetup {
         var restarted = decoded
         restarted.normalizeNewGameOptions()
         #expect(restarted == saved, "restart normalization must retain the original mode")
+    }
+
+    @MainActor @Test func soloPreferencesDoNotRenameOrMovePlayersInTheSavedSharedTable() {
+        let initial = NewGameSetupView.initialSetup(
+            from: .loaded(startableTable), preferredName: "Owner", preferredCivilization: .japan)
+
+        #expect(initial.setup == startableTable)
+        #expect(initial.setup.newGameProblem(knownGhosts: []) == nil)
     }
 
     /// A setup written before modes existed has no `mode` key at all; it must

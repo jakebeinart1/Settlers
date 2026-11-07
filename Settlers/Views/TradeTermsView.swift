@@ -38,6 +38,8 @@ struct TradeTermsView: View {
 struct IncomingTradeReviewView: View {
     let summary: IncomingTradeSummary
     let identity: PlayerIdentity
+    let canAccept: Bool
+    let hasTimer: Bool
     let onAccept: () -> Void
     let onReject: () -> Void
     let onBack: () -> Void
@@ -55,14 +57,20 @@ struct IncomingTradeReviewView: View {
                             Text(identity.civilization.displayName).font(.subheadline)
                         }
                     }
-                    Text("The timer is paused while you review.")
-                        .font(.caption)
-                        .foregroundStyle(CatanTheme.onWaterText.opacity(0.8))
+                    if !canAccept {
+                        Text("You don’t have the cards to accept.")
+                            .font(.caption)
+                            .foregroundStyle(CatanTheme.onWaterText.opacity(0.8))
+                    } else if hasTimer {
+                        Text("The timer is paused while you review.")
+                            .font(.caption)
+                            .foregroundStyle(CatanTheme.onWaterText.opacity(0.8))
+                    }
                     TradeTermsView(give: summary.give, receive: summary.receive)
                 }
             }
             VStack(spacing: 10) {
-                GoldRowButton(title: "Accept trade", systemImage: "checkmark", action: onAccept)
+                GoldRowButton(title: "Accept trade", systemImage: "checkmark", isEnabled: canAccept, action: onAccept)
                     .accessibilityIdentifier(AccessibilityID.IncomingTrade.accept)
                 GoldRowButton(title: "Decline trade", systemImage: "xmark", action: onReject)
                     .accessibilityIdentifier(AccessibilityID.IncomingTrade.reject)

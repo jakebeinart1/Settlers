@@ -108,9 +108,8 @@ enum AccessibilityID {
         static func modeOption(_ mode: GameMode) -> String { "new-game.mode.\(mode.rawValue)" }
 
         static func seatName(_ index: Int) -> String { "new-game.seat-name.\(index)" }
-        static func seatYou(_ index: Int) -> String { "new-game.seat-you.\(index)" }
-        static func seatKind(_ index: Int, ghost: Bool) -> String {
-            "new-game.seat-kind.\(index).\(ghost ? "ghost" : "ai")"
+        static func seatKind(_ index: Int, role: MatchSetup.Seat.Role) -> String {
+            "new-game.seat-kind.\(index).\(role.rawValue.lowercased())"
         }
         static func ghostOption(_ id: String) -> String { "new-game.ghost-option.\(id)" }
         static func seatCivilization(_ index: Int) -> String { "new-game.seat-civilization.\(index)" }
@@ -172,8 +171,14 @@ enum AccessibilityID {
         static let undo = "board-decision.undo"
     }
 
+    enum Handoff {
+        static let ready = "handoff.ready"
+        static let recipient = "handoff.recipient"
+    }
+
     enum Game {
         static let settings = "game.settings"
+        static let localTurn = "game.local-turn"
         static let botProgress = "bot-progress.status"
         static let skipBotPauses = "bot-progress.skip"
         static let retryBotProgress = "bot-progress.retry"

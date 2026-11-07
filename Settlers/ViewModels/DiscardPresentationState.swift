@@ -84,6 +84,7 @@ extension GameViewModel {
     }
 
     var currentDiscardObligation: DiscardObligation? {
+        guard !needsLocalHandoff else { return nil }
         let owner = humanPlayer
         guard case .discarding(let pending) = state.phase, pending.contains(owner),
               let player = state.players.first(where: { $0.id == owner }) else { return nil }

@@ -125,7 +125,7 @@ extension GameViewModel {
         pendingDevCardReveal = checkpointDocument?.pendingDevCardReveal
         pendingDevCardResolution = checkpointDocument?.pendingDevCardResolution
         pendingShipCapture = checkpointDocument?.pendingShipCapture
-        seatAtDevice = sortedHumanSeats.first
+        seatAtDevice = isLocalMultiplayer ? nil : sortedHumanSeats.first
         CivilizationAssignment.humanSeat = humanPlayer
         CivilizationAssignment.humanNames = playerRoster.humanNames
         CivilizationAssignment.current = match.setup.seats.compactMap(\.civilization)

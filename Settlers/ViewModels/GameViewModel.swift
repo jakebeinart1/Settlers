@@ -110,48 +110,12 @@ public final class GameViewModel {
     /// not a game this app can present: `MatchSetup.validationProblem` refuses
     /// to start one, and failing loudly here beats inventing seat 0.
     public var humanPlayer: PlayerID {
-        // Pass-and-play is gone (Jake, 2026-09-25), but an old save with
-        // several human seats still resumes: whoever the game is waiting on
-        // acts, with no hand-off cover. With one human this is that human.
-        if let owed = seatOwedATurn { return owed }
         if let seatAtDevice, humanSeats.contains(seatAtDevice) { return seatAtDevice }
+        if let owed = seatOwedATurn { return owed }
         guard let first = sortedHumanSeats.first else {
             preconditionFailure("a game must have at least one human seat")
         }
         return first
-    }
-
-    /// The human the game is waiting on, if it is waiting on one.
-    ///
-    /// `.discarding` is handled separately because `GamePhase.awaitingSeatIndex`
-    /// answers `nil` for it - correctly, since the phase is genuinely
-    /// multi-seat and no single chair owns it. Reading only `awaitingSeatIndex`
-    /// deadlocked a hot-seat game outright: after a 7, the player holding the
-    /// phone discarded, the other human stayed in `pending`, and because
-    /// `awaitingSeatIndex` was `nil` no handoff cover appeared and
-    /// `humanPlayer` never moved - so the discard sheet (which is gated on
-    /// `humanPlayer` being pending) went away, while `GameSession.nextActor()`
-    /// sat on `.awaitingExternalSeat` for a seat with no way to act.
-    public var seatOwedATurn: PlayerID? {
-        // Private acknowledgements outrank ordinary turn routing. A winning
-        // Victory Point or third Knight can end the game immediately; after a
-        // cold hot-seat resume there is otherwise no phase-owned seat left to
-        // tell the cover who may safely read the result.
-        if let owner = pendingDevCardReveal?.owner, humanSeats.contains(owner) { return owner }
-        if let owner = pendingDevCardResolution?.owner, humanSeats.contains(owner) { return owner }
-        if let reader = pendingShipCapture?.reader, humanSeats.contains(reader) { return reader }
-        if case .discarding(let pending) = state.phase {
-            // Sorted: `pending` is a `Set` and Swift seeds hash order per
-            // process, so `.first` on it would pick a different seat between
-            // launches. The holder of the phone goes first when they owe one,
-            // so nobody is asked to pass a phone they still have to use.
-            let owing = pending.sorted().filter { humanSeats.contains($0) }
-            if let seatAtDevice, owing.contains(seatAtDevice) { return seatAtDevice }
-            return owing.first
-        }
-        guard let owed = state.phase.awaitingSeatIndex.map({ PlayerID(index: $0) }),
-              humanSeats.contains(owed) else { return nil }
-        return owed
     }
 
     public typealias TradeOutcome = TradeOutcomeState
@@ -225,6 +189,7 @@ public final class GameViewModel {
         resourceProductionFeedback = nil
         gameplayFeedback.clear()
         appIsActive = false
+        releaseLocalDevice()
         guard let activeSince else { return }
         accumulatedActiveDuration += max(0, Date().timeIntervalSince(activeSince))
         self.activeSince = nil
@@ -519,7 +484,7 @@ public final class GameViewModel {
         botPacingWait?.cancel()
         botTurnProgress = nil
         skipsBotPacing = false
-        tradeOffersBlockedUntilTurn = nil
+        tradeOffersBlockedUntilTurn = [:]
         resourceProductionFeedback = nil
         gameplayFeedback.clear()
         gameGeneration &+= 1
@@ -600,6 +565,11 @@ public final class GameViewModel {
         eventBatch = EventBatch(sequence: eventBatch.sequence + 1, events: pendingEvents)
         pendingDevCardReveal = next.pendingDevCardReveal
         pendingDevCardResolution = next.pendingDevCardResolution
+        if isLocalMultiplayer,
+           steps.last?.move == .endTurn
+            || (state.phase.isSetup && state.phase.awaitingSeatIndex != productionBefore.phase.awaitingSeatIndex) {
+            releaseLocalDevice()
+        }
         if case .gameOver = state.phase {
             accumulatedActiveDuration = next.activeMatch?.elapsedSeconds ?? currentGameDuration
             activeSince = nil
@@ -619,7 +589,7 @@ public final class GameViewModel {
     /// the durable game checkpoint and is intentionally untouched.
     @discardableResult
     public func dismissDevCardReveal() -> Bool {
-        guard checkpointDocument != nil else { return false }
+        guard !needsLocalHandoff, checkpointDocument != nil else { return false }
         do {
             try acknowledgeDevCardReveal()
             return true
@@ -633,7 +603,7 @@ public final class GameViewModel {
     /// are already committed and remain untouched.
     @discardableResult
     public func dismissDevCardResolution() -> Bool {
-        guard checkpointDocument != nil else { return false }
+        guard !needsLocalHandoff, checkpointDocument != nil else { return false }
         do {
             try acknowledgeDevCardResolution()
             return true
@@ -720,7 +690,7 @@ public final class GameViewModel {
             pendingTradeConfirmation = nil
             lastTradeOutcome = nil
         }
-        if case .proposeTrade(let offer) = move, offer.from == humanPlayer {
+        if case .proposeTrade(let offer) = move, offer.recipient == nil, offer.from == humanPlayer {
             try resolveHumanProposedTrade(offer)
         }
     }
@@ -949,7 +919,9 @@ public final class GameViewModel {
         lastTradeOutcome = nil
         // Winning can leave an offer in the checkpoint, but policies cannot act after a win.
         if case .gameOver = state.phase { return }
-        guard let offer = state.pendingTradeOffers.first(where: { $0.from == humanPlayer }) else { return }
+        guard let offer = state.pendingTradeOffers.first(where: {
+            $0.recipient == nil && $0.from == humanPlayer
+        }) else { return }
         let decisions = state.players.map(\.id).filter { !humanSeats.contains($0) }.map { bot in
             let accepts = Trading.bothSidesCanHonour(offer, responder: bot, state: state)
                 && policyAcceptsHumanTrade(offer, responder: bot)
@@ -997,6 +969,7 @@ public final class GameViewModel {
     /// attempt that didn't move any cards reports a failure reason.
     @discardableResult
     public func confirmPendingTrade() -> TradeConfirmationResult {
+        guard !needsLocalHandoff else { return .offerNoLongerAvailable }
         beginEventBatch()
         guard let pending = pendingTradeConfirmation else { return .succeeded }
         guard state.pendingTradeOffers.contains(where: { $0.id == pending.offerID }) else {
@@ -1034,6 +1007,7 @@ public final class GameViewModel {
     /// `pendingTradeOffers`. See `confirmPendingTrade` for why the offer's
     /// continued presence is re-checked rather than assumed.
     public func declinePendingTrade() {
+        guard !needsLocalHandoff else { return }
         beginEventBatch()
         guard let pending = pendingTradeConfirmation else { return }
         guard state.pendingTradeOffers.contains(where: { $0.id == pending.offerID }) else {
@@ -1098,7 +1072,7 @@ public final class GameViewModel {
     /// "Block this round" on an offer card: bot offers are declined unseen
     /// until this many turns have ended, i.e. until the human's next turn.
     /// ponytail: in memory only, so a cold resume mid-round shows offers again.
-    var tradeOffersBlockedUntilTurn: Int?
+    var tradeOffersBlockedUntilTurn: [PlayerID: Int] = [:]
     var botTurnProgress: BotTurnProgress?
 
     /// When the last bot action was shown - the deadline
@@ -1154,7 +1128,8 @@ public final class GameViewModel {
     /// whether an offer is live.
     var openIncomingOffer: TradeOffer? {
         guard !hasMandatoryNavalDecision else { return nil }
-        guard let offer = rawIncomingOffer else { return nil }
+        guard let offer = tradeResponseOffer(for: humanPlayer) else { return nil }
+        if offer.recipient != nil { return offer }
         let policy = humanTradePolicy(for: humanPlayer)
         let context = tradeOfferContext(offer)
         if case .notIncoming = policy.decision(for: offer, in: state, context: context) { return offer }

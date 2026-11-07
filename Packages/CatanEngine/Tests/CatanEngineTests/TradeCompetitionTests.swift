@@ -148,6 +148,50 @@ struct TradeCompetitionTests {
         #expect(automated.checkpoint.queuedTradeResponse?.seat == human, "the existing all-bot first reply is unchanged")
     }
 
+    @Test(arguments: [false, true])
+    func namedOfferWaitsForOneSeatAndReplaysAcrossCheckpoint(funded: Bool) throws {
+        let proposer = PlayerID(index: 0), bystander = PlayerID(index: 1), recipient = PlayerID(index: 2)
+        var state = position(playerCount: 3, proposer: proposer)
+        if !funded {
+            state.players[recipient.index].resources = [:]
+            restoreBank(in: &state)
+        }
+        let policy = TradeCompetitionPolicy(accepts: true, consumesRandomness: true)
+        let policies: [PlayerID: any Policy] = [bystander: policy]
+        var session = GameSession(state: state, policies: policies, policySeed: 7)
+        let offer = TradeOffer(from: proposer, recipient: recipient, give: [.brick: 1], want: [.grain: 1])
+        let decline = GameMove.respondToTrade(offerID: offer.id, accept: false)
+        let accept = GameMove.respondToTrade(offerID: offer.id, accept: true)
+        _ = try session.applyExternal(.proposeTrade(offer), by: proposer)
+        let checkpoint = session.checkpoint
+        #expect(session.nextActor() == .awaitingExternalSeat(recipient))
+        #expect(RulesEngine.legalMoves(for: session.state, seat: recipient) == (funded ? [accept, decline] : [decline]))
+        #expect(RulesEngine.legalMoves(for: session.state, seat: proposer).isEmpty)
+        #expect(throws: MoveError.invalidTradeTarget) { try session.applyExternal(.endTurn, by: proposer) }
+        #expect(throws: MoveError.invalidTradeTarget) { try session.acceptTrade(offerID: offer.id, by: bystander) }
+        #expect(throws: MoveError.invalidTradeTarget) { try session.applyExternal(decline, by: bystander) }
+        #expect(session.checkpoint == checkpoint)
+
+        let bytes = try JSONEncoder().encode(checkpoint)
+        let decoded = try JSONDecoder().decode(GameSession.Checkpoint.self, from: bytes)
+        var resumed = try GameSession(checkpoint: decoded, policies: policies)
+        #expect(resumed.nextActor() == .awaitingExternalSeat(recipient))
+        if !funded {
+            #expect(throws: MoveError.insufficientResources) { try resumed.acceptTrade(offerID: offer.id, by: recipient) }
+        }
+        let step = try funded ? resumed.acceptTrade(offerID: offer.id, by: recipient)
+            : resumed.applyExternal(decline, by: recipient)
+        var replay = state
+        _ = try RulesEngine.replay(.proposeTrade(offer), by: proposer, rulesVersion: RulesEngine.currentRulesVersion, to: &replay)
+        let events = try RulesEngine.replay(step.move, by: recipient, rulesVersion: RulesEngine.currentRulesVersion, to: &replay)
+        #expect(replay == resumed.state)
+        #expect(events == step.events)
+        #expect(resumed.nextActor() == .awaitingExternalSeat(proposer))
+        #expect(resumed.state.pendingTradeOffers.isEmpty)
+        #expect(resumed.policyRNG == checkpoint.policyRNG)
+        #expect(policy.observations.isEmpty)
+    }
+
     private func position(playerCount: Int, proposer: PlayerID) -> GameState {
         var state = GameSetup.newGame(board: BoardGenerator.standard(), seed: 41, playerCount: playerCount)
         state.phase = .mainTurn(playerIndex: proposer.index)

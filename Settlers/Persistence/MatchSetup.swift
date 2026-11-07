@@ -25,6 +25,12 @@ public struct MatchSetup: Codable, Equatable, Sendable {
 
     /// One chair at the table.
     public struct Seat: Codable, Equatable, Sendable, Identifiable {
+        enum Role: String, CaseIterable {
+            case human = "Human"
+            case ai = "AI"
+            case ghost = "Ghost"
+        }
+
         public var id: Int { index }
         /// Seat index, 0-based, matching `PlayerID.index`.
         public var index: Int
@@ -43,6 +49,11 @@ public struct MatchSetup: Codable, Equatable, Sendable {
         /// ordinary AI or the human. Optional, so every setup saved before
         /// ghosts existed decodes as "no ghost".
         public var ghostID: String?
+
+        var role: Role {
+            if isHuman { return .human }
+            return ghostID == nil ? .ai : .ghost
+        }
 
         public init(index: Int, isHuman: Bool, name: String, civilization: Civilization?,
                     opponentProfile: OpponentProfile? = nil, ghostID: String? = nil) {
@@ -200,22 +211,11 @@ public struct MatchSetup: Codable, Equatable, Sendable {
 
     /// Why the New Game screen cannot start this table, or `nil` if it can.
     ///
-    /// Stricter than `validationProblem`, which a restart also uses: Jake
-    /// removed pass-and-play (2026-09-25), so a new game has exactly one
-    /// human, in seat 1. `matchProblem` still accepts several humans, so an
-    /// old pass-and-play save resumes and finishes.
-    ///
     /// Ghosts are fitted on Classic standard games, so they play only there.
     /// `knownGhosts` is what the phone can seat right now; a ghost that has
     /// gone (an update dropped a bundled one) is refused by seat.
     public func newGameProblem(knownGhosts: Set<String>) -> String? {
         if let validationProblem { return validationProblem }
-        guard humanSeats.count == 1, seats.first?.isHuman == true else {
-            return "Pass-and-play has been removed. Seat 1 is you."
-        }
-        if let seat = seats.first(where: { $0.isHuman && $0.ghostID != nil }) {
-            return "Seat \(seat.index + 1) cannot be both you and a ghost."
-        }
         let ghostSeats = seats.filter { $0.ghostID != nil }
         guard !ghostSeats.isEmpty else { return nil }
         guard mode == .classic, variant == .standard else { return "Ghosts play Classic only." }
@@ -225,19 +225,6 @@ public struct MatchSetup: Codable, Equatable, Sendable {
             return "Seat \(seat.index + 1)'s ghost is no longer on this phone."
         }
         return nil
-    }
-
-    /// Seat 1 is the one human; every other seat an opponent. For a New Game
-    /// prefill saved while pass-and-play existed, whose extra humans would
-    /// otherwise open the screen on a table it refuses to start.
-    public mutating func normalizeToOneHuman() {
-        guard !seats.isEmpty else { return }
-        seats[0].isHuman = true
-        seats[0].ghostID = nil
-        for index in seats.indices.dropFirst() where seats[index].isHuman {
-            seats[index].isHuman = false
-            seats[index].name = ""
-        }
     }
 
     public var isValidMatch: Bool { matchProblem == nil }
@@ -264,6 +251,9 @@ public struct MatchSetup: Codable, Equatable, Sendable {
     /// keeping their wording and coverage here prevents the two validators
     /// from drifting apart.
     private var identityConflictProblem: String? {
+        if let seat = seats.first(where: { $0.isHuman && $0.ghostID != nil }) {
+            return "Seat \(seat.index + 1) cannot be both Human and Ghost."
+        }
         if let seat = seats.first(where: { $0.isHuman && $0.opponentProfile != nil }) {
             return "Seat \(seat.index + 1) cannot be both Human and AI."
         }

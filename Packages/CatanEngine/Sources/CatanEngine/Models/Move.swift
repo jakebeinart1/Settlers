@@ -43,14 +43,22 @@ public enum GameMove: Codable, Sendable, Hashable {
 public struct TradeOffer: Codable, Sendable, Identifiable, Hashable {
     public let id: UUID
     public let from: PlayerID
+    /// A named local player. Older offers and bot proposals are broadcasts.
+    public let recipient: PlayerID?
     public let give: [Resource: Int]
     public let want: [Resource: Int]
 
-    public init(id: UUID = UUID(), from: PlayerID, give: [Resource: Int], want: [Resource: Int]) {
+    public init(id: UUID = UUID(), from: PlayerID, recipient: PlayerID? = nil, give: [Resource: Int], want: [Resource: Int]) {
         self.id = id
         self.from = from
+        self.recipient = recipient
         self.give = give
         self.want = want
+    }
+
+    /// Routing only. The responder may decline even when unable to pay.
+    public func canRespond(_ seat: PlayerID) -> Bool {
+        seat != from && (recipient == nil || recipient == seat)
     }
 
     /// Builds a candidate offer whose `id` is derived from its own contents
