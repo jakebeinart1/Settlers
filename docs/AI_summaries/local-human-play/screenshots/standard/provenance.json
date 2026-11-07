@@ -1,0 +1,504 @@
+{
+  "collectorIndexSHA256": "796f3e5b3bee11e50a8332ef763d1ed795fa3a17f0bb02b7a261bed92d4ab5da",
+  "nativeManifestSHA256": "b233204c87527ea80a12dfa65d4ab59bcd5947074975868401991e33b9c8aed6",
+  "expectedManifestSHA256": "7b123b79ba61218714d1264105fc8003d6796aac3863e0de9e157150d78152bd",
+  "sourceCommit": "c0856c9dfc9d0f203513baea34b69fea528522b7",
+  "sourceTree": "a8469368473df822d196095d9ee1bc0381f704e0",
+  "run": "focused-c0856c9-20261107T112837Z",
+  "runSourceRecordSHA256": "143901fa37a9b43de84adf8fe9bb3e600ae8bc41a0b4145b0ea0f9efef523669",
+  "runLogSHA256": "5f5eec7dff05fd60cb858959c9cfb6140cc09d5b574a940b4f610d2c6cc16968",
+  "testSuite": "SettlersUITests/PassAndPlayFlowTests",
+  "passed": 12,
+  "failed": 0,
+  "model": "iPhone 17 Pro",
+  "deviceId": "3F1AF757-2349-441E-B651-50BFE17F7502",
+  "os": "iOS 26.5",
+  "points": [
+    402,
+    874
+  ],
+  "originalPixels": [
+    1206,
+    2622
+  ],
+  "reviewPixels": [
+    804,
+    1748
+  ],
+  "groups": {
+    "Setup and first handoff": [
+      "01-two-people-and-two-ai-seats.jpg",
+      "02-initial-handoff-to-the-owner.jpg",
+      "03-private-handoff-with-a-maximum-length-name.jpg",
+      "04-willa-s-first-placement.jpg",
+      "05-cold-resume-re-covers-willa-s-hand.jpg",
+      "06-committed-settlement-and-pending-road-after-resume.jpg"
+    ],
+    "Ordinary turns and AI": [
+      "07-all-human-seats-after-real-opening-placements.jpg",
+      "08-handoff-on-an-ordinary-turn.jpg",
+      "09-mira-s-regular-turn-after-claiming.jpg",
+      "13-covered-while-the-ai-plays.jpg",
+      "14-ai-returns-control-to-a-named-person.jpg",
+      "18-coming-back-to-the-app-locks-the-private-hand.jpg",
+      "19-the-menu-resumes-behind-the-same-handoff.jpg"
+    ],
+    "Off-turn decisions": [
+      "10-off-turn-discard-handoff.jpg",
+      "11-second-person-s-private-discard-editor.jpg",
+      "12-return-to-the-seven-s-roller.jpg",
+      "32-off-turn-voyages-harvest-handoff.jpg",
+      "33-voyages-island-owner-chooses-the-harvest.jpg",
+      "34-voyages-return-to-the-roller.jpg"
+    ],
+    "Directed trades": [
+      "29-recipient-picker-shows-the-named-player.jpg",
+      "22-named-recipient-and-directed-trade-terms.jpg",
+      "23-private-incoming-trade-handoff.jpg",
+      "24-the-recipient-reviews-the-offer.jpg",
+      "25-trade-accepted-and-control-returned.jpg",
+      "26-resumed-offer-stays-private-until-its-recipient-claims.jpg",
+      "27-unaffordable-offer-can-be-declined.jpg",
+      "28-trade-declined-and-original-hand-preserved.jpg"
+    ],
+    "Private receipts": [
+      "30-resume-keeps-the-purchased-card-covered.jpg",
+      "31-the-purchaser-sees-the-resumed-card-receipt.jpg",
+      "35-voyages-ship-loss-handoff-keeps-the-receipt-private.jpg",
+      "36-the-former-owner-reads-the-resumed-ship-loss-receipt.jpg"
+    ],
+    "Save recovery at maximum text": [
+      "15-covered-save-recovery-at-maximum-text.jpg",
+      "16-reload-action-reachable-at-maximum-text.jpg",
+      "17-reload-restores-the-named-claimant-at-maximum-text.jpg"
+    ],
+    "Shared result": [
+      "20-the-victory-cutscene-names-the-winner.jpg",
+      "21-guest-wins-with-no-solo-ai-elo-change.jpg"
+    ],
+    "Game History": [
+      "37-game-history-keeps-the-unfinished-shared-match-private.jpg",
+      "38-completed-shared-match-appears-in-game-history.jpg"
+    ]
+  },
+  "images": [
+    {
+      "title": "two people and two AI seats",
+      "label": "Pass & Play – two people and two AI seats",
+      "file": "01-two-people-and-two-ai-seats.jpg",
+      "test": "PassAndPlayFlowTests/testMixedTableHandoffAndColdResumeProtectTheGuestHand",
+      "testSourceLine": 19,
+      "originalAttachment": "E49BA929-ACD9-47ED-9CA6-36B1EDA09D75.png",
+      "originalSHA256": "4c0c7f36e21e82979a80de2dc817164de29a6cae54c7c08ba88ce3b15845d44e",
+      "gallerySHA256": "f8c8b2b399976307b3728dd20a526e78b2ae7cc083083a39d5615ed6f82a89ca",
+      "captureTimestamp": 1794051247.559
+    },
+    {
+      "title": "initial handoff to the owner",
+      "label": "Pass & Play – initial handoff to the owner",
+      "file": "02-initial-handoff-to-the-owner.jpg",
+      "test": "PassAndPlayFlowTests/testMixedTableHandoffAndColdResumeProtectTheGuestHand",
+      "testSourceLine": 22,
+      "originalAttachment": "8B21C0A5-6FA6-48C4-8568-FA2B842D2B71.png",
+      "originalSHA256": "7a32d28e7ea6f0058f6c4c0d87c11041d3c89f00eee1bb9139d63cc37a256bf6",
+      "gallerySHA256": "6a0a40e8b477f3fe667b3dd05b86339a68995a281b3651847f923db054b858cf",
+      "captureTimestamp": 1794051251.715
+    },
+    {
+      "title": "private handoff with a maximum-length name",
+      "label": "Pass & Play – private handoff with a maximum-length name",
+      "file": "03-private-handoff-with-a-maximum-length-name.jpg",
+      "test": "PassAndPlayFlowTests/testMixedTableHandoffAndColdResumeProtectTheGuestHand",
+      "testSourceLine": 25,
+      "originalAttachment": "8F905B16-7EF3-42D5-A2FD-8707D05A0E1B.png",
+      "originalSHA256": "8d5db8dc5054536ebe80a762f13ef4312f03334d033ee7e6c0573aa37f2487a2",
+      "gallerySHA256": "f04544605edfbfb6132f35bd31b0fde668e467b4ba7f54f3c2da2935951f0cb0",
+      "captureTimestamp": 1794051270.541
+    },
+    {
+      "title": "Willa's first placement",
+      "label": "Pass & Play – Willa's first placement",
+      "file": "04-willa-s-first-placement.jpg",
+      "test": "PassAndPlayFlowTests/testMixedTableHandoffAndColdResumeProtectTheGuestHand",
+      "testSourceLine": 26,
+      "originalAttachment": "A65893CF-CE27-432A-B505-8E1304047CB3.png",
+      "originalSHA256": "13e5a8cb56bf8433b1c25c5a67a3e7366418d22ebc34163968477132afaed39a",
+      "gallerySHA256": "b7a784a203fd91a29de96b7f47d552da735fead623b3c4f110e5759dd6b30fa2",
+      "captureTimestamp": 1794051273.772
+    },
+    {
+      "title": "cold resume re-covers Willa's hand",
+      "label": "Pass & Play – cold resume re-covers Willa's hand",
+      "file": "05-cold-resume-re-covers-willa-s-hand.jpg",
+      "test": "PassAndPlayFlowTests/testMixedTableHandoffAndColdResumeProtectTheGuestHand",
+      "testSourceLine": 31,
+      "originalAttachment": "1484C78F-3B4C-42DE-ADD1-6086C5B0914A.png",
+      "originalSHA256": "8d5db8dc5054536ebe80a762f13ef4312f03334d033ee7e6c0573aa37f2487a2",
+      "gallerySHA256": "f04544605edfbfb6132f35bd31b0fde668e467b4ba7f54f3c2da2935951f0cb0",
+      "captureTimestamp": 1794051285.978
+    },
+    {
+      "title": "committed settlement and pending road after resume",
+      "label": "Pass & Play – committed settlement and pending road after resume",
+      "file": "06-committed-settlement-and-pending-road-after-resume.jpg",
+      "test": "PassAndPlayFlowTests/testMixedTableHandoffAndColdResumeProtectTheGuestHand",
+      "testSourceLine": 34,
+      "originalAttachment": "FA8895B3-02AF-4F00-B88C-68967C93D8B3.png",
+      "originalSHA256": "fda6e794cf410f244bf00b8f24d975446caeb984faa448d31d27d0ed66d66b97",
+      "gallerySHA256": "6de0bc56269e26f04f2610db15914b647b42d663423d6b5da827cc3d38d292cb",
+      "captureTimestamp": 1794051289.228
+    },
+    {
+      "title": "all human seats after real opening placements",
+      "label": "Pass & Play – all human seats after real opening placements",
+      "file": "07-all-human-seats-after-real-opening-placements.jpg",
+      "test": "PassAndPlayFlowTests/testAllHumanOpeningReachesTheNextPlayersRegularTurn",
+      "testSourceLine": 55,
+      "originalAttachment": "18055FAA-B290-4042-9D4A-8EC633664A42.png",
+      "originalSHA256": "f2d9c0b032596f9ec1cdd563ca64b45437417f27d1844eb81e6e9bd03c3cc29a",
+      "gallerySHA256": "8d7dc7a6476ccf64f90a4150a6f6059bd9be08c387e39dd6b9ad3eb547b55dc4",
+      "captureTimestamp": 1794051120.67
+    },
+    {
+      "title": "handoff on an ordinary turn",
+      "label": "Pass & Play – handoff on an ordinary turn",
+      "file": "08-handoff-on-an-ordinary-turn.jpg",
+      "test": "PassAndPlayFlowTests/testAllHumanOpeningReachesTheNextPlayersRegularTurn",
+      "testSourceLine": 59,
+      "originalAttachment": "8581CD49-08AC-4FAE-9401-C8E1C72CFEA7.png",
+      "originalSHA256": "59018e270566928eaf4b26c6e9c037f6680e6aa787269a7e1c5998fe2efc662c",
+      "gallerySHA256": "1743b24c1d79ee14c4e113ce88342d782fc356de6ab737e8d5bf1e843563f39b",
+      "captureTimestamp": 1794051125.635
+    },
+    {
+      "title": "Mira's regular turn after claiming",
+      "label": "Pass & Play – Mira's regular turn after claiming",
+      "file": "09-mira-s-regular-turn-after-claiming.jpg",
+      "test": "PassAndPlayFlowTests/testAllHumanOpeningReachesTheNextPlayersRegularTurn",
+      "testSourceLine": 62,
+      "originalAttachment": "5B3A45A8-C815-4951-816B-17CE223EAEB8.png",
+      "originalSHA256": "f6d57a840373831f52d73a2540c9215e449c622cd770243335d157da23055e0e",
+      "gallerySHA256": "fb0d44c8d9ad17baa9ac699bc235466fbc48e89958ef8edaead3a8d1cb810949",
+      "captureTimestamp": 1794051130.929
+    },
+    {
+      "title": "off-turn discard handoff",
+      "label": "Pass & Play – off-turn discard handoff",
+      "file": "10-off-turn-discard-handoff.jpg",
+      "test": "PassAndPlayFlowTests/testRolledSevenPassesToTheOtherDiscarderAndBackToTheRoller",
+      "testSourceLine": 71,
+      "originalAttachment": "4E0AF6A1-6791-45A8-BACE-405A4CB10751.png",
+      "originalSHA256": "50a7aa2a71ede17108e40b3064a83ea29ae7670d3ae233ff60febc11541ca248",
+      "gallerySHA256": "c7c437970322f9254ddbb17ea49a049f24ff6920d8be36af516e051588a05e67",
+      "captureTimestamp": 1794051348.069
+    },
+    {
+      "title": "second person's private discard editor",
+      "label": "Pass & Play – second person's private discard editor",
+      "file": "11-second-person-s-private-discard-editor.jpg",
+      "test": "PassAndPlayFlowTests/testRolledSevenPassesToTheOtherDiscarderAndBackToTheRoller",
+      "testSourceLine": 75,
+      "originalAttachment": "57749632-6D1A-42C4-843B-BF296D11C737.png",
+      "originalSHA256": "8472405dfed3423ed11a70cd6c2ff8f761cfb81fa835c7c0e2e16bd233a895d9",
+      "gallerySHA256": "6de34113c062090f74d8fbc5500e94aba874e606b7ed8c55fd04e7a48f9f2ed6",
+      "captureTimestamp": 1794051351.178
+    },
+    {
+      "title": "return to the seven's roller",
+      "label": "Pass & Play – return to the seven's roller",
+      "file": "12-return-to-the-seven-s-roller.jpg",
+      "test": "PassAndPlayFlowTests/testRolledSevenPassesToTheOtherDiscarderAndBackToTheRoller",
+      "testSourceLine": 78,
+      "originalAttachment": "F048FDCC-EF7B-4862-9691-99EAF1C4C896.png",
+      "originalSHA256": "30a1e2a216c3382bdcbf49041d806b82823640cb2ffbb442219d6c19258f7bf7",
+      "gallerySHA256": "57cf400aec967378e41779aa9e1d16dc0b543e6c3aa4f65a35811d3cc6a076df",
+      "captureTimestamp": 1794051357.282
+    },
+    {
+      "title": "covered while the AI plays",
+      "label": "Pass & Play – covered while the AI plays",
+      "file": "13-covered-while-the-ai-plays.jpg",
+      "test": "PassAndPlayFlowTests/testUnclaimedTableWaitsPrivatelyForLiveBotsToReachAHuman",
+      "testSourceLine": 90,
+      "originalAttachment": "7D54D9B9-4524-432E-BEFC-9006A6F15296.png",
+      "originalSHA256": "db22b5fef2d44d46321984c93b687f612044cf0bc1960d748044cd7ee90c1f5e",
+      "gallerySHA256": "a07d4080c22c6e0c2d8f5453c5311abed56f7fe8facc6c99c0478ef2fb3066fc",
+      "captureTimestamp": 1794051456.413
+    },
+    {
+      "title": "AI returns control to a named person",
+      "label": "Pass & Play – AI returns control to a named person",
+      "file": "14-ai-returns-control-to-a-named-person.jpg",
+      "test": "PassAndPlayFlowTests/testUnclaimedTableWaitsPrivatelyForLiveBotsToReachAHuman",
+      "testSourceLine": 93,
+      "originalAttachment": "568F823C-352C-46C9-83CC-C1E288331B41.png",
+      "originalSHA256": "23dd0f7057a11ebf62bf67bcb31c1cf99a237b8de73fee039ddf22fff90ba0be",
+      "gallerySHA256": "9fa9a2cec862a6707f95a2099a1807fce76ac934b1af4197cc8fc2fa3241823f",
+      "captureTimestamp": 1794051465.272
+    },
+    {
+      "title": "covered save recovery at maximum text",
+      "label": "Pass & Play – covered save recovery at maximum text",
+      "file": "15-covered-save-recovery-at-maximum-text.jpg",
+      "test": "PassAndPlayFlowTests/testCoveredSaveRecoveryReloadsTheSameClaimantAtMaximumText",
+      "testSourceLine": 110,
+      "originalAttachment": "DC9ABA1F-DE83-4947-BBE2-77A1835AC0C4.png",
+      "originalSHA256": "9d4069341f462e88174ba3a2545775f5f30dba6780a92c155437063befb89d13",
+      "gallerySHA256": "11ea7c820f235bc5eb46bfc61924c261b963aa7c4b630a74f6f0d68297d65465",
+      "captureTimestamp": 1794051162.645
+    },
+    {
+      "title": "reload action reachable at maximum text",
+      "label": "Pass & Play – reload action reachable at maximum text",
+      "file": "16-reload-action-reachable-at-maximum-text.jpg",
+      "test": "PassAndPlayFlowTests/testCoveredSaveRecoveryReloadsTheSameClaimantAtMaximumText",
+      "testSourceLine": 116,
+      "originalAttachment": "607E128A-C069-42A9-943D-7B36D2EFCEF0.png",
+      "originalSHA256": "9d4069341f462e88174ba3a2545775f5f30dba6780a92c155437063befb89d13",
+      "gallerySHA256": "11ea7c820f235bc5eb46bfc61924c261b963aa7c4b630a74f6f0d68297d65465",
+      "captureTimestamp": 1794051165.034
+    },
+    {
+      "title": "reload restores the named claimant at maximum text",
+      "label": "Pass & Play – reload restores the named claimant at maximum text",
+      "file": "17-reload-restores-the-named-claimant-at-maximum-text.jpg",
+      "test": "PassAndPlayFlowTests/testCoveredSaveRecoveryReloadsTheSameClaimantAtMaximumText",
+      "testSourceLine": 123,
+      "originalAttachment": "734116DC-E90C-4999-B674-954704D0E3BA.png",
+      "originalSHA256": "ea8b6a397f896ae3d8bfd4605557c53a98df51970ed327555c31df88da882b41",
+      "gallerySHA256": "2c74cdd837b773563fc2e75c2a7d187d3db98cad4a4c2b19abdb4ce962a65fc6",
+      "captureTimestamp": 1794051170.802
+    },
+    {
+      "title": "coming back to the app locks the private hand",
+      "label": "Pass & Play – coming back to the app locks the private hand",
+      "file": "18-coming-back-to-the-app-locks-the-private-hand.jpg",
+      "test": "PassAndPlayFlowTests/testBackgroundAndMainMenuRequireAHandOffWithoutMovingTheBoard",
+      "testSourceLine": 141,
+      "originalAttachment": "67E0204D-6540-46CB-9093-5065223DC7DD.png",
+      "originalSHA256": "f7bec4b6417f6a3f601ae0bce3ef0bab80a555a3afc5dad5f96eca464ddd31c1",
+      "gallerySHA256": "7a88e42bbb43ea523d2453b062f098742cd998bf34f9c2f2723d78f6f5586cf4",
+      "captureTimestamp": 1794051145.656
+    },
+    {
+      "title": "the menu resumes behind the same handoff",
+      "label": "Pass & Play – the menu resumes behind the same handoff",
+      "file": "19-the-menu-resumes-behind-the-same-handoff.jpg",
+      "test": "PassAndPlayFlowTests/testBackgroundAndMainMenuRequireAHandOffWithoutMovingTheBoard",
+      "testSourceLine": 148,
+      "originalAttachment": "D237E796-8293-4571-B84C-3E4D9F8724F6.png",
+      "originalSHA256": "9acb54ece6d2a20f24eeee62b4ef34ed37862c5558b48ebf7eb204aa03459312",
+      "gallerySHA256": "dbdc3ee29c09aba2808e8eb147f9c454fcd3655294b48a7910e15e18f123cab5",
+      "captureTimestamp": 1794051150.623
+    },
+    {
+      "title": "the victory cutscene names the winner",
+      "label": "Pass & Play – the victory cutscene names the winner",
+      "file": "20-the-victory-cutscene-names-the-winner.jpg",
+      "test": "PassAndPlayFlowTests/testGuestsActualWinningCityShowsANamedUnratedResult",
+      "testSourceLine": 170,
+      "originalAttachment": "121F9C5E-821C-4E4E-8D3F-473AFEEEEB8F.png",
+      "originalSHA256": "a3a904e1b8a26421cc72d7d595e0aaabf2e41a19f925d3962d4f33e76e6fa0d3",
+      "gallerySHA256": "c39768dc1b006406b2faeaea8eeff0114294b3569cfbdd4c8c4ddb9f06d9b98d",
+      "captureTimestamp": 1794051227.386
+    },
+    {
+      "title": "guest wins with no solo AI Elo change",
+      "label": "Pass & Play – guest wins with no solo AI Elo change",
+      "file": "21-guest-wins-with-no-solo-ai-elo-change.jpg",
+      "test": "PassAndPlayFlowTests/testGuestsActualWinningCityShowsANamedUnratedResult",
+      "testSourceLine": 178,
+      "originalAttachment": "9C09F4EC-96A9-4480-8D13-6C03CE7B8A5B.png",
+      "originalSHA256": "aca25d70dd97ce6a1c806af753128b11dba6e39a65fd6c9131e264d042295aaf",
+      "gallerySHA256": "16faa67044fc25c75f656663de8c82a8774ee50ead155f8aafe29f862ee8d684",
+      "captureTimestamp": 1794051231.686
+    },
+    {
+      "title": "named recipient and directed trade terms",
+      "label": "Pass & Play – named recipient and directed trade terms",
+      "file": "22-named-recipient-and-directed-trade-terms.jpg",
+      "test": "PassAndPlayFlowTests/testDirectedTradeReturnsToTheProposerAfterTheOtherPersonAccepts",
+      "testSourceLine": 191,
+      "originalAttachment": "4169A032-9859-44C3-BC8E-403E0776AC32.png",
+      "originalSHA256": "790e039aaa2de6230069397a40a7d2373158cc4ae807b87d0f9705eea8ff8ae3",
+      "gallerySHA256": "d48ca81b401d6932f10949956f6db83cd74e995fa98d442c86bdf842a2ee6de9",
+      "captureTimestamp": 1794051192.852
+    },
+    {
+      "title": "private incoming trade handoff",
+      "label": "Pass & Play – private incoming trade handoff",
+      "file": "23-private-incoming-trade-handoff.jpg",
+      "test": "PassAndPlayFlowTests/testDirectedTradeReturnsToTheProposerAfterTheOtherPersonAccepts",
+      "testSourceLine": 193,
+      "originalAttachment": "11AC020F-B625-4872-ACA1-BB6AE5B6AB45.png",
+      "originalSHA256": "ebf468775e5894397b09967f5fd85cd0586c71c157fe855838bbb9fbfa181e34",
+      "gallerySHA256": "7fbdb43c0360671d1f37fa3516d64f9bcde911c21a97956642987196e499b97c",
+      "captureTimestamp": 1794051196.452
+    },
+    {
+      "title": "the recipient reviews the offer",
+      "label": "Pass & Play – the recipient reviews the offer",
+      "file": "24-the-recipient-reviews-the-offer.jpg",
+      "test": "PassAndPlayFlowTests/testDirectedTradeReturnsToTheProposerAfterTheOtherPersonAccepts",
+      "testSourceLine": 197,
+      "originalAttachment": "194B46F4-F630-41FF-8DC6-4CCDB70362BF.png",
+      "originalSHA256": "6addc04819b73329baf9bbccef87fb60c6e3ecf7192da48d110a39119b8cf716",
+      "gallerySHA256": "96defe09f4d499beef3a0379ceb2545ced5b1de3c2eed76e90c34695c2143d63",
+      "captureTimestamp": 1794051199.771
+    },
+    {
+      "title": "trade accepted and control returned",
+      "label": "Pass & Play – trade accepted and control returned",
+      "file": "25-trade-accepted-and-control-returned.jpg",
+      "test": "PassAndPlayFlowTests/testDirectedTradeReturnsToTheProposerAfterTheOtherPersonAccepts",
+      "testSourceLine": 205,
+      "originalAttachment": "2352E8A8-5F41-4B83-8FF8-25A8CB5CA48B.png",
+      "originalSHA256": "6ec6c25a6475cad5b24f8542b7f41a7e65f6e45fd67eb8edf6a722df48068514",
+      "gallerySHA256": "49fdb3b322445f154d9dc1db71f3c6cd004380321937efe72266b6e5055ab6e5",
+      "captureTimestamp": 1794051208.512
+    },
+    {
+      "title": "resumed offer stays private until its recipient claims",
+      "label": "Pass & Play – resumed offer stays private until its recipient claims",
+      "file": "26-resumed-offer-stays-private-until-its-recipient-claims.jpg",
+      "test": "PassAndPlayFlowTests/testUnaffordableDirectedTradeSurvivesResumeAndCanBeDeclined",
+      "testSourceLine": 215,
+      "originalAttachment": "B9A02032-B2DC-44A9-B415-9F2E09E9F317.png",
+      "originalSHA256": "906dec9748611da588ac408cdfc7c4ef447c55dde8208c60760b63046843616b",
+      "gallerySHA256": "fc98e0e8bffd2fbb30d927cc0269c181229dd9676465a4e958c35d0d1ed74ebc",
+      "captureTimestamp": 1794051429.037
+    },
+    {
+      "title": "unaffordable offer can be declined",
+      "label": "Pass & Play – unaffordable offer can be declined",
+      "file": "27-unaffordable-offer-can-be-declined.jpg",
+      "test": "PassAndPlayFlowTests/testUnaffordableDirectedTradeSurvivesResumeAndCanBeDeclined",
+      "testSourceLine": 230,
+      "originalAttachment": "2CBC170D-40F3-49BB-822E-2EC532BDFF68.png",
+      "originalSHA256": "bb21d12d387e9e9b47bdaaac3714418a59445b661d74d09fa31046b19c09c2c4",
+      "gallerySHA256": "66d29871313613375239d867c23ff9a356c9d4313c9e4544d99d9d80c6dd7ac9",
+      "captureTimestamp": 1794051434.392
+    },
+    {
+      "title": "trade declined and original hand preserved",
+      "label": "Pass & Play – trade declined and original hand preserved",
+      "file": "28-trade-declined-and-original-hand-preserved.jpg",
+      "test": "PassAndPlayFlowTests/testUnaffordableDirectedTradeSurvivesResumeAndCanBeDeclined",
+      "testSourceLine": 239,
+      "originalAttachment": "92926DCE-FB6F-4B6A-8BF9-031CBC8391A6.png",
+      "originalSHA256": "e6a0ba0b648b62d196dba3e1cdb5edca372fff2e7f85fd75c1517022cbd92e18",
+      "gallerySHA256": "c770d5a540cd1936627c8887e730e901a528e30d5ee8cb7b3549af2f5fb6aa10",
+      "captureTimestamp": 1794051443.171
+    },
+    {
+      "title": "recipient picker shows the named player",
+      "label": "Pass & Play – recipient picker shows the named player",
+      "file": "29-recipient-picker-shows-the-named-player.jpg",
+      "test": "PassAndPlayFlowTests/testDirectedTradeReturnsToTheProposerAfterTheOtherPersonAccepts",
+      "testSourceLine": 255,
+      "originalAttachment": "4EDFABAB-6C0C-4CF7-A7D4-1553015CAD79.png",
+      "originalSHA256": "2835afbdc79df146d0ee57cba51ffefe889e8d9ed0b4eaf88067772b7e3dc229",
+      "gallerySHA256": "0532a8111d111b8598ea971d73eee837d92c801e59ed77d250f40ebcaa80fdc1",
+      "captureTimestamp": 1794051189.327
+    },
+    {
+      "title": "resume keeps the purchased card covered",
+      "label": "Pass & Play – resume keeps the purchased card covered",
+      "file": "30-resume-keeps-the-purchased-card-covered.jpg",
+      "test": "PassAndPlayFlowTests/testPrivateCardReceiptSurvivesColdResumeBehindTheOwnersHandoff",
+      "testSourceLine": 281,
+      "originalAttachment": "7F164617-A090-4105-81DF-1A4A9BBA7C56.png",
+      "originalSHA256": "5cf95167b531beffc7a73f5509eb0d28dc05b8e86132291e62b1ce5850a5f273",
+      "gallerySHA256": "7da7d12ff31d786e48fd2c10425dd6ff63813869e511df3f212095bab6bb39e3",
+      "captureTimestamp": 1794051313.585
+    },
+    {
+      "title": "the purchaser sees the resumed card receipt",
+      "label": "Pass & Play – the purchaser sees the resumed card receipt",
+      "file": "31-the-purchaser-sees-the-resumed-card-receipt.jpg",
+      "test": "PassAndPlayFlowTests/testPrivateCardReceiptSurvivesColdResumeBehindTheOwnersHandoff",
+      "testSourceLine": 283,
+      "originalAttachment": "DEE20601-EA62-4A52-8CF5-0DC1912E68B7.png",
+      "originalSHA256": "78445415999cce04e91c91fb07d03cfac4837da206f174871c23338dec445d14",
+      "gallerySHA256": "7c773b0302167c09c272c0efc44f53fedd79129adc958604ab0f76c792318db1",
+      "captureTimestamp": 1794051316.687
+    },
+    {
+      "title": "off-turn Voyages harvest handoff",
+      "label": "Pass & Play – off-turn Voyages harvest handoff",
+      "file": "32-off-turn-voyages-harvest-handoff.jpg",
+      "test": "PassAndPlayFlowTests/testVoyagesHarvestPassesToTheIslandOwnerThenBackToTheRoller",
+      "testSourceLine": 303,
+      "originalAttachment": "DCD4C540-22FD-4AA2-836D-F800626399AD.png",
+      "originalSHA256": "b432a804c9da3254c56620fe70e1d0bf928498b7992d1c643043a796d73ed937",
+      "gallerySHA256": "08001e5c0afb2988f0f014f721f924b37a97d3e0cf26d1bd3060aa3fd44248a3",
+      "captureTimestamp": 1794051484.088
+    },
+    {
+      "title": "Voyages island owner chooses the harvest",
+      "label": "Pass & Play – Voyages island owner chooses the harvest",
+      "file": "33-voyages-island-owner-chooses-the-harvest.jpg",
+      "test": "PassAndPlayFlowTests/testVoyagesHarvestPassesToTheIslandOwnerThenBackToTheRoller",
+      "testSourceLine": 310,
+      "originalAttachment": "1DABE8FF-F4E3-44EE-8768-378E7B3B2697.png",
+      "originalSHA256": "0ab010db8f2fc6f25777d3a5eee1c4b961b6fc9b248cc329ff9c08560791c990",
+      "gallerySHA256": "b12feb5c5e4c8853bcee658b303e6a02a5854e542ef8bf1b408d2441e87a05a6",
+      "captureTimestamp": 1794051487.2
+    },
+    {
+      "title": "Voyages return to the roller",
+      "label": "Pass & Play – Voyages return to the roller",
+      "file": "34-voyages-return-to-the-roller.jpg",
+      "test": "PassAndPlayFlowTests/testVoyagesHarvestPassesToTheIslandOwnerThenBackToTheRoller",
+      "testSourceLine": 313,
+      "originalAttachment": "9DB6D5EB-06AE-43D5-9014-3A9AABFE778F.png",
+      "originalSHA256": "cfad1d6fcb40062c950cddf1f553e6d6d21bb32cf4afd4805ad9beaa5c1f451b",
+      "gallerySHA256": "a53360daf4d89aa5427a45cfc669117fe6d82e1b19311660cc779abc9b3840d3",
+      "captureTimestamp": 1794051490.608
+    },
+    {
+      "title": "Voyages ship loss handoff keeps the receipt private",
+      "label": "Pass & Play – Voyages ship loss handoff keeps the receipt private",
+      "file": "35-voyages-ship-loss-handoff-keeps-the-receipt-private.jpg",
+      "test": "PassAndPlayFlowTests/testShipTransferWaitsForItsOldOwnerAcrossColdResume",
+      "testSourceLine": 332,
+      "originalAttachment": "BFFCF786-80F5-4864-BAD7-A4D6A5CF3F53.png",
+      "originalSHA256": "a5bac74fa77255a3c666a616b2d7e1427de1cf953849c616deb083e7a2d9d39f",
+      "gallerySHA256": "0bf124a1fbb4526b81c4d87e2f5242c946adc1731945ad78ecbcce78b2c9f577",
+      "captureTimestamp": 1794051381.447
+    },
+    {
+      "title": "the former owner reads the resumed ship loss receipt",
+      "label": "Pass & Play – the former owner reads the resumed ship loss receipt",
+      "file": "36-the-former-owner-reads-the-resumed-ship-loss-receipt.jpg",
+      "test": "PassAndPlayFlowTests/testShipTransferWaitsForItsOldOwnerAcrossColdResume",
+      "testSourceLine": 340,
+      "originalAttachment": "DAA48D39-F976-42BF-A87F-6781F2F7A8A6.png",
+      "originalSHA256": "67115b6de42f67081c43854ae30b054cab04c16aa247e736e6b29f45f2eee1f0",
+      "gallerySHA256": "3708e9ae536ad8bcd02160db814aba32ca36edcca8126aee189a5dcb169fcc0a",
+      "captureTimestamp": 1794051393.102
+    },
+    {
+      "title": "Game History keeps the unfinished shared match private",
+      "label": "Pass & Play – Game History keeps the unfinished shared match private",
+      "file": "37-game-history-keeps-the-unfinished-shared-match-private.jpg",
+      "test": "PassAndPlayFlowTests/testMixedTableHandoffAndColdResumeProtectTheGuestHand",
+      "testSourceLine": 366,
+      "originalAttachment": "C2CC776B-5A8C-4E47-A3D9-B02CAD84A551.png",
+      "originalSHA256": "13831549c2e998083f082305908a4818e91f55ee8621eced69b6d7a607f29eeb",
+      "gallerySHA256": "7a30782663b0fef4f4aa8bc1e44c10a6313d29b5f437b743eb5c302772f69626",
+      "captureTimestamp": 1794051265.403
+    },
+    {
+      "title": "completed shared match appears in Game History",
+      "label": "Pass & Play – completed shared match appears in Game History",
+      "file": "38-completed-shared-match-appears-in-game-history.jpg",
+      "test": "PassAndPlayFlowTests/testGuestsActualWinningCityShowsANamedUnratedResult",
+      "testSourceLine": 185,
+      "originalAttachment": "D5A16710-5EF8-4B52-A971-9D9E154A380C.png",
+      "originalSHA256": "90074938dc76d6235170641b56b8d87d44564f791f64c0371c61943af5f520b5",
+      "gallerySHA256": "875275723162ab378eb28d1a304dd32a557b18aef639fb4409f7c074cee32c9b",
+      "captureTimestamp": 1794051235.986
+    }
+  ]
+}
