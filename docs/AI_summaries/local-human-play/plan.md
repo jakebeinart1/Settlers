@@ -16,6 +16,20 @@ Its settled direction is live and asynchronous play on existing three/four-seat
 tables with optional AI seats. No two-seat ruleset was requested for this local
 restoration; retain the current table and rules while defining local controls.
 
+On November 7, Alex explicitly distinguished three multiplayer experiences:
+same-device Pass & Play with clear turn ownership, asynchronous play on two
+to four separate devices, and live online play with turn time limits. Human/AI
+allocation is chosen at setup. This document covers the first experience;
+the [online proposal](../online-multiplayer/plan.md) covers the other two.
+The complete product needs all three, while local human play remains first.
+
+For local play, always distinguish whose turn it is from who must respond.
+Use each person's name, protect the hand during a transfer, handle off-turn
+choices and trades, preserve the roster and pending action through save/resume,
+and show a named winner and correctly attributed result. A normal turn change
+is only one of the handoff cases. Exact handoff and guest/profile interactions
+remain subject to the design interview below.
+
 ## Verified starting point
 
 - `MatchSetup.newGameProblem` allows one human in the first seat, and

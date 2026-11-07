@@ -3,7 +3,9 @@
 ## Status
 
 PR 71 was moved from draft to ready at Alex’s explicit request, before the
-requested code review. It remains open and unmerged. The published `bf0f804`
+requested code review. Alex subsequently instructed merging the already-reviewed
+work. PR 71 merged on November 6 as `2943bab`, with the same tree as `5d4646f`,
+after hosted Engine + AI builds/tests and SwiftLint passed. The published `bf0f804`
 gallery is a rejected baseline; its historical gate does not qualify the
 redesign. The replacement gallery now presents reviewed native captures in one
 column, with per-image provenance and explicit remaining acceptance.
@@ -88,8 +90,9 @@ The reviewed standard-phone gallery and source form a feature-branch review
 checkpoint. It uses the repository’s documented save-progress exception; the
 full pre-push gate is not claimed for this checkpoint. Compact captures, the
 post-capture copy/context refinements and the final exact-commit maintained gate
-remain pending capacity. No merge, TestFlight delivery or live multi-account
-iCloud acceptance is claimed. Synthetic screenshot records prove presentation;
+remain pending capacity. Alex’s merge instruction did not make those unrun
+checks pass. No TestFlight delivery or live multi-account iCloud acceptance is
+claimed. Synthetic screenshot records prove presentation;
 the replay and fake-cloud tests provide their separate functional evidence.
 
 Private source-bound logs, manifests, full-resolution originals and failed
