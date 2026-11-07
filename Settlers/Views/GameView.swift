@@ -161,6 +161,8 @@ public struct GameView: View {
             // accessibility tree produced two elements with identical card
             // identifiers and let an assistive-technology user activate the
             // hidden board beneath the modal.
+            // Keep this gate on the content stack so an outer visible
+            // accessibility attachment cannot reveal a covered shelf.
             .allowsHitTesting(!isBlockingOverlayPresented)
             .accessibilityHidden(isBlockingOverlayPresented)
 
@@ -291,7 +293,6 @@ public struct GameView: View {
         #endif
         .opacity(viewModel.needsLocalHandoff ? 0 : 1)
         .allowsHitTesting(!viewModel.needsLocalHandoff)
-        .accessibilityHidden(viewModel.needsLocalHandoff)
         .background(CatanTheme.waterBackground.ignoresSafeArea())
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier(AccessibilityID.Screen.game)

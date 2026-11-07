@@ -283,6 +283,11 @@ final class PassAndPlayFlowTests: XCTestCase {
         retain("Pass & Play – the purchaser sees the resumed card receipt", in: app)
         app.buttons["dev-cards.continue"].tap()
         XCTAssertTrue(app.buttons["End Turn"].waitForExistence(timeout: timeout))
+        app.buttons["dev-cards.shelf"].tap()
+        let card = app.buttons.matching(identifier: "dev-cards.tile.monopoly")
+        XCTAssertTrue(card.firstMatch.waitForExistence(timeout: timeout))
+        XCTAssertEqual(card.count, 1, "Only the card in the open hand should be accessible")
+        app.buttons["dev-cards.close"].tap()
 
         coldResume(in: app)
         claim("Player 2", in: app)
