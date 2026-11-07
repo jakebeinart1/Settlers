@@ -10,6 +10,7 @@ struct TradeDraftFeedback {
     let mode: Trading.DraftMode
     let player: PlayerID
     let state: GameState
+    var recipientName: String?
 
     var isBank: Bool { if case .bank = mode { true } else { false } }
     var isPlayersTurn: Bool { state.phase.isMainTurn(of: player.index) }
@@ -88,7 +89,9 @@ struct TradeDraftFeedback {
     private var playerMessage: String {
         if give.isEmpty { return "Tap a square to choose what you give. Your remaining cards appear below each resource." }
         if receive.isEmpty { return "Choose what you receive. Players can exchange any quantities." }
-        return "Offer \(cards(giveTotal)) for \(cards(receiveTotal)). Each bot decides whether to accept."
+        let terms = "Offer \(cards(giveTotal)) for \(cards(receiveTotal))."
+        if let recipientName { return "\(terms) \(recipientName) can accept or decline." }
+        return "\(terms) Each bot decides whether to accept."
     }
 
     private var bankMessage: String {

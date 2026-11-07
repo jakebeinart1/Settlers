@@ -230,6 +230,10 @@ public struct TradePopupView: View {
         viewModel.sortedHumanSeats.filter { $0 != viewModel.humanPlayer }
     }
 
+    private var recipientName: String? {
+        recipient.map { viewModel.playerIdentity(for: $0).displayName }
+    }
+
     private var recipientPicker: some View {
         Menu {
             ForEach(localRecipients, id: \.self) { seat in
@@ -254,7 +258,7 @@ public struct TradePopupView: View {
                 Text("Offer to")
                     .foregroundStyle(CatanTheme.onWaterText.opacity(0.8))
                 Spacer(minLength: 6)
-                Text(recipient.map { viewModel.playerIdentity(for: $0).displayName } ?? "AI players")
+                Text(recipientName ?? "AI players")
                     .lineLimit(1)
                 Image(systemName: "chevron.up.chevron.down").font(.caption)
             }
@@ -269,7 +273,7 @@ public struct TradePopupView: View {
 
     private var draftFeedback: TradeDraftFeedback {
         TradeDraftFeedback(give: give, receive: want, mode: mode == .bank ? .bank : .players,
-                           player: viewModel.humanPlayer, state: viewModel.state)
+                           player: viewModel.humanPlayer, state: viewModel.state, recipientName: recipientName)
     }
 
     /// Both trade modes edit the same two local-perspective piles. Bank changes

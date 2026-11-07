@@ -57,7 +57,8 @@ struct ContentView: View {
             get: {
                 let coveredTable = hasStartedThisSession && !isShowingMatchResult
                     && viewModel.savedGameAvailability.recoveryMessage == nil && viewModel.needsLocalHandoff
-                return isShowingPersistenceError && !(coveredTable && viewModel.persistenceBlocked)
+                return isShowingPersistenceError && viewModel.persistenceErrorMessage != nil
+                    && !(coveredTable && viewModel.persistenceBlocked)
             },
             set: { isShowingPersistenceError = $0 }
         )

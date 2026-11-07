@@ -120,6 +120,36 @@ final class PassAndPlayFlowTests: XCTestCase {
         XCTAssertEqual(resource("lumber", in: app), "2", "Reload must preserve the last committed hand")
     }
 
+    func testBackgroundAndMainMenuRequireAHandOffWithoutMovingTheBoard() {
+        let app = launchFixture("-qaPassAndPlayTrade")
+        claim("Player 1", in: app)
+        assertHandVisible(in: app)
+        let board = app.otherElements["board.surface"]
+        XCTAssertTrue(board.waitForExistence(timeout: timeout))
+        let initialFrame = board.frame
+        XCTAssertFalse(initialFrame.isEmpty)
+
+        XCUIDevice.shared.press(.home)
+        app.activate()
+        assertNamed("handoff.recipient", player: "Player 1", in: app)
+        assertPrivateContentHidden(in: app)
+        retain("Pass & Play – coming back to the app locks the private hand", in: app)
+
+        app.buttons["Main Menu"].tap()
+        let resume = app.buttons["main-menu.resume"]
+        XCTAssertTrue(resume.waitForExistence(timeout: timeout))
+        assertPrivateContentHidden(in: app)
+        resume.tap()
+        claim("Player 1", in: app, capture: "Pass & Play – the menu resumes behind the same handoff")
+        assertHandVisible(in: app)
+        XCTAssertEqual(resource("lumber", in: app), "2")
+        XCTAssertTrue(board.waitForExistence(timeout: timeout))
+        XCTAssertEqual(board.frame.minX, initialFrame.minX, accuracy: 1)
+        XCTAssertEqual(board.frame.minY, initialFrame.minY, accuracy: 1)
+        XCTAssertEqual(board.frame.width, initialFrame.width, accuracy: 1)
+        XCTAssertEqual(board.frame.height, initialFrame.height, accuracy: 1)
+    }
+
     func testGuestsActualWinningCityShowsANamedUnratedResult() throws {
         let app = launchFixture("-qaPassAndPlayWin")
         claim("Player 2", in: app)
@@ -219,6 +249,7 @@ final class PassAndPlayFlowTests: XCTestCase {
         XCTAssertEqual(grain.value as? String, String(askingGrain))
         let send = app.buttons["Send offer"]
         XCTAssertTrue(send.exists && send.isEnabled)
+        assertNamed("trade.feedback", player: "Player 2 can accept or decline", in: app)
         if let capture { retain(capture, in: app) }
         send.tap()
     }
