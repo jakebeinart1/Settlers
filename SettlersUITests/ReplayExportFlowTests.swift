@@ -32,12 +32,13 @@ final class ReplayExportFlowTests: XCTestCase {
         app.buttons["replay-export.share"].tap()
         let activityList = app.otherElements["ActivityListView"]
         XCTAssertTrue(activityList.waitForExistence(timeout: 5), "Share must present the native sheet with the actual MP4")
+        let close = app.buttons["Close"]
+        // UIKit exposes the activity container before the presentation animation finishes.
+        XCTAssertTrue(close.wait(for: \.isHittable, toEqual: true, timeout: 10), "The native share sheet must be ready to close")
         let screenshot = XCTAttachment(screenshot: app.screenshot())
         screenshot.name = "Public replay MP4 — native share sheet"
         screenshot.lifetime = .keepAlways
         add(screenshot)
-        let close = app.buttons["Close"]
-        XCTAssertTrue(close.isHittable)
         close.tap()
         XCTAssertTrue(activityList.waitForNonExistence(timeout: 5))
         XCTAssertTrue(preview.exists, "Dismissing Share must keep the generated video for another attempt")
