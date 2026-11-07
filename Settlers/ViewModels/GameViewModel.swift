@@ -619,12 +619,14 @@ public final class GameViewModel {
         guard let document = checkpointDocument else { throw MatchCheckpointStore.StoreError.staleRevision }
         try commitDocument(document.dismissingDevCardReveal())
         pendingDevCardReveal = nil
+        publishReplayAfterAcknowledging(document)
     }
 
     func acknowledgeDevCardResolution() throws {
         guard let document = checkpointDocument else { throw MatchCheckpointStore.StoreError.staleRevision }
         try commitDocument(document.dismissingDevCardResolution())
         pendingDevCardResolution = nil
+        publishReplayAfterAcknowledging(document)
     }
 
     /// Resolves every Random chair strictly inside the selected pool.
@@ -1142,6 +1144,7 @@ public extension GameViewModel {
     /// Reconcile uncertain writes without replaying the failed action blindly.
     @discardableResult
     func retryPersistence() -> Bool {
+        let previousDocument = checkpointDocument
         do {
             // This is an in-process recovery, not a cold launch: the same
             // person is still holding the phone. `installCheckpointMatch()`
@@ -1168,6 +1171,7 @@ public extension GameViewModel {
             persistenceErrorMessage = nil
             navalHarvestDraft.clearFailure()
             botTurnProgress = nil
+            if let previousDocument { publishReplayAfterAcknowledging(previousDocument) }
             return true
         } catch {
             _ = reportPersistenceFailure(error)

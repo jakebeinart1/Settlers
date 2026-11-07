@@ -192,15 +192,22 @@ extension GameViewModel {
     /// that Game History shows an in-progress game as of its last completed
     /// turn.
     ///
-    /// The first move of a match is a flush point too, so a game that has just
-    /// started is listed in Game History right away; it is also the cheapest
-    /// export a match will ever do. `appWillResignActive` flushes as well, so
-    /// a game left mid-turn still archives what it had.
+    /// Flush the first move too, so a solo game appears in History right away
+    /// and a shared game has its initial private recording. Backgrounding also
+    /// flushes any play committed since the last turn boundary.
     func exportCommittedRecordings(after move: GameMove, in document: MatchCheckpointDocument) {
         var isFlushPoint = document.activeMatch?.moves.count == 1
         if case .gameOver = state.phase { isFlushPoint = true }
         if case .endTurn = move { isFlushPoint = true }
         guard isFlushPoint else { return }
+        exportCommittedRecordings()
+    }
+
+    /// A successful acknowledgement can finish the public result without a
+    /// new move. Ordinary receipts do not warrant rewriting the archive.
+    func publishReplayAfterAcknowledging(_ previous: MatchCheckpointDocument) {
+        guard previous.holdsTerminalSharedReplay, let current = checkpointDocument,
+              current.activeMatch?.id == previous.activeMatch?.id, !current.holdsTerminalSharedReplay else { return }
         exportCommittedRecordings()
     }
 
@@ -210,12 +217,12 @@ extension GameViewModel {
         guard let document = checkpointDocument else { return }
         do {
             if let active = document.activeMatch, !active.moves.isEmpty {
-                _ = try gameLogStore.export(checkpoint: active)
+                _ = try gameLogStore.export(checkpoint: active, holdingPrivateReceipt: document.holdsTerminalSharedReplay)
             }
             for id in document.pendingExports.keys.sorted(by: { $0.uuidString < $1.uuidString }) {
                 guard let match = checkpointDocument?.pendingExports[id], let current = checkpointDocument else { continue }
                 try persistDisplacedRatingMatch(match)
-                _ = try gameLogStore.export(checkpoint: match)
+                _ = try gameLogStore.export(checkpoint: match, holdingPrivateReceipt: match.displacedWithPrivateReceipt == true)
                 try commitDocument(current.acknowledgingExport(of: match))
             }
             if let current = checkpointDocument {

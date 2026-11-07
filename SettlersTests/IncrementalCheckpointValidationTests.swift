@@ -171,34 +171,28 @@ import CatanAI
         return model
     }
 
-    /// The seat to move next. With several humans the model applies a move as
-    /// whoever the game is waiting on.
-    private func actingSeat(_ model: GameViewModel) -> PlayerID? {
-        switch model.state.phase {
-        case .setupForward(let index), .setupBackward(let index),
-             .rollDice(let index), .mainTurn(let index), .movingRobber(let index),
-             .choosingResource(let index), .capturingShip(let index):
-            return model.state.players[index].id
-        case .discarding(let pending):
-            return pending.sorted().first
-        case .gameOver:
-            return nil
-        }
+    private func actingSeat(_ model: GameViewModel) throws -> PlayerID? {
+        guard let seat = model.seatOwedATurn else { return nil }
+        if model.needsLocalHandoff { try #require(model.claimLocalDevice(for: seat)) }
+        return seat
     }
 
-    private func archivedMoveCount(_ fixture: CheckpointModelFixture) throws -> Int? {
-        try fixture.logStore.summaries().first?.moveCount
+    private func archivedMoveCount(_ fixture: CheckpointModelFixture, model: GameViewModel) throws -> Int? {
+        let id = try #require(model.currentGameLogID)
+        let file = fixture.privateGameLogs.appendingPathComponent("\(id.uuidString).jsonl")
+        guard FileManager.default.fileExists(atPath: file.path) else { return nil }
+        return try fixture.logStore.detail(for: file).summary.moveCount
     }
 
     @Test func theArchiveAppearsOnTheFirstMoveAndCatchesUpAtEveryTurnBoundary() throws {
         let fixture = try CheckpointModelFixture()
         let model = hotSeatModel(fixture)
-        #expect(try archivedMoveCount(fixture) == nil, "an unplayed game has nothing to archive")
+        #expect(try archivedMoveCount(fixture, model: model) == nil, "an unplayed game has nothing to archive")
 
         var sawStaleArchiveMidTurn = false
         var sawTurnBoundary = false
         for _ in 0..<120 {
-            guard let seat = actingSeat(model) else { break }
+            guard let seat = try actingSeat(model) else { break }
             let legal = RulesEngine.legalMoves(for: model.state, seat: seat)
             // Prefer anything over ending the turn, so turns contain several
             // moves and the mid-turn case is actually exercised; never buy a
@@ -214,9 +208,9 @@ import CatanAI
             } ?? legal[0]
             try model.apply(move)
             let recorded = model.checkpointDocument?.activeMatch?.moves.count ?? 0
-            let archived = try archivedMoveCount(fixture)
+            let archived = try archivedMoveCount(fixture, model: model)
             if recorded == 1 {
-                #expect(archived == 1, "a started game must be listed in Game History immediately")
+                #expect(archived == 1, "a started shared game must be recorded privately immediately")
             }
             if case .endTurn = move {
                 sawTurnBoundary = true
@@ -233,7 +227,7 @@ import CatanAI
         let fixture = try CheckpointModelFixture()
         let model = hotSeatModel(fixture)
         for _ in 0..<40 {
-            guard let seat = actingSeat(model) else { break }
+            guard let seat = try actingSeat(model) else { break }
             let legal = RulesEngine.legalMoves(for: model.state, seat: seat)
             let move = legal.first {
                 if case .endTurn = $0 { return false }
@@ -246,13 +240,13 @@ import CatanAI
             } ?? legal[0]
             try model.apply(move)
             let recorded = model.checkpointDocument?.activeMatch?.moves.count ?? 0
-            if recorded > 1, try archivedMoveCount(fixture) != recorded { break }
+            if recorded > 1, try archivedMoveCount(fixture, model: model) != recorded { break }
         }
         let recorded = model.checkpointDocument?.activeMatch?.moves.count ?? 0
-        #expect(try archivedMoveCount(fixture) != recorded, "the fixture never reached a stale archive")
+        #expect(try archivedMoveCount(fixture, model: model) != recorded, "the fixture never reached a stale archive")
 
         model.appWillResignActive()
 
-        #expect(try archivedMoveCount(fixture) == recorded)
+        #expect(try archivedMoveCount(fixture, model: model) == recorded)
     }
 }

@@ -586,6 +586,7 @@ final class CheckpointModelFixture {
     let setupStore: MatchSetupStore
     let civilizationStore: CivilizationAssignmentStore
     let logStore: GameLogStore
+    let privateGameLogs: URL
     let statsStore: GameStatsStore
 
     var setup: MatchSetup {
@@ -605,7 +606,9 @@ final class CheckpointModelFixture {
         setupStore = store
         gameStore = GameStore(fileURL: root.appendingPathComponent("save.json"))
         civilizationStore = CivilizationAssignmentStore(fileURL: root.appendingPathComponent("civilizations.json"))
-        logStore = GameLogStore(directoryURL: root.appendingPathComponent("logs"), maxKeptLogs: 10)
+        privateGameLogs = root.appendingPathComponent("private-logs")
+        logStore = GameLogStore(directoryURL: root.appendingPathComponent("logs"), maxKeptLogs: 10,
+                               privateDirectoryURL: privateGameLogs)
         statsStore = GameStatsStore(fileURL: root.appendingPathComponent("stats.json"))
     }
 

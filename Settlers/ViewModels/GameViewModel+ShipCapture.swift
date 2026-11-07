@@ -21,5 +21,6 @@ extension GameViewModel {
         guard let document = checkpointDocument else { throw MatchCheckpointStore.StoreError.staleRevision }
         try commitDocument(document.dismissingShipCapture())
         pendingShipCapture = nil
+        publishReplayAfterAcknowledging(document)
     }
 }

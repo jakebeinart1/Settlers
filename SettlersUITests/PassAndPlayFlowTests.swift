@@ -13,7 +13,7 @@ final class PassAndPlayFlowTests: XCTestCase {
     func testMixedTableHandoffAndColdResumeProtectTheGuestHand() throws {
         continueAfterFailure = false
         let guest = "Willa Morgan"
-        let app = openNewGame()
+        let app = openNewGame(extra: ["-qaSeedGameHistory"])
         setHuman(guest, at: 1, in: app)
         XCTAssertTrue(app.staticTexts["Pass & Play • 2 people • 2 AI"].exists)
         retain("Pass & Play – two people and two AI seats", in: app)
@@ -21,6 +21,7 @@ final class PassAndPlayFlowTests: XCTestCase {
 
         claim(owner, in: app, capture: "Pass & Play – initial handoff to the owner")
         try placeOpeningPair(in: app)
+        checkHistoryWhileCovered(in: app)
         claim(guest, in: app, capture: "Pass & Play – private handoff with a maximum-length name")
         retain("Pass & Play – Willa's first placement", in: app)
         try place(settlementPrefix, in: app)
@@ -179,6 +180,9 @@ final class PassAndPlayFlowTests: XCTestCase {
         app.buttons["game-over.main-menu"].tap()
         XCTAssertTrue(app.buttons["main-menu.new-game"].waitForExistence(timeout: timeout))
         XCTAssertFalse(app.buttons["main-menu.resume"].exists, "The finished match remained resumable")
+        let history = openGameHistory(in: app)
+        XCTAssertTrue(history.firstMatch.label.contains("Player 2 won"))
+        retain("Pass & Play – completed shared match appears in Game History", in: app)
     }
 
     func testDirectedTradeReturnsToTheProposerAfterTheOtherPersonAccepts() {
@@ -336,15 +340,38 @@ final class PassAndPlayFlowTests: XCTestCase {
         XCTAssertEqual(owner.value as? String, "0")
     }
 
-    private func openNewGame() -> XCUIApplication {
+    private func openNewGame(extra: [String] = []) -> XCUIApplication {
         let app = XCUIApplication()
-        app.launchArguments = ["-ui-testing", "-ui-testing-reset"]
+        app.launchArguments = ["-ui-testing", "-ui-testing-reset"] + extra
         app.launch()
         let newGame = app.buttons["main-menu.new-game"]
         XCTAssertTrue(newGame.waitForExistence(timeout: timeout))
         newGame.tap()
         XCTAssertTrue(app.otherElements["screen.new-game"].waitForExistence(timeout: timeout))
         return app
+    }
+
+    private func checkHistoryWhileCovered(in app: XCUIApplication) {
+        let menu = app.buttons["Main Menu"]
+        assertCoverControl(menu, in: app)
+        menu.tap()
+        let history = openGameHistory(in: app)
+        XCTAssertEqual(history.count, 1, "Only the previous completed match should be available")
+        XCTAssertFalse(history.firstMatch.label.contains("Unfinished game"))
+        retain("Pass & Play – Game History keeps the unfinished shared match private", in: app)
+        app.buttons["game-history.close"].tap()
+        let resume = app.buttons["main-menu.resume"]
+        XCTAssertTrue(resume.waitForExistence(timeout: timeout))
+        resume.tap()
+    }
+
+    private func openGameHistory(in app: XCUIApplication) -> XCUIElementQuery {
+        let button = app.buttons["main-menu.game-history"]
+        XCTAssertTrue(button.waitForExistence(timeout: timeout))
+        button.tap()
+        let entries = app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH %@", "game-history.game."))
+        XCTAssertTrue(entries.firstMatch.waitForExistence(timeout: timeout))
+        return entries
     }
 
     private func launchFixture(_ flag: String, extra: [String] = []) -> XCUIApplication {
