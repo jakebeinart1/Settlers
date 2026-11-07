@@ -1,8 +1,9 @@
 #if DEBUG
 import CatanEngine
+import Foundation
 
 enum QAPassAndPlayFixture {
-    case discard, botWait, win, trade, harvest, devCard
+    case discard, botWait, win, trade, harvest, devCard, recovery
 
     static var requested: Self? {
         if QALaunchFlag.passAndPlayDiscard.isSet { return .discard }
@@ -11,6 +12,7 @@ enum QAPassAndPlayFixture {
         if QALaunchFlag.passAndPlayTrade.isSet { return .trade }
         if QALaunchFlag.passAndPlayHarvest.isSet { return .harvest }
         if QALaunchFlag.passAndPlayDevCard.isSet { return .devCard }
+        if QALaunchFlag.passAndPlayRecovery.isSet { return .recovery }
         return nil
     }
 }
@@ -37,7 +39,7 @@ extension GameViewModel {
             let winner = PlayerID(index: 1)
             humans = [PlayerID(index: 0), winner]
             qaPreparePassAndPlayWin(winner: winner, in: &position)
-        case .trade:
+        case .trade, .recovery:
             humans = [PlayerID(index: 0), PlayerID(index: 1)]
             qaFundPassAndPlayHand([.lumber: 2], seat: 0, in: &position)
             qaFundPassAndPlayHand([.grain: 2], seat: 1, in: &position)
@@ -56,6 +58,11 @@ extension GameViewModel {
         }
         replaceStateForTesting(position, humanSeats: humans)
         releaseLocalDevice()
+        if fixture == .recovery {
+            // Seed the presentation boundary only. The valid checkpoint above
+            // is still read by the production reload action on the cover.
+            _ = reportPersistenceFailure(CocoaError(.fileWriteUnknown))
+        }
     }
 
     private func qaPassAndPlayPosition() -> GameState {

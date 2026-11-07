@@ -205,6 +205,8 @@ enum QALaunchFlag: String, CaseIterable {
     case passAndPlayHarvest = "-qaPassAndPlayHarvest"
     /// A guest can buy Monopoly through Build and privately reopen its receipt on Resume.
     case passAndPlayDevCard = "-qaPassAndPlayDevCard"
+    /// Seeds a blocked handoff over a valid checkpoint for real Reload taps.
+    case passAndPlayRecovery = "-qaPassAndPlayRecovery"
     /// Opens `GameHistoryView` over the main menu. Pair with
     /// `-qaSeedGameHistory`, or the screen correctly shows its empty state.
     case showGameHistory = "-qaShowGameHistory"

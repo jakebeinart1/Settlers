@@ -94,6 +94,32 @@ final class PassAndPlayFlowTests: XCTestCase {
         assertHandVisible(in: app)
     }
 
+    func testCoveredSaveRecoveryReloadsTheSameClaimantAtMaximumText() {
+        let app = launchFixture("-qaPassAndPlayRecovery", extra: [
+            "-UIPreferredContentSizeCategoryName", "UICTContentSizeCategoryAccessibilityXXXL",
+        ])
+        let paused = app.staticTexts["Game paused"]
+        XCTAssertTrue(paused.waitForExistence(timeout: timeout))
+        XCTAssertGreaterThan(paused.frame.height, 50, "The maximum text preference did not reach the cover")
+        XCTAssertFalse(app.buttons["handoff.ready"].exists)
+        assertPrivateContentHidden(in: app)
+        retain("Pass & Play – covered save recovery at maximum text", in: app)
+
+        let reload = app.buttons["bot-progress.retry"]
+        revealCoverControl(app.buttons["Main Menu"], in: app)
+        revealCoverControl(reload, in: app)
+        XCTAssertTrue(reload.label.contains("Reload saved game"))
+        retain("Pass & Play – reload action reachable at maximum text", in: app)
+        reload.tap()
+
+        let ready = app.buttons["handoff.ready"]
+        revealCoverControl(ready, in: app)
+        XCTAssertFalse(paused.exists)
+        claim("Player 1", in: app, capture: "Pass & Play – reload restores the named claimant at maximum text")
+        assertHandVisible(in: app)
+        XCTAssertEqual(resource("lumber", in: app), "2", "Reload must preserve the last committed hand")
+    }
+
     func testGuestsActualWinningCityShowsANamedUnratedResult() throws {
         let app = launchFixture("-qaPassAndPlayWin")
         claim("Player 2", in: app)
@@ -162,7 +188,10 @@ final class PassAndPlayFlowTests: XCTestCase {
         let recipient = app.buttons["trade.recipient"]
         XCTAssertTrue(recipient.waitForExistence(timeout: timeout))
         recipient.tap()
-        app.buttons["Player 2"].tap()
+        let player = app.buttons["Player 2"]
+        XCTAssertTrue(player.waitForExistence(timeout: timeout))
+        if capture != nil { retain("Pass & Play – recipient picker shows the named player", in: app) }
+        player.tap()
         app.buttons["trade.give.lumber"].tap()
         app.buttons["trade.want.grain"].tap()
         let send = app.buttons["Send offer"]
@@ -225,10 +254,10 @@ final class PassAndPlayFlowTests: XCTestCase {
         return app
     }
 
-    private func launchFixture(_ flag: String) -> XCUIApplication {
+    private func launchFixture(_ flag: String, extra: [String] = []) -> XCUIApplication {
         continueAfterFailure = false
         let app = XCUIApplication()
-        app.launchArguments = ["-ui-testing", "-ui-testing-reset", "-qaAutoStart", flag]
+        app.launchArguments = ["-ui-testing", "-ui-testing-reset", "-qaAutoStart", flag] + extra
         app.launch()
         return app
     }
@@ -264,6 +293,16 @@ final class PassAndPlayFlowTests: XCTestCase {
         let scroll = app.scrollViews.firstMatch
         for _ in 0..<4 where !control.isHittable { scroll.swipeUp() }
         XCTAssertTrue(control.isHittable)
+    }
+
+    private func revealCoverControl(_ control: XCUIElement, in app: XCUIApplication) {
+        let scroll = app.scrollViews.firstMatch
+        XCTAssertTrue(scroll.waitForExistence(timeout: timeout))
+        let viewport = scroll.frame.insetBy(dx: -1, dy: -1)
+        for _ in 0..<4 where !(control.isHittable && viewport.contains(control.frame)) {
+            if control.exists && control.frame.minY < viewport.minY { scroll.swipeDown() } else { scroll.swipeUp() }
+        }
+        XCTAssertTrue(control.isHittable && viewport.contains(control.frame), "Cover action must be reachable in full")
     }
 
     private func claim(_ player: String, in app: XCUIApplication, capture: String? = nil) {
