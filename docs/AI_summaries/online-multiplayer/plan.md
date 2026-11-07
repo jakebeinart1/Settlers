@@ -19,6 +19,23 @@ AI seats**. A distinct two-player ruleset is outside this plan. This document
 proposes the online feature and its stages; it does not authorize silently
 changing game rules or deploy a backend.
 
+On November 7, Alex clarified three distinct multiplayer experiences. All
+three belong in the product requirements; only their implementation order is
+local first, then online. None is implemented by this documentation.
+
+| Experience | Devices and people | Required experience |
+| --- | --- | --- |
+| Pass & Play | Several humans share one device, with optional AI seats | Clearly name the current turn owner and person owed an action; conceal private information before passing the phone and reveal only for the next person |
+| Asynchronous Online | Two, three or four humans on separate devices, within the existing table and optional AI fill | People can return later without everyone being online; preserve pending actions, notify the right person and resume the exact committed game |
+| Live Online | Separate devices, human/AI allocation chosen at setup | Visible turn time limits, clear remaining time and a defined policy when a player fails to act |
+
+Human/AI seat allocation is configured before starting. Two humans may occupy
+two seats in an existing supported table; that does not introduce a two-seat
+ruleset. The precise clock duration, interruption handling and timeout outcome
+remain design decisions. “Live” explicitly includes a time limit, not merely
+faster updates. See the [local-play interview](../local-human-play/plan.md) for
+the first implementation stage and its unanswered product choices.
+
 The experience should remain Empires: the existing board, painted navy/gold
 controls, civilizations and clear action dock. The motivation is to let Alex,
 Jake and Kyle start, leave, resume and finish a game together without sharing a
@@ -26,14 +43,17 @@ phone or losing progress when somebody disconnects.
 
 ## Proposed product contract
 
-- New Game offers **Solo**, **Pass & Play**, and **Online** as play types.
-  These are distinct from board mode, rules and AI difficulty.
+- Provisional entry layout: New Game offers **Solo**, **Pass & Play**, and
+  **Online** journeys, distinct from board mode, rules and AI difficulty.
+  Exact controls remain open in the local-play interview; the three supported
+  multiplayer experiences above are confirmed.
 - Online supports private friend rooms, invitations by link/code and a list of
   active games. Each person owns a seat through an authenticated identity;
   display names remain labels.
 - Live and asynchronous rooms use the same rules and durable match system.
   Their pace changes response windows, notifications and leaving behavior.
-  Live play updates foreground phones promptly; asynchronous play preserves
+  Live play has a visible turn countdown and updates foreground phones
+  promptly; asynchronous play preserves
   pending decisions until the relevant person returns or the agreed room
   policy resolves a deadline.
 - Reuse supported three/four-seat tables, allowing two or more human players
@@ -75,6 +95,10 @@ without a handoff cover. Therefore pass-and-play is a deliberate restoration
 and privacy task, not a feature we can assume is already finished.
 
 ## Player journey and UI
+
+The diagram separates journeys, not approved buttons. Whether local human
+roles live directly in the existing seat cards or behind a play-type choice
+is still open in the local-play interview. Preserve the current main menu.
 
 ```mermaid
 flowchart TD
@@ -197,6 +221,21 @@ Persist a typed pending decision with its owner, context, allowed response,
 deadline/policy and resolution. Turn owner, allowed actor and local viewer are
 separate concepts. One scheduler and one server clock serve both paces.
 
+Live time controls must cover setup placement as well as ordinary turns.
+They must define when a turn clock starts, which person is being
+timed during an off-turn discard/harvest/trade, whether the turn owner's clock
+pauses, and what happens on expiry. The board must identify the timed person
+without implying a different turn owner. Required choices cannot simply be
+skipped by a generic End Turn operation. These policies need agreement before
+implementation, including commands arriving at the deadline, repeated expiry,
+app backgrounding, disconnection, pauses and authority downtime. Reconnecting
+must not reset a clock. A duration and policy are visible before players ready.
+
+Asynchronous play must not require all humans online or depend on a foreground
+phone to advance AI turns. Its reminder/expiry policy is distinct from a live
+turn countdown. An active-games list shows both who owns the turn and whether
+this person owes an action, including an off-turn action.
+
 | Situation | Required behavior |
 | --- | --- |
 | Seven with multiple discards | Each owing person can submit their own valid choice; return to the correct turn afterward |
@@ -262,13 +301,13 @@ timer. Preserve local saves and historical replay decoding independently.
 
 ## Development stages and acceptance
 
-1. **Product decisions and flows.** After the separate local-play design and
-   implementation, settle online pace/deadline behavior,
+1. **Product decisions and flows.** After the separate local-play design,
+   implementation and complete native acceptance, settle online pace/deadline behavior,
    trade competition, quitting and rating policy. Review lobby, active-games,
    handoff, pending-action and reconnection wireframes in the existing theme.
-2. **Viewer and controller separation.** Restore selectable pass-and-play with
-   private handoffs. Isolate the fixed online viewer from whoever owes an action.
-   Preserve solo behavior and saved games.
+2. **Viewer and controller separation.** Reuse the completed local-play
+   foundation to isolate the fixed online viewer from whoever owes an action.
+   Preserve tested local handoffs, solo behavior and saved games.
 3. **Authority contract and privacy.** Prove commands, participant projections,
    actor validation, idempotency, durable revisions and private notices through
    headless clients using the real engine. Audit payloads for hidden information.
@@ -284,11 +323,19 @@ timer. Preserve local saves and historical replay decoding independently.
 7. **Failure and concurrency audit.** Drop/reorder/duplicate requests and replies;
    restart the authority; disconnect during a roll, discard, trade, harvest and
    victory; test two devices using one account and mismatched client versions.
-8. **Native product acceptance.** Complete live and asynchronous games on
-   separate physical phones/accounts. Capture every new state, compact and
+8. **Native product acceptance.** Recheck completed local play with several
+   humans, both with AI fill and with all-human tables, including private
+   handoffs for every off-turn obligation and app resume. Complete live and
+   asynchronous games on separate physical phones/accounts. Capture every new state, compact and
    enlarged-text layouts, background/resume and slow-network states. Use
    headless clients plus reused simulators for the test matrix rather than
    allocating a simulator for every participant. Keep the fixed board viewport.
+
+For live acceptance, exercise the countdown and each agreed expiry transition,
+including a late command racing the deadline and disconnect/reconnect. For
+async acceptance, let different people leave and return while required choices
+and AI turns remain recoverable. All three formats must finish real games;
+screenshots or a functioning lobby alone do not prove multiplayer works.
 
 Success means all participants agree on committed state and outcome, retain
 only permitted private information, resume without losing or duplicating a
