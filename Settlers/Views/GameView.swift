@@ -1173,11 +1173,6 @@ private extension GameView {
         }
     }
 
-    internal func claimLocalSeat(_ seat: PlayerID) {
-        guard viewModel.claimLocalDevice(for: seat) else { return }
-        Task { await viewModel.runBotTurnIfNeeded() }
-    }
-
     /// Drops every ephemeral surface owned by the outgoing player. Spatial
     /// proposals are cleared through the coordinator, so adding another board
     /// action cannot create a new handoff leak here.

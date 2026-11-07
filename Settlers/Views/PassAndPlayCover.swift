@@ -149,8 +149,8 @@ extension GameView {
             turnTitle: localTurnTitle,
             retryTitle: failure.map { _ in viewModel.persistenceBlocked ? "Reload saved game" : "Retry" },
             onReady: {
-                guard let seat else { return }
-                claimLocalSeat(seat)
+                guard let seat, viewModel.claimLocalDevice(for: seat) else { return }
+                Task { await viewModel.runBotTurnIfNeeded() }
             },
             onRetry: viewModel.retryBotProgress,
             onMenu: onExitToMenu
