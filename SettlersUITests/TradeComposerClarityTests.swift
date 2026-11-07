@@ -91,7 +91,11 @@ final class TradeComposerClarityTests: XCTestCase {
         let returned = expectation(for: NSPredicate(format: "isHittable == true"), evaluatedWith: review)
         wait(for: [returned], timeout: 3)
         XCTAssertEqual(app.otherElements["board.surface"].frame, boardFrame)
-        XCTAssertEqual(app.otherElements["game.command-row"].frame, commandFrame)
+        let returnedFrame = app.otherElements["game.command-row"].frame
+        XCTAssertEqual(returnedFrame.origin, commandFrame.origin)
+        XCTAssertEqual(returnedFrame.width, commandFrame.width)
+        // Accessibility snapshots can round the fractional height differently after a sheet.
+        XCTAssertEqual(returnedFrame.height, commandFrame.height, accuracy: 0.01)
         app.buttons["incoming-trade.reject"].tap()
     }
 
