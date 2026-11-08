@@ -154,7 +154,10 @@ extension OnlineDatabase {
     }
 
     mutating func unregister(_ installationID: UUID, for id: UUID) -> OnlineResponse {
-        accounts[id]?.devices = accounts[id]?.devices.filter { $0.installationID != installationID } ?? []
+        if var account = accounts[id] {
+            account.devices = account.devices.filter { $0.installationID != installationID }
+            accounts[id] = account
+        }
         outbox = outbox.filter { $0.value.accountID != id || $0.value.device.installationID != installationID }
         return .ok
     }
