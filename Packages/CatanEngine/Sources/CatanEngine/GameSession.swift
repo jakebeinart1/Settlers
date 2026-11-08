@@ -40,6 +40,21 @@ public struct GameObservation: Codable, Equatable, Sendable {
         self.legalMoves = legalMoves
     }
 
+    /// Restricts the action mask without recomputing public counts from a
+    /// position whose opponent hands and ordered decks may already be masked.
+    public func replacingLegalMoves(_ moves: [GameMove]) -> GameObservation {
+        GameObservation(copying: self, legalMoves: moves)
+    }
+
+    private init(copying source: GameObservation, legalMoves: [GameMove]) {
+        seat = source.seat
+        state = source.state
+        handCounts = source.handCounts
+        devCardCounts = source.devCardCounts
+        devCardDeckCount = source.devCardDeckCount
+        self.legalMoves = legalMoves
+    }
+
     public init(from decoder: any Decoder) throws {
         let values = try decoder.container(keyedBy: CodingKeys.self)
         seat = try values.decode(PlayerID.self, forKey: .seat)
@@ -155,6 +170,27 @@ public struct GameSession: Sendable {
         self.policyRNG = RandomSource(seed: policySeed)
         self.ledgers = Self.freshLedgers(for: state)
         restorePendingTradeBookkeeping()
+    }
+
+    /// An online authority can give the next commit fresh, private OS entropy.
+    /// The policy cursor, board, and counted beliefs stay intact. Seeded
+    /// simulations and offline replay continue to use their existing cursor.
+    public mutating func reseedGameplayRandomness(_ seed: UInt64) {
+        state.rng = RandomSource(seed: seed)
+    }
+
+    /// Replace a departing external seat without discarding its counted
+    /// beliefs or undoing any moves. A human can exceed the automated cap.
+    public mutating func installPolicy(_ policy: any Policy, for seat: PlayerID) {
+        policies[seat] = policy
+        if currentTurnSeat == seat {
+            actionsThisTurn = min(actionsThisTurn, Self.actionLimit(in: state))
+        }
+    }
+
+    /// A queued reply was already sampled against this exact trade position.
+    public func hasQueuedTradeResponse(for seat: PlayerID) -> Bool {
+        queuedTradeResponse?.seat == seat
     }
 
     /// Session-only progress is persisted alongside the board, not rebuilt by
