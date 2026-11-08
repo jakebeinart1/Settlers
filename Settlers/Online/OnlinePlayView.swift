@@ -60,7 +60,6 @@ struct OnlinePlayView: View {
         }
         .onDisappear { router.activeMatchID = nil }
         .interactiveDismissDisabled(!canGoBack)
-        .accessibilityIdentifier("online.screen")
     }
 
     private var header: some View {

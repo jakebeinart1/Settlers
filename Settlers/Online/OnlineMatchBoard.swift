@@ -36,7 +36,6 @@ struct OnlineMatchBoard: View {
                                  name: name, onClose: { editor = nil },
                                  onSubmit: { move in editor = nil; submit(move) })
         }
-        .accessibilityIdentifier("online.board")
     }
 
     private var board: some View {

@@ -142,7 +142,6 @@ struct OnlineLobby: View {
             GoldRowButton(title: "Leave Waiting Room", systemImage: "rectangle.portrait.and.arrow.right",
                           isEnabled: !model.isWorking, action: leave)
         }
-        .accessibilityIdentifier("online.lobby")
     }
 
     private var invite: some View {
