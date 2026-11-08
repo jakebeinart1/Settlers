@@ -19,8 +19,10 @@ struct OnlineBoardDecisionTests {
         draft.reconcile(with: context(state, moves: [selected]))
         #expect(draft.presentation?.legalVertices == [corner])
         let alternate = try #require(state.board.onBoardVertices.first { $0 != corner })
-        #expect(!draft.select(.vertex(alternate)))
-        #expect(draft.select(.vertex(corner)))
+        let selectedAlternate = draft.select(.vertex(alternate))
+        let selectedCorner = draft.select(.vertex(corner))
+        #expect(!selectedAlternate)
+        #expect(selectedCorner)
         #expect(draft.confirmableMove == selected)
     }
 
@@ -41,9 +43,11 @@ struct OnlineBoardDecisionTests {
         var draft = BoardDecisionCoordinator()
         draft.reconcile(with: context(state, moves: [move]))
         #expect(state.players[victim.index].resources.isEmpty)
-        #expect(draft.select(.tile(tile)))
+        let selectedTile = draft.select(.tile(tile))
+        #expect(selectedTile)
         #expect(draft.presentation?.legalVictims == [victim])
-        #expect(draft.select(.victim(victim)))
+        let selectedVictim = draft.select(.victim(victim))
+        #expect(selectedVictim)
         #expect(draft.confirmableMove == move)
     }
 
