@@ -107,6 +107,7 @@ final class OnlineLoopbackFlowTests: XCTestCase {
         online.tap()
         let game = app.buttons["online.game.\(match)"]
         try require(game, in: app, step: "restored online account", timeout: 15)
+        capture("online-your-games", app: app)
         game.tap()
         let road = app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH %@", "board.edge.")).firstMatch
         try require(road, in: app, step: "restored road choice", timeout: 12)

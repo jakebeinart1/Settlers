@@ -9,6 +9,7 @@ struct OnlineMatchBoard: View {
     let leave: () -> Void
     @State private var coordinator = BoardDecisionCoordinator()
     @State private var editor: OnlineMoveEditor?
+    @Environment(\.dynamicTypeSize) private var textSize
 
     private var state: GameState { gameplay.boardPresentationState }
     private var moves: [GameMove] { gameplay.legalMoves }
@@ -108,28 +109,44 @@ struct OnlineMatchBoard: View {
     }
 
     private var scoreStrip: some View {
-        ScrollView(.horizontal) {
-            HStack(spacing: 6) {
-                ForEach(gameplay.players) { player in
-                    HStack(spacing: 5) {
-                        CivilizationCrest(civilization: identity(player.id).civilization, size: 21)
-                        Text(player.id == gameplay.viewer ? "You" : name(player.id)).font(.caption.weight(.semibold))
-                        Text("\(player.victoryPoints) VP").font(.caption2.monospacedDigit())
-                            .foregroundStyle(SettingsChrome.ornamentGold)
-                        if player.id != gameplay.viewer {
-                            Label("\(player.resourceCount)", systemImage: "square.stack")
-                                .font(.caption2.monospacedDigit())
-                                .accessibilityLabel("\(player.resourceCount) resource cards")
-                        }
-                    }
-                    .padding(7)
-                    .background(PaintedChromeBackground(fill: .color(SettingsChrome.plaqueFill), cornerRadius: 8))
-                    .accessibilityElement(children: .combine)
+        Group {
+            if textSize.isAccessibilitySize {
+                ScrollView(.horizontal) { scoreCards }
+            } else {
+                scoreCards
+            }
+        }
+        .padding(.horizontal, 12)
+    }
+
+    private var scoreCards: some View {
+        HStack(spacing: 6) {
+            ForEach(gameplay.players, content: scoreCard)
+        }
+    }
+
+    private func scoreCard(_ player: OnlineGameplayPlayer) -> some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text(player.id == gameplay.viewer ? "You" : name(player.id))
+                .font(.caption.weight(.semibold))
+                .lineLimit(1)
+            HStack(spacing: 4) {
+                CivilizationCrest(civilization: identity(player.id).civilization, size: 16)
+                    .accessibilityHidden(true)
+                Text("\(player.victoryPoints) VP").foregroundStyle(SettingsChrome.ornamentGold)
+                if player.id != gameplay.viewer {
+                    Label("\(player.resourceCount)", systemImage: "square.stack")
+                        .accessibilityLabel("\(player.resourceCount) resource cards")
                 }
             }
-            .padding(.horizontal, 12)
+            .font(.caption2.monospacedDigit())
+            .lineLimit(1)
         }
-        .scrollIndicators(.hidden)
+        .fixedSize(horizontal: textSize.isAccessibilitySize, vertical: false)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(7)
+        .background(PaintedChromeBackground(fill: .color(SettingsChrome.plaqueFill), cornerRadius: 8))
+        .accessibilityElement(children: .combine)
     }
 
     private func dock(_ decision: BoardDecisionPresentation) -> some View {

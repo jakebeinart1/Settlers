@@ -125,8 +125,8 @@ struct OnlineLobby: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
             invite
-            OnlineInformation(title: "\(position.configuration.mode.displayName) · \(position.configuration.rules.displayName)",
-                              detail: position.configuration.pace.policyDescription)
+            OnlineInformation(title: position.configuration.pace.onlineLabel,
+                              detail: "\(tableRules)\n\(position.configuration.pace.policyDescription)")
             VStack(spacing: 8) {
                 ForEach(Array(position.seats.enumerated()), id: \.offset) { index, seat in
                     seatRow(seat, index: index)
@@ -142,6 +142,10 @@ struct OnlineLobby: View {
             GoldRowButton(title: "Leave Waiting Room", systemImage: "rectangle.portrait.and.arrow.right",
                           isEnabled: !model.isWorking, action: leave)
         }
+    }
+
+    private var tableRules: String {
+        "\(position.configuration.mode.displayName) · \(position.configuration.rules.displayName)"
     }
 
     private var invite: some View {
