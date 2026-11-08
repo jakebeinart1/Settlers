@@ -118,7 +118,7 @@ import VaporTesting
         var headers: HTTPHeaders = ["Content-Type": "application/json"]
         if let authorization { headers.add(name: .authorization, value: authorization) }
         return try await application.sendRequest(
-            .POST, "/v1/online", headers: headers, body: .init(data: try JSONEncoder().encode(command))
+            .POST, "/v1/online", headers: headers, body: .init(bytes: try JSONEncoder().encode(command))
         )
     }
 

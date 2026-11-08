@@ -67,6 +67,7 @@ struct StoredOnlineAccount: Codable, Sendable {
 }
 
 struct OnlineDevice: Codable, Hashable, Sendable {
+    let installationID: UUID
     let token: String
     let environment: OnlinePushEnvironment
 }

@@ -123,10 +123,11 @@ extension OnlineDatabase {
         case .leave(let id): return try leave(id, account: account, at: date)
         case .deleteAccount: return try deleteAccount(account, at: date)
         case .mute(let id, let muted): return try mute(id, account: account, muted: muted, at: date)
-        case .registerDevice(let token, let environment):
-            return try register(OnlineDevice(token: token, environment: environment), for: account, at: date)
-        case .unregisterDevice(let token):
-            return unregister(token, for: account)
+        case .registerDevice(let installationID, let token, let environment):
+            return try register(OnlineDevice(installationID: installationID, token: token, environment: environment),
+                                for: account, at: date)
+        case .unregisterDevice(let installationID):
+            return unregister(installationID, for: account)
         default: throw OnlineError.invalidRequest
         }
     }

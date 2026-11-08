@@ -17,8 +17,8 @@ public enum OnlineRequest: Codable, Sendable {
     case submit(matchID: UUID, command: OnlineCommand)
     case leave(matchID: UUID)
     case mute(matchID: UUID, muted: Bool)
-    case registerDevice(token: String, environment: OnlinePushEnvironment)
-    case unregisterDevice(token: String)
+    case registerDevice(installationID: UUID, token: String, environment: OnlinePushEnvironment)
+    case unregisterDevice(installationID: UUID)
 }
 
 public enum OnlineResponse: Codable, Sendable {

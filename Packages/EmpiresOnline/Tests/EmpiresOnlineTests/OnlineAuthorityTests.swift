@@ -97,7 +97,8 @@ struct OnlineAuthorityTests {
         let server = try fixture.open()
         let room = try await fixture.startedRoom(on: server, pace: .asynchronous)
         let token = String(repeating: "a9", count: 32)
-        _ = try await server.handle(.registerDevice(token: token, environment: .production), bearer: room.host)
+        let device = OnlineRequest.registerDevice(installationID: UUID(), token: token, environment: .production)
+        _ = try await server.handle(device, bearer: room.host)
         let alerts = await server.pendingPushes()
         let alert = try #require(alerts.first)
         #expect(alert.matchID == room.view.id)
@@ -108,7 +109,7 @@ struct OnlineAuthorityTests {
         if case .games(let games) = inbox { #expect(games.first?.needsYou == true) } else { Issue.record("Expected games") }
         _ = try await server.handle(.mute(matchID: room.view.id, muted: false), bearer: room.host)
         try await server.resolvePush(id: alert.id, result: .sent)
-        _ = try await server.handle(.registerDevice(token: token, environment: .production), bearer: room.host)
+        _ = try await server.handle(device, bearer: room.host)
         #expect(await server.pendingPushes().isEmpty)
         _ = try await server.handle(.deleteAccount, bearer: room.host)
         await #expect(throws: OnlineError.unauthorized) {

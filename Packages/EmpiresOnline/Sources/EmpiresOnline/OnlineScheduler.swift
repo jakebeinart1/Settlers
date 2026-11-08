@@ -13,6 +13,7 @@ extension OnlineAuthority {
 
     public func pendingPushes() -> [OnlinePush] {
         let now = clock()
+        let database = database
         return database.outbox.values.lazy
             .filter { !$0.delivered && $0.nextAttempt <= now && $0.expiresAt > now && database.canDeliver($0)
                 && database.accounts[$0.accountID]?.mutedRooms.contains($0.matchID) != true }
@@ -128,11 +129,8 @@ extension OnlineDatabase {
               device.token.utf8.allSatisfy({ (48...57).contains($0) || (97...102).contains($0) }),
               let account = accounts[id] else { throw OnlineError.invalidRequest }
         guard !account.devices.contains(device) else { return .ok }
-        guard account.devices.count < 8 else { throw OnlineError.conflict }
-        for other in Array(accounts.keys) where other != id && accounts[other]?.devices.contains(device) == true {
-            accounts[other]?.devices.remove(device)
-            outbox = outbox.filter { $0.value.accountID != other || $0.value.device != device }
-        }
+        replaceDeviceRegistration(with: device)
+        guard (accounts[id]?.devices.count ?? 0) < 8 else { throw OnlineError.conflict }
         accounts[id]?.devices.insert(device)
         for room in rooms.values {
             guard let seat = try? room.seat(for: id) else { continue }
@@ -143,9 +141,21 @@ extension OnlineDatabase {
         return .ok
     }
 
-    mutating func unregister(_ token: String, for id: UUID) -> OnlineResponse {
-        accounts[id]?.devices = accounts[id]?.devices.filter { $0.token != token } ?? []
-        outbox = outbox.filter { $0.value.accountID != id || $0.value.device.token != token }
+    private mutating func replaceDeviceRegistration(with device: OnlineDevice) {
+        for (accountID, account) in accounts {
+            let retired = account.devices.filter {
+                $0.installationID == device.installationID
+                    || ($0.token == device.token && $0.environment == device.environment)
+            }
+            guard !retired.isEmpty else { continue }
+            accounts[accountID]?.devices.subtract(retired)
+            outbox = outbox.filter { $0.value.accountID != accountID || !retired.contains($0.value.device) }
+        }
+    }
+
+    mutating func unregister(_ installationID: UUID, for id: UUID) -> OnlineResponse {
+        accounts[id]?.devices = accounts[id]?.devices.filter { $0.installationID != installationID } ?? []
+        outbox = outbox.filter { $0.value.accountID != id || $0.value.device.installationID != installationID }
         return .ok
     }
 
