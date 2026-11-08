@@ -10,13 +10,13 @@ final class OnlineLoopbackFlowTests: XCTestCase {
         continueAfterFailure = false
         let (app, room) = try await actingGuest(pace: .asynchronous)
         let corner = app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH %@", "board.vertex.")).firstMatch
-        XCTAssertTrue(corner.waitForExistence(timeout: 15))
+        try require(corner, in: app, step: "guest settlement", timeout: 15)
         corner.tap()
         let confirm = app.buttons["board-decision.confirm"]
-        XCTAssertTrue(confirm.waitForExistence(timeout: 5))
+        try require(confirm, in: app, step: "settlement confirmation", timeout: 5)
         confirm.tap()
         let road = app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH %@", "board.edge.")).firstMatch
-        XCTAssertTrue(road.waitForExistence(timeout: 12))
+        try require(road, in: app, step: "guest road", timeout: 12)
         capture("online-guest-road-after-placement", app: app)
         try resumeGuest(app, match: room.id)
     }
@@ -25,9 +25,9 @@ final class OnlineLoopbackFlowTests: XCTestCase {
         continueAfterFailure = false
         let (app, _) = try await actingGuest(pace: .timedLive)
         let corner = app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH %@", "board.vertex.")).firstMatch
-        XCTAssertTrue(corner.waitForExistence(timeout: 15))
+        try require(corner, in: app, step: "timed settlement", timeout: 15)
         let clock = app.staticTexts["online.clock"]
-        XCTAssertTrue(clock.waitForExistence(timeout: 5))
+        try require(clock, in: app, step: "timed countdown", timeout: 5)
         let first = try remainingSeconds(clock)
         XCTAssertGreaterThan(first, 0)
         XCTAssertLessThanOrEqual(first, 60)
@@ -44,11 +44,11 @@ final class OnlineLoopbackFlowTests: XCTestCase {
         let peer = OnlineTestPeer(endpoint: endpoint)
         let room = try await peer.createRoom(pace: pace)
         let app = launchGuest(endpoint: endpoint)
-        enterGuest(app, code: room.code)
+        try enterGuest(app, code: room.code)
         let ready = app.buttons["online.ready"]
-        XCTAssertTrue(ready.waitForExistence(timeout: 15))
+        try require(ready, in: app, step: "readiness control", timeout: 15)
         ready.tap()
-        XCTAssertTrue(app.buttons["Unready"].waitForExistence(timeout: 10))
+        try require(app.buttons["Unready"], in: app, step: "readiness confirmed")
         try await peer.startAndPassFirstSetup(in: room)
         return (app, room)
     }
@@ -77,24 +77,24 @@ final class OnlineLoopbackFlowTests: XCTestCase {
         return app
     }
 
-    private func enterGuest(_ app: XCUIApplication, code: String) {
+    private func enterGuest(_ app: XCUIApplication, code: String) throws {
         let online = app.buttons["main-menu.online"]
-        XCTAssertTrue(online.waitForExistence(timeout: 10))
+        try require(online, in: app, step: "online menu")
         online.tap()
         let name = app.textFields["online.account.name"]
-        XCTAssertTrue(name.waitForExistence(timeout: 10))
+        try require(name, in: app, step: "account entry")
         name.tap()
         name.typeText("Guest")
         app.buttons["online.account.submit"].tap()
         let join = app.buttons["online.join"]
-        XCTAssertTrue(join.waitForExistence(timeout: 15))
+        try require(join, in: app, step: "account created", timeout: 15)
         join.tap()
         let invitation = app.textFields["online.invite-entry"]
-        XCTAssertTrue(invitation.waitForExistence(timeout: 10))
+        try require(invitation, in: app, step: "invite entry")
         invitation.tap()
         invitation.typeText(code)
         app.buttons["online.room-submit"].tap()
-        XCTAssertTrue(app.staticTexts["online.invite-code"].waitForExistence(timeout: 12))
+        try require(app.staticTexts["online.invite-code"], in: app, step: "joined waiting room", timeout: 12)
         capture("online-guest-lobby", app: app)
     }
 
@@ -103,14 +103,21 @@ final class OnlineLoopbackFlowTests: XCTestCase {
         app.launchArguments.removeAll { $0 == "-ui-testing-reset" }
         app.launch()
         let online = app.buttons["main-menu.online"]
-        XCTAssertTrue(online.waitForExistence(timeout: 10))
+        try require(online, in: app, step: "relaunched online menu")
         online.tap()
         let game = app.buttons["online.game.\(match)"]
-        XCTAssertTrue(game.waitForExistence(timeout: 15))
+        try require(game, in: app, step: "restored online account", timeout: 15)
         game.tap()
         let road = app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH %@", "board.edge.")).firstMatch
-        XCTAssertTrue(road.waitForExistence(timeout: 12))
+        try require(road, in: app, step: "restored road choice", timeout: 12)
         capture("online-guest-resumed", app: app)
+    }
+
+    private func require(_ element: XCUIElement, in app: XCUIApplication, step: String, timeout: TimeInterval = 10,
+                         file: StaticString = #filePath, line: UInt = #line) throws {
+        let exists = element.waitForExistence(timeout: timeout)
+        if !exists { capture("online-failure-\(step)", app: app) }
+        _ = try XCTUnwrap(exists ? element : nil, "Online flow stopped at \(step).", file: file, line: line)
     }
 
     private func capture(_ name: String, app: XCUIApplication) {
