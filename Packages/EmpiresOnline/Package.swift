@@ -14,6 +14,6 @@ let package = Package(
         .target(name: "EmpiresOnline", dependencies: [
             "CatanEngine", "CatanAI", .product(name: "Crypto", package: "swift-crypto")
         ]),
-        .testTarget(name: "EmpiresOnlineTests", dependencies: ["EmpiresOnline", "CatanEngine"])
+        .testTarget(name: "EmpiresOnlineTests", dependencies: ["EmpiresOnline", "CatanEngine", "CatanAI"])
     ]
 )

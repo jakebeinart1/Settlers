@@ -229,6 +229,14 @@ gate_secrets() {
 # PIPESTATUS, per the first property in CLAUDE.md - but a gate that says only
 # "something failed" costs an hour to act on. Swift Testing's marker is the
 # separate "✘".
+xcodebuild_for_gate() {
+  if [[ -n "${GATE_XCODE_DERIVED_DATA_PATH:-}" ]]; then
+    xcodebuild "$@" -derivedDataPath "$GATE_XCODE_DERIVED_DATA_PATH"
+  else
+    xcodebuild "$@"
+  fi
+}
+
 gate_app_tests() {
   local sim; sim="$(qa_iphone_simulator)"
   if [[ -z "$sim" ]]; then return 200; fi
@@ -236,7 +244,7 @@ gate_app_tests() {
   local parallel=YES
   if [[ "$workers" == 1 ]]; then parallel=NO; fi
   echo "  QA simulator: $sim ($workers parallel workers)"
-  xcodebuild test -project Settlers.xcodeproj -scheme Settlers \
+  xcodebuild_for_gate test -project Settlers.xcodeproj -scheme Settlers \
     OTHER_SWIFT_FLAGS="\$(inherited) -driver-batch-count ${GATE_BUILD_JOBS:-2}" \
     -jobs "${GATE_BUILD_JOBS:-2}" \
     -destination "platform=iOS Simulator,id=$sim" \
@@ -262,7 +270,7 @@ qa_iphone_simulator() {
 gate_app_build() {
   local sim; sim="$(qa_iphone_simulator)"
   if [[ -z "$sim" ]]; then return 200; fi
-  xcodebuild -project Settlers.xcodeproj -scheme Settlers \
+  xcodebuild_for_gate -project Settlers.xcodeproj -scheme Settlers \
     OTHER_SWIFT_FLAGS="\$(inherited) -driver-batch-count ${GATE_BUILD_JOBS:-2}" \
     -jobs "${GATE_BUILD_JOBS:-2}" \
     -destination "platform=iOS Simulator,id=$sim" \
