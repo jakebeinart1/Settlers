@@ -7,7 +7,10 @@ import Glibc
 #endif
 
 struct OnlineStore {
+    enum SaveError: Error { case uncertainCommit }
+
     private let url: URL
+    private let directoryHandle: FileHandle
     // Holding the descriptor excludes a second writer even after a crash/restart.
     private let lock: FileHandle
 
@@ -17,6 +20,9 @@ struct OnlineStore {
             attributes: [.posixPermissions: 0o700]
         )
         try FileManager.default.setAttributes([.posixPermissions: 0o700], ofItemAtPath: directory.path)
+        let directoryDescriptor = open(directory.path, O_RDONLY | O_DIRECTORY | O_NOFOLLOW)
+        guard directoryDescriptor >= 0 else { throw OnlineError.unavailable }
+        directoryHandle = FileHandle(fileDescriptor: directoryDescriptor, closeOnDealloc: true)
         let lockPath = directory.appendingPathComponent("authority.lock").path
         let descriptor = open(lockPath, O_CREAT | O_RDWR | O_NOFOLLOW, 0o600)
         guard descriptor >= 0 else { throw OnlineError.unavailable }
@@ -46,6 +52,7 @@ struct OnlineStore {
         try file.synchronize()
         try file.close()
         guard rename(staging.path, url.path) == 0 else { throw OnlineError.unavailable }
+        guard fsync(directoryHandle.fileDescriptor) == 0 else { throw SaveError.uncertainCommit }
     }
 }
 

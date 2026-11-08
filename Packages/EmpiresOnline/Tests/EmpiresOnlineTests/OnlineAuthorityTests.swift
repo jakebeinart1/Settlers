@@ -4,6 +4,28 @@ import Testing
 @testable import EmpiresOnline
 
 struct OnlineAuthorityTests {
+    @Test func successorHostCanFillTheDepartedHostsSeat() async throws {
+        let fixture = try AuthorityFixture()
+        let server = try fixture.open()
+        let host = try await server.newBearer("Host")
+        let successor = try await server.newBearer("Successor")
+        let guest = try await server.newBearer("Guest")
+        let configuration = OnlineConfiguration(pace: .asynchronous, mode: .classic, rules: .standard,
+                                                aiSeats: [nil, nil, nil, .classicAI])
+        let room = try await server.match(.createRoom(configuration: configuration,
+                                                       civilization: "greece"), bearer: host)
+        _ = try await server.match(.join(code: room.code, civilization: "rome"), bearer: successor)
+        _ = try await server.match(.join(code: room.code, civilization: "norse"), bearer: guest)
+        _ = try await server.handle(.leave(matchID: room.id), bearer: host)
+        let transferred = try await server.match(.view(matchID: room.id), bearer: successor)
+        #expect(transferred.host)
+        let filled = OnlineConfiguration(pace: .asynchronous, mode: .classic, rules: .standard,
+                                        aiSeats: [.classicAI, nil, nil, .expertAI])
+        let edited = try await server.match(.configure(matchID: room.id, configuration: filled,
+            revision: transferred.lobbyRevision), bearer: successor)
+        #expect(edited.seats.map(\.role) == [.classicAI, .human, .human, .expertAI])
+    }
+
     @Test func staleLobbyReadinessCannotAuthorizeChangedRules() async throws {
         let fixture = try AuthorityFixture()
         let server = try fixture.open()
@@ -90,6 +112,26 @@ struct OnlineAuthorityTests {
     private func makeLiveRoom(fixture: AuthorityFixture) async throws -> RoomFixture {
         let server = try fixture.open()
         return try await fixture.startedRoom(on: server, pace: .timedLive)
+    }
+
+    @Test func serviceOutageDoesNotExtendAnAsyncTrade() {
+        let start = Date(timeIntervalSince1970: 100)
+        let deadline = start.addingTimeInterval(120)
+        let action = OnlinePendingAction(id: UUID(), seat: PlayerID(index: 0),
+                                        kind: .trade, deadline: deadline)
+        let configuration = OnlineConfiguration(pace: .asynchronous, mode: .classic, rules: .standard,
+                                                aiSeats: [nil, nil, .classicAI])
+        var room = StoredOnlineRoom(id: UUID(), code: "test", createdAt: start, hostID: nil,
+                                    configuration: configuration, seats: [])
+        room.status = .playing
+        room.decisions = [StoredOnlineDecision(action: action,
+            scope: OnlineDecisionScope(turn: 1, phase: "trade"), openedAt: start)]
+        var database = OnlineDatabase(lastServiceAt: start)
+        database.rooms[room.id] = room
+
+        database.pauseDeadlinesForOutage(at: deadline.addingTimeInterval(3600))
+
+        #expect(database.rooms[room.id]?.decisions.first?.action.deadline == deadline)
     }
 
     @Test func asyncActionsDriveAlertsWithoutAClientAndMuteDoesNotEraseTheInbox() async throws {

@@ -9,6 +9,7 @@ public actor OnlineAuthority {
     let store: OnlineStore
     var database: OnlineDatabase
     let clock: @Sendable () -> Date
+    private var storageHealthy = true
 
     public init(directory: URL, clock: @escaping @Sendable () -> Date = { Date() }) throws {
         let store = try OnlineStore(directory: directory)
@@ -23,6 +24,7 @@ public actor OnlineAuthority {
     }
 
     public func handle(_ request: OnlineRequest, bearer: String?) throws -> OnlineResponse {
+        guard storageHealthy else { throw OnlineError.unavailable }
         let date = clock()
         if case .createAccount(let name) = request {
             return try update(at: date) { try $0.createAccount(name: name) }
@@ -45,18 +47,29 @@ public actor OnlineAuthority {
     func update<Result>(
         at date: Date, _ change: (inout OnlineDatabase) throws -> Result
     ) throws -> Result {
+        guard storageHealthy else { throw OnlineError.unavailable }
         var next = database
         next.pauseDeadlinesForOutage(at: date)
         let result = try change(&next)
         next.lastServiceAt = date
-        try store.save(next)
+        do {
+            try store.save(next)
+        } catch OnlineStore.SaveError.uncertainCommit {
+            // Do not overwrite a possibly committed on-disk revision using a
+            // stale in-memory value. Restart from the sole writer's snapshot.
+            storageHealthy = false
+            throw OnlineError.unavailable
+        }
         database = next
         return result
     }
+
+    public var isReady: Bool { storageHealthy }
 }
 
 extension OnlineDatabase {
     mutating func createAccount(name: String) throws -> OnlineResponse {
+        guard accounts.count < 1_000 else { throw OnlineError.unavailable }
         let trimmed = name.trimmingCharacters(in: .whitespacesAndNewlines)
         guard (1...24).contains(trimmed.count), trimmed.utf8.count <= 96,
               !trimmed.unicodeScalars.contains(where: CharacterSet.controlCharacters.contains) else {

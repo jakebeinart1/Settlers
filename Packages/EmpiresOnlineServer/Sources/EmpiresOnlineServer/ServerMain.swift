@@ -7,7 +7,6 @@ enum ServerMain {
     static func main() async throws {
         let configuration = try ServerConfiguration()
         let authority = try OnlineAuthority(directory: configuration.dataDirectory)
-        try await authority.tick()
         let application = try await Application.make(.production)
         do {
             application.http.server.configuration.hostname = configuration.hostname

@@ -12,6 +12,7 @@ extension OnlineDatabase {
         _ configuration: OnlineConfiguration, civilization: String, account: UUID, at date: Date
     ) throws -> OnlineResponse {
         try configuration.validate()
+        guard configuration.aiSeats[0] == nil else { throw OnlineError.invalidRequest }
         try validateCivilization(civilization)
         let activeRooms = rooms.values.lazy.filter {
             $0.hostID == account && ($0.status == .lobby || $0.status == .playing)
@@ -143,7 +144,7 @@ extension OnlineDatabase {
 
 private extension OnlineConfiguration {
     func validate() throws {
-        guard (3...4).contains(aiSeats.count), aiSeats[0] == nil,
+        guard (3...4).contains(aiSeats.count),
               aiSeats.filter({ $0 == nil }).count >= 2,
               aiSeats.allSatisfy({ $0 == nil || $0?.isBot == true }),
               GameMode.newGameChoices.contains(mode), mode != .naval || rules == .standard else {

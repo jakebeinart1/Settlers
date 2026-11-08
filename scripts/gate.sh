@@ -134,6 +134,15 @@ gate_packages_build() {
 gate_engine_tests() { ( cd Packages/CatanEngine && swift test --jobs "${GATE_BUILD_JOBS:-2}" --enable-code-coverage ); }
 gate_ai_tests()     { ( cd Packages/CatanAI && swift test --jobs "${GATE_BUILD_JOBS:-2}" --enable-code-coverage ); }
 
+gate_online_tests() {
+  local shared_scratch="${GATE_ONLINE_SHARED_SCRATCH:-$REPO_ROOT/Packages/EmpiresOnline/.build}"
+  local server_scratch="${GATE_ONLINE_SERVER_SCRATCH:-$REPO_ROOT/Packages/EmpiresOnlineServer/.build}"
+  swift test --package-path "$REPO_ROOT/Packages/EmpiresOnline" --scratch-path "$shared_scratch" \
+    --jobs "${GATE_BUILD_JOBS:-2}" --force-resolved-versions -Xswiftc -warnings-as-errors &&
+  swift test --package-path "$REPO_ROOT/Packages/EmpiresOnlineServer" --scratch-path "$server_scratch" \
+    --jobs "${GATE_BUILD_JOBS:-2}" --force-resolved-versions
+}
+
 
 # --- 5. Coverage floors ---------------------------------------------------
 # Floors sit ~1 point under the measured figure. See scripts/coverage.sh for
@@ -287,6 +296,7 @@ maybe "evaluation tooling"     gate_evaluation_tools
 maybe "packages build (W=E)"    gate_packages_build
 maybe "CatanEngine tests"       gate_engine_tests
 maybe "CatanAI tests"           gate_ai_tests
+maybe "online multiplayer tests" gate_online_tests
 maybe "coverage floors"         gate_coverage
 maybe "gitleaks"                gate_secrets
 maybe "app tests"               gate_app_tests

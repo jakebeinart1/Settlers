@@ -11,6 +11,8 @@ packages:
     path: Packages/CatanEngine
   CatanAI:
     path: Packages/CatanAI
+  EmpiresOnline:
+    path: Packages/EmpiresOnline
 targets:
   Settlers:
     type: application
@@ -56,6 +58,7 @@ targets:
     dependencies:
       - package: CatanEngine
       - package: CatanAI
+      - package: EmpiresOnline
     info:
       path: Settlers/Info.plist
       properties:
@@ -72,6 +75,19 @@ targets:
         UIFileSharingEnabled: true
         # The CloudKit container of the online ladder; empty means no sync.
         EmpiresCloudKitContainer: $(SETTLERS_CLOUDKIT_CONTAINER)
+        EmpiresOnlineServerURL: $(SETTLERS_ONLINE_SERVER_URL)
+        EmpiresOnlinePushEnvironment: $(SETTLERS_ONLINE_PUSH_ENVIRONMENT)
+        CFBundleURLTypes:
+          - CFBundleURLName: empires-online
+            CFBundleURLSchemes: [empires]
+        NSAppTransportSecurity:
+          # Debug QA talks to a loopback authority. The Release transport
+          # independently requires HTTPS for any configured server.
+          NSExceptionDomains:
+            localhost:
+              NSExceptionAllowsInsecureHTTPLoads: true
+            "127.0.0.1":
+              NSExceptionAllowsInsecureHTTPLoads: true
         LSSupportsOpeningDocumentsInPlace: true
         UILaunchScreen: {}
         UISupportedInterfaceOrientations:
@@ -107,6 +123,8 @@ targets:
         TEST_TARGET_NAME: Settlers
     dependencies:
       - target: Settlers
+      - package: CatanEngine
+      - package: EmpiresOnline
 
 schemes:
   Settlers:

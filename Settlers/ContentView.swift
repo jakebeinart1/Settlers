@@ -16,6 +16,7 @@ struct ContentView: View {
     @State private var isShowingUnreadableSaveAlert = false
     @State private var isShowingPersistenceError = false
     @State private var isShowingGameLogWarning = false
+    @State private var isShowingOnlinePlay = false
     #if DEBUG
     @State private var qaFailureMessage: String?
     #endif
@@ -127,7 +128,8 @@ struct ContentView: View {
                     statistics: viewModel.statistics,
                     requiresSaveReplacementConfirmation: viewModel.requiresSaveReplacementConfirmation,
                     newGameSetupLoadResult: viewModel.newGameSetupLoadResult,
-                    savedGameHasRatingAtStake: viewModel.abandoningChangesRating
+                    savedGameHasRatingAtStake: viewModel.abandoningChangesRating,
+                    onOnline: OnlinePlayView.isConfigured ? { isShowingOnlinePlay = true } : nil
                 )
             }
         }
@@ -136,6 +138,20 @@ struct ContentView: View {
         .animation(.easeInOut(duration: 0.9), value: viewModel.victoryCutscenePending)
         .fullScreenCover(isPresented: $isAskingLadderName) {
             LadderNamePrompt { isAskingLadderName = false }
+        }
+        .fullScreenCover(isPresented: $isShowingOnlinePlay) {
+            OnlinePlayView { isShowingOnlinePlay = false }
+        }
+        .onOpenURL { _ = OnlineNotificationRouter.shared.open(url: $0) }
+        .onChange(of: OnlineNotificationRouter.shared.route, initial: true) { _, route in
+            if route != nil, OnlinePlayView.isConfigured, !isAskingLadderName {
+                isShowingOnlinePlay = true
+            }
+        }
+        .onChange(of: isAskingLadderName) { _, isAsking in
+            if !isAsking, OnlinePlayView.isConfigured, OnlineNotificationRouter.shared.route != nil {
+                isShowingOnlinePlay = true
+            }
         }
         #if DEBUG
         .alert("Automated match stopped", isPresented: Binding(

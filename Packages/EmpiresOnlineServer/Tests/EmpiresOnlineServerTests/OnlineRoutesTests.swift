@@ -66,7 +66,7 @@ import VaporTesting
             let submit = OnlineRequest.submit(matchID: playing.id, command: command)
 
             let unauthorized = try await request(.view(matchID: playing.id), application, authorization: outsider)
-            #expect(unauthorized.status == .forbidden)
+            #expect(unauthorized.status == .notFound)
             let guestView = try await match(.view(matchID: playing.id), application, authorization: guest)
             #expect(guestView.gameplay?.legalMoves.isEmpty == true)
 

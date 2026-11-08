@@ -89,6 +89,18 @@ jobs:
             echo "::endgroup::"
           done
 
+  online:
+    name: Online Multiplayer (Linux)
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    container: swift:6.1.3
+    steps:
+      - uses: actions/checkout@v5
+      - name: Test match authority
+        run: swift test --package-path Packages/EmpiresOnline --force-resolved-versions --jobs 2 -Xswiftc -warnings-as-errors
+      - name: Test HTTP and notification adapters
+        run: swift test --package-path Packages/EmpiresOnlineServer --force-resolved-versions --jobs 2
+
   lint:
     name: SwiftLint
     runs-on: ubuntu-latest

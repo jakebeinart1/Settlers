@@ -12,6 +12,7 @@ extension OnlineAuthority {
     }
 
     public func pendingPushes() -> [OnlinePush] {
+        guard isReady else { return [] }
         let now = clock()
         let database = database
         return database.outbox.values.lazy
@@ -46,14 +47,16 @@ extension OnlineDatabase {
         let gap = date.timeIntervalSince(lastServiceAt)
         guard gap > Self.outageThreshold else { return }
         for id in Array(rooms.keys) {
-            guard var room = rooms[id], room.status == .playing else { continue }
+            guard var room = rooms[id], room.status == .playing, room.configuration.pace == .timedLive else {
+                continue
+            }
             room.decisions = room.decisions.map { $0.shiftingDeadline(by: gap) }
             if let resumed = room.turnClock?.resumedAt {
                 room.turnClock?.resumedAt = resumed.addingTimeInterval(gap)
             }
             rooms[id] = room
         }
-        for (id, var push) in outbox {
+        for (id, var push) in outbox where rooms[push.matchID]?.configuration.pace == .timedLive {
             push.expiresAt = push.expiresAt.addingTimeInterval(gap)
             outbox[id] = push
         }

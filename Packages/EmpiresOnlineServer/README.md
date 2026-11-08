@@ -34,7 +34,10 @@ docker build -f Packages/EmpiresOnlineServer/Dockerfile -t empires-online-server
 
 Run one always-on instance behind a trusted HTTPS ingress. Bind the container
 only to its private ingress network and apply per-client rate limits at the
-edge, including the account creation route. Attach a persistent volume at
+edge. The authority limits anonymous account creation to 20 per direct peer
+and 120 globally per hour, with a maximum of 1,000 stored accounts. Behind
+one proxy, that peer limit covers all requests arriving from the proxy.
+Attach a persistent volume at
 `/var/lib/empires-online` or set `EMPIRES_ONLINE_DATA_DIRECTORY` to a different
 absolute mount path. The directory must be writable by UID and GID 10001 and
 private to the server. Deployments should replace the old instance before
@@ -46,6 +49,11 @@ Configure `/health` as the startup probe. Preserve the state directory across
 restarts and keep private, access-controlled volume backups. Exercise restoration
 into an isolated volume before production. Recovery must restore the entire
 authority snapshot, including command receipts, active rooms and the push outbox.
+Before changing the rules or AI policy versions, start the proposed executable
+against a copy of the complete production snapshot and verify readiness and
+representative active rooms. If any checkpoint cannot load, keep the previous
+binary and prepare a verified migration before updating the volume. Treat
+finished room retention as part of that preflight too.
 
 ## Enable notifications
 
@@ -68,5 +76,14 @@ With no APNs settings the service runs for local development. Pending actions
 still appear in Your Games. Partial configuration fails startup so a broken
 credential setup is visible. Production acceptance requires a real notification
 on a locked phone, opening its current authorized match after a cold launch.
+
+The app shows Online Play only when the signed build supplies
+`SETTLERS_ONLINE_SERVER_URL` with an HTTPS origin. In the ignored local
+signing override, escape the URL's double slash with
+`https:/$()/your-host.example`. For TestFlight set
+`SETTLERS_ONLINE_PUSH_ENVIRONMENT = production` and choose
+`Settlers/OnlinePushAndLiveSync.entitlements` when the build uses the
+CloudKit ladder, or `Settlers/OnlinePush.entitlements` for push alone.
+Leave the shared signing defaults as committed.
 
 [Apple push capability and device registration](https://developer.apple.com/documentation/usernotifications/registering-your-app-with-apns) · [Apple provider authentication](https://developer.apple.com/documentation/usernotifications/establishing-a-token-based-connection-to-apns)
