@@ -373,6 +373,7 @@ private extension OnlineSeatRole {
     }
 }
 
+@MainActor
 enum OnlineAlertPermission {
     static func request(model: OnlinePlayModel, router: OnlineNotificationRouter) async {
         do {
