@@ -13,6 +13,7 @@ struct OnlinePlayView: View {
     @State private var panel: OnlineEntryPanel?
     @State private var inviteCode = ""
     @State private var showingLeave = false
+    @State private var didRestore = false
     @State private var routeRetry: RouteRetry?
     @Environment(\.scenePhase) private var scenePhase
 
@@ -40,6 +41,7 @@ struct OnlinePlayView: View {
         }
         .task {
             await model.restore()
+            didRestore = true
             await followRoute()
             await model.refresh()
             if model.account != nil { await OnlineDeviceRegistrar.shared.resume() }
@@ -57,17 +59,17 @@ struct OnlinePlayView: View {
             if failed { model.message = "Turn alerts could not be registered. Your Games still shows pending actions." }
         }
         .onDisappear { router.activeMatchID = nil }
+        .interactiveDismissDisabled(!canGoBack)
         .accessibilityIdentifier("online.screen")
     }
 
     private var header: some View {
         HStack(spacing: 10) {
-            Button {
-                if model.match != nil { Task { await model.showGames() } } else { onClose() }
-            } label: {
+            Button(action: goBack) {
                 Image(systemName: "chevron.left")
                     .frame(width: 44, height: 44)
             }
+            .disabled(!canGoBack)
             .accessibilityLabel(model.match == nil ? "Main Menu" : "Your Games")
             VStack(alignment: .leading, spacing: 2) {
                 Text("E M P I R E S   O N L I N E")
@@ -90,6 +92,22 @@ struct OnlinePlayView: View {
         .padding(.horizontal, 8)
         .padding(.bottom, 8)
         .background(.black.opacity(0.25))
+    }
+
+    // The next presentation reads the same pending move and account keys.
+    // Keep this model visible until it has finished changing those records.
+    private var canGoBack: Bool { didRestore && !model.isWorking }
+
+    private func goBack() {
+        guard canGoBack else { return }
+        if model.match == nil {
+            onClose()
+            return
+        }
+        Task {
+            guard canGoBack else { return }
+            await model.showGames()
+        }
     }
 
     private var title: String {
