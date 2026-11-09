@@ -3,6 +3,7 @@ import SwiftUI
 
 @main
 struct SettlersApp: App {
+    @UIApplicationDelegateAdaptor(OnlineAppDelegate.self) private var onlineAppDelegate
     /// One process owns one checkpoint revision cursor. Constructing this in a
     /// SwiftUI child view created competing models when SwiftUI rebuilt that
     /// view, and the second writer correctly failed as stale.
@@ -56,8 +57,9 @@ struct SettlersApp: App {
         // Launch and every return to the app check the online ladder, at most
         // once per `LiveSync.refreshInterval`; a finished game syncs at once.
         .onChange(of: scenePhase, initial: true) { _, phase in
-            guard phase == .active, let sync = LiveSync.shared else { return }
-            Task { await sync.refreshIfDue() }
+            guard phase == .active else { return }
+            Task { await OnlineDeviceRegistrar.shared.resume() }
+            if let sync = LiveSync.shared { Task { await sync.refreshIfDue() } }
         }
     }
 }

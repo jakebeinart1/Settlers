@@ -16,6 +16,7 @@ struct ContentView: View {
     @State private var isShowingUnreadableSaveAlert = false
     @State private var isShowingPersistenceError = false
     @State private var isShowingGameLogWarning = false
+    @State private var isShowingOnlinePlay = false
     #if DEBUG
     @State private var qaFailureMessage: String?
     #endif
@@ -65,78 +66,7 @@ struct ContentView: View {
     }
 
     var body: some View {
-        Group {
-            if isShowingMatchResult {
-                if viewModel.victoryCutscenePending, let tally = VictoryTally(state: viewModel.state) {
-                    VictoryCutsceneView(state: viewModel.state, tally: tally,
-                                        isHumanWin: viewModel.humanSeats.contains(tally.winner),
-                                        isLocalMultiplayer: viewModel.isLocalMultiplayer,
-                                        playerIdentity: viewModel.playerIdentity,
-                                        onFinish: { viewModel.victoryCutscenePending = false })
-                        .transition(.opacity)
-                } else {
-                    EndGameView(state: viewModel.state, humanSeats: viewModel.humanSeats,
-                                playerIdentity: viewModel.playerIdentity,
-                                replayGameID: viewModel.currentGameLogID,
-                                unratedReason: viewModel.unratedMatchExplanation,
-                                onNewGame: { if viewModel.restartCompletedMatch() { hasStartedThisSession = true } },
-                                onMainMenu: { if viewModel.clearCompletedMatch() { hasStartedThisSession = false } })
-                }
-            } else if hasStartedThisSession, viewModel.savedGameAvailability.recoveryMessage == nil {
-                GameView(viewModel: viewModel, onExitToMenu: {
-                    viewModel.isBlockingSurfaceOpen = true
-                    viewModel.releaseLocalDevice()
-                    hasStartedThisSession = false
-                })
-                #if DEBUG
-                    .task {
-                        if QALaunchFlag.playToEnd.isSet {
-                            do { try await viewModel.qaPlayToEndOnscreen() } catch is CancellationError {
-                                return
-                            } catch let failure as MatchPersistenceFailure {
-                                viewModel.persistenceErrorMessage = failure.localizedDescription
-                            } catch {
-                                viewModel.isBlockingSurfaceOpen = true
-                                qaFailureMessage = String(describing: error)
-                            }
-                            return
-                        }
-                    }
-                #endif
-                    // Rebuild the whole view on restart so presentation-only
-                    // state such as open popups, the incoming-offer queue, and
-                    // roll history cannot cross games. Spatial proposals now
-                    // live in the model's shared coordinator and are cleared
-                    // by `startNewGame`; this identity still resets the rest.
-                    .id(viewModel.gameGeneration)
-            } else {
-                MainMenuView(
-                    canResumeSavedGame: viewModel.savedGameAvailability.canResume,
-                    onStart: startNewGame,
-                    onResume: {
-                        guard viewModel.savedGameAvailability.canResume else { return }
-                        hasStartedThisSession = true
-                        // Resuming into a save left mid-bot-turn needs the bot
-                        // loop kicked off explicitly - `GameViewModel.apply(_:)`
-                        // only spawns it after a *human* move, and a resumed
-                        // save never had one. A fresh game from "New Game"
-                        // always starts on the human's own setup turn, so it
-                        // doesn't need this.
-                        Task { await viewModel.runBotTurnIfNeeded() }
-                    },
-                    statistics: viewModel.statistics,
-                    requiresSaveReplacementConfirmation: viewModel.requiresSaveReplacementConfirmation,
-                    newGameSetupLoadResult: viewModel.newGameSetupLoadResult,
-                    savedGameHasRatingAtStake: viewModel.abandoningChangesRating
-                )
-            }
-        }
-        // The board fades into the cutscene's closed curtain, and the
-        // cutscene fades into the results; nothing else switches on this.
-        .animation(.easeInOut(duration: 0.9), value: viewModel.victoryCutscenePending)
-        .fullScreenCover(isPresented: $isAskingLadderName) {
-            LadderNamePrompt { isAskingLadderName = false }
-        }
+        presentedGameScreen
         #if DEBUG
         .alert("Automated match stopped", isPresented: Binding(
             get: { qaFailureMessage != nil },
@@ -240,6 +170,105 @@ struct ContentView: View {
             case .inactive, .background: viewModel.appWillResignActive()
             @unknown default: viewModel.appWillResignActive()
             }
+        }
+    }
+
+    private var gameScreen: some View {
+        Group {
+            if isShowingMatchResult {
+                if viewModel.victoryCutscenePending, let tally = VictoryTally(state: viewModel.state) {
+                    VictoryCutsceneView(state: viewModel.state, tally: tally,
+                                        isHumanWin: viewModel.humanSeats.contains(tally.winner),
+                                        isLocalMultiplayer: viewModel.isLocalMultiplayer,
+                                        playerIdentity: viewModel.playerIdentity,
+                                        onFinish: { viewModel.victoryCutscenePending = false })
+                        .transition(.opacity)
+                } else {
+                    EndGameView(state: viewModel.state, humanSeats: viewModel.humanSeats,
+                                playerIdentity: viewModel.playerIdentity,
+                                replayGameID: viewModel.currentGameLogID,
+                                unratedReason: viewModel.unratedMatchExplanation,
+                                onNewGame: { if viewModel.restartCompletedMatch() { hasStartedThisSession = true } },
+                                onMainMenu: { if viewModel.clearCompletedMatch() { hasStartedThisSession = false } })
+                }
+            } else if hasStartedThisSession, viewModel.savedGameAvailability.recoveryMessage == nil {
+                GameView(viewModel: viewModel, onExitToMenu: {
+                    viewModel.isBlockingSurfaceOpen = true
+                    viewModel.releaseLocalDevice()
+                    hasStartedThisSession = false
+                })
+                #if DEBUG
+                    .task {
+                        if QALaunchFlag.playToEnd.isSet {
+                            do { try await viewModel.qaPlayToEndOnscreen() } catch is CancellationError {
+                                return
+                            } catch let failure as MatchPersistenceFailure {
+                                viewModel.persistenceErrorMessage = failure.localizedDescription
+                            } catch {
+                                viewModel.isBlockingSurfaceOpen = true
+                                qaFailureMessage = String(describing: error)
+                            }
+                            return
+                        }
+                    }
+                #endif
+                    // Rebuild the whole view on restart so presentation-only
+                    // state such as open popups, the incoming-offer queue, and
+                    // roll history cannot cross games. Spatial proposals now
+                    // live in the model's shared coordinator and are cleared
+                    // by `startNewGame`; this identity still resets the rest.
+                    .id(viewModel.gameGeneration)
+            } else {
+                MainMenuView(
+                    canResumeSavedGame: viewModel.savedGameAvailability.canResume,
+                    onStart: startNewGame,
+                    onResume: {
+                        guard viewModel.savedGameAvailability.canResume else { return }
+                        hasStartedThisSession = true
+                        // Resuming into a save left mid-bot-turn needs the bot
+                        // loop kicked off explicitly - `GameViewModel.apply(_:)`
+                        // only spawns it after a *human* move, and a resumed
+                        // save never had one. A fresh game from "New Game"
+                        // always starts on the human's own setup turn, so it
+                        // doesn't need this.
+                        Task { await viewModel.runBotTurnIfNeeded() }
+                    },
+                    statistics: viewModel.statistics,
+                    requiresSaveReplacementConfirmation: viewModel.requiresSaveReplacementConfirmation,
+                    newGameSetupLoadResult: viewModel.newGameSetupLoadResult,
+                    savedGameHasRatingAtStake: viewModel.abandoningChangesRating,
+                    onOnline: onlineMenuAction
+                )
+            }
+        }
+    }
+
+    private var presentedGameScreen: some View {
+        gameScreen
+        // The board fades into the cutscene's closed curtain, and the
+        // cutscene fades into the results; nothing else switches on this.
+        .animation(.easeInOut(duration: 0.9), value: viewModel.victoryCutscenePending)
+        .fullScreenCover(isPresented: $isAskingLadderName) {
+            LadderNamePrompt { isAskingLadderName = false }
+        }
+        .fullScreenCover(isPresented: $isShowingOnlinePlay) {
+            OnlinePlayView { isShowingOnlinePlay = false }
+        }
+        .onOpenURL { _ = OnlineNotificationRouter.shared.open(url: $0) }
+        .onChange(of: OnlineNotificationRouter.shared.route, initial: true) { _, _ in
+            presentOnlineRoute()
+        }
+        .onChange(of: isAskingLadderName) { _, _ in presentOnlineRoute() }
+    }
+
+    private var onlineMenuAction: (() -> Void)? {
+        guard OnlinePlayView.isConfigured else { return nil }
+        return { isShowingOnlinePlay = true }
+    }
+
+    private func presentOnlineRoute() {
+        if OnlinePlayView.isConfigured, !isAskingLadderName, OnlineNotificationRouter.shared.route != nil {
+            isShowingOnlinePlay = true
         }
     }
 

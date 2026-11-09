@@ -89,6 +89,9 @@ struct BoardDecisionContext: Sendable {
     let committedMoveCount: Int
     let actor: PlayerID
     let state: GameState
+    /// A remote view carries authoritative choices, not the inputs needed to
+    /// regenerate choices for another player. Local play leaves this unset.
+    var authorizedMoves: [GameMove]?
 
     var position: Position { Position(matchID: matchID, committedMoveCount: committedMoveCount) }
 
@@ -254,7 +257,8 @@ struct BoardDecisionCoordinator: Sendable {
 
     private func requiredIntent(in context: BoardDecisionContext) -> BoardDecisionIntent? {
         guard context.state.phase.awaitingSeatIndex == context.actor.index else { return nil }
-        let moves = RulesEngine.legalMoves(for: context.state, seat: context.actor)
+        let moves = context.authorizedMoves ?? RulesEngine.legalMoves(for: context.state, seat: context.actor)
+        guard context.authorizedMoves?.isEmpty != true else { return nil }
         switch context.state.phase {
         case .setupForward, .setupBackward:
             if moves.contains(where: { if case .placeInitialSettlement = $0 { true } else { false } }) {
@@ -278,6 +282,9 @@ struct BoardDecisionCoordinator: Sendable {
         in context: BoardDecisionContext
     ) -> [GameMove] {
         guard context.state.phase.awaitingSeatIndex == context.actor.index else { return [] }
+        if let authorizedMoves = context.authorizedMoves {
+            return authorizedMoves.filter { path(for: $0, intent: intent) != nil }
+        }
         if intent == .deployArmy {
             guard case .mainTurn = context.state.phase else { return [] }
             return Conquest.deployMoves(for: context.actor, in: context.state)

@@ -37,12 +37,13 @@ public struct MainMenuView: View {
     public let requiresSaveReplacementConfirmation: Bool
     public let newGameSetupLoadResult: MatchSetupStore.LoadResult
     public let savedGameHasRatingAtStake: Bool
+    private let onOnline: (() -> Void)?
 
     public init(canResumeSavedGame: Bool, onStart: @escaping (MatchSetup) -> Void,
                 onResume: @escaping () -> Void, statistics: GameStats = GameStats(),
                 requiresSaveReplacementConfirmation: Bool = false,
                 newGameSetupLoadResult: MatchSetupStore.LoadResult = .none,
-                savedGameHasRatingAtStake: Bool = false) {
+                savedGameHasRatingAtStake: Bool = false, onOnline: (() -> Void)? = nil) {
         self.canResumeSavedGame = canResumeSavedGame
         self.onStart = onStart
         self.onResume = onResume
@@ -50,6 +51,7 @@ public struct MainMenuView: View {
         self.requiresSaveReplacementConfirmation = requiresSaveReplacementConfirmation
         self.newGameSetupLoadResult = newGameSetupLoadResult
         self.savedGameHasRatingAtStake = savedGameHasRatingAtStake
+        self.onOnline = onOnline
     }
 
     @State private var isShowingGameHistory = QALaunchFlag.showGameHistory.isSet
@@ -180,6 +182,12 @@ public struct MainMenuView: View {
                     GoldRowButton(title: "Resume Game", systemImage: "play.fill", action: onResume)
                         .dynamicTypeSize(...DynamicTypeSize.accessibility1)
                         .accessibilityIdentifier(AccessibilityID.MainMenu.resume)
+                }
+                if let onOnline {
+                    GoldRowButton(title: "Online Play", systemImage: "person.2.fill",
+                                  iconColor: SettingsChrome.ornamentGold, action: onOnline)
+                        .dynamicTypeSize(...DynamicTypeSize.accessibility1)
+                        .accessibilityIdentifier("main-menu.online")
                 }
             }
             historyButton

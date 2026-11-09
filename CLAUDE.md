@@ -1,8 +1,9 @@
 # Empires (repo: `Settlers`)
 
 A native Swift/SwiftUI iOS Catan clone: a hex board, four seats, three heuristic bots. The
-only network use is the opt-in online ladder (CloudKit public database, `Settlers/Sync/`,
-`docs/live-sync.md`), which is off in every build that does not name a container. The rules and the AI live in two local SPM packages (`CatanEngine`
+opt-in online ladder uses CloudKit (`Settlers/Sync/`, `docs/live-sync.md`). The
+separate opt-in online match authority lives in `Packages/EmpiresOnline` and
+`Packages/EmpiresOnlineServer`. The rules and the AI live in two local SPM packages (`CatanEngine`
 ~2,000 lines, `CatanAI` ~1,800 lines); the app target (`Settlers/`, ~6,700 lines) is
 presentation and persistence only.
 
@@ -51,6 +52,7 @@ Every one of these is canonical for its question. Read the file, do not reason f
 | Bot decision entry point | `Packages/CatanAI/Sources/CatanAI/Bot.swift` |
 | Bot loop, seat assignment, personality mix | `Settlers/ViewModels/GameViewModel.swift` |
 | Online ladder: what syncs, how games are verified, why Elo is replayed, renames, CloudKit setup | `docs/live-sync.md` + `LiveSync`'s doc comment |
+| Online friend matches, live clocks, APNs and deployment | `docs/AI_summaries/online-multiplayer/requirements.md` + `Packages/EmpiresOnlineServer/README.md` |
 | Who a player is: an iCloud account id, never a name, so a rename keeps score and ghost | `PlayerDirectory`'s doc comment + `docs/live-sync.md` "Identity" |
 | Why no bot ends a turn holding more than 7 cards (Jake's rule) | `HandDiscipline`'s doc comment (`Packages/CatanAI/Sources/CatanAI/Evaluation/`) |
 | How strong every Expert and Classic that ever shipped is, and how to seat old commits at one table | `docs/AI_summaries/2026-09-29-every-bot-tournament.md` + `arena`'s header (`Packages/CatanAI/Sources/arena/`) |
