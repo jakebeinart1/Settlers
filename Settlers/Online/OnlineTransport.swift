@@ -68,6 +68,7 @@ enum OnlineClientError: LocalizedError {
         case .unavailable: "Online play is unavailable in this build."
         case .unexpectedResponse: "Empires received an unexpected reply."
         case .secureStorage: "Empires could not access its secure storage."
+        case .rejected(400, .some(.bankStockUnavailable)): OnlineError.bankStockUnavailable.errorDescription
         case .rejected(401, _): "That recovery key or session is no longer valid."
         case .rejected(403, _): "You do not have access to that game or action."
         case .rejected(404, _): "That room or game is unavailable."

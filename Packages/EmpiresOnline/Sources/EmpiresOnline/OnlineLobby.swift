@@ -168,6 +168,10 @@ private extension OnlineConfiguration {
 }
 
 extension StoredOnlineRoom {
+    var isEmptyCancellation: Bool {
+        status == .cancelled && seats.allSatisfy { $0.accountID == nil }
+    }
+
     var humans: [Int: StoredOnlineSeat] {
         Dictionary(uniqueKeysWithValues: seats.enumerated().compactMap { index, seat in
             seat.accountID == nil ? nil : (index, seat)

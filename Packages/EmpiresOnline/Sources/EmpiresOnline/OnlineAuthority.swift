@@ -6,14 +6,19 @@ import Foundation
 /// over a single durable writer. Neither player clients nor HTTP handlers can
 /// supply their own seat, random seed, or clock.
 public actor OnlineAuthority {
+    private enum StorageStatus {
+        case ready, retryableFailure, requiresRestart
+    }
+
     let store: OnlineStore
     var database: OnlineDatabase
     let clock: @Sendable () -> Date
-    private var storageHealthy = true
+    private var storageStatus = StorageStatus.ready
 
     public init(directory: URL, clock: @escaping @Sendable () -> Date = { Date() }) throws {
         let store = try OnlineStore(directory: directory)
         var database = try store.load()
+        database.pruneEmptyCancelledRooms()
         let now = clock()
         database.pauseDeadlinesForOutage(at: now)
         database.lastServiceAt = now
@@ -24,7 +29,7 @@ public actor OnlineAuthority {
     }
 
     public func handle(_ request: OnlineRequest, bearer: String?) throws -> OnlineResponse {
-        guard storageHealthy else { throw OnlineError.unavailable }
+        guard storageStatus != .requiresRestart else { throw OnlineError.unavailable }
         let date = clock()
         if case .createAccount(let name) = request {
             return try update(at: date) { try $0.createAccount(name: name) }
@@ -47,7 +52,7 @@ public actor OnlineAuthority {
     func update<Result>(
         at date: Date, _ change: (inout OnlineDatabase) throws -> Result
     ) throws -> Result {
-        guard storageHealthy else { throw OnlineError.unavailable }
+        guard storageStatus != .requiresRestart else { throw OnlineError.unavailable }
         var next = database
         next.pauseDeadlinesForOutage(at: date)
         let result = try change(&next)
@@ -57,14 +62,18 @@ public actor OnlineAuthority {
         } catch OnlineStore.SaveError.uncertainCommit {
             // Do not overwrite a possibly committed on-disk revision using a
             // stale in-memory value. Restart from the sole writer's snapshot.
-            storageHealthy = false
+            storageStatus = .requiresRestart
             throw OnlineError.unavailable
+        } catch {
+            storageStatus = .retryableFailure
+            throw error
         }
         database = next
+        storageStatus = .ready
         return result
     }
 
-    public var isReady: Bool { storageHealthy }
+    public var isReady: Bool { storageStatus == .ready }
 }
 
 extension OnlineDatabase {
@@ -176,6 +185,8 @@ extension StoredOnlineRoom {
         }
         do {
             try gameplay.apply(command.move, by: seat)
+        } catch OnlineGameplayError.bankStockUnavailable {
+            throw OnlineError.bankStockUnavailable
         } catch is OnlineGameplayError {
             throw OnlineError.invalidRequest
         }

@@ -46,11 +46,14 @@ public struct LoggedMove: Sendable {
     /// Housekeeping still changes the replay state but is not a preference.
     /// Default true preserves callers and historical logs without provenance.
     public let isHumanDecision: Bool
+    /// Recorded rules for archive replay, when the source carries them.
+    public let rulesVersion: Int?
 
-    public init(player: PlayerID, move: GameMove, isHumanDecision: Bool = true) {
+    public init(player: PlayerID, move: GameMove, isHumanDecision: Bool = true, rulesVersion: Int? = nil) {
         self.player = player
         self.move = move
         self.isHumanDecision = isHumanDecision
+        self.rulesVersion = rulesVersion
     }
 }
 

@@ -67,6 +67,90 @@ import Testing
         #expect(throws: SharedMatch.Rejection.invalidRatingPool) { try shared.verified(owner: device.me) }
     }
 
+    @Test func checkpointRepairsQueuedReplayThatLostItsRulesVersion() throws {
+        let directory = root()
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let device = LiveSyncTests.Device("phone", in: directory)
+        let suite = "RatingSyncTests.\(UUID().uuidString)"
+        let defaults = try #require(UserDefaults(suiteName: suite))
+        defer { defaults.removePersistentDomain(forName: suite) }
+        let model = model(device, defaults: defaults)
+        let checkpoint = try legacyRobberCheckpoint(owner: device.me)
+        let shared = try #require(model.sharedRatedMatch(checkpoint, abandoned: true))
+        #expect(shared.moves.first?.rulesVersion == RulesEngine.oldestSupportedRulesVersion)
+        let unversioned = SharedMatch(version: shared.version, match: shared.match, date: shared.date,
+            seats: shared.seats, initialState: shared.initialState,
+            moves: shared.moves.map { .init(player: $0.player, move: $0.move) },
+            abandoned: true, ratingPool: shared.ratingPool)
+        let outbox = device.stores.seatStats
+        try outbox.queueForUpload(unversioned)
+        #expect(throws: SharedMatch.Rejection.replayFailed) { try unversioned.verified(owner: device.me) }
+        let pending = try #require(outbox.pendingUploadFiles().first)
+        let oldBytes = try Data(contentsOf: pending)
+        try device.stores.players.adopt("apple-alex", seatStats: outbox, ghosts: device.stores.ghosts)
+        try model.persistDisplacedRatingMatch(checkpoint)
+        let repaired = try outbox.queuedMatch(at: pending)
+        #expect(repaired.moves.first?.rulesVersion == RulesEngine.oldestSupportedRulesVersion)
+        #expect(outbox.record(for: shared.match)?.abandoned == true)
+        #expect(outbox.record(for: shared.match)?.seats.compactMap(\.personID) == ["apple-alex"])
+        let preserved = try FileManager.default.contentsOfDirectory(
+            at: outbox.directory.appendingPathComponent("RejectedUploads"), includingPropertiesForKeys: nil)
+        #expect(try Data(contentsOf: #require(preserved.first)) == oldBytes)
+    }
+
+    @Test func verifiedCheckpointReplacesDamagedSameMatchQueueAndPreservesBytes() throws {
+        let directory = root()
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let device = LiveSyncTests.Device("phone", in: directory)
+        let shared = try pendingMatch(on: device, pool: naval)
+        let outbox = device.stores.seatStats
+        try outbox.queueForUpload(shared)
+        let file = try #require(outbox.pendingUploadFiles().first)
+        let damaged = Data("damaged replay".utf8)
+        try damaged.write(to: file)
+        let record = try outbox.queueVerifiedMatch(shared, resolveOwner: device.stores.players.resolvedID) {
+            try $0.verified(owner: device.me)
+        }
+        #expect(record.match == shared.match)
+        #expect(try outbox.queuedMatch(at: file).match == shared.match)
+        let originals = try FileManager.default.contentsOfDirectory(
+            at: outbox.directory.appendingPathComponent("RejectedUploads"), includingPropertiesForKeys: nil)
+        #expect(try Data(contentsOf: #require(originals.first)) == damaged)
+    }
+
+    @Test func badQueueEntryDoesNotBlockAccountAdoptionOrValidUpload() async throws {
+        let directory = root()
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let cloud = LiveSyncTests.FakeCloud()
+        let phone = LiveSyncTests.Device("phone", in: directory)
+        let outbox = phone.stores.seatStats
+        let good = try pendingMatch(on: phone, pool: naval)
+        try outbox.queueForUpload(good)
+        let corrupt = outbox.pendingUploadsDirectory.appendingPathComponent("00000000-0000-0000-0000-000000000000.json")
+        let bytes = Data("damaged replay".utf8)
+        try bytes.write(to: corrupt)
+        try await sync(phone, cloud: cloud, user: "apple-alex", name: "Alex")
+        #expect(phone.me == "apple-alex")
+        #expect(cloud.locked { $0.matches[good.match]?.owner } == "apple-alex")
+        #expect(try Data(contentsOf: corrupt) == bytes)
+    }
+
+    private func legacyRobberCheckpoint(owner: String) throws -> MatchCheckpoint {
+        var state = GameSetup.newGame(board: BoardGenerator.standard(), seed: 912)
+        let actor = state.players[0].id
+        let target = try #require(state.board.tiles.map(\.coordinate).first { $0 != state.board.robberTile })
+        let vertex = try #require(state.board.corners(of: target).first)
+        state.players[1].settlements.insert(vertex)
+        state.players[1].resources = [.lumber: 1]
+        state.phase = .movingRobber(playerIndex: actor.index)
+        state.robberMoverIndex = actor.index
+        var checkpoint = MatchCheckpoint(id: UUID(), initialState: state, setup: setup(expert), playerID: owner)
+        try checkpoint.apply(.moveRobber(target, stealFrom: nil), by: actor,
+                             rulesVersion: RulesEngine.oldestSupportedRulesVersion)
+        checkpoint.recordAbandonment(at: Date())
+        return checkpoint
+    }
+
     @Test func alexJakeKyleAndASecondAlexDeviceConvergeToOneLedger() async throws {
         let directory = root()
         defer { try? FileManager.default.removeItem(at: directory) }

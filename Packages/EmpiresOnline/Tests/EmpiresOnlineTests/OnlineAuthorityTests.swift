@@ -4,6 +4,76 @@ import Testing
 @testable import EmpiresOnline
 
 struct OnlineAuthorityTests {
+    @Test func finalDepartureRemovesCancelledRoomAcrossRestart() async throws {
+        let fixture = try AuthorityFixture()
+        let id = try await leaveStartedRoom(fixture: fixture)
+        let restarted = try fixture.open()
+        let database = await restarted.database
+        #expect(database.rooms[id] == nil)
+        #expect(database.outbox.values.allSatisfy { $0.matchID != id })
+    }
+
+    private func leaveStartedRoom(fixture: AuthorityFixture) async throws -> UUID {
+        let server = try fixture.open()
+        let room = try await fixture.startedRoom(on: server, pace: .asynchronous)
+        _ = try await server.handle(.leave(matchID: room.view.id), bearer: room.host)
+        let transferred = try await server.match(.view(matchID: room.view.id), bearer: room.guest)
+        #expect(transferred.host && transferred.status == .playing)
+        _ = try await server.handle(.leave(matchID: room.view.id), bearer: room.guest)
+        let database = await server.database
+        #expect(database.rooms[room.view.id] == nil)
+        return room.view.id
+    }
+
+    @Test func startupPrunesLegacyEmptyCancellationButKeepsParticipantHistory() async throws {
+        let fixture = try AuthorityFixture()
+        let configuration = OnlineConfiguration(pace: .asynchronous, mode: .classic, rules: .standard,
+                                                aiSeats: [nil, nil, .classicAI])
+        let account = UUID()
+        let date = fixture.clock.read()
+        var empty = StoredOnlineRoom(id: UUID(), code: "empty", createdAt: date, hostID: nil,
+                                     configuration: configuration, seats: [])
+        empty.status = .cancelled
+        var history = StoredOnlineRoom(id: UUID(), code: "history", createdAt: date, hostID: account,
+                                       configuration: configuration,
+                                       seats: [StoredOnlineSeat(role: .human, accountID: account)])
+        history.status = .cancelled
+        do {
+            let store = try OnlineStore(directory: fixture.directory)
+            try store.save(OnlineDatabase(rooms: [empty.id: empty, history.id: history]))
+        }
+        let server = try fixture.open()
+        let database = await server.database
+        #expect(database.rooms[empty.id] == nil)
+        #expect(database.rooms[history.id]?.seats.first?.accountID == account)
+    }
+
+    @Test func snapshotWriteFailureMakesReadinessRetryable() async throws {
+        let fixture = try AuthorityFixture()
+        let server = try fixture.open()
+        let room = try await fixture.startedRoom(on: server, pace: .asynchronous)
+        let command = try room.firstCommand()
+        let snapshot = fixture.directory.appendingPathComponent("authority-v1.json")
+        let held = fixture.directory.appendingPathComponent("held.json")
+        let files = FileManager.default
+        try files.moveItem(at: snapshot, to: held)
+        try files.createDirectory(at: snapshot, withIntermediateDirectories: false)
+        await #expect(throws: OnlineError.unavailable) {
+            try await server.handle(.submit(matchID: room.view.id, command: command), bearer: room.host)
+        }
+        #expect(await !server.isReady)
+        let unchanged = try await server.match(.view(matchID: room.view.id), bearer: room.host)
+        #expect(unchanged.revision == room.view.revision)
+        try files.removeItem(at: snapshot)
+        try files.moveItem(at: held, to: snapshot)
+        fixture.clock.set(fixture.clock.read().addingTimeInterval(10))
+        try await server.tick()
+        #expect(await server.isReady)
+        let accepted = try await server.match(.submit(matchID: room.view.id, command: command), bearer: room.host)
+        #expect(accepted.revision == room.view.revision + 1)
+        #expect(accepted.acknowledgedCommandID == command.id)
+    }
+
     @Test func successorHostCanFillTheDepartedHostsSeat() async throws {
         let fixture = try AuthorityFixture()
         let server = try fixture.open()

@@ -29,7 +29,7 @@ public enum OnlineResponse: Codable, Sendable {
 }
 
 public enum OnlineError: String, Codable, Sendable, Error, LocalizedError {
-    case unauthorized, forbidden, notFound, conflict, invalidRequest, unavailable
+    case unauthorized, forbidden, notFound, conflict, invalidRequest, unavailable, bankStockUnavailable
 
     public var errorDescription: String? {
         switch self {
@@ -39,6 +39,7 @@ public enum OnlineError: String, Codable, Sendable, Error, LocalizedError {
         case .conflict: "The game changed. Review the latest position before acting."
         case .invalidRequest: "That choice is unavailable. Check the current game and try again."
         case .unavailable: "Online play is temporarily unavailable. Try again shortly."
+        case .bankStockUnavailable: "The bank cannot supply that many cards. Try requesting fewer cards or a different resource."
         }
     }
 }

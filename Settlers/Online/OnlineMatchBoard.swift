@@ -262,6 +262,9 @@ private struct OnlineMatchStatusBar: View {
                 } else if let action = position.pending.first(where: { $0.seat == gameplay.viewer }) {
                     Label(action.kind.ownTitle, systemImage: "bell")
                     Spacer()
+                } else if let action = position.pending.first {
+                    Label("Waiting for \(name(action.seat))", systemImage: "hourglass")
+                    Spacer()
                 } else {
                     Text(position.configuration.pace.onlineLabel)
                     Spacer()

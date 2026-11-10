@@ -81,6 +81,10 @@ extension OnlineDatabase {
     }
 
     mutating func setRoom(_ room: StoredOnlineRoom, at date: Date) {
+        if room.isEmptyCancellation {
+            removeEmptyRoom(room.id)
+            return
+        }
         rooms[room.id] = room
         let currentDecisions = Set(room.decisions.map { $0.action.id })
         outbox = outbox.filter {
@@ -90,6 +94,16 @@ extension OnlineDatabase {
             guard let account = room.seats[decision.action.seat.index].accountID else { continue }
             enqueue(decision, in: room.id, for: account, at: date)
         }
+    }
+
+    mutating func pruneEmptyCancelledRooms() {
+        let emptyRooms = rooms.values.filter(\.isEmptyCancellation).map(\.id)
+        for id in emptyRooms { removeEmptyRoom(id) }
+    }
+
+    private mutating func removeEmptyRoom(_ id: UUID) {
+        rooms.removeValue(forKey: id)
+        outbox = outbox.filter { $0.value.matchID != id }
     }
 
     func canDeliver(_ push: StoredOnlinePush) -> Bool {

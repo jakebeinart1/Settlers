@@ -35,14 +35,14 @@ public struct SeatStats: Codable, Equatable, Sendable {
     /// Replays a game and counts, for every seat.
     public static func compute(initial: GameState, moves: [LoggedMove]) throws -> [SeatStats] {
         var stats = initial.players.map { SeatStats(seat: $0.id.index, target: initial.victoryPointTarget) }
-        var session = GameSession(state: initial, policies: [:], policySeed: 0)
+        var final = initial
         for logged in moves {
-            let before = session.state
-            let step = try session.applyExternal(logged.move, by: logged.player)
-            if logged.move == .rollDice { countProduction(before: before, after: session.state, into: &stats) }
-            for event in step.events { count(event, before: before, into: &stats) }
+            let before = final
+            let version = logged.rulesVersion ?? RulesEngine.currentRulesVersion
+            let events = try RulesEngine.replay(logged.move, by: logged.player, rulesVersion: version, to: &final)
+            if logged.move == .rollDice { countProduction(before: before, after: final, into: &stats) }
+            for event in events { count(event, before: before, into: &stats) }
         }
-        let final = session.state
         for index in stats.indices {
             let id = final.players[index].id
             stats[index].finalVP = min(final.victoryPoints(for: id), final.victoryPointTarget)

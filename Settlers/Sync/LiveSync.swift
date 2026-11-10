@@ -307,8 +307,10 @@ actor LiveSync {
     /// reject it as unfinished until their one-time upgrade backfill.
     /// `scripts/cloudkit-games.py players` counts them per player.
     func recordAbandoned(_ match: SharedMatch) throws {
-        let queued = try stores.seatStats.queueForUpload(match)
-        let record = try queued.verified(owner: stores.players.me)
+        let owner = stores.players.me
+        let record = try stores.seatStats.queueVerifiedMatch(match, resolveOwner: stores.players.resolvedID) {
+            try $0.verified(owner: owner)
+        }
         try stores.seatStats.record(record)
         try stores.ratings.rebuild(from: stores.seatStats.all())
     }
@@ -320,16 +322,23 @@ actor LiveSync {
     private func uploadPendingMatches(me: String, state: inout SyncState) async throws -> Bool {
         var changed = false
         for file in try stores.pendingGameFiles() {
-            let match = try stores.seatStats.queuedMatch(at: file)
-            guard !match.containsArchivedGhost else { continue }
-            let persons = match.personIDs
-            let held = stores.seatStats.record(for: match.match)?.seats.compactMap(\.personID)
-            guard persons.count == 1, stores.players.resolvedID(persons[0]) == me
-                    || (persons[0].hasPrefix(PlayerDirectory.localPrefix) && held == [me]) else { continue }
-            changed = try await uploadPendingMatch(match, me: me, state: &state) || changed
-            try FileManager.default.removeItem(at: file)
+            do {
+                let match = try stores.seatStats.queuedMatch(at: file)
+                guard !match.containsArchivedGhost, ownsPendingMatch(match, as: me) else { continue }
+                changed = try await uploadPendingMatch(match, me: me, state: &state) || changed
+                try FileManager.default.removeItem(at: file)
+            } catch where RatingMatchOutboxError.isRejectedEvidence(error) {
+                // A rejected replay stays local without blocking other games.
+                continue
+            }
         }
         return changed
+    }
+
+    private func ownsPendingMatch(_ match: SharedMatch, as me: String) -> Bool {
+        guard match.personIDs.count == 1, let person = match.personIDs.first else { return false }
+        let held = stores.seatStats.record(for: match.match)?.seats.compactMap(\.personID)
+        return stores.players.resolvedID(person) == me || (person.hasPrefix(PlayerDirectory.localPrefix) && held == [me])
     }
 
     /// A crash can leave replay evidence in the outbox before stats exist.
@@ -340,9 +349,13 @@ actor LiveSync {
         let local = stores.players.me
         guard local.hasPrefix(PlayerDirectory.localPrefix) else { return }
         for file in try stores.pendingGameFiles() {
-            let match = try stores.seatStats.queuedMatch(at: file)
-            guard match.personIDs == [local] else { continue }
-            try stores.seatStats.record(match.verified(owner: local))
+            do {
+                let match = try stores.seatStats.queuedMatch(at: file)
+                guard match.personIDs == [local] else { continue }
+                try stores.seatStats.record(match.verified(owner: local))
+            } catch where RatingMatchOutboxError.isRejectedEvidence(error) {
+                continue
+            }
         }
     }
 
