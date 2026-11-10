@@ -103,6 +103,23 @@ import Testing
         #expect(throws: SharedMatch.Rejection.replayFailed) { try replay.verified(owner: "apple-alex") }
     }
 
+    @Test(arguments: [false, true])
+    func downloadedConquestReplayRejectsUnsafeArmyStrength(inGarrison: Bool) throws {
+        var state = GameSetup.newGame(board: BoardGenerator.standard(), seed: 7, variant: .conquest)
+        let player = state.players[0].id
+        let tile = try #require(state.board.tiles.first { $0.numberToken != nil }).coordinate
+        state.phase = .mainTurn(playerIndex: player.index)
+        state.players[0].settlements.insert(try #require(state.board.corners(of: tile).first))
+        let cards = inGarrison ? [1] : [1, Int.max]
+        state.armyHands[player] = cards
+        if inGarrison { state.garrisons[tile] = Garrison(owner: player, strength: Int.max) }
+        let replay = SharedMatch(version: SharedMatch.currentVersion, match: UUID(), date: Date(),
+            seats: ["person:apple-alex", "expert", "expert", "expert"], initialState: state,
+            moves: [.init(player: player, move: .deployArmy(to: tile, strengths: cards))],
+            abandoned: true, ratingPool: RatingPool(mode: .classic, variant: .conquest, difficulty: .expert))
+        #expect(throws: SharedMatch.Rejection.replayFailed) { try replay.verified(owner: "apple-alex") }
+    }
+
     private func recordedPosition(_ state: GameState, player: PlayerID, move: GameMove) -> SharedMatch {
         SharedMatch(version: SharedMatch.currentVersion, match: UUID(), date: Date(),
             seats: ["person:apple-alex", "expert", "expert", "expert"], initialState: state,

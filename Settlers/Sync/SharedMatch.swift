@@ -136,6 +136,7 @@ struct SharedMatch: Codable, Sendable {
             throw Rejection.replayFailed
         }
         try Self.validateReplayBoard(state)
+        try Self.validateReplayArmies(state)
     }
 
     private static func validateReplayBoard(_ state: GameState) throws {
@@ -150,10 +151,8 @@ struct SharedMatch: Codable, Sendable {
         }
         // The Naval checkpoint validator measures distance from the saved
         // sailing origin. Reject off-board coordinates before that arithmetic.
-        if let naval = state.naval {
-            guard naval.ships.allSatisfy({ $0.previousSailingOrigin.map(coordinates.contains) ?? true }),
-                  Naval.validationProblem(in: state) == nil else { throw Rejection.replayFailed }
-        }
+        guard state.naval?.ships.allSatisfy({ $0.previousSailingOrigin.map(coordinates.contains) ?? true }) ?? true,
+              Naval.validationProblem(in: state) == nil else { throw Rejection.replayFailed }
     }
 
     private static func hasSafeResourceAmounts(
@@ -163,6 +162,16 @@ struct SharedMatch: Codable, Sendable {
         case .discard(let amounts), .buyArmyCard(let amounts): valid(amounts)
         case .bankTrade(let give, let get): valid(give) && valid(get)
         default: true
+        }
+    }
+
+    private static func validateReplayArmies(_ state: GameState) throws {
+        let deck = state.rules.armyDeck
+        let maximumStrength = DiceOdds.pips(for: 6) + deck.reduce(0) { $0 + $1.key * $1.value }
+        guard state.armyDeck.allSatisfy({ deck[$0] != nil }),
+              state.armyHands.values.allSatisfy({ hand in hand.allSatisfy { deck[$0] != nil } }),
+              state.garrisons.values.allSatisfy({ (0...maximumStrength).contains($0.strength) }) else {
+            throw Rejection.replayFailed
         }
     }
 
