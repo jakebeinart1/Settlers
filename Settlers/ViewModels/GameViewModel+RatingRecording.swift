@@ -17,19 +17,28 @@ extension GameViewModel {
                            seats: setup.seats.map { Self.ratedEntity(for: $0, in: setup, me: owner).key },
                            initialState: match.initialState,
                            moves: match.moves.map {
-                               SharedMatch.Move(player: $0.actor, move: $0.move, isHumanDecision: $0.isHumanDecision)
+                               SharedMatch.Move(player: $0.actor, move: $0.move, isHumanDecision: $0.isHumanDecision,
+                                                rulesVersion: $0.rulesVersion)
                            }, abandoned: abandoned ? true : nil, ratingPool: pool)
     }
 
     /// Full replay evidence is written first. A stats/rating write interrupted
     /// afterwards can be retried from that outbox on the next launch. Stats
     /// are the authority; both rating presentations are derived from them.
-    func persistRatingMatch(_ shared: SharedMatch, rebuildRatings: Bool = true) throws {
-        let queued = try seatStatsStore.queueForUpload(shared)
-        guard queued.personIDs.count == 1, let savedID = queued.personIDs.first else {
+    func persistRatingMatch(_ shared: SharedMatch) throws {
+        let verified = try seatStatsStore.queueVerifiedMatch(shared, verify: verifiedRatingRecord)
+        try writeRatingRecord(verified)
+        try ratingStore.rebuild(from: seatStatsStore.all())
+    }
+
+    private func verifiedRatingRecord(_ match: SharedMatch) throws -> SeatStatsRecord {
+        guard match.personIDs.count == 1, let savedID = match.personIDs.first else {
             throw SharedMatch.Rejection.personIsNotUploader
         }
-        let verified = try queued.verified(owner: playerDirectory.resolvedID(savedID))
+        return try match.verified(owner: playerDirectory.resolvedID(savedID))
+    }
+
+    private func writeRatingRecord(_ verified: SeatStatsRecord) throws {
         if var held = seatStatsStore.record(for: verified.match) {
             if held.ratingPool == nil { held.ratingPool = verified.ratingPool }
             if held.abandoned == nil { held.abandoned = verified.abandoned }
@@ -37,7 +46,6 @@ extension GameViewModel {
         } else {
             try seatStatsStore.record(verified)
         }
-        if rebuildRatings { try ratingStore.rebuild(from: seatStatsStore.all()) }
     }
 
     /// The old match remains in the checkpoint's pending export set until
@@ -62,28 +70,43 @@ extension GameViewModel {
     func recoverCompletedRatingRecords() throws -> Bool {
         var changed = false
         for file in try seatStatsStore.pendingUploadFiles() {
-            let shared = try seatStatsStore.queuedMatch(at: file)
-            try persistRatingMatch(shared, rebuildRatings: false)
-            changed = true // An interrupted rating write may follow valid stats.
+            do {
+                let shared = try seatStatsStore.queuedMatch(at: file)
+                if needsRatingRecord(for: shared) {
+                    try writeRatingRecord(verifiedRatingRecord(shared))
+                }
+                changed = true // An interrupted rating write may follow valid stats.
+            } catch where RatingMatchOutboxError.isRejectedEvidence(error) {
+                // Retain the original evidence so a checkpoint can repair it.
+                continue
+            }
         }
-        for summary in try gameLogStore.summaries() where summary.isComplete {
-            guard let held = seatStatsStore.record(for: summary.gameID), held.ratingPool == nil,
-                  let pool = try archivedRatingPool(summary, record: held) else { continue }
-            var enriched = held
-            enriched.ratingPool = pool
-            try seatStatsStore.replace(enriched)
-            changed = true
+        for var record in seatStatsStore.all() where record.ratingPool == nil {
+            do {
+                guard let pool = try archivedRatingPool(for: record) else { continue }
+                record.ratingPool = pool
+                try seatStatsStore.replace(record)
+                changed = true
+            } catch is GameLogStore.ReadError {
+                continue
+            }
         }
         return changed
     }
 
-    private func archivedRatingPool(_ summary: GameLogSummary, record: SeatStatsRecord) throws -> RatingPool? {
-        guard summary.humanSeats.count == 1 else { return nil }
+    private func needsRatingRecord(for match: SharedMatch) -> Bool {
+        guard let record = seatStatsStore.record(for: match.match) else { return true }
+        return (record.ratingPool == nil && match.ratingPool != nil)
+            || (record.abandoned == nil && match.abandoned != nil)
+    }
+
+    private func archivedRatingPool(for record: SeatStatsRecord) throws -> RatingPool? {
         let entities = record.seats.compactMap { RatedEntity(key: $0.entity) }
         let tiers = entities.filter { $0 == .classic || $0 == .expert }
         guard tiers.count == entities.count - 1, let first = tiers.first,
-              tiers.allSatisfy({ $0 == first }) else { return nil }
-        let detail = try gameLogStore.detail(for: summary)
+              tiers.allSatisfy({ $0 == first }),
+              let detail = try gameLogStore.detail(for: record.match), detail.summary.isComplete,
+              detail.summary.humanSeats.count == 1 else { return nil }
         let tier: BotDifficulty = first == .expert ? .expert : .classic
         guard detail.roster.difficulty == nil || detail.roster.difficulty == tier else { return nil }
         return RatingPool(mode: detail.initialState.mode, variant: detail.initialState.variant, difficulty: tier)

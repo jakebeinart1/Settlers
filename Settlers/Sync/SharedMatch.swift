@@ -25,6 +25,9 @@ struct SharedMatch: Codable, Sendable {
         /// Robber), so a ghost never learns it as theirs. Absent in games
         /// uploaded before 2026-10-24; older phones ignore it.
         var isHumanDecision: Bool?
+        /// Older clients ignore this field. Absent legacy payloads keep their
+        /// original current-rules verification behavior.
+        var rulesVersion: Int?
     }
 
     /// Bumped when the payload changes shape; a phone skips versions it does
@@ -85,7 +88,9 @@ struct SharedMatch: Codable, Sendable {
         }
         var stats: [SeatStats]
         do {
-            stats = try SeatStats.compute(initial: initialState, moves: moves.map { LoggedMove(player: $0.player, move: $0.move) })
+            stats = try SeatStats.compute(initial: initialState, moves: moves.map {
+                LoggedMove(player: $0.player, move: $0.move, rulesVersion: $0.rulesVersion)
+            })
         } catch {
             throw Rejection.replayFailed
         }
@@ -141,7 +146,10 @@ extension SharedMatch {
             version: Self.currentVersion, match: record.match, date: record.date,
             seats: record.seats.map(\.entity),
             initialState: log.initialState,
-            moves: log.events.map { Move(player: $0.player, move: $0.move, isHumanDecision: $0.isHumanDecision) },
+            moves: log.events.map {
+                Move(player: $0.player, move: $0.move, isHumanDecision: $0.isHumanDecision,
+                     rulesVersion: $0.rulesVersion ?? RulesEngine.oldestSupportedRulesVersion)
+            },
             abandoned: record.abandoned, ratingPool: record.ratingPool
         )
     }

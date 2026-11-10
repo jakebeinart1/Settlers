@@ -532,10 +532,14 @@ public struct GameLogStore: Sendable {
     /// is named after the match id, so the lookup is a path, and only the file
     /// that was asked for is ever parsed.
     public func summary(for gameID: UUID) throws -> GameLogSummary? {
+        try detail(for: gameID)?.summary
+    }
+
+    func detail(for gameID: UUID) throws -> GameLogDetail? {
         try Self.archiveLock.withLock {
             let url = fileURL(for: gameID)
             guard FileManager.default.fileExists(atPath: url.path) else { return nil }
-            return try detail(for: url).summary
+            return try detail(for: url)
         }
     }
 
