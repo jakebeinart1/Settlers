@@ -26,7 +26,8 @@ extension GameViewModel {
     /// afterwards can be retried from that outbox on the next launch. Stats
     /// are the authority; both rating presentations are derived from them.
     func persistRatingMatch(_ shared: SharedMatch) throws {
-        let verified = try seatStatsStore.queueVerifiedMatch(shared, verify: verifiedRatingRecord)
+        let verified = try seatStatsStore.queueVerifiedMatch(shared, resolveOwner: playerDirectory.resolvedID,
+                                                             verify: verifiedRatingRecord)
         try writeRatingRecord(verified)
         try ratingStore.rebuild(from: seatStatsStore.all())
     }

@@ -87,13 +87,35 @@ import Testing
         #expect(throws: SharedMatch.Rejection.replayFailed) { try unversioned.verified(owner: device.me) }
         let pending = try #require(outbox.pendingUploadFiles().first)
         let oldBytes = try Data(contentsOf: pending)
+        try device.stores.players.adopt("apple-alex", seatStats: outbox, ghosts: device.stores.ghosts)
         try model.persistDisplacedRatingMatch(checkpoint)
         let repaired = try outbox.queuedMatch(at: pending)
         #expect(repaired.moves.first?.rulesVersion == RulesEngine.oldestSupportedRulesVersion)
         #expect(outbox.record(for: shared.match)?.abandoned == true)
+        #expect(outbox.record(for: shared.match)?.seats.compactMap(\.personID) == ["apple-alex"])
         let preserved = try FileManager.default.contentsOfDirectory(
             at: outbox.directory.appendingPathComponent("RejectedUploads"), includingPropertiesForKeys: nil)
         #expect(try Data(contentsOf: #require(preserved.first)) == oldBytes)
+    }
+
+    @Test func verifiedCheckpointReplacesDamagedSameMatchQueueAndPreservesBytes() throws {
+        let directory = root()
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let device = LiveSyncTests.Device("phone", in: directory)
+        let shared = try pendingMatch(on: device, pool: naval)
+        let outbox = device.stores.seatStats
+        try outbox.queueForUpload(shared)
+        let file = try #require(outbox.pendingUploadFiles().first)
+        let damaged = Data("damaged replay".utf8)
+        try damaged.write(to: file)
+        let record = try outbox.queueVerifiedMatch(shared, resolveOwner: device.stores.players.resolvedID) {
+            try $0.verified(owner: device.me)
+        }
+        #expect(record.match == shared.match)
+        #expect(try outbox.queuedMatch(at: file).match == shared.match)
+        let originals = try FileManager.default.contentsOfDirectory(
+            at: outbox.directory.appendingPathComponent("RejectedUploads"), includingPropertiesForKeys: nil)
+        #expect(try Data(contentsOf: #require(originals.first)) == damaged)
     }
 
     @Test func badQueueEntryDoesNotBlockAccountAdoptionOrValidUpload() async throws {

@@ -131,6 +131,18 @@ struct OnlineGameplayTests {
         #expect(game.view(for: host).resources[.ore] == 2)
     }
 
+    @Test func unavailableBankQuantityRejectsTheTradeWithoutChargingIt() throws {
+        var state = seededState()
+        state.phase = .mainTurn(playerIndex: host.index)
+        deal([.brick: 8], to: host, in: &state)
+        deal([.ore: state.rules.bankPerResource - 1], to: guest, in: &state)
+        var game = try restored(state)
+        #expect(throws: OnlineGameplayError.bankStockUnavailable) {
+            try game.apply(.bankTrade(give: [.brick: 8], get: [.ore: 2]), by: host)
+        }
+        #expect(game.view(for: host).resources == [.brick: 8])
+    }
+
     @Test func replacingASeatPreservesProgressAndBotCanActAfterRestart() throws {
         var game = try makeGame()
         let settlement = try #require(game.view(for: host).legalMoves.first)

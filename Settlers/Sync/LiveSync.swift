@@ -308,7 +308,9 @@ actor LiveSync {
     /// `scripts/cloudkit-games.py players` counts them per player.
     func recordAbandoned(_ match: SharedMatch) throws {
         let owner = stores.players.me
-        let record = try stores.seatStats.queueVerifiedMatch(match) { try $0.verified(owner: owner) }
+        let record = try stores.seatStats.queueVerifiedMatch(match, resolveOwner: stores.players.resolvedID) {
+            try $0.verified(owner: owner)
+        }
         try stores.seatStats.record(record)
         try stores.ratings.rebuild(from: stores.seatStats.all())
     }

@@ -7,6 +7,7 @@ enum OnlineGameplayError: Error, Sendable, Equatable {
     case invalidCheckpoint
     case notActing
     case illegalMove
+    case bankStockUnavailable
     case unexpectedBot
 }
 
@@ -270,6 +271,8 @@ struct OnlineGameplay: Codable, Sendable {
         candidate.reseedGameplayRandomness(Self.privateSeed())
         do {
             try candidate.applyExternal(move, by: seat)
+        } catch MoveError.bankCannotSupply {
+            throw OnlineGameplayError.bankStockUnavailable
         } catch is MoveError {
             throw OnlineGameplayError.illegalMove
         }

@@ -185,6 +185,8 @@ extension StoredOnlineRoom {
         }
         do {
             try gameplay.apply(command.move, by: seat)
+        } catch OnlineGameplayError.bankStockUnavailable {
+            throw OnlineError.bankStockUnavailable
         } catch is OnlineGameplayError {
             throw OnlineError.invalidRequest
         }

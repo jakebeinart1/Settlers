@@ -66,7 +66,7 @@ enum OnlineRoutes {
         case .forbidden: .forbidden
         case .notFound: .notFound
         case .conflict: .conflict
-        case .invalidRequest: .badRequest
+        case .invalidRequest, .bankStockUnavailable: .badRequest
         case .unavailable: .serviceUnavailable
         }
     }
