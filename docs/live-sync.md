@@ -115,6 +115,9 @@ math and ordering coverage is in `PlayerRatingsTests`.
   every move (`Match` record). No result is uploaded. Every phone that downloads
   the game replays it through the rules engine and computes the winner and
   stats itself, so a record claiming a win its moves don't produce is rejected.
+  The replay boundary checks saved seat references, stock, and army strengths
+  before passing the recording to the engine. The leaderboard reports partial
+  sync if a local upload cannot be verified, while other records continue syncing.
   A game's person seat is always filed under the account that uploaded it,
   so nobody can post a game as someone else.
 - **Historic ladder Elo.** Each phone recomputes its original Classic/Standard

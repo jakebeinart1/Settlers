@@ -21,18 +21,18 @@ struct OnlineAccountEntry: View {
                     }
                 }
             }
-            if recovery {
+            if usesRecoveryKey {
                 OnlineTextField(title: "Recovery key", text: $key, secret: true)
             } else {
                 OnlineTextField(title: "Your player name", text: $name)
                     .accessibilityIdentifier("online.account.name")
             }
-            GoldRowButton(title: recovery ? "Use Recovery Key" : "Create Online Account",
-                          systemImage: recovery ? "key.horizontal" : "person.badge.plus",
+            GoldRowButton(title: usesRecoveryKey ? "Use Recovery Key" : "Create Online Account",
+                          systemImage: usesRecoveryKey ? "key.horizontal" : "person.badge.plus",
                           iconColor: SettingsChrome.ornamentGold,
                           isEnabled: canContinue) {
                 Task {
-                    if recovery { await model.recover(using: key) } else { await model.createAccount(named: name) }
+                    if usesRecoveryKey { await model.recover(using: key) } else { await model.createAccount(named: name) }
                     if model.account != nil {
                         key = ""
                         await onAuthenticated()
@@ -40,19 +40,28 @@ struct OnlineAccountEntry: View {
                 }
             }
             .accessibilityIdentifier("online.account.submit")
-            Button(recovery ? "Create a new account" : "Already have a recovery key?") {
-                recovery.toggle()
-                key = ""
+            if allowsLocalSignup {
+                Button(recovery ? "Create a new account" : "Already have a recovery key?") {
+                    recovery.toggle()
+                    key = ""
+                }
+                .frame(minHeight: 44)
+                .tint(SettingsChrome.ornamentGold)
+                .disabled(model.isWorking)
+            } else {
+                Text("Use the recovery key issued for your account. It also works on your other devices.")
+                    .font(.footnote)
+                    .foregroundStyle(.white.opacity(0.72))
             }
-            .frame(minHeight: 44)
-            .tint(SettingsChrome.ornamentGold)
-            .disabled(model.isWorking)
         }
     }
 
+    private var allowsLocalSignup: Bool { OnlineTransport.configuredEndpoint?.scheme == "http" }
+    private var usesRecoveryKey: Bool { recovery || !allowsLocalSignup }
+
     private var canContinue: Bool {
         if model.isWorking { return false }
-        if recovery { return key.trimmingCharacters(in: .whitespacesAndNewlines).count == 72 }
+        if usesRecoveryKey { return key.trimmingCharacters(in: .whitespacesAndNewlines).count == 72 }
         return (1 ... 24).contains(name.trimmingCharacters(in: .whitespacesAndNewlines).count)
     }
 }

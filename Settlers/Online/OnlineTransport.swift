@@ -60,6 +60,7 @@ private final class OnlineNoRedirects: NSObject, URLSessionTaskDelegate {
 enum OnlineClientError: LocalizedError {
     case unavailable
     case unexpectedResponse
+    case accountEnrollmentRequired
     case rejected(Int, OnlineError?)
     case secureStorage
 
@@ -67,6 +68,7 @@ enum OnlineClientError: LocalizedError {
         switch self {
         case .unavailable: "Online play is unavailable in this build."
         case .unexpectedResponse: "Empires received an unexpected reply."
+        case .accountEnrollmentRequired: "Online accounts are issued privately. Ask the server operator for a recovery key."
         case .secureStorage: "Empires could not access its secure storage."
         case .rejected(400, .some(.bankStockUnavailable)): OnlineError.bankStockUnavailable.errorDescription
         case .rejected(401, _): "That recovery key or session is no longer valid."

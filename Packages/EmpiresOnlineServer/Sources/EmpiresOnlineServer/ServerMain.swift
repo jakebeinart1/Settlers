@@ -11,7 +11,7 @@ enum ServerMain {
         do {
             application.http.server.configuration.hostname = configuration.hostname
             application.http.server.configuration.port = configuration.port
-            OnlineRoutes.install(on: application, authority: authority)
+            OnlineRoutes.install(on: application, authority: authority, signup: configuration.signup)
             try await serve(application, authority: authority, push: configuration.push)
         } catch {
             try await application.asyncShutdown()

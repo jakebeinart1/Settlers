@@ -236,6 +236,7 @@ struct LeaderboardView: View {
         case nil: return "Saved on this device"
         case .never: return "Connecting records…"
         case .online(let date): return "Records synced · \(date.formatted(date: .omitted, time: .shortened))"
+        case .partiallySynced: return "Some records couldn’t sync"
         case .offline: return "Offline · saved records"
         case .failed: return "Sync unavailable · saved records"
         case .noName, .nameTaken: return "Choose your leaderboard name"

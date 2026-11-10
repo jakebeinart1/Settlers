@@ -5,16 +5,16 @@ import Vapor
 enum OnlineRoutes {
     private static let maxRequestBytes = 32 * 1_024
 
-    static func install(on application: Application, authority: OnlineAuthority) {
+    static func install(on application: Application, authority: OnlineAuthority, signup: OnlineSignupAdmission = .closed) {
         let signupLimit = OnlineSignupLimit()
         application.get("health") { _ in await authority.isReady ? HTTPStatus.ok : .serviceUnavailable }
         application.on(.POST, "v1", "online", body: .collect(maxSize: "32kb")) { request async throws -> Response in
-            try await respond(to: request, authority: authority, signupLimit: signupLimit)
+            try await respond(to: request, authority: authority, signup: signup, signupLimit: signupLimit)
         }
     }
 
     private static func respond(
-        to request: Request, authority: OnlineAuthority, signupLimit: OnlineSignupLimit
+        to request: Request, authority: OnlineAuthority, signup: OnlineSignupAdmission, signupLimit: OnlineSignupLimit
     ) async throws -> Response {
         do {
             let command = try decode(request)
@@ -22,9 +22,18 @@ enum OnlineRoutes {
             if request.headers.contains(name: .authorization), bearer == nil {
                 throw OnlineError.unauthorized
             }
-            if case .createAccount = command,
-               !(await signupLimit.admit(peer: request.remoteAddress?.ipAddress ?? "local")) {
-                return try json(OnlineError.unavailable, status: .tooManyRequests)
+            if case .createAccount = command {
+                let peer = request.remoteAddress?.ipAddress
+                // Vapor's serve flags can override the configured bind.
+                let listener = request.application.http.server.shared.localAddress?.ipAddress
+                let forwarded = request.headers.contains(name: .forwarded) || request.headers.contains(name: .xForwardedFor)
+                guard signup.permits(bearer: bearer, directPeer: peer, listener: listener, forwarded: forwarded) else {
+                    throw OnlineError.unauthorized
+                }
+                guard await signupLimit.admit(peer: peer ?? "unknown") else {
+                    return try json(OnlineError.unavailable, status: .tooManyRequests)
+                }
+                return try json(await authority.handle(command, bearer: nil), status: .ok)
             }
             return try json(await authority.handle(command, bearer: bearer), status: .ok)
         } catch let error as OnlineError {
@@ -73,7 +82,7 @@ enum OnlineRoutes {
 
 }
 
-/// A bounded defense in depth for anonymous registration. Trusted ingress
+/// A bounded defense in depth for admitted registration. Trusted ingress
 /// applies its own client limits without trusting app-supplied forwarding headers.
 private actor OnlineSignupLimit {
     private var windowStart = Date()

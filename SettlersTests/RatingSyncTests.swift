@@ -67,6 +67,65 @@ import Testing
         #expect(throws: SharedMatch.Rejection.invalidRatingPool) { try shared.verified(owner: device.me) }
     }
 
+    @Test func downloadedReplayRejectsAnActorOutsideTheTable() throws {
+        var state = GameSetup.newGame(board: BoardGenerator.standard(), seed: 7)
+        let invalidSeat = PlayerID(index: state.players.count)
+        state.phase = .rollDice(playerIndex: invalidSeat.index)
+        let replay = recordedPosition(state, player: invalidSeat, move: .rollDice)
+        let downloaded = try JSONDecoder().decode(SharedMatch.self, from: JSONEncoder().encode(replay))
+        #expect(throws: SharedMatch.Rejection.replayFailed) { try downloaded.verified(owner: "apple-alex") }
+    }
+
+    @Test func downloadedReplayRejectsTradeQuantitiesThatWouldOverflow() throws {
+        var state = GameSetup.newGame(board: BoardGenerator.standard(), seed: 7)
+        let player = state.players[0].id
+        state.phase = .mainTurn(playerIndex: player.index)
+        let replay = recordedPosition(state, player: player,
+            move: .bankTrade(give: [.brick: Int.max, .lumber: Int.max], get: [.wool: 1]))
+        #expect(throws: SharedMatch.Rejection.replayFailed) { try replay.verified(owner: "apple-alex") }
+    }
+
+    @Test func downloadedReplayRejectsOutOfRangeStartingInventory() throws {
+        var state = GameSetup.newGame(board: BoardGenerator.standard(), seed: 7)
+        let player = state.players[0].id
+        state.players[0].resources = [.brick: Int.max, .lumber: Int.max]
+        state.phase = .rollDice(playerIndex: player.index)
+        let replay = recordedPosition(state, player: player, move: .rollDice)
+        #expect(throws: SharedMatch.Rejection.replayFailed) { try replay.verified(owner: "apple-alex") }
+    }
+
+    @Test func downloadedReplayCannotDeclareAWinnerInItsOpeningPosition() throws {
+        var state = GameSetup.newGame(board: BoardGenerator.standard(), seed: 7)
+        state.phase = .gameOver(winner: state.players[0].id)
+        let replay = SharedMatch(version: SharedMatch.currentVersion, match: UUID(), date: Date(),
+            seats: ["person:apple-alex", "expert", "expert", "expert"], initialState: state,
+            moves: [], ratingPool: expert)
+        #expect(throws: SharedMatch.Rejection.replayFailed) { try replay.verified(owner: "apple-alex") }
+    }
+
+    @Test(arguments: [false, true])
+    func downloadedConquestReplayRejectsUnsafeArmyStrength(inGarrison: Bool) throws {
+        var state = GameSetup.newGame(board: BoardGenerator.standard(), seed: 7, variant: .conquest)
+        let player = state.players[0].id
+        let tile = try #require(state.board.tiles.first { $0.numberToken != nil }).coordinate
+        state.phase = .mainTurn(playerIndex: player.index)
+        state.players[0].settlements.insert(try #require(state.board.corners(of: tile).first))
+        let cards = inGarrison ? [1] : [1, Int.max]
+        state.armyHands[player] = cards
+        if inGarrison { state.garrisons[tile] = Garrison(owner: player, strength: Int.max) }
+        let replay = SharedMatch(version: SharedMatch.currentVersion, match: UUID(), date: Date(),
+            seats: ["person:apple-alex", "expert", "expert", "expert"], initialState: state,
+            moves: [.init(player: player, move: .deployArmy(to: tile, strengths: cards))],
+            abandoned: true, ratingPool: RatingPool(mode: .classic, variant: .conquest, difficulty: .expert))
+        #expect(throws: SharedMatch.Rejection.replayFailed) { try replay.verified(owner: "apple-alex") }
+    }
+
+    private func recordedPosition(_ state: GameState, player: PlayerID, move: GameMove) -> SharedMatch {
+        SharedMatch(version: SharedMatch.currentVersion, match: UUID(), date: Date(),
+            seats: ["person:apple-alex", "expert", "expert", "expert"], initialState: state,
+            moves: [.init(player: player, move: move)], abandoned: true, ratingPool: expert)
+    }
+
     @Test func checkpointRepairsQueuedReplayThatLostItsRulesVersion() throws {
         let directory = root()
         defer { try? FileManager.default.removeItem(at: directory) }
@@ -126,13 +185,27 @@ import Testing
         let outbox = phone.stores.seatStats
         let good = try pendingMatch(on: phone, pool: naval)
         try outbox.queueForUpload(good)
+        func unsupportedMatch(seats: [String]) -> SharedMatch {
+            SharedMatch(version: good.version + 1, match: UUID(), date: good.date,
+                        seats: seats, initialState: good.initialState, moves: good.moves,
+                        abandoned: good.abandoned, ratingPool: good.ratingPool)
+        }
+        try outbox.queueForUpload(unsupportedMatch(seats: good.seats))
+        let foreignSeats = good.seats.map { $0.hasPrefix(RatedEntity.personPrefix) ? RatedEntity.person("apple-jake").key : $0 }
+        try outbox.queueForUpload(unsupportedMatch(seats: foreignSeats))
+        let archivedSeats = good.seats.map { $0.hasPrefix(RatedEntity.personPrefix) ? $0 : RatedEntity.ghost("archived~1").key }
+        let archived = unsupportedMatch(seats: archivedSeats)
+        let archivedFile = outbox.pendingUploadsDirectory.appendingPathComponent("\(archived.match.uuidString).json")
+        try JSONEncoder().encode(archived).write(to: archivedFile)
         let corrupt = outbox.pendingUploadsDirectory.appendingPathComponent("00000000-0000-0000-0000-000000000000.json")
         let bytes = Data("damaged replay".utf8)
         try bytes.write(to: corrupt)
-        try await sync(phone, cloud: cloud, user: "apple-alex", name: "Alex")
+        let status = await phone.sync(cloud, as: "apple-alex", name: "Alex")
+        #expect(status == .partiallySynced(rejectedRecordings: 2))
         #expect(phone.me == "apple-alex")
         #expect(cloud.locked { $0.matches[good.match]?.owner } == "apple-alex")
         #expect(try Data(contentsOf: corrupt) == bytes)
+        #expect(try outbox.pendingUploadFiles().count == 4)
     }
 
     private func legacyRobberCheckpoint(owner: String) throws -> MatchCheckpoint {

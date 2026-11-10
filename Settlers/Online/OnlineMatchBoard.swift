@@ -82,7 +82,8 @@ struct OnlineMatchBoard: View {
     @ViewBuilder
     private var connectionStatus: some View {
         if model.hasPendingSubmission {
-            GoldRowButton(title: "Retry Pending Move", subtitle: "Empires will check whether it already went through.",
+            GoldRowButton(title: "Retry Pending Move", subtitle: model.isConfirmingMoveInAnotherMatch
+                          ? "Checking a move from another match." : "Empires will check whether it already went through.",
                           systemImage: "clock.arrow.circlepath", isEnabled: !model.isWorking) {
                 Task { await model.retrySubmission() }
             }

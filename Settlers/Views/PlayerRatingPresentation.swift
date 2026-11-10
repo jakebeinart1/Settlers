@@ -105,6 +105,9 @@ enum RatingPresentation {
         switch status {
         case .never: return "Connecting your records…"
         case .online(let date): return "Synced \(date.formatted(date: .omitted, time: .shortened))"
+        case .partiallySynced(let count):
+            return count == 1 ? "1 recording couldn’t sync and is still on this device."
+                : "\(count) recordings couldn’t sync and are still on this device."
         case .offline: return "Offline · saved records will sync when connected"
         case .failed: return "Records could not sync. Your saved games remain on this device."
         case .noAccount: return "Sign in to iCloud in Settings to sync across devices"

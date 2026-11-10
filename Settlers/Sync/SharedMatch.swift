@@ -86,6 +86,7 @@ struct SharedMatch: Codable, Sendable {
         guard seats.filter({ $0.hasPrefix(RatedEntity.personPrefix) }).count == 1, !owner.isEmpty else {
             throw Rejection.personIsNotUploader
         }
+        try validateReplayInput()
         var stats: [SeatStats]
         do {
             stats = try SeatStats.compute(initial: initialState, moves: moves.map {
@@ -101,6 +102,77 @@ struct SharedMatch: Codable, Sendable {
                                    SeatStatsRecord.Entry(entity: entity.hasPrefix(RatedEntity.personPrefix)
                                                              ? RatedEntity.person(owner).key : entity, stats: stats)
                                }, ratingPool: ratingPool, abandoned: abandoned)
+    }
+
+    /// A downloaded archive can decode even when its indices or quantities
+    /// would trap inside rules replay. Check those before running the engine.
+    /// A migrated save can start midgame, so an opening phase is not required.
+    private func validateReplayInput() throws {
+        let state = initialState
+        let indices = state.players.indices
+        guard GameSetup.supportedPlayerCounts.contains(indices.count),
+              state.players.map(\.id.index).elementsEqual(indices),
+              state.robberMoverIndex.map(indices.contains) ?? true,
+              moves.allSatisfy({ indices.contains($0.player.index) }) else { throw Rejection.replayFailed }
+        switch state.phase {
+        case .discarding(let pending):
+            guard !pending.isEmpty, pending.allSatisfy({ indices.contains($0.index) }) else { throw Rejection.replayFailed }
+        case .gameOver:
+            // A recording must earn its result during replay. A position
+            // that already names a winner has no evidence of how it ended.
+            throw Rejection.replayFailed
+        default:
+            guard state.phase.awaitingSeatIndex.map(indices.contains) == true else { throw Rejection.replayFailed }
+        }
+
+        let rules = state.rules
+        let validAmounts = { (amounts: [Resource: Int]) in
+            amounts.values.allSatisfy { (0...rules.bankPerResource).contains($0) }
+        }
+        guard validAmounts(state.bank), state.players.allSatisfy({ validAmounts($0.resources) }),
+              state.pendingTradeOffers.allSatisfy({ validAmounts($0.give) && validAmounts($0.want) }),
+              state.tradesAcceptedThisTurn.values.allSatisfy({ (0...(Int.max / 2)).contains($0) }),
+              moves.allSatisfy({ Self.hasSafeResourceAmounts($0.move, checking: validAmounts) }) else {
+            throw Rejection.replayFailed
+        }
+        try Self.validateReplayBoard(state)
+        try Self.validateReplayArmies(state)
+    }
+
+    private static func validateReplayBoard(_ state: GameState) throws {
+        let shape = state.rules.board
+        let coordinates = Set(state.board.tiles.map(\.coordinate))
+        let axis = -shape.radius...shape.radius
+        guard coordinates.count == state.board.tiles.count, coordinates.count <= shape.tileCount,
+              coordinates.allSatisfy({ axis.contains($0.q) && axis.contains($0.r) }),
+              state.players.allSatisfy({ $0.roads.count <= state.rules.maxRoadsPerPlayer }),
+              state.players.allSatisfy({ (0...state.rules.devCardDeckSize).contains($0.playedKnights) }) else {
+            throw Rejection.replayFailed
+        }
+        // The Naval checkpoint validator measures distance from the saved
+        // sailing origin. Reject off-board coordinates before that arithmetic.
+        guard state.naval?.ships.allSatisfy({ $0.previousSailingOrigin.map(coordinates.contains) ?? true }) ?? true,
+              Naval.validationProblem(in: state) == nil else { throw Rejection.replayFailed }
+    }
+
+    private static func hasSafeResourceAmounts(
+        _ move: GameMove, checking valid: ([Resource: Int]) -> Bool
+    ) -> Bool {
+        switch move {
+        case .discard(let amounts), .buyArmyCard(let amounts): valid(amounts)
+        case .bankTrade(let give, let get): valid(give) && valid(get)
+        default: true
+        }
+    }
+
+    private static func validateReplayArmies(_ state: GameState) throws {
+        let deck = state.rules.armyDeck
+        let maximumStrength = DiceOdds.pips(for: 6) + deck.reduce(0) { $0 + $1.key * $1.value }
+        guard state.armyDeck.allSatisfy({ deck[$0] != nil }),
+              state.armyHands.values.allSatisfy({ hand in hand.allSatisfy { deck[$0] != nil } }),
+              state.garrisons.values.allSatisfy({ (0...maximumStrength).contains($0.strength) }) else {
+            throw Rejection.replayFailed
+        }
     }
 
     /// Jake, 2026-10-26: "make it a restart counts towards a loss in elo". The
