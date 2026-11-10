@@ -10,8 +10,14 @@ From the repository root with Swift 6.1 or later:
 ```sh
 online_data="$(mktemp -d)"
 EMPIRES_ONLINE_DATA_DIRECTORY="$online_data" \
+EMPIRES_ONLINE_ALLOW_LOOPBACK_SIGNUP=1 \
   swift run --package-path Packages/EmpiresOnlineServer --force-resolved-versions empires-online-server
 ```
+
+The signup flag is for direct local testing. The server accepts it only with a
+literal `127.0.0.1` or `::1` bind, and anonymous signup requires both a loopback
+listener and a direct loopback peer with no `Forwarded` or `X-Forwarded-For` header. Keep this mode off any proxy
+or tunnel. With the flag unset, anonymous signup is closed even on loopback.
 
 `GET http://127.0.0.1:8080/health` reports readiness. The iOS transport uses
 `POST /v1/online` with a JSON request, bearer authorization and ISO 8601 dates.
@@ -34,9 +40,10 @@ docker build -f Packages/EmpiresOnlineServer/Dockerfile -t empires-online-server
 
 Run one always-on instance behind a trusted HTTPS ingress. Bind the container
 only to its private ingress network and apply per-client rate limits at the
-edge. The authority limits anonymous account creation to 20 per direct peer
-and 120 globally per hour, with a maximum of 1,000 stored accounts. Behind
-one proxy, that peer limit covers all requests arriving from the proxy.
+edge. Leave loopback signup disabled. The service still caps admitted account
+creation at 20 per direct peer and 120 globally per hour, with a maximum of 1,000
+stored accounts. Behind one proxy, the per-peer limit covers all enrollments
+arriving from that proxy.
 Attach a persistent volume at
 `/var/lib/empires-online` or set `EMPIRES_ONLINE_DATA_DIRECTORY` to a different
 absolute mount path. The directory must be writable by UID and GID 10001 and
@@ -57,6 +64,23 @@ against a copy of the complete production snapshot and verify readiness and
 representative active rooms. If any checkpoint cannot load, keep the previous
 binary and prepare a verified migration before updating the volume. Treat
 finished room retention as part of that preflight too.
+
+## Provision a player
+
+Public signup is closed. To enroll players, mount a read-only file containing
+32 random bytes encoded as 64 hexadecimal characters and set
+`EMPIRES_ONLINE_PROVISIONING_TOKEN_FILE` to its absolute path. An unset path
+leaves enrollment closed. A configured unreadable or invalid file fails startup.
+Restart the server to rotate or remove the token.
+
+Send `POST /v1/online` over HTTPS with `Content-Type: application/json`, the
+provisioning token in `Authorization: Bearer …`, and a body such as
+`{"createAccount":{"name":"Player"}}`. Read the token from a private file and
+keep request headers and the response out of logs. Share only the returned
+player recovery key privately with the player. They enter it in **Recover
+Account** in the app. The provisioning token can enroll accounts, and player
+keys can authenticate to their games. Existing accounts and rooms use the same
+keys and stored data whether provisioning is enabled or closed.
 
 ## Enable notifications
 

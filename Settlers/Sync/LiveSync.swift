@@ -46,6 +46,7 @@ actor LiveSync {
     enum Status: Error, Equatable, Sendable {
         case never
         case online(Date)
+        case partiallySynced(rejectedRecordings: Int)
         /// Nothing to sync as: no name chosen yet, or still the default "You".
         case noName
         /// The name is held by another Apple ID.
@@ -171,8 +172,11 @@ actor LiveSync {
             }
             let naming = try await nameSelf(me, preferredName: preferredName, state: &state)
             var changed = try await downloadGhosts()
+            var rejectedRecordings = 0
             if naming.joined {
-                changed = try await uploadPendingMatches(me: me, state: &state) || changed
+                let pending = try await uploadPendingMatches(me: me, state: &state)
+                changed = pending.changed || changed
+                rejectedRecordings = pending.rejected
                 changed = try await uploadGames(me: me, state: &state) || changed
                 try await uploadGhost(me: me, state: &state)
             }
@@ -184,7 +188,9 @@ actor LiveSync {
                 state.ratingsRebuilt = true
                 try state.save(to: stores.stateFile)
             }
-            return naming.problem ?? .online(Date())
+            if let problem = naming.problem { return problem }
+            if rejectedRecordings > 0 { return .partiallySynced(rejectedRecordings: rejectedRecordings) }
+            return .online(Date())
         } catch CloudSyncError.noAccount {
             return .noAccount
         } catch CloudSyncError.unavailable {
@@ -319,25 +325,32 @@ actor LiveSync {
     /// a previous account's queue when accounts change; its games must never
     /// be posted as the new account's. Local IDs belong to the first account
     /// adopted by a phone which played before signing into iCloud.
-    private func uploadPendingMatches(me: String, state: inout SyncState) async throws -> Bool {
+    private func uploadPendingMatches(me: String, state: inout SyncState) async throws -> (changed: Bool, rejected: Int) {
         var changed = false
+        var rejected = 0
         for file in try stores.pendingGameFiles() {
             do {
                 let match = try stores.seatStats.queuedMatch(at: file)
-                guard !match.containsArchivedGhost, ownsPendingMatch(match, as: me) else { continue }
+                guard !match.containsArchivedGhost else { continue }
+                let people = match.personIDs
+                guard people.count == 1, let person = people.first, !person.isEmpty else {
+                    rejected += 1
+                    continue
+                }
+                guard ownsPendingMatch(match.match, person: person, as: me) else { continue }
                 changed = try await uploadPendingMatch(match, me: me, state: &state) || changed
                 try FileManager.default.removeItem(at: file)
             } catch where RatingMatchOutboxError.isRejectedEvidence(error) {
-                // A rejected replay stays local without blocking other games.
-                continue
+                // Preserve unusable local or unidentified evidence while the
+                // remaining games continue syncing.
+                rejected += 1
             }
         }
-        return changed
+        return (changed, rejected)
     }
 
-    private func ownsPendingMatch(_ match: SharedMatch, as me: String) -> Bool {
-        guard match.personIDs.count == 1, let person = match.personIDs.first else { return false }
-        let held = stores.seatStats.record(for: match.match)?.seats.compactMap(\.personID)
+    private func ownsPendingMatch(_ id: UUID, person: String, as me: String) -> Bool {
+        let held = stores.seatStats.record(for: id)?.seats.compactMap(\.personID)
         return stores.players.resolvedID(person) == me || (person.hasPrefix(PlayerDirectory.localPrefix) && held == [me])
     }
 

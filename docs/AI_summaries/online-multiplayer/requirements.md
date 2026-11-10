@@ -10,11 +10,16 @@ and appear in the participant's Your Games history.
 
 | Surface | Behavior |
 | --- | --- |
-| Online Play | Create an online identity or recover it on another device. Create a room, join by code or invite link, and resume any game from Your Games. |
+| Online Play | Use a recovery key to sign in or recover an existing identity on another device. The server operator provisions new identities for the private beta. Create a room, join by code or invite link, and resume any game from Your Games. |
 | Lobby | Show humans, open seats, AI, civilizations, board, rules and pace. Reserve seats atomically. A roster or settings change clears readiness. Start requires the latest configuration and every human to be ready. The next remaining human becomes host if the original host leaves. |
 | Match | Show the committed board, scores, public inventory counts, and the viewer's private hand. Name whose turn it is and highlight when a different player must respond. Confirm board actions through the existing placement affordance. Show sending and reconnecting status. |
 | Your Games | Show ongoing and finished games, turn owner and whether the signed-in player owes an action. Open the latest committed revision. Closing the game is safe. Resignation explicitly converts that seat to Classic AI while a human remains. |
 | Identity | The service generates a high-entropy key. The phone stores it in Keychain, and the service stores its digest. The player can deliberately copy the key to recover the same identity. Account deletion removes the account and its device bindings and anonymizes that seat in other players' games. |
+
+Production signup is closed by default. An operator can provision an account
+using a separate server credential and deliver its recovery key privately.
+The local development server can explicitly allow direct loopback signup.
+Room codes only join games for players who already have an account.
 
 ## Paces and clocks
 

@@ -14,6 +14,8 @@ private struct OnlineSubmission: Codable {
 @MainActor
 @Observable
 final class OnlinePlayModel {
+    private static let submissionRetryInterval: Duration = .seconds(3)
+
     private(set) var account: OnlineAccount?
     private(set) var match: OnlineMatchView?
     private(set) var games: [OnlineGameSummary] = []
@@ -25,22 +27,37 @@ final class OnlinePlayModel {
     var message: String?
 
     var hasPendingSubmission: Bool { pending != nil }
+    var isConfirmingMoveInAnotherMatch: Bool {
+        guard let pending, let match else { return false }
+        return pending.matchID != match.id
+    }
     var hasStoredSession: Bool { bearer != nil }
     var recoveryKey: String? { bearer }
 
-    @ObservationIgnored private let transport: OnlineTransport?
+    @ObservationIgnored private let sendRequest: (@Sendable (OnlineRequest, String?) async throws -> OnlineResponse)?
     @ObservationIgnored private let storage: OnlineSecureStore?
     private var bearer: String?
     private var pending: OnlineSubmission?
     @ObservationIgnored private var generation = 0
     @ObservationIgnored private var isPolling = false
     @ObservationIgnored private var restored = false
+    @ObservationIgnored private var nextSubmissionRetry: ContinuousClock.Instant?
     @ObservationIgnored private(set) var lastRequestError: OnlineClientError?
 
     init() {
         let endpoint = OnlineTransport.configuredEndpoint
-        transport = endpoint.map { OnlineTransport(endpoint: $0) }
         storage = endpoint.map { OnlineSecureStore(endpoint: $0) }
+        if let endpoint {
+            let transport = OnlineTransport(endpoint: endpoint)
+            sendRequest = { request, bearer in try await transport.send(request, bearer: bearer) }
+        } else {
+            sendRequest = nil
+        }
+    }
+
+    init(storage: OnlineSecureStore, sendRequest: @escaping @Sendable (OnlineRequest, String?) async throws -> OnlineResponse) {
+        self.storage = storage
+        self.sendRequest = sendRequest
     }
 
     func restore() async {
@@ -61,7 +78,12 @@ final class OnlinePlayModel {
 
     func createAccount(named name: String) async {
         await perform {
-            let response = try await send(.createAccount(name: name), bearer: nil)
+            let response: OnlineResponse
+            do {
+                response = try await send(.createAccount(name: name), bearer: nil)
+            } catch OnlineClientError.rejected(401, _) {
+                throw OnlineClientError.accountEnrollmentRequired
+            }
             guard case .account(let profile) = response, let key = profile.bearer, Self.isBearer(key) else {
                 throw OnlineClientError.unexpectedResponse
             }
@@ -117,6 +139,7 @@ final class OnlinePlayModel {
             guard requestedGeneration == generation else { return }
             try consume(response)
             isOffline = false
+            await retrySubmissionIfDue()
         } catch is CancellationError {
             return
         } catch {
@@ -160,6 +183,13 @@ final class OnlinePlayModel {
         await retrySubmission()
     }
 
+    private func retrySubmissionIfDue() async {
+        guard !isWorking, pending != nil,
+              nextSubmissionRetry.map({ $0 <= ContinuousClock.now }) ?? true else { return }
+        nextSubmissionRetry = ContinuousClock.now.advanced(by: Self.submissionRetryInterval)
+        await retrySubmission()
+    }
+
     func retrySubmission() async {
         guard let submission = pending, submission.accountID == account?.id else { return }
         await perform {
@@ -170,14 +200,18 @@ final class OnlinePlayModel {
                       position.acknowledgedCommandID == submission.command.id else {
                     throw OnlineClientError.unexpectedResponse
                 }
-                try consume(response)
                 try clearSubmission()
+                // A notification or Your Games may have opened another match.
+                // A receipt settles the durable command without changing navigation.
+                if match?.id == submission.matchID { try consume(response) }
             } catch let error as OnlineClientError where error.definitelyRejected {
                 try clearSubmission()
+                if case .rejected(401, _) = error { throw error }
                 if match?.id == submission.matchID {
                     try consume(await send(.view(matchID: submission.matchID)))
+                    throw error
                 }
-                throw error
+                message = "A pending move in another match was not accepted. Open that match to see its current position."
             }
         }
     }
@@ -276,8 +310,8 @@ final class OnlinePlayModel {
     }
 
     private func send(_ request: OnlineRequest, bearer: String?) async throws -> OnlineResponse {
-        guard let transport else { throw OnlineClientError.unavailable }
-        return try await transport.send(request, bearer: bearer)
+        guard let sendRequest else { throw OnlineClientError.unavailable }
+        return try await sendRequest(request, bearer)
     }
 
     private func consume(_ response: OnlineResponse) throws {
@@ -310,6 +344,7 @@ final class OnlinePlayModel {
         match = nil
         games = []
         pending = nil
+        nextSubmissionRetry = nil
         needsRecovery = true
     }
 
@@ -321,6 +356,7 @@ final class OnlinePlayModel {
     private func clearSubmission() throws {
         try requireStorage().remove(OnlineStorageKey.submission)
         pending = nil
+        nextSubmissionRetry = nil
     }
 
     private func requireStorage() throws -> OnlineSecureStore {

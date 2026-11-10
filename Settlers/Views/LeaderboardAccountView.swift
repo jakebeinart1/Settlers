@@ -106,11 +106,15 @@ struct LeaderboardAccountView: View {
                 Text("Leaderboard name").font(.system(.headline, design: .serif))
                 LadderNameEntry(onJoined: didJoin)
             }
-        } else if case .online = status {
-            GoldRowButton(title: "Change name", systemImage: "pencil",
-                          iconColor: SettingsChrome.ornamentGold, action: { isEditingName = true })
-                .frame(minHeight: 44)
-                .accessibilityIdentifier(AccessibilityID.Leaderboard.changeName)
+        } else {
+            switch status {
+            case .online, .partiallySynced:
+                GoldRowButton(title: "Change name", systemImage: "pencil",
+                              iconColor: SettingsChrome.ornamentGold, action: { isEditingName = true })
+                    .frame(minHeight: 44)
+                    .accessibilityIdentifier(AccessibilityID.Leaderboard.changeName)
+            default: EmptyView()
+            }
         }
     }
 
