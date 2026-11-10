@@ -105,11 +105,30 @@ struct OnlineGameplayTests {
         #expect(game.view(for: other).discardCount == nil)
         let malicious = GameMove.discard([.brick: Int.max, .ore: Int.max])
         #expect(throws: OnlineGameplayError.illegalMove) { try game.apply(malicious, by: host) }
+        let observedStock = game.view(for: other).bank
         try game.apply(.discard([.ore: 4]), by: guest)
+        #expect(game.view(for: other).bank == observedStock)
         #expect(game.actors == [host] && game.actionScope == "discard")
         try game.resolveTimeout(for: host)
         #expect(game.actors == [other] && game.actionScope == "robber")
         #expect(game.view(for: host).resources == [.brick: 4])
+    }
+
+    @Test func bankDraftAvailabilityKeepsBulkTradesAndHidesStock() throws {
+        var state = seededState()
+        state.phase = .mainTurn(playerIndex: host.index)
+        deal([.brick: 8], to: host, in: &state)
+        deal([.ore: 5], to: guest, in: &state)
+        var game = try restored(state)
+        let view = game.view(for: host)
+        let payload = try JSONDecoder().decode(OnlineGameplayView.self, from: JSONEncoder().encode(view))
+        #expect(payload.bank[.ore] == state.rules.bankPerResource)
+        #expect(game.view(for: guest).bank.isEmpty)
+        let give: [Resource: Int] = [.brick: 8]
+        let get: [Resource: Int] = [.ore: 2]
+        #expect(Trading.bankTradeProblem(give: give, get: get, by: host, state: view.boardPresentationState) == nil)
+        try game.apply(.bankTrade(give: give, get: get), by: host)
+        #expect(game.view(for: host).resources[.ore] == 2)
     }
 
     @Test func replacingASeatPreservesProgressAndBotCanActAfterRestart() throws {

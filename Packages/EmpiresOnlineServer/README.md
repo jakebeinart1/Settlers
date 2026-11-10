@@ -45,7 +45,10 @@ bringing up a second writer. The authority rejects a second process on the same
 volume. Avoid automatic sleep because the same process advances AI, expires live
 turns and dispatches alerts without a foreground player.
 
-Configure `/health` as the startup probe. Preserve the state directory across
+Configure `/health` as the readiness probe. A failed snapshot write before
+replacement makes the service unready until its next durable save. If
+replacement succeeded but the directory sync failed, restart the single
+writer so it loads the authoritative snapshot again. Preserve the state directory across
 restarts and keep private, access-controlled volume backups. Exercise restoration
 into an isolated volume before production. Recovery must restore the entire
 authority snapshot, including command receipts, active rooms and the push outbox.

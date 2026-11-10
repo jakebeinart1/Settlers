@@ -54,6 +54,8 @@ private hand, hidden points and authorized choices. The service retains the
 deck, random state, opponent hands and undiscovered terrain. Invite codes locate
 rooms. Membership still controls access. The phone uses private projections
 for drawing and never runs the rules engine on a reconstructed hidden state.
+The viewer receives bank trade availability for their current actions. The
+authority keeps stock counts and validates the complete trade at submission.
 
 ## Turn notifications
 

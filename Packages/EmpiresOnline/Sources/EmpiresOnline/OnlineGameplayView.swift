@@ -41,6 +41,8 @@ public struct OnlineGameplayView: Codable, Sendable {
     public let viewer: PlayerID
     public let turnOwner: PlayerID?
     public let legalMoves: [GameMove]
+    /// Wire-compatible draft limits for the viewer's legal bank receipts.
+    /// The authority alone knows actual stock and validates the submitted bundle.
     public let bank: [Resource: Int]
     public let lastDiceRoll: Int?
     public let devCardDeckCount: Int
@@ -77,7 +79,7 @@ public struct OnlineGameplayView: Codable, Sendable {
         self.viewer = viewer
         self.turnOwner = turnOwner
         self.legalMoves = legalMoves
-        bank = state.bank
+        bank = Self.bankDraftLimits(for: legalMoves, ceiling: state.rules.bankPerResource)
         lastDiceRoll = state.lastDiceRoll
         devCardDeckCount = state.devCardDeck.count
         armyDeckCount = state.armyDeck.count
@@ -96,6 +98,13 @@ public struct OnlineGameplayView: Codable, Sendable {
         victoryPointTarget = state.victoryPointTarget
         longestRoadPlayer = state.longestRoadPlayer
         largestArmyPlayer = state.largestArmyPlayer
+    }
+
+    private static func bankDraftLimits(for moves: [GameMove], ceiling: Int) -> [Resource: Int] {
+        moves.reduce(into: [:]) { limits, move in
+            guard case .bankTrade(_, let get) = move else { return }
+            for resource in get.keys { limits[resource] = ceiling }
+        }
     }
 
     /// Drawing-only input for the existing board renderer. Action availability
