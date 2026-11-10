@@ -139,7 +139,8 @@ import Testing
         var state = GameSetup.newGame(board: BoardGenerator.standard(), seed: 912)
         let actor = state.players[0].id
         let target = try #require(state.board.tiles.map(\.coordinate).first { $0 != state.board.robberTile })
-        state.players[1].settlements.insert(try #require(HexGeometry.corners(of: target).first))
+        let vertex = try #require(state.board.corners(of: target).first)
+        state.players[1].settlements.insert(vertex)
         state.players[1].resources = [.lumber: 1]
         state.phase = .movingRobber(playerIndex: actor.index)
         state.robberMoverIndex = actor.index
